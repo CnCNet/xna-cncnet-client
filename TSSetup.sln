@@ -1,0 +1,27 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Express 2013 for Windows Desktop
+VisualStudioVersion = 12.0.40629.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TSSetup", "TSSetup\TSSetup.csproj", "{97458C1E-2E6C-4C5C-93C7-16A6712802E9}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{AF47799D-0B8A-4E86-A3A7-E80251DA7F22}"
+	ProjectSection(SolutionItems) = preProject
+		.nuget\packages.config = .nuget\packages.config
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x86 = Debug|x86
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{97458C1E-2E6C-4C5C-93C7-16A6712802E9}.Debug|x86.ActiveCfg = Debug|x86
+		{97458C1E-2E6C-4C5C-93C7-16A6712802E9}.Debug|x86.Build.0 = Debug|x86
+		{97458C1E-2E6C-4C5C-93C7-16A6712802E9}.Release|x86.ActiveCfg = Release|x86
+		{97458C1E-2E6C-4C5C-93C7-16A6712802E9}.Release|x86.Build.0 = Release|x86
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
