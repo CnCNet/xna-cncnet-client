@@ -334,6 +334,9 @@ namespace dtasetup
         {
             bool firstRun = MCDomainController.Instance().IsFirstRun();
 
+            if (MCDomainController.Instance().GetShortGameName() == "YR")
+                return;
+
             if (firstRun)
             {
                 MCDomainController.Instance().SetFirstRun();
