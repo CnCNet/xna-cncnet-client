@@ -38,6 +38,7 @@ namespace dtasetup.gui
 
         Color updateStatusForeColor;
         bool isYR = false;
+        bool versMismatch = false;
 
         List<PictureBox> extraPictureBoxes = new List<PictureBox>();
 
@@ -103,6 +104,7 @@ namespace dtasetup.gui
 
                 if (dr == System.Windows.Forms.DialogResult.OK)
                 {
+                    versMismatch = true;
                     VisitPage(StatisticsPageAddresses.GetUpdateStatsPageAddress());
                     CUpdater.DoVersionCheck();
                     new Thread(new ThreadStart(CUpdater.PerformUpdate)).Start();
@@ -355,6 +357,9 @@ namespace dtasetup.gui
             if (CUpdater.LocalFileInfos.Find(fi => fi.Name == "INI\\Default.ini") == null)
                 File.Delete(ProgramConstants.gamepath + "INI\\Default.ini");
 
+            if (isYR)
+                CUpdater.DoVersionCheck();
+
             this.Show();
         }
 
@@ -383,6 +388,12 @@ namespace dtasetup.gui
         private void btnExit_Click(object sender, EventArgs e)
         {
             Logger.Log("Exiting.");
+
+            if (isYR)
+            {
+                File.Delete(ProgramConstants.gamepath + "ddraw.dll");
+            }
+
             Environment.Exit(0);
         }
 
@@ -510,6 +521,9 @@ namespace dtasetup.gui
                         }
                     }
 
+                    if (versMismatch)
+                        return;
+
                     UpdateQueryForm uqf = new UpdateQueryForm(CUpdater.ServerGameVersion, CUpdater.UpdateSizeInKb);
 
                     DialogResult dr = DialogResult.OK;
@@ -525,7 +539,9 @@ namespace dtasetup.gui
                         this.Hide();
                         Thread thread = new Thread(new ThreadStart(CUpdater.PerformUpdate));
                         thread.Start();
-                        new UpdateForm().ShowDialog();
+                        UpdateForm uf = new UpdateForm();
+                        uf.ShowDialog();
+                        uf.Dispose();
                         this.Show();
                     }
                     else
@@ -581,6 +597,7 @@ namespace dtasetup.gui
             }
             else
             {
+                versMismatch = false;
                 new MsgBoxForm(string.Format("Error getting updates: " + ex.Message + Environment.NewLine +
                     "Please see the file Launcher.log for more details." + Environment.NewLine + Environment.NewLine +
                     "If you are connected to the Internet and your firewall isn't blocking" + Environment.NewLine +
@@ -628,6 +645,7 @@ namespace dtasetup.gui
                         lblUpdateStatus.Text = "An update is in progress...";
                         break;
                     case VersionState.UPTODATE:
+                        versMismatch = false;
                         lblUpdateStatus.Text = MainClientConstants.GAME_NAME_SHORT + " is up to date.";
                         if (isYR)
                             btnCnCNet.Enabled = true;

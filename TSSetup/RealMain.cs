@@ -24,6 +24,7 @@ namespace dtasetup
 
             File.Delete(MainClientConstants.gamepath + "mainclient.log");
             File.Delete(MainClientConstants.gamepath + "launchupdt.dat");
+            File.Delete(MainClientConstants.gamepath + "wsock32.dll");
 
             Logger.Log("***Logfile for " + MainClientConstants.GAME_NAME_LONG + " client***");
             Logger.Log("Client version: " + Application.ProductVersion);
