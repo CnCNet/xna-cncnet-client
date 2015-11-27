@@ -599,7 +599,7 @@ namespace dtasetup.gui
             {
                 versMismatch = false;
                 new MsgBoxForm(string.Format("Error getting updates: " + ex.Message + Environment.NewLine +
-                    "Please see the file Launcher.log for more details." + Environment.NewLine + Environment.NewLine +
+                    "Please see the file client.log for more details." + Environment.NewLine + Environment.NewLine +
                     "If you are connected to the Internet and your firewall isn't blocking" + Environment.NewLine +
                     "{0}, and the issue is reproducable, contact us at {1}",
                     CUpdater.CURRENT_LAUNCHER_NAME, MainClientConstants.SUPPORT_URL_SHORT),

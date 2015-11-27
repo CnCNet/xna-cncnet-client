@@ -73,6 +73,7 @@
             this.listView1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
+            this.listView1.BackColor = System.Drawing.Color.White;
             this.listView1.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.listView1.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
             this.columnHeader1,
@@ -93,12 +94,12 @@
             // columnHeader1
             // 
             this.columnHeader1.Text = "Save Game Name";
-            this.columnHeader1.Width = 426;
+            this.columnHeader1.Width = 417;
             // 
             // columnHeader2
             // 
             this.columnHeader2.Text = "Date and Time";
-            this.columnHeader2.Width = 100;
+            this.columnHeader2.Width = 123;
             // 
             // LoadMissionForm
             // 

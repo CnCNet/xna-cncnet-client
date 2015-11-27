@@ -187,6 +187,14 @@ namespace dtasetup.gui
                 sw.WriteLine();
                 sw.WriteLine();
                 sw.Close();
+
+                File.Delete(ProgramConstants.gamepath + "spawnmap.ini");
+                sw = new StreamWriter(ProgramConstants.gamepath + "spawnmap.ini");
+                sw.WriteLine("[Map]");
+                sw.WriteLine("Size=0,0,50,50");
+                sw.WriteLine("LocalSize=0,0,50,50");
+                sw.WriteLine();
+                sw.Close();
             }
 
             Logger.Log("About to launch main executable.");
