@@ -460,6 +460,9 @@ namespace dtasetup.gui
 
         private void btnOptions_Click(object sender, EventArgs e)
         {
+            if (CUpdater.UPDATEMIRRORS == null)
+                CUpdater.Initialize();
+
             new OptionsForm().ShowDialog();
             DomainController.Instance().ReloadSettings();
             int themeId = DomainController.Instance().GetSelectedThemeId();

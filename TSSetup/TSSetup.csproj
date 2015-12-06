@@ -1,0 +1,251 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{97458C1E-2E6C-4C5C-93C7-16A6712802E9}</ProjectGuid>
+    <OutputType>WinExe</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>dtasetup</RootNamespace>
+    <AssemblyName>TiberianSun</AssemblyName>
+    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+    <TargetFrameworkProfile>
+    </TargetFrameworkProfile>
+    <FileAlignment>512</FileAlignment>
+    <IsWebBootstrapper>false</IsWebBootstrapper>
+    <PublishUrl>publish\</PublishUrl>
+    <Install>true</Install>
+    <InstallFrom>Disk</InstallFrom>
+    <UpdateEnabled>false</UpdateEnabled>
+    <UpdateMode>Foreground</UpdateMode>
+    <UpdateInterval>7</UpdateInterval>
+    <UpdateIntervalUnits>Days</UpdateIntervalUnits>
+    <UpdatePeriodically>false</UpdatePeriodically>
+    <UpdateRequired>false</UpdateRequired>
+    <MapFileExtensions>false</MapFileExtensions>
+    <AutorunEnabled>true</AutorunEnabled>
+    <ApplicationRevision>0</ApplicationRevision>
+    <ApplicationVersion>1.0.0.0</ApplicationVersion>
+    <UseApplicationTrust>false</UseApplicationTrust>
+    <PublishWizardCompleted>true</PublishWizardCompleted>
+    <BootstrapperEnabled>true</BootstrapperEnabled>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
+    <PlatformTarget>x86</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>TRACE;DEBUG</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
+    <PlatformTarget>x86</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationIcon>clienticon.ico</ApplicationIcon>
+  </PropertyGroup>
+  <PropertyGroup>
+    <ManifestCertificateThumbprint>7D9F5AD6595A94B72145ABE05A7F43AEF032AB45</ManifestCertificateThumbprint>
+  </PropertyGroup>
+  <PropertyGroup>
+    <ManifestKeyFile>DTASetup_TemporaryKey.pfx</ManifestKeyFile>
+  </PropertyGroup>
+  <PropertyGroup>
+    <GenerateManifests>false</GenerateManifests>
+  </PropertyGroup>
+  <PropertyGroup>
+    <SignManifests>true</SignManifests>
+  </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject />
+  </PropertyGroup>
+  <PropertyGroup />
+  <PropertyGroup>
+    <TargetZone>LocalIntranet</TargetZone>
+  </PropertyGroup>
+  <PropertyGroup />
+  <PropertyGroup>
+    <ApplicationManifest>Properties\app.manifest</ApplicationManifest>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="ClientCore">
+      <HintPath>..\..\DTACnCNetClient\bin\Release\ClientCore.dll</HintPath>
+    </Reference>
+    <Reference Include="ClientGUI, Version=1.14.4.5, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\DTACnCNetClient\bin\Release\ClientGUI.dll</HintPath>
+    </Reference>
+    <Reference Include="DTAConfig">
+      <HintPath>..\..\DTAConfig\bin\Release\DTAConfig.dll</HintPath>
+    </Reference>
+    <Reference Include="DTAUpdater">
+      <HintPath>..\..\DTAUpdater\bin\Release\DTAUpdater.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Deployment" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Management" />
+    <Reference Include="System.Security" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="domain\cncnet5\CnCNetInfoController.cs" />
+    <Compile Include="domain\cncnet\CSVParser.cs" />
+    <Compile Include="domain\cncnet\JsonParser.cs" />
+    <Compile Include="domain\MCDomainController.cs" />
+    <Compile Include="domain\StatisticsPageAddresses.cs" />
+    <Compile Include="domain\SerialHandler.cs" />
+    <Compile Include="domain\Mission.cs" />
+    <Compile Include="domain\SavedGame.cs" />
+    <Compile Include="domain\ProcessControl.cs" />
+    <Compile Include="domain\MainClientConstants.cs" />
+    <Compile Include="domain\ScreenResolution.cs" />
+    <Compile Include="domain\ScreenResolutionOperations.cs" />
+    <Compile Include="domain\UserAgentHandler.cs" />
+    <Compile Include="gui\CampaignSelector.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="gui\CampaignSelector.Designer.cs">
+      <DependentUpon>CampaignSelector.cs</DependentUpon>
+    </Compile>
+    <Compile Include="gui\LimitedComboBox.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="gui\LoadMissionForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="gui\LoadMissionForm.Designer.cs">
+      <DependentUpon>LoadMissionForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="gui\MainMenu.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="gui\MainMenu.Designer.cs">
+      <DependentUpon>MainMenu.cs</DependentUpon>
+    </Compile>
+    <Compile Include="gui\MsgBoxForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="gui\MsgBoxForm.Designer.cs">
+      <DependentUpon>MsgBoxForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="gui\SplashScreen.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="gui\SplashScreen.Designer.cs">
+      <DependentUpon>SplashScreen.cs</DependentUpon>
+    </Compile>
+    <Compile Include="gui\UpdateForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="gui\UpdateForm.Designer.cs">
+      <DependentUpon>UpdateForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="gui\UpdateQueryForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="gui\UpdateQueryForm.Designer.cs">
+      <DependentUpon>UpdateQueryForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ObfuscationSettings.cs" />
+    <Compile Include="persistence\GameFileManagement.cs" />
+    <Compile Include="domain\FinalSunSettings.cs" />
+    <Compile Include="persistence\LanguageDllId.cs" />
+    <Compile Include="Program.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+    <Compile Include="RealMain.cs" />
+    <Compile Include="Startup.cs" />
+    <EmbeddedResource Include="gui\CampaignSelector.resx">
+      <DependentUpon>CampaignSelector.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="gui\LoadMissionForm.resx">
+      <DependentUpon>LoadMissionForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="gui\MainMenu.resx">
+      <DependentUpon>MainMenu.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="gui\MsgBoxForm.resx">
+      <DependentUpon>MsgBoxForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="gui\SplashScreen.resx">
+      <DependentUpon>SplashScreen.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="gui\UpdateForm.resx">
+      <DependentUpon>UpdateForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="gui\UpdateQueryForm.resx">
+      <DependentUpon>UpdateQueryForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <SubType>Designer</SubType>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <None Include="app.config" />
+    <None Include="Properties\app.manifest">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="Properties\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
+    <Compile Include="Properties\Settings.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Settings.settings</DependentUpon>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+    </Compile>
+    <None Include="Resources\Settings.ini" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\dtasetup.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="bin\Debug\" />
+  </ItemGroup>
+  <ItemGroup>
+    <BootstrapperPackage Include="Microsoft.Net.Client.3.5">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1 Client Profile</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.3.5.SP1">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Windows.Installer.3.1">
+      <Visible>False</Visible>
+      <ProductName>Windows Installer 3.1</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="clienticon.ico" />
+    <Content Include="Resources\Interop.IWshRuntimeLibrary.dll" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>
