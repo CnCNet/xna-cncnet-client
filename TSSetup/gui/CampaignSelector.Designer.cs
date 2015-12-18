@@ -49,12 +49,14 @@
             // 
             this.lbCampaignList.BackColor = System.Drawing.Color.Black;
             this.lbCampaignList.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.lbCampaignList.DrawMode = System.Windows.Forms.DrawMode.OwnerDrawVariable;
             this.lbCampaignList.ForeColor = System.Drawing.Color.LimeGreen;
             this.lbCampaignList.FormattingEnabled = true;
             this.lbCampaignList.Location = new System.Drawing.Point(15, 25);
             this.lbCampaignList.Name = "lbCampaignList";
             this.lbCampaignList.Size = new System.Drawing.Size(287, 171);
             this.lbCampaignList.TabIndex = 0;
+            this.lbCampaignList.DrawItem += new System.Windows.Forms.DrawItemEventHandler(this.lbCampaignList_DrawItem);
             this.lbCampaignList.SelectedIndexChanged += new System.EventHandler(this.lbCampaignList_SelectedIndexChanged);
             this.lbCampaignList.MouseDown += new System.Windows.Forms.MouseEventHandler(this.CampaignSelector_MouseDown);
             this.lbCampaignList.MouseMove += new System.Windows.Forms.MouseEventHandler(this.CampaignSelector_MouseMove);
@@ -208,7 +210,7 @@
             this.AcceptButton = this.btnLaunch;
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.None;
             this.CancelButton = this.btnCancel;
-            this.ClientSize = new System.Drawing.Size(317, 421);
+            this.ClientSize = new System.Drawing.Size(309, 421);
             this.ControlBox = false;
             this.Controls.Add(this.lblMissDescr);
             this.Controls.Add(this.lblEasy);

@@ -120,6 +120,12 @@
     <Compile Include="gui\CampaignSelector.Designer.cs">
       <DependentUpon>CampaignSelector.cs</DependentUpon>
     </Compile>
+    <Compile Include="gui\CheaterForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="gui\CheaterForm.Designer.cs">
+      <DependentUpon>CheaterForm.cs</DependentUpon>
+    </Compile>
     <Compile Include="gui\LimitedComboBox.cs">
       <SubType>Component</SubType>
     </Compile>
@@ -174,6 +180,9 @@
     <Compile Include="Startup.cs" />
     <EmbeddedResource Include="gui\CampaignSelector.resx">
       <DependentUpon>CampaignSelector.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="gui\CheaterForm.resx">
+      <DependentUpon>CheaterForm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="gui\LoadMissionForm.resx">
       <DependentUpon>LoadMissionForm.cs</DependentUpon>

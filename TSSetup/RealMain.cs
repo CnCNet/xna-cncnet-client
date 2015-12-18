@@ -24,7 +24,17 @@ namespace dtasetup
 
             File.Delete(MainClientConstants.gamepath + "mainclient.log");
             File.Delete(MainClientConstants.gamepath + "launchupdt.dat");
-            File.Delete(MainClientConstants.gamepath + "wsock32.dll");
+            try
+            {
+                File.Delete(MainClientConstants.gamepath + "wsock32.dll");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Deleting wsock32.dll failed! Please close any applications that could be using the file, and then start the client again." + Environment.NewLine + Environment.NewLine + 
+                    "Message: " + ex.Message,
+                    "CnCNet Client");
+                Environment.Exit(0);
+            }
 
             Logger.Log("***Logfile for " + MainClientConstants.GAME_NAME_LONG + " client***");
             Logger.Log("Client version: " + Application.ProductVersion);

@@ -12,6 +12,7 @@ using dtasetup.domain;
 using dtasetup.persistence;
 using ClientCore;
 using ClientGUI;
+using Updater;
 
 namespace dtasetup.gui
 {
@@ -32,6 +33,8 @@ namespace dtasetup.gui
 
         List<Mission> Missions;
 
+        Color cListBoxFocusColor;
+
         /// <summary>
         /// Sets up the form's theme, loads settings and initializes the battle list.
         /// </summary>
@@ -51,6 +54,8 @@ namespace dtasetup.gui
             btnLaunch.HoverSound = sPlayer;
             btnLaunch.ForeColor = btnCancel.ForeColor;
             lbCampaignList.ForeColor = btnCancel.ForeColor;
+
+            cListBoxFocusColor = SharedUILogic.GetColorFromString(DomainController.Instance().GetListBoxFocusColor());
 
             this.Font = Utilities.GetFont(DomainController.Instance().GetCommonFont());
             lbCampaignList.BackColor = Utilities.GetColorFromString(DomainController.Instance().GetUIAltBackgroundColor());
@@ -99,9 +104,9 @@ namespace dtasetup.gui
                     {
                         int cd = battle_ini.GetIntValue(battleSection, "CD", 0);
                         int side = battle_ini.GetIntValue(battleSection, "Side", 0);
-                        string scenario = battle_ini.GetStringValue(battleSection, "Scenario", "<NONE>");
+                        string scenario = battle_ini.GetStringValue(battleSection, "Scenario", String.Empty);
                         string guiName = battle_ini.GetStringValue(battleSection, "Description", "Undefined mission");
-                        string guiDescription = battle_ini.GetStringValue(battleSection, "LongDescription", "I'm lacking a description!!");
+                        string guiDescription = battle_ini.GetStringValue(battleSection, "LongDescription", String.Empty);
                         string finalMovie = battle_ini.GetStringValue(battleSection, "FinalMovie", "none");
                         bool requiredAddon = battle_ini.GetBooleanValue(battleSection, "RequiredAddon", false);
 
@@ -153,6 +158,14 @@ namespace dtasetup.gui
             {
                 new MsgBoxForm("Please select a proper mission.", "Invalid mission", MessageBoxButtons.OK).ShowDialog();
                 return;
+            }
+
+            if (CUpdater.IsVersionMismatch)
+            {
+                DialogResult dr = new CheaterForm().ShowDialog();
+
+                if (dr == System.Windows.Forms.DialogResult.No)
+                    return;
             }
 
             LaunchMission(mission.Scenario, mission.Side, mission.RequiredAddon);
@@ -265,6 +278,29 @@ namespace dtasetup.gui
             if (_Moving)
             {
                 _Moving = false;
+            }
+        }
+
+        private void lbCampaignList_DrawItem(object sender, DrawItemEventArgs e)
+        {
+            ListBox lb = (ListBox)sender;
+
+            if (e.Index > -1 && e.Index < lb.Items.Count)
+            {
+                if ((e.State & DrawItemState.Selected) == DrawItemState.Selected)
+                    e = new DrawItemEventArgs(e.Graphics,
+                                              e.Font,
+                                              e.Bounds,
+                                              e.Index,
+                                              e.State ^ DrawItemState.Selected,
+                                              e.ForeColor,
+                                              cListBoxFocusColor);
+
+                e.DrawBackground();
+                e.DrawFocusRectangle();
+
+                Color foreColor = lb.ForeColor;
+                e.Graphics.DrawString(lb.Items[e.Index].ToString(), e.Font, new SolidBrush(foreColor), e.Bounds);
             }
         }
     }
