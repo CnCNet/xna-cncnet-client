@@ -43,6 +43,7 @@
             this.btnMapEditor = new ClientGUI.SwitchingImageButton();
             this.pictureBox1 = new System.Windows.Forms.PictureBox();
             this.wbDataCollector = new System.Windows.Forms.WebBrowser();
+            this.btnLan = new ClientGUI.SwitchingImageButton();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
             this.pictureBox1.SuspendLayout();
             this.SuspendLayout();
@@ -278,6 +279,22 @@
             this.wbDataCollector.TabIndex = 91;
             this.wbDataCollector.Visible = false;
             // 
+            // btnLan
+            // 
+            this.btnLan.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.btnLan.BackColor = System.Drawing.Color.Transparent;
+            this.btnLan.DefaultImage = null;
+            this.btnLan.FlatAppearance.BorderSize = 0;
+            this.btnLan.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnLan.HoveredImage = null;
+            this.btnLan.HoverSound = null;
+            this.btnLan.Location = new System.Drawing.Point(12, 378);
+            this.btnLan.Name = "btnLan";
+            this.btnLan.Size = new System.Drawing.Size(640, 30);
+            this.btnLan.TabIndex = 92;
+            this.btnLan.UseVisualStyleBackColor = false;
+            this.btnLan.Click += new System.EventHandler(this.btnLan_Click);
+            // 
             // MainMenu
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -285,6 +302,7 @@
             this.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Center;
             this.ClientSize = new System.Drawing.Size(640, 400);
             this.ControlBox = false;
+            this.Controls.Add(this.btnLan);
             this.Controls.Add(this.wbDataCollector);
             this.Controls.Add(this.pictureBox1);
             this.DoubleBuffered = true;
@@ -321,5 +339,6 @@
         private ClientGUI.SwitchingImageButton btnMapEditor;
         private System.Windows.Forms.PictureBox pictureBox1;
         private System.Windows.Forms.WebBrowser wbDataCollector;
+        private ClientGUI.SwitchingImageButton btnLan;
     }
 }

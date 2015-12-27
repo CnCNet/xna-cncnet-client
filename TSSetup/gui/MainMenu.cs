@@ -146,6 +146,9 @@ namespace dtasetup.gui
             btnCnCNet.HoveredImage = SharedUILogic.LoadImage("MainMenu\\cncnet_c.png");
             btnCnCNet.RefreshSize();
             btnCnCNet.HoverSound = sPlayer;
+            btnLan.DefaultImage = SharedUILogic.LoadImage("MainMenu\\lan.png");
+            btnLan.HoveredImage = SharedUILogic.LoadImage("MainMenu\\lan_c.png");
+            btnLan.HoverSound = sPlayer;
             btnStatistics.DefaultImage = SharedUILogic.LoadImage("MainMenu\\statistics.png");
             btnStatistics.HoveredImage = SharedUILogic.LoadImage("MainMenu\\statistics_c.png");
             btnStatistics.RefreshSize();
@@ -361,6 +364,28 @@ namespace dtasetup.gui
                 CUpdater.DoVersionCheck();
 
             this.Show();
+        }
+
+        private void btnLan_Click(object sender, EventArgs e)
+        {
+            SaveSettings();
+
+            ProcessStartInfo startInfo = new ProcessStartInfo(MainClientConstants.gamepath + "cncnetclient.dat");
+            startInfo.Arguments = "\"-RESDIR=" + ProgramConstants.RESOURCES_DIR.Remove(ProgramConstants.RESOURCES_DIR.Length - 1) + "\"";
+            startInfo.Arguments = startInfo.Arguments + " -VER" + CUpdater.GameVersion + " -LAN";
+            startInfo.UseShellExecute = false;
+
+            Process clientProcess = new Process();
+            clientProcess.StartInfo = startInfo;
+
+            this.Hide();
+            clientProcess.Start();
+
+            clientProcess.WaitForExit();
+
+            this.Show();
+
+            MCDomainController.Instance().ReloadSettings();
         }
 
         private void btnSkirmish_Click(object sender, EventArgs e)

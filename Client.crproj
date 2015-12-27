@@ -1,4 +1,4 @@
-<project outputDir="C:\Omat tiedostot\Visual Studio 2013\Projects\TSSetup\TSSetup\bin\Release\Confused" baseDir="C:\Omat tiedostot\Visual Studio 2013\Projects\TSSetup\TSSetup\bin\Release" xmlns="http://confuser.codeplex.com">
+<project outputDir="C:\Users\Yleinen\Documents\Visual Studio 2013\Projects\TSSetup\TSSetup\bin\Release\Confused" baseDir="C:\Users\Yleinen\Documents\Visual Studio 2013\Projects\TSSetup\TSSetup\bin\Release" xmlns="http://confuser.codeplex.com">
   <rule pattern="true" preset="aggressive" inherit="false">
     <protection id="rename" />
     <protection id="anti ildasm" />
@@ -15,7 +15,11 @@
       <protection id="anti tamper" action="remove" />
     </rule>
   </module>
-  <module path="..\..\..\..\DTACnCNetClient\bin\Release\ClientGUI.dll" />
+  <module path="..\..\..\..\DTACnCNetClient\bin\Release\ClientGUI.dll">
+    <rule pattern="true" preset="minimum" inherit="false">
+      <protection id="ctrl flow" action="remove" />
+    </rule>
+  </module>
   <module path="..\..\..\..\DTACnCNetClient\bin\Release\ClientCore.dll" />
   <module path="..\..\..\..\DTACnCNetClient\bin\Release\DTACnCNetClient.exe" />
 </project>
