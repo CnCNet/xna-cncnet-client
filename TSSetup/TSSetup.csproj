@@ -126,6 +126,12 @@
     <Compile Include="gui\CheaterForm.Designer.cs">
       <DependentUpon>CheaterForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="gui\ExtrasForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="gui\ExtrasForm.Designer.cs">
+      <DependentUpon>ExtrasForm.cs</DependentUpon>
+    </Compile>
     <Compile Include="gui\LimitedComboBox.cs">
       <SubType>Component</SubType>
     </Compile>
@@ -183,6 +189,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="gui\CheaterForm.resx">
       <DependentUpon>CheaterForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="gui\ExtrasForm.resx">
+      <DependentUpon>ExtrasForm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="gui\LoadMissionForm.resx">
       <DependentUpon>LoadMissionForm.cs</DependentUpon>

@@ -173,6 +173,10 @@ namespace dtasetup.gui
             btnCredits.HoveredImage = SharedUILogic.LoadImage("MainMenu\\credits_c.png");
             btnCredits.RefreshSize();
             btnCredits.HoverSound = sPlayer;
+            btnExtras.DefaultImage = SharedUILogic.LoadImage("MainMenu\\extras.png");
+            btnExtras.HoveredImage = SharedUILogic.LoadImage("MainMenu\\extras_c.png");
+            btnExtras.RefreshSize();
+            btnExtras.HoverSound = sPlayer;
 
             this.Icon = Icon.ExtractAssociatedIcon(ProgramConstants.gamepath + ProgramConstants.RESOURCES_DIR + "mainclienticon.ico");
 
@@ -515,6 +519,13 @@ namespace dtasetup.gui
             }
             
             MCDomainController.Instance().ReloadSettings();
+        }
+
+        private void btnExtras_Click(object sender, EventArgs e)
+        {
+            ExtrasForm ef = new ExtrasForm();
+            ef.ShowDialog();
+            ef.Dispose();
         }
 
         private void Updater_FileIdentifiersUpdated()

@@ -44,6 +44,7 @@
             this.pictureBox1 = new System.Windows.Forms.PictureBox();
             this.wbDataCollector = new System.Windows.Forms.WebBrowser();
             this.btnLan = new ClientGUI.SwitchingImageButton();
+            this.btnExtras = new ClientGUI.SwitchingImageButton();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
             this.pictureBox1.SuspendLayout();
             this.SuspendLayout();
@@ -295,6 +296,22 @@
             this.btnLan.UseVisualStyleBackColor = false;
             this.btnLan.Click += new System.EventHandler(this.btnLan_Click);
             // 
+            // btnExtras
+            // 
+            this.btnExtras.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.btnExtras.BackColor = System.Drawing.Color.Transparent;
+            this.btnExtras.DefaultImage = null;
+            this.btnExtras.FlatAppearance.BorderSize = 0;
+            this.btnExtras.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnExtras.HoveredImage = null;
+            this.btnExtras.HoverSound = null;
+            this.btnExtras.Location = new System.Drawing.Point(15, 326);
+            this.btnExtras.Name = "btnExtras";
+            this.btnExtras.Size = new System.Drawing.Size(640, 30);
+            this.btnExtras.TabIndex = 93;
+            this.btnExtras.UseVisualStyleBackColor = false;
+            this.btnExtras.Click += new System.EventHandler(this.btnExtras_Click);
+            // 
             // MainMenu
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -302,6 +319,7 @@
             this.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Center;
             this.ClientSize = new System.Drawing.Size(640, 400);
             this.ControlBox = false;
+            this.Controls.Add(this.btnExtras);
             this.Controls.Add(this.btnLan);
             this.Controls.Add(this.wbDataCollector);
             this.Controls.Add(this.pictureBox1);
@@ -340,5 +358,6 @@
         private System.Windows.Forms.PictureBox pictureBox1;
         private System.Windows.Forms.WebBrowser wbDataCollector;
         private ClientGUI.SwitchingImageButton btnLan;
+        private ClientGUI.SwitchingImageButton btnExtras;
     }
 }

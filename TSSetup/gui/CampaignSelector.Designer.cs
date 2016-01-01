@@ -210,7 +210,7 @@
             this.AcceptButton = this.btnLaunch;
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.None;
             this.CancelButton = this.btnCancel;
-            this.ClientSize = new System.Drawing.Size(309, 421);
+            this.ClientSize = new System.Drawing.Size(305, 427);
             this.ControlBox = false;
             this.Controls.Add(this.lblMissDescr);
             this.Controls.Add(this.lblEasy);
