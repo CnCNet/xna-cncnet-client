@@ -64,7 +64,7 @@
     <GenerateManifests>false</GenerateManifests>
   </PropertyGroup>
   <PropertyGroup>
-    <SignManifests>true</SignManifests>
+    <SignManifests>false</SignManifests>
   </PropertyGroup>
   <PropertyGroup>
     <StartupObject />
@@ -79,17 +79,17 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="ClientCore">
-      <HintPath>..\..\DTACnCNetClient\bin\Release\ClientCore.dll</HintPath>
+      <HintPath>..\..\cncnetclient\ClientCore\bin\Release\ClientCore.dll</HintPath>
     </Reference>
     <Reference Include="ClientGUI, Version=1.14.4.5, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\DTACnCNetClient\bin\Release\ClientGUI.dll</HintPath>
+      <HintPath>..\..\cncnetclient\ClientGUI\bin\Release\ClientGUI.dll</HintPath>
     </Reference>
     <Reference Include="DTAConfig">
-      <HintPath>..\..\DTAConfig\bin\Release\DTAConfig.dll</HintPath>
+      <HintPath>..\..\cncnetclient\Resources\Binaries\DTAConfig.dll</HintPath>
     </Reference>
     <Reference Include="DTAUpdater">
-      <HintPath>..\..\DTAUpdater\bin\Release\DTAUpdater.dll</HintPath>
+      <HintPath>..\..\cncnetclient\Resources\Binaries\DTAUpdater.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />

@@ -16,7 +16,7 @@ namespace dtasetup.domain.cncnet5
             {
                 WebClient client = new WebClient();
 
-                Stream data = client.OpenRead("http://cncnet.org/live-status");
+                Stream data = client.OpenRead("http://api.cncnet.org/status");
                 StreamReader reader = new StreamReader(data);
                 string xml = reader.ReadToEnd();
 
