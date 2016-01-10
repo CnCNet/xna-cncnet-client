@@ -22,7 +22,7 @@ using ClientGUI;
 
 namespace dtasetup.gui
 {
-    public partial class MainMenu : Form
+    public partial class MainMenu : MovableForm
     {
         private delegate void NoParamCallback();
         private delegate void SetExceptionCallback(Exception ex);
@@ -56,8 +56,6 @@ namespace dtasetup.gui
 
             ApplyTheme();
 
-            SetStyle();
-
             Thread thread = new Thread(new ThreadStart(ScheduleCnCNetStatusUpdating));
             thread.Start();
 
@@ -70,8 +68,6 @@ namespace dtasetup.gui
                 lblUpdateStatus.Enabled = false;
                 return;
             }
-
-            updateStatusForeColor = lblUpdateStatus.ForeColor;
 
             CUpdater.OnVersionStateChanged += new CUpdater.NoParamEventHandler(Updater_OnVersionStateChanged);
             CUpdater.OnUpdateFailed += new CUpdater.SetExceptionCallback(Updater_OnUpdateFailed);
@@ -186,133 +182,11 @@ namespace dtasetup.gui
                 pictureBox1.Image = Utilities.LoadImageFromFile(ProgramConstants.gamepath + ProgramConstants.RESOURCES_DIR + "mainmenuanim.gif");
         }
 
-        /// <summary>
-        /// Initializes the visual style of the main menu.
-        /// </summary>
-        private void SetStyle()
+        protected override void OnShown(EventArgs e)
         {
-            IniFile clientThemeIni = new IniFile(MainClientConstants.gamepath + ProgramConstants.RESOURCES_DIR + "MainMenu.ini");
+            base.OnShown(e);
 
-            string pbSectionName = "ExtraPictureBoxes";
-
-            List<string> pbKeys = clientThemeIni.GetSectionKeys(pbSectionName);
-
-            if (pbKeys != null)
-            {
-                foreach (string keyName in pbKeys)
-                {
-                    string name = clientThemeIni.GetStringValue(pbSectionName, keyName, null);
-
-                    if (name == null)
-                        throw new InvalidDataException("MainMenu.ini: Invalid data in section " + pbSectionName);
-
-                    PictureBox pb = new PictureBox();
-                    pb.Name = name;
-                    pb.BorderStyle = BorderStyle.None;
-                    pb.BackColor = Color.Transparent;
-                    this.pictureBox1.Controls.Add(pb);
-                    extraPictureBoxes.Add(pb);
-                }
-            }
-
-            SetControlStyle(clientThemeIni, this);
-        }
-
-        /// <summary>
-        /// Sets the visual style of a control and (recursively) its child controls.
-        /// </summary>
-        /// <param name="iniFile">The INI file that contains information about the controls' styles.</param>
-        /// <param name="control">The control that should be styled.</param>
-        private void SetControlStyle(IniFile iniFile, Control control)
-        {
-            List<string> sections = iniFile.GetSections();
-
-            if (sections.Contains(control.Name))
-            {
-                List<string> keys = iniFile.GetSectionKeys(control.Name);
-
-                foreach (string key in keys)
-                {
-                    string keyValue = iniFile.GetStringValue(control.Name, key, String.Empty);
-
-                    if (keyValue == String.Empty)
-                        continue;
-
-                    switch (key)
-                    {
-                        case "Font":
-                            control.Font = Utilities.GetFont(keyValue);
-                            break;
-                        case "ForeColor":
-                            control.ForeColor = Utilities.GetColorFromString(keyValue);
-                            break;
-                        case "BackColor":
-                            control.BackColor = Utilities.GetColorFromString(keyValue);
-                            break;
-                        case "Size":
-                            string[] sizeArray = keyValue.Split(',');
-                            control.Size = new Size(Convert.ToInt32(sizeArray[0]), Convert.ToInt32(sizeArray[1]));
-                            break;
-                        case "Location":
-                            string[] locationArray = keyValue.Split(',');
-                            control.Location = new Point(Convert.ToInt32(locationArray[0]), Convert.ToInt32(locationArray[1]));
-                            break;
-                        case "Text":
-                            control.Text = keyValue.Replace("@", Environment.NewLine);
-                            break;
-                        case "BorderStyle":
-                            BorderStyle bs = BorderStyle.None;
-
-                            if (keyValue == "FixedSingle")
-                                bs = BorderStyle.FixedSingle;
-                            else if (keyValue == "Fixed3D")
-                                bs = BorderStyle.Fixed3D;
-                            else if (keyValue == "None")
-                                bs = BorderStyle.None;
-
-                            if (control is Panel)
-                            {
-                                ((Panel)control).BorderStyle = bs;
-                            }
-                            else if (control is PictureBox)
-                            {
-                                ((PictureBox)control).BorderStyle = bs;
-                            }
-                            else if (control is Label)
-                            {
-                                ((Label)control).BorderStyle = bs;
-                                ((Label)control).AutoSize = true;
-                            }
-                            else
-                                throw new InvalidDataException("Invalid BackgroundImage key for control " + control.Name + " (key valid for Panels and PictureBoxes only)");
-                            break;
-                        case "BackgroundImage":
-                            string imagePath = "MainMenu\\" + keyValue;
-
-                            Image image = SharedUILogic.LoadImage(imagePath);
-
-                            if (control is Panel)
-                            {
-                                ((Panel)control).BackgroundImage = image;
-                            }
-                            else if (control is PictureBox)
-                            {
-                                ((PictureBox)control).Image = image;
-
-                                control.Size = image.Size;
-                            }
-                            else
-                                throw new InvalidDataException("Invalid BackgroundImage key for control " + control.Name + " (key valid for Panels and PictureBoxes only)");
-                            break;
-                        case "Visible":
-                            control.Visible = Convert.ToBoolean(Convert.ToInt32(keyValue));
-                            break;
-                    }
-                }
-            }
-
-            foreach (Control c in control.Controls)
-                SetControlStyle(iniFile, c);
+            updateStatusForeColor = lblUpdateStatus.ForeColor;
         }
 
         private void MainMenu_FormClosing(object sender, System.Windows.Forms.FormClosingEventArgs e)
@@ -509,8 +383,9 @@ namespace dtasetup.gui
 
                 ProgramConstants.RESOURCES_DIR = resDir;
                 DomainController.Instance().ReloadSettings();
-                SetStyle();
                 ApplyTheme();
+                Reinitialize();
+                SharedUILogic.SetControlStyle(new IniFile(ProgramConstants.gamepath + ProgramConstants.RESOURCES_DIR + "MainMenu.ini"), this);
 
                 if (File.Exists(ProgramConstants.gamepath + ProgramConstants.RESOURCES_DIR + "mainmenuanim.gif"))
                     pictureBox1.Image = Utilities.LoadImageFromFile(ProgramConstants.gamepath + ProgramConstants.RESOURCES_DIR + "mainmenuanim.gif");
@@ -803,37 +678,6 @@ namespace dtasetup.gui
             VisitPage(StatisticsPageAddresses.GetUpdateStatsPageAddress());
             Thread thread = new Thread(new ThreadStart(CUpdater.DoVersionCheck));
             thread.Start();
-        }
-
-        // Code for handling moving of the window with custom borders, added 13. 12. 2011
-        // http://stackoverflow.com/questions/302680/custom-dialog-with-a-text-field-in-winmobile#305732
-
-        private bool _Moving = false;
-        private Point _Offset;
-
-        private void MainMenu_MouseDown(object sender, MouseEventArgs e)
-        {
-            _Moving = true;
-            _Offset = new Point(e.X, e.Y);
-        }
-
-        private void MainMenu_MouseMove(object sender, MouseEventArgs e)
-        {
-            if (_Moving)
-            {
-                Point newlocation = this.Location;
-                newlocation.X += e.X - _Offset.X;
-                newlocation.Y += e.Y - _Offset.Y;
-                this.Location = newlocation;
-            }
-        }
-
-        private void MainMenu_MouseUp(object sender, MouseEventArgs e)
-        {
-            if (_Moving)
-            {
-                _Moving = false;
-            }
         }
 
         private void HandleExcept(object sender, UnhandledExceptionEventArgs e)

@@ -58,9 +58,6 @@
             this.lbCampaignList.TabIndex = 0;
             this.lbCampaignList.DrawItem += new System.Windows.Forms.DrawItemEventHandler(this.lbCampaignList_DrawItem);
             this.lbCampaignList.SelectedIndexChanged += new System.EventHandler(this.lbCampaignList_SelectedIndexChanged);
-            this.lbCampaignList.MouseDown += new System.Windows.Forms.MouseEventHandler(this.CampaignSelector_MouseDown);
-            this.lbCampaignList.MouseMove += new System.Windows.Forms.MouseEventHandler(this.CampaignSelector_MouseMove);
-            this.lbCampaignList.MouseUp += new System.Windows.Forms.MouseEventHandler(this.CampaignSelector_MouseUp);
             // 
             // lblSelectCampaign
             // 
@@ -71,9 +68,6 @@
             this.lblSelectCampaign.Size = new System.Drawing.Size(50, 13);
             this.lblSelectCampaign.TabIndex = 1;
             this.lblSelectCampaign.Text = "Missions:";
-            this.lblSelectCampaign.MouseDown += new System.Windows.Forms.MouseEventHandler(this.CampaignSelector_MouseDown);
-            this.lblSelectCampaign.MouseMove += new System.Windows.Forms.MouseEventHandler(this.CampaignSelector_MouseMove);
-            this.lblSelectCampaign.MouseUp += new System.Windows.Forms.MouseEventHandler(this.CampaignSelector_MouseUp);
             // 
             // lblMissionDescription
             // 
@@ -83,9 +77,6 @@
             this.lblMissionDescription.Name = "lblMissionDescription";
             this.lblMissionDescription.Size = new System.Drawing.Size(0, 13);
             this.lblMissionDescription.TabIndex = 2;
-            this.lblMissionDescription.MouseDown += new System.Windows.Forms.MouseEventHandler(this.CampaignSelector_MouseDown);
-            this.lblMissionDescription.MouseMove += new System.Windows.Forms.MouseEventHandler(this.CampaignSelector_MouseMove);
-            this.lblMissionDescription.MouseUp += new System.Windows.Forms.MouseEventHandler(this.CampaignSelector_MouseUp);
             // 
             // lblSelectDifficulty
             // 
@@ -96,9 +87,6 @@
             this.lblSelectDifficulty.Size = new System.Drawing.Size(79, 13);
             this.lblSelectDifficulty.TabIndex = 4;
             this.lblSelectDifficulty.Text = "Difficulty Level:";
-            this.lblSelectDifficulty.MouseDown += new System.Windows.Forms.MouseEventHandler(this.CampaignSelector_MouseDown);
-            this.lblSelectDifficulty.MouseMove += new System.Windows.Forms.MouseEventHandler(this.CampaignSelector_MouseMove);
-            this.lblSelectDifficulty.MouseUp += new System.Windows.Forms.MouseEventHandler(this.CampaignSelector_MouseUp);
             // 
             // btnLaunch
             // 
@@ -161,9 +149,6 @@
             this.lblMedium.Size = new System.Drawing.Size(44, 13);
             this.lblMedium.TabIndex = 7;
             this.lblMedium.Text = "Medium";
-            this.lblMedium.MouseDown += new System.Windows.Forms.MouseEventHandler(this.CampaignSelector_MouseDown);
-            this.lblMedium.MouseMove += new System.Windows.Forms.MouseEventHandler(this.CampaignSelector_MouseMove);
-            this.lblMedium.MouseUp += new System.Windows.Forms.MouseEventHandler(this.CampaignSelector_MouseUp);
             // 
             // panel1
             // 
@@ -210,7 +195,7 @@
             this.AcceptButton = this.btnLaunch;
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.None;
             this.CancelButton = this.btnCancel;
-            this.ClientSize = new System.Drawing.Size(305, 427);
+            this.ClientSize = new System.Drawing.Size(301, 423);
             this.ControlBox = false;
             this.Controls.Add(this.lblMissDescr);
             this.Controls.Add(this.lblEasy);
@@ -226,15 +211,14 @@
             this.Controls.Add(this.lbCampaignList);
             this.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(185)))), ((int)(((byte)(0)))));
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
+            this.MaximizeBox = false;
+            this.MinimizeBox = false;
             this.Name = "CampaignSelector";
             this.ShowIcon = false;
             this.ShowInTaskbar = false;
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "Select Mission";
             this.Load += new System.EventHandler(this.CampaignSelector_Load);
-            this.MouseDown += new System.Windows.Forms.MouseEventHandler(this.CampaignSelector_MouseDown);
-            this.MouseMove += new System.Windows.Forms.MouseEventHandler(this.CampaignSelector_MouseMove);
-            this.MouseUp += new System.Windows.Forms.MouseEventHandler(this.CampaignSelector_MouseUp);
             ((System.ComponentModel.ISupportInitialize)(this.tbDifficultyLevel)).EndInit();
             this.panel1.ResumeLayout(false);
             this.panel1.PerformLayout();

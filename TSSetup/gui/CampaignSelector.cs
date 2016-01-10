@@ -19,7 +19,7 @@ namespace dtasetup.gui
     /// <summary>
     /// A form for selecting and launching campaigns and missions.
     /// </summary>
-    public partial class CampaignSelector : Form
+    public partial class CampaignSelector : MovableForm
     {
         /// <summary>
         /// Creates a new instance of the form.
@@ -248,37 +248,6 @@ namespace dtasetup.gui
             }
 
             this.DialogResult = System.Windows.Forms.DialogResult.OK;
-        }
-
-        // Code for handling moving of the window with custom borders, added 13. 12. 2011
-        // http://stackoverflow.com/questions/302680/custom-dialog-with-a-text-field-in-winmobile#305732
-
-        private bool _Moving = false;
-        private Point _Offset;
-
-        private void CampaignSelector_MouseDown(object sender, MouseEventArgs e)
-        {
-            _Moving = true;
-            _Offset = new Point(e.X, e.Y);
-        }
-
-        private void CampaignSelector_MouseMove(object sender, MouseEventArgs e)
-        {
-            if (_Moving)
-            {
-                Point newlocation = this.Location;
-                newlocation.X += e.X - _Offset.X;
-                newlocation.Y += e.Y - _Offset.Y;
-                this.Location = newlocation;
-            }
-        }
-
-        private void CampaignSelector_MouseUp(object sender, MouseEventArgs e)
-        {
-            if (_Moving)
-            {
-                _Moving = false;
-            }
         }
 
         private void lbCampaignList_DrawItem(object sender, DrawItemEventArgs e)

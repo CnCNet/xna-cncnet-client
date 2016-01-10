@@ -48,9 +48,6 @@
             this.progressBar1.Name = "progressBar1";
             this.progressBar1.Size = new System.Drawing.Size(428, 23);
             this.progressBar1.TabIndex = 0;
-            this.progressBar1.MouseDown += new System.Windows.Forms.MouseEventHandler(this.UpdateForm_MouseDown);
-            this.progressBar1.MouseMove += new System.Windows.Forms.MouseEventHandler(this.UpdateForm_MouseMove);
-            this.progressBar1.MouseUp += new System.Windows.Forms.MouseEventHandler(this.UpdateForm_MouseUp);
             // 
             // progressBar2
             // 
@@ -60,9 +57,6 @@
             this.progressBar2.Name = "progressBar2";
             this.progressBar2.Size = new System.Drawing.Size(428, 23);
             this.progressBar2.TabIndex = 1;
-            this.progressBar2.MouseDown += new System.Windows.Forms.MouseEventHandler(this.UpdateForm_MouseDown);
-            this.progressBar2.MouseMove += new System.Windows.Forms.MouseEventHandler(this.UpdateForm_MouseMove);
-            this.progressBar2.MouseUp += new System.Windows.Forms.MouseEventHandler(this.UpdateForm_MouseUp);
             // 
             // lblFileProgress
             // 
@@ -74,9 +68,6 @@
             this.lblFileProgress.Size = new System.Drawing.Size(172, 13);
             this.lblFileProgress.TabIndex = 3;
             this.lblFileProgress.Text = "Progress percentage of current file:";
-            this.lblFileProgress.MouseDown += new System.Windows.Forms.MouseEventHandler(this.UpdateForm_MouseDown);
-            this.lblFileProgress.MouseMove += new System.Windows.Forms.MouseEventHandler(this.UpdateForm_MouseMove);
-            this.lblFileProgress.MouseUp += new System.Windows.Forms.MouseEventHandler(this.UpdateForm_MouseUp);
             // 
             // lblTotalProgress
             // 
@@ -88,9 +79,6 @@
             this.lblTotalProgress.Size = new System.Drawing.Size(134, 13);
             this.lblTotalProgress.TabIndex = 4;
             this.lblTotalProgress.Text = "Total progress percentage:";
-            this.lblTotalProgress.MouseDown += new System.Windows.Forms.MouseEventHandler(this.UpdateForm_MouseDown);
-            this.lblTotalProgress.MouseMove += new System.Windows.Forms.MouseEventHandler(this.UpdateForm_MouseMove);
-            this.lblTotalProgress.MouseUp += new System.Windows.Forms.MouseEventHandler(this.UpdateForm_MouseUp);
             // 
             // lblFileProgressValue
             // 
@@ -102,9 +90,6 @@
             this.lblFileProgressValue.Size = new System.Drawing.Size(33, 13);
             this.lblFileProgressValue.TabIndex = 5;
             this.lblFileProgressValue.Text = "100%";
-            this.lblFileProgressValue.MouseDown += new System.Windows.Forms.MouseEventHandler(this.UpdateForm_MouseDown);
-            this.lblFileProgressValue.MouseMove += new System.Windows.Forms.MouseEventHandler(this.UpdateForm_MouseMove);
-            this.lblFileProgressValue.MouseUp += new System.Windows.Forms.MouseEventHandler(this.UpdateForm_MouseUp);
             // 
             // lblTotalProgressValue
             // 
@@ -116,9 +101,6 @@
             this.lblTotalProgressValue.Size = new System.Drawing.Size(33, 13);
             this.lblTotalProgressValue.TabIndex = 6;
             this.lblTotalProgressValue.Text = "100%";
-            this.lblTotalProgressValue.MouseDown += new System.Windows.Forms.MouseEventHandler(this.UpdateForm_MouseDown);
-            this.lblTotalProgressValue.MouseMove += new System.Windows.Forms.MouseEventHandler(this.UpdateForm_MouseMove);
-            this.lblTotalProgressValue.MouseUp += new System.Windows.Forms.MouseEventHandler(this.UpdateForm_MouseUp);
             // 
             // lblUpdateDescription
             // 
@@ -130,9 +112,6 @@
             this.lblUpdateDescription.Size = new System.Drawing.Size(273, 65);
             this.lblUpdateDescription.TabIndex = 7;
             this.lblUpdateDescription.Text = resources.GetString("lblUpdateDescription.Text");
-            this.lblUpdateDescription.MouseDown += new System.Windows.Forms.MouseEventHandler(this.UpdateForm_MouseDown);
-            this.lblUpdateDescription.MouseMove += new System.Windows.Forms.MouseEventHandler(this.UpdateForm_MouseMove);
-            this.lblUpdateDescription.MouseUp += new System.Windows.Forms.MouseEventHandler(this.UpdateForm_MouseUp);
             // 
             // btnCancel
             // 
@@ -160,9 +139,6 @@
             this.lblStatusText.Size = new System.Drawing.Size(99, 13);
             this.lblStatusText.TabIndex = 9;
             this.lblStatusText.Text = "Downloading files...";
-            this.lblStatusText.MouseDown += new System.Windows.Forms.MouseEventHandler(this.UpdateForm_MouseDown);
-            this.lblStatusText.MouseMove += new System.Windows.Forms.MouseEventHandler(this.UpdateForm_MouseMove);
-            this.lblStatusText.MouseUp += new System.Windows.Forms.MouseEventHandler(this.UpdateForm_MouseUp);
             // 
             // lblCurrFileName
             // 
@@ -174,9 +150,6 @@
             this.lblCurrFileName.Size = new System.Drawing.Size(60, 13);
             this.lblCurrFileName.TabIndex = 10;
             this.lblCurrFileName.Text = "Current file:";
-            this.lblCurrFileName.MouseDown += new System.Windows.Forms.MouseEventHandler(this.UpdateForm_MouseDown);
-            this.lblCurrFileName.MouseMove += new System.Windows.Forms.MouseEventHandler(this.UpdateForm_MouseMove);
-            this.lblCurrFileName.MouseUp += new System.Windows.Forms.MouseEventHandler(this.UpdateForm_MouseUp);
             // 
             // UpdateForm
             // 
@@ -195,13 +168,12 @@
             this.Controls.Add(this.progressBar1);
             this.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(185)))), ((int)(((byte)(0)))));
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
+            this.MaximizeBox = false;
+            this.MinimizeBox = false;
             this.Name = "UpdateForm";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "TS Updater";
             this.Load += new System.EventHandler(this.UpdateForm_Load);
-            this.MouseDown += new System.Windows.Forms.MouseEventHandler(this.UpdateForm_MouseDown);
-            this.MouseMove += new System.Windows.Forms.MouseEventHandler(this.UpdateForm_MouseMove);
-            this.MouseUp += new System.Windows.Forms.MouseEventHandler(this.UpdateForm_MouseUp);
             this.ResumeLayout(false);
             this.PerformLayout();
 

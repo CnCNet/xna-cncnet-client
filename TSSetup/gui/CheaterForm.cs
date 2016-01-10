@@ -12,7 +12,7 @@ using ClientGUI;
 
 namespace dtasetup.gui
 {
-    public partial class CheaterForm : Form
+    public partial class CheaterForm : MovableForm
     {
         public CheaterForm()
         {

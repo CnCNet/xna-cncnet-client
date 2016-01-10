@@ -19,7 +19,7 @@ namespace dtasetup.gui
     /// A form that informs the user about an update and queries if they 
     /// want the client to perform the update.
     /// </summary>
-    public partial class UpdateQueryForm : Form
+    public partial class UpdateQueryForm : MovableForm
     {
         string NewGameVersion = "";
 
@@ -73,37 +73,6 @@ namespace dtasetup.gui
         private void ShowChangelog()
         {
             Process.Start(MainClientConstants.CHANGELOG_URL + '#' + NewGameVersion);
-        }
-
-        // Code for handling moving of the window with custom borders, added 13. 12. 2011
-        // http://stackoverflow.com/questions/302680/custom-dialog-with-a-text-field-in-winmobile#305732
-
-        private bool _Moving = false;
-        private Point _Offset;
-
-        private void UpdateQueryForm_MouseDown(object sender, MouseEventArgs e)
-        {
-            _Moving = true;
-            _Offset = new Point(e.X, e.Y);
-        }
-
-        private void UpdateQueryForm_MouseMove(object sender, MouseEventArgs e)
-        {
-            if (_Moving)
-            {
-                Point newlocation = this.Location;
-                newlocation.X += e.X - _Offset.X;
-                newlocation.Y += e.Y - _Offset.Y;
-                this.Location = newlocation;
-            }
-        }
-
-        private void UpdateQueryForm_MouseUp(object sender, MouseEventArgs e)
-        {
-            if (_Moving)
-            {
-                _Moving = false;
-            }
         }
     }
 }

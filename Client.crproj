@@ -13,6 +13,8 @@
     <rule pattern="true" preset="maximum" inherit="false">
       <protection id="resources" action="remove" />
       <protection id="anti tamper" action="remove" />
+      <protection id="invalid metadata" />
+      <protection id="constants" action="remove" />
     </rule>
   </module>
   <module path="..\..\..\..\DTACnCNetClient\bin\Release\ClientGUI.dll">

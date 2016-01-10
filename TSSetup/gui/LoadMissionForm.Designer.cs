@@ -114,13 +114,13 @@
             this.Controls.Add(this.btnLaunch);
             this.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(185)))), ((int)(((byte)(0)))));
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
+            this.MaximizeBox = false;
+            this.MinimizeBox = false;
             this.Name = "LoadMissionForm";
+            this.ShowInTaskbar = false;
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "Load Saved Game";
             this.Load += new System.EventHandler(this.LoadMissionForm_Load);
-            this.MouseDown += new System.Windows.Forms.MouseEventHandler(this.LoadMissionForm_MouseDown);
-            this.MouseMove += new System.Windows.Forms.MouseEventHandler(this.LoadMissionForm_MouseMove);
-            this.MouseUp += new System.Windows.Forms.MouseEventHandler(this.LoadMissionForm_MouseUp);
             this.ResumeLayout(false);
 
         }

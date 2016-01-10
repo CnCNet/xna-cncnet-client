@@ -89,13 +89,15 @@
             // CheaterForm
             // 
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.None;
-            this.ClientSize = new System.Drawing.Size(317, 301);
+            this.ClientSize = new System.Drawing.Size(313, 297);
             this.ControlBox = false;
             this.Controls.Add(this.btnCancel);
             this.Controls.Add(this.btnYes);
             this.Controls.Add(this.lblDescription);
             this.Controls.Add(this.pbFacepalm);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
+            this.MaximizeBox = false;
+            this.MinimizeBox = false;
             this.Name = "CheaterForm";
             this.ShowIcon = false;
             this.ShowInTaskbar = false;

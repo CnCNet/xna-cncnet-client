@@ -14,7 +14,7 @@ using ClientGUI;
 
 namespace dtasetup.gui
 {
-    public partial class LoadMissionForm : Form
+    public partial class LoadMissionForm : MovableForm
     {
         public LoadMissionForm()
         {
@@ -230,37 +230,6 @@ namespace dtasetup.gui
         private void btnCancel_Click(object sender, EventArgs e)
         {
             this.Close();
-        }
-
-        // Code for handling moving of the window with custom borders, added 13. 12. 2011
-        // http://stackoverflow.com/questions/302680/custom-dialog-with-a-text-field-in-winmobile#305732
-
-        private bool _Moving = false;
-        private Point _Offset;
-
-        private void LoadMissionForm_MouseDown(object sender, MouseEventArgs e)
-        {
-            _Moving = true;
-            _Offset = new Point(e.X, e.Y);
-        }
-
-        private void LoadMissionForm_MouseMove(object sender, MouseEventArgs e)
-        {
-            if (_Moving)
-            {
-                Point newlocation = this.Location;
-                newlocation.X += e.X - _Offset.X;
-                newlocation.Y += e.Y - _Offset.Y;
-                this.Location = newlocation;
-            }
-        }
-
-        private void LoadMissionForm_MouseUp(object sender, MouseEventArgs e)
-        {
-            if (_Moving)
-            {
-                _Moving = false;
-            }
         }
 
         private void lbSavedGames_DoubleClick(object sender, EventArgs e)

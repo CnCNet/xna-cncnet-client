@@ -44,9 +44,6 @@
             this.lblUpdateInfo.Size = new System.Drawing.Size(181, 26);
             this.lblUpdateInfo.TabIndex = 1;
             this.lblUpdateInfo.Text = "Version {0} is available for download.\r\nDo you wish to install it?";
-            this.lblUpdateInfo.MouseDown += new System.Windows.Forms.MouseEventHandler(this.UpdateQueryForm_MouseDown);
-            this.lblUpdateInfo.MouseMove += new System.Windows.Forms.MouseEventHandler(this.UpdateQueryForm_MouseMove);
-            this.lblUpdateInfo.MouseUp += new System.Windows.Forms.MouseEventHandler(this.UpdateQueryForm_MouseUp);
             // 
             // changelogLL
             // 
@@ -117,13 +114,12 @@
             this.Controls.Add(this.changelogLL);
             this.Controls.Add(this.lblUpdateInfo);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
+            this.MaximizeBox = false;
+            this.MinimizeBox = false;
             this.Name = "UpdateQueryForm";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Updates are available";
             this.TopMost = true;
-            this.MouseDown += new System.Windows.Forms.MouseEventHandler(this.UpdateQueryForm_MouseDown);
-            this.MouseMove += new System.Windows.Forms.MouseEventHandler(this.UpdateQueryForm_MouseMove);
-            this.MouseUp += new System.Windows.Forms.MouseEventHandler(this.UpdateQueryForm_MouseUp);
             this.ResumeLayout(false);
             this.PerformLayout();
 

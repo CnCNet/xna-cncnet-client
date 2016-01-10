@@ -267,9 +267,6 @@
             this.pictureBox1.Size = new System.Drawing.Size(640, 400);
             this.pictureBox1.TabIndex = 90;
             this.pictureBox1.TabStop = false;
-            this.pictureBox1.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MainMenu_MouseDown);
-            this.pictureBox1.MouseMove += new System.Windows.Forms.MouseEventHandler(this.MainMenu_MouseMove);
-            this.pictureBox1.MouseUp += new System.Windows.Forms.MouseEventHandler(this.MainMenu_MouseUp);
             // 
             // wbDataCollector
             // 
@@ -330,9 +327,6 @@
             this.Text = "Tiberian Sun";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.MainMenu_FormClosing);
             this.Load += new System.EventHandler(this.MainMenu_Load);
-            this.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MainMenu_MouseDown);
-            this.MouseMove += new System.Windows.Forms.MouseEventHandler(this.MainMenu_MouseMove);
-            this.MouseUp += new System.Windows.Forms.MouseEventHandler(this.MainMenu_MouseUp);
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
             this.pictureBox1.ResumeLayout(false);
             this.pictureBox1.PerformLayout();
