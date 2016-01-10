@@ -537,7 +537,7 @@ namespace dtasetup.gui
                 //Logger.Log(CUpdater.DTAVersionState.ToString());
 
                 if (isYR)
-                    btnCnCNet.Enabled = false;
+                    btnCnCNet.Enabled = true;
 
                 switch (CUpdater.DTAVersionState)
                 {

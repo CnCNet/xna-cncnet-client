@@ -1,0 +1,6 @@
+<project outputDir="C:\Users\Grant\Documents\Visual Studio 2013\Projects\mainclient\Confused" baseDir="C:\Users\Grant\Documents\Visual Studio 2013\Projects\mainclient" xmlns="http://confuser.codeplex.com">
+  <module path="TSSetup\bin\Release\TiberianSun.exe" />
+  <module path="..\cncnetclient\bin\Release\ClientCore.dll" />
+  <module path="..\cncnetclient\bin\Release\ClientGUI.dll" />
+  <module path="..\cncnetclient\bin\Release\DTACnCNetClient.exe" />
+</project>
