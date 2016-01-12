@@ -1,4 +1,4 @@
-<project outputDir="C:\Users\Yleinen\Documents\Visual Studio 2013\Projects\TSSetup\TSSetup\bin\Release\Confused" baseDir="C:\Users\Yleinen\Documents\Visual Studio 2013\Projects\TSSetup\TSSetup\bin\Release" xmlns="http://confuser.codeplex.com">
+<project outputDir="C:\Omat tiedostot\Visual Studio 2013\Projects\TSSetup\TSSetup\bin\Release\Confused" baseDir="C:\Omat tiedostot\Visual Studio 2013\Projects\TSSetup\TSSetup\bin\Release" xmlns="http://confuser.codeplex.com">
   <rule pattern="true" preset="aggressive" inherit="false">
     <protection id="rename" />
     <protection id="anti ildasm" />

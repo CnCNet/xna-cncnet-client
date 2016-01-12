@@ -78,12 +78,13 @@
     <ApplicationManifest>Properties\app.manifest</ApplicationManifest>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="ClientCore">
-      <HintPath>..\..\cncnetclient\ClientCore\bin\Release\ClientCore.dll</HintPath>
-    </Reference>
-    <Reference Include="ClientGUI, Version=1.14.4.5, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="ClientCore, Version=1.15.9.1, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\cncnetclient\ClientGUI\bin\Release\ClientGUI.dll</HintPath>
+      <HintPath>..\..\DTACnCNetClient\bin\Release\ClientCore.dll</HintPath>
+    </Reference>
+    <Reference Include="ClientGUI, Version=1.15.9.1, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\DTACnCNetClient\bin\Release\ClientGUI.dll</HintPath>
     </Reference>
     <Reference Include="DTAConfig">
       <HintPath>..\..\cncnetclient\Resources\Binaries\DTAConfig.dll</HintPath>
@@ -102,17 +103,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="domain\cncnet5\CnCNetInfoController.cs" />
-    <Compile Include="domain\cncnet\CSVParser.cs" />
     <Compile Include="domain\cncnet\JsonParser.cs" />
     <Compile Include="domain\MCDomainController.cs" />
     <Compile Include="domain\StatisticsPageAddresses.cs" />
-    <Compile Include="domain\SerialHandler.cs" />
     <Compile Include="domain\Mission.cs" />
     <Compile Include="domain\SavedGame.cs" />
-    <Compile Include="domain\ProcessControl.cs" />
     <Compile Include="domain\MainClientConstants.cs" />
-    <Compile Include="domain\ScreenResolution.cs" />
-    <Compile Include="domain\ScreenResolutionOperations.cs" />
     <Compile Include="domain\UserAgentHandler.cs" />
     <Compile Include="gui\CampaignSelector.cs">
       <SubType>Form</SubType>
@@ -171,7 +167,6 @@
     <Compile Include="gui\UpdateQueryForm.Designer.cs">
       <DependentUpon>UpdateQueryForm.cs</DependentUpon>
     </Compile>
-    <Compile Include="ObfuscationSettings.cs" />
     <Compile Include="persistence\GameFileManagement.cs" />
     <Compile Include="domain\FinalSunSettings.cs" />
     <Compile Include="persistence\LanguageDllId.cs" />

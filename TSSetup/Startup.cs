@@ -90,7 +90,6 @@ namespace dtasetup
                 new UpdateForm().ShowDialog();
             }
 
-            SerialHandler.CheckForSerial();
             InitializeVersioning();
 
             // Check if we should enter CnCNet
