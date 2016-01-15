@@ -103,8 +103,11 @@ namespace dtasetup.gui
                     versMismatch = true;
                     VisitPage(StatisticsPageAddresses.GetUpdateStatsPageAddress());
                     CUpdater.DoVersionCheck();
-                    new Thread(new ThreadStart(CUpdater.PerformUpdate)).Start();
-                    ShowUpdateForm();
+                    if (CUpdater.DTAVersionState != VersionState.UNKNOWN)
+                    {
+                        new Thread(new ThreadStart(CUpdater.PerformUpdate)).Start();
+                        ShowUpdateForm();
+                    }
                 }
             }
             else if (MCDomainController.Instance().getAutomaticUpdateStatus())
