@@ -34,7 +34,6 @@
             this.lblSelectDifficulty = new System.Windows.Forms.Label();
             this.btnLaunch = new ClientGUI.SwitchingImageButton();
             this.btnCancel = new ClientGUI.SwitchingImageButton();
-            this.line2 = new System.Windows.Forms.Label();
             this.tbDifficultyLevel = new System.Windows.Forms.TrackBar();
             this.lblMedium = new System.Windows.Forms.Label();
             this.panel1 = new System.Windows.Forms.Panel();
@@ -54,7 +53,7 @@
             this.lbCampaignList.FormattingEnabled = true;
             this.lbCampaignList.Location = new System.Drawing.Point(15, 25);
             this.lbCampaignList.Name = "lbCampaignList";
-            this.lbCampaignList.Size = new System.Drawing.Size(287, 171);
+            this.lbCampaignList.Size = new System.Drawing.Size(287, 184);
             this.lbCampaignList.TabIndex = 0;
             this.lbCampaignList.DrawItem += new System.Windows.Forms.DrawItemEventHandler(this.lbCampaignList_DrawItem);
             this.lbCampaignList.SelectedIndexChanged += new System.EventHandler(this.lbCampaignList_SelectedIndexChanged);
@@ -80,9 +79,10 @@
             // 
             // lblSelectDifficulty
             // 
+            this.lblSelectDifficulty.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.lblSelectDifficulty.AutoSize = true;
             this.lblSelectDifficulty.BackColor = System.Drawing.Color.Transparent;
-            this.lblSelectDifficulty.Location = new System.Drawing.Point(16, 307);
+            this.lblSelectDifficulty.Location = new System.Drawing.Point(16, 324);
             this.lblSelectDifficulty.Name = "lblSelectDifficulty";
             this.lblSelectDifficulty.Size = new System.Drawing.Size(79, 13);
             this.lblSelectDifficulty.TabIndex = 4;
@@ -90,12 +90,13 @@
             // 
             // btnLaunch
             // 
+            this.btnLaunch.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.btnLaunch.DefaultImage = null;
             this.btnLaunch.FlatAppearance.BorderSize = 0;
             this.btnLaunch.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnLaunch.HoveredImage = null;
             this.btnLaunch.HoverSound = null;
-            this.btnLaunch.Location = new System.Drawing.Point(18, 395);
+            this.btnLaunch.Location = new System.Drawing.Point(18, 412);
             this.btnLaunch.Name = "btnLaunch";
             this.btnLaunch.Size = new System.Drawing.Size(133, 23);
             this.btnLaunch.TabIndex = 5;
@@ -105,13 +106,14 @@
             // 
             // btnCancel
             // 
+            this.btnCancel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.btnCancel.DefaultImage = null;
             this.btnCancel.DialogResult = System.Windows.Forms.DialogResult.Cancel;
             this.btnCancel.FlatAppearance.BorderSize = 0;
             this.btnCancel.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnCancel.HoveredImage = null;
             this.btnCancel.HoverSound = null;
-            this.btnCancel.Location = new System.Drawing.Point(168, 395);
+            this.btnCancel.Location = new System.Drawing.Point(168, 412);
             this.btnCancel.Name = "btnCancel";
             this.btnCancel.Size = new System.Drawing.Size(133, 23);
             this.btnCancel.TabIndex = 6;
@@ -119,20 +121,12 @@
             this.btnCancel.UseVisualStyleBackColor = true;
             this.btnCancel.Click += new System.EventHandler(this.btnCancel_Click);
             // 
-            // line2
-            // 
-            this.line2.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
-            this.line2.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.line2.Location = new System.Drawing.Point(15, 294);
-            this.line2.Name = "line2";
-            this.line2.Size = new System.Drawing.Size(287, 1);
-            this.line2.TabIndex = 79;
-            // 
             // tbDifficultyLevel
             // 
+            this.tbDifficultyLevel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.tbDifficultyLevel.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(10)))), ((int)(((byte)(11)))), ((int)(((byte)(12)))));
             this.tbDifficultyLevel.LargeChange = 1;
-            this.tbDifficultyLevel.Location = new System.Drawing.Point(15, 323);
+            this.tbDifficultyLevel.Location = new System.Drawing.Point(15, 340);
             this.tbDifficultyLevel.Maximum = 2;
             this.tbDifficultyLevel.Name = "tbDifficultyLevel";
             this.tbDifficultyLevel.Size = new System.Drawing.Size(287, 45);
@@ -142,9 +136,10 @@
             // 
             // lblMedium
             // 
+            this.lblMedium.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.lblMedium.AutoSize = true;
             this.lblMedium.BackColor = System.Drawing.Color.Transparent;
-            this.lblMedium.Location = new System.Drawing.Point(135, 371);
+            this.lblMedium.Location = new System.Drawing.Point(135, 388);
             this.lblMedium.Name = "lblMedium";
             this.lblMedium.Size = new System.Drawing.Size(44, 13);
             this.lblMedium.TabIndex = 7;
@@ -152,19 +147,21 @@
             // 
             // panel1
             // 
+            this.panel1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.panel1.BackColor = System.Drawing.Color.Black;
             this.panel1.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.panel1.Controls.Add(this.lblMissionDescription);
-            this.panel1.Location = new System.Drawing.Point(14, 215);
+            this.panel1.Location = new System.Drawing.Point(16, 235);
             this.panel1.Name = "panel1";
             this.panel1.Size = new System.Drawing.Size(287, 76);
             this.panel1.TabIndex = 80;
             // 
             // lblEasy
             // 
+            this.lblEasy.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.lblEasy.AutoSize = true;
             this.lblEasy.BackColor = System.Drawing.Color.Transparent;
-            this.lblEasy.Location = new System.Drawing.Point(16, 371);
+            this.lblEasy.Location = new System.Drawing.Point(16, 388);
             this.lblEasy.Name = "lblEasy";
             this.lblEasy.Size = new System.Drawing.Size(30, 13);
             this.lblEasy.TabIndex = 9;
@@ -172,9 +169,10 @@
             // 
             // lblHard
             // 
+            this.lblHard.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.lblHard.AutoSize = true;
             this.lblHard.BackColor = System.Drawing.Color.Transparent;
-            this.lblHard.Location = new System.Drawing.Point(271, 371);
+            this.lblHard.Location = new System.Drawing.Point(271, 388);
             this.lblHard.Name = "lblHard";
             this.lblHard.Size = new System.Drawing.Size(30, 13);
             this.lblHard.TabIndex = 8;
@@ -182,9 +180,10 @@
             // 
             // lblMissDescr
             // 
+            this.lblMissDescr.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.lblMissDescr.AutoSize = true;
             this.lblMissDescr.BackColor = System.Drawing.Color.Transparent;
-            this.lblMissDescr.Location = new System.Drawing.Point(12, 199);
+            this.lblMissDescr.Location = new System.Drawing.Point(14, 219);
             this.lblMissDescr.Name = "lblMissDescr";
             this.lblMissDescr.Size = new System.Drawing.Size(101, 13);
             this.lblMissDescr.TabIndex = 3;
@@ -195,13 +194,12 @@
             this.AcceptButton = this.btnLaunch;
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.None;
             this.CancelButton = this.btnCancel;
-            this.ClientSize = new System.Drawing.Size(301, 423);
+            this.ClientSize = new System.Drawing.Size(311, 439);
             this.ControlBox = false;
             this.Controls.Add(this.lblMissDescr);
             this.Controls.Add(this.lblEasy);
             this.Controls.Add(this.panel1);
             this.Controls.Add(this.lblHard);
-            this.Controls.Add(this.line2);
             this.Controls.Add(this.lblSelectDifficulty);
             this.Controls.Add(this.lblMedium);
             this.Controls.Add(this.tbDifficultyLevel);
@@ -235,7 +233,6 @@
         private System.Windows.Forms.Label lblSelectDifficulty;
         private ClientGUI.SwitchingImageButton btnLaunch;
         private ClientGUI.SwitchingImageButton btnCancel;
-        private System.Windows.Forms.Label line2;
         private System.Windows.Forms.TrackBar tbDifficultyLevel;
         private System.Windows.Forms.Label lblMedium;
         private System.Windows.Forms.Panel panel1;

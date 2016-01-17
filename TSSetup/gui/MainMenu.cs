@@ -672,7 +672,8 @@ namespace dtasetup.gui
 
         private void lblUpdateStatus_Click(object sender, EventArgs e)
         {
-            if (CUpdater.DTAVersionState == VersionState.UPDATEINPROGRESS || CUpdater.DTAVersionState == VersionState.UPDATECHECKINPROGRESS)
+            if (CUpdater.DTAVersionState == VersionState.UPDATEINPROGRESS || CUpdater.DTAVersionState == VersionState.UPDATECHECKINPROGRESS
+                || CUpdater.DTAVersionState == VersionState.UPTODATE)
             {
                 return;
             }

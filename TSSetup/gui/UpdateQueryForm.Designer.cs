@@ -39,7 +39,7 @@
             // 
             this.lblUpdateInfo.AutoSize = true;
             this.lblUpdateInfo.BackColor = System.Drawing.Color.Transparent;
-            this.lblUpdateInfo.Location = new System.Drawing.Point(1, 5);
+            this.lblUpdateInfo.Location = new System.Drawing.Point(12, 9);
             this.lblUpdateInfo.Name = "lblUpdateInfo";
             this.lblUpdateInfo.Size = new System.Drawing.Size(181, 26);
             this.lblUpdateInfo.TabIndex = 1;
@@ -52,7 +52,7 @@
             this.changelogLL.Font = new System.Drawing.Font("Trebuchet MS", 8.25F);
             this.changelogLL.ForeColor = System.Drawing.Color.Goldenrod;
             this.changelogLL.LinkColor = System.Drawing.Color.Goldenrod;
-            this.changelogLL.Location = new System.Drawing.Point(1, 48);
+            this.changelogLL.Location = new System.Drawing.Point(12, 52);
             this.changelogLL.Name = "changelogLL";
             this.changelogLL.Size = new System.Drawing.Size(165, 16);
             this.changelogLL.TabIndex = 2;
@@ -71,7 +71,7 @@
             this.btnAccept.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnAccept.HoveredImage = null;
             this.btnAccept.HoverSound = null;
-            this.btnAccept.Location = new System.Drawing.Point(2, 106);
+            this.btnAccept.Location = new System.Drawing.Point(13, 110);
             this.btnAccept.Name = "btnAccept";
             this.btnAccept.Size = new System.Drawing.Size(75, 23);
             this.btnAccept.TabIndex = 3;
@@ -86,7 +86,7 @@
             this.btnDeny.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnDeny.HoveredImage = null;
             this.btnDeny.HoverSound = null;
-            this.btnDeny.Location = new System.Drawing.Point(136, 106);
+            this.btnDeny.Location = new System.Drawing.Point(147, 110);
             this.btnDeny.Name = "btnDeny";
             this.btnDeny.Size = new System.Drawing.Size(75, 23);
             this.btnDeny.TabIndex = 4;
@@ -97,7 +97,7 @@
             // 
             this.lblUpdateSize.AutoSize = true;
             this.lblUpdateSize.BackColor = System.Drawing.Color.Transparent;
-            this.lblUpdateSize.Location = new System.Drawing.Point(1, 75);
+            this.lblUpdateSize.Location = new System.Drawing.Point(12, 79);
             this.lblUpdateSize.Name = "lblUpdateSize";
             this.lblUpdateSize.Size = new System.Drawing.Size(148, 13);
             this.lblUpdateSize.TabIndex = 5;
@@ -106,7 +106,7 @@
             // UpdateQueryForm
             // 
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.None;
-            this.ClientSize = new System.Drawing.Size(216, 136);
+            this.ClientSize = new System.Drawing.Size(235, 147);
             this.ControlBox = false;
             this.Controls.Add(this.lblUpdateSize);
             this.Controls.Add(this.btnDeny);

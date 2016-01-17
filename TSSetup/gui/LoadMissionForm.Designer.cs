@@ -44,7 +44,7 @@
             this.btnCancel.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnCancel.HoveredImage = null;
             this.btnCancel.HoverSound = null;
-            this.btnCancel.Location = new System.Drawing.Point(321, 328);
+            this.btnCancel.Location = new System.Drawing.Point(311, 328);
             this.btnCancel.Name = "btnCancel";
             this.btnCancel.Size = new System.Drawing.Size(133, 23);
             this.btnCancel.TabIndex = 8;
@@ -60,7 +60,7 @@
             this.btnLaunch.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnLaunch.HoveredImage = null;
             this.btnLaunch.HoverSound = null;
-            this.btnLaunch.Location = new System.Drawing.Point(171, 328);
+            this.btnLaunch.Location = new System.Drawing.Point(161, 328);
             this.btnLaunch.Name = "btnLaunch";
             this.btnLaunch.Size = new System.Drawing.Size(133, 23);
             this.btnLaunch.TabIndex = 7;
