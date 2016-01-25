@@ -36,7 +36,6 @@
             // 
             // btnExtraMapEditor
             // 
-            this.btnExtraMapEditor.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.btnExtraMapEditor.DefaultImage = null;
             this.btnExtraMapEditor.FlatAppearance.BorderSize = 0;
             this.btnExtraMapEditor.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
@@ -52,7 +51,6 @@
             // 
             // btnExtraStatistics
             // 
-            this.btnExtraStatistics.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.btnExtraStatistics.DefaultImage = null;
             this.btnExtraStatistics.FlatAppearance.BorderSize = 0;
             this.btnExtraStatistics.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
@@ -68,7 +66,6 @@
             // 
             // btnExtraCredits
             // 
-            this.btnExtraCredits.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.btnExtraCredits.DefaultImage = null;
             this.btnExtraCredits.FlatAppearance.BorderSize = 0;
             this.btnExtraCredits.FlatStyle = System.Windows.Forms.FlatStyle.Flat;

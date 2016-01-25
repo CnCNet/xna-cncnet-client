@@ -111,6 +111,7 @@ namespace dtasetup.gui
             }
             else
             {
+                Unsubscribe();
                 this.DialogResult = System.Windows.Forms.DialogResult.OK;
                 this.Close();
             }
@@ -125,6 +126,7 @@ namespace dtasetup.gui
             }
             else
             {
+                Unsubscribe();
                 this.DialogResult = System.Windows.Forms.DialogResult.OK;
             }
         }
@@ -139,13 +141,18 @@ namespace dtasetup.gui
             {
                 CUpdater.TerminateUpdate = true;
 
-                CUpdater.OnUpdateCompleted -= Updater_OnUpdateCompleted;
-                CUpdater.OnUpdateFailed -= Updater_OnUpdateFailed;
-                CUpdater.BeforeSelfUpdate -= Updater_BeforeSelfUpdate;
-                CUpdater.UpdateProgressChanged -= Updater_UpdateProgressChanged;
+                Unsubscribe();
 
                 this.DialogResult = System.Windows.Forms.DialogResult.Cancel;
             }
+        }
+
+        private void Unsubscribe()
+        {
+            CUpdater.OnUpdateCompleted -= Updater_OnUpdateCompleted;
+            CUpdater.OnUpdateFailed -= Updater_OnUpdateFailed;
+            CUpdater.BeforeSelfUpdate -= Updater_BeforeSelfUpdate;
+            CUpdater.UpdateProgressChanged -= Updater_UpdateProgressChanged;
         }
     }
 

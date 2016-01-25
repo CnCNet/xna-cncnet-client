@@ -43,27 +43,24 @@
             // 
             // progressBar1
             // 
-            this.progressBar1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.progressBar1.Location = new System.Drawing.Point(6, 106);
+            this.progressBar1.Location = new System.Drawing.Point(12, 110);
             this.progressBar1.Name = "progressBar1";
             this.progressBar1.Size = new System.Drawing.Size(428, 23);
             this.progressBar1.TabIndex = 0;
             // 
             // progressBar2
             // 
-            this.progressBar2.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.progressBar2.BackColor = System.Drawing.Color.Black;
-            this.progressBar2.Location = new System.Drawing.Point(6, 179);
+            this.progressBar2.Location = new System.Drawing.Point(12, 183);
             this.progressBar2.Name = "progressBar2";
             this.progressBar2.Size = new System.Drawing.Size(428, 23);
             this.progressBar2.TabIndex = 1;
             // 
             // lblFileProgress
             // 
-            this.lblFileProgress.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.lblFileProgress.AutoSize = true;
             this.lblFileProgress.BackColor = System.Drawing.Color.Transparent;
-            this.lblFileProgress.Location = new System.Drawing.Point(6, 90);
+            this.lblFileProgress.Location = new System.Drawing.Point(12, 94);
             this.lblFileProgress.Name = "lblFileProgress";
             this.lblFileProgress.Size = new System.Drawing.Size(172, 13);
             this.lblFileProgress.TabIndex = 3;
@@ -71,10 +68,9 @@
             // 
             // lblTotalProgress
             // 
-            this.lblTotalProgress.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.lblTotalProgress.AutoSize = true;
             this.lblTotalProgress.BackColor = System.Drawing.Color.Transparent;
-            this.lblTotalProgress.Location = new System.Drawing.Point(6, 163);
+            this.lblTotalProgress.Location = new System.Drawing.Point(12, 167);
             this.lblTotalProgress.Name = "lblTotalProgress";
             this.lblTotalProgress.Size = new System.Drawing.Size(134, 13);
             this.lblTotalProgress.TabIndex = 4;
@@ -82,10 +78,9 @@
             // 
             // lblFileProgressValue
             // 
-            this.lblFileProgressValue.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.lblFileProgressValue.AutoSize = true;
             this.lblFileProgressValue.BackColor = System.Drawing.Color.Transparent;
-            this.lblFileProgressValue.Location = new System.Drawing.Point(396, 90);
+            this.lblFileProgressValue.Location = new System.Drawing.Point(402, 94);
             this.lblFileProgressValue.Name = "lblFileProgressValue";
             this.lblFileProgressValue.Size = new System.Drawing.Size(33, 13);
             this.lblFileProgressValue.TabIndex = 5;
@@ -93,10 +88,9 @@
             // 
             // lblTotalProgressValue
             // 
-            this.lblTotalProgressValue.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.lblTotalProgressValue.AutoSize = true;
             this.lblTotalProgressValue.BackColor = System.Drawing.Color.Transparent;
-            this.lblTotalProgressValue.Location = new System.Drawing.Point(396, 163);
+            this.lblTotalProgressValue.Location = new System.Drawing.Point(402, 167);
             this.lblTotalProgressValue.Name = "lblTotalProgressValue";
             this.lblTotalProgressValue.Size = new System.Drawing.Size(33, 13);
             this.lblTotalProgressValue.TabIndex = 6;
@@ -104,10 +98,9 @@
             // 
             // lblUpdateDescription
             // 
-            this.lblUpdateDescription.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.lblUpdateDescription.AutoSize = true;
             this.lblUpdateDescription.BackColor = System.Drawing.Color.Transparent;
-            this.lblUpdateDescription.Location = new System.Drawing.Point(6, 5);
+            this.lblUpdateDescription.Location = new System.Drawing.Point(12, 9);
             this.lblUpdateDescription.Name = "lblUpdateDescription";
             this.lblUpdateDescription.Size = new System.Drawing.Size(273, 65);
             this.lblUpdateDescription.TabIndex = 7;
@@ -115,13 +108,12 @@
             // 
             // btnCancel
             // 
-            this.btnCancel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.btnCancel.DefaultImage = null;
             this.btnCancel.FlatAppearance.BorderSize = 0;
             this.btnCancel.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnCancel.HoveredImage = null;
             this.btnCancel.HoverSound = null;
-            this.btnCancel.Location = new System.Drawing.Point(301, 220);
+            this.btnCancel.Location = new System.Drawing.Point(307, 224);
             this.btnCancel.Name = "btnCancel";
             this.btnCancel.Size = new System.Drawing.Size(133, 23);
             this.btnCancel.TabIndex = 8;
@@ -131,10 +123,9 @@
             // 
             // lblStatusText
             // 
-            this.lblStatusText.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.lblStatusText.AutoSize = true;
             this.lblStatusText.BackColor = System.Drawing.Color.Transparent;
-            this.lblStatusText.Location = new System.Drawing.Point(6, 220);
+            this.lblStatusText.Location = new System.Drawing.Point(12, 224);
             this.lblStatusText.Name = "lblStatusText";
             this.lblStatusText.Size = new System.Drawing.Size(99, 13);
             this.lblStatusText.TabIndex = 9;
@@ -142,10 +133,9 @@
             // 
             // lblCurrFileName
             // 
-            this.lblCurrFileName.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.lblCurrFileName.AutoSize = true;
             this.lblCurrFileName.BackColor = System.Drawing.Color.Transparent;
-            this.lblCurrFileName.Location = new System.Drawing.Point(6, 132);
+            this.lblCurrFileName.Location = new System.Drawing.Point(12, 136);
             this.lblCurrFileName.Name = "lblCurrFileName";
             this.lblCurrFileName.Size = new System.Drawing.Size(60, 13);
             this.lblCurrFileName.TabIndex = 10;
@@ -154,7 +144,7 @@
             // UpdateForm
             // 
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.None;
-            this.ClientSize = new System.Drawing.Size(441, 246);
+            this.ClientSize = new System.Drawing.Size(450, 257);
             this.ControlBox = false;
             this.Controls.Add(this.lblCurrFileName);
             this.Controls.Add(this.lblStatusText);

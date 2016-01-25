@@ -62,11 +62,12 @@
             // 
             this.lblSelectCampaign.AutoSize = true;
             this.lblSelectCampaign.BackColor = System.Drawing.Color.Transparent;
+            this.lblSelectCampaign.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Bold);
             this.lblSelectCampaign.Location = new System.Drawing.Point(12, 9);
             this.lblSelectCampaign.Name = "lblSelectCampaign";
-            this.lblSelectCampaign.Size = new System.Drawing.Size(50, 13);
+            this.lblSelectCampaign.Size = new System.Drawing.Size(59, 13);
             this.lblSelectCampaign.TabIndex = 1;
-            this.lblSelectCampaign.Text = "Missions:";
+            this.lblSelectCampaign.Text = "MISSIONS";
             // 
             // lblMissionDescription
             // 
@@ -79,18 +80,17 @@
             // 
             // lblSelectDifficulty
             // 
-            this.lblSelectDifficulty.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.lblSelectDifficulty.AutoSize = true;
             this.lblSelectDifficulty.BackColor = System.Drawing.Color.Transparent;
-            this.lblSelectDifficulty.Location = new System.Drawing.Point(16, 324);
+            this.lblSelectDifficulty.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Bold);
+            this.lblSelectDifficulty.Location = new System.Drawing.Point(108, 324);
             this.lblSelectDifficulty.Name = "lblSelectDifficulty";
-            this.lblSelectDifficulty.Size = new System.Drawing.Size(79, 13);
+            this.lblSelectDifficulty.Size = new System.Drawing.Size(100, 13);
             this.lblSelectDifficulty.TabIndex = 4;
-            this.lblSelectDifficulty.Text = "Difficulty Level:";
+            this.lblSelectDifficulty.Text = "DIFFICULTY LEVEL";
             // 
             // btnLaunch
             // 
-            this.btnLaunch.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.btnLaunch.DefaultImage = null;
             this.btnLaunch.FlatAppearance.BorderSize = 0;
             this.btnLaunch.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
@@ -106,7 +106,6 @@
             // 
             // btnCancel
             // 
-            this.btnCancel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.btnCancel.DefaultImage = null;
             this.btnCancel.DialogResult = System.Windows.Forms.DialogResult.Cancel;
             this.btnCancel.FlatAppearance.BorderSize = 0;
@@ -123,7 +122,6 @@
             // 
             // tbDifficultyLevel
             // 
-            this.tbDifficultyLevel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.tbDifficultyLevel.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(10)))), ((int)(((byte)(11)))), ((int)(((byte)(12)))));
             this.tbDifficultyLevel.LargeChange = 1;
             this.tbDifficultyLevel.Location = new System.Drawing.Point(15, 340);
@@ -136,18 +134,17 @@
             // 
             // lblMedium
             // 
-            this.lblMedium.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.lblMedium.AutoSize = true;
             this.lblMedium.BackColor = System.Drawing.Color.Transparent;
+            this.lblMedium.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Bold);
             this.lblMedium.Location = new System.Drawing.Point(135, 388);
             this.lblMedium.Name = "lblMedium";
-            this.lblMedium.Size = new System.Drawing.Size(44, 13);
+            this.lblMedium.Size = new System.Drawing.Size(54, 13);
             this.lblMedium.TabIndex = 7;
-            this.lblMedium.Text = "Medium";
+            this.lblMedium.Text = "MEDIUM";
             // 
             // panel1
             // 
-            this.panel1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.panel1.BackColor = System.Drawing.Color.Black;
             this.panel1.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.panel1.Controls.Add(this.lblMissionDescription);
@@ -158,43 +155,43 @@
             // 
             // lblEasy
             // 
-            this.lblEasy.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.lblEasy.AutoSize = true;
             this.lblEasy.BackColor = System.Drawing.Color.Transparent;
-            this.lblEasy.Location = new System.Drawing.Point(16, 388);
+            this.lblEasy.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Bold);
+            this.lblEasy.Location = new System.Drawing.Point(12, 388);
             this.lblEasy.Name = "lblEasy";
-            this.lblEasy.Size = new System.Drawing.Size(30, 13);
+            this.lblEasy.Size = new System.Drawing.Size(34, 13);
             this.lblEasy.TabIndex = 9;
-            this.lblEasy.Text = "Easy";
+            this.lblEasy.Text = "EASY";
             // 
             // lblHard
             // 
-            this.lblHard.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.lblHard.AutoSize = true;
             this.lblHard.BackColor = System.Drawing.Color.Transparent;
-            this.lblHard.Location = new System.Drawing.Point(271, 388);
+            this.lblHard.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Bold);
+            this.lblHard.Location = new System.Drawing.Point(265, 388);
             this.lblHard.Name = "lblHard";
-            this.lblHard.Size = new System.Drawing.Size(30, 13);
+            this.lblHard.Size = new System.Drawing.Size(38, 13);
             this.lblHard.TabIndex = 8;
-            this.lblHard.Text = "Hard";
+            this.lblHard.Text = "HARD";
             // 
             // lblMissDescr
             // 
-            this.lblMissDescr.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.lblMissDescr.AutoSize = true;
             this.lblMissDescr.BackColor = System.Drawing.Color.Transparent;
+            this.lblMissDescr.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Bold);
             this.lblMissDescr.Location = new System.Drawing.Point(14, 219);
             this.lblMissDescr.Name = "lblMissDescr";
-            this.lblMissDescr.Size = new System.Drawing.Size(101, 13);
+            this.lblMissDescr.Size = new System.Drawing.Size(126, 13);
             this.lblMissDescr.TabIndex = 3;
-            this.lblMissDescr.Text = "Mission Description:";
+            this.lblMissDescr.Text = "MISSION DESCRIPTION";
             // 
             // CampaignSelector
             // 
             this.AcceptButton = this.btnLaunch;
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.None;
             this.CancelButton = this.btnCancel;
-            this.ClientSize = new System.Drawing.Size(311, 439);
+            this.ClientSize = new System.Drawing.Size(315, 448);
             this.ControlBox = false;
             this.Controls.Add(this.lblMissDescr);
             this.Controls.Add(this.lblEasy);

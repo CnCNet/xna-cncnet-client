@@ -93,13 +93,13 @@
             // 
             // columnHeader1
             // 
-            this.columnHeader1.Text = "Save Game Name";
+            this.columnHeader1.Text = "SAVED GAME NAME";
             this.columnHeader1.Width = 417;
             // 
             // columnHeader2
             // 
-            this.columnHeader2.Text = "Date and Time";
-            this.columnHeader2.Width = 123;
+            this.columnHeader2.Text = "DATE / TIME";
+            this.columnHeader2.Width = 127;
             // 
             // LoadMissionForm
             // 

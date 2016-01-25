@@ -165,7 +165,7 @@ namespace dtasetup.domain
 
         public string[] GetDifficultySettings()
         {
-            return mainClient_ini.GetStringValue("General", "DifficultySettings", "Easy,Normal,Hard").Split(',');
+            return mainClient_ini.GetStringValue("General", "DifficultySettings", "EASY,NORMAL,HARD").Split(',');
         }
 
         public bool GetSidebarHackStatus()

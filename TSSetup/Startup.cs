@@ -12,6 +12,7 @@ using dtasetup.domain;
 using dtasetup.domain.cncnet5;
 using dtasetup.gui;
 using ClientCore;
+using ClientGUI;
 using Updater;
 using DTAConfig;
 

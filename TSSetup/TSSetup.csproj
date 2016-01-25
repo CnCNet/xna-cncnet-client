@@ -144,12 +144,6 @@
     <Compile Include="gui\MainMenu.Designer.cs">
       <DependentUpon>MainMenu.cs</DependentUpon>
     </Compile>
-    <Compile Include="gui\MsgBoxForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="gui\MsgBoxForm.Designer.cs">
-      <DependentUpon>MsgBoxForm.cs</DependentUpon>
-    </Compile>
     <Compile Include="gui\SplashScreen.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -194,9 +188,6 @@
     </EmbeddedResource>
     <EmbeddedResource Include="gui\MainMenu.resx">
       <DependentUpon>MainMenu.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="gui\MsgBoxForm.resx">
-      <DependentUpon>MsgBoxForm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="gui\SplashScreen.resx">
       <DependentUpon>SplashScreen.cs</DependentUpon>

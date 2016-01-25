@@ -89,7 +89,7 @@
             // CheaterForm
             // 
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.None;
-            this.ClientSize = new System.Drawing.Size(321, 293);
+            this.ClientSize = new System.Drawing.Size(317, 300);
             this.ControlBox = false;
             this.Controls.Add(this.btnCancel);
             this.Controls.Add(this.btnYes);

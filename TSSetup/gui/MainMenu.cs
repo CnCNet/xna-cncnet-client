@@ -147,6 +147,7 @@ namespace dtasetup.gui
             btnCnCNet.HoverSound = sPlayer;
             btnLan.DefaultImage = SharedUILogic.LoadImage("MainMenu\\lan.png");
             btnLan.HoveredImage = SharedUILogic.LoadImage("MainMenu\\lan_c.png");
+            btnLan.RefreshSize();
             btnLan.HoverSound = sPlayer;
             btnStatistics.DefaultImage = SharedUILogic.LoadImage("MainMenu\\statistics.png");
             btnStatistics.HoveredImage = SharedUILogic.LoadImage("MainMenu\\statistics_c.png");
@@ -568,7 +569,7 @@ namespace dtasetup.gui
                             btnCnCNet.Enabled = true;
                         break;
                     case VersionState.OUTDATED:
-                        lblUpdateStatus.Text = "An update is available.";
+                        lblUpdateStatus.Text = "An update is available. Click to download.";
                         lblUpdateStatus.ForeColor = Color.Goldenrod;
                         break;
                     case VersionState.MISMATCHED:
@@ -702,16 +703,16 @@ namespace dtasetup.gui
 
         private void lblUpdateStatus_MouseEnter(object sender, EventArgs e)
         {
-            if (CUpdater.DTAVersionState == VersionState.MISMATCHED)
-            {
-                lblUpdateStatus.Text = "Click here to check for updates.";
-                lblUpdateStatus.ForeColor = Color.Goldenrod;
-            }
-            else if (CUpdater.DTAVersionState == VersionState.OUTDATED)
-            {
-                lblUpdateStatus.Text = "Click here to download the update.";
-                lblUpdateStatus.ForeColor = Color.Goldenrod;
-            }
+            //if (CUpdater.DTAVersionState == VersionState.MISMATCHED)
+            //{
+            //    lblUpdateStatus.Text = "Click here to check for updates.";
+            //    lblUpdateStatus.ForeColor = Color.Goldenrod;
+            //}
+            //else if (CUpdater.DTAVersionState == VersionState.OUTDATED)
+            //{
+            //    lblUpdateStatus.Text = "Click here to download the update.";
+            //    lblUpdateStatus.ForeColor = Color.Goldenrod;
+            //}
         }
     }
 }

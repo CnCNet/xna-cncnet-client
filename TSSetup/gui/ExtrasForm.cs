@@ -24,7 +24,8 @@ namespace dtasetup.gui
             IniFile clientThemeIni = new IniFile(MainClientConstants.gamepath + ProgramConstants.RESOURCES_DIR + "ExtrasMenu.ini");
 
             this.BackgroundImage = SharedUILogic.LoadImage("extrasMenu.png");
-            this.Size = this.BackgroundImage.Size;
+
+            this.Font = Utilities.GetFont(DomainController.Instance().GetCommonFont());
 
             SoundPlayer sPlayer = new SoundPlayer(ProgramConstants.gamepath + ProgramConstants.RESOURCES_DIR + "MainMenu\\button.wav");
             btnExtraMapEditor.DefaultImage = SharedUILogic.LoadImage("133pxbtn.png");
