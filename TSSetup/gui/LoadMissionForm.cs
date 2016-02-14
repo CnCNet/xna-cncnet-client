@@ -19,7 +19,6 @@ namespace dtasetup.gui
         public LoadMissionForm()
         {
             InitializeComponent();
-            this.Icon = dtasetup.Properties.Resources.dtasetup_icon;
         }
 
         List<SavedGame> SavedGames = new List<SavedGame>();

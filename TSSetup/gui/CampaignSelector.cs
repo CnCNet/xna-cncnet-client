@@ -27,8 +27,6 @@ namespace dtasetup.gui
         public CampaignSelector()
         {
             InitializeComponent();
-            
-            this.Icon = dtasetup.Properties.Resources.dtasetup_icon;
         }
 
         List<Mission> Missions;

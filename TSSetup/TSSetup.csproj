@@ -219,9 +219,6 @@
     <None Include="Resources\Settings.ini" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Resources\dtasetup.ico" />
-  </ItemGroup>
-  <ItemGroup>
     <Folder Include="bin\Debug\" />
   </ItemGroup>
   <ItemGroup>

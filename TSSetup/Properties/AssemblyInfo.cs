@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("Tiberian Sun Client")]
-[assembly: AssemblyDescription("Tiberian Sun Client")]
+[assembly: AssemblyTitle("DTA Client")]
+[assembly: AssemblyDescription("The Dawn of the Tiberium Age Client")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Rampastring")]
-[assembly: AssemblyProduct("Tiberian Sun Client")]
+[assembly: AssemblyProduct("The Dawn of the Tiberium Age")]
 [assembly: AssemblyCopyright("Rampastring")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
@@ -32,5 +32,5 @@ using System.Runtime.InteropServices;
 // You can specify all the values or you can default the Build and Revision Numbers 
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("1.16.2.0")]
-[assembly: AssemblyFileVersion("1.16.2.0")]
+[assembly: AssemblyVersion("1.16.2.2")]
+[assembly: AssemblyFileVersion("1.16.2.2")]

@@ -32,7 +32,6 @@ namespace dtasetup.gui
             Logger.Log("Opening update display.");
 
             this.Text = MainClientConstants.GAME_NAME_SHORT + " Updater";
-            this.Icon = dtasetup.Properties.Resources.dtasetup_icon;
             this.BackgroundImage = SharedUILogic.LoadImage("updaterbg.png");
             this.ForeColor = Utilities.GetColorFromString(DomainController.Instance().GetUILabelColor());
             this.Font = Utilities.GetFont(DomainController.Instance().GetCommonFont());

@@ -41,12 +41,12 @@
             this.btnCredits = new ClientGUI.SwitchingImageButton();
             this.lblVersion = new System.Windows.Forms.Label();
             this.btnMapEditor = new ClientGUI.SwitchingImageButton();
-            this.pictureBox1 = new System.Windows.Forms.PictureBox();
-            this.wbDataCollector = new System.Windows.Forms.WebBrowser();
-            this.btnLan = new ClientGUI.SwitchingImageButton();
+            this.pbBackground = new System.Windows.Forms.PictureBox();
             this.btnExtras = new ClientGUI.SwitchingImageButton();
-            ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
-            this.pictureBox1.SuspendLayout();
+            this.btnLan = new ClientGUI.SwitchingImageButton();
+            this.wbDataCollector = new System.Windows.Forms.WebBrowser();
+            ((System.ComponentModel.ISupportInitialize)(this.pbBackground)).BeginInit();
+            this.pbBackground.SuspendLayout();
             this.SuspendLayout();
             // 
             // btnLoadGame
@@ -246,52 +246,29 @@
             this.btnMapEditor.UseVisualStyleBackColor = false;
             this.btnMapEditor.Click += new System.EventHandler(this.btnMapEditor_Click);
             // 
-            // pictureBox1
+            // pbBackground
             // 
-            this.pictureBox1.BackColor = System.Drawing.Color.Transparent;
-            this.pictureBox1.Controls.Add(this.btnMapEditor);
-            this.pictureBox1.Controls.Add(this.btnCredits);
-            this.pictureBox1.Controls.Add(this.lblUpdateStatus);
-            this.pictureBox1.Controls.Add(this.btnLoadGame);
-            this.pictureBox1.Controls.Add(this.lblCnCNetNumPlayers);
-            this.pictureBox1.Controls.Add(this.btnNewCampaign);
-            this.pictureBox1.Controls.Add(this.btnExit);
-            this.pictureBox1.Controls.Add(this.btnSkirmish);
-            this.pictureBox1.Controls.Add(this.lblCnCNetStatus);
-            this.pictureBox1.Controls.Add(this.btnOptions);
-            this.pictureBox1.Controls.Add(this.btnStatistics);
-            this.pictureBox1.Controls.Add(this.btnCnCNet);
-            this.pictureBox1.Controls.Add(this.lblVersion);
-            this.pictureBox1.Location = new System.Drawing.Point(0, 0);
-            this.pictureBox1.Name = "pictureBox1";
-            this.pictureBox1.Size = new System.Drawing.Size(640, 400);
-            this.pictureBox1.TabIndex = 90;
-            this.pictureBox1.TabStop = false;
-            // 
-            // wbDataCollector
-            // 
-            this.wbDataCollector.Location = new System.Drawing.Point(543, 259);
-            this.wbDataCollector.MinimumSize = new System.Drawing.Size(20, 20);
-            this.wbDataCollector.Name = "wbDataCollector";
-            this.wbDataCollector.Size = new System.Drawing.Size(97, 80);
-            this.wbDataCollector.TabIndex = 91;
-            this.wbDataCollector.Visible = false;
-            // 
-            // btnLan
-            // 
-            this.btnLan.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.btnLan.BackColor = System.Drawing.Color.Transparent;
-            this.btnLan.DefaultImage = null;
-            this.btnLan.FlatAppearance.BorderSize = 0;
-            this.btnLan.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btnLan.HoveredImage = null;
-            this.btnLan.HoverSound = null;
-            this.btnLan.Location = new System.Drawing.Point(12, 378);
-            this.btnLan.Name = "btnLan";
-            this.btnLan.Size = new System.Drawing.Size(640, 30);
-            this.btnLan.TabIndex = 92;
-            this.btnLan.UseVisualStyleBackColor = false;
-            this.btnLan.Click += new System.EventHandler(this.btnLan_Click);
+            this.pbBackground.BackColor = System.Drawing.Color.Transparent;
+            this.pbBackground.Controls.Add(this.btnMapEditor);
+            this.pbBackground.Controls.Add(this.btnCredits);
+            this.pbBackground.Controls.Add(this.lblUpdateStatus);
+            this.pbBackground.Controls.Add(this.btnLoadGame);
+            this.pbBackground.Controls.Add(this.lblCnCNetNumPlayers);
+            this.pbBackground.Controls.Add(this.btnNewCampaign);
+            this.pbBackground.Controls.Add(this.btnExit);
+            this.pbBackground.Controls.Add(this.btnSkirmish);
+            this.pbBackground.Controls.Add(this.lblCnCNetStatus);
+            this.pbBackground.Controls.Add(this.btnOptions);
+            this.pbBackground.Controls.Add(this.btnStatistics);
+            this.pbBackground.Controls.Add(this.btnCnCNet);
+            this.pbBackground.Controls.Add(this.lblVersion);
+            this.pbBackground.Controls.Add(this.btnExtras);
+            this.pbBackground.Controls.Add(this.btnLan);
+            this.pbBackground.Location = new System.Drawing.Point(0, 0);
+            this.pbBackground.Name = "pbBackground";
+            this.pbBackground.Size = new System.Drawing.Size(640, 400);
+            this.pbBackground.TabIndex = 90;
+            this.pbBackground.TabStop = false;
             // 
             // btnExtras
             // 
@@ -309,29 +286,50 @@
             this.btnExtras.UseVisualStyleBackColor = false;
             this.btnExtras.Click += new System.EventHandler(this.btnExtras_Click);
             // 
+            // btnLan
+            // 
+            this.btnLan.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.btnLan.BackColor = System.Drawing.Color.Transparent;
+            this.btnLan.DefaultImage = null;
+            this.btnLan.FlatAppearance.BorderSize = 0;
+            this.btnLan.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnLan.HoveredImage = null;
+            this.btnLan.HoverSound = null;
+            this.btnLan.Location = new System.Drawing.Point(12, 378);
+            this.btnLan.Name = "btnLan";
+            this.btnLan.Size = new System.Drawing.Size(640, 30);
+            this.btnLan.TabIndex = 92;
+            this.btnLan.UseVisualStyleBackColor = false;
+            this.btnLan.Click += new System.EventHandler(this.btnLan_Click);
+            // 
+            // wbDataCollector
+            // 
+            this.wbDataCollector.Location = new System.Drawing.Point(543, 259);
+            this.wbDataCollector.MinimumSize = new System.Drawing.Size(20, 20);
+            this.wbDataCollector.Name = "wbDataCollector";
+            this.wbDataCollector.Size = new System.Drawing.Size(97, 80);
+            this.wbDataCollector.TabIndex = 91;
+            this.wbDataCollector.Visible = false;
+            // 
             // MainMenu
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.None;
             this.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Center;
             this.ClientSize = new System.Drawing.Size(640, 400);
             this.ControlBox = false;
-            this.Controls.Add(this.btnExtras);
-            this.Controls.Add(this.btnLan);
             this.Controls.Add(this.wbDataCollector);
-            this.Controls.Add(this.pictureBox1);
-            this.DoubleBuffered = true;
+            this.Controls.Add(this.pbBackground);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
             this.Name = "MainMenu";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Tiberian Sun";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.MainMenu_FormClosing);
             this.Load += new System.EventHandler(this.MainMenu_Load);
-            ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
-            this.pictureBox1.ResumeLayout(false);
-            this.pictureBox1.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.pbBackground)).EndInit();
+            this.pbBackground.ResumeLayout(false);
+            this.pbBackground.PerformLayout();
             this.ResumeLayout(false);
-
+            this.PerformLayout();
         }
 
         #endregion
@@ -349,7 +347,7 @@
         private ClientGUI.SwitchingImageButton btnCredits;
         private System.Windows.Forms.Label lblVersion;
         private ClientGUI.SwitchingImageButton btnMapEditor;
-        private System.Windows.Forms.PictureBox pictureBox1;
+        private System.Windows.Forms.PictureBox pbBackground;
         private System.Windows.Forms.WebBrowser wbDataCollector;
         private ClientGUI.SwitchingImageButton btnLan;
         private ClientGUI.SwitchingImageButton btnExtras;

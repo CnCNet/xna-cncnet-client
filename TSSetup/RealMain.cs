@@ -44,6 +44,7 @@ namespace dtasetup
 
             Logger.Log("Initializing settings.");
             MCDomainController.Instance();
+            DomainController.Instance();
 
             int argsLength = args.GetLength(0);
             if (argsLength > 0)
@@ -122,55 +123,55 @@ namespace dtasetup
             if (args.Name.Contains("AudioOptions"))
             {
                 // Load DLL from Resources\Binaries
-                byte[] data = File.ReadAllBytes(MainClientConstants.gamepath + "Resources\\Binaries\\AudioOptions.dll");
+                byte[] data = File.ReadAllBytes(MainClientConstants.gamepath + ProgramConstants.BASE_RESOURCE_PATH + "Binaries\\AudioOptions.dll");
                 return System.Reflection.Assembly.Load(data);
             }
 
             if (args.Name.Contains("DisplayOptions"))
             {
-                byte[] data = File.ReadAllBytes(MainClientConstants.gamepath + "Resources\\Binaries\\DisplayOptions.dll");
+                byte[] data = File.ReadAllBytes(MainClientConstants.gamepath + ProgramConstants.BASE_RESOURCE_PATH + "Binaries\\DisplayOptions.dll");
                 return System.Reflection.Assembly.Load(data);
             }
 
             if (args.Name.Contains("DTAUpdater"))
             {
-                byte[] data = File.ReadAllBytes(MainClientConstants.gamepath + "Resources\\Binaries\\DTAUpdater.dll");
+                byte[] data = File.ReadAllBytes(MainClientConstants.gamepath + ProgramConstants.BASE_RESOURCE_PATH + "Binaries\\DTAUpdater.dll");
                 return System.Reflection.Assembly.Load(data);
             }
 
             if (args.Name.Contains("DTAConfig"))
             {
-                byte[] data = File.ReadAllBytes(MainClientConstants.gamepath + "Resources\\Binaries\\DTAConfig.dll");
+                byte[] data = File.ReadAllBytes(MainClientConstants.gamepath + ProgramConstants.BASE_RESOURCE_PATH + "Binaries\\DTAConfig.dll");
                 return System.Reflection.Assembly.Load(data);
             }
 
             if (args.Name.Contains("GenericOptions"))
             {
-                byte[] data = File.ReadAllBytes(MainClientConstants.gamepath + "Resources\\Binaries\\GenericOptions.dll");
+                byte[] data = File.ReadAllBytes(MainClientConstants.gamepath + ProgramConstants.BASE_RESOURCE_PATH + "Binaries\\GenericOptions.dll");
                 return System.Reflection.Assembly.Load(data);
             }
 
             if (args.Name.Contains("GameOptions"))
             {
-                byte[] data = File.ReadAllBytes(MainClientConstants.gamepath + "Resources\\Binaries\\GameOptions.dll");
+                byte[] data = File.ReadAllBytes(MainClientConstants.gamepath + ProgramConstants.BASE_RESOURCE_PATH + "Binaries\\GameOptions.dll");
                 return System.Reflection.Assembly.Load(data);
             }
 
             if (args.Name.Contains("UpdaterOptions"))
             {
-                byte[] data = File.ReadAllBytes(MainClientConstants.gamepath + "Resources\\Binaries\\UpdaterOptions.dll");
+                byte[] data = File.ReadAllBytes(MainClientConstants.gamepath + ProgramConstants.BASE_RESOURCE_PATH + "Binaries\\UpdaterOptions.dll");
                 return System.Reflection.Assembly.Load(data);
             }
 
             if (args.Name.Contains("CnCNetOptions"))
             {
-                byte[] data = File.ReadAllBytes(MainClientConstants.gamepath + "Resources\\Binaries\\CnCNetOptions.dll");
+                byte[] data = File.ReadAllBytes(MainClientConstants.gamepath + ProgramConstants.BASE_RESOURCE_PATH + "Binaries\\CnCNetOptions.dll");
                 return System.Reflection.Assembly.Load(data);
             }
 
             if (args.Name.Contains("ComponentOptions"))
             {
-                byte[] data = File.ReadAllBytes(MainClientConstants.gamepath + "Resources\\Binaries\\ComponentOptions.dll");
+                byte[] data = File.ReadAllBytes(MainClientConstants.gamepath + ProgramConstants.BASE_RESOURCE_PATH + "Binaries\\ComponentOptions.dll");
                 return System.Reflection.Assembly.Load(data);
             }
 

@@ -37,7 +37,7 @@ namespace dtasetup
 
             File.Delete(ProgramConstants.gamepath + "version_u");
 
-            CUpdater.Initialize();
+            CUpdater.Initialize(DomainController.Instance().GetDefaultGame());
             ProgramConstants.RESOURCES_DIR = "Resources\\" + DomainController.Instance().GetThemeInfoFromIndex(themeId)[1];
             DomainController.Instance().ReloadSettings();
 

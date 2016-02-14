@@ -1,17 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Drawing;
-using System.Text;
 using System.Windows.Forms;
 using System.Diagnostics;
 using System.Media;
 using System.IO;
 using System.Threading;
-using System.Net;
-using System.Globalization;
-using dtasetup.gui;
 using dtasetup.domain;
 using dtasetup.domain.cncnet5;
 using dtasetup.persistence;
@@ -33,14 +27,16 @@ namespace dtasetup.gui
             Logger.Log("Loading main menu.");
             UserAgentHandler.ChangeUserAgent();
             InitializeComponent();
-            this.Icon = dtasetup.Properties.Resources.dtasetup_icon;
+            ApplyTheme();
+            string[] sizeArray = new IniFile(ProgramConstants.gamepath + ProgramConstants.RESOURCES_DIR + "MainMenu.ini").GetStringValue("MainMenu", "Size", "640,400").Split(',');
+            this.Size = new Size(Convert.ToInt32(sizeArray[0]), Convert.ToInt32(sizeArray[1]));
+            // Fugly hack, because the form drop shadow (CS_DROPSHADOW, in MovableForm's CreateParams) gets broken if the window's size is changed after the form has been shown
+            // I don't know why, but I know that several people who made WinForms should go hang themselves
         }
 
         Color updateStatusForeColor;
         bool isYR = false;
         bool versMismatch = false;
-
-        List<PictureBox> extraPictureBoxes = new List<PictureBox>();
 
         private void MainMenu_Load(object sender, EventArgs e)
         {
@@ -48,13 +44,10 @@ namespace dtasetup.gui
 
             isYR = DomainController.Instance().GetDefaultGame().ToUpper() == "YR";
 
-            if (isYR)
-                btnCnCNet.Enabled = false;
-
             this.lblCnCNetStatus.Text = string.Format(MCDomainController.Instance().GetCnCNetGameCountStatusText(),
                 MCDomainController.Instance().GetShortGameName());
 
-            ApplyTheme();
+            this.Icon = Icon.ExtractAssociatedIcon(ProgramConstants.gamepath + ProgramConstants.RESOURCES_DIR + "mainclienticon.ico");
 
             Thread thread = new Thread(new ThreadStart(ScheduleCnCNetStatusUpdating));
             thread.Start();
@@ -62,7 +55,7 @@ namespace dtasetup.gui
             this.Location = new Point((Screen.PrimaryScreen.Bounds.Width - this.Size.Width) / 2,
                 (Screen.PrimaryScreen.Bounds.Height - this.Size.Height) / 2);
 
-            if (MCDomainController.Instance().GetModModeStatus() && !isYR)
+            if (MCDomainController.Instance().GetModModeStatus())
             {
                 lblUpdateStatus.Visible = false;
                 lblUpdateStatus.Enabled = false;
@@ -183,7 +176,7 @@ namespace dtasetup.gui
             this.Text = MainClientConstants.GAME_NAME_LONG;
 
             if (File.Exists(ProgramConstants.gamepath + ProgramConstants.RESOURCES_DIR + "mainmenuanim.gif"))
-                pictureBox1.Image = Utilities.LoadImageFromFile(ProgramConstants.gamepath + ProgramConstants.RESOURCES_DIR + "mainmenuanim.gif");
+                pbBackground.Image = Utilities.LoadImageFromFile(ProgramConstants.gamepath + ProgramConstants.RESOURCES_DIR + "mainmenuanim.gif");
         }
 
         protected override void OnShown(EventArgs e)
@@ -367,8 +360,8 @@ namespace dtasetup.gui
 
         private void btnOptions_Click(object sender, EventArgs e)
         {
-            if (CUpdater.UPDATEMIRRORS == null)
-                CUpdater.Initialize();
+            //if (CUpdater.UPDATEMIRRORS == null)
+            //    CUpdater.Initialize(DomainController.Instance().GetDefaultGame());
 
             new OptionsForm().ShowDialog();
             DomainController.Instance().ReloadSettings();
@@ -377,26 +370,20 @@ namespace dtasetup.gui
             
             if (ProgramConstants.RESOURCES_DIR != resDir)
             {
-                // The theme was changed; clear current theme and apply the new one
-
-                for (int i = 0; i < extraPictureBoxes.Count;)
-                {
-                    pictureBox1.Controls.Remove(extraPictureBoxes[0]);
-                    extraPictureBoxes.RemoveAt(0);
-                }
-
                 ProgramConstants.RESOURCES_DIR = resDir;
                 DomainController.Instance().ReloadSettings();
                 ApplyTheme();
                 Reinitialize();
-                SharedUILogic.SetControlStyle(new IniFile(ProgramConstants.gamepath + ProgramConstants.RESOURCES_DIR + "MainMenu.ini"), this);
 
                 if (File.Exists(ProgramConstants.gamepath + ProgramConstants.RESOURCES_DIR + "mainmenuanim.gif"))
-                    pictureBox1.Image = Utilities.LoadImageFromFile(ProgramConstants.gamepath + ProgramConstants.RESOURCES_DIR + "mainmenuanim.gif");
+                    pbBackground.Image = Utilities.LoadImageFromFile(ProgramConstants.gamepath + ProgramConstants.RESOURCES_DIR + "mainmenuanim.gif");
                 else
-                    pictureBox1.Image = null;
+                    pbBackground.Image = null;
+
+                this.Hide();
+                this.Show();
             }
-            
+
             MCDomainController.Instance().ReloadSettings();
         }
 
@@ -565,8 +552,6 @@ namespace dtasetup.gui
                     case VersionState.UPTODATE:
                         versMismatch = false;
                         lblUpdateStatus.Text = MainClientConstants.GAME_NAME_SHORT + " is up to date.";
-                        if (isYR)
-                            btnCnCNet.Enabled = true;
                         break;
                     case VersionState.OUTDATED:
                         lblUpdateStatus.Text = "An update is available. Click to download.";
