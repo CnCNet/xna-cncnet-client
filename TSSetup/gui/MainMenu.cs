@@ -399,61 +399,61 @@ namespace dtasetup.gui
             if (lblUpdateStatus.InvokeRequired)
             {
                 NoParamCallback d = new NoParamCallback(Updater_FileIdentifiersUpdated);
-                this.Invoke(d, null);
+                this.BeginInvoke(d, null);
+                return;
+            }
+
+            if (CUpdater.GameVersion == CUpdater.ServerGameVersion)
+            {
+                lblUpdateStatus.Text = MainClientConstants.GAME_NAME_SHORT + " is up to date (v. " + CUpdater.GameVersion + ").";
+                lblUpdateStatus.ForeColor = updateStatusForeColor;
             }
             else
             {
-                if (CUpdater.GameVersion == CUpdater.ServerGameVersion)
+                if (!this.Visible)
+                    return;
+
+                FormCollection collection = Application.OpenForms;
+                foreach (Form form in collection)
                 {
-                    lblUpdateStatus.Text = MainClientConstants.GAME_NAME_SHORT + " is up to date (v. " + CUpdater.GameVersion + ").";
+                    switch (form.Name)
+                    {
+                        case "CampaignSelector":
+                            return;
+                        case "LoadMissionForm":
+                            return;
+                        case "UpdateQueryForm":
+                            return;
+                    }
+                }
+
+                if (versMismatch)
+                    return;
+
+                UpdateQueryForm uqf = new UpdateQueryForm(CUpdater.ServerGameVersion, CUpdater.UpdateSizeInKb);
+
+                DialogResult dr = DialogResult.OK;
+
+                if (!isYR)
+                {
+                    dr = uqf.ShowDialog();
+                    uqf.Dispose();
+                }
+
+                if (dr == System.Windows.Forms.DialogResult.OK)
+                {
+                    this.Hide();
+                    Thread thread = new Thread(new ThreadStart(CUpdater.PerformUpdate));
+                    thread.Start();
+                    UpdateForm uf = new UpdateForm();
+                    uf.ShowDialog();
+                    uf.Dispose();
+                    this.Show();
                 }
                 else
                 {
-                    if (!this.Visible)
-                        return;
-
-                    FormCollection collection = Application.OpenForms;
-                    foreach (Form form in collection)
-                    {
-                        switch (form.Name)
-                        {
-                            case "CampaignSelector":
-                                return;
-                            case "LoadMissionForm":
-                                return;
-                            case "UpdateQueryForm":
-                                return;
-                        }
-                    }
-
-                    if (versMismatch)
-                        return;
-
-                    UpdateQueryForm uqf = new UpdateQueryForm(CUpdater.ServerGameVersion, CUpdater.UpdateSizeInKb);
-
-                    DialogResult dr = DialogResult.OK;
-
-                    if (!isYR)
-                    {
-                        dr = uqf.ShowDialog();
-                        uqf.Dispose();
-                    }
-
-                    if (dr == System.Windows.Forms.DialogResult.OK)
-                    {
-                        this.Hide();
-                        Thread thread = new Thread(new ThreadStart(CUpdater.PerformUpdate));
-                        thread.Start();
-                        UpdateForm uf = new UpdateForm();
-                        uf.ShowDialog();
-                        uf.Dispose();
-                        this.Show();
-                    }
-                    else
-                    {
-                        lblUpdateStatus.Text = "Click here to download the update.";
-                        lblUpdateStatus.ForeColor = Color.Goldenrod;
-                    }
+                    lblUpdateStatus.Text = "Click here to download the update.";
+                    lblUpdateStatus.ForeColor = Color.Goldenrod;
                 }
             }
         }
@@ -517,51 +517,51 @@ namespace dtasetup.gui
             if (lblUpdateStatus.InvokeRequired)
             {
                 NoParamCallback d = new NoParamCallback(Updater_OnVersionStateChanged);
-                this.Invoke(d, null);
+                this.BeginInvoke(d, null);
+                return;
             }
-            else
+
+            lblVersion.Text = "Version: " + CUpdater.GameVersion;
+            lblUpdateStatus.ForeColor = updateStatusForeColor;
+
+            //Logger.Log("Version state changed.");
+            //Logger.Log(CUpdater.DTAVersionState.ToString());
+
+            if (isYR)
+                btnCnCNet.Enabled = true;
+
+            switch (CUpdater.DTAVersionState)
             {
-                lblVersion.Text = "Version: " + CUpdater.GameVersion;
-                lblUpdateStatus.ForeColor = updateStatusForeColor;
-
-                //Logger.Log("Version state changed.");
-                //Logger.Log(CUpdater.DTAVersionState.ToString());
-
-                if (isYR)
-                    btnCnCNet.Enabled = true;
-
-                switch (CUpdater.DTAVersionState)
-                {
-                    case VersionState.UNKNOWN:
-                        if (CUpdater.HasVersionBeenChecked)
-                        {
-                            lblUpdateStatus.Text = "Error. See file client.log for details.";
-                        }
-                        else
-                        {
-                            lblUpdateStatus.ForeColor = Color.Goldenrod;
-                            lblUpdateStatus.Text = "Click here to check for updates.";
-                        }
-                        break;
-                    case VersionState.UPDATECHECKINPROGRESS:
-                        lblUpdateStatus.Text = "Checking for updates...";
-                        break;
-                    case VersionState.UPDATEINPROGRESS:
-                        lblUpdateStatus.Text = "An update is in progress...";
-                        break;
-                    case VersionState.UPTODATE:
-                        versMismatch = false;
-                        lblUpdateStatus.Text = MainClientConstants.GAME_NAME_SHORT + " is up to date.";
-                        break;
-                    case VersionState.OUTDATED:
-                        lblUpdateStatus.Text = "An update is available. Click to download.";
+                case VersionState.UNKNOWN:
+                    if (CUpdater.HasVersionBeenChecked)
+                    {
+                        lblUpdateStatus.Text = "Error. See file client.log for details.";
+                    }
+                    else
+                    {
                         lblUpdateStatus.ForeColor = Color.Goldenrod;
-                        break;
-                    case VersionState.MISMATCHED:
-                        lblUpdateStatus.Text = "Version mismatch. Updating is recommended.";
-                        lblUpdateStatus.ForeColor = Color.Goldenrod;
-                        break;
-                }
+                        lblUpdateStatus.Text = "Click here to check for updates.";
+                    }
+                    break;
+                case VersionState.UPDATECHECKINPROGRESS:
+                    lblUpdateStatus.Text = "Checking for updates...";
+                    break;
+                case VersionState.UPDATEINPROGRESS:
+                    lblUpdateStatus.Text = "An update is in progress...";
+                    break;
+                case VersionState.UPTODATE:
+                    versMismatch = false;
+                    lblUpdateStatus.Text = MainClientConstants.GAME_NAME_SHORT + " is up to date.";
+                    lblUpdateStatus.ForeColor = updateStatusForeColor;
+                    break;
+                case VersionState.OUTDATED:
+                    lblUpdateStatus.Text = "An update is available. Click to download.";
+                    lblUpdateStatus.ForeColor = Color.Goldenrod;
+                    break;
+                case VersionState.MISMATCHED:
+                    lblUpdateStatus.Text = "Version mismatch. Updating is recommended.";
+                    lblUpdateStatus.ForeColor = Color.Goldenrod;
+                    break;
             }
         }
 
