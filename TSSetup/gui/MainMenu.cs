@@ -59,6 +59,7 @@ namespace dtasetup.gui
             {
                 lblUpdateStatus.Visible = false;
                 lblUpdateStatus.Enabled = false;
+                lblVersion.Text = "Version: " + CUpdater.GameVersion;
                 return;
             }
 
@@ -235,7 +236,7 @@ namespace dtasetup.gui
             if (CUpdater.LocalFileInfos.Find(fi => fi.Name == "INI\\Default.ini") == null)
                 File.Delete(ProgramConstants.gamepath + "INI\\Default.ini");
 
-            if (isYR)
+            if (isYR && !MCDomainController.Instance().GetModModeStatus())
                 CUpdater.DoVersionCheck();
 
             this.Show();
@@ -526,9 +527,6 @@ namespace dtasetup.gui
 
             //Logger.Log("Version state changed.");
             //Logger.Log(CUpdater.DTAVersionState.ToString());
-
-            if (isYR)
-                btnCnCNet.Enabled = true;
 
             switch (CUpdater.DTAVersionState)
             {

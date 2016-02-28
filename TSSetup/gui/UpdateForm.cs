@@ -43,17 +43,17 @@ namespace dtasetup.gui
             btnCancel.HoveredImage = SharedUILogic.LoadImage("133pxbtn_c.png");
             btnCancel.HoverSound = new SoundPlayer(ProgramConstants.gamepath + ProgramConstants.RESOURCES_DIR + "button.wav");
 
-            CUpdater.OnUpdateCompleted += Updater_OnUpdateCompleted;
-            CUpdater.OnUpdateFailed += Updater_OnUpdateFailed;
-            CUpdater.BeforeSelfUpdate += Updater_BeforeSelfUpdate;
-            CUpdater.UpdateProgressChanged += Updater_UpdateProgressChanged;
-
             SharedUILogic.ParseClientThemeIni(this);
 
             if (MainClientConstants.OSId == OSVersion.WIN7 || MainClientConstants.OSId == OSVersion.WIN8)
             {
                 tbp = new TaskbarProgress();
             }
+
+            CUpdater.OnUpdateCompleted += Updater_OnUpdateCompleted;
+            CUpdater.OnUpdateFailed += Updater_OnUpdateFailed;
+            CUpdater.BeforeSelfUpdate += Updater_BeforeSelfUpdate;
+            CUpdater.UpdateProgressChanged += Updater_UpdateProgressChanged;
         }
 
         void Updater_UpdateProgressChanged(string currFileName, int currFilePercentage, int totalPercentage)
@@ -61,25 +61,27 @@ namespace dtasetup.gui
             if (this.InvokeRequired)
             {
                 UpdateProgressChangedCallback d = new UpdateProgressChangedCallback(Updater_UpdateProgressChanged);
-                this.Invoke(d, new object[] { currFileName, currFilePercentage, totalPercentage });
+                this.BeginInvoke(d, new object[] { currFileName, currFilePercentage, totalPercentage });
+                return;
             }
+
+            if (currFilePercentage < 0 || currFilePercentage > 100)
+                progressBar1.Value = 0;
             else
+                progressBar1.Value = currFilePercentage;
+
+            if (totalPercentage < 0 || totalPercentage > 100)
+                progressBar2.Value = 0;
+            else
+                progressBar2.Value = totalPercentage;
+
+            lblFileProgressValue.Text = Convert.ToString(currFilePercentage) + "%";
+            lblTotalProgressValue.Text = Convert.ToString(totalPercentage) + "%";
+            lblCurrFileName.Text = "Current file: " + currFileName;
+
+            if (MainClientConstants.OSId == OSVersion.WIN7 || MainClientConstants.OSId == OSVersion.WIN8)
             {
-                if (currFilePercentage < 0 || currFilePercentage > 100)
-                    progressBar1.Value = 0;
-                else
-                    progressBar1.Value = currFilePercentage;
-
-                if (totalPercentage < 0 || totalPercentage > 100)
-                    progressBar2.Value = 0;
-                else
-                    progressBar2.Value = totalPercentage;
-
-                lblFileProgressValue.Text = Convert.ToString(currFilePercentage) + "%";
-                lblTotalProgressValue.Text = Convert.ToString(totalPercentage) + "%";
-                lblCurrFileName.Text = "Current file: " + currFileName;
-
-                if (MainClientConstants.OSId == OSVersion.WIN7 || MainClientConstants.OSId == OSVersion.WIN8)
+                if (tbp != null)
                 {
                     tbp.SetState(this.Handle, TaskbarProgress.TaskbarStates.Normal);
                     tbp.SetValue(this.Handle, progressBar2.Value, progressBar2.Maximum);
@@ -121,13 +123,12 @@ namespace dtasetup.gui
             if (this.InvokeRequired)
             {
                 NoParamCallback d = new NoParamCallback(Updater_OnUpdateCompleted);
-                this.Invoke(d, null);
+                this.BeginInvoke(d, null);
+                return;
             }
-            else
-            {
-                Unsubscribe();
-                this.DialogResult = System.Windows.Forms.DialogResult.OK;
-            }
+
+            Unsubscribe();
+            this.DialogResult = System.Windows.Forms.DialogResult.OK;
         }
 
         private void btnCancel_Click(object sender, EventArgs e)

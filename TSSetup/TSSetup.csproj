@@ -52,7 +52,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup>
-    <ApplicationIcon>RA2MD Update.ico</ApplicationIcon>
+    <ApplicationIcon>clienticon.ico</ApplicationIcon>
   </PropertyGroup>
   <PropertyGroup>
     <ManifestCertificateThumbprint>7D9F5AD6595A94B72145ABE05A7F43AEF032AB45</ManifestCertificateThumbprint>

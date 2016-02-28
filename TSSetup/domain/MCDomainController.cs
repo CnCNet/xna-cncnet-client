@@ -157,9 +157,6 @@ namespace dtasetup.domain
 
         public bool GetModModeStatus()
         {
-            if (GetShortGameName() == "YR")
-                return false;
-
             return mainClient_ini.GetBooleanValue("General", "ModMode", false);
         }
 

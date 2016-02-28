@@ -275,7 +275,7 @@ namespace dtasetup
         {
             bool isYR = DomainController.Instance().GetDefaultGame().ToUpper() == "YR";
 
-            if (MCDomainController.Instance().GetModModeStatus() && !isYR)
+            if (MCDomainController.Instance().GetModModeStatus())
                 return;
 
             if (CUpdater.DTAVersionState == VersionState.UPDATEINPROGRESS)
