@@ -9,31 +9,26 @@ using ClientCore;
 
 namespace dtasetup.domain
 {
-    class StatisticsPageAddresses
+    public static class StatisticsPageAddresses
     {
         /// <summary>
         /// Visits the CnCNet statistics page of the current game.
         /// </summary>
         public static string GetCnCNetStatsPageAddress()
         {
-            if (MCDomainController.Instance().GetShortGameName() == "DTA")
+            switch (MCDomainController.Instance().GetShortGameName())
             {
-                return "http://dta.ppmsite.com/ga-dta-cncnet.htm";
+                case "DTA":
+                    return "http://dta.ppmsite.com/ga-dta-cncnet.htm";
+                case "TI":
+                    return "http://dta.ppmsite.com/ga-ti-cncnet.htm";
+                case "TS":
+                    return "http://dta.ppmsite.com/ga-ts-cncnet.htm";
+                case "YR":
+                    return "http://dta.ppmsite.com/ga-yr-cncnet.htm";
+                default:
+                    return String.Empty;
             }
-            else if (MCDomainController.Instance().GetShortGameName() == "TI")
-            {
-                return "http://dta.ppmsite.com/ga-ti-cncnet.htm";
-            }
-            else if (MCDomainController.Instance().GetShortGameName() == "TS")
-            {
-                return "http://dta.ppmsite.com/ga-ts-cncnet.htm";
-            }
-            else if (MCDomainController.Instance().GetShortGameName() == "YR")
-            {
-                return "http://dta.ppmsite.com/ga-yr-cncnet.htm";
-            }
-
-            return String.Empty;
         }
 
         /// <summary>
@@ -41,24 +36,19 @@ namespace dtasetup.domain
         /// </summary>
         public static string GetUpdateStatsPageAddress()
         {
-            if (MCDomainController.Instance().GetShortGameName() == "DTA")
+            switch (MCDomainController.Instance().GetShortGameName())
             {
-                return "http://dta.ppmsite.com/ga-dta-update.htm";
+                case "DTA":
+                    return "http://dta.ppmsite.com/ga-dta-update.htm";
+                case "TI":
+                    return "http://dta.ppmsite.com/ga-ti-update.htm";
+                case "TS":
+                    return "http://dta.ppmsite.com/ga-ts-update.htm";
+                case "YR":
+                    return "http://dta.ppmsite.com/ga-yr-update.htm";
+                default:
+                    return String.Empty;
             }
-            else if (MCDomainController.Instance().GetShortGameName() == "TI")
-            {
-                return "http://dta.ppmsite.com/ga-ti-update.htm";
-            }
-            else if (MCDomainController.Instance().GetShortGameName() == "TS")
-            {
-                return "http://dta.ppmsite.com/ga-ts-update.htm";
-            }
-            else if (MCDomainController.Instance().GetShortGameName() == "YR")
-            {
-                return "http://dta.ppmsite.com/ga-yr-update.htm";
-            }
-
-            return String.Empty;
         }
     }
 }

@@ -8,7 +8,7 @@ using ClientCore;
 
 namespace dtasetup.domain
 {
-    class MainClientConstants
+    public static class MainClientConstants
     {
         public static string GAME_SETTINGS = "SUN.ini";
         public const String NEW_VERSION = "version";

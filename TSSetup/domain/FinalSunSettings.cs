@@ -27,6 +27,7 @@ namespace dtasetup.domain
                     {
                         iniFile.SetStringValue("FinalSun", "Language", "English");
                         iniFile.SetStringValue("FinalSun", "FileSearchLikeTS", "yes");
+                        iniFile.SetStringValue("TS", "Exe", Application.ExecutablePath);
                         iniFile.WriteIniFile();
                     }
 

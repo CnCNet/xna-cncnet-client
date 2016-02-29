@@ -278,10 +278,7 @@ namespace dtasetup
             if (MCDomainController.Instance().GetModModeStatus())
                 return;
 
-            if (CUpdater.DTAVersionState == VersionState.UPDATEINPROGRESS)
-                return;
-
-            if (File.Exists(MainClientConstants.gamepath + MainClientConstants.NEW_VERSION) && !CUpdater.LocalFileVersionsChecked)
+            if (File.Exists(MainClientConstants.gamepath + MainClientConstants.NEW_VERSION))
             {
                 CUpdater.CheckLocalFileVersions();
             }
@@ -290,22 +287,6 @@ namespace dtasetup
                 CUpdater.IsVersionMismatch = true;
                 return;
             }
-
-            //if (!CUpdater.IsVersionMismatch && !MainClientConstants.AutoRunCnCNetClient)
-            //{
-            //    if (isYR)
-            //    {
-            //        Thread thread = new Thread(new ThreadStart(CUpdater.DoVersionCheck));
-            //        thread.Start();
-            //        return;
-            //    }
-
-            //    if (MCDomainController.Instance().getAutomaticUpdateStatus())
-            //    {
-            //        Thread thread = new Thread(new ThreadStart(CUpdater.DoVersionCheck));
-            //        thread.Start();
-            //    }
-            //}
         }
 
         /// <summary>

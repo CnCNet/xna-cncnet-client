@@ -26,7 +26,7 @@ namespace dtasetup.gui
 
         private void SplashScreen_Paint(object sender, PaintEventArgs e)
         {
-
+            // Do nothing
         }
 
         protected override void OnPaint(PaintEventArgs e)
