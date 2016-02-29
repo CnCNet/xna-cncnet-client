@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Text;
 using System.IO;
 using System.Windows.Forms;
-using dtasetup.domain.cncnet;
 using System.Drawing;
 using ClientCore;
 

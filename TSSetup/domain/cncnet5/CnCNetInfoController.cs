@@ -10,7 +10,7 @@ namespace dtasetup.domain.cncnet5
 {
     public static class CnCNetInfoController
     {
-        public static int getCnCNetGameCount()
+        public static int GetCnCNetGameCount()
         {
             try
             {

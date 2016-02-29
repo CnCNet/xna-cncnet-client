@@ -104,7 +104,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="domain\cncnet5\CnCNetInfoController.cs" />
-    <Compile Include="domain\cncnet\JsonParser.cs" />
     <Compile Include="domain\MCDomainController.cs" />
     <Compile Include="domain\StatisticsPageAddresses.cs" />
     <Compile Include="domain\Mission.cs" />

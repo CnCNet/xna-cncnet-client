@@ -565,7 +565,7 @@ namespace dtasetup.gui
         private void ScheduleCnCNetStatusUpdating()
         {
             Logger.Log("Scheduling CnCNet live status parsing.");
-            SetCnCNetStatus(CnCNetInfoController.getCnCNetGameCount());
+            SetCnCNetStatus(CnCNetInfoController.GetCnCNetGameCount());
 
             while (true)
             {
@@ -580,7 +580,7 @@ namespace dtasetup.gui
                         Thread.Sleep(1000);
                 }
 
-                SetCnCNetStatus(CnCNetInfoController.getCnCNetGameCount());
+                SetCnCNetStatus(CnCNetInfoController.GetCnCNetGameCount());
             }
         }
 
