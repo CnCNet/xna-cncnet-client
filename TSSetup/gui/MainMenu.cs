@@ -8,7 +8,6 @@ using System.IO;
 using System.Threading;
 using dtasetup.domain;
 using dtasetup.domain.cncnet5;
-using dtasetup.persistence;
 using Updater;
 using DTAConfig;
 using ClientCore;
@@ -41,6 +40,8 @@ namespace dtasetup.gui
         private void MainMenu_Load(object sender, EventArgs e)
         {
             //AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(HandleExcept);
+
+            SharedUILogic.GameProcessExited += SharedUILogic_GameProcessExited;
 
             isYR = DomainController.Instance().GetDefaultGame().ToUpper() == "YR";
 
@@ -244,33 +245,23 @@ namespace dtasetup.gui
 
         private void btnLan_Click(object sender, EventArgs e)
         {
-            SaveSettings();
-
-            ProcessStartInfo startInfo = new ProcessStartInfo(MainClientConstants.gamepath + "cncnetclient.dat");
-            startInfo.Arguments = "\"-RESDIR=" + ProgramConstants.RESOURCES_DIR.Remove(ProgramConstants.RESOURCES_DIR.Length - 1) + "\"";
-            startInfo.Arguments = startInfo.Arguments + " -VER" + CUpdater.GameVersion + " -LAN";
-            startInfo.UseShellExecute = false;
-
-            Process clientProcess = new Process();
-            clientProcess.StartInfo = startInfo;
-
-            this.Hide();
-            clientProcess.Start();
-
-            clientProcess.WaitForExit();
-
-            this.Show();
-
-            MCDomainController.Instance().ReloadSettings();
+            StartCnCNetClient("-LAN");
         }
 
         private void btnSkirmish_Click(object sender, EventArgs e)
+        {
+            StartCnCNetClient("-SKIRMISH");
+        }
+
+        private void StartCnCNetClient(string commandLine)
         {
             SaveSettings();
 
             ProcessStartInfo startInfo = new ProcessStartInfo(MainClientConstants.gamepath + "cncnetclient.dat");
             startInfo.Arguments = "\"-RESDIR=" + ProgramConstants.RESOURCES_DIR.Remove(ProgramConstants.RESOURCES_DIR.Length - 1) + "\"";
-            startInfo.Arguments = startInfo.Arguments + " -VER" + CUpdater.GameVersion + " -SKIRMISH";
+            startInfo.Arguments = startInfo.Arguments + " -VER" + CUpdater.GameVersion;
+            if (!String.IsNullOrEmpty(commandLine))
+                startInfo.Arguments = startInfo.Arguments + " " + commandLine;
             startInfo.UseShellExecute = false;
 
             Process clientProcess = new Process();
@@ -311,10 +302,14 @@ namespace dtasetup.gui
 
             if (dr == System.Windows.Forms.DialogResult.OK)
             {
-                WatchDTA();
-
-                this.Show();
+                this.Enabled = false;
+                SharedUILogic.StartGameProcess(0);
             }
+        }
+
+        void SharedUILogic_GameProcessExited()
+        {
+            this.Enabled = true;
         }
 
         private void btnMapEditor_Click(object sender, EventArgs e)
@@ -329,9 +324,8 @@ namespace dtasetup.gui
 
             if (dr == System.Windows.Forms.DialogResult.OK)
             {
-                WatchDTA();
-
-                this.Show();
+                this.Enabled = false;
+                SharedUILogic.StartGameProcess(0);
             }
         }
 
@@ -361,9 +355,6 @@ namespace dtasetup.gui
 
         private void btnOptions_Click(object sender, EventArgs e)
         {
-            //if (CUpdater.UPDATEMIRRORS == null)
-            //    CUpdater.Initialize(DomainController.Instance().GetDefaultGame());
-
             new OptionsForm().ShowDialog();
             DomainController.Instance().ReloadSettings();
             int themeId = DomainController.Instance().GetSelectedThemeId();
@@ -384,6 +375,8 @@ namespace dtasetup.gui
                 this.Hide();
                 this.Show();
             }
+
+            updateStatusForeColor = lblUpdateStatus.ForeColor;
 
             MCDomainController.Instance().ReloadSettings();
         }
@@ -563,43 +556,8 @@ namespace dtasetup.gui
             }
         }
 
-        private void WatchDTA()
-        {
-            this.Hide();
-
-            string processName = MainClientConstants.QRES_EXECUTABLE;
-
-            Logger.Log("Waiting for qres.dat to exit.");
-
-            Process[] qresName = Process.GetProcessesByName(processName);
-
-            if (qresName.Length > 0)
-                qresName[0].WaitForExit();
-
-            string mainExe = DomainController.Instance().GetGameExecutableName(0);
-
-            Logger.Log("Waiting for " + mainExe + " to exit.");
-
-            Process[] pname = Process.GetProcessesByName(mainExe);
-
-            if (pname.Length > 0)
-                pname[0].WaitForExit();
-
-            Logger.Log("Both processes have exited; returning back to menu.");
-
-            Logger.Log("Reloading settings.");
-            MCDomainController.Instance().ReloadSettings();
-        }
-
         private void SaveSettings()
         {
-            if (!File.Exists(MainClientConstants.gamepath + MainClientConstants.LANGUAGE_DLL))
-            {
-                Logger.Log("Language.dll doesn't exist - writing default 800x600 DLL.");
-                LanguageDllId langdll = LanguageDllId.DTA800X600;
-                GameFileManagement.setLanguageDll(langdll);
-            }
-
             OptionsForm of = new OptionsForm();
             of.UpdateSettings();
         }
@@ -632,10 +590,6 @@ namespace dtasetup.gui
             {
                 Logger.Log("An error occured while trying to check the status of CnCNet.");
                 setCnCNetStatusText("Connection error");
-            }
-            else if (playercount == 1)
-            {
-                setCnCNetStatusText("1");
             }
             else
             {

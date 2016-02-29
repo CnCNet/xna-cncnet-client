@@ -4,7 +4,6 @@ using System.Text;
 using System.Security.Principal;
 using System.Windows.Forms;
 using System.IO;
-using dtasetup.persistence;
 using ClientCore;
 
 namespace dtasetup.domain

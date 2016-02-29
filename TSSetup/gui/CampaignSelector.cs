@@ -9,7 +9,6 @@ using System.Media;
 using System.IO;
 using System.Diagnostics;
 using dtasetup.domain;
-using dtasetup.persistence;
 using ClientCore;
 using ClientGUI;
 using Updater;
@@ -220,30 +219,6 @@ namespace dtasetup.gui
             mapIni.WriteIniFile(ProgramConstants.gamepath + "spawnmap.ini");
 
             Logger.Log("About to launch main executable.");
-
-            if (MCDomainController.Instance().getWindowedStatus())
-            {
-                Logger.Log("Windowed mode is enabled - using QRes.");
-                Process QResProcess = new Process();
-                QResProcess.StartInfo.FileName = MainClientConstants.QRES_EXECUTABLE;
-                QResProcess.StartInfo.UseShellExecute = false;
-                QResProcess.StartInfo.Arguments = "c=16 /R " + "\"" + MainClientConstants.gamepath + DomainController.Instance().GetGameExecutableName(0) + "\"" + " -SPAWN";
-                QResProcess.Start();
-
-                if (Environment.ProcessorCount > 1)
-                    QResProcess.ProcessorAffinity = (System.IntPtr)2;
-            }
-            else
-            {
-                Process DtaProcess = new Process();
-                DtaProcess.StartInfo.FileName = DomainController.Instance().GetGameExecutableName(0);
-                DtaProcess.StartInfo.UseShellExecute = false;
-                DtaProcess.StartInfo.Arguments = "-SPAWN";
-                DtaProcess.Start();
-
-                if (Environment.ProcessorCount > 1)
-                    DtaProcess.ProcessorAffinity = (System.IntPtr)2;
-            }
 
             this.DialogResult = System.Windows.Forms.DialogResult.OK;
         }
