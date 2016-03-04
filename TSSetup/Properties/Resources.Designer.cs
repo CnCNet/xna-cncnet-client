@@ -61,16 +61,6 @@ namespace dtasetup.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized resource of type System.Byte[].
-        /// </summary>
-        internal static byte[] Interop_IWshRuntimeLibrary {
-            get {
-                object obj = ResourceManager.GetObject("Interop_IWshRuntimeLibrary", resourceCulture);
-                return ((byte[])(obj));
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to [Options]
         ///GameSpeed=1
         ///ScrollMethod=0

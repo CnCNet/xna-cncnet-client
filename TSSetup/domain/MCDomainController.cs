@@ -74,11 +74,6 @@ namespace dtasetup.domain
 
         // functions used for detecting launcher settings
 
-        public bool getWindowedStatus()
-        {
-            return settings_ini.GetBooleanValue("Video", "Video.Windowed", false);
-        }
-
         public bool getAutomaticUpdateStatus()
         {
             return settings_ini.GetBooleanValue("Options", "CheckforUpdates", true);

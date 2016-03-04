@@ -113,13 +113,6 @@ namespace dtasetup
 
         static System.Reflection.Assembly CurrentDomain_AssemblyResolve(object sender, ResolveEventArgs args)
         {
-            if (args.Name.Contains("IWshRuntimeLibrary"))
-            {
-                // Load the DLL from resources
-                byte[] data = dtasetup.Properties.Resources.Interop_IWshRuntimeLibrary;
-                return System.Reflection.Assembly.Load(data);
-            }
-
             if (args.Name.Contains("AudioOptions"))
             {
                 // Load DLL from Resources\Binaries

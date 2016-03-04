@@ -59,6 +59,7 @@
             this.btnLoadGame.HoveredImage = null;
             this.btnLoadGame.HoverSound = null;
             this.btnLoadGame.Location = new System.Drawing.Point(0, 135);
+            this.btnLoadGame.Margin = new System.Windows.Forms.Padding(0);
             this.btnLoadGame.Name = "btnLoadGame";
             this.btnLoadGame.Size = new System.Drawing.Size(640, 30);
             this.btnLoadGame.TabIndex = 10;
@@ -75,6 +76,7 @@
             this.btnNewCampaign.HoveredImage = null;
             this.btnNewCampaign.HoverSound = null;
             this.btnNewCampaign.Location = new System.Drawing.Point(0, 99);
+            this.btnNewCampaign.Margin = new System.Windows.Forms.Padding(0);
             this.btnNewCampaign.Name = "btnNewCampaign";
             this.btnNewCampaign.Size = new System.Drawing.Size(640, 30);
             this.btnNewCampaign.TabIndex = 0;
@@ -91,6 +93,7 @@
             this.btnSkirmish.HoveredImage = null;
             this.btnSkirmish.HoverSound = null;
             this.btnSkirmish.Location = new System.Drawing.Point(0, 171);
+            this.btnSkirmish.Margin = new System.Windows.Forms.Padding(0);
             this.btnSkirmish.Name = "btnSkirmish";
             this.btnSkirmish.Size = new System.Drawing.Size(640, 30);
             this.btnSkirmish.TabIndex = 3;
@@ -107,6 +110,7 @@
             this.btnOptions.HoveredImage = null;
             this.btnOptions.HoverSound = null;
             this.btnOptions.Location = new System.Drawing.Point(0, 279);
+            this.btnOptions.Margin = new System.Windows.Forms.Padding(0);
             this.btnOptions.Name = "btnOptions";
             this.btnOptions.Size = new System.Drawing.Size(640, 30);
             this.btnOptions.TabIndex = 4;
@@ -123,6 +127,7 @@
             this.btnCnCNet.HoveredImage = null;
             this.btnCnCNet.HoverSound = null;
             this.btnCnCNet.Location = new System.Drawing.Point(0, 207);
+            this.btnCnCNet.Margin = new System.Windows.Forms.Padding(0);
             this.btnCnCNet.Name = "btnCnCNet";
             this.btnCnCNet.Size = new System.Drawing.Size(640, 30);
             this.btnCnCNet.TabIndex = 2;
@@ -168,6 +173,7 @@
             this.btnExit.HoveredImage = null;
             this.btnExit.HoverSound = null;
             this.btnExit.Location = new System.Drawing.Point(0, 320);
+            this.btnExit.Margin = new System.Windows.Forms.Padding(0);
             this.btnExit.Name = "btnExit";
             this.btnExit.Size = new System.Drawing.Size(640, 30);
             this.btnExit.TabIndex = 5;
@@ -212,6 +218,7 @@
             this.btnCredits.HoveredImage = null;
             this.btnCredits.HoverSound = null;
             this.btnCredits.Location = new System.Drawing.Point(0, 12);
+            this.btnCredits.Margin = new System.Windows.Forms.Padding(0);
             this.btnCredits.Name = "btnCredits";
             this.btnCredits.Size = new System.Drawing.Size(640, 30);
             this.btnCredits.TabIndex = 6;
@@ -240,6 +247,7 @@
             this.btnMapEditor.HoveredImage = null;
             this.btnMapEditor.HoverSound = null;
             this.btnMapEditor.Location = new System.Drawing.Point(3, 243);
+            this.btnMapEditor.Margin = new System.Windows.Forms.Padding(0);
             this.btnMapEditor.Name = "btnMapEditor";
             this.btnMapEditor.Size = new System.Drawing.Size(637, 30);
             this.btnMapEditor.TabIndex = 89;
@@ -305,6 +313,7 @@
             // wbDataCollector
             // 
             this.wbDataCollector.Location = new System.Drawing.Point(543, 259);
+            this.wbDataCollector.Margin = new System.Windows.Forms.Padding(0);
             this.wbDataCollector.MinimumSize = new System.Drawing.Size(20, 20);
             this.wbDataCollector.Name = "wbDataCollector";
             this.wbDataCollector.Size = new System.Drawing.Size(97, 80);
@@ -329,7 +338,7 @@
             this.pbBackground.ResumeLayout(false);
             this.pbBackground.PerformLayout();
             this.ResumeLayout(false);
-            this.PerformLayout();
+
         }
 
         #endregion
