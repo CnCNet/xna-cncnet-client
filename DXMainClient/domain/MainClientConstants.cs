@@ -6,7 +6,7 @@ using System.Windows.Forms;
 using System.Drawing;
 using ClientCore;
 
-namespace dtasetup.domain
+namespace DTAClient.domain
 {
     public static class MainClientConstants
     {
@@ -46,18 +46,18 @@ namespace dtasetup.domain
 
             OSId = ClientCore.DomainController.Instance().GetOperatingSystemVersion();
 
-            GAME_NAME_SHORT = MCDomainController.Instance().GetShortGameName();
-            GAME_NAME_LONG = MCDomainController.Instance().GetLongGameName();
+            GAME_NAME_SHORT = MCDomainController.Instance.GetShortGameName();
+            GAME_NAME_LONG = MCDomainController.Instance.GetLongGameName();
 
-            SUPPORT_URL = MCDomainController.Instance().GetLongSupportURL();
-            SUPPORT_URL_SHORT = MCDomainController.Instance().GetShortSupportURL();
+            SUPPORT_URL = MCDomainController.Instance.GetLongSupportURL();
+            SUPPORT_URL_SHORT = MCDomainController.Instance.GetShortSupportURL();
 
-            CNCNET_LIVE_STATUS_ID = MCDomainController.Instance().GetCnCNetLiveStatusIdentifier();
+            CNCNET_LIVE_STATUS_ID = MCDomainController.Instance.GetCnCNetLiveStatusIdentifier();
 
-            CHANGELOG_URL = MCDomainController.Instance().GetChangelogURL();
-            CREDITS_URL = MCDomainController.Instance().GetCreditsURL();
+            CHANGELOG_URL = MCDomainController.Instance.GetChangelogURL();
+            CREDITS_URL = MCDomainController.Instance.GetCreditsURL();
 
-            FINALSUN_INI = MCDomainController.Instance().GetFinalSunIniPath();
+            FINALSUN_INI = MCDomainController.Instance.GetFinalSunIniPath();
         }
     }
 }

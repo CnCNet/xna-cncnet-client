@@ -2,6 +2,7 @@
 using ClientCore.Statistics;
 using ClientGUI;
 using Microsoft.Xna.Framework;
+using Rampastring.Tools;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.DXControls;
 using System;
@@ -10,7 +11,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 
-namespace dtasetup.DXGUI
+namespace DTAClient.DXGUI
 {
     public class StatisticsWindow : DXWindow
     {
@@ -19,8 +20,8 @@ namespace dtasetup.DXGUI
         DXPanel panelGameStatistics;
         DXPanel panelTotalStatistics;
 
-        DXComboBox cmbGameModeFilter;
-        DXComboBox cmbGameClassFilter;
+        DXDropDown cmbGameModeFilter;
+        DXDropDown cmbGameClassFilter;
 
         DXTabControl tabControl;
 
@@ -73,7 +74,6 @@ namespace dtasetup.DXGUI
             Name = "StatisticsWindow";
             BackgroundTexture = AssetLoader.LoadTexture("scoreviewerbg.png");
             ClientRectangle = new Rectangle(0, 0, 700, 500);
-            CenterOnParent();
 
             tabControl = new DXTabControl(Game);
             tabControl.ClientRectangle = new Rectangle(12, 10, 0, 0);
@@ -91,7 +91,7 @@ namespace dtasetup.DXGUI
             lblFilter.Text = "FILTER:";
             lblFilter.ClientRectangle = new Rectangle(527, 12, 0, 0);
 
-            cmbGameClassFilter = new DXComboBox(Game);
+            cmbGameClassFilter = new DXDropDown(Game);
             cmbGameClassFilter.ClientRectangle = new Rectangle(585, 11, 105, 21);
             cmbGameClassFilter.AddItem("All games");
             cmbGameClassFilter.AddItem("Online games");
@@ -107,7 +107,7 @@ namespace dtasetup.DXGUI
             lblGameMode.Text = "GAME MODE:";
             lblGameMode.ClientRectangle = new Rectangle(294, 12, 0, 0);
 
-            cmbGameModeFilter = new DXComboBox(Game);
+            cmbGameModeFilter = new DXDropDown(Game);
             cmbGameModeFilter.ClientRectangle = new Rectangle(381, 11, 114, 21);
             cmbGameModeFilter.SelectedIndexChanged += CmbGameModeFilter_SelectedIndexChanged;
 
@@ -159,21 +159,9 @@ namespace dtasetup.DXGUI
             lbGameStatistics.AddColumn("TEAM", 60);
             lbGameStatistics.ClientRectangle = new Rectangle(2, 250, 676, 170);
 
-            //DXLabel lblGameVersion = new DXLabel(Game);
-            //lblGameVersion.Text = "GAME VERSION:";
-            //lblGameVersion.FontIndex = 1;
-            //lblGameVersion.ClientRectangle = new Rectangle(554, 87, 0, 0);
-
-            //DXLabel lblSawCompletion = new DXLabel(Game);
-            //lblSawCompletion.Text = "SAW COMPLETION:";
-            //lblSawCompletion.FontIndex = 1;
-            //lblSawCompletion.ClientRectangle = new Rectangle(554, 147, 0, 0);
-
             panelGameStatistics.AddChild(lblMatches);
             panelGameStatistics.AddChild(lbGameList);
             panelGameStatistics.AddChild(lbGameStatistics);
-            //panelGameStatistics.AddChild(lblGameVersion);
-            //panelGameStatistics.AddChild(lblSawCompletion);
 
             #endregion
 
@@ -367,13 +355,15 @@ namespace dtasetup.DXGUI
             AddChild(cmbGameModeFilter);
             AddChild(btnReturnToMenu);
 
+            base.Initialize();
+
+            CenterOnParent();
+
             sides = DomainController.Instance().GetSides().Split(',');
 
             ReadStatistics();
             ListGameModes();
             ListGames();
-
-            base.Initialize();
         }
 
         void AddTotalStatisticsLabel(string name, string text, Point location)
@@ -469,7 +459,7 @@ namespace dtasetup.DXGUI
                     items.Add(ps.Losses.ToString());
                     items.Add(ps.Economy.ToString());
                     items.Add(ps.Score.ToString());
-                    items.Add(BoolToString(ps.Won));
+                    items.Add(Rampastring.Tools.Utilities.BooleanToString(ps.Won, BooleanStringStyle.YESNO));
 
                     if (ps.Side == 0 || ps.Side > sides.Length)
                         items.Add("Unknown");
@@ -489,14 +479,6 @@ namespace dtasetup.DXGUI
                 }
 
             }
-        }
-
-        string BoolToString(bool value)
-        {
-            if (value)
-                return "Yes";
-
-            return "No";
         }
 
         string TeamIndexToString(int teamIndex)

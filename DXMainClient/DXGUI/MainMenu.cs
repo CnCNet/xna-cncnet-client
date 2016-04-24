@@ -1,8 +1,8 @@
 ﻿using ClientCore;
 using ClientGUI;
 using DTAConfig;
-using dtasetup.domain;
-using dtasetup.domain.cncnet5;
+using DTAClient.domain;
+using DTAClient.domain.CnCNet;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
@@ -18,7 +18,7 @@ using System.Text;
 using System.Threading;
 using Updater;
 
-namespace dtasetup.DXGUI
+namespace DTAClient.DXGUI
 {
     class MainMenu : DXWindow
     {
@@ -134,6 +134,7 @@ namespace dtasetup.DXGUI
             btnExtras.IdleTexture = AssetLoader.LoadTexture("MainMenu\\extras.png");
             btnExtras.HoverTexture = AssetLoader.LoadTexture("MainMenu\\extras_c.png");
             btnExtras.HoverSoundEffect = AssetLoader.LoadSound("MainMenu\\button.wav");
+            btnExtras.LeftClick += BtnExtras_LeftClick;
             btnExtras.HotKey = Keys.E;
 
             DXButton btnExit = new DXButton(Game);
@@ -177,7 +178,7 @@ namespace dtasetup.DXGUI
             mmUIPanel.AddChild(lblCnCNetStatus);
             mmUIPanel.AddChild(lblCnCNetPlayerCount);
 
-            if (!MCDomainController.Instance().GetModModeStatus())
+            if (!MCDomainController.Instance.GetModModeStatus())
             {
                 mmUIPanel.AddChild(lblVersion);
                 mmUIPanel.AddChild(lblUpdateStatus);
@@ -204,7 +205,7 @@ namespace dtasetup.DXGUI
             this.ClientRectangle = new Rectangle((WindowManager.Instance.RenderResolutionX - ClientRectangle.Width) / 2,
                 (WindowManager.Instance.RenderResolutionY - ClientRectangle.Height) / 2,
                 ClientRectangle.Width, ClientRectangle.Height);
-            innerPanel.ClientRectangle = new Rectangle(0, 0, ClientRectangle.Width, ClientRectangle.Height);
+            innerPanel.ClientRectangle = new Rectangle(0, 0, ClientRectangle.Width + 100, ClientRectangle.Height);
 
             CnCNetInfoController.CnCNetGameCountUpdated += CnCNetInfoController_CnCNetGameCountUpdated;
             CnCNetInfoController.InitializeService();
@@ -224,9 +225,9 @@ namespace dtasetup.DXGUI
 
         public void PostInit()
         {
-            if (!MCDomainController.Instance().GetModModeStatus())
+            if (!MCDomainController.Instance.GetModModeStatus())
             {
-                if (MCDomainController.Instance().GetAutomaticUpdateStatus())
+                if (MCDomainController.Instance.GetAutomaticUpdateStatus())
                 {
                     lblUpdateStatus.Text = "Checking for updates...";
                     lblUpdateStatus.Enabled = false;
@@ -382,7 +383,7 @@ namespace dtasetup.DXGUI
                 SetAttributesFromIni();
             }
 
-            MCDomainController.Instance().ReloadSettings();
+            MCDomainController.Instance.ReloadSettings();
             innerPanel.Hide();
         }
 
@@ -462,7 +463,7 @@ namespace dtasetup.DXGUI
                     Environment.Exit(0);
             }
 
-            MCDomainController.Instance().ReloadSettings();
+            MCDomainController.Instance.ReloadSettings();
 
             WindowManager.Instance.ShowWindow();
         }
@@ -474,7 +475,7 @@ namespace dtasetup.DXGUI
 
         private void BtnMapEditor_LeftClick(object sender, EventArgs e)
         {
-            Process.Start(ProgramConstants.gamepath + MCDomainController.Instance().GetMapEditorExePath());
+            Process.Start(ProgramConstants.gamepath + MCDomainController.Instance.GetMapEditorExePath());
         }
 
         private void BtnStatistics_LeftClick(object sender, EventArgs e)
@@ -486,6 +487,11 @@ namespace dtasetup.DXGUI
         private void BtnCredits_LeftClick(object sender, EventArgs e)
         {
             Process.Start(MainClientConstants.CREDITS_URL);
+        }
+
+        private void BtnExtras_LeftClick(object sender, EventArgs e)
+        {
+            innerPanel.Show(innerPanel.ExtrasWindow);
         }
 
         private void BtnExit_LeftClick(object sender, EventArgs e)
@@ -520,7 +526,7 @@ namespace dtasetup.DXGUI
 
             clientProcess.WaitForExit();
 
-            MCDomainController.Instance().ReloadSettings();
+            MCDomainController.Instance.ReloadSettings();
 
             WindowManager.Instance.ShowWindow();
         }

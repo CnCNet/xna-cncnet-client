@@ -1,6 +1,6 @@
 ﻿using ClientCore;
 using ClientGUI;
-using dtasetup.domain;
+using DTAClient.domain;
 using Microsoft.Xna.Framework;
 using Rampastring.Tools;
 using Rampastring.XNAUI;
@@ -11,16 +11,16 @@ using System.IO;
 using System.Linq;
 using System.Text;
 
-namespace dtasetup.DXGUI
+namespace DTAClient.DXGUI
 {
-    public class DXGameLoadingWindow : DXWindow
+    public class GameLoadingWindow : DXWindow
     {
-        public DXGameLoadingWindow(Game game) : base(game)
+        public GameLoadingWindow(Game game) : base(game)
         {
 
         }
 
-        DXMultiColumnListBox listBox;
+        DXMultiColumnListBox lbSaveGameList;
         DXButton btnLaunch;
         List<SavedGame> savedGames = new List<SavedGame>();
 
@@ -32,11 +32,13 @@ namespace dtasetup.DXGUI
             ClientRectangle = new Rectangle(0, 0, 600, 380);
             CenterOnParent();
 
-            listBox = new DXMultiColumnListBox(Game);
-            listBox.AddColumn("SAVED GAME NAME", 400);
-            listBox.AddColumn("DATE / TIME", 174);
-            listBox.ClientRectangle = new Rectangle(13, 13, 574, 300);
-            listBox.SelectedIndexChanged += ListBox_SelectedIndexChanged;
+            lbSaveGameList = new DXMultiColumnListBox(Game);
+            lbSaveGameList.Name = "lbSaveGameList";
+            lbSaveGameList.AddColumn("SAVED GAME NAME", 400);
+            lbSaveGameList.AddColumn("DATE / TIME", 174);
+            lbSaveGameList.ClientRectangle = new Rectangle(13, 13, 574, 300);
+            lbSaveGameList.BackgroundTexture = AssetLoader.LoadTexture("loadmissionpanelbg.png");
+            lbSaveGameList.SelectedIndexChanged += ListBox_SelectedIndexChanged;
 
             btnLaunch = new DXButton(Game);
             btnLaunch.IdleTexture = AssetLoader.LoadTexture("133pxbtn.png");
@@ -58,7 +60,7 @@ namespace dtasetup.DXGUI
             btnCancel.Text = "Cancel";
             btnCancel.LeftClick += BtnCancel_LeftClick;
 
-            AddChild(listBox);
+            AddChild(lbSaveGameList);
             AddChild(btnLaunch);
             AddChild(btnCancel);
 
@@ -69,7 +71,7 @@ namespace dtasetup.DXGUI
 
         private void ListBox_SelectedIndexChanged(object sender, EventArgs e)
         {
-            if (listBox.SelectedIndex == -1)
+            if (lbSaveGameList.SelectedIndex == -1)
                 btnLaunch.AllowClick = false;
             else
                 btnLaunch.AllowClick = true;
@@ -82,7 +84,7 @@ namespace dtasetup.DXGUI
 
         private void BtnLaunch_LeftClick(object sender, EventArgs e)
         {
-            SavedGame sg = savedGames[listBox.SelectedIndex];
+            SavedGame sg = savedGames[lbSaveGameList.SelectedIndex];
             Logger.Log("Loading saved game " + sg.FileName);
 
             File.Delete(MainClientConstants.gamepath + MainClientConstants.SPAWNER_SETTINGS);
@@ -92,11 +94,9 @@ namespace dtasetup.DXGUI
             sw.WriteLine("Scenario=spawnmap.ini");
             sw.WriteLine("SaveGameName=" + sg.FileName);
             sw.WriteLine("LoadSaveGame=Yes");
-            sw.WriteLine("SidebarHack=" + MCDomainController.Instance().GetSidebarHackStatus());
+            sw.WriteLine("SidebarHack=" + MCDomainController.Instance.GetSidebarHackStatus());
             sw.WriteLine("Firestorm=No");
-            sw.WriteLine("GameSpeed=" + MCDomainController.Instance().GetGameSpeed());
-            sw.WriteLine();
-            sw.WriteLine();
+            sw.WriteLine("GameSpeed=" + MCDomainController.Instance.GetGameSpeed());
             sw.WriteLine();
             sw.Close();
 
@@ -117,7 +117,7 @@ namespace dtasetup.DXGUI
         public void ListSaves()
         {
             savedGames.Clear();
-            listBox.ClearItems();
+            lbSaveGameList.ClearItems();
 
             string[] files = Directory.GetFiles(MainClientConstants.gamepath + "Saved Games\\", "*.SAV", SearchOption.TopDirectoryOnly);
 
@@ -131,7 +131,7 @@ namespace dtasetup.DXGUI
             foreach (SavedGame sg in savedGames)
             {
                 string[] item = new string[] { sg.GUIName, sg.LastModified.ToString() };
-                listBox.AddItem(item, true);
+                lbSaveGameList.AddItem(item, true);
             }
         }
 

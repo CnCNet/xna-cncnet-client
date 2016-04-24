@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using Rampastring.Tools;
 
-namespace dtasetup.DXGUI.GameLobby
+namespace DTAClient.DXGUI.GameLobby
 {
     /// <summary>
     /// A game option check box for the game lobby.

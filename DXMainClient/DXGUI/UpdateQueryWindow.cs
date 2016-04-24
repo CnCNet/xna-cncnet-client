@@ -1,5 +1,5 @@
 ﻿using ClientGUI;
-using dtasetup.domain;
+using DTAClient.domain;
 using Microsoft.Xna.Framework;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.DXControls;
@@ -9,7 +9,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 
-namespace dtasetup.DXGUI
+namespace DTAClient.DXGUI
 {
     public class UpdateQueryWindow : DXWindow
     {

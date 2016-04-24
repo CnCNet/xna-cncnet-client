@@ -3,12 +3,12 @@ using System.Collections.Generic;
 using System.Windows.Forms;
 using System.Diagnostics;
 using System.IO;
-using dtasetup.gui;
-using dtasetup.domain;
+using DTAClient.gui;
+using DTAClient.domain;
 using ClientCore;
 using Rampastring.Tools;
 
-namespace dtasetup
+namespace DTAClient
 {
     static class RealMain
     {
@@ -45,10 +45,6 @@ namespace dtasetup
             Logger.Log("Client version: " + Application.ProductVersion);
 
             Application.EnableVisualStyles();
-
-            Logger.Log("Initializing settings.");
-            MCDomainController.Instance();
-            DomainController.Instance();
 
             int argsLength = args.GetLength(0);
 

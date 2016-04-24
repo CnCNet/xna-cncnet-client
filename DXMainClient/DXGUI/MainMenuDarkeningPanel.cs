@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace dtasetup.DXGUI
+namespace DTAClient.DXGUI
 {
     public class MainMenuDarkeningPanel : DXPanel
     {
@@ -16,15 +16,16 @@ namespace dtasetup.DXGUI
 
         }
 
-        public DXCampaignSelector CampaignSelector;
-        public DXGameInProgressWindow GameInProgressWindow;
-        public DXGameLoadingWindow GameLoadingWindow;
+        public CampaignSelector CampaignSelector;
+        public GameInProgressWindow GameInProgressWindow;
+        public GameLoadingWindow GameLoadingWindow;
         public StatisticsWindow StatisticsWindow;
         public UpdateQueryWindow UpdateQueryWindow;
         public UpdateWindow UpdateWindow;
+        public ExtrasWindow ExtrasWindow;
 
-        const float BG_ALPHA_APPEAR_RATE = 0.1f;
-        const float BG_ALPHA_DISAPPEAR_RATE = -0.1f;
+        const float BG_ALPHA_APPEAR_RATE = 0.05f;
+        const float BG_ALPHA_DISAPPEAR_RATE = -0.05f;
 
         float bgAlpha = 1.0f;
         float bgAlphaRate = -0.05f;
@@ -42,13 +43,13 @@ namespace dtasetup.DXGUI
 
             //ClientRectangle = new Rectangle(0, 0, WindowManager.Instance.RenderResolutionX, WindowManager.Instance.RenderResolutionY);
 
-            CampaignSelector = new DXCampaignSelector(Game);
+            CampaignSelector = new CampaignSelector(Game);
             AddChild(CampaignSelector);
 
-            GameInProgressWindow = new DXGameInProgressWindow(Game);
+            GameInProgressWindow = new GameInProgressWindow(Game);
             AddChild(GameInProgressWindow);
 
-            GameLoadingWindow = new DXGameLoadingWindow(Game);
+            GameLoadingWindow = new GameLoadingWindow(Game);
             AddChild(GameLoadingWindow);
 
             StatisticsWindow = new StatisticsWindow(Game);
@@ -59,6 +60,9 @@ namespace dtasetup.DXGUI
 
             UpdateWindow = new UpdateWindow(Game);
             AddChild(UpdateWindow);
+
+            ExtrasWindow = new ExtrasWindow(Game);
+            AddChild(ExtrasWindow);
 
             foreach (DXControl child in Children)
                 child.Visible = false;

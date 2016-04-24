@@ -8,7 +8,7 @@
     <ProjectGuid>{97458C1E-2E6C-4C5C-93C7-16A6712802E9}</ProjectGuid>
     <OutputType>WinExe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>dtasetup</RootNamespace>
+    <RootNamespace>DTAClient</RootNamespace>
     <AssemblyName>TiberianSun</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <TargetFrameworkProfile>
@@ -114,20 +114,24 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="domain\cncnet5\CnCNetInfoController.cs" />
+    <Compile Include="domain\CnCNet\CnCNetInfoController.cs" />
+    <Compile Include="domain\CnCNet\Map.cs" />
     <Compile Include="domain\MCDomainController.cs" />
     <Compile Include="domain\StatisticsPageAddresses.cs" />
     <Compile Include="domain\Mission.cs" />
     <Compile Include="domain\SavedGame.cs" />
     <Compile Include="domain\MainClientConstants.cs" />
     <Compile Include="domain\UserAgentHandler.cs" />
-    <Compile Include="DXGUI\DXCampaignSelector.cs" />
-    <Compile Include="DXGUI\DXGameInProgressWindow.cs" />
-    <Compile Include="DXGUI\DXGameLoadingWindow.cs" />
+    <Compile Include="DXGUI\CampaignSelector.cs" />
+    <Compile Include="DXGUI\GameInProgressWindow.cs" />
+    <Compile Include="DXGUI\GameLoadingWindow.cs" />
+    <Compile Include="DXGUI\ExtrasWindow.cs" />
     <Compile Include="DXGUI\GameClass.cs" />
     <Compile Include="DXGUI\GameLobby\DropDownDataWriteMode.cs" />
     <Compile Include="DXGUI\GameLobby\GameLobbyBase.cs" />
     <Compile Include="DXGUI\GameLobby\GameLobbyCheckBox.cs" />
+    <Compile Include="DXGUI\GameLobby\GameLobbyDropDown.cs" />
+    <Compile Include="DXGUI\GameLobby\MapPreviewBox.cs" />
     <Compile Include="DXGUI\LoadingScreen.cs" />
     <Compile Include="DXGUI\MainMenu.cs" />
     <Compile Include="DXGUI\MainMenuDarkeningPanel.cs" />
@@ -140,15 +144,6 @@
     </Compile>
     <Compile Include="gui\CheaterForm.Designer.cs">
       <DependentUpon>CheaterForm.cs</DependentUpon>
-    </Compile>
-    <Compile Include="gui\ExtrasForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="gui\ExtrasForm.Designer.cs">
-      <DependentUpon>ExtrasForm.cs</DependentUpon>
-    </Compile>
-    <Compile Include="gui\LimitedComboBox.cs">
-      <SubType>Component</SubType>
     </Compile>
     <Compile Include="gui\SplashScreen.cs">
       <SubType>Form</SubType>
@@ -168,9 +163,6 @@
     <Compile Include="Startup.cs" />
     <EmbeddedResource Include="gui\CheaterForm.resx">
       <DependentUpon>CheaterForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="gui\ExtrasForm.resx">
-      <DependentUpon>ExtrasForm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="gui\SplashScreen.resx">
       <DependentUpon>SplashScreen.cs</DependentUpon>
@@ -218,7 +210,6 @@
   <ItemGroup>
     <Content Include="clienticon.ico" />
     <Content Include="mainclienticon.ico" />
-    <Content Include="RA2MD Update.ico" />
     <Content Include="Resources\Interop.IWshRuntimeLibrary.dll" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

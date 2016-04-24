@@ -8,18 +8,16 @@ using System.Security.Principal;
 using System.Threading;
 using System.Management;
 using Microsoft.Win32;
-using dtasetup.domain;
-using dtasetup.domain.cncnet5;
-using dtasetup.gui;
+using DTAClient.domain;
 using ClientCore;
 using ClientGUI;
 using Updater;
 using DTAConfig;
 using Rampastring.Tools;
 using Rampastring.XNAUI;
-using dtasetup.DXGUI;
+using DTAClient.DXGUI;
 
-namespace dtasetup
+namespace DTAClient
 {
     /// <summary>
     /// A class that handles initialization of the Client.
@@ -268,7 +266,7 @@ namespace dtasetup
         /// </summary>
         private void WriteInstallPathToRegistry()
         {
-            if (!MCDomainController.Instance().GetInstallationPathWriteStatus())
+            if (!MCDomainController.Instance.GetInstallationPathWriteStatus())
             {
                 Logger.Log("Skipping writing installation path to the Windows Registry because of INI setting.");
                 return;
@@ -277,7 +275,7 @@ namespace dtasetup
             Logger.Log("Writing installation path to the Windows registry.");
 
             Microsoft.Win32.RegistryKey key;
-            key = Microsoft.Win32.Registry.CurrentUser.CreateSubKey("SOFTWARE\\" + MCDomainController.Instance().GetInstallationPathRegKey());
+            key = Microsoft.Win32.Registry.CurrentUser.CreateSubKey("SOFTWARE\\" + MCDomainController.Instance.GetInstallationPathRegKey());
             key.SetValue("InstallPath", MainClientConstants.gamepath);
             key.Close();
         }
@@ -287,14 +285,14 @@ namespace dtasetup
         /// </summary>
         private void CheckIfFirstRun()
         {
-            bool firstRun = MCDomainController.Instance().IsFirstRun();
+            bool firstRun = MCDomainController.Instance.IsFirstRun();
 
-            if (MCDomainController.Instance().GetShortGameName() == "YR")
+            if (MCDomainController.Instance.GetShortGameName() == "YR")
                 return;
 
             if (firstRun)
             {
-                MCDomainController.Instance().SetFirstRun();
+                MCDomainController.Instance.SetFirstRun();
 
                 DialogResult dr = new MsgBoxForm(string.Format("You have just installed {0}. " + Environment.NewLine +
                     "It's highly recommended that you configure your settings before playing." + Environment.NewLine +
@@ -303,7 +301,7 @@ namespace dtasetup
                 if (dr == DialogResult.OK)
                 {
                     new OptionsForm().ShowDialog();
-                    MCDomainController.Instance().ReloadSettings();
+                    MCDomainController.Instance.ReloadSettings();
                     DomainController.Instance().ReloadSettings();
                 }
             }
@@ -348,7 +346,7 @@ namespace dtasetup
 
             if (dr == DialogResult.OK)
             {
-                if (MCDomainController.Instance().Win8CompatFixInstalled())
+                if (MCDomainController.Instance.Win8CompatFixInstalled())
                 {
                     MsgBoxForm.Show("An old compatibility fix has been detected." + Environment.NewLine +
                         "It will be uninstalled before installing the new compatibility fix.",
@@ -360,7 +358,7 @@ namespace dtasetup
 
                         sdbinst.WaitForExit();
 
-                        MCDomainController.Instance().SetWin8CompatFixInstalled(false);
+                        MCDomainController.Instance.SetWin8CompatFixInstalled(false);
                     }
                     catch (Exception ex)
                     {

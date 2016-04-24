@@ -9,11 +9,11 @@ using ClientCore;
 using Rampastring.XNAUI;
 using ClientGUI;
 
-namespace dtasetup.DXGUI
+namespace DTAClient.DXGUI
 {
-    public class DXGameInProgressWindow : DXWindow
+    public class GameInProgressWindow : DXWindow
     {
-        public DXGameInProgressWindow(Game game) : base(game)
+        public GameInProgressWindow(Game game) : base(game)
         {
 
         }

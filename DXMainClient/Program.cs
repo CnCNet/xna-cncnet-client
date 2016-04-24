@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Windows.Forms;
 using System.IO;
-using dtasetup.domain;
+using DTAClient.domain;
 
-namespace dtasetup
+namespace DTAClient
 {
     static class Program
     {

@@ -1,4 +1,4 @@
-﻿namespace dtasetup.gui
+﻿namespace DTAClient.gui
 {
     partial class SplashScreen
     {

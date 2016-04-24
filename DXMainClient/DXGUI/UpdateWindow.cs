@@ -1,5 +1,5 @@
 ﻿using ClientGUI;
-using dtasetup.domain;
+using DTAClient.domain;
 using Microsoft.Xna.Framework;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.DXControls;
@@ -10,7 +10,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using Updater;
 
-namespace dtasetup.DXGUI
+namespace DTAClient.DXGUI
 {
     public class UpdateWindow : DXWindow
     {
@@ -32,7 +32,7 @@ namespace dtasetup.DXGUI
         DXLabel lblCurrentFileProgressPercentageValue;
         DXLabel lblTotalProgressPercentageValue;
         DXLabel lblCurrentFile;
-        DXLabel lblUpdateStatus;
+        DXLabel lblUpdaterStatus;
 
         DXProgressBar prgCurrentFile;
         DXProgressBar prgTotal;
@@ -103,10 +103,10 @@ namespace dtasetup.DXGUI
             prgTotal.ClientRectangle = new Rectangle(12, 190, prgCurrentFile.ClientRectangle.Width, prgCurrentFile.ClientRectangle.Height);
             prgTotal.BorderColor = UISettings.WindowBorderColor;
 
-            lblUpdateStatus = new DXLabel(Game);
-            lblUpdateStatus.Name = "lblUpdateStatus";
-            lblUpdateStatus.Text = "Preparing...";
-            lblUpdateStatus.ClientRectangle = new Rectangle(12, 240, 0, 0);
+            lblUpdaterStatus = new DXLabel(Game);
+            lblUpdaterStatus.Name = "lblUpdaterStatus";
+            lblUpdaterStatus.Text = "Preparing...";
+            lblUpdaterStatus.ClientRectangle = new Rectangle(12, 240, 0, 0);
 
             DXButton btnCancel = new DXButton(Game);
             btnCancel.ClientRectangle = new Rectangle(301, 240, 133, 23);
@@ -125,7 +125,7 @@ namespace dtasetup.DXGUI
             AddChild(lblTotalProgressPercentage);
             AddChild(lblTotalProgressPercentageValue);
             AddChild(prgTotal);
-            AddChild(lblUpdateStatus);
+            AddChild(lblUpdaterStatus);
             AddChild(btnCancel);
 
             base.Initialize(); // Read theme settings from INI
@@ -205,7 +205,7 @@ namespace dtasetup.DXGUI
             lblDescription.Text = String.Format("Please wait while {0} is updated to version {1}." + Environment.NewLine +
                 "This window will automatically close once the update is complete." + Environment.NewLine + Environment.NewLine +
                 "The client may also restart after the update has been downloaded.", MainClientConstants.GAME_NAME_SHORT, newGameVersion);
-            lblUpdateStatus.Text = "Preparing...";
+            lblUpdaterStatus.Text = "Preparing...";
             updateCompleted = false;
             updateFailed = false;
         }
@@ -231,7 +231,7 @@ namespace dtasetup.DXGUI
                     lblCurrentFileProgressPercentageValue.Text = prgCurrentFile.Value.ToString() + "%";
                     lblTotalProgressPercentageValue.Text = prgTotal.Value.ToString() + "%";
                     lblCurrentFile.Text = "Current file: " + currentFile;
-                    lblUpdateStatus.Text = "Downloading files...";
+                    lblUpdaterStatus.Text = "Downloading files...";
 
                     if (MainClientConstants.OSId == OSVersion.WIN7 || MainClientConstants.OSId == OSVersion.WIN810)
                     {

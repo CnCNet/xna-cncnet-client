@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace dtasetup.domain
+namespace DTAClient.domain
 {
     public class SavedGame
     {

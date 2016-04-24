@@ -1,6 +1,6 @@
 ﻿using ClientCore;
 using ClientGUI;
-using dtasetup.domain;
+using DTAClient.domain;
 using Microsoft.Xna.Framework;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.DXControls;
@@ -12,7 +12,7 @@ using System.Text;
 using System.Threading;
 using Updater;
 
-namespace dtasetup.DXGUI
+namespace DTAClient.DXGUI
 {
     public class LoadingScreen : DXWindow
     {
@@ -41,6 +41,8 @@ namespace dtasetup.DXGUI
             CenterOnParent();
 
             AddChild(progressBar);
+
+            base.Initialize();
         }
 
         private void CUpdater_OnLocalFileVersionsChecked()
@@ -63,7 +65,7 @@ namespace dtasetup.DXGUI
 
         public void Start()
         {
-            if (File.Exists(ProgramConstants.gamepath + MainClientConstants.NEW_VERSION) && !MCDomainController.Instance().GetModModeStatus())
+            if (File.Exists(ProgramConstants.gamepath + MainClientConstants.NEW_VERSION) && !MCDomainController.Instance.GetModModeStatus())
             {
                 CUpdater.LocalFileCheckProgressChanged += CUpdater_LocalFileCheckProgressChanged;
                 CUpdater.OnLocalFileVersionsChecked += CUpdater_OnLocalFileVersionsChecked;

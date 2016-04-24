@@ -7,7 +7,7 @@ using System.Net;
 using System.Net.Sockets;
 using ClientCore;
 
-namespace dtasetup.domain
+namespace DTAClient.domain
 {
     public static class StatisticsPageAddresses
     {
@@ -16,7 +16,7 @@ namespace dtasetup.domain
         /// </summary>
         public static string GetCnCNetStatsPageAddress()
         {
-            switch (MCDomainController.Instance().GetShortGameName())
+            switch (MCDomainController.Instance.GetShortGameName())
             {
                 case "DTA":
                     return "http://dta.ppmsite.com/ga-dta-cncnet.htm";
@@ -36,7 +36,7 @@ namespace dtasetup.domain
         /// </summary>
         public static string GetUpdateStatsPageAddress()
         {
-            switch (MCDomainController.Instance().GetShortGameName())
+            switch (MCDomainController.Instance.GetShortGameName())
             {
                 case "DTA":
                     return "http://dta.ppmsite.com/ga-dta-update.htm";

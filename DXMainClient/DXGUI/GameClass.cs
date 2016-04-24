@@ -1,5 +1,5 @@
 ﻿using ClientCore;
-using dtasetup.domain;
+using DTAClient.domain;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
@@ -12,7 +12,7 @@ using System.Text;
 using System.Windows.Forms;
 using Cursor = Rampastring.XNAUI.Cursor;
 
-namespace dtasetup.DXGUI
+namespace DTAClient.DXGUI
 {
     /// <summary>
     /// The main class for the game. Sets up asset search paths
@@ -38,13 +38,15 @@ namespace dtasetup.DXGUI
             AssetLoader.AssetSearchPaths.Add(ProgramConstants.GetBaseResourcePath());
             AssetLoader.AssetSearchPaths.Add(ProgramConstants.gamepath);
 
+            TargetElapsedTime = TimeSpan.FromMilliseconds(1000.0 / 120.0);
+
             InitializeUISettings();
 
             WindowManager wm = new WindowManager(this, graphics);
             wm.Initialize(content, ProgramConstants.GetBaseResourcePath());
 
-            int windowWidth = MCDomainController.Instance().GetClientResolutionX();
-            int windowHeight = MCDomainController.Instance().GetClientResolutionY();
+            int windowWidth = MCDomainController.Instance.GetClientResolutionX();
+            int windowHeight = MCDomainController.Instance.GetClientResolutionY();
 
             if (Screen.PrimaryScreen.Bounds.Width >= windowWidth && Screen.PrimaryScreen.Bounds.Height >= windowHeight)
             {
@@ -53,14 +55,14 @@ namespace dtasetup.DXGUI
             }
             else
             {
-                if (!wm.InitGraphicsMode(Screen.PrimaryScreen.Bounds.Width, Screen.PrimaryScreen.Bounds.Height, false))
+                if (!wm.InitGraphicsMode(1024, 600, false))
                     throw new Exception("Setting default graphics mode failed!");
             }
 
-            int renderResolutionX = Math.Max(windowWidth, MCDomainController.Instance().GetMinimumRenderWidth());
-            int renderResolutionY = Math.Max(windowHeight, MCDomainController.Instance().GetMinimumRenderHeight());
+            int renderResolutionX = Math.Max(windowWidth, MCDomainController.Instance.GetMinimumRenderWidth());
+            int renderResolutionY = Math.Max(windowHeight, MCDomainController.Instance.GetMinimumRenderHeight());
 
-            wm.SetBorderlessMode(MCDomainController.Instance().GetBorderlessWindowedStatus());
+            wm.SetBorderlessMode(MCDomainController.Instance.GetBorderlessWindowedStatus());
             wm.CenterOnScreen();
             wm.SetRenderResolution(renderResolutionX, renderResolutionY);
             wm.SetIcon(ProgramConstants.GetBaseResourcePath() + "mainclienticon.ico");

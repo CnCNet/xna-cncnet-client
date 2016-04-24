@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace dtasetup.DXGUI.GameLobby
+namespace DTAClient.DXGUI.GameLobby
 {
     /// <summary>
     /// An enum for controlling how the game lobbies'

@@ -5,11 +5,11 @@ using System.Data;
 using System.Drawing;
 using System.Text;
 using System.Windows.Forms;
-using dtasetup.domain;
+using DTAClient.domain;
 using ClientCore;
 using ClientGUI;
 
-namespace dtasetup.gui
+namespace DTAClient.gui
 {
     public partial class SplashScreen : Form
     {
@@ -18,7 +18,7 @@ namespace dtasetup.gui
         public SplashScreen()
         {
             InitializeComponent();
-            this.Text = MCDomainController.Instance().GetLongGameName();
+            this.Text = MCDomainController.Instance.GetLongGameName();
             image = SharedUILogic.LoadImage("splashScreen.png");
             this.Size = new Size(image.Width, image.Height);
             this.Icon = Icon.ExtractAssociatedIcon(ProgramConstants.gamepath + ProgramConstants.RESOURCES_DIR + "mainclienticon.ico");

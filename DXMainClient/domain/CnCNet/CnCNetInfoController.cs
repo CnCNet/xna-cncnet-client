@@ -3,13 +3,13 @@ using System.Collections.Generic;
 using System.Text;
 using System.IO;
 using System.Net;
-using dtasetup.gui;
-using dtasetup.domain;
+using DTAClient.gui;
+using DTAClient.domain;
 using System.Threading;
 using Rampastring.Tools;
 using Rampastring.XNAUI;
 
-namespace dtasetup.domain.cncnet5
+namespace DTAClient.domain.CnCNet
 {
     /// <summary>
     /// A class for automatic updating of the CnCNet game/player count.

@@ -5,7 +5,7 @@ using System.Text;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
 
-namespace dtasetup.domain
+namespace DTAClient.domain
 {
     class UserAgentHandler
     {
@@ -18,7 +18,7 @@ namespace dtasetup.domain
         public static void ChangeUserAgent()
         {
             List<string> userAgent = new List<string>();
-            string ua = "DTA Client/" + Application.ProductVersion + "/Game " + MCDomainController.Instance().GetShortGameName();
+            string ua = "DTA Client/" + Application.ProductVersion + "/Game " + MCDomainController.Instance.GetShortGameName();
 
             UrlMkSetSessionOption(URLMON_OPTION_USERAGENT, ua, ua.Length, 0);
         }

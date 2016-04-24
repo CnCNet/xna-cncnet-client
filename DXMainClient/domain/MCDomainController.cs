@@ -7,7 +7,7 @@ using System.IO;
 using ClientCore;
 using Rampastring.Tools;
 
-namespace dtasetup.domain
+namespace DTAClient.domain
 {
     class MCDomainController
     {
@@ -31,7 +31,7 @@ namespace dtasetup.domain
 
             if (!File.Exists(settingsPath))
             {
-                byte[] byteArray = Encoding.GetEncoding(1252).GetBytes(dtasetup.Properties.Resources.settings_ini);
+                byte[] byteArray = Encoding.GetEncoding(1252).GetBytes(DTAClient.Properties.Resources.settings_ini);
                 MemoryStream stream = new MemoryStream(byteArray);
                 settings_ini = new IniFile(stream);
                 settings_ini.SetFilePath(settingsPath);
@@ -47,13 +47,17 @@ namespace dtasetup.domain
         ///     Singleton Pattern. Returns the object of this class.
         /// </summary>
         /// <returns>The object of the DomainController class.</returns>
-        public static MCDomainController Instance()
+        public static MCDomainController Instance
         {
-            if (_instance == null)
+            get
             {
-                _instance = new MCDomainController();
+                if (_instance == null)
+                {
+                    _instance = new MCDomainController();
+                }
+
+                return _instance;
             }
-            return _instance;
         }
 
         public void ReloadSettings()
@@ -63,7 +67,7 @@ namespace dtasetup.domain
 
             if (!File.Exists(settingsPath))
             {
-                byte[] byteArray = Encoding.GetEncoding(1252).GetBytes(dtasetup.Properties.Resources.settings_ini);
+                byte[] byteArray = Encoding.GetEncoding(1252).GetBytes(DTAClient.Properties.Resources.settings_ini);
                 MemoryStream stream = new MemoryStream(byteArray);
                 settings_ini = new IniFile(stream);
                 settings_ini.SetFilePath(settingsPath);
@@ -91,17 +95,17 @@ namespace dtasetup.domain
 
         public int GetClientResolutionX()
         {
-            return settings_ini.GetIntValue("Video", "ClientResolutionX", GetMinimumRenderWidth());
+            return settings_ini.GetIntValue("Video", "ClientResolutionX", Screen.PrimaryScreen.Bounds.Width);
         }
 
         public int GetClientResolutionY()
         {
-            return settings_ini.GetIntValue("Video", "ClientResolutionY", GetMinimumRenderHeight());
+            return settings_ini.GetIntValue("Video", "ClientResolutionY", Screen.PrimaryScreen.Bounds.Height);
         }
 
         public bool GetBorderlessWindowedStatus()
         {
-            return settings_ini.GetBooleanValue("Video", "BorderlessWindowedClient", false);
+            return settings_ini.GetBooleanValue("Video", "BorderlessWindowedClient", true);
         }
 
         public string GetShortGameName()

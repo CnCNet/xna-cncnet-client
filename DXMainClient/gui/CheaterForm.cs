@@ -10,7 +10,7 @@ using System.Media;
 using ClientCore;
 using ClientGUI;
 
-namespace dtasetup.gui
+namespace DTAClient.gui
 {
     public partial class CheaterForm : MovableForm
     {

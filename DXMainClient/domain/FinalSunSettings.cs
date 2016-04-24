@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Text;
 using System.IO;
 using System.Windows.Forms;
-using dtasetup.domain;
+using DTAClient.domain;
 using Rampastring.Tools;
 
-namespace dtasetup.domain
+namespace DTAClient.domain
 {
     public static class FinalSunSettings
     {
