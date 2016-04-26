@@ -21,7 +21,7 @@ namespace DTAClient.DXGUI
         const int DEFAULT_WIDTH = 327;
         const int DEFAULT_HEIGHT = 463;
 
-        public CampaignSelector(Game game) : base(game)
+        public CampaignSelector(Game game, WindowManager windowManager) : base(game, windowManager)
         {
 
         }
@@ -40,19 +40,19 @@ namespace DTAClient.DXGUI
 
             Name = "CampaignSelector";
 
-            DXLabel lblSelectCampaign = new DXLabel(Game);
+            DXLabel lblSelectCampaign = new DXLabel(Game, WindowManager);
             lblSelectCampaign.Name = "lblSelectCampaign";
             lblSelectCampaign.FontIndex = 1;
             lblSelectCampaign.Text = "MISSIONS:";
             lblSelectCampaign.ClientRectangle = new Rectangle(12, 9, 0, 0);
 
-            DXLabel lblMissionDescriptionHeader = new DXLabel(Game);
+            DXLabel lblMissionDescriptionHeader = new DXLabel(Game, WindowManager);
             lblMissionDescriptionHeader.Name = "lblMissionDescriptionHeader";
             lblMissionDescriptionHeader.FontIndex = 1;
             lblMissionDescriptionHeader.Text = "MISSION DESCRIPTION:";
             lblMissionDescriptionHeader.ClientRectangle = new Rectangle(12, 219, 0, 0);
 
-            lbCampaignList = new DXListBox(Game);
+            lbCampaignList = new DXListBox(Game, WindowManager);
             lbCampaignList.Name = "lbCampaignList";
             lbCampaignList.FontIndex = 0;
             lbCampaignList.ItemAlphaRate = 1.0f;
@@ -63,13 +63,13 @@ namespace DTAClient.DXGUI
             ParseBattleIni("INI\\Battle.ini");
             ParseBattleIni("INI\\" + MCDomainController.Instance.GetBattleFSFileName());
 
-            DXPanel panelMissionDescription = new DXPanel(Game);
+            DXPanel panelMissionDescription = new DXPanel(Game, WindowManager);
             panelMissionDescription.Name = "panelMissionDescription";
             panelMissionDescription.ClientRectangle = new Rectangle(12, 235, 300, 76);
             panelMissionDescription.DrawMode = PanelBackgroundImageDrawMode.STRETCHED;
             panelMissionDescription.Alpha = 1.0f;
 
-            lblMissionDescriptionValue = new DXLabel(Game);
+            lblMissionDescriptionValue = new DXLabel(Game, WindowManager);
             lblMissionDescriptionValue.Name = "lblMissionDescriptionValue";
             lblMissionDescriptionValue.FontIndex = 0;
             lblMissionDescriptionValue.Text = " ";
@@ -81,40 +81,40 @@ namespace DTAClient.DXGUI
             panelMissionDescription.BackgroundTexture = AssetLoader.CreateTexture(AssetLoader.GetColorFromString(DomainController.Instance().GetUIAltBackgroundColor()),
                 panelMissionDescription.ClientRectangle.Width, panelMissionDescription.ClientRectangle.Height);
 
-            DXLabel lblDifficultyLevel = new DXLabel(Game);
+            DXLabel lblDifficultyLevel = new DXLabel(Game, WindowManager);
             lblDifficultyLevel.Name = "lblDifficultyLevel";
             lblDifficultyLevel.Text = "DIFFICULTY LEVEL";
             lblDifficultyLevel.FontIndex = 1;
             Vector2 textSize = Renderer.GetTextDimensions(lblDifficultyLevel.Text, lblDifficultyLevel.FontIndex);
             lblDifficultyLevel.ClientRectangle = new Rectangle(0, 0, (int)textSize.X, (int)textSize.Y);
 
-            trbDifficultySelector = new DXTrackbar(Game);
+            trbDifficultySelector = new DXTrackbar(Game, WindowManager);
             trbDifficultySelector.Name = "trbDifficultySelector";
             trbDifficultySelector.ClientRectangle = new Rectangle(12, 340, 300, 45);
             trbDifficultySelector.MinValue = 0;
             trbDifficultySelector.MaxValue = 2;
             trbDifficultySelector.BackgroundTexture = AssetLoader.LoadTexture("trackbarbg.png");
 
-            DXLabel lblEasy = new DXLabel(Game);
+            DXLabel lblEasy = new DXLabel(Game, WindowManager);
             lblEasy.Name = "lblEasy";
             lblEasy.FontIndex = 1;
             lblEasy.Text = "EASY";
             lblEasy.ClientRectangle = new Rectangle(12, 390, 1, 1);
 
-            DXLabel lblNormal = new DXLabel(Game);
+            DXLabel lblNormal = new DXLabel(Game, WindowManager);
             lblNormal.Name = "lblNormal";
             lblNormal.FontIndex = 1;
             lblNormal.Text = "NORMAL";
             textSize = Renderer.GetTextDimensions(lblNormal.Text, lblNormal.FontIndex);
             lblNormal.ClientRectangle = new Rectangle(0, 0, (int)textSize.X, (int)textSize.Y);
 
-            DXLabel lblHard = new DXLabel(Game);
+            DXLabel lblHard = new DXLabel(Game, WindowManager);
             lblHard.Name = "lblHard";
             lblHard.FontIndex = 1;
             lblHard.Text = "HARD";
             lblHard.ClientRectangle = new Rectangle(280, 390, 1, 1);
 
-            btnLaunch = new DXButton(Game);
+            btnLaunch = new DXButton(Game, WindowManager);
             btnLaunch.Name = "btnLaunch";
             btnLaunch.IdleTexture = AssetLoader.LoadTexture("133pxbtn.png");
             btnLaunch.HoverTexture = AssetLoader.LoadTexture("133pxbtn_c.png");
@@ -125,7 +125,7 @@ namespace DTAClient.DXGUI
             btnLaunch.AllowClick = false;
             btnLaunch.LeftClick += BtnLaunch_LeftClick;
 
-            DXButton btnCancel = new DXButton(Game);
+            DXButton btnCancel = new DXButton(Game, WindowManager);
             btnCancel.Name = "btnCancel";
             btnCancel.IdleTexture = AssetLoader.LoadTexture("133pxbtn.png");
             btnCancel.HoverTexture = AssetLoader.LoadTexture("133pxbtn_c.png");

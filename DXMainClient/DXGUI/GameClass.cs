@@ -69,7 +69,7 @@ namespace DTAClient.DXGUI
             wm.SetWindowTitle(MainClientConstants.GAME_NAME_LONG);
             wm.SetControlBox(false);
 
-            Cursor.Instance.Textures = new Texture2D[]
+            wm.Cursor.Textures = new Texture2D[]
             {
                 AssetLoader.LoadTexture("cursor.png"),
                 AssetLoader.LoadTexture("waitCursor.png")
@@ -77,7 +77,7 @@ namespace DTAClient.DXGUI
 
             Components.Add(wm);
 
-            LoadingScreen ls = new LoadingScreen(this);
+            LoadingScreen ls = new LoadingScreen(this, wm);
             wm.AddAndInitializeControl(ls);
             ls.ClientRectangle = new Rectangle((renderResolutionX - ls.ClientRectangle.Width) / 2,
                 (renderResolutionY - ls.ClientRectangle.Height) / 2, ls.ClientRectangle.Width, ls.ClientRectangle.Height);

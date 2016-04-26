@@ -23,7 +23,7 @@ namespace DTAClient.DXGUI
         public delegate void UpdateFailureEventHandler(object sender, UpdateFailureEventArgs e);
         public event UpdateFailureEventHandler UpdateFailed;
 
-        public UpdateWindow(Game game) : base(game)
+        public UpdateWindow(Game game, WindowManager windowManager) : base(game, windowManager)
         {
 
         }
@@ -60,22 +60,22 @@ namespace DTAClient.DXGUI
             ClientRectangle = new Rectangle(0, 0, 446, 270);
             BackgroundTexture = AssetLoader.LoadTexture("updaterbg.png");
 
-            lblDescription = new DXLabel(Game);
+            lblDescription = new DXLabel(Game, WindowManager);
             lblDescription.Text = String.Empty;
             lblDescription.ClientRectangle = new Rectangle(12, 9, 0, 0);
             lblDescription.Name = "lblDescription";
 
-            DXLabel lblCurrentFileProgressPercentage = new DXLabel(Game);
+            DXLabel lblCurrentFileProgressPercentage = new DXLabel(Game, WindowManager);
             lblCurrentFileProgressPercentage.Text = "Progress percentage of current file:";
             lblCurrentFileProgressPercentage.ClientRectangle = new Rectangle(12, 90, 0, 0);
             lblCurrentFileProgressPercentage.Name = "lblCurrentFileProgressPercentage";
 
-            lblCurrentFileProgressPercentageValue = new DXLabel(Game);
+            lblCurrentFileProgressPercentageValue = new DXLabel(Game, WindowManager);
             lblCurrentFileProgressPercentageValue.Text = "0%";
             lblCurrentFileProgressPercentageValue.ClientRectangle = new Rectangle(409, lblCurrentFileProgressPercentage.ClientRectangle.Y, 0, 0);
             lblCurrentFileProgressPercentageValue.Name = "lblCurrentFileProgressPercentageValue";
 
-            prgCurrentFile = new DXProgressBar(Game);
+            prgCurrentFile = new DXProgressBar(Game, WindowManager);
             prgCurrentFile.Name = "prgCurrentFile";
             prgCurrentFile.Maximum = 100;
             prgCurrentFile.ClientRectangle = new Rectangle(12, 110, 422, 30);
@@ -83,32 +83,32 @@ namespace DTAClient.DXGUI
             prgCurrentFile.SmoothForwardTransition = true;
             prgCurrentFile.SmoothTransitionRate = 10;
 
-            lblCurrentFile = new DXLabel(Game);
+            lblCurrentFile = new DXLabel(Game, WindowManager);
             lblCurrentFile.Name = "lblCurrentFile";
             lblCurrentFile.ClientRectangle = new Rectangle(12, 142, 0, 0);
 
-            DXLabel lblTotalProgressPercentage = new DXLabel(Game);
+            DXLabel lblTotalProgressPercentage = new DXLabel(Game, WindowManager);
             lblTotalProgressPercentage.Text = "Total progress percentage:";
             lblTotalProgressPercentage.ClientRectangle = new Rectangle(12, 170, 0, 0);
             lblTotalProgressPercentage.Name = "lblTotalProgressPercentage";
 
-            lblTotalProgressPercentageValue = new DXLabel(Game);
+            lblTotalProgressPercentageValue = new DXLabel(Game, WindowManager);
             lblTotalProgressPercentageValue.Text = "0%";
             lblTotalProgressPercentageValue.ClientRectangle = new Rectangle(409, lblTotalProgressPercentage.ClientRectangle.Y, 0, 0);
             lblTotalProgressPercentageValue.Name = "lblTotalProgressPercentageValue";
 
-            prgTotal = new DXProgressBar(Game);
+            prgTotal = new DXProgressBar(Game, WindowManager);
             prgTotal.Name = "prgTotal";
             prgTotal.Maximum = 100;
             prgTotal.ClientRectangle = new Rectangle(12, 190, prgCurrentFile.ClientRectangle.Width, prgCurrentFile.ClientRectangle.Height);
             prgTotal.BorderColor = UISettings.WindowBorderColor;
 
-            lblUpdaterStatus = new DXLabel(Game);
+            lblUpdaterStatus = new DXLabel(Game, WindowManager);
             lblUpdaterStatus.Name = "lblUpdaterStatus";
             lblUpdaterStatus.Text = "Preparing...";
             lblUpdaterStatus.ClientRectangle = new Rectangle(12, 240, 0, 0);
 
-            DXButton btnCancel = new DXButton(Game);
+            DXButton btnCancel = new DXButton(Game, WindowManager);
             btnCancel.ClientRectangle = new Rectangle(301, 240, 133, 23);
             btnCancel.IdleTexture = AssetLoader.LoadTexture("133pxbtn.png");
             btnCancel.HoverTexture = AssetLoader.LoadTexture("133pxbtn_c.png");
@@ -159,29 +159,15 @@ namespace DTAClient.DXGUI
             {
                 updateFailed = true;
                 updateFailureErrorMessage = ex.Message;
-
-                if (MainClientConstants.OSId == OSVersion.WIN7 || MainClientConstants.OSId == OSVersion.WIN810)
-                {
-                    if (tbp != null)
-                    {
-                        tbp.SetState(WindowManager.Instance.GetWindowHandle(), TaskbarProgress.TaskbarStates.NoProgress);
-                    }
-                }
             }
         }
 
         private void Updater_OnUpdateCompleted()
         {
-            if (MainClientConstants.OSId == OSVersion.WIN7 || MainClientConstants.OSId == OSVersion.WIN810)
+            lock (locker)
             {
-                if (tbp != null)
-                {
-                    tbp.SetState(WindowManager.Instance.GetWindowHandle(), TaskbarProgress.TaskbarStates.NoProgress);
-                }
+                updateCompleted = true;
             }
-
-            if (UpdateCompleted != null)
-                UpdateCompleted(this, EventArgs.Empty);
         }
 
         private void BtnCancel_LeftClick(object sender, EventArgs e)
@@ -190,14 +176,10 @@ namespace DTAClient.DXGUI
 
             if (MainClientConstants.OSId == OSVersion.WIN7 || MainClientConstants.OSId == OSVersion.WIN810)
             {
-                if (tbp != null)
-                {
-                    tbp.SetState(WindowManager.Instance.GetWindowHandle(), TaskbarProgress.TaskbarStates.NoProgress);
-                }
+                tbp.SetState(WindowManager.Instance.GetWindowHandle(), TaskbarProgress.TaskbarStates.NoProgress);
             }
 
-            if (UpdateCancelled != null)
-                UpdateCancelled(this, EventArgs.Empty);
+            UpdateCancelled?.Invoke(this, EventArgs.Empty);
         }
 
         public void SetData(string newGameVersion)
@@ -235,21 +217,30 @@ namespace DTAClient.DXGUI
 
                     if (MainClientConstants.OSId == OSVersion.WIN7 || MainClientConstants.OSId == OSVersion.WIN810)
                     {
-                        if (tbp != null)
-                        {
-                            tbp.SetState(WindowManager.Instance.GetWindowHandle(), TaskbarProgress.TaskbarStates.Normal);
-                            tbp.SetValue(WindowManager.Instance.GetWindowHandle(), prgTotal.Value, prgTotal.Maximum);
-                        }
+                        tbp.SetState(WindowManager.Instance.GetWindowHandle(), TaskbarProgress.TaskbarStates.Normal);
+                        tbp.SetValue(WindowManager.Instance.GetWindowHandle(), prgTotal.Value, prgTotal.Maximum);
                     }
 
                     stateUpdated = false;
                 }
 
-                if (updateFailed && UpdateFailed != null)
-                    UpdateFailed(this, new UpdateFailureEventArgs(updateFailureErrorMessage));
+                if (updateFailed)
+                {
+                    if (MainClientConstants.OSId == OSVersion.WIN7 || MainClientConstants.OSId == OSVersion.WIN810)
+                    {
+                        tbp.SetState(WindowManager.Instance.GetWindowHandle(), TaskbarProgress.TaskbarStates.NoProgress);
+                    }
+                    UpdateFailed?.Invoke(this, new UpdateFailureEventArgs(updateFailureErrorMessage));
+                }
 
                 if (updateCompleted && UpdateCompleted != null)
-                    UpdateCompleted(this, EventArgs.Empty);
+                {
+                    if (MainClientConstants.OSId == OSVersion.WIN7 || MainClientConstants.OSId == OSVersion.WIN810)
+                    {
+                        tbp.SetState(WindowManager.Instance.GetWindowHandle(), TaskbarProgress.TaskbarStates.NoProgress);
+                    }
+                    UpdateCompleted?.Invoke(this, EventArgs.Empty);
+                }
             }
         }
 

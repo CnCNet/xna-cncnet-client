@@ -214,7 +214,7 @@ namespace DTAClient
                     Logger.Log("Selected OS profile: Windows Vista");
                     break;
                 case OSVersion.WIN7:
-                    Logger.Log("Selected OS profile: Windows Vista / 7");
+                    Logger.Log("Selected OS profile: Windows 7");
                     break;
                 case OSVersion.WIN810:
                     Logger.Log("Selected OS profile: Windows 8 / 10");

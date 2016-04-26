@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Microsoft.Xna.Framework;
+using Rampastring.XNAUI;
 
 namespace DTAClient.DXGUI.GameLobby
 {
@@ -12,7 +13,7 @@ namespace DTAClient.DXGUI.GameLobby
     /// </summary>
     public class MapPreviewBox : DXPanel
     {
-        public MapPreviewBox(Game game) : base(game)
+        public MapPreviewBox(Game game, WindowManager windowManager) : base(game, windowManager)
         {
         }
 

@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Rampastring.Tools;
+using Rampastring.XNAUI;
 
 namespace DTAClient.DXGUI.GameLobby
 {
@@ -13,7 +14,7 @@ namespace DTAClient.DXGUI.GameLobby
     /// </summary>
     class GameLobbyDropDown : DXDropDown
     {
-        public GameLobbyDropDown(Game game) : base(game) { }
+        public GameLobbyDropDown(Game game, WindowManager windowManager) : base(game, windowManager) { }
 
         public DropDownDataWriteMode DataWriteMode { get; set; }
 

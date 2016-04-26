@@ -16,7 +16,7 @@ namespace DTAClient.DXGUI
 {
     public class LoadingScreen : DXWindow
     {
-        public LoadingScreen(Game game) : base(game)
+        public LoadingScreen(Game game, WindowManager windowManager) : base(game, windowManager)
         {
 
         }
@@ -32,7 +32,7 @@ namespace DTAClient.DXGUI
 
             BackgroundTexture = AssetLoader.LoadTexture("loadingscreen.png");
 
-            progressBar = new DXProgressBar(Game);
+            progressBar = new DXProgressBar(Game, WindowManager);
             progressBar.Name = "progressBar";
             progressBar.Maximum = 100;
             progressBar.ClientRectangle = new Rectangle(50, 430, 700, 35);
@@ -47,7 +47,7 @@ namespace DTAClient.DXGUI
 
         private void CUpdater_OnLocalFileVersionsChecked()
         {
-            MainMenu mm = new MainMenu(Game);
+            MainMenu mm = new MainMenu(Game, WindowManager);
             CUpdater.OnLocalFileVersionsChecked -= CUpdater_OnLocalFileVersionsChecked;
             WindowManager.Instance.AddAndInitializeControl(mm);
             WindowManager.Instance.RemoveControl(this);

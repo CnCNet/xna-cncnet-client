@@ -103,6 +103,11 @@ namespace DTAClient.domain
             return settings_ini.GetIntValue("Video", "ClientResolutionY", Screen.PrimaryScreen.Bounds.Height);
         }
 
+        public bool GetMapPreviewPreloadStatus()
+        {
+            return settings_ini.GetBooleanValue("Video", "PreloadMapPreviews", false);
+        }
+
         public bool GetBorderlessWindowedStatus()
         {
             return settings_ini.GetBooleanValue("Video", "BorderlessWindowedClient", true);

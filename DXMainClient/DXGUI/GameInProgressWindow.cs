@@ -13,7 +13,7 @@ namespace DTAClient.DXGUI
 {
     public class GameInProgressWindow : DXWindow
     {
-        public GameInProgressWindow(Game game) : base(game)
+        public GameInProgressWindow(Game game, WindowManager windowManager) : base(game, windowManager)
         {
 
         }
@@ -25,7 +25,7 @@ namespace DTAClient.DXGUI
             ClientRectangle = new Rectangle(0, 0, 200, 100);
             CenterOnParent();
 
-            DXLabel explanation = new DXLabel(Game);
+            DXLabel explanation = new DXLabel(Game, WindowManager);
             explanation.Text = "A game is in progress.";
 
             AddChild(explanation);

@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Rampastring.Tools;
+using Rampastring.XNAUI;
 
 namespace DTAClient.DXGUI.GameLobby
 {
@@ -14,7 +15,7 @@ namespace DTAClient.DXGUI.GameLobby
     /// </summary>
     public class GameLobbyCheckBox : DXCheckBox
     {
-        public GameLobbyCheckBox(Game game) : base (game) { }
+        public GameLobbyCheckBox(Game game, WindowManager windowManager) : base (game, windowManager) { }
 
         public string SpawnIniOption { get; set; }
 
