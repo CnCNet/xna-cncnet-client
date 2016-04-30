@@ -21,7 +21,7 @@ namespace DTAClient.gui
 
         private void CheaterForm_Load(object sender, EventArgs e)
         {
-            SoundPlayer sPlayer = new SoundPlayer(ProgramConstants.gamepath + ProgramConstants.RESOURCES_DIR + "button.wav");
+            SoundPlayer sPlayer = new SoundPlayer(ProgramConstants.GamePath + ProgramConstants.RESOURCES_DIR + "button.wav");
 
             this.ForeColor = Utilities.GetColorFromString(DomainController.Instance().GetUILabelColor());
             btnCancel.ForeColor = Utilities.GetColorFromString(DomainController.Instance().GetUIAltColor());

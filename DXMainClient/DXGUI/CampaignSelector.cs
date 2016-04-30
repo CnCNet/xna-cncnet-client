@@ -234,28 +234,28 @@ namespace DTAClient.DXGUI
             {
                 swriter.WriteLine("DifficultyModeHuman=0");
                 swriter.WriteLine("DifficultyModeComputer=2");
-                difficultyIni = new IniFile(ProgramConstants.gamepath + "INI\\Map Code\\Difficulty Easy.ini");
+                difficultyIni = new IniFile(ProgramConstants.GamePath + "INI\\Map Code\\Difficulty Easy.ini");
             }
             else if (trbDifficultySelector.Value == 1) // Normal
             {
                 swriter.WriteLine("DifficultyModeHuman=1");
                 swriter.WriteLine("DifficultyModeComputer=1");
-                difficultyIni = new IniFile(ProgramConstants.gamepath + "INI\\Map Code\\Difficulty Medium.ini");
+                difficultyIni = new IniFile(ProgramConstants.GamePath + "INI\\Map Code\\Difficulty Medium.ini");
             }
             else //if (tbDifficultyLevel.Value == 2) // Hard
             {
                 swriter.WriteLine("DifficultyModeHuman=2");
                 swriter.WriteLine("DifficultyModeComputer=0");
-                difficultyIni = new IniFile(ProgramConstants.gamepath + "INI\\Map Code\\Difficulty Hard.ini");
+                difficultyIni = new IniFile(ProgramConstants.GamePath + "INI\\Map Code\\Difficulty Hard.ini");
             }
             swriter.WriteLine();
             swriter.WriteLine();
             swriter.WriteLine();
             swriter.Close();
 
-            IniFile mapIni = new IniFile(ProgramConstants.gamepath + scenario);
+            IniFile mapIni = new IniFile(ProgramConstants.GamePath + scenario);
             IniFile.ConsolidateIniFiles(mapIni, difficultyIni);
-            mapIni.WriteIniFile(ProgramConstants.gamepath + "spawnmap.ini");
+            mapIni.WriteIniFile(ProgramConstants.GamePath + "spawnmap.ini");
 
             Logger.Log("About to launch main executable.");
 

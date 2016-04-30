@@ -1,4 +1,5 @@
-﻿using Microsoft.Xna.Framework;
+﻿using ClientCore;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Rampastring.Tools;
 using Rampastring.XNAUI;
@@ -6,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Utilities = Rampastring.Tools.Utilities;
 
 namespace DTAClient.domain.CnCNet
 {
@@ -108,7 +110,7 @@ namespace DTAClient.domain.CnCNet
         private bool extractCustomPreview = true;
 
         /// <summary>
-        /// If false, the preview shouldn't be extracted for this custom map.
+        /// If false, the preview shouldn't be extracted for this (custom) map.
         /// </summary>
         public bool ExtractCustomPreview
         {
@@ -116,52 +118,70 @@ namespace DTAClient.domain.CnCNet
             set { extractCustomPreview = value; }
         }
 
-        public void SetInfoFromINI(IniFile iniFile)
+        public List<KeyValuePair<string, bool>> ForcedCheckBoxValues = new List<KeyValuePair<string, bool>>();
+        public List<KeyValuePair<string, int>> ForcedComboBoxValues = new List<KeyValuePair<string, int>>();
+
+        public bool SetInfoFromINI(IniFile iniFile)
         {
-            Name = iniFile.GetStringValue(Path, "Description", "Unnamed map");
-            Author = iniFile.GetStringValue(Path, "Author", "Unknown author");
-            GameModes = iniFile.GetStringValue(Path, "GameModes", "Default").Split(',');
-            MinPlayers = iniFile.GetIntValue(Path, "MinPlayers", 0);
-            MaxPlayers = iniFile.GetIntValue(Path, "MaxPlayers", 0);
-            EnforceMaxPlayers = iniFile.GetBooleanValue(Path, "EnforceMaxPlayers", false);
-            PreviewPath = iniFile.GetStringValue(Path, "PreviewPath", System.IO.Path.GetFileNameWithoutExtension(Path) + ".png");
-            Briefing = iniFile.GetStringValue(Path, "Briefing", String.Empty).Replace("@", Environment.NewLine);
-
-            string[] localSize = iniFile.GetStringValue(Path, "LocalSize", "0,0,0,0").Split(',');
-            string[] size = iniFile.GetStringValue(Path, "Size", "0,0,0,0").Split(',');
-
-            string[] previewSize = iniFile.GetStringValue(Path, "PreviewSize", "0,0").Split(',');
-            Point previewSizePoint = new Point(Int32.Parse(previewSize[0]), Int32.Parse(previewSize[1]));
-
-            for (int i = 0; i < MAX_PLAYERS; i++)
+            try
             {
-                string waypoint = iniFile.GetStringValue(Path, "Waypoint" + i, String.Empty);
+                Name = iniFile.GetStringValue(Path, "Description", "Unnamed map");
+                Author = iniFile.GetStringValue(Path, "Author", "Unknown author");
+                GameModes = iniFile.GetStringValue(Path, "GameModes", "Default").Split(',');
+                MinPlayers = iniFile.GetIntValue(Path, "MinPlayers", 0);
+                MaxPlayers = iniFile.GetIntValue(Path, "MaxPlayers", 0);
+                EnforceMaxPlayers = iniFile.GetBooleanValue(Path, "EnforceMaxPlayers", false);
+                PreviewPath = iniFile.GetStringValue(Path, "PreviewPath", System.IO.Path.GetFileNameWithoutExtension(Path) + ".png");
+                Briefing = iniFile.GetStringValue(Path, "Briefing", String.Empty).Replace("@", Environment.NewLine);
+                SHA1 = Utilities.CalculateSHA1ForFile(ProgramConstants.GamePath + Path + ".map");
 
-                if (!String.IsNullOrEmpty(waypoint))
-                    StartingLocations.Add(GetWaypointCoords(waypoint, size, localSize, previewSizePoint));
-                else
-                    break;
-            }
+                string[] localSize = iniFile.GetStringValue(Path, "LocalSize", "0,0,0,0").Split(',');
+                string[] size = iniFile.GetStringValue(Path, "Size", "0,0,0,0").Split(',');
 
-            if (MCDomainController.Instance.GetMapPreviewPreloadStatus())
-                PreviewTexture = AssetLoader.LoadTexture(Path + ".png");
+                string[] previewSize = iniFile.GetStringValue(Path, "PreviewSize", "0,0").Split(',');
+                Point previewSizePoint = new Point(Int32.Parse(previewSize[0]), Int32.Parse(previewSize[1]));
 
-            string forcedOptionsSection = iniFile.GetStringValue(Path, "ForcedOptions", String.Empty);
-
-            if (String.IsNullOrEmpty(forcedOptionsSection))
-                return;
-
-            List<string> keys = iniFile.GetSectionKeys(forcedOptionsSection);
-
-            foreach (string key in keys)
-            {
-                string value = iniFile.GetStringValue(forcedOptionsSection, key, String.Empty);
-
-                int intValue = 0;
-                if (Int32.TryParse(value, out intValue))
+                for (int i = 0; i < MAX_PLAYERS; i++)
                 {
+                    string waypoint = iniFile.GetStringValue(Path, "Waypoint" + i, String.Empty);
 
+                    if (String.IsNullOrEmpty(waypoint))
+                        break;
+
+                    StartingLocations.Add(GetWaypointCoords(waypoint, size, localSize, previewSizePoint));
                 }
+
+                if (MCDomainController.Instance.GetMapPreviewPreloadStatus())
+                    PreviewTexture = AssetLoader.LoadTexture(Path + ".png");
+
+                string forcedOptionsSection = iniFile.GetStringValue(Path, "ForcedOptions", String.Empty);
+
+                if (String.IsNullOrEmpty(forcedOptionsSection))
+                    return true;
+
+                List<string> keys = iniFile.GetSectionKeys(forcedOptionsSection);
+
+                foreach (string key in keys)
+                {
+                    string value = iniFile.GetStringValue(forcedOptionsSection, key, String.Empty);
+
+                    int intValue = 0;
+                    if (Int32.TryParse(value, out intValue))
+                    {
+                        ForcedComboBoxValues.Add(new KeyValuePair<string, int>(key, intValue));
+                    }
+                    else
+                    {
+                        ForcedCheckBoxValues.Add(new KeyValuePair<string, bool>(key, Utilities.BooleanFromString(value, false)));
+                    }
+                }
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Logger.Log("Setting info for " + Path + " failed! Reason: " + ex.Message);
+                return false;
             }
         }
 
@@ -189,15 +209,15 @@ namespace DTAClient.domain.CnCNet
             int isoTileX = rx - ry + Convert.ToInt32(actualSizeValues[2]) - 1;
             int isoTileY = rx + ry - Convert.ToInt32(actualSizeValues[2]) - 1;
 
-            int pixelPosX = isoTileX * 24;
-            int pixelPosY = isoTileY * 12;
+            int pixelPosX = isoTileX * MAP_SIZE_X / 2;
+            int pixelPosY = isoTileY * MAP_SIZE_Y / 2;
 
             pixelPosX = pixelPosX - (Convert.ToInt32(localSizeValues[0]) * 48);
             pixelPosY = pixelPosY - (Convert.ToInt32(localSizeValues[1]) * 24);
 
             // Calculate map size
-            int mapSizeX = Convert.ToInt32(localSizeValues[2]) * 48;
-            int mapSizeY = Convert.ToInt32(localSizeValues[3]) * 24;
+            int mapSizeX = Convert.ToInt32(localSizeValues[2]) * MAP_SIZE_X;
+            int mapSizeY = Convert.ToInt32(localSizeValues[3]) * MAP_SIZE_Y;
 
             double ratioX = Convert.ToDouble(pixelPosX) / mapSizeX;
             double ratioY = Convert.ToDouble(pixelPosY) / mapSizeY;
@@ -207,9 +227,5 @@ namespace DTAClient.domain.CnCNet
 
             return new Point(x, y);
         }
-
-        public string[] GameOptionsForcedOff;
-        public string[] GameOptionsForcedOn;
-        public List<KeyValuePair<string, int>> ForcedComboBoxValues = new List<KeyValuePair<string, int>>();
     }
 }

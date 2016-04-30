@@ -83,7 +83,7 @@ namespace DTAClient.DXGUI
 
         private void BtnExMapEditor_LeftClick(object sender, EventArgs e)
         {
-            Process.Start(ProgramConstants.gamepath + MCDomainController.Instance.GetMapEditorExePath());
+            Process.Start(ProgramConstants.GamePath + MCDomainController.Instance.GetMapEditorExePath());
             ((MainMenuDarkeningPanel)Parent).Hide();
         }
 

@@ -1,6 +1,7 @@
 ﻿using ClientCore;
 using ClientGUI;
 using DTAClient.domain;
+using DTAClient.domain.CnCNet;
 using Microsoft.Xna.Framework;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.DXControls;
@@ -23,7 +24,10 @@ namespace DTAClient.DXGUI
 
         private static readonly object locker = new object();
 
-        DXProgressBar progressBar;
+        bool updaterReady = false;
+        bool mapsReady = false;
+
+        //DXProgressBar progressBar;
 
         public override void Initialize()
         {
@@ -32,20 +36,54 @@ namespace DTAClient.DXGUI
 
             BackgroundTexture = AssetLoader.LoadTexture("loadingscreen.png");
 
-            progressBar = new DXProgressBar(Game, WindowManager);
-            progressBar.Name = "progressBar";
-            progressBar.Maximum = 100;
-            progressBar.ClientRectangle = new Rectangle(50, 430, 700, 35);
-            progressBar.BorderColor = UISettings.WindowBorderColor;
-
             CenterOnParent();
-
-            AddChild(progressBar);
 
             base.Initialize();
         }
 
         private void CUpdater_OnLocalFileVersionsChecked()
+        {
+            lock (locker)
+            {
+                updaterReady = true;
+
+                if (mapsReady)
+                    AddCallback(new Action(Finish), null);
+            }
+        }
+
+        public void Start()
+        {
+            MapLoader mapLoader = new MapLoader();
+            mapLoader.MapLoadingComplete += MapLoader_MapLoadingComplete;
+
+            mapLoader.LoadMapsAsync();
+
+            if (!MCDomainController.Instance.GetModModeStatus())
+            {
+                CUpdater.OnLocalFileVersionsChecked += CUpdater_OnLocalFileVersionsChecked;
+
+                Thread thread = new Thread(CUpdater.CheckLocalFileVersions);
+                thread.Start();
+            }
+            else
+            {
+                updaterReady = true;
+            }
+        }
+
+        private void MapLoader_MapLoadingComplete(object sender, EventArgs e)
+        {
+            lock (locker)
+            {
+                mapsReady = true;
+
+                if (updaterReady)
+                    AddCallback(new Action(Finish), null);
+            }
+        }
+
+        private void Finish()
         {
             MainMenu mm = new MainMenu(Game, WindowManager);
             CUpdater.OnLocalFileVersionsChecked -= CUpdater_OnLocalFileVersionsChecked;
@@ -54,41 +92,14 @@ namespace DTAClient.DXGUI
             mm.PostInit();
         }
 
-        private void CUpdater_LocalFileCheckProgressChanged(int checkedFileCount, int totalFileCount)
-        {
-            lock (locker)
-            {
-                progressBar.Maximum = totalFileCount;
-                progressBar.Value = checkedFileCount;
-            }
-        }
-
-        public void Start()
-        {
-            if (File.Exists(ProgramConstants.gamepath + MainClientConstants.NEW_VERSION) && !MCDomainController.Instance.GetModModeStatus())
-            {
-                CUpdater.LocalFileCheckProgressChanged += CUpdater_LocalFileCheckProgressChanged;
-                CUpdater.OnLocalFileVersionsChecked += CUpdater_OnLocalFileVersionsChecked;
-
-                Thread thread = new Thread(CUpdater.CheckLocalFileVersions);
-                thread.Start();
-            }
-            else
-            {
-                CUpdater_OnLocalFileVersionsChecked();
-            }
-        }
-
         public override void Update(GameTime gameTime)
         {
-            lock (locker)
-                base.Update(gameTime);
+            base.Update(gameTime);
         }
 
         public override void Draw(GameTime gameTime)
         {
-            lock (locker)
-                base.Draw(gameTime);
+            base.Draw(gameTime);
         }
     }
 }

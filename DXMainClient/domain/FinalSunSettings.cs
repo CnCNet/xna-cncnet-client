@@ -23,13 +23,11 @@ namespace DTAClient.domain
                     Logger.Log("FinalSun settings file exists.");
 
                     IniFile iniFile = new IniFile(MainClientConstants.gamepath + MainClientConstants.FINALSUN_INI);
-                    if (!iniFile.SectionExists("FinalSun"))
-                    {
-                        iniFile.SetStringValue("FinalSun", "Language", "English");
-                        iniFile.SetStringValue("FinalSun", "FileSearchLikeTS", "yes");
-                        iniFile.SetStringValue("TS", "Exe", Application.ExecutablePath);
-                        iniFile.WriteIniFile();
-                    }
+
+                    iniFile.SetStringValue("FinalSun", "Language", "English");
+                    iniFile.SetStringValue("FinalSun", "FileSearchLikeTS", "yes");
+                    iniFile.SetStringValue("TS", "Exe", Application.ExecutablePath);
+                    iniFile.WriteIniFile();
 
                     return;
                 }

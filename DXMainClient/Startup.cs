@@ -31,7 +31,7 @@ namespace DTAClient
         {
             int themeId = DomainController.Instance().GetSelectedThemeId();
 
-            if (themeId > DomainController.Instance().GetThemeCount())
+            if (themeId >= DomainController.Instance().GetThemeCount())
                 themeId = 0;
 
             ProgramConstants.RESOURCES_DIR = "Resources\\" + DomainController.Instance().GetThemeInfoFromIndex(themeId)[1];
@@ -42,7 +42,7 @@ namespace DTAClient
 
             Logger.Log("Initializing updater.");
 
-            File.Delete(ProgramConstants.gamepath + "version_u");
+            File.Delete(ProgramConstants.GamePath + "version_u");
 
             CUpdater.Initialize(DomainController.Instance().GetDefaultGame());
 
@@ -318,7 +318,7 @@ namespace DTAClient
 
         private void InstallTSCompatibilityFix()
         {
-            if (MainClientConstants.OSId != OSVersion.WIN810 || !File.Exists(ProgramConstants.gamepath + "Resources\\compatfix.sdb"))
+            if (MainClientConstants.OSId != OSVersion.WIN810 || !File.Exists(ProgramConstants.GamePath + "Resources\\compatfix.sdb"))
                 return;
 
             RegistryKey regKey = Registry.CurrentUser.OpenSubKey("SOFTWARE\\Tiberian Sun Client", true);
@@ -373,7 +373,7 @@ namespace DTAClient
                 {
                     Logger.Log("Installing Windows 8/10 compatibility fix.");
 
-                    Process sdbinst = Process.Start("sdbinst.exe", "-q \"" + ProgramConstants.gamepath + "Resources\\compatfix.sdb\"");
+                    Process sdbinst = Process.Start("sdbinst.exe", "-q \"" + ProgramConstants.GamePath + "Resources\\compatfix.sdb\"");
 
                     sdbinst.WaitForExit();
 
@@ -411,7 +411,7 @@ namespace DTAClient
                 MainClientConstants.OSId == OSVersion.UNKNOWN)
                 return;
 
-            if (!File.Exists(ProgramConstants.gamepath + "Resources\\FSCompatFix.sdb"))
+            if (!File.Exists(ProgramConstants.GamePath + "Resources\\FSCompatFix.sdb"))
                 return;
 
             RegistryKey regKey = Registry.CurrentUser.OpenSubKey("SOFTWARE\\Tiberian Sun Client", true);
@@ -447,7 +447,7 @@ namespace DTAClient
                 {
                     Logger.Log("Installing FinalSun compatibility fix.");
 
-                    Process sdbinst = Process.Start("sdbinst.exe", "-q \"" + ProgramConstants.gamepath + "Resources\\FSCompatFix.sdb\"");
+                    Process sdbinst = Process.Start("sdbinst.exe", "-q \"" + ProgramConstants.GamePath + "Resources\\FSCompatFix.sdb\"");
 
                     sdbinst.WaitForExit();
 

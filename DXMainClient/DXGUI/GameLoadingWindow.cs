@@ -100,8 +100,8 @@ namespace DTAClient.DXGUI
             sw.WriteLine();
             sw.Close();
 
-            File.Delete(ProgramConstants.gamepath + "spawnmap.ini");
-            sw = new StreamWriter(ProgramConstants.gamepath + "spawnmap.ini");
+            File.Delete(ProgramConstants.GamePath + "spawnmap.ini");
+            sw = new StreamWriter(ProgramConstants.GamePath + "spawnmap.ini");
             sw.WriteLine("[Map]");
             sw.WriteLine("Size=0,0,50,50");
             sw.WriteLine("LocalSize=0,0,50,50");
@@ -139,52 +139,9 @@ namespace DTAClient.DXGUI
         {
             string shortName = Path.GetFileName(fileName);
 
-            try
-            {
-                Logger.Log("Attempting to read saved game " + shortName);
-                BinaryReader br = new BinaryReader(File.Open(fileName, FileMode.Open, FileAccess.Read));
-
-                br.BaseStream.Position = 2256; // 00000980
-
-                string saveGameName = String.Empty;
-                // Read name until we encounter two zero-bytes
-                bool wasLastByteZero = false;
-                while (true)
-                {
-                    byte characterByte = br.ReadByte();
-                    if (characterByte == 0)
-                    {
-                        if (wasLastByteZero)
-                            break;
-                        wasLastByteZero = true;
-                    }
-                    else
-                    {
-                        wasLastByteZero = false;
-                        char character = Convert.ToChar(characterByte);
-                        saveGameName = saveGameName + character;
-                    }
-
-                    Console.WriteLine();
-                }
-
-                SavedGame savedGame = new SavedGame();
-                savedGame.FileName = shortName;
-                savedGame.GUIName = saveGameName;
-                DateTime saveGameModifyDate = File.GetLastWriteTime(fileName);
-                savedGame.LastModified = saveGameModifyDate;
-
-                Logger.Log("Saved game " + shortName + " parsed succesfully.");
-
-                savedGames.Add(savedGame);
-
-                br.Close();
-            }
-            catch (Exception ex)
-            {
-                Logger.Log("An error occured while parsing saved game " + shortName + ":" +
-                    ex.Message);
-            }
+            SavedGame sg = new SavedGame(shortName);
+            if (sg.ParseInfo())
+                savedGames.Add(sg);
         }
     }
 }

@@ -476,7 +476,7 @@ namespace DTAClient.DXGUI
 
         private void BtnMapEditor_LeftClick(object sender, EventArgs e)
         {
-            Process.Start(ProgramConstants.gamepath + MCDomainController.Instance.GetMapEditorExePath());
+            Process.Start(ProgramConstants.GamePath + MCDomainController.Instance.GetMapEditorExePath());
         }
 
         private void BtnStatistics_LeftClick(object sender, EventArgs e)
@@ -502,7 +502,7 @@ namespace DTAClient.DXGUI
             CnCNetInfoController.DisableService();
 
             if (isYR)
-                File.Delete(ProgramConstants.gamepath + "ddraw.dll");
+                File.Delete(ProgramConstants.GamePath + "ddraw.dll");
 
             Game.Exit();
         }

@@ -504,7 +504,7 @@ namespace DTAClient.DXGUI
         {
             StatisticsManager sm = StatisticsManager.Instance;
 
-            sm.ReadStatistics(ProgramConstants.gamepath);
+            sm.ReadStatistics(ProgramConstants.GamePath);
         }
 
         void ListGameModes()

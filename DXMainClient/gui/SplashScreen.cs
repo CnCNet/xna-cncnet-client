@@ -21,7 +21,7 @@ namespace DTAClient.gui
             this.Text = MCDomainController.Instance.GetLongGameName();
             image = SharedUILogic.LoadImage("splashScreen.png");
             this.Size = new Size(image.Width, image.Height);
-            this.Icon = Icon.ExtractAssociatedIcon(ProgramConstants.gamepath + ProgramConstants.RESOURCES_DIR + "mainclienticon.ico");
+            this.Icon = Icon.ExtractAssociatedIcon(ProgramConstants.GamePath + ProgramConstants.RESOURCES_DIR + "mainclienticon.ico");
         }
 
         private void SplashScreen_Paint(object sender, PaintEventArgs e)

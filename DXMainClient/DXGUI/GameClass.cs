@@ -36,7 +36,7 @@ namespace DTAClient.DXGUI
             AssetLoader.Initialize(GraphicsDevice);
             AssetLoader.AssetSearchPaths.Add(ProgramConstants.GetResourcePath());
             AssetLoader.AssetSearchPaths.Add(ProgramConstants.GetBaseResourcePath());
-            AssetLoader.AssetSearchPaths.Add(ProgramConstants.gamepath);
+            AssetLoader.AssetSearchPaths.Add(ProgramConstants.GamePath);
 
             TargetElapsedTime = TimeSpan.FromMilliseconds(1000.0 / 120.0);
 
@@ -84,7 +84,7 @@ namespace DTAClient.DXGUI
             ls.Start();
         }
 
-        public void InitializeUISettings()
+        private void InitializeUISettings()
         {
             UISettings.AltColor = AssetLoader.GetColorFromString(DomainController.Instance().GetUIAltColor());
             UISettings.ButtonColor = UISettings.AltColor;
