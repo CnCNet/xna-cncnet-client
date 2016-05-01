@@ -11,7 +11,7 @@ namespace DTAClient.DXGUI
 {
     public class MainMenuDarkeningPanel : DXPanel
     {
-        public MainMenuDarkeningPanel(Game game, WindowManager windowManager) : base(game, windowManager)
+        public MainMenuDarkeningPanel(WindowManager windowManager) : base(windowManager)
         {
 
         }
@@ -43,25 +43,25 @@ namespace DTAClient.DXGUI
 
             //ClientRectangle = new Rectangle(0, 0, WindowManager.Instance.RenderResolutionX, WindowManager.Instance.RenderResolutionY);
 
-            CampaignSelector = new CampaignSelector(Game, WindowManager);
+            CampaignSelector = new CampaignSelector(WindowManager);
             AddChild(CampaignSelector);
 
-            GameInProgressWindow = new GameInProgressWindow(Game, WindowManager);
+            GameInProgressWindow = new GameInProgressWindow(WindowManager);
             AddChild(GameInProgressWindow);
 
-            GameLoadingWindow = new GameLoadingWindow(Game, WindowManager);
+            GameLoadingWindow = new GameLoadingWindow(WindowManager);
             AddChild(GameLoadingWindow);
 
-            StatisticsWindow = new StatisticsWindow(Game, WindowManager);
+            StatisticsWindow = new StatisticsWindow(WindowManager);
             AddChild(StatisticsWindow);
 
-            UpdateQueryWindow = new UpdateQueryWindow(Game, WindowManager);
+            UpdateQueryWindow = new UpdateQueryWindow(WindowManager);
             AddChild(UpdateQueryWindow);
 
-            UpdateWindow = new UpdateWindow(Game, WindowManager);
+            UpdateWindow = new UpdateWindow(WindowManager);
             AddChild(UpdateWindow);
 
-            ExtrasWindow = new ExtrasWindow(Game, WindowManager);
+            ExtrasWindow = new ExtrasWindow(WindowManager);
             AddChild(ExtrasWindow);
 
             foreach (DXControl child in Children)

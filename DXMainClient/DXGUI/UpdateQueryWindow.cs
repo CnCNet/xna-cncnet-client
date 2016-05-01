@@ -19,7 +19,7 @@ namespace DTAClient.DXGUI
         public delegate void UpdateDeclinedEventHandler(object sender, EventArgs e);
         public event UpdateDeclinedEventHandler UpdateDeclined;
 
-        public UpdateQueryWindow(Game game, WindowManager windowManager) : base(game, windowManager)
+        public UpdateQueryWindow(WindowManager windowManager) : base(windowManager)
         {
 
         }
@@ -33,24 +33,24 @@ namespace DTAClient.DXGUI
             ClientRectangle = new Rectangle(0, 0, 251, 140);
             BackgroundTexture = AssetLoader.LoadTexture("updatequerybg.png");
 
-            lblDescription = new DXLabel(Game, WindowManager);
+            lblDescription = new DXLabel(WindowManager);
             lblDescription.ClientRectangle = new Rectangle(12, 9, 0, 0);
             lblDescription.Text = String.Empty;
             lblDescription.Name = "lblDescription";
 
-            DXLabel lblChangelogLink = new DXLabel(Game, WindowManager);
+            DXLabel lblChangelogLink = new DXLabel(WindowManager);
             lblChangelogLink.ClientRectangle = new Rectangle(12, 50, 0, 0);
             lblChangelogLink.Text = "Click here to view the changelog";
             lblChangelogLink.RemapColor = Color.Goldenrod;
             lblChangelogLink.Name = "lblChangelogLink";
             lblChangelogLink.LeftClick += LblChangelogLink_LeftClick;
 
-            lblUpdateSize = new DXLabel(Game, WindowManager);
+            lblUpdateSize = new DXLabel(WindowManager);
             lblUpdateSize.ClientRectangle = new Rectangle(12, 80, 0, 0);
             lblUpdateSize.Text = String.Empty;
             lblUpdateSize.Name = "lblUpdateSize";
 
-            DXButton btnYes = new DXButton(Game, WindowManager);
+            DXButton btnYes = new DXButton(WindowManager);
             btnYes.ClientRectangle = new Rectangle(12, 110, 75, 23);
             btnYes.IdleTexture = AssetLoader.LoadTexture("75pxbtn.png");
             btnYes.HoverTexture = AssetLoader.LoadTexture("75pxbtn_c.png");
@@ -59,7 +59,7 @@ namespace DTAClient.DXGUI
             btnYes.FontIndex = 1;
             btnYes.LeftClick += BtnYes_LeftClick;
 
-            DXButton btnNo = new DXButton(Game, WindowManager);
+            DXButton btnNo = new DXButton(WindowManager);
             btnNo.ClientRectangle = new Rectangle(164, 110, 75, 23);
             btnNo.IdleTexture = AssetLoader.LoadTexture("75pxbtn.png");
             btnNo.HoverTexture = AssetLoader.LoadTexture("75pxbtn_c.png");

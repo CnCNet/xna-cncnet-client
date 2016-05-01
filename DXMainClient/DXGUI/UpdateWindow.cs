@@ -29,7 +29,7 @@ namespace DTAClient.DXGUI
 
         delegate void UpdateProgressChangedDelegate(string fileName, int filePercentage, int totalPercentage);
 
-        public UpdateWindow(Game game, WindowManager windowManager) : base(game, windowManager)
+        public UpdateWindow(WindowManager windowManager) : base(windowManager)
         {
 
         }
@@ -53,22 +53,22 @@ namespace DTAClient.DXGUI
             ClientRectangle = new Rectangle(0, 0, 446, 270);
             BackgroundTexture = AssetLoader.LoadTexture("updaterbg.png");
 
-            lblDescription = new DXLabel(Game, WindowManager);
+            lblDescription = new DXLabel(WindowManager);
             lblDescription.Text = String.Empty;
             lblDescription.ClientRectangle = new Rectangle(12, 9, 0, 0);
             lblDescription.Name = "lblDescription";
 
-            DXLabel lblCurrentFileProgressPercentage = new DXLabel(Game, WindowManager);
+            DXLabel lblCurrentFileProgressPercentage = new DXLabel(WindowManager);
             lblCurrentFileProgressPercentage.Text = "Progress percentage of current file:";
             lblCurrentFileProgressPercentage.ClientRectangle = new Rectangle(12, 90, 0, 0);
             lblCurrentFileProgressPercentage.Name = "lblCurrentFileProgressPercentage";
 
-            lblCurrentFileProgressPercentageValue = new DXLabel(Game, WindowManager);
+            lblCurrentFileProgressPercentageValue = new DXLabel(WindowManager);
             lblCurrentFileProgressPercentageValue.Text = "0%";
             lblCurrentFileProgressPercentageValue.ClientRectangle = new Rectangle(409, lblCurrentFileProgressPercentage.ClientRectangle.Y, 0, 0);
             lblCurrentFileProgressPercentageValue.Name = "lblCurrentFileProgressPercentageValue";
 
-            prgCurrentFile = new DXProgressBar(Game, WindowManager);
+            prgCurrentFile = new DXProgressBar(WindowManager);
             prgCurrentFile.Name = "prgCurrentFile";
             prgCurrentFile.Maximum = 100;
             prgCurrentFile.ClientRectangle = new Rectangle(12, 110, 422, 30);
@@ -76,32 +76,32 @@ namespace DTAClient.DXGUI
             prgCurrentFile.SmoothForwardTransition = true;
             prgCurrentFile.SmoothTransitionRate = 10;
 
-            lblCurrentFile = new DXLabel(Game, WindowManager);
+            lblCurrentFile = new DXLabel(WindowManager);
             lblCurrentFile.Name = "lblCurrentFile";
             lblCurrentFile.ClientRectangle = new Rectangle(12, 142, 0, 0);
 
-            DXLabel lblTotalProgressPercentage = new DXLabel(Game, WindowManager);
+            DXLabel lblTotalProgressPercentage = new DXLabel(WindowManager);
             lblTotalProgressPercentage.Text = "Total progress percentage:";
             lblTotalProgressPercentage.ClientRectangle = new Rectangle(12, 170, 0, 0);
             lblTotalProgressPercentage.Name = "lblTotalProgressPercentage";
 
-            lblTotalProgressPercentageValue = new DXLabel(Game, WindowManager);
+            lblTotalProgressPercentageValue = new DXLabel(WindowManager);
             lblTotalProgressPercentageValue.Text = "0%";
             lblTotalProgressPercentageValue.ClientRectangle = new Rectangle(409, lblTotalProgressPercentage.ClientRectangle.Y, 0, 0);
             lblTotalProgressPercentageValue.Name = "lblTotalProgressPercentageValue";
 
-            prgTotal = new DXProgressBar(Game, WindowManager);
+            prgTotal = new DXProgressBar(WindowManager);
             prgTotal.Name = "prgTotal";
             prgTotal.Maximum = 100;
             prgTotal.ClientRectangle = new Rectangle(12, 190, prgCurrentFile.ClientRectangle.Width, prgCurrentFile.ClientRectangle.Height);
             prgTotal.BorderColor = UISettings.WindowBorderColor;
 
-            lblUpdaterStatus = new DXLabel(Game, WindowManager);
+            lblUpdaterStatus = new DXLabel(WindowManager);
             lblUpdaterStatus.Name = "lblUpdaterStatus";
             lblUpdaterStatus.Text = "Preparing...";
             lblUpdaterStatus.ClientRectangle = new Rectangle(12, 240, 0, 0);
 
-            DXButton btnCancel = new DXButton(Game, WindowManager);
+            DXButton btnCancel = new DXButton(WindowManager);
             btnCancel.ClientRectangle = new Rectangle(301, 240, 133, 23);
             btnCancel.IdleTexture = AssetLoader.LoadTexture("133pxbtn.png");
             btnCancel.HoverTexture = AssetLoader.LoadTexture("133pxbtn_c.png");

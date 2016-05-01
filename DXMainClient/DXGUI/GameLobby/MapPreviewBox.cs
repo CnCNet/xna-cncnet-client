@@ -25,7 +25,7 @@ namespace DTAClient.DXGUI.GameLobby
 
         public event StartingLocationSelectedEventHandler StartingLocationSelected;
 
-        public MapPreviewBox(Game game, WindowManager windowManager) : base(game, windowManager)
+        public MapPreviewBox(WindowManager windowManager) : base(windowManager)
         {
         }
 
@@ -57,7 +57,7 @@ namespace DTAClient.DXGUI.GameLobby
             // Init starting location indicators
             for (int i = 1; i <= MAX_STARTING_LOCATIONS; i++)
             {
-                DXPanel indicator = new DXPanel(Game, WindowManager);
+                DXPanel indicator = new DXPanel(WindowManager);
                 indicator.Name = "startingLocationIndicator" + i;
                 indicator.BackgroundTexture = AssetLoader.LoadTexture(string.Format("slocindicator{0}.png", i));
                 indicator.ClientRectangle = indicator.BackgroundTexture.Bounds;

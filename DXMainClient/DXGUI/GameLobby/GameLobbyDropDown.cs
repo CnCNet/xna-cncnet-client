@@ -14,7 +14,7 @@ namespace DTAClient.DXGUI.GameLobby
     /// </summary>
     class GameLobbyDropDown : DXDropDown
     {
-        public GameLobbyDropDown(Game game, WindowManager windowManager) : base(game, windowManager) { }
+        public GameLobbyDropDown(WindowManager windowManager) : base(windowManager) { }
 
         public DropDownDataWriteMode DataWriteMode { get; set; }
 

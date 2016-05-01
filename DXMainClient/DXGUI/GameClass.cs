@@ -77,7 +77,7 @@ namespace DTAClient.DXGUI
 
             Components.Add(wm);
 
-            LoadingScreen ls = new LoadingScreen(this, wm);
+            LoadingScreen ls = new LoadingScreen(wm);
             wm.AddAndInitializeControl(ls);
             ls.ClientRectangle = new Rectangle((renderResolutionX - ls.ClientRectangle.Width) / 2,
                 (renderResolutionY - ls.ClientRectangle.Height) / 2, ls.ClientRectangle.Width, ls.ClientRectangle.Height);

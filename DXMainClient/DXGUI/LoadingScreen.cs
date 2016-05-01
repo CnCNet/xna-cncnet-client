@@ -17,7 +17,7 @@ namespace DTAClient.DXGUI
 {
     public class LoadingScreen : DXWindow
     {
-        public LoadingScreen(Game game, WindowManager windowManager) : base(game, windowManager)
+        public LoadingScreen(WindowManager windowManager) : base(windowManager)
         {
 
         }
@@ -85,7 +85,7 @@ namespace DTAClient.DXGUI
 
         private void Finish()
         {
-            MainMenu mm = new MainMenu(Game, WindowManager);
+            MainMenu mm = new MainMenu(WindowManager);
             CUpdater.OnLocalFileVersionsChecked -= CUpdater_OnLocalFileVersionsChecked;
             WindowManager.Instance.AddAndInitializeControl(mm);
             WindowManager.Instance.RemoveControl(this);

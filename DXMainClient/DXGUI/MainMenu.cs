@@ -22,7 +22,7 @@ namespace DTAClient.DXGUI
 {
     class MainMenu : DXWindow
     {
-        public MainMenu(Game game, WindowManager windowManager) : base(game, windowManager)
+        public MainMenu(WindowManager windowManager) : base(windowManager)
         {
             isYR = DomainController.Instance().GetDefaultGame().ToUpper() == "YR";
         }
@@ -49,7 +49,7 @@ namespace DTAClient.DXGUI
             Name = "MainMenu";
             BackgroundTexture = AssetLoader.LoadTexture("MainMenu\\mainmenubg.png");
 
-            mmUIPanel = new DXPanel(Game, WindowManager);
+            mmUIPanel = new DXPanel(WindowManager);
             mmUIPanel.Name = "MainMenuUIPanel";
             Texture2D texture = BackgroundTexture;
             mmUIPanel.ClientRectangle = new Rectangle(0, 0, texture.Width, texture.Height);
@@ -57,7 +57,7 @@ namespace DTAClient.DXGUI
                 (WindowManager.Instance.RenderResolutionY - ClientRectangle.Height) / 2,
                 mmUIPanel.ClientRectangle.Width, mmUIPanel.ClientRectangle.Height);
 
-            DXButton btnNewCampaign = new DXButton(Game, WindowManager);
+            DXButton btnNewCampaign = new DXButton(WindowManager);
             btnNewCampaign.Name = "btnNewCampaign";
             btnNewCampaign.IdleTexture = AssetLoader.LoadTexture("MainMenu\\campaign.png");
             btnNewCampaign.HoverTexture = AssetLoader.LoadTexture("MainMenu\\campaign_c.png");
@@ -65,7 +65,7 @@ namespace DTAClient.DXGUI
             btnNewCampaign.LeftClick += BtnNewCampaign_LeftClick;
             btnNewCampaign.HotKey = Keys.C;
 
-            DXButton btnLoadGame = new DXButton(Game, WindowManager);
+            DXButton btnLoadGame = new DXButton(WindowManager);
             btnLoadGame.Name = "btnLoadGame";
             btnLoadGame.IdleTexture = AssetLoader.LoadTexture("MainMenu\\loadmission.png");
             btnLoadGame.HoverTexture = AssetLoader.LoadTexture("MainMenu\\loadmission_c.png");
@@ -73,7 +73,7 @@ namespace DTAClient.DXGUI
             btnLoadGame.LeftClick += BtnLoadGame_LeftClick;
             btnLoadGame.HotKey = Keys.L;
 
-            DXButton btnSkirmish = new DXButton(Game, WindowManager);
+            DXButton btnSkirmish = new DXButton(WindowManager);
             btnSkirmish.Name = "btnSkirmish";
             btnSkirmish.IdleTexture = AssetLoader.LoadTexture("MainMenu\\skirmish.png");
             btnSkirmish.HoverTexture = AssetLoader.LoadTexture("MainMenu\\skirmish_c.png");
@@ -81,7 +81,7 @@ namespace DTAClient.DXGUI
             btnSkirmish.LeftClick += BtnSkirmish_LeftClick;
             btnSkirmish.HotKey = Keys.S;
 
-            DXButton btnCnCNet = new DXButton(Game, WindowManager);
+            DXButton btnCnCNet = new DXButton(WindowManager);
             btnCnCNet.Name = "btnCnCNet";
             btnCnCNet.IdleTexture = AssetLoader.LoadTexture("MainMenu\\cncnet.png");
             btnCnCNet.HoverTexture = AssetLoader.LoadTexture("MainMenu\\cncnet_c.png");
@@ -89,7 +89,7 @@ namespace DTAClient.DXGUI
             btnCnCNet.LeftClick += BtnCnCNet_LeftClick;
             btnCnCNet.HotKey = Keys.M;
 
-            DXButton btnLan = new DXButton(Game, WindowManager);
+            DXButton btnLan = new DXButton(WindowManager);
             btnLan.Name = "btnLan";
             btnLan.IdleTexture = AssetLoader.LoadTexture("MainMenu\\lan.png");
             btnLan.HoverTexture = AssetLoader.LoadTexture("MainMenu\\lan_c.png");
@@ -97,7 +97,7 @@ namespace DTAClient.DXGUI
             btnLan.LeftClick += BtnLan_LeftClick;
             btnLan.HotKey = Keys.N;
 
-            DXButton btnOptions = new DXButton(Game, WindowManager);
+            DXButton btnOptions = new DXButton(WindowManager);
             btnOptions.Name = "btnOptions";
             btnOptions.IdleTexture = AssetLoader.LoadTexture("MainMenu\\options.png");
             btnOptions.HoverTexture = AssetLoader.LoadTexture("MainMenu\\options_c.png");
@@ -105,7 +105,7 @@ namespace DTAClient.DXGUI
             btnOptions.LeftClick += BtnOptions_LeftClick;
             btnOptions.HotKey = Keys.O;
 
-            DXButton btnMapEditor = new DXButton(Game, WindowManager);
+            DXButton btnMapEditor = new DXButton(WindowManager);
             btnMapEditor.Name = "btnMapEditor";
             btnMapEditor.IdleTexture = AssetLoader.LoadTexture("MainMenu\\mapeditor.png");
             btnMapEditor.HoverTexture = AssetLoader.LoadTexture("MainMenu\\mapeditor_c.png");
@@ -113,7 +113,7 @@ namespace DTAClient.DXGUI
             btnMapEditor.LeftClick += BtnMapEditor_LeftClick;
             btnMapEditor.HotKey = Keys.E;
 
-            DXButton btnStatistics = new DXButton(Game, WindowManager);
+            DXButton btnStatistics = new DXButton(WindowManager);
             btnStatistics.Name = "btnStatistics";
             btnStatistics.IdleTexture = AssetLoader.LoadTexture("MainMenu\\statistics.png");
             btnStatistics.HoverTexture = AssetLoader.LoadTexture("MainMenu\\statistics_c.png");
@@ -121,7 +121,7 @@ namespace DTAClient.DXGUI
             btnStatistics.LeftClick += BtnStatistics_LeftClick;
             btnStatistics.HotKey = Keys.T;
 
-            DXButton btnCredits = new DXButton(Game, WindowManager);
+            DXButton btnCredits = new DXButton(WindowManager);
             btnCredits.Name = "btnCredits";
             btnCredits.IdleTexture = AssetLoader.LoadTexture("MainMenu\\credits.png");
             btnCredits.HoverTexture = AssetLoader.LoadTexture("MainMenu\\credits_c.png");
@@ -129,7 +129,7 @@ namespace DTAClient.DXGUI
             btnCredits.LeftClick += BtnCredits_LeftClick;
             btnCredits.HotKey = Keys.R;
 
-            DXButton btnExtras = new DXButton(Game, WindowManager);
+            DXButton btnExtras = new DXButton(WindowManager);
             btnExtras.Name = "btnExtras";
             btnExtras.IdleTexture = AssetLoader.LoadTexture("MainMenu\\extras.png");
             btnExtras.HoverTexture = AssetLoader.LoadTexture("MainMenu\\extras_c.png");
@@ -137,7 +137,7 @@ namespace DTAClient.DXGUI
             btnExtras.LeftClick += BtnExtras_LeftClick;
             btnExtras.HotKey = Keys.E;
 
-            DXButton btnExit = new DXButton(Game, WindowManager);
+            DXButton btnExit = new DXButton(WindowManager);
             btnExit.Name = "btnExit";
             btnExit.IdleTexture = AssetLoader.LoadTexture("MainMenu\\exitgame.png");
             btnExit.HoverTexture = AssetLoader.LoadTexture("MainMenu\\exitgame_c.png");
@@ -145,20 +145,20 @@ namespace DTAClient.DXGUI
             btnExit.LeftClick += BtnExit_LeftClick;
             btnExit.HotKey = Keys.Escape;
 
-            DXLabel lblCnCNetStatus = new DXLabel(Game, WindowManager);
+            DXLabel lblCnCNetStatus = new DXLabel(WindowManager);
             lblCnCNetStatus.Name = "lblCnCNetStatus";
             lblCnCNetStatus.Text = "DTA players on CnCNet:";
             lblCnCNetStatus.ClientRectangle = new Rectangle(12, 9, 0, 0);
 
-            lblCnCNetPlayerCount = new DXLabel(Game, WindowManager);
+            lblCnCNetPlayerCount = new DXLabel(WindowManager);
             lblCnCNetPlayerCount.Name = "lblCnCNetPlayerCount";
             lblCnCNetPlayerCount.Text = "-";
 
-            lblVersion = new DXLabel(Game, WindowManager);
+            lblVersion = new DXLabel(WindowManager);
             lblVersion.Name = "lblVersion";
             lblVersion.Text = CUpdater.GameVersion;
 
-            lblUpdateStatus = new DXLabel(Game, WindowManager);
+            lblUpdateStatus = new DXLabel(WindowManager);
             lblUpdateStatus.Name = "lblUpdateStatus";
             lblUpdateStatus.LeftClick += LblUpdateStatus_LeftClick;
             lblUpdateStatus.ClientRectangle = new Rectangle(0, 0, 160, 20);
@@ -186,7 +186,7 @@ namespace DTAClient.DXGUI
                 CUpdater.FileIdentifiersUpdated += CUpdater_FileIdentifiersUpdated;
             }
 
-            innerPanel = new MainMenuDarkeningPanel(Game, WindowManager);
+            innerPanel = new MainMenuDarkeningPanel(WindowManager);
             innerPanel.ClientRectangle = new Rectangle(0, 0, 
                 ClientRectangle.Width,
                 ClientRectangle.Height);

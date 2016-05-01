@@ -15,7 +15,7 @@ namespace DTAClient.DXGUI
 {
     public class GameLoadingWindow : DXWindow
     {
-        public GameLoadingWindow(Game game, WindowManager windowManager) : base(game, windowManager)
+        public GameLoadingWindow(WindowManager windowManager) : base(windowManager)
         {
 
         }
@@ -32,7 +32,7 @@ namespace DTAClient.DXGUI
             ClientRectangle = new Rectangle(0, 0, 600, 380);
             CenterOnParent();
 
-            lbSaveGameList = new DXMultiColumnListBox(Game, WindowManager);
+            lbSaveGameList = new DXMultiColumnListBox(WindowManager);
             lbSaveGameList.Name = "lbSaveGameList";
             lbSaveGameList.AddColumn("SAVED GAME NAME", 400);
             lbSaveGameList.AddColumn("DATE / TIME", 174);
@@ -40,7 +40,7 @@ namespace DTAClient.DXGUI
             lbSaveGameList.BackgroundTexture = AssetLoader.LoadTexture("loadmissionpanelbg.png");
             lbSaveGameList.SelectedIndexChanged += ListBox_SelectedIndexChanged;
 
-            btnLaunch = new DXButton(Game, WindowManager);
+            btnLaunch = new DXButton(WindowManager);
             btnLaunch.IdleTexture = AssetLoader.LoadTexture("133pxbtn.png");
             btnLaunch.HoverTexture = AssetLoader.LoadTexture("133pxbtn_c.png");
             btnLaunch.HoverSoundEffect = AssetLoader.LoadSound("button.wav");
@@ -50,7 +50,7 @@ namespace DTAClient.DXGUI
             btnLaunch.AllowClick = false;
             btnLaunch.LeftClick += BtnLaunch_LeftClick;
 
-            DXButton btnCancel = new DXButton(Game, WindowManager);
+            DXButton btnCancel = new DXButton(WindowManager);
             btnCancel.Name = "btnCancel";
             btnCancel.IdleTexture = AssetLoader.LoadTexture("133pxbtn.png");
             btnCancel.HoverTexture = AssetLoader.LoadTexture("133pxbtn_c.png");

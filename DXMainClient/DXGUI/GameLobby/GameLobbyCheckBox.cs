@@ -15,7 +15,7 @@ namespace DTAClient.DXGUI.GameLobby
     /// </summary>
     public class GameLobbyCheckBox : DXCheckBox
     {
-        public GameLobbyCheckBox(Game game, WindowManager windowManager) : base (game, windowManager) { }
+        public GameLobbyCheckBox(WindowManager windowManager) : base (windowManager) { }
 
         public string SpawnIniOption { get; set; }
 
