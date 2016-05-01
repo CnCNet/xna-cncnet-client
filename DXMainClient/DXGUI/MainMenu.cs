@@ -205,7 +205,7 @@ namespace DTAClient.DXGUI
             this.ClientRectangle = new Rectangle((WindowManager.Instance.RenderResolutionX - ClientRectangle.Width) / 2,
                 (WindowManager.Instance.RenderResolutionY - ClientRectangle.Height) / 2,
                 ClientRectangle.Width, ClientRectangle.Height);
-            innerPanel.ClientRectangle = new Rectangle(0, 0, ClientRectangle.Width + 100, ClientRectangle.Height);
+            innerPanel.ClientRectangle = new Rectangle(0, 0, WindowManager.RenderResolutionX, WindowManager.RenderResolutionY);
 
             CnCNetInfoController.CnCNetGameCountUpdated += CnCNetInfoController_CnCNetGameCountUpdated;
             CnCNetInfoController.InitializeService();
@@ -214,7 +214,7 @@ namespace DTAClient.DXGUI
         }
 
         /// <summary>
-        /// Attemps to "clean" the client session in a nice way of the user closes the game form. 
+        /// Attemps to "clean" the client session in a nice way if the user closes the game form. 
         /// </summary>
         private void Instance_GameFormClosing(object sender, System.Windows.Forms.FormClosingEventArgs eventArgs)
         {

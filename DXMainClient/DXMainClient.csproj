@@ -118,6 +118,7 @@
     <Compile Include="domain\CnCNet\GameMode.cs" />
     <Compile Include="domain\CnCNet\Map.cs" />
     <Compile Include="domain\CnCNet\MapLoader.cs" />
+    <Compile Include="domain\CnCNet\PlayerInfo.cs" />
     <Compile Include="domain\MCDomainController.cs" />
     <Compile Include="domain\StatisticsPageAddresses.cs" />
     <Compile Include="domain\Mission.cs" />

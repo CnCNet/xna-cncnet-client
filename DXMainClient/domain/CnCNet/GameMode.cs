@@ -17,7 +17,15 @@ namespace DTAClient.domain.CnCNet
         const string FORCED_OPTIONS_SECTION = "ForcedOptions";
         const string SPAWN_INI_OPTIONS_SECTION = "ForcedSpawnIniOptions";
 
+        /// <summary>
+        /// The internal (INI) name of the game mode.
+        /// </summary>
         public string Name { get; set; }
+
+        /// <summary>
+        /// The user-interface name of the game mode.
+        /// </summary>
+        public string UIName { get; set; }
 
         public List<Map> Maps = new List<Map>();
 
@@ -29,23 +37,28 @@ namespace DTAClient.domain.CnCNet
 
         public void Initialize()
         {
-            IniFile forcedOptionsIni = new IniFile(ProgramConstants.GamePath + BASE_INI_PATH + Name + "_ForcedOptions.ini");
+            IniFile forcedOptionsIni = new IniFile(ProgramConstants.GamePath + DomainController.Instance().GetMPMapsIniPath());
 
             ParseForcedOptions(forcedOptionsIni);
 
             ParseSpawnIniOptions(forcedOptionsIni);
+
+            CoopDifficultyLevel = forcedOptionsIni.GetIntValue(Name + "GeneralInfo", "CoopDifficultyLevel", 0);
+            UIName = forcedOptionsIni.GetStringValue(Name + "GeneralInfo", "UIName", Name);
         }
 
         private void ParseForcedOptions(IniFile forcedOptionsIni)
         {
-            List<string> keys = forcedOptionsIni.GetSectionKeys(FORCED_OPTIONS_SECTION);
+            string section = Name + FORCED_OPTIONS_SECTION;
+
+            List<string> keys = forcedOptionsIni.GetSectionKeys(section);
 
             if (keys == null)
                 return;
 
             foreach (string key in keys)
             {
-                string value = forcedOptionsIni.GetStringValue(FORCED_OPTIONS_SECTION, key, String.Empty);
+                string value = forcedOptionsIni.GetStringValue(section, key, String.Empty);
 
                 int intValue = 0;
                 if (Int32.TryParse(value, out intValue))
@@ -61,14 +74,16 @@ namespace DTAClient.domain.CnCNet
 
         private void ParseSpawnIniOptions(IniFile forcedOptionsIni)
         {
-            List<string> spawnIniKeys = forcedOptionsIni.GetSectionKeys(SPAWN_INI_OPTIONS_SECTION);
+            string section = Name + SPAWN_INI_OPTIONS_SECTION;
+
+            List<string> spawnIniKeys = forcedOptionsIni.GetSectionKeys(section);
 
             if (spawnIniKeys == null)
                 return;
 
             foreach (string key in spawnIniKeys)
             {
-                ForcedSpawnIniOptions.Add(new KeyValuePair<string, string>(key, forcedOptionsIni.GetStringValue(SPAWN_INI_OPTIONS_SECTION, key, String.Empty)));
+                ForcedSpawnIniOptions.Add(new KeyValuePair<string, string>(key, forcedOptionsIni.GetStringValue(section, key, String.Empty)));
             }
         }
 

@@ -1,6 +1,7 @@
 ﻿using ClientGUI;
 using DTAClient.domain;
 using Microsoft.Xna.Framework;
+using Rampastring.Tools;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.DXControls;
 using System;
@@ -12,6 +13,9 @@ using Updater;
 
 namespace DTAClient.DXGUI
 {
+    /// <summary>
+    /// The update window, displaying the update progress to the user.
+    /// </summary>
     public class UpdateWindow : DXWindow
     {
         public delegate void UpdateCancelEventHandler(object sender, EventArgs e);
@@ -22,6 +26,8 @@ namespace DTAClient.DXGUI
 
         public delegate void UpdateFailureEventHandler(object sender, UpdateFailureEventArgs e);
         public event UpdateFailureEventHandler UpdateFailed;
+
+        delegate void UpdateProgressChangedDelegate(string fileName, int filePercentage, int totalPercentage);
 
         public UpdateWindow(Game game, WindowManager windowManager) : base(game, windowManager)
         {
@@ -40,19 +46,6 @@ namespace DTAClient.DXGUI
         TaskbarProgress tbp;
 
         private static readonly object locker = new object();
-
-        bool updateCompleted = false;
-        bool updateFailed = false;
-        string updateFailureErrorMessage = String.Empty;
-
-        /// <summary>
-        /// Used for refreshing the updater data in the UI.
-        /// It cannot be done instantly by the updater thread because of thread-safety.
-        /// </summary>
-        string currentFile = String.Empty;
-        int currentFilePercentage = 0;
-        int totalPercentage = 0;
-        bool stateUpdated = false;
 
         public override void Initialize()
         {
@@ -135,49 +128,85 @@ namespace DTAClient.DXGUI
             CUpdater.OnUpdateCompleted += Updater_OnUpdateCompleted;
             CUpdater.OnUpdateFailed += Updater_OnUpdateFailed;
             CUpdater.UpdateProgressChanged += Updater_UpdateProgressChanged;
+            CUpdater.LocalFileCheckProgressChanged += CUpdater_LocalFileCheckProgressChanged;
 
-            if (MainClientConstants.OSId == OSVersion.WIN7 || MainClientConstants.OSId == OSVersion.WIN810)
-            {
+            if (IsTaskbarSupported())
                 tbp = new TaskbarProgress();
-            }
+        }
+
+        private void CUpdater_LocalFileCheckProgressChanged(int checkedFileCount, int totalFileCount)
+        {
+            AddCallback(new Delegates.IntDelegate(UpdateFileProgress),
+                (checkedFileCount * 100 / totalFileCount));
+        }
+
+        private void UpdateFileProgress(int value)
+        {
+            prgCurrentFile.Value = value;
         }
 
         private void Updater_UpdateProgressChanged(string currFileName, int currFilePercentage, int totalPercentage)
         {
-            lock (locker) // This is run by the updating thread
-            {
-                stateUpdated = true;
-                currentFilePercentage = currFilePercentage;
-                this.totalPercentage = totalPercentage;
-                currentFile = currFileName;
-            }
+            AddCallback(new UpdateProgressChangedDelegate(HandleUpdateProgressChange),
+                currFileName, currFilePercentage, totalPercentage);
         }
 
-        private void Updater_OnUpdateFailed(Exception ex)
+        private void HandleUpdateProgressChange(string fileName, int filePercentage, int totalPercentage)
         {
-            lock (locker)
+            if (filePercentage < 0 || filePercentage > prgCurrentFile.Maximum)
+                prgCurrentFile.Value = 0;
+            else
+                prgCurrentFile.Value = filePercentage;
+
+            if (totalPercentage < 0 || totalPercentage > prgTotal.Maximum)
+                prgTotal.Value = 0;
+            else
+                prgTotal.Value = totalPercentage;
+
+            lblCurrentFileProgressPercentageValue.Text = prgCurrentFile.Value.ToString() + "%";
+            lblTotalProgressPercentageValue.Text = prgTotal.Value.ToString() + "%";
+            lblCurrentFile.Text = "Current file: " + fileName;
+            lblUpdaterStatus.Text = "Downloading files...";
+
+            if (IsTaskbarSupported())
             {
-                updateFailed = true;
-                updateFailureErrorMessage = ex.Message;
+                tbp.SetState(WindowManager.Instance.GetWindowHandle(), TaskbarProgress.TaskbarStates.Normal);
+                tbp.SetValue(WindowManager.Instance.GetWindowHandle(), prgTotal.Value, prgTotal.Maximum);
             }
         }
 
         private void Updater_OnUpdateCompleted()
         {
-            lock (locker)
-            {
-                updateCompleted = true;
-            }
+            AddCallback(new Action(HandleUpdateCompleted), null);
+        }
+
+        private void HandleUpdateCompleted()
+        {
+            if (IsTaskbarSupported())
+                tbp.SetState(WindowManager.Instance.GetWindowHandle(), TaskbarProgress.TaskbarStates.NoProgress);
+
+            UpdateCompleted?.Invoke(this, EventArgs.Empty);
+        }
+
+        private void Updater_OnUpdateFailed(Exception ex)
+        {
+            AddCallback(new Delegates.StringDelegate(HandleUpdateFailed), ex.Message);
+        }
+
+        private void HandleUpdateFailed(string updateFailureErrorMessage)
+        {
+            if (IsTaskbarSupported())
+                tbp.SetState(WindowManager.Instance.GetWindowHandle(), TaskbarProgress.TaskbarStates.NoProgress);
+
+            UpdateFailed?.Invoke(this, new UpdateFailureEventArgs(updateFailureErrorMessage));
         }
 
         private void BtnCancel_LeftClick(object sender, EventArgs e)
         {
             CUpdater.TerminateUpdate = true;
 
-            if (MainClientConstants.OSId == OSVersion.WIN7 || MainClientConstants.OSId == OSVersion.WIN810)
-            {
+            if (IsTaskbarSupported())
                 tbp.SetState(WindowManager.Instance.GetWindowHandle(), TaskbarProgress.TaskbarStates.NoProgress);
-            }
 
             UpdateCancelled?.Invoke(this, EventArgs.Empty);
         }
@@ -188,66 +217,11 @@ namespace DTAClient.DXGUI
                 "This window will automatically close once the update is complete." + Environment.NewLine + Environment.NewLine +
                 "The client may also restart after the update has been downloaded.", MainClientConstants.GAME_NAME_SHORT, newGameVersion);
             lblUpdaterStatus.Text = "Preparing...";
-            updateCompleted = false;
-            updateFailed = false;
         }
 
-        public override void Update(GameTime gameTime)
+        private bool IsTaskbarSupported()
         {
-            base.Update(gameTime);
-
-            lock (locker)
-            {
-                if (stateUpdated)
-                {
-                    if (currentFilePercentage < 0 || currentFilePercentage > prgCurrentFile.Maximum)
-                        prgCurrentFile.Value = 0;
-                    else
-                        prgCurrentFile.Value = currentFilePercentage;
-
-                    if (totalPercentage < 0 || totalPercentage > prgTotal.Maximum)
-                        prgTotal.Value = 0;
-                    else
-                        prgTotal.Value = totalPercentage;
-
-                    lblCurrentFileProgressPercentageValue.Text = prgCurrentFile.Value.ToString() + "%";
-                    lblTotalProgressPercentageValue.Text = prgTotal.Value.ToString() + "%";
-                    lblCurrentFile.Text = "Current file: " + currentFile;
-                    lblUpdaterStatus.Text = "Downloading files...";
-
-                    if (MainClientConstants.OSId == OSVersion.WIN7 || MainClientConstants.OSId == OSVersion.WIN810)
-                    {
-                        tbp.SetState(WindowManager.Instance.GetWindowHandle(), TaskbarProgress.TaskbarStates.Normal);
-                        tbp.SetValue(WindowManager.Instance.GetWindowHandle(), prgTotal.Value, prgTotal.Maximum);
-                    }
-
-                    stateUpdated = false;
-                }
-
-                if (updateFailed)
-                {
-                    if (MainClientConstants.OSId == OSVersion.WIN7 || MainClientConstants.OSId == OSVersion.WIN810)
-                    {
-                        tbp.SetState(WindowManager.Instance.GetWindowHandle(), TaskbarProgress.TaskbarStates.NoProgress);
-                    }
-                    UpdateFailed?.Invoke(this, new UpdateFailureEventArgs(updateFailureErrorMessage));
-                }
-
-                if (updateCompleted && UpdateCompleted != null)
-                {
-                    if (MainClientConstants.OSId == OSVersion.WIN7 || MainClientConstants.OSId == OSVersion.WIN810)
-                    {
-                        tbp.SetState(WindowManager.Instance.GetWindowHandle(), TaskbarProgress.TaskbarStates.NoProgress);
-                    }
-                    UpdateCompleted?.Invoke(this, EventArgs.Empty);
-                }
-            }
-        }
-
-        public override void Draw(GameTime gameTime)
-        {
-            lock (locker)
-                base.Draw(gameTime);
+            return MainClientConstants.OSId == OSVersion.WIN7 || MainClientConstants.OSId == OSVersion.WIN810;
         }
     }
 
@@ -320,16 +294,15 @@ namespace DTAClient.DXGUI
         }
 
         private ITaskbarList3 taskbarInstance = (ITaskbarList3)new TaskbarInstance();
-        private bool taskbarSupported = Environment.OSVersion.Version >= new Version(6, 1);
 
         public void SetState(IntPtr windowHandle, TaskbarStates taskbarState)
         {
-            if (taskbarSupported) taskbarInstance.SetProgressState(windowHandle, taskbarState);
+            taskbarInstance.SetProgressState(windowHandle, taskbarState);
         }
 
         public void SetValue(IntPtr windowHandle, double progressValue, double progressMax)
         {
-            if (taskbarSupported) taskbarInstance.SetProgressValue(windowHandle, (ulong)progressValue, (ulong)progressMax);
+            taskbarInstance.SetProgressValue(windowHandle, (ulong)progressValue, (ulong)progressMax);
         }
     }
 }

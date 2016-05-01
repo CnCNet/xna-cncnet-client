@@ -5,6 +5,7 @@ using Rampastring.Tools;
 using Rampastring.XNAUI;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using Utilities = Rampastring.Tools.Utilities;
@@ -22,7 +23,7 @@ namespace DTAClient.domain.CnCNet
 
         public Map(string path)
         {
-            Path = path;
+            BaseFilePath = path;
         }
 
         public Map(string name, int amountOfPlayers, int minPlayers, string[] gameModes, string author, string sha1, string path)
@@ -33,7 +34,7 @@ namespace DTAClient.domain.CnCNet
             GameModes = gameModes;
             Author = author;
             SHA1 = sha1;
-            Path = path;
+            BaseFilePath = path;
         }
 
         /// <summary>
@@ -88,7 +89,7 @@ namespace DTAClient.domain.CnCNet
         /// <summary>
         /// The path to the map file.
         /// </summary>
-        public string Path { get; set; }
+        public string BaseFilePath { get; set; }
 
         /// <summary>
         /// The file name of the preview image.
@@ -125,25 +126,26 @@ namespace DTAClient.domain.CnCNet
         {
             try
             {
-                Name = iniFile.GetStringValue(Path, "Description", "Unnamed map");
-                Author = iniFile.GetStringValue(Path, "Author", "Unknown author");
-                GameModes = iniFile.GetStringValue(Path, "GameModes", "Default").Split(',');
-                MinPlayers = iniFile.GetIntValue(Path, "MinPlayers", 0);
-                MaxPlayers = iniFile.GetIntValue(Path, "MaxPlayers", 0);
-                EnforceMaxPlayers = iniFile.GetBooleanValue(Path, "EnforceMaxPlayers", false);
-                PreviewPath = iniFile.GetStringValue(Path, "PreviewPath", System.IO.Path.GetFileNameWithoutExtension(Path) + ".png");
-                Briefing = iniFile.GetStringValue(Path, "Briefing", String.Empty).Replace("@", Environment.NewLine);
-                SHA1 = Utilities.CalculateSHA1ForFile(ProgramConstants.GamePath + Path + ".map");
+                Name = iniFile.GetStringValue(BaseFilePath, "Description", "Unnamed map");
+                Author = iniFile.GetStringValue(BaseFilePath, "Author", "Unknown author");
+                GameModes = iniFile.GetStringValue(BaseFilePath, "GameModes", "Default").Split(',');
+                MinPlayers = iniFile.GetIntValue(BaseFilePath, "MinPlayers", 0);
+                MaxPlayers = iniFile.GetIntValue(BaseFilePath, "MaxPlayers", 0);
+                EnforceMaxPlayers = iniFile.GetBooleanValue(BaseFilePath, "EnforceMaxPlayers", false);
+                PreviewPath = System.IO.Path.GetDirectoryName(BaseFilePath) + 
+                    iniFile.GetStringValue(BaseFilePath, "PreviewPath", Path.GetFileNameWithoutExtension(BaseFilePath) + ".png");
+                Briefing = iniFile.GetStringValue(BaseFilePath, "Briefing", String.Empty).Replace("@", Environment.NewLine);
+                SHA1 = Utilities.CalculateSHA1ForFile(ProgramConstants.GamePath + BaseFilePath + ".map");
 
-                string[] localSize = iniFile.GetStringValue(Path, "LocalSize", "0,0,0,0").Split(',');
-                string[] size = iniFile.GetStringValue(Path, "Size", "0,0,0,0").Split(',');
+                string[] localSize = iniFile.GetStringValue(BaseFilePath, "LocalSize", "0,0,0,0").Split(',');
+                string[] size = iniFile.GetStringValue(BaseFilePath, "Size", "0,0,0,0").Split(',');
 
-                string[] previewSize = iniFile.GetStringValue(Path, "PreviewSize", "0,0").Split(',');
+                string[] previewSize = iniFile.GetStringValue(BaseFilePath, "PreviewSize", "0,0").Split(',');
                 Point previewSizePoint = new Point(Int32.Parse(previewSize[0]), Int32.Parse(previewSize[1]));
 
                 for (int i = 0; i < MAX_PLAYERS; i++)
                 {
-                    string waypoint = iniFile.GetStringValue(Path, "Waypoint" + i, String.Empty);
+                    string waypoint = iniFile.GetStringValue(BaseFilePath, "Waypoint" + i, String.Empty);
 
                     if (String.IsNullOrEmpty(waypoint))
                         break;
@@ -152,9 +154,9 @@ namespace DTAClient.domain.CnCNet
                 }
 
                 if (MCDomainController.Instance.GetMapPreviewPreloadStatus())
-                    PreviewTexture = AssetLoader.LoadTexture(Path + ".png");
+                    PreviewTexture = AssetLoader.LoadTexture(BaseFilePath + ".png");
 
-                string forcedOptionsSection = iniFile.GetStringValue(Path, "ForcedOptions", String.Empty);
+                string forcedOptionsSection = iniFile.GetStringValue(BaseFilePath, "ForcedOptions", String.Empty);
 
                 if (String.IsNullOrEmpty(forcedOptionsSection))
                     return true;
@@ -180,7 +182,7 @@ namespace DTAClient.domain.CnCNet
             }
             catch (Exception ex)
             {
-                Logger.Log("Setting info for " + Path + " failed! Reason: " + ex.Message);
+                Logger.Log("Setting info for " + BaseFilePath + " failed! Reason: " + ex.Message);
                 return false;
             }
         }

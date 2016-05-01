@@ -56,6 +56,7 @@ namespace DTAClient.DXGUI.GameLobby
         protected DXLabel lblTeam;
 
         protected DXButton btnLeaveGame;
+        protected DXButton btnLaunchGame;
         protected DXLabel lblMapName;
         protected DXLabel lblMapAuthor;
 
@@ -77,6 +78,15 @@ namespace DTAClient.DXGUI.GameLobby
             btnLeaveGame.ClientRectangle = new Rectangle(ClientRectangle.Width - 5, ClientRectangle.Height - 28, 133, 23);
             btnLeaveGame.FontIndex = 1;
             btnLeaveGame.Text = "Leave Game";
+
+            btnLaunchGame = new DXButton(Game, WindowManager);
+            btnLaunchGame.Name = "btnLaunchGame";
+            btnLaunchGame.IdleTexture = AssetLoader.LoadTexture("133pxbtn.png");
+            btnLaunchGame.HoverTexture = AssetLoader.LoadTexture("133pxbtn_c.png");
+            btnLaunchGame.HoverSoundEffect = AssetLoader.LoadSound("button.wav");
+            btnLaunchGame.ClientRectangle = new Rectangle(1, btnLeaveGame.ClientRectangle.Y, 133, 23);
+            btnLaunchGame.FontIndex = 1;
+            btnLaunchGame.Text = "Launch Game";
 
             GameOptionsPanel = new DXPanel(Game, WindowManager);
             GameOptionsPanel.Name = "GameOptionsPanel";
