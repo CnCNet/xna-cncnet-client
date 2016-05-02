@@ -84,6 +84,8 @@ namespace DTAClient.DXGUI.GameLobby
         protected List<PlayerInfo> Players = new List<PlayerInfo>();
         protected List<PlayerInfo> AIPlayers = new List<PlayerInfo>();
 
+        protected bool PlayerUpdatingInProgress { get; set; }
+
         /// <summary>
         /// The seed used for randomizing player options.
         /// </summary>
@@ -243,6 +245,7 @@ namespace DTAClient.DXGUI.GameLobby
                 ddPlayerName.AddItem("Medium AI");
                 ddPlayerName.AddItem("Hard AI");
                 ddPlayerName.Enabled = false;
+                ddPlayerName.SelectedIndexChanged += CopyPlayerDataFromUI;
 
                 DXDropDown ddPlayerSide = new DXDropDown(WindowManager);
                 ddPlayerSide.Name = "ddPlayerSide" + i;
@@ -253,6 +256,7 @@ namespace DTAClient.DXGUI.GameLobby
                 foreach (string sideName in sides)
                     ddPlayerSide.AddItem(sideName, AssetLoader.LoadTexture(sideName + ".png"));
                 ddPlayerSide.Enabled = false;
+                ddPlayerSide.SelectedIndexChanged += CopyPlayerDataFromUI;
 
                 DXDropDown ddPlayerColor = new DXDropDown(WindowManager);
                 ddPlayerColor.Name = "ddPlayerColor" + i;
@@ -262,6 +266,7 @@ namespace DTAClient.DXGUI.GameLobby
                 foreach (MultiplayerColor mpColor in MPColors)
                     ddPlayerColor.AddItem(mpColor.Name, mpColor.XnaColor);
                 ddPlayerColor.Enabled = false;
+                ddPlayerColor.SelectedIndexChanged += CopyPlayerDataFromUI;
 
                 DXDropDown ddPlayerStart = new DXDropDown(WindowManager);
                 ddPlayerStart.Name = "ddPlayerStart" + i;
@@ -271,6 +276,7 @@ namespace DTAClient.DXGUI.GameLobby
                 for (int j = 1; j < 9; j++)
                     ddPlayerStart.AddItem(j.ToString());
                 ddPlayerStart.Enabled = false;
+                ddPlayerStart.SelectedIndexChanged += CopyPlayerDataFromUI;
 
                 DXDropDown ddPlayerTeam = new DXDropDown(WindowManager);
                 ddPlayerTeam.Name = "ddPlayerTeam" + i;
@@ -283,6 +289,7 @@ namespace DTAClient.DXGUI.GameLobby
                 ddPlayerTeam.AddItem("C");
                 ddPlayerTeam.AddItem("D");
                 ddPlayerTeam.Enabled = false;
+                ddPlayerTeam.SelectedIndexChanged += CopyPlayerDataFromUI;
 
                 ddPlayerNames[i] = ddPlayerName;
                 ddPlayerSides[i] = ddPlayerSide;
@@ -621,6 +628,256 @@ namespace DTAClient.DXGUI.GameLobby
         /// <param name="iniFile">The spawn INI file.</param>
         protected abstract void WriteSpawnIniAdditions(IniFile iniFile);
 
+        /// <summary>
+        /// "Copies" player information from the UI to internal memory,
+        /// applying users' player options changes.
+        /// </summary>
+        protected virtual void CopyPlayerDataFromUI(object sender, EventArgs e)
+        {
+            if (PlayerUpdatingInProgress)
+                return;
 
+            for (int pId = 0; pId < Players.Count; pId++)
+            {
+                PlayerInfo pInfo = Players[pId];
+
+                pInfo.ColorId = ddPlayerColors[pId].SelectedIndex;
+                pInfo.SideId = ddPlayerSides[pId].SelectedIndex;
+                pInfo.StartingLocation = ddPlayerStarts[pId].SelectedIndex;
+                pInfo.TeamId = ddPlayerTeams[pId].SelectedIndex;
+            }
+
+            AIPlayers.Clear();
+            for (int cmbId = Players.Count; cmbId < 8; cmbId++)
+            {
+                DXDropDown dd = ddPlayerNames[cmbId];
+                dd.Items[0].Text = "-";
+
+                if (dd.SelectedIndex < 1)
+                    continue;
+
+                PlayerInfo aiPlayer = new PlayerInfo();
+                aiPlayer.Name = dd.Items[dd.SelectedIndex].Text;
+                aiPlayer.SideId = Math.Max(ddPlayerSides[cmbId].SelectedIndex, 0);
+                aiPlayer.ColorId = Math.Max(ddPlayerColors[cmbId].SelectedIndex, 0);
+                aiPlayer.StartingLocation = Math.Max(ddPlayerStarts[cmbId].SelectedIndex, 0);
+                aiPlayer.TeamId = Math.Max(ddPlayerTeams[cmbId].SelectedIndex, 0);
+
+                AIPlayers.Add(aiPlayer);
+            }
+
+            CopyPlayerDataToUI();
+        }
+
+        /// <summary>
+        /// Applies player information changes done in memory to the UI.
+        /// </summary>
+        protected virtual void CopyPlayerDataToUI()
+        {
+            PlayerUpdatingInProgress = true;
+
+            // Human players
+            for (int pId = 0; pId < Players.Count; pId++)
+            {
+                PlayerInfo pInfo = Players[pId];
+
+                DXDropDown ddPlayerName = ddPlayerNames[pId];
+                ddPlayerName.Items[0].Text = pInfo.Name;
+                ddPlayerName.SelectedIndex = 0;
+                ddPlayerName.AllowDropDown = false;
+                ddPlayerSides[pId].SelectedIndex = pInfo.SideId;
+                ddPlayerSides[pId].AllowDropDown = true;
+                ddPlayerColors[pId].SelectedIndex = pInfo.ColorId;
+                ddPlayerColors[pId].AllowDropDown = true;
+                ddPlayerStarts[pId].SelectedIndex = pInfo.StartingLocation;
+                ddPlayerStarts[pId].AllowDropDown = true;
+                ddPlayerTeams[pId].SelectedIndex = pInfo.TeamId;
+                ddPlayerTeams[pId].AllowDropDown = true;
+            }
+
+            // AI players
+            for (int aiId = 0; aiId < AIPlayers.Count; aiId++)
+            {
+                PlayerInfo aiInfo = AIPlayers[aiId];
+
+                int index = Players.Count + aiId;
+                DXDropDown ddPlayerName = ddPlayerNames[index];
+                ddPlayerName.Items[0].Text = "-";
+                ddPlayerName.SelectedIndex = 3 - aiInfo.AILevel;
+                ddPlayerName.AllowDropDown = true;
+                ddPlayerSides[index].SelectedIndex = aiInfo.SideId;
+                ddPlayerSides[index].AllowDropDown = true;
+                ddPlayerColors[index].SelectedIndex = aiInfo.ColorId;
+                ddPlayerColors[index].AllowDropDown = true;
+                ddPlayerStarts[index].SelectedIndex = aiInfo.StartingLocation;
+                ddPlayerStarts[index].AllowDropDown = true;
+                ddPlayerTeams[index].SelectedIndex = aiInfo.TeamId;
+                ddPlayerTeams[index].AllowDropDown = true;
+            }
+
+            // Unused player slots
+            for (int ddIndex = Players.Count + AIPlayers.Count; ddIndex < PLAYER_COUNT; ddIndex++)
+            {
+                DXDropDown ddPlayerName = ddPlayerNames[ddIndex];
+                ddPlayerName.AllowDropDown = false;
+                ddPlayerName.Items[0].Text = string.Empty;
+                ddPlayerName.SelectedIndex = -1;
+
+                ddPlayerSides[ddIndex].SelectedIndex = -1;
+                ddPlayerSides[ddIndex].AllowDropDown = false;
+
+                ddPlayerColors[ddIndex].SelectedIndex = -1;
+                ddPlayerColors[ddIndex].AllowDropDown = false;
+
+                ddPlayerStarts[ddIndex].SelectedIndex = -1;
+                ddPlayerStarts[ddIndex].AllowDropDown = false;
+
+                ddPlayerTeams[ddIndex].SelectedIndex = -1;
+                ddPlayerTeams[ddIndex].AllowDropDown = false;
+            }
+
+            if (Players.Count + AIPlayers.Count < PLAYER_COUNT)
+                ddPlayerNames[Players.Count + AIPlayers.Count].AllowDropDown = true;
+
+            MapPreviewBox.UpdateStartingLocationTexts();
+
+            PlayerUpdatingInProgress = false;
+        }
+
+        /// <summary>
+        /// Changes the current map and game mode.
+        /// </summary>
+        /// <param name="gameMode">The new game mode.</param>
+        /// <param name="map">The new map.</param>
+        protected virtual void ChangeMap(GameMode gameMode, Map map)
+        {
+            if (GameMode == null || !object.ReferenceEquals(gameMode, GameMode))
+            {
+                // TODO: Load the new game mode's default settings
+            }
+
+            GameMode = gameMode;
+
+            Map = map;
+
+            // We could either pass the CheckBoxes and DropDowns of this class
+            // to the Map and GameMode instances and let them apply their forced
+            // options, or we could do it in this class with helper functions.
+            // I think the second approach is clearer.
+
+            ApplyForcedCheckBoxOptions(gameMode.ForcedCheckBoxValues);
+            ApplyForcedCheckBoxOptions(map.ForcedCheckBoxValues);
+
+            ApplyForcedDropDownOptions(gameMode.ForcedDropDownValues);
+            ApplyForcedDropDownOptions(map.ForcedDropDownValues);
+
+            // Enable all sides by default
+            foreach (DXDropDown ddSide in ddPlayerSides)
+            {
+                foreach (DXDropDownItem item in ddSide.Items)
+                    item.Selectable = true;
+            }
+
+            // Enable all colors by default
+            foreach (DXDropDown ddColor in ddPlayerColors)
+            {
+                foreach (DXDropDownItem item in ddColor.Items)
+                    item.Selectable = true;
+            }
+
+            if (map.CoopInfo != null)
+            {
+                // Co-Op map disallowed side logic
+
+                List<int> disallowedSides = map.CoopInfo.DisallowedPlayerSides;
+
+                bool disallowRandom = _sideCount == disallowedSides.Count + 1;
+                int defaultSideIndex = 0; // The side to switch to if we're currently using a disallowed side. 0 = random
+
+                if (disallowRandom)
+                {
+                    for (int sideIndex = 0; sideIndex < _sideCount; sideIndex++)
+                    {
+                        if (!disallowedSides.Contains(sideIndex))
+                        {
+                            defaultSideIndex = sideIndex + 1;
+                            break;
+                        }
+                    }
+
+                    foreach (DXDropDown dd in ddPlayerSides)
+                        dd.Items[0].Selectable = false;
+                }
+
+                foreach (int disallowedSideIndex in disallowedSides)
+                {
+                    if (disallowedSideIndex >= _sideCount)
+                        continue; // Let's not crash the client
+
+                    foreach (DXDropDown ddSide in ddPlayerSides)
+                    {
+                        ddSide.Items[disallowedSideIndex + 1].Selectable = false;
+                    }
+
+                    foreach (PlayerInfo pInfo in Players)
+                    {
+                        if (pInfo.SideId == disallowedSideIndex + 1)
+                            pInfo.SideId = defaultSideIndex;
+                    }
+
+                    foreach (PlayerInfo aiInfo in AIPlayers)
+                    {
+                        if (aiInfo.SideId == disallowedSideIndex + 1)
+                            aiInfo.SideId = defaultSideIndex;
+                    }
+                }
+
+                // Co-Op map disallowed color logic
+                foreach (int disallowedColorIndex in map.CoopInfo.DisallowedPlayerColors)
+                {
+                    if (disallowedColorIndex >= MPColors.Count)
+                        continue;
+
+                    foreach (DXDropDown ddColor in ddPlayerColors)
+                        ddColor.Items[disallowedColorIndex + 1].Selectable = false;
+
+                    foreach (PlayerInfo pInfo in Players)
+                    {
+                        if (pInfo.ColorId == disallowedColorIndex + 1)
+                            pInfo.ColorId = 0;
+                    }
+
+                    foreach (PlayerInfo aiInfo in AIPlayers)
+                    {
+                        if (aiInfo.ColorId == disallowedColorIndex + 1)
+                            aiInfo.ColorId = 0;
+                    }
+                }
+
+                CopyPlayerDataToUI();
+            }
+
+            MapPreviewBox.Map = map;
+        }
+
+        protected void ApplyForcedCheckBoxOptions(List<KeyValuePair<string, bool>> forcedOptions)
+        {
+            foreach (KeyValuePair<string, bool> option in forcedOptions)
+            {
+                GameLobbyCheckBox checkBox = CheckBoxes.Find(chk => chk.Name == option.Key);
+                if (checkBox != null)
+                    checkBox.Checked = option.Value;
+            }
+        }
+
+        protected void ApplyForcedDropDownOptions(List<KeyValuePair<string, int>> forcedOptions)
+        {
+            foreach (KeyValuePair<string, int> option in forcedOptions)
+            {
+                GameLobbyDropDown dropDown = DropDowns.Find(dd => dd.Name == option.Key);
+                if (dropDown != null)
+                    dropDown.SelectedIndex = option.Value;
+            }
+        }
     }
 }

@@ -118,7 +118,7 @@ namespace DTAClient.domain.CnCNet
         }
 
         public List<KeyValuePair<string, bool>> ForcedCheckBoxValues = new List<KeyValuePair<string, bool>>();
-        public List<KeyValuePair<string, int>> ForcedComboBoxValues = new List<KeyValuePair<string, int>>();
+        public List<KeyValuePair<string, int>> ForcedDropDownValues = new List<KeyValuePair<string, int>>();
 
         List<KeyValuePair<string, string>> ForcedSpawnIniOptions = new List<KeyValuePair<string, string>>();
 
@@ -223,7 +223,7 @@ namespace DTAClient.domain.CnCNet
                 int intValue = 0;
                 if (Int32.TryParse(value, out intValue))
                 {
-                    ForcedComboBoxValues.Add(new KeyValuePair<string, int>(key, intValue));
+                    ForcedDropDownValues.Add(new KeyValuePair<string, int>(key, intValue));
                 }
                 else
                 {

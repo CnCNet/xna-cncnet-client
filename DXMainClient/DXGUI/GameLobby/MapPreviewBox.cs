@@ -169,7 +169,7 @@ namespace DTAClient.DXGUI.GameLobby
             }
         }
 
-        private void UpdateStartingLocationTexts()
+        public void UpdateStartingLocationTexts()
         {
             foreach (List<PlayerInfo> list in playersOnStartingLocations)
                 list.Clear();
