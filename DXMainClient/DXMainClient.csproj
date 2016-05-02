@@ -97,13 +97,6 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\MonoGame\MonoGame.Framework\bin\Windows\AnyCPU\Debug\MonoGame.Framework.dll</HintPath>
     </Reference>
-    <Reference Include="Rampastring.Tools">
-      <HintPath>..\..\..\Rampastring.Tools\bin\Debug\Rampastring.Tools.dll</HintPath>
-    </Reference>
-    <Reference Include="Rampastring.XNAUI, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\Rampastring.XNAUI\bin\Debug\Rampastring.XNAUI.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.Deployment" />
@@ -114,10 +107,14 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="domain\CnCNet\AllianceHolder.cs" />
     <Compile Include="domain\CnCNet\CnCNetInfoController.cs" />
+    <Compile Include="domain\CnCNet\CoopHouseInfo.cs" />
+    <Compile Include="domain\CnCNet\CoopMapInfo.cs" />
     <Compile Include="domain\CnCNet\GameMode.cs" />
     <Compile Include="domain\CnCNet\Map.cs" />
     <Compile Include="domain\CnCNet\MapLoader.cs" />
+    <Compile Include="domain\CnCNet\PlayerHouseInfo.cs" />
     <Compile Include="domain\CnCNet\PlayerInfo.cs" />
     <Compile Include="domain\MCDomainController.cs" />
     <Compile Include="domain\StatisticsPageAddresses.cs" />
@@ -214,6 +211,16 @@
     <Content Include="clienticon.ico" />
     <Content Include="mainclienticon.ico" />
     <Content Include="Resources\Interop.IWshRuntimeLibrary.dll" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Rampastring.Tools\Rampastring.Tools.csproj">
+      <Project>{9f40961f-535a-480c-93c5-6877ed6a8626}</Project>
+      <Name>Rampastring.Tools</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\Rampastring.XNAUI\Rampastring.XNAUI.csproj">
+      <Project>{3eaf996d-7f03-433b-a9a5-17e69ac97c76}</Project>
+      <Name>Rampastring.XNAUI</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

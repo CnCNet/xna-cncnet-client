@@ -7,6 +7,8 @@ using System.Linq;
 using System.Text;
 using Rampastring.Tools;
 using Rampastring.XNAUI;
+using ClientCore;
+using Utilities = Rampastring.Tools.Utilities;
 
 namespace DTAClient.DXGUI.GameLobby
 {
@@ -39,6 +41,27 @@ namespace DTAClient.DXGUI.GameLobby
             }
 
             base.ParseAttributeFromINI(iniFile, key, value);
+        }
+
+        /// <summary>
+        /// Applies the check-box's associated code to the spawn INI file.
+        /// </summary>
+        /// <param name="spawnIni">The spawn INI file.</param>
+        public void ApplySpawnINICode(IniFile spawnIni)
+        {
+            if (String.IsNullOrEmpty(SpawnIniOption))
+                return;
+
+            spawnIni.SetBooleanValue("Settings", SpawnIniOption, Checked != Reversed);
+        }
+
+        public void ApplyMapCode(IniFile mapIni)
+        {
+            if (Checked == Reversed || String.IsNullOrEmpty(CustomIniPath))
+                return;
+
+            IniFile associatedIni = new IniFile(ProgramConstants.GamePath + CustomIniPath);
+            IniFile.ConsolidateIniFiles(mapIni, associatedIni);
         }
     }
 }

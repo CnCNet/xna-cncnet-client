@@ -33,6 +33,7 @@ namespace DTAClient.domain.CnCNet
         public int TeamId { get; set; }
         public bool Ready { get; set; }
         public bool IsAI { get; set; }
+        public int AILevel { get; set; }
         public bool IsInGame { get; set; }
         string ipAddress = "0.0.0.0";
         public string IPAddress { get { return ipAddress; } set { ipAddress = value; } }

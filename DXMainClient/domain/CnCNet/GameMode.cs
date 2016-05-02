@@ -31,7 +31,8 @@ namespace DTAClient.domain.CnCNet
 
         public List<KeyValuePair<string, bool>> ForcedCheckBoxValues = new List<KeyValuePair<string, bool>>();
         public List<KeyValuePair<string, int>> ForcedComboBoxValues = new List<KeyValuePair<string, int>>();
-        public List<KeyValuePair<string, string>> ForcedSpawnIniOptions = new List<KeyValuePair<string, string>>();
+
+        private List<KeyValuePair<string, string>> ForcedSpawnIniOptions = new List<KeyValuePair<string, string>>();
 
         public int CoopDifficultyLevel { get; set; }
 
@@ -83,8 +84,15 @@ namespace DTAClient.domain.CnCNet
 
             foreach (string key in spawnIniKeys)
             {
-                ForcedSpawnIniOptions.Add(new KeyValuePair<string, string>(key, forcedOptionsIni.GetStringValue(section, key, String.Empty)));
+                ForcedSpawnIniOptions.Add(new KeyValuePair<string, string>(key, 
+                    forcedOptionsIni.GetStringValue(section, key, String.Empty)));
             }
+        }
+
+        public void ApplySpawnIniCode(IniFile spawnIni)
+        {
+            foreach (KeyValuePair<string, string> key in ForcedSpawnIniOptions)
+                spawnIni.SetStringValue("Settings", key.Key, key.Value);
         }
 
         public IniFile GetMapRulesIniFile()

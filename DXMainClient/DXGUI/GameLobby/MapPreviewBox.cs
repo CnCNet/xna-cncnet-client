@@ -25,8 +25,14 @@ namespace DTAClient.DXGUI.GameLobby
 
         public event StartingLocationSelectedEventHandler StartingLocationSelected;
 
-        public MapPreviewBox(WindowManager windowManager) : base(windowManager)
+        public MapPreviewBox(WindowManager windowManager, 
+            List<PlayerInfo> players, List<PlayerInfo> aiPlayers,
+            List<MultiplayerColor> mpColors)
+            : base(windowManager)
         {
+            this.players = players;
+            this.aiPlayers = aiPlayers;
+            this.mpColors = mpColors;
         }
 
         Map _map;
@@ -40,7 +46,14 @@ namespace DTAClient.DXGUI.GameLobby
             }
         }
 
+        public int FontIndex { get; set; }
+
+        List<MultiplayerColor> mpColors;
+        List<PlayerInfo> players;
+        List<PlayerInfo> aiPlayers;
+
         DXPanel[] startingLocationIndicators;
+        List<PlayerInfo>[] playersOnStartingLocations;
 
         Rectangle textureRectangle;
 
@@ -54,17 +67,22 @@ namespace DTAClient.DXGUI.GameLobby
 
             disposeTextures = !MCDomainController.Instance.GetMapPreviewPreloadStatus();
 
+            playersOnStartingLocations = new List<PlayerInfo>[MAX_STARTING_LOCATIONS];
+
             // Init starting location indicators
-            for (int i = 1; i <= MAX_STARTING_LOCATIONS; i++)
+            for (int i = 0; i < MAX_STARTING_LOCATIONS; i++)
             {
                 DXPanel indicator = new DXPanel(WindowManager);
                 indicator.Name = "startingLocationIndicator" + i;
-                indicator.BackgroundTexture = AssetLoader.LoadTexture(string.Format("slocindicator{0}.png", i));
+                indicator.BackgroundTexture = AssetLoader.LoadTexture(string.Format("slocindicator{0}.png", i + 1));
                 indicator.ClientRectangle = indicator.BackgroundTexture.Bounds;
                 indicator.Tag = i;
                 indicator.LeftClick += Indicator_LeftClick;
                 indicator.Visible = false;
                 indicator.Enabled = false;
+
+                playersOnStartingLocations[i] = new List<PlayerInfo>();
+                startingLocationIndicators[i] = indicator;
 
                 AddChild(indicator);
             }
@@ -151,10 +169,50 @@ namespace DTAClient.DXGUI.GameLobby
             }
         }
 
+        private void UpdateStartingLocationTexts()
+        {
+            foreach (List<PlayerInfo> list in playersOnStartingLocations)
+                list.Clear();
+
+            foreach (PlayerInfo pInfo in players)
+            {
+                if (pInfo.StartingLocation > 0)
+                    playersOnStartingLocations[pInfo.StartingLocation - 1].Add(pInfo);
+            }
+
+            foreach (PlayerInfo aiInfo in aiPlayers)
+            {
+                if (aiInfo.StartingLocation > 0)
+                    playersOnStartingLocations[aiInfo.StartingLocation - 1].Add(aiInfo);
+            }
+        }
+
         public override void Draw(GameTime gameTime)
         {
             if (texture != null)
                 Renderer.DrawTexture(texture, textureRectangle, Color.White);
+
+            Vector2 textSize = Renderer.GetTextDimensions("@", FontIndex);
+
+            for (int i = 0; i < startingLocationIndicators.Length; i++)
+            {
+                if (!startingLocationIndicators[i].Visible)
+                    continue;
+
+                int y = startingLocationIndicators[i].ClientRectangle.Y +
+                    (startingLocationIndicators[i].ClientRectangle.Height - (int)textSize.Y) / 2;
+                foreach (PlayerInfo pInfo in playersOnStartingLocations[i])
+                {
+                    Color remapColor = Color.White;
+                    if (pInfo.ColorId > 0)
+                        remapColor = mpColors[pInfo.ColorId - 1].XnaColor;
+
+                    Renderer.DrawStringWithShadow(pInfo.Name, FontIndex,
+                        new Vector2(startingLocationIndicators[i].ClientRectangle.Right + 3,
+                        y), remapColor);
+                    y += (int)textSize.Y + 3;
+                }
+            }
 
             base.Draw(gameTime);
         }

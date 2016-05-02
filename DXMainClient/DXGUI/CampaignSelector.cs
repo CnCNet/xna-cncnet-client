@@ -221,8 +221,7 @@ namespace DTAClient.DXGUI
             swriter.WriteLine("Scenario=spawnmap.ini");
             swriter.WriteLine("GameSpeed=" + MCDomainController.Instance.GetGameSpeed());
             swriter.WriteLine("Firestorm=" + requiresAddon);
-            int numLoadingScreens = DomainController.Instance().GetLoadScreenCount();
-            swriter.WriteLine("CustomLoadScreen=" + LoadingScreenController.GetLoadScreenName(side, numLoadingScreens));
+            swriter.WriteLine("CustomLoadScreen=" + LoadingScreenController.GetLoadScreenName(side));
             swriter.WriteLine("IsSinglePlayer=Yes");
             swriter.WriteLine("SidebarHack=" + MCDomainController.Instance.GetSidebarHackStatus());
             swriter.WriteLine("Side=" + side);

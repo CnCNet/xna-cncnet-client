@@ -12,7 +12,7 @@ namespace DTAClient.DXGUI.GameLobby
     /// <summary>
     /// A game option drop-down for the game lobby.
     /// </summary>
-    class GameLobbyDropDown : DXDropDown
+    public class GameLobbyDropDown : DXDropDown
     {
         public GameLobbyDropDown(WindowManager windowManager) : base(windowManager) { }
 
@@ -46,6 +46,33 @@ namespace DTAClient.DXGUI.GameLobby
             }
 
             base.ParseAttributeFromINI(iniFile, key, value);
+        }
+
+        /// <summary>
+        /// Applies the drop down's associated code to spawn.ini.
+        /// </summary>
+        /// <param name="spawnIni">The spawn INI file.</param>
+        public void ApplySpawnIniCode(IniFile spawnIni)
+        {
+            if (String.IsNullOrEmpty(SpawnIniOption))
+            {
+                Logger.Log("GameLobbyDropDown.WriteSpawnIniCode: " + Name + " has no associated spawn INI option!");
+                return;
+            }
+
+            switch (DataWriteMode)
+            {
+                case DropDownDataWriteMode.BOOLEAN:
+                    spawnIni.SetBooleanValue("Settings", SpawnIniOption, SelectedIndex > 0);
+                    break;
+                case DropDownDataWriteMode.INDEX:
+                    spawnIni.SetIntValue("Settings", SpawnIniOption, SelectedIndex);
+                    break;
+                default:
+                case DropDownDataWriteMode.STRING:
+                    spawnIni.SetStringValue("Settings", SpawnIniOption, Items[SelectedIndex].Text);
+                    break;
+            }
         }
     }
 }

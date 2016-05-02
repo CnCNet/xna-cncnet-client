@@ -8,6 +8,8 @@ using Rampastring.XNAUI.DXControls;
 using Rampastring.XNAUI;
 using Rampastring.Tools;
 using ClientCore;
+using DTAClient.domain.CnCNet;
+using System.IO;
 
 namespace DTAClient.DXGUI.GameLobby
 {
@@ -28,9 +30,10 @@ namespace DTAClient.DXGUI.GameLobby
         /// </summary>
         /// <param name="game">The game.</param>
         /// <param name="iniName">The name of the lobby in GameOptions.ini.</param>
-        public GameLobbyBase(WindowManager windowManager, string iniName) : base(windowManager)
+        public GameLobbyBase(WindowManager windowManager, string iniName, List<GameMode> GameModes) : base(windowManager)
         {
             _iniSectionName = iniName;
+            this.GameModes = GameModes;
         }
 
         string _iniSectionName;
@@ -42,6 +45,22 @@ namespace DTAClient.DXGUI.GameLobby
         protected List<MultiplayerColor> MPColors = new List<MultiplayerColor>();
 
         protected List<GameLobbyCheckBox> CheckBoxes = new List<GameLobbyCheckBox>();
+        protected List<GameLobbyDropDown> DropDowns = new List<GameLobbyDropDown>();
+
+        /// <summary>
+        /// The list of multiplayer game modes.
+        /// </summary>
+        protected List<GameMode> GameModes;
+
+        /// <summary>
+        /// The currently selected game mode.
+        /// </summary>
+        protected GameMode GameMode { get; set; }
+
+        /// <summary>
+        /// The currently selected map.
+        /// </summary>
+        protected Map Map { get; set; }
 
         protected DXDropDown[] ddPlayerNames;
         protected DXDropDown[] ddPlayerSides;
@@ -62,6 +81,16 @@ namespace DTAClient.DXGUI.GameLobby
 
         protected MapPreviewBox MapPreviewBox;
 
+        protected List<PlayerInfo> Players = new List<PlayerInfo>();
+        protected List<PlayerInfo> AIPlayers = new List<PlayerInfo>();
+
+        /// <summary>
+        /// The seed used for randomizing player options.
+        /// </summary>
+        protected int RandomSeed { get; set; }
+
+        private int _sideCount;
+
         IniFile _gameOptionsIni;
         protected IniFile GameOptionsIni
         {
@@ -81,6 +110,7 @@ namespace DTAClient.DXGUI.GameLobby
             btnLeaveGame.ClientRectangle = new Rectangle(ClientRectangle.Width - 5, ClientRectangle.Height - 28, 133, 23);
             btnLeaveGame.FontIndex = 1;
             btnLeaveGame.Text = "Leave Game";
+            btnLeaveGame.LeftClick += BtnLeaveGame_LeftClick;
 
             btnLaunchGame = new DXButton(WindowManager);
             btnLaunchGame.Name = "btnLaunchGame";
@@ -90,6 +120,7 @@ namespace DTAClient.DXGUI.GameLobby
             btnLaunchGame.ClientRectangle = new Rectangle(1, btnLeaveGame.ClientRectangle.Y, 133, 23);
             btnLaunchGame.FontIndex = 1;
             btnLaunchGame.Text = "Launch Game";
+            btnLaunchGame.LeftClick += BtnLaunchGame_LeftClick;
 
             GameOptionsPanel = new DXPanel(WindowManager);
             GameOptionsPanel.Name = "GameOptionsPanel";
@@ -101,7 +132,24 @@ namespace DTAClient.DXGUI.GameLobby
             PlayerOptionsPanel.BackgroundTexture = AssetLoader.LoadTexture("gamelobbypanelbg.png");
             PlayerOptionsPanel.ClientRectangle = new Rectangle(441, 1, 553, 235);
 
-            MapPreviewBox = new MapPreviewBox(WindowManager);
+            MapPreviewBox = new MapPreviewBox(WindowManager, Players, AIPlayers, MPColors);
+            MapPreviewBox.Name = "MapPreviewBox";
+            MapPreviewBox.ClientRectangle = new Rectangle(PlayerOptionsPanel.ClientRectangle.X,
+                PlayerOptionsPanel.ClientRectangle.Bottom + 30,
+                WindowManager.RenderResolutionX - PlayerOptionsPanel.ClientRectangle.X - 10,
+                WindowManager.RenderResolutionY - PlayerOptionsPanel.ClientRectangle.Bottom - 60);
+
+            lblMapName = new DXLabel(WindowManager);
+            lblMapName.Name = "lblMapName";
+            lblMapName.ClientRectangle = new Rectangle(MapPreviewBox.ClientRectangle.X,
+                MapPreviewBox.ClientRectangle.Bottom + 3, 0, 0);
+            lblMapName.Text = "Map:";
+
+            lblMapAuthor = new DXLabel(WindowManager);
+            lblMapAuthor.Name = "lblMapAuthor";
+            lblMapAuthor.ClientRectangle = new Rectangle(MapPreviewBox.ClientRectangle.Right,
+                lblMapName.ClientRectangle.Y, 0, 0);
+            lblMapAuthor.Text = "By ";
 
             _gameOptionsIni = new IniFile(ProgramConstants.GetBaseResourcePath() + "GameOptions.ini");
 
@@ -131,6 +179,7 @@ namespace DTAClient.DXGUI.GameLobby
                 GameLobbyCheckBox chkBox = new GameLobbyCheckBox(WindowManager);
                 chkBox.Name = chkName;
                 chkBox.GetAttributes(GameOptionsIni);
+                CheckBoxes.Add(chkBox);
                 GameOptionsPanel.AddChild(chkBox);
             }
 
@@ -151,6 +200,7 @@ namespace DTAClient.DXGUI.GameLobby
                 GameLobbyDropDown dropdown = new GameLobbyDropDown(WindowManager);
                 dropdown.Name = ddName;
                 dropdown.GetAttributes(GameOptionsIni);
+                DropDowns.Add(dropdown);
                 GameOptionsPanel.AddChild(dropdown);
             }
 
@@ -179,6 +229,7 @@ namespace DTAClient.DXGUI.GameLobby
             ddPlayerTeams = new DXDropDown[PLAYER_COUNT];
 
             string[] sides = GameOptionsIni.GetStringValue("General", "Sides", String.Empty).Split(',');
+            _sideCount = sides.Length;
 
             for (int i = 0; i < PLAYER_COUNT; i++)
             {
@@ -277,5 +328,299 @@ namespace DTAClient.DXGUI.GameLobby
             PlayerOptionsPanel.AddChild(lblStart);
             PlayerOptionsPanel.AddChild(lblTeam);
         }
+
+        protected abstract void BtnLaunchGame_LeftClick(object sender, EventArgs e);
+
+        protected abstract void BtnLeaveGame_LeftClick(object sender, EventArgs e);
+
+        /// <summary>
+        /// Randomizes options of both human and AI players
+        /// and returns the options as an array of PlayerHouseInfos.
+        /// </summary>
+        /// <returns>An array of PlayerHouseInfos.</returns>
+        protected virtual PlayerHouseInfo[] Randomize()
+        {
+            int totalPlayerCount = Players.Count + AIPlayers.Count;
+            PlayerHouseInfo[] houseInfos = new PlayerHouseInfo[totalPlayerCount];
+
+            for (int i = 0; i < totalPlayerCount; i++)
+                houseInfos[i] = new PlayerHouseInfo();
+
+            // Gather list of spectators
+            for (int i = 0; i < Players.Count; i++)
+            {
+                houseInfos[i].IsSpectator = Players[i].SideId == _sideCount + 1;
+            }
+
+            // Gather list of available colors
+
+            List<int> freeColors = new List<int>();
+
+            for (int cId = 0; cId < MPColors.Count; cId++)
+                freeColors.Add(cId);
+
+            foreach (PlayerInfo player in Players)
+                freeColors.Remove(player.ColorId - 1); // The first color is Random
+
+            foreach (PlayerInfo aiPlayer in AIPlayers)
+                freeColors.Remove(aiPlayer.ColorId - 1);
+
+            // Gather list of available starting locations
+
+            List<int> freeStartingLocs = new List<int>();
+
+            for (int i = 0; i < Map.MaxPlayers; i++)
+                freeStartingLocs.Add(i);
+
+            for (int i = 0; i < Players.Count; i++)
+            {
+                if (!houseInfos[i].IsSpectator)
+                    freeStartingLocs.Remove(Players[i].StartingLocation - 1);
+            }
+
+            // Randomize options
+
+            Random random = new Random(RandomSeed);
+
+            for (int i = 0; i < totalPlayerCount; i++)
+            {
+                PlayerInfo pInfo;
+                PlayerHouseInfo pHouseInfo = houseInfos[i];
+
+                if (i < Players.Count)
+                {
+                    pInfo = Players[i];
+                }
+                else
+                    pInfo = AIPlayers[i - Players.Count];
+
+                if (pInfo.SideId == 0)
+                {
+                    // Randomize side
+
+                    int sideId;
+
+                    while (true)
+                    {
+                        sideId = random.Next(0, _sideCount);
+
+                        if (Map.CoopInfo == null || !Map.CoopInfo.DisallowedPlayerSides.Contains(sideId))
+                            break;
+                    }
+
+                    pHouseInfo.SideIndex = sideId;
+                }
+                else
+                    pHouseInfo.SideIndex = pInfo.SideId - 1;
+
+                if (pInfo.ColorId == 0)
+                {
+                    // Randomize color
+
+                    int randomizedColorIndex = random.Next(0, freeColors.Count);
+                    int actualColorId = freeColors[randomizedColorIndex];
+
+                    pHouseInfo.ColorIndex = MPColors[actualColorId].GameColorIndex;
+                    freeColors.RemoveAt(randomizedColorIndex);
+                }
+                else
+                    pHouseInfo.ColorIndex = MPColors[pInfo.ColorId - 1].GameColorIndex;
+
+                if (pInfo.StartingLocation == 0)
+                {
+                    // Randomize starting location
+
+                    if (freeStartingLocs.Count == 0)
+                        pHouseInfo.StartingWaypoint = random.Next(0, Map.MaxPlayers);
+                    else
+                    {
+                        int waypointIndex = random.Next(0, freeStartingLocs.Count);
+                        pHouseInfo.StartingWaypoint = freeStartingLocs[waypointIndex];
+                        freeStartingLocs.RemoveAt(waypointIndex);
+                    }
+                }
+                else
+                    pHouseInfo.StartingWaypoint = pInfo.StartingLocation - 1;
+            }
+
+            return houseInfos;
+        }
+
+        /// <summary>
+        /// Writes spawn.ini.
+        /// </summary>
+        protected virtual void WriteSpawnIni()
+        {
+            Logger.Log("Writing spawn.ini");
+
+            File.Delete(ProgramConstants.GamePath + ProgramConstants.SPAWNER_SETTINGS);
+
+            if (Map.IsCoop)
+            {
+                foreach (PlayerInfo pInfo in Players)
+                    pInfo.TeamId = 1;
+
+                foreach (PlayerInfo pInfo in AIPlayers)
+                    pInfo.TeamId = 1;
+            }
+
+            PlayerHouseInfo[] houseInfos = Randomize();
+
+            IniFile spawnIni = new IniFile(ProgramConstants.GamePath + ProgramConstants.SPAWNER_SETTINGS);
+
+            spawnIni.SetStringValue("Settings", "Name", ProgramConstants.PLAYERNAME);
+            spawnIni.SetStringValue("Settings", "Scenario", ProgramConstants.SPAWNMAP_INI);
+            spawnIni.SetStringValue("Settings", "UIGameMode", GameMode.UIName);
+            spawnIni.SetStringValue("Settings", "UIMapName", Map.Name);
+            spawnIni.SetIntValue("Settings", "PlayerCount", Players.Count);
+            int myIndex = Players.FindIndex(c => c.Name == ProgramConstants.PLAYERNAME);
+            spawnIni.SetIntValue("Settings", "Side", houseInfos[myIndex].SideIndex);
+            spawnIni.SetBooleanValue("Settings", "IsSpectator", houseInfos[myIndex].IsSpectator);
+            spawnIni.SetIntValue("Settings", "Color", houseInfos[myIndex].ColorIndex);
+            spawnIni.SetStringValue("Settings", "CustomLoadScreen", LoadingScreenController.GetLoadScreenName(houseInfos[myIndex].SideIndex));
+            spawnIni.SetIntValue("Settings", "AIPlayers", AIPlayers.Count);
+            spawnIni.SetIntValue("Settings", "Seed", RandomSeed);
+            WriteSpawnIniAdditions(spawnIni);
+
+            foreach (GameLobbyCheckBox chkBox in CheckBoxes)
+            {
+                chkBox.ApplySpawnINICode(spawnIni);
+            }
+
+            foreach (GameLobbyDropDown dd in DropDowns)
+            {
+                dd.ApplySpawnIniCode(spawnIni);
+            }
+
+            // Apply forced options from GameOptions.ini
+
+            List<string> forcedKeys = GameOptionsIni.GetSectionKeys("ForcedSpawnIniOptions");
+
+            if (forcedKeys != null)
+            {
+                foreach (string key in forcedKeys)
+                {
+                    spawnIni.SetStringValue("Settings", key,
+                        GameOptionsIni.GetStringValue("ForcedSpawnIniOptions", key, String.Empty));
+                }
+            }
+
+            GameMode.ApplySpawnIniCode(spawnIni); // Forced options from the game mode
+            Map.ApplySpawnIniCode(spawnIni); // Forced options from the map
+
+            // Player options
+
+            int otherId = 1;
+
+            for (int pId = 0; pId < Players.Count; pId++)
+            {
+                PlayerInfo pInfo = Players[pId];
+                PlayerHouseInfo pHouseInfo = houseInfos[pId];
+
+                if (pInfo.Name == ProgramConstants.PLAYERNAME)
+                    continue;
+
+                string sectionName = "Other" + otherId;
+
+                spawnIni.SetStringValue(sectionName, "Name", pInfo.Name);
+                spawnIni.SetIntValue(sectionName, "Side", pHouseInfo.SideIndex);
+                spawnIni.SetBooleanValue(sectionName, "IsSpectator", pHouseInfo.IsSpectator);
+                spawnIni.SetIntValue(sectionName, "Color", pHouseInfo.ColorIndex);
+                spawnIni.SetStringValue(sectionName, "Ip", GetIPAddressForPlayer(pInfo));
+                spawnIni.SetIntValue(sectionName, "Port", pInfo.Port);
+
+                otherId++;
+            }
+
+            List<int> multiCmbIndexes = new List<int>();
+
+            for (int cId = 0; cId < MPColors.Count; cId++)
+            {
+                for (int pId = 0; pId < Players.Count; pId++)
+                {
+                    if (houseInfos[pId].ColorIndex == MPColors[cId].GameColorIndex)
+                        multiCmbIndexes.Add(pId);
+                }
+            }
+
+            if (AIPlayers.Count > 0)
+            {
+                int multiId = multiCmbIndexes.Count + 1;
+
+                string keyName = "Multi" + multiId;
+
+                for (int aiId = 0; aiId < AIPlayers.Count; aiId++)
+                {
+                    spawnIni.SetIntValue("HouseHandicaps", keyName, AIPlayers[aiId].AILevel);
+                    spawnIni.SetIntValue("HouseCountries", keyName, houseInfos[Players.Count + aiId].SideIndex);
+                    spawnIni.SetIntValue("HouseColors", keyName, houseInfos[Players.Count + aiId].ColorIndex);
+                }
+            }
+
+            for (int multiId = 0; multiId < multiCmbIndexes.Count; multiId++)
+            {
+                int pIndex = multiCmbIndexes[multiId];
+                if (houseInfos[pIndex].IsSpectator)
+                    spawnIni.SetBooleanValue("IsSpectator", "Multi" + (multiId + 1), true);
+            }
+
+            // Write alliances, the code is pretty big so let's take it to another class
+            AllianceHolder.WriteInfoToSpawnIni(Players, AIPlayers, multiCmbIndexes, spawnIni);
+
+            for (int pId = 0; pId < Players.Count; pId++)
+            {
+                int multiIndex = pId + 1;
+                spawnIni.SetIntValue("SpawnLocations", "Multi" + multiIndex,
+                    houseInfos[multiCmbIndexes[pId]].StartingWaypoint);
+            }
+
+            for (int aiId = 0; aiId < AIPlayers.Count; aiId++)
+            {
+                int multiIndex = Players.Count + aiId + 1;
+                spawnIni.SetIntValue("SpawnLocations", "Multi" + multiIndex,
+                    houseInfos[multiCmbIndexes[Players.Count + aiId]].StartingWaypoint);
+            }
+
+            spawnIni.WriteIniFile();
+        }
+
+        /// <summary>
+        /// Writes spawnmap.ini.
+        /// </summary>
+        protected virtual void WriteMap()
+        {
+            File.Delete(ProgramConstants.GamePath + ProgramConstants.SPAWNMAP_INI);
+
+            Logger.Log("Writing map.");
+
+            IniFile mapIni = new IniFile(ProgramConstants.GamePath + Map.BaseFilePath + ".map");
+
+            IniFile globalCodeIni = new IniFile(ProgramConstants.GamePath + "INI\\GlobalCode.ini");
+
+            IniFile.ConsolidateIniFiles(mapIni, GameMode.GetMapRulesIniFile());
+            IniFile.ConsolidateIniFiles(mapIni, globalCodeIni);
+
+            foreach (GameLobbyCheckBox checkBox in CheckBoxes)
+                checkBox.ApplyMapCode(mapIni);
+
+            mapIni.MoveSectionToFirst("MultiplayerDialogSettings"); // Required by YR
+
+            mapIni.WriteIniFile(ProgramConstants.GamePath + ProgramConstants.SPAWNMAP_INI);
+        }
+
+        protected virtual string GetIPAddressForPlayer(PlayerInfo player)
+        {
+            return "0.0.0.0";
+        }
+
+        /// <summary>
+        /// Override this in a derived class to write game lobby specific code to
+        /// spawn.ini. For example, CnCNet game lobbies should write tunnel info
+        /// in this method.
+        /// </summary>
+        /// <param name="iniFile">The spawn INI file.</param>
+        protected abstract void WriteSpawnIniAdditions(IniFile iniFile);
+
+
     }
 }

@@ -26,17 +26,6 @@ namespace DTAClient.domain.CnCNet
             BaseFilePath = path;
         }
 
-        public Map(string name, int amountOfPlayers, int minPlayers, string[] gameModes, string author, string sha1, string path)
-        {
-            Name = name;
-            MaxPlayers = amountOfPlayers;
-            MinPlayers = minPlayers;
-            GameModes = gameModes;
-            Author = author;
-            SHA1 = sha1;
-            BaseFilePath = path;
-        }
-
         /// <summary>
         /// The name of the map.
         /// </summary>
@@ -66,10 +55,9 @@ namespace DTAClient.domain.CnCNet
         public bool IsCoop { get; set; }
 
         /// <summary>
-        /// If true, the amount of pre-placed enemy AIs in a coop mission is forced
-        /// to be equal to the amount of players.
+        /// Contains co-op information.
         /// </summary>
-        public bool CoopEvenPlayers { get; set; }
+        public CoopMapInfo CoopInfo { get; set; }
 
         /// <summary>
         /// The briefing of the map.
@@ -102,6 +90,16 @@ namespace DTAClient.domain.CnCNet
         public string[] GameModes;
 
         /// <summary>
+        /// The forced UnitCount for the map. -1 means none.
+        /// </summary>
+        int UnitCount = -1;
+
+        /// <summary>
+        /// The forced starting credits for the map. -1 means none.
+        /// </summary>
+        int Credits = -1;
+
+        /// <summary>
         /// The pixel coordinates of the map's player starting locations.
         /// </summary>
         public List<Point> StartingLocations = new List<Point>();
@@ -122,20 +120,57 @@ namespace DTAClient.domain.CnCNet
         public List<KeyValuePair<string, bool>> ForcedCheckBoxValues = new List<KeyValuePair<string, bool>>();
         public List<KeyValuePair<string, int>> ForcedComboBoxValues = new List<KeyValuePair<string, int>>();
 
+        List<KeyValuePair<string, string>> ForcedSpawnIniOptions = new List<KeyValuePair<string, string>>();
+
         public bool SetInfoFromINI(IniFile iniFile)
         {
             try
             {
+                string baseSectionName = iniFile.GetStringValue(BaseFilePath, "BaseSection", String.Empty);
+
+                if (!String.IsNullOrEmpty(baseSectionName))
+                    iniFile.CombineSections(baseSectionName, BaseFilePath);
+
                 Name = iniFile.GetStringValue(BaseFilePath, "Description", "Unnamed map");
                 Author = iniFile.GetStringValue(BaseFilePath, "Author", "Unknown author");
                 GameModes = iniFile.GetStringValue(BaseFilePath, "GameModes", "Default").Split(',');
                 MinPlayers = iniFile.GetIntValue(BaseFilePath, "MinPlayers", 0);
                 MaxPlayers = iniFile.GetIntValue(BaseFilePath, "MaxPlayers", 0);
                 EnforceMaxPlayers = iniFile.GetBooleanValue(BaseFilePath, "EnforceMaxPlayers", false);
-                PreviewPath = System.IO.Path.GetDirectoryName(BaseFilePath) + 
+                PreviewPath = Path.GetDirectoryName(BaseFilePath) + 
                     iniFile.GetStringValue(BaseFilePath, "PreviewPath", Path.GetFileNameWithoutExtension(BaseFilePath) + ".png");
                 Briefing = iniFile.GetStringValue(BaseFilePath, "Briefing", String.Empty).Replace("@", Environment.NewLine);
                 SHA1 = Utilities.CalculateSHA1ForFile(ProgramConstants.GamePath + BaseFilePath + ".map");
+                IsCoop = iniFile.GetBooleanValue(BaseFilePath, "IsCoopMission", false);
+                Credits = iniFile.GetIntValue(BaseFilePath, "Credits", -1);
+                UnitCount = iniFile.GetIntValue(BaseFilePath, "UnitCount", -1);
+
+                if (IsCoop)
+                {
+                    CoopInfo = new CoopMapInfo();
+                    string[] disallowedSides = iniFile.GetStringValue(BaseFilePath, "DisallowedPlayerSides", String.Empty).Split(',');
+
+                    foreach (string sideIndex in disallowedSides)
+                        CoopInfo.DisallowedPlayerSides.Add(Int32.Parse(sideIndex));
+
+                    string[] disallowedColors = iniFile.GetStringValue(BaseFilePath, "DisallowedPlayerColors", String.Empty).Split(',');
+
+                    foreach (string colorIndex in disallowedColors)
+                        CoopInfo.DisallowedPlayerColors.Add(Int32.Parse(colorIndex));
+
+                    for (int i = 0; ; i++)
+                    {
+                        string[] enemyInfo = iniFile.GetStringValue(BaseFilePath, "EnemyHouse" + i, String.Empty).Split(
+                            new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+
+                        if (enemyInfo.Length == 0)
+                            break;
+
+                        int[] info = Utilities.IntArrayFromStringArray(enemyInfo);
+
+                        CoopInfo.EnemyHouses.Add(new CoopHouseInfo(info[0], info[1], info[2]));
+                    }
+                }
 
                 string[] localSize = iniFile.GetStringValue(BaseFilePath, "LocalSize", "0,0,0,0").Split(',');
                 string[] size = iniFile.GetStringValue(BaseFilePath, "Size", "0,0,0,0").Split(',');
@@ -156,27 +191,17 @@ namespace DTAClient.domain.CnCNet
                 if (MCDomainController.Instance.GetMapPreviewPreloadStatus())
                     PreviewTexture = AssetLoader.LoadTexture(BaseFilePath + ".png");
 
+                // Parse forced options
+
                 string forcedOptionsSection = iniFile.GetStringValue(BaseFilePath, "ForcedOptions", String.Empty);
 
-                if (String.IsNullOrEmpty(forcedOptionsSection))
-                    return true;
+                if (!String.IsNullOrEmpty(forcedOptionsSection))
+                    ParseForcedOptions(iniFile, forcedOptionsSection);
 
-                List<string> keys = iniFile.GetSectionKeys(forcedOptionsSection);
+                string forcedSpawnIniOptionsSection = iniFile.GetStringValue(BaseFilePath, "ForcedSpawnIniOptions", String.Empty);
 
-                foreach (string key in keys)
-                {
-                    string value = iniFile.GetStringValue(forcedOptionsSection, key, String.Empty);
-
-                    int intValue = 0;
-                    if (Int32.TryParse(value, out intValue))
-                    {
-                        ForcedComboBoxValues.Add(new KeyValuePair<string, int>(key, intValue));
-                    }
-                    else
-                    {
-                        ForcedCheckBoxValues.Add(new KeyValuePair<string, bool>(key, Utilities.BooleanFromString(value, false)));
-                    }
-                }
+                if (!String.IsNullOrEmpty(forcedSpawnIniOptionsSection))
+                    ParseSpawnIniOptions(iniFile, forcedSpawnIniOptionsSection);
 
                 return true;
             }
@@ -185,6 +210,49 @@ namespace DTAClient.domain.CnCNet
                 Logger.Log("Setting info for " + BaseFilePath + " failed! Reason: " + ex.Message);
                 return false;
             }
+        }
+
+        private void ParseForcedOptions(IniFile iniFile, string forcedOptionsSection)
+        {
+            List<string> keys = iniFile.GetSectionKeys(forcedOptionsSection);
+
+            foreach (string key in keys)
+            {
+                string value = iniFile.GetStringValue(forcedOptionsSection, key, String.Empty);
+
+                int intValue = 0;
+                if (Int32.TryParse(value, out intValue))
+                {
+                    ForcedComboBoxValues.Add(new KeyValuePair<string, int>(key, intValue));
+                }
+                else
+                {
+                    ForcedCheckBoxValues.Add(new KeyValuePair<string, bool>(key, Utilities.BooleanFromString(value, false)));
+                }
+            }
+        }
+
+        private void ParseSpawnIniOptions(IniFile forcedOptionsIni, string spawnIniOptionsSection)
+        {
+            List<string> spawnIniKeys = forcedOptionsIni.GetSectionKeys(spawnIniOptionsSection);
+
+            foreach (string key in spawnIniKeys)
+            {
+                ForcedSpawnIniOptions.Add(new KeyValuePair<string, string>(key, 
+                    forcedOptionsIni.GetStringValue(spawnIniOptionsSection, key, String.Empty)));
+            }
+        }
+
+        public void ApplySpawnIniCode(IniFile spawnIni)
+        {
+            foreach (KeyValuePair<string, string> key in ForcedSpawnIniOptions)
+                spawnIni.SetStringValue("Settings", key.Key, key.Value);
+
+            if (Credits != -1)
+                spawnIni.SetIntValue("Settings", "Credits", Credits);
+
+            if (UnitCount != -1)
+                spawnIni.SetIntValue("Settings", "UnitCount", UnitCount);
         }
 
         /// <summary>

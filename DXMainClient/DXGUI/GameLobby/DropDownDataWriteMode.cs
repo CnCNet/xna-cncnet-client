@@ -9,7 +9,7 @@ namespace DTAClient.DXGUI.GameLobby
     /// An enum for controlling how the game lobbies'
     /// drop-down controls' data should be written into the spawn INI.
     /// </summary>
-    enum DropDownDataWriteMode
+    public enum DropDownDataWriteMode
     {
         /// <summary>
         /// The 0-based selected index of the drop-down control will
