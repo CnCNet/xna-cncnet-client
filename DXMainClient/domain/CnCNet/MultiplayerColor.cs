@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace DTAClient.DXGUI.GameLobby
+namespace DTAClient.domain.CnCNet
 {
     /// <summary>
     /// A color for the multiplayer game lobby.

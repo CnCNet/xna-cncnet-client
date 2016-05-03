@@ -103,13 +103,14 @@ namespace DTAClient.DXGUI.GameLobby
         {
             Name = _iniSectionName;
             ClientRectangle = new Rectangle(0, 0, WindowManager.Instance.RenderResolutionX, WindowManager.Instance.RenderResolutionY);
+            BackgroundTexture = AssetLoader.LoadTexture("gamelobbybg.png");
 
             btnLeaveGame = new DXButton(WindowManager);
             btnLeaveGame.Name = "btnLeaveGame";
             btnLeaveGame.IdleTexture = AssetLoader.LoadTexture("133pxbtn.png");
             btnLeaveGame.HoverTexture = AssetLoader.LoadTexture("133pxbtn_c.png");
             btnLeaveGame.HoverSoundEffect = AssetLoader.LoadSound("button.wav");
-            btnLeaveGame.ClientRectangle = new Rectangle(ClientRectangle.Width - 5, ClientRectangle.Height - 28, 133, 23);
+            btnLeaveGame.ClientRectangle = new Rectangle(ClientRectangle.Width - 143, ClientRectangle.Height - 28, 133, 23);
             btnLeaveGame.FontIndex = 1;
             btnLeaveGame.Text = "Leave Game";
             btnLeaveGame.LeftClick += BtnLeaveGame_LeftClick;
@@ -119,7 +120,7 @@ namespace DTAClient.DXGUI.GameLobby
             btnLaunchGame.IdleTexture = AssetLoader.LoadTexture("133pxbtn.png");
             btnLaunchGame.HoverTexture = AssetLoader.LoadTexture("133pxbtn_c.png");
             btnLaunchGame.HoverSoundEffect = AssetLoader.LoadSound("button.wav");
-            btnLaunchGame.ClientRectangle = new Rectangle(1, btnLeaveGame.ClientRectangle.Y, 133, 23);
+            btnLaunchGame.ClientRectangle = new Rectangle(6, btnLeaveGame.ClientRectangle.Y, 133, 23);
             btnLaunchGame.FontIndex = 1;
             btnLaunchGame.Text = "Launch Game";
             btnLaunchGame.LeftClick += BtnLaunchGame_LeftClick;
@@ -127,19 +128,23 @@ namespace DTAClient.DXGUI.GameLobby
             GameOptionsPanel = new DXPanel(WindowManager);
             GameOptionsPanel.Name = "GameOptionsPanel";
             GameOptionsPanel.BackgroundTexture = AssetLoader.LoadTexture("gamelobbyoptionspanelbg.png");
-            GameOptionsPanel.ClientRectangle = new Rectangle(1, 1, 433, 235);
+            GameOptionsPanel.ClientRectangle = new Rectangle(6, 1, 433, 235);
 
             PlayerOptionsPanel = new DXPanel(WindowManager);
             PlayerOptionsPanel.Name = "PlayerOptionsPanel";
             PlayerOptionsPanel.BackgroundTexture = AssetLoader.LoadTexture("gamelobbypanelbg.png");
-            PlayerOptionsPanel.ClientRectangle = new Rectangle(441, 1, 553, 235);
+            PlayerOptionsPanel.ClientRectangle = new Rectangle(447, 1, 553, 235);
+            PlayerOptionsPanel.LeftClick += PlayerOptionsPanel_LeftClick;
 
             MapPreviewBox = new MapPreviewBox(WindowManager, Players, AIPlayers, MPColors);
             MapPreviewBox.Name = "MapPreviewBox";
             MapPreviewBox.ClientRectangle = new Rectangle(PlayerOptionsPanel.ClientRectangle.X,
                 PlayerOptionsPanel.ClientRectangle.Bottom + 30,
                 WindowManager.RenderResolutionX - PlayerOptionsPanel.ClientRectangle.X - 10,
-                WindowManager.RenderResolutionY - PlayerOptionsPanel.ClientRectangle.Bottom - 60);
+                WindowManager.RenderResolutionY - PlayerOptionsPanel.ClientRectangle.Bottom - 90);
+            MapPreviewBox.FontIndex = 1;
+            MapPreviewBox.DrawMode = PanelBackgroundImageDrawMode.STRETCHED;
+            MapPreviewBox.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 128), 1, 1);
 
             lblMapName = new DXLabel(WindowManager);
             lblMapName.Name = "lblMapName";
@@ -206,10 +211,20 @@ namespace DTAClient.DXGUI.GameLobby
                 GameOptionsPanel.AddChild(dropdown);
             }
 
+            AddChild(MapPreviewBox);
             AddChild(GameOptionsPanel);
             AddChild(PlayerOptionsPanel);
+            AddChild(btnLaunchGame);
+            AddChild(btnLeaveGame);
+            AddChild(lblMapName);
+            AddChild(lblMapAuthor);
 
             base.Initialize();
+        }
+
+        private void PlayerOptionsPanel_LeftClick(object sender, EventArgs e)
+        {
+            Logger.Log("Clicked!");
         }
 
         /// <summary>
@@ -233,7 +248,7 @@ namespace DTAClient.DXGUI.GameLobby
             string[] sides = GameOptionsIni.GetStringValue("General", "Sides", String.Empty).Split(',');
             _sideCount = sides.Length;
 
-            for (int i = 0; i < PLAYER_COUNT; i++)
+            for (int i = PLAYER_COUNT - 1; i > -1; i--)
             {
                 DXDropDown ddPlayerName = new DXDropDown(WindowManager);
                 ddPlayerName.Name = "ddPlayerName" + i;
@@ -244,7 +259,7 @@ namespace DTAClient.DXGUI.GameLobby
                 ddPlayerName.AddItem("Easy AI");
                 ddPlayerName.AddItem("Medium AI");
                 ddPlayerName.AddItem("Hard AI");
-                ddPlayerName.Enabled = false;
+                ddPlayerName.AllowDropDown = false;
                 ddPlayerName.SelectedIndexChanged += CopyPlayerDataFromUI;
 
                 DXDropDown ddPlayerSide = new DXDropDown(WindowManager);
@@ -254,8 +269,8 @@ namespace DTAClient.DXGUI.GameLobby
                     ddPlayerName.ClientRectangle.Y, sideWidth, DROP_DOWN_HEIGHT);
                 ddPlayerSide.AddItem("Random", AssetLoader.LoadTexture("randomicon.png"));
                 foreach (string sideName in sides)
-                    ddPlayerSide.AddItem(sideName, AssetLoader.LoadTexture(sideName + ".png"));
-                ddPlayerSide.Enabled = false;
+                    ddPlayerSide.AddItem(sideName, AssetLoader.LoadTexture(sideName + "icon.png"));
+                ddPlayerSide.AllowDropDown = false;
                 ddPlayerSide.SelectedIndexChanged += CopyPlayerDataFromUI;
 
                 DXDropDown ddPlayerColor = new DXDropDown(WindowManager);
@@ -263,9 +278,10 @@ namespace DTAClient.DXGUI.GameLobby
                 ddPlayerColor.ClientRectangle = new Rectangle(
                     ddPlayerSide.ClientRectangle.Right + PLAYER_OPTION_HORIZONTAL_MARGIN,
                     ddPlayerName.ClientRectangle.Y, colorWidth, DROP_DOWN_HEIGHT);
+                ddPlayerColor.AddItem("Random", Color.White);
                 foreach (MultiplayerColor mpColor in MPColors)
                     ddPlayerColor.AddItem(mpColor.Name, mpColor.XnaColor);
-                ddPlayerColor.Enabled = false;
+                ddPlayerColor.AllowDropDown = false;
                 ddPlayerColor.SelectedIndexChanged += CopyPlayerDataFromUI;
 
                 DXDropDown ddPlayerStart = new DXDropDown(WindowManager);
@@ -275,7 +291,7 @@ namespace DTAClient.DXGUI.GameLobby
                     ddPlayerName.ClientRectangle.Y, startWidth, DROP_DOWN_HEIGHT);
                 for (int j = 1; j < 9; j++)
                     ddPlayerStart.AddItem(j.ToString());
-                ddPlayerStart.Enabled = false;
+                ddPlayerStart.AllowDropDown = false;
                 ddPlayerStart.SelectedIndexChanged += CopyPlayerDataFromUI;
 
                 DXDropDown ddPlayerTeam = new DXDropDown(WindowManager);
@@ -288,7 +304,7 @@ namespace DTAClient.DXGUI.GameLobby
                 ddPlayerTeam.AddItem("B");
                 ddPlayerTeam.AddItem("C");
                 ddPlayerTeam.AddItem("D");
-                ddPlayerTeam.Enabled = false;
+                ddPlayerTeam.AllowDropDown = false;
                 ddPlayerTeam.SelectedIndexChanged += CopyPlayerDataFromUI;
 
                 ddPlayerNames[i] = ddPlayerName;
@@ -307,26 +323,31 @@ namespace DTAClient.DXGUI.GameLobby
             lblName = new DXLabel(WindowManager);
             lblName.Name = "lblName";
             lblName.Text = "NAME";
+            lblName.FontIndex = 1;
             lblName.ClientRectangle = new Rectangle(ddPlayerNames[0].ClientRectangle.X, PLAYER_OPTION_CAPTION_Y, 0, 0);
 
             lblSide = new DXLabel(WindowManager);
             lblSide.Name = "lblSide";
             lblSide.Text = "SIDE";
+            lblSide.FontIndex = 1;
             lblSide.ClientRectangle = new Rectangle(ddPlayerSides[0].ClientRectangle.X, PLAYER_OPTION_CAPTION_Y, 0, 0);
 
             lblColor = new DXLabel(WindowManager);
             lblColor.Name = "lblColor";
             lblColor.Text = "COLOR";
+            lblColor.FontIndex = 1;
             lblColor.ClientRectangle = new Rectangle(ddPlayerColors[0].ClientRectangle.X, PLAYER_OPTION_CAPTION_Y, 0, 0);
 
             lblStart = new DXLabel(WindowManager);
             lblStart.Name = "lblStart";
             lblStart.Text = "START";
+            lblStart.FontIndex = 1;
             lblStart.ClientRectangle = new Rectangle(ddPlayerStarts[0].ClientRectangle.X, PLAYER_OPTION_CAPTION_Y, 0, 0);
 
             lblTeam = new DXLabel(WindowManager);
             lblTeam.Name = "lblTeam";
             lblTeam.Text = "TEAM";
+            lblTeam.FontIndex = 1;
             lblTeam.ClientRectangle = new Rectangle(ddPlayerTeams[0].ClientRectangle.X, PLAYER_OPTION_CAPTION_Y, 0, 0);
 
             PlayerOptionsPanel.AddChild(lblName);
@@ -366,6 +387,12 @@ namespace DTAClient.DXGUI.GameLobby
             for (int cId = 0; cId < MPColors.Count; cId++)
                 freeColors.Add(cId);
 
+            if (Map.CoopInfo != null)
+            {
+                foreach (int colorIndex in Map.CoopInfo.DisallowedPlayerColors)
+                    freeColors.RemoveAt(colorIndex);
+            }
+
             foreach (PlayerInfo player in Players)
                 freeColors.Remove(player.ColorId - 1); // The first color is Random
 
@@ -374,15 +401,15 @@ namespace DTAClient.DXGUI.GameLobby
 
             // Gather list of available starting locations
 
-            List<int> freeStartingLocs = new List<int>();
+            List<int> freeStartingLocations = new List<int>();
 
             for (int i = 0; i < Map.MaxPlayers; i++)
-                freeStartingLocs.Add(i);
+                freeStartingLocations.Add(i);
 
             for (int i = 0; i < Players.Count; i++)
             {
                 if (!houseInfos[i].IsSpectator)
-                    freeStartingLocs.Remove(Players[i].StartingLocation - 1);
+                    freeStartingLocations.Remove(Players[i].StartingLocation - 1);
             }
 
             // Randomize options
@@ -401,53 +428,9 @@ namespace DTAClient.DXGUI.GameLobby
                 else
                     pInfo = AIPlayers[i - Players.Count];
 
-                if (pInfo.SideId == 0)
-                {
-                    // Randomize side
-
-                    int sideId;
-
-                    while (true)
-                    {
-                        sideId = random.Next(0, _sideCount);
-
-                        if (Map.CoopInfo == null || !Map.CoopInfo.DisallowedPlayerSides.Contains(sideId))
-                            break;
-                    }
-
-                    pHouseInfo.SideIndex = sideId;
-                }
-                else
-                    pHouseInfo.SideIndex = pInfo.SideId - 1;
-
-                if (pInfo.ColorId == 0)
-                {
-                    // Randomize color
-
-                    int randomizedColorIndex = random.Next(0, freeColors.Count);
-                    int actualColorId = freeColors[randomizedColorIndex];
-
-                    pHouseInfo.ColorIndex = MPColors[actualColorId].GameColorIndex;
-                    freeColors.RemoveAt(randomizedColorIndex);
-                }
-                else
-                    pHouseInfo.ColorIndex = MPColors[pInfo.ColorId - 1].GameColorIndex;
-
-                if (pInfo.StartingLocation == 0)
-                {
-                    // Randomize starting location
-
-                    if (freeStartingLocs.Count == 0)
-                        pHouseInfo.StartingWaypoint = random.Next(0, Map.MaxPlayers);
-                    else
-                    {
-                        int waypointIndex = random.Next(0, freeStartingLocs.Count);
-                        pHouseInfo.StartingWaypoint = freeStartingLocs[waypointIndex];
-                        freeStartingLocs.RemoveAt(waypointIndex);
-                    }
-                }
-                else
-                    pHouseInfo.StartingWaypoint = pInfo.StartingLocation - 1;
+                pHouseInfo.RandomizeSide(pInfo, Map, _sideCount, random);
+                pHouseInfo.RandomizeColor(pInfo, freeColors, MPColors, random);
+                pHouseInfo.RandomizeStart(pInfo, Map, freeStartingLocations, random);
             }
 
             return houseInfos;
@@ -626,7 +609,10 @@ namespace DTAClient.DXGUI.GameLobby
         /// in this method.
         /// </summary>
         /// <param name="iniFile">The spawn INI file.</param>
-        protected abstract void WriteSpawnIniAdditions(IniFile iniFile);
+        protected virtual void WriteSpawnIniAdditions(IniFile iniFile)
+        {
+            // Do nothing by default
+        }
 
         /// <summary>
         /// "Copies" player information from the UI to internal memory,
@@ -658,6 +644,7 @@ namespace DTAClient.DXGUI.GameLobby
 
                 PlayerInfo aiPlayer = new PlayerInfo();
                 aiPlayer.Name = dd.Items[dd.SelectedIndex].Text;
+                aiPlayer.AILevel = 2 - (dd.SelectedIndex - 1);
                 aiPlayer.SideId = Math.Max(ddPlayerSides[cmbId].SelectedIndex, 0);
                 aiPlayer.ColorId = Math.Max(ddPlayerColors[cmbId].SelectedIndex, 0);
                 aiPlayer.StartingLocation = Math.Max(ddPlayerStarts[cmbId].SelectedIndex, 0);
@@ -685,12 +672,16 @@ namespace DTAClient.DXGUI.GameLobby
                 ddPlayerName.Items[0].Text = pInfo.Name;
                 ddPlayerName.SelectedIndex = 0;
                 ddPlayerName.AllowDropDown = false;
+
                 ddPlayerSides[pId].SelectedIndex = pInfo.SideId;
                 ddPlayerSides[pId].AllowDropDown = true;
+
                 ddPlayerColors[pId].SelectedIndex = pInfo.ColorId;
                 ddPlayerColors[pId].AllowDropDown = true;
+
                 ddPlayerStarts[pId].SelectedIndex = pInfo.StartingLocation;
                 ddPlayerStarts[pId].AllowDropDown = true;
+
                 ddPlayerTeams[pId].SelectedIndex = pInfo.TeamId;
                 ddPlayerTeams[pId].AllowDropDown = true;
             }
@@ -701,16 +692,21 @@ namespace DTAClient.DXGUI.GameLobby
                 PlayerInfo aiInfo = AIPlayers[aiId];
 
                 int index = Players.Count + aiId;
+
                 DXDropDown ddPlayerName = ddPlayerNames[index];
                 ddPlayerName.Items[0].Text = "-";
                 ddPlayerName.SelectedIndex = 3 - aiInfo.AILevel;
                 ddPlayerName.AllowDropDown = true;
+
                 ddPlayerSides[index].SelectedIndex = aiInfo.SideId;
                 ddPlayerSides[index].AllowDropDown = true;
+
                 ddPlayerColors[index].SelectedIndex = aiInfo.ColorId;
                 ddPlayerColors[index].AllowDropDown = true;
+
                 ddPlayerStarts[index].SelectedIndex = aiInfo.StartingLocation;
                 ddPlayerStarts[index].AllowDropDown = true;
+
                 ddPlayerTeams[index].SelectedIndex = aiInfo.TeamId;
                 ddPlayerTeams[index].AllowDropDown = true;
             }
@@ -760,6 +756,12 @@ namespace DTAClient.DXGUI.GameLobby
 
             Map = map;
 
+            lblMapName.Text = "Map: " + map.Name;
+            lblMapAuthor.Text = "By " + map.Author;
+
+            lblMapAuthor.ClientRectangle = new Rectangle(MapPreviewBox.ClientRectangle.Right - lblMapAuthor.ClientRectangle.Width,
+                lblMapAuthor.ClientRectangle.Y, lblMapAuthor.ClientRectangle.Width, lblMapAuthor.ClientRectangle.Height);
+
             // We could either pass the CheckBoxes and DropDowns of this class
             // to the Map and GameMode instances and let them apply their forced
             // options, or we could do it in this class with helper functions.
@@ -785,13 +787,36 @@ namespace DTAClient.DXGUI.GameLobby
                     item.Selectable = true;
             }
 
+            // Apply starting locations
+            foreach (DXDropDown ddStart in ddPlayerStarts)
+            {
+                ddStart.Items.Clear();
+
+                ddStart.AddItem("Rndm");
+
+                for (int i = 1; i <= Map.MaxPlayers; i++)
+                    ddStart.AddItem(i.ToString());
+            }
+
+            foreach (PlayerInfo pInfo in Players)
+            {
+                if (pInfo.StartingLocation > Map.MaxPlayers)
+                    pInfo.StartingLocation = 0;
+            }
+
+            foreach (PlayerInfo aiInfo in AIPlayers)
+            {
+                if (aiInfo.StartingLocation > Map.MaxPlayers)
+                    aiInfo.StartingLocation = 0;
+            }
+
             if (map.CoopInfo != null)
             {
                 // Co-Op map disallowed side logic
 
                 List<int> disallowedSides = map.CoopInfo.DisallowedPlayerSides;
 
-                bool disallowRandom = _sideCount == disallowedSides.Count + 1;
+                bool disallowRandom = _sideCount == disallowedSides.Count + 1; // Disallow Random if only 1 side is allowed
                 int defaultSideIndex = 0; // The side to switch to if we're currently using a disallowed side. 0 = random
 
                 if (disallowRandom)
@@ -853,9 +878,9 @@ namespace DTAClient.DXGUI.GameLobby
                             aiInfo.ColorId = 0;
                     }
                 }
-
-                CopyPlayerDataToUI();
             }
+
+            CopyPlayerDataToUI();
 
             MapPreviewBox.Map = map;
         }

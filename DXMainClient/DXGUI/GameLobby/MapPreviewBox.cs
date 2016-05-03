@@ -55,6 +55,8 @@ namespace DTAClient.DXGUI.GameLobby
         DXPanel[] startingLocationIndicators;
         List<PlayerInfo>[] playersOnStartingLocations;
 
+        string[] teamIds = new string[] { String.Empty, "[A] ", "[B] ", "[C] ", "[D] " };
+
         Rectangle textureRectangle;
 
         Texture2D texture;
@@ -74,6 +76,7 @@ namespace DTAClient.DXGUI.GameLobby
             {
                 DXPanel indicator = new DXPanel(WindowManager);
                 indicator.Name = "startingLocationIndicator" + i;
+                indicator.DrawBorders = false;
                 indicator.BackgroundTexture = AssetLoader.LoadTexture(string.Format("slocindicator{0}.png", i + 1));
                 indicator.ClientRectangle = indicator.BackgroundTexture.Bounds;
                 indicator.Tag = i;
@@ -84,7 +87,7 @@ namespace DTAClient.DXGUI.GameLobby
                 playersOnStartingLocations[i] = new List<PlayerInfo>();
                 startingLocationIndicators[i] = indicator;
 
-                AddChild(indicator);
+                //AddChild(indicator);
             }
 
             base.Initialize();
@@ -118,44 +121,48 @@ namespace DTAClient.DXGUI.GameLobby
             if (Map.PreviewTexture == null)
             {
                 if (File.Exists(ProgramConstants.GamePath + Map.PreviewPath))
-                    texture = AssetLoader.LoadTextureUncached(ProgramConstants.GamePath + Map.PreviewPath);
+                    texture = AssetLoader.LoadTextureUncached(Map.PreviewPath);
                 else
                     texture = AssetLoader.LoadTexture("nopreview.png");
             }
             else
                 texture = Map.PreviewTexture;
 
-            double xyRatio = texture.Width / (double)texture.Height;
-            double intendedRatio = ClientRectangle.Width / (double)ClientRectangle.Height;
+            double xRatio = (ClientRectangle.Width - 2) / (double)texture.Width;
+            double yRatio = (ClientRectangle.Height - 2) / (double)texture.Height;
 
-            double ratioDifference = xyRatio - intendedRatio;
+            double ratio;
 
-            int texturePositionX = 0;
-            int texturePositionY = 0;
+            int texturePositionX = 1;
+            int texturePositionY = 1;
+            int textureHeight = 0;
+            int textureWidth = 0;
 
-            double scaleRatio = 0.0;
-
-            if (ratioDifference > 0.0)
+            if (xRatio > yRatio)
             {
-                texturePositionX = (int)(ratioDifference * texture.Height) / 2;
-                scaleRatio = texture.Height / (double)ClientRectangle.Height;
+                ratio = yRatio;
+                textureHeight = ClientRectangle.Height - 2;
+                textureWidth = (int)(texture.Width * ratio);
+                texturePositionX = (int)(ClientRectangle.Width - 2 - textureWidth) / 2;
             }
             else
             {
-                texturePositionY = (int)(-ratioDifference * texture.Width) / 2;
-                scaleRatio = texture.Width / (double)ClientRectangle.Width;
+                ratio = xRatio;
+                textureWidth = ClientRectangle.Width - 2;
+                textureHeight = (int)(texture.Height * ratio);
+                texturePositionY = (int)(ClientRectangle.Height - 2 - textureHeight) / 2;
             }
 
-            textureRectangle = new Rectangle(texturePositionX, texturePositionY,
-                texture.Width, texture.Height);
+            textureRectangle = new Rectangle(ClientRectangle.X + texturePositionX, ClientRectangle.Y + texturePositionY,
+                textureWidth, textureHeight);
 
             for (int i = 0; i < Map.MaxPlayers; i++)
             {
                 DXPanel indicator = startingLocationIndicators[i];
 
                 Point location = new Point(
-                    (int)(Map.StartingLocations[i].X * scaleRatio),
-                    (int)(Map.StartingLocations[i].Y * scaleRatio));
+                    ClientRectangle.X + texturePositionX + (int)(Map.StartingLocations[i].X * ratio),
+                    ClientRectangle.Y + texturePositionY + (int)(Map.StartingLocations[i].Y * ratio));
 
                 indicator.ClientRectangle = new Rectangle(location, indicator.ClientRectangle.Size);
                 indicator.Enabled = true;
@@ -189,6 +196,8 @@ namespace DTAClient.DXGUI.GameLobby
 
         public override void Draw(GameTime gameTime)
         {
+            base.Draw(gameTime);
+
             if (texture != null)
                 Renderer.DrawTexture(texture, textureRectangle, Color.White);
 
@@ -199,6 +208,8 @@ namespace DTAClient.DXGUI.GameLobby
                 if (!startingLocationIndicators[i].Visible)
                     continue;
 
+                startingLocationIndicators[i].Draw(gameTime);
+
                 int y = startingLocationIndicators[i].ClientRectangle.Y +
                     (startingLocationIndicators[i].ClientRectangle.Height - (int)textSize.Y) / 2;
                 foreach (PlayerInfo pInfo in playersOnStartingLocations[i])
@@ -207,14 +218,14 @@ namespace DTAClient.DXGUI.GameLobby
                     if (pInfo.ColorId > 0)
                         remapColor = mpColors[pInfo.ColorId - 1].XnaColor;
 
-                    Renderer.DrawStringWithShadow(pInfo.Name, FontIndex,
+                    string text = teamIds[pInfo.TeamId] + pInfo.Name;
+
+                    Renderer.DrawStringWithShadow(text, FontIndex,
                         new Vector2(startingLocationIndicators[i].ClientRectangle.Right + 3,
                         y), remapColor);
                     y += (int)textSize.Y + 3;
                 }
             }
-
-            base.Draw(gameTime);
         }
     }
 

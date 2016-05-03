@@ -132,10 +132,11 @@
     <Compile Include="DXGUI\GameLobby\GameLobbyCheckBox.cs" />
     <Compile Include="DXGUI\GameLobby\GameLobbyDropDown.cs" />
     <Compile Include="DXGUI\GameLobby\MapPreviewBox.cs" />
+    <Compile Include="DXGUI\GameLobby\SkirmishLobby.cs" />
     <Compile Include="DXGUI\LoadingScreen.cs" />
     <Compile Include="DXGUI\MainMenu.cs" />
     <Compile Include="DXGUI\MainMenuDarkeningPanel.cs" />
-    <Compile Include="DXGUI\GameLobby\MultiplayerColor.cs" />
+    <Compile Include="domain\CnCNet\MultiplayerColor.cs" />
     <Compile Include="DXGUI\StatisticsWindow.cs" />
     <Compile Include="DXGUI\UpdateQueryWindow.cs" />
     <Compile Include="DXGUI\UpdateWindow.cs" />

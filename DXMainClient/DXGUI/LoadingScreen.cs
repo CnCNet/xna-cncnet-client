@@ -2,6 +2,7 @@
 using ClientGUI;
 using DTAClient.domain;
 using DTAClient.domain.CnCNet;
+using DTAClient.DXGUI.GameLobby;
 using Microsoft.Xna.Framework;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.DXControls;
@@ -26,6 +27,8 @@ namespace DTAClient.DXGUI
 
         bool updaterReady = false;
         bool mapsReady = false;
+
+        MapLoader mapLoader;
 
         //DXProgressBar progressBar;
 
@@ -54,7 +57,7 @@ namespace DTAClient.DXGUI
 
         public void Start()
         {
-            MapLoader mapLoader = new MapLoader();
+            mapLoader = new MapLoader();
             mapLoader.MapLoadingComplete += MapLoader_MapLoadingComplete;
 
             mapLoader.LoadMapsAsync();
@@ -85,10 +88,15 @@ namespace DTAClient.DXGUI
 
         private void Finish()
         {
-            MainMenu mm = new MainMenu(WindowManager);
+            GameLobby.SkirmishLobby sl = new GameLobby.SkirmishLobby(WindowManager, mapLoader.GameModes);
+
+            MainMenu mm = new MainMenu(WindowManager, sl);
             CUpdater.OnLocalFileVersionsChecked -= CUpdater_OnLocalFileVersionsChecked;
-            WindowManager.Instance.AddAndInitializeControl(mm);
-            WindowManager.Instance.RemoveControl(this);
+            WindowManager.AddAndInitializeControl(mm);
+            WindowManager.AddAndInitializeControl(sl);
+            sl.Visible = false;
+            sl.Enabled = false;
+            WindowManager.RemoveControl(this);
             mm.PostInit();
         }
 

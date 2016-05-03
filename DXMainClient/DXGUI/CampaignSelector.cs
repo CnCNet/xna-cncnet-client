@@ -54,9 +54,7 @@ namespace DTAClient.DXGUI
 
             lbCampaignList = new DXListBox(WindowManager);
             lbCampaignList.Name = "lbCampaignList";
-            lbCampaignList.FontIndex = 0;
             lbCampaignList.ItemAlphaRate = 1.0f;
-            lbCampaignList.DefaultItemColor = AssetLoader.GetColorFromString(DomainController.Instance().GetUIAltColor());
             lbCampaignList.ClientRectangle = new Rectangle(12, 25, 300, 184);
             lbCampaignList.SelectedIndexChanged += LbCampaignList_SelectedIndexChanged;
 

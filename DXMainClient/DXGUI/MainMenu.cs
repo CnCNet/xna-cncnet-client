@@ -17,14 +17,16 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using Updater;
+using SkirmishLobby = DTAClient.DXGUI.GameLobby.SkirmishLobby;
 
 namespace DTAClient.DXGUI
 {
     class MainMenu : DXWindow
     {
-        public MainMenu(WindowManager windowManager) : base(windowManager)
+        public MainMenu(WindowManager windowManager, SkirmishLobby skirmishLobby) : base(windowManager)
         {
             isYR = DomainController.Instance().GetDefaultGame().ToUpper() == "YR";
+            this.skirmishLobby = skirmishLobby;
         }
 
         bool isYR = false;
@@ -35,6 +37,8 @@ namespace DTAClient.DXGUI
         DXLabel lblCnCNetPlayerCount;
         DXLabel lblUpdateStatus;
         DXLabel lblVersion;
+
+        SkirmishLobby skirmishLobby;
 
         bool gameProcessExited = false;
         bool updateInProgress = false;
@@ -211,6 +215,16 @@ namespace DTAClient.DXGUI
             CnCNetInfoController.InitializeService();
 
             WindowManager.Instance.GameFormClosing += Instance_GameFormClosing;
+
+            skirmishLobby.VisibleChanged += SkirmishLobby_VisibleChanged;
+        }
+
+        private void SkirmishLobby_VisibleChanged(object sender, EventArgs e)
+        {
+            if (skirmishLobby.Visible)
+                innerPanel.Show(null);
+            else
+                innerPanel.Hide();
         }
 
         /// <summary>
@@ -471,7 +485,8 @@ namespace DTAClient.DXGUI
 
         private void BtnSkirmish_LeftClick(object sender, EventArgs e)
         {
-            StartCnCNetClient("-SKIRMISH");
+            skirmishLobby.Visible = true;
+            skirmishLobby.Enabled = true;
         }
 
         private void BtnMapEditor_LeftClick(object sender, EventArgs e)

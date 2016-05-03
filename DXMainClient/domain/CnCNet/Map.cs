@@ -137,7 +137,7 @@ namespace DTAClient.domain.CnCNet
                 MinPlayers = iniFile.GetIntValue(BaseFilePath, "MinPlayers", 0);
                 MaxPlayers = iniFile.GetIntValue(BaseFilePath, "MaxPlayers", 0);
                 EnforceMaxPlayers = iniFile.GetBooleanValue(BaseFilePath, "EnforceMaxPlayers", false);
-                PreviewPath = Path.GetDirectoryName(BaseFilePath) + 
+                PreviewPath = Path.GetDirectoryName(BaseFilePath) + "\\" +
                     iniFile.GetStringValue(BaseFilePath, "PreviewPath", Path.GetFileNameWithoutExtension(BaseFilePath) + ".png");
                 Briefing = iniFile.GetStringValue(BaseFilePath, "Briefing", String.Empty).Replace("@", Environment.NewLine);
                 SHA1 = Utilities.CalculateSHA1ForFile(ProgramConstants.GamePath + BaseFilePath + ".map");
