@@ -18,7 +18,8 @@ namespace DTAClient.DXGUI.GameLobby
 
         DXListBox lbMapList;
         DXDropDown ddGameMode;
-        DXLabel lblGameMode;
+        DXLabel lblGameModeSelect;
+        GameInProgressWindow gameInProgressWindow;
 
         public override void Initialize()
         {
@@ -26,31 +27,39 @@ namespace DTAClient.DXGUI.GameLobby
 
             InitPlayerOptionDropdowns(118, 92, 88, 56, 53, new Point(13, 24));
 
-            lblGameMode = new DXLabel(WindowManager);
-            lblGameMode.ClientRectangle = new Rectangle(6, 245, 0, 0);
-            lblGameMode.FontIndex = 1;
-            lblGameMode.Text = "GAME MODE:";
+            lblGameModeSelect = new DXLabel(WindowManager);
+            lblGameModeSelect.ClientRectangle = new Rectangle(6, 250, 0, 0);
+            lblGameModeSelect.FontIndex = 1;
+            lblGameModeSelect.Text = "GAME MODE:";
 
             lbMapList = new DXListBox(WindowManager);
             lbMapList.ClientRectangle = new Rectangle(6, MapPreviewBox.ClientRectangle.Y, 433, MapPreviewBox.ClientRectangle.Height);
             lbMapList.SelectedIndexChanged += LbMapList_SelectedIndexChanged;
             lbMapList.DrawMode = PanelBackgroundImageDrawMode.STRETCHED;
-            lbMapList.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 128), 1, 1);
+            lbMapList.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 192), 1, 1);
 
             ddGameMode = new DXDropDown(WindowManager);
-            ddGameMode.ClientRectangle = new Rectangle(lbMapList.ClientRectangle.Right - 150, 242, 150, 21);
-            ddGameMode.ClickSoundEffect = AssetLoader.LoadSound("button.wav");
+            ddGameMode.ClientRectangle = new Rectangle(lbMapList.ClientRectangle.Right - 150, 247, 150, 21);
+            ddGameMode.ClickSoundEffect = AssetLoader.LoadSound("dropdown.wav");
             ddGameMode.SelectedIndexChanged += DdGameMode_SelectedIndexChanged;
 
-            AddChild(lblGameMode);
+            MapPreviewBox.StartingLocationSelected += MapPreviewBox_StartingLocationSelected;
+
+            AddChild(lblGameModeSelect);
             AddChild(lbMapList);
             AddChild(ddGameMode);
+
+            gameInProgressWindow = new GameInProgressWindow(WindowManager);
+            gameInProgressWindow.CenterOnParent();
+            AddChild(gameInProgressWindow);
+            gameInProgressWindow.Enabled = false;
+            gameInProgressWindow.Visible = false;
+            gameInProgressWindow.Focused = true;
 
             foreach (GameMode gm in GameModes)
                 ddGameMode.AddItem(gm.UIName);
 
             Players.Add(new PlayerInfo(ProgramConstants.PLAYERNAME, 0, 0, 0, 0));
-            
 
             if (ddGameMode.Items.Count > 0)
             {
@@ -58,6 +67,12 @@ namespace DTAClient.DXGUI.GameLobby
 
                 lbMapList.SelectedIndex = 0;
             }
+        }
+
+        private void MapPreviewBox_StartingLocationSelected(object sender, StartingLocationEventArgs e)
+        {
+            Players[0].StartingLocation = e.StartingLocationIndex + 1;
+            CopyPlayerDataToUI();
         }
 
         private void DdGameMode_SelectedIndexChanged(object sender, EventArgs e)
@@ -80,7 +95,16 @@ namespace DTAClient.DXGUI.GameLobby
 
         protected override void BtnLaunchGame_LeftClick(object sender, EventArgs e)
         {
-            throw new NotImplementedException();
+            gameInProgressWindow.Visible = true;
+
+            StartGame();
+        }
+
+        protected override void GameProcessExited()
+        {
+            gameInProgressWindow.Visible = false;
+
+            base.GameProcessExited();
         }
 
         protected override void BtnLeaveGame_LeftClick(object sender, EventArgs e)

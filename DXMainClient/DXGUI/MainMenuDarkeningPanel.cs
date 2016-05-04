@@ -17,12 +17,12 @@ namespace DTAClient.DXGUI
         }
 
         public CampaignSelector CampaignSelector;
-        public GameInProgressWindow GameInProgressWindow;
         public GameLoadingWindow GameLoadingWindow;
         public StatisticsWindow StatisticsWindow;
         public UpdateQueryWindow UpdateQueryWindow;
         public UpdateWindow UpdateWindow;
         public ExtrasWindow ExtrasWindow;
+        public GameInProgressWindow GameInProgressWindow;
 
         const float BG_ALPHA_APPEAR_RATE = 0.05f;
         const float BG_ALPHA_DISAPPEAR_RATE = -0.05f;
@@ -46,9 +46,6 @@ namespace DTAClient.DXGUI
             CampaignSelector = new CampaignSelector(WindowManager);
             AddChild(CampaignSelector);
 
-            GameInProgressWindow = new GameInProgressWindow(WindowManager);
-            AddChild(GameInProgressWindow);
-
             GameLoadingWindow = new GameLoadingWindow(WindowManager);
             AddChild(GameLoadingWindow);
 
@@ -63,6 +60,9 @@ namespace DTAClient.DXGUI
 
             ExtrasWindow = new ExtrasWindow(WindowManager);
             AddChild(ExtrasWindow);
+
+            GameInProgressWindow = new GameInProgressWindow(WindowManager);
+            AddChild(GameInProgressWindow);
 
             foreach (DXControl child in Children)
                 child.Visible = false;

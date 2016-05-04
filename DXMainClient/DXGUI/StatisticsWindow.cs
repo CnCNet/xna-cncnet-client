@@ -99,6 +99,7 @@ namespace DTAClient.DXGUI
             cmbGameClassFilter.AddItem("Online Co-Op");
             cmbGameClassFilter.AddItem("Skirmish");
             cmbGameClassFilter.SelectedIndex = 0;
+            cmbGameClassFilter.ClickSoundEffect = AssetLoader.LoadSound("dropdown.wav");
             cmbGameClassFilter.SelectedIndexChanged += CmbGameClassFilter_SelectedIndexChanged;
 
             DXLabel lblGameMode = new DXLabel(WindowManager);
@@ -109,6 +110,7 @@ namespace DTAClient.DXGUI
 
             cmbGameModeFilter = new DXDropDown(WindowManager);
             cmbGameModeFilter.ClientRectangle = new Rectangle(381, 11, 114, 21);
+            cmbGameModeFilter.ClickSoundEffect = AssetLoader.LoadSound("dropdown.wav");
             cmbGameModeFilter.SelectedIndexChanged += CmbGameModeFilter_SelectedIndexChanged;
 
             DXButton btnReturnToMenu = new DXButton(WindowManager);

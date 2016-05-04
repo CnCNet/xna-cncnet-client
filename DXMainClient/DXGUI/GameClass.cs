@@ -88,6 +88,7 @@ namespace DTAClient.DXGUI
         {
             UISettings.AltColor = AssetLoader.GetColorFromString(DomainController.Instance().GetUIAltColor());
             UISettings.ButtonColor = UISettings.AltColor;
+            UISettings.ButtonHoverColor = AssetLoader.GetColorFromString(DomainController.Instance().GetButtonHoverColor());
             UISettings.TextColor = AssetLoader.GetColorFromString(DomainController.Instance().GetUILabelColor());
             UISettings.WindowBorderColor = AssetLoader.GetColorFromString(DomainController.Instance().GetWindowBorderColor());
             UISettings.PanelBorderColor = AssetLoader.GetColorFromString(DomainController.Instance().GetPanelBorderColor());

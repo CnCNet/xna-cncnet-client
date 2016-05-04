@@ -138,7 +138,7 @@ namespace DTAClient.domain.CnCNet
                 MaxPlayers = iniFile.GetIntValue(BaseFilePath, "MaxPlayers", 0);
                 EnforceMaxPlayers = iniFile.GetBooleanValue(BaseFilePath, "EnforceMaxPlayers", false);
                 PreviewPath = Path.GetDirectoryName(BaseFilePath) + "\\" +
-                    iniFile.GetStringValue(BaseFilePath, "PreviewPath", Path.GetFileNameWithoutExtension(BaseFilePath) + ".png");
+                    iniFile.GetStringValue(BaseFilePath, "PreviewImage", Path.GetFileNameWithoutExtension(BaseFilePath) + ".png");
                 Briefing = iniFile.GetStringValue(BaseFilePath, "Briefing", String.Empty).Replace("@", Environment.NewLine);
                 SHA1 = Utilities.CalculateSHA1ForFile(ProgramConstants.GamePath + BaseFilePath + ".map");
                 IsCoop = iniFile.GetBooleanValue(BaseFilePath, "IsCoopMission", false);
@@ -148,12 +148,14 @@ namespace DTAClient.domain.CnCNet
                 if (IsCoop)
                 {
                     CoopInfo = new CoopMapInfo();
-                    string[] disallowedSides = iniFile.GetStringValue(BaseFilePath, "DisallowedPlayerSides", String.Empty).Split(',');
+                    string[] disallowedSides = iniFile.GetStringValue(BaseFilePath, "DisallowedPlayerSides", String.Empty).Split(
+                        new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
 
                     foreach (string sideIndex in disallowedSides)
                         CoopInfo.DisallowedPlayerSides.Add(Int32.Parse(sideIndex));
 
-                    string[] disallowedColors = iniFile.GetStringValue(BaseFilePath, "DisallowedPlayerColors", String.Empty).Split(',');
+                    string[] disallowedColors = iniFile.GetStringValue(BaseFilePath, "DisallowedPlayerColors", String.Empty).Split(
+                        new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
 
                     foreach (string colorIndex in disallowedColors)
                         CoopInfo.DisallowedPlayerColors.Add(Int32.Parse(colorIndex));
@@ -189,7 +191,7 @@ namespace DTAClient.domain.CnCNet
                 }
 
                 if (MCDomainController.Instance.GetMapPreviewPreloadStatus())
-                    PreviewTexture = AssetLoader.LoadTexture(BaseFilePath + ".png");
+                    PreviewTexture = LoadPreviewTexture();
 
                 // Parse forced options
 
@@ -241,6 +243,14 @@ namespace DTAClient.domain.CnCNet
                 ForcedSpawnIniOptions.Add(new KeyValuePair<string, string>(key, 
                     forcedOptionsIni.GetStringValue(spawnIniOptionsSection, key, String.Empty)));
             }
+        }
+
+        public Texture2D LoadPreviewTexture()
+        {
+            if (File.Exists(ProgramConstants.GamePath + PreviewPath))
+                return AssetLoader.LoadTextureUncached(PreviewPath);
+            else
+                return AssetLoader.LoadTexture("nopreview.png");
         }
 
         public void ApplySpawnIniCode(IniFile spawnIni)

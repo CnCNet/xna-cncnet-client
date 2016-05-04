@@ -27,12 +27,16 @@ namespace DTAClient.DXGUI.GameLobby
 
         public MapPreviewBox(WindowManager windowManager, 
             List<PlayerInfo> players, List<PlayerInfo> aiPlayers,
-            List<MultiplayerColor> mpColors)
+            List<MultiplayerColor> mpColors, string[] sides)
             : base(windowManager)
         {
             this.players = players;
             this.aiPlayers = aiPlayers;
             this.mpColors = mpColors;
+
+            sideTextures = new Texture2D[sides.Length + 1];
+            for (int i = 1; i <= sides.Length; i++)
+                sideTextures[i] = AssetLoader.LoadTexture(sides[i - 1] + "icon.png");
         }
 
         Map _map;
@@ -54,6 +58,8 @@ namespace DTAClient.DXGUI.GameLobby
 
         DXPanel[] startingLocationIndicators;
         List<PlayerInfo>[] playersOnStartingLocations;
+
+        Texture2D[] sideTextures;
 
         string[] teamIds = new string[] { String.Empty, "[A] ", "[B] ", "[C] ", "[D] " };
 
@@ -87,7 +93,7 @@ namespace DTAClient.DXGUI.GameLobby
                 playersOnStartingLocations[i] = new List<PlayerInfo>();
                 startingLocationIndicators[i] = indicator;
 
-                //AddChild(indicator);
+                AddChild(indicator);
             }
 
             base.Initialize();
@@ -120,10 +126,7 @@ namespace DTAClient.DXGUI.GameLobby
 
             if (Map.PreviewTexture == null)
             {
-                if (File.Exists(ProgramConstants.GamePath + Map.PreviewPath))
-                    texture = AssetLoader.LoadTextureUncached(Map.PreviewPath);
-                else
-                    texture = AssetLoader.LoadTexture("nopreview.png");
+                texture = Map.LoadPreviewTexture();
             }
             else
                 texture = Map.PreviewTexture;
@@ -153,7 +156,9 @@ namespace DTAClient.DXGUI.GameLobby
                 texturePositionY = (int)(ClientRectangle.Height - 2 - textureHeight) / 2;
             }
 
-            textureRectangle = new Rectangle(ClientRectangle.X + texturePositionX, ClientRectangle.Y + texturePositionY,
+            Rectangle displayRectangle = WindowRectangle();
+
+            textureRectangle = new Rectangle(displayRectangle.X + texturePositionX, displayRectangle.Y + texturePositionY,
                 textureWidth, textureHeight);
 
             for (int i = 0; i < Map.MaxPlayers; i++)
@@ -161,8 +166,8 @@ namespace DTAClient.DXGUI.GameLobby
                 DXPanel indicator = startingLocationIndicators[i];
 
                 Point location = new Point(
-                    ClientRectangle.X + texturePositionX + (int)(Map.StartingLocations[i].X * ratio),
-                    ClientRectangle.Y + texturePositionY + (int)(Map.StartingLocations[i].Y * ratio));
+                    texturePositionX + (int)(Map.StartingLocations[i].X * ratio),
+                    texturePositionY + (int)(Map.StartingLocations[i].Y * ratio));
 
                 indicator.ClientRectangle = new Rectangle(location, indicator.ClientRectangle.Size);
                 indicator.Enabled = true;
@@ -196,22 +201,35 @@ namespace DTAClient.DXGUI.GameLobby
 
         public override void Draw(GameTime gameTime)
         {
-            base.Draw(gameTime);
+            DrawPanel();
 
             if (texture != null)
                 Renderer.DrawTexture(texture, textureRectangle, Color.White);
+
+            for (int i = 0; i < Children.Count; i++)
+            {
+                if (Children[i].Visible)
+                {
+                    Children[i].Draw(gameTime);
+                }
+            }
 
             Vector2 textSize = Renderer.GetTextDimensions("@", FontIndex);
 
             for (int i = 0; i < startingLocationIndicators.Length; i++)
             {
-                if (!startingLocationIndicators[i].Visible)
+                DXPanel indicator = startingLocationIndicators[i];
+
+                if (!indicator.Visible)
                     continue;
 
-                startingLocationIndicators[i].Draw(gameTime);
+                indicator.Draw(gameTime);
 
-                int y = startingLocationIndicators[i].ClientRectangle.Y +
-                    (startingLocationIndicators[i].ClientRectangle.Height - (int)textSize.Y) / 2;
+                Rectangle displayRectangle = indicator.WindowRectangle();
+
+                int y = displayRectangle.Y +
+                    (indicator.ClientRectangle.Height - (int)textSize.Y) / 2;
+
                 foreach (PlayerInfo pInfo in playersOnStartingLocations[i])
                 {
                     Color remapColor = Color.White;
@@ -220,8 +238,21 @@ namespace DTAClient.DXGUI.GameLobby
 
                     string text = teamIds[pInfo.TeamId] + pInfo.Name;
 
+                    int textXPosition = 3;
+
+                    if (pInfo.SideId < sideTextures.Length && pInfo.SideId > 0)
+                    {
+                        Texture2D sideTexture = sideTextures[pInfo.SideId];
+
+                        Vector2 playerTextSize = Renderer.GetTextDimensions(text, FontIndex);
+
+                        Renderer.DrawTexture(sideTexture,
+                            new Rectangle(displayRectangle.Right + textXPosition + (int)playerTextSize.X + 2,
+                            y, sideTexture.Width, sideTexture.Height), Color.White);
+                    }
+
                     Renderer.DrawStringWithShadow(text, FontIndex,
-                        new Vector2(startingLocationIndicators[i].ClientRectangle.Right + 3,
+                        new Vector2(displayRectangle.Right + textXPosition,
                         y), remapColor);
                     y += (int)textSize.Y + 3;
                 }
@@ -236,6 +267,6 @@ namespace DTAClient.DXGUI.GameLobby
             StartingLocationIndex = startingLocationIndex;
         }
 
-        int StartingLocationIndex { get; set; }
+        public int StartingLocationIndex { get; set; }
     }
 }

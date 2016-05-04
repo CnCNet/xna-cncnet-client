@@ -416,6 +416,7 @@ namespace DTAClient.DXGUI
             gameProcessExited = true;
             Game.TargetElapsedTime = TimeSpan.FromMilliseconds(1000.0 / 120.0); // 120 FPS
             innerPanel.GameLoadingWindow.ListSaves();
+            innerPanel.Hide();
         }
 
         public void Enable()
