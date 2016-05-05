@@ -34,7 +34,7 @@ namespace DTAClient.domain
                 byte[] byteArray = Encoding.GetEncoding(1252).GetBytes(DTAClient.Properties.Resources.settings_ini);
                 MemoryStream stream = new MemoryStream(byteArray);
                 settings_ini = new IniFile(stream);
-                settings_ini.SetFilePath(settingsPath);
+                settings_ini.FileName = settingsPath;
             }
             else
                 settings_ini = new IniFile(settingsPath);
@@ -70,7 +70,7 @@ namespace DTAClient.domain
                 byte[] byteArray = Encoding.GetEncoding(1252).GetBytes(DTAClient.Properties.Resources.settings_ini);
                 MemoryStream stream = new MemoryStream(byteArray);
                 settings_ini = new IniFile(stream);
-                settings_ini.SetFilePath(settingsPath);
+                settings_ini.FileName = settingsPath;
             }
             else
                 settings_ini = new IniFile(settingsPath);

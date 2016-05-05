@@ -21,8 +21,8 @@ namespace DTAClient.DXGUI.GameLobby
     public abstract class GameLobbyBase : DXWindow
     {
         const int PLAYER_COUNT = 8;
-        const int PLAYER_OPTION_VERTICAL_MARGIN = 3;
-        const int PLAYER_OPTION_HORIZONTAL_MARGIN = 5;
+        const int PLAYER_OPTION_VERTICAL_MARGIN = 9;
+        const int PLAYER_OPTION_HORIZONTAL_MARGIN = 3;
         const int PLAYER_OPTION_CAPTION_Y = 5;
         const int DROP_DOWN_HEIGHT = 21;
 
@@ -37,11 +37,11 @@ namespace DTAClient.DXGUI.GameLobby
             this.GameModes = GameModes;
         }
 
-        string _iniSectionName;
+        private string _iniSectionName;
 
-        DXPanel PlayerOptionsPanel;
+        protected DXPanel PlayerOptionsPanel;
 
-        DXPanel GameOptionsPanel;
+        protected DXPanel GameOptionsPanel;
 
         protected List<MultiplayerColor> MPColors = new List<MultiplayerColor>();
 
@@ -83,8 +83,6 @@ namespace DTAClient.DXGUI.GameLobby
 
         protected MapPreviewBox MapPreviewBox;
 
-        MatchStatistics matchStatistics;
-
         protected List<PlayerInfo> Players = new List<PlayerInfo>();
         protected List<PlayerInfo> AIPlayers = new List<PlayerInfo>();
 
@@ -98,6 +96,8 @@ namespace DTAClient.DXGUI.GameLobby
         protected int RandomSeed { get; set; }
 
         private int _sideCount;
+
+        private MatchStatistics matchStatistics;
 
         IniFile _gameOptionsIni;
         protected IniFile GameOptionsIni
@@ -117,6 +117,21 @@ namespace DTAClient.DXGUI.GameLobby
 
             _gameOptionsIni = new IniFile(ProgramConstants.GetBaseResourcePath() + "GameOptions.ini");
 
+            GameOptionsPanel = new DXPanel(WindowManager);
+            GameOptionsPanel.Name = "GameOptionsPanel";
+            GameOptionsPanel.BackgroundTexture = AssetLoader.LoadTexture("gamelobbyoptionspanelbg.png");
+            GameOptionsPanel.ClientRectangle = new Rectangle(12, 12, 437, 265);
+            GameOptionsPanel.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 192), 1, 1);
+            GameOptionsPanel.DrawMode = PanelBackgroundImageDrawMode.STRETCHED;
+
+            PlayerOptionsPanel = new DXPanel(WindowManager);
+            PlayerOptionsPanel.Name = "PlayerOptionsPanel";
+            PlayerOptionsPanel.BackgroundTexture = AssetLoader.LoadTexture("gamelobbypanelbg.png");
+            PlayerOptionsPanel.ClientRectangle = new Rectangle(457, 12, 553, 265);
+            PlayerOptionsPanel.LeftClick += PlayerOptionsPanel_LeftClick;
+            PlayerOptionsPanel.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 192), 1, 1);
+            PlayerOptionsPanel.DrawMode = PanelBackgroundImageDrawMode.STRETCHED;
+
             btnLeaveGame = new DXButton(WindowManager);
             btnLeaveGame.Name = "btnLeaveGame";
             btnLeaveGame.IdleTexture = AssetLoader.LoadTexture("133pxbtn.png");
@@ -132,33 +147,18 @@ namespace DTAClient.DXGUI.GameLobby
             btnLaunchGame.IdleTexture = AssetLoader.LoadTexture("133pxbtn.png");
             btnLaunchGame.HoverTexture = AssetLoader.LoadTexture("133pxbtn_c.png");
             btnLaunchGame.HoverSoundEffect = AssetLoader.LoadSound("button.wav");
-            btnLaunchGame.ClientRectangle = new Rectangle(6, btnLeaveGame.ClientRectangle.Y, 133, 23);
+            btnLaunchGame.ClientRectangle = new Rectangle(GameOptionsPanel.ClientRectangle.X, btnLeaveGame.ClientRectangle.Y, 133, 23);
             btnLaunchGame.FontIndex = 1;
             btnLaunchGame.Text = "Launch Game";
             btnLaunchGame.LeftClick += BtnLaunchGame_LeftClick;
-
-            GameOptionsPanel = new DXPanel(WindowManager);
-            GameOptionsPanel.Name = "GameOptionsPanel";
-            GameOptionsPanel.BackgroundTexture = AssetLoader.LoadTexture("gamelobbyoptionspanelbg.png");
-            GameOptionsPanel.ClientRectangle = new Rectangle(6, 6, 433, 235);
-            GameOptionsPanel.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 192), 1, 1);
-            GameOptionsPanel.DrawMode = PanelBackgroundImageDrawMode.STRETCHED;
-
-            PlayerOptionsPanel = new DXPanel(WindowManager);
-            PlayerOptionsPanel.Name = "PlayerOptionsPanel";
-            PlayerOptionsPanel.BackgroundTexture = AssetLoader.LoadTexture("gamelobbypanelbg.png");
-            PlayerOptionsPanel.ClientRectangle = new Rectangle(447, 6, 553, 235);
-            PlayerOptionsPanel.LeftClick += PlayerOptionsPanel_LeftClick;
-            PlayerOptionsPanel.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 192), 1, 1);
-            PlayerOptionsPanel.DrawMode = PanelBackgroundImageDrawMode.STRETCHED;
 
             MapPreviewBox = new MapPreviewBox(WindowManager, Players, AIPlayers, MPColors, 
                 _gameOptionsIni.GetStringValue("General", "Sides", String.Empty).Split(','));
             MapPreviewBox.Name = "MapPreviewBox";
             MapPreviewBox.ClientRectangle = new Rectangle(PlayerOptionsPanel.ClientRectangle.X,
                 PlayerOptionsPanel.ClientRectangle.Bottom + 30,
-                ClientRectangle.Width - PlayerOptionsPanel.ClientRectangle.X - 10,
-                ClientRectangle.Height - PlayerOptionsPanel.ClientRectangle.Bottom - 86);
+                ClientRectangle.Width - PlayerOptionsPanel.ClientRectangle.X - 11,
+                ClientRectangle.Height - PlayerOptionsPanel.ClientRectangle.Bottom - 89);
             MapPreviewBox.FontIndex = 1;
             MapPreviewBox.DrawMode = PanelBackgroundImageDrawMode.STRETCHED;
             MapPreviewBox.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 128), 1, 1);
@@ -355,7 +355,7 @@ namespace DTAClient.DXGUI.GameLobby
 
             lblName = new DXLabel(WindowManager);
             lblName.Name = "lblName";
-            lblName.Text = "NAME";
+            lblName.Text = "PLAYER";
             lblName.FontIndex = 1;
             lblName.ClientRectangle = new Rectangle(ddPlayerNames[0].ClientRectangle.X, PLAYER_OPTION_CAPTION_Y, 0, 0);
 
@@ -605,6 +605,8 @@ namespace DTAClient.DXGUI.GameLobby
             }
 
             spawnIni.WriteIniFile();
+
+            InitializeMatchStatistics(houseInfos);
         }
 
         protected virtual string GetIPAddressForPlayer(PlayerInfo player)
@@ -621,6 +623,25 @@ namespace DTAClient.DXGUI.GameLobby
         protected virtual void WriteSpawnIniAdditions(IniFile iniFile)
         {
             // Do nothing by default
+        }
+
+        protected virtual void InitializeMatchStatistics(PlayerHouseInfo[] houseInfos)
+        {
+            matchStatistics = new MatchStatistics(ProgramConstants.GAME_VERSION, Map.Name, GameMode.UIName, Players.Count);
+
+            for (int pId = 0; pId < Players.Count; pId++)
+            {
+                PlayerInfo pInfo = Players[pId];
+                matchStatistics.AddPlayer(pInfo.Name, pInfo.Name == ProgramConstants.PLAYERNAME,
+                    false, pInfo.SideId == _sideCount + 1, houseInfos[pId].SideIndex + 1, pInfo.TeamId, 10);
+            }
+
+            for (int aiId = 0; aiId < AIPlayers.Count; aiId++)
+            {
+                PlayerInfo aiInfo = AIPlayers[aiId];
+                matchStatistics.AddPlayer("Computer", false, true, false, 
+                    houseInfos[Players.Count + aiId].SideIndex + 1, aiInfo.TeamId, aiInfo.ReversedAILevel);
+            }
         }
 
         /// <summary>
@@ -647,21 +668,6 @@ namespace DTAClient.DXGUI.GameLobby
             mapIni.WriteIniFile(ProgramConstants.GamePath + ProgramConstants.SPAWNMAP_INI);
         }
 
-        protected virtual void InitializeMatchStatistics()
-        {
-            matchStatistics = new MatchStatistics(ProgramConstants.GAME_VERSION, Map.Name, GameMode.UIName, Players.Count);
-            foreach (PlayerInfo pInfo in Players)
-            {
-                matchStatistics.AddPlayer(pInfo.Name, pInfo.Name == ProgramConstants.PLAYERNAME, 
-                    false, pInfo.SideId == _sideCount + 1, pInfo.SideId, pInfo.TeamId, 10);
-            }
-
-            foreach (PlayerInfo aiInfo in AIPlayers)
-            {
-                matchStatistics.AddPlayer("Computer", false, true, false, aiInfo.SideId, aiInfo.TeamId, aiInfo.ReversedAILevel);
-            }
-        }
-
         /// <summary>
         /// Writes spawn.ini, writes the map file, initializes statistics and
         /// starts the game process.
@@ -670,7 +676,6 @@ namespace DTAClient.DXGUI.GameLobby
         {
             WriteSpawnIni();
             WriteMap();
-            InitializeMatchStatistics();
 
             GameInProgress = true;
 
@@ -842,6 +847,13 @@ namespace DTAClient.DXGUI.GameLobby
             lblMapAuthor.ClientRectangle = new Rectangle(MapPreviewBox.ClientRectangle.Right - lblMapAuthor.ClientRectangle.Width,
                 lblMapAuthor.ClientRectangle.Y, lblMapAuthor.ClientRectangle.Width, lblMapAuthor.ClientRectangle.Height);
 
+            // Clear forced options
+            foreach (DXDropDown ddGameOption in DropDowns)
+                ddGameOption.AllowDropDown = true;
+
+            foreach (DXCheckBox checkBox in CheckBoxes)
+                checkBox.AllowChecking = true;
+
             // We could either pass the CheckBoxes and DropDowns of this class
             // to the Map and GameMode instances and let them apply their forced
             // options, or we could do it in this class with helper functions.
@@ -983,7 +995,10 @@ namespace DTAClient.DXGUI.GameLobby
             {
                 GameLobbyCheckBox checkBox = CheckBoxes.Find(chk => chk.Name == option.Key);
                 if (checkBox != null)
+                {
                     checkBox.Checked = option.Value;
+                    checkBox.AllowChecking = false;
+                }
             }
         }
 
@@ -993,7 +1008,10 @@ namespace DTAClient.DXGUI.GameLobby
             {
                 GameLobbyDropDown dropDown = DropDowns.Find(dd => dd.Name == option.Key);
                 if (dropDown != null)
+                {
                     dropDown.SelectedIndex = option.Value;
+                    dropDown.AllowDropDown = false;
+                }
             }
         }
     }

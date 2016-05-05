@@ -428,7 +428,14 @@ namespace DTAClient.DXGUI
                 PlayerStatistics ps = players[i];
 
                 List<string> items = new List<string>();
-                items.Add(ps.Name);
+
+                if (ps.IsAI)
+                {
+                    items.Add(AILevelToString(ps.AILevel));
+                }
+                else
+                    items.Add(ps.Name);
+
                 if (ps.WasSpectator)
                 {
                     // Player was a spectator
@@ -500,6 +507,20 @@ namespace DTAClient.DXGUI
             }
         }
 
+        string AILevelToString(int aiLevel)
+        {
+            switch (aiLevel)
+            {
+                case 2:
+                    return "Hard AI";
+                case 1:
+                    return "Medium AI";
+                case 0:
+                default:
+                    return "Easy AI";
+            }
+        }
+
         #region Statistics reading / game listing code
 
         void ReadStatistics()
@@ -537,6 +558,7 @@ namespace DTAClient.DXGUI
         void ListGames()
         {
             lbGameList.SelectedIndex = -1;
+            lbGameList.SetTopIndex(0);
 
             lbGameStatistics.ClearItems();
             lbGameList.ClearItems();

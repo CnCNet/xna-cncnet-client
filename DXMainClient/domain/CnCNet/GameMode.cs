@@ -44,8 +44,8 @@ namespace DTAClient.domain.CnCNet
 
             ParseSpawnIniOptions(forcedOptionsIni);
 
-            CoopDifficultyLevel = forcedOptionsIni.GetIntValue(Name + "GeneralInfo", "CoopDifficultyLevel", 0);
-            UIName = forcedOptionsIni.GetStringValue(Name + "GeneralInfo", "UIName", Name);
+            CoopDifficultyLevel = forcedOptionsIni.GetIntValue(Name, "CoopDifficultyLevel", 0);
+            UIName = forcedOptionsIni.GetStringValue(Name, "UIName", Name);
         }
 
         private void ParseForcedOptions(IniFile forcedOptionsIni)
