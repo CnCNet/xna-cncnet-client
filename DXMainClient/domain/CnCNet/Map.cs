@@ -99,6 +99,10 @@ namespace DTAClient.domain.CnCNet
         /// </summary>
         int Credits = -1;
 
+        int NeutralHouseColor = -1;
+
+        int SpecialHouseColor = -1;
+
         /// <summary>
         /// The pixel coordinates of the map's player starting locations.
         /// </summary>
@@ -144,6 +148,8 @@ namespace DTAClient.domain.CnCNet
                 IsCoop = iniFile.GetBooleanValue(BaseFilePath, "IsCoopMission", false);
                 Credits = iniFile.GetIntValue(BaseFilePath, "Credits", -1);
                 UnitCount = iniFile.GetIntValue(BaseFilePath, "UnitCount", -1);
+                NeutralHouseColor = iniFile.GetIntValue(BaseFilePath, "NeutralColor", -1);
+                SpecialHouseColor = iniFile.GetIntValue(BaseFilePath, "SpecialColor", -1);
 
                 if (IsCoop)
                 {
@@ -253,7 +259,8 @@ namespace DTAClient.domain.CnCNet
                 return AssetLoader.LoadTexture("nopreview.png");
         }
 
-        public void ApplySpawnIniCode(IniFile spawnIni)
+        public void ApplySpawnIniCode(IniFile spawnIni, int totalPlayerCount, 
+            int aiPlayerCount, int coopDifficultyLevel)
         {
             foreach (KeyValuePair<string, string> key in ForcedSpawnIniOptions)
                 spawnIni.SetStringValue("Settings", key.Key, key.Value);
@@ -263,6 +270,66 @@ namespace DTAClient.domain.CnCNet
 
             if (UnitCount != -1)
                 spawnIni.SetIntValue("Settings", "UnitCount", UnitCount);
+
+            int neutralHouseIndex = totalPlayerCount + 1;
+            int specialHouseIndex = totalPlayerCount + 2;
+
+            if (IsCoop)
+            {
+                for (int i = 0; i < CoopInfo.EnemyHouses.Count; i++)
+                {
+                    int multiId = totalPlayerCount + i + 1;
+
+                    CoopHouseInfo houseInfo = CoopInfo.EnemyHouses[i];
+
+                    spawnIni.SetIntValue("HouseHandicaps", "Multi" + multiId, coopDifficultyLevel);
+                    spawnIni.SetIntValue("HouseCountries", "Multi" + multiId, houseInfo.Side);
+                    spawnIni.SetIntValue("HouseColors", "Multi" + multiId, houseInfo.Color);
+                    spawnIni.SetIntValue("SpawnLocations", "Multi" + multiId, houseInfo.StartingLocation);
+
+                    int allyIndex = 0;
+
+                    // Write alliances
+                    for (int enemyIndex = 0; enemyIndex < CoopInfo.EnemyHouses.Count; enemyIndex++)
+                    {
+                        int allyMultiId = totalPlayerCount + enemyIndex;
+
+                        if (enemyIndex == i)
+                            continue;
+
+                        spawnIni.SetIntValue("Multi" + multiId + "_Alliances",
+                            "HouseAlly" + HouseAllyIndexToString(allyIndex), allyMultiId);
+                        allyIndex++;
+                    }
+                }
+
+                spawnIni.SetIntValue("Settings", "AIPlayers", aiPlayerCount + CoopInfo.EnemyHouses.Count);
+
+                neutralHouseIndex += CoopInfo.EnemyHouses.Count;
+                specialHouseIndex += CoopInfo.EnemyHouses.Count;
+            }
+
+            if (NeutralHouseColor > -1)
+                spawnIni.SetIntValue("HouseColors", "Multi" + neutralHouseIndex, NeutralHouseColor);
+
+            if (SpecialHouseColor > -1)
+                spawnIni.SetIntValue("HouseColors", "Multi" + specialHouseIndex, SpecialHouseColor);
+        }
+
+        private static string HouseAllyIndexToString(int index)
+        {
+            string[] houseAllyIndexStrings = new string[]
+            {
+                "One",
+                "Two",
+                "Three",
+                "Four",
+                "Five",
+                "Six",
+                "Seven"
+            };
+
+            return houseAllyIndexStrings[index];
         }
 
         /// <summary>

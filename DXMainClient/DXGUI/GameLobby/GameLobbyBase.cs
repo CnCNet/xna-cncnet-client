@@ -529,7 +529,8 @@ namespace DTAClient.DXGUI.GameLobby
             }
 
             GameMode.ApplySpawnIniCode(spawnIni); // Forced options from the game mode
-            Map.ApplySpawnIniCode(spawnIni); // Forced options from the map
+            Map.ApplySpawnIniCode(spawnIni, Players.Count + AIPlayers.Count, 
+                AIPlayers.Count, GameMode.CoopDifficultyLevel); // Forced options from the map
 
             // Player options
 
@@ -568,12 +569,12 @@ namespace DTAClient.DXGUI.GameLobby
 
             if (AIPlayers.Count > 0)
             {
-                int multiId = multiCmbIndexes.Count + 1;
-
-                string keyName = "Multi" + multiId;
-
                 for (int aiId = 0; aiId < AIPlayers.Count; aiId++)
                 {
+                    int multiId = multiCmbIndexes.Count + aiId + 1;
+
+                    string keyName = "Multi" + multiId;
+
                     spawnIni.SetIntValue("HouseHandicaps", keyName, AIPlayers[aiId].AILevel);
                     spawnIni.SetIntValue("HouseCountries", keyName, houseInfos[Players.Count + aiId].SideIndex);
                     spawnIni.SetIntValue("HouseColors", keyName, houseInfos[Players.Count + aiId].ColorIndex);

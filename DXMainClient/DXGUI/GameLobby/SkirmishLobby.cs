@@ -29,9 +29,20 @@ namespace DTAClient.DXGUI.GameLobby
         {
             base.Initialize();
 
+            RandomSeed = new Random().Next();
+
+            rankTextures = new Texture2D[4]
+            {
+                AssetLoader.LoadTexture("rankNone.png"),
+                AssetLoader.LoadTexture("rankEasy.png"),
+                AssetLoader.LoadTexture("rankNormal.png"),
+                AssetLoader.LoadTexture("rankHard.png")
+            };
+
             InitPlayerOptionDropdowns(118, 92, 88, 56, 53, new Point(13, 24));
 
             lbMapList = new DXMultiColumnListBox(WindowManager);
+            lbMapList.Name = "lbMapList";
             lbMapList.ClientRectangle = new Rectangle(GameOptionsPanel.ClientRectangle.X, MapPreviewBox.ClientRectangle.Y, 
                 GameOptionsPanel.ClientRectangle.Width, MapPreviewBox.ClientRectangle.Height);
             lbMapList.SelectedIndexChanged += LbMapList_SelectedIndexChanged;
@@ -39,8 +50,17 @@ namespace DTAClient.DXGUI.GameLobby
             lbMapList.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 192), 1, 1);
             lbMapList.LineHeight = 16;
             lbMapList.DrawListBoxBorders = true;
-            lbMapList.AddColumn("RANK", 42);
-            lbMapList.AddColumn("MAP NAME", 328);
+
+            DXPanel rankHeader = new DXPanel(WindowManager);
+            rankHeader.BackgroundTexture = AssetLoader.LoadTexture("rank.png");
+            rankHeader.ClientRectangle = new Rectangle(0, 0, rankHeader.BackgroundTexture.Width,
+                19);
+
+            DXListBox rankListBox = new DXListBox(WindowManager);
+            rankListBox.TextBorderDistance = 2;
+
+            lbMapList.AddColumn(rankHeader, rankListBox);
+            lbMapList.AddColumn("MAP NAME", lbMapList.ClientRectangle.Width - 67 - rankHeader.ClientRectangle.Width + 1);
             lbMapList.AddColumn("PLAYERS", 67);
 
             ddGameMode = new DXDropDown(WindowManager);
@@ -65,14 +85,6 @@ namespace DTAClient.DXGUI.GameLobby
             gameInProgressWindow.Enabled = false;
             gameInProgressWindow.Visible = false;
             gameInProgressWindow.Focused = true;
-
-            rankTextures = new Texture2D[4]
-            {
-                AssetLoader.LoadTexture("rankNone.png"),
-                AssetLoader.LoadTexture("rankEasy.png"),
-                AssetLoader.LoadTexture("rankNormal.png"),
-                AssetLoader.LoadTexture("rankHard.png")
-            };
 
             foreach (GameMode gm in GameModes)
                 ddGameMode.AddItem(gm.UIName);
@@ -110,7 +122,7 @@ namespace DTAClient.DXGUI.GameLobby
                         rankItem.Texture = rankTextures[0];
                 }
                 else
-                    rankItem.Texture = rankTextures[StatisticsManager.Instance.GetSkirmishRankForDefaultMap(map.Name) + 1];
+                    rankItem.Texture = rankTextures[StatisticsManager.Instance.GetSkirmishRankForDefaultMap(map.Name, map.MaxPlayers) + 1];
 
                 DXListBoxItem mapNameItem = new DXListBoxItem();
                 mapNameItem.Text = map.Name;
@@ -150,9 +162,11 @@ namespace DTAClient.DXGUI.GameLobby
         {
             gameInProgressWindow.Visible = false;
 
-            DdGameMode_SelectedIndexChanged(null, EventArgs.Empty); // Refresh ranks
+            RandomSeed = new Random().Next();
 
             base.GameProcessExited();
+
+            DdGameMode_SelectedIndexChanged(null, EventArgs.Empty); // Refresh ranks
         }
 
         protected override void BtnLeaveGame_LeftClick(object sender, EventArgs e)

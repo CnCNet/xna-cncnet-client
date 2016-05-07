@@ -145,11 +145,11 @@ namespace DTAClient.DXGUI
             lbGameList.AddColumn("GAME MODE", 150);
             lbGameList.AddColumn("LENGTH", 86);
             lbGameList.AddColumn("COMPLETED", 90);
-            lbGameList.ClientRectangle = new Rectangle(2, 25, 676, 220);
+            lbGameList.ClientRectangle = new Rectangle(2, 25, 676, 250);
             lbGameList.SelectedIndexChanged += LbGameList_SelectedIndexChanged;
 
             lbGameStatistics = new DXMultiColumnListBox(WindowManager);
-            lbGameStatistics.BackgroundTexture = AssetLoader.CreateTexture(UISettings.BackgroundColor, 100, 100);
+            lbGameStatistics.BackgroundTexture = AssetLoader.CreateTexture(UISettings.BackgroundColor, 1, 1);
             lbGameStatistics.DrawMode = PanelBackgroundImageDrawMode.STRETCHED;
             lbGameStatistics.AddColumn("NAME", 130);
             lbGameStatistics.AddColumn("KILLS", 78);
@@ -159,7 +159,7 @@ namespace DTAClient.DXGUI
             lbGameStatistics.AddColumn("WON", 50);
             lbGameStatistics.AddColumn("SIDE", 100);
             lbGameStatistics.AddColumn("TEAM", 60);
-            lbGameStatistics.ClientRectangle = new Rectangle(2, 250, 676, 170);
+            lbGameStatistics.ClientRectangle = new Rectangle(2, 280, 676, 143);
 
             panelGameStatistics.AddChild(lblMatches);
             panelGameStatistics.AddChild(lbGameList);
@@ -365,6 +365,13 @@ namespace DTAClient.DXGUI
 
             ReadStatistics();
             ListGameModes();
+            ListGames();
+
+            SharedUILogic.GameProcessExited += SharedUILogic_GameProcessExited;
+        }
+
+        private void SharedUILogic_GameProcessExited()
+        {
             ListGames();
         }
 
