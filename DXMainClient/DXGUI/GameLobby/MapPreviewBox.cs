@@ -69,6 +69,8 @@ namespace DTAClient.DXGUI.GameLobby
 
         bool disposeTextures = true;
 
+        bool useNearestNeighbour = false;
+
         public override void Initialize()
         {
             startingLocationIndicators = new DXPanel[MAX_STARTING_LOCATIONS];
@@ -156,6 +158,8 @@ namespace DTAClient.DXGUI.GameLobby
                 texturePositionY = (int)(ClientRectangle.Height - 2 - textureHeight) / 2;
             }
 
+            useNearestNeighbour = ratio < 1.0;
+
             Rectangle displayRectangle = WindowRectangle();
 
             textureRectangle = new Rectangle(displayRectangle.X + texturePositionX, displayRectangle.Y + texturePositionY,
@@ -201,6 +205,12 @@ namespace DTAClient.DXGUI.GameLobby
 
         public override void Draw(GameTime gameTime)
         {
+            if (useNearestNeighbour)
+            {
+                Renderer.EndDraw();
+                Renderer.BeginDraw(SamplerState.PointClamp);
+            }
+
             DrawPanel();
 
             if (texture != null)
@@ -256,6 +266,12 @@ namespace DTAClient.DXGUI.GameLobby
                         y), remapColor);
                     y += (int)textSize.Y + 3;
                 }
+            }
+
+            if (useNearestNeighbour)
+            {
+                Renderer.EndDraw();
+                Renderer.BeginDraw();
             }
         }
     }

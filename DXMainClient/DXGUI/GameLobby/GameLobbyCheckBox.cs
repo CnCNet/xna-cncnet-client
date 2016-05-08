@@ -25,6 +25,8 @@ namespace DTAClient.DXGUI.GameLobby
 
         public bool Reversed { get; set; }
 
+        public bool IsMultiplayer { get; set; }
+
         protected override void ParseAttributeFromINI(IniFile iniFile, string key, string value)
         {
             switch (key)
@@ -37,6 +39,10 @@ namespace DTAClient.DXGUI.GameLobby
                     return;
                 case "Reversed":
                     Reversed = Utilities.BooleanFromString(value, false);
+                    return;
+                case "CheckedMP":
+                    if (IsMultiplayer)
+                        Checked = Utilities.BooleanFromString(value, false);
                     return;
             }
 

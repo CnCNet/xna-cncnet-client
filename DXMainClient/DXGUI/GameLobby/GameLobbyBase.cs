@@ -656,7 +656,7 @@ namespace DTAClient.DXGUI.GameLobby
 
             IniFile mapIni = new IniFile(ProgramConstants.GamePath + Map.BaseFilePath + ".map");
 
-            IniFile globalCodeIni = new IniFile(ProgramConstants.GamePath + "INI\\GlobalCode.ini");
+            IniFile globalCodeIni = new IniFile(ProgramConstants.GamePath + "INI\\Map Code\\GlobalCode.ini");
 
             IniFile.ConsolidateIniFiles(mapIni, GameMode.GetMapRulesIniFile());
             IniFile.ConsolidateIniFiles(mapIni, globalCodeIni);
