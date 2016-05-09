@@ -65,22 +65,33 @@ namespace DTAClient.DXGUI
             AddChild(GameInProgressWindow);
 
             foreach (DXControl child in Children)
+            {
                 child.Visible = false;
+                child.Enabled = false;
+                child.EnabledChanged += Child_EnabledChanged;
+            }
+        }
+
+        private void Child_EnabledChanged(object sender, EventArgs e)
+        {
+            DXWindow child = (DXWindow)sender;
+            if (!child.Enabled)
+                Hide();
         }
 
         public void Show(DXControl dxControl)
         {
-            Enabled = true;
-            Visible = true;
-
-            bgAlphaRate = BG_ALPHA_APPEAR_RATE;
-            Alpha = 1.0f;
-
             foreach (DXControl child in Children)
             {
                 child.Enabled = false;
                 child.Visible = false;
             }
+
+            Enabled = true;
+            Visible = true;
+
+            bgAlphaRate = BG_ALPHA_APPEAR_RATE;
+            Alpha = 1.0f;
 
             if (dxControl != null)
             {

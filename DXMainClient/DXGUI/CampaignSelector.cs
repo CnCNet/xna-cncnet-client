@@ -187,7 +187,7 @@ namespace DTAClient.DXGUI
 
         private void BtnCancel_LeftClick(object sender, EventArgs e)
         {
-            ((MainMenuDarkeningPanel)Parent).Hide();
+            Enabled = false;
         }
 
         private void BtnLaunch_LeftClick(object sender, EventArgs e)

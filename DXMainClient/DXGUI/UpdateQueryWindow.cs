@@ -86,14 +86,12 @@ namespace DTAClient.DXGUI
 
         private void BtnYes_LeftClick(object sender, EventArgs e)
         {
-            if (UpdateAccepted != null)
-                UpdateAccepted(this, e);
+            UpdateAccepted?.Invoke(this, e);
         }
 
         private void BtnNo_LeftClick(object sender, EventArgs e)
         {
-            if (UpdateDeclined != null)
-                UpdateDeclined(this, e);
+            UpdateDeclined?.Invoke(this, e);
         }
 
         public void SetInfo(string version, int updateSize)

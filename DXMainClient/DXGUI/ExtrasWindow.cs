@@ -84,7 +84,7 @@ namespace DTAClient.DXGUI
         private void BtnExMapEditor_LeftClick(object sender, EventArgs e)
         {
             Process.Start(ProgramConstants.GamePath + MCDomainController.Instance.GetMapEditorExePath());
-            ((MainMenuDarkeningPanel)Parent).Hide();
+            Enabled = false;
         }
 
         private void BtnExCredits_LeftClick(object sender, EventArgs e)
@@ -94,7 +94,7 @@ namespace DTAClient.DXGUI
 
         private void BtnExCancel_LeftClick(object sender, EventArgs e)
         {
-            ((MainMenuDarkeningPanel)Parent).Hide();
+            Enabled = false;
         }
     }
 }
