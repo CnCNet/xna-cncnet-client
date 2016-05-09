@@ -170,8 +170,8 @@ namespace DTAClient.DXGUI
 
             if (IsTaskbarSupported())
             {
-                tbp.SetState(WindowManager.Instance.GetWindowHandle(), TaskbarProgress.TaskbarStates.Normal);
-                tbp.SetValue(WindowManager.Instance.GetWindowHandle(), prgTotal.Value, prgTotal.Maximum);
+                tbp.SetState(WindowManager.GetWindowHandle(), TaskbarProgress.TaskbarStates.Normal);
+                tbp.SetValue(WindowManager.GetWindowHandle(), prgTotal.Value, prgTotal.Maximum);
             }
         }
 
@@ -183,7 +183,7 @@ namespace DTAClient.DXGUI
         private void HandleUpdateCompleted()
         {
             if (IsTaskbarSupported())
-                tbp.SetState(WindowManager.Instance.GetWindowHandle(), TaskbarProgress.TaskbarStates.NoProgress);
+                tbp.SetState(WindowManager.GetWindowHandle(), TaskbarProgress.TaskbarStates.NoProgress);
 
             UpdateCompleted?.Invoke(this, EventArgs.Empty);
         }
@@ -196,7 +196,7 @@ namespace DTAClient.DXGUI
         private void HandleUpdateFailed(string updateFailureErrorMessage)
         {
             if (IsTaskbarSupported())
-                tbp.SetState(WindowManager.Instance.GetWindowHandle(), TaskbarProgress.TaskbarStates.NoProgress);
+                tbp.SetState(WindowManager.GetWindowHandle(), TaskbarProgress.TaskbarStates.NoProgress);
 
             UpdateFailed?.Invoke(this, new UpdateFailureEventArgs(updateFailureErrorMessage));
         }
@@ -206,7 +206,7 @@ namespace DTAClient.DXGUI
             CUpdater.TerminateUpdate = true;
 
             if (IsTaskbarSupported())
-                tbp.SetState(WindowManager.Instance.GetWindowHandle(), TaskbarProgress.TaskbarStates.NoProgress);
+                tbp.SetState(WindowManager.GetWindowHandle(), TaskbarProgress.TaskbarStates.NoProgress);
 
             UpdateCancelled?.Invoke(this, EventArgs.Empty);
         }

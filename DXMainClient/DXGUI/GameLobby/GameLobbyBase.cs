@@ -156,9 +156,9 @@ namespace DTAClient.DXGUI.GameLobby
                 _gameOptionsIni.GetStringValue("General", "Sides", String.Empty).Split(','));
             MapPreviewBox.Name = "MapPreviewBox";
             MapPreviewBox.ClientRectangle = new Rectangle(PlayerOptionsPanel.ClientRectangle.X,
-                PlayerOptionsPanel.ClientRectangle.Bottom + 30,
+                PlayerOptionsPanel.ClientRectangle.Bottom + 8,
                 ClientRectangle.Width - PlayerOptionsPanel.ClientRectangle.X - 11,
-                ClientRectangle.Height - PlayerOptionsPanel.ClientRectangle.Bottom - 89);
+                ClientRectangle.Height - PlayerOptionsPanel.ClientRectangle.Bottom - 67);
             MapPreviewBox.FontIndex = 1;
             MapPreviewBox.DrawMode = PanelBackgroundImageDrawMode.STRETCHED;
             MapPreviewBox.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 128), 1, 1);

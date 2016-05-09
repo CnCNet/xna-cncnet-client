@@ -40,7 +40,6 @@ namespace DTAClient.DXGUI
 
         SkirmishLobby skirmishLobby;
 
-        bool gameProcessExited = false;
         bool updateInProgress = false;
 
         private static readonly object locker = new object();
@@ -57,8 +56,8 @@ namespace DTAClient.DXGUI
             mmUIPanel.Name = "MainMenuUIPanel";
             Texture2D texture = BackgroundTexture;
             mmUIPanel.ClientRectangle = new Rectangle(0, 0, texture.Width, texture.Height);
-            ClientRectangle = new Rectangle((WindowManager.Instance.RenderResolutionX - ClientRectangle.Width) / 2,
-                (WindowManager.Instance.RenderResolutionY - ClientRectangle.Height) / 2,
+            ClientRectangle = new Rectangle((WindowManager.RenderResolutionX - ClientRectangle.Width) / 2,
+                (WindowManager.RenderResolutionY - ClientRectangle.Height) / 2,
                 mmUIPanel.ClientRectangle.Width, mmUIPanel.ClientRectangle.Height);
 
             DXButton btnNewCampaign = new DXButton(WindowManager);
@@ -206,15 +205,15 @@ namespace DTAClient.DXGUI
             innerPanel.UpdateWindow.UpdateCancelled += UpdateWindow_UpdateCancelled;
             innerPanel.UpdateWindow.UpdateFailed += UpdateWindow_UpdateFailed;
 
-            this.ClientRectangle = new Rectangle((WindowManager.Instance.RenderResolutionX - ClientRectangle.Width) / 2,
-                (WindowManager.Instance.RenderResolutionY - ClientRectangle.Height) / 2,
+            this.ClientRectangle = new Rectangle((WindowManager.RenderResolutionX - ClientRectangle.Width) / 2,
+                (WindowManager.RenderResolutionY - ClientRectangle.Height) / 2,
                 ClientRectangle.Width, ClientRectangle.Height);
             innerPanel.ClientRectangle = new Rectangle(0, 0, WindowManager.RenderResolutionX, WindowManager.RenderResolutionY);
 
             CnCNetInfoController.CnCNetGameCountUpdated += CnCNetInfoController_CnCNetGameCountUpdated;
             CnCNetInfoController.InitializeService();
 
-            WindowManager.Instance.GameFormClosing += Instance_GameFormClosing;
+            WindowManager.GameFormClosing += Instance_GameFormClosing;
 
             skirmishLobby.VisibleChanged += SkirmishLobby_VisibleChanged;
         }
@@ -404,7 +403,7 @@ namespace DTAClient.DXGUI
 
         private void SharedUILogic_GameProcessStarted()
         {
-            WindowManager.Instance.MinimizeWindow();
+            WindowManager.MinimizeWindow();
             Cursor.Disabled = true;
             Game.TargetElapsedTime = TimeSpan.FromMilliseconds(100.0);
 
@@ -413,10 +412,7 @@ namespace DTAClient.DXGUI
 
         private void SharedUILogic_GameProcessExited()
         {
-            gameProcessExited = true;
-            Game.TargetElapsedTime = TimeSpan.FromMilliseconds(1000.0 / 120.0); // 120 FPS
-            innerPanel.GameLoadingWindow.ListSaves();
-            innerPanel.Hide();
+            AddCallback(new Action(HandleGameProcessExited), null);
         }
 
         public void Enable()
@@ -457,7 +453,7 @@ namespace DTAClient.DXGUI
             clientProcess.EnableRaisingEvents = true;
             clientProcess.StartInfo = startInfo;
 
-            WindowManager.Instance.HideWindow();
+            WindowManager.HideWindow();
             clientProcess.Start();
 
             clientProcess.WaitForExit();
@@ -481,7 +477,7 @@ namespace DTAClient.DXGUI
 
             MCDomainController.Instance.ReloadSettings();
 
-            WindowManager.Instance.ShowWindow();
+            WindowManager.ShowWindow();
         }
 
         private void BtnSkirmish_LeftClick(object sender, EventArgs e)
@@ -534,7 +530,7 @@ namespace DTAClient.DXGUI
                 startInfo.Arguments = startInfo.Arguments + " " + commandLine;
             startInfo.UseShellExecute = false;
 
-            WindowManager.Instance.HideWindow();
+            WindowManager.HideWindow();
 
             Process clientProcess = new Process();
             clientProcess.StartInfo = startInfo;
@@ -545,7 +541,7 @@ namespace DTAClient.DXGUI
 
             MCDomainController.Instance.ReloadSettings();
 
-            WindowManager.Instance.ShowWindow();
+            WindowManager.ShowWindow();
         }
 
         private void SaveSettings()
@@ -554,17 +550,19 @@ namespace DTAClient.DXGUI
             of.UpdateSettings();
         }
 
+        private void HandleGameProcessExited()
+        {
+            WindowManager.MaximizeWindow();
+            Cursor.Disabled = false;
+            innerPanel.Hide();
+            Game.TargetElapsedTime = TimeSpan.FromMilliseconds(1000.0 / 120.0); // 120 FPS
+            innerPanel.GameLoadingWindow.ListSaves();
+            innerPanel.Hide();
+        }
+
         public override void Update(GameTime gameTime)
         {
             base.Update(gameTime);
-
-            if (gameProcessExited)
-            {
-                WindowManager.Instance.MaximizeWindow();
-                Cursor.Disabled = false;
-                gameProcessExited = false;
-                innerPanel.Hide();
-            }
         }
 
         public override void Draw(GameTime gameTime)

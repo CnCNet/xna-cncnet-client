@@ -43,8 +43,8 @@ namespace DTAClient.DXGUI.GameLobby
 
             lbMapList = new DXMultiColumnListBox(WindowManager);
             lbMapList.Name = "lbMapList";
-            lbMapList.ClientRectangle = new Rectangle(GameOptionsPanel.ClientRectangle.X, MapPreviewBox.ClientRectangle.Y, 
-                GameOptionsPanel.ClientRectangle.Width, MapPreviewBox.ClientRectangle.Height);
+            lbMapList.ClientRectangle = new Rectangle(GameOptionsPanel.ClientRectangle.X, MapPreviewBox.ClientRectangle.Y + 25, 
+                GameOptionsPanel.ClientRectangle.Width, MapPreviewBox.ClientRectangle.Height - 25);
             lbMapList.SelectedIndexChanged += LbMapList_SelectedIndexChanged;
             lbMapList.DrawMode = PanelBackgroundImageDrawMode.STRETCHED;
             lbMapList.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 192), 1, 1);
@@ -64,7 +64,7 @@ namespace DTAClient.DXGUI.GameLobby
             lbMapList.AddColumn("PLAYERS", 67);
 
             ddGameMode = new DXDropDown(WindowManager);
-            ddGameMode.ClientRectangle = new Rectangle(lbMapList.ClientRectangle.Right - 150, lbMapList.ClientRectangle.Top - 25, 150, 21);
+            ddGameMode.ClientRectangle = new Rectangle(lbMapList.ClientRectangle.Right - 150, MapPreviewBox.ClientRectangle.Top, 150, 21);
             ddGameMode.ClickSoundEffect = AssetLoader.LoadSound("dropdown.wav");
             ddGameMode.SelectedIndexChanged += DdGameMode_SelectedIndexChanged;
 
@@ -80,8 +80,8 @@ namespace DTAClient.DXGUI.GameLobby
             AddChild(lblGameModeSelect);
 
             gameInProgressWindow = new GameInProgressWindow(WindowManager);
-            gameInProgressWindow.CenterOnParent();
             AddChild(gameInProgressWindow);
+            gameInProgressWindow.CenterOnParent();
             gameInProgressWindow.Enabled = false;
             gameInProgressWindow.Visible = false;
             gameInProgressWindow.Focused = true;
