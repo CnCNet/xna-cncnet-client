@@ -149,6 +149,20 @@ namespace DTAClient.DXGUI.GameLobby
             Map map = gm.Maps[lbMapList.SelectedIndex];
 
             ChangeMap(gm, map);
+            CheckPlayerCountRequirement();
+        }
+
+        protected override void CopyPlayerDataToUI()
+        {
+            base.CopyPlayerDataToUI();
+
+            CheckPlayerCountRequirement();
+        }
+
+        private void CheckPlayerCountRequirement()
+        {
+            btnLaunchGame.Enabled = Players.Count + AIPlayers.Count > Map.MinPlayers &&
+                (!Map.EnforceMaxPlayers || (Players.Count + AIPlayers.Count <= Map.MaxPlayers));
         }
 
         protected override void BtnLaunchGame_LeftClick(object sender, EventArgs e)
