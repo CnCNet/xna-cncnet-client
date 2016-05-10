@@ -180,12 +180,22 @@ namespace DTAClient.domain
 
         public int GetMinimumRenderWidth()
         {
-            return mainClient_ini.GetIntValue("General", "MinimumRenderWidth", 800);
+            return mainClient_ini.GetIntValue("General", "MinimumRenderWidth", 1280);
         }
 
         public int GetMinimumRenderHeight()
         {
-            return mainClient_ini.GetIntValue("General", "MinimumRenderHeight", 600);
+            return mainClient_ini.GetIntValue("General", "MinimumRenderHeight", 768);
+        }
+
+        public int GetMaximumRenderWidth()
+        {
+            return mainClient_ini.GetIntValue("General", "MaximumRenderWidth", 1280);
+        }
+
+        public int GetMaximumRenderHeight()
+        {
+            return mainClient_ini.GetIntValue("General", "MaximumRenderHeight", 800);
         }
 
         public bool GetSidebarHackStatus()

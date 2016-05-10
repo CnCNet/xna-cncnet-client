@@ -20,10 +20,10 @@ namespace DTAClient.DXGUI.GameLobby
     /// </summary>
     public abstract class GameLobbyBase : DXWindow
     {
-        const int PLAYER_COUNT = 8;
-        const int PLAYER_OPTION_VERTICAL_MARGIN = 9;
-        const int PLAYER_OPTION_HORIZONTAL_MARGIN = 3;
-        const int PLAYER_OPTION_CAPTION_Y = 5;
+        protected const int PLAYER_COUNT = 8;
+        protected const int PLAYER_OPTION_VERTICAL_MARGIN = 9;
+        protected const int PLAYER_OPTION_HORIZONTAL_MARGIN = 3;
+        protected const int PLAYER_OPTION_CAPTION_Y = 5;
         const int DROP_DOWN_HEIGHT = 21;
 
         /// <summary>
@@ -117,20 +117,20 @@ namespace DTAClient.DXGUI.GameLobby
 
             _gameOptionsIni = new IniFile(ProgramConstants.GetBaseResourcePath() + "GameOptions.ini");
 
-            GameOptionsPanel = new DXPanel(WindowManager);
-            GameOptionsPanel.Name = "GameOptionsPanel";
-            GameOptionsPanel.BackgroundTexture = AssetLoader.LoadTexture("gamelobbyoptionspanelbg.png");
-            GameOptionsPanel.ClientRectangle = new Rectangle(12, 12, 437, 265);
-            GameOptionsPanel.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 192), 1, 1);
-            GameOptionsPanel.DrawMode = PanelBackgroundImageDrawMode.STRETCHED;
-
             PlayerOptionsPanel = new DXPanel(WindowManager);
             PlayerOptionsPanel.Name = "PlayerOptionsPanel";
             PlayerOptionsPanel.BackgroundTexture = AssetLoader.LoadTexture("gamelobbypanelbg.png");
-            PlayerOptionsPanel.ClientRectangle = new Rectangle(457, 12, 553, 265);
+            PlayerOptionsPanel.ClientRectangle = new Rectangle(ClientRectangle.Width - 517, 12, 505, 265);
             PlayerOptionsPanel.LeftClick += PlayerOptionsPanel_LeftClick;
             PlayerOptionsPanel.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 192), 1, 1);
             PlayerOptionsPanel.DrawMode = PanelBackgroundImageDrawMode.STRETCHED;
+
+            GameOptionsPanel = new DXPanel(WindowManager);
+            GameOptionsPanel.Name = "GameOptionsPanel";
+            GameOptionsPanel.BackgroundTexture = AssetLoader.LoadTexture("gamelobbyoptionspanelbg.png");
+            GameOptionsPanel.ClientRectangle = new Rectangle(PlayerOptionsPanel.ClientRectangle.Left - 306, 12, 300, 265);
+            GameOptionsPanel.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 192), 1, 1);
+            GameOptionsPanel.DrawMode = PanelBackgroundImageDrawMode.STRETCHED;
 
             btnLeaveGame = new DXButton(WindowManager);
             btnLeaveGame.Name = "btnLeaveGame";
@@ -147,7 +147,7 @@ namespace DTAClient.DXGUI.GameLobby
             btnLaunchGame.IdleTexture = AssetLoader.LoadTexture("133pxbtn.png");
             btnLaunchGame.HoverTexture = AssetLoader.LoadTexture("133pxbtn_c.png");
             btnLaunchGame.HoverSoundEffect = AssetLoader.LoadSound("button.wav");
-            btnLaunchGame.ClientRectangle = new Rectangle(GameOptionsPanel.ClientRectangle.X, btnLeaveGame.ClientRectangle.Y, 133, 23);
+            btnLaunchGame.ClientRectangle = new Rectangle(12, btnLeaveGame.ClientRectangle.Y, 133, 23);
             btnLaunchGame.FontIndex = 1;
             btnLaunchGame.Text = "Launch Game";
             btnLaunchGame.LeftClick += BtnLaunchGame_LeftClick;
@@ -155,10 +155,10 @@ namespace DTAClient.DXGUI.GameLobby
             MapPreviewBox = new MapPreviewBox(WindowManager, Players, AIPlayers, MPColors, 
                 _gameOptionsIni.GetStringValue("General", "Sides", String.Empty).Split(','));
             MapPreviewBox.Name = "MapPreviewBox";
-            MapPreviewBox.ClientRectangle = new Rectangle(PlayerOptionsPanel.ClientRectangle.X,
-                PlayerOptionsPanel.ClientRectangle.Bottom + 8,
-                ClientRectangle.Width - PlayerOptionsPanel.ClientRectangle.X - 11,
-                ClientRectangle.Height - PlayerOptionsPanel.ClientRectangle.Bottom - 67);
+            MapPreviewBox.ClientRectangle = new Rectangle(GameOptionsPanel.ClientRectangle.X,
+                PlayerOptionsPanel.ClientRectangle.Bottom + 30,
+                ClientRectangle.Width - GameOptionsPanel.ClientRectangle.X - 12,
+                ClientRectangle.Height - PlayerOptionsPanel.ClientRectangle.Bottom - 89);
             MapPreviewBox.FontIndex = 1;
             MapPreviewBox.DrawMode = PanelBackgroundImageDrawMode.STRETCHED;
             MapPreviewBox.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 128), 1, 1);
@@ -205,6 +205,8 @@ namespace DTAClient.DXGUI.GameLobby
                 }
             }
 
+            AddChild(GameOptionsPanel);
+
             string[] checkBoxes = GameOptionsIni.GetStringValue(_iniSectionName, "CheckBoxes", String.Empty).Split(',');
 
             foreach (string chkName in checkBoxes)
@@ -213,7 +215,7 @@ namespace DTAClient.DXGUI.GameLobby
                 chkBox.Name = chkName;
                 chkBox.GetAttributes(GameOptionsIni);
                 CheckBoxes.Add(chkBox);
-                GameOptionsPanel.AddChild(chkBox);
+                AddChild(chkBox);
             }
 
             string[] labels = GameOptionsIni.GetStringValue(_iniSectionName, "Labels", String.Empty).Split(',');
@@ -223,7 +225,7 @@ namespace DTAClient.DXGUI.GameLobby
                 DXLabel label = new DXLabel(WindowManager);
                 label.Name = labelName;
                 label.GetAttributes(GameOptionsIni);
-                GameOptionsPanel.AddChild(label);
+                AddChild(label);
             }
 
             string[] dropDowns = GameOptionsIni.GetStringValue(_iniSectionName, "DropDowns", String.Empty).Split(',');
@@ -235,11 +237,10 @@ namespace DTAClient.DXGUI.GameLobby
                 dropdown.ClickSoundEffect = AssetLoader.LoadSound("dropdown.wav");
                 dropdown.GetAttributes(GameOptionsIni);
                 DropDowns.Add(dropdown);
-                GameOptionsPanel.AddChild(dropdown);
+                AddChild(dropdown);
             }
 
             AddChild(MapPreviewBox);
-            AddChild(GameOptionsPanel);
             AddChild(PlayerOptionsPanel);
             AddChild(btnLaunchGame);
             AddChild(btnLeaveGame);

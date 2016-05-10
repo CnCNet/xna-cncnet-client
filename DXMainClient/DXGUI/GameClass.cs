@@ -62,6 +62,9 @@ namespace DTAClient.DXGUI
             int renderResolutionX = Math.Max(windowWidth, MCDomainController.Instance.GetMinimumRenderWidth());
             int renderResolutionY = Math.Max(windowHeight, MCDomainController.Instance.GetMinimumRenderHeight());
 
+            renderResolutionX = Math.Min(renderResolutionX, MCDomainController.Instance.GetMaximumRenderWidth());
+            renderResolutionY = Math.Min(renderResolutionY, MCDomainController.Instance.GetMaximumRenderHeight());
+
             wm.SetBorderlessMode(MCDomainController.Instance.GetBorderlessWindowedStatus());
             wm.CenterOnScreen();
             wm.SetRenderResolution(renderResolutionX, renderResolutionY);

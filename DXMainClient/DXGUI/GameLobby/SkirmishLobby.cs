@@ -39,12 +39,15 @@ namespace DTAClient.DXGUI.GameLobby
                 AssetLoader.LoadTexture("rankHard.png")
             };
 
-            InitPlayerOptionDropdowns(118, 92, 88, 56, 53, new Point(13, 24));
+            btnLeaveGame.Text = "Main Menu";
+
+            InitPlayerOptionDropdowns(128, 102, 90, 76, 65, new Point(13, 24));
 
             lbMapList = new DXMultiColumnListBox(WindowManager);
             lbMapList.Name = "lbMapList";
-            lbMapList.ClientRectangle = new Rectangle(GameOptionsPanel.ClientRectangle.X, MapPreviewBox.ClientRectangle.Y + 25, 
-                GameOptionsPanel.ClientRectangle.Width, MapPreviewBox.ClientRectangle.Height - 25);
+            lbMapList.ClientRectangle = new Rectangle(btnLaunchGame.ClientRectangle.X, GameOptionsPanel.ClientRectangle.Y + 23, 
+                MapPreviewBox.ClientRectangle.X - btnLaunchGame.ClientRectangle.X - 6, 
+                MapPreviewBox.ClientRectangle.Bottom - 23 - GameOptionsPanel.ClientRectangle.Y);
             lbMapList.SelectedIndexChanged += LbMapList_SelectedIndexChanged;
             lbMapList.DrawMode = PanelBackgroundImageDrawMode.STRETCHED;
             lbMapList.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 192), 1, 1);
@@ -64,12 +67,12 @@ namespace DTAClient.DXGUI.GameLobby
             lbMapList.AddColumn("PLAYERS", 67);
 
             ddGameMode = new DXDropDown(WindowManager);
-            ddGameMode.ClientRectangle = new Rectangle(lbMapList.ClientRectangle.Right - 150, MapPreviewBox.ClientRectangle.Top, 150, 21);
+            ddGameMode.ClientRectangle = new Rectangle(lbMapList.ClientRectangle.Right - 150, GameOptionsPanel.ClientRectangle.Y, 150, 21);
             ddGameMode.ClickSoundEffect = AssetLoader.LoadSound("dropdown.wav");
             ddGameMode.SelectedIndexChanged += DdGameMode_SelectedIndexChanged;
 
             lblGameModeSelect = new DXLabel(WindowManager);
-            lblGameModeSelect.ClientRectangle = new Rectangle(GameOptionsPanel.ClientRectangle.X, ddGameMode.ClientRectangle.Top + 2, 0, 0);
+            lblGameModeSelect.ClientRectangle = new Rectangle(lbMapList.ClientRectangle.X, ddGameMode.ClientRectangle.Top + 2, 0, 0);
             lblGameModeSelect.FontIndex = 1;
             lblGameModeSelect.Text = "GAME MODE:";
 
