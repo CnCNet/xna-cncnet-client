@@ -140,10 +140,11 @@ namespace DTAClient.DXGUI
             lbGameList = new DXMultiColumnListBox(WindowManager);
             lbGameList.BackgroundTexture = AssetLoader.CreateTexture(UISettings.BackgroundColor, 100, 100);
             lbGameList.DrawMode = PanelBackgroundImageDrawMode.STRETCHED;
-            lbGameList.AddColumn("DATE / TIME", 150);
+            lbGameList.AddColumn("DATE / TIME", 130);
             lbGameList.AddColumn("MAP", 200);
-            lbGameList.AddColumn("GAME MODE", 150);
-            lbGameList.AddColumn("LENGTH", 86);
+            lbGameList.AddColumn("GAME MODE", 130);
+            lbGameList.AddColumn("FPS", 50);
+            lbGameList.AddColumn("LENGTH", 76);
             lbGameList.AddColumn("COMPLETED", 90);
             lbGameList.ClientRectangle = new Rectangle(2, 25, 676, 250);
             lbGameList.SelectedIndexChanged += LbGameList_SelectedIndexChanged;
@@ -602,11 +603,12 @@ namespace DTAClient.DXGUI
                 info.Add(dateTime);
                 info.Add(ms.MapName);
                 info.Add(ms.GameMode);
-                info.Add(TimeSpan.FromSeconds(ms.LengthInSeconds).ToString());
-                if (ms.SawCompletion)
-                    info.Add("Yes");
+                if (ms.AverageFPS == 0)
+                    info.Add("-");
                 else
-                    info.Add("No");
+                    info.Add(ms.AverageFPS.ToString());
+                info.Add(TimeSpan.FromSeconds(ms.LengthInSeconds).ToString());
+                info.Add(Rampastring.Tools.Utilities.BooleanToString(ms.SawCompletion, BooleanStringStyle.YESNO));
                 lbGameList.AddItem(info, true);
             }
         }

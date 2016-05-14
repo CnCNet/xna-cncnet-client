@@ -41,7 +41,9 @@ namespace DTAClient.DXGUI.GameLobby
 
             btnLeaveGame.Text = "Main Menu";
 
-            InitPlayerOptionDropdowns(128, 102, 90, 76, 65, new Point(13, 24));
+            MapPreviewBox.EnableContextMenu = true;
+
+            InitPlayerOptionDropdowns(128, 98, 90, 48, 55, new Point(6, 24));
 
             lbMapList = new DXMultiColumnListBox(WindowManager);
             lbMapList.Name = "lbMapList";
@@ -52,19 +54,11 @@ namespace DTAClient.DXGUI.GameLobby
             lbMapList.DrawMode = PanelBackgroundImageDrawMode.STRETCHED;
             lbMapList.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 192), 1, 1);
             lbMapList.LineHeight = 16;
-            lbMapList.DrawListBoxBorders = true;
+            lbMapList.DrawListBoxBorders = false;
 
-            DXPanel rankHeader = new DXPanel(WindowManager);
-            rankHeader.BackgroundTexture = AssetLoader.LoadTexture("rank.png");
-            rankHeader.ClientRectangle = new Rectangle(0, 0, rankHeader.BackgroundTexture.Width,
-                19);
+            //lbMapList.AddColumn(" ", 30);
 
-            DXListBox rankListBox = new DXListBox(WindowManager);
-            rankListBox.TextBorderDistance = 2;
-
-            lbMapList.AddColumn(rankHeader, rankListBox);
-            lbMapList.AddColumn("MAP NAME", lbMapList.ClientRectangle.Width - 67 - rankHeader.ClientRectangle.Width + 1);
-            lbMapList.AddColumn("PLAYERS", 67);
+            lbMapList.AddColumn("MAP NAME", lbMapList.ClientRectangle.Width - rankTextures[1].Width - 3);
 
             ddGameMode = new DXDropDown(WindowManager);
             ddGameMode.ClientRectangle = new Rectangle(lbMapList.ClientRectangle.Right - 150, GameOptionsPanel.ClientRectangle.Y, 150, 21);
@@ -76,11 +70,21 @@ namespace DTAClient.DXGUI.GameLobby
             lblGameModeSelect.FontIndex = 1;
             lblGameModeSelect.Text = "GAME MODE:";
 
-            MapPreviewBox.StartingLocationSelected += MapPreviewBox_StartingLocationSelected;
+            MapPreviewBox.LocalStartingLocationSelected += MapPreviewBox_LocalStartingLocationSelected;
 
             AddChild(lbMapList);
             AddChild(ddGameMode);
             AddChild(lblGameModeSelect);
+
+            DXPanel rankHeader = new DXPanel(WindowManager);
+            rankHeader.BackgroundTexture = AssetLoader.LoadTexture("rank.png");
+            rankHeader.ClientRectangle = new Rectangle(0, 0, rankHeader.BackgroundTexture.Width,
+                19);
+
+            DXListBox rankListBox = new DXListBox(WindowManager);
+            rankListBox.TextBorderDistance = 2;
+
+            lbMapList.AddColumn(rankHeader, rankListBox);
 
             gameInProgressWindow = new GameInProgressWindow(WindowManager);
             AddChild(gameInProgressWindow);
@@ -102,7 +106,7 @@ namespace DTAClient.DXGUI.GameLobby
             }
         }
 
-        private void MapPreviewBox_StartingLocationSelected(object sender, StartingLocationEventArgs e)
+        private void MapPreviewBox_LocalStartingLocationSelected(object sender, LocalStartingLocationEventArgs e)
         {
             Players[0].StartingLocation = e.StartingLocationIndex + 1;
             CopyPlayerDataToUI();
@@ -133,13 +137,15 @@ namespace DTAClient.DXGUI.GameLobby
 
                 DXListBoxItem playerCountItem = new DXListBoxItem();
                 playerCountItem.TextColor = UISettings.AltColor;
-                playerCountItem.Text = map.MaxPlayers.ToString();
+                playerCountItem.Text = "[" + map.MaxPlayers.ToString() + "]";
 
                 DXListBoxItem[] mapInfoArray = new DXListBoxItem[]
                 {
-                    rankItem,
+                    //playerCountItem,
+                    
                     mapNameItem,
-                    playerCountItem
+                    rankItem,
+
                 };
 
                 lbMapList.AddItem(mapInfoArray);
@@ -190,6 +196,11 @@ namespace DTAClient.DXGUI.GameLobby
         {
             this.Enabled = false;
             this.Visible = false;
+        }
+
+        protected override bool AllowPlayerDropdown()
+        {
+            return false;
         }
     }
 }

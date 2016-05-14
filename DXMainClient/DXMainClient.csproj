@@ -132,6 +132,8 @@
     <Compile Include="DXGUI\GameLobby\GameLobbyCheckBox.cs" />
     <Compile Include="DXGUI\GameLobby\GameLobbyDropDown.cs" />
     <Compile Include="DXGUI\GameLobby\MapPreviewBox.cs" />
+    <Compile Include="DXGUI\GameLobby\MultiplayerGameLobby.cs" />
+    <Compile Include="DXGUI\GameLobby\PlayerLocationIndicator.cs" />
     <Compile Include="DXGUI\GameLobby\SkirmishLobby.cs" />
     <Compile Include="DXGUI\LoadingScreen.cs" />
     <Compile Include="DXGUI\MainMenu.cs" />

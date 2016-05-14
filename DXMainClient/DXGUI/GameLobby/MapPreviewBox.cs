@@ -20,10 +20,12 @@ namespace DTAClient.DXGUI.GameLobby
     {
         const int MAX_STARTING_LOCATIONS = 8;
 
-        public delegate void StartingLocationSelectedEventHandler(object sender, 
-            StartingLocationEventArgs e);
+        public delegate void LocalStartingLocationSelectedEventHandler(object sender, 
+            LocalStartingLocationEventArgs e);
 
-        public event StartingLocationSelectedEventHandler StartingLocationSelected;
+        public event LocalStartingLocationSelectedEventHandler LocalStartingLocationSelected;
+
+        public event EventHandler StartingLocationApplied;
 
         public MapPreviewBox(WindowManager windowManager, 
             List<PlayerInfo> players, List<PlayerInfo> aiPlayers,
@@ -33,10 +35,6 @@ namespace DTAClient.DXGUI.GameLobby
             this.players = players;
             this.aiPlayers = aiPlayers;
             this.mpColors = mpColors;
-
-            sideTextures = new Texture2D[sides.Length + 1];
-            for (int i = 1; i <= sides.Length; i++)
-                sideTextures[i] = AssetLoader.LoadTexture(sides[i - 1] + "icon.png");
         }
 
         Map _map;
@@ -52,16 +50,22 @@ namespace DTAClient.DXGUI.GameLobby
 
         public int FontIndex { get; set; }
 
+        /// <summary>
+        /// Controls whether the context menu is enabled for this map preview box.
+        /// Skirmish games and online games where the local player is the host should
+        /// set have this set to true.
+        /// </summary>
+        public bool EnableContextMenu { get; set; }
+
+        string[] teamIds = new string[] { String.Empty, "[A] ", "[B] ", "[C] ", "[D] " };
+
+        PlayerLocationIndicator[] startingLocationIndicators;
+
         List<MultiplayerColor> mpColors;
         List<PlayerInfo> players;
         List<PlayerInfo> aiPlayers;
 
-        DXPanel[] startingLocationIndicators;
-        List<PlayerInfo>[] playersOnStartingLocations;
-
-        Texture2D[] sideTextures;
-
-        string[] teamIds = new string[] { String.Empty, "[A] ", "[B] ", "[C] ", "[D] " };
+        DXContextMenu contextMenu;
 
         Rectangle textureRectangle;
 
@@ -73,32 +77,61 @@ namespace DTAClient.DXGUI.GameLobby
 
         public override void Initialize()
         {
-            startingLocationIndicators = new DXPanel[MAX_STARTING_LOCATIONS];
-
             disposeTextures = !MCDomainController.Instance.GetMapPreviewPreloadStatus();
 
-            playersOnStartingLocations = new List<PlayerInfo>[MAX_STARTING_LOCATIONS];
+            startingLocationIndicators = new PlayerLocationIndicator[MAX_STARTING_LOCATIONS];
+
+            Color nameBackgroundColor = AssetLoader.GetARGBColorFromString(
+                DomainController.Instance().GetMapPreviewNameBackgroundColor());
+
+            Color nameBorderColor = AssetLoader.GetARGBColorFromString(
+                DomainController.Instance().GetMapPreviewNameBorderColor());
 
             // Init starting location indicators
             for (int i = 0; i < MAX_STARTING_LOCATIONS; i++)
             {
-                DXPanel indicator = new DXPanel(WindowManager);
-                indicator.Name = "startingLocationIndicator" + i;
-                indicator.DrawBorders = false;
-                indicator.BackgroundTexture = AssetLoader.LoadTexture(string.Format("slocindicator{0}.png", i + 1));
-                indicator.ClientRectangle = indicator.BackgroundTexture.Bounds;
-                indicator.Tag = i;
-                indicator.LeftClick += Indicator_LeftClick;
+                PlayerLocationIndicator indicator = new PlayerLocationIndicator(WindowManager, mpColors, 
+                    nameBackgroundColor, nameBorderColor);
+                indicator.FontIndex = FontIndex;
                 indicator.Visible = false;
                 indicator.Enabled = false;
+                indicator.WaypointTexture = AssetLoader.LoadTexture(string.Format("slocindicator{0}.png", i + 1));
+                indicator.Tag = i;
+                indicator.LeftClick += Indicator_LeftClick;
 
-                playersOnStartingLocations[i] = new List<PlayerInfo>();
                 startingLocationIndicators[i] = indicator;
 
                 AddChild(indicator);
             }
 
+            contextMenu = new DXContextMenu(WindowManager);
+            contextMenu.ClientRectangle = new Rectangle(0, 0, 150, 2);
+            contextMenu.OptionSelected += ContextMenu_OptionSelected;
+            AddChild(contextMenu);
+            contextMenu.Enabled = false;
+            contextMenu.Visible = false;
+
             base.Initialize();
+        }
+
+        private void ContextMenu_OptionSelected(object sender, ContextMenuOptionEventArgs e)
+        {
+            PlayerInfo pInfo;
+
+            if (e.Index >= players.Count)
+            {
+                int aiIndex = e.Index - players.Count;
+                if (aiIndex >= aiPlayers.Count)
+                    return;
+
+                pInfo = aiPlayers[aiIndex];
+            }
+            else
+                pInfo = players[e.Index];
+
+            pInfo.StartingLocation = (int)contextMenu.Tag + 1;
+
+            StartingLocationApplied?.Invoke(this, EventArgs.Empty);
         }
 
         /// <summary>
@@ -107,10 +140,35 @@ namespace DTAClient.DXGUI.GameLobby
         /// </summary>
         private void Indicator_LeftClick(object sender, EventArgs e)
         {
-            DXPanel indicator = (DXPanel)sender;
+            var indicator = (PlayerLocationIndicator)sender;
 
-            StartingLocationSelected?.Invoke(this,
-                new StartingLocationEventArgs((int)indicator.Tag));
+            if (!EnableContextMenu)
+            {
+                LocalStartingLocationSelected?.Invoke(sender, new LocalStartingLocationEventArgs((int)indicator.Tag));
+                return;
+            }
+
+            int x = indicator.ClientRectangle.Right;
+            int y = indicator.ClientRectangle.Top;
+
+            if (x + contextMenu.ClientRectangle.Width > ClientRectangle.Width)
+                x = indicator.ClientRectangle.Left - contextMenu.ClientRectangle.Width;
+
+            if (y + contextMenu.ClientRectangle.Height > ClientRectangle.Height)
+                y = ClientRectangle.Height - contextMenu.ClientRectangle.Height;
+
+            contextMenu.ClientRectangle = new Rectangle(x, y, contextMenu.ClientRectangle.Width, contextMenu.ClientRectangle.Height);
+            contextMenu.Tag = indicator.Tag;
+
+            int index = 0;
+            foreach (PlayerInfo pInfo in players.Union(aiPlayers))
+            {
+                contextMenu.Items[index].Selectable = pInfo.StartingLocation != (int)indicator.Tag + 1;
+                index++;
+            }
+
+            contextMenu.Enabled = true;
+            contextMenu.Visible = true;
         }
 
         /// <summary>
@@ -167,13 +225,13 @@ namespace DTAClient.DXGUI.GameLobby
 
             for (int i = 0; i < Map.MaxPlayers; i++)
             {
-                DXPanel indicator = startingLocationIndicators[i];
+                PlayerLocationIndicator indicator = startingLocationIndicators[i];
 
                 Point location = new Point(
                     texturePositionX + (int)(Map.StartingLocations[i].X * ratio),
                     texturePositionY + (int)(Map.StartingLocations[i].Y * ratio));
 
-                indicator.ClientRectangle = new Rectangle(location, indicator.ClientRectangle.Size);
+                indicator.SetPosition(location);
                 indicator.Enabled = true;
                 indicator.Visible = true;
             }
@@ -187,20 +245,58 @@ namespace DTAClient.DXGUI.GameLobby
 
         public void UpdateStartingLocationTexts()
         {
-            foreach (List<PlayerInfo> list in playersOnStartingLocations)
-                list.Clear();
+            foreach (PlayerLocationIndicator indicator in startingLocationIndicators)
+                indicator.Players.Clear();
 
             foreach (PlayerInfo pInfo in players)
             {
                 if (pInfo.StartingLocation > 0)
-                    playersOnStartingLocations[pInfo.StartingLocation - 1].Add(pInfo);
+                    startingLocationIndicators[pInfo.StartingLocation - 1].Players.Add(pInfo);
             }
 
             foreach (PlayerInfo aiInfo in aiPlayers)
             {
                 if (aiInfo.StartingLocation > 0)
-                    playersOnStartingLocations[aiInfo.StartingLocation - 1].Add(aiInfo);
+                    startingLocationIndicators[aiInfo.StartingLocation - 1].Players.Add(aiInfo);
             }
+
+            foreach (PlayerLocationIndicator indicator in startingLocationIndicators)
+                indicator.Refresh();
+
+            contextMenu.ClearItems();
+
+            int id = 1;
+
+            foreach (PlayerInfo pInfo in players.Union(aiPlayers))
+            {
+                string text = pInfo.Name;
+
+                if (pInfo.TeamId > 0)
+                {
+                    text = teamIds[pInfo.TeamId] + text;
+                }
+
+                contextMenu.AddItem(id + ". " + text,
+                    pInfo.ColorId > 0 ? mpColors[pInfo.ColorId - 1].XnaColor : Color.White);
+
+                id++;
+            }
+        }
+
+        public override void OnMouseEnter()
+        {
+            foreach (PlayerLocationIndicator indicator in startingLocationIndicators)
+                indicator.BackgroundShown = true;
+
+            base.OnMouseEnter();
+        }
+
+        public override void OnMouseLeave()
+        {
+            foreach (PlayerLocationIndicator indicator in startingLocationIndicators)
+                indicator.BackgroundShown = false;
+
+            base.OnMouseLeave();
         }
 
         public override void Draw(GameTime gameTime)
@@ -216,6 +312,12 @@ namespace DTAClient.DXGUI.GameLobby
             if (texture != null)
                 Renderer.DrawTexture(texture, textureRectangle, Color.White);
 
+            if (useNearestNeighbour)
+            {
+                Renderer.EndDraw();
+                Renderer.BeginDraw();
+            }
+
             for (int i = 0; i < Children.Count; i++)
             {
                 if (Children[i].Visible)
@@ -223,62 +325,12 @@ namespace DTAClient.DXGUI.GameLobby
                     Children[i].Draw(gameTime);
                 }
             }
-
-            Vector2 textSize = Renderer.GetTextDimensions("@", FontIndex);
-
-            for (int i = 0; i < startingLocationIndicators.Length; i++)
-            {
-                DXPanel indicator = startingLocationIndicators[i];
-
-                if (!indicator.Visible)
-                    continue;
-
-                indicator.Draw(gameTime);
-
-                Rectangle displayRectangle = indicator.WindowRectangle();
-
-                int y = displayRectangle.Y +
-                    (indicator.ClientRectangle.Height - (int)textSize.Y) / 2;
-
-                foreach (PlayerInfo pInfo in playersOnStartingLocations[i])
-                {
-                    Color remapColor = Color.White;
-                    if (pInfo.ColorId > 0)
-                        remapColor = mpColors[pInfo.ColorId - 1].XnaColor;
-
-                    string text = teamIds[pInfo.TeamId] + pInfo.Name;
-
-                    int textXPosition = 3;
-
-                    if (pInfo.SideId < sideTextures.Length && pInfo.SideId > 0)
-                    {
-                        Texture2D sideTexture = sideTextures[pInfo.SideId];
-
-                        Vector2 playerTextSize = Renderer.GetTextDimensions(text, FontIndex);
-
-                        Renderer.DrawTexture(sideTexture,
-                            new Rectangle(displayRectangle.Right + textXPosition + (int)playerTextSize.X + 2,
-                            y, sideTexture.Width, sideTexture.Height), Color.White);
-                    }
-
-                    Renderer.DrawStringWithShadow(text, FontIndex,
-                        new Vector2(displayRectangle.Right + textXPosition,
-                        y), remapColor);
-                    y += (int)textSize.Y + 3;
-                }
-            }
-
-            if (useNearestNeighbour)
-            {
-                Renderer.EndDraw();
-                Renderer.BeginDraw();
-            }
         }
     }
 
-    public class StartingLocationEventArgs : EventArgs
+    public class LocalStartingLocationEventArgs : EventArgs
     {
-        public StartingLocationEventArgs(int startingLocationIndex)
+        public LocalStartingLocationEventArgs(int startingLocationIndex)
         {
             StartingLocationIndex = startingLocationIndex;
         }
