@@ -36,7 +36,7 @@ namespace DTAClient.DXGUI
             lbSaveGameList.Name = "lbSaveGameList";
             lbSaveGameList.AddColumn("SAVED GAME NAME", 400);
             lbSaveGameList.AddColumn("DATE / TIME", 174);
-            lbSaveGameList.ClientRectangle = new Rectangle(13, 13, 574, 300);
+            lbSaveGameList.ClientRectangle = new Rectangle(13, 13, 574, 317);
             lbSaveGameList.BackgroundTexture = AssetLoader.LoadTexture("loadmissionpanelbg.png");
             lbSaveGameList.SelectedIndexChanged += ListBox_SelectedIndexChanged;
 
@@ -44,7 +44,7 @@ namespace DTAClient.DXGUI
             btnLaunch.IdleTexture = AssetLoader.LoadTexture("133pxbtn.png");
             btnLaunch.HoverTexture = AssetLoader.LoadTexture("133pxbtn_c.png");
             btnLaunch.HoverSoundEffect = AssetLoader.LoadSound("button.wav");
-            btnLaunch.ClientRectangle = new Rectangle(161, 328, 133, 23);
+            btnLaunch.ClientRectangle = new Rectangle(161, 345, 133, 23);
             btnLaunch.FontIndex = 1;
             btnLaunch.Text = "Load";
             btnLaunch.AllowClick = false;

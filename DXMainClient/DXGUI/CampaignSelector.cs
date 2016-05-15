@@ -305,6 +305,7 @@ namespace DTAClient.DXGUI
                 if (String.IsNullOrEmpty(scenario))
                 {
                     item.TextColor = AssetLoader.GetColorFromString(DomainController.Instance().GetListBoxHeaderColor());
+                    item.IsHeader = true;
                     item.Selectable = false;
                 }
                 else
