@@ -40,6 +40,8 @@ namespace DTAClient.domain.CnCNet
         public int Port { get; set; }
         public bool Verified { get; set; }
 
+        public int Index { get; set; }
+
         /// <summary>
         /// Returns the "reversed" AI level ("how it was in Tiberian Sun UI") of the AI.
         /// 2 = Hard, 1 = Medium, 0 = Easy.

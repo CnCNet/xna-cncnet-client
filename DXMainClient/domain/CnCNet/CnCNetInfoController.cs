@@ -16,8 +16,7 @@ namespace DTAClient.domain.CnCNet
     /// </summary>
     public static class CnCNetInfoController
     {
-        public delegate void CnCNetGameCountUpdatedEventHandler(int gameCount);
-        public static event CnCNetGameCountUpdatedEventHandler CnCNetGameCountUpdated;
+        internal static event EventHandler<PlayerCountEventArgs> CnCNetGameCountUpdated;
 
         static bool ServiceDisabled = false;
 
@@ -37,7 +36,7 @@ namespace DTAClient.domain.CnCNet
             {
                 if (ticks == 10 && CnCNetGameCountUpdated != null)
                 {
-                    CnCNetGameCountUpdated(GetCnCNetGameCount());
+                    CnCNetGameCountUpdated(null, new PlayerCountEventArgs(GetCnCNetPlayerCount()));
                     ticks = 0;
                 }
 
@@ -51,23 +50,25 @@ namespace DTAClient.domain.CnCNet
             ServiceDisabled = true;
         }
 
-        private static int GetCnCNetGameCount()
+        private static int GetCnCNetPlayerCount()
         {
             try
             {
                 WebClient client = new WebClient();
 
                 Stream data = client.OpenRead("http://api.cncnet.org/status");
-                StreamReader reader = new StreamReader(data);
-                string xml = reader.ReadToEnd();
+                
+                string info = string.Empty;
 
-                data.Close();
-                reader.Close();
+                using (StreamReader reader = new StreamReader(data))
+                {
+                    info = reader.ReadToEnd();
+                }
 
-                xml = xml.Replace("{", String.Empty);
-                xml = xml.Replace("}", String.Empty);
-                xml = xml.Replace("\"", String.Empty);
-                string[] values = xml.Split(new char[] { ',' });
+                info = info.Replace("{", String.Empty);
+                info = info.Replace("}", String.Empty);
+                info = info.Replace("\"", String.Empty);
+                string[] values = info.Split(new char[] { ',' });
 
                 int numGames = -1;
 
@@ -87,5 +88,15 @@ namespace DTAClient.domain.CnCNet
                 return -1;
             }
         }
+    }
+
+    internal class PlayerCountEventArgs : EventArgs
+    {
+        public PlayerCountEventArgs(int playerCount)
+        {
+            PlayerCount = playerCount;
+        }
+
+        public int PlayerCount { get; set; }
     }
 }

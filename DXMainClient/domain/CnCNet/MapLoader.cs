@@ -29,7 +29,7 @@ namespace DTAClient.domain.CnCNet
             thread.Start();
         }
 
-        private void LoadMaps()
+        public void LoadMaps()
         {
             Logger.Log("Loading maps.");
 
