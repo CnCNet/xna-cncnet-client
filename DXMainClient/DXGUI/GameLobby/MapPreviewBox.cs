@@ -10,6 +10,9 @@ using Microsoft.Xna.Framework.Graphics;
 using ClientCore;
 using DTAClient.domain;
 using System.IO;
+using Rampastring.Tools;
+using Microsoft.Xna.Framework.Input;
+using System.Diagnostics;
 
 namespace DTAClient.DXGUI.GameLobby
 {
@@ -23,18 +26,20 @@ namespace DTAClient.DXGUI.GameLobby
         public delegate void LocalStartingLocationSelectedEventHandler(object sender, 
             LocalStartingLocationEventArgs e);
 
-        public event LocalStartingLocationSelectedEventHandler LocalStartingLocationSelected;
+        public event EventHandler<LocalStartingLocationEventArgs> LocalStartingLocationSelected;
 
         public event EventHandler StartingLocationApplied;
 
         public MapPreviewBox(WindowManager windowManager, 
             List<PlayerInfo> players, List<PlayerInfo> aiPlayers,
-            List<MultiplayerColor> mpColors, string[] sides)
+            List<MultiplayerColor> mpColors, string[] sides, IniFile gameOptionsIni)
             : base(windowManager)
         {
             this.players = players;
             this.aiPlayers = aiPlayers;
             this.mpColors = mpColors;
+            this.sides = sides;
+            this.gameOptionsIni = gameOptionsIni;
         }
 
         Map _map;
@@ -59,6 +64,8 @@ namespace DTAClient.DXGUI.GameLobby
 
         string[] teamIds = new string[] { String.Empty, "[A] ", "[B] ", "[C] ", "[D] " };
 
+        string[] sides;
+
         PlayerLocationIndicator[] startingLocationIndicators;
 
         List<MultiplayerColor> mpColors;
@@ -75,36 +82,49 @@ namespace DTAClient.DXGUI.GameLobby
 
         bool useNearestNeighbour = false;
 
+        IniFile gameOptionsIni;
+
         public override void Initialize()
         {
             disposeTextures = !MCDomainController.Instance.GetMapPreviewPreloadStatus();
 
             startingLocationIndicators = new PlayerLocationIndicator[MAX_STARTING_LOCATIONS];
 
-            Color nameBackgroundColor = AssetLoader.GetARGBColorFromString(
+            Color nameBackgroundColor = AssetLoader.GetRGBAColorFromString(
                 DomainController.Instance().GetMapPreviewNameBackgroundColor());
 
-            Color nameBorderColor = AssetLoader.GetARGBColorFromString(
+            Color nameBorderColor = AssetLoader.GetRGBAColorFromString(
                 DomainController.Instance().GetMapPreviewNameBorderColor());
+
+            contextMenu = new DXContextMenu(WindowManager);
+            contextMenu.Tag = -1;
+
+            double angularVelocity = gameOptionsIni.GetDoubleValue("General", "StartingLocationAngularVelocity", 0.015);
+            double reservedAngularVelocity = gameOptionsIni.GetDoubleValue("General", "ReservedStartingLocationAngularVelocity", -0.0075);
+
+            Color hoverRemapColor = AssetLoader.GetRGBAColorFromString(DomainController.Instance().GetMapPreviewStartingLocationHoverRemapColor());
 
             // Init starting location indicators
             for (int i = 0; i < MAX_STARTING_LOCATIONS; i++)
             {
                 PlayerLocationIndicator indicator = new PlayerLocationIndicator(WindowManager, mpColors, 
-                    nameBackgroundColor, nameBorderColor);
+                    nameBackgroundColor, nameBorderColor, contextMenu);
                 indicator.FontIndex = FontIndex;
                 indicator.Visible = false;
                 indicator.Enabled = false;
+                indicator.AngularVelocity = angularVelocity;
+                indicator.HoverRemapColor = hoverRemapColor;
+                indicator.ReservedAngularVelocity = reservedAngularVelocity;
                 indicator.WaypointTexture = AssetLoader.LoadTexture(string.Format("slocindicator{0}.png", i + 1));
                 indicator.Tag = i;
                 indicator.LeftClick += Indicator_LeftClick;
+                indicator.RightClick += Indicator_RightClick;
 
                 startingLocationIndicators[i] = indicator;
 
                 AddChild(indicator);
             }
 
-            contextMenu = new DXContextMenu(WindowManager);
             contextMenu.ClientRectangle = new Rectangle(0, 0, 150, 2);
             contextMenu.OptionSelected += ContextMenu_OptionSelected;
             AddChild(contextMenu);
@@ -144,7 +164,7 @@ namespace DTAClient.DXGUI.GameLobby
 
             if (!EnableContextMenu)
             {
-                LocalStartingLocationSelected?.Invoke(sender, new LocalStartingLocationEventArgs((int)indicator.Tag));
+                LocalStartingLocationSelected?.Invoke(this, new LocalStartingLocationEventArgs((int)indicator.Tag + 1));
                 return;
             }
 
@@ -161,14 +181,40 @@ namespace DTAClient.DXGUI.GameLobby
             contextMenu.Tag = indicator.Tag;
 
             int index = 0;
-            foreach (PlayerInfo pInfo in players.Union(aiPlayers))
+            foreach (PlayerInfo pInfo in players.Concat(aiPlayers))
             {
-                contextMenu.Items[index].Selectable = pInfo.StartingLocation != (int)indicator.Tag + 1;
+                contextMenu.Items[index].Selectable = pInfo.StartingLocation != (int)indicator.Tag + 1 && 
+                    pInfo.SideId < sides.Length + 1;
                 index++;
             }
 
             contextMenu.Enabled = true;
             contextMenu.Visible = true;
+        }
+
+        private void Indicator_RightClick(object sender, EventArgs e)
+        {
+            var indicator = (PlayerLocationIndicator)sender;
+
+            if (!EnableContextMenu)
+            {
+                PlayerInfo pInfo = players.Find(p => p.Name == ProgramConstants.PLAYERNAME);
+
+                if (pInfo.StartingLocation == (int)indicator.Tag + 1)
+                {
+                    LocalStartingLocationSelected?.Invoke(this, new LocalStartingLocationEventArgs(0));
+                }
+
+                return;
+            }       
+
+            foreach (PlayerInfo pInfo in players.Union(aiPlayers))
+            {
+                if (pInfo.StartingLocation == (int)indicator.Tag + 1)
+                    pInfo.StartingLocation = 0;
+            }
+
+            StartingLocationApplied?.Invoke(this, EventArgs.Empty);
         }
 
         /// <summary>
@@ -267,7 +313,7 @@ namespace DTAClient.DXGUI.GameLobby
 
             int id = 1;
 
-            foreach (PlayerInfo pInfo in players.Union(aiPlayers))
+            foreach (PlayerInfo pInfo in players.Concat(aiPlayers))
             {
                 string text = pInfo.Name;
 
@@ -297,6 +343,16 @@ namespace DTAClient.DXGUI.GameLobby
                 indicator.BackgroundShown = false;
 
             base.OnMouseLeave();
+        }
+
+        public override void OnLeftClick()
+        {
+            if (Keyboard.IsKeyHeldDown(Keys.LeftControl))
+            {
+                Process.Start(ProgramConstants.GamePath + Map.PreviewPath);
+            }
+
+            base.OnLeftClick();
         }
 
         public override void Draw(GameTime gameTime)

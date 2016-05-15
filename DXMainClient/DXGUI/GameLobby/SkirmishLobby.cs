@@ -39,11 +39,14 @@ namespace DTAClient.DXGUI.GameLobby
                 AssetLoader.LoadTexture("rankHard.png")
             };
 
+            //InitPlayerOptionDropdowns(128, 98, 90, 48, 55, new Point(6, 24));
+            InitPlayerOptionDropdowns();
+
             btnLeaveGame.Text = "Main Menu";
 
             MapPreviewBox.EnableContextMenu = true;
 
-            InitPlayerOptionDropdowns(128, 98, 90, 48, 55, new Point(6, 24));
+            ddPlayerSides[0].AddItem("Spectator", AssetLoader.LoadTexture("spectatoricon.png"));
 
             lbMapList = new DXMultiColumnListBox(WindowManager);
             lbMapList.Name = "lbMapList";
@@ -117,6 +120,7 @@ namespace DTAClient.DXGUI.GameLobby
             GameMode = GameModes[ddGameMode.SelectedIndex];
 
             lbMapList.ClearItems();
+            lbMapList.SetTopIndex(0);
 
             foreach (Map map in GameMode.Maps)
             {

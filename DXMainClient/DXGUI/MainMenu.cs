@@ -218,6 +218,17 @@ namespace DTAClient.DXGUI
             skirmishLobby.VisibleChanged += SkirmishLobby_VisibleChanged;
         }
 
+        private void CnCNetInfoController_CnCNetGameCountUpdated(object sender, PlayerCountEventArgs e)
+        {
+            lock (locker)
+            {
+                if (e.PlayerCount == -1)
+                    lblCnCNetPlayerCount.Text = "N/A";
+                else
+                    lblCnCNetPlayerCount.Text = e.PlayerCount.ToString();
+            }
+        }
+
         private void SkirmishLobby_VisibleChanged(object sender, EventArgs e)
         {
             if (skirmishLobby.Visible)
@@ -367,17 +378,6 @@ namespace DTAClient.DXGUI
         }
 
         #endregion
-
-        private void CnCNetInfoController_CnCNetGameCountUpdated(int gameCount)
-        {
-            lock (locker)
-            {
-                if (gameCount == -1)
-                    lblCnCNetPlayerCount.Text = "N/A";
-                else
-                    lblCnCNetPlayerCount.Text = gameCount.ToString();
-            }
-        }
 
         private void BtnOptions_LeftClick(object sender, EventArgs e)
         {

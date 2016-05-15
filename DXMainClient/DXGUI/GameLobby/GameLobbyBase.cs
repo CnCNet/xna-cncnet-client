@@ -21,9 +21,9 @@ namespace DTAClient.DXGUI.GameLobby
     public abstract class GameLobbyBase : DXWindow
     {
         protected const int PLAYER_COUNT = 8;
-        protected const int PLAYER_OPTION_VERTICAL_MARGIN = 9;
+        protected const int PLAYER_OPTION_VERTICAL_MARGIN = 12;
         protected const int PLAYER_OPTION_HORIZONTAL_MARGIN = 3;
-        protected const int PLAYER_OPTION_CAPTION_Y = 5;
+        protected const int PLAYER_OPTION_CAPTION_Y = 6;
         const int DROP_DOWN_HEIGHT = 21;
 
         /// <summary>
@@ -120,14 +120,14 @@ namespace DTAClient.DXGUI.GameLobby
             GameOptionsPanel = new DXPanel(WindowManager);
             GameOptionsPanel.Name = "GameOptionsPanel";
             GameOptionsPanel.BackgroundTexture = AssetLoader.LoadTexture("gamelobbyoptionspanelbg.png");
-            GameOptionsPanel.ClientRectangle = new Rectangle(ClientRectangle.Width - 362, 12, 350, 265);
+            GameOptionsPanel.ClientRectangle = new Rectangle(ClientRectangle.Width - 411, 12, 399, 289);
             GameOptionsPanel.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 192), 1, 1);
             GameOptionsPanel.DrawMode = PanelBackgroundImageDrawMode.STRETCHED;
 
             PlayerOptionsPanel = new DXPanel(WindowManager);
             PlayerOptionsPanel.Name = "PlayerOptionsPanel";
             PlayerOptionsPanel.BackgroundTexture = AssetLoader.LoadTexture("gamelobbypanelbg.png");
-            PlayerOptionsPanel.ClientRectangle = new Rectangle(GameOptionsPanel.ClientRectangle.Left - 401, 12, 395, 265);
+            PlayerOptionsPanel.ClientRectangle = new Rectangle(GameOptionsPanel.ClientRectangle.Left - 401, 12, 395, GameOptionsPanel.ClientRectangle.Height);
             PlayerOptionsPanel.LeftClick += PlayerOptionsPanel_LeftClick;
             PlayerOptionsPanel.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 192), 1, 1);
             PlayerOptionsPanel.DrawMode = PanelBackgroundImageDrawMode.STRETCHED;
@@ -153,12 +153,13 @@ namespace DTAClient.DXGUI.GameLobby
             btnLaunchGame.LeftClick += BtnLaunchGame_LeftClick;
 
             MapPreviewBox = new MapPreviewBox(WindowManager, Players, AIPlayers, MPColors, 
-                _gameOptionsIni.GetStringValue("General", "Sides", String.Empty).Split(','));
+                _gameOptionsIni.GetStringValue("General", "Sides", String.Empty).Split(','),
+                _gameOptionsIni);
             MapPreviewBox.Name = "MapPreviewBox";
             MapPreviewBox.ClientRectangle = new Rectangle(PlayerOptionsPanel.ClientRectangle.X,
-                PlayerOptionsPanel.ClientRectangle.Bottom + 30,
+                PlayerOptionsPanel.ClientRectangle.Bottom + 6,
                 GameOptionsPanel.ClientRectangle.Right - PlayerOptionsPanel.ClientRectangle.Left,
-                ClientRectangle.Height - PlayerOptionsPanel.ClientRectangle.Bottom - 89);
+                ClientRectangle.Height - PlayerOptionsPanel.ClientRectangle.Bottom - 65);
             MapPreviewBox.FontIndex = 1;
             MapPreviewBox.DrawMode = PanelBackgroundImageDrawMode.STRETCHED;
             MapPreviewBox.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 128), 1, 1);
@@ -184,6 +185,11 @@ namespace DTAClient.DXGUI.GameLobby
                 lblMapName.ClientRectangle.Bottom + 3, 0, 0);
             lblGameMode.FontIndex = 1;
             lblGameMode.Text = "Game mode:";
+
+            AddChild(lblMapName);
+            AddChild(lblMapAuthor);
+            AddChild(lblGameMode);
+            AddChild(MapPreviewBox);
 
             SharedUILogic.GameProcessExited += GameProcessExited;
 
@@ -241,13 +247,9 @@ namespace DTAClient.DXGUI.GameLobby
                 AddChild(dropdown);
             }
 
-            AddChild(MapPreviewBox);
             AddChild(PlayerOptionsPanel);
             AddChild(btnLaunchGame);
             AddChild(btnLeaveGame);
-            AddChild(lblMapName);
-            AddChild(lblMapAuthor);
-            AddChild(lblGameMode);
 
             base.Initialize();
         }
@@ -265,20 +267,26 @@ namespace DTAClient.DXGUI.GameLobby
         /// <summary>
         /// Initializes the player option drop-down controls.
         /// </summary>
-        /// <param name="playerNameWidth">The width of the "player name" drop-down control.</param>
-        /// <param name="sideWidth">The width of the "player side" drop-down control.</param>
-        /// <param name="colorWidth">The width of the "player color" drop-down control.</param>
-        /// <param name="startWidth">The width of the "player starting location" drop-down control.</param>
-        /// <param name="teamWidth">The width of the "player team" drop-down control.</param>
-        /// <param name="optionsPosition">The top-left base position of the player option controls.</param>
-        protected void InitPlayerOptionDropdowns(int playerNameWidth, int sideWidth,
-            int colorWidth, int startWidth, int teamWidth, Point optionsPosition)
+        protected void InitPlayerOptionDropdowns()
         {
             ddPlayerNames = new DXDropDown[PLAYER_COUNT];
             ddPlayerSides = new DXDropDown[PLAYER_COUNT];
             ddPlayerColors = new DXDropDown[PLAYER_COUNT];
             ddPlayerStarts = new DXDropDown[PLAYER_COUNT];
             ddPlayerTeams = new DXDropDown[PLAYER_COUNT];
+
+            int playerOptionVecticalMargin = GameOptionsIni.GetIntValue(Name, "PlayerOptionVerticalMargin", PLAYER_OPTION_VERTICAL_MARGIN);
+            int playerOptionHorizontalMargin = GameOptionsIni.GetIntValue(Name, "PlayerOptionHorizontalMargin", PLAYER_OPTION_HORIZONTAL_MARGIN);
+            int playerOptionCaptionLocationY = GameOptionsIni.GetIntValue(Name, "PlayerOptionCaptionLocationY", PLAYER_OPTION_CAPTION_Y);
+            int playerNameWidth = GameOptionsIni.GetIntValue(Name, "PlayerNameWidth", 136);
+            int sideWidth = GameOptionsIni.GetIntValue(Name, "SideWidth", 91);
+            int colorWidth = GameOptionsIni.GetIntValue(Name, "ColorWidth", 79);
+            int startWidth = GameOptionsIni.GetIntValue(Name, "StartWidth", 49);
+            int teamWidth = GameOptionsIni.GetIntValue(Name, "TeamWidth", 46);
+            int locationX = GameOptionsIni.GetIntValue(Name, "PlayerOptionLocationX", 25);
+            int locationY = GameOptionsIni.GetIntValue(Name, "PlayerOptionLocationY", 24);
+
+            // InitPlayerOptionDropdowns(136, 91, 79, 49, 46, new Point(25, 24));
 
             string[] sides = GameOptionsIni.GetStringValue("General", "Sides", String.Empty).Split(',');
             _sideCount = sides.Length;
@@ -287,8 +295,8 @@ namespace DTAClient.DXGUI.GameLobby
             {
                 DXDropDown ddPlayerName = new DXDropDown(WindowManager);
                 ddPlayerName.Name = "ddPlayerName" + i;
-                ddPlayerName.ClientRectangle = new Rectangle(optionsPosition.X,
-                    optionsPosition.Y + (DROP_DOWN_HEIGHT + PLAYER_OPTION_VERTICAL_MARGIN) * i,
+                ddPlayerName.ClientRectangle = new Rectangle(locationX,
+                    locationY + (DROP_DOWN_HEIGHT + playerOptionVecticalMargin) * i,
                     playerNameWidth, DROP_DOWN_HEIGHT);
                 ddPlayerName.AddItem(String.Empty);
                 ddPlayerName.AddItem("Easy AI");
@@ -301,7 +309,7 @@ namespace DTAClient.DXGUI.GameLobby
                 DXDropDown ddPlayerSide = new DXDropDown(WindowManager);
                 ddPlayerSide.Name = "ddPlayerSide" + i;
                 ddPlayerSide.ClientRectangle = new Rectangle(
-                    ddPlayerName.ClientRectangle.Right + PLAYER_OPTION_HORIZONTAL_MARGIN,
+                    ddPlayerName.ClientRectangle.Right + playerOptionHorizontalMargin,
                     ddPlayerName.ClientRectangle.Y, sideWidth, DROP_DOWN_HEIGHT);
                 ddPlayerSide.AddItem("Random", AssetLoader.LoadTexture("randomicon.png"));
                 foreach (string sideName in sides)
@@ -313,7 +321,7 @@ namespace DTAClient.DXGUI.GameLobby
                 DXDropDown ddPlayerColor = new DXDropDown(WindowManager);
                 ddPlayerColor.Name = "ddPlayerColor" + i;
                 ddPlayerColor.ClientRectangle = new Rectangle(
-                    ddPlayerSide.ClientRectangle.Right + PLAYER_OPTION_HORIZONTAL_MARGIN,
+                    ddPlayerSide.ClientRectangle.Right + playerOptionHorizontalMargin,
                     ddPlayerName.ClientRectangle.Y, colorWidth, DROP_DOWN_HEIGHT);
                 ddPlayerColor.AddItem("Random", Color.White);
                 foreach (MultiplayerColor mpColor in MPColors)
@@ -325,7 +333,7 @@ namespace DTAClient.DXGUI.GameLobby
                 DXDropDown ddPlayerStart = new DXDropDown(WindowManager);
                 ddPlayerStart.Name = "ddPlayerStart" + i;
                 ddPlayerStart.ClientRectangle = new Rectangle(
-                    ddPlayerColor.ClientRectangle.Right + PLAYER_OPTION_HORIZONTAL_MARGIN,
+                    ddPlayerColor.ClientRectangle.Right + playerOptionHorizontalMargin,
                     ddPlayerName.ClientRectangle.Y, startWidth, DROP_DOWN_HEIGHT);
                 for (int j = 1; j < 9; j++)
                     ddPlayerStart.AddItem(j.ToString());
@@ -338,7 +346,7 @@ namespace DTAClient.DXGUI.GameLobby
                 DXDropDown ddPlayerTeam = new DXDropDown(WindowManager);
                 ddPlayerTeam.Name = "ddPlayerTeam" + i;
                 ddPlayerTeam.ClientRectangle = new Rectangle(
-                    ddPlayerColor.ClientRectangle.Right + PLAYER_OPTION_HORIZONTAL_MARGIN,
+                    ddPlayerColor.ClientRectangle.Right + playerOptionHorizontalMargin,
                     ddPlayerName.ClientRectangle.Y, teamWidth, DROP_DOWN_HEIGHT);
                 ddPlayerTeam.AddItem("-");
                 ddPlayerTeam.AddItem("A");
@@ -366,32 +374,32 @@ namespace DTAClient.DXGUI.GameLobby
             lblName.Name = "lblName";
             lblName.Text = "PLAYER";
             lblName.FontIndex = 1;
-            lblName.ClientRectangle = new Rectangle(ddPlayerNames[0].ClientRectangle.X, PLAYER_OPTION_CAPTION_Y, 0, 0);
+            lblName.ClientRectangle = new Rectangle(ddPlayerNames[0].ClientRectangle.X, playerOptionCaptionLocationY, 0, 0);
 
             lblSide = new DXLabel(WindowManager);
             lblSide.Name = "lblSide";
             lblSide.Text = "SIDE";
             lblSide.FontIndex = 1;
-            lblSide.ClientRectangle = new Rectangle(ddPlayerSides[0].ClientRectangle.X, PLAYER_OPTION_CAPTION_Y, 0, 0);
+            lblSide.ClientRectangle = new Rectangle(ddPlayerSides[0].ClientRectangle.X, playerOptionCaptionLocationY, 0, 0);
 
             lblColor = new DXLabel(WindowManager);
             lblColor.Name = "lblColor";
             lblColor.Text = "COLOR";
             lblColor.FontIndex = 1;
-            lblColor.ClientRectangle = new Rectangle(ddPlayerColors[0].ClientRectangle.X, PLAYER_OPTION_CAPTION_Y, 0, 0);
+            lblColor.ClientRectangle = new Rectangle(ddPlayerColors[0].ClientRectangle.X, playerOptionCaptionLocationY, 0, 0);
 
             lblStart = new DXLabel(WindowManager);
             lblStart.Name = "lblStart";
             lblStart.Text = "START";
             lblStart.FontIndex = 1;
-            lblStart.ClientRectangle = new Rectangle(ddPlayerStarts[0].ClientRectangle.X, PLAYER_OPTION_CAPTION_Y, 0, 0);
+            lblStart.ClientRectangle = new Rectangle(ddPlayerStarts[0].ClientRectangle.X, playerOptionCaptionLocationY, 0, 0);
             lblStart.Visible = false;
 
             lblTeam = new DXLabel(WindowManager);
             lblTeam.Name = "lblTeam";
             lblTeam.Text = "TEAM";
             lblTeam.FontIndex = 1;
-            lblTeam.ClientRectangle = new Rectangle(ddPlayerTeams[0].ClientRectangle.X, PLAYER_OPTION_CAPTION_Y, 0, 0);
+            lblTeam.ClientRectangle = new Rectangle(ddPlayerTeams[0].ClientRectangle.X, playerOptionCaptionLocationY, 0, 0);
 
             PlayerOptionsPanel.AddChild(lblName);
             PlayerOptionsPanel.AddChild(lblSide);
@@ -730,6 +738,9 @@ namespace DTAClient.DXGUI.GameLobby
                 pInfo.StartingLocation = ddPlayerStarts[pId].SelectedIndex;
                 pInfo.TeamId = ddPlayerTeams[pId].SelectedIndex;
 
+                if (pInfo.SideId == _sideCount + 1)
+                    pInfo.StartingLocation = 0;
+
                 DXDropDown ddName = ddPlayerNames[pId];
                 if (ddName.SelectedIndex == 1)
                     ddName.SelectedIndex = 0;
@@ -774,6 +785,8 @@ namespace DTAClient.DXGUI.GameLobby
             {
                 PlayerInfo pInfo = Players[pId];
 
+                pInfo.Index = pId;
+
                 DXDropDown ddPlayerName = ddPlayerNames[pId];
                 ddPlayerName.Items[0].Text = pInfo.Name;
                 ddPlayerName.Items[1].Text = string.Empty;
@@ -801,6 +814,8 @@ namespace DTAClient.DXGUI.GameLobby
                 PlayerInfo aiInfo = AIPlayers[aiId];
 
                 int index = Players.Count + aiId;
+
+                aiInfo.Index = index;
 
                 DXDropDown ddPlayerName = ddPlayerNames[index];
                 ddPlayerName.Items[0].Text = "-";

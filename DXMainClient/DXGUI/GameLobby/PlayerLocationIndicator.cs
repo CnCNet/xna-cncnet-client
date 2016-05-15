@@ -19,11 +19,13 @@ namespace DTAClient.DXGUI.GameLobby
         const float TEXTURE_SCALE = 0.25f;
 
         public PlayerLocationIndicator(WindowManager windowManager, List<MultiplayerColor> mpColors,
-            Color nameBackgroundColor, Color nameBorderColor) : base(windowManager)
+            Color nameBackgroundColor, Color nameBorderColor, DXContextMenu contextMenu) : base(windowManager)
         {
             this.mpColors = mpColors;
             this.nameBackgroundColor = nameBackgroundColor;
             this.nameBorderColor = nameBorderColor;
+            this.contextMenu = contextMenu;
+            HoverRemapColor = Color.White;
         }
 
         Texture2D baseTexture;
@@ -37,16 +39,25 @@ namespace DTAClient.DXGUI.GameLobby
 
         public int FontIndex { get; set; }
 
+        public double AngularVelocity = 0.015;
+        public double ReservedAngularVelocity = -0.0075;
+
+        public Color HoverRemapColor { get; set; }
+
+        DXContextMenu contextMenu { get; set; }
+
         Color nameBackgroundColor;
         Color nameBorderColor;
 
         string[] teamIds = new string[] { String.Empty, "[A]", "[B]", "[C]", "[D]" };
 
+        bool isHoveredOn = false;
+
         double backgroundAlpha = 0.0;
         double backgroundAlphaRate = 0.1;
 
         double angle;
-        double angularVelocity = 0.01f;
+
 
         int lineHeight;
 
@@ -80,9 +91,9 @@ namespace DTAClient.DXGUI.GameLobby
 
             foreach (PlayerInfo pInfo in Players)
             {
-                string text = pInfo.Name;
+                string text = (pInfo.Index + 1) + ". " + pInfo.Name;
                 if (pInfo.TeamId > 0)
-                    text = teamIds[pInfo.TeamId] + " " + pInfo.Name;
+                    text = teamIds[pInfo.TeamId] + " " + (pInfo.Index + 1) + ". " + pInfo.Name;
 
                 Vector2 pInfoSize = Renderer.GetTextDimensions(text, FontIndex);
 
@@ -100,14 +111,18 @@ namespace DTAClient.DXGUI.GameLobby
 
         public override void OnMouseEnter()
         {
-            usedTexture = hoverTexture;
+            //usedTexture = hoverTexture;
+
+            isHoveredOn = true;
 
             base.OnMouseEnter();
         }
 
         public override void OnMouseLeave()
         {
-            usedTexture = baseTexture;
+            //usedTexture = baseTexture;
+
+            isHoveredOn = false;
 
             base.OnMouseLeave();
         }
@@ -116,7 +131,14 @@ namespace DTAClient.DXGUI.GameLobby
         {
             base.Update(gameTime);
 
-            angle = Players.Count > 0 ? 0.0 : angle + angularVelocity;
+            angle += Players.Count > 0 ? ReservedAngularVelocity : AngularVelocity;
+
+            if (Players.Count > 0)
+            {
+                usedTexture = hoverTexture;
+            }
+            else
+                usedTexture = baseTexture;
 
             if (BackgroundShown)
                 backgroundAlpha = Math.Min(backgroundAlpha + backgroundAlphaRate, 1.0);
@@ -135,6 +157,16 @@ namespace DTAClient.DXGUI.GameLobby
                 (float)angle,
                 origin,
                 new Vector2(TEXTURE_SCALE), Color.Black);
+
+            if (isHoveredOn || 
+                (contextMenu.Tag == this.Tag && contextMenu.Visible))
+            {
+                Renderer.DrawTexture(usedTexture,
+                new Vector2(displayRectangle.Center.X + 0.5f, displayRectangle.Center.Y),
+                (float)angle,
+                origin,
+                new Vector2(TEXTURE_SCALE + 0.1f), HoverRemapColor);
+            }
 
             Renderer.DrawTexture(usedTexture, 
                 new Vector2(displayRectangle.Center.X + 0.5f, displayRectangle.Center.Y),
@@ -155,18 +187,18 @@ namespace DTAClient.DXGUI.GameLobby
                 if (pInfo.ColorId > 0)
                     textColor = mpColors[pInfo.ColorId - 1].XnaColor;
 
-                string text;
+                string text = (pInfo.Index + 1) + ". " + pInfo.Name;
 
                 int textXPosition = 3;
 
                 if (ClientRectangle.Right + textXPosition + (int)textSize.X > Parent.ClientRectangle.Width)
                 {
                     textXPosition = -(int)textSize.X - 3 - (int)(baseTexture.Width * TEXTURE_SCALE);
-                    text = pInfo.TeamId > 0 ? pInfo.Name + " " + teamIds[pInfo.TeamId] : pInfo.Name;
+                    text = pInfo.TeamId > 0 ? text + " " + teamIds[pInfo.TeamId] : text;
                 }
                 else
                 {
-                    text = pInfo.TeamId > 0 ? teamIds[pInfo.TeamId] + " " + pInfo.Name : pInfo.Name; 
+                    text = pInfo.TeamId > 0 ? teamIds[pInfo.TeamId] + " " + text : text; 
                 }
 
                 int rectangleCoordX = displayRectangle.Right + textXPosition - 2;
