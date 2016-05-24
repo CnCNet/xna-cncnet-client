@@ -123,6 +123,8 @@
     <Compile Include="domain\MainClientConstants.cs" />
     <Compile Include="domain\UserAgentHandler.cs" />
     <Compile Include="DXGUI\CampaignSelector.cs" />
+    <Compile Include="DXGUI\CnCNetLobby.cs" />
+    <Compile Include="DXGUI\GameInformationPanel.cs" />
     <Compile Include="DXGUI\GameInProgressWindow.cs" />
     <Compile Include="DXGUI\GameLoadingWindow.cs" />
     <Compile Include="DXGUI\ExtrasWindow.cs" />
@@ -155,6 +157,26 @@
       <DependentUpon>SplashScreen.cs</DependentUpon>
     </Compile>
     <Compile Include="domain\FinalSunSettings.cs" />
+    <Compile Include="Online\Channel.cs" />
+    <Compile Include="Online\CnCNetManager.cs" />
+    <Compile Include="Online\Connection.cs" />
+    <Compile Include="Online\EventArguments\AttemptedServerEventArgs.cs" />
+    <Compile Include="Online\EventArguments\ChannelEventArgs.cs" />
+    <Compile Include="Online\EventArguments\ChannelModeEventArgs.cs" />
+    <Compile Include="Online\EventArguments\ChannelTopicEventArgs.cs" />
+    <Compile Include="Online\EventArguments\ConnectionLostEventArgs.cs" />
+    <Compile Include="Online\EventArguments\CTCPEventArgs.cs" />
+    <Compile Include="Online\EventArguments\KickEventArgs.cs" />
+    <Compile Include="Online\EventArguments\ServerMessageEventArgs.cs" />
+    <Compile Include="Online\EventArguments\UserAwayEventArgs.cs" />
+    <Compile Include="Online\EventArguments\UserListEventArgs.cs" />
+    <Compile Include="Online\EventArguments\WhoEventArgs.cs" />
+    <Compile Include="Online\IConnectionManager.cs" />
+    <Compile Include="Online\IRCMessage.cs" />
+    <Compile Include="Online\IRCUser.cs" />
+    <Compile Include="Online\QueuedMessage.cs" />
+    <Compile Include="Online\QueuedMessageType.cs" />
+    <Compile Include="Online\Server.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
