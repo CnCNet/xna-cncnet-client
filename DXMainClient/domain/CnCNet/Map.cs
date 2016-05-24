@@ -174,7 +174,7 @@ namespace DTAClient.domain.CnCNet
                         if (enemyInfo.Length == 0)
                             break;
 
-                        int[] info = Utilities.IntArrayFromStringArray(enemyInfo);
+                        int[] info = Conversions.IntArrayFromStringArray(enemyInfo);
 
                         CoopInfo.EnemyHouses.Add(new CoopHouseInfo(info[0], info[1], info[2]));
                     }
@@ -235,7 +235,7 @@ namespace DTAClient.domain.CnCNet
                 }
                 else
                 {
-                    ForcedCheckBoxValues.Add(new KeyValuePair<string, bool>(key, Utilities.BooleanFromString(value, false)));
+                    ForcedCheckBoxValues.Add(new KeyValuePair<string, bool>(key, Conversions.BooleanFromString(value, false)));
                 }
             }
         }

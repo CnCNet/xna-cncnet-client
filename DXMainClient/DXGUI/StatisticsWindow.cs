@@ -476,7 +476,7 @@ namespace DTAClient.DXGUI
                     items.Add(ps.Losses.ToString());
                     items.Add(ps.Economy.ToString());
                     items.Add(ps.Score.ToString());
-                    items.Add(Rampastring.Tools.Utilities.BooleanToString(ps.Won, BooleanStringStyle.YESNO));
+                    items.Add(Rampastring.Tools.Conversions.BooleanToString(ps.Won, BooleanStringStyle.YESNO));
 
                     if (ps.Side == 0 || ps.Side > sides.Length)
                         items.Add("Unknown");
@@ -608,7 +608,7 @@ namespace DTAClient.DXGUI
                 else
                     info.Add(ms.AverageFPS.ToString());
                 info.Add(TimeSpan.FromSeconds(ms.LengthInSeconds).ToString());
-                info.Add(Rampastring.Tools.Utilities.BooleanToString(ms.SawCompletion, BooleanStringStyle.YESNO));
+                info.Add(Rampastring.Tools.Conversions.BooleanToString(ms.SawCompletion, BooleanStringStyle.YESNO));
                 lbGameList.AddItem(info, true);
             }
         }

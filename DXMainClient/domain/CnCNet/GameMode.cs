@@ -68,7 +68,7 @@ namespace DTAClient.domain.CnCNet
                 }
                 else
                 {
-                    ForcedCheckBoxValues.Add(new KeyValuePair<string, bool>(key, Utilities.BooleanFromString(value, false)));
+                    ForcedCheckBoxValues.Add(new KeyValuePair<string, bool>(key, Conversions.BooleanFromString(value, false)));
                 }
             }
         }

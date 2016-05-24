@@ -250,7 +250,13 @@ namespace DTAClient.DXGUI.GameLobby
             AddChild(PlayerOptionsPanel);
             AddChild(btnLaunchGame);
             AddChild(btnLeaveGame);
+        }
 
+        /// <summary>
+        /// Initializes the underlying window class.
+        /// </summary>
+        protected void InitializeWindow()
+        {
             base.Initialize();
         }
 

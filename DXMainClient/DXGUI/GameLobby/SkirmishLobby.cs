@@ -57,27 +57,7 @@ namespace DTAClient.DXGUI.GameLobby
             lbMapList.DrawMode = PanelBackgroundImageDrawMode.STRETCHED;
             lbMapList.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 192), 1, 1);
             lbMapList.LineHeight = 16;
-            lbMapList.DrawListBoxBorders = false;
-
-            //lbMapList.AddColumn(" ", 30);
-
-            lbMapList.AddColumn("MAP NAME", lbMapList.ClientRectangle.Width - rankTextures[1].Width - 3);
-
-            ddGameMode = new DXDropDown(WindowManager);
-            ddGameMode.ClientRectangle = new Rectangle(lbMapList.ClientRectangle.Right - 150, GameOptionsPanel.ClientRectangle.Y, 150, 21);
-            ddGameMode.ClickSoundEffect = AssetLoader.LoadSound("dropdown.wav");
-            ddGameMode.SelectedIndexChanged += DdGameMode_SelectedIndexChanged;
-
-            lblGameModeSelect = new DXLabel(WindowManager);
-            lblGameModeSelect.ClientRectangle = new Rectangle(lbMapList.ClientRectangle.X, ddGameMode.ClientRectangle.Top + 2, 0, 0);
-            lblGameModeSelect.FontIndex = 1;
-            lblGameModeSelect.Text = "GAME MODE:";
-
-            MapPreviewBox.LocalStartingLocationSelected += MapPreviewBox_LocalStartingLocationSelected;
-
-            AddChild(lbMapList);
-            AddChild(ddGameMode);
-            AddChild(lblGameModeSelect);
+            lbMapList.DrawListBoxBorders = true;
 
             DXPanel rankHeader = new DXPanel(WindowManager);
             rankHeader.BackgroundTexture = AssetLoader.LoadTexture("rank.png");
@@ -89,6 +69,26 @@ namespace DTAClient.DXGUI.GameLobby
 
             lbMapList.AddColumn(rankHeader, rankListBox);
 
+            lbMapList.AddColumn("MAP NAME", lbMapList.ClientRectangle.Width - rankTextures[1].Width - 3);
+
+            ddGameMode = new DXDropDown(WindowManager);
+            ddGameMode.Name = "ddGameMode";
+            ddGameMode.ClientRectangle = new Rectangle(lbMapList.ClientRectangle.Right - 150, GameOptionsPanel.ClientRectangle.Y, 150, 21);
+            ddGameMode.ClickSoundEffect = AssetLoader.LoadSound("dropdown.wav");
+            ddGameMode.SelectedIndexChanged += DdGameMode_SelectedIndexChanged;
+
+            lblGameModeSelect = new DXLabel(WindowManager);
+            lblGameModeSelect.Name = "lblGameModeSelect";
+            lblGameModeSelect.ClientRectangle = new Rectangle(lbMapList.ClientRectangle.X, ddGameMode.ClientRectangle.Top + 2, 0, 0);
+            lblGameModeSelect.FontIndex = 1;
+            lblGameModeSelect.Text = "GAME MODE:";
+
+            MapPreviewBox.LocalStartingLocationSelected += MapPreviewBox_LocalStartingLocationSelected;
+
+            AddChild(lbMapList);
+            AddChild(ddGameMode);
+            AddChild(lblGameModeSelect);
+
             gameInProgressWindow = new GameInProgressWindow(WindowManager);
             AddChild(gameInProgressWindow);
             gameInProgressWindow.CenterOnParent();
@@ -96,10 +96,18 @@ namespace DTAClient.DXGUI.GameLobby
             gameInProgressWindow.Visible = false;
             gameInProgressWindow.Focused = true;
 
+            InitializeWindow();
+
             foreach (GameMode gm in GameModes)
                 ddGameMode.AddItem(gm.UIName);
 
             Players.Add(new PlayerInfo(ProgramConstants.PLAYERNAME, 0, 0, 0, 0));
+            PlayerInfo aiPlayer = new PlayerInfo("Easy AI", 0, 0, 0, 0);
+            aiPlayer.IsAI = true;
+            aiPlayer.AILevel = 2;
+            AIPlayers.Add(aiPlayer);
+
+            WindowManager.CenterControlOnScreen(this);
 
             if (ddGameMode.Items.Count > 0)
             {
@@ -146,10 +154,8 @@ namespace DTAClient.DXGUI.GameLobby
                 DXListBoxItem[] mapInfoArray = new DXListBoxItem[]
                 {
                     //playerCountItem,
-                    
-                    mapNameItem,
                     rankItem,
-
+                    mapNameItem,
                 };
 
                 lbMapList.AddItem(mapInfoArray);

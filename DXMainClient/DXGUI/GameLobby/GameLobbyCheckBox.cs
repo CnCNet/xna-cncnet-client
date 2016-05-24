@@ -38,11 +38,11 @@ namespace DTAClient.DXGUI.GameLobby
                     CustomIniPath = value;
                     return;
                 case "Reversed":
-                    Reversed = Utilities.BooleanFromString(value, false);
+                    Reversed = Conversions.BooleanFromString(value, false);
                     return;
                 case "CheckedMP":
                     if (IsMultiplayer)
-                        Checked = Utilities.BooleanFromString(value, false);
+                        Checked = Conversions.BooleanFromString(value, false);
                     return;
             }
 
