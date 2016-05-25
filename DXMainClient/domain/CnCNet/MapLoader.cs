@@ -60,6 +60,18 @@ namespace DTAClient.domain.CnCNet
                 maps.Add(map);
             }
 
+            string[] files = Directory.GetFiles(ProgramConstants.GamePath + "Maps\\Custom", "*.map");
+
+            foreach (string file in files)
+            {
+                string baseFilePath = file.Substring(ProgramConstants.GamePath.Length);
+                baseFilePath = baseFilePath.Substring(0, baseFilePath.Length - 4);
+
+                Map map = new Map(baseFilePath);
+                if (map.SetInfoFromMap(file))
+                    maps.Add(map);
+            }
+
             foreach (Map map in maps)
             {
                 foreach (string gameMode in map.GameModes)

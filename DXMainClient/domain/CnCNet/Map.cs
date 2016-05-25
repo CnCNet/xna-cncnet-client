@@ -29,60 +29,60 @@ namespace DTAClient.domain.CnCNet
         /// <summary>
         /// The name of the map.
         /// </summary>
-        public string Name { get; set; }
+        public string Name { get; private set; }
 
         /// <summary>
         /// The maximum amount of players supported by the map.
         /// </summary>
-        public int MaxPlayers { get; set; }
+        public int MaxPlayers { get; private set; }
 
         /// <summary>
         /// The minimum amount of players supported by the map.
         /// </summary>
-        public int MinPlayers { get; set; }
+        public int MinPlayers { get; private set; }
 
         /// <summary>
         /// Whether to use AmountOfPlayers for limiting the player count of the map.
         /// If false (which is the default), AmountOfPlayers is only used for randomizing
         /// players to starting waypoints.
         /// </summary>
-        public bool EnforceMaxPlayers { get; set; }
+        public bool EnforceMaxPlayers { get; private set; }
 
         /// <summary>
         /// Controls if the map is meant for a co-operation game mode
         /// (enables briefing logic and forcing options, among others).
         /// </summary>
-        public bool IsCoop { get; set; }
+        public bool IsCoop { get; private set; }
 
         /// <summary>
         /// Contains co-op information.
         /// </summary>
-        public CoopMapInfo CoopInfo { get; set; }
+        public CoopMapInfo CoopInfo { get; private set; }
 
         /// <summary>
         /// The briefing of the map.
         /// </summary>
-        public string Briefing { get; set; }
+        public string Briefing { get; private set; }
 
         /// <summary>
         /// The author of the map.
         /// </summary>
-        public string Author { get; set; }
+        public string Author { get; private set; }
 
         /// <summary>
         /// The calculated SHA1 of the map.
         /// </summary>
-        public string SHA1 { get; set; }
+        public string SHA1 { get; private set; }
 
         /// <summary>
         /// The path to the map file.
         /// </summary>
-        public string BaseFilePath { get; set; }
+        public string BaseFilePath { get; private set; }
 
         /// <summary>
         /// The file name of the preview image.
         /// </summary>
-        public string PreviewPath { get; set; }
+        public string PreviewPath { get; private set; }
 
         /// <summary>
         /// The game modes that the map is listed for.
@@ -216,6 +216,97 @@ namespace DTAClient.domain.CnCNet
             catch (Exception ex)
             {
                 Logger.Log("Setting info for " + BaseFilePath + " failed! Reason: " + ex.Message);
+                return false;
+            }
+        }
+
+        public bool SetInfoFromMap(string path)
+        {
+            try
+            {
+                IniFile iniFile = new IniFile();
+                iniFile.FileName = path;
+                iniFile.AddSection("Basic");
+                iniFile.AddSection("Map");
+                iniFile.AddSection("Waypoints");
+                iniFile.AddSection("ForcedOptions");
+                iniFile.AddSection("ForcedSpawnIniOptions");
+
+                iniFile.Parse();
+
+                Name = iniFile.GetStringValue("Basic", "Name", "Unnamed map");
+                Author = iniFile.GetStringValue("Basic", "Author", "Unknown author");
+                GameModes = iniFile.GetStringValue("Basic", "GameMode", "Default").Split(',');
+                for (int i = 0; i < GameModes.Length; i++)
+                {
+                    string gameMode = GameModes[i].Trim();
+                    gameMode = gameMode.Substring(0, 1).ToUpperInvariant() + gameMode.Substring(1);
+                    GameModes[i] = gameMode;
+                }
+
+                MinPlayers = iniFile.GetIntValue("Basic", "MinPlayer", 0);
+                MaxPlayers = iniFile.GetIntValue("Basic", "MaxPlayer", 0);
+                EnforceMaxPlayers = iniFile.GetBooleanValue("Basic", "EnforceMaxPlayers", true);
+                //PreviewPath = Path.GetDirectoryName(BaseFilePath) + "\\" +
+                //    iniFile.GetStringValue(BaseFilePath, "PreviewImage", Path.GetFileNameWithoutExtension(BaseFilePath) + ".png");
+                Briefing = iniFile.GetStringValue("Basic", "Briefing", string.Empty).Replace("@", Environment.NewLine);
+                SHA1 = Utilities.CalculateSHA1ForFile(path);
+                IsCoop = iniFile.GetBooleanValue("Basic", "IsCoopMission", false);
+                Credits = iniFile.GetIntValue("Basic", "Credits", -1);
+                UnitCount = iniFile.GetIntValue("Basic", "UnitCount", -1);
+                NeutralHouseColor = iniFile.GetIntValue("Basic", "NeutralColor", -1);
+                SpecialHouseColor = iniFile.GetIntValue("Basic", "SpecialColor", -1);
+
+                if (IsCoop)
+                {
+                    CoopInfo = new CoopMapInfo();
+                    string[] disallowedSides = iniFile.GetStringValue("Basic", "DisallowedPlayerSides", string.Empty).Split(
+                        new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+
+                    foreach (string sideIndex in disallowedSides)
+                        CoopInfo.DisallowedPlayerSides.Add(Int32.Parse(sideIndex));
+
+                    string[] disallowedColors = iniFile.GetStringValue("Basic", "DisallowedPlayerColors", string.Empty).Split(
+                        new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+
+                    foreach (string colorIndex in disallowedColors)
+                        CoopInfo.DisallowedPlayerColors.Add(Int32.Parse(colorIndex));
+
+                    for (int i = 0; ; i++)
+                    {
+                        string[] enemyInfo = iniFile.GetStringValue("Basic", "EnemyHouse" + i, String.Empty).Split(
+                            new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+
+                        if (enemyInfo.Length == 0)
+                            break;
+
+                        int[] info = Conversions.IntArrayFromStringArray(enemyInfo);
+
+                        CoopInfo.EnemyHouses.Add(new CoopHouseInfo(info[0], info[1], info[2]));
+                    }
+                }
+
+                // TODO Rework once we're able to load previews
+                for (int i = 0; i < MaxPlayers; i++)
+                {
+                    StartingLocations.Add(new Point(i * 10, i * 10));
+                }
+
+                string forcedOptionsSection = iniFile.GetStringValue(BaseFilePath, "ForcedOptions", String.Empty);
+
+                if (!String.IsNullOrEmpty(forcedOptionsSection))
+                    ParseForcedOptions(iniFile, forcedOptionsSection);
+
+                string forcedSpawnIniOptionsSection = iniFile.GetStringValue(BaseFilePath, "ForcedSpawnIniOptions", String.Empty);
+
+                if (!String.IsNullOrEmpty(forcedSpawnIniOptionsSection))
+                    ParseSpawnIniOptions(iniFile, forcedSpawnIniOptionsSection);
+
+                return true;
+            }
+            catch
+            {
+                Logger.Log("Loading custom map " + path + " failed!");
                 return false;
             }
         }
