@@ -1,4 +1,5 @@
-﻿using DTAClient.Online.EventArguments;
+﻿using ClientCore;
+using DTAClient.Online.EventArguments;
 using Microsoft.Xna.Framework;
 using System;
 using System.Collections.Generic;
@@ -11,14 +12,16 @@ namespace DTAClient.Online
     {
         const int MESSAGE_LIMIT = 1024;
 
-        public EventHandler<UserEventArgs> UserAdded;
-        public EventHandler<UserEventArgs> UserLeft;
-        public EventHandler<UserEventArgs> UserKicked;
-        public EventHandler<UserEventArgs> UserQuitIRC;
-        public EventHandler<UserEventArgs> UserGameIndexUpdated;
+        public event EventHandler<UserEventArgs> UserAdded;
+        public event EventHandler<UserNameEventArgs> UserLeft;
+        public event EventHandler<UserNameEventArgs> UserKicked;
+        public event EventHandler<UserNameEventArgs> UserQuitIRC;
+        public event EventHandler<UserEventArgs> UserGameIndexUpdated;
+        public event EventHandler UserListReceived;
 
-        public EventHandler<IRCMessageEventArgs> MessageAdded;
-        public EventHandler<ChannelModeEventArgs> ChannelModesChanged;
+        public event EventHandler<IRCMessageEventArgs> MessageAdded;
+        public event EventHandler<ChannelModeEventArgs> ChannelModesChanged;
+        public event EventHandler<ChannelCTCPEventArgs> CTCPReceived;
 
         public Channel(string uiName, string channelName, bool persistent, string password, Connection connection)
         {
@@ -54,9 +57,9 @@ namespace DTAClient.Online
         }
 
         List<IRCMessage> messages = new List<IRCMessage>();
-        public IList<IRCMessage> Messages
+        public List<IRCMessage> Messages
         {
-            get { return messages.AsReadOnly(); }
+            get { return messages; }
         }
 
         List<IRCUser> users = new List<IRCUser>();
@@ -70,63 +73,15 @@ namespace DTAClient.Online
         public void AddUser(IRCUser user)
         {
             users.Add(user);
-            users.OrderBy(u => u.Name).OrderBy(u => !u.IsAdmin).ToList();
-            UserAdded(this, new UserEventArgs(-1, user.Name));
+            users = users.OrderBy(u => u.Name).OrderBy(u => !u.IsAdmin).ToList();
+            UserAdded?.Invoke(this, new UserEventArgs(-1, user));
         }
 
-        public void OnUserKicked(string userName)
+        public void OnUserJoined(IRCUser user)
         {
-            int index = users.FindIndex(u => u.Name == userName);
-
-            if (index > -1)
-            {
-                users.RemoveAt(index);
-                UserKicked?.Invoke(this, new UserEventArgs(index, userName));
-                AddMessage(new IRCMessage(null, Color.White, DateTime.Now, 
-                    userName + " has been kicked from " + UIName + "."));
-            }
-        }
-
-        public void OnUserLeft(string userName)
-        {
-            int index = users.FindIndex(u => u.Name == userName);
-
-            if (index > -1)
-            {
-                users.RemoveAt(index);
-                UserLeft?.Invoke(this, new UserEventArgs(index, userName));
-                AddMessage(new IRCMessage(null, Color.White, DateTime.Now, 
-                    userName + " has left from " + UIName + "."));
-            }
-        }
-
-        public void OnUserQuitIRC(string userName)
-        {
-            int index = users.FindIndex(u => u.Name == userName);
-
-            if (index > -1)
-            {
-                users.RemoveAt(index);
-                UserQuitIRC?.Invoke(this, new UserEventArgs(index, userName));
-                AddMessage(new IRCMessage(null, Color.White, DateTime.Now,
-                    userName + " has quit from CnCNet."));
-            }
-        }
-
-        public void ApplyGameIndexForUser(string userName, int gameIndex)
-        {
-            int index = users.FindIndex(u => u.Name == userName);
-
-            if (index > -1)
-            {
-                users[index].GameID = gameIndex;
-                UserGameIndexUpdated?.Invoke(this, new UserEventArgs(index, users[index].Name));
-            }
-        }
-
-        public void OnChannelModesChanged(string sender, string modes)
-        {
-            ChannelModesChanged?.Invoke(this, new ChannelModeEventArgs(sender, modes));
+            AddUser(user);
+            AddMessage(new IRCMessage(null, Color.White, DateTime.Now,
+                user.Name + " has joined the " + UIName + " channel."));
         }
 
         public void OnUserListReceived(string[] userList)
@@ -142,12 +97,80 @@ namespace DTAClient.Online
                     isAdmin = true;
                     name = userName.Substring(1);
                 }
+                else if (userName.StartsWith("+"))
+                    name = userName.Substring(1);
+
+                if (users.Find(u => u.Name == userName) != null)
+                    continue;
 
                 user.IsAdmin = isAdmin;
                 user.Name = name;
 
-                AddUser(user);
+                users.Add(user);
             }
+
+            users = users.OrderBy(u => u.Name).OrderBy(u => !u.IsAdmin).ToList();
+            UserListReceived?.Invoke(this, EventArgs.Empty);
+        }
+
+        public void OnUserKicked(string userName)
+        {
+            int index = users.FindIndex(u => u.Name == userName);
+
+            if (index > -1)
+            {
+                users.RemoveAt(index);
+                UserKicked?.Invoke(this, new UserNameEventArgs(index, userName));
+                AddMessage(new IRCMessage(null, Color.White, DateTime.Now, 
+                    userName + " has been kicked from " + UIName + "."));
+            }
+        }
+
+        public void OnUserLeft(string userName)
+        {
+            int index = users.FindIndex(u => u.Name == userName);
+
+            if (index > -1)
+            {
+                users.RemoveAt(index);
+                UserLeft?.Invoke(this, new UserNameEventArgs(index, userName));
+                AddMessage(new IRCMessage(null, Color.White, DateTime.Now, 
+                    userName + " has left from " + UIName + "."));
+            }
+        }
+
+        public void OnUserQuitIRC(string userName)
+        {
+            int index = users.FindIndex(u => u.Name == userName);
+
+            if (index > -1)
+            {
+                users.RemoveAt(index);
+                UserQuitIRC?.Invoke(this, new UserNameEventArgs(index, userName));
+                AddMessage(new IRCMessage(null, Color.White, DateTime.Now,
+                    userName + " has quit from CnCNet."));
+            }
+        }
+
+        public void ApplyGameIndexForUser(string userName, int gameIndex)
+        {
+            int index = users.FindIndex(u => u.Name == userName);
+
+            if (index > -1)
+            {
+                users[index].GameID = gameIndex;
+                UserGameIndexUpdated?.Invoke(this, new UserEventArgs(index, users[index]));
+            }
+        }
+
+        public void OnChannelModesChanged(string sender, string modes)
+        {
+            ChannelModesChanged?.Invoke(this, new ChannelModeEventArgs(sender, modes));
+        }
+
+        public void OnCTCPReceived(string userName, string message)
+        {
+            CTCPReceived?.Invoke(this, new ChannelCTCPEventArgs(userName, message));
         }
 
         public void AddMessage(IRCMessage message)
@@ -160,25 +183,63 @@ namespace DTAClient.Online
             MessageAdded?.Invoke(this, new IRCMessageEventArgs(message));
         }
 
+        public void SendMessage(string message, IRCColor color)
+        {
+            AddMessage(new IRCMessage(ProgramConstants.PLAYERNAME, color.XnaColor, DateTime.Now, message));
+
+            string colorString = ((char)03).ToString() + color.IrcColorId.ToString("D2");
+
+            connection.QueueMessage(QueuedMessageType.CHAT_MESSAGE, 0,
+                "PRIVMSG " + ChannelName + " :" + colorString + message);
+        }
+
         public void Join()
         {
             if (string.IsNullOrEmpty(Password))
-                connection.QueueMessage(QueuedMessageType.SYSTEM_MESSAGE, 10, "JOIN " + ChannelName);
+                connection.QueueMessage(QueuedMessageType.SYSTEM_MESSAGE, 9, "JOIN " + ChannelName);
             else
-                connection.QueueMessage(QueuedMessageType.SYSTEM_MESSAGE, 10, "JOIN " + ChannelName + " " + Password);
+                connection.QueueMessage(QueuedMessageType.SYSTEM_MESSAGE, 9, "JOIN " + ChannelName + " " + Password);
+        }
+
+        public void RequestUserInfo()
+        {
+            connection.QueueMessage(QueuedMessageType.SYSTEM_MESSAGE, 9, "WHO " + ChannelName);
+        }
+
+        public void Leave()
+        {
+            connection.QueueMessage(QueuedMessageType.SYSTEM_MESSAGE, 9, "PART " + ChannelName);
+            ClearUsers();
+        }
+
+        public void ClearUsers()
+        {
+            users.Clear();
         }
     }
 
     public class UserEventArgs : EventArgs
     {
-        public UserEventArgs(int index, string userName)
+        public UserEventArgs(int index, IRCUser user)
+        {
+            UserIndex = index;
+            User = user;
+        }
+
+        public int UserIndex { get; private set; }
+
+        public IRCUser User { get; private set; }
+    }
+
+    public class UserNameEventArgs : EventArgs
+    {
+        public UserNameEventArgs(int index, string userName)
         {
             UserIndex = index;
             UserName = userName;
         }
 
         public int UserIndex { get; private set; }
-
         public string UserName { get; private set; }
     }
 

@@ -180,7 +180,7 @@ namespace DTAClient.DXGUI.GameLobby
 
         private void CheckPlayerCountRequirement()
         {
-            btnLaunchGame.Enabled = Players.Count + AIPlayers.Count > Map.MinPlayers &&
+            btnLaunchGame.Enabled = Players.Count + AIPlayers.Count >= Map.MinPlayers &&
                 (!Map.EnforceMaxPlayers || (Players.Count + AIPlayers.Count <= Map.MaxPlayers));
         }
 

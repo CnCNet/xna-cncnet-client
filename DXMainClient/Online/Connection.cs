@@ -148,6 +148,7 @@ namespace DTAClient.Online
             tcpClient = new TcpClient();
             tcpClient = (TcpClient)client;
             serverStream = tcpClient.GetStream();
+            serverStream.ReadTimeout = 30000;
 
             byte[] message = new byte[1024];
             int bytesRead;
@@ -183,9 +184,10 @@ namespace DTAClient.Online
 
                 if (bytesRead == 0)
                 {
-                    Logger.Log("Disconnected from CnCNet.");
-                    connectionManager.OnConnectionLost("Server disconnected.");
-                    break;
+                    continue;
+                    //Logger.Log("Disconnected from CnCNet.");
+                    //connectionManager.OnConnectionLost("Server disconnected.");
+                    //break;
                 }
 
                 // A message has been succesfully received
@@ -215,6 +217,7 @@ namespace DTAClient.Online
         public void Disconnect()
         {
             disconnect = true;
+            SendMessage("QUIT");
         }
 
         #region Handling commands
@@ -260,6 +263,7 @@ namespace DTAClient.Online
         {
             string prefix = String.Empty;
             string command = String.Empty;
+            message = message.Replace("\r", String.Empty);
             List<string> parameters = new List<string>();
             ParseIrcMessage(message, out prefix, out command, out parameters);
             string paramString = String.Empty;
@@ -363,14 +367,14 @@ namespace DTAClient.Online
                             int noticeExclamIndex = prefix.IndexOf('!');
                             if (noticeExclamIndex > -1)
                             {
-                                if (parameters.Count > 1 && Conversions.IntFromString(parameters[1].Substring(0, 1), -1) == 1)
+                                if (parameters.Count > 1 && parameters[1][0] == 1)//Conversions.IntFromString(parameters[1].Substring(0, 1), -1) == 1)
                                 {
                                     // CTCP
                                     string channelName = parameters[0];
                                     string ctcpMessage = parameters[1];
-                                    ctcpMessage = ctcpMessage.Remove(0, 1).Remove(ctcpMessage.Length - 1);
+                                    ctcpMessage = ctcpMessage.Remove(0, 1).Remove(ctcpMessage.Length - 2);
                                     string ctcpSender = prefix.Substring(0, noticeExclamIndex);
-                                    connectionManager.OnCTCPParsed(ctcpSender, channelName, ctcpMessage);
+                                    connectionManager.OnCTCPParsed(channelName, ctcpSender, ctcpMessage);
 
                                     return;
                                 }
@@ -546,9 +550,6 @@ namespace DTAClient.Online
                     continue;
                 }
 
-                if (ProgramConstants.LOG_LEVEL > 1)
-                    Logger.Log("SRM: " + message);
-
                 SendMessage(message);
 
                 Thread.Sleep(MessageQueueDelay);
@@ -583,8 +584,8 @@ namespace DTAClient.Online
 
             string realname = ProgramConstants.GAME_VERSION + " " + DomainController.Instance().GetDefaultGame() + " CnCNet";
 
-            SendMessage("NICK " + ProgramConstants.PLAYERNAME);
             SendMessage(string.Format("USER {0} 0 * :{1}", "DTA" + new Random().Next(10000, 99999).ToString(), realname));
+            SendMessage("NICK " + ProgramConstants.PLAYERNAME);
         }
 
         public void QueueMessage(QueuedMessageType type, int priority, string message)
@@ -599,6 +600,11 @@ namespace DTAClient.Online
         /// <param name="message">The message to send.</param>
         private void SendMessage(string message)
         {
+            if (serverStream == null)
+                return;
+
+            Logger.Log("SRM: " + message);
+
             byte[] buffer = encoding.GetBytes(message + "\r\n");
             if (serverStream.CanWrite)
             {

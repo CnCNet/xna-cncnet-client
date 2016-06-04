@@ -1,18 +1,21 @@
 ﻿using ClientCore;
 using ClientCore.CnCNet5;
-using ClientCore.CnCNet5.Games;
 using DTAClient.Online.EventArguments;
 using Microsoft.Xna.Framework;
 using Rampastring.Tools;
+using Rampastring.XNAUI;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using GameCollection = DTAClient.domain.CnCNet.GameCollection;
 
 namespace DTAClient.Online
 {
     public class CnCNetManager : IConnectionManager
     {
+        public delegate void UserListDelegate(string channelName, string[] userNames);
+
         public EventHandler<ServerMessageEventArgs> WelcomeMessageReceived;
         public EventHandler<ServerMessageEventArgs> GenericServerMessageReceived;
         public EventHandler<UserAwayEventArgs> AwayMessageReceived;
@@ -32,11 +35,35 @@ namespace DTAClient.Online
         public event EventHandler Disconnected;
         public event EventHandler Connected;
 
-        public CnCNetManager()
+        public CnCNetManager(WindowManager wm)
         {
             connection = new Connection(this);
             gameCollection = new GameCollection();
-            gameCollection.Initialize();
+            gameCollection.Initialize(wm.GraphicsDevice);
+
+            this.wm = wm;
+
+            cDefaultChatColor = AssetLoader.GetColorFromString(DomainController.Instance().GetDefaultChatColor());
+
+            IRCChatColors = new IRCColor[]
+            {
+                new IRCColor("Default color", false, cDefaultChatColor, 0),
+                new IRCColor("Default color #2", false, cDefaultChatColor, 1),
+                new IRCColor("Light Blue", true, Color.LightBlue, 2),
+                new IRCColor("Green", true, Color.ForestGreen, 3),
+                new IRCColor("Dark Red", true, new Color(180, 0, 0, 255), 4),
+                new IRCColor("Red", true, Color.Red, 5),
+                new IRCColor("Purple", true, Color.MediumOrchid, 6),
+                new IRCColor("Orange", true, Color.Orange, 7),
+                new IRCColor("Yellow", true, Color.Yellow, 8),
+                new IRCColor("Lime Green", true, Color.Lime, 9),
+                new IRCColor("Turquoise", true, Color.Turquoise, 10),
+                new IRCColor("Sky Blue", true, Color.LightSkyBlue, 11),
+                new IRCColor("Blue", true, Color.RoyalBlue, 12),
+                new IRCColor("Pink", true, Color.Fuchsia, 13),
+                new IRCColor("Gray", true, Color.LightGray, 14),
+                new IRCColor("Gray #2", false, Color.Gray, 15)
+            };
         }
 
         Connection connection;
@@ -49,7 +76,9 @@ namespace DTAClient.Online
         Channel currentMainChannel;
 
         Color cDefaultChatColor;
-        Color[] IRCChatColors;
+        IRCColor[] IRCChatColors;
+
+        WindowManager wm;
 
         /// <summary>
         /// Factory method for creating a new channel.
@@ -76,6 +105,16 @@ namespace DTAClient.Online
             Channels.Add(channel);
         }
 
+        public IRCColor[] GetIRCColors()
+        {
+            return IRCChatColors;
+        }
+
+        public GameCollection GetGameCollection()
+        {
+            return gameCollection;
+        }
+
         public void LeaveFromChannel(Channel channel)
         {
             connection.QueueMessage(QueuedMessageType.SYSTEM_MESSAGE, 10, "PART " + channel.ChannelName);
@@ -84,22 +123,38 @@ namespace DTAClient.Online
                 Channels.Remove(channel);
         }
 
-        public void SetMainChannel(string channelName)
+        public void SetMainChannel(Channel channel)
         {
-            currentMainChannel = Channels.Find(c => c.ChannelName == channelName);
+            currentMainChannel = Channels.Find(c => c == channel);
         }
 
         public void OnAttemptedServerChanged(string serverName)
         {
+            wm.AddCallback(new Delegates.StringDelegate(DoAttemptedServerChanged), serverName);
+        }
+
+        private void DoAttemptedServerChanged(string serverName)
+        {
+            currentMainChannel.AddMessage(new IRCMessage(null, Color.White, DateTime.Now, "Attempting connection to " + serverName));
             AttemptedServerChanged?.Invoke(this, new AttemptedServerEventArgs(serverName));
         }
 
         public void OnAwayMessageReceived(string userName, string reason)
         {
+            wm.AddCallback(new Delegates.DualStringDelegate(DoAwayMessageReceived), userName, reason);
+        }
+
+        private void DoAwayMessageReceived(string userName, string reason)
+        {
             AwayMessageReceived?.Invoke(this, new UserAwayEventArgs(userName, reason));
         }
 
         public void OnChannelFull(string channelName)
+        {
+            wm.AddCallback(new Delegates.StringDelegate(DoChannelFull), channelName);
+        }
+
+        private void DoChannelFull(string channelName)
         {
             ChannelFull?.Invoke(this, new ChannelEventArgs(channelName));
 
@@ -111,8 +166,8 @@ namespace DTAClient.Online
 
             string message;
 
-            message = string.IsNullOrEmpty(gameName) ? 
-                "The selected game is full! " + channelName : 
+            message = string.IsNullOrEmpty(gameName) ?
+                "The selected game is full! " + channelName :
                 string.Format("Cannot join game {0}; it is full!", gameName);
 
             currentMainChannel.AddMessage(new IRCMessage(null, Color.White, DateTime.Now,
@@ -120,6 +175,12 @@ namespace DTAClient.Online
         }
 
         public void OnChannelModesChanged(string userName, string channelName, string modeString)
+        {
+            wm.AddCallback(new Delegates.TripleStringDelegate(DoChannelModesChanged),
+                userName, channelName, modeString);
+        }
+
+        private void DoChannelModesChanged(string userName, string channelName, string modeString)
         {
             Channel channel = Channels.Find(c => c.ChannelName == channelName);
 
@@ -133,6 +194,11 @@ namespace DTAClient.Online
         {
             //ChannelTopicReceived?.Invoke(this, new ChannelTopicEventArgs(channelName, topic));
 
+            wm.AddCallback(new Delegates.DualStringDelegate(DoChannelTopicReceived), channelName, topic);
+        }
+
+        private void DoChannelTopicReceived(string channelName, string topic)
+        {
             Channel channel = Channels.Find(c => c.ChannelName == channelName);
 
             if (channel == null)
@@ -142,6 +208,12 @@ namespace DTAClient.Online
         }
 
         public void OnChatMessageReceived(string receiver, string sender, string message)
+        {
+            wm.AddCallback(new Delegates.TripleStringDelegate(DoChatMessageReceived),
+                receiver, sender, message);
+        }
+
+        private void DoChatMessageReceived(string receiver, string sender, string message)
         {
             Channel channel = Channels.Find(c => c.ChannelName == receiver);
 
@@ -180,7 +252,7 @@ namespace DTAClient.Online
                         int colorIndex = Conversions.IntFromString(colorString, -1);
                         // Try to parse message color info; if fails, use default color
                         if (colorIndex < IRCChatColors.Length && colorIndex > -1)
-                            foreColor = IRCChatColors[colorIndex];
+                            foreColor = IRCChatColors[colorIndex].XnaColor;
                         else
                             foreColor = cDefaultChatColor;
                     }
@@ -189,20 +261,60 @@ namespace DTAClient.Online
                     foreColor = cDefaultChatColor;
             }
 
-            channel.AddMessage(new IRCMessage(sender, foreColor, DateTime.Now, message));
+            channel.AddMessage(new IRCMessage(sender, foreColor, DateTime.Now, message.Replace('\r', ' ')));
+        }
+
+        public void OnCTCPParsed(string channelName, string userName, string message)
+        {
+            wm.AddCallback(new Delegates.TripleStringDelegate(DoCTCPParsed),
+                channelName, userName, message);
+        }
+
+        private void DoCTCPParsed(string channelName, string userName, string message)
+        {
+            Channel channel = Channels.Find(c => c.ChannelName == channelName);
+
+            if (channel == null)
+                return;
+
+            channel.OnCTCPReceived(userName, message);
+
+            //CTCPMessageReceived?.Invoke(this, new CTCPEventArgs(userName, channelName, message));
         }
 
         public void OnConnectAttemptFailed()
         {
+            wm.AddCallback(new Action(DoConnectAttemptFailed), null);
+        }
+
+        private void DoConnectAttemptFailed()
+        {
             ConnectAttemptFailed?.Invoke(this, EventArgs.Empty);
+
+            currentMainChannel.AddMessage(new IRCMessage(null, Color.Red, DateTime.Now, "Connecting to CnCNet failed!"));
         }
 
         public void OnConnected()
         {
-            Connected?.Invoke(this, EventArgs.Empty);
+            wm.AddCallback(new Action(DoConnected), null);
         }
 
+        private void DoConnected()
+        {
+            Connected?.Invoke(this, EventArgs.Empty);
+            currentMainChannel.AddMessage(new IRCMessage(null, Color.White, DateTime.Now, "Connection to CnCNet established."));
+        }
+
+        /// <summary>
+        /// Called when the connection has got cut non-intentionally.
+        /// </summary>
+        /// <param name="reason"></param>
         public void OnConnectionLost(string reason)
+        {
+            wm.AddCallback(new Delegates.StringDelegate(DoConnectionLost), reason);
+        }
+
+        private void DoConnectionLost(string reason)
         {
             ConnectionLost?.Invoke(this, new ConnectionLostEventArgs(reason));
 
@@ -214,14 +326,30 @@ namespace DTAClient.Online
                     i--;
                 }
             }
+
+            currentMainChannel.AddMessage(new IRCMessage(null, Color.Red, DateTime.Now, "Connection to CnCNet has been lost."));
         }
 
-        public void OnCTCPParsed(string channelName, string userName, string message)
+        public void Disconnect()
         {
-            CTCPMessageReceived?.Invoke(this, new CTCPEventArgs(userName, channelName, message));
+            connection.Disconnect();
         }
 
+        public void Connect()
+        {
+            currentMainChannel.AddMessage(new IRCMessage(null, Color.White, DateTime.Now, "Connecting to CnCNet..."));
+            connection.ConnectAsync();
+        }
+
+        /// <summary>
+        /// Called when the connection has been aborted intentionally.
+        /// </summary>
         public void OnDisconnected()
+        {
+            wm.AddCallback(new Action(DoDisconnected), null);
+        }
+
+        private void DoDisconnected()
         {
             Disconnected?.Invoke(this, EventArgs.Empty);
 
@@ -233,6 +361,8 @@ namespace DTAClient.Online
                     i--;
                 }
             }
+
+            currentMainChannel.AddMessage(new IRCMessage(null, Color.White, DateTime.Now, "You have disconnected from CnCNet."));
         }
 
         public void OnErrorReceived(string errorMessage)
@@ -242,10 +372,20 @@ namespace DTAClient.Online
 
         public void OnGenericServerMessageReceived(string message)
         {
-            currentMainChannel.AddMessage(new IRCMessage(null, Color.White, DateTime.Now, message));
+            wm.AddCallback(new Delegates.StringDelegate(DoGenericServerMessageReceived), message);
+        }
+
+        private void DoGenericServerMessageReceived(string message)
+        {
+            currentMainChannel.AddMessage(new IRCMessage(null, Color.White, DateTime.Now, message.Replace('\r', ' ')));
         }
 
         public void OnIncorrectChannelPassword(string channelName)
+        {
+            wm.AddCallback(new Delegates.StringDelegate(DoIncorrectChannelPassword), channelName);
+        }
+
+        private void DoIncorrectChannelPassword(string channelName)
         {
             currentMainChannel.AddMessage(new IRCMessage(null, Color.White, DateTime.Now, "Incorrect password!"));
         }
@@ -262,11 +402,25 @@ namespace DTAClient.Online
 
         public void OnReconnectAttempt()
         {
+            wm.AddCallback(new Action(DoReconnectAttempt), null);
+        }
+
+        private void DoReconnectAttempt()
+        {
             ReconnectAttempt?.Invoke(this, EventArgs.Empty);
+
+            currentMainChannel.AddMessage(new IRCMessage(null, Color.White, DateTime.Now, "Attempting to reconnect to CnCNet..."));
+
             connection.ConnectAsync();
         }
 
         public void OnUserJoinedChannel(string channelName, string userName, string userAddress)
+        {
+            wm.AddCallback(new Delegates.TripleStringDelegate(DoUserJoinedChannel),
+                channelName, userName, userAddress);
+        }
+
+        private void DoUserJoinedChannel(string channelName, string userName, string userAddress)
         {
             Channel channel = Channels.Find(c => c.ChannelName == channelName);
 
@@ -285,15 +439,21 @@ namespace DTAClient.Online
             IRCUser user = new IRCUser();
             user.IsAdmin = isAdmin;
             user.Name = name;
-            user.GameID = 0;
+            user.GameID = -1;
 
             // TODO Parse identifier and assign gameid
             //string identd = userAddress.Split('@')[0].Replace("~", "");
 
-            channel.AddUser(user);
+            channel.OnUserJoined(user);
         }
 
         public void OnUserKicked(string channelName, string userName)
+        {
+            wm.AddCallback(new Delegates.DualStringDelegate(DoUserKicked),
+                channelName, userName);
+        }
+
+        private void DoUserKicked(string channelName, string userName)
         {
             Channel channel = Channels.Find(c => c.ChannelName == channelName);
 
@@ -302,13 +462,22 @@ namespace DTAClient.Online
 
             channel.OnUserKicked(userName);
 
-            if (userName == ProgramConstants.PLAYERNAME && !channel.Persistent)
+            if (userName == ProgramConstants.PLAYERNAME)
             {
-                Channels.Remove(channel);
+                if (!channel.Persistent)
+                    Channels.Remove(channel);
+
+                channel.ClearUsers();
             }
         }
 
         public void OnUserLeftChannel(string channelName, string userName)
+        {
+            wm.AddCallback(new Delegates.DualStringDelegate(DoUserLeftChannel),
+                channelName, userName);
+        }
+
+        private void DoUserLeftChannel(string channelName, string userName)
         {
             Channel channel = Channels.Find(c => c.ChannelName == channelName);
 
@@ -325,6 +494,12 @@ namespace DTAClient.Online
 
         public void OnUserListReceived(string channelName, string[] userList)
         {
+            wm.AddCallback(new UserListDelegate(DoUserListReceived), 
+                channelName, userList);
+        }
+
+        private void DoUserListReceived(string channelName, string[] userList)
+        {
             Channel channel = Channels.Find(c => c.ChannelName == channelName);
 
             if (channel == null)
@@ -335,19 +510,33 @@ namespace DTAClient.Online
 
         public void OnUserQuitIRC(string userName)
         {
-            foreach (Channel channel in Channels)
-                channel.OnUserQuitIRC(userName);
+            wm.AddCallback(new Delegates.StringDelegate(DoUserQuitIRC), userName);
+        }
+
+        private void DoUserQuitIRC(string userName)
+        {
+            Channels.ForEach(ch => ch.OnUserQuitIRC(userName));
         }
 
         public void OnWelcomeMessageReceived(string message)
         {
-            foreach (Channel channel in Channels)
-                channel.Messages.Add(new IRCMessage(null, Color.White, DateTime.Now, message));
+            wm.AddCallback(new Delegates.StringDelegate(DoWelcomeMessageReceived), message);
+        }
+
+        private void DoWelcomeMessageReceived(string message)
+        {
+            Channels.ForEach(ch => ch.AddMessage(new IRCMessage(null, Color.White, DateTime.Now, message)));
 
             WelcomeMessageReceived?.Invoke(this, new ServerMessageEventArgs(message));
         }
 
         public void OnWhoReplyReceived(string userName, string extraInfo)
+        {
+            wm.AddCallback(new Delegates.DualStringDelegate(DoWhoReplyReceived),
+                userName, extraInfo);
+        }
+
+        private void DoWhoReplyReceived(string userName, string extraInfo)
         {
             WhoReplyReceived?.Invoke(this, new WhoEventArgs(userName, extraInfo));
 
@@ -363,10 +552,7 @@ namespace DTAClient.Online
             if (gameIndex == -1)
                 return;
 
-            foreach (Channel channel in Channels)
-            {
-                channel.ApplyGameIndexForUser(userName, gameIndex);
-            }
+            Channels.ForEach(ch => ch.ApplyGameIndexForUser(userName, gameIndex));
         }
     }
 }

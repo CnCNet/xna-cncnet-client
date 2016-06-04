@@ -3,6 +3,7 @@ using ClientGUI;
 using DTAClient.domain;
 using DTAClient.domain.CnCNet;
 using DTAClient.DXGUI.GameLobby;
+using DTAClient.Online;
 using Microsoft.Xna.Framework;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.DXControls;
@@ -88,12 +89,17 @@ namespace DTAClient.DXGUI
 
         private void Finish()
         {
+            CnCNetManager cncnetManager = new CnCNetManager(WindowManager);
             GameLobby.SkirmishLobby sl = new GameLobby.SkirmishLobby(WindowManager, mapLoader.GameModes);
+            //GameLobby.MultiplayerGameLobby mpLobby = new MultiplayerGameLobby(WindowManager, "MPGameLobby", mapLoader.GameModes);
+            CnCNetLobby cncnetLobby = new CnCNetLobby(WindowManager, cncnetManager);
 
             MainMenu mm = new MainMenu(WindowManager, sl);
             CUpdater.OnLocalFileVersionsChecked -= CUpdater_OnLocalFileVersionsChecked;
             WindowManager.AddAndInitializeControl(mm);
             WindowManager.AddAndInitializeControl(sl);
+            WindowManager.AddAndInitializeControl(cncnetLobby);
+            //WindowManager.AddAndInitializeControl(mpLobby);
             sl.Visible = false;
             sl.Enabled = false;
             WindowManager.RemoveControl(this);

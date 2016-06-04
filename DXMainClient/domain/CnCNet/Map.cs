@@ -229,8 +229,6 @@ namespace DTAClient.domain.CnCNet
                 iniFile.AddSection("Basic");
                 iniFile.AddSection("Map");
                 iniFile.AddSection("Waypoints");
-                iniFile.AddSection("ForcedOptions");
-                iniFile.AddSection("ForcedSpawnIniOptions");
 
                 iniFile.Parse();
 
@@ -347,7 +345,7 @@ namespace DTAClient.domain.CnCNet
             if (File.Exists(ProgramConstants.GamePath + PreviewPath))
                 return AssetLoader.LoadTextureUncached(PreviewPath);
             else
-                return AssetLoader.LoadTexture("nopreview.png");
+                return AssetLoader.LoadTextureUncached("nopreview.png");
         }
 
         public void ApplySpawnIniCode(IniFile spawnIni, int totalPlayerCount, 

@@ -69,7 +69,7 @@ namespace DTAClient.DXGUI
             wm.SetRenderResolution(renderResolutionX, renderResolutionY);
             wm.SetIcon(ProgramConstants.GetBaseResourcePath() + "mainclienticon.ico");
             wm.SetWindowTitle(MainClientConstants.GAME_NAME_LONG);
-            wm.SetControlBox(false);
+            wm.SetControlBox(true);
 
             wm.Cursor.Textures = new Texture2D[]
             {

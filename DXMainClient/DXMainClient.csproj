@@ -108,10 +108,13 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="domain\CnCNet\AllianceHolder.cs" />
+    <Compile Include="domain\CnCNet\CnCNetGame.cs" />
     <Compile Include="domain\CnCNet\CnCNetInfoController.cs" />
     <Compile Include="domain\CnCNet\CoopHouseInfo.cs" />
     <Compile Include="domain\CnCNet\CoopMapInfo.cs" />
+    <Compile Include="domain\CnCNet\GameCollection.cs" />
     <Compile Include="domain\CnCNet\GameMode.cs" />
+    <Compile Include="domain\CnCNet\LinkButton.cs" />
     <Compile Include="domain\CnCNet\Map.cs" />
     <Compile Include="domain\CnCNet\MapLoader.cs" />
     <Compile Include="domain\CnCNet\PlayerHouseInfo.cs" />
@@ -137,6 +140,8 @@
     <Compile Include="DXGUI\GameLobby\MultiplayerGameLobby.cs" />
     <Compile Include="DXGUI\GameLobby\PlayerLocationIndicator.cs" />
     <Compile Include="DXGUI\GameLobby\SkirmishLobby.cs" />
+    <Compile Include="Online\EventArguments\ChannelCTCPEventArgs.cs" />
+    <Compile Include="Online\IRCColor.cs" />
     <Compile Include="DXGUI\LoadingScreen.cs" />
     <Compile Include="DXGUI\MainMenu.cs" />
     <Compile Include="DXGUI\MainMenuDarkeningPanel.cs" />
@@ -235,7 +240,15 @@
   <ItemGroup>
     <Content Include="clienticon.ico" />
     <Content Include="mainclienticon.ico" />
-    <Content Include="Resources\Interop.IWshRuntimeLibrary.dll" />
+    <None Include="Resources\cncneticon.png" />
+    <None Include="Resources\yricon.png" />
+    <None Include="Resources\unknownicon.png" />
+    <None Include="Resources\tsicon.png" />
+    <None Include="Resources\tiicon.png" />
+    <None Include="Resources\tdicon.png" />
+    <None Include="Resources\raicon.png" />
+    <None Include="Resources\moicon.png" />
+    <None Include="Resources\dtaicon.png" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\Rampastring.Tools\Rampastring.Tools.csproj">

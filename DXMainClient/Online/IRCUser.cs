@@ -11,6 +11,12 @@ namespace DTAClient.Online
 
         public bool IsAdmin { get; set; }
 
-        public int GameID { get; set; }
+        int _gameId = -1;
+
+        public int GameID
+        {
+            get { return _gameId; }
+            set { _gameId = value; }
+        }
     }
 }
