@@ -18,26 +18,13 @@ namespace DTAClient.DXGUI.GameLobby
         {
         }
 
-        DXMultiColumnListBox lbMapList;
-        DXDropDown ddGameMode;
-        DXLabel lblGameModeSelect;
         GameInProgressWindow gameInProgressWindow;
-
-        Texture2D[] rankTextures;
 
         public override void Initialize()
         {
             base.Initialize();
 
             RandomSeed = new Random().Next();
-
-            rankTextures = new Texture2D[4]
-            {
-                AssetLoader.LoadTexture("rankNone.png"),
-                AssetLoader.LoadTexture("rankEasy.png"),
-                AssetLoader.LoadTexture("rankNormal.png"),
-                AssetLoader.LoadTexture("rankHard.png")
-            };
 
             //InitPlayerOptionDropdowns(128, 98, 90, 48, 55, new Point(6, 24));
             InitPlayerOptionDropdowns();
@@ -48,46 +35,7 @@ namespace DTAClient.DXGUI.GameLobby
 
             ddPlayerSides[0].AddItem("Spectator", AssetLoader.LoadTexture("spectatoricon.png"));
 
-            lbMapList = new DXMultiColumnListBox(WindowManager);
-            lbMapList.Name = "lbMapList";
-            lbMapList.ClientRectangle = new Rectangle(btnLaunchGame.ClientRectangle.X, GameOptionsPanel.ClientRectangle.Y + 23, 
-                MapPreviewBox.ClientRectangle.X - btnLaunchGame.ClientRectangle.X - 6, 
-                MapPreviewBox.ClientRectangle.Bottom - 23 - GameOptionsPanel.ClientRectangle.Y);
-            lbMapList.SelectedIndexChanged += LbMapList_SelectedIndexChanged;
-            lbMapList.DrawMode = PanelBackgroundImageDrawMode.STRETCHED;
-            lbMapList.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 192), 1, 1);
-            lbMapList.LineHeight = 16;
-            lbMapList.DrawListBoxBorders = true;
-
-            DXPanel rankHeader = new DXPanel(WindowManager);
-            rankHeader.BackgroundTexture = AssetLoader.LoadTexture("rank.png");
-            rankHeader.ClientRectangle = new Rectangle(0, 0, rankHeader.BackgroundTexture.Width,
-                19);
-
-            DXListBox rankListBox = new DXListBox(WindowManager);
-            rankListBox.TextBorderDistance = 2;
-
-            lbMapList.AddColumn(rankHeader, rankListBox);
-
-            lbMapList.AddColumn("MAP NAME", lbMapList.ClientRectangle.Width - rankTextures[1].Width - 3);
-
-            ddGameMode = new DXDropDown(WindowManager);
-            ddGameMode.Name = "ddGameMode";
-            ddGameMode.ClientRectangle = new Rectangle(lbMapList.ClientRectangle.Right - 150, GameOptionsPanel.ClientRectangle.Y, 150, 21);
-            ddGameMode.ClickSoundEffect = AssetLoader.LoadSound("dropdown.wav");
-            ddGameMode.SelectedIndexChanged += DdGameMode_SelectedIndexChanged;
-
-            lblGameModeSelect = new DXLabel(WindowManager);
-            lblGameModeSelect.Name = "lblGameModeSelect";
-            lblGameModeSelect.ClientRectangle = new Rectangle(lbMapList.ClientRectangle.X, ddGameMode.ClientRectangle.Top + 2, 0, 0);
-            lblGameModeSelect.FontIndex = 1;
-            lblGameModeSelect.Text = "GAME MODE:";
-
             MapPreviewBox.LocalStartingLocationSelected += MapPreviewBox_LocalStartingLocationSelected;
-
-            AddChild(lbMapList);
-            AddChild(ddGameMode);
-            AddChild(lblGameModeSelect);
 
             gameInProgressWindow = new GameInProgressWindow(WindowManager);
             AddChild(gameInProgressWindow);
@@ -123,65 +71,40 @@ namespace DTAClient.DXGUI.GameLobby
             CopyPlayerDataToUI();
         }
 
-        private void DdGameMode_SelectedIndexChanged(object sender, EventArgs e)
+        protected override void LbMapList_SelectedIndexChanged(object sender, EventArgs e)
         {
-            GameMode = GameModes[ddGameMode.SelectedIndex];
+            base.LbMapList_SelectedIndexChanged(sender, e);
 
-            lbMapList.ClearItems();
-            lbMapList.SetTopIndex(0);
-
-            foreach (Map map in GameMode.Maps)
-            {
-                DXListBoxItem rankItem = new DXListBoxItem();
-                if (map.IsCoop)
-                {
-                    if (StatisticsManager.Instance.HasBeatCoOpMap(map.Name, GameMode.UIName))
-                        rankItem.Texture = rankTextures[Math.Abs(2 - GameMode.CoopDifficultyLevel) + 1];
-                    else
-                        rankItem.Texture = rankTextures[0];
-                }
-                else
-                    rankItem.Texture = rankTextures[StatisticsManager.Instance.GetSkirmishRankForDefaultMap(map.Name, map.MaxPlayers) + 1];
-
-                DXListBoxItem mapNameItem = new DXListBoxItem();
-                mapNameItem.Text = map.Name;
-                mapNameItem.TextColor = UISettings.AltColor;
-
-                DXListBoxItem playerCountItem = new DXListBoxItem();
-                playerCountItem.TextColor = UISettings.AltColor;
-                playerCountItem.Text = "[" + map.MaxPlayers.ToString() + "]";
-
-                DXListBoxItem[] mapInfoArray = new DXListBoxItem[]
-                {
-                    //playerCountItem,
-                    rankItem,
-                    mapNameItem,
-                };
-
-                lbMapList.AddItem(mapInfoArray);
-            }
-        }
-
-        private void LbMapList_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            GameMode gm = GameModes[ddGameMode.SelectedIndex];
-            Map map = gm.Maps[lbMapList.SelectedIndex];
-
-            ChangeMap(gm, map);
-            CheckPlayerCountRequirement();
+            CheckGameValidity();
         }
 
         protected override void CopyPlayerDataToUI()
         {
             base.CopyPlayerDataToUI();
 
-            CheckPlayerCountRequirement();
+            CheckGameValidity();
         }
 
-        private void CheckPlayerCountRequirement()
+        private void CheckGameValidity()
         {
-            btnLaunchGame.Enabled = Players.Count + AIPlayers.Count >= Map.MinPlayers &&
-                (!Map.EnforceMaxPlayers || (Players.Count + AIPlayers.Count <= Map.MaxPlayers));
+            int totalPlayerCount = Players.Count(p => p.SideId < ddPlayerSides[0].Items.Count)
+                + AIPlayers.Count;
+
+            if (totalPlayerCount < Map.MinPlayers ||
+                (Map.EnforceMaxPlayers && (totalPlayerCount > Map.MaxPlayers)))
+            {
+                btnLaunchGame.AllowClick = false;
+                return;
+            }
+
+            if (Map.IsCoop && Players[0].SideId == ddPlayerSides[0].Items.Count - 1)
+            {
+                btnLaunchGame.AllowClick = false;
+                return;
+            }
+
+            btnLaunchGame.AllowClick = true;
+            return;
         }
 
         protected override void BtnLaunchGame_LeftClick(object sender, EventArgs e)

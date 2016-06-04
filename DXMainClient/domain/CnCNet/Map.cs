@@ -242,7 +242,7 @@ namespace DTAClient.domain.CnCNet
                     GameModes[i] = gameMode;
                 }
 
-                MinPlayers = iniFile.GetIntValue("Basic", "MinPlayer", 0);
+                MinPlayers = 0;
                 MaxPlayers = iniFile.GetIntValue("Basic", "MaxPlayer", 0);
                 EnforceMaxPlayers = iniFile.GetBooleanValue("Basic", "EnforceMaxPlayers", true);
                 //PreviewPath = Path.GetDirectoryName(BaseFilePath) + "\\" +

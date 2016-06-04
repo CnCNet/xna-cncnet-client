@@ -11,6 +11,7 @@ using ClientCore;
 using DTAClient.domain.CnCNet;
 using System.IO;
 using ClientCore.Statistics;
+using Microsoft.Xna.Framework.Graphics;
 
 namespace DTAClient.DXGUI.GameLobby
 {
@@ -83,12 +84,18 @@ namespace DTAClient.DXGUI.GameLobby
 
         protected MapPreviewBox MapPreviewBox;
 
+        protected DXMultiColumnListBox lbMapList;
+        protected DXDropDown ddGameMode;
+        protected DXLabel lblGameModeSelect;
+
         protected List<PlayerInfo> Players = new List<PlayerInfo>();
         protected List<PlayerInfo> AIPlayers = new List<PlayerInfo>();
 
         protected bool PlayerUpdatingInProgress { get; set; }
 
         protected bool GameInProgress { get; set; }
+
+        protected Texture2D[] RankTextures;
 
         /// <summary>
         /// The seed used for randomizing player options.
@@ -115,6 +122,14 @@ namespace DTAClient.DXGUI.GameLobby
             WindowManager.CenterControlOnScreen(this);
             BackgroundTexture = AssetLoader.LoadTexture("gamelobbybg.png");
 
+            RankTextures = new Texture2D[4]
+            {
+                AssetLoader.LoadTexture("rankNone.png"),
+                AssetLoader.LoadTexture("rankEasy.png"),
+                AssetLoader.LoadTexture("rankNormal.png"),
+                AssetLoader.LoadTexture("rankHard.png")
+            };
+
             _gameOptionsIni = new IniFile(ProgramConstants.GetBaseResourcePath() + "GameOptions.ini");
 
             GameOptionsPanel = new DXPanel(WindowManager);
@@ -128,7 +143,6 @@ namespace DTAClient.DXGUI.GameLobby
             PlayerOptionsPanel.Name = "PlayerOptionsPanel";
             PlayerOptionsPanel.BackgroundTexture = AssetLoader.LoadTexture("gamelobbypanelbg.png");
             PlayerOptionsPanel.ClientRectangle = new Rectangle(GameOptionsPanel.ClientRectangle.Left - 401, 12, 395, GameOptionsPanel.ClientRectangle.Height);
-            PlayerOptionsPanel.LeftClick += PlayerOptionsPanel_LeftClick;
             PlayerOptionsPanel.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 192), 1, 1);
             PlayerOptionsPanel.DrawMode = PanelBackgroundImageDrawMode.STRETCHED;
 
@@ -186,10 +200,49 @@ namespace DTAClient.DXGUI.GameLobby
             lblGameMode.FontIndex = 1;
             lblGameMode.Text = "Game mode:";
 
+            lbMapList = new DXMultiColumnListBox(WindowManager);
+            lbMapList.Name = "lbMapList";
+            lbMapList.ClientRectangle = new Rectangle(btnLaunchGame.ClientRectangle.X, GameOptionsPanel.ClientRectangle.Y + 23,
+                MapPreviewBox.ClientRectangle.X - btnLaunchGame.ClientRectangle.X - 6,
+                MapPreviewBox.ClientRectangle.Bottom - 23 - GameOptionsPanel.ClientRectangle.Y);
+            lbMapList.SelectedIndexChanged += LbMapList_SelectedIndexChanged;
+            lbMapList.DrawMode = PanelBackgroundImageDrawMode.STRETCHED;
+            lbMapList.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 192), 1, 1);
+            lbMapList.LineHeight = 16;
+            lbMapList.DrawListBoxBorders = true;
+
+            DXPanel rankHeader = new DXPanel(WindowManager);
+            rankHeader.BackgroundTexture = AssetLoader.LoadTexture("rank.png");
+            rankHeader.ClientRectangle = new Rectangle(0, 0, rankHeader.BackgroundTexture.Width,
+                19);
+
+            DXListBox rankListBox = new DXListBox(WindowManager);
+            rankListBox.TextBorderDistance = 2;
+
+            lbMapList.AddColumn(rankHeader, rankListBox);
+
+            lbMapList.AddColumn("MAP NAME", lbMapList.ClientRectangle.Width - RankTextures[1].Width - 3);
+
+            ddGameMode = new DXDropDown(WindowManager);
+            ddGameMode.Name = "ddGameMode";
+            ddGameMode.ClientRectangle = new Rectangle(lbMapList.ClientRectangle.Right - 150, GameOptionsPanel.ClientRectangle.Y, 150, 21);
+            ddGameMode.ClickSoundEffect = AssetLoader.LoadSound("dropdown.wav");
+            ddGameMode.SelectedIndexChanged += DdGameMode_SelectedIndexChanged;
+
+            lblGameModeSelect = new DXLabel(WindowManager);
+            lblGameModeSelect.Name = "lblGameModeSelect";
+            lblGameModeSelect.ClientRectangle = new Rectangle(lbMapList.ClientRectangle.X, ddGameMode.ClientRectangle.Top + 2, 0, 0);
+            lblGameModeSelect.FontIndex = 1;
+            lblGameModeSelect.Text = "GAME MODE:";
+
             AddChild(lblMapName);
             AddChild(lblMapAuthor);
             AddChild(lblGameMode);
             AddChild(MapPreviewBox);
+
+            AddChild(lbMapList);
+            AddChild(ddGameMode);
+            AddChild(lblGameModeSelect);
 
             SharedUILogic.GameProcessExited += GameProcessExited;
 
@@ -265,9 +318,51 @@ namespace DTAClient.DXGUI.GameLobby
             CopyPlayerDataToUI();
         }
 
-        private void PlayerOptionsPanel_LeftClick(object sender, EventArgs e)
+        protected virtual void DdGameMode_SelectedIndexChanged(object sender, EventArgs e)
         {
-            Logger.Log("Clicked!");
+            GameMode = GameModes[ddGameMode.SelectedIndex];
+
+            lbMapList.ClearItems();
+            lbMapList.SetTopIndex(0);
+
+            foreach (Map map in GameMode.Maps)
+            {
+                DXListBoxItem rankItem = new DXListBoxItem();
+                if (map.IsCoop)
+                {
+                    if (StatisticsManager.Instance.HasBeatCoOpMap(map.Name, GameMode.UIName))
+                        rankItem.Texture = RankTextures[Math.Abs(2 - GameMode.CoopDifficultyLevel) + 1];
+                    else
+                        rankItem.Texture = RankTextures[0];
+                }
+                else
+                    rankItem.Texture = RankTextures[StatisticsManager.Instance.GetSkirmishRankForDefaultMap(map.Name, map.MaxPlayers) + 1];
+
+                DXListBoxItem mapNameItem = new DXListBoxItem();
+                mapNameItem.Text = map.Name;
+                mapNameItem.TextColor = UISettings.AltColor;
+
+                DXListBoxItem playerCountItem = new DXListBoxItem();
+                playerCountItem.TextColor = UISettings.AltColor;
+                playerCountItem.Text = "[" + map.MaxPlayers.ToString() + "]";
+
+                DXListBoxItem[] mapInfoArray = new DXListBoxItem[]
+                {
+                    //playerCountItem,
+                    rankItem,
+                    mapNameItem,
+                };
+
+                lbMapList.AddItem(mapInfoArray);
+            }
+        }
+
+        protected virtual void LbMapList_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            GameMode gm = GameModes[ddGameMode.SelectedIndex];
+            Map map = gm.Maps[lbMapList.SelectedIndex];
+
+            ChangeMap(gm, map);
         }
 
         /// <summary>
@@ -938,15 +1033,13 @@ namespace DTAClient.DXGUI.GameLobby
             // Enable all sides by default
             foreach (DXDropDown ddSide in ddPlayerSides)
             {
-                foreach (DXDropDownItem item in ddSide.Items)
-                    item.Selectable = true;
+                ddSide.Items.ForEach(item => item.Selectable = true);
             }
 
             // Enable all colors by default
             foreach (DXDropDown ddColor in ddPlayerColors)
             {
-                foreach (DXDropDownItem item in ddColor.Items)
-                    item.Selectable = true;
+                ddColor.Items.ForEach(item => item.Selectable = true);
             }
 
             // Apply starting locations
@@ -976,9 +1069,10 @@ namespace DTAClient.DXGUI.GameLobby
             {
                 // Co-Op map disallowed side logic
 
-                List<int> disallowedSides = map.CoopInfo.DisallowedPlayerSides;
+                List<int> disallowedSides = new List<int>(map.CoopInfo.DisallowedPlayerSides);
+                disallowedSides.Add(_sideCount); // Disallow spectator
 
-                bool disallowRandom = _sideCount == disallowedSides.Count + 1; // Disallow Random if only 1 side is allowed
+                bool disallowRandom = _sideCount == disallowedSides.Count; // Disallow Random if only 1 side is allowed
                 int defaultSideIndex = 0; // The side to switch to if we're currently using a disallowed side. 0 = random
 
                 if (disallowRandom)
@@ -993,7 +1087,9 @@ namespace DTAClient.DXGUI.GameLobby
                     }
 
                     foreach (DXDropDown dd in ddPlayerSides)
+                    {
                         dd.Items[0].Selectable = false;
+                    }
 
                     foreach (PlayerInfo pInfo in Players)
                     {
@@ -1010,12 +1106,12 @@ namespace DTAClient.DXGUI.GameLobby
 
                 foreach (int disallowedSideIndex in disallowedSides)
                 {
-                    if (disallowedSideIndex >= _sideCount)
-                        continue; // Let's not crash the client
-
-                    foreach (DXDropDown ddSide in ddPlayerSides)
+                    if (disallowedSideIndex < _sideCount) // Let's not crash the client
                     {
-                        ddSide.Items[disallowedSideIndex + 1].Selectable = false;
+                        foreach (DXDropDown ddSide in ddPlayerSides)
+                        {
+                            ddSide.Items[disallowedSideIndex + 1].Selectable = false;
+                        }
                     }
 
                     foreach (PlayerInfo pInfo in Players)
