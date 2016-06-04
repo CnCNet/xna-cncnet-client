@@ -168,6 +168,15 @@ namespace DTAClient.DXGUI.GameLobby
                 return;
             }
 
+            if (Map.EnforceMaxPlayers)
+            {
+                foreach (PlayerInfo pInfo in players.Concat(aiPlayers))
+                {
+                    if (pInfo.StartingLocation == (int)indicator.Tag + 1)
+                        return;
+                }
+            }
+
             int x = indicator.ClientRectangle.Right;
             int y = indicator.ClientRectangle.Top;
 

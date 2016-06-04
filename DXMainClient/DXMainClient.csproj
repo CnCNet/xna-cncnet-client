@@ -114,6 +114,7 @@
     <Compile Include="domain\CnCNet\CoopMapInfo.cs" />
     <Compile Include="domain\CnCNet\GameCollection.cs" />
     <Compile Include="domain\CnCNet\GameMode.cs" />
+    <Compile Include="domain\CnCNet\HostedGame.cs" />
     <Compile Include="domain\CnCNet\LinkButton.cs" />
     <Compile Include="domain\CnCNet\Map.cs" />
     <Compile Include="domain\CnCNet\MapLoader.cs" />
@@ -126,9 +127,11 @@
     <Compile Include="domain\MainClientConstants.cs" />
     <Compile Include="domain\UserAgentHandler.cs" />
     <Compile Include="DXGUI\CampaignSelector.cs" />
+    <Compile Include="DXGUI\ChatListBox.cs" />
     <Compile Include="DXGUI\CnCNetLobby.cs" />
     <Compile Include="DXGUI\GameInformationPanel.cs" />
     <Compile Include="DXGUI\GameInProgressWindow.cs" />
+    <Compile Include="DXGUI\GameListBox.cs" />
     <Compile Include="DXGUI\GameLoadingWindow.cs" />
     <Compile Include="DXGUI\ExtrasWindow.cs" />
     <Compile Include="DXGUI\GameClass.cs" />

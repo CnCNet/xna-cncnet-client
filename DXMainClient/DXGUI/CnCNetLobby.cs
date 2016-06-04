@@ -17,6 +17,7 @@ using DTAClient.Properties;
 using DTAClient.domain.CnCNet;
 using Microsoft.Xna.Framework.Input;
 using Rampastring.XNAUI.Input;
+using HostedGame = DTAClient.domain.CnCNet.HostedGame;
 
 namespace DTAClient.DXGUI
 {
@@ -35,8 +36,8 @@ namespace DTAClient.DXGUI
         CnCNetManager connectionManager;
 
         DXListBox lbPlayerList;
-        DXListBox lbGameList;
-        DXListBox lbChatMessages;
+        ChatListBox lbChatMessages;
+        GameListBox lbGameList;
 
         LinkButton btnForums;
         LinkButton btnTwitter;
@@ -44,6 +45,7 @@ namespace DTAClient.DXGUI
         LinkButton btnYoutube;
         LinkButton btnFacebook;
         LinkButton btnModDB;
+        LinkButton btnHomepage;
 
         DXButton btnLogout;
         DXButton btnNewGame;
@@ -54,8 +56,6 @@ namespace DTAClient.DXGUI
         DXLabel lblColor;
         DXLabel lblCurrentChannel;
         //DXLabel lblGameInformation;
-
-        GameInformationPanel panelGameInformation;
 
         GameCollection gameCollection;
 
@@ -83,6 +83,7 @@ namespace DTAClient.DXGUI
             Name = "CnCNetLobby";
             BackgroundTexture = AssetLoader.LoadTexture("cncnetlobbybg.png");
             DrawMode = PanelBackgroundImageDrawMode.STRETCHED;
+            localGame = DomainController.Instance().GetDefaultGame();
 
             btnNewGame = new DXButton(WindowManager);
             btnNewGame.Name = "btnNewGame";
@@ -116,14 +117,8 @@ namespace DTAClient.DXGUI
             btnLogout.Text = "Main Menu";
             btnLogout.LeftClick += BtnLogout_LeftClick;
 
-            panelGameInformation = new GameInformationPanel(WindowManager);
-            panelGameInformation.Name = "panelGameInformation";
-            panelGameInformation.BackgroundTexture = AssetLoader.LoadTexture("cncnetlobbypanelbg.png");
-            panelGameInformation.ClientRectangle = new Rectangle(btnNewGame.ClientRectangle.X,
-                btnNewGame.ClientRectangle.Y - 226,
-                btnJoinGame.ClientRectangle.Right - btnNewGame.ClientRectangle.X, 220);
-
             btnForums = new LinkButton(WindowManager);
+            btnForums.Name = "btnForums";
             btnForums.ClientRectangle = new Rectangle(ClientRectangle.Width - 33, 12, 21, 21);
             btnForums.IdleTexture = AssetLoader.LoadTexture("forumsInactive.png");
             btnForums.HoverTexture = AssetLoader.LoadTexture("forumsActive.png");
@@ -131,41 +126,55 @@ namespace DTAClient.DXGUI
             btnForums.URL = DomainController.Instance().GetForumURL();
 
             btnTwitter = new LinkButton(WindowManager);
-            btnTwitter.ClientRectangle = new Rectangle(ClientRectangle.Width - 60, 12, 21, 21);
+            btnTwitter.Name = "btnTwitter";
+            btnTwitter.ClientRectangle = new Rectangle(ClientRectangle.Width - 61, 12, 21, 21);
             btnTwitter.IdleTexture = AssetLoader.LoadTexture("twitterInactive.png");
             btnTwitter.HoverTexture = AssetLoader.LoadTexture("twitterActive.png");
             btnTwitter.HoverSoundEffect = AssetLoader.LoadSound("button.wav");
             btnTwitter.URL = DomainController.Instance().GetTwitterURL();
 
             btnGooglePlus = new LinkButton(WindowManager);
-            btnGooglePlus.ClientRectangle = new Rectangle(ClientRectangle.Width - 87, 12, 21, 21);
+            btnGooglePlus.Name = "btnGooglePlus";
+            btnGooglePlus.ClientRectangle = new Rectangle(ClientRectangle.Width - 89, 12, 21, 21);
             btnGooglePlus.IdleTexture = AssetLoader.LoadTexture("googlePlusInactive.png");
             btnGooglePlus.HoverTexture = AssetLoader.LoadTexture("googlePlusActive.png");
             btnGooglePlus.HoverSoundEffect = AssetLoader.LoadSound("button.wav");
             btnGooglePlus.URL = DomainController.Instance().GetGooglePlusURL();
 
             btnYoutube = new LinkButton(WindowManager);
-            btnYoutube.ClientRectangle = new Rectangle(ClientRectangle.Width - 114, 12, 21, 21);
+            btnYoutube.Name = "btnYoutube";
+            btnYoutube.ClientRectangle = new Rectangle(ClientRectangle.Width - 117, 12, 21, 21);
             btnYoutube.IdleTexture = AssetLoader.LoadTexture("youtubeInactive.png");
             btnYoutube.HoverTexture = AssetLoader.LoadTexture("youtubeActive.png");
             btnYoutube.HoverSoundEffect = AssetLoader.LoadSound("button.wav");
             btnYoutube.URL = DomainController.Instance().GetYoutubeURL();
 
             btnFacebook = new LinkButton(WindowManager);
-            btnFacebook.ClientRectangle = new Rectangle(ClientRectangle.Width - 141, 12, 21, 21);
+            btnFacebook.Name = "btnFacebook";
+            btnFacebook.ClientRectangle = new Rectangle(ClientRectangle.Width - 145, 12, 21, 21);
             btnFacebook.IdleTexture = AssetLoader.LoadTexture("facebookInactive.png");
             btnFacebook.HoverTexture = AssetLoader.LoadTexture("facebookActive.png");
             btnFacebook.HoverSoundEffect = AssetLoader.LoadSound("button.wav");
             btnFacebook.URL = DomainController.Instance().GetFacebookURL();
 
             btnModDB = new LinkButton(WindowManager);
-            btnModDB.ClientRectangle = new Rectangle(ClientRectangle.Width - 168, 12, 21, 21);
+            btnModDB.Name = "btnModDB";
+            btnModDB.ClientRectangle = new Rectangle(ClientRectangle.Width - 173, 12, 21, 21);
             btnModDB.IdleTexture = AssetLoader.LoadTexture("moddbInactive.png");
             btnModDB.HoverTexture = AssetLoader.LoadTexture("moddbActive.png");
             btnModDB.HoverSoundEffect = AssetLoader.LoadSound("button.wav");
             btnModDB.URL = DomainController.Instance().GetModDBURL();
 
-            lbGameList = new DXListBox(WindowManager);
+            btnHomepage = new LinkButton(WindowManager);
+            btnHomepage.Name = "btnHomepage";
+            btnHomepage.ClientRectangle = new Rectangle(ClientRectangle.Width - 201, 12, 21, 21);
+            btnHomepage.IdleTexture = AssetLoader.LoadTexture("homepageInactive.png");
+            btnHomepage.HoverTexture = AssetLoader.LoadTexture("homepageActive.png");
+            btnHomepage.HoverSoundEffect = AssetLoader.LoadSound("button.wav");
+            btnHomepage.URL = DomainController.Instance().GetHomepageURL();
+
+            lbGameList = new GameListBox(WindowManager, hostedGames, localGame);
+            lbGameList.Name = "lbGameList";
             lbGameList.ClientRectangle = new Rectangle(btnNewGame.ClientRectangle.X,
                 41, btnJoinGame.ClientRectangle.Right - btnNewGame.ClientRectangle.X,
                 btnNewGame.ClientRectangle.Top - 47);
@@ -173,16 +182,18 @@ namespace DTAClient.DXGUI
             lbGameList.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 128), 1, 1);
 
             lbPlayerList = new DXListBox(WindowManager);
-            lbPlayerList.ClientRectangle = new Rectangle(ClientRectangle.Width - 204,
-                btnForums.ClientRectangle.Bottom + 8, 192, 
+            lbPlayerList.Name = "lbPlayerList";
+            lbPlayerList.ClientRectangle = new Rectangle(ClientRectangle.Width - 202,
+                btnForums.ClientRectangle.Bottom + 8, 190, 
                 btnLogout.ClientRectangle.Top - btnForums.ClientRectangle.Bottom - 14);
             lbPlayerList.DrawMode = PanelBackgroundImageDrawMode.STRETCHED;
             lbPlayerList.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 128), 1, 1);
             lbPlayerList.LineHeight = 16;
 
-            lbChatMessages = new DXListBox(WindowManager);
-            lbChatMessages.ClientRectangle = new Rectangle(lbGameList.ClientRectangle.Right + 6, lbGameList.ClientRectangle.Y,
-                lbPlayerList.ClientRectangle.Left - lbGameList.ClientRectangle.Right - 12, lbPlayerList.ClientRectangle.Height);
+            lbChatMessages = new ChatListBox(WindowManager);
+            lbChatMessages.Name = "lbChatMessages";
+            lbChatMessages.ClientRectangle = new Rectangle(lbGameList.ClientRectangle.Right + 9, lbGameList.ClientRectangle.Y,
+                lbPlayerList.ClientRectangle.Left - lbGameList.ClientRectangle.Right - 18, lbPlayerList.ClientRectangle.Height);
             lbChatMessages.DrawMode = PanelBackgroundImageDrawMode.STRETCHED;
             lbChatMessages.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 128), 1, 1);
             lbChatMessages.LineHeight = 16;
@@ -197,11 +208,13 @@ namespace DTAClient.DXGUI
             tbChatInput.EnterPressed += TbChatInput_EnterPressed;
 
             lblColor = new DXLabel(WindowManager);
+            lblColor.Name = "lblColor";
             lblColor.ClientRectangle = new Rectangle(lbChatMessages.ClientRectangle.X, 14, 0, 0);
             lblColor.FontIndex = 1;
             lblColor.Text = "YOUR COLOR:";
 
             ddColor = new DXDropDown(WindowManager);
+            ddColor.Name = "ddColor";
             ddColor.ClientRectangle = new Rectangle(lblColor.ClientRectangle.X + 95, btnForums.ClientRectangle.Y,
                 150, 21);
             ddColor.SelectedIndexChanged += DdColor_SelectedIndexChanged;
@@ -228,6 +241,7 @@ namespace DTAClient.DXGUI
                 selectedColor;
 
             ddCurrentChannel = new DXDropDown(WindowManager);
+            ddCurrentChannel.Name = "ddCurrentChannel";
             ddCurrentChannel.ClientRectangle = new Rectangle(
                 lbChatMessages.ClientRectangle.Right - 200,
                 ddColor.ClientRectangle.Y, 200, 21);
@@ -237,8 +251,6 @@ namespace DTAClient.DXGUI
             gameCollection = connectionManager.GetGameCollection();
 
             int i = 0;
-
-            localGame = DomainController.Instance().GetDefaultGame();
 
             foreach (CnCNetGame game in gameCollection.GameList)
             {
@@ -282,18 +294,12 @@ namespace DTAClient.DXGUI
                     ddCurrentChannel.SelectedIndex = i;
                     connectionManager.SetMainChannel(chatChannel);
                 }
-                //    chatChannel.Join();
-                //    gameChannel.Join();
-                //}
-                //else if (game.AlwaysEnabled)
-                //    chatChannel.Join();
-                //else if (DomainController.Instance().GetGameEnabledStatus(game.InternalName.ToUpper()))
-                //    gameChannel.Join();
 
                 i++;
             }
 
             lblCurrentChannel = new DXLabel(WindowManager);
+            lblCurrentChannel.Name = "lblCurrentChannel";
             lblCurrentChannel.ClientRectangle = new Rectangle(
                 ddCurrentChannel.ClientRectangle.X - 150,
                 ddCurrentChannel.ClientRectangle.Y + 2, 0, 0);
@@ -303,24 +309,22 @@ namespace DTAClient.DXGUI
             AddChild(btnNewGame);
             AddChild(btnJoinGame);
             AddChild(btnLogout);
-            panelGameInformation.Parent = this;
-            panelGameInformation.Initialize();
+
             AddChild(btnForums);
             AddChild(btnTwitter);
             AddChild(btnGooglePlus);
             AddChild(btnYoutube);
             AddChild(btnFacebook);
             AddChild(btnModDB);
-            AddChild(lbGameList);
+            AddChild(btnHomepage);
             AddChild(lbPlayerList);
             AddChild(lbChatMessages);
+            AddChild(lbGameList);
             AddChild(tbChatInput);
             AddChild(lblColor);
             AddChild(ddColor);
             AddChild(lblCurrentChannel);
             AddChild(ddCurrentChannel);
-
-            panelGameInformation.ClearInfo();
 
             SoundEffect gameCreatedSoundEffect = AssetLoader.LoadSound("gamecreated.wav");
 
@@ -554,20 +558,18 @@ namespace DTAClient.DXGUI
                 string gameMode = splitMessage[8];
                 string loadedGameId = splitMessage[9];
 
-                string gameId = "unk";
+                CnCNetGame cncnetGame = gameCollection.GameList.Find(g => g.GameBroadcastChannel == channel.ChannelName);
 
-                gameId = gameCollection.GetGameIdentifierFromGameBroadcastingChannel(channel.ChannelName);
-
-                if (gameId == "unk")
-                    return;
-
-                HostedGame game = new HostedGame(gameRoomChannelName, revision, gameId, gameVersion, maxPlayers,
+                HostedGame game = new HostedGame(gameRoomChannelName, revision, cncnetGame.InternalName, gameVersion, maxPlayers,
                     gameRoomDisplayName, isCustomPassword, false, locked, true, false, false, players,
                     e.UserName, mapName, gameMode);
-                game.IsMPLoadGame = isLoadedGame;
+                game.IsLoadedGame = isLoadedGame;
                 game.MatchID = loadedGameId;
                 game.LastRefreshTime = DateTime.Now;
                 game.IsLadder = isLadder;
+                game.GameTexture = cncnetGame.Texture;
+                game.IsLocked = game.Started || (game.IsLoadedGame && !game.Players.Contains(ProgramConstants.PLAYERNAME));
+                game.IsIncompatible = game.Version != ProgramConstants.GAME_VERSION;
 
                 if (isClosed)
                 {
@@ -576,7 +578,7 @@ namespace DTAClient.DXGUI
                     if (index > -1)
                     {
                         hostedGames.RemoveAt(index);
-                        RefreshGameList();
+                        lbGameList.Refresh();
                     }
 
                     return;
@@ -592,7 +594,7 @@ namespace DTAClient.DXGUI
                 }
                 else
                 {
-                    if (gameId == localGame.ToLower() &&
+                    if (cncnetGame.InternalName == localGame.ToLower() &&
                         !ProgramConstants.IsInGame &&
                         DomainController.Instance().GetGameHostedSoundEnabledStatus())
                     {
@@ -602,7 +604,7 @@ namespace DTAClient.DXGUI
                     hostedGames.Insert(0, game);
                 }
 
-                RefreshGameList();
+                lbGameList.Refresh();
             }
             catch (Exception ex)
             {

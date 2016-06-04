@@ -23,10 +23,12 @@ namespace DTAClient.DXGUI
 {
     class MainMenu : DXWindow
     {
-        public MainMenu(WindowManager windowManager, SkirmishLobby skirmishLobby) : base(windowManager)
+        public MainMenu(WindowManager windowManager, SkirmishLobby skirmishLobby,
+            CnCNetLobby cncnetLobby) : base(windowManager)
         {
             isYR = DomainController.Instance().GetDefaultGame().ToUpper() == "YR";
             this.skirmishLobby = skirmishLobby;
+            this.cncnetLobby = cncnetLobby;
         }
 
         bool isYR = false;
@@ -39,6 +41,7 @@ namespace DTAClient.DXGUI
         DXLabel lblVersion;
 
         SkirmishLobby skirmishLobby;
+        CnCNetLobby cncnetLobby;
 
         bool updateInProgress = false;
 
@@ -216,6 +219,7 @@ namespace DTAClient.DXGUI
             WindowManager.GameFormClosing += Instance_GameFormClosing;
 
             skirmishLobby.VisibleChanged += SkirmishLobby_VisibleChanged;
+            cncnetLobby.VisibleChanged += CncnetLobby_VisibleChanged;
         }
 
         private void CnCNetInfoController_CnCNetGameCountUpdated(object sender, PlayerCountEventArgs e)
@@ -232,6 +236,14 @@ namespace DTAClient.DXGUI
         private void SkirmishLobby_VisibleChanged(object sender, EventArgs e)
         {
             if (skirmishLobby.Visible)
+                innerPanel.Show(null);
+            else
+                innerPanel.Hide();
+        }
+
+        private void CncnetLobby_VisibleChanged(object sender, EventArgs e)
+        {
+            if (cncnetLobby.Visible)
                 innerPanel.Show(null);
             else
                 innerPanel.Hide();
@@ -438,46 +450,8 @@ namespace DTAClient.DXGUI
 
         private void BtnCnCNet_LeftClick(object sender, EventArgs e)
         {
-            SaveSettings();
-
-            UserAgentHandler.ChangeUserAgent();
-            //VisitPage(StatisticsPageAddresses.GetCnCNetStatsPageAddress());
-
-            ProcessStartInfo startInfo = new ProcessStartInfo(MainClientConstants.gamepath + "cncnetclient.dat");
-            startInfo.Arguments = "\"-RESDIR=" + ProgramConstants.RESOURCES_DIR.Remove(ProgramConstants.RESOURCES_DIR.Length - 1) + "\"";
-            startInfo.Arguments = startInfo.Arguments + " -VER" + CUpdater.GameVersion;
-
-            startInfo.UseShellExecute = false;
-
-            Process clientProcess = new Process();
-            clientProcess.EnableRaisingEvents = true;
-            clientProcess.StartInfo = startInfo;
-
-            WindowManager.HideWindow();
-            clientProcess.Start();
-
-            clientProcess.WaitForExit();
-
-            if (clientProcess.ExitCode == 1337)
-            {
-                Logger.Log("The CnCNet client was switched - exiting.");
-                Environment.Exit(0);
-            }
-            else if (clientProcess.ExitCode == 1338)
-            {
-                MsgBoxForm.Show("Editing game files while connected to CnCNet is not allowed."
-                    + Environment.NewLine + Environment.NewLine +
-                    "If you got this message without editing files, visit " + Environment.NewLine +
-                    MainClientConstants.SUPPORT_URL + " for troubleshooting tips and support.", "Editing files not allowed",
-                    System.Windows.Forms.MessageBoxButtons.OK);
-
-                if (isYR)
-                    Environment.Exit(0);
-            }
-
-            MCDomainController.Instance.ReloadSettings();
-
-            WindowManager.ShowWindow();
+            cncnetLobby.Visible = true;
+            cncnetLobby.Enabled = true;
         }
 
         private void BtnSkirmish_LeftClick(object sender, EventArgs e)

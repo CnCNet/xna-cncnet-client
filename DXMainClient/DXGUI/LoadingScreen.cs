@@ -91,17 +91,17 @@ namespace DTAClient.DXGUI
         {
             CnCNetManager cncnetManager = new CnCNetManager(WindowManager);
             GameLobby.SkirmishLobby sl = new GameLobby.SkirmishLobby(WindowManager, mapLoader.GameModes);
-            //GameLobby.MultiplayerGameLobby mpLobby = new MultiplayerGameLobby(WindowManager, "MPGameLobby", mapLoader.GameModes);
             CnCNetLobby cncnetLobby = new CnCNetLobby(WindowManager, cncnetManager);
 
-            MainMenu mm = new MainMenu(WindowManager, sl);
+            MainMenu mm = new MainMenu(WindowManager, sl, cncnetLobby);
             CUpdater.OnLocalFileVersionsChecked -= CUpdater_OnLocalFileVersionsChecked;
             WindowManager.AddAndInitializeControl(mm);
             WindowManager.AddAndInitializeControl(sl);
             WindowManager.AddAndInitializeControl(cncnetLobby);
-            //WindowManager.AddAndInitializeControl(mpLobby);
             sl.Visible = false;
             sl.Enabled = false;
+            cncnetLobby.Visible = false;
+            cncnetLobby.Enabled = false;
             WindowManager.RemoveControl(this);
             mm.PostInit();
         }
