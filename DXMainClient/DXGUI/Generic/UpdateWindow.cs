@@ -11,7 +11,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using Updater;
 
-namespace DTAClient.DXGUI
+namespace DTAClient.DXGUI.Generic
 {
     /// <summary>
     /// The update window, displaying the update progress to the user.

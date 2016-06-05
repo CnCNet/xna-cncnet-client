@@ -10,7 +10,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 
-namespace DTAClient.DXGUI
+namespace DTAClient.DXGUI.Generic
 {
     public class ExtrasWindow : DXWindow
     {

@@ -13,7 +13,7 @@ using System.IO;
 using ClientCore.Statistics;
 using Microsoft.Xna.Framework.Graphics;
 
-namespace DTAClient.DXGUI.GameLobby
+namespace DTAClient.DXGUI.Multiplayer.GameLobby
 {
     /// <summary>
     /// A generic base for all game lobbies (Skirmish, LAN and CnCNet).

@@ -14,7 +14,7 @@ using Rampastring.Tools;
 using Microsoft.Xna.Framework.Input;
 using System.Diagnostics;
 
-namespace DTAClient.DXGUI.GameLobby
+namespace DTAClient.DXGUI.Multiplayer.GameLobby
 {
     /// <summary>
     /// The picture box for displaying the map preview.

@@ -7,7 +7,7 @@ using Rampastring.XNAUI;
 using Microsoft.Xna.Framework;
 using System.Diagnostics;
 
-namespace DTAClient.DXGUI
+namespace DTAClient.DXGUI.Multiplayer
 {
     /// <summary>
     /// A list box for CnCNet chat. Supports opening links with a double-click.

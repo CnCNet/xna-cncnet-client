@@ -10,7 +10,7 @@ using HostedGame = DTAClient.domain.CnCNet.HostedGame;
 using ClientCore;
 using Microsoft.Xna.Framework.Graphics;
 
-namespace DTAClient.DXGUI
+namespace DTAClient.DXGUI.Multiplayer
 {
     public class GameListBox : DXListBox
     {

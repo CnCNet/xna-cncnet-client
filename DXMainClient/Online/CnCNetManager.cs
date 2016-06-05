@@ -128,6 +128,11 @@ namespace DTAClient.Online
             currentMainChannel = Channels.Find(c => c == channel);
         }
 
+        public void SendCustomMessage(QueuedMessage qm)
+        {
+            connection.QueueMessage(qm);
+        }
+
         public void OnAttemptedServerChanged(string serverName)
         {
             wm.AddCallback(new Delegates.StringDelegate(DoAttemptedServerChanged), serverName);

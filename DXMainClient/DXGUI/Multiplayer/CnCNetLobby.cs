@@ -19,7 +19,7 @@ using Microsoft.Xna.Framework.Input;
 using Rampastring.XNAUI.Input;
 using HostedGame = DTAClient.domain.CnCNet.HostedGame;
 
-namespace DTAClient.DXGUI
+namespace DTAClient.DXGUI.Multiplayer
 {
     public class CnCNetLobby : DXWindow
     {
@@ -352,7 +352,7 @@ namespace DTAClient.DXGUI
 
             IRCColor selectedColor = (IRCColor)ddColor.SelectedItem.Tag;
 
-            currentChatChannel.SendMessage(tbChatInput.Text, selectedColor);
+            currentChatChannel.SendChatMessage(tbChatInput.Text, selectedColor);
 
             tbChatInput.Text = string.Empty;
         }

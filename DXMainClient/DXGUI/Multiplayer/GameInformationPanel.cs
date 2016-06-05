@@ -7,7 +7,7 @@ using Rampastring.XNAUI;
 using Microsoft.Xna.Framework;
 using DTAClient.domain.CnCNet;
 
-namespace DTAClient.DXGUI
+namespace DTAClient.DXGUI.Multiplayer
 {
     /// <summary>
     /// A UI panel that displays information about a hosted CnCNet or LAN game.

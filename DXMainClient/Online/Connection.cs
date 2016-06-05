@@ -617,7 +617,7 @@ namespace DTAClient.Online
         /// Adds a message to the send queue.
         /// </summary>
         /// <param name="qm">The message to queue.</param>
-        private void QueueMessage(QueuedMessage qm)
+        public void QueueMessage(QueuedMessage qm)
         {
             if (!_isConnected)
                 return;

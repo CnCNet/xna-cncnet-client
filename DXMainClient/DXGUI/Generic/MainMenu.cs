@@ -17,9 +17,10 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using Updater;
-using SkirmishLobby = DTAClient.DXGUI.GameLobby.SkirmishLobby;
+using SkirmishLobby = DTAClient.DXGUI.Multiplayer.GameLobby.SkirmishLobby;
+using DTAClient.DXGUI.Multiplayer;
 
-namespace DTAClient.DXGUI
+namespace DTAClient.DXGUI.Generic
 {
     class MainMenu : DXWindow
     {

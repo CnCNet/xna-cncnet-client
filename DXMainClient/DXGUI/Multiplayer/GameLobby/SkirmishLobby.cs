@@ -10,7 +10,7 @@ using ClientCore;
 using Microsoft.Xna.Framework.Graphics;
 using ClientCore.Statistics;
 
-namespace DTAClient.DXGUI.GameLobby
+namespace DTAClient.DXGUI.Multiplayer.GameLobby
 {
     public class SkirmishLobby : GameLobbyBase
     {

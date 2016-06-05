@@ -1,5 +1,6 @@
 ﻿using ClientCore;
 using DTAClient.domain;
+using DTAClient.DXGUI.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;

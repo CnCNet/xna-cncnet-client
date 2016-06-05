@@ -183,7 +183,7 @@ namespace DTAClient.Online
             MessageAdded?.Invoke(this, new IRCMessageEventArgs(message));
         }
 
-        public void SendMessage(string message, IRCColor color)
+        public void SendChatMessage(string message, IRCColor color)
         {
             AddMessage(new IRCMessage(ProgramConstants.PLAYERNAME, color.XnaColor, DateTime.Now, message));
 
@@ -191,6 +191,15 @@ namespace DTAClient.Online
 
             connection.QueueMessage(QueuedMessageType.CHAT_MESSAGE, 0,
                 "PRIVMSG " + ChannelName + " :" + colorString + message);
+        }
+
+        public void SendCTCPMessage(string message, QueuedMessageType qmType, int priority)
+        {
+            char CTCPChar1 = (char)58;
+            char CTCPChar2 = (char)01;
+
+            connection.QueueMessage(qmType, priority, 
+                "NOTICE " + ChannelName + " " + CTCPChar1 + CTCPChar2 + message + CTCPChar2);
         }
 
         public void Join()

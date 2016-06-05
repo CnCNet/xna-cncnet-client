@@ -9,7 +9,7 @@ using DTAClient.domain.CnCNet;
 using PlayerInfo = DTAClient.domain.CnCNet.PlayerInfo;
 using Microsoft.Xna.Framework;
 
-namespace DTAClient.DXGUI.GameLobby
+namespace DTAClient.DXGUI.Multiplayer.GameLobby
 {
     /// <summary>
     /// A player location indicator for the map preview.

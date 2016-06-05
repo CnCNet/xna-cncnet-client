@@ -2,7 +2,7 @@
 using ClientGUI;
 using DTAClient.domain;
 using DTAClient.domain.CnCNet;
-using DTAClient.DXGUI.GameLobby;
+using DTAClient.DXGUI.Multiplayer;
 using DTAClient.Online;
 using Microsoft.Xna.Framework;
 using Rampastring.XNAUI;
@@ -14,8 +14,9 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using Updater;
+using SkirmishLobby = DTAClient.DXGUI.Multiplayer.GameLobby.SkirmishLobby;
 
-namespace DTAClient.DXGUI
+namespace DTAClient.DXGUI.Generic
 {
     public class LoadingScreen : DXWindow
     {
@@ -90,7 +91,7 @@ namespace DTAClient.DXGUI
         private void Finish()
         {
             CnCNetManager cncnetManager = new CnCNetManager(WindowManager);
-            GameLobby.SkirmishLobby sl = new GameLobby.SkirmishLobby(WindowManager, mapLoader.GameModes);
+            SkirmishLobby sl = new SkirmishLobby(WindowManager, mapLoader.GameModes);
             CnCNetLobby cncnetLobby = new CnCNetLobby(WindowManager, cncnetManager);
 
             MainMenu mm = new MainMenu(WindowManager, sl, cncnetLobby);

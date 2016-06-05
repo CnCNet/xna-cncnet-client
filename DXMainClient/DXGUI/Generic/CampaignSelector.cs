@@ -14,7 +14,7 @@ using Rampastring.XNAUI;
 using Rampastring.Tools;
 using System.Diagnostics;
 
-namespace DTAClient.DXGUI
+namespace DTAClient.DXGUI.Generic
 {
     public class CampaignSelector : DXWindow
     {

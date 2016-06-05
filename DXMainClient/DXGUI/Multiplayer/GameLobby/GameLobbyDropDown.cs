@@ -7,7 +7,7 @@ using System.Text;
 using Rampastring.Tools;
 using Rampastring.XNAUI;
 
-namespace DTAClient.DXGUI.GameLobby
+namespace DTAClient.DXGUI.Multiplayer.GameLobby
 {
     /// <summary>
     /// A game option drop-down for the game lobby.

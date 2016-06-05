@@ -10,7 +10,7 @@ using Rampastring.XNAUI;
 using ClientCore;
 using Utilities = Rampastring.Tools.Utilities;
 
-namespace DTAClient.DXGUI.GameLobby
+namespace DTAClient.DXGUI.Multiplayer.GameLobby
 {
     /// <summary>
     /// A game option check box for the game lobby.

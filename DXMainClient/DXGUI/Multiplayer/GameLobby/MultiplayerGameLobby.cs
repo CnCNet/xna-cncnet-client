@@ -9,7 +9,7 @@ using Microsoft.Xna.Framework;
 using ClientCore;
 using Microsoft.Xna.Framework.Graphics;
 
-namespace DTAClient.DXGUI.GameLobby
+namespace DTAClient.DXGUI.Multiplayer.GameLobby
 {
     abstract class MultiplayerGameLobby : GameLobbyBase
     {
@@ -19,8 +19,9 @@ namespace DTAClient.DXGUI.GameLobby
 
         protected DXCheckBox[] ReadyBoxes;
 
-        ChatListBox lbChatMessages;
-        DXTextBox tbChatInput;
+        protected ChatListBox lbChatMessages;
+        protected DXTextBox tbChatInput;
+        protected DXButton btnLockGame;
 
         protected bool IsHost = false;
 
@@ -343,25 +344,16 @@ namespace DTAClient.DXGUI.GameLobby
             RequestPlayerOptions(requestedSide, requestedColor, requestedStart, requestedTeam);
         }
 
-        protected virtual void RequestPlayerOptions(int side, int color, int start, int team)
-        {
+        protected abstract void RequestPlayerOptions(int side, int color, int start, int team);
 
-        }
-
-        protected virtual void RequestReadyStatus()
-        {
-
-        }
+        protected abstract void RequestReadyStatus();
 
         protected void AddNotice(string message)
         {
             AddNotice(message, Color.White);
         }
 
-        protected virtual void AddNotice(string message, Color color)
-        {
-            
-        }
+        protected abstract void AddNotice(string message, Color color);
 
         protected override bool AllowPlayerDropdown()
         {
