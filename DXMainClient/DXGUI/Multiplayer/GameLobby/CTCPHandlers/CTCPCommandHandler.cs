@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using static Rampastring.Tools.Delegates;
 
-namespace DTAClient.DXGUI.Multiplayer.GameLobby
+namespace DTAClient.DXGUI.Multiplayer.GameLobby.CTCPHandlers
 {
     public abstract class CTCPCommandHandler
     {
@@ -15,6 +15,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         public string CommandName { get; private set; }
 
-        public abstract bool Handle(string message);
+        public abstract bool Handle(string sender, string message);
     }
 }

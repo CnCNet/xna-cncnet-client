@@ -3,6 +3,7 @@ using ClientGUI;
 using DTAClient.domain;
 using DTAClient.domain.CnCNet;
 using DTAClient.DXGUI.Multiplayer;
+using DTAClient.DXGUI.Multiplayer.GameLobby;
 using DTAClient.Online;
 using Microsoft.Xna.Framework;
 using Rampastring.XNAUI;
@@ -62,7 +63,7 @@ namespace DTAClient.DXGUI.Generic
             mapLoader = new MapLoader();
             mapLoader.MapLoadingComplete += MapLoader_MapLoadingComplete;
 
-            mapLoader.LoadMapsAsync();
+            mapLoader.LoadMaps();
 
             if (!MCDomainController.Instance.GetModModeStatus())
             {
@@ -91,18 +92,27 @@ namespace DTAClient.DXGUI.Generic
         private void Finish()
         {
             CnCNetManager cncnetManager = new CnCNetManager(WindowManager);
+            TunnelHandler tunnelHandler = new TunnelHandler(WindowManager, cncnetManager);
             SkirmishLobby sl = new SkirmishLobby(WindowManager, mapLoader.GameModes);
-            CnCNetLobby cncnetLobby = new CnCNetLobby(WindowManager, cncnetManager);
+            CnCNetGameLobby cncnetGameLobby = new CnCNetGameLobby(WindowManager,
+                "MultiplayerGameLobby", mapLoader.GameModes, cncnetManager, tunnelHandler);
+            CnCNetLobby cncnetLobby = new CnCNetLobby(WindowManager, cncnetManager, 
+                cncnetGameLobby, tunnelHandler);
+            GameInProgressWindow gipw = new GameInProgressWindow(WindowManager);
 
             MainMenu mm = new MainMenu(WindowManager, sl, cncnetLobby);
             CUpdater.OnLocalFileVersionsChecked -= CUpdater_OnLocalFileVersionsChecked;
             WindowManager.AddAndInitializeControl(mm);
             WindowManager.AddAndInitializeControl(sl);
+            WindowManager.AddAndInitializeControl(cncnetGameLobby);
             WindowManager.AddAndInitializeControl(cncnetLobby);
+            WindowManager.AddAndInitializeControl(gipw);
             sl.Visible = false;
             sl.Enabled = false;
             cncnetLobby.Visible = false;
             cncnetLobby.Enabled = false;
+            cncnetGameLobby.Visible = false;
+            cncnetGameLobby.Enabled = false;
             WindowManager.RemoveControl(this);
             mm.PostInit();
         }

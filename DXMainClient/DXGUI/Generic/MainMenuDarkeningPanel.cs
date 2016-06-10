@@ -22,7 +22,6 @@ namespace DTAClient.DXGUI.Generic
         public UpdateQueryWindow UpdateQueryWindow;
         public UpdateWindow UpdateWindow;
         public ExtrasWindow ExtrasWindow;
-        public GameInProgressWindow GameInProgressWindow;
 
         const float BG_ALPHA_APPEAR_RATE = 0.05f;
         const float BG_ALPHA_DISAPPEAR_RATE = -0.05f;
@@ -60,9 +59,6 @@ namespace DTAClient.DXGUI.Generic
 
             ExtrasWindow = new ExtrasWindow(WindowManager);
             AddChild(ExtrasWindow);
-
-            GameInProgressWindow = new GameInProgressWindow(WindowManager);
-            AddChild(GameInProgressWindow);
 
             foreach (DXControl child in Children)
             {

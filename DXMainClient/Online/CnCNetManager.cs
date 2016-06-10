@@ -27,6 +27,7 @@ namespace DTAClient.Online
         public EventHandler<ChannelModeEventArgs> ChannelModesChanged;
         public EventHandler<CTCPEventArgs> CTCPMessageReceived;
         public EventHandler<KickEventArgs> UserKickedFromChannel;
+        public EventHandler<ChannelUserEventArgs> UserJoinedChannel;
 
         public event EventHandler<AttemptedServerEventArgs> AttemptedServerChanged;
         public event EventHandler ConnectAttemptFailed;
@@ -66,14 +67,14 @@ namespace DTAClient.Online
             };
         }
 
+        public Channel MainChannel { get; set; }
+
         Connection connection;
 
         List<Channel> Channels = new List<Channel>();
         List<HostedGame> HostedGames = new List<HostedGame>();
 
         GameCollection gameCollection;
-
-        Channel currentMainChannel;
 
         Color cDefaultChatColor;
         IRCColor[] IRCChatColors;
@@ -125,7 +126,7 @@ namespace DTAClient.Online
 
         public void SetMainChannel(Channel channel)
         {
-            currentMainChannel = Channels.Find(c => c == channel);
+            MainChannel = channel;
         }
 
         public void SendCustomMessage(QueuedMessage qm)
@@ -140,7 +141,7 @@ namespace DTAClient.Online
 
         private void DoAttemptedServerChanged(string serverName)
         {
-            currentMainChannel.AddMessage(new IRCMessage(null, Color.White, DateTime.Now, "Attempting connection to " + serverName));
+            MainChannel.AddMessage(new IRCMessage(null, Color.White, DateTime.Now, "Attempting connection to " + serverName));
             AttemptedServerChanged?.Invoke(this, new AttemptedServerEventArgs(serverName));
         }
 
@@ -175,7 +176,7 @@ namespace DTAClient.Online
                 "The selected game is full! " + channelName :
                 string.Format("Cannot join game {0}; it is full!", gameName);
 
-            currentMainChannel.AddMessage(new IRCMessage(null, Color.White, DateTime.Now,
+            MainChannel.AddMessage(new IRCMessage(null, Color.White, DateTime.Now,
                 message));
         }
 
@@ -296,7 +297,7 @@ namespace DTAClient.Online
         {
             ConnectAttemptFailed?.Invoke(this, EventArgs.Empty);
 
-            currentMainChannel.AddMessage(new IRCMessage(null, Color.Red, DateTime.Now, "Connecting to CnCNet failed!"));
+            MainChannel.AddMessage(new IRCMessage(null, Color.Red, DateTime.Now, "Connecting to CnCNet failed!"));
         }
 
         public void OnConnected()
@@ -307,7 +308,7 @@ namespace DTAClient.Online
         private void DoConnected()
         {
             Connected?.Invoke(this, EventArgs.Empty);
-            currentMainChannel.AddMessage(new IRCMessage(null, Color.White, DateTime.Now, "Connection to CnCNet established."));
+            MainChannel.AddMessage(new IRCMessage(null, Color.White, DateTime.Now, "Connection to CnCNet established."));
         }
 
         /// <summary>
@@ -332,7 +333,7 @@ namespace DTAClient.Online
                 }
             }
 
-            currentMainChannel.AddMessage(new IRCMessage(null, Color.Red, DateTime.Now, "Connection to CnCNet has been lost."));
+            MainChannel.AddMessage(new IRCMessage(null, Color.Red, DateTime.Now, "Connection to CnCNet has been lost."));
         }
 
         public void Disconnect()
@@ -342,7 +343,7 @@ namespace DTAClient.Online
 
         public void Connect()
         {
-            currentMainChannel.AddMessage(new IRCMessage(null, Color.White, DateTime.Now, "Connecting to CnCNet..."));
+            MainChannel.AddMessage(new IRCMessage(null, Color.White, DateTime.Now, "Connecting to CnCNet..."));
             connection.ConnectAsync();
         }
 
@@ -367,7 +368,7 @@ namespace DTAClient.Online
                 }
             }
 
-            currentMainChannel.AddMessage(new IRCMessage(null, Color.White, DateTime.Now, "You have disconnected from CnCNet."));
+            MainChannel.AddMessage(new IRCMessage(null, Color.White, DateTime.Now, "You have disconnected from CnCNet."));
         }
 
         public void OnErrorReceived(string errorMessage)
@@ -382,7 +383,7 @@ namespace DTAClient.Online
 
         private void DoGenericServerMessageReceived(string message)
         {
-            currentMainChannel.AddMessage(new IRCMessage(null, Color.White, DateTime.Now, message.Replace('\r', ' ')));
+            MainChannel.AddMessage(new IRCMessage(null, Color.White, DateTime.Now, message));
         }
 
         public void OnIncorrectChannelPassword(string channelName)
@@ -392,7 +393,7 @@ namespace DTAClient.Online
 
         private void DoIncorrectChannelPassword(string channelName)
         {
-            currentMainChannel.AddMessage(new IRCMessage(null, Color.White, DateTime.Now, "Incorrect password!"));
+            MainChannel.AddMessage(new IRCMessage(null, Color.White, DateTime.Now, "Incorrect password!"));
         }
 
         public void OnNoticeMessageParsed(string notice, string userName)
@@ -414,7 +415,7 @@ namespace DTAClient.Online
         {
             ReconnectAttempt?.Invoke(this, EventArgs.Empty);
 
-            currentMainChannel.AddMessage(new IRCMessage(null, Color.White, DateTime.Now, "Attempting to reconnect to CnCNet..."));
+            MainChannel.AddMessage(new IRCMessage(null, Color.White, DateTime.Now, "Attempting to reconnect to CnCNet..."));
 
             connection.ConnectAsync();
         }
@@ -450,6 +451,8 @@ namespace DTAClient.Online
             //string identd = userAddress.Split('@')[0].Replace("~", "");
 
             channel.OnUserJoined(user);
+
+            UserJoinedChannel?.Invoke(this, new ChannelUserEventArgs(channelName, userName));
         }
 
         public void OnUserKicked(string channelName, string userName)

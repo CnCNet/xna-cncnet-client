@@ -90,6 +90,7 @@ namespace DTAClient.DXGUI
         private void InitializeUISettings()
         {
             UISettings.AltColor = AssetLoader.GetColorFromString(DomainController.Instance().GetUIAltColor());
+            UISettings.SubtleTextColor = AssetLoader.GetColorFromString(DomainController.Instance().GetUIHintTextColor());
             UISettings.ButtonColor = UISettings.AltColor;
             UISettings.ButtonHoverColor = AssetLoader.GetColorFromString(DomainController.Instance().GetButtonHoverColor());
             UISettings.TextColor = AssetLoader.GetColorFromString(DomainController.Instance().GetUILabelColor());

@@ -10,7 +10,6 @@ using Microsoft.Xna.Framework;
 using ClientCore;
 using DTAClient.Online.EventArguments;
 using Rampastring.Tools;
-using ClientCore.CnCNet5;
 using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Graphics;
 using DTAClient.Properties;
@@ -18,6 +17,8 @@ using DTAClient.domain.CnCNet;
 using Microsoft.Xna.Framework.Input;
 using Rampastring.XNAUI.Input;
 using HostedGame = DTAClient.domain.CnCNet.HostedGame;
+using DTAClient.DXGUI.Multiplayer.GameLobby;
+using DTAClient.DXGUI.Generic;
 
 namespace DTAClient.DXGUI.Multiplayer
 {
@@ -26,11 +27,14 @@ namespace DTAClient.DXGUI.Multiplayer
         const int GAME_REFRESH_RATE = 120;
         const double GAME_LIFETIME = 35.0;
 
-        public CnCNetLobby(WindowManager windowManager, CnCNetManager connectionManager)
+        public CnCNetLobby(WindowManager windowManager, CnCNetManager connectionManager,
+            CnCNetGameLobby gameLobby, TunnelHandler tunnelHandler)
             : base(windowManager)
         {
             this.connectionManager = connectionManager;
             ClientRectangle = new Rectangle(0, 0, 1200, 720);
+            this.gameLobby = gameLobby;
+            this.tunnelHandler = tunnelHandler;
         }
 
         CnCNetManager connectionManager;
@@ -53,9 +57,13 @@ namespace DTAClient.DXGUI.Multiplayer
 
         DXTextBox tbChatInput;
 
+        List<CnCNetTunnel> tunnelList = new List<CnCNetTunnel>();
+
         DXLabel lblColor;
         DXLabel lblCurrentChannel;
         //DXLabel lblGameInformation;
+
+        DarkeningPanel gameCreationPanel;
 
         GameCollection gameCollection;
 
@@ -73,6 +81,10 @@ namespace DTAClient.DXGUI.Multiplayer
         SoundEffectInstance sndGameCreated;
 
         IRCColor[] chatColors;
+
+        CnCNetGameLobby gameLobby;
+
+        TunnelHandler tunnelHandler;
 
         int framesSinceGameRefresh;
 
@@ -94,6 +106,7 @@ namespace DTAClient.DXGUI.Multiplayer
             btnNewGame.FontIndex = 1;
             btnNewGame.Text = "Create Game";
             btnNewGame.AllowClick = false;
+            btnNewGame.LeftClick += BtnNewGame_LeftClick;
 
             btnJoinGame = new DXButton(WindowManager);
             btnJoinGame.Name = "btnJoinGame";
@@ -278,16 +291,16 @@ namespace DTAClient.DXGUI.Multiplayer
 
                 item.Tag = chatChannel;
 
-                Channel gameChannel = connectionManager.GetChannel(game.GameBroadcastChannel);
+                Channel gameBroadcastChannel = connectionManager.GetChannel(game.GameBroadcastChannel);
 
-                if (gameChannel == null)
+                if (gameBroadcastChannel == null)
                 {
-                    gameChannel = connectionManager.CreateChannel(game.UIName + " Broadcast Channel",
+                    gameBroadcastChannel = connectionManager.CreateChannel(game.UIName + " Broadcast Channel",
                         game.GameBroadcastChannel, true, null);
-                    connectionManager.AddChannel(gameChannel);
+                    connectionManager.AddChannel(gameBroadcastChannel);
                 }
 
-                gameChannel.CTCPReceived += GameChannel_CTCPReceived;
+                gameBroadcastChannel.CTCPReceived += GameBroadcastChannel_CTCPReceived;
 
                 if (game.InternalName.ToUpper() == localGame)
                 {
@@ -343,6 +356,95 @@ namespace DTAClient.DXGUI.Multiplayer
             base.Initialize();
 
             WindowManager.CenterControlOnScreen(this);
+
+            gameCreationPanel = new DarkeningPanel(WindowManager);
+            AddChild(gameCreationPanel);
+
+            GameCreationWindow gcw = new GameCreationWindow(WindowManager, tunnelHandler);
+            gameCreationPanel.AddChild(gcw);
+            gcw.Cancelled += Gcw_Cancelled;
+            gcw.GameCreated += Gcw_GameCreated;
+
+            gameCreationPanel.Hide();
+        }
+
+        private void BtnNewGame_LeftClick(object sender, EventArgs e)
+        {
+            gameCreationPanel.Show();
+        }
+
+        private void Gcw_GameCreated(object sender, GameCreationEventArgs e)
+        {
+            if (gameLobby.Enabled)
+                return;
+
+            string channelName = RandomizeChannelName();
+            string password = e.Password;
+            bool isCustomPassword = true;
+            if (string.IsNullOrEmpty(password))
+            {
+                password = Rampastring.Tools.Utilities.CalculateSHA1ForString(
+                    channelName + e.GameRoomName).Substring(0, 10);
+                isCustomPassword = false;
+            }
+
+            Channel gameChannel = connectionManager.CreateChannel(e.GameRoomName, channelName, false, password);
+            connectionManager.AddChannel(gameChannel);
+            gameLobby.SetUp(gameChannel, true, e.MaxPlayers, e.Tunnel, ProgramConstants.PLAYERNAME, isCustomPassword);
+            gameChannel.UserAdded += GameChannel_UserAdded;
+            gameChannel.MessageAdded += GameChannel_MessageAdded;
+            connectionManager.SendCustomMessage(new QueuedMessage("JOIN " + channelName + " " + password,
+                QueuedMessageType.GAME_HOSTING_MESSAGE, 9));
+            connectionManager.MainChannel.AddMessage(new IRCMessage(null, Color.White, DateTime.Now,
+                "Creating a game named " + e.GameRoomName + "..."));
+
+            gameCreationPanel.Hide();
+        }
+
+        private void GameChannel_MessageAdded(object sender, IRCMessageEventArgs e)
+        {
+            Channel gameChannel = (Channel)sender;
+
+            gameChannel.UserAdded -= GameChannel_UserAdded;
+            gameChannel.MessageAdded -= GameChannel_MessageAdded;
+        }
+
+        private void GameChannel_UserAdded(object sender, UserEventArgs e)
+        {
+            Channel gameChannel = (Channel)sender;
+
+            gameChannel.UserAdded -= GameChannel_UserAdded;
+            gameChannel.MessageAdded -= GameChannel_MessageAdded;
+
+            if (e.User.Name == ProgramConstants.PLAYERNAME)
+            {
+                gameLobby.OnJoined();
+                gameLobby.Visible = true;
+                gameLobby.Enabled = true;
+                Visible = false;
+                Enabled = false;
+                // TODO enter persistent mode
+            }
+        }
+
+        /// <summary>
+        /// Generates and returns a random, unused cannel name.
+        /// </summary>
+        /// <returns>A random channel name based on the currently played game.</returns>
+        private string RandomizeChannelName()
+        {
+            while (true)
+            {
+                string channelName = "#cncnet-" + localGame.ToLower() + "-game" + new Random().Next(1000000, 9999999);
+                int index = hostedGames.FindIndex(c => c.ChannelName == channelName);
+                if (index == -1)
+                    return channelName;
+            }
+        }
+
+        private void Gcw_Cancelled(object sender, EventArgs e)
+        {
+            gameCreationPanel.Hide();
         }
 
         private void TbChatInput_EnterPressed(object sender, EventArgs e)
@@ -359,7 +461,9 @@ namespace DTAClient.DXGUI.Multiplayer
 
         private void DdColor_SelectedIndexChanged(object sender, EventArgs e)
         {
-            tbChatInput.TextColor = ((IRCColor)ddColor.SelectedItem.Tag).XnaColor;
+            IRCColor selectedColor = (IRCColor)ddColor.SelectedItem.Tag;
+            tbChatInput.TextColor = selectedColor.XnaColor;
+            gameLobby.ChangeChatColor(selectedColor);
         }
 
         private void Keyboard_OnKeyPressed(object sender, KeyPressEventArgs e)
@@ -374,6 +478,7 @@ namespace DTAClient.DXGUI.Multiplayer
             btnJoinGame.AllowClick = false;
             ddCurrentChannel.AllowDropDown = false;
             tbChatInput.Enabled = false;
+            gameCreationPanel.Hide();
         }
 
         private void ConnectionManager_WelcomeMessageReceived(object sender, EventArgs e)
@@ -522,7 +627,7 @@ namespace DTAClient.DXGUI.Multiplayer
             lbPlayerList.AddItem(item);
         }
 
-        private void GameChannel_CTCPReceived(object sender, ChannelCTCPEventArgs e)
+        private void GameBroadcastChannel_CTCPReceived(object sender, ChannelCTCPEventArgs e)
         {
             if (!e.Message.StartsWith("GAME "))
                 return;

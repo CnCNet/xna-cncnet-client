@@ -11,7 +11,7 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace DTAClient.DXGUI.Multiplayer.GameLobby
 {
-    abstract class MultiplayerGameLobby : GameLobbyBase
+    public abstract class MultiplayerGameLobby : GameLobbyBase
     {
         public MultiplayerGameLobby(WindowManager windowManager, string iniName, List<GameMode> GameModes) : base(windowManager, iniName, GameModes)
         {
@@ -20,52 +20,58 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         protected DXCheckBox[] ReadyBoxes;
 
         protected ChatListBox lbChatMessages;
-        protected DXTextBox tbChatInput;
+        protected DXSuggestionTextBox tbChatInput;
         protected DXButton btnLockGame;
 
         protected bool IsHost = false;
 
         protected bool Locked = false;
 
-        Texture2D[] rankTextures;
+        bool mapChangeInProgress = false;
 
         //protected DXLabel lblReady;
 
         public override void Initialize()
         {
+            Name = "MultiplayerGameLobby";
+
             base.Initialize();
 
             DrawMode = PanelBackgroundImageDrawMode.STRETCHED; // **** TODO REMOVE ****
 
-            rankTextures = new Texture2D[4]
-            {
-                AssetLoader.LoadTexture("rankNone.png"),
-                AssetLoader.LoadTexture("rankEasy.png"),
-                AssetLoader.LoadTexture("rankNormal.png"),
-                AssetLoader.LoadTexture("rankHard.png")
-            };
-
             InitPlayerOptionDropdowns();
 
+            ddGameMode.ClientRectangle = new Rectangle(
+                MapPreviewBox.ClientRectangle.X - 12 - ddGameMode.ClientRectangle.Width,
+                MapPreviewBox.ClientRectangle.Y, ddGameMode.ClientRectangle.Width,
+                ddGameMode.ClientRectangle.Height);
+
+            lblGameModeSelect.ClientRectangle = new Rectangle(
+                btnLaunchGame.ClientRectangle.X, ddGameMode.ClientRectangle.Y + 1,
+                lblGameModeSelect.ClientRectangle.Width, lblGameModeSelect.ClientRectangle.Height);
+
             lbMapList.ClientRectangle = new Rectangle(btnLaunchGame.ClientRectangle.X, 
-                GameOptionsPanel.ClientRectangle.Y + 23,
-                MapPreviewBox.ClientRectangle.X - btnLaunchGame.ClientRectangle.X - 6,
-                GameOptionsPanel.ClientRectangle.Height - 23);
+                MapPreviewBox.ClientRectangle.Y + 23,
+                MapPreviewBox.ClientRectangle.X - btnLaunchGame.ClientRectangle.X - 12,
+                MapPreviewBox.ClientRectangle.Height - 23);
 
             lbChatMessages = new ChatListBox(WindowManager);
             lbChatMessages.Name = "lbChatMessages";
             lbChatMessages.ClientRectangle = new Rectangle(lbMapList.ClientRectangle.Left, 
-                MapPreviewBox.ClientRectangle.Y,
-               lbMapList.ClientRectangle.Width, MapPreviewBox.ClientRectangle.Height);
+                GameOptionsPanel.ClientRectangle.Y,
+               lbMapList.ClientRectangle.Width, GameOptionsPanel.ClientRectangle.Height - 24);
             lbChatMessages.DrawMode = PanelBackgroundImageDrawMode.STRETCHED;
             lbChatMessages.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 128), 1, 1);
             lbChatMessages.LineHeight = 16;
 
-            tbChatInput = new DXTextBox(WindowManager);
+            tbChatInput = new DXSuggestionTextBox(WindowManager);
             tbChatInput.Name = "tbChatInput";
+            tbChatInput.Suggestion = "Type here to chat..";
             tbChatInput.ClientRectangle = new Rectangle(lbChatMessages.ClientRectangle.Left, 
                 lbChatMessages.ClientRectangle.Bottom + 3,
-                lbChatMessages.ClientRectangle.Width, 23);
+                lbChatMessages.ClientRectangle.Width, 21);
+            tbChatInput.MaximumTextLength = 100;
+            tbChatInput.EnterPressed += TbChatInput_EnterPressed;
 
             AddChild(lbChatMessages);
             AddChild(tbChatInput);
@@ -74,7 +80,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             ReadyBoxes = new DXCheckBox[PLAYER_COUNT];
 
-            MapPreviewBox.LocalStartingLocationSelected += MapPreviewBox_LocalStartingLocationSelected;
+            int readyBoxX = GameOptionsIni.GetIntValue(Name, "PlayerReadyBoxX", 7);
 
             for (int i = 0; i < PLAYER_COUNT; i++)
             {
@@ -82,7 +88,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 chkPlayerReady.Name = "chkPlayerReady" + i;
                 chkPlayerReady.Checked = false;
                 chkPlayerReady.AllowChecking = false;
-                chkPlayerReady.ClientRectangle = new Rectangle(7, ddPlayerTeams[i].ClientRectangle.Y + 4,
+                chkPlayerReady.ClientRectangle = new Rectangle(readyBoxX, ddPlayerTeams[i].ClientRectangle.Y + 4,
                     0, 0);
 
                 PlayerOptionsPanel.AddChild(chkPlayerReady);
@@ -92,7 +98,20 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
                 ReadyBoxes[i] = chkPlayerReady;
             }
+
+            InitializeWindow();
         }
+
+        private void TbChatInput_EnterPressed(object sender, EventArgs e)
+        {
+            if (string.IsNullOrEmpty(tbChatInput.Text))
+                return;
+
+            SendChatMessage(tbChatInput.Text);
+            tbChatInput.Text = string.Empty;
+        }
+
+        protected abstract void SendChatMessage(string message);
 
         public virtual void Refresh(bool isHost)
         {
@@ -105,13 +124,13 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (IsHost)
             {
                 lbMapList.ClientRectangle = new Rectangle(btnLaunchGame.ClientRectangle.X,
-                    GameOptionsPanel.ClientRectangle.Y + 23,
-                    MapPreviewBox.ClientRectangle.X - btnLaunchGame.ClientRectangle.X - 6,
-                    GameOptionsPanel.ClientRectangle.Height - 23);
+                    MapPreviewBox.ClientRectangle.Y + 23,
+                    MapPreviewBox.ClientRectangle.X - btnLaunchGame.ClientRectangle.X - 12,
+                    MapPreviewBox.ClientRectangle.Height - 23);
 
                 lbChatMessages.ClientRectangle = new Rectangle(lbMapList.ClientRectangle.Left,
-                    MapPreviewBox.ClientRectangle.Y,
-                    lbMapList.ClientRectangle.Width, MapPreviewBox.ClientRectangle.Height);
+                    GameOptionsPanel.ClientRectangle.Y,
+                    lbMapList.ClientRectangle.Width, GameOptionsPanel.ClientRectangle.Height - 26);
 
                 ddGameMode.Visible = true;
                 ddGameMode.Enabled = true;
@@ -119,6 +138,12 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 lblGameModeSelect.Enabled = true;
                 lbMapList.Visible = true;
                 lbMapList.Enabled = true;
+
+                foreach (GameLobbyDropDown dd in DropDowns)
+                    dd.InputEnabled = true;
+
+                foreach (GameLobbyCheckBox checkBox in CheckBoxes)
+                    checkBox.InputEnabled = true;
             }
             else
             {
@@ -133,6 +158,12 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 lblGameModeSelect.Enabled = false;
                 lbMapList.Visible = false;
                 lbMapList.Enabled = false;
+
+                foreach (GameLobbyDropDown dd in DropDowns)
+                    dd.InputEnabled = false;
+
+                foreach (GameLobbyCheckBox checkBox in CheckBoxes)
+                    checkBox.InputEnabled = false;
             }
 
             lbChatMessages.Clear();
@@ -322,14 +353,15 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         protected override void CopyPlayerDataFromUI(object sender, EventArgs e)
         {
+            if (PlayerUpdatingInProgress)
+                return;
+
             if (IsHost)
             {
                 base.CopyPlayerDataFromUI(sender, e);
+                BroadcastPlayerOptions();
                 return;
             }
-
-            if (PlayerUpdatingInProgress)
-                return;
 
             int myIndex = Players.FindIndex(p => p.Name == ProgramConstants.PLAYERNAME);
 
@@ -344,6 +376,21 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             RequestPlayerOptions(requestedSide, requestedColor, requestedStart, requestedTeam);
         }
 
+        protected override void CopyPlayerDataToUI()
+        {
+            base.CopyPlayerDataToUI();
+
+            if (IsHost)
+            {
+                for (int pId = 1; pId < Players.Count; pId++)
+                {
+                    ddPlayerNames[pId].AllowDropDown = true;
+                }
+            }
+        }
+
+        protected abstract void BroadcastPlayerOptions();
+
         protected abstract void RequestPlayerOptions(int side, int color, int start, int team);
 
         protected abstract void RequestReadyStatus();
@@ -355,9 +402,27 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         protected abstract void AddNotice(string message, Color color);
 
-        protected override bool AllowPlayerDropdown()
+        protected override bool AllowPlayerOptionsChange()
         {
             return IsHost;
+        }
+
+        protected void ClearReadyStatuses()
+        {
+            for (int i = 1; i < Players.Count; i++)
+                Players[i].Ready = false;
+        }
+
+        protected override void ChangeMap(GameMode gameMode, Map map)
+        {
+            mapChangeInProgress = true;
+            base.ChangeMap(gameMode, map);
+            mapChangeInProgress = false;
+
+            ClearReadyStatuses();
+
+            if (IsHost)
+                OnGameOptionChanged();
         }
     }
 }

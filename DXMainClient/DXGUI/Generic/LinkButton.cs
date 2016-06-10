@@ -7,7 +7,7 @@ using Rampastring.XNAUI;
 using Rampastring.Tools;
 using System.Diagnostics;
 
-namespace DTAClient.domain.CnCNet
+namespace DTAClient.DXGUI.Generic
 {
     public class LinkButton : DXButton
     {

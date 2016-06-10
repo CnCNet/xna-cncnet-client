@@ -20,6 +20,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         public string SpawnIniOption { get; set; }
 
+        public string OptionName { get; set; }
+
         protected override void ParseAttributeFromINI(IniFile iniFile, string key, string value)
         {
             switch (key)
@@ -41,7 +43,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     SpawnIniOption = value;
                     return;
                 case "DefaultIndex":
-                    SelectedIndex = Int32.Parse(value);
+                    SelectedIndex = int.Parse(value);
+                    return;
+                case "OptionName":
+                    OptionName = value;
                     return;
             }
 

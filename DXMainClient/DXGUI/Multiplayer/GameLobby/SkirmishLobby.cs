@@ -18,8 +18,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
         }
 
-        GameInProgressWindow gameInProgressWindow;
-
         public override void Initialize()
         {
             base.Initialize();
@@ -37,17 +35,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             MapPreviewBox.LocalStartingLocationSelected += MapPreviewBox_LocalStartingLocationSelected;
 
-            gameInProgressWindow = new GameInProgressWindow(WindowManager);
-            AddChild(gameInProgressWindow);
-            gameInProgressWindow.CenterOnParent();
-            gameInProgressWindow.Enabled = false;
-            gameInProgressWindow.Visible = false;
-            gameInProgressWindow.Focused = true;
-
             InitializeWindow();
-
-            foreach (GameMode gm in GameModes)
-                ddGameMode.AddItem(gm.UIName);
 
             Players.Add(new PlayerInfo(ProgramConstants.PLAYERNAME, 0, 0, 0, 0));
             PlayerInfo aiPlayer = new PlayerInfo("Easy AI", 0, 0, 0, 0);
@@ -55,14 +43,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             aiPlayer.AILevel = 2;
             AIPlayers.Add(aiPlayer);
 
+            CopyPlayerDataToUI();
+
             WindowManager.CenterControlOnScreen(this);
-
-            if (ddGameMode.Items.Count > 0)
-            {
-                ddGameMode.SelectedIndex = 0;
-
-                lbMapList.SelectedIndex = 0;
-            }
         }
 
         private void MapPreviewBox_LocalStartingLocationSelected(object sender, LocalStartingLocationEventArgs e)
@@ -71,9 +54,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             CopyPlayerDataToUI();
         }
 
-        protected override void LbMapList_SelectedIndexChanged(object sender, EventArgs e)
+        protected override void ChangeMap(GameMode gameMode, Map map)
         {
-            base.LbMapList_SelectedIndexChanged(sender, e);
+            base.ChangeMap(gameMode, map);
 
             CheckGameValidity();
         }
@@ -109,20 +92,14 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         protected override void BtnLaunchGame_LeftClick(object sender, EventArgs e)
         {
-            gameInProgressWindow.Visible = true;
-
             StartGame();
         }
 
         protected override void GameProcessExited()
         {
-            gameInProgressWindow.Visible = false;
-
             RandomSeed = new Random().Next();
 
             base.GameProcessExited();
-
-            DdGameMode_SelectedIndexChanged(null, EventArgs.Empty); // Refresh ranks
         }
 
         protected override void BtnLeaveGame_LeftClick(object sender, EventArgs e)
@@ -131,9 +108,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             this.Visible = false;
         }
 
-        protected override bool AllowPlayerDropdown()
+        protected override bool AllowPlayerOptionsChange()
         {
-            return false;
+            return true;
         }
     }
 }

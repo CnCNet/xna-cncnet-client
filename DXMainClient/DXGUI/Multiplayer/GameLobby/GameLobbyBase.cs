@@ -88,6 +88,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         protected DXDropDown ddGameMode;
         protected DXLabel lblGameModeSelect;
 
+        protected DXSuggestionTextBox tbMapSearch;
+
         protected List<PlayerInfo> Players = new List<PlayerInfo>();
         protected List<PlayerInfo> AIPlayers = new List<PlayerInfo>();
 
@@ -103,6 +105,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         protected int RandomSeed { get; set; }
 
         private int _sideCount;
+        protected int SideCount { get { return _sideCount; } }
 
         private MatchStatistics matchStatistics;
 
@@ -229,11 +232,22 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             ddGameMode.ClickSoundEffect = AssetLoader.LoadSound("dropdown.wav");
             ddGameMode.SelectedIndexChanged += DdGameMode_SelectedIndexChanged;
 
+            foreach (GameMode gm in GameModes)
+                ddGameMode.AddItem(gm.UIName);
+
             lblGameModeSelect = new DXLabel(WindowManager);
             lblGameModeSelect.Name = "lblGameModeSelect";
             lblGameModeSelect.ClientRectangle = new Rectangle(lbMapList.ClientRectangle.X, ddGameMode.ClientRectangle.Top + 2, 0, 0);
             lblGameModeSelect.FontIndex = 1;
             lblGameModeSelect.Text = "GAME MODE:";
+
+            tbMapSearch = new DXSuggestionTextBox(WindowManager);
+            tbMapSearch.Name = "tbMapSearch";
+            tbMapSearch.ClientRectangle = new Rectangle(lbMapList.ClientRectangle.X,
+                lbMapList.ClientRectangle.Bottom + 3, lbMapList.ClientRectangle.Width, 21);
+            tbMapSearch.Suggestion = "Search map..";
+            tbMapSearch.MaximumTextLength = 64;
+            tbMapSearch.InputReceived += TbMapSearch_InputReceived;
 
             AddChild(lblMapName);
             AddChild(lblMapAuthor);
@@ -243,8 +257,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             AddChild(lbMapList);
             AddChild(ddGameMode);
             AddChild(lblGameModeSelect);
+            AddChild(tbMapSearch);
 
-            SharedUILogic.GameProcessExited += GameProcessExited;
+            SharedUILogic.GameProcessExited += GameProcessExited_Callback;
 
             // Load multiplayer colors
             List<string> colorKeys = GameOptionsIni.GetSectionKeys("MPColors");
@@ -276,6 +291,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 chkBox.GetAttributes(GameOptionsIni);
                 CheckBoxes.Add(chkBox);
                 AddChild(chkBox);
+                chkBox.CheckedChanged += ChkBox_CheckedChanged;
             }
 
             string[] labels = GameOptionsIni.GetStringValue(_iniSectionName, "Labels", String.Empty).Split(',');
@@ -298,11 +314,27 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 dropdown.GetAttributes(GameOptionsIni);
                 DropDowns.Add(dropdown);
                 AddChild(dropdown);
+                dropdown.SelectedIndexChanged += Dropdown_SelectedIndexChanged;
             }
 
             AddChild(PlayerOptionsPanel);
             AddChild(btnLaunchGame);
             AddChild(btnLeaveGame);
+        }
+
+        private void TbMapSearch_InputReceived(object sender, EventArgs e)
+        {
+            ListMaps();
+        }
+
+        private void Dropdown_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            OnGameOptionChanged();
+        }
+
+        private void ChkBox_CheckedChanged(object sender, EventArgs e)
+        {
+            OnGameOptionChanged();
         }
 
         /// <summary>
@@ -311,6 +343,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         protected void InitializeWindow()
         {
             base.Initialize();
+
+            // To move the lblMapAuthor label into its correct position
+            // if it was moved in the descriptor INI file
+            ChangeMap(GameMode, Map);
         }
 
         private void MapPreviewBox_StartingLocationApplied(object sender, EventArgs e)
@@ -318,15 +354,36 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             CopyPlayerDataToUI();
         }
 
-        protected virtual void DdGameMode_SelectedIndexChanged(object sender, EventArgs e)
+        protected virtual void OnGameOptionChanged()
+        {
+            // Do nothing by default
+        }
+
+        protected void DdGameMode_SelectedIndexChanged(object sender, EventArgs e)
         {
             GameMode = GameModes[ddGameMode.SelectedIndex];
 
+            tbMapSearch.Text = string.Empty;
+            tbMapSearch.OnSelectedChanged();
+
+            ListMaps();
+        }
+
+        private void ListMaps()
+        {
             lbMapList.ClearItems();
             lbMapList.SetTopIndex(0);
 
+            lbMapList.SelectedIndex = -1;
+
             foreach (Map map in GameMode.Maps)
             {
+                if (tbMapSearch.Text != tbMapSearch.Suggestion)
+                {
+                    if (!map.Name.Contains(tbMapSearch.Text))
+                        continue;
+                }
+
                 DXListBoxItem rankItem = new DXListBoxItem();
                 if (map.IsCoop)
                 {
@@ -341,14 +398,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 DXListBoxItem mapNameItem = new DXListBoxItem();
                 mapNameItem.Text = map.Name;
                 mapNameItem.TextColor = UISettings.AltColor;
-
-                DXListBoxItem playerCountItem = new DXListBoxItem();
-                playerCountItem.TextColor = UISettings.AltColor;
-                playerCountItem.Text = "[" + map.MaxPlayers.ToString() + "]";
+                mapNameItem.Tag = map;
 
                 DXListBoxItem[] mapInfoArray = new DXListBoxItem[]
                 {
-                    //playerCountItem,
                     rankItem,
                     mapNameItem,
                 };
@@ -357,10 +410,16 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             }
         }
 
-        protected virtual void LbMapList_SelectedIndexChanged(object sender, EventArgs e)
+        protected void LbMapList_SelectedIndexChanged(object sender, EventArgs e)
         {
+            if (lbMapList.SelectedIndex < 0 || lbMapList.SelectedIndex >= lbMapList.ItemCount)
+                return;
+
             GameMode gm = GameModes[ddGameMode.SelectedIndex];
-            Map map = gm.Maps[lbMapList.SelectedIndex];
+
+            DXListBoxItem item = lbMapList.GetItem(1, lbMapList.SelectedIndex);
+
+            Map map = (Map)item.Tag;
 
             ChangeMap(gm, map);
         }
@@ -403,7 +462,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 ddPlayerName.AddItem("Easy AI");
                 ddPlayerName.AddItem("Medium AI");
                 ddPlayerName.AddItem("Hard AI");
-                ddPlayerName.AllowDropDown = AllowPlayerDropdown();
+                ddPlayerName.AllowDropDown = true;
                 ddPlayerName.ClickSoundEffect = AssetLoader.LoadSound("dropdown.wav");
                 ddPlayerName.SelectedIndexChanged += CopyPlayerDataFromUI;
 
@@ -507,14 +566,21 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             PlayerOptionsPanel.AddChild(lblColor);
             PlayerOptionsPanel.AddChild(lblStart);
             PlayerOptionsPanel.AddChild(lblTeam);
+
+            // The default map needs to be picked here because changing the map
+            // before the player option dropdowns have been initialized
+            // will cause trouble
+            if (ddGameMode.Items.Count > 0)
+            {
+                ddGameMode.SelectedIndex = 0;
+
+                lbMapList.SelectedIndex = 0;
+            }
         }
 
         protected abstract void BtnLaunchGame_LeftClick(object sender, EventArgs e);
 
         protected abstract void BtnLeaveGame_LeftClick(object sender, EventArgs e);
-
-        protected abstract bool AllowPlayerDropdown();
-
 
         /// <summary>
         /// Randomizes options of both human and AI players
@@ -594,7 +660,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         /// <summary>
         /// Writes spawn.ini.
         /// </summary>
-        protected virtual void WriteSpawnIni()
+        private void WriteSpawnIni()
         {
             Logger.Log("Writing spawn.ini");
 
@@ -748,7 +814,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             // Do nothing by default
         }
 
-        protected virtual void InitializeMatchStatistics(PlayerHouseInfo[] houseInfos)
+        private void InitializeMatchStatistics(PlayerHouseInfo[] houseInfos)
         {
             matchStatistics = new MatchStatistics(ProgramConstants.GAME_VERSION, Map.Name, GameMode.UIName, Players.Count);
 
@@ -770,7 +836,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         /// <summary>
         /// Writes spawnmap.ini.
         /// </summary>
-        protected virtual void WriteMap()
+        private void WriteMap()
         {
             File.Delete(ProgramConstants.GamePath + ProgramConstants.SPAWNMAP_INI);
 
@@ -795,7 +861,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         /// Writes spawn.ini, writes the map file, initializes statistics and
         /// starts the game process.
         /// </summary>
-        protected virtual void StartGame()
+        protected void StartGame()
         {
             WriteSpawnIni();
             WriteMap();
@@ -803,6 +869,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             GameInProgress = true;
 
             SharedUILogic.StartGameProcess(0);
+        }
+
+        private void GameProcessExited_Callback()
+        {
+            WindowManager.AddCallback(new Action(GameProcessExited), null);
         }
 
         protected virtual void GameProcessExited()
@@ -819,6 +890,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             Logger.Log("GameProcessExited: Adding match to statistics.");
 
             StatisticsManager.Instance.AddMatchAndSaveDatabase(true, matchStatistics);
+
+            DdGameMode_SelectedIndexChanged(null, EventArgs.Empty); // Refresh ranks
         }
 
         /// <summary>
@@ -881,6 +954,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             PlayerUpdatingInProgress = true;
 
+            bool allowOptionsChange = AllowPlayerOptionsChange();
+
             // Human players
             for (int pId = 0; pId < Players.Count; pId++)
             {
@@ -896,17 +971,19 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 ddPlayerName.SelectedIndex = 0;
                 ddPlayerName.AllowDropDown = false;
 
+                bool allowPlayerOptionsChange = allowOptionsChange || pInfo.Name == ProgramConstants.PLAYERNAME;
+
                 ddPlayerSides[pId].SelectedIndex = pInfo.SideId;
-                ddPlayerSides[pId].AllowDropDown = true;
+                ddPlayerSides[pId].AllowDropDown = allowPlayerOptionsChange;
 
                 ddPlayerColors[pId].SelectedIndex = pInfo.ColorId;
-                ddPlayerColors[pId].AllowDropDown = true;
+                ddPlayerColors[pId].AllowDropDown = allowPlayerOptionsChange;
 
                 ddPlayerStarts[pId].SelectedIndex = pInfo.StartingLocation;
-                ddPlayerStarts[pId].AllowDropDown = true;
+                ddPlayerStarts[pId].AllowDropDown = allowPlayerOptionsChange;
 
                 ddPlayerTeams[pId].SelectedIndex = pInfo.TeamId;
-                ddPlayerTeams[pId].AllowDropDown = true;
+                ddPlayerTeams[pId].AllowDropDown = allowPlayerOptionsChange;
             }
 
             // AI players
@@ -924,19 +1001,19 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 ddPlayerName.Items[2].Text = "Medium AI";
                 ddPlayerName.Items[3].Text = "Hard AI";
                 ddPlayerName.SelectedIndex = 3 - aiInfo.AILevel;
-                ddPlayerName.AllowDropDown = true;
+                ddPlayerName.AllowDropDown = allowOptionsChange;
 
                 ddPlayerSides[index].SelectedIndex = aiInfo.SideId;
-                ddPlayerSides[index].AllowDropDown = true;
+                ddPlayerSides[index].AllowDropDown = allowOptionsChange;
 
                 ddPlayerColors[index].SelectedIndex = aiInfo.ColorId;
-                ddPlayerColors[index].AllowDropDown = true;
+                ddPlayerColors[index].AllowDropDown = allowOptionsChange;
 
                 ddPlayerStarts[index].SelectedIndex = aiInfo.StartingLocation;
-                ddPlayerStarts[index].AllowDropDown = true;
+                ddPlayerStarts[index].AllowDropDown = allowOptionsChange;
 
                 ddPlayerTeams[index].SelectedIndex = aiInfo.TeamId;
-                ddPlayerTeams[index].AllowDropDown = true;
+                ddPlayerTeams[index].AllowDropDown = allowOptionsChange;
             }
 
             // Unused player slots
@@ -963,7 +1040,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 ddPlayerTeams[ddIndex].AllowDropDown = false;
             }
 
-            if (Players.Count + AIPlayers.Count < PLAYER_COUNT)
+            if (allowOptionsChange && Players.Count + AIPlayers.Count < PLAYER_COUNT)
                 ddPlayerNames[Players.Count + AIPlayers.Count].AllowDropDown = true;
 
             MapPreviewBox.UpdateStartingLocationTexts();
@@ -1150,6 +1227,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 }
             }
 
+            OnGameOptionChanged();
             CopyPlayerDataToUI();
 
             MapPreviewBox.Map = map;
@@ -1180,5 +1258,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 }
             }
         }
+
+        protected abstract bool AllowPlayerOptionsChange();
     }
 }

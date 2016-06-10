@@ -148,7 +148,8 @@ namespace DTAClient.Online
             tcpClient = new TcpClient();
             tcpClient = (TcpClient)client;
             serverStream = tcpClient.GetStream();
-            serverStream.ReadTimeout = 30000;
+            serverStream.ReadTimeout = 1000;
+            int errorTimes = 0;
 
             byte[] message = new byte[1024];
             int bytesRead;
@@ -167,7 +168,6 @@ namespace DTAClient.Online
                 {
                     if (disconnect)
                     {
-                        tcpClient.Close();
                         connectionManager.OnDisconnected();
                         connectionCut = false; // This disconnect is intentional
                         break;
@@ -177,18 +177,37 @@ namespace DTAClient.Online
                 }
                 catch (Exception ex)
                 {
-                    Logger.Log("Disconnected from CnCNet due to a socket error. Message: " + ex.Message);
-                    connectionManager.OnConnectionLost(ex.Message);
-                    break;
+                    errorTimes++;
+
+                    if (errorTimes > 30)
+                    {
+                        Logger.Log("Disconnected from CnCNet due to a socket error. Message: " + ex.Message);
+                        connectionManager.OnConnectionLost(ex.Message);
+                        break;
+                    }
+                    else if (disconnect)
+                    {
+                        connectionManager.OnDisconnected();
+                        connectionCut = false; // This disconnect is intentional
+                        break;
+                    }
                 }
 
                 if (bytesRead == 0)
                 {
+                    errorTimes++;
+
+                    if (errorTimes > 30)
+                    {
+                        Logger.Log("Disconnected from CnCNet.");
+                        connectionManager.OnConnectionLost("Server disconnected.");
+                        break;
+                    }
+
                     continue;
-                    //Logger.Log("Disconnected from CnCNet.");
-                    //connectionManager.OnConnectionLost("Server disconnected.");
-                    //break;
                 }
+
+                errorTimes = 0;
 
                 // A message has been succesfully received
                 string msg = encoding.GetString(message, 0, bytesRead);
@@ -218,6 +237,9 @@ namespace DTAClient.Online
         {
             disconnect = true;
             SendMessage("QUIT");
+
+            tcpClient.Close();
+            serverStream.Close(100);
         }
 
         #region Handling commands
@@ -631,6 +653,9 @@ namespace DTAClient.Online
                     case QueuedMessageType.GAME_SETTINGS_MESSAGE:
                     case QueuedMessageType.GAME_PLAYERS_READY_STATUS_MESSAGE:
                     case QueuedMessageType.GAME_LOCKED_MESSAGE:
+                    case QueuedMessageType.GAME_GET_READY_MESSAGE:
+                    case QueuedMessageType.GAME_NOTIFICATION_MESSAGE:
+                    case QueuedMessageType.GAME_HOSTING_MESSAGE:
                     case QueuedMessageType.WHOIS_MESSAGE:
                         AddSpecialQueuedMessage(qm);
                         break;

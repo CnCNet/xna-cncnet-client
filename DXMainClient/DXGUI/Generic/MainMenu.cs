@@ -50,7 +50,6 @@ namespace DTAClient.DXGUI.Generic
 
         public override void Initialize()
         {
-            SharedUILogic.GameProcessStarted += SharedUILogic_GameProcessStarted;
             SharedUILogic.GameProcessExited += SharedUILogic_GameProcessExited;
 
             Name = "MainMenu";
@@ -414,20 +413,6 @@ namespace DTAClient.DXGUI.Generic
             innerPanel.Hide();
         }
 
-        private void SharedUILogic_GameProcessStarted()
-        {
-            WindowManager.MinimizeWindow();
-            Cursor.Disabled = true;
-            Game.TargetElapsedTime = TimeSpan.FromMilliseconds(100.0);
-
-            innerPanel.Show(innerPanel.GameInProgressWindow);
-        }
-
-        private void SharedUILogic_GameProcessExited()
-        {
-            AddCallback(new Action(HandleGameProcessExited), null);
-        }
-
         public void Enable()
         {
             mmUIPanel.Enabled = true;
@@ -525,12 +510,13 @@ namespace DTAClient.DXGUI.Generic
             of.UpdateSettings();
         }
 
+        private void SharedUILogic_GameProcessExited()
+        {
+            AddCallback(new Action(HandleGameProcessExited), null);
+        }
+
         private void HandleGameProcessExited()
         {
-            WindowManager.MaximizeWindow();
-            Cursor.Disabled = false;
-            innerPanel.Hide();
-            Game.TargetElapsedTime = TimeSpan.FromMilliseconds(1000.0 / 120.0); // 120 FPS
             innerPanel.GameLoadingWindow.ListSaves();
             innerPanel.Hide();
         }

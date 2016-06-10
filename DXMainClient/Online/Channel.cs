@@ -81,7 +81,7 @@ namespace DTAClient.Online
         {
             AddUser(user);
             AddMessage(new IRCMessage(null, Color.White, DateTime.Now,
-                user.Name + " has joined the " + UIName + " channel."));
+                user.Name + " has joined " + UIName + "."));
         }
 
         public void OnUserListReceived(string[] userList)
