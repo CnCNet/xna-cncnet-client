@@ -59,10 +59,10 @@ namespace DTAClient.Online
         private NetworkStream serverStream;
         private TcpClient tcpClient;
 
-        private bool connectionCut = false;
-        private bool welcomeMessageReceived = false;
-        private bool sendQueueExited = false;
-        private bool disconnect = false;
+        private volatile bool connectionCut = false;
+        private volatile bool welcomeMessageReceived = false;
+        private volatile bool sendQueueExited = false;
+        private volatile bool disconnect = false;
 
         private string overMessage;
 
@@ -164,15 +164,15 @@ namespace DTAClient.Online
             {
                 bytesRead = 0;
 
+                if (disconnect)
+                {
+                    connectionManager.OnDisconnected();
+                    connectionCut = false; // This disconnect is intentional
+                    break;
+                }
+
                 try
                 {
-                    if (disconnect)
-                    {
-                        connectionManager.OnDisconnected();
-                        connectionCut = false; // This disconnect is intentional
-                        break;
-                    }
-
                     bytesRead = serverStream.Read(message, 0, 1024);
                 }
                 catch (Exception ex)
@@ -191,6 +191,8 @@ namespace DTAClient.Online
                         connectionCut = false; // This disconnect is intentional
                         break;
                     }
+
+                    continue;
                 }
 
                 if (bytesRead == 0)
@@ -239,7 +241,7 @@ namespace DTAClient.Online
             SendMessage("QUIT");
 
             tcpClient.Close();
-            serverStream.Close(100);
+            serverStream.Close();
         }
 
         #region Handling commands

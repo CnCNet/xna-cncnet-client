@@ -61,15 +61,15 @@ namespace DTAClient.DXGUI.Multiplayer
 
         DXLabel lblColor;
         DXLabel lblCurrentChannel;
-        //DXLabel lblGameInformation;
-
-        DarkeningPanel gameCreationPanel;
-
-        GameCollection gameCollection;
 
         DXDropDown ddColor;
         DXDropDown ddCurrentChannel;
+
+        DarkeningPanel gameCreationPanel;
+
         Channel currentChatChannel;
+
+        GameCollection gameCollection;
 
         Color cAdminNameColor;
 
@@ -88,13 +88,14 @@ namespace DTAClient.DXGUI.Multiplayer
 
         int framesSinceGameRefresh;
 
+        bool connected = false;
+
         string localGame;
 
         public override void Initialize()
         {
             Name = "CnCNetLobby";
             BackgroundTexture = AssetLoader.LoadTexture("cncnetlobbybg.png");
-            DrawMode = PanelBackgroundImageDrawMode.STRETCHED;
             localGame = DomainController.Instance().GetDefaultGame();
 
             btnNewGame = new DXButton(WindowManager);
@@ -479,6 +480,7 @@ namespace DTAClient.DXGUI.Multiplayer
             ddCurrentChannel.AllowDropDown = false;
             tbChatInput.Enabled = false;
             gameCreationPanel.Hide();
+            connected = false;
         }
 
         private void ConnectionManager_WelcomeMessageReceived(object sender, EventArgs e)
@@ -487,6 +489,7 @@ namespace DTAClient.DXGUI.Multiplayer
             btnJoinGame.AllowClick = true;
             ddCurrentChannel.AllowDropDown = true;
             tbChatInput.Enabled = true;
+            connected = true;
 
             Channel cncnetChannel = connectionManager.GetChannel("#cncnet");
             cncnetChannel.Join();
@@ -717,22 +720,16 @@ namespace DTAClient.DXGUI.Multiplayer
             }
         }
 
-        private void RefreshGameList()
-        {
-            lbGameList.Clear();
-
-            foreach (HostedGame game in hostedGames)
-            {
-                
-            }
-        }
-
         private void BtnLogout_LeftClick(object sender, EventArgs e)
         {
             this.Visible = false;
             this.Enabled = false;
 
-            connectionManager.Disconnect();
+            if (connected)
+            {
+                connectionManager.Disconnect();
+                connected = false;
+            }
         }
 
         public override void Update(GameTime gameTime)

@@ -11,9 +11,13 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace DTAClient.DXGUI.Multiplayer.GameLobby
 {
+    /// <summary>
+    /// A generic base class for multiplayer game lobbies (CnCNet and LAN).
+    /// </summary>
     public abstract class MultiplayerGameLobby : GameLobbyBase
     {
-        public MultiplayerGameLobby(WindowManager windowManager, string iniName, List<GameMode> GameModes) : base(windowManager, iniName, GameModes)
+        public MultiplayerGameLobby(WindowManager windowManager, string iniName, List<GameMode> GameModes)
+            : base(windowManager, iniName, GameModes)
         {
         }
 
@@ -36,8 +40,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             Name = "MultiplayerGameLobby";
 
             base.Initialize();
-
-            DrawMode = PanelBackgroundImageDrawMode.STRETCHED; // **** TODO REMOVE ****
 
             InitPlayerOptionDropdowns();
 
@@ -113,6 +115,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         protected abstract void SendChatMessage(string message);
 
+        /// <summary>
+        /// Changes the game lobby's UI depending on whether the local player is the host.
+        /// </summary>
+        /// <param name="isHost">Determines whether the local player is the host of the game.</param>
         public virtual void Refresh(bool isHost)
         {
             IsHost = isHost;
@@ -131,6 +137,12 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 lbChatMessages.ClientRectangle = new Rectangle(lbMapList.ClientRectangle.Left,
                     GameOptionsPanel.ClientRectangle.Y,
                     lbMapList.ClientRectangle.Width, GameOptionsPanel.ClientRectangle.Height - 26);
+                lbChatMessages.Name = "lbChatMessages_Host";
+
+                tbChatInput.ClientRectangle = new Rectangle(lbChatMessages.ClientRectangle.Left,
+                    lbChatMessages.ClientRectangle.Bottom + 3,
+                    lbChatMessages.ClientRectangle.Width, 21);
+                tbChatInput.Name = "tbChatInput_Host";
 
                 ddGameMode.Visible = true;
                 ddGameMode.Enabled = true;
@@ -151,6 +163,12 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     PlayerOptionsPanel.ClientRectangle.Y,
                     lbMapList.ClientRectangle.Width, 
                     MapPreviewBox.ClientRectangle.Bottom - PlayerOptionsPanel.ClientRectangle.Y);
+                lbChatMessages.Name = "lbChatMessages_Player";
+
+                tbChatInput.ClientRectangle = new Rectangle(lbChatMessages.ClientRectangle.Left,
+                    lbChatMessages.ClientRectangle.Bottom + 3,
+                    lbChatMessages.ClientRectangle.Width, 21);
+                tbChatInput.Name = "tbChatInput_Player";
 
                 ddGameMode.Visible = false;
                 ddGameMode.Enabled = false;
@@ -166,6 +184,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     checkBox.InputEnabled = false;
             }
 
+            SetAttributesFromIni();
+
             lbChatMessages.Clear();
         }
 
@@ -179,6 +199,12 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             ddPlayerStarts[myIndex].SelectedIndex = e.StartingLocationIndex;
         }
 
+        /// <summary>
+        /// Handles the user's click on the "Launch Game" / "I'm Ready" button.
+        /// If the local player is the game host, checks if the game can be launched and then
+        /// launches the game if it's allowed. If the local player isn't the game host,
+        /// sends a ready request.
+        /// </summary>
         protected override void BtnLaunchGame_LeftClick(object sender, EventArgs e)
         {
             if (!IsHost)
