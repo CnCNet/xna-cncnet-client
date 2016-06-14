@@ -62,6 +62,8 @@ namespace DTAClient.Online
 
         void OnConnected();
 
+        bool GetDisconnectStatus();
+
         //public EventHandler<ServerMessageEventArgs> WelcomeMessageReceived;
         //public EventHandler<ServerMessageEventArgs> GenericServerMessageReceived;
         //public EventHandler<UserAwayEventArgs> AwayMessageReceived;

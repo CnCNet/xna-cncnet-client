@@ -81,6 +81,8 @@ namespace DTAClient.Online
 
         WindowManager wm;
 
+        bool disconnect = false;
+
         /// <summary>
         /// Factory method for creating a new channel.
         /// </summary>
@@ -339,10 +341,12 @@ namespace DTAClient.Online
         public void Disconnect()
         {
             connection.Disconnect();
+            disconnect = true;
         }
 
         public void Connect()
         {
+            disconnect = false;
             MainChannel.AddMessage(new IRCMessage(null, Color.White, DateTime.Now, "Connecting to CnCNet..."));
             connection.ConnectAsync();
         }
@@ -561,6 +565,11 @@ namespace DTAClient.Online
                 return;
 
             Channels.ForEach(ch => ch.ApplyGameIndexForUser(userName, gameIndex));
+        }
+
+        public bool GetDisconnectStatus()
+        {
+            return disconnect;
         }
     }
 }

@@ -92,6 +92,11 @@ namespace DTAClient.DXGUI.Multiplayer
             else
                 lbItem.TextColor = UISettings.TextColor;
 
+            if (hg.IsIncompatible || hg.IsLocked)
+            {
+                lbItem.TextColor = Color.Gray;
+            }
+
             AddItem(lbItem);
         }
 
@@ -137,15 +142,12 @@ namespace DTAClient.DXGUI.Multiplayer
 
                 x += hg.GameTexture.Width + 2;
 
-                Color foreColor = lbItem.TextColor;
-
                 if (hg.IsLocked)
                 {
                     Renderer.DrawTexture(txLockedGame,
                         new Rectangle(windowRectangle.X + x, windowRectangle.Y + height,
                         txLockedGame.Width, txLockedGame.Height), Color.White);
                     x += txLockedGame.Width + 2;
-                    foreColor = Color.Gray;
                 }
 
                 if (hg.IsIncompatible)
@@ -154,7 +156,6 @@ namespace DTAClient.DXGUI.Multiplayer
                         new Rectangle(windowRectangle.X + x, windowRectangle.Y + height,
                         txIncompatibleGame.Width, txIncompatibleGame.Height), Color.White);
                     x += txIncompatibleGame.Width + 2;
-                    foreColor = Color.Gray;
                 }
 
                 if (hg.Passworded)
@@ -169,7 +170,7 @@ namespace DTAClient.DXGUI.Multiplayer
 
                 Renderer.DrawStringWithShadow(hg.RoomName, FontIndex,
                     new Vector2(windowRectangle.X + x, windowRectangle.Y + height),
-                    foreColor);
+                    lbItem.TextColor);
 
                 height += LineHeight;
             }

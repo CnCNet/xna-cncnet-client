@@ -20,7 +20,9 @@ namespace DTAClient.Online
         GAME_GET_READY_MESSAGE,
         GAME_NOTIFICATION_MESSAGE,
         GAME_HOSTING_MESSAGE,
+        GAME_CHEATER_MESSAGE,
         SYSTEM_MESSAGE,
         WHOIS_MESSAGE,
+        INSTANT_MESSAGE,
     }
 }

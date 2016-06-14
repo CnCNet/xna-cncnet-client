@@ -343,10 +343,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         protected void InitializeWindow()
         {
             base.Initialize();
-
-            // To move the lblMapAuthor label into its correct position
-            // if it was moved in the descriptor INI file
-            ChangeMap(GameMode, Map);
         }
 
         private void MapPreviewBox_StartingLocationApplied(object sender, EventArgs e)
@@ -364,7 +360,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             GameMode = GameModes[ddGameMode.SelectedIndex];
 
             tbMapSearch.Text = string.Empty;
-            tbMapSearch.OnSelectedChanged();
+            //tbMapSearch.OnSelectedChanged();
 
             ListMaps();
         }
@@ -566,10 +562,14 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             PlayerOptionsPanel.AddChild(lblColor);
             PlayerOptionsPanel.AddChild(lblStart);
             PlayerOptionsPanel.AddChild(lblTeam);
+        }
 
-            // The default map needs to be picked here because changing the map
-            // before the player option dropdowns have been initialized
-            // will cause trouble
+        protected abstract void BtnLaunchGame_LeftClick(object sender, EventArgs e);
+
+        protected abstract void BtnLeaveGame_LeftClick(object sender, EventArgs e);
+
+        protected void LoadDefaultMap()
+        {
             if (ddGameMode.Items.Count > 0)
             {
                 ddGameMode.SelectedIndex = 0;
@@ -577,10 +577,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 lbMapList.SelectedIndex = 0;
             }
         }
-
-        protected abstract void BtnLaunchGame_LeftClick(object sender, EventArgs e);
-
-        protected abstract void BtnLeaveGame_LeftClick(object sender, EventArgs e);
 
         /// <summary>
         /// Randomizes options of both human and AI players
@@ -873,13 +869,15 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private void GameProcessExited_Callback()
         {
-            WindowManager.AddCallback(new Action(GameProcessExited), null);
+            AddCallback(new Action(GameProcessExited), null);
         }
 
         protected virtual void GameProcessExited()
         {
             if (!GameInProgress)
                 return;
+
+            RandomSeed = new Random().Next();
 
             GameInProgress = false;
 
@@ -940,6 +938,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 aiPlayer.ColorId = Math.Max(ddPlayerColors[cmbId].SelectedIndex, 0);
                 aiPlayer.StartingLocation = Math.Max(ddPlayerStarts[cmbId].SelectedIndex, 0);
                 aiPlayer.TeamId = Math.Max(ddPlayerTeams[cmbId].SelectedIndex, 0);
+                aiPlayer.IsAI = true;
 
                 AIPlayers.Add(aiPlayer);
             }

@@ -18,7 +18,7 @@ namespace DTAClient.DXGUI
     public class GameInProgressWindow : DXPanel
     {
         const double FPS = 120.0;
-        const double POWER_SAVING_FPS = 10.0;
+        const double POWER_SAVING_FPS = 5.0;
 
         public GameInProgressWindow(WindowManager windowManager) : base(windowManager)
         {
@@ -71,6 +71,7 @@ namespace DTAClient.DXGUI
             Visible = true;
             Enabled = true;
             WindowManager.Cursor.Visible = false;
+            ProgramConstants.IsInGame = true;
             Game.TargetElapsedTime = TimeSpan.FromMilliseconds(1000.0 / POWER_SAVING_FPS);
             WindowManager.MinimizeWindow();
         }
@@ -85,6 +86,7 @@ namespace DTAClient.DXGUI
             Visible = false;
             Enabled = false;
             WindowManager.Cursor.Visible = true;
+            ProgramConstants.IsInGame = false;
             Game.TargetElapsedTime = TimeSpan.FromMilliseconds(1000.0 / FPS);
             WindowManager.MaximizeWindow();
         }

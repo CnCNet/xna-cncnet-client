@@ -37,6 +37,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             InitializeWindow();
 
+            // To move the lblMapAuthor label into its correct position
+            // if it was moved in the theme description INI file
+            LoadDefaultMap();
+
             Players.Add(new PlayerInfo(ProgramConstants.PLAYERNAME, 0, 0, 0, 0));
             PlayerInfo aiPlayer = new PlayerInfo("Easy AI", 0, 0, 0, 0);
             aiPlayer.IsAI = true;
@@ -70,7 +74,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private void CheckGameValidity()
         {
-            int totalPlayerCount = Players.Count(p => p.SideId < ddPlayerSides[0].Items.Count)
+            int totalPlayerCount = Players.Count(p => p.SideId < ddPlayerSides[0].Items.Count - 1)
                 + AIPlayers.Count;
 
             if (totalPlayerCount < Map.MinPlayers ||
@@ -93,13 +97,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         protected override void BtnLaunchGame_LeftClick(object sender, EventArgs e)
         {
             StartGame();
-        }
-
-        protected override void GameProcessExited()
-        {
-            RandomSeed = new Random().Next();
-
-            base.GameProcessExited();
         }
 
         protected override void BtnLeaveGame_LeftClick(object sender, EventArgs e)

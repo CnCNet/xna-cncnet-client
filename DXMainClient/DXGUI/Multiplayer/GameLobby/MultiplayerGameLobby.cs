@@ -8,6 +8,9 @@ using Rampastring.XNAUI.DXControls;
 using Microsoft.Xna.Framework;
 using ClientCore;
 using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Audio;
+using System.IO;
+using Rampastring.Tools;
 
 namespace DTAClient.DXGUI.Multiplayer.GameLobby
 {
@@ -31,9 +34,15 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         protected bool Locked = false;
 
-        bool mapChangeInProgress = false;
+        protected SoundEffectInstance sndJoinSound;
+        protected SoundEffectInstance sndLeaveSound;
+        protected SoundEffectInstance sndMessageSound;
 
-        //protected DXLabel lblReady;
+        private FileSystemWatcher fsw;
+
+        private bool gameSaved = false;
+
+        private bool mapChangeInProgress = false;
 
         public override void Initialize()
         {
@@ -42,6 +51,27 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             base.Initialize();
 
             InitPlayerOptionDropdowns();
+
+            ReadyBoxes = new DXCheckBox[PLAYER_COUNT];
+
+            int readyBoxX = GameOptionsIni.GetIntValue(Name, "PlayerReadyBoxX", 7);
+
+            for (int i = 0; i < PLAYER_COUNT; i++)
+            {
+                DXCheckBox chkPlayerReady = new DXCheckBox(WindowManager);
+                chkPlayerReady.Name = "chkPlayerReady" + i;
+                chkPlayerReady.Checked = false;
+                chkPlayerReady.AllowChecking = false;
+                chkPlayerReady.ClientRectangle = new Rectangle(readyBoxX, ddPlayerTeams[i].ClientRectangle.Y + 4,
+                    0, 0);
+
+                PlayerOptionsPanel.AddChild(chkPlayerReady);
+
+                chkPlayerReady.DisabledClearTexture = chkPlayerReady.ClearTexture;
+                chkPlayerReady.DisabledCheckedTexture = chkPlayerReady.CheckedTexture;
+
+                ReadyBoxes[i] = chkPlayerReady;
+            }
 
             ddGameMode.ClientRectangle = new Rectangle(
                 MapPreviewBox.ClientRectangle.X - 12 - ddGameMode.ClientRectangle.Width,
@@ -72,37 +102,92 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             tbChatInput.ClientRectangle = new Rectangle(lbChatMessages.ClientRectangle.Left, 
                 lbChatMessages.ClientRectangle.Bottom + 3,
                 lbChatMessages.ClientRectangle.Width, 21);
-            tbChatInput.MaximumTextLength = 100;
+            tbChatInput.MaximumTextLength = 150;
             tbChatInput.EnterPressed += TbChatInput_EnterPressed;
+
+            btnLockGame = new DXButton(WindowManager);
+            btnLockGame.ClientRectangle = new Rectangle(btnLaunchGame.ClientRectangle.Right + 12,
+                btnLaunchGame.ClientRectangle.Y, 133, 23);
+            btnLockGame.IdleTexture = AssetLoader.LoadTexture("133pxbtn.png");
+            btnLockGame.HoverTexture = AssetLoader.LoadTexture("133pxbtn_c.png");
+            btnLockGame.HoverSoundEffect = AssetLoader.LoadSound("button.wav");
+            btnLockGame.FontIndex = 1;
+            btnLockGame.Text = "Lock Game";
+            btnLockGame.LeftClick += BtnLockGame_LeftClick;
 
             AddChild(lbChatMessages);
             AddChild(tbChatInput);
+            AddChild(btnLockGame);
 
             MapPreviewBox.LocalStartingLocationSelected += MapPreviewBox_LocalStartingLocationSelected;
-
-            ReadyBoxes = new DXCheckBox[PLAYER_COUNT];
-
-            int readyBoxX = GameOptionsIni.GetIntValue(Name, "PlayerReadyBoxX", 7);
-
-            for (int i = 0; i < PLAYER_COUNT; i++)
-            {
-                DXCheckBox chkPlayerReady = new DXCheckBox(WindowManager);
-                chkPlayerReady.Name = "chkPlayerReady" + i;
-                chkPlayerReady.Checked = false;
-                chkPlayerReady.AllowChecking = false;
-                chkPlayerReady.ClientRectangle = new Rectangle(readyBoxX, ddPlayerTeams[i].ClientRectangle.Y + 4,
-                    0, 0);
-
-                PlayerOptionsPanel.AddChild(chkPlayerReady);
-
-                chkPlayerReady.DisabledClearTexture = chkPlayerReady.ClearTexture;
-                chkPlayerReady.DisabledCheckedTexture = chkPlayerReady.CheckedTexture;
-
-                ReadyBoxes[i] = chkPlayerReady;
-            }
+            MapPreviewBox.StartingLocationApplied += MapPreviewBox_StartingLocationApplied;
 
             InitializeWindow();
+
+            SoundEffect seJoinSound = AssetLoader.LoadSound("joingame.wav");
+            SoundEffect seLeaveSound = AssetLoader.LoadSound("leavegame.wav");
+            SoundEffect seMessageSound = AssetLoader.LoadSound("message.wav");
+
+            if (seJoinSound != null)
+                sndJoinSound = seJoinSound.CreateInstance();
+
+            if (seLeaveSound != null)
+                sndLeaveSound = seLeaveSound.CreateInstance();
+
+            if (seMessageSound != null)
+                sndMessageSound = seMessageSound.CreateInstance();
+
+            if (SavedGameManager.AreSavedGamesAvailable())
+            {
+                fsw = new FileSystemWatcher(ProgramConstants.GamePath + "Saved Games", "*.NET");
+                fsw.EnableRaisingEvents = true;
+                fsw.Created += fsw_Created;
+                fsw.Changed += fsw_Created;
+            }
         }
+
+        private void fsw_Created(object sender, FileSystemEventArgs e)
+        {
+            AddCallback(new Action<FileSystemEventArgs>(FSWEvent), e);
+        }
+
+        private void FSWEvent(FileSystemEventArgs e)
+        {
+            Logger.Log("FSW Event: " + e.FullPath);
+
+            if (Path.GetFileName(e.FullPath) == "SAVEGAME.NET")
+            {
+                if (!gameSaved)
+                {
+                    bool success = SavedGameManager.InitSavedGames();
+
+                    if (!success)
+                        return;
+                }
+
+                gameSaved = true;
+
+                SavedGameManager.RenameSavedGame();
+            }
+        }
+
+        protected override void GameProcessExited()
+        {
+            gameSaved = false;
+
+            base.GameProcessExited();
+        }
+
+        private void BtnLockGame_LeftClick(object sender, EventArgs e)
+        {
+            HandleLockGameButtonClick();
+        }
+
+        protected abstract void HandleLockGameButtonClick();
+
+        protected abstract void LockGame();
+
+        protected abstract void UnlockGame(bool manual);
 
         private void TbChatInput_EnterPressed(object sender, EventArgs e)
         {
@@ -119,7 +204,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         /// Changes the game lobby's UI depending on whether the local player is the host.
         /// </summary>
         /// <param name="isHost">Determines whether the local player is the host of the game.</param>
-        public virtual void Refresh(bool isHost)
+        protected void Refresh(bool isHost)
         {
             IsHost = isHost;
 
@@ -151,6 +236,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 lbMapList.Visible = true;
                 lbMapList.Enabled = true;
 
+                btnLockGame.Text = "Lock Game";
+                btnLockGame.Enabled = true;
+                btnLockGame.Visible = true;
+
                 foreach (GameLobbyDropDown dd in DropDowns)
                     dd.InputEnabled = true;
 
@@ -177,6 +266,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 lbMapList.Visible = false;
                 lbMapList.Enabled = false;
 
+                btnLockGame.Enabled = false;
+                btnLockGame.Visible = false;
+
                 foreach (GameLobbyDropDown dd in DropDowns)
                     dd.InputEnabled = false;
 
@@ -184,9 +276,20 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     checkBox.InputEnabled = false;
             }
 
-            SetAttributesFromIni();
+            lbChatMessages.GetAttributes(ThemeIni);
+            tbChatInput.GetAttributes(ThemeIni);
+            lbMapList.GetAttributes(ThemeIni);
+
+            LoadDefaultMap();
 
             lbChatMessages.Clear();
+
+            if (SavedGameManager.GetSaveGameCount() > 0)
+            {
+                lbChatMessages.AddItem("Multiplayer saved games from a previous match have been detected. " +
+                    "The saved games of the previous match will be deleted if you create new saves during this match.",
+                    Color.Yellow, true);
+            }
         }
 
         private void MapPreviewBox_LocalStartingLocationSelected(object sender, LocalStartingLocationEventArgs e)
@@ -197,6 +300,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 return;
 
             ddPlayerStarts[myIndex].SelectedIndex = e.StartingLocationIndex;
+        }
+
+        private void MapPreviewBox_StartingLocationApplied(object sender, EventArgs e)
+        {
+            BroadcastPlayerOptions();
         }
 
         /// <summary>
@@ -412,6 +520,21 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 {
                     ddPlayerNames[pId].AllowDropDown = true;
                 }
+            }
+
+            for (int pId = 0; pId < Players.Count; pId++)
+            {
+                ReadyBoxes[pId].Checked = Players[pId].Ready;
+            }
+
+            for (int aiId = 0; aiId < AIPlayers.Count; aiId++)
+            {
+                ReadyBoxes[aiId + Players.Count].Checked = true;
+            }
+
+            for (int i = AIPlayers.Count + Players.Count; i < PLAYER_COUNT; i++)
+            {
+                ReadyBoxes[i].Checked = false;
             }
         }
 

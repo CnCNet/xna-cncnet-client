@@ -477,6 +477,7 @@ namespace DTAClient.DXGUI.Generic
                 File.Delete(ProgramConstants.GamePath + "ddraw.dll");
 
             Game.Exit();
+            Environment.Exit(0);
         }
 
         private void StartCnCNetClient(string commandLine)

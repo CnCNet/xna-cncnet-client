@@ -62,7 +62,20 @@ namespace DTAClient.Online
         private volatile bool connectionCut = false;
         private volatile bool welcomeMessageReceived = false;
         private volatile bool sendQueueExited = false;
-        private volatile bool disconnect = false;
+        bool _disconnect = false;
+        private bool disconnect
+        {
+            get
+            {
+                lock (locker)
+                    return _disconnect;
+            }
+            set
+            {
+                lock (locker)
+                    _disconnect = value;
+            }
+        }
 
         private string overMessage;
 
@@ -127,6 +140,10 @@ namespace DTAClient.Online
                             Thread sendQueueHandler = new Thread(RunSendQueue);
                             sendQueueHandler.Start();
 
+                            tcpClient = client;
+                            serverStream = tcpClient.GetStream();
+                            serverStream.ReadTimeout = 1000;
+
                             HandleComm(client);
                             return;
                         }
@@ -145,10 +162,6 @@ namespace DTAClient.Online
 
         private void HandleComm(object client)
         {
-            tcpClient = new TcpClient();
-            tcpClient = (TcpClient)client;
-            serverStream = tcpClient.GetStream();
-            serverStream.ReadTimeout = 1000;
             int errorTimes = 0;
 
             byte[] message = new byte[1024];
@@ -164,7 +177,7 @@ namespace DTAClient.Online
             {
                 bytesRead = 0;
 
-                if (disconnect)
+                if (connectionManager.GetDisconnectStatus())
                 {
                     connectionManager.OnDisconnected();
                     connectionCut = false; // This disconnect is intentional
@@ -185,7 +198,7 @@ namespace DTAClient.Online
                         connectionManager.OnConnectionLost(ex.Message);
                         break;
                     }
-                    else if (disconnect)
+                    else if (connectionManager.GetDisconnectStatus())
                     {
                         connectionManager.OnDisconnected();
                         connectionCut = false; // This disconnect is intentional
@@ -659,7 +672,11 @@ namespace DTAClient.Online
                     case QueuedMessageType.GAME_NOTIFICATION_MESSAGE:
                     case QueuedMessageType.GAME_HOSTING_MESSAGE:
                     case QueuedMessageType.WHOIS_MESSAGE:
+                    case QueuedMessageType.GAME_CHEATER_MESSAGE:
                         AddSpecialQueuedMessage(qm);
+                        break;
+                    case QueuedMessageType.INSTANT_MESSAGE:
+                        SendMessage(qm.Command);
                         break;
                     default:
                         int placeInQueue = MessageQueue.FindIndex(m => m.Priority < qm.Priority);

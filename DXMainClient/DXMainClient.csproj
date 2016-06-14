@@ -157,6 +157,7 @@
     <Compile Include="DXGUI\Multiplayer\GameLobby\CTCPHandlers\StringCTCPHandler.cs" />
     <Compile Include="Online\EventArguments\ChannelCTCPEventArgs.cs" />
     <Compile Include="Online\EventArguments\ChannelUserEventArgs.cs" />
+    <Compile Include="Online\FileHashCalculator.cs" />
     <Compile Include="Online\IRCColor.cs" />
     <Compile Include="DXGUI\Generic\LoadingScreen.cs" />
     <Compile Include="DXGUI\Generic\MainMenu.cs" />

@@ -119,6 +119,7 @@ namespace DTAClient.DXGUI.Multiplayer
             btnJoinGame.FontIndex = 1;
             btnJoinGame.Text = "Join Game";
             btnJoinGame.AllowClick = false;
+            btnJoinGame.LeftClick += BtnJoinGame_LeftClick;
 
             btnLogout = new DXButton(WindowManager);
             btnLogout.Name = "btnLogout";
@@ -194,6 +195,8 @@ namespace DTAClient.DXGUI.Multiplayer
                 btnNewGame.ClientRectangle.Top - 47);
             lbGameList.DrawMode = PanelBackgroundImageDrawMode.STRETCHED;
             lbGameList.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 128), 1, 1);
+            lbGameList.DoubleLeftClick += LbGameList_DoubleLeftClick;
+            lbGameList.AllowMultiLineItems = false;
 
             lbPlayerList = new DXListBox(WindowManager);
             lbPlayerList.Name = "lbPlayerList";
@@ -367,6 +370,96 @@ namespace DTAClient.DXGUI.Multiplayer
             gcw.GameCreated += Gcw_GameCreated;
 
             gameCreationPanel.Hide();
+
+            connectionManager.MainChannel.AddMessage(new IRCMessage(null, Color.White, DateTime.Now,
+                "Welcome to Rampastring's DTA / CnCNet Client, version " + 
+                System.Windows.Forms.Application.ProductVersion));
+
+            gameLobby.GameLeft += GameLobby_GameLeft;
+        }
+
+        private void GameLobby_GameLeft(object sender, EventArgs e)
+        {
+            Visible = true;
+            Enabled = true;
+        }
+
+        private void BtnJoinGame_LeftClick(object sender, EventArgs e)
+        {
+            LbGameList_DoubleLeftClick(this, EventArgs.Empty);
+        }
+
+        private void LbGameList_DoubleLeftClick(object sender, EventArgs e)
+        {
+            if (lbGameList.SelectedIndex < 0 || lbGameList.SelectedIndex >= lbGameList.Items.Count)
+                return;
+
+            var mainChannel = connectionManager.MainChannel;
+
+            if (gameLobby.Enabled)
+            {
+                mainChannel.AddMessage(new IRCMessage(null, Color.White, DateTime.Now,
+                    "You already are in a game!"));
+                return;
+            }
+
+            HostedGame hg = (HostedGame)lbGameList.Items[lbGameList.SelectedIndex].Tag;
+
+            if (hg.GameIdentifier.ToUpper() != localGame.ToUpper())
+            {
+                mainChannel.AddMessage(new IRCMessage(null, Color.White, DateTime.Now,
+                    "The selected game is for " + 
+                    gameCollection.GetGameNameFromInternalName(hg.GameIdentifier) + "!"));
+                return;
+            }
+
+            if (hg.Started)
+            {
+                mainChannel.AddMessage(new IRCMessage(null, Color.White, DateTime.Now,
+                    "The selected game is locked!"));
+                return;
+            }
+
+            if (hg.IsLoadedGame)
+            {
+                if (!hg.Players.Contains(ProgramConstants.PLAYERNAME))
+                {
+                    mainChannel.AddMessage(new IRCMessage(null, Color.White, DateTime.Now,
+                        "You do not exist in the saved game!"));
+                    return;
+                }
+            }
+
+            if (hg.Version != ProgramConstants.GAME_VERSION)
+            {
+                // TODO Show warning
+            }
+
+            string password = string.Empty;
+
+            if (hg.Passworded)
+            {
+                // TODO ask for password
+                mainChannel.AddMessage(new IRCMessage(null, Color.White, DateTime.Now,
+                    "Passworded games are not supported yet."));
+                return;
+            }
+            else
+            {
+                password = Rampastring.Tools.Utilities.CalculateSHA1ForString
+                    (hg.ChannelName + hg.RoomName).Substring(0, 10);
+            }
+
+            mainChannel.AddMessage(new IRCMessage(null, Color.White, DateTime.Now,
+            "Attempting to join game " + hg.RoomName + "..."));
+
+            Channel gameChannel = connectionManager.CreateChannel(hg.RoomName, hg.ChannelName, false, password);
+            connectionManager.AddChannel(gameChannel);
+            gameLobby.SetUp(gameChannel, false, hg.MaxPlayers, hg.TunnelServer, hg.Admin, hg.Passworded);
+            gameChannel.UserAdded += GameChannel_UserAdded;
+            gameChannel.MessageAdded += GameChannel_MessageAdded;
+            connectionManager.SendCustomMessage(new QueuedMessage("JOIN " + hg.ChannelName + " " + password,
+                QueuedMessageType.INSTANT_MESSAGE, 0));
         }
 
         private void BtnNewGame_LeftClick(object sender, EventArgs e)
@@ -395,7 +488,7 @@ namespace DTAClient.DXGUI.Multiplayer
             gameChannel.UserAdded += GameChannel_UserAdded;
             gameChannel.MessageAdded += GameChannel_MessageAdded;
             connectionManager.SendCustomMessage(new QueuedMessage("JOIN " + channelName + " " + password,
-                QueuedMessageType.GAME_HOSTING_MESSAGE, 9));
+                QueuedMessageType.INSTANT_MESSAGE, 0));
             connectionManager.MainChannel.AddMessage(new IRCMessage(null, Color.White, DateTime.Now,
                 "Creating a game named " + e.GameRoomName + "..."));
 
@@ -479,6 +572,8 @@ namespace DTAClient.DXGUI.Multiplayer
             btnJoinGame.AllowClick = false;
             ddCurrentChannel.AllowDropDown = false;
             tbChatInput.Enabled = false;
+            lbPlayerList.Clear();
+            lbGameList.Clear();
             gameCreationPanel.Hide();
             connected = false;
         }
@@ -517,6 +612,9 @@ namespace DTAClient.DXGUI.Multiplayer
                     }
                 }
             }
+
+            connectionManager.SendCustomMessage(new QueuedMessage("AWAY " + (char)58 + "Testing DTA 1.15!",
+                QueuedMessageType.SYSTEM_MESSAGE, 0));
         }
 
         private void DdCurrentChannel_SelectedIndexChanged(object sender, EventArgs e)
@@ -593,7 +691,7 @@ namespace DTAClient.DXGUI.Multiplayer
                     Renderer.GetSafeString(message.Message, lbChatMessages.FontIndex)),
                     message.Color, true);
 
-            if (lbChatMessages.GetLastDisplayedItemIndex() == lbChatMessages.Items.Count - 2)
+            if (lbChatMessages.LastIndex == lbChatMessages.Items.Count - 2)
             {
                 lbChatMessages.ScrollToBottom();
             }
@@ -640,7 +738,7 @@ namespace DTAClient.DXGUI.Multiplayer
 
             Channel channel = (Channel)sender;
 
-            if (splitMessage.Length != 10)
+            if (splitMessage.Length != 11)
             {
                 Logger.Log("Ignoring CTCP game message because of an invalid amount of parameters.");
                 return;
@@ -664,12 +762,18 @@ namespace DTAClient.DXGUI.Multiplayer
                 List<string> playerNames = players.ToList();
                 string mapName = splitMessage[7];
                 string gameMode = splitMessage[8];
-                string loadedGameId = splitMessage[9];
+                string tunnelAddress = splitMessage[9];
+                string loadedGameId = splitMessage[10];
 
                 CnCNetGame cncnetGame = gameCollection.GameList.Find(g => g.GameBroadcastChannel == channel.ChannelName);
 
+                CnCNetTunnel tunnel = tunnelHandler.Tunnels.Find(t => t.Address == tunnelAddress);
+
+                if (tunnel == null)
+                    return;
+
                 HostedGame game = new HostedGame(gameRoomChannelName, revision, cncnetGame.InternalName, gameVersion, maxPlayers,
-                    gameRoomDisplayName, isCustomPassword, false, locked, true, false, false, players,
+                    gameRoomDisplayName, isCustomPassword, locked, true, players,
                     e.UserName, mapName, gameMode);
                 game.IsLoadedGame = isLoadedGame;
                 game.MatchID = loadedGameId;
@@ -678,6 +782,7 @@ namespace DTAClient.DXGUI.Multiplayer
                 game.GameTexture = cncnetGame.Texture;
                 game.IsLocked = game.Started || (game.IsLoadedGame && !game.Players.Contains(ProgramConstants.PLAYERNAME));
                 game.IsIncompatible = game.Version != ProgramConstants.GAME_VERSION;
+                game.TunnelServer = tunnel;
 
                 if (isClosed)
                 {

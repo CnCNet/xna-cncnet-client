@@ -63,7 +63,7 @@ namespace DTAClient.DXGUI.Generic
             mapLoader = new MapLoader();
             mapLoader.MapLoadingComplete += MapLoader_MapLoadingComplete;
 
-            mapLoader.LoadMaps();
+            mapLoader.LoadMapsAsync();
 
             if (!MCDomainController.Instance.GetModModeStatus())
             {

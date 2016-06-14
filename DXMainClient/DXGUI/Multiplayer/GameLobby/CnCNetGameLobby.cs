@@ -11,6 +11,7 @@ using Microsoft.Xna.Framework;
 using Rampastring.Tools;
 using DTAClient.DXGUI.Multiplayer.GameLobby.CTCPHandlers;
 using System.Net;
+using Microsoft.Xna.Framework.Audio;
 
 namespace DTAClient.DXGUI.Multiplayer.GameLobby
 {
@@ -45,8 +46,13 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 new CTCPIntNotificationHandler("NVRFY", HandleIntNotification, NotVerifiedNotification),
                 new CTCPIntNotificationHandler("INGM", HandleIntNotification, StillInGameNotification),
                 new NoParamCTCPHandler("RETURN", ReturnNotification),
+                new IntCTCPHandler("TNLPNG", TunnelPingNotification),
+                new StringCTCPHandler("FHSH", FileHashNotification),
+                new StringCTCPHandler("MM", CheaterNotification)
             };
         }
+
+        public event EventHandler GameLeft;
 
         TunnelHandler tunnelHandler;
         CnCNetTunnel tunnel;
@@ -75,10 +81,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         bool isCustomPassword = false;
 
-        public override void Initialize()
-        {
-            base.Initialize();
-        }
+        string gameFilesHash;
 
         public void SetUp(Channel channel, bool isHost, int playerLimit, 
             CnCNetTunnel tunnel, string hostName, bool isCustomPassword)
@@ -89,6 +92,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             channel.UserKicked += Channel_UserKicked;
             channel.UserQuitIRC += Channel_UserQuitIRC;
             channel.UserLeft += Channel_UserLeft;
+            channel.UserAdded += Channel_UserAdded;
 
             this.hostName = hostName;
             this.playerLimit = playerLimit;
@@ -96,7 +100,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             if (isHost)
             {
-                channel.UserAdded += Channel_UserAdded;
 
                 //PlayerInfo host = new PlayerInfo(ProgramConstants.PLAYERNAME);
                 //host.Ready = true;
@@ -105,7 +108,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
                 RandomSeed = new Random().Next();
 
-                timerTicks = int.MaxValue;
+                timerTicks = 1000000;
 
                 timeSinceGameBroadcast = TimeSpan.FromSeconds(INITIAL_TIME);
             }
@@ -125,6 +128,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         public void OnJoined()
         {
+            FileHashCalculator fhc = new FileHashCalculator();
+            fhc.CalculateHashes(GameModes);
+
             if (IsHost)
             {
                 connectionManager.SendCustomMessage(new QueuedMessage(
@@ -136,7 +142,15 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     string.Format("TOPIC {0} :{1}", channel.ChannelName,
                     ProgramConstants.CNCNET_PROTOCOL_REVISION + ";" + localGame.ToLower()),
                     QueuedMessageType.SYSTEM_MESSAGE, 50));
+
+                gameFilesHash = fhc.GetCompleteHash();
+
+                return;
             }
+
+            channel.SendCTCPMessage("FHSH " + fhc.GetCompleteHash(), QueuedMessageType.SYSTEM_MESSAGE, 10);
+
+            channel.SendCTCPMessage("TNLPNG " + tunnel.PingInMs, QueuedMessageType.SYSTEM_MESSAGE, 10);
         }
 
         public void ChangeChatColor(IRCColor chatColor)
@@ -152,12 +166,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             channel.UserKicked -= Channel_UserKicked;
             channel.UserQuitIRC -= Channel_UserQuitIRC;
             channel.UserLeft -= Channel_UserLeft;
+            channel.UserAdded -= Channel_UserAdded;
 
-            if (IsHost)
-            {
-                channel.UserAdded -= Channel_UserAdded;
-            }
-            else
+            if (!IsHost)
             {
                 channel.ChannelModesChanged -= Channel_ChannelModesChanged;
                 AIPlayers.Clear();
@@ -171,6 +182,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             Players.Clear();
             tbChatInput.Text = string.Empty;
+
+            GameLeft?.Invoke(this, EventArgs.Empty);
         }
 
         private void ConnectionManager_Disconnected(object sender, EventArgs e)
@@ -254,10 +267,22 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             Players.Add(pInfo);
             CopyPlayerDataToUI();
 
+            if (sndJoinSound != null)
+                sndJoinSound.Play();
+
+            if (!IsHost)
+                return;
+
             if (e.User.Name != ProgramConstants.PLAYERNAME)
             {
                 BroadcastPlayerOptions();
                 OnGameOptionChanged();
+            }
+
+            if (Players.Count >= playerLimit)
+            {
+                AddNotice("Player limit reached; the game room has been locked.");
+                LockGame();
             }
         }
 
@@ -270,14 +295,26 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 Players.Remove(pInfo);
 
                 CopyPlayerDataToUI();
-                BroadcastPlayerOptions();
+            }
+
+            if (sndLeaveSound != null)
+                sndLeaveSound.Play();
+
+            if (IsHost && Locked && !ProgramConstants.IsInGame)
+            {
+                UnlockGame(true);
             }
         }
 
         private void Channel_ChannelModesChanged(object sender, ChannelModeEventArgs e)
         {
             if (e.ModeString == "+i")
-                AddNotice("The game room has been locked.");
+            {
+                if (Players.Count >= playerLimit)
+                    AddNotice("Player limit reached; the game room has been locked.");
+                else
+                    AddNotice("The game host has locked the game room.");
+            }
             else if (e.ModeString == "-i")
                 AddNotice("The game room has been unlocked.");
         }
@@ -301,12 +338,17 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     Renderer.GetSafeString(e.Message.Message, lbChatMessages.FontIndex)),
                     e.Message.Color, true);
             else
+            {
                 lbChatMessages.AddItem(string.Format("[{0}] {1}: {2}",
                     e.Message.DateTime.ToShortTimeString(), e.Message.Sender,
                     Renderer.GetSafeString(e.Message.Message, lbChatMessages.FontIndex)),
                     e.Message.Color, true);
 
-            if (lbChatMessages.GetLastDisplayedItemIndex() == lbChatMessages.Items.Count - 2)
+                if (sndMessageSound != null)
+                    sndMessageSound.Play();
+            }
+
+            if (lbChatMessages.LastIndex == lbChatMessages.Items.Count - 2)
             {
                 lbChatMessages.ScrollToBottom();
             }
@@ -490,7 +532,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 sb.Append(";");
                 if (!pInfo.IsAI)
                 {
-                    sb.Append(pInfo.Ready);
+                    sb.Append(Convert.ToInt32(pInfo.Ready));
                     sb.Append(';');
                 }
             }
@@ -522,6 +564,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     pInfo.IsAI = true;
                     pInfo.AILevel = converted;
                 }
+                else
+                    pInfo.Name = pName;
 
                 if (parts.Length <= i + 1)
                 {
@@ -630,7 +674,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             int partIndex = checkBoxIntegerCount + DropDowns.Count;
 
-            if (parts.Length <= partIndex + 3)
+            if (parts.Length < partIndex + 3)
                 return;
 
             string mapSHA1 = parts[partIndex];
@@ -679,7 +723,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
                 for (int optionIndex = 0; optionIndex < boolArray.Length; optionIndex++)
                 {
-                    int gameOptionIndex = checkBoxIntegerCount * 32 + optionIndex;
+                    int gameOptionIndex = i * 32 + optionIndex;
 
                     if (gameOptionIndex >= CheckBoxes.Count)
                         break;
@@ -711,7 +755,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
                 GameLobbyDropDown dd = DropDowns[i - checkBoxIntegerCount];
 
-                if (0 < ddSelectedIndex || ddSelectedIndex >= dd.Items.Count)
+                if (ddSelectedIndex < 0 || ddSelectedIndex >= dd.Items.Count)
                     return;
 
                 if (dd.SelectedIndex != ddSelectedIndex)
@@ -746,6 +790,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             {
                 RandomSeed = new Random().Next();
                 OnGameOptionChanged();
+
+                if (Players.Count < playerLimit)
+                {
+                    UnlockGame(true);
+                }
             }
         }
 
@@ -768,12 +817,17 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             for (int i = 1; i < parts.Length; i += 2)
             {
-                if (parts.Length < i + 1)
+                if (parts.Length <= i + 1)
                     return;
 
                 string pName = parts[i];
+                string[] ipAndPort = parts[i + 1].Split(':');
+
+                if (ipAndPort.Length < 2)
+                    return;
+
                 int port;
-                bool success = int.TryParse(parts[i + 1], out port);
+                bool success = int.TryParse(ipAndPort[1], out port);
 
                 if (!success)
                     return;
@@ -799,6 +853,14 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             iniFile.SetIntValue("Tunnel", "Port", tunnel.Port);
 
             iniFile.SetIntValue("Settings", "GameID", gameId);
+            iniFile.SetBooleanValue("Settings", "Host", IsHost);
+
+            PlayerInfo localPlayer = Players.Find(p => p.Name == ProgramConstants.PLAYERNAME);
+
+            if (localPlayer == null)
+                return;
+
+            iniFile.SetIntValue("Settings", "Port", localPlayer.Port);
         }
 
         protected override void SendChatMessage(string message)
@@ -825,6 +887,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         protected override void GetReadyNotification()
         {
             base.GetReadyNotification();
+
+            WindowManager.FlashWindow();
 
             if (IsHost)
                 channel.SendCTCPMessage("GETREADY", QueuedMessageType.GAME_GET_READY_MESSAGE, 0);
@@ -904,6 +968,41 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 pInfo.IsInGame = false;
         }
 
+        private void TunnelPingNotification(string sender, int ping)
+        {
+            if (ping > -1)
+            {
+                AddNotice(sender + " - ping to tunnel server: " + ping);
+            }
+            else
+                AddNotice(sender + " - unknown ping to tunnel server.");
+        }
+
+        private void FileHashNotification(string sender, string filesHash)
+        {
+            if (!IsHost)
+                return;
+
+            PlayerInfo pInfo = Players.Find(p => p.Name == sender);
+
+            if (pInfo != null)
+                pInfo.Verified = true;
+
+            if (filesHash != gameFilesHash)
+            {
+                channel.SendCTCPMessage("MM " + sender, QueuedMessageType.GAME_CHEATER_MESSAGE, 10);
+                CheaterNotification(ProgramConstants.PLAYERNAME, sender);
+            }
+        }
+
+        private void CheaterNotification(string sender, string cheaterName)
+        {
+            if (sender != hostName)
+                return;
+
+            AddNotice(cheaterName + " - modified files detected! They could be cheating!", Color.Red);
+        }
+
         public override void Update(GameTime gameTime)
         {
             if (IsHost)
@@ -919,12 +1018,14 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private void ForceBroadcastGame()
         {
-            timerTicks = Int32.MaxValue;
+            timerTicks = 1000000;
             BroadcastGame();
         }
 
         private void BroadcastGame()
         {
+            timeSinceGameBroadcast = TimeSpan.Zero;
+
             Channel broadcastChannel = connectionManager.GetChannel("#cncnet-" + localGame.ToLower() + "-games");
 
             if (broadcastChannel == null)
@@ -962,6 +1063,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             }
 
             sb.Remove(sb.Length - 1, 1);
+            sb.Append(";");
             sb.Append(Map.Name);
             sb.Append(";");
             sb.Append(GameMode.UIName);
@@ -973,6 +1075,46 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             broadcastChannel.SendCTCPMessage(sb.ToString(), QueuedMessageType.SYSTEM_MESSAGE, 20);
 
             timerTicks = 0;
+        }
+
+        protected override void HandleLockGameButtonClick()
+        {
+            if (!Locked)
+            {
+                AddNotice("You've locked the game room.");
+                LockGame();
+            }
+            else
+            {
+                if (Players.Count < playerLimit)
+                {
+                    AddNotice("You've unlocked the game room.");
+                    UnlockGame(false);
+                }
+                else
+                    AddNotice(string.Format(
+                        "Cannot unlock game; the player limit ({0}) has been reached.", playerLimit));
+            }
+        }
+
+        protected override void LockGame()
+        {
+            connectionManager.SendCustomMessage(new QueuedMessage(
+                string.Format("MODE {0} +i", channel.ChannelName), QueuedMessageType.INSTANT_MESSAGE, -1));
+
+            Locked = true;
+            btnLockGame.Text = "Unlock Game";
+        }
+
+        protected override void UnlockGame(bool announce)
+        {
+            connectionManager.SendCustomMessage(new QueuedMessage(
+                string.Format("MODE {0} -i", channel.ChannelName), QueuedMessageType.INSTANT_MESSAGE, -1));
+
+            Locked = false;
+            if (announce)
+                AddNotice("The game room has been unlocked.");
+            btnLockGame.Text = "Lock Game";
         }
     }
 }

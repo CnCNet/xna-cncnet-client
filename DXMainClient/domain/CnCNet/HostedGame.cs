@@ -11,8 +11,8 @@ namespace DTAClient.domain.CnCNet
         public HostedGame() { }
 
         public HostedGame(string channelName, string revision, string gameId, string gamever, int maxPlayers,
-            string roomName, bool passworded, bool tourneyreserved, bool started,
-            bool tunneled, bool purereserved, bool matchmakingreserved,
+            string roomName, bool passworded, bool started,
+            bool tunneled, 
             string[] players, string adminName, string mapName, string gameMode)
         {
             ChannelName = channelName;
@@ -22,11 +22,8 @@ namespace DTAClient.domain.CnCNet
             MaxPlayers = maxPlayers;
             RoomName = roomName;
             Passworded = passworded;
-            TourneyReserved = tourneyreserved;
             Started = started;
             Tunneled = tunneled;
-            PureReserved = purereserved;
-            MatchmakingReserved = matchmakingreserved;
             foreach (string player in players)
             {
                 Players.Add(player);
@@ -55,6 +52,7 @@ namespace DTAClient.domain.CnCNet
         public string Admin { get; set; }
         public string MapName { get; set; }
         public string GameMode { get; set; }
+        public CnCNetTunnel TunnelServer { get; set; }
         public DateTime LastRefreshTime { get; set; }
         public Texture2D GameTexture { get; set; }
         public bool IsIncompatible { get; set; }
