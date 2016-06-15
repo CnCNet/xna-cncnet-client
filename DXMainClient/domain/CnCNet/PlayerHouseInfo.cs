@@ -81,6 +81,12 @@ namespace DTAClient.domain.CnCNet
         public void RandomizeStart(PlayerInfo pInfo, Map map,
             List<int> freeStartingLocations, Random random)
         {
+            if (IsSpectator)
+            {
+                StartingWaypoint = 90;
+                return;
+            }
+
             if (pInfo.StartingLocation == 0)
             {
                 // Randomize starting location

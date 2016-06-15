@@ -106,6 +106,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             tbChatInput.EnterPressed += TbChatInput_EnterPressed;
 
             btnLockGame = new DXButton(WindowManager);
+            btnLockGame.Name = "btnLockGame";
             btnLockGame.ClientRectangle = new Rectangle(btnLaunchGame.ClientRectangle.Right + 12,
                 btnLaunchGame.ClientRectangle.Y, 133, 23);
             btnLockGame.IdleTexture = AssetLoader.LoadTexture("133pxbtn.png");

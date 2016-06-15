@@ -1024,7 +1024,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 ddPlayerName.Items[1].Text = "Easy AI";
                 ddPlayerName.Items[2].Text = "Medium AI";
                 ddPlayerName.Items[3].Text = "Hard AI";
-                ddPlayerName.SelectedIndex = -1;
+                ddPlayerName.SelectedIndex = 0;
 
                 ddPlayerSides[ddIndex].SelectedIndex = -1;
                 ddPlayerSides[ddIndex].AllowDropDown = false;
