@@ -982,7 +982,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 ddPlayerStarts[pId].AllowDropDown = allowPlayerOptionsChange;
 
                 ddPlayerTeams[pId].SelectedIndex = pInfo.TeamId;
-                ddPlayerTeams[pId].AllowDropDown = allowPlayerOptionsChange;
+                if (Map != null)
+                    ddPlayerTeams[pId].AllowDropDown = allowPlayerOptionsChange && !Map.IsCoop;
             }
 
             // AI players
@@ -1012,7 +1013,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 ddPlayerStarts[index].AllowDropDown = allowOptionsChange;
 
                 ddPlayerTeams[index].SelectedIndex = aiInfo.TeamId;
-                ddPlayerTeams[index].AllowDropDown = allowOptionsChange;
+
+                if (Map != null)
+                    ddPlayerTeams[index].AllowDropDown = allowOptionsChange && !Map.IsCoop;
             }
 
             // Unused player slots
@@ -1129,16 +1132,12 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     ddStart.AddItem(i.ToString());
             }
 
-            foreach (PlayerInfo pInfo in Players)
+            IEnumerable<PlayerInfo> concatPlayerList = Players.Concat(AIPlayers);
+
+            foreach (PlayerInfo pInfo in concatPlayerList)
             {
                 if (pInfo.StartingLocation > Map.MaxPlayers)
                     pInfo.StartingLocation = 0;
-            }
-
-            foreach (PlayerInfo aiInfo in AIPlayers)
-            {
-                if (aiInfo.StartingLocation > Map.MaxPlayers)
-                    aiInfo.StartingLocation = 0;
             }
 
             if (map.CoopInfo != null)
@@ -1167,16 +1166,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                         dd.Items[0].Selectable = false;
                     }
 
-                    foreach (PlayerInfo pInfo in Players)
+                    foreach (PlayerInfo pInfo in concatPlayerList)
                     {
                         if (pInfo.SideId == 0)
                             pInfo.SideId = defaultSideIndex;
-                    }
-
-                    foreach (PlayerInfo aiInfo in AIPlayers)
-                    {
-                        if (aiInfo.SideId == 0)
-                            aiInfo.SideId = defaultSideIndex;
                     }
                 }
 
@@ -1190,16 +1183,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                         }
                     }
 
-                    foreach (PlayerInfo pInfo in Players)
+                    foreach (PlayerInfo pInfo in concatPlayerList)
                     {
                         if (pInfo.SideId == disallowedSideIndex + 1)
                             pInfo.SideId = defaultSideIndex;
-                    }
-
-                    foreach (PlayerInfo aiInfo in AIPlayers)
-                    {
-                        if (aiInfo.SideId == disallowedSideIndex + 1)
-                            aiInfo.SideId = defaultSideIndex;
                     }
                 }
 
@@ -1212,18 +1199,16 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     foreach (DXDropDown ddColor in ddPlayerColors)
                         ddColor.Items[disallowedColorIndex + 1].Selectable = false;
 
-                    foreach (PlayerInfo pInfo in Players)
+                    foreach (PlayerInfo pInfo in concatPlayerList)
                     {
                         if (pInfo.ColorId == disallowedColorIndex + 1)
                             pInfo.ColorId = 0;
                     }
-
-                    foreach (PlayerInfo aiInfo in AIPlayers)
-                    {
-                        if (aiInfo.ColorId == disallowedColorIndex + 1)
-                            aiInfo.ColorId = 0;
-                    }
                 }
+
+                // Force teams
+                foreach (PlayerInfo pInfo in concatPlayerList)
+                    pInfo.TeamId = 1;
             }
 
             OnGameOptionChanged();
