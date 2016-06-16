@@ -1,4 +1,6 @@
-﻿using Microsoft.Xna.Framework;
+﻿using ClientCore;
+using Microsoft.Xna.Framework;
+using Rampastring.Tools;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -32,6 +34,33 @@ namespace DTAClient.domain.CnCNet
                 Math.Min(255, Int32.Parse(data[2])), 255),
                 GameColorIndex = Int32.Parse(data[3])
             };
+        }
+
+        public static List<MultiplayerColor> LoadColors()
+        {
+            IniFile gameOptionsIni = new IniFile(ProgramConstants.GetBaseResourcePath() + "GameOptions.ini");
+
+            List<MultiplayerColor> mpColors = new List<MultiplayerColor>();
+
+            List<string> colorKeys = gameOptionsIni.GetSectionKeys("MPColors");
+
+            foreach (string key in colorKeys)
+            {
+                string[] values = gameOptionsIni.GetStringValue("MPColors", key, "255,255,255,0").Split(',');
+
+                try
+                {
+                    MultiplayerColor mpColor = MultiplayerColor.CreateFromStringArray(key, values);
+
+                    mpColors.Add(mpColor);
+                }
+                catch
+                {
+                    throw new Exception("Invalid MPColor specified in GameOptions.ini: " + key);
+                }
+            }
+
+            return mpColors;
         }
     }
 }

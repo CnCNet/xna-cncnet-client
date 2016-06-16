@@ -116,6 +116,7 @@
     <Compile Include="domain\CnCNet\GameCollection.cs" />
     <Compile Include="domain\CnCNet\GameMode.cs" />
     <Compile Include="domain\CnCNet\HostedGame.cs" />
+    <Compile Include="domain\CnCNet\SavedGamePlayer.cs" />
     <Compile Include="DXGUI\Generic\LinkButton.cs" />
     <Compile Include="domain\CnCNet\Map.cs" />
     <Compile Include="domain\CnCNet\MapLoader.cs" />
@@ -140,6 +141,7 @@
     <Compile Include="DXGUI\Generic\GameLoadingWindow.cs" />
     <Compile Include="DXGUI\Generic\ExtrasWindow.cs" />
     <Compile Include="DXGUI\GameClass.cs" />
+    <Compile Include="DXGUI\Multiplayer\GameLoadingLobbyBase.cs" />
     <Compile Include="DXGUI\Multiplayer\GameLobby\CnCNetGameLobby.cs" />
     <Compile Include="DXGUI\Multiplayer\GameLobby\CTCPHandlers\CTCPCommandHandler.cs" />
     <Compile Include="DXGUI\Multiplayer\GameLobby\CTCPHandlers\CTCPIntNotificationHandler.cs" />

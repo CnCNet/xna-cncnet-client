@@ -44,7 +44,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         protected DXPanel GameOptionsPanel;
 
-        protected List<MultiplayerColor> MPColors = new List<MultiplayerColor>();
+        protected List<MultiplayerColor> MPColors;
 
         protected List<GameLobbyCheckBox> CheckBoxes = new List<GameLobbyCheckBox>();
         protected List<GameLobbyDropDown> DropDowns = new List<GameLobbyDropDown>();
@@ -261,24 +261,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             SharedUILogic.GameProcessExited += GameProcessExited_Callback;
 
-            // Load multiplayer colors
-            List<string> colorKeys = GameOptionsIni.GetSectionKeys("MPColors");
-
-            foreach (string key in colorKeys)
-            {
-                string[] values = GameOptionsIni.GetStringValue("MPColors", key, "255,255,255,0").Split(',');
-
-                try
-                {
-                    MultiplayerColor mpColor = MultiplayerColor.CreateFromStringArray(key, values);
-
-                    MPColors.Add(mpColor);
-                }
-                catch
-                {
-                    throw new Exception("Invalid MPColor specified in GameOptions.ini: " + key);
-                }
-            }
+            MPColors = MultiplayerColor.LoadColors();
 
             AddChild(GameOptionsPanel);
 
