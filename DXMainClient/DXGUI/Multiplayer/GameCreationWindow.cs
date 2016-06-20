@@ -26,6 +26,7 @@ namespace DTAClient.DXGUI.Multiplayer
 
         public event EventHandler Cancelled;
         public event EventHandler<GameCreationEventArgs> GameCreated;
+        public event EventHandler<GameCreationEventArgs> LoadedGameCreated;
 
         DXTextBox tbGameName;
         DXDropDown ddMaxPlayers;
@@ -168,12 +169,33 @@ namespace DTAClient.DXGUI.Multiplayer
 
         private void BtnLoadMPGame_LeftClick(object sender, EventArgs e)
         {
-            throw new NotImplementedException();
+            string gameName = tbGameName.Text.Replace(";", string.Empty);
+
+            if (string.IsNullOrEmpty(gameName))
+                return;
+
+            if (lbTunnelList.SelectedIndex < 0 || lbTunnelList.SelectedIndex >= lbTunnelList.ItemCount)
+            {
+                return;
+            }
+
+            IniFile spawnSGIni = new IniFile(ProgramConstants.GamePath + "Saved Games\\spawnSG.ini");
+
+            string password = Rampastring.Tools.Utilities.CalculateSHA1ForString(
+                spawnSGIni.GetStringValue("Settings", "GameID", string.Empty)).Substring(0, 10);
+
+            GameCreationEventArgs gcea = new GameCreationEventArgs(gameName,
+                spawnSGIni.GetIntValue("Settings", "PlayerCount", 2), password,
+                tunnelHandler.Tunnels[lbTunnelList.SelectedIndex]);
+
+            LoadedGameCreated?.Invoke(this, gcea);
         }
 
         private void BtnCreateGame_LeftClick(object sender, EventArgs e)
         {
-            if (string.IsNullOrEmpty(tbGameName.Text))
+            string gameName = tbGameName.Text.Replace(";", string.Empty);
+
+            if (string.IsNullOrEmpty(gameName))
             {
                 return;
             }
@@ -183,9 +205,7 @@ namespace DTAClient.DXGUI.Multiplayer
                 return;
             }
 
-            tbGameName.Text = tbGameName.Text.Replace(";", string.Empty);
-
-            GameCreated?.Invoke(this, new GameCreationEventArgs(tbGameName.Text, 
+            GameCreated?.Invoke(this, new GameCreationEventArgs(gameName, 
                 int.Parse(ddMaxPlayers.SelectedItem.Text), tbPassword.Text,
                 tunnelHandler.Tunnels[lbTunnelList.SelectedIndex]));
         }

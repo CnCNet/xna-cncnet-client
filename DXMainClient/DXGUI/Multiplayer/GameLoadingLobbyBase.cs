@@ -9,14 +9,21 @@ using Microsoft.Xna.Framework;
 using DTAClient.domain.CnCNet;
 using ClientCore;
 using Rampastring.Tools;
+using System.IO;
+using Microsoft.Xna.Framework.Audio;
 
 namespace DTAClient.DXGUI.Multiplayer
 {
+    /// <summary>
+    /// An abstract base class for a multiplayer game loading lobby.
+    /// </summary>
     public abstract class GameLoadingLobbyBase : DXWindow
     {
         public GameLoadingLobbyBase(WindowManager windowManager) : base(windowManager)
         {
         }
+
+        public event EventHandler GameLeft;
 
         protected List<SavedGamePlayer> SGPlayers = new List<SavedGamePlayer>();
 
@@ -29,14 +36,18 @@ namespace DTAClient.DXGUI.Multiplayer
         protected ChatListBox lbChatMessages;
         protected DXTextBox tbChatInput;
 
+        protected SoundEffectInstance sndJoinSound;
+        protected SoundEffectInstance sndLeaveSound;
+        protected SoundEffectInstance sndMessageSound;
+
         private DXLabel lblDescription;
         private DXPanel panelPlayers;
         private DXLabel[] lblPlayerNames;
 
         private DXLabel lblMapName;
-        private DXLabel lblMapNameValue;
+        protected DXLabel lblMapNameValue;
         private DXLabel lblGameMode;
-        private DXLabel lblGameModeValue;
+        protected DXLabel lblGameModeValue;
         private DXLabel lblSavedGameTime;
 
         private DXButton btnLoadGame;
@@ -44,8 +55,10 @@ namespace DTAClient.DXGUI.Multiplayer
 
         private List<MultiplayerColor> MPColors = new List<MultiplayerColor>();
 
-        private string localGame;
         private string loadedGameID;
+
+        bool isSettingUp = false;
+        FileSystemWatcher fsw;
 
         public override void Initialize()
         {
@@ -96,7 +109,7 @@ namespace DTAClient.DXGUI.Multiplayer
             lblMapNameValue = new DXLabel(WindowManager);
             lblMapNameValue.Name = "lblMapNameValue";
             lblMapNameValue.ClientRectangle = new Rectangle(lblMapName.ClientRectangle.X,
-                lblMapName.ClientRectangle.Y + 20, 0, 0);
+                lblMapName.ClientRectangle.Y + 18, 0, 0);
             lblMapNameValue.Text = "Map name";
 
             lblGameMode = new DXLabel(WindowManager);
@@ -109,7 +122,7 @@ namespace DTAClient.DXGUI.Multiplayer
             lblGameModeValue = new DXLabel(WindowManager);
             lblGameModeValue.Name = "lblGameModeValue";
             lblGameModeValue.ClientRectangle = new Rectangle(lblGameMode.ClientRectangle.X,
-                lblGameMode.ClientRectangle.Y + 20, 0, 0);
+                lblGameMode.ClientRectangle.Y + 18, 0, 0);
             lblGameModeValue.Text = "Game mode";
 
             lblSavedGameTime = new DXLabel(WindowManager);
@@ -150,6 +163,7 @@ namespace DTAClient.DXGUI.Multiplayer
             btnLoadGame.HoverSoundEffect = AssetLoader.LoadSound("button.wav");
             btnLoadGame.FontIndex = 1;
             btnLoadGame.Text = "Load Game";
+            btnLoadGame.LeftClick += BtnLoadGame_LeftClick;
 
             btnLeaveGame = new DXButton(WindowManager);
             btnLeaveGame.Name = "btnLeaveGame";
@@ -160,34 +174,178 @@ namespace DTAClient.DXGUI.Multiplayer
             btnLeaveGame.HoverSoundEffect = AssetLoader.LoadSound("button.wav");
             btnLeaveGame.FontIndex = 1;
             btnLeaveGame.Text = "Leave Game";
+            btnLeaveGame.LeftClick += BtnLeaveGame_LeftClick;
 
             AddChild(lblMapName);
             AddChild(lblMapNameValue);
             AddChild(lblGameMode);
             AddChild(lblGameModeValue);
             AddChild(lblSavedGameTime);
-            AddChild(ddSavedGame);
             AddChild(lbChatMessages);
             AddChild(tbChatInput);
+            AddChild(ddSavedGame);
             AddChild(btnLoadGame);
             AddChild(btnLeaveGame);
 
             base.Initialize();
 
+            SoundEffect seJoinSound = AssetLoader.LoadSound("joingame.wav");
+            SoundEffect seLeaveSound = AssetLoader.LoadSound("leavegame.wav");
+            SoundEffect seMessageSound = AssetLoader.LoadSound("message.wav");
+
+            if (seJoinSound != null)
+                sndJoinSound = seJoinSound.CreateInstance();
+
+            if (seLeaveSound != null)
+                sndLeaveSound = seLeaveSound.CreateInstance();
+
+            if (seMessageSound != null)
+                sndMessageSound = seMessageSound.CreateInstance();
+
             MPColors = MultiplayerColor.LoadColors();
-            localGame = DomainController.Instance().GetDefaultGame();
 
             WindowManager.CenterControlOnScreen(this);
+
+            fsw = new FileSystemWatcher(ProgramConstants.GamePath + "Saved Games", "*.NET");
+            fsw.EnableRaisingEvents = false;
+            fsw.Created += fsw_Created;
+            fsw.Changed += fsw_Created;
         }
 
+        private void BtnLeaveGame_LeftClick(object sender, EventArgs e)
+        {
+            LeaveGame();
+        }
+
+        protected virtual void LeaveGame()
+        {
+            GameLeft?.Invoke(this, EventArgs.Empty);
+        }
+
+        private void fsw_Created(object sender, FileSystemEventArgs e)
+        {
+            AddCallback(new Action<FileSystemEventArgs>(HandleFSWEvent), e);
+        }
+
+        private void HandleFSWEvent(FileSystemEventArgs e)
+        {
+            Logger.Log("FSW Event: " + e.FullPath);
+
+            if (Path.GetFileName(e.FullPath) == "SAVEGAME.NET")
+            {
+                SavedGameManager.RenameSavedGame();
+            }
+        }
+
+        private void BtnLoadGame_LeftClick(object sender, EventArgs e)
+        {
+            if (!IsHost)
+            {
+                RequestReadyStatus();
+                return;
+            }
+
+            if (Players.Find(p => !p.Ready) != null)
+            {
+                GetReadyNotification();
+                return;
+            }
+
+            if (Players.Count != SGPlayers.Count)
+            {
+                NotAllPresentNotification();
+                return;
+            }
+
+            HostStartGame();
+        }
+
+        protected abstract void RequestReadyStatus();
+
+        protected virtual void GetReadyNotification()
+        {
+            AddNotice("The game host wants to load the game but cannot because not all players are ready!");
+            WindowManager.FlashWindow();
+        }
+
+        protected virtual void NotAllPresentNotification()
+        {
+            AddNotice("You cannot load the game before all players are present.");
+        }
+
+        protected abstract void HostStartGame();
+
+        protected void LoadGame()
+        {
+            File.Delete(ProgramConstants.GamePath + "spawn.ini");
+
+            File.Copy(ProgramConstants.GamePath + "Saved Games\\spawnSG.ini", ProgramConstants.GamePath + "spawn.ini");
+
+            IniFile spawnIni = new IniFile(ProgramConstants.GamePath + "spawn.ini");
+
+            int sgIndex = (ddSavedGame.Items.Count - 1) - ddSavedGame.SelectedIndex;
+
+            spawnIni.SetStringValue("Settings", "SaveGameName",
+                string.Format("SVGM_{0}.NET", sgIndex.ToString("D3")));
+            spawnIni.SetBooleanValue("Settings", "LoadSaveGame", true);
+
+            WriteSpawnIniAdditions(spawnIni);
+            spawnIni.WriteIniFile();
+
+            File.Delete(ProgramConstants.GamePath + "spawnmap.ini");
+            StreamWriter sw = new StreamWriter(ProgramConstants.GamePath + "spawnmap.ini");
+            sw.WriteLine("[Map]");
+            sw.WriteLine("Size=0,0,50,50");
+            sw.WriteLine("LocalSize=0,0,50,50");
+            sw.WriteLine();
+            sw.Close();
+
+            SharedUILogic.GameProcessExited += SharedUILogic_GameProcessExited;
+            SharedUILogic.StartGameProcess(0);
+            
+            fsw.EnableRaisingEvents = true;
+        }
+
+        private void SharedUILogic_GameProcessExited()
+        {
+            AddCallback(new Action(HandleGameProcessExited), null);
+        }
+
+        protected virtual void HandleGameProcessExited()
+        {
+            fsw.EnableRaisingEvents = false;
+
+            // TODO write game to statistics
+        }
+
+        protected virtual void WriteSpawnIniAdditions(IniFile spawnIni)
+        {
+            // Do nothing by default
+        }
+
+        protected void AddNotice(string notice)
+        {
+            AddNotice(notice, Color.White);
+        }
+
+        protected abstract void AddNotice(string message, Color color);
+
+        /// <summary>
+        /// Refreshes the UI  based on the latest saved game
+        /// and information in the saved spawn.ini file, as well
+        /// as information on whether the local player is the host of the game.
+        /// </summary>
         public void Refresh(bool isHost)
         {
+            isSettingUp = true;
             IsHost = isHost;
 
             SGPlayers.Clear();
             Players.Clear();
             ddSavedGame.Items.Clear();
+            lbChatMessages.Clear();
 
+            ddSavedGame.AllowDropDown = isHost;
             btnLoadGame.Text = isHost ? "Load Game" : "I'm Ready";
 
             IniFile spawnSGIni = new IniFile(ProgramConstants.GamePath + "Saved Games\\spawnSG.ini");
@@ -234,6 +392,18 @@ namespace DTAClient.DXGUI.Multiplayer
 
             if (ddSavedGame.Items.Count > 0)
                 ddSavedGame.SelectedIndex = 0;
+
+            //if (isHost)
+            //{
+            //    PlayerInfo localPlayerInfo = new PlayerInfo();
+            //    localPlayerInfo.Name = ProgramConstants.PLAYERNAME;
+            //    localPlayerInfo.Ready = true;
+
+            //    Players.Add(localPlayerInfo);
+            //}
+
+            CopyPlayerDataToUI();
+            isSettingUp = false;
         }
 
         protected void CopyPlayerDataToUI()
@@ -257,9 +427,11 @@ namespace DTAClient.DXGUI.Multiplayer
                     : Color.White;
                 playerLabel.Text = pInfo.Ready ? sgPlayer.Name : sgPlayer.Name + " (Not Ready)";
             }
+        }
 
-            if (IsHost)
-                BroadcastOptions();
+        protected virtual string GetIPAddressForPlayer(PlayerInfo pInfo)
+        {
+            return "0.0.0.0";
         }
 
         private void DdSavedGame_SelectedIndexChanged(object sender, EventArgs e)
@@ -267,7 +439,11 @@ namespace DTAClient.DXGUI.Multiplayer
             if (!IsHost)
                 return;
 
-            BroadcastOptions();
+            for (int i = 1; i < Players.Count; i++)
+                Players[i].Ready = false;
+
+            if (!isSettingUp)
+                BroadcastOptions();
         }
 
         private void TbChatInput_EnterPressed(object sender, EventArgs e)

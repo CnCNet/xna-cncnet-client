@@ -28,12 +28,14 @@ namespace DTAClient.DXGUI.Multiplayer
         const double GAME_LIFETIME = 35.0;
 
         public CnCNetLobby(WindowManager windowManager, CnCNetManager connectionManager,
-            CnCNetGameLobby gameLobby, TunnelHandler tunnelHandler)
+            CnCNetGameLobby gameLobby, CnCNetGameLoadingLobby gameLoadingLobby,
+            TunnelHandler tunnelHandler)
             : base(windowManager)
         {
             this.connectionManager = connectionManager;
             ClientRectangle = new Rectangle(0, 0, 1200, 720);
             this.gameLobby = gameLobby;
+            this.gameLoadingLobby = gameLoadingLobby;
             this.tunnelHandler = tunnelHandler;
         }
 
@@ -83,6 +85,7 @@ namespace DTAClient.DXGUI.Multiplayer
         IRCColor[] chatColors;
 
         CnCNetGameLobby gameLobby;
+        CnCNetGameLoadingLobby gameLoadingLobby;
 
         TunnelHandler tunnelHandler;
 
@@ -366,8 +369,10 @@ namespace DTAClient.DXGUI.Multiplayer
 
             GameCreationWindow gcw = new GameCreationWindow(WindowManager, tunnelHandler);
             gameCreationPanel.AddChild(gcw);
+            gameCreationPanel.Tag = gcw;
             gcw.Cancelled += Gcw_Cancelled;
             gcw.GameCreated += Gcw_GameCreated;
+            gcw.LoadedGameCreated += Gcw_LoadedGameCreated;
 
             gameCreationPanel.Hide();
 
@@ -376,6 +381,13 @@ namespace DTAClient.DXGUI.Multiplayer
                 System.Windows.Forms.Application.ProductVersion));
 
             gameLobby.GameLeft += GameLobby_GameLeft;
+            gameLoadingLobby.GameLeft += GameLoadingLobby_GameLeft;
+        }
+
+        private void GameLoadingLobby_GameLeft(object sender, EventArgs e)
+        {
+            Visible = true;
+            Enabled = true;
         }
 
         private void GameLobby_GameLeft(object sender, EventArgs e)
@@ -396,7 +408,7 @@ namespace DTAClient.DXGUI.Multiplayer
 
             var mainChannel = connectionManager.MainChannel;
 
-            if (gameLobby.Enabled)
+            if (gameLobby.Enabled || gameLoadingLobby.Enabled)
             {
                 mainChannel.AddMessage(new IRCMessage(null, Color.White, DateTime.Now,
                     "You already are in a game!"));
@@ -446,8 +458,17 @@ namespace DTAClient.DXGUI.Multiplayer
             }
             else
             {
-                password = Rampastring.Tools.Utilities.CalculateSHA1ForString
-                    (hg.ChannelName + hg.RoomName).Substring(0, 10);
+                if (!hg.IsLoadedGame)
+                {
+                    password = Rampastring.Tools.Utilities.CalculateSHA1ForString
+                        (hg.ChannelName + hg.RoomName).Substring(0, 10);
+                }
+                else
+                {
+                    IniFile spawnSGIni = new IniFile(ProgramConstants.GamePath + "Saved Games\\spawnSG.ini");
+                    password = Rampastring.Tools.Utilities.CalculateSHA1ForString(
+                        spawnSGIni.GetStringValue("Settings", "GameID", string.Empty)).Substring(0, 10);
+                }
             }
 
             mainChannel.AddMessage(new IRCMessage(null, Color.White, DateTime.Now,
@@ -455,21 +476,38 @@ namespace DTAClient.DXGUI.Multiplayer
 
             Channel gameChannel = connectionManager.CreateChannel(hg.RoomName, hg.ChannelName, false, password);
             connectionManager.AddChannel(gameChannel);
-            gameLobby.SetUp(gameChannel, false, hg.MaxPlayers, hg.TunnelServer, hg.Admin, hg.Passworded);
-            gameChannel.UserAdded += GameChannel_UserAdded;
-            gameChannel.MessageAdded += GameChannel_MessageAdded;
+
+            if (hg.IsLoadedGame)
+            {
+                gameLoadingLobby.SetUp(false, hg.TunnelServer, gameChannel, hg.Admin);
+                gameChannel.UserAdded += GameLoadingChannel_UserAdded;
+                gameChannel.MessageAdded += GameLoadingChannel_MessageAdded;
+            }
+            else
+            {
+                gameLobby.SetUp(gameChannel, false, hg.MaxPlayers, hg.TunnelServer, hg.Admin, hg.Passworded);
+                gameChannel.UserAdded += GameChannel_UserAdded;
+                gameChannel.MessageAdded += GameChannel_MessageAdded;
+            }
+
             connectionManager.SendCustomMessage(new QueuedMessage("JOIN " + hg.ChannelName + " " + password,
                 QueuedMessageType.INSTANT_MESSAGE, 0));
         }
 
         private void BtnNewGame_LeftClick(object sender, EventArgs e)
         {
+            if (gameLobby.Enabled || gameLoadingLobby.Enabled)
+                return;
+
             gameCreationPanel.Show();
+            var gcw = (GameCreationWindow)gameCreationPanel.Tag;
+
+            gcw.Refresh();
         }
 
         private void Gcw_GameCreated(object sender, GameCreationEventArgs e)
         {
-            if (gameLobby.Enabled)
+            if (gameLobby.Enabled || gameLoadingLobby.Enabled)
                 return;
 
             string channelName = RandomizeChannelName();
@@ -507,14 +545,60 @@ namespace DTAClient.DXGUI.Multiplayer
         {
             Channel gameChannel = (Channel)sender;
 
-            gameChannel.UserAdded -= GameChannel_UserAdded;
-            gameChannel.MessageAdded -= GameChannel_MessageAdded;
-
             if (e.User.Name == ProgramConstants.PLAYERNAME)
             {
+                gameChannel.UserAdded -= GameChannel_UserAdded;
+                gameChannel.MessageAdded -= GameChannel_MessageAdded;
+
                 gameLobby.OnJoined();
                 gameLobby.Visible = true;
                 gameLobby.Enabled = true;
+                Visible = false;
+                Enabled = false;
+                // TODO enter persistent mode
+            }
+        }
+
+        private void Gcw_LoadedGameCreated(object sender, GameCreationEventArgs e)
+        {
+            if (gameLobby.Enabled || gameLoadingLobby.Enabled)
+                return;
+
+            string channelName = RandomizeChannelName();
+
+            Channel gameLoadingChannel = connectionManager.CreateChannel(e.GameRoomName, channelName, false, e.Password);
+            connectionManager.AddChannel(gameLoadingChannel);
+            gameLoadingLobby.SetUp(true, e.Tunnel, gameLoadingChannel, ProgramConstants.PLAYERNAME);
+            gameLoadingChannel.UserAdded += GameLoadingChannel_UserAdded;
+            gameLoadingChannel.MessageAdded += GameLoadingChannel_MessageAdded;
+            connectionManager.SendCustomMessage(new QueuedMessage("JOIN " + channelName + " " + e.Password,
+                QueuedMessageType.INSTANT_MESSAGE, 0));
+            connectionManager.MainChannel.AddMessage(new IRCMessage(null, Color.White, DateTime.Now,
+                "Creating a game named " + e.GameRoomName + "..."));
+
+            gameCreationPanel.Hide();
+        }
+
+        private void GameLoadingChannel_MessageAdded(object sender, IRCMessageEventArgs e)
+        {
+            Channel gameLoadingChannel = (Channel)sender;
+
+            gameLoadingChannel.UserAdded -= GameLoadingChannel_UserAdded;
+            gameLoadingChannel.MessageAdded -= GameLoadingChannel_MessageAdded;
+        }
+
+        private void GameLoadingChannel_UserAdded(object sender, UserEventArgs e)
+        {
+            Channel gameLoadingChannel = (Channel)sender;
+
+            if (e.User.Name == ProgramConstants.PLAYERNAME)
+            {
+                gameLoadingChannel.UserAdded -= GameLoadingChannel_UserAdded;
+                gameLoadingChannel.MessageAdded -= GameLoadingChannel_MessageAdded;
+
+                gameLoadingLobby.OnJoined();
+                gameLoadingLobby.Visible = true;
+                gameLoadingLobby.Enabled = true;
                 Visible = false;
                 Enabled = false;
                 // TODO enter persistent mode
@@ -558,6 +642,7 @@ namespace DTAClient.DXGUI.Multiplayer
             IRCColor selectedColor = (IRCColor)ddColor.SelectedItem.Tag;
             tbChatInput.TextColor = selectedColor.XnaColor;
             gameLobby.ChangeChatColor(selectedColor);
+            gameLoadingLobby.ChangeChatColor(selectedColor);
         }
 
         private void Keyboard_OnKeyPressed(object sender, KeyPressEventArgs e)
@@ -837,6 +922,11 @@ namespace DTAClient.DXGUI.Multiplayer
             }
         }
 
+        protected override void OnVisibleChanged(object sender, EventArgs args)
+        {
+            base.OnVisibleChanged(sender, args);
+        }
+
         public override void Update(GameTime gameTime)
         {
             framesSinceGameRefresh++;
@@ -856,6 +946,8 @@ namespace DTAClient.DXGUI.Multiplayer
                             lbGameList.SelectedIndex--;
                     }
                 }
+
+                lbGameList.Refresh();
 
                 framesSinceGameRefresh = 0;
             }

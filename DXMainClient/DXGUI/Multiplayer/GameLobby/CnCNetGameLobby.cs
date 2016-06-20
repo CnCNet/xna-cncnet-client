@@ -147,10 +147,20 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
                 return;
             }
+            else
+            {
+                channel.SendCTCPMessage("FHSH " + fhc.GetCompleteHash(), QueuedMessageType.SYSTEM_MESSAGE, 10);
 
-            channel.SendCTCPMessage("FHSH " + fhc.GetCompleteHash(), QueuedMessageType.SYSTEM_MESSAGE, 10);
+                channel.SendCTCPMessage("TNLPNG " + tunnel.PingInMs, QueuedMessageType.SYSTEM_MESSAGE, 10);
 
-            channel.SendCTCPMessage("TNLPNG " + tunnel.PingInMs, QueuedMessageType.SYSTEM_MESSAGE, 10);
+                if (tunnel.PingInMs < 0)
+                    AddNotice(ProgramConstants.PLAYERNAME + " - unknown ping to tunnel server.");
+                else
+                    AddNotice(ProgramConstants.PLAYERNAME + " - ping to tunnel server: " + tunnel.PingInMs + " ms");
+            }
+
+            Visible = true;
+            Enabled = true;
         }
 
         public void ChangeChatColor(IRCColor chatColor)
@@ -159,20 +169,27 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             tbChatInput.TextColor = chatColor.XnaColor;
         }
 
-        public void Clear()
+        public override void Clear()
         {
-            channel.MessageAdded -= Channel_MessageAdded;
-            channel.CTCPReceived -= Channel_CTCPReceived;
-            channel.UserKicked -= Channel_UserKicked;
-            channel.UserQuitIRC -= Channel_UserQuitIRC;
-            channel.UserLeft -= Channel_UserLeft;
-            channel.UserAdded -= Channel_UserAdded;
+            base.Clear();
+
+            if (channel != null)
+            {
+                channel.MessageAdded -= Channel_MessageAdded;
+                channel.CTCPReceived -= Channel_CTCPReceived;
+                channel.UserKicked -= Channel_UserKicked;
+                channel.UserQuitIRC -= Channel_UserQuitIRC;
+                channel.UserLeft -= Channel_UserLeft;
+                channel.UserAdded -= Channel_UserAdded;
+
+                if (!IsHost)
+                {
+                    channel.ChannelModesChanged -= Channel_ChannelModesChanged;
+                }
+            }
 
             if (!IsHost)
-            {
-                channel.ChannelModesChanged -= Channel_ChannelModesChanged;
                 AIPlayers.Clear();
-            }
 
             connectionManager.ConnectionLost -= ConnectionManager_ConnectionLost;
             connectionManager.Disconnected -= ConnectionManager_Disconnected;
@@ -332,26 +349,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private void Channel_MessageAdded(object sender, IRCMessageEventArgs e)
         {
-            if (e.Message.Sender == null)
-                lbChatMessages.AddItem(string.Format("[{0}] {1}",
-                    e.Message.DateTime.ToShortTimeString(),
-                    Renderer.GetSafeString(e.Message.Message, lbChatMessages.FontIndex)),
-                    e.Message.Color, true);
-            else
-            {
-                lbChatMessages.AddItem(string.Format("[{0}] {1}: {2}",
-                    e.Message.DateTime.ToShortTimeString(), e.Message.Sender,
-                    Renderer.GetSafeString(e.Message.Message, lbChatMessages.FontIndex)),
-                    e.Message.Color, true);
+            lbChatMessages.AddMessage(e.Message);
 
-                if (sndMessageSound != null)
-                    sndMessageSound.Play();
-            }
-
-            if (lbChatMessages.LastIndex == lbChatMessages.Items.Count - 2)
-            {
-                lbChatMessages.ScrollToBottom();
-            }
+            if (sndMessageSound != null && e.Message.Sender != null)
+                sndMessageSound.Play();
         }
 
         /// <summary>
@@ -359,15 +360,13 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         /// </summary>
         protected override void HostLaunchGame()
         {
-            List<int> playerPorts = new List<int>();
-
             int gameId = int.Parse(DateTime.Now.Day.ToString() + DateTime.Now.Month.ToString() + new Random().Next(1, 100000).ToString());
 
             if (Players.Count > 1)
             {
                 AddNotice("Contacting tunnel server..");
 
-                playerPorts = tunnel.GetPlayerPortInfo(Players.Count);
+                List<int> playerPorts = tunnel.GetPlayerPortInfo(Players.Count);
 
                 if (playerPorts.Count < Players.Count)
                 {
@@ -779,6 +778,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             RandomSeed = randomSeed;
         }
 
+        /// <summary>
+        /// Signals other players that the local player has returned from the game,
+        /// and unlocks the game as well as generates a new random seed as the game host.
+        /// </summary>
         protected override void GameProcessExited()
         {
             base.GameProcessExited();
@@ -867,6 +870,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             channel.SendChatMessage(message, chatColor);
         }
+
+        #region Notifications
 
         private void HandleNotification(string sender, Action handler)
         {
@@ -1003,6 +1008,50 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             AddNotice(cheaterName + " - modified files detected! They could be cheating!", Color.Red);
         }
 
+        #endregion
+
+        protected override void HandleLockGameButtonClick()
+        {
+            if (!Locked)
+            {
+                AddNotice("You've locked the game room.");
+                LockGame();
+            }
+            else
+            {
+                if (Players.Count < playerLimit)
+                {
+                    AddNotice("You've unlocked the game room.");
+                    UnlockGame(false);
+                }
+                else
+                    AddNotice(string.Format(
+                        "Cannot unlock game; the player limit ({0}) has been reached.", playerLimit));
+            }
+        }
+
+        protected override void LockGame()
+        {
+            connectionManager.SendCustomMessage(new QueuedMessage(
+                string.Format("MODE {0} +i", channel.ChannelName), QueuedMessageType.INSTANT_MESSAGE, -1));
+
+            Locked = true;
+            btnLockGame.Text = "Unlock Game";
+        }
+
+        protected override void UnlockGame(bool announce)
+        {
+            connectionManager.SendCustomMessage(new QueuedMessage(
+                string.Format("MODE {0} -i", channel.ChannelName), QueuedMessageType.INSTANT_MESSAGE, -1));
+
+            Locked = false;
+            if (announce)
+                AddNotice("The game room has been unlocked.");
+            btnLockGame.Text = "Lock Game";
+        }
+
+        #region Game broadcasting logic
+
         public override void Update(GameTime gameTime)
         {
             if (IsHost)
@@ -1077,44 +1126,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             timerTicks = 0;
         }
 
-        protected override void HandleLockGameButtonClick()
-        {
-            if (!Locked)
-            {
-                AddNotice("You've locked the game room.");
-                LockGame();
-            }
-            else
-            {
-                if (Players.Count < playerLimit)
-                {
-                    AddNotice("You've unlocked the game room.");
-                    UnlockGame(false);
-                }
-                else
-                    AddNotice(string.Format(
-                        "Cannot unlock game; the player limit ({0}) has been reached.", playerLimit));
-            }
-        }
-
-        protected override void LockGame()
-        {
-            connectionManager.SendCustomMessage(new QueuedMessage(
-                string.Format("MODE {0} +i", channel.ChannelName), QueuedMessageType.INSTANT_MESSAGE, -1));
-
-            Locked = true;
-            btnLockGame.Text = "Unlock Game";
-        }
-
-        protected override void UnlockGame(bool announce)
-        {
-            connectionManager.SendCustomMessage(new QueuedMessage(
-                string.Format("MODE {0} -i", channel.ChannelName), QueuedMessageType.INSTANT_MESSAGE, -1));
-
-            Locked = false;
-            if (announce)
-                AddNotice("The game room has been unlocked.");
-            btnLockGame.Text = "Lock Game";
-        }
+        #endregion
     }
 }

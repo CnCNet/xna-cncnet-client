@@ -6,6 +6,7 @@ using System.Text;
 using Rampastring.XNAUI;
 using Microsoft.Xna.Framework;
 using System.Diagnostics;
+using DTAClient.Online;
 
 namespace DTAClient.DXGUI.Multiplayer
 {
@@ -40,6 +41,27 @@ namespace DTAClient.DXGUI.Multiplayer
             Process.Start(link);
 
             base.OnDoubleLeftClick();
+        }
+
+        public void AddMessage(IRCMessage message)
+        {
+            if (message.Sender == null)
+                AddItem(string.Format("[{0}] {1}",
+                    message.DateTime.ToShortTimeString(),
+                    Renderer.GetSafeString(message.Message, FontIndex)),
+                    message.Color, true);
+            else
+            {
+                AddItem(string.Format("[{0}] {1}: {2}",
+                    message.DateTime.ToShortTimeString(), message.Sender,
+                    Renderer.GetSafeString(message.Message, FontIndex)),
+                    message.Color, true);
+            }
+
+            if (LastIndex == Items.Count - 2)
+            {
+                ScrollToBottom();
+            }
         }
     }
 }

@@ -166,9 +166,13 @@ namespace DTAClient.DXGUI.Multiplayer
                         Color.White);
                 }
 
+                string text = hg.RoomName;
+                if (hg.IsLoadedGame)
+                    text = hg.RoomName + " (Loaded Game)";
+
                 x += lbItem.TextXPadding;
 
-                Renderer.DrawStringWithShadow(hg.RoomName, FontIndex,
+                Renderer.DrawStringWithShadow(text, FontIndex,
                     new Vector2(windowRectangle.X + x, windowRectangle.Y + height),
                     lbItem.TextColor);
 

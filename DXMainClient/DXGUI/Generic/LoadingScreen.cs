@@ -60,10 +60,10 @@ namespace DTAClient.DXGUI.Generic
 
         public void Start()
         {
+            Cursor.Visible = false;
+
             mapLoader = new MapLoader();
             mapLoader.MapLoadingComplete += MapLoader_MapLoadingComplete;
-
-            mapLoader.LoadMapsAsync();
 
             if (!MCDomainController.Instance.GetModModeStatus())
             {
@@ -76,6 +76,10 @@ namespace DTAClient.DXGUI.Generic
             {
                 updaterReady = true;
             }
+
+            mapLoader.LoadMaps();
+
+            Finish();
         }
 
         private void MapLoader_MapLoadingComplete(object sender, EventArgs e)
@@ -96,8 +100,10 @@ namespace DTAClient.DXGUI.Generic
             SkirmishLobby sl = new SkirmishLobby(WindowManager, mapLoader.GameModes);
             CnCNetGameLobby cncnetGameLobby = new CnCNetGameLobby(WindowManager,
                 "MultiplayerGameLobby", mapLoader.GameModes, cncnetManager, tunnelHandler);
+            CnCNetGameLoadingLobby cncnetGameLoadingLobby = new CnCNetGameLoadingLobby(WindowManager,
+                cncnetManager, tunnelHandler, mapLoader.GameModes);
             CnCNetLobby cncnetLobby = new CnCNetLobby(WindowManager, cncnetManager, 
-                cncnetGameLobby, tunnelHandler);
+                cncnetGameLobby, cncnetGameLoadingLobby, tunnelHandler);
             GameInProgressWindow gipw = new GameInProgressWindow(WindowManager);
 
             MainMenu mm = new MainMenu(WindowManager, sl, cncnetLobby);
@@ -105,6 +111,7 @@ namespace DTAClient.DXGUI.Generic
             WindowManager.AddAndInitializeControl(mm);
             WindowManager.AddAndInitializeControl(sl);
             WindowManager.AddAndInitializeControl(cncnetGameLobby);
+            WindowManager.AddAndInitializeControl(cncnetGameLoadingLobby);
             WindowManager.AddAndInitializeControl(cncnetLobby);
             WindowManager.AddAndInitializeControl(gipw);
             sl.Visible = false;
@@ -113,8 +120,12 @@ namespace DTAClient.DXGUI.Generic
             cncnetLobby.Enabled = false;
             cncnetGameLobby.Visible = false;
             cncnetGameLobby.Enabled = false;
+            cncnetGameLoadingLobby.Visible = false;
+            cncnetGameLoadingLobby.Enabled = false;
             WindowManager.RemoveControl(this);
             mm.PostInit();
+
+            Cursor.Visible = true;
         }
 
         public override void Update(GameTime gameTime)

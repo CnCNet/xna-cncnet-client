@@ -141,7 +141,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (SavedGameManager.AreSavedGamesAvailable())
             {
                 fsw = new FileSystemWatcher(ProgramConstants.GamePath + "Saved Games", "*.NET");
-                fsw.EnableRaisingEvents = true;
+                fsw.EnableRaisingEvents = false;
                 fsw.Created += fsw_Created;
                 fsw.Changed += fsw_Created;
             }
@@ -284,6 +284,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             LoadDefaultMap();
 
             lbChatMessages.Clear();
+
+            if (SavedGameManager.AreSavedGamesAvailable())
+                fsw.EnableRaisingEvents = true;
 
             if (SavedGameManager.GetSaveGameCount() > 0)
             {
@@ -477,6 +480,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             if (Map != null)
                 AddNotice("Unable to launch game: this map cannot be played with more than " + Map.MaxPlayers + " players.");
+        }
+
+        public virtual void Clear()
+        {
+            fsw.EnableRaisingEvents = false;
         }
 
         protected abstract void HostLaunchGame();

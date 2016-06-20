@@ -17,9 +17,18 @@ namespace DTAClient.DXGUI.Generic
         public override void Initialize()
         {
             Name = "DarkeningPanel";
-            ClientRectangle = new Rectangle(-Parent.ClientRectangle.X, -Parent.ClientRectangle.Y,
-                Parent.ClientRectangle.Width + Parent.ClientRectangle.X, 
-                Parent.ClientRectangle.Height + Parent.ClientRectangle.Y);
+
+            if (Parent != null)
+            {
+                ClientRectangle = new Rectangle(-Parent.ClientRectangle.X, -Parent.ClientRectangle.Y,
+                    Parent.ClientRectangle.Width + Parent.ClientRectangle.X,
+                    Parent.ClientRectangle.Height + Parent.ClientRectangle.Y);
+            }
+            else
+            {
+                ClientRectangle = new Rectangle(0, 0, WindowManager.RenderResolutionX, WindowManager.RenderResolutionY);
+            }
+
             DrawMode = PanelBackgroundImageDrawMode.STRETCHED;
             BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 128), 1, 1);
             DrawBorders = false;
