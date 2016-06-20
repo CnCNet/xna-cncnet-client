@@ -8,6 +8,7 @@ using System.Text;
 using ClientCore;
 using Rampastring.XNAUI;
 using ClientGUI;
+using System.IO;
 
 namespace DTAClient.DXGUI
 {
@@ -68,6 +69,7 @@ namespace DTAClient.DXGUI
 
         private void SharedUILogic_GameProcessStarted()
         {
+            File.Delete(ProgramConstants.GamePath + "EXCEPT.TXT");
             Visible = true;
             Enabled = true;
             WindowManager.Cursor.Visible = false;
@@ -83,6 +85,20 @@ namespace DTAClient.DXGUI
 
         private void HandleGameProcessExited()
         {
+            if (File.Exists(ProgramConstants.GamePath + "EXCEPT.TXT"))
+            {
+                if (!Directory.Exists(ProgramConstants.GamePath + "Client\\ErrorLogs"))
+                    Directory.CreateDirectory(ProgramConstants.GamePath + "Client\\ErrorLogs");
+
+                Logger.Log("The game crashed! Copying EXCEPT.TXT file.");
+
+                DateTime dtn = DateTime.Now;
+
+                File.Copy(ProgramConstants.GamePath + "EXCEPT.TXT",
+                    string.Format(ProgramConstants.GamePath + "Client\\ErrorLogs\\EXCEPT_{0}_{1}_{2}_{3}_{4}.TXT",
+                    dtn.Day, dtn.Month, dtn.Year, dtn.Hour, dtn.Minute));
+            }
+
             Visible = false;
             Enabled = false;
             WindowManager.Cursor.Visible = true;
