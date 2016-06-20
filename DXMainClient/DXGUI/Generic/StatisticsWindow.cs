@@ -23,6 +23,8 @@ namespace DTAClient.DXGUI.Generic
         DXDropDown cmbGameModeFilter;
         DXDropDown cmbGameClassFilter;
 
+        DXCheckBox chkIncludeSpectatedGames;
+
         DXTabControl tabControl;
 
         // Controls for game statistics
@@ -73,7 +75,7 @@ namespace DTAClient.DXGUI.Generic
 
             Name = "StatisticsWindow";
             BackgroundTexture = AssetLoader.LoadTexture("scoreviewerbg.png");
-            ClientRectangle = new Rectangle(0, 0, 700, 500);
+            ClientRectangle = new Rectangle(0, 0, 700, 509);
 
             tabControl = new DXTabControl(WindowManager);
             tabControl.ClientRectangle = new Rectangle(12, 10, 0, 0);
@@ -118,17 +120,29 @@ namespace DTAClient.DXGUI.Generic
             btnReturnToMenu.IdleTexture = AssetLoader.LoadTexture("160pxbtn.png");
             btnReturnToMenu.HoverTexture = AssetLoader.LoadTexture("160pxbtn_c.png");
             btnReturnToMenu.HoverSoundEffect = AssetLoader.LoadSound("button.wav");
-            btnReturnToMenu.ClientRectangle = new Rectangle(270, 471, 160, 23);
+            btnReturnToMenu.ClientRectangle = new Rectangle(270, 486, 160, 23);
             btnReturnToMenu.FontIndex = 1;
             btnReturnToMenu.Text = "Return to Main Menu";
             btnReturnToMenu.LeftClick += BtnReturnToMenu_LeftClick;
+
+            chkIncludeSpectatedGames = new DXCheckBox(WindowManager);
+
+            AddChild(chkIncludeSpectatedGames);
+            chkIncludeSpectatedGames.Text = "Include spectated games";
+            chkIncludeSpectatedGames.Checked = true;
+            chkIncludeSpectatedGames.ClientRectangle = new Rectangle(
+                ClientRectangle.Width - chkIncludeSpectatedGames.ClientRectangle.Width - 12,
+                cmbGameModeFilter.ClientRectangle.Bottom + 3,
+                chkIncludeSpectatedGames.ClientRectangle.Width, 
+                chkIncludeSpectatedGames.ClientRectangle.Height);
+            chkIncludeSpectatedGames.CheckedChanged += ChkIncludeSpectatedGames_CheckedChanged;
 
             #region Match statistics
 
             panelGameStatistics = new DXPanel(WindowManager);
             panelGameStatistics.Name = "panelGameStatistics";
             panelGameStatistics.BackgroundTexture = AssetLoader.LoadTexture("scoreviewerpanelbg.png");
-            panelGameStatistics.ClientRectangle = new Rectangle(10, 40, 680, 425);
+            panelGameStatistics.ClientRectangle = new Rectangle(10, 55, 680, 425);
 
             AddChild(panelGameStatistics);
 
@@ -173,7 +187,7 @@ namespace DTAClient.DXGUI.Generic
             panelTotalStatistics = new DXPanel(WindowManager);
             panelTotalStatistics.Name = "panelTotalStatistics";
             panelTotalStatistics.BackgroundTexture = AssetLoader.LoadTexture("scoreviewerpanelbg.png");
-            panelTotalStatistics.ClientRectangle = new Rectangle(10, 40, 680, 425);
+            panelTotalStatistics.ClientRectangle = new Rectangle(10, 55, 680, 425);
 
             AddChild(panelTotalStatistics);
             panelTotalStatistics.Visible = false;
@@ -368,10 +382,15 @@ namespace DTAClient.DXGUI.Generic
             ListGameModes();
             ListGames();
 
-            SharedUILogic.GameProcessExited += SharedUILogic_GameProcessExited;
+            StatisticsManager.Instance.GameAdded += Instance_GameAdded;
         }
 
-        private void SharedUILogic_GameProcessExited()
+        private void Instance_GameAdded(object sender, EventArgs e)
+        {
+            ListGames();
+        }
+
+        private void ChkIncludeSpectatedGames_CheckedChanged(object sender, EventArgs e)
         {
             ListGames();
         }
@@ -608,7 +627,7 @@ namespace DTAClient.DXGUI.Generic
                 else
                     info.Add(ms.AverageFPS.ToString());
                 info.Add(TimeSpan.FromSeconds(ms.LengthInSeconds).ToString());
-                info.Add(Rampastring.Tools.Conversions.BooleanToString(ms.SawCompletion, BooleanStringStyle.YESNO));
+                info.Add(Conversions.BooleanToString(ms.SawCompletion, BooleanStringStyle.YESNO));
                 lbGameList.AddItem(info, true);
             }
         }
@@ -619,7 +638,7 @@ namespace DTAClient.DXGUI.Generic
 
             for (int i = 0; i < gameCount; i++)
             {
-                ListGameIndexIfCorrectGameMode(i);
+                ListGameIndexIfPrerequisitesMet(i);
             }
         }
 
@@ -644,7 +663,7 @@ namespace DTAClient.DXGUI.Generic
 
                         if (hpCount > 1)
                         {
-                            ListGameIndexIfCorrectGameMode(i);
+                            ListGameIndexIfPrerequisitesMet(i);
                             break;
                         }
                     }
@@ -673,7 +692,7 @@ namespace DTAClient.DXGUI.Generic
                         // we'll count the game as a PvP game
                         if (pTeam > -1 && (ps.Team != pTeam || ps.Team == 0))
                         {
-                            ListGameIndexIfCorrectGameMode(i);
+                            ListGameIndexIfPrerequisitesMet(i);
                             break;
                         }
 
@@ -716,7 +735,7 @@ namespace DTAClient.DXGUI.Generic
 
                 if (add && hpCount > 1)
                 {
-                    ListGameIndexIfCorrectGameMode(i);
+                    ListGameIndexIfPrerequisitesMet(i);
                 }
             }
         }
@@ -733,10 +752,8 @@ namespace DTAClient.DXGUI.Generic
                 int hpCount = 0;
                 bool add = true;
 
-                for (int j = 0; j < pCount; j++)
+                foreach (PlayerStatistics ps in ms.Players)
                 {
-                    PlayerStatistics ps = ms.GetPlayer(j);
-
                     if (!ps.IsAI)
                     {
                         hpCount++;
@@ -751,25 +768,32 @@ namespace DTAClient.DXGUI.Generic
 
                 if (add)
                 {
-                    ListGameIndexIfCorrectGameMode(i);
+                    ListGameIndexIfPrerequisitesMet(i);
                 }
             }
         }
 
-        private void ListGameIndexIfCorrectGameMode(int gameIndex)
+        private void ListGameIndexIfPrerequisitesMet(int gameIndex)
         {
             MatchStatistics ms = sm.GetMatchByIndex(gameIndex);
 
-            if (cmbGameModeFilter.SelectedIndex == 0)
+            if (cmbGameModeFilter.SelectedIndex != 0)
             {
-                listedGameIndexes.Add(gameIndex);
-                return;
+                string gameMode = cmbGameModeFilter.Items[cmbGameModeFilter.SelectedIndex].Text;
+
+                if (ms.GameMode != gameMode)
+                    return;
             }
 
-            string gameMode = cmbGameModeFilter.Items[cmbGameModeFilter.SelectedIndex].Text;
+            PlayerStatistics ps = ms.Players.Find(p => p.IsLocalPlayer);
 
-            if (ms.GameMode == gameMode)
-                listedGameIndexes.Add(gameIndex);
+            if (ps != null && !chkIncludeSpectatedGames.Checked)
+            {
+                if (ps.WasSpectator)
+                    return;
+            }
+
+            listedGameIndexes.Add(gameIndex);
         }
 
         /// <summary>
