@@ -22,7 +22,7 @@ using DTAClient.DXGUI.Multiplayer;
 
 namespace DTAClient.DXGUI.Generic
 {
-    class MainMenu : DXWindow
+    class MainMenu : XNAWindow
     {
         public MainMenu(WindowManager windowManager, SkirmishLobby skirmishLobby,
             CnCNetLobby cncnetLobby) : base(windowManager)
@@ -35,11 +35,11 @@ namespace DTAClient.DXGUI.Generic
         bool isYR = false;
 
         MainMenuDarkeningPanel innerPanel;
-        DXPanel mmUIPanel;
+        XNAPanel mmUIPanel;
 
-        DXLabel lblCnCNetPlayerCount;
-        DXLabel lblUpdateStatus;
-        DXLabel lblVersion;
+        XNALabel lblCnCNetPlayerCount;
+        XNALabel lblUpdateStatus;
+        XNALabel lblVersion;
 
         SkirmishLobby skirmishLobby;
         CnCNetLobby cncnetLobby;
@@ -55,7 +55,7 @@ namespace DTAClient.DXGUI.Generic
             Name = "MainMenu";
             BackgroundTexture = AssetLoader.LoadTexture("MainMenu\\mainmenubg.png");
 
-            mmUIPanel = new DXPanel(WindowManager);
+            mmUIPanel = new XNAPanel(WindowManager);
             mmUIPanel.Name = "MainMenuUIPanel";
             Texture2D texture = BackgroundTexture;
             mmUIPanel.ClientRectangle = new Rectangle(0, 0, texture.Width, texture.Height);
@@ -63,7 +63,7 @@ namespace DTAClient.DXGUI.Generic
                 (WindowManager.RenderResolutionY - ClientRectangle.Height) / 2,
                 mmUIPanel.ClientRectangle.Width, mmUIPanel.ClientRectangle.Height);
 
-            DXButton btnNewCampaign = new DXButton(WindowManager);
+            XNAButton btnNewCampaign = new XNAButton(WindowManager);
             btnNewCampaign.Name = "btnNewCampaign";
             btnNewCampaign.IdleTexture = AssetLoader.LoadTexture("MainMenu\\campaign.png");
             btnNewCampaign.HoverTexture = AssetLoader.LoadTexture("MainMenu\\campaign_c.png");
@@ -71,7 +71,7 @@ namespace DTAClient.DXGUI.Generic
             btnNewCampaign.LeftClick += BtnNewCampaign_LeftClick;
             btnNewCampaign.HotKey = Keys.C;
 
-            DXButton btnLoadGame = new DXButton(WindowManager);
+            XNAButton btnLoadGame = new XNAButton(WindowManager);
             btnLoadGame.Name = "btnLoadGame";
             btnLoadGame.IdleTexture = AssetLoader.LoadTexture("MainMenu\\loadmission.png");
             btnLoadGame.HoverTexture = AssetLoader.LoadTexture("MainMenu\\loadmission_c.png");
@@ -79,7 +79,7 @@ namespace DTAClient.DXGUI.Generic
             btnLoadGame.LeftClick += BtnLoadGame_LeftClick;
             btnLoadGame.HotKey = Keys.L;
 
-            DXButton btnSkirmish = new DXButton(WindowManager);
+            XNAButton btnSkirmish = new XNAButton(WindowManager);
             btnSkirmish.Name = "btnSkirmish";
             btnSkirmish.IdleTexture = AssetLoader.LoadTexture("MainMenu\\skirmish.png");
             btnSkirmish.HoverTexture = AssetLoader.LoadTexture("MainMenu\\skirmish_c.png");
@@ -87,7 +87,7 @@ namespace DTAClient.DXGUI.Generic
             btnSkirmish.LeftClick += BtnSkirmish_LeftClick;
             btnSkirmish.HotKey = Keys.S;
 
-            DXButton btnCnCNet = new DXButton(WindowManager);
+            XNAButton btnCnCNet = new XNAButton(WindowManager);
             btnCnCNet.Name = "btnCnCNet";
             btnCnCNet.IdleTexture = AssetLoader.LoadTexture("MainMenu\\cncnet.png");
             btnCnCNet.HoverTexture = AssetLoader.LoadTexture("MainMenu\\cncnet_c.png");
@@ -95,7 +95,7 @@ namespace DTAClient.DXGUI.Generic
             btnCnCNet.LeftClick += BtnCnCNet_LeftClick;
             btnCnCNet.HotKey = Keys.M;
 
-            DXButton btnLan = new DXButton(WindowManager);
+            XNAButton btnLan = new XNAButton(WindowManager);
             btnLan.Name = "btnLan";
             btnLan.IdleTexture = AssetLoader.LoadTexture("MainMenu\\lan.png");
             btnLan.HoverTexture = AssetLoader.LoadTexture("MainMenu\\lan_c.png");
@@ -103,7 +103,7 @@ namespace DTAClient.DXGUI.Generic
             btnLan.LeftClick += BtnLan_LeftClick;
             btnLan.HotKey = Keys.N;
 
-            DXButton btnOptions = new DXButton(WindowManager);
+            XNAButton btnOptions = new XNAButton(WindowManager);
             btnOptions.Name = "btnOptions";
             btnOptions.IdleTexture = AssetLoader.LoadTexture("MainMenu\\options.png");
             btnOptions.HoverTexture = AssetLoader.LoadTexture("MainMenu\\options_c.png");
@@ -111,7 +111,7 @@ namespace DTAClient.DXGUI.Generic
             btnOptions.LeftClick += BtnOptions_LeftClick;
             btnOptions.HotKey = Keys.O;
 
-            DXButton btnMapEditor = new DXButton(WindowManager);
+            XNAButton btnMapEditor = new XNAButton(WindowManager);
             btnMapEditor.Name = "btnMapEditor";
             btnMapEditor.IdleTexture = AssetLoader.LoadTexture("MainMenu\\mapeditor.png");
             btnMapEditor.HoverTexture = AssetLoader.LoadTexture("MainMenu\\mapeditor_c.png");
@@ -119,7 +119,7 @@ namespace DTAClient.DXGUI.Generic
             btnMapEditor.LeftClick += BtnMapEditor_LeftClick;
             btnMapEditor.HotKey = Keys.E;
 
-            DXButton btnStatistics = new DXButton(WindowManager);
+            XNAButton btnStatistics = new XNAButton(WindowManager);
             btnStatistics.Name = "btnStatistics";
             btnStatistics.IdleTexture = AssetLoader.LoadTexture("MainMenu\\statistics.png");
             btnStatistics.HoverTexture = AssetLoader.LoadTexture("MainMenu\\statistics_c.png");
@@ -127,7 +127,7 @@ namespace DTAClient.DXGUI.Generic
             btnStatistics.LeftClick += BtnStatistics_LeftClick;
             btnStatistics.HotKey = Keys.T;
 
-            DXButton btnCredits = new DXButton(WindowManager);
+            XNAButton btnCredits = new XNAButton(WindowManager);
             btnCredits.Name = "btnCredits";
             btnCredits.IdleTexture = AssetLoader.LoadTexture("MainMenu\\credits.png");
             btnCredits.HoverTexture = AssetLoader.LoadTexture("MainMenu\\credits_c.png");
@@ -135,7 +135,7 @@ namespace DTAClient.DXGUI.Generic
             btnCredits.LeftClick += BtnCredits_LeftClick;
             btnCredits.HotKey = Keys.R;
 
-            DXButton btnExtras = new DXButton(WindowManager);
+            XNAButton btnExtras = new XNAButton(WindowManager);
             btnExtras.Name = "btnExtras";
             btnExtras.IdleTexture = AssetLoader.LoadTexture("MainMenu\\extras.png");
             btnExtras.HoverTexture = AssetLoader.LoadTexture("MainMenu\\extras_c.png");
@@ -143,7 +143,7 @@ namespace DTAClient.DXGUI.Generic
             btnExtras.LeftClick += BtnExtras_LeftClick;
             btnExtras.HotKey = Keys.E;
 
-            DXButton btnExit = new DXButton(WindowManager);
+            XNAButton btnExit = new XNAButton(WindowManager);
             btnExit.Name = "btnExit";
             btnExit.IdleTexture = AssetLoader.LoadTexture("MainMenu\\exitgame.png");
             btnExit.HoverTexture = AssetLoader.LoadTexture("MainMenu\\exitgame_c.png");
@@ -151,20 +151,20 @@ namespace DTAClient.DXGUI.Generic
             btnExit.LeftClick += BtnExit_LeftClick;
             btnExit.HotKey = Keys.Escape;
 
-            DXLabel lblCnCNetStatus = new DXLabel(WindowManager);
+            XNALabel lblCnCNetStatus = new XNALabel(WindowManager);
             lblCnCNetStatus.Name = "lblCnCNetStatus";
             lblCnCNetStatus.Text = "DTA players on CnCNet:";
             lblCnCNetStatus.ClientRectangle = new Rectangle(12, 9, 0, 0);
 
-            lblCnCNetPlayerCount = new DXLabel(WindowManager);
+            lblCnCNetPlayerCount = new XNALabel(WindowManager);
             lblCnCNetPlayerCount.Name = "lblCnCNetPlayerCount";
             lblCnCNetPlayerCount.Text = "-";
 
-            lblVersion = new DXLabel(WindowManager);
+            lblVersion = new XNALabel(WindowManager);
             lblVersion.Name = "lblVersion";
             lblVersion.Text = CUpdater.GameVersion;
 
-            lblUpdateStatus = new DXLabel(WindowManager);
+            lblUpdateStatus = new XNALabel(WindowManager);
             lblUpdateStatus.Name = "lblUpdateStatus";
             lblUpdateStatus.LeftClick += LblUpdateStatus_LeftClick;
             lblUpdateStatus.ClientRectangle = new Rectangle(0, 0, 160, 20);
@@ -297,7 +297,7 @@ namespace DTAClient.DXGUI.Generic
             updateInProgress = false;
 
             innerPanel.Show(null); // Darkening
-            DXMessageBox msgBox = new DXMessageBox(Game, WindowManager, "Update failed", 
+            XNAMessageBox msgBox = new XNAMessageBox(Game, WindowManager, "Update failed", 
                 string.Format("An error occured while updating. Returned error was: {0}" +
                 Environment.NewLine + Environment.NewLine +
                 "If you are connected to the Internet and your firewall isn't blocking" + Environment.NewLine +

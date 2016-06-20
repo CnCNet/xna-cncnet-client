@@ -12,7 +12,7 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace DTAClient.DXGUI.Multiplayer
 {
-    public class GameListBox : DXListBox
+    public class GameListBox : XNAListBox
     {
         public GameListBox(WindowManager windowManager, List<HostedGame> hostedGames,
             string localGameIdentifier)

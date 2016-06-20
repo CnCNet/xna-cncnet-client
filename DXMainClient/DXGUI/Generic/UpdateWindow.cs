@@ -16,7 +16,7 @@ namespace DTAClient.DXGUI.Generic
     /// <summary>
     /// The update window, displaying the update progress to the user.
     /// </summary>
-    public class UpdateWindow : DXWindow
+    public class UpdateWindow : XNAWindow
     {
         public delegate void UpdateCancelEventHandler(object sender, EventArgs e);
         public event UpdateCancelEventHandler UpdateCancelled;
@@ -34,14 +34,14 @@ namespace DTAClient.DXGUI.Generic
 
         }
 
-        DXLabel lblDescription;
-        DXLabel lblCurrentFileProgressPercentageValue;
-        DXLabel lblTotalProgressPercentageValue;
-        DXLabel lblCurrentFile;
-        DXLabel lblUpdaterStatus;
+        XNALabel lblDescription;
+        XNALabel lblCurrentFileProgressPercentageValue;
+        XNALabel lblTotalProgressPercentageValue;
+        XNALabel lblCurrentFile;
+        XNALabel lblUpdaterStatus;
 
-        DXProgressBar prgCurrentFile;
-        DXProgressBar prgTotal;
+        XNAProgressBar prgCurrentFile;
+        XNAProgressBar prgTotal;
 
         TaskbarProgress tbp;
 
@@ -53,22 +53,22 @@ namespace DTAClient.DXGUI.Generic
             ClientRectangle = new Rectangle(0, 0, 446, 270);
             BackgroundTexture = AssetLoader.LoadTexture("updaterbg.png");
 
-            lblDescription = new DXLabel(WindowManager);
+            lblDescription = new XNALabel(WindowManager);
             lblDescription.Text = String.Empty;
             lblDescription.ClientRectangle = new Rectangle(12, 9, 0, 0);
             lblDescription.Name = "lblDescription";
 
-            DXLabel lblCurrentFileProgressPercentage = new DXLabel(WindowManager);
+            XNALabel lblCurrentFileProgressPercentage = new XNALabel(WindowManager);
             lblCurrentFileProgressPercentage.Text = "Progress percentage of current file:";
             lblCurrentFileProgressPercentage.ClientRectangle = new Rectangle(12, 90, 0, 0);
             lblCurrentFileProgressPercentage.Name = "lblCurrentFileProgressPercentage";
 
-            lblCurrentFileProgressPercentageValue = new DXLabel(WindowManager);
+            lblCurrentFileProgressPercentageValue = new XNALabel(WindowManager);
             lblCurrentFileProgressPercentageValue.Text = "0%";
             lblCurrentFileProgressPercentageValue.ClientRectangle = new Rectangle(409, lblCurrentFileProgressPercentage.ClientRectangle.Y, 0, 0);
             lblCurrentFileProgressPercentageValue.Name = "lblCurrentFileProgressPercentageValue";
 
-            prgCurrentFile = new DXProgressBar(WindowManager);
+            prgCurrentFile = new XNAProgressBar(WindowManager);
             prgCurrentFile.Name = "prgCurrentFile";
             prgCurrentFile.Maximum = 100;
             prgCurrentFile.ClientRectangle = new Rectangle(12, 110, 422, 30);
@@ -76,32 +76,32 @@ namespace DTAClient.DXGUI.Generic
             prgCurrentFile.SmoothForwardTransition = true;
             prgCurrentFile.SmoothTransitionRate = 10;
 
-            lblCurrentFile = new DXLabel(WindowManager);
+            lblCurrentFile = new XNALabel(WindowManager);
             lblCurrentFile.Name = "lblCurrentFile";
             lblCurrentFile.ClientRectangle = new Rectangle(12, 142, 0, 0);
 
-            DXLabel lblTotalProgressPercentage = new DXLabel(WindowManager);
+            XNALabel lblTotalProgressPercentage = new XNALabel(WindowManager);
             lblTotalProgressPercentage.Text = "Total progress percentage:";
             lblTotalProgressPercentage.ClientRectangle = new Rectangle(12, 170, 0, 0);
             lblTotalProgressPercentage.Name = "lblTotalProgressPercentage";
 
-            lblTotalProgressPercentageValue = new DXLabel(WindowManager);
+            lblTotalProgressPercentageValue = new XNALabel(WindowManager);
             lblTotalProgressPercentageValue.Text = "0%";
             lblTotalProgressPercentageValue.ClientRectangle = new Rectangle(409, lblTotalProgressPercentage.ClientRectangle.Y, 0, 0);
             lblTotalProgressPercentageValue.Name = "lblTotalProgressPercentageValue";
 
-            prgTotal = new DXProgressBar(WindowManager);
+            prgTotal = new XNAProgressBar(WindowManager);
             prgTotal.Name = "prgTotal";
             prgTotal.Maximum = 100;
             prgTotal.ClientRectangle = new Rectangle(12, 190, prgCurrentFile.ClientRectangle.Width, prgCurrentFile.ClientRectangle.Height);
             prgTotal.BorderColor = UISettings.WindowBorderColor;
 
-            lblUpdaterStatus = new DXLabel(WindowManager);
+            lblUpdaterStatus = new XNALabel(WindowManager);
             lblUpdaterStatus.Name = "lblUpdaterStatus";
             lblUpdaterStatus.Text = "Preparing...";
             lblUpdaterStatus.ClientRectangle = new Rectangle(12, 240, 0, 0);
 
-            DXButton btnCancel = new DXButton(WindowManager);
+            XNAButton btnCancel = new XNAButton(WindowManager);
             btnCancel.ClientRectangle = new Rectangle(301, 240, 133, 23);
             btnCancel.IdleTexture = AssetLoader.LoadTexture("133pxbtn.png");
             btnCancel.HoverTexture = AssetLoader.LoadTexture("133pxbtn_c.png");

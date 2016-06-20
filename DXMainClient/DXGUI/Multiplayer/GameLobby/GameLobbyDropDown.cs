@@ -12,7 +12,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
     /// <summary>
     /// A game option drop-down for the game lobby.
     /// </summary>
-    public class GameLobbyDropDown : DXDropDown
+    public class GameLobbyDropDown : XNADropDown
     {
         public GameLobbyDropDown(WindowManager windowManager) : base(windowManager) { }
 

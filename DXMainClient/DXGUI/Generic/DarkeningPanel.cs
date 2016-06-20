@@ -8,7 +8,7 @@ using Microsoft.Xna.Framework;
 
 namespace DTAClient.DXGUI.Generic
 {
-    public class DarkeningPanel : DXPanel
+    public class DarkeningPanel : XNAPanel
     {
         public DarkeningPanel(WindowManager windowManager) : base(windowManager)
         {
@@ -43,7 +43,7 @@ namespace DTAClient.DXGUI.Generic
             AlphaRate = 0.04f;
             Alpha = 0.01f;
 
-            foreach (DXControl child in Children)
+            foreach (XNAControl child in Children)
             {
                 child.Enabled = true;
                 child.Visible = true;
@@ -54,7 +54,7 @@ namespace DTAClient.DXGUI.Generic
         {
             AlphaRate = -0.04f;
 
-            foreach (DXControl child in Children)
+            foreach (XNAControl child in Children)
             {
                 child.Enabled = false;
                 child.Visible = false;

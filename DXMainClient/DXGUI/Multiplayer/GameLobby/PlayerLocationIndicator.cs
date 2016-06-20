@@ -14,12 +14,12 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
     /// <summary>
     /// A player location indicator for the map preview.
     /// </summary>
-    public class PlayerLocationIndicator : DXControl
+    public class PlayerLocationIndicator : XNAControl
     {
         const float TEXTURE_SCALE = 0.25f;
 
         public PlayerLocationIndicator(WindowManager windowManager, List<MultiplayerColor> mpColors,
-            Color nameBackgroundColor, Color nameBorderColor, DXContextMenu contextMenu) : base(windowManager)
+            Color nameBackgroundColor, Color nameBorderColor, XNAContextMenu contextMenu) : base(windowManager)
         {
             this.mpColors = mpColors;
             this.nameBackgroundColor = nameBackgroundColor;
@@ -44,7 +44,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         public Color HoverRemapColor { get; set; }
 
-        DXContextMenu contextMenu { get; set; }
+        XNAContextMenu contextMenu { get; set; }
 
         Color nameBackgroundColor;
         Color nameBorderColor;

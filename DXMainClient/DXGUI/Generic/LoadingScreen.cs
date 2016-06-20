@@ -19,7 +19,7 @@ using SkirmishLobby = DTAClient.DXGUI.Multiplayer.GameLobby.SkirmishLobby;
 
 namespace DTAClient.DXGUI.Generic
 {
-    public class LoadingScreen : DXWindow
+    public class LoadingScreen : XNAWindow
     {
         public LoadingScreen(WindowManager windowManager) : base(windowManager)
         {

@@ -9,7 +9,7 @@ using System.Text;
 
 namespace DTAClient.DXGUI.Generic
 {
-    public class MainMenuDarkeningPanel : DXPanel
+    public class MainMenuDarkeningPanel : XNAPanel
     {
         public MainMenuDarkeningPanel(WindowManager windowManager) : base(windowManager)
         {
@@ -60,7 +60,7 @@ namespace DTAClient.DXGUI.Generic
             ExtrasWindow = new ExtrasWindow(WindowManager);
             AddChild(ExtrasWindow);
 
-            foreach (DXControl child in Children)
+            foreach (XNAControl child in Children)
             {
                 child.Visible = false;
                 child.Enabled = false;
@@ -70,14 +70,14 @@ namespace DTAClient.DXGUI.Generic
 
         private void Child_EnabledChanged(object sender, EventArgs e)
         {
-            DXWindow child = (DXWindow)sender;
+            XNAWindow child = (XNAWindow)sender;
             if (!child.Enabled)
                 Hide();
         }
 
-        public void Show(DXControl dxControl)
+        public void Show(XNAControl dxControl)
         {
-            foreach (DXControl child in Children)
+            foreach (XNAControl child in Children)
             {
                 child.Enabled = false;
                 child.Visible = false;
@@ -108,7 +108,7 @@ namespace DTAClient.DXGUI.Generic
         {
             bgAlphaRate = BG_ALPHA_DISAPPEAR_RATE;
 
-            foreach (DXControl child in Children)
+            foreach (XNAControl child in Children)
             {
                 child.Enabled = false;
             }
@@ -131,7 +131,7 @@ namespace DTAClient.DXGUI.Generic
                 Visible = false;
                 bgAlpha = 0f;
 
-                foreach (DXControl child in Children)
+                foreach (XNAControl child in Children)
                 {
                     child.Visible = false;
                 }

@@ -19,7 +19,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
     /// <summary>
     /// The picture box for displaying the map preview.
     /// </summary>
-    public class MapPreviewBox : DXPanel
+    public class MapPreviewBox : XNAPanel
     {
         const int MAX_STARTING_LOCATIONS = 8;
 
@@ -72,7 +72,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         List<PlayerInfo> players;
         List<PlayerInfo> aiPlayers;
 
-        DXContextMenu contextMenu;
+        XNAContextMenu contextMenu;
 
         Rectangle textureRectangle;
 
@@ -96,7 +96,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             Color nameBorderColor = AssetLoader.GetRGBAColorFromString(
                 DomainController.Instance().GetMapPreviewNameBorderColor());
 
-            contextMenu = new DXContextMenu(WindowManager);
+            contextMenu = new XNAContextMenu(WindowManager);
             contextMenu.Tag = -1;
 
             double angularVelocity = gameOptionsIni.GetDoubleValue("General", "StartingLocationAngularVelocity", 0.015);

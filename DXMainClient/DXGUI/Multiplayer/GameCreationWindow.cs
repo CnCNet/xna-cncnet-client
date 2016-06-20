@@ -14,7 +14,7 @@ using DTAClient.Online;
 
 namespace DTAClient.DXGUI.Multiplayer
 {
-    class GameCreationWindow : DXWindow
+    class GameCreationWindow : XNAWindow
     {
         private const string SAVED_GAME_SPAWN_INI = "Saved Games\\spawnSG.ini";
 
@@ -28,21 +28,21 @@ namespace DTAClient.DXGUI.Multiplayer
         public event EventHandler<GameCreationEventArgs> GameCreated;
         public event EventHandler<GameCreationEventArgs> LoadedGameCreated;
 
-        DXTextBox tbGameName;
-        DXDropDown ddMaxPlayers;
-        DXTextBox tbPassword;
+        XNATextBox tbGameName;
+        XNADropDown ddMaxPlayers;
+        XNATextBox tbPassword;
 
-        DXLabel lblRoomName;
-        DXLabel lblMaxPlayers;
-        DXLabel lblPassword;
+        XNALabel lblRoomName;
+        XNALabel lblMaxPlayers;
+        XNALabel lblPassword;
 
-        DXLabel lblTunnelServer;
-        DXMultiColumnListBox lbTunnelList;
+        XNALabel lblTunnelServer;
+        XNAMultiColumnListBox lbTunnelList;
 
-        DXButton btnCreateGame;
-        DXButton btnCancel;
-        DXButton btnLoadMPGame;
-        DXButton btnDisplayAdvancedOptions;
+        XNAButton btnCreateGame;
+        XNAButton btnCancel;
+        XNAButton btnLoadMPGame;
+        XNAButton btnDisplayAdvancedOptions;
 
         TunnelHandler tunnelHandler;
 
@@ -58,7 +58,7 @@ namespace DTAClient.DXGUI.Multiplayer
             ClientRectangle = new Rectangle(0, 0, 490, 188);
             BackgroundTexture = AssetLoader.LoadTexture("gamecreationoptionsbg.png");
 
-            btnCreateGame = new DXButton(WindowManager);
+            btnCreateGame = new XNAButton(WindowManager);
             btnCreateGame.ClientRectangle = new Rectangle(12, 159, 133, 23);
             btnCreateGame.IdleTexture = AssetLoader.LoadTexture("133pxbtn.png");
             btnCreateGame.HoverTexture = AssetLoader.LoadTexture("133pxbtn_c.png");
@@ -67,7 +67,7 @@ namespace DTAClient.DXGUI.Multiplayer
             btnCreateGame.Text = "Create Game";
             btnCreateGame.LeftClick += BtnCreateGame_LeftClick;
 
-            btnCancel = new DXButton(WindowManager);
+            btnCancel = new XNAButton(WindowManager);
             btnCancel.ClientRectangle = new Rectangle(345, btnCreateGame.ClientRectangle.Y, 133, 23);
             btnCancel.IdleTexture = AssetLoader.LoadTexture("133pxbtn.png");
             btnCancel.HoverTexture = AssetLoader.LoadTexture("133pxbtn_c.png");
@@ -76,7 +76,7 @@ namespace DTAClient.DXGUI.Multiplayer
             btnCancel.Text = "Cancel";
             btnCancel.LeftClick += BtnCancel_LeftClick;
 
-            btnLoadMPGame = new DXButton(WindowManager);
+            btnLoadMPGame = new XNAButton(WindowManager);
             btnLoadMPGame.ClientRectangle = new Rectangle(178, btnCreateGame.ClientRectangle.Y, 133, 23);
             btnLoadMPGame.IdleTexture = AssetLoader.LoadTexture("133pxbtn.png");
             btnLoadMPGame.HoverTexture = AssetLoader.LoadTexture("133pxbtn_c.png");
@@ -85,7 +85,7 @@ namespace DTAClient.DXGUI.Multiplayer
             btnLoadMPGame.Text = "Load Game";
             btnLoadMPGame.LeftClick += BtnLoadMPGame_LeftClick;
 
-            btnDisplayAdvancedOptions = new DXButton(WindowManager);
+            btnDisplayAdvancedOptions = new XNAButton(WindowManager);
             btnDisplayAdvancedOptions.ClientRectangle = new Rectangle(12, 124, 160, 23);
             btnDisplayAdvancedOptions.IdleTexture = AssetLoader.LoadTexture("160pxbtn.png");
             btnDisplayAdvancedOptions.HoverTexture = AssetLoader.LoadTexture("160pxbtn_c.png");
@@ -94,42 +94,42 @@ namespace DTAClient.DXGUI.Multiplayer
             btnDisplayAdvancedOptions.Text = "Advanced Options";
             btnDisplayAdvancedOptions.LeftClick += BtnDisplayAdvancedOptions_LeftClick;
 
-            tbGameName = new DXTextBox(WindowManager);
+            tbGameName = new XNATextBox(WindowManager);
             tbGameName.MaximumTextLength = 23;
             tbGameName.ClientRectangle = new Rectangle(340, 12, 150, 21);
             tbGameName.Text = ProgramConstants.PLAYERNAME + "'s Game";
 
-            lblRoomName = new DXLabel(WindowManager);
+            lblRoomName = new XNALabel(WindowManager);
             lblRoomName.ClientRectangle = new Rectangle(12, tbGameName.ClientRectangle.Y + 1, 0, 0);
             lblRoomName.Text = "Game room name:";
 
-            ddMaxPlayers = new DXDropDown(WindowManager);
+            ddMaxPlayers = new XNADropDown(WindowManager);
             ddMaxPlayers.ClientRectangle = new Rectangle(tbGameName.ClientRectangle.X, 53, 
                 tbGameName.ClientRectangle.Width, 21);
             for (int i = 8; i > -1; i--)
                 ddMaxPlayers.AddItem(i.ToString());
             ddMaxPlayers.SelectedIndex = 0;
 
-            lblMaxPlayers = new DXLabel(WindowManager);
+            lblMaxPlayers = new XNALabel(WindowManager);
             lblMaxPlayers.ClientRectangle = new Rectangle(12, ddMaxPlayers.ClientRectangle.Y + 1, 0, 0);
             lblMaxPlayers.Text = "Maximum number of players:";
 
-            tbPassword = new DXTextBox(WindowManager);
+            tbPassword = new XNATextBox(WindowManager);
             tbPassword.MaximumTextLength = 20;
             tbPassword.ClientRectangle = new Rectangle(tbGameName.ClientRectangle.X, 94, 
                 tbGameName.ClientRectangle.Width, 21);
 
-            lblPassword = new DXLabel(WindowManager);
+            lblPassword = new XNALabel(WindowManager);
             lblPassword.ClientRectangle = new Rectangle(12, tbPassword.ClientRectangle.Y + 1, 0, 0);
             lblPassword.Text = "Password (leave blank for none):";
 
-            lblTunnelServer = new DXLabel(WindowManager);
+            lblTunnelServer = new XNALabel(WindowManager);
             lblTunnelServer.ClientRectangle = new Rectangle(12, 134, 0, 0);
             lblTunnelServer.Text = "Tunnel server:";
             lblTunnelServer.Enabled = false;
             lblTunnelServer.Visible = false;
 
-            lbTunnelList = new DXMultiColumnListBox(WindowManager);
+            lbTunnelList = new XNAMultiColumnListBox(WindowManager);
             lbTunnelList.ClientRectangle = new Rectangle(12, 154, 466, 200);
             lbTunnelList.DrawMode = PanelBackgroundImageDrawMode.STRETCHED;
             lbTunnelList.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 128), 1, 1);

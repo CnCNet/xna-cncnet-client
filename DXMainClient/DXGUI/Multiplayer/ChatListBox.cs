@@ -13,7 +13,7 @@ namespace DTAClient.DXGUI.Multiplayer
     /// <summary>
     /// A list box for CnCNet chat. Supports opening links with a double-click.
     /// </summary>
-    public class ChatListBox : DXListBox
+    public class ChatListBox : XNAListBox
     {
         public ChatListBox(WindowManager windowManager) : base(windowManager)
         {

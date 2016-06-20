@@ -12,7 +12,7 @@ using System.Text;
 
 namespace DTAClient.DXGUI.Generic
 {
-    public class ExtrasWindow : DXWindow
+    public class ExtrasWindow : XNAWindow
     {
         public ExtrasWindow(WindowManager windowManager) : base(windowManager)
         {
@@ -25,7 +25,7 @@ namespace DTAClient.DXGUI.Generic
             ClientRectangle = new Rectangle(0, 0, 284, 190);
             BackgroundTexture = AssetLoader.LoadTexture("extrasMenu.png");
 
-            DXButton btnExStatistics = new DXButton(WindowManager);
+            XNAButton btnExStatistics = new XNAButton(WindowManager);
             btnExStatistics.Name = "btnExStatistics";
             btnExStatistics.IdleTexture = AssetLoader.LoadTexture("133pxbtn.png");
             btnExStatistics.HoverTexture = AssetLoader.LoadTexture("133pxbtn_c.png");
@@ -35,7 +35,7 @@ namespace DTAClient.DXGUI.Generic
             btnExStatistics.Text = "Statistics";
             btnExStatistics.LeftClick += BtnExStatistics_LeftClick;
 
-            DXButton btnExMapEditor = new DXButton(WindowManager);
+            XNAButton btnExMapEditor = new XNAButton(WindowManager);
             btnExMapEditor.Name = "btnExMapEditor";
             btnExMapEditor.IdleTexture = AssetLoader.LoadTexture("133pxbtn.png");
             btnExMapEditor.HoverTexture = AssetLoader.LoadTexture("133pxbtn_c.png");
@@ -45,7 +45,7 @@ namespace DTAClient.DXGUI.Generic
             btnExMapEditor.Text = "Map Editor";
             btnExMapEditor.LeftClick += BtnExMapEditor_LeftClick;
 
-            DXButton btnExCredits = new DXButton(WindowManager);
+            XNAButton btnExCredits = new XNAButton(WindowManager);
             btnExCredits.Name = "btnExCredits";
             btnExCredits.IdleTexture = AssetLoader.LoadTexture("133pxbtn.png");
             btnExCredits.HoverTexture = AssetLoader.LoadTexture("133pxbtn_c.png");
@@ -55,7 +55,7 @@ namespace DTAClient.DXGUI.Generic
             btnExCredits.Text = "Credits";
             btnExCredits.LeftClick += BtnExCredits_LeftClick;
 
-            DXButton btnExCancel = new DXButton(WindowManager);
+            XNAButton btnExCancel = new XNAButton(WindowManager);
             btnExCancel.Name = "btnExCancel";
             btnExCancel.IdleTexture = AssetLoader.LoadTexture("133pxbtn.png");
             btnExCancel.HoverTexture = AssetLoader.LoadTexture("133pxbtn_c.png");

@@ -13,15 +13,15 @@ using System.Text;
 
 namespace DTAClient.DXGUI.Generic
 {
-    public class GameLoadingWindow : DXWindow
+    public class GameLoadingWindow : XNAWindow
     {
         public GameLoadingWindow(WindowManager windowManager) : base(windowManager)
         {
 
         }
 
-        DXMultiColumnListBox lbSaveGameList;
-        DXButton btnLaunch;
+        XNAMultiColumnListBox lbSaveGameList;
+        XNAButton btnLaunch;
         List<SavedGame> savedGames = new List<SavedGame>();
 
         public override void Initialize()
@@ -32,7 +32,7 @@ namespace DTAClient.DXGUI.Generic
             ClientRectangle = new Rectangle(0, 0, 600, 380);
             CenterOnParent();
 
-            lbSaveGameList = new DXMultiColumnListBox(WindowManager);
+            lbSaveGameList = new XNAMultiColumnListBox(WindowManager);
             lbSaveGameList.Name = "lbSaveGameList";
             lbSaveGameList.AddColumn("SAVED GAME NAME", 400);
             lbSaveGameList.AddColumn("DATE / TIME", 174);
@@ -40,7 +40,7 @@ namespace DTAClient.DXGUI.Generic
             lbSaveGameList.BackgroundTexture = AssetLoader.LoadTexture("loadmissionpanelbg.png");
             lbSaveGameList.SelectedIndexChanged += ListBox_SelectedIndexChanged;
 
-            btnLaunch = new DXButton(WindowManager);
+            btnLaunch = new XNAButton(WindowManager);
             btnLaunch.IdleTexture = AssetLoader.LoadTexture("133pxbtn.png");
             btnLaunch.HoverTexture = AssetLoader.LoadTexture("133pxbtn_c.png");
             btnLaunch.HoverSoundEffect = AssetLoader.LoadSound("button.wav");
@@ -50,7 +50,7 @@ namespace DTAClient.DXGUI.Generic
             btnLaunch.AllowClick = false;
             btnLaunch.LeftClick += BtnLaunch_LeftClick;
 
-            DXButton btnCancel = new DXButton(WindowManager);
+            XNAButton btnCancel = new XNAButton(WindowManager);
             btnCancel.Name = "btnCancel";
             btnCancel.IdleTexture = AssetLoader.LoadTexture("133pxbtn.png");
             btnCancel.HoverTexture = AssetLoader.LoadTexture("133pxbtn_c.png");

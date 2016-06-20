@@ -12,52 +12,52 @@ namespace DTAClient.DXGUI.Multiplayer
     /// <summary>
     /// A UI panel that displays information about a hosted CnCNet or LAN game.
     /// </summary>
-    public class GameInformationPanel : DXPanel
+    public class GameInformationPanel : XNAPanel
     {
         public GameInformationPanel(WindowManager windowManager) : base(windowManager)
         {
         }
 
-        DXLabel lblGameInformation;
-        DXLabel lblGameMode;
-        DXLabel lblMap;
-        DXLabel lblGameVersion;
-        DXLabel lblHost;
-        DXLabel lblPlayers;
-        DXLabel[] lblPlayerNames;
+        XNALabel lblGameInformation;
+        XNALabel lblGameMode;
+        XNALabel lblMap;
+        XNALabel lblGameVersion;
+        XNALabel lblHost;
+        XNALabel lblPlayers;
+        XNALabel[] lblPlayerNames;
 
         public override void Initialize()
         {
             BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 255), 1, 1);
             DrawMode = PanelBackgroundImageDrawMode.STRETCHED;
 
-            lblGameInformation = new DXLabel(WindowManager);
+            lblGameInformation = new XNALabel(WindowManager);
             lblGameInformation.FontIndex = 1;
             lblGameInformation.Text = "GAME INFORMATION";
 
-            lblGameMode = new DXLabel(WindowManager);
+            lblGameMode = new XNALabel(WindowManager);
             lblGameMode.ClientRectangle = new Rectangle(6, 30, 0, 0);
 
-            lblMap = new DXLabel(WindowManager);
+            lblMap = new XNALabel(WindowManager);
             lblMap.ClientRectangle = new Rectangle(6, 54, 0, 0);
 
-            lblGameVersion = new DXLabel(WindowManager);
+            lblGameVersion = new XNALabel(WindowManager);
             lblGameVersion.ClientRectangle = new Rectangle(6, 78, 0, 0);
 
-            lblHost = new DXLabel(WindowManager);
+            lblHost = new XNALabel(WindowManager);
             lblHost.ClientRectangle = new Rectangle(6, 102, 0, 0);
 
-            lblPlayers = new DXLabel(WindowManager);
+            lblPlayers = new XNALabel(WindowManager);
             lblPlayers.ClientRectangle = new Rectangle(6, 126, 0, 0);
 
-            lblPlayerNames = new DXLabel[8];
+            lblPlayerNames = new XNALabel[8];
             for (int i = 0; i < lblPlayerNames.Length / 2; i++)
             {
-                DXLabel lblPlayerName1 = new DXLabel(WindowManager);
+                XNALabel lblPlayerName1 = new XNALabel(WindowManager);
                 lblPlayerName1.ClientRectangle = new Rectangle(lblPlayers.ClientRectangle.X, lblPlayers.ClientRectangle.Y + 24 + i * 20, 0, 0);
                 lblPlayerName1.RemapColor = UISettings.AltColor;
 
-                DXLabel lblPlayerName2 = new DXLabel(WindowManager);
+                XNALabel lblPlayerName2 = new XNALabel(WindowManager);
                 lblPlayerName2.ClientRectangle = new Rectangle(lblPlayers.ClientRectangle.X + 115, lblPlayerName1.ClientRectangle.Y, 0, 0);
                 lblPlayerName2.RemapColor = UISettings.AltColor;
 
@@ -110,7 +110,7 @@ namespace DTAClient.DXGUI.Multiplayer
             lblHost.Visible = false;
             lblPlayers.Visible = false;
 
-            foreach (DXLabel label in lblPlayerNames)
+            foreach (XNALabel label in lblPlayerNames)
                 label.Visible = false;
         }
     }

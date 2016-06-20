@@ -22,7 +22,7 @@ using DTAClient.DXGUI.Generic;
 
 namespace DTAClient.DXGUI.Multiplayer
 {
-    public class CnCNetLobby : DXWindow
+    public class CnCNetLobby : XNAWindow
     {
         const int GAME_REFRESH_RATE = 120;
         const double GAME_LIFETIME = 35.0;
@@ -41,7 +41,7 @@ namespace DTAClient.DXGUI.Multiplayer
 
         CnCNetManager connectionManager;
 
-        DXListBox lbPlayerList;
+        XNAListBox lbPlayerList;
         ChatListBox lbChatMessages;
         GameListBox lbGameList;
 
@@ -53,19 +53,19 @@ namespace DTAClient.DXGUI.Multiplayer
         LinkButton btnModDB;
         LinkButton btnHomepage;
 
-        DXButton btnLogout;
-        DXButton btnNewGame;
-        DXButton btnJoinGame;
+        XNAButton btnLogout;
+        XNAButton btnNewGame;
+        XNAButton btnJoinGame;
 
-        DXTextBox tbChatInput;
+        XNATextBox tbChatInput;
 
         List<CnCNetTunnel> tunnelList = new List<CnCNetTunnel>();
 
-        DXLabel lblColor;
-        DXLabel lblCurrentChannel;
+        XNALabel lblColor;
+        XNALabel lblCurrentChannel;
 
-        DXDropDown ddColor;
-        DXDropDown ddCurrentChannel;
+        XNADropDown ddColor;
+        XNADropDown ddCurrentChannel;
 
         DarkeningPanel gameCreationPanel;
 
@@ -101,7 +101,7 @@ namespace DTAClient.DXGUI.Multiplayer
             BackgroundTexture = AssetLoader.LoadTexture("cncnetlobbybg.png");
             localGame = DomainController.Instance().GetDefaultGame();
 
-            btnNewGame = new DXButton(WindowManager);
+            btnNewGame = new XNAButton(WindowManager);
             btnNewGame.Name = "btnNewGame";
             btnNewGame.ClientRectangle = new Rectangle(12, ClientRectangle.Height - 29, 133, 23);
             btnNewGame.IdleTexture = AssetLoader.LoadTexture("133pxbtn.png");
@@ -112,7 +112,7 @@ namespace DTAClient.DXGUI.Multiplayer
             btnNewGame.AllowClick = false;
             btnNewGame.LeftClick += BtnNewGame_LeftClick;
 
-            btnJoinGame = new DXButton(WindowManager);
+            btnJoinGame = new XNAButton(WindowManager);
             btnJoinGame.Name = "btnJoinGame";
             btnJoinGame.ClientRectangle = new Rectangle(btnNewGame.ClientRectangle.Right + 12,
                 btnNewGame.ClientRectangle.Y, 133, 23);
@@ -124,7 +124,7 @@ namespace DTAClient.DXGUI.Multiplayer
             btnJoinGame.AllowClick = false;
             btnJoinGame.LeftClick += BtnJoinGame_LeftClick;
 
-            btnLogout = new DXButton(WindowManager);
+            btnLogout = new XNAButton(WindowManager);
             btnLogout.Name = "btnLogout";
             btnLogout.ClientRectangle = new Rectangle(ClientRectangle.Width - 145, btnNewGame.ClientRectangle.Y,
                 133, 23);
@@ -201,7 +201,7 @@ namespace DTAClient.DXGUI.Multiplayer
             lbGameList.DoubleLeftClick += LbGameList_DoubleLeftClick;
             lbGameList.AllowMultiLineItems = false;
 
-            lbPlayerList = new DXListBox(WindowManager);
+            lbPlayerList = new XNAListBox(WindowManager);
             lbPlayerList.Name = "lbPlayerList";
             lbPlayerList.ClientRectangle = new Rectangle(ClientRectangle.Width - 202,
                 btnForums.ClientRectangle.Bottom + 8, 190, 
@@ -218,7 +218,7 @@ namespace DTAClient.DXGUI.Multiplayer
             lbChatMessages.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 128), 1, 1);
             lbChatMessages.LineHeight = 16;
 
-            tbChatInput = new DXTextBox(WindowManager);
+            tbChatInput = new XNATextBox(WindowManager);
             tbChatInput.Name = "tbChatInput";
             tbChatInput.ClientRectangle = new Rectangle(lbChatMessages.ClientRectangle.X,
                 btnNewGame.ClientRectangle.Y, lbChatMessages.ClientRectangle.Width, 
@@ -227,13 +227,13 @@ namespace DTAClient.DXGUI.Multiplayer
             tbChatInput.MaximumTextLength = 200;
             tbChatInput.EnterPressed += TbChatInput_EnterPressed;
 
-            lblColor = new DXLabel(WindowManager);
+            lblColor = new XNALabel(WindowManager);
             lblColor.Name = "lblColor";
             lblColor.ClientRectangle = new Rectangle(lbChatMessages.ClientRectangle.X, 14, 0, 0);
             lblColor.FontIndex = 1;
             lblColor.Text = "YOUR COLOR:";
 
-            ddColor = new DXDropDown(WindowManager);
+            ddColor = new XNADropDown(WindowManager);
             ddColor.Name = "ddColor";
             ddColor.ClientRectangle = new Rectangle(lblColor.ClientRectangle.X + 95, btnForums.ClientRectangle.Y,
                 150, 21);
@@ -246,7 +246,7 @@ namespace DTAClient.DXGUI.Multiplayer
                 if (!color.Selectable)
                     continue;
 
-                DXDropDownItem ddItem = new DXDropDownItem();
+                XNADropDownItem ddItem = new XNADropDownItem();
                 ddItem.Text = color.Name;
                 ddItem.TextColor = color.XnaColor;
                 ddItem.Tag = color;
@@ -260,7 +260,7 @@ namespace DTAClient.DXGUI.Multiplayer
                 ? DomainController.Instance().GetDefaultPersonalChatColor() : 
                 selectedColor;
 
-            ddCurrentChannel = new DXDropDown(WindowManager);
+            ddCurrentChannel = new XNADropDown(WindowManager);
             ddCurrentChannel.Name = "ddCurrentChannel";
             ddCurrentChannel.ClientRectangle = new Rectangle(
                 lbChatMessages.ClientRectangle.Right - 200,
@@ -280,7 +280,7 @@ namespace DTAClient.DXGUI.Multiplayer
                     continue;
                 }
 
-                DXDropDownItem item = new DXDropDownItem();
+                XNADropDownItem item = new XNADropDownItem();
                 item.Text = game.UIName;
                 item.TextColor = UISettings.AltColor;
                 item.Texture = game.Texture;
@@ -318,7 +318,7 @@ namespace DTAClient.DXGUI.Multiplayer
                 i++;
             }
 
-            lblCurrentChannel = new DXLabel(WindowManager);
+            lblCurrentChannel = new XNALabel(WindowManager);
             lblCurrentChannel.Name = "lblCurrentChannel";
             lblCurrentChannel.ClientRectangle = new Rectangle(
                 ddCurrentChannel.ClientRectangle.X - 150,

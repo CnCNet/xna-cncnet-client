@@ -9,7 +9,7 @@ using System.Diagnostics;
 
 namespace DTAClient.DXGUI.Generic
 {
-    public class LinkButton : DXButton
+    public class LinkButton : XNAButton
     {
         public LinkButton(WindowManager windowManager) : base(windowManager)
         {

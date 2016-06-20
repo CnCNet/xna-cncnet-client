@@ -24,11 +24,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
         }
 
-        protected DXCheckBox[] ReadyBoxes;
+        protected XNACheckBox[] ReadyBoxes;
 
         protected ChatListBox lbChatMessages;
-        protected DXSuggestionTextBox tbChatInput;
-        protected DXButton btnLockGame;
+        protected XNASuggestionTextBox tbChatInput;
+        protected XNAButton btnLockGame;
 
         protected bool IsHost = false;
 
@@ -52,13 +52,13 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             InitPlayerOptionDropdowns();
 
-            ReadyBoxes = new DXCheckBox[PLAYER_COUNT];
+            ReadyBoxes = new XNACheckBox[PLAYER_COUNT];
 
             int readyBoxX = GameOptionsIni.GetIntValue(Name, "PlayerReadyBoxX", 7);
 
             for (int i = 0; i < PLAYER_COUNT; i++)
             {
-                DXCheckBox chkPlayerReady = new DXCheckBox(WindowManager);
+                XNACheckBox chkPlayerReady = new XNACheckBox(WindowManager);
                 chkPlayerReady.Name = "chkPlayerReady" + i;
                 chkPlayerReady.Checked = false;
                 chkPlayerReady.AllowChecking = false;
@@ -96,7 +96,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             lbChatMessages.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 128), 1, 1);
             lbChatMessages.LineHeight = 16;
 
-            tbChatInput = new DXSuggestionTextBox(WindowManager);
+            tbChatInput = new XNASuggestionTextBox(WindowManager);
             tbChatInput.Name = "tbChatInput";
             tbChatInput.Suggestion = "Type here to chat..";
             tbChatInput.ClientRectangle = new Rectangle(lbChatMessages.ClientRectangle.Left, 
@@ -105,7 +105,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             tbChatInput.MaximumTextLength = 150;
             tbChatInput.EnterPressed += TbChatInput_EnterPressed;
 
-            btnLockGame = new DXButton(WindowManager);
+            btnLockGame = new XNAButton(WindowManager);
             btnLockGame.Name = "btnLockGame";
             btnLockGame.ClientRectangle = new Rectangle(btnLaunchGame.ClientRectangle.Right + 12,
                 btnLaunchGame.ClientRectangle.Y, 133, 23);

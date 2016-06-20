@@ -11,7 +11,7 @@ using System.Text;
 
 namespace DTAClient.DXGUI.Generic
 {
-    public class UpdateQueryWindow : DXWindow
+    public class UpdateQueryWindow : XNAWindow
     {
         public delegate void UpdateAcceptedEventHandler(object sender, EventArgs e);
         public event UpdateAcceptedEventHandler UpdateAccepted;
@@ -24,8 +24,8 @@ namespace DTAClient.DXGUI.Generic
 
         }
 
-        DXLabel lblDescription;
-        DXLabel lblUpdateSize;
+        XNALabel lblDescription;
+        XNALabel lblUpdateSize;
 
         public override void Initialize()
         {
@@ -33,24 +33,24 @@ namespace DTAClient.DXGUI.Generic
             ClientRectangle = new Rectangle(0, 0, 251, 140);
             BackgroundTexture = AssetLoader.LoadTexture("updatequerybg.png");
 
-            lblDescription = new DXLabel(WindowManager);
+            lblDescription = new XNALabel(WindowManager);
             lblDescription.ClientRectangle = new Rectangle(12, 9, 0, 0);
             lblDescription.Text = String.Empty;
             lblDescription.Name = "lblDescription";
 
-            DXLabel lblChangelogLink = new DXLabel(WindowManager);
+            XNALabel lblChangelogLink = new XNALabel(WindowManager);
             lblChangelogLink.ClientRectangle = new Rectangle(12, 50, 0, 0);
             lblChangelogLink.Text = "Click here to view the changelog";
             lblChangelogLink.RemapColor = Color.Goldenrod;
             lblChangelogLink.Name = "lblChangelogLink";
             lblChangelogLink.LeftClick += LblChangelogLink_LeftClick;
 
-            lblUpdateSize = new DXLabel(WindowManager);
+            lblUpdateSize = new XNALabel(WindowManager);
             lblUpdateSize.ClientRectangle = new Rectangle(12, 80, 0, 0);
             lblUpdateSize.Text = String.Empty;
             lblUpdateSize.Name = "lblUpdateSize";
 
-            DXButton btnYes = new DXButton(WindowManager);
+            XNAButton btnYes = new XNAButton(WindowManager);
             btnYes.ClientRectangle = new Rectangle(12, 110, 75, 23);
             btnYes.IdleTexture = AssetLoader.LoadTexture("75pxbtn.png");
             btnYes.HoverTexture = AssetLoader.LoadTexture("75pxbtn_c.png");
@@ -59,7 +59,7 @@ namespace DTAClient.DXGUI.Generic
             btnYes.FontIndex = 1;
             btnYes.LeftClick += BtnYes_LeftClick;
 
-            DXButton btnNo = new DXButton(WindowManager);
+            XNAButton btnNo = new XNAButton(WindowManager);
             btnNo.ClientRectangle = new Rectangle(164, 110, 75, 23);
             btnNo.IdleTexture = AssetLoader.LoadTexture("75pxbtn.png");
             btnNo.HoverTexture = AssetLoader.LoadTexture("75pxbtn_c.png");

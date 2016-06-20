@@ -15,7 +15,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
     /// <summary>
     /// A game option check box for the game lobby.
     /// </summary>
-    public class GameLobbyCheckBox : DXCheckBox
+    public class GameLobbyCheckBox : XNACheckBox
     {
         public GameLobbyCheckBox(WindowManager windowManager) : base (windowManager) { }
 

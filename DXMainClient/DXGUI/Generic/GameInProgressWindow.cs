@@ -16,7 +16,7 @@ namespace DTAClient.DXGUI
     /// Displays a dialog in the client when a game is in progress.
     /// Also enables power-saving (lowers FPS) while a game is in progress.
     /// </summary>
-    public class GameInProgressWindow : DXPanel
+    public class GameInProgressWindow : XNAPanel
     {
         const double FPS = 120.0;
         const double POWER_SAVING_FPS = 5.0;
@@ -39,13 +39,13 @@ namespace DTAClient.DXGUI
             DrawBorders = false;
             ClientRectangle = new Rectangle(0, 0, WindowManager.RenderResolutionX, WindowManager.RenderResolutionY);
 
-            DXWindow window = new DXWindow(WindowManager);
+            XNAWindow window = new XNAWindow(WindowManager);
 
             window.Name = "GameInProgressWindow";
             window.BackgroundTexture = AssetLoader.LoadTexture("missionselectorbg.png");
             window.ClientRectangle = new Rectangle(0, 0, 200, 100);
 
-            DXLabel explanation = new DXLabel(WindowManager);
+            XNALabel explanation = new XNALabel(WindowManager);
             explanation.Text = "A game is in progress.";
 
             AddChild(window);
