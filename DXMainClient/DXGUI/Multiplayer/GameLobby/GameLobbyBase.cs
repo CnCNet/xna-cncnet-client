@@ -133,6 +133,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 AssetLoader.LoadTexture("rankHard.png")
             };
 
+            MPColors = MultiplayerColor.LoadColors();
+
             _gameOptionsIni = new IniFile(ProgramConstants.GetBaseResourcePath() + "GameOptions.ini");
 
             GameOptionsPanel = new XNAPanel(WindowManager);
@@ -260,8 +262,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             AddChild(tbMapSearch);
 
             SharedUILogic.GameProcessExited += GameProcessExited_Callback;
-
-            MPColors = MultiplayerColor.LoadColors();
 
             AddChild(GameOptionsPanel);
 
