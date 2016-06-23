@@ -18,14 +18,20 @@ namespace DTAClient
 
             Environment.CurrentDirectory = MainClientConstants.gamepath;
 
-            Logger.Initialize();
-            Logger.LogFileName = "client.log";
-            Logger.LogPath = MainClientConstants.gamepath;
+            CheckPermissions();
+
+            Logger.Initialize(MainClientConstants.gamepath + "Client\\", "client.log");
             Logger.WriteLogFile = true;
-            Logger.Log("Initializing constants.");
+
+            File.Delete(MainClientConstants.gamepath + "Client\\client.log");
+
+            if (!Directory.Exists(MainClientConstants.gamepath + "Client"))
+                Directory.CreateDirectory(MainClientConstants.gamepath + "Client");
+
             MainClientConstants.Initialize();
 
-            CheckPermissions();
+            Logger.Log("***Logfile for " + MainClientConstants.GAME_NAME_LONG + " client***");
+            Logger.Log("Client version: " + Application.ProductVersion);
 
             File.Delete(MainClientConstants.gamepath + "mainclient.log");
             File.Delete(MainClientConstants.gamepath + "launchupdt.dat");
@@ -40,9 +46,6 @@ namespace DTAClient
                     "CnCNet Client");
                 Environment.Exit(0);
             }
-
-            Logger.Log("***Logfile for " + MainClientConstants.GAME_NAME_LONG + " client***");
-            Logger.Log("Client version: " + Application.ProductVersion);
 
             Application.EnableVisualStyles();
 
@@ -110,9 +113,10 @@ namespace DTAClient
         {
             try
             {
-                System.IO.File.Delete(Environment.CurrentDirectory + "\\client.log");
-                FileStream fs = System.IO.File.Create(Environment.CurrentDirectory + "\\client.log");
+                File.Delete(Environment.CurrentDirectory + "\\tmpfile");
+                FileStream fs = File.Create(Environment.CurrentDirectory + "\\tmpfile");
                 fs.Close();
+                File.Delete(Environment.CurrentDirectory + "\\tmpfile");
             }
             catch (UnauthorizedAccessException)
             {

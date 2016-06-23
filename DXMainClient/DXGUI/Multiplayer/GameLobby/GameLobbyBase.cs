@@ -272,6 +272,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 GameLobbyCheckBox chkBox = new GameLobbyCheckBox(WindowManager);
                 chkBox.Name = chkName;
                 chkBox.GetAttributes(GameOptionsIni);
+                chkBox.CheckSoundEffect = AssetLoader.LoadSound("checkbox.wav");
                 CheckBoxes.Add(chkBox);
                 AddChild(chkBox);
                 chkBox.CheckedChanged += ChkBox_CheckedChanged;
@@ -359,7 +360,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             {
                 if (tbMapSearch.Text != tbMapSearch.Suggestion)
                 {
-                    if (!map.Name.Contains(tbMapSearch.Text))
+                    if (!map.Name.ToUpper().Contains(tbMapSearch.Text.ToUpper()))
                         continue;
                 }
 
@@ -372,7 +373,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                         rankItem.Texture = RankTextures[0];
                 }
                 else
-                    rankItem.Texture = RankTextures[StatisticsManager.Instance.GetSkirmishRankForDefaultMap(map.Name, map.MaxPlayers) + 1];
+                    rankItem.Texture = RankTextures[GetDefaultMapRankIndex(map) + 1];
 
                 DXListBoxItem mapNameItem = new DXListBoxItem();
                 mapNameItem.Text = map.Name;
@@ -388,6 +389,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 lbMapList.AddItem(mapInfoArray);
             }
         }
+
+        protected abstract int GetDefaultMapRankIndex(Map map);
 
         protected void LbMapList_SelectedIndexChanged(object sender, EventArgs e)
         {

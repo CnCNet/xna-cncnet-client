@@ -11,6 +11,8 @@ using ClientCore;
 using Rampastring.Tools;
 using System.IO;
 using Microsoft.Xna.Framework.Audio;
+using Rampastring.XNAUI.Input;
+using Microsoft.Xna.Framework.Input;
 
 namespace DTAClient.DXGUI.Multiplayer
 {
@@ -24,6 +26,7 @@ namespace DTAClient.DXGUI.Multiplayer
         }
 
         public event EventHandler GameLeft;
+        public event EventHandler Switched;
 
         protected List<SavedGamePlayer> SGPlayers = new List<SavedGamePlayer>();
 
@@ -59,6 +62,7 @@ namespace DTAClient.DXGUI.Multiplayer
 
         bool isSettingUp = false;
         FileSystemWatcher fsw;
+        bool switched = false;
 
         public override void Initialize()
         {
@@ -207,10 +211,33 @@ namespace DTAClient.DXGUI.Multiplayer
 
             WindowManager.CenterControlOnScreen(this);
 
-            fsw = new FileSystemWatcher(ProgramConstants.GamePath + "Saved Games", "*.NET");
-            fsw.EnableRaisingEvents = false;
-            fsw.Created += fsw_Created;
-            fsw.Changed += fsw_Created;
+            if (SavedGameManager.AreSavedGamesAvailable())
+            {
+                fsw = new FileSystemWatcher(ProgramConstants.GamePath + "Saved Games", "*.NET");
+                fsw.EnableRaisingEvents = false;
+                fsw.Created += fsw_Created;
+                fsw.Changed += fsw_Created;
+            }
+
+            Keyboard.OnKeyPressed += Keyboard_OnKeyPressed;
+        }
+
+        private void Keyboard_OnKeyPressed(object sender, KeyPressEventArgs e)
+        {
+            if (Enabled && e.PressedKey == Keys.F9)
+            {
+                Switch();
+            }
+        }
+
+        /// <summary>
+        /// Fires the Switched event that can be used for switching between the
+        /// game lobby and regular chat lobby in the UI.
+        /// </summary>
+        private void Switch()
+        {
+            Switched?.Invoke(this, EventArgs.Empty);
+            switched = !switched;
         }
 
         private void BtnLeaveGame_LeftClick(object sender, EventArgs e)
@@ -266,6 +293,10 @@ namespace DTAClient.DXGUI.Multiplayer
         protected virtual void GetReadyNotification()
         {
             AddNotice("The game host wants to load the game but cannot because not all players are ready!");
+
+            if (switched)
+                Switch();
+
             WindowManager.FlashWindow();
         }
 
@@ -316,6 +347,8 @@ namespace DTAClient.DXGUI.Multiplayer
         {
             fsw.EnableRaisingEvents = false;
 
+            SharedUILogic.GameProcessExited -= SharedUILogic_GameProcessExited;
+
             // TODO write game to statistics
         }
 
@@ -340,6 +373,7 @@ namespace DTAClient.DXGUI.Multiplayer
         {
             isSettingUp = true;
             IsHost = isHost;
+            switched = false;
 
             SGPlayers.Clear();
             Players.Clear();

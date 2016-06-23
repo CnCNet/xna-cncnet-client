@@ -14,7 +14,8 @@ namespace DTAClient.DXGUI
 {
     /// <summary>
     /// Displays a dialog in the client when a game is in progress.
-    /// Also enables power-saving (lowers FPS) while a game is in progress.
+    /// Also enables power-saving (lowers FPS) while a game is in progress,
+    /// and performs various operations on game start and exit.
     /// </summary>
     public class GameInProgressWindow : XNAPanel
     {
@@ -70,6 +71,10 @@ namespace DTAClient.DXGUI
         private void SharedUILogic_GameProcessStarted()
         {
             File.Delete(ProgramConstants.GamePath + "EXCEPT.TXT");
+
+            for (int i = 0; i < 8; i++)
+                File.Delete(ProgramConstants.GamePath + "SYNC" + i + ".TXT");
+
             Visible = true;
             Enabled = true;
             WindowManager.Cursor.Visible = false;
@@ -85,18 +90,40 @@ namespace DTAClient.DXGUI
 
         private void HandleGameProcessExited()
         {
-            if (File.Exists(ProgramConstants.GamePath + "EXCEPT.TXT"))
+            try
             {
                 if (!Directory.Exists(ProgramConstants.GamePath + "Client\\ErrorLogs"))
                     Directory.CreateDirectory(ProgramConstants.GamePath + "Client\\ErrorLogs");
 
-                Logger.Log("The game crashed! Copying EXCEPT.TXT file.");
-
                 DateTime dtn = DateTime.Now;
 
-                File.Copy(ProgramConstants.GamePath + "EXCEPT.TXT",
-                    string.Format(ProgramConstants.GamePath + "Client\\ErrorLogs\\EXCEPT_{0}_{1}_{2}_{3}_{4}.TXT",
-                    dtn.Day, dtn.Month, dtn.Year, dtn.Hour, dtn.Minute));
+                if (File.Exists(ProgramConstants.GamePath + "EXCEPT.TXT"))
+                {
+                    Logger.Log("The game crashed! Copying EXCEPT.TXT file.");
+
+                    File.Copy(ProgramConstants.GamePath + "EXCEPT.TXT",
+                        string.Format(ProgramConstants.GamePath + "Client\\ErrorLogs\\EXCEPT_{0}_{1}_{2}_{3}_{4}.TXT",
+                        dtn.Day, dtn.Month, dtn.Year, dtn.Hour, dtn.Minute));
+                }
+
+                for (int i = 0; i < 8; i++)
+                {
+                    string syncFileName = "SYNC" + i + ".TXT";
+
+                    if (File.Exists(ProgramConstants.GamePath + syncFileName))
+                    {
+                        Logger.Log("There was a sync error! Copying file " + syncFileName);
+
+                        File.Copy(ProgramConstants.GamePath + syncFileName,
+                            string.Format(ProgramConstants.GamePath + "Client\\ErrorLogs\\" + syncFileName + "_{0}_{1}_{2}_{3}_{4}.TXT",
+                            dtn.Day, dtn.Month, dtn.Year, dtn.Hour, dtn.Minute));
+                        File.Delete(ProgramConstants.GamePath + syncFileName);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Log("An error occured while checking for EXCEPT.TXT and SYNCX.TXT files. Message: " + ex.Message);
             }
 
             Visible = false;

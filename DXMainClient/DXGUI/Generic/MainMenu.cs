@@ -59,9 +59,9 @@ namespace DTAClient.DXGUI.Generic
             mmUIPanel.Name = "MainMenuUIPanel";
             Texture2D texture = BackgroundTexture;
             mmUIPanel.ClientRectangle = new Rectangle(0, 0, texture.Width, texture.Height);
-            ClientRectangle = new Rectangle((WindowManager.RenderResolutionX - ClientRectangle.Width) / 2,
-                (WindowManager.RenderResolutionY - ClientRectangle.Height) / 2,
-                mmUIPanel.ClientRectangle.Width, mmUIPanel.ClientRectangle.Height);
+            ClientRectangle = mmUIPanel.ClientRectangle;
+
+            WindowManager.CenterControlOnScreen(this);
 
             XNAButton btnNewCampaign = new XNAButton(WindowManager);
             btnNewCampaign.Name = "btnNewCampaign";
@@ -219,7 +219,6 @@ namespace DTAClient.DXGUI.Generic
             WindowManager.GameFormClosing += Instance_GameFormClosing;
 
             skirmishLobby.VisibleChanged += SkirmishLobby_VisibleChanged;
-            cncnetLobby.VisibleChanged += CncnetLobby_VisibleChanged;
         }
 
         private void CnCNetInfoController_CnCNetGameCountUpdated(object sender, PlayerCountEventArgs e)
@@ -236,14 +235,6 @@ namespace DTAClient.DXGUI.Generic
         private void SkirmishLobby_VisibleChanged(object sender, EventArgs e)
         {
             if (skirmishLobby.Visible)
-                innerPanel.Show(null);
-            else
-                innerPanel.Hide();
-        }
-
-        private void CncnetLobby_VisibleChanged(object sender, EventArgs e)
-        {
-            if (cncnetLobby.Visible)
                 innerPanel.Show(null);
             else
                 innerPanel.Hide();

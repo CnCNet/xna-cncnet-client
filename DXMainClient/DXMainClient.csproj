@@ -131,6 +131,7 @@
     <Compile Include="domain\UserAgentHandler.cs" />
     <Compile Include="DXGUI\Generic\CampaignSelector.cs" />
     <Compile Include="DXGUI\Generic\DarkeningPanel.cs" />
+    <Compile Include="DXGUI\Generic\TopBar.cs" />
     <Compile Include="DXGUI\Multiplayer\ChatListBox.cs" />
     <Compile Include="DXGUI\Multiplayer\CnCNetGameLoadingLobby.cs" />
     <Compile Include="DXGUI\Multiplayer\CnCNetLobby.cs" />

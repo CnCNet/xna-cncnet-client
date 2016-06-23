@@ -382,18 +382,46 @@ namespace DTAClient.DXGUI.Multiplayer
 
             gameLobby.GameLeft += GameLobby_GameLeft;
             gameLoadingLobby.GameLeft += GameLoadingLobby_GameLeft;
+            gameLobby.Switched += GameLobby_Switched;
+            gameLoadingLobby.Switched += GameLoadingLobby_Switched;
+        }
+
+        private void GameLoadingLobby_Switched(object sender, EventArgs e)
+        {
+            Switch();
+        }
+
+        private void GameLobby_Switched(object sender, EventArgs e)
+        {
+            Switch();
+        }
+
+        private void Switch()
+        {
+            if (Visible)
+            {
+                Visible = false;
+                Enabled = false;
+            }
+            else
+            {
+                Visible = true;
+                Enabled = true;
+            }
         }
 
         private void GameLoadingLobby_GameLeft(object sender, EventArgs e)
         {
             Visible = true;
             Enabled = true;
+            btnLogout.AllowClick = true;
         }
 
         private void GameLobby_GameLeft(object sender, EventArgs e)
         {
             Visible = true;
             Enabled = true;
+            btnLogout.AllowClick = true;
         }
 
         private void BtnJoinGame_LeftClick(object sender, EventArgs e)
@@ -555,6 +583,7 @@ namespace DTAClient.DXGUI.Multiplayer
                 gameLobby.Enabled = true;
                 Visible = false;
                 Enabled = false;
+                btnLogout.AllowClick = false;
                 // TODO enter persistent mode
             }
         }
@@ -601,6 +630,7 @@ namespace DTAClient.DXGUI.Multiplayer
                 gameLoadingLobby.Enabled = true;
                 Visible = false;
                 Enabled = false;
+                btnLogout.AllowClick = false;
                 // TODO enter persistent mode
             }
         }
@@ -728,6 +758,8 @@ namespace DTAClient.DXGUI.Multiplayer
             currentChatChannel.MessageAdded += CurrentChatChannel_MessageAdded;
             currentChatChannel.UserGameIndexUpdated += CurrentChatChannel_UserGameIndexUpdated;
             connectionManager.SetMainChannel(currentChatChannel);
+
+            lbPlayerList.TopIndex = 0;
 
             lbChatMessages.TopIndex = 0;
             lbChatMessages.Clear();

@@ -109,5 +109,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             return true;
         }
+
+        protected override int GetDefaultMapRankIndex(Map map)
+        {
+            return StatisticsManager.Instance.GetSkirmishRankForDefaultMap(map.Name, map.MaxPlayers);
+        }
     }
 }

@@ -100,6 +100,7 @@ namespace DTAClient.DXGUI
             UISettings.FocusColor = AssetLoader.GetColorFromString(DomainController.Instance().GetListBoxFocusColor());
 
             UISettings.DefaultAlphaRate = DomainController.Instance().GetDefaultAlphaRate();
+            UISettings.CheckBoxAlphaRate = DomainController.Instance().GetCheckBoxAlphaRate();
 
             UISettings.CheckBoxClearTexture = AssetLoader.LoadTexture("checkBoxClear.png");
             UISettings.CheckBoxCheckedTexture = AssetLoader.LoadTexture("checkBoxChecked.png");

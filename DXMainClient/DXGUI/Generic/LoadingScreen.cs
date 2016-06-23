@@ -33,6 +33,9 @@ namespace DTAClient.DXGUI.Generic
 
         MapLoader mapLoader;
 
+        DarkeningPanel cncnetLobbyPanel;
+        DarkeningPanel cncnetGameLobbyPanel;
+
         //DXProgressBar progressBar;
 
         public override void Initialize()
@@ -110,9 +113,18 @@ namespace DTAClient.DXGUI.Generic
             CUpdater.OnLocalFileVersionsChecked -= CUpdater_OnLocalFileVersionsChecked;
             WindowManager.AddAndInitializeControl(mm);
             WindowManager.AddAndInitializeControl(sl);
-            WindowManager.AddAndInitializeControl(cncnetGameLobby);
             WindowManager.AddAndInitializeControl(cncnetGameLoadingLobby);
-            WindowManager.AddAndInitializeControl(cncnetLobby);
+
+            cncnetGameLobbyPanel = new DarkeningPanel(WindowManager);
+            WindowManager.AddAndInitializeControl(cncnetGameLobbyPanel);
+            cncnetGameLobbyPanel.AddChild(cncnetGameLobby);
+            cncnetGameLobby.VisibleChanged += Lobby_VisibleChanged;
+
+            cncnetLobbyPanel = new DarkeningPanel(WindowManager);
+            WindowManager.AddAndInitializeControl(cncnetLobbyPanel);
+            cncnetLobbyPanel.AddChild(cncnetLobby);
+            cncnetLobby.VisibleChanged += Lobby_VisibleChanged;
+
             WindowManager.AddAndInitializeControl(gipw);
             sl.Visible = false;
             sl.Enabled = false;
@@ -126,6 +138,17 @@ namespace DTAClient.DXGUI.Generic
             mm.PostInit();
 
             Cursor.Visible = true;
+        }
+
+        private void Lobby_VisibleChanged(object sender, EventArgs e)
+        {
+            var senderWindow = (XNAWindow)sender;
+            var dp = (DarkeningPanel)senderWindow.Parent;
+
+            if (senderWindow.Visible)
+                dp.Show();
+            else
+                dp.Hide();
         }
 
         public override void Update(GameTime gameTime)

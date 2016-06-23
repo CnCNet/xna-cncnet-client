@@ -11,6 +11,9 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Audio;
 using System.IO;
 using Rampastring.Tools;
+using Rampastring.XNAUI.Input;
+using Microsoft.Xna.Framework.Input;
+using ClientCore.Statistics;
 
 namespace DTAClient.DXGUI.Multiplayer.GameLobby
 {
@@ -23,6 +26,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             : base(windowManager, iniName, GameModes)
         {
         }
+
+        public event EventHandler Switched;
 
         protected XNACheckBox[] ReadyBoxes;
 
@@ -43,6 +48,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         private bool gameSaved = false;
 
         private bool mapChangeInProgress = false;
+
+        private bool switched = false;
 
         public override void Initialize()
         {
@@ -145,6 +152,22 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 fsw.Created += fsw_Created;
                 fsw.Changed += fsw_Created;
             }
+
+            Keyboard.OnKeyPressed += Keyboard_OnKeyPressed;
+        }
+
+        private void Keyboard_OnKeyPressed(object sender, KeyPressEventArgs e)
+        {
+            if (Enabled && e.PressedKey == Keys.F9)
+            {
+                Switch();
+            }
+        }
+
+        private void Switch()
+        {
+            Switched?.Invoke(this, EventArgs.Empty);
+            switched = !switched;
         }
 
         private void fsw_Created(object sender, FileSystemEventArgs e)
@@ -195,6 +218,22 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (string.IsNullOrEmpty(tbChatInput.Text))
                 return;
 
+            if (tbChatInput.Text.StartsWith("/"))
+            {
+                string command = tbChatInput.Text.ToUpper();
+
+                tbChatInput.Text = string.Empty;
+
+                if (command == "/SWITCH")
+                {
+                    Switched?.Invoke(this, EventArgs.Empty);
+                    return;
+                }
+
+                AddNotice("Type /SWITCH to switch between the CnCNet lobby and the game lobby.");
+                return;
+            }
+
             SendChatMessage(tbChatInput.Text);
             tbChatInput.Text = string.Empty;
         }
@@ -208,6 +247,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         protected void Refresh(bool isHost)
         {
             IsHost = isHost;
+            switched = false;
 
             MapPreviewBox.EnableContextMenu = IsHost;
 
@@ -468,6 +508,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         protected virtual void GetReadyNotification()
         {
             AddNotice("The host wants to start the game but cannot because not all players are ready!");
+            if (switched)
+                Switch();
         }
 
         protected virtual void InsufficientPlayersNotification()
@@ -581,6 +623,17 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             if (IsHost)
                 OnGameOptionChanged();
+        }
+
+        protected override int GetDefaultMapRankIndex(Map map)
+        {
+            if (map.MaxPlayers > 3)
+                return StatisticsManager.Instance.GetCoopRankForDefaultMap(map.Name, map.MaxPlayers);
+
+            if (StatisticsManager.Instance.HasWonMapInPvP(map.Name, GameMode.UIName, map.MaxPlayers))
+                return 2;
+
+            return -1;
         }
     }
 }
