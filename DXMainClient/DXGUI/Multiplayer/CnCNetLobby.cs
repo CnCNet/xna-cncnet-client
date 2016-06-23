@@ -22,7 +22,7 @@ using DTAClient.DXGUI.Generic;
 
 namespace DTAClient.DXGUI.Multiplayer
 {
-    public class CnCNetLobby : XNAWindow
+    public class CnCNetLobby : XNAWindow, ISwitchable
     {
         const int GAME_REFRESH_RATE = 120;
         const double GAME_LIFETIME = 35.0;
@@ -132,7 +132,7 @@ namespace DTAClient.DXGUI.Multiplayer
             btnLogout.HoverTexture = AssetLoader.LoadTexture("133pxbtn_c.png");
             btnLogout.HoverSoundEffect = AssetLoader.LoadSound("button.wav");
             btnLogout.FontIndex = 1;
-            btnLogout.Text = "Main Menu";
+            btnLogout.Text = "Log Out";
             btnLogout.LeftClick += BtnLogout_LeftClick;
 
             btnForums = new LinkButton(WindowManager);
@@ -382,8 +382,6 @@ namespace DTAClient.DXGUI.Multiplayer
 
             gameLobby.GameLeft += GameLobby_GameLeft;
             gameLoadingLobby.GameLeft += GameLoadingLobby_GameLeft;
-            gameLobby.Switched += GameLobby_Switched;
-            gameLoadingLobby.Switched += GameLoadingLobby_Switched;
         }
 
         private void GameLoadingLobby_Switched(object sender, EventArgs e)
@@ -579,8 +577,6 @@ namespace DTAClient.DXGUI.Multiplayer
                 gameChannel.MessageAdded -= GameChannel_MessageAdded;
 
                 gameLobby.OnJoined();
-                gameLobby.Visible = true;
-                gameLobby.Enabled = true;
                 Visible = false;
                 Enabled = false;
                 btnLogout.AllowClick = false;
@@ -985,6 +981,23 @@ namespace DTAClient.DXGUI.Multiplayer
             }
 
             base.Update(gameTime);
+        }
+
+        public void SwitchOn()
+        {
+            Visible = true;
+            Enabled = true;
+        }
+
+        public void SwitchOff()
+        {
+            Visible = false;
+            Enabled = false;
+        }
+
+        public string GetSwitchName()
+        {
+            return "CnCNet Lobby";
         }
     }
 }

@@ -100,14 +100,20 @@ namespace DTAClient.DXGUI.Generic
         {
             CnCNetManager cncnetManager = new CnCNetManager(WindowManager);
             TunnelHandler tunnelHandler = new TunnelHandler(WindowManager, cncnetManager);
-            SkirmishLobby sl = new SkirmishLobby(WindowManager, mapLoader.GameModes);
+
+            TopBar topBar = new TopBar(WindowManager);
+
             CnCNetGameLobby cncnetGameLobby = new CnCNetGameLobby(WindowManager,
-                "MultiplayerGameLobby", mapLoader.GameModes, cncnetManager, tunnelHandler);
-            CnCNetGameLoadingLobby cncnetGameLoadingLobby = new CnCNetGameLoadingLobby(WindowManager,
-                cncnetManager, tunnelHandler, mapLoader.GameModes);
+                "MultiplayerGameLobby", topBar, mapLoader.GameModes, cncnetManager, tunnelHandler);
+            CnCNetGameLoadingLobby cncnetGameLoadingLobby = new CnCNetGameLoadingLobby(WindowManager, 
+                topBar, cncnetManager, tunnelHandler, mapLoader.GameModes);
             CnCNetLobby cncnetLobby = new CnCNetLobby(WindowManager, cncnetManager, 
                 cncnetGameLobby, cncnetGameLoadingLobby, tunnelHandler);
             GameInProgressWindow gipw = new GameInProgressWindow(WindowManager);
+
+            SkirmishLobby sl = new SkirmishLobby(WindowManager, topBar, mapLoader.GameModes);
+
+            topBar.SetSecondarySwitch(cncnetLobby);
 
             MainMenu mm = new MainMenu(WindowManager, sl, cncnetLobby);
             CUpdater.OnLocalFileVersionsChecked -= CUpdater_OnLocalFileVersionsChecked;
@@ -136,6 +142,9 @@ namespace DTAClient.DXGUI.Generic
             cncnetGameLoadingLobby.Enabled = false;
             WindowManager.RemoveControl(this);
             mm.PostInit();
+
+            WindowManager.AddAndInitializeControl(topBar);
+            topBar.AddPrimarySwitchable(mm);
 
             Cursor.Visible = true;
         }

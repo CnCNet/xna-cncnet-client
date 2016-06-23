@@ -28,9 +28,9 @@ namespace DTAClient.DXGUI.Multiplayer
         const string START_GAME_CTCP_COMMAND = "START";
         const string PLAYER_READY_CTCP_COMMAND = "READY";
 
-        public CnCNetGameLoadingLobby(WindowManager windowManager,
+        public CnCNetGameLoadingLobby(WindowManager windowManager, TopBar topBar,
             CnCNetManager connectionManager, TunnelHandler tunnelHandler,
-            List<GameMode> gameModes) : base(windowManager)
+            List<GameMode> gameModes) : base(windowManager, topBar)
         {
             this.connectionManager = connectionManager;
             this.tunnelHandler = tunnelHandler;
@@ -157,6 +157,8 @@ namespace DTAClient.DXGUI.Multiplayer
 
                 base.LeaveGame();
             }
+
+            TopBar.RemovePrimarySwitchable(this);
         }
 
         private void Channel_CTCPReceived(object sender, ChannelCTCPEventArgs e)
@@ -191,8 +193,6 @@ namespace DTAClient.DXGUI.Multiplayer
                     QueuedMessageType.SYSTEM_MESSAGE, 50));
 
                 gameFilesHash = fhc.GetCompleteHash();
-
-                return;
             }
             else
             {
@@ -205,6 +205,8 @@ namespace DTAClient.DXGUI.Multiplayer
                 else
                     AddNotice(ProgramConstants.PLAYERNAME + " - ping to tunnel server: " + tunnel.PingInMs + " ms");
             }
+
+            TopBar.AddPrimarySwitchable(this);
         }
 
         private void Channel_UserAdded(object sender, UserEventArgs e)
@@ -640,6 +642,11 @@ namespace DTAClient.DXGUI.Multiplayer
             }
 
             base.Update(gameTime);
+        }
+
+        public override string GetSwitchName()
+        {
+            return "Load Game";
         }
     }
 }

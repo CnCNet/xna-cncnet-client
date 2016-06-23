@@ -22,7 +22,7 @@ using DTAClient.DXGUI.Multiplayer;
 
 namespace DTAClient.DXGUI.Generic
 {
-    class MainMenu : XNAWindow
+    class MainMenu : XNAWindow, ISwitchable
     {
         public MainMenu(WindowManager windowManager, SkirmishLobby skirmishLobby,
             CnCNetLobby cncnetLobby) : base(windowManager)
@@ -218,7 +218,14 @@ namespace DTAClient.DXGUI.Generic
 
             WindowManager.GameFormClosing += Instance_GameFormClosing;
 
-            skirmishLobby.VisibleChanged += SkirmishLobby_VisibleChanged;
+            skirmishLobby.Exited += SkirmishLobby_Exited;
+        }
+
+        private void SkirmishLobby_Exited(object sender, EventArgs e)
+        {
+            innerPanel.Hide();
+            Visible = true;
+            Enabled = true;
         }
 
         private void CnCNetInfoController_CnCNetGameCountUpdated(object sender, PlayerCountEventArgs e)
@@ -232,14 +239,6 @@ namespace DTAClient.DXGUI.Generic
             }
         }
 
-        private void SkirmishLobby_VisibleChanged(object sender, EventArgs e)
-        {
-            if (skirmishLobby.Visible)
-                innerPanel.Show(null);
-            else
-                innerPanel.Hide();
-        }
-
         /// <summary>
         /// Attemps to "clean" the client session in a nice way if the user closes the game form. 
         /// </summary>
@@ -248,6 +247,8 @@ namespace DTAClient.DXGUI.Generic
             CnCNetInfoController.DisableService();
             if (updateInProgress)
                 CUpdater.TerminateUpdate = true;
+
+            Environment.Exit(0);
         }
 
         public void PostInit()
@@ -433,8 +434,9 @@ namespace DTAClient.DXGUI.Generic
 
         private void BtnSkirmish_LeftClick(object sender, EventArgs e)
         {
-            skirmishLobby.Visible = true;
-            skirmishLobby.Enabled = true;
+            skirmishLobby.Open();
+
+            innerPanel.Show(null);
         }
 
         private void BtnMapEditor_LeftClick(object sender, EventArgs e)
@@ -524,6 +526,23 @@ namespace DTAClient.DXGUI.Generic
             {
                 base.Draw(gameTime);
             }
+        }
+
+        public void SwitchOn()
+        {
+            // Visible = true;
+            // Enabled = true;
+        }
+
+        public void SwitchOff()
+        {
+            // Visible = false;
+            // Enabled = false;
+        }
+
+        public string GetSwitchName()
+        {
+            return "Main Menu";
         }
     }
 }

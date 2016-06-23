@@ -12,6 +12,7 @@ using Rampastring.Tools;
 using DTAClient.DXGUI.Multiplayer.GameLobby.CTCPHandlers;
 using System.Net;
 using Microsoft.Xna.Framework.Audio;
+using DTAClient.DXGUI.Generic;
 
 namespace DTAClient.DXGUI.Multiplayer.GameLobby
 {
@@ -21,9 +22,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         const double INITIAL_TIME = 5.0;
 
         public CnCNetGameLobby(WindowManager windowManager, string iniName, 
-            List<GameMode> GameModes, CnCNetManager connectionManager,
+            TopBar topBar, List<GameMode> GameModes, CnCNetManager connectionManager,
             TunnelHandler tunnelHandler) : 
-            base(windowManager, iniName, GameModes)
+            base(windowManager, iniName, topBar, GameModes)
         {
             this.connectionManager = connectionManager;
             localGame = DomainController.Instance().GetDefaultGame();
@@ -144,8 +145,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     QueuedMessageType.SYSTEM_MESSAGE, 50));
 
                 gameFilesHash = fhc.GetCompleteHash();
-
-                return;
             }
             else
             {
@@ -161,6 +160,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             Visible = true;
             Enabled = true;
+            TopBar.AddPrimarySwitchable(this);
         }
 
         public void ChangeChatColor(IRCColor chatColor)
@@ -201,6 +201,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             tbChatInput.Text = string.Empty;
 
             GameLeft?.Invoke(this, EventArgs.Empty);
+
+            TopBar.RemovePrimarySwitchable(this);
         }
 
         private void ConnectionManager_Disconnected(object sender, EventArgs e)
@@ -1127,5 +1129,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         }
 
         #endregion
+
+        public override string GetSwitchName()
+        {
+            return "Game Lobby";
+        }
     }
 }

@@ -9,14 +9,20 @@ using Microsoft.Xna.Framework;
 using ClientCore;
 using Microsoft.Xna.Framework.Graphics;
 using ClientCore.Statistics;
+using DTAClient.DXGUI.Generic;
 
 namespace DTAClient.DXGUI.Multiplayer.GameLobby
 {
-    public class SkirmishLobby : GameLobbyBase
+    public class SkirmishLobby : GameLobbyBase, ISwitchable
     {
-        public SkirmishLobby(WindowManager windowManager, List<GameMode> GameModes) : base(windowManager, "SkirmishLobby", GameModes)
+        public SkirmishLobby(WindowManager windowManager, TopBar topBar, List<GameMode> GameModes) : base(windowManager, "SkirmishLobby", GameModes)
         {
+            this.topBar = topBar;
         }
+
+        public event EventHandler Exited;
+
+        TopBar topBar;
 
         public override void Initialize()
         {
@@ -103,6 +109,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             this.Enabled = false;
             this.Visible = false;
+
+            Exited?.Invoke(this, EventArgs.Empty);
+
+            topBar.RemovePrimarySwitchable(this);
         }
 
         protected override bool AllowPlayerOptionsChange()
@@ -113,6 +123,29 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         protected override int GetDefaultMapRankIndex(Map map)
         {
             return StatisticsManager.Instance.GetSkirmishRankForDefaultMap(map.Name, map.MaxPlayers);
+        }
+
+        public void Open()
+        {
+            topBar.AddPrimarySwitchable(this);
+            SwitchOn();
+        }
+
+        public void SwitchOn()
+        {
+            Enabled = true;
+            Visible = true;
+        }
+
+        public void SwitchOff()
+        {
+            Enabled = false;
+            Visible = false;
+        }
+
+        public string GetSwitchName()
+        {
+            return "Skirmish Lobby";
         }
     }
 }

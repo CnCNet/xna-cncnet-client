@@ -14,20 +14,21 @@ using Rampastring.Tools;
 using Rampastring.XNAUI.Input;
 using Microsoft.Xna.Framework.Input;
 using ClientCore.Statistics;
+using DTAClient.DXGUI.Generic;
 
 namespace DTAClient.DXGUI.Multiplayer.GameLobby
 {
     /// <summary>
     /// A generic base class for multiplayer game lobbies (CnCNet and LAN).
     /// </summary>
-    public abstract class MultiplayerGameLobby : GameLobbyBase
+    public abstract class MultiplayerGameLobby : GameLobbyBase, ISwitchable
     {
-        public MultiplayerGameLobby(WindowManager windowManager, string iniName, List<GameMode> GameModes)
+        public MultiplayerGameLobby(WindowManager windowManager, string iniName, 
+            TopBar topBar, List<GameMode> GameModes)
             : base(windowManager, iniName, GameModes)
         {
+            TopBar = topBar;
         }
-
-        public event EventHandler Switched;
 
         protected XNACheckBox[] ReadyBoxes;
 
@@ -42,6 +43,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         protected SoundEffectInstance sndJoinSound;
         protected SoundEffectInstance sndLeaveSound;
         protected SoundEffectInstance sndMessageSound;
+
+        protected TopBar TopBar;
 
         private FileSystemWatcher fsw;
 
@@ -152,22 +155,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 fsw.Created += fsw_Created;
                 fsw.Changed += fsw_Created;
             }
-
-            Keyboard.OnKeyPressed += Keyboard_OnKeyPressed;
-        }
-
-        private void Keyboard_OnKeyPressed(object sender, KeyPressEventArgs e)
-        {
-            if (Enabled && e.PressedKey == Keys.F9)
-            {
-                Switch();
-            }
-        }
-
-        private void Switch()
-        {
-            Switched?.Invoke(this, EventArgs.Empty);
-            switched = !switched;
         }
 
         private void fsw_Created(object sender, FileSystemEventArgs e)
@@ -224,13 +211,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
                 tbChatInput.Text = string.Empty;
 
-                if (command == "/SWITCH")
-                {
-                    Switched?.Invoke(this, EventArgs.Empty);
-                    return;
-                }
-
-                AddNotice("Type /SWITCH to switch between the CnCNet lobby and the game lobby.");
                 return;
             }
 
@@ -508,8 +488,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         protected virtual void GetReadyNotification()
         {
             AddNotice("The host wants to start the game but cannot because not all players are ready!");
-            if (switched)
-                Switch();
         }
 
         protected virtual void InsufficientPlayersNotification()
@@ -635,5 +613,19 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             return -1;
         }
+
+        public void SwitchOn()
+        {
+            Enabled = true;
+            Visible = true;
+        }
+
+        public void SwitchOff()
+        {
+            Enabled = true;
+            Visible = true;
+        }
+
+        public abstract string GetSwitchName();
     }
 }
