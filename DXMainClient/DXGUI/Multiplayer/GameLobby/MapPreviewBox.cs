@@ -136,7 +136,16 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private void ContextMenu_OptionSelected(object sender, ContextMenuOptionEventArgs e)
         {
-            PlayerInfo pInfo;
+            if (Map.EnforceMaxPlayers)
+            {
+                foreach (PlayerInfo pInfo in players.Concat(aiPlayers))
+                {
+                    if (pInfo.StartingLocation == (int)contextMenu.Tag + 1)
+                        pInfo.StartingLocation = 0;
+                }
+            }
+
+            PlayerInfo player;
 
             if (e.Index >= players.Count)
             {
@@ -144,12 +153,12 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 if (aiIndex >= aiPlayers.Count)
                     return;
 
-                pInfo = aiPlayers[aiIndex];
+                player = aiPlayers[aiIndex];
             }
             else
-                pInfo = players[e.Index];
+                player = players[e.Index];
 
-            pInfo.StartingLocation = (int)contextMenu.Tag + 1;
+            player.StartingLocation = (int)contextMenu.Tag + 1;
 
             StartingLocationApplied?.Invoke(this, EventArgs.Empty);
         }
@@ -164,18 +173,27 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             if (!EnableContextMenu)
             {
+                if (Map.EnforceMaxPlayers)
+                {
+                    foreach (PlayerInfo pInfo in players.Concat(aiPlayers))
+                    {
+                        if (pInfo.StartingLocation == (int)indicator.Tag + 1)
+                            return;
+                    }
+                }
+
                 LocalStartingLocationSelected?.Invoke(this, new LocalStartingLocationEventArgs((int)indicator.Tag + 1));
                 return;
             }
 
-            if (Map.EnforceMaxPlayers)
-            {
-                foreach (PlayerInfo pInfo in players.Concat(aiPlayers))
-                {
-                    if (pInfo.StartingLocation == (int)indicator.Tag + 1)
-                        return;
-                }
-            }
+            //if (Map.EnforceMaxPlayers)
+            //{
+            //    foreach (PlayerInfo pInfo in players.Concat(aiPlayers))
+            //    {
+            //        if (pInfo.StartingLocation == (int)indicator.Tag + 1)
+            //            return;
+            //    }
+            //}
 
             int x = indicator.ClientRectangle.Right;
             int y = indicator.ClientRectangle.Top;

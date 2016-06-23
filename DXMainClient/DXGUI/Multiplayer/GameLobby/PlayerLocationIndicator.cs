@@ -91,9 +91,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             foreach (PlayerInfo pInfo in Players)
             {
-                string text = (pInfo.Index + 1) + ". " + pInfo.Name;
+                string text = pInfo.Name;
                 if (pInfo.TeamId > 0)
-                    text = teamIds[pInfo.TeamId] + " " + (pInfo.Index + 1) + ". " + pInfo.Name;
+                    text = teamIds[pInfo.TeamId] + " " + pInfo.Name;
 
                 Vector2 pInfoSize = Renderer.GetTextDimensions(text, FontIndex);
 
@@ -187,7 +187,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 if (pInfo.ColorId > 0)
                     textColor = mpColors[pInfo.ColorId - 1].XnaColor;
 
-                string text = (pInfo.Index + 1) + ". " + pInfo.Name;
+                string text = pInfo.Name;
 
                 int textXPosition = 3;
 
