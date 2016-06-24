@@ -16,18 +16,18 @@ namespace DTAClient.Online
     {
         public delegate void UserListDelegate(string channelName, string[] userNames);
 
-        public EventHandler<ServerMessageEventArgs> WelcomeMessageReceived;
-        public EventHandler<ServerMessageEventArgs> GenericServerMessageReceived;
-        public EventHandler<UserAwayEventArgs> AwayMessageReceived;
-        public EventHandler<ChannelTopicEventArgs> ChannelTopicReceived;
-        public EventHandler<UserListEventArgs> UserListReceived;
-        public EventHandler<WhoEventArgs> WhoReplyReceived;
-        public EventHandler<ChannelEventArgs> ChannelFull;
-        public EventHandler<ChannelEventArgs> IncorrectChannelPassword;
-        public EventHandler<ChannelModeEventArgs> ChannelModesChanged;
-        public EventHandler<CTCPEventArgs> CTCPMessageReceived;
-        public EventHandler<KickEventArgs> UserKickedFromChannel;
-        public EventHandler<ChannelUserEventArgs> UserJoinedChannel;
+        public event EventHandler<ServerMessageEventArgs> WelcomeMessageReceived;
+        public event EventHandler<ServerMessageEventArgs> GenericServerMessageReceived;
+        public event EventHandler<UserAwayEventArgs> AwayMessageReceived;
+        public event EventHandler<ChannelTopicEventArgs> ChannelTopicReceived;
+        public event EventHandler<UserListEventArgs> UserListReceived;
+        public event EventHandler<WhoEventArgs> WhoReplyReceived;
+        public event EventHandler<ChannelEventArgs> ChannelFull;
+        public event EventHandler<ChannelEventArgs> IncorrectChannelPassword;
+        public event EventHandler<ChannelModeEventArgs> ChannelModesChanged;
+        public event EventHandler<CTCPEventArgs> CTCPMessageReceived;
+        public event EventHandler<KickEventArgs> UserKickedFromChannel;
+        public event EventHandler<ChannelUserEventArgs> UserJoinedChannel;
 
         public event EventHandler<AttemptedServerEventArgs> AttemptedServerChanged;
         public event EventHandler ConnectAttemptFailed;
@@ -68,6 +68,17 @@ namespace DTAClient.Online
         }
 
         public Channel MainChannel { get; set; }
+
+        bool connected = false;
+
+        /// <summary>
+        /// Gets a value that determines whether the client is 
+        /// currently connected to CnCNet.
+        /// </summary>
+        public bool IsConnected
+        {
+            get { return connected; }
+        }
 
         Connection connection;
 
@@ -309,6 +320,7 @@ namespace DTAClient.Online
 
         private void DoConnected()
         {
+            connected = true;
             Connected?.Invoke(this, EventArgs.Empty);
             MainChannel.AddMessage(new IRCMessage(null, Color.White, DateTime.Now, "Connection to CnCNet established."));
         }
@@ -336,6 +348,7 @@ namespace DTAClient.Online
             }
 
             MainChannel.AddMessage(new IRCMessage(null, Color.Red, DateTime.Now, "Connection to CnCNet has been lost."));
+            connected = false;
         }
 
         public void Disconnect()
@@ -373,6 +386,7 @@ namespace DTAClient.Online
             }
 
             MainChannel.AddMessage(new IRCMessage(null, Color.White, DateTime.Now, "You have disconnected from CnCNet."));
+            connected = false;
         }
 
         public void OnErrorReceived(string errorMessage)

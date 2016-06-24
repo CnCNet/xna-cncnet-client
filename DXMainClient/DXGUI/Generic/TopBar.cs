@@ -8,6 +8,7 @@ using Microsoft.Xna.Framework;
 using Rampastring.XNAUI.Input;
 using Microsoft.Xna.Framework.Input;
 using ClientCore;
+using DTAClient.Online;
 
 namespace DTAClient.DXGUI.Generic
 {
@@ -20,15 +21,18 @@ namespace DTAClient.DXGUI.Generic
         /// The number of seconds that the top bar will stay down after it has
         /// lost input focus.
         /// </summary>
-        const double DOWN_TIME_WAIT_SECONDS = 1.5;
+        const double DOWN_TIME_WAIT_SECONDS = 1.0;
+        const double EVENT_DOWN_TIME_WAIT_SECONDS = 2.0;
+        const double STARTUP_DOWN_TIME_WAIT_SECONDS = 2.0;
 
         const double DOWN_MOVEMENT_RATE = 2.0;
         const double UP_MOVEMENT_RATE = 2.0;
         const int APPEAR_CURSOR_THRESHOLD_Y = 15;
 
-        public TopBar(WindowManager windowManager) : base(windowManager)
+        public TopBar(WindowManager windowManager, CnCNetManager connectionManager) : base(windowManager)
         {
             downTimeWaitTime = TimeSpan.FromSeconds(DOWN_TIME_WAIT_SECONDS);
+            this.connectionManager = connectionManager;
         }
 
         List<ISwitchable> primarySwitches = new List<ISwitchable>();
@@ -38,14 +42,18 @@ namespace DTAClient.DXGUI.Generic
         XNAButton btnMainButton;
         XNAButton btnCnCNetLobby;
         XNAButton btnPrivateMessages;
+        XNAButton btnLogout;
         XNALabel lblTime;
         XNALabel lblDate;
+        XNALabel lblConnectionStatus;
 
-        TimeSpan downTime = TimeSpan.Zero;
+        CnCNetManager connectionManager;
+
+        TimeSpan downTime = TimeSpan.FromSeconds(DOWN_TIME_WAIT_SECONDS - STARTUP_DOWN_TIME_WAIT_SECONDS);
 
         TimeSpan downTimeWaitTime;
 
-        bool isDown = false;
+        bool isDown = true;
 
         double locationY = -40.0;
 
@@ -108,32 +116,114 @@ namespace DTAClient.DXGUI.Generic
             btnPrivateMessages.HoverTexture = AssetLoader.LoadTexture("160pxbtn_c.png");
             btnPrivateMessages.HoverSoundEffect = AssetLoader.LoadSound("button.wav");
             btnPrivateMessages.AllowClick = false;
-
-            lblTime = new XNALabel(WindowManager);
-            lblTime.FontIndex = 1;
-            lblTime.Name = "lblTime";
-            lblTime.Text = "99:99:99";
-            lblTime.ClientRectangle = new Rectangle(ClientRectangle.Width - 
-                (int)Renderer.GetTextDimensions(lblTime.Text, lblTime.FontIndex).X - 12, 6, 
-                lblTime.ClientRectangle.Width, lblTime.ClientRectangle.Height);
-
+           
             lblDate = new XNALabel(WindowManager);
-            lblDate.FontIndex = 1;
             lblDate.Name = "lblDate";
+            lblDate.FontIndex = 1;
             lblDate.Text = DateTime.Now.ToShortDateString();
             lblDate.ClientRectangle = new Rectangle(ClientRectangle.Width -
                 (int)Renderer.GetTextDimensions(lblDate.Text, lblDate.FontIndex).X - 12, 20, 
                 lblDate.ClientRectangle.Width, lblDate.ClientRectangle.Height);
+
+            lblTime = new XNALabel(WindowManager);
+            lblTime.Name = "lblTime";
+            lblTime.FontIndex = 1;
+            lblTime.Text = "99:99:99";
+            lblTime.ClientRectangle = new Rectangle(ClientRectangle.Width -
+                (int)Renderer.GetTextDimensions(lblTime.Text, lblTime.FontIndex).X - 12, 6,
+                lblTime.ClientRectangle.Width, lblTime.ClientRectangle.Height);
+
+            btnLogout = new XNAButton(WindowManager);
+            btnLogout.Name = "btnLogout";
+            btnLogout.ClientRectangle = new Rectangle(lblDate.ClientRectangle.Left - 87, 12, 75, 23);
+            btnLogout.FontIndex = 1;
+            btnLogout.Text = "Log Out";
+            btnLogout.IdleTexture = AssetLoader.LoadTexture("75pxbtn.png");
+            btnLogout.HoverTexture = AssetLoader.LoadTexture("75pxbtn_c.png");
+            btnLogout.HoverSoundEffect = AssetLoader.LoadSound("button.wav");
+            btnLogout.AllowClick = false;
+            btnLogout.LeftClick += BtnLogout_LeftClick;
+
+            lblConnectionStatus = new XNALabel(WindowManager);
+            lblConnectionStatus.Name = "lblConnectionStatus";
+            lblConnectionStatus.FontIndex = 1;
+            lblConnectionStatus.Text = "OFFLINE";
 
             AddChild(btnMainButton);
             AddChild(btnCnCNetLobby);
             AddChild(btnPrivateMessages);
             AddChild(lblTime);
             AddChild(lblDate);
+            AddChild(btnLogout);
+            AddChild(lblConnectionStatus);
+
+            lblConnectionStatus.CenterOnParent();
 
             base.Initialize();
 
             Keyboard.OnKeyPressed += Keyboard_OnKeyPressed;
+            connectionManager.Connected += ConnectionManager_Connected;
+            connectionManager.Disconnected += ConnectionManager_Disconnected;
+            connectionManager.ConnectionLost += ConnectionManager_ConnectionLost;
+            connectionManager.WelcomeMessageReceived += ConnectionManager_WelcomeMessageReceived;
+            connectionManager.AttemptedServerChanged += ConnectionManager_AttemptedServerChanged;
+            connectionManager.ConnectAttemptFailed += ConnectionManager_ConnectAttemptFailed;
+        }
+
+        private void ConnectionManager_ConnectionLost(object sender, Online.EventArguments.ConnectionLostEventArgs e)
+        {
+            ConnectionEvent("OFFLINE");
+        }
+
+        private void ConnectionManager_ConnectAttemptFailed(object sender, EventArgs e)
+        {
+            ConnectionEvent("OFFLINE");
+        }
+
+        private void ConnectionManager_AttemptedServerChanged(object sender, Online.EventArguments.AttemptedServerEventArgs e)
+        {
+            ConnectionEvent("CONNECTING...");
+            BringDown();
+        }
+
+        private void ConnectionManager_WelcomeMessageReceived(object sender, Online.EventArguments.ServerMessageEventArgs e)
+        {
+            ConnectionEvent("CONNECTED");
+        }
+
+        private void ConnectionManager_Disconnected(object sender, EventArgs e)
+        {
+            btnLogout.AllowClick = false;
+            ConnectionEvent("OFFLINE");
+        }
+
+        private void ConnectionEvent(string text)
+        {
+            lblConnectionStatus.Text = text;
+            lblConnectionStatus.CenterOnParent();
+            isDown = true;
+            downTime = TimeSpan.FromSeconds(DOWN_TIME_WAIT_SECONDS - EVENT_DOWN_TIME_WAIT_SECONDS);
+        }
+
+        private void BtnLogout_LeftClick(object sender, EventArgs e)
+        {
+            connectionManager.Disconnect();
+            SwitchToPrimary();
+        }
+
+        private void ConnectionManager_Connected(object sender, EventArgs e)
+        {
+            btnLogout.AllowClick = true;
+        }
+
+        public void SwitchToPrimary()
+        {
+            BtnMainButton_LeftClick(this, EventArgs.Empty);
+        }
+
+        public void SwitchToSecondary()
+        {
+            BtnCnCNetLobby_LeftClick(this, EventArgs.Empty);
         }
 
         private void BtnCnCNetLobby_LeftClick(object sender, EventArgs e)
@@ -150,7 +240,7 @@ namespace DTAClient.DXGUI.Generic
 
         private void Keyboard_OnKeyPressed(object sender, KeyPressEventArgs e)
         {
-            if (!Enabled || ProgramConstants.IsInGame)
+            if (!Enabled || !WindowManager.HasFocus)
                 return;
 
             if (e.PressedKey == Keys.F1)
@@ -174,7 +264,8 @@ namespace DTAClient.DXGUI.Generic
 
         public override void OnMouseOnControl(MouseEventArgs eventArgs)
         {
-            BringDown();
+            if (Cursor.Location.Y > -1)
+                BringDown();
 
             base.OnMouseOnControl(eventArgs);
         }

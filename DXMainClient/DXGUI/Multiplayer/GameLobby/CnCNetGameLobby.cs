@@ -158,9 +158,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     AddNotice(ProgramConstants.PLAYERNAME + " - ping to tunnel server: " + tunnel.PingInMs + " ms");
             }
 
-            Visible = true;
-            Enabled = true;
             TopBar.AddPrimarySwitchable(this);
+            TopBar.SwitchToPrimary();
         }
 
         public void ChangeChatColor(IRCColor chatColor)

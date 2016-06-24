@@ -28,8 +28,8 @@ namespace DTAClient.DXGUI.Multiplayer
         const double GAME_LIFETIME = 35.0;
 
         public CnCNetLobby(WindowManager windowManager, CnCNetManager connectionManager,
-            CnCNetGameLobby gameLobby, CnCNetGameLoadingLobby gameLoadingLobby,
-            TunnelHandler tunnelHandler)
+            CnCNetGameLobby gameLobby, CnCNetGameLoadingLobby gameLoadingLobby, 
+            TopBar topBar, TunnelHandler tunnelHandler)
             : base(windowManager)
         {
             this.connectionManager = connectionManager;
@@ -37,6 +37,7 @@ namespace DTAClient.DXGUI.Multiplayer
             this.gameLobby = gameLobby;
             this.gameLoadingLobby = gameLoadingLobby;
             this.tunnelHandler = tunnelHandler;
+            this.topBar = topBar;
         }
 
         CnCNetManager connectionManager;
@@ -89,10 +90,15 @@ namespace DTAClient.DXGUI.Multiplayer
 
         TunnelHandler tunnelHandler;
 
+        CnCNetLoginWindow loginWindow;
+        DarkeningPanel loginWindowPanel;
+
+        TopBar topBar;
+
         int framesSinceGameRefresh;
 
-        bool connected = false;
-
+        bool isInGameRoom = false;
+        
         string localGame;
 
         public override void Initialize()
@@ -238,6 +244,7 @@ namespace DTAClient.DXGUI.Multiplayer
             ddColor.ClientRectangle = new Rectangle(lblColor.ClientRectangle.X + 95, btnForums.ClientRectangle.Y,
                 150, 21);
             ddColor.SelectedIndexChanged += DdColor_SelectedIndexChanged;
+            ddColor.ClickSoundEffect = AssetLoader.LoadSound("dropdown.wav");
 
             chatColors = connectionManager.GetIRCColors();
 
@@ -267,6 +274,7 @@ namespace DTAClient.DXGUI.Multiplayer
                 ddColor.ClientRectangle.Y, 200, 21);
             ddCurrentChannel.SelectedIndexChanged += DdCurrentChannel_SelectedIndexChanged;
             ddCurrentChannel.AllowDropDown = false;
+            ddCurrentChannel.ClickSoundEffect = AssetLoader.LoadSound("dropdown.wav");
 
             gameCollection = connectionManager.GetGameCollection();
 
@@ -358,8 +366,6 @@ namespace DTAClient.DXGUI.Multiplayer
             connectionManager.WelcomeMessageReceived += ConnectionManager_WelcomeMessageReceived;
             connectionManager.Disconnected += ConnectionManager_Disconnected;
 
-            Keyboard.OnKeyPressed += Keyboard_OnKeyPressed;
-
             base.Initialize();
 
             WindowManager.CenterControlOnScreen(this);
@@ -380,46 +386,49 @@ namespace DTAClient.DXGUI.Multiplayer
                 "Welcome to Rampastring's DTA / CnCNet Client, version " + 
                 System.Windows.Forms.Application.ProductVersion));
 
+            loginWindow = new CnCNetLoginWindow(WindowManager);
+            loginWindow.Connect += LoginWindow_Connect;
+            loginWindow.Cancelled += LoginWindow_Cancelled;
+
+            loginWindowPanel = new DarkeningPanel(WindowManager);
+            loginWindowPanel.Alpha = 0.0f;
+
+            AddChild(loginWindowPanel);
+            loginWindowPanel.AddChild(loginWindow);
+            loginWindowPanel.Visible = false;
+            loginWindowPanel.Enabled = false;
+
             gameLobby.GameLeft += GameLobby_GameLeft;
             gameLoadingLobby.GameLeft += GameLoadingLobby_GameLeft;
         }
 
-        private void GameLoadingLobby_Switched(object sender, EventArgs e)
+        private void LoginWindow_Connect(object sender, EventArgs e)
         {
-            Switch();
+            connectionManager.Connect();
+            loginWindowPanel.Hide();
+
+            if (DomainController.Instance().GetCnCNetPersistentModeStatus())
+                btnLogout.Text = "Main Menu";
         }
 
-        private void GameLobby_Switched(object sender, EventArgs e)
+        private void LoginWindow_Cancelled(object sender, EventArgs e)
         {
-            Switch();
-        }
-
-        private void Switch()
-        {
-            if (Visible)
-            {
-                Visible = false;
-                Enabled = false;
-            }
-            else
-            {
-                Visible = true;
-                Enabled = true;
-            }
+            topBar.SwitchToPrimary();
+            loginWindowPanel.Alpha = 0.0f;
         }
 
         private void GameLoadingLobby_GameLeft(object sender, EventArgs e)
         {
-            Visible = true;
-            Enabled = true;
+            topBar.SwitchToSecondary();
             btnLogout.AllowClick = true;
+            isInGameRoom = false;
         }
 
         private void GameLobby_GameLeft(object sender, EventArgs e)
         {
-            Visible = true;
-            Enabled = true;
+            topBar.SwitchToSecondary();
             btnLogout.AllowClick = true;
+            isInGameRoom = false;
         }
 
         private void BtnJoinGame_LeftClick(object sender, EventArgs e)
@@ -429,17 +438,16 @@ namespace DTAClient.DXGUI.Multiplayer
 
         private void LbGameList_DoubleLeftClick(object sender, EventArgs e)
         {
+            if (isInGameRoom)
+            {
+                topBar.SwitchToPrimary();
+                return;
+            }
+
             if (lbGameList.SelectedIndex < 0 || lbGameList.SelectedIndex >= lbGameList.Items.Count)
                 return;
 
             var mainChannel = connectionManager.MainChannel;
-
-            if (gameLobby.Enabled || gameLoadingLobby.Enabled)
-            {
-                mainChannel.AddMessage(new IRCMessage(null, Color.White, DateTime.Now,
-                    "You already are in a game!"));
-                return;
-            }
 
             HostedGame hg = (HostedGame)lbGameList.Items[lbGameList.SelectedIndex].Tag;
 
@@ -522,8 +530,11 @@ namespace DTAClient.DXGUI.Multiplayer
 
         private void BtnNewGame_LeftClick(object sender, EventArgs e)
         {
-            if (gameLobby.Enabled || gameLoadingLobby.Enabled)
+            if (isInGameRoom)
+            {
+                topBar.SwitchToPrimary();
                 return;
+            }
 
             gameCreationPanel.Show();
             var gcw = (GameCreationWindow)gameCreationPanel.Tag;
@@ -577,10 +588,8 @@ namespace DTAClient.DXGUI.Multiplayer
                 gameChannel.MessageAdded -= GameChannel_MessageAdded;
 
                 gameLobby.OnJoined();
-                Visible = false;
-                Enabled = false;
                 btnLogout.AllowClick = false;
-                // TODO enter persistent mode
+                isInGameRoom = true;
             }
         }
 
@@ -622,12 +631,8 @@ namespace DTAClient.DXGUI.Multiplayer
                 gameLoadingChannel.MessageAdded -= GameLoadingChannel_MessageAdded;
 
                 gameLoadingLobby.OnJoined();
-                gameLoadingLobby.Visible = true;
-                gameLoadingLobby.Enabled = true;
-                Visible = false;
-                Enabled = false;
                 btnLogout.AllowClick = false;
-                // TODO enter persistent mode
+                isInGameRoom = true;
             }
         }
 
@@ -671,12 +676,6 @@ namespace DTAClient.DXGUI.Multiplayer
             gameLoadingLobby.ChangeChatColor(selectedColor);
         }
 
-        private void Keyboard_OnKeyPressed(object sender, KeyPressEventArgs e)
-        {
-            if (e.PressedKey == Keys.C && Keyboard.IsKeyHeldDown(Keys.RightShift))
-                connectionManager.Connect();
-        }
-
         private void ConnectionManager_Disconnected(object sender, EventArgs e)
         {
             btnNewGame.AllowClick = false;
@@ -686,7 +685,6 @@ namespace DTAClient.DXGUI.Multiplayer
             lbPlayerList.Clear();
             lbGameList.Clear();
             gameCreationPanel.Hide();
-            connected = false;
         }
 
         private void ConnectionManager_WelcomeMessageReceived(object sender, EventArgs e)
@@ -695,7 +693,6 @@ namespace DTAClient.DXGUI.Multiplayer
             btnJoinGame.AllowClick = true;
             ddCurrentChannel.AllowDropDown = true;
             tbChatInput.Enabled = true;
-            connected = true;
 
             Channel cncnetChannel = connectionManager.GetChannel("#cncnet");
             cncnetChannel.Join();
@@ -940,14 +937,13 @@ namespace DTAClient.DXGUI.Multiplayer
 
         private void BtnLogout_LeftClick(object sender, EventArgs e)
         {
-            this.Visible = false;
-            this.Enabled = false;
-
-            if (connected)
+            if (connectionManager.IsConnected && 
+                !DomainController.Instance().GetCnCNetPersistentModeStatus())
             {
                 connectionManager.Disconnect();
-                connected = false;
             }
+
+            topBar.SwitchToPrimary();
         }
 
         protected override void OnVisibleChanged(object sender, EventArgs args)
@@ -987,6 +983,15 @@ namespace DTAClient.DXGUI.Multiplayer
         {
             Visible = true;
             Enabled = true;
+
+            if (!connectionManager.IsConnected)
+            {
+                loginWindowPanel.Show();
+                loginWindow.LoadSettings();
+            }
+
+            if (DomainController.Instance().GetCnCNetPersistentModeStatus())
+                btnLogout.Text = "Main Menu";
         }
 
         public void SwitchOff()

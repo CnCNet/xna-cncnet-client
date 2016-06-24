@@ -211,6 +211,33 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
                 tbChatInput.Text = string.Empty;
 
+                if (command == "/HIDEMAPS")
+                {
+                    if (!IsHost)
+                    {
+                        AddNotice("/HIDEMAPS is for game hosts only.");
+                        return;
+                    }
+
+                    HideMapList();
+                }
+                else if (command == "/SHOWMAPS")
+                {
+                    if (!IsHost)
+                    {
+                        AddNotice("/SHOWMAPS is for game hosts only.");
+                        return;
+                    }
+
+                    ShowMapList();
+                }
+                else
+                {
+                    AddNotice("Possible commands:");
+                    AddNotice("/HIDEMAPS: Hide map list (game host only)");
+                    AddNotice("/SHOWMAPS: Show map list (game host only)");
+                }
+
                 return;
             }
 
@@ -235,27 +262,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             if (IsHost)
             {
-                lbMapList.ClientRectangle = new Rectangle(btnLaunchGame.ClientRectangle.X,
-                    MapPreviewBox.ClientRectangle.Y + 23,
-                    MapPreviewBox.ClientRectangle.X - btnLaunchGame.ClientRectangle.X - 12,
-                    MapPreviewBox.ClientRectangle.Height - 23);
-
-                lbChatMessages.ClientRectangle = new Rectangle(lbMapList.ClientRectangle.Left,
-                    GameOptionsPanel.ClientRectangle.Y,
-                    lbMapList.ClientRectangle.Width, GameOptionsPanel.ClientRectangle.Height - 26);
-                lbChatMessages.Name = "lbChatMessages_Host";
-
-                tbChatInput.ClientRectangle = new Rectangle(lbChatMessages.ClientRectangle.Left,
-                    lbChatMessages.ClientRectangle.Bottom + 3,
-                    lbChatMessages.ClientRectangle.Width, 21);
-                tbChatInput.Name = "tbChatInput_Host";
-
-                ddGameMode.Visible = true;
-                ddGameMode.Enabled = true;
-                lblGameModeSelect.Visible = true;
-                lblGameModeSelect.Enabled = true;
-                lbMapList.Visible = true;
-                lbMapList.Enabled = true;
+                ShowMapList();
 
                 btnLockGame.Text = "Lock Game";
                 btnLockGame.Enabled = true;
@@ -269,23 +276,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             }
             else
             {
-                lbChatMessages.ClientRectangle = new Rectangle(lbMapList.ClientRectangle.Left,
-                    PlayerOptionsPanel.ClientRectangle.Y,
-                    lbMapList.ClientRectangle.Width, 
-                    MapPreviewBox.ClientRectangle.Bottom - PlayerOptionsPanel.ClientRectangle.Y);
-                lbChatMessages.Name = "lbChatMessages_Player";
-
-                tbChatInput.ClientRectangle = new Rectangle(lbChatMessages.ClientRectangle.Left,
-                    lbChatMessages.ClientRectangle.Bottom + 3,
-                    lbChatMessages.ClientRectangle.Width, 21);
-                tbChatInput.Name = "tbChatInput_Player";
-
-                ddGameMode.Visible = false;
-                ddGameMode.Enabled = false;
-                lblGameModeSelect.Visible = false;
-                lblGameModeSelect.Enabled = false;
-                lbMapList.Visible = false;
-                lbMapList.Enabled = false;
+                HideMapList();
 
                 btnLockGame.Enabled = false;
                 btnLockGame.Visible = false;
@@ -296,10 +287,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 foreach (GameLobbyCheckBox checkBox in CheckBoxes)
                     checkBox.InputEnabled = false;
             }
-
-            lbChatMessages.GetAttributes(ThemeIni);
-            tbChatInput.GetAttributes(ThemeIni);
-            lbMapList.GetAttributes(ThemeIni);
 
             LoadDefaultMap();
 
@@ -314,6 +301,60 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     "The saved games of the previous match will be deleted if you create new saves during this match.",
                     Color.Yellow, true);
             }
+        }
+
+        private void HideMapList()
+        {
+            lbChatMessages.ClientRectangle = new Rectangle(lbMapList.ClientRectangle.Left,
+                PlayerOptionsPanel.ClientRectangle.Y,
+                lbMapList.ClientRectangle.Width,
+                MapPreviewBox.ClientRectangle.Bottom - PlayerOptionsPanel.ClientRectangle.Y);
+            lbChatMessages.Name = "lbChatMessages_Player";
+
+            tbChatInput.ClientRectangle = new Rectangle(lbChatMessages.ClientRectangle.Left,
+                lbChatMessages.ClientRectangle.Bottom + 3,
+                lbChatMessages.ClientRectangle.Width, 21);
+            tbChatInput.Name = "tbChatInput_Player";
+
+            ddGameMode.Visible = false;
+            ddGameMode.Enabled = false;
+            lblGameModeSelect.Visible = false;
+            lblGameModeSelect.Enabled = false;
+            lbMapList.Visible = false;
+            lbMapList.Enabled = false;
+
+            lbChatMessages.GetAttributes(ThemeIni);
+            tbChatInput.GetAttributes(ThemeIni);
+            lbMapList.GetAttributes(ThemeIni);
+        }
+
+        private void ShowMapList()
+        {
+            lbMapList.ClientRectangle = new Rectangle(btnLaunchGame.ClientRectangle.X,
+                MapPreviewBox.ClientRectangle.Y + 23,
+                MapPreviewBox.ClientRectangle.X - btnLaunchGame.ClientRectangle.X - 12,
+                MapPreviewBox.ClientRectangle.Height - 23);
+
+            lbChatMessages.ClientRectangle = new Rectangle(lbMapList.ClientRectangle.Left,
+                GameOptionsPanel.ClientRectangle.Y,
+                lbMapList.ClientRectangle.Width, GameOptionsPanel.ClientRectangle.Height - 26);
+            lbChatMessages.Name = "lbChatMessages_Host";
+
+            tbChatInput.ClientRectangle = new Rectangle(lbChatMessages.ClientRectangle.Left,
+                lbChatMessages.ClientRectangle.Bottom + 3,
+                lbChatMessages.ClientRectangle.Width, 21);
+            tbChatInput.Name = "tbChatInput_Host";
+
+            ddGameMode.Visible = true;
+            ddGameMode.Enabled = true;
+            lblGameModeSelect.Visible = true;
+            lblGameModeSelect.Enabled = true;
+            lbMapList.Visible = true;
+            lbMapList.Enabled = true;
+
+            lbChatMessages.GetAttributes(ThemeIni);
+            tbChatInput.GetAttributes(ThemeIni);
+            lbMapList.GetAttributes(ThemeIni);
         }
 
         private void MapPreviewBox_LocalStartingLocationSelected(object sender, LocalStartingLocationEventArgs e)
@@ -622,8 +663,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         public void SwitchOff()
         {
-            Enabled = true;
-            Visible = true;
+            Enabled = false;
+            Visible = false;
         }
 
         public abstract string GetSwitchName();

@@ -130,12 +130,12 @@
     <Compile Include="domain\MainClientConstants.cs" />
     <Compile Include="domain\UserAgentHandler.cs" />
     <Compile Include="DXGUI\Generic\CampaignSelector.cs" />
-    <Compile Include="DXGUI\Generic\DarkeningPanel.cs" />
     <Compile Include="DXGUI\Generic\TopBar.cs" />
     <Compile Include="DXGUI\ISwitchable.cs" />
     <Compile Include="DXGUI\Multiplayer\ChatListBox.cs" />
     <Compile Include="DXGUI\Multiplayer\CnCNetGameLoadingLobby.cs" />
     <Compile Include="DXGUI\Multiplayer\CnCNetLobby.cs" />
+    <Compile Include="DXGUI\Multiplayer\CnCNetLoginWindow.cs" />
     <Compile Include="DXGUI\Multiplayer\GameCreationEventArgs.cs" />
     <Compile Include="DXGUI\Multiplayer\GameCreationWindow.cs" />
     <Compile Include="DXGUI\Multiplayer\GameInformationPanel.cs" />

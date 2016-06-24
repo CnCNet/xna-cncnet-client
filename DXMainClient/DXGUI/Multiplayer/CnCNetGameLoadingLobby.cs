@@ -12,6 +12,7 @@ using Microsoft.Xna.Framework;
 using Rampastring.Tools;
 using DTAClient.DXGUI.Generic;
 using DTAClient.Online.EventArguments;
+using ClientGUI;
 
 namespace DTAClient.DXGUI.Multiplayer
 {
@@ -207,6 +208,7 @@ namespace DTAClient.DXGUI.Multiplayer
             }
 
             TopBar.AddPrimarySwitchable(this);
+            TopBar.SwitchToPrimary();
         }
 
         private void Channel_UserAdded(object sender, UserEventArgs e)

@@ -19,17 +19,19 @@ using System.Threading;
 using Updater;
 using SkirmishLobby = DTAClient.DXGUI.Multiplayer.GameLobby.SkirmishLobby;
 using DTAClient.DXGUI.Multiplayer;
+using DTAClient.Online;
 
 namespace DTAClient.DXGUI.Generic
 {
     class MainMenu : XNAWindow, ISwitchable
     {
         public MainMenu(WindowManager windowManager, SkirmishLobby skirmishLobby,
-            CnCNetLobby cncnetLobby) : base(windowManager)
+            TopBar topBar, CnCNetManager connectionManager) : base(windowManager)
         {
             isYR = DomainController.Instance().GetDefaultGame().ToUpper() == "YR";
             this.skirmishLobby = skirmishLobby;
-            this.cncnetLobby = cncnetLobby;
+            this.topBar = topBar;
+            this.connectionManager = connectionManager;
         }
 
         bool isYR = false;
@@ -42,7 +44,10 @@ namespace DTAClient.DXGUI.Generic
         XNALabel lblVersion;
 
         SkirmishLobby skirmishLobby;
-        CnCNetLobby cncnetLobby;
+
+        CnCNetManager connectionManager;
+
+        TopBar topBar;
 
         bool updateInProgress = false;
 
@@ -289,7 +294,7 @@ namespace DTAClient.DXGUI.Generic
             updateInProgress = false;
 
             innerPanel.Show(null); // Darkening
-            XNAMessageBox msgBox = new XNAMessageBox(Game, WindowManager, "Update failed", 
+            XNAMessageBox msgBox = new XNAMessageBox(WindowManager, "Update failed", 
                 string.Format("An error occured while updating. Returned error was: {0}" +
                 Environment.NewLine + Environment.NewLine +
                 "If you are connected to the Internet and your firewall isn't blocking" + Environment.NewLine +
@@ -428,8 +433,7 @@ namespace DTAClient.DXGUI.Generic
 
         private void BtnCnCNet_LeftClick(object sender, EventArgs e)
         {
-            cncnetLobby.Visible = true;
-            cncnetLobby.Enabled = true;
+            topBar.SwitchToSecondary();
         }
 
         private void BtnSkirmish_LeftClick(object sender, EventArgs e)
@@ -465,6 +469,9 @@ namespace DTAClient.DXGUI.Generic
             Logger.Log("Exiting.");
 
             CnCNetInfoController.DisableService();
+
+            if (connectionManager.IsConnected)
+                connectionManager.Disconnect();
 
             if (isYR)
                 File.Delete(ProgramConstants.GamePath + "ddraw.dll");

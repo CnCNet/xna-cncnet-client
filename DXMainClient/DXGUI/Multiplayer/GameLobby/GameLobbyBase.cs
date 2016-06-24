@@ -247,6 +247,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             tbMapSearch.Name = "tbMapSearch";
             tbMapSearch.ClientRectangle = new Rectangle(lbMapList.ClientRectangle.X,
                 lbMapList.ClientRectangle.Bottom + 3, lbMapList.ClientRectangle.Width, 21);
+            string str = tbMapSearch.ClientRectangle.ToString();
+            Logger.Log(str);
             tbMapSearch.Suggestion = "Search map..";
             tbMapSearch.MaximumTextLength = 64;
             tbMapSearch.InputReceived += TbMapSearch_InputReceived;
@@ -344,7 +346,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             GameMode = GameModes[ddGameMode.SelectedIndex];
 
             tbMapSearch.Text = string.Empty;
-            //tbMapSearch.OnSelectedChanged();
+            tbMapSearch.OnSelectedChanged();
 
             ListMaps();
         }
