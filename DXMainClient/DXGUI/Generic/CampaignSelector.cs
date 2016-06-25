@@ -300,7 +300,7 @@ namespace DTAClient.DXGUI.Generic
 
                 Mission mission = new Mission(cd, side, scenario, guiName, guiDescription, finalMovie, requiredAddon);
                 Missions.Add(mission);
-                DXListBoxItem item = new DXListBoxItem();
+                XNAListBoxItem item = new XNAListBoxItem();
                 item.Text = guiName;
                 if (String.IsNullOrEmpty(scenario))
                 {

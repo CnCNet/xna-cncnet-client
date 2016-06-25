@@ -1,4 +1,5 @@
 ﻿using ClientCore;
+using DTAClient.domain.CnCNet;
 using DTAClient.Online.EventArguments;
 using Rampastring.Tools;
 using System;
@@ -619,9 +620,13 @@ namespace DTAClient.Online
 
             Logger.Log("Registering.");
 
-            string realname = ProgramConstants.GAME_VERSION + " " + DomainController.Instance().GetDefaultGame() + " CnCNet";
+            var defaultGame = DomainController.Instance().GetDefaultGame();
 
-            SendMessage(string.Format("USER {0} 0 * :{1}", "DTA" + new Random().Next(10000, 99999).ToString(), realname));
+            string realname = ProgramConstants.GAME_VERSION + " " + defaultGame + " CnCNet";
+
+            SendMessage(string.Format("USER {0} 0 * :{1}", defaultGame + "." + 
+                new Random().Next(10000, 99999).ToString(), realname));
+
             SendMessage("NICK " + ProgramConstants.PLAYERNAME);
         }
 

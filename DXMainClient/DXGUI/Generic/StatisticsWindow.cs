@@ -2,6 +2,7 @@
 using ClientCore.Statistics;
 using ClientGUI;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 using Rampastring.Tools;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.DXControls;
@@ -32,7 +33,16 @@ namespace DTAClient.DXGUI.Generic
         XNAMultiColumnListBox lbGameList;
         XNAMultiColumnListBox lbGameStatistics;
 
+        Texture2D[] sideTextures;
+
         // *****************************
+
+        const int TOTAL_STATS_LOCATION_X1 = 40;
+        const int TOTAL_STATS_VALUE_LOCATION_X1 = 240;
+        const int TOTAL_STATS_LOCATION_X2 = 380;
+        const int TOTAL_STATS_VALUE_LOCATION_X2 = 580;
+        const int TOTAL_STATS_Y_INCREASE = 45;
+        const int TOTAL_STATS_FIRST_ITEM_Y = 20;
 
         // Controls for total statistics
 
@@ -57,13 +67,6 @@ namespace DTAClient.DXGUI.Generic
 
         // *****************************
 
-        const int TOTAL_STATS_LOCATION_X1 = 40;
-        const int TOTAL_STATS_VALUE_LOCATION_X1 = 240;
-        const int TOTAL_STATS_LOCATION_X2 = 380;
-        const int TOTAL_STATS_VALUE_LOCATION_X2 = 580;
-        const int TOTAL_STATS_Y_INCREASE = 45;
-        const int TOTAL_STATS_FIRST_ITEM_Y = 20;
-
         StatisticsManager sm;
         List<int> listedGameIndexes = new List<int>();
 
@@ -75,7 +78,7 @@ namespace DTAClient.DXGUI.Generic
 
             Name = "StatisticsWindow";
             BackgroundTexture = AssetLoader.LoadTexture("scoreviewerbg.png");
-            ClientRectangle = new Rectangle(0, 0, 700, 509);
+            ClientRectangle = new Rectangle(0, 0, 700, 521);
 
             tabControl = new XNATabControl(WindowManager);
             tabControl.ClientRectangle = new Rectangle(12, 10, 0, 0);
@@ -378,6 +381,12 @@ namespace DTAClient.DXGUI.Generic
 
             sides = DomainController.Instance().GetSides().Split(',');
 
+            sideTextures = new Texture2D[sides.Length + 1];
+            for (int i = 0; i < sides.Length; i++)
+                sideTextures[i] = AssetLoader.LoadTexture(sides[i] + "icon.png");
+
+            sideTextures[sides.Length] = AssetLoader.LoadTexture("spectatoricon.png");
+
             ReadStatistics();
             ListGameModes();
             ListGames();
@@ -450,67 +459,81 @@ namespace DTAClient.DXGUI.Generic
 
             players = players.OrderBy(p => p.Score).Reverse().ToList();
 
+            Color textColor = UISettings.AltColor;
+
             for (int i = 0; i < ms.GetPlayerCount(); i++)
             {
                 PlayerStatistics ps = players[i];
 
-                List<string> items = new List<string>();
+                //List<string> items = new List<string>();
+                List<XNAListBoxItem> items = new List<XNAListBoxItem>();
 
                 if (ps.IsAI)
                 {
-                    items.Add(AILevelToString(ps.AILevel));
+                    items.Add(new XNAListBoxItem(AILevelToString(ps.AILevel)));
                 }
                 else
-                    items.Add(ps.Name);
+                    items.Add(new XNAListBoxItem(ps.Name));
 
                 if (ps.WasSpectator)
                 {
                     // Player was a spectator
-                    items.Add("-");
-                    items.Add("-");
-                    items.Add("-");
-                    items.Add("-");
-                    items.Add("-");
-                    items.Add("Spectator");
-                    items.Add("-");
-                }
-                else if (!ms.SawCompletion)
-                {
-                    // The game wasn't completed - we don't know the stats
-                    items.Add("-");
-                    items.Add("-");
-                    items.Add("-");
-                    items.Add("-");
-                    items.Add("-");
-                    if (ps.Side == 0 || ps.Side > sides.Length)
-                        items.Add("Unknown");
-                    else
-                        items.Add(sides[ps.Side - 1]);
-                    items.Add(TeamIndexToString(ps.Team));
+                    items.Add(new XNAListBoxItem("-"));
+                    items.Add(new XNAListBoxItem("-"));
+                    items.Add(new XNAListBoxItem("-"));
+                    items.Add(new XNAListBoxItem("-"));
+                    items.Add(new XNAListBoxItem("-"));
+                    XNAListBoxItem spectatorItem = new XNAListBoxItem();
+                    spectatorItem.Text = "Spectator";
+                    spectatorItem.TextColor = textColor;
+                    spectatorItem.Texture = sideTextures[sideTextures.Length - 1];
+                    items.Add(spectatorItem);
+                    items.Add(new XNAListBoxItem("-"));
                 }
                 else
-                {
-                    // The game was completed and the player was actually playing
-                    items.Add(ps.Kills.ToString());
-                    items.Add(ps.Losses.ToString());
-                    items.Add(ps.Economy.ToString());
-                    items.Add(ps.Score.ToString());
-                    items.Add(Rampastring.Tools.Conversions.BooleanToString(ps.Won, BooleanStringStyle.YESNO));
+                { 
+                    if (!ms.SawCompletion)
+                    {
+                        // The game wasn't completed - we don't know the stats
+                        items.Add(new XNAListBoxItem("-"));
+                        items.Add(new XNAListBoxItem("-"));
+                        items.Add(new XNAListBoxItem("-"));
+                        items.Add(new XNAListBoxItem("-"));
+                        items.Add(new XNAListBoxItem("-"));
+                    }
+                    else
+                    {
+                        // The game was completed and the player was actually playing
+                        items.Add(new XNAListBoxItem(ps.Kills.ToString()));
+                        items.Add(new XNAListBoxItem(ps.Losses.ToString()));
+                        items.Add(new XNAListBoxItem(ps.Economy.ToString()));
+                        items.Add(new XNAListBoxItem(ps.Score.ToString()));
+                        items.Add(new XNAListBoxItem(Conversions.BooleanToString(ps.Won, BooleanStringStyle.YESNO)));
+                    }
 
                     if (ps.Side == 0 || ps.Side > sides.Length)
-                        items.Add("Unknown");
+                        items.Add(new XNAListBoxItem("Unknown"));
                     else
-                        items.Add(sides[ps.Side - 1]);
-                    items.Add(TeamIndexToString(ps.Team));
+                    {
+                        XNAListBoxItem sideItem = new XNAListBoxItem();
+                        sideItem.Text = sides[ps.Side - 1];
+                        sideItem.TextColor = textColor;
+                        sideItem.Texture = sideTextures[ps.Side - 1];
+                        items.Add(sideItem);
+                    }
+
+                    items.Add(new XNAListBoxItem(TeamIndexToString(ps.Team)));
                 }
 
                 if (!ps.IsLocalPlayer)
                 {
-                    lbGameStatistics.AddItem(items, false);
+                    lbGameStatistics.AddItem(items);
+
+                    items.ForEach(item => item.Selectable = false);
                 }
                 else
                 {
-                    lbGameStatistics.AddItem(items, true);
+                    lbGameStatistics.AddItem(items);
                     lbGameStatistics.SelectedIndex = i;
                 }
 

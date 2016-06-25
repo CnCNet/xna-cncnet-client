@@ -1,5 +1,6 @@
 ﻿using ClientCore;
 using ClientCore.CnCNet5;
+using DTAClient.domain.CnCNet;
 using DTAClient.Online.EventArguments;
 using Microsoft.Xna.Framework;
 using Rampastring.Tools;
@@ -38,9 +39,10 @@ namespace DTAClient.Online
 
         public CnCNetManager(WindowManager wm)
         {
-            connection = new Connection(this);
             gameCollection = new GameCollection();
             gameCollection.Initialize(wm.GraphicsDevice);
+
+            connection = new Connection(this);
 
             this.wm = wm;
 
@@ -465,8 +467,12 @@ namespace DTAClient.Online
             user.Name = name;
             user.GameID = -1;
 
-            // TODO Parse identifier and assign gameid
-            //string identd = userAddress.Split('@')[0].Replace("~", "");
+            string identifier = userAddress.Split('@')[0].Replace("~", "");
+            string[] parts = identifier.Split('.');
+            if (parts.Length > 1)
+            {
+                user.GameID = gameCollection.GameList.FindIndex(g => g.InternalName.ToUpper() == parts[0]);
+            }
 
             channel.OnUserJoined(user);
 

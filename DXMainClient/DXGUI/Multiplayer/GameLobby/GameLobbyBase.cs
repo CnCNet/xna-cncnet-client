@@ -366,7 +366,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                         continue;
                 }
 
-                DXListBoxItem rankItem = new DXListBoxItem();
+                XNAListBoxItem rankItem = new XNAListBoxItem();
                 if (map.IsCoop)
                 {
                     if (StatisticsManager.Instance.HasBeatCoOpMap(map.Name, GameMode.UIName))
@@ -377,12 +377,12 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 else
                     rankItem.Texture = RankTextures[GetDefaultMapRankIndex(map) + 1];
 
-                DXListBoxItem mapNameItem = new DXListBoxItem();
+                XNAListBoxItem mapNameItem = new XNAListBoxItem();
                 mapNameItem.Text = map.Name;
                 mapNameItem.TextColor = UISettings.AltColor;
                 mapNameItem.Tag = map;
 
-                DXListBoxItem[] mapInfoArray = new DXListBoxItem[]
+                XNAListBoxItem[] mapInfoArray = new XNAListBoxItem[]
                 {
                     rankItem,
                     mapNameItem,
@@ -401,7 +401,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             GameMode gm = GameModes[ddGameMode.SelectedIndex];
 
-            DXListBoxItem item = lbMapList.GetItem(1, lbMapList.SelectedIndex);
+            XNAListBoxItem item = lbMapList.GetItem(1, lbMapList.SelectedIndex);
 
             Map map = (Map)item.Tag;
 
@@ -432,7 +432,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             // InitPlayerOptionDropdowns(136, 91, 79, 49, 46, new Point(25, 24));
 
-            string[] sides = GameOptionsIni.GetStringValue("General", "Sides", String.Empty).Split(',');
+            string[] sides = DomainController.Instance().GetSides().Split(',');
             _sideCount = sides.Length;
 
             for (int i = PLAYER_COUNT - 1; i > -1; i--)

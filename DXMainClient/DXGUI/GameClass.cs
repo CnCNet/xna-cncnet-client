@@ -98,6 +98,7 @@ namespace DTAClient.DXGUI
             UISettings.PanelBorderColor = AssetLoader.GetColorFromString(DomainController.Instance().GetPanelBorderColor());
             UISettings.BackgroundColor = AssetLoader.GetColorFromString(DomainController.Instance().GetUIAltBackgroundColor());
             UISettings.FocusColor = AssetLoader.GetColorFromString(DomainController.Instance().GetListBoxFocusColor());
+            UISettings.DisabledButtonColor = AssetLoader.GetColorFromString(DomainController.Instance().GetButtonDisabledColor());
 
             UISettings.DefaultAlphaRate = DomainController.Instance().GetDefaultAlphaRate();
             UISettings.CheckBoxAlphaRate = DomainController.Instance().GetCheckBoxAlphaRate();

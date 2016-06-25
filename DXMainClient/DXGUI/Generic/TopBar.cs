@@ -23,7 +23,7 @@ namespace DTAClient.DXGUI.Generic
         /// </summary>
         const double DOWN_TIME_WAIT_SECONDS = 1.0;
         const double EVENT_DOWN_TIME_WAIT_SECONDS = 2.0;
-        const double STARTUP_DOWN_TIME_WAIT_SECONDS = 2.0;
+        const double STARTUP_DOWN_TIME_WAIT_SECONDS = 3.5;
 
         const double DOWN_MOVEMENT_RATE = 2.0;
         const double UP_MOVEMENT_RATE = 2.0;

@@ -78,13 +78,13 @@
     <ApplicationManifest>Properties\app.manifest</ApplicationManifest>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="ClientCore, Version=1.16.4.0, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="ClientCore, Version=1.16.4.2, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\DXCnCNetClient\bin\Release\ClientCore.dll</HintPath>
+      <HintPath>..\..\DXCnCNetClient\ClientGUI\bin\Release\ClientCore.dll</HintPath>
     </Reference>
-    <Reference Include="ClientGUI, Version=1.16.5.0, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="ClientGUI, Version=1.19.9.92, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\DXCnCNetClient\bin\Release\ClientGUI.dll</HintPath>
+      <HintPath>..\..\DXCnCNetClient\ClientGUI\bin\Release\ClientGUI.dll</HintPath>
     </Reference>
     <Reference Include="DTAConfig">
       <HintPath>..\..\..\DTAConfig\bin\Release\DTAConfig.dll</HintPath>

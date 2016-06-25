@@ -96,7 +96,7 @@ namespace DTAClient.DXGUI.Multiplayer
 
             tbGameName = new XNATextBox(WindowManager);
             tbGameName.MaximumTextLength = 23;
-            tbGameName.ClientRectangle = new Rectangle(340, 12, 150, 21);
+            tbGameName.ClientRectangle = new Rectangle(ClientRectangle.Width - 162, 12, 150, 21);
             tbGameName.Text = ProgramConstants.PLAYERNAME + "'s Game";
 
             lblRoomName = new XNALabel(WindowManager);
@@ -106,7 +106,7 @@ namespace DTAClient.DXGUI.Multiplayer
             ddMaxPlayers = new XNADropDown(WindowManager);
             ddMaxPlayers.ClientRectangle = new Rectangle(tbGameName.ClientRectangle.X, 53, 
                 tbGameName.ClientRectangle.Width, 21);
-            for (int i = 8; i > -1; i--)
+            for (int i = 8; i > 1; i--)
                 ddMaxPlayers.AddItem(i.ToString());
             ddMaxPlayers.SelectedIndex = 0;
 
@@ -147,10 +147,10 @@ namespace DTAClient.DXGUI.Multiplayer
             AddChild(btnDisplayAdvancedOptions);
             AddChild(tbGameName);
             AddChild(lblRoomName);
-            AddChild(ddMaxPlayers);
             AddChild(lblMaxPlayers);
             AddChild(tbPassword);
             AddChild(lblPassword);
+            AddChild(ddMaxPlayers);
             AddChild(lblTunnelServer);
             AddChild(lbTunnelList);
 
@@ -221,7 +221,7 @@ namespace DTAClient.DXGUI.Multiplayer
 
         private void TunnelHandler_TunnelPinged(int tunnelIndex)
         {
-            DXListBoxItem lbItem = lbTunnelList.GetItem(2, tunnelIndex);
+            XNAListBoxItem lbItem = lbTunnelList.GetItem(2, tunnelIndex);
             CnCNetTunnel tunnel = tunnelHandler.Tunnels[tunnelIndex];
 
             if (tunnel.PingInMs == -1)

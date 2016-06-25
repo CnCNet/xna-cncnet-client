@@ -85,7 +85,7 @@ namespace DTAClient.DXGUI.Multiplayer
 
         private void AddGameToList(HostedGame hg)
         {
-            DXListBoxItem lbItem = new DXListBoxItem();
+            XNAListBoxItem lbItem = new XNAListBoxItem();
             lbItem.Tag = hg;
             if (hg.GameIdentifier == localGameIdentifier)
                 lbItem.TextColor = UISettings.AltColor;
@@ -120,7 +120,7 @@ namespace DTAClient.DXGUI.Multiplayer
 
             for (int i = TopIndex; i < Items.Count; i++)
             {
-                DXListBoxItem lbItem = Items[i];
+                XNAListBoxItem lbItem = Items[i];
 
                 if (height + lbItem.TextLines.Count * LineHeight > ClientRectangle.Height)
                     break;

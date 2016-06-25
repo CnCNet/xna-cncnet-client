@@ -32,6 +32,7 @@ namespace DTAClient.DXGUI.Multiplayer
         {
             Name = "CnCNetLoginWindow";
             ClientRectangle = new Rectangle(0, 0, 300, 240);
+            BackgroundTexture = AssetLoader.LoadTextureUncached("logindialogbg.png");
 
             lblConnectToCnCNet = new XNALabel(WindowManager);
             lblConnectToCnCNet.Name = "lblConnectToCnCNet";

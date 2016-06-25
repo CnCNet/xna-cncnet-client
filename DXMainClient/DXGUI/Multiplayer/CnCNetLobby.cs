@@ -780,7 +780,7 @@ namespace DTAClient.DXGUI.Multiplayer
 
         private void CurrentChatChannel_UserGameIndexUpdated(object sender, UserEventArgs e)
         {
-            DXListBoxItem item = lbPlayerList.Items.Find(i => i.Text.StartsWith(e.User.Name));
+            XNAListBoxItem item = lbPlayerList.Items.Find(i => i.Text.StartsWith(e.User.Name));
 
             if (e.User.GameID < 0 || e.User.GameID >= gameCollection.GameList.Count)
                 item.Texture = unknownGameIcon;
@@ -814,7 +814,7 @@ namespace DTAClient.DXGUI.Multiplayer
 
         private void AddUser(IRCUser user)
         {
-            DXListBoxItem item = new DXListBoxItem();
+            XNAListBoxItem item = new XNAListBoxItem();
 
             item.Tag = user;
 
