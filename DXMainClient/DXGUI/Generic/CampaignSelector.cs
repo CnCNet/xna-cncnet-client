@@ -9,7 +9,7 @@ using DTAClient.domain;
 using System.IO;
 using Updater;
 using ClientGUI;
-using Rampastring.XNAUI.DXControls;
+using Rampastring.XNAUI.XNAControls;
 using Rampastring.XNAUI;
 using Rampastring.Tools;
 using System.Diagnostics;

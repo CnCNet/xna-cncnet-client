@@ -160,6 +160,7 @@
     <Compile Include="DXGUI\Multiplayer\GameLobby\PlayerLocationIndicator.cs" />
     <Compile Include="DXGUI\Multiplayer\GameLobby\SkirmishLobby.cs" />
     <Compile Include="DXGUI\Multiplayer\GameLobby\CTCPHandlers\StringCTCPHandler.cs" />
+    <Compile Include="DXGUI\Multiplayer\PrivateMessagingWindow.cs" />
     <Compile Include="Online\EventArguments\ChannelCTCPEventArgs.cs" />
     <Compile Include="Online\EventArguments\ChannelUserEventArgs.cs" />
     <Compile Include="Online\FileHashCalculator.cs" />

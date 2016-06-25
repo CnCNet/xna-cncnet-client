@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using DTAClient.domain.CnCNet;
 using Rampastring.XNAUI;
-using Rampastring.XNAUI.DXControls;
+using Rampastring.XNAUI.XNAControls;
 using Microsoft.Xna.Framework;
 using ClientCore;
 using Microsoft.Xna.Framework.Graphics;

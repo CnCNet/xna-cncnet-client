@@ -3,7 +3,7 @@ using DTAClient.domain;
 using Microsoft.Xna.Framework;
 using Rampastring.Tools;
 using Rampastring.XNAUI;
-using Rampastring.XNAUI.DXControls;
+using Rampastring.XNAUI.XNAControls;
 using System;
 using System.Collections.Generic;
 using System.Linq;
