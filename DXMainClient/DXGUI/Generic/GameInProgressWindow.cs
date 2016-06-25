@@ -43,7 +43,7 @@ namespace DTAClient.DXGUI
             XNAWindow window = new XNAWindow(WindowManager);
 
             window.Name = "GameInProgressWindow";
-            window.BackgroundTexture = AssetLoader.LoadTexture("missionselectorbg.png");
+            window.BackgroundTexture = AssetLoader.LoadTexture("gameinprogresswindowbg.png");
             window.ClientRectangle = new Rectangle(0, 0, 200, 100);
 
             XNALabel explanation = new XNALabel(WindowManager);

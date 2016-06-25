@@ -35,6 +35,9 @@ namespace DTAClient.DXGUI.Generic
 
         DarkeningPanel cncnetLobbyPanel;
         DarkeningPanel cncnetGameLobbyPanel;
+        PrivateMessagingPanel privateMessagingPanel;
+
+        bool load = false;
 
         //DXProgressBar progressBar;
 
@@ -63,8 +66,6 @@ namespace DTAClient.DXGUI.Generic
 
         public void Start()
         {
-            Cursor.Visible = false;
-
             mapLoader = new MapLoader();
             mapLoader.MapLoadingComplete += MapLoader_MapLoadingComplete;
 
@@ -124,12 +125,21 @@ namespace DTAClient.DXGUI.Generic
             cncnetGameLobbyPanel = new DarkeningPanel(WindowManager);
             WindowManager.AddAndInitializeControl(cncnetGameLobbyPanel);
             cncnetGameLobbyPanel.AddChild(cncnetGameLobby);
-            cncnetGameLobby.VisibleChanged += Lobby_VisibleChanged;
+            cncnetGameLobby.VisibleChanged += Darkened_VisibleChanged;
 
             cncnetLobbyPanel = new DarkeningPanel(WindowManager);
             WindowManager.AddAndInitializeControl(cncnetLobbyPanel);
             cncnetLobbyPanel.AddChild(cncnetLobby);
-            cncnetLobby.VisibleChanged += Lobby_VisibleChanged;
+            cncnetLobby.VisibleChanged += Darkened_VisibleChanged;
+
+            PrivateMessagingWindow pmsgWindow = new PrivateMessagingWindow(WindowManager, 
+                cncnetManager);
+            privateMessagingPanel = new PrivateMessagingPanel(WindowManager);
+            WindowManager.AddAndInitializeControl(privateMessagingPanel);
+            privateMessagingPanel.AddChild(pmsgWindow);
+            pmsgWindow.VisibleChanged += Darkened_VisibleChanged;
+
+            topBar.SetTertiarySwitch(pmsgWindow);
 
             WindowManager.AddAndInitializeControl(gipw);
             sl.Visible = false;
@@ -140,6 +150,8 @@ namespace DTAClient.DXGUI.Generic
             cncnetGameLobby.Enabled = false;
             cncnetGameLoadingLobby.Visible = false;
             cncnetGameLoadingLobby.Enabled = false;
+            pmsgWindow.Visible = false;
+            pmsgWindow.Enabled = false;
             WindowManager.RemoveControl(this);
             mm.PostInit();
 
@@ -152,7 +164,11 @@ namespace DTAClient.DXGUI.Generic
                 cncnetManager.Connect();
         }
 
-        private void Lobby_VisibleChanged(object sender, EventArgs e)
+        /// <summary>
+        /// Hides the darkening panel of a window that has a darkening panel as its parent
+        /// when the window is hidden.
+        /// </summary>
+        private void Darkened_VisibleChanged(object sender, EventArgs e)
         {
             var senderWindow = (XNAWindow)sender;
             var dp = (DarkeningPanel)senderWindow.Parent;
@@ -165,6 +181,17 @@ namespace DTAClient.DXGUI.Generic
 
         public override void Update(GameTime gameTime)
         {
+            // We don't start loading immediately, but let the client draw one frame
+            // first so the user can see the loading screen
+
+            if (load)
+            {
+                Start();
+            }
+
+            load = true;
+            Cursor.Visible = false;
+
             base.Update(gameTime);
         }
 

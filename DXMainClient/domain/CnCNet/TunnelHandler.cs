@@ -202,11 +202,18 @@ namespace DTAClient.domain.CnCNet
 
             if (returnValue.Count > 0)
             {
-                if (File.Exists(tunnelCacheFile))
-                    File.Delete(tunnelCacheFile);
-                if (!Directory.Exists(ProgramConstants.GamePath + "Client"))
-                    Directory.CreateDirectory(ProgramConstants.GamePath + "Client");
-                File.WriteAllBytes(tunnelCacheFile, data);
+                try
+                {
+                    if (File.Exists(tunnelCacheFile))
+                        File.Delete(tunnelCacheFile);
+                    if (!Directory.Exists(ProgramConstants.GamePath + "Client"))
+                        Directory.CreateDirectory(ProgramConstants.GamePath + "Client");
+                    File.WriteAllBytes(tunnelCacheFile, data);
+                }
+                catch (Exception ex)
+                {
+                    Logger.Log("Refreshing tunnel cache file failed! Returned error: " + ex.Message);
+                }
             }
 
             return returnValue;

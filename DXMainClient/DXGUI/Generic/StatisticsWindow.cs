@@ -81,12 +81,13 @@ namespace DTAClient.DXGUI.Generic
             ClientRectangle = new Rectangle(0, 0, 700, 521);
 
             tabControl = new XNATabControl(WindowManager);
+            tabControl.Name = "tabControl";
             tabControl.ClientRectangle = new Rectangle(12, 10, 0, 0);
             tabControl.SoundOnClick = AssetLoader.LoadSound("button.wav");
             tabControl.FontIndex = 1;
-            tabControl.AddTab("Game statistics", AssetLoader.LoadTexture("133pxbtn.png"),
+            tabControl.AddTab("Game Statistics", AssetLoader.LoadTexture("133pxbtn.png"),
                 AssetLoader.LoadTexture("133pxbtn_c.png"), true);
-            tabControl.AddTab("Total statistics", AssetLoader.LoadTexture("133pxbtn.png"),
+            tabControl.AddTab("Total Statistics", AssetLoader.LoadTexture("133pxbtn.png"),
                 AssetLoader.LoadTexture("133pxbtn_c.png"), true);
             tabControl.SelectedIndexChanged += tabControl_SelectedIndexChanged;
 
@@ -161,7 +162,7 @@ namespace DTAClient.DXGUI.Generic
             lbGameList.AddColumn("MAP", 200);
             lbGameList.AddColumn("GAME MODE", 130);
             lbGameList.AddColumn("FPS", 50);
-            lbGameList.AddColumn("LENGTH", 76);
+            lbGameList.AddColumn("DURATION", 76);
             lbGameList.AddColumn("COMPLETED", 90);
             lbGameList.ClientRectangle = new Rectangle(2, 25, 676, 250);
             lbGameList.SelectedIndexChanged += LbGameList_SelectedIndexChanged;

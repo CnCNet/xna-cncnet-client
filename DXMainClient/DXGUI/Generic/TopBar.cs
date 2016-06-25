@@ -115,8 +115,8 @@ namespace DTAClient.DXGUI.Generic
             btnPrivateMessages.IdleTexture = AssetLoader.LoadTexture("160pxbtn.png");
             btnPrivateMessages.HoverTexture = AssetLoader.LoadTexture("160pxbtn_c.png");
             btnPrivateMessages.HoverSoundEffect = AssetLoader.LoadSound("button.wav");
-            btnPrivateMessages.AllowClick = false;
-           
+            btnPrivateMessages.LeftClick += BtnPrivateMessages_LeftClick;
+
             lblDate = new XNALabel(WindowManager);
             lblDate.Name = "lblDate";
             lblDate.FontIndex = 1;
@@ -230,12 +230,19 @@ namespace DTAClient.DXGUI.Generic
         {
             primarySwitches[primarySwitches.Count - 1].SwitchOff();
             cncnetLobbySwitch.SwitchOn();
+            privateMessageSwitch.SwitchOff();
         }
 
         private void BtnMainButton_LeftClick(object sender, EventArgs e)
         {
             cncnetLobbySwitch.SwitchOff();
+            privateMessageSwitch.SwitchOff();
             primarySwitches[primarySwitches.Count - 1].SwitchOn();
+        }
+
+        private void BtnPrivateMessages_LeftClick(object sender, EventArgs e)
+        {
+            privateMessageSwitch.SwitchOn();
         }
 
         private void Keyboard_OnKeyPressed(object sender, KeyPressEventArgs e)

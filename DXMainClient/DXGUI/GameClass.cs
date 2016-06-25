@@ -84,7 +84,6 @@ namespace DTAClient.DXGUI
             wm.AddAndInitializeControl(ls);
             ls.ClientRectangle = new Rectangle((renderResolutionX - ls.ClientRectangle.Width) / 2,
                 (renderResolutionY - ls.ClientRectangle.Height) / 2, ls.ClientRectangle.Width, ls.ClientRectangle.Height);
-            ls.Start();
         }
 
         private void InitializeUISettings()

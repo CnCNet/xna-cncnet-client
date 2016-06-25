@@ -60,6 +60,8 @@ namespace DTAClient.Online
         private NetworkStream serverStream;
         private TcpClient tcpClient;
 
+        volatile int reconnectCount = 0;
+
         private volatile bool connectionCut = false;
         private volatile bool welcomeMessageReceived = false;
         private volatile bool sendQueueExited = false;
@@ -243,8 +245,17 @@ namespace DTAClient.Online
                 while (!sendQueueExited)
                     Thread.Sleep(100);
 
-                Logger.Log("Attempting to reconnect to CnCNet.");
+                reconnectCount++;
 
+                if (reconnectCount > 8)
+                {
+                    Logger.Log("Reconnect attempt count exceeded!");
+                    return;
+                }
+
+                Thread.Sleep(1000);
+
+                Logger.Log("Attempting to reconnect to CnCNet.");
                 connectionManager.OnReconnectAttempt();
             }
         }
@@ -326,6 +337,7 @@ namespace DTAClient.Online
                             message = serverMessagePart + parameters[1];
                             welcomeMessageReceived = true;
                             connectionManager.OnWelcomeMessageReceived(message);
+                            reconnectCount = 0;
                             break;
                         case 002: // "Your host is x, running version y"
                         case 003: // "This server was created..."

@@ -18,6 +18,7 @@ namespace DTAClient.Online
         public event EventHandler<UserNameEventArgs> UserQuitIRC;
         public event EventHandler<UserEventArgs> UserGameIndexUpdated;
         public event EventHandler UserListReceived;
+        public event EventHandler UserListCleared;
 
         public event EventHandler<IRCMessageEventArgs> MessageAdded;
         public event EventHandler<ChannelModeEventArgs> ChannelModesChanged;
@@ -63,9 +64,9 @@ namespace DTAClient.Online
         }
 
         List<IRCUser> users = new List<IRCUser>();
-        public IList<IRCUser> Users
+        public List<IRCUser> Users
         {
-            get { return users.AsReadOnly(); }
+            get { return users; }
         }
 
         #endregion
@@ -224,6 +225,7 @@ namespace DTAClient.Online
         public void ClearUsers()
         {
             users.Clear();
+            UserListCleared?.Invoke(this, EventArgs.Empty);
         }
     }
 

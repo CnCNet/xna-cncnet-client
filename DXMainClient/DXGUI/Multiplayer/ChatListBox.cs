@@ -11,7 +11,8 @@ using DTAClient.Online;
 namespace DTAClient.DXGUI.Multiplayer
 {
     /// <summary>
-    /// A list box for CnCNet chat. Supports opening links with a double-click.
+    /// A list box for CnCNet chat. Supports opening links with a double-click,
+    /// and easy adding of IRC messages to the list box.
     /// </summary>
     public class ChatListBox : XNAListBox
     {

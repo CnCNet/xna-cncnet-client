@@ -311,6 +311,8 @@ namespace DTAClient.DXGUI.Multiplayer
         {
             base.GetReadyNotification();
 
+            TopBar.SwitchToPrimary();
+
             if (IsHost)
                 channel.SendCTCPMessage(GET_READY_CTCP_COMMAND, QueuedMessageType.GAME_GET_READY_MESSAGE, 0);
         }

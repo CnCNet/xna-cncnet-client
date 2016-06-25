@@ -790,21 +790,7 @@ namespace DTAClient.DXGUI.Multiplayer
 
         private void AddMessageToChat(IRCMessage message)
         {
-            if (message.Sender == null)
-                lbChatMessages.AddItem(string.Format("[{0}] {1}",
-                    message.DateTime.ToShortTimeString(),
-                    Renderer.GetSafeString(message.Message, lbChatMessages.FontIndex)),
-                    message.Color, true);
-            else
-                lbChatMessages.AddItem(string.Format("[{0}] {1}: {2}", 
-                    message.DateTime.ToShortTimeString(), message.Sender, 
-                    Renderer.GetSafeString(message.Message, lbChatMessages.FontIndex)),
-                    message.Color, true);
-
-            if (lbChatMessages.LastIndex == lbChatMessages.Items.Count - 2)
-            {
-                lbChatMessages.ScrollToBottom();
-            }
+            lbChatMessages.AddMessage(message);
         }
 
         private void CurrentChatChannel_MessageAdded(object sender, IRCMessageEventArgs e)

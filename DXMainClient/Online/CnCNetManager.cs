@@ -13,6 +13,10 @@ using GameCollection = DTAClient.domain.CnCNet.GameCollection;
 
 namespace DTAClient.Online
 {
+    /// <summary>
+    /// Acts as an interface between the CnCNet connection class
+    /// and the user-interface's classes.
+    /// </summary>
     public class CnCNetManager : IConnectionManager
     {
         public delegate void UserListDelegate(string channelName, string[] userNames);
@@ -328,7 +332,7 @@ namespace DTAClient.Online
         }
 
         /// <summary>
-        /// Called when the connection has got cut non-intentionally.
+        /// Called when the connection has got cut un-intentionally.
         /// </summary>
         /// <param name="reason"></param>
         public void OnConnectionLost(string reason)
@@ -347,18 +351,28 @@ namespace DTAClient.Online
                     Channels.RemoveAt(i);
                     i--;
                 }
+                else
+                {
+                    Channels[i].ClearUsers();
+                }
             }
 
             MainChannel.AddMessage(new IRCMessage(null, Color.Red, DateTime.Now, "Connection to CnCNet has been lost."));
             connected = false;
         }
 
+        /// <summary>
+        /// Disconnects from CnCNet.
+        /// </summary>
         public void Disconnect()
         {
             connection.Disconnect();
             disconnect = true;
         }
 
+        /// <summary>
+        /// Connects to CnCNet.
+        /// </summary>
         public void Connect()
         {
             disconnect = false;
@@ -385,6 +399,10 @@ namespace DTAClient.Online
                     Channels.RemoveAt(i);
                     i--;
                 }
+                else
+                {
+                    Channels[i].ClearUsers();
+                }
             }
 
             MainChannel.AddMessage(new IRCMessage(null, Color.White, DateTime.Now, "You have disconnected from CnCNet."));
@@ -393,7 +411,7 @@ namespace DTAClient.Online
 
         public void OnErrorReceived(string errorMessage)
         {
-            Logger.Log("ERROR Received: " + errorMessage);
+            MainChannel.AddMessage(new IRCMessage(null, Color.Red, DateTime.Now, errorMessage));
         }
 
         public void OnGenericServerMessageReceived(string message)

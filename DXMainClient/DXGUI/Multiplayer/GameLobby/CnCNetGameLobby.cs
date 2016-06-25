@@ -895,6 +895,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             base.GetReadyNotification();
 
             WindowManager.FlashWindow();
+            TopBar.SwitchToPrimary();
 
             if (IsHost)
                 channel.SendCTCPMessage("GETREADY", QueuedMessageType.GAME_GET_READY_MESSAGE, 0);
