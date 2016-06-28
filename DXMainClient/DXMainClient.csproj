@@ -78,14 +78,6 @@
     <ApplicationManifest>Properties\app.manifest</ApplicationManifest>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="ClientCore, Version=1.16.4.2, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\DXCnCNetClient\ClientGUI\bin\Release\ClientCore.dll</HintPath>
-    </Reference>
-    <Reference Include="ClientGUI, Version=1.19.9.92, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\DXCnCNetClient\ClientGUI\bin\Release\ClientGUI.dll</HintPath>
-    </Reference>
     <Reference Include="DTAConfig">
       <HintPath>..\..\..\DTAConfig\bin\Release\DTAConfig.dll</HintPath>
     </Reference>
@@ -284,6 +276,14 @@
     <ProjectReference Include="..\..\..\Rampastring.XNAUI\Rampastring.XNAUI.csproj">
       <Project>{3eaf996d-7f03-433b-a9a5-17e69ac97c76}</Project>
       <Name>Rampastring.XNAUI</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\ClientCore\ClientCore.csproj">
+      <Project>{daa331a7-fdac-44fd-98b5-2dc5025f48c3}</Project>
+      <Name>ClientCore</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\ClientGUI\ClientGUI.csproj">
+      <Project>{4c26ad04-ff2e-4465-9f40-deb9ddc2c1d6}</Project>
+      <Name>ClientGUI</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
