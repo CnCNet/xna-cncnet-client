@@ -11,6 +11,8 @@ namespace DTAClient.domain.CnCNet
         public int ColorIndex { get; set; }
         public int StartingWaypoint { get; set; }
 
+        public int RealStartingWaypoint { get; set; }
+
         public bool IsSpectator { get; set; }
 
         /// <summary>
@@ -66,7 +68,10 @@ namespace DTAClient.domain.CnCNet
                 freeColors.RemoveAt(randomizedColorIndex);
             }
             else
+            {
                 ColorIndex = mpColors[pInfo.ColorId - 1].GameColorIndex;
+                freeColors.Remove(pInfo.ColorId - 1);
+            }
         }
 
         /// <summary>
@@ -78,13 +83,16 @@ namespace DTAClient.domain.CnCNet
         /// <param name="map">The selected map.</param>
         /// <param name="freeStartingLocations">List of free starting locations.</param>
         /// <param name="random">Random number generator.</param>
-        public void RandomizeStart(PlayerInfo pInfo, Map map,
-            List<int> freeStartingLocations, Random random)
+        /// <returns>True if the player's starting location index exceeds the map's number of starting waypoints,
+        /// otherwise false.</returns>
+        public bool RandomizeStart(PlayerInfo pInfo, Map map,
+            List<int> freeStartingLocations, Random random,
+            int fakeStartingLocationCount, List<int> takenStartingLocations)
         {
             if (IsSpectator)
             {
                 StartingWaypoint = 90;
-                return;
+                return false;
             }
 
             if (pInfo.StartingLocation == 0)
@@ -92,16 +100,32 @@ namespace DTAClient.domain.CnCNet
                 // Randomize starting location
 
                 if (freeStartingLocations.Count == 0) // No free starting locs available
-                    StartingWaypoint = random.Next(0, map.MaxPlayers); 
-                else
                 {
-                    int waypointIndex = random.Next(0, freeStartingLocations.Count);
-                    StartingWaypoint = freeStartingLocations[waypointIndex];
-                    freeStartingLocations.RemoveAt(waypointIndex);
+                    RealStartingWaypoint = -1;
+                    StartingWaypoint = -1;
+                    return true;
                 }
+
+                int waypointIndex = random.Next(0, freeStartingLocations.Count);
+                RealStartingWaypoint = freeStartingLocations[waypointIndex];
+                StartingWaypoint = RealStartingWaypoint;
+                freeStartingLocations.RemoveAt(waypointIndex);
+                return false;
             }
-            else
-                StartingWaypoint = pInfo.StartingLocation - 1;
+
+            // Use the player's selected starting location
+            RealStartingWaypoint = pInfo.StartingLocation - 1;
+
+            if (takenStartingLocations.Contains(RealStartingWaypoint))
+            {
+                StartingWaypoint = map.MaxPlayers + fakeStartingLocationCount;
+                return true;
+            }
+
+            takenStartingLocations.Add(RealStartingWaypoint);
+
+            StartingWaypoint = RealStartingWaypoint;
+            return false;
         }
     }
 }

@@ -33,6 +33,7 @@ namespace DTAClient.Online
         public event EventHandler<CTCPEventArgs> CTCPMessageReceived;
         public event EventHandler<KickEventArgs> UserKickedFromChannel;
         public event EventHandler<ChannelUserEventArgs> UserJoinedChannel;
+        public event EventHandler<PrivateMessageEventArgs> PrivateMessageReceived;
 
         public event EventHandler<AttemptedServerEventArgs> AttemptedServerChanged;
         public event EventHandler ConnectAttemptFailed;
@@ -441,7 +442,15 @@ namespace DTAClient.Online
 
         public void OnPrivateMessageReceived(string sender, string message)
         {
-            // TODO Parse as private message
+            wm.AddCallback(new Action<string, string>(DoPrivateMessageReceived),
+                sender, message);
+        }
+
+        private void DoPrivateMessageReceived(string sender, string message)
+        {
+            PrivateMessageEventArgs e = new PrivateMessageEventArgs(sender, message);
+
+            PrivateMessageReceived?.Invoke(this, e);
         }
 
         public void OnReconnectAttempt()

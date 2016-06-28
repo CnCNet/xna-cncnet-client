@@ -81,6 +81,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 chkPlayerReady.DisabledCheckedTexture = chkPlayerReady.CheckedTexture;
 
                 ReadyBoxes[i] = chkPlayerReady;
+                ddPlayerSides[i].AddItem("Spectator", AssetLoader.LoadTexture("spectatoricon.png"));
             }
 
             ddGameMode.ClientRectangle = new Rectangle(

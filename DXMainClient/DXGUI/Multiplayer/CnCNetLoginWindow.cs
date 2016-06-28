@@ -31,7 +31,7 @@ namespace DTAClient.DXGUI.Multiplayer
         public override void Initialize()
         {
             Name = "CnCNetLoginWindow";
-            ClientRectangle = new Rectangle(0, 0, 300, 240);
+            ClientRectangle = new Rectangle(0, 0, 300, 220);
             BackgroundTexture = AssetLoader.LoadTextureUncached("logindialogbg.png");
 
             lblConnectToCnCNet = new XNALabel(WindowManager);
@@ -73,16 +73,15 @@ namespace DTAClient.DXGUI.Multiplayer
 
             chkPersistentMode = new XNACheckBox(WindowManager);
             chkPersistentMode.Name = "chkPersistentMode";
-            chkPersistentMode.ClientRectangle = new Rectangle(12, chkRememberMe.ClientRectangle.Bottom + 32, 0, 0);
-            chkPersistentMode.Text = "Enable persistent mode" + 
-                Environment.NewLine + "(stay connected outside of the CnCNet lobby)";
+            chkPersistentMode.ClientRectangle = new Rectangle(12, chkRememberMe.ClientRectangle.Bottom + 30, 0, 0);
+            chkPersistentMode.Text = "Stay connected outside of the CnCNet lobby";
             chkPersistentMode.TextPadding = chkRememberMe.TextPadding;
             chkPersistentMode.CheckSoundEffect = AssetLoader.LoadSound("checkbox.wav");
             chkPersistentMode.CheckedChanged += ChkPersistentMode_CheckedChanged;
 
             chkAutoConnect = new XNACheckBox(WindowManager);
             chkAutoConnect.Name = "chkAutoConnect";
-            chkAutoConnect.ClientRectangle = new Rectangle(12, chkPersistentMode.ClientRectangle.Bottom + 46, 0, 0);
+            chkAutoConnect.ClientRectangle = new Rectangle(12, chkPersistentMode.ClientRectangle.Bottom + 30, 0, 0);
             chkAutoConnect.Text = "Connect automatically on client startup";
             chkAutoConnect.TextPadding = chkRememberMe.TextPadding;
             chkAutoConnect.CheckSoundEffect = AssetLoader.LoadSound("checkbox.wav");

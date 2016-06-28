@@ -607,6 +607,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             // Gather list of available starting locations
 
             List<int> freeStartingLocations = new List<int>();
+            List<int> takenStartingLocations = new List<int>();
 
             for (int i = 0; i < Map.MaxPlayers; i++)
                 freeStartingLocations.Add(i);
@@ -614,12 +615,20 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             for (int i = 0; i < Players.Count; i++)
             {
                 if (!houseInfos[i].IsSpectator)
+                {
                     freeStartingLocations.Remove(Players[i].StartingLocation - 1);
+                    //takenStartingLocations.Add(Players[i].StartingLocation - 1);
+                    // ^ Gives everyone with a selected location a completely random
+                    // location in-game, because PlayerHouseInfo.RandomizeStart already
+                    // fills the list itself
+                }
             }
 
             // Randomize options
 
             Random random = new Random(RandomSeed);
+
+            int fakeStartingLocationCount = 0;
 
             for (int i = 0; i < totalPlayerCount; i++)
             {
@@ -635,16 +644,20 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
                 pHouseInfo.RandomizeSide(pInfo, Map, _sideCount, random);
                 pHouseInfo.RandomizeColor(pInfo, freeColors, MPColors, random);
-                pHouseInfo.RandomizeStart(pInfo, Map, freeStartingLocations, random);
+                if (pHouseInfo.RandomizeStart(pInfo, Map, freeStartingLocations, random,
+                    fakeStartingLocationCount, takenStartingLocations))
+                {
+                    fakeStartingLocationCount++;
+                }
             }
 
             return houseInfos;
         }
 
         /// <summary>
-        /// Writes spawn.ini.
+        /// Writes spawn.ini. Returns the player house info returned from the randomizer.
         /// </summary>
-        private void WriteSpawnIni()
+        private PlayerHouseInfo[] WriteSpawnIni()
         {
             Logger.Log("Writing spawn.ini");
 
@@ -765,9 +778,14 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             for (int pId = 0; pId < Players.Count; pId++)
             {
-                int multiIndex = pId + 1;
-                spawnIni.SetIntValue("SpawnLocations", "Multi" + multiIndex,
-                    houseInfos[multiCmbIndexes[pId]].StartingWaypoint);
+                // -1 means no starting location at all - let the game itself pick the starting location
+                // using its own logic
+                if (houseInfos[multiCmbIndexes[pId]].StartingWaypoint > -1)
+                {
+                    int multiIndex = pId + 1;
+                    spawnIni.SetIntValue("SpawnLocations", "Multi" + multiIndex,
+                        houseInfos[multiCmbIndexes[pId]].StartingWaypoint);
+                }
             }
 
             for (int aiId = 0; aiId < AIPlayers.Count; aiId++)
@@ -779,7 +797,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             spawnIni.WriteIniFile();
 
-            InitializeMatchStatistics(houseInfos);
+            return houseInfos;
         }
 
         protected virtual string GetIPAddressForPlayer(PlayerInfo player)
@@ -820,7 +838,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         /// <summary>
         /// Writes spawnmap.ini.
         /// </summary>
-        private void WriteMap()
+        private void WriteMap(PlayerHouseInfo[] houseInfos)
         {
             File.Delete(ProgramConstants.GamePath + ProgramConstants.SPAWNMAP_INI);
 
@@ -838,6 +856,18 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             mapIni.MoveSectionToFirst("MultiplayerDialogSettings"); // Required by YR
 
+            // Add "fake" starting locations if needed, makes it possible to have multiple
+            // players start on the same location in DTA and all TS mods with more than 2 sides
+            foreach (PlayerHouseInfo houseInfo in houseInfos)
+            {
+                if (houseInfo.StartingWaypoint > -1 && 
+                    houseInfo.RealStartingWaypoint != houseInfo.StartingWaypoint)
+                {
+                    mapIni.SetIntValue("Waypoints", houseInfo.StartingWaypoint.ToString(),
+                        mapIni.GetIntValue("Waypoints", houseInfo.RealStartingWaypoint.ToString(), 0));
+                }
+            }
+
             mapIni.WriteIniFile(ProgramConstants.GamePath + ProgramConstants.SPAWNMAP_INI);
         }
 
@@ -847,8 +877,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         /// </summary>
         protected void StartGame()
         {
-            WriteSpawnIni();
-            WriteMap();
+            PlayerHouseInfo[] houseInfos = WriteSpawnIni();
+            InitializeMatchStatistics(houseInfos);
+            WriteMap(houseInfos);
 
             GameInProgress = true;
 
@@ -1163,12 +1194,12 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
                 foreach (int disallowedSideIndex in disallowedSides)
                 {
-                    if (disallowedSideIndex < _sideCount) // Let's not crash the client
+                    foreach (XNADropDown ddSide in ddPlayerSides)
                     {
-                        foreach (XNADropDown ddSide in ddPlayerSides)
-                        {
-                            ddSide.Items[disallowedSideIndex + 1].Selectable = false;
-                        }
+                        if (ddSide.Items.Count - 1 <= disallowedSideIndex)
+                            continue;
+
+                        ddSide.Items[disallowedSideIndex + 1].Selectable = false;
                     }
 
                     foreach (PlayerInfo pInfo in concatPlayerList)

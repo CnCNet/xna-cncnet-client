@@ -83,11 +83,33 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             int totalPlayerCount = Players.Count(p => p.SideId < ddPlayerSides[0].Items.Count - 1)
                 + AIPlayers.Count;
 
-            if (totalPlayerCount < Map.MinPlayers ||
-                (Map.EnforceMaxPlayers && (totalPlayerCount > Map.MaxPlayers)))
+            if (totalPlayerCount < Map.MinPlayers)
             {
                 btnLaunchGame.AllowClick = false;
                 return;
+            }
+
+            if (Map.EnforceMaxPlayers)
+            {
+                if (totalPlayerCount > Map.MaxPlayers)
+                {
+                    btnLaunchGame.AllowClick = false;
+                    return;
+                }
+
+                IEnumerable<PlayerInfo> concatList = Players.Concat(AIPlayers);
+
+                foreach (PlayerInfo pInfo in concatList)
+                {
+                    if (pInfo.StartingLocation == 0)
+                        continue;
+
+                    if (concatList.Count(p => p.StartingLocation == pInfo.StartingLocation) > 1)
+                    {
+                        btnLaunchGame.AllowClick = false;
+                        return;
+                    }
+                }
             }
 
             if (Map.IsCoop && Players[0].SideId == ddPlayerSides[0].Items.Count - 1)
