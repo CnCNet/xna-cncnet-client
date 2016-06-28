@@ -10,8 +10,6 @@ using DTAClient.Online.EventArguments;
 using Microsoft.Xna.Framework;
 using Rampastring.Tools;
 using DTAClient.DXGUI.Multiplayer.GameLobby.CTCPHandlers;
-using System.Net;
-using Microsoft.Xna.Framework.Audio;
 using DTAClient.DXGUI.Generic;
 
 namespace DTAClient.DXGUI.Multiplayer.GameLobby

@@ -1,18 +1,13 @@
 ﻿using ClientCore;
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using DTAClient.domain;
 using System.IO;
-using Updater;
 using ClientGUI;
 using Rampastring.XNAUI.XNAControls;
 using Rampastring.XNAUI;
 using Rampastring.Tools;
-using System.Diagnostics;
 
 namespace DTAClient.DXGUI.Generic
 {

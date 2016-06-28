@@ -1,13 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using Rampastring.XNAUI;
 using DTAClient.domain.CnCNet;
 using ClientCore;
 using DTAClient.Online;
 using DTAClient.DXGUI.Multiplayer.GameLobby.CTCPHandlers;
-using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework;
 using Rampastring.Tools;
 using DTAClient.DXGUI.Generic;

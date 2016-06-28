@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
-namespace DTAClient.domain.CnCNet
+﻿namespace DTAClient.domain.CnCNet
 {
     /// <summary>
     /// Holds information about enemy houses in a co-op map.

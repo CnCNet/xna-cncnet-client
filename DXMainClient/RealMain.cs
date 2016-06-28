@@ -1,11 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Windows.Forms;
 using System.Diagnostics;
 using System.IO;
-using DTAClient.gui;
 using DTAClient.domain;
-using ClientCore;
 using Rampastring.Tools;
 
 namespace DTAClient

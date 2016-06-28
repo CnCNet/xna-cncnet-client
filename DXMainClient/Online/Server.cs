@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
-namespace DTAClient.Online
+﻿namespace DTAClient.Online
 {
     /// <summary>
     /// A struct containing information on an IRC server.

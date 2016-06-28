@@ -2,9 +2,6 @@
 using Rampastring.XNAUI.XNAControls;
 using Rampastring.Tools;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using ClientCore;
 using Rampastring.XNAUI;
 using ClientGUI;

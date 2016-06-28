@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using static Rampastring.Tools.Delegates;
-
-namespace DTAClient.DXGUI.Multiplayer.GameLobby.CTCPHandlers
+﻿namespace DTAClient.DXGUI.Multiplayer.GameLobby.CTCPHandlers
 {
     public abstract class CTCPCommandHandler
     {

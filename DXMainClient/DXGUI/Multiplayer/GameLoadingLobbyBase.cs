@@ -2,8 +2,6 @@
 using Rampastring.XNAUI.XNAControls;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using Rampastring.XNAUI;
 using Microsoft.Xna.Framework;
 using DTAClient.domain.CnCNet;
@@ -11,8 +9,6 @@ using ClientCore;
 using Rampastring.Tools;
 using System.IO;
 using Microsoft.Xna.Framework.Audio;
-using Rampastring.XNAUI.Input;
-using Microsoft.Xna.Framework.Input;
 using DTAClient.DXGUI.Generic;
 
 namespace DTAClient.DXGUI.Multiplayer

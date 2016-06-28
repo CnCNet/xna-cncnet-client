@@ -1,13 +1,9 @@
 ﻿using Rampastring.XNAUI.XNAControls;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using Rampastring.XNAUI;
-using ClientCore.CnCNet5;
 using Microsoft.Xna.Framework;
 using HostedGame = DTAClient.domain.CnCNet.HostedGame;
-using ClientCore;
 using Microsoft.Xna.Framework.Graphics;
 
 namespace DTAClient.DXGUI.Multiplayer

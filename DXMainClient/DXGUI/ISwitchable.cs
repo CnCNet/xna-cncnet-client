@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
-namespace DTAClient.DXGUI
+﻿namespace DTAClient.DXGUI
 {
     /// <summary>
     /// An interface for all switchable windows.

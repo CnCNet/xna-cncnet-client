@@ -1,10 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using System.IO;
 using System.Windows.Forms;
 using System.Diagnostics;
-using System.Security.Principal;
 using System.Threading;
 using System.Management;
 using Microsoft.Win32;
@@ -14,7 +11,6 @@ using ClientGUI;
 using Updater;
 using DTAConfig;
 using Rampastring.Tools;
-using Rampastring.XNAUI;
 using DTAClient.DXGUI;
 
 namespace DTAClient

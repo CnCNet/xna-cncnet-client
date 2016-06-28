@@ -2,7 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using Microsoft.Xna.Framework;
 using Rampastring.XNAUI.XNAControls;
 using Rampastring.XNAUI;
@@ -622,6 +621,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     // location in-game, because PlayerHouseInfo.RandomizeStart already
                     // fills the list itself
                 }
+            }
+
+            for (int i = 0; i < AIPlayers.Count; i++)
+            {
+                freeStartingLocations.Remove(AIPlayers[i].StartingLocation - 1);
             }
 
             // Randomize options

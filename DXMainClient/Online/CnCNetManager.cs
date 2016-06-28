@@ -1,5 +1,4 @@
 ﻿using ClientCore;
-using ClientCore.CnCNet5;
 using DTAClient.domain.CnCNet;
 using DTAClient.Online.EventArguments;
 using Microsoft.Xna.Framework;
@@ -7,8 +6,6 @@ using Rampastring.Tools;
 using Rampastring.XNAUI;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using GameCollection = DTAClient.domain.CnCNet.GameCollection;
 
 namespace DTAClient.Online
@@ -156,7 +153,7 @@ namespace DTAClient.Online
 
         public void OnAttemptedServerChanged(string serverName)
         {
-            wm.AddCallback(new Delegates.StringDelegate(DoAttemptedServerChanged), serverName);
+            wm.AddCallback(new Action<string>(DoAttemptedServerChanged), serverName);
         }
 
         private void DoAttemptedServerChanged(string serverName)
@@ -167,7 +164,7 @@ namespace DTAClient.Online
 
         public void OnAwayMessageReceived(string userName, string reason)
         {
-            wm.AddCallback(new Delegates.DualStringDelegate(DoAwayMessageReceived), userName, reason);
+            wm.AddCallback(new Action<string, string>(DoAwayMessageReceived), userName, reason);
         }
 
         private void DoAwayMessageReceived(string userName, string reason)
@@ -177,7 +174,7 @@ namespace DTAClient.Online
 
         public void OnChannelFull(string channelName)
         {
-            wm.AddCallback(new Delegates.StringDelegate(DoChannelFull), channelName);
+            wm.AddCallback(new Action<string>(DoChannelFull), channelName);
         }
 
         private void DoChannelFull(string channelName)
@@ -202,7 +199,7 @@ namespace DTAClient.Online
 
         public void OnChannelModesChanged(string userName, string channelName, string modeString)
         {
-            wm.AddCallback(new Delegates.TripleStringDelegate(DoChannelModesChanged),
+            wm.AddCallback(new Action<string, string, string>(DoChannelModesChanged),
                 userName, channelName, modeString);
         }
 
@@ -220,7 +217,7 @@ namespace DTAClient.Online
         {
             //ChannelTopicReceived?.Invoke(this, new ChannelTopicEventArgs(channelName, topic));
 
-            wm.AddCallback(new Delegates.DualStringDelegate(DoChannelTopicReceived), channelName, topic);
+            wm.AddCallback(new Action<string, string>(DoChannelTopicReceived), channelName, topic);
         }
 
         private void DoChannelTopicReceived(string channelName, string topic)
@@ -235,7 +232,7 @@ namespace DTAClient.Online
 
         public void OnChatMessageReceived(string receiver, string sender, string message)
         {
-            wm.AddCallback(new Delegates.TripleStringDelegate(DoChatMessageReceived),
+            wm.AddCallback(new Action<string, string, string>(DoChatMessageReceived),
                 receiver, sender, message);
         }
 
@@ -292,7 +289,7 @@ namespace DTAClient.Online
 
         public void OnCTCPParsed(string channelName, string userName, string message)
         {
-            wm.AddCallback(new Delegates.TripleStringDelegate(DoCTCPParsed),
+            wm.AddCallback(new Action<string, string, string>(DoCTCPParsed),
                 channelName, userName, message);
         }
 
@@ -338,7 +335,7 @@ namespace DTAClient.Online
         /// <param name="reason"></param>
         public void OnConnectionLost(string reason)
         {
-            wm.AddCallback(new Delegates.StringDelegate(DoConnectionLost), reason);
+            wm.AddCallback(new Action<string>(DoConnectionLost), reason);
         }
 
         private void DoConnectionLost(string reason)
@@ -417,7 +414,7 @@ namespace DTAClient.Online
 
         public void OnGenericServerMessageReceived(string message)
         {
-            wm.AddCallback(new Delegates.StringDelegate(DoGenericServerMessageReceived), message);
+            wm.AddCallback(new Action<string>(DoGenericServerMessageReceived), message);
         }
 
         private void DoGenericServerMessageReceived(string message)
@@ -427,7 +424,7 @@ namespace DTAClient.Online
 
         public void OnIncorrectChannelPassword(string channelName)
         {
-            wm.AddCallback(new Delegates.StringDelegate(DoIncorrectChannelPassword), channelName);
+            wm.AddCallback(new Action<string>(DoIncorrectChannelPassword), channelName);
         }
 
         private void DoIncorrectChannelPassword(string channelName)
@@ -469,7 +466,7 @@ namespace DTAClient.Online
 
         public void OnUserJoinedChannel(string channelName, string userName, string userAddress)
         {
-            wm.AddCallback(new Delegates.TripleStringDelegate(DoUserJoinedChannel),
+            wm.AddCallback(new Action<string, string, string>(DoUserJoinedChannel),
                 channelName, userName, userAddress);
         }
 
@@ -508,7 +505,7 @@ namespace DTAClient.Online
 
         public void OnUserKicked(string channelName, string userName)
         {
-            wm.AddCallback(new Delegates.DualStringDelegate(DoUserKicked),
+            wm.AddCallback(new Action<string, string>(DoUserKicked),
                 channelName, userName);
         }
 
@@ -532,7 +529,7 @@ namespace DTAClient.Online
 
         public void OnUserLeftChannel(string channelName, string userName)
         {
-            wm.AddCallback(new Delegates.DualStringDelegate(DoUserLeftChannel),
+            wm.AddCallback(new Action<string, string>(DoUserLeftChannel),
                 channelName, userName);
         }
 
@@ -569,7 +566,7 @@ namespace DTAClient.Online
 
         public void OnUserQuitIRC(string userName)
         {
-            wm.AddCallback(new Delegates.StringDelegate(DoUserQuitIRC), userName);
+            wm.AddCallback(new Action<string>(DoUserQuitIRC), userName);
         }
 
         private void DoUserQuitIRC(string userName)
@@ -579,7 +576,7 @@ namespace DTAClient.Online
 
         public void OnWelcomeMessageReceived(string message)
         {
-            wm.AddCallback(new Delegates.StringDelegate(DoWelcomeMessageReceived), message);
+            wm.AddCallback(new Action<string>(DoWelcomeMessageReceived), message);
         }
 
         private void DoWelcomeMessageReceived(string message)
@@ -591,7 +588,7 @@ namespace DTAClient.Online
 
         public void OnWhoReplyReceived(string userName, string extraInfo)
         {
-            wm.AddCallback(new Delegates.DualStringDelegate(DoWhoReplyReceived),
+            wm.AddCallback(new Action<string, string>(DoWhoReplyReceived),
                 userName, extraInfo);
         }
 

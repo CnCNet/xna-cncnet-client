@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
-namespace DTAClient.DXGUI.Multiplayer.GameLobby
+﻿namespace DTAClient.DXGUI.Multiplayer.GameLobby
 {
     /// <summary>
     /// An enum for controlling how the game lobbies'

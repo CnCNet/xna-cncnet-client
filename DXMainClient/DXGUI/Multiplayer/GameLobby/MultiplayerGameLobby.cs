@@ -1,18 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using DTAClient.domain.CnCNet;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
 using Microsoft.Xna.Framework;
 using ClientCore;
-using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Audio;
 using System.IO;
 using Rampastring.Tools;
-using Rampastring.XNAUI.Input;
-using Microsoft.Xna.Framework.Input;
 using ClientCore.Statistics;
 using DTAClient.DXGUI.Generic;
 

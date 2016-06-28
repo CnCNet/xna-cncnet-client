@@ -1,13 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using System.IO;
 using System.Net;
-using DTAClient.gui;
-using DTAClient.domain;
 using System.Threading;
 using Rampastring.Tools;
-using Rampastring.XNAUI;
 
 namespace DTAClient.domain.CnCNet
 {

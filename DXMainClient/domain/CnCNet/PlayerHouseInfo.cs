@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace DTAClient.domain.CnCNet
 {
@@ -109,7 +107,7 @@ namespace DTAClient.domain.CnCNet
                 int waypointIndex = random.Next(0, freeStartingLocations.Count);
                 RealStartingWaypoint = freeStartingLocations[waypointIndex];
                 StartingWaypoint = RealStartingWaypoint;
-                freeStartingLocations.RemoveAt(waypointIndex);
+                freeStartingLocations.Remove(StartingWaypoint);
                 return false;
             }
 

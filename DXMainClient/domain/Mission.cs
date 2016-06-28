@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace DTAClient.domain
+﻿namespace DTAClient.domain
 {
     /// <summary>
     /// A Tiberian Sun mission listed in Battle(E).ini.

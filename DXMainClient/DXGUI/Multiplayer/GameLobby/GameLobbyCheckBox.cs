@@ -1,14 +1,8 @@
-﻿
-using Microsoft.Xna.Framework;
-using Rampastring.XNAUI.XNAControls;
+﻿using Rampastring.XNAUI.XNAControls;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using Rampastring.Tools;
 using Rampastring.XNAUI;
 using ClientCore;
-using Utilities = Rampastring.Tools.Utilities;
 
 namespace DTAClient.DXGUI.Multiplayer.GameLobby
 {

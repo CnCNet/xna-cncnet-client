@@ -1,10 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Text;
-using System.Security.Principal;
 using System.Windows.Forms;
 using System.IO;
-using ClientCore;
 using Rampastring.Tools;
 
 namespace DTAClient.domain

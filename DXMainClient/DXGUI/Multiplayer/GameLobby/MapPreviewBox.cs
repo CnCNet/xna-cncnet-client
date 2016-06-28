@@ -2,14 +2,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using Microsoft.Xna.Framework;
 using Rampastring.XNAUI;
 using DTAClient.domain.CnCNet;
 using Microsoft.Xna.Framework.Graphics;
 using ClientCore;
 using DTAClient.domain;
-using System.IO;
 using Rampastring.Tools;
 using Microsoft.Xna.Framework.Input;
 using System.Diagnostics;

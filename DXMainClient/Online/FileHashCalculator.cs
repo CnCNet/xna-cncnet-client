@@ -1,11 +1,9 @@
 ﻿using ClientCore;
 using DTAClient.domain.CnCNet;
-using Rampastring.Tools;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using Utilities = Rampastring.Tools.Utilities;
 
 namespace DTAClient.Online

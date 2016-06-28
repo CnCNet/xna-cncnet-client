@@ -1,14 +1,10 @@
 ﻿using ClientGUI;
 using DTAClient.domain;
 using Microsoft.Xna.Framework;
-using Rampastring.Tools;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
 using Updater;
 
 namespace DTAClient.DXGUI.Generic
@@ -136,7 +132,7 @@ namespace DTAClient.DXGUI.Generic
 
         private void CUpdater_LocalFileCheckProgressChanged(int checkedFileCount, int totalFileCount)
         {
-            AddCallback(new Delegates.IntDelegate(UpdateFileProgress),
+            AddCallback(new Action<int>(UpdateFileProgress),
                 (checkedFileCount * 100 / totalFileCount));
         }
 
@@ -190,7 +186,7 @@ namespace DTAClient.DXGUI.Generic
 
         private void Updater_OnUpdateFailed(Exception ex)
         {
-            AddCallback(new Delegates.StringDelegate(HandleUpdateFailed), ex.Message);
+            AddCallback(new Action<string>(HandleUpdateFailed), ex.Message);
         }
 
         private void HandleUpdateFailed(string updateFailureErrorMessage)
