@@ -1,5 +1,6 @@
 # README #
 
+###### MonoGame Client ######
 
 Rampastring's next-generation client that replaces the old unmaintainable Windows Forms-based client with something far superior.
 
@@ -11,14 +12,11 @@ Windows XP is currently unsupported. Support should be added before public relea
 
 
 Prerequisites:
-MonoGame.Framework: http://www.monogame.net/
-I think I used some development build of MonoGame 3.5.
-
-
-Rampastring.Tools: https://gitlab.com/Rampastring/Rampastring.Tools
-Rampastring.XNAUI: https://gitlab.com/Rampastring/Rampastring.XNAUI
-DTAConfig.dll: http://dta.cnc-comm.com/dev/Resources/Binaries/DTAConfig.dll
-DTAUpdater.dll: http://dta.cnc-comm.com/dev/Resources/Binaries/DTAUpdater.dll
-
+- MonoGame.Framework: http://www.monogame.net/
+  - Preferably 3.5, I think I've been using some development build
+- Rampastring.Tools: https://gitlab.com/Rampastring/Rampastring.Tools
+- Rampastring.XNAUI: https://gitlab.com/Rampastring/Rampastring.XNAUI
+- DTAConfig.dll: http://dta.cnc-comm.com/dev/Resources/Binaries/DTAConfig.dll
+- DTAUpdater.dll: http://dta.cnc-comm.com/dev/Resources/Binaries/DTAUpdater.dll
 
 DTAConfig.dll and DTAUpdater.dll are currently based on old code and will be replaced with newer, likely open-source versions later on.
