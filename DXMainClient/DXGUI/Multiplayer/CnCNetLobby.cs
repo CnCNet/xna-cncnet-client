@@ -19,14 +19,14 @@ using DTAClient.DXGUI.Generic;
 
 namespace DTAClient.DXGUI.Multiplayer
 {
-    public class CnCNetLobby : XNAWindow, ISwitchable
+    internal class CnCNetLobby : XNAWindow, ISwitchable
     {
         const int GAME_REFRESH_RATE = 120;
         const double GAME_LIFETIME = 35.0;
 
         public CnCNetLobby(WindowManager windowManager, CnCNetManager connectionManager,
             CnCNetGameLobby gameLobby, CnCNetGameLoadingLobby gameLoadingLobby, 
-            TopBar topBar, TunnelHandler tunnelHandler)
+            TopBar topBar, PrivateMessagingWindow pmWindow, TunnelHandler tunnelHandler)
             : base(windowManager)
         {
             this.connectionManager = connectionManager;
@@ -35,6 +35,7 @@ namespace DTAClient.DXGUI.Multiplayer
             this.gameLoadingLobby = gameLoadingLobby;
             this.tunnelHandler = tunnelHandler;
             this.topBar = topBar;
+            this.pmWindow = pmWindow;
         }
 
         CnCNetManager connectionManager;
@@ -42,6 +43,7 @@ namespace DTAClient.DXGUI.Multiplayer
         XNAListBox lbPlayerList;
         ChatListBox lbChatMessages;
         GameListBox lbGameList;
+        XNAContextMenu playerContextMenu;
 
         LinkButton btnForums;
         LinkButton btnTwitter;
@@ -91,6 +93,8 @@ namespace DTAClient.DXGUI.Multiplayer
         DarkeningPanel loginWindowPanel;
 
         TopBar topBar;
+
+        PrivateMessagingWindow pmWindow;
 
         int framesSinceGameRefresh;
 
@@ -212,6 +216,18 @@ namespace DTAClient.DXGUI.Multiplayer
             lbPlayerList.DrawMode = PanelBackgroundImageDrawMode.STRETCHED;
             lbPlayerList.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 128), 1, 1);
             lbPlayerList.LineHeight = 16;
+            lbPlayerList.DoubleLeftClick += LbPlayerList_DoubleLeftClick;
+            lbPlayerList.RightClick += LbPlayerList_RightClick;
+
+            playerContextMenu = new XNAContextMenu(WindowManager);
+            playerContextMenu.Name = "playerContextMenu";
+            playerContextMenu.ClientRectangle = new Rectangle(0, 0, 150, 2);
+            playerContextMenu.Enabled = false;
+            playerContextMenu.Visible = false;
+            playerContextMenu.AddItem("Private Message");
+            playerContextMenu.AddItem("Add Friend");
+            playerContextMenu.AddItem("Add to Ignore List");
+            playerContextMenu.OptionSelected += PlayerContextMenu_OptionSelected;
 
             lbChatMessages = new ChatListBox(WindowManager);
             lbChatMessages.Name = "lbChatMessages";
@@ -350,6 +366,7 @@ namespace DTAClient.DXGUI.Multiplayer
             AddChild(ddColor);
             AddChild(lblCurrentChannel);
             AddChild(ddCurrentChannel);
+            AddChild(playerContextMenu);
 
             SoundEffect gameCreatedSoundEffect = AssetLoader.LoadSound("gamecreated.wav");
 
@@ -399,6 +416,99 @@ namespace DTAClient.DXGUI.Multiplayer
             gameLoadingLobby.GameLeft += GameLoadingLobby_GameLeft;
         }
 
+        private void LbPlayerList_RightClick(object sender, EventArgs e)
+        {
+            lbPlayerList.SelectedIndex = lbPlayerList.HoveredIndex;
+
+            if (lbPlayerList.SelectedIndex < 0 ||
+                lbPlayerList.SelectedIndex >= lbPlayerList.Items.Count)
+            {
+                return;
+            }
+
+            string userName = currentChatChannel.Users[lbPlayerList.SelectedIndex].Name;
+
+            if (pmWindow.IsFriend(userName))
+            {
+                playerContextMenu.Items[1].Text = "Remove Friend";
+            }
+            else
+            {
+                playerContextMenu.Items[1].Text = "Add Friend";
+            }
+
+            Point cursorPoint = GetCursorPoint();
+
+            playerContextMenu.Enabled = true;
+            playerContextMenu.Visible = true;
+            playerContextMenu.ClientRectangle = new Rectangle(cursorPoint.X, cursorPoint.Y,
+                playerContextMenu.ClientRectangle.Width, playerContextMenu.ClientRectangle.Height);
+
+            // Position context menu so it never gets outside of the window borders
+
+            if (playerContextMenu.ClientRectangle.Right > ClientRectangle.Width)
+            {
+                playerContextMenu.ClientRectangle = new Rectangle(
+                    cursorPoint.X - playerContextMenu.ClientRectangle.Width,
+                    playerContextMenu.ClientRectangle.Y, playerContextMenu.ClientRectangle.Width,
+                    playerContextMenu.ClientRectangle.Height);
+            }
+
+            if (playerContextMenu.ClientRectangle.Bottom > ClientRectangle.Height)
+            {
+                playerContextMenu.ClientRectangle = new Rectangle(
+                    playerContextMenu.ClientRectangle.X,
+                    cursorPoint.Y - playerContextMenu.ClientRectangle.Height, 
+                    playerContextMenu.ClientRectangle.Width,
+                    playerContextMenu.ClientRectangle.Height);
+            }
+        }
+
+        private void PlayerContextMenu_OptionSelected(object sender, ContextMenuOptionEventArgs e)
+        {
+            if (lbPlayerList.SelectedIndex < 0 ||
+                lbPlayerList.SelectedIndex >= lbPlayerList.Items.Count)
+            {
+                return;
+            }
+
+            string userName = currentChatChannel.Users[lbPlayerList.SelectedIndex].Name;
+
+            switch (e.Index)
+            {
+                case 0:
+                    pmWindow.InitPM(userName);
+                    break;
+                case 1:
+                    if (pmWindow.IsFriend(userName))
+                        pmWindow.RemoveFriend(userName);
+                    else
+                        pmWindow.AddFriend(userName);
+
+                    break;
+                case 2:
+                    pmWindow.Ignore(userName);
+                    break;
+            }
+        }
+
+        /// <summary>
+        /// Enables private messaging by PM'ing a user in the player list.
+        /// </summary>
+        private void LbPlayerList_DoubleLeftClick(object sender, EventArgs e)
+        {
+            if (lbPlayerList.SelectedIndex < 0 || 
+                lbPlayerList.SelectedIndex >= lbPlayerList.Items.Count)
+            {
+                return;
+            }
+
+            pmWindow.InitPM(currentChatChannel.Users[lbPlayerList.SelectedIndex].Name);
+        }
+
+        /// <summary>
+        /// Hides the login dialog once the user has hit Connect on that dialog.
+        /// </summary>
         private void LoginWindow_Connect(object sender, EventArgs e)
         {
             connectionManager.Connect();
@@ -408,6 +518,10 @@ namespace DTAClient.DXGUI.Multiplayer
                 btnLogout.Text = "Main Menu";
         }
 
+        /// <summary>
+        /// Hides the login window and the CnCNet lobby if the user
+        /// cancels connecting to CnCNet in the login dialog.
+        /// </summary>
         private void LoginWindow_Cancelled(object sender, EventArgs e)
         {
             topBar.SwitchToPrimary();
@@ -767,11 +881,19 @@ namespace DTAClient.DXGUI.Multiplayer
 
         private void RefreshPlayerList(object sender, EventArgs e)
         {
+            string selectedUserName = lbPlayerList.SelectedItem == null ?
+                string.Empty : lbPlayerList.SelectedItem.Text;
             lbPlayerList.Clear();
 
             foreach (IRCUser user in currentChatChannel.Users)
             {
                 AddUser(user);
+            }
+
+            if (selectedUserName != string.Empty)
+            {
+                lbPlayerList.SelectedIndex = lbPlayerList.Items.FindIndex(
+                    i => i.Text == selectedUserName);
             }
         }
 

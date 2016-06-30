@@ -261,8 +261,7 @@ namespace DTAClient.DXGUI.Generic
             }
             else if (e.PressedKey == Keys.F4)
             {
-                // Do nothing for now
-                // TODO show private messages
+                BtnPrivateMessages_LeftClick(this, EventArgs.Empty);
             }
         }
 
@@ -310,8 +309,11 @@ namespace DTAClient.DXGUI.Generic
                 if (locationY > -ClientRectangle.Height)
                 {
                     locationY -= UP_MOVEMENT_RATE;
-                    ClientRectangle = new Rectangle(ClientRectangle.X, (int)locationY, ClientRectangle.Width, ClientRectangle.Height);
+                    ClientRectangle = new Rectangle(ClientRectangle.X, (int)locationY,
+                        ClientRectangle.Width, ClientRectangle.Height);
                 }
+                else
+                    return; // Don't handle input when the cursor is above our game window
             }
 
             DateTime dtn = DateTime.Now;

@@ -16,10 +16,11 @@ using DTAClient.Online.EventArguments;
 
 namespace DTAClient.DXGUI.Multiplayer
 {
-    class PrivateMessagingWindow : XNAWindow, ISwitchable
+    internal class PrivateMessagingWindow : XNAWindow, ISwitchable
     {
         const int ALL_PLAYERS_VIEW_INDEX = 2;
         const int FRIEND_LIST_VIEW_INDEX = 1;
+        const string FRIEND_LIST_PATH = "Client\\friend_list";
 
         public PrivateMessagingWindow(WindowManager windowManager,
             CnCNetManager connectionManager) : base(windowManager)
@@ -66,6 +67,9 @@ namespace DTAClient.DXGUI.Multiplayer
         Color personalMessageColor;
         Color otherUserMessageColor;
 
+        string lastReceivedPMSender;
+        string lastConversationPartner;
+
         /// <summary>
         /// Holds the users that the local user has had conversations with
         /// during this client session.
@@ -73,6 +77,8 @@ namespace DTAClient.DXGUI.Multiplayer
         List<PrivateMessageUser> privateMessageUsers = new List<PrivateMessageUser>();
 
         List<string> friendList;
+
+        PrivateMessageNotificationBox notificationBox;
 
         private void CncnetChannel_UserKicked(object sender, UserNameEventArgs e)
         {
@@ -147,7 +153,7 @@ namespace DTAClient.DXGUI.Multiplayer
                 {
                     lbItem.TextColor = UISettings.AltColor;
                     lbItem.Tag = true;
-                    lbItem.Texture = GetUserTexture(true, e.User);
+                    lbItem.Texture = GetUserTexture(e.User);
 
                     if (lbItem == lbUserList.SelectedItem)
                     {
@@ -166,6 +172,9 @@ namespace DTAClient.DXGUI.Multiplayer
             }
 
             lbUserList.Clear();
+            int textEndPosition = tbMessageInput.TextEndPosition;
+            int textStartPosition = tbMessageInput.TextStartPosition;
+            int textInputPosition = tbMessageInput.InputPosition;
             string wipMessage = tbMessageInput.Text;
 
             foreach (IRCUser user in cncnetChannel.Users)
@@ -174,7 +183,14 @@ namespace DTAClient.DXGUI.Multiplayer
             }
 
             lbUserList.SelectedIndex = lbUserList.Items.FindIndex(i => i.Text == selectedUserName);
-            tbMessageInput.Text = wipMessage;
+            if (lbUserList.SelectedIndex > -1)
+            {
+                // Restore checkbox state - user list index change cleared it
+                tbMessageInput.Text = wipMessage;
+                tbMessageInput.TextEndPosition = textEndPosition;
+                tbMessageInput.TextStartPosition = textStartPosition;
+                tbMessageInput.InputPosition = textInputPosition;
+            }
         }
 
         private void CncnetChannel_UserListReceived(object sender, EventArgs e)
@@ -196,7 +212,7 @@ namespace DTAClient.DXGUI.Multiplayer
                     {
                         lbItem.TextColor = UISettings.AltColor;
                         lbItem.Tag = true;
-                        lbItem.Texture = GetUserTexture(true, user);
+                        lbItem.Texture = GetUserTexture(user);
 
                         if (lbItem == lbUserList.SelectedItem)
                         {
@@ -273,6 +289,8 @@ namespace DTAClient.DXGUI.Multiplayer
                 lblPlayers.ClientRectangle.Bottom + 6,
                 150, ClientRectangle.Height - lblPlayers.ClientRectangle.Bottom - 18);
             lbUserList.SelectedIndexChanged += LbUserList_SelectedIndexChanged;
+            lbUserList.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 128), 1, 1);
+            lbUserList.DrawMode = PanelBackgroundImageDrawMode.STRETCHED;
 
             lblMessages = new XNALabel(WindowManager);
             lblMessages.Name = "lblMessages";
@@ -287,6 +305,8 @@ namespace DTAClient.DXGUI.Multiplayer
                 lbUserList.ClientRectangle.Y,
                 ClientRectangle.Width - lblMessages.ClientRectangle.X - 12,
                 lbUserList.ClientRectangle.Height - 25);
+            lbMessages.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 128), 1, 1);
+            lbMessages.DrawMode = PanelBackgroundImageDrawMode.STRETCHED;
 
             tbMessageInput = new XNATextBox(WindowManager);
             tbMessageInput.Name = "tbMessageInput";
@@ -295,12 +315,17 @@ namespace DTAClient.DXGUI.Multiplayer
             tbMessageInput.EnterPressed += TbMessageInput_EnterPressed;
             tbMessageInput.MaximumTextLength = 200;
 
+            notificationBox = new PrivateMessageNotificationBox(WindowManager);
+            notificationBox.Enabled = false;
+            notificationBox.Visible = false;
+
             AddChild(tabControl);
             AddChild(lblPlayers);
             AddChild(lbUserList);
             AddChild(lblMessages);
             AddChild(lbMessages);
             AddChild(tbMessageInput);
+            WindowManager.AddAndInitializeControl(notificationBox);
 
             base.Initialize();
 
@@ -308,7 +333,7 @@ namespace DTAClient.DXGUI.Multiplayer
 
             try
             {
-                friendList = File.ReadAllLines(ProgramConstants.GamePath + "Client\\friend_list").ToList();
+                friendList = File.ReadAllLines(ProgramConstants.GamePath + FRIEND_LIST_PATH).ToList();
             }
             catch
             {
@@ -319,6 +344,23 @@ namespace DTAClient.DXGUI.Multiplayer
             tabControl.SelectedTab = 0;
 
             connectionManager.PrivateMessageReceived += ConnectionManager_PrivateMessageReceived;
+            Game.Exiting += Game_Exiting;
+        }
+
+        private void Game_Exiting(object sender, EventArgs e)
+        {
+            Logger.Log("Saving friend list.");
+
+            try
+            {
+                File.Delete(ProgramConstants.GamePath + FRIEND_LIST_PATH);
+                File.WriteAllLines(ProgramConstants.GamePath + FRIEND_LIST_PATH,
+                    friendList.ToArray());
+            }
+            catch (Exception ex)
+            {
+                Logger.Log("Saving friend list failed! Error message: " + ex.Message);
+            }
         }
 
         private void ConnectionManager_PrivateMessageReceived(object sender, PrivateMessageEventArgs e)
@@ -354,20 +396,18 @@ namespace DTAClient.DXGUI.Multiplayer
 
             pmUser.Messages.Add(message);
 
-            if (lbUserList.SelectedItem == null)
+            lastReceivedPMSender = e.Sender;
+            lastConversationPartner = e.Sender;
+
+            if (!Visible || lbUserList.SelectedItem == null ||
+                lbUserList.SelectedItem.Text != e.Sender)
             {
-                // TODO display message top-right
-                return; 
+                // Display message in top-right notification box
+                notificationBox.Show(GetUserTexture(pmUser.IrcUser), e.Sender, e.Message);
+                return;
             }
 
-            if (lbUserList.SelectedItem.Text == e.Sender)
-            {
-                lbMessages.AddMessage(message);
-            }
-            else
-            {
-                // TODO display message top-right
-            }
+            lbMessages.AddMessage(message);
         }
 
         private void TbMessageInput_EnterPressed(object sender, EventArgs e)
@@ -404,6 +444,8 @@ namespace DTAClient.DXGUI.Multiplayer
             pmUser.Messages.Add(sentMessage);
 
             lbMessages.AddMessage(sentMessage);
+
+            lastConversationPartner = userName;
 
             if (tabControl.SelectedTab != 0)
             {
@@ -495,16 +537,13 @@ namespace DTAClient.DXGUI.Multiplayer
             lbItem.TextColor = isOnline ?
                 UISettings.AltColor : UISettings.DisabledButtonColor;
             lbItem.Tag = isOnline;
-            lbItem.Texture = GetUserTexture(isOnline, user);
+            lbItem.Texture = isOnline ? GetUserTexture(user) : null;
 
             lbUserList.AddItem(lbItem);
         }
 
-        private Texture2D GetUserTexture(bool isOnline, IRCUser user)
+        private Texture2D GetUserTexture(IRCUser user)
         {
-            if (!isOnline)
-                return null;
-
             if (user.IsAdmin)
             {
                 return adminGameIcon;
@@ -517,11 +556,106 @@ namespace DTAClient.DXGUI.Multiplayer
                 return gameCollection.GameList[user.GameID].Texture;
         }
 
-        public void SwitchOn()
+        /// <summary>
+        /// Prepares a recipient for sending a private message.
+        /// </summary>
+        /// <param name="name"></param>
+        public void InitPM(string name)
         {
             Visible = true;
             Enabled = true;
+
+            // Check if we've already talked with the user during this session 
+            // and if so, open the old conversation
+            int pmUserIndex = privateMessageUsers.FindIndex(
+                pmUser => pmUser.IrcUser.Name == name);
+
+            if (pmUserIndex > -1)
+            {
+                tabControl.SelectedTab = 0;
+                lbUserList.SelectedIndex = lbUserList.Items.FindIndex(i => i.Text == name);
+                return;
+            }
+
+            // If we haven't talked with the user, check if they are a friend and if so,
+            // let's enter the friend list and talk to them there
+            if (friendList.Contains(name))
+            {
+                tabControl.SelectedTab = FRIEND_LIST_VIEW_INDEX;
+                lbUserList.SelectedIndex = lbUserList.Items.FindIndex(i => i.Text == name);
+                return;
+            }
+
+            // If the user isn't a friend, switch to the "all players" view and
+            // open the conversation there
+            tabControl.SelectedTab = ALL_PLAYERS_VIEW_INDEX;
+            lbUserList.SelectedIndex = lbUserList.Items.FindIndex(i => i.Text == name);
+        }
+
+        /// <summary>
+        /// Checks if a specified user belongs to the friend list.
+        /// </summary>
+        /// <param name="name">The name of the user.</param>
+        public bool IsFriend(string name)
+        {
+            return friendList.Contains(name);
+        }
+
+        /// <summary>
+        /// Adds an user into the friend list.
+        /// </summary>
+        /// <param name="name">The name of the user.</param>
+        public void AddFriend(string name)
+        {
+            friendList.Add(name);
+        }
+
+        /// <summary>
+        /// Removes an user from the friend list.
+        /// </summary>
+        /// <param name="name">The name of the user.</param>
+        public void RemoveFriend(string name)
+        {
+            friendList.Remove(name);
+        }
+
+        /// <summary>
+        /// Adds a specified user to the chat ignore list.
+        /// </summary>
+        /// <param name="name">The name of the user.</param>
+        public void Ignore(string name)
+        {
+            // TODO implement
+        }
+
+        public void SwitchOn()
+        {
             tabControl.SelectedTab = 0;
+            notificationBox.Hide();
+
+            if (Visible)
+            {
+                if (!string.IsNullOrEmpty(lastReceivedPMSender))
+                {
+                    int index = lbUserList.Items.FindIndex(i => i.Text == lastReceivedPMSender);
+
+                    if (index > -1)
+                        lbUserList.SelectedIndex = index;
+                }
+            }
+            else
+            {
+                Visible = true;
+                Enabled = true;
+
+                if (!string.IsNullOrEmpty(lastConversationPartner))
+                {
+                    int index = lbUserList.Items.FindIndex(i => i.Text == lastReceivedPMSender);
+
+                    if (index > -1)
+                        lbUserList.SelectedIndex = index;
+                }
+            }
         }
 
         public void SwitchOff()

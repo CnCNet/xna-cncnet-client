@@ -20,10 +20,10 @@ namespace DTAClient
             Logger.Initialize(MainClientConstants.gamepath + "Client\\", "client.log");
             Logger.WriteLogFile = true;
 
-            File.Delete(MainClientConstants.gamepath + "Client\\client.log");
-
             if (!Directory.Exists(MainClientConstants.gamepath + "Client"))
                 Directory.CreateDirectory(MainClientConstants.gamepath + "Client");
+
+            File.Delete(MainClientConstants.gamepath + "Client\\client.log");
 
             MainClientConstants.Initialize();
 
