@@ -594,7 +594,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (Map.CoopInfo != null)
             {
                 foreach (int colorIndex in Map.CoopInfo.DisallowedPlayerColors)
-                    freeColors.RemoveAt(colorIndex);
+                    freeColors.Remove(colorIndex);
             }
 
             foreach (PlayerInfo player in Players)
@@ -782,21 +782,28 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             for (int pId = 0; pId < Players.Count; pId++)
             {
+                int startingWaypoint = houseInfos[multiCmbIndexes[pId]].StartingWaypoint;
+
                 // -1 means no starting location at all - let the game itself pick the starting location
                 // using its own logic
-                if (houseInfos[multiCmbIndexes[pId]].StartingWaypoint > -1)
+                if (startingWaypoint > -1)
                 {
                     int multiIndex = pId + 1;
                     spawnIni.SetIntValue("SpawnLocations", "Multi" + multiIndex,
-                        houseInfos[multiCmbIndexes[pId]].StartingWaypoint);
+                        startingWaypoint);
                 }
             }
 
             for (int aiId = 0; aiId < AIPlayers.Count; aiId++)
             {
-                int multiIndex = Players.Count + aiId + 1;
-                spawnIni.SetIntValue("SpawnLocations", "Multi" + multiIndex,
-                    houseInfos[Players.Count + aiId].StartingWaypoint);
+                int startingWaypoint = houseInfos[Players.Count + aiId].StartingWaypoint;
+
+                if (startingWaypoint > -1)
+                {
+                    int multiIndex = Players.Count + aiId + 1;
+                    spawnIni.SetIntValue("SpawnLocations", "Multi" + multiIndex,
+                        startingWaypoint);
+                }
             }
 
             spawnIni.WriteIniFile();

@@ -248,6 +248,9 @@ namespace DTAClient.DXGUI.Generic
             if (updateInProgress)
                 CUpdater.TerminateUpdate = true;
 
+            if (connectionManager.IsConnected)
+                connectionManager.SendCustomMessage(new QueuedMessage("QUIT", QueuedMessageType.INSTANT_MESSAGE, 0));
+
             Environment.Exit(0);
         }
 
@@ -269,18 +272,6 @@ namespace DTAClient.DXGUI.Generic
         }
 
         #region Updating / versioning system
-
-        private void MessageBox_YesClicked(object sender, EventArgs e)
-        {
-            CUpdater.CheckForUpdates();
-            lblUpdateStatus.Text = "Checking for updates...";
-            innerPanel.Hide();
-        }
-
-        private void MessageBox_NoClicked(object sender, EventArgs e)
-        {
-            innerPanel.Hide();
-        }
 
         private void UpdateWindow_UpdateFailed(object sender, UpdateFailureEventArgs e)
         {

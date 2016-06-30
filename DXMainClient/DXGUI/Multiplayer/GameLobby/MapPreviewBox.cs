@@ -11,6 +11,7 @@ using DTAClient.domain;
 using Rampastring.Tools;
 using Microsoft.Xna.Framework.Input;
 using System.Diagnostics;
+using Microsoft.Xna.Framework.Audio;
 
 namespace DTAClient.DXGUI.Multiplayer.GameLobby
 {
@@ -82,6 +83,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         IniFile gameOptionsIni;
 
+        SoundEffectInstance sndClickSound;
+
+        SoundEffectInstance sndDropdownSound;
+
         public override void Initialize()
         {
             disposeTextures = !MCDomainController.Instance.GetMapPreviewPreloadStatus();
@@ -129,11 +134,22 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             contextMenu.Enabled = false;
             contextMenu.Visible = false;
 
+            SoundEffect seButton = AssetLoader.LoadSound("button.wav");
+            if (seButton != null)
+                sndClickSound = seButton.CreateInstance();
+
+            SoundEffect seDropdown = AssetLoader.LoadSound("dropdown.wav");
+            if (seDropdown != null)
+                sndDropdownSound = seDropdown.CreateInstance();
+
             base.Initialize();
         }
 
         private void ContextMenu_OptionSelected(object sender, ContextMenuOptionEventArgs e)
         {
+            if (sndDropdownSound != null)
+                sndDropdownSound.Play();
+
             if (Map.EnforceMaxPlayers)
             {
                 foreach (PlayerInfo pInfo in players.Concat(aiPlayers))
@@ -169,6 +185,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             var indicator = (PlayerLocationIndicator)sender;
 
+            if (sndClickSound != null)
+                sndClickSound.Play();
+
             if (!EnableContextMenu)
             {
                 if (Map.EnforceMaxPlayers)
@@ -183,6 +202,13 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 LocalStartingLocationSelected?.Invoke(this, new LocalStartingLocationEventArgs((int)indicator.Tag + 1));
                 return;
             }
+
+            //if (contextMenu.Visible)
+            //{
+            //    contextMenu.Visible = false;
+            //    contextMenu.Enabled = false;
+            //    return;
+            //}
 
             //if (Map.EnforceMaxPlayers)
             //{
@@ -284,7 +310,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 ratio = xRatio;
                 textureWidth = ClientRectangle.Width - 2;
                 textureHeight = (int)(texture.Height * ratio);
-                texturePositionY = (int)(ClientRectangle.Height - 2 - textureHeight) / 2;
+                texturePositionY = (ClientRectangle.Height - 2 - textureHeight) / 2 + 1;
             }
 
             useNearestNeighbour = ratio < 1.0;
