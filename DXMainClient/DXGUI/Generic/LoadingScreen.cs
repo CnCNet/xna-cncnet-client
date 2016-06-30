@@ -9,6 +9,7 @@ using Microsoft.Xna.Framework;
 using Rampastring.XNAUI;
 using System;
 using System.Threading;
+using System.Threading.Tasks;
 using Updater;
 using SkirmishLobby = DTAClient.DXGUI.Multiplayer.GameLobby.SkirmishLobby;
 
@@ -22,9 +23,6 @@ namespace DTAClient.DXGUI.Generic
         }
 
         private static readonly object locker = new object();
-
-        bool updaterReady = false;
-        bool mapsReady = false;
 
         MapLoader mapLoader;
 
@@ -48,48 +46,29 @@ namespace DTAClient.DXGUI.Generic
             base.Initialize();
         }
 
-        private void CUpdater_OnLocalFileVersionsChecked()
-        {
-            lock (locker)
-            {
-                updaterReady = true;
-
-                if (mapsReady)
-                    AddCallback(new Action(Finish), null);
-            }
-        }
-
         public void Start()
         {
+            bool initUpdater = !MCDomainController.Instance.GetModModeStatus();
+            Task t = null;
+
+            if (initUpdater)
+            {
+                t = new Task(InitUpdater);
+                t.Start();
+            }
+
             mapLoader = new MapLoader();
-            mapLoader.MapLoadingComplete += MapLoader_MapLoadingComplete;
-
-            if (!MCDomainController.Instance.GetModModeStatus())
-            {
-                CUpdater.OnLocalFileVersionsChecked += CUpdater_OnLocalFileVersionsChecked;
-
-                Thread thread = new Thread(CUpdater.CheckLocalFileVersions);
-                thread.Start();
-            }
-            else
-            {
-                updaterReady = true;
-            }
-
             mapLoader.LoadMaps();
+
+            if (initUpdater)
+                t.Wait();
 
             Finish();
         }
 
-        private void MapLoader_MapLoadingComplete(object sender, EventArgs e)
+        private void InitUpdater()
         {
-            lock (locker)
-            {
-                mapsReady = true;
-
-                if (updaterReady)
-                    AddCallback(new Action(Finish), null);
-            }
+            CUpdater.CheckLocalFileVersions();
         }
 
         private void Finish()
@@ -99,12 +78,16 @@ namespace DTAClient.DXGUI.Generic
 
             TopBar topBar = new TopBar(WindowManager, cncnetManager);
 
+            PrivateMessagingWindow pmWindow = new PrivateMessagingWindow(WindowManager,
+                cncnetManager);
+            privateMessagingPanel = new PrivateMessagingPanel(WindowManager);
+
             CnCNetGameLobby cncnetGameLobby = new CnCNetGameLobby(WindowManager,
                 "MultiplayerGameLobby", topBar, mapLoader.GameModes, cncnetManager, tunnelHandler);
             CnCNetGameLoadingLobby cncnetGameLoadingLobby = new CnCNetGameLoadingLobby(WindowManager, 
                 topBar, cncnetManager, tunnelHandler, mapLoader.GameModes);
             CnCNetLobby cncnetLobby = new CnCNetLobby(WindowManager, cncnetManager, 
-                cncnetGameLobby, cncnetGameLoadingLobby, topBar, tunnelHandler);
+                cncnetGameLobby, cncnetGameLoadingLobby, topBar, pmWindow, tunnelHandler);
             GameInProgressWindow gipw = new GameInProgressWindow(WindowManager);
 
             SkirmishLobby sl = new SkirmishLobby(WindowManager, topBar, mapLoader.GameModes);
@@ -112,7 +95,6 @@ namespace DTAClient.DXGUI.Generic
             topBar.SetSecondarySwitch(cncnetLobby);
 
             MainMenu mm = new MainMenu(WindowManager, sl, topBar, cncnetManager);
-            CUpdater.OnLocalFileVersionsChecked -= CUpdater_OnLocalFileVersionsChecked;
             WindowManager.AddAndInitializeControl(mm);
             WindowManager.AddAndInitializeControl(sl);
             WindowManager.AddAndInitializeControl(cncnetGameLoadingLobby);
@@ -127,14 +109,11 @@ namespace DTAClient.DXGUI.Generic
             cncnetLobbyPanel.AddChild(cncnetLobby);
             cncnetLobby.VisibleChanged += Darkened_VisibleChanged;
 
-            PrivateMessagingWindow pmsgWindow = new PrivateMessagingWindow(WindowManager, 
-                cncnetManager);
-            privateMessagingPanel = new PrivateMessagingPanel(WindowManager);
             WindowManager.AddAndInitializeControl(privateMessagingPanel);
-            privateMessagingPanel.AddChild(pmsgWindow);
-            pmsgWindow.VisibleChanged += Darkened_VisibleChanged;
+            privateMessagingPanel.AddChild(pmWindow);
+            pmWindow.VisibleChanged += Darkened_VisibleChanged;
 
-            topBar.SetTertiarySwitch(pmsgWindow);
+            topBar.SetTertiarySwitch(pmWindow);
 
             WindowManager.AddAndInitializeControl(gipw);
             sl.Visible = false;
@@ -145,8 +124,8 @@ namespace DTAClient.DXGUI.Generic
             cncnetGameLobby.Enabled = false;
             cncnetGameLoadingLobby.Visible = false;
             cncnetGameLoadingLobby.Enabled = false;
-            pmsgWindow.Visible = false;
-            pmsgWindow.Enabled = false;
+            pmWindow.Visible = false;
+            pmWindow.Enabled = false;
             WindowManager.RemoveControl(this);
             mm.PostInit();
 
@@ -154,6 +133,8 @@ namespace DTAClient.DXGUI.Generic
             topBar.AddPrimarySwitchable(mm);
 
             Cursor.Visible = true;
+
+            WindowManager.AddAndInitializeControl(new PrivateMessageNotificationBox(WindowManager));
 
             if (DomainController.Instance().GetCnCNetAutologinStatus())
                 cncnetManager.Connect();
@@ -182,6 +163,7 @@ namespace DTAClient.DXGUI.Generic
             if (load)
             {
                 Start();
+                return;
             }
 
             load = true;
