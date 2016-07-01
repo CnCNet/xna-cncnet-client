@@ -13,6 +13,7 @@ using System.IO;
 using ClientCore;
 using Rampastring.Tools;
 using DTAClient.Online.EventArguments;
+using Microsoft.Xna.Framework.Audio;
 
 namespace DTAClient.DXGUI.Multiplayer
 {
@@ -79,6 +80,9 @@ namespace DTAClient.DXGUI.Multiplayer
         List<string> friendList;
 
         PrivateMessageNotificationBox notificationBox;
+
+        ToggleableSound sndPrivateMessageSound;
+        ToggleableSound sndMessageSound;
 
         private void CncnetChannel_UserKicked(object sender, UserNameEventArgs e)
         {
@@ -318,6 +322,7 @@ namespace DTAClient.DXGUI.Multiplayer
                 lbMessages.ClientRectangle.Bottom + 6, lbMessages.ClientRectangle.Width, 19);
             tbMessageInput.EnterPressed += TbMessageInput_EnterPressed;
             tbMessageInput.MaximumTextLength = 200;
+            tbMessageInput.Enabled = false;
 
             notificationBox = new PrivateMessageNotificationBox(WindowManager);
             notificationBox.Enabled = false;
@@ -349,6 +354,22 @@ namespace DTAClient.DXGUI.Multiplayer
 
             connectionManager.PrivateMessageReceived += ConnectionManager_PrivateMessageReceived;
             Game.Exiting += Game_Exiting;
+
+            SoundEffect seMessageSound = AssetLoader.LoadSound("message.wav");
+
+            SoundEffect sePrivateMessageSound = AssetLoader.LoadSound("pm.wav");
+
+            if (sePrivateMessageSound != null)
+            {
+                sndPrivateMessageSound = new ToggleableSound(sePrivateMessageSound.CreateInstance());
+                sndPrivateMessageSound.Enabled = DomainController.Instance().EnablePrivateMessageSound;
+            }
+
+            if (seMessageSound != null)
+            {
+                sndMessageSound = new ToggleableSound(seMessageSound.CreateInstance());
+                sndMessageSound.Enabled = DomainController.Instance().EnableMessageSound;
+            }
         }
 
         private void Game_Exiting(object sender, EventArgs e)
@@ -403,15 +424,29 @@ namespace DTAClient.DXGUI.Multiplayer
             lastReceivedPMSender = e.Sender;
             lastConversationPartner = e.Sender;
 
-            if (!Visible || lbUserList.SelectedItem == null ||
-                lbUserList.SelectedItem.Text != e.Sender)
+            if (!Visible)
             {
-                // Display message in top-right notification box
-                notificationBox.Show(GetUserTexture(pmUser.IrcUser), e.Sender, e.Message);
+                ShowNotification(pmUser.IrcUser, e.Sender, e.Message);
+
+                if (lbUserList.SelectedItem == null || lbUserList.SelectedItem.Text != e.Sender)
+                    return;
+            }
+            else if (lbUserList.SelectedItem == null || lbUserList.SelectedItem.Text != e.Sender)
+            {
+                ShowNotification(pmUser.IrcUser, e.Sender, e.Message);
                 return;
             }
 
             lbMessages.AddMessage(message);
+            if (sndMessageSound != null)
+                sndMessageSound.Play();
+        }
+
+        private void ShowNotification(IRCUser ircUser, string sender, string message)
+        {
+            notificationBox.Show(GetUserTexture(ircUser), sender, message);
+            if (sndPrivateMessageSound != null)
+                sndPrivateMessageSound.Play();
         }
 
         private void TbMessageInput_EnterPressed(object sender, EventArgs e)
@@ -448,6 +483,8 @@ namespace DTAClient.DXGUI.Multiplayer
             pmUser.Messages.Add(sentMessage);
 
             lbMessages.AddMessage(sentMessage);
+            if (sndMessageSound != null)
+                sndMessageSound.Play();
 
             lastConversationPartner = userName;
 

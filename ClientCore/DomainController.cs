@@ -520,6 +520,16 @@ namespace ClientCore
             return settings_ini.GetBooleanValue("MultiPlayer", "BroadcastGameCreationGlobally", false);
         }
 
+        public bool EnablePrivateMessageSound
+        {
+            get { return settings_ini.GetBooleanValue("Audio", "PrivateMessageSound", true); }
+        }
+
+        public bool EnableMessageSound
+        {
+            get { return settings_ini.GetBooleanValue("Audio", "ChatMessageSound", true); }
+        }
+
         public string[] GetThemeInfoFromIndex(int themeIndex)
         {
             string[] values = clientDefinitionsIni.GetStringValue("Themes", themeIndex.ToString(), ",").Split(',');

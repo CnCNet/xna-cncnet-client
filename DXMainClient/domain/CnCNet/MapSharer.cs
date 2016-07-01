@@ -27,8 +27,7 @@ namespace DTAClient.domain.CnCNet
 
         public static event EventHandler<SHA1EventArgs> MapDownloadComplete;
 
-        public delegate void MapDownloadStartedEventHandler(string sha1);
-        public static event MapDownloadStartedEventHandler OnMapDownloadStarted;
+        public static event EventHandler<SHA1EventArgs> MapDownloadStarted;
 
         private volatile static List<string> MapDownloadQueue = new List<string>();
         private volatile static List<Map> MapUploadQueue = new List<Map>();
@@ -328,19 +327,16 @@ namespace DTAClient.domain.CnCNet
 
             bool success;
 
-            if (OnMapDownloadStarted != null)
+            try
             {
-                try
-                {
-                    Logger.Log("MapSharer: OnMapDownloadStarted");
-                    OnMapDownloadStarted(sha1);
-                }
-                catch (Exception ex)
-                {
-                    Logger.Log("MapSharer: ERROR " + ex.Message);
-                }
+                Logger.Log("MapSharer: OnMapDownloadStarted");
+                MapDownloadStarted?.Invoke(null, new SHA1EventArgs(sha1));
             }
-            
+            catch (Exception ex)
+            {
+                Logger.Log("MapSharer: ERROR " + ex.Message);
+            }
+
             string mapPath = DownloadMain(sha1, myGameId, out success);
 
             lock (locker)
