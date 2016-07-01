@@ -111,12 +111,6 @@
     <Compile Include="PasswordQueryForm.Designer.cs">
       <DependentUpon>PasswordQueryForm.cs</DependentUpon>
     </Compile>
-    <Compile Include="PrivateMessageForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="PrivateMessageForm.Designer.cs">
-      <DependentUpon>PrivateMessageForm.cs</DependentUpon>
-    </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Controls\ScrollbarlessListBox.cs">
       <SubType>Component</SubType>
@@ -155,9 +149,6 @@
     </EmbeddedResource>
     <EmbeddedResource Include="PasswordQueryForm.resx">
       <DependentUpon>PasswordQueryForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="PrivateMessageForm.resx">
-      <DependentUpon>PrivateMessageForm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>

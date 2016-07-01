@@ -135,10 +135,13 @@ namespace DTAClient.DXGUI.Multiplayer
         {
             var pmUser = privateMessageUsers.Find(pmsgUser => pmsgUser.IrcUser.Name == e.User.Name);
 
+            IRCMessage joinMessage = null;
+
             if (pmUser != null)
             {
-                pmUser.Messages.Add(new IRCMessage(null, Color.White, DateTime.Now,
-                    e.User.Name + " has logged in to CnCNet."));
+                joinMessage = new IRCMessage(null, Color.White, DateTime.Now,
+                    e.User.Name + " has logged in to CnCNet.");
+                pmUser.Messages.Add(joinMessage);
             }
 
             if (tabControl.SelectedTab == ALL_PLAYERS_VIEW_INDEX)
@@ -158,6 +161,7 @@ namespace DTAClient.DXGUI.Multiplayer
                     if (lbItem == lbUserList.SelectedItem)
                     {
                         tbMessageInput.Enabled = true;
+                        lbMessages.AddMessage(joinMessage);
                     }
                 }
             }
@@ -650,7 +654,7 @@ namespace DTAClient.DXGUI.Multiplayer
 
                 if (!string.IsNullOrEmpty(lastConversationPartner))
                 {
-                    int index = lbUserList.Items.FindIndex(i => i.Text == lastReceivedPMSender);
+                    int index = lbUserList.Items.FindIndex(i => i.Text == lastConversationPartner);
 
                     if (index > -1)
                         lbUserList.SelectedIndex = index;

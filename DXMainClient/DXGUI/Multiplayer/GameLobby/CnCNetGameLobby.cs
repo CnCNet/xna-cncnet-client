@@ -49,6 +49,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 new StringCTCPHandler("FHSH", FileHashNotification),
                 new StringCTCPHandler("MM", CheaterNotification)
             };
+
+            //MapSharer.
         }
 
         public event EventHandler GameLeft;
@@ -81,6 +83,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         bool isCustomPassword = false;
 
         string gameFilesHash;
+
+        private List<string> hostUploadedMaps = new List<string>();
 
         public void SetUp(Channel channel, bool isHost, int playerLimit, 
             CnCNetTunnel tunnel, string hostName, bool isCustomPassword)

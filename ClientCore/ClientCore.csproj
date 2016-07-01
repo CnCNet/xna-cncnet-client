@@ -51,7 +51,6 @@
     <Compile Include="CCIniFile.cs" />
     <Compile Include="CnCNet5\CnCNetData.cs" />
     <Compile Include="CnCNet5\Games\CnCNetGame.cs" />
-    <Compile Include="CnCNet5\CnCNetTunnel.cs" />
     <Compile Include="CnCNet5\Games\GameCollection.cs" />
     <Compile Include="CnCNet5\Map.cs" />
     <Compile Include="CnCNet5\MessageInfo.cs" />
@@ -62,7 +61,6 @@
     <Compile Include="ControlDrawHandler.cs" />
     <Compile Include="DataWriteMode.cs" />
     <Compile Include="DomainController.cs" />
-    <Compile Include="CnCNet5\MapSharer.cs" />
     <Compile Include="LAN\LANGame.cs" />
     <Compile Include="LAN\LANPlayer.cs" />
     <Compile Include="OSVersion.cs" />

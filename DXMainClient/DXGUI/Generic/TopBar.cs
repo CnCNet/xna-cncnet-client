@@ -306,7 +306,7 @@ namespace DTAClient.DXGUI.Generic
             }
             else
             {
-                if (locationY > -ClientRectangle.Height)
+                if (locationY > -ClientRectangle.Height - 1)
                 {
                     locationY -= UP_MOVEMENT_RATE;
                     ClientRectangle = new Rectangle(ClientRectangle.X, (int)locationY,

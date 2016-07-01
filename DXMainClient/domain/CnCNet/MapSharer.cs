@@ -6,37 +6,32 @@ using System.Net;
 using System.Collections.Specialized;
 using System.Globalization;
 using System.Threading;
-using ClientCore.CnCNet5;
 using Ionic.Zip;
 using Rampastring.Tools;
+using ClientCore;
 
-namespace ClientCore
+namespace DTAClient.domain.CnCNet
 {
     /// <summary>
     /// Handles sharing maps.
     /// </summary>
     public static class MapSharer
     {
-        public delegate void MapUploadFailedEventHandler(Map map);
-        public static event MapUploadFailedEventHandler OnMapUploadFailed;
+        public static event EventHandler<MapEventArgs> MapUploadFailed;
 
-        public delegate void MapUploadCompleteEventHandler(Map map);
-        public static event MapUploadCompleteEventHandler OnMapUploadComplete;
+        public static event EventHandler<MapEventArgs> MapUploadComplete;
 
-        public delegate void MapUploadStartedEventHandler(Map map);
-        public static event MapUploadStartedEventHandler OnMapUploadStarted;
+        public static event EventHandler<MapEventArgs> MapUploadStarted;
 
-        public delegate void MapDownloadFailedEventHandler(string sha1);
-        public static event MapDownloadFailedEventHandler OnMapDownloadFailed;
+        public static event EventHandler<SHA1EventArgs> MapDownloadFailed;
 
-        public delegate void MapDownloadCompleteEventHandler(string sha1, string filePath);
-        public static event MapDownloadCompleteEventHandler OnMapDownloadComplete;
+        public static event EventHandler<SHA1EventArgs> MapDownloadComplete;
 
         public delegate void MapDownloadStartedEventHandler(string sha1);
         public static event MapDownloadStartedEventHandler OnMapDownloadStarted;
 
         private volatile static List<string> MapDownloadQueue = new List<string>();
-        private volatile static List<string> MapUploadQueue = new List<string>();
+        private volatile static List<Map> MapUploadQueue = new List<Map>();
         private volatile static List<string> UploadedMaps = new List<string>();
 
         private static readonly object locker = new object();
@@ -47,13 +42,13 @@ namespace ClientCore
         {
             lock (locker)
             {
-                if (UploadedMaps.Contains(map.SHA1) || MapUploadQueue.Contains(map.SHA1))
+                if (UploadedMaps.Contains(map.SHA1) || MapUploadQueue.Contains(map))
                 {
-                    Logger.Log("MapSharer: Already uploading map " + map.Path + " - returning.");
+                    Logger.Log("MapSharer: Already uploading map " + map.BaseFilePath + " - returning.");
                     return;
                 }
 
-                MapUploadQueue.Add(map.SHA1);
+                MapUploadQueue.Add(map);
 
                 if (MapUploadQueue.Count == 1)
                 {
@@ -74,43 +69,38 @@ namespace ClientCore
             Map map = (Map)mapGameArray[0];
             string myGameId = (string)mapGameArray[1];
 
-            if (OnMapUploadStarted != null)
-                OnMapUploadStarted(map);
+            MapUploadStarted?.Invoke(null, new MapEventArgs(map));
 
-            Logger.Log("MapSharer: Starting upload of " + map.Path);
+            Logger.Log("MapSharer: Starting upload of " + map.BaseFilePath);
 
             bool success = false;
             string message = MapUpload(MAPDB_URL, map, myGameId, out success);
 
             if (success)
             {
-                if (OnMapUploadComplete != null)
-                {
-                    OnMapUploadComplete(map);
-                }
+                MapUploadComplete?.Invoke(null, new MapEventArgs(map));
 
                 lock (locker)
                 {
                     UploadedMaps.Add(map.SHA1);
                 }
 
-                Logger.Log("MapSharer: Uploading map " + map.Path + " completed succesfully.");
+                Logger.Log("MapSharer: Uploading map " + map.BaseFilePath + " completed succesfully.");
             }
             else
             {
-                if (OnMapUploadFailed != null)
-                    OnMapUploadFailed(map);
+                MapUploadFailed?.Invoke(null, new MapEventArgs(map));
 
-                Logger.Log("MapSharer: Uploading map " + map.Path + " failed! Returned message: " + message);
+                Logger.Log("MapSharer: Uploading map " + map.BaseFilePath + " failed! Returned message: " + message);
             }
 
             lock (locker)
             {
-                MapUploadQueue.Remove(map.SHA1);
+                MapUploadQueue.Remove(map);
 
                 if (MapUploadQueue.Count > 0)
                 {
-                    Map nextMap = CnCNetData.MapList.Find(m => m.SHA1 == MapUploadQueue[0]);
+                    Map nextMap = MapUploadQueue[0];
 
                     object[] array = new object[2];
                     array[0] = nextMap;
@@ -127,13 +117,13 @@ namespace ClientCore
         {
             ServicePointManager.Expect100Continue = false;
 
-            string zipFile = Path.GetDirectoryName(map.Path) + "\\" + map.SHA1 + ".zip";
+            string zipFile = ProgramConstants.GamePath + "Maps\\Custom\\" + map.SHA1 + ".zip";
 
             if (File.Exists(zipFile)) File.Delete(zipFile);
 
             string mapFileName = map.SHA1 + ".map";
 
-            File.Copy(ProgramConstants.GamePath + map.Path, ProgramConstants.GamePath + mapFileName);
+            File.Copy(ProgramConstants.GamePath + map.BaseFilePath + ".map", ProgramConstants.GamePath + mapFileName);
 
             CreateZipFile(mapFileName, zipFile);
 
@@ -358,14 +348,12 @@ namespace ClientCore
                 if (success)
                 {
                     Logger.Log("MapSharer: Download of map " + sha1 + " completed succesfully.");
-                    if (OnMapDownloadComplete != null)
-                        OnMapDownloadComplete(sha1, mapPath);
+                    MapDownloadComplete?.Invoke(null, new SHA1EventArgs(sha1));
                 }
                 else
                 {
                     Logger.Log("MapSharer: Download of map " + sha1 + "failed! Reason: " + mapPath);
-                    if (OnMapDownloadFailed != null)
-                        OnMapDownloadFailed(sha1);
+                    MapDownloadFailed?.Invoke(null, new SHA1EventArgs(sha1));
                 }
 
                 MapDownloadQueue.Remove(sha1);
