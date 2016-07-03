@@ -52,6 +52,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 new StringCTCPHandler(MAP_SHARING_UPLOAD_REQUEST, HandleMapUploadRequest),
                 new StringCTCPHandler(MAP_SHARING_FAIL_MESSAGE, HandleMapTransferFailMessage),
                 new StringCTCPHandler(MAP_SHARING_DOWNLOAD_REQUEST, HandleMapDownloadRequest),
+                new NoParamCTCPHandler(MAP_SHARING_DISABLED_MESSAGE, HandleMapSharingBlockedMessage),
                 new NoParamCTCPHandler("RETURN", ReturnNotification),
                 new IntCTCPHandler("TNLPNG", TunnelPingNotification),
                 new StringCTCPHandler("FHSH", FileHashNotification),
@@ -1300,6 +1301,13 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 Logger.Log("The game host has uploaded the map into the database. Re-attempting download...");
                 MapSharer.DownloadMap(sha1, localGame);
             }
+        }
+
+        private void HandleMapSharingBlockedMessage(string sender)
+        {
+            AddNotice("The selected map doesn't exist on " + sender + "'s installation, and they " +
+                "have map sharing disabled in settings. The game host needs to change to a non-custom map or " +
+                "they will be unable to participate in this match.");
         }
 
         #endregion
