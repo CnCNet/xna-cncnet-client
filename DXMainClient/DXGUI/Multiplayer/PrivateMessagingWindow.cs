@@ -42,6 +42,13 @@ namespace DTAClient.DXGUI.Multiplayer
             cncnetChannel.UserLeft += CncnetChannel_UserLeft;
             cncnetChannel.UserQuitIRC += CncnetChannel_UserQuitIRC;
             cncnetChannel.UserKicked += CncnetChannel_UserKicked;
+
+            WindowManager.GameClosing += WindowManager_GameClosing;
+        }
+
+        private void WindowManager_GameClosing(object sender, EventArgs e)
+        {
+            SaveFriendList();
         }
 
         XNALabel lblPrivateMessaging;
@@ -353,7 +360,6 @@ namespace DTAClient.DXGUI.Multiplayer
             tabControl.SelectedTab = 0;
 
             connectionManager.PrivateMessageReceived += ConnectionManager_PrivateMessageReceived;
-            Game.Exiting += Game_Exiting;
 
             SoundEffect seMessageSound = AssetLoader.LoadSound("message.wav");
 
@@ -369,22 +375,6 @@ namespace DTAClient.DXGUI.Multiplayer
             {
                 sndMessageSound = new ToggleableSound(seMessageSound.CreateInstance());
                 sndMessageSound.Enabled = DomainController.Instance().EnableMessageSound;
-            }
-        }
-
-        private void Game_Exiting(object sender, EventArgs e)
-        {
-            Logger.Log("Saving friend list.");
-
-            try
-            {
-                File.Delete(ProgramConstants.GamePath + FRIEND_LIST_PATH);
-                File.WriteAllLines(ProgramConstants.GamePath + FRIEND_LIST_PATH,
-                    friendList.ToArray());
-            }
-            catch (Exception ex)
-            {
-                Logger.Log("Saving friend list failed! Error message: " + ex.Message);
             }
         }
 
@@ -597,6 +587,22 @@ namespace DTAClient.DXGUI.Multiplayer
                 return gameCollection.GameList[user.GameID].Texture;
         }
 
+        public void SaveFriendList()
+        {
+            Logger.Log("Saving friend list.");
+
+            try
+            {
+                File.Delete(ProgramConstants.GamePath + FRIEND_LIST_PATH);
+                File.WriteAllLines(ProgramConstants.GamePath + FRIEND_LIST_PATH,
+                    friendList.ToArray());
+            }
+            catch (Exception ex)
+            {
+                Logger.Log("Saving friend list failed! Error message: " + ex.Message);
+            }
+        }
+
         /// <summary>
         /// Prepares a recipient for sending a private message.
         /// </summary>
@@ -618,19 +624,24 @@ namespace DTAClient.DXGUI.Multiplayer
                 return;
             }
 
-            // If we haven't talked with the user, check if they are a friend and if so,
-            // let's enter the friend list and talk to them there
             if (friendList.Contains(name))
             {
+                // If we haven't talked with the user, check if they are a friend and if so,
+                // let's enter the friend list and talk to them there
                 tabControl.SelectedTab = FRIEND_LIST_VIEW_INDEX;
-                lbUserList.SelectedIndex = lbUserList.Items.FindIndex(i => i.Text == name);
-                return;
+            }
+            else
+            {
+                // If the user isn't a friend, switch to the "all players" view and
+                // open the conversation there
+                tabControl.SelectedTab = ALL_PLAYERS_VIEW_INDEX;
             }
 
-            // If the user isn't a friend, switch to the "all players" view and
-            // open the conversation there
-            tabControl.SelectedTab = ALL_PLAYERS_VIEW_INDEX;
             lbUserList.SelectedIndex = lbUserList.Items.FindIndex(i => i.Text == name);
+            lbUserList.TopIndex = lbUserList.SelectedIndex > -1 ? lbUserList.SelectedIndex : 0;
+
+            if (lbUserList.LastIndex - lbUserList.TopIndex < lbUserList.NumberOfLinesOnList - 1)
+                lbUserList.ScrollToBottom();
         }
 
         /// <summary>

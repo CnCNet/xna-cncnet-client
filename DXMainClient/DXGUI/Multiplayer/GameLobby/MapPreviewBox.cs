@@ -279,7 +279,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 texture.Dispose();
 
             if (Map == null)
+            {
+                texture = null;
                 return;
+            }
 
             if (Map.PreviewTexture == null)
             {

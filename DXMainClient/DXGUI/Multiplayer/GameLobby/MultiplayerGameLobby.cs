@@ -288,6 +288,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             LoadDefaultMap();
 
             lbChatMessages.Clear();
+            lbChatMessages.TopIndex = 0;
 
             if (SavedGameManager.AreSavedGamesAvailable())
                 fsw.EnableRaisingEvents = true;

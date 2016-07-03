@@ -37,6 +37,11 @@ namespace DTAClient.domain.CnCNet
 
         private const string MAPDB_URL = "http://mapdb.cncnet.org/upload";
 
+        /// <summary>
+        /// Adds a map into the CnCNet map upload queue.
+        /// </summary>
+        /// <param name="map">The map.</param>
+        /// <param name="myGame">The short name of the game that is being played (DTA, TI, MO, etc).</param>
         public static void UploadMap(Map map, string myGame)
         {
             lock (locker)
@@ -198,7 +203,7 @@ namespace DTAClient.domain.CnCNet
             }
         }
 
-        public static byte[] UploadFiles(string address, List<FileToUpload> files, NameValueCollection values)
+        private static byte[] UploadFiles(string address, List<FileToUpload> files, NameValueCollection values)
         {
             //try
             //{
@@ -266,7 +271,7 @@ namespace DTAClient.domain.CnCNet
             //}
         }
 
-        public static void CreateZipFile(string file, string zipName)
+        private static void CreateZipFile(string file, string zipName)
         {
             using (ZipFile zip = new ZipFile())
             {
@@ -275,7 +280,7 @@ namespace DTAClient.domain.CnCNet
             }
         }
 
-        public static string ExtractZipFile(string zipFile, string destDir)
+        private static string ExtractZipFile(string zipFile, string destDir)
         {
             using (ZipFile zip1 = ZipFile.Read(zipFile))
             {
@@ -329,7 +334,7 @@ namespace DTAClient.domain.CnCNet
 
             try
             {
-                Logger.Log("MapSharer: OnMapDownloadStarted");
+                Logger.Log("MapSharer: MapDownloadStarted");
                 MapDownloadStarted?.Invoke(null, new SHA1EventArgs(sha1));
             }
             catch (Exception ex)
@@ -432,35 +437,35 @@ namespace DTAClient.domain.CnCNet
             success = true;
             return extractedFile;
         }
-    }
 
-    public class FileToUpload
-    {
-        public FileToUpload()
+        class FileToUpload
         {
-            ContentType = "application/octet-stream";
+            public FileToUpload()
+            {
+                ContentType = "application/octet-stream";
+            }
+
+            public string Name { get; set; }
+            public string Filename { get; set; }
+            public string ContentType { get; set; }
+            public Stream Stream { get; set; }
         }
 
-        public string Name { get; set; }
-        public string Filename { get; set; }
-        public string ContentType { get; set; }
-        public Stream Stream { get; set; }
-    }
-
-    public class TWebClient : WebClient
-    {
-        private int Timeout = 10000;
-
-        public TWebClient()
+        class TWebClient : WebClient
         {
-            this.Proxy = null;
-        }
+            private int Timeout = 10000;
 
-        protected override WebRequest GetWebRequest(Uri address)
-        {
-            var webRequest = base.GetWebRequest(address);
-            webRequest.Timeout = Timeout;
-            return webRequest;
+            public TWebClient()
+            {
+                this.Proxy = null;
+            }
+
+            protected override WebRequest GetWebRequest(Uri address)
+            {
+                var webRequest = base.GetWebRequest(address);
+                webRequest.Timeout = Timeout;
+                return webRequest;
+            }
         }
     }
 }

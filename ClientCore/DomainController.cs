@@ -396,6 +396,12 @@ namespace ClientCore
 
         // functions used for detecting client settings
 
+        public bool EnableMapSharing
+        {
+            get { return settings_ini.GetBooleanValue("MultiPlayer", "EnableMapSharing", true); }
+            set { settings_ini.SetBooleanValue("MultiPlayer", "EnableMapSharing", value); }
+        }
+
         public int GetCnCNetChatColor()
         {
             return settings_ini.GetIntValue("MultiPlayer", "ChatColor", GetDefaultPersonalChatColor());

@@ -218,6 +218,11 @@ namespace DTAClient.domain.CnCNet
             }
         }
 
+        /// <summary>
+        /// Loads map information from a TS/RA2 map INI file.
+        /// Returns true if succesful, otherwise false.
+        /// </summary>
+        /// <param name="path">The path to the map INI file.</param>
         public bool SetInfoFromMap(string path)
         {
             try

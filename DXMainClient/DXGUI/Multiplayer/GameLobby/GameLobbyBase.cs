@@ -1114,6 +1114,18 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             Map = map;
 
+            if (GameMode == null || Map == null)
+            {
+                lblMapName.Text = "Map: Unknown";
+                lblMapAuthor.Text = "By Unknown Author";
+                lblGameMode.Text = "Game mode: Unknown";
+
+                lblMapAuthor.ClientRectangle = new Rectangle(MapPreviewBox.ClientRectangle.Right - lblMapAuthor.ClientRectangle.Width,
+                    lblMapAuthor.ClientRectangle.Y, lblMapAuthor.ClientRectangle.Width, lblMapAuthor.ClientRectangle.Height);
+
+                return;
+            }
+
             lblMapName.Text = "Map: " + map.Name;
             lblMapAuthor.Text = "By " + map.Author;
             lblGameMode.Text = "Game mode: " + gameMode.UIName;

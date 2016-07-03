@@ -216,9 +216,14 @@ namespace DTAClient.DXGUI.Generic
             CnCNetInfoController.CnCNetGameCountUpdated += CnCNetInfoController_CnCNetGameCountUpdated;
             CnCNetInfoController.InitializeService();
 
-            WindowManager.GameFormClosing += Instance_GameFormClosing;
+            WindowManager.GameClosing += WindowManager_GameClosing;
 
             skirmishLobby.Exited += SkirmishLobby_Exited;
+        }
+
+        private void WindowManager_GameClosing(object sender, EventArgs e)
+        {
+            Clean();
         }
 
         private void SkirmishLobby_Exited(object sender, EventArgs e)
@@ -240,18 +245,16 @@ namespace DTAClient.DXGUI.Generic
         }
 
         /// <summary>
-        /// Attemps to "clean" the client session in a nice way if the user closes the game form. 
+        /// Attemps to "clean" the client session in a nice way if the user closes the game.
         /// </summary>
-        private void Instance_GameFormClosing(object sender, System.Windows.Forms.FormClosingEventArgs eventArgs)
+        private void Clean()
         {
             CnCNetInfoController.DisableService();
             if (updateInProgress)
                 CUpdater.TerminateUpdate = true;
 
             if (connectionManager.IsConnected)
-                connectionManager.SendCustomMessage(new QueuedMessage("QUIT", QueuedMessageType.INSTANT_MESSAGE, 0));
-
-            Environment.Exit(0);
+                connectionManager.Disconnect();
         }
 
         public void PostInit()
@@ -453,17 +456,7 @@ namespace DTAClient.DXGUI.Generic
         private void BtnExit_LeftClick(object sender, EventArgs e)
         {
             Logger.Log("Exiting.");
-
-            CnCNetInfoController.DisableService();
-
-            if (connectionManager.IsConnected)
-                connectionManager.Disconnect();
-
-            if (isYR)
-                File.Delete(ProgramConstants.GamePath + "ddraw.dll");
-
-            Game.Exit();
-            Environment.Exit(0);
+            WindowManager.CloseGame();
         }
 
         private void StartCnCNetClient(string commandLine)

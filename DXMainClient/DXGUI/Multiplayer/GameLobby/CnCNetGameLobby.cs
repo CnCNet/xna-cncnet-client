@@ -19,6 +19,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         const double GAME_BROADCAST_CHECK_INTERVAL = 10.0;
         const double INITIAL_TIME = 5.0;
 
+        const string MAP_SHARING_FAIL_MESSAGE = "MAPFAIL";
+        const string MAP_SHARING_DOWNLOAD_REQUEST = "MAPOK";
+        const string MAP_SHARING_UPLOAD_REQUEST = "MAPREQ";
+        const string MAP_SHARING_DISABLED_MESSAGE = "MAPSDISABLED";
+
         public CnCNetGameLobby(WindowManager windowManager, string iniName, 
             TopBar topBar, List<GameMode> GameModes, CnCNetManager connectionManager,
             TunnelHandler tunnelHandler) : 
@@ -44,13 +49,19 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 new CTCPNotificationHandler("LCKGME", HandleNotification, LockGameNotification),
                 new CTCPIntNotificationHandler("NVRFY", HandleIntNotification, NotVerifiedNotification),
                 new CTCPIntNotificationHandler("INGM", HandleIntNotification, StillInGameNotification),
+                new StringCTCPHandler(MAP_SHARING_UPLOAD_REQUEST, HandleMapUploadRequest),
+                new StringCTCPHandler(MAP_SHARING_FAIL_MESSAGE, HandleMapTransferFailMessage),
+                new StringCTCPHandler(MAP_SHARING_DOWNLOAD_REQUEST, HandleMapDownloadRequest),
                 new NoParamCTCPHandler("RETURN", ReturnNotification),
                 new IntCTCPHandler("TNLPNG", TunnelPingNotification),
                 new StringCTCPHandler("FHSH", FileHashNotification),
                 new StringCTCPHandler("MM", CheaterNotification)
             };
 
-            //MapSharer.
+            MapSharer.MapDownloadFailed += MapSharer_MapDownloadFailed;
+            MapSharer.MapDownloadComplete += MapSharer_MapDownloadComplete;
+            MapSharer.MapUploadFailed += MapSharer_MapUploadFailed;
+            MapSharer.MapUploadComplete += MapSharer_MapUploadComplete;
         }
 
         public event EventHandler GameLeft;
@@ -84,7 +95,19 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         string gameFilesHash;
 
-        private List<string> hostUploadedMaps = new List<string>();
+        List<string> hostUploadedMaps = new List<string>();
+
+        /// <summary>
+        /// The SHA1 of the latest selected map.
+        /// Used for map sharing.
+        /// </summary>
+        string lastMapSHA1;
+
+        /// <summary>
+        /// The game mode of the latest selected map.
+        /// Used for map sharing.
+        /// </summary>
+        string lastGameMode;
 
         public void SetUp(Channel channel, bool isHost, int playerLimit, 
             CnCNetTunnel tunnel, string hostName, bool isCustomPassword)
@@ -686,10 +709,27 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             GameMode currentGameMode = GameMode;
             Map currentMap = Map;
 
+            lastGameMode = gameMode;
+            lastMapSHA1 = mapSHA1;
+
             GameMode = GameModes.Find(gm => gm.Name == gameMode);
             if (GameMode == null)
             {
+                ChangeMap(null, null);
                 Map = null;
+                if (DomainController.Instance().EnableMapSharing)
+                {
+                    AddNotice("The game host has selected a map that doesn't exist on your installation. " +
+                        "Attempting to download it from the CnCNet map database.");
+                    MapSharer.DownloadMap(mapSHA1, localGame);
+                }
+                else
+                {
+                    AddNotice("The game host has selected a map that doesn't exist on your installation. " +
+                        "Because you've disabled map sharing, it cannot be transferred. The game host needs " +
+                        "to change the map or you will be unable to participate in the match.");
+                    channel.SendCTCPMessage(MAP_SHARING_DISABLED_MESSAGE, QueuedMessageType.SYSTEM_MESSAGE, 9);
+                }
                 return;
                 // TODO request mapdb upload
             }
@@ -698,8 +738,21 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             if (Map == null)
             {
+                ChangeMap(null, null);
+                if (DomainController.Instance().EnableMapSharing)
+                {
+                    AddNotice("The game host has selected a map that doesn't exist on your installation. " +
+                        "Attempting to download it from the CnCNet map database.");
+                    MapSharer.DownloadMap(mapSHA1, localGame);
+                }
+                else
+                {
+                    AddNotice("The game host has selected a map that doesn't exist on your installation. " +
+                        "Because you've disabled map sharing, it cannot be transferred. The game host needs " +
+                        "to change the map or you will be unable to participate in the match.");
+                    channel.SendCTCPMessage(MAP_SHARING_DISABLED_MESSAGE, QueuedMessageType.SYSTEM_MESSAGE, 9);
+                }
                 return;
-                // TODO request mapdb upload
             }
 
             if (GameMode != currentGameMode || Map != currentMap)
@@ -1053,6 +1106,203 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 AddNotice("The game room has been unlocked.");
             btnLockGame.Text = "Lock Game";
         }
+
+        #region CnCNet map sharing
+
+        private void MapSharer_MapDownloadFailed(object sender, SHA1EventArgs e)
+        {
+            // Maybe we should call AddCallback and controls should get a PassiveUpdate()
+            // that is called when they're not enabled, and PassiveUpdate() handles
+            // callbacks instead of Update()? Currently with regular (not WindowManager) AddCallback,
+            // map sharing will behave weirdly if the CnCNet Game Lobby is not active
+            WindowManager.AddCallback(new Action<SHA1EventArgs>(MapSharer_HandleMapDownloadFailed), e);
+        }
+
+        private void MapSharer_HandleMapDownloadFailed(SHA1EventArgs e)
+        {
+            // If the host has already uploaded the map, we shouldn't request them to re-upload it
+            if (hostUploadedMaps.Contains(e.SHA1))
+            {
+                AddNotice("Download of the custom map failed. The host needs to change the map or you will be unable to participate in this match.");
+
+                channel.SendCTCPMessage(MAP_SHARING_FAIL_MESSAGE + " " + e.SHA1, QueuedMessageType.SYSTEM_MESSAGE, 9);
+                return;
+            }
+
+            AddNotice("Requesting the game host to upload the map to the CnCNet map database.");
+
+            channel.SendCTCPMessage(MAP_SHARING_UPLOAD_REQUEST + " " + e.SHA1, QueuedMessageType.SYSTEM_MESSAGE, 9);
+        }
+
+        private void MapSharer_MapDownloadComplete(object sender, SHA1EventArgs e)
+        {
+            WindowManager.AddCallback(new Action<SHA1EventArgs>(MapSharer_HandleMapDownloadComplete), e);
+        }
+
+        private void MapSharer_HandleMapDownloadComplete(SHA1EventArgs e)
+        {
+            string mapPath = "Maps\\Custom\\" + e.SHA1 + ".map";
+            Map map = new Map(mapPath);
+
+            if (map.SetInfoFromMap(mapPath))
+            {
+                Logger.Log("Map " + e.SHA1 + " downloaded succesfully.");
+                AddNotice("Map succesfully transferred.");
+
+                foreach (string gameMode in map.GameModes)
+                {
+                    GameMode gm = GameModes.Find(g => g.UIName == gameMode);
+
+                    if (gm == null)
+                    {
+                        gm = new GameMode();
+                        gm.Name = gameMode;
+                        gm.Initialize();
+                        GameModes.Add(gm);
+                    }
+
+                    gm.Maps.Add(map);
+                }
+
+                if (lastMapSHA1 == e.SHA1)
+                {
+                    Map = map;
+                    GameMode = GameModes.Find(gm => gm.UIName == lastGameMode);
+                    ChangeMap(GameMode, Map);
+                }
+            }
+            else
+            {
+                Logger.Log("Loading map " + e.SHA1 + " failed!");
+                AddNotice("Transfer of the custom map failed. The host needs to change the map or you will be unable to participate in this match.");
+
+                channel.SendCTCPMessage(MAP_SHARING_FAIL_MESSAGE + " " + e.SHA1, QueuedMessageType.SYSTEM_MESSAGE, 9);
+            }
+        }
+
+        private void MapSharer_MapUploadFailed(object sender, MapEventArgs e)
+        {
+            WindowManager.AddCallback(new Action<MapEventArgs>(MapSharer_HandleMapUploadFailed), e);
+        }
+
+        private void MapSharer_HandleMapUploadFailed(MapEventArgs e)
+        {
+            Map map = e.Map;
+
+            hostUploadedMaps.Add(map.SHA1);
+
+            AddNotice("Uploading map " + map.Name + " to the CnCNet map database failed.");
+            if (map == Map)
+            {
+                AddNotice("You need to change the map or some players won't be able to participate in this match.");
+                channel.SendCTCPMessage(MAP_SHARING_FAIL_MESSAGE + " " + map.SHA1, QueuedMessageType.SYSTEM_MESSAGE, 9);
+            }
+        }
+
+        private void MapSharer_MapUploadComplete(object sender, MapEventArgs e)
+        {
+            WindowManager.AddCallback(new Action<MapEventArgs>(MapSharer_HandleMapUploadComplete), e);
+        }
+
+        private void MapSharer_HandleMapUploadComplete(MapEventArgs e)
+        {
+            hostUploadedMaps.Add(e.Map.SHA1);
+
+            AddNotice("Uploading map " + e.Map.Name + " to the CnCNet map database complete.");
+            if (e.Map == Map)
+            {
+                channel.SendCTCPMessage(MAP_SHARING_DOWNLOAD_REQUEST + " " + Map.SHA1, QueuedMessageType.SYSTEM_MESSAGE, 9);
+            }
+        }
+
+        /// <summary>
+        /// Handles a map upload request sent by a player.
+        /// </summary>
+        /// <param name="sender">The sender of the request.</param>
+        /// <param name="mapSHA1">The SHA1 of the requested map.</param>
+        private void HandleMapUploadRequest(string sender, string mapSHA1)
+        {
+            if (hostUploadedMaps.Contains(mapSHA1))
+            {
+                Logger.Log("HandleMapUploadRequest: Map " + mapSHA1 + " is already uploaded!");
+                return;
+            }
+
+            Map map = null;
+
+            foreach (GameMode gm in GameModes)
+            {
+                map = gm.Maps.Find(m => m.SHA1 == mapSHA1);
+
+                if (map != null)
+                    break;
+            }
+
+            if (map == null)
+            {
+                Logger.Log("Unknown map upload request from " + sender + ": " + mapSHA1);
+                return;
+            }
+
+            AddNotice(string.Format("{0} doesn't have the map '{1}' on their local installation. " +
+                "The game host is attempting to transfer the map.", sender,
+                map.Name));
+
+            if (!IsHost)
+                return;
+
+            MapSharer.UploadMap(map, localGame);
+        }
+
+        /// <summary>
+        /// Handles a map transfer failure message sent by either the player or the game host.
+        /// </summary>
+        private void HandleMapTransferFailMessage(string sender, string sha1)
+        {
+            if (sender == hostName)
+            {
+                AddNotice("The game host failed to upload the map to the CnCNet map database.");
+
+                hostUploadedMaps.Add(sha1);
+
+                if (lastMapSHA1 == sha1 && Map == null)
+                {
+                    AddNotice("The game host needs to change the map or you won't be able to participate in this match.");
+                }
+
+                return;
+            }
+
+            if (lastMapSHA1 == sha1)
+            {
+                if (!IsHost)
+                {
+                    AddNotice(sender + " has failed to download the map from the CnCNet map database. " +
+                        "The host needs to change the map or " + sender + " won't be able to participate in this match.");
+                }
+                else
+                {
+                    AddNotice(sender + " has failed to download the map from the CnCNet map database. " +
+                        "You need to change the map or " + sender + " won't be able to participate in this match.");
+                }
+            }
+        }
+
+        private void HandleMapDownloadRequest(string sender, string sha1)
+        {
+            if (sender != hostName)
+                return;
+
+            hostUploadedMaps.Add(sha1);
+
+            if (lastMapSHA1 == sha1 && Map == null)
+            {
+                Logger.Log("The game host has uploaded the map into the database. Re-attempting download...");
+                MapSharer.DownloadMap(sha1, localGame);
+            }
+        }
+
+        #endregion
 
         #region Game broadcasting logic
 
