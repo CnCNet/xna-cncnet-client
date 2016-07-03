@@ -407,6 +407,12 @@ namespace ClientCore
             return settings_ini.GetIntValue("MultiPlayer", "ChatColor", GetDefaultPersonalChatColor());
         }
 
+        public int LANChatColor
+        {
+            get { return settings_ini.GetIntValue("MultiPlayer", "LANChatColor", 0); }
+            set { settings_ini.SetIntValue("MultiPlayer", "LANChatColor", value); }
+        }
+
         public bool GetCustomTunnelPingStatus()
         {
             return settings_ini.GetBooleanValue("MultiPlayer", "PingCustomTunnels", true);

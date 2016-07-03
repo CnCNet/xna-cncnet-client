@@ -1,0 +1,26 @@
+﻿using System;
+
+namespace DTAClient.domain.Multiplayer
+{
+    /// <summary>
+    /// A base class for hosted games.
+    /// CnCNet and LAN games derive from this.
+    /// </summary>
+    public abstract class GenericHostedGame
+    {
+        public string RoomName { get; set; }
+        public bool Incompatible { get; set; }
+        public bool Locked { get; set; }
+        public bool IsLoadedGame { get; set; }
+        public bool Passworded { get; set; }
+        public CnCNetGame Game { get; set; }
+        public string GameMode { get; set; }
+        public string Map { get; set; }
+        public string GameVersion { get; set; }
+        public string HostName { get; set; }
+        public string[] Players { get; set; }
+        public int MaxPlayers { get; set; }
+
+        public DateTime LastRefreshTime { get; set; }
+    }
+}

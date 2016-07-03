@@ -3,14 +3,15 @@ using System;
 using System.Collections.Generic;
 using Rampastring.XNAUI;
 using Microsoft.Xna.Framework;
-using HostedGame = DTAClient.domain.CnCNet.HostedGame;
 using Microsoft.Xna.Framework.Graphics;
+using DTAClient.domain.Multiplayer.CnCNet;
+using DTAClient.domain.Multiplayer;
 
 namespace DTAClient.DXGUI.Multiplayer
 {
     public class GameListBox : XNAListBox
     {
-        public GameListBox(WindowManager windowManager, List<HostedGame> hostedGames,
+        public GameListBox(WindowManager windowManager, List<GenericHostedGame> hostedGames,
             string localGameIdentifier)
             : base(windowManager)
         {
@@ -18,7 +19,7 @@ namespace DTAClient.DXGUI.Multiplayer
             this.localGameIdentifier = localGameIdentifier;
         }
 
-        List<HostedGame> hostedGames;
+        List<GenericHostedGame> hostedGames;
 
         Texture2D txLockedGame;
         Texture2D txIncompatibleGame;
@@ -74,21 +75,21 @@ namespace DTAClient.DXGUI.Multiplayer
 
             showGameInfo = true;
 
-            HostedGame hostedGame = (HostedGame)Items[HoveredIndex].Tag;
+            HostedCnCNetGame hostedGame = (HostedCnCNetGame)Items[HoveredIndex].Tag;
 
             panelGameInformation.SetInfo(hostedGame);
         }
 
-        private void AddGameToList(HostedGame hg)
+        private void AddGameToList(GenericHostedGame hg)
         {
             XNAListBoxItem lbItem = new XNAListBoxItem();
             lbItem.Tag = hg;
-            if (hg.GameIdentifier == localGameIdentifier)
+            if (hg.Game.InternalName == localGameIdentifier.ToLower())
                 lbItem.TextColor = UISettings.AltColor;
             else
                 lbItem.TextColor = UISettings.TextColor;
 
-            if (hg.IsIncompatible || hg.IsLocked)
+            if (hg.Incompatible || hg.Locked)
             {
                 lbItem.TextColor = Color.Gray;
             }
@@ -130,15 +131,15 @@ namespace DTAClient.DXGUI.Multiplayer
                         GetColorWithAlpha(FocusColor));
                 }
 
-                HostedGame hg = (HostedGame)lbItem.Tag;
+                HostedCnCNetGame hg = (HostedCnCNetGame)lbItem.Tag;
 
-                Renderer.DrawTexture(hg.GameTexture,
+                Renderer.DrawTexture(hg.Game.Texture,
                     new Rectangle(windowRectangle.X + x, windowRectangle.Y + height,
-                    hg.GameTexture.Width, hg.GameTexture.Height), Color.White);
+                    hg.Game.Texture.Width, hg.Game.Texture.Height), Color.White);
 
-                x += hg.GameTexture.Width + 2;
+                x += hg.Game.Texture.Width + 2;
 
-                if (hg.IsLocked)
+                if (hg.Locked)
                 {
                     Renderer.DrawTexture(txLockedGame,
                         new Rectangle(windowRectangle.X + x, windowRectangle.Y + height,
@@ -146,7 +147,7 @@ namespace DTAClient.DXGUI.Multiplayer
                     x += txLockedGame.Width + 2;
                 }
 
-                if (hg.IsIncompatible)
+                if (hg.Incompatible)
                 {
                     Renderer.DrawTexture(txIncompatibleGame,
                         new Rectangle(windowRectangle.X + x, windowRectangle.Y + height,

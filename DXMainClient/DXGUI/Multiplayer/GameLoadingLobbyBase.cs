@@ -4,12 +4,12 @@ using System;
 using System.Collections.Generic;
 using Rampastring.XNAUI;
 using Microsoft.Xna.Framework;
-using DTAClient.domain.CnCNet;
 using ClientCore;
 using Rampastring.Tools;
 using System.IO;
 using Microsoft.Xna.Framework.Audio;
 using DTAClient.DXGUI.Generic;
+using DTAClient.domain.Multiplayer;
 
 namespace DTAClient.DXGUI.Multiplayer
 {

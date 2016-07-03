@@ -7,10 +7,10 @@ using Rampastring.XNAUI.XNAControls;
 using Rampastring.XNAUI;
 using Rampastring.Tools;
 using ClientCore;
-using DTAClient.domain.CnCNet;
 using System.IO;
 using ClientCore.Statistics;
 using Microsoft.Xna.Framework.Graphics;
+using DTAClient.domain.Multiplayer;
 
 namespace DTAClient.DXGUI.Multiplayer.GameLobby
 {

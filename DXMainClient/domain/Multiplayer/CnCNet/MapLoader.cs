@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 
-namespace DTAClient.domain.CnCNet
+namespace DTAClient.domain.Multiplayer.CnCNet
 {
     public class MapLoader
     {

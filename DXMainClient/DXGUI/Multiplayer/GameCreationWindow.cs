@@ -4,10 +4,10 @@ using System.Collections.Generic;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
 using Microsoft.Xna.Framework;
-using DTAClient.domain.CnCNet;
 using ClientCore;
 using System.IO;
 using Rampastring.Tools;
+using DTAClient.domain.Multiplayer.CnCNet;
 
 namespace DTAClient.DXGUI.Multiplayer
 {

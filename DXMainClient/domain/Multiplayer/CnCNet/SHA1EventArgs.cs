@@ -1,9 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
-namespace DTAClient.domain.CnCNet
+namespace DTAClient.domain.Multiplayer.CnCNet
 {
     public class SHA1EventArgs : EventArgs
     {

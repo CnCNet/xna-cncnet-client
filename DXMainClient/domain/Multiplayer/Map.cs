@@ -8,7 +8,7 @@ using System.Collections.Generic;
 using System.IO;
 using Utilities = Rampastring.Tools.Utilities;
 
-namespace DTAClient.domain.CnCNet
+namespace DTAClient.domain.Multiplayer
 {
     /// <summary>
     /// A multiplayer map.

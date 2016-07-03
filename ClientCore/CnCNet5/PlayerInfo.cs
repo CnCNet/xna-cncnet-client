@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace ClientCore.CnCNet5
+﻿namespace ClientCore.CnCNet5
 {
     public class PlayerInfo
     {

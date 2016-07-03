@@ -3,8 +3,6 @@
 /// @version 21. 4. 2015
 
 using System;
-using System.Collections.Generic;
-using System.Text;
 using ClientCore.CnCNet5;
 
 namespace ClientCore

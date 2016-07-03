@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using DTAClient.domain.CnCNet;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
 using Microsoft.Xna.Framework;
@@ -11,6 +10,7 @@ using System.IO;
 using Rampastring.Tools;
 using ClientCore.Statistics;
 using DTAClient.DXGUI.Generic;
+using DTAClient.domain.Multiplayer;
 
 namespace DTAClient.DXGUI.Multiplayer.GameLobby
 {

@@ -6,7 +6,6 @@ using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
 using Microsoft.Xna.Framework;
 using DTAClient.Online;
-using DTAClient.domain.CnCNet;
 using Microsoft.Xna.Framework.Graphics;
 using DTAClient.Properties;
 using System.IO;
@@ -14,6 +13,7 @@ using ClientCore;
 using Rampastring.Tools;
 using DTAClient.Online.EventArguments;
 using Microsoft.Xna.Framework.Audio;
+using DTAClient.domain.Multiplayer;
 
 namespace DTAClient.DXGUI.Multiplayer
 {
@@ -24,9 +24,9 @@ namespace DTAClient.DXGUI.Multiplayer
         const string FRIEND_LIST_PATH = "Client\\friend_list";
 
         public PrivateMessagingWindow(WindowManager windowManager,
-            CnCNetManager connectionManager) : base(windowManager)
+            CnCNetManager connectionManager, GameCollection gameCollection) : base(windowManager)
         {
-            gameCollection = connectionManager.GetGameCollection();
+            this.gameCollection = gameCollection;
             this.connectionManager = connectionManager;
 
             cncnetChannel = connectionManager.GetChannel("#cncnet");

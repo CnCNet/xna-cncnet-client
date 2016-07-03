@@ -1,7 +1,8 @@
 ﻿using Rampastring.XNAUI.XNAControls;
 using Rampastring.XNAUI;
 using Microsoft.Xna.Framework;
-using DTAClient.domain.CnCNet;
+using DTAClient.domain.Multiplayer.CnCNet;
+using DTAClient.domain.Multiplayer;
 
 namespace DTAClient.DXGUI.Multiplayer
 {
@@ -78,20 +79,20 @@ namespace DTAClient.DXGUI.Multiplayer
             base.Initialize();
         }
 
-        public void SetInfo(HostedGame game)
+        public void SetInfo(GenericHostedGame game)
         {
             lblGameMode.Text = "Game mode: " + game.GameMode;
             lblGameMode.Visible = true;
-            lblMap.Text = "Map: " + game.MapName;
+            lblMap.Text = "Map: " + game.Map;
             lblMap.Visible = true;
-            lblGameVersion.Text = "Game version: " + game.Version;
+            lblGameVersion.Text = "Game version: " + game.GameVersion;
             lblGameVersion.Visible = true;
-            lblHost.Text = "Host: " + game.Admin;
+            lblHost.Text = "Host: " + game.HostName;
             lblHost.Visible = true;
             lblPlayers.Visible = true;
-            lblPlayers.Text = "Players (" + game.Players.Count + " / " + game.MaxPlayers + "):";
+            lblPlayers.Text = "Players (" + game.Players.Length + " / " + game.MaxPlayers + "):";
 
-            for (int i = 0; i < game.Players.Count; i++)
+            for (int i = 0; i < game.Players.Length; i++)
             {
                 lblPlayerNames[i].Visible = true;
                 lblPlayerNames[i].Text = game.Players[i];

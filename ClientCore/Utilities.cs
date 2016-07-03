@@ -1,14 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Text;
 using System.IO;
 using System.Security.Cryptography;
-using Microsoft.Win32;
-using System.Diagnostics;
-using System.Text.RegularExpressions;
 using System.Drawing;
 using System.Globalization;
-using System.Management;
 
 namespace ClientCore
 {

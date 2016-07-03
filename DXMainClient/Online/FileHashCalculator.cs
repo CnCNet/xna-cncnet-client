@@ -1,5 +1,5 @@
 ﻿using ClientCore;
-using DTAClient.domain.CnCNet;
+using DTAClient.domain.Multiplayer;
 using System;
 using System.Collections.Generic;
 using System.IO;

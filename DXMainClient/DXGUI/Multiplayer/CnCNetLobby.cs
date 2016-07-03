@@ -12,10 +12,10 @@ using Rampastring.Tools;
 using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Graphics;
 using DTAClient.Properties;
-using DTAClient.domain.CnCNet;
-using HostedGame = DTAClient.domain.CnCNet.HostedGame;
 using DTAClient.DXGUI.Multiplayer.GameLobby;
 using DTAClient.DXGUI.Generic;
+using DTAClient.domain.Multiplayer;
+using DTAClient.domain.Multiplayer.CnCNet;
 
 namespace DTAClient.DXGUI.Multiplayer
 {
@@ -26,7 +26,8 @@ namespace DTAClient.DXGUI.Multiplayer
 
         public CnCNetLobby(WindowManager windowManager, CnCNetManager connectionManager,
             CnCNetGameLobby gameLobby, CnCNetGameLoadingLobby gameLoadingLobby, 
-            TopBar topBar, PrivateMessagingWindow pmWindow, TunnelHandler tunnelHandler)
+            TopBar topBar, PrivateMessagingWindow pmWindow, TunnelHandler tunnelHandler,
+            GameCollection gameCollection)
             : base(windowManager)
         {
             this.connectionManager = connectionManager;
@@ -36,6 +37,7 @@ namespace DTAClient.DXGUI.Multiplayer
             this.tunnelHandler = tunnelHandler;
             this.topBar = topBar;
             this.pmWindow = pmWindow;
+            this.gameCollection = gameCollection;
         }
 
         CnCNetManager connectionManager;
@@ -78,7 +80,7 @@ namespace DTAClient.DXGUI.Multiplayer
         Texture2D unknownGameIcon;
         Texture2D adminGameIcon;
 
-        List<HostedGame> hostedGames = new List<HostedGame>();
+        List<GenericHostedGame> hostedGames = new List<GenericHostedGame>();
 
         SoundEffectInstance sndGameCreated;
 
@@ -288,8 +290,6 @@ namespace DTAClient.DXGUI.Multiplayer
             ddCurrentChannel.SelectedIndexChanged += DdCurrentChannel_SelectedIndexChanged;
             ddCurrentChannel.AllowDropDown = false;
             ddCurrentChannel.ClickSoundEffect = AssetLoader.LoadSound("dropdown.wav");
-
-            gameCollection = connectionManager.GetGameCollection();
 
             int i = 0;
 
@@ -560,13 +560,13 @@ namespace DTAClient.DXGUI.Multiplayer
 
             var mainChannel = connectionManager.MainChannel;
 
-            HostedGame hg = (HostedGame)lbGameList.Items[lbGameList.SelectedIndex].Tag;
+            HostedCnCNetGame hg = (HostedCnCNetGame)lbGameList.Items[lbGameList.SelectedIndex].Tag;
 
-            if (hg.GameIdentifier.ToUpper() != localGame.ToUpper())
+            if (hg.Game.InternalName.ToUpper() != localGame.ToUpper())
             {
                 mainChannel.AddMessage(new IRCMessage(null, Color.White, DateTime.Now,
                     "The selected game is for " + 
-                    gameCollection.GetGameNameFromInternalName(hg.GameIdentifier) + "!"));
+                    gameCollection.GetGameNameFromInternalName(hg.Game.InternalName) + "!"));
                 return;
             }
 
@@ -587,7 +587,7 @@ namespace DTAClient.DXGUI.Multiplayer
                 }
             }
 
-            if (hg.Version != ProgramConstants.GAME_VERSION)
+            if (hg.GameVersion != ProgramConstants.GAME_VERSION)
             {
                 // TODO Show warning
             }
@@ -624,13 +624,13 @@ namespace DTAClient.DXGUI.Multiplayer
 
             if (hg.IsLoadedGame)
             {
-                gameLoadingLobby.SetUp(false, hg.TunnelServer, gameChannel, hg.Admin);
+                gameLoadingLobby.SetUp(false, hg.TunnelServer, gameChannel, hg.HostName);
                 gameChannel.UserAdded += GameLoadingChannel_UserAdded;
                 gameChannel.MessageAdded += GameLoadingChannel_MessageAdded;
             }
             else
             {
-                gameLobby.SetUp(gameChannel, false, hg.MaxPlayers, hg.TunnelServer, hg.Admin, hg.Passworded);
+                gameLobby.SetUp(gameChannel, false, hg.MaxPlayers, hg.TunnelServer, hg.HostName, hg.Passworded);
                 gameChannel.UserAdded += GameChannel_UserAdded;
                 gameChannel.MessageAdded += GameChannel_MessageAdded;
             }
@@ -756,7 +756,7 @@ namespace DTAClient.DXGUI.Multiplayer
             while (true)
             {
                 string channelName = "#cncnet-" + localGame.ToLower() + "-game" + new Random().Next(1000000, 9999999);
-                int index = hostedGames.FindIndex(c => c.ChannelName == channelName);
+                int index = hostedGames.FindIndex(c => ((HostedCnCNetGame)c).ChannelName == channelName);
                 if (index == -1)
                     return channelName;
             }
@@ -987,21 +987,24 @@ namespace DTAClient.DXGUI.Multiplayer
                 if (tunnel == null)
                     return;
 
-                HostedGame game = new HostedGame(gameRoomChannelName, revision, cncnetGame.InternalName, gameVersion, maxPlayers,
+                if (cncnetGame == null)
+                    return;
+
+                HostedCnCNetGame game = new HostedCnCNetGame(gameRoomChannelName, revision, gameVersion, maxPlayers,
                     gameRoomDisplayName, isCustomPassword, locked, true, players,
                     e.UserName, mapName, gameMode);
                 game.IsLoadedGame = isLoadedGame;
                 game.MatchID = loadedGameId;
                 game.LastRefreshTime = DateTime.Now;
                 game.IsLadder = isLadder;
-                game.GameTexture = cncnetGame.Texture;
-                game.IsLocked = game.Started || (game.IsLoadedGame && !game.Players.Contains(ProgramConstants.PLAYERNAME));
-                game.IsIncompatible = game.Version != ProgramConstants.GAME_VERSION;
+                game.Game = cncnetGame;
+                game.Locked = game.Started || (game.IsLoadedGame && !game.Players.Contains(ProgramConstants.PLAYERNAME));
+                game.Incompatible = game.GameVersion != ProgramConstants.GAME_VERSION;
                 game.TunnelServer = tunnel;
 
                 if (isClosed)
                 {
-                    int index = hostedGames.FindIndex(hg => hg.Admin == e.UserName);
+                    int index = hostedGames.FindIndex(hg => hg.HostName == e.UserName);
 
                     if (index > -1)
                     {
@@ -1014,7 +1017,7 @@ namespace DTAClient.DXGUI.Multiplayer
 
                 // Seek for the game in the internal game list based on its channel name;
                 // if found, then refresh that game's information, otherwise add as new game
-                int gameIndex = hostedGames.FindIndex(hg => hg.Admin == e.UserName);
+                int gameIndex = hostedGames.FindIndex(hg => hg.HostName == e.UserName);
 
                 if (gameIndex > -1)
                 {

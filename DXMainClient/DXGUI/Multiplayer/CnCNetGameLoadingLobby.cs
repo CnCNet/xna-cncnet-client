@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Text;
 using Rampastring.XNAUI;
-using DTAClient.domain.CnCNet;
 using ClientCore;
 using DTAClient.Online;
 using DTAClient.DXGUI.Multiplayer.GameLobby.CTCPHandlers;
@@ -11,6 +10,8 @@ using Rampastring.Tools;
 using DTAClient.DXGUI.Generic;
 using DTAClient.Online.EventArguments;
 using ClientGUI;
+using DTAClient.domain.Multiplayer.CnCNet;
+using DTAClient.domain.Multiplayer;
 
 namespace DTAClient.DXGUI.Multiplayer
 {

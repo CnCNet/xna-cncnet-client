@@ -3,11 +3,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Drawing;
-using System.Drawing.Imaging;
-using System.Drawing.Drawing2D;
 using System.Text;
 using System.Windows.Forms;
 using System.IO;
@@ -15,7 +11,6 @@ using System.Net;
 using System.Net.Sockets;
 using System.Diagnostics;
 using System.Media;
-using System.Runtime.InteropServices;
 using System.Reflection;
 using System.Threading;
 using Timer = System.Windows.Forms.Timer;

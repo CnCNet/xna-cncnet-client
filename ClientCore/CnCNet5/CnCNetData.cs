@@ -2,10 +2,7 @@
 /// http://www.moddb.com/members/rampastring
 /// @version 16. 12. 2014
 
-using System;
 using System.Collections.Generic;
-using System.Text;
-using ClientCore.CnCNet5;
 
 namespace ClientCore.CnCNet5
 {

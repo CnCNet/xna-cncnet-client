@@ -1,12 +1,12 @@
 ﻿using ClientCore;
-using DTAClient.domain.CnCNet;
+using DTAClient.domain.Multiplayer.CnCNet;
 using DTAClient.Online.EventArguments;
 using Microsoft.Xna.Framework;
 using Rampastring.Tools;
 using Rampastring.XNAUI;
 using System;
 using System.Collections.Generic;
-using GameCollection = DTAClient.domain.CnCNet.GameCollection;
+using GameCollection = DTAClient.domain.Multiplayer.GameCollection;
 
 namespace DTAClient.Online
 {
@@ -39,11 +39,9 @@ namespace DTAClient.Online
         public event EventHandler Disconnected;
         public event EventHandler Connected;
 
-        public CnCNetManager(WindowManager wm)
+        public CnCNetManager(WindowManager wm, GameCollection gc)
         {
-            gameCollection = new GameCollection();
-            gameCollection.Initialize(wm.GraphicsDevice);
-
+            gameCollection = gc;
             connection = new Connection(this);
 
             this.wm = wm;
@@ -87,7 +85,7 @@ namespace DTAClient.Online
         Connection connection;
 
         List<Channel> Channels = new List<Channel>();
-        List<HostedGame> HostedGames = new List<HostedGame>();
+        List<HostedCnCNetGame> HostedGames = new List<HostedCnCNetGame>();
 
         GameCollection gameCollection;
 
@@ -126,11 +124,6 @@ namespace DTAClient.Online
         public IRCColor[] GetIRCColors()
         {
             return IRCChatColors;
-        }
-
-        public GameCollection GetGameCollection()
-        {
-            return gameCollection;
         }
 
         public void LeaveFromChannel(Channel channel)

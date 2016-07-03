@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace ClientCore.Statistics
+﻿namespace ClientCore.Statistics
 {
     public abstract class GenericMatchParser : IMatchStatisticsParser
     {

@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace ClientCore.CnCNet5.Games
+﻿namespace ClientCore.CnCNet5.Games
 {
     /// <summary>
     /// A class for games supported on CnCNet (DTA, TI, TS, RA1/2, etc.)

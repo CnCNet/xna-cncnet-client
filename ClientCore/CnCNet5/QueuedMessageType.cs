@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
-namespace ClientCore.CnCNet5
+﻿namespace ClientCore.CnCNet5
 {
     /// <summary>
     /// The type of a network message.

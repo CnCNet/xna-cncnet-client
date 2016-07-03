@@ -5,7 +5,7 @@ using Rampastring.XNAUI;
 using Microsoft.Xna.Framework.Graphics;
 using DTAClient.Properties;
 
-namespace DTAClient.domain.CnCNet
+namespace DTAClient.domain.Multiplayer
 {
     /// <summary>
     /// A class for storing the collection of supported CnCNet games.

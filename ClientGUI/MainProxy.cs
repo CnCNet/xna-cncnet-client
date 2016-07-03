@@ -2,10 +2,6 @@
 /// http://www.moddb.com/members/rampastring
 /// @version 12. 1. 2015
 
-using System;
-using System.Collections.Generic;
-using System.Text;
-using ClientCore;
 
 namespace ClientGUI
 {

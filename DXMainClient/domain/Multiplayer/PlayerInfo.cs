@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace DTAClient.domain.CnCNet
+namespace DTAClient.domain.Multiplayer
 {
     /// <summary>
     /// A player in the game lobby.

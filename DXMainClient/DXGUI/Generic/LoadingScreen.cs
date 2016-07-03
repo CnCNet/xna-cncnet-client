@@ -1,14 +1,14 @@
 ﻿using ClientCore;
 using ClientGUI;
 using DTAClient.domain;
-using DTAClient.domain.CnCNet;
+using DTAClient.domain.Multiplayer;
+using DTAClient.domain.Multiplayer.CnCNet;
 using DTAClient.DXGUI.Multiplayer;
 using DTAClient.DXGUI.Multiplayer.GameLobby;
 using DTAClient.Online;
 using Microsoft.Xna.Framework;
 using Rampastring.XNAUI;
 using System;
-using System.Threading;
 using System.Threading.Tasks;
 using Updater;
 using SkirmishLobby = DTAClient.DXGUI.Multiplayer.GameLobby.SkirmishLobby;
@@ -73,13 +73,16 @@ namespace DTAClient.DXGUI.Generic
 
         private void Finish()
         {
-            CnCNetManager cncnetManager = new CnCNetManager(WindowManager);
+            GameCollection gameCollection = new GameCollection();
+            gameCollection.Initialize(GraphicsDevice);
+
+            CnCNetManager cncnetManager = new CnCNetManager(WindowManager, gameCollection);
             TunnelHandler tunnelHandler = new TunnelHandler(WindowManager, cncnetManager);
 
             TopBar topBar = new TopBar(WindowManager, cncnetManager);
 
             PrivateMessagingWindow pmWindow = new PrivateMessagingWindow(WindowManager,
-                cncnetManager);
+                cncnetManager, gameCollection);
             privateMessagingPanel = new PrivateMessagingPanel(WindowManager);
 
             CnCNetGameLobby cncnetGameLobby = new CnCNetGameLobby(WindowManager,
@@ -87,7 +90,8 @@ namespace DTAClient.DXGUI.Generic
             CnCNetGameLoadingLobby cncnetGameLoadingLobby = new CnCNetGameLoadingLobby(WindowManager, 
                 topBar, cncnetManager, tunnelHandler, mapLoader.GameModes);
             CnCNetLobby cncnetLobby = new CnCNetLobby(WindowManager, cncnetManager, 
-                cncnetGameLobby, cncnetGameLoadingLobby, topBar, pmWindow, tunnelHandler);
+                cncnetGameLobby, cncnetGameLoadingLobby, topBar, pmWindow, tunnelHandler,
+                gameCollection);
             GameInProgressWindow gipw = new GameInProgressWindow(WindowManager);
 
             SkirmishLobby sl = new SkirmishLobby(WindowManager, topBar, mapLoader.GameModes);

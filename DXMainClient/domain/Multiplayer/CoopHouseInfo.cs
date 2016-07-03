@@ -1,4 +1,4 @@
-﻿namespace DTAClient.domain.CnCNet
+﻿namespace DTAClient.domain.Multiplayer
 {
     /// <summary>
     /// Holds information about enemy houses in a co-op map.

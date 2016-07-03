@@ -2,7 +2,6 @@
 using ClientGUI;
 using DTAConfig;
 using DTAClient.domain;
-using DTAClient.domain.CnCNet;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
@@ -11,10 +10,10 @@ using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
 using System;
 using System.Diagnostics;
-using System.IO;
 using Updater;
 using SkirmishLobby = DTAClient.DXGUI.Multiplayer.GameLobby.SkirmishLobby;
 using DTAClient.Online;
+using DTAClient.domain.Multiplayer.CnCNet;
 
 namespace DTAClient.DXGUI.Generic
 {
