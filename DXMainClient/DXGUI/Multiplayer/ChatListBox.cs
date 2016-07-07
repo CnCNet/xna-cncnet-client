@@ -39,7 +39,7 @@ namespace DTAClient.DXGUI.Multiplayer
             base.OnDoubleLeftClick();
         }
 
-        public void AddMessage(IRCMessage message)
+        public void AddMessage(ChatMessage message)
         {
             if (message.Sender == null)
                 AddItem(string.Format("[{0}] {1}",

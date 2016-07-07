@@ -4,6 +4,7 @@ using DTAClient.domain;
 using DTAClient.domain.Multiplayer;
 using DTAClient.domain.Multiplayer.CnCNet;
 using DTAClient.DXGUI.Multiplayer;
+using DTAClient.DXGUI.Multiplayer.CnCNet;
 using DTAClient.DXGUI.Multiplayer.GameLobby;
 using DTAClient.Online;
 using Microsoft.Xna.Framework;
@@ -61,7 +62,10 @@ namespace DTAClient.DXGUI.Generic
             mapLoader.LoadMaps();
 
             if (initUpdater)
+            {
                 t.Wait();
+                ProgramConstants.GAME_VERSION = CUpdater.GameVersion;
+            }
 
             Finish();
         }
@@ -75,6 +79,8 @@ namespace DTAClient.DXGUI.Generic
         {
             GameCollection gameCollection = new GameCollection();
             gameCollection.Initialize(GraphicsDevice);
+
+            LANLobby lanLobby = new LANLobby(WindowManager, gameCollection);
 
             CnCNetManager cncnetManager = new CnCNetManager(WindowManager, gameCollection);
             TunnelHandler tunnelHandler = new TunnelHandler(WindowManager, cncnetManager);
@@ -98,7 +104,7 @@ namespace DTAClient.DXGUI.Generic
 
             topBar.SetSecondarySwitch(cncnetLobby);
 
-            MainMenu mm = new MainMenu(WindowManager, sl, topBar, cncnetManager);
+            MainMenu mm = new MainMenu(WindowManager, sl, lanLobby, topBar, cncnetManager);
             WindowManager.AddAndInitializeControl(mm);
             WindowManager.AddAndInitializeControl(sl);
             WindowManager.AddAndInitializeControl(cncnetGameLoadingLobby);
@@ -113,6 +119,11 @@ namespace DTAClient.DXGUI.Generic
             cncnetLobbyPanel.AddChild(cncnetLobby);
             cncnetLobby.VisibleChanged += Darkened_VisibleChanged;
 
+            DarkeningPanel lanPanel = new DarkeningPanel(WindowManager);
+            WindowManager.AddAndInitializeControl(lanPanel);
+            lanPanel.AddChild(lanLobby);
+            lanLobby.VisibleChanged += Darkened_VisibleChanged;
+
             WindowManager.AddAndInitializeControl(privateMessagingPanel);
             privateMessagingPanel.AddChild(pmWindow);
             pmWindow.VisibleChanged += Darkened_VisibleChanged;
@@ -120,16 +131,13 @@ namespace DTAClient.DXGUI.Generic
             topBar.SetTertiarySwitch(pmWindow);
 
             WindowManager.AddAndInitializeControl(gipw);
-            sl.Visible = false;
-            sl.Enabled = false;
-            cncnetLobby.Visible = false;
-            cncnetLobby.Enabled = false;
-            cncnetGameLobby.Visible = false;
-            cncnetGameLobby.Enabled = false;
-            cncnetGameLoadingLobby.Visible = false;
-            cncnetGameLoadingLobby.Enabled = false;
-            pmWindow.Visible = false;
-            pmWindow.Enabled = false;
+            sl.Disable();
+            cncnetLobby.Disable();
+            cncnetGameLobby.Disable();
+            cncnetGameLoadingLobby.Disable();
+            lanLobby.Disable();
+            pmWindow.Disable();
+
             WindowManager.RemoveControl(this);
             mm.PostInit();
 

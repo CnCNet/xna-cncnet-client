@@ -52,12 +52,12 @@ namespace DTAClient.Online
             {
                 _topic = value;
                 if (Persistent)
-                    AddMessage(new IRCMessage(null, Color.White, DateTime.Now, "Topic for " + UIName + " is: " + _topic));
+                    AddMessage(new ChatMessage(null, Color.White, DateTime.Now, "Topic for " + UIName + " is: " + _topic));
             }
         }
 
-        List<IRCMessage> messages = new List<IRCMessage>();
-        public List<IRCMessage> Messages
+        List<ChatMessage> messages = new List<ChatMessage>();
+        public List<ChatMessage> Messages
         {
             get { return messages; }
         }
@@ -80,7 +80,7 @@ namespace DTAClient.Online
         public void OnUserJoined(IRCUser user)
         {
             AddUser(user);
-            AddMessage(new IRCMessage(null, Color.White, DateTime.Now,
+            AddMessage(new ChatMessage(null, Color.White, DateTime.Now,
                 user.Name + " has joined " + UIName + "."));
         }
 
@@ -121,7 +121,7 @@ namespace DTAClient.Online
             {
                 users.RemoveAt(index);
                 UserKicked?.Invoke(this, new UserNameEventArgs(index, userName));
-                AddMessage(new IRCMessage(null, Color.White, DateTime.Now, 
+                AddMessage(new ChatMessage(null, Color.White, DateTime.Now, 
                     userName + " has been kicked from " + UIName + "."));
             }
         }
@@ -134,7 +134,7 @@ namespace DTAClient.Online
             {
                 users.RemoveAt(index);
                 UserLeft?.Invoke(this, new UserNameEventArgs(index, userName));
-                AddMessage(new IRCMessage(null, Color.White, DateTime.Now, 
+                AddMessage(new ChatMessage(null, Color.White, DateTime.Now, 
                     userName + " has left from " + UIName + "."));
             }
         }
@@ -147,7 +147,7 @@ namespace DTAClient.Online
             {
                 users.RemoveAt(index);
                 UserQuitIRC?.Invoke(this, new UserNameEventArgs(index, userName));
-                AddMessage(new IRCMessage(null, Color.White, DateTime.Now,
+                AddMessage(new ChatMessage(null, Color.White, DateTime.Now,
                     userName + " has quit from CnCNet."));
             }
         }
@@ -173,7 +173,7 @@ namespace DTAClient.Online
             CTCPReceived?.Invoke(this, new ChannelCTCPEventArgs(userName, message));
         }
 
-        public void AddMessage(IRCMessage message)
+        public void AddMessage(ChatMessage message)
         {
             if (messages.Count == MESSAGE_LIMIT)
                 messages.RemoveAt(0);
@@ -185,7 +185,7 @@ namespace DTAClient.Online
 
         public void SendChatMessage(string message, IRCColor color)
         {
-            AddMessage(new IRCMessage(ProgramConstants.PLAYERNAME, color.XnaColor, DateTime.Now, message));
+            AddMessage(new ChatMessage(ProgramConstants.PLAYERNAME, color.XnaColor, DateTime.Now, message));
 
             string colorString = ((char)03).ToString() + color.IrcColorId.ToString("D2");
 
@@ -255,11 +255,11 @@ namespace DTAClient.Online
 
     public class IRCMessageEventArgs : EventArgs
     {
-        public IRCMessageEventArgs(IRCMessage ircMessage)
+        public IRCMessageEventArgs(ChatMessage ircMessage)
         {
             Message = ircMessage;
         }
 
-        public IRCMessage Message { get; private set; }
+        public ChatMessage Message { get; private set; }
     }
 }

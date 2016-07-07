@@ -9,7 +9,7 @@ using System.IO;
 using Rampastring.Tools;
 using DTAClient.domain.Multiplayer.CnCNet;
 
-namespace DTAClient.DXGUI.Multiplayer
+namespace DTAClient.DXGUI.Multiplayer.CnCNet
 {
     class GameCreationWindow : XNAWindow
     {

@@ -272,7 +272,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             if (e.UserName == hostName)
             {
-                connectionManager.MainChannel.AddMessage(new IRCMessage(
+                connectionManager.MainChannel.AddMessage(new ChatMessage(
                     null, Color.Yellow, DateTime.Now, "The game host abandoned the game."));
                 BtnLeaveGame_LeftClick(this, EventArgs.Empty);
             }
@@ -288,7 +288,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             if (e.UserName == hostName)
             {
-                connectionManager.MainChannel.AddMessage(new IRCMessage(
+                connectionManager.MainChannel.AddMessage(new ChatMessage(
                     null, Color.Yellow, DateTime.Now, "The game host abandoned the game."));
                 BtnLeaveGame_LeftClick(this, EventArgs.Empty);
             }
@@ -298,7 +298,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             if (e.UserName == ProgramConstants.PLAYERNAME)
             {
-                connectionManager.MainChannel.AddMessage(new IRCMessage(
+                connectionManager.MainChannel.AddMessage(new ChatMessage(
                     null, Color.Yellow, DateTime.Now, "You were kicked from the game!"));
                 Clear();
                 this.Visible = false;
@@ -452,7 +452,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         protected override void AddNotice(string message, Color color)
         {
-            channel.AddMessage(new IRCMessage(null, color, DateTime.Now, message));
+            channel.AddMessage(new ChatMessage(null, color, DateTime.Now, message));
         }
 
         /// <summary>

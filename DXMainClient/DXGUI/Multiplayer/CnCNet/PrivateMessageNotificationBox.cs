@@ -6,7 +6,7 @@ using DTAClient.Properties;
 using ClientCore;
 using Microsoft.Xna.Framework.Graphics;
 
-namespace DTAClient.DXGUI.Multiplayer
+namespace DTAClient.DXGUI.Multiplayer.CnCNet
 {
     /// <summary>
     /// A box that notifies users of new private messages,

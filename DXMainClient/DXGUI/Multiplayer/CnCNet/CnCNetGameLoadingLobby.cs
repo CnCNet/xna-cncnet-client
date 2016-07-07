@@ -13,7 +13,7 @@ using ClientGUI;
 using DTAClient.domain.Multiplayer.CnCNet;
 using DTAClient.domain.Multiplayer;
 
-namespace DTAClient.DXGUI.Multiplayer
+namespace DTAClient.DXGUI.Multiplayer.CnCNet
 {
     public class CnCNetGameLoadingLobby : GameLoadingLobbyBase
     {
@@ -250,7 +250,7 @@ namespace DTAClient.DXGUI.Multiplayer
 
             if (!IsHost && playerName == hostName)
             {
-                connectionManager.MainChannel.AddMessage(new IRCMessage(null,
+                connectionManager.MainChannel.AddMessage(new ChatMessage(null,
                     Color.Yellow, DateTime.Now, "The game host left the game!"));
 
                 Clear();
@@ -267,7 +267,7 @@ namespace DTAClient.DXGUI.Multiplayer
 
         protected override void AddNotice(string message, Color color)
         {
-            channel.AddMessage(new IRCMessage(null, color, DateTime.Now, message));
+            channel.AddMessage(new ChatMessage(null, color, DateTime.Now, message));
         }
 
         protected override void BroadcastOptions()

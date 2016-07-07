@@ -14,16 +14,18 @@ using Updater;
 using SkirmishLobby = DTAClient.DXGUI.Multiplayer.GameLobby.SkirmishLobby;
 using DTAClient.Online;
 using DTAClient.domain.Multiplayer.CnCNet;
+using DTAClient.DXGUI.Multiplayer;
 
 namespace DTAClient.DXGUI.Generic
 {
     class MainMenu : XNAWindow, ISwitchable
     {
         public MainMenu(WindowManager windowManager, SkirmishLobby skirmishLobby,
-            TopBar topBar, CnCNetManager connectionManager) : base(windowManager)
+            LANLobby lanLobby, TopBar topBar, CnCNetManager connectionManager) : base(windowManager)
         {
             isYR = DomainController.Instance().GetDefaultGame().ToUpper() == "YR";
             this.skirmishLobby = skirmishLobby;
+            this.lanLobby = lanLobby;
             this.topBar = topBar;
             this.connectionManager = connectionManager;
         }
@@ -31,13 +33,14 @@ namespace DTAClient.DXGUI.Generic
         bool isYR = false;
 
         MainMenuDarkeningPanel innerPanel;
-        XNAPanel mmUIPanel;
 
         XNALabel lblCnCNetPlayerCount;
         XNALabel lblUpdateStatus;
         XNALabel lblVersion;
 
         SkirmishLobby skirmishLobby;
+
+        LANLobby lanLobby;
 
         CnCNetManager connectionManager;
 
@@ -53,12 +56,7 @@ namespace DTAClient.DXGUI.Generic
 
             Name = "MainMenu";
             BackgroundTexture = AssetLoader.LoadTexture("MainMenu\\mainmenubg.png");
-
-            mmUIPanel = new XNAPanel(WindowManager);
-            mmUIPanel.Name = "MainMenuUIPanel";
-            Texture2D texture = BackgroundTexture;
-            mmUIPanel.ClientRectangle = new Rectangle(0, 0, texture.Width, texture.Height);
-            ClientRectangle = mmUIPanel.ClientRectangle;
+            ClientRectangle = new Rectangle(0, 0, BackgroundTexture.Width, BackgroundTexture.Height);
 
             WindowManager.CenterControlOnScreen(this);
 
@@ -168,25 +166,24 @@ namespace DTAClient.DXGUI.Generic
             lblUpdateStatus.LeftClick += LblUpdateStatus_LeftClick;
             lblUpdateStatus.ClientRectangle = new Rectangle(0, 0, 160, 20);
 
-            AddChild(mmUIPanel);
-            mmUIPanel.AddChild(btnNewCampaign);
-            mmUIPanel.AddChild(btnLoadGame);
-            mmUIPanel.AddChild(btnSkirmish);
-            mmUIPanel.AddChild(btnCnCNet);
-            mmUIPanel.AddChild(btnLan);
-            mmUIPanel.AddChild(btnOptions);
-            mmUIPanel.AddChild(btnMapEditor);
-            mmUIPanel.AddChild(btnStatistics);
-            mmUIPanel.AddChild(btnCredits);
-            mmUIPanel.AddChild(btnExtras);
-            mmUIPanel.AddChild(btnExit);
-            mmUIPanel.AddChild(lblCnCNetStatus);
-            mmUIPanel.AddChild(lblCnCNetPlayerCount);
+            AddChild(btnNewCampaign);
+            AddChild(btnLoadGame);
+            AddChild(btnSkirmish);
+            AddChild(btnCnCNet);
+            AddChild(btnLan);
+            AddChild(btnOptions);
+            AddChild(btnMapEditor);
+            AddChild(btnStatistics);
+            AddChild(btnCredits);
+            AddChild(btnExtras);
+            AddChild(btnExit);
+            AddChild(lblCnCNetStatus);
+            AddChild(lblCnCNetPlayerCount);
 
             if (!MCDomainController.Instance.GetModModeStatus())
             {
-                mmUIPanel.AddChild(lblVersion);
-                mmUIPanel.AddChild(lblUpdateStatus);
+                AddChild(lblVersion);
+                AddChild(lblUpdateStatus);
 
                 CUpdater.FileIdentifiersUpdated += CUpdater_FileIdentifiersUpdated;
             }
@@ -398,11 +395,6 @@ namespace DTAClient.DXGUI.Generic
             innerPanel.Hide();
         }
 
-        public void Enable()
-        {
-            mmUIPanel.Enabled = true;
-        }
-
         private void BtnNewCampaign_LeftClick(object sender, EventArgs e)
         {
             innerPanel.Show(innerPanel.CampaignSelector);
@@ -411,12 +403,11 @@ namespace DTAClient.DXGUI.Generic
         private void BtnLoadGame_LeftClick(object sender, EventArgs e)
         {
             innerPanel.Show(innerPanel.GameLoadingWindow);
-            mmUIPanel.Enabled = false;
         }
 
         private void BtnLan_LeftClick(object sender, EventArgs e)
         {
-            StartCnCNetClient("-LAN");
+            lanLobby.Open();
         }
 
         private void BtnCnCNet_LeftClick(object sender, EventArgs e)
@@ -438,7 +429,6 @@ namespace DTAClient.DXGUI.Generic
 
         private void BtnStatistics_LeftClick(object sender, EventArgs e)
         {
-            mmUIPanel.Enabled = false;
             innerPanel.Show(innerPanel.StatisticsWindow);
         }
 
@@ -456,37 +446,6 @@ namespace DTAClient.DXGUI.Generic
         {
             Logger.Log("Exiting.");
             WindowManager.CloseGame();
-        }
-
-        private void StartCnCNetClient(string commandLine)
-        {
-            SaveSettings();
-
-            ProcessStartInfo startInfo = new ProcessStartInfo(MainClientConstants.gamepath + "cncnetclient.dat");
-            startInfo.Arguments = "\"-RESDIR=" + ProgramConstants.RESOURCES_DIR.Remove(ProgramConstants.RESOURCES_DIR.Length - 1) + "\"";
-            startInfo.Arguments = startInfo.Arguments + " -VER" + CUpdater.GameVersion;
-            if (!String.IsNullOrEmpty(commandLine))
-                startInfo.Arguments = startInfo.Arguments + " " + commandLine;
-            startInfo.UseShellExecute = false;
-
-            WindowManager.HideWindow();
-
-            Process clientProcess = new Process();
-            clientProcess.StartInfo = startInfo;
-
-            clientProcess.Start();
-
-            clientProcess.WaitForExit();
-
-            MCDomainController.Instance.ReloadSettings();
-
-            WindowManager.ShowWindow();
-        }
-
-        private void SaveSettings()
-        {
-            OptionsForm of = new OptionsForm();
-            of.UpdateSettings();
         }
 
         private void SharedUILogic_GameProcessExited()

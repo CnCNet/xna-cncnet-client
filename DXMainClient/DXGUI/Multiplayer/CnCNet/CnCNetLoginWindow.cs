@@ -6,7 +6,7 @@ using Rampastring.XNAUI;
 using Microsoft.Xna.Framework;
 using ClientCore;
 
-namespace DTAClient.DXGUI.Multiplayer
+namespace DTAClient.DXGUI.Multiplayer.CnCNet
 {
     public class CnCNetLoginWindow : XNAWindow
     {

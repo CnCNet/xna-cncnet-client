@@ -1,7 +1,7 @@
 ﻿using ClientGUI;
 using Rampastring.XNAUI;
 
-namespace DTAClient.DXGUI.Multiplayer
+namespace DTAClient.DXGUI.Multiplayer.CnCNet
 {
     /// <summary>
     /// A panel that hides itself if it's clicked while none of its children

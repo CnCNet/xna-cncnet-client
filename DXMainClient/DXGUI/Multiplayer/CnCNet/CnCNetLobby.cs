@@ -17,7 +17,7 @@ using DTAClient.DXGUI.Generic;
 using DTAClient.domain.Multiplayer;
 using DTAClient.domain.Multiplayer.CnCNet;
 
-namespace DTAClient.DXGUI.Multiplayer
+namespace DTAClient.DXGUI.Multiplayer.CnCNet
 {
     internal class CnCNetLobby : XNAWindow, ISwitchable
     {
@@ -396,7 +396,7 @@ namespace DTAClient.DXGUI.Multiplayer
 
             gameCreationPanel.Hide();
 
-            connectionManager.MainChannel.AddMessage(new IRCMessage(null, Color.White, DateTime.Now,
+            connectionManager.MainChannel.AddMessage(new ChatMessage(null, Color.White, DateTime.Now,
                 "Welcome to Rampastring's DTA / CnCNet Client, version " + 
                 System.Windows.Forms.Application.ProductVersion));
 
@@ -564,15 +564,15 @@ namespace DTAClient.DXGUI.Multiplayer
 
             if (hg.Game.InternalName.ToUpper() != localGame.ToUpper())
             {
-                mainChannel.AddMessage(new IRCMessage(null, Color.White, DateTime.Now,
+                mainChannel.AddMessage(new ChatMessage(null, Color.White, DateTime.Now,
                     "The selected game is for " + 
                     gameCollection.GetGameNameFromInternalName(hg.Game.InternalName) + "!"));
                 return;
             }
 
-            if (hg.Started)
+            if (hg.Locked)
             {
-                mainChannel.AddMessage(new IRCMessage(null, Color.White, DateTime.Now,
+                mainChannel.AddMessage(new ChatMessage(null, Color.White, DateTime.Now,
                     "The selected game is locked!"));
                 return;
             }
@@ -581,7 +581,7 @@ namespace DTAClient.DXGUI.Multiplayer
             {
                 if (!hg.Players.Contains(ProgramConstants.PLAYERNAME))
                 {
-                    mainChannel.AddMessage(new IRCMessage(null, Color.White, DateTime.Now,
+                    mainChannel.AddMessage(new ChatMessage(null, Color.White, DateTime.Now,
                         "You do not exist in the saved game!"));
                     return;
                 }
@@ -597,7 +597,7 @@ namespace DTAClient.DXGUI.Multiplayer
             if (hg.Passworded)
             {
                 // TODO ask for password
-                mainChannel.AddMessage(new IRCMessage(null, Color.White, DateTime.Now,
+                mainChannel.AddMessage(new ChatMessage(null, Color.White, DateTime.Now,
                     "Passworded games are not supported yet."));
                 return;
             }
@@ -616,7 +616,7 @@ namespace DTAClient.DXGUI.Multiplayer
                 }
             }
 
-            mainChannel.AddMessage(new IRCMessage(null, Color.White, DateTime.Now,
+            mainChannel.AddMessage(new ChatMessage(null, Color.White, DateTime.Now,
             "Attempting to join game " + hg.RoomName + "..."));
 
             Channel gameChannel = connectionManager.CreateChannel(hg.RoomName, hg.ChannelName, false, password);
@@ -675,7 +675,7 @@ namespace DTAClient.DXGUI.Multiplayer
             gameChannel.MessageAdded += GameChannel_MessageAdded;
             connectionManager.SendCustomMessage(new QueuedMessage("JOIN " + channelName + " " + password,
                 QueuedMessageType.INSTANT_MESSAGE, 0));
-            connectionManager.MainChannel.AddMessage(new IRCMessage(null, Color.White, DateTime.Now,
+            connectionManager.MainChannel.AddMessage(new ChatMessage(null, Color.White, DateTime.Now,
                 "Creating a game named " + e.GameRoomName + "..."));
 
             gameCreationPanel.Hide();
@@ -718,7 +718,7 @@ namespace DTAClient.DXGUI.Multiplayer
             gameLoadingChannel.MessageAdded += GameLoadingChannel_MessageAdded;
             connectionManager.SendCustomMessage(new QueuedMessage("JOIN " + channelName + " " + e.Password,
                 QueuedMessageType.INSTANT_MESSAGE, 0));
-            connectionManager.MainChannel.AddMessage(new IRCMessage(null, Color.White, DateTime.Now,
+            connectionManager.MainChannel.AddMessage(new ChatMessage(null, Color.White, DateTime.Now,
                 "Creating a game named " + e.GameRoomName + "..."));
 
             gameCreationPanel.Hide();
@@ -907,7 +907,7 @@ namespace DTAClient.DXGUI.Multiplayer
                 item.Texture = gameCollection.GameList[e.User.GameID].Texture;
         }
 
-        private void AddMessageToChat(IRCMessage message)
+        private void AddMessageToChat(ChatMessage message)
         {
             lbChatMessages.AddMessage(message);
         }
@@ -991,14 +991,14 @@ namespace DTAClient.DXGUI.Multiplayer
                     return;
 
                 HostedCnCNetGame game = new HostedCnCNetGame(gameRoomChannelName, revision, gameVersion, maxPlayers,
-                    gameRoomDisplayName, isCustomPassword, locked, true, players,
+                    gameRoomDisplayName, isCustomPassword, true, players,
                     e.UserName, mapName, gameMode);
                 game.IsLoadedGame = isLoadedGame;
                 game.MatchID = loadedGameId;
                 game.LastRefreshTime = DateTime.Now;
                 game.IsLadder = isLadder;
                 game.Game = cncnetGame;
-                game.Locked = game.Started || (game.IsLoadedGame && !game.Players.Contains(ProgramConstants.PLAYERNAME));
+                game.Locked = locked || (game.IsLoadedGame && !game.Players.Contains(ProgramConstants.PLAYERNAME));
                 game.Incompatible = game.GameVersion != ProgramConstants.GAME_VERSION;
                 game.TunnelServer = tunnel;
 

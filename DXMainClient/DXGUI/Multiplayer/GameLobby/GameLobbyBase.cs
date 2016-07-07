@@ -448,6 +448,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 ddPlayerName.AllowDropDown = true;
                 ddPlayerName.ClickSoundEffect = AssetLoader.LoadSound("dropdown.wav");
                 ddPlayerName.SelectedIndexChanged += CopyPlayerDataFromUI;
+                ddPlayerName.Tag = true;
 
                 XNADropDown ddPlayerSide = new XNADropDown(WindowManager);
                 ddPlayerSide.Name = "ddPlayerSide" + i;
@@ -460,6 +461,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 ddPlayerSide.AllowDropDown = false;
                 ddPlayerSide.ClickSoundEffect = AssetLoader.LoadSound("dropdown.wav");
                 ddPlayerSide.SelectedIndexChanged += CopyPlayerDataFromUI;
+                ddPlayerSide.Tag = true;
 
                 XNADropDown ddPlayerColor = new XNADropDown(WindowManager);
                 ddPlayerColor.Name = "ddPlayerColor" + i;
@@ -472,6 +474,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 ddPlayerColor.AllowDropDown = false;
                 ddPlayerColor.ClickSoundEffect = AssetLoader.LoadSound("dropdown.wav");
                 ddPlayerColor.SelectedIndexChanged += CopyPlayerDataFromUI;
+                ddPlayerColor.Tag = false;
 
                 XNADropDown ddPlayerStart = new XNADropDown(WindowManager);
                 ddPlayerStart.Name = "ddPlayerStart" + i;
@@ -485,6 +488,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 ddPlayerStart.SelectedIndexChanged += CopyPlayerDataFromUI;
                 ddPlayerStart.Visible = false;
                 ddPlayerStart.Enabled = false;
+                ddPlayerStart.Tag = true;
 
                 XNADropDown ddPlayerTeam = new XNADropDown(WindowManager);
                 ddPlayerTeam.Name = "ddPlayerTeam" + i;
@@ -499,6 +503,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 ddPlayerTeam.AllowDropDown = false;
                 ddPlayerTeam.ClickSoundEffect = AssetLoader.LoadSound("dropdown.wav");
                 ddPlayerTeam.SelectedIndexChanged += CopyPlayerDataFromUI;
+                ddPlayerTeam.Tag = true;
 
                 ddPlayerNames[i] = ddPlayerName;
                 ddPlayerSides[i] = ddPlayerSide;
@@ -907,8 +912,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (!GameInProgress)
                 return;
 
-            RandomSeed = new Random().Next();
-
             GameInProgress = false;
 
             Logger.Log("GameProcessExited: Parsing statistics.");
@@ -930,6 +933,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             if (PlayerUpdatingInProgress)
                 return;
+
+            var senderDropDown = (XNADropDown)sender;
+            if ((bool)senderDropDown.Tag)
+                ClearReadyStatuses();
 
             for (int pId = 0; pId < Players.Count; pId++)
             {
@@ -974,6 +981,15 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             }
 
             CopyPlayerDataToUI();
+        }
+
+        /// <summary>
+        /// Sets the ready status of all non-host human players to false.
+        /// </summary>
+        protected void ClearReadyStatuses()
+        {
+            for (int i = 1; i < Players.Count; i++)
+                Players[i].Ready = false;
         }
 
         /// <summary>

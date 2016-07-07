@@ -64,8 +64,8 @@ namespace DTAClient.DXGUI
             wm.SetBorderlessMode(MCDomainController.Instance.GetBorderlessWindowedStatus());
             wm.CenterOnScreen();
             wm.SetRenderResolution(renderResolutionX, renderResolutionY);
-            wm.SetIcon(ProgramConstants.GetBaseResourcePath() + "mainclienticon.ico");
-            wm.SetWindowTitle(MainClientConstants.GAME_NAME_LONG);
+            wm.SetIcon(ProgramConstants.GetBaseResourcePath() + "clienticon.ico");
+            wm.SetWindowTitle(MainClientConstants.GAME_NAME_SHORT + " Client");
             wm.SetControlBox(true);
 
             wm.Cursor.Textures = new Texture2D[]

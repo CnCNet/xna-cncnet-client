@@ -132,8 +132,6 @@ namespace DTAClient.DXGUI.Generic
                 {
                     child.Visible = false;
                 }
-
-                ((MainMenu)Parent).Enable();
             }
         }
 

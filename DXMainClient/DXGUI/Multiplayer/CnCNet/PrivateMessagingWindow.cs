@@ -15,7 +15,7 @@ using DTAClient.Online.EventArguments;
 using Microsoft.Xna.Framework.Audio;
 using DTAClient.domain.Multiplayer;
 
-namespace DTAClient.DXGUI.Multiplayer
+namespace DTAClient.DXGUI.Multiplayer.CnCNet
 {
     internal class PrivateMessagingWindow : XNAWindow, ISwitchable
     {
@@ -109,11 +109,11 @@ namespace DTAClient.DXGUI.Multiplayer
         private void RemoveUser(string userName, string reason)
         {
             var pmUser = privateMessageUsers.Find(pmsgUser => pmsgUser.IrcUser.Name == userName);
-            IRCMessage leaveMessage = null;
+            ChatMessage leaveMessage = null;
 
             if (pmUser != null)
             {
-                leaveMessage = new IRCMessage(null, Color.White, DateTime.Now,
+                leaveMessage = new ChatMessage(null, Color.White, DateTime.Now,
                     userName + " " + reason);
                 pmUser.Messages.Add(leaveMessage);
             }
@@ -146,11 +146,11 @@ namespace DTAClient.DXGUI.Multiplayer
         {
             var pmUser = privateMessageUsers.Find(pmsgUser => pmsgUser.IrcUser.Name == e.User.Name);
 
-            IRCMessage joinMessage = null;
+            ChatMessage joinMessage = null;
 
             if (pmUser != null)
             {
-                joinMessage = new IRCMessage(null, Color.White, DateTime.Now,
+                joinMessage = new ChatMessage(null, Color.White, DateTime.Now,
                     e.User.Name + " has logged in to CnCNet.");
                 pmUser.Messages.Add(joinMessage);
             }
@@ -407,7 +407,7 @@ namespace DTAClient.DXGUI.Multiplayer
                 }
             }
 
-            IRCMessage message = new IRCMessage(e.Sender, otherUserMessageColor, DateTime.Now, e.Message);
+            ChatMessage message = new ChatMessage(e.Sender, otherUserMessageColor, DateTime.Now, e.Message);
 
             pmUser.Messages.Add(message);
 
@@ -467,7 +467,7 @@ namespace DTAClient.DXGUI.Multiplayer
                 privateMessageUsers.Add(pmUser);
             }
 
-            IRCMessage sentMessage = new IRCMessage(ProgramConstants.PLAYERNAME,
+            ChatMessage sentMessage = new ChatMessage(ProgramConstants.PLAYERNAME,
                 personalMessageColor, DateTime.Now, tbMessageInput.Text);
 
             pmUser.Messages.Add(sentMessage);
@@ -511,7 +511,7 @@ namespace DTAClient.DXGUI.Multiplayer
                 return;
             }
 
-            foreach (IRCMessage message in pmUser.Messages)
+            foreach (ChatMessage message in pmUser.Messages)
             {
                 lbMessages.AddMessage(message);
             }

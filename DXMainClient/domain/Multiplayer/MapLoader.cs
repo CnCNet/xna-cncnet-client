@@ -5,11 +5,12 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 
-namespace DTAClient.domain.Multiplayer.CnCNet
+namespace DTAClient.domain.Multiplayer
 {
     public class MapLoader
     {
         const string MAP_FILE_EXTENSION = ".map";
+        const string CUSTOM_MAPS_DIRECTORY = "Maps\\Custom";
 
         public List<GameMode> GameModes = new List<GameMode>();
 
@@ -36,7 +37,10 @@ namespace DTAClient.domain.Multiplayer.CnCNet
             List<string> keys = mpMapsIni.GetSectionKeys("MultiMaps");
 
             if (keys == null)
-                throw new Exception("Loading MPMaps.ini failed!");
+            {
+                Logger.Log("Loading multiplayer map list failed!!!");
+                return;
+            }
 
             List<Map> maps = new List<Map>();
 
@@ -58,16 +62,23 @@ namespace DTAClient.domain.Multiplayer.CnCNet
                 maps.Add(map);
             }
 
-            string[] files = Directory.GetFiles(ProgramConstants.GamePath + "Maps\\Custom", "*.map");
-
-            foreach (string file in files)
+            if (!Directory.Exists(ProgramConstants.GamePath + CUSTOM_MAPS_DIRECTORY))
             {
-                string baseFilePath = file.Substring(ProgramConstants.GamePath.Length);
-                baseFilePath = baseFilePath.Substring(0, baseFilePath.Length - 4);
+                Logger.Log("Custom maps directory does not exist!");
+            }
+            else
+            {
+                string[] files = Directory.GetFiles(ProgramConstants.GamePath + CUSTOM_MAPS_DIRECTORY, "*.map");
 
-                Map map = new Map(baseFilePath);
-                if (map.SetInfoFromMap(file))
-                    maps.Add(map);
+                foreach (string file in files)
+                {
+                    string baseFilePath = file.Substring(ProgramConstants.GamePath.Length);
+                    baseFilePath = baseFilePath.Substring(0, baseFilePath.Length - 4);
+
+                    Map map = new Map(baseFilePath);
+                    if (map.SetInfoFromMap(file))
+                        maps.Add(map);
+                }
             }
 
             foreach (Map map in maps)

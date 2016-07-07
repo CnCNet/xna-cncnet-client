@@ -10,9 +10,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{AF4779
 		.nuget\packages.config = .nuget\packages.config
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Rampastring.XNAUI", "..\..\Rampastring.XNAUI\Rampastring.XNAUI.csproj", "{3EAF996D-7F03-433B-A9A5-17E69AC97C76}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Rampastring.XNAUI", "..\Rampastring.XNAUI\Rampastring.XNAUI.csproj", "{3EAF996D-7F03-433B-A9A5-17E69AC97C76}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Rampastring.Tools", "..\..\Rampastring.Tools\Rampastring.Tools.csproj", "{9F40961F-535A-480C-93C5-6877ED6A8626}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Rampastring.Tools", "..\Rampastring.Tools\Rampastring.Tools.csproj", "{9F40961F-535A-480C-93C5-6877ED6A8626}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClientCore", "ClientCore\ClientCore.csproj", "{DAA331A7-FDAC-44FD-98B5-2DC5025F48C3}"
 EndProject

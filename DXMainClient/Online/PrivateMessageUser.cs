@@ -11,6 +11,6 @@ namespace DTAClient.Online
 
         public IRCUser IrcUser { get; private set; }
 
-        public List<IRCMessage> Messages = new List<IRCMessage>();
+        public List<ChatMessage> Messages = new List<ChatMessage>();
     }
 }

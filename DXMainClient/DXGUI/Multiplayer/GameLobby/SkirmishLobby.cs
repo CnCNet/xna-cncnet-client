@@ -143,6 +143,13 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             return StatisticsManager.Instance.GetSkirmishRankForDefaultMap(map.Name, map.MaxPlayers);
         }
 
+        protected override void GameProcessExited()
+        {
+            base.GameProcessExited();
+
+            RandomSeed = new Random().Next();
+        }
+
         public void Open()
         {
             topBar.AddPrimarySwitchable(this);

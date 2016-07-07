@@ -91,7 +91,7 @@
     </Reference>
     <Reference Include="MonoGame.Framework, Version=3.5.0.1636, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\MonoGame\MonoGame.Framework\bin\Windows\AnyCPU\Debug\MonoGame.Framework.dll</HintPath>
+      <HintPath>..\..\MonoGame\MonoGame.Framework\bin\Windows\AnyCPU\Debug\MonoGame.Framework.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
@@ -114,6 +114,7 @@
     <Compile Include="domain\Multiplayer\CnCNet\HostedCnCNetGame.cs" />
     <Compile Include="domain\Multiplayer\CnCNet\MapEventArgs.cs" />
     <Compile Include="domain\Multiplayer\CnCNet\MapSharer.cs" />
+    <Compile Include="domain\Multiplayer\LAN\LANLobbyUser.cs" />
     <Compile Include="domain\Multiplayer\SavedGamePlayer.cs" />
     <Compile Include="domain\Multiplayer\CnCNet\SHA1EventArgs.cs" />
     <Compile Include="domain\Multiplayer\GenericHostedGame.cs" />
@@ -121,7 +122,7 @@
     <Compile Include="domain\Multiplayer\LAN\LANGame.cs" />
     <Compile Include="DXGUI\Generic\LinkButton.cs" />
     <Compile Include="domain\Multiplayer\Map.cs" />
-    <Compile Include="domain\Multiplayer\CnCNet\MapLoader.cs" />
+    <Compile Include="domain\Multiplayer\MapLoader.cs" />
     <Compile Include="domain\Multiplayer\PlayerHouseInfo.cs" />
     <Compile Include="domain\Multiplayer\PlayerInfo.cs" />
     <Compile Include="domain\Multiplayer\CnCNet\TunnelHandler.cs" />
@@ -135,11 +136,11 @@
     <Compile Include="DXGUI\Generic\TopBar.cs" />
     <Compile Include="DXGUI\ISwitchable.cs" />
     <Compile Include="DXGUI\Multiplayer\ChatListBox.cs" />
-    <Compile Include="DXGUI\Multiplayer\CnCNetGameLoadingLobby.cs" />
-    <Compile Include="DXGUI\Multiplayer\CnCNetLobby.cs" />
-    <Compile Include="DXGUI\Multiplayer\CnCNetLoginWindow.cs" />
-    <Compile Include="DXGUI\Multiplayer\GameCreationEventArgs.cs" />
-    <Compile Include="DXGUI\Multiplayer\GameCreationWindow.cs" />
+    <Compile Include="DXGUI\Multiplayer\CnCNet\CnCNetGameLoadingLobby.cs" />
+    <Compile Include="DXGUI\Multiplayer\CnCNet\CnCNetLobby.cs" />
+    <Compile Include="DXGUI\Multiplayer\CnCNet\CnCNetLoginWindow.cs" />
+    <Compile Include="DXGUI\Multiplayer\CnCNet\GameCreationEventArgs.cs" />
+    <Compile Include="DXGUI\Multiplayer\CnCNet\GameCreationWindow.cs" />
     <Compile Include="DXGUI\Multiplayer\GameInformationPanel.cs" />
     <Compile Include="DXGUI\Generic\GameInProgressWindow.cs" />
     <Compile Include="DXGUI\Multiplayer\GameListBox.cs" />
@@ -162,10 +163,11 @@
     <Compile Include="DXGUI\Multiplayer\GameLobby\PlayerLocationIndicator.cs" />
     <Compile Include="DXGUI\Multiplayer\GameLobby\SkirmishLobby.cs" />
     <Compile Include="DXGUI\Multiplayer\GameLobby\CTCPHandlers\StringCTCPHandler.cs" />
+    <Compile Include="DXGUI\Multiplayer\LANGameCreationWindow.cs" />
     <Compile Include="DXGUI\Multiplayer\LANLobby.cs" />
-    <Compile Include="DXGUI\Multiplayer\PrivateMessageNotificationBox.cs" />
-    <Compile Include="DXGUI\Multiplayer\PrivateMessagingPanel.cs" />
-    <Compile Include="DXGUI\Multiplayer\PrivateMessagingWindow.cs" />
+    <Compile Include="DXGUI\Multiplayer\CnCNet\PrivateMessageNotificationBox.cs" />
+    <Compile Include="DXGUI\Multiplayer\CnCNet\PrivateMessagingPanel.cs" />
+    <Compile Include="DXGUI\Multiplayer\CnCNet\PrivateMessagingWindow.cs" />
     <Compile Include="Online\EventArguments\ChannelCTCPEventArgs.cs" />
     <Compile Include="Online\EventArguments\ChannelUserEventArgs.cs" />
     <Compile Include="Online\EventArguments\PrivateMessageEventArgs.cs" />
@@ -206,7 +208,7 @@
     <Compile Include="Online\EventArguments\UserListEventArgs.cs" />
     <Compile Include="Online\EventArguments\WhoEventArgs.cs" />
     <Compile Include="Online\IConnectionManager.cs" />
-    <Compile Include="Online\IRCMessage.cs" />
+    <Compile Include="Online\ChatMessage.cs" />
     <Compile Include="Online\IRCUser.cs" />
     <Compile Include="Online\PrivateMessageUser.cs" />
     <Compile Include="Online\QueuedMessage.cs" />
@@ -281,11 +283,11 @@
     <None Include="Resources\dtaicon.png" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\Rampastring.Tools\Rampastring.Tools.csproj">
+    <ProjectReference Include="..\..\Rampastring.Tools\Rampastring.Tools.csproj">
       <Project>{9f40961f-535a-480c-93c5-6877ed6a8626}</Project>
       <Name>Rampastring.Tools</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\Rampastring.XNAUI\Rampastring.XNAUI.csproj">
+    <ProjectReference Include="..\..\Rampastring.XNAUI\Rampastring.XNAUI.csproj">
       <Project>{3eaf996d-7f03-433b-a9a5-17e69ac97c76}</Project>
       <Name>Rampastring.XNAUI</Name>
     </ProjectReference>

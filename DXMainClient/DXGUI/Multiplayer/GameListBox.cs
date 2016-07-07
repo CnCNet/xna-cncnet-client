@@ -31,6 +31,9 @@ namespace DTAClient.DXGUI.Multiplayer
 
         bool showGameInfo = false;
 
+        /// <summary>
+        /// Refreshes game information in the game list box.
+        /// </summary>
         public void Refresh()
         {
             Items.Clear();

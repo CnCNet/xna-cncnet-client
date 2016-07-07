@@ -104,7 +104,18 @@ namespace DTAClient
 
             if (args.Name.StartsWith("MonoGame.Framework"))
             {
-                byte[] data = File.ReadAllBytes(Application.StartupPath + "\\Resources\\Binaries\\MonoGame.Framework.dll");
+                byte[] data;
+
+                if (Environment.OSVersion.Platform == PlatformID.Win32NT &&
+                    Environment.OSVersion.VersionString.StartsWith("5."))
+                {
+                    data = File.ReadAllBytes(Application.StartupPath + "\\Resources\\Binaries\\MonoGame.Framework.WindowsGL.dll");
+                }
+                else
+                {
+                    data = File.ReadAllBytes(Application.StartupPath + "\\Resources\\Binaries\\MonoGame.Framework.dll");
+                }
+
                 return Assembly.Load(data);
             }
 
@@ -123,6 +134,18 @@ namespace DTAClient
             if (args.Name.StartsWith("Ionic.Zip"))
             {
                 byte[] data = File.ReadAllBytes(Application.StartupPath + "\\Resources\\Binaries\\Ionic.Zip.dll");
+                return Assembly.Load(data);
+            }
+
+            if (args.Name.StartsWith("OpenTK"))
+            {
+                byte[] data = File.ReadAllBytes(Application.StartupPath + "\\Resources\\Binaries\\OpenTK.dll");
+                return Assembly.Load(data);
+            }
+
+            if (args.Name.StartsWith("NVorbis"))
+            {
+                byte[] data = File.ReadAllBytes(Application.StartupPath + "\\Resources\\Binaries\\NVorbis.dll");
                 return Assembly.Load(data);
             }
 

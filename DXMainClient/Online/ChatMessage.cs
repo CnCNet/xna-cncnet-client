@@ -3,7 +3,7 @@ using System;
 
 namespace DTAClient.Online
 {
-    public class IRCMessage
+    public class ChatMessage
     {
         /// <summary>
         /// Creates a new IRCMessage instance.
@@ -12,7 +12,7 @@ namespace DTAClient.Online
         /// <param name="color">The color of the message.</param>
         /// <param name="dateTime">The date and time of the message.</param>
         /// <param name="message">The message.</param>
-        public IRCMessage(string sender, Color color, DateTime dateTime, string message)
+        public ChatMessage(string sender, Color color, DateTime dateTime, string message)
         {
             Sender = sender;
             Color = color;

@@ -359,7 +359,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             int myIndex = Players.FindIndex(p => p.Name == ProgramConstants.PLAYERNAME);
 
-            if (myIndex == -1)
+            if (myIndex == -1 || Players[myIndex].SideId == ddPlayerSides[0].Items.Count - 1)
                 return;
 
             ddPlayerStarts[myIndex].SelectedIndex = e.StartingLocationIndex;
@@ -440,7 +440,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     }
                 }
 
-                int totalPlayerCount = Players.Count(p => p.SideId < ddPlayerSides[0].Items.Count)
+                int totalPlayerCount = Players.Count(p => p.SideId < ddPlayerSides[0].Items.Count - 1)
                     + AIPlayers.Count;
 
                 if (totalPlayerCount < Map.MinPlayers)
@@ -622,12 +622,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         protected override bool AllowPlayerOptionsChange()
         {
             return IsHost;
-        }
-
-        protected void ClearReadyStatuses()
-        {
-            for (int i = 1; i < Players.Count; i++)
-                Players[i].Ready = false;
         }
 
         protected override void ChangeMap(GameMode gameMode, Map map)

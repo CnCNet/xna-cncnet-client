@@ -1300,6 +1300,8 @@ namespace ClientGUI
 
             string extraCommandLine = DomainController.Instance().GetExtraCommandLineParameters();
 
+            File.Delete(ProgramConstants.GamePath + "DTA.LOG");
+
             if (DomainController.Instance().GetWindowedStatus())
             {
                 Logger.Log("Windowed mode is enabled - using QRes.");

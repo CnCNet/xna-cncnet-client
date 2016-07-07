@@ -1,7 +1,7 @@
 ﻿using DTAClient.domain.Multiplayer.CnCNet;
 using System;
 
-namespace DTAClient.DXGUI.Multiplayer
+namespace DTAClient.DXGUI.Multiplayer.CnCNet
 {
     class GameCreationEventArgs : EventArgs
     {
