@@ -80,7 +80,7 @@ namespace DTAClient.DXGUI.Generic
             GameCollection gameCollection = new GameCollection();
             gameCollection.Initialize(GraphicsDevice);
 
-            LANLobby lanLobby = new LANLobby(WindowManager, gameCollection);
+            LANLobby lanLobby = new LANLobby(WindowManager, gameCollection, mapLoader.GameModes);
 
             CnCNetManager cncnetManager = new CnCNetManager(WindowManager, gameCollection);
             TunnelHandler tunnelHandler = new TunnelHandler(WindowManager, cncnetManager);
@@ -112,21 +112,17 @@ namespace DTAClient.DXGUI.Generic
             cncnetGameLobbyPanel = new DarkeningPanel(WindowManager);
             WindowManager.AddAndInitializeControl(cncnetGameLobbyPanel);
             cncnetGameLobbyPanel.AddChild(cncnetGameLobby);
-            cncnetGameLobby.VisibleChanged += Darkened_VisibleChanged;
 
             cncnetLobbyPanel = new DarkeningPanel(WindowManager);
             WindowManager.AddAndInitializeControl(cncnetLobbyPanel);
             cncnetLobbyPanel.AddChild(cncnetLobby);
-            cncnetLobby.VisibleChanged += Darkened_VisibleChanged;
 
             DarkeningPanel lanPanel = new DarkeningPanel(WindowManager);
             WindowManager.AddAndInitializeControl(lanPanel);
             lanPanel.AddChild(lanLobby);
-            lanLobby.VisibleChanged += Darkened_VisibleChanged;
 
             WindowManager.AddAndInitializeControl(privateMessagingPanel);
             privateMessagingPanel.AddChild(pmWindow);
-            pmWindow.VisibleChanged += Darkened_VisibleChanged;
 
             topBar.SetTertiarySwitch(pmWindow);
 
@@ -138,33 +134,19 @@ namespace DTAClient.DXGUI.Generic
             lanLobby.Disable();
             pmWindow.Disable();
 
-            WindowManager.RemoveControl(this);
-            mm.PostInit();
-
             WindowManager.AddAndInitializeControl(topBar);
             topBar.AddPrimarySwitchable(mm);
 
-            Cursor.Visible = true;
-
             WindowManager.AddAndInitializeControl(new PrivateMessageNotificationBox(WindowManager));
+
+            mm.PostInit();
 
             if (DomainController.Instance().GetCnCNetAutologinStatus())
                 cncnetManager.Connect();
-        }
 
-        /// <summary>
-        /// Hides the darkening panel of a window that has a darkening panel as its parent
-        /// when the window is hidden.
-        /// </summary>
-        private void Darkened_VisibleChanged(object sender, EventArgs e)
-        {
-            var senderWindow = (XNAWindow)sender;
-            var dp = (DarkeningPanel)senderWindow.Parent;
+            WindowManager.RemoveControl(this);
 
-            if (senderWindow.Visible)
-                dp.Show();
-            else
-                dp.Hide();
+            Cursor.Visible = true;
         }
 
         public override void Update(GameTime gameTime)

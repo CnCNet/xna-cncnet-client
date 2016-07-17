@@ -96,6 +96,23 @@ namespace DTAClient
             Logger.Log("Source: " + ex.Source);
             Logger.Log("TargetSite.Name: " + ex.TargetSite.Name);
             Logger.Log("Stacktrace: " + ex.StackTrace);
+            if (ex.InnerException != null)
+            {
+                Logger.Log("InnerException info:");
+                Logger.Log("Message: " + ex.InnerException.Message);
+                Logger.Log("Stacktrace: " + ex.InnerException.StackTrace);
+            }
+
+            try
+            {
+                if (Directory.Exists(Application.StartupPath + "\\Client\\ErrorLogs"))
+                {
+                    File.Copy(Application.StartupPath + "\\Client\\client.log",
+                        Application.StartupPath + "\\Client\\ErrorLogs\\ClientCrash_" +
+                        DateTime.Now.ToString() + ".txt");
+                }
+            }
+            catch { }
 
             MessageBox.Show(string.Format("{0} has crashed. Error message:" + Environment.NewLine + Environment.NewLine +
                 ex.Message + Environment.NewLine + Environment.NewLine +

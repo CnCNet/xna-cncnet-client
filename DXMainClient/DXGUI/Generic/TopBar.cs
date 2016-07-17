@@ -32,6 +32,8 @@ namespace DTAClient.DXGUI.Generic
             this.connectionManager = connectionManager;
         }
 
+        public SwitchType LastSwitchType { get; private set; }
+
         List<ISwitchable> primarySwitches = new List<ISwitchable>();
         ISwitchable cncnetLobbySwitch;
         ISwitchable privateMessageSwitch;
@@ -218,6 +220,11 @@ namespace DTAClient.DXGUI.Generic
             BtnMainButton_LeftClick(this, EventArgs.Empty);
         }
 
+        public ISwitchable GetTopMostPrimarySwitchable()
+        {
+            return primarySwitches[primarySwitches.Count - 1];
+        }
+
         public void SwitchToSecondary()
         {
             BtnCnCNetLobby_LeftClick(this, EventArgs.Empty);
@@ -225,6 +232,7 @@ namespace DTAClient.DXGUI.Generic
 
         private void BtnCnCNetLobby_LeftClick(object sender, EventArgs e)
         {
+            LastSwitchType = SwitchType.SECONDARY;
             primarySwitches[primarySwitches.Count - 1].SwitchOff();
             cncnetLobbySwitch.SwitchOn();
             privateMessageSwitch.SwitchOff();
@@ -232,6 +240,7 @@ namespace DTAClient.DXGUI.Generic
 
         private void BtnMainButton_LeftClick(object sender, EventArgs e)
         {
+            LastSwitchType = SwitchType.PRIMARY;
             cncnetLobbySwitch.SwitchOff();
             privateMessageSwitch.SwitchOff();
             primarySwitches[primarySwitches.Count - 1].SwitchOn();
@@ -331,5 +340,11 @@ namespace DTAClient.DXGUI.Generic
 
             Renderer.DrawRectangle(new Rectangle(ClientRectangle.X, ClientRectangle.Bottom, ClientRectangle.Width, 1), Color.Gray);
         }
+    }
+
+    public enum SwitchType
+    {
+        PRIMARY,
+        SECONDARY
     }
 }

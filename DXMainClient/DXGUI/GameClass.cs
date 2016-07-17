@@ -29,7 +29,7 @@ namespace DTAClient.DXGUI
         {
             base.Initialize();
 
-            AssetLoader.Initialize(GraphicsDevice);
+            AssetLoader.Initialize(GraphicsDevice, content);
             AssetLoader.AssetSearchPaths.Add(ProgramConstants.GetResourcePath());
             AssetLoader.AssetSearchPaths.Add(ProgramConstants.GetBaseResourcePath());
             AssetLoader.AssetSearchPaths.Add(ProgramConstants.GamePath);

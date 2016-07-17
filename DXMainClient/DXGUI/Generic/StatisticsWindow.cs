@@ -138,6 +138,7 @@ namespace DTAClient.DXGUI.Generic
                 chkIncludeSpectatedGames.ClientRectangle.Width, 
                 chkIncludeSpectatedGames.ClientRectangle.Height);
             chkIncludeSpectatedGames.CheckedChanged += ChkIncludeSpectatedGames_CheckedChanged;
+            chkIncludeSpectatedGames.CheckSoundEffect = AssetLoader.LoadSound("checkbox.wav");
 
             #region Match statistics
 

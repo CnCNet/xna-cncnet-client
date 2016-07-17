@@ -130,6 +130,7 @@ namespace DTAClient
                     catch
                     {
                         Logger.Log("Failed to get main module from " + launcherProcesses[processId].ProcessName + "!");
+                        continue;
                     }
 
                     processCount++;

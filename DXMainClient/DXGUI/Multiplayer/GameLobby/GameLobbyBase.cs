@@ -923,6 +923,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             StatisticsManager.Instance.AddMatchAndSaveDatabase(true, matchStatistics);
 
             DdGameMode_SelectedIndexChanged(null, EventArgs.Empty); // Refresh ranks
+
+            ClearReadyStatuses();
+
+            CopyPlayerDataToUI();
         }
 
         /// <summary>
@@ -1299,6 +1303,21 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     dropDown.AllowDropDown = false;
                 }
             }
+        }
+
+        protected string AILevelToName(int aiLevel)
+        {
+            switch (aiLevel)
+            {
+                case 0:
+                    return "Hard AI";
+                case 1:
+                    return "Medium AI";
+                case 2:
+                    return "Easy AI";
+            }
+
+            return string.Empty;
         }
 
         protected abstract bool AllowPlayerOptionsChange();

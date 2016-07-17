@@ -4,7 +4,7 @@ using System.Text;
 using Rampastring.XNAUI;
 using ClientCore;
 using DTAClient.Online;
-using DTAClient.DXGUI.Multiplayer.GameLobby.CTCPHandlers;
+using DTAClient.DXGUI.Multiplayer.GameLobby.CommandHandlers;
 using Microsoft.Xna.Framework;
 using Rampastring.Tools;
 using DTAClient.DXGUI.Generic;
@@ -36,21 +36,21 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             this.tunnelHandler = tunnelHandler;
             this.gameModes = gameModes;
 
-            ctcpCommandHandlers = new CTCPCommandHandler[]
+            ctcpCommandHandlers = new CommandHandlerBase[]
             {
-                new NoParamCTCPHandler(NOT_ALL_PLAYERS_PRESENT_CTCP_COMMAND, HandleNotAllPresentNotification),
-                new NoParamCTCPHandler(GET_READY_CTCP_COMMAND, HandleGetReadyNotification),
-                new StringCTCPHandler(FILE_HASH_CTCP_COMMAND, HandleFileHashCommand),
-                new StringCTCPHandler(INVALID_FILE_HASH_CTCP_COMMAND, HandleCheaterNotification),
-                new IntCTCPHandler(TUNNEL_PING_CTCP_COMMAND, HandleTunnelPingNotification),
-                new StringCTCPHandler(OPTIONS_CTCP_COMMAND, HandleOptionsMessage),
-                new NoParamCTCPHandler(INVALID_SAVED_GAME_INDEX_CTCP_COMMAND, HandleInvalidSaveIndexCommand),
-                new StringCTCPHandler(START_GAME_CTCP_COMMAND, HandleStartGameCommand),
-                new IntCTCPHandler(PLAYER_READY_CTCP_COMMAND, HandlePlayerReadyRequest)
+                new NoParamCommandHandler(NOT_ALL_PLAYERS_PRESENT_CTCP_COMMAND, HandleNotAllPresentNotification),
+                new NoParamCommandHandler(GET_READY_CTCP_COMMAND, HandleGetReadyNotification),
+                new StringCommandHandler(FILE_HASH_CTCP_COMMAND, HandleFileHashCommand),
+                new StringCommandHandler(INVALID_FILE_HASH_CTCP_COMMAND, HandleCheaterNotification),
+                new IntCommandHandler(TUNNEL_PING_CTCP_COMMAND, HandleTunnelPingNotification),
+                new StringCommandHandler(OPTIONS_CTCP_COMMAND, HandleOptionsMessage),
+                new NoParamCommandHandler(INVALID_SAVED_GAME_INDEX_CTCP_COMMAND, HandleInvalidSaveIndexCommand),
+                new StringCommandHandler(START_GAME_CTCP_COMMAND, HandleStartGameCommand),
+                new IntCommandHandler(PLAYER_READY_CTCP_COMMAND, HandlePlayerReadyRequest)
             };
         }
 
-        CTCPCommandHandler[] ctcpCommandHandlers;
+        CommandHandlerBase[] ctcpCommandHandlers;
 
         CnCNetManager connectionManager;
 
@@ -129,6 +129,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             channel.UserQuitIRC += Channel_UserQuitIRC;
             channel.CTCPReceived += Channel_CTCPReceived;
 
+            started = false;
+
             if (isHost)
                 timerTicks = 1000000;
 
@@ -163,7 +165,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         private void Channel_CTCPReceived(object sender, ChannelCTCPEventArgs e)
         {
-            foreach (CTCPCommandHandler cmdHandler in ctcpCommandHandlers)
+            foreach (CommandHandlerBase cmdHandler in ctcpCommandHandlers)
             {
                 if (cmdHandler.Handle(e.UserName, e.Message))
                     return;
@@ -450,7 +452,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             if (sender != hostName)
                 return;
 
-            string[] parts = data.Split(' ');
+            string[] parts = data.Split(';');
 
             int playerCount = parts.Length / 2;
 
@@ -535,28 +537,6 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         {
             spawnIni.SetStringValue("Tunnel", "Ip", tunnel.Address);
             spawnIni.SetIntValue("Tunnel", "Port", tunnel.Port);
-
-            PlayerInfo localPlayer = Players.Find(p => p.Name == ProgramConstants.PLAYERNAME);
-
-            if (localPlayer == null)
-                return;
-
-            spawnIni.SetIntValue("Settings", "Port", localPlayer.Port);
-
-            for (int i = 1; i < Players.Count; i++)
-            {
-                string otherName = spawnIni.GetStringValue("Other" + i, "Name", string.Empty);
-
-                if (string.IsNullOrEmpty(otherName))
-                    continue;
-
-                PlayerInfo otherPlayer = Players.Find(p => p.Name == otherName);
-
-                if (otherPlayer == null)
-                    continue;
-
-                spawnIni.SetIntValue("Other" + i, "Port", otherPlayer.Port);
-            }
 
             base.WriteSpawnIniAdditions(spawnIni);
         }

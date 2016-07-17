@@ -191,7 +191,13 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             HandleLockGameButtonClick();
         }
 
-        protected abstract void HandleLockGameButtonClick();
+        protected virtual void HandleLockGameButtonClick()
+        {
+            if (Locked)
+                UnlockGame(true);
+            else
+                LockGame();
+        }
 
         protected abstract void LockGame();
 
@@ -544,6 +550,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         public virtual void Clear()
         {
             fsw.EnableRaisingEvents = false;
+
+            if (!IsHost)
+                AIPlayers.Clear();
+
+            Players.Clear();
         }
 
         protected abstract void HostLaunchGame();

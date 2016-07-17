@@ -284,6 +284,7 @@ namespace DTAClient.Online
         {
             wm.AddCallback(new Action<string, string, string>(DoCTCPParsed),
                 channelName, userName, message);
+            //DoCTCPParsed(channelName, userName, message);
         }
 
         private void DoCTCPParsed(string channelName, string userName, string message)

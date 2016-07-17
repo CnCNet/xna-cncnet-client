@@ -6,6 +6,9 @@ using System.Text;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
 using Microsoft.Xna.Framework;
+using ClientCore;
+using System.IO;
+using Rampastring.Tools;
 
 namespace DTAClient.DXGUI.Multiplayer
 {
@@ -19,6 +22,9 @@ namespace DTAClient.DXGUI.Multiplayer
         {
         }
 
+        public event EventHandler NewGame;
+        public event EventHandler LoadGame;
+
         XNALabel lblDescription;
 
         XNAButton btnNewGame;
@@ -29,16 +35,28 @@ namespace DTAClient.DXGUI.Multiplayer
         {
             Name = "LANGameCreationWindow";
             BackgroundTexture = AssetLoader.LoadTexture("gamecreationoptionsbg.png");
+            ClientRectangle = new Rectangle(0, 0, 447, 77);
 
             lblDescription = new XNALabel(WindowManager);
             lblDescription.Name = "lblDescription";
-            lblDescription.Text = "Select session type";
+            lblDescription.FontIndex = 1;
+            lblDescription.Text = "SELECT SESSION TYPE";
+
+            AddChild(lblDescription);
+
+            lblDescription.CenterOnParent();
+            lblDescription.ClientRectangle = new Rectangle(
+                lblDescription.ClientRectangle.X,
+                12,
+                lblDescription.ClientRectangle.Width,
+                lblDescription.ClientRectangle.Height);
 
             btnNewGame = new XNAButton(WindowManager);
             btnNewGame.Name = "btnNewGame";
             btnNewGame.ClientRectangle = new Rectangle(12, 42, 133, 23);
             btnNewGame.IdleTexture = AssetLoader.LoadTexture("133pxbtn.png");
             btnNewGame.HoverTexture = AssetLoader.LoadTexture("133pxbtn_c.png");
+            btnNewGame.FontIndex = 1;
             btnNewGame.Text = "New Game";
             btnNewGame.HoverSoundEffect = AssetLoader.LoadSound("button.wav");
             btnNewGame.LeftClick += BtnNewGame_LeftClick;
@@ -49,7 +67,8 @@ namespace DTAClient.DXGUI.Multiplayer
                 btnNewGame.ClientRectangle.Y, 133, 23);
             btnLoadGame.IdleTexture = btnNewGame.IdleTexture;
             btnLoadGame.HoverTexture = btnNewGame.HoverTexture;
-            btnLoadGame.Text = "Load Multiplayer Game";
+            btnLoadGame.FontIndex = 1;
+            btnLoadGame.Text = "Load Game";
             btnLoadGame.HoverSoundEffect = btnNewGame.HoverSoundEffect;
             btnLoadGame.LeftClick += BtnLoadGame_LeftClick;
 
@@ -59,28 +78,58 @@ namespace DTAClient.DXGUI.Multiplayer
                 btnNewGame.ClientRectangle.Y, 133, 23);
             btnCancel.IdleTexture = btnNewGame.IdleTexture;
             btnCancel.HoverTexture = btnNewGame.HoverTexture;
+            btnCancel.FontIndex = 1;
             btnCancel.Text = "Cancel";
             btnCancel.HoverSoundEffect = btnNewGame.HoverSoundEffect;
             btnCancel.LeftClick += BtnCancel_LeftClick;
 
             AddChild(btnNewGame);
+            AddChild(btnLoadGame);
+            AddChild(btnCancel);
 
             base.Initialize();
+
+            CenterOnParent();
         }
 
         private void BtnNewGame_LeftClick(object sender, EventArgs e)
         {
-            throw new NotImplementedException();
+            Disable();
+            NewGame?.Invoke(this, EventArgs.Empty);
         }
 
         private void BtnLoadGame_LeftClick(object sender, EventArgs e)
         {
-            throw new NotImplementedException();
+            Disable();
+            LoadGame?.Invoke(this, EventArgs.Empty);
         }
 
         private void BtnCancel_LeftClick(object sender, EventArgs e)
         {
-            throw new NotImplementedException();
+            Disable();
+        }
+
+        public void Open()
+        {
+            btnLoadGame.AllowClick = AllowLoadingGame();
+            Enable();
+        }
+
+        private bool AllowLoadingGame()
+        {
+            if (!File.Exists(ProgramConstants.GamePath +
+                ProgramConstants.SAVED_GAME_SPAWN_INI))
+                return false;
+
+            IniFile iniFile = new IniFile(ProgramConstants.GamePath + 
+                ProgramConstants.SAVED_GAME_SPAWN_INI);
+            if (iniFile.GetStringValue("Settings", "Name", string.Empty) != ProgramConstants.PLAYERNAME)
+                return false;
+
+            if (!iniFile.GetBooleanValue("Settings", "Host", false))
+                return false;
+
+            return true;
         }
     }
 }

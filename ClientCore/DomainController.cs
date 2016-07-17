@@ -254,6 +254,11 @@ namespace ClientCore
             return DTACnCNetClient_ini.GetStringValue("General", "LogoStyle", "Default");
         }
 
+        public string MainMenuMusicName
+        {
+            get { return DTACnCNetClient_ini.GetStringValue("General", "MainMenuTheme", "mainmenu"); }
+        }
+
         public string GetMPColorOne()
         {
             return gameOptions_ini.GetStringValue("GameLobby", "MPColorOne", "255,255,255");
@@ -416,11 +421,6 @@ namespace ClientCore
         public bool GetCustomTunnelPingStatus()
         {
             return settings_ini.GetBooleanValue("MultiPlayer", "PingCustomTunnels", true);
-        }
-
-        public bool GetMainMenuMusicStatus()
-        {
-            return settings_ini.GetBooleanValue("Audio", "PlayCnCNetLobbyMusic", true);
         }
 
         public bool GetButtonHoverSoundStatus()

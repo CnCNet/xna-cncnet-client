@@ -1,10 +1,10 @@
 ﻿using System;
 
-namespace DTAClient.DXGUI.Multiplayer.GameLobby.CTCPHandlers
+namespace DTAClient.DXGUI.Multiplayer.GameLobby.CommandHandlers
 {
-    public class IntCTCPHandler : CTCPCommandHandler
+    public class IntCommandHandler : CommandHandlerBase
     {
-        public IntCTCPHandler(string commandName, Action<string, int> handler) : base(commandName)
+        public IntCommandHandler(string commandName, Action<string, int> handler) : base(commandName)
         {
             this.handler = handler;
         }

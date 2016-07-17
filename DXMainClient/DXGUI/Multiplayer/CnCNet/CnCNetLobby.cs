@@ -514,8 +514,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             connectionManager.Connect();
             loginWindowPanel.Hide();
 
-            if (DomainController.Instance().GetCnCNetPersistentModeStatus())
-                btnLogout.Text = "Main Menu";
+            SetLogOutButtonText();
         }
 
         /// <summary>
@@ -531,15 +530,32 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         private void GameLoadingLobby_GameLeft(object sender, EventArgs e)
         {
             topBar.SwitchToSecondary();
-            btnLogout.AllowClick = true;
             isInGameRoom = false;
+            SetLogOutButtonText();
         }
 
         private void GameLobby_GameLeft(object sender, EventArgs e)
         {
             topBar.SwitchToSecondary();
-            btnLogout.AllowClick = true;
             isInGameRoom = false;
+            SetLogOutButtonText();
+        }
+
+        private void SetLogOutButtonText()
+        {
+            if (isInGameRoom)
+            {
+                btnLogout.Text = "Game Lobby";
+                return;
+            }
+
+            if (DomainController.Instance().GetCnCNetPersistentModeStatus())
+            {
+                btnLogout.Text = "Main Menu";
+                return;
+            }
+
+            btnLogout.Text = "Log Out";
         }
 
         private void BtnJoinGame_LeftClick(object sender, EventArgs e)
@@ -699,8 +715,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 gameChannel.MessageAdded -= GameChannel_MessageAdded;
 
                 gameLobby.OnJoined();
-                btnLogout.AllowClick = false;
                 isInGameRoom = true;
+                SetLogOutButtonText();
             }
         }
 
@@ -742,7 +758,6 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 gameLoadingChannel.MessageAdded -= GameLoadingChannel_MessageAdded;
 
                 gameLoadingLobby.OnJoined();
-                btnLogout.AllowClick = false;
                 isInGameRoom = true;
             }
         }
@@ -1045,6 +1060,12 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         private void BtnLogout_LeftClick(object sender, EventArgs e)
         {
+            if (isInGameRoom)
+            {
+                topBar.SwitchToPrimary();
+                return;
+            }
+
             if (connectionManager.IsConnected && 
                 !DomainController.Instance().GetCnCNetPersistentModeStatus())
             {
@@ -1098,8 +1119,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 loginWindow.LoadSettings();
             }
 
-            if (DomainController.Instance().GetCnCNetPersistentModeStatus())
-                btnLogout.Text = "Main Menu";
+            SetLogOutButtonText();
         }
 
         public void SwitchOff()

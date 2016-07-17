@@ -18,20 +18,23 @@ using DTAClient.Online;
 using System.Threading;
 using System.Text;
 using DTAClient.domain.Multiplayer.LAN;
+using DTAClient.DXGUI.Multiplayer.GameLobby;
+using System.Linq;
 
 namespace DTAClient.DXGUI.Multiplayer
 {
     class LANLobby : XNAWindow
     {
-        private const int UDP_BROADCAST_PORT = 1233;
         private const double ALIVE_MESSAGE_INTERVAL = 5.0;
         private const double INACTIVITY_REMOVE_TIME = 10.0;
         private const double GAME_INACTIVITY_REMOVE_TIME = 20.0;
 
-        public LANLobby(WindowManager windowManager, GameCollection gameCollection)
+        public LANLobby(WindowManager windowManager, GameCollection gameCollection,
+            List<GameMode> gameModes)
             : base(windowManager)
         {
             this.gameCollection = gameCollection;
+            this.gameModes = gameModes;
         }
 
         XNAListBox lbPlayerList;
@@ -56,6 +59,8 @@ namespace DTAClient.DXGUI.Multiplayer
 
         XNADropDown ddColor;
 
+        LANGameCreationWindow gameCreationWindow;
+
         Texture2D unknownGameIcon;
 
         LANColor[] chatColors;
@@ -66,6 +71,8 @@ namespace DTAClient.DXGUI.Multiplayer
         GameCollection gameCollection;
 
         List<GenericHostedGame> hostedGames = new List<GenericHostedGame>();
+
+        List<GameMode> gameModes;
 
         TimeSpan timeSinceGameRefresh = TimeSpan.Zero;
 
@@ -78,6 +85,10 @@ namespace DTAClient.DXGUI.Multiplayer
         List<LANLobbyUser> players = new List<LANLobbyUser>();
 
         TimeSpan timeSinceAliveMessage = TimeSpan.Zero;
+
+        LANGameLobby lanGameLobby;
+
+        bool initSuccess = false;
 
         public override void Initialize()
         {
@@ -252,11 +263,6 @@ namespace DTAClient.DXGUI.Multiplayer
                 ddColor.AddItem(color.Name, color.XNAColor);
             }
 
-            int selectedColor = DomainController.Instance().GetCnCNetChatColor();
-
-            ddColor.SelectedIndex = selectedColor >= ddColor.Items.Count || selectedColor < 0
-                ? 0 : selectedColor;
-
             AddChild(btnNewGame);
             AddChild(btnJoinGame);
             AddChild(btnMainMenu);
@@ -275,6 +281,15 @@ namespace DTAClient.DXGUI.Multiplayer
             AddChild(lblColor);
             AddChild(ddColor);
 
+            gameCreationWindow = new LANGameCreationWindow(WindowManager);
+            var gameCreationPanel = new DarkeningPanel(WindowManager);
+            AddChild(gameCreationPanel);
+            gameCreationPanel.AddChild(gameCreationWindow);
+            gameCreationWindow.Disable();
+
+            gameCreationWindow.NewGame += GameCreationWindow_NewGame;
+            gameCreationWindow.LoadGame += GameCreationWindow_LoadGame;
+
             unknownGameIcon = AssetLoader.TextureFromImage(Resources.unknownicon);
 
             SoundEffect gameCreatedSoundEffect = AssetLoader.LoadSound("gamecreated.wav");
@@ -282,16 +297,67 @@ namespace DTAClient.DXGUI.Multiplayer
             if (gameCreatedSoundEffect != null)
                 sndGameCreated = new ToggleableSound(gameCreatedSoundEffect.CreateInstance());
 
-            encoding = Encoding.GetEncoding(1252);
+            encoding = Encoding.UTF8;
 
             base.Initialize();
 
             CenterOnParent();
+            gameCreationPanel.SetPositionAndSize();
+
+            lanGameLobby = new LANGameLobby(WindowManager, "MultiplayerGameLobby",
+                null, gameModes, chatColors);
+            DarkeningPanel dp = new DarkeningPanel(WindowManager);
+            WindowManager.AddAndInitializeControl(dp);
+            dp.AddChild(lanGameLobby);
+            lanGameLobby.Disable();
+
+            int selectedColor = DomainController.Instance().GetCnCNetChatColor();
+
+            ddColor.SelectedIndex = selectedColor >= ddColor.Items.Count || selectedColor < 0
+                ? 0 : selectedColor;
+
+            lanGameLobby.GameLeft += LanGameLobby_GameLeft;
+        }
+
+        private void LanGameLobby_GameLeft(object sender, EventArgs e)
+        {
+            Enable();
+        }
+
+        private void GameCreationWindow_LoadGame(object sender, EventArgs e)
+        {
+            throw new NotImplementedException();
+        }
+
+        private void GameCreationWindow_NewGame(object sender, EventArgs e)
+        {
+            Socket glSocket;
+
+            try
+            {
+                lbChatMessages.AddMessage(new ChatMessage(null, Color.White, DateTime.Now,
+                    "Creating game.."));
+                glSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+                glSocket.EnableBroadcast = true;
+                glSocket.Bind(new IPEndPoint(IPAddress.Any, ProgramConstants.LAN_GAME_LOBBY_PORT));
+            }
+            catch (Exception ex)
+            {
+                lbChatMessages.AddMessage(new ChatMessage(null, Color.White, DateTime.Now,
+                    "Creating socket for game lobby failed! Error message: " + ex.Message));
+                return;
+            }
+
+            lanGameLobby.SetUp(true, 
+                new IPEndPoint(IPAddress.Loopback, ProgramConstants.LAN_GAME_LOBBY_PORT), null);
+
+            lanGameLobby.Enable();
         }
 
         private void DdColor_SelectedIndexChanged(object sender, EventArgs e)
         {
-            // TODO Change chat color in game lobby
+            tbChatInput.TextColor = chatColors[ddColor.SelectedIndex].XNAColor;
+            lanGameLobby.SetChatColorIndex(ddColor.SelectedIndex);
         }
 
         public void Open()
@@ -310,8 +376,9 @@ namespace DTAClient.DXGUI.Multiplayer
             {
                 socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
                 socket.EnableBroadcast = true;
-                socket.Bind(new IPEndPoint(IPAddress.Any, UDP_BROADCAST_PORT));
-                endPoint = new IPEndPoint(IPAddress.Broadcast, UDP_BROADCAST_PORT);
+                socket.Bind(new IPEndPoint(IPAddress.Any, ProgramConstants.LAN_LOBBY_PORT));
+                endPoint = new IPEndPoint(IPAddress.Broadcast, ProgramConstants.LAN_LOBBY_PORT);
+                initSuccess = true;
             }
             catch (Exception ex)
             {
@@ -320,6 +387,9 @@ namespace DTAClient.DXGUI.Multiplayer
                     "Creating LAN socket failed! Message: " + ex.Message));
                 lbChatMessages.AddMessage(new ChatMessage(null, Color.Red, DateTime.Now,
                     "Please check your firewall settings."));
+                lbChatMessages.AddMessage(new ChatMessage(null, Color.Red, DateTime.Now,
+                    "Also make sure that no other application is listening to traffic on UDP ports 1232 - 1234."));
+                initSuccess = false;
                 return;
             }
 
@@ -339,6 +409,9 @@ namespace DTAClient.DXGUI.Multiplayer
 
         private void SendMessage(string message)
         {
+            if (!initSuccess)
+                return;
+
             byte[] buffer;
 
             buffer = encoding.GetBytes(message);
@@ -352,7 +425,7 @@ namespace DTAClient.DXGUI.Multiplayer
             {
                 while (true)
                 {
-                    EndPoint ep = new IPEndPoint(IPAddress.Any, UDP_BROADCAST_PORT);
+                    EndPoint ep = new IPEndPoint(IPAddress.Any, ProgramConstants.LAN_LOBBY_PORT);
                     byte[] buffer = new byte[4096];
                     int receivedBytes = 0;
                     receivedBytes = socket.ReceiveFrom(buffer, ref ep);
@@ -383,7 +456,8 @@ namespace DTAClient.DXGUI.Multiplayer
             string command = commandAndParams[0];
 
             string[] parameters = data.Substring(command.Length + 1).Split(
-                new char[] { (char)01 }, StringSplitOptions.RemoveEmptyEntries);
+                new char[] { ProgramConstants.LAN_DATA_SEPARATOR },
+                StringSplitOptions.RemoveEmptyEntries);
 
             LANLobbyUser user = players.Find(p => p.EndPoint.Equals(endPoint));
 
@@ -440,12 +514,12 @@ namespace DTAClient.DXGUI.Multiplayer
                     if (user == null)
                         return;
 
-                    LANGame game = new LANGame();
+                    HostedLANGame game = new HostedLANGame();
                     if (!game.SetDataFromStringArray(gameCollection, parameters))
                         return;
                     game.EndPoint = endPoint;
 
-                    int existingGameIndex = hostedGames.FindIndex(g => ((LANGame)g).EndPoint.Equals(endPoint));
+                    int existingGameIndex = hostedGames.FindIndex(g => ((HostedLANGame)g).EndPoint.Equals(endPoint));
 
                     if (existingGameIndex > -1)
                         hostedGames[existingGameIndex] = game;
@@ -464,7 +538,7 @@ namespace DTAClient.DXGUI.Multiplayer
         {
             StringBuilder sb = new StringBuilder("ALIVE ");
             sb.Append(localGameIndex);
-            sb.Append((char)01);
+            sb.Append(ProgramConstants.LAN_DATA_SEPARATOR);
             sb.Append(ProgramConstants.PLAYERNAME);
             SendMessage(sb.ToString());
             timeSinceAliveMessage = TimeSpan.Zero;
@@ -479,15 +553,76 @@ namespace DTAClient.DXGUI.Multiplayer
 
             StringBuilder sb = new StringBuilder("CHAT ");
             sb.Append(ddColor.SelectedIndex);
-            sb.Append((char)01);
+            sb.Append(ProgramConstants.LAN_DATA_SEPARATOR);
             sb.Append(chatMessage);
 
             SendMessage(sb.ToString());
+
+            tbChatInput.Text = string.Empty;
         }
 
         private void LbGameList_DoubleLeftClick(object sender, EventArgs e)
         {
-            throw new NotImplementedException();
+            if (lbGameList.SelectedIndex < 0 || lbGameList.SelectedIndex >= lbGameList.Items.Count)
+                return;
+
+            HostedLANGame hg = (HostedLANGame)lbGameList.Items[lbGameList.SelectedIndex].Tag;
+
+            if (hg.Game.InternalName.ToUpper() != localGame.ToUpper())
+            {
+                lbChatMessages.AddMessage(new ChatMessage(null, Color.White, DateTime.Now,
+                    "The selected game is for " +
+                    gameCollection.GetGameNameFromInternalName(hg.Game.InternalName) + "!"));
+                return;
+            }
+
+            if (hg.Locked)
+            {
+                lbChatMessages.AddMessage(null, "The selected game is locked!", Color.White);
+                return;
+            }
+
+            if (hg.IsLoadedGame)
+            {
+                if (!hg.Players.Contains(ProgramConstants.PLAYERNAME))
+                {
+                    lbChatMessages.AddMessage(null, "You do not exist in the saved game!", Color.White);
+                    return;
+                }
+            }
+
+            if (hg.GameVersion != ProgramConstants.GAME_VERSION)
+            {
+                // TODO Show warning
+            }
+
+            int gameId = -1;
+
+            lbChatMessages.AddMessage(new ChatMessage(null, Color.White, DateTime.Now,
+                "Attempting to join game " + hg.RoomName + "..."));
+
+            if (hg.IsLoadedGame)
+            {
+                throw new NotImplementedException();
+            }
+
+            try
+            {
+                var client = new TcpClient(hg.EndPoint.Address.ToString(), ProgramConstants.LAN_GAME_LOBBY_PORT);
+
+                lanGameLobby.SetUp(false, hg.EndPoint, client);
+                lanGameLobby.Enable();
+
+                var buffer = encoding.GetBytes("JOIN" + ProgramConstants.LAN_DATA_SEPARATOR + ProgramConstants.PLAYERNAME);
+
+                client.GetStream().Write(buffer, 0, buffer.Length);
+                client.GetStream().Flush();
+            }
+            catch (Exception ex)
+            {
+                lbChatMessages.AddMessage(null,
+                    "Connecting to the game failed! Message: " + ex.Message, Color.White);
+            }
         }
 
         private void BtnMainMenu_LeftClick(object sender, EventArgs e)
@@ -497,12 +632,12 @@ namespace DTAClient.DXGUI.Multiplayer
 
         private void BtnJoinGame_LeftClick(object sender, EventArgs e)
         {
-            throw new NotImplementedException();
+            LbGameList_DoubleLeftClick(this, EventArgs.Empty);
         }
 
         private void BtnNewGame_LeftClick(object sender, EventArgs e)
         {
-            throw new NotImplementedException();
+            gameCreationWindow.Open();
         }
 
         public override void Update(GameTime gameTime)
@@ -522,7 +657,7 @@ namespace DTAClient.DXGUI.Multiplayer
 
             for (int i = 0; i < hostedGames.Count; i++)
             {
-                LANGame lg = (LANGame)hostedGames[i];
+                HostedLANGame lg = (HostedLANGame)hostedGames[i];
 
                 lg.TimeWithoutRefresh += gameTime.ElapsedGameTime;
 

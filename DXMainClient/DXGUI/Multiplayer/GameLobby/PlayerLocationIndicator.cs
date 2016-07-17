@@ -56,10 +56,13 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         double angle;
 
-
         int lineHeight;
 
         Vector2 textSize;
+        int textXPosition;
+
+        string text;
+        bool textOnRight = true;
 
         public override void Initialize()
         {
@@ -89,14 +92,28 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             foreach (PlayerInfo pInfo in Players)
             {
-                string text = pInfo.Name;
+                text = pInfo.Name;
                 if (pInfo.TeamId > 0)
                     text = teamIds[pInfo.TeamId] + " " + pInfo.Name;
 
                 Vector2 pInfoSize = Renderer.GetTextDimensions(text, FontIndex);
 
-                if (pInfoSize.X > textSize.X)
+                //if (pInfoSize.X > textSize.X)
                     textSize = new Vector2(pInfoSize.X, Players.Count * (pInfoSize.Y + 1));
+
+                textXPosition = 3;
+
+                if (ClientRectangle.Right + textXPosition + (int)textSize.X > Parent.ClientRectangle.Width)
+                {
+                    textXPosition = -(int)textSize.X - 3 - (int)(baseTexture.Width * TEXTURE_SCALE);
+                    text = pInfo.TeamId > 0 ? text + " " + teamIds[pInfo.TeamId] : text;
+                    textOnRight = false;
+                }
+                else
+                {
+                    text = pInfo.TeamId > 0 ? teamIds[pInfo.TeamId] + " " + text : text;
+                    textOnRight = true;
+                }
             }
         }
 
@@ -148,35 +165,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             Rectangle displayRectangle = WindowRectangle();
 
-            Vector2 origin = new Vector2(usedTexture.Width / 2, usedTexture.Height / 2);
-
-            Renderer.DrawTexture(usedTexture,
-                new Vector2(displayRectangle.Center.X + 1.5f, displayRectangle.Center.Y + 1f),
-                (float)angle,
-                origin,
-                new Vector2(TEXTURE_SCALE), Color.Black);
-
-            if (isHoveredOn || 
-                (contextMenu.Tag == this.Tag && contextMenu.Visible))
-            {
-                Renderer.DrawTexture(usedTexture,
-                new Vector2(displayRectangle.Center.X + 0.5f, displayRectangle.Center.Y),
-                (float)angle,
-                origin,
-                new Vector2(TEXTURE_SCALE + 0.1f), HoverRemapColor);
-            }
-
-            Renderer.DrawTexture(usedTexture, 
-                new Vector2(displayRectangle.Center.X + 0.5f, displayRectangle.Center.Y),
-                (float)angle, 
-                origin, 
-                new Vector2(TEXTURE_SCALE), Color.White);
-
-            if (WaypointTexture != null)
-            {
-                Renderer.DrawTexture(WaypointTexture, displayRectangle, Color.White);
-            }
-
             int y = displayRectangle.Y + ((int)(baseTexture.Height * TEXTURE_SCALE) - lineHeight) / 2;
 
             foreach (PlayerInfo pInfo in Players)
@@ -185,24 +173,21 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 if (pInfo.ColorId > 0)
                     textColor = mpColors[pInfo.ColorId - 1].XnaColor;
 
-                string text = pInfo.Name;
-
-                int textXPosition = 3;
-
-                if (ClientRectangle.Right + textXPosition + (int)textSize.X > Parent.ClientRectangle.Width)
-                {
-                    textXPosition = -(int)textSize.X - 3 - (int)(baseTexture.Width * TEXTURE_SCALE);
-                    text = pInfo.TeamId > 0 ? text + " " + teamIds[pInfo.TeamId] : text;
-                }
-                else
-                {
-                    text = pInfo.TeamId > 0 ? teamIds[pInfo.TeamId] + " " + text : text; 
-                }
-
-                int rectangleCoordX = displayRectangle.Right + textXPosition - 2;
-                int rectangleWidth = (int)textSize.X + 5;
                 if (backgroundAlpha > 0.0)
                 {
+                    int rectangleWidth = 0;
+                    int rectangleCoordX = 0;
+                    if (textOnRight)
+                    {
+                        rectangleCoordX = displayRectangle.Center.X;
+                        rectangleWidth = (int)textSize.X + textXPosition + displayRectangle.Width / 2 + 5;
+                    }
+                    else
+                    {
+                        rectangleWidth = (int)textSize.X + displayRectangle.Width / 2 + 5;
+                        rectangleCoordX = displayRectangle.Center.X - rectangleWidth;
+                    }
+
                     Renderer.FillRectangle(new Rectangle(rectangleCoordX, y, rectangleWidth, lineHeight),
                         new Color(nameBackgroundColor.R, nameBackgroundColor.G, nameBackgroundColor.B,
                         (int)(nameBackgroundColor.A * backgroundAlpha)));
@@ -216,6 +201,35 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     y), textColor);
 
                 y += lineHeight;
+            }
+
+            Vector2 origin = new Vector2(usedTexture.Width / 2, usedTexture.Height / 2);
+
+            Renderer.DrawTexture(usedTexture,
+                new Vector2(displayRectangle.Center.X + 1.5f, displayRectangle.Center.Y + 1f),
+                (float)angle,
+                origin,
+                new Vector2(TEXTURE_SCALE), Color.Black);
+
+            if (isHoveredOn ||
+                (contextMenu.Tag == this.Tag && contextMenu.Visible))
+            {
+                Renderer.DrawTexture(usedTexture,
+                new Vector2(displayRectangle.Center.X + 0.5f, displayRectangle.Center.Y),
+                (float)angle,
+                origin,
+                new Vector2(TEXTURE_SCALE + 0.1f), HoverRemapColor);
+            }
+
+            Renderer.DrawTexture(usedTexture,
+                new Vector2(displayRectangle.Center.X + 0.5f, displayRectangle.Center.Y),
+                (float)angle,
+                origin,
+                new Vector2(TEXTURE_SCALE), Color.White);
+
+            if (WaypointTexture != null)
+            {
+                Renderer.DrawTexture(WaypointTexture, displayRectangle, Color.White);
             }
 
             base.Draw(gameTime);

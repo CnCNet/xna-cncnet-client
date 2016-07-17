@@ -297,6 +297,29 @@ namespace DTAClient.DXGUI.Multiplayer
                 string.Format("SVGM_{0}.NET", sgIndex.ToString("D3")));
             spawnIni.SetBooleanValue("Settings", "LoadSaveGame", true);
 
+            PlayerInfo localPlayer = Players.Find(p => p.Name == ProgramConstants.PLAYERNAME);
+
+            if (localPlayer == null)
+                return;
+
+            spawnIni.SetIntValue("Settings", "Port", localPlayer.Port);
+
+            for (int i = 1; i < Players.Count; i++)
+            {
+                string otherName = spawnIni.GetStringValue("Other" + i, "Name", string.Empty);
+
+                if (string.IsNullOrEmpty(otherName))
+                    continue;
+
+                PlayerInfo otherPlayer = Players.Find(p => p.Name == otherName);
+
+                if (otherPlayer == null)
+                    continue;
+
+                spawnIni.SetStringValue("Other" + i, "Ip", otherPlayer.IPAddress);
+                spawnIni.SetIntValue("Other" + i, "Port", otherPlayer.Port);
+            }
+
             WriteSpawnIniAdditions(spawnIni);
             spawnIni.WriteIniFile();
 

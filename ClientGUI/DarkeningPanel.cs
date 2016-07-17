@@ -20,22 +20,44 @@ namespace ClientGUI
         {
             Name = "DarkeningPanel";
 
-            if (Parent != null)
-            {
-                ClientRectangle = new Rectangle(-Parent.ClientRectangle.X, -Parent.ClientRectangle.Y,
-                    Parent.ClientRectangle.Width + Parent.ClientRectangle.X,
-                    Parent.ClientRectangle.Height + Parent.ClientRectangle.Y);
-            }
-            else
-            {
-                ClientRectangle = new Rectangle(0, 0, WindowManager.RenderResolutionX, WindowManager.RenderResolutionY);
-            }
+            SetPositionAndSize();
 
             DrawMode = PanelBackgroundImageDrawMode.STRETCHED;
             BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 128), 1, 1);
             DrawBorders = false;
 
             base.Initialize();
+        }
+
+        public void SetPositionAndSize()
+        {
+            if (Parent != null)
+            {
+                ClientRectangle = new Rectangle(-Parent.ClientRectangle.X, -Parent.ClientRectangle.Y,
+                    WindowManager.RenderResolutionX,
+                    WindowManager.RenderResolutionY);
+            }
+            else
+            {
+                ClientRectangle = new Rectangle(0, 0, WindowManager.RenderResolutionX, WindowManager.RenderResolutionY);
+            }
+        }
+
+        public override void AddChild(XNAControl child)
+        {
+            base.AddChild(child);
+
+            child.VisibleChanged += Child_VisibleChanged;
+        }
+
+        private void Child_VisibleChanged(object sender, EventArgs e)
+        {
+            var xnaControl = (XNAControl)sender;
+
+            if (xnaControl.Visible)
+                Show();
+            else
+                Hide();
         }
 
         public void Show()

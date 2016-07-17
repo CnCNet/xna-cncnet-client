@@ -1,10 +1,13 @@
 ﻿using System;
 
-namespace DTAClient.DXGUI.Multiplayer.GameLobby.CTCPHandlers
+namespace DTAClient.DXGUI.Multiplayer.GameLobby.CommandHandlers
 {
-    public class NoParamCTCPHandler : CTCPCommandHandler
+    /// <summary>
+    /// A command handler that handles a command that has no parameter aside from the sender.
+    /// </summary>
+    public class NoParamCommandHandler : CommandHandlerBase
     {
-        public NoParamCTCPHandler(string commandName, Action<string> commandHandler) : base(commandName)
+        public NoParamCommandHandler(string commandName, Action<string> commandHandler) : base(commandName)
         {
             this.commandHandler = commandHandler;
         }

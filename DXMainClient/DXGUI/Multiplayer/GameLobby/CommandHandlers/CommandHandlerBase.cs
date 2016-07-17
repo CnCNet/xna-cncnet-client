@@ -1,8 +1,8 @@
-﻿namespace DTAClient.DXGUI.Multiplayer.GameLobby.CTCPHandlers
+﻿namespace DTAClient.DXGUI.Multiplayer.GameLobby.CommandHandlers
 {
-    public abstract class CTCPCommandHandler
+    public abstract class CommandHandlerBase
     {
-        public CTCPCommandHandler(string commandName)
+        public CommandHandlerBase(string commandName)
         {
             CommandName = commandName;
         }

@@ -15,11 +15,15 @@ using SkirmishLobby = DTAClient.DXGUI.Multiplayer.GameLobby.SkirmishLobby;
 using DTAClient.Online;
 using DTAClient.domain.Multiplayer.CnCNet;
 using DTAClient.DXGUI.Multiplayer;
+using Microsoft.Xna.Framework.Media;
 
 namespace DTAClient.DXGUI.Generic
 {
     class MainMenu : XNAWindow, ISwitchable
     {
+        const float MEDIA_PLAYER_VOLUME_FADE_STEP = 0.01f;
+        const float MEDIA_PLAYER_VOLUME_EXIT_FADE_STEP = 0.025f;
+
         public MainMenu(WindowManager windowManager, SkirmishLobby skirmishLobby,
             LANLobby lanLobby, TopBar topBar, CnCNetManager connectionManager) : base(windowManager)
         {
@@ -48,7 +52,11 @@ namespace DTAClient.DXGUI.Generic
 
         bool updateInProgress = false;
 
+        Song themeSong;
+
         private static readonly object locker = new object();
+
+        bool isMusicFading = false;
 
         public override void Initialize()
         {
@@ -215,6 +223,14 @@ namespace DTAClient.DXGUI.Generic
             WindowManager.GameClosing += WindowManager_GameClosing;
 
             skirmishLobby.Exited += SkirmishLobby_Exited;
+
+            SharedUILogic.GameProcessStarted += SharedUILogic_GameProcessStarted;
+        }
+
+        private void SharedUILogic_GameProcessStarted()
+        {
+            if (MediaPlayer.State == MediaState.Playing)
+                isMusicFading = true;
         }
 
         private void WindowManager_GameClosing(object sender, EventArgs e)
@@ -227,6 +243,8 @@ namespace DTAClient.DXGUI.Generic
             innerPanel.Hide();
             Visible = true;
             Enabled = true;
+
+            PlayMusic();
         }
 
         private void CnCNetInfoController_CnCNetGameCountUpdated(object sender, PlayerCountEventArgs e)
@@ -255,6 +273,10 @@ namespace DTAClient.DXGUI.Generic
 
         public void PostInit()
         {
+            themeSong = AssetLoader.LoadSong(DomainController.Instance().MainMenuMusicName);
+
+            PlayMusic();
+
             if (!MCDomainController.Instance.GetModModeStatus())
             {
                 if (MCDomainController.Instance.GetAutomaticUpdateStatus())
@@ -418,6 +440,8 @@ namespace DTAClient.DXGUI.Generic
         private void BtnSkirmish_LeftClick(object sender, EventArgs e)
         {
             skirmishLobby.Open();
+            if (MediaPlayer.State == MediaState.Playing)
+                isMusicFading = true;
 
             innerPanel.Show(null);
         }
@@ -444,8 +468,8 @@ namespace DTAClient.DXGUI.Generic
 
         private void BtnExit_LeftClick(object sender, EventArgs e)
         {
-            Logger.Log("Exiting.");
-            WindowManager.CloseGame();
+            FadeMusicExit();
+            WindowManager.HideWindow();
         }
 
         private void SharedUILogic_GameProcessExited()
@@ -457,10 +481,17 @@ namespace DTAClient.DXGUI.Generic
         {
             innerPanel.GameLoadingWindow.ListSaves();
             innerPanel.Hide();
+
+            if (topBar.LastSwitchType == SwitchType.PRIMARY &&
+                topBar.GetTopMostPrimarySwitchable() == this)
+                PlayMusic();
         }
 
         public override void Update(GameTime gameTime)
         {
+            if (isMusicFading)
+                FadeMusic(gameTime);
+
             base.Update(gameTime);
         }
 
@@ -472,16 +503,62 @@ namespace DTAClient.DXGUI.Generic
             }
         }
 
+        private void PlayMusic()
+        {
+            if (themeSong != null && MCDomainController.Instance.PlayMainMenuMusicStatus)
+            {
+                isMusicFading = false;
+                MediaPlayer.Volume = 1.0f;
+                MediaPlayer.IsRepeating = true;
+                MediaPlayer.Play(themeSong);
+            }
+        }
+
+        private void FadeMusic(GameTime gameTime)
+        {
+            if (!isMusicFading)
+                return;
+
+            // Fade during 1 second
+            float step = 1f * (float)gameTime.ElapsedGameTime.TotalSeconds;
+
+            if (MediaPlayer.Volume > step)
+                MediaPlayer.Volume -= step;
+            else
+            {
+                MediaPlayer.Stop();
+                isMusicFading = false;
+            }
+        }
+
+        private void FadeMusicExit()
+        {
+            if (MediaPlayer.Volume > MEDIA_PLAYER_VOLUME_EXIT_FADE_STEP)
+            {
+                MediaPlayer.Volume -= MEDIA_PLAYER_VOLUME_EXIT_FADE_STEP;
+                AddCallback(new Action(FadeMusicExit), null);
+            }
+            else
+            {
+                MediaPlayer.Stop();
+                Logger.Log("Exiting.");
+                WindowManager.CloseGame();
+            }
+        }
+
         public void SwitchOn()
         {
             // Visible = true;
             // Enabled = true;
+            PlayMusic();
         }
 
         public void SwitchOff()
         {
             // Visible = false;
             // Enabled = false;
+            if (MediaPlayer.State == MediaState.Playing)
+                isMusicFading = true;
         }
 
         public string GetSwitchName()

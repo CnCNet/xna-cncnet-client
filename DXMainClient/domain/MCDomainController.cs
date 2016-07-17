@@ -110,6 +110,12 @@ namespace DTAClient.domain
             return settings_ini.GetBooleanValue("Video", "BorderlessWindowedClient", true);
         }
 
+        public bool PlayMainMenuMusicStatus
+        {
+            get { return settings_ini.GetBooleanValue("Audio", "PlayMainMenuMusic", true); }
+            set { settings_ini.SetBooleanValue("Audio", "PlayMainMenuMusic", value); }
+        }
+
         public string GetShortGameName()
         {
             return mainClient_ini.GetStringValue("General", "ShortGameName", "TS");

@@ -45,7 +45,7 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
     <PlatformTarget>x86</PlatformTarget>
     <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
+    <Optimize>false</Optimize>
     <OutputPath>bin\Release\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
@@ -115,11 +115,15 @@
     <Compile Include="domain\Multiplayer\CnCNet\MapEventArgs.cs" />
     <Compile Include="domain\Multiplayer\CnCNet\MapSharer.cs" />
     <Compile Include="domain\Multiplayer\LAN\LANLobbyUser.cs" />
+    <Compile Include="domain\Multiplayer\LAN\LANPlayerInfo.cs" />
+    <Compile Include="domain\Multiplayer\LAN\NetworkMessageEventArgs.cs" />
+    <Compile Include="domain\Multiplayer\LAN\OneDirectionalCommandHandler.cs" />
+    <Compile Include="domain\Multiplayer\LAN\OneDirectionalStringCommandHandler.cs" />
     <Compile Include="domain\Multiplayer\SavedGamePlayer.cs" />
     <Compile Include="domain\Multiplayer\CnCNet\SHA1EventArgs.cs" />
     <Compile Include="domain\Multiplayer\GenericHostedGame.cs" />
     <Compile Include="domain\Multiplayer\LAN\LANColor.cs" />
-    <Compile Include="domain\Multiplayer\LAN\LANGame.cs" />
+    <Compile Include="domain\Multiplayer\LAN\HostedLANGame.cs" />
     <Compile Include="DXGUI\Generic\LinkButton.cs" />
     <Compile Include="domain\Multiplayer\Map.cs" />
     <Compile Include="domain\Multiplayer\MapLoader.cs" />
@@ -149,20 +153,22 @@
     <Compile Include="DXGUI\GameClass.cs" />
     <Compile Include="DXGUI\Multiplayer\GameLoadingLobbyBase.cs" />
     <Compile Include="DXGUI\Multiplayer\GameLobby\CnCNetGameLobby.cs" />
-    <Compile Include="DXGUI\Multiplayer\GameLobby\CTCPHandlers\CTCPCommandHandler.cs" />
-    <Compile Include="DXGUI\Multiplayer\GameLobby\CTCPHandlers\CTCPIntNotificationHandler.cs" />
-    <Compile Include="DXGUI\Multiplayer\GameLobby\CTCPHandlers\CTCPNotificationHandler.cs" />
+    <Compile Include="DXGUI\Multiplayer\GameLobby\CommandHandlers\CommandHandlerBase.cs" />
+    <Compile Include="DXGUI\Multiplayer\GameLobby\CommandHandlers\IntNotificationHandler.cs" />
+    <Compile Include="domain\Multiplayer\LAN\LANNoArgCommandHandler.cs" />
+    <Compile Include="DXGUI\Multiplayer\GameLobby\CommandHandlers\NotificationHandler.cs" />
     <Compile Include="DXGUI\Multiplayer\GameLobby\DropDownDataWriteMode.cs" />
     <Compile Include="DXGUI\Multiplayer\GameLobby\GameLobbyBase.cs" />
     <Compile Include="DXGUI\Multiplayer\GameLobby\GameLobbyCheckBox.cs" />
     <Compile Include="DXGUI\Multiplayer\GameLobby\GameLobbyDropDown.cs" />
-    <Compile Include="DXGUI\Multiplayer\GameLobby\CTCPHandlers\IntCTCPHandler.cs" />
+    <Compile Include="DXGUI\Multiplayer\GameLobby\CommandHandlers\IntCommandHandler.cs" />
+    <Compile Include="DXGUI\Multiplayer\GameLobby\LANGameLobby.cs" />
     <Compile Include="DXGUI\Multiplayer\GameLobby\MapPreviewBox.cs" />
     <Compile Include="DXGUI\Multiplayer\GameLobby\MultiplayerGameLobby.cs" />
-    <Compile Include="DXGUI\Multiplayer\GameLobby\CTCPHandlers\NoParamCTCPHandler.cs" />
+    <Compile Include="DXGUI\Multiplayer\GameLobby\CommandHandlers\NoParamCommandHandler.cs" />
     <Compile Include="DXGUI\Multiplayer\GameLobby\PlayerLocationIndicator.cs" />
     <Compile Include="DXGUI\Multiplayer\GameLobby\SkirmishLobby.cs" />
-    <Compile Include="DXGUI\Multiplayer\GameLobby\CTCPHandlers\StringCTCPHandler.cs" />
+    <Compile Include="DXGUI\Multiplayer\GameLobby\CommandHandlers\StringCommandHandler.cs" />
     <Compile Include="DXGUI\Multiplayer\LANGameCreationWindow.cs" />
     <Compile Include="DXGUI\Multiplayer\LANLobby.cs" />
     <Compile Include="DXGUI\Multiplayer\CnCNet\PrivateMessageNotificationBox.cs" />

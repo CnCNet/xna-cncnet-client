@@ -11,10 +11,6 @@ namespace DTAClient
         {
             AppDomain.CurrentDomain.AssemblyResolve += CurrentDomain_AssemblyResolve;
             Environment.CurrentDirectory = Application.StartupPath;
-#if !DEBUG
-            File.Delete(Application.StartupPath + "\\ClientGUI.dll");
-            File.Delete(Application.StartupPath + "\\ClientCore.dll");
-#endif
         }
 
         /// <summary>

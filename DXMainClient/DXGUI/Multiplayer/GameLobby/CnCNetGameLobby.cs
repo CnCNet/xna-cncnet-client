@@ -8,7 +8,7 @@ using ClientCore;
 using DTAClient.Online.EventArguments;
 using Microsoft.Xna.Framework;
 using Rampastring.Tools;
-using DTAClient.DXGUI.Multiplayer.GameLobby.CTCPHandlers;
+using DTAClient.DXGUI.Multiplayer.GameLobby.CommandHandlers;
 using DTAClient.DXGUI.Generic;
 using DTAClient.domain.Multiplayer.CnCNet;
 using DTAClient.domain.Multiplayer;
@@ -19,6 +19,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
     {
         const double GAME_BROADCAST_CHECK_INTERVAL = 10.0;
         const double INITIAL_TIME = 5.0;
+        const int MAX_PLAYER_COUNT = 8;
 
         const string MAP_SHARING_FAIL_MESSAGE = "MAPFAIL";
         const string MAP_SHARING_DOWNLOAD_REQUEST = "MAPOK";
@@ -34,30 +35,30 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             localGame = DomainController.Instance().GetDefaultGame();
             this.tunnelHandler = tunnelHandler;
 
-            ctcpCommandHandlers = new CTCPCommandHandler[]
+            ctcpCommandHandlers = new CommandHandlerBase[]
             {
-                new IntCTCPHandler("OR", new Action<string, int>(HandleOptionsRequest)),
-                new IntCTCPHandler("R", new Action<string, int>(HandleReadyRequest)),
-                new StringCTCPHandler("PO", new Action<string, string>(ApplyPlayerOptions)),
-                new StringCTCPHandler("GO", new Action<string, string>(ApplyGameOptions)),
-                new StringCTCPHandler("START", new Action<string, string>(NonHostLaunchGame)),
-                new CTCPNotificationHandler("AISPECS", HandleNotification, AISpectatorsNotification),
-                new CTCPNotificationHandler("GETREADY", HandleNotification, GetReadyNotification),
-                new CTCPNotificationHandler("INSFSPLRS", HandleNotification, InsufficientPlayersNotification),
-                new CTCPNotificationHandler("TMPLRS", HandleNotification, TooManyPlayersNotification),
-                new CTCPNotificationHandler("CLRS", HandleNotification, SharedColorsNotification),
-                new CTCPNotificationHandler("SLOC", HandleNotification, SharedStartingLocationNotification),
-                new CTCPNotificationHandler("LCKGME", HandleNotification, LockGameNotification),
-                new CTCPIntNotificationHandler("NVRFY", HandleIntNotification, NotVerifiedNotification),
-                new CTCPIntNotificationHandler("INGM", HandleIntNotification, StillInGameNotification),
-                new StringCTCPHandler(MAP_SHARING_UPLOAD_REQUEST, HandleMapUploadRequest),
-                new StringCTCPHandler(MAP_SHARING_FAIL_MESSAGE, HandleMapTransferFailMessage),
-                new StringCTCPHandler(MAP_SHARING_DOWNLOAD_REQUEST, HandleMapDownloadRequest),
-                new NoParamCTCPHandler(MAP_SHARING_DISABLED_MESSAGE, HandleMapSharingBlockedMessage),
-                new NoParamCTCPHandler("RETURN", ReturnNotification),
-                new IntCTCPHandler("TNLPNG", TunnelPingNotification),
-                new StringCTCPHandler("FHSH", FileHashNotification),
-                new StringCTCPHandler("MM", CheaterNotification)
+                new IntCommandHandler("OR", new Action<string, int>(HandleOptionsRequest)),
+                new IntCommandHandler("R", new Action<string, int>(HandleReadyRequest)),
+                new StringCommandHandler("PO", new Action<string, string>(ApplyPlayerOptions)),
+                new StringCommandHandler("GO", new Action<string, string>(ApplyGameOptions)),
+                new StringCommandHandler("START", new Action<string, string>(NonHostLaunchGame)),
+                new NotificationHandler("AISPECS", HandleNotification, AISpectatorsNotification),
+                new NotificationHandler("GETREADY", HandleNotification, GetReadyNotification),
+                new NotificationHandler("INSFSPLRS", HandleNotification, InsufficientPlayersNotification),
+                new NotificationHandler("TMPLRS", HandleNotification, TooManyPlayersNotification),
+                new NotificationHandler("CLRS", HandleNotification, SharedColorsNotification),
+                new NotificationHandler("SLOC", HandleNotification, SharedStartingLocationNotification),
+                new NotificationHandler("LCKGME", HandleNotification, LockGameNotification),
+                new IntNotificationHandler("NVRFY", HandleIntNotification, NotVerifiedNotification),
+                new IntNotificationHandler("INGM", HandleIntNotification, StillInGameNotification),
+                new StringCommandHandler(MAP_SHARING_UPLOAD_REQUEST, HandleMapUploadRequest),
+                new StringCommandHandler(MAP_SHARING_FAIL_MESSAGE, HandleMapTransferFailMessage),
+                new StringCommandHandler(MAP_SHARING_DOWNLOAD_REQUEST, HandleMapDownloadRequest),
+                new NoParamCommandHandler(MAP_SHARING_DISABLED_MESSAGE, HandleMapSharingBlockedMessage),
+                new NoParamCommandHandler("RETURN", ReturnNotification),
+                new IntCommandHandler("TNLPNG", TunnelPingNotification),
+                new StringCommandHandler("FHSH", FileHashNotification),
+                new StringCommandHandler("MM", CheaterNotification)
             };
 
             MapSharer.MapDownloadFailed += MapSharer_MapDownloadFailed;
@@ -77,7 +78,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         string hostName;
 
-        CTCPCommandHandler[] ctcpCommandHandlers;
+        CommandHandlerBase[] ctcpCommandHandlers;
 
         IRCColor chatColor;
 
@@ -214,16 +215,12 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 }
             }
 
-            if (!IsHost)
-                AIPlayers.Clear();
-
             connectionManager.ConnectionLost -= ConnectionManager_ConnectionLost;
             connectionManager.Disconnected -= ConnectionManager_Disconnected;
 
             timeSinceGameBroadcast = TimeSpan.Zero;
             closed = false;
 
-            Players.Clear();
             tbChatInput.Text = string.Empty;
 
             GameLeft?.Invoke(this, EventArgs.Empty);
@@ -366,7 +363,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private void Channel_CTCPReceived(object sender, ChannelCTCPEventArgs e)
         {
-            foreach (CTCPCommandHandler cmdHandler in ctcpCommandHandlers)
+            Logger.Log("CnCNetGameLobby_CTCPReceived");
+
+            foreach (CommandHandlerBase cmdHandler in ctcpCommandHandlers)
             {
                 if (cmdHandler.Handle(e.UserName, e.Message))
                     return;
@@ -388,7 +387,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         /// </summary>
         protected override void HostLaunchGame()
         {
-            int gameId = int.Parse(DateTime.Now.Day.ToString() + DateTime.Now.Month.ToString() + new Random().Next(1, 100000).ToString());
+            gameId = int.Parse(DateTime.Now.Day.ToString() + DateTime.Now.Month.ToString() + new Random().Next(1, 100000).ToString());
 
             if (Players.Count > 1)
             {
@@ -491,6 +490,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             }
 
             if (start < 0 || start > Map.MaxPlayers)
+                return;
+
+            if (team < 0 || team > 4)
                 return;
 
             if (side != pInfo.SideId 
@@ -604,6 +606,23 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     return;
 
                 byte[] byteArray = BitConverter.GetBytes(playerOptions);
+
+                int team = byteArray[0];
+                int start = byteArray[1];
+                int color = byteArray[2];
+                int side = byteArray[3];
+
+                if (side < 0 || side > SideCount + 1)
+                    return;
+
+                if (color < 0 || color > MPColors.Count)
+                    return;
+
+                if (start < 0 || start > MAX_PLAYER_COUNT)
+                    return;
+
+                if (team < 0 || team > 4)
+                    return;
 
                 pInfo.TeamId = byteArray[0];
                 pInfo.StartingLocation = byteArray[1];
@@ -733,7 +752,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     channel.SendCTCPMessage(MAP_SHARING_DISABLED_MESSAGE, QueuedMessageType.SYSTEM_MESSAGE, 9);
                 }
                 return;
-                // TODO request mapdb upload
             }
 
             Map = GameMode.Maps.Find(map => map.SHA1 == mapSHA1);
@@ -821,7 +839,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     if (dd.OptionName == null)
                         ddName = dd.Name;
 
-                    AddNotice("The game host has set " + dd.Name + " to " + dd.Items[ddSelectedIndex].Text);
+                    AddNotice("The game host has set " + ddName + " to " + dd.Items[ddSelectedIndex].Text);
                 }
 
                 DropDowns[i - checkBoxIntegerCount].SelectedIndex = ddSelectedIndex;
@@ -851,6 +869,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             {
                 RandomSeed = new Random().Next();
                 OnGameOptionChanged();
+                ClearReadyStatuses();
+                CopyPlayerDataToUI();
+                BroadcastPlayerOptions();
 
                 if (Players.Count < playerLimit)
                 {

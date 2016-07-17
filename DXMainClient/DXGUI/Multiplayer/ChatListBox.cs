@@ -2,6 +2,8 @@
 using Rampastring.XNAUI;
 using System.Diagnostics;
 using DTAClient.Online;
+using Microsoft.Xna.Framework;
+using System;
 
 namespace DTAClient.DXGUI.Multiplayer
 {
@@ -37,6 +39,11 @@ namespace DTAClient.DXGUI.Multiplayer
             Process.Start(link);
 
             base.OnDoubleLeftClick();
+        }
+
+        public void AddMessage(string sender, string message, Color color)
+        {
+            AddMessage(new ChatMessage(sender, color, DateTime.Now, message));
         }
 
         public void AddMessage(ChatMessage message)

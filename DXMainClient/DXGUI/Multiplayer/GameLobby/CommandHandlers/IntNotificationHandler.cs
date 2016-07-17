@@ -1,10 +1,10 @@
 ﻿using System;
 
-namespace DTAClient.DXGUI.Multiplayer.GameLobby.CTCPHandlers
+namespace DTAClient.DXGUI.Multiplayer.GameLobby.CommandHandlers
 {
-    public class CTCPIntNotificationHandler : CTCPCommandHandler
+    public class IntNotificationHandler : CommandHandlerBase
     {
-        public CTCPIntNotificationHandler(string commandName, Action<string, int, Action<int>> action,
+        public IntNotificationHandler(string commandName, Action<string, int, Action<int>> action,
             Action<int> innerAction) : base(commandName)
         {
             this.action = action;

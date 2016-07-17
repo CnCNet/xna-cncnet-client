@@ -33,7 +33,7 @@ namespace DTAClient.domain.Multiplayer
 
         public bool IsInGame { get; set; }
         string ipAddress = "0.0.0.0";
-        public string IPAddress { get { return ipAddress; } set { ipAddress = value; } }
+        public virtual string IPAddress { get { return ipAddress; } set { ipAddress = value; } }
         public int Port { get; set; }
         public bool Verified { get; set; }
 
