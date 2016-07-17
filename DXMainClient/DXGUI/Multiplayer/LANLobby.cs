@@ -576,6 +576,12 @@ namespace DTAClient.DXGUI.Multiplayer
                 return;
             }
 
+            if (hg.Players.Contains(ProgramConstants.PLAYERNAME))
+            {
+                lbChatMessages.AddMessage(null, "Your name is already taken in the game.", Color.White);
+                return;
+            }
+
             if (hg.Locked)
             {
                 lbChatMessages.AddMessage(null, "The selected game is locked!", Color.White);

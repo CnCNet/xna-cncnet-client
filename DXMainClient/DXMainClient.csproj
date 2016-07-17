@@ -79,11 +79,10 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="DTAConfig">
-      <HintPath>..\..\..\DTAConfig\bin\Release\DTAConfig.dll</HintPath>
+      <HintPath>..\..\DTAConfig\bin\Release\DTAConfig.dll</HintPath>
     </Reference>
-    <Reference Include="DTAUpdater, Version=1.0.0.6, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\DTAConfig\bin\Release\DTAUpdater.dll</HintPath>
+    <Reference Include="DTAUpdater">
+      <HintPath>..\..\DTAConfig\bin\Release\DTAUpdater.dll</HintPath>
     </Reference>
     <Reference Include="Ionic.Zip, Version=1.9.1.8, Culture=neutral, PublicKeyToken=edbe51ad942a3f5c, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>

@@ -14,7 +14,7 @@ namespace DTAClient.domain.LAN
 
         public bool SetDataFromStringArray(GameCollection gc, string[] parameters)
         {
-            if (parameters.Length < 10)
+            if (parameters.Length != 9)
             {
                 Logger.Log("Ignoring LAN GAME message because of an incorrect number of parameters.");
                 return false;
