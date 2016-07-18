@@ -46,8 +46,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private bool gameSaved = false;
 
-        private bool mapChangeInProgress = false;
-
         private bool switched = false;
 
         public override void Initialize()
@@ -637,14 +635,12 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         protected override void ChangeMap(GameMode gameMode, Map map)
         {
-            mapChangeInProgress = true;
             base.ChangeMap(gameMode, map);
-            mapChangeInProgress = false;
 
             ClearReadyStatuses();
 
-            if (IsHost)
-                OnGameOptionChanged();
+            //if (IsHost)
+            //    OnGameOptionChanged();
         }
 
         protected override int GetDefaultMapRankIndex(Map map)

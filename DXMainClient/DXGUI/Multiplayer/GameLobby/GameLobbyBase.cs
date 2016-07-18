@@ -108,6 +108,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private MatchStatistics matchStatistics;
 
+        private bool mapChangeInProgress = false;
+
         IniFile _gameOptionsIni;
         protected IniFile GameOptionsIni
         {
@@ -314,11 +316,17 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private void Dropdown_SelectedIndexChanged(object sender, EventArgs e)
         {
+            if (mapChangeInProgress)
+                return;
+
             OnGameOptionChanged();
         }
 
         private void ChkBox_CheckedChanged(object sender, EventArgs e)
         {
+            if (mapChangeInProgress)
+                return;
+
             OnGameOptionChanged();
         }
 
@@ -1153,6 +1161,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             lblMapAuthor.ClientRectangle = new Rectangle(MapPreviewBox.ClientRectangle.Right - lblMapAuthor.ClientRectangle.Width,
                 lblMapAuthor.ClientRectangle.Y, lblMapAuthor.ClientRectangle.Width, lblMapAuthor.ClientRectangle.Height);
 
+            mapChangeInProgress = true;
+
             // Clear forced options
             foreach (XNADropDown ddGameOption in DropDowns)
                 ddGameOption.AllowDropDown = true;
@@ -1277,6 +1287,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             CopyPlayerDataToUI();
 
             MapPreviewBox.Map = map;
+            mapChangeInProgress = false;
         }
 
         protected void ApplyForcedCheckBoxOptions(List<KeyValuePair<string, bool>> forcedOptions)

@@ -784,6 +784,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 if (team < 0 || team > 4)
                     return;
 
+                if (ipAddress == "127.0.0.1")
+                    ipAddress = hostEndPoint.Address.ToString();
+
                 bool isAi = aiLevel > -1;
                 if (aiLevel > 2)
                     return;
