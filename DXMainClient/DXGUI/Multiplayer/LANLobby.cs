@@ -629,6 +629,8 @@ namespace DTAClient.DXGUI.Multiplayer
 
                 client.GetStream().Write(buffer, 0, buffer.Length);
                 client.GetStream().Flush();
+
+                lanGameLobby.PostJoin();
             }
             catch (Exception ex)
             {

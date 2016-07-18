@@ -107,9 +107,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             this.hostEndPoint = hostEndPoint;
 
-            var fhc = new FileHashCalculator();
-            fhc.CalculateHashes(GameModes);
-
             if (isHost)
             {
                 RandomSeed = new Random().Next();
@@ -124,12 +121,14 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
                 this.client.GetStream().Write(buffer, 0, buffer.Length);
                 this.client.GetStream().Flush();
+
+                var fhc = new FileHashCalculator();
+                fhc.CalculateHashes(GameModes);
                 localFileHash = fhc.GetCompleteHash();
             }
             else
             {
                 this.client = client;
-                SendMessageToHost(FILE_HASH_COMMAND + " " + fhc.GetCompleteHash());
             }
 
             new Thread(HandleServerCommunication).Start();
@@ -138,7 +137,16 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 CopyPlayerDataToUI();
         }
 
-        void ListenForClients()
+        public void PostJoin()
+        {
+            var fhc = new FileHashCalculator();
+            fhc.CalculateHashes(GameModes);
+            SendMessageToHost(FILE_HASH_COMMAND + " " + fhc.GetCompleteHash());
+        }
+
+        #region Server code
+
+        private void ListenForClients()
         {
             listener = new TcpListener(IPAddress.Any, ProgramConstants.LAN_GAME_LOBBY_PORT);
             listener.Start();
@@ -162,7 +170,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 if (Players.Count >= MAX_PLAYER_COUNT)
                 {
                     Logger.Log("Dropping client because of player limit.");
-                    client.Client.Disconnect(false);
                     client.Close();
                     continue;
                 }
@@ -170,7 +177,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 if (Locked)
                 {
                     Logger.Log("Dropping client because the game room is locked.");
-                    client.Client.Disconnect(false);
+                    client.Close();
                     continue;
                 }
 
@@ -230,8 +237,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 break;
             }
 
-            if (client.Connected)
-                client.Close();
+            if (lpInfo.TcpClient.Connected)
+                lpInfo.TcpClient.Close();
         }
 
         private void AddPlayer(LANPlayerInfo lpInfo)
@@ -267,11 +274,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private void LpInfo_MessageReceived(object sender, NetworkMessageEventArgs e)
         {
-            AddCallback(new Action<string, LANPlayerInfo>(HandleNetworkMessage),
+            AddCallback(new Action<string, LANPlayerInfo>(HandleClientMessage),
                 e.Message, (LANPlayerInfo)sender);
         }
 
-        private void HandleNetworkMessage(string data, LANPlayerInfo lpInfo)
+        private void HandleClientMessage(string data, LANPlayerInfo lpInfo)
         {
             lpInfo.TimeSinceLastReceivedMessage = TimeSpan.Zero;
 
@@ -283,6 +290,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             Logger.Log("Unknown LAN command from " + lpInfo.ToString() + " : " + data);
         }
+
+        #endregion
 
         private void HandleServerCommunication()
         {
@@ -385,8 +394,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 SendMessageToHost(PLAYER_QUIT_COMMAND);
             }
 
-            if (client.Connected)
-                client.Close();
+            if (this.client.Connected)
+                this.client.Close();
         }
 
         private void CleanUpPlayer(LANPlayerInfo lpInfo)
