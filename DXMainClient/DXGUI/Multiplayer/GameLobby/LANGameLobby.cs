@@ -48,7 +48,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 new StringCommandHandler(PLAYER_OPTIONS_REQUEST_COMMAND, HandlePlayerOptionsRequest),
                 new NoParamCommandHandler(PLAYER_QUIT_COMMAND, HandlePlayerQuit),
                 new NoParamCommandHandler(PLAYER_READY_REQUEST, GameHost_HandleReadyRequest),
-                new NoParamCommandHandler("PING", HandlePing),
             };
 
             playerCommandHandlers = new OneDirectionalCommandHandler[]
@@ -59,6 +58,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 new OneDirectionalStringCommandHandler(PLAYER_OPTIONS_BROADCAST_COMMAND, HandlePlayerOptionsBroadcast),
                 new LANNoArgCommandHandler(LAUNCH_GAME_COMMAND, HandleGameLaunchCommand),
                 new OneDirectionalStringCommandHandler(GAME_OPTIONS_COMMAND, HandleGameOptionsMessage),
+                new LANNoArgCommandHandler("PING", HandlePing)
             };
 
             localGame = DomainController.Instance().GetDefaultGame();
@@ -930,11 +930,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             StartGame();
         }
 
-        private void HandlePing(string sender)
+        private void HandlePing()
         {
-            var pInfo = (LANPlayerInfo)Players.Find(p => p.Name == sender);
-
-            pInfo.SendMessage("PING");
+            SendMessageToHost("PING");
         }
 
         #endregion

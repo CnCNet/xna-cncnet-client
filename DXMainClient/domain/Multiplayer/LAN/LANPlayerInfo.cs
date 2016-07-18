@@ -59,7 +59,8 @@ namespace DTAClient.domain.Multiplayer.LAN
             TimeSinceLastReceivedMessage += gameTime.ElapsedGameTime;
             TimeSinceLastSentMessage += gameTime.ElapsedGameTime;
 
-            if (TimeSinceLastSentMessage > TimeSpan.FromSeconds(SEND_PING_TIMEOUT))
+            if (TimeSinceLastSentMessage > TimeSpan.FromSeconds(SEND_PING_TIMEOUT)
+                || TimeSinceLastReceivedMessage > TimeSpan.FromSeconds(SEND_PING_TIMEOUT))
                 SendMessage("PING");
 
             if (TimeSinceLastReceivedMessage > TimeSpan.FromSeconds(DROP_TIMEOUT))
