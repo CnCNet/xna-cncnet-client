@@ -55,12 +55,12 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             playerCommandHandlers = new OneDirectionalCommandHandler[]
             {
                 new OneDirectionalStringCommandHandler(CHAT_COMMAND, Player_HandleChatCommand),
-                new OneDirectionalStringCommandHandler(GET_READY_COMMAND, HandleGetReadyCommand),
+                new ODNoArgCommandHandler(GET_READY_COMMAND, HandleGetReadyCommand),
                 new OneDirectionalStringCommandHandler(RETURN_COMMAND, Player_HandleReturnCommand),
                 new OneDirectionalStringCommandHandler(PLAYER_OPTIONS_BROADCAST_COMMAND, HandlePlayerOptionsBroadcast),
-                new LANNoArgCommandHandler(LAUNCH_GAME_COMMAND, HandleGameLaunchCommand),
+                new ODNoArgCommandHandler(LAUNCH_GAME_COMMAND, HandleGameLaunchCommand),
                 new OneDirectionalStringCommandHandler(GAME_OPTIONS_COMMAND, HandleGameOptionsMessage),
-                new LANNoArgCommandHandler("PING", HandlePing)
+                new ODNoArgCommandHandler("PING", HandlePing)
             };
 
             localGame = DomainController.Instance().GetDefaultGame();
@@ -710,7 +710,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             ReturnNotification(sender);
         }
 
-        private void HandleGetReadyCommand(string sender)
+        private void HandleGetReadyCommand()
         {
             if (!IsHost)
                 GetReadyNotification();
