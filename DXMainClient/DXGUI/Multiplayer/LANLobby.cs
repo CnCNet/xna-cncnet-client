@@ -660,6 +660,7 @@ namespace DTAClient.DXGUI.Multiplayer
 
                 if (players[i].TimeWithoutRefresh > TimeSpan.FromSeconds(INACTIVITY_REMOVE_TIME))
                 {
+                    lbPlayerList.Items.RemoveAt(i);
                     players.RemoveAt(i);
                     i--;
                 }

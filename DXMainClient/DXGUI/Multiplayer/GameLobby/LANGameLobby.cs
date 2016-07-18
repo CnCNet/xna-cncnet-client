@@ -456,6 +456,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 return;
 
             var sb = new ExtendedStringBuilder(GAME_OPTIONS_COMMAND + " ", true);
+            sb.Separator = ProgramConstants.LAN_DATA_SEPARATOR;
             foreach (GameLobbyCheckBox chkBox in CheckBoxes)
             {
                 sb.Append(Convert.ToInt32(chkBox.Checked));

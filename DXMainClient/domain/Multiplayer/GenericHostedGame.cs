@@ -19,7 +19,14 @@ namespace DTAClient.domain.Multiplayer
         public string GameVersion { get; set; }
         public string HostName { get; set; }
         public string[] Players { get; set; }
-        public int MaxPlayers { get; set; }
+
+        int _maxPlayers = 8;
+
+        public int MaxPlayers
+        {
+            get { return _maxPlayers; }
+            set { _maxPlayers = value; }
+        }
 
         public DateTime LastRefreshTime { get; set; }
     }
