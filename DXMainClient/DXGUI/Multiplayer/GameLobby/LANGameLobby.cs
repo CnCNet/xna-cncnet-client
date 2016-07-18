@@ -252,6 +252,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private void HandleNetworkMessage(string data, LANPlayerInfo lpInfo)
         {
+            lpInfo.TimeSinceLastReceivedMessage = TimeSpan.Zero;
+
             foreach (CommandHandlerBase cmdHandler in hostCommandHandlers)
             {
                 if (cmdHandler.Handle(lpInfo.Name, data))
@@ -499,6 +501,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private void SendMessageToHost(string message)
         {
+            if (!client.Connected)
+                return;
+
             byte[] buffer = encoding.GetBytes(message + ProgramConstants.LAN_MESSAGE_SEPARATOR);
 
             NetworkStream ns = client.GetStream();
