@@ -134,15 +134,15 @@ namespace DTAClient.DXGUI.Multiplayer
                         GetColorWithAlpha(FocusColor));
                 }
 
-                HostedCnCNetGame hg = (HostedCnCNetGame)lbItem.Tag;
+                var hostedGame = (GenericHostedGame)lbItem.Tag;
 
-                Renderer.DrawTexture(hg.Game.Texture,
+                Renderer.DrawTexture(hostedGame.Game.Texture,
                     new Rectangle(windowRectangle.X + x, windowRectangle.Y + height,
-                    hg.Game.Texture.Width, hg.Game.Texture.Height), Color.White);
+                    hostedGame.Game.Texture.Width, hostedGame.Game.Texture.Height), Color.White);
 
-                x += hg.Game.Texture.Width + 2;
+                x += hostedGame.Game.Texture.Width + 2;
 
-                if (hg.Locked)
+                if (hostedGame.Locked)
                 {
                     Renderer.DrawTexture(txLockedGame,
                         new Rectangle(windowRectangle.X + x, windowRectangle.Y + height,
@@ -150,7 +150,7 @@ namespace DTAClient.DXGUI.Multiplayer
                     x += txLockedGame.Width + 2;
                 }
 
-                if (hg.Incompatible)
+                if (hostedGame.Incompatible)
                 {
                     Renderer.DrawTexture(txIncompatibleGame,
                         new Rectangle(windowRectangle.X + x, windowRectangle.Y + height,
@@ -158,7 +158,7 @@ namespace DTAClient.DXGUI.Multiplayer
                     x += txIncompatibleGame.Width + 2;
                 }
 
-                if (hg.Passworded)
+                if (hostedGame.Passworded)
                 {
                     Renderer.DrawTexture(txPasswordedGame,
                         new Rectangle(windowRectangle.Right - txPasswordedGame.Width - TextBorderDistance,
@@ -166,9 +166,9 @@ namespace DTAClient.DXGUI.Multiplayer
                         Color.White);
                 }
 
-                string text = hg.RoomName;
-                if (hg.IsLoadedGame)
-                    text = hg.RoomName + " (Loaded Game)";
+                string text = hostedGame.RoomName;
+                if (hostedGame.IsLoadedGame)
+                    text = hostedGame.RoomName + " (Loaded Game)";
 
                 x += lbItem.TextXPadding;
 
