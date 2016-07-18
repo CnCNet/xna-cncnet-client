@@ -831,6 +831,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     pInfo = new PlayerInfo();
                     pInfo.Name = AILevelToName(aiLevel);
                     pInfo.IsAI = true;
+                    pInfo.AILevel = aiLevel;
                     AIPlayers.Add(pInfo);
                 }
 
