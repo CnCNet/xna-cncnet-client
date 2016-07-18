@@ -34,6 +34,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         private const string GAME_OPTIONS_COMMAND = "OPTS";
         private const string PLAYER_READY_REQUEST = "READY";
         private const string LAUNCH_GAME_COMMAND = "LAUNCH";
+        private const string FILE_HASH_COMMAND = "FHASH";
 
         public LANGameLobby(WindowManager windowManager, string iniName, 
             TopBar topBar, List<GameMode> GameModes, LANColor[] chatColors) : 
@@ -41,13 +42,14 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             this.chatColors = chatColors;
             encoding = Encoding.UTF8;
-            hostCommandHandlers = new CommandHandlers.CommandHandlerBase[]
+            hostCommandHandlers = new CommandHandlerBase[]
             {
                 new StringCommandHandler(CHAT_COMMAND, GameHost_HandleChatCommand),
                 new NoParamCommandHandler(RETURN_COMMAND, GameHost_HandleReturnCommand),
                 new StringCommandHandler(PLAYER_OPTIONS_REQUEST_COMMAND, HandlePlayerOptionsRequest),
                 new NoParamCommandHandler(PLAYER_QUIT_COMMAND, HandlePlayerQuit),
                 new NoParamCommandHandler(PLAYER_READY_REQUEST, GameHost_HandleReadyRequest),
+                new StringCommandHandler(FILE_HASH_COMMAND, HandleFileHashCommand)
             };
 
             playerCommandHandlers = new OneDirectionalCommandHandler[]
@@ -62,6 +64,15 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             };
 
             localGame = DomainController.Instance().GetDefaultGame();
+        }
+
+        private void HandleFileHashCommand(string sender, string fileHash)
+        {
+            if (fileHash != localFileHash)
+                AddNotice(sender + " has modified game files! They could be cheating!");
+
+            PlayerInfo pInfo = Players.Find(p => p.Name == sender);
+            pInfo.Verified = true;
         }
 
         public event EventHandler<LobbyNotificationEventArgs> LobbyNotification;
@@ -87,12 +98,17 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         string localGame;
 
+        string localFileHash;
+
         public void SetUp(bool isHost,
             IPEndPoint hostEndPoint, TcpClient client)
         {
             Refresh(isHost);
 
             this.hostEndPoint = hostEndPoint;
+
+            var fhc = new FileHashCalculator();
+            fhc.CalculateHashes(GameModes);
 
             if (isHost)
             {
@@ -103,14 +119,18 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 this.client = new TcpClient();
                 this.client.Connect("127.0.0.1", ProgramConstants.LAN_GAME_LOBBY_PORT);
 
-                byte[] buffer = encoding.GetBytes(PLAYER_JOIN_COMMAND + 
+                byte[] buffer = encoding.GetBytes(PLAYER_JOIN_COMMAND +
                     ProgramConstants.LAN_DATA_SEPARATOR + ProgramConstants.PLAYERNAME);
 
                 this.client.GetStream().Write(buffer, 0, buffer.Length);
                 this.client.GetStream().Flush();
+                localFileHash = fhc.GetCompleteHash();
             }
             else
+            {
                 this.client = client;
+                SendMessageToHost(FILE_HASH_COMMAND + " " + fhc.GetCompleteHash());
+            }
 
             new Thread(HandleServerCommunication).Start();
 
@@ -270,7 +290,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             var msg = string.Empty;
 
-            var bytesRead = 0;
+            int bytesRead = 0;
 
             if (!client.Connected)
                 return;
