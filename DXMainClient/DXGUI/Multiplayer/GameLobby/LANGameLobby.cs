@@ -668,7 +668,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 return;
 
             lbChatMessages.AddMessage(new ChatMessage(playerName,
-                chatColors[chatColorIndex].XNAColor, DateTime.Now, parts[2]));
+                chatColors[colorIndex].XNAColor, DateTime.Now, parts[2]));
         }
 
         private void GameHost_HandleReturnCommand(string sender)
