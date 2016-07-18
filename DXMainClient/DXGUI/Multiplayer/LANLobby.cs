@@ -317,6 +317,12 @@ namespace DTAClient.DXGUI.Multiplayer
                 ? 0 : selectedColor;
 
             lanGameLobby.GameLeft += LanGameLobby_GameLeft;
+            lanGameLobby.GameBroadcast += LanGameLobby_GameBroadcast;
+        }
+
+        private void LanGameLobby_GameBroadcast(object sender, GameBroadcastEventArgs e)
+        {
+            SendMessage(e.Message);
         }
 
         private void LanGameLobby_GameLeft(object sender, EventArgs e)

@@ -612,6 +612,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             sb.Separator = ProgramConstants.LAN_DATA_SEPARATOR;
             sb.Append(ProgramConstants.LAN_PROTOCOL_REVISION);
             sb.Append(ProgramConstants.GAME_VERSION);
+            sb.Append(localGame);
             sb.Append(Map.Name);
             sb.Append(GameMode.UIName);
             sb.Append(0); // LoadedGameID
