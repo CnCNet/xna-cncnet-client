@@ -78,14 +78,14 @@ namespace DTAClient.DXGUI.Multiplayer
 
             showGameInfo = true;
 
-            HostedCnCNetGame hostedGame = (HostedCnCNetGame)Items[HoveredIndex].Tag;
+            var hostedGame = (GenericHostedGame)Items[HoveredIndex].Tag;
 
             panelGameInformation.SetInfo(hostedGame);
         }
 
         private void AddGameToList(GenericHostedGame hg)
         {
-            XNAListBoxItem lbItem = new XNAListBoxItem();
+            var lbItem = new XNAListBoxItem();
             lbItem.Tag = hg;
             if (hg.Game.InternalName == localGameIdentifier.ToLower())
                 lbItem.TextColor = UISettings.AltColor;
@@ -120,7 +120,7 @@ namespace DTAClient.DXGUI.Multiplayer
 
             for (int i = TopIndex; i < Items.Count; i++)
             {
-                XNAListBoxItem lbItem = Items[i];
+                var lbItem = Items[i];
 
                 if (height + lbItem.TextLines.Count * LineHeight > ClientRectangle.Height)
                     break;
@@ -166,7 +166,7 @@ namespace DTAClient.DXGUI.Multiplayer
                         Color.White);
                 }
 
-                string text = hostedGame.RoomName;
+                var text = hostedGame.RoomName;
                 if (hostedGame.IsLoadedGame)
                     text = hostedGame.RoomName + " (Loaded Game)";
 
