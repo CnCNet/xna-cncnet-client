@@ -191,7 +191,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
                 string msg = encoding.GetString(message, 0, bytesRead);
 
-                string[] parts = msg.Split(ProgramConstants.LAN_DATA_SEPARATOR);
+                string[] command = msg.Split(ProgramConstants.LAN_MESSAGE_SEPARATOR);
+                string[] parts = command[0].Split(ProgramConstants.LAN_DATA_SEPARATOR);
 
                 if (parts.Length != 2)
                     break;
@@ -270,6 +271,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             var msg = string.Empty;
 
             var bytesRead = 0;
+
+            if (!client.Connected)
+                return;
 
             var stream = client.GetStream();
 
