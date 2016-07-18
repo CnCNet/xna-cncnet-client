@@ -442,8 +442,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     sb.Append("-1");
             }
 
-            sb.Remove(sb.Length - 1, 1);
-
             BroadcastMessage(sb.ToString());
         }
 
