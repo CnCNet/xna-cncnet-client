@@ -16,6 +16,8 @@ namespace DTAClient.domain.Multiplayer
         public Color XnaColor { get; set; }
         public bool Enabled { get; set; }
 
+        private static List<MultiplayerColor> colorList;
+
         /// <summary>
         /// Creates a new multiplayer color from data in a string array.
         /// </summary>
@@ -36,6 +38,9 @@ namespace DTAClient.domain.Multiplayer
 
         public static List<MultiplayerColor> LoadColors()
         {
+            if (colorList != null)
+                return colorList;
+
             IniFile gameOptionsIni = new IniFile(ProgramConstants.GetBaseResourcePath() + "GameOptions.ini");
 
             List<MultiplayerColor> mpColors = new List<MultiplayerColor>();
@@ -58,6 +63,7 @@ namespace DTAClient.domain.Multiplayer
                 }
             }
 
+            colorList = mpColors;
             return mpColors;
         }
     }

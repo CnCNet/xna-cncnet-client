@@ -181,6 +181,16 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             gameSaved = false;
 
+            if (IsHost)
+            {
+                string s = DateTime.Now.Day.ToString() +
+                    DateTime.Now.Month.ToString() +
+                    DateTime.Now.Hour.ToString() +
+                    DateTime.Now.Minute.ToString();
+
+                UniqueGameID = int.Parse(new Random().Next(1, 41).ToString() + s);
+            }
+
             base.GameProcessExited();
         }
 
@@ -274,6 +284,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
                 foreach (GameLobbyCheckBox checkBox in CheckBoxes)
                     checkBox.InputEnabled = true;
+
+                UniqueGameID = int.Parse(DateTime.Now.Day.ToString() + 
+                    DateTime.Now.Month.ToString() + 
+                    DateTime.Now.Second.ToString() + 
+                    new Random().Next(1, 1000).ToString());
             }
             else
             {

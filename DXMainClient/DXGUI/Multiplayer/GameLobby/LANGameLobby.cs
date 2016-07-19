@@ -58,7 +58,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 new ODNoArgCommandHandler(GET_READY_COMMAND, HandleGetReadyCommand),
                 new OneDirectionalStringCommandHandler(RETURN_COMMAND, Player_HandleReturnCommand),
                 new OneDirectionalStringCommandHandler(PLAYER_OPTIONS_BROADCAST_COMMAND, HandlePlayerOptionsBroadcast),
-                new ODNoArgCommandHandler(LAUNCH_GAME_COMMAND, HandleGameLaunchCommand),
+                new OneDirectionalStringCommandHandler(LAUNCH_GAME_COMMAND, HandleGameLaunchCommand),
                 new OneDirectionalStringCommandHandler(GAME_OPTIONS_COMMAND, HandleGameOptionsMessage),
                 new ODNoArgCommandHandler("PING", HandlePing)
             };
@@ -447,7 +447,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         protected override void HostLaunchGame()
         {
-            BroadcastMessage(LAUNCH_GAME_COMMAND);
+            BroadcastMessage(LAUNCH_GAME_COMMAND + " " + UniqueGameID);
         }
 
         protected override string GetIPAddressForPlayer(PlayerInfo player)
@@ -958,9 +958,12 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             BroadcastPlayerOptions();
         }
 
-        private void HandleGameLaunchCommand()
+        private void HandleGameLaunchCommand(string gameId)
         {
             Players.ForEach(pInfo => pInfo.IsInGame = true);
+            UniqueGameID = Conversions.IntFromString(gameId, -1);
+            if (UniqueGameID < 0)
+                return;
 
             StartGame();
         }
@@ -977,7 +980,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             base.WriteSpawnIniAdditions(iniFile);
 
             iniFile.SetIntValue("Settings", "Port", ProgramConstants.LAN_INGAME_PORT);
-            iniFile.SetIntValue("Settings", "GameID", new Random(RandomSeed).Next());
+            iniFile.SetIntValue("Settings", "GameID", UniqueGameID);
             iniFile.SetBooleanValue("Settings", "Host", IsHost);
         }
     }

@@ -32,12 +32,11 @@ namespace ClientGUI.LAN
         delegate void NoParamCallback();
         delegate void FileSystemWatcherCallback(object sender, FileSystemEventArgs fsea);
 
-        public LANLoadingLobby(LANLobby lobby, bool isHost, string hostName, IPAddress hostAddress,
+        public LANLoadingLobby(bool isHost, string hostName, IPAddress hostAddress,
             string gameRoomName, List<Color> chatColorList, Color defaultChatColor, int myColorId)
         {
             Logger.Log("Creating game loading lobby.");
 
-            Lobby = lobby;
             this.isHost = isHost;
             this.hostName = hostName;
             this.hostAddress = hostAddress;
@@ -96,8 +95,6 @@ namespace ClientGUI.LAN
 
         TcpListener listener;
         volatile TcpClient serverClient;
-
-        LANLobby Lobby;
 
         private static readonly object locker = new object();
 
@@ -673,8 +670,6 @@ namespace ClientGUI.LAN
             sb.Append(";");
             sb.Append(myGame);
             sb.Append(";");
-
-            Lobby.SendMessage(sb.ToString());
 
             if (!leaving)
                 timer.Enabled = true;

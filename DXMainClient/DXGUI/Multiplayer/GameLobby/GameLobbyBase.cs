@@ -103,6 +103,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         /// </summary>
         protected int RandomSeed { get; set; }
 
+        /// <summary>
+        /// An unique identifier for this game.
+        /// </summary>
+        protected int UniqueGameID { get; set; }
+
         private int _sideCount;
         protected int SideCount { get { return _sideCount; } }
 
@@ -842,20 +847,25 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private void InitializeMatchStatistics(PlayerHouseInfo[] houseInfos)
         {
-            matchStatistics = new MatchStatistics(ProgramConstants.GAME_VERSION, Map.Name, GameMode.UIName, Players.Count);
+            matchStatistics = new MatchStatistics(ProgramConstants.GAME_VERSION, UniqueGameID,
+                Map.Name, GameMode.UIName, Players.Count);
 
             for (int pId = 0; pId < Players.Count; pId++)
             {
                 PlayerInfo pInfo = Players[pId];
                 matchStatistics.AddPlayer(pInfo.Name, pInfo.Name == ProgramConstants.PLAYERNAME,
-                    false, pInfo.SideId == _sideCount + 1, houseInfos[pId].SideIndex + 1, pInfo.TeamId, 10);
+                    false, pInfo.SideId == _sideCount + 1, houseInfos[pId].SideIndex + 1, pInfo.TeamId, 
+                    MPColors.FindIndex(c => c.GameColorIndex == houseInfos[pId].ColorIndex), 10);
             }
 
             for (int aiId = 0; aiId < AIPlayers.Count; aiId++)
             {
+                var pHouseInfo = houseInfos[Players.Count + aiId];
                 PlayerInfo aiInfo = AIPlayers[aiId];
                 matchStatistics.AddPlayer("Computer", false, true, false, 
-                    houseInfos[Players.Count + aiId].SideIndex + 1, aiInfo.TeamId, aiInfo.ReversedAILevel);
+                    pHouseInfo.SideIndex + 1, aiInfo.TeamId, 
+                    MPColors.FindIndex(c => c.GameColorIndex == pHouseInfo.ColorIndex),
+                    aiInfo.ReversedAILevel);
             }
         }
 

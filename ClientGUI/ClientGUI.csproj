@@ -76,18 +76,6 @@
     <Compile Include="LAN\LANLoadingLobby.Designer.cs">
       <DependentUpon>LANLoadingLobby.cs</DependentUpon>
     </Compile>
-    <Compile Include="LAN\LANLobby.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="LAN\LANLobby.Designer.cs">
-      <DependentUpon>LANLobby.cs</DependentUpon>
-    </Compile>
-    <Compile Include="LAN\LANGameLobby.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="LAN\LANGameLobby.Designer.cs">
-      <DependentUpon>LANGameLobby.cs</DependentUpon>
-    </Compile>
     <Compile Include="MainProxy.cs" />
     <Compile Include="MapInfoStyle.cs" />
     <Compile Include="MovableForm.cs">
@@ -131,12 +119,6 @@
   <ItemGroup>
     <EmbeddedResource Include="LAN\LANLoadingLobby.resx">
       <DependentUpon>LANLoadingLobby.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="LAN\LANLobby.resx">
-      <DependentUpon>LANLobby.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="LAN\LANGameLobby.resx">
-      <DependentUpon>LANGameLobby.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="MsgBoxForm.resx">
       <DependentUpon>MsgBoxForm.cs</DependentUpon>

@@ -57,7 +57,7 @@ namespace ClientCore.Statistics.GameParsers
                         {
                             // The player has been taken over by an AI during the match
                             Logger.Log("Losing take-over AI found");
-                            takeoverAIs.Add(new PlayerStatistics("Computer", false, true, false, 0, 10, 1));
+                            takeoverAIs.Add(new PlayerStatistics("Computer", false, true, false, 0, 10, 255, 1));
                             currentPlayer = takeoverAIs[takeoverAIs.Count - 1];
                         }
 
@@ -78,7 +78,7 @@ namespace ClientCore.Statistics.GameParsers
                         {
                             // The player has been taken over by an AI during the match
                             Logger.Log("Winning take-over AI found");
-                            takeoverAIs.Add(new PlayerStatistics("Computer", false, true, false, 0, 10, 1));
+                            takeoverAIs.Add(new PlayerStatistics("Computer", false, true, false, 0, 10, 255, 1));
                             currentPlayer = takeoverAIs[takeoverAIs.Count - 1];
                         }
 

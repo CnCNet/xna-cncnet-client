@@ -1,6 +1,7 @@
 ﻿using ClientCore;
 using ClientCore.Statistics;
 using ClientGUI;
+using DTAClient.domain.Multiplayer;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Rampastring.Tools;
@@ -69,6 +70,8 @@ namespace DTAClient.DXGUI.Generic
         List<int> listedGameIndexes = new List<int>();
 
         string[] sides;
+
+        List<MultiplayerColor> mpColors;
 
         public override void Initialize()
         {
@@ -387,6 +390,8 @@ namespace DTAClient.DXGUI.Generic
 
             sideTextures[sides.Length] = AssetLoader.LoadTexture("spectatoricon.png");
 
+            mpColors = MultiplayerColor.LoadColors();
+
             ReadStatistics();
             ListGameModes();
             ListGames();
@@ -468,51 +473,55 @@ namespace DTAClient.DXGUI.Generic
                 //List<string> items = new List<string>();
                 List<XNAListBoxItem> items = new List<XNAListBoxItem>();
 
+                if (ps.Color > -1 && ps.Color < mpColors.Count)
+                    textColor = mpColors[ps.Color].XnaColor;
+
                 if (ps.IsAI)
                 {
-                    items.Add(new XNAListBoxItem(AILevelToString(ps.AILevel)));
+                    items.Add(new XNAListBoxItem(AILevelToString(ps.AILevel), textColor));
                 }
                 else
-                    items.Add(new XNAListBoxItem(ps.Name));
+                    items.Add(new XNAListBoxItem(ps.Name, textColor));
 
                 if (ps.WasSpectator)
                 {
                     // Player was a spectator
-                    items.Add(new XNAListBoxItem("-"));
-                    items.Add(new XNAListBoxItem("-"));
-                    items.Add(new XNAListBoxItem("-"));
-                    items.Add(new XNAListBoxItem("-"));
-                    items.Add(new XNAListBoxItem("-"));
+                    items.Add(new XNAListBoxItem("-", textColor));
+                    items.Add(new XNAListBoxItem("-", textColor));
+                    items.Add(new XNAListBoxItem("-", textColor));
+                    items.Add(new XNAListBoxItem("-", textColor));
+                    items.Add(new XNAListBoxItem("-", textColor));
                     XNAListBoxItem spectatorItem = new XNAListBoxItem();
                     spectatorItem.Text = "Spectator";
                     spectatorItem.TextColor = textColor;
                     spectatorItem.Texture = sideTextures[sideTextures.Length - 1];
                     items.Add(spectatorItem);
-                    items.Add(new XNAListBoxItem("-"));
+                    items.Add(new XNAListBoxItem("-", textColor));
                 }
                 else
                 { 
                     if (!ms.SawCompletion)
                     {
                         // The game wasn't completed - we don't know the stats
-                        items.Add(new XNAListBoxItem("-"));
-                        items.Add(new XNAListBoxItem("-"));
-                        items.Add(new XNAListBoxItem("-"));
-                        items.Add(new XNAListBoxItem("-"));
-                        items.Add(new XNAListBoxItem("-"));
+                        items.Add(new XNAListBoxItem("-", textColor));
+                        items.Add(new XNAListBoxItem("-", textColor));
+                        items.Add(new XNAListBoxItem("-", textColor));
+                        items.Add(new XNAListBoxItem("-", textColor));
+                        items.Add(new XNAListBoxItem("-", textColor));
                     }
                     else
                     {
                         // The game was completed and the player was actually playing
-                        items.Add(new XNAListBoxItem(ps.Kills.ToString()));
-                        items.Add(new XNAListBoxItem(ps.Losses.ToString()));
-                        items.Add(new XNAListBoxItem(ps.Economy.ToString()));
-                        items.Add(new XNAListBoxItem(ps.Score.ToString()));
-                        items.Add(new XNAListBoxItem(Conversions.BooleanToString(ps.Won, BooleanStringStyle.YESNO)));
+                        items.Add(new XNAListBoxItem(ps.Kills.ToString(), textColor));
+                        items.Add(new XNAListBoxItem(ps.Losses.ToString(), textColor));
+                        items.Add(new XNAListBoxItem(ps.Economy.ToString(), textColor));
+                        items.Add(new XNAListBoxItem(ps.Score.ToString(), textColor));
+                        items.Add(new XNAListBoxItem(
+                            Conversions.BooleanToString(ps.Won, BooleanStringStyle.YESNO), textColor));
                     }
 
                     if (ps.Side == 0 || ps.Side > sides.Length)
-                        items.Add(new XNAListBoxItem("Unknown"));
+                        items.Add(new XNAListBoxItem("Unknown", textColor));
                     else
                     {
                         XNAListBoxItem sideItem = new XNAListBoxItem();
@@ -522,7 +531,7 @@ namespace DTAClient.DXGUI.Generic
                         items.Add(sideItem);
                     }
 
-                    items.Add(new XNAListBoxItem(TeamIndexToString(ps.Team)));
+                    items.Add(new XNAListBoxItem(TeamIndexToString(ps.Team), textColor));
                 }
 
                 if (!ps.IsLocalPlayer)
@@ -536,7 +545,6 @@ namespace DTAClient.DXGUI.Generic
                     lbGameStatistics.AddItem(items);
                     lbGameStatistics.SelectedIndex = i;
                 }
-
             }
         }
 

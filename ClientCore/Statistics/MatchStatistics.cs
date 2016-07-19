@@ -9,7 +9,7 @@ namespace ClientCore.Statistics
     {
         public MatchStatistics() { }
 
-        public MatchStatistics(string gameVersion, string mapName, string gameMode, int numHumans)
+        public MatchStatistics(string gameVersion, int gameId, string mapName, string gameMode, int numHumans)
         {
             GameVersion = gameVersion;
             DateAndTime = DateTime.Now;
@@ -36,9 +36,13 @@ namespace ClientCore.Statistics
 
         public int AverageFPS { get; set; }
 
-        public void AddPlayer(string name, bool isLocal, bool isAI, bool isSpectator, int side, int team, int aiLevel)
+        public int GameID { get; set; }
+
+        public void AddPlayer(string name, bool isLocal, bool isAI, bool isSpectator,
+            int side, int team, int color, int aiLevel)
         {
-            PlayerStatistics ps = new PlayerStatistics(name, isLocal, isAI, isSpectator, side, team, aiLevel);
+            PlayerStatistics ps = new PlayerStatistics(name, isLocal, isAI, isSpectator, 
+                side, team, color, aiLevel);
             Players.Add(ps);
         }
 

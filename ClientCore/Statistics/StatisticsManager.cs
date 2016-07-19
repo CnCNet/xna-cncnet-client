@@ -9,7 +9,7 @@ namespace ClientCore.Statistics
 {
     public class StatisticsManager : GenericStatisticsManager
     {
-        const string VERSION = "1.02";
+        const string VERSION = "1.03";
         const string SCORE_FILE_PATH = "Client\\dscore.dat";
         static StatisticsManager _instance;
 
@@ -48,20 +48,23 @@ namespace ClientCore.Statistics
                 if (databaseVersion == null)
                     return; // No score database exists
 
-                if (databaseVersion == "1.00")
+                switch (databaseVersion)
                 {
-                    ReadV101Database(true);
-                    SaveDatabase();
+                    case "1.00":
+                    case "1.01":
+                        ReadDatabase(1.00);
+                        SaveDatabase();
+                        break;
+                    case "1.02":
+                        ReadDatabase(1.02);
+                        SaveDatabase();
+                        break;
+                    case "1.03":
+                        ReadDatabase(1.03);
+                        break;
+                    default:
+                        throw new InvalidDataException("Invalid version for " + SCORE_FILE_PATH + ": " + databaseVersion);
                 }
-                else if (databaseVersion == "1.01")
-                {
-                    ReadV101Database(true);
-                    SaveDatabase();
-                }
-                else if (databaseVersion == "1.02")
-                    ReadV101Database(false);
-                else
-                    throw new InvalidDataException("Invalid version for " + SCORE_FILE_PATH + ": " + databaseVersion);
 
                 PurgeStats();
             }
@@ -71,7 +74,7 @@ namespace ClientCore.Statistics
             }
         }
 
-        private void ReadV101Database(bool isOldVersion)
+        private void ReadDatabase(double versionDouble)
         {
             try
             {
@@ -103,7 +106,7 @@ namespace ClientCore.Statistics
                         // Then 1 byte for the amount of players
                         fs.Read(readBuffer, 0, 1);
                         int playerCount = readBuffer[0];
-                        if (!isOldVersion)
+                        if (versionDouble > 1.01)
                         {
                             // 4 bytes for average FPS
                             fs.Read(readBuffer, 0, 4);
@@ -115,6 +118,12 @@ namespace ClientCore.Statistics
                         // Game mode, 64 bytes as well
                         fs.Read(readBuffer, 0, 64);
                         ms.GameMode = Encoding.Unicode.GetString(readBuffer).Replace("\0", "");
+                        if (versionDouble > 1.02)
+                        {
+                            // Unique game ID, 32 bytes (int32)
+                            fs.Read(readBuffer, 0, 4);
+                            ms.GameID = BitConverter.ToInt32(readBuffer, 0);
+                        }
 
                         //if (isOldVersion)
                         //{
@@ -161,6 +170,12 @@ namespace ClientCore.Statistics
                             // 1 byte for Team
                             fs.Read(readBuffer, 0, 1);
                             ps.Team = readBuffer[0];
+                            if (versionDouble > 1.02)
+                            {
+                                // 1 byte for Color
+                                fs.Read(readBuffer, 0, 1);
+                                ps.Color = readBuffer[0];
+                            }
                             // 1 byte for WasSpectator
                             fs.Read(readBuffer, 0, 1);
                             ps.WasSpectator = Convert.ToBoolean(readBuffer[0]);
@@ -290,6 +305,9 @@ namespace ClientCore.Statistics
                 }
                 fs.Write(writeBuffer, 0, 64);
 
+                // Unique game ID, 4 bytes
+                fs.Write(BitConverter.GetBytes(ms.GameID), 0, 4);
+
                 // Write player info
                 for (int i = 0; i < ms.GetPlayerCount(); i++)
                 {
@@ -304,11 +322,11 @@ namespace ClientCore.Statistics
                     fs.Write(BitConverter.GetBytes(ps.Kills), 0, 4);
                     // 4 bytes for losses
                     fs.Write(BitConverter.GetBytes(ps.Losses), 0, 4);
-                    // Name takes 32 bytes (I assume the game uses unicode)
+                    // Name takes 32 bytes
                     writeBuffer = Encoding.Unicode.GetBytes(ps.Name);
                     if (writeBuffer.Length != 32)
                     {
-                        // If the name's byte presentation is shorter than 16 bytes,
+                        // If the name's byte presentation is shorter than 32 bytes,
                         // let's resize the array
                         byte[] temp = writeBuffer;
                         writeBuffer = new byte[32];
@@ -324,6 +342,8 @@ namespace ClientCore.Statistics
                     fs.WriteByte(Convert.ToByte(ps.Side));
                     // 1 byte for Team
                     fs.WriteByte(Convert.ToByte(ps.Team));
+                    // 1 byte color Color
+                    fs.WriteByte(Convert.ToByte(ps.Color));
                     // 1 byte for WasSpectator
                     fs.WriteByte(Convert.ToByte(ps.WasSpectator));
                     // 1 byte for Won

@@ -4,7 +4,8 @@
     {
         public PlayerStatistics() { }
 
-        public PlayerStatistics(string name, bool isLocal, bool isAi, bool isSpectator, int side, int team, int aiLevel)
+        public PlayerStatistics(string name, bool isLocal, bool isAi, bool isSpectator, 
+            int side, int team, int color, int aiLevel)
         {
             Name = name;
             IsLocalPlayer = isLocal;
@@ -12,6 +13,7 @@
             WasSpectator = isSpectator;
             Side = side;
             Team = team;
+            Color = color;
             AILevel = aiLevel;
         }
 
@@ -28,5 +30,8 @@
         public bool Won { get; set; }
         public bool IsLocalPlayer { get; set; }
         public bool IsAI { get; set; }
+
+        int _color = 255;
+        public int Color { get { return _color; } set { _color = value; } }
     }
 }

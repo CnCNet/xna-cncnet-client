@@ -84,8 +84,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         bool mapChangeInProgress = false;
 
-        int gameId;
-
         TimeSpan timeSinceGameBroadcast = TimeSpan.Zero;
 
         int timerTicks = 0;
@@ -387,8 +385,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         /// </summary>
         protected override void HostLaunchGame()
         {
-            gameId = int.Parse(DateTime.Now.Day.ToString() + DateTime.Now.Month.ToString() + new Random().Next(1, 100000).ToString());
-
             if (Players.Count > 1)
             {
                 AddNotice("Contacting tunnel server..");
@@ -403,7 +399,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 }
 
                 StringBuilder sb = new StringBuilder("START ");
-                sb.Append(gameId);
+                sb.Append(UniqueGameID);
                 for (int pId = 0; pId < Players.Count; pId++)
                 {
                     Players[pId].Port = playerPorts[pId];
@@ -893,8 +889,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (parts.Length < 1)
                 return;
 
-            gameId = Conversions.IntFromString(parts[0], -1);
-            if (gameId < 0)
+            UniqueGameID = Conversions.IntFromString(parts[0], -1);
+            if (UniqueGameID < 0)
                 return;
 
             for (int i = 1; i < parts.Length; i += 2)
@@ -934,7 +930,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             iniFile.SetStringValue("Tunnel", "Ip", tunnel.Address);
             iniFile.SetIntValue("Tunnel", "Port", tunnel.Port);
 
-            iniFile.SetIntValue("Settings", "GameID", gameId);
+            iniFile.SetIntValue("Settings", "GameID", UniqueGameID);
             iniFile.SetBooleanValue("Settings", "Host", IsHost);
 
             PlayerInfo localPlayer = Players.Find(p => p.Name == ProgramConstants.PLAYERNAME);
