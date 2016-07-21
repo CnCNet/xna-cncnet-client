@@ -223,6 +223,7 @@ namespace DTAClient.DXGUI.Generic
             WindowManager.GameClosing += WindowManager_GameClosing;
 
             skirmishLobby.Exited += SkirmishLobby_Exited;
+            lanLobby.Exited += LanLobby_Exited;
 
             SharedUILogic.GameProcessStarted += SharedUILogic_GameProcessStarted;
         }
@@ -243,6 +244,18 @@ namespace DTAClient.DXGUI.Generic
             innerPanel.Hide();
             Visible = true;
             Enabled = true;
+
+            PlayMusic();
+        }
+
+        private void LanLobby_Exited(object sender, EventArgs e)
+        {
+            topBar.Enable();
+
+            if (DomainController.Instance().GetCnCNetPersistentModeStatus() &&
+                DomainController.Instance().GetCnCNetConnectDialogSkipStatus() &&
+                DomainController.Instance().GetCnCNetAutologinStatus())
+                connectionManager.Connect();
 
             PlayMusic();
         }
@@ -430,6 +443,12 @@ namespace DTAClient.DXGUI.Generic
         private void BtnLan_LeftClick(object sender, EventArgs e)
         {
             lanLobby.Open();
+            if (MediaPlayer.State == MediaState.Playing)
+                isMusicFading = true;
+
+            topBar.Disable();
+            if (connectionManager.IsConnected)
+                connectionManager.Disconnect();
         }
 
         private void BtnCnCNet_LeftClick(object sender, EventArgs e)

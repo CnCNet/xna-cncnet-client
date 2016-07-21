@@ -6,6 +6,7 @@ using ClientCore;
 using ClientCore.Statistics;
 using DTAClient.DXGUI.Generic;
 using DTAClient.domain.Multiplayer;
+using ClientGUI;
 
 namespace DTAClient.DXGUI.Multiplayer.GameLobby
 {
@@ -60,37 +61,26 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             CopyPlayerDataToUI();
         }
 
-        protected override void ChangeMap(GameMode gameMode, Map map)
-        {
-            base.ChangeMap(gameMode, map);
-
-            CheckGameValidity();
-        }
-
-        protected override void CopyPlayerDataToUI()
-        {
-            base.CopyPlayerDataToUI();
-
-            CheckGameValidity();
-        }
-
-        private void CheckGameValidity()
+        private string CheckGameValidity()
         {
             int totalPlayerCount = Players.Count(p => p.SideId < ddPlayerSides[0].Items.Count - 1)
                 + AIPlayers.Count;
 
             if (totalPlayerCount < Map.MinPlayers)
             {
-                btnLaunchGame.AllowClick = false;
-                return;
+                return "The selected map cannot be played with less than " + Map.MinPlayers + " players.";
+            }
+
+            if (Map.MultiplayerOnly)
+            {
+                return "The selected map can only be played on CnCNet and LAN.";
             }
 
             if (Map.EnforceMaxPlayers)
             {
                 if (totalPlayerCount > Map.MaxPlayers)
                 {
-                    btnLaunchGame.AllowClick = false;
-                    return;
+                    return "The selected map cannot be played with more than " + Map.MaxPlayers + " players.";
                 }
 
                 IEnumerable<PlayerInfo> concatList = Players.Concat(AIPlayers);
@@ -102,25 +92,30 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
                     if (concatList.Count(p => p.StartingLocation == pInfo.StartingLocation) > 1)
                     {
-                        btnLaunchGame.AllowClick = false;
-                        return;
+                        return "Multiple players cannot share the same starting location on the selected map.";
                     }
                 }
             }
 
             if (Map.IsCoop && Players[0].SideId == ddPlayerSides[0].Items.Count - 1)
             {
-                btnLaunchGame.AllowClick = false;
-                return;
+                return "Co-op missions cannot be spectated. You'll have to show a bit more effort to cheat here.";
             }
 
-            btnLaunchGame.AllowClick = true;
-            return;
+            return null;
         }
 
         protected override void BtnLaunchGame_LeftClick(object sender, EventArgs e)
         {
-            StartGame();
+            string error = CheckGameValidity();
+
+            if (error == null)
+            {
+                StartGame();
+                return;
+            }
+
+            XNAMessageBox.Show(WindowManager, "Cannot launch game", error);
         }
 
         protected override void BtnLeaveGame_LeftClick(object sender, EventArgs e)

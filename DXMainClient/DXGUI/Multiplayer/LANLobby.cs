@@ -37,6 +37,8 @@ namespace DTAClient.DXGUI.Multiplayer
             this.gameModes = gameModes;
         }
 
+        public event EventHandler Exited;
+
         XNAListBox lbPlayerList;
         ChatListBox lbChatMessages;
         GameListBox lbGameList;
@@ -397,14 +399,6 @@ namespace DTAClient.DXGUI.Multiplayer
             SendAlive();
         }
 
-        private void Close()
-        {
-            Visible = false;
-            Enabled = false;
-            SendMessage("QUIT");
-            socket.Close();
-        }
-
         private void SendMessage(string message)
         {
             if (!initSuccess)
@@ -653,7 +647,11 @@ namespace DTAClient.DXGUI.Multiplayer
 
         private void BtnMainMenu_LeftClick(object sender, EventArgs e)
         {
-            Close();
+            Visible = false;
+            Enabled = false;
+            SendMessage("QUIT");
+            socket.Close();
+            Exited?.Invoke(this, EventArgs.Empty);
         }
 
         private void BtnJoinGame_LeftClick(object sender, EventArgs e)

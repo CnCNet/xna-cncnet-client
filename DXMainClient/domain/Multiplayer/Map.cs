@@ -83,6 +83,11 @@ namespace DTAClient.domain.Multiplayer
         public string PreviewPath { get; private set; }
 
         /// <summary>
+        /// If set, this map cannot be played on Skirmish.
+        /// </summary>
+        public bool MultiplayerOnly { get; private set; }
+
+        /// <summary>
         /// The game modes that the map is listed for.
         /// </summary>
         public string[] GameModes;
@@ -148,6 +153,7 @@ namespace DTAClient.domain.Multiplayer
                 UnitCount = iniFile.GetIntValue(BaseFilePath, "UnitCount", -1);
                 NeutralHouseColor = iniFile.GetIntValue(BaseFilePath, "NeutralColor", -1);
                 SpecialHouseColor = iniFile.GetIntValue(BaseFilePath, "SpecialColor", -1);
+                MultiplayerOnly = iniFile.GetBooleanValue(BaseFilePath, "MultiplayerOnly", false);
 
                 if (IsCoop)
                 {
