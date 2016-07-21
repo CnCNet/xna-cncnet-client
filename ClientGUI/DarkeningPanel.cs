@@ -96,5 +96,12 @@ namespace ClientGUI
                 Hidden?.Invoke(this, EventArgs.Empty);
             }
         }
+
+        public static void AddAndInitializeWithControl(WindowManager wm, XNAControl control)
+        {
+            var dp = new DarkeningPanel(wm);
+            wm.AddAndInitializeControl(dp);
+            dp.AddChild(control);
+        }
     }
 }

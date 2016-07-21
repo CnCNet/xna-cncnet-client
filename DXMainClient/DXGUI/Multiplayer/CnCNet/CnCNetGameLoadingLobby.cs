@@ -30,11 +30,12 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         public CnCNetGameLoadingLobby(WindowManager windowManager, TopBar topBar,
             CnCNetManager connectionManager, TunnelHandler tunnelHandler,
-            List<GameMode> gameModes) : base(windowManager, topBar)
+            List<GameMode> gameModes) : base(windowManager)
         {
             this.connectionManager = connectionManager;
             this.tunnelHandler = tunnelHandler;
             this.gameModes = gameModes;
+            this.topBar = topBar;
 
             ctcpCommandHandlers = new CommandHandlerBase[]
             {
@@ -75,6 +76,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         bool started;
 
         DarkeningPanel dp;
+
+        TopBar topBar;
 
         public override void Initialize()
         {
@@ -160,7 +163,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 base.LeaveGame();
             }
 
-            TopBar.RemovePrimarySwitchable(this);
+            topBar.RemovePrimarySwitchable(this);
         }
 
         private void Channel_CTCPReceived(object sender, ChannelCTCPEventArgs e)
@@ -208,8 +211,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                     AddNotice(ProgramConstants.PLAYERNAME + " - ping to tunnel server: " + tunnel.PingInMs + " ms");
             }
 
-            TopBar.AddPrimarySwitchable(this);
-            TopBar.SwitchToPrimary();
+            topBar.AddPrimarySwitchable(this);
+            topBar.SwitchToPrimary();
         }
 
         private void Channel_UserAdded(object sender, UserEventArgs e)
@@ -312,7 +315,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         {
             base.GetReadyNotification();
 
-            TopBar.SwitchToPrimary();
+            topBar.SwitchToPrimary();
 
             if (IsHost)
                 channel.SendCTCPMessage(GET_READY_CTCP_COMMAND, QueuedMessageType.GAME_GET_READY_MESSAGE, 0);
@@ -361,7 +364,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
                 pInfo.Verified = true;
 
-                HandleCheaterNotification(hostName, sender); // Might be a bit hacky
+                HandleCheaterNotification(hostName, sender); // This is kinda hacky
             }
         }
 

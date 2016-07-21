@@ -23,7 +23,7 @@ namespace DTAClient.DXGUI.Multiplayer
         }
 
         public event EventHandler NewGame;
-        public event EventHandler LoadGame;
+        public event EventHandler<GameLoadEventArgs> LoadGame;
 
         XNALabel lblDescription;
 
@@ -101,7 +101,11 @@ namespace DTAClient.DXGUI.Multiplayer
         private void BtnLoadGame_LeftClick(object sender, EventArgs e)
         {
             Disable();
-            LoadGame?.Invoke(this, EventArgs.Empty);
+
+            IniFile iniFile = new IniFile(ProgramConstants.GamePath +
+                ProgramConstants.SAVED_GAME_SPAWN_INI);
+
+            LoadGame?.Invoke(this, new GameLoadEventArgs(iniFile.GetIntValue("Settings", "GameID", -1)));
         }
 
         private void BtnCancel_LeftClick(object sender, EventArgs e)
@@ -129,7 +133,21 @@ namespace DTAClient.DXGUI.Multiplayer
             if (!iniFile.GetBooleanValue("Settings", "Host", false))
                 return false;
 
+            // Don't allow loading CnCNet games in LAN mode
+            if (iniFile.SectionExists("Tunnel"))
+                return false;
+
             return true;
         }
+    }
+
+    public class GameLoadEventArgs : EventArgs
+    {
+        public GameLoadEventArgs(int loadedGameId)
+        {
+            LoadedGameID = loadedGameId;
+        }
+
+        public int LoadedGameID { get; private set; }
     }
 }

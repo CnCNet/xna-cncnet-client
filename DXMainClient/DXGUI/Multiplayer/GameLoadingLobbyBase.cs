@@ -18,15 +18,20 @@ namespace DTAClient.DXGUI.Multiplayer
     /// </summary>
     public abstract class GameLoadingLobbyBase : XNAWindow, ISwitchable
     {
-        public GameLoadingLobbyBase(WindowManager windowManager, TopBar topBar) : base(windowManager)
+        public GameLoadingLobbyBase(WindowManager windowManager) : base(windowManager)
         {
-            TopBar = topBar;
         }
 
         public event EventHandler GameLeft;
 
+        /// <summary>
+        /// The list of players in the current saved game.
+        /// </summary>
         protected List<SavedGamePlayer> SGPlayers = new List<SavedGamePlayer>();
 
+        /// <summary>
+        /// The list of players in the game lobby.
+        /// </summary>
         protected List<PlayerInfo> Players = new List<PlayerInfo>();
 
         protected bool IsHost = false;
@@ -39,8 +44,6 @@ namespace DTAClient.DXGUI.Multiplayer
         protected SoundEffectInstance sndJoinSound;
         protected SoundEffectInstance sndLeaveSound;
         protected SoundEffectInstance sndMessageSound;
-
-        protected TopBar TopBar;
 
         private XNALabel lblDescription;
         private XNAPanel panelPlayers;

@@ -116,8 +116,11 @@
     <Compile Include="domain\Multiplayer\LAN\LANLobbyUser.cs" />
     <Compile Include="domain\Multiplayer\LAN\LANPlayerInfo.cs" />
     <Compile Include="domain\Multiplayer\LAN\NetworkMessageEventArgs.cs" />
-    <Compile Include="domain\Multiplayer\LAN\OneDirectionalCommandHandler.cs" />
-    <Compile Include="domain\Multiplayer\LAN\OneDirectionalStringCommandHandler.cs" />
+    <Compile Include="domain\Multiplayer\LAN\LANClientCommandHandler.cs" />
+    <Compile Include="domain\Multiplayer\LAN\ClientStringCommandHandler.cs" />
+    <Compile Include="domain\Multiplayer\LAN\LANServerCommandHandler.cs" />
+    <Compile Include="domain\Multiplayer\LAN\ServerNoParamCommandHandler.cs" />
+    <Compile Include="domain\Multiplayer\LAN\ServerStringCommandHandler.cs" />
     <Compile Include="domain\Multiplayer\SavedGamePlayer.cs" />
     <Compile Include="domain\Multiplayer\CnCNet\SHA1EventArgs.cs" />
     <Compile Include="domain\Multiplayer\GenericHostedGame.cs" />
@@ -154,7 +157,7 @@
     <Compile Include="DXGUI\Multiplayer\GameLobby\CnCNetGameLobby.cs" />
     <Compile Include="DXGUI\Multiplayer\GameLobby\CommandHandlers\CommandHandlerBase.cs" />
     <Compile Include="DXGUI\Multiplayer\GameLobby\CommandHandlers\IntNotificationHandler.cs" />
-    <Compile Include="domain\Multiplayer\LAN\ODNoArgCommandHandler.cs" />
+    <Compile Include="domain\Multiplayer\LAN\ClientNoParamCommandHandler.cs" />
     <Compile Include="DXGUI\Multiplayer\GameLobby\CommandHandlers\NotificationHandler.cs" />
     <Compile Include="DXGUI\Multiplayer\GameLobby\DropDownDataWriteMode.cs" />
     <Compile Include="DXGUI\Multiplayer\GameLobby\GameLobbyBase.cs" />
@@ -169,6 +172,7 @@
     <Compile Include="DXGUI\Multiplayer\GameLobby\SkirmishLobby.cs" />
     <Compile Include="DXGUI\Multiplayer\GameLobby\CommandHandlers\StringCommandHandler.cs" />
     <Compile Include="DXGUI\Multiplayer\LANGameCreationWindow.cs" />
+    <Compile Include="DXGUI\Multiplayer\LANGameLoadingLobby.cs" />
     <Compile Include="DXGUI\Multiplayer\LANLobby.cs" />
     <Compile Include="DXGUI\Multiplayer\CnCNet\PrivateMessageNotificationBox.cs" />
     <Compile Include="DXGUI\Multiplayer\CnCNet\PrivateMessagingPanel.cs" />

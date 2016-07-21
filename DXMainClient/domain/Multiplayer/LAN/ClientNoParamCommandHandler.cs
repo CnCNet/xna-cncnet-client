@@ -8,9 +8,9 @@ namespace DTAClient.domain.Multiplayer.LAN
     /// <summary>
     /// A command handler that has no parameters.
     /// </summary>
-    class ODNoArgCommandHandler : OneDirectionalCommandHandler
+    class ClientNoParamCommandHandler : LANClientCommandHandler
     {
-        public ODNoArgCommandHandler(string commandName, Action commandHandler) : base(commandName)
+        public ClientNoParamCommandHandler(string commandName, Action commandHandler) : base(commandName)
         {
             this.commandHandler = commandHandler;
         }

@@ -61,6 +61,10 @@ namespace DTAClient.DXGUI.Multiplayer
 
         LANGameCreationWindow gameCreationWindow;
 
+        LANGameLobby lanGameLobby;
+
+        LANGameLoadingLobby lanGameLoadingLobby;
+
         Texture2D unknownGameIcon;
 
         LANColor[] chatColors;
@@ -85,8 +89,6 @@ namespace DTAClient.DXGUI.Multiplayer
         List<LANLobbyUser> players = new List<LANLobbyUser>();
 
         TimeSpan timeSinceAliveMessage = TimeSpan.Zero;
-
-        LANGameLobby lanGameLobby;
 
         bool initSuccess = false;
 
@@ -306,10 +308,13 @@ namespace DTAClient.DXGUI.Multiplayer
 
             lanGameLobby = new LANGameLobby(WindowManager, "MultiplayerGameLobby",
                 null, gameModes, chatColors);
-            DarkeningPanel dp = new DarkeningPanel(WindowManager);
-            WindowManager.AddAndInitializeControl(dp);
-            dp.AddChild(lanGameLobby);
+            DarkeningPanel.AddAndInitializeWithControl(WindowManager, lanGameLobby);
             lanGameLobby.Disable();
+
+            lanGameLoadingLobby = new LANGameLoadingLobby(WindowManager, 
+                gameModes, chatColors);
+            DarkeningPanel.AddAndInitializeWithControl(WindowManager, lanGameLoadingLobby);
+            lanGameLoadingLobby.Disable();
 
             int selectedColor = DomainController.Instance().GetCnCNetChatColor();
 
@@ -330,30 +335,17 @@ namespace DTAClient.DXGUI.Multiplayer
             Enable();
         }
 
-        private void GameCreationWindow_LoadGame(object sender, EventArgs e)
+        private void GameCreationWindow_LoadGame(object sender, GameLoadEventArgs e)
         {
-            throw new NotImplementedException();
+            lanGameLoadingLobby.SetUp(true,
+                new IPEndPoint(IPAddress.Loopback, ProgramConstants.LAN_GAME_LOBBY_PORT),
+                null, e.LoadedGameID);
+
+            lanGameLoadingLobby.Enable();
         }
 
         private void GameCreationWindow_NewGame(object sender, EventArgs e)
         {
-            Socket glSocket;
-
-            try
-            {
-                lbChatMessages.AddMessage(new ChatMessage(null, Color.White, DateTime.Now,
-                    "Creating game.."));
-                glSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-                glSocket.EnableBroadcast = true;
-                glSocket.Bind(new IPEndPoint(IPAddress.Any, ProgramConstants.LAN_GAME_LOBBY_PORT));
-            }
-            catch (Exception ex)
-            {
-                lbChatMessages.AddMessage(new ChatMessage(null, Color.White, DateTime.Now,
-                    "Creating socket for game lobby failed! Error message: " + ex.Message));
-                return;
-            }
-
             lanGameLobby.SetUp(true, 
                 new IPEndPoint(IPAddress.Loopback, ProgramConstants.LAN_GAME_LOBBY_PORT), null);
 
@@ -582,12 +574,6 @@ namespace DTAClient.DXGUI.Multiplayer
                 return;
             }
 
-            if (hg.Players.Contains(ProgramConstants.PLAYERNAME))
-            {
-                lbChatMessages.AddMessage(null, "Your name is already taken in the game.", Color.White);
-                return;
-            }
-
             if (hg.Locked)
             {
                 lbChatMessages.AddMessage(null, "The selected game is locked!", Color.White);
@@ -602,35 +588,61 @@ namespace DTAClient.DXGUI.Multiplayer
                     return;
                 }
             }
+            else
+            {
+                if (hg.Players.Contains(ProgramConstants.PLAYERNAME))
+                {
+                    lbChatMessages.AddMessage(null, "Your name is already taken in the game.", Color.White);
+                    return;
+                }
+            }
 
             if (hg.GameVersion != ProgramConstants.GAME_VERSION)
             {
                 // TODO Show warning
             }
 
-            int gameId = -1;
-
             lbChatMessages.AddMessage(new ChatMessage(null, Color.White, DateTime.Now,
                 "Attempting to join game " + hg.RoomName + "..."));
 
-            if (hg.IsLoadedGame)
-            {
-                throw new NotImplementedException();
-            }
+            var client = new TcpClient(hg.EndPoint.Address.ToString(), ProgramConstants.LAN_GAME_LOBBY_PORT);
 
             try
             {
-                var client = new TcpClient(hg.EndPoint.Address.ToString(), ProgramConstants.LAN_GAME_LOBBY_PORT);
+                byte[] buffer;
 
-                lanGameLobby.SetUp(false, hg.EndPoint, client);
-                lanGameLobby.Enable();
+                if (hg.IsLoadedGame)
+                {
+                    var spawnSGIni = new IniFile(ProgramConstants.GamePath +
+                        ProgramConstants.SAVED_GAME_SPAWN_INI);
 
-                var buffer = encoding.GetBytes("JOIN" + ProgramConstants.LAN_DATA_SEPARATOR + ProgramConstants.PLAYERNAME);
+                    int loadedGameId = spawnSGIni.GetIntValue("Settings", "GameID", -1);
 
-                client.GetStream().Write(buffer, 0, buffer.Length);
-                client.GetStream().Flush();
+                    lanGameLoadingLobby.SetUp(false, hg.EndPoint, client, loadedGameId);
+                    lanGameLoadingLobby.Enable();
 
-                lanGameLobby.PostJoin();
+                    buffer = encoding.GetBytes("JOIN" + ProgramConstants.LAN_DATA_SEPARATOR +
+                        ProgramConstants.PLAYERNAME + ProgramConstants.LAN_DATA_SEPARATOR +
+                        loadedGameId + ProgramConstants.LAN_MESSAGE_SEPARATOR);
+
+                    client.GetStream().Write(buffer, 0, buffer.Length);
+                    client.GetStream().Flush();
+
+                    lanGameLoadingLobby.PostJoin();
+                }
+                else
+                {
+                    lanGameLobby.SetUp(false, hg.EndPoint, client);
+                    lanGameLobby.Enable();
+
+                    buffer = encoding.GetBytes("JOIN" + ProgramConstants.LAN_DATA_SEPARATOR + 
+                        ProgramConstants.PLAYERNAME + ProgramConstants.LAN_MESSAGE_SEPARATOR);
+
+                    client.GetStream().Write(buffer, 0, buffer.Length);
+                    client.GetStream().Flush();
+
+                    lanGameLobby.PostJoin();
+                }
             }
             catch (Exception ex)
             {

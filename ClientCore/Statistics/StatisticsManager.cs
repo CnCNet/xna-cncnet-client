@@ -432,13 +432,16 @@ namespace ClientCore.Statistics
             if (localPlayer == null || !localPlayer.Won)
                 return -1;
 
-            if (ms.Players.Count(p => !p.IsAI && !p.WasSpectator && p.Team != localPlayer.Team) > 0)
+            if (ms.Players.Find(p => p.WasSpectator) != null)
+                return -1; // Don't allow matches with spectators
+
+            if (ms.Players.Count(p => !p.IsAI && p.Team != localPlayer.Team) > 0)
                 return -1; // Don't allow matches with human players who were on a different team
 
-            if (ms.Players.Find(p => !p.WasSpectator && p.Team == 0) != null)
+            if (ms.Players.Find(p => p.Team == 0) != null)
                 return -1; // Matches with non-allied players are discarded
 
-            if (ms.Players.All(ps => ps.WasSpectator || ps.Team == localPlayer.Team))
+            if (ms.Players.All(ps => ps.Team == localPlayer.Team))
                 return -1; // Discard matches that had no enemies
 
             int[] teamMemberCounts = new int[5];

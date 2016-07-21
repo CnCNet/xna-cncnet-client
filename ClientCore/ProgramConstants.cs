@@ -2,6 +2,7 @@
 /// http://www.moddb.com/members/rampastring
 
 using System.IO;
+using System.Text;
 using System.Windows.Forms;
 
 namespace ClientCore
@@ -23,6 +24,8 @@ namespace ClientCore
         public const int LAN_GAME_LOBBY_PORT = 1233;
         public const char LAN_DATA_SEPARATOR = (char)01;
         public const char LAN_MESSAGE_SEPARATOR = (char)02;
+
+        public static readonly Encoding LAN_ENCODING = Encoding.UTF8;
 
         public static string GAME_VERSION = "1.15";
         public static string PLAYERNAME = "No name";

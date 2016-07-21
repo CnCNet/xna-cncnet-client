@@ -82,8 +82,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         IRCColor chatColor;
 
-        bool mapChangeInProgress = false;
-
         TimeSpan timeSinceGameBroadcast = TimeSpan.Zero;
 
         int timerTicks = 0;
@@ -657,7 +655,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         /// </summary>
         protected override void OnGameOptionChanged()
         {
-            if (!IsHost || mapChangeInProgress)
+            base.OnGameOptionChanged();
+
+            if (!IsHost)
                 return;
 
             bool[] optionValues = new bool[CheckBoxes.Count];

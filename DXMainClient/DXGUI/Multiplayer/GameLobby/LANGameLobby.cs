@@ -52,15 +52,15 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 new StringCommandHandler(FILE_HASH_COMMAND, HandleFileHashCommand)
             };
 
-            playerCommandHandlers = new OneDirectionalCommandHandler[]
+            playerCommandHandlers = new LANClientCommandHandler[]
             {
-                new OneDirectionalStringCommandHandler(CHAT_COMMAND, Player_HandleChatCommand),
-                new ODNoArgCommandHandler(GET_READY_COMMAND, HandleGetReadyCommand),
-                new OneDirectionalStringCommandHandler(RETURN_COMMAND, Player_HandleReturnCommand),
-                new OneDirectionalStringCommandHandler(PLAYER_OPTIONS_BROADCAST_COMMAND, HandlePlayerOptionsBroadcast),
-                new OneDirectionalStringCommandHandler(LAUNCH_GAME_COMMAND, HandleGameLaunchCommand),
-                new OneDirectionalStringCommandHandler(GAME_OPTIONS_COMMAND, HandleGameOptionsMessage),
-                new ODNoArgCommandHandler("PING", HandlePing)
+                new ClientStringCommandHandler(CHAT_COMMAND, Player_HandleChatCommand),
+                new ClientNoParamCommandHandler(GET_READY_COMMAND, HandleGetReadyCommand),
+                new ClientStringCommandHandler(RETURN_COMMAND, Player_HandleReturnCommand),
+                new ClientStringCommandHandler(PLAYER_OPTIONS_BROADCAST_COMMAND, HandlePlayerOptionsBroadcast),
+                new ClientStringCommandHandler(LAUNCH_GAME_COMMAND, HandleGameLaunchCommand),
+                new ClientStringCommandHandler(GAME_OPTIONS_COMMAND, HandleGameOptionsMessage),
+                new ClientNoParamCommandHandler("PING", HandlePing)
             };
 
             localGame = DomainController.Instance().GetDefaultGame();
@@ -88,7 +88,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         Encoding encoding;
 
         CommandHandlerBase[] hostCommandHandlers;
-        OneDirectionalCommandHandler[] playerCommandHandlers;
+        LANClientCommandHandler[] playerCommandHandlers;
 
         TimeSpan timeSinceGameBroadcast = TimeSpan.Zero;
 
@@ -249,15 +249,15 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             Players.Add(lpInfo);
 
+            lpInfo.MessageReceived += LpInfo_MessageReceived;
+            lpInfo.ConnectionLost += LpInfo_ConnectionLost;
+
             AddNotice(lpInfo.Name + " connected from " + lpInfo.IPAddress);
             lpInfo.StartReceiveLoop();
 
             CopyPlayerDataToUI();
             BroadcastPlayerOptions();
             OnGameOptionChanged();
-
-            lpInfo.MessageReceived += LpInfo_MessageReceived;
-            lpInfo.ConnectionLost += LpInfo_ConnectionLost;
         }
 
         private void LpInfo_ConnectionLost(object sender, EventArgs e)
@@ -289,6 +289,12 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             }
 
             Logger.Log("Unknown LAN command from " + lpInfo.ToString() + " : " + data);
+        }
+
+        private void CleanUpPlayer(LANPlayerInfo lpInfo)
+        {
+            lpInfo.MessageReceived -= LpInfo_MessageReceived;
+            lpInfo.TcpClient.Close();
         }
 
         #endregion
@@ -398,12 +404,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 this.client.Close();
         }
 
-        private void CleanUpPlayer(LANPlayerInfo lpInfo)
-        {
-            lpInfo.MessageReceived -= LpInfo_MessageReceived;
-            lpInfo.TcpClient.Close();
-        }
-
         public void SetChatColorIndex(int colorIndex)
         {
             chatColorIndex = colorIndex;
@@ -483,6 +483,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         protected override void OnGameOptionChanged()
         {
+            base.OnGameOptionChanged();
+
             if (!IsHost)
                 return;
 

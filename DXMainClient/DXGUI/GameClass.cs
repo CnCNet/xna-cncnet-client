@@ -76,6 +76,11 @@ namespace DTAClient.DXGUI
 
             Components.Add(wm);
 
+            string playerName = ProgramConstants.PLAYERNAME;
+            playerName = playerName.Replace(",", string.Empty);
+            playerName = Renderer.GetSafeString(playerName, 0);
+            playerName.Trim();
+
             LoadingScreen ls = new LoadingScreen(wm);
             wm.AddAndInitializeControl(ls);
             ls.ClientRectangle = new Rectangle((renderResolutionX - ls.ClientRectangle.Width) / 2,

@@ -266,6 +266,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             IsHost = isHost;
             switched = false;
+            Locked = false;
 
             MapPreviewBox.EnableContextMenu = IsHost;
 
@@ -568,6 +569,13 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 AIPlayers.Clear();
 
             Players.Clear();
+        }
+
+        protected override void OnGameOptionChanged()
+        {
+            base.OnGameOptionChanged();
+
+            ClearReadyStatuses();
         }
 
         protected abstract void HostLaunchGame();

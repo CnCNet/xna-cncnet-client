@@ -1308,9 +1308,10 @@ namespace ClientGUI
                 Process QResProcess = new Process();
                 QResProcess.StartInfo.FileName = ProgramConstants.QRES_EXECUTABLE;
                 QResProcess.StartInfo.UseShellExecute = false;
-                QResProcess.StartInfo.Arguments = "c=16 /R " + "\"" + ProgramConstants.GamePath + gameExecutableName + "\"" + " -SPAWN";
-                if (!String.IsNullOrEmpty(extraCommandLine))
-                    QResProcess.StartInfo.Arguments = QResProcess.StartInfo.Arguments + " " + extraCommandLine;
+                if (!string.IsNullOrEmpty(extraCommandLine))
+                    QResProcess.StartInfo.Arguments = "c=16 /R " + "\"" + ProgramConstants.GamePath + gameExecutableName + "\" " + extraCommandLine + " -SPAWN";
+                else
+                    QResProcess.StartInfo.Arguments = "c=16 /R " + "\"" + ProgramConstants.GamePath + gameExecutableName + "\" " + "-SPAWN";
                 QResProcess.EnableRaisingEvents = true;
                 QResProcess.Exited += new EventHandler(Process_Exited);
                 try
@@ -1336,9 +1337,10 @@ namespace ClientGUI
                 Process DtaProcess = new Process();
                 DtaProcess.StartInfo.FileName = gameExecutableName;
                 DtaProcess.StartInfo.UseShellExecute = false;
-                DtaProcess.StartInfo.Arguments = "-SPAWN";
-                if (!String.IsNullOrEmpty(extraCommandLine))
-                    DtaProcess.StartInfo.Arguments = DtaProcess.StartInfo.Arguments + " " + extraCommandLine;
+                if (!string.IsNullOrEmpty(extraCommandLine))
+                    DtaProcess.StartInfo.Arguments = " " + extraCommandLine + " -SPAWN";
+                else
+                    DtaProcess.StartInfo.Arguments = "-SPAWN";
                 DtaProcess.EnableRaisingEvents = true;
                 DtaProcess.Exited += new EventHandler(Process_Exited);
                 try

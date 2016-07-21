@@ -5,9 +5,9 @@ using System.Text;
 
 namespace DTAClient.domain.Multiplayer.LAN
 {
-    public class OneDirectionalStringCommandHandler : OneDirectionalCommandHandler
+    public class ClientStringCommandHandler : LANClientCommandHandler
     {
-        public OneDirectionalStringCommandHandler(string commandName, Action<string> action) : base(commandName)
+        public ClientStringCommandHandler(string commandName, Action<string> action) : base(commandName)
         {
             this.action = action;
         }
