@@ -43,9 +43,9 @@ namespace DTAClient.DXGUI.Multiplayer
         ChatListBox lbChatMessages;
         GameListBox lbGameList;
 
-        XNAButton btnMainMenu;
-        XNAButton btnNewGame;
-        XNAButton btnJoinGame;
+        XNAClientButton btnMainMenu;
+        XNAClientButton btnNewGame;
+        XNAClientButton btnJoinGame;
 
         XNATextBox tbChatInput;
 
@@ -105,7 +105,7 @@ namespace DTAClient.DXGUI.Multiplayer
             localGameIndex = gameCollection.GameList.FindIndex(
                 g => g.InternalName.ToUpper() == localGame.ToUpper());
 
-            btnNewGame = new XNAButton(WindowManager);
+            btnNewGame = new XNAClientButton(WindowManager);
             btnNewGame.Name = "btnNewGame";
             btnNewGame.ClientRectangle = new Rectangle(12, ClientRectangle.Height - 35, 133, 23);
             btnNewGame.IdleTexture = AssetLoader.LoadTexture("133pxbtn.png");
@@ -115,7 +115,7 @@ namespace DTAClient.DXGUI.Multiplayer
             btnNewGame.Text = "Create Game";
             btnNewGame.LeftClick += BtnNewGame_LeftClick;
 
-            btnJoinGame = new XNAButton(WindowManager);
+            btnJoinGame = new XNAClientButton(WindowManager);
             btnJoinGame.Name = "btnJoinGame";
             btnJoinGame.ClientRectangle = new Rectangle(btnNewGame.ClientRectangle.Right + 12,
                 btnNewGame.ClientRectangle.Y, 133, 23);
@@ -126,7 +126,7 @@ namespace DTAClient.DXGUI.Multiplayer
             btnJoinGame.Text = "Join Game";
             btnJoinGame.LeftClick += BtnJoinGame_LeftClick;
 
-            btnMainMenu = new XNAButton(WindowManager);
+            btnMainMenu = new XNAClientButton(WindowManager);
             btnMainMenu.Name = "btnMainMenu";
             btnMainMenu.ClientRectangle = new Rectangle(ClientRectangle.Width - 145, btnNewGame.ClientRectangle.Y,
                 133, 23);

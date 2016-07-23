@@ -6,6 +6,7 @@ using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Rampastring.XNAUI;
 using System;
+using System.Security.Principal;
 using System.Windows.Forms;
 
 namespace DTAClient.DXGUI
@@ -38,11 +39,13 @@ namespace DTAClient.DXGUI
 
             InitializeUISettings();
 
+            UserINISettings.Initialize(DomainController.Instance().GetSettingsIniName());
+
             WindowManager wm = new WindowManager(this, graphics);
             wm.Initialize(content, ProgramConstants.GetBaseResourcePath());
 
-            int windowWidth = MCDomainController.Instance.GetClientResolutionX();
-            int windowHeight = MCDomainController.Instance.GetClientResolutionY();
+            int windowWidth = UserINISettings.Instance.ClientResolutionX;
+            int windowHeight = UserINISettings.Instance.ClientResolutionY;
 
             if (Screen.PrimaryScreen.Bounds.Width >= windowWidth && Screen.PrimaryScreen.Bounds.Height >= windowHeight)
             {
@@ -61,7 +64,7 @@ namespace DTAClient.DXGUI
             renderResolutionX = Math.Min(renderResolutionX, MCDomainController.Instance.GetMaximumRenderWidth());
             renderResolutionY = Math.Min(renderResolutionY, MCDomainController.Instance.GetMaximumRenderHeight());
 
-            wm.SetBorderlessMode(MCDomainController.Instance.GetBorderlessWindowedStatus());
+            wm.SetBorderlessMode(UserINISettings.Instance.BorderlessWindowedClient);
             wm.CenterOnScreen();
             wm.SetRenderResolution(renderResolutionX, renderResolutionY);
             wm.SetIcon(ProgramConstants.GetBaseResourcePath() + "clienticon.ico");
@@ -76,10 +79,22 @@ namespace DTAClient.DXGUI
 
             Components.Add(wm);
 
-            string playerName = ProgramConstants.PLAYERNAME;
+            string playerName = UserINISettings.Instance.PlayerName;
+
+            if (string.IsNullOrEmpty(playerName))
+            {
+                playerName = WindowsIdentity.GetCurrent().Name;
+
+                playerName = playerName.Substring(playerName.IndexOf("\\") + 1);
+            }
+
             playerName = playerName.Replace(",", string.Empty);
             playerName = Renderer.GetSafeString(playerName, 0);
             playerName.Trim();
+            if (playerName.Length > 16)
+                playerName = playerName.Substring(0, 16);
+
+            ProgramConstants.PLAYERNAME = playerName;
 
             LoadingScreen ls = new LoadingScreen(wm);
             wm.AddAndInitializeControl(ls);

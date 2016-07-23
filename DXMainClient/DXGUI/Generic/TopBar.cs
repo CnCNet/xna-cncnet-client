@@ -6,6 +6,7 @@ using Microsoft.Xna.Framework;
 using Rampastring.XNAUI.Input;
 using Microsoft.Xna.Framework.Input;
 using DTAClient.Online;
+using ClientGUI;
 
 namespace DTAClient.DXGUI.Generic
 {
@@ -38,10 +39,10 @@ namespace DTAClient.DXGUI.Generic
         ISwitchable cncnetLobbySwitch;
         ISwitchable privateMessageSwitch;
 
-        XNAButton btnMainButton;
-        XNAButton btnCnCNetLobby;
-        XNAButton btnPrivateMessages;
-        XNAButton btnLogout;
+        XNAClientButton btnMainButton;
+        XNAClientButton btnCnCNetLobby;
+        XNAClientButton btnPrivateMessages;
+        XNAClientButton btnLogout;
         XNALabel lblTime;
         XNALabel lblDate;
         XNALabel lblConnectionStatus;
@@ -86,34 +87,25 @@ namespace DTAClient.DXGUI.Generic
             BackgroundTexture = AssetLoader.CreateTexture(Color.Black, 1, 1);
             DrawBorders = false;
 
-            btnMainButton = new XNAButton(WindowManager);
+            btnMainButton = new XNAClientButton(WindowManager);
             btnMainButton.Name = "btnMainButton";
             btnMainButton.ClientRectangle = new Rectangle(12, 12, 160, 23);
             btnMainButton.FontIndex = 1;
             btnMainButton.Text = "Main Menu (F2)";
-            btnMainButton.IdleTexture = AssetLoader.LoadTexture("160pxbtn.png");
-            btnMainButton.HoverTexture = AssetLoader.LoadTexture("160pxbtn_c.png");
-            btnMainButton.HoverSoundEffect = AssetLoader.LoadSound("button.wav");
             btnMainButton.LeftClick += BtnMainButton_LeftClick;
 
-            btnCnCNetLobby = new XNAButton(WindowManager);
+            btnCnCNetLobby = new XNAClientButton(WindowManager);
             btnCnCNetLobby.Name = "btnCnCNetLobby";
             btnCnCNetLobby.ClientRectangle = new Rectangle(184, 12, 160, 23);
             btnCnCNetLobby.FontIndex = 1;
             btnCnCNetLobby.Text = "CnCNet Lobby (F3)";
-            btnCnCNetLobby.IdleTexture = AssetLoader.LoadTexture("160pxbtn.png");
-            btnCnCNetLobby.HoverTexture = AssetLoader.LoadTexture("160pxbtn_c.png");
-            btnCnCNetLobby.HoverSoundEffect = AssetLoader.LoadSound("button.wav");
             btnCnCNetLobby.LeftClick += BtnCnCNetLobby_LeftClick;
 
-            btnPrivateMessages = new XNAButton(WindowManager);
+            btnPrivateMessages = new XNAClientButton(WindowManager);
             btnPrivateMessages.Name = "btnPrivateMessages";
             btnPrivateMessages.ClientRectangle = new Rectangle(356, 12, 160, 23);
             btnPrivateMessages.FontIndex = 1;
             btnPrivateMessages.Text = "Private Messages (F4)";
-            btnPrivateMessages.IdleTexture = AssetLoader.LoadTexture("160pxbtn.png");
-            btnPrivateMessages.HoverTexture = AssetLoader.LoadTexture("160pxbtn_c.png");
-            btnPrivateMessages.HoverSoundEffect = AssetLoader.LoadSound("button.wav");
             btnPrivateMessages.LeftClick += BtnPrivateMessages_LeftClick;
 
             lblDate = new XNALabel(WindowManager);
@@ -132,14 +124,11 @@ namespace DTAClient.DXGUI.Generic
                 (int)Renderer.GetTextDimensions(lblTime.Text, lblTime.FontIndex).X - 12, 6,
                 lblTime.ClientRectangle.Width, lblTime.ClientRectangle.Height);
 
-            btnLogout = new XNAButton(WindowManager);
+            btnLogout = new XNAClientButton(WindowManager);
             btnLogout.Name = "btnLogout";
             btnLogout.ClientRectangle = new Rectangle(lblDate.ClientRectangle.Left - 87, 12, 75, 23);
             btnLogout.FontIndex = 1;
             btnLogout.Text = "Log Out";
-            btnLogout.IdleTexture = AssetLoader.LoadTexture("75pxbtn.png");
-            btnLogout.HoverTexture = AssetLoader.LoadTexture("75pxbtn_c.png");
-            btnLogout.HoverSoundEffect = AssetLoader.LoadSound("button.wav");
             btnLogout.AllowClick = false;
             btnLogout.LeftClick += BtnLogout_LeftClick;
 

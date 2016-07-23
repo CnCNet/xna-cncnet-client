@@ -11,6 +11,7 @@ using Rampastring.Tools;
 using ClientCore.Statistics;
 using DTAClient.DXGUI.Generic;
 using DTAClient.domain.Multiplayer;
+using ClientGUI;
 
 namespace DTAClient.DXGUI.Multiplayer.GameLobby
 {
@@ -30,7 +31,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         protected ChatListBox lbChatMessages;
         protected XNASuggestionTextBox tbChatInput;
-        protected XNAButton btnLockGame;
+        protected XNAClientButton btnLockGame;
 
         protected bool IsHost = false;
 
@@ -110,13 +111,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             tbChatInput.MaximumTextLength = 150;
             tbChatInput.EnterPressed += TbChatInput_EnterPressed;
 
-            btnLockGame = new XNAButton(WindowManager);
+            btnLockGame = new XNAClientButton(WindowManager);
             btnLockGame.Name = "btnLockGame";
             btnLockGame.ClientRectangle = new Rectangle(btnLaunchGame.ClientRectangle.Right + 12,
                 btnLaunchGame.ClientRectangle.Y, 133, 23);
-            btnLockGame.IdleTexture = AssetLoader.LoadTexture("133pxbtn.png");
-            btnLockGame.HoverTexture = AssetLoader.LoadTexture("133pxbtn_c.png");
-            btnLockGame.HoverSoundEffect = AssetLoader.LoadSound("button.wav");
             btnLockGame.FontIndex = 1;
             btnLockGame.Text = "Lock Game";
             btnLockGame.LeftClick += BtnLockGame_LeftClick;

@@ -68,7 +68,7 @@ namespace DTAClient.DXGUI.Generic
 
             WindowManager.CenterControlOnScreen(this);
 
-            XNAButton btnNewCampaign = new XNAButton(WindowManager);
+            var btnNewCampaign = new XNAButton(WindowManager);
             btnNewCampaign.Name = "btnNewCampaign";
             btnNewCampaign.IdleTexture = AssetLoader.LoadTexture("MainMenu\\campaign.png");
             btnNewCampaign.HoverTexture = AssetLoader.LoadTexture("MainMenu\\campaign_c.png");
@@ -76,7 +76,7 @@ namespace DTAClient.DXGUI.Generic
             btnNewCampaign.LeftClick += BtnNewCampaign_LeftClick;
             btnNewCampaign.HotKey = Keys.C;
 
-            XNAButton btnLoadGame = new XNAButton(WindowManager);
+            var btnLoadGame = new XNAButton(WindowManager);
             btnLoadGame.Name = "btnLoadGame";
             btnLoadGame.IdleTexture = AssetLoader.LoadTexture("MainMenu\\loadmission.png");
             btnLoadGame.HoverTexture = AssetLoader.LoadTexture("MainMenu\\loadmission_c.png");
@@ -84,7 +84,7 @@ namespace DTAClient.DXGUI.Generic
             btnLoadGame.LeftClick += BtnLoadGame_LeftClick;
             btnLoadGame.HotKey = Keys.L;
 
-            XNAButton btnSkirmish = new XNAButton(WindowManager);
+            var btnSkirmish = new XNAButton(WindowManager);
             btnSkirmish.Name = "btnSkirmish";
             btnSkirmish.IdleTexture = AssetLoader.LoadTexture("MainMenu\\skirmish.png");
             btnSkirmish.HoverTexture = AssetLoader.LoadTexture("MainMenu\\skirmish_c.png");
@@ -92,7 +92,7 @@ namespace DTAClient.DXGUI.Generic
             btnSkirmish.LeftClick += BtnSkirmish_LeftClick;
             btnSkirmish.HotKey = Keys.S;
 
-            XNAButton btnCnCNet = new XNAButton(WindowManager);
+            var btnCnCNet = new XNAButton(WindowManager);
             btnCnCNet.Name = "btnCnCNet";
             btnCnCNet.IdleTexture = AssetLoader.LoadTexture("MainMenu\\cncnet.png");
             btnCnCNet.HoverTexture = AssetLoader.LoadTexture("MainMenu\\cncnet_c.png");
@@ -100,7 +100,7 @@ namespace DTAClient.DXGUI.Generic
             btnCnCNet.LeftClick += BtnCnCNet_LeftClick;
             btnCnCNet.HotKey = Keys.M;
 
-            XNAButton btnLan = new XNAButton(WindowManager);
+            var btnLan = new XNAButton(WindowManager);
             btnLan.Name = "btnLan";
             btnLan.IdleTexture = AssetLoader.LoadTexture("MainMenu\\lan.png");
             btnLan.HoverTexture = AssetLoader.LoadTexture("MainMenu\\lan_c.png");
@@ -108,7 +108,7 @@ namespace DTAClient.DXGUI.Generic
             btnLan.LeftClick += BtnLan_LeftClick;
             btnLan.HotKey = Keys.N;
 
-            XNAButton btnOptions = new XNAButton(WindowManager);
+            var btnOptions = new XNAButton(WindowManager);
             btnOptions.Name = "btnOptions";
             btnOptions.IdleTexture = AssetLoader.LoadTexture("MainMenu\\options.png");
             btnOptions.HoverTexture = AssetLoader.LoadTexture("MainMenu\\options_c.png");
@@ -116,7 +116,7 @@ namespace DTAClient.DXGUI.Generic
             btnOptions.LeftClick += BtnOptions_LeftClick;
             btnOptions.HotKey = Keys.O;
 
-            XNAButton btnMapEditor = new XNAButton(WindowManager);
+            var btnMapEditor = new XNAButton(WindowManager);
             btnMapEditor.Name = "btnMapEditor";
             btnMapEditor.IdleTexture = AssetLoader.LoadTexture("MainMenu\\mapeditor.png");
             btnMapEditor.HoverTexture = AssetLoader.LoadTexture("MainMenu\\mapeditor_c.png");
@@ -124,7 +124,7 @@ namespace DTAClient.DXGUI.Generic
             btnMapEditor.LeftClick += BtnMapEditor_LeftClick;
             btnMapEditor.HotKey = Keys.E;
 
-            XNAButton btnStatistics = new XNAButton(WindowManager);
+            var btnStatistics = new XNAButton(WindowManager);
             btnStatistics.Name = "btnStatistics";
             btnStatistics.IdleTexture = AssetLoader.LoadTexture("MainMenu\\statistics.png");
             btnStatistics.HoverTexture = AssetLoader.LoadTexture("MainMenu\\statistics_c.png");
@@ -132,7 +132,7 @@ namespace DTAClient.DXGUI.Generic
             btnStatistics.LeftClick += BtnStatistics_LeftClick;
             btnStatistics.HotKey = Keys.T;
 
-            XNAButton btnCredits = new XNAButton(WindowManager);
+            var btnCredits = new XNAButton(WindowManager);
             btnCredits.Name = "btnCredits";
             btnCredits.IdleTexture = AssetLoader.LoadTexture("MainMenu\\credits.png");
             btnCredits.HoverTexture = AssetLoader.LoadTexture("MainMenu\\credits_c.png");
@@ -140,7 +140,7 @@ namespace DTAClient.DXGUI.Generic
             btnCredits.LeftClick += BtnCredits_LeftClick;
             btnCredits.HotKey = Keys.R;
 
-            XNAButton btnExtras = new XNAButton(WindowManager);
+            var btnExtras = new XNAButton(WindowManager);
             btnExtras.Name = "btnExtras";
             btnExtras.IdleTexture = AssetLoader.LoadTexture("MainMenu\\extras.png");
             btnExtras.HoverTexture = AssetLoader.LoadTexture("MainMenu\\extras_c.png");
@@ -148,7 +148,7 @@ namespace DTAClient.DXGUI.Generic
             btnExtras.LeftClick += BtnExtras_LeftClick;
             btnExtras.HotKey = Keys.E;
 
-            XNAButton btnExit = new XNAButton(WindowManager);
+            var btnExit = new XNAButton(WindowManager);
             btnExit.Name = "btnExit";
             btnExit.IdleTexture = AssetLoader.LoadTexture("MainMenu\\exitgame.png");
             btnExit.HoverTexture = AssetLoader.LoadTexture("MainMenu\\exitgame_c.png");
@@ -524,7 +524,7 @@ namespace DTAClient.DXGUI.Generic
 
         private void PlayMusic()
         {
-            if (themeSong != null && MCDomainController.Instance.PlayMainMenuMusicStatus)
+            if (themeSong != null && UserINISettings.Instance.PlayMainMenuMusic)
             {
                 isMusicFading = false;
                 MediaPlayer.Volume = 1.0f;
@@ -535,7 +535,7 @@ namespace DTAClient.DXGUI.Generic
 
         private void FadeMusic(GameTime gameTime)
         {
-            if (!isMusicFading)
+            if (!isMusicFading || themeSong == null)
                 return;
 
             // Fade during 1 second
@@ -552,6 +552,12 @@ namespace DTAClient.DXGUI.Generic
 
         private void FadeMusicExit()
         {
+            if (themeSong == null)
+            {
+                Logger.Log("Exiting.");
+                WindowManager.CloseGame();
+            }
+
             if (MediaPlayer.Volume > MEDIA_PLAYER_VOLUME_EXIT_FADE_STEP)
             {
                 MediaPlayer.Volume -= MEDIA_PLAYER_VOLUME_EXIT_FADE_STEP;

@@ -55,9 +55,9 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         LinkButton btnModDB;
         LinkButton btnHomepage;
 
-        XNAButton btnLogout;
-        XNAButton btnNewGame;
-        XNAButton btnJoinGame;
+        XNAClientButton btnLogout;
+        XNAClientButton btnNewGame;
+        XNAClientButton btnJoinGame;
 
         XNATextBox tbChatInput;
 
@@ -110,36 +110,27 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             BackgroundTexture = AssetLoader.LoadTexture("cncnetlobbybg.png");
             localGame = DomainController.Instance().GetDefaultGame();
 
-            btnNewGame = new XNAButton(WindowManager);
+            btnNewGame = new XNAClientButton(WindowManager);
             btnNewGame.Name = "btnNewGame";
             btnNewGame.ClientRectangle = new Rectangle(12, ClientRectangle.Height - 29, 133, 23);
-            btnNewGame.IdleTexture = AssetLoader.LoadTexture("133pxbtn.png");
-            btnNewGame.HoverTexture = AssetLoader.LoadTexture("133pxbtn_c.png");
-            btnNewGame.HoverSoundEffect = AssetLoader.LoadSound("button.wav");
             btnNewGame.FontIndex = 1;
             btnNewGame.Text = "Create Game";
             btnNewGame.AllowClick = false;
             btnNewGame.LeftClick += BtnNewGame_LeftClick;
 
-            btnJoinGame = new XNAButton(WindowManager);
+            btnJoinGame = new XNAClientButton(WindowManager);
             btnJoinGame.Name = "btnJoinGame";
             btnJoinGame.ClientRectangle = new Rectangle(btnNewGame.ClientRectangle.Right + 12,
                 btnNewGame.ClientRectangle.Y, 133, 23);
-            btnJoinGame.IdleTexture = AssetLoader.LoadTexture("133pxbtn.png");
-            btnJoinGame.HoverTexture = AssetLoader.LoadTexture("133pxbtn_c.png");
-            btnJoinGame.HoverSoundEffect = AssetLoader.LoadSound("button.wav");
             btnJoinGame.FontIndex = 1;
             btnJoinGame.Text = "Join Game";
             btnJoinGame.AllowClick = false;
             btnJoinGame.LeftClick += BtnJoinGame_LeftClick;
 
-            btnLogout = new XNAButton(WindowManager);
+            btnLogout = new XNAClientButton(WindowManager);
             btnLogout.Name = "btnLogout";
             btnLogout.ClientRectangle = new Rectangle(ClientRectangle.Width - 145, btnNewGame.ClientRectangle.Y,
                 133, 23);
-            btnLogout.IdleTexture = AssetLoader.LoadTexture("133pxbtn.png");
-            btnLogout.HoverTexture = AssetLoader.LoadTexture("133pxbtn_c.png");
-            btnLogout.HoverSoundEffect = AssetLoader.LoadSound("button.wav");
             btnLogout.FontIndex = 1;
             btnLogout.Text = "Log Out";
             btnLogout.LeftClick += BtnLogout_LeftClick;

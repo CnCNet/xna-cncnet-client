@@ -24,7 +24,7 @@ namespace DTAClient.DXGUI.Generic
         List<Mission> Missions = new List<Mission>();
         XNAListBox lbCampaignList;
         XNALabel lblMissionDescriptionValue;
-        XNAButton btnLaunch;
+        XNAClientButton btnLaunch;
         XNATrackbar trbDifficultySelector;
 
         public override void Initialize()
@@ -35,13 +35,13 @@ namespace DTAClient.DXGUI.Generic
 
             Name = "CampaignSelector";
 
-            XNALabel lblSelectCampaign = new XNALabel(WindowManager);
+            var lblSelectCampaign = new XNALabel(WindowManager);
             lblSelectCampaign.Name = "lblSelectCampaign";
             lblSelectCampaign.FontIndex = 1;
             lblSelectCampaign.Text = "MISSIONS:";
             lblSelectCampaign.ClientRectangle = new Rectangle(12, 9, 0, 0);
 
-            XNALabel lblMissionDescriptionHeader = new XNALabel(WindowManager);
+            var lblMissionDescriptionHeader = new XNALabel(WindowManager);
             lblMissionDescriptionHeader.Name = "lblMissionDescriptionHeader";
             lblMissionDescriptionHeader.FontIndex = 1;
             lblMissionDescriptionHeader.Text = "MISSION DESCRIPTION:";
@@ -56,7 +56,7 @@ namespace DTAClient.DXGUI.Generic
             ParseBattleIni("INI\\Battle.ini");
             ParseBattleIni("INI\\" + MCDomainController.Instance.GetBattleFSFileName());
 
-            XNAPanel panelMissionDescription = new XNAPanel(WindowManager);
+            var panelMissionDescription = new XNAPanel(WindowManager);
             panelMissionDescription.Name = "panelMissionDescription";
             panelMissionDescription.ClientRectangle = new Rectangle(12, 235, 300, 76);
             panelMissionDescription.DrawMode = PanelBackgroundImageDrawMode.STRETCHED;
@@ -74,7 +74,7 @@ namespace DTAClient.DXGUI.Generic
             panelMissionDescription.BackgroundTexture = AssetLoader.CreateTexture(AssetLoader.GetColorFromString(DomainController.Instance().GetUIAltBackgroundColor()),
                 panelMissionDescription.ClientRectangle.Width, panelMissionDescription.ClientRectangle.Height);
 
-            XNALabel lblDifficultyLevel = new XNALabel(WindowManager);
+            var lblDifficultyLevel = new XNALabel(WindowManager);
             lblDifficultyLevel.Name = "lblDifficultyLevel";
             lblDifficultyLevel.Text = "DIFFICULTY LEVEL";
             lblDifficultyLevel.FontIndex = 1;
@@ -88,41 +88,35 @@ namespace DTAClient.DXGUI.Generic
             trbDifficultySelector.MaxValue = 2;
             trbDifficultySelector.BackgroundTexture = AssetLoader.LoadTexture("trackbarbg.png");
 
-            XNALabel lblEasy = new XNALabel(WindowManager);
+            var lblEasy = new XNALabel(WindowManager);
             lblEasy.Name = "lblEasy";
             lblEasy.FontIndex = 1;
             lblEasy.Text = "EASY";
             lblEasy.ClientRectangle = new Rectangle(12, 390, 1, 1);
 
-            XNALabel lblNormal = new XNALabel(WindowManager);
+            var lblNormal = new XNALabel(WindowManager);
             lblNormal.Name = "lblNormal";
             lblNormal.FontIndex = 1;
             lblNormal.Text = "NORMAL";
             textSize = Renderer.GetTextDimensions(lblNormal.Text, lblNormal.FontIndex);
             lblNormal.ClientRectangle = new Rectangle(0, 0, (int)textSize.X, (int)textSize.Y);
 
-            XNALabel lblHard = new XNALabel(WindowManager);
+            var lblHard = new XNALabel(WindowManager);
             lblHard.Name = "lblHard";
             lblHard.FontIndex = 1;
             lblHard.Text = "HARD";
             lblHard.ClientRectangle = new Rectangle(280, 390, 1, 1);
 
-            btnLaunch = new XNAButton(WindowManager);
+            btnLaunch = new XNAClientButton(WindowManager);
             btnLaunch.Name = "btnLaunch";
-            btnLaunch.IdleTexture = AssetLoader.LoadTexture("133pxbtn.png");
-            btnLaunch.HoverTexture = AssetLoader.LoadTexture("133pxbtn_c.png");
-            btnLaunch.HoverSoundEffect = AssetLoader.LoadSound("button.wav");
             btnLaunch.ClientRectangle = new Rectangle(12, 424, 133, 23);
             btnLaunch.FontIndex = 1;
             btnLaunch.Text = "Launch";
             btnLaunch.AllowClick = false;
             btnLaunch.LeftClick += BtnLaunch_LeftClick;
 
-            XNAButton btnCancel = new XNAButton(WindowManager);
+            var btnCancel = new XNAClientButton(WindowManager);
             btnCancel.Name = "btnCancel";
-            btnCancel.IdleTexture = AssetLoader.LoadTexture("133pxbtn.png");
-            btnCancel.HoverTexture = AssetLoader.LoadTexture("133pxbtn_c.png");
-            btnCancel.HoverSoundEffect = AssetLoader.LoadSound("button.wav");
             btnCancel.ClientRectangle = new Rectangle(178, 424, 133, 23);
             btnCancel.FontIndex = 1;
             btnCancel.Text = "Cancel";

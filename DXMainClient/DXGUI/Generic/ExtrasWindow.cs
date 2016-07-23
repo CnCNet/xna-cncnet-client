@@ -22,41 +22,29 @@ namespace DTAClient.DXGUI.Generic
             ClientRectangle = new Rectangle(0, 0, 284, 190);
             BackgroundTexture = AssetLoader.LoadTexture("extrasMenu.png");
 
-            XNAButton btnExStatistics = new XNAButton(WindowManager);
+            var btnExStatistics = new XNAClientButton(WindowManager);
             btnExStatistics.Name = "btnExStatistics";
-            btnExStatistics.IdleTexture = AssetLoader.LoadTexture("133pxbtn.png");
-            btnExStatistics.HoverTexture = AssetLoader.LoadTexture("133pxbtn_c.png");
-            btnExStatistics.HoverSoundEffect = AssetLoader.LoadSound("button.wav");
             btnExStatistics.ClientRectangle = new Rectangle(76, 17, 133, 23);
             btnExStatistics.FontIndex = 1;
             btnExStatistics.Text = "Statistics";
             btnExStatistics.LeftClick += BtnExStatistics_LeftClick;
 
-            XNAButton btnExMapEditor = new XNAButton(WindowManager);
+            var btnExMapEditor = new XNAClientButton(WindowManager);
             btnExMapEditor.Name = "btnExMapEditor";
-            btnExMapEditor.IdleTexture = AssetLoader.LoadTexture("133pxbtn.png");
-            btnExMapEditor.HoverTexture = AssetLoader.LoadTexture("133pxbtn_c.png");
-            btnExMapEditor.HoverSoundEffect = AssetLoader.LoadSound("button.wav");
             btnExMapEditor.ClientRectangle = new Rectangle(76, 59, 133, 23);
             btnExMapEditor.FontIndex = 1;
             btnExMapEditor.Text = "Map Editor";
             btnExMapEditor.LeftClick += BtnExMapEditor_LeftClick;
 
-            XNAButton btnExCredits = new XNAButton(WindowManager);
+            var btnExCredits = new XNAClientButton(WindowManager);
             btnExCredits.Name = "btnExCredits";
-            btnExCredits.IdleTexture = AssetLoader.LoadTexture("133pxbtn.png");
-            btnExCredits.HoverTexture = AssetLoader.LoadTexture("133pxbtn_c.png");
-            btnExCredits.HoverSoundEffect = AssetLoader.LoadSound("button.wav");
             btnExCredits.ClientRectangle = new Rectangle(76, 101, 133, 23);
             btnExCredits.FontIndex = 1;
             btnExCredits.Text = "Credits";
             btnExCredits.LeftClick += BtnExCredits_LeftClick;
 
-            XNAButton btnExCancel = new XNAButton(WindowManager);
+            var btnExCancel = new XNAClientButton(WindowManager);
             btnExCancel.Name = "btnExCancel";
-            btnExCancel.IdleTexture = AssetLoader.LoadTexture("133pxbtn.png");
-            btnExCancel.HoverTexture = AssetLoader.LoadTexture("133pxbtn_c.png");
-            btnExCancel.HoverSoundEffect = AssetLoader.LoadSound("button.wav");
             btnExCancel.ClientRectangle = new Rectangle(76, 160, 133, 23);
             btnExCancel.FontIndex = 1;
             btnExCancel.Text = "Cancel";

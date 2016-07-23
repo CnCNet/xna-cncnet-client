@@ -22,7 +22,7 @@ namespace DTAClient.DXGUI.Generic
         }
 
         XNAMultiColumnListBox lbSaveGameList;
-        XNAButton btnLaunch;
+        XNAClientButton btnLaunch;
         List<SavedGame> savedGames = new List<SavedGame>();
 
         public override void Initialize()
@@ -38,24 +38,19 @@ namespace DTAClient.DXGUI.Generic
             lbSaveGameList.AddColumn("SAVED GAME NAME", 400);
             lbSaveGameList.AddColumn("DATE / TIME", 174);
             lbSaveGameList.ClientRectangle = new Rectangle(13, 13, 574, 317);
-            lbSaveGameList.BackgroundTexture = AssetLoader.LoadTexture("loadmissionpanelbg.png");
+            lbSaveGameList.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 128), 1, 1);
+            lbSaveGameList.DrawMode = PanelBackgroundImageDrawMode.STRETCHED;
             lbSaveGameList.SelectedIndexChanged += ListBox_SelectedIndexChanged;
 
-            btnLaunch = new XNAButton(WindowManager);
-            btnLaunch.IdleTexture = AssetLoader.LoadTexture("133pxbtn.png");
-            btnLaunch.HoverTexture = AssetLoader.LoadTexture("133pxbtn_c.png");
-            btnLaunch.HoverSoundEffect = AssetLoader.LoadSound("button.wav");
+            btnLaunch = new XNAClientButton(WindowManager);
             btnLaunch.ClientRectangle = new Rectangle(161, 345, 133, 23);
             btnLaunch.FontIndex = 1;
             btnLaunch.Text = "Load";
             btnLaunch.AllowClick = false;
             btnLaunch.LeftClick += BtnLaunch_LeftClick;
 
-            XNAButton btnCancel = new XNAButton(WindowManager);
+            var btnCancel = new XNAClientButton(WindowManager);
             btnCancel.Name = "btnCancel";
-            btnCancel.IdleTexture = AssetLoader.LoadTexture("133pxbtn.png");
-            btnCancel.HoverTexture = AssetLoader.LoadTexture("133pxbtn_c.png");
-            btnCancel.HoverSoundEffect = AssetLoader.LoadSound("button.wav");
             btnCancel.ClientRectangle = new Rectangle(304, btnLaunch.ClientRectangle.Y, 133, 23);
             btnCancel.FontIndex = 1;
             btnCancel.Text = "Cancel";

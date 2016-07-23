@@ -86,10 +86,10 @@ namespace DTAClient.DXGUI.Generic
             tabControl.ClientRectangle = new Rectangle(12, 10, 0, 0);
             tabControl.SoundOnClick = AssetLoader.LoadSound("button.wav");
             tabControl.FontIndex = 1;
-            tabControl.AddTab("Game Statistics", AssetLoader.LoadTexture("133pxbtn.png"),
-                AssetLoader.LoadTexture("133pxbtn_c.png"), true);
-            tabControl.AddTab("Total Statistics", AssetLoader.LoadTexture("133pxbtn.png"),
-                AssetLoader.LoadTexture("133pxbtn_c.png"), true);
+            tabControl.AddTab("Game Statistics", AssetLoader.LoadTexture("133pxbtn_c.png"),
+                AssetLoader.LoadTexture("133pxbtn.png"), true);
+            tabControl.AddTab("Total Statistics", AssetLoader.LoadTexture("133pxbtn_c.png"),
+                AssetLoader.LoadTexture("133pxbtn.png"), true);
             tabControl.SelectedIndexChanged += tabControl_SelectedIndexChanged;
 
             XNALabel lblFilter = new XNALabel(WindowManager);
@@ -120,11 +120,8 @@ namespace DTAClient.DXGUI.Generic
             cmbGameModeFilter.ClickSoundEffect = AssetLoader.LoadSound("dropdown.wav");
             cmbGameModeFilter.SelectedIndexChanged += CmbGameModeFilter_SelectedIndexChanged;
 
-            XNAButton btnReturnToMenu = new XNAButton(WindowManager);
+            var btnReturnToMenu = new XNAClientButton(WindowManager);
             btnReturnToMenu.Name = "btnReturnToMenu";
-            btnReturnToMenu.IdleTexture = AssetLoader.LoadTexture("160pxbtn.png");
-            btnReturnToMenu.HoverTexture = AssetLoader.LoadTexture("160pxbtn_c.png");
-            btnReturnToMenu.HoverSoundEffect = AssetLoader.LoadSound("button.wav");
             btnReturnToMenu.ClientRectangle = new Rectangle(270, 486, 160, 23);
             btnReturnToMenu.FontIndex = 1;
             btnReturnToMenu.Text = "Return to Main Menu";
@@ -158,7 +155,7 @@ namespace DTAClient.DXGUI.Generic
             lblMatches.ClientRectangle = new Rectangle(4, 2, 0, 0);
 
             lbGameList = new XNAMultiColumnListBox(WindowManager);
-            lbGameList.BackgroundTexture = AssetLoader.CreateTexture(UISettings.BackgroundColor, 100, 100);
+            lbGameList.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 128), 1, 1);
             lbGameList.DrawMode = PanelBackgroundImageDrawMode.STRETCHED;
             lbGameList.AddColumn("DATE / TIME", 130);
             lbGameList.AddColumn("MAP", 200);
@@ -170,7 +167,7 @@ namespace DTAClient.DXGUI.Generic
             lbGameList.SelectedIndexChanged += LbGameList_SelectedIndexChanged;
 
             lbGameStatistics = new XNAMultiColumnListBox(WindowManager);
-            lbGameStatistics.BackgroundTexture = AssetLoader.CreateTexture(UISettings.BackgroundColor, 1, 1);
+            lbGameStatistics.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 128), 1, 1);
             lbGameStatistics.DrawMode = PanelBackgroundImageDrawMode.STRETCHED;
             lbGameStatistics.AddColumn("NAME", 130);
             lbGameStatistics.AddColumn("KILLS", 78);

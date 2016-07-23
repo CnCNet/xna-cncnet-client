@@ -20,8 +20,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         XNACheckBox chkRememberMe;
         XNACheckBox chkPersistentMode;
         XNACheckBox chkAutoConnect;
-        XNAButton btnConnect;
-        XNAButton btnCancel;
+        XNAClientButton btnConnect;
+        XNAClientButton btnCancel;
 
         public event EventHandler Cancelled;
         public event EventHandler Connect;
@@ -85,22 +85,16 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             chkAutoConnect.CheckSoundEffect = AssetLoader.LoadSound("checkbox.wav");
             chkAutoConnect.AllowChecking = false;
 
-            btnConnect = new XNAButton(WindowManager);
+            btnConnect = new XNAClientButton(WindowManager);
             btnConnect.Name = "btnConnect";
             btnConnect.ClientRectangle = new Rectangle(12, ClientRectangle.Height - 35, 110, 23);
-            btnConnect.IdleTexture = AssetLoader.LoadTexture("110pxbtn.png");
-            btnConnect.HoverTexture = AssetLoader.LoadTexture("110pxbtn_c.png");
-            btnConnect.HoverSoundEffect = AssetLoader.LoadSound("button.wav");
             btnConnect.FontIndex = 1;
             btnConnect.Text = "Connect";
             btnConnect.LeftClick += BtnConnect_LeftClick;
 
-            btnCancel = new XNAButton(WindowManager);
+            btnCancel = new XNAClientButton(WindowManager);
             btnCancel.Name = "btnCancel";
             btnCancel.ClientRectangle = new Rectangle(ClientRectangle.Width - 122, btnConnect.ClientRectangle.Y, 110, 23);
-            btnCancel.IdleTexture = AssetLoader.LoadTexture("110pxbtn.png");
-            btnCancel.HoverTexture = AssetLoader.LoadTexture("110pxbtn_c.png");
-            btnCancel.HoverSoundEffect = AssetLoader.LoadSound("button.wav");
             btnCancel.FontIndex = 1;
             btnCancel.Text = "Cancel";
             btnCancel.LeftClick += BtnCancel_LeftClick;

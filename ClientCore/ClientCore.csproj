@@ -67,6 +67,12 @@
     <Compile Include="ParentProcess.cs" />
     <Compile Include="Pinger.cs" />
     <Compile Include="SavedGameManager.cs" />
+    <Compile Include="Settings\UserINISettings.cs" />
+    <Compile Include="Settings\BoolSetting.cs" />
+    <Compile Include="Settings\DoubleSetting.cs" />
+    <Compile Include="Settings\INISetting.cs" />
+    <Compile Include="Settings\IntSetting.cs" />
+    <Compile Include="Settings\StringSetting.cs" />
     <Compile Include="SharedLogic.cs" />
     <Compile Include="LoadingScreenController.cs" />
     <Compile Include="ProgramConstants.cs" />

@@ -34,15 +34,15 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         XNALabel lblTunnelServer;
         XNAMultiColumnListBox lbTunnelList;
 
-        XNAButton btnCreateGame;
-        XNAButton btnCancel;
-        XNAButton btnLoadMPGame;
-        XNAButton btnDisplayAdvancedOptions;
+        XNAClientButton btnCreateGame;
+        XNAClientButton btnCancel;
+        XNAClientButton btnLoadMPGame;
+        XNAClientButton btnDisplayAdvancedOptions;
 
         TunnelHandler tunnelHandler;
 
         int bestTunnelIndex = 0;
-        int lowestTunnelRating = Int32.MaxValue;
+        int lowestTunnelRating = int.MaxValue;
 
         bool isManuallySelectedTunnel = false;
         string manuallySelectedTunnelAddress;
@@ -53,38 +53,26 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             ClientRectangle = new Rectangle(0, 0, 490, 188);
             BackgroundTexture = AssetLoader.LoadTexture("gamecreationoptionsbg.png");
 
-            btnCreateGame = new XNAButton(WindowManager);
+            btnCreateGame = new XNAClientButton(WindowManager);
             btnCreateGame.ClientRectangle = new Rectangle(12, 159, 133, 23);
-            btnCreateGame.IdleTexture = AssetLoader.LoadTexture("133pxbtn.png");
-            btnCreateGame.HoverTexture = AssetLoader.LoadTexture("133pxbtn_c.png");
-            btnCreateGame.HoverSoundEffect = AssetLoader.LoadSound("button.wav");
             btnCreateGame.FontIndex = 1;
             btnCreateGame.Text = "Create Game";
             btnCreateGame.LeftClick += BtnCreateGame_LeftClick;
 
-            btnCancel = new XNAButton(WindowManager);
+            btnCancel = new XNAClientButton(WindowManager);
             btnCancel.ClientRectangle = new Rectangle(345, btnCreateGame.ClientRectangle.Y, 133, 23);
-            btnCancel.IdleTexture = AssetLoader.LoadTexture("133pxbtn.png");
-            btnCancel.HoverTexture = AssetLoader.LoadTexture("133pxbtn_c.png");
-            btnCancel.HoverSoundEffect = AssetLoader.LoadSound("button.wav");
             btnCancel.FontIndex = 1;
             btnCancel.Text = "Cancel";
             btnCancel.LeftClick += BtnCancel_LeftClick;
 
-            btnLoadMPGame = new XNAButton(WindowManager);
+            btnLoadMPGame = new XNAClientButton(WindowManager);
             btnLoadMPGame.ClientRectangle = new Rectangle(178, btnCreateGame.ClientRectangle.Y, 133, 23);
-            btnLoadMPGame.IdleTexture = AssetLoader.LoadTexture("133pxbtn.png");
-            btnLoadMPGame.HoverTexture = AssetLoader.LoadTexture("133pxbtn_c.png");
-            btnLoadMPGame.HoverSoundEffect = AssetLoader.LoadSound("button.wav");
             btnLoadMPGame.FontIndex = 1;
             btnLoadMPGame.Text = "Load Game";
             btnLoadMPGame.LeftClick += BtnLoadMPGame_LeftClick;
 
-            btnDisplayAdvancedOptions = new XNAButton(WindowManager);
+            btnDisplayAdvancedOptions = new XNAClientButton(WindowManager);
             btnDisplayAdvancedOptions.ClientRectangle = new Rectangle(12, 124, 160, 23);
-            btnDisplayAdvancedOptions.IdleTexture = AssetLoader.LoadTexture("160pxbtn.png");
-            btnDisplayAdvancedOptions.HoverTexture = AssetLoader.LoadTexture("160pxbtn_c.png");
-            btnDisplayAdvancedOptions.HoverSoundEffect = AssetLoader.LoadSound("button.wav");
             btnDisplayAdvancedOptions.FontIndex = 1;
             btnDisplayAdvancedOptions.Text = "Advanced Options";
             btnDisplayAdvancedOptions.LeftClick += BtnDisplayAdvancedOptions_LeftClick;

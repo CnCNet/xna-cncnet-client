@@ -75,8 +75,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         protected XNALabel lblStart;
         protected XNALabel lblTeam;
 
-        protected XNAButton btnLeaveGame;
-        protected XNAButton btnLaunchGame;
+        protected XNAClientButton btnLeaveGame;
+        protected XNAClientButton btnLaunchGame;
         protected XNALabel lblMapName;
         protected XNALabel lblMapAuthor;
         protected XNALabel lblGameMode;
@@ -157,21 +157,15 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             PlayerOptionsPanel.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 192), 1, 1);
             PlayerOptionsPanel.DrawMode = PanelBackgroundImageDrawMode.STRETCHED;
 
-            btnLeaveGame = new XNAButton(WindowManager);
+            btnLeaveGame = new XNAClientButton(WindowManager);
             btnLeaveGame.Name = "btnLeaveGame";
-            btnLeaveGame.IdleTexture = AssetLoader.LoadTexture("133pxbtn.png");
-            btnLeaveGame.HoverTexture = AssetLoader.LoadTexture("133pxbtn_c.png");
-            btnLeaveGame.HoverSoundEffect = AssetLoader.LoadSound("button.wav");
             btnLeaveGame.ClientRectangle = new Rectangle(ClientRectangle.Width - 143, ClientRectangle.Height - 28, 133, 23);
             btnLeaveGame.FontIndex = 1;
             btnLeaveGame.Text = "Leave Game";
             btnLeaveGame.LeftClick += BtnLeaveGame_LeftClick;
 
-            btnLaunchGame = new XNAButton(WindowManager);
+            btnLaunchGame = new XNAClientButton(WindowManager);
             btnLaunchGame.Name = "btnLaunchGame";
-            btnLaunchGame.IdleTexture = AssetLoader.LoadTexture("133pxbtn.png");
-            btnLaunchGame.HoverTexture = AssetLoader.LoadTexture("133pxbtn_c.png");
-            btnLaunchGame.HoverSoundEffect = AssetLoader.LoadSound("button.wav");
             btnLaunchGame.ClientRectangle = new Rectangle(12, btnLeaveGame.ClientRectangle.Y, 133, 23);
             btnLaunchGame.FontIndex = 1;
             btnLaunchGame.Text = "Launch Game";

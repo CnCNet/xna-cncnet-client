@@ -50,11 +50,11 @@ namespace DTAClient.DXGUI.Generic
             BackgroundTexture = AssetLoader.LoadTexture("updaterbg.png");
 
             lblDescription = new XNALabel(WindowManager);
-            lblDescription.Text = String.Empty;
+            lblDescription.Text = string.Empty;
             lblDescription.ClientRectangle = new Rectangle(12, 9, 0, 0);
             lblDescription.Name = "lblDescription";
 
-            XNALabel lblCurrentFileProgressPercentage = new XNALabel(WindowManager);
+            var lblCurrentFileProgressPercentage = new XNALabel(WindowManager);
             lblCurrentFileProgressPercentage.Text = "Progress percentage of current file:";
             lblCurrentFileProgressPercentage.ClientRectangle = new Rectangle(12, 90, 0, 0);
             lblCurrentFileProgressPercentage.Name = "lblCurrentFileProgressPercentage";
@@ -76,7 +76,7 @@ namespace DTAClient.DXGUI.Generic
             lblCurrentFile.Name = "lblCurrentFile";
             lblCurrentFile.ClientRectangle = new Rectangle(12, 142, 0, 0);
 
-            XNALabel lblTotalProgressPercentage = new XNALabel(WindowManager);
+            var lblTotalProgressPercentage = new XNALabel(WindowManager);
             lblTotalProgressPercentage.Text = "Total progress percentage:";
             lblTotalProgressPercentage.ClientRectangle = new Rectangle(12, 170, 0, 0);
             lblTotalProgressPercentage.Name = "lblTotalProgressPercentage";
@@ -97,11 +97,8 @@ namespace DTAClient.DXGUI.Generic
             lblUpdaterStatus.Text = "Preparing...";
             lblUpdaterStatus.ClientRectangle = new Rectangle(12, 240, 0, 0);
 
-            XNAButton btnCancel = new XNAButton(WindowManager);
+            var btnCancel = new XNAClientButton(WindowManager);
             btnCancel.ClientRectangle = new Rectangle(301, 240, 133, 23);
-            btnCancel.IdleTexture = AssetLoader.LoadTexture("133pxbtn.png");
-            btnCancel.HoverTexture = AssetLoader.LoadTexture("133pxbtn_c.png");
-            btnCancel.HoverSoundEffect = AssetLoader.LoadSound("button.wav");
             btnCancel.Text = "Cancel";
             btnCancel.FontIndex = 1;
             btnCancel.LeftClick += BtnCancel_LeftClick;
@@ -139,6 +136,7 @@ namespace DTAClient.DXGUI.Generic
         private void UpdateFileProgress(int value)
         {
             prgCurrentFile.Value = value;
+            lblCurrentFileProgressPercentageValue.Text = value + "%";
         }
 
         private void Updater_UpdateProgressChanged(string currFileName, int currFilePercentage, int totalPercentage)

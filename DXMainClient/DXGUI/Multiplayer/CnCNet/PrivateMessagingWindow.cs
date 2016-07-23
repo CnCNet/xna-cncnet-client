@@ -284,12 +284,12 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             tabControl.ClientRectangle = new Rectangle(60, 50, 0, 0);
             tabControl.SoundOnClick = AssetLoader.LoadSound("button.wav");
             tabControl.FontIndex = 1;
-            tabControl.AddTab("Messages", AssetLoader.LoadTexture("160pxbtn.png"),
-                AssetLoader.LoadTexture("160pxbtn_c.png"), true);
-            tabControl.AddTab("Friend List", AssetLoader.LoadTexture("160pxbtn.png"),
-                AssetLoader.LoadTexture("160pxbtn_c.png"), true);
-            tabControl.AddTab("All Players", AssetLoader.LoadTexture("160pxbtn.png"),
-                AssetLoader.LoadTexture("160pxbtn_c.png"), true);
+            tabControl.AddTab("Messages", AssetLoader.LoadTexture("160pxbtn_c.png"),
+                AssetLoader.LoadTexture("160pxbtn.png"), true);
+            tabControl.AddTab("Friend List", AssetLoader.LoadTexture("160pxbtn_c.png"),
+                AssetLoader.LoadTexture("160pxbtn.png"), true);
+            tabControl.AddTab("All Players", AssetLoader.LoadTexture("160pxbtn_c.png"),
+                AssetLoader.LoadTexture("160pxbtn.png"), true);
             tabControl.SelectedIndexChanged += TabControl_SelectedIndexChanged;
 
             lblPlayers = new XNALabel(WindowManager);

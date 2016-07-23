@@ -7,6 +7,7 @@ using DTAClient.DXGUI.Multiplayer;
 using DTAClient.DXGUI.Multiplayer.CnCNet;
 using DTAClient.DXGUI.Multiplayer.GameLobby;
 using DTAClient.Online;
+using DTAConfig;
 using Microsoft.Xna.Framework;
 using Rampastring.XNAUI;
 using System;
@@ -27,13 +28,9 @@ namespace DTAClient.DXGUI.Generic
 
         MapLoader mapLoader;
 
-        DarkeningPanel cncnetLobbyPanel;
-        DarkeningPanel cncnetGameLobbyPanel;
         PrivateMessagingPanel privateMessagingPanel;
 
         bool load = false;
-
-        //DXProgressBar progressBar;
 
         public override void Initialize()
         {
@@ -77,49 +74,43 @@ namespace DTAClient.DXGUI.Generic
 
         private void Finish()
         {
-            GameCollection gameCollection = new GameCollection();
+            var gameCollection = new GameCollection();
             gameCollection.Initialize(GraphicsDevice);
 
-            LANLobby lanLobby = new LANLobby(WindowManager, gameCollection, mapLoader.GameModes);
+            var lanLobby = new LANLobby(WindowManager, gameCollection, mapLoader.GameModes);
 
-            CnCNetManager cncnetManager = new CnCNetManager(WindowManager, gameCollection);
-            TunnelHandler tunnelHandler = new TunnelHandler(WindowManager, cncnetManager);
+            var cncnetManager = new CnCNetManager(WindowManager, gameCollection);
+            var tunnelHandler = new TunnelHandler(WindowManager, cncnetManager);
 
-            TopBar topBar = new TopBar(WindowManager, cncnetManager);
+            var topBar = new TopBar(WindowManager, cncnetManager);
 
-            PrivateMessagingWindow pmWindow = new PrivateMessagingWindow(WindowManager,
+            var pmWindow = new PrivateMessagingWindow(WindowManager,
                 cncnetManager, gameCollection);
             privateMessagingPanel = new PrivateMessagingPanel(WindowManager);
 
-            CnCNetGameLobby cncnetGameLobby = new CnCNetGameLobby(WindowManager,
+            var cncnetGameLobby = new CnCNetGameLobby(WindowManager,
                 "MultiplayerGameLobby", topBar, mapLoader.GameModes, cncnetManager, tunnelHandler);
-            CnCNetGameLoadingLobby cncnetGameLoadingLobby = new CnCNetGameLoadingLobby(WindowManager, 
+            var cncnetGameLoadingLobby = new CnCNetGameLoadingLobby(WindowManager, 
                 topBar, cncnetManager, tunnelHandler, mapLoader.GameModes);
-            CnCNetLobby cncnetLobby = new CnCNetLobby(WindowManager, cncnetManager, 
+            var cncnetLobby = new CnCNetLobby(WindowManager, cncnetManager, 
                 cncnetGameLobby, cncnetGameLoadingLobby, topBar, pmWindow, tunnelHandler,
                 gameCollection);
-            GameInProgressWindow gipw = new GameInProgressWindow(WindowManager);
+            var gipw = new GameInProgressWindow(WindowManager);
 
-            SkirmishLobby sl = new SkirmishLobby(WindowManager, topBar, mapLoader.GameModes);
+            var skirmishLobby = new SkirmishLobby(WindowManager, topBar, mapLoader.GameModes);
 
             topBar.SetSecondarySwitch(cncnetLobby);
 
-            MainMenu mm = new MainMenu(WindowManager, sl, lanLobby, topBar, cncnetManager);
-            WindowManager.AddAndInitializeControl(mm);
-            WindowManager.AddAndInitializeControl(sl);
+            var mainMenu = new MainMenu(WindowManager, skirmishLobby, lanLobby, topBar, cncnetManager);
+            WindowManager.AddAndInitializeControl(mainMenu);
+            WindowManager.AddAndInitializeControl(skirmishLobby);
             WindowManager.AddAndInitializeControl(cncnetGameLoadingLobby);
 
-            cncnetGameLobbyPanel = new DarkeningPanel(WindowManager);
-            WindowManager.AddAndInitializeControl(cncnetGameLobbyPanel);
-            cncnetGameLobbyPanel.AddChild(cncnetGameLobby);
+            DarkeningPanel.AddAndInitializeWithControl(WindowManager, cncnetGameLobby);
 
-            cncnetLobbyPanel = new DarkeningPanel(WindowManager);
-            WindowManager.AddAndInitializeControl(cncnetLobbyPanel);
-            cncnetLobbyPanel.AddChild(cncnetLobby);
+            DarkeningPanel.AddAndInitializeWithControl(WindowManager, cncnetLobby);
 
-            DarkeningPanel lanPanel = new DarkeningPanel(WindowManager);
-            WindowManager.AddAndInitializeControl(lanPanel);
-            lanPanel.AddChild(lanLobby);
+            DarkeningPanel.AddAndInitializeWithControl(WindowManager, lanLobby);
 
             WindowManager.AddAndInitializeControl(privateMessagingPanel);
             privateMessagingPanel.AddChild(pmWindow);
@@ -127,7 +118,7 @@ namespace DTAClient.DXGUI.Generic
             topBar.SetTertiarySwitch(pmWindow);
 
             WindowManager.AddAndInitializeControl(gipw);
-            sl.Disable();
+            skirmishLobby.Disable();
             cncnetLobby.Disable();
             cncnetGameLobby.Disable();
             cncnetGameLoadingLobby.Disable();
@@ -135,11 +126,11 @@ namespace DTAClient.DXGUI.Generic
             pmWindow.Disable();
 
             WindowManager.AddAndInitializeControl(topBar);
-            topBar.AddPrimarySwitchable(mm);
+            topBar.AddPrimarySwitchable(mainMenu);
 
             WindowManager.AddAndInitializeControl(new PrivateMessageNotificationBox(WindowManager));
 
-            mm.PostInit();
+            mainMenu.PostInit();
 
             if (DomainController.Instance().GetCnCNetAutologinStatus())
                 cncnetManager.Connect();
@@ -147,6 +138,10 @@ namespace DTAClient.DXGUI.Generic
             WindowManager.RemoveControl(this);
 
             Cursor.Visible = true;
+
+            var ow = new OptionsWindow(WindowManager);
+            WindowManager.AddAndInitializeControl(ow);
+            ow.CenterOnParent();
         }
 
         public override void Update(GameTime gameTime)

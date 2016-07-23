@@ -35,7 +35,7 @@ namespace DTAClient.DXGUI.Generic
             lblDescription.Text = String.Empty;
             lblDescription.Name = "lblDescription";
 
-            XNALabel lblChangelogLink = new XNALabel(WindowManager);
+            var lblChangelogLink = new XNALabel(WindowManager);
             lblChangelogLink.ClientRectangle = new Rectangle(12, 50, 0, 0);
             lblChangelogLink.Text = "Click here to view the changelog";
             lblChangelogLink.RemapColor = Color.Goldenrod;
@@ -47,20 +47,14 @@ namespace DTAClient.DXGUI.Generic
             lblUpdateSize.Text = String.Empty;
             lblUpdateSize.Name = "lblUpdateSize";
 
-            XNAButton btnYes = new XNAButton(WindowManager);
+            var btnYes = new XNAClientButton(WindowManager);
             btnYes.ClientRectangle = new Rectangle(12, 110, 75, 23);
-            btnYes.IdleTexture = AssetLoader.LoadTexture("75pxbtn.png");
-            btnYes.HoverTexture = AssetLoader.LoadTexture("75pxbtn_c.png");
-            btnYes.HoverSoundEffect = AssetLoader.LoadSound("button.wav");
             btnYes.Text = "Yes";
             btnYes.FontIndex = 1;
             btnYes.LeftClick += BtnYes_LeftClick;
 
-            XNAButton btnNo = new XNAButton(WindowManager);
+            var btnNo = new XNAClientButton(WindowManager);
             btnNo.ClientRectangle = new Rectangle(164, 110, 75, 23);
-            btnNo.IdleTexture = AssetLoader.LoadTexture("75pxbtn.png");
-            btnNo.HoverTexture = AssetLoader.LoadTexture("75pxbtn_c.png");
-            btnNo.HoverSoundEffect = AssetLoader.LoadSound("button.wav");
             btnNo.Text = "No";
             btnNo.FontIndex = 1;
             btnNo.LeftClick += BtnNo_LeftClick;
