@@ -55,30 +55,14 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Anticheat.cs" />
-    <Compile Include="ClientButton.cs" />
-    <Compile Include="Controls\EnhancedPictureBox.cs">
-      <SubType>Component</SubType>
-    </Compile>
-    <Compile Include="Controls\EnhancedPictureBox.designer.cs">
-      <DependentUpon>EnhancedPictureBox.cs</DependentUpon>
-    </Compile>
+    <Compile Include="XNAClientButton.cs" />
     <Compile Include="DarkeningPanel.cs" />
+    <Compile Include="XNAClientCheckBox.cs" />
+    <Compile Include="XNAClientDropDown.cs" />
     <Compile Include="XNAExtraPanel.cs" />
     <Compile Include="XNAMessageBox.cs" />
     <Compile Include="XNAWindow.cs" />
     <Compile Include="FunkyIran\MapPreviewGenerator.cs" />
-    <Compile Include="Controls\LimitedComboBox.cs">
-      <SubType>Component</SubType>
-    </Compile>
-    <Compile Include="LAN\LANLoadingLobby.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="LAN\LANLoadingLobby.Designer.cs">
-      <DependentUpon>LANLoadingLobby.cs</DependentUpon>
-    </Compile>
-    <Compile Include="MainProxy.cs" />
-    <Compile Include="MapInfoStyle.cs" />
     <Compile Include="MovableForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -95,12 +79,6 @@
       <DependentUpon>PasswordQueryForm.cs</DependentUpon>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Controls\ScrollbarlessListBox.cs">
-      <SubType>Component</SubType>
-    </Compile>
-    <Compile Include="Controls\ScrollbarlessListBox.Designer.cs">
-      <DependentUpon>ScrollbarlessListBox.cs</DependentUpon>
-    </Compile>
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -110,17 +88,8 @@
     <Compile Include="Controls\SwitchingImageButton.cs">
       <SubType>Component</SubType>
     </Compile>
-    <Compile Include="Controls\UserCheckBox.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
-    <Compile Include="Controls\UserCheckBox.Designer.cs">
-      <DependentUpon>UserCheckBox.cs</DependentUpon>
-    </Compile>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="LAN\LANLoadingLobby.resx">
-      <DependentUpon>LANLoadingLobby.cs</DependentUpon>
-    </EmbeddedResource>
     <EmbeddedResource Include="MsgBoxForm.resx">
       <DependentUpon>MsgBoxForm.cs</DependentUpon>
     </EmbeddedResource>
@@ -130,9 +99,6 @@
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Controls\UserCheckBox.resx">
-      <DependentUpon>UserCheckBox.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>

@@ -129,6 +129,9 @@ namespace DTAClient.DXGUI
             ProgramConstants.IsInGame = false;
             Game.TargetElapsedTime = TimeSpan.FromMilliseconds(1000.0 / FPS);
             WindowManager.MaximizeWindow();
+
+            UserINISettings.Instance.ReloadSettings();
+            DomainController.Instance().ReloadSettings();
         }
     }
 }

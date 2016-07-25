@@ -25,10 +25,13 @@ namespace DTAClient
         /// </summary>
         public void Execute()
         {
-            int themeId = DomainController.Instance().GetSelectedThemeId();
+            int themeId = UserINISettings.Instance.ClientTheme;
 
-            if (themeId >= DomainController.Instance().GetThemeCount())
+            if (themeId >= DomainController.Instance().GetThemeCount() || themeId < 0)
+            {
                 themeId = 0;
+                UserINISettings.Instance.ClientTheme.Value = 0;
+            }
 
             ProgramConstants.RESOURCES_DIR = "Resources\\" + DomainController.Instance().GetThemeInfoFromIndex(themeId)[1];
             DomainController.Instance().ReloadSettings();
@@ -50,7 +53,6 @@ namespace DTAClient
             Thread thread = new Thread(CheckSystemSpecifications);
             thread.Start();
 
-            CheckIfFirstRun();
             InstallCompatibilityFixes();
 
             // Delete temporary updater directory
@@ -265,7 +267,7 @@ namespace DTAClient
         /// </summary>
         private void WriteInstallPathToRegistry()
         {
-            if (!MCDomainController.Instance.GetInstallationPathWriteStatus())
+            if (!UserINISettings.Instance.WritePathToRegistry)
             {
                 Logger.Log("Skipping writing installation path to the Windows Registry because of INI setting.");
                 return;
@@ -277,33 +279,6 @@ namespace DTAClient
             key = Microsoft.Win32.Registry.CurrentUser.CreateSubKey("SOFTWARE\\" + MCDomainController.Instance.GetInstallationPathRegKey());
             key.SetValue("InstallPath", MainClientConstants.gamepath);
             key.Close();
-        }
-
-        /// <summary>
-        /// Checks if the game is started for the first time. If so, asks the user if they wish to configure settings.
-        /// </summary>
-        private void CheckIfFirstRun()
-        {
-            bool firstRun = MCDomainController.Instance.IsFirstRun();
-
-            if (MCDomainController.Instance.GetShortGameName() == "YR")
-                return;
-
-            if (firstRun)
-            {
-                MCDomainController.Instance.SetFirstRun();
-
-                DialogResult dr = new MsgBoxForm(string.Format("You have just installed {0}. " + Environment.NewLine +
-                    "It's highly recommended that you configure your settings before playing." + Environment.NewLine +
-                    "Do you want to configure them now?", MainClientConstants.GAME_NAME_SHORT), "Initial installation", MessageBoxButtons.YesNo).ShowDialog();
-
-                if (dr == DialogResult.OK)
-                {
-                    new OptionsForm().ShowDialog();
-                    MCDomainController.Instance.ReloadSettings();
-                    DomainController.Instance().ReloadSettings();
-                }
-            }
         }
 
         /// <summary>

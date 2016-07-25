@@ -30,6 +30,12 @@ namespace DTAClient.Online
             Persistent = persistent;
             Password = password;
             this.connection = connection;
+
+            if (persistent)
+            {
+                notifyOnUserListChange = UserINISettings.Instance.NotifyOnUserListChange;
+                UserINISettings.Instance.SettingsSaved += Instance_SettingsSaved;
+            }
         }
 
         #region Public members
@@ -70,6 +76,13 @@ namespace DTAClient.Online
 
         #endregion
 
+        bool notifyOnUserListChange = true;
+
+        private void Instance_SettingsSaved(object sender, EventArgs e)
+        {
+            notifyOnUserListChange = UserINISettings.Instance.NotifyOnUserListChange;
+        }
+
         public void AddUser(IRCUser user)
         {
             users.Add(user);
@@ -80,8 +93,12 @@ namespace DTAClient.Online
         public void OnUserJoined(IRCUser user)
         {
             AddUser(user);
-            AddMessage(new ChatMessage(null, Color.White, DateTime.Now,
-                user.Name + " has joined " + UIName + "."));
+
+            if (notifyOnUserListChange)
+            {
+                AddMessage(new ChatMessage(null, Color.White, DateTime.Now,
+                    user.Name + " has joined " + UIName + "."));
+            }
         }
 
         public void OnUserListReceived(string[] userList)
@@ -134,8 +151,12 @@ namespace DTAClient.Online
             {
                 users.RemoveAt(index);
                 UserLeft?.Invoke(this, new UserNameEventArgs(index, userName));
-                AddMessage(new ChatMessage(null, Color.White, DateTime.Now, 
-                    userName + " has left from " + UIName + "."));
+
+                if (notifyOnUserListChange)
+                {
+                    AddMessage(new ChatMessage(null, Color.White, DateTime.Now,
+                        userName + " has left from " + UIName + "."));
+                }
             }
         }
 
@@ -147,8 +168,12 @@ namespace DTAClient.Online
             {
                 users.RemoveAt(index);
                 UserQuitIRC?.Invoke(this, new UserNameEventArgs(index, userName));
-                AddMessage(new ChatMessage(null, Color.White, DateTime.Now,
-                    userName + " has quit from CnCNet."));
+
+                if (notifyOnUserListChange)
+                {
+                    AddMessage(new ChatMessage(null, Color.White, DateTime.Now,
+                        userName + " has quit from CnCNet."));
+                }
             }
         }
 

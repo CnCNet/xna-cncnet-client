@@ -36,7 +36,7 @@ namespace DTAClient.DXGUI.Multiplayer
 
         protected bool IsHost = false;
 
-        protected XNADropDown ddSavedGame;
+        protected XNAClientDropDown ddSavedGame;
 
         protected ChatListBox lbChatMessages;
         protected XNATextBox tbChatInput;
@@ -139,7 +139,7 @@ namespace DTAClient.DXGUI.Multiplayer
             lblSavedGameTime.FontIndex = 1;
             lblSavedGameTime.Text = "SAVED GAME:";
 
-            ddSavedGame = new XNADropDown(WindowManager);
+            ddSavedGame = new XNAClientDropDown(WindowManager);
             ddSavedGame.Name = "ddSavedGame";
             ddSavedGame.ClientRectangle = new Rectangle(lblSavedGameTime.ClientRectangle.X,
                 panelPlayers.ClientRectangle.Bottom - 21,
@@ -165,7 +165,6 @@ namespace DTAClient.DXGUI.Multiplayer
             btnLoadGame.Name = "btnLoadGame";
             btnLoadGame.ClientRectangle = new Rectangle(lbChatMessages.ClientRectangle.X,
                 tbChatInput.ClientRectangle.Bottom + 6, 133, 23);
-            btnLoadGame.FontIndex = 1;
             btnLoadGame.Text = "Load Game";
             btnLoadGame.LeftClick += BtnLoadGame_LeftClick;
 
@@ -173,7 +172,6 @@ namespace DTAClient.DXGUI.Multiplayer
             btnLeaveGame.Name = "btnLeaveGame";
             btnLeaveGame.ClientRectangle = new Rectangle(ClientRectangle.Width - 145,
                 btnLoadGame.ClientRectangle.Y, 133, 23);
-            btnLeaveGame.FontIndex = 1;
             btnLeaveGame.Text = "Leave Game";
             btnLeaveGame.LeftClick += BtnLeaveGame_LeftClick;
 

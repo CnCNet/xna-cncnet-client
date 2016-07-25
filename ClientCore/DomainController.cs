@@ -7,7 +7,6 @@ using System.Text;
 using System.Security.Principal;
 using System.Windows.Forms;
 using System.IO;
-using ClientCore.CnCNet5.Games;
 using Rampastring.Tools;
 
 namespace ClientCore
@@ -139,16 +138,6 @@ namespace ClientCore
             return DTACnCNetClient_ini.GetStringValue("General", "ListBoxHeaderColor", "255,255,255");
         }
 
-        public string GetDropDownBorderColor()
-        {
-            return DTACnCNetClient_ini.GetStringValue("General", "DropDownBorderColor", "164,164,164");
-        }
-
-        public string GetTrackBarBackColor()
-        {
-            return DTACnCNetClient_ini.GetStringValue("General", "TrackBarBackgroundColor", "255,64,128");
-        }
-
         public float GetDefaultAlphaRate()
         {
             return DTACnCNetClient_ini.GetSingleValue("General", "AlphaRate", 0.005f);
@@ -174,11 +163,6 @@ namespace ClientCore
             return DTACnCNetClient_ini.GetStringValue("General", "AdminNameColor", "255,0,0");
         }
 
-        public string GetPlayerNameColor()
-        {
-            return DTACnCNetClient_ini.GetStringValue("General", "PlayerNameColor", "0,255,0");
-        }
-
         public string GetReceivedPMColor()
         {
             return DTACnCNetClient_ini.GetStringValue("General", "PrivateMessageOtherUserColor", "196,196,196");
@@ -187,11 +171,6 @@ namespace ClientCore
         public string SentPMColor
         {
             get { return DTACnCNetClient_ini.GetStringValue("General", "PrivateMessageColor", "128,128,128"); }
-        }
-
-        public string GetComboBoxOutlineColor()
-        {
-            return DTACnCNetClient_ini.GetStringValue("GameLobby", "ComboBoxOutlineColor", "255,128,128");
         }
 
         public int GetDefaultPersonalChatColor()
@@ -204,19 +183,9 @@ namespace ClientCore
             return DTACnCNetClient_ini.GetStringValue("GameLobby", "CoopBriefingForeColor", "0,255,0");
         }
 
-        public string GetLockedGameColor()
-        {
-            return DTACnCNetClient_ini.GetStringValue("General", "LockedGameColor", "64,64,64");
-        }
-
         public string GetListBoxFocusColor()
         {
             return DTACnCNetClient_ini.GetStringValue("General", "ListBoxFocusColor", "64,64,168");
-        }
-
-        public string GetCnCNetLobbyBackgroundImageLayout()
-        {
-            return DTACnCNetClient_ini.GetStringValue("General", "BackgroundImageLayout", "Tile");
         }
 
         public string GetGameLobbyBackgroundImageLayout()
@@ -224,84 +193,9 @@ namespace ClientCore
             return DTACnCNetClient_ini.GetStringValue("GameLobby", "BackgroundImageLayout", "Tile");
         }
 
-        public string GetReadyBoxText()
-        {
-            return DTACnCNetClient_ini.GetStringValue("GameLobby", "ReadyBoxText", "Ready");
-        }
-
-        public int GetReadyBoxXCoordinate()
-        {
-            return DTACnCNetClient_ini.GetIntValue("GameLobby", "ReadyBoxX", 500);
-        }
-
-        public string GetGameOptionFont()
-        {
-            return DTACnCNetClient_ini.GetStringValue("GameLobby", "GameOptionFont", "Microsoft Sans Serif,Regular,8.25");
-        }
-
-        public string GetMapInfoStyle()
-        {
-            return DTACnCNetClient_ini.GetStringValue("GameLobby", "MapInfoStyle", "STANDARD");
-        }
-
-        public string GetButtonLabelStyle()
-        {
-            return DTACnCNetClient_ini.GetStringValue("General", "ButtonInfoStyle", "STANDARD");
-        }
-
-        public string GetGameLobbyLogoStyle()
-        {
-            return DTACnCNetClient_ini.GetStringValue("General", "LogoStyle", "Default");
-        }
-
         public string MainMenuMusicName
         {
             get { return DTACnCNetClient_ini.GetStringValue("General", "MainMenuTheme", "mainmenu"); }
-        }
-
-        public string GetMPColorOne()
-        {
-            return gameOptions_ini.GetStringValue("GameLobby", "MPColorOne", "255,255,255");
-        }
-
-        public string GetMPColorTwo()
-        {
-            return gameOptions_ini.GetStringValue("GameLobby", "MPColorTwo", "255,255,255");
-        }
-
-        public string GetMPColorThree()
-        {
-            return gameOptions_ini.GetStringValue("GameLobby", "MPColorThree", "255,255,255");
-        }
-
-        public string GetMPColorFour()
-        {
-            return gameOptions_ini.GetStringValue("GameLobby", "MPColorFour", "255,255,255");
-        }
-
-        public string GetMPColorFive()
-        {
-            return gameOptions_ini.GetStringValue("GameLobby", "MPColorFive", "255,255,255");
-        }
-
-        public string GetMPColorSix()
-        {
-            return gameOptions_ini.GetStringValue("GameLobby", "MPColorSix", "255,255,255");
-        }
-
-        public string GetMPColorSeven()
-        {
-            return gameOptions_ini.GetStringValue("GameLobby", "MPColorSeven", "255,255,255");
-        }
-
-        public string GetMPColorEight()
-        {
-            return gameOptions_ini.GetStringValue("GameLobby", "MPColorEight", "255,255,255");
-        }
-
-        public string GetMPColorNames()
-        {
-            return gameOptions_ini.GetStringValue("GameLobby", "MPColorNames", "Gold,Red,Teal,Green,Orange,Blue,Purple,Metalic");
         }
 
         public int GetLoadScreenCount()
@@ -314,36 +208,6 @@ namespace ClientCore
             return gameOptions_ini.GetStringValue("General", "Sides", "GDI,Nod,Allies,Soviet");
         }
 
-        public string GetPanelBorderStyle()
-        {
-            return DTACnCNetClient_ini.GetStringValue("GameLobby", "PanelBorderStyle", "FixedSingle");
-        }
-
-        public string GetOptionsPanelBorderStyle()
-        {
-            return DTACnCNetClient_ini.GetStringValue("GameLobby", "OptionsPanelBorderStyle", "FixedSingle");
-        }
-
-        public string GetComboBoxNondefaultColor()
-        {
-            return DTACnCNetClient_ini.GetStringValue("GameLobby", "ComboBoxNondefaultColor", "0,0,0");
-        }
-
-        public string GetGameLobbyPersistentCheckBox()
-        {
-            return gameOptions_ini.GetStringValue("GameLobby", "GameLobbyPersistentCheckBox", "none");
-        }
-
-        public bool GetImageSharpeningCnCNetStatus()
-        {
-            return gameOptions_ini.GetBooleanValue("GameLobby", "SharpenImages", true);
-        }
-
-        public bool GetImageSharpeningSkirmishStatus()
-        {
-            return gameOptions_ini.GetBooleanValue("SkirmishLobby", "SharpenImages", true);
-        }
-
         public string GetCommonFont()
         {
             return DTACnCNetClient_ini.GetStringValue("General", "CommonFont", "Microsoft Sans Serif,Regular");
@@ -352,51 +216,6 @@ namespace ClientCore
         public string GetListBoxFont()
         {
             return DTACnCNetClient_ini.GetStringValue("General", "ListBoxFont", "Microsoft Sans Serif,Regular,8.25");
-        }
-
-        public string GetChatTipText()
-        {
-            return DTACnCNetClient_ini.GetStringValue("General", "ChatTipText", String.Empty);
-        }
-
-        public bool GetNativeScrollbarStatus()
-        {
-            return DTACnCNetClient_ini.GetBooleanValue("General", "UseNativeScrollbar", false);
-        }
-
-        public string GetWindowSizeCnCNet()
-        {
-            return gameOptions_ini.GetStringValue("GameLobby", "DefaultWindowSize", "1011x679");
-        }
-
-        public string GetMinimumWindowSizeCnCNet()
-        {
-            return gameOptions_ini.GetStringValue("GameLobby", "MinimumWindowSize", "1011x517");
-        }
-
-        public string GetWindowSizeSkirmish()
-        {
-            return gameOptions_ini.GetStringValue("SkirmishLobby", "DefaultWindowSize", "898x660");
-        }
-
-        public string GetMinimumWindowSizeSkirmish()
-        {
-            return gameOptions_ini.GetStringValue("SkirmishLobby", "MinimumWindowSize", "898x560");
-        }
-
-        public int GetSideComboboxWidth()
-        {
-            return gameOptions_ini.GetIntValue("GameLobby", "SideComboboxWidth", 80);
-        }
-
-        public string GetWindowSizeMapSelection()
-        {
-            return gameOptions_ini.GetStringValue("GameLobby", "MapSelectionScreenSize", "840x480");
-        }
-
-        public bool GetGameEnabledStatus(string gameIdentifier)
-        {
-             return settings_ini.GetBooleanValue("Channels", gameIdentifier.ToUpper(), false);
         }
 
         // functions used for detecting client settings
@@ -428,25 +247,6 @@ namespace ClientCore
             return settings_ini.GetBooleanValue("Audio", "EnableButtonHoverSound", true);
         }
 
-        public bool GetMessageSoundStatus()
-        {
-            return settings_ini.GetBooleanValue("Options", "MessageSound", true);
-        }
-
-        public bool GetUserJoinLeaveNotificationStatus()
-        {
-            return settings_ini.GetBooleanValue("Options", "NotifyOnUserListChange", true);
-        }
-
-        public FormWindowState GetGameLobbyWindowState()
-        {
-            string windowState = settings_ini.GetStringValue("Options", "GameLobbyWindowState", "Normal");
-            if (windowState == "Maximized")
-                return FormWindowState.Maximized;
-
-            return FormWindowState.Normal;
-        }
-
         public bool GetWindowMinimizingStatus()
         {
             return settings_ini.GetBooleanValue("Options", "MinimizeWindowsOnGameStart", true);
@@ -457,17 +257,7 @@ namespace ClientCore
             return settings_ini.GetBooleanValue("Video", "Video.Windowed", false);
         }
 
-        public int GetLobbyLocationY()
-        {
-            return settings_ini.GetIntValue("MultiPlayer", "LobbyLocationY", -1);
-        }
-
-        public int GetLobbyLocationX()
-        {
-            return settings_ini.GetIntValue("MultiPlayer", "LobbyLocationX", -1);
-        }
-
-        public string GetSkirmishMapMD5()
+        public string GetSkirmishMapSHA1()
         {
             return settings_ini.GetStringValue("Skirmish", "Map", "default");
         }
@@ -603,11 +393,6 @@ namespace ClientCore
             return clientDefinitionsIni.GetStringValue("Links", "Homepage", "http://rampastring.cnc-comm.com");
         }
 
-        public bool GetGameHostedSoundEnabledStatus()
-        {
-            return settings_ini.GetBooleanValue("MultiPlayer", "PlaySoundOnGameHosted", true);
-        }
-
         public int GetLastUpdateDay()
         {
             return settings_ini.GetIntValue("Options", "LastUpdateDay", 1);
@@ -651,26 +436,6 @@ namespace ClientCore
             }
 
             return width + "x" + height;
-        }
-
-        public int GetCnCNetPort()
-        {
-            return settings_ini.GetIntValue("MultiPlayer", "CnCNet_Port_Index", 0);
-        }
-
-        public bool GetCnCNetAutologinStatus()
-        {
-            return settings_ini.GetBooleanValue("MultiPlayer", "AutomaticCnCNetLogin", false);
-        }
-
-        public bool GetCnCNetConnectDialogSkipStatus()
-        {
-            return settings_ini.GetBooleanValue("MultiPlayer", "SkipConnectDialog", false);
-        }
-
-        public bool GetCnCNetPersistentModeStatus()
-        {
-            return settings_ini.GetBooleanValue("MultiPlayer", "PersistentMode", false);
         }
 
         public OSVersion GetOperatingSystemVersion()
@@ -730,50 +495,6 @@ namespace ClientCore
             settings_ini.SetBooleanValue("MultiPlayer", "PersistentMode", persistentMode);
             settings_ini.SetBooleanValue("MultiPlayer", "AutomaticCnCNetLogin", autoLogin);
             settings_ini.SetBooleanValue("Options", "ForceLowestDetailLevel", false);
-
-            settings_ini.WriteIniFile();
-        }
-
-        public void SaveMPHandle()
-        {
-            settings_ini.SetStringValue("MultiPlayer", "Handle", ProgramConstants.PLAYERNAME);
-        }
-
-        public void SaveLobbyPosition(int x, int y)
-        {
-            settings_ini.SetIntValue("MultiPlayer", "LobbyLocationX", x);
-            settings_ini.SetIntValue("MultiPlayer", "LobbyLocationY", y);
-        }
-
-        public void SaveLobbyMusicSettings(bool enableMusic)
-        {
-            Logger.Log("Saving CnCNet lobby music setting.");
-
-            settings_ini.SetBooleanValue("Audio", "PlayCnCNetLobbyMusic", enableMusic);
-
-            settings_ini.WriteIniFile();
-        }
-
-        public void SaveCnCNetColorSetting(int colorId)
-        {
-            settings_ini.SetIntValue("MultiPlayer", "ChatColor", colorId);
-
-            settings_ini.WriteIniFile();
-        }
-
-        public void SaveChannelSettings()
-        {
-            for (int i = 0; i < GameCollection.Instance.GetGameCount(); i++)
-            {
-                settings_ini.SetBooleanValue("Channels", GameCollection.Instance.GetGameIdentifierFromIndex(i).ToUpper(), false);
-            }
-
-            List<string> enabledChannels = GameCollection.Instance.GetInternalNamesOfFollowedGames();
-
-            foreach (string channelName in enabledChannels)
-            {
-                settings_ini.SetBooleanValue("Channels", channelName.ToUpper(), true);
-            }
 
             settings_ini.WriteIniFile();
         }

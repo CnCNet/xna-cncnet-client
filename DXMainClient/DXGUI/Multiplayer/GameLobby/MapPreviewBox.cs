@@ -89,7 +89,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         public override void Initialize()
         {
-            disposeTextures = !MCDomainController.Instance.GetMapPreviewPreloadStatus();
+            disposeTextures = !UserINISettings.Instance.PreloadMapPreviews;
 
             startingLocationIndicators = new PlayerLocationIndicator[MAX_STARTING_LOCATIONS];
 

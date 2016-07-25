@@ -223,7 +223,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             Players.Add(pInfo);
 
             if (sndJoinSound != null)
-                sndJoinSound.Play();
+                AudioMaster.PlaySound(sndJoinSound);
 
             BroadcastOptions();
             CopyPlayerDataToUI();
@@ -247,7 +247,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 return;
 
             if (sndLeaveSound != null)
-                sndLeaveSound.Play();
+                AudioMaster.PlaySound(sndLeaveSound);
 
             Players.RemoveAt(index);
 
@@ -267,7 +267,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             lbChatMessages.AddMessage(e.Message);
 
             if (sndMessageSound != null && e.Message.Sender != null)
-                sndMessageSound.Play();
+                AudioMaster.PlaySound(sndMessageSound);
         }
 
         protected override void AddNotice(string message, Color color)
@@ -301,7 +301,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         protected override void SendChatMessage(string message)
         {
             if (sndMessageSound != null)
-                sndMessageSound.Play();
+                AudioMaster.PlaySound(sndMessageSound);
 
             channel.SendChatMessage(message, chatColor);
         }

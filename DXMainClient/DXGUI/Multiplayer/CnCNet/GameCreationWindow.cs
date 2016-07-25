@@ -24,7 +24,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         public event EventHandler<GameCreationEventArgs> LoadedGameCreated;
 
         XNATextBox tbGameName;
-        XNADropDown ddMaxPlayers;
+        XNAClientDropDown ddMaxPlayers;
         XNATextBox tbPassword;
 
         XNALabel lblRoomName;
@@ -55,25 +55,21 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             btnCreateGame = new XNAClientButton(WindowManager);
             btnCreateGame.ClientRectangle = new Rectangle(12, 159, 133, 23);
-            btnCreateGame.FontIndex = 1;
             btnCreateGame.Text = "Create Game";
             btnCreateGame.LeftClick += BtnCreateGame_LeftClick;
 
             btnCancel = new XNAClientButton(WindowManager);
             btnCancel.ClientRectangle = new Rectangle(345, btnCreateGame.ClientRectangle.Y, 133, 23);
-            btnCancel.FontIndex = 1;
             btnCancel.Text = "Cancel";
             btnCancel.LeftClick += BtnCancel_LeftClick;
 
             btnLoadMPGame = new XNAClientButton(WindowManager);
             btnLoadMPGame.ClientRectangle = new Rectangle(178, btnCreateGame.ClientRectangle.Y, 133, 23);
-            btnLoadMPGame.FontIndex = 1;
             btnLoadMPGame.Text = "Load Game";
             btnLoadMPGame.LeftClick += BtnLoadMPGame_LeftClick;
 
             btnDisplayAdvancedOptions = new XNAClientButton(WindowManager);
             btnDisplayAdvancedOptions.ClientRectangle = new Rectangle(12, 124, 160, 23);
-            btnDisplayAdvancedOptions.FontIndex = 1;
             btnDisplayAdvancedOptions.Text = "Advanced Options";
             btnDisplayAdvancedOptions.LeftClick += BtnDisplayAdvancedOptions_LeftClick;
 
@@ -86,7 +82,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             lblRoomName.ClientRectangle = new Rectangle(12, tbGameName.ClientRectangle.Y + 1, 0, 0);
             lblRoomName.Text = "Game room name:";
 
-            ddMaxPlayers = new XNADropDown(WindowManager);
+            ddMaxPlayers = new XNAClientDropDown(WindowManager);
             ddMaxPlayers.ClientRectangle = new Rectangle(tbGameName.ClientRectangle.X, 53, 
                 tbGameName.ClientRectangle.Width, 21);
             for (int i = 8; i > 1; i--)

@@ -1,4 +1,5 @@
 ﻿using ClientCore;
+using ClientCore.CnCNet5;
 using ClientGUI;
 using DTAClient.domain;
 using DTAClient.domain.Multiplayer;
@@ -77,6 +78,8 @@ namespace DTAClient.DXGUI.Generic
             var gameCollection = new GameCollection();
             gameCollection.Initialize(GraphicsDevice);
 
+            var optionsWindow = new OptionsWindow(WindowManager, gameCollection);
+
             var lanLobby = new LANLobby(WindowManager, gameCollection, mapLoader.GameModes);
 
             var cncnetManager = new CnCNetManager(WindowManager, gameCollection);
@@ -101,7 +104,8 @@ namespace DTAClient.DXGUI.Generic
 
             topBar.SetSecondarySwitch(cncnetLobby);
 
-            var mainMenu = new MainMenu(WindowManager, skirmishLobby, lanLobby, topBar, cncnetManager);
+            var mainMenu = new MainMenu(WindowManager, skirmishLobby, lanLobby,
+                topBar, optionsWindow, cncnetManager);
             WindowManager.AddAndInitializeControl(mainMenu);
             WindowManager.AddAndInitializeControl(skirmishLobby);
             WindowManager.AddAndInitializeControl(cncnetGameLoadingLobby);
@@ -111,6 +115,8 @@ namespace DTAClient.DXGUI.Generic
             DarkeningPanel.AddAndInitializeWithControl(WindowManager, cncnetLobby);
 
             DarkeningPanel.AddAndInitializeWithControl(WindowManager, lanLobby);
+
+            DarkeningPanel.AddAndInitializeWithControl(WindowManager, optionsWindow);
 
             WindowManager.AddAndInitializeControl(privateMessagingPanel);
             privateMessagingPanel.AddChild(pmWindow);
@@ -124,6 +130,7 @@ namespace DTAClient.DXGUI.Generic
             cncnetGameLoadingLobby.Disable();
             lanLobby.Disable();
             pmWindow.Disable();
+            optionsWindow.Disable();
 
             WindowManager.AddAndInitializeControl(topBar);
             topBar.AddPrimarySwitchable(mainMenu);
@@ -132,16 +139,15 @@ namespace DTAClient.DXGUI.Generic
 
             mainMenu.PostInit();
 
-            if (DomainController.Instance().GetCnCNetAutologinStatus())
+            if (UserINISettings.Instance.AutomaticCnCNetLogin &&
+                NameValidator.IsNameValid(ProgramConstants.PLAYERNAME) == null)
+            {
                 cncnetManager.Connect();
+            }
 
             WindowManager.RemoveControl(this);
 
             Cursor.Visible = true;
-
-            var ow = new OptionsWindow(WindowManager);
-            WindowManager.AddAndInitializeControl(ow);
-            ow.CenterOnParent();
         }
 
         public override void Update(GameTime gameTime)

@@ -37,8 +37,9 @@
     <Reference Include="MapThumbnailExtractor">
       <HintPath>..\Resources\MapThumbnailExtractor.dll</HintPath>
     </Reference>
-    <Reference Include="Rampastring.Tools">
-      <HintPath>..\..\..\Rampastring.Tools\bin\Debug\Rampastring.Tools.dll</HintPath>
+    <Reference Include="MonoGame.Framework, Version=3.5.0.1636, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\MonoGame\MonoGame.Framework\bin\Windows\AnyCPU\Debug\MonoGame.Framework.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Drawing" />
@@ -49,20 +50,14 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CCIniFile.cs" />
-    <Compile Include="CnCNet5\CnCNetData.cs" />
-    <Compile Include="CnCNet5\Games\CnCNetGame.cs" />
-    <Compile Include="CnCNet5\Games\GameCollection.cs" />
-    <Compile Include="CnCNet5\Map.cs" />
-    <Compile Include="CnCNet5\MessageInfo.cs" />
-    <Compile Include="CnCNet5\PlayerInfo.cs" />
-    <Compile Include="CnCNet5\PrivateMessageInfo.cs" />
-    <Compile Include="CnCNet5\QueuedMessage.cs" />
-    <Compile Include="CnCNet5\QueuedMessageType.cs" />
+    <Compile Include="CnCNet5\CnCNetGame.cs" />
+    <Compile Include="CnCNet5\GameCollection.cs" />
     <Compile Include="ControlDrawHandler.cs" />
     <Compile Include="DataWriteMode.cs" />
     <Compile Include="DomainController.cs" />
     <Compile Include="LAN\LANGame.cs" />
     <Compile Include="LAN\LANPlayer.cs" />
+    <Compile Include="NameValidator.cs" />
     <Compile Include="OSVersion.cs" />
     <Compile Include="ParentProcess.cs" />
     <Compile Include="Pinger.cs" />
@@ -76,7 +71,6 @@
     <Compile Include="SharedLogic.cs" />
     <Compile Include="LoadingScreenController.cs" />
     <Compile Include="ProgramConstants.cs" />
-    <Compile Include="RConnectionBridge.cs" />
     <Compile Include="SideCheckboxPrerequisite.cs" />
     <Compile Include="SideComboboxPrerequisite.cs" />
     <Compile Include="Statistics\GameParsers\DTAStatisticsParser.cs" />
@@ -105,6 +99,7 @@
     <None Include="Resources\Settings.ini" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Resources\cncneticon.png" />
     <Content Include="Resources\dtaicon.png" />
     <None Include="Resources\moicon.png" />
     <Content Include="Resources\raicon.png" />
@@ -114,7 +109,16 @@
     <Content Include="Resources\unknownicon.png" />
     <Content Include="Resources\yricon.png" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <ProjectReference Include="..\..\Rampastring.Tools\Rampastring.Tools.csproj">
+      <Project>{9f40961f-535a-480c-93c5-6877ed6a8626}</Project>
+      <Name>Rampastring.Tools</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Rampastring.XNAUI\Rampastring.XNAUI.csproj">
+      <Project>{3eaf996d-7f03-433b-a9a5-17e69ac97c76}</Project>
+      <Name>Rampastring.XNAUI</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

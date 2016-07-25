@@ -2,13 +2,14 @@
 using System;
 using Rampastring.Tools;
 using Rampastring.XNAUI;
+using ClientGUI;
 
 namespace DTAClient.DXGUI.Multiplayer.GameLobby
 {
     /// <summary>
     /// A game option drop-down for the game lobby.
     /// </summary>
-    public class GameLobbyDropDown : XNADropDown
+    public class GameLobbyDropDown : XNAClientDropDown
     {
         public GameLobbyDropDown(WindowManager windowManager) : base(windowManager) { }
 

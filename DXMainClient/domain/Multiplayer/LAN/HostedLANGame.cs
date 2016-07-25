@@ -1,4 +1,5 @@
 ﻿using ClientCore;
+using ClientCore.CnCNet5;
 using DTAClient.domain.Multiplayer;
 using Rampastring.Tools;
 using System;

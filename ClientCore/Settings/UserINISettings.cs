@@ -35,7 +35,7 @@ namespace ClientCore
 
         protected UserINISettings(IniFile iniFile)
         {
-            settingsIni = iniFile;
+            SettingsIni = iniFile;
 
             const string VIDEO = "Video";
             const string MULTIPLAYER = "MultiPlayer";
@@ -67,11 +67,13 @@ namespace ClientCore
             IsScoreShuffle = new BoolSetting(iniFile, AUDIO, "IsScoreShuffle", true);
             ClientVolume = new DoubleSetting(iniFile, AUDIO, "ClientVolume", 1.0);
             PlayMainMenuMusic = new BoolSetting(iniFile, AUDIO, "PlayMainMenuMusic", true);
+            ClientButtonSounds = new BoolSetting(iniFile, AUDIO, "EnableButtonHoverSound", true);
 
             ScrollRate = new IntSetting(iniFile, OPTIONS, "ScrollRate", 3);
             TargetLines = new BoolSetting(iniFile, OPTIONS, "UnitActionLines", true);
             ScrollCoasting = new IntSetting(iniFile, OPTIONS, "ScrollMethod", 0);
             Tooltips = new BoolSetting(iniFile, OPTIONS, "ToolTips", true);
+            ShowHiddenObjects = new BoolSetting(iniFile, OPTIONS, "ShowHidden", true);
 
             PlayerName = new StringSetting(iniFile, MULTIPLAYER, "Handle", string.Empty);
 
@@ -79,15 +81,21 @@ namespace ClientCore
             PingUnofficialCnCNetTunnels = new BoolSetting(iniFile, MULTIPLAYER, "PingCustomTunnels", true);
             WritePathToRegistry = new BoolSetting(iniFile, OPTIONS, "WriteInstallationPathToRegistry", true);
             PlaySoundOnGameHosted = new BoolSetting(iniFile, MULTIPLAYER, "PlaySoundOnGameHosted", true);
-
             SkipConnectDialog = new BoolSetting(iniFile, MULTIPLAYER, "SkipConnectDialog", false);
             PersistentMode = new BoolSetting(iniFile, MULTIPLAYER, "PersistentMode", false);
             AutomaticCnCNetLogin = new BoolSetting(iniFile, MULTIPLAYER, "AutomaticCnCNetLogin", false);
+            NotifyOnUserListChange = new BoolSetting(iniFile, MULTIPLAYER, "NotifyOnUserListChange", true);
 
             CheckForUpdates = new BoolSetting(iniFile, OPTIONS, "CheckforUpdates", true);
+
+            IsFirstRun = new BoolSetting(iniFile, OPTIONS, "IsFirstRun", true);
+            Difficulty = new IntSetting(iniFile, OPTIONS, "Difficulty", 1);
+            GameSpeed = new IntSetting(iniFile, OPTIONS, "GameSpeed", 1);
+            PreloadMapPreviews = new BoolSetting(iniFile, VIDEO, "PreloadMapPreviews", false);
+            ForceLowestDetailLevel = new BoolSetting(iniFile, VIDEO, "ForceLowestDetailLevel", false);
         }
 
-        IniFile settingsIni;
+        public IniFile SettingsIni { get; private set; }
 
         public event EventHandler SettingsSaved;
 
@@ -109,11 +117,13 @@ namespace ClientCore
         public BoolSetting IsScoreShuffle { get; private set; }
         public DoubleSetting ClientVolume { get; private set; }
         public BoolSetting PlayMainMenuMusic { get; private set; }
+        public BoolSetting ClientButtonSounds { get; private set; }
 
         public IntSetting ScrollRate { get; private set; }
         public BoolSetting TargetLines { get; private set; }
         public IntSetting ScrollCoasting { get; private set; }
         public BoolSetting Tooltips { get; private set; }
+        public BoolSetting ShowHiddenObjects { get; private set; }
 
         public StringSetting PlayerName { get; private set; }
 
@@ -126,11 +136,35 @@ namespace ClientCore
         public BoolSetting PersistentMode { get; private set; }
         public BoolSetting AutomaticCnCNetLogin { get; private set; }
 
+        public BoolSetting NotifyOnUserListChange { get; private set; }
+
         public BoolSetting CheckForUpdates { get; private set; }
+
+        public BoolSetting IsFirstRun { get; private set; }
+
+        public IntSetting Difficulty { get; private set; }
+
+        public IntSetting GameSpeed { get; private set; }
+
+        public BoolSetting PreloadMapPreviews { get; private set; }
+
+        public BoolSetting ForceLowestDetailLevel { get; private set; }
+
+        public bool IsGameFollowed(string gameName)
+        {
+            return SettingsIni.GetBooleanValue("Channels", gameName, false);
+        }
+
+        public void ReloadSettings()
+        {
+            SettingsIni = new IniFile(SettingsIni.FileName);
+        }
 
         public void SaveSettings()
         {
-            settingsIni.WriteIniFile();
+            ForceLowestDetailLevel.Value = false;
+
+            SettingsIni.WriteIniFile();
 
             SettingsSaved?.Invoke(this, EventArgs.Empty);
         }

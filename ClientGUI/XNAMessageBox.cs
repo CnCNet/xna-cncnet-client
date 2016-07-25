@@ -192,13 +192,15 @@ namespace ClientGUI
 
         private void Hide()
         {
-            WindowManager.RemoveControl(this);
+            if (this.Parent != null)
+                WindowManager.RemoveControl(this.Parent);
+            else
+                WindowManager.RemoveControl(this);
         }
 
         public void Show()
         {
-            WindowManager.AddAndInitializeControl(this);
-            Focused = true;
+            DarkeningPanel.AddAndInitializeWithControl(WindowManager, this);
         }
 
         /// <summary>
@@ -209,7 +211,7 @@ namespace ClientGUI
         /// <param name="description">The description of the message box.</param>
         public static void Show(WindowManager windowManager, string caption, string description)
         {
-            DarkeningPanel panel = new DarkeningPanel(windowManager);
+            var panel = new DarkeningPanel(windowManager);
             panel.Focused = true;
             windowManager.AddAndInitializeControl(panel);
 

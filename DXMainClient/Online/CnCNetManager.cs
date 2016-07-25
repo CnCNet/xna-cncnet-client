@@ -1,4 +1,5 @@
 ﻿using ClientCore;
+using ClientCore.CnCNet5;
 using DTAClient.domain.Multiplayer.CnCNet;
 using DTAClient.Online.EventArguments;
 using Microsoft.Xna.Framework;
@@ -6,7 +7,6 @@ using Rampastring.Tools;
 using Rampastring.XNAUI;
 using System;
 using System.Collections.Generic;
-using GameCollection = DTAClient.domain.Multiplayer.GameCollection;
 
 namespace DTAClient.Online
 {

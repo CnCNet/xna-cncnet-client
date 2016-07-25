@@ -16,6 +16,7 @@ using DTAClient.DXGUI.Multiplayer.GameLobby;
 using DTAClient.DXGUI.Generic;
 using DTAClient.domain.Multiplayer;
 using DTAClient.domain.Multiplayer.CnCNet;
+using ClientCore.CnCNet5;
 
 namespace DTAClient.DXGUI.Multiplayer.CnCNet
 {
@@ -66,8 +67,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         XNALabel lblColor;
         XNALabel lblCurrentChannel;
 
-        XNADropDown ddColor;
-        XNADropDown ddCurrentChannel;
+        XNAClientDropDown ddColor;
+        XNAClientDropDown ddCurrentChannel;
 
         DarkeningPanel gameCreationPanel;
 
@@ -104,6 +105,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         
         string localGame;
 
+        List<string> followedGames = new List<string>();
+
         public override void Initialize()
         {
             Name = "CnCNetLobby";
@@ -113,7 +116,6 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             btnNewGame = new XNAClientButton(WindowManager);
             btnNewGame.Name = "btnNewGame";
             btnNewGame.ClientRectangle = new Rectangle(12, ClientRectangle.Height - 29, 133, 23);
-            btnNewGame.FontIndex = 1;
             btnNewGame.Text = "Create Game";
             btnNewGame.AllowClick = false;
             btnNewGame.LeftClick += BtnNewGame_LeftClick;
@@ -122,7 +124,6 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             btnJoinGame.Name = "btnJoinGame";
             btnJoinGame.ClientRectangle = new Rectangle(btnNewGame.ClientRectangle.Right + 12,
                 btnNewGame.ClientRectangle.Y, 133, 23);
-            btnJoinGame.FontIndex = 1;
             btnJoinGame.Text = "Join Game";
             btnJoinGame.AllowClick = false;
             btnJoinGame.LeftClick += BtnJoinGame_LeftClick;
@@ -131,7 +132,6 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             btnLogout.Name = "btnLogout";
             btnLogout.ClientRectangle = new Rectangle(ClientRectangle.Width - 145, btnNewGame.ClientRectangle.Y,
                 133, 23);
-            btnLogout.FontIndex = 1;
             btnLogout.Text = "Log Out";
             btnLogout.LeftClick += BtnLogout_LeftClick;
 
@@ -245,12 +245,11 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             lblColor.FontIndex = 1;
             lblColor.Text = "YOUR COLOR:";
 
-            ddColor = new XNADropDown(WindowManager);
+            ddColor = new XNAClientDropDown(WindowManager);
             ddColor.Name = "ddColor";
             ddColor.ClientRectangle = new Rectangle(lblColor.ClientRectangle.X + 95, btnForums.ClientRectangle.Y,
                 150, 21);
             ddColor.SelectedIndexChanged += DdColor_SelectedIndexChanged;
-            ddColor.ClickSoundEffect = AssetLoader.LoadSound("dropdown.wav");
 
             chatColors = connectionManager.GetIRCColors();
 
@@ -273,14 +272,13 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 ? DomainController.Instance().GetDefaultPersonalChatColor() : 
                 selectedColor;
 
-            ddCurrentChannel = new XNADropDown(WindowManager);
+            ddCurrentChannel = new XNAClientDropDown(WindowManager);
             ddCurrentChannel.Name = "ddCurrentChannel";
             ddCurrentChannel.ClientRectangle = new Rectangle(
                 lbChatMessages.ClientRectangle.Right - 200,
                 ddColor.ClientRectangle.Y, 200, 21);
             ddCurrentChannel.SelectedIndexChanged += DdCurrentChannel_SelectedIndexChanged;
             ddCurrentChannel.AllowDropDown = false;
-            ddCurrentChannel.ClickSoundEffect = AssetLoader.LoadSound("dropdown.wav");
 
             int i = 0;
 
@@ -540,7 +538,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 return;
             }
 
-            if (DomainController.Instance().GetCnCNetPersistentModeStatus())
+            if (UserINISettings.Instance.PersistentMode)
             {
                 btnLogout.Text = "Main Menu";
                 return;
@@ -831,9 +829,10 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
                 if (game.InternalName != localGame.ToLower())
                 {
-                    if (DomainController.Instance().GetGameEnabledStatus(game.InternalName))
+                    if (UserINISettings.Instance.IsGameFollowed(game.InternalName))
                     {
                         connectionManager.GetChannel(game.GameBroadcastChannel).Join();
+                        followedGames.Add(game.InternalName);
                     }
                 }
             }
@@ -1031,11 +1030,11 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 }
                 else
                 {
-                    if (cncnetGame.InternalName == localGame.ToLower() &&
-                        !ProgramConstants.IsInGame &&
-                        DomainController.Instance().GetGameHostedSoundEnabledStatus())
+                    if (UserINISettings.Instance.PlaySoundOnGameHosted && 
+                        cncnetGame.InternalName == localGame.ToLower() &&
+                        !ProgramConstants.IsInGame)
                     {
-                        sndGameCreated.Play();
+                        AudioMaster.PlaySound(sndGameCreated);
                     }
 
                     hostedGames.Insert(0, game);
@@ -1058,7 +1057,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             }
 
             if (connectionManager.IsConnected && 
-                !DomainController.Instance().GetCnCNetPersistentModeStatus())
+                !UserINISettings.Instance.PersistentMode)
             {
                 connectionManager.Disconnect();
             }

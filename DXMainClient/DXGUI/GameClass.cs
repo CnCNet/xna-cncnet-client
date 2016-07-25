@@ -39,8 +39,6 @@ namespace DTAClient.DXGUI
 
             InitializeUISettings();
 
-            UserINISettings.Initialize(DomainController.Instance().GetSettingsIniName());
-
             WindowManager wm = new WindowManager(this, graphics);
             wm.Initialize(content, ProgramConstants.GetBaseResourcePath());
 

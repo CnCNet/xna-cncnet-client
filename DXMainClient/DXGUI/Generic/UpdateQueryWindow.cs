@@ -50,13 +50,11 @@ namespace DTAClient.DXGUI.Generic
             var btnYes = new XNAClientButton(WindowManager);
             btnYes.ClientRectangle = new Rectangle(12, 110, 75, 23);
             btnYes.Text = "Yes";
-            btnYes.FontIndex = 1;
             btnYes.LeftClick += BtnYes_LeftClick;
 
             var btnNo = new XNAClientButton(WindowManager);
             btnNo.ClientRectangle = new Rectangle(164, 110, 75, 23);
             btnNo.Text = "No";
-            btnNo.FontIndex = 1;
             btnNo.LeftClick += BtnNo_LeftClick;
 
             AddChild(lblDescription);

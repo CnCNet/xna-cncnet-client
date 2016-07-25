@@ -73,49 +73,6 @@ namespace DTAClient.domain
                 settings_ini = new IniFile(settingsPath);
         }
 
-        // functions used for detecting launcher settings
-
-        public bool GetAutomaticUpdateStatus()
-        {
-            return settings_ini.GetBooleanValue("Options", "CheckforUpdates", true);
-        }
-
-        public int GetGameSpeed()
-        {
-            return settings_ini.GetIntValue("Options", "GameSpeed", 1);
-        }
-
-        public int GetDifficultyMode()
-        {
-            return settings_ini.GetIntValue("Options", "Difficulty", 1);
-        }
-
-        public int GetClientResolutionX()
-        {
-            return settings_ini.GetIntValue("Video", "ClientResolutionX", Screen.PrimaryScreen.Bounds.Width);
-        }
-
-        public int GetClientResolutionY()
-        {
-            return settings_ini.GetIntValue("Video", "ClientResolutionY", Screen.PrimaryScreen.Bounds.Height);
-        }
-
-        public bool GetMapPreviewPreloadStatus()
-        {
-            return settings_ini.GetBooleanValue("Video", "PreloadMapPreviews", false);
-        }
-
-        public bool GetBorderlessWindowedStatus()
-        {
-            return settings_ini.GetBooleanValue("Video", "BorderlessWindowedClient", true);
-        }
-
-        public bool PlayMainMenuMusicStatus
-        {
-            get { return settings_ini.GetBooleanValue("Audio", "PlayMainMenuMusic", true); }
-            set { settings_ini.SetBooleanValue("Audio", "PlayMainMenuMusic", value); }
-        }
-
         public string GetShortGameName()
         {
             return mainClient_ini.GetStringValue("General", "ShortGameName", "TS");
@@ -171,11 +128,6 @@ namespace DTAClient.domain
             return mainClient_ini.GetStringValue("General", "MapEditorExePath", "FinalSun\\FinalSun.exe");
         }
 
-        public string GetCnCNetGameCountStatusText()
-        {
-            return mainClient_ini.GetStringValue("General", "CnCNetGameCountStatusText", "{0} games hosted at CnCNet:");
-        }
-
         public bool GetModModeStatus()
         {
             return mainClient_ini.GetBooleanValue("General", "ModMode", false);
@@ -206,41 +158,14 @@ namespace DTAClient.domain
             return mainClient_ini.GetBooleanValue("General", "SidebarHack", false);
         }
 
-        public bool IsFirstRun()
-        {
-            return settings_ini.GetBooleanValue("Options", "IsFirstRun", true);
-        }
-
-        public bool GetInstallationPathWriteStatus()
-        {
-            return settings_ini.GetBooleanValue("Options", "WriteInstallationPathToRegistry", true);
-        }
-
         public bool Win8CompatFixInstalled()
         {
             return settings_ini.GetBooleanValue("Compatibility", "Win8FixInstalled", false);
         }
 
-        public void SetFirstRun()
-        {
-            settings_ini.SetBooleanValue("Options", "IsFirstRun", false);
-            settings_ini.WriteIniFile();
-        }
-
         public void SetWin8CompatFixInstalled(bool status)
         {
             settings_ini.SetBooleanValue("Compatibility", "Win8FixInstalled", status);
-            settings_ini.WriteIniFile();
-        }
-
-        /// <summary>
-        /// Saves settings used for campaign and new missions.
-        /// </summary>
-        /// <param name="difficultyMode"></param>
-        public void SaveSingleplayerSettings(int difficultyMode)
-        {
-            settings_ini.SetIntValue("Options", "Difficulty", difficultyMode);
-            settings_ini.SetBooleanValue("Options", "ForceLowestDetailLevel", false);
             settings_ini.WriteIniFile();
         }
     }

@@ -14,6 +14,7 @@ using Rampastring.Tools;
 using DTAClient.Online.EventArguments;
 using Microsoft.Xna.Framework.Audio;
 using DTAClient.domain.Multiplayer;
+using ClientCore.CnCNet5;
 
 namespace DTAClient.DXGUI.Multiplayer.CnCNet
 {

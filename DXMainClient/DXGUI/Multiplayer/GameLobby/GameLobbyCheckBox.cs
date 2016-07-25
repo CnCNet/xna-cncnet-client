@@ -3,13 +3,14 @@ using System;
 using Rampastring.Tools;
 using Rampastring.XNAUI;
 using ClientCore;
+using ClientGUI;
 
 namespace DTAClient.DXGUI.Multiplayer.GameLobby
 {
     /// <summary>
     /// A game option check box for the game lobby.
     /// </summary>
-    public class GameLobbyCheckBox : XNACheckBox
+    public class GameLobbyCheckBox : XNAClientCheckBox
     {
         public GameLobbyCheckBox(WindowManager windowManager) : base (windowManager) { }
 

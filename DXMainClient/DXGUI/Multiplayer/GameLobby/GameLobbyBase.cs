@@ -63,11 +63,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         /// </summary>
         protected Map Map { get; set; }
 
-        protected XNADropDown[] ddPlayerNames;
-        protected XNADropDown[] ddPlayerSides;
-        protected XNADropDown[] ddPlayerColors;
-        protected XNADropDown[] ddPlayerStarts;
-        protected XNADropDown[] ddPlayerTeams;
+        protected XNAClientDropDown[] ddPlayerNames;
+        protected XNAClientDropDown[] ddPlayerSides;
+        protected XNAClientDropDown[] ddPlayerColors;
+        protected XNAClientDropDown[] ddPlayerStarts;
+        protected XNAClientDropDown[] ddPlayerTeams;
 
         protected XNALabel lblName;
         protected XNALabel lblSide;
@@ -84,7 +84,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         protected MapPreviewBox MapPreviewBox;
 
         protected XNAMultiColumnListBox lbMapList;
-        protected XNADropDown ddGameMode;
+        protected XNAClientDropDown ddGameMode;
         protected XNALabel lblGameModeSelect;
 
         protected XNASuggestionTextBox tbMapSearch;
@@ -160,14 +160,12 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             btnLeaveGame = new XNAClientButton(WindowManager);
             btnLeaveGame.Name = "btnLeaveGame";
             btnLeaveGame.ClientRectangle = new Rectangle(ClientRectangle.Width - 143, ClientRectangle.Height - 28, 133, 23);
-            btnLeaveGame.FontIndex = 1;
             btnLeaveGame.Text = "Leave Game";
             btnLeaveGame.LeftClick += BtnLeaveGame_LeftClick;
 
             btnLaunchGame = new XNAClientButton(WindowManager);
             btnLaunchGame.Name = "btnLaunchGame";
             btnLaunchGame.ClientRectangle = new Rectangle(12, btnLeaveGame.ClientRectangle.Y, 133, 23);
-            btnLaunchGame.FontIndex = 1;
             btnLaunchGame.Text = "Launch Game";
             btnLaunchGame.LeftClick += BtnLaunchGame_LeftClick;
 
@@ -228,10 +226,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             lbMapList.AddColumn("MAP NAME", lbMapList.ClientRectangle.Width - RankTextures[1].Width - 3);
 
-            ddGameMode = new XNADropDown(WindowManager);
+            ddGameMode = new XNAClientDropDown(WindowManager);
             ddGameMode.Name = "ddGameMode";
             ddGameMode.ClientRectangle = new Rectangle(lbMapList.ClientRectangle.Right - 150, GameOptionsPanel.ClientRectangle.Y, 150, 21);
-            ddGameMode.ClickSoundEffect = AssetLoader.LoadSound("dropdown.wav");
             ddGameMode.SelectedIndexChanged += DdGameMode_SelectedIndexChanged;
 
             foreach (GameMode gm in GameModes)
@@ -274,7 +271,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 GameLobbyCheckBox chkBox = new GameLobbyCheckBox(WindowManager);
                 chkBox.Name = chkName;
                 chkBox.GetAttributes(GameOptionsIni);
-                chkBox.CheckSoundEffect = AssetLoader.LoadSound("checkbox.wav");
                 CheckBoxes.Add(chkBox);
                 AddChild(chkBox);
                 chkBox.CheckedChanged += ChkBox_CheckedChanged;
@@ -296,7 +292,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             {
                 GameLobbyDropDown dropdown = new GameLobbyDropDown(WindowManager);
                 dropdown.Name = ddName;
-                dropdown.ClickSoundEffect = AssetLoader.LoadSound("dropdown.wav");
                 dropdown.GetAttributes(GameOptionsIni);
                 DropDowns.Add(dropdown);
                 AddChild(dropdown);
@@ -419,11 +414,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         /// </summary>
         protected void InitPlayerOptionDropdowns()
         {
-            ddPlayerNames = new XNADropDown[PLAYER_COUNT];
-            ddPlayerSides = new XNADropDown[PLAYER_COUNT];
-            ddPlayerColors = new XNADropDown[PLAYER_COUNT];
-            ddPlayerStarts = new XNADropDown[PLAYER_COUNT];
-            ddPlayerTeams = new XNADropDown[PLAYER_COUNT];
+            ddPlayerNames = new XNAClientDropDown[PLAYER_COUNT];
+            ddPlayerSides = new XNAClientDropDown[PLAYER_COUNT];
+            ddPlayerColors = new XNAClientDropDown[PLAYER_COUNT];
+            ddPlayerStarts = new XNAClientDropDown[PLAYER_COUNT];
+            ddPlayerTeams = new XNAClientDropDown[PLAYER_COUNT];
 
             int playerOptionVecticalMargin = GameOptionsIni.GetIntValue(Name, "PlayerOptionVerticalMargin", PLAYER_OPTION_VERTICAL_MARGIN);
             int playerOptionHorizontalMargin = GameOptionsIni.GetIntValue(Name, "PlayerOptionHorizontalMargin", PLAYER_OPTION_HORIZONTAL_MARGIN);
@@ -443,7 +438,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             for (int i = PLAYER_COUNT - 1; i > -1; i--)
             {
-                XNADropDown ddPlayerName = new XNADropDown(WindowManager);
+                var ddPlayerName = new XNAClientDropDown(WindowManager);
                 ddPlayerName.Name = "ddPlayerName" + i;
                 ddPlayerName.ClientRectangle = new Rectangle(locationX,
                     locationY + (DROP_DOWN_HEIGHT + playerOptionVecticalMargin) * i,
@@ -453,11 +448,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 ddPlayerName.AddItem("Medium AI");
                 ddPlayerName.AddItem("Hard AI");
                 ddPlayerName.AllowDropDown = true;
-                ddPlayerName.ClickSoundEffect = AssetLoader.LoadSound("dropdown.wav");
                 ddPlayerName.SelectedIndexChanged += CopyPlayerDataFromUI;
                 ddPlayerName.Tag = true;
 
-                XNADropDown ddPlayerSide = new XNADropDown(WindowManager);
+                var ddPlayerSide = new XNAClientDropDown(WindowManager);
                 ddPlayerSide.Name = "ddPlayerSide" + i;
                 ddPlayerSide.ClientRectangle = new Rectangle(
                     ddPlayerName.ClientRectangle.Right + playerOptionHorizontalMargin,
@@ -466,11 +460,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 foreach (string sideName in sides)
                     ddPlayerSide.AddItem(sideName, AssetLoader.LoadTexture(sideName + "icon.png"));
                 ddPlayerSide.AllowDropDown = false;
-                ddPlayerSide.ClickSoundEffect = AssetLoader.LoadSound("dropdown.wav");
                 ddPlayerSide.SelectedIndexChanged += CopyPlayerDataFromUI;
                 ddPlayerSide.Tag = true;
 
-                XNADropDown ddPlayerColor = new XNADropDown(WindowManager);
+                var ddPlayerColor = new XNAClientDropDown(WindowManager);
                 ddPlayerColor.Name = "ddPlayerColor" + i;
                 ddPlayerColor.ClientRectangle = new Rectangle(
                     ddPlayerSide.ClientRectangle.Right + playerOptionHorizontalMargin,
@@ -479,11 +472,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 foreach (MultiplayerColor mpColor in MPColors)
                     ddPlayerColor.AddItem(mpColor.Name, mpColor.XnaColor);
                 ddPlayerColor.AllowDropDown = false;
-                ddPlayerColor.ClickSoundEffect = AssetLoader.LoadSound("dropdown.wav");
                 ddPlayerColor.SelectedIndexChanged += CopyPlayerDataFromUI;
                 ddPlayerColor.Tag = false;
 
-                XNADropDown ddPlayerStart = new XNADropDown(WindowManager);
+                var ddPlayerStart = new XNAClientDropDown(WindowManager);
                 ddPlayerStart.Name = "ddPlayerStart" + i;
                 ddPlayerStart.ClientRectangle = new Rectangle(
                     ddPlayerColor.ClientRectangle.Right + playerOptionHorizontalMargin,
@@ -491,13 +483,12 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 for (int j = 1; j < 9; j++)
                     ddPlayerStart.AddItem(j.ToString());
                 ddPlayerStart.AllowDropDown = false;
-                ddPlayerStart.ClickSoundEffect = AssetLoader.LoadSound("dropdown.wav");
                 ddPlayerStart.SelectedIndexChanged += CopyPlayerDataFromUI;
                 ddPlayerStart.Visible = false;
                 ddPlayerStart.Enabled = false;
                 ddPlayerStart.Tag = true;
 
-                XNADropDown ddPlayerTeam = new XNADropDown(WindowManager);
+                var ddPlayerTeam = new XNAClientDropDown(WindowManager);
                 ddPlayerTeam.Name = "ddPlayerTeam" + i;
                 ddPlayerTeam.ClientRectangle = new Rectangle(
                     ddPlayerColor.ClientRectangle.Right + playerOptionHorizontalMargin,
@@ -508,7 +499,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 ddPlayerTeam.AddItem("C");
                 ddPlayerTeam.AddItem("D");
                 ddPlayerTeam.AllowDropDown = false;
-                ddPlayerTeam.ClickSoundEffect = AssetLoader.LoadSound("dropdown.wav");
                 ddPlayerTeam.SelectedIndexChanged += CopyPlayerDataFromUI;
                 ddPlayerTeam.Tag = true;
 
@@ -1168,10 +1158,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             mapChangeInProgress = true;
 
             // Clear forced options
-            foreach (XNADropDown ddGameOption in DropDowns)
+            foreach (var ddGameOption in DropDowns)
                 ddGameOption.AllowDropDown = true;
 
-            foreach (XNACheckBox checkBox in CheckBoxes)
+            foreach (var checkBox in CheckBoxes)
                 checkBox.AllowChecking = true;
 
             // We could either pass the CheckBoxes and DropDowns of this class
@@ -1186,19 +1176,19 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             ApplyForcedDropDownOptions(map.ForcedDropDownValues);
 
             // Enable all sides by default
-            foreach (XNADropDown ddSide in ddPlayerSides)
+            foreach (var ddSide in ddPlayerSides)
             {
                 ddSide.Items.ForEach(item => item.Selectable = true);
             }
 
             // Enable all colors by default
-            foreach (XNADropDown ddColor in ddPlayerColors)
+            foreach (var ddColor in ddPlayerColors)
             {
                 ddColor.Items.ForEach(item => item.Selectable = true);
             }
 
             // Apply starting locations
-            foreach (XNADropDown ddStart in ddPlayerStarts)
+            foreach (var ddStart in ddPlayerStarts)
             {
                 ddStart.Items.Clear();
 

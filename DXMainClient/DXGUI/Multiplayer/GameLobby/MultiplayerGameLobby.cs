@@ -115,7 +115,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             btnLockGame.Name = "btnLockGame";
             btnLockGame.ClientRectangle = new Rectangle(btnLaunchGame.ClientRectangle.Right + 12,
                 btnLaunchGame.ClientRectangle.Y, 133, 23);
-            btnLockGame.FontIndex = 1;
             btnLockGame.Text = "Lock Game";
             btnLockGame.LeftClick += BtnLockGame_LeftClick;
 

@@ -90,21 +90,18 @@ namespace DTAClient.DXGUI.Generic
             btnMainButton = new XNAClientButton(WindowManager);
             btnMainButton.Name = "btnMainButton";
             btnMainButton.ClientRectangle = new Rectangle(12, 12, 160, 23);
-            btnMainButton.FontIndex = 1;
             btnMainButton.Text = "Main Menu (F2)";
             btnMainButton.LeftClick += BtnMainButton_LeftClick;
 
             btnCnCNetLobby = new XNAClientButton(WindowManager);
             btnCnCNetLobby.Name = "btnCnCNetLobby";
             btnCnCNetLobby.ClientRectangle = new Rectangle(184, 12, 160, 23);
-            btnCnCNetLobby.FontIndex = 1;
             btnCnCNetLobby.Text = "CnCNet Lobby (F3)";
             btnCnCNetLobby.LeftClick += BtnCnCNetLobby_LeftClick;
 
             btnPrivateMessages = new XNAClientButton(WindowManager);
             btnPrivateMessages.Name = "btnPrivateMessages";
             btnPrivateMessages.ClientRectangle = new Rectangle(356, 12, 160, 23);
-            btnPrivateMessages.FontIndex = 1;
             btnPrivateMessages.Text = "Private Messages (F4)";
             btnPrivateMessages.LeftClick += BtnPrivateMessages_LeftClick;
 

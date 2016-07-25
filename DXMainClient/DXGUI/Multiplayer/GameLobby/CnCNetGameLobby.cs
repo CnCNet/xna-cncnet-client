@@ -306,7 +306,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             CopyPlayerDataToUI();
 
             if (sndJoinSound != null)
-                sndJoinSound.Play();
+                AudioMaster.PlaySound(sndJoinSound);
 
             if (!IsHost)
                 return;
@@ -336,7 +336,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             }
 
             if (sndLeaveSound != null)
-                sndLeaveSound.Play();
+                AudioMaster.PlaySound(sndLeaveSound);
 
             if (IsHost && Locked && !ProgramConstants.IsInGame)
             {
@@ -375,7 +375,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             lbChatMessages.AddMessage(e.Message);
 
             if (sndMessageSound != null && e.Message.Sender != null)
-                sndMessageSound.Play();
+                AudioMaster.PlaySound(sndMessageSound);
         }
 
         /// <summary>

@@ -90,7 +90,7 @@ namespace DTAClient.domain.Multiplayer
                     if (gm == null)
                     {
                         gm = new GameMode();
-                        gm.Name = gameMode;
+                        gm.Name = gameMode.Replace(";", string.Empty);
                         gm.Initialize();
                         GameModes.Add(gm);
                     }

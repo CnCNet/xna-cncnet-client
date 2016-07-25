@@ -20,10 +20,10 @@ namespace DTAClient.DXGUI.Generic
         XNAPanel panelGameStatistics;
         XNAPanel panelTotalStatistics;
 
-        XNADropDown cmbGameModeFilter;
-        XNADropDown cmbGameClassFilter;
+        XNAClientDropDown cmbGameModeFilter;
+        XNAClientDropDown cmbGameClassFilter;
 
-        XNACheckBox chkIncludeSpectatedGames;
+        XNAClientCheckBox chkIncludeSpectatedGames;
 
         XNATabControl tabControl;
 
@@ -98,7 +98,7 @@ namespace DTAClient.DXGUI.Generic
             lblFilter.Text = "FILTER:";
             lblFilter.ClientRectangle = new Rectangle(527, 12, 0, 0);
 
-            cmbGameClassFilter = new XNADropDown(WindowManager);
+            cmbGameClassFilter = new XNAClientDropDown(WindowManager);
             cmbGameClassFilter.ClientRectangle = new Rectangle(585, 11, 105, 21);
             cmbGameClassFilter.AddItem("All games");
             cmbGameClassFilter.AddItem("Online games");
@@ -106,7 +106,6 @@ namespace DTAClient.DXGUI.Generic
             cmbGameClassFilter.AddItem("Online Co-Op");
             cmbGameClassFilter.AddItem("Skirmish");
             cmbGameClassFilter.SelectedIndex = 0;
-            cmbGameClassFilter.ClickSoundEffect = AssetLoader.LoadSound("dropdown.wav");
             cmbGameClassFilter.SelectedIndexChanged += CmbGameClassFilter_SelectedIndexChanged;
 
             XNALabel lblGameMode = new XNALabel(WindowManager);
@@ -115,19 +114,17 @@ namespace DTAClient.DXGUI.Generic
             lblGameMode.Text = "GAME MODE:";
             lblGameMode.ClientRectangle = new Rectangle(294, 12, 0, 0);
 
-            cmbGameModeFilter = new XNADropDown(WindowManager);
+            cmbGameModeFilter = new XNAClientDropDown(WindowManager);
             cmbGameModeFilter.ClientRectangle = new Rectangle(381, 11, 114, 21);
-            cmbGameModeFilter.ClickSoundEffect = AssetLoader.LoadSound("dropdown.wav");
             cmbGameModeFilter.SelectedIndexChanged += CmbGameModeFilter_SelectedIndexChanged;
 
             var btnReturnToMenu = new XNAClientButton(WindowManager);
             btnReturnToMenu.Name = "btnReturnToMenu";
             btnReturnToMenu.ClientRectangle = new Rectangle(270, 486, 160, 23);
-            btnReturnToMenu.FontIndex = 1;
             btnReturnToMenu.Text = "Return to Main Menu";
             btnReturnToMenu.LeftClick += BtnReturnToMenu_LeftClick;
 
-            chkIncludeSpectatedGames = new XNACheckBox(WindowManager);
+            chkIncludeSpectatedGames = new XNAClientCheckBox(WindowManager);
 
             AddChild(chkIncludeSpectatedGames);
             chkIncludeSpectatedGames.Text = "Include spectated games";
@@ -138,7 +135,6 @@ namespace DTAClient.DXGUI.Generic
                 chkIncludeSpectatedGames.ClientRectangle.Width, 
                 chkIncludeSpectatedGames.ClientRectangle.Height);
             chkIncludeSpectatedGames.CheckedChanged += ChkIncludeSpectatedGames_CheckedChanged;
-            chkIncludeSpectatedGames.CheckSoundEffect = AssetLoader.LoadSound("checkbox.wav");
 
             #region Match statistics
 

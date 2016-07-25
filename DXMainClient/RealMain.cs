@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using DTAClient.domain;
 using Rampastring.Tools;
+using ClientCore;
 
 namespace DTAClient
 {
@@ -29,6 +30,10 @@ namespace DTAClient
 
             Logger.Log("***Logfile for " + MainClientConstants.GAME_NAME_LONG + " client***");
             Logger.Log("Client version: " + Application.ProductVersion);
+
+            Logger.Log("Loading settings.");
+
+            UserINISettings.Initialize(DomainController.Instance().GetSettingsIniName());
 
             File.Delete(MainClientConstants.gamepath + "mainclient.log");
             File.Delete(MainClientConstants.gamepath + "launchupdt.dat");

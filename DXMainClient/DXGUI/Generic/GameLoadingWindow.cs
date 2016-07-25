@@ -44,7 +44,6 @@ namespace DTAClient.DXGUI.Generic
 
             btnLaunch = new XNAClientButton(WindowManager);
             btnLaunch.ClientRectangle = new Rectangle(161, 345, 133, 23);
-            btnLaunch.FontIndex = 1;
             btnLaunch.Text = "Load";
             btnLaunch.AllowClick = false;
             btnLaunch.LeftClick += BtnLaunch_LeftClick;
@@ -52,7 +51,6 @@ namespace DTAClient.DXGUI.Generic
             var btnCancel = new XNAClientButton(WindowManager);
             btnCancel.Name = "btnCancel";
             btnCancel.ClientRectangle = new Rectangle(304, btnLaunch.ClientRectangle.Y, 133, 23);
-            btnCancel.FontIndex = 1;
             btnCancel.Text = "Cancel";
             btnCancel.LeftClick += BtnCancel_LeftClick;
 
@@ -92,7 +90,7 @@ namespace DTAClient.DXGUI.Generic
             sw.WriteLine("LoadSaveGame=Yes");
             sw.WriteLine("SidebarHack=" + MCDomainController.Instance.GetSidebarHackStatus());
             sw.WriteLine("Firestorm=No");
-            sw.WriteLine("GameSpeed=" + MCDomainController.Instance.GetGameSpeed());
+            sw.WriteLine("GameSpeed=" + UserINISettings.Instance.GameSpeed);
             sw.WriteLine();
             sw.Close();
 

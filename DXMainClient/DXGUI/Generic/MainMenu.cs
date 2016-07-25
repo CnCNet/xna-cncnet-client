@@ -25,13 +25,15 @@ namespace DTAClient.DXGUI.Generic
         const float MEDIA_PLAYER_VOLUME_EXIT_FADE_STEP = 0.025f;
 
         public MainMenu(WindowManager windowManager, SkirmishLobby skirmishLobby,
-            LANLobby lanLobby, TopBar topBar, CnCNetManager connectionManager) : base(windowManager)
+            LANLobby lanLobby, TopBar topBar, OptionsWindow optionsWindow,
+            CnCNetManager connectionManager) : base(windowManager)
         {
             isYR = DomainController.Instance().GetDefaultGame().ToUpper() == "YR";
             this.skirmishLobby = skirmishLobby;
             this.lanLobby = lanLobby;
             this.topBar = topBar;
             this.connectionManager = connectionManager;
+            this.optionsWindow = optionsWindow;
         }
 
         bool isYR = false;
@@ -47,6 +49,8 @@ namespace DTAClient.DXGUI.Generic
         LANLobby lanLobby;
 
         CnCNetManager connectionManager;
+
+        OptionsWindow optionsWindow;
 
         TopBar topBar;
 
@@ -68,7 +72,7 @@ namespace DTAClient.DXGUI.Generic
 
             WindowManager.CenterControlOnScreen(this);
 
-            var btnNewCampaign = new XNAButton(WindowManager);
+            var btnNewCampaign = new XNAClientButton(WindowManager);
             btnNewCampaign.Name = "btnNewCampaign";
             btnNewCampaign.IdleTexture = AssetLoader.LoadTexture("MainMenu\\campaign.png");
             btnNewCampaign.HoverTexture = AssetLoader.LoadTexture("MainMenu\\campaign_c.png");
@@ -76,7 +80,7 @@ namespace DTAClient.DXGUI.Generic
             btnNewCampaign.LeftClick += BtnNewCampaign_LeftClick;
             btnNewCampaign.HotKey = Keys.C;
 
-            var btnLoadGame = new XNAButton(WindowManager);
+            var btnLoadGame = new XNAClientButton(WindowManager);
             btnLoadGame.Name = "btnLoadGame";
             btnLoadGame.IdleTexture = AssetLoader.LoadTexture("MainMenu\\loadmission.png");
             btnLoadGame.HoverTexture = AssetLoader.LoadTexture("MainMenu\\loadmission_c.png");
@@ -84,7 +88,7 @@ namespace DTAClient.DXGUI.Generic
             btnLoadGame.LeftClick += BtnLoadGame_LeftClick;
             btnLoadGame.HotKey = Keys.L;
 
-            var btnSkirmish = new XNAButton(WindowManager);
+            var btnSkirmish = new XNAClientButton(WindowManager);
             btnSkirmish.Name = "btnSkirmish";
             btnSkirmish.IdleTexture = AssetLoader.LoadTexture("MainMenu\\skirmish.png");
             btnSkirmish.HoverTexture = AssetLoader.LoadTexture("MainMenu\\skirmish_c.png");
@@ -92,7 +96,7 @@ namespace DTAClient.DXGUI.Generic
             btnSkirmish.LeftClick += BtnSkirmish_LeftClick;
             btnSkirmish.HotKey = Keys.S;
 
-            var btnCnCNet = new XNAButton(WindowManager);
+            var btnCnCNet = new XNAClientButton(WindowManager);
             btnCnCNet.Name = "btnCnCNet";
             btnCnCNet.IdleTexture = AssetLoader.LoadTexture("MainMenu\\cncnet.png");
             btnCnCNet.HoverTexture = AssetLoader.LoadTexture("MainMenu\\cncnet_c.png");
@@ -100,7 +104,7 @@ namespace DTAClient.DXGUI.Generic
             btnCnCNet.LeftClick += BtnCnCNet_LeftClick;
             btnCnCNet.HotKey = Keys.M;
 
-            var btnLan = new XNAButton(WindowManager);
+            var btnLan = new XNAClientButton(WindowManager);
             btnLan.Name = "btnLan";
             btnLan.IdleTexture = AssetLoader.LoadTexture("MainMenu\\lan.png");
             btnLan.HoverTexture = AssetLoader.LoadTexture("MainMenu\\lan_c.png");
@@ -108,7 +112,7 @@ namespace DTAClient.DXGUI.Generic
             btnLan.LeftClick += BtnLan_LeftClick;
             btnLan.HotKey = Keys.N;
 
-            var btnOptions = new XNAButton(WindowManager);
+            var btnOptions = new XNAClientButton(WindowManager);
             btnOptions.Name = "btnOptions";
             btnOptions.IdleTexture = AssetLoader.LoadTexture("MainMenu\\options.png");
             btnOptions.HoverTexture = AssetLoader.LoadTexture("MainMenu\\options_c.png");
@@ -116,7 +120,7 @@ namespace DTAClient.DXGUI.Generic
             btnOptions.LeftClick += BtnOptions_LeftClick;
             btnOptions.HotKey = Keys.O;
 
-            var btnMapEditor = new XNAButton(WindowManager);
+            var btnMapEditor = new XNAClientButton(WindowManager);
             btnMapEditor.Name = "btnMapEditor";
             btnMapEditor.IdleTexture = AssetLoader.LoadTexture("MainMenu\\mapeditor.png");
             btnMapEditor.HoverTexture = AssetLoader.LoadTexture("MainMenu\\mapeditor_c.png");
@@ -124,7 +128,7 @@ namespace DTAClient.DXGUI.Generic
             btnMapEditor.LeftClick += BtnMapEditor_LeftClick;
             btnMapEditor.HotKey = Keys.E;
 
-            var btnStatistics = new XNAButton(WindowManager);
+            var btnStatistics = new XNAClientButton(WindowManager);
             btnStatistics.Name = "btnStatistics";
             btnStatistics.IdleTexture = AssetLoader.LoadTexture("MainMenu\\statistics.png");
             btnStatistics.HoverTexture = AssetLoader.LoadTexture("MainMenu\\statistics_c.png");
@@ -132,7 +136,7 @@ namespace DTAClient.DXGUI.Generic
             btnStatistics.LeftClick += BtnStatistics_LeftClick;
             btnStatistics.HotKey = Keys.T;
 
-            var btnCredits = new XNAButton(WindowManager);
+            var btnCredits = new XNAClientButton(WindowManager);
             btnCredits.Name = "btnCredits";
             btnCredits.IdleTexture = AssetLoader.LoadTexture("MainMenu\\credits.png");
             btnCredits.HoverTexture = AssetLoader.LoadTexture("MainMenu\\credits_c.png");
@@ -140,7 +144,7 @@ namespace DTAClient.DXGUI.Generic
             btnCredits.LeftClick += BtnCredits_LeftClick;
             btnCredits.HotKey = Keys.R;
 
-            var btnExtras = new XNAButton(WindowManager);
+            var btnExtras = new XNAClientButton(WindowManager);
             btnExtras.Name = "btnExtras";
             btnExtras.IdleTexture = AssetLoader.LoadTexture("MainMenu\\extras.png");
             btnExtras.HoverTexture = AssetLoader.LoadTexture("MainMenu\\extras_c.png");
@@ -148,7 +152,7 @@ namespace DTAClient.DXGUI.Generic
             btnExtras.LeftClick += BtnExtras_LeftClick;
             btnExtras.HotKey = Keys.E;
 
-            var btnExit = new XNAButton(WindowManager);
+            var btnExit = new XNAClientButton(WindowManager);
             btnExit.Name = "btnExit";
             btnExit.IdleTexture = AssetLoader.LoadTexture("MainMenu\\exitgame.png");
             btnExit.HoverTexture = AssetLoader.LoadTexture("MainMenu\\exitgame_c.png");
@@ -226,6 +230,65 @@ namespace DTAClient.DXGUI.Generic
             lanLobby.Exited += LanLobby_Exited;
 
             SharedUILogic.GameProcessStarted += SharedUILogic_GameProcessStarted;
+
+            UserINISettings.Instance.SettingsSaved += Instance_SettingsSaved;
+
+            CUpdater.Restart += CUpdater_Restart;
+        }
+
+        private void CUpdater_Restart(object sender, EventArgs e)
+        {
+            WindowManager.AddCallback(new Action(WindowManager.CloseGame), null);
+        }
+
+        private void Instance_SettingsSaved(object sender, EventArgs e)
+        {
+            if (MediaPlayer.State == MediaState.Playing)
+            {
+                if (!UserINISettings.Instance.PlayMainMenuMusic)
+                    isMusicFading = true;
+            }
+            else if (topBar.GetTopMostPrimarySwitchable() == this &&
+                topBar.LastSwitchType == SwitchType.PRIMARY)
+            {
+                PlayMusic();
+            }
+        }
+
+        private void CheckIfFirstRun()
+        {
+            if (MCDomainController.Instance.GetShortGameName() == "YR")
+                return;
+
+            if (UserINISettings.Instance.IsFirstRun)
+            {
+                UserINISettings.Instance.IsFirstRun.Value = false;
+                UserINISettings.Instance.SaveSettings();
+
+                var msgBox = new XNAMessageBox(WindowManager, "Initial Installation",
+                    "You have just installed {0}. " + Environment.NewLine +
+                    "It's highly recommended that you configure your settings before playing." +
+                    Environment.NewLine + "Do you want to configure them now?", DXMessageBoxButtons.YesNo);
+                msgBox.Show();
+                msgBox.YesClicked += MsgBox_YesClicked;
+                msgBox.NoClicked += MsgBox_NoClicked;
+            }
+        }
+
+        private void MsgBox_NoClicked(object sender, EventArgs e)
+        {
+            var msgBox = (XNAMessageBox)sender;
+            msgBox.YesClicked -= MsgBox_YesClicked;
+            msgBox.NoClicked -= MsgBox_NoClicked;
+        }
+
+        private void MsgBox_YesClicked(object sender, EventArgs e)
+        {
+            var msgBox = (XNAMessageBox)sender;
+            msgBox.YesClicked -= MsgBox_YesClicked;
+            msgBox.NoClicked -= MsgBox_NoClicked;
+
+            optionsWindow.Open();
         }
 
         private void SharedUILogic_GameProcessStarted()
@@ -252,9 +315,7 @@ namespace DTAClient.DXGUI.Generic
         {
             topBar.Enable();
 
-            if (DomainController.Instance().GetCnCNetPersistentModeStatus() &&
-                DomainController.Instance().GetCnCNetConnectDialogSkipStatus() &&
-                DomainController.Instance().GetCnCNetAutologinStatus())
+            if (UserINISettings.Instance.AutomaticCnCNetLogin)
                 connectionManager.Connect();
 
             PlayMusic();
@@ -292,7 +353,7 @@ namespace DTAClient.DXGUI.Generic
 
             if (!MCDomainController.Instance.GetModModeStatus())
             {
-                if (MCDomainController.Instance.GetAutomaticUpdateStatus())
+                if (UserINISettings.Instance.CheckForUpdates)
                 {
                     lblUpdateStatus.Text = "Checking for updates...";
                     lblUpdateStatus.Enabled = false;
@@ -410,24 +471,7 @@ namespace DTAClient.DXGUI.Generic
 
         private void BtnOptions_LeftClick(object sender, EventArgs e)
         {
-            innerPanel.InstantShow();
-            Game.RunOneFrame(); // Hacky, remove after the options menu has been rewritten to utilize MonoGame
-            OptionsForm of = new OptionsForm();
-            of.ShowDialog();
-            of.Dispose();
-            DomainController.Instance().ReloadSettings();
-            int themeId = DomainController.Instance().GetSelectedThemeId();
-            string resDir = "Resources\\" + DomainController.Instance().GetThemeInfoFromIndex(themeId)[1];
-
-            if (ProgramConstants.RESOURCES_DIR != resDir)
-            {
-                ProgramConstants.RESOURCES_DIR = resDir;
-                DomainController.Instance().ReloadSettings();
-                SetAttributesFromIni();
-            }
-
-            MCDomainController.Instance.ReloadSettings();
-            innerPanel.Hide();
+            optionsWindow.Open();
         }
 
         private void BtnNewCampaign_LeftClick(object sender, EventArgs e)

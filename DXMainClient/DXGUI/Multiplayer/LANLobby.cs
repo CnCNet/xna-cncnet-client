@@ -1,25 +1,26 @@
-﻿using ClientGUI;
-using System;
-using Rampastring.XNAUI;
-using Rampastring.XNAUI.XNAControls;
-using Microsoft.Xna.Framework.Graphics;
-using Microsoft.Xna.Framework.Audio;
-using ClientCore;
-using Microsoft.Xna.Framework;
+﻿using ClientCore;
+using ClientCore.CnCNet5;
+using ClientGUI;
 using DTAClient.domain.LAN;
 using DTAClient.domain.Multiplayer;
-using System.Collections.Generic;
-using DTAClient.Properties;
+using DTAClient.domain.Multiplayer.LAN;
 using DTAClient.DXGUI.Generic;
+using DTAClient.DXGUI.Multiplayer.GameLobby;
+using DTAClient.Online;
+using DTAClient.Properties;
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Audio;
+using Microsoft.Xna.Framework.Graphics;
+using Rampastring.Tools;
+using Rampastring.XNAUI;
+using Rampastring.XNAUI.XNAControls;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Net.Sockets;
-using Rampastring.Tools;
-using DTAClient.Online;
-using System.Threading;
 using System.Text;
-using DTAClient.domain.Multiplayer.LAN;
-using DTAClient.DXGUI.Multiplayer.GameLobby;
-using System.Linq;
+using System.Threading;
 
 namespace DTAClient.DXGUI.Multiplayer
 {
@@ -59,7 +60,7 @@ namespace DTAClient.DXGUI.Multiplayer
 
         XNALabel lblColor;
 
-        XNADropDown ddColor;
+        XNAClientDropDown ddColor;
 
         LANGameCreationWindow gameCreationWindow;
 
@@ -108,10 +109,6 @@ namespace DTAClient.DXGUI.Multiplayer
             btnNewGame = new XNAClientButton(WindowManager);
             btnNewGame.Name = "btnNewGame";
             btnNewGame.ClientRectangle = new Rectangle(12, ClientRectangle.Height - 35, 133, 23);
-            btnNewGame.IdleTexture = AssetLoader.LoadTexture("133pxbtn.png");
-            btnNewGame.HoverTexture = AssetLoader.LoadTexture("133pxbtn_c.png");
-            btnNewGame.HoverSoundEffect = AssetLoader.LoadSound("button.wav");
-            btnNewGame.FontIndex = 1;
             btnNewGame.Text = "Create Game";
             btnNewGame.LeftClick += BtnNewGame_LeftClick;
 
@@ -119,21 +116,13 @@ namespace DTAClient.DXGUI.Multiplayer
             btnJoinGame.Name = "btnJoinGame";
             btnJoinGame.ClientRectangle = new Rectangle(btnNewGame.ClientRectangle.Right + 12,
                 btnNewGame.ClientRectangle.Y, 133, 23);
-            btnJoinGame.IdleTexture = AssetLoader.LoadTexture("133pxbtn.png");
-            btnJoinGame.HoverTexture = AssetLoader.LoadTexture("133pxbtn_c.png");
-            btnJoinGame.HoverSoundEffect = AssetLoader.LoadSound("button.wav");
-            btnJoinGame.FontIndex = 1;
             btnJoinGame.Text = "Join Game";
             btnJoinGame.LeftClick += BtnJoinGame_LeftClick;
 
             btnMainMenu = new XNAClientButton(WindowManager);
             btnMainMenu.Name = "btnMainMenu";
-            btnMainMenu.ClientRectangle = new Rectangle(ClientRectangle.Width - 145, btnNewGame.ClientRectangle.Y,
-                133, 23);
-            btnMainMenu.IdleTexture = AssetLoader.LoadTexture("133pxbtn.png");
-            btnMainMenu.HoverTexture = AssetLoader.LoadTexture("133pxbtn_c.png");
-            btnMainMenu.HoverSoundEffect = AssetLoader.LoadSound("button.wav");
-            btnMainMenu.FontIndex = 1;
+            btnMainMenu.ClientRectangle = new Rectangle(ClientRectangle.Width - 145,
+                btnNewGame.ClientRectangle.Y, 133, 23);
             btnMainMenu.Text = "Main Menu";
             btnMainMenu.LeftClick += BtnMainMenu_LeftClick;
 
@@ -236,12 +225,11 @@ namespace DTAClient.DXGUI.Multiplayer
             lblColor.FontIndex = 1;
             lblColor.Text = "YOUR COLOR:";
 
-            ddColor = new XNADropDown(WindowManager);
+            ddColor = new XNAClientDropDown(WindowManager);
             ddColor.Name = "ddColor";
             ddColor.ClientRectangle = new Rectangle(lblColor.ClientRectangle.X + 95, 12,
                 150, 21);
             ddColor.SelectedIndexChanged += DdColor_SelectedIndexChanged;
-            ddColor.ClickSoundEffect = AssetLoader.LoadSound("dropdown.wav");
 
             chatColors = new LANColor[]
             {

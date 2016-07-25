@@ -103,12 +103,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="domain\Multiplayer\AllianceHolder.cs" />
-    <Compile Include="domain\Multiplayer\CnCNetGame.cs" />
     <Compile Include="domain\Multiplayer\CnCNet\CnCNetInfoController.cs" />
     <Compile Include="domain\Multiplayer\CnCNet\CnCNetTunnel.cs" />
     <Compile Include="domain\Multiplayer\CoopHouseInfo.cs" />
     <Compile Include="domain\Multiplayer\CoopMapInfo.cs" />
-    <Compile Include="domain\Multiplayer\GameCollection.cs" />
     <Compile Include="domain\Multiplayer\GameMode.cs" />
     <Compile Include="domain\Multiplayer\CnCNet\HostedCnCNetGame.cs" />
     <Compile Include="domain\Multiplayer\CnCNet\MapEventArgs.cs" />

@@ -8,7 +8,7 @@ using ClientCore;
 
 namespace DTAClient.DXGUI.Multiplayer.CnCNet
 {
-    public class CnCNetLoginWindow : XNAWindow
+    class CnCNetLoginWindow : XNAWindow
     {
         public CnCNetLoginWindow(WindowManager windowManager) : base(windowManager)
         {
@@ -17,9 +17,9 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         XNALabel lblConnectToCnCNet;
         XNATextBox tbPlayerName;
         XNALabel lblPlayerName;
-        XNACheckBox chkRememberMe;
-        XNACheckBox chkPersistentMode;
-        XNACheckBox chkAutoConnect;
+        XNAClientCheckBox chkRememberMe;
+        XNAClientCheckBox chkPersistentMode;
+        XNAClientCheckBox chkAutoConnect;
         XNAClientButton btnConnect;
         XNAClientButton btnCancel;
 
@@ -61,41 +61,36 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             lblPlayerName.ClientRectangle = new Rectangle(12, tbPlayerName.ClientRectangle.Y + 1,
                 lblPlayerName.ClientRectangle.Width, lblPlayerName.ClientRectangle.Height);
 
-            chkRememberMe = new XNACheckBox(WindowManager);
+            chkRememberMe = new XNAClientCheckBox(WindowManager);
             chkRememberMe.Name = "chkRememberMe";
             chkRememberMe.ClientRectangle = new Rectangle(12, tbPlayerName.ClientRectangle.Bottom + 12, 0, 0);
             chkRememberMe.Text = "Remember me";
             chkRememberMe.TextPadding = 7;
-            chkRememberMe.CheckSoundEffect = AssetLoader.LoadSound("checkbox.wav");
             chkRememberMe.CheckedChanged += ChkRememberMe_CheckedChanged;
 
-            chkPersistentMode = new XNACheckBox(WindowManager);
+            chkPersistentMode = new XNAClientCheckBox(WindowManager);
             chkPersistentMode.Name = "chkPersistentMode";
             chkPersistentMode.ClientRectangle = new Rectangle(12, chkRememberMe.ClientRectangle.Bottom + 30, 0, 0);
             chkPersistentMode.Text = "Stay connected outside of the CnCNet lobby";
             chkPersistentMode.TextPadding = chkRememberMe.TextPadding;
-            chkPersistentMode.CheckSoundEffect = AssetLoader.LoadSound("checkbox.wav");
             chkPersistentMode.CheckedChanged += ChkPersistentMode_CheckedChanged;
 
-            chkAutoConnect = new XNACheckBox(WindowManager);
+            chkAutoConnect = new XNAClientCheckBox(WindowManager);
             chkAutoConnect.Name = "chkAutoConnect";
             chkAutoConnect.ClientRectangle = new Rectangle(12, chkPersistentMode.ClientRectangle.Bottom + 30, 0, 0);
             chkAutoConnect.Text = "Connect automatically on client startup";
             chkAutoConnect.TextPadding = chkRememberMe.TextPadding;
-            chkAutoConnect.CheckSoundEffect = AssetLoader.LoadSound("checkbox.wav");
             chkAutoConnect.AllowChecking = false;
 
             btnConnect = new XNAClientButton(WindowManager);
             btnConnect.Name = "btnConnect";
             btnConnect.ClientRectangle = new Rectangle(12, ClientRectangle.Height - 35, 110, 23);
-            btnConnect.FontIndex = 1;
             btnConnect.Text = "Connect";
             btnConnect.LeftClick += BtnConnect_LeftClick;
 
             btnCancel = new XNAClientButton(WindowManager);
             btnCancel.Name = "btnCancel";
             btnCancel.ClientRectangle = new Rectangle(ClientRectangle.Width - 122, btnConnect.ClientRectangle.Y, 110, 23);
-            btnCancel.FontIndex = 1;
             btnCancel.Text = "Cancel";
             btnCancel.LeftClick += BtnCancel_LeftClick;
 
@@ -136,7 +131,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         private void BtnConnect_LeftClick(object sender, EventArgs e)
         {
-            string errorMessage = IsNameValid();
+            string errorMessage = NameValidator.IsNameValid(tbPlayerName.Text);
 
             if (!string.IsNullOrEmpty(errorMessage))
             {
@@ -153,45 +148,12 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         public void LoadSettings()
         {
-            chkAutoConnect.Checked = DomainController.Instance().GetCnCNetAutologinStatus();
-            chkPersistentMode.Checked = DomainController.Instance().GetCnCNetPersistentModeStatus();
-            chkRememberMe.Checked = DomainController.Instance().GetCnCNetConnectDialogSkipStatus();
+            chkAutoConnect.Checked = UserINISettings.Instance.AutomaticCnCNetLogin;
+            chkPersistentMode.Checked = UserINISettings.Instance.PersistentMode;
+            chkRememberMe.Checked = UserINISettings.Instance.SkipConnectDialog;
 
             if (chkRememberMe.Checked)
-                Connect?.Invoke(this, EventArgs.Empty);
-        }
-
-        /// <summary>
-        /// Checks if the player's nickname is valid for CnCNet.
-        /// </summary>
-        /// <returns>Null if the nickname is valid, otherwise a string that tells
-        /// what is wrong with the name.</returns>
-        private string IsNameValid()
-        {
-            if (string.IsNullOrEmpty(tbPlayerName.Text))
-                return "Please enter a name.";
-
-            int number = -1;
-            if (Int32.TryParse(tbPlayerName.Text.Substring(0, 1), out number))
-                return "The first character in your player name cannot be a number.";
-
-            if (tbPlayerName.Text[0] == '-')
-                return "The first character in your player name cannot be a dash ( - ).";
-
-            // Check that there are no invalid chars
-            char[] allowedCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_[]|\\{}^`".ToCharArray();
-            char[] nicknameChars = tbPlayerName.Text.ToCharArray();
-
-            foreach (char nickChar in nicknameChars)
-            {
-                if (!allowedCharacters.Contains(nickChar))
-                {
-                    return "Your player name has invalid characters in it." + Environment.NewLine +
-                    "Allowed characters are anything from A to Z and numbers.";
-                }
-            }
-
-            return null;
+                BtnConnect_LeftClick(this, EventArgs.Empty);
         }
     }
 }
