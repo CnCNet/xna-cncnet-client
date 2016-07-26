@@ -54,7 +54,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         XNALabel lblPrivateMessaging;
 
-        XNATabControl tabControl;
+        XNAClientTabControl tabControl;
 
         XNALabel lblPlayers;
         XNAListBox lbUserList;
@@ -280,17 +280,14 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 lblPrivateMessaging.ClientRectangle.Width,
                 lblPrivateMessaging.ClientRectangle.Height);
 
-            tabControl = new XNATabControl(WindowManager);
+            tabControl = new XNAClientTabControl(WindowManager);
             tabControl.Name = "tabControl";
             tabControl.ClientRectangle = new Rectangle(60, 50, 0, 0);
             tabControl.SoundOnClick = AssetLoader.LoadSound("button.wav");
             tabControl.FontIndex = 1;
-            tabControl.AddTab("Messages", AssetLoader.LoadTexture("160pxbtn_c.png"),
-                AssetLoader.LoadTexture("160pxbtn.png"), true);
-            tabControl.AddTab("Friend List", AssetLoader.LoadTexture("160pxbtn_c.png"),
-                AssetLoader.LoadTexture("160pxbtn.png"), true);
-            tabControl.AddTab("All Players", AssetLoader.LoadTexture("160pxbtn_c.png"),
-                AssetLoader.LoadTexture("160pxbtn.png"), true);
+            tabControl.AddTab("Messages", 160);
+            tabControl.AddTab("Friend List", 160);
+            tabControl.AddTab("All Players", 160);
             tabControl.SelectedIndexChanged += TabControl_SelectedIndexChanged;
 
             lblPlayers = new XNALabel(WindowManager);

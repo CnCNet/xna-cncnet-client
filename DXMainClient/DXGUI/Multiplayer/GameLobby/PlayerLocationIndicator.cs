@@ -96,6 +96,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 if (pInfo.TeamId > 0)
                     text = teamIds[pInfo.TeamId] + " " + pInfo.Name;
 
+                if (text == null)
+                    return;
+
                 Vector2 pInfoSize = Renderer.GetTextDimensions(text, FontIndex);
 
                 //if (pInfoSize.X > textSize.X)
@@ -106,12 +109,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 if (ClientRectangle.Right + textXPosition + (int)textSize.X > Parent.ClientRectangle.Width)
                 {
                     textXPosition = -(int)textSize.X - 3 - (int)(baseTexture.Width * TEXTURE_SCALE);
-                    text = pInfo.TeamId > 0 ? text + " " + teamIds[pInfo.TeamId] : text;
+                    text = pInfo.TeamId > 0 ? pInfo.Name + " " + teamIds[pInfo.TeamId] : pInfo.Name;
                     textOnRight = false;
                 }
                 else
                 {
-                    text = pInfo.TeamId > 0 ? teamIds[pInfo.TeamId] + " " + text : text;
                     textOnRight = true;
                 }
             }

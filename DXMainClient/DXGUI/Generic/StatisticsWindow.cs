@@ -25,7 +25,7 @@ namespace DTAClient.DXGUI.Generic
 
         XNAClientCheckBox chkIncludeSpectatedGames;
 
-        XNATabControl tabControl;
+        XNAClientTabControl tabControl;
 
         // Controls for game statistics
 
@@ -81,15 +81,13 @@ namespace DTAClient.DXGUI.Generic
             BackgroundTexture = AssetLoader.LoadTexture("scoreviewerbg.png");
             ClientRectangle = new Rectangle(0, 0, 700, 521);
 
-            tabControl = new XNATabControl(WindowManager);
+            tabControl = new XNAClientTabControl(WindowManager);
             tabControl.Name = "tabControl";
             tabControl.ClientRectangle = new Rectangle(12, 10, 0, 0);
             tabControl.SoundOnClick = AssetLoader.LoadSound("button.wav");
             tabControl.FontIndex = 1;
-            tabControl.AddTab("Game Statistics", AssetLoader.LoadTexture("133pxbtn_c.png"),
-                AssetLoader.LoadTexture("133pxbtn.png"), true);
-            tabControl.AddTab("Total Statistics", AssetLoader.LoadTexture("133pxbtn_c.png"),
-                AssetLoader.LoadTexture("133pxbtn.png"), true);
+            tabControl.AddTab("Game Statistics", 133);
+            tabControl.AddTab("Total Statistics", 133);
             tabControl.SelectedIndexChanged += tabControl_SelectedIndexChanged;
 
             XNALabel lblFilter = new XNALabel(WindowManager);

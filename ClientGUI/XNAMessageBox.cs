@@ -215,7 +215,10 @@ namespace ClientGUI
             panel.Focused = true;
             windowManager.AddAndInitializeControl(panel);
 
-            XNAMessageBox msgBox = new XNAMessageBox(windowManager, caption, description, DXMessageBoxButtons.OK);
+            var msgBox = new XNAMessageBox(windowManager,
+                Renderer.GetSafeString(caption, 1), 
+                Renderer.GetSafeString(description, 0), 
+                DXMessageBoxButtons.OK);
 
             panel.AddChild(msgBox);
             msgBox.OKClicked += MsgBox_OKClicked;

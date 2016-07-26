@@ -55,6 +55,12 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             WindowManager.CenterControlOnScreen(this);
         }
 
+        public void RefreshPlayerName()
+        {
+            Players[0].Name = ProgramConstants.PLAYERNAME;
+            CopyPlayerDataToUI();
+        }
+
         private void MapPreviewBox_LocalStartingLocationSelected(object sender, LocalStartingLocationEventArgs e)
         {
             Players[0].StartingLocation = e.StartingLocationIndex + 1;

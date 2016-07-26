@@ -1,0 +1,41 @@
+﻿using Rampastring.XNAUI.XNAControls;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using Rampastring.XNAUI;
+using System.IO;
+
+namespace ClientGUI
+{
+    public class XNAClientTabControl : XNATabControl
+    {
+        public XNAClientTabControl(WindowManager windowManager) : base(windowManager)
+        {
+        }
+
+        public override void Initialize()
+        {
+            if (SoundOnClick == null)
+                SoundOnClick = AssetLoader.LoadSound("button.wav");
+
+            base.Initialize();
+        }
+
+        public void AddTab(string text, int width)
+        {
+            string tabAssetName = width + "pxtab";
+
+            if (AssetLoader.AssetExists(tabAssetName + ".png"))
+            {
+                AddTab(text, AssetLoader.LoadTexture(tabAssetName + ".png"),
+                    AssetLoader.LoadTexture(tabAssetName + "_c.png"));
+            }
+            else
+            {
+                AddTab(text, AssetLoader.LoadTexture(width + "pxbtn.png"),
+                    AssetLoader.LoadTexture(width + "pxbtn_c.png"));
+            }
+        }
+    }
+}

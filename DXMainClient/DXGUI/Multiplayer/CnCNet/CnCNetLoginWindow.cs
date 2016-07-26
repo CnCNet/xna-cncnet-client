@@ -105,6 +105,13 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             base.Initialize();
 
             CenterOnParent();
+
+            UserINISettings.Instance.SettingsSaved += Instance_SettingsSaved;
+        }
+
+        private void Instance_SettingsSaved(object sender, EventArgs e)
+        {
+            tbPlayerName.Text = ProgramConstants.PLAYERNAME;
         }
 
         private void BtnCancel_LeftClick(object sender, EventArgs e)

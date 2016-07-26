@@ -148,7 +148,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         private void ContextMenu_OptionSelected(object sender, ContextMenuOptionEventArgs e)
         {
             if (sndDropdownSound != null)
-                sndDropdownSound.Play();
+                AudioMaster.PlaySound(sndDropdownSound);
 
             if (Map.EnforceMaxPlayers)
             {
@@ -186,7 +186,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             var indicator = (PlayerLocationIndicator)sender;
 
             if (sndClickSound != null)
-                sndClickSound.Play();
+                AudioMaster.PlaySound(sndClickSound);
 
             if (!EnableContextMenu)
             {

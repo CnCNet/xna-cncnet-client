@@ -586,6 +586,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 {
                     pInfo.IsAI = true;
                     pInfo.AILevel = converted;
+                    pInfo.Name = AILevelToName(converted);
                 }
                 else
                     pInfo.Name = pName;
@@ -1053,7 +1054,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             if (ping > -1)
             {
-                AddNotice(sender + " - ping to tunnel server: " + ping);
+                AddNotice(sender + " - ping to tunnel server: " + ping + " ms");
             }
             else
                 AddNotice(sender + " - unknown ping to tunnel server.");
