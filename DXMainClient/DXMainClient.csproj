@@ -157,6 +157,7 @@
     <Compile Include="DXGUI\Multiplayer\GameLobby\CommandHandlers\IntNotificationHandler.cs" />
     <Compile Include="domain\Multiplayer\LAN\ClientNoParamCommandHandler.cs" />
     <Compile Include="DXGUI\Multiplayer\GameLobby\CommandHandlers\NotificationHandler.cs" />
+    <Compile Include="DXGUI\Multiplayer\GameLobby\CoopBriefingBox.cs" />
     <Compile Include="DXGUI\Multiplayer\GameLobby\DropDownDataWriteMode.cs" />
     <Compile Include="DXGUI\Multiplayer\GameLobby\GameLobbyBase.cs" />
     <Compile Include="DXGUI\Multiplayer\GameLobby\GameLobbyCheckBox.cs" />

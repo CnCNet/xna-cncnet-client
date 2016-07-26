@@ -73,6 +73,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         XNAContextMenu contextMenu;
 
+        CoopBriefingBox briefingBox;
+
         Rectangle textureRectangle;
 
         Texture2D texture;
@@ -133,6 +135,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             AddChild(contextMenu);
             contextMenu.Enabled = false;
             contextMenu.Visible = false;
+
+            briefingBox = new CoopBriefingBox(WindowManager);
+            AddChild(briefingBox);
+            briefingBox.Disable();
 
             SoundEffect seButton = AssetLoader.LoadSound("button.wav");
             if (seButton != null)
@@ -281,6 +287,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (Map == null)
             {
                 texture = null;
+                briefingBox.Disable();
                 return;
             }
 
@@ -290,6 +297,15 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             }
             else
                 texture = Map.PreviewTexture;
+
+            if (!string.IsNullOrEmpty(Map.Briefing))
+            {
+                briefingBox.SetText(Map.Briefing);
+                if (!IsActive)
+                    briefingBox.Enable();
+            }
+            else
+                briefingBox.Disable();
 
             double xRatio = (ClientRectangle.Width - 2) / (double)texture.Width;
             double yRatio = (ClientRectangle.Height - 2) / (double)texture.Height;
@@ -388,6 +404,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             foreach (PlayerLocationIndicator indicator in startingLocationIndicators)
                 indicator.BackgroundShown = true;
 
+            briefingBox.Disable();
+
             base.OnMouseEnter();
         }
 
@@ -395,6 +413,12 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             foreach (PlayerLocationIndicator indicator in startingLocationIndicators)
                 indicator.BackgroundShown = false;
+
+            if (Map != null && !string.IsNullOrEmpty(Map.Briefing))
+            {
+                briefingBox.SetText(Map.Briefing);
+                briefingBox.Enable();
+            }
 
             base.OnMouseLeave();
         }

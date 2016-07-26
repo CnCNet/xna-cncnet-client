@@ -588,6 +588,7 @@ namespace DTAClient.DXGUI.Generic
             {
                 musicVolume = 1.0f;
                 isMusicFading = false;
+                MediaPlayer.Volume = AudioMaster.GetVolume();
                 MediaPlayer.IsRepeating = true;
                 MediaPlayer.Play(themeSong);
             }
@@ -599,7 +600,7 @@ namespace DTAClient.DXGUI.Generic
                 return;
 
             // Fade during 1 second
-            float step = MediaPlayer.Volume * (float)gameTime.ElapsedGameTime.TotalSeconds;
+            float step = AudioMaster.GetVolume() * (float)gameTime.ElapsedGameTime.TotalSeconds;
 
             if (MediaPlayer.Volume > step)
                 MediaPlayer.Volume -= step;
