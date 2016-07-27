@@ -14,34 +14,49 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
     {
         public GameLobbyCheckBox(WindowManager windowManager) : base (windowManager) { }
 
-        public string SpawnIniOption { get; set; }
-
-        public string CustomIniPath { get; set; }
-
-        public bool Reversed { get; set; }
-
         public bool IsMultiplayer { get; set; }
+
+        public bool UserDefinedValue { get; set; }
+
+        private string spawnIniOption;
+
+        private string customIniPath;
+
+        private bool reversed;
+
+        private bool defaultValue;
 
         protected override void ParseAttributeFromINI(IniFile iniFile, string key, string value)
         {
             switch (key)
             {
                 case "SpawnIniOption":
-                    SpawnIniOption = value;
+                    spawnIniOption = value;
                     return;
                 case "CustomIniPath":
-                    CustomIniPath = value;
+                    customIniPath = value;
                     return;
                 case "Reversed":
-                    Reversed = Conversions.BooleanFromString(value, false);
+                    reversed = Conversions.BooleanFromString(value, false);
                     return;
                 case "CheckedMP":
                     if (IsMultiplayer)
                         Checked = Conversions.BooleanFromString(value, false);
                     return;
+                case "Checked":
+                    bool checkedValue = Conversions.BooleanFromString(value, false);
+                    Checked = checkedValue;
+                    defaultValue = checkedValue;
+                    UserDefinedValue = checkedValue;
+                    return;
             }
 
             base.ParseAttributeFromINI(iniFile, key, value);
+        }
+
+        public void SetDefaultValue()
+        {
+            Checked = defaultValue;
         }
 
         /// <summary>
@@ -50,18 +65,18 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         /// <param name="spawnIni">The spawn INI file.</param>
         public void ApplySpawnINICode(IniFile spawnIni)
         {
-            if (String.IsNullOrEmpty(SpawnIniOption))
+            if (String.IsNullOrEmpty(spawnIniOption))
                 return;
 
-            spawnIni.SetBooleanValue("Settings", SpawnIniOption, Checked != Reversed);
+            spawnIni.SetBooleanValue("Settings", spawnIniOption, Checked != reversed);
         }
 
         public void ApplyMapCode(IniFile mapIni)
         {
-            if (Checked == Reversed || String.IsNullOrEmpty(CustomIniPath))
+            if (Checked == reversed || String.IsNullOrEmpty(customIniPath))
                 return;
 
-            IniFile associatedIni = new IniFile(ProgramConstants.GamePath + CustomIniPath);
+            IniFile associatedIni = new IniFile(ProgramConstants.GamePath + customIniPath);
             IniFile.ConsolidateIniFiles(mapIni, associatedIni);
         }
     }

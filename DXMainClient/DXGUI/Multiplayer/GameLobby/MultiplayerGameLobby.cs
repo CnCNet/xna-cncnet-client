@@ -22,7 +22,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
     {
         public MultiplayerGameLobby(WindowManager windowManager, string iniName, 
             TopBar topBar, List<GameMode> GameModes)
-            : base(windowManager, iniName, GameModes)
+            : base(windowManager, iniName, GameModes, true)
         {
             TopBar = topBar;
         }

@@ -11,7 +11,6 @@ namespace DTAClient.domain.Multiplayer
     public class GameMode
     {
         const string BASE_INI_PATH = "INI\\Map Code\\";
-        const string FORCED_OPTIONS_SECTION = "ForcedOptions";
         const string SPAWN_INI_OPTIONS_SECTION = "ForcedSpawnIniOptions";
 
         /// <summary>
@@ -22,7 +21,11 @@ namespace DTAClient.domain.Multiplayer
         /// <summary>
         /// The user-interface name of the game mode.
         /// </summary>
-        public string UIName { get; set; }
+        public string UIName { get; private set; }
+
+        public bool MultiplayerOnly { get; private set; }
+
+        private string forcedOptionsSection;
 
         public List<Map> Maps = new List<Map>();
 
@@ -43,20 +46,23 @@ namespace DTAClient.domain.Multiplayer
 
             CoopDifficultyLevel = forcedOptionsIni.GetIntValue(Name, "CoopDifficultyLevel", 0);
             UIName = forcedOptionsIni.GetStringValue(Name, "UIName", Name);
+            MultiplayerOnly = forcedOptionsIni.GetBooleanValue(Name, "MultiplayerOnly", false);
+            forcedOptionsSection = forcedOptionsIni.GetStringValue(Name, "ForcedOptions", string.Empty);
         }
 
         private void ParseForcedOptions(IniFile forcedOptionsIni)
         {
-            string section = Name + FORCED_OPTIONS_SECTION;
+            if (string.IsNullOrEmpty(forcedOptionsSection))
+                return;
 
-            List<string> keys = forcedOptionsIni.GetSectionKeys(section);
+            List<string> keys = forcedOptionsIni.GetSectionKeys(forcedOptionsSection);
 
             if (keys == null)
                 return;
 
             foreach (string key in keys)
             {
-                string value = forcedOptionsIni.GetStringValue(section, key, String.Empty);
+                string value = forcedOptionsIni.GetStringValue(forcedOptionsSection, key, String.Empty);
 
                 int intValue = 0;
                 if (Int32.TryParse(value, out intValue))

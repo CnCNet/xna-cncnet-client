@@ -12,7 +12,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 {
     public class SkirmishLobby : GameLobbyBase, ISwitchable
     {
-        public SkirmishLobby(WindowManager windowManager, TopBar topBar, List<GameMode> GameModes) : base(windowManager, "SkirmishLobby", GameModes)
+        public SkirmishLobby(WindowManager windowManager, TopBar topBar, List<GameMode> GameModes)
+            : base(windowManager, "SkirmishLobby", GameModes, false)
         {
             this.topBar = topBar;
         }
@@ -72,14 +73,19 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             int totalPlayerCount = Players.Count(p => p.SideId < ddPlayerSides[0].Items.Count - 1)
                 + AIPlayers.Count;
 
-            if (totalPlayerCount < Map.MinPlayers)
+            if (GameMode.MultiplayerOnly)
             {
-                return "The selected map cannot be played with less than " + Map.MinPlayers + " players.";
+                return GameMode.UIName + " can only be played on CnCNet and LAN.";
             }
 
             if (Map.MultiplayerOnly)
             {
                 return "The selected map can only be played on CnCNet and LAN.";
+            }
+
+            if (totalPlayerCount < Map.MinPlayers)
+            {
+                return "The selected map cannot be played with less than " + Map.MinPlayers + " players.";
             }
 
             if (Map.EnforceMaxPlayers)

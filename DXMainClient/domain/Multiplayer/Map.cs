@@ -390,6 +390,8 @@ namespace DTAClient.domain.Multiplayer
 
                         spawnIni.SetIntValue("Multi" + aMultiId + "_Alliances",
                             "HouseAlly" + HouseAllyIndexToString(allyIndex), allyMultiIndex);
+                        spawnIni.SetIntValue("Multi" + (allyMultiIndex + 1) + "_Alliances",
+                            "HouseAlly" + HouseAllyIndexToString(totalPlayerCount + i - 1), aMultiId - 1);
                         allyIndex++;
                     }
                 }

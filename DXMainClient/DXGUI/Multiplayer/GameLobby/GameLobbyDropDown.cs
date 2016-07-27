@@ -13,11 +13,15 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
     {
         public GameLobbyDropDown(WindowManager windowManager) : base(windowManager) { }
 
-        public DropDownDataWriteMode DataWriteMode { get; set; }
+        public string OptionName { get; private set; }
 
-        public string SpawnIniOption { get; set; }
+        public int UserDefinedIndex { get; set; }
 
-        public string OptionName { get; set; }
+        private DropDownDataWriteMode dataWriteMode = DropDownDataWriteMode.BOOLEAN;
+
+        private string spawnIniOption = string.Empty;
+
+        private int defaultIndex;
 
         protected override void ParseAttributeFromINI(IniFile iniFile, string key, string value)
         {
@@ -30,17 +34,19 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     return;
                 case "DataWriteMode":
                     if (value.ToUpper() == "INDEX")
-                        DataWriteMode = DropDownDataWriteMode.INDEX;
+                        dataWriteMode = DropDownDataWriteMode.INDEX;
                     else if (value.ToUpper() == "BOOLEAN")
-                        DataWriteMode = DropDownDataWriteMode.BOOLEAN;
+                        dataWriteMode = DropDownDataWriteMode.BOOLEAN;
                     else
-                        DataWriteMode = DropDownDataWriteMode.STRING;
+                        dataWriteMode = DropDownDataWriteMode.STRING;
                     return;
                 case "SpawnIniOption":
-                    SpawnIniOption = value;
+                    spawnIniOption = value;
                     return;
                 case "DefaultIndex":
                     SelectedIndex = int.Parse(value);
+                    defaultIndex = SelectedIndex;
+                    UserDefinedIndex = SelectedIndex;
                     return;
                 case "OptionName":
                     OptionName = value;
@@ -50,29 +56,34 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             base.ParseAttributeFromINI(iniFile, key, value);
         }
 
+        public void SetDefaultValue()
+        {
+            SelectedIndex = defaultIndex;
+        }
+
         /// <summary>
         /// Applies the drop down's associated code to spawn.ini.
         /// </summary>
         /// <param name="spawnIni">The spawn INI file.</param>
         public void ApplySpawnIniCode(IniFile spawnIni)
         {
-            if (String.IsNullOrEmpty(SpawnIniOption))
+            if (String.IsNullOrEmpty(spawnIniOption))
             {
                 Logger.Log("GameLobbyDropDown.WriteSpawnIniCode: " + Name + " has no associated spawn INI option!");
                 return;
             }
 
-            switch (DataWriteMode)
+            switch (dataWriteMode)
             {
                 case DropDownDataWriteMode.BOOLEAN:
-                    spawnIni.SetBooleanValue("Settings", SpawnIniOption, SelectedIndex > 0);
+                    spawnIni.SetBooleanValue("Settings", spawnIniOption, SelectedIndex > 0);
                     break;
                 case DropDownDataWriteMode.INDEX:
-                    spawnIni.SetIntValue("Settings", SpawnIniOption, SelectedIndex);
+                    spawnIni.SetIntValue("Settings", spawnIniOption, SelectedIndex);
                     break;
                 default:
                 case DropDownDataWriteMode.STRING:
-                    spawnIni.SetStringValue("Settings", SpawnIniOption, Items[SelectedIndex].Text);
+                    spawnIni.SetStringValue("Settings", spawnIniOption, Items[SelectedIndex].Text);
                     break;
             }
         }

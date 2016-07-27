@@ -31,10 +31,12 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         /// </summary>
         /// <param name="game">The game.</param>
         /// <param name="iniName">The name of the lobby in GameOptions.ini.</param>
-        public GameLobbyBase(WindowManager windowManager, string iniName, List<GameMode> GameModes) : base(windowManager)
+        public GameLobbyBase(WindowManager windowManager, string iniName,
+            List<GameMode> GameModes, bool isMultiplayer) : base(windowManager)
         {
             _iniSectionName = iniName;
             this.GameModes = GameModes;
+            this.isMultiplayer = isMultiplayer;
         }
 
         private string _iniSectionName;
@@ -110,6 +112,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private int _sideCount;
         protected int SideCount { get { return _sideCount; } }
+
+        private bool isMultiplayer = false;
 
         private MatchStatistics matchStatistics;
 
@@ -313,6 +317,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (mapChangeInProgress)
                 return;
 
+            var dd = (GameLobbyDropDown)sender;
+            dd.UserDefinedIndex = dd.SelectedIndex;
             OnGameOptionChanged();
         }
 
@@ -321,6 +327,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (mapChangeInProgress)
                 return;
 
+            var checkBox = (GameLobbyCheckBox)sender;
+            checkBox.UserDefinedValue = checkBox.Checked;
             OnGameOptionChanged();
         }
 
@@ -380,7 +388,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
                 XNAListBoxItem mapNameItem = new XNAListBoxItem();
                 mapNameItem.Text = map.Name;
-                mapNameItem.TextColor = UISettings.AltColor;
+                if ((map.MultiplayerOnly || GameMode.MultiplayerOnly) && !isMultiplayer)
+                    mapNameItem.TextColor = UISettings.DisabledButtonColor;
+                else
+                    mapNameItem.TextColor = UISettings.AltColor;
                 mapNameItem.Tag = map;
 
                 XNAListBoxItem[] mapInfoArray = new XNAListBoxItem[]
@@ -1132,6 +1143,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 // TODO: Load the new game mode's default settings
             }
 
+            var oldGameMode = GameMode;
             GameMode = gameMode;
 
             Map = map;
@@ -1164,16 +1176,42 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             foreach (var checkBox in CheckBoxes)
                 checkBox.AllowChecking = true;
 
+            // Apply default options if we should
+
+            //if (GameMode.LoadDefaultSettingsOnMapChange ||
+            //    (oldGameMode != null && oldGameMode.LoadDefaultSettingsOnMapChange))
+            //{
+            //    foreach (var ddGameOption in DropDowns)
+            //        ddGameOption.SetDefaultValue();
+
+            //    foreach (var checkBox in CheckBoxes)
+            //        checkBox.SetDefaultValue();
+            //}
+
             // We could either pass the CheckBoxes and DropDowns of this class
             // to the Map and GameMode instances and let them apply their forced
             // options, or we could do it in this class with helper functions.
-            // I think the second approach is clearer.
+            // The second approach is probably clearer.
 
-            ApplyForcedCheckBoxOptions(gameMode.ForcedCheckBoxValues);
-            ApplyForcedCheckBoxOptions(map.ForcedCheckBoxValues);
+            // We use these temp lists to determine which options WERE NOT forced
+            // by the map. We then return these to user-defined settings.
+            // This prevents forced options from one map getting carried
+            // to other maps.
 
-            ApplyForcedDropDownOptions(gameMode.ForcedDropDownValues);
-            ApplyForcedDropDownOptions(map.ForcedDropDownValues);
+            var checkBoxListClone = new List<GameLobbyCheckBox>(CheckBoxes);
+            var dropDownListClone = new List<GameLobbyDropDown>(DropDowns);
+
+            ApplyForcedCheckBoxOptions(checkBoxListClone, gameMode.ForcedCheckBoxValues);
+            ApplyForcedCheckBoxOptions(checkBoxListClone, map.ForcedCheckBoxValues);
+
+            ApplyForcedDropDownOptions(dropDownListClone, gameMode.ForcedDropDownValues);
+            ApplyForcedDropDownOptions(dropDownListClone, map.ForcedDropDownValues);
+
+            foreach (var chkBox in checkBoxListClone)
+                chkBox.Checked = chkBox.UserDefinedValue;
+
+            foreach (var dd in dropDownListClone)
+                dd.SelectedIndex = dd.UserDefinedIndex;
 
             // Enable all sides by default
             foreach (var ddSide in ddPlayerSides)
@@ -1284,7 +1322,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             mapChangeInProgress = false;
         }
 
-        protected void ApplyForcedCheckBoxOptions(List<KeyValuePair<string, bool>> forcedOptions)
+        protected void ApplyForcedCheckBoxOptions(List<GameLobbyCheckBox> optionList,
+            List<KeyValuePair<string, bool>> forcedOptions)
         {
             foreach (KeyValuePair<string, bool> option in forcedOptions)
             {
@@ -1293,11 +1332,13 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 {
                     checkBox.Checked = option.Value;
                     checkBox.AllowChecking = false;
+                    optionList.Remove(checkBox);
                 }
             }
         }
 
-        protected void ApplyForcedDropDownOptions(List<KeyValuePair<string, int>> forcedOptions)
+        protected void ApplyForcedDropDownOptions(List<GameLobbyDropDown> optionList,
+            List<KeyValuePair<string, int>> forcedOptions)
         {
             foreach (KeyValuePair<string, int> option in forcedOptions)
             {
@@ -1306,6 +1347,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 {
                     dropDown.SelectedIndex = option.Value;
                     dropDown.AllowDropDown = false;
+                    optionList.Remove(dropDown);
                 }
             }
         }
