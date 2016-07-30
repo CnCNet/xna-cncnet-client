@@ -403,6 +403,36 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             gameLobby.GameLeft += GameLobby_GameLeft;
             gameLoadingLobby.GameLeft += GameLoadingLobby_GameLeft;
+
+            UserINISettings.Instance.SettingsSaved += Instance_SettingsSaved;
+        }
+
+        private void Instance_SettingsSaved(object sender, EventArgs e)
+        {
+            if (!connectionManager.IsConnected)
+                return;
+
+            foreach (CnCNetGame game in gameCollection.GameList)
+            {
+                if (!game.Supported)
+                    continue;
+
+                if (game.InternalName.ToUpper() == localGame)
+                    continue;
+
+                if (followedGames.Contains(game.InternalName) &&
+                    !UserINISettings.Instance.IsGameFollowed(game.InternalName.ToUpper()))
+                {
+                    connectionManager.GetChannel(game.GameBroadcastChannel).Leave();
+                    followedGames.Remove(game.InternalName);
+                }
+                else if (!followedGames.Contains(game.InternalName) &&
+                    UserINISettings.Instance.IsGameFollowed(game.InternalName.ToUpper()))
+                {
+                    connectionManager.GetChannel(game.GameBroadcastChannel).Join();
+                    followedGames.Add(game.InternalName);
+                }
+            }
         }
 
         private void LbPlayerList_RightClick(object sender, EventArgs e)
@@ -827,9 +857,9 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 if (!game.Supported)
                     continue;
 
-                if (game.InternalName != localGame.ToLower())
+                if (game.InternalName.ToUpper() != localGame)
                 {
-                    if (UserINISettings.Instance.IsGameFollowed(game.InternalName))
+                    if (UserINISettings.Instance.IsGameFollowed(game.InternalName.ToUpper()))
                     {
                         connectionManager.GetChannel(game.GameBroadcastChannel).Join();
                         followedGames.Add(game.InternalName);
