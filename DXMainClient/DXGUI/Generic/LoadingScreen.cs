@@ -40,9 +40,9 @@ namespace DTAClient.DXGUI.Generic
 
             BackgroundTexture = AssetLoader.LoadTexture("loadingscreen.png");
 
-            CenterOnParent();
-
             base.Initialize();
+
+            CenterOnParent();
         }
 
         public void Start()
