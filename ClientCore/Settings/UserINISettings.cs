@@ -93,6 +93,7 @@ namespace ClientCore
             GameSpeed = new IntSetting(iniFile, OPTIONS, "GameSpeed", 1);
             PreloadMapPreviews = new BoolSetting(iniFile, VIDEO, "PreloadMapPreviews", false);
             ForceLowestDetailLevel = new BoolSetting(iniFile, VIDEO, "ForceLowestDetailLevel", false);
+            MinimizeWindowsOnGameStart = new BoolSetting(iniFile, OPTIONS, "MinimizeWindowsOnGameStart", true);
         }
 
         public IniFile SettingsIni { get; private set; }
@@ -149,6 +150,8 @@ namespace ClientCore
         public BoolSetting PreloadMapPreviews { get; private set; }
 
         public BoolSetting ForceLowestDetailLevel { get; private set; }
+
+        public BoolSetting MinimizeWindowsOnGameStart { get; private set; }
 
         public bool IsGameFollowed(string gameName)
         {

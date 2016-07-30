@@ -77,7 +77,8 @@ namespace DTAClient.DXGUI
             WindowManager.Cursor.Visible = false;
             ProgramConstants.IsInGame = true;
             Game.TargetElapsedTime = TimeSpan.FromMilliseconds(1000.0 / POWER_SAVING_FPS);
-            WindowManager.MinimizeWindow();
+            if (UserINISettings.Instance.MinimizeWindowsOnGameStart)
+                WindowManager.MinimizeWindow();
         }
 
         private void SharedUILogic_GameProcessExited()
@@ -128,7 +129,8 @@ namespace DTAClient.DXGUI
             WindowManager.Cursor.Visible = true;
             ProgramConstants.IsInGame = false;
             Game.TargetElapsedTime = TimeSpan.FromMilliseconds(1000.0 / FPS);
-            WindowManager.MaximizeWindow();
+            if (UserINISettings.Instance.MinimizeWindowsOnGameStart)
+                WindowManager.MaximizeWindow();
 
             UserINISettings.Instance.ReloadSettings();
             DomainController.Instance().ReloadSettings();
