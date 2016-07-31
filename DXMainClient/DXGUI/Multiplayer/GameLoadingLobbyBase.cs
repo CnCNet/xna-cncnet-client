@@ -10,6 +10,7 @@ using System.IO;
 using Microsoft.Xna.Framework.Audio;
 using DTAClient.DXGUI.Generic;
 using DTAClient.domain.Multiplayer;
+using ClientCore.Statistics;
 
 namespace DTAClient.DXGUI.Multiplayer
 {
@@ -65,6 +66,9 @@ namespace DTAClient.DXGUI.Multiplayer
         bool isSettingUp = false;
         FileSystemWatcher fsw;
         bool switched = false;
+
+        int uniqueGameId = 0;
+        DateTime gameLoadTime;
 
         public override void Initialize()
         {
@@ -326,6 +330,8 @@ namespace DTAClient.DXGUI.Multiplayer
             sw.WriteLine();
             sw.Close();
 
+            gameLoadTime = DateTime.Now;
+
             SharedUILogic.GameProcessExited += SharedUILogic_GameProcessExited;
             SharedUILogic.StartGameProcess(0);
             
@@ -343,7 +349,21 @@ namespace DTAClient.DXGUI.Multiplayer
 
             SharedUILogic.GameProcessExited -= SharedUILogic_GameProcessExited;
 
-            // TODO write game to statistics
+            var matchStatistics = StatisticsManager.Instance.GetMatchWithGameID(uniqueGameId);
+
+            if (matchStatistics != null && !matchStatistics.SawCompletion)
+            {
+                int oldLength = matchStatistics.LengthInSeconds;
+                int newLength = matchStatistics.LengthInSeconds + 
+                    (int)(DateTime.Now - gameLoadTime).TotalSeconds;
+
+                matchStatistics.ParseStatistics(ProgramConstants.GamePath,
+                    DomainController.Instance().GetDefaultGame());
+
+                matchStatistics.LengthInSeconds = newLength;
+
+                StatisticsManager.Instance.SaveDatabase();
+            }
         }
 
         protected virtual void WriteSpawnIniAdditions(IniFile spawnIni)
@@ -382,6 +402,8 @@ namespace DTAClient.DXGUI.Multiplayer
             loadedGameID = spawnSGIni.GetStringValue("Settings", "GameID", "0");
             lblMapNameValue.Text = spawnSGIni.GetStringValue("Settings", "UIMapName", string.Empty);
             lblGameModeValue.Text = spawnSGIni.GetStringValue("Settings", "UIGameMode", string.Empty);
+
+            uniqueGameId = spawnSGIni.GetIntValue("Settings", "GameID", -1);
 
             int playerCount = spawnSGIni.GetIntValue("Settings", "PlayerCount", 0);
 

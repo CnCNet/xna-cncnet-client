@@ -247,16 +247,6 @@ namespace ClientCore
             return settings_ini.GetBooleanValue("Audio", "EnableButtonHoverSound", true);
         }
 
-        public bool GetWindowMinimizingStatus()
-        {
-            return settings_ini.GetBooleanValue("Options", "MinimizeWindowsOnGameStart", true);
-        }
-
-        public bool GetWindowedStatus()
-        {
-            return settings_ini.GetBooleanValue("Video", "Video.Windowed", false);
-        }
-
         public string GetSkirmishMapSHA1()
         {
             return settings_ini.GetStringValue("Skirmish", "Map", "default");
@@ -302,24 +292,9 @@ namespace ClientCore
             return clientDefinitionsIni.GetSectionKeys("Themes").Count;
         }
 
-        public int GetSelectedThemeId()
-        {
-            return settings_ini.GetIntValue("MultiPlayer", "Theme", 0);
-        }
-
         public int GetSendSleepInMs()
         {
             return settings_ini.GetIntValue("MultiPlayer", "SendSleep", 2500);
-        }
-
-        public bool GetGameCreatedBroadcastLocalStatus()
-        {
-            return settings_ini.GetBooleanValue("MultiPlayer", "BroadcastGameCreationLocally", false);
-        }
-
-        public bool GetGameCreatedBroadcastGlobalStatus()
-        {
-            return settings_ini.GetBooleanValue("MultiPlayer", "BroadcastGameCreationGlobally", false);
         }
 
         public bool EnablePrivateMessageSound
@@ -341,11 +316,6 @@ namespace ClientCore
         public string GetSettingsIniName()
         {
             return clientDefinitionsIni.GetStringValue("Settings", "SettingsFile", "Settings.ini");
-        }
-
-        public string GetConfigToolWindowTitle()
-        {
-            return clientDefinitionsIni.GetStringValue("Settings", "ConfigWindowTitle", "ClientDefinitions.ini -> ConfigWindowTitle");
         }
 
         public string GetExtraCommandLineParameters()
@@ -393,16 +363,6 @@ namespace ClientCore
             return clientDefinitionsIni.GetStringValue("Links", "Homepage", "http://rampastring.cnc-comm.com");
         }
 
-        public int GetLastUpdateDay()
-        {
-            return settings_ini.GetIntValue("Options", "LastUpdateDay", 1);
-        }
-
-        public void SetLastUpdateDay()
-        {
-            settings_ini.SetIntValue("Options", "LastUpdateDay", DateTime.Now.Day);
-        }
-
         public void WriteSettingsIni()
         {
             settings_ini.WriteIniFile();
@@ -416,26 +376,6 @@ namespace ClientCore
                 return exeNames[0];
 
             return exeNames[id];
-        }
-
-        public String GetCurrentGameRes(bool isWindowed, out bool success)
-        {
-            int width = 800;
-            int height = 600;
-            width = settings_ini.GetIntValue("Video","ScreenWidth", 800, out success);
-            if (success)
-                height = settings_ini.GetIntValue("Video", "ScreenHeight", 600, out success);
-            if (isWindowed)
-            {
-                if (width + 6 == Screen.PrimaryScreen.Bounds.Width)
-                    width = width + 6;
-                if (height + 65 == Screen.PrimaryScreen.Bounds.Height)
-                    height = height + 65;
-
-                return width + "x" + height;
-            }
-
-            return width + "x" + height;
         }
 
         public OSVersion GetOperatingSystemVersion()
@@ -464,50 +404,12 @@ namespace ClientCore
             return OSVersion.UNKNOWN;
         }
 
-        public String GetMpHandle()
-        {
-            String name = settings_ini.GetStringValue("MultiPlayer", "Handle", String.Empty);
-            name = SetMpHandle(name.Trim());
-            return name;
-        }
-
-        private string SetMpHandle(String name)
-        {
-            if (name.Equals(String.Empty) || name.Equals("[NONAME]"))
-            {
-                name = WindowsIdentity.GetCurrent().Name;
-
-                name = name.Substring(name.IndexOf("\\") + 1);
-            }
-
-            if (name.Length > 16) 
-                name = name.Substring(0, 16);
-            return name;
-        }
-
-        public void SaveCnCNetSettings(string name, bool skipConnectDialog, bool persistentMode, bool autoLogin)
-        {
-            Logger.Log("Saving CnCNet multiplayer settings.");
-
-            settings_ini.SetStringValue("MultiPlayer", "Handle", name);
-
-            settings_ini.SetBooleanValue("MultiPlayer", "SkipConnectDialog", skipConnectDialog);
-            settings_ini.SetBooleanValue("MultiPlayer", "PersistentMode", persistentMode);
-            settings_ini.SetBooleanValue("MultiPlayer", "AutomaticCnCNetLogin", autoLogin);
-            settings_ini.SetBooleanValue("Options", "ForceLowestDetailLevel", false);
-
-            settings_ini.WriteIniFile();
-        }
-
         /// <summary>
         /// Saves settings used for skirmish games.
         /// </summary>
         public void SaveSkirmishSettings(string mapmd5, string gameMode, string difficulties,
             string sides, string colors, string startLocs, string teams, string settings)
         {
-            string name = SetMpHandle(ProgramConstants.PLAYERNAME);
-
-            settings_ini.SetStringValue("MultiPlayer", "Handle", name);
             settings_ini.SetStringValue("Skirmish", "Map", mapmd5);
             settings_ini.SetStringValue("Skirmish", "GameMode", gameMode);
             settings_ini.SetStringValue("Skirmish", "Difficulties", difficulties);
@@ -518,15 +420,6 @@ namespace ClientCore
             settings_ini.SetStringValue("Skirmish", "Settings", settings);
             settings_ini.SetBooleanValue("Options", "ForceLowestDetailLevel", false);
             settings_ini.WriteIniFile();
-        }
-
-        public void SaveGameLobbySettings(bool enableChatSounds, FormWindowState windowState)
-        {
-            settings_ini.SetBooleanValue("Options", "MessageSound", enableChatSounds);
-            if (windowState == FormWindowState.Maximized)
-                settings_ini.SetStringValue("Options", "GameLobbyWindowState", "Maximized");
-            else
-                settings_ini.SetStringValue("Options", "GameLobbyWindowState", "Normal");
         }
     }
 }

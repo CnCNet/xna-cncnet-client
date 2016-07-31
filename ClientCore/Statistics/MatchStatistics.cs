@@ -12,6 +12,7 @@ namespace ClientCore.Statistics
         public MatchStatistics(string gameVersion, int gameId, string mapName, string gameMode, int numHumans)
         {
             GameVersion = gameVersion;
+            GameID = gameId;
             DateAndTime = DateTime.Now;
             MapName = mapName;
             GameMode = gameMode;

@@ -546,9 +546,9 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         protected override void HandleGameProcessExited()
         {
-            Clear();
-
             base.HandleGameProcessExited();
+
+            Clear();
         }
 
         protected override void LeaveGame()

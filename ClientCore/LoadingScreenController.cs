@@ -6,11 +6,7 @@ namespace ClientCore
     {
         public static string GetLoadScreenName(int sideId)
         {
-            bool success;
-            string resolution = DomainController.Instance().GetCurrentGameRes(DomainController.Instance().GetWindowedStatus(), out success);
-            string[] resArray = resolution.Split('x');
-
-            int resHeight = Convert.ToInt32(resArray[1]);
+            int resHeight = UserINISettings.Instance.IngameScreenHeight;
 
             string loadingScreenName = ProgramConstants.BASE_RESOURCE_PATH + "l";
             if (resHeight < 480)

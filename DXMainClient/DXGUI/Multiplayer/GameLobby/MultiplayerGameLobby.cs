@@ -180,15 +180,30 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             if (IsHost)
             {
+                GenerateGameID();
+            }
+
+            base.GameProcessExited();
+        }
+
+        private void GenerateGameID()
+        {
+            int i = 0;
+
+            while (i < 20)
+            {
                 string s = DateTime.Now.Day.ToString() +
                     DateTime.Now.Month.ToString() +
                     DateTime.Now.Hour.ToString() +
                     DateTime.Now.Minute.ToString();
 
-                UniqueGameID = int.Parse(new Random().Next(1, 41).ToString() + s);
-            }
+                UniqueGameID = int.Parse(i.ToString() + s);
 
-            base.GameProcessExited();
+                if (StatisticsManager.Instance.GetMatchWithGameID(UniqueGameID) == null)
+                    break;
+
+                i++;
+            }
         }
 
         private void BtnLockGame_LeftClick(object sender, EventArgs e)
@@ -283,10 +298,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 foreach (GameLobbyCheckBox checkBox in CheckBoxes)
                     checkBox.InputEnabled = true;
 
-                UniqueGameID = int.Parse(DateTime.Now.Day.ToString() + 
-                    DateTime.Now.Month.ToString() + 
-                    DateTime.Now.Second.ToString() + 
-                    new Random().Next(1, 1000).ToString());
+                GenerateGameID();
             }
             else
             {

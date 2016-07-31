@@ -1,21 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using DTAClient.DXGUI.Generic;
-using Microsoft.Xna.Framework;
-using Rampastring.XNAUI;
-using Rampastring.Tools;
-using ClientCore;
+﻿using ClientCore;
+using DTAClient.domain.LAN;
 using DTAClient.domain.Multiplayer;
 using DTAClient.domain.Multiplayer.LAN;
-using System.Net.Sockets;
-using DTAClient.domain.LAN;
-using System.Net;
 using DTAClient.DXGUI.Multiplayer.GameLobby;
-using DTAClient.DXGUI.Multiplayer.GameLobby.CommandHandlers;
-using System.Threading;
 using DTAClient.Online;
+using Microsoft.Xna.Framework;
+using Rampastring.Tools;
+using Rampastring.XNAUI;
+using System;
+using System.Collections.Generic;
+using System.Net;
+using System.Net.Sockets;
+using System.Text;
+using System.Threading;
 
 namespace DTAClient.DXGUI.Multiplayer
 {

@@ -52,8 +52,6 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             if (defgame == "YR" || defgame == "MO")
                 tbPlayerName.MaximumTextLength = 12; // YR can't handle names longer than 12 chars
 
-            tbPlayerName.Text = DomainController.Instance().GetMpHandle();
-
             lblPlayerName = new XNALabel(WindowManager);
             lblPlayerName.Name = "lblPlayerName";
             lblPlayerName.FontIndex = 1;
@@ -148,8 +146,13 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             ProgramConstants.PLAYERNAME = tbPlayerName.Text;
 
-            DomainController.Instance().SaveCnCNetSettings(ProgramConstants.PLAYERNAME, chkRememberMe.Checked,
-                chkPersistentMode.Checked, chkAutoConnect.Checked);
+            UserINISettings.Instance.SkipConnectDialog.Value = chkRememberMe.Checked;
+            UserINISettings.Instance.PersistentMode.Value = chkPersistentMode.Checked;
+            UserINISettings.Instance.AutomaticCnCNetLogin.Value = chkAutoConnect.Checked;
+            UserINISettings.Instance.PlayerName.Value = ProgramConstants.PLAYERNAME;
+
+            UserINISettings.Instance.SaveSettings();
+
             Connect?.Invoke(this, EventArgs.Empty);
         }
 
@@ -158,6 +161,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             chkAutoConnect.Checked = UserINISettings.Instance.AutomaticCnCNetLogin;
             chkPersistentMode.Checked = UserINISettings.Instance.PersistentMode;
             chkRememberMe.Checked = UserINISettings.Instance.SkipConnectDialog;
+
+            tbPlayerName.Text = ProgramConstants.PLAYERNAME;
 
             if (chkRememberMe.Checked)
                 BtnConnect_LeftClick(this, EventArgs.Empty);

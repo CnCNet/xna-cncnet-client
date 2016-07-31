@@ -19,11 +19,11 @@ namespace ClientGUI
     /// </summary>
     public static class SharedUILogic
     {
-        public delegate void GameProcessStartedEventHandler();
-        public static event GameProcessStartedEventHandler GameProcessStarted;
+        public static event Action GameProcessStarted;
 
-        public delegate void GameProcessExitedEventHandler();
-        public static event GameProcessExitedEventHandler GameProcessExited; 
+        public static event Action GameProcessStarting;
+
+        public static event Action GameProcessExited;
 
         public const int COOP_BRIEFING_WIDTH = 488;
         const int COOP_BRIEFING_HEIGHT = 200;
@@ -405,7 +405,9 @@ namespace ClientGUI
 
             File.Delete(ProgramConstants.GamePath + "DTA.LOG");
 
-            if (DomainController.Instance().GetWindowedStatus())
+            GameProcessStarting?.Invoke();
+
+            if (UserINISettings.Instance.WindowedMode)
             {
                 Logger.Log("Windowed mode is enabled - using QRes.");
                 Process QResProcess = new Process();

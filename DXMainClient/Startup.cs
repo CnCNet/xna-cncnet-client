@@ -36,8 +36,6 @@ namespace DTAClient
             ProgramConstants.RESOURCES_DIR = "Resources\\" + DomainController.Instance().GetThemeInfoFromIndex(themeId)[1];
             DomainController.Instance().ReloadSettings();
 
-            ProgramConstants.PLAYERNAME = DomainController.Instance().GetMpHandle();
-
             //SplashScreen ss = new SplashScreen();
             //ss.Show();
 

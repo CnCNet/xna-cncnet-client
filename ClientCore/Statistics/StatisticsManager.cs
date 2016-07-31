@@ -365,6 +365,9 @@ namespace ClientCore.Statistics
             sw.Close();
         }
 
+        /// <summary>
+        /// Deletes the statistics file on the file system and rewrites it.
+        /// </summary>
         public void SaveDatabase()
         {
             File.Delete(gamePath + SCORE_FILE_PATH);
@@ -661,6 +664,16 @@ namespace ClientCore.Statistics
             }
 
             return rank;
+        }
+
+        public bool IsGameIdUnique(int gameId)
+        {
+            return Statistics.Find(m => m.GameID == gameId) == null;
+        }
+
+        public MatchStatistics GetMatchWithGameID(int gameId)
+        {
+            return Statistics.Find(m => m.GameID == gameId);
         }
     }
 }

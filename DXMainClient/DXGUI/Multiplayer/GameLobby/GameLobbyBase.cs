@@ -362,6 +362,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private void ListMaps()
         {
+            lbMapList.SelectedIndexChanged -= LbMapList_SelectedIndexChanged;
+
             lbMapList.ClearItems();
             lbMapList.SetTopIndex(0);
 
@@ -401,7 +403,12 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 };
 
                 lbMapList.AddItem(mapInfoArray);
+
+                if (map == Map)
+                    lbMapList.SelectedIndex = lbMapList.ItemCount - 1;
             }
+
+            lbMapList.SelectedIndexChanged += LbMapList_SelectedIndexChanged;
         }
 
         protected abstract int GetDefaultMapRankIndex(Map map);

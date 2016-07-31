@@ -313,8 +313,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             if (e.User.Name != ProgramConstants.PLAYERNAME)
             {
+                // Changing the map applies forced settings (co-op sides etc.) to the
+                // new player, and it also sends an options broadcast message
+                ChangeMap(GameMode, Map);
                 BroadcastPlayerOptions();
-                OnGameOptionChanged();
             }
 
             if (Players.Count >= playerLimit)

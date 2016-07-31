@@ -77,7 +77,7 @@ namespace DTAClient.DXGUI
 
             Components.Add(wm);
 
-            string playerName = UserINISettings.Instance.PlayerName;
+            string playerName = UserINISettings.Instance.PlayerName.Value.Trim();
 
             if (string.IsNullOrEmpty(playerName))
             {

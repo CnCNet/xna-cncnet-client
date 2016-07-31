@@ -232,10 +232,25 @@ namespace DTAClient.DXGUI.Generic
             lanLobby.Exited += LanLobby_Exited;
 
             SharedUILogic.GameProcessStarted += SharedUILogic_GameProcessStarted;
+            SharedUILogic.GameProcessStarting += SharedUILogic_GameProcessStarting;
 
             UserINISettings.Instance.SettingsSaved += SettingsSaved;
 
             CUpdater.Restart += CUpdater_Restart;
+        }
+
+        private void SharedUILogic_GameProcessStarting()
+        {
+            try
+            {
+                optionsWindow.RefreshSettings();
+            }
+            catch (Exception ex)
+            {
+                Logger.Log("Refreshing settings failed! Exception message: " + ex.Message);
+                XNAMessageBox.Show(WindowManager, "Saving settings failed",
+                    "Saving settings failed! Error message: " + ex.Message);
+            }
         }
 
         private void CUpdater_Restart(object sender, EventArgs e)
