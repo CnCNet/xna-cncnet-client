@@ -1,10 +1,10 @@
-﻿using ClientGUI;
+﻿using ClientCore;
+using ClientCore.CnCNet5;
+using ClientGUI;
+using Microsoft.Xna.Framework;
+using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
 using System;
-using System.Linq;
-using Rampastring.XNAUI;
-using Microsoft.Xna.Framework;
-using ClientCore;
 
 namespace DTAClient.DXGUI.Multiplayer.CnCNet
 {

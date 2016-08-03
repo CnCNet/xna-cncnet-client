@@ -215,7 +215,6 @@ namespace DTAClient.DXGUI.Generic
             IniFile difficultyIni;
 
             UserINISettings.Instance.Difficulty.Value = trbDifficultySelector.Value;
-            UserINISettings.Instance.SaveSettings();
             if (trbDifficultySelector.Value == 0) // Easy
             {
                 swriter.WriteLine("DifficultyModeHuman=0");

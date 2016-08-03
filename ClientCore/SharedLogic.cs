@@ -30,15 +30,6 @@ namespace ClientCore
         }
 
         /// <summary>
-        /// Gets the font used by the client's list boxes based on font information given in DTACnCNetClient.ini.
-        /// </summary>
-        /// <returns>The font.</returns>
-        public static Font GetListBoxFont()
-        {
-            return GetFont(DomainController.Instance().GetListBoxFont());
-        }
-
-        /// <summary>
         /// Parses a font based on the font information given in a string.
         /// </summary>
         /// <param name="fontString">The string that contains info about the font. Example: "Microsoft Sans Serif,Regular,8.25"</param>

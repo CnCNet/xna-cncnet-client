@@ -1,5 +1,6 @@
 ﻿using ClientCore;
 using DTAClient.domain.Multiplayer;
+using Rampastring.Tools;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -37,13 +38,19 @@ namespace DTAClient.Online
             fh.INIHashes = string.Empty;
 
             foreach (string filePath in fileNamesToCheck)
+            {
                 fh.INIHashes = AddToStringIfFileExists(fh.INIHashes, filePath);
+                Logger.Log("Hash for " + filePath + ": " + 
+                    Utilities.CalculateSHA1ForFile(ProgramConstants.GamePath + filePath));
+            }
 
             if (Directory.Exists(ProgramConstants.GamePath + "INI\\Map Code"))
             {
                 foreach (GameMode gameMode in gameModes)
                 {
                     fh.INIHashes = AddToStringIfFileExists(fh.INIHashes, "INI\\Map Code\\" + gameMode.Name + ".ini");
+                    Logger.Log("Hash for INI\\Map Code\\" + gameMode.Name + ".ini :" +
+                        Utilities.CalculateSHA1ForFile(ProgramConstants.GamePath + "INI\\Map Code\\" + gameMode.Name + ".ini"));
                 }
             }
 
@@ -58,6 +65,8 @@ namespace DTAClient.Online
                 foreach (string fileName in files)
                 {
                     fh.INIHashes = fh.INIHashes + Utilities.CalculateSHA1ForFile("INI\\Game Options\\" + fileName);
+                    Logger.Log("Hash for INI\\Game Options\\" + fileName + ": " +
+                        Utilities.CalculateSHA1ForFile(ProgramConstants.GamePath + "INI\\Game Options\\" + fileName));
                 }
             }
 
@@ -84,6 +93,8 @@ namespace DTAClient.Online
             str = str + fh.INIHashes;
             str = str + fh.MPMapsHash;
 
+            Logger.Log("Complete hash: " + Utilities.CalculateSHA1ForString(str));
+
             return Utilities.CalculateSHA1ForString(str);
         }
     }
@@ -97,5 +108,16 @@ namespace DTAClient.Online
         public string INIHashes { get; set; }
         public string MPMapsHash { get; set; }
         public string MainExeHash { get; set; }
+
+        public override string ToString()
+        {
+            return "GameOptions Hash: " + GameOptionsHash + Environment.NewLine +
+                "ClientHash: " + ClientHash + Environment.NewLine +
+                "ClientGUI Hash: " + ClientGUIHash + Environment.NewLine +
+                "ClientCore Hash: " + ClientCoreHash + Environment.NewLine +
+                "INI Hashes: " + INIHashes + Environment.NewLine + 
+                "MPMaps Hash: " + MPMapsHash + Environment.NewLine + 
+                "MainExe Hash: " + MainExeHash;
+        }
     }
 }

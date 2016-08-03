@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace ClientCore
+namespace ClientCore.CnCNet5
 {
     public static class NameValidator
     {
@@ -19,10 +19,10 @@ namespace ClientCore
 
             int number = -1;
             if (int.TryParse(name.Substring(0, 1), out number))
-                return "The first character in your player name cannot be a number.";
+                return "The first character in the player name cannot be a number.";
 
             if (name[0] == '-')
-                return "The first character in your player name cannot be a dash ( - ).";
+                return "The first character in the player name cannot be a dash ( - ).";
 
             // Check that there are no invalid chars
             char[] allowedCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_[]|\\{}^`".ToCharArray();

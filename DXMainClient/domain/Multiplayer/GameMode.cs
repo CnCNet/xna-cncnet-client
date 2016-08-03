@@ -40,14 +40,14 @@ namespace DTAClient.domain.Multiplayer
         {
             IniFile forcedOptionsIni = new IniFile(ProgramConstants.GamePath + DomainController.Instance().GetMPMapsIniPath());
 
-            ParseForcedOptions(forcedOptionsIni);
-
-            ParseSpawnIniOptions(forcedOptionsIni);
-
             CoopDifficultyLevel = forcedOptionsIni.GetIntValue(Name, "CoopDifficultyLevel", 0);
             UIName = forcedOptionsIni.GetStringValue(Name, "UIName", Name);
             MultiplayerOnly = forcedOptionsIni.GetBooleanValue(Name, "MultiplayerOnly", false);
             forcedOptionsSection = forcedOptionsIni.GetStringValue(Name, "ForcedOptions", string.Empty);
+
+            ParseForcedOptions(forcedOptionsIni);
+
+            ParseSpawnIniOptions(forcedOptionsIni);
         }
 
         private void ParseForcedOptions(IniFile forcedOptionsIni)

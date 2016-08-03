@@ -24,20 +24,10 @@ namespace ClientGUI
             if (HoverTexture == null)
                 HoverTexture = AssetLoader.LoadTexture(width + "pxbtn_c.png");
 
-            if (UserINISettings.Instance.ClientButtonSounds)
+            if (HoverSoundEffect == null)
                 HoverSoundEffect = AssetLoader.LoadSound("button.wav");
-
-            UserINISettings.Instance.SettingsSaved += Instance_SettingsSaved;
 
             base.Initialize();
-        }
-
-        private void Instance_SettingsSaved(object sender, EventArgs e)
-        {
-            if (UserINISettings.Instance.ClientButtonSounds)
-                HoverSoundEffect = AssetLoader.LoadSound("button.wav");
-            else
-                HoverSoundEffect = null;
         }
     }
 }
