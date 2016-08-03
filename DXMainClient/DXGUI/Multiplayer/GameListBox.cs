@@ -4,8 +4,7 @@ using System.Collections.Generic;
 using Rampastring.XNAUI;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using DTAClient.domain.Multiplayer.CnCNet;
-using DTAClient.domain.Multiplayer;
+using DTAClient.Domain.Multiplayer;
 
 namespace DTAClient.DXGUI.Multiplayer
 {

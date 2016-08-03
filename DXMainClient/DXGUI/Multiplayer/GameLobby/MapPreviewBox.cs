@@ -6,12 +6,11 @@ using Microsoft.Xna.Framework;
 using Rampastring.XNAUI;
 using Microsoft.Xna.Framework.Graphics;
 using ClientCore;
-using DTAClient.domain;
 using Rampastring.Tools;
 using Microsoft.Xna.Framework.Input;
 using System.Diagnostics;
 using Microsoft.Xna.Framework.Audio;
-using DTAClient.domain.Multiplayer;
+using DTAClient.Domain.Multiplayer;
 
 namespace DTAClient.DXGUI.Multiplayer.GameLobby
 {
@@ -294,9 +293,13 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (Map.PreviewTexture == null)
             {
                 texture = Map.LoadPreviewTexture();
+                disposeTextures = true;
             }
             else
+            {
                 texture = Map.PreviewTexture;
+                disposeTextures = false;
+            }
 
             if (!string.IsNullOrEmpty(Map.Briefing))
             {

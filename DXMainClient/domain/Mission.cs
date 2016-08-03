@@ -1,13 +1,12 @@
-﻿namespace DTAClient.domain
+﻿namespace DTAClient.Domain
 {
     /// <summary>
     /// A Tiberian Sun mission listed in Battle(E).ini.
     /// </summary>
     public class Mission
     {
-        public Mission() { }
-
-        public Mission(int cd, int side, string scenario, string guiName, string guiDescription, string finalMovie, bool requiredAddon)
+        public Mission(int cd, int side, string scenario, string guiName,
+            string guiDescription, string finalMovie, bool requiredAddon)
         {
             CD = cd;
             Side = side;
@@ -18,12 +17,12 @@
             RequiredAddon = requiredAddon;
         }
 
-        public int CD { get; set; }
-        public int Side { get; set; }
-        public string Scenario { get; set; }
-        public string GUIName { get; set; }
-        public string GUIDescription { get; set; }
-        public string FinalMovie { get; set; }
-        public bool RequiredAddon { get; set; }
+        public int CD { get; private set; }
+        public int Side { get; private set; }
+        public string Scenario { get; private set; }
+        public string GUIName { get; private set; }
+        public string GUIDescription { get; private set; }
+        public string FinalMovie { get; private set; }
+        public bool RequiredAddon { get; private set; }
     }
 }

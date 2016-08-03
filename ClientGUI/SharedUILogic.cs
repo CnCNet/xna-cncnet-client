@@ -8,7 +8,6 @@ using System.Windows.Forms;
 using System.Drawing;
 using System.Diagnostics;
 using ClientCore;
-using ClientCore.CnCNet5;
 using Rampastring.Tools;
 using Utilities = ClientCore.Utilities;
 

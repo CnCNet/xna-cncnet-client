@@ -2,7 +2,7 @@
 using Microsoft.Xna.Framework;
 using System;
 using System.Collections.Generic;
-using DTAClient.domain;
+using DTAClient.Domain;
 using System.IO;
 using ClientGUI;
 using Rampastring.XNAUI.XNAControls;

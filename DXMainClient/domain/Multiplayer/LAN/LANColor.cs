@@ -1,6 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 
-namespace DTAClient.domain.LAN
+namespace DTAClient.Domain.LAN
 {
     public class LANColor
     {

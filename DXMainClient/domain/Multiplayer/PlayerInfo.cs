@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace DTAClient.domain.Multiplayer
+namespace DTAClient.Domain.Multiplayer
 {
     /// <summary>
     /// A player in the game lobby.

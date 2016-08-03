@@ -2,16 +2,8 @@
 /// http://www.moddb.com/members/rampastring
 
 using System;
-using System.Collections.Generic;
-using System.Windows.Forms;
 using System.Drawing;
-using System.Drawing.Drawing2D;
-using System.Drawing.Imaging;
-using System.IO;
 using System.Globalization;
-using System.Runtime.InteropServices;
-using ClientCore.CnCNet5;
-using Rampastring.Tools;
 
 namespace ClientCore
 {

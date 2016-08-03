@@ -1,7 +1,7 @@
 ﻿using Rampastring.Tools;
 using System.Collections.Generic;
 
-namespace DTAClient.domain.Multiplayer
+namespace DTAClient.Domain.Multiplayer
 {
     /// <summary>
     /// A helper class for setting up alliances in spawn.ini.

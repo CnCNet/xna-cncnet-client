@@ -1,4 +1,4 @@
-﻿namespace DTAClient.domain.Multiplayer
+﻿namespace DTAClient.Domain.Multiplayer
 {
     public class SavedGamePlayer
     {

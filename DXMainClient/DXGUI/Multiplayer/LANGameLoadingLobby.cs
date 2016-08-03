@@ -1,7 +1,7 @@
 ﻿using ClientCore;
-using DTAClient.domain.LAN;
-using DTAClient.domain.Multiplayer;
-using DTAClient.domain.Multiplayer.LAN;
+using DTAClient.Domain.LAN;
+using DTAClient.Domain.Multiplayer;
+using DTAClient.Domain.Multiplayer.LAN;
 using DTAClient.DXGUI.Multiplayer.GameLobby;
 using DTAClient.Online;
 using Microsoft.Xna.Framework;

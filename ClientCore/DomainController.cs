@@ -2,10 +2,7 @@
 /// http://www.moddb.com/members/rampastring
 
 using System;
-using System.Collections.Generic;
 using System.Text;
-using System.Security.Principal;
-using System.Windows.Forms;
 using System.IO;
 using Rampastring.Tools;
 

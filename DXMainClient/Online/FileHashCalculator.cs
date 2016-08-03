@@ -1,5 +1,5 @@
 ﻿using ClientCore;
-using DTAClient.domain.Multiplayer;
+using DTAClient.Domain.Multiplayer;
 using Rampastring.Tools;
 using System;
 using System.Collections.Generic;

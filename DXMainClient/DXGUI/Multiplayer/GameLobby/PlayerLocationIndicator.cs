@@ -3,9 +3,9 @@ using System;
 using System.Collections.Generic;
 using Rampastring.XNAUI;
 using Microsoft.Xna.Framework.Graphics;
-using PlayerInfo = DTAClient.domain.Multiplayer.PlayerInfo;
+using PlayerInfo = DTAClient.Domain.Multiplayer.PlayerInfo;
 using Microsoft.Xna.Framework;
-using DTAClient.domain.Multiplayer;
+using DTAClient.Domain.Multiplayer;
 
 namespace DTAClient.DXGUI.Multiplayer.GameLobby
 {

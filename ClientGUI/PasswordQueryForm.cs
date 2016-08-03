@@ -1,8 +1,8 @@
-﻿using System;
+﻿using ClientCore;
+using System;
 using System.Drawing;
-using System.Windows.Forms;
 using System.Media;
-using ClientCore;
+using System.Windows.Forms;
 
 namespace ClientGUI
 {

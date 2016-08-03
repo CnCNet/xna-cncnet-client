@@ -10,7 +10,7 @@ using ClientCore;
 using System.IO;
 using ClientCore.Statistics;
 using Microsoft.Xna.Framework.Graphics;
-using DTAClient.domain.Multiplayer;
+using DTAClient.Domain.Multiplayer;
 
 namespace DTAClient.DXGUI.Multiplayer.GameLobby
 {

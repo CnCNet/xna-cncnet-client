@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 
-namespace DTAClient.domain.Multiplayer
+namespace DTAClient.Domain.Multiplayer
 {
     public class MapLoader
     {

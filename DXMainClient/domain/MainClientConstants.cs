@@ -2,7 +2,7 @@
 using System.IO;
 using System.Windows.Forms;
 
-namespace DTAClient.domain
+namespace DTAClient.Domain
 {
     public static class MainClientConstants
     {

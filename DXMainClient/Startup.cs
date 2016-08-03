@@ -5,11 +5,10 @@ using System.Diagnostics;
 using System.Threading;
 using System.Management;
 using Microsoft.Win32;
-using DTAClient.domain;
+using DTAClient.Domain;
 using ClientCore;
 using ClientGUI;
 using Updater;
-using DTAConfig;
 using Rampastring.Tools;
 using DTAClient.DXGUI;
 

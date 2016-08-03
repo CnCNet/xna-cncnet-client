@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace DTAClient.domain
+namespace DTAClient.Domain
 {
     public static class StatisticsPageAddresses
     {

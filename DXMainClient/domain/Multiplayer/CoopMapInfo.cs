@@ -2,7 +2,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace DTAClient.domain.Multiplayer
+namespace DTAClient.Domain.Multiplayer
 {
     public class CoopMapInfo
     {

@@ -3,7 +3,7 @@ using Rampastring.Tools;
 using System;
 using System.Collections.Generic;
 
-namespace DTAClient.domain.Multiplayer
+namespace DTAClient.Domain.Multiplayer
 {
     /// <summary>
     /// A multiplayer game mode.

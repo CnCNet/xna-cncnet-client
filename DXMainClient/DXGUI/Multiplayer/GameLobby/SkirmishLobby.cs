@@ -5,7 +5,7 @@ using Rampastring.XNAUI;
 using ClientCore;
 using ClientCore.Statistics;
 using DTAClient.DXGUI.Generic;
-using DTAClient.domain.Multiplayer;
+using DTAClient.Domain.Multiplayer;
 using ClientGUI;
 
 namespace DTAClient.DXGUI.Multiplayer.GameLobby

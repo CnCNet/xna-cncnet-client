@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Rampastring.Tools;
+﻿using Rampastring.Tools;
 
 namespace ClientCore.Settings
 {
@@ -26,6 +22,11 @@ namespace ClientCore.Settings
         protected override void Set(string value)
         {
             IniFile.SetStringValue(IniSection, IniKey, value);
+        }
+
+        public override string ToString()
+        {
+            return Get();
         }
     }
 }

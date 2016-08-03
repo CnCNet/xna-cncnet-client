@@ -1,8 +1,7 @@
 ﻿using Rampastring.XNAUI.XNAControls;
 using Rampastring.XNAUI;
 using Microsoft.Xna.Framework;
-using DTAClient.domain.Multiplayer.CnCNet;
-using DTAClient.domain.Multiplayer;
+using DTAClient.Domain.Multiplayer;
 
 namespace DTAClient.DXGUI.Multiplayer
 {

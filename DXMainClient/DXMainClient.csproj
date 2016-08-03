@@ -102,40 +102,40 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="domain\Multiplayer\AllianceHolder.cs" />
-    <Compile Include="domain\Multiplayer\CnCNet\CnCNetInfoController.cs" />
-    <Compile Include="domain\Multiplayer\CnCNet\CnCNetTunnel.cs" />
-    <Compile Include="domain\Multiplayer\CoopHouseInfo.cs" />
-    <Compile Include="domain\Multiplayer\CoopMapInfo.cs" />
-    <Compile Include="domain\Multiplayer\GameMode.cs" />
-    <Compile Include="domain\Multiplayer\CnCNet\HostedCnCNetGame.cs" />
-    <Compile Include="domain\Multiplayer\CnCNet\MapEventArgs.cs" />
-    <Compile Include="domain\Multiplayer\CnCNet\MapSharer.cs" />
-    <Compile Include="domain\Multiplayer\LAN\LANLobbyUser.cs" />
-    <Compile Include="domain\Multiplayer\LAN\LANPlayerInfo.cs" />
-    <Compile Include="domain\Multiplayer\LAN\NetworkMessageEventArgs.cs" />
-    <Compile Include="domain\Multiplayer\LAN\LANClientCommandHandler.cs" />
-    <Compile Include="domain\Multiplayer\LAN\ClientStringCommandHandler.cs" />
-    <Compile Include="domain\Multiplayer\LAN\LANServerCommandHandler.cs" />
-    <Compile Include="domain\Multiplayer\LAN\ServerNoParamCommandHandler.cs" />
-    <Compile Include="domain\Multiplayer\LAN\ServerStringCommandHandler.cs" />
-    <Compile Include="domain\Multiplayer\SavedGamePlayer.cs" />
-    <Compile Include="domain\Multiplayer\CnCNet\SHA1EventArgs.cs" />
-    <Compile Include="domain\Multiplayer\GenericHostedGame.cs" />
-    <Compile Include="domain\Multiplayer\LAN\LANColor.cs" />
-    <Compile Include="domain\Multiplayer\LAN\HostedLANGame.cs" />
+    <Compile Include="Domain\Multiplayer\AllianceHolder.cs" />
+    <Compile Include="Domain\Multiplayer\CnCNet\CnCNetInfoController.cs" />
+    <Compile Include="Domain\Multiplayer\CnCNet\CnCNetTunnel.cs" />
+    <Compile Include="Domain\Multiplayer\CoopHouseInfo.cs" />
+    <Compile Include="Domain\Multiplayer\CoopMapInfo.cs" />
+    <Compile Include="Domain\Multiplayer\GameMode.cs" />
+    <Compile Include="Domain\Multiplayer\CnCNet\HostedCnCNetGame.cs" />
+    <Compile Include="Domain\Multiplayer\CnCNet\MapEventArgs.cs" />
+    <Compile Include="Domain\Multiplayer\CnCNet\MapSharer.cs" />
+    <Compile Include="Domain\Multiplayer\LAN\LANLobbyUser.cs" />
+    <Compile Include="Domain\Multiplayer\LAN\LANPlayerInfo.cs" />
+    <Compile Include="Domain\Multiplayer\LAN\NetworkMessageEventArgs.cs" />
+    <Compile Include="Domain\Multiplayer\LAN\LANClientCommandHandler.cs" />
+    <Compile Include="Domain\Multiplayer\LAN\ClientStringCommandHandler.cs" />
+    <Compile Include="Domain\Multiplayer\LAN\LANServerCommandHandler.cs" />
+    <Compile Include="Domain\Multiplayer\LAN\ServerNoParamCommandHandler.cs" />
+    <Compile Include="Domain\Multiplayer\LAN\ServerStringCommandHandler.cs" />
+    <Compile Include="Domain\Multiplayer\SavedGamePlayer.cs" />
+    <Compile Include="Domain\Multiplayer\CnCNet\SHA1EventArgs.cs" />
+    <Compile Include="Domain\Multiplayer\GenericHostedGame.cs" />
+    <Compile Include="Domain\Multiplayer\LAN\LANColor.cs" />
+    <Compile Include="Domain\Multiplayer\LAN\HostedLANGame.cs" />
     <Compile Include="DXGUI\Generic\LinkButton.cs" />
-    <Compile Include="domain\Multiplayer\Map.cs" />
-    <Compile Include="domain\Multiplayer\MapLoader.cs" />
-    <Compile Include="domain\Multiplayer\PlayerHouseInfo.cs" />
-    <Compile Include="domain\Multiplayer\PlayerInfo.cs" />
-    <Compile Include="domain\Multiplayer\CnCNet\TunnelHandler.cs" />
-    <Compile Include="domain\MCDomainController.cs" />
-    <Compile Include="domain\StatisticsPageAddresses.cs" />
-    <Compile Include="domain\Mission.cs" />
-    <Compile Include="domain\SavedGame.cs" />
-    <Compile Include="domain\MainClientConstants.cs" />
-    <Compile Include="domain\UserAgentHandler.cs" />
+    <Compile Include="Domain\Multiplayer\Map.cs" />
+    <Compile Include="Domain\Multiplayer\MapLoader.cs" />
+    <Compile Include="Domain\Multiplayer\PlayerHouseInfo.cs" />
+    <Compile Include="Domain\Multiplayer\PlayerInfo.cs" />
+    <Compile Include="Domain\Multiplayer\CnCNet\TunnelHandler.cs" />
+    <Compile Include="Domain\MCDomainController.cs" />
+    <Compile Include="Domain\StatisticsPageAddresses.cs" />
+    <Compile Include="Domain\Mission.cs" />
+    <Compile Include="Domain\SavedGame.cs" />
+    <Compile Include="Domain\MainClientConstants.cs" />
+    <Compile Include="Domain\UserAgentHandler.cs" />
     <Compile Include="DXGUI\Generic\CampaignSelector.cs" />
     <Compile Include="DXGUI\Generic\TopBar.cs" />
     <Compile Include="DXGUI\ISwitchable.cs" />
@@ -155,7 +155,7 @@
     <Compile Include="DXGUI\Multiplayer\GameLobby\CnCNetGameLobby.cs" />
     <Compile Include="DXGUI\Multiplayer\GameLobby\CommandHandlers\CommandHandlerBase.cs" />
     <Compile Include="DXGUI\Multiplayer\GameLobby\CommandHandlers\IntNotificationHandler.cs" />
-    <Compile Include="domain\Multiplayer\LAN\ClientNoParamCommandHandler.cs" />
+    <Compile Include="Domain\Multiplayer\LAN\ClientNoParamCommandHandler.cs" />
     <Compile Include="DXGUI\Multiplayer\GameLobby\CommandHandlers\NotificationHandler.cs" />
     <Compile Include="DXGUI\Multiplayer\GameLobby\CoopBriefingBox.cs" />
     <Compile Include="DXGUI\Multiplayer\GameLobby\DropDownDataWriteMode.cs" />
@@ -184,23 +184,11 @@
     <Compile Include="DXGUI\Generic\LoadingScreen.cs" />
     <Compile Include="DXGUI\Generic\MainMenu.cs" />
     <Compile Include="DXGUI\Generic\MainMenuDarkeningPanel.cs" />
-    <Compile Include="domain\Multiplayer\MultiplayerColor.cs" />
+    <Compile Include="Domain\Multiplayer\MultiplayerColor.cs" />
     <Compile Include="DXGUI\Generic\StatisticsWindow.cs" />
     <Compile Include="DXGUI\Generic\UpdateQueryWindow.cs" />
     <Compile Include="DXGUI\Generic\UpdateWindow.cs" />
-    <Compile Include="gui\CheaterForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="gui\CheaterForm.Designer.cs">
-      <DependentUpon>CheaterForm.cs</DependentUpon>
-    </Compile>
-    <Compile Include="gui\SplashScreen.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="gui\SplashScreen.Designer.cs">
-      <DependentUpon>SplashScreen.cs</DependentUpon>
-    </Compile>
-    <Compile Include="domain\FinalSunSettings.cs" />
+    <Compile Include="Domain\FinalSunSettings.cs" />
     <Compile Include="Online\Channel.cs" />
     <Compile Include="Online\CnCNetManager.cs" />
     <Compile Include="Online\Connection.cs" />
@@ -231,12 +219,6 @@
     </Compile>
     <Compile Include="RealMain.cs" />
     <Compile Include="Startup.cs" />
-    <EmbeddedResource Include="gui\CheaterForm.resx">
-      <DependentUpon>CheaterForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="gui\SplashScreen.resx">
-      <DependentUpon>SplashScreen.cs</DependentUpon>
-    </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <SubType>Designer</SubType>

@@ -2,7 +2,7 @@
 using System.Windows.Forms;
 using System.Diagnostics;
 using System.IO;
-using DTAClient.domain;
+using DTAClient.Domain;
 using Rampastring.Tools;
 using ClientCore;
 

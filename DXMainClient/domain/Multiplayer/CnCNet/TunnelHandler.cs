@@ -12,7 +12,7 @@ using System.Net.NetworkInformation;
 using System.Text;
 using System.Threading;
 
-namespace DTAClient.domain.Multiplayer.CnCNet
+namespace DTAClient.Domain.Multiplayer.CnCNet
 {
     public class TunnelHandler : GameComponent
     {

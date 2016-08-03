@@ -1,7 +1,7 @@
 ﻿using ClientCore.CnCNet5;
 using System;
 
-namespace DTAClient.domain.Multiplayer
+namespace DTAClient.Domain.Multiplayer
 {
     /// <summary>
     /// A base class for hosted games.

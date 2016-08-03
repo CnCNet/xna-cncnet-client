@@ -4,7 +4,7 @@ using System.Net;
 using System.Threading;
 using Rampastring.Tools;
 
-namespace DTAClient.domain.Multiplayer.CnCNet
+namespace DTAClient.Domain.Multiplayer.CnCNet
 {
     /// <summary>
     /// A class for automatic updating of the CnCNet game/player count.

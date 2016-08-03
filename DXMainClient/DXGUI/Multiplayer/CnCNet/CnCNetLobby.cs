@@ -14,8 +14,8 @@ using Microsoft.Xna.Framework.Graphics;
 using DTAClient.Properties;
 using DTAClient.DXGUI.Multiplayer.GameLobby;
 using DTAClient.DXGUI.Generic;
-using DTAClient.domain.Multiplayer;
-using DTAClient.domain.Multiplayer.CnCNet;
+using DTAClient.Domain.Multiplayer;
+using DTAClient.Domain.Multiplayer.CnCNet;
 using ClientCore.CnCNet5;
 
 namespace DTAClient.DXGUI.Multiplayer.CnCNet

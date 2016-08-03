@@ -3,13 +3,12 @@ using Microsoft.Xna.Framework;
 using Rampastring.Tools;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 
-namespace DTAClient.domain.Multiplayer.LAN
+namespace DTAClient.Domain.Multiplayer.LAN
 {
     public class LANPlayerInfo : PlayerInfo
     {

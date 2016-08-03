@@ -8,8 +8,7 @@ using ClientCore;
 using Rampastring.Tools;
 using System.IO;
 using Microsoft.Xna.Framework.Audio;
-using DTAClient.DXGUI.Generic;
-using DTAClient.domain.Multiplayer;
+using DTAClient.Domain.Multiplayer;
 using ClientCore.Statistics;
 
 namespace DTAClient.DXGUI.Multiplayer

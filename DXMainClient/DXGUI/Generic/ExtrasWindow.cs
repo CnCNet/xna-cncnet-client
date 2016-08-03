@@ -1,9 +1,8 @@
 ﻿using ClientCore;
 using ClientGUI;
-using DTAClient.domain;
+using DTAClient.Domain;
 using Microsoft.Xna.Framework;
 using Rampastring.XNAUI;
-using Rampastring.XNAUI.XNAControls;
 using System;
 using System.Diagnostics;
 

@@ -10,7 +10,7 @@ using Ionic.Zip;
 using Rampastring.Tools;
 using ClientCore;
 
-namespace DTAClient.domain.Multiplayer.CnCNet
+namespace DTAClient.Domain.Multiplayer.CnCNet
 {
     /// <summary>
     /// Handles sharing maps.

@@ -7,7 +7,7 @@ using Microsoft.Xna.Framework;
 using ClientCore;
 using System.IO;
 using Rampastring.Tools;
-using DTAClient.domain.Multiplayer.CnCNet;
+using DTAClient.Domain.Multiplayer.CnCNet;
 
 namespace DTAClient.DXGUI.Multiplayer.CnCNet
 {

@@ -1,6 +1,6 @@
 ﻿using ClientCore;
 using ClientCore.CnCNet5;
-using DTAClient.domain.Multiplayer.CnCNet;
+using DTAClient.Domain.Multiplayer.CnCNet;
 using DTAClient.Online.EventArguments;
 using Microsoft.Xna.Framework;
 using Rampastring.Tools;

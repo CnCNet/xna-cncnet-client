@@ -9,7 +9,7 @@ using System.IO;
 using System.Linq;
 using Utilities = Rampastring.Tools.Utilities;
 
-namespace DTAClient.domain.Multiplayer
+namespace DTAClient.Domain.Multiplayer
 {
     /// <summary>
     /// A multiplayer map.
@@ -282,7 +282,7 @@ namespace DTAClient.domain.Multiplayer
                 // TODO Rework once we're able to load previews
                 for (int i = 0; i < MaxPlayers; i++)
                 {
-                    StartingLocations.Add(new Point(i * 10, i * 10));
+                    StartingLocations.Add(new Point(4, i + 1));
                 }
 
                 string forcedOptionsSection = iniFile.GetStringValue(BaseFilePath, "ForcedOptions", String.Empty);
@@ -340,7 +340,7 @@ namespace DTAClient.domain.Multiplayer
             if (File.Exists(ProgramConstants.GamePath + PreviewPath))
                 return AssetLoader.LoadTextureUncached(PreviewPath);
             else
-                return AssetLoader.LoadTextureUncached("nopreview.png");
+                return AssetLoader.CreateTexture(Color.Black, 10, 10);
         }
 
         public void ApplySpawnIniCode(IniFile spawnIni, int totalPlayerCount, 

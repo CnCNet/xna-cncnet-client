@@ -1,5 +1,4 @@
-﻿using Rampastring.XNAUI.XNAControls;
-using System;
+﻿using System;
 using Rampastring.Tools;
 using Rampastring.XNAUI;
 using ClientGUI;

@@ -1,9 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
-namespace DTAClient.domain.Multiplayer.LAN
+namespace DTAClient.Domain.Multiplayer.LAN
 {
     /// <summary>
     /// A command handler that has no parameters.

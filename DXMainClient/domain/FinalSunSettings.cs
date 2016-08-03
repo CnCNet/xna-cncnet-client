@@ -2,7 +2,7 @@
 using System.Windows.Forms;
 using Rampastring.Tools;
 
-namespace DTAClient.domain
+namespace DTAClient.Domain
 {
     public static class FinalSunSettings
     {

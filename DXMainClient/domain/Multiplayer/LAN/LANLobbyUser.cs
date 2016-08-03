@@ -1,11 +1,8 @@
 ﻿using Microsoft.Xna.Framework.Graphics;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net;
-using System.Text;
 
-namespace DTAClient.domain.Multiplayer.LAN
+namespace DTAClient.Domain.Multiplayer.LAN
 {
     public class LANLobbyUser
     {

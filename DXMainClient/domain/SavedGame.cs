@@ -3,7 +3,7 @@ using Rampastring.Tools;
 using System;
 using System.IO;
 
-namespace DTAClient.domain
+namespace DTAClient.Domain
 {
     /// <summary>
     /// A single-player saved game.
@@ -17,9 +17,9 @@ namespace DTAClient.domain
             FileName = fileName;
         }
 
-        public string FileName { get; set; }
-        public string GUIName { get; set; }
-        public DateTime LastModified { get; set; }
+        public string FileName { get; private set; }
+        public string GUIName { get; private set; }
+        public DateTime LastModified { get; private set; }
 
         /// <summary>
         /// Reads and sets the saved game's name and last modified date, and returns true if succesful.

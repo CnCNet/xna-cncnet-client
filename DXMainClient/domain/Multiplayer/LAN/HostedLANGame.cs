@@ -1,11 +1,11 @@
 ﻿using ClientCore;
 using ClientCore.CnCNet5;
-using DTAClient.domain.Multiplayer;
+using DTAClient.Domain.Multiplayer;
 using Rampastring.Tools;
 using System;
 using System.Net;
 
-namespace DTAClient.domain.LAN
+namespace DTAClient.Domain.LAN
 {
     class HostedLANGame : GenericHostedGame
     {

@@ -10,8 +10,8 @@ using Rampastring.Tools;
 using DTAClient.DXGUI.Generic;
 using DTAClient.Online.EventArguments;
 using ClientGUI;
-using DTAClient.domain.Multiplayer.CnCNet;
-using DTAClient.domain.Multiplayer;
+using DTAClient.Domain.Multiplayer.CnCNet;
+using DTAClient.Domain.Multiplayer;
 
 namespace DTAClient.DXGUI.Multiplayer.CnCNet
 {

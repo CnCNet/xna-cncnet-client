@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace DTAClient.domain.Multiplayer.CnCNet
+namespace DTAClient.Domain.Multiplayer.CnCNet
 {
     public class SHA1EventArgs : EventArgs
     {

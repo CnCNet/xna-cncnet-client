@@ -10,8 +10,8 @@ using Microsoft.Xna.Framework;
 using Rampastring.Tools;
 using DTAClient.DXGUI.Multiplayer.GameLobby.CommandHandlers;
 using DTAClient.DXGUI.Generic;
-using DTAClient.domain.Multiplayer.CnCNet;
-using DTAClient.domain.Multiplayer;
+using DTAClient.Domain.Multiplayer.CnCNet;
+using DTAClient.Domain.Multiplayer;
 
 namespace DTAClient.DXGUI.Multiplayer.GameLobby
 {

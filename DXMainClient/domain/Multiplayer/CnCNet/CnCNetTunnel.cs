@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Net;
 
-namespace DTAClient.domain.Multiplayer.CnCNet
+namespace DTAClient.Domain.Multiplayer.CnCNet
 {
     public class CnCNetTunnel
     {
