@@ -206,6 +206,12 @@ namespace DTAConfig
 
             AddChild(chkMainMenuMusic);
             AddChild(chkButtonSound);
+
+            lblScoreVolumeValue.Text = trbScoreVolume.Value.ToString();
+            lblSoundVolumeValue.Text = trbSoundVolume.Value.ToString();
+            lblVoiceVolumeValue.Text = trbVoiceVolume.Value.ToString();
+            lblClientVolumeValue.Text = trbClientVolume.Value.ToString();
+            AudioMaster.SetVolume(trbClientVolume.Value / 10.0f);
         }
 
         private void TrbScoreVolume_ValueChanged(object sender, EventArgs e)

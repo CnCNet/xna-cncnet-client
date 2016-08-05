@@ -18,6 +18,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClientCore", "ClientCore\Cl
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClientGUI", "ClientGUI\ClientGUI.csproj", "{4C26AD04-FF2E-4465-9F40-DEB9DDC2C1D6}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DTAConfig", "DTAConfig\DTAConfig.csproj", "{D517317D-8EA8-4225-AF9E-5385D8A7F047}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -64,6 +66,14 @@ Global
 		{4C26AD04-FF2E-4465-9F40-DEB9DDC2C1D6}.Release|Any CPU.Build.0 = Release|Any CPU
 		{4C26AD04-FF2E-4465-9F40-DEB9DDC2C1D6}.Release|x86.ActiveCfg = Release|Any CPU
 		{4C26AD04-FF2E-4465-9F40-DEB9DDC2C1D6}.Release|x86.Build.0 = Release|Any CPU
+		{D517317D-8EA8-4225-AF9E-5385D8A7F047}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D517317D-8EA8-4225-AF9E-5385D8A7F047}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D517317D-8EA8-4225-AF9E-5385D8A7F047}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{D517317D-8EA8-4225-AF9E-5385D8A7F047}.Debug|x86.Build.0 = Debug|Any CPU
+		{D517317D-8EA8-4225-AF9E-5385D8A7F047}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D517317D-8EA8-4225-AF9E-5385D8A7F047}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D517317D-8EA8-4225-AF9E-5385D8A7F047}.Release|x86.ActiveCfg = Release|Any CPU
+		{D517317D-8EA8-4225-AF9E-5385D8A7F047}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

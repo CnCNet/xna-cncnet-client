@@ -64,9 +64,9 @@ namespace DTAClient.Online
 
                 foreach (string fileName in files)
                 {
-                    fh.INIHashes = fh.INIHashes + Utilities.CalculateSHA1ForFile("INI\\Game Options\\" + fileName);
-                    Logger.Log("Hash for INI\\Game Options\\" + fileName + ": " +
-                        Utilities.CalculateSHA1ForFile(ProgramConstants.GamePath + "INI\\Game Options\\" + fileName));
+                    fh.INIHashes = fh.INIHashes + Utilities.CalculateSHA1ForFile(fileName);
+                    Logger.Log("Hash for " + fileName + ": " +
+                        Utilities.CalculateSHA1ForFile(fileName));
                 }
             }
 

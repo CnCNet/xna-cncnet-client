@@ -78,9 +78,6 @@
     <ApplicationManifest>Properties\app.manifest</ApplicationManifest>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="DTAConfig">
-      <HintPath>..\..\DTAConfig\bin\Release\DTAConfig.dll</HintPath>
-    </Reference>
     <Reference Include="DTAUpdater">
       <HintPath>..\..\DTAConfig\bin\Release\DTAUpdater.dll</HintPath>
     </Reference>
@@ -288,6 +285,10 @@
     <ProjectReference Include="..\ClientGUI\ClientGUI.csproj">
       <Project>{4c26ad04-ff2e-4465-9f40-deb9ddc2c1d6}</Project>
       <Name>ClientGUI</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\DTAConfig\DTAConfig.csproj">
+      <Project>{d517317d-8ea8-4225-af9e-5385d8a7f047}</Project>
+      <Name>DTAConfig</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

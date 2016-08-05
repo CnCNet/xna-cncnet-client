@@ -96,8 +96,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         protected bool PlayerUpdatingInProgress { get; set; }
 
-        protected bool GameInProgress { get; set; }
-
         protected Texture2D[] RankTextures;
 
         /// <summary>
@@ -263,8 +261,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             AddChild(ddGameMode);
             AddChild(lblGameModeSelect);
             AddChild(tbMapSearch);
-
-            SharedUILogic.GameProcessExited += GameProcessExited_Callback;
 
             AddChild(GameOptionsPanel);
 
@@ -880,6 +876,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             Logger.Log("Writing map.");
 
+            Logger.Log("Loading map INI from " +
+                ProgramConstants.GamePath + Map.BaseFilePath + ".map");
+
             IniFile mapIni = new IniFile(ProgramConstants.GamePath + Map.BaseFilePath + ".map");
 
             IniFile globalCodeIni = new IniFile(ProgramConstants.GamePath + "INI\\Map Code\\GlobalCode.ini");
@@ -917,7 +916,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             InitializeMatchStatistics(houseInfos);
             WriteMap(houseInfos);
 
-            GameInProgress = true;
+            SharedUILogic.GameProcessExited += GameProcessExited_Callback;
 
             SharedUILogic.StartGameProcess(0);
         }
@@ -929,10 +928,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         protected virtual void GameProcessExited()
         {
-            if (!GameInProgress)
-                return;
-
-            GameInProgress = false;
+            SharedUILogic.GameProcessExited -= GameProcessExited_Callback;
 
             Logger.Log("GameProcessExited: Parsing statistics.");
 

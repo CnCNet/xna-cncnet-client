@@ -162,6 +162,8 @@ namespace ClientCore
 
         public void SaveSettings()
         {
+            Logger.Log("Writing settings INI.");
+
             ForceLowestDetailLevel.Value = false;
 
             SettingsIni.WriteIniFile();

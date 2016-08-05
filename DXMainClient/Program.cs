@@ -22,79 +22,41 @@ namespace DTAClient
             RealMain.ProxyMain(args);
         }
 
-        static System.Reflection.Assembly CurrentDomain_AssemblyResolve(object sender, ResolveEventArgs args)
+        static Assembly CurrentDomain_AssemblyResolve(object sender, ResolveEventArgs args)
         {
-            if (args.Name.StartsWith("AudioOptions"))
-            {
-                // Load DLL from Resources\Binaries
-                byte[] data = File.ReadAllBytes(Application.StartupPath + "\\Resources\\Binaries\\AudioOptions.dll");
-                return Assembly.Load(data);
-            }
+            char directorySeparatorChar = Path.DirectorySeparatorChar;
+
+            string path = Application.StartupPath + directorySeparatorChar + "Resources" + 
+                directorySeparatorChar + "Binaries" + directorySeparatorChar;
 
             if (args.Name.StartsWith("ClientGUI"))
             {
-                byte[] data = File.ReadAllBytes(Application.StartupPath + "\\Resources\\Binaries\\ClientGUI.dll");
+                byte[] data = File.ReadAllBytes(path + "ClientGUI.dll");
                 return Assembly.Load(data);
             }
 
             if (args.Name.StartsWith("ClientCore"))
             {
-                byte[] data = File.ReadAllBytes(Application.StartupPath + "\\Resources\\Binaries\\ClientCore.dll");
-                return Assembly.Load(data);
-            }
-
-            if (args.Name.StartsWith("DisplayOptions"))
-            {
-                byte[] data = File.ReadAllBytes(Application.StartupPath + "\\Resources\\Binaries\\DisplayOptions.dll");
+                byte[] data = File.ReadAllBytes(path + "ClientCore.dll");
                 return Assembly.Load(data);
             }
 
             if (args.Name.StartsWith("DTAUpdater"))
             {
-                byte[] data = File.ReadAllBytes(Application.StartupPath + "\\Resources\\Binaries\\DTAUpdater.dll");
+                byte[] data = File.ReadAllBytes(path + "DTAUpdater.dll");
                 return Assembly.Load(data);
             }
 
             if (args.Name.StartsWith("DTAConfig"))
             {
-                byte[] data = File.ReadAllBytes(Application.StartupPath + "\\Resources\\Binaries\\DTAConfig.dll");
-                return Assembly.Load(data);
-            }
-
-            if (args.Name.StartsWith("GenericOptions"))
-            {
-                byte[] data = File.ReadAllBytes(Application.StartupPath + "\\Resources\\Binaries\\GenericOptions.dll");
-                return Assembly.Load(data);
-            }
-
-            if (args.Name.StartsWith("GameOptions"))
-            {
-                byte[] data = File.ReadAllBytes(Application.StartupPath + "\\Resources\\Binaries\\GameOptions.dll");
-                return Assembly.Load(data);
-            }
-
-            if (args.Name.StartsWith("UpdaterOptions"))
-            {
-                byte[] data = File.ReadAllBytes(Application.StartupPath + "\\Resources\\Binaries\\UpdaterOptions.dll");
-                return Assembly.Load(data);
-            }
-
-            if (args.Name.StartsWith("CnCNetOptions"))
-            {
-                byte[] data = File.ReadAllBytes(Application.StartupPath + "\\Resources\\Binaries\\CnCNetOptions.dll");
-                return Assembly.Load(data);
-            }
-
-            if (args.Name.StartsWith("ComponentOptions"))
-            {
-                byte[] data = File.ReadAllBytes(Application.StartupPath + "\\Resources\\Binaries\\ComponentOptions.dll");
+                byte[] data = File.ReadAllBytes(path + "DTAConfig.dll");
                 return Assembly.Load(data);
             }
 
             if (args.Name.StartsWith("SharpDX"))
             {
                 string[] parts = args.Name.Split(',');
-                byte[] data = File.ReadAllBytes(Application.StartupPath + "\\Resources\\Binaries\\" + parts[0] + ".dll");
+                byte[] data = File.ReadAllBytes(path + parts[0] + ".dll");
                 return Assembly.Load(data);
             }
 
@@ -105,11 +67,11 @@ namespace DTAClient
                 if (Environment.OSVersion.Platform == PlatformID.Win32NT &&
                     Environment.OSVersion.VersionString.StartsWith("5."))
                 {
-                    data = File.ReadAllBytes(Application.StartupPath + "\\Resources\\Binaries\\MonoGame.Framework.WindowsGL.dll");
+                    data = File.ReadAllBytes(path + "MonoGame.Framework.WindowsGL.dll");
                 }
                 else
                 {
-                    data = File.ReadAllBytes(Application.StartupPath + "\\Resources\\Binaries\\MonoGame.Framework.dll");
+                    data = File.ReadAllBytes(path + "MonoGame.Framework.dll");
                 }
 
                 return Assembly.Load(data);
@@ -117,31 +79,31 @@ namespace DTAClient
 
             if (args.Name.StartsWith("Rampastring.Tools"))
             {
-                byte[] data = File.ReadAllBytes(Application.StartupPath + "\\Resources\\Binaries\\Rampastring.Tools.dll");
+                byte[] data = File.ReadAllBytes(path + "Rampastring.Tools.dll");
                 return Assembly.Load(data);
             }
 
             if (args.Name.StartsWith("Rampastring.XNAUI"))
             {
-                byte[] data = File.ReadAllBytes(Application.StartupPath + "\\Resources\\Binaries\\Rampastring.XNAUI.dll");
+                byte[] data = File.ReadAllBytes(path + "Rampastring.XNAUI.dll");
                 return Assembly.Load(data);
             }
 
             if (args.Name.StartsWith("Ionic.Zip"))
             {
-                byte[] data = File.ReadAllBytes(Application.StartupPath + "\\Resources\\Binaries\\Ionic.Zip.dll");
+                byte[] data = File.ReadAllBytes(path + "Ionic.Zip.dll");
                 return Assembly.Load(data);
             }
 
             if (args.Name.StartsWith("OpenTK"))
             {
-                byte[] data = File.ReadAllBytes(Application.StartupPath + "\\Resources\\Binaries\\OpenTK.dll");
+                byte[] data = File.ReadAllBytes(path + "OpenTK.dll");
                 return Assembly.Load(data);
             }
 
             if (args.Name.StartsWith("NVorbis"))
             {
-                byte[] data = File.ReadAllBytes(Application.StartupPath + "\\Resources\\Binaries\\NVorbis.dll");
+                byte[] data = File.ReadAllBytes(path + "NVorbis.dll");
                 return Assembly.Load(data);
             }
 

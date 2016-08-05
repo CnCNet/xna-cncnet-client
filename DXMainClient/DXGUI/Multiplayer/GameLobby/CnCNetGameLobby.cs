@@ -1163,10 +1163,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private void MapSharer_HandleMapDownloadComplete(SHA1EventArgs e)
         {
-            string mapPath = "Maps\\Custom\\" + e.SHA1 + ".map";
+            string mapPath = "Maps\\Custom\\" + e.SHA1;
             Map map = new Map(mapPath);
 
-            if (map.SetInfoFromMap(mapPath))
+            if (map.SetInfoFromMap(mapPath + ".map"))
             {
                 Logger.Log("Map " + e.SHA1 + " downloaded succesfully.");
                 AddNotice("Map succesfully transferred.");

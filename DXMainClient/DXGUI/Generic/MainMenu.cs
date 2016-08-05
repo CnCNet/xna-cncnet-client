@@ -240,6 +240,8 @@ namespace DTAClient.DXGUI.Generic
 
         private void SharedUILogic_GameProcessStarting()
         {
+            UserINISettings.Instance.ReloadSettings();
+
             try
             {
                 optionsWindow.RefreshSettings();
@@ -320,8 +322,7 @@ namespace DTAClient.DXGUI.Generic
 
         private void SharedUILogic_GameProcessStarted()
         {
-            if (MediaPlayer.State == MediaState.Playing)
-                isMusicFading = true;
+            MusicOff();
         }
 
         private void WindowManager_GameClosing(object sender, EventArgs e)
@@ -514,8 +515,7 @@ namespace DTAClient.DXGUI.Generic
         private void BtnLan_LeftClick(object sender, EventArgs e)
         {
             lanLobby.Open();
-            if (MainClientConstants.OSId != OSVersion.WINVISTA && MediaPlayer.State == MediaState.Playing)
-                isMusicFading = true;
+            MusicOff();
 
             topBar.Disable();
             if (connectionManager.IsConnected)
@@ -530,8 +530,7 @@ namespace DTAClient.DXGUI.Generic
         private void BtnSkirmish_LeftClick(object sender, EventArgs e)
         {
             skirmishLobby.Open();
-            if (MainClientConstants.OSId != OSVersion.WINVISTA && MediaPlayer.State == MediaState.Playing)
-                isMusicFading = true;
+            MusicOff();
 
             innerPanel.Show(null);
         }
@@ -649,16 +648,18 @@ namespace DTAClient.DXGUI.Generic
 
         public void SwitchOn()
         {
-            // Visible = true;
-            // Enabled = true;
             PlayMusic();
         }
 
         public void SwitchOff()
         {
-            // Visible = false;
-            // Enabled = false;
-            if (MainClientConstants.OSId != OSVersion.WINVISTA && MediaPlayer.State == MediaState.Playing)
+            MusicOff();
+        }
+
+        private void MusicOff()
+        {
+            if (MainClientConstants.OSId != OSVersion.WINVISTA &&
+                MediaPlayer.State == MediaState.Playing)
                 isMusicFading = true;
         }
 

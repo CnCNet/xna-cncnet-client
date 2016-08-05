@@ -360,6 +360,11 @@ namespace ClientCore
             return clientDefinitionsIni.GetStringValue("Links", "Homepage", "http://rampastring.cnc-comm.com");
         }
 
+        public bool CopyMissionsToSpawnmapINI
+        {
+            get { return clientDefinitionsIni.GetBooleanValue("Settings", "CopyMissionsToSpawnmapINI", true); }
+        }
+
         public void WriteSettingsIni()
         {
             settings_ini.WriteIniFile();

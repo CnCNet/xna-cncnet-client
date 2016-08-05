@@ -19,7 +19,7 @@
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DefineConstants>TRACE;DEBUG;YR</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
@@ -36,25 +36,13 @@
     <StartupObject />
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="ClientCore, Version=1.16.4.2, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="DTAUpdater, Version=1.0.0.6, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\DXClient\ClientCore\bin\Release\ClientCore.dll</HintPath>
-    </Reference>
-    <Reference Include="ClientGUI, Version=1.19.9.92, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\DXClient\ClientGUI\bin\Release\ClientGUI.dll</HintPath>
+      <HintPath>..\..\DTAUpdater\bin\Release\DTAUpdater.dll</HintPath>
     </Reference>
     <Reference Include="MonoGame.Framework, Version=3.5.0.1636, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\MonoGame\MonoGame.Framework\bin\Windows\AnyCPU\Debug\MonoGame.Framework.dll</HintPath>
-    </Reference>
-    <Reference Include="Rampastring.Tools, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\DXClient\DXMainClient\bin\Release\Rampastring.Tools.dll</HintPath>
-    </Reference>
-    <Reference Include="Rampastring.XNAUI, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\DXClient\DXMainClient\bin\Release\Rampastring.XNAUI.dll</HintPath>
+      <HintPath>..\..\MonoGame\MonoGame.Framework\bin\Windows\AnyCPU\Debug\MonoGame.Framework.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -101,9 +89,21 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\DTAUpdater\Updater.csproj">
-      <Project>{EB76F1B2-E1E0-44C1-832B-5FEF167B897D}</Project>
-      <Name>Updater</Name>
+    <ProjectReference Include="..\..\Rampastring.Tools\Rampastring.Tools.csproj">
+      <Project>{9f40961f-535a-480c-93c5-6877ed6a8626}</Project>
+      <Name>Rampastring.Tools</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Rampastring.XNAUI\Rampastring.XNAUI.csproj">
+      <Project>{3eaf996d-7f03-433b-a9a5-17e69ac97c76}</Project>
+      <Name>Rampastring.XNAUI</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\ClientCore\ClientCore.csproj">
+      <Project>{daa331a7-fdac-44fd-98b5-2dc5025f48c3}</Project>
+      <Name>ClientCore</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\ClientGUI\ClientGUI.csproj">
+      <Project>{4c26ad04-ff2e-4465-9f40-deb9ddc2c1d6}</Project>
+      <Name>ClientGUI</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
