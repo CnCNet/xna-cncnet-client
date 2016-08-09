@@ -44,7 +44,12 @@ namespace DTAClient
 
             CUpdater.Initialize(DomainController.Instance().GetDefaultGame());
 
-            CheckIfAlreadyRunning();
+			try
+			{
+				CheckIfAlreadyRunning();
+			}
+			catch { }
+
             DetectOperatingSystem();
 
             Thread thread = new Thread(CheckSystemSpecifications);
