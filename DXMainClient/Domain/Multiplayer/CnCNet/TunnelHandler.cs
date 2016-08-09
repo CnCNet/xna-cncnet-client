@@ -90,7 +90,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
 
             TunnelsRefreshed?.Invoke(this, EventArgs.Empty);
 
-            if (DomainController.Instance().GetCustomTunnelPingStatus())
+            if (UserINISettings.Instance.PingUnofficialCnCNetTunnels)
                 PingUnofficialTunnelsAsync(Tunnels);
         }
 

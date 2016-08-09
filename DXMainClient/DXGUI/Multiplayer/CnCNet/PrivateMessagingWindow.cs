@@ -365,13 +365,13 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             if (sePrivateMessageSound != null)
             {
                 sndPrivateMessageSound = new ToggleableSound(sePrivateMessageSound.CreateInstance());
-                sndPrivateMessageSound.Enabled = DomainController.Instance().EnablePrivateMessageSound;
+                sndPrivateMessageSound.Enabled = true;
             }
 
             if (seMessageSound != null)
             {
                 sndMessageSound = new ToggleableSound(seMessageSound.CreateInstance());
-                sndMessageSound.Enabled = DomainController.Instance().EnableMessageSound;
+                sndMessageSound.Enabled = UserINISettings.Instance.MessageSound;
             }
         }
 

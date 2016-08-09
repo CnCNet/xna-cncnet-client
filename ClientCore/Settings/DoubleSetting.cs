@@ -9,11 +9,6 @@ namespace ClientCore.Settings
         {
         }
 
-        public static implicit operator double(DoubleSetting ds)
-        {
-            return ds.Get();
-        }
-
         protected override double Get()
         {
             return IniFile.GetDoubleValue(IniSection, IniKey, DefaultValue);

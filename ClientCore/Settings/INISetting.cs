@@ -16,6 +16,11 @@ namespace ClientCore.Settings
             DefaultValue = defaultValue;
         }
 
+        public static implicit operator T(INISetting<T> iniSetting)
+        {
+            return iniSetting.Get();
+        }
+
         protected IniFile IniFile { get; private set; }
         protected string IniSection { get; private set; }
         protected string IniKey { get; private set; }

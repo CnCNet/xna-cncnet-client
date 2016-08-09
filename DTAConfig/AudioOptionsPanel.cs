@@ -33,8 +33,6 @@ namespace DTAConfig
 
         XNAClientCheckBox chkMainMenuMusic;
 
-        XNAClientCheckBox chkButtonSound;
-
         List<FileSettingCheckBox> fileSettingCheckBoxes = new List<FileSettingCheckBox>();
 
         public override void Initialize()
@@ -158,20 +156,13 @@ namespace DTAConfig
                 trbClientVolume.ClientRectangle.Bottom + 12, 0, 0);
             chkMainMenuMusic.Text = "Main Menu Music";
 
-            chkButtonSound = new XNAClientCheckBox(WindowManager);
-            chkButtonSound.Name = "chkButtonSound";
-            chkButtonSound.ClientRectangle = new Rectangle(
-                chkMainMenuMusic.ClientRectangle.X,
-                chkMainMenuMusic.ClientRectangle.Bottom + 24, 0, 0);
-            chkButtonSound.Text = "Client button sounds";
-
 #if DTA
             var chkRABuildingCrumbleSound = new FileSettingCheckBox(WindowManager,
                 "Resources\\Ecache03.mix", "MIX\\Ecache03.mix", false);
             chkRABuildingCrumbleSound.Name = "chkRABuildingCrumbleSound";
             chkRABuildingCrumbleSound.ClientRectangle = new Rectangle(
                 chkMainMenuMusic.ClientRectangle.X,
-                chkButtonSound.ClientRectangle.Bottom + 24, 0, 0);
+                chkMainMenuMusic.ClientRectangle.Bottom + 24, 0, 0);
             chkRABuildingCrumbleSound.Text = "Use Red Alert building crumble sound";
 
             var chkReplaceRACannonSounds = new FileSettingCheckBox(WindowManager,
@@ -205,7 +196,6 @@ namespace DTAConfig
             AddChild(trbClientVolume);
 
             AddChild(chkMainMenuMusic);
-            AddChild(chkButtonSound);
 
             lblScoreVolumeValue.Text = trbScoreVolume.Value.ToString();
             lblSoundVolumeValue.Text = trbSoundVolume.Value.ToString();
@@ -247,8 +237,6 @@ namespace DTAConfig
 
             chkMainMenuMusic.Checked = IniSettings.PlayMainMenuMusic;
 
-            chkButtonSound.Checked = IniSettings.ClientButtonSounds;
-
             fileSettingCheckBoxes.ForEach(chkBox => chkBox.Load());
         }
 
@@ -263,8 +251,6 @@ namespace DTAConfig
             IniSettings.ClientVolume.Value = trbClientVolume.Value / 10.0;
 
             IniSettings.PlayMainMenuMusic.Value = chkMainMenuMusic.Checked;
-
-            IniSettings.ClientButtonSounds.Value = chkButtonSound.Checked;
 
             fileSettingCheckBoxes.ForEach(chkBox => chkBox.Save());
 

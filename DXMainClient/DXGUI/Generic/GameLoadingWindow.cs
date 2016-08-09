@@ -131,7 +131,9 @@ namespace DTAClient.DXGUI.Generic
 
             foreach (SavedGame sg in savedGames)
             {
-                string[] item = new string[] { sg.GUIName, sg.LastModified.ToString() };
+                string[] item = new string[] {
+                    Renderer.GetSafeString(sg.GUIName, lbSaveGameList.FontIndex),
+                    sg.LastModified.ToString() };
                 lbSaveGameList.AddItem(item, true);
             }
         }

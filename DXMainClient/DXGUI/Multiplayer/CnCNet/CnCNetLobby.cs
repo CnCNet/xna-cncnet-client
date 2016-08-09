@@ -249,7 +249,6 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             ddColor.Name = "ddColor";
             ddColor.ClientRectangle = new Rectangle(lblColor.ClientRectangle.X + 95, btnForums.ClientRectangle.Y,
                 150, 21);
-            ddColor.SelectedIndexChanged += DdColor_SelectedIndexChanged;
 
             chatColors = connectionManager.GetIRCColors();
 
@@ -266,11 +265,13 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 ddColor.AddItem(ddItem);
             }
 
-            int selectedColor = DomainController.Instance().GetCnCNetChatColor();
+            int selectedColor = UserINISettings.Instance.ChatColor;
 
             ddColor.SelectedIndex = selectedColor >= ddColor.Items.Count || selectedColor < 0 
                 ? DomainController.Instance().GetDefaultPersonalChatColor() : 
                 selectedColor;
+            SetChatColor();
+            ddColor.SelectedIndexChanged += DdColor_SelectedIndexChanged;
 
             ddCurrentChannel = new XNAClientDropDown(WindowManager);
             ddCurrentChannel.Name = "ddCurrentChannel";
@@ -813,12 +814,19 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             tbChatInput.Text = string.Empty;
         }
 
-        private void DdColor_SelectedIndexChanged(object sender, EventArgs e)
+        private void SetChatColor()
         {
             IRCColor selectedColor = (IRCColor)ddColor.SelectedItem.Tag;
             tbChatInput.TextColor = selectedColor.XnaColor;
             gameLobby.ChangeChatColor(selectedColor);
             gameLoadingLobby.ChangeChatColor(selectedColor);
+            UserINISettings.Instance.ChatColor.Value = ddColor.SelectedIndex;
+        }
+
+        private void DdColor_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            SetChatColor();
+            UserINISettings.Instance.SaveSettings();
         }
 
         private void ConnectionManager_Disconnected(object sender, EventArgs e)

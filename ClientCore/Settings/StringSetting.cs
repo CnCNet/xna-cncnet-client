@@ -9,11 +9,6 @@ namespace ClientCore.Settings
         {
         }
 
-        public static implicit operator string(StringSetting ss)
-        {
-            return ss.Get();
-        }
-
         protected override string Get()
         {
             return IniFile.GetStringValue(IniSection, IniKey, DefaultValue);

@@ -223,27 +223,6 @@ namespace ClientCore
             set { settings_ini.SetBooleanValue("MultiPlayer", "EnableMapSharing", value); }
         }
 
-        public int GetCnCNetChatColor()
-        {
-            return settings_ini.GetIntValue("MultiPlayer", "ChatColor", GetDefaultPersonalChatColor());
-        }
-
-        public int LANChatColor
-        {
-            get { return settings_ini.GetIntValue("MultiPlayer", "LANChatColor", 0); }
-            set { settings_ini.SetIntValue("MultiPlayer", "LANChatColor", value); }
-        }
-
-        public bool GetCustomTunnelPingStatus()
-        {
-            return settings_ini.GetBooleanValue("MultiPlayer", "PingCustomTunnels", true);
-        }
-
-        public bool GetButtonHoverSoundStatus()
-        {
-            return settings_ini.GetBooleanValue("Audio", "EnableButtonHoverSound", true);
-        }
-
         public string GetSkirmishMapSHA1()
         {
             return settings_ini.GetStringValue("Skirmish", "Map", "default");
@@ -291,17 +270,7 @@ namespace ClientCore
 
         public int GetSendSleepInMs()
         {
-            return settings_ini.GetIntValue("MultiPlayer", "SendSleep", 2500);
-        }
-
-        public bool EnablePrivateMessageSound
-        {
-            get { return settings_ini.GetBooleanValue("Audio", "PrivateMessageSound", true); }
-        }
-
-        public bool EnableMessageSound
-        {
-            get { return settings_ini.GetBooleanValue("Audio", "ChatMessageSound", true); }
+            return clientDefinitionsIni.GetIntValue("Settings", "SendSleep", 2500);
         }
 
         public string[] GetThemeInfoFromIndex(int themeIndex)

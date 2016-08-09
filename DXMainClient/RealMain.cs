@@ -5,6 +5,7 @@ using System.IO;
 using DTAClient.Domain;
 using Rampastring.Tools;
 using ClientCore;
+using Rampastring.XNAUI;
 
 namespace DTAClient
 {
@@ -71,6 +72,11 @@ namespace DTAClient
                 {
                     MainClientConstants.IgnoreVersionMismatch = true;
                     Logger.Log("Startup parameter: Do not show version mismatch popup");
+                }
+                else if (argument == "-NOAUDIO")
+                {
+                    AudioMaster.DisableSounds = true;
+                    Logger.Log("Startup parameter: Audio disabled");
                 }
                 else
                 {

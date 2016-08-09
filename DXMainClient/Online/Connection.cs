@@ -404,103 +404,103 @@ namespace DTAClient.Online
                             connectionManager.OnIncorrectChannelPassword(parameters[1]);
                             break;
                     }
-                }
-                else
-                {
-                    switch (command)
-                    {
-                        case "NOTICE":
-                            int noticeExclamIndex = prefix.IndexOf('!');
-                            if (noticeExclamIndex > -1)
-                            {
-                                if (parameters.Count > 1 && parameters[1][0] == 1)//Conversions.IntFromString(parameters[1].Substring(0, 1), -1) == 1)
-                                {
-                                    // CTCP
-                                    string channelName = parameters[0];
-                                    string ctcpMessage = parameters[1];
-                                    ctcpMessage = ctcpMessage.Remove(0, 1).Remove(ctcpMessage.Length - 2);
-                                    string ctcpSender = prefix.Substring(0, noticeExclamIndex);
-                                    connectionManager.OnCTCPParsed(channelName, ctcpSender, ctcpMessage);
 
-                                    return;
-                                }
-                                else
-                                {
-                                    string noticeUserName = prefix.Substring(0, prefix.IndexOf('!'));
-                                    string notice = parameters[parameters.Count - 1];
-                                    connectionManager.OnNoticeMessageParsed(notice, noticeUserName);
-                                    break;
-                                }
-                            }
-                            string noticeParamString = String.Empty;
-                            foreach (string param in parameters)
-                                noticeParamString = noticeParamString + param + " ";
-                            connectionManager.OnGenericServerMessageReceived(prefix + " " + noticeParamString);
-                            break;
-                        case "JOIN":
-                            string channel = parameters[0];
-                            string userName = prefix.Substring(0, prefix.IndexOf('!'));
-                            string ipAddress = prefix.Substring(prefix.IndexOf('!') + 1);
-                            connectionManager.OnUserJoinedChannel(channel, userName, ipAddress);
-                            break;
-                        case "PART":
-                            string pChannel = parameters[0];
-                            string pUserName = prefix.Substring(0, prefix.IndexOf('!'));
-                            connectionManager.OnUserLeftChannel(pChannel, pUserName);
-                            break;
-                        case "QUIT":
-                            string qUserName = prefix.Substring(0, prefix.IndexOf('!'));
-                            connectionManager.OnUserQuitIRC(qUserName);
-                            break;
-                        case "PRIVMSG":
-                            if (parameters.Count > 1 && Convert.ToInt32(parameters[1][0]) == 1 && !parameters[1].Contains("ACTION"))
+                    return;
+                }
+
+                switch (command)
+                {
+                    case "NOTICE":
+                        int noticeExclamIndex = prefix.IndexOf('!');
+                        if (noticeExclamIndex > -1)
+                        {
+                            if (parameters.Count > 1 && parameters[1][0] == 1)//Conversions.IntFromString(parameters[1].Substring(0, 1), -1) == 1)
                             {
-                                goto case "NOTICE";
-                            }
-                            string pmsgUserName = prefix.Substring(0, prefix.IndexOf('!'));
-                            string[] recipients = new string[parameters.Count - 1];
-                            for (int pid = 0; pid < parameters.Count - 1; pid++)
-                                recipients[pid] = parameters[pid];
-                            string privmsg = parameters[parameters.Count - 1];
-                            foreach (string recipient in recipients)
-                            {
-                                if (recipient.StartsWith("#"))
-                                    connectionManager.OnChatMessageReceived(recipient, pmsgUserName, privmsg);
-                                else if (recipient == ProgramConstants.PLAYERNAME)
-                                    connectionManager.OnPrivateMessageReceived(pmsgUserName, privmsg);
-                                //else if (pmsgUserName == ProgramConstants.PLAYERNAME)
-                                //{
-                                //    DoPrivateMessageSent(privmsg, recipient);
-                                //}
-                            }
-                            break;
-                        case "MODE":
-                            string modeUserName = prefix.Substring(0, prefix.IndexOf('!'));
-                            string modeChannelName = parameters[0];
-                            string modeString = parameters[1];
-                            connectionManager.OnChannelModesChanged(modeUserName, modeChannelName, modeString);
-                            break;
-                        case "KICK":
-                            string kickChannelName = parameters[0];
-                            string kickUserName = parameters[1];
-                            connectionManager.OnUserKicked(kickChannelName, kickUserName);
-                            break;
-                        case "ERROR":
-                            connectionManager.OnErrorReceived(message);
-                            break;
-                        case "PING":
-                            if (parameters.Count > 0)
-                            {
-                                QueueMessage(new QueuedMessage("PONG " + parameters[0], QueuedMessageType.SYSTEM_MESSAGE, 5000));
-                                Logger.Log("PONG " + parameters[0]);
+                                // CTCP
+                                string channelName = parameters[0];
+                                string ctcpMessage = parameters[1];
+                                ctcpMessage = ctcpMessage.Remove(0, 1).Remove(ctcpMessage.Length - 2);
+                                string ctcpSender = prefix.Substring(0, noticeExclamIndex);
+                                connectionManager.OnCTCPParsed(channelName, ctcpSender, ctcpMessage);
+
+                                return;
                             }
                             else
                             {
-                                QueueMessage(new QueuedMessage("PONG", QueuedMessageType.SYSTEM_MESSAGE, 5000));
-                                Logger.Log("PONG");
+                                string noticeUserName = prefix.Substring(0, prefix.IndexOf('!'));
+                                string notice = parameters[parameters.Count - 1];
+                                connectionManager.OnNoticeMessageParsed(notice, noticeUserName);
+                                break;
                             }
-                            break;
-                    }
+                        }
+                        string noticeParamString = String.Empty;
+                        foreach (string param in parameters)
+                            noticeParamString = noticeParamString + param + " ";
+                        connectionManager.OnGenericServerMessageReceived(prefix + " " + noticeParamString);
+                        break;
+                    case "JOIN":
+                        string channel = parameters[0];
+                        string userName = prefix.Substring(0, prefix.IndexOf('!'));
+                        string ipAddress = prefix.Substring(prefix.IndexOf('!') + 1);
+                        connectionManager.OnUserJoinedChannel(channel, userName, ipAddress);
+                        break;
+                    case "PART":
+                        string pChannel = parameters[0];
+                        string pUserName = prefix.Substring(0, prefix.IndexOf('!'));
+                        connectionManager.OnUserLeftChannel(pChannel, pUserName);
+                        break;
+                    case "QUIT":
+                        string qUserName = prefix.Substring(0, prefix.IndexOf('!'));
+                        connectionManager.OnUserQuitIRC(qUserName);
+                        break;
+                    case "PRIVMSG":
+                        if (parameters.Count > 1 && Convert.ToInt32(parameters[1][0]) == 1 && !parameters[1].Contains("ACTION"))
+                        {
+                            goto case "NOTICE";
+                        }
+                        string pmsgUserName = prefix.Substring(0, prefix.IndexOf('!'));
+                        string[] recipients = new string[parameters.Count - 1];
+                        for (int pid = 0; pid < parameters.Count - 1; pid++)
+                            recipients[pid] = parameters[pid];
+                        string privmsg = parameters[parameters.Count - 1];
+                        foreach (string recipient in recipients)
+                        {
+                            if (recipient.StartsWith("#"))
+                                connectionManager.OnChatMessageReceived(recipient, pmsgUserName, privmsg);
+                            else if (recipient == ProgramConstants.PLAYERNAME)
+                                connectionManager.OnPrivateMessageReceived(pmsgUserName, privmsg);
+                            //else if (pmsgUserName == ProgramConstants.PLAYERNAME)
+                            //{
+                            //    DoPrivateMessageSent(privmsg, recipient);
+                            //}
+                        }
+                        break;
+                    case "MODE":
+                        string modeUserName = prefix.Substring(0, prefix.IndexOf('!'));
+                        string modeChannelName = parameters[0];
+                        string modeString = parameters[1];
+                        connectionManager.OnChannelModesChanged(modeUserName, modeChannelName, modeString);
+                        break;
+                    case "KICK":
+                        string kickChannelName = parameters[0];
+                        string kickUserName = parameters[1];
+                        connectionManager.OnUserKicked(kickChannelName, kickUserName);
+                        break;
+                    case "ERROR":
+                        connectionManager.OnErrorReceived(message);
+                        break;
+                    case "PING":
+                        if (parameters.Count > 0)
+                        {
+                            QueueMessage(new QueuedMessage("PONG " + parameters[0], QueuedMessageType.SYSTEM_MESSAGE, 5000));
+                            Logger.Log("PONG " + parameters[0]);
+                        }
+                        else
+                        {
+                            QueueMessage(new QueuedMessage("PONG", QueuedMessageType.SYSTEM_MESSAGE, 5000));
+                            Logger.Log("PONG");
+                        }
+                        break;
                 }
             }
             catch

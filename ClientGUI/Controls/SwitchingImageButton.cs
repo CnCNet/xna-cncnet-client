@@ -31,7 +31,7 @@ namespace ClientGUI
 
             try
             {
-                if (DomainController.Instance().GetButtonHoverSoundStatus() && HoverSound != null)
+                if (HoverSound != null)
                     HoverSound.Play();
             }
             catch { }

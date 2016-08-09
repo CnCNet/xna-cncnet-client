@@ -9,11 +9,6 @@ namespace ClientCore.Settings
         {
         }
 
-        public static implicit operator int(IntSetting intSetting)
-        {
-            return intSetting.Get();
-        }
-
         protected override int Get()
         {
             return IniFile.GetIntValue(IniSection, IniKey, DefaultValue);

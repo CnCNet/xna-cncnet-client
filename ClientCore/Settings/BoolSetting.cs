@@ -9,11 +9,6 @@ namespace ClientCore.Settings
         {
         }
 
-        public static implicit operator bool(BoolSetting bs)
-        {
-            return bs.Get();
-        }
-
         protected override bool Get()
         {
             return IniFile.GetBooleanValue(IniSection, IniKey, DefaultValue);

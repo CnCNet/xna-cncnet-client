@@ -64,7 +64,8 @@ namespace ClientCore
             IsScoreShuffle = new BoolSetting(iniFile, AUDIO, "IsScoreShuffle", true);
             ClientVolume = new DoubleSetting(iniFile, AUDIO, "ClientVolume", 1.0);
             PlayMainMenuMusic = new BoolSetting(iniFile, AUDIO, "PlayMainMenuMusic", true);
-            ClientButtonSounds = new BoolSetting(iniFile, AUDIO, "EnableButtonHoverSound", true);
+            //ClientButtonSounds = new BoolSetting(iniFile, AUDIO, "EnableButtonHoverSound", true);
+            MessageSound = new BoolSetting(iniFile, AUDIO, "ChatMessageSound", true);
 
             ScrollRate = new IntSetting(iniFile, OPTIONS, "ScrollRate", 3);
             TargetLines = new BoolSetting(iniFile, OPTIONS, "UnitActionLines", true);
@@ -75,6 +76,7 @@ namespace ClientCore
             PlayerName = new StringSetting(iniFile, MULTIPLAYER, "Handle", string.Empty);
 
             ChatColor = new IntSetting(iniFile, MULTIPLAYER, "ChatColor", -1);
+            LANChatColor = new IntSetting(iniFile, MULTIPLAYER, "LANChatColor", -1);
             PingUnofficialCnCNetTunnels = new BoolSetting(iniFile, MULTIPLAYER, "PingCustomTunnels", true);
             WritePathToRegistry = new BoolSetting(iniFile, OPTIONS, "WriteInstallationPathToRegistry", true);
             PlaySoundOnGameHosted = new BoolSetting(iniFile, MULTIPLAYER, "PlaySoundOnGameHosted", true);
@@ -115,7 +117,7 @@ namespace ClientCore
         public BoolSetting IsScoreShuffle { get; private set; }
         public DoubleSetting ClientVolume { get; private set; }
         public BoolSetting PlayMainMenuMusic { get; private set; }
-        public BoolSetting ClientButtonSounds { get; private set; }
+        public BoolSetting MessageSound { get; private set; }
 
         public IntSetting ScrollRate { get; private set; }
         public BoolSetting TargetLines { get; private set; }
@@ -126,6 +128,7 @@ namespace ClientCore
         public StringSetting PlayerName { get; private set; }
 
         public IntSetting ChatColor { get; private set; }
+        public IntSetting LANChatColor { get; private set; }
         public BoolSetting PingUnofficialCnCNetTunnels { get; private set; }
         public BoolSetting WritePathToRegistry { get; private set; }
         public BoolSetting PlaySoundOnGameHosted { get; private set; }

@@ -229,7 +229,6 @@ namespace DTAClient.DXGUI.Multiplayer
             ddColor.Name = "ddColor";
             ddColor.ClientRectangle = new Rectangle(lblColor.ClientRectangle.X + 95, 12,
                 150, 21);
-            ddColor.SelectedIndexChanged += DdColor_SelectedIndexChanged;
 
             chatColors = new LANColor[]
             {
@@ -306,10 +305,13 @@ namespace DTAClient.DXGUI.Multiplayer
             DarkeningPanel.AddAndInitializeWithControl(WindowManager, lanGameLoadingLobby);
             lanGameLoadingLobby.Disable();
 
-            int selectedColor = DomainController.Instance().GetCnCNetChatColor();
+            int selectedColor = UserINISettings.Instance.LANChatColor;
 
             ddColor.SelectedIndex = selectedColor >= ddColor.Items.Count || selectedColor < 0
                 ? 0 : selectedColor;
+
+            SetChatColor();
+            ddColor.SelectedIndexChanged += DdColor_SelectedIndexChanged;
 
             lanGameLobby.GameLeft += LanGameLobby_GameLeft;
             lanGameLobby.GameBroadcast += LanGameLobby_GameBroadcast;
@@ -342,10 +344,17 @@ namespace DTAClient.DXGUI.Multiplayer
             lanGameLobby.Enable();
         }
 
-        private void DdColor_SelectedIndexChanged(object sender, EventArgs e)
+        private void SetChatColor()
         {
             tbChatInput.TextColor = chatColors[ddColor.SelectedIndex].XNAColor;
             lanGameLobby.SetChatColorIndex(ddColor.SelectedIndex);
+            UserINISettings.Instance.LANChatColor.Value = ddColor.SelectedIndex;
+        }
+
+        private void DdColor_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            SetChatColor();
+            UserINISettings.Instance.SaveSettings();
         }
 
         public void Open()
