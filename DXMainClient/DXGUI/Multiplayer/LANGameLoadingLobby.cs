@@ -51,6 +51,14 @@ namespace DTAClient.DXGUI.Multiplayer
                 new ClientStringCommandHandler(OPTIONS_COMMAND, Client_HandleOptionsMessage),
                 new ClientNoParamCommandHandler(GAME_LAUNCH_COMMAND, Client_HandleStartCommand)
             };
+
+            WindowManager.GameClosing += WindowManager_GameClosing;
+        }
+
+        private void WindowManager_GameClosing(object sender, EventArgs e)
+        {
+            if (client != null && client.Connected)
+                Clear();
         }
 
         public event EventHandler<LobbyNotificationEventArgs> LobbyNotification;

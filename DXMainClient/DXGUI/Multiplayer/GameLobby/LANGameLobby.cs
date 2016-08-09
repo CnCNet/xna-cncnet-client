@@ -64,6 +64,14 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             };
 
             localGame = DomainController.Instance().GetDefaultGame();
+
+            WindowManager.GameClosing += WindowManager_GameClosing;
+        }
+
+        private void WindowManager_GameClosing(object sender, EventArgs e)
+        {
+            if (client != null && client.Connected)
+                Clear();
         }
 
         private void HandleFileHashCommand(string sender, string fileHash)

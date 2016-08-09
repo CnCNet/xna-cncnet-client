@@ -315,6 +315,24 @@ namespace DTAClient.DXGUI.Multiplayer
 
             lanGameLobby.GameLeft += LanGameLobby_GameLeft;
             lanGameLobby.GameBroadcast += LanGameLobby_GameBroadcast;
+
+            WindowManager.GameClosing += WindowManager_GameClosing;
+        }
+
+        private void WindowManager_GameClosing(object sender, EventArgs e)
+        {
+            if (socket.IsBound)
+            {
+                try
+                {
+                    SendMessage("QUIT");
+                    socket.Close();
+                }
+                catch (ObjectDisposedException)
+                {
+
+                }
+            }
         }
 
         private void LanGameLobby_GameBroadcast(object sender, GameBroadcastEventArgs e)
