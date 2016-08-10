@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
@@ -31,9 +31,27 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|WindowsGL' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\WindowsGL\Debug</OutputPath>
+    <DefineConstants>TRACE;DEBUG</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|WindowsGL' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\WindowsGL\Release</OutputPath>
+    <DefineConstants>TRACE;LINUX</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="CustomControls">
-      <HintPath>..\Resources\CustomControls.dll</HintPath>
+      <HintPath Condition=" Exists('..\Resources\CustomControls.dll')">..\Resources\CustomControls.dll</HintPath>
+      <HintPath Condition=" Exists('..\CustomControls.dll')">..\CustomControls.dll</HintPath>
     </Reference>
     <Reference Include="DTAConfig, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -45,7 +63,8 @@
     </Reference>
     <Reference Include="MonoGame.Framework, Version=3.5.0.1636, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\MonoGame\MonoGame.Framework\bin\Windows\AnyCPU\Debug\MonoGame.Framework.dll</HintPath>
+      <HintPath Condition=" '$(Platform)' != 'WindowsGL'">..\MonoGame\MonoGame.Framework\bin\Windows\AnyCPU\Debug\MonoGame.Framework.dll</HintPath>
+      <HintPath Condition=" '$(Platform)' == 'WindowsGL'">..\MonoGame\MonoGame.Framework\bin\WindowsGL\AnyCPU\Debug\MonoGame.Framework.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Drawing" />
@@ -109,14 +128,17 @@
     <ProjectReference Include="..\..\Rampastring.Tools\Rampastring.Tools.csproj">
       <Project>{9f40961f-535a-480c-93c5-6877ed6a8626}</Project>
       <Name>Rampastring.Tools</Name>
+      <SetConfiguration>Platform=$(Platform)</SetConfiguration>
     </ProjectReference>
     <ProjectReference Include="..\..\Rampastring.XNAUI\Rampastring.XNAUI.csproj">
       <Project>{3eaf996d-7f03-433b-a9a5-17e69ac97c76}</Project>
       <Name>Rampastring.XNAUI</Name>
+      <SetConfiguration>Platform=$(Platform)</SetConfiguration>
     </ProjectReference>
     <ProjectReference Include="..\ClientCore\ClientCore.csproj">
       <Project>{daa331a7-fdac-44fd-98b5-2dc5025f48c3}</Project>
       <Name>ClientCore</Name>
+      <SetConfiguration>Platform=$(Platform)</SetConfiguration>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

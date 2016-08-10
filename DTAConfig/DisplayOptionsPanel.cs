@@ -5,6 +5,7 @@ using System.Text;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 using System.Windows.Forms;
 using System.Runtime.InteropServices;
 using ClientCore;
@@ -861,29 +862,34 @@ namespace DTAConfig
                 int minHeight, int maxWidth, int maxHeight, int colordepth)
             {
                 List<ScreenResolution> screenresolutions = new List<ScreenResolution>();
-                foreach (DEVMODE devmode in getScreenResDevModes())
+                try
                 {
-                    ScreenResolution mode = new ScreenResolution(devmode.dmPelsWidth, devmode.dmPelsHeight);
+                    foreach (DEVMODE devmode in getScreenResDevModes())
+                    {
+                        ScreenResolution mode = new ScreenResolution(devmode.dmPelsWidth, devmode.dmPelsHeight);
 
-                    // "does not exist in list" condition, implemented using IComparable :)
-                    Boolean notInList = screenresolutions.FindIndex(
-                        delegate (ScreenResolution res)
-                        {
-                            return res.CompareTo(mode) == 0; // 'x.CompareTo(y)==0' means 'equals'
-                    })
+                        // "does not exist in list" condition, implemented using IComparable :)
+                        Boolean notInList = screenresolutions.FindIndex(
+                           delegate (ScreenResolution res)
+                           {
+                               return res.CompareTo(mode) == 0; // 'x.CompareTo(y)==0' means 'equals'
+                           })
                             == -1; // check if index is -1 (meaning item is not found in list)
 
-                    if (devmode.dmBitsPerPel == colordepth
-                        && devmode.dmPelsWidth >= minWidth
-                        && devmode.dmPelsHeight >= minHeight
-                        && devmode.dmPelsWidth <= maxWidth
-                        && devmode.dmPelsHeight <= maxHeight
-                        && notInList)
-                    {
-                        screenresolutions.Add(mode);
+                        if (devmode.dmBitsPerPel == colordepth
+                            && devmode.dmPelsWidth >= minWidth
+                            && devmode.dmPelsHeight >= minHeight
+                            && devmode.dmPelsWidth <= maxWidth
+                            && devmode.dmPelsHeight <= maxHeight
+                            && notInList)
+                        {
+                            screenresolutions.Add(mode);
+                        }
                     }
                 }
-
+                catch
+                {
+                }
                 // sort, using ScreenResolution's CompareTo method.
                 screenresolutions.Sort();
 
@@ -891,6 +897,12 @@ namespace DTAConfig
                 List<String> screenResList = new List<String>();
                 foreach (ScreenResolution res in screenresolutions)
                     screenResList.Add(res.ToString());
+
+                if (screenResList.Count == 0)
+                    screenResList.Add(string.Format("{0}x{1}",GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width,
+                                                    GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height
+                                                    ));
+
                 return screenResList;
             }
         }
