@@ -321,6 +321,9 @@ namespace DTAClient.DXGUI.Multiplayer
 
         private void WindowManager_GameClosing(object sender, EventArgs e)
         {
+            if (socket == null)
+                return;
+
             if (socket.IsBound)
             {
                 try
