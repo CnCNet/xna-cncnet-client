@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -51,6 +51,23 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|WindowsGL' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\WindowsGL\Debug</OutputPath>
+    <DefineConstants>TRACE;DEBUG</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|WindowsGL' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\WindowsGL\Release</OutputPath>
+    <DefineConstants>TRACE;LINUX</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
   <PropertyGroup>
     <ApplicationIcon>mainclienticon.ico</ApplicationIcon>
   </PropertyGroup>
@@ -77,6 +94,18 @@
   <PropertyGroup>
     <ApplicationManifest>Properties\app.manifest</ApplicationManifest>
   </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|WindowsGL' ">
+    <Optimize>false</Optimize>
+    <OutputPath>bin\WindowsGL\Debug</OutputPath>
+    <WarningLevel>4</WarningLevel>
+    <AssemblyName>DXMainClient</AssemblyName>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|WindowsGL' ">
+    <Optimize>false</Optimize>
+    <OutputPath>bin\WindowsGL\Release</OutputPath>
+    <WarningLevel>4</WarningLevel>
+    <AssemblyName>DXMainClient</AssemblyName>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="DTAUpdater">
       <HintPath>..\..\DTAConfig\bin\Release\DTAUpdater.dll</HintPath>
@@ -87,7 +116,8 @@
     </Reference>
     <Reference Include="MonoGame.Framework, Version=3.5.0.1636, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\MonoGame\MonoGame.Framework\bin\Windows\AnyCPU\Debug\MonoGame.Framework.dll</HintPath>
+      <HintPath Condition=" '$(Platform)' != 'WindowsGL'">..\MonoGame\MonoGame.Framework\bin\Windows\AnyCPU\Debug\MonoGame.Framework.dll</HintPath>
+      <HintPath Condition=" '$(Platform)' == 'WindowsGL'">..\MonoGame\MonoGame.Framework\bin\WindowsGL\AnyCPU\Debug\MonoGame.Framework.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
@@ -273,10 +303,12 @@
     <ProjectReference Include="..\..\Rampastring.Tools\Rampastring.Tools.csproj">
       <Project>{9f40961f-535a-480c-93c5-6877ed6a8626}</Project>
       <Name>Rampastring.Tools</Name>
+      <SetConfiguration>Platform=AnyCpu</SetConfiguration>
     </ProjectReference>
     <ProjectReference Include="..\..\Rampastring.XNAUI\Rampastring.XNAUI.csproj">
       <Project>{3eaf996d-7f03-433b-a9a5-17e69ac97c76}</Project>
       <Name>Rampastring.XNAUI</Name>
+      <SetConfiguration>Platform=$(Platform)</SetConfiguration>
     </ProjectReference>
     <ProjectReference Include="..\ClientCore\ClientCore.csproj">
       <Project>{daa331a7-fdac-44fd-98b5-2dc5025f48c3}</Project>
