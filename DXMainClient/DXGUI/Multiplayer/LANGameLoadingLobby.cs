@@ -366,6 +366,7 @@ namespace DTAClient.DXGUI.Multiplayer
         protected override void LeaveGame()
         {
             Clear();
+            Disable();
 
             base.LeaveGame();
         }

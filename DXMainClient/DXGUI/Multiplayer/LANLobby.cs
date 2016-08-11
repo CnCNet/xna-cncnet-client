@@ -316,7 +316,15 @@ namespace DTAClient.DXGUI.Multiplayer
             lanGameLobby.GameLeft += LanGameLobby_GameLeft;
             lanGameLobby.GameBroadcast += LanGameLobby_GameBroadcast;
 
+            lanGameLoadingLobby.GameBroadcast += LanGameLoadingLobby_GameBroadcast;
+            lanGameLoadingLobby.GameLeft += LanGameLoadingLobby_GameLeft;
+
             WindowManager.GameClosing += WindowManager_GameClosing;
+        }
+
+        private void LanGameLoadingLobby_GameLeft(object sender, EventArgs e)
+        {
+            Enable();
         }
 
         private void WindowManager_GameClosing(object sender, EventArgs e)
@@ -346,6 +354,11 @@ namespace DTAClient.DXGUI.Multiplayer
         private void LanGameLobby_GameLeft(object sender, EventArgs e)
         {
             Enable();
+        }
+
+        private void LanGameLoadingLobby_GameBroadcast(object sender, GameBroadcastEventArgs e)
+        {
+            SendMessage(e.Message);
         }
 
         private void GameCreationWindow_LoadGame(object sender, GameLoadEventArgs e)

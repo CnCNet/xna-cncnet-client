@@ -161,6 +161,19 @@ namespace ClientCore
         public void ReloadSettings()
         {
             SettingsIni = new IniFile(SettingsIni.FileName);
+
+            var type = GetType();
+            var propertyInfos = type.GetProperties();
+
+            foreach (var property in propertyInfos)
+            {
+                var propertyType = property.PropertyType;
+                if (!typeof(IIniSetting).IsAssignableFrom(property.PropertyType))
+                    continue;
+
+                var methodInfo = property.PropertyType.GetMethod("SetIniFile");
+                methodInfo.Invoke(property.GetValue(this, null), new object[] { SettingsIni });
+            }
         }
 
         public void SaveSettings()

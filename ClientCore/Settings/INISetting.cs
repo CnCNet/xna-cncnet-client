@@ -5,7 +5,7 @@ namespace ClientCore.Settings
     /// <summary>
     /// A base class for an INI setting.
     /// </summary>
-    public abstract class INISetting<T>
+    public abstract class INISetting<T> : IIniSetting
     {
         public INISetting(IniFile iniFile, string iniSection, string iniKey,
             T defaultValue)
@@ -19,6 +19,11 @@ namespace ClientCore.Settings
         public static implicit operator T(INISetting<T> iniSetting)
         {
             return iniSetting.Get();
+        }
+
+        public void SetIniFile(IniFile iniFile)
+        {
+            IniFile = iniFile;
         }
 
         protected IniFile IniFile { get; private set; }

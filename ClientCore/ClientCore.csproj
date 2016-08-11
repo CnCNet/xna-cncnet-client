@@ -57,6 +57,7 @@
     <Compile Include="CnCNet5\NameValidator.cs" />
     <Compile Include="OSVersion.cs" />
     <Compile Include="SavedGameManager.cs" />
+    <Compile Include="Settings\IIniSetting.cs" />
     <Compile Include="Settings\UserINISettings.cs" />
     <Compile Include="Settings\BoolSetting.cs" />
     <Compile Include="Settings\DoubleSetting.cs" />

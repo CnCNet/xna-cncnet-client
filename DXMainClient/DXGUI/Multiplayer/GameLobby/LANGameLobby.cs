@@ -80,6 +80,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 AddNotice(sender + " has modified game files! They could be cheating!");
 
             PlayerInfo pInfo = Players.Find(p => p.Name == sender);
+
             pInfo.Verified = true;
         }
 
@@ -302,6 +303,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         private void CleanUpPlayer(LANPlayerInfo lpInfo)
         {
             lpInfo.MessageReceived -= LpInfo_MessageReceived;
+            lpInfo.ConnectionLost -= LpInfo_ConnectionLost;
             lpInfo.TcpClient.Close();
         }
 
