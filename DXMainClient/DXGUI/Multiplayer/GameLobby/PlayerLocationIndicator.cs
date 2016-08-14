@@ -31,6 +31,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         Texture2D usedTexture;
         public Texture2D WaypointTexture { get; set; }
         public List<PlayerInfo> Players = new List<PlayerInfo>();
+
         List<MultiplayerColor> mpColors;
 
         public bool BackgroundShown { get; set; }
@@ -61,8 +62,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         Vector2 textSize;
         int textXPosition;
 
-        string text;
-        bool textOnRight = true;
+        List<PlayerText> pText = new List<PlayerText>();
 
         public override void Initialize()
         {
@@ -89,10 +89,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         public void Refresh()
         {
             textSize = Vector2.Zero;
+            pText.Clear();
 
             foreach (PlayerInfo pInfo in Players)
             {
-                text = pInfo.Name;
+                string text = pInfo.Name;
                 if (pInfo.TeamId > 0)
                     text = teamIds[pInfo.TeamId] + " " + pInfo.Name;
 
@@ -101,10 +102,12 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
                 Vector2 pInfoSize = Renderer.GetTextDimensions(text, FontIndex);
 
-                //if (pInfoSize.X > textSize.X)
+                if (pInfoSize.X > textSize.X)
                     textSize = new Vector2(pInfoSize.X, Players.Count * (pInfoSize.Y + 1));
 
                 textXPosition = 3;
+
+                bool textOnRight = true;
 
                 if (ClientRectangle.Right + textXPosition + (int)textSize.X > Parent.ClientRectangle.Width)
                 {
@@ -112,10 +115,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     text = pInfo.TeamId > 0 ? pInfo.Name + " " + teamIds[pInfo.TeamId] : pInfo.Name;
                     textOnRight = false;
                 }
-                else
-                {
-                    textOnRight = true;
-                }
+
+                pText.Add(new PlayerText(text, textOnRight));
             }
         }
 
@@ -169,6 +170,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             int y = displayRectangle.Y + ((int)(baseTexture.Height * TEXTURE_SCALE) - lineHeight) / 2;
 
+            int i = 0;
             foreach (PlayerInfo pInfo in Players)
             {
                 Color textColor = Color.White;
@@ -179,7 +181,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 {
                     int rectangleWidth = 0;
                     int rectangleCoordX = 0;
-                    if (textOnRight)
+                    if (pText[i].TextOnRight)
                     {
                         rectangleCoordX = displayRectangle.Center.X;
                         rectangleWidth = (int)textSize.X + textXPosition + displayRectangle.Width / 2 + 5;
@@ -198,11 +200,12 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                         new Color(nameBorderColor.R, nameBorderColor.G, nameBorderColor.B, (int)(nameBorderColor.A * backgroundAlpha)));
                 }
 
-                Renderer.DrawStringWithShadow(text, FontIndex,
+                Renderer.DrawStringWithShadow(pText[i].Text, FontIndex,
                     new Vector2(displayRectangle.Right + textXPosition,
                     y), textColor);
 
                 y += lineHeight;
+                i++;
             }
 
             Vector2 origin = new Vector2(usedTexture.Width / 2, usedTexture.Height / 2);
@@ -235,6 +238,18 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             }
 
             base.Draw(gameTime);
+        }
+
+        sealed class PlayerText
+        {
+            public PlayerText(string text, bool textOnRight)
+            {
+                Text = text;
+                TextOnRight = textOnRight;
+            }
+
+            public string Text { get; set; }
+            public bool TextOnRight { get; set; }
         }
     }
 }

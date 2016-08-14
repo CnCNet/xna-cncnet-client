@@ -257,9 +257,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private void Channel_UserQuitIRC(object sender, UserNameEventArgs e)
         {
-            if (IsHost)
+            RemovePlayer(e.UserName);
+
+            if (!IsHost)
             {
-                RemovePlayer(e.UserName);
                 return;
             }
 
@@ -273,9 +274,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private void Channel_UserLeft(object sender, UserNameEventArgs e)
         {
-            if (IsHost)
+            RemovePlayer(e.UserName);
+
+            if (!IsHost)
             {
-                RemovePlayer(e.UserName);
                 return;
             }
 
@@ -303,20 +305,28 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             PlayerInfo pInfo = new PlayerInfo(e.User.Name);
             Players.Add(pInfo);
-            CopyPlayerDataToUI();
 
             if (sndJoinSound != null)
                 AudioMaster.PlaySound(sndJoinSound);
 
             if (!IsHost)
+            {
+                CopyPlayerDataToUI();
                 return;
+            }
 
             if (e.User.Name != ProgramConstants.PLAYERNAME)
             {
                 // Changing the map applies forced settings (co-op sides etc.) to the
                 // new player, and it also sends an options broadcast message
+                CopyPlayerDataToUI();
                 ChangeMap(GameMode, Map);
                 BroadcastPlayerOptions();
+            }
+            else
+            {
+                Players[0].Ready = true;
+                CopyPlayerDataToUI();
             }
 
             if (Players.Count >= playerLimit)

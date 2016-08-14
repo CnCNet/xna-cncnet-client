@@ -1319,9 +1319,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             }
 
             OnGameOptionChanged();
-            CopyPlayerDataToUI();
 
             MapPreviewBox.Map = map;
+            CopyPlayerDataToUI();
+
             mapChangeInProgress = false;
         }
 
