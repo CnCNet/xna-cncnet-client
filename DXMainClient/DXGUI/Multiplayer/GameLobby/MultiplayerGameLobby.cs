@@ -147,6 +147,12 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 fsw.Created += fsw_Created;
                 fsw.Changed += fsw_Created;
             }
+
+            CenterOnParent();
+
+            // To move the lblMapAuthor label into its correct position
+            // if it was moved in the theme description INI file
+            LoadDefaultMap();
         }
 
         private void fsw_Created(object sender, FileSystemEventArgs e)
@@ -396,6 +402,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private void MapPreviewBox_StartingLocationApplied(object sender, EventArgs e)
         {
+            ClearReadyStatuses();
             BroadcastPlayerOptions();
         }
 

@@ -1,13 +1,13 @@
-﻿using ClientGUI;
-using System;
-using System.Collections.Generic;
+﻿using ClientCore;
+using ClientGUI;
+using DTAClient.Domain.Multiplayer.CnCNet;
+using Microsoft.Xna.Framework;
+using Rampastring.Tools;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
-using Microsoft.Xna.Framework;
-using ClientCore;
+using System;
+using System.Collections.Generic;
 using System.IO;
-using Rampastring.Tools;
-using DTAClient.Domain.Multiplayer.CnCNet;
 
 namespace DTAClient.DXGUI.Multiplayer.CnCNet
 {

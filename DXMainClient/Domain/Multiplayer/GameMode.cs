@@ -25,6 +25,8 @@ namespace DTAClient.Domain.Multiplayer
 
         public bool MultiplayerOnly { get; private set; }
 
+        private string mapCodeININame;
+
         private string forcedOptionsSection;
 
         public List<Map> Maps = new List<Map>();
@@ -44,6 +46,7 @@ namespace DTAClient.Domain.Multiplayer
             UIName = forcedOptionsIni.GetStringValue(Name, "UIName", Name);
             MultiplayerOnly = forcedOptionsIni.GetBooleanValue(Name, "MultiplayerOnly", false);
             forcedOptionsSection = forcedOptionsIni.GetStringValue(Name, "ForcedOptions", string.Empty);
+            mapCodeININame = forcedOptionsIni.GetStringValue(Name, "MapCodeININame", Name + ".ini");
 
             ParseForcedOptions(forcedOptionsIni);
 
@@ -100,7 +103,7 @@ namespace DTAClient.Domain.Multiplayer
 
         public IniFile GetMapRulesIniFile()
         {
-            return new IniFile(ProgramConstants.GamePath + BASE_INI_PATH + Name + ".ini");
+            return new IniFile(ProgramConstants.GamePath + BASE_INI_PATH + mapCodeININame);
         }
     }
 }

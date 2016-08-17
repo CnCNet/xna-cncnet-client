@@ -140,9 +140,11 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                         ClientRectangle.Width, ClientRectangle.Height);
                 }
 
-                downTime += gameTime.ElapsedGameTime;
-
-                isDown = downTime < downTimeWaitTime;
+                if (WindowManager.HasFocus)
+                {
+                    downTime += gameTime.ElapsedGameTime;
+                    isDown = downTime < downTimeWaitTime;
+                }
             }
             else
             {

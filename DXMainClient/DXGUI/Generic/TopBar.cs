@@ -7,6 +7,7 @@ using Rampastring.XNAUI.Input;
 using Microsoft.Xna.Framework.Input;
 using DTAClient.Online;
 using ClientGUI;
+using ClientCore;
 
 namespace DTAClient.DXGUI.Generic
 {
@@ -25,7 +26,7 @@ namespace DTAClient.DXGUI.Generic
 
         const double DOWN_MOVEMENT_RATE = 2.0;
         const double UP_MOVEMENT_RATE = 2.0;
-        const int APPEAR_CURSOR_THRESHOLD_Y = 15;
+        const int APPEAR_CURSOR_THRESHOLD_Y = 8;
 
         public TopBar(WindowManager windowManager, CnCNetManager connectionManager) : base(windowManager)
         {
@@ -82,26 +83,26 @@ namespace DTAClient.DXGUI.Generic
         public override void Initialize()
         {
             Name = "TopBar";
-            ClientRectangle = new Rectangle(0, -40, WindowManager.RenderResolutionX, 40);
+            ClientRectangle = new Rectangle(0, -39, WindowManager.RenderResolutionX, 39);
             DrawMode = PanelBackgroundImageDrawMode.STRETCHED;
             BackgroundTexture = AssetLoader.CreateTexture(Color.Black, 1, 1);
             DrawBorders = false;
 
             btnMainButton = new XNAClientButton(WindowManager);
             btnMainButton.Name = "btnMainButton";
-            btnMainButton.ClientRectangle = new Rectangle(12, 12, 160, 23);
+            btnMainButton.ClientRectangle = new Rectangle(12, 9, 160, 23);
             btnMainButton.Text = "Main Menu (F2)";
             btnMainButton.LeftClick += BtnMainButton_LeftClick;
 
             btnCnCNetLobby = new XNAClientButton(WindowManager);
             btnCnCNetLobby.Name = "btnCnCNetLobby";
-            btnCnCNetLobby.ClientRectangle = new Rectangle(184, 12, 160, 23);
+            btnCnCNetLobby.ClientRectangle = new Rectangle(184, 9, 160, 23);
             btnCnCNetLobby.Text = "CnCNet Lobby (F3)";
             btnCnCNetLobby.LeftClick += BtnCnCNetLobby_LeftClick;
 
             btnPrivateMessages = new XNAClientButton(WindowManager);
             btnPrivateMessages.Name = "btnPrivateMessages";
-            btnPrivateMessages.ClientRectangle = new Rectangle(356, 12, 160, 23);
+            btnPrivateMessages.ClientRectangle = new Rectangle(356, 9, 160, 23);
             btnPrivateMessages.Text = "Private Messages (F4)";
             btnPrivateMessages.LeftClick += BtnPrivateMessages_LeftClick;
 
@@ -110,7 +111,7 @@ namespace DTAClient.DXGUI.Generic
             lblDate.FontIndex = 1;
             lblDate.Text = DateTime.Now.ToShortDateString();
             lblDate.ClientRectangle = new Rectangle(ClientRectangle.Width -
-                (int)Renderer.GetTextDimensions(lblDate.Text, lblDate.FontIndex).X - 12, 20, 
+                (int)Renderer.GetTextDimensions(lblDate.Text, lblDate.FontIndex).X - 12, 18, 
                 lblDate.ClientRectangle.Width, lblDate.ClientRectangle.Height);
 
             lblTime = new XNALabel(WindowManager);
@@ -118,12 +119,12 @@ namespace DTAClient.DXGUI.Generic
             lblTime.FontIndex = 1;
             lblTime.Text = "99:99:99";
             lblTime.ClientRectangle = new Rectangle(ClientRectangle.Width -
-                (int)Renderer.GetTextDimensions(lblTime.Text, lblTime.FontIndex).X - 12, 6,
+                (int)Renderer.GetTextDimensions(lblTime.Text, lblTime.FontIndex).X - 12, 4,
                 lblTime.ClientRectangle.Width, lblTime.ClientRectangle.Height);
 
             btnLogout = new XNAClientButton(WindowManager);
             btnLogout.Name = "btnLogout";
-            btnLogout.ClientRectangle = new Rectangle(lblDate.ClientRectangle.Left - 87, 12, 75, 23);
+            btnLogout.ClientRectangle = new Rectangle(lblDate.ClientRectangle.Left - 87, 9, 75, 23);
             btnLogout.FontIndex = 1;
             btnLogout.Text = "Log Out";
             btnLogout.AllowClick = false;
@@ -239,7 +240,7 @@ namespace DTAClient.DXGUI.Generic
 
         private void Keyboard_OnKeyPressed(object sender, KeyPressEventArgs e)
         {
-            if (!Enabled || !WindowManager.HasFocus)
+            if (!Enabled || !WindowManager.HasFocus || ProgramConstants.IsInGame)
                 return;
 
             if (e.PressedKey == Keys.F1)
@@ -262,7 +263,7 @@ namespace DTAClient.DXGUI.Generic
 
         public override void OnMouseOnControl(MouseEventArgs eventArgs)
         {
-            if (Cursor.Location.Y > -1)
+            if (Cursor.Location.Y > -1 && !ProgramConstants.IsInGame)
                 BringDown();
 
             base.OnMouseOnControl(eventArgs);
@@ -324,7 +325,7 @@ namespace DTAClient.DXGUI.Generic
         {
             base.Draw(gameTime);
 
-            Renderer.DrawRectangle(new Rectangle(ClientRectangle.X, ClientRectangle.Bottom, ClientRectangle.Width, 1), Color.Gray);
+            Renderer.DrawRectangle(new Rectangle(ClientRectangle.X, ClientRectangle.Bottom - 2, ClientRectangle.Width, 1), Color.Gray);
         }
     }
 

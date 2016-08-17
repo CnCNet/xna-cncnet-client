@@ -41,10 +41,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             InitializeWindow();
 
-            // To move the lblMapAuthor label into its correct position
-            // if it was moved in the theme description INI file
-            LoadDefaultMap();
-
             Players.Add(new PlayerInfo(ProgramConstants.PLAYERNAME, 0, 0, 0, 0));
             PlayerInfo aiPlayer = new PlayerInfo("Easy AI", 0, 0, 0, 0);
             aiPlayer.IsAI = true;
@@ -54,6 +50,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             CopyPlayerDataToUI();
 
             WindowManager.CenterControlOnScreen(this);
+
+            // To move the lblMapAuthor label into its correct position
+            // if it was moved in the theme description INI file
+            LoadDefaultMap();
         }
 
         public void RefreshPlayerName()

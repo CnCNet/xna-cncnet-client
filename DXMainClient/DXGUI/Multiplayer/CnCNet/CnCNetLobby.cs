@@ -517,13 +517,14 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         /// </summary>
         private void LbPlayerList_DoubleLeftClick(object sender, EventArgs e)
         {
-            if (lbPlayerList.SelectedIndex < 0 || 
-                lbPlayerList.SelectedIndex >= lbPlayerList.Items.Count)
+            if (lbPlayerList.SelectedItem == null)
             {
                 return;
             }
 
-            pmWindow.InitPM(currentChatChannel.Users[lbPlayerList.SelectedIndex].Name);
+            var ircUser = (IRCUser)lbPlayerList.SelectedItem.Tag;
+
+            pmWindow.InitPM(ircUser.Name);
         }
 
         /// <summary>
