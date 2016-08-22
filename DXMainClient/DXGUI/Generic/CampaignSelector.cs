@@ -13,8 +13,8 @@ namespace DTAClient.DXGUI.Generic
 {
     public class CampaignSelector : XNAWindow
     {
-        const int DEFAULT_WIDTH = 327;
-        const int DEFAULT_HEIGHT = 463;
+        const int DEFAULT_WIDTH = 650;
+        const int DEFAULT_HEIGHT = 600;
 
         public CampaignSelector(WindowManager windowManager) : base(windowManager)
         {
@@ -38,32 +38,36 @@ namespace DTAClient.DXGUI.Generic
             var lblSelectCampaign = new XNALabel(WindowManager);
             lblSelectCampaign.Name = "lblSelectCampaign";
             lblSelectCampaign.FontIndex = 1;
+            lblSelectCampaign.ClientRectangle = new Rectangle(12, 12, 0, 0);
             lblSelectCampaign.Text = "MISSIONS:";
-            lblSelectCampaign.ClientRectangle = new Rectangle(12, 9, 0, 0);
-
-            var lblMissionDescriptionHeader = new XNALabel(WindowManager);
-            lblMissionDescriptionHeader.Name = "lblMissionDescriptionHeader";
-            lblMissionDescriptionHeader.FontIndex = 1;
-            lblMissionDescriptionHeader.Text = "MISSION DESCRIPTION:";
-            lblMissionDescriptionHeader.ClientRectangle = new Rectangle(12, 219, 0, 0);
 
             lbCampaignList = new XNAListBox(WindowManager);
             lbCampaignList.Name = "lbCampaignList";
-            lbCampaignList.ItemAlphaRate = 1.0f;
-            lbCampaignList.ClientRectangle = new Rectangle(12, 25, 300, 184);
+            lbCampaignList.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 128), 2, 2);
+            lbCampaignList.DrawMode = PanelBackgroundImageDrawMode.STRETCHED;
+            lbCampaignList.ClientRectangle = new Rectangle(12, 
+                lblSelectCampaign.ClientRectangle.Bottom + 6, 300, 516);
             lbCampaignList.SelectedIndexChanged += LbCampaignList_SelectedIndexChanged;
 
             ParseBattleIni("INI\\Battle.ini");
             ParseBattleIni("INI\\" + MCDomainController.Instance.GetBattleFSFileName());
 
+            var lblMissionDescriptionHeader = new XNALabel(WindowManager);
+            lblMissionDescriptionHeader.Name = "lblMissionDescriptionHeader";
+            lblMissionDescriptionHeader.FontIndex = 1;
+            lblMissionDescriptionHeader.ClientRectangle = new Rectangle(
+                lbCampaignList.ClientRectangle.Right + 12, 
+                lblSelectCampaign.ClientRectangle.Y, 0, 0);
+            lblMissionDescriptionHeader.Text = "MISSION DESCRIPTION:";
+
             tbMissionDescription = new XNATextBlock(WindowManager);
             tbMissionDescription.Name = "tbMissionDescription";
-            tbMissionDescription.ClientRectangle = new Rectangle(12, 235, 300, 76);
+            tbMissionDescription.ClientRectangle = new Rectangle(
+                lblMissionDescriptionHeader.ClientRectangle.X, 
+                lblMissionDescriptionHeader.ClientRectangle.Bottom + 6,
+                ClientRectangle.Width - 24 - lbCampaignList.ClientRectangle.Right, 430);
             tbMissionDescription.DrawMode = PanelBackgroundImageDrawMode.STRETCHED;
             tbMissionDescription.Alpha = 1.0f;
-
-            lbCampaignList.BackgroundTexture = AssetLoader.CreateTexture(AssetLoader.GetColorFromString(DomainController.Instance().GetUIAltBackgroundColor()),
-                lbCampaignList.ClientRectangle.Width, lbCampaignList.ClientRectangle.Height);
 
             tbMissionDescription.BackgroundTexture = AssetLoader.CreateTexture(AssetLoader.GetColorFromString(DomainController.Instance().GetUIAltBackgroundColor()),
                 tbMissionDescription.ClientRectangle.Width, tbMissionDescription.ClientRectangle.Height);
@@ -73,45 +77,57 @@ namespace DTAClient.DXGUI.Generic
             lblDifficultyLevel.Text = "DIFFICULTY LEVEL";
             lblDifficultyLevel.FontIndex = 1;
             Vector2 textSize = Renderer.GetTextDimensions(lblDifficultyLevel.Text, lblDifficultyLevel.FontIndex);
-            lblDifficultyLevel.ClientRectangle = new Rectangle(0, 0, (int)textSize.X, (int)textSize.Y);
+            lblDifficultyLevel.ClientRectangle = new Rectangle(
+                tbMissionDescription.ClientRectangle.Left + (tbMissionDescription.ClientRectangle.Width - (int)textSize.X) / 2,
+                tbMissionDescription.ClientRectangle.Bottom + 12, (int)textSize.X, (int)textSize.Y);
 
             trbDifficultySelector = new XNATrackbar(WindowManager);
             trbDifficultySelector.Name = "trbDifficultySelector";
-            trbDifficultySelector.ClientRectangle = new Rectangle(12, 340, 300, 45);
+            trbDifficultySelector.ClientRectangle = new Rectangle(
+                tbMissionDescription.ClientRectangle.X, lblDifficultyLevel.ClientRectangle.Bottom + 6,
+                tbMissionDescription.ClientRectangle.Width, 30);
             trbDifficultySelector.MinValue = 0;
             trbDifficultySelector.MaxValue = 2;
             trbDifficultySelector.BackgroundTexture = AssetLoader.CreateTexture(
                 new Color(0, 0, 0, 128), 2, 2);
+            trbDifficultySelector.ButtonTexture = AssetLoader.LoadTextureUncached(
+                "trackbarButton_difficulty.png");
 
             var lblEasy = new XNALabel(WindowManager);
             lblEasy.Name = "lblEasy";
             lblEasy.FontIndex = 1;
             lblEasy.Text = "EASY";
-            lblEasy.ClientRectangle = new Rectangle(12, 390, 1, 1);
+            lblEasy.ClientRectangle = new Rectangle(trbDifficultySelector.ClientRectangle.X,
+                trbDifficultySelector.ClientRectangle.Bottom + 6, 1, 1);
 
             var lblNormal = new XNALabel(WindowManager);
             lblNormal.Name = "lblNormal";
             lblNormal.FontIndex = 1;
             lblNormal.Text = "NORMAL";
             textSize = Renderer.GetTextDimensions(lblNormal.Text, lblNormal.FontIndex);
-            lblNormal.ClientRectangle = new Rectangle(0, 0, (int)textSize.X, (int)textSize.Y);
+            lblNormal.ClientRectangle = new Rectangle(
+                tbMissionDescription.ClientRectangle.Left + (tbMissionDescription.ClientRectangle.Width - (int)textSize.X) / 2,
+                lblEasy.ClientRectangle.Y, (int)textSize.X, (int)textSize.Y);
 
             var lblHard = new XNALabel(WindowManager);
             lblHard.Name = "lblHard";
             lblHard.FontIndex = 1;
             lblHard.Text = "HARD";
-            lblHard.ClientRectangle = new Rectangle(280, 390, 1, 1);
+            lblHard.ClientRectangle = new Rectangle(
+                tbMissionDescription.ClientRectangle.Right - lblHard.ClientRectangle.Width,
+                lblEasy.ClientRectangle.Y, 1, 1);
 
             btnLaunch = new XNAClientButton(WindowManager);
             btnLaunch.Name = "btnLaunch";
-            btnLaunch.ClientRectangle = new Rectangle(12, 424, 133, 23);
+            btnLaunch.ClientRectangle = new Rectangle(12, ClientRectangle.Height - 35, 133, 23);
             btnLaunch.Text = "Launch";
             btnLaunch.AllowClick = false;
             btnLaunch.LeftClick += BtnLaunch_LeftClick;
 
             var btnCancel = new XNAClientButton(WindowManager);
             btnCancel.Name = "btnCancel";
-            btnCancel.ClientRectangle = new Rectangle(178, 424, 133, 23);
+            btnCancel.ClientRectangle = new Rectangle(ClientRectangle.Width - 145,
+                btnLaunch.ClientRectangle.Y, 133, 23);
             btnCancel.Text = "Cancel";
             btnCancel.LeftClick += BtnCancel_LeftClick;
 
@@ -126,14 +142,6 @@ namespace DTAClient.DXGUI.Generic
             AddChild(lblEasy);
             AddChild(lblNormal);
             AddChild(lblHard);
-
-            lblDifficultyLevel.CenterOnParent();
-            lblDifficultyLevel.ClientRectangle = new Rectangle(lblDifficultyLevel.ClientRectangle.X, 324,
-                lblDifficultyLevel.ClientRectangle.Width, lblDifficultyLevel.ClientRectangle.Height);
-
-            lblNormal.CenterOnParent();
-            lblNormal.ClientRectangle = new Rectangle(lblNormal.ClientRectangle.X, 390,
-                1, 1);
 
             // Set control attributes from INI file
             base.Initialize();
