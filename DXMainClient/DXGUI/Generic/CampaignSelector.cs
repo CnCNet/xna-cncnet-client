@@ -23,8 +23,8 @@ namespace DTAClient.DXGUI.Generic
 
         List<Mission> Missions = new List<Mission>();
         XNAListBox lbCampaignList;
-        XNALabel lblMissionDescriptionValue;
         XNAClientButton btnLaunch;
+        XNATextBlock tbMissionDescription;
         XNATrackbar trbDifficultySelector;
 
         public override void Initialize()
@@ -56,23 +56,17 @@ namespace DTAClient.DXGUI.Generic
             ParseBattleIni("INI\\Battle.ini");
             ParseBattleIni("INI\\" + MCDomainController.Instance.GetBattleFSFileName());
 
-            var panelMissionDescription = new XNAPanel(WindowManager);
-            panelMissionDescription.Name = "panelMissionDescription";
-            panelMissionDescription.ClientRectangle = new Rectangle(12, 235, 300, 76);
-            panelMissionDescription.DrawMode = PanelBackgroundImageDrawMode.STRETCHED;
-            panelMissionDescription.Alpha = 1.0f;
-
-            lblMissionDescriptionValue = new XNALabel(WindowManager);
-            lblMissionDescriptionValue.Name = "lblMissionDescriptionValue";
-            lblMissionDescriptionValue.FontIndex = 0;
-            lblMissionDescriptionValue.Text = " ";
-            lblMissionDescriptionValue.ClientRectangle = new Rectangle(3, 2, 0, 0);
+            tbMissionDescription = new XNATextBlock(WindowManager);
+            tbMissionDescription.Name = "tbMissionDescription";
+            tbMissionDescription.ClientRectangle = new Rectangle(12, 235, 300, 76);
+            tbMissionDescription.DrawMode = PanelBackgroundImageDrawMode.STRETCHED;
+            tbMissionDescription.Alpha = 1.0f;
 
             lbCampaignList.BackgroundTexture = AssetLoader.CreateTexture(AssetLoader.GetColorFromString(DomainController.Instance().GetUIAltBackgroundColor()),
                 lbCampaignList.ClientRectangle.Width, lbCampaignList.ClientRectangle.Height);
 
-            panelMissionDescription.BackgroundTexture = AssetLoader.CreateTexture(AssetLoader.GetColorFromString(DomainController.Instance().GetUIAltBackgroundColor()),
-                panelMissionDescription.ClientRectangle.Width, panelMissionDescription.ClientRectangle.Height);
+            tbMissionDescription.BackgroundTexture = AssetLoader.CreateTexture(AssetLoader.GetColorFromString(DomainController.Instance().GetUIAltBackgroundColor()),
+                tbMissionDescription.ClientRectangle.Width, tbMissionDescription.ClientRectangle.Height);
 
             var lblDifficultyLevel = new XNALabel(WindowManager);
             lblDifficultyLevel.Name = "lblDifficultyLevel";
@@ -124,8 +118,7 @@ namespace DTAClient.DXGUI.Generic
             AddChild(lblSelectCampaign);
             AddChild(lblMissionDescriptionHeader);
             AddChild(lbCampaignList);
-            AddChild(panelMissionDescription);
-            panelMissionDescription.AddChild(lblMissionDescriptionValue);
+            AddChild(tbMissionDescription);
             AddChild(lblDifficultyLevel);
             AddChild(btnLaunch);
             AddChild(btnCancel);
@@ -155,7 +148,7 @@ namespace DTAClient.DXGUI.Generic
         {
             if (lbCampaignList.SelectedIndex == -1)
             {
-                lblMissionDescriptionValue.Text = string.Empty;
+                tbMissionDescription.Text = string.Empty;
                 btnLaunch.AllowClick = false;
                 return;
             }
@@ -164,12 +157,12 @@ namespace DTAClient.DXGUI.Generic
 
             if (string.IsNullOrEmpty(mission.Scenario))
             {
-                lblMissionDescriptionValue.Text = string.Empty;
+                tbMissionDescription.Text = string.Empty;
                 btnLaunch.AllowClick = false;
                 return;
             }
 
-            lblMissionDescriptionValue.Text = mission.GUIDescription;
+            tbMissionDescription.Text = mission.GUIDescription;
 
             if (!mission.Enabled)
             {

@@ -29,7 +29,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         public void SetText(string text)
         {
-            this.text = Renderer.FixText(text, fontIndex, ClientRectangle.Width - (MARGIN * 2)).text;
+            this.text = Renderer.FixText(text, fontIndex, ClientRectangle.Width - (MARGIN * 2)).Text;
             int textHeight = (int)Renderer.GetTextDimensions(this.text, fontIndex).Y;
             ClientRectangle = new Rectangle(ClientRectangle.X, 0,
                 ClientRectangle.Width, textHeight + MARGIN * 2);

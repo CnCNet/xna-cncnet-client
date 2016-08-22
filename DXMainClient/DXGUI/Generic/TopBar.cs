@@ -282,7 +282,8 @@ namespace DTAClient.DXGUI.Generic
 
         public override void Update(GameTime gameTime)
         {
-            if (Cursor.Location.Y < APPEAR_CURSOR_THRESHOLD_Y && Cursor.Location.Y > -1)
+            if (Cursor.Location.Y < APPEAR_CURSOR_THRESHOLD_Y && Cursor.Location.Y > -1
+                && !ProgramConstants.IsInGame)
             {
                 BringDown();
             }
