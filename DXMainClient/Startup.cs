@@ -44,12 +44,6 @@ namespace DTAClient
 
             CUpdater.Initialize(DomainController.Instance().GetDefaultGame());
 
-			try
-			{
-				CheckIfAlreadyRunning();
-			}
-			catch { }
-
             DetectOperatingSystem();
 
             Thread thread = new Thread(CheckSystemSpecifications);
@@ -107,91 +101,6 @@ namespace DTAClient
 
             GameClass gameClass = new GameClass();
             gameClass.Run();
-        }
-
-        /// <summary>
-        /// Checks if the client or the game is already running.
-        /// If so, asks the user to terminate them and exits.
-        /// </summary>
-        private void CheckIfAlreadyRunning()
-        {
-            // Check if the launcher is already running
-            Process[] launcherProcesses = Process.GetProcessesByName(
-                Path.GetFileNameWithoutExtension(CUpdater.CURRENT_LAUNCHER_NAME));
-
-            if (launcherProcesses.GetLength(0) > 1)
-            {
-                int processCount = 0;
-                for (int processId = 0; processId < launcherProcesses.GetLength(0); processId++)
-                {
-                    try
-                    {
-                        if (launcherProcesses[processId].MainModule.FileName != Application.ExecutablePath)
-                        {
-                            continue;
-                        }
-                    }
-                    catch
-                    {
-                        Logger.Log("Failed to get main module from " + launcherProcesses[processId].ProcessName + "!");
-                        continue;
-                    }
-
-                    processCount++;
-
-                    if (processCount < 2)
-                    {
-                        continue;
-                    }
-
-                    Logger.Log("The client is already running.");
-
-                    try
-                    {
-                        if (launcherProcesses[0].Responding == false)
-                            launcherProcesses[0].Kill();
-                        else
-                        {
-
-                            //MsgBoxForm msForm = new MsgBoxForm("An instance of the client is already running.", "Client already running",
-                            //    MessageBoxButtons.OK);
-                            //msForm.ShowDialog();
-                            Environment.Exit(0);
-                        }
-                    }
-                    catch
-                    {
-                        Logger.Log("The client is already running, but the instance is frozen and cannot be terminated.");
-                        //MsgBoxForm msForm = new MsgBoxForm(string.Format(
-                        //    "A frozen previous instance of the client is already running, but it cannot be terminated." + Environment.NewLine +
-                        //    "Please terminate the previous instance ({0}) and run the client again",
-                        //    CUpdater.CURRENT_LAUNCHER_NAME), "Launcher error", MessageBoxButtons.OK);
-                        //msForm.ShowDialog();
-                        Environment.Exit(0);
-                    }
-                }
-            }
-
-            // Check if DTA is already running
-            string mainProcess = DomainController.Instance().GetGameExecutableName(0);
-            Process[] dtaProcesses = Process.GetProcessesByName(mainProcess);
-
-            for (int processId = 0; processId < dtaProcesses.GetLength(0); processId++)
-            {
-                string filePath = Application.StartupPath.ToLower() + "\\" + mainProcess;
-                if (dtaProcesses[processId].MainModule.FileName.ToLower() == filePath.ToLower())
-                {
-                    // ^ An instance of DTA is running
-                    //MsgBoxForm msForm = new MsgBoxForm(string.Format("{0} ({1}) is already running. " + Environment.NewLine +
-                    //    "To use the Client, please quit {0}" + Environment.NewLine +
-                    //    "or terminate the process {1} if the game is not responding.",
-                    //    MainClientConstants.GAME_NAME_LONG, mainProcess),
-                    //    string.Format("{0} already running", MainClientConstants.GAME_NAME_SHORT), MessageBoxButtons.OK);
-                    //msForm.ShowDialog();
-
-                    Environment.Exit(0);
-                }
-            }
         }
 
         /// <summary>

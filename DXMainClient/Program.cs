@@ -2,6 +2,10 @@
 using System.Windows.Forms;
 using System.IO;
 using System.Reflection;
+using System.Runtime.InteropServices;
+using System.Security.AccessControl;
+using System.Security.Principal;
+using System.Threading;
 
 namespace DTAClient
 {
@@ -19,7 +23,46 @@ namespace DTAClient
         [STAThread]
         static void Main(string[] args)
         {
-            RealMain.ProxyMain(args);
+            // We're a single instance application!
+            // http://stackoverflow.com/questions/229565/what-is-a-good-pattern-for-using-a-global-mutex-in-c/229567
+
+            string appGuid = ((GuidAttribute)Assembly.GetExecutingAssembly().GetCustomAttributes(
+                typeof(GuidAttribute), false).GetValue(0)).Value.ToString();
+
+            // Global prefix means that the mutex is global to the machine
+            string mutexId = string.Format("Global\\{{{0}}}", appGuid);
+
+            bool createdNew;
+
+            var allowEveryoneRule = new MutexAccessRule(new SecurityIdentifier(WellKnownSidType.WorldSid, null),
+                MutexRights.FullControl, AccessControlType.Allow);
+            var securitySettings = new MutexSecurity();
+            securitySettings.AddAccessRule(allowEveryoneRule);
+
+            using (var mutex = new Mutex(false, mutexId, out createdNew, securitySettings))
+            {
+                var hasHandle = false;
+                try
+                {
+                    try
+                    {
+                        hasHandle = mutex.WaitOne(8000, false);
+                        if (hasHandle == false)
+                            throw new TimeoutException("Timeout waiting for exclusive access");
+                    }
+                    catch (AbandonedMutexException)
+                    {
+                        hasHandle = true;
+                    }
+
+                    RealMain.ProxyMain(args);
+                }
+                finally
+                {
+                    if (hasHandle)
+                        mutex.ReleaseMutex();
+                }
+            }
         }
 
         static Assembly CurrentDomain_AssemblyResolve(object sender, ResolveEventArgs args)

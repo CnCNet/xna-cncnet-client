@@ -218,6 +218,11 @@ namespace DTAClient.DXGUI.Generic
                 swriter.WriteLine("Scenario=spawnmap.ini");
             else
                 swriter.WriteLine("Scenario=" + mission.Scenario);
+
+            // No one wants to play missions on Fastest, so we'll change it to Faster
+            if (UserINISettings.Instance.GameSpeed == 0)
+                UserINISettings.Instance.GameSpeed.Value = 1; 
+
             swriter.WriteLine("GameSpeed=" + UserINISettings.Instance.GameSpeed);
             swriter.WriteLine("Firestorm=" + mission.RequiredAddon);
             swriter.WriteLine("CustomLoadScreen=" + LoadingScreenController.GetLoadScreenName(mission.Side));
