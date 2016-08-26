@@ -19,7 +19,7 @@ namespace ClientGUI
             {
                 BackgroundTexture = AssetLoader.LoadTexture(value);
 
-                if (ClientRectangle.Size == Point.Zero)
+                if (new Point(ClientRectangle.Width, ClientRectangle.Height) == Point.Zero)
                 {
                     ClientRectangle = new Rectangle(ClientRectangle.X, ClientRectangle.Y,
                         BackgroundTexture.Width, BackgroundTexture.Height);
