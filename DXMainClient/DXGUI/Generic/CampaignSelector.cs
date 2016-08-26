@@ -229,6 +229,7 @@ namespace DTAClient.DXGUI.Generic
             swriter.WriteLine("IsSinglePlayer=Yes");
             swriter.WriteLine("SidebarHack=" + MCDomainController.Instance.GetSidebarHackStatus());
             swriter.WriteLine("Side=" + mission.Side);
+            swriter.WriteLine("BuildOffAlly=" + mission.BuildOffAlly);
 
             IniFile difficultyIni;
 
