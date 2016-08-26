@@ -204,13 +204,21 @@ namespace DTAClient.Domain.Multiplayer
 
                 string forcedOptionsSection = iniFile.GetStringValue(BaseFilePath, "ForcedOptions", string.Empty);
 
-                if (!String.IsNullOrEmpty(forcedOptionsSection))
-                    ParseForcedOptions(iniFile, forcedOptionsSection);
+                if (!string.IsNullOrEmpty(forcedOptionsSection))
+                {
+                    string[] sections = forcedOptionsSection.Split(',');
+                    foreach (string section in sections)
+                        ParseForcedOptions(iniFile, section);
+                }
 
                 string forcedSpawnIniOptionsSection = iniFile.GetStringValue(BaseFilePath, "ForcedSpawnIniOptions", string.Empty);
 
-                if (!String.IsNullOrEmpty(forcedSpawnIniOptionsSection))
-                    ParseSpawnIniOptions(iniFile, forcedSpawnIniOptionsSection);
+                if (!string.IsNullOrEmpty(forcedSpawnIniOptionsSection))
+                {
+                    string[] sections = forcedSpawnIniOptionsSection.Split(',');
+                    foreach (string section in sections)
+                        ParseSpawnIniOptions(iniFile, section);
+                }
 
                 return true;
             }
@@ -285,7 +293,7 @@ namespace DTAClient.Domain.Multiplayer
                     StartingLocations.Add(new Point(4, i + 1));
                 }
 
-                string forcedOptionsSection = iniFile.GetStringValue(BaseFilePath, "ForcedOptions", String.Empty);
+                string forcedOptionsSection = iniFile.GetStringValue("Basic", "ForcedOptions", String.Empty);
 
                 if (!string.IsNullOrEmpty(forcedOptionsSection))
                 {
@@ -294,7 +302,7 @@ namespace DTAClient.Domain.Multiplayer
                         ParseForcedOptions(iniFile, section);
                 }
 
-                string forcedSpawnIniOptionsSection = iniFile.GetStringValue(BaseFilePath, "ForcedSpawnIniOptions", String.Empty);
+                string forcedSpawnIniOptionsSection = iniFile.GetStringValue("Basic", "ForcedSpawnIniOptions", String.Empty);
 
                 if (!string.IsNullOrEmpty(forcedSpawnIniOptionsSection))
                 {
@@ -315,6 +323,12 @@ namespace DTAClient.Domain.Multiplayer
         private void ParseForcedOptions(IniFile iniFile, string forcedOptionsSection)
         {
             List<string> keys = iniFile.GetSectionKeys(forcedOptionsSection);
+
+            if (keys == null)
+            {
+                Logger.Log("Invalid ForcedOptions section \"" + forcedOptionsSection + "\" in map " + BaseFilePath);
+                return;
+            }
 
             foreach (string key in keys)
             {

@@ -429,7 +429,7 @@ namespace DTAClient.DXGUI.Generic
         private void UpdateWindow_UpdateCompleted(object sender, EventArgs e)
         {
             innerPanel.Hide();
-            lblUpdateStatus.Text = MainClientConstants.GAME_NAME_SHORT + " has been succesfully updated to v. " + CUpdater.GameVersion;
+            lblUpdateStatus.Text = MainClientConstants.GAME_NAME_SHORT + " was succesfully updated to v." + CUpdater.GameVersion;
             lblVersion.Text = CUpdater.GameVersion;
             updateInProgress = false;
             lblUpdateStatus.Enabled = true;
