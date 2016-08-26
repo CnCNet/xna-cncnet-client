@@ -9,7 +9,11 @@ namespace DTAClient.Domain
         public static string GAME_SETTINGS = "SUN.ini";
         public const String NEW_VERSION = "version";
 
-        public static String gamepath = Path.GetDirectoryName(Application.ExecutablePath).TrimEnd('\\') + @"\";
+#if DEBUG
+        public static String gamepath = Application.StartupPath + "\\";
+#else
+        public static String gamepath = Directory.GetParent(Application.StartupPath).FullName + "\\";
+#endif
 
         public static String GAME_NAME_LONG = "Tiberian Sun";
         public static String GAME_NAME_SHORT = "TS";

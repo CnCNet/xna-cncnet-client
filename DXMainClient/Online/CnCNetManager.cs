@@ -19,16 +19,16 @@ namespace DTAClient.Online
         public delegate void UserListDelegate(string channelName, string[] userNames);
 
         public event EventHandler<ServerMessageEventArgs> WelcomeMessageReceived;
-        public event EventHandler<ServerMessageEventArgs> GenericServerMessageReceived;
+        //public event EventHandler<ServerMessageEventArgs> GenericServerMessageReceived;
         public event EventHandler<UserAwayEventArgs> AwayMessageReceived;
-        public event EventHandler<ChannelTopicEventArgs> ChannelTopicReceived;
-        public event EventHandler<UserListEventArgs> UserListReceived;
+        //public event EventHandler<ChannelTopicEventArgs> ChannelTopicReceived;
+        //public event EventHandler<UserListEventArgs> UserListReceived;
         public event EventHandler<WhoEventArgs> WhoReplyReceived;
         public event EventHandler<ChannelEventArgs> ChannelFull;
-        public event EventHandler<ChannelEventArgs> IncorrectChannelPassword;
-        public event EventHandler<ChannelModeEventArgs> ChannelModesChanged;
-        public event EventHandler<CTCPEventArgs> CTCPMessageReceived;
-        public event EventHandler<KickEventArgs> UserKickedFromChannel;
+        //public event EventHandler<ChannelEventArgs> IncorrectChannelPassword;
+        //public event EventHandler<ChannelModeEventArgs> ChannelModesChanged;
+        //public event EventHandler<CTCPEventArgs> CTCPMessageReceived;
+        //public event EventHandler<KickEventArgs> UserKickedFromChannel;
         public event EventHandler<ChannelUserEventArgs> UserJoinedChannel;
         public event EventHandler<PrivateMessageEventArgs> PrivateMessageReceived;
 

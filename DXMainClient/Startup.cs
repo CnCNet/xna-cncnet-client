@@ -104,8 +104,7 @@ namespace DTAClient
         }
 
         /// <summary>
-        /// Detects the operating system that the client is running on and
-        /// writes the value to MainClientConstants.OsId.
+        /// Reports the operating system that the client is running on.
         /// </summary>
         private void DetectOperatingSystem()
         {

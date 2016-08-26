@@ -8,11 +8,15 @@ using System.Windows.Forms;
 namespace ClientCore
 {
     /// <summary>
-    /// Contains various kinds of static variables and constants that the client uses for operation.
+    /// Contains various static variables and constants that the client uses for operation.
     /// </summary>
     public static class ProgramConstants
     {
-        public static string GamePath = Path.GetDirectoryName(Application.ExecutablePath).TrimEnd('\\') + @"\";
+#if DEBUG
+        public static string GamePath = Application.StartupPath + "\\";
+#else
+        public static string GamePath = Directory.GetParent(Application.StartupPath).FullName + "\\";
+#endif
 
         public const string QRES_EXECUTABLE             = "qres.dat";
 
@@ -35,7 +39,7 @@ namespace ClientCore
         public const string SPAWNMAP_INI = "spawnmap.ini";
         public const string SPAWNER_SETTINGS = "spawn.ini";
         public static string BASE_RESOURCE_PATH = "Resources\\";
-        public static string RESOURCES_DIR = ProgramConstants.BASE_RESOURCE_PATH;
+        public static string RESOURCES_DIR = BASE_RESOURCE_PATH;
 
         public const string SAVED_GAME_SPAWN_INI = "Saved Games\\spawnSG.ini";
 

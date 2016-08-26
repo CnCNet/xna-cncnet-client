@@ -14,7 +14,11 @@ namespace DTAClient
         static Program()
         {
             AppDomain.CurrentDomain.AssemblyResolve += CurrentDomain_AssemblyResolve;
+#if !DEBUG
+            Environment.CurrentDirectory = Directory.GetParent(Application.StartupPath).FullName;
+#else
             Environment.CurrentDirectory = Application.StartupPath;
+#endif
         }
 
         /// <summary>
@@ -69,8 +73,20 @@ namespace DTAClient
         {
             char directorySeparatorChar = Path.DirectorySeparatorChar;
 
+#if XNA && DEBUG
+            string path = Application.StartupPath + directorySeparatorChar + "Resources" +
+                directorySeparatorChar + "XNABinaries" + directorySeparatorChar;
+#elif XNA
+            string path = Application.StartupPath + 
+                directorySeparatorChar + "XNABinaries" + directorySeparatorChar;
+#elif DEBUG
             string path = Application.StartupPath + directorySeparatorChar + "Resources" + 
                 directorySeparatorChar + "Binaries" + directorySeparatorChar;
+#else
+            string path = Application.StartupPath + 
+                directorySeparatorChar + "Binaries" + directorySeparatorChar;
+#endif
+
 
             if (args.Name.StartsWith("ClientGUI"))
             {
