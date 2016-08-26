@@ -1,7 +1,4 @@
-﻿/// @author Rampastring
-/// http://www.moddb.com/members/rampastring
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Windows.Forms;
@@ -136,11 +133,6 @@ namespace ClientGUI
                     }
                 }
             }
-        }
-
-        public static void InitForm(MovableForm form, IniFile iniFile)
-        {
-            SetControlStyle(iniFile, form);
         }
 
         /// <summary>
@@ -353,33 +345,6 @@ namespace ClientGUI
         }
 
         /// <summary>
-        /// Makes an image repeat in a picturebox.
-        /// </summary>
-        /// <param name="pb">The picturebox.</param>
-        /// <param name="image">The image.</param>
-        private static void SetImageRepeating(PictureBox pb, Image image)
-        {
-            Bitmap bm = new Bitmap(pb.Width, pb.Height);
-            Graphics gp = Graphics.FromImage(bm);
-            gp.DrawImage(image, new Point(0, 0));
-            //if (pb.Image.Width < pb.Width)
-            //{
-            //    for (int x = image.Width; x <= bm.Width - image.Width; x += image.Width)
-            //    {
-            //        gp.DrawImage(image, new Point(x, 0));
-            //    }
-            //}
-            //if (pb.Image.Height < pb.Height)
-            //{
-            //    for (int y = image.Height; y <= bm.Height - image.Height; y += image.Height)
-            //    {
-            //        gp.DrawImage(image, new Point(0, y));
-            //    }
-            //}
-            pb.Image = bm;
-        }
-
-        /// <summary>
         /// Gets a color from a RGB color string (example: 255,255,255)
         /// </summary>
         /// <param name="colorString">The color string.</param>
@@ -478,110 +443,6 @@ namespace ClientGUI
             proc.Dispose();
             if (GameProcessExited != null)
                 GameProcessExited();
-        }
-
-        /// <summary>
-        /// Loads icons used for displaying sides in the game lobby.
-        /// </summary>
-        /// <returns>An array of side images.</returns>
-        public static Image[] LoadSideImages()
-        {
-            string[] sides = DomainController.Instance().GetSides().Split(',');
-            Image[] returnValue = new Image[sides.Length + 2];
-
-            returnValue[0] = Image.FromFile(ProgramConstants.GamePath + ProgramConstants.BASE_RESOURCE_PATH + "randomicon.png");
-
-            for (int i = 1; i <= sides.Length; i++)
-            {
-                returnValue[i] = Image.FromFile(ProgramConstants.GamePath + ProgramConstants.BASE_RESOURCE_PATH + "" + sides[i - 1] + "icon.png");
-            }
-
-            returnValue[sides.Length + 1] = Image.FromFile(ProgramConstants.GamePath + ProgramConstants.BASE_RESOURCE_PATH + "spectatoricon.png");
-
-            return returnValue;
-        }
-
-        /// <summary>
-        /// Loads starting location indicator icons for the game lobby.
-        /// </summary>
-        /// <returns>An array of starting location indicator images.</returns>
-        public static Image[] LoadStartingLocationIndicators()
-        {
-            Image[] startingLocationIndicators = new Image[8];
-            startingLocationIndicators[0] = SharedUILogic.LoadImage("slocindicator1.png");
-            startingLocationIndicators[1] = SharedUILogic.LoadImage("slocindicator2.png");
-            startingLocationIndicators[2] = SharedUILogic.LoadImage("slocindicator3.png");
-            startingLocationIndicators[3] = SharedUILogic.LoadImage("slocindicator4.png");
-            startingLocationIndicators[4] = SharedUILogic.LoadImage("slocindicator5.png");
-            startingLocationIndicators[5] = SharedUILogic.LoadImage("slocindicator6.png");
-            startingLocationIndicators[6] = SharedUILogic.LoadImage("slocindicator7.png");
-            startingLocationIndicators[7] = SharedUILogic.LoadImage("slocindicator8.png");
-
-            return startingLocationIndicators;
-        }
-
-        /// <summary>
-        /// Sets the background image layout of a form based on the client's settings.
-        /// </summary>
-        /// <param name="form">The form.</param>
-        public static void SetBackgroundImageLayout(Form form)
-        {
-            string backgroundImageLayout = DomainController.Instance().GetGameLobbyBackgroundImageLayout();
-            switch (backgroundImageLayout)
-            {
-                case "Center":
-                    form.BackgroundImageLayout = ImageLayout.Center;
-                    break;
-                case "Stretch":
-                    form.BackgroundImageLayout = ImageLayout.Stretch;
-                    break;
-                case "Zoom":
-                    form.BackgroundImageLayout = ImageLayout.Zoom;
-                    break;
-                default:
-                case "Tile":
-                    form.BackgroundImageLayout = ImageLayout.Tile;
-                    break;
-            }
-        }
-
-        /// <summary>
-        /// Sets the colors of a specific control and (recursively) all of its child controls.
-        /// </summary>
-        /// <param name="cLabelColor">The color of labels in the UI.</param>
-        /// <param name="cBackColor">The background color of list boxes and combo boxes in the UI.</param>
-        /// <param name="cAltUiColor">The foreground color of list boxes, buttons and combo boxes in the UI.</param>
-        /// <param name="cListBoxFocusColor">The background color of highlighted list box and combo box items.</param>
-        /// <param name="control">The control. Usually you'll want to have a form in this parameter.</param>
-        public static void SetControlColor(Color cLabelColor, Color cBackColor, Color cAltUiColor,
-            Color cListBoxFocusColor, Control control)
-        {
-            SetControlColors(cLabelColor, cBackColor, cAltUiColor, cListBoxFocusColor, control);
-
-            foreach (Control child in control.Controls)
-                SetControlColor(cLabelColor, cBackColor, cAltUiColor, cListBoxFocusColor, child);
-        }
-
-        /// <summary>
-        /// Sets the colors of a single control.
-        /// </summary>
-        /// <param name="cLabelColor">The color of labels in the UI.</param>
-        /// <param name="cBackColor">The background color of list boxes and combo boxes in the UI.</param>
-        /// <param name="cAltUiColor">The foreground color of list boxes, buttons and combo boxes in the UI.</param>
-        /// <param name="cListBoxFocusColor">The background color of highlighted list box and combo box items.</param>
-        /// <param name="control">The control.</param>
-        private static void SetControlColors(Color cLabelColor, Color cBackColor, Color cAltUiColor,
-            Color cListBoxFocusColor, Control control)
-        {
-            if (control is Button || control is TextBox)
-            {
-                control.ForeColor = cAltUiColor;
-                control.BackColor = cBackColor;
-            }
-            else if (control is Label)
-            {
-                control.ForeColor = cLabelColor;
-            }
         }
 
         public static Image LoadImage(string resourceName)

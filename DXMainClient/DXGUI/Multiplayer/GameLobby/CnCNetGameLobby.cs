@@ -745,21 +745,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             GameMode = GameModes.Find(gm => gm.Name == gameMode);
             if (GameMode == null)
             {
-                ChangeMap(null, null);
-                Map = null;
-                if (DomainController.Instance().EnableMapSharing)
-                {
-                    AddNotice("The game host has selected a map that doesn't exist on your installation. " +
-                        "Attempting to download it from the CnCNet map database.");
-                    MapSharer.DownloadMap(mapSHA1, localGame);
-                }
-                else
-                {
-                    AddNotice("The game host has selected a map that doesn't exist on your installation. " +
-                        "Because you've disabled map sharing, it cannot be transferred. The game host needs " +
-                        "to change the map or you will be unable to participate in the match.");
-                    channel.SendCTCPMessage(MAP_SHARING_DISABLED_MESSAGE, QueuedMessageType.SYSTEM_MESSAGE, 9);
-                }
+                RequestMap(mapSHA1);
                 return;
             }
 
@@ -767,20 +753,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             if (Map == null)
             {
-                ChangeMap(null, null);
-                if (DomainController.Instance().EnableMapSharing)
-                {
-                    AddNotice("The game host has selected a map that doesn't exist on your installation. " +
-                        "Attempting to download it from the CnCNet map database.");
-                    MapSharer.DownloadMap(mapSHA1, localGame);
-                }
-                else
-                {
-                    AddNotice("The game host has selected a map that doesn't exist on your installation. " +
-                        "Because you've disabled map sharing, it cannot be transferred. The game host needs " +
-                        "to change the map or you will be unable to participate in the match.");
-                    channel.SendCTCPMessage(MAP_SHARING_DISABLED_MESSAGE, QueuedMessageType.SYSTEM_MESSAGE, 9);
-                }
+                RequestMap(mapSHA1);
                 return;
             }
 
@@ -861,6 +834,24 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 return;
 
             RandomSeed = randomSeed;
+        }
+
+        private void RequestMap(string mapSHA1)
+        {
+            ChangeMap(null, null);
+            if (UserINISettings.Instance.EnableMapSharing)
+            {
+                AddNotice("The game host has selected a map that doesn't exist on your installation. " +
+                    "Attempting to download it from the CnCNet map database.");
+                MapSharer.DownloadMap(mapSHA1, localGame);
+            }
+            else
+            {
+                AddNotice("The game host has selected a map that doesn't exist on your installation. " +
+                    "Because you've disabled map sharing, it cannot be transferred. The game host needs " +
+                    "to change the map or you will be unable to participate in the match.");
+                channel.SendCTCPMessage(MAP_SHARING_DISABLED_MESSAGE, QueuedMessageType.SYSTEM_MESSAGE, 9);
+            }
         }
 
         /// <summary>

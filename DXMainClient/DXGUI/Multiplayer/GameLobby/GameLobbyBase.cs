@@ -1141,11 +1141,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         /// <param name="map">The new map.</param>
         protected virtual void ChangeMap(GameMode gameMode, Map map)
         {
-            if (GameMode == null || !object.ReferenceEquals(gameMode, GameMode))
-            {
-                // TODO: Load the new game mode's default settings
-            }
-
             var oldGameMode = GameMode;
             GameMode = gameMode;
 

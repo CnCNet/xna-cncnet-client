@@ -175,19 +175,9 @@ namespace ClientCore
             return DTACnCNetClient_ini.GetIntValue("General", "DefaultPersonalChatColorIndex", 0);
         }
 
-        public string GetBriefingForeColor()
-        {
-            return DTACnCNetClient_ini.GetStringValue("GameLobby", "CoopBriefingForeColor", "0,255,0");
-        }
-
         public string GetListBoxFocusColor()
         {
             return DTACnCNetClient_ini.GetStringValue("General", "ListBoxFocusColor", "64,64,168");
-        }
-
-        public string GetGameLobbyBackgroundImageLayout()
-        {
-            return DTACnCNetClient_ini.GetStringValue("GameLobby", "BackgroundImageLayout", "Tile");
         }
 
         public string MainMenuMusicName
@@ -210,18 +200,7 @@ namespace ClientCore
             return DTACnCNetClient_ini.GetStringValue("General", "CommonFont", "Microsoft Sans Serif,Regular");
         }
 
-        public string GetListBoxFont()
-        {
-            return DTACnCNetClient_ini.GetStringValue("General", "ListBoxFont", "Microsoft Sans Serif,Regular,8.25");
-        }
-
         // functions used for detecting client settings
-
-        public bool EnableMapSharing
-        {
-            get { return settings_ini.GetBooleanValue("MultiPlayer", "EnableMapSharing", true); }
-            set { settings_ini.SetBooleanValue("MultiPlayer", "EnableMapSharing", value); }
-        }
 
         public string GetSkirmishMapSHA1()
         {
@@ -334,11 +313,6 @@ namespace ClientCore
             get { return clientDefinitionsIni.GetBooleanValue("Settings", "CopyMissionsToSpawnmapINI", true); }
         }
 
-        public void WriteSettingsIni()
-        {
-            settings_ini.WriteIniFile();
-        }
-
         public string GetGameExecutableName(int id)
         {
             string[] exeNames = clientDefinitionsIni.GetStringValue("Settings", "GameExecutableNames", "Game.exe").Split(','); ;
@@ -373,24 +347,6 @@ namespace ClientCore
             }
 
             return OSVersion.UNKNOWN;
-        }
-
-        /// <summary>
-        /// Saves settings used for skirmish games.
-        /// </summary>
-        public void SaveSkirmishSettings(string mapmd5, string gameMode, string difficulties,
-            string sides, string colors, string startLocs, string teams, string settings)
-        {
-            settings_ini.SetStringValue("Skirmish", "Map", mapmd5);
-            settings_ini.SetStringValue("Skirmish", "GameMode", gameMode);
-            settings_ini.SetStringValue("Skirmish", "Difficulties", difficulties);
-            settings_ini.SetStringValue("Skirmish", "Sides", sides);
-            settings_ini.SetStringValue("Skirmish", "Colors", colors);
-            settings_ini.SetStringValue("Skirmish", "StartLocs", startLocs);
-            settings_ini.SetStringValue("Skirmish", "Teams", teams);
-            settings_ini.SetStringValue("Skirmish", "Settings", settings);
-            settings_ini.SetBooleanValue("Options", "ForceLowestDetailLevel", false);
-            settings_ini.WriteIniFile();
         }
     }
 }

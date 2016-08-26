@@ -64,7 +64,6 @@ namespace ClientCore
             IsScoreShuffle = new BoolSetting(iniFile, AUDIO, "IsScoreShuffle", true);
             ClientVolume = new DoubleSetting(iniFile, AUDIO, "ClientVolume", 1.0);
             PlayMainMenuMusic = new BoolSetting(iniFile, AUDIO, "PlayMainMenuMusic", true);
-            //ClientButtonSounds = new BoolSetting(iniFile, AUDIO, "EnableButtonHoverSound", true);
             MessageSound = new BoolSetting(iniFile, AUDIO, "ChatMessageSound", true);
 
             ScrollRate = new IntSetting(iniFile, OPTIONS, "ScrollRate", 3);
@@ -84,6 +83,7 @@ namespace ClientCore
             PersistentMode = new BoolSetting(iniFile, MULTIPLAYER, "PersistentMode", false);
             AutomaticCnCNetLogin = new BoolSetting(iniFile, MULTIPLAYER, "AutomaticCnCNetLogin", false);
             NotifyOnUserListChange = new BoolSetting(iniFile, MULTIPLAYER, "NotifyOnUserListChange", true);
+            EnableMapSharing = new BoolSetting(iniFile, MULTIPLAYER, "EnableMapSharing", true);
 
             CheckForUpdates = new BoolSetting(iniFile, OPTIONS, "CheckforUpdates", true);
 
@@ -138,6 +138,8 @@ namespace ClientCore
         public BoolSetting AutomaticCnCNetLogin { get; private set; }
 
         public BoolSetting NotifyOnUserListChange { get; private set; }
+
+        public BoolSetting EnableMapSharing { get; private set; }
 
         public BoolSetting CheckForUpdates { get; private set; }
 
