@@ -879,7 +879,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             Logger.Log("Loading map INI from " +
                 ProgramConstants.GamePath + Map.BaseFilePath + ".map");
 
-            IniFile mapIni = new IniFile(ProgramConstants.GamePath + Map.BaseFilePath + ".map");
+            IniFile mapIni = Map.GetMapIni();
 
             IniFile globalCodeIni = new IniFile(ProgramConstants.GamePath + "INI\\Map Code\\GlobalCode.ini");
 

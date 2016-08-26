@@ -89,6 +89,12 @@ namespace DTAClient.Domain.Multiplayer
         public bool MultiplayerOnly { get; private set; }
 
         /// <summary>
+        /// The name of an extra INI file in INI\Map Code\ that should be
+        /// embedded into this map's INI code when a game is started.
+        /// </summary>
+        public string ExtraININame { get; private set; }
+
+        /// <summary>
         /// The game modes that the map is listed for.
         /// </summary>
         public string[] GameModes;
@@ -157,6 +163,7 @@ namespace DTAClient.Domain.Multiplayer
                 NeutralHouseColor = iniFile.GetIntValue(BaseFilePath, "NeutralColor", -1);
                 SpecialHouseColor = iniFile.GetIntValue(BaseFilePath, "SpecialColor", -1);
                 MultiplayerOnly = iniFile.GetBooleanValue(BaseFilePath, "MultiplayerOnly", false);
+                ExtraININame = iniFile.GetStringValue(BaseFilePath, "ExtraININame", string.Empty);
                 string bases = iniFile.GetStringValue(BaseFilePath, "Bases", string.Empty);
                 if (!string.IsNullOrEmpty(bases))
                 {
@@ -363,6 +370,19 @@ namespace DTAClient.Domain.Multiplayer
                 return AssetLoader.LoadTextureUncached(PreviewPath);
             else
                 return AssetLoader.CreateTexture(Color.Black, 10, 10);
+        }
+
+        public IniFile GetMapIni()
+        {
+            var mapIni = new IniFile(ProgramConstants.GamePath + BaseFilePath + ".map");
+
+            if (!string.IsNullOrEmpty(ExtraININame))
+            {
+                var extraIni = new IniFile(ProgramConstants.GamePath + "INI\\Map Code\\" + ExtraININame);
+                IniFile.ConsolidateIniFiles(mapIni, extraIni);
+            }
+
+            return mapIni;
         }
 
         public void ApplySpawnIniCode(IniFile spawnIni, int totalPlayerCount, 
