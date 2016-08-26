@@ -287,13 +287,21 @@ namespace DTAClient.Domain.Multiplayer
 
                 string forcedOptionsSection = iniFile.GetStringValue(BaseFilePath, "ForcedOptions", String.Empty);
 
-                if (!String.IsNullOrEmpty(forcedOptionsSection))
-                    ParseForcedOptions(iniFile, forcedOptionsSection);
+                if (!string.IsNullOrEmpty(forcedOptionsSection))
+                {
+                    string[] sections = forcedOptionsSection.Split(',');
+                    foreach (string section in sections)
+                        ParseForcedOptions(iniFile, section);
+                }
 
                 string forcedSpawnIniOptionsSection = iniFile.GetStringValue(BaseFilePath, "ForcedSpawnIniOptions", String.Empty);
 
-                if (!String.IsNullOrEmpty(forcedSpawnIniOptionsSection))
-                    ParseSpawnIniOptions(iniFile, forcedSpawnIniOptionsSection);
+                if (!string.IsNullOrEmpty(forcedSpawnIniOptionsSection))
+                {
+                    string[] sections = forcedSpawnIniOptionsSection.Split(',');
+                    foreach (string section in sections)
+                        ParseSpawnIniOptions(iniFile, section);
+                }
 
                 return true;
             }
