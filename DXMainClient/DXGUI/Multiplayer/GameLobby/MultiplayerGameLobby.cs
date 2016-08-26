@@ -592,6 +592,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             base.OnGameOptionChanged();
 
             ClearReadyStatuses();
+            CopyPlayerDataToUI();
         }
 
         protected abstract void HostLaunchGame();
