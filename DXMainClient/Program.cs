@@ -58,6 +58,10 @@ namespace DTAClient
                     {
                         hasHandle = true;
                     }
+                    catch (TimeoutException)
+                    {
+                        return;
+                    }
 
                     RealMain.ProxyMain(args);
                 }

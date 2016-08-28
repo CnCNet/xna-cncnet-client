@@ -463,6 +463,8 @@ namespace DTAClient.Online
                         for (int pid = 0; pid < parameters.Count - 1; pid++)
                             recipients[pid] = parameters[pid];
                         string privmsg = parameters[parameters.Count - 1];
+                        if (parameters[1].StartsWith('\u0001'.ToString() + "ACTION"))
+                            privmsg = privmsg.Substring(1).Remove(privmsg.Length - 2);
                         foreach (string recipient in recipients)
                         {
                             if (recipient.StartsWith("#"))

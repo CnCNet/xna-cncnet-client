@@ -242,7 +242,7 @@ namespace DTAClient.Online
             if (message.Contains("ACTION"))
             {
                 message = message.Remove(0, 7);
-                message = "====> " + sender + message;
+                message = "====> " + sender + " " + message;
                 sender = String.Empty;
 
                 // Replace Funky's game identifiers with real game names
@@ -276,6 +276,9 @@ namespace DTAClient.Online
                 else
                     foreColor = cDefaultChatColor;
             }
+
+            if (message.Length > 1 && message[message.Length - 1] == '\u001f')
+                message = message.Remove(message.Length - 1);
 
             channel.AddMessage(new ChatMessage(sender, foreColor, DateTime.Now, message.Replace('\r', ' ')));
         }

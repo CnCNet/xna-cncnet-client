@@ -6,16 +6,21 @@ using System.Linq;
 using System.Text;
 using Rampastring.XNAUI;
 using Microsoft.Xna.Framework;
+using DTAClient.Domain.Multiplayer.CnCNet;
 
 namespace DTAClient.DXGUI.Multiplayer.CnCNet
 {
     public class PasswordRequestWindow : XNAWindow
     {
-        private XNATextBox tbPassword;
-
         public PasswordRequestWindow(WindowManager windowManager) : base(windowManager)
         {
         }
+
+        public event EventHandler<PasswordEventArgs> PasswordEntered;
+
+        private XNATextBox tbPassword;
+
+        private HostedCnCNetGame hostedGame;
 
         public override void Initialize()
         {
@@ -36,11 +41,13 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             btnOK.Name = "btnOK";
             btnOK.ClientRectangle = new Rectangle(lblDescription.ClientRectangle.X,
                 ClientRectangle.Bottom - 35, 92, 23);
+            btnOK.LeftClick += BtnOK_LeftClick;
 
             var btnCancel = new XNAClientButton(WindowManager);
             btnCancel.Name = "btnCancel";
             btnCancel.ClientRectangle = new Rectangle(ClientRectangle.Width - 104,
                 btnOK.ClientRectangle.Y, 92, 23);
+            btnCancel.LeftClick += BtnCancel_LeftClick;
 
             AddChild(lblDescription);
             AddChild(tbPassword);
@@ -49,5 +56,43 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             base.Initialize();
         }
+
+        private void BtnCancel_LeftClick(object sender, EventArgs e)
+        {
+            Disable();
+        }
+
+        private void BtnOK_LeftClick(object sender, EventArgs e)
+        {
+            if (string.IsNullOrEmpty(tbPassword.Text))
+                return;
+
+            PasswordEntered?.Invoke(this, new PasswordEventArgs(tbPassword.Text, hostedGame));
+            tbPassword.Text = string.Empty;
+        }
+
+        public void SetHostedGame(HostedCnCNetGame hostedGame)
+        {
+            this.hostedGame = hostedGame;
+        }
+    }
+
+    public class PasswordEventArgs : EventArgs
+    {
+        public PasswordEventArgs(string password, HostedCnCNetGame hostedGame)
+        {
+            Password = password;
+            HostedGame = hostedGame;
+        }
+
+        /// <summary>
+        /// The password input by the user.
+        /// </summary>
+        public string Password { get; private set; }
+
+        /// <summary>
+        /// The game that the user is attempting to join.
+        /// </summary>
+        public HostedCnCNetGame HostedGame { get; private set; }
     }
 }

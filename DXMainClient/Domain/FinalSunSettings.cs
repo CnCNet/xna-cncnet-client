@@ -1,6 +1,7 @@
 ﻿using System.IO;
 using System.Windows.Forms;
 using Rampastring.Tools;
+using ClientCore;
 
 namespace DTAClient.Domain
 {
@@ -36,7 +37,7 @@ namespace DTAClient.Domain
                 sw.WriteLine("FileSearchLikeTS=yes");
                 sw.WriteLine("");
                 sw.WriteLine("[TS]");
-                sw.WriteLine("Exe=" + Application.ExecutablePath);
+                sw.WriteLine("Exe=" + ProgramConstants.GamePath);
                 sw.WriteLine("");
                 sw.WriteLine("[UserInterface]");
                 sw.WriteLine("EasyView=0");

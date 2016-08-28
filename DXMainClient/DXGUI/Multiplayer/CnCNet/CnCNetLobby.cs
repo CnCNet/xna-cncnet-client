@@ -93,11 +93,12 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         TunnelHandler tunnelHandler;
 
         CnCNetLoginWindow loginWindow;
-        DarkeningPanel loginWindowPanel;
 
         TopBar topBar;
 
         PrivateMessagingWindow pmWindow;
+
+        PasswordRequestWindow passwordRequestWindow;
 
         int framesSinceGameRefresh;
 
@@ -387,20 +388,27 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             gameCreationPanel.Hide();
 
             connectionManager.MainChannel.AddMessage(new ChatMessage(null, Color.White, DateTime.Now,
-                "Welcome to Rampastring's DTA / CnCNet Client, version " + 
-                System.Windows.Forms.Application.ProductVersion));
+                "*** DTA CnCNet Client version " + System.Windows.Forms.Application.ProductVersion + " ***"));
 
             loginWindow = new CnCNetLoginWindow(WindowManager);
             loginWindow.Connect += LoginWindow_Connect;
             loginWindow.Cancelled += LoginWindow_Cancelled;
 
-            loginWindowPanel = new DarkeningPanel(WindowManager);
+            var loginWindowPanel = new DarkeningPanel(WindowManager);
             loginWindowPanel.Alpha = 0.0f;
 
             AddChild(loginWindowPanel);
             loginWindowPanel.AddChild(loginWindow);
-            loginWindowPanel.Visible = false;
-            loginWindowPanel.Enabled = false;
+            loginWindow.Disable();
+
+            passwordRequestWindow = new PasswordRequestWindow(WindowManager);
+            passwordRequestWindow.PasswordEntered += PasswordRequestWindow_PasswordEntered;
+
+            var passwordRequestWindowPanel = new DarkeningPanel(WindowManager);
+            passwordRequestWindowPanel.Alpha = 0.0f;
+            AddChild(passwordRequestWindowPanel);
+            passwordRequestWindowPanel.AddChild(passwordRequestWindow);
+            passwordRequestWindow.Disable();
 
             gameLobby.GameLeft += GameLobby_GameLeft;
             gameLoadingLobby.GameLeft += GameLoadingLobby_GameLeft;
@@ -533,7 +541,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         private void LoginWindow_Connect(object sender, EventArgs e)
         {
             connectionManager.Connect();
-            loginWindowPanel.Hide();
+            loginWindow.Disable();
 
             SetLogOutButtonText();
         }
@@ -545,7 +553,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         private void LoginWindow_Cancelled(object sender, EventArgs e)
         {
             topBar.SwitchToPrimary();
-            loginWindowPanel.Alpha = 0.0f;
+            loginWindow.Disable();
         }
 
         private void GameLoadingLobby_GameLeft(object sender, EventArgs e)
@@ -633,9 +641,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             if (hg.Passworded)
             {
-                // TODO ask for password
-                mainChannel.AddMessage(new ChatMessage(null, Color.White, DateTime.Now,
-                    "Passworded games are not supported yet."));
+                passwordRequestWindow.SetHostedGame(hg);
+                passwordRequestWindow.Enable();
                 return;
             }
             else
@@ -653,8 +660,18 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 }
             }
 
-            mainChannel.AddMessage(new ChatMessage(null, Color.White, DateTime.Now,
-            "Attempting to join game " + hg.RoomName + "..."));
+            JoinGame(hg, password);
+        }
+
+        private void PasswordRequestWindow_PasswordEntered(object sender, PasswordEventArgs e)
+        {
+            JoinGame(e.HostedGame, e.Password);
+        }
+
+        private void JoinGame(HostedCnCNetGame hg, string password)
+        {
+            connectionManager.MainChannel.AddMessage(new ChatMessage(null, Color.White, DateTime.Now,
+                "Attempting to join game " + hg.RoomName + "..."));
 
             Channel gameChannel = connectionManager.CreateChannel(hg.RoomName, hg.ChannelName, false, password);
             connectionManager.AddChannel(gameChannel);
@@ -1144,8 +1161,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             if (!connectionManager.IsConnected)
             {
-                loginWindowPanel.Show();
                 loginWindow.LoadSettings();
+                loginWindow.Enable();
             }
 
             SetLogOutButtonText();

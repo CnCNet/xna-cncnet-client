@@ -579,7 +579,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         public virtual void Clear()
         {
-            fsw.EnableRaisingEvents = false;
+            if (fsw != null)
+                fsw.EnableRaisingEvents = false;
 
             if (!IsHost)
                 AIPlayers.Clear();
