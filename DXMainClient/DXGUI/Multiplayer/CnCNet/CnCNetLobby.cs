@@ -855,6 +855,11 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             tbChatInput.Enabled = false;
             lbPlayerList.Clear();
             lbGameList.Clear();
+
+            hostedGames.Clear();
+            followedGames.Clear();
+            
+
             gameCreationPanel.Hide();
         }
 

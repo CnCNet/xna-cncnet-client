@@ -1364,6 +1364,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (broadcastChannel == null)
                 return;
 
+            if (GameMode == null || Map == null)
+                return;
+
             timerTicks++;
 
             if (timerTicks < 3)
