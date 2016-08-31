@@ -1161,8 +1161,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             if (!connectionManager.IsConnected)
             {
-                loginWindow.LoadSettings();
                 loginWindow.Enable();
+                loginWindow.LoadSettings();
             }
 
             SetLogOutButtonText();

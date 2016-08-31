@@ -182,7 +182,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             MapPreviewBox.FontIndex = 1;
             MapPreviewBox.DrawMode = PanelBackgroundImageDrawMode.STRETCHED;
             MapPreviewBox.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 128), 1, 1);
-            MapPreviewBox.StartingLocationApplied += MapPreviewBox_StartingLocationApplied;
 
             lblMapName = new XNALabel(WindowManager);
             lblMapName.Name = "lblMapName";
@@ -334,11 +333,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         protected void InitializeWindow()
         {
             base.Initialize();
-        }
-
-        private void MapPreviewBox_StartingLocationApplied(object sender, EventArgs e)
-        {
-            CopyPlayerDataToUI();
         }
 
         protected virtual void OnGameOptionChanged()

@@ -23,7 +23,7 @@ namespace DTAClient.Domain
 
                     iniFile.SetStringValue("FinalSun", "Language", "English");
                     iniFile.SetStringValue("FinalSun", "FileSearchLikeTS", "yes");
-                    iniFile.SetStringValue("TS", "Exe", Application.ExecutablePath);
+                    iniFile.SetStringValue("TS", "Exe", ProgramConstants.GamePath);
                     iniFile.WriteIniFile();
 
                     return;

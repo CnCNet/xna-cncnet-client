@@ -38,6 +38,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             ddPlayerSides[0].AddItem("Spectator", AssetLoader.LoadTexture("spectatoricon.png"));
 
             MapPreviewBox.LocalStartingLocationSelected += MapPreviewBox_LocalStartingLocationSelected;
+            MapPreviewBox.StartingLocationApplied += MapPreviewBox_StartingLocationApplied;
 
             InitializeWindow();
 
@@ -54,6 +55,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             // To move the lblMapAuthor label into its correct position
             // if it was moved in the theme description INI file
             LoadDefaultMap();
+        }
+
+        private void MapPreviewBox_StartingLocationApplied(object sender, EventArgs e)
+        {
+            CopyPlayerDataToUI();
         }
 
         public void RefreshPlayerName()

@@ -25,12 +25,14 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         public override void Initialize()
         {
             Name = "PasswordRequestWindow";
-            ClientRectangle = new Rectangle(0, 0, 150, 90);
+            BackgroundTexture = AssetLoader.LoadTexture("passwordquerybg.png");
 
             var lblDescription = new XNALabel(WindowManager);
             lblDescription.Name = "lblDescription";
             lblDescription.ClientRectangle = new Rectangle(12, 12, 0, 0);
-            lblDescription.Text = "Please enter the password below and click OK.";
+            lblDescription.Text = "Please enter the password for the game and click OK.";
+
+            ClientRectangle = new Rectangle(0, 0, lblDescription.ClientRectangle.Width + 24, 110);
 
             tbPassword = new XNATextBox(WindowManager);
             tbPassword.Name = "tbPassword";
@@ -41,12 +43,14 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             btnOK.Name = "btnOK";
             btnOK.ClientRectangle = new Rectangle(lblDescription.ClientRectangle.X,
                 ClientRectangle.Bottom - 35, 92, 23);
+            btnOK.Text = "OK";
             btnOK.LeftClick += BtnOK_LeftClick;
 
             var btnCancel = new XNAClientButton(WindowManager);
             btnCancel.Name = "btnCancel";
             btnCancel.ClientRectangle = new Rectangle(ClientRectangle.Width - 104,
                 btnOK.ClientRectangle.Y, 92, 23);
+            btnCancel.Text = "Cancel";
             btnCancel.LeftClick += BtnCancel_LeftClick;
 
             AddChild(lblDescription);
@@ -55,6 +59,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             AddChild(btnCancel);
 
             base.Initialize();
+
+            CenterOnParent();
         }
 
         private void BtnCancel_LeftClick(object sender, EventArgs e)
@@ -66,6 +72,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         {
             if (string.IsNullOrEmpty(tbPassword.Text))
                 return;
+
+            Disable();
 
             PasswordEntered?.Invoke(this, new PasswordEventArgs(tbPassword.Text, hostedGame));
             tbPassword.Text = string.Empty;

@@ -403,6 +403,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         private void MapPreviewBox_StartingLocationApplied(object sender, EventArgs e)
         {
             ClearReadyStatuses();
+            CopyPlayerDataToUI();
             BroadcastPlayerOptions();
         }
 
