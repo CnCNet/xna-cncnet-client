@@ -276,6 +276,12 @@ namespace DTAClient.Domain.Multiplayer
                 NeutralHouseColor = iniFile.GetIntValue("Basic", "NeutralColor", -1);
                 SpecialHouseColor = iniFile.GetIntValue("Basic", "SpecialColor", -1);
 
+                string bases = iniFile.GetStringValue("Basic", "Bases", string.Empty);
+                if (!string.IsNullOrEmpty(bases))
+                {
+                    Bases = Convert.ToInt32(Conversions.BooleanFromString(bases, false));
+                }
+
                 if (IsCoop)
                 {
                     CoopInfo = new CoopMapInfo();
