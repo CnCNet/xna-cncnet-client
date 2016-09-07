@@ -17,7 +17,7 @@ namespace ClientCore
 
         public static int GetSaveGameCount()
         {
-            string saveGameDirectory = ProgramConstants.GamePath + "\\" + SAVED_GAMES_DIRECTORY + "\\";
+            string saveGameDirectory = GetSaveGameDirectoryPath() + "\\";
 
             if (!AreSavedGamesAvailable())
                 return 0;
@@ -39,7 +39,7 @@ namespace ClientCore
 
             List<string> timestamps = new List<string>();
 
-            string saveGameDirectory = ProgramConstants.GamePath + "\\" + SAVED_GAMES_DIRECTORY + "\\";
+            string saveGameDirectory = GetSaveGameDirectoryPath() + "\\";
 
             for (int i = 0; i < saveGameCount; i++)
             {
@@ -55,10 +55,15 @@ namespace ClientCore
 
         public static bool AreSavedGamesAvailable()
         {
-            if (Directory.Exists(ProgramConstants.GamePath + "\\" + SAVED_GAMES_DIRECTORY))
+            if (Directory.Exists(GetSaveGameDirectoryPath()))
                 return true;
 
             return false;
+        }
+
+        private static string GetSaveGameDirectoryPath()
+        {
+            return ProgramConstants.GamePath + SAVED_GAMES_DIRECTORY;
         }
 
         /// <summary>
@@ -96,7 +101,7 @@ namespace ClientCore
                 return;
             }
 
-            string saveGameDirectory = ProgramConstants.GamePath + "\\" + SAVED_GAMES_DIRECTORY + "\\";
+            string saveGameDirectory = GetSaveGameDirectoryPath() + "\\";
 
             if (!File.Exists(saveGameDirectory + "SAVEGAME.NET"))
             {
@@ -163,7 +168,7 @@ namespace ClientCore
             {
                 for (int i = 0; i < 1000; i++)
                 {
-                    File.Delete(ProgramConstants.GamePath + "\\" + SAVED_GAMES_DIRECTORY + 
+                    File.Delete(GetSaveGameDirectoryPath() + 
                         "\\" + string.Format("SVGM_{0}.NET", i.ToString("D3")));
                 }
             }

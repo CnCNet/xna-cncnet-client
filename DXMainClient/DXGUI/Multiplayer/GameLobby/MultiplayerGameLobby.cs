@@ -147,6 +147,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 fsw.Created += fsw_Created;
                 fsw.Changed += fsw_Created;
             }
+            else
+                Logger.Log("MultiplayerGameLobby: Saved games are not available!");
 
             CenterOnParent();
 

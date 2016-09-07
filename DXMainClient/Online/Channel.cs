@@ -136,7 +136,17 @@ namespace DTAClient.Online
 
             if (index > -1)
             {
-                users.RemoveAt(index);
+                IRCUser user = users[index];
+
+                if (user.Name == ProgramConstants.PLAYERNAME)
+                {
+                    users.Clear();
+                }
+                else
+                {
+                    users.RemoveAt(index);
+                }
+
                 UserKicked?.Invoke(this, new UserNameEventArgs(index, userName));
                 AddMessage(new ChatMessage(null, Color.White, DateTime.Now, 
                     userName + " has been kicked from " + UIName + "."));
@@ -225,6 +235,16 @@ namespace DTAClient.Online
 
             connection.QueueMessage(qmType, priority, 
                 "NOTICE " + ChannelName + " " + CTCPChar1 + CTCPChar2 + message + CTCPChar2);
+        }
+
+        /// <summary>
+        /// Sends a "kick user" message to the channel.
+        /// </summary>
+        /// <param name="userName">The name of the user that should be kicked.</param>
+        /// <param name="priority">The priority of the message in the send queue.</param>
+        public void SendKickMessage(string userName, int priority)
+        {
+            connection.QueueMessage(QueuedMessageType.SYSTEM_MESSAGE, priority, "KICK " + ChannelName + " " + userName);
         }
 
         public void Join()

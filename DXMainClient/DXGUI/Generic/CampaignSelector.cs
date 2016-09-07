@@ -49,9 +49,6 @@ namespace DTAClient.DXGUI.Generic
                 lblSelectCampaign.ClientRectangle.Bottom + 6, 300, 516);
             lbCampaignList.SelectedIndexChanged += LbCampaignList_SelectedIndexChanged;
 
-            ParseBattleIni("INI\\Battle.ini");
-            ParseBattleIni("INI\\" + MCDomainController.Instance.GetBattleFSFileName());
-
             var lblMissionDescriptionHeader = new XNALabel(WindowManager);
             lblMissionDescriptionHeader.Name = "lblMissionDescriptionHeader";
             lblMissionDescriptionHeader.FontIndex = 1;
@@ -150,6 +147,9 @@ namespace DTAClient.DXGUI.Generic
             CenterOnParent();
 
             trbDifficultySelector.Value = UserINISettings.Instance.Difficulty;
+
+            ParseBattleIni("INI\\Battle.ini");
+            ParseBattleIni("INI\\" + MCDomainController.Instance.GetBattleFSFileName());
         }
 
         private void LbCampaignList_SelectedIndexChanged(object sender, EventArgs e)

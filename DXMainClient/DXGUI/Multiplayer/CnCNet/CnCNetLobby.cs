@@ -859,7 +859,6 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             hostedGames.Clear();
             followedGames.Clear();
             
-
             gameCreationPanel.Hide();
         }
 
@@ -909,6 +908,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 currentChatChannel.UserAdded -= RefreshPlayerList;
                 currentChatChannel.UserLeft -= RefreshPlayerList;
                 currentChatChannel.UserQuitIRC -= RefreshPlayerList;
+                currentChatChannel.UserKicked -= RefreshPlayerList;
                 currentChatChannel.UserListReceived -= RefreshPlayerList;
                 currentChatChannel.MessageAdded -= CurrentChatChannel_MessageAdded;
                 currentChatChannel.UserGameIndexUpdated -= CurrentChatChannel_UserGameIndexUpdated;
@@ -924,6 +924,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             currentChatChannel.UserAdded += RefreshPlayerList;
             currentChatChannel.UserLeft += RefreshPlayerList;
             currentChatChannel.UserQuitIRC += RefreshPlayerList;
+            currentChatChannel.UserKicked += RefreshPlayerList;
             currentChatChannel.UserListReceived += RefreshPlayerList;
             currentChatChannel.MessageAdded += CurrentChatChannel_MessageAdded;
             currentChatChannel.UserGameIndexUpdated += CurrentChatChannel_UserGameIndexUpdated;

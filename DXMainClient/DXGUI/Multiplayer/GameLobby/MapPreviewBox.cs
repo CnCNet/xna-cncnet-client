@@ -342,7 +342,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             textureRectangle = new Rectangle(displayRectangle.X + texturePositionX, displayRectangle.Y + texturePositionY,
                 textureWidth, textureHeight);
 
-            for (int i = 0; i < Map.MaxPlayers; i++)
+            for (int i = 0; i < Map.StartingLocations.Count; i++)
             {
                 PlayerLocationIndicator indicator = startingLocationIndicators[i];
 
@@ -355,10 +355,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 indicator.Visible = true;
             }
 
-            for (int i = Map.MaxPlayers; i < MAX_STARTING_LOCATIONS; i++)
+            for (int i = Map.StartingLocations.Count; i < MAX_STARTING_LOCATIONS; i++)
             {
-                startingLocationIndicators[i].Enabled = false;
-                startingLocationIndicators[i].Visible = false;
+                startingLocationIndicators[i].Disable();
             }
         }
 

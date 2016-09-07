@@ -298,6 +298,17 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 Clear();
                 this.Visible = false;
                 this.Enabled = false;
+                return;
+            }
+
+            int index = Players.FindIndex(p => p.Name == e.UserName);
+
+            if (index > -1)
+            {
+                AddNotice(Players[index].Name + " was kicked from the game.");
+                Players.RemoveAt(index);
+                CopyPlayerDataToUI();
+                ClearReadyStatuses();
             }
         }
 
@@ -1128,6 +1139,17 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (announce)
                 AddNotice("The game room has been unlocked.");
             btnLockGame.Text = "Lock Game";
+        }
+
+        protected override void KickPlayer(int playerIndex)
+        {
+            if (playerIndex >= Players.Count)
+                return;
+
+            PlayerInfo pInfo = Players[playerIndex];
+
+            AddNotice("Kicking " + pInfo.Name + " from the game...");
+            channel.SendKickMessage(pInfo.Name, 8);
         }
 
         #region CnCNet map sharing
