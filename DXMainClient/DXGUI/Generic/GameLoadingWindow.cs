@@ -128,6 +128,7 @@ namespace DTAClient.DXGUI.Generic
             }
 
             savedGames = savedGames.OrderBy(sg => sg.LastModified.Ticks).ToList();
+            savedGames.Reverse();
 
             foreach (SavedGame sg in savedGames)
             {

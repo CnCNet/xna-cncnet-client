@@ -571,7 +571,7 @@ namespace DTAClient.DXGUI.Generic
             innerPanel.GameLoadingWindow.ListSaves();
             innerPanel.Hide();
 
-            if (topBar.LastSwitchType == SwitchType.PRIMARY &&
+            if (topBar.Enabled && topBar.LastSwitchType == SwitchType.PRIMARY &&
                 topBar.GetTopMostPrimarySwitchable() == this)
                 PlayMusic();
         }
