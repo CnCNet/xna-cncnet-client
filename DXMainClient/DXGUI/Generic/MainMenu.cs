@@ -336,7 +336,8 @@ namespace DTAClient.DXGUI.Generic
             Visible = true;
             Enabled = true;
 
-            PlayMusic();
+            if (UserINISettings.Instance.StopMusicOnMenu)
+                PlayMusic();
         }
 
         private void LanLobby_Exited(object sender, EventArgs e)
@@ -346,7 +347,8 @@ namespace DTAClient.DXGUI.Generic
             if (UserINISettings.Instance.AutomaticCnCNetLogin)
                 connectionManager.Connect();
 
-            PlayMusic();
+            if (UserINISettings.Instance.StopMusicOnMenu)
+                PlayMusic();
         }
 
         private void CnCNetInfoController_CnCNetGameCountUpdated(object sender, PlayerCountEventArgs e)
@@ -515,7 +517,9 @@ namespace DTAClient.DXGUI.Generic
         private void BtnLan_LeftClick(object sender, EventArgs e)
         {
             lanLobby.Open();
-            MusicOff();
+
+            if (UserINISettings.Instance.StopMusicOnMenu)
+                MusicOff();
 
             topBar.Disable();
             if (connectionManager.IsConnected)
@@ -530,7 +534,9 @@ namespace DTAClient.DXGUI.Generic
         private void BtnSkirmish_LeftClick(object sender, EventArgs e)
         {
             skirmishLobby.Open();
-            MusicOff();
+
+            if (UserINISettings.Instance.StopMusicOnMenu)
+                MusicOff();
 
             innerPanel.Show(null);
         }
@@ -571,8 +577,13 @@ namespace DTAClient.DXGUI.Generic
             innerPanel.GameLoadingWindow.ListSaves();
             innerPanel.Hide();
 
-            if (topBar.Enabled && topBar.LastSwitchType == SwitchType.PRIMARY &&
-                topBar.GetTopMostPrimarySwitchable() == this)
+            // If music is disabled on menus, check if the main menu is the top-most
+            // window of the top bar and only play music if it is
+            // LAN has the top bar disabled, so to detect the LAN game lobby
+            // we'll check whether the top bar is enabled
+            if (!UserINISettings.Instance.StopMusicOnMenu || 
+                (topBar.Enabled && topBar.LastSwitchType == SwitchType.PRIMARY &&
+                topBar.GetTopMostPrimarySwitchable() == this))
                 PlayMusic();
         }
 
@@ -648,12 +659,14 @@ namespace DTAClient.DXGUI.Generic
 
         public void SwitchOn()
         {
-            PlayMusic();
+            if (UserINISettings.Instance.StopMusicOnMenu)
+                PlayMusic();
         }
 
         public void SwitchOff()
         {
-            MusicOff();
+            if (UserINISettings.Instance.StopMusicOnMenu)
+                MusicOff();
         }
 
         private void MusicOff()

@@ -191,7 +191,7 @@ namespace DTAClient.Domain.Multiplayer
                 string[] localSize = iniFile.GetStringValue(BaseFilePath, "LocalSize", "0,0,0,0").Split(',');
                 string[] size = iniFile.GetStringValue(BaseFilePath, "Size", "0,0,0,0").Split(',');
 
-                string[] previewSize = iniFile.GetStringValue(BaseFilePath, "PreviewSize", "0,0").Split(',');
+                string[] previewSize = iniFile.GetStringValue(BaseFilePath, "PreviewSize", "10,10").Split(',');
                 Point previewSizePoint = new Point(int.Parse(previewSize[0]), int.Parse(previewSize[1]));
 
                 for (int i = 0; i < MAX_PLAYERS; i++)

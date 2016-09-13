@@ -271,11 +271,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             RemovePlayer(e.UserName);
 
-            if (!IsHost)
-            {
-                return;
-            }
-
             if (e.UserName == hostName)
             {
                 connectionManager.MainChannel.AddMessage(new ChatMessage(

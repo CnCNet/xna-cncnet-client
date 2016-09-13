@@ -32,6 +32,7 @@ namespace DTAConfig
         XNATrackbar trbClientVolume;
 
         XNAClientCheckBox chkMainMenuMusic;
+        XNAClientCheckBox chkStopMusicOnMenu;
 
         List<FileSettingCheckBox> fileSettingCheckBoxes = new List<FileSettingCheckBox>();
 
@@ -154,15 +155,22 @@ namespace DTAConfig
             chkMainMenuMusic.ClientRectangle = new Rectangle(
                 lblScoreVolume.ClientRectangle.X,
                 trbClientVolume.ClientRectangle.Bottom + 12, 0, 0);
-            chkMainMenuMusic.Text = "Main Menu Music";
+            chkMainMenuMusic.Text = "Main menu music";
+            chkMainMenuMusic.CheckedChanged += ChkMainMenuMusic_CheckedChanged;
+
+            chkStopMusicOnMenu = new XNAClientCheckBox(WindowManager);
+            chkStopMusicOnMenu.Name = "chkStopMusicOnMenu";
+            chkStopMusicOnMenu.ClientRectangle = new Rectangle(
+                lblScoreVolume.ClientRectangle.X, chkMainMenuMusic.ClientRectangle.Bottom + 24, 0, 0);
+            chkStopMusicOnMenu.Text = "Don't play main menu music in lobbies";
 
 #if DTA
             var chkRABuildingCrumbleSound = new FileSettingCheckBox(WindowManager,
                 "Resources\\Ecache03.mix", "MIX\\Ecache03.mix", false);
             chkRABuildingCrumbleSound.Name = "chkRABuildingCrumbleSound";
             chkRABuildingCrumbleSound.ClientRectangle = new Rectangle(
-                chkMainMenuMusic.ClientRectangle.X,
-                chkMainMenuMusic.ClientRectangle.Bottom + 24, 0, 0);
+                chkStopMusicOnMenu.ClientRectangle.X,
+                chkStopMusicOnMenu.ClientRectangle.Bottom + 24, 0, 0);
             chkRABuildingCrumbleSound.Text = "Use Red Alert building crumble sound";
 
             var chkReplaceRACannonSounds = new FileSettingCheckBox(WindowManager,
@@ -196,12 +204,19 @@ namespace DTAConfig
             AddChild(trbClientVolume);
 
             AddChild(chkMainMenuMusic);
+            AddChild(chkStopMusicOnMenu);
 
             lblScoreVolumeValue.Text = trbScoreVolume.Value.ToString();
             lblSoundVolumeValue.Text = trbSoundVolume.Value.ToString();
             lblVoiceVolumeValue.Text = trbVoiceVolume.Value.ToString();
             lblClientVolumeValue.Text = trbClientVolume.Value.ToString();
             AudioMaster.SetVolume(trbClientVolume.Value / 10.0f);
+        }
+
+        private void ChkMainMenuMusic_CheckedChanged(object sender, EventArgs e)
+        {
+            chkStopMusicOnMenu.AllowChecking = chkMainMenuMusic.Checked;
+            chkStopMusicOnMenu.Checked = chkMainMenuMusic.Checked;
         }
 
         private void TrbScoreVolume_ValueChanged(object sender, EventArgs e)
@@ -236,6 +251,7 @@ namespace DTAConfig
             trbClientVolume.Value = (int)(IniSettings.ClientVolume * 10);
 
             chkMainMenuMusic.Checked = IniSettings.PlayMainMenuMusic;
+            chkStopMusicOnMenu.Checked = IniSettings.StopMusicOnMenu;
 
             fileSettingCheckBoxes.ForEach(chkBox => chkBox.Load());
         }
@@ -251,6 +267,7 @@ namespace DTAConfig
             IniSettings.ClientVolume.Value = trbClientVolume.Value / 10.0;
 
             IniSettings.PlayMainMenuMusic.Value = chkMainMenuMusic.Checked;
+            IniSettings.StopMusicOnMenu.Value = chkStopMusicOnMenu.Checked;
 
             fileSettingCheckBoxes.ForEach(chkBox => chkBox.Save());
 

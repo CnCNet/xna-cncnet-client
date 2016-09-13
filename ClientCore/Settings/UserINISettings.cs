@@ -64,6 +64,7 @@ namespace ClientCore
             IsScoreShuffle = new BoolSetting(iniFile, AUDIO, "IsScoreShuffle", true);
             ClientVolume = new DoubleSetting(iniFile, AUDIO, "ClientVolume", 1.0);
             PlayMainMenuMusic = new BoolSetting(iniFile, AUDIO, "PlayMainMenuMusic", true);
+            StopMusicOnMenu = new BoolSetting(iniFile, AUDIO, "StopMusicOnMenu", true);
             MessageSound = new BoolSetting(iniFile, AUDIO, "ChatMessageSound", true);
 
             ScrollRate = new IntSetting(iniFile, OPTIONS, "ScrollRate", 3);
@@ -117,6 +118,7 @@ namespace ClientCore
         public BoolSetting IsScoreShuffle { get; private set; }
         public DoubleSetting ClientVolume { get; private set; }
         public BoolSetting PlayMainMenuMusic { get; private set; }
+        public BoolSetting StopMusicOnMenu { get; private set; }
         public BoolSetting MessageSound { get; private set; }
 
         public IntSetting ScrollRate { get; private set; }
