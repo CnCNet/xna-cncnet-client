@@ -40,7 +40,7 @@ namespace DTAClient.DXGUI.Generic
         MainMenuDarkeningPanel innerPanel;
 
         XNALabel lblCnCNetPlayerCount;
-        XNALabel lblUpdateStatus;
+        XNALinkLabel lblUpdateStatus;
         XNALabel lblVersion;
 
         SkirmishLobby skirmishLobby;
@@ -174,7 +174,7 @@ namespace DTAClient.DXGUI.Generic
             lblVersion.Name = "lblVersion";
             lblVersion.Text = CUpdater.GameVersion;
 
-            lblUpdateStatus = new XNALabel(WindowManager);
+            lblUpdateStatus = new XNALinkLabel(WindowManager);
             lblUpdateStatus.Name = "lblUpdateStatus";
             lblUpdateStatus.LeftClick += LblUpdateStatus_LeftClick;
             lblUpdateStatus.ClientRectangle = new Rectangle(0, 0, 160, 20);
@@ -249,8 +249,9 @@ namespace DTAClient.DXGUI.Generic
             catch (Exception ex)
             {
                 Logger.Log("Refreshing settings failed! Exception message: " + ex.Message);
-                XNAMessageBox.Show(WindowManager, "Saving settings failed",
-                    "Saving settings failed! Error message: " + ex.Message);
+                // We don't want to show the dialog when starting a game
+                //XNAMessageBox.Show(WindowManager, "Saving settings failed",
+                //    "Saving settings failed! Error message: " + ex.Message);
             }
         }
 
@@ -388,10 +389,12 @@ namespace DTAClient.DXGUI.Generic
                     lblUpdateStatus.Text = "Checking for updates...";
                     lblUpdateStatus.Enabled = false;
                     CUpdater.CheckForUpdates();
+                    var uss = new UpdateStatisticsSender();
+                    uss.Send();
                 }
                 else
                 {
-                    lblUpdateStatus.Text = "Click here to check for updates.";
+                    lblUpdateStatus.Text = "Click to check for updates.";
                 }
             }
         }
@@ -402,6 +405,7 @@ namespace DTAClient.DXGUI.Generic
         {
             innerPanel.Hide();
             lblUpdateStatus.Text = "Updating failed!";
+            lblUpdateStatus.DrawUnderline = false;
             updateInProgress = false;
 
             innerPanel.Show(null); // Darkening
@@ -424,7 +428,8 @@ namespace DTAClient.DXGUI.Generic
         private void UpdateWindow_UpdateCancelled(object sender, EventArgs e)
         {
             innerPanel.Hide();
-            lblUpdateStatus.Text = "The update was cancelled.";
+            lblUpdateStatus.Text = "The update was cancelled. Click to retry.";
+            lblUpdateStatus.DrawUnderline = true;
             updateInProgress = false;
         }
 
@@ -435,6 +440,7 @@ namespace DTAClient.DXGUI.Generic
             lblVersion.Text = CUpdater.GameVersion;
             updateInProgress = false;
             lblUpdateStatus.Enabled = true;
+            lblUpdateStatus.DrawUnderline = false;
         }
 
         private void LblUpdateStatus_LeftClick(object sender, EventArgs e)
@@ -443,7 +449,8 @@ namespace DTAClient.DXGUI.Generic
 
             if (CUpdater.DTAVersionState == VersionState.OUTDATED || 
                 CUpdater.DTAVersionState == VersionState.MISMATCHED ||
-                CUpdater.DTAVersionState == VersionState.UNKNOWN)
+                CUpdater.DTAVersionState == VersionState.UNKNOWN ||
+                CUpdater.DTAVersionState == VersionState.UPTODATE)
             {
                 CUpdater.CheckForUpdates();
                 lblUpdateStatus.Enabled = false;
@@ -465,6 +472,7 @@ namespace DTAClient.DXGUI.Generic
             {
                 lblUpdateStatus.Text = MainClientConstants.GAME_NAME_SHORT + " is up to date.";
                 lblUpdateStatus.Enabled = true;
+                lblUpdateStatus.DrawUnderline = false;
             }
             else if (CUpdater.DTAVersionState == VersionState.OUTDATED)
             {
@@ -474,8 +482,9 @@ namespace DTAClient.DXGUI.Generic
             }
             else if (CUpdater.DTAVersionState == VersionState.UNKNOWN)
             {
-                lblUpdateStatus.Text = "Checking for updates failed!";
+                lblUpdateStatus.Text = "Checking for updates failed! Click to retry.";
                 lblUpdateStatus.Enabled = true;
+                lblUpdateStatus.DrawUnderline = true;
             }
         }
 
@@ -483,8 +492,9 @@ namespace DTAClient.DXGUI.Generic
         {
             UpdateQueryWindow uqw = (UpdateQueryWindow)sender;
             innerPanel.Hide();
-            lblUpdateStatus.Text = "Click here to download the update.";
+            lblUpdateStatus.Text = "An update is available, click to install.";
             lblUpdateStatus.Enabled = true;
+            lblUpdateStatus.DrawUnderline = true;
         }
 
         private void UpdateQueryWindow_UpdateAccepted(object sender, EventArgs e)

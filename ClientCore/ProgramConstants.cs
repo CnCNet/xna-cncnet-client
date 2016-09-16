@@ -47,7 +47,7 @@ namespace ClientCore
 
         public static bool CNCNET_AUTOLOGIN = false;
 
-        public static bool IsInGame = false;
+        public static bool IsInGame { get; set; }
 
         public static string GetResourcePath()
         {

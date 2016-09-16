@@ -84,17 +84,6 @@ namespace DTAClient
                 }
             }
 
-            //try
-            //{
-            //    if (ParentProcessUtilities.GetParentProcess().ProcessName == "FinalTI")
-            //    {
-            //        Logger.Log("Launched through FinalSun.");
-            //    }
-            //}
-            //catch
-            //{
-            //}
-
             new Startup().Execute();
         }
 
@@ -116,10 +105,10 @@ namespace DTAClient
 
             try
             {
-                if (Directory.Exists(Application.StartupPath + "\\Client\\ErrorLogs"))
+                if (Directory.Exists(Environment.CurrentDirectory + "\\Client\\ErrorLogs"))
                 {
-                    File.Copy(Application.StartupPath + "\\Client\\client.log",
-                        Application.StartupPath + "\\Client\\ErrorLogs\\ClientCrash_" +
+                    File.Copy(Environment.CurrentDirectory + "\\Client\\client.log",
+                        Environment.CurrentDirectory + "\\Client\\ErrorLogs\\ClientCrashLog_" +
                         DateTime.Now.ToString() + ".txt");
                 }
             }
@@ -145,7 +134,7 @@ namespace DTAClient
             }
             catch (UnauthorizedAccessException)
             {
-                DialogResult dr = MessageBox.Show(String.Format("You seem to be running {0} from a write-protected directory." + Environment.NewLine + Environment.NewLine +
+                DialogResult dr = MessageBox.Show(string.Format("You seem to be running {0} from a write-protected directory." + Environment.NewLine + Environment.NewLine +
                     "For {1} to function properly when run from a write-protected directory, it needs administrative priveleges." + Environment.NewLine + Environment.NewLine +
                     "Would you like to restart the client with administrative rights?" + Environment.NewLine + Environment.NewLine +
                     "Please also make sure that your security software isn't blocking {1}.", MainClientConstants.GAME_NAME_LONG, MainClientConstants.GAME_NAME_SHORT),

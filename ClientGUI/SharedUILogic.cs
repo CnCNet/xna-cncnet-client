@@ -441,8 +441,7 @@ namespace ClientGUI
             Process proc = (Process)sender;
             proc.Exited -= Process_Exited;
             proc.Dispose();
-            if (GameProcessExited != null)
-                GameProcessExited();
+            GameProcessExited?.Invoke();
         }
 
         public static Image LoadImage(string resourceName)

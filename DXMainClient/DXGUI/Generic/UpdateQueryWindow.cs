@@ -35,10 +35,10 @@ namespace DTAClient.DXGUI.Generic
             lblDescription.Text = String.Empty;
             lblDescription.Name = "lblDescription";
 
-            var lblChangelogLink = new XNALabel(WindowManager);
+            var lblChangelogLink = new XNALinkLabel(WindowManager);
             lblChangelogLink.ClientRectangle = new Rectangle(12, 50, 0, 0);
-            lblChangelogLink.Text = "Click here to view the changelog";
-            lblChangelogLink.RemapColor = Color.Goldenrod;
+            lblChangelogLink.Text = "View Changelog";
+            lblChangelogLink.IdleColor = Color.Goldenrod;
             lblChangelogLink.Name = "lblChangelogLink";
             lblChangelogLink.LeftClick += LblChangelogLink_LeftClick;
 

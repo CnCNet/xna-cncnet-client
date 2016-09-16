@@ -91,6 +91,13 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         ToggleableSound sndPrivateMessageSound;
         ToggleableSound sndMessageSound;
 
+        /// <summary>
+        /// Because the user cannot view PMs during a game, we store the latest
+        /// PM received during a game in this variable and display it when the
+        /// user has returned from the game.
+        /// </summary>
+        PrivateMessage pmReceivedDuringGame;
+
         private void CncnetChannel_UserKicked(object sender, UserNameEventArgs e)
         {
             RemoveUser(e.UserName, "was kicked from CnCNet.");
@@ -200,7 +207,9 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             lbUserList.SelectedIndex = lbUserList.Items.FindIndex(i => i.Text == selectedUserName);
             if (lbUserList.SelectedIndex > -1)
             {
-                // Restore checkbox state - user list index change cleared it
+                // Restore textbox state - user list index change cleared it
+                // TODO This is a bit hacky, should do it in a more object-oriented way
+                // without hacking around with the textbox's own variables
                 tbMessageInput.Text = wipMessage;
                 tbMessageInput.TextEndPosition = textEndPosition;
                 tbMessageInput.TextStartPosition = textStartPosition;
@@ -373,6 +382,22 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 sndMessageSound = new ToggleableSound(seMessageSound.CreateInstance());
                 sndMessageSound.Enabled = UserINISettings.Instance.MessageSound;
             }
+
+            SharedUILogic.GameProcessExited += SharedUILogic_GameProcessExited;
+        }
+
+        private void SharedUILogic_GameProcessExited()
+        {
+            WindowManager.AddCallback(new Action(HandleGameProcessExited), null);
+        }
+
+        private void HandleGameProcessExited()
+        {
+            if (pmReceivedDuringGame != null)
+            {
+                ShowNotification(pmReceivedDuringGame.User, pmReceivedDuringGame.Message);
+                pmReceivedDuringGame = null;
+            }
         }
 
         private void ConnectionManager_PrivateMessageReceived(object sender, PrivateMessageEventArgs e)
@@ -413,14 +438,14 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             if (!Visible)
             {
-                ShowNotification(pmUser.IrcUser, e.Sender, e.Message);
+                HandleNotification(pmUser.IrcUser, e.Message);
 
                 if (lbUserList.SelectedItem == null || lbUserList.SelectedItem.Text != e.Sender)
                     return;
             }
             else if (lbUserList.SelectedItem == null || lbUserList.SelectedItem.Text != e.Sender)
             {
-                ShowNotification(pmUser.IrcUser, e.Sender, e.Message);
+                HandleNotification(pmUser.IrcUser, e.Message);
                 return;
             }
 
@@ -429,9 +454,25 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 sndMessageSound.Play();
         }
 
-        private void ShowNotification(IRCUser ircUser, string sender, string message)
+        /// <summary>
+        /// Displays a PM message if the user is not in-game, and queues
+        /// it to be displayed after the game if the user is in-game.
+        /// </summary>
+        /// <param name="ircUser">The sender of the private message.</param>
+        /// <param name="message">The contents of the private message.</param>
+        private void HandleNotification(IRCUser ircUser, string message)
         {
-            notificationBox.Show(GetUserTexture(ircUser), sender, message);
+            if (ProgramConstants.IsInGame)
+            {
+                ShowNotification(ircUser, message);
+            }
+            else
+                pmReceivedDuringGame = new PrivateMessage(ircUser, message);
+        }
+
+        private void ShowNotification(IRCUser ircUser, string message)
+        {
+            notificationBox.Show(GetUserTexture(ircUser), ircUser.Name, message);
             if (sndPrivateMessageSound != null)
                 sndPrivateMessageSound.Play();
         }
@@ -716,6 +757,21 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         public string GetSwitchName()
         {
             return "Private Messaging";
+        }
+
+        /// <summary>
+        /// A class for storing a private message in memory.
+        /// </summary>
+        class PrivateMessage
+        {
+            public PrivateMessage(IRCUser user, string message)
+            {
+                User = user;
+                Message = message;
+            }
+
+            public IRCUser User;
+            public string Message;
         }
     }
 }

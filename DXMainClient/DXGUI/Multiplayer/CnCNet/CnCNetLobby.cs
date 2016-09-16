@@ -414,6 +414,21 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             gameLoadingLobby.GameLeft += GameLoadingLobby_GameLeft;
 
             UserINISettings.Instance.SettingsSaved += Instance_SettingsSaved;
+
+            SharedUILogic.GameProcessStarted += SharedUILogic_GameProcessStarted;
+            SharedUILogic.GameProcessExited += SharedUILogic_GameProcessExited;
+        }
+
+        private void SharedUILogic_GameProcessStarted()
+        {
+            connectionManager.SendCustomMessage(new QueuedMessage("AWAY " + (char)58 + "In-game",
+                QueuedMessageType.SYSTEM_MESSAGE, 0));
+        }
+
+        private void SharedUILogic_GameProcessExited()
+        {
+            connectionManager.SendCustomMessage(new QueuedMessage("AWAY",
+                QueuedMessageType.SYSTEM_MESSAGE, 0));
         }
 
         private void Instance_SettingsSaved(object sender, EventArgs e)
@@ -896,9 +911,6 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                     }
                 }
             }
-
-            connectionManager.SendCustomMessage(new QueuedMessage("AWAY " + (char)58 + "Testing DTA 1.15!",
-                QueuedMessageType.SYSTEM_MESSAGE, 0));
         }
 
         private void DdCurrentChannel_SelectedIndexChanged(object sender, EventArgs e)
