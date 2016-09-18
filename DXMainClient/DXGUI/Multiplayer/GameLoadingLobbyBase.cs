@@ -392,6 +392,7 @@ namespace DTAClient.DXGUI.Multiplayer
             Players.Clear();
             ddSavedGame.Items.Clear();
             lbChatMessages.Clear();
+            lbChatMessages.TopIndex = 0;
 
             ddSavedGame.AllowDropDown = isHost;
             btnLoadGame.Text = isHost ? "Load Game" : "I'm Ready";

@@ -11,7 +11,6 @@ namespace ClientCore
     public class DomainController
     {
         private static DomainController _instance;
-        private IniFile settings_ini;
         public IniFile gameOptions_ini;
         public IniFile DTACnCNetClient_ini;
         private IniFile clientDefinitionsIni;
@@ -29,18 +28,12 @@ namespace ClientCore
             // WARNING! This method can NOT contain any methods that use the Singleton pattern
             // to call Domaincontroller methods! If it does call methods that use it, make sure
             // such calls are ignored by checking with the hasInstance() method.
-            settings_ini = null;
 
-            clientDefinitionsIni = new IniFile(ProgramConstants.GamePath + ProgramConstants.BASE_RESOURCE_PATH + CLIENT_DEFS);
+            clientDefinitionsIni = new IniFile(ProgramConstants.GetBaseResourcePath() + CLIENT_DEFS);
 
-            string clientSettingsPath = ProgramConstants.GamePath + ProgramConstants.RESOURCES_DIR + CLIENT_SETTINGS;
-            DTACnCNetClient_ini = new IniFile(clientSettingsPath);
+            DTACnCNetClient_ini = new IniFile(ProgramConstants.GetResourcePath() + CLIENT_SETTINGS);
 
-            gameOptions_ini = new IniFile(ProgramConstants.GamePath + ProgramConstants.BASE_RESOURCE_PATH + GAME_OPTIONS);
-
-            string settingsPath = ProgramConstants.GamePath + GetSettingsIniName();
-
-            settings_ini = new IniFile(settingsPath);
+            gameOptions_ini = new IniFile(ProgramConstants.GetBaseResourcePath() + GAME_OPTIONS);
         }
 
         /// <summary>
@@ -56,23 +49,9 @@ namespace ClientCore
             return _instance;
         }
 
-        public void ReloadSettings()
+        public void RefreshSettings()
         {
-            settings_ini = null;
-            String settingsPath = ProgramConstants.GamePath + GetSettingsIniName();
-
-            if (!File.Exists(settingsPath))
-            {
-                byte[] byteArray = Encoding.GetEncoding(1252).GetBytes(ClientCore.Properties.Resources.Settings);
-                MemoryStream stream = new MemoryStream(byteArray);
-                settings_ini = new IniFile(stream);
-                settings_ini.FileName = settingsPath;
-            }
-            else
-                settings_ini = new IniFile(settingsPath);
-
-            String clientSettingsPath = ProgramConstants.GamePath + ProgramConstants.RESOURCES_DIR + CLIENT_SETTINGS;
-            DTACnCNetClient_ini = new IniFile(clientSettingsPath);
+            DTACnCNetClient_ini = new IniFile(ProgramConstants.GetResourcePath() + CLIENT_SETTINGS);
         }
 
         public string GetUILabelColor()
@@ -198,48 +177,6 @@ namespace ClientCore
         public string GetCommonFont()
         {
             return DTACnCNetClient_ini.GetStringValue("General", "CommonFont", "Microsoft Sans Serif,Regular");
-        }
-
-        // functions used for detecting client settings
-
-        public string GetSkirmishMapSHA1()
-        {
-            return settings_ini.GetStringValue("Skirmish", "Map", "default");
-        }
-
-        public string GetSkirmishGameMode()
-        {
-            return settings_ini.GetStringValue("Skirmish", "GameMode", "Default");
-        }
-
-        public string GetSkirmishDifficulties()
-        {
-            return settings_ini.GetStringValue("Skirmish", "Difficulties", String.Empty);
-        }
-
-        public string GetSkirmishSides()
-        {
-            return settings_ini.GetStringValue("Skirmish", "Sides", String.Empty);
-        }
-
-        public string GetSkirmishColors()
-        {
-            return settings_ini.GetStringValue("Skirmish", "Colors", String.Empty);
-        }
-
-        public string GetSkirmishStartingLocations()
-        {
-            return settings_ini.GetStringValue("Skirmish", "StartLocs", String.Empty);
-        }
-
-        public string GetSkirmishTeams()
-        {
-            return settings_ini.GetStringValue("Skirmish", "Teams", String.Empty);
-        }
-
-        public string GetSkirmishSettings()
-        {
-            return settings_ini.GetStringValue("Skirmish", "Settings", String.Empty);
         }
 
         public int GetThemeCount()

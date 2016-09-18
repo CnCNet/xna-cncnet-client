@@ -202,8 +202,6 @@ namespace DTAConfig
                 msgBox.YesClicked += RestartMsgBox_YesClicked;
                 msgBox.NoClicked += RestartMsgBox_NoClicked;
             }
-
-            DomainController.Instance().ReloadSettings();
         }
 
         private void RestartMsgBox_NoClicked(object sender, EventArgs e)

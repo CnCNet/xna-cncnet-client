@@ -212,6 +212,7 @@
     <Compile Include="Domain\Multiplayer\GenericHostedGame.cs" />
     <Compile Include="Domain\Multiplayer\LAN\LANColor.cs" />
     <Compile Include="Domain\Multiplayer\LAN\HostedLANGame.cs" />
+    <Compile Include="Domain\StatisticsSender.cs" />
     <Compile Include="DXGUI\Generic\LinkButton.cs" />
     <Compile Include="Domain\Multiplayer\Map.cs" />
     <Compile Include="Domain\Multiplayer\MapLoader.cs" />
@@ -219,7 +220,6 @@
     <Compile Include="Domain\Multiplayer\PlayerInfo.cs" />
     <Compile Include="Domain\Multiplayer\CnCNet\TunnelHandler.cs" />
     <Compile Include="Domain\MCDomainController.cs" />
-    <Compile Include="Domain\StatisticsPageAddresses.cs" />
     <Compile Include="Domain\Mission.cs" />
     <Compile Include="Domain\SavedGame.cs" />
     <Compile Include="Domain\MainClientConstants.cs" />

@@ -15,7 +15,7 @@ namespace DTAClient.Domain
         public static void ChangeUserAgent()
         {
             List<string> userAgent = new List<string>();
-            string ua = "DTA Client/" + Application.ProductVersion + "/Game " + MCDomainController.Instance.GetShortGameName();
+            string ua = "DTA Client/" + Application.ProductVersion + "/Game " + MCDomainController.Instance.ShortGameName;
 
             UrlMkSetSessionOption(URLMON_OPTION_USERAGENT, ua, ua.Length, 0);
         }

@@ -17,6 +17,7 @@ using DTAClient.DXGUI.Generic;
 using DTAClient.Domain.Multiplayer;
 using DTAClient.Domain.Multiplayer.CnCNet;
 using ClientCore.CnCNet5;
+using DTAClient.Domain;
 
 namespace DTAClient.DXGUI.Multiplayer.CnCNet
 {
@@ -559,6 +560,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             loginWindow.Disable();
 
             SetLogOutButtonText();
+            StatisticsSender.Instance.SendCnCNet();
         }
 
         /// <summary>

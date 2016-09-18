@@ -56,11 +56,11 @@ namespace DTAClient.DXGUI
                     throw new Exception("Setting default graphics mode failed!");
             }
 
-            int renderResolutionX = Math.Max(windowWidth, MCDomainController.Instance.GetMinimumRenderWidth());
-            int renderResolutionY = Math.Max(windowHeight, MCDomainController.Instance.GetMinimumRenderHeight());
+            int renderResolutionX = Math.Max(windowWidth, MCDomainController.Instance.MinimumRenderWidth);
+            int renderResolutionY = Math.Max(windowHeight, MCDomainController.Instance.MinimumRenderHeight);
 
-            renderResolutionX = Math.Min(renderResolutionX, MCDomainController.Instance.GetMaximumRenderWidth());
-            renderResolutionY = Math.Min(renderResolutionY, MCDomainController.Instance.GetMaximumRenderHeight());
+            renderResolutionX = Math.Min(renderResolutionX, MCDomainController.Instance.MaximumRenderWidth);
+            renderResolutionY = Math.Min(renderResolutionY, MCDomainController.Instance.MaximumRenderHeight);
 
             wm.SetBorderlessMode(UserINISettings.Instance.BorderlessWindowedClient);
             wm.CenterOnScreen();

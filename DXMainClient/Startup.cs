@@ -33,10 +33,6 @@ namespace DTAClient
             }
 
             ProgramConstants.RESOURCES_DIR = "Resources\\" + DomainController.Instance().GetThemeInfoFromIndex(themeId)[1];
-            DomainController.Instance().ReloadSettings();
-
-            //SplashScreen ss = new SplashScreen();
-            //ss.Show();
 
             Logger.Log("Initializing updater.");
 
@@ -51,7 +47,6 @@ namespace DTAClient
 
             InstallCompatibilityFixes();
 
-            // Delete temporary updater directory
             if (Directory.Exists(MainClientConstants.gamepath + "Updater"))
             {
                 Logger.Log("Attempting to delete temporary updater directory.");
@@ -64,7 +59,6 @@ namespace DTAClient
                 }
             }
 
-            // Remove partial custom component downloads
             if (CUpdater.CustomComponents != null)
             {
                 Logger.Log("Removing partial custom component downloads.");
@@ -81,23 +75,11 @@ namespace DTAClient
                 }
             }
 
-            // Check if FinalSun.ini exists
             FinalSunSettings.WriteFinalSunIni();
-
-            //if (MainClientConstants.IsAutomaticInstallation)
-            //{
-            //    Logger.Log("Performing automatic installation.");
-
-            //    //CUpdater.DoVersionCheck();
-            //    Thread thread = new Thread(new ThreadStart(CUpdater.PerformUpdate));
-            //    thread.Start();
-
-            //    new UpdateForm().ShowDialog();
-            //}
 
             WriteInstallPathToRegistry();
 
-            //ss.Close();
+            DomainController.Instance().RefreshSettings();
 
             GameClass gameClass = new GameClass();
             gameClass.Run();
@@ -185,8 +167,8 @@ namespace DTAClient
 
             Logger.Log("Writing installation path to the Windows registry.");
 
-            Microsoft.Win32.RegistryKey key;
-            key = Microsoft.Win32.Registry.CurrentUser.CreateSubKey("SOFTWARE\\" + MCDomainController.Instance.GetInstallationPathRegKey());
+            RegistryKey key;
+            key = Registry.CurrentUser.CreateSubKey("SOFTWARE\\" + MCDomainController.Instance.InstallationPathRegKey);
             key.SetValue("InstallPath", MainClientConstants.gamepath);
             key.Close();
         }

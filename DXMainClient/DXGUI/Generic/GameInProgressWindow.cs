@@ -133,7 +133,6 @@ namespace DTAClient.DXGUI
                 WindowManager.MaximizeWindow();
 
             UserINISettings.Instance.ReloadSettings();
-            DomainController.Instance().ReloadSettings();
         }
     }
 }

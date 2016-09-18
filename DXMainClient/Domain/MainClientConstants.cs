@@ -28,9 +28,6 @@ namespace DTAClient.Domain
         public static String SUPPORT_URL = "http://www.moddb.com/members/rampastring";
         public static String SUPPORT_URL_SHORT = "www.moddb.com/members/rampastring";
 
-        public const string SPAWNMAP_INI = "spawnmap.ini";
-        public const string SPAWNER_SETTINGS = "spawn.ini";
-
         public static OSVersion OSId = OSVersion.UNKNOWN;
 
         public static bool IsAutomaticInstallation = false;
@@ -46,18 +43,18 @@ namespace DTAClient.Domain
 
             OSId = ClientCore.DomainController.Instance().GetOperatingSystemVersion();
 
-            GAME_NAME_SHORT = MCDomainController.Instance.GetShortGameName();
-            GAME_NAME_LONG = MCDomainController.Instance.GetLongGameName();
+            GAME_NAME_SHORT = MCDomainController.Instance.ShortGameName;
+            GAME_NAME_LONG = MCDomainController.Instance.LongGameName;
 
-            SUPPORT_URL = MCDomainController.Instance.GetLongSupportURL();
-            SUPPORT_URL_SHORT = MCDomainController.Instance.GetShortSupportURL();
+            SUPPORT_URL = MCDomainController.Instance.LongSupportURL;
+            SUPPORT_URL_SHORT = MCDomainController.Instance.ShortSupportURL;
 
-            CNCNET_LIVE_STATUS_ID = MCDomainController.Instance.GetCnCNetLiveStatusIdentifier();
+            CNCNET_LIVE_STATUS_ID = MCDomainController.Instance.CnCNetLiveStatusIdentifier;
 
-            CHANGELOG_URL = MCDomainController.Instance.GetChangelogURL();
-            CREDITS_URL = MCDomainController.Instance.GetCreditsURL();
+            CHANGELOG_URL = MCDomainController.Instance.ChangelogURL;
+            CREDITS_URL = MCDomainController.Instance.CreditsURL;
 
-            FINALSUN_INI = MCDomainController.Instance.GetFinalSunIniPath();
+            FINALSUN_INI = MCDomainController.Instance.FinalSunIniPath;
         }
     }
 }

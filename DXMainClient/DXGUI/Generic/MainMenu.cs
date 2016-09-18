@@ -20,14 +20,14 @@ namespace DTAClient.DXGUI.Generic
 {
     class MainMenu : XNAWindow, ISwitchable
     {
-        const float MEDIA_PLAYER_VOLUME_FADE_STEP = 0.01f;
-        const float MEDIA_PLAYER_VOLUME_EXIT_FADE_STEP = 0.025f;
+        private const float MEDIA_PLAYER_VOLUME_FADE_STEP = 0.01f;
+        private const float MEDIA_PLAYER_VOLUME_EXIT_FADE_STEP = 0.025f;
+        private const double UPDATE_RE_CHECK_THRESHOLD = 30.0;
 
         public MainMenu(WindowManager windowManager, SkirmishLobby skirmishLobby,
             LANLobby lanLobby, TopBar topBar, OptionsWindow optionsWindow,
             CnCNetManager connectionManager) : base(windowManager)
         {
-            isYR = DomainController.Instance().GetDefaultGame().ToUpper() == "YR";
             this.skirmishLobby = skirmishLobby;
             this.lanLobby = lanLobby;
             this.topBar = topBar;
@@ -35,33 +35,33 @@ namespace DTAClient.DXGUI.Generic
             this.optionsWindow = optionsWindow;
         }
 
-        bool isYR = false;
+        private MainMenuDarkeningPanel innerPanel;
 
-        MainMenuDarkeningPanel innerPanel;
+        private XNALabel lblCnCNetPlayerCount;
+        private XNALinkLabel lblUpdateStatus;
+        private XNALabel lblVersion;
 
-        XNALabel lblCnCNetPlayerCount;
-        XNALinkLabel lblUpdateStatus;
-        XNALabel lblVersion;
+        private SkirmishLobby skirmishLobby;
 
-        SkirmishLobby skirmishLobby;
+        private LANLobby lanLobby;
 
-        LANLobby lanLobby;
+        private CnCNetManager connectionManager;
 
-        CnCNetManager connectionManager;
+        private OptionsWindow optionsWindow;
 
-        OptionsWindow optionsWindow;
+        private TopBar topBar;
 
-        TopBar topBar;
+        private bool updateInProgress = false;
 
-        bool updateInProgress = false;
+        private DateTime lastUpdateCheckTime;
 
-        Song themeSong;
+        private Song themeSong;
 
         private static readonly object locker = new object();
 
-        bool isMusicFading = false;
+        private bool isMusicFading = false;
 
-        float musicVolume = 1.0f;
+        private float musicVolume = 1.0f;
 
         public override void Initialize()
         {
@@ -193,7 +193,7 @@ namespace DTAClient.DXGUI.Generic
             AddChild(lblCnCNetStatus);
             AddChild(lblCnCNetPlayerCount);
 
-            if (!MCDomainController.Instance.GetModModeStatus())
+            if (!MCDomainController.Instance.ModMode)
             {
                 AddChild(lblVersion);
                 AddChild(lblUpdateStatus);
@@ -287,7 +287,7 @@ namespace DTAClient.DXGUI.Generic
 
         private void CheckIfFirstRun()
         {
-            if (MCDomainController.Instance.GetShortGameName() == "YR")
+            if (MCDomainController.Instance.ShortGameName == "YR")
                 return;
 
             if (UserINISettings.Instance.IsFirstRun)
@@ -382,15 +382,11 @@ namespace DTAClient.DXGUI.Generic
 
             PlayMusic();
 
-            if (!MCDomainController.Instance.GetModModeStatus())
+            if (!MCDomainController.Instance.ModMode)
             {
                 if (UserINISettings.Instance.CheckForUpdates)
                 {
-                    lblUpdateStatus.Text = "Checking for updates...";
-                    lblUpdateStatus.Enabled = false;
-                    CUpdater.CheckForUpdates();
-                    var uss = new UpdateStatisticsSender();
-                    uss.Send();
+                    CheckForUpdates();
                 }
                 else
                 {
@@ -452,10 +448,20 @@ namespace DTAClient.DXGUI.Generic
                 CUpdater.DTAVersionState == VersionState.UNKNOWN ||
                 CUpdater.DTAVersionState == VersionState.UPTODATE)
             {
-                CUpdater.CheckForUpdates();
-                lblUpdateStatus.Enabled = false;
-                lblUpdateStatus.Text = "Checking for updates...";
+                CheckForUpdates();
             }
+        }
+
+        /// <summary>
+        /// Starts a check for updates.
+        /// </summary>
+        private void CheckForUpdates()
+        {
+            CUpdater.CheckForUpdates();
+            lblUpdateStatus.Enabled = false;
+            lblUpdateStatus.Text = "Checking for updates...";
+            StatisticsSender.Instance.SendUpdate();
+            lastUpdateCheckTime = DateTime.Now;
         }
 
         /// <summary>
@@ -553,7 +559,7 @@ namespace DTAClient.DXGUI.Generic
 
         private void BtnMapEditor_LeftClick(object sender, EventArgs e)
         {
-            Process.Start(ProgramConstants.GamePath + MCDomainController.Instance.GetMapEditorExePath());
+            Process.Start(ProgramConstants.GamePath + MCDomainController.Instance.MapEditorExePath);
         }
 
         private void BtnStatistics_LeftClick(object sender, EventArgs e)
@@ -671,6 +677,14 @@ namespace DTAClient.DXGUI.Generic
         {
             if (UserINISettings.Instance.StopMusicOnMenu)
                 PlayMusic();
+
+            if (!MCDomainController.Instance.ModMode && UserINISettings.Instance.CheckForUpdates)
+            {
+                // Re-check for updates
+
+                if ((DateTime.Now - lastUpdateCheckTime) > TimeSpan.FromSeconds(UPDATE_RE_CHECK_THRESHOLD))
+                    CheckForUpdates();
+            }
         }
 
         public void SwitchOff()

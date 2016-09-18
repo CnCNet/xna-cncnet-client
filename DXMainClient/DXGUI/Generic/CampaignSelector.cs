@@ -149,7 +149,7 @@ namespace DTAClient.DXGUI.Generic
             trbDifficultySelector.Value = UserINISettings.Instance.Difficulty;
 
             ParseBattleIni("INI\\Battle.ini");
-            ParseBattleIni("INI\\" + MCDomainController.Instance.GetBattleFSFileName());
+            ParseBattleIni("INI\\" + MCDomainController.Instance.BattleFSFileName);
         }
 
         private void LbCampaignList_SelectedIndexChanged(object sender, EventArgs e)
@@ -227,7 +227,7 @@ namespace DTAClient.DXGUI.Generic
             swriter.WriteLine("Firestorm=" + mission.RequiredAddon);
             swriter.WriteLine("CustomLoadScreen=" + LoadingScreenController.GetLoadScreenName(mission.Side));
             swriter.WriteLine("IsSinglePlayer=Yes");
-            swriter.WriteLine("SidebarHack=" + MCDomainController.Instance.GetSidebarHackStatus());
+            swriter.WriteLine("SidebarHack=" + MCDomainController.Instance.SidebarHack);
             swriter.WriteLine("Side=" + mission.Side);
             swriter.WriteLine("BuildOffAlly=" + mission.BuildOffAlly);
 

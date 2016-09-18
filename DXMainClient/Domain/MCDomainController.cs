@@ -56,105 +56,140 @@ namespace DTAClient.Domain
             }
         }
 
-        public void ReloadSettings()
+        public string ShortGameName
         {
-            settings_ini = null;
-            String settingsPath = MainClientConstants.gamepath + MainClientConstants.GAME_SETTINGS;
-
-            if (!File.Exists(settingsPath))
+            get
             {
-                byte[] byteArray = Encoding.GetEncoding(1252).GetBytes(DTAClient.Properties.Resources.settings_ini);
-                MemoryStream stream = new MemoryStream(byteArray);
-                settings_ini = new IniFile(stream);
-                settings_ini.FileName = settingsPath;
+                return mainClient_ini.GetStringValue("General", "ShortGameName", "TS");
             }
-            else
-                settings_ini = new IniFile(settingsPath);
         }
 
-        public string GetShortGameName()
+        public string LongGameName
         {
-            return mainClient_ini.GetStringValue("General", "ShortGameName", "TS");
+            get
+            {
+                return mainClient_ini.GetStringValue("General", "LongGameName", "Tiberian Sun");
+            }
         }
 
-        public string GetLongGameName()
+        public string LongSupportURL
         {
-            return mainClient_ini.GetStringValue("General", "LongGameName", "Tiberian Sun");
+            get
+            {
+                return mainClient_ini.GetStringValue("General", "LongSupportURL", "http://www.moddb.com/members/rampastring");
+            }
         }
 
-        public string GetLongSupportURL()
+        public string ShortSupportURL
         {
-            return mainClient_ini.GetStringValue("General", "LongSupportURL", "http://www.moddb.com/members/rampastring");
+            get
+            {
+                return mainClient_ini.GetStringValue("General", "ShortSupportURL", "www.moddb.com/members/rampastring");
+            }
         }
 
-        public string GetShortSupportURL()
+        public string ChangelogURL
         {
-            return mainClient_ini.GetStringValue("General", "ShortSupportURL", "www.moddb.com/members/rampastring");
+            get
+            {
+                return mainClient_ini.GetStringValue("General", "ChangelogURL", "http://www.moddb.com/mods/the-dawn-of-the-tiberium-age/tutorials/change-log");
+            }
         }
 
-        public string GetChangelogURL()
+        public string CreditsURL
         {
-            return mainClient_ini.GetStringValue("General", "ChangelogURL", "http://www.moddb.com/mods/the-dawn-of-the-tiberium-age/tutorials/change-log");
+            get
+            {
+                return mainClient_ini.GetStringValue("General", "CreditsURL", "http://www.moddb.com/mods/the-dawn-of-the-tiberium-age/tutorials/credits#Rampastring");
+            }
         }
 
-        public string GetCreditsURL()
+        public string FinalSunIniPath
         {
-            return mainClient_ini.GetStringValue("General", "CreditsURL", "http://www.moddb.com/mods/the-dawn-of-the-tiberium-age/tutorials/credits#Rampastring");
+            get
+            {
+                return mainClient_ini.GetStringValue("General", "FSIniPath", "FinalSun\\FinalSun.ini");
+            }
         }
 
-        public string GetFinalSunIniPath()
+        public string InstallationPathRegKey
         {
-            return mainClient_ini.GetStringValue("General", "FSIniPath", "FinalSun\\FinalSun.ini");
+            get
+            {
+                return mainClient_ini.GetStringValue("General", "RegistryInstallPath", "TiberianSun");
+            }
         }
 
-        public string GetInstallationPathRegKey()
+        public string CnCNetLiveStatusIdentifier
         {
-            return mainClient_ini.GetStringValue("General", "RegistryInstallPath", "TiberianSun");
+            get
+            {
+                return mainClient_ini.GetStringValue("General", "CnCNetLiveStatusIdentifier", "cncnet5_ts");
+            }
         }
 
-        public string GetCnCNetLiveStatusIdentifier()
+        public string BattleFSFileName
         {
-            return mainClient_ini.GetStringValue("General", "CnCNetLiveStatusIdentifier", "cncnet5_ts");
+            get
+            {
+                return mainClient_ini.GetStringValue("General", "BattleFSFileName", "BattleFS.ini");
+            }
         }
 
-        public string GetBattleFSFileName()
+        public string MapEditorExePath
         {
-            return mainClient_ini.GetStringValue("General", "BattleFSFileName", "BattleFS.ini");
+            get
+            {
+                return mainClient_ini.GetStringValue("General", "MapEditorExePath", "FinalSun\\FinalSun.exe");
+            }
         }
 
-        public string GetMapEditorExePath()
+        public bool ModMode
         {
-            return mainClient_ini.GetStringValue("General", "MapEditorExePath", "FinalSun\\FinalSun.exe");
+            get
+            {
+                return mainClient_ini.GetBooleanValue("General", "ModMode", false);
+            }
         }
 
-        public bool GetModModeStatus()
+        public int MinimumRenderWidth
         {
-            return mainClient_ini.GetBooleanValue("General", "ModMode", false);
+            get
+            {
+                return mainClient_ini.GetIntValue("General", "MinimumRenderWidth", 1280);
+            }
         }
 
-        public int GetMinimumRenderWidth()
+        public int MinimumRenderHeight
         {
-            return mainClient_ini.GetIntValue("General", "MinimumRenderWidth", 1280);
+            get
+            {
+                return mainClient_ini.GetIntValue("General", "MinimumRenderHeight", 768);
+            }
         }
 
-        public int GetMinimumRenderHeight()
+        public int MaximumRenderWidth
         {
-            return mainClient_ini.GetIntValue("General", "MinimumRenderHeight", 768);
+            get
+            {
+                return mainClient_ini.GetIntValue("General", "MaximumRenderWidth", 1280);
+            }
         }
 
-        public int GetMaximumRenderWidth()
+        public int MaximumRenderHeight
         {
-            return mainClient_ini.GetIntValue("General", "MaximumRenderWidth", 1280);
+            get
+            {
+                return mainClient_ini.GetIntValue("General", "MaximumRenderHeight", 800);
+            }
         }
 
-        public int GetMaximumRenderHeight()
+        public bool SidebarHack
         {
-            return mainClient_ini.GetIntValue("General", "MaximumRenderHeight", 800);
-        }
-
-        public bool GetSidebarHackStatus()
-        {
-            return mainClient_ini.GetBooleanValue("General", "SidebarHack", false);
+            get
+            {
+                return mainClient_ini.GetBooleanValue("General", "SidebarHack", false);
+            }
         }
 
         public bool Win8CompatFixInstalled()
