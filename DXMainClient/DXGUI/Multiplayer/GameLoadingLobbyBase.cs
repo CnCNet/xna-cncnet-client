@@ -416,10 +416,12 @@ namespace DTAClient.DXGUI.Multiplayer
 
             for (int i = 1; i < playerCount; i++)
             {
+                string sectionName = "Other" + i;
+
                 SavedGamePlayer sgPlayer = new SavedGamePlayer();
-                sgPlayer.Name = spawnSGIni.GetStringValue("Other" + i, "Name", "Unknown player");
+                sgPlayer.Name = spawnSGIni.GetStringValue(sectionName, "Name", "Unknown player");
                 sgPlayer.ColorIndex = MPColors.FindIndex(
-                    c => c.GameColorIndex == spawnSGIni.GetIntValue("Other " + i, "Color", 0));
+                    c => c.GameColorIndex == spawnSGIni.GetIntValue(sectionName, "Color", 0));
 
                 SGPlayers.Add(sgPlayer);
             }
@@ -443,15 +445,6 @@ namespace DTAClient.DXGUI.Multiplayer
 
             if (ddSavedGame.Items.Count > 0)
                 ddSavedGame.SelectedIndex = 0;
-
-            //if (isHost)
-            //{
-            //    PlayerInfo localPlayerInfo = new PlayerInfo();
-            //    localPlayerInfo.Name = ProgramConstants.PLAYERNAME;
-            //    localPlayerInfo.Ready = true;
-
-            //    Players.Add(localPlayerInfo);
-            //}
 
             CopyPlayerDataToUI();
             isSettingUp = false;
