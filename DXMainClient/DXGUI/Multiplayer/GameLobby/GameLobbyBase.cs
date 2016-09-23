@@ -444,6 +444,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             string[] sides = DomainController.Instance().GetSides().Split(',');
             _sideCount = sides.Length;
 
+            string randomColor = GameOptionsIni.GetStringValue("General", "RandomColor", "255,255,255");
+
             for (int i = PLAYER_COUNT - 1; i > -1; i--)
             {
                 var ddPlayerName = new XNAClientDropDown(WindowManager);
@@ -476,7 +478,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 ddPlayerColor.ClientRectangle = new Rectangle(
                     ddPlayerSide.ClientRectangle.Right + playerOptionHorizontalMargin,
                     ddPlayerName.ClientRectangle.Y, colorWidth, DROP_DOWN_HEIGHT);
-                ddPlayerColor.AddItem("Random", Color.White);
+                ddPlayerColor.AddItem("Random", AssetLoader.GetColorFromString(randomColor));
                 foreach (MultiplayerColor mpColor in MPColors)
                     ddPlayerColor.AddItem(mpColor.Name, mpColor.XnaColor);
                 ddPlayerColor.AllowDropDown = false;

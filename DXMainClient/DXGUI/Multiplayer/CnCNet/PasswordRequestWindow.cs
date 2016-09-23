@@ -7,6 +7,8 @@ using System.Text;
 using Rampastring.XNAUI;
 using Microsoft.Xna.Framework;
 using DTAClient.Domain.Multiplayer.CnCNet;
+using Rampastring.XNAUI.Input;
+using Microsoft.Xna.Framework.Input;
 
 namespace DTAClient.DXGUI.Multiplayer.CnCNet
 {
@@ -61,6 +63,21 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             base.Initialize();
 
             CenterOnParent();
+
+            EnabledChanged += PasswordRequestWindow_EnabledChanged;
+            Keyboard.OnKeyPressed += Keyboard_OnKeyPressed;
+        }
+
+        private void Keyboard_OnKeyPressed(object sender, KeyPressEventArgs e)
+        {
+            if (Enabled && e.PressedKey == Keys.Enter)
+                BtnOK_LeftClick(this, EventArgs.Empty);
+        }
+
+        private void PasswordRequestWindow_EnabledChanged(object sender, EventArgs e)
+        {
+            if (Enabled)
+                tbPassword.IsSelected = true;
         }
 
         private void BtnCancel_LeftClick(object sender, EventArgs e)
