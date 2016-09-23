@@ -12,6 +12,9 @@ namespace ClientCore.CnCNet5
         /// what is wrong with the name.</returns>
         public static string IsNameValid(string name)
         {
+            ProfanityFilter profanity = new ProfanityFilter(ProgramConstants.PROFANITY_WORDS);
+            name = profanity.CensorText(name);
+
             if (string.IsNullOrEmpty(name))
                 return "Please enter a name.";
 
