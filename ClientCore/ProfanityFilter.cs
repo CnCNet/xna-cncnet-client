@@ -17,6 +17,21 @@ namespace ClientCore
             CensoredWords = new List<string>(censoredWords);
         }
 
+        public bool IsOffensive(string text)
+        {
+            string censoredText = text;
+            foreach (string censoredWord in CensoredWords)
+            {
+                string regularExpression = ToRegexPattern(censoredWord);
+                censoredText = Regex.Replace(censoredText, regularExpression, "",
+                    RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+
+                if(string.IsNullOrEmpty(censoredText))
+                    return true;
+            }
+            return false;
+        }
+
         public string CensorText(string text)
         {
             if (text == null)

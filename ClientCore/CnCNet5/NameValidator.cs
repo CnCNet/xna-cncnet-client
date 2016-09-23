@@ -13,10 +13,12 @@ namespace ClientCore.CnCNet5
         public static string IsNameValid(string name)
         {
             ProfanityFilter profanity = new ProfanityFilter(ProgramConstants.PROFANITY_WORDS);
-            name = profanity.CensorText(name);
 
             if (string.IsNullOrEmpty(name))
                 return "Please enter a name.";
+
+            if (profanity.IsOffensive(name))
+                return "Please enter a name that is less offensive.";
 
             int number = -1;
             if (int.TryParse(name.Substring(0, 1), out number))
