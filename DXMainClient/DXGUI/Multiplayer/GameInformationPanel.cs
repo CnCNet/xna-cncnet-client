@@ -10,6 +10,8 @@ namespace DTAClient.DXGUI.Multiplayer
     /// </summary>
     public class GameInformationPanel : XNAPanel
     {
+        private const int MAX_PLAYERS = 8;
+
         public GameInformationPanel(WindowManager windowManager) : base(windowManager)
         {
         }
@@ -46,7 +48,7 @@ namespace DTAClient.DXGUI.Multiplayer
             lblPlayers = new XNALabel(WindowManager);
             lblPlayers.ClientRectangle = new Rectangle(6, 126, 0, 0);
 
-            lblPlayerNames = new XNALabel[8];
+            lblPlayerNames = new XNALabel[MAX_PLAYERS];
             for (int i = 0; i < lblPlayerNames.Length / 2; i++)
             {
                 XNALabel lblPlayerName1 = new XNALabel(WindowManager);
@@ -95,6 +97,11 @@ namespace DTAClient.DXGUI.Multiplayer
             {
                 lblPlayerNames[i].Visible = true;
                 lblPlayerNames[i].Text = game.Players[i];
+            }
+
+            for (int i = game.Players.Length; i < MAX_PLAYERS; i++)
+            {
+                lblPlayerNames[i].Visible = false;
             }
         }
 

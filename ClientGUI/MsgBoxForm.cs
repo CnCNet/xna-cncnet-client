@@ -17,7 +17,7 @@ namespace ClientGUI
         public MsgBoxForm(string message, string title, MessageBoxButtons msgButtons)
         {
             InitializeComponent();
-            this.Icon = Icon.ExtractAssociatedIcon(ProgramConstants.GamePath + ProgramConstants.RESOURCES_DIR + "clienticon.ico");
+            this.Icon = Icon.ExtractAssociatedIcon(ProgramConstants.GetBaseResourcePath() + "clienticon.ico");
 
             SoundPlayer sPlayer = new SoundPlayer(ProgramConstants.GamePath + ProgramConstants.RESOURCES_DIR + "button.wav");
 

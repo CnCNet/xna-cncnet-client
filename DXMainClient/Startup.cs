@@ -45,8 +45,6 @@ namespace DTAClient
             Thread thread = new Thread(CheckSystemSpecifications);
             thread.Start();
 
-            InstallCompatibilityFixes();
-
             if (Directory.Exists(MainClientConstants.gamepath + "Updater"))
             {
                 Logger.Log("Attempting to delete temporary updater directory.");
@@ -80,6 +78,8 @@ namespace DTAClient
             WriteInstallPathToRegistry();
 
             DomainController.Instance().RefreshSettings();
+
+            InstallCompatibilityFixes();
 
             GameClass gameClass = new GameClass();
             gameClass.Run();

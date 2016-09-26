@@ -389,7 +389,9 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             gameCreationPanel.Hide();
 
             connectionManager.MainChannel.AddMessage(new ChatMessage(null, Color.White, DateTime.Now,
-                "*** DTA CnCNet Client version " + System.Windows.Forms.Application.ProductVersion + " ***"));
+                Renderer.GetSafeString(
+                    "*** DTA CnCNet Client version " + 
+                    System.Windows.Forms.Application.ProductVersion + " ***", lbChatMessages.FontIndex)));
 
             loginWindow = new CnCNetLoginWindow(WindowManager);
             loginWindow.Connect += LoginWindow_Connect;

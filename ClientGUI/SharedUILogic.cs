@@ -51,6 +51,10 @@ namespace ClientGUI
 
                         form.Size = new Size(w, h);
                     }
+                    else if (key == "BackgroundImage")
+                    {
+                        form.BackgroundImage = LoadImage(clientThemeIni.GetStringValue(form.Name, "BackgroundImage", string.Empty));
+                    }
                 }
             }
 
@@ -446,9 +450,9 @@ namespace ClientGUI
 
         public static Image LoadImage(string resourceName)
         {
-            if (File.Exists(ProgramConstants.GamePath + ProgramConstants.RESOURCES_DIR + resourceName))
+            if (File.Exists(ProgramConstants.GetResourcePath() + resourceName))
                 return Image.FromStream(new MemoryStream(File.ReadAllBytes(ProgramConstants.GamePath + ProgramConstants.RESOURCES_DIR + resourceName)));
-            else if (File.Exists(ProgramConstants.GamePath + ProgramConstants.BASE_RESOURCE_PATH + "" + resourceName))
+            else if (File.Exists(ProgramConstants.GetBaseResourcePath() + "" + resourceName))
                 return Image.FromStream(new MemoryStream(File.ReadAllBytes(ProgramConstants.GamePath + ProgramConstants.BASE_RESOURCE_PATH + "" + resourceName)));
 
             return Properties.Resources.hotbutton;

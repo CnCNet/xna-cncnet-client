@@ -11,6 +11,7 @@ namespace ClientCore.Statistics
     {
         const string VERSION = "1.03";
         const string SCORE_FILE_PATH = "Client\\dscore.dat";
+        const string OLD_SCORE_FILE_PATH = "dscore.dat";
         static StatisticsManager _instance;
 
         public event EventHandler GameAdded;
@@ -36,49 +37,72 @@ namespace ClientCore.Statistics
                 return;
             }
 
+            Logger.Log("Reading statistics.");
+
+            this.gamePath = gamePath;
+
             Statistics.Clear();
+
+            bool resave = ReadFile(gamePath + OLD_SCORE_FILE_PATH);
+            bool resaveNew = ReadFile(gamePath + SCORE_FILE_PATH);
+
+            PurgeStats();
+
+            if (resave || resaveNew)
+            {
+                File.Copy(gamePath + OLD_SCORE_FILE_PATH, gamePath + "Client\\dscore_old.dat");
+                File.Delete(gamePath + OLD_SCORE_FILE_PATH);
+                SaveDatabase();
+            }
+        }
+
+        /// <summary>
+        /// Reads a statistics file.
+        /// </summary>
+        /// <param name="filePath">The path to the statistics file.</param>
+        /// <returns>A bool that determines whether the database should be re-saved.</returns>
+        private bool ReadFile(string filePath)
+        {
+            bool returnValue = false;
 
             try
             {
-                Logger.Log("Reading statistics.");
-
-                this.gamePath = gamePath;
-                string databaseVersion = GetStatDatabaseVersion(gamePath + SCORE_FILE_PATH);
+                string databaseVersion = GetStatDatabaseVersion(filePath);
 
                 if (databaseVersion == null)
-                    return; // No score database exists
+                    return false; // No score database exists
 
                 switch (databaseVersion)
                 {
                     case "1.00":
                     case "1.01":
-                        ReadDatabase(1.00);
-                        SaveDatabase();
+                        ReadDatabase(filePath, 1.00);
+                        returnValue = true;
                         break;
                     case "1.02":
-                        ReadDatabase(1.02);
-                        SaveDatabase();
+                        ReadDatabase(filePath, 1.02);
+                        returnValue = true;
                         break;
                     case "1.03":
-                        ReadDatabase(1.03);
+                        ReadDatabase(filePath, 1.03);
                         break;
                     default:
-                        throw new InvalidDataException("Invalid version for " + SCORE_FILE_PATH + ": " + databaseVersion);
+                        throw new InvalidDataException("Invalid version for " + filePath + ": " + databaseVersion);
                 }
-
-                PurgeStats();
             }
             catch (Exception ex)
             {
                 Logger.Log("Error reading statistics: " + ex.Message);
             }
+
+            return returnValue;
         }
 
-        private void ReadDatabase(double versionDouble)
+        private void ReadDatabase(string filePath, double versionDouble)
         {
             try
             {
-                using (FileStream fs = File.OpenRead(gamePath + SCORE_FILE_PATH))
+                using (FileStream fs = File.OpenRead(filePath))
                 {
                     fs.Position = 4; // Skip version
                     byte[] readBuffer = new byte[64];

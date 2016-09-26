@@ -107,9 +107,11 @@ namespace DTAClient
             {
                 if (Directory.Exists(Environment.CurrentDirectory + "\\Client\\ErrorLogs"))
                 {
+                    DateTime dtn = DateTime.Now;
+
                     File.Copy(Environment.CurrentDirectory + "\\Client\\client.log",
-                        Environment.CurrentDirectory + "\\Client\\ErrorLogs\\ClientCrashLog_" +
-                        DateTime.Now.ToString() + ".txt");
+                        Environment.CurrentDirectory + string.Format("\\Client\\ErrorLogs\\ClientCrashLog_{0}_{1}_{2}_{3}_{4}.txt",
+                        dtn.Day, dtn.Month, dtn.Year, dtn.Hour, dtn.Minute), true);
                 }
             }
             catch { }
