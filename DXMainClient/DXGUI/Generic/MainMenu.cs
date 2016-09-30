@@ -426,6 +426,7 @@ namespace DTAClient.DXGUI.Generic
             innerPanel.Hide();
             lblUpdateStatus.Text = "The update was cancelled. Click to retry.";
             lblUpdateStatus.DrawUnderline = true;
+            lblUpdateStatus.Enabled = true;
             updateInProgress = false;
         }
 
