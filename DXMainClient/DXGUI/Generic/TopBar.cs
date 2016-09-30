@@ -315,9 +315,10 @@ namespace DTAClient.DXGUI.Generic
 
             DateTime dtn = DateTime.Now;
 
-            lblTime.Text = dtn.ToLongTimeString();
-            if (lblDate.Text != dtn.ToShortDateString())
-                lblDate.Text = dtn.ToShortDateString();
+            lblTime.Text = Renderer.GetSafeString(dtn.ToLongTimeString(), lblTime.FontIndex);
+            string dateText = Renderer.GetSafeString(dtn.ToShortDateString(), lblDate.FontIndex);
+            if (lblDate.Text != dateText)
+                lblDate.Text = dateText;
 
             base.Update(gameTime);
         }

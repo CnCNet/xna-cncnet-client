@@ -49,15 +49,14 @@ namespace DTAClient.DXGUI.Multiplayer
         public void AddMessage(ChatMessage message)
         {
             if (message.Sender == null)
-                AddItem(string.Format("[{0}] {1}",
+                AddItem(Renderer.GetSafeString(string.Format("[{0}] {1}",
                     message.DateTime.ToShortTimeString(),
-                    Renderer.GetSafeString(message.Message, FontIndex)),
+                    message.Message), FontIndex),
                     message.Color, true);
             else
             {
-                AddItem(string.Format("[{0}] {1}: {2}",
-                    message.DateTime.ToShortTimeString(), message.Sender,
-                    Renderer.GetSafeString(message.Message, FontIndex)),
+                AddItem(Renderer.GetSafeString(string.Format("[{0}] {1}: {2}",
+                    message.DateTime.ToShortTimeString(), message.Sender, message.Message), FontIndex),
                     message.Color, true);
             }
 
