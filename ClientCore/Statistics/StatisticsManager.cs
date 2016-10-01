@@ -50,8 +50,11 @@ namespace ClientCore.Statistics
 
             if (resave || resaveNew)
             {
-                File.Copy(gamePath + OLD_SCORE_FILE_PATH, gamePath + "Client\\dscore_old.dat");
-                File.Delete(gamePath + OLD_SCORE_FILE_PATH);
+                if (File.Exists(gamePath + OLD_SCORE_FILE_PATH))
+                {
+                    File.Copy(gamePath + OLD_SCORE_FILE_PATH, gamePath + "Client\\dscore_old.dat");
+                    File.Delete(gamePath + OLD_SCORE_FILE_PATH);
+                }
                 SaveDatabase();
             }
         }
