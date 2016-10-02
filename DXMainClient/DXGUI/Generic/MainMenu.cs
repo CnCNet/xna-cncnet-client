@@ -400,8 +400,9 @@ namespace DTAClient.DXGUI.Generic
         private void UpdateWindow_UpdateFailed(object sender, UpdateFailureEventArgs e)
         {
             innerPanel.Hide();
-            lblUpdateStatus.Text = "Updating failed!";
-            lblUpdateStatus.DrawUnderline = false;
+            lblUpdateStatus.Text = "Updating failed! Click to retry.";
+            lblUpdateStatus.DrawUnderline = true;
+            lblUpdateStatus.Enabled = true;
             updateInProgress = false;
 
             innerPanel.Show(null); // Darkening
