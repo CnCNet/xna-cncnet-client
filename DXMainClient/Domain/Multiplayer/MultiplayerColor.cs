@@ -47,6 +47,9 @@ namespace DTAClient.Domain.Multiplayer
 
             List<string> colorKeys = gameOptionsIni.GetSectionKeys("MPColors");
 
+            if (colorKeys == null)
+                throw new InvalidINIFileException("[MPColors] not found in GameOptions.ini!");
+
             foreach (string key in colorKeys)
             {
                 string[] values = gameOptionsIni.GetStringValue("MPColors", key, "255,255,255,0").Split(',');
@@ -65,6 +68,17 @@ namespace DTAClient.Domain.Multiplayer
 
             colorList = mpColors;
             return mpColors;
+        }
+
+        /// <summary>
+        /// An exception that is thrown when an INI file contains
+        /// bad data or doesn't contain the expected data.
+        /// </summary>
+        class InvalidINIFileException : Exception
+        {
+            public InvalidINIFileException(string message) : base(message)
+            {
+            }
         }
     }
 }
