@@ -379,7 +379,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     rankItem.Texture = RankTextures[GetDefaultMapRankIndex(map) + 1];
 
                 XNAListBoxItem mapNameItem = new XNAListBoxItem();
-                mapNameItem.Text = map.Name;
+                mapNameItem.Text = Renderer.GetSafeString(map.Name, lbMapList.FontIndex);
                 if ((map.MultiplayerOnly || GameMode.MultiplayerOnly) && !isMultiplayer)
                     mapNameItem.TextColor = UISettings.DisabledButtonColor;
                 else
