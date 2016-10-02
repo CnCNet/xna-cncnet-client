@@ -641,14 +641,14 @@ namespace DTAClient.DXGUI.Generic
                 MatchStatistics ms = sm.GetMatchByIndex(gameIndex);
                 string dateTime = ms.DateAndTime.ToShortDateString() + " " + ms.DateAndTime.ToShortTimeString();
                 List<string> info = new List<string>();
-                info.Add(dateTime);
+                info.Add(Renderer.GetSafeString(dateTime, lbGameList.FontIndex));
                 info.Add(ms.MapName);
                 info.Add(ms.GameMode);
                 if (ms.AverageFPS == 0)
                     info.Add("-");
                 else
                     info.Add(ms.AverageFPS.ToString());
-                info.Add(TimeSpan.FromSeconds(ms.LengthInSeconds).ToString());
+                info.Add(Renderer.GetSafeString(TimeSpan.FromSeconds(ms.LengthInSeconds).ToString(), lbGameList.FontIndex));
                 info.Add(Conversions.BooleanToString(ms.SawCompletion, BooleanStringStyle.YESNO));
                 lbGameList.AddItem(info, true);
             }
