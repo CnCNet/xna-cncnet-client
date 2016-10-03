@@ -267,6 +267,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         public override void Initialize()
         {
+            Name = "PrivateMessagingWindow";
             ClientRectangle = new Rectangle(0, 0, 600, 600);
             BackgroundTexture = AssetLoader.LoadTextureUncached("privatemessagebg.png");
 

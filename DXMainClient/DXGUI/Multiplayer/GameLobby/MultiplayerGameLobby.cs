@@ -60,6 +60,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             ReadyBoxes = new XNACheckBox[PLAYER_COUNT];
 
             int readyBoxX = GameOptionsIni.GetIntValue(Name, "PlayerReadyBoxX", 7);
+            int readyBoxY = GameOptionsIni.GetIntValue(Name, "PlayerReadyBoxY", 4);
 
             for (int i = 0; i < PLAYER_COUNT; i++)
             {
@@ -67,7 +68,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 chkPlayerReady.Name = "chkPlayerReady" + i;
                 chkPlayerReady.Checked = false;
                 chkPlayerReady.AllowChecking = false;
-                chkPlayerReady.ClientRectangle = new Rectangle(readyBoxX, ddPlayerTeams[i].ClientRectangle.Y + 4,
+                chkPlayerReady.ClientRectangle = new Rectangle(readyBoxX, ddPlayerTeams[i].ClientRectangle.Y + readyBoxY,
                     0, 0);
 
                 PlayerOptionsPanel.AddChild(chkPlayerReady);
