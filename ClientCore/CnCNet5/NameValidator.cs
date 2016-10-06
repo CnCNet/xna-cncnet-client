@@ -12,8 +12,13 @@ namespace ClientCore.CnCNet5
         /// what is wrong with the name.</returns>
         public static string IsNameValid(string name)
         {
+            ProfanityFilter profanity = new ProfanityFilter(ProgramConstants.PROFANITY_WORDS);
+
             if (string.IsNullOrEmpty(name))
                 return "Please enter a name.";
+
+            if (profanity.IsOffensive(name))
+                return "Please enter a name that is less offensive.";
 
             int number = -1;
             if (int.TryParse(name.Substring(0, 1), out number))
