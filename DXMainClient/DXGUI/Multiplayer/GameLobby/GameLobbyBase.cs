@@ -1154,8 +1154,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 return;
             }
 
-            lblMapName.Text = "Map: " + map.Name;
-            lblMapAuthor.Text = "By " + map.Author;
+            lblMapName.Text = "Map: " + Renderer.GetSafeString(map.Name, lblMapName.FontIndex);
+            lblMapAuthor.Text = "By " + Renderer.GetSafeString(map.Author, lblMapAuthor.FontIndex);
             lblGameMode.Text = "Game mode: " + gameMode.UIName;
 
             lblMapAuthor.ClientRectangle = new Rectangle(MapPreviewBox.ClientRectangle.Right - lblMapAuthor.ClientRectangle.Width,
@@ -1317,7 +1317,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             mapChangeInProgress = false;
         }
 
-        protected void ApplyForcedCheckBoxOptions(List<GameLobbyCheckBox> optionList,
+        private void ApplyForcedCheckBoxOptions(List<GameLobbyCheckBox> optionList,
             List<KeyValuePair<string, bool>> forcedOptions)
         {
             foreach (KeyValuePair<string, bool> option in forcedOptions)
@@ -1332,7 +1332,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             }
         }
 
-        protected void ApplyForcedDropDownOptions(List<GameLobbyDropDown> optionList,
+        private void ApplyForcedDropDownOptions(List<GameLobbyDropDown> optionList,
             List<KeyValuePair<string, int>> forcedOptions)
         {
             foreach (KeyValuePair<string, int> option in forcedOptions)
