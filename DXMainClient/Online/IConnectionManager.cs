@@ -41,6 +41,8 @@
 
         void OnErrorReceived(string errorMessage);
 
+        void OnNameAlreadyInUse();
+
         // **********************
         // Connection-related methods
         // **********************

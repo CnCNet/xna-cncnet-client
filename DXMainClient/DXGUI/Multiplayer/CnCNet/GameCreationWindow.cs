@@ -139,6 +139,13 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             tunnelHandler.TunnelsRefreshed += TunnelHandler_TunnelsRefreshed;
             tunnelHandler.TunnelPinged += TunnelHandler_TunnelPinged;
+
+            UserINISettings.Instance.SettingsSaved += Instance_SettingsSaved;
+        }
+
+        private void Instance_SettingsSaved(object sender, EventArgs e)
+        {
+            tbGameName.Text = UserINISettings.Instance.PlayerName.Value + "'s Game";
         }
 
         private void BtnCancel_LeftClick(object sender, EventArgs e)

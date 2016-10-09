@@ -109,7 +109,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         private void Instance_SettingsSaved(object sender, EventArgs e)
         {
-            tbPlayerName.Text = ProgramConstants.PLAYERNAME;
+            tbPlayerName.Text = UserINISettings.Instance.PlayerName;
         }
 
         private void BtnCancel_LeftClick(object sender, EventArgs e)

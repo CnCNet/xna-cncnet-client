@@ -384,8 +384,8 @@ namespace DTAClient.Online
                             break;
                         case 433: // Name already in use
                             message = serverMessagePart + parameters[1] + ": " + parameters[2];
-                            connectionManager.OnGenericServerMessageReceived(message);
-                            Disconnect();
+                            //connectionManager.OnGenericServerMessageReceived(message);
+                            connectionManager.OnNameAlreadyInUse();
                             break;
                         case 451: // Not registered
                             Register();
@@ -637,6 +637,11 @@ namespace DTAClient.Online
             SendMessage(string.Format("USER {0} 0 * :{1}", defaultGame + "." + 
                 new Random().Next(10000, 99999).ToString(), realname));
 
+            SendMessage("NICK " + ProgramConstants.PLAYERNAME);
+        }
+
+        public void ChangeNickname()
+        {
             SendMessage("NICK " + ProgramConstants.PLAYERNAME);
         }
 

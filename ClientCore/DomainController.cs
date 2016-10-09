@@ -189,6 +189,11 @@ namespace ClientCore
             return clientDefinitionsIni.GetIntValue("Settings", "SendSleep", 2500);
         }
 
+        public int MaxNameLength
+        {
+            get { return clientDefinitionsIni.GetIntValue("Settings", "MaxNameLength", 16); }
+        }
+
         public string[] GetThemeInfoFromIndex(int themeIndex)
         {
             string[] values = clientDefinitionsIni.GetStringValue("Themes", themeIndex.ToString(), ",").Split(',');

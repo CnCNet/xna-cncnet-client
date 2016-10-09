@@ -20,6 +20,7 @@ namespace DTAClient.DXGUI
         public GameClass()
         {
             graphics = new GraphicsDeviceManager(this);
+            graphics.SynchronizeWithVerticalRetrace = false;
             content = new ContentManager(Services);
         }
 
@@ -89,8 +90,9 @@ namespace DTAClient.DXGUI
             playerName = playerName.Replace(",", string.Empty);
             playerName = Renderer.GetSafeString(playerName, 0);
             playerName.Trim();
-            if (playerName.Length > 16)
-                playerName = playerName.Substring(0, 16);
+            int maxNameLength = DomainController.Instance().MaxNameLength;
+            if (playerName.Length > maxNameLength)
+                playerName = playerName.Substring(0, maxNameLength);
 
             ProgramConstants.PLAYERNAME = playerName;
 

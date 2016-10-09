@@ -7,6 +7,8 @@ using Rampastring.Tools;
 using Rampastring.XNAUI;
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 
 namespace DTAClient.Online
 {
@@ -94,7 +96,7 @@ namespace DTAClient.Online
 
         WindowManager wm;
 
-        bool disconnect = false;
+        bool disconnect { get; set; }
 
         /// <summary>
         /// Factory method for creating a new channel.
@@ -611,6 +613,45 @@ namespace DTAClient.Online
         public bool GetDisconnectStatus()
         {
             return disconnect;
+        }
+
+        public void OnNameAlreadyInUse()
+        {
+            wm.AddCallback(new Action(DoNameAlreadyInUse), null);
+        }
+
+        private void DoNameAlreadyInUse()
+        {
+            var charList = ProgramConstants.PLAYERNAME.ToList();
+            int maxNameLength = DomainController.Instance().MaxNameLength;
+
+            if (charList.Count < maxNameLength)
+                charList.Add('_');
+            else
+            {
+                int lastNonUnderscoreIndex = charList.FindLastIndex(c => c != '_');
+
+                if (lastNonUnderscoreIndex == -1)
+                {
+                    MainChannel.AddMessage(new ChatMessage(Color.White, 
+                        "Your nickname is invalid or already in use. Please change your nickname in the login screen."));
+                    UserINISettings.Instance.SkipConnectDialog.Value = false;
+                    Disconnect();
+                    return;
+                }
+
+                charList[lastNonUnderscoreIndex] = '_';
+            }
+
+            var sb = new StringBuilder();
+            foreach (char c in charList)
+                sb.Append(c);
+
+            MainChannel.AddMessage(new ChatMessage(Color.White,
+                string.Format("Your name is already in use. Retrying with {0}...", sb.ToString())));
+
+            ProgramConstants.PLAYERNAME = sb.ToString();
+            connection.ChangeNickname();
         }
     }
 }

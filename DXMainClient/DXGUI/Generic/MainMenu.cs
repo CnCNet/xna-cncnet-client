@@ -159,7 +159,6 @@ namespace DTAClient.DXGUI.Generic
             btnExit.HoverTexture = AssetLoader.LoadTexture("MainMenu\\exitgame_c.png");
             btnExit.HoverSoundEffect = AssetLoader.LoadSound("MainMenu\\button.wav");
             btnExit.LeftClick += BtnExit_LeftClick;
-            btnExit.HotKey = Keys.Escape;
 
             XNALabel lblCnCNetStatus = new XNALabel(WindowManager);
             lblCnCNetStatus.Name = "lblCnCNetStatus";
