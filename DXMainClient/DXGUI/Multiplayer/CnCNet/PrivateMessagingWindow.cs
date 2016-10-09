@@ -127,6 +127,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 var item = new XNAListBoxItem(ircUser.Name, UISettings.AltColor);
                 item.Tag = true;
                 item.Texture = GetUserTexture(ircUser);
+                lbUserList.AddItem(item);
             }
         }
 
