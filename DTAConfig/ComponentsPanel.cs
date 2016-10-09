@@ -34,6 +34,7 @@ namespace DTAConfig
             foreach (CustomComponent c in CUpdater.CustomComponents)
             {
                 string buttonText = "Not Available";
+                
 
                 if (File.Exists(ProgramConstants.GamePath + c.LocalPath))
                 {
@@ -45,7 +46,9 @@ namespace DTAConfig
                 else
                 {
                     if (!string.IsNullOrEmpty(c.RemoteIdentifier))
+                    {
                         buttonText = "Install";
+                    }
                 }
 
                 var btn = new XNAClientButton(WindowManager);
@@ -73,6 +76,7 @@ namespace DTAConfig
         public override void Load()
         {
             int componentIndex = 0;
+            bool buttonEnabled = false;
 
             foreach (CustomComponent c in CUpdater.CustomComponents)
             {
@@ -81,6 +85,7 @@ namespace DTAConfig
                 if (File.Exists(ProgramConstants.GamePath + c.LocalPath))
                 {
                     buttonText = "Uninstall";
+                    buttonEnabled = true;
 
                     if (c.LocalIdentifier != c.RemoteIdentifier)
                         buttonText = "Update";
@@ -88,10 +93,14 @@ namespace DTAConfig
                 else
                 {
                     if (!string.IsNullOrEmpty(c.RemoteIdentifier))
+                    {
                         buttonText = "Install";
+                        buttonEnabled = true;
+                    }
                 }
 
                 installationButtons[componentIndex].Text = buttonText;
+                installationButtons[componentIndex].AllowClick = buttonEnabled;
 
                 componentIndex++;
             }
