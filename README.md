@@ -14,4 +14,4 @@ Windows XP is supported through Microsoft's XNA Framework, version 4.0 Refresh: 
 External prerequisites:
 - Rampastring.Tools: https://github.com/Rampastring/Rampastring.Tools
 - Rampastring.XNAUI: https://github.com/Rampastring/Rampastring.XNAUI
-- For building for Windows XP, Microsoft XNA Game Studio 4.0 Refresh: https://www.microsoft.com/en-us/download/details.aspx?id=27599
+- For building for Windows XP, Microsoft XNA Game Studio 4.0 Refresh: https://www.microsoft.com/en-us/download/details.aspx?id=27599 (2013) - https://mxa.codeplex.com/releases/view/618279 (2015)
