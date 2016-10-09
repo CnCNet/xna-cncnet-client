@@ -60,6 +60,9 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             if (tabControl.SelectedTab == ALL_PLAYERS_VIEW_INDEX)
             {
+                if (e.UserIndex < lbUserList.SelectedIndex)
+                    lbUserList.SelectedIndex--;
+
                 lbUserList.Items.RemoveAt(e.UserIndex);
             }
             else
@@ -120,6 +123,12 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         private void RefreshAllUsers()
         {
+            string selectedUserName = string.Empty;
+
+            var selectedItem = lbUserList.SelectedItem;
+            if (selectedItem != null)
+                selectedUserName = selectedItem.Text;
+
             lbUserList.Clear();
 
             foreach (var ircUser in connectionManager.UserList)
@@ -129,6 +138,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 item.Texture = GetUserTexture(ircUser);
                 lbUserList.AddItem(item);
             }
+
+            lbUserList.SelectedIndex = lbUserList.Items.FindIndex(item => item.Text == selectedUserName);
         }
 
         private void WindowManager_GameClosing(object sender, EventArgs e)
