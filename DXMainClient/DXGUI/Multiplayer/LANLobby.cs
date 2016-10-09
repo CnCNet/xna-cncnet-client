@@ -281,7 +281,7 @@ namespace DTAClient.DXGUI.Multiplayer
             gameCreationWindow.NewGame += GameCreationWindow_NewGame;
             gameCreationWindow.LoadGame += GameCreationWindow_LoadGame;
 
-            unknownGameIcon = AssetLoader.TextureFromImage(Resources.unknownicon);
+            unknownGameIcon = AssetLoader.TextureFromImage(ClientCore.Properties.Resources.unknownicon);
 
             SoundEffect gameCreatedSoundEffect = AssetLoader.LoadSound("gamecreated.wav");
 

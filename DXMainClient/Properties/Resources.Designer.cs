@@ -61,46 +61,6 @@ namespace DTAClient.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized resource of type System.Drawing.Bitmap.
-        /// </summary>
-        internal static System.Drawing.Bitmap cncneticon {
-            get {
-                object obj = ResourceManager.GetObject("cncneticon", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized resource of type System.Drawing.Bitmap.
-        /// </summary>
-        internal static System.Drawing.Bitmap dtaicon {
-            get {
-                object obj = ResourceManager.GetObject("dtaicon", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized resource of type System.Drawing.Bitmap.
-        /// </summary>
-        internal static System.Drawing.Bitmap moicon {
-            get {
-                object obj = ResourceManager.GetObject("moicon", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized resource of type System.Drawing.Bitmap.
-        /// </summary>
-        internal static System.Drawing.Bitmap raicon {
-            get {
-                object obj = ResourceManager.GetObject("raicon", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to [Options]
         ///GameSpeed=1
         ///ScrollMethod=0
@@ -135,56 +95,6 @@ namespace DTAClient.Properties {
         internal static string settings_ini {
             get {
                 return ResourceManager.GetString("settings_ini", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized resource of type System.Drawing.Bitmap.
-        /// </summary>
-        internal static System.Drawing.Bitmap tdicon {
-            get {
-                object obj = ResourceManager.GetObject("tdicon", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized resource of type System.Drawing.Bitmap.
-        /// </summary>
-        internal static System.Drawing.Bitmap tiicon {
-            get {
-                object obj = ResourceManager.GetObject("tiicon", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized resource of type System.Drawing.Bitmap.
-        /// </summary>
-        internal static System.Drawing.Bitmap tsicon {
-            get {
-                object obj = ResourceManager.GetObject("tsicon", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized resource of type System.Drawing.Bitmap.
-        /// </summary>
-        internal static System.Drawing.Bitmap unknownicon {
-            get {
-                object obj = ResourceManager.GetObject("unknownicon", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized resource of type System.Drawing.Bitmap.
-        /// </summary>
-        internal static System.Drawing.Bitmap yricon {
-            get {
-                object obj = ResourceManager.GetObject("yricon", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
             }
         }
     }

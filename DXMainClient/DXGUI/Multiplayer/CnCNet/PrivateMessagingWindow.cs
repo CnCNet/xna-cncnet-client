@@ -271,8 +271,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             ClientRectangle = new Rectangle(0, 0, 600, 600);
             BackgroundTexture = AssetLoader.LoadTextureUncached("privatemessagebg.png");
 
-            unknownGameIcon = AssetLoader.TextureFromImage(Resources.unknownicon);
-            adminGameIcon = AssetLoader.TextureFromImage(Resources.cncneticon);
+            unknownGameIcon = AssetLoader.TextureFromImage(ClientCore.Properties.Resources.unknownicon);
+            adminGameIcon = AssetLoader.TextureFromImage(ClientCore.Properties.Resources.cncneticon);
 
             personalMessageColor = AssetLoader.GetColorFromString(DomainController.Instance().SentPMColor);
             otherUserMessageColor = AssetLoader.GetColorFromString(DomainController.Instance().GetReceivedPMColor());

@@ -620,6 +620,11 @@ namespace DTAClient.Online
             wm.AddCallback(new Action(DoNameAlreadyInUse), null);
         }
 
+        /// <summary>
+        /// Handles situations when the requested name is already in use by another
+        /// IRC user. Adds additional underscores to the name or replaces existing
+        /// characters with underscores.
+        /// </summary>
         private void DoNameAlreadyInUse()
         {
             var charList = ProgramConstants.PLAYERNAME.ToList();

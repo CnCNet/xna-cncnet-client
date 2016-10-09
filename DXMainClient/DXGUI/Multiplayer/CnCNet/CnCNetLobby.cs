@@ -366,8 +366,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 sndGameCreated = gameCreatedSoundEffect.CreateInstance();
 
             cAdminNameColor = AssetLoader.GetColorFromString(DomainController.Instance().GetAdminNameColor());
-            unknownGameIcon = AssetLoader.TextureFromImage(Resources.unknownicon);
-            adminGameIcon = AssetLoader.TextureFromImage(Resources.cncneticon);
+            unknownGameIcon = AssetLoader.TextureFromImage(ClientCore.Properties.Resources.unknownicon);
+            adminGameIcon = AssetLoader.TextureFromImage(ClientCore.Properties.Resources.cncneticon);
 
             connectionManager.WelcomeMessageReceived += ConnectionManager_WelcomeMessageReceived;
             connectionManager.Disconnected += ConnectionManager_Disconnected;

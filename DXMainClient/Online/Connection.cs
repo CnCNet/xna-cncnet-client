@@ -13,7 +13,8 @@ namespace DTAClient.Online
     /// </summary>
     public class Connection
     {
-        const int MAX_NAME_LENGTH = 16;
+        const int MAX_RECONNECT_COUNT = 8;
+        const int RECONNECT_WAIT_DELAY = 4000;
 
         public Connection(IConnectionManager connectionManager)
         {
@@ -243,13 +244,13 @@ namespace DTAClient.Online
 
                 reconnectCount++;
 
-                if (reconnectCount > 8)
+                if (reconnectCount > MAX_RECONNECT_COUNT)
                 {
                     Logger.Log("Reconnect attempt count exceeded!");
                     return;
                 }
 
-                Thread.Sleep(1000);
+                Thread.Sleep(RECONNECT_WAIT_DELAY);
 
                 Logger.Log("Attempting to reconnect to CnCNet.");
                 connectionManager.OnReconnectAttempt();

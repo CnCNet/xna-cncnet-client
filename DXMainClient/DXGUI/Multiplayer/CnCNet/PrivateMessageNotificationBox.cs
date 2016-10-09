@@ -70,7 +70,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             gameIconPanel.Name = "gameIconPanel";
             gameIconPanel.ClientRectangle = new Rectangle(12, 30, 16, 16);
             gameIconPanel.DrawBorders = false;
-            gameIconPanel.BackgroundTexture = AssetLoader.TextureFromImage(Resources.dtaicon);
+            gameIconPanel.BackgroundTexture = AssetLoader.TextureFromImage(ClientCore.Properties.Resources.dtaicon);
 
             lblSender = new XNALabel(WindowManager);
             lblSender.Name = "lblSender";
