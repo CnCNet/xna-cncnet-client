@@ -203,6 +203,8 @@ namespace ClientGUI
             DarkeningPanel.AddAndInitializeWithControl(WindowManager, this);
         }
 
+        #region Static Show methods
+
         /// <summary>
         /// Creates and displays a new message box with the specified caption and description.
         /// </summary>
@@ -236,6 +238,55 @@ namespace ClientGUI
             parent.Hidden += Parent_Hidden;
         }
 
+        /// <summary>
+        /// Shows a message box with "Yes" and "No" being the user input options.
+        /// </summary>
+        /// <param name="windowManager">The WindowManager.</param>
+        /// <param name="caption">The caption of the message box.</param>
+        /// <param name="description">The description in the message box.</param>
+        /// <returns>The XNAMessageBox instance that is created.</returns>
+        public static XNAMessageBox ShowYesNoDialog(WindowManager windowManager, string caption, string description)
+        {
+            var panel = new DarkeningPanel(windowManager);
+            panel.Focused = true;
+            windowManager.AddAndInitializeControl(panel);
+
+            var msgBox = new XNAMessageBox(windowManager,
+                Renderer.GetSafeString(caption, 1),
+                Renderer.GetSafeString(description, 0),
+                DXMessageBoxButtons.YesNo);
+
+            panel.AddChild(msgBox);
+            msgBox.YesClicked += MsgBox_YesClicked;
+            msgBox.NoClicked += MsgBox_NoClicked;
+
+            return msgBox;
+        }
+
+        private static void MsgBox_NoClicked(object sender, EventArgs e)
+        {
+            var messagebox = (XNAMessageBox)sender;
+
+            messagebox.YesClicked -= MsgBox_YesClicked;
+            messagebox.NoClicked -= MsgBox_NoClicked;
+
+            var parent = (DarkeningPanel)messagebox.Parent;
+            parent.Hide();
+            parent.Hidden += Parent_Hidden;
+        }
+
+        private static void MsgBox_YesClicked(object sender, EventArgs e)
+        {
+            var messagebox = (XNAMessageBox)sender;
+
+            messagebox.YesClicked -= MsgBox_YesClicked;
+            messagebox.NoClicked -= MsgBox_NoClicked;
+
+            var parent = (DarkeningPanel)messagebox.Parent;
+            parent.Hide();
+            parent.Hidden += Parent_Hidden;
+        }
+
         private static void Parent_Hidden(object sender, EventArgs e)
         {
             var darkeningPanel = (DarkeningPanel)sender;
@@ -243,6 +294,8 @@ namespace ClientGUI
             darkeningPanel.WindowManager.RemoveControl(darkeningPanel);
             darkeningPanel.Hidden -= Parent_Hidden;
         }
+
+        #endregion
     }
 
     public enum DXMessageBoxButtons

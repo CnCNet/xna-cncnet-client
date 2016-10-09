@@ -294,11 +294,10 @@ namespace DTAClient.DXGUI.Generic
                 UserINISettings.Instance.IsFirstRun.Value = false;
                 UserINISettings.Instance.SaveSettings();
 
-                var msgBox = new XNAMessageBox(WindowManager, "Initial Installation",
-                    "You have just installed {0}. " + Environment.NewLine +
+                var msgBox = XNAMessageBox.ShowYesNoDialog(WindowManager, "Initial Installation",
+                    string.Format("You have just installed {0}." + Environment.NewLine +
                     "It's highly recommended that you configure your settings before playing." +
-                    Environment.NewLine + "Do you want to configure them now?", DXMessageBoxButtons.YesNo);
-                msgBox.Show();
+                    Environment.NewLine + "Do you want to configure them now?", DomainController.Instance().GetDefaultGame()));
                 msgBox.YesClicked += MsgBox_YesClicked;
                 msgBox.NoClicked += MsgBox_NoClicked;
             }
@@ -392,6 +391,8 @@ namespace DTAClient.DXGUI.Generic
                     lblUpdateStatus.Text = "Click to check for updates.";
                 }
             }
+
+            CheckIfFirstRun();
         }
 
         #region Updating / versioning system
