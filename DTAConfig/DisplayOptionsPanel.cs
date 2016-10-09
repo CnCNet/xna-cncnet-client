@@ -45,6 +45,8 @@ namespace DTAConfig
 
         private bool GameCompatFixInstalled = false;
         private bool FinalSunCompatFixInstalled = false;
+        private bool GameCompatFixDeclined = false;
+        //private bool FinalSunCompatFixDeclined = false;
 #endif
 
 #if DTA
@@ -73,7 +75,7 @@ namespace DTAConfig
                 lblIngameResolution.ClientRectangle.Right + 12,
                 lblIngameResolution.ClientRectangle.Y - 2, 120, 19);
 
-            var resolutions = ScreenResolutionOperations.GetScreenResolutions(640, 480, 4096, 4096, 32);
+            var resolutions = ScreenResolutionOperations.GetScreenResolutions(640, 480, 4096, 4096, 32, false);
 
             foreach (var res in resolutions)
                 ddIngameResolution.AddItem(res);
@@ -155,8 +157,10 @@ namespace DTAConfig
                 ddIngameResolution.ClientRectangle.Height);
             ddClientResolution.AllowDropDown = false;
 
+            var screenBounds = Screen.PrimaryScreen.Bounds;
+
             resolutions = ScreenResolutionOperations.GetScreenResolutions(800, 600,
-                Screen.PrimaryScreen.Bounds.Width, Screen.PrimaryScreen.Bounds.Height, 32);
+                screenBounds.Width, screenBounds.Height, 32, true);
 
             foreach (var res in resolutions)
             {
@@ -312,6 +316,60 @@ namespace DTAConfig
         }
 
 #if !YR
+
+        /// <summary>
+        /// Asks the user whether they want to install the DTA/TI/TS compatibility fix.
+        /// </summary>
+        public void PostInit()
+        {
+            Load();
+
+            if (!GameCompatFixInstalled && !GameCompatFixDeclined)
+            {
+                string defaultGame = DomainController.Instance().GetDefaultGame();
+
+                var messageBox = XNAMessageBox.ShowYesNoDialog(WindowManager, "New Compatibility Fix",
+                    "A performance-enhancing compatibility fix for Windows 8 and 10" + Environment.NewLine +
+                    "has been included in this version of " + defaultGame + ". Enabling it requires" + Environment.NewLine +
+                    "administrative priveleges. Would you like to install the compatibility fix?" + Environment.NewLine + Environment.NewLine + 
+                    "You'll always be able to install or uninstall the compatibility fix later from the options menu.");
+                messageBox.YesClicked += MessageBox_YesClicked;
+                messageBox.NoClicked += MessageBox_NoClicked;
+            }
+        }
+
+        private void MessageBox_NoClicked(object sender, EventArgs e)
+        {
+            var messageBox = (XNAMessageBox)sender;
+            messageBox.YesClicked -= MessageBox_YesClicked;
+            messageBox.NoClicked -= MessageBox_NoClicked;
+
+            // Set compatibility fix declined flag in registry
+            try
+            {
+                RegistryKey regKey = Registry.CurrentUser.OpenSubKey("SOFTWARE\\Tiberian Sun Client");
+
+                try
+                {
+                    regKey = Registry.CurrentUser.OpenSubKey("SOFTWARE", true);
+                    regKey = regKey.CreateSubKey("Tiberian Sun Client");
+                    regKey.SetValue("TSCompatFixDeclined", "Yes");
+                }
+                catch (Exception ex)
+                {
+                    Logger.Log("Setting TSCompatFixDeclined failed! Returned error: " + ex.Message);
+                }
+            }
+            catch { }
+        }
+
+        private void MessageBox_YesClicked(object sender, EventArgs e)
+        {
+            var messageBox = (XNAMessageBox)sender;
+            messageBox.YesClicked -= MessageBox_YesClicked;
+            messageBox.NoClicked -= MessageBox_NoClicked;
+            BtnGameCompatibilityFix_LeftClick(sender, EventArgs.Empty);
+        }
 
         private void BtnGameCompatibilityFix_LeftClick(object sender, EventArgs e)
         {
@@ -537,6 +595,20 @@ namespace DTAConfig
                 FinalSunCompatFixInstalled = true;
                 btnMapEditorCompatibilityFix.Text = "Disable";
             }
+
+            object tsCompatFixDeclinedValue = regKey.GetValue("TSCompatFixDeclined", "No");
+
+            if (((string)tsCompatFixDeclinedValue) == "Yes")
+            {
+                GameCompatFixDeclined = true;
+            }
+
+            //object fsCompatFixDeclinedValue = regKey.GetValue("FSCompatFixDeclined", "No");
+
+            //if (((string)fsCompatFixDeclinedValue) == "Yes")
+            //{
+            //    FinalSunCompatFixDeclined = true;
+            //}
 #endif
         }
 
@@ -859,7 +931,7 @@ namespace DTAConfig
             }
 
             public static List<string> GetScreenResolutions(int minWidth,
-                int minHeight, int maxWidth, int maxHeight, int colordepth)
+                int minHeight, int maxWidth, int maxHeight, int colordepth, bool addOptimalResolutions)
             {
                 List<ScreenResolution> screenresolutions = new List<ScreenResolution>();
                 try
@@ -890,6 +962,19 @@ namespace DTAConfig
                 catch
                 {
                 }
+
+                if (addOptimalResolutions && maxWidth >= 1280 && maxHeight >= 800)
+                {
+                    // Add our "optimal resolutions" to the list if they don't exist,
+                    // but the screen is big enough for them
+
+                    if (screenresolutions.Find(res => res.Width == 1280 && res.Height == 800) == null)
+                        screenresolutions.Add(new ScreenResolution(1280, 800));
+
+                    if (screenresolutions.Find(res => res.Width == 1280 && res.Height == 768) == null)
+                        screenresolutions.Add(new ScreenResolution(1280, 768));
+                }
+
                 // sort, using ScreenResolution's CompareTo method.
                 screenresolutions.Sort();
 

@@ -912,9 +912,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             InitializeMatchStatistics(houseInfos);
             WriteMap(houseInfos);
 
-            SharedUILogic.GameProcessExited += GameProcessExited_Callback;
+            GameProcessLogic.GameProcessExited += GameProcessExited_Callback;
 
-            SharedUILogic.StartGameProcess(0);
+            GameProcessLogic.StartGameProcess(0);
         }
 
         private void GameProcessExited_Callback()
@@ -924,7 +924,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         protected virtual void GameProcessExited()
         {
-            SharedUILogic.GameProcessExited -= GameProcessExited_Callback;
+            GameProcessLogic.GameProcessExited -= GameProcessExited_Callback;
 
             Logger.Log("GameProcessExited: Parsing statistics.");
 

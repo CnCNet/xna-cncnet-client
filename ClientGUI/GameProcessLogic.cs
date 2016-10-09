@@ -1,0 +1,112 @@
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Windows.Forms;
+using System.Drawing;
+using System.Diagnostics;
+using ClientCore;
+using Rampastring.Tools;
+using Utilities = ClientCore.Utilities;
+
+namespace ClientGUI
+{
+    /// <summary>
+    /// A static class used for controlling the launching and exiting of the game executable.
+    /// </summary>
+    public static class GameProcessLogic
+    {
+        public static event Action GameProcessStarted;
+
+        public static event Action GameProcessStarting;
+
+        public static event Action GameProcessExited;
+
+        /// <summary>
+        /// Starts the main game process.
+        /// </summary>
+        /// <param name="processId">The index of the game process to start (for RA2 support;
+        /// GameOptions.ini -> GameExecutableNames= allows multiple names).</param>
+        public static void StartGameProcess(int processId)
+        {
+            string gameExecutableName = DomainController.Instance().GetGameExecutableName(processId);
+
+            string extraCommandLine = DomainController.Instance().GetExtraCommandLineParameters();
+
+            File.Delete(ProgramConstants.GamePath + "DTA.LOG");
+
+            GameProcessStarting?.Invoke();
+
+            if (UserINISettings.Instance.WindowedMode)
+            {
+                Logger.Log("Windowed mode is enabled - using QRes.");
+                Process QResProcess = new Process();
+                QResProcess.StartInfo.FileName = ProgramConstants.QRES_EXECUTABLE;
+                QResProcess.StartInfo.UseShellExecute = false;
+                if (!string.IsNullOrEmpty(extraCommandLine))
+                    QResProcess.StartInfo.Arguments = "c=16 /R " + "\"" + ProgramConstants.GamePath + gameExecutableName + "\" " + extraCommandLine + " -SPAWN";
+                else
+                    QResProcess.StartInfo.Arguments = "c=16 /R " + "\"" + ProgramConstants.GamePath + gameExecutableName + "\" " + "-SPAWN";
+                QResProcess.EnableRaisingEvents = true;
+                QResProcess.Exited += new EventHandler(Process_Exited);
+                try
+                {
+                    QResProcess.Start();
+                }
+                catch (Exception ex)
+                {
+                    Logger.Log("Error launching QRes: " + ex.Message);
+                    MessageBox.Show("Error launching " + ProgramConstants.QRES_EXECUTABLE + ". Please check that your anti-virus isn't blocking the CnCNet Client. " +
+                        "You can also try running the client as an administrator." + Environment.NewLine + Environment.NewLine + "You are unable to participate in this match." +
+                        Environment.NewLine + Environment.NewLine + "Returned error: " + ex.Message,
+                        "Error launching game", MessageBoxButtons.OK);
+                    Process_Exited(QResProcess, EventArgs.Empty);
+                    return;
+                }
+
+                if (Environment.ProcessorCount > 1)
+                    QResProcess.ProcessorAffinity = (IntPtr)2;
+            }
+            else
+            {
+                Process DtaProcess = new Process();
+                DtaProcess.StartInfo.FileName = gameExecutableName;
+                DtaProcess.StartInfo.UseShellExecute = false;
+                if (!string.IsNullOrEmpty(extraCommandLine))
+                    DtaProcess.StartInfo.Arguments = " " + extraCommandLine + " -SPAWN";
+                else
+                    DtaProcess.StartInfo.Arguments = "-SPAWN";
+                DtaProcess.EnableRaisingEvents = true;
+                DtaProcess.Exited += new EventHandler(Process_Exited);
+                try
+                {
+                    DtaProcess.Start();
+                }
+                catch (Exception ex)
+                {
+                    Logger.Log("Error launching " + gameExecutableName + ": " + ex.Message);
+                    MessageBox.Show("Error launching " + gameExecutableName + ". Please check that your anti-virus isn't blocking the CnCNet Client. " +
+                        "You can also try running the client as an administrator." + Environment.NewLine + Environment.NewLine + "You are unable to participate in this match." + 
+                        Environment.NewLine + Environment.NewLine + "Returned error: " + ex.Message,
+                        "Error launching game", MessageBoxButtons.OK);
+                    Process_Exited(DtaProcess, EventArgs.Empty);
+                    return;
+                }
+
+                if (Environment.ProcessorCount > 1)
+                    DtaProcess.ProcessorAffinity = (IntPtr)2;
+            }
+
+            GameProcessStarted?.Invoke();
+
+            Logger.Log("Waiting for qres.dat or " + gameExecutableName + " to exit.");
+        }
+
+        static void Process_Exited(object sender, EventArgs e)
+        {
+            Process proc = (Process)sender;
+            proc.Exited -= Process_Exited;
+            proc.Dispose();
+            GameProcessExited?.Invoke();
+        }
+    }
+}

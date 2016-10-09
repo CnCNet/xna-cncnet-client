@@ -52,8 +52,8 @@ namespace DTAClient.DXGUI
 
             base.Initialize();
 
-            SharedUILogic.GameProcessStarted += SharedUILogic_GameProcessStarted;
-            SharedUILogic.GameProcessExited += SharedUILogic_GameProcessExited;
+            GameProcessLogic.GameProcessStarted += SharedUILogic_GameProcessStarted;
+            GameProcessLogic.GameProcessExited += SharedUILogic_GameProcessExited;
 
             explanation.CenterOnParent();
 

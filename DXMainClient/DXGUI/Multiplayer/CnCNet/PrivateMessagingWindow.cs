@@ -311,7 +311,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 sndMessageSound.Enabled = UserINISettings.Instance.MessageSound;
             }
 
-            SharedUILogic.GameProcessExited += SharedUILogic_GameProcessExited;
+            GameProcessLogic.GameProcessExited += SharedUILogic_GameProcessExited;
         }
 
         private void SharedUILogic_GameProcessExited()

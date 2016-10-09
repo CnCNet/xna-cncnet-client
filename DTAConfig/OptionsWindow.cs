@@ -25,6 +25,8 @@ namespace DTAConfig
         XNAOptionsPanel[] optionsPanels;
         ComponentsPanel componentsPanel;
 
+        DisplayOptionsPanel displayOptionsPanel;
+
         GameCollection gameCollection;
 
         public override void Initialize()
@@ -59,11 +61,12 @@ namespace DTAConfig
             btnSave.Text = "Save";
             btnSave.LeftClick += BtnSave_LeftClick;
 
+            displayOptionsPanel = new DisplayOptionsPanel(WindowManager, UserINISettings.Instance);
             componentsPanel = new ComponentsPanel(WindowManager, UserINISettings.Instance);
 
             optionsPanels = new XNAOptionsPanel[]
             {
-                new DisplayOptionsPanel(WindowManager, UserINISettings.Instance),
+                displayOptionsPanel,
                 new AudioOptionsPanel(WindowManager, UserINISettings.Instance),
                 new GameOptionsPanel(WindowManager, UserINISettings.Instance),
                 new CnCNetOptionsPanel(WindowManager, UserINISettings.Instance, gameCollection),
@@ -235,6 +238,13 @@ namespace DTAConfig
             componentsPanel.Open();
 
             Enable();
+        }
+
+        public void PostInit()
+        {
+#if !YR
+            displayOptionsPanel.PostInit();
+#endif
         }
     }
 }

@@ -248,7 +248,6 @@ namespace ClientGUI
         public static XNAMessageBox ShowYesNoDialog(WindowManager windowManager, string caption, string description)
         {
             var panel = new DarkeningPanel(windowManager);
-            panel.Focused = true;
             windowManager.AddAndInitializeControl(panel);
 
             var msgBox = new XNAMessageBox(windowManager,

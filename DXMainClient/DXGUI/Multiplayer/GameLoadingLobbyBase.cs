@@ -331,8 +331,8 @@ namespace DTAClient.DXGUI.Multiplayer
 
             gameLoadTime = DateTime.Now;
 
-            SharedUILogic.GameProcessExited += SharedUILogic_GameProcessExited;
-            SharedUILogic.StartGameProcess(0);
+            GameProcessLogic.GameProcessExited += SharedUILogic_GameProcessExited;
+            GameProcessLogic.StartGameProcess(0);
             
             fsw.EnableRaisingEvents = true;
         }
@@ -346,7 +346,7 @@ namespace DTAClient.DXGUI.Multiplayer
         {
             fsw.EnableRaisingEvents = false;
 
-            SharedUILogic.GameProcessExited -= SharedUILogic_GameProcessExited;
+            GameProcessLogic.GameProcessExited -= SharedUILogic_GameProcessExited;
 
             var matchStatistics = StatisticsManager.Instance.GetMatchWithGameID(uniqueGameId);
 

@@ -65,7 +65,7 @@ namespace DTAClient.DXGUI.Generic
 
         public override void Initialize()
         {
-            SharedUILogic.GameProcessExited += SharedUILogic_GameProcessExited;
+            GameProcessLogic.GameProcessExited += SharedUILogic_GameProcessExited;
 
             Name = "MainMenu";
             BackgroundTexture = AssetLoader.LoadTexture("MainMenu\\mainmenubg.png");
@@ -229,8 +229,8 @@ namespace DTAClient.DXGUI.Generic
             skirmishLobby.Exited += SkirmishLobby_Exited;
             lanLobby.Exited += LanLobby_Exited;
 
-            SharedUILogic.GameProcessStarted += SharedUILogic_GameProcessStarted;
-            SharedUILogic.GameProcessStarting += SharedUILogic_GameProcessStarting;
+            GameProcessLogic.GameProcessStarted += SharedUILogic_GameProcessStarted;
+            GameProcessLogic.GameProcessStarting += SharedUILogic_GameProcessStarting;
 
             UserINISettings.Instance.SettingsSaved += SettingsSaved;
 
@@ -301,6 +301,8 @@ namespace DTAClient.DXGUI.Generic
                 msgBox.YesClicked += MsgBox_YesClicked;
                 msgBox.NoClicked += MsgBox_NoClicked;
             }
+
+            optionsWindow.PostInit();
         }
 
         private void MsgBox_NoClicked(object sender, EventArgs e)

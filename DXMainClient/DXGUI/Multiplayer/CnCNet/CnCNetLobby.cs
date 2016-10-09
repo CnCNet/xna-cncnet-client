@@ -418,8 +418,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             UserINISettings.Instance.SettingsSaved += Instance_SettingsSaved;
 
-            SharedUILogic.GameProcessStarted += SharedUILogic_GameProcessStarted;
-            SharedUILogic.GameProcessExited += SharedUILogic_GameProcessExited;
+            GameProcessLogic.GameProcessStarted += SharedUILogic_GameProcessStarted;
+            GameProcessLogic.GameProcessExited += SharedUILogic_GameProcessExited;
         }
 
         private void SharedUILogic_GameProcessStarted()
