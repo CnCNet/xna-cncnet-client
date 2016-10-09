@@ -472,7 +472,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 return;
             }
 
-            string userName = currentChatChannel.Users[lbPlayerList.SelectedIndex].Name;
+            string userName = currentChatChannel.Users[lbPlayerList.SelectedIndex].IRCUser.Name;
 
             if (pmWindow.IsFriend(userName))
             {
@@ -518,7 +518,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 return;
             }
 
-            string userName = currentChatChannel.Users[lbPlayerList.SelectedIndex].Name;
+            string userName = currentChatChannel.Users[lbPlayerList.SelectedIndex].IRCUser.Name;
 
             switch (e.Index)
             {
@@ -548,9 +548,9 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 return;
             }
 
-            var ircUser = (IRCUser)lbPlayerList.SelectedItem.Tag;
+            var channelUser = (ChannelUser)lbPlayerList.SelectedItem.Tag;
 
-            pmWindow.InitPM(ircUser.Name);
+            pmWindow.InitPM(channelUser.IRCUser.Name);
         }
 
         /// <summary>
@@ -762,11 +762,11 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             gameChannel.MessageAdded -= GameChannel_MessageAdded;
         }
 
-        private void GameChannel_UserAdded(object sender, UserEventArgs e)
+        private void GameChannel_UserAdded(object sender, Online.ChannelUserEventArgs e)
         {
             Channel gameChannel = (Channel)sender;
 
-            if (e.User.Name == ProgramConstants.PLAYERNAME)
+            if (e.User.IRCUser.Name == ProgramConstants.PLAYERNAME)
             {
                 gameChannel.UserAdded -= GameChannel_UserAdded;
                 gameChannel.MessageAdded -= GameChannel_MessageAdded;
@@ -805,11 +805,11 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             gameLoadingChannel.MessageAdded -= GameLoadingChannel_MessageAdded;
         }
 
-        private void GameLoadingChannel_UserAdded(object sender, UserEventArgs e)
+        private void GameLoadingChannel_UserAdded(object sender, ChannelUserEventArgs e)
         {
             Channel gameLoadingChannel = (Channel)sender;
 
-            if (e.User.Name == ProgramConstants.PLAYERNAME)
+            if (e.User.IRCUser.Name == ProgramConstants.PLAYERNAME)
             {
                 gameLoadingChannel.UserAdded -= GameLoadingChannel_UserAdded;
                 gameLoadingChannel.MessageAdded -= GameLoadingChannel_MessageAdded;
@@ -932,6 +932,10 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 if (currentChatChannel.ChannelName != "#cncnet" &&
                     currentChatChannel.ChannelName != string.Format("#cncnet-{0}", localGame.ToLower()))
                 {
+                    // Remove the assigned channels from the users so we don't have ghost users on the PM user list
+                    foreach (var user in currentChatChannel.Users)
+                        connectionManager.RemoveChannelFromUser(user.IRCUser.Name, currentChatChannel.ChannelName);
+
                     currentChatChannel.Leave();
                 }
             }
@@ -968,7 +972,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 string.Empty : lbPlayerList.SelectedItem.Text;
             lbPlayerList.Clear();
 
-            foreach (IRCUser user in currentChatChannel.Users)
+            foreach (ChannelUser user in currentChatChannel.Users)
             {
                 AddUser(user);
             }
@@ -980,14 +984,15 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             }
         }
 
-        private void CurrentChatChannel_UserGameIndexUpdated(object sender, UserEventArgs e)
+        private void CurrentChatChannel_UserGameIndexUpdated(object sender, ChannelUserEventArgs e)
         {
-            XNAListBoxItem item = lbPlayerList.Items.Find(i => i.Text.StartsWith(e.User.Name));
+            var ircUser = e.User.IRCUser;
+            var item = lbPlayerList.Items.Find(i => i.Text.StartsWith(ircUser.Name));
 
-            if (e.User.GameID < 0 || e.User.GameID >= gameCollection.GameList.Count)
+            if (ircUser.GameID < 0 || ircUser.GameID >= gameCollection.GameList.Count)
                 item.Texture = unknownGameIcon;
             else
-                item.Texture = gameCollection.GameList[e.User.GameID].Texture;
+                item.Texture = gameCollection.GameList[ircUser.GameID].Texture;
         }
 
         private void AddMessageToChat(ChatMessage message)
@@ -1000,7 +1005,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             AddMessageToChat(e.Message);
         }
 
-        private void AddUser(IRCUser user)
+        private void AddUser(ChannelUser user)
         {
             XNAListBoxItem item = new XNAListBoxItem();
 
@@ -1008,19 +1013,19 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             if (user.IsAdmin)
             {
-                item.Text = user.Name + " (Admin)";
+                item.Text = user.IRCUser.Name + " (Admin)";
                 item.TextColor = cAdminNameColor;
                 item.Texture = adminGameIcon;
             }
             else
             {
-                item.Text = user.Name;
+                item.Text = user.IRCUser.Name;
                 item.TextColor = UISettings.AltColor;
 
-                if (user.GameID < 0 || user.GameID >= gameCollection.GameList.Count)
+                if (user.IRCUser.GameID < 0 || user.IRCUser.GameID >= gameCollection.GameList.Count)
                     item.Texture = unknownGameIcon;
                 else
-                    item.Texture = gameCollection.GameList[user.GameID].Texture;
+                    item.Texture = gameCollection.GameList[user.IRCUser.GameID].Texture;
             }
 
             lbPlayerList.AddItem(item);

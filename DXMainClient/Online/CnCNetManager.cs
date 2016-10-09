@@ -31,7 +31,7 @@ namespace DTAClient.Online
         //public event EventHandler<ChannelModeEventArgs> ChannelModesChanged;
         //public event EventHandler<CTCPEventArgs> CTCPMessageReceived;
         //public event EventHandler<KickEventArgs> UserKickedFromChannel;
-        public event EventHandler<ChannelUserEventArgs> UserJoinedChannel;
+        //public event EventHandler<ChannelUserEventArgs> UserJoinedChannel;
         public event EventHandler<PrivateMessageEventArgs> PrivateMessageReceived;
 
         public event EventHandler<AttemptedServerEventArgs> AttemptedServerChanged;
@@ -40,6 +40,11 @@ namespace DTAClient.Online
         public event EventHandler ReconnectAttempt;
         public event EventHandler Disconnected;
         public event EventHandler Connected;
+
+        public event EventHandler<UserEventArgs> UserAdded;
+        public event EventHandler<UserEventArgs> UserGameIndexUpdated;
+        public event EventHandler<UserNameIndexEventArgs> UserRemoved;
+        public event EventHandler MultipleUsersAdded;
 
         public CnCNetManager(WindowManager wm, GameCollection gc)
         {
@@ -83,6 +88,11 @@ namespace DTAClient.Online
         {
             get { return connected; }
         }
+
+        /// <summary>
+        /// The list of all users that we can see on the IRC network.
+        /// </summary>
+        public List<IRCUser> UserList = new List<IRCUser>();
 
         Connection connection;
 
@@ -485,21 +495,49 @@ namespace DTAClient.Online
                 name = userName.Remove(0, 1);
             }
 
-            IRCUser user = new IRCUser();
-            user.IsAdmin = isAdmin;
-            user.Name = name;
-            user.GameID = -1;
+            IRCUser ircUser = null;
 
-            string identifier = userAddress.Split('@')[0].Replace("~", "");
-            string[] parts = identifier.Split('.');
-            if (parts.Length > 1)
+            // Check if we already know this user from another channel
+            // Avoid LINQ here for performance reasons
+            foreach (var user in UserList)
             {
-                user.GameID = gameCollection.GameList.FindIndex(g => g.InternalName.ToUpper() == parts[0]);
+                if (user.Name == name)
+                {
+                    ircUser = (IRCUser)user.Clone();
+                    break;
+                }
             }
 
-            channel.OnUserJoined(user);
+            // If we don't know the user, create a new one
+            if (ircUser == null)
+            {
+                ircUser = new IRCUser();
+                ircUser.Name = name;
 
-            UserJoinedChannel?.Invoke(this, new ChannelUserEventArgs(channelName, userName));
+                string identifier = userAddress.Split('@')[0].Replace("~", "");
+                string[] parts = identifier.Split('.');
+                if (parts.Length > 1)
+                {
+                    ircUser.GameID = gameCollection.GameList.FindIndex(g => g.InternalName.ToUpper() == parts[0]);
+                }
+
+                AddUserToGlobalUserList(ircUser);
+            }
+
+            var channelUser = new ChannelUser(ircUser);
+            channelUser.IsAdmin = isAdmin;
+
+            ircUser.Channels.Add(channelName);
+            channel.OnUserJoined(channelUser);
+
+            //UserJoinedChannel?.Invoke(this, new ChannelUserEventArgs(channelName, userName));
+        }
+
+        private void AddUserToGlobalUserList(IRCUser user)
+        {
+            UserList.Add(user);
+            UserList = UserList.OrderBy(u => u.Name).ToList();
+            UserAdded?.Invoke(this, new UserEventArgs(user));
         }
 
         public void OnUserKicked(string channelName, string userName)
@@ -519,11 +557,19 @@ namespace DTAClient.Online
 
             if (userName == ProgramConstants.PLAYERNAME)
             {
+                foreach (ChannelUser user in channel.Users)
+                {
+                    RemoveChannelFromUser(user.IRCUser.Name, channelName);
+                }
+
                 if (!channel.Persistent)
                     Channels.Remove(channel);
 
                 channel.ClearUsers();
+                return;
             }
+
+            RemoveChannelFromUser(userName, channelName);
         }
 
         public void OnUserLeftChannel(string channelName, string userName)
@@ -541,9 +587,44 @@ namespace DTAClient.Online
 
             channel.OnUserLeft(userName);
 
-            if (userName == ProgramConstants.PLAYERNAME && !channel.Persistent)
+            if (userName == ProgramConstants.PLAYERNAME)
             {
-                Channels.Remove(channel);
+                foreach (ChannelUser user in channel.Users)
+                {
+                    RemoveChannelFromUser(user.IRCUser.Name, channelName);
+                }
+
+                if (!channel.Persistent)
+                    Channels.Remove(channel);
+
+                channel.ClearUsers();
+
+                return;
+            }
+
+            RemoveChannelFromUser(userName, channelName);
+        }
+
+        /// <summary>
+        /// Looks up an user in the global user list and removes a channel from the user.
+        /// If the user is left with 0 channels (meaning we have no common channel with the user),
+        /// the user is removed from the global user list.
+        /// </summary>
+        /// <param name="userName">The name of the user.</param>
+        /// <param name="channelName">The name of the channel.</param>
+        public void RemoveChannelFromUser(string userName, string channelName)
+        {
+            var userIndex = UserList.FindIndex(user => user.Name == userName);
+            if (userIndex > -1)
+            {
+                var ircUser = UserList[userIndex];
+                ircUser.Channels.Remove(channelName);
+
+                if (ircUser.Channels.Count == 0)
+                {
+                    UserList.RemoveAt(userIndex);
+                    UserRemoved?.Invoke(this, new UserNameIndexEventArgs(userIndex, userName));
+                }
             }
         }
 
@@ -560,7 +641,42 @@ namespace DTAClient.Online
             if (channel == null)
                 return;
 
-            channel.OnUserListReceived(userList);
+            var channelUserList = new List<ChannelUser>();
+
+            foreach (string userName in userList)
+            {
+                string name = userName;
+                bool isAdmin = false;
+
+                if (userName.StartsWith("@"))
+                {
+                    isAdmin = true;
+                    name = userName.Substring(1);
+                }
+                else if (userName.StartsWith("+"))
+                    name = userName.Substring(1);
+
+                // Check if we already know the IRC user from another channel
+                IRCUser ircUser = UserList.Find(u => u.Name == name);
+
+                // If the user isn't familiar to us already,
+                // create a new user instance and add it to the global user list
+                if (ircUser == null)
+                {
+                    ircUser = new IRCUser(name);
+                    UserList.Add(ircUser);
+                }
+
+                var channelUser = new ChannelUser(ircUser);
+                channelUser.IsAdmin = isAdmin;
+
+                channelUserList.Add(channelUser);
+            }
+
+            UserList = UserList.OrderBy(u => u.Name).ToList();
+            MultipleUsersAdded?.Invoke(this, EventArgs.Empty);
+
+            channel.OnUserListReceived(channelUserList);
         }
 
         public void OnUserQuitIRC(string userName)
@@ -571,6 +687,14 @@ namespace DTAClient.Online
         private void DoUserQuitIRC(string userName)
         {
             Channels.ForEach(ch => ch.OnUserQuitIRC(userName));
+
+            int userIndex = UserList.FindIndex(user => user.Name == userName);
+
+            if (userIndex > -1)
+            {
+                UserList.RemoveAt(userIndex);
+                UserRemoved?.Invoke(this, new UserNameIndexEventArgs(userIndex, userName));
+            }
         }
 
         public void OnWelcomeMessageReceived(string message)
@@ -607,7 +731,15 @@ namespace DTAClient.Online
             if (gameIndex == -1)
                 return;
 
-            Channels.ForEach(ch => ch.ApplyGameIndexForUser(userName, gameIndex));
+            var user = UserList.Find(u => u.Name == userName);
+            if (user != null)
+            {
+                user.GameID = gameIndex;
+
+                Channels.ForEach(ch => ch.UpdateGameIndexForUser(userName));
+
+                UserGameIndexUpdated?.Invoke(this, new UserEventArgs(user));
+            }
         }
 
         public bool GetDisconnectStatus()
@@ -658,5 +790,25 @@ namespace DTAClient.Online
             ProgramConstants.PLAYERNAME = sb.ToString();
             connection.ChangeNickname();
         }
+    }
+
+    public class UserEventArgs : EventArgs
+    {
+        public UserEventArgs(IRCUser ircUser)
+        {
+            User = ircUser;
+        }
+
+        public IRCUser User { get; private set; }
+    }
+
+    public class IndexEventArgs : EventArgs
+    {
+        public IndexEventArgs(int index)
+        {
+            Index = index;
+        }
+
+        public int Index { get; private set; }
     }
 }

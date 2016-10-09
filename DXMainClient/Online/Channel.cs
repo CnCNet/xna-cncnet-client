@@ -11,11 +11,11 @@ namespace DTAClient.Online
     {
         const int MESSAGE_LIMIT = 1024;
 
-        public event EventHandler<UserEventArgs> UserAdded;
-        public event EventHandler<UserNameEventArgs> UserLeft;
-        public event EventHandler<UserNameEventArgs> UserKicked;
-        public event EventHandler<UserNameEventArgs> UserQuitIRC;
-        public event EventHandler<UserEventArgs> UserGameIndexUpdated;
+        public event EventHandler<ChannelUserEventArgs> UserAdded;
+        public event EventHandler<UserNameIndexEventArgs> UserLeft;
+        public event EventHandler<UserNameIndexEventArgs> UserKicked;
+        public event EventHandler<UserNameIndexEventArgs> UserQuitIRC;
+        public event EventHandler<ChannelUserEventArgs> UserGameIndexUpdated;
         public event EventHandler UserListReceived;
         public event EventHandler UserListCleared;
 
@@ -68,8 +68,8 @@ namespace DTAClient.Online
             get { return messages; }
         }
 
-        List<IRCUser> users = new List<IRCUser>();
-        public List<IRCUser> Users
+        List<ChannelUser> users = new List<ChannelUser>();
+        public List<ChannelUser> Users
         {
             get { return users; }
         }
@@ -83,118 +83,100 @@ namespace DTAClient.Online
             notifyOnUserListChange = UserINISettings.Instance.NotifyOnUserListChange;
         }
 
-        public void AddUser(IRCUser user)
+        public void AddUser(ChannelUser user)
         {
             users.Add(user);
-            users = users.OrderBy(u => u.Name).OrderBy(u => !u.IsAdmin).ToList();
-            UserAdded?.Invoke(this, new UserEventArgs(-1, user));
+            users = users.OrderBy(u => u.IRCUser.Name).OrderBy(u => !u.IsAdmin).ToList();
+            UserAdded?.Invoke(this, new ChannelUserEventArgs(-1, user));
         }
 
-        public void OnUserJoined(IRCUser user)
+        public void OnUserJoined(ChannelUser user)
         {
             AddUser(user);
 
             if (notifyOnUserListChange)
             {
                 AddMessage(new ChatMessage(null, Color.White, DateTime.Now,
-                    user.Name + " has joined " + UIName + "."));
+                    user.IRCUser.Name + " has joined " + UIName + "."));
             }
         }
 
-        public void OnUserListReceived(string[] userList)
+        public void OnUserListReceived(List<ChannelUser> userList)
         {
-            foreach (string userName in userList)
+            foreach (var user in userList)
             {
-                IRCUser user = new IRCUser();
-                bool isAdmin = false;
-                string name = userName;
-
-                if (userName.StartsWith("@"))
-                {
-                    isAdmin = true;
-                    name = userName.Substring(1);
-                }
-                else if (userName.StartsWith("+"))
-                    name = userName.Substring(1);
-
-                if (users.Find(u => u.Name == userName) != null)
-                    continue;
-
-                user.IsAdmin = isAdmin;
-                user.Name = name;
-
-                users.Add(user);
+                if (users.Find(u => u.IRCUser.Name == user.IRCUser.Name) == null)
+                    users.Add(user);
             }
 
-            users = users.OrderBy(u => u.Name).OrderBy(u => !u.IsAdmin).ToList();
+            users = users.OrderBy(u => u.IRCUser.Name).OrderBy(u => !u.IsAdmin).ToList();
             UserListReceived?.Invoke(this, EventArgs.Empty);
         }
 
         public void OnUserKicked(string userName)
         {
-            int index = users.FindIndex(u => u.Name == userName);
+            int index = users.FindIndex(u => u.IRCUser.Name == userName);
 
-            if (index > -1)
+            if (index == -1)
+                return;
+
+            ChannelUser user = users[index];
+
+            if (user.IRCUser.Name == ProgramConstants.PLAYERNAME)
             {
-                IRCUser user = users[index];
-
-                if (user.Name == ProgramConstants.PLAYERNAME)
-                {
-                    users.Clear();
-                }
-                else
-                {
-                    users.RemoveAt(index);
-                }
-
-                UserKicked?.Invoke(this, new UserNameEventArgs(index, userName));
-                AddMessage(new ChatMessage(null, Color.White, DateTime.Now, 
-                    userName + " has been kicked from " + UIName + "."));
+                users.Clear();
             }
+            else
+            {
+                users.RemoveAt(index);
+            }
+
+            UserKicked?.Invoke(this, new UserNameIndexEventArgs(index, userName));
+            AddMessage(new ChatMessage(null, Color.White, DateTime.Now,
+                userName + " has been kicked from " + UIName + "."));
         }
 
         public void OnUserLeft(string userName)
         {
-            int index = users.FindIndex(u => u.Name == userName);
+            int index = users.FindIndex(u => u.IRCUser.Name == userName);
 
-            if (index > -1)
+            if (index == -1)
+                return;
+
+            users.RemoveAt(index);
+            UserLeft?.Invoke(this, new UserNameIndexEventArgs(index, userName));
+
+            if (notifyOnUserListChange)
             {
-                users.RemoveAt(index);
-                UserLeft?.Invoke(this, new UserNameEventArgs(index, userName));
-
-                if (notifyOnUserListChange)
-                {
-                    AddMessage(new ChatMessage(null, Color.White, DateTime.Now,
-                        userName + " has left from " + UIName + "."));
-                }
+                AddMessage(new ChatMessage(null, Color.White, DateTime.Now,
+                    userName + " has left from " + UIName + "."));
             }
         }
 
         public void OnUserQuitIRC(string userName)
         {
-            int index = users.FindIndex(u => u.Name == userName);
+            int index = users.FindIndex(u => u.IRCUser.Name == userName);
 
-            if (index > -1)
+            if (index == -1)
+                return;
+
+            users.RemoveAt(index);
+            UserQuitIRC?.Invoke(this, new UserNameIndexEventArgs(index, userName));
+
+            if (notifyOnUserListChange)
             {
-                users.RemoveAt(index);
-                UserQuitIRC?.Invoke(this, new UserNameEventArgs(index, userName));
-
-                if (notifyOnUserListChange)
-                {
-                    AddMessage(new ChatMessage(null, Color.White, DateTime.Now,
-                        userName + " has quit from CnCNet."));
-                }
+                AddMessage(new ChatMessage(null, Color.White, DateTime.Now,
+                    userName + " has quit from CnCNet."));
             }
         }
 
-        public void ApplyGameIndexForUser(string userName, int gameIndex)
+        public void UpdateGameIndexForUser(string userName)
         {
-            int index = users.FindIndex(u => u.Name == userName);
+            int index = users.FindIndex(u => u.IRCUser.Name == userName);
 
             if (index > -1)
             {
-                users[index].GameID = gameIndex;
-                UserGameIndexUpdated?.Invoke(this, new UserEventArgs(index, users[index]));
+                UserGameIndexUpdated?.Invoke(this, new ChannelUserEventArgs(index, users[index]));
             }
         }
 
@@ -273,9 +255,9 @@ namespace DTAClient.Online
         }
     }
 
-    public class UserEventArgs : EventArgs
+    public class ChannelUserEventArgs : EventArgs
     {
-        public UserEventArgs(int index, IRCUser user)
+        public ChannelUserEventArgs(int index, ChannelUser user)
         {
             UserIndex = index;
             User = user;
@@ -283,18 +265,28 @@ namespace DTAClient.Online
 
         public int UserIndex { get; private set; }
 
-        public IRCUser User { get; private set; }
+        public ChannelUser User { get; private set; }
     }
 
-    public class UserNameEventArgs : EventArgs
+    public class UserNameIndexEventArgs : EventArgs
     {
-        public UserNameEventArgs(int index, string userName)
+        public UserNameIndexEventArgs(int index, string userName)
         {
             UserIndex = index;
             UserName = userName;
         }
 
         public int UserIndex { get; private set; }
+        public string UserName { get; private set; }
+    }
+
+    public class UserNameEventArgs : EventArgs
+    {
+        public UserNameEventArgs(string userName)
+        {
+            UserName = userName;
+        }
+
         public string UserName { get; private set; }
     }
 

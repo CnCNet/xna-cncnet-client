@@ -215,10 +215,10 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             topBar.SwitchToPrimary();
         }
 
-        private void Channel_UserAdded(object sender, UserEventArgs e)
+        private void Channel_UserAdded(object sender, ChannelUserEventArgs e)
         {
             PlayerInfo pInfo = new PlayerInfo();
-            pInfo.Name = e.User.Name;
+            pInfo.Name = e.User.IRCUser.Name;
 
             Players.Add(pInfo);
 
@@ -229,12 +229,12 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             CopyPlayerDataToUI();
         }
 
-        private void Channel_UserLeft(object sender, UserNameEventArgs e)
+        private void Channel_UserLeft(object sender, UserNameIndexEventArgs e)
         {
             RemovePlayer(e.UserName);
         }
 
-        private void Channel_UserQuitIRC(object sender, UserNameEventArgs e)
+        private void Channel_UserQuitIRC(object sender, UserNameIndexEventArgs e)
         {
             RemovePlayer(e.UserName);
         }

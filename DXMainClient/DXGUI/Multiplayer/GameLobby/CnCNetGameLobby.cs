@@ -255,7 +255,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             this.Enabled = false;
         }
 
-        private void Channel_UserQuitIRC(object sender, UserNameEventArgs e)
+        private void Channel_UserQuitIRC(object sender, UserNameIndexEventArgs e)
         {
             RemovePlayer(e.UserName);
 
@@ -267,7 +267,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             }
         }
 
-        private void Channel_UserLeft(object sender, UserNameEventArgs e)
+        private void Channel_UserLeft(object sender, UserNameIndexEventArgs e)
         {
             RemovePlayer(e.UserName);
 
@@ -279,7 +279,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             }
         }
 
-        private void Channel_UserKicked(object sender, UserNameEventArgs e)
+        private void Channel_UserKicked(object sender, UserNameIndexEventArgs e)
         {
             if (e.UserName == ProgramConstants.PLAYERNAME)
             {
@@ -302,9 +302,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             }
         }
 
-        private void Channel_UserAdded(object sender, UserEventArgs e)
+        private void Channel_UserAdded(object sender, ChannelUserEventArgs e)
         {
-            PlayerInfo pInfo = new PlayerInfo(e.User.Name);
+            PlayerInfo pInfo = new PlayerInfo(e.User.IRCUser.Name);
             Players.Add(pInfo);
 
             if (sndJoinSound != null)
@@ -316,7 +316,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 return;
             }
 
-            if (e.User.Name != ProgramConstants.PLAYERNAME)
+            if (e.User.IRCUser.Name != ProgramConstants.PLAYERNAME)
             {
                 // Changing the map applies forced settings (co-op sides etc.) to the
                 // new player, and it also sends an options broadcast message

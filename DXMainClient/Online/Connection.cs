@@ -346,10 +346,16 @@ namespace DTAClient.Online
                         case 403: // Used to indicate the given channel name is invalid, or does not exist
                         case 404: // Used to indicate that the user does not have the rights to send a message to a channel
                         case 432: // Invalid nickname on registration
+                        case 439: // Attempt to send messages too fast
                         case 461: // Returned by the server to any command which requires more parameters than the number of parameters given
                         case 465: // Returned to a client after an attempt to register on a server configured to ban connections from that client
-                            message = serverMessagePart + parameters[1];
-                            connectionManager.OnGenericServerMessageReceived(message);
+                            StringBuilder displayedMessage = new StringBuilder(serverMessagePart);
+                            for (int i = 1; i < parameters.Count; i++)
+                            {
+                                displayedMessage.Append(' ');
+                                displayedMessage.Append(parameters[i]);
+                            }
+                            connectionManager.OnGenericServerMessageReceived(displayedMessage.ToString());
                             break;
                         case 252: // Number of operators online
                         case 254: // Number of channels formed
