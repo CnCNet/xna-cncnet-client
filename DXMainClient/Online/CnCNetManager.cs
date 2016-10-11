@@ -53,7 +53,7 @@ namespace DTAClient.Online
 
             this.wm = wm;
 
-            cDefaultChatColor = AssetLoader.GetColorFromString(DomainController.Instance().GetDefaultChatColor());
+            cDefaultChatColor = AssetLoader.GetColorFromString(ClientConfiguration.Instance.DefaultChatColor);
 
             IRCChatColors = new IRCColor[]
             {
@@ -760,7 +760,7 @@ namespace DTAClient.Online
         private void DoNameAlreadyInUse()
         {
             var charList = ProgramConstants.PLAYERNAME.ToList();
-            int maxNameLength = DomainController.Instance().MaxNameLength;
+            int maxNameLength = ClientConfiguration.Instance.MaxNameLength;
 
             if (charList.Count < maxNameLength)
                 charList.Add('_');

@@ -441,7 +441,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             // InitPlayerOptionDropdowns(136, 91, 79, 49, 46, new Point(25, 24));
 
-            string[] sides = DomainController.Instance().GetSides().Split(',');
+            string[] sides = ClientConfiguration.Instance.GetSides().Split(',');
             _sideCount = sides.Length;
 
             string randomColor = GameOptionsIni.GetStringValue("General", "RandomColor", "255,255,255");
@@ -928,7 +928,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             Logger.Log("GameProcessExited: Parsing statistics.");
 
-            matchStatistics.ParseStatistics(ProgramConstants.GamePath, DomainController.Instance().GetDefaultGame());
+            matchStatistics.ParseStatistics(ProgramConstants.GamePath, ClientConfiguration.Instance.LocalGame);
 
             Logger.Log("GameProcessExited: Adding match to statistics.");
 

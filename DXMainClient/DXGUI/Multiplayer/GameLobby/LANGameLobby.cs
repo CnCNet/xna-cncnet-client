@@ -63,7 +63,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 new ClientNoParamCommandHandler("PING", HandlePing)
             };
 
-            localGame = DomainController.Instance().GetDefaultGame();
+            localGame = ClientConfiguration.Instance.LocalGame;
 
             WindowManager.GameClosing += WindowManager_GameClosing;
         }

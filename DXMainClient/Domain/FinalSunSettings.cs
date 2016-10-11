@@ -14,12 +14,14 @@ namespace DTAClient.Domain
         {
             try
             {
+                string finalSunIniPath = ClientConfiguration.Instance.FinalSunIniPath;
+
                 Logger.Log("Checking for the existence of FinalSun.ini.");
-                if (File.Exists(MainClientConstants.gamepath + MainClientConstants.FINALSUN_INI))
+                if (File.Exists(MainClientConstants.gamepath + finalSunIniPath))
                 {
                     Logger.Log("FinalSun settings file exists.");
 
-                    IniFile iniFile = new IniFile(MainClientConstants.gamepath + MainClientConstants.FINALSUN_INI);
+                    IniFile iniFile = new IniFile(MainClientConstants.gamepath + finalSunIniPath);
 
                     iniFile.SetStringValue("FinalSun", "Language", "English");
                     iniFile.SetStringValue("FinalSun", "FileSearchLikeTS", "yes");
@@ -30,7 +32,7 @@ namespace DTAClient.Domain
                 }
 
                 Logger.Log("FinalSun.ini doesn't exist - writing default settings.");
-                StreamWriter sw = new StreamWriter(MainClientConstants.gamepath + MainClientConstants.FINALSUN_INI);
+                StreamWriter sw = new StreamWriter(MainClientConstants.gamepath + finalSunIniPath);
 
                 sw.WriteLine("[FinalSun]");
                 sw.WriteLine("Language=English");

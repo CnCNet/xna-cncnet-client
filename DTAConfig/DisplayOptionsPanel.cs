@@ -75,7 +75,11 @@ namespace DTAConfig
                 lblIngameResolution.ClientRectangle.Right + 12,
                 lblIngameResolution.ClientRectangle.Y - 2, 120, 19);
 
+#if TI
+            var resolutions = ScreenResolutionOperations.GetScreenResolutions(800, 600, 4096, 4096, 32, false);
+#else
             var resolutions = ScreenResolutionOperations.GetScreenResolutions(640, 480, 4096, 4096, 32, false);
+#endif
 
             foreach (var res in resolutions)
                 ddIngameResolution.AddItem(res);
@@ -116,7 +120,7 @@ namespace DTAConfig
             ddRenderer.AddItem("TS-DDRAW");
             ddRenderer.AddItem("DDWrapper");
             ddRenderer.AddItem("DxWnd");
-            if (DomainController.Instance().GetOperatingSystemVersion() == OSVersion.WINXP)
+            if (ClientConfiguration.Instance.GetOperatingSystemVersion() == OSVersion.WINXP)
                 ddRenderer.AddItem("Software");
 
             chkWindowedMode = new XNAClientCheckBox(WindowManager);
@@ -205,10 +209,10 @@ namespace DTAConfig
                 ddClientResolution.ClientRectangle.Width,
                 ddRenderer.ClientRectangle.Height);
 
-            int themeCount = DomainController.Instance().GetThemeCount();
+            int themeCount = ClientConfiguration.Instance.ThemeCount;
 
             for (int i = 0; i < themeCount; i++)
-                ddClientTheme.AddItem(DomainController.Instance().GetThemeInfoFromIndex(i)[0]);
+                ddClientTheme.AddItem(ClientConfiguration.Instance.GetThemeInfoFromIndex(i)[0]);
 
 #if DTA
             chkEnableCannonTracers = new FileSettingCheckBox(WindowManager,
@@ -326,7 +330,7 @@ namespace DTAConfig
 
             if (!GameCompatFixInstalled && !GameCompatFixDeclined)
             {
-                string defaultGame = DomainController.Instance().GetDefaultGame();
+                string defaultGame = ClientConfiguration.Instance.LocalGame;
 
                 var messageBox = XNAMessageBox.ShowYesNoDialog(WindowManager, "New Compatibility Fix",
                     "A performance-enhancing compatibility fix for Windows 8 and 10" + Environment.NewLine +
@@ -727,7 +731,7 @@ namespace DTAConfig
         /// </summary>
         private void GetRenderer()
         {
-            OSVersion osVersion = DomainController.Instance().GetOperatingSystemVersion();
+            OSVersion osVersion = ClientConfiguration.Instance.GetOperatingSystemVersion();
 
             string renderer = UserINISettings.Instance.Renderer;
 

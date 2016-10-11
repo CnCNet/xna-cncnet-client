@@ -125,7 +125,7 @@
     <Compile Include="CnCNet5\CnCNetGame.cs" />
     <Compile Include="CnCNet5\GameCollection.cs" />
     <Compile Include="ControlDrawHandler.cs" />
-    <Compile Include="DomainController.cs" />
+    <Compile Include="ClientConfiguration.cs" />
     <Compile Include="CnCNet5\NameValidator.cs" />
     <Compile Include="OSVersion.cs" />
     <Compile Include="ProfanityFilter.cs" />
@@ -137,7 +137,6 @@
     <Compile Include="Settings\INISetting.cs" />
     <Compile Include="Settings\IntSetting.cs" />
     <Compile Include="Settings\StringSetting.cs" />
-    <Compile Include="SharedLogic.cs" />
     <Compile Include="LoadingScreenController.cs" />
     <Compile Include="ProgramConstants.cs" />
     <Compile Include="Statistics\GameParsers\DTAStatisticsParser.cs" />

@@ -32,7 +32,7 @@ namespace DTAClient.Domain.Multiplayer
         {
             Logger.Log("Loading maps.");
 
-            IniFile mpMapsIni = new IniFile(ProgramConstants.GamePath + DomainController.Instance().GetMPMapsIniPath());
+            IniFile mpMapsIni = new IniFile(ProgramConstants.GamePath + ClientConfiguration.Instance.MPMapsIniPath);
 
             List<string> keys = mpMapsIni.GetSectionKeys("MultiMaps");
 

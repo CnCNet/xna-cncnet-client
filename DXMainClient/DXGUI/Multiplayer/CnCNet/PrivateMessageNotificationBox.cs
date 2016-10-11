@@ -82,7 +82,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             lblMessage = new XNALabel(WindowManager);
             lblMessage.Name = "lblMessage";
             lblMessage.ClientRectangle = new Rectangle(12, lblSender.ClientRectangle.Bottom + 6, 0, 0);
-            lblMessage.RemapColor = AssetLoader.GetColorFromString(DomainController.Instance().GetReceivedPMColor());
+            lblMessage.RemapColor = AssetLoader.GetColorFromString(ClientConfiguration.Instance.ReceivedPMColor);
             lblMessage.Text = "This is a test message.";
 
             AddChild(lblHeader);

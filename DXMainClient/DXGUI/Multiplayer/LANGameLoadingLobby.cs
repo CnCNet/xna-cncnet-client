@@ -36,7 +36,7 @@ namespace DTAClient.DXGUI.Multiplayer
             this.gameModes = gameModes;
             this.chatColors = chatColors;
 
-            localGame = DomainController.Instance().GetDefaultGame();
+            localGame = ClientConfiguration.Instance.LocalGame;
 
             hostCommandHandlers = new LANServerCommandHandler[]
             {

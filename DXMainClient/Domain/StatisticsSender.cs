@@ -44,7 +44,7 @@ namespace DTAClient.Domain
 
             urlInfos = gameUrlInfos.ToList();
 
-            myGameInfo = urlInfos.Find(g => g.GameID == DomainController.Instance().GetDefaultGame());
+            myGameInfo = urlInfos.Find(g => g.GameID == ClientConfiguration.Instance.LocalGame);
         }
 
         private List<GameURLInfo> urlInfos;

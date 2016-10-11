@@ -19,7 +19,7 @@ namespace ClientCore
             loadingScreenName = loadingScreenName + "s" + sideId;
 
             Random random = new Random();
-            int randomInt = random.Next(1, 1 + DomainController.Instance().GetLoadScreenCount());
+            int randomInt = random.Next(1, 1 + ClientConfiguration.Instance.LoadingScreenCount);
 
             loadingScreenName = loadingScreenName + Convert.ToString(randomInt);
             loadingScreenName = loadingScreenName + ".pcx";

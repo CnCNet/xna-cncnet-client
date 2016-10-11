@@ -97,7 +97,7 @@ namespace DTAClient.Online
             _attemptingConnection = true;
             disconnect = false;
 
-            MessageQueueDelay = TimeSpan.FromMilliseconds(DomainController.Instance().GetSendSleepInMs());
+            MessageQueueDelay = TimeSpan.FromMilliseconds(ClientConfiguration.Instance.SendSleep);
 
             Thread connection = new Thread(ConnectToServer);
             connection.Start();
@@ -637,7 +637,7 @@ namespace DTAClient.Online
 
             Logger.Log("Registering.");
 
-            var defaultGame = DomainController.Instance().GetDefaultGame();
+            var defaultGame = ClientConfiguration.Instance.LocalGame;
 
             string realname = ProgramConstants.GAME_VERSION + " " + defaultGame + " CnCNet";
 

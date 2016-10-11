@@ -57,11 +57,11 @@ namespace DTAClient.DXGUI
                     throw new Exception("Setting default graphics mode failed!");
             }
 
-            int renderResolutionX = Math.Max(windowWidth, MCDomainController.Instance.MinimumRenderWidth);
-            int renderResolutionY = Math.Max(windowHeight, MCDomainController.Instance.MinimumRenderHeight);
+            int renderResolutionX = Math.Max(windowWidth, ClientConfiguration.Instance.MinimumRenderWidth);
+            int renderResolutionY = Math.Max(windowHeight, ClientConfiguration.Instance.MinimumRenderHeight);
 
-            renderResolutionX = Math.Min(renderResolutionX, MCDomainController.Instance.MaximumRenderWidth);
-            renderResolutionY = Math.Min(renderResolutionY, MCDomainController.Instance.MaximumRenderHeight);
+            renderResolutionX = Math.Min(renderResolutionX, ClientConfiguration.Instance.MaximumRenderWidth);
+            renderResolutionY = Math.Min(renderResolutionY, ClientConfiguration.Instance.MaximumRenderHeight);
 
             wm.SetBorderlessMode(UserINISettings.Instance.BorderlessWindowedClient);
             wm.CenterOnScreen();
@@ -90,7 +90,7 @@ namespace DTAClient.DXGUI
             playerName = playerName.Replace(",", string.Empty);
             playerName = Renderer.GetSafeString(playerName, 0);
             playerName.Trim();
-            int maxNameLength = DomainController.Instance().MaxNameLength;
+            int maxNameLength = ClientConfiguration.Instance.MaxNameLength;
             if (playerName.Length > maxNameLength)
                 playerName = playerName.Substring(0, maxNameLength);
 
@@ -104,19 +104,19 @@ namespace DTAClient.DXGUI
 
         private void InitializeUISettings()
         {
-            UISettings.AltColor = AssetLoader.GetColorFromString(DomainController.Instance().GetUIAltColor());
-            UISettings.SubtleTextColor = AssetLoader.GetColorFromString(DomainController.Instance().GetUIHintTextColor());
+            UISettings.AltColor = AssetLoader.GetColorFromString(ClientConfiguration.Instance.AltUIColor);
+            UISettings.SubtleTextColor = AssetLoader.GetColorFromString(ClientConfiguration.Instance.UIHintTextColor);
             UISettings.ButtonColor = UISettings.AltColor;
-            UISettings.ButtonHoverColor = AssetLoader.GetColorFromString(DomainController.Instance().GetButtonHoverColor());
-            UISettings.TextColor = AssetLoader.GetColorFromString(DomainController.Instance().GetUILabelColor());
-            UISettings.WindowBorderColor = AssetLoader.GetColorFromString(DomainController.Instance().GetWindowBorderColor());
-            UISettings.PanelBorderColor = AssetLoader.GetColorFromString(DomainController.Instance().GetPanelBorderColor());
-            UISettings.BackgroundColor = AssetLoader.GetColorFromString(DomainController.Instance().GetUIAltBackgroundColor());
-            UISettings.FocusColor = AssetLoader.GetColorFromString(DomainController.Instance().GetListBoxFocusColor());
-            UISettings.DisabledButtonColor = AssetLoader.GetColorFromString(DomainController.Instance().GetButtonDisabledColor());
+            UISettings.ButtonHoverColor = AssetLoader.GetColorFromString(ClientConfiguration.Instance.ButtonHoverColor);
+            UISettings.TextColor = AssetLoader.GetColorFromString(ClientConfiguration.Instance.UILabelColor);
+            UISettings.WindowBorderColor = AssetLoader.GetColorFromString(ClientConfiguration.Instance.WindowBorderColor);
+            UISettings.PanelBorderColor = AssetLoader.GetColorFromString(ClientConfiguration.Instance.PanelBorderColor);
+            UISettings.BackgroundColor = AssetLoader.GetColorFromString(ClientConfiguration.Instance.AltUIBackgroundColor);
+            UISettings.FocusColor = AssetLoader.GetColorFromString(ClientConfiguration.Instance.ListBoxFocusColor);
+            UISettings.DisabledButtonColor = AssetLoader.GetColorFromString(ClientConfiguration.Instance.DisabledButtonColor);
 
-            UISettings.DefaultAlphaRate = DomainController.Instance().GetDefaultAlphaRate();
-            UISettings.CheckBoxAlphaRate = DomainController.Instance().GetCheckBoxAlphaRate();
+            UISettings.DefaultAlphaRate = ClientConfiguration.Instance.DefaultAlphaRate;
+            UISettings.CheckBoxAlphaRate = ClientConfiguration.Instance.CheckBoxAlphaRate;
 
             UISettings.CheckBoxClearTexture = AssetLoader.LoadTexture("checkBoxClear.png");
             UISettings.CheckBoxCheckedTexture = AssetLoader.LoadTexture("checkBoxChecked.png");

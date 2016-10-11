@@ -28,9 +28,9 @@ namespace ClientGUI
         /// GameOptions.ini -> GameExecutableNames= allows multiple names).</param>
         public static void StartGameProcess(int processId)
         {
-            string gameExecutableName = DomainController.Instance().GetGameExecutableName(processId);
+            string gameExecutableName = ClientConfiguration.Instance.GetGameExecutableName(processId);
 
-            string extraCommandLine = DomainController.Instance().GetExtraCommandLineParameters();
+            string extraCommandLine = ClientConfiguration.Instance.ExtraExeCommandLineParameters;
 
             File.Delete(ProgramConstants.GamePath + "DTA.LOG");
 

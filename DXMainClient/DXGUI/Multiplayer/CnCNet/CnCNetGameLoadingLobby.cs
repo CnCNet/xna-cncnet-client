@@ -88,7 +88,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             //dp.Alpha = 0.0f;
             //dp.Hide();
-            localGame = DomainController.Instance().GetDefaultGame();
+            localGame = ClientConfiguration.Instance.LocalGame;
 
             base.Initialize();
 

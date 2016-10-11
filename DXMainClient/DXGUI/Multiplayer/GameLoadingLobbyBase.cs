@@ -357,7 +357,7 @@ namespace DTAClient.DXGUI.Multiplayer
                     (int)(DateTime.Now - gameLoadTime).TotalSeconds;
 
                 matchStatistics.ParseStatistics(ProgramConstants.GamePath,
-                    DomainController.Instance().GetDefaultGame());
+                    ClientConfiguration.Instance.LocalGame);
 
                 matchStatistics.LengthInSeconds = newLength;
 

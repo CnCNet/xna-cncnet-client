@@ -95,10 +95,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             startingLocationIndicators = new PlayerLocationIndicator[MAX_STARTING_LOCATIONS];
 
             Color nameBackgroundColor = AssetLoader.GetRGBAColorFromString(
-                DomainController.Instance().GetMapPreviewNameBackgroundColor());
+                ClientConfiguration.Instance.MapPreviewNameBackgroundColor);
 
             Color nameBorderColor = AssetLoader.GetRGBAColorFromString(
-                DomainController.Instance().GetMapPreviewNameBorderColor());
+                ClientConfiguration.Instance.MapPreviewNameBorderColor);
 
             contextMenu = new XNAContextMenu(WindowManager);
             contextMenu.Tag = -1;
@@ -106,7 +106,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             double angularVelocity = gameOptionsIni.GetDoubleValue("General", "StartingLocationAngularVelocity", 0.015);
             double reservedAngularVelocity = gameOptionsIni.GetDoubleValue("General", "ReservedStartingLocationAngularVelocity", -0.0075);
 
-            Color hoverRemapColor = AssetLoader.GetRGBAColorFromString(DomainController.Instance().GetMapPreviewStartingLocationHoverRemapColor());
+            Color hoverRemapColor = AssetLoader.GetRGBAColorFromString(ClientConfiguration.Instance.MapPreviewStartingLocationHoverRemapColor);
 
             // Init starting location indicators
             for (int i = 0; i < MAX_STARTING_LOCATIONS; i++)

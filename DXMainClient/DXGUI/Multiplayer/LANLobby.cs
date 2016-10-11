@@ -102,7 +102,7 @@ namespace DTAClient.DXGUI.Multiplayer
             ClientRectangle = new Rectangle(0, 0, WindowManager.RenderResolutionX - 64,
                 WindowManager.RenderResolutionY - 64);
 
-            localGame = DomainController.Instance().GetDefaultGame();
+            localGame = ClientConfiguration.Instance.LocalGame;
             localGameIndex = gameCollection.GameList.FindIndex(
                 g => g.InternalName.ToUpper() == localGame.ToUpper());
 
@@ -132,7 +132,7 @@ namespace DTAClient.DXGUI.Multiplayer
             btnForums.IdleTexture = AssetLoader.LoadTexture("forumsInactive.png");
             btnForums.HoverTexture = AssetLoader.LoadTexture("forumsActive.png");
             btnForums.HoverSoundEffect = AssetLoader.LoadSound("button.wav");
-            btnForums.URL = DomainController.Instance().GetForumURL();
+            btnForums.URL = ClientConfiguration.Instance.ForumURL;
 
             btnTwitter = new LinkButton(WindowManager);
             btnTwitter.Name = "btnTwitter";
@@ -140,7 +140,7 @@ namespace DTAClient.DXGUI.Multiplayer
             btnTwitter.IdleTexture = AssetLoader.LoadTexture("twitterInactive.png");
             btnTwitter.HoverTexture = AssetLoader.LoadTexture("twitterActive.png");
             btnTwitter.HoverSoundEffect = AssetLoader.LoadSound("button.wav");
-            btnTwitter.URL = DomainController.Instance().GetTwitterURL();
+            btnTwitter.URL = ClientConfiguration.Instance.TwitterURL;
 
             btnGooglePlus = new LinkButton(WindowManager);
             btnGooglePlus.Name = "btnGooglePlus";
@@ -148,7 +148,7 @@ namespace DTAClient.DXGUI.Multiplayer
             btnGooglePlus.IdleTexture = AssetLoader.LoadTexture("googlePlusInactive.png");
             btnGooglePlus.HoverTexture = AssetLoader.LoadTexture("googlePlusActive.png");
             btnGooglePlus.HoverSoundEffect = AssetLoader.LoadSound("button.wav");
-            btnGooglePlus.URL = DomainController.Instance().GetGooglePlusURL();
+            btnGooglePlus.URL = ClientConfiguration.Instance.GooglePlusURL;
 
             btnYoutube = new LinkButton(WindowManager);
             btnYoutube.Name = "btnYoutube";
@@ -156,7 +156,7 @@ namespace DTAClient.DXGUI.Multiplayer
             btnYoutube.IdleTexture = AssetLoader.LoadTexture("youtubeInactive.png");
             btnYoutube.HoverTexture = AssetLoader.LoadTexture("youtubeActive.png");
             btnYoutube.HoverSoundEffect = AssetLoader.LoadSound("button.wav");
-            btnYoutube.URL = DomainController.Instance().GetYoutubeURL();
+            btnYoutube.URL = ClientConfiguration.Instance.YoutubeURL;
 
             btnFacebook = new LinkButton(WindowManager);
             btnFacebook.Name = "btnFacebook";
@@ -164,7 +164,7 @@ namespace DTAClient.DXGUI.Multiplayer
             btnFacebook.IdleTexture = AssetLoader.LoadTexture("facebookInactive.png");
             btnFacebook.HoverTexture = AssetLoader.LoadTexture("facebookActive.png");
             btnFacebook.HoverSoundEffect = AssetLoader.LoadSound("button.wav");
-            btnFacebook.URL = DomainController.Instance().GetFacebookURL();
+            btnFacebook.URL = ClientConfiguration.Instance.FacebookURL;
 
             btnModDB = new LinkButton(WindowManager);
             btnModDB.Name = "btnModDB";
@@ -172,7 +172,7 @@ namespace DTAClient.DXGUI.Multiplayer
             btnModDB.IdleTexture = AssetLoader.LoadTexture("moddbInactive.png");
             btnModDB.HoverTexture = AssetLoader.LoadTexture("moddbActive.png");
             btnModDB.HoverSoundEffect = AssetLoader.LoadSound("button.wav");
-            btnModDB.URL = DomainController.Instance().GetModDBURL();
+            btnModDB.URL = ClientConfiguration.Instance.ModDBURL;
 
             btnHomepage = new LinkButton(WindowManager);
             btnHomepage.Name = "btnHomepage";
@@ -180,7 +180,7 @@ namespace DTAClient.DXGUI.Multiplayer
             btnHomepage.IdleTexture = AssetLoader.LoadTexture("homepageInactive.png");
             btnHomepage.HoverTexture = AssetLoader.LoadTexture("homepageActive.png");
             btnHomepage.HoverSoundEffect = AssetLoader.LoadSound("button.wav");
-            btnHomepage.URL = DomainController.Instance().GetHomepageURL();
+            btnHomepage.URL = ClientConfiguration.Instance.HomepageURL;
 
             lbGameList = new GameListBox(WindowManager, hostedGames, localGame);
             lbGameList.Name = "lbGameList";

@@ -176,7 +176,7 @@ namespace DTAConfig
             chkSkipLoginWindow.Checked = IniSettings.SkipConnectDialog;
             chkPersistentMode.Checked = IniSettings.PersistentMode;
 
-            string localGame = DomainController.Instance().GetDefaultGame();
+            string localGame = ClientConfiguration.Instance.LocalGame;
 
             foreach (var chkBox in followedGameChks)
             {

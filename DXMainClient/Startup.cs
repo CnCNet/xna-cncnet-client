@@ -26,21 +26,21 @@ namespace DTAClient
         {
             int themeId = UserINISettings.Instance.ClientTheme;
 
-            if (themeId >= DomainController.Instance().GetThemeCount() || themeId < 0)
+            if (themeId >= ClientConfiguration.Instance.ThemeCount|| themeId < 0)
             {
                 themeId = 0;
                 UserINISettings.Instance.ClientTheme.Value = 0;
             }
 
-            ProgramConstants.RESOURCES_DIR = "Resources\\" + DomainController.Instance().GetThemeInfoFromIndex(themeId)[1];
+            ProgramConstants.RESOURCES_DIR = "Resources\\" + ClientConfiguration.Instance.GetThemeInfoFromIndex(themeId)[1];
 
             Logger.Log("Initializing updater.");
 
             File.Delete(ProgramConstants.GamePath + "version_u");
 
-            CUpdater.Initialize(DomainController.Instance().GetDefaultGame());
+            CUpdater.Initialize(ClientConfiguration.Instance.LocalGame);
 
-            DetectOperatingSystem();
+            LogOperatingSystemVersion();
 
             Thread thread = new Thread(CheckSystemSpecifications);
             thread.Start();
@@ -77,7 +77,7 @@ namespace DTAClient
 
             WriteInstallPathToRegistry();
 
-            DomainController.Instance().RefreshSettings();
+            ClientConfiguration.Instance.RefreshSettings();
 
             GameClass gameClass = new GameClass();
             gameClass.Run();
@@ -86,7 +86,7 @@ namespace DTAClient
         /// <summary>
         /// Reports the operating system that the client is running on.
         /// </summary>
-        private void DetectOperatingSystem()
+        private void LogOperatingSystemVersion()
         {
             Logger.Log("Operating system: " + Environment.OSVersion.VersionString);
             
@@ -166,7 +166,7 @@ namespace DTAClient
             Logger.Log("Writing installation path to the Windows registry.");
 
             RegistryKey key;
-            key = Registry.CurrentUser.CreateSubKey("SOFTWARE\\" + MCDomainController.Instance.InstallationPathRegKey);
+            key = Registry.CurrentUser.CreateSubKey("SOFTWARE\\" + ClientConfiguration.Instance.InstallationPathRegKey);
             key.SetValue("InstallPath", MainClientConstants.gamepath);
             key.Close();
         }

@@ -192,7 +192,7 @@ namespace DTAClient.DXGUI.Generic
             AddChild(lblCnCNetStatus);
             AddChild(lblCnCNetPlayerCount);
 
-            if (!MCDomainController.Instance.ModMode)
+            if (!ClientConfiguration.Instance.ModMode)
             {
                 AddChild(lblVersion);
                 AddChild(lblUpdateStatus);
@@ -286,7 +286,7 @@ namespace DTAClient.DXGUI.Generic
 
         private void CheckIfFirstRun()
         {
-            if (MCDomainController.Instance.ShortGameName == "YR")
+            if (ClientConfiguration.Instance.LocalGame == "YR")
                 return;
 
             if (UserINISettings.Instance.IsFirstRun)
@@ -297,7 +297,7 @@ namespace DTAClient.DXGUI.Generic
                 var msgBox = XNAMessageBox.ShowYesNoDialog(WindowManager, "Initial Installation",
                     string.Format("You have just installed {0}." + Environment.NewLine +
                     "It's highly recommended that you configure your settings before playing." +
-                    Environment.NewLine + "Do you want to configure them now?", DomainController.Instance().GetDefaultGame()));
+                    Environment.NewLine + "Do you want to configure them now?", ClientConfiguration.Instance.LocalGame));
                 msgBox.YesClicked += MsgBox_YesClicked;
                 msgBox.NoClicked += MsgBox_NoClicked;
             }
@@ -378,11 +378,11 @@ namespace DTAClient.DXGUI.Generic
 
         public void PostInit()
         {
-            themeSong = AssetLoader.LoadSong(DomainController.Instance().MainMenuMusicName);
+            themeSong = AssetLoader.LoadSong(ClientConfiguration.Instance.MainMenuMusicName);
 
             PlayMusic();
 
-            if (!MCDomainController.Instance.ModMode)
+            if (!ClientConfiguration.Instance.ModMode)
             {
                 if (UserINISettings.Instance.CheckForUpdates)
                 {
@@ -563,7 +563,7 @@ namespace DTAClient.DXGUI.Generic
 
         private void BtnMapEditor_LeftClick(object sender, EventArgs e)
         {
-            Process.Start(ProgramConstants.GamePath + MCDomainController.Instance.MapEditorExePath);
+            Process.Start(ProgramConstants.GamePath + ClientConfiguration.Instance.MapEditorExePath);
         }
 
         private void BtnStatistics_LeftClick(object sender, EventArgs e)
@@ -682,7 +682,7 @@ namespace DTAClient.DXGUI.Generic
             if (UserINISettings.Instance.StopMusicOnMenu)
                 PlayMusic();
 
-            if (!MCDomainController.Instance.ModMode && UserINISettings.Instance.CheckForUpdates)
+            if (!ClientConfiguration.Instance.ModMode && UserINISettings.Instance.CheckForUpdates)
             {
                 // Re-check for updates
 

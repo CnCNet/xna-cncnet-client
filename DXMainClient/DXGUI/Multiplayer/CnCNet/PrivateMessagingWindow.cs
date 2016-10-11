@@ -201,8 +201,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             unknownGameIcon = AssetLoader.TextureFromImage(ClientCore.Properties.Resources.unknownicon);
             adminGameIcon = AssetLoader.TextureFromImage(ClientCore.Properties.Resources.cncneticon);
 
-            personalMessageColor = AssetLoader.GetColorFromString(DomainController.Instance().SentPMColor);
-            otherUserMessageColor = AssetLoader.GetColorFromString(DomainController.Instance().GetReceivedPMColor());
+            personalMessageColor = AssetLoader.GetColorFromString(ClientConfiguration.Instance.SentPMColor);
+            otherUserMessageColor = AssetLoader.GetColorFromString(ClientConfiguration.Instance.ReceivedPMColor);
 
             lblPrivateMessaging = new XNALabel(WindowManager);
             lblPrivateMessaging.Name = "lblPrivateMessaging";

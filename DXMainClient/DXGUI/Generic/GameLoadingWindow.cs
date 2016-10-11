@@ -88,7 +88,7 @@ namespace DTAClient.DXGUI.Generic
             sw.WriteLine("Scenario=spawnmap.ini");
             sw.WriteLine("SaveGameName=" + sg.FileName);
             sw.WriteLine("LoadSaveGame=Yes");
-            sw.WriteLine("SidebarHack=" + MCDomainController.Instance.SidebarHack);
+            sw.WriteLine("SidebarHack=" + ClientConfiguration.Instance.SidebarHack);
             sw.WriteLine("Firestorm=No");
             sw.WriteLine("GameSpeed=" + UserINISettings.Instance.GameSpeed);
             sw.WriteLine();

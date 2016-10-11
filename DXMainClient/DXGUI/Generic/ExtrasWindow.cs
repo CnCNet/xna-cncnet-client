@@ -63,7 +63,7 @@ namespace DTAClient.DXGUI.Generic
 
         private void BtnExMapEditor_LeftClick(object sender, EventArgs e)
         {
-            Process.Start(ProgramConstants.GamePath + MCDomainController.Instance.MapEditorExePath);
+            Process.Start(ProgramConstants.GamePath + ClientConfiguration.Instance.MapEditorExePath);
             Enabled = false;
         }
 

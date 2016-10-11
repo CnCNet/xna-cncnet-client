@@ -66,7 +66,7 @@ namespace DTAClient.DXGUI.Generic
             tbMissionDescription.DrawMode = PanelBackgroundImageDrawMode.STRETCHED;
             tbMissionDescription.Alpha = 1.0f;
 
-            tbMissionDescription.BackgroundTexture = AssetLoader.CreateTexture(AssetLoader.GetColorFromString(DomainController.Instance().GetUIAltBackgroundColor()),
+            tbMissionDescription.BackgroundTexture = AssetLoader.CreateTexture(AssetLoader.GetColorFromString(ClientConfiguration.Instance.AltUIBackgroundColor),
                 tbMissionDescription.ClientRectangle.Width, tbMissionDescription.ClientRectangle.Height);
 
             var lblDifficultyLevel = new XNALabel(WindowManager);
@@ -149,7 +149,7 @@ namespace DTAClient.DXGUI.Generic
             trbDifficultySelector.Value = UserINISettings.Instance.Difficulty;
 
             ParseBattleIni("INI\\Battle.ini");
-            ParseBattleIni("INI\\" + MCDomainController.Instance.BattleFSFileName);
+            ParseBattleIni("INI\\" + ClientConfiguration.Instance.BattleFSFileName);
         }
 
         private void LbCampaignList_SelectedIndexChanged(object sender, EventArgs e)
@@ -208,7 +208,7 @@ namespace DTAClient.DXGUI.Generic
         /// <param name="requiresAddon">True if the mission is for Firestorm / Enhanced Mode.</param>
         private void LaunchMission(Mission mission)
         {
-            bool copyMapsToSpawnmapINI = DomainController.Instance().CopyMissionsToSpawnmapINI;
+            bool copyMapsToSpawnmapINI = ClientConfiguration.Instance.CopyMissionsToSpawnmapINI;
 
             Logger.Log("About to write spawn.ini.");
             StreamWriter swriter = new StreamWriter(MainClientConstants.gamepath + "spawn.ini");
@@ -227,7 +227,7 @@ namespace DTAClient.DXGUI.Generic
             swriter.WriteLine("Firestorm=" + mission.RequiredAddon);
             swriter.WriteLine("CustomLoadScreen=" + LoadingScreenController.GetLoadScreenName(mission.Side));
             swriter.WriteLine("IsSinglePlayer=Yes");
-            swriter.WriteLine("SidebarHack=" + MCDomainController.Instance.SidebarHack);
+            swriter.WriteLine("SidebarHack=" + ClientConfiguration.Instance.SidebarHack);
             swriter.WriteLine("Side=" + mission.Side);
             swriter.WriteLine("BuildOffAlly=" + mission.BuildOffAlly);
 
@@ -313,7 +313,7 @@ namespace DTAClient.DXGUI.Generic
                 else if (string.IsNullOrEmpty(mission.Scenario))
                 {
                     item.TextColor = AssetLoader.GetColorFromString(
-                        DomainController.Instance().GetListBoxHeaderColor());
+                        ClientConfiguration.Instance.ListBoxHeaderColor);
                     item.IsHeader = true;
                     item.Selectable = false;
                 }

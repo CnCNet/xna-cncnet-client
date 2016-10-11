@@ -113,7 +113,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         {
             Name = "CnCNetLobby";
             BackgroundTexture = AssetLoader.LoadTexture("cncnetlobbybg.png");
-            localGame = DomainController.Instance().GetDefaultGame();
+            localGame = ClientConfiguration.Instance.LocalGame;
 
             btnNewGame = new XNAClientButton(WindowManager);
             btnNewGame.Name = "btnNewGame";
@@ -143,7 +143,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             btnForums.IdleTexture = AssetLoader.LoadTexture("forumsInactive.png");
             btnForums.HoverTexture = AssetLoader.LoadTexture("forumsActive.png");
             btnForums.HoverSoundEffect = AssetLoader.LoadSound("button.wav");
-            btnForums.URL = DomainController.Instance().GetForumURL();
+            btnForums.URL = ClientConfiguration.Instance.ForumURL;
 
             btnTwitter = new LinkButton(WindowManager);
             btnTwitter.Name = "btnTwitter";
@@ -151,7 +151,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             btnTwitter.IdleTexture = AssetLoader.LoadTexture("twitterInactive.png");
             btnTwitter.HoverTexture = AssetLoader.LoadTexture("twitterActive.png");
             btnTwitter.HoverSoundEffect = AssetLoader.LoadSound("button.wav");
-            btnTwitter.URL = DomainController.Instance().GetTwitterURL();
+            btnTwitter.URL = ClientConfiguration.Instance.TwitterURL;
 
             btnGooglePlus = new LinkButton(WindowManager);
             btnGooglePlus.Name = "btnGooglePlus";
@@ -159,7 +159,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             btnGooglePlus.IdleTexture = AssetLoader.LoadTexture("googlePlusInactive.png");
             btnGooglePlus.HoverTexture = AssetLoader.LoadTexture("googlePlusActive.png");
             btnGooglePlus.HoverSoundEffect = AssetLoader.LoadSound("button.wav");
-            btnGooglePlus.URL = DomainController.Instance().GetGooglePlusURL();
+            btnGooglePlus.URL = ClientConfiguration.Instance.GooglePlusURL;
 
             btnYoutube = new LinkButton(WindowManager);
             btnYoutube.Name = "btnYoutube";
@@ -167,7 +167,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             btnYoutube.IdleTexture = AssetLoader.LoadTexture("youtubeInactive.png");
             btnYoutube.HoverTexture = AssetLoader.LoadTexture("youtubeActive.png");
             btnYoutube.HoverSoundEffect = AssetLoader.LoadSound("button.wav");
-            btnYoutube.URL = DomainController.Instance().GetYoutubeURL();
+            btnYoutube.URL = ClientConfiguration.Instance.YoutubeURL;
 
             btnFacebook = new LinkButton(WindowManager);
             btnFacebook.Name = "btnFacebook";
@@ -175,7 +175,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             btnFacebook.IdleTexture = AssetLoader.LoadTexture("facebookInactive.png");
             btnFacebook.HoverTexture = AssetLoader.LoadTexture("facebookActive.png");
             btnFacebook.HoverSoundEffect = AssetLoader.LoadSound("button.wav");
-            btnFacebook.URL = DomainController.Instance().GetFacebookURL();
+            btnFacebook.URL = ClientConfiguration.Instance.FacebookURL;
 
             btnModDB = new LinkButton(WindowManager);
             btnModDB.Name = "btnModDB";
@@ -183,7 +183,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             btnModDB.IdleTexture = AssetLoader.LoadTexture("moddbInactive.png");
             btnModDB.HoverTexture = AssetLoader.LoadTexture("moddbActive.png");
             btnModDB.HoverSoundEffect = AssetLoader.LoadSound("button.wav");
-            btnModDB.URL = DomainController.Instance().GetModDBURL();
+            btnModDB.URL = ClientConfiguration.Instance.ModDBURL;
 
             btnHomepage = new LinkButton(WindowManager);
             btnHomepage.Name = "btnHomepage";
@@ -191,7 +191,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             btnHomepage.IdleTexture = AssetLoader.LoadTexture("homepageInactive.png");
             btnHomepage.HoverTexture = AssetLoader.LoadTexture("homepageActive.png");
             btnHomepage.HoverSoundEffect = AssetLoader.LoadSound("button.wav");
-            btnHomepage.URL = DomainController.Instance().GetHomepageURL();
+            btnHomepage.URL = ClientConfiguration.Instance.HomepageURL;
 
             lbGameList = new GameListBox(WindowManager, hostedGames, localGame);
             lbGameList.Name = "lbGameList";
@@ -270,7 +270,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             int selectedColor = UserINISettings.Instance.ChatColor;
 
             ddColor.SelectedIndex = selectedColor >= ddColor.Items.Count || selectedColor < 0 
-                ? DomainController.Instance().GetDefaultPersonalChatColor() : 
+                ? ClientConfiguration.Instance.DefaultPersonalChatColorIndex: 
                 selectedColor;
             SetChatColor();
             ddColor.SelectedIndexChanged += DdColor_SelectedIndexChanged;
@@ -365,7 +365,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             if (gameCreatedSoundEffect != null)
                 sndGameCreated = gameCreatedSoundEffect.CreateInstance();
 
-            cAdminNameColor = AssetLoader.GetColorFromString(DomainController.Instance().GetAdminNameColor());
+            cAdminNameColor = AssetLoader.GetColorFromString(ClientConfiguration.Instance.AdminNameColor);
             unknownGameIcon = AssetLoader.TextureFromImage(ClientCore.Properties.Resources.unknownicon);
             adminGameIcon = AssetLoader.TextureFromImage(ClientCore.Properties.Resources.cncneticon);
 

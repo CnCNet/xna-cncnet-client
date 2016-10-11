@@ -32,7 +32,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             base(windowManager, iniName, topBar, GameModes)
         {
             this.connectionManager = connectionManager;
-            localGame = DomainController.Instance().GetDefaultGame();
+            localGame = ClientConfiguration.Instance.LocalGame;
             this.tunnelHandler = tunnelHandler;
 
             ctcpCommandHandlers = new CommandHandlerBase[]

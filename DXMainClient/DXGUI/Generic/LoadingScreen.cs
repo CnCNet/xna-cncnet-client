@@ -46,7 +46,7 @@ namespace DTAClient.DXGUI.Generic
 
         public void Start()
         {
-            bool initUpdater = !MCDomainController.Instance.ModMode;
+            bool initUpdater = !ClientConfiguration.Instance.ModMode;
             Task t = null;
 
             if (initUpdater)

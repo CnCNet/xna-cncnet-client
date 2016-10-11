@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using ClientCore;
+using System;
+using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
 
@@ -15,7 +17,7 @@ namespace DTAClient.Domain
         public static void ChangeUserAgent()
         {
             List<string> userAgent = new List<string>();
-            string ua = "DTA Client/" + Application.ProductVersion + "/Game " + MCDomainController.Instance.ShortGameName;
+            string ua = "DTA Client/" + Application.ProductVersion + "/Game " + ClientConfiguration.Instance.LocalGame + Environment.OSVersion.VersionString;
 
             UrlMkSetSessionOption(URLMON_OPTION_USERAGENT, ua, ua.Length, 0);
         }

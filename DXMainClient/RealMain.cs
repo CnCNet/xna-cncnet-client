@@ -34,7 +34,7 @@ namespace DTAClient
 
             Logger.Log("Loading settings.");
 
-            UserINISettings.Initialize(DomainController.Instance().GetSettingsIniName());
+            UserINISettings.Initialize(ClientConfiguration.Instance.SettingsIniName);
 
             File.Delete(MainClientConstants.gamepath + "mainclient.log");
             File.Delete(MainClientConstants.gamepath + "launchupdt.dat");
@@ -58,29 +58,15 @@ namespace DTAClient
             {
                 string argument = args[arg].ToUpper();
 
-                if (argument == "-AUTOUPDATE")
+                switch (argument)
                 {
-                    MainClientConstants.IsAutomaticInstallation = true;
-                    Logger.Log("Startup parameter: Automatic installation");
-                }
-                else if (argument == "-RUNCLIENT")
-                {
-                    MainClientConstants.AutoRunCnCNetClient = true;
-                    Logger.Log("Startup parameter: Automatically run CnCNet Client");
-                }
-                else if (argument == "-SHUTUP")
-                {
-                    MainClientConstants.IgnoreVersionMismatch = true;
-                    Logger.Log("Startup parameter: Do not show version mismatch popup");
-                }
-                else if (argument == "-NOAUDIO")
-                {
-                    AudioMaster.DisableSounds = true;
-                    Logger.Log("Startup parameter: Audio disabled");
-                }
-                else
-                {
-                    Logger.Log("Unknown startup parameter: " + argument);
+                    case "-NOAUDIO":
+                        AudioMaster.DisableSounds = true;
+                        Logger.Log("Startup parameter: Audio disabled");
+                        break;
+                    default:
+                        Logger.Log("Unknown startup parameter: " + argument);
+                        break;
                 }
             }
 
