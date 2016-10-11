@@ -11,6 +11,9 @@ using System.IO;
 
 namespace DTAClient.DXGUI.Multiplayer.CnCNet
 {
+    /// <summary>
+    /// A window that allows the user to host a new game on CnCNet.
+    /// </summary>
     class GameCreationWindow : XNAWindow
     {
         public GameCreationWindow(WindowManager windowManager, TunnelHandler tunnelHandler)
@@ -23,29 +26,29 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         public event EventHandler<GameCreationEventArgs> GameCreated;
         public event EventHandler<GameCreationEventArgs> LoadedGameCreated;
 
-        XNATextBox tbGameName;
-        XNAClientDropDown ddMaxPlayers;
-        XNATextBox tbPassword;
-
-        XNALabel lblRoomName;
-        XNALabel lblMaxPlayers;
-        XNALabel lblPassword;
-
-        XNALabel lblTunnelServer;
-        XNAMultiColumnListBox lbTunnelList;
-
-        XNAClientButton btnCreateGame;
-        XNAClientButton btnCancel;
-        XNAClientButton btnLoadMPGame;
-        XNAClientButton btnDisplayAdvancedOptions;
-
-        TunnelHandler tunnelHandler;
-
-        int bestTunnelIndex = 0;
-        int lowestTunnelRating = int.MaxValue;
-
-        bool isManuallySelectedTunnel = false;
-        string manuallySelectedTunnelAddress;
+        private XNATextBox tbGameName;
+        private XNAClientDropDown ddMaxPlayers;
+        private XNATextBox tbPassword;
+        
+        private XNALabel lblRoomName;
+        private XNALabel lblMaxPlayers;
+        private XNALabel lblPassword;
+        
+        private XNALabel lblTunnelServer;
+        private XNAMultiColumnListBox lbTunnelList;
+        
+        private XNAClientButton btnCreateGame;
+        private XNAClientButton btnCancel;
+        private XNAClientButton btnLoadMPGame;
+        private XNAClientButton btnDisplayAdvancedOptions;
+        
+        private TunnelHandler tunnelHandler;
+        
+        private int bestTunnelIndex = 0;
+        private int lowestTunnelRating = int.MaxValue;
+        
+        private bool isManuallySelectedTunnel { get; set; }
+        private string manuallySelectedTunnelAddress;
 
         public override void Initialize()
         {
@@ -119,6 +122,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             lbTunnelList.SelectedIndexChanged += LbTunnelList_SelectedIndexChanged;
             lbTunnelList.Enabled = false;
             lbTunnelList.Visible = false;
+            lbTunnelList.AllowRightClickUnselect = false;
 
             AddChild(btnCreateGame);
             AddChild(btnCancel);
@@ -141,6 +145,9 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             tunnelHandler.TunnelPinged += TunnelHandler_TunnelPinged;
 
             UserINISettings.Instance.SettingsSaved += Instance_SettingsSaved;
+
+            if (UserINISettings.Instance.AlwaysDisplayTunnelList)
+                BtnDisplayAdvancedOptions_LeftClick(this, EventArgs.Empty);
         }
 
         private void Instance_SettingsSaved(object sender, EventArgs e)
@@ -201,9 +208,11 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         {
             if (lbTunnelList.SelectedIndex < 0 || lbTunnelList.SelectedIndex >= lbTunnelList.ItemCount)
             {
-                isManuallySelectedTunnel = true;
-                manuallySelectedTunnelAddress = tunnelHandler.Tunnels[lbTunnelList.SelectedIndex].Address;
+                return;
             }
+
+            isManuallySelectedTunnel = true;
+            manuallySelectedTunnelAddress = tunnelHandler.Tunnels[lbTunnelList.SelectedIndex].Address;
         }
 
         private void TunnelHandler_TunnelPinged(int tunnelIndex)
@@ -292,7 +301,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             }
         }
 
-        int GetTunnelRating(CnCNetTunnel tunnel)
+        private int GetTunnelRating(CnCNetTunnel tunnel)
         {
             double usageRatio = (double)tunnel.Clients / (double)tunnel.MaxClients;
 

@@ -85,6 +85,7 @@ namespace ClientCore
             AutomaticCnCNetLogin = new BoolSetting(iniFile, MULTIPLAYER, "AutomaticCnCNetLogin", false);
             NotifyOnUserListChange = new BoolSetting(iniFile, MULTIPLAYER, "NotifyOnUserListChange", true);
             EnableMapSharing = new BoolSetting(iniFile, MULTIPLAYER, "EnableMapSharing", true);
+            AlwaysDisplayTunnelList = new BoolSetting(iniFile, MULTIPLAYER, "AlwaysDisplayTunnelList", false);
 
             CheckForUpdates = new BoolSetting(iniFile, OPTIONS, "CheckforUpdates", true);
 
@@ -100,6 +101,10 @@ namespace ClientCore
 
         public event EventHandler SettingsSaved;
 
+        /*********/
+        /* VIDEO */
+        /*********/
+
         public IntSetting IngameScreenWidth { get; private set; }
         public IntSetting IngameScreenHeight { get; private set; }
         public IntSetting ClientTheme { get; private set; }
@@ -112,6 +117,10 @@ namespace ClientCore
         public IntSetting ClientResolutionY { get; private set; }
         public BoolSetting BorderlessWindowedClient { get; private set; }
 
+        /*********/
+        /* AUDIO */
+        /*********/
+
         public DoubleSetting ScoreVolume { get; private set; }
         public DoubleSetting SoundVolume { get; private set; }
         public DoubleSetting VoiceVolume { get; private set; }
@@ -121,11 +130,19 @@ namespace ClientCore
         public BoolSetting StopMusicOnMenu { get; private set; }
         public BoolSetting MessageSound { get; private set; }
 
+        /********/
+        /* GAME */
+        /********/
+
         public IntSetting ScrollRate { get; private set; }
         public BoolSetting TargetLines { get; private set; }
         public IntSetting ScrollCoasting { get; private set; }
         public BoolSetting Tooltips { get; private set; }
         public BoolSetting ShowHiddenObjects { get; private set; }
+
+        /************************/
+        /* MULTIPLAYER (CnCNet) */
+        /************************/
 
         public StringSetting PlayerName { get; private set; }
 
@@ -142,6 +159,12 @@ namespace ClientCore
         public BoolSetting NotifyOnUserListChange { get; private set; }
 
         public BoolSetting EnableMapSharing { get; private set; }
+
+        public BoolSetting AlwaysDisplayTunnelList { get; private set; }
+
+        /********/
+        /* MISC */
+        /********/
 
         public BoolSetting CheckForUpdates { get; private set; }
 
