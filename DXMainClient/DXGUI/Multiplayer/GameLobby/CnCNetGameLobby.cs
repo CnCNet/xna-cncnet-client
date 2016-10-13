@@ -1177,7 +1177,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         private void MapSharer_HandleMapDownloadComplete(SHA1EventArgs e)
         {
             string mapPath = "Maps\\Custom\\" + e.SHA1;
-            Map map = new Map(mapPath);
+            Map map = new Map(mapPath, false);
 
             if (map.SetInfoFromMap(mapPath + ".map"))
             {
@@ -1279,9 +1279,16 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 return;
             }
 
-            AddNotice(string.Format("{0} doesn't have the map '{1}' on their local installation. " +
-                "The game host is attempting to transfer the map.", sender,
-                map.Name));
+            if (map.Official)
+            {
+                Logger.Log("HandleMapUploadRequest: Map is official, so skip request");
+
+                AddNotice(string.Format("{0} doesn't have the map '{1}' on their local installation." + 
+                    "The map needs to be changed or {0} is unable to participate in the match.",
+                    sender, map.Name));
+
+                return;
+            }
 
             if (!IsHost)
                 return;

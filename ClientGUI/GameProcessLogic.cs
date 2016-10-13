@@ -33,6 +33,8 @@ namespace ClientGUI
             string extraCommandLine = ClientConfiguration.Instance.ExtraExeCommandLineParameters;
 
             File.Delete(ProgramConstants.GamePath + "DTA.LOG");
+            File.Delete(ProgramConstants.GamePath + "TI.LOG");
+            File.Delete(ProgramConstants.GamePath + "TS.LOG");
 
             GameProcessStarting?.Invoke();
 

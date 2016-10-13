@@ -20,9 +20,10 @@ namespace DTAClient.Domain.Multiplayer
         const int MAP_SIZE_X = 48;
         const int MAP_SIZE_Y = 24;
 
-        public Map(string path)
+        public Map(string path, bool official)
         {
             BaseFilePath = path;
+            Official = official;
         }
 
         /// <summary>
@@ -52,6 +53,12 @@ namespace DTAClient.Domain.Multiplayer
         /// (enables briefing logic and forcing options, among others).
         /// </summary>
         public bool IsCoop { get; private set; }
+
+        /// <summary>
+        /// If set, this map won't be automatically transferred over CnCNet when
+        /// a player doesn't have it.
+        /// </summary>
+        public bool Official { get; private set; }
 
         /// <summary>
         /// Contains co-op information.

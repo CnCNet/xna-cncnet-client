@@ -16,12 +16,21 @@ namespace DTAClient.Online
         string[] fileNamesToCheck = new string[]
         {
             "spawner.xdp",
+            "rules.ini",
+            "rulesmd.ini",
+            "ai.ini",
+            "art.ini",
+            "artmd.ini",
+            "aimd.ini",
             "INI\\Rules.ini",
             "INI\\Enhance.ini",
+            "INI\\Firestrm.ini",
             "INI\\Art.ini",
             "INI\\ArtE.ini",
+            "INI\\ArtFS.ini",
             "INI\\AI.ini",
             "INI\\AIE.ini",
+            "INI\\AIFS.ini",
             "INI\\GlobalCode.ini",
         };
 
@@ -29,9 +38,8 @@ namespace DTAClient.Online
         {
             fh = new FileHashes();
             fh.GameOptionsHash = Utilities.CalculateSHA1ForFile(ProgramConstants.GamePath + ProgramConstants.BASE_RESOURCE_PATH + "GameOptions.ini");
-            fh.ClientHash = Utilities.CalculateSHA1ForFile(AppDomain.CurrentDomain.FriendlyName);
-            fh.ClientGUIHash = Utilities.CalculateSHA1ForFile(ProgramConstants.GamePath + "Resources\\Binaries\\ClientGUI.dll");
-            fh.ClientCoreHash = Utilities.CalculateSHA1ForFile(ProgramConstants.GamePath + "Resources\\Binaries\\ClientCore.dll");
+            fh.ClientDXHash = Utilities.CalculateSHA1ForFile(ProgramConstants.GetBaseResourcePath() + "clientdx.exe");
+            fh.ClientXNAHash = Utilities.CalculateSHA1ForFile(ProgramConstants.GetBaseResourcePath() + "clientxna.exe");
             fh.MainExeHash = Utilities.CalculateSHA1ForFile(ProgramConstants.GamePath + ClientConfiguration.Instance.GetGameExecutableName(0));
             fh.MPMapsHash = Utilities.CalculateSHA1ForFile(ProgramConstants.GamePath + ClientConfiguration.Instance.MPMapsIniPath);
 
@@ -86,9 +94,8 @@ namespace DTAClient.Online
         public string GetCompleteHash()
         {
             string str = fh.GameOptionsHash;
-            str = str + fh.ClientHash;
-            str = str + fh.ClientGUIHash;
-            str = str + fh.ClientCoreHash;
+            str = str + fh.ClientDXHash;
+            str = str + fh.ClientXNAHash;
             str = str + fh.MainExeHash;
             str = str + fh.INIHashes;
             str = str + fh.MPMapsHash;
@@ -102,9 +109,8 @@ namespace DTAClient.Online
     struct FileHashes
     {
         public string GameOptionsHash { get; set; }
-        public string ClientHash { get; set; }
-        public string ClientGUIHash { get; set; }
-        public string ClientCoreHash { get; set; }
+        public string ClientDXHash { get; set; }
+        public string ClientXNAHash { get; set; }
         public string INIHashes { get; set; }
         public string MPMapsHash { get; set; }
         public string MainExeHash { get; set; }
@@ -112,9 +118,8 @@ namespace DTAClient.Online
         public override string ToString()
         {
             return "GameOptions Hash: " + GameOptionsHash + Environment.NewLine +
-                "ClientHash: " + ClientHash + Environment.NewLine +
-                "ClientGUI Hash: " + ClientGUIHash + Environment.NewLine +
-                "ClientCore Hash: " + ClientCoreHash + Environment.NewLine +
+                "ClientDXHash: " + ClientDXHash + Environment.NewLine +
+                "ClientXNAHash: " + ClientXNAHash + Environment.NewLine +
                 "INI Hashes: " + INIHashes + Environment.NewLine + 
                 "MPMaps Hash: " + MPMapsHash + Environment.NewLine + 
                 "MainExe Hash: " + MainExeHash;

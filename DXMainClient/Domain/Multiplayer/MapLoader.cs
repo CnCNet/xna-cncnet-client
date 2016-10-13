@@ -54,7 +54,7 @@ namespace DTAClient.Domain.Multiplayer
                     continue;
                 }
 
-                Map map = new Map(mapFilePath);
+                Map map = new Map(mapFilePath, true);
 
                 if (!map.SetInfoFromINI(mpMapsIni))
                     continue;
@@ -75,7 +75,7 @@ namespace DTAClient.Domain.Multiplayer
                     string baseFilePath = file.Substring(ProgramConstants.GamePath.Length);
                     baseFilePath = baseFilePath.Substring(0, baseFilePath.Length - 4);
 
-                    Map map = new Map(baseFilePath);
+                    Map map = new Map(baseFilePath, false);
                     if (map.SetInfoFromMap(file))
                         maps.Add(map);
                 }
