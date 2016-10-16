@@ -15,6 +15,7 @@ using DTAClient.Online;
 using DTAClient.Domain.Multiplayer.CnCNet;
 using DTAClient.DXGUI.Multiplayer;
 using Microsoft.Xna.Framework.Media;
+using System.Threading;
 
 namespace DTAClient.DXGUI.Generic
 {
@@ -62,6 +63,8 @@ namespace DTAClient.DXGUI.Generic
         private bool isMusicFading = false;
 
         private float musicVolume = 1.0f;
+
+        private CancellationTokenSource cncnetPlayerCountCancellationSource;
 
         public override void Initialize()
         {
@@ -221,8 +224,9 @@ namespace DTAClient.DXGUI.Generic
                 ClientRectangle.Width, ClientRectangle.Height);
             innerPanel.ClientRectangle = new Rectangle(0, 0, WindowManager.RenderResolutionX, WindowManager.RenderResolutionY);
 
-            CnCNetInfoController.CnCNetGameCountUpdated += CnCNetInfoController_CnCNetGameCountUpdated;
-            CnCNetInfoController.InitializeService();
+            CnCNetPlayerCountTask.CnCNetGameCountUpdated += CnCNetInfoController_CnCNetGameCountUpdated;
+            cncnetPlayerCountCancellationSource = new CancellationTokenSource();
+            CnCNetPlayerCountTask.InitializeService(cncnetPlayerCountCancellationSource);
 
             WindowManager.GameClosing += WindowManager_GameClosing;
 
@@ -368,7 +372,9 @@ namespace DTAClient.DXGUI.Generic
         /// </summary>
         private void Clean()
         {
-            CnCNetInfoController.DisableService();
+            CUpdater.FileIdentifiersUpdated -= CUpdater_FileIdentifiersUpdated;
+
+            cncnetPlayerCountCancellationSource.Cancel();
             if (updateInProgress)
                 CUpdater.TerminateUpdate = true;
 

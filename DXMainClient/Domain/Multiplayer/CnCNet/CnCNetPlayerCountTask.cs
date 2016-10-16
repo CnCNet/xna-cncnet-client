@@ -7,42 +7,35 @@ using Rampastring.Tools;
 namespace DTAClient.Domain.Multiplayer.CnCNet
 {
     /// <summary>
-    /// A class for automatic updating of the CnCNet game/player count.
+    /// A class for updating of the CnCNet game/player count.
     /// </summary>
-    public static class CnCNetInfoController
+    public static class CnCNetPlayerCountTask
     {
+        private static int REFRESH_INTERVAL = 10000; // 10 seconds
+
         internal static event EventHandler<PlayerCountEventArgs> CnCNetGameCountUpdated;
 
-        static bool ServiceDisabled = false;
-
-        public static void InitializeService()
+        public static void InitializeService(CancellationTokenSource cts)
         {
-            Logger.Log("Initializing CnCNet live status parsing.");
-            ServiceDisabled = false;
-            Thread thread = new Thread(RunService);
-            thread.Start();
+            ThreadPool.QueueUserWorkItem(new WaitCallback(RunService), cts);
         }
 
-        private static void RunService()
+        private static void RunService(object tokenObj)
         {
-            int ticks = 0;
+            var waitHandle = ((CancellationTokenSource)tokenObj).Token.WaitHandle;
 
-            while (!ServiceDisabled)
+            while (true)
             {
-                if (ticks == 10 && CnCNetGameCountUpdated != null)
+                if (waitHandle.WaitOne(REFRESH_INTERVAL))
                 {
-                    CnCNetGameCountUpdated(null, new PlayerCountEventArgs(GetCnCNetPlayerCount()));
-                    ticks = 0;
+                    // Cancellation signaled
+                    return;
                 }
-
-                Thread.Sleep(1000);
-                ticks++;
+                else
+                {
+                    CnCNetGameCountUpdated?.Invoke(null, new PlayerCountEventArgs(GetCnCNetPlayerCount()));
+                }
             }
-        }
-
-        public static void DisableService()
-        {
-            ServiceDisabled = true;
         }
 
         private static int GetCnCNetPlayerCount()

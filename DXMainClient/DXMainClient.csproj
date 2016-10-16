@@ -191,7 +191,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Domain\Multiplayer\AllianceHolder.cs" />
-    <Compile Include="Domain\Multiplayer\CnCNet\CnCNetInfoController.cs" />
+    <Compile Include="Domain\Multiplayer\CnCNet\CnCNetPlayerCountTask.cs" />
     <Compile Include="Domain\Multiplayer\CnCNet\CnCNetTunnel.cs" />
     <Compile Include="Domain\Multiplayer\CoopHouseInfo.cs" />
     <Compile Include="Domain\Multiplayer\CoopMapInfo.cs" />
