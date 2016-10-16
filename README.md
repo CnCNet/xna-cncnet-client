@@ -1,17 +1,17 @@
 # README #
 
-###### MonoGame Client ######
+###### XNA CnCNet Client ######
+=============================
 
-Rampastring's next-generation client that replaces the old unmaintainable Windows Forms-based client with something far superior.
+The MonoGame / XNA CnCNet client, a platform for launching both singleplayer and multiplayer games with a CnCNet game spawner. Includes setting configuration, handling compatibility issues, and extras like map editor (FinalSun) configuration and match statistics. The primary targets of the project are Dawn of the Tiberium Age, Twisted Insurrection, Mental Omega and CnCNet Yuri's Revenge.
+
+Requirements
+------------
+
+The client relies on either MonoGame or Microsoft's XNA Framework, depending on the build platform. The repository includes MonoGame and other necessary references for building for the MonoGame Windows (Vista and newer) platform. For compiling the XNA build, Microsoft XNA Game Studio 4.0 Refresh is needed.
 
 
-It relies on MonoGame or XNA Framework, depending on operating system. For Windows Vista and newer a build of MonoGame that supports .NET Framework 4.0 should be used, because 4.5 isn't widespread enough yet.
+For end-users running Vista or newer Windows, the MonoGame build is preferred. The MonoGame build cannot be run on Windows XP, so the XNA build is intended for XP users.
 
 
-Windows XP is supported through Microsoft's XNA Framework, version 4.0 Refresh: https://www.microsoft.com/en-us/download/details.aspx?id=27598
-
-
-External prerequisites:
-- Rampastring.Tools: https://github.com/Rampastring/Rampastring.Tools
-- Rampastring.XNAUI: https://github.com/Rampastring/Rampastring.XNAUI
-- For building for Windows XP, Microsoft XNA Game Studio 4.0 Refresh: https://www.microsoft.com/en-us/download/details.aspx?id=27599 (2013) - https://mxa.codeplex.com/releases/view/618279 (2015)
+Building the solution requires Visual Studio 2015.
