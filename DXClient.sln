@@ -10,10 +10,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{AF4779
 		.nuget\packages.config = .nuget\packages.config
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Rampastring.XNAUI", "..\Rampastring.XNAUI\Rampastring.XNAUI.csproj", "{3EAF996D-7F03-433B-A9A5-17E69AC97C76}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Rampastring.Tools", "..\Rampastring.Tools\Rampastring.Tools.csproj", "{9F40961F-535A-480C-93C5-6877ED6A8626}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClientCore", "ClientCore\ClientCore.csproj", "{DAA331A7-FDAC-44FD-98B5-2DC5025F48C3}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClientGUI", "ClientGUI\ClientGUI.csproj", "{4C26AD04-FF2E-4465-9F40-DEB9DDC2C1D6}"
@@ -48,38 +44,6 @@ Global
 		{97458C1E-2E6C-4C5C-93C7-16A6712802E9}.Release|x86.Build.0 = Release|x86
 		{97458C1E-2E6C-4C5C-93C7-16A6712802E9}.Release|XNAFramework.ActiveCfg = Release|XNAFramework
 		{97458C1E-2E6C-4C5C-93C7-16A6712802E9}.Release|XNAFramework.Build.0 = Release|XNAFramework
-		{3EAF996D-7F03-433B-A9A5-17E69AC97C76}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{3EAF996D-7F03-433B-A9A5-17E69AC97C76}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{3EAF996D-7F03-433B-A9A5-17E69AC97C76}.Debug|WindowsGL.ActiveCfg = Debug|WindowsGL
-		{3EAF996D-7F03-433B-A9A5-17E69AC97C76}.Debug|WindowsGL.Build.0 = Debug|WindowsGL
-		{3EAF996D-7F03-433B-A9A5-17E69AC97C76}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{3EAF996D-7F03-433B-A9A5-17E69AC97C76}.Debug|x86.Build.0 = Debug|Any CPU
-		{3EAF996D-7F03-433B-A9A5-17E69AC97C76}.Debug|XNAFramework.ActiveCfg = Debug|XNAFramework
-		{3EAF996D-7F03-433B-A9A5-17E69AC97C76}.Debug|XNAFramework.Build.0 = Debug|XNAFramework
-		{3EAF996D-7F03-433B-A9A5-17E69AC97C76}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{3EAF996D-7F03-433B-A9A5-17E69AC97C76}.Release|Any CPU.Build.0 = Release|Any CPU
-		{3EAF996D-7F03-433B-A9A5-17E69AC97C76}.Release|WindowsGL.ActiveCfg = Release|WindowsGL
-		{3EAF996D-7F03-433B-A9A5-17E69AC97C76}.Release|WindowsGL.Build.0 = Release|WindowsGL
-		{3EAF996D-7F03-433B-A9A5-17E69AC97C76}.Release|x86.ActiveCfg = Release|Any CPU
-		{3EAF996D-7F03-433B-A9A5-17E69AC97C76}.Release|x86.Build.0 = Release|Any CPU
-		{3EAF996D-7F03-433B-A9A5-17E69AC97C76}.Release|XNAFramework.ActiveCfg = Release|XNAFramework
-		{3EAF996D-7F03-433B-A9A5-17E69AC97C76}.Release|XNAFramework.Build.0 = Release|XNAFramework
-		{9F40961F-535A-480C-93C5-6877ED6A8626}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{9F40961F-535A-480C-93C5-6877ED6A8626}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{9F40961F-535A-480C-93C5-6877ED6A8626}.Debug|WindowsGL.ActiveCfg = Debug|Any CPU
-		{9F40961F-535A-480C-93C5-6877ED6A8626}.Debug|WindowsGL.Build.0 = Debug|Any CPU
-		{9F40961F-535A-480C-93C5-6877ED6A8626}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{9F40961F-535A-480C-93C5-6877ED6A8626}.Debug|x86.Build.0 = Debug|Any CPU
-		{9F40961F-535A-480C-93C5-6877ED6A8626}.Debug|XNAFramework.ActiveCfg = Debug|Any CPU
-		{9F40961F-535A-480C-93C5-6877ED6A8626}.Debug|XNAFramework.Build.0 = Debug|Any CPU
-		{9F40961F-535A-480C-93C5-6877ED6A8626}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{9F40961F-535A-480C-93C5-6877ED6A8626}.Release|Any CPU.Build.0 = Release|Any CPU
-		{9F40961F-535A-480C-93C5-6877ED6A8626}.Release|WindowsGL.ActiveCfg = Release|Any CPU
-		{9F40961F-535A-480C-93C5-6877ED6A8626}.Release|WindowsGL.Build.0 = Release|Any CPU
-		{9F40961F-535A-480C-93C5-6877ED6A8626}.Release|x86.ActiveCfg = Release|Any CPU
-		{9F40961F-535A-480C-93C5-6877ED6A8626}.Release|x86.Build.0 = Release|Any CPU
-		{9F40961F-535A-480C-93C5-6877ED6A8626}.Release|XNAFramework.ActiveCfg = Release|Any CPU
-		{9F40961F-535A-480C-93C5-6877ED6A8626}.Release|XNAFramework.Build.0 = Release|Any CPU
 		{DAA331A7-FDAC-44FD-98B5-2DC5025F48C3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{DAA331A7-FDAC-44FD-98B5-2DC5025F48C3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DAA331A7-FDAC-44FD-98B5-2DC5025F48C3}.Debug|WindowsGL.ActiveCfg = Debug|WindowsGL

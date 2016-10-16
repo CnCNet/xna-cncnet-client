@@ -113,6 +113,17 @@
     <Reference Include="MapThumbnailExtractor">
       <HintPath>..\References\MapThumbnailExtractor.dll</HintPath>
     </Reference>
+    <Reference Include="Rampastring.Tools, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\References\Rampastring.Tools.dll</HintPath>
+    </Reference>
+    <Reference Include="Rampastring.XNAUI, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath Condition=" '$(Platform)' == 'XNAFramework'">..\References\XNA\Rampastring.XNAUI.dll</HintPath>
+      <HintPath Condition=" '$(Platform)' == 'WindowsGL'">..\References\WindowsGL\Rampastring.XNAUI.dll</HintPath>
+      <HintPath Condition=" '$(Platform)' == 'x86'">..\References\Windows\Rampastring.XNAUI.dll</HintPath>
+      <HintPath Condition=" '$(Platform)' == 'AnyCPU'">..\References\Windows\Rampastring.XNAUI.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.Management" />
@@ -173,18 +184,6 @@
     <Content Include="Resources\tsicon.png" />
     <Content Include="Resources\unknownicon.png" />
     <Content Include="Resources\yricon.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\Rampastring.Tools\Rampastring.Tools.csproj">
-      <Project>{9f40961f-535a-480c-93c5-6877ed6a8626}</Project>
-      <Name>Rampastring.Tools</Name>
-      <SetConfiguration>Platform=$(Platform)</SetConfiguration>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Rampastring.XNAUI\Rampastring.XNAUI.csproj">
-      <Project>{3eaf996d-7f03-433b-a9a5-17e69ac97c76}</Project>
-      <Name>Rampastring.XNAUI</Name>
-      <SetConfiguration>Platform=$(Platform)</SetConfiguration>
-    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

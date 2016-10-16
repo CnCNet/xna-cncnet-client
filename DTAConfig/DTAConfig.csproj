@@ -116,6 +116,17 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\References\DTAUpdater.dll</HintPath>
     </Reference>
+    <Reference Include="Rampastring.Tools, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\References\Rampastring.Tools.dll</HintPath>
+    </Reference>
+    <Reference Include="Rampastring.XNAUI, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath Condition=" '$(Platform)' == 'XNAFramework'">..\References\XNA\Rampastring.XNAUI.dll</HintPath>
+      <HintPath Condition=" '$(Platform)' == 'WindowsGL'">..\References\WindowsGL\Rampastring.XNAUI.dll</HintPath>
+      <HintPath Condition=" '$(Platform)' == 'x86'">..\References\Windows\Rampastring.XNAUI.dll</HintPath>
+      <HintPath Condition=" '$(Platform)' == 'AnyCPU'">..\References\Windows\Rampastring.XNAUI.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -161,15 +172,6 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Rampastring.Tools\Rampastring.Tools.csproj">
-      <Project>{9f40961f-535a-480c-93c5-6877ed6a8626}</Project>
-      <Name>Rampastring.Tools</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Rampastring.XNAUI\Rampastring.XNAUI.csproj">
-      <Project>{3eaf996d-7f03-433b-a9a5-17e69ac97c76}</Project>
-      <Name>Rampastring.XNAUI</Name>
-      <SetConfiguration>Platform=$(Platform)</SetConfiguration>
-    </ProjectReference>
     <ProjectReference Include="..\ClientCore\ClientCore.csproj">
       <Project>{daa331a7-fdac-44fd-98b5-2dc5025f48c3}</Project>
       <Name>ClientCore</Name>
