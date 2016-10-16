@@ -1,9 +1,7 @@
-# README #
+# XNA CnCNet Client #
+=====================
 
-###### XNA CnCNet Client ######
-=============================
-
-The MonoGame / XNA CnCNet client, a platform for launching both singleplayer and multiplayer games with a CnCNet game spawner. Includes setting configuration, handling compatibility issues, and extras like map editor (FinalSun) configuration and match statistics. The primary targets of the project are Dawn of the Tiberium Age, Twisted Insurrection, Mental Omega and CnCNet Yuri's Revenge.
+The MonoGame / XNA CnCNet client, a platform for setting up and launching both singleplayer and multiplayer games with a CnCNet game spawner. Includes setting configuration, handling compatibility issues, and extras like map editor (FinalSun) configuration and match statistics. The primary targets of the project are Dawn of the Tiberium Age, Twisted Insurrection, Mental Omega and CnCNet Yuri's Revenge.
 
 Requirements
 ------------
