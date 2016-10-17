@@ -14,4 +14,6 @@ For end-users running Vista or newer Windows, the MonoGame build is preferred. T
 
 Building the solution requires Visual Studio 2015.
 
+------------
+
 ![Screenshot](cncnetgamelobby.png?raw=true "CnCNet Game Lobby")
