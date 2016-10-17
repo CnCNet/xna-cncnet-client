@@ -214,7 +214,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             if (!File.Exists(ProgramConstants.GamePath + SETTINGS_PATH))
             {
-                AddDefaultPlayers();
+                InitDefaultSettings();
                 return;
             }
 
@@ -225,7 +225,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (player == null)
             {
                 Logger.Log("Failed to load human player information from skirmish settings!");
-                AddDefaultPlayers();
+                InitDefaultSettings();
                 return;
             }
 
@@ -237,7 +237,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (keys == null)
             {
                 Logger.Log("AI player information doesn't exist in skirmish settings!");
-                AddDefaultPlayers();
+                InitDefaultSettings();
                 return;
             }
 
@@ -248,7 +248,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 if (aiPlayer == null)
                 {
                     Logger.Log("Failed to load AI player information from skirmish settings!");
-                    AddDefaultPlayers();
+                    InitDefaultSettings();
                     return;
                 }
 
@@ -259,8 +259,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             string gameModeName = skirmishSettingsIni.GetStringValue("Settings", "GameMode", string.Empty);
 
             int gameModeIndex = GameModes.FindIndex(g => g.Name == gameModeName);
-
-            LoadDefaultMap();
 
             if (gameModeIndex > -1)
             {
@@ -281,7 +279,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             }
         }
 
-        private void AddDefaultPlayers()
+        private void InitDefaultSettings()
         {
             Players.Clear();
             AIPlayers.Clear();
@@ -291,6 +289,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             aiPlayer.IsAI = true;
             aiPlayer.AILevel = 2;
             AIPlayers.Add(aiPlayer);
+
+            LoadDefaultMap();
         }
     }
 }
