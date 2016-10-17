@@ -7,11 +7,15 @@ using ClientCore.Statistics;
 using DTAClient.DXGUI.Generic;
 using DTAClient.Domain.Multiplayer;
 using ClientGUI;
+using Rampastring.Tools;
+using System.IO;
 
 namespace DTAClient.DXGUI.Multiplayer.GameLobby
 {
     public class SkirmishLobby : GameLobbyBase, ISwitchable
     {
+        private const string SETTINGS_PATH = "Client\\SkirmishSettings.ini";
+
         public SkirmishLobby(WindowManager windowManager, TopBar topBar, List<GameMode> GameModes)
             : base(windowManager, "SkirmishLobby", GameModes, false)
         {
@@ -42,19 +46,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             InitializeWindow();
 
-            Players.Add(new PlayerInfo(ProgramConstants.PLAYERNAME, 0, 0, 0, 0));
-            PlayerInfo aiPlayer = new PlayerInfo("Easy AI", 0, 0, 0, 0);
-            aiPlayer.IsAI = true;
-            aiPlayer.AILevel = 2;
-            AIPlayers.Add(aiPlayer);
-
-            CopyPlayerDataToUI();
-
             WindowManager.CenterControlOnScreen(this);
 
-            // To move the lblMapAuthor label into its correct position
-            // if it was moved in the theme description INI file
-            LoadDefaultMap();
+            LoadSettings();
+
+            CopyPlayerDataToUI();
         }
 
         private void MapPreviewBox_StartingLocationApplied(object sender, EventArgs e)
@@ -129,6 +125,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             if (error == null)
             {
+                SaveSettings();
                 StartGame();
                 return;
             }
@@ -184,6 +181,116 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         public string GetSwitchName()
         {
             return "Skirmish Lobby";
+        }
+
+        private void SaveSettings()
+        {
+            try
+            {
+                // Delete the file so we don't keep potential extra AI players that already exist in the file
+                File.Delete(ProgramConstants.GamePath + SETTINGS_PATH);
+
+                var skirmishSettingsIni = new IniFile(ProgramConstants.GamePath + SETTINGS_PATH);
+
+                skirmishSettingsIni.SetStringValue("Player", "Info", Players[0].ToString());
+
+                for (int i = 0; i < AIPlayers.Count; i++)
+                {
+                    skirmishSettingsIni.SetStringValue("AIPlayers", i.ToString(), AIPlayers[i].ToString());
+                }
+
+                skirmishSettingsIni.SetStringValue("Settings", "Map", Map.SHA1);
+                skirmishSettingsIni.SetStringValue("Settings", "GameMode", GameMode.Name);
+
+                skirmishSettingsIni.WriteIniFile();
+            }
+            catch (Exception ex)
+            {
+                Logger.Log("Saving skirmish settings failed! Reason: " + ex.Message);
+            }
+        }
+
+        private void LoadSettings()
+        {
+            if (!File.Exists(ProgramConstants.GamePath + SETTINGS_PATH))
+            {
+                AddDefaultPlayers();
+                return;
+            }
+
+            var skirmishSettingsIni = new IniFile(ProgramConstants.GamePath + SETTINGS_PATH);
+
+            var player = PlayerInfo.FromString(skirmishSettingsIni.GetStringValue("Player", "Info", string.Empty));
+
+            if (player == null)
+            {
+                Logger.Log("Failed to load human player information from skirmish settings!");
+                AddDefaultPlayers();
+                return;
+            }
+
+            player.Name = ProgramConstants.PLAYERNAME;
+            Players.Add(player);
+
+            List<string> keys = skirmishSettingsIni.GetSectionKeys("AIPlayers");
+
+            if (keys == null)
+            {
+                Logger.Log("AI player information doesn't exist in skirmish settings!");
+                AddDefaultPlayers();
+                return;
+            }
+
+            foreach (string key in keys)
+            {
+                var aiPlayer = PlayerInfo.FromString(skirmishSettingsIni.GetStringValue("AIPlayers", key, string.Empty));
+
+                if (aiPlayer == null)
+                {
+                    Logger.Log("Failed to load AI player information from skirmish settings!");
+                    AddDefaultPlayers();
+                    return;
+                }
+
+                if (AIPlayers.Count < PLAYER_COUNT - 1)
+                    AIPlayers.Add(aiPlayer);
+            }
+
+            string gameModeName = skirmishSettingsIni.GetStringValue("Settings", "GameMode", string.Empty);
+
+            int gameModeIndex = GameModes.FindIndex(g => g.Name == gameModeName);
+
+            LoadDefaultMap();
+
+            if (gameModeIndex > -1)
+            {
+                GameMode gm = GameModes[gameModeIndex];
+
+                string mapSHA1 = skirmishSettingsIni.GetStringValue("Settings", "Map", string.Empty);
+
+                int mapIndex = gm.Maps.FindIndex(m => m.SHA1 == mapSHA1);
+
+                if (mapIndex > -1)
+                {
+                    ddGameMode.SelectedIndex = gameModeIndex;
+                    lbMapList.SelectedIndex = mapIndex;
+
+                    while (mapIndex > lbMapList.LastIndex)
+                        lbMapList.TopIndex++;
+                }
+            }
+        }
+
+        private void AddDefaultPlayers()
+        {
+            Players.Clear();
+            AIPlayers.Clear();
+
+            Players.Add(new PlayerInfo(ProgramConstants.PLAYERNAME, 0, 0, 0, 0));
+            PlayerInfo aiPlayer = new PlayerInfo("Easy AI", 0, 0, 0, 0);
+            aiPlayer.IsAI = true;
+            aiPlayer.AILevel = 2;
+            AIPlayers.Add(aiPlayer);
         }
     }
 }

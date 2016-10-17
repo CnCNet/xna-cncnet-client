@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Rampastring.Tools;
+using System;
 
 namespace DTAClient.Domain.Multiplayer
 {
@@ -53,5 +54,46 @@ namespace DTAClient.Domain.Multiplayer
         /// 2 = Easy, 1 = Medium, 0 = Hard.
         /// </summary>
         public int AILevel { get; set; }
+
+        public override string ToString()
+        {
+            var sb = new ExtendedStringBuilder(true, ',');
+            sb.Append(Name);
+            sb.Append(SideId);
+            sb.Append(StartingLocation);
+            sb.Append(ColorId);
+            sb.Append(TeamId);
+            sb.Append(AILevel);
+            sb.Append(IsAI.ToString());
+            sb.Append(Index);
+            return sb.ToString();
+        }
+
+        /// <summary>
+        /// Creates a PlayerInfo instance from a string in a format that matches the 
+        /// string given by the ToString() method.
+        /// </summary>
+        /// <param name="str">The string.</param>
+        /// <returns>A PlayerInfo instance, or null if the string format was invalid.</returns>
+        public static PlayerInfo FromString(string str)
+        {
+            var values = str.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+
+            if (values.Length != 8)
+                return null;
+
+            var pInfo = new PlayerInfo();
+
+            pInfo.Name = values[0];
+            pInfo.SideId = Conversions.IntFromString(values[1], 0);
+            pInfo.StartingLocation = Conversions.IntFromString(values[2], 0);
+            pInfo.ColorId = Conversions.IntFromString(values[3], 0);
+            pInfo.TeamId = Conversions.IntFromString(values[4], 0);
+            pInfo.AILevel = Conversions.IntFromString(values[5], 0);
+            pInfo.IsAI = Conversions.BooleanFromString(values[6], true);
+            pInfo.Index = Conversions.IntFromString(values[7], 0);
+
+            return pInfo;
+        }
     }
 }
