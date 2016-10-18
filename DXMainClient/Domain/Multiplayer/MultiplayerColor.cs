@@ -74,6 +74,7 @@ namespace DTAClient.Domain.Multiplayer
         /// An exception that is thrown when an INI file contains
         /// bad data or doesn't contain the expected data.
         /// </summary>
+        [Serializable]
         class InvalidINIFileException : Exception
         {
             public InvalidINIFileException(string message) : base(message)
