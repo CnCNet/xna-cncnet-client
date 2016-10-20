@@ -13,10 +13,10 @@ namespace ClientCore
 
         protected override void ApplyBaseIni()
         {
-            string basedOn = GetStringValue("INISystem", "BasedOn", String.Empty);
-            if (!String.IsNullOrEmpty(basedOn))
+            string basedOn = GetStringValue("INISystem", "BasedOn", string.Empty);
+            if (!string.IsNullOrEmpty(basedOn))
             {
-                string path = String.Empty;
+                string path = string.Empty;
                 if (basedOn.Contains("$THEME_DIR$"))
                 {
                     path = basedOn.Replace("$THEME_DIR$\\", ProgramConstants.GetResourcePath());

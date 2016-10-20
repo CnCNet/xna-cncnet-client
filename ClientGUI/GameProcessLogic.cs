@@ -1,12 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Windows.Forms;
-using System.Drawing;
 using System.Diagnostics;
 using ClientCore;
 using Rampastring.Tools;
-using Utilities = ClientCore.Utilities;
 
 namespace ClientGUI
 {
