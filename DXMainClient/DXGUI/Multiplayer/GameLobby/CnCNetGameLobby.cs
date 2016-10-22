@@ -307,6 +307,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             PlayerInfo pInfo = new PlayerInfo(e.User.IRCUser.Name);
             Players.Add(pInfo);
 
+            if (Players.Count + AIPlayers.Count > MAX_PLAYER_COUNT)
+                AIPlayers.RemoveAt(AIPlayers.Count - 1);
+
             if (sndJoinSound != null)
                 AudioMaster.PlaySound(sndJoinSound);
 
