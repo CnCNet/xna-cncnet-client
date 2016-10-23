@@ -511,19 +511,10 @@ namespace DTAClient.Domain.Multiplayer
         private static Point GetWaypointCoords(string waypoint, string[] actualSizeValues, string[] localSizeValues,
             Point previewSizePoint)
         {
-            int rx = 0;
-            int ry = 0;
+            int xCoordIndex = waypoint.Length - 3;
 
-            if (waypoint.Length == 5)
-            {
-                ry = Convert.ToInt32(waypoint.Substring(0, 2));
-                rx = Convert.ToInt32(waypoint.Substring(2));
-            }
-            else // if location.Length == 6
-            {
-                ry = Convert.ToInt32(waypoint.Substring(0, 3));
-                rx = Convert.ToInt32(waypoint.Substring(3));
-            }
+            int ry = Convert.ToInt32(waypoint.Substring(0, xCoordIndex));
+            int rx = Convert.ToInt32(waypoint.Substring(xCoordIndex));
 
             int isoTileX = rx - ry + Convert.ToInt32(actualSizeValues[2]) - 1;
             int isoTileY = rx + ry - Convert.ToInt32(actualSizeValues[2]) - 1;
