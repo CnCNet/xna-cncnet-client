@@ -32,12 +32,6 @@ namespace ClientCore.CnCNet5
         /// </summary>
         public string ClientExecutableName { get; set; }
 
-        /// <summary>
-        /// The command-line arguments to run the game's client executable with
-        /// (when swapping clients).
-        /// </summary>
-        public string ClientRunArguments { get; set; }
-
         public Texture2D Texture { get; set; }
 
         /// <summary>
