@@ -86,6 +86,7 @@ namespace DTAClient.DXGUI.Multiplayer
         {
             var lbItem = new XNAListBoxItem();
             lbItem.Tag = hg;
+            lbItem.Text = Renderer.GetSafeString(hg.RoomName, FontIndex);
             if (hg.Game.InternalName == localGameIdentifier.ToLower())
                 lbItem.TextColor = UISettings.AltColor;
             else
@@ -165,9 +166,9 @@ namespace DTAClient.DXGUI.Multiplayer
                         Color.White);
                 }
 
-                var text = hostedGame.RoomName;
+                var text = lbItem.Text;
                 if (hostedGame.IsLoadedGame)
-                    text = hostedGame.RoomName + " (Loaded Game)";
+                    text = lbItem.Text + " (Loaded Game)";
 
                 x += lbItem.TextXPadding;
 
