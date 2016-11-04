@@ -8,24 +8,42 @@ using ClientGUI;
 using Rampastring.XNAUI.XNAControls;
 using Rampastring.XNAUI;
 using Rampastring.Tools;
+using Updater;
 
 namespace DTAClient.DXGUI.Generic
 {
     public class CampaignSelector : XNAWindow
     {
-        const int DEFAULT_WIDTH = 650;
-        const int DEFAULT_HEIGHT = 600;
+        private const int DEFAULT_WIDTH = 650;
+        private const int DEFAULT_HEIGHT = 600;
 
         public CampaignSelector(WindowManager windowManager) : base(windowManager)
         {
 
         }
 
-        List<Mission> Missions = new List<Mission>();
-        XNAListBox lbCampaignList;
-        XNAClientButton btnLaunch;
-        XNATextBlock tbMissionDescription;
-        XNATrackbar trbDifficultySelector;
+        private List<Mission> Missions = new List<Mission>();
+        private XNAListBox lbCampaignList;
+        private XNAClientButton btnLaunch;
+        private XNATextBlock tbMissionDescription;
+        private XNATrackbar trbDifficultySelector;
+
+        private CheaterWindow cheaterWindow;
+
+        private string[] filesToCheck = new string[]
+        {
+            "INI\\AI.ini",
+            "INI\\AIE.ini",
+            "INI\\Art.ini",
+            "INI\\ArtE.ini",
+            "INI\\Enhance.ini",
+            "INI\\Rules.ini",
+            "INI\\Map Code\\Difficulty Hard.ini",
+            "INI\\Map Code\\Difficulty Medium.ini",
+            "INI\\Map Code\\Difficulty Easy.ini"
+        };
+
+        private Mission missionToLaunch;
 
         public override void Initialize()
         {
@@ -150,6 +168,14 @@ namespace DTAClient.DXGUI.Generic
 
             ParseBattleIni("INI\\Battle.ini");
             ParseBattleIni("INI\\" + ClientConfiguration.Instance.BattleFSFileName);
+
+            cheaterWindow = new CheaterWindow(WindowManager);
+            DarkeningPanel dp = new DarkeningPanel(WindowManager);
+            dp.AddChild(cheaterWindow);
+            AddChild(dp);
+            cheaterWindow.CenterOnParent();
+            cheaterWindow.YesClicked += CheaterWindow_YesClicked;
+            cheaterWindow.Disable();
         }
 
         private void LbCampaignList_SelectedIndexChanged(object sender, EventArgs e)
@@ -192,13 +218,35 @@ namespace DTAClient.DXGUI.Generic
 
             Mission mission = Missions[selectedMissionId];
 
-            //if (CUpdater.IsVersionMismatch)
-            //{
-                // Display cheater form when it's done
-                // TODO actually compare Rules.ini and the mission identifier only
-            //}
+            if (!CUpdater.IsFileNonexistantOrOriginal(mission.Scenario) || AreFilesModified())
+            {
+                // Confront the user by showing the cheater screen
+                missionToLaunch = mission;
+                cheaterWindow.Enable();
+                return;
+            }
 
             LaunchMission(mission);
+        }
+
+        private bool AreFilesModified()
+        {
+            foreach (string filePath in filesToCheck)
+            {
+                if (!CUpdater.IsFileNonexistantOrOriginal(filePath))
+                    return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Called when the user wants to proceed to the mission despite having
+        /// being called a cheater.
+        /// </summary>
+        private void CheaterWindow_YesClicked(object sender, EventArgs e)
+        {
+            LaunchMission(missionToLaunch);
         }
 
         /// <summary>
