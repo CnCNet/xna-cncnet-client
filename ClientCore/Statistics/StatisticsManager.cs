@@ -9,10 +9,12 @@ namespace ClientCore.Statistics
 {
     public class StatisticsManager : GenericStatisticsManager
     {
-        const string VERSION = "1.03";
-        const string SCORE_FILE_PATH = "Client\\dscore.dat";
-        const string OLD_SCORE_FILE_PATH = "dscore.dat";
-        static StatisticsManager _instance;
+        private const string VERSION = "1.04";
+        private const string SCORE_FILE_PATH = "Client\\dscore.dat";
+        private const string OLD_SCORE_FILE_PATH = "dscore.dat";
+        private static StatisticsManager _instance;
+
+        private string gamePath;
 
         public event EventHandler GameAdded;
 
@@ -26,8 +28,6 @@ namespace ClientCore.Statistics
                 return _instance;
             }
         }
-
-        string gamePath;
 
         public override void ReadStatistics(string gamePath)
         {
@@ -55,6 +55,7 @@ namespace ClientCore.Statistics
                     File.Copy(gamePath + OLD_SCORE_FILE_PATH, gamePath + "Client\\dscore_old.dat");
                     File.Delete(gamePath + OLD_SCORE_FILE_PATH);
                 }
+
                 SaveDatabase();
             }
         }
@@ -88,6 +89,10 @@ namespace ClientCore.Statistics
                         break;
                     case "1.03":
                         ReadDatabase(filePath, 1.03);
+                        returnValue = true;
+                        break;
+                    case "1.04":
+                        ReadDatabase(filePath, 1.04);
                         break;
                     default:
                         throw new InvalidDataException("Invalid version for " + filePath + ": " + databaseVersion);
@@ -108,7 +113,7 @@ namespace ClientCore.Statistics
                 using (FileStream fs = File.OpenRead(filePath))
                 {
                     fs.Position = 4; // Skip version
-                    byte[] readBuffer = new byte[64];
+                    byte[] readBuffer = new byte[128];
                     fs.Read(readBuffer, 0, 4); // First 4 bytes following the version mean the amount of games
                     int gameCount = BitConverter.ToInt32(readBuffer, 0);
 
@@ -139,27 +144,28 @@ namespace ClientCore.Statistics
                             fs.Read(readBuffer, 0, 4);
                             ms.AverageFPS = BitConverter.ToInt32(readBuffer, 0);
                         }
-                        // Map name, 64 bytes of Unicode
-                        fs.Read(readBuffer, 0, 64);
+
+                        int mapNameLength = 64;
+
+                        if (versionDouble > 1.03)
+                        {
+                            mapNameLength = 128;
+                        }
+
+                        // Map name, 64 or 128 bytes of Unicode depending on version
+                        fs.Read(readBuffer, 0, mapNameLength);
                         ms.MapName = Encoding.Unicode.GetString(readBuffer).Replace("\0", "");
-                        // Game mode, 64 bytes as well
+
+                        // Game mode, 64 bytes
                         fs.Read(readBuffer, 0, 64);
-                        ms.GameMode = Encoding.Unicode.GetString(readBuffer).Replace("\0", "");
+                        ms.GameMode = Encoding.Unicode.GetString(readBuffer, 0, 64).Replace("\0", "");
+
                         if (versionDouble > 1.02)
                         {
                             // Unique game ID, 32 bytes (int32)
                             fs.Read(readBuffer, 0, 4);
                             ms.GameID = BitConverter.ToInt32(readBuffer, 0);
                         }
-
-                        //if (isOldVersion)
-                        //{
-                        //    // Convert map names to remove player count, like
-                        //    // [2-4] Tunnel Train-ing to just Tunnel Train-ing
-                        //    int charIndex = ms.MapName.IndexOf(']');
-                        //    if (charIndex > -1)
-                        //        ms.MapName = ms.MapName.Substring(charIndex + 2);
-                        //}
 
                         // Player info comes right after the general match info
                         for (int j = 0; j < playerCount; j++)
@@ -298,26 +304,26 @@ namespace ClientCore.Statistics
                 fs.WriteByte(Convert.ToByte(ms.GetPlayerCount()));
                 // Average FPS, 4 bytes
                 fs.Write(BitConverter.GetBytes(ms.AverageFPS), 0, 4);
-                // Map name, 64 bytes (32 chars), Unicode
+                // Map name, 128 bytes (64 chars), Unicode
                 writeBuffer = Encoding.Unicode.GetBytes(ms.MapName);
-                if (writeBuffer.Length != 64)
+                if (writeBuffer.Length != 128)
                 {
-                    // If the map name's byte representation is shorter than 64 bytes,
+                    // If the map name's byte representation is shorter than 128 bytes,
                     // let's resize the array
                     byte[] temp = writeBuffer;
-                    writeBuffer = new byte[64];
-                    if (temp.Length < 65)
+                    writeBuffer = new byte[128];
+                    if (temp.Length < 129)
                     {
                         for (int i = 0; i < temp.Length; i++)
                             writeBuffer[i] = temp[i];
                     }
                     else
                     {
-                        for (int i = 0; i < 64; i++)
+                        for (int i = 0; i < 128; i++)
                             writeBuffer[i] = temp[i];
                     }
                 }
-                fs.Write(writeBuffer, 0, 64);
+                fs.Write(writeBuffer, 0, 128);
 
                 // Game mode, 64 bytes (32 chars), Unicode
                 writeBuffer = Encoding.Unicode.GetBytes(ms.GameMode);
