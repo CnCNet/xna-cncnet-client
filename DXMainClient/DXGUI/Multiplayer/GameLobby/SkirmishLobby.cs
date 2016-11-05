@@ -275,8 +275,12 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
                     while (mapIndex > lbMapList.LastIndex)
                         lbMapList.TopIndex++;
+
+                    return;
                 }
             }
+
+            LoadDefaultMap();
         }
 
         private void InitDefaultSettings()
