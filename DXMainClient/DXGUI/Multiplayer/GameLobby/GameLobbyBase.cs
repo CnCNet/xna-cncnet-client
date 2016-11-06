@@ -342,7 +342,18 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         protected void DdGameMode_SelectedIndexChanged(object sender, EventArgs e)
         {
-            GameMode = GameModes[ddGameMode.SelectedIndex];
+            var gameMode = GameModes[ddGameMode.SelectedIndex];
+
+            int mapIndex = -1;
+            if (Map != null)
+            {
+                mapIndex = gameMode.Maps.FindIndex(m => m == Map);
+            }
+
+            if (mapIndex > -1)
+                lbMapList.SelectedIndex = mapIndex;
+            else
+                lbMapList.SelectedIndex = 0; // Select default map
 
             tbMapSearch.Text = string.Empty;
             tbMapSearch.OnSelectedChanged();
