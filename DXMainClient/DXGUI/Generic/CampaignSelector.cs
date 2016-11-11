@@ -173,6 +173,7 @@ namespace DTAClient.DXGUI.Generic
             DarkeningPanel dp = new DarkeningPanel(WindowManager);
             dp.AddChild(cheaterWindow);
             AddChild(dp);
+            dp.CenterOnParent();
             cheaterWindow.CenterOnParent();
             cheaterWindow.YesClicked += CheaterWindow_YesClicked;
             cheaterWindow.Disable();
