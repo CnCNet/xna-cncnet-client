@@ -342,23 +342,17 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         protected void DdGameMode_SelectedIndexChanged(object sender, EventArgs e)
         {
-            var gameMode = GameModes[ddGameMode.SelectedIndex];
-
-            int mapIndex = -1;
-            if (Map != null)
-            {
-                mapIndex = gameMode.Maps.FindIndex(m => m == Map);
-            }
-
-            if (mapIndex > -1)
-                lbMapList.SelectedIndex = mapIndex;
-            else
-                lbMapList.SelectedIndex = 0; // Select default map
+            GameMode = GameModes[ddGameMode.SelectedIndex];
 
             tbMapSearch.Text = string.Empty;
             tbMapSearch.OnSelectedChanged();
 
             ListMaps();
+
+            if (lbMapList.SelectedIndex == -1)
+                lbMapList.SelectedIndex = 0; // Select default map
+            else
+                ChangeMap(GameMode, Map);
         }
 
         private void ListMaps()
@@ -419,13 +413,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (lbMapList.SelectedIndex < 0 || lbMapList.SelectedIndex >= lbMapList.ItemCount)
                 return;
 
-            GameMode gm = GameModes[ddGameMode.SelectedIndex];
-
             XNAListBoxItem item = lbMapList.GetItem(1, lbMapList.SelectedIndex);
 
             Map map = (Map)item.Tag;
 
-            ChangeMap(gm, map);
+            ChangeMap(GameMode, map);
         }
 
         /// <summary>
