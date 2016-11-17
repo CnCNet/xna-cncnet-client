@@ -109,7 +109,7 @@ namespace DTAClient.DXGUI.Generic
             lblDate = new XNALabel(WindowManager);
             lblDate.Name = "lblDate";
             lblDate.FontIndex = 1;
-            lblDate.Text = DateTime.Now.ToShortDateString();
+            lblDate.Text = Renderer.GetSafeString(DateTime.Now.ToShortDateString(), lblDate.FontIndex);
             lblDate.ClientRectangle = new Rectangle(ClientRectangle.Width -
                 (int)Renderer.GetTextDimensions(lblDate.Text, lblDate.FontIndex).X - 12, 18, 
                 lblDate.ClientRectangle.Width, lblDate.ClientRectangle.Height);
