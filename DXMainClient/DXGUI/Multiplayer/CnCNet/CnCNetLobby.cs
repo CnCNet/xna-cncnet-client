@@ -283,6 +283,46 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             ddCurrentChannel.SelectedIndexChanged += DdCurrentChannel_SelectedIndexChanged;
             ddCurrentChannel.AllowDropDown = false;
 
+            lblCurrentChannel = new XNALabel(WindowManager);
+            lblCurrentChannel.Name = "lblCurrentChannel";
+            lblCurrentChannel.ClientRectangle = new Rectangle(
+                ddCurrentChannel.ClientRectangle.X - 150,
+                ddCurrentChannel.ClientRectangle.Y + 2, 0, 0);
+            lblCurrentChannel.FontIndex = 1;
+            lblCurrentChannel.Text = "CURRENT CHANNEL:";
+
+            InitializeGameList();
+
+            AddChild(btnNewGame);
+            AddChild(btnJoinGame);
+            AddChild(btnLogout);
+
+            AddChild(btnForums);
+            AddChild(btnTwitter);
+            AddChild(btnGooglePlus);
+            AddChild(btnYoutube);
+            AddChild(btnFacebook);
+            AddChild(btnModDB);
+            AddChild(btnHomepage);
+            AddChild(lbPlayerList);
+            AddChild(lbChatMessages);
+            AddChild(lbGameList);
+            AddChild(tbChatInput);
+            AddChild(lblColor);
+            AddChild(ddColor);
+            AddChild(lblCurrentChannel);
+            AddChild(ddCurrentChannel);
+            AddChild(playerContextMenu);
+
+            base.Initialize();
+
+            WindowManager.CenterControlOnScreen(this);
+
+            PostUIInit();
+        }
+
+        private void InitializeGameList()
+        {
             int i = 0;
 
             foreach (CnCNetGame game in gameCollection.GameList)
@@ -330,36 +370,10 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
                 i++;
             }
+        }
 
-            lblCurrentChannel = new XNALabel(WindowManager);
-            lblCurrentChannel.Name = "lblCurrentChannel";
-            lblCurrentChannel.ClientRectangle = new Rectangle(
-                ddCurrentChannel.ClientRectangle.X - 150,
-                ddCurrentChannel.ClientRectangle.Y + 2, 0, 0);
-            lblCurrentChannel.FontIndex = 1;
-            lblCurrentChannel.Text = "CURRENT CHANNEL:";
-
-            AddChild(btnNewGame);
-            AddChild(btnJoinGame);
-            AddChild(btnLogout);
-
-            AddChild(btnForums);
-            AddChild(btnTwitter);
-            AddChild(btnGooglePlus);
-            AddChild(btnYoutube);
-            AddChild(btnFacebook);
-            AddChild(btnModDB);
-            AddChild(btnHomepage);
-            AddChild(lbPlayerList);
-            AddChild(lbChatMessages);
-            AddChild(lbGameList);
-            AddChild(tbChatInput);
-            AddChild(lblColor);
-            AddChild(ddColor);
-            AddChild(lblCurrentChannel);
-            AddChild(ddCurrentChannel);
-            AddChild(playerContextMenu);
-
+        private void PostUIInit()
+        {
             SoundEffect gameCreatedSoundEffect = AssetLoader.LoadSound("gamecreated.wav");
 
             if (gameCreatedSoundEffect != null)
@@ -371,10 +385,6 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             connectionManager.WelcomeMessageReceived += ConnectionManager_WelcomeMessageReceived;
             connectionManager.Disconnected += ConnectionManager_Disconnected;
-
-            base.Initialize();
-
-            WindowManager.CenterControlOnScreen(this);
 
             gameCreationPanel = new DarkeningPanel(WindowManager);
             AddChild(gameCreationPanel);
@@ -390,7 +400,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             connectionManager.MainChannel.AddMessage(new ChatMessage(null, Color.White, DateTime.Now,
                 Renderer.GetSafeString(
-                    "*** DTA CnCNet Client version " + 
+                    "*** DTA CnCNet Client version " +
                     System.Windows.Forms.Application.ProductVersion + " ***", lbChatMessages.FontIndex)));
 
             loginWindow = new CnCNetLoginWindow(WindowManager);
