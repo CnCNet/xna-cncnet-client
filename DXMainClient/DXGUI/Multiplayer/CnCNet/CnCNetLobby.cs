@@ -325,7 +325,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         {
             int i = 0;
 
-            foreach (CnCNetGame game in gameCollection.GameList)
+            foreach (var game in gameCollection.GameList)
             {
                 if (!game.Supported)
                 {
@@ -333,14 +333,14 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                     continue;
                 }
 
-                XNADropDownItem item = new XNADropDownItem();
+                var item = new XNADropDownItem();
                 item.Text = game.UIName;
                 item.TextColor = UISettings.AltColor;
                 item.Texture = game.Texture;
 
                 ddCurrentChannel.AddItem(item);
 
-                Channel chatChannel = connectionManager.GetChannel(game.ChatChannel);
+                var chatChannel = connectionManager.GetChannel(game.ChatChannel);
 
                 if (chatChannel == null)
                 {
@@ -351,7 +351,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
                 item.Tag = chatChannel;
 
-                Channel gameBroadcastChannel = connectionManager.GetChannel(game.GameBroadcastChannel);
+                var gameBroadcastChannel = connectionManager.GetChannel(game.GameBroadcastChannel);
 
                 if (gameBroadcastChannel == null)
                 {
@@ -362,13 +362,18 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
                 gameBroadcastChannel.CTCPReceived += GameBroadcastChannel_CTCPReceived;
 
-                if (game.InternalName.ToUpper() == localGame)
+                if (game.InternalName.ToUpper() == localGame.ToUpper())
                 {
                     ddCurrentChannel.SelectedIndex = i;
-                    connectionManager.SetMainChannel(chatChannel);
                 }
 
                 i++;
+            }
+
+            if (connectionManager.MainChannel == null)
+            {
+                // Set CnCNet channel as main channel if no channel found
+                ddCurrentChannel.SelectedIndex = ddCurrentChannel.Items.Count - 1;
             }
         }
 

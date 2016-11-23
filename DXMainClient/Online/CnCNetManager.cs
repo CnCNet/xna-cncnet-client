@@ -76,7 +76,7 @@ namespace DTAClient.Online
             };
         }
 
-        public Channel MainChannel { get; set; }
+        public Channel MainChannel { get; private set; }
 
         bool connected = false;
 
