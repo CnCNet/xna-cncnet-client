@@ -222,6 +222,9 @@ namespace ClientCore.Statistics
                             ms.AddPlayer(ps);
                         }
 
+                        if (ms.Players.Find(p => p.IsLocalPlayer && !p.IsAI) == null)
+                            continue;
+
                         Statistics.Add(ms);
                     }
                 }
@@ -287,11 +290,11 @@ namespace ClientCore.Statistics
                 writeBuffer = Encoding.ASCII.GetBytes(ms.GameVersion);
                 if (writeBuffer.Length != 8)
                 {
-                    // If the game version's byte representation is shorter than 8 bytes,
+                    // If the game version's byte representation is not 8 bytes,
                     // let's resize the array
                     byte[] temp = writeBuffer;
                     writeBuffer = new byte[8];
-                    for (int i = 0; i < temp.Length; i++)
+                    for (int i = 0; i < temp.Length && i < writeBuffer.Length; i++)
                         writeBuffer[i] = temp[i];
                 }
                 fs.Write(writeBuffer, 0, 8);
