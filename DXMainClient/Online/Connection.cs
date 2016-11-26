@@ -2,6 +2,7 @@
 using Rampastring.Tools;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
@@ -232,6 +233,7 @@ namespace DTAClient.Online
                 timer.Change(30000, 30000);
             }
 
+            timer.Change(Timeout.Infinite, Timeout.Infinite);
             timer.Dispose();
 
             _isConnected = false;
@@ -672,8 +674,15 @@ namespace DTAClient.Online
             byte[] buffer = encoding.GetBytes(message + "\r\n");
             if (serverStream.CanWrite)
             {
-                serverStream.Write(buffer, 0, buffer.Length);
-                serverStream.Flush();
+                try
+                {
+                    serverStream.Write(buffer, 0, buffer.Length);
+                    serverStream.Flush();
+                }
+                catch (IOException ex)
+                {
+                    Logger.Log("Sending message to the server failed! Reason: " + ex.Message);
+                }
             }
         }
 
