@@ -331,16 +331,19 @@ namespace DTAClient.DXGUI.Generic
         {
             Logger.Log("Attempting to parse " + path + " to populate mission list.");
 
-            string battle_ini_path = MainClientConstants.gamepath + path;
-            if (!File.Exists(battle_ini_path))
+            string battleIniPath = MainClientConstants.gamepath + path;
+            if (!File.Exists(battleIniPath))
             {
                 Logger.Log("File " + path + " not found. Ignoring.");
                 return false;
             }
 
-            IniFile battle_ini = new IniFile(battle_ini_path);
+            IniFile battle_ini = new IniFile(battleIniPath);
 
             List<string> battleKeys = battle_ini.GetSectionKeys("Battles");
+
+            if (battleKeys == null)
+                return false; // File exists but [Battles] doesn't
 
             foreach (string battleEntry in battleKeys)
             {
