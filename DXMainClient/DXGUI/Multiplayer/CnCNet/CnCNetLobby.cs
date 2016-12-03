@@ -108,7 +108,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         bool isInGameRoom = false;
         bool updateDenied = false;
 
-        string localGame;
+        string localGameID;
+        CnCNetGame localGame;
 
         List<string> followedGames = new List<string>();
 
@@ -116,7 +117,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         {
             Name = "CnCNetLobby";
             BackgroundTexture = AssetLoader.LoadTexture("cncnetlobbybg.png");
-            localGame = ClientConfiguration.Instance.LocalGame;
+            localGameID = ClientConfiguration.Instance.LocalGame;
+            localGame = gameCollection.GameList.Find(g => g.InternalName.ToUpper() == localGameID.ToUpper());
 
             btnNewGame = new XNAClientButton(WindowManager);
             btnNewGame.Name = "btnNewGame";
@@ -196,7 +198,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             btnHomepage.HoverSoundEffect = AssetLoader.LoadSound("button.wav");
             btnHomepage.URL = ClientConfiguration.Instance.HomepageURL;
 
-            lbGameList = new GameListBox(WindowManager, hostedGames, localGame);
+            lbGameList = new GameListBox(WindowManager, hostedGames, localGameID);
             lbGameList.Name = "lbGameList";
             lbGameList.ClientRectangle = new Rectangle(btnNewGame.ClientRectangle.X,
                 41, btnJoinGame.ClientRectangle.Right - btnNewGame.ClientRectangle.X,
@@ -365,7 +367,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
                 gameBroadcastChannel.CTCPReceived += GameBroadcastChannel_CTCPReceived;
 
-                if (game.InternalName.ToUpper() == localGame.ToUpper())
+                if (game.InternalName.ToUpper() == localGameID.ToUpper())
                 {
                     ddCurrentChannel.SelectedIndex = i;
                 }
@@ -462,7 +464,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 if (!game.Supported)
                     continue;
 
-                if (game.InternalName.ToUpper() == localGame)
+                if (game.InternalName.ToUpper() == localGameID)
                     continue;
 
                 if (followedGames.Contains(game.InternalName) &&
@@ -644,7 +646,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             HostedCnCNetGame hg = (HostedCnCNetGame)lbGameList.Items[lbGameList.SelectedIndex].Tag;
 
-            if (hg.Game.InternalName.ToUpper() != localGame.ToUpper())
+            if (hg.Game.InternalName.ToUpper() != localGameID.ToUpper())
             {
                 mainChannel.AddMessage(new ChatMessage(null, Color.White, DateTime.Now,
                     "The selected game is for " + 
@@ -845,7 +847,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         {
             while (true)
             {
-                string channelName = "#cncnet-" + localGame.ToLower() + "-game" + new Random().Next(1000000, 9999999);
+                string channelName = "#cncnet-" + localGameID.ToLower() + "-game" + new Random().Next(1000000, 9999999);
                 int index = hostedGames.FindIndex(c => ((HostedCnCNetGame)c).ChannelName == channelName);
                 if (index == -1)
                     return channelName;
@@ -909,11 +911,11 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             Channel cncnetChannel = connectionManager.GetChannel("#cncnet");
             cncnetChannel.Join();
 
-            string localGameChatChannelName = gameCollection.GetGameChatChannelNameFromIdentifier(localGame);
+            string localGameChatChannelName = gameCollection.GetGameChatChannelNameFromIdentifier(localGameID);
             Channel localGameChatChannel = connectionManager.GetChannel(localGameChatChannelName);
             localGameChatChannel.Join();
 
-            string localGameBroadcastChannel = gameCollection.GetGameBroadcastingChannelNameFromIdentifier(localGame);
+            string localGameBroadcastChannel = gameCollection.GetGameBroadcastingChannelNameFromIdentifier(localGameID);
             connectionManager.GetChannel(localGameBroadcastChannel).Join();
 
             cncnetChannel.RequestUserInfo();
@@ -924,7 +926,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 if (!game.Supported)
                     continue;
 
-                if (game.InternalName.ToUpper() != localGame)
+                if (game.InternalName.ToUpper() != localGameID)
                 {
                     if (UserINISettings.Instance.IsGameFollowed(game.InternalName.ToUpper()))
                     {
@@ -948,7 +950,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 currentChatChannel.UserGameIndexUpdated -= CurrentChatChannel_UserGameIndexUpdated;
 
                 if (currentChatChannel.ChannelName != "#cncnet" &&
-                    currentChatChannel.ChannelName != string.Format("#cncnet-{0}", localGame.ToLower()))
+                    currentChatChannel.ChannelName != string.Format("#cncnet-{0}", localGameID.ToLower()))
                 {
                     // Remove the assigned channels from the users so we don't have ghost users on the PM user list
                     foreach (var user in currentChatChannel.Users)
@@ -977,7 +979,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             RefreshPlayerList(this, EventArgs.Empty);
 
             if (currentChatChannel.ChannelName != "#cncnet" &&
-                currentChatChannel.ChannelName != string.Format("#cncnet-{0}", localGame.ToLower()))
+                currentChatChannel.ChannelName != string.Format("#cncnet-{0}", localGameID.ToLower()))
             {
                 currentChatChannel.Join();
                 currentChatChannel.RequestUserInfo();
@@ -1058,8 +1060,12 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             if (channelUser == null)
                 return;
 
-            if (!isInGameRoom && !updateDenied && 
-                channelUser.IsAdmin && e.Message.StartsWith("UPDATE ") && e.Message.Length > 7)
+            if (localGame != null && 
+                channel.ChannelName == localGame.GameBroadcastChannel &&
+                !updateDenied && 
+                channelUser.IsAdmin &&
+                e.Message.StartsWith("UPDATE ") &&
+                e.Message.Length > 7)
             {
                 string version = e.Message.Substring(7);
                 if (version != ProgramConstants.GAME_VERSION)
@@ -1150,7 +1156,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 else
                 {
                     if (UserINISettings.Instance.PlaySoundOnGameHosted && 
-                        cncnetGame.InternalName == localGame.ToLower() &&
+                        cncnetGame.InternalName == localGameID.ToLower() &&
                         !ProgramConstants.IsInGame)
                     {
                         AudioMaster.PlaySound(sndGameCreated);
