@@ -82,9 +82,11 @@ namespace DTAClient.DXGUI.Multiplayer
 
         public void SetInfo(GenericHostedGame game)
         {
-            lblGameMode.Text = "Game mode: " + Renderer.GetSafeString(game.GameMode, lblGameMode.FontIndex);
+            lblGameMode.Text = Renderer.GetStringWithLimitedWidth("Game mode: " + Renderer.GetSafeString(game.GameMode, lblGameMode.FontIndex),
+                lblGameMode.FontIndex, ClientRectangle.Width - lblGameMode.ClientRectangle.X * 2);
             lblGameMode.Visible = true;
-            lblMap.Text = "Map: " + Renderer.GetSafeString(game.Map, lblMap.FontIndex);
+            lblMap.Text = Renderer.GetStringWithLimitedWidth("Map: " + Renderer.GetSafeString(game.Map, lblMap.FontIndex),
+                lblMap.FontIndex, ClientRectangle.Width - lblMap.ClientRectangle.X * 2);
             lblMap.Visible = true;
             lblGameVersion.Text = "Game version: " + Renderer.GetSafeString(game.GameVersion, lblGameVersion.FontIndex);
             lblGameVersion.Visible = true;
