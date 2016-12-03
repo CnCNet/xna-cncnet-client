@@ -45,7 +45,7 @@ namespace DTAClient.DXGUI.Multiplayer
 
         public void SortAndRefreshHostedGames()
         {
-            hostedGames.OrderBy(hg => hg.Passworded).OrderBy(hg =>
+            hostedGames = hostedGames.OrderBy(hg => hg.Passworded).OrderBy(hg =>
                 hg.GameVersion != ProgramConstants.GAME_VERSION).OrderBy(hg =>
                 hg.Game.InternalName.ToUpper() == localGameIdentifier.ToUpper()).OrderBy(hg =>
                 hg.Locked).ToList();
