@@ -23,9 +23,6 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 {
     internal class CnCNetLobby : XNAWindow, ISwitchable
     {
-        const int GAME_REFRESH_RATE = 120;
-        const double GAME_LIFETIME = 35.0;
-
         public event EventHandler UpdateCheck;
 
         public CnCNetLobby(WindowManager windowManager, CnCNetManager connectionManager,
@@ -84,8 +81,6 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         Texture2D unknownGameIcon;
         Texture2D adminGameIcon;
 
-        List<GenericHostedGame> hostedGames = new List<GenericHostedGame>();
-
         SoundEffectInstance sndGameCreated;
 
         IRCColor[] chatColors;
@@ -102,8 +97,6 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         PrivateMessagingWindow pmWindow;
 
         PasswordRequestWindow passwordRequestWindow;
-
-        int framesSinceGameRefresh;
 
         bool isInGameRoom = false;
         bool updateDenied = false;
@@ -198,7 +191,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             btnHomepage.HoverSoundEffect = AssetLoader.LoadSound("button.wav");
             btnHomepage.URL = ClientConfiguration.Instance.HomepageURL;
 
-            lbGameList = new GameListBox(WindowManager, hostedGames, localGameID);
+            lbGameList = new GameListBox(WindowManager, localGameID);
             lbGameList.Name = "lbGameList";
             lbGameList.ClientRectangle = new Rectangle(btnNewGame.ClientRectangle.X,
                 41, btnJoinGame.ClientRectangle.Right - btnNewGame.ClientRectangle.X,
@@ -848,7 +841,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             while (true)
             {
                 string channelName = "#cncnet-" + localGameID.ToLower() + "-game" + new Random().Next(1000000, 9999999);
-                int index = hostedGames.FindIndex(c => ((HostedCnCNetGame)c).ChannelName == channelName);
+                int index = lbGameList.HostedGames.FindIndex(c => ((HostedCnCNetGame)c).ChannelName == channelName);
                 if (index == -1)
                     return channelName;
             }
@@ -893,9 +886,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             ddCurrentChannel.AllowDropDown = false;
             tbChatInput.Enabled = false;
             lbPlayerList.Clear();
-            lbGameList.Clear();
 
-            hostedGames.Clear();
+            lbGameList.ClearGames();
             followedGames.Clear();
             
             gameCreationPanel.Hide();
@@ -1134,11 +1126,11 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
                 if (isClosed)
                 {
-                    int index = hostedGames.FindIndex(hg => hg.HostName == e.UserName);
+                    int index = lbGameList.HostedGames.FindIndex(hg => hg.HostName == e.UserName);
 
                     if (index > -1)
                     {
-                        hostedGames.RemoveAt(index);
+                        lbGameList.HostedGames.RemoveAt(index);
                         lbGameList.Refresh();
                     }
 
@@ -1147,11 +1139,11 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
                 // Seek for the game in the internal game list based on its channel name;
                 // if found, then refresh that game's information, otherwise add as new game
-                int gameIndex = hostedGames.FindIndex(hg => hg.HostName == e.UserName);
+                int gameIndex = lbGameList.HostedGames.FindIndex(hg => hg.HostName == e.UserName);
 
                 if (gameIndex > -1)
                 {
-                    hostedGames[gameIndex] = game;
+                    lbGameList.HostedGames[gameIndex] = game;
                 }
                 else
                 {
@@ -1162,7 +1154,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                         AudioMaster.PlaySound(sndGameCreated);
                     }
 
-                    hostedGames.Insert(0, game);
+                    lbGameList.HostedGames.Insert(0, game);
                 }
 
                 lbGameList.SortAndRefreshHostedGames();
@@ -1203,34 +1195,6 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         protected override void OnVisibleChanged(object sender, EventArgs args)
         {
             base.OnVisibleChanged(sender, args);
-        }
-
-        public override void Update(GameTime gameTime)
-        {
-            framesSinceGameRefresh++;
-
-            if (framesSinceGameRefresh > GAME_REFRESH_RATE)
-            {
-                for (int i = 0; i < hostedGames.Count; i++)
-                {
-                    if (DateTime.Now - hostedGames[i].LastRefreshTime > TimeSpan.FromSeconds(GAME_LIFETIME))
-                    {
-                        hostedGames.RemoveAt(i);
-                        i--;
-
-                        if (lbGameList.SelectedIndex == i)
-                            lbGameList.SelectedIndex = -1;
-                        else if (lbGameList.SelectedIndex > i)
-                            lbGameList.SelectedIndex--;
-                    }
-                }
-
-                lbGameList.Refresh();
-
-                framesSinceGameRefresh = 0;
-            }
-
-            base.Update(gameTime);
         }
 
         public void SwitchOn()

@@ -77,8 +77,6 @@ namespace DTAClient.DXGUI.Multiplayer
 
         GameCollection gameCollection;
 
-        List<GenericHostedGame> hostedGames = new List<GenericHostedGame>();
-
         List<GameMode> gameModes;
 
         TimeSpan timeSinceGameRefresh = TimeSpan.Zero;
@@ -182,11 +180,12 @@ namespace DTAClient.DXGUI.Multiplayer
             btnHomepage.HoverSoundEffect = AssetLoader.LoadSound("button.wav");
             btnHomepage.URL = ClientConfiguration.Instance.HomepageURL;
 
-            lbGameList = new GameListBox(WindowManager, hostedGames, localGame);
+            lbGameList = new GameListBox(WindowManager, localGame);
             lbGameList.Name = "lbGameList";
             lbGameList.ClientRectangle = new Rectangle(btnNewGame.ClientRectangle.X,
                 41, btnJoinGame.ClientRectangle.Right - btnNewGame.ClientRectangle.X,
                 btnNewGame.ClientRectangle.Top - 53);
+            lbGameList.GameLifetime = 15.0; // Smaller lifetime in LAN
             lbGameList.DrawMode = PanelBackgroundImageDrawMode.STRETCHED;
             lbGameList.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 128), 1, 1);
             lbGameList.DoubleLeftClick += LbGameList_DoubleLeftClick;
@@ -399,8 +398,7 @@ namespace DTAClient.DXGUI.Multiplayer
         {
             players.Clear();
             lbPlayerList.Clear();
-            hostedGames.Clear();
-            lbGameList.Clear();
+            lbGameList.ClearGames();
 
             Visible = true;
             Enabled = true;
@@ -546,13 +544,13 @@ namespace DTAClient.DXGUI.Multiplayer
                         return;
                     game.EndPoint = endPoint;
 
-                    int existingGameIndex = hostedGames.FindIndex(g => ((HostedLANGame)g).EndPoint.Equals(endPoint));
+                    int existingGameIndex = lbGameList.HostedGames.FindIndex(g => ((HostedLANGame)g).EndPoint.Equals(endPoint));
 
                     if (existingGameIndex > -1)
-                        hostedGames[existingGameIndex] = game;
+                        lbGameList.HostedGames[existingGameIndex] = game;
                     else
                     {
-                        hostedGames.Add(game);
+                        lbGameList.HostedGames.Add(game);
                     }
 
                     lbGameList.Refresh();
@@ -713,28 +711,9 @@ namespace DTAClient.DXGUI.Multiplayer
                 }
             }
 
-            bool gameRemoved = false;
-
-            for (int i = 0; i < hostedGames.Count; i++)
-            {
-                HostedLANGame lg = (HostedLANGame)hostedGames[i];
-
-                lg.TimeWithoutRefresh += gameTime.ElapsedGameTime;
-
-                if (lg.TimeWithoutRefresh > TimeSpan.FromSeconds(GAME_INACTIVITY_REMOVE_TIME))
-                {
-                    gameRemoved = true;
-                    hostedGames.RemoveAt(i);
-                    i--;
-                }
-            }
-
             timeSinceAliveMessage += gameTime.ElapsedGameTime;
             if (timeSinceAliveMessage > TimeSpan.FromSeconds(ALIVE_MESSAGE_INTERVAL))
                 SendAlive();
-
-            if (gameRemoved)
-                lbGameList.Refresh();
 
             base.Update(gameTime);
         }

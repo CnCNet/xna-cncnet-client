@@ -12,15 +12,25 @@ namespace DTAClient.DXGUI.Multiplayer
 {
     public class GameListBox : XNAListBox
     {
-        public GameListBox(WindowManager windowManager, List<GenericHostedGame> hostedGames,
+        private const int GAME_REFRESH_RATE = 1;
+
+        public GameListBox(WindowManager windowManager,
             string localGameIdentifier)
             : base(windowManager)
         {
-            this.hostedGames = hostedGames;
+            HostedGames = new List<GenericHostedGame>();
             this.localGameIdentifier = localGameIdentifier;
         }
 
-        List<GenericHostedGame> hostedGames;
+        public List<GenericHostedGame> HostedGames;
+
+        private double _gameLifetime = 35.0;
+
+        public double GameLifetime
+        {
+            get { return _gameLifetime; }
+            set { _gameLifetime = value; }
+        }
 
         Texture2D txLockedGame;
         Texture2D txIncompatibleGame;
@@ -32,6 +42,8 @@ namespace DTAClient.DXGUI.Multiplayer
 
         bool showGameInfo = false;
 
+        TimeSpan timeSinceGameRefresh;
+
         /// <summary>
         /// Refreshes game information in the game list box.
         /// </summary>
@@ -39,18 +51,24 @@ namespace DTAClient.DXGUI.Multiplayer
         {
             Items.Clear();
 
-            hostedGames.ForEach(AddGameToList);
+            HostedGames.ForEach(AddGameToList);
             GameListBox_HoveredIndexChanged(this, EventArgs.Empty);
         }
 
         public void SortAndRefreshHostedGames()
         {
-            hostedGames = hostedGames.OrderBy(hg => hg.Passworded).OrderBy(hg =>
+            HostedGames = HostedGames.OrderBy(hg => hg.Passworded).OrderBy(hg =>
                 hg.GameVersion != ProgramConstants.GAME_VERSION).OrderBy(hg =>
                 hg.Game.InternalName.ToUpper() == localGameIdentifier.ToUpper()).OrderBy(hg =>
                 hg.Locked).ToList();
 
             Refresh();
+        }
+
+        public void ClearGames()
+        {
+            Clear();
+            HostedGames.Clear();
         }
 
         public override void Initialize()
@@ -117,6 +135,34 @@ namespace DTAClient.DXGUI.Multiplayer
             showGameInfo = false;
 
             base.OnMouseLeave();
+        }
+
+        public override void Update(GameTime gameTime)
+        {
+            timeSinceGameRefresh += gameTime.ElapsedGameTime;
+
+            if (timeSinceGameRefresh.TotalSeconds > GAME_REFRESH_RATE)
+            {
+                for (int i = 0; i < HostedGames.Count; i++)
+                {
+                    if (DateTime.Now - HostedGames[i].LastRefreshTime > TimeSpan.FromSeconds(GameLifetime))
+                    {
+                        HostedGames.RemoveAt(i);
+                        i--;
+
+                        if (SelectedIndex == i)
+                            SelectedIndex = -1;
+                        else if (SelectedIndex > i)
+                            SelectedIndex--;
+                    }
+                }
+
+                Refresh();
+
+                timeSinceGameRefresh = TimeSpan.Zero;
+            }
+
+            base.Update(gameTime);
         }
 
         public override void Draw(GameTime gameTime)
