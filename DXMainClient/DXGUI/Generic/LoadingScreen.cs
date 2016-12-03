@@ -104,7 +104,7 @@ namespace DTAClient.DXGUI.Generic
             topBar.SetSecondarySwitch(cncnetLobby);
 
             var mainMenu = new MainMenu(WindowManager, skirmishLobby, lanLobby,
-                topBar, optionsWindow, cncnetManager);
+                topBar, optionsWindow, cncnetLobby, cncnetManager);
             WindowManager.AddAndInitializeControl(mainMenu);
             WindowManager.AddAndInitializeControl(skirmishLobby);
             WindowManager.AddAndInitializeControl(cncnetGameLoadingLobby);

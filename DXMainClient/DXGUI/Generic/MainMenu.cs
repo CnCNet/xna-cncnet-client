@@ -16,6 +16,7 @@ using DTAClient.Domain.Multiplayer.CnCNet;
 using DTAClient.DXGUI.Multiplayer;
 using Microsoft.Xna.Framework.Media;
 using System.Threading;
+using DTAClient.DXGUI.Multiplayer.CnCNet;
 
 namespace DTAClient.DXGUI.Generic
 {
@@ -27,6 +28,7 @@ namespace DTAClient.DXGUI.Generic
 
         public MainMenu(WindowManager windowManager, SkirmishLobby skirmishLobby,
             LANLobby lanLobby, TopBar topBar, OptionsWindow optionsWindow,
+            CnCNetLobby cncnetLobby,
             CnCNetManager connectionManager) : base(windowManager)
         {
             this.skirmishLobby = skirmishLobby;
@@ -34,6 +36,7 @@ namespace DTAClient.DXGUI.Generic
             this.topBar = topBar;
             this.connectionManager = connectionManager;
             this.optionsWindow = optionsWindow;
+            cncnetLobby.UpdateCheck += CncnetLobby_UpdateCheck;
         }
 
         private MainMenuDarkeningPanel innerPanel;
@@ -613,6 +616,15 @@ namespace DTAClient.DXGUI.Generic
                 PlayMusic();
         }
 
+        /// <summary>
+        /// Switches to the main menu and performs a check for updates.
+        /// </summary>
+        private void CncnetLobby_UpdateCheck(object sender, EventArgs e)
+        {
+            CheckForUpdates();
+            topBar.SwitchToPrimary();
+        }
+
         public override void Update(GameTime gameTime)
         {
             if (isMusicFading)
@@ -680,6 +692,10 @@ namespace DTAClient.DXGUI.Generic
                 MediaPlayer.Stop();
                 Logger.Log("Exiting.");
                 WindowManager.CloseGame();
+#if !XNA
+                Thread.Sleep(1000);
+                Environment.Exit(0);
+#endif
             }
         }
 

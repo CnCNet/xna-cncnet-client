@@ -26,6 +26,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         const int GAME_REFRESH_RATE = 120;
         const double GAME_LIFETIME = 35.0;
 
+        public event EventHandler UpdateCheck;
+
         public CnCNetLobby(WindowManager windowManager, CnCNetManager connectionManager,
             CnCNetGameLobby gameLobby, CnCNetGameLoadingLobby gameLoadingLobby, 
             TopBar topBar, PrivateMessagingWindow pmWindow, TunnelHandler tunnelHandler,
@@ -104,7 +106,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         int framesSinceGameRefresh;
 
         bool isInGameRoom = false;
-        
+        bool updateDenied = false;
+
         string localGame;
 
         List<string> followedGames = new List<string>();
@@ -345,7 +348,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 if (chatChannel == null)
                 {
                     chatChannel = connectionManager.CreateChannel(game.UIName, game.ChatChannel,
-                        true, null);
+                        true, "ra1-derp");
                     connectionManager.AddChannel(chatChannel);
                 }
 
@@ -1048,13 +1051,31 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         private void GameBroadcastChannel_CTCPReceived(object sender, ChannelCTCPEventArgs e)
         {
+            var channel = (Channel)sender;
+
+            var channelUser = channel.Users.Find(u => u.IRCUser.Name == e.UserName);
+
+            if (channelUser == null)
+                return;
+
+            if (!isInGameRoom && !updateDenied && 
+                channelUser.IsAdmin && e.Message.StartsWith("UPDATE ") && e.Message.Length > 7)
+            {
+                string version = e.Message.Substring(7);
+                if (version != ProgramConstants.GAME_VERSION)
+                {
+                    var updateMessageBox = XNAMessageBox.ShowYesNoDialog(WindowManager, "Update available",
+                        "An update is available. Do you want to perform the update now?");
+                    updateMessageBox.NoClicked += UpdateMessageBox_NoClicked;
+                    updateMessageBox.YesClicked += UpdateMessageBox_YesClicked;
+                }
+            }
+
             if (!e.Message.StartsWith("GAME "))
                 return;
 
             string msg = e.Message.Substring(5); // Cut out GAME part
             string[] splitMessage = msg.Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
-
-            Channel channel = (Channel)sender;
 
             if (splitMessage.Length != 11)
             {
@@ -1144,6 +1165,16 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             {
                 Logger.Log("Game parsing error:" + ex.Message);
             }
+        }
+
+        private void UpdateMessageBox_YesClicked(object sender, EventArgs e)
+        {
+            UpdateCheck?.Invoke(this, EventArgs.Empty);
+        }
+
+        private void UpdateMessageBox_NoClicked(object sender, EventArgs e)
+        {
+            updateDenied = true;
         }
 
         private void BtnLogout_LeftClick(object sender, EventArgs e)
