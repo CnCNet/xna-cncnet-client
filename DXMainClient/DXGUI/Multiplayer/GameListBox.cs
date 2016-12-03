@@ -5,6 +5,8 @@ using Rampastring.XNAUI;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using DTAClient.Domain.Multiplayer;
+using System.Linq;
+using ClientCore;
 
 namespace DTAClient.DXGUI.Multiplayer
 {
@@ -39,6 +41,16 @@ namespace DTAClient.DXGUI.Multiplayer
 
             hostedGames.ForEach(AddGameToList);
             GameListBox_HoveredIndexChanged(this, EventArgs.Empty);
+        }
+
+        public void SortAndRefreshHostedGames()
+        {
+            hostedGames.OrderBy(hg => hg.Passworded).OrderBy(hg =>
+                hg.GameVersion != ProgramConstants.GAME_VERSION).OrderBy(hg =>
+                hg.Game.InternalName.ToUpper() == localGameIdentifier.ToUpper()).OrderBy(hg =>
+                hg.Locked).ToList();
+
+            Refresh();
         }
 
         public override void Initialize()

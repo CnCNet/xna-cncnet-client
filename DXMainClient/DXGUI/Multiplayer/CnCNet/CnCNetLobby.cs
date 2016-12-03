@@ -1138,7 +1138,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                     hostedGames.Insert(0, game);
                 }
 
-                lbGameList.Refresh();
+                lbGameList.SortAndRefreshHostedGames();
             }
             catch (Exception ex)
             {
