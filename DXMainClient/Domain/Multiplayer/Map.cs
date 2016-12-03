@@ -1,6 +1,7 @@
 ﻿using ClientCore;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using PreviewExtractor;
 using Rampastring.Tools;
 using Rampastring.XNAUI;
 using System;
@@ -122,6 +123,12 @@ namespace DTAClient.Domain.Multiplayer
 
         int Bases = -1;
 
+        string[] localSize;
+
+        string[] actualSize;
+
+        IniFile mapIni;
+
         /// <summary>
         /// The pixel coordinates of the map's player starting locations.
         /// </summary>
@@ -195,8 +202,8 @@ namespace DTAClient.Domain.Multiplayer
                     CoopInfo.SetHouseInfos(iniFile, BaseFilePath);
                 }
 
-                string[] localSize = iniFile.GetStringValue(BaseFilePath, "LocalSize", "0,0,0,0").Split(',');
-                string[] size = iniFile.GetStringValue(BaseFilePath, "Size", "0,0,0,0").Split(',');
+                localSize = iniFile.GetStringValue(BaseFilePath, "LocalSize", "0,0,0,0").Split(',');
+                actualSize = iniFile.GetStringValue(BaseFilePath, "Size", "0,0,0,0").Split(',');
 
                 string[] previewSize = iniFile.GetStringValue(BaseFilePath, "PreviewSize", "10,10").Split(',');
                 Point previewSizePoint = new Point(int.Parse(previewSize[0]), int.Parse(previewSize[1]));
@@ -208,7 +215,7 @@ namespace DTAClient.Domain.Multiplayer
                     if (String.IsNullOrEmpty(waypoint))
                         break;
 
-                    StartingLocations.Add(GetWaypointCoords(waypoint, size, localSize, previewSizePoint));
+                    StartingLocations.Add(GetWaypointCoords(waypoint, actualSize, localSize, previewSizePoint));
                 }
 
                 if (UserINISettings.Instance.PreloadMapPreviews)
@@ -260,6 +267,8 @@ namespace DTAClient.Domain.Multiplayer
 
                 iniFile.Parse();
 
+                mapIni = iniFile;
+
                 Name = iniFile.GetStringValue("Basic", "Name", "Unnamed map");
                 Author = iniFile.GetStringValue("Basic", "Author", "Unknown author");
                 GameModes = iniFile.GetStringValue("Basic", "GameMode", "Default").Split(',');
@@ -282,6 +291,7 @@ namespace DTAClient.Domain.Multiplayer
                 UnitCount = iniFile.GetIntValue("Basic", "UnitCount", -1);
                 NeutralHouseColor = iniFile.GetIntValue("Basic", "NeutralColor", -1);
                 SpecialHouseColor = iniFile.GetIntValue("Basic", "SpecialColor", -1);
+                PreviewPath = Path.ChangeExtension(path.Substring(ProgramConstants.GamePath.Length + 1), ".png");
 
                 string bases = iniFile.GetStringValue("Basic", "Bases", string.Empty);
                 if (!string.IsNullOrEmpty(bases))
@@ -307,11 +317,10 @@ namespace DTAClient.Domain.Multiplayer
                     CoopInfo.SetHouseInfos(iniFile, "Basic");
                 }
 
-                // TODO Rework once we're able to load previews
-                for (int i = 0; i < MaxPlayers; i++)
-                {
-                    StartingLocations.Add(new Point(4, i + 1));
-                }
+                localSize = iniFile.GetStringValue("Map", "LocalSize", "0,0,0,0").Split(',');
+                actualSize = iniFile.GetStringValue("Map", "Size", "0,0,0,0").Split(',');
+
+                RefreshStartingLocationPositions();
 
                 string forcedOptionsSection = iniFile.GetStringValue("Basic", "ForcedOptions", String.Empty);
 
@@ -337,6 +346,33 @@ namespace DTAClient.Domain.Multiplayer
             {
                 Logger.Log("Loading custom map " + path + " failed!");
                 return false;
+            }
+        }
+
+        /// <summary>
+        /// Re-calculates the starting location indicator positions of a custom map.
+        /// </summary>
+        public void RefreshStartingLocationPositions()
+        {
+            if (Official)
+                throw new InvalidOperationException("RefreshStartingLocationPositions cannot be called for official maps!");
+
+            StartingLocations.Clear();
+
+            Point previewSizePoint;
+
+            Texture2D texture = LoadPreviewTexture();
+
+            previewSizePoint = new Point(texture.Width, texture.Height);
+
+            for (int i = 0; i < MAX_PLAYERS; i++)
+            {
+                string waypoint = mapIni.GetStringValue("Waypoints", i.ToString(), string.Empty);
+
+                if (string.IsNullOrEmpty(waypoint))
+                    break;
+
+                StartingLocations.Add(GetWaypointCoords(waypoint, actualSize, localSize, previewSizePoint));
             }
         }
 
@@ -377,12 +413,32 @@ namespace DTAClient.Domain.Multiplayer
             }
         }
 
+        /// <summary>
+        /// Loads and returns the map preview texture.
+        /// </summary>
         public Texture2D LoadPreviewTexture()
         {
             if (File.Exists(ProgramConstants.GamePath + PreviewPath))
                 return AssetLoader.LoadTextureUncached(PreviewPath);
-            else
-                return AssetLoader.CreateTexture(Color.Black, 10, 10);
+
+            if (!Official)
+            {
+                // Extract preview from the map itself
+
+                if (mapIni.GetStringValue("PreviewPack", "1", string.Empty) ==
+                    "yAsAIAXQ5PDQ5PDQ6JQATAEE6PDQ4PDI4JgBTAFEAkgAJyAATAG0AydEAEABpAJIA0wBVA")
+                {
+                    Logger.Log(mapIni.FileName + " - Hidden preview detected - not extracting.");
+                    return AssetLoader.CreateTexture(Color.Black, 10, 10);
+                }
+
+                var extractor = new MapThumbnailExtractor(mapIni.FileName, 1);
+                var bitmap = extractor.Get_Bitmap();
+
+                return AssetLoader.TextureFromImage(bitmap);
+            }
+
+            return AssetLoader.CreateTexture(Color.Black, 10, 10);
         }
 
         public IniFile GetMapIni()

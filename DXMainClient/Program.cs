@@ -170,6 +170,12 @@ namespace DTAClient
                 return Assembly.Load(data);
             }
 
+            if (args.Name.StartsWith("MapThumbnailExtractor"))
+            {
+                byte[] data = File.ReadAllBytes(path + "MapThumbnailExtractor.dll");
+                return Assembly.Load(data);
+            }
+
             return null;
         }
     }
