@@ -82,13 +82,13 @@ namespace DTAClient.DXGUI.Multiplayer
 
         public void SetInfo(GenericHostedGame game)
         {
-            lblGameMode.Text = "Game mode: " + game.GameMode;
+            lblGameMode.Text = "Game mode: " + Renderer.GetSafeString(game.GameMode, lblGameMode.FontIndex);
             lblGameMode.Visible = true;
-            lblMap.Text = "Map: " + game.Map;
+            lblMap.Text = "Map: " + Renderer.GetSafeString(game.Map, lblMap.FontIndex);
             lblMap.Visible = true;
-            lblGameVersion.Text = "Game version: " + game.GameVersion;
+            lblGameVersion.Text = "Game version: " + Renderer.GetSafeString(game.GameVersion, lblGameVersion.FontIndex);
             lblGameVersion.Visible = true;
-            lblHost.Text = "Host: " + game.HostName;
+            lblHost.Text = "Host: " + Renderer.GetSafeString(game.HostName, lblHost.FontIndex);
             lblHost.Visible = true;
             lblPlayers.Visible = true;
             lblPlayers.Text = "Players (" + game.Players.Length + " / " + game.MaxPlayers + "):";
@@ -96,7 +96,7 @@ namespace DTAClient.DXGUI.Multiplayer
             for (int i = 0; i < game.Players.Length; i++)
             {
                 lblPlayerNames[i].Visible = true;
-                lblPlayerNames[i].Text = game.Players[i];
+                lblPlayerNames[i].Text = Renderer.GetSafeString(game.Players[i], lblPlayerNames[i].FontIndex);
             }
 
             for (int i = game.Players.Length; i < MAX_PLAYERS; i++)
