@@ -101,7 +101,8 @@ namespace DTAClient.DXGUI.Multiplayer
             }
 
             panelGameInformation.ClientRectangle = new Rectangle(ClientRectangle.Width,
-                (HoveredIndex - TopIndex) * LineHeight,
+                Math.Min((HoveredIndex - TopIndex) * LineHeight,
+                         ClientRectangle.Height - panelGameInformation.ClientRectangle.Height),
                 panelGameInformation.ClientRectangle.Width,
                 panelGameInformation.ClientRectangle.Height);
 
