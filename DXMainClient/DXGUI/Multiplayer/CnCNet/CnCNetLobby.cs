@@ -891,6 +891,14 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             followedGames.Clear();
             
             gameCreationPanel.Hide();
+
+            // Switch channel to default
+            if (localGame != null)
+            {
+                int gameIndex = ddCurrentChannel.Items.FindIndex(i => i.Text == localGame.UIName);
+                if (gameIndex > -1)
+                    ddCurrentChannel.SelectedIndex = gameIndex;
+            }
         }
 
         private void ConnectionManager_WelcomeMessageReceived(object sender, EventArgs e)
