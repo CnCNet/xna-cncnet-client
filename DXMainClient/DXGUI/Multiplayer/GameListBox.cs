@@ -47,6 +47,22 @@ namespace DTAClient.DXGUI.Multiplayer
         private Color hoverOnGameColor;
 
         /// <summary>
+        /// Removes a game from the list.
+        /// </summary>
+        /// <param name="index">The index of the game to remove.</param>
+        public void RemoveGame(int index)
+        {
+            if (SelectedIndex == index)
+                SelectedIndex = -1;
+            else if (SelectedIndex > index)
+                SelectedIndex--;
+
+            HostedGames.RemoveAt(index);
+
+            Refresh();
+        }
+
+        /// <summary>
         /// Refreshes game information in the game list box.
         /// </summary>
         public void Refresh()
@@ -57,14 +73,51 @@ namespace DTAClient.DXGUI.Multiplayer
             GameListBox_HoveredIndexChanged(this, EventArgs.Empty);
         }
 
-        public void SortAndRefreshHostedGames()
+        /// <summary>
+        /// Adds a game to the game list.
+        /// </summary>
+        /// <param name="game">The game to add.</param>
+        public void AddGame(GenericHostedGame game)
         {
+            GenericHostedGame selectedGame = null;
+            if (SelectedIndex > -1 && SelectedIndex < HostedGames.Count)
+            {
+                selectedGame = HostedGames[SelectedIndex];
+            }
+
+            HostedGames.Add(game);
+
             HostedGames = HostedGames.OrderBy(hg => hg.Passworded).OrderBy(hg =>
                 hg.GameVersion != ProgramConstants.GAME_VERSION).OrderBy(hg =>
                 hg.Game.InternalName.ToUpper() == localGameIdentifier.ToUpper()).OrderBy(hg =>
                 hg.Locked).ToList();
 
             Refresh();
+
+            if (selectedGame != null)
+                SelectedIndex = HostedGames.FindIndex(hg => hg == selectedGame);
+        }
+
+        /// <summary>
+        /// Sorts and refreshes the game information in the game list box.
+        /// </summary>
+        public void SortAndRefreshHostedGames()
+        {
+            GenericHostedGame selectedGame = null;
+            if (SelectedIndex > -1 && SelectedIndex < HostedGames.Count)
+            {
+                selectedGame = HostedGames[SelectedIndex];
+            }
+
+            HostedGames = HostedGames.OrderBy(hg => hg.Passworded).OrderBy(hg =>
+                hg.GameVersion != ProgramConstants.GAME_VERSION).OrderBy(hg =>
+                hg.Game.InternalName.ToUpper() == localGameIdentifier.ToUpper()).OrderBy(hg =>
+                hg.Locked).ToList();
+
+            Refresh();
+
+            if (selectedGame != null)
+                SelectedIndex = HostedGames.FindIndex(hg => hg == selectedGame);
         }
 
         public void ClearGames()

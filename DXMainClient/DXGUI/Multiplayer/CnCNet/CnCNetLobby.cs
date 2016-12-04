@@ -1138,8 +1138,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
                     if (index > -1)
                     {
-                        lbGameList.HostedGames.RemoveAt(index);
-                        lbGameList.Refresh();
+                        lbGameList.RemoveGame(index);
                     }
 
                     return;
@@ -1152,6 +1151,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 if (gameIndex > -1)
                 {
                     lbGameList.HostedGames[gameIndex] = game;
+                    lbGameList.SortAndRefreshHostedGames();
                 }
                 else
                 {
@@ -1162,10 +1162,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                         AudioMaster.PlaySound(sndGameCreated);
                     }
 
-                    lbGameList.HostedGames.Insert(0, game);
+                    lbGameList.AddGame(game);
                 }
-
-                lbGameList.SortAndRefreshHostedGames();
             }
             catch (Exception ex)
             {
