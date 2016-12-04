@@ -32,17 +32,19 @@ namespace DTAClient.DXGUI.Multiplayer
             set { _gameLifetime = value; }
         }
 
-        Texture2D txLockedGame;
-        Texture2D txIncompatibleGame;
-        Texture2D txPasswordedGame;
+        private Texture2D txLockedGame;
+        private Texture2D txIncompatibleGame;
+        private Texture2D txPasswordedGame;
 
-        string localGameIdentifier;
+        private string localGameIdentifier;
 
-        GameInformationPanel panelGameInformation;
+        private GameInformationPanel panelGameInformation;
 
-        bool showGameInfo = false;
+        private bool showGameInfo = false;
 
-        TimeSpan timeSinceGameRefresh;
+        private TimeSpan timeSinceGameRefresh;
+
+        private Color hoverOnGameColor;
 
         /// <summary>
         /// Refreshes game information in the game list box.
@@ -88,6 +90,9 @@ namespace DTAClient.DXGUI.Multiplayer
             panelGameInformation.ClearInfo();
 
             HoveredIndexChanged += GameListBox_HoveredIndexChanged;
+
+            hoverOnGameColor = AssetLoader.GetColorFromString(
+                ClientConfiguration.Instance.HoverOnGameColor);
 
             base.Initialize();
         }
@@ -186,11 +191,17 @@ namespace DTAClient.DXGUI.Multiplayer
 
                 int x = TextBorderDistance;
 
-                if (i == HoveredIndex)
+                if (i == SelectedIndex)
                 {
-                    Renderer.DrawTexture(BorderTexture,
+                    Renderer.FillRectangle(
                         new Rectangle(windowRectangle.X + 1, windowRectangle.Y + height, windowRectangle.Width - 2, lbItem.TextLines.Count * LineHeight),
-                        GetColorWithAlpha(FocusColor));
+                        FocusColor);
+                }
+                else if (i == HoveredIndex)
+                {
+                    Renderer.FillRectangle(
+                        new Rectangle(windowRectangle.X + 1, windowRectangle.Y + height, windowRectangle.Width - 2, lbItem.TextLines.Count * LineHeight),
+                        hoverOnGameColor);
                 }
 
                 var hostedGame = (GenericHostedGame)lbItem.Tag;

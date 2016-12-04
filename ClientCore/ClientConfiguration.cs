@@ -214,6 +214,14 @@ namespace ClientCore
             }
         }
 
+        public string HoverOnGameColor
+        {
+            get
+            {
+                return DTACnCNetClient_ini.GetStringValue("General", "HoverOnGameColor", "32,32,84");
+            }
+        }
+
         public string MainMenuMusicName
         {
             get { return DTACnCNetClient_ini.GetStringValue("General", "MainMenuTheme", "mainmenu"); }
