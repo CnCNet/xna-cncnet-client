@@ -33,6 +33,7 @@ namespace DTAClient.Online
         //public event EventHandler<KickEventArgs> UserKickedFromChannel;
         //public event EventHandler<ChannelUserEventArgs> UserJoinedChannel;
         public event EventHandler<PrivateMessageEventArgs> PrivateMessageReceived;
+        public event EventHandler<ChannelEventArgs> BannedFromChannel;
 
         public event EventHandler<AttemptedServerEventArgs> AttemptedServerChanged;
         public event EventHandler ConnectAttemptFailed;
@@ -789,6 +790,16 @@ namespace DTAClient.Online
 
             ProgramConstants.PLAYERNAME = sb.ToString();
             connection.ChangeNickname();
+        }
+
+        public void OnBannedFromChannel(string channelName)
+        {
+            wm.AddCallback(new Action<string>(DoBannedFromChannel), channelName);
+        }
+
+        private void DoBannedFromChannel(string channelName)
+        {
+            BannedFromChannel?.Invoke(this, new ChannelEventArgs(channelName));
         }
     }
 

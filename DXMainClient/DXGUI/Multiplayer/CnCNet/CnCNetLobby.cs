@@ -406,6 +406,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                     "*** DTA CnCNet Client version " +
                     System.Windows.Forms.Application.ProductVersion + " ***", lbChatMessages.FontIndex)));
 
+            connectionManager.BannedFromChannel += ConnectionManager_BannedFromChannel;
+
             loginWindow = new CnCNetLoginWindow(WindowManager);
             loginWindow.Connect += LoginWindow_Connect;
             loginWindow.Cancelled += LoginWindow_Cancelled;
@@ -433,6 +435,26 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             GameProcessLogic.GameProcessStarted += SharedUILogic_GameProcessStarted;
             GameProcessLogic.GameProcessExited += SharedUILogic_GameProcessExited;
+        }
+
+        /// <summary>
+        /// Displays a message when the IRC server has informed that the local user
+        /// has been banned from a channel that they're attempting to join.
+        /// </summary>
+        private void ConnectionManager_BannedFromChannel(object sender, ChannelEventArgs e)
+        {
+            var game = lbGameList.HostedGames.Find(hg => ((HostedCnCNetGame)hg).ChannelName == e.ChannelName);
+
+            if (game == null)
+            {
+                connectionManager.MainChannel.AddMessage(new ChatMessage(
+                    Color.White, "Cannot join channel " + e.ChannelName + ", you're banned!"));
+            }
+            else
+            {
+                connectionManager.MainChannel.AddMessage(new ChatMessage(
+                    Color.White, "Cannot join game " + game.RoomName + ", you've been banned by the game host!"));
+            }
         }
 
         private void SharedUILogic_GameProcessStarted()

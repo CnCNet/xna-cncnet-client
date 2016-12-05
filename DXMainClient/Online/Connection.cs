@@ -406,8 +406,7 @@ namespace DTAClient.Online
                             connectionManager.OnChannelFull(fullChannelName);
                             break;
                         case 474: // Returned when attempting to join a channel a user is banned from
-                            message = serverMessagePart + parameters[1];
-                            connectionManager.OnGenericServerMessageReceived(message);
+                            connectionManager.OnBannedFromChannel(parameters[1]);
                             break;
                         case 475: // Returned when attempting to join a key-locked channel either without a key or with the wrong key
                             string invalidPasswordChannelName = parameters[1];

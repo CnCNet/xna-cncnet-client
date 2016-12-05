@@ -295,7 +295,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             if (index > -1)
             {
-                AddNotice(Players[index].Name + " was kicked from the game.");
                 Players.RemoveAt(index);
                 CopyPlayerDataToUI();
                 ClearReadyStatuses();

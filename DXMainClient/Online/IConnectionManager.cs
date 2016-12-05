@@ -43,6 +43,8 @@
 
         void OnNameAlreadyInUse();
 
+        void OnBannedFromChannel(string channelName);
+
         // **********************
         // Connection-related methods
         // **********************

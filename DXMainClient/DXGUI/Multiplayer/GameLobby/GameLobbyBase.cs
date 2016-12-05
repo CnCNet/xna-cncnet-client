@@ -970,12 +970,21 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     pInfo.StartingLocation = 0;
 
                 XNADropDown ddName = ddPlayerNames[pId];
-                if (ddName.SelectedIndex == 1)
-                    ddName.SelectedIndex = 0;
-                else if (ddName.SelectedIndex == 2)
-                    KickPlayer(pId);
-                else
-                    BanPlayer(pId);
+                
+                switch (ddName.SelectedIndex)
+                {
+                    case 0:
+                        break;
+                    case 1:
+                        ddName.SelectedIndex = 0;
+                        break;
+                    case 2:
+                        KickPlayer(pId);
+                        break;
+                    case 3:
+                        BanPlayer(pId);
+                        break;
+                }
             }
 
             AIPlayers.Clear();
