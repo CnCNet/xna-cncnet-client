@@ -12,7 +12,15 @@ namespace DTAClient.Online
             Name = name;
         }
 
+        public IRCUser(string name, string host)
+        {
+            Name = name;
+            Hostname = host;
+        }
+
         public string Name { get; set; }
+
+        public string Hostname { get; set; }
 
         int _gameId = -1;
 

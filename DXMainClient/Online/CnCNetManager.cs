@@ -473,13 +473,13 @@ namespace DTAClient.Online
             connection.ConnectAsync();
         }
 
-        public void OnUserJoinedChannel(string channelName, string userName, string userAddress)
+        public void OnUserJoinedChannel(string channelName, string host, string userName, string ident)
         {
-            wm.AddCallback(new Action<string, string, string>(DoUserJoinedChannel),
-                channelName, userName, userAddress);
+            wm.AddCallback(new Action<string, string, string, string>(DoUserJoinedChannel),
+                channelName, host, userName, ident);
         }
 
-        private void DoUserJoinedChannel(string channelName, string userName, string userAddress)
+        private void DoUserJoinedChannel(string channelName, string host, string userName, string userAddress)
         {
             Channel channel = Channels.Find(c => c.ChannelName == channelName);
 
@@ -511,8 +511,7 @@ namespace DTAClient.Online
             // If we don't know the user, create a new one
             if (ircUser == null)
             {
-                ircUser = new IRCUser();
-                ircUser.Name = name;
+                ircUser = new IRCUser(name, host);
 
                 string identifier = userAddress.Split('@')[0].Replace("~", "");
                 string[] parts = identifier.Split('.');
@@ -709,13 +708,13 @@ namespace DTAClient.Online
             WelcomeMessageReceived?.Invoke(this, new ServerMessageEventArgs(message));
         }
 
-        public void OnWhoReplyReceived(string userName, string extraInfo)
+        public void OnWhoReplyReceived(string hostName, string userName, string extraInfo)
         {
-            wm.AddCallback(new Action<string, string>(DoWhoReplyReceived),
-                userName, extraInfo);
+            wm.AddCallback(new Action<string, string, string>(DoWhoReplyReceived),
+                hostName, userName, extraInfo);
         }
 
-        private void DoWhoReplyReceived(string userName, string extraInfo)
+        private void DoWhoReplyReceived(string hostName, string userName, string extraInfo)
         {
             WhoReplyReceived?.Invoke(this, new WhoEventArgs(userName, extraInfo));
 
@@ -735,6 +734,7 @@ namespace DTAClient.Online
             if (user != null)
             {
                 user.GameID = gameIndex;
+                user.Hostname = hostName;
 
                 Channels.ForEach(ch => ch.UpdateGameIndexForUser(userName));
 

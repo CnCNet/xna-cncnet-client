@@ -15,7 +15,7 @@
 
         void OnUserListReceived(string channelName, string[] userList);
 
-        void OnWhoReplyReceived(string userName, string extraInfo);
+        void OnWhoReplyReceived(string hostName, string userName, string extraInfo);
 
         void OnChannelFull(string channelName);
 
@@ -25,7 +25,7 @@
 
         void OnNoticeMessageParsed(string notice, string userName);
 
-        void OnUserJoinedChannel(string channelName, string userName, string userAddress);
+        void OnUserJoinedChannel(string channelName, string hostName, string userName, string ident);
 
         void OnUserLeftChannel(string channelName, string userName);
 

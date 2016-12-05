@@ -229,6 +229,17 @@ namespace DTAClient.Online
             connection.QueueMessage(QueuedMessageType.SYSTEM_MESSAGE, priority, "KICK " + ChannelName + " " + userName);
         }
 
+        /// <summary>
+        /// Sends a "ban host" message to the channel.
+        /// </summary>
+        /// <param name="host">The host that should be banned.</param>
+        /// <param name="priority">The priority of the message in the send queue.</param>
+        public void SendBanMessage(string host, int priority)
+        {
+            connection.QueueMessage(QueuedMessageType.SYSTEM_MESSAGE, priority,
+                string.Format("MODE {0} +b *!*@{1}", ChannelName, host));
+        }
+
         public void Join()
         {
             if (string.IsNullOrEmpty(Password))

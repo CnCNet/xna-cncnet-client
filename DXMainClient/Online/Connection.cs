@@ -387,9 +387,10 @@ namespace DTAClient.Online
                             connectionManager.OnUserListReceived(channelName, users);
                             break;
                         case 352: // Reply to WHO query
+                            string host = parameters[3];
                             string wUserName = parameters[5];
                             string extraInfo = parameters[7];
-                            connectionManager.OnWhoReplyReceived(wUserName, extraInfo);
+                            connectionManager.OnWhoReplyReceived(host, wUserName, extraInfo);
                             break;
                         case 433: // Name already in use
                             message = serverMessagePart + parameters[1] + ": " + parameters[2];
@@ -449,9 +450,12 @@ namespace DTAClient.Online
                         break;
                     case "JOIN":
                         string channel = parameters[0];
-                        string userName = prefix.Substring(0, prefix.IndexOf('!'));
-                        string ipAddress = prefix.Substring(prefix.IndexOf('!') + 1);
-                        connectionManager.OnUserJoinedChannel(channel, userName, ipAddress);
+                        int atIndex = prefix.IndexOf('@');
+                        int exclamIndex = prefix.IndexOf('!');
+                        string userName = prefix.Substring(0, exclamIndex);
+                        string ident = prefix.Substring(exclamIndex + 1, atIndex - (exclamIndex + 1));
+                        string host = prefix.Substring(atIndex + 1);
+                        connectionManager.OnUserJoinedChannel(channel, host, userName, ident);
                         break;
                     case "PART":
                         string pChannel = parameters[0];

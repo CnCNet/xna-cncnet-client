@@ -1146,10 +1146,27 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (playerIndex >= Players.Count)
                 return;
 
-            PlayerInfo pInfo = Players[playerIndex];
+            var pInfo = Players[playerIndex];
 
             AddNotice("Kicking " + pInfo.Name + " from the game...");
             channel.SendKickMessage(pInfo.Name, 8);
+        }
+
+        protected override void BanPlayer(int playerIndex)
+        {
+            if (playerIndex >= Players.Count)
+                return;
+
+            var pInfo = Players[playerIndex];
+
+            var user = connectionManager.UserList.Find(u => u.Name == pInfo.Name);
+
+            if (user != null)
+            {
+                AddNotice("Banning and kicking " + pInfo.Name + " from the game...");
+                channel.SendBanMessage(user.Hostname, 8);
+                channel.SendKickMessage(user.Name, 8);
+            }
         }
 
         #region CnCNet map sharing
