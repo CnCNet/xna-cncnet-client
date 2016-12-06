@@ -264,6 +264,8 @@ namespace DTAClient.Domain.Multiplayer
                 iniFile.AddSection("Basic");
                 iniFile.AddSection("Map");
                 iniFile.AddSection("Waypoints");
+                iniFile.AddSection("PreviewPack");
+                iniFile.AllowNewSections = false;
 
                 iniFile.Parse();
 
@@ -322,23 +324,23 @@ namespace DTAClient.Domain.Multiplayer
 
                 RefreshStartingLocationPositions();
 
-                string forcedOptionsSection = iniFile.GetStringValue("Basic", "ForcedOptions", String.Empty);
+                //string forcedOptionsSection = iniFile.GetStringValue("Basic", "ForcedOptions", String.Empty);
 
-                if (!string.IsNullOrEmpty(forcedOptionsSection))
-                {
-                    string[] sections = forcedOptionsSection.Split(',');
-                    foreach (string section in sections)
-                        ParseForcedOptions(iniFile, section);
-                }
+                //if (!string.IsNullOrEmpty(forcedOptionsSection))
+                //{
+                //    string[] sections = forcedOptionsSection.Split(',');
+                //    foreach (string section in sections)
+                //        ParseForcedOptions(iniFile, section);
+                //}
 
-                string forcedSpawnIniOptionsSection = iniFile.GetStringValue("Basic", "ForcedSpawnIniOptions", String.Empty);
+                //string forcedSpawnIniOptionsSection = iniFile.GetStringValue("Basic", "ForcedSpawnIniOptions", String.Empty);
 
-                if (!string.IsNullOrEmpty(forcedSpawnIniOptionsSection))
-                {
-                    string[] sections = forcedSpawnIniOptionsSection.Split(',');
-                    foreach (string section in sections)
-                        ParseSpawnIniOptions(iniFile, section);
-                }
+                //if (!string.IsNullOrEmpty(forcedSpawnIniOptionsSection))
+                //{
+                //    string[] sections = forcedSpawnIniOptionsSection.Split(',');
+                //    foreach (string section in sections)
+                //        ParseSpawnIniOptions(iniFile, section);
+                //}
 
                 return true;
             }
