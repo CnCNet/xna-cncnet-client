@@ -374,6 +374,8 @@ namespace DTAClient.Domain.Multiplayer
 
                 StartingLocations.Add(GetWaypointCoords(waypoint, actualSize, localSize, previewSizePoint));
             }
+
+            texture.Dispose();
         }
 
         private void ParseForcedOptions(IniFile iniFile, string forcedOptionsSection)
