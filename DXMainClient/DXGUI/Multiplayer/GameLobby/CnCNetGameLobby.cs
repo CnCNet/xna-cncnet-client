@@ -1205,7 +1205,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             string mapPath = "Maps\\Custom\\" + e.SHA1;
             Map map = new Map(mapPath, false);
 
-            if (map.SetInfoFromMap(mapPath + ".map"))
+            if (map.SetInfoFromMap(ProgramConstants.GamePath + mapPath + ".map"))
             {
                 Logger.Log("Map " + e.SHA1 + " downloaded succesfully.");
                 AddNotice("Map succesfully transferred.");
