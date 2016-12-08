@@ -352,12 +352,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 lbChatMessages.ClientRectangle.Width, 21);
             tbChatInput.Name = "tbChatInput_Player";
 
-            ddGameMode.Visible = false;
-            ddGameMode.Enabled = false;
-            lblGameModeSelect.Visible = false;
-            lblGameModeSelect.Enabled = false;
-            lbMapList.Visible = false;
-            lbMapList.Enabled = false;
+            ddGameMode.Disable();
+            lblGameModeSelect.Disable();
+            lbMapList.Disable();
+            tbMapSearch.Disable();
 
             lbChatMessages.GetAttributes(ThemeIni);
             tbChatInput.GetAttributes(ThemeIni);
@@ -381,12 +379,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 lbChatMessages.ClientRectangle.Width, 21);
             tbChatInput.Name = "tbChatInput_Host";
 
-            ddGameMode.Visible = true;
-            ddGameMode.Enabled = true;
-            lblGameModeSelect.Visible = true;
-            lblGameModeSelect.Enabled = true;
-            lbMapList.Visible = true;
-            lbMapList.Enabled = true;
+            ddGameMode.Enable();
+            lblGameModeSelect.Enable();
+            lbMapList.Enable();
+            tbMapSearch.Enable();
 
             lbChatMessages.GetAttributes(ThemeIni);
             tbChatInput.GetAttributes(ThemeIni);
