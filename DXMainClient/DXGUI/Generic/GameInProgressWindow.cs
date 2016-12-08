@@ -16,14 +16,15 @@ namespace DTAClient.DXGUI
     /// </summary>
     public class GameInProgressWindow : XNAPanel
     {
-        const double FPS = 120.0;
-        const double POWER_SAVING_FPS = 5.0;
+        private const double FPS = 120.0;
+        private const double POWER_SAVING_FPS = 5.0;
 
         public GameInProgressWindow(WindowManager windowManager) : base(windowManager)
         {
         }
 
-        bool initialized = false;
+        private bool initialized = false;
+        private bool deletingLogFilesFailed = false;
 
         public override void Initialize()
         {
@@ -67,10 +68,20 @@ namespace DTAClient.DXGUI
 
         private void SharedUILogic_GameProcessStarted()
         {
-            File.Delete(ProgramConstants.GamePath + "EXCEPT.TXT");
+            try
+            {
+                File.Delete(ProgramConstants.GamePath + "EXCEPT.TXT");
 
-            for (int i = 0; i < 8; i++)
-                File.Delete(ProgramConstants.GamePath + "SYNC" + i + ".TXT");
+                for (int i = 0; i < 8; i++)
+                    File.Delete(ProgramConstants.GamePath + "SYNC" + i + ".TXT");
+
+                deletingLogFilesFailed = false;
+            }
+            catch (Exception ex)
+            {
+                Logger.Log("Exception when deleting error log files! Message: " + ex.Message);
+                deletingLogFilesFailed = true;
+            }
 
             Visible = true;
             Enabled = true;
@@ -88,6 +99,19 @@ namespace DTAClient.DXGUI
 
         private void HandleGameProcessExited()
         {
+            Visible = false;
+            Enabled = false;
+            WindowManager.Cursor.Visible = true;
+            ProgramConstants.IsInGame = false;
+            Game.TargetElapsedTime = TimeSpan.FromMilliseconds(1000.0 / FPS);
+            if (UserINISettings.Instance.MinimizeWindowsOnGameStart)
+                WindowManager.MaximizeWindow();
+
+            UserINISettings.Instance.ReloadSettings();
+
+            if (deletingLogFilesFailed)
+                return;
+
             try
             {
                 if (!Directory.Exists(ProgramConstants.GamePath + "Client\\ErrorLogs"))
@@ -123,16 +147,6 @@ namespace DTAClient.DXGUI
             {
                 Logger.Log("An error occured while checking for EXCEPT.TXT and SYNCX.TXT files. Message: " + ex.Message);
             }
-
-            Visible = false;
-            Enabled = false;
-            WindowManager.Cursor.Visible = true;
-            ProgramConstants.IsInGame = false;
-            Game.TargetElapsedTime = TimeSpan.FromMilliseconds(1000.0 / FPS);
-            if (UserINISettings.Instance.MinimizeWindowsOnGameStart)
-                WindowManager.MaximizeWindow();
-
-            UserINISettings.Instance.ReloadSettings();
         }
     }
 }

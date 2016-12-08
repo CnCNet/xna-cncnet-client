@@ -119,8 +119,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             btnLockGame.Text = "Lock Game";
             btnLockGame.LeftClick += BtnLockGame_LeftClick;
 
-            AddChild(lbChatMessages);
-            AddChild(tbChatInput);
+            AddChildToFirstIndex(lbChatMessages);
+            AddChildToFirstIndex(tbChatInput);
             AddChild(btnLockGame);
 
             MapPreviewBox.LocalStartingLocationSelected += MapPreviewBox_LocalStartingLocationSelected;
