@@ -264,6 +264,7 @@ namespace DTAClient.Domain.Multiplayer
                 iniFile.AddSection("Basic");
                 iniFile.AddSection("Map");
                 iniFile.AddSection("Waypoints");
+                iniFile.AddSection("Preview");
                 iniFile.AddSection("PreviewPack");
                 iniFile.AllowNewSections = false;
 
@@ -436,7 +437,7 @@ namespace DTAClient.Domain.Multiplayer
                     return AssetLoader.CreateTexture(Color.Black, 10, 10);
                 }
 
-                var extractor = new MapThumbnailExtractor(mapIni.FileName, 1);
+                var extractor = new MapThumbnailExtractor(mapIni, 1);
                 var bitmap = extractor.Get_Bitmap();
 
                 return AssetLoader.TextureFromImage(bitmap);
