@@ -402,7 +402,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             int sgIndex = Conversions.IntFromString(parts[0], -1);
 
-            if (sgIndex == -1)
+            if (sgIndex < 0)
                 return;
 
             if (sgIndex >= ddSavedGame.Items.Count)
@@ -411,6 +411,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 channel.SendCTCPMessage(INVALID_SAVED_GAME_INDEX_CTCP_COMMAND, QueuedMessageType.SYSTEM_MESSAGE, 10);
                 return;
             }
+
+            ddSavedGame.SelectedIndex = sgIndex;
 
             Players.Clear();
 
