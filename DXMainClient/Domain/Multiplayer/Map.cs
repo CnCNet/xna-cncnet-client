@@ -440,7 +440,9 @@ namespace DTAClient.Domain.Multiplayer
                 var extractor = new MapThumbnailExtractor(mapIni, 1);
                 var bitmap = extractor.Get_Bitmap();
 
-                return AssetLoader.TextureFromImage(bitmap);
+                var texture = AssetLoader.TextureFromImage(bitmap);
+                if (texture != null)
+                    return texture;
             }
 
             return AssetLoader.CreateTexture(Color.Black, 10, 10);
