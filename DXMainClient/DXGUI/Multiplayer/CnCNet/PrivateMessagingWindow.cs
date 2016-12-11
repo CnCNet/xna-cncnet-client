@@ -660,23 +660,24 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             }
             else
             {
-                Visible = true;
-                Enabled = true;
+                Enable();
 
                 if (!string.IsNullOrEmpty(lastConversationPartner))
                 {
                     int index = lbUserList.Items.FindIndex(i => i.Text == lastConversationPartner);
 
                     if (index > -1)
+                    {
                         lbUserList.SelectedIndex = index;
+                        tbMessageInput.IsSelected = true;
+                    }
                 }
             }
         }
 
         public void SwitchOff()
         {
-            Visible = false;
-            Enabled = false;
+            Disable();
         }   
 
         public string GetSwitchName()
