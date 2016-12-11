@@ -57,12 +57,12 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             InitPlayerOptionDropdowns();
 
-            ReadyBoxes = new XNACheckBox[PLAYER_COUNT];
+            ReadyBoxes = new XNACheckBox[MAX_PLAYER_COUNT];
 
             int readyBoxX = GameOptionsIni.GetIntValue(Name, "PlayerReadyBoxX", 7);
             int readyBoxY = GameOptionsIni.GetIntValue(Name, "PlayerReadyBoxY", 4);
 
-            for (int i = 0; i < PLAYER_COUNT; i++)
+            for (int i = 0; i < MAX_PLAYER_COUNT; i++)
             {
                 XNACheckBox chkPlayerReady = new XNACheckBox(WindowManager);
                 chkPlayerReady.Name = "chkPlayerReady" + i;
@@ -630,6 +630,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         protected override void CopyPlayerDataToUI()
         {
+            if (Players.Count + AIPlayers.Count > MAX_PLAYER_COUNT)
+                return;
+
             base.CopyPlayerDataToUI();
 
             if (IsHost)
@@ -650,7 +653,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 ReadyBoxes[aiId + Players.Count].Checked = true;
             }
 
-            for (int i = AIPlayers.Count + Players.Count; i < PLAYER_COUNT; i++)
+            for (int i = AIPlayers.Count + Players.Count; i < MAX_PLAYER_COUNT; i++)
             {
                 ReadyBoxes[i].Checked = false;
             }

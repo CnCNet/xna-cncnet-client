@@ -20,7 +20,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
     /// </summary>
     public abstract class GameLobbyBase : XNAWindow
     {
-        protected const int PLAYER_COUNT = 8;
+        protected const int MAX_PLAYER_COUNT = 8;
         protected const int PLAYER_OPTION_VERTICAL_MARGIN = 12;
         protected const int PLAYER_OPTION_HORIZONTAL_MARGIN = 3;
         protected const int PLAYER_OPTION_CAPTION_Y = 6;
@@ -423,11 +423,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         /// </summary>
         protected void InitPlayerOptionDropdowns()
         {
-            ddPlayerNames = new XNAClientDropDown[PLAYER_COUNT];
-            ddPlayerSides = new XNAClientDropDown[PLAYER_COUNT];
-            ddPlayerColors = new XNAClientDropDown[PLAYER_COUNT];
-            ddPlayerStarts = new XNAClientDropDown[PLAYER_COUNT];
-            ddPlayerTeams = new XNAClientDropDown[PLAYER_COUNT];
+            ddPlayerNames = new XNAClientDropDown[MAX_PLAYER_COUNT];
+            ddPlayerSides = new XNAClientDropDown[MAX_PLAYER_COUNT];
+            ddPlayerColors = new XNAClientDropDown[MAX_PLAYER_COUNT];
+            ddPlayerStarts = new XNAClientDropDown[MAX_PLAYER_COUNT];
+            ddPlayerTeams = new XNAClientDropDown[MAX_PLAYER_COUNT];
 
             int playerOptionVecticalMargin = GameOptionsIni.GetIntValue(Name, "PlayerOptionVerticalMargin", PLAYER_OPTION_VERTICAL_MARGIN);
             int playerOptionHorizontalMargin = GameOptionsIni.GetIntValue(Name, "PlayerOptionHorizontalMargin", PLAYER_OPTION_HORIZONTAL_MARGIN);
@@ -447,7 +447,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             string randomColor = GameOptionsIni.GetStringValue("General", "RandomColor", "255,255,255");
 
-            for (int i = PLAYER_COUNT - 1; i > -1; i--)
+            for (int i = MAX_PLAYER_COUNT - 1; i > -1; i--)
             {
                 var ddPlayerName = new XNAClientDropDown(WindowManager);
                 ddPlayerName.Name = "ddPlayerName" + i;
@@ -1091,7 +1091,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             }
 
             // Unused player slots
-            for (int ddIndex = Players.Count + AIPlayers.Count; ddIndex < PLAYER_COUNT; ddIndex++)
+            for (int ddIndex = Players.Count + AIPlayers.Count; ddIndex < MAX_PLAYER_COUNT; ddIndex++)
             {
                 XNADropDown ddPlayerName = ddPlayerNames[ddIndex];
                 ddPlayerName.AllowDropDown = false;
@@ -1114,7 +1114,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 ddPlayerTeams[ddIndex].AllowDropDown = false;
             }
 
-            if (allowOptionsChange && Players.Count + AIPlayers.Count < PLAYER_COUNT)
+            if (allowOptionsChange && Players.Count + AIPlayers.Count < MAX_PLAYER_COUNT)
                 ddPlayerNames[Players.Count + AIPlayers.Count].AllowDropDown = true;
 
             MapPreviewBox.UpdateStartingLocationTexts();

@@ -20,7 +20,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 {
     public class LANGameLobby : MultiplayerGameLobby
     {
-        private const int MAX_PLAYER_COUNT = 8;
         private const double DROPOUT_TIMEOUT = 20.0;
         private const double GAME_BROADCAST_INTERVAL = 10.0;
 

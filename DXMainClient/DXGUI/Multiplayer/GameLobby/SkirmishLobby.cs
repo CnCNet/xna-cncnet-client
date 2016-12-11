@@ -252,7 +252,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     return;
                 }
 
-                if (AIPlayers.Count < PLAYER_COUNT - 1)
+                if (AIPlayers.Count < MAX_PLAYER_COUNT - 1)
                     AIPlayers.Add(aiPlayer);
             }
 

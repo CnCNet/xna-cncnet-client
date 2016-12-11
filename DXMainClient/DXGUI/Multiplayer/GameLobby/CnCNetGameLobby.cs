@@ -17,14 +17,13 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 {
     public class CnCNetGameLobby : MultiplayerGameLobby
     {
-        const double GAME_BROADCAST_CHECK_INTERVAL = 10.0;
-        const double INITIAL_TIME = 5.0;
-        const int MAX_PLAYER_COUNT = 8;
+        private const double GAME_BROADCAST_INTERVAL = 30.0;
+        private const double INITIAL_TIME = 20.0;
 
-        const string MAP_SHARING_FAIL_MESSAGE = "MAPFAIL";
-        const string MAP_SHARING_DOWNLOAD_REQUEST = "MAPOK";
-        const string MAP_SHARING_UPLOAD_REQUEST = "MAPREQ";
-        const string MAP_SHARING_DISABLED_MESSAGE = "MAPSDISABLED";
+        private const string MAP_SHARING_FAIL_MESSAGE = "MAPFAIL";
+        private const string MAP_SHARING_DOWNLOAD_REQUEST = "MAPOK";
+        private const string MAP_SHARING_UPLOAD_REQUEST = "MAPREQ";
+        private const string MAP_SHARING_DISABLED_MESSAGE = "MAPSDISABLED";
 
         public CnCNetGameLobby(WindowManager windowManager, string iniName, 
             TopBar topBar, List<GameMode> GameModes, CnCNetManager connectionManager,
@@ -84,8 +83,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         TimeSpan timeSinceGameBroadcast = TimeSpan.Zero;
 
-        int timerTicks = 0;
-
         int playerLimit;
 
         bool closed = false;
@@ -125,16 +122,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             if (isHost)
             {
-
-                //PlayerInfo host = new PlayerInfo(ProgramConstants.PLAYERNAME);
-                //host.Ready = true;
-                //host.Verified = true;
-                //Players.Add(host);
-
                 RandomSeed = new Random().Next();
 
-                timerTicks = 1000000;
-
+                // Broadcast about our game after 10 seconds
                 timeSinceGameBroadcast = TimeSpan.FromSeconds(INITIAL_TIME);
             }
             else
@@ -246,7 +236,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (IsHost)
             {
                 closed = true;
-                ForceBroadcastGame();
+                BroadcastGame();
             }
 
             Clear();
@@ -306,7 +296,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             PlayerInfo pInfo = new PlayerInfo(e.User.IRCUser.Name);
             Players.Add(pInfo);
 
-            if (Players.Count + AIPlayers.Count > MAX_PLAYER_COUNT)
+            if (Players.Count + AIPlayers.Count > MAX_PLAYER_COUNT && AIPlayers.Count > 0)
                 AIPlayers.RemoveAt(AIPlayers.Count - 1);
 
             if (sndJoinSound != null)
@@ -348,6 +338,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 Players.Remove(pInfo);
 
                 CopyPlayerDataToUI();
+                BroadcastPlayerOptions();
             }
 
             if (sndLeaveSound != null)
@@ -1127,17 +1118,19 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             Locked = true;
             btnLockGame.Text = "Unlock Game";
+            AccelerateGameBroadcasting();
         }
 
         protected override void UnlockGame(bool announce)
         {
             connectionManager.SendCustomMessage(new QueuedMessage(
-                string.Format("MODE {0} -i", channel.ChannelName), QueuedMessageType.INSTANT_MESSAGE, -1));
+                string.Format("MODE {0} -i", channel.ChannelName), QueuedMessageType.SYSTEM_MESSAGE, 10));
 
             Locked = false;
             if (announce)
                 AddNotice("The game room has been unlocked.");
             btnLockGame.Text = "Lock Game";
+            AccelerateGameBroadcasting();
         }
 
         protected override void KickPlayer(int playerIndex)
@@ -1387,17 +1380,22 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             {
                 timeSinceGameBroadcast += gameTime.ElapsedGameTime;
 
-                if (timeSinceGameBroadcast > TimeSpan.FromSeconds(GAME_BROADCAST_CHECK_INTERVAL))
+                if (timeSinceGameBroadcast > TimeSpan.FromSeconds(GAME_BROADCAST_INTERVAL))
                     BroadcastGame();
             }
 
             base.Update(gameTime);
         }
 
-        private void ForceBroadcastGame()
+        /// <summary>
+        /// Temporarily accelerates game broadcasting by one-third of the normal broadcasting interval.
+        /// </summary>
+        private void AccelerateGameBroadcasting()
         {
-            timerTicks = 1000000;
-            BroadcastGame();
+            timeSinceGameBroadcast += TimeSpan.FromSeconds(GAME_BROADCAST_INTERVAL / 3.0);
+
+            if (timeSinceGameBroadcast > TimeSpan.FromSeconds(GAME_BROADCAST_INTERVAL))
+                BroadcastGame();
         }
 
         private void BroadcastGame()
@@ -1410,11 +1408,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 return;
 
             if (GameMode == null || Map == null)
-                return;
-
-            timerTicks++;
-
-            if (timerTicks < 3)
                 return;
 
             StringBuilder sb = new StringBuilder("GAME ");
@@ -1454,8 +1447,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             sb.Append(0); // LoadedGameId
 
             broadcastChannel.SendCTCPMessage(sb.ToString(), QueuedMessageType.SYSTEM_MESSAGE, 20);
-
-            timerTicks = 0;
         }
 
         #endregion
