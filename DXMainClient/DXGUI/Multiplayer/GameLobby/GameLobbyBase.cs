@@ -256,8 +256,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             AddChild(lbMapList);
             AddChild(tbMapSearch);
-            AddChild(ddGameMode);
             AddChild(lblGameModeSelect);
+            AddChild(ddGameMode);
 
             AddChild(GameOptionsPanel);
 
@@ -267,9 +267,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             {
                 GameLobbyCheckBox chkBox = new GameLobbyCheckBox(WindowManager);
                 chkBox.Name = chkName;
+                AddChild(chkBox);
                 chkBox.GetAttributes(GameOptionsIni);
                 CheckBoxes.Add(chkBox);
-                AddChild(chkBox);
                 chkBox.CheckedChanged += ChkBox_CheckedChanged;
             }
 
@@ -279,8 +279,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             {
                 XNALabel label = new XNALabel(WindowManager);
                 label.Name = labelName;
-                label.GetAttributes(GameOptionsIni);
                 AddChild(label);
+                label.GetAttributes(GameOptionsIni);
             }
 
             string[] dropDowns = GameOptionsIni.GetStringValue(_iniSectionName, "DropDowns", String.Empty).Split(',');
@@ -289,9 +289,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             {
                 GameLobbyDropDown dropdown = new GameLobbyDropDown(WindowManager);
                 dropdown.Name = ddName;
+                AddChild(dropdown);
                 dropdown.GetAttributes(GameOptionsIni);
                 DropDowns.Add(dropdown);
-                AddChild(dropdown);
                 dropdown.SelectedIndexChanged += Dropdown_SelectedIndexChanged;
             }
 
