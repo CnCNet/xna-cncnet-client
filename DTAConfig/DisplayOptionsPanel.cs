@@ -169,18 +169,13 @@ namespace DTAConfig
 
             // Add "optimal" client resolutions for windowed mode
             // if they're not supported in fullscreen mode
-            if (screenBounds.Width >= 1280)
-            {
-                if (screenBounds.Height >= 768)
-                {
-                    if (resolutions.Find(res => res.Width == 1280 && res.Height == 768) == null)
-                        resolutions.Add(new ScreenResolution(1280, 768));
 
-                    if (screenBounds.Height >= 800 && 
-                        resolutions.Find(res => res.Width == 1280 && res.Height == 800) == null)
-                        resolutions.Add(new ScreenResolution(1280, 800));
-                }
-            }
+            AddResolutionIfFitting(1024, 600, resolutions);
+            AddResolutionIfFitting(1024, 720, resolutions);
+            AddResolutionIfFitting(1280, 600, resolutions);
+            AddResolutionIfFitting(1280, 720, resolutions);
+            AddResolutionIfFitting(1280, 768, resolutions);
+            AddResolutionIfFitting(1280, 800, resolutions);
 
             resolutions.Sort();
 
@@ -194,7 +189,7 @@ namespace DTAConfig
             }
 
             // So we add the optimal resolutions to the list, sort it and then find
-            // out the optimal resolution index - it's inefficient, TODO improve
+            // out the optimal resolution index - it's inefficient, but works
 
             int optimalWindowedResIndex = resolutions.FindIndex(res => res.ToString() == "1280x800");
             if (optimalWindowedResIndex == -1)
@@ -338,6 +333,26 @@ namespace DTAConfig
             AddChild(ddDetailLevel);
             AddChild(lblIngameResolution);
             AddChild(ddIngameResolution);
+        }
+
+        /// <summary>
+        /// Adds a screen resolution to a list of resolutions if it fits on the screen.
+        /// Checks if the resolution already exists before adding it.
+        /// </summary>
+        /// <param name="width">The width of the new resolution.</param>
+        /// <param name="height">The height of the new resolution.</param>
+        /// <param name="resolutions">A list of screen resolutions.</param>
+        private void AddResolutionIfFitting(int width, int height, List<ScreenResolution> resolutions)
+        {
+            if (resolutions.Find(res => res.Width == width && res.Height == height) != null)
+                return;
+
+            var screenBounds = Screen.PrimaryScreen.Bounds;
+
+            if (screenBounds.Width >= width && screenBounds.Height >= height)
+            {
+                resolutions.Add(new ScreenResolution(width, height));
+            }
         }
 
 #if !YR
