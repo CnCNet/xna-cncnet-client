@@ -29,6 +29,8 @@ namespace DTAConfig
         {
             base.Initialize();
 
+            Name = "ComponentsPanel";
+
             int componentIndex = 0;
 
             foreach (CustomComponent c in CUpdater.CustomComponents)

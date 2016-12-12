@@ -40,6 +40,8 @@ namespace DTAConfig
         {
             base.Initialize();
 
+            Name = "AudioOptionsPanel";
+
             var lblScoreVolume = new XNALabel(WindowManager);
             lblScoreVolume.Name = "lblScoreVolume";
             lblScoreVolume.ClientRectangle = new Rectangle(12, 14, 0, 0);

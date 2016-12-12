@@ -33,6 +33,8 @@ namespace DTAConfig
         {
             base.Initialize();
 
+            Name = "GameOptionsPanel";
+
             var lblScrollRate = new XNALabel(WindowManager);
             lblScrollRate.Name = "lblScrollRate";
             lblScrollRate.ClientRectangle = new Rectangle(12,

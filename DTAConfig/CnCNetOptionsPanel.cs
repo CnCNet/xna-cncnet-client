@@ -39,6 +39,8 @@ namespace DTAConfig
         {
             base.Initialize();
 
+            Name = "CnCNetOptionsPanel";
+
             chkPingUnofficialTunnels = new XNAClientCheckBox(WindowManager);
             chkPingUnofficialTunnels.Name = "chkPingUnofficialTunnels";
             chkPingUnofficialTunnels.ClientRectangle = new Rectangle(12, 12, 0, 0);

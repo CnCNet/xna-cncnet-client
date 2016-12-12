@@ -25,6 +25,8 @@ namespace DTAConfig
         {
             base.Initialize();
 
+            Name = "UpdaterOptionsPanel";
+
             var lblDescription = new XNALabel(WindowManager);
             lblDescription.Name = "lblDescription";
             lblDescription.ClientRectangle = new Rectangle(12, 12, 0, 0);
