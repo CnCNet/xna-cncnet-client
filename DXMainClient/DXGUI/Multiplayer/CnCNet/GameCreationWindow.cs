@@ -133,9 +133,9 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             AddChild(lblMaxPlayers);
             AddChild(tbPassword);
             AddChild(lblPassword);
-            AddChild(ddMaxPlayers);
             AddChild(lblTunnelServer);
             AddChild(lbTunnelList);
+            AddChild(ddMaxPlayers);
 
             base.Initialize();
 
