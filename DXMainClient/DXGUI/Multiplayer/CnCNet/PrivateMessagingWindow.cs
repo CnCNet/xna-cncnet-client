@@ -78,7 +78,6 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                     if (lbItem == lbUserList.SelectedItem && leaveMessage != null)
                     {
                         tbMessageInput.Enabled = false;
-                        tbMessageInput.IsSelected = false;
                         lbMessages.AddMessage(leaveMessage);
                     }
                 }
@@ -465,7 +464,6 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             if (lbUserList.SelectedItem == null)
             {
                 tbMessageInput.Enabled = false;
-                tbMessageInput.IsSelected = false;
                 return;
             }
 
@@ -584,6 +582,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             {
                 tabControl.SelectedTab = 0;
                 lbUserList.SelectedIndex = lbUserList.Items.FindIndex(i => i.Text == name);
+                WindowManager.SelectedControl = tbMessageInput;
                 return;
             }
 
@@ -601,7 +600,13 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             }
 
             lbUserList.SelectedIndex = lbUserList.Items.FindIndex(i => i.Text == name);
-            lbUserList.TopIndex = lbUserList.SelectedIndex > -1 ? lbUserList.SelectedIndex : 0;
+
+            if (lbUserList.SelectedIndex > -1)
+            {
+                WindowManager.SelectedControl = tbMessageInput;
+
+                lbUserList.TopIndex = lbUserList.SelectedIndex > -1 ? lbUserList.SelectedIndex : 0;
+            }
 
             if (lbUserList.LastIndex - lbUserList.TopIndex < lbUserList.NumberOfLinesOnList - 1)
                 lbUserList.ScrollToBottom();
@@ -648,6 +653,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             tabControl.SelectedTab = 0;
             notificationBox.Hide();
 
+            WindowManager.SelectedControl = null;
+
             if (Visible)
             {
                 if (!string.IsNullOrEmpty(lastReceivedPMSender))
@@ -669,7 +676,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                     if (index > -1)
                     {
                         lbUserList.SelectedIndex = index;
-                        tbMessageInput.IsSelected = true;
+                        WindowManager.SelectedControl = tbMessageInput;
                     }
                 }
             }

@@ -77,7 +77,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         private void PasswordRequestWindow_EnabledChanged(object sender, EventArgs e)
         {
             if (Enabled)
-                tbPassword.IsSelected = true;
+                WindowManager.SelectedControl = tbPassword;
         }
 
         private void BtnCancel_LeftClick(object sender, EventArgs e)
