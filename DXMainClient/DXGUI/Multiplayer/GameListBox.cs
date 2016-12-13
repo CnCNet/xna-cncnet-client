@@ -302,7 +302,8 @@ namespace DTAClient.DXGUI.Multiplayer
                 height += LineHeight;
             }
 
-            DrawPanelBorders();
+            if (DrawBorders)
+                DrawPanelBorders();
 
             //DrawChildren(gameTime);
         }

@@ -454,13 +454,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 Renderer.BeginDraw();
             }
 
-            for (int i = 0; i < Children.Count; i++)
-            {
-                if (Children[i].Visible)
-                {
-                    Children[i].Draw(gameTime);
-                }
-            }
+            if (DrawBorders)
+                DrawPanelBorders();
+
+            DrawChildren(gameTime);
         }
     }
 
