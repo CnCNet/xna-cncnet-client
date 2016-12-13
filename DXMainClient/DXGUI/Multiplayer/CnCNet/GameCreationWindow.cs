@@ -340,6 +340,10 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             btnDisplayAdvancedOptions.Visible = false;
 
             SetAttributesFromIni();
+
+            CenterOnParent();
+            // TODO fix this hack in Rampastring.XNAUI, refreshes scrollbar position on screen
+            lbTunnelList.ClientRectangle = lbTunnelList.ClientRectangle;
         }
 
         public void Refresh()
