@@ -334,7 +334,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             lblTunnelServer.Enable();
             lbTunnelList.Enable();
-            btnDisplayAdvancedOptions.Enable();
+            btnDisplayAdvancedOptions.Disable();
 
             SetAttributesFromIni();
 
