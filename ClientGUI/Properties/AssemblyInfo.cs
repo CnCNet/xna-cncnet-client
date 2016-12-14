@@ -4,13 +4,13 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("DTA MonoGame Client UI")]
+[assembly: AssemblyTitle("DTA CnCNet Client UI Library")]
 [assembly: AssemblyDescription("DTA CnCNet Client UI Library")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Rampastring")]
-[assembly: AssemblyProduct("The Dawn of the Tiberium Age")]
+[assembly: AssemblyProduct("Dawn of the Tiberium Age")]
 [assembly: AssemblyCopyright("Copyright © Rampastring 2014-2016")]
-[assembly: AssemblyTrademark("The Dawn of the Tiberium Age")]
+[assembly: AssemblyTrademark("Dawn of the Tiberium Age")]
 [assembly: AssemblyCulture("")]
 
 // Setting ComVisible to false makes the types in this assembly not visible 

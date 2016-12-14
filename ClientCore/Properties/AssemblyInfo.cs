@@ -5,12 +5,12 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("DTA CnCNet Client")]
-[assembly: AssemblyDescription("CnCNet Client Core DLL")]
+[assembly: AssemblyDescription("Dawn of the Tiberium Age CnCNet Client Core DLL")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Rampastring")]
-[assembly: AssemblyProduct("The Dawn of the Tiberium Age")]
+[assembly: AssemblyProduct("Dawn of the Tiberium Age")]
 [assembly: AssemblyCopyright("Copyright © Rampastring 2014-2016")]
-[assembly: AssemblyTrademark("The Dawn of the Tiberium Age")]
+[assembly: AssemblyTrademark("Dawn of the Tiberium Age")]
 [assembly: AssemblyCulture("")]
 
 // Setting ComVisible to false makes the types in this assembly not visible 

@@ -332,12 +332,9 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 ClientRectangle.Height - 29, btnLoadMPGame.ClientRectangle.Width,
                 btnLoadMPGame.ClientRectangle.Height);
 
-            lblTunnelServer.Enabled = true;
-            lblTunnelServer.Visible = true;
-            lbTunnelList.Enabled = true;
-            lbTunnelList.Visible = true;
-            btnDisplayAdvancedOptions.Enabled = false;
-            btnDisplayAdvancedOptions.Visible = false;
+            lblTunnelServer.Enable();
+            lbTunnelList.Enable();
+            btnDisplayAdvancedOptions.Enable();
 
             SetAttributesFromIni();
 

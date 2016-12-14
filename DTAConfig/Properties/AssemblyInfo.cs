@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("DTA Configuration Utility")]
-[assembly: AssemblyDescription("The Dawn of the Tiberium Age Configuration Utility")]
+[assembly: AssemblyTitle("DTA Configuration DLL")]
+[assembly: AssemblyDescription("Dawn of the Tiberium Age Configuration DLL")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Rampastring")]
-[assembly: AssemblyProduct("The Dawn of the Tiberium Age")]
+[assembly: AssemblyProduct("Dawn of the Tiberium Age")]
 [assembly: AssemblyCopyright("Copyright © Rami 'Rampastring' Pasanen 2016")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
