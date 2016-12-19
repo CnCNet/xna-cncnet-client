@@ -207,7 +207,7 @@ namespace DTAClient.DXGUI.Generic
             }
 
             innerPanel = new MainMenuDarkeningPanel(WindowManager);
-            innerPanel.ClientRectangle = new Rectangle(0, 0, 
+            innerPanel.ClientRectangle = new Rectangle(0, 0,
                 ClientRectangle.Width,
                 ClientRectangle.Height);
             AddChild(innerPanel);
@@ -417,11 +417,11 @@ namespace DTAClient.DXGUI.Generic
             updateInProgress = false;
 
             innerPanel.Show(null); // Darkening
-            XNAMessageBox msgBox = new XNAMessageBox(WindowManager, "Update failed", 
+            XNAMessageBox msgBox = new XNAMessageBox(WindowManager, "Update failed",
                 string.Format("An error occured while updating. Returned error was: {0}" +
                 Environment.NewLine + Environment.NewLine +
                 "If you are connected to the Internet and your firewall isn't blocking" + Environment.NewLine +
-                "{1}, and the issue is reproducible, contact us at " + Environment.NewLine + 
+                "{1}, and the issue is reproducible, contact us at " + Environment.NewLine +
                 "{2} for support.",
                 e.Reason, CUpdater.CURRENT_LAUNCHER_NAME, MainClientConstants.SUPPORT_URL_SHORT), DXMessageBoxButtons.OK);
             msgBox.OKClicked += MsgBox_OKClicked;
@@ -456,7 +456,7 @@ namespace DTAClient.DXGUI.Generic
         {
             Logger.Log(CUpdater.DTAVersionState.ToString());
 
-            if (CUpdater.DTAVersionState == VersionState.OUTDATED || 
+            if (CUpdater.DTAVersionState == VersionState.OUTDATED ||
                 CUpdater.DTAVersionState == VersionState.MISMATCHED ||
                 CUpdater.DTAVersionState == VersionState.UNKNOWN ||
                 CUpdater.DTAVersionState == VersionState.UPTODATE)
@@ -473,7 +473,10 @@ namespace DTAClient.DXGUI.Generic
             CUpdater.CheckForUpdates();
             lblUpdateStatus.Enabled = false;
             lblUpdateStatus.Text = "Checking for updates...";
-            StatisticsSender.Instance.SendUpdate();
+            try
+            {
+                StatisticsSender.Instance.SendUpdate();
+            } catch { }
             lastUpdateCheckTime = DateTime.Now;
         }
 
@@ -610,7 +613,7 @@ namespace DTAClient.DXGUI.Generic
             // window of the top bar and only play music if it is
             // LAN has the top bar disabled, so to detect the LAN game lobby
             // we'll check whether the top bar is enabled
-            if (!UserINISettings.Instance.StopMusicOnMenu || 
+            if (!UserINISettings.Instance.StopMusicOnMenu ||
                 (topBar.Enabled && topBar.LastSwitchType == SwitchType.PRIMARY &&
                 topBar.GetTopMostPrimarySwitchable() == this))
                 PlayMusic();

@@ -26,7 +26,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         public event EventHandler UpdateCheck;
 
         public CnCNetLobby(WindowManager windowManager, CnCNetManager connectionManager,
-            CnCNetGameLobby gameLobby, CnCNetGameLoadingLobby gameLoadingLobby, 
+            CnCNetGameLobby gameLobby, CnCNetGameLoadingLobby gameLoadingLobby,
             TopBar topBar, PrivateMessagingWindow pmWindow, TunnelHandler tunnelHandler,
             GameCollection gameCollection)
             : base(windowManager)
@@ -204,7 +204,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             lbPlayerList = new XNAListBox(WindowManager);
             lbPlayerList.Name = "lbPlayerList";
             lbPlayerList.ClientRectangle = new Rectangle(ClientRectangle.Width - 202,
-                btnForums.ClientRectangle.Bottom + 8, 190, 
+                btnForums.ClientRectangle.Bottom + 8, 190,
                 btnLogout.ClientRectangle.Top - btnForums.ClientRectangle.Bottom - 14);
             lbPlayerList.DrawMode = PanelBackgroundImageDrawMode.STRETCHED;
             lbPlayerList.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 128), 1, 1);
@@ -233,7 +233,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             tbChatInput = new XNATextBox(WindowManager);
             tbChatInput.Name = "tbChatInput";
             tbChatInput.ClientRectangle = new Rectangle(lbChatMessages.ClientRectangle.X,
-                btnNewGame.ClientRectangle.Y, lbChatMessages.ClientRectangle.Width, 
+                btnNewGame.ClientRectangle.Y, lbChatMessages.ClientRectangle.Width,
                 btnNewGame.ClientRectangle.Height);
             tbChatInput.Enabled = false;
             tbChatInput.MaximumTextLength = 200;
@@ -267,8 +267,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             int selectedColor = UserINISettings.Instance.ChatColor;
 
-            ddColor.SelectedIndex = selectedColor >= ddColor.Items.Count || selectedColor < 0 
-                ? ClientConfiguration.Instance.DefaultPersonalChatColorIndex: 
+            ddColor.SelectedIndex = selectedColor >= ddColor.Items.Count || selectedColor < 0
+                ? ClientConfiguration.Instance.DefaultPersonalChatColorIndex:
                 selectedColor;
             SetChatColor();
             ddColor.SelectedIndexChanged += DdColor_SelectedIndexChanged;
@@ -539,7 +539,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             {
                 playerContextMenu.ClientRectangle = new Rectangle(
                     playerContextMenu.ClientRectangle.X,
-                    cursorPoint.Y - playerContextMenu.ClientRectangle.Height, 
+                    cursorPoint.Y - playerContextMenu.ClientRectangle.Height,
                     playerContextMenu.ClientRectangle.Width,
                     playerContextMenu.ClientRectangle.Height);
             }
@@ -597,7 +597,10 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             loginWindow.Disable();
 
             SetLogOutButtonText();
-            StatisticsSender.Instance.SendCnCNet();
+            try
+            {
+                StatisticsSender.Instance.SendCnCNet();
+            } catch { }
         }
 
         /// <summary>
@@ -664,7 +667,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             if (hg.Game.InternalName.ToUpper() != localGameID.ToUpper())
             {
                 mainChannel.AddMessage(new ChatMessage(null, Color.White, DateTime.Now,
-                    "The selected game is for " + 
+                    "The selected game is for " +
                     gameCollection.GetGameNameFromInternalName(hg.Game.InternalName) + "!"));
                 return;
             }
@@ -911,7 +914,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             lbGameList.ClearGames();
             followedGames.Clear();
-            
+
             gameCreationPanel.Hide();
 
             // Switch channel to default
@@ -1082,9 +1085,9 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             if (channelUser == null)
                 return;
 
-            if (localGame != null && 
+            if (localGame != null &&
                 channel.ChannelName == localGame.GameBroadcastChannel &&
-                !updateDenied && 
+                !updateDenied &&
                 channelUser.IsAdmin &&
                 e.Message.StartsWith("UPDATE ") &&
                 e.Message.Length > 7)
@@ -1177,7 +1180,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 }
                 else
                 {
-                    if (UserINISettings.Instance.PlaySoundOnGameHosted && 
+                    if (UserINISettings.Instance.PlaySoundOnGameHosted &&
                         cncnetGame.InternalName == localGameID.ToLower() &&
                         !ProgramConstants.IsInGame)
                     {
@@ -1211,7 +1214,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 return;
             }
 
-            if (connectionManager.IsConnected && 
+            if (connectionManager.IsConnected &&
                 !UserINISettings.Instance.PersistentMode)
             {
                 connectionManager.Disconnect();
