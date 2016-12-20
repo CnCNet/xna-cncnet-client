@@ -6,6 +6,7 @@ using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Rampastring.XNAUI;
 using System;
+using System.IO;
 using System.Security.Principal;
 using System.Windows.Forms;
 
@@ -30,6 +31,9 @@ namespace DTAClient.DXGUI
         protected override void Initialize()
         {
             base.Initialize();
+
+            string primaryNativeCursorPath = ProgramConstants.GetResourcePath() + "cursor.cur";
+            string alternativeNativeCursorPath = ProgramConstants.GetBaseResourcePath() + "cursor.cur";
 
             AssetLoader.Initialize(GraphicsDevice, content);
             AssetLoader.AssetSearchPaths.Add(ProgramConstants.GetResourcePath());
@@ -75,6 +79,11 @@ namespace DTAClient.DXGUI
                 AssetLoader.LoadTexture("cursor.png"),
                 AssetLoader.LoadTexture("waitCursor.png")
             };
+
+            if (File.Exists(primaryNativeCursorPath))
+                wm.Cursor.LoadNativeCursor(primaryNativeCursorPath);
+            else if (File.Exists(alternativeNativeCursorPath))
+                wm.Cursor.LoadNativeCursor(alternativeNativeCursorPath);
 
             Components.Add(wm);
 
