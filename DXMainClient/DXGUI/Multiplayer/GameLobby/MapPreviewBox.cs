@@ -118,7 +118,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 indicator.Enabled = false;
                 indicator.AngularVelocity = angularVelocity;
                 indicator.HoverRemapColor = hoverRemapColor;
-                indicator.ReservedAngularVelocity = reservedAngularVelocity;
+                indicator.ReversedAngularVelocity = reservedAngularVelocity;
                 indicator.WaypointTexture = AssetLoader.LoadTexture(string.Format("slocindicator{0}.png", i + 1));
                 indicator.Tag = i;
                 indicator.LeftClick += Indicator_LeftClick;

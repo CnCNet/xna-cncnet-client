@@ -16,7 +16,7 @@ namespace DTAClient.DXGUI
     /// </summary>
     public class GameInProgressWindow : XNAPanel
     {
-        private const double FPS = 120.0;
+        private const double FPS = 60.0;
         private const double POWER_SAVING_FPS = 5.0;
 
         public GameInProgressWindow(WindowManager windowManager) : base(windowManager)

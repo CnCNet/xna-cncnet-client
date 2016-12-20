@@ -39,7 +39,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         public int FontIndex { get; set; }
 
         public double AngularVelocity = 0.015;
-        public double ReservedAngularVelocity = -0.0075;
+        public double ReversedAngularVelocity = -0.0075;
 
         public Color HoverRemapColor { get; set; }
 
@@ -149,7 +149,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             base.Update(gameTime);
 
-            angle += Players.Count > 0 ? ReservedAngularVelocity : AngularVelocity;
+            double frameTimeCoefficient = gameTime.ElapsedGameTime.TotalMilliseconds / 10.0;
+
+            angle += Players.Count > 0 ? ReversedAngularVelocity * frameTimeCoefficient : AngularVelocity * frameTimeCoefficient;
 
             if (Players.Count > 0)
             {

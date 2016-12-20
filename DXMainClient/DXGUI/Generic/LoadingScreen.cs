@@ -26,11 +26,13 @@ namespace DTAClient.DXGUI.Generic
 
         private static readonly object locker = new object();
 
-        MapLoader mapLoader;
+        private MapLoader mapLoader;
 
-        PrivateMessagingPanel privateMessagingPanel;
+        private PrivateMessagingPanel privateMessagingPanel;
 
-        bool load = false;
+        private bool load = false;
+
+        private bool visibleSpriteCursor = false;
 
         public override void Initialize()
         {
@@ -146,7 +148,7 @@ namespace DTAClient.DXGUI.Generic
 
             WindowManager.RemoveControl(this);
 
-            Cursor.Visible = true;
+            Cursor.Visible = visibleSpriteCursor;
         }
 
         public override void Update(GameTime gameTime)
@@ -161,7 +163,12 @@ namespace DTAClient.DXGUI.Generic
             }
 
             load = true;
-            Cursor.Visible = false;
+
+            if (Cursor.Visible)
+            {
+                Cursor.Visible = false;
+                visibleSpriteCursor = true;
+            }
 
             base.Update(gameTime);
         }

@@ -24,8 +24,8 @@ namespace DTAClient.DXGUI.Generic
         const double EVENT_DOWN_TIME_WAIT_SECONDS = 2.0;
         const double STARTUP_DOWN_TIME_WAIT_SECONDS = 3.5;
 
-        const double DOWN_MOVEMENT_RATE = 2.0;
-        const double UP_MOVEMENT_RATE = 2.0;
+        const double DOWN_MOVEMENT_RATE = 1.7;
+        const double UP_MOVEMENT_RATE = 1.7;
         const int APPEAR_CURSOR_THRESHOLD_Y = 8;
 
         public TopBar(WindowManager windowManager, CnCNetManager connectionManager) : base(windowManager)
@@ -292,7 +292,7 @@ namespace DTAClient.DXGUI.Generic
             {
                 if (locationY < 0)
                 {
-                    locationY += DOWN_MOVEMENT_RATE;
+                    locationY += DOWN_MOVEMENT_RATE * (gameTime.ElapsedGameTime.TotalMilliseconds / 10.0);
                     ClientRectangle = new Rectangle(ClientRectangle.X, (int)locationY, 
                         ClientRectangle.Width, ClientRectangle.Height);
                 }
@@ -305,7 +305,7 @@ namespace DTAClient.DXGUI.Generic
             {
                 if (locationY > -ClientRectangle.Height - 1)
                 {
-                    locationY -= UP_MOVEMENT_RATE;
+                    locationY -= UP_MOVEMENT_RATE * (gameTime.ElapsedGameTime.TotalMilliseconds / 10.0);
                     ClientRectangle = new Rectangle(ClientRectangle.X, (int)locationY,
                         ClientRectangle.Width, ClientRectangle.Height);
                 }
