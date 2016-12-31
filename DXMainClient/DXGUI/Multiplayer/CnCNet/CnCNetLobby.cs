@@ -27,8 +27,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         public CnCNetLobby(WindowManager windowManager, CnCNetManager connectionManager,
             CnCNetGameLobby gameLobby, CnCNetGameLoadingLobby gameLoadingLobby,
-            TopBar topBar, PrivateMessagingWindow pmWindow, TunnelHandler tunnelHandler,
-            GameCollection gameCollection)
+            TopBar topBar, PrivateMessagingWindow pmWindow, ClanManagerWindow cmWindow,
+            TunnelHandler tunnelHandler, GameCollection gameCollection)
             : base(windowManager)
         {
             this.connectionManager = connectionManager;
@@ -38,6 +38,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             this.tunnelHandler = tunnelHandler;
             this.topBar = topBar;
             this.pmWindow = pmWindow;
+            this.cmWindow = cmWindow;
             this.gameCollection = gameCollection;
         }
 
@@ -95,6 +96,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         TopBar topBar;
 
         PrivateMessagingWindow pmWindow;
+        ClanManagerWindow cmWindow;
 
         PasswordRequestWindow passwordRequestWindow;
 

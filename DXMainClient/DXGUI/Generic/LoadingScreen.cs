@@ -29,6 +29,7 @@ namespace DTAClient.DXGUI.Generic
         private MapLoader mapLoader;
 
         private PrivateMessagingPanel privateMessagingPanel;
+        private ClanManagerPanel clanManagerPanel;
 
         private bool load = false;
 
@@ -92,13 +93,18 @@ namespace DTAClient.DXGUI.Generic
                 cncnetManager, gameCollection);
             privateMessagingPanel = new PrivateMessagingPanel(WindowManager);
 
+            var cmWindow = new ClanManagerWindow(WindowManager,
+                cncnetManager, gameCollection);
+            clanManagerPanel = new ClanManagerPanel(WindowManager);
+
             var cncnetGameLobby = new CnCNetGameLobby(WindowManager,
                 "MultiplayerGameLobby", topBar, mapLoader.GameModes, cncnetManager, tunnelHandler);
-            var cncnetGameLoadingLobby = new CnCNetGameLoadingLobby(WindowManager, 
+            var cncnetGameLoadingLobby = new CnCNetGameLoadingLobby(WindowManager,
                 topBar, cncnetManager, tunnelHandler, mapLoader.GameModes);
-            var cncnetLobby = new CnCNetLobby(WindowManager, cncnetManager, 
-                cncnetGameLobby, cncnetGameLoadingLobby, topBar, pmWindow, tunnelHandler,
-                gameCollection);
+            var cncnetLobby = new CnCNetLobby(WindowManager, cncnetManager,
+                cncnetGameLobby, cncnetGameLoadingLobby, topBar, pmWindow, cmWindow,
+                tunnelHandler, gameCollection);
+
             var gipw = new GameInProgressWindow(WindowManager);
 
             var skirmishLobby = new SkirmishLobby(WindowManager, topBar, mapLoader.GameModes);
@@ -120,9 +126,12 @@ namespace DTAClient.DXGUI.Generic
             DarkeningPanel.AddAndInitializeWithControl(WindowManager, optionsWindow);
 
             WindowManager.AddAndInitializeControl(privateMessagingPanel);
+            WindowManager.AddAndInitializeControl(clanManagerPanel);
             privateMessagingPanel.AddChild(pmWindow);
+            clanManagerPanel.AddChild(cmWindow);
 
             topBar.SetTertiarySwitch(pmWindow);
+            topBar.SetQuaternarySwitch(cmWindow);
 
             WindowManager.AddAndInitializeControl(gipw);
             skirmishLobby.Disable();
@@ -131,6 +140,7 @@ namespace DTAClient.DXGUI.Generic
             cncnetGameLoadingLobby.Disable();
             lanLobby.Disable();
             pmWindow.Disable();
+            cmWindow.Disable();
             optionsWindow.Disable();
 
             WindowManager.AddAndInitializeControl(topBar);

@@ -34,15 +34,19 @@ namespace DTAClient.DXGUI.Generic
             this.connectionManager = connectionManager;
         }
 
+        Dictionary<Keys,EventHandler> keyMap = new Dictionary<Keys, EventHandler> {};
+
         public SwitchType LastSwitchType { get; private set; }
 
         List<ISwitchable> primarySwitches = new List<ISwitchable>();
         ISwitchable cncnetLobbySwitch;
         ISwitchable privateMessageSwitch;
+        ISwitchable clanManagerSwitch;
 
         XNAClientButton btnMainButton;
         XNAClientButton btnCnCNetLobby;
         XNAClientButton btnPrivateMessages;
+        XNAClientButton btnClanManager;
         XNAClientButton btnLogout;
         XNALabel lblTime;
         XNALabel lblDate;
@@ -80,6 +84,11 @@ namespace DTAClient.DXGUI.Generic
             privateMessageSwitch = switchable;
         }
 
+        public void SetQuaternarySwitch(ISwitchable switchable)
+        {
+            clanManagerSwitch = switchable;
+        }
+
         public override void Initialize()
         {
             Name = "TopBar";
@@ -93,25 +102,35 @@ namespace DTAClient.DXGUI.Generic
             btnMainButton.ClientRectangle = new Rectangle(12, 9, 160, 23);
             btnMainButton.Text = "Main Menu (F2)";
             btnMainButton.LeftClick += BtnMainButton_LeftClick;
+            keyMap.Add(Keys.F2, BtnMainButton_LeftClick);
 
             btnCnCNetLobby = new XNAClientButton(WindowManager);
             btnCnCNetLobby.Name = "btnCnCNetLobby";
             btnCnCNetLobby.ClientRectangle = new Rectangle(184, 9, 160, 23);
             btnCnCNetLobby.Text = "CnCNet Lobby (F3)";
             btnCnCNetLobby.LeftClick += BtnCnCNetLobby_LeftClick;
+            keyMap.Add(Keys.F3, BtnCnCNetLobby_LeftClick);
 
             btnPrivateMessages = new XNAClientButton(WindowManager);
             btnPrivateMessages.Name = "btnPrivateMessages";
             btnPrivateMessages.ClientRectangle = new Rectangle(356, 9, 160, 23);
             btnPrivateMessages.Text = "Private Messages (F4)";
             btnPrivateMessages.LeftClick += BtnPrivateMessages_LeftClick;
+            keyMap.Add(Keys.F4, BtnPrivateMessages_LeftClick);
+
+            btnClanManager = new XNAClientButton(WindowManager);
+            btnClanManager.Name = "btnClanManager";
+            btnClanManager.ClientRectangle = new Rectangle(528, 9, 160, 23);
+            btnClanManager.Text = "Clan Manager (F5)";
+            btnClanManager.LeftClick += BtnClanManager_LeftClick;
+            keyMap.Add(Keys.F5, BtnClanManager_LeftClick);
 
             lblDate = new XNALabel(WindowManager);
             lblDate.Name = "lblDate";
             lblDate.FontIndex = 1;
             lblDate.Text = Renderer.GetSafeString(DateTime.Now.ToShortDateString(), lblDate.FontIndex);
             lblDate.ClientRectangle = new Rectangle(ClientRectangle.Width -
-                (int)Renderer.GetTextDimensions(lblDate.Text, lblDate.FontIndex).X - 12, 18, 
+                (int)Renderer.GetTextDimensions(lblDate.Text, lblDate.FontIndex).X - 12, 18,
                 lblDate.ClientRectangle.Width, lblDate.ClientRectangle.Height);
 
             lblTime = new XNALabel(WindowManager);
@@ -134,16 +153,18 @@ namespace DTAClient.DXGUI.Generic
             lblConnectionStatus.Name = "lblConnectionStatus";
             lblConnectionStatus.FontIndex = 1;
             lblConnectionStatus.Text = "OFFLINE";
+            lblConnectionStatus.ClientRectangle = new Rectangle(btnLogout.ClientRectangle.Left - 90, 11, 75, 23);
 
             AddChild(btnMainButton);
             AddChild(btnCnCNetLobby);
             AddChild(btnPrivateMessages);
+            AddChild(btnClanManager);
             AddChild(lblTime);
             AddChild(lblDate);
             AddChild(btnLogout);
             AddChild(lblConnectionStatus);
 
-            lblConnectionStatus.CenterOnParent();
+            //lblConnectionStatus.CenterOnParent();
 
             base.Initialize();
 
@@ -223,6 +244,7 @@ namespace DTAClient.DXGUI.Generic
             primarySwitches[primarySwitches.Count - 1].SwitchOff();
             cncnetLobbySwitch.SwitchOn();
             privateMessageSwitch.SwitchOff();
+            clanManagerSwitch.SwitchOff();
         }
 
         private void BtnMainButton_LeftClick(object sender, EventArgs e)
@@ -230,6 +252,7 @@ namespace DTAClient.DXGUI.Generic
             LastSwitchType = SwitchType.PRIMARY;
             cncnetLobbySwitch.SwitchOff();
             privateMessageSwitch.SwitchOff();
+            clanManagerSwitch.SwitchOff();
             primarySwitches[primarySwitches.Count - 1].SwitchOn();
         }
 
@@ -238,15 +261,27 @@ namespace DTAClient.DXGUI.Generic
             privateMessageSwitch.SwitchOn();
         }
 
+        private void BtnClanManager_LeftClick(object sender, EventArgs e)
+        {
+            clanManagerSwitch.SwitchOn();
+        }
+
         private void Keyboard_OnKeyPressed(object sender, KeyPressEventArgs e)
         {
             if (!Enabled || !WindowManager.HasFocus || ProgramConstants.IsInGame)
                 return;
 
+
+            EventHandler btnClick;
+            if (keyMap.TryGetValue(e.PressedKey,out btnClick))
+            {
+                btnClick(this, e);
+            }
             if (e.PressedKey == Keys.F1)
             {
                 BringDown();
             }
+            /*
             else if (e.PressedKey == Keys.F2)
             {
                 BtnMainButton_LeftClick(this, EventArgs.Empty);
@@ -259,6 +294,7 @@ namespace DTAClient.DXGUI.Generic
             {
                 BtnPrivateMessages_LeftClick(this, EventArgs.Empty);
             }
+            */
         }
 
         public override void OnMouseOnControl(MouseEventArgs eventArgs)
@@ -293,7 +329,7 @@ namespace DTAClient.DXGUI.Generic
                 if (locationY < 0)
                 {
                     locationY += DOWN_MOVEMENT_RATE * (gameTime.ElapsedGameTime.TotalMilliseconds / 10.0);
-                    ClientRectangle = new Rectangle(ClientRectangle.X, (int)locationY, 
+                    ClientRectangle = new Rectangle(ClientRectangle.X, (int)locationY,
                         ClientRectangle.Width, ClientRectangle.Height);
                 }
 

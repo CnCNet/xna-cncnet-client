@@ -233,7 +233,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             lbUserList = new XNAListBox(WindowManager);
             lbUserList.Name = "lbUserList";
-            lbUserList.ClientRectangle = new Rectangle(lblPlayers.ClientRectangle.X, 
+            lbUserList.ClientRectangle = new Rectangle(lblPlayers.ClientRectangle.X,
                 lblPlayers.ClientRectangle.Bottom + 6,
                 150, ClientRectangle.Height - lblPlayers.ClientRectangle.Bottom - 18);
             lbUserList.SelectedIndexChanged += LbUserList_SelectedIndexChanged;
@@ -469,7 +469,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             tbMessageInput.Enabled = (bool)lbUserList.SelectedItem.Tag == true;
 
-            var pmUser = privateMessageUsers.Find(u => 
+            var pmUser = privateMessageUsers.Find(u =>
                 u.IrcUser.Name == lbUserList.SelectedItem.Text);
 
             if (pmUser == null)
@@ -497,7 +497,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             if (tabControl.SelectedTab == 0)
             {
-                privateMessageUsers.ForEach(pmsgUser => AddPlayerToList(pmsgUser.IrcUser, 
+                privateMessageUsers.ForEach(pmsgUser => AddPlayerToList(pmsgUser.IrcUser,
                     connectionManager.UserList.Find(u => u.Name == pmsgUser.IrcUser.Name) != null));
             }
             else if (tabControl.SelectedTab == 1)
@@ -573,7 +573,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             Visible = true;
             Enabled = true;
 
-            // Check if we've already talked with the user during this session 
+            // Check if we've already talked with the user during this session
             // and if so, open the old conversation
             int pmUserIndex = privateMessageUsers.FindIndex(
                 pmUser => pmUser.IrcUser.Name == name);
@@ -685,7 +685,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         public void SwitchOff()
         {
             Disable();
-        }   
+        }
 
         public string GetSwitchName()
         {

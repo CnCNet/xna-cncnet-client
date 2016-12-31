@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -279,6 +279,12 @@
     <Compile Include="DXGUI\Multiplayer\CnCNet\PrivateMessageNotificationBox.cs" />
     <Compile Include="DXGUI\Multiplayer\CnCNet\PrivateMessagingPanel.cs" />
     <Compile Include="DXGUI\Multiplayer\CnCNet\PrivateMessagingWindow.cs" />
+    <Compile Include="DXGUI\Multiplayer\CnCNet\ClanManagerPanel.cs" />
+    <Compile Include="DXGUI\Multiplayer\CnCNet\ClanManageTab.cs" />
+    <Compile Include="DXGUI\Multiplayer\CnCNet\ClanManageTab.Form.cs" />
+    <Compile Include="DXGUI\Multiplayer\CnCNet\ClanInvitesTab.cs" />
+    <Compile Include="DXGUI\Multiplayer\CnCNet\ClanInvitesTab.Form.cs" />
+    <Compile Include="DXGUI\Multiplayer\CnCNet\ClanManagerWindow.cs" />
     <Compile Include="Online\ChannelUser.cs" />
     <Compile Include="Online\EventArguments\ChannelCTCPEventArgs.cs" />
     <Compile Include="Online\EventArguments\PrivateMessageEventArgs.cs" />
@@ -294,6 +300,8 @@
     <Compile Include="Domain\FinalSunSettings.cs" />
     <Compile Include="Online\Channel.cs" />
     <Compile Include="Online\CnCNetManager.cs" />
+    <Compile Include="Online\CnCNetServices.cs" />
+    <Compile Include="Online\ClanService.cs" />
     <Compile Include="Online\Connection.cs" />
     <Compile Include="Online\EventArguments\AttemptedServerEventArgs.cs" />
     <Compile Include="Online\EventArguments\ChannelEventArgs.cs" />
@@ -381,7 +389,7 @@
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">
   </Target>

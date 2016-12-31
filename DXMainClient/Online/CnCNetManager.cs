@@ -2,6 +2,7 @@
 using ClientCore.CnCNet5;
 using DTAClient.Domain.Multiplayer.CnCNet;
 using DTAClient.Online.EventArguments;
+using DTAClient.Online.Services;
 using Microsoft.Xna.Framework;
 using Rampastring.Tools;
 using Rampastring.XNAUI;
@@ -29,7 +30,7 @@ namespace DTAClient.Online
         public event EventHandler<ChannelEventArgs> ChannelFull;
         //public event EventHandler<ChannelEventArgs> IncorrectChannelPassword;
         //public event EventHandler<ChannelModeEventArgs> ChannelModesChanged;
-        //public event EventHandler<CTCPEventArgs> CTCPMessageReceived;
+        public event EventHandler<CTCPEventArgs> CTCPMessageReceived;
         //public event EventHandler<KickEventArgs> UserKickedFromChannel;
         //public event EventHandler<ChannelUserEventArgs> UserJoinedChannel;
         public event EventHandler<PrivateMessageEventArgs> PrivateMessageReceived;
@@ -47,10 +48,13 @@ namespace DTAClient.Online
         public event EventHandler<UserNameIndexEventArgs> UserRemoved;
         public event EventHandler MultipleUsersAdded;
 
+        public CnCNetServices CncServ;
+
         public CnCNetManager(WindowManager wm, GameCollection gc)
         {
             gameCollection = gc;
             connection = new Connection(this);
+            CncServ = new CnCNetServices(wm, this);
 
             this.wm = wm;
 
@@ -82,7 +86,7 @@ namespace DTAClient.Online
         bool connected = false;
 
         /// <summary>
-        /// Gets a value that determines whether the client is 
+        /// Gets a value that determines whether the client is
         /// currently connected to CnCNet.
         /// </summary>
         public bool IsConnected
@@ -114,11 +118,11 @@ namespace DTAClient.Online
         /// </summary>
         /// <param name="uiName">The user-interface name of the channel.</param>
         /// <param name="channelName">The name of the channel.</param>
-        /// <param name="persistent">Determines whether the channel's information 
+        /// <param name="persistent">Determines whether the channel's information
         /// should remain in memory even after a disconnect.</param>
         /// <param name="password">The password for the channel. Use null for none.</param>
         /// <returns>A channel.</returns>
-        public Channel CreateChannel(string uiName, string channelName, 
+        public Channel CreateChannel(string uiName, string channelName,
             bool persistent, string password)
         {
             return new Channel(uiName, channelName, persistent, password, connection);
@@ -305,14 +309,19 @@ namespace DTAClient.Online
 
         private void DoCTCPParsed(string channelName, string userName, string message)
         {
-            Channel channel = Channels.Find(c => c.ChannelName == channelName);
+            if (channelName != ProgramConstants.PLAYERNAME)
+            {
+                Channel channel = Channels.Find(c => c.ChannelName == channelName);
 
-            if (channel == null)
-                return;
+                if (channel == null)
+                {
+                    Console.WriteLine("Channel name = {0}", channelName);
+                    return;
+                }
+                channel.OnCTCPReceived(userName, message);
+            }
 
-            channel.OnCTCPReceived(userName, message);
-
-            //CTCPMessageReceived?.Invoke(this, new CTCPEventArgs(userName, channelName, message));
+            CTCPMessageReceived?.Invoke(this, new CTCPEventArgs(userName, channelName, message));
         }
 
         public void OnConnectAttemptFailed()
@@ -630,7 +639,7 @@ namespace DTAClient.Online
 
         public void OnUserListReceived(string channelName, string[] userList)
         {
-            wm.AddCallback(new UserListDelegate(DoUserListReceived), 
+            wm.AddCallback(new UserListDelegate(DoUserListReceived),
                 channelName, userList);
         }
 
@@ -771,7 +780,7 @@ namespace DTAClient.Online
 
                 if (lastNonUnderscoreIndex == -1)
                 {
-                    MainChannel.AddMessage(new ChatMessage(Color.White, 
+                    MainChannel.AddMessage(new ChatMessage(Color.White,
                         "Your nickname is invalid or already in use. Please change your nickname in the login screen."));
                     UserINISettings.Instance.SkipConnectDialog.Value = false;
                     Disconnect();
