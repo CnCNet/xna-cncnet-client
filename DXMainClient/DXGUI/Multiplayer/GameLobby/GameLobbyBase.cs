@@ -935,8 +935,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             StatisticsManager.Instance.AddMatchAndSaveDatabase(true, matchStatistics);
 
-            DdGameMode_SelectedIndexChanged(null, EventArgs.Empty); // Refresh ranks
-
             ClearReadyStatuses();
 
             CopyPlayerDataToUI();

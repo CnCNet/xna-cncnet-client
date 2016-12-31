@@ -190,6 +190,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (IsHost)
             {
                 GenerateGameID();
+                DdGameMode_SelectedIndexChanged(null, EventArgs.Empty); // Refresh ranks
             }
 
             base.GameProcessExited();

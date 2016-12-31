@@ -155,6 +155,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         protected override void GameProcessExited()
         {
+            DdGameMode_SelectedIndexChanged(null, EventArgs.Empty); // Refresh ranks
+
             base.GameProcessExited();
 
             RandomSeed = new Random().Next();
