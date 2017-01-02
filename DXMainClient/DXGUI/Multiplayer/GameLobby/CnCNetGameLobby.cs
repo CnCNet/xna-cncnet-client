@@ -174,6 +174,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             TopBar.AddPrimarySwitchable(this);
             TopBar.SwitchToPrimary();
+            WindowManager.SelectedControl = tbChatInput;
         }
 
         public void ChangeChatColor(IRCColor chatColor)

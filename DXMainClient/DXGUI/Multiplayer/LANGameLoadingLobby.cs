@@ -130,6 +130,8 @@ namespace DTAClient.DXGUI.Multiplayer
 
             if (IsHost)
                 CopyPlayerDataToUI();
+
+            WindowManager.SelectedControl = tbChatInput;
         }
 
         public void PostJoin()

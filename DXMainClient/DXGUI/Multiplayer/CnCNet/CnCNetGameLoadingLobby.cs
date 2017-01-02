@@ -213,6 +213,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             topBar.AddPrimarySwitchable(this);
             topBar.SwitchToPrimary();
+            WindowManager.SelectedControl = tbChatInput;
         }
 
         private void Channel_UserAdded(object sender, ChannelUserEventArgs e)
