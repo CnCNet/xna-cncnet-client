@@ -27,9 +27,14 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         XNAPanel[] tabClanManagerArray;
         ServLoginWindow winLogin;
         DarkeningPanel panLogin;
-        ClanManageTab clanManageTab;
-        ClanInvitesTab clanInvitesTab;
+        public ClanManageTab ClanManageTab;
+        public ClanInvitesTab ClanInvitesTab;
+        XNAClientButton btnNewClan;
+        XNAClientButton btnNewInvite;
+        NewClanWindow winNewClan;
+        DarkeningPanel panNewClan;
         CnCNetManager cm;
+        WindowManager wm;
 
         public ClanManagerWindow(WindowManager windowManager,
             CnCNetManager cm, GameCollection gameCollection) : base(windowManager)
@@ -37,7 +42,9 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             //this.gameCollection = gameCollection;
             //windowManager.GameClose += WindowManager_GameClosing;
             this.cm = cm;
+            this.wm = windowManager;
             cm.CncServ.AuthResponse += AuthenticationResponse;
+            cm.CncServ.ClanServices.ReceivedCreateClanResponse += CreateClanResponse;
         }
 
         public override void Initialize()
@@ -46,7 +53,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             ClientRectangle = new Rectangle(0,0,600,600);
             BackgroundTexture = AssetLoader.LoadTextureUncached("privatemessagebg.png");
 
-            lblClanManager = new XNALabel(WindowManager);
+            lblClanManager = new XNALabel(wm);
             lblClanManager.Name = "lblClanManager";
             lblClanManager.FontIndex = 1;
             lblClanManager.Text = "CLAN MANAGER";
@@ -58,7 +65,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 lblClanManager.ClientRectangle.Width,
                 lblClanManager.ClientRectangle.Height);
 
-            tabClanManager = new XNAClientTabControl(WindowManager);
+            tabClanManager = new XNAClientTabControl(wm);
             tabClanManager.Name = "tabClanManager";
             tabClanManager.ClientRectangle = new Rectangle(60, 50, 0, 0);
             tabClanManager.SoundOnClick = AssetLoader.LoadSound("button.wav");
@@ -70,40 +77,74 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             var tabRect = new Rectangle(12, tabClanManager.ClientRectangle.Bottom + 24,
                 ClientRectangle.Width - 24,
-                ClientRectangle.Height - tabClanManager.ClientRectangle.Bottom - 48);
+                ClientRectangle.Height - tabClanManager.ClientRectangle.Bottom - 70);
 
 
-            clanManageTab = new ClanManageTab(WindowManager, cm, tabRect);
-            clanInvitesTab = new ClanInvitesTab(WindowManager, cm, tabRect);
+            ClanManageTab = new ClanManageTab(wm, cm, this, tabRect);
+            ClanInvitesTab = new ClanInvitesTab(wm, cm, this, tabRect);
 
             tabClanManagerArray = new XNAPanel[3]
-                {clanManageTab, clanInvitesTab, clanInvitesTab};
+                {ClanManageTab, ClanInvitesTab, ClanInvitesTab};
 
+            btnNewClan = new XNAClientButton(wm);
+            btnNewClan.Name = "bntNewClan";
+            btnNewClan.ClientRectangle =
+                new Rectangle(ClientRectangle.Width / 2 - (92 + 6),
+                              ClientRectangle.Height - 34,
+                              92, 23);
+            btnNewClan.FontIndex = 1;
+            btnNewClan.Text = "New Clan";
+            btnNewClan.LeftClick += BtnNewClan_LeftClicked;
+
+            btnNewInvite = new XNAClientButton(wm);
+            btnNewInvite.Name = "NewInvite";
+            btnNewInvite.ClientRectangle =
+                new Rectangle(btnNewClan.ClientRectangle.Right + 12,
+                              btnNewClan.ClientRectangle.Y,
+                              92, 23);
+            btnNewInvite.FontIndex = 1;
+            btnNewInvite.Text = "New Invite";
 
             AddChild(tabClanManager);
-            AddChild(clanInvitesTab);
-            AddChild(clanManageTab);
+            AddChild(ClanInvitesTab);
+            AddChild(ClanManageTab);
+            AddChild(btnNewClan);
+            AddChild(btnNewInvite);
             base.Initialize();
 
-            clanInvitesTab.Disable();
+            ClanInvitesTab.Disable();
             tabClanManager.SelectedTab = 0;
             CenterOnParent();
 
-            winLogin = new ServLoginWindow(WindowManager, cm);
+            winLogin = new ServLoginWindow(wm, cm);
+            winLogin.Name = "winLogin";
             winLogin.Disable();
-            var panLogin = new DarkeningPanel(WindowManager);
-            panLogin.Alpha = 0.0f;
 
+            panLogin = new DarkeningPanel(wm);
+            panLogin.Alpha = 0.0f;
             AddChild(panLogin);
             panLogin.AddChild(winLogin);
+            panLogin.Disable();
 
-            winLogin.Disable();
+
+            winNewClan = new NewClanWindow(wm, cm);
+            winNewClan.Name = "winNewClan";
+            winNewClan.Disable();
+
+            panNewClan = new DarkeningPanel(wm);
+            panNewClan.Alpha = 0.0f;
+            AddChild(panNewClan);
+            panNewClan.AddChild(winNewClan);
+            panNewClan.Disable();
         }
 
         public void SwitchOn()
         {
             tabClanManager.SelectedTab = 0;
-            WindowManager.SelectedControl = null;
+            wm.SelectedControl = null;
+            ClanManageTab.Refresh();
+            ClanInvitesTab.Refresh();
+
             if (!cm.IsConnected)
             {
                 Enable();
@@ -136,9 +177,22 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         {
             if (cm.CncServ.IsAuthenticated)
             {
-                clanManageTab.Refresh();
-                clanInvitesTab.Refresh();
+                ClanManageTab.Refresh();
+                ClanInvitesTab.Refresh();
             }
+        }
+        private void BtnNewClan_LeftClicked(object s, EventArgs e)
+        {
+            winNewClan.Enable();
+        }
+        private void CreateClanResponse(object s, ClanEventArgs e)
+        {
+            if (e.Result == "SUCCESS")
+            {
+                ClanManageTab.Refresh();
+                ClanInvitesTab.Refresh();
+            }
+
         }
     }
 

@@ -36,8 +36,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 new Rectangle(lblIncoming.ClientRectangle.X,
                               lblIncoming.ClientRectangle.Bottom + 6,
                               ClientRectangle.Width - 48,
-                              160)
-;
+                              154);
+            lbInInvites.FontIndex = 1;
             //lbInInvites.SelectedIndexChanged += LbUserList_SelectedIndexChanged;
             lbInInvites.BackgroundTexture =
                 AssetLoader.CreateTexture(new Color(0,0,0,128),1,1);
@@ -50,7 +50,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                               lbInInvites.ClientRectangle.Bottom + 12,
                               92, 23);
             btnInAccept.Text = "Accept";
-            //btnInAccept.LeftClick += BtnIncAccept_LeftClick;
+            btnInAccept.LeftClick += BtnIncAccept_LeftClick;
 
             btnInDecline = new XNAClientButton(WindowManager);
             btnInDecline.Name = "btnDecline";
@@ -59,7 +59,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                               btnInAccept.ClientRectangle.Y,
                               92, 23);
             btnInDecline.Text = "Decline";
-            //btnInDecline.LeftClick += BtnInDecline_LeftClick;
+            btnInDecline.LeftClick += BtnInDecline_LeftClick;
 
             lblOutgoing = new XNALabel(WindowManager);
             lblOutgoing.Name = "lblOutgoing";
@@ -75,7 +75,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 new Rectangle(lblOutgoing.ClientRectangle.X,
                               lblOutgoing.ClientRectangle.Bottom + 6,
                               ClientRectangle.Width - 48,
-                              160);
+                              154);
+            lbOutInvites.FontIndex = 1;
             //lbOutInvites.SelectedIndexChanged += LbUserList_SelectedIndexChanged;
             lbOutInvites.BackgroundTexture =
                 AssetLoader.CreateTexture(new Color(0,0,0,128),1,1);

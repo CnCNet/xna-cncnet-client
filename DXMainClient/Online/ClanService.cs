@@ -17,9 +17,16 @@ namespace DTAClient.Online.Services
         WindowManager wm;
         CnCNetManager cm;
         public string ClanBot;
-        public event EventHandler<ClanMemberEventArgs> ReceivedNextClanMember;
-        public event EventHandler<ClanMemberEventArgs> ReceivedChangeRoleResponse;
-        public event EventHandler<ClanMemberEventArgs> ReceivedRemoveMemberResponse;
+        public event EventHandler<ClanEventArgs> ReceivedClanMemberNext;
+        public event EventHandler<ClanEventArgs> ReceivedClanMemberComplete;
+        public event EventHandler<ClanEventArgs> ReceivedChangeRoleResponse;
+        public event EventHandler<ClanEventArgs> ReceivedRemoveMemberResponse;
+        public event EventHandler<ClanEventArgs> ReceivedCreateClanResponse;
+        public event EventHandler<InviteEventArgs> ReceivedListInvitesNext;
+        public event EventHandler<InviteEventArgs> ReceivedListInvitesComplete;
+        public event EventHandler<InviteEventArgs> ReceivedListClanInvitesNext;
+        public event EventHandler<InviteEventArgs> ReceivedListClanInvitesComplete;
+        public event EventHandler<InviteEventArgs> ReceivedAcceptInviteResponse;
 
         public ClanServices(WindowManager wm, CnCNetManager cm, string bot)
         {
@@ -35,7 +42,7 @@ namespace DTAClient.Online.Services
             string distinguisher = words[1];
             string facility = words[2];
             string command = words[3];
-            string rest = String.Join(" ", words.Skip(4));
+            //string rest = String.Join(" ", words.Skip(4));
             Console.WriteLine("DoClanResponse {0}", message);
 
             switch (command)
@@ -46,7 +53,7 @@ namespace DTAClient.Online.Services
                 if (words[4] == "NEXT")
                     NextListClanMembers(distinguisher, words);
                 if (words[4] == "COMPLETE")
-                    CompleteListClanMembers(distinguisher);
+                    CompleteListClanMembers(distinguisher, words);
                 break;
             case "INVITE":
                 InviteResponse(distinguisher, words);
@@ -58,10 +65,32 @@ namespace DTAClient.Online.Services
                 RemoveMemberResponse(distinguisher, words);
                 break;
             case "ACCEPT":
+                AcceptInviteResponse(distinguisher, words);
+                break;
             case "DECLINE":
+                DeclineInviteResponse(distinguisher, words);
+                break;
             case "LIST-INVITES":
+                if (words.Length < 5)
+                    return;
+                if (words[4] == "NEXT")
+                    NextListInvitesResponse(distinguisher, words);
+                if (words[4] == "COMPLETE")
+                    CompleteListInvitesResponse(distinguisher, words);
+                break;
             case "LIST-CLAN-INVITES":
+                if (words.Length < 5)
+                    return;
+                if (words[4] == "NEXT")
+                    NextListClanInvitesResponse(distinguisher, words);
+                if (words[4] == "COMPLETE")
+                    CompleteClanListInvitesResponse(distinguisher, words);
+                break;
             case "CREATE":
+                if (words.Length < 6)
+                    return;
+                CreateClanResponse(distinguisher, words);
+                break;
             default:
                 return;
             }
@@ -77,25 +106,32 @@ namespace DTAClient.Online.Services
             cm.SendCustomMessage(new QueuedMessage(message,
                                  QueuedMessageType.INSTANT_MESSAGE, 0));
         }
+
         private void NextListClanMembers(string d, string[] words)
         {
             if (words.Length < 8)
+            {
                 Console.WriteLine("Not enough words");
-            ReceivedNextClanMember?.Invoke(this,
-                new ClanMemberEventArgs(d, words[4], words[5], words[6], words[7], ""));
+                return;
+            }
+            ReceivedClanMemberNext?.Invoke(this,
+                new ClanEventArgs(d, words[4], words[5], words[6], words[7], ""));
         }
-        private void CompleteListClanMembers(string d)
+
+        private void CompleteListClanMembers(string d, string[] words)
         {
+            ReceivedClanMemberComplete?.Invoke(this,
+                new ClanEventArgs(d, words[4], "", "", "", ""));
         }
 
 
-        public void Invite(string distinguisher, string user, string clan)
+        public void Invite(string distinguisher, string user, string clan, string m)
         {
             if (String.IsNullOrEmpty(ClanBot))
                 return;
 
             string message = "PRIVMSG "+ ClanBot +" :clan invite "+
-                distinguisher +" "+ user +" "+ clan;
+                distinguisher +" "+ user +" "+ clan +" "+ m;
             cm.SendCustomMessage(new QueuedMessage(message,
                                  QueuedMessageType.INSTANT_MESSAGE, 0));
         }
@@ -136,7 +172,7 @@ namespace DTAClient.Online.Services
                 role = words[7];
             }
             ReceivedChangeRoleResponse?.Invoke(this,
-                new ClanMemberEventArgs(distinguisher, result, clan, user,
+                new ClanEventArgs(distinguisher, result, clan, user,
                                         role, rest));
         }
 
@@ -150,13 +186,14 @@ namespace DTAClient.Online.Services
             cm.SendCustomMessage(new QueuedMessage(message,
                                  QueuedMessageType.INSTANT_MESSAGE, 0));
         }
+
         public void RemoveMemberResponse(string distinguisher, string[] words)
         {
             if (words.Length < 7)
                 return;
             string result = words[4];
-            string clan = words[5];
-            string user = words[6];
+            string user = words[5];
+            string clan = words[6];
             string rest = "";
             if (result == "FAIL")
             {
@@ -166,7 +203,7 @@ namespace DTAClient.Online.Services
                     rest = words[7];
             }
             ReceivedRemoveMemberResponse?.Invoke(this,
-               new ClanMemberEventArgs(distinguisher, result, clan, user,
+               new ClanEventArgs(distinguisher, result, clan, user,
                                         "", rest));
         }
 
@@ -180,6 +217,31 @@ namespace DTAClient.Online.Services
             cm.SendCustomMessage(new QueuedMessage(message,
                                  QueuedMessageType.INSTANT_MESSAGE, 0));
         }
+        public void AcceptInviteResponse(string distinguisher, string[] words)
+        {
+            if (words.Length < 6)
+                return;
+            string result = words[4];
+            string id = words[5];
+            string msg = "";
+            if (result == "FAIL")
+            {
+                if (words.Length > 7)
+                    msg = string.Join(" ", words.Skip(6).ToArray());
+
+                ReceivedAcceptInviteResponse?.Invoke(this,
+                   new InviteEventArgs(distinguisher, result, id, "", "", msg));
+            }
+            if (result == "SUCCESS")
+            {
+                if (words.Length < 7)
+                    return;
+                string clan = words[6];
+                cm.CncServ.ClanName = clan;
+                ReceivedAcceptInviteResponse?.Invoke(this,
+                   new InviteEventArgs(distinguisher, result, id, "", clan, ""));
+            }
+        }
 
         public void DeclineInvite(string distinguisher, string invitation_id)
         {
@@ -190,6 +252,38 @@ namespace DTAClient.Online.Services
                 distinguisher +" "+ invitation_id;
             cm.SendCustomMessage(new QueuedMessage(message,
                                  QueuedMessageType.INSTANT_MESSAGE, 0));
+        }
+        public void DeclineInviteResponse(string distinguisher, string[] words)
+        {
+
+        }
+
+        public void ListInvites(string distinguisher)
+        {
+            if (String.IsNullOrEmpty(ClanBot))
+                return;
+
+            string message = "PRIVMSG "+ ClanBot +" :clan list-invites "+
+                distinguisher;
+            cm.SendCustomMessage(new QueuedMessage(message,
+                                 QueuedMessageType.INSTANT_MESSAGE, 0));
+        }
+        public void NextListInvitesResponse(string distinguisher, string[] words)
+        {
+            if (words.Length < 8)
+                return;
+            string id = words[5];
+            string name = words[6];
+            string clan = words[7];
+            string comment = String.Join(" ", words.Skip(8).ToArray());
+            ReceivedListInvitesNext?.Invoke(this,
+                new InviteEventArgs(distinguisher, words[4], id, name, clan, comment));
+        }
+
+        public void CompleteListInvitesResponse(string distinguisher, string[] words)
+        {
+            ReceivedListInvitesComplete?.Invoke(this,
+                new InviteEventArgs(distinguisher, words[4], "", "", "", ""));
         }
 
         public void ListClanInvites(string distinguisher, string clan)
@@ -203,6 +297,23 @@ namespace DTAClient.Online.Services
                                  QueuedMessageType.INSTANT_MESSAGE, 0));
         }
 
+        public void NextListClanInvitesResponse(string distinguisher, string[] words)
+        {
+            if (words.Length < 8)
+                return;
+            string id = words[5];
+            string name = words[6];
+            string clan = words[7];
+            string comment = String.Join(" ", words.Skip(8).ToArray());
+            ReceivedListClanInvitesNext?.Invoke(this,
+                new InviteEventArgs(distinguisher, words[4], id, name, clan, comment));
+        }
+        public void CompleteClanListInvitesResponse(string distinguisher,
+                                                    string[] words)
+        {
+            ReceivedListClanInvitesComplete?.Invoke(this,
+                new InviteEventArgs(distinguisher, words[4], "", "", "", ""));
+        }
         public void CreateClan(string distinguisher, string clan)
         {
             if (String.IsNullOrEmpty(ClanBot))
@@ -213,24 +324,55 @@ namespace DTAClient.Online.Services
             cm.SendCustomMessage(new QueuedMessage(message,
                                  QueuedMessageType.INSTANT_MESSAGE, 0));
         }
-
+        public void CreateClanResponse(string distinguisher, string[] words)
+        {
+            if (words[4] == "SUCCESS")
+            {
+                cm.CncServ.ClanName = words[5];
+            }
+            ReceivedCreateClanResponse?.Invoke(this,
+                new ClanEventArgs(distinguisher, words[4], words[5], "", "",
+                                  string.Join(" ", words.Skip(6).ToArray())));
+        }
 
     }
-    public class ClanMemberEventArgs : EventArgs
+    public class ClanEventArgs : EventArgs
     {
-        public ClanMemberEventArgs(string distinguisher, string r, string clan,
+        public ClanEventArgs(string distinguisher, string r, string clan,
                                    string username, string role, string rest)
         {
             Distinguisher = distinguisher;
             Result = r;
             ClanName = clan;
             Member = new ClanMember(username, role);
-            rest = rest;
+            FailMessage = rest;
         }
         public string Result;
         public string Distinguisher;
         public string ClanName;
         public ClanMember Member;
-        public string rest;
+        public string FailMessage;
+    }
+
+    public class InviteEventArgs : EventArgs
+    {
+        public InviteEventArgs(string distinguisher, string r, string id,
+                               string name, string clan, string comment)
+        {
+            Distinguisher = distinguisher;
+            Result = r;
+            ID = id;
+            ClanName = clan;
+            UserName = name;
+            Comment = comment;
+            FailMessage = comment;
+        }
+        public string Distinguisher;
+        public string Result;
+        public string ID;
+        public string ClanName;
+        public string UserName;
+        public string Comment;
+        public string FailMessage;
     }
 }

@@ -20,16 +20,26 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 {
     partial class ClanManageTab : XNAPanel
     {
+        ClanManagerWindow cw;
+        private static string loading = "Loading...";
 
         public ClanManageTab(WindowManager windowManager, CnCNetManager cm,
-                             Rectangle location) : base(windowManager)
+                             ClanManagerWindow cw, Rectangle location) :
+        base(windowManager)
         {
             ClientRectangle = location;
             this.cm = cm;
+            this.wm = windowManager;
+            this.cw = cw;
+
             currentClanMembers = new List<ClanMember>(){};
-            cm.CncServ.ClanServices.ReceivedNextClanMember += DoNextClanMember;
+            cm.CncServ.ClanServices.ReceivedClanMemberNext += DoNextClanMember;
+            cm.CncServ.ClanServices.ReceivedClanMemberComplete +=
+                DoCompleteClanMember;
+
             cm.CncServ.ClanServices.ReceivedChangeRoleResponse +=
                 DoChangeRoleResponse;
+
             cm.CncServ.ClanServices.ReceivedRemoveMemberResponse +=
                 DoRemoveMemberResponse;
         }
@@ -52,6 +62,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         }
         private void BtnLoadOtherClan_LeftClicked(object s, EventArgs e)
         {
+            SelectedClan = tbOtherClan.Text;
             Refresh();
         }
 
@@ -79,7 +90,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             }
         }
 
-        private void DoChangeRoleResponse(object sender, ClanMemberEventArgs e)
+        private void DoChangeRoleResponse(object sender, ClanEventArgs e)
         {
             if (e.Result == "SUCCESS")
             {
@@ -92,6 +103,11 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             else
             {
                 LbClanMembers_SelectedIndexChanged(null, EventArgs.Empty);
+                messageBox = new XNAMessageBox(wm, e.FailMessage,
+                    string.Format("Failed To Change Role For {0}", e.Member.Name),
+                    DXMessageBoxButtons.OK);
+
+                messageBox.Show();
                 Console.WriteLine("FAIL {0} {1} {2}", e.ClanName, e.Member.Name,
                                   e.Member.Role);
             }
@@ -101,8 +117,15 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             if (lbClanMembers.SelectedIndex < 0)
             {
                 tabMemberRole.Visible = false;
+                btnRemoveMember.Visible = false;
                 return;
             }
+            if (lbClanMembers.Items[lbClanMembers.SelectedIndex].Text == loading)
+            {
+                lbClanMembers.SelectedIndex = -1;
+                return;
+            }
+
             ClanMember m = currentClanMembers[lbClanMembers.SelectedIndex];
 
             if (m.Role == "Owner")
@@ -111,6 +134,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 tabMemberRole.SelectedTab = 1;
             if (m.Role == "Gamer")
                 tabMemberRole.SelectedTab = 0;
+            tabMemberRole.Visible = true;
+            btnRemoveMember.Visible = true;
         }
 
         private void LbClanMembers_HoveredIndexChanged(object sender, EventArgs e)
@@ -149,10 +174,16 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 RemoveDistinguisher.ToString(), name, SelectedClan);
         }
 
-        private void DoRemoveMemberResponse(object s, ClanMemberEventArgs m)
+        private void DoRemoveMemberResponse(object s, ClanEventArgs m)
         {
-            if (RemoveDistinguisher.ToString() == m.Distinguisher)
-                Refresh();
+            if (m.Result == "FAIL")
+            {
+                messageBox = new XNAMessageBox(wm, m.FailMessage,
+                    string.Format("Failed Remove user {0}", m.Member.Name),
+                    DXMessageBoxButtons.OK);
+                messageBox.Show();
+            }
+            else Refresh();
         }
 
         private int MembersDistinguisher = 0;
@@ -161,22 +192,43 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             MembersDistinguisher++;
             currentClanMembers.Clear();
             lbClanMembers.Clear();
+            lbClanMembers.SelectedIndex = -1;
+
             if (tabMineOrOther.SelectedTab == 1)
                 SelectedClan = tbOtherClan.Text;
             else
                 SelectedClan = cm.CncServ.ClanName;
+            tabMemberRole.Visible = false;
 
             cm.CncServ.ClanServices.ListClanMembers(MembersDistinguisher.ToString(),
                                                     SelectedClan);
-
+            lbClanMembers.AddItem(loading);
         }
 
-        private void DoNextClanMember(object s, ClanMemberEventArgs ec)
+        private void DoNextClanMember(object s, ClanEventArgs ec)
         {
             if (ec.Distinguisher == MembersDistinguisher.ToString())
             {
                 currentClanMembers.Add(ec.Member);
+                int last = lbClanMembers.Items.Count - 1;
+                if (last >= 0 && lbClanMembers.Items[last].Text == loading)
+                    lbClanMembers.Items.RemoveAt(last);
                 lbClanMembers.AddItem(ec.Member.Name);
+                lbClanMembers.AddItem(loading);
+            }
+        }
+        private void DoCompleteClanMember(object s, ClanEventArgs e)
+        {
+            Console.WriteLine("DoCompleteClanMember");
+            if (e.Distinguisher == MembersDistinguisher.ToString())
+            {
+                Console.WriteLine("matched");
+                int last = lbClanMembers.Items.Count - 1;
+                if (last >= 0 && lbClanMembers.Items[last].Text == loading)
+                {
+                    lbClanMembers.Items.RemoveAt(last);
+                    Console.WriteLine("Deleted {0}", last);
+                }
             }
         }
     }

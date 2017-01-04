@@ -28,11 +28,12 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         XNAListBox lbClanMembers;
         XNAClientTabControl tabMemberRole;
         XNAClientButton btnRemoveMember;
-
+        XNAMessageBox messageBox;
 
         public string SelectedClan;
         List<ClanMember> currentClanMembers;
         CnCNetManager cm;
+        WindowManager wm;
 
         public override void Initialize()
         {
@@ -67,7 +68,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                               tabMineOrOther.ClientRectangle.Y,
                               120,
                               24);
-            tbOtherClan.MaximumTextLength = 20;
+            tbOtherClan.MaximumTextLength = 14;
             tbOtherClan.Visible = false;
 
             btnLoadOtherClan = new XNAClientButton(WindowManager);
@@ -127,6 +128,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             btnRemoveMember.FontIndex = 1;
             btnRemoveMember.Text = "Remove";
             btnRemoveMember.LeftClick += BtnRemoveMember_LeftClicked;
+            btnRemoveMember.Visible = false;
 
             AddChild(tabMineOrOther);
             AddChild(tbOtherClan);

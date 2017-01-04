@@ -92,7 +92,7 @@ namespace DTAClient.Online.Services
                 switch (facility)
                 {
                 case "AUTH":
-                    DoAuthResponse(a.CTCPMessage);
+                    DoAuthResponse(words);
                     break;
                 case "CLAN":
                     ClanServices.DoClanResponse(a.CTCPMessage);
@@ -103,33 +103,44 @@ namespace DTAClient.Online.Services
             }
         }
 
-        private void DoAuthResponse(string message)
+        private void DoAuthResponse(string[] words)
         {
-            string[] words = message.Split(' ');
+            if (words.Length < 5)
+                return;
             string CNCSERV = words[0];
             string distinguisher = words[1];
             string facility = words[2];
             string command = words[3];
-            string rest = String.Join(" ", words.Skip(4));
+            string result = words[4];
+            string rest = String.Join(" ", words.Skip(5).ToArray());
 
-            if (command == "FAIL")
+            switch (command)
             {
-                IsAuthenticated = false;
-            }
-            else if (command == "SUCCESS")
-            {
-                try
-                {
-                    IsAuthenticated = true;
-                    UserName = words[4];
-                    ClanName = words[5];
-                }
-                catch
-                {
+            case "AUTH":
+                if (result == "FAIL")
                     IsAuthenticated = false;
+
+                else if (result == "SUCCESS")
+                {
+                    try
+                    {
+                        IsAuthenticated = true;
+                        UserName = words[5];
+                        ClanName = words[6];
+                    }
+                    catch
+                    {
+                        IsAuthenticated = false;
+                    }
                 }
+                break;
+            case "DEAUTH":
+                break;
+            default:
+                break;
             }
-            var a = new CnCNetServAuthEventArgs(command, UserName, ClanName, rest);
+            var a = new CnCNetServAuthEventArgs(command, result, UserName,
+                                                ClanName, rest);
             AuthResponse?.Invoke(this, a);
         }
 
@@ -152,14 +163,16 @@ namespace DTAClient.Online.Services
 
     public class CnCNetServAuthEventArgs : EventArgs
     {
-        public CnCNetServAuthEventArgs(string r, string username,
+        public CnCNetServAuthEventArgs(string command, string r, string username,
                                        string clanname, string failmessage)
         {
+            Command = command;
             Result = r;
             UserName = username;
             ClanName = clanname;
             FailMessage = failmessage;
         }
+        public string Command;
         public string Result;
         public string UserName;
         public string ClanName;

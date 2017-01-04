@@ -207,7 +207,7 @@ namespace DTAClient.DXGUI.Generic
         private void ConnectionEvent(string text)
         {
             lblConnectionStatus.Text = text;
-            lblConnectionStatus.CenterOnParent();
+            //lblConnectionStatus.CenterOnParent();
             isDown = true;
             downTime = TimeSpan.FromSeconds(DOWN_TIME_WAIT_SECONDS - EVENT_DOWN_TIME_WAIT_SECONDS);
         }
