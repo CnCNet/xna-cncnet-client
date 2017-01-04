@@ -25,6 +25,7 @@ namespace DTAClient.DXGUI
 
         private bool initialized = false;
         private bool deletingLogFilesFailed = false;
+        private bool nativeCursorUsed = false;
 
         public override void Initialize()
         {
@@ -86,6 +87,8 @@ namespace DTAClient.DXGUI
             Visible = true;
             Enabled = true;
             WindowManager.Cursor.Visible = false;
+            nativeCursorUsed = Game.IsMouseVisible;
+            Game.IsMouseVisible = false;
             ProgramConstants.IsInGame = true;
             Game.TargetElapsedTime = TimeSpan.FromMilliseconds(1000.0 / POWER_SAVING_FPS);
             if (UserINISettings.Instance.MinimizeWindowsOnGameStart)
@@ -101,7 +104,10 @@ namespace DTAClient.DXGUI
         {
             Visible = false;
             Enabled = false;
-            WindowManager.Cursor.Visible = true;
+            if (nativeCursorUsed)
+                Game.IsMouseVisible = true;
+            else
+                WindowManager.Cursor.Visible = true;
             ProgramConstants.IsInGame = false;
             Game.TargetElapsedTime = TimeSpan.FromMilliseconds(1000.0 / FPS);
             if (UserINISettings.Instance.MinimizeWindowsOnGameStart)
