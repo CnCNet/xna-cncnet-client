@@ -42,6 +42,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             cm.CncServ.ClanServices.ReceivedRemoveMemberResponse +=
                 DoRemoveMemberResponse;
+            cw.ViewClanRequested += LoadSearchedClan;
+
         }
 
         private void TabMineOrOther_SelectedIndexChanged(object sender, EventArgs e)
@@ -60,36 +62,20 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 Refresh();
             }
         }
+
         private void BtnLoadOtherClan_LeftClicked(object s, EventArgs e)
         {
             SelectedClan = tbOtherClan.Text;
             Refresh();
         }
 
-        private void TabMemberRole_SelectedTabChanged(object sender, EventArgs e)
+        private void LoadSearchedClan(object s, SearchEventArgs e)
         {
-            ClanMember m = currentClanMembers[lbClanMembers.SelectedIndex];
-
-            if (tabMemberRole.SelectedTab == 0)
-            {
-                if (m.Role != "Gamer")
-                    cm.CncServ.ClanServices.ChangeRole("1", SelectedClan, m.Name,
-                                                       "Gamer");
-            }
-            else if (tabMemberRole.SelectedTab == 1)
-            {
-                if (m.Role != "Operator")
-                    cm.CncServ.ClanServices.ChangeRole("1", SelectedClan, m.Name,
-                                                       "Operator");
-            }
-            else if (tabMemberRole.SelectedTab == 2)
-            {
-                if (m.Role != "Owner")
-                    cm.CncServ.ClanServices.ChangeRole("1", SelectedClan, m.Name,
-                                                       "Owner");
-            }
+            Console.WriteLine("Loading searched clan");
+            tbOtherClan.Text = e.String;
+            tabMineOrOther.SelectedTab = 1;
+            BtnLoadOtherClan_LeftClicked(null, null);
         }
-
         private void DoChangeRoleResponse(object sender, ClanEventArgs e)
         {
             if (e.Result == "SUCCESS")
@@ -116,8 +102,10 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         {
             if (lbClanMembers.SelectedIndex < 0)
             {
-                tabMemberRole.Visible = false;
                 btnRemoveMember.Visible = false;
+                btnMemberRoleOperator.Visible = false;
+                btnMemberRoleOwner.Visible = false;
+                btnMemberRoleGamer.Visible = false;
                 return;
             }
             if (lbClanMembers.Items[lbClanMembers.SelectedIndex].Text == loading)
@@ -128,42 +116,44 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             ClanMember m = currentClanMembers[lbClanMembers.SelectedIndex];
 
-            if (m.Role == "Owner")
-                tabMemberRole.SelectedTab = 2;
-            if (m.Role == "Operator")
-                tabMemberRole.SelectedTab = 1;
-            if (m.Role == "Gamer")
-                tabMemberRole.SelectedTab = 0;
-            tabMemberRole.Visible = true;
+            btnMemberRoleOwner.SelectedTab = -1;
+            btnMemberRoleOperator.SelectedTab = -1;
+            btnMemberRoleGamer.SelectedTab = -1;
+
+            switch (m.Role)
+            {
+            case "Owner": btnMemberRoleOwner.SelectedTab = 0; break;
+            case "Operator": btnMemberRoleOperator.SelectedTab = 0; break;
+            case "Gamer": btnMemberRoleGamer.SelectedTab = 0; break;
+            }
+
+            btnMemberRoleOperator.Visible = true;
+            btnMemberRoleOwner.Visible = true;
+            btnMemberRoleGamer.Visible = true;
             btnRemoveMember.Visible = true;
         }
 
-        private void LbClanMembers_HoveredIndexChanged(object sender, EventArgs e)
+        private void Btn_RoleChange(XNAClientTabControl b)
         {
-            /* Tried to make some fancy hover thing, but it didn't work.
-            if (lbClanMembers.SelectedIndex >= 0)
-                return;
+            ClanMember m = currentClanMembers[lbClanMembers.SelectedIndex];
 
-            if (lbClanMembers.HoveredIndex < 0 ||
-                 lbClanMembers.HoveredIndex > lbClanMembers.Items.Count)
+            btnMemberRoleOwner.SelectedTab = -1;
+            btnMemberRoleOperator.SelectedTab = -1;
+            btnMemberRoleGamer.SelectedTab = -1;
 
+            Console.WriteLine("Changing role to {0}",b.Text);
+            switch (b.Text)
             {
-                tabMemberRole.Visible = false;
-                btnRemoveMember.Visible = false;
-                return;
+            case "Owner":
+                btnMemberRoleOwner.SelectedTab = 0;
+                break;
+            case "Operator": btnMemberRoleOperator.SelectedTab = 0; break;
+            case "Gamer": btnMemberRoleGamer.SelectedTab = 0; break;
             }
-            tabMemberRole.ClientRectangle =
-                new Rectangle(lbClanMembers.ClientRectangle.Right + 6,
-                              ((lbClanMembers.HoveredIndex - lbClanMembers.TopIndex)
-                               * lbClanMembers.LineHeight) + lbClanMembers.ClientRectangle.Y,
-                              140, 0);
-            tabMemberRole.Visible = true;
-            btnRemoveMember.ClientRectangle =
-                new Rectangle(tabMemberRole.ClientRectangle.Right + 12,
-                              tabMemberRole.ClientRectangle.Y,
-                              92, 23);
-            btnRemoveMember.Visible = true;
-            */
+            if (m.Role != b.Text)
+                cm.CncServ.ClanServices.ChangeRole("1", SelectedClan, m.Name,
+                                                   b.Text);
+
         }
 
         private int RemoveDistinguisher = 0;
@@ -189,6 +179,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         private int MembersDistinguisher = 0;
         public void Refresh()
         {
+            if (!cm.CncServ.IsAuthenticated)
+                return;
             MembersDistinguisher++;
             currentClanMembers.Clear();
             lbClanMembers.Clear();
@@ -198,7 +190,20 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 SelectedClan = tbOtherClan.Text;
             else
                 SelectedClan = cm.CncServ.ClanName;
-            tabMemberRole.Visible = false;
+            btnMemberRoleOwner.Visible = false;
+            btnMemberRoleOperator.Visible = false;
+            btnMemberRoleGamer.Visible = false;
+
+            if (!string.IsNullOrEmpty(SelectedClan))
+                lblManageClan.Text = "-= " + SelectedClan + " =-";
+            else
+                lblManageClan.Text = "-= NONE =-";
+            lblManageClan.ClientRectangle =
+                new Rectangle((ClientRectangle.Width / 2) -
+                              (lblManageClan.ClientRectangle.Width / 2),
+                              lblManageClan.ClientRectangle.Y,
+                              lblManageClan.ClientRectangle.Width,
+                              lblManageClan.ClientRectangle.Height);
 
             cm.CncServ.ClanServices.ListClanMembers(MembersDistinguisher.ToString(),
                                                     SelectedClan);

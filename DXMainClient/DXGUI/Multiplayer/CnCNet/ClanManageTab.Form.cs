@@ -26,9 +26,11 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         XNAClientButton btnLoadOtherClan;
         XNALabel lblClanMembers;
         XNAListBox lbClanMembers;
-        XNAClientTabControl tabMemberRole;
         XNAClientButton btnRemoveMember;
         XNAMessageBox messageBox;
+        XNAClientTabControl btnMemberRoleOwner;
+        XNAClientTabControl btnMemberRoleOperator;
+        XNAClientTabControl btnMemberRoleGamer;
 
         public string SelectedClan;
         List<ClanMember> currentClanMembers;
@@ -64,9 +66,9 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             tbOtherClan = new XNATextBox(WindowManager);
             tbOtherClan.Name = "tbOtherClan";
             tbOtherClan.ClientRectangle =
-                new Rectangle(tabMineOrOther.ClientRectangle.Right + 12,
-                              tabMineOrOther.ClientRectangle.Y,
-                              120,
+                new Rectangle(tabMineOrOther.ClientRectangle.X + 154,
+                              tabMineOrOther.ClientRectangle.Y + 28,
+                              100,
                               24);
             tbOtherClan.MaximumTextLength = 14;
             tbOtherClan.Visible = false;
@@ -105,25 +107,55 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 AssetLoader.CreateTexture(new Color(0, 0, 0, 128), 1, 1);
             lbClanMembers.DrawMode = PanelBackgroundImageDrawMode.STRETCHED;
             lbClanMembers.SelectedIndexChanged += LbClanMembers_SelectedIndexChanged;
-            lbClanMembers.HoveredIndexChanged += LbClanMembers_HoveredIndexChanged;
 
-            tabMemberRole = new XNAClientTabControl(WindowManager);
-            tabMemberRole.Name = "tabMemberRole";
-            tabMemberRole.ClientRectangle =
+
+            btnMemberRoleOwner = new XNAClientTabControl(wm);
+            btnMemberRoleOwner.Name = "btnMemberRoleOwner";
+            btnMemberRoleOwner.ClientRectangle =
                 new Rectangle(lbClanMembers.ClientRectangle.Right + 24,
-                              lbClanMembers.ClientRectangle.Bottom - 24,
-                              0, 0);
-            tabMemberRole.FontIndex = 1;
-            tabMemberRole.SelectedIndexChanged += TabMemberRole_SelectedTabChanged;
-            tabMemberRole.AddTab("Gamer", 92);
-            tabMemberRole.AddTab("Operator", 92);
-            tabMemberRole.AddTab("Owner", 92);
+                              lbClanMembers.ClientRectangle.Y,
+                              92, 23);
+            btnMemberRoleOwner.FontIndex = 1;
+            btnMemberRoleOwner.AddTab("Owner", 92);
+            btnMemberRoleOwner.Text = "Owner";
+            btnMemberRoleOwner.SelectedTab = -1;
+            btnMemberRoleOwner.Visible = false;
+            btnMemberRoleOwner.LeftClick +=
+                (s,e) => { Btn_RoleChange(btnMemberRoleOwner); };
 
-            btnRemoveMember = new XNAClientButton(WindowManager);
+            btnMemberRoleOperator = new XNAClientTabControl(wm);
+            btnMemberRoleOperator.Name = "btnMemberRoleOperator";
+            btnMemberRoleOperator.ClientRectangle =
+                new Rectangle(btnMemberRoleOwner.ClientRectangle.X,
+                              btnMemberRoleOwner.ClientRectangle.Bottom,
+                              92, 23);
+            btnMemberRoleOperator.FontIndex = 1;
+            btnMemberRoleOperator.AddTab("Operator", 92);
+            btnMemberRoleOperator.Text = "Operator";
+            btnMemberRoleOperator.SelectedTab = -1;
+            btnMemberRoleOperator.Visible = false;
+            btnMemberRoleOperator.LeftClick +=
+                (s,e) => { Btn_RoleChange(btnMemberRoleOperator); };
+
+            btnMemberRoleGamer = new XNAClientTabControl(wm);
+            btnMemberRoleGamer.Name = "btnMemberRoleGamer";
+            btnMemberRoleGamer.ClientRectangle =
+                new Rectangle(btnMemberRoleOwner.ClientRectangle.X,
+                              btnMemberRoleOperator.ClientRectangle.Bottom,
+                              92, 23);
+            btnMemberRoleGamer.FontIndex = 1;
+            btnMemberRoleGamer.AddTab("Gamer", 92);
+            btnMemberRoleGamer.Text = "Gamer";
+            btnMemberRoleGamer.SelectedTab = -1;
+            btnMemberRoleGamer.Visible = false;
+            btnMemberRoleGamer.LeftClick +=
+                (s,e) => { Btn_RoleChange(btnMemberRoleGamer); };
+
+            btnRemoveMember = new XNAClientButton(wm);
             btnRemoveMember.Name = "btnRemoveMember";
             btnRemoveMember.ClientRectangle =
-                new Rectangle(tabMemberRole.ClientRectangle.Right + 12,
-                              tabMemberRole.ClientRectangle.Y,
+                new Rectangle(btnMemberRoleOwner.ClientRectangle.X,
+                              btnMemberRoleGamer.ClientRectangle.Bottom + 12,
                               92, 23);
             btnRemoveMember.FontIndex = 1;
             btnRemoveMember.Text = "Remove";
@@ -135,7 +167,9 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             AddChild(btnLoadOtherClan);
             AddChild(lblClanMembers);
             AddChild(lbClanMembers);
-            AddChild(tabMemberRole);
+            AddChild(btnMemberRoleGamer);
+            AddChild(btnMemberRoleOperator);
+            AddChild(btnMemberRoleOwner);
             AddChild(btnRemoveMember);
             base.Initialize();
         }

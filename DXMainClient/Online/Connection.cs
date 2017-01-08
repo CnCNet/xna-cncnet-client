@@ -387,10 +387,11 @@ namespace DTAClient.Online
                             connectionManager.OnUserListReceived(channelName, users);
                             break;
                         case 352: // Reply to WHO query
+                            string ident = parameters[2];
                             string host = parameters[3];
                             string wUserName = parameters[5];
                             string extraInfo = parameters[7];
-                            connectionManager.OnWhoReplyReceived(host, wUserName, extraInfo);
+                            connectionManager.OnWhoReplyReceived(host, ident, wUserName, extraInfo);
                             break;
                         case 433: // Name already in use
                             message = serverMessagePart + parameters[1] + ": " + parameters[2];
@@ -646,7 +647,7 @@ namespace DTAClient.Online
 
             string realname = ProgramConstants.GAME_VERSION + " " + defaultGame + " CnCNet";
 
-            SendMessage(string.Format("USER {0} 0 * :{1}", defaultGame + "." + 
+            SendMessage(string.Format("USER {0} 0 * :{1}", defaultGame + "." +
                 new Random().Next(10000, 99999).ToString(), realname));
 
             SendMessage("NICK " + ProgramConstants.PLAYERNAME);

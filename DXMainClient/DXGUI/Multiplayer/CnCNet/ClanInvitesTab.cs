@@ -62,6 +62,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         int inInvitesDist;
         public void Refresh()
         {
+            if (!cm.CncServ.IsAuthenticated)
+                return;
             lbInInvites.Clear();
             lbInInvites.SelectedIndex = -1;
             currentInInvites.Clear();
@@ -176,6 +178,18 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             lbInInvites.Items.RemoveAt(lbInInvites.SelectedIndex);
             currentInInvites.RemoveAt(lbInInvites.SelectedIndex);
             lbInInvites.SelectedIndex = -1;
+        }
+
+        private void BtnOutDelete_LeftClick(object s, EventArgs e)
+        {
+            if (lbOutInvites.SelectedIndex < 0 ||
+                lbOutInvites.SelectedIndex > currentOutInvites.Count)
+                return;
+            string id = currentOutInvites[lbOutInvites.SelectedIndex].ID;
+            cm.CncServ.ClanServices.DeclineInvite("dist", id);
+            lbOutInvites.Items.RemoveAt(lbOutInvites.SelectedIndex);
+            currentOutInvites.RemoveAt(lbOutInvites.SelectedIndex);
+            lbOutInvites.SelectedIndex = -1;
         }
     }
 }

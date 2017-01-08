@@ -17,10 +17,7 @@ namespace DTAClient.Online.Services
         CnCNetManager cm;
         WindowManager wm;
         public bool IsAuthenticated;
-        public bool AlwaysConnect;
-        public bool ConnectOnce;
-        public string UserName;
-        public string Password;
+        bool authenticating;
         public string ClanName;
 
         public ClanServices ClanServices;
@@ -28,25 +25,38 @@ namespace DTAClient.Online.Services
         string ServUserName;
 
         public event EventHandler<CnCNetServAuthEventArgs> AuthResponse;
+        public event EventHandler<EventArgs> CnCServicesBotIdentified;
 
         public CnCNetServices(WindowManager wm, CnCNetManager cm)
         {
             this.cm = cm;
             this.wm = wm;
             IsAuthenticated = false;
-            ServNick = "dkbot";
-            ClanServices = new ClanServices(wm, cm, ServNick);
+            //ServNick = "dkbot";
+            ClanServices = new ClanServices(wm, cm, this);
 
-            cm.Connected += Authenticate;
+            //cm.Connected += Authenticate;
             cm.CTCPMessageReceived += DoCTCPMessageReceived;
-            cm.UserAdded += DoUserAdded;
+            cm.Disconnected += DoDisconnected;
+            cm.UserJoinedChannel += DoUserJoinedChannel;
+            cm.WhoReplyReceived += DoWhoReply;
+            CnCServicesBotIdentified += Authenticate;
+
         }
-        private void _authenticate(string u, string p)
+
+        public void SendMessage(string distinguisher, string facility,
+                                string command, string argstring)
         {
-            string message = "PRIVMSG "+ ServNick +" :auth auth dist "+ u +" "+ p;
+            string message = "PRIVMSG "+ ServNick +" :"+ distinguisher +" "+
+                              facility +" "+ command + " "+ argstring;
             Console.WriteLine(message);
             cm.SendCustomMessage(new QueuedMessage(message,
                                  QueuedMessageType.INSTANT_MESSAGE, 0));
+        }
+
+        private void _authenticate(string u, string p)
+        {
+            SendMessage("dist", "auth", "auth", u +" "+ p);
         }
 
         public void Authenticate()
@@ -56,21 +66,20 @@ namespace DTAClient.Online.Services
 
         public void Authenticate(object sender, EventArgs e)
         {
-            if (String.IsNullOrEmpty(UserName) || String.IsNullOrEmpty(Password))
+            if (String.IsNullOrEmpty(ProgramConstants.PLAYERNAME)
+                || String.IsNullOrEmpty(ProgramConstants.PASSWORD)
+                || !ProgramConstants.AUTHENTICATE
+                || authenticating)
                 return;
 
-            if (AlwaysConnect)
-            {
-                _authenticate(UserName, Password);
-            }
-            else if (ConnectOnce)
-            {
-                ConnectOnce = false;
-                _authenticate(UserName, Password);
-                Password = "";
-            }
+            authenticating = true;
+            _authenticate(ProgramConstants.PLAYERNAME,ProgramConstants.PASSWORD);
         }
-
+        private void DoDisconnected(object s, EventArgs e)
+        {
+            Console.WriteLine("Disconnecting\n");
+            IsAuthenticated = false;
+        }
 
         private void DoCTCPMessageReceived(object s, CTCPEventArgs a)
         {
@@ -117,6 +126,7 @@ namespace DTAClient.Online.Services
             switch (command)
             {
             case "AUTH":
+                authenticating = false;
                 if (result == "FAIL")
                     IsAuthenticated = false;
 
@@ -125,7 +135,7 @@ namespace DTAClient.Online.Services
                     try
                     {
                         IsAuthenticated = true;
-                        UserName = words[5];
+                        //UserName = words[5];
                         ClanName = words[6];
                     }
                     catch
@@ -139,14 +149,32 @@ namespace DTAClient.Online.Services
             default:
                 break;
             }
-            var a = new CnCNetServAuthEventArgs(command, result, UserName,
+            var a = new CnCNetServAuthEventArgs(command, result,
+                                                ProgramConstants.PLAYERNAME,
                                                 ClanName, rest);
             AuthResponse?.Invoke(this, a);
         }
 
-        private void DoUserAdded(object s, UserEventArgs u)
+        private void DoUserJoinedChannel(object s, UserJoinedEventArgs u)
         {
-            Console.WriteLine("{0} {1}",u.User.Name, u.User.Hostname);
+            //Console.WriteLine("{0} {1} {2} {3}",u.ChannelName, u.HostName, u.Ident, u.UserName);
+            if (u.Ident == "~dkeetonsb")
+            {
+                Console.WriteLine("Found the bot {0}", u.UserName);
+                ServNick = u.UserName;
+                CnCServicesBotIdentified?.Invoke(this, EventArgs.Empty);
+            }
+        }
+
+        private void DoWhoReply(object s, WhoEventArgs w)
+        {
+            //Console.WriteLine("{0} {1} {2} {3}", w.HostName, w.Ident, w.UserName, w.ExtraInfo);
+            if (w.Ident == "~dkeetonsb")
+            {
+                Console.WriteLine("Found the bot {0}", w.UserName);
+                ServNick = w.UserName;
+                CnCServicesBotIdentified?.Invoke(this, EventArgs.Empty);
+            }
         }
 
     }

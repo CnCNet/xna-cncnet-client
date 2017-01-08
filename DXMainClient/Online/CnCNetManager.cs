@@ -25,14 +25,14 @@ namespace DTAClient.Online
         //public event EventHandler<ServerMessageEventArgs> GenericServerMessageReceived;
         public event EventHandler<UserAwayEventArgs> AwayMessageReceived;
         //public event EventHandler<ChannelTopicEventArgs> ChannelTopicReceived;
-        //public event EventHandler<UserListEventArgs> UserListReceived;
+        public event EventHandler<UserListEventArgs> UserListReceived;
         public event EventHandler<WhoEventArgs> WhoReplyReceived;
         public event EventHandler<ChannelEventArgs> ChannelFull;
         //public event EventHandler<ChannelEventArgs> IncorrectChannelPassword;
         //public event EventHandler<ChannelModeEventArgs> ChannelModesChanged;
         public event EventHandler<CTCPEventArgs> CTCPMessageReceived;
         //public event EventHandler<KickEventArgs> UserKickedFromChannel;
-        //public event EventHandler<ChannelUserEventArgs> UserJoinedChannel;
+        public event EventHandler<UserJoinedEventArgs> UserJoinedChannel;
         public event EventHandler<PrivateMessageEventArgs> PrivateMessageReceived;
         public event EventHandler<ChannelEventArgs> BannedFromChannel;
 
@@ -489,7 +489,7 @@ namespace DTAClient.Online
                 channelName, host, userName, ident);
         }
 
-        private void DoUserJoinedChannel(string channelName, string host, string userName, string userAddress)
+        private void DoUserJoinedChannel(string channelName, string host, string userName, string ident)
         {
             Channel channel = Channels.Find(c => c.ChannelName == channelName);
 
@@ -523,7 +523,7 @@ namespace DTAClient.Online
             {
                 ircUser = new IRCUser(name, host);
 
-                string identifier = userAddress.Split('@')[0].Replace("~", "");
+                string identifier = ident.Replace("~", "");
                 string[] parts = identifier.Split('.');
                 if (parts.Length > 1)
                 {
@@ -539,7 +539,8 @@ namespace DTAClient.Online
             ircUser.Channels.Add(channelName);
             channel.OnUserJoined(channelUser);
 
-            //UserJoinedChannel?.Invoke(this, new ChannelUserEventArgs(channelName, userName));
+            UserJoinedChannel?.Invoke(this,
+                new UserJoinedEventArgs(channelName, host, ident, userName));
         }
 
         private void AddUserToGlobalUserList(IRCUser user)
@@ -718,15 +719,15 @@ namespace DTAClient.Online
             WelcomeMessageReceived?.Invoke(this, new ServerMessageEventArgs(message));
         }
 
-        public void OnWhoReplyReceived(string hostName, string userName, string extraInfo)
+        public void OnWhoReplyReceived(string hostName, string ident, string userName, string extraInfo)
         {
-            wm.AddCallback(new Action<string, string, string>(DoWhoReplyReceived),
-                hostName, userName, extraInfo);
+            wm.AddCallback(new Action<string, string, string, string>(DoWhoReplyReceived),
+                hostName, ident, userName, extraInfo);
         }
 
-        private void DoWhoReplyReceived(string hostName, string userName, string extraInfo)
+        private void DoWhoReplyReceived(string hostName, string ident, string userName, string extraInfo)
         {
-            WhoReplyReceived?.Invoke(this, new WhoEventArgs(userName, extraInfo));
+            WhoReplyReceived?.Invoke(this, new WhoEventArgs(hostName, ident, userName, extraInfo));
 
             string[] eInfoParts = extraInfo.Split(' ');
 

@@ -36,7 +36,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 new Rectangle(lblIncoming.ClientRectangle.X,
                               lblIncoming.ClientRectangle.Bottom + 6,
                               ClientRectangle.Width - 48,
-                              154);
+                              150);
             lbInInvites.FontIndex = 1;
             //lbInInvites.SelectedIndexChanged += LbUserList_SelectedIndexChanged;
             lbInInvites.BackgroundTexture =
@@ -75,7 +75,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 new Rectangle(lblOutgoing.ClientRectangle.X,
                               lblOutgoing.ClientRectangle.Bottom + 6,
                               ClientRectangle.Width - 48,
-                              154);
+                              150);
             lbOutInvites.FontIndex = 1;
             //lbOutInvites.SelectedIndexChanged += LbUserList_SelectedIndexChanged;
             lbOutInvites.BackgroundTexture =
@@ -89,7 +89,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                               lbOutInvites.ClientRectangle.Bottom + 12,
                               92, 23);
             btnOutDelete.Text = "Delete";
-            //btnOutDelete.LeftClick += BtnOutDelete_LeftClick;
+            btnOutDelete.LeftClick += BtnOutDelete_LeftClick;
 
 
             AddChild(lblIncoming);

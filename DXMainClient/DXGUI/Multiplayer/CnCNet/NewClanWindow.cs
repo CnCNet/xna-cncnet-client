@@ -93,6 +93,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             AddChild(btnCreateClan);
             AddChild(btnCancel);
             CenterOnParent();
+            base.Initialize();
         }
         private void BtnCancel_LeftClicked(object s, EventArgs e)
         {

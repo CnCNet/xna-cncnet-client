@@ -25,14 +25,23 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         XNAClientTabControl tabClanManager;
         XNAPanel[] tabClanManagerArray;
-        ServLoginWindow winLogin;
         DarkeningPanel panLogin;
         public ClanManageTab ClanManageTab;
         public ClanInvitesTab ClanInvitesTab;
+        XNAPanel panBottomButtons;
         XNAClientButton btnNewClan;
         XNAClientButton btnNewInvite;
+        XNAClientButton btnSearchClans;
         NewClanWindow winNewClan;
         DarkeningPanel panNewClan;
+        public ClanSearchWindow ClanSearchWindow;
+        DarkeningPanel panSearch;
+
+        public ClanInviteWindow WinNewInvite;
+        DarkeningPanel PanNewInvite;
+
+        public event EventHandler<SearchEventArgs> ViewClanRequested;
+
         CnCNetManager cm;
         WindowManager wm;
 
@@ -50,7 +59,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         public override void Initialize()
         {
             Name = "ClanManagerWindow";
-            ClientRectangle = new Rectangle(0,0,600,600);
+            ClientRectangle = new Rectangle(0,0,400,600);
             BackgroundTexture = AssetLoader.LoadTextureUncached("privatemessagebg.png");
 
             lblClanManager = new XNALabel(wm);
@@ -67,12 +76,16 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             tabClanManager = new XNAClientTabControl(wm);
             tabClanManager.Name = "tabClanManager";
-            tabClanManager.ClientRectangle = new Rectangle(60, 50, 0, 0);
             tabClanManager.SoundOnClick = AssetLoader.LoadSound("button.wav");
             tabClanManager.FontIndex = 1;
             tabClanManager.AddTab("Manage",160);
-            tabClanManager.AddTab("Search",160);
             tabClanManager.AddTab("Invitations", 160);
+            AddChild(tabClanManager);
+            tabClanManager.CenterOnParent();
+            tabClanManager.ClientRectangle =
+                new Rectangle(tabClanManager.ClientRectangle.X, 60,
+                                    tabClanManager.ClientRectangle.Width,
+                                    tabClanManager.ClientRectangle.Height);
             tabClanManager.SelectedIndexChanged += TabControl_SelectedIndexChanged;
 
             var tabRect = new Rectangle(12, tabClanManager.ClientRectangle.Bottom + 24,
@@ -83,49 +96,55 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             ClanManageTab = new ClanManageTab(wm, cm, this, tabRect);
             ClanInvitesTab = new ClanInvitesTab(wm, cm, this, tabRect);
 
-            tabClanManagerArray = new XNAPanel[3]
-                {ClanManageTab, ClanInvitesTab, ClanInvitesTab};
+            tabClanManagerArray = new XNAPanel[]
+                {ClanManageTab, ClanInvitesTab};
 
             btnNewClan = new XNAClientButton(wm);
             btnNewClan.Name = "bntNewClan";
-            btnNewClan.ClientRectangle =
-                new Rectangle(ClientRectangle.Width / 2 - (92 + 6),
-                              ClientRectangle.Height - 34,
-                              92, 23);
+            btnNewClan.ClientRectangle = new Rectangle(0,0,92,23);
             btnNewClan.FontIndex = 1;
             btnNewClan.Text = "New Clan";
             btnNewClan.LeftClick += BtnNewClan_LeftClicked;
 
             btnNewInvite = new XNAClientButton(wm);
-            btnNewInvite.Name = "NewInvite";
+            btnNewInvite.Name = "btnNewInvite";
             btnNewInvite.ClientRectangle =
-                new Rectangle(btnNewClan.ClientRectangle.Right + 12,
-                              btnNewClan.ClientRectangle.Y,
-                              92, 23);
+                new Rectangle(btnNewClan.ClientRectangle.Right + 12, 0, 92, 23);
             btnNewInvite.FontIndex = 1;
             btnNewInvite.Text = "New Invite";
+            btnNewInvite.LeftClick += BtnNewInvite_LeftClicked;
 
-            AddChild(tabClanManager);
-            AddChild(ClanInvitesTab);
-            AddChild(ClanManageTab);
-            AddChild(btnNewClan);
-            AddChild(btnNewInvite);
-            base.Initialize();
+            btnSearchClans = new XNAClientButton(wm);
+            btnSearchClans.Name = "btnSearchClan";
+            btnSearchClans.ClientRectangle =
+                new Rectangle(btnNewInvite.ClientRectangle.Right + 12, 0, 92, 23);
+            btnSearchClans.FontIndex = 1;
+            btnSearchClans.Text = "Search";
+            btnSearchClans.LeftClick += BtnSearchClan_LeftClicked;
+
+            panBottomButtons = new XNAPanel(wm);
+            panBottomButtons.DrawBorders = false;
+            panBottomButtons.AddChild(btnNewClan);
+            panBottomButtons.AddChild(btnNewInvite);
+            panBottomButtons.AddChild(btnSearchClans);
+            panBottomButtons.ClientRectangle =
+                new Rectangle(0,0, btnSearchClans.ClientRectangle.Right,
+                              btnNewClan.ClientRectangle.Height);
+            AddChild(panBottomButtons);
+            panBottomButtons.CenterOnParent();
+            panBottomButtons.ClientRectangle =
+                new Rectangle(panBottomButtons.ClientRectangle.X,
+                              ClientRectangle.Height - 34,
+                              panBottomButtons.ClientRectangle.Width,
+                              panBottomButtons.ClientRectangle.Height);
 
             ClanInvitesTab.Disable();
             tabClanManager.SelectedTab = 0;
             CenterOnParent();
 
-            winLogin = new ServLoginWindow(wm, cm);
-            winLogin.Name = "winLogin";
-            winLogin.Disable();
-
-            panLogin = new DarkeningPanel(wm);
-            panLogin.Alpha = 0.0f;
-            AddChild(panLogin);
-            panLogin.AddChild(winLogin);
-            panLogin.Disable();
-
+            AddChild(ClanInvitesTab);
+            AddChild(ClanManageTab);
+            base.Initialize();
 
             winNewClan = new NewClanWindow(wm, cm);
             winNewClan.Name = "winNewClan";
@@ -136,6 +155,28 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             AddChild(panNewClan);
             panNewClan.AddChild(winNewClan);
             panNewClan.Disable();
+
+            WinNewInvite = new ClanInviteWindow(wm, cm);
+            WinNewInvite.Name = "WinNewInvite";
+            WinNewInvite.Disable();
+
+            PanNewInvite = new DarkeningPanel(wm);
+            PanNewInvite.Alpha = 0.0f;
+            AddChild(PanNewInvite);
+            PanNewInvite.AddChild(WinNewInvite);
+            PanNewInvite.Disable();
+
+            ClanSearchWindow = new ClanSearchWindow(wm, cm);
+            ClanSearchWindow.Name = "ClanSearchWindow";
+            ClanSearchWindow.Disable();
+            ClanSearchWindow.ViewClanRequested += LoadSearchedClan;
+
+            panSearch = new DarkeningPanel(wm);
+            panSearch.Alpha = 0.0f;
+            AddChild(panSearch);
+            panSearch.AddChild(ClanSearchWindow);
+            panSearch.Disable();
+
         }
 
         public void SwitchOn()
@@ -155,7 +196,6 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             }
             else {
                 Enable();
-                winLogin.Enable();
             }
         }
         public void SwitchOff()
@@ -181,10 +221,12 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 ClanInvitesTab.Refresh();
             }
         }
+
         private void BtnNewClan_LeftClicked(object s, EventArgs e)
         {
             winNewClan.Enable();
         }
+
         private void CreateClanResponse(object s, ClanEventArgs e)
         {
             if (e.Result == "SUCCESS")
@@ -192,82 +234,21 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 ClanManageTab.Refresh();
                 ClanInvitesTab.Refresh();
             }
-
         }
-    }
 
-    public class ServLoginWindow : XNAWindow
-    {
-        XNATextBox tbUserName;
-        XNATextBox tbPassword;
-        XNAClientButton btnConnect;
-        CnCNetManager cm;
-        Timer loginButtonTimer;
-
-        public ServLoginWindow (WindowManager windowManager, CnCNetManager cm)
-        : base(windowManager)
+        private void BtnNewInvite_LeftClicked(object s, EventArgs e)
         {
-            this.cm = cm;
-            cm.CncServ.AuthResponse += AuthenticationResponse;
-            loginButtonTimer = new Timer(5000);
-            loginButtonTimer.Elapsed += LoginTimedOut;
+            WinNewInvite.Enable();
         }
 
-        public override void Initialize()
+        private void BtnSearchClan_LeftClicked(object s, EventArgs e)
         {
-            Name = "ServLoginWindow";
-            ClientRectangle = new Rectangle(0,0,300,220);
-            BackgroundTexture = AssetLoader.LoadTextureUncached("logindialogbg.png");
-            tbUserName = new XNATextBox(WindowManager);
-            tbUserName.Name = "tbUserName";
-            CenterOnParent();
-            tbUserName.ClientRectangle =
-                new Rectangle(ClientRectangle.Width - 132, 50, 120, 19);
-            tbUserName.MaximumTextLength = 13;
-
-            tbPassword = new XNATextBox(WindowManager);
-            tbPassword.Name = "tbPassword";
-            tbPassword.ClientRectangle =
-                new Rectangle(ClientRectangle.Width - 132, 70, 120, 19);
-            tbPassword.MaximumTextLength = 20;
-
-            btnConnect = new XNAClientButton(WindowManager);
-            btnConnect.Name = "tbConnect";
-            btnConnect.ClientRectangle =
-                new Rectangle(12, ClientRectangle.Height - 35, 110, 23);
-            btnConnect.Text = "Login";
-
-            AddChild(tbUserName);
-            AddChild(tbPassword);
-            AddChild(btnConnect);
-            btnConnect.LeftClick += BtnConnect_LeftClick;
+            ClanSearchWindow.Enable();
         }
-        private void BtnConnect_LeftClick(object s, EventArgs e)
+
+        private void LoadSearchedClan(object s, SearchEventArgs e)
         {
-            cm.CncServ.UserName = tbUserName.Text;
-            cm.CncServ.Password = tbPassword.Text;
-            cm.CncServ.ConnectOnce = true;
-            cm.CncServ.Authenticate();
-            btnConnect.Disable();
-            loginButtonTimer.Start();
+            this.ViewClanRequested?.Invoke(this, e);
         }
-
-        private void LoginTimedOut(object s, EventArgs e)
-        {
-            btnConnect.Enable();
-            tbPassword.Text = "";
-            loginButtonTimer.Stop();
-        }
-
-        private void AuthenticationResponse(object s, CnCNetServAuthEventArgs e)
-        {
-            Console.WriteLine("result = {0}, uname = {1}, cname = {2}, failmsg = {3}",
-                              e.Result, e.UserName, e.ClanName, e.FailMessage);
-            if (cm.CncServ.IsAuthenticated)
-                Disable();
-            else
-                btnConnect.Enable();
-        }
-
     }
 }

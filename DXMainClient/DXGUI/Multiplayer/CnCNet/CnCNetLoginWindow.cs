@@ -17,6 +17,9 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         XNALabel lblConnectToCnCNet;
         XNATextBox tbPlayerName;
         XNALabel lblPlayerName;
+        XNAPasswordBox tbPassword;
+        XNALabel lbPassword;
+        XNAClientCheckBox chkAnonymous;
         XNAClientCheckBox chkRememberMe;
         XNAClientCheckBox chkPersistentMode;
         XNAClientCheckBox chkAutoConnect;
@@ -29,7 +32,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         public override void Initialize()
         {
             Name = "CnCNetLoginWindow";
-            ClientRectangle = new Rectangle(0, 0, 300, 220);
+            ClientRectangle = new Rectangle(0, 0, 300, 282);
             BackgroundTexture = AssetLoader.LoadTextureUncached("logindialogbg.png");
 
             lblConnectToCnCNet = new XNALabel(WindowManager);
@@ -41,7 +44,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             lblConnectToCnCNet.CenterOnParent();
             lblConnectToCnCNet.ClientRectangle = new Rectangle(
                 lblConnectToCnCNet.ClientRectangle.X, 12,
-                lblConnectToCnCNet.ClientRectangle.Width, 
+                lblConnectToCnCNet.ClientRectangle.Width,
                 lblConnectToCnCNet.ClientRectangle.Height);
 
             tbPlayerName = new XNATextBox(WindowManager);
@@ -59,9 +62,33 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             lblPlayerName.ClientRectangle = new Rectangle(12, tbPlayerName.ClientRectangle.Y + 1,
                 lblPlayerName.ClientRectangle.Width, lblPlayerName.ClientRectangle.Height);
 
+            tbPassword = new XNAPasswordBox(WindowManager);
+            tbPassword.Name = "tbPassword";
+            tbPassword.MaximumTextLength = 16;
+            tbPassword.ClientRectangle =
+                new Rectangle(tbPlayerName.ClientRectangle.X,
+                              tbPlayerName.ClientRectangle.Bottom + 6,
+                              120, 19);
+
+            lbPassword = new XNALabel(WindowManager);
+            lbPassword.Name = "lbPassword";
+            lbPassword.FontIndex = 1;
+            lbPassword.Text = "PASSWORD:";
+            lbPassword.ClientRectangle =
+                new Rectangle(12,
+                              tbPassword.ClientRectangle.Y + 1,
+                              lbPassword.ClientRectangle.Width, lbPassword.ClientRectangle.Height);
+
+            chkAnonymous = new XNAClientCheckBox(WindowManager);
+            chkAnonymous.Name = "chkAnonymous";
+            chkAnonymous.ClientRectangle = new Rectangle(12, tbPassword.ClientRectangle.Bottom + 12, 0, 0);
+            chkAnonymous.Text = "Connect Anonymously";
+            chkAnonymous.TextPadding = 7;
+            chkAnonymous.CheckedChanged += ChkAnonymous_CheckedChanged;
+
             chkRememberMe = new XNAClientCheckBox(WindowManager);
             chkRememberMe.Name = "chkRememberMe";
-            chkRememberMe.ClientRectangle = new Rectangle(12, tbPlayerName.ClientRectangle.Bottom + 12, 0, 0);
+            chkRememberMe.ClientRectangle = new Rectangle(12, chkAnonymous.ClientRectangle.Bottom + 30, 0, 0);
             chkRememberMe.Text = "Remember me";
             chkRememberMe.TextPadding = 7;
             chkRememberMe.CheckedChanged += ChkRememberMe_CheckedChanged;
@@ -94,6 +121,9 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             AddChild(tbPlayerName);
             AddChild(lblPlayerName);
+            AddChild(lbPassword);
+            AddChild(tbPassword);
+            AddChild(chkAnonymous);
             AddChild(chkRememberMe);
             AddChild(chkPersistentMode);
             AddChild(chkAutoConnect);
@@ -117,6 +147,19 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             Cancelled?.Invoke(this, EventArgs.Empty);
         }
 
+        private void ChkAnonymous_CheckedChanged(object sender, EventArgs e)
+        {
+            if (chkAnonymous.Checked)
+            {
+                lbPassword.Visible = false;
+                tbPassword.Visible = false;
+            }
+            else
+            {
+                lbPassword.Visible = true;
+                tbPassword.Visible = true;
+            }
+        }
         private void ChkRememberMe_CheckedChanged(object sender, EventArgs e)
         {
             CheckAutoConnectAllowance();
@@ -145,6 +188,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             }
 
             ProgramConstants.PLAYERNAME = tbPlayerName.Text;
+            ProgramConstants.PASSWORD = tbPassword.Password;
+            ProgramConstants.AUTHENTICATE = !chkAnonymous.Checked;
 
             UserINISettings.Instance.SkipConnectDialog.Value = chkRememberMe.Checked;
             UserINISettings.Instance.PersistentMode.Value = chkPersistentMode.Checked;

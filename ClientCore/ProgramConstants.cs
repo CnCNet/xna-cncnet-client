@@ -34,6 +34,8 @@ namespace ClientCore
 
         public static string GAME_VERSION = "1.15";
         public static string PLAYERNAME = "No name";
+        public static string PASSWORD = "";
+        public static bool AUTHENTICATE = false;
         public const string SPAWNMAP_INI = "spawnmap.ini";
         public const string SPAWNER_SETTINGS = "spawn.ini";
         public static string BASE_RESOURCE_PATH = "Resources\\";

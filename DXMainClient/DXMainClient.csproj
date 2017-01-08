@@ -286,6 +286,8 @@
     <Compile Include="DXGUI\Multiplayer\CnCNet\ClanInvitesTab.Form.cs" />
     <Compile Include="DXGUI\Multiplayer\CnCNet\ClanManagerWindow.cs" />
     <Compile Include="DXGUI\Multiplayer\CnCNet\NewClanWindow.cs" />
+    <Compile Include="DXGUI\Multiplayer\CnCNet\ClanInviteWindow.cs" />
+    <Compile Include="DXGUI\Multiplayer\CnCNet\ClanSearchWindow.cs" />
     <Compile Include="Online\ChannelUser.cs" />
     <Compile Include="Online\EventArguments\ChannelCTCPEventArgs.cs" />
     <Compile Include="Online\EventArguments\PrivateMessageEventArgs.cs" />
@@ -315,6 +317,7 @@
     <Compile Include="Online\EventArguments\UserAwayEventArgs.cs" />
     <Compile Include="Online\EventArguments\UserListEventArgs.cs" />
     <Compile Include="Online\EventArguments\WhoEventArgs.cs" />
+    <Compile Include="Online\EventArguments\UserJoinedEventArgs.cs" />
     <Compile Include="Online\IConnectionManager.cs" />
     <Compile Include="Online\ChatMessage.cs" />
     <Compile Include="Online\IRCUser.cs" />
