@@ -160,7 +160,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                     tunnel.RequiresPassword = Conversions.BooleanFromString(serverInfo[4], true);
                     tunnel.Clients = Convert.ToInt32(serverInfo[5]);
                     tunnel.MaxClients = Convert.ToInt32(serverInfo[6]);
-                    tunnel.Official = (Convert.ToInt32(serverInfo[7]) == 2);
+                    tunnel.Official = (Convert.ToInt32(serverInfo[7]) != 0);
                     if (!tunnel.Official)
                         tunnel.Recommended = (Convert.ToInt32(serverInfo[7]) == 1);
 
@@ -173,6 +173,9 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                     tunnel.PingInMs = -1;
 
                     if (tunnel.RequiresPassword)
+                        continue;
+                        
+                    if (tunnel.Version != 2)
                         continue;
 
                     if (tunnel.Official)
