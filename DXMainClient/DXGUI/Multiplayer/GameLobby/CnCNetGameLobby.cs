@@ -1303,7 +1303,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             {
                 Logger.Log("HandleMapUploadRequest: Map is official, so skip request");
 
-                AddNotice(string.Format("{0} doesn't have the map '{1}' on their local installation." + 
+                AddNotice(string.Format("{0} doesn't have the map '{1}' on their local installation. " + 
                     "The map needs to be changed or {0} is unable to participate in the match.",
                     sender, map.Name));
 
