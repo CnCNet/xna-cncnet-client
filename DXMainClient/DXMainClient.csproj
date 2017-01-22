@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -242,6 +242,8 @@
     <Compile Include="DXGUI\Generic\TopBar.cs" />
     <Compile Include="DXGUI\ISwitchable.cs" />
     <Compile Include="DXGUI\Multiplayer\ChatListBox.cs" />
+    <Compile Include="DXGUI\Multiplayer\CnCNet\Api\Auth.cs" />
+    <Compile Include="DXGUI\Multiplayer\CnCNet\Api\AuthenticatedUser.cs" />
     <Compile Include="DXGUI\Multiplayer\CnCNet\CnCNetGameLoadingLobby.cs" />
     <Compile Include="DXGUI\Multiplayer\CnCNet\CnCNetLobby.cs" />
     <Compile Include="DXGUI\Multiplayer\CnCNet\CnCNetLoginWindow.cs" />

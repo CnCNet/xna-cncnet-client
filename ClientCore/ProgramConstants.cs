@@ -34,12 +34,14 @@ namespace ClientCore
 
         public static string GAME_VERSION = "1.15";
         public static string PLAYERNAME = "No name";
+        public static string PLAYER_EMAIL = "";
         public static string PASSWORD = "";
         public static bool AUTHENTICATE = false;
         public const string SPAWNMAP_INI = "spawnmap.ini";
         public const string SPAWNER_SETTINGS = "spawn.ini";
         public static string BASE_RESOURCE_PATH = "Resources\\";
         public static string RESOURCES_DIR = BASE_RESOURCE_PATH;
+        public static string AUTH_URL = "http://ladder.cncnet.org/api/auth/";
 
         public const string SAVED_GAME_SPAWN_INI = "Saved Games\\spawnSG.ini";
 

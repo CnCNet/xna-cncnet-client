@@ -5,20 +5,27 @@ using Microsoft.Xna.Framework;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
 using System;
+using DTAClient.DXGUI.Multiplayer.CnCNet.Api;
+using System.Net;
 
 namespace DTAClient.DXGUI.Multiplayer.CnCNet
 {
     class CnCNetLoginWindow : XNAWindow
     {
+        private WindowManager wm;
+
         public CnCNetLoginWindow(WindowManager windowManager) : base(windowManager)
         {
+            this.wm = windowManager;
         }
 
         XNALabel lblConnectToCnCNet;
         XNATextBox tbPlayerName;
         XNALabel lblPlayerName;
+        XNALabel lblEmail;
+        XNATextBox tbEmail;
         XNAPasswordBox tbPassword;
-        XNALabel lbPassword;
+        XNALabel lblPassword;
         XNAClientCheckBox chkAnonymous;
         XNAClientCheckBox chkRememberMe;
         XNAClientCheckBox chkPersistentMode;
@@ -32,7 +39,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         public override void Initialize()
         {
             Name = "CnCNetLoginWindow";
-            ClientRectangle = new Rectangle(0, 0, 300, 282);
+            ClientRectangle = new Rectangle(0, 0, 300, 300);
             BackgroundTexture = AssetLoader.LoadTextureUncached("logindialogbg.png");
 
             lblConnectToCnCNet = new XNALabel(WindowManager);
@@ -58,26 +65,41 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             lblPlayerName = new XNALabel(WindowManager);
             lblPlayerName.Name = "lblPlayerName";
             lblPlayerName.FontIndex = 1;
-            lblPlayerName.Text = "PLAYER NAME:";
+            lblPlayerName.Text = "Nickname:";
             lblPlayerName.ClientRectangle = new Rectangle(12, tbPlayerName.ClientRectangle.Y + 1,
                 lblPlayerName.ClientRectangle.Width, lblPlayerName.ClientRectangle.Height);
+
+            tbEmail = new XNATextBox(WindowManager);
+            tbEmail.Name = "tbEmail";
+            tbEmail.Text = "email";
+            tbEmail.ClientRectangle =
+                new Rectangle(tbPlayerName.ClientRectangle.X,
+                              tbPlayerName.ClientRectangle.Bottom + 6,
+                              120, 19);
+
+            lblEmail = new XNALabel(WindowManager);
+            lblEmail.Name = "lblPlayerEmail";
+            lblEmail.FontIndex = 1;
+            lblEmail.Text = "Email:";
+            lblEmail.ClientRectangle = new Rectangle(12, tbEmail.ClientRectangle.Y + 1,
+                lblEmail.ClientRectangle.Width, lblEmail.ClientRectangle.Height);
 
             tbPassword = new XNAPasswordBox(WindowManager);
             tbPassword.Name = "tbPassword";
             tbPassword.MaximumTextLength = 16;
             tbPassword.ClientRectangle =
-                new Rectangle(tbPlayerName.ClientRectangle.X,
-                              tbPlayerName.ClientRectangle.Bottom + 6,
+                new Rectangle(tbEmail.ClientRectangle.X,
+                              tbEmail.ClientRectangle.Bottom + 6,
                               120, 19);
 
-            lbPassword = new XNALabel(WindowManager);
-            lbPassword.Name = "lbPassword";
-            lbPassword.FontIndex = 1;
-            lbPassword.Text = "PASSWORD:";
-            lbPassword.ClientRectangle =
+            lblPassword = new XNALabel(WindowManager);
+            lblPassword.Name = "lbPassword";
+            lblPassword.FontIndex = 1;
+            lblPassword.Text = "Password:";
+            lblPassword.ClientRectangle =
                 new Rectangle(12,
                               tbPassword.ClientRectangle.Y + 1,
-                              lbPassword.ClientRectangle.Width, lbPassword.ClientRectangle.Height);
+                              lblPassword.ClientRectangle.Width, lblPassword.ClientRectangle.Height);
 
             chkAnonymous = new XNAClientCheckBox(WindowManager);
             chkAnonymous.Name = "chkAnonymous";
@@ -121,7 +143,9 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             AddChild(tbPlayerName);
             AddChild(lblPlayerName);
-            AddChild(lbPassword);
+            AddChild(tbEmail);
+            AddChild(lblEmail);
+            AddChild(lblPassword);
             AddChild(tbPassword);
             AddChild(chkAnonymous);
             AddChild(chkRememberMe);
@@ -151,13 +175,17 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         {
             if (chkAnonymous.Checked)
             {
-                lbPassword.Visible = false;
+                lblPassword.Visible = false;
                 tbPassword.Visible = false;
+                tbEmail.Visible = false;
+                lblEmail.Visible = false;
             }
             else
             {
-                lbPassword.Visible = true;
+                lblPassword.Visible = true;
                 tbPassword.Visible = true;
+                tbEmail.Visible = true;
+                lblEmail.Visible = true;
             }
         }
 
@@ -189,6 +217,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             }
 
             ProgramConstants.PLAYERNAME = tbPlayerName.Text;
+            ProgramConstants.PLAYER_EMAIL = tbEmail.Text;
             ProgramConstants.PASSWORD = tbPassword.Password;
             ProgramConstants.AUTHENTICATE = !chkAnonymous.Checked;
 
@@ -199,7 +228,32 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             UserINISettings.Instance.SaveSettings();
 
-            Connect?.Invoke(this, EventArgs.Empty);
+            if(ProgramConstants.AUTHENTICATE)
+            {
+                NetworkCredential credentials = new NetworkCredential(ProgramConstants.PLAYERNAME, ProgramConstants.PASSWORD);
+                Auth auth = new Auth(credentials, ProgramConstants.PLAYERNAME, "derp@cncnet.org");
+
+                string response = auth.Login();
+                if(response.Length == 0)
+                {
+                    string success = "You have logged in as " + auth.account.Username + "\n" + "Clan: " + auth.account.Clan
+                        + "\n" + "Email: " + auth.account.Email + "";
+
+                    var msgBox = new XNAMessageBox(wm, "Welcome!", success, DXMessageBoxButtons.OK);
+                    wm.AddAndInitializeControl(msgBox);
+
+                    Connect?.Invoke(this, EventArgs.Empty);
+                }
+                else
+                {
+                    var msgBox = new XNAMessageBox(wm, "Error", response, DXMessageBoxButtons.OK);
+                    wm.AddAndInitializeControl(msgBox);
+                }
+            }
+            else
+            {
+                Connect?.Invoke(this, EventArgs.Empty);
+            }
         }
 
         public void LoadSettings()
