@@ -5,7 +5,7 @@ using System.Text;
 
 namespace DTAClient.DXGUI.Multiplayer.CnCNet.Api
 {
-    class AuthenticatedUser
+    public class AuthenticatedUser
     {
         private string name;
         private string email;

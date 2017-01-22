@@ -42,6 +42,7 @@ namespace ClientCore
         public static string BASE_RESOURCE_PATH = "Resources\\";
         public static string RESOURCES_DIR = BASE_RESOURCE_PATH;
         public static string AUTH_URL = "http://ladder.cncnet.org/api/auth/";
+        public static string LADDER_API = "http://ladder.cncnet.org/api/";
 
         public const string SAVED_GAME_SPAWN_INI = "Saved Games\\spawnSG.ini";
 
