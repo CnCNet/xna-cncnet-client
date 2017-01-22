@@ -187,13 +187,13 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             gameSaved = false;
 
+            base.GameProcessExited();
+
             if (IsHost)
             {
                 GenerateGameID();
                 DdGameMode_SelectedIndexChanged(null, EventArgs.Empty); // Refresh ranks
             }
-
-            base.GameProcessExited();
         }
 
         private void GenerateGameID()
