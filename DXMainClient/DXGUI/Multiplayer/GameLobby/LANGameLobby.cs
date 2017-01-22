@@ -133,6 +133,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 var fhc = new FileHashCalculator();
                 fhc.CalculateHashes(GameModes);
                 localFileHash = fhc.GetCompleteHash();
+
+                RefreshMapSelectionUI();
             }
             else
             {

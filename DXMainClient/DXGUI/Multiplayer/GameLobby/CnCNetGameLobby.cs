@@ -126,6 +126,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
                 // Broadcast about our game after 10 seconds
                 timeSinceGameBroadcast = TimeSpan.FromSeconds(INITIAL_TIME);
+                RefreshMapSelectionUI();
             }
             else
             {
@@ -708,6 +709,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 sb.Append(";");
             }
 
+            sb.Append(Convert.ToInt32(Map.Official));
+            sb.Append(';');
             sb.Append(Map.SHA1);
             sb.Append(";");
             sb.Append(GameMode.Name);
@@ -734,9 +737,12 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (parts.Length < partIndex + 3)
                 return;
 
-            string mapSHA1 = parts[partIndex];
+            string mapOfficial = parts[partIndex];
+            bool isMapOfficial = Conversions.BooleanFromString(mapOfficial, true);
 
-            string gameMode = parts[partIndex + 1];
+            string mapSHA1 = parts[partIndex + 1];
+
+            string gameMode = parts[partIndex + 2];
 
             GameMode currentGameMode = GameMode;
             Map currentMap = Map;
@@ -747,7 +753,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             GameMode = GameModes.Find(gm => gm.Name == gameMode);
             if (GameMode == null)
             {
-                RequestMap(mapSHA1);
+                if (!isMapOfficial)
+                    RequestMap(mapSHA1);
+                else
+                    AddOfficialMapMissingMessage(mapSHA1);
+
                 return;
             }
 
@@ -755,7 +765,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             if (Map == null)
             {
-                RequestMap(mapSHA1);
+                if (!isMapOfficial)
+                    RequestMap(mapSHA1);
+                else
+                    AddOfficialMapMissingMessage(mapSHA1);
+
                 return;
             }
 
@@ -830,7 +844,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             }
 
             int randomSeed;
-            bool parseSuccess = int.TryParse(parts[partIndex + 2], out randomSeed);
+            bool parseSuccess = int.TryParse(parts[partIndex + 3], out randomSeed);
 
             if (!parseSuccess)
                 return;
@@ -854,6 +868,14 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     "to change the map or you will be unable to participate in the match.");
                 channel.SendCTCPMessage(MAP_SHARING_DISABLED_MESSAGE, QueuedMessageType.SYSTEM_MESSAGE, 9);
             }
+        }
+
+        private void AddOfficialMapMissingMessage(string sha1)
+        {
+            AddNotice("The game host has selected an official map that doesn't exist on your installation." +
+                "This could mean that the game host has modified game files, or is running a different game version." +
+                "They need to change the map or you will be unable to participate in the match.");
+            channel.SendCTCPMessage(MAP_SHARING_FAIL_MESSAGE + " " + sha1, QueuedMessageType.SYSTEM_MESSAGE, 9);
         }
 
         /// <summary>
@@ -1214,6 +1236,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                         gm.Name = gameMode;
                         gm.Initialize();
                         GameModes.Add(gm);
+                        ddGameMode.AddItem(gm.UIName);
                     }
 
                     gm.Maps.Add(map);

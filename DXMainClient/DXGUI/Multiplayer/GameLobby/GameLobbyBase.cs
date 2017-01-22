@@ -406,7 +406,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         protected abstract int GetDefaultMapRankIndex(Map map);
 
-        protected void LbMapList_SelectedIndexChanged(object sender, EventArgs e)
+        private void LbMapList_SelectedIndexChanged(object sender, EventArgs e)
         {
             if (lbMapList.SelectedIndex < 0 || lbMapList.SelectedIndex >= lbMapList.ItemCount)
                 return;
@@ -416,6 +416,26 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             Map map = (Map)item.Tag;
 
             ChangeMap(GameMode, map);
+        }
+
+        /// <summary>
+        /// Refreshes the map selection UI to match the currently selected map
+        /// and game mode.
+        /// </summary>
+        protected void RefreshMapSelectionUI()
+        {
+            if (GameMode == null)
+                return;
+
+            int gameModeIndex = ddGameMode.Items.FindIndex(i => i.Text == GameMode.UIName);
+
+            if (gameModeIndex == -1)
+                return;
+
+            if (ddGameMode.SelectedIndex == gameModeIndex)
+                DdGameMode_SelectedIndexChanged(this, EventArgs.Empty);
+
+            ddGameMode.SelectedIndex = gameModeIndex;
         }
 
         /// <summary>
