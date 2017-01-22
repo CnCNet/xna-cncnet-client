@@ -60,8 +60,16 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             if (tabControl.SelectedTab == ALL_PLAYERS_VIEW_INDEX)
             {
-                if (e.UserIndex < lbUserList.SelectedIndex)
+                if (e.UserIndex == lbUserList.SelectedIndex)
+                {
+                    lbUserList.SelectedIndex = -1;
+                }
+                else if (e.UserIndex < lbUserList.SelectedIndex)
+                {
+                    lbUserList.SelectedIndexChanged -= LbUserList_SelectedIndexChanged;
                     lbUserList.SelectedIndex--;
+                    lbUserList.SelectedIndexChanged += LbUserList_SelectedIndexChanged;
+                }
 
                 lbUserList.Items.RemoveAt(e.UserIndex);
             }
@@ -122,6 +130,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         private void RefreshAllUsers()
         {
+            lbUserList.SelectedIndexChanged -= LbUserList_SelectedIndexChanged;
+
             string selectedUserName = string.Empty;
 
             var selectedItem = lbUserList.SelectedItem;
@@ -139,6 +149,19 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             }
 
             lbUserList.SelectedIndex = lbUserList.Items.FindIndex(item => item.Text == selectedUserName);
+
+            if (lbUserList.SelectedIndex == -1)
+            {
+                // If we previously had an user selected and they now went offline,
+                // clear the messages and message input
+                tbMessageInput.Text = string.Empty;
+                tbMessageInput.Enabled = false;
+                lbMessages.Clear();
+                lbMessages.SelectedIndex = -1;
+                lbMessages.TopIndex = 0;
+            }
+
+            lbUserList.SelectedIndexChanged += LbUserList_SelectedIndexChanged;
         }
 
         private void WindowManager_GameClosing(object sender, EventArgs e)
