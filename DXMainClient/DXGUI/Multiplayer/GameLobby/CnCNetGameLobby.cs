@@ -12,13 +12,15 @@ using DTAClient.DXGUI.Multiplayer.GameLobby.CommandHandlers;
 using DTAClient.DXGUI.Generic;
 using DTAClient.Domain.Multiplayer.CnCNet;
 using DTAClient.Domain.Multiplayer;
+using Rampastring.XNAUI.XNAControls;
 
 namespace DTAClient.DXGUI.Multiplayer.GameLobby
 {
     public class CnCNetGameLobby : MultiplayerGameLobby
     {
         private const double GAME_BROADCAST_INTERVAL = 30.0;
-        private const double INITIAL_TIME = 20.0;
+        private const double GAME_BROADCAST_ACCELERATION = 10.0;
+        private const double INITIAL_GAME_BROADCAST_DELAY = 10.0;
 
         private const string MAP_SHARING_FAIL_MESSAGE = "MAPFAIL";
         private const string MAP_SHARING_DOWNLOAD_REQUEST = "MAPOK";
@@ -68,42 +70,60 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         public event EventHandler GameLeft;
 
-        TunnelHandler tunnelHandler;
-        CnCNetTunnel tunnel;
+        private TunnelHandler tunnelHandler;
+        private CnCNetTunnel tunnel;
 
-        Channel channel;
-        CnCNetManager connectionManager;
-        string localGame;
+        private Channel channel;
+        private CnCNetManager connectionManager;
+        private string localGame;
 
-        string hostName;
+        private string hostName;
 
-        CommandHandlerBase[] ctcpCommandHandlers;
+        private CommandHandlerBase[] ctcpCommandHandlers;
 
-        IRCColor chatColor;
+        private IRCColor chatColor;
 
-        TimeSpan timeSinceGameBroadcast = TimeSpan.Zero;
+        private XNATimerControl gameBroadcastTimer;
 
-        int playerLimit;
+        private int playerLimit;
 
-        bool closed = false;
+        private bool closed = false;
 
-        bool isCustomPassword = false;
+        private bool isCustomPassword = false;
 
-        string gameFilesHash;
+        private string gameFilesHash;
 
-        List<string> hostUploadedMaps = new List<string>();
+        private List<string> hostUploadedMaps = new List<string>();
 
         /// <summary>
         /// The SHA1 of the latest selected map.
         /// Used for map sharing.
         /// </summary>
-        string lastMapSHA1;
+        private string lastMapSHA1;
 
         /// <summary>
         /// The game mode of the latest selected map.
         /// Used for map sharing.
         /// </summary>
-        string lastGameMode;
+        private string lastGameMode;
+
+        public override void Initialize()
+        {
+            base.Initialize();
+
+            gameBroadcastTimer = new XNATimerControl(WindowManager);
+            gameBroadcastTimer.AutoReset = true;
+            gameBroadcastTimer.Interval = TimeSpan.FromSeconds(GAME_BROADCAST_INTERVAL);
+            gameBroadcastTimer.Enabled = false;
+            gameBroadcastTimer.TimeElapsed += GameBroadcastTimer_TimeElapsed;
+
+            WindowManager.AddAndInitializeControl(gameBroadcastTimer);
+        }
+
+        private void GameBroadcastTimer_TimeElapsed(object sender, EventArgs e)
+        {
+            BroadcastGame();
+        }
 
         public void SetUp(Channel channel, bool isHost, int playerLimit, 
             CnCNetTunnel tunnel, string hostName, bool isCustomPassword)
@@ -123,9 +143,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (isHost)
             {
                 RandomSeed = new Random().Next();
-
-                // Broadcast about our game after 10 seconds
-                timeSinceGameBroadcast = TimeSpan.FromSeconds(INITIAL_TIME);
                 RefreshMapSelectionUI();
             }
             else
@@ -160,6 +177,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     QueuedMessageType.SYSTEM_MESSAGE, 50));
 
                 gameFilesHash = fhc.GetCompleteHash();
+
+                gameBroadcastTimer.Enabled = true;
+                gameBroadcastTimer.Start();
+                gameBroadcastTimer.SetTime(TimeSpan.FromSeconds(INITIAL_GAME_BROADCAST_DELAY));
             }
             else
             {
@@ -206,7 +227,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             connectionManager.ConnectionLost -= ConnectionManager_ConnectionLost;
             connectionManager.Disconnected -= ConnectionManager_Disconnected;
 
-            timeSinceGameBroadcast = TimeSpan.Zero;
+            gameBroadcastTimer.Enabled = false;
             closed = false;
 
             tbChatInput.Text = string.Empty;
@@ -1188,10 +1209,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private void MapSharer_MapDownloadFailed(object sender, SHA1EventArgs e)
         {
-            // Maybe we should call AddCallback and controls should get a PassiveUpdate()
-            // that is called when they're not enabled, and PassiveUpdate() handles
-            // callbacks instead of Update()? Currently with regular (not WindowManager) AddCallback,
-            // map sharing will behave weirdly if the CnCNet Game Lobby is not active
             WindowManager.AddCallback(new Action<SHA1EventArgs>(MapSharer_HandleMapDownloadFailed), e);
         }
 
@@ -1398,34 +1415,16 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         #region Game broadcasting logic
 
-        public override void Update(GameTime gameTime)
-        {
-            if (IsHost)
-            {
-                timeSinceGameBroadcast += gameTime.ElapsedGameTime;
-
-                if (timeSinceGameBroadcast > TimeSpan.FromSeconds(GAME_BROADCAST_INTERVAL))
-                    BroadcastGame();
-            }
-
-            base.Update(gameTime);
-        }
-
         /// <summary>
-        /// Temporarily accelerates game broadcasting by one-third of the normal broadcasting interval.
+        /// Lowers the time until the next game broadcasting message.
         /// </summary>
         private void AccelerateGameBroadcasting()
         {
-            timeSinceGameBroadcast += TimeSpan.FromSeconds(GAME_BROADCAST_INTERVAL / 3.0);
-
-            if (timeSinceGameBroadcast > TimeSpan.FromSeconds(GAME_BROADCAST_INTERVAL))
-                BroadcastGame();
+            gameBroadcastTimer.Accelerate(TimeSpan.FromSeconds(GAME_BROADCAST_ACCELERATION));
         }
 
         private void BroadcastGame()
         {
-            timeSinceGameBroadcast = TimeSpan.Zero;
-
             Channel broadcastChannel = connectionManager.GetChannel("#cncnet-" + localGame.ToLower() + "-games");
 
             if (broadcastChannel == null)
