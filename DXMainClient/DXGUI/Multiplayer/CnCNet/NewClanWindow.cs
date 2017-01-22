@@ -95,10 +95,12 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             CenterOnParent();
             base.Initialize();
         }
+
         private void BtnCancel_LeftClicked(object s, EventArgs e)
         {
             Disable();
         }
+
         private void BtnCreateClan_LeftClicked(object s, EventArgs e)
         {
             if (!string.IsNullOrEmpty(tbClanName.Text)
@@ -109,6 +111,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 tbClanName.Text = "";
             }
         }
+
         private void CreateClanResponse(object s, ClanEventArgs e)
         {
             if (e.Result == "FAIL")

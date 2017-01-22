@@ -123,6 +123,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             AddChild(btnClose);
             base.Initialize();
         }
+
         private void BtnClose_LeftClicked(object s, EventArgs e)
         {
             Disable();
@@ -200,6 +201,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             }
         }
     }
+
     public class SearchEventArgs : EventArgs
     {
         public string String;

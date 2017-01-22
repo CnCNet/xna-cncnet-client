@@ -198,6 +198,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 Enable();
             }
         }
+
         public void SwitchOff()
         {
             Disable();
@@ -213,6 +214,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             Array.ForEach(tabClanManagerArray, x => x.Disable());
             tabClanManagerArray[tabClanManager.SelectedTab].Enable();
         }
+
         private void AuthenticationResponse(object s, CnCNetServAuthEventArgs e)
         {
             if (cm.CncServ.IsAuthenticated)

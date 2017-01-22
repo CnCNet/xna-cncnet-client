@@ -99,6 +99,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 lbInInvites.AddItem(loading);
             }
         }
+
         private void CompleteListInvites(object s, InviteEventArgs i)
         {
             if (i.Distinguisher == inInvitesDist.ToString())
@@ -126,6 +127,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 lbOutInvites.AddItem(loading);
             }
         }
+
         private void CompleteListClanInvites(object s, InviteEventArgs i)
         {
             if (i.Distinguisher == outInvitesDist.ToString())
@@ -153,6 +155,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             currentInInvites.RemoveAt(lbInInvites.SelectedIndex);
             lbInInvites.SelectedIndex = -1;
         }
+
         private void AcceptInviteResp(object s, InviteEventArgs i)
         {
             if (i.Result == "FAIL")
@@ -168,6 +171,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 cw.ClanManageTab.Refresh();
             }
         }
+
         private void BtnInDecline_LeftClick(object s, EventArgs e)
         {
             if (lbInInvites.SelectedIndex < 0 ||

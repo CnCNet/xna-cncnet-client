@@ -160,6 +160,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 tbPassword.Visible = true;
             }
         }
+
         private void ChkRememberMe_CheckedChanged(object sender, EventArgs e)
         {
             CheckAutoConnectAllowance();
