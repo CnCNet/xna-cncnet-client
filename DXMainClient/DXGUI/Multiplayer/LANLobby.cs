@@ -320,8 +320,8 @@ namespace DTAClient.DXGUI.Multiplayer
 
             WindowManager.GameClosing += WindowManager_GameClosing;
 
-            lbChatMessages.AddMessage(null, "Please note that LAN game support is currently work-in-progress, with finalizing of the feature aimed at late 2016 or early 2017. " +
-                "While basic functionality should work, it is likely that you'll encounter various kinds of bugs and possibly even crashes. Please report all issues to the client lead developer (Rampastring) at " +
+            lbChatMessages.AddMessage(null, "Please note that LAN game support is currently work-in-progress. " +
+                "While basic functionality should work, it is possible that you'll encounter various kinds of bugs and possibly even crashes. Please report all issues to the client lead developer (Rampastring) at " +
                 "http://www.moddb.com/members/rampastring so we can fix the issues for future builds.", Color.Yellow);
         }
 
