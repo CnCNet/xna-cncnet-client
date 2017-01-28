@@ -10,6 +10,8 @@ namespace ClientGUI
     /// </summary>
     public class DarkeningPanel : XNAPanel
     {
+        private const float ALPHA_RATE = 0.4f;
+
         public DarkeningPanel(WindowManager windowManager) : base(windowManager)
         {
         }
@@ -64,7 +66,7 @@ namespace ClientGUI
         {
             Enabled = true;
             Visible = true;
-            AlphaRate = 0.04f;
+            AlphaRate = ALPHA_RATE;
             Alpha = 0.01f;
 
             foreach (XNAControl child in Children)
@@ -76,7 +78,7 @@ namespace ClientGUI
 
         public void Hide()
         {
-            AlphaRate = -0.04f;
+            AlphaRate = -ALPHA_RATE;
 
             foreach (XNAControl child in Children)
             {
