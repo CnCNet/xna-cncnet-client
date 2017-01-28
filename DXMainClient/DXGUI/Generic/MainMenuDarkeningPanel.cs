@@ -6,6 +6,10 @@ using System;
 
 namespace DTAClient.DXGUI.Generic
 {
+    /// <summary>
+    /// TODO Replace this class with DarkeningPanels.
+    /// Handles transitions between the main menu and its sub-menus.
+    /// </summary>
     public class MainMenuDarkeningPanel : XNAPanel
     {
         public MainMenuDarkeningPanel(WindowManager windowManager) : base(windowManager)
@@ -20,11 +24,11 @@ namespace DTAClient.DXGUI.Generic
         public UpdateWindow UpdateWindow;
         public ExtrasWindow ExtrasWindow;
 
-        const float BG_ALPHA_APPEAR_RATE = 0.05f;
-        const float BG_ALPHA_DISAPPEAR_RATE = -0.05f;
+        const float BG_ALPHA_APPEAR_RATE = 0.1f;
+        const float BG_ALPHA_DISAPPEAR_RATE = -0.1f;
 
         float bgAlpha = 1.0f;
-        float bgAlphaRate = -0.05f;
+        float bgAlphaRate = -0.1f;
 
         public override void Initialize()
         {
@@ -108,6 +112,7 @@ namespace DTAClient.DXGUI.Generic
             foreach (XNAControl child in Children)
             {
                 child.Enabled = false;
+                child.Visible = false;
             }
         }
 
