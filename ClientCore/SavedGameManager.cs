@@ -11,9 +11,9 @@ namespace ClientCore
     /// </summary>
     public static class SavedGameManager
     {
-        const string SAVED_GAMES_DIRECTORY = "Saved Games";
+        private const string SAVED_GAMES_DIRECTORY = "Saved Games";
 
-        static bool SaveRenameInProgress = false;
+        private static bool saveRenameInProgress = false;
 
         public static int GetSaveGameCount()
         {
@@ -95,7 +95,7 @@ namespace ClientCore
         {
             Logger.Log("Renaming saved game.");
 
-            if (SaveRenameInProgress)
+            if (saveRenameInProgress)
             {
                 Logger.Log("Save renaming in progress!");
                 return;
@@ -109,7 +109,7 @@ namespace ClientCore
                 return;
             }
 
-            SaveRenameInProgress = true;
+            saveRenameInProgress = true;
 
             int saveGameId = 0;
 
@@ -155,7 +155,7 @@ namespace ClientCore
                 System.Threading.Thread.Sleep(250);
             }
 
-            SaveRenameInProgress = false;
+            saveRenameInProgress = false;
 
             Logger.Log("Saved game SAVEGAME.NET succesfully renamed to " + Path.GetFileName(sgPath));
         }

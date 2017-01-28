@@ -1,34 +1,22 @@
-﻿/// @author Rampastring
-/// http://www.moddb.com/members/rampastring
-
-using System;
-using System.Text;
-using System.IO;
+﻿using System;
 using Rampastring.Tools;
 
 namespace ClientCore
 {
     public class ClientConfiguration
     {
-        private static ClientConfiguration _instance;
-        public IniFile gameOptions_ini;
-        public IniFile DTACnCNetClient_ini;
-        private IniFile clientDefinitionsIni;
-
         private const string CLIENT_SETTINGS = "DTACnCNetClient.ini";
         private const string GAME_OPTIONS = "GameOptions.ini";
         private const string CLIENT_DEFS = "ClientDefinitions.ini";
 
-        /// <summary>
-        ///     Default constructor.
-        ///     Loads the settings and the language.
-        /// </summary>
+        private static ClientConfiguration _instance;
+
+        private IniFile gameOptions_ini;
+        private IniFile DTACnCNetClient_ini;
+        private IniFile clientDefinitionsIni;
+
         protected ClientConfiguration()
         {
-            // WARNING! This method can NOT contain any methods that use the Singleton pattern
-            // to call Domaincontroller methods! If it does call methods that use it, make sure
-            // such calls are ignored by checking with the hasInstance() method.
-
             clientDefinitionsIni = new IniFile(ProgramConstants.GetBaseResourcePath() + CLIENT_DEFS);
 
             DTACnCNetClient_ini = new IniFile(ProgramConstants.GetResourcePath() + CLIENT_SETTINGS);
@@ -37,9 +25,9 @@ namespace ClientCore
         }
 
         /// <summary>
-        ///     Singleton Pattern. Returns the object of this class.
+        /// Singleton Pattern. Returns the object of this class.
         /// </summary>
-        /// <returns>The object of the DomainController class.</returns>
+        /// <returns>The object of the ClientConfiguration class.</returns>
         public static ClientConfiguration Instance
         {
             get

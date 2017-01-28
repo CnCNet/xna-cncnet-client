@@ -1,8 +1,4 @@
-﻿
-using System.Collections.Generic;
-/// @author Rampastring
-/// http://www.moddb.com/members/rampastring
-using System.IO;
+﻿using System.Collections.Generic;
 using System.Text;
 using System.Windows.Forms;
 
@@ -30,16 +26,16 @@ namespace ClientCore
         public const char LAN_DATA_SEPARATOR = (char)01;
         public const char LAN_MESSAGE_SEPARATOR = (char)02;
 
+        public const string SPAWNMAP_INI = "spawnmap.ini";
+        public const string SPAWNER_SETTINGS = "spawn.ini";
+        public const string SAVED_GAME_SPAWN_INI = "Saved Games\\spawnSG.ini";
+
         public static readonly Encoding LAN_ENCODING = Encoding.UTF8;
 
         public static string GAME_VERSION = "1.15";
         public static string PLAYERNAME = "No name";
-        public const string SPAWNMAP_INI = "spawnmap.ini";
-        public const string SPAWNER_SETTINGS = "spawn.ini";
         public static string BASE_RESOURCE_PATH = "Resources\\";
         public static string RESOURCES_DIR = BASE_RESOURCE_PATH;
-
-        public const string SAVED_GAME_SPAWN_INI = "Saved Games\\spawnSG.ini";
 
         public static int LOG_LEVEL = 1;
 

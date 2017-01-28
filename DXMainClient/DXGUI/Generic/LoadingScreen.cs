@@ -30,8 +30,6 @@ namespace DTAClient.DXGUI.Generic
 
         private PrivateMessagingPanel privateMessagingPanel;
 
-        private bool load = false;
-
         private bool visibleSpriteCursor = false;
 
         private Task updaterInitTask = null;
