@@ -6,6 +6,7 @@ using System.Runtime.InteropServices;
 using System.Security.AccessControl;
 using System.Security.Principal;
 using System.Threading;
+using System.Collections.Generic;
 
 namespace DTAClient
 {
@@ -20,6 +21,21 @@ namespace DTAClient
             Environment.CurrentDirectory = Application.StartupPath;
 #endif
         }
+
+        static List<string> EXTERNAL_LIBRARIES = new List<string>()
+        {
+            "ClientGUI",
+            "ClientCore",
+            "DTAUpdater",
+            "DTAConfig",
+            "MonoGame.Framework",
+            "Rampastring.Tools",
+            "Rampastring.XNAUI",
+            "Ionic.Zip",
+            "OpenTK",
+            "NVorbis",
+            "MapThumbnailExtractor"
+        };
 
         /// <summary>
         /// The main entry point for the application.
@@ -78,43 +94,18 @@ namespace DTAClient
             char directorySeparatorChar = Path.DirectorySeparatorChar;
 
 #if XNA && DEBUG
-            string path = Application.StartupPath + directorySeparatorChar + "Resources" +
-                directorySeparatorChar + "XNABinaries" + directorySeparatorChar;
+            string path = string.Format("{0}{1}Resources{1}XNABinaries{1}", Application.StartupPath, directorySeparatorChar);
 #elif XNA
-            string path = Application.StartupPath + 
-                directorySeparatorChar + "XNABinaries" + directorySeparatorChar;
+            string path = string.Format("{0}{1}XNABinaries{1}", Application.StartupPath, directorySeparatorChar);
+#elif WINDOWSGL && DEBUG
+            string path = string.Format("{0}{1}Resources{1}GLBinaries{1}", Application.StartupPath, directorySeparatorChar);
+#elif WINDOWSGL
+            string path = string.Format("{0}{1}GLBinaries{1}", Application.StartupPath, directorySeparatorChar);
 #elif DEBUG
-            string path = Application.StartupPath + directorySeparatorChar + "Resources" + 
-                directorySeparatorChar + "Binaries" + directorySeparatorChar;
+            string path = string.Format("{0}{1}Resources{1}Binaries{1}", Application.StartupPath, directorySeparatorChar);
 #else
-            string path = Application.StartupPath + 
-                directorySeparatorChar + "Binaries" + directorySeparatorChar;
+            string path = string.Format("{0}{1}Binaries{1}", Application.StartupPath, directorySeparatorChar);
 #endif
-
-
-            if (args.Name.StartsWith("ClientGUI"))
-            {
-                byte[] data = File.ReadAllBytes(path + "ClientGUI.dll");
-                return Assembly.Load(data);
-            }
-
-            if (args.Name.StartsWith("ClientCore"))
-            {
-                byte[] data = File.ReadAllBytes(path + "ClientCore.dll");
-                return Assembly.Load(data);
-            }
-
-            if (args.Name.StartsWith("DTAUpdater"))
-            {
-                byte[] data = File.ReadAllBytes(path + "DTAUpdater.dll");
-                return Assembly.Load(data);
-            }
-
-            if (args.Name.StartsWith("DTAConfig"))
-            {
-                byte[] data = File.ReadAllBytes(path + "DTAConfig.dll");
-                return Assembly.Load(data);
-            }
 
             if (args.Name.StartsWith("SharpDX"))
             {
@@ -123,59 +114,14 @@ namespace DTAClient
                 return Assembly.Load(data);
             }
 
-            if (args.Name.StartsWith("MonoGame.Framework"))
+            string name = EXTERNAL_LIBRARIES.Find(dll => args.Name.StartsWith(dll));
+
+            if (name != null)
             {
-                byte[] data;
-
-                if (Environment.OSVersion.Platform == PlatformID.Win32NT &&
-                    Environment.OSVersion.VersionString.StartsWith("5."))
-                {
-                    data = File.ReadAllBytes(path + "MonoGame.Framework.WindowsGL.dll");
-                }
-                else
-                {
-                    data = File.ReadAllBytes(path + "MonoGame.Framework.dll");
-                }
-
+                byte[] data = File.ReadAllBytes(string.Format("{0}{1}.dll", path, name));
                 return Assembly.Load(data);
             }
-
-            if (args.Name.StartsWith("Rampastring.Tools"))
-            {
-                byte[] data = File.ReadAllBytes(path + "Rampastring.Tools.dll");
-                return Assembly.Load(data);
-            }
-
-            if (args.Name.StartsWith("Rampastring.XNAUI"))
-            {
-                byte[] data = File.ReadAllBytes(path + "Rampastring.XNAUI.dll");
-                return Assembly.Load(data);
-            }
-
-            if (args.Name.StartsWith("Ionic.Zip"))
-            {
-                byte[] data = File.ReadAllBytes(path + "Ionic.Zip.dll");
-                return Assembly.Load(data);
-            }
-
-            if (args.Name.StartsWith("OpenTK"))
-            {
-                byte[] data = File.ReadAllBytes(path + "OpenTK.dll");
-                return Assembly.Load(data);
-            }
-
-            if (args.Name.StartsWith("NVorbis"))
-            {
-                byte[] data = File.ReadAllBytes(path + "NVorbis.dll");
-                return Assembly.Load(data);
-            }
-
-            if (args.Name.StartsWith("MapThumbnailExtractor"))
-            {
-                byte[] data = File.ReadAllBytes(path + "MapThumbnailExtractor.dll");
-                return Assembly.Load(data);
-            }
-
+            
             return null;
         }
     }
