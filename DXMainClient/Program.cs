@@ -93,6 +93,10 @@ namespace DTAClient
         {
             char directorySeparatorChar = Path.DirectorySeparatorChar;
 
+            /*/ We have different binaries depending on build platform, but for simplicity
+             * the target projects (DTA, TI, MO, YR) supply them all in a single download.
+             * To avoid DLL hell, we load the binaries from different directories
+             * depending on the build platform. /*/
 #if XNA && DEBUG
             string path = string.Format("{0}{1}Resources{1}XNABinaries{1}", Application.StartupPath, directorySeparatorChar);
 #elif XNA
