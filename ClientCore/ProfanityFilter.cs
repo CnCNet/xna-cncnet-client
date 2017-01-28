@@ -10,6 +10,28 @@ namespace ClientCore
     {
         public IList<string> CensoredWords { get; private set; }
 
+        /// <summary>
+        /// Creates a new profanity filter with a default set of censored words.
+        /// </summary>
+        public ProfanityFilter()
+        {
+            CensoredWords = new List<string>()
+            {
+                "cunt*",
+                "*nigg*",
+                "paki*",
+                "shit",
+                "fuck*",
+                "admin*",
+                "allahu*",
+                "akbar",
+                "twat",
+                "cock",
+                "pussy",
+                "hitler*"
+            };
+        }
+
         public ProfanityFilter(IEnumerable<string> censoredWords)
         {
             if (censoredWords == null)

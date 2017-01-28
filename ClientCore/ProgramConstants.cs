@@ -50,21 +50,5 @@ namespace ClientCore
         {
             return GamePath + BASE_RESOURCE_PATH;
         }
-
-        public static IList<string> PROFANITY_WORDS = new List<string>
-        {
-            "cunt*",
-            "*nigg*",
-            "paki*",
-            "shit",
-            "fuck*",
-            "admin*",
-            "allahu*",
-            "akbar",
-            "twat",
-            "cock",
-            "pussy",
-            "hitler*"
-        };
     }
 }
