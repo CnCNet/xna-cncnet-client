@@ -34,6 +34,9 @@ namespace DTAClient.DXGUI.Generic
 
         private bool visibleSpriteCursor = false;
 
+        private Task updaterInitTask = null;
+        private Task mapLoadTask = null;
+
         public override void Initialize()
         {
             ClientRectangle = new Rectangle(0, 0, 800, 600);
@@ -44,29 +47,23 @@ namespace DTAClient.DXGUI.Generic
             base.Initialize();
 
             CenterOnParent();
-        }
 
-        public void Start()
-        {
             bool initUpdater = !ClientConfiguration.Instance.ModMode;
-            Task t = null;
 
             if (initUpdater)
             {
-                t = new Task(InitUpdater);
-                t.Start();
+                updaterInitTask = new Task(InitUpdater);
+                updaterInitTask.Start();
             }
 
-            mapLoader = new MapLoader();
-            mapLoader.LoadMaps();
+            mapLoadTask = new Task(LoadMaps);
+            mapLoadTask.Start();
 
-            if (initUpdater)
+            if (Cursor.Visible)
             {
-                t.Wait();
-                ProgramConstants.GAME_VERSION = CUpdater.GameVersion;
+                Cursor.Visible = false;
+                visibleSpriteCursor = true;
             }
-
-            Finish();
         }
 
         private void InitUpdater()
@@ -74,8 +71,19 @@ namespace DTAClient.DXGUI.Generic
             CUpdater.CheckLocalFileVersions();
         }
 
+        private void LoadMaps()
+        {
+            mapLoader = new MapLoader();
+            mapLoader.LoadMaps();
+        }
+
         private void Finish()
         {
+            if (!ClientConfiguration.Instance.ModMode)
+            {
+                ProgramConstants.GAME_VERSION = CUpdater.GameVersion;
+            }
+
             var gameCollection = new GameCollection();
             gameCollection.Initialize(GraphicsDevice);
 
@@ -155,24 +163,13 @@ namespace DTAClient.DXGUI.Generic
 
         public override void Update(GameTime gameTime)
         {
-            // We don't start loading immediately, but let the client draw one frame
-            // first so the user can see the loading screen
-
-            if (load)
-            {
-                Start();
-                return;
-            }
-
-            load = true;
-
-            if (Cursor.Visible)
-            {
-                Cursor.Visible = false;
-                visibleSpriteCursor = true;
-            }
-
             base.Update(gameTime);
+
+            if (updaterInitTask == null || updaterInitTask.Status == TaskStatus.RanToCompletion)
+            {
+                if (mapLoadTask.Status == TaskStatus.RanToCompletion)
+                    Finish();
+            }
         }
 
         public override void Draw(GameTime gameTime)
