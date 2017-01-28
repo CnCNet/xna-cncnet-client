@@ -26,7 +26,7 @@ namespace DTAClient
         {
             int themeId = UserINISettings.Instance.ClientTheme;
 
-            if (themeId >= ClientConfiguration.Instance.ThemeCount|| themeId < 0)
+            if (themeId >= ClientConfiguration.Instance.ThemeCount || themeId < 0)
             {
                 themeId = 0;
                 UserINISettings.Instance.ClientTheme.Value = 0;
@@ -40,8 +40,11 @@ namespace DTAClient
 
             CUpdater.Initialize(ClientConfiguration.Instance.LocalGame);
 
-            LogOperatingSystemVersion();
+            Logger.Log("Operating system: " + Environment.OSVersion.VersionString);
+            Logger.Log("Selected OS profile: " + MainClientConstants.OSId.ToString());
 
+            // The query in CheckSystemSpecifications takes lots of time,
+            // so we'll do it in a separate thread to make startup faster
             Thread thread = new Thread(CheckSystemSpecifications);
             thread.Start();
 
@@ -81,36 +84,6 @@ namespace DTAClient
 
             GameClass gameClass = new GameClass();
             gameClass.Run();
-        }
-
-        /// <summary>
-        /// Reports the operating system that the client is running on.
-        /// </summary>
-        private void LogOperatingSystemVersion()
-        {
-            Logger.Log("Operating system: " + Environment.OSVersion.VersionString);
-            
-            switch (MainClientConstants.OSId)
-            {
-                case OSVersion.UNKNOWN:
-                    Logger.Log("Selected OS profile: Unknown OS");
-                    break;
-                case OSVersion.WIN9X:
-                    Logger.Log("Selected OS profile: Windows 9x (??)");
-                    break;
-                case OSVersion.WINXP:
-                    Logger.Log("Selected OS profile: Windows XP");
-                    break;
-                case OSVersion.WINVISTA:
-                    Logger.Log("Selected OS profile: Windows Vista");
-                    break;
-                case OSVersion.WIN7:
-                    Logger.Log("Selected OS profile: Windows 7");
-                    break;
-                case OSVersion.WIN810:
-                    Logger.Log("Selected OS profile: Windows 8 / 10");
-                    break;
-            }
         }
 
         /// <summary>

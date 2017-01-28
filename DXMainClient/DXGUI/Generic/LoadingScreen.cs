@@ -108,8 +108,10 @@ namespace DTAClient.DXGUI.Generic
             var mainMenu = new MainMenu(WindowManager, skirmishLobby, lanLobby,
                 topBar, optionsWindow, cncnetLobby, cncnetManager);
             WindowManager.AddAndInitializeControl(mainMenu);
-            WindowManager.AddAndInitializeControl(skirmishLobby);
-            WindowManager.AddAndInitializeControl(cncnetGameLoadingLobby);
+
+            DarkeningPanel.AddAndInitializeWithControl(WindowManager, skirmishLobby);
+
+            DarkeningPanel.AddAndInitializeWithControl(WindowManager, cncnetGameLoadingLobby);
 
             DarkeningPanel.AddAndInitializeWithControl(WindowManager, cncnetGameLobby);
 

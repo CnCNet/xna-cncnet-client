@@ -14,6 +14,7 @@ namespace DTAClient
     {
         static Program()
         {
+            // Set up DLL load paths as early as possible
             AppDomain.CurrentDomain.AssemblyResolve += CurrentDomain_AssemblyResolve;
 #if !DEBUG
             Environment.CurrentDirectory = Directory.GetParent(Application.StartupPath).FullName;
@@ -79,7 +80,8 @@ namespace DTAClient
                         return;
                     }
 
-                    RealMain.ProxyMain(args);
+                    // Proceed to client startup
+                    PreStartup.Initialize(args);
                 }
                 finally
                 {

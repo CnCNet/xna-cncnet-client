@@ -9,9 +9,9 @@ using Rampastring.XNAUI;
 
 namespace DTAClient
 {
-    static class RealMain
+    static class PreStartup
     {
-        public static void ProxyMain(string[] args)
+        public static void Initialize(string[] args)
         {
             AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(HandleExcept);
 
@@ -35,6 +35,8 @@ namespace DTAClient
             Logger.Log("Loading settings.");
 
             UserINISettings.Initialize(ClientConfiguration.Instance.SettingsIniName);
+
+            // Delete obsolete files from old target project versions
 
             File.Delete(MainClientConstants.gamepath + "mainclient.log");
             File.Delete(MainClientConstants.gamepath + "launchupdt.dat");

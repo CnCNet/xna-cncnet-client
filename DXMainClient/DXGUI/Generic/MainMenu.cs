@@ -569,8 +569,6 @@ namespace DTAClient.DXGUI.Generic
 
             if (UserINISettings.Instance.StopMusicOnMenu)
                 MusicOff();
-
-            innerPanel.Show(null);
         }
 
         private void BtnMapEditor_LeftClick(object sender, EventArgs e)
