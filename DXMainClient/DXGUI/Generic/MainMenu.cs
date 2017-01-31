@@ -653,7 +653,14 @@ namespace DTAClient.DXGUI.Generic
                 isMusicFading = false;
                 MediaPlayer.Volume = AudioMaster.GetVolume();
                 MediaPlayer.IsRepeating = true;
-                MediaPlayer.Play(themeSong);
+                try
+                {
+                    MediaPlayer.Play(themeSong);
+                }
+                catch (InvalidOperationException ex)
+                {
+                    Logger.Log("Playing main menu music failed! " + ex.Message);
+                }
             }
         }
 
