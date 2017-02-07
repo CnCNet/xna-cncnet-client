@@ -32,7 +32,6 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             : base(windowManager)
         {
             this.connectionManager = connectionManager;
-            ClientRectangle = new Rectangle(0, 0, 1200, 720);
             this.gameLobby = gameLobby;
             this.gameLoadingLobby = gameLoadingLobby;
             this.tunnelHandler = tunnelHandler;
@@ -108,6 +107,9 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         public override void Initialize()
         {
+            ClientRectangle = new Rectangle(0, 0, WindowManager.RenderResolutionX - 64,
+                WindowManager.RenderResolutionY - 64);
+
             Name = "CnCNetLobby";
             BackgroundTexture = AssetLoader.LoadTexture("cncnetlobbybg.png");
             localGameID = ClientConfiguration.Instance.LocalGame;
@@ -224,8 +226,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             lbChatMessages = new ChatListBox(WindowManager);
             lbChatMessages.Name = "lbChatMessages";
-            lbChatMessages.ClientRectangle = new Rectangle(lbGameList.ClientRectangle.Right + 9, lbGameList.ClientRectangle.Y,
-                lbPlayerList.ClientRectangle.Left - lbGameList.ClientRectangle.Right - 18, lbPlayerList.ClientRectangle.Height);
+            lbChatMessages.ClientRectangle = new Rectangle(lbGameList.ClientRectangle.Right + 12, lbGameList.ClientRectangle.Y,
+                lbPlayerList.ClientRectangle.Left - lbGameList.ClientRectangle.Right - 24, lbPlayerList.ClientRectangle.Height);
             lbChatMessages.DrawMode = PanelBackgroundImageDrawMode.STRETCHED;
             lbChatMessages.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 128), 1, 1);
             lbChatMessages.LineHeight = 16;

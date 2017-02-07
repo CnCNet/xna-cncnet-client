@@ -202,9 +202,9 @@ namespace DTAClient.DXGUI.Multiplayer
 
             lbChatMessages = new ChatListBox(WindowManager);
             lbChatMessages.Name = "lbChatMessages";
-            lbChatMessages.ClientRectangle = new Rectangle(lbGameList.ClientRectangle.Right + 9,
+            lbChatMessages.ClientRectangle = new Rectangle(lbGameList.ClientRectangle.Right + 12,
                 lbGameList.ClientRectangle.Y,
-                lbPlayerList.ClientRectangle.Left - lbGameList.ClientRectangle.Right - 18,
+                lbPlayerList.ClientRectangle.Left - lbGameList.ClientRectangle.Right - 24,
                 lbGameList.ClientRectangle.Height);
             lbChatMessages.DrawMode = PanelBackgroundImageDrawMode.STRETCHED;
             lbChatMessages.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 128), 1, 1);
