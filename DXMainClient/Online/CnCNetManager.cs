@@ -18,20 +18,19 @@ namespace DTAClient.Online
     /// </summary>
     public class CnCNetManager : IConnectionManager
     {
+        // When implementing IConnectionManager functions, pay special attention
+        // to thread-safety.
+        // The functions in IConnectionManager are usually called from the networking
+        // thread, so if they affect anything in the UI or affect data that the 
+        // UI thread might be reading, use WindowManager.AddCallback to execute a function
+        // on the UI thread instead of modifying the data or raising events directly.
+
         public delegate void UserListDelegate(string channelName, string[] userNames);
 
         public event EventHandler<ServerMessageEventArgs> WelcomeMessageReceived;
-        //public event EventHandler<ServerMessageEventArgs> GenericServerMessageReceived;
         public event EventHandler<UserAwayEventArgs> AwayMessageReceived;
-        //public event EventHandler<ChannelTopicEventArgs> ChannelTopicReceived;
-        //public event EventHandler<UserListEventArgs> UserListReceived;
         public event EventHandler<WhoEventArgs> WhoReplyReceived;
         public event EventHandler<ChannelEventArgs> ChannelFull;
-        //public event EventHandler<ChannelEventArgs> IncorrectChannelPassword;
-        //public event EventHandler<ChannelModeEventArgs> ChannelModesChanged;
-        //public event EventHandler<CTCPEventArgs> CTCPMessageReceived;
-        //public event EventHandler<KickEventArgs> UserKickedFromChannel;
-        //public event EventHandler<ChannelUserEventArgs> UserJoinedChannel;
         public event EventHandler<PrivateMessageEventArgs> PrivateMessageReceived;
         public event EventHandler<ChannelEventArgs> BannedFromChannel;
 
@@ -56,7 +55,7 @@ namespace DTAClient.Online
 
             cDefaultChatColor = AssetLoader.GetColorFromString(ClientConfiguration.Instance.DefaultChatColor);
 
-            IRCChatColors = new IRCColor[]
+            ircChatColors = new IRCColor[]
             {
                 new IRCColor("Default color", false, cDefaultChatColor, 0),
                 new IRCColor("Default color #2", false, cDefaultChatColor, 1),
@@ -79,7 +78,7 @@ namespace DTAClient.Online
 
         public Channel MainChannel { get; private set; }
 
-        bool connected = false;
+        private bool connected = false;
 
         /// <summary>
         /// Gets a value that determines whether the client is 
@@ -95,19 +94,19 @@ namespace DTAClient.Online
         /// </summary>
         public List<IRCUser> UserList = new List<IRCUser>();
 
-        Connection connection;
+        private Connection connection;
 
-        List<Channel> Channels = new List<Channel>();
-        List<HostedCnCNetGame> HostedGames = new List<HostedCnCNetGame>();
+        private List<Channel> channels = new List<Channel>();
+        private List<HostedCnCNetGame> hostedGames = new List<HostedCnCNetGame>();
 
-        GameCollection gameCollection;
+        private GameCollection gameCollection;
 
-        Color cDefaultChatColor;
-        IRCColor[] IRCChatColors;
+        private Color cDefaultChatColor;
+        private IRCColor[] ircChatColors;
 
-        WindowManager wm;
+        private WindowManager wm;
 
-        bool disconnect { get; set; }
+        private bool disconnect = false;
 
         /// <summary>
         /// Factory method for creating a new channel.
@@ -126,17 +125,17 @@ namespace DTAClient.Online
 
         public Channel GetChannel(string channelName)
         {
-            return Channels.Find(c => c.ChannelName == channelName);
+            return channels.Find(c => c.ChannelName == channelName);
         }
 
         public void AddChannel(Channel channel)
         {
-            Channels.Add(channel);
+            channels.Add(channel);
         }
 
         public IRCColor[] GetIRCColors()
         {
-            return IRCChatColors;
+            return ircChatColors;
         }
 
         public void LeaveFromChannel(Channel channel)
@@ -144,7 +143,7 @@ namespace DTAClient.Online
             connection.QueueMessage(QueuedMessageType.SYSTEM_MESSAGE, 10, "PART " + channel.ChannelName);
 
             if (!channel.Persistent)
-                Channels.Remove(channel);
+                channels.Remove(channel);
         }
 
         public void SetMainChannel(Channel channel)
@@ -159,6 +158,9 @@ namespace DTAClient.Online
 
         public void OnAttemptedServerChanged(string serverName)
         {
+            // AddCallback is necessary for thread-safety; OnAttemptedServerChanged
+            // is called by the networking thread, and AddCallback schedules DoAttemptedServerChanged
+            // to be executed on the main (UI) thread.
             wm.AddCallback(new Action<string>(DoAttemptedServerChanged), serverName);
         }
 
@@ -187,11 +189,11 @@ namespace DTAClient.Online
         {
             ChannelFull?.Invoke(this, new ChannelEventArgs(channelName));
 
-            int gameIndex = HostedGames.FindIndex(c => c.ChannelName == channelName);
+            int gameIndex = hostedGames.FindIndex(c => c.ChannelName == channelName);
             string gameName = null;
 
             if (gameIndex > -1)
-                gameName = HostedGames[gameIndex].ChannelName;
+                gameName = hostedGames[gameIndex].ChannelName;
 
             string message;
 
@@ -211,7 +213,7 @@ namespace DTAClient.Online
 
         private void DoChannelModesChanged(string userName, string channelName, string modeString)
         {
-            Channel channel = Channels.Find(c => c.ChannelName == channelName);
+            Channel channel = channels.Find(c => c.ChannelName == channelName);
 
             if (channel == null)
                 return;
@@ -221,14 +223,12 @@ namespace DTAClient.Online
 
         public void OnChannelTopicReceived(string channelName, string topic)
         {
-            //ChannelTopicReceived?.Invoke(this, new ChannelTopicEventArgs(channelName, topic));
-
             wm.AddCallback(new Action<string, string>(DoChannelTopicReceived), channelName, topic);
         }
 
         private void DoChannelTopicReceived(string channelName, string topic)
         {
-            Channel channel = Channels.Find(c => c.ChannelName == channelName);
+            Channel channel = channels.Find(c => c.ChannelName == channelName);
 
             if (channel == null)
                 return;
@@ -244,7 +244,7 @@ namespace DTAClient.Online
 
         private void DoChatMessageReceived(string receiver, string sender, string message)
         {
-            Channel channel = Channels.Find(c => c.ChannelName == receiver);
+            Channel channel = channels.Find(c => c.ChannelName == receiver);
 
             if (channel == null)
                 return;
@@ -280,8 +280,8 @@ namespace DTAClient.Online
                         message = message.Remove(0, 3);
                         int colorIndex = Conversions.IntFromString(colorString, -1);
                         // Try to parse message color info; if fails, use default color
-                        if (colorIndex < IRCChatColors.Length && colorIndex > -1)
-                            foreColor = IRCChatColors[colorIndex].XnaColor;
+                        if (colorIndex < ircChatColors.Length && colorIndex > -1)
+                            foreColor = ircChatColors[colorIndex].XnaColor;
                         else
                             foreColor = cDefaultChatColor;
                     }
@@ -300,19 +300,16 @@ namespace DTAClient.Online
         {
             wm.AddCallback(new Action<string, string, string>(DoCTCPParsed),
                 channelName, userName, message);
-            //DoCTCPParsed(channelName, userName, message);
         }
 
         private void DoCTCPParsed(string channelName, string userName, string message)
         {
-            Channel channel = Channels.Find(c => c.ChannelName == channelName);
+            Channel channel = channels.Find(c => c.ChannelName == channelName);
 
             if (channel == null)
                 return;
 
             channel.OnCTCPReceived(userName, message);
-
-            //CTCPMessageReceived?.Invoke(this, new CTCPEventArgs(userName, channelName, message));
         }
 
         public void OnConnectAttemptFailed()
@@ -352,16 +349,16 @@ namespace DTAClient.Online
         {
             ConnectionLost?.Invoke(this, new ConnectionLostEventArgs(reason));
 
-            for (int i = 0; i < Channels.Count; i++)
+            for (int i = 0; i < channels.Count; i++)
             {
-                if (!Channels[i].Persistent)
+                if (!channels[i].Persistent)
                 {
-                    Channels.RemoveAt(i);
+                    channels.RemoveAt(i);
                     i--;
                 }
                 else
                 {
-                    Channels[i].ClearUsers();
+                    channels[i].ClearUsers();
                 }
             }
 
@@ -400,16 +397,16 @@ namespace DTAClient.Online
         {
             Disconnected?.Invoke(this, EventArgs.Empty);
 
-            for (int i = 0; i < Channels.Count; i++)
+            for (int i = 0; i < channels.Count; i++)
             {
-                if (!Channels[i].Persistent)
+                if (!channels[i].Persistent)
                 {
-                    Channels.RemoveAt(i);
+                    channels.RemoveAt(i);
                     i--;
                 }
                 else
                 {
-                    Channels[i].ClearUsers();
+                    channels[i].ClearUsers();
                 }
             }
 
@@ -482,7 +479,7 @@ namespace DTAClient.Online
 
         private void DoUserJoinedChannel(string channelName, string host, string userName, string userAddress)
         {
-            Channel channel = Channels.Find(c => c.ChannelName == channelName);
+            Channel channel = channels.Find(c => c.ChannelName == channelName);
 
             if (channel == null)
                 return;
@@ -548,7 +545,7 @@ namespace DTAClient.Online
 
         private void DoUserKicked(string channelName, string userName)
         {
-            Channel channel = Channels.Find(c => c.ChannelName == channelName);
+            Channel channel = channels.Find(c => c.ChannelName == channelName);
 
             if (channel == null)
                 return;
@@ -563,7 +560,7 @@ namespace DTAClient.Online
                 }
 
                 if (!channel.Persistent)
-                    Channels.Remove(channel);
+                    channels.Remove(channel);
 
                 channel.ClearUsers();
                 return;
@@ -580,7 +577,7 @@ namespace DTAClient.Online
 
         private void DoUserLeftChannel(string channelName, string userName)
         {
-            Channel channel = Channels.Find(c => c.ChannelName == channelName);
+            Channel channel = channels.Find(c => c.ChannelName == channelName);
 
             if (channel == null)
                 return;
@@ -595,7 +592,7 @@ namespace DTAClient.Online
                 }
 
                 if (!channel.Persistent)
-                    Channels.Remove(channel);
+                    channels.Remove(channel);
 
                 channel.ClearUsers();
 
@@ -636,7 +633,7 @@ namespace DTAClient.Online
 
         private void DoUserListReceived(string channelName, string[] userList)
         {
-            Channel channel = Channels.Find(c => c.ChannelName == channelName);
+            Channel channel = channels.Find(c => c.ChannelName == channelName);
 
             if (channel == null)
                 return;
@@ -686,7 +683,7 @@ namespace DTAClient.Online
 
         private void DoUserQuitIRC(string userName)
         {
-            Channels.ForEach(ch => ch.OnUserQuitIRC(userName));
+            channels.ForEach(ch => ch.OnUserQuitIRC(userName));
 
             int userIndex = UserList.FindIndex(user => user.Name == userName);
 
@@ -704,7 +701,7 @@ namespace DTAClient.Online
 
         private void DoWelcomeMessageReceived(string message)
         {
-            Channels.ForEach(ch => ch.AddMessage(new ChatMessage(null, Color.White, DateTime.Now, message)));
+            channels.ForEach(ch => ch.AddMessage(new ChatMessage(null, Color.White, DateTime.Now, message)));
 
             WelcomeMessageReceived?.Invoke(this, new ServerMessageEventArgs(message));
         }
@@ -737,7 +734,7 @@ namespace DTAClient.Online
                 user.GameID = gameIndex;
                 user.Hostname = hostName;
 
-                Channels.ForEach(ch => ch.UpdateGameIndexForUser(userName));
+                channels.ForEach(ch => ch.UpdateGameIndexForUser(userName));
 
                 UserGameIndexUpdated?.Invoke(this, new UserEventArgs(user));
             }

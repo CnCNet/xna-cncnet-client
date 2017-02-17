@@ -1,0 +1,908 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Rampastring.XNAUI</name>
+    </assembly>
+    <members>
+        <member name="M:Rampastring.XNAUI.AssetLoader.LoadTexture(System.String)">
+            <summary>
+            Loads a texture with the specific name. If the texture isn't found from any
+            asset search path, returns a dummy texture.
+            </summary>
+            <param name="name">The name of the texture.</param>
+            <returns>The texture if it was found and could be loaded, otherwise a dummy texture.</returns>
+        </member>
+        <member name="M:Rampastring.XNAUI.AssetLoader.LoadTextureUncached(System.String)">
+            <summary>
+            Loads a texture with the specific name. Does not look at textures in 
+            the texture cache, and doesn't add loaded textures to the texture cache.
+            </summary>
+            <param name="name">The name of the texture.</param>
+            <returns>The texture if it was found and could be loaded, otherwise a dummy texture.</returns>
+        </member>
+        <member name="M:Rampastring.XNAUI.AssetLoader.AssetExists(System.String)">
+            <summary>
+            Checks if a specified asset file exists.
+            </summary>
+            <param name="name"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Rampastring.XNAUI.AssetLoader.CreateTexture(Microsoft.Xna.Framework.Color,System.Int32,System.Int32)">
+            <summary>
+            Creates a one-colored texture.
+            </summary>
+            <param name="color">The color of the texture.</param>
+            <param name="width">The width of the texture in pixels.</param>
+            <param name="height">The height of the texture in pixels.</param>
+            <returns>A texture.</returns>
+        </member>
+        <member name="M:Rampastring.XNAUI.AssetLoader.GetColorFromString(System.String)">
+            <summary>
+            Creates a color based on a color string in the form "R,G,B". All values must be between 0 and 255.
+            </summary>
+            <param name="colorString">The color string in the form "R,G,B". All values must be between 0 and 255.</param>
+            <returns>A XNA Color struct based on the given string.</returns>
+        </member>
+        <member name="M:Rampastring.XNAUI.AssetLoader.GetRGBAColorFromString(System.String)">
+            <summary>
+            Creates a color based on a color string in the form "R,G,B,A". All values must be between 0 and 255.
+            </summary>
+        </member>
+        <member name="T:Rampastring.XNAUI.PrioritizedSound">
+            <summary>
+            A toggleable sound effect that can also have a defined priority
+            and a decay rate for the priority.
+            </summary>
+        </member>
+        <member name="P:Rampastring.XNAUI.PrioritizedSound.PriorityDecayRate">
+            <summary>
+            The decay rate of this sound's priority.
+            The sound's priority will be reduced by the specified number each second.
+            </summary>
+        </member>
+        <member name="M:Rampastring.XNAUI.PrioritizedSoundInstance.Update(Microsoft.Xna.Framework.GameTime)">
+            <summary>
+            Updates the priority of the sound. Returns true if the sound effect has
+            stopped playing, otherwise false.
+            </summary>
+            <param name="gameTime">Tells how much time has passed since the previous frame.</param>
+            <returns>True if the sound effect has stopped playing, otherwise false.</returns>
+        </member>
+        <member name="T:Rampastring.XNAUI.SoundPlayer">
+            <summary>
+            A sound player that manages prioritized sounds, with the aim of preventing
+            insignificant sounds from overriding important sounds while still
+            playing insignificant sounds if there's no risk of them cutting off
+            important sounds.
+            </summary>
+        </member>
+        <member name="M:Rampastring.XNAUI.SoundPlayer.Play(Rampastring.XNAUI.PrioritizedSound)">
+            <summary>
+            Plays a sound.
+            </summary>
+            <param name="sound">The sound to play.</param>
+        </member>
+        <member name="M:Rampastring.XNAUI.SoundPlayer.PlayWithVolume(System.Single,Rampastring.XNAUI.PrioritizedSound)">
+            <summary>
+            Plays a sound with the specified volume.
+            </summary>
+            <param name="volume">The volume that the sound will be played at.</param>
+            <param name="sound">The sound to play.</param>
+        </member>
+        <member name="T:Rampastring.XNAUI.ToggleableSound">
+            <summary>
+            A wrapper around SoundEffectInstance that allows toggling
+            the sound on and off.
+            </summary>
+        </member>
+        <member name="M:Rampastring.XNAUI.ToggleableSound.Play">
+            <summary>
+            Plays the sound if it is enabled. Otherwise does nothing.
+            </summary>
+        </member>
+        <member name="T:Rampastring.XNAUI.XNAControls.XNALinkLabel">
+            <summary>
+            A label that is underlined and changes its color when hovered on.
+            </summary>
+        </member>
+        <member name="P:Rampastring.XNAUI.XNAControls.XNALinkLabel.DrawUnderline">
+            <summary>
+            Determines whether the label's text is drawn as underlined.
+            </summary>
+        </member>
+        <member name="P:Rampastring.XNAUI.XNAControls.XNAListBoxItem.Tag">
+            <summary>
+            Stores optional custom data associated with the list box item.
+            </summary>
+        </member>
+        <member name="T:Rampastring.XNAUI.XNAControls.XNAScrollBar">
+            <summary>
+            A vertical scroll bar, mainly for list boxes but it could also be utilized
+            by other controls.
+            </summary>
+        </member>
+        <member name="P:Rampastring.XNAUI.XNAControls.XNAScrollBar.ItemCount">
+            <summary>
+            The number of items in the scrollable parent control.
+            </summary>
+        </member>
+        <member name="P:Rampastring.XNAUI.XNAControls.XNAScrollBar.DisplayedItemCount">
+            <summary>
+            The number of items that the scrollable parent control
+            is able to display at once.
+            </summary>
+        </member>
+        <member name="P:Rampastring.XNAUI.XNAControls.XNAScrollBar.TopIndex">
+            <summary>
+            The index of the first displayed item of the scrollable parent control's items.
+            The parent of the scroll-bar has to keep the scrollbar up-to-date when the 
+            top index of the parent changes.
+            </summary>
+        </member>
+        <member name="P:Rampastring.XNAUI.XNAControls.XNAScrollBar.ScrollWidth">
+            <summary>
+            Returns the width of the scroll bar.
+            </summary>
+        </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNAScrollBar.BtnScrollUp_LeftClick(System.Object,System.EventArgs)">
+            <summary>
+            Scrolls up when the user presses on the "scroll up" arrow.
+            </summary>
+        </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNAScrollBar.BtnScrollDown_LeftClick(System.Object,System.EventArgs)">
+            <summary>
+            Scrolls down when the user presses on the "scroll down" arrow.
+            </summary>
+        </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNAScrollBar.IsDrawn">
+            <summary>
+            Returns a bool that tells whether there's enough items in a list for 
+            the scrollbar to be drawn.
+            </summary>
+        </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNAScrollBar.Refresh">
+            <summary>
+            Refreshes the scroll bar's thumb size.
+            </summary>
+        </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNAScrollBar.OnLeftClick">
+            <summary>
+            Scrolls the scrollbar when it's clicked on.
+            </summary>
+        </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNAScrollBar.OnMouseMove">
+            <summary>
+            Scrolls the scrollbar if the user presses the mouse left button
+            while moving the cursor over the scrollbar.
+            </summary>
+        </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNAScrollBar.RefreshButtonY(System.Int32)">
+            <summary>
+            Updates the top item index of the scroll bar,
+            and the vertical position of the scroll bar's thumb.
+            </summary>
+        </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNAScrollBar.RefreshButtonY">
+            <summary>
+            Updates the vertical position of the scroll bar's thumb.
+            </summary>
+        </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNAScrollBar.Update(Microsoft.Xna.Framework.GameTime)">
+            <summary>
+            Updates the scroll bar's logic each frame.
+            Makes it possible to drag the scrollbar thumb even if the cursor
+            leaves the scroll bar's surface.
+            </summary>
+            <param name="gameTime">Provides a snapshot of timing values.</param>
+        </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNAScrollBar.Draw(Microsoft.Xna.Framework.GameTime)">
+            <summary>
+            Draws the scroll bar.
+            </summary>
+            <param name="gameTime">Provides a snapshot of timing values.</param>
+        </member>
+        <member name="T:Rampastring.XNAUI.XNAControls.XNASuggestionTextBox">
+            <summary>
+            A text box that displays a "suggestion" text when it's not active.
+            </summary>
+        </member>
+        <member name="T:Rampastring.XNAUI.XNAControls.XNATextBlock">
+            <summary>
+            A panel with text.
+            </summary>
+        </member>
+        <member name="T:Rampastring.XNAUI.XNAControls.XNATextBox">
+            <summary>
+            A text input control.
+            </summary>
+        </member>
+        <member name="P:Rampastring.XNAUI.XNAControls.XNATextBox.InputPosition">
+            <summary>
+            The input character index inside the textbox text.
+            </summary>
+        </member>
+        <member name="P:Rampastring.XNAUI.XNAControls.XNATextBox.TextStartPosition">
+            <summary>
+            The start character index of the visible part of the text string.
+            </summary>
+        </member>
+        <member name="P:Rampastring.XNAUI.XNAControls.XNATextBox.TextEndPosition">
+            <summary>
+            The end character index of the visible part of the text string.
+            </summary>
+        </member>
+        <member name="T:Rampastring.XNAUI.XNAControls.Callback">
+            <summary>
+            A callback for storing a delegate and its parameters.
+            </summary>
+        </member>
+        <member name="T:Rampastring.XNAUI.XNAControls.XNAButton">
+            <summary>
+            A basic button.
+            </summary>
+        </member>
+        <member name="T:Rampastring.XNAUI.XNAControls.XNACheckBox">
+            <summary>
+            A check-box.
+            </summary>
+        </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNAContextMenu.AddItem(Rampastring.XNAUI.XNAControls.XNADropDownItem)">
+            <summary>
+            Adds an item into the context menu.
+            </summary>
+            <param name="item">The item.</param>
+        </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNAContextMenu.AddItem(System.String)">
+            <summary>
+            Generates and adds an item with the specified text into the context menu.
+            </summary>
+            <param name="text">The text of the item.</param>
+        </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNAContextMenu.AddItem(System.String,Microsoft.Xna.Framework.Graphics.Texture2D)">
+            <summary>
+            Generates and adds an item with the specified text and texture
+            into the context menu.
+            </summary>
+            <param name="text">The text of the item.</param>
+            <param name="texture">The item's texture.</param>
+        </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNAContextMenu.AddItem(System.String,Microsoft.Xna.Framework.Color)">
+            <summary>
+            Generates and adds an item with the specified text
+            and text color into the context menu.
+            </summary>
+            <param name="text">The text of the item.</param>
+            <param name="color">The color of the item's text.</param>
+        </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNAContextMenu.GetItemIndexOnCursor">
+            <summary>
+            Returns the index of the item that the cursor currently points to.
+            </summary>
+        </member>
+        <member name="T:Rampastring.XNAUI.XNAControls.XNADropDown">
+            <summary>
+            A drop-down.
+            </summary>
+        </member>
+        <member name="P:Rampastring.XNAUI.XNAControls.XNADropDown.IsDroppedDown">
+            <summary>
+            Gets or sets the dropped-down status of the drop-down control.
+            </summary>
+        </member>
+        <member name="P:Rampastring.XNAUI.XNAControls.XNADropDown.AllowDropDown">
+            <summary>
+            Controls whether the drop-down control can be dropped down.
+            </summary>
+        </member>
+        <member name="P:Rampastring.XNAUI.XNAControls.XNADropDown.SelectedIndex">
+            <summary>
+            Gets or sets the selected index of the drop-down control.
+            </summary>
+        </member>
+        <member name="P:Rampastring.XNAUI.XNAControls.XNADropDown.SelectedItem">
+            <summary>
+            Gets the currently selected item of the drop-down control.
+            </summary>
+        </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNADropDown.AddItem(Rampastring.XNAUI.XNAControls.XNADropDownItem)">
+            <summary>
+            Adds an item into the drop-down.
+            </summary>
+            <param name="item">The item.</param>
+        </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNADropDown.AddItem(System.String)">
+            <summary>
+            Generates and adds an item with the specified text into the drop-down.
+            </summary>
+            <param name="text">The text of the item.</param>
+        </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNADropDown.AddItem(System.String,Microsoft.Xna.Framework.Graphics.Texture2D)">
+            <summary>
+            Generates and adds an item with the specified text and texture
+            into the drop-down.
+            </summary>
+            <param name="text">The text of the item.</param>
+            <param name="texture">The item's texture.</param>
+        </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNADropDown.AddItem(System.String,Microsoft.Xna.Framework.Color)">
+            <summary>
+            Generates and adds an item with the specified text
+            and text color into the drop-down control.
+            </summary>
+            <param name="text">The text of the item.</param>
+            <param name="color">The color of the item's text.</param>
+        </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNADropDown.GetItemIndexOnCursor">
+            <summary>
+            Returns the index of the item that the cursor currently points to.
+            </summary>
+        </member>
+        <member name="T:Rampastring.XNAUI.XNAControls.XNAControl">
+            <summary>
+            The base class for a XNA-based UI control.
+            </summary>
+        </member>
+        <member name="P:Rampastring.XNAUI.XNAControls.XNAControl.WindowManager">
+            <summary>
+            Gets the window manager associated with this control.
+            </summary>
+        </member>
+        <member name="P:Rampastring.XNAUI.XNAControls.XNAControl.ClientRectangle">
+            <summary>
+            The display rectangle of the control inside its parent.
+            </summary>
+        </member>
+        <member name="P:Rampastring.XNAUI.XNAControls.XNAControl.Focused">
+            <summary>
+            Determines whether the control should block other controls on the screen
+            from being interacted with.
+            </summary>
+        </member>
+        <member name="P:Rampastring.XNAUI.XNAControls.XNAControl.IsActive">
+            <summary>
+            Gets or sets a bool that determines whether this control is the current focus of the mouse cursor.
+            </summary>
+        </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNAControl.IsLastParentActive">
+            <summary>
+            Checks if the last parent of this control is active.
+            </summary>
+        </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNAControl.WindowRectangle">
+            <summary>
+            Returns the client rectangle of the control inside the game window.
+            </summary>
+            <returns>The client rectangle of the control inside the game window.</returns>
+        </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNAControl.CenterOnParent">
+            <summary>
+            Centers the control on the middle of its parent's client rectangle.
+            </summary>
+        </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNAControl.GetCursorPoint">
+            <summary>
+            Gets the cursor's location relative to this control's location.
+            </summary>
+            <returns>A point that represents the cursor's location relative to this control's location.</returns>
+        </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNAControl.AddCallback(System.Delegate,System.Object[])">
+            <summary>
+            Schedules a delegate to be executed on the next game loop frame, 
+            on the main game thread.
+            </summary>
+            <param name="d">The delegate.</param>
+            <param name="args">The arguments to be passed on to the delegate.</param>
+        </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNAControl.AddChild(Rampastring.XNAUI.XNAControls.XNAControl)">
+            <summary>
+            Adds a child control to the control.
+            </summary>
+            <param name="child">The child control.</param>
+        </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNAControl.AddChildWithoutInitialize(Rampastring.XNAUI.XNAControls.XNAControl)">
+            <summary>
+            Adds a child control to the control without calling the child's Initialize method.
+            </summary>
+            <param name="child">The child control.</param>
+        </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNAControl.AddChildToFirstIndex(Rampastring.XNAUI.XNAControls.XNAControl)">
+            <summary>
+            Adds a child control to the control, making the added child
+            the "first child" of this control.
+            </summary>
+            <param name="child">The child control.</param>
+        </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNAControl.Disable">
+            <summary>
+            Disables and hides the control.
+            </summary>
+        </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNAControl.Enable">
+            <summary>
+            Enables and shows the control.
+            </summary>
+        </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNAControl.Kill">
+            <summary>
+            Destroys the control and all child controls to free up resources.
+            </summary>
+        </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNAControl.Update(Microsoft.Xna.Framework.GameTime)">
+            <summary>
+            Updates the control's logic and handles input.
+            </summary>
+            <param name="gameTime">Provides a snapshot of timing values.</param>
+        </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNAControl.Draw(Microsoft.Xna.Framework.GameTime)">
+            <summary>
+            Draws the control and its child controls.
+            </summary>
+            <param name="gameTime">Provides a snapshot of timing values.</param>
+        </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNAControl.DrawChildren(Microsoft.Xna.Framework.GameTime)">
+            <summary>
+            Draws the control's child controls.
+            </summary>
+        </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNAControl.OnMouseEnter">
+            <summary>
+            Called when the mouse cursor enters the control's client rectangle.
+            </summary>
+        </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNAControl.OnMouseLeave">
+            <summary>
+            Called when the mouse cursor leaves the control's client rectangle.
+            </summary>
+        </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNAControl.OnLeftClick">
+            <summary>
+            Called when the left mouse button has been 
+            clicked on the control's client rectangle.
+            </summary>
+        </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNAControl.OnDoubleLeftClick">
+            <summary>
+            Called when the left mouse button has been 
+            clicked twice on the control's client rectangle.
+            </summary>
+        </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNAControl.OnRightClick">
+            <summary>
+            Called when the right mouse button has been 
+            clicked on the control's client rectangle.
+            </summary>
+        </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNAControl.OnMouseMove">
+            <summary>
+            Called when the mouse moves on the control's client rectangle.
+            </summary>
+        </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNAControl.OnMouseOnControl(Rampastring.XNAUI.XNAControls.MouseEventArgs)">
+            <summary>
+            Called on each frame while the mouse is on the control's
+            client rectangle.
+            </summary>
+            <param name="eventArgs">Mouse event arguments.</param>
+        </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNAControl.OnMouseScrolled">
+            <summary>
+            Called when the scroll wheel has been scrolled on the 
+            control's client rectangle.
+            </summary>
+        </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNAControl.OnSelectedChanged">
+            <summary>
+            Called when the control's status as the selected (last-clicked)
+            control has been changed.
+            </summary>
+        </member>
+        <member name="T:Rampastring.XNAUI.XNAControls.XNADropDownItem">
+            <summary>
+            A drop-down / context menu item.
+            </summary>
+        </member>
+        <member name="P:Rampastring.XNAUI.XNAControls.XNADropDownItem.Tag">
+            <summary>
+            An object for containing custom info in the drop down item.
+            </summary>
+        </member>
+        <member name="T:Rampastring.XNAUI.XNAControls.XNALabel">
+            <summary>
+            A static label control.
+            </summary>
+        </member>
+        <member name="P:Rampastring.XNAUI.XNAControls.XNALabel.AnchorPoint">
+            <summary>
+            Determines the point that the text is placed around
+            depending on TextAnchor.
+            </summary>
+        </member>
+        <member name="P:Rampastring.XNAUI.XNAControls.XNALabel.TextAnchor">
+            <summary>
+            Determines the position of the label's text relative to AnchorPoint.
+            </summary>
+        </member>
+        <member name="T:Rampastring.XNAUI.XNAControls.LabelTextAnchorInfo">
+            <summary>
+            An enum for determining which part of a text is anchored to a specific point.
+            </summary>
+        </member>
+        <member name="P:Rampastring.XNAUI.XNAControls.XNAListBox.AllowMultiLineItems">
+            <summary>
+            If set to false, only the first line will be displayed from items
+            that are long enough to cover more than one line. Changing this
+            only affects new items in the list box; existing items are not
+            truncated!
+            </summary>
+        </member>
+        <member name="P:Rampastring.XNAUI.XNAControls.XNAListBox.SelectedItem">
+            <summary>
+            Gets the currently selected list box item.
+            </summary>
+        </member>
+        <member name="P:Rampastring.XNAUI.XNAControls.XNAListBox.NumberOfLinesOnList">
+            <summary>
+            Returns the number of text lines that can fit on the list box at a time.
+            </summary>
+        </member>
+        <member name="P:Rampastring.XNAUI.XNAControls.XNAListBox.EnableScrollbar">
+            <summary>
+            Controls whether the integrated listbox scrollbar is used.
+            </summary>
+        </member>
+        <member name="P:Rampastring.XNAUI.XNAControls.XNAListBox.AllowRightClickUnselect">
+            <summary>
+            Gets or sets a bool that determines whether the user is able to un-select
+            the currently selected listbox item by right-clicking on the list box.
+            </summary>
+        </member>
+        <member name="P:Rampastring.XNAUI.XNAControls.XNAListBox.DrawSelectionUnderScrollbar">
+            <summary>
+            Controls whether the highlighted background of the selected item should
+            be drawn under the scrollbar area.
+            </summary>
+        </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNAListBox.AddItem(System.String)">
+            <summary>
+            Adds a selectable item to the list box with the default item color.
+            </summary>
+            <param name="text">The text of the item.</param>
+        </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNAListBox.AddItem(Rampastring.XNAUI.XNAControls.XNAListBoxItem)">
+            <summary>
+            Adds an item into the list box.
+            </summary>
+            <param name="listBoxItem">The item to add.</param>
+        </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNAListBox.GetTotalLineCount">
+            <summary>
+            Returns the total amount of lines in all list box items combined.
+            </summary>
+        </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNAListBox.ScrollToBottom">
+            <summary>
+            Scrolls the list box so that the last item is visible.
+            </summary>
+        </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNAListBox.Initialize">
+            <summary>
+            Initializes the list box.
+            </summary>
+        </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNAListBox.Keyboard_OnKeyPressed(System.Object,Rampastring.XNAUI.Input.KeyPressEventArgs)">
+            <summary>
+            Allows copying items to the clipboard using Ctrl + C.
+            </summary>
+        </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNAListBox.HandleCharInput(System.Char)">
+            <summary>
+            Allows the user to select items by selecting the list box and then
+            pressing the first letter of the item's text.
+            </summary>
+            <param name="character">The entered character.</param>
+        </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNAListBox.HandleScrollKeyDown(Microsoft.Xna.Framework.GameTime,System.Action)">
+            <summary>
+            Handles input from scrolling keys.
+            </summary>
+            <param name="gameTime">GameTime.</param>
+            <param name="action">The action to execute when scrolling.</param>
+        </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNAListBox.ScrollUp">
+            <summary>
+            Handles scrolling by holding down the up arrow key.
+            </summary>
+        </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNAListBox.ScrollDown">
+            <summary>
+            Handles scrolling by holding down the down arrow key.
+            </summary>
+        </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNAListBox.OnMouseScrolled">
+            <summary>
+            Handles input from a scroll wheel.
+            </summary>
+        </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNAListBox.OnMouseOnControl(Rampastring.XNAUI.XNAControls.MouseEventArgs)">
+            <summary>
+            Updates the hovered item index while the cursor is on this control.
+            </summary>
+        </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNAListBox.OnRightClick">
+            <summary>
+            Clears the selection on right-click.
+            </summary>
+        </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNAListBox.OnLeftClick">
+            <summary>
+            Selects an item when the user left-clicks on this control.
+            </summary>
+        </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNAListBox.OnMouseLeave">
+            <summary>
+            Updates the hovered index when the mouse cursor leaves this control's client rectangle.
+            </summary>
+        </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNAListBox.GetItemIndexOnCursor(Microsoft.Xna.Framework.Point)">
+            <summary>
+            Returns the index of the list box item that the cursor is
+            currently pointing at, or -1 if the cursor doesn't point at any item
+            of this list box.
+            </summary>
+            <param name="mouseLocation">The location of the cursor relative 
+            to this control.</param>
+        </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNAListBox.Draw(Microsoft.Xna.Framework.GameTime)">
+            <summary>
+            Draws the list box and its items.
+            </summary>
+            <param name="gameTime">Provides a snapshot of timing values.</param>
+        </member>
+        <member name="T:Rampastring.XNAUI.XNAControls.XNAMultiColumnListBox">
+            <summary>
+            A list box with multiple columns.
+            </summary>
+        </member>
+        <member name="P:Rampastring.XNAUI.XNAControls.XNAMultiColumnListBox.SelectedIndex">
+            <summary>
+            Gets or sets the index of the currently selected list box item.
+            </summary>
+        </member>
+        <member name="P:Rampastring.XNAUI.XNAControls.XNAMultiColumnListBox.TopIndex">
+            <summary>
+            Gets or sets the index of the first visible item in the list box.
+            </summary>
+        </member>
+        <member name="P:Rampastring.XNAUI.XNAControls.XNAMultiColumnListBox.LastIndex">
+            <summary>
+            Gets the index of the last visible item in the list box.
+            </summary>
+        </member>
+        <member name="P:Rampastring.XNAUI.XNAControls.XNAMultiColumnListBox.ItemCount">
+            <summary>
+            Gets the number of items on the list box.
+            </summary>
+        </member>
+        <member name="P:Rampastring.XNAUI.XNAControls.XNAMultiColumnListBox.AllowRightClickUnselect">
+            <summary>
+            Gets or sets a bool that determines whether the user is able to un-select
+            the currently selected listbox item by right-clicking on the list box.
+            </summary>
+        </member>
+        <member name="P:Rampastring.XNAUI.XNAControls.XNAMultiColumnListBox.DrawSelectionUnderScrollbar">
+            <summary>
+            Controls whether the highlighted background of the selected item should
+            be drawn under the scrollbar area.
+            </summary>
+        </member>
+        <member name="P:Rampastring.XNAUI.XNAControls.XNAPanel.BorderTexture">
+            <summary>
+            If this is set, the XNAPanel will render itself on a separate render target.
+            After the rendering is complete, it'll set this render target to be the
+            primary render target.
+            </summary>
+        </member>
+        <member name="F:Rampastring.XNAUI.XNAControls.XNAPanel.AlphaRate">
+            <summary>
+            The panel's transparency changing rate per 100 milliseconds.
+            If the panel is transparent, it'll become non-transparent at this rate.
+            </summary>
+        </member>
+        <member name="T:Rampastring.XNAUI.XNAControls.XNATabControl">
+            <summary>
+            A control that has multiple tabs, of which only one can be selected at a time.
+            </summary>
+        </member>
+        <member name="T:Rampastring.XNAUI.XNAControls.XNATimerControl">
+            <summary>
+            A control that acts as a timer.
+            </summary>
+        </member>
+        <member name="P:Rampastring.XNAUI.XNAControls.XNATimerControl.AutoReset">
+            <summary>
+            If set, the timer will automatically restart after calling
+            the TimeElapsed event.
+            </summary>
+        </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNATimerControl.Pause">
+            <summary>
+            Pauses the timer.
+            </summary>
+        </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNATimerControl.Resume">
+            <summary>
+            Resumes a previously paused (with Pause()) timer.
+            </summary>
+        </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNATimerControl.Start">
+            <summary>
+            Sets the timer to trigger after the time specified in the timer's Interval 
+            and starts the timer.
+            </summary>
+        </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNATimerControl.Accelerate(System.TimeSpan)">
+            <summary>
+            Lowers the time until the next event by the specified amount of time.
+            </summary>
+            <param name="timeSpan">The time.</param>
+        </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNATimerControl.SetTime(System.TimeSpan)">
+            <summary>
+            Sets the time until the next TimeElapsed event.
+            </summary>
+            <param name="timeSpan">The time.</param>
+        </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNATimerControl.GetTime">
+            <summary>
+            Returns the current time until the next TimeElapsed event.
+            </summary>
+            <returns>The time until the next TimeElapsed event.</returns>
+        </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNATrackbar.OnMouseOnControl(Rampastring.XNAUI.XNAControls.MouseEventArgs)">
+            <summary>
+            Scrolls the scrollbar if the user presses the mouse left button
+            while moving the cursor over the scrollbar.
+            </summary>
+        </member>
+        <member name="P:Rampastring.XNAUI.XNAControls.MouseEventArgs.RelativeLocation">
+            <summary>
+            The point of the mouse cursor relative to the control.
+            </summary>
+        </member>
+        <member name="P:Rampastring.XNAUI.Input.Cursor.LeftDown">
+            <summary>
+            Gets a value that indicates whether the left mouse button is held down
+            on the current frame.
+            </summary>
+        </member>
+        <member name="P:Rampastring.XNAUI.Input.Cursor.LeftPressedDown">
+            <summary>
+            Gets a value that indicates whether the left mouse button was pressed
+            down on this frame (meaning it's down on the current frame, but wasn't down
+            on the previous frame).
+            </summary>
+        </member>
+        <member name="P:Rampastring.XNAUI.Input.Cursor.RightPressedDown">
+            <summary>
+            Gets a value that indicates whether the right mouse button was pressed
+            down on this frame (meaning it's down on the current frame, but wasn't down
+            on the previous frame).
+            </summary>
+        </member>
+        <member name="M:Rampastring.XNAUI.Input.Cursor.LoadNativeCursor(System.String)">
+            <summary>
+            Attemps to replace the native operating system pointer cursor with
+            a cursor file from a specific path for the game window. If succesful,
+            the cursor sprite is hidden, otherwise the cursor sprite remains visible.
+            </summary>
+            <param name="path">The path to the cursor (.cur) file.</param>
+        </member>
+        <member name="T:Rampastring.XNAUI.Input.KeyboardEventInput">
+            <summary>
+            Handles text input. XNA does not have a built-in system for text input.
+            Note: MonoGame has a way of detecting text input,
+            via the Game.Window.TextInput event:
+            http://www.gamedev.net/topic/457783-xna-getting-text-from-keyboard/
+            </summary>
+        </member>
+        <member name="E:Rampastring.XNAUI.Input.KeyboardEventInput.CharEntered">
+            <summary>
+            Event raised when a character has been entered.
+            </summary>
+        </member>
+        <member name="M:Rampastring.XNAUI.Input.KeyboardEventInput.Initialize(Microsoft.Xna.Framework.GameWindow)">
+            <summary>
+            Initialize the TextInput with the given GameWindow.
+            </summary>
+            <param name="window">The XNA window to which text input should be linked.</param>
+        </member>
+        <member name="T:Rampastring.XNAUI.Input.RKeyboard">
+            <summary>
+            A class for handling the keyboard.
+            </summary>
+        </member>
+        <member name="T:Rampastring.XNAUI.Properties.Resources">
+            <summary>
+              A strongly-typed resource class, for looking up localized strings, etc.
+            </summary>
+        </member>
+        <member name="P:Rampastring.XNAUI.Properties.Resources.ResourceManager">
+            <summary>
+              Returns the cached ResourceManager instance used by this class.
+            </summary>
+        </member>
+        <member name="P:Rampastring.XNAUI.Properties.Resources.Culture">
+            <summary>
+              Overrides the current thread's CurrentUICulture property for all
+              resource lookups using this strongly typed resource class.
+            </summary>
+        </member>
+        <member name="P:Rampastring.XNAUI.Properties.Resources.hotbutton">
+            <summary>
+              Looks up a localized resource of type System.Drawing.Bitmap.
+            </summary>
+        </member>
+        <member name="M:Rampastring.XNAUI.Renderer.GetSafeString(System.String,System.Int32)">
+            <summary>
+            Returns a version of the given string where all characters that don't
+            appear in the given font have been replaced with question marks.
+            </summary>
+            <param name="str">The string.</param>
+            <param name="fontIndex">The index of the font.</param>
+        </member>
+        <member name="M:Rampastring.XNAUI.Renderer.GetStringWithLimitedWidth(System.String,System.Int32,System.Int32)">
+            <summary>
+            Returns a that has had its width limited to a specific number.
+            Characters that'd cross over the width have been cut.
+            </summary>
+            <param name="str">The string to limit.</param>
+            <param name="fontIndex">The index of the font to use.</param>
+            <param name="maxWidth">The maximum width of the string.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Rampastring.XNAUI.WindowManager.RecalculateScaling">
+            <summary>
+            Re-calculates the scaling of the rendered screen to fill the window.
+            </summary>
+        </member>
+        <member name="M:Rampastring.XNAUI.WindowManager.AddCallback(System.Delegate,System.Object[])">
+            <summary>
+            Schedules a delegate to be executed on the next game loop frame, 
+            on the main game thread.
+            </summary>
+            <param name="d">The delegate.</param>
+            <param name="args">The arguments to be passed on to the delegate.</param>
+        </member>
+        <member name="M:Rampastring.XNAUI.WindowManager.AddAndInitializeControl(Rampastring.XNAUI.XNAControls.XNAControl)">
+            <summary>
+            Adds a control into the WindowManager, on the last place
+            in the list of controls.
+            </summary>
+            <param name="control">The control to add.</param>
+        </member>
+        <member name="M:Rampastring.XNAUI.WindowManager.InsertAndInitializeControl(Rampastring.XNAUI.XNAControls.XNAControl)">
+            <summary>
+            Inserts a control into the WindowManager on the first place
+            in the list of controls.
+            </summary>
+            <param name="control">The control to insert.</param>
+        </member>
+        <member name="M:Rampastring.XNAUI.WindowManager.SetControlBox(System.Boolean)">
+            <summary>
+            Enables or disables the "control box" (minimize/maximize/close buttons) for the game form.
+            </summary>
+            <param name="value">True to enable the control box, false to disable it.</param>
+        </member>
+        <member name="M:Rampastring.XNAUI.WindowManager.InitGraphicsMode(System.Int32,System.Int32,System.Boolean)">
+            <summary>
+            Attempt to set the display mode to the desired resolution.  Itterates through the display
+            capabilities of the default graphics adapter to determine if the graphics adapter supports the
+            requested resolution.  If so, the resolution is set and the function returns true.  If not,
+            no change is made and the function returns false.
+            </summary>
+            <param name="iWidth">Desired screen width.</param>
+            <param name="iHeight">Desired screen height.</param>
+            <param name="bFullScreen">True if you wish to go to Full Screen, false for Windowed Mode.</param>
+        </member>
+    </members>
+</doc>
