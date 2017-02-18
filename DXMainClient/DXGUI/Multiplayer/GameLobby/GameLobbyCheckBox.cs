@@ -25,12 +25,21 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private bool defaultValue;
 
+        private string enabledSpawnIniValue = "True";
+        private string disabledSpawnIniValue = "False";
+
         protected override void ParseAttributeFromINI(IniFile iniFile, string key, string value)
         {
             switch (key)
             {
                 case "SpawnIniOption":
                     spawnIniOption = value;
+                    return;
+                case "EnabledSpawnIniValue":
+                    enabledSpawnIniValue = value;
+                    return;
+                case "DisabledSpawnIniValue":
+                    disabledSpawnIniValue = value;
                     return;
                 case "CustomIniPath":
                     customIniPath = value;
@@ -64,10 +73,16 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         /// <param name="spawnIni">The spawn INI file.</param>
         public void ApplySpawnINICode(IniFile spawnIni)
         {
-            if (String.IsNullOrEmpty(spawnIniOption))
+            if (string.IsNullOrEmpty(spawnIniOption))
                 return;
 
-            spawnIni.SetBooleanValue("Settings", spawnIniOption, Checked != reversed);
+            string value = disabledSpawnIniValue;
+            if (Checked != reversed)
+            {
+                value = enabledSpawnIniValue;
+            }
+
+            spawnIni.SetStringValue("Settings", spawnIniOption, value);
         }
 
         public void ApplyMapCode(IniFile mapIni)
