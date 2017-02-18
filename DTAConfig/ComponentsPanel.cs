@@ -82,6 +82,9 @@ namespace DTAConfig
             int componentIndex = 0;
             bool buttonEnabled = false;
 
+            if (CUpdater.CustomComponents == null)
+                return;
+
             foreach (CustomComponent c in CUpdater.CustomComponents)
             {
                 string buttonText = "Not Available";
@@ -241,6 +244,9 @@ namespace DTAConfig
             Logger.Log("Cancelling all downloads.");
 
             downloadCancelled = true;
+
+            if (CUpdater.CustomComponents == null)
+                return;
 
             foreach (CustomComponent cc in CUpdater.CustomComponents)
             {
