@@ -139,7 +139,6 @@
     <Compile Include="XNAExtraPanel.cs" />
     <Compile Include="XNAMessageBox.cs" />
     <Compile Include="XNAWindow.cs" />
-    <Compile Include="FunkyIran\MapPreviewGenerator.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
