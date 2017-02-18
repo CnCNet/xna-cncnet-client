@@ -12,21 +12,26 @@ using DTAClient.Online.EventArguments;
 using ClientGUI;
 using DTAClient.Domain.Multiplayer.CnCNet;
 using DTAClient.Domain.Multiplayer;
+using Rampastring.XNAUI.XNAControls;
 
 namespace DTAClient.DXGUI.Multiplayer.CnCNet
 {
+    /// <summary>
+    /// A game lobby for loading saved CnCNet games.
+    /// </summary>
     public class CnCNetGameLoadingLobby : GameLoadingLobbyBase
     {
-        const double GAME_BROADCAST_CHECK_INTERVAL = 10.0;
-        const string NOT_ALL_PLAYERS_PRESENT_CTCP_COMMAND = "NPRSNT";
-        const string GET_READY_CTCP_COMMAND = "GTRDY";
-        const string FILE_HASH_CTCP_COMMAND = "FHSH";
-        const string INVALID_FILE_HASH_CTCP_COMMAND = "IHSH";
-        const string TUNNEL_PING_CTCP_COMMAND = "TNLPNG";
-        const string OPTIONS_CTCP_COMMAND = "OP";
-        const string INVALID_SAVED_GAME_INDEX_CTCP_COMMAND = "ISGI";
-        const string START_GAME_CTCP_COMMAND = "START";
-        const string PLAYER_READY_CTCP_COMMAND = "READY";
+        private const double GAME_BROADCAST_INTERVAL = 20.0;
+        private const double INITIAL_GAME_BROADCAST_DELAY = 10.0;
+        private const string NOT_ALL_PLAYERS_PRESENT_CTCP_COMMAND = "NPRSNT";
+        private const string GET_READY_CTCP_COMMAND = "GTRDY";
+        private const string FILE_HASH_CTCP_COMMAND = "FHSH";
+        private const string INVALID_FILE_HASH_CTCP_COMMAND = "IHSH";
+        private const string TUNNEL_PING_CTCP_COMMAND = "TNLPNG";
+        private const string OPTIONS_CTCP_COMMAND = "OP";
+        private const string INVALID_SAVED_GAME_INDEX_CTCP_COMMAND = "ISGI";
+        private const string START_GAME_CTCP_COMMAND = "START";
+        private const string PLAYER_READY_CTCP_COMMAND = "READY";
 
         public CnCNetGameLoadingLobby(WindowManager windowManager, TopBar topBar,
             CnCNetManager connectionManager, TunnelHandler tunnelHandler,
@@ -51,34 +56,33 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             };
         }
 
-        CommandHandlerBase[] ctcpCommandHandlers;
+        private CommandHandlerBase[] ctcpCommandHandlers;
 
-        CnCNetManager connectionManager;
+        private CnCNetManager connectionManager;
 
-        List<GameMode> gameModes;
+        private List<GameMode> gameModes;
 
-        TunnelHandler tunnelHandler;
-        CnCNetTunnel tunnel;
+        private TunnelHandler tunnelHandler;
+        private CnCNetTunnel tunnel;
 
-        Channel channel;
+        private Channel channel;
 
-        IRCColor chatColor;
+        private IRCColor chatColor;
 
-        string hostName;
+        private string hostName;
 
-        string localGame;
+        private string localGame;
 
-        string gameFilesHash;
+        private string gameFilesHash;
 
-        int timerTicks = 0;
-        TimeSpan timeSinceGameBroadcast = TimeSpan.Zero;
+        private XNATimerControl gameBroadcastTimer;
 
-        bool started;
+        private bool started;
 
-        DarkeningPanel dp;
+        private DarkeningPanel dp;
 
-        TopBar topBar;
-
+        private TopBar topBar;
+        
         public override void Initialize()
         {
             dp = new DarkeningPanel(WindowManager);
@@ -94,6 +98,19 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             connectionManager.ConnectionLost += ConnectionManager_ConnectionLost;
             connectionManager.Disconnected += ConnectionManager_Disconnected;
+
+            gameBroadcastTimer = new XNATimerControl(WindowManager);
+            gameBroadcastTimer.AutoReset = true;
+            gameBroadcastTimer.Interval = TimeSpan.FromSeconds(GAME_BROADCAST_INTERVAL);
+            gameBroadcastTimer.Enabled = true;
+            gameBroadcastTimer.TimeElapsed += GameBroadcastTimer_TimeElapsed;
+
+            WindowManager.AddAndInitializeControl(gameBroadcastTimer);
+        }
+
+        private void GameBroadcastTimer_TimeElapsed(object sender, EventArgs e)
+        {
+            BroadcastGame();
         }
 
         protected override void OnVisibleChanged(object sender, EventArgs args)
@@ -134,9 +151,6 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             started = false;
 
-            if (isHost)
-                timerTicks = 1000000;
-
             Refresh(isHost);
         }
 
@@ -145,6 +159,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         /// </summary>
         public void Clear()
         {
+            gameBroadcastTimer.Enabled = false;
+
             if (channel != null)
             {
                 channel.Leave();
@@ -198,6 +214,10 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                     QueuedMessageType.SYSTEM_MESSAGE, 50));
 
                 gameFilesHash = fhc.GetCompleteHash();
+
+                gameBroadcastTimer.Enabled = true;
+                gameBroadcastTimer.Start();
+                gameBroadcastTimer.SetTime(TimeSpan.FromSeconds(INITIAL_GAME_BROADCAST_DELAY));
             }
             else
             {
@@ -567,16 +587,9 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         private void BroadcastGame()
         {
-            timeSinceGameBroadcast = TimeSpan.Zero;
-
             Channel broadcastChannel = connectionManager.GetChannel("#cncnet-" + localGame.ToLower() + "-games");
 
             if (broadcastChannel == null)
-                return;
-
-            timerTicks++;
-
-            if (timerTicks < 3)
                 return;
 
             StringBuilder sb = new StringBuilder("GAME ");
@@ -616,21 +629,6 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             sb.Append(0); // LoadedGameId
 
             broadcastChannel.SendCTCPMessage(sb.ToString(), QueuedMessageType.SYSTEM_MESSAGE, 20);
-
-            timerTicks = 0;
-        }
-
-        public override void Update(GameTime gameTime)
-        {
-            if (IsHost)
-            {
-                timeSinceGameBroadcast += gameTime.ElapsedGameTime;
-
-                if (timeSinceGameBroadcast > TimeSpan.FromSeconds(GAME_BROADCAST_CHECK_INTERVAL))
-                    BroadcastGame();
-            }
-
-            base.Update(gameTime);
         }
 
         public override string GetSwitchName()
