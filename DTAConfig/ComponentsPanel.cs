@@ -33,10 +33,12 @@ namespace DTAConfig
 
             int componentIndex = 0;
 
+            if (CUpdater.CustomComponents == null)
+                return;
+
             foreach (CustomComponent c in CUpdater.CustomComponents)
             {
                 string buttonText = "Not Available";
-                
 
                 if (File.Exists(ProgramConstants.GamePath + c.LocalPath))
                 {
