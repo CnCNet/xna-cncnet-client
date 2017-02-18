@@ -185,9 +185,9 @@ namespace DTAClient.DXGUI.Multiplayer
             AddChild(lblSavedGameTime);
             AddChild(lbChatMessages);
             AddChild(tbChatInput);
-            AddChild(ddSavedGame);
             AddChild(btnLoadGame);
             AddChild(btnLeaveGame);
+            AddChild(ddSavedGame);
 
             base.Initialize();
 
