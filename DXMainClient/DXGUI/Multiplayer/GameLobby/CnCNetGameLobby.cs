@@ -164,6 +164,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             FileHashCalculator fhc = new FileHashCalculator();
             fhc.CalculateHashes(GameModes);
 
+            gameFilesHash = fhc.GetCompleteHash();
+
             if (IsHost)
             {
                 connectionManager.SendCustomMessage(new QueuedMessage(
@@ -175,8 +177,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     string.Format("TOPIC {0} :{1}", channel.ChannelName,
                     ProgramConstants.CNCNET_PROTOCOL_REVISION + ";" + localGame.ToLower()),
                     QueuedMessageType.SYSTEM_MESSAGE, 50));
-
-                gameFilesHash = fhc.GetCompleteHash();
 
                 gameBroadcastTimer.Enabled = true;
                 gameBroadcastTimer.Start();

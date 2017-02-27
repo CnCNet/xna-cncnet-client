@@ -89,6 +89,11 @@ namespace DTAClient.Online
             get { return connected; }
         }
 
+        public bool IsAttemptingConnection
+        {
+            get { return connection.AttemptingConnection; }
+        }
+
         /// <summary>
         /// The list of all users that we can see on the IRC network.
         /// </summary>
@@ -259,7 +264,7 @@ namespace DTAClient.Online
                 sender = String.Empty;
 
                 // Replace Funky's game identifiers with real game names
-                for (int i = 0; i < gameCollection.GetGameCount(); i++)
+                for (int i = 0; i < gameCollection.GameList.Count; i++)
                     message = message.Replace("new " + gameCollection.GetGameIdentifierFromIndex(i) + " game",
                         "new " + gameCollection.GetFullGameNameFromIndex(i) + " game");
 

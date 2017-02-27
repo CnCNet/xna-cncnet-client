@@ -137,15 +137,6 @@ namespace ClientCore.CnCNet5
         }
 
         /// <summary>
-        /// Gets the amount of CnCNet supported games.
-        /// </summary>
-        /// <returns>The amount of CnCNet games.</returns>
-        public int GetGameCount()
-        {
-            return _gameList.Count;
-        }
-
-        /// <summary>
         /// Seeks the supported game list for a specific game's internal name and if found,
         /// returns the game's full name. Otherwise returns the internal name specified in the param.
         /// </summary>
@@ -190,16 +181,6 @@ namespace ClientCore.CnCNet5
         public string GetGameChatChannelNameFromIdentifier(string gameIdentifier)
         {
             return _gameList.Find(g => g.InternalName == gameIdentifier.ToLower()).ChatChannel;
-        }
-
-        /// <summary>
-        /// Returns a CnCNet supported game from an index.
-        /// </summary>
-        /// <param name="gameIndex">The index of the game to return.</param>
-        /// <returns>The game associated with the index.</returns>
-        public CnCNetGame GetGameFromIndex(int gameIndex)
-        {
-            return _gameList[gameIndex];
         }
     }
 }

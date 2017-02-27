@@ -221,7 +221,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             playerContextMenu.Visible = false;
             playerContextMenu.AddItem("Private Message");
             playerContextMenu.AddItem("Add Friend");
-            playerContextMenu.AddItem("Add to Ignore List");
+            // playerContextMenu.AddItem("Add to Ignore List"); TODO implement the ignore list
             playerContextMenu.OptionSelected += PlayerContextMenu_OptionSelected;
 
             lbChatMessages = new ChatListBox(WindowManager);
@@ -1235,7 +1235,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             Visible = true;
             Enabled = true;
 
-            if (!connectionManager.IsConnected)
+            if (!connectionManager.IsConnected && !connectionManager.IsAttemptingConnection)
             {
                 loginWindow.Enable();
                 loginWindow.LoadSettings();

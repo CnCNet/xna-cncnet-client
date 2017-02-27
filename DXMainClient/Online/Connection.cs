@@ -93,6 +93,9 @@ namespace DTAClient.Online
             if (_isConnected)
                 throw new Exception("The client is already connected!");
 
+            if (_attemptingConnection)
+                return; // Maybe we should throw in this case as well?
+
             welcomeMessageReceived = false;
             connectionCut = false;
             _attemptingConnection = true;
@@ -253,6 +256,12 @@ namespace DTAClient.Online
                 }
 
                 Thread.Sleep(RECONNECT_WAIT_DELAY);
+
+                if (IsConnected || AttemptingConnection)
+                {
+                    Logger.Log("Cancelling reconnection attempt because the user has attempted to reconnect manually.");
+                    return;
+                }
 
                 Logger.Log("Attempting to reconnect to CnCNet.");
                 connectionManager.OnReconnectAttempt();
