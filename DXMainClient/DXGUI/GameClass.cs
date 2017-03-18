@@ -4,6 +4,7 @@ using DTAClient.DXGUI.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
+using Rampastring.Tools;
 using Rampastring.XNAUI;
 using System;
 using System.IO;
@@ -30,6 +31,8 @@ namespace DTAClient.DXGUI
 
         protected override void Initialize()
         {
+            Logger.Log("Initializing GameClass.");
+
             base.Initialize();
 
             string primaryNativeCursorPath = ProgramConstants.GetResourcePath() + "cursor.cur";
@@ -39,8 +42,6 @@ namespace DTAClient.DXGUI
             AssetLoader.AssetSearchPaths.Add(ProgramConstants.GetResourcePath());
             AssetLoader.AssetSearchPaths.Add(ProgramConstants.GetBaseResourcePath());
             AssetLoader.AssetSearchPaths.Add(ProgramConstants.GamePath);
-
-            TargetElapsedTime = TimeSpan.FromMilliseconds(1000.0 / 120.0);
 
             InitializeUISettings();
 

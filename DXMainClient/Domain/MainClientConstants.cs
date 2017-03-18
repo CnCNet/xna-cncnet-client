@@ -25,6 +25,9 @@ namespace DTAClient.Domain
         public static string SUPPORT_URL = "http://www.moddb.com/members/rampastring";
         public static string SUPPORT_URL_SHORT = "www.moddb.com/members/rampastring";
 
+        public static int MAP_CELL_SIZE_X = 48;
+        public static int MAP_CELL_SIZE_Y = 24;
+
         public static OSVersion OSId = OSVersion.UNKNOWN;
 
         public static bool AutoRunCnCNetClient = false;
@@ -34,18 +37,23 @@ namespace DTAClient.Domain
         /// </summary>
         public static void Initialize()
         {
-            OSId = ClientConfiguration.Instance.GetOperatingSystemVersion();
+            var clientConfiguration = ClientConfiguration.Instance;
 
-            GAME_NAME_SHORT = ClientConfiguration.Instance.LocalGame;
-            GAME_NAME_LONG = ClientConfiguration.Instance.LongGameName;
+            OSId = clientConfiguration.GetOperatingSystemVersion();
 
-            SUPPORT_URL = ClientConfiguration.Instance.LongSupportURL;
-            SUPPORT_URL_SHORT = ClientConfiguration.Instance.ShortSupportURL;
+            GAME_NAME_SHORT = clientConfiguration.LocalGame;
+            GAME_NAME_LONG = clientConfiguration.LongGameName;
 
-            CNCNET_LIVE_STATUS_ID = ClientConfiguration.Instance.CnCNetLiveStatusIdentifier;
+            SUPPORT_URL = clientConfiguration.LongSupportURL;
+            SUPPORT_URL_SHORT = clientConfiguration.ShortSupportURL;
 
-            CHANGELOG_URL = ClientConfiguration.Instance.ChangelogURL;
-            CREDITS_URL = ClientConfiguration.Instance.CreditsURL;
+            CNCNET_LIVE_STATUS_ID = clientConfiguration.CnCNetLiveStatusIdentifier;
+
+            CHANGELOG_URL = clientConfiguration.ChangelogURL;
+            CREDITS_URL = clientConfiguration.CreditsURL;
+
+            MAP_CELL_SIZE_X = clientConfiguration.MapCellSizeX;
+            MAP_CELL_SIZE_Y = clientConfiguration.MapCellSizeY;
         }
     }
 }

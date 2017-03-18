@@ -41,6 +41,9 @@ namespace ClientCore.CnCNet5
                 }
             }
 
+            if (name.Length > ClientConfiguration.Instance.MaxNameLength)
+                return "Your nickname is too long.";
+
             return null;
         }
     }

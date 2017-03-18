@@ -17,9 +17,7 @@ namespace DTAClient.Domain.Multiplayer
     /// </summary>
     public class Map
     {
-        const int MAX_PLAYERS = 8;
-        const int MAP_SIZE_X = 48;
-        const int MAP_SIZE_Y = 24;
+        private const int MAX_PLAYERS = 8;
 
         public Map(string path, bool official)
         {
@@ -582,15 +580,15 @@ namespace DTAClient.Domain.Multiplayer
             int isoTileX = rx - ry + Convert.ToInt32(actualSizeValues[2]) - 1;
             int isoTileY = rx + ry - Convert.ToInt32(actualSizeValues[2]) - 1;
 
-            int pixelPosX = isoTileX * MAP_SIZE_X / 2;
-            int pixelPosY = isoTileY * MAP_SIZE_Y / 2;
+            int pixelPosX = isoTileX * MainClientConstants.MAP_CELL_SIZE_X / 2;
+            int pixelPosY = isoTileY * MainClientConstants.MAP_CELL_SIZE_Y / 2;
 
             pixelPosX = pixelPosX - (Convert.ToInt32(localSizeValues[0]) * 48);
             pixelPosY = pixelPosY - (Convert.ToInt32(localSizeValues[1]) * 24);
 
             // Calculate map size
-            int mapSizeX = Convert.ToInt32(localSizeValues[2]) * MAP_SIZE_X;
-            int mapSizeY = Convert.ToInt32(localSizeValues[3]) * MAP_SIZE_Y;
+            int mapSizeX = Convert.ToInt32(localSizeValues[2]) * MainClientConstants.MAP_CELL_SIZE_X;
+            int mapSizeY = Convert.ToInt32(localSizeValues[3]) * MainClientConstants.MAP_CELL_SIZE_Y;
 
             double ratioX = Convert.ToDouble(pixelPosX) / mapSizeX;
             double ratioY = Convert.ToDouble(pixelPosY) / mapSizeY;

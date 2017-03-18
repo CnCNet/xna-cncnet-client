@@ -385,6 +385,16 @@ namespace ClientCore
             get { return clientDefinitionsIni.GetIntValue("Settings", "MaxNameLength", 16); }
         }
 
+        public int MapCellSizeX
+        {
+            get { return clientDefinitionsIni.GetIntValue("Settings", "MapCellSizeX", 48); }
+        }
+
+        public int MapCellSizeY
+        {
+            get { return clientDefinitionsIni.GetIntValue("Settings", "MapCellSizeY", 24); }
+        }
+
         public string[] GetThemeInfoFromIndex(int themeIndex)
         {
             string[] values = clientDefinitionsIni.GetStringValue("Themes", themeIndex.ToString(), ",").Split(',');
