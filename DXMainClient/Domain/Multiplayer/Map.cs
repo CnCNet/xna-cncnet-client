@@ -583,8 +583,8 @@ namespace DTAClient.Domain.Multiplayer
             int pixelPosX = isoTileX * MainClientConstants.MAP_CELL_SIZE_X / 2;
             int pixelPosY = isoTileY * MainClientConstants.MAP_CELL_SIZE_Y / 2;
 
-            pixelPosX = pixelPosX - (Convert.ToInt32(localSizeValues[0]) * 48);
-            pixelPosY = pixelPosY - (Convert.ToInt32(localSizeValues[1]) * 24);
+            pixelPosX = pixelPosX - (Convert.ToInt32(localSizeValues[0]) * MainClientConstants.MAP_CELL_SIZE_X);
+            pixelPosY = pixelPosY - (Convert.ToInt32(localSizeValues[1]) * MainClientConstants.MAP_CELL_SIZE_Y);
 
             // Calculate map size
             int mapSizeX = Convert.ToInt32(localSizeValues[2]) * MainClientConstants.MAP_CELL_SIZE_X;
