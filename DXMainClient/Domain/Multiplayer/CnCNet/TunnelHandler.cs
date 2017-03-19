@@ -178,7 +178,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                     if (tunnel.Version != 2)
                         continue;
 
-                    if (tunnel.Official)
+                    if (tunnel.Official || tunnel.Recommended)
                     {
                         Ping p = new Ping();
                         try
