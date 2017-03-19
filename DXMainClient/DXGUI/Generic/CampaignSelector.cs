@@ -220,7 +220,7 @@ namespace DTAClient.DXGUI.Generic
             Mission mission = Missions[selectedMissionId];
 
             if (!ClientConfiguration.Instance.ModMode && 
-                !CUpdater.IsFileNonexistantOrOriginal(mission.Scenario) || AreFilesModified())
+                (!CUpdater.IsFileNonexistantOrOriginal(mission.Scenario) || AreFilesModified()))
             {
                 // Confront the user by showing the cheater screen
                 missionToLaunch = mission;
