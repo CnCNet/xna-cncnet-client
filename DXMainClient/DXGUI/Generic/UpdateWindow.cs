@@ -161,10 +161,27 @@ namespace DTAClient.DXGUI.Generic
             lblCurrentFile.Text = "Current file: " + fileName;
             lblUpdaterStatus.Text = "Downloading files...";
 
-            if (IsTaskbarSupported())
+            /*/ TODO Improve the updater
+             * When the updater thread in DTAUpdater.dll has completed the update, it will
+             * restart the client right away without giving the UI thread a chance to
+             * finish its tasks and free resources in a proper way.
+             * Because of that, this function is sometimes executed when
+             * the game window has already been hidden / removed, and the code below
+             * will then crash the client, causing the user to see a KABOOM message
+             * along with the succesful update, which is likely quite confusing for the user.
+             * The try-catch is a dirty temporary workaround.
+             * /*/
+            try
             {
-                tbp.SetState(WindowManager.GetWindowHandle(), TaskbarProgress.TaskbarStates.Normal);
-                tbp.SetValue(WindowManager.GetWindowHandle(), prgTotal.Value, prgTotal.Maximum);
+                if (IsTaskbarSupported())
+                {
+                    tbp.SetState(WindowManager.GetWindowHandle(), TaskbarProgress.TaskbarStates.Normal);
+                    tbp.SetValue(WindowManager.GetWindowHandle(), prgTotal.Value, prgTotal.Maximum);
+                }
+            }
+            catch
+            {
+
             }
         }
 
