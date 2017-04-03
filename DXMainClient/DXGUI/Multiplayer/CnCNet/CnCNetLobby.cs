@@ -1156,7 +1156,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 game.IsLadder = isLadder;
                 game.Game = cncnetGame;
                 game.Locked = locked || (game.IsLoadedGame && !game.Players.Contains(ProgramConstants.PLAYERNAME));
-                game.Incompatible = game.GameVersion != ProgramConstants.GAME_VERSION;
+                game.Incompatible = cncnetGame == localGame && game.GameVersion != ProgramConstants.GAME_VERSION;
                 game.TunnelServer = tunnel;
 
                 if (isClosed)
