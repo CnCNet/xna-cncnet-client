@@ -89,6 +89,12 @@ namespace DTAClient.DXGUI
             Components.Add(wm);
 
             string playerName = UserINISettings.Instance.PlayerName.Value.Trim();
+            
+            if (UserINISettings.Instance.AutoRemoveUnderscoresFromName)
+            {
+                while (playerName.EndsWith("_"))
+                    playerName = playerName.Substring(0, playerName.Length - 1);
+            }
 
             if (string.IsNullOrEmpty(playerName))
             {
