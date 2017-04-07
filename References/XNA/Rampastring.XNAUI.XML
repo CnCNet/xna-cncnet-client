@@ -54,19 +54,58 @@
             and a decay rate for the priority.
             </summary>
         </member>
+        <member name="M:Rampastring.XNAUI.PrioritizedSound.#ctor(System.String)">
+            <summary>
+            Creates a new prioritized sound. Loads the specified sound asset.
+            </summary>
+            <param name="assetName">The asset name of the sound file to load.</param>
+        </member>
+        <member name="M:Rampastring.XNAUI.PrioritizedSound.#ctor(System.String,System.Double,System.Double,System.Single)">
+            <summary>
+            Creates a new prioritized sound. Loads the specified sound asset.
+            </summary>
+            <param name="assetName">The asset name of the sound file to load.</param>
+            <param name="priority">The priority of this sound</param>
+            <param name="priorityDecayRate">The priority decay rate of this sound.</param>
+            <param name="repeatPrevention">If set above zero, will prevent the sound from being played again
+            for the specified number of seconds after it has been played.</param>
+        </member>
+        <member name="P:Rampastring.XNAUI.PrioritizedSound.Enabled">
+            <summary>
+            Gets or sets a bool that determines whether this sound is enabled.
+            </summary>
+        </member>
+        <member name="P:Rampastring.XNAUI.PrioritizedSound.Priority">
+            <summary>
+            The priority of this sound.
+            While this sound is playing, sounds with less priority than this sound's
+            priority will not be played.
+            </summary>
+        </member>
         <member name="P:Rampastring.XNAUI.PrioritizedSound.PriorityDecayRate">
             <summary>
             The decay rate of this sound's priority.
             The sound's priority will be reduced by the specified number each second.
             </summary>
         </member>
+        <member name="P:Rampastring.XNAUI.PrioritizedSound.RepeatPrevention">
+            <summary>
+            If set above zero, will prevent the sound from being played again
+            for the specified number of seconds after it has been played.
+            </summary>
+        </member>
+        <member name="M:Rampastring.XNAUI.PrioritizedSound.Play">
+            <summary>
+            Plays this sound if it's enabled.
+            </summary>
+        </member>
         <member name="M:Rampastring.XNAUI.PrioritizedSoundInstance.Update(Microsoft.Xna.Framework.GameTime)">
             <summary>
-            Updates the priority of the sound. Returns true if the sound effect has
-            stopped playing, otherwise false.
+            Updates the priority of the sound. Returns true if the sound effect is
+            still playing, otherwise false.
             </summary>
             <param name="gameTime">Tells how much time has passed since the previous frame.</param>
-            <returns>True if the sound effect has stopped playing, otherwise false.</returns>
+            <returns>True if the sound effect is still playing, otherwise false.</returns>
         </member>
         <member name="T:Rampastring.XNAUI.SoundPlayer">
             <summary>

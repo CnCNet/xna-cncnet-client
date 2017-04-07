@@ -669,7 +669,7 @@ namespace DTAConfig
             IniSettings.IngameScreenHeight.Value = ingameRes[1];
 
             // Calculate drag selection distance, scale it with resolution width
-            int dragDistance = ingameRes[0] / 640 * DRAG_DISTANCE_DEFAULT;
+            int dragDistance = ingameRes[0] / ORIGINAL_RESOLUTION_WIDTH * DRAG_DISTANCE_DEFAULT;
             IniSettings.DragDistance.Value = dragDistance;
 
             IniSettings.WindowedMode.Value = chkWindowedMode.Checked &&
