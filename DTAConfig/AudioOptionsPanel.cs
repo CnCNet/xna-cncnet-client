@@ -239,6 +239,7 @@ namespace DTAConfig
         private void TrbClientVolume_ValueChanged(object sender, EventArgs e)
         {
             lblClientVolumeValue.Text = trbClientVolume.Value.ToString();
+            WindowManager.SoundPlayer.SetVolume(trbClientVolume.Value / 10.0f);
             AudioMaster.SetVolume(trbClientVolume.Value / 10.0f);
         }
 

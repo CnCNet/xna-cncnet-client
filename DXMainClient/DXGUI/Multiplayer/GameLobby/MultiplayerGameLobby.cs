@@ -37,9 +37,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         protected bool Locked = false;
 
-        protected SoundEffectInstance sndJoinSound;
-        protected SoundEffectInstance sndLeaveSound;
-        protected SoundEffectInstance sndMessageSound;
+        protected PrioritizedSound sndJoinSound;
+        protected PrioritizedSound sndLeaveSound;
+        protected PrioritizedSound sndMessageSound;
         protected PrioritizedSound sndGetReadySound;
 
         protected TopBar TopBar;
@@ -129,19 +129,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             InitializeWindow();
 
-            SoundEffect seJoinSound = AssetLoader.LoadSound("joingame.wav");
-            SoundEffect seLeaveSound = AssetLoader.LoadSound("leavegame.wav");
-            SoundEffect seMessageSound = AssetLoader.LoadSound("message.wav");
+            sndJoinSound = new PrioritizedSound("joingame.wav");
+            sndLeaveSound = new PrioritizedSound("leavegame.wav");
+            sndMessageSound = new PrioritizedSound("message.wav");
             sndGetReadySound = new PrioritizedSound("getready.wav", 0.0, 0.0, 5.0f);
-
-            if (seJoinSound != null)
-                sndJoinSound = seJoinSound.CreateInstance();
-
-            if (seLeaveSound != null)
-                sndLeaveSound = seLeaveSound.CreateInstance();
-
-            if (seMessageSound != null)
-                sndMessageSound = seMessageSound.CreateInstance();
 
             if (SavedGameManager.AreSavedGamesAvailable())
             {

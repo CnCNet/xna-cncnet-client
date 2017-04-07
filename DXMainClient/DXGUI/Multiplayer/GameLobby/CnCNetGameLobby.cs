@@ -322,8 +322,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (Players.Count + AIPlayers.Count > MAX_PLAYER_COUNT && AIPlayers.Count > 0)
                 AIPlayers.RemoveAt(AIPlayers.Count - 1);
 
-            if (sndJoinSound != null)
-                AudioMaster.PlaySound(sndJoinSound);
+            sndJoinSound.Play();
 
             if (!IsHost)
             {
@@ -364,8 +363,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 BroadcastPlayerOptions();
             }
 
-            if (sndLeaveSound != null)
-                AudioMaster.PlaySound(sndLeaveSound);
+            sndLeaveSound.Play();
 
             if (IsHost && Locked && !ProgramConstants.IsInGame)
             {
@@ -403,8 +401,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             lbChatMessages.AddMessage(e.Message);
 
-            if (sndMessageSound != null && e.Message.Sender != null)
-                AudioMaster.PlaySound(sndMessageSound);
+            if (e.Message.Sender != null)
+                sndMessageSound.Play();
         }
 
         /// <summary>
