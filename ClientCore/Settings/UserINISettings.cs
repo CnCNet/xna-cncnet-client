@@ -73,6 +73,7 @@ namespace ClientCore
             Tooltips = new BoolSetting(iniFile, OPTIONS, "ToolTips", true);
             ShowHiddenObjects = new BoolSetting(iniFile, OPTIONS, "ShowHidden", true);
             TextBackgroundColor = new IntSetting(iniFile, OPTIONS, "TextBackgroundColor", 0);
+            DragDistance = new IntSetting(iniFile, OPTIONS, "DragDistance", 4);
 
             PlayerName = new StringSetting(iniFile, MULTIPLAYER, "Handle", string.Empty);
 
@@ -142,6 +143,7 @@ namespace ClientCore
         public BoolSetting Tooltips { get; private set; }
         public BoolSetting ShowHiddenObjects { get; private set; }
         public IntSetting TextBackgroundColor { get; private set; }
+        public IntSetting DragDistance { get; private set; }
 
         /************************/
         /* MULTIPLAYER (CnCNet) */

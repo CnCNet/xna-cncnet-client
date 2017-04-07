@@ -19,29 +19,32 @@ namespace DTAConfig
 {
     class DisplayOptionsPanel : XNAOptionsPanel
     {
+        private const int DRAG_DISTANCE_DEFAULT = 4;
+        private const int ORIGINAL_RESOLUTION_WIDTH = 640;
+
         public DisplayOptionsPanel(WindowManager windowManager, UserINISettings iniSettings)
             : base(windowManager, iniSettings)
         {
         }
 
-        XNAClientDropDown ddIngameResolution;
-        XNAClientDropDown ddDetailLevel;
-        XNAClientDropDown ddRenderer;
-        XNAClientCheckBox chkWindowedMode;
-        XNAClientCheckBox chkBorderlessWindowedMode;
-        XNAClientCheckBox chkBackBufferInVRAM;
-        XNAClientDropDown ddClientResolution;
-        XNAClientCheckBox chkBorderlessClient;
-        XNAClientDropDown ddClientTheme;
+        private XNAClientDropDown ddIngameResolution;
+        private XNAClientDropDown ddDetailLevel;
+        private XNAClientDropDown ddRenderer;
+        private XNAClientCheckBox chkWindowedMode;
+        private XNAClientCheckBox chkBorderlessWindowedMode;
+        private XNAClientCheckBox chkBackBufferInVRAM;
+        private XNAClientDropDown ddClientResolution;
+        private XNAClientCheckBox chkBorderlessClient;
+        private XNAClientDropDown ddClientTheme;
 
-        List<FileSettingCheckBox> fileSettingCheckBoxes = new List<FileSettingCheckBox>();
+        private List<FileSettingCheckBox> fileSettingCheckBoxes = new List<FileSettingCheckBox>();
 
 #if !YR
-        XNALabel lblCompatibilityFixes;
-        XNALabel lblGameCompatibilityFix;
-        XNALabel lblMapEditorCompatibilityFix;
-        XNAClientButton btnGameCompatibilityFix;
-        XNAClientButton btnMapEditorCompatibilityFix;
+        private XNALabel lblCompatibilityFixes;
+        private XNALabel lblGameCompatibilityFix;
+        private XNALabel lblMapEditorCompatibilityFix;
+        private XNAClientButton btnGameCompatibilityFix;
+        private XNAClientButton btnMapEditorCompatibilityFix;
 
         private bool GameCompatFixInstalled = false;
         private bool FinalSunCompatFixInstalled = false;
@@ -50,10 +53,10 @@ namespace DTAConfig
 #endif
 
 #if DTA
-        FileSettingCheckBox chkEnableCannonTracers;
+        private FileSettingCheckBox chkEnableCannonTracers;
 #elif TI
-        FileSettingCheckBox chkLargerInfantryGraphics;
-        FileSettingCheckBox chkSmallerVehicleGraphics;
+        private FileSettingCheckBox chkLargerInfantryGraphics;
+        private FileSettingCheckBox chkSmallerVehicleGraphics;
 #endif
 
 
@@ -664,6 +667,10 @@ namespace DTAConfig
 
             IniSettings.IngameScreenWidth.Value = ingameRes[0];
             IniSettings.IngameScreenHeight.Value = ingameRes[1];
+
+            // Calculate drag selection distance, scale it with resolution width
+            int dragDistance = ingameRes[0] / 640 * DRAG_DISTANCE_DEFAULT;
+            IniSettings.DragDistance.Value = dragDistance;
 
             IniSettings.WindowedMode.Value = chkWindowedMode.Checked &&
                 ddRenderer.SelectedItem.Text != "DxWnd";
