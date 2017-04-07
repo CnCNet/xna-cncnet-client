@@ -40,6 +40,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         protected SoundEffectInstance sndJoinSound;
         protected SoundEffectInstance sndLeaveSound;
         protected SoundEffectInstance sndMessageSound;
+        protected PrioritizedSound sndGetReadySound;
 
         protected TopBar TopBar;
 
@@ -131,6 +132,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             SoundEffect seJoinSound = AssetLoader.LoadSound("joingame.wav");
             SoundEffect seLeaveSound = AssetLoader.LoadSound("leavegame.wav");
             SoundEffect seMessageSound = AssetLoader.LoadSound("message.wav");
+            sndGetReadySound = new PrioritizedSound("getready.wav", 0.0, 0.0, 5.0f);
 
             if (seJoinSound != null)
                 sndJoinSound = seJoinSound.CreateInstance();
@@ -564,6 +566,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         protected virtual void GetReadyNotification()
         {
             AddNotice("The host wants to start the game but cannot because not all players are ready!");
+            sndGetReadySound.Play();
         }
 
         protected virtual void InsufficientPlayersNotification()
