@@ -72,6 +72,7 @@ namespace ClientCore
             ScrollCoasting = new IntSetting(iniFile, OPTIONS, "ScrollMethod", 0);
             Tooltips = new BoolSetting(iniFile, OPTIONS, "ToolTips", true);
             ShowHiddenObjects = new BoolSetting(iniFile, OPTIONS, "ShowHidden", true);
+            TextBackgroundColor = new IntSetting(iniFile, OPTIONS, "TextBackgroundColor", 0);
 
             PlayerName = new StringSetting(iniFile, MULTIPLAYER, "Handle", string.Empty);
 
@@ -140,6 +141,7 @@ namespace ClientCore
         public IntSetting ScrollCoasting { get; private set; }
         public BoolSetting Tooltips { get; private set; }
         public BoolSetting ShowHiddenObjects { get; private set; }
+        public IntSetting TextBackgroundColor { get; private set; }
 
         /************************/
         /* MULTIPLAYER (CnCNet) */
