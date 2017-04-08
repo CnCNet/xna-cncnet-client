@@ -340,10 +340,6 @@ namespace DTAClient.DXGUI.Generic
 
         private void SkirmishLobby_Exited(object sender, EventArgs e)
         {
-            innerPanel.Hide();
-            Visible = true;
-            Enabled = true;
-
             if (UserINISettings.Instance.StopMusicOnMenu)
                 PlayMusic();
         }
