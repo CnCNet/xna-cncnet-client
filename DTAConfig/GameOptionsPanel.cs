@@ -129,6 +129,7 @@ namespace DTAConfig
                 lblScrollRate.ClientRectangle.X,
                 chkBlackChatBackground.ClientRectangle.Bottom + 30, 0, 0);
 
+            AddChild(chkAltToUndeploy);
             AddChild(chkBlackChatBackground);
 #endif 
 
@@ -143,7 +144,7 @@ namespace DTAConfig
             lblNotice.Name = "lblNotice";
             lblNotice.ClientRectangle = new Rectangle(lblPlayerName.ClientRectangle.X,
                 lblPlayerName.ClientRectangle.Bottom + 30, 0, 0);
-            lblNotice.Text = "* If you are currently connected to CnCNet, you need to restart the client" +
+            lblNotice.Text = "* If you are currently connected to CnCNet, you need to log out and reconnect" +
                 Environment.NewLine + "for your new name to be applied.";
 
             AddChild(lblScrollRate);
@@ -181,7 +182,7 @@ namespace DTAConfig
             chkAltToUndeploy.Checked = !IniSettings.MoveToUndeploy;
             chkBlackChatBackground.Checked = IniSettings.TextBackgroundColor == TEXT_BACKGROUND_COLOR_BLACK;
 #endif
-            tbPlayerName.Text = ProgramConstants.PLAYERNAME;
+            tbPlayerName.Text = UserINISettings.Instance.PlayerName;
         }
 
         public override bool Save()

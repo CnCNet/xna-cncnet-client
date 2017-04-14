@@ -114,6 +114,7 @@ namespace DTAClient.DXGUI
                 playerName = playerName.Substring(0, maxNameLength);
 
             ProgramConstants.PLAYERNAME = playerName;
+            UserINISettings.Instance.PlayerName.Value = playerName;
 
             LoadingScreen ls = new LoadingScreen(wm);
             wm.AddAndInitializeControl(ls);
