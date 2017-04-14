@@ -29,6 +29,7 @@ namespace DTAConfig
 #if YR
         private XNAClientCheckBox chkShowHiddenObjects;
 #else
+        private XNAClientCheckBox chkAltToUndeploy;
         private XNAClientCheckBox chkBlackChatBackground;
 #endif
 
@@ -110,12 +111,19 @@ namespace DTAConfig
                 lblScrollRate.ClientRectangle.X,
                 chkTargetLines.ClientRectangle.Bottom + 24, 0, 0);
 
+            chkAltToUndeploy = new XNAClientCheckBox(WindowManager);
+            chkAltToUndeploy.Name = "chkAltToUndeploy";
+            chkAltToUndeploy.ClientRectangle = new Rectangle(
+                chkScrollCoasting.ClientRectangle.X,
+                chkTooltips.ClientRectangle.Bottom + 24, 0, 0);
+            chkAltToUndeploy.Text = "Undeploy units by holding Alt key instead of a regular move command";
+
             chkBlackChatBackground = new XNAClientCheckBox(WindowManager);
             chkBlackChatBackground.Name = "chkBlackChatBackground";
             chkBlackChatBackground.ClientRectangle = new Rectangle(
                 chkScrollCoasting.ClientRectangle.X,
-                chkTooltips.ClientRectangle.Bottom + 24, 0, 0);
-            chkBlackChatBackground.Text = "Use Black Background for In-game Chat Messages";
+                chkAltToUndeploy.ClientRectangle.Bottom + 24, 0, 0);
+            chkBlackChatBackground.Text = "Use black background for in-game chat messages";
 
             lblPlayerName.ClientRectangle = new Rectangle(
                 lblScrollRate.ClientRectangle.X,
@@ -170,6 +178,7 @@ namespace DTAConfig
 #if YR
             chkShowHiddenObjects.Checked = IniSettings.ShowHiddenObjects;
 #else
+            chkAltToUndeploy.Checked = !IniSettings.MoveToUndeploy;
             chkBlackChatBackground.Checked = IniSettings.TextBackgroundColor == TEXT_BACKGROUND_COLOR_BLACK;
 #endif
             tbPlayerName.Text = ProgramConstants.PLAYERNAME;
@@ -185,6 +194,8 @@ namespace DTAConfig
 #if YR
             IniSettings.ShowHiddenObjects.Value = chkShowHiddenObjects.Checked;
 #else
+            IniSettings.MoveToUndeploy.Value = !chkAltToUndeploy.Checked;
+
             if (chkBlackChatBackground.Checked)
                 IniSettings.TextBackgroundColor.Value = TEXT_BACKGROUND_COLOR_BLACK;
             else
