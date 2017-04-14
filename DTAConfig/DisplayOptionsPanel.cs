@@ -599,7 +599,7 @@ namespace DTAConfig
                 chkBorderlessWindowedMode.Checked = dxWndIni.GetBooleanValue("DxWnd", "NoWindowFrame", false);
             }
 
-            string currentClientRes = WindowManager.ResolutionWidth + "x" + WindowManager.ResolutionHeight;
+            string currentClientRes = WindowManager.WindowWidth + "x" + WindowManager.WindowHeight;
 
             int clientResIndex = ddClientResolution.Items.FindIndex(i => (string)i.Tag == currentClientRes);
 
@@ -685,8 +685,8 @@ namespace DTAConfig
             IniSettings.ClientResolutionX.Value = clientRes[0];
             IniSettings.ClientResolutionY.Value = clientRes[1];
 
-            if (clientRes[0] != WindowManager.ResolutionWidth ||
-                clientRes[1] != WindowManager.ResolutionHeight)
+            if (clientRes[0] != WindowManager.WindowWidth ||
+                clientRes[1] != WindowManager.WindowHeight)
                 restartRequired = true;
 
             if (IniSettings.BorderlessWindowedClient.Value != chkBorderlessClient.Checked)

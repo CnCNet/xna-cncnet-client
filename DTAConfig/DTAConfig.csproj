@@ -48,7 +48,7 @@
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\WindowsGL\Release</OutputPath>
-    <DefineConstants>TRACE;WINDOWSGL LINUX</DefineConstants>
+    <DefineConstants>TRACE;DTA WINDOWSGL</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>

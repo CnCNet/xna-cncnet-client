@@ -292,6 +292,14 @@ namespace ClientCore
             }
         }
 
+        public string WindowTitle
+        {
+            get
+            {
+                return clientDefinitionsIni.GetStringValue("Settings", "WindowTitle", string.Empty);
+            }
+        }
+
         public string InstallationPathRegKey
         {
             get
