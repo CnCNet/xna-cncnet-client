@@ -12,22 +12,28 @@ namespace DTAConfig
 {
     class GameOptionsPanel : XNAOptionsPanel
     {
+        private const int TEXT_BACKGROUND_COLOR_TRANSPARENT = 0;
+        private const int TEXT_BACKGROUND_COLOR_BLACK = 12;
+
         public GameOptionsPanel(WindowManager windowManager, UserINISettings iniSettings)
             : base(windowManager, iniSettings)
         {
         }
 
-        XNALabel lblScrollRateValue;
+        private XNALabel lblScrollRateValue;
 
-        XNATrackbar trbScrollRate;
-        XNAClientCheckBox chkTargetLines;
-        XNAClientCheckBox chkScrollCoasting;
-        XNAClientCheckBox chkTooltips;
+        private XNATrackbar trbScrollRate;
+        private XNAClientCheckBox chkTargetLines;
+        private XNAClientCheckBox chkScrollCoasting;
+        private XNAClientCheckBox chkTooltips;
 #if YR
-        XNAClientCheckBox chkShowHiddenObjects;
+        private XNAClientCheckBox chkShowHiddenObjects;
+#else
+        private XNAClientCheckBox chkAltToUndeploy;
+        private XNAClientCheckBox chkBlackChatBackground;
 #endif
 
-        XNATextBox tbPlayerName;
+        private XNATextBox tbPlayerName;
 
         public override void Initialize()
         {
@@ -77,6 +83,11 @@ namespace DTAConfig
 
             chkTooltips = new XNAClientCheckBox(WindowManager);
             chkTooltips.Name = "chkTooltips";
+            chkTooltips.Text = "Tooltips";
+
+            var lblPlayerName = new XNALabel(WindowManager);
+            lblPlayerName.Name = "lblPlayerName";
+            lblPlayerName.Text = "Player Name*:";
 
 #if YR
             chkShowHiddenObjects = new XNAClientCheckBox(WindowManager);
@@ -90,31 +101,41 @@ namespace DTAConfig
                 lblScrollRate.ClientRectangle.X,
                 chkShowHiddenObjects.ClientRectangle.Bottom + 24, 0, 0);
 
+            lblPlayerName.ClientRectangle = new Rectangle(
+                lblScrollRate.ClientRectangle.X,
+                chkTooltips.ClientRectangle.Bottom + 30, 0, 0);
+
             AddChild(chkShowHiddenObjects);
 #else
             chkTooltips.ClientRectangle = new Rectangle(
                 lblScrollRate.ClientRectangle.X,
                 chkTargetLines.ClientRectangle.Bottom + 24, 0, 0);
-#endif
 
+            chkAltToUndeploy = new XNAClientCheckBox(WindowManager);
+            chkAltToUndeploy.Name = "chkAltToUndeploy";
+            chkAltToUndeploy.ClientRectangle = new Rectangle(
+                chkScrollCoasting.ClientRectangle.X,
+                chkTooltips.ClientRectangle.Bottom + 24, 0, 0);
+            chkAltToUndeploy.Text = "Undeploy units by holding Alt key instead of a regular move command";
 
+            chkBlackChatBackground = new XNAClientCheckBox(WindowManager);
+            chkBlackChatBackground.Name = "chkBlackChatBackground";
+            chkBlackChatBackground.ClientRectangle = new Rectangle(
+                chkScrollCoasting.ClientRectangle.X,
+                chkAltToUndeploy.ClientRectangle.Bottom + 24, 0, 0);
+            chkBlackChatBackground.Text = "Use black background for in-game chat messages";
 
-            chkTooltips.Text = "Tooltips";
-
-            var lblPlayerName = new XNALabel(WindowManager);
-            lblPlayerName.Name = "lblPlayerName";
             lblPlayerName.ClientRectangle = new Rectangle(
                 lblScrollRate.ClientRectangle.X,
-                chkTooltips.ClientRectangle.Bottom + 30, 0, 0);
-            lblPlayerName.Text = "Player Name*:";
+                chkBlackChatBackground.ClientRectangle.Bottom + 30, 0, 0);
+
+            AddChild(chkAltToUndeploy);
+            AddChild(chkBlackChatBackground);
+#endif 
 
             tbPlayerName = new XNATextBox(WindowManager);
             tbPlayerName.Name = "tbPlayerName";
-#if YR
-            tbPlayerName.MaximumTextLength = 12;
-#else
-            tbPlayerName.MaximumTextLength = 16;
-#endif
+            tbPlayerName.MaximumTextLength = ClientConfiguration.Instance.MaxNameLength;
             tbPlayerName.ClientRectangle = new Rectangle(trbScrollRate.ClientRectangle.X,
                 lblPlayerName.ClientRectangle.Y - 2, 200, 19);
             tbPlayerName.Text = ProgramConstants.PLAYERNAME;
@@ -123,8 +144,8 @@ namespace DTAConfig
             lblNotice.Name = "lblNotice";
             lblNotice.ClientRectangle = new Rectangle(lblPlayerName.ClientRectangle.X,
                 lblPlayerName.ClientRectangle.Bottom + 30, 0, 0);
-            lblNotice.Text = "* If you are currently connected to CnCNet, you need to restart the client" + 
-                Environment.NewLine + "for changes to take effect.";
+            lblNotice.Text = "* If you are currently connected to CnCNet, you need to log out and reconnect" +
+                Environment.NewLine + "for your new name to be applied.";
 
             AddChild(lblScrollRate);
             AddChild(lblScrollRateValue);
@@ -157,8 +178,11 @@ namespace DTAConfig
             chkTooltips.Checked = IniSettings.Tooltips;
 #if YR
             chkShowHiddenObjects.Checked = IniSettings.ShowHiddenObjects;
+#else
+            chkAltToUndeploy.Checked = !IniSettings.MoveToUndeploy;
+            chkBlackChatBackground.Checked = IniSettings.TextBackgroundColor == TEXT_BACKGROUND_COLOR_BLACK;
 #endif
-            tbPlayerName.Text = ProgramConstants.PLAYERNAME;
+            tbPlayerName.Text = UserINISettings.Instance.PlayerName;
         }
 
         public override bool Save()
@@ -168,9 +192,15 @@ namespace DTAConfig
             IniSettings.ScrollCoasting.Value = Convert.ToInt32(!chkScrollCoasting.Checked);
             IniSettings.TargetLines.Value = chkTargetLines.Checked;
             IniSettings.Tooltips.Value = chkTooltips.Checked;
-
 #if YR
             IniSettings.ShowHiddenObjects.Value = chkShowHiddenObjects.Checked;
+#else
+            IniSettings.MoveToUndeploy.Value = !chkAltToUndeploy.Checked;
+
+            if (chkBlackChatBackground.Checked)
+                IniSettings.TextBackgroundColor.Value = TEXT_BACKGROUND_COLOR_BLACK;
+            else
+                IniSettings.TextBackgroundColor.Value = TEXT_BACKGROUND_COLOR_TRANSPARENT;
 #endif
 
             string playerName = tbPlayerName.Text;
@@ -186,32 +216,7 @@ namespace DTAConfig
 
         private int ReverseScrollRate(int scrollRate)
         {
-            switch (scrollRate)
-            {
-                case 0:
-                    scrollRate = 6;
-                    break;
-                case 1:
-                    scrollRate = 5;
-                    break;
-                case 2:
-                    scrollRate = 4;
-                    break;
-                case 3:
-                    scrollRate = 3;
-                    break;
-                case 4:
-                    scrollRate = 2;
-                    break;
-                case 5:
-                    scrollRate = 1;
-                    break;
-                case 6:
-                    scrollRate = 0;
-                    break;
-            }
-
-            return scrollRate;
+            return Math.Abs(scrollRate - 6);
         }
     }
 }

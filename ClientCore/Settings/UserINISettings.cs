@@ -72,6 +72,9 @@ namespace ClientCore
             ScrollCoasting = new IntSetting(iniFile, OPTIONS, "ScrollMethod", 0);
             Tooltips = new BoolSetting(iniFile, OPTIONS, "ToolTips", true);
             ShowHiddenObjects = new BoolSetting(iniFile, OPTIONS, "ShowHidden", true);
+            MoveToUndeploy = new BoolSetting(iniFile, OPTIONS, "MoveToUndeploy", true);
+            TextBackgroundColor = new IntSetting(iniFile, OPTIONS, "TextBackgroundColor", 0);
+            DragDistance = new IntSetting(iniFile, OPTIONS, "DragDistance", 4);
 
             PlayerName = new StringSetting(iniFile, MULTIPLAYER, "Handle", string.Empty);
 
@@ -95,6 +98,7 @@ namespace ClientCore
             PreloadMapPreviews = new BoolSetting(iniFile, VIDEO, "PreloadMapPreviews", false);
             ForceLowestDetailLevel = new BoolSetting(iniFile, VIDEO, "ForceLowestDetailLevel", false);
             MinimizeWindowsOnGameStart = new BoolSetting(iniFile, OPTIONS, "MinimizeWindowsOnGameStart", true);
+            AutoRemoveUnderscoresFromName = new BoolSetting(iniFile, OPTIONS, "AutoRemoveUnderscoresFromName", true);
         }
 
         public IniFile SettingsIni { get; private set; }
@@ -139,6 +143,9 @@ namespace ClientCore
         public IntSetting ScrollCoasting { get; private set; }
         public BoolSetting Tooltips { get; private set; }
         public BoolSetting ShowHiddenObjects { get; private set; }
+        public BoolSetting MoveToUndeploy { get; private set; }
+        public IntSetting TextBackgroundColor { get; private set; }
+        public IntSetting DragDistance { get; private set; }
 
         /************************/
         /* MULTIPLAYER (CnCNet) */
@@ -179,6 +186,8 @@ namespace ClientCore
         public BoolSetting ForceLowestDetailLevel { get; private set; }
 
         public BoolSetting MinimizeWindowsOnGameStart { get; private set; }
+
+        public BoolSetting AutoRemoveUnderscoresFromName { get; private set; }
 
         public bool IsGameFollowed(string gameName)
         {

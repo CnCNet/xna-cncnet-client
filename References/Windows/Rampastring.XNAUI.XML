@@ -54,19 +54,58 @@
             and a decay rate for the priority.
             </summary>
         </member>
+        <member name="M:Rampastring.XNAUI.PrioritizedSound.#ctor(System.String)">
+            <summary>
+            Creates a new prioritized sound. Loads the specified sound asset.
+            </summary>
+            <param name="assetName">The asset name of the sound file to load.</param>
+        </member>
+        <member name="M:Rampastring.XNAUI.PrioritizedSound.#ctor(System.String,System.Double,System.Double,System.Single)">
+            <summary>
+            Creates a new prioritized sound. Loads the specified sound asset.
+            </summary>
+            <param name="assetName">The asset name of the sound file to load.</param>
+            <param name="priority">The priority of this sound</param>
+            <param name="priorityDecayRate">The priority decay rate of this sound.</param>
+            <param name="repeatPrevention">If set above zero, will prevent the sound from being played again
+            for the specified number of seconds after it has been played.</param>
+        </member>
+        <member name="P:Rampastring.XNAUI.PrioritizedSound.Enabled">
+            <summary>
+            Gets or sets a bool that determines whether this sound is enabled.
+            </summary>
+        </member>
+        <member name="P:Rampastring.XNAUI.PrioritizedSound.Priority">
+            <summary>
+            The priority of this sound.
+            While this sound is playing, sounds with less priority than this sound's
+            priority will not be played.
+            </summary>
+        </member>
         <member name="P:Rampastring.XNAUI.PrioritizedSound.PriorityDecayRate">
             <summary>
             The decay rate of this sound's priority.
             The sound's priority will be reduced by the specified number each second.
             </summary>
         </member>
+        <member name="P:Rampastring.XNAUI.PrioritizedSound.RepeatPrevention">
+            <summary>
+            If set above zero, will prevent the sound from being played again
+            for the specified number of seconds after it has been played.
+            </summary>
+        </member>
+        <member name="M:Rampastring.XNAUI.PrioritizedSound.Play">
+            <summary>
+            Plays this sound if it's enabled.
+            </summary>
+        </member>
         <member name="M:Rampastring.XNAUI.PrioritizedSoundInstance.Update(Microsoft.Xna.Framework.GameTime)">
             <summary>
-            Updates the priority of the sound. Returns true if the sound effect has
-            stopped playing, otherwise false.
+            Updates the priority of the sound. Returns true if the sound effect is
+            still playing, otherwise false.
             </summary>
             <param name="gameTime">Tells how much time has passed since the previous frame.</param>
-            <returns>True if the sound effect has stopped playing, otherwise false.</returns>
+            <returns>True if the sound effect is still playing, otherwise false.</returns>
         </member>
         <member name="T:Rampastring.XNAUI.SoundPlayer">
             <summary>
@@ -860,10 +899,98 @@
             <param name="maxWidth">The maximum width of the string.</param>
             <returns></returns>
         </member>
+        <member name="T:Rampastring.XNAUI.WindowManager">
+            <summary>
+            Manages the game window and all of the game's controls.
+            </summary>
+        </member>
+        <member name="M:Rampastring.XNAUI.WindowManager.#ctor(Microsoft.Xna.Framework.Game,Microsoft.Xna.Framework.GraphicsDeviceManager)">
+            <summary>
+            Creates a new WindowManager.
+            </summary>
+            <param name="game">The game.</param>
+            <param name="graphics">The game's GraphicsDeviceManager.</param>
+        </member>
+        <member name="E:Rampastring.XNAUI.WindowManager.GameClosing">
+            <summary>
+            Raised when the game window is closing.
+            </summary>
+        </member>
+        <member name="P:Rampastring.XNAUI.WindowManager.Cursor">
+            <summary>
+            The input cursor.
+            </summary>
+        </member>
+        <member name="P:Rampastring.XNAUI.WindowManager.Keyboard">
+            <summary>
+            The keyboard.
+            </summary>
+        </member>
+        <member name="P:Rampastring.XNAUI.WindowManager.SoundPlayer">
+            <summary>
+            The SoundPlayer that is responsible for handling audio.
+            </summary>
+        </member>
+        <member name="P:Rampastring.XNAUI.WindowManager.WindowWidth">
+            <summary>
+            Returns the width of the game window.
+            </summary>
+        </member>
+        <member name="P:Rampastring.XNAUI.WindowManager.WindowHeight">
+            <summary>
+            Returns the height of the game window.
+            </summary>
+        </member>
+        <member name="P:Rampastring.XNAUI.WindowManager.RenderResolutionX">
+            <summary>
+            Returns the width of the back buffer.
+            </summary>
+        </member>
+        <member name="P:Rampastring.XNAUI.WindowManager.RenderResolutionY">
+            <summary>
+            Returns the height of the back buffer.
+            </summary>
+        </member>
+        <member name="P:Rampastring.XNAUI.WindowManager.HasFocus">
+            <summary>
+            Gets a boolean that determines whether the game window currently has input focus.
+            </summary>
+        </member>
+        <member name="P:Rampastring.XNAUI.WindowManager.SelectedControl">
+            <summary>
+            Gets or sets the control that is currently selected.
+            Usually used for controls that need input focus, like text boxes.
+            </summary>
+        </member>
+        <member name="M:Rampastring.XNAUI.WindowManager.SetRenderResolution(System.Int32,System.Int32)">
+            <summary>
+            Sets the rendering (back buffer) resolution of the game.
+            Does not affect the size of the actual game window.
+            </summary>
+            <param name="x">The width of the back buffer.</param>
+            <param name="y">The height of the back buffer.</param>
+        </member>
         <member name="M:Rampastring.XNAUI.WindowManager.RecalculateScaling">
             <summary>
             Re-calculates the scaling of the rendered screen to fill the window.
             </summary>
+        </member>
+        <member name="M:Rampastring.XNAUI.WindowManager.CloseGame">
+            <summary>
+            Closes the game.
+            </summary>
+        </member>
+        <member name="M:Rampastring.XNAUI.WindowManager.RestartGame">
+            <summary>
+            Restarts the game.
+            </summary>
+        </member>
+        <member name="M:Rampastring.XNAUI.WindowManager.Initialize(Microsoft.Xna.Framework.Content.ContentManager,System.String)">
+            <summary>
+            Initializes the WindowManager.
+            </summary>
+            <param name="content">The game content manager.</param>
+            <param name="contentPath">The path where the ContentManager should load files from (including SpriteFont files).</param>
         </member>
         <member name="M:Rampastring.XNAUI.WindowManager.AddCallback(System.Delegate,System.Object[])">
             <summary>
@@ -887,11 +1014,63 @@
             </summary>
             <param name="control">The control to insert.</param>
         </member>
+        <member name="M:Rampastring.XNAUI.WindowManager.CenterControlOnScreen(Rampastring.XNAUI.XNAControls.XNAControl)">
+            <summary>
+            Centers a control on the game window.
+            </summary>
+            <param name="control">The control to center.</param>
+        </member>
+        <member name="M:Rampastring.XNAUI.WindowManager.CenterOnScreen">
+            <summary>
+            Centers the game window on the screen.
+            </summary>
+        </member>
+        <member name="M:Rampastring.XNAUI.WindowManager.SetBorderlessMode(System.Boolean)">
+            <summary>
+            Enables or disables borderless windowed mode.
+            </summary>
+            <param name="value">A boolean that determines whether borderless 
+            windowed mode should be enabled.</param>
+        </member>
+        <member name="M:Rampastring.XNAUI.WindowManager.FlashWindow">
+            <summary>
+            Flashes the game window on the taskbar (Windows only).
+            </summary>
+        </member>
+        <member name="M:Rampastring.XNAUI.WindowManager.SetIcon(System.String)">
+            <summary>
+            Sets the icon of the game window to an icon that exists on a specific
+            file path.
+            </summary>
+            <param name="path">The path to the icon file.</param>
+        </member>
+        <member name="M:Rampastring.XNAUI.WindowManager.GetWindowHandle">
+            <summary>
+            Returns the IntPtr handle of the game window on Windows.
+            On other platforms, returns IntPtr.Zero.
+            </summary>
+        </member>
         <member name="M:Rampastring.XNAUI.WindowManager.SetControlBox(System.Boolean)">
             <summary>
             Enables or disables the "control box" (minimize/maximize/close buttons) for the game form.
             </summary>
             <param name="value">True to enable the control box, false to disable it.</param>
+        </member>
+        <member name="M:Rampastring.XNAUI.WindowManager.PreventClosing">
+            <summary>
+            Prevents the user from closing the game form by Alt-F4.
+            </summary>
+        </member>
+        <member name="M:Rampastring.XNAUI.WindowManager.AllowClosing">
+            <summary>
+            Allows the user to close the game form by Alt-F4.
+            </summary>
+        </member>
+        <member name="M:Rampastring.XNAUI.WindowManager.SetVSync(System.Boolean)">
+            <summary>
+            Enables or disables VSync.
+            </summary>
+            <param name="value">A boolean that determines whether VSync should be enabled or disabled.</param>
         </member>
         <member name="M:Rampastring.XNAUI.WindowManager.InitGraphicsMode(System.Int32,System.Int32,System.Boolean)">
             <summary>
@@ -903,6 +1082,20 @@
             <param name="iWidth">Desired screen width.</param>
             <param name="iHeight">Desired screen height.</param>
             <param name="bFullScreen">True if you wish to go to Full Screen, false for Windowed Mode.</param>
+        </member>
+        <member name="M:Rampastring.XNAUI.WindowManager.Update(Microsoft.Xna.Framework.GameTime)">
+            <summary>
+            Updates the WindowManager. Do not call manually; MonoGame will call 
+            this automatically on every game frame.
+            </summary>
+            <param name="gameTime">Provides a snapshot of timing values.</param>
+        </member>
+        <member name="M:Rampastring.XNAUI.WindowManager.Draw(Microsoft.Xna.Framework.GameTime)">
+            <summary>
+            Draws all the visible controls in the WindowManager.
+            Do not call manually; MonoGame calls this automatically.
+            </summary>
+            <param name="gameTime">Provides a snapshot of timing values.</param>
         </member>
     </members>
 </doc>

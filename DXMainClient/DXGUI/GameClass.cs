@@ -72,7 +72,10 @@ namespace DTAClient.DXGUI
             wm.CenterOnScreen();
             wm.SetRenderResolution(renderResolutionX, renderResolutionY);
             wm.SetIcon(ProgramConstants.GetBaseResourcePath() + "clienticon.ico");
-            wm.SetWindowTitle(MainClientConstants.GAME_NAME_SHORT + " Client");
+            string windowTitle = ClientConfiguration.Instance.WindowTitle;
+            Window.Title = string.IsNullOrEmpty(windowTitle) ? 
+                string.Format("{0} Client", MainClientConstants.GAME_NAME_SHORT) : windowTitle;
+
             wm.SetControlBox(true);
 
             wm.Cursor.Textures = new Texture2D[]
@@ -89,6 +92,12 @@ namespace DTAClient.DXGUI
             Components.Add(wm);
 
             string playerName = UserINISettings.Instance.PlayerName.Value.Trim();
+            
+            if (UserINISettings.Instance.AutoRemoveUnderscoresFromName)
+            {
+                while (playerName.EndsWith("_"))
+                    playerName = playerName.Substring(0, playerName.Length - 1);
+            }
 
             if (string.IsNullOrEmpty(playerName))
             {
@@ -105,6 +114,7 @@ namespace DTAClient.DXGUI
                 playerName = playerName.Substring(0, maxNameLength);
 
             ProgramConstants.PLAYERNAME = playerName;
+            UserINISettings.Instance.PlayerName.Value = playerName;
 
             LoadingScreen ls = new LoadingScreen(wm);
             wm.AddAndInitializeControl(ls);

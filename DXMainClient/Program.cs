@@ -14,6 +14,33 @@ namespace DTAClient
     {
         static Program()
         {
+            char dsc = Path.DirectorySeparatorChar;
+
+            /*/ We have different binaries depending on build platform, but for simplicity
+             * the target projects (DTA, TI, MO, YR) supply them all in a single download.
+             * To avoid DLL hell, we load the binaries from different directories
+             * depending on the build platform. /*/
+
+#if DEBUG
+            COMMON_LIBRARY_PATH = string.Format("{0}{1}Resources{1}Binaries{1}", Application.StartupPath, dsc);
+#else
+            COMMON_LIBRARY_PATH = string.Format("{0}{1}Binaries{1}", Application.StartupPath, dsc);
+#endif
+
+#if XNA && DEBUG
+            SPECIFIC_LIBRARY_PATH = string.Format("{0}{1}Resources{1}Binaries{1}XNA{1}", Application.StartupPath, dsc);
+#elif XNA
+            SPECIFIC_LIBRARY_PATH = string.Format("{0}{1}Binaries{1}XNA{1}", Application.StartupPath, dsc);
+#elif WINDOWSGL && DEBUG
+            SPECIFIC_LIBRARY_PATH = string.Format("{0}{1}Resources{1}Binaries{1}OpenGL{1}", Application.StartupPath, dsc);
+#elif WINDOWSGL
+            SPECIFIC_LIBRARY_PATH = string.Format("{0}{1}Binaries{1}OpenGL{1}", Application.StartupPath, dsc);
+#elif DEBUG
+            SPECIFIC_LIBRARY_PATH = string.Format("{0}{1}Resources{1}Binaries{1}Windows{1}", Application.StartupPath, dsc);
+#else
+            SPECIFIC_LIBRARY_PATH = string.Format("{0}{1}Binaries{1}Windows{1}", Application.StartupPath, dsc);
+            #endif
+
             // Set up DLL load paths as early as possible
             AppDomain.CurrentDomain.AssemblyResolve += CurrentDomain_AssemblyResolve;
 #if !DEBUG
@@ -23,20 +50,27 @@ namespace DTAClient
 #endif
         }
 
-        static List<string> EXTERNAL_LIBRARIES = new List<string>()
+        static List<string> COMMON_LIBRARIES = new List<string>()
+        {
+            "Rampastring.Tools",
+            "Ionic.Zip",
+            "MapThumbnailExtractor",
+            "DTAUpdater",
+        };
+
+        static List<string> SPECIFIC_LIBRARIES = new List<string>()
         {
             "ClientGUI",
             "ClientCore",
-            "DTAUpdater",
             "DTAConfig",
             "MonoGame.Framework",
-            "Rampastring.Tools",
             "Rampastring.XNAUI",
-            "Ionic.Zip",
             "OpenTK",
             "NVorbis",
-            "MapThumbnailExtractor"
         };
+
+        private static string COMMON_LIBRARY_PATH;
+        private static string SPECIFIC_LIBRARY_PATH;
 
         /// <summary>
         /// The main entry point for the application.
@@ -93,41 +127,31 @@ namespace DTAClient
 
         static Assembly CurrentDomain_AssemblyResolve(object sender, ResolveEventArgs args)
         {
-            char directorySeparatorChar = Path.DirectorySeparatorChar;
-
-            /*/ We have different binaries depending on build platform, but for simplicity
-             * the target projects (DTA, TI, MO, YR) supply them all in a single download.
-             * To avoid DLL hell, we load the binaries from different directories
-             * depending on the build platform. /*/
-#if XNA && DEBUG
-            string path = string.Format("{0}{1}Resources{1}XNABinaries{1}", Application.StartupPath, directorySeparatorChar);
-#elif XNA
-            string path = string.Format("{0}{1}XNABinaries{1}", Application.StartupPath, directorySeparatorChar);
-#elif WINDOWSGL && DEBUG
-            string path = string.Format("{0}{1}Resources{1}GLBinaries{1}", Application.StartupPath, directorySeparatorChar);
-#elif WINDOWSGL
-            string path = string.Format("{0}{1}GLBinaries{1}", Application.StartupPath, directorySeparatorChar);
-#elif DEBUG
-            string path = string.Format("{0}{1}Resources{1}Binaries{1}", Application.StartupPath, directorySeparatorChar);
-#else
-            string path = string.Format("{0}{1}Binaries{1}", Application.StartupPath, directorySeparatorChar);
-#endif
-
             if (args.Name.StartsWith("SharpDX"))
             {
                 string[] parts = args.Name.Split(',');
-                byte[] data = File.ReadAllBytes(path + parts[0] + ".dll");
+                byte[] data = File.ReadAllBytes(SPECIFIC_LIBRARY_PATH + parts[0] + ".dll");
                 return Assembly.Load(data);
             }
 
-            string name = EXTERNAL_LIBRARIES.Find(dll => args.Name.StartsWith(dll));
+            string name = SPECIFIC_LIBRARIES.Find(dll => args.Name.StartsWith(dll));
 
             if (name != null)
             {
-                byte[] data = File.ReadAllBytes(string.Format("{0}{1}.dll", path, name));
+                byte[] data = File.ReadAllBytes(string.Format("{0}{1}.dll", SPECIFIC_LIBRARY_PATH, name));
                 return Assembly.Load(data);
             }
-            
+
+            // Common libraries are shared among the different build platforms
+
+            name = COMMON_LIBRARIES.Find(dll => args.Name.StartsWith(dll));
+
+            if (name != null)
+            {
+                byte[] data = File.ReadAllBytes(string.Format("{0}{1}.dll", COMMON_LIBRARY_PATH, name));
+                return Assembly.Load(data);
+            }
+
             return null;
         }
     }

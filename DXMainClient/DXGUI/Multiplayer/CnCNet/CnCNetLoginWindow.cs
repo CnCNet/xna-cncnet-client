@@ -162,7 +162,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             chkPersistentMode.Checked = UserINISettings.Instance.PersistentMode;
             chkRememberMe.Checked = UserINISettings.Instance.SkipConnectDialog;
 
-            tbPlayerName.Text = ProgramConstants.PLAYERNAME;
+            tbPlayerName.Text = UserINISettings.Instance.PlayerName;
 
             if (chkRememberMe.Checked)
                 BtnConnect_LeftClick(this, EventArgs.Empty);
