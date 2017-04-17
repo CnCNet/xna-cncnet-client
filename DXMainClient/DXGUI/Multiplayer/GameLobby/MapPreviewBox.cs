@@ -139,6 +139,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             AddChild(briefingBox);
             briefingBox.Disable();
 
+            ClientRectangleUpdated += MapPreviewBox_ClientRectangleUpdated;
+
             SoundEffect seButton = AssetLoader.LoadSound("button.wav");
             if (seButton != null)
                 sndClickSound = seButton.CreateInstance();
@@ -148,6 +150,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 sndDropdownSound = seDropdown.CreateInstance();
 
             base.Initialize();
+        }
+
+        private void MapPreviewBox_ClientRectangleUpdated(object sender, EventArgs e)
+        {
+            briefingBox.CreateRenderTarget();
         }
 
         private void ContextMenu_OptionSelected(object sender, ContextMenuOptionEventArgs e)
@@ -304,8 +311,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (!string.IsNullOrEmpty(Map.Briefing))
             {
                 briefingBox.SetText(Map.Briefing);
-                if (!IsActive)
-                    briefingBox.Enable();
+                briefingBox.Enable();
+                if (IsActive)
+                    briefingBox.SetAlpha(0f);
             }
             else
                 briefingBox.Disable();
@@ -406,7 +414,12 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             foreach (PlayerLocationIndicator indicator in startingLocationIndicators)
                 indicator.BackgroundShown = true;
 
-            briefingBox.Disable();
+            if (Map != null && !string.IsNullOrEmpty(Map.Briefing))
+            {
+                briefingBox.SetFadeVisibility(false);
+            }
+            else
+                briefingBox.Disable();
 
             base.OnMouseEnter();
         }
@@ -419,7 +432,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (Map != null && !string.IsNullOrEmpty(Map.Briefing))
             {
                 briefingBox.SetText(Map.Briefing);
-                briefingBox.Enable();
+                briefingBox.SetFadeVisibility(true);
             }
 
             base.OnMouseLeave();
