@@ -46,8 +46,12 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             if (renderTarget != null)
                 renderTarget.Dispose();
-            renderTarget = new RenderTarget2D(GraphicsDevice, Parent.ClientRectangle.Width, Parent.ClientRectangle.Height,
-                false, SurfaceFormat.Color, DepthFormat.None, 0, RenderTargetUsage.PlatformContents);
+
+            if (Parent.ClientRectangle.Width > 0 && Parent.ClientRectangle.Height > 0)
+            {
+                renderTarget = new RenderTarget2D(GraphicsDevice, Parent.ClientRectangle.Width, Parent.ClientRectangle.Height,
+                    false, SurfaceFormat.Color, DepthFormat.Depth24Stencil8, 0, RenderTargetUsage.PlatformContents);
+            }
         }
 
         public void SetFadeVisibility(bool visible)
