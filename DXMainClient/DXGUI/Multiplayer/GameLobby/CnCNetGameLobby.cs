@@ -26,6 +26,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         private const string MAP_SHARING_DOWNLOAD_REQUEST = "MAPOK";
         private const string MAP_SHARING_UPLOAD_REQUEST = "MAPREQ";
         private const string MAP_SHARING_DISABLED_MESSAGE = "MAPSDISABLED";
+        private const string FRAME_SEND_RATE_MESSAGE = "SFSR";
 
         public CnCNetGameLobby(WindowManager windowManager, string iniName, 
             TopBar topBar, List<GameMode> GameModes, CnCNetManager connectionManager,
@@ -59,7 +60,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 new NoParamCommandHandler("RETURN", ReturnNotification),
                 new IntCommandHandler("TNLPNG", TunnelPingNotification),
                 new StringCommandHandler("FHSH", FileHashNotification),
-                new StringCommandHandler("MM", CheaterNotification)
+                new StringCommandHandler("MM", CheaterNotification),
+                new IntCommandHandler(FRAME_SEND_RATE_MESSAGE, SetFrameSendRateForNonHostPlayer),
             };
 
             MapSharer.MapDownloadFailed += MapSharer_MapDownloadFailed;
@@ -1201,6 +1203,21 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 channel.SendBanMessage(user.Hostname, 8);
                 channel.SendKickMessage(user.Name, 8);
             }
+        }
+
+        protected override void BroadcastFrameSendRate(int value)
+        {
+            channel.SendCTCPMessage(FRAME_SEND_RATE_MESSAGE + " " + FrameSendRate, QueuedMessageType.UNDEFINED, 12);
+        }
+
+        private void SetFrameSendRateForNonHostPlayer(string sender, int frameSendRate)
+        {
+            if (sender != hostName)
+                return;
+
+            FrameSendRate = frameSendRate;
+            AddNotice("The game host has changed FrameSendRate (order lag) to " + frameSendRate);
+            ClearReadyStatuses();
         }
 
         #region CnCNet map sharing

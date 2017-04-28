@@ -213,6 +213,7 @@
     <Compile Include="Domain\Multiplayer\CnCNet\HostedCnCNetGame.cs" />
     <Compile Include="Domain\Multiplayer\CnCNet\MapEventArgs.cs" />
     <Compile Include="Domain\Multiplayer\CnCNet\MapSharer.cs" />
+    <Compile Include="Domain\Multiplayer\LAN\ClientIntCommandHandler.cs" />
     <Compile Include="Domain\Multiplayer\LAN\LANLobbyUser.cs" />
     <Compile Include="Domain\Multiplayer\LAN\LANPlayerInfo.cs" />
     <Compile Include="Domain\Multiplayer\LAN\NetworkMessageEventArgs.cs" />
@@ -255,6 +256,7 @@
     <Compile Include="DXGUI\Generic\ExtrasWindow.cs" />
     <Compile Include="DXGUI\GameClass.cs" />
     <Compile Include="DXGUI\Multiplayer\GameLoadingLobbyBase.cs" />
+    <Compile Include="DXGUI\Multiplayer\GameLobby\ChatBoxCommand.cs" />
     <Compile Include="DXGUI\Multiplayer\GameLobby\CnCNetGameLobby.cs" />
     <Compile Include="DXGUI\Multiplayer\GameLobby\CommandHandlers\CommandHandlerBase.cs" />
     <Compile Include="DXGUI\Multiplayer\GameLobby\CommandHandlers\IntNotificationHandler.cs" />

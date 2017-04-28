@@ -25,6 +25,16 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             : base(windowManager, iniName, GameModes, true)
         {
             TopBar = topBar;
+
+            chatBoxCommands = new ChatBoxCommand[]
+            {
+                new ChatBoxCommand("HIDEMAPS", "Hide map list (game host only)", true,
+                    new Action<string>(s => HideMapList())),
+                new ChatBoxCommand("SHOWMAPS", "Show map list (game host only)", true,
+                    new Action<string>(s => ShowMapList())),
+                new ChatBoxCommand("FRAMESENDRATE", "Change order lag / FrameSendRate (game host only)", true,
+                    new Action<string>(s => SetFrameSendRate(s))),
+            };
         }
 
         protected XNACheckBox[] ReadyBoxes;
@@ -43,6 +53,16 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         protected PrioritizedSound sndGetReadySound;
 
         protected TopBar TopBar;
+
+        private int _frameSendRate = 7;
+
+        protected int FrameSendRate
+        {
+            get { return _frameSendRate; }
+            set { _frameSendRate = value; }
+        }
+
+        private ChatBoxCommand[] chatBoxCommands;
 
         private FileSystemWatcher fsw;
 
@@ -233,35 +253,46 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             if (tbChatInput.Text.StartsWith("/"))
             {
-                string command = tbChatInput.Text.ToUpper();
+                string text = tbChatInput.Text;
+                string command;
+                string parameters;
 
-                tbChatInput.Text = string.Empty;
+                int spaceIndex = text.IndexOf(' ');
 
-                if (command == "/HIDEMAPS")
+                if (spaceIndex == -1)
                 {
-                    if (!IsHost)
-                    {
-                        AddNotice("/HIDEMAPS is for game hosts only.");
-                        return;
-                    }
-
-                    HideMapList();
-                }
-                else if (command == "/SHOWMAPS")
-                {
-                    if (!IsHost)
-                    {
-                        AddNotice("/SHOWMAPS is for game hosts only.");
-                        return;
-                    }
-
-                    ShowMapList();
+                    command = text.Substring(1).ToUpper();
+                    parameters = string.Empty;
                 }
                 else
                 {
-                    AddNotice("Possible commands:");
-                    AddNotice("/HIDEMAPS: Hide map list (game host only)");
-                    AddNotice("/SHOWMAPS: Show map list (game host only)");
+                    command = text.Substring(1, spaceIndex - 1);
+                    parameters = text.Substring(spaceIndex + 1);
+                }
+                
+                tbChatInput.Text = string.Empty;
+
+                foreach (var chatBoxCommand in chatBoxCommands)
+                {
+                    if (command == chatBoxCommand.Command)
+                    {
+                        if (!IsHost && chatBoxCommand.HostOnly)
+                        {
+                            AddNotice(string.Format("/{0} is for game hosts only.", chatBoxCommand.Command));
+                            return;
+                        }
+
+                        chatBoxCommand.Action(parameters);
+                        return;
+                    }
+                }
+
+                // The user typed a nonexistant command
+                AddNotice("Possible commands:");
+                foreach (var chatBoxCommand in chatBoxCommands)
+                {
+                    AddNotice(string.Format("/{0}: {1}", 
+                        chatBoxCommand.Command, chatBoxCommand.Description));
                 }
 
                 return;
@@ -270,6 +301,26 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             SendChatMessage(tbChatInput.Text);
             tbChatInput.Text = string.Empty;
         }
+
+        private void SetFrameSendRate(string value)
+        {
+            int intValue;
+            bool success = int.TryParse(value, out intValue);
+
+            if (!success)
+            {
+                AddNotice("Command syntax: /FrameSendRate <number>");
+                return;
+            }
+
+            FrameSendRate = intValue;
+            AddNotice("FrameSendRate has been changed to " + intValue);
+
+            BroadcastFrameSendRate(intValue);
+            ClearReadyStatuses();
+        }
+
+        protected abstract void BroadcastFrameSendRate(int value);
 
         protected abstract void SendChatMessage(string message);
 
@@ -680,6 +731,12 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             //if (IsHost)
             //    OnGameOptionChanged();
+        }
+
+        protected override void WriteSpawnIniAdditions(IniFile iniFile)
+        {
+            base.WriteSpawnIniAdditions(iniFile);
+            iniFile.SetIntValue("Settings", "FrameSendRate", FrameSendRate);
         }
 
         protected override int GetDefaultMapRankIndex(Map map)
