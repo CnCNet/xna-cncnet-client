@@ -1368,6 +1368,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (!IsHost)
                 return;
 
+            AddNotice(string.Format("{0} doesn't have the map '{1}' on their local installation. " +
+                "Attempting to upload the map to the CnCNet map database.",
+                sender, map.Name));
+
             MapSharer.UploadMap(map, localGame);
         }
 
