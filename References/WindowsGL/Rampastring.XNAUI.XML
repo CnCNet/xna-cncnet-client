@@ -397,6 +397,12 @@
             from being interacted with.
             </summary>
         </member>
+        <member name="P:Rampastring.XNAUI.XNAControls.XNAControl.InputEnabled">
+            <summary>
+            Determines whether this control is able to handle input.
+            If set to false, input management will ignore this control.
+            </summary>
+        </member>
         <member name="P:Rampastring.XNAUI.XNAControls.XNAControl.IsActive">
             <summary>
             Gets or sets a bool that determines whether this control is the current focus of the mouse cursor.
