@@ -18,8 +18,8 @@ namespace DTAConfig
         {
         }
 
-        XNAListBox lbUpdateServerList;
-        XNAClientCheckBox chkAutoCheck;
+        private XNAListBox lbUpdateServerList;
+        private XNAClientCheckBox chkAutoCheck;
 
         public override void Initialize()
         {
@@ -45,6 +45,7 @@ namespace DTAConfig
             btnMoveUp.ClientRectangle = new Rectangle(lbUpdateServerList.ClientRectangle.X,
                 lbUpdateServerList.ClientRectangle.Bottom + 12, 133, 23);
             btnMoveUp.Text = "Move Up";
+            btnMoveUp.LeftClick += btnMoveUp_LeftClick;
 
             var btnMoveDown = new XNAClientButton(WindowManager);
             btnMoveDown.Name = "btnMoveDown";
@@ -52,6 +53,7 @@ namespace DTAConfig
                 lbUpdateServerList.ClientRectangle.Right - 133,
                 btnMoveUp.ClientRectangle.Y, 133, 23);
             btnMoveDown.Text = "Move Down";
+            btnMoveDown.LeftClick += btnMoveDown_LeftClick;
 
             chkAutoCheck = new XNAClientCheckBox(WindowManager);
             chkAutoCheck.Name = "chkAutoCheck";
@@ -66,7 +68,7 @@ namespace DTAConfig
             AddChild(chkAutoCheck);
         }
 
-        private void btnMoveUp_Click(object sender, EventArgs e)
+        private void btnMoveUp_LeftClick(object sender, EventArgs e)
         {
             int selectedIndex = lbUpdateServerList.SelectedIndex;
 
@@ -84,7 +86,7 @@ namespace DTAConfig
             CUpdater.UPDATEMIRRORS[selectedIndex] = umtmp;
         }
 
-        private void btnMoveDown_Click(object sender, EventArgs e)
+        private void btnMoveDown_LeftClick(object sender, EventArgs e)
         {
             int selectedIndex = lbUpdateServerList.SelectedIndex;
 

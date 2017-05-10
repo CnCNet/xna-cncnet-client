@@ -240,7 +240,6 @@ namespace DTAConfig
         {
             lblClientVolumeValue.Text = trbClientVolume.Value.ToString();
             WindowManager.SoundPlayer.SetVolume(trbClientVolume.Value / 10.0f);
-            AudioMaster.SetVolume(trbClientVolume.Value / 10.0f);
         }
 
         public override void Load()
