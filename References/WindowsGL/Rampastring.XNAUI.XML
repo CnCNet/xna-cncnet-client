@@ -255,6 +255,59 @@
             A text input control.
             </summary>
         </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNATextBox.#ctor(Rampastring.XNAUI.WindowManager)">
+            <summary>
+            Creates a new XNATextBox.
+            </summary>
+            <param name="windowManager">The WindowManager that will be associated with this control.</param>
+        </member>
+        <member name="E:Rampastring.XNAUI.XNAControls.XNATextBox.EnterPressed">
+            <summary>
+            Raised when the user presses the Enter key while this text box is the
+            selected control.
+            </summary>
+        </member>
+        <member name="E:Rampastring.XNAUI.XNAControls.XNATextBox.InputReceived">
+            <summary>
+            Raised when the text box receives input that changes its text.
+            </summary>
+        </member>
+        <member name="E:Rampastring.XNAUI.XNAControls.XNATextBox.TextChanged">
+            <summary>
+            Raised whenever the text of the text box is changed, by the user or
+            programmatically.
+            </summary>
+        </member>
+        <member name="P:Rampastring.XNAUI.XNAControls.XNATextBox.IdleBorderColor">
+            <summary>
+            The color of the text box border when the text box is inactive.
+            </summary>
+        </member>
+        <member name="P:Rampastring.XNAUI.XNAControls.XNATextBox.ActiveBorderColor">
+            <summary>
+            The color of the text box border when the text box is selected.
+            </summary>
+        </member>
+        <member name="P:Rampastring.XNAUI.XNAControls.XNATextBox.BackColor">
+            <summary>
+            The color of the text box background.
+            </summary>
+        </member>
+        <member name="P:Rampastring.XNAUI.XNAControls.XNATextBox.FontIndex">
+            <summary>
+            The index of the spritefont that this textbox uses.
+            </summary>
+        </member>
+        <member name="P:Rampastring.XNAUI.XNAControls.XNATextBox.MaximumTextLength">
+            <summary>
+            The maximum length of the text of this text box, in characters.
+            </summary>
+        </member>
+        <member name="P:Rampastring.XNAUI.XNAControls.XNATextBox.Text">
+            <summary>
+            The text on the text box.
+            </summary>
+        </member>
         <member name="P:Rampastring.XNAUI.XNAControls.XNATextBox.InputPosition">
             <summary>
             The input character index inside the textbox text.
@@ -268,6 +321,11 @@
         <member name="P:Rampastring.XNAUI.XNAControls.XNATextBox.TextEndPosition">
             <summary>
             The end character index of the visible part of the text string.
+            </summary>
+        </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNATextBox.Initialize">
+            <summary>
+            Initializes the text box.
             </summary>
         </member>
         <member name="T:Rampastring.XNAUI.XNAControls.Callback">
