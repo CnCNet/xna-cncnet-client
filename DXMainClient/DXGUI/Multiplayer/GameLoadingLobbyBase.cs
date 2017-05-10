@@ -486,6 +486,8 @@ namespace DTAClient.DXGUI.Multiplayer
             for (int i = 1; i < Players.Count; i++)
                 Players[i].Ready = false;
 
+            CopyPlayerDataToUI();
+
             if (!isSettingUp)
                 BroadcastOptions();
         }

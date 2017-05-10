@@ -274,7 +274,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             CopyPlayerDataToUI();
 
-            if (!IsHost && playerName == hostName)
+            if (!IsHost && playerName == hostName && !ProgramConstants.IsInGame)
             {
                 connectionManager.MainChannel.AddMessage(new ChatMessage(null,
                     Color.Yellow, DateTime.Now, "The game host left the game!"));
