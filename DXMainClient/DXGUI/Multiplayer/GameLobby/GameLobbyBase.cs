@@ -927,7 +927,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         /// Writes spawn.ini, writes the map file, initializes statistics and
         /// starts the game process.
         /// </summary>
-        protected void StartGame()
+        protected virtual void StartGame()
         {
             PlayerHouseInfo[] houseInfos = WriteSpawnIni();
             InitializeMatchStatistics(houseInfos);

@@ -15,6 +15,16 @@ namespace DTAClient.Online
 
         string[] fileNamesToCheck = new string[]
         {
+#if MO
+            "Ares.dll",
+            "Ares.dll.inj",
+            "expandmo97.mix",
+            "expandmo99.mix",
+            "cncnet5.dll",
+            "rulesmo.ini",
+            "artmo.ini",
+            "soundmo.ini",
+#else
             "spawner.xdp",
             "rules.ini",
             "rulesmd.ini",
@@ -31,6 +41,7 @@ namespace DTAClient.Online
             "INI\\AI.ini",
             "INI\\AIE.ini",
             "INI\\AIFS.ini",
+#endif
             "INI\\GlobalCode.ini",
         };
 

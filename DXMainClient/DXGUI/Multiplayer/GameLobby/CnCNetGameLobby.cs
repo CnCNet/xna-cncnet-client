@@ -27,6 +27,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         private const string MAP_SHARING_UPLOAD_REQUEST = "MAPREQ";
         private const string MAP_SHARING_DISABLED_MESSAGE = "MAPSDISABLED";
         private const string FRAME_SEND_RATE_MESSAGE = "SFSR";
+        private const string CHEAT_DETECTED_MESSAGE = "CD";
 
         public CnCNetGameLobby(WindowManager windowManager, string iniName, 
             TopBar topBar, List<GameMode> GameModes, CnCNetManager connectionManager,
@@ -62,6 +63,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 new StringCommandHandler("FHSH", FileHashNotification),
                 new StringCommandHandler("MM", CheaterNotification),
                 new IntCommandHandler(FRAME_SEND_RATE_MESSAGE, SetFrameSendRateForNonHostPlayer),
+                new NoParamCommandHandler(CHEAT_DETECTED_MESSAGE, HandleCheatDetectedMessage),
             };
 
             MapSharer.MapDownloadFailed += MapSharer_MapDownloadFailed;
@@ -444,8 +446,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             }
 
             Players.ForEach(pInfo => pInfo.IsInGame = true);
-
-            AddNotice("Starting game..");
 
             StartGame();
         }
@@ -967,9 +967,24 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 pInfo.Port = port;
             }
 
+            StartGame();
+        }
+
+        protected override void StartGame()
+        {
             AddNotice("Starting game..");
 
-            StartGame();
+            FileHashCalculator fhc = new FileHashCalculator();
+            fhc.CalculateHashes(GameModes);
+
+            if (gameFilesHash != fhc.GetCompleteHash())
+            {
+                Logger.Log("Game files modified during client session!");
+                channel.SendCTCPMessage(CHEAT_DETECTED_MESSAGE, QueuedMessageType.INSTANT_MESSAGE, 0);
+                HandleCheatDetectedMessage(ProgramConstants.PLAYERNAME);
+            }
+
+            base.StartGame();
         }
 
         protected override void WriteSpawnIniAdditions(IniFile iniFile)
@@ -1130,7 +1145,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (sender != hostName)
                 return;
 
-            AddNotice(cheaterName + " - modified files detected! They could be cheating!", Color.Red);
+            AddNotice("Player " + cheaterName + " has different files compared to the game host. Either " + 
+                cheaterName + " or the game host could be cheating.", Color.Red);
         }
 
         #endregion
@@ -1218,6 +1234,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             FrameSendRate = frameSendRate;
             AddNotice("The game host has changed FrameSendRate (order lag) to " + frameSendRate);
             ClearReadyStatuses();
+        }
+
+        private void HandleCheatDetectedMessage(string sender)
+        {
+            AddNotice(sender + " has modified game files during the client session. They are likely attempting to cheat!", Color.Red);
         }
 
         #region CnCNet map sharing
