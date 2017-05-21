@@ -28,7 +28,7 @@
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Windows\Release\</OutputPath>
-    <DefineConstants>TRACE;DTA</DefineConstants>
+    <DefineConstants>TRACE;YR</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
@@ -48,7 +48,7 @@
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\WindowsGL\Release</OutputPath>
-    <DefineConstants>TRACE;DTA WINDOWSGL</DefineConstants>
+    <DefineConstants>TRACE;YR WINDOWSGL</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
@@ -65,7 +65,7 @@
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\XNAFramework\Release</OutputPath>
-    <DefineConstants>TRACE;XNA DTA</DefineConstants>
+    <DefineConstants>TRACE;XNA YR</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
@@ -143,6 +143,7 @@
     <Compile Include="ComponentsPanel.cs" />
     <Compile Include="DisplayOptionsPanel.cs" />
     <Compile Include="GameOptionsPanel.cs" />
+    <Compile Include="HotkeyConfigurationWindow.cs" />
     <Compile Include="MIXSettingCheckBox.cs" />
     <Compile Include="OptionsWindow.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

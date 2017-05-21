@@ -433,6 +433,14 @@ namespace ClientCore
             }
         }
 
+        public string KeyboardINI
+        {
+            get
+            {
+                return clientDefinitionsIni.GetStringValue("Settings", "KeyboardINI", "Keyboard.ini");
+            }
+        }
+
         public string ModDBURL
         {
             get
