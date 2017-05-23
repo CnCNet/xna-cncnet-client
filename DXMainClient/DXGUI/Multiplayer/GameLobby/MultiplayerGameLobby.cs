@@ -316,11 +316,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             FrameSendRate = intValue;
             AddNotice("FrameSendRate has been changed to " + intValue);
 
-            BroadcastFrameSendRate(intValue);
+            OnGameOptionChanged();
             ClearReadyStatuses();
         }
-
-        protected abstract void BroadcastFrameSendRate(int value);
 
         protected abstract void SendChatMessage(string message);
 

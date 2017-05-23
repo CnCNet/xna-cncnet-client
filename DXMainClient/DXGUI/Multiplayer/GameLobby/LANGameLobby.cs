@@ -34,7 +34,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         private const string PLAYER_READY_REQUEST = "READY";
         private const string LAUNCH_GAME_COMMAND = "LAUNCH";
         private const string FILE_HASH_COMMAND = "FHASH";
-        private const string FRAME_SEND_RATE_MESSAGE = "SFSR";
 
         public LANGameLobby(WindowManager windowManager, string iniName, 
             TopBar topBar, List<GameMode> GameModes, LANColor[] chatColors) : 
@@ -61,7 +60,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 new ClientStringCommandHandler(LAUNCH_GAME_COMMAND, HandleGameLaunchCommand),
                 new ClientStringCommandHandler(GAME_OPTIONS_COMMAND, HandleGameOptionsMessage),
                 new ClientNoParamCommandHandler("PING", HandlePing),
-                new ClientIntCommandHandler(FRAME_SEND_RATE_MESSAGE, HandleFrameSendRateChange),
             };
 
             localGame = ClientConfiguration.Instance.LocalGame;
@@ -521,6 +519,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             sb.Append(RandomSeed);
             sb.Append(Map.SHA1);
             sb.Append(GameMode.Name);
+            sb.Append(FrameSendRate);
 
             BroadcastMessage(sb.ToString());
         }
@@ -533,11 +532,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             if (IsHost)
                 BroadcastMessage(GET_READY_COMMAND);
-        }
-
-        protected override void BroadcastFrameSendRate(int value)
-        {
-            BroadcastMessage(FRAME_SEND_RATE_MESSAGE + " " + value);
         }
 
         /// <summary>
@@ -900,14 +894,14 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 return;
             }
 
-            int randomSeed = Conversions.IntFromString(parts[parts.Length - 3], -1);
+            int randomSeed = Conversions.IntFromString(parts[parts.Length - 4], -1);
             if (randomSeed == -1)
                 return;
 
             RandomSeed = randomSeed;
 
-            string mapSHA1 = parts[parts.Length - 2];
-            string gameMode = parts[parts.Length - 1];
+            string mapSHA1 = parts[parts.Length - 3];
+            string gameMode = parts[parts.Length - 2];
 
             GameMode gm = GameModes.Find(g => g.Name == gameMode);
 
@@ -931,6 +925,13 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             if (GameMode != gm || Map != map)
                 ChangeMap(gm, map);
+
+            int frameSendRate = Conversions.IntFromString(parts[parts.Length - 1], FrameSendRate);
+            if (frameSendRate != FrameSendRate)
+            {
+                FrameSendRate = frameSendRate;
+                AddNotice("The game host has changed FrameSendRate (order lag) to " + frameSendRate);
+            }
 
             for (int i = 0; i < CheckBoxes.Count; i++)
             {
@@ -996,13 +997,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         private void HandlePing()
         {
             SendMessageToHost("PING");
-        }
-
-        private void HandleFrameSendRateChange(int frameSendRate)
-        {
-            FrameSendRate = frameSendRate;
-            AddNotice("The game host has changed FrameSendRate (order lag) to " + frameSendRate);
-            ClearReadyStatuses();
         }
 
         #endregion

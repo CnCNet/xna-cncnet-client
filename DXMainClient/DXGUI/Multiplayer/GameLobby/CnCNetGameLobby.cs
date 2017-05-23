@@ -26,7 +26,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         private const string MAP_SHARING_DOWNLOAD_REQUEST = "MAPOK";
         private const string MAP_SHARING_UPLOAD_REQUEST = "MAPREQ";
         private const string MAP_SHARING_DISABLED_MESSAGE = "MAPSDISABLED";
-        private const string FRAME_SEND_RATE_MESSAGE = "SFSR";
         private const string CHEAT_DETECTED_MESSAGE = "CD";
 
         public CnCNetGameLobby(WindowManager windowManager, string iniName, 
@@ -62,7 +61,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 new IntCommandHandler("TNLPNG", TunnelPingNotification),
                 new StringCommandHandler("FHSH", FileHashNotification),
                 new StringCommandHandler("MM", CheaterNotification),
-                new IntCommandHandler(FRAME_SEND_RATE_MESSAGE, SetFrameSendRateForNonHostPlayer),
                 new NoParamCommandHandler(CHEAT_DETECTED_MESSAGE, HandleCheatDetectedMessage),
             };
 
@@ -712,12 +710,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             int integerCount = byteList.Count / 4;
             byte[] byteArray = byteList.ToArray();
 
-            StringBuilder sb = new StringBuilder("GO ");
+            ExtendedStringBuilder sb = new ExtendedStringBuilder("GO ", true, ';');
 
             for (int i = 0; i < integerCount; i++)
             {
                 sb.Append(BitConverter.ToInt32(byteArray, i * 4));
-                sb.Append(";");
             }
 
             // We don't gain much in most cases by packing the drop-down values
@@ -727,15 +724,12 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             foreach (GameLobbyDropDown dd in DropDowns)
             {
                 sb.Append(dd.SelectedIndex);
-                sb.Append(";");
             }
 
             sb.Append(Convert.ToInt32(Map.Official));
-            sb.Append(';');
             sb.Append(Map.SHA1);
-            sb.Append(";");
             sb.Append(GameMode.Name);
-            sb.Append(";");
+            sb.Append(FrameSendRate);
             sb.Append(RandomSeed);
 
             channel.SendCTCPMessage(sb.ToString(), QueuedMessageType.GAME_SETTINGS_MESSAGE, 11);
@@ -755,7 +749,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             int partIndex = checkBoxIntegerCount + DropDowns.Count;
 
-            if (parts.Length < partIndex + 3)
+            if (parts.Length < partIndex + 4)
                 return;
 
             string mapOfficial = parts[partIndex];
@@ -764,6 +758,13 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             string mapSHA1 = parts[partIndex + 1];
 
             string gameMode = parts[partIndex + 2];
+
+            int frameSendRate = Conversions.IntFromString(parts[partIndex + 3], FrameSendRate);
+            if (frameSendRate != FrameSendRate)
+            {
+                FrameSendRate = frameSendRate;
+                AddNotice("The game host has changed FrameSendRate (order lag) to " + frameSendRate);
+            }
 
             GameMode currentGameMode = GameMode;
             Map currentMap = Map;
@@ -865,7 +866,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             }
 
             int randomSeed;
-            bool parseSuccess = int.TryParse(parts[partIndex + 3], out randomSeed);
+            bool parseSuccess = int.TryParse(parts[partIndex + 4], out randomSeed);
 
             if (!parseSuccess)
                 return;
@@ -1219,21 +1220,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 channel.SendBanMessage(user.Hostname, 8);
                 channel.SendKickMessage(user.Name, 8);
             }
-        }
-
-        protected override void BroadcastFrameSendRate(int value)
-        {
-            channel.SendCTCPMessage(FRAME_SEND_RATE_MESSAGE + " " + FrameSendRate, QueuedMessageType.UNDEFINED, 12);
-        }
-
-        private void SetFrameSendRateForNonHostPlayer(string sender, int frameSendRate)
-        {
-            if (sender != hostName)
-                return;
-
-            FrameSendRate = frameSendRate;
-            AddNotice("The game host has changed FrameSendRate (order lag) to " + frameSendRate);
-            ClearReadyStatuses();
         }
 
         private void HandleCheatDetectedMessage(string sender)
