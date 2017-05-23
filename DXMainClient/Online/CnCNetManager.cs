@@ -400,8 +400,6 @@ namespace DTAClient.Online
 
         private void DoDisconnected()
         {
-            Disconnected?.Invoke(this, EventArgs.Empty);
-
             for (int i = 0; i < channels.Count; i++)
             {
                 if (!channels[i].Persistent)
@@ -417,6 +415,8 @@ namespace DTAClient.Online
 
             MainChannel.AddMessage(new ChatMessage(null, Color.White, DateTime.Now, "You have disconnected from CnCNet."));
             connected = false;
+
+            Disconnected?.Invoke(this, EventArgs.Empty);
         }
 
         public void OnErrorReceived(string errorMessage)
