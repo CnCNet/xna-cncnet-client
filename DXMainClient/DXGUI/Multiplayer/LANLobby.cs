@@ -632,10 +632,10 @@ namespace DTAClient.DXGUI.Multiplayer
             lbChatMessages.AddMessage(new ChatMessage(null, Color.White, DateTime.Now,
                 "Attempting to join game " + hg.RoomName + "..."));
 
-            var client = new TcpClient(hg.EndPoint.Address.ToString(), ProgramConstants.LAN_GAME_LOBBY_PORT);
-
             try
             {
+                var client = new TcpClient(hg.EndPoint.Address.ToString(), ProgramConstants.LAN_GAME_LOBBY_PORT);
+
                 byte[] buffer;
 
                 if (hg.IsLoadedGame)
