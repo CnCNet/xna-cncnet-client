@@ -274,7 +274,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
                 foreach (var chatBoxCommand in chatBoxCommands)
                 {
-                    if (command == chatBoxCommand.Command)
+                    if (command.ToUpper() == chatBoxCommand.Command)
                     {
                         if (!IsHost && chatBoxCommand.HostOnly)
                         {
