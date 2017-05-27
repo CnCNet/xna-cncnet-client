@@ -886,7 +886,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             string[] parts = data.Split(ProgramConstants.LAN_DATA_SEPARATOR);
             
-            if (parts.Length != CheckBoxes.Count + DropDowns.Count + 3)
+            if (parts.Length != CheckBoxes.Count + DropDowns.Count + 4)
             {
                 AddNotice("The game host has sent an invalid game options message. This " +
                     "usually means that the game host has a different game version than you.");
