@@ -527,9 +527,11 @@ namespace DTAClient.DXGUI.Multiplayer
                 pInfo.Name = pName;
                 pInfo.Ready = ready;
                 pInfo.IPAddress = ipAddress;
-
                 Players.Add(pInfo);
             }
+
+            if (Players.Count > 0) // Set IP of host
+                Players[0].IPAddress = ((IPEndPoint)client.Client.RemoteEndPoint).Address.ToString();
 
             CopyPlayerDataToUI();
         }
