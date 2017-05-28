@@ -237,6 +237,9 @@ namespace DTAClient.DXGUI.Multiplayer
                 return;
             }
 
+            if (Players.Count == 0)
+                lpInfo.Ready = true;
+
             Players.Add(lpInfo);
 
             lpInfo.MessageReceived += LpInfo_MessageReceived;
@@ -399,6 +402,9 @@ namespace DTAClient.DXGUI.Multiplayer
 
         protected override void BroadcastOptions()
         {
+            if (Players.Count > 0)
+                Players[0].Ready = true;
+
             var sb = new ExtendedStringBuilder(OPTIONS_COMMAND + " ", true);
             sb.Separator = ProgramConstants.LAN_DATA_SEPARATOR;
 
