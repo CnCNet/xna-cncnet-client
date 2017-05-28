@@ -112,7 +112,8 @@ namespace DTAClient.DXGUI.Multiplayer
                 this.client.Connect("127.0.0.1", ProgramConstants.LAN_GAME_LOBBY_PORT);
 
                 byte[] buffer = encoding.GetBytes(PLAYER_JOIN_COMMAND +
-                    ProgramConstants.LAN_DATA_SEPARATOR + ProgramConstants.PLAYERNAME);
+                    ProgramConstants.LAN_DATA_SEPARATOR + ProgramConstants.PLAYERNAME + 
+                    ProgramConstants.LAN_DATA_SEPARATOR + loadedGameId);
 
                 this.client.GetStream().Write(buffer, 0, buffer.Length);
                 this.client.GetStream().Flush();
