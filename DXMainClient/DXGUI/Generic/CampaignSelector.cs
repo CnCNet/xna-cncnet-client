@@ -271,7 +271,7 @@ namespace DTAClient.DXGUI.Generic
 
             // No one wants to play missions on Fastest, so we'll change it to Faster
             if (UserINISettings.Instance.GameSpeed == 0)
-                UserINISettings.Instance.GameSpeed.Value = 1; 
+                UserINISettings.Instance.GameSpeed.Value = 1;
 
             swriter.WriteLine("GameSpeed=" + UserINISettings.Instance.GameSpeed);
             swriter.WriteLine("Firestorm=" + mission.RequiredAddon);

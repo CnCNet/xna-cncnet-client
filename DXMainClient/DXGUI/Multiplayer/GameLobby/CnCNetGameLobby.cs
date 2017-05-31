@@ -1271,11 +1271,14 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
                     if (gm == null)
                     {
-                        gm = new GameMode();
-                        gm.Name = gameMode;
-                        gm.Initialize();
-                        GameModes.Add(gm);
-                        ddGameMode.AddItem(gm.UIName);
+                        // 31.05.2017 Don't add new game modes from custom maps to prevent
+                        // abuse with offensive custom game mode names
+                        continue;
+                        //gm = new GameMode();
+                        //gm.Name = gameMode;
+                        //gm.Initialize();
+                        //GameModes.Add(gm);
+                        //ddGameMode.AddItem(gm.UIName);
                     }
 
                     gm.Maps.Add(map);

@@ -62,6 +62,26 @@ namespace DTAClient.Domain.Multiplayer
                 maps.Add(map);
             }
 
+            foreach (Map map in maps)
+            {
+                foreach (string gameMode in map.GameModes)
+                {
+                    GameMode gm = GameModes.Find(g => g.Name == gameMode);
+
+                    if (gm == null)
+                    {
+                        gm = new GameMode();
+                        gm.Name = gameMode.Replace(";", string.Empty);
+                        gm.Initialize();
+                        GameModes.Add(gm);
+                    }
+
+                    gm.Maps.Add(map);
+                }
+            }
+
+            List<Map> customMaps = new List<Map>();
+
             if (!Directory.Exists(ProgramConstants.GamePath + CUSTOM_MAPS_DIRECTORY))
             {
                 Logger.Log("Custom maps directory does not exist!");
@@ -77,11 +97,11 @@ namespace DTAClient.Domain.Multiplayer
 
                     Map map = new Map(baseFilePath, false);
                     if (map.SetInfoFromMap(file))
-                        maps.Add(map);
+                        customMaps.Add(map);
                 }
             }
 
-            foreach (Map map in maps)
+            foreach (Map map in customMaps)
             {
                 foreach (string gameMode in map.GameModes)
                 {
@@ -89,10 +109,7 @@ namespace DTAClient.Domain.Multiplayer
 
                     if (gm == null)
                     {
-                        gm = new GameMode();
-                        gm.Name = gameMode.Replace(";", string.Empty);
-                        gm.Initialize();
-                        GameModes.Add(gm);
+                        continue;
                     }
 
                     gm.Maps.Add(map);

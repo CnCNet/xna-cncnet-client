@@ -31,6 +31,7 @@ namespace DTAClient.Domain
         public static OSVersion OSId = OSVersion.UNKNOWN;
 
         public static bool AutoRunCnCNetClient = false;
+        public static bool RenameStandardGameModeToCustom = false;
 
         /// <summary>
         /// Initializes download mirrors and the custom component list.
@@ -54,6 +55,8 @@ namespace DTAClient.Domain
 
             MAP_CELL_SIZE_X = clientConfiguration.MapCellSizeX;
             MAP_CELL_SIZE_Y = clientConfiguration.MapCellSizeY;
+
+            RenameStandardGameModeToCustom = clientConfiguration.RenameStandardGameModeToCustom;
         }
     }
 }

@@ -403,6 +403,11 @@ namespace ClientCore
             get { return clientDefinitionsIni.GetIntValue("Settings", "MapCellSizeY", 24); }
         }
 
+        public bool RenameStandardGameModeToCustom
+        {
+            get { return clientDefinitionsIni.GetBooleanValue("Settings", "RenameStandardToCustom", false); }
+        }
+
         public string[] GetThemeInfoFromIndex(int themeIndex)
         {
             string[] values = clientDefinitionsIni.GetStringValue("Themes", themeIndex.ToString(), ",").Split(',');
