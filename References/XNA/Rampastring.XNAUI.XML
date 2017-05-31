@@ -343,6 +343,29 @@
             A check-box.
             </summary>
         </member>
+        <member name="T:Rampastring.XNAUI.XNAControls.XNAContextMenu">
+            <summary>
+            A context menu.
+            </summary>
+        </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNAContextMenu.#ctor(Rampastring.XNAUI.WindowManager)">
+            <summary>
+            Creates a new context menu.
+            </summary>
+            <param name="windowManager">The WindowManager associated with this context menu.</param>
+        </member>
+        <member name="T:Rampastring.XNAUI.XNAControls.XNAContextMenu.OptionSelectedEventHandler">
+            <summary>
+            A delegate for handling context menu option selections.
+            </summary>
+            <param name="sender">The sender of the event.</param>
+            <param name="e">EventArgs.</param>
+        </member>
+        <member name="E:Rampastring.XNAUI.XNAControls.XNAContextMenu.OptionSelected">
+            <summary>
+            Raised when the user has selected an option from the context menu.
+            </summary>
+        </member>
         <member name="M:Rampastring.XNAUI.XNAControls.XNAContextMenu.AddItem(Rampastring.XNAUI.XNAControls.XNADropDownItem)">
             <summary>
             Adds an item into the context menu.
@@ -439,14 +462,57 @@
             The base class for a XNA-based UI control.
             </summary>
         </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNAControl.#ctor(Rampastring.XNAUI.WindowManager)">
+            <summary>
+            Creates a new control instance.
+            </summary>
+            <param name="windowManager">The WindowManager associated with this control.</param>
+        </member>
         <member name="P:Rampastring.XNAUI.XNAControls.XNAControl.WindowManager">
             <summary>
             Gets the window manager associated with this control.
             </summary>
         </member>
+        <member name="P:Rampastring.XNAUI.XNAControls.XNAControl.Parent">
+            <summary>
+            Gets or sets the parent of this control.
+            </summary>
+        </member>
+        <member name="F:Rampastring.XNAUI.XNAControls.XNAControl.Children">
+            <summary>
+            A list of the control's children. Don't add children to this list directly;
+            call the AddChild method instead.
+            </summary>
+        </member>
+        <member name="P:Rampastring.XNAUI.XNAControls.XNAControl.Name">
+            <summary>
+            Gets or sets the name of this control. The name is only an identifier
+            and does not affect functionality.
+            </summary>
+        </member>
         <member name="P:Rampastring.XNAUI.XNAControls.XNAControl.ClientRectangle">
             <summary>
             The display rectangle of the control inside its parent.
+            </summary>
+        </member>
+        <member name="P:Rampastring.XNAUI.XNAControls.XNAControl.X">
+            <summary>
+            Shortcut for accessing and changing ClientRectangle.X.
+            </summary>
+        </member>
+        <member name="P:Rampastring.XNAUI.XNAControls.XNAControl.Y">
+            <summary>
+            Shortcut for accessing and changing ClientRectangle.Y.
+            </summary>
+        </member>
+        <member name="P:Rampastring.XNAUI.XNAControls.XNAControl.Width">
+            <summary>
+            Shortcut for accessing and changing ClientRectangle.Width.
+            </summary>
+        </member>
+        <member name="P:Rampastring.XNAUI.XNAControls.XNAControl.Height">
+            <summary>
+            Shortcut for accessing and changing ClientRectangle.Height.
             </summary>
         </member>
         <member name="P:Rampastring.XNAUI.XNAControls.XNAControl.Focused">
@@ -629,6 +695,17 @@
             <summary>
             An enum for determining which part of a text is anchored to a specific point.
             </summary>
+        </member>
+        <member name="T:Rampastring.XNAUI.XNAControls.XNAListBox">
+            <summary>
+            A list box.
+            </summary>
+        </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNAListBox.#ctor(Rampastring.XNAUI.WindowManager)">
+            <summary>
+            Creates a new list box instance.
+            </summary>
+            <param name="windowManager"></param>
         </member>
         <member name="P:Rampastring.XNAUI.XNAControls.XNAListBox.AllowMultiLineItems">
             <summary>
