@@ -14,8 +14,6 @@ namespace ClientCore.Statistics
         private const string OLD_SCORE_FILE_PATH = "dscore.dat";
         private static StatisticsManager _instance;
 
-        private string gamePath;
-
         public event EventHandler GameAdded;
 
 
@@ -38,8 +36,6 @@ namespace ClientCore.Statistics
             }
 
             Logger.Log("Reading statistics.");
-
-            this.gamePath = gamePath;
 
             Statistics.Clear();
 
@@ -268,14 +264,14 @@ namespace ClientCore.Statistics
                 GameAdded?.Invoke(this, EventArgs.Empty);
             }
 
-            if (!File.Exists(gamePath + SCORE_FILE_PATH))
+            if (!File.Exists(ProgramConstants.GamePath + SCORE_FILE_PATH))
             {
                 CreateDummyFile();
             }
 
             Logger.Log("Writing game info to statistics file.");
 
-            using (FileStream fs = File.Open(gamePath + SCORE_FILE_PATH, FileMode.Open, FileAccess.ReadWrite))
+            using (FileStream fs = File.Open(ProgramConstants.GamePath + SCORE_FILE_PATH, FileMode.Open, FileAccess.ReadWrite))
             {
                 fs.Position = 4; // First 4 bytes after the version mean the amount of games
                 byte[] writeBuffer = BitConverter.GetBytes(Statistics.Count);
@@ -396,7 +392,7 @@ namespace ClientCore.Statistics
         {
             Logger.Log("Creating empty statistics file.");
 
-            StreamWriter sw = new StreamWriter(File.Create(gamePath + SCORE_FILE_PATH));
+            StreamWriter sw = new StreamWriter(File.Create(ProgramConstants.GamePath + SCORE_FILE_PATH));
             sw.Write(VERSION);
             sw.Close();
         }
@@ -406,7 +402,7 @@ namespace ClientCore.Statistics
         /// </summary>
         public void SaveDatabase()
         {
-            File.Delete(gamePath + SCORE_FILE_PATH);
+            File.Delete(ProgramConstants.GamePath + SCORE_FILE_PATH);
 
             foreach (MatchStatistics ms in Statistics)
             {

@@ -157,9 +157,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (SavedGameManager.AreSavedGamesAvailable())
             {
                 fsw = new FileSystemWatcher(ProgramConstants.GamePath + "Saved Games", "*.NET");
-                fsw.EnableRaisingEvents = false;
                 fsw.Created += fsw_Created;
                 fsw.Changed += fsw_Created;
+                fsw.EnableRaisingEvents = false;
             }
             else
                 Logger.Log("MultiplayerGameLobby: Saved games are not available!");
@@ -196,9 +196,16 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             }
         }
 
+        protected override void StartGame()
+        {
+            fsw.EnableRaisingEvents = true;
+            base.StartGame();
+        }
+
         protected override void GameProcessExited()
         {
             gameSaved = false;
+            fsw.EnableRaisingEvents = false;
 
             base.GameProcessExited();
 
@@ -370,9 +377,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             lbChatMessages.Clear();
             lbChatMessages.TopIndex = 0;
-
-            if (SavedGameManager.AreSavedGamesAvailable())
-                fsw.EnableRaisingEvents = true;
 
             if (SavedGameManager.GetSaveGameCount() > 0)
             {
@@ -623,9 +627,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         public virtual void Clear()
         {
-            if (fsw != null)
-                fsw.EnableRaisingEvents = false;
-
             if (!IsHost)
                 AIPlayers.Clear();
 
