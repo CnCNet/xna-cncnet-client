@@ -490,6 +490,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (!IsHost)
                 return;
 
+            if (ProgramConstants.IsInGame)
+                return;
+
             PlayerInfo pInfo = Players.Find(p => p.Name == playerName);
 
             if (pInfo == null)
