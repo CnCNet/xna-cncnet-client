@@ -277,8 +277,6 @@ namespace DTAClient.Domain.Multiplayer
                 {
                     string gameMode = GameModes[i].Trim();
                     gameMode = gameMode.Substring(0, 1).ToUpperInvariant() + gameMode.Substring(1);
-                    if (MainClientConstants.RenameStandardGameModeToCustom && gameMode == "Standard")
-                        gameMode = "Custom Map";
                     GameModes[i] = gameMode;
                 }
 

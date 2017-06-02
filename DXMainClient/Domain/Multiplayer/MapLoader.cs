@@ -109,7 +109,13 @@ namespace DTAClient.Domain.Multiplayer
 
                     if (gm == null)
                     {
-                        continue;
+                        if (gameMode != "Standard" && gameMode != "Custom Map")
+                            continue;
+
+                        gm = new GameMode();
+                        gm.Name = gameMode;
+                        gm.Initialize();
+                        GameModes.Add(gm);
                     }
 
                     gm.Maps.Add(map);
