@@ -1,7 +1,6 @@
 ﻿using ClientCore;
 using ClientCore.CnCNet5;
 using ClientGUI;
-using DTAClient.Domain;
 using DTAClient.Domain.Multiplayer;
 using DTAClient.Domain.Multiplayer.CnCNet;
 using DTAClient.DXGUI.Multiplayer;

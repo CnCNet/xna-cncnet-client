@@ -1,6 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Drawing;
-using Rampastring.Tools;
 using Rampastring.XNAUI;
 using Microsoft.Xna.Framework.Graphics;
 using ClientCore.Properties;

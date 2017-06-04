@@ -1,23 +1,21 @@
-﻿using ClientGUI;
+﻿using ClientCore;
+using ClientCore.CnCNet5;
+using ClientGUI;
+using DTAClient.Domain;
+using DTAClient.Domain.Multiplayer.CnCNet;
+using DTAClient.DXGUI.Generic;
+using DTAClient.DXGUI.Multiplayer.GameLobby;
 using DTAClient.Online;
+using DTAClient.Online.EventArguments;
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Audio;
+using Microsoft.Xna.Framework.Graphics;
+using Rampastring.Tools;
+using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Rampastring.XNAUI;
-using Microsoft.Xna.Framework;
-using ClientCore;
-using DTAClient.Online.EventArguments;
-using Rampastring.Tools;
-using Microsoft.Xna.Framework.Audio;
-using Microsoft.Xna.Framework.Graphics;
-using DTAClient.Properties;
-using DTAClient.DXGUI.Multiplayer.GameLobby;
-using DTAClient.DXGUI.Generic;
-using DTAClient.Domain.Multiplayer;
-using DTAClient.Domain.Multiplayer.CnCNet;
-using ClientCore.CnCNet5;
-using DTAClient.Domain;
 
 namespace DTAClient.DXGUI.Multiplayer.CnCNet
 {

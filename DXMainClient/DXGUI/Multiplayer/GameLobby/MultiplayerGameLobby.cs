@@ -5,7 +5,6 @@ using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
 using Microsoft.Xna.Framework;
 using ClientCore;
-using Microsoft.Xna.Framework.Audio;
 using System.IO;
 using Rampastring.Tools;
 using ClientCore.Statistics;

@@ -1,5 +1,4 @@
 ﻿using System.IO;
-using System.Windows.Forms;
 using Rampastring.Tools;
 using ClientCore;
 

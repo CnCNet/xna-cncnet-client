@@ -1,19 +1,18 @@
-﻿using ClientGUI;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using ClientCore;
+using ClientCore.CnCNet5;
+using ClientGUI;
+using DTAClient.Online;
+using DTAClient.Online.EventArguments;
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Audio;
+using Microsoft.Xna.Framework.Graphics;
+using Rampastring.Tools;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
-using Microsoft.Xna.Framework;
-using DTAClient.Online;
-using Microsoft.Xna.Framework.Graphics;
-using DTAClient.Properties;
+using System;
+using System.Collections.Generic;
 using System.IO;
-using ClientCore;
-using Rampastring.Tools;
-using DTAClient.Online.EventArguments;
-using Microsoft.Xna.Framework.Audio;
-using ClientCore.CnCNet5;
+using System.Linq;
 
 namespace DTAClient.DXGUI.Multiplayer.CnCNet
 {

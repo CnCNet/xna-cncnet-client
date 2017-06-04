@@ -2,7 +2,6 @@
 using System.IO;
 using System.Net;
 using System.Threading;
-using Rampastring.Tools;
 
 namespace DTAClient.Domain.Multiplayer.CnCNet
 {

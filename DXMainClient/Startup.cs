@@ -1,13 +1,10 @@
 ﻿using System;
 using System.IO;
-using System.Windows.Forms;
-using System.Diagnostics;
 using System.Threading;
 using System.Management;
 using Microsoft.Win32;
 using DTAClient.Domain;
 using ClientCore;
-using ClientGUI;
 using Updater;
 using Rampastring.Tools;
 using DTAClient.DXGUI;

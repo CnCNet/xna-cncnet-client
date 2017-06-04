@@ -1,12 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using ClientCore;
-using Rampastring.XNAUI;
+﻿using ClientCore;
 using ClientGUI;
-using Rampastring.XNAUI.XNAControls;
 using Microsoft.Xna.Framework;
+using Rampastring.XNAUI;
+using Rampastring.XNAUI.XNAControls;
+using System;
 
 namespace DTAConfig
 {
