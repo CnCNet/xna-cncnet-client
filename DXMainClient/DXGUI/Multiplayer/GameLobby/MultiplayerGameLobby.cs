@@ -197,14 +197,18 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         protected override void StartGame()
         {
-            fsw.EnableRaisingEvents = true;
+            if (fsw != null)
+                fsw.EnableRaisingEvents = true;
+
             base.StartGame();
         }
 
         protected override void GameProcessExited()
         {
             gameSaved = false;
-            fsw.EnableRaisingEvents = false;
+
+            if (fsw != null)
+                fsw.EnableRaisingEvents = false;
 
             base.GameProcessExited();
 
