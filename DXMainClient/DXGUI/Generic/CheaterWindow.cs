@@ -76,6 +76,7 @@ namespace DTAClient.DXGUI.Generic
 
         private void BtnYes_LeftClick(object sender, EventArgs e)
         {
+            Disable();
             YesClicked?.Invoke(this, EventArgs.Empty);
         }
     }
