@@ -1,16 +1,16 @@
-﻿using Rampastring.XNAUI.XNAControls;
+﻿using ClientCore;
+using DTAClient.Domain.Multiplayer;
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Audio;
+using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Input;
+using Rampastring.Tools;
+using Rampastring.XNAUI;
+using Rampastring.XNAUI.XNAControls;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using Microsoft.Xna.Framework;
-using Rampastring.XNAUI;
-using Microsoft.Xna.Framework.Graphics;
-using ClientCore;
-using Rampastring.Tools;
-using Microsoft.Xna.Framework.Input;
 using System.Diagnostics;
-using Microsoft.Xna.Framework.Audio;
-using DTAClient.Domain.Multiplayer;
+using System.Linq;
 
 namespace DTAClient.DXGUI.Multiplayer.GameLobby
 {
@@ -60,33 +60,33 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         /// </summary>
         public bool EnableContextMenu { get; set; }
 
-        string[] teamIds = new string[] { String.Empty, "[A] ", "[B] ", "[C] ", "[D] " };
+        private string[] teamIds = new string[] { String.Empty, "[A] ", "[B] ", "[C] ", "[D] " };
 
-        string[] sides;
+        private string[] sides;
 
-        PlayerLocationIndicator[] startingLocationIndicators;
+        private PlayerLocationIndicator[] startingLocationIndicators;
 
-        List<MultiplayerColor> mpColors;
-        List<PlayerInfo> players;
-        List<PlayerInfo> aiPlayers;
+        private List<MultiplayerColor> mpColors;
+        private List<PlayerInfo> players;
+        private List<PlayerInfo> aiPlayers;
 
-        XNAContextMenu contextMenu;
+        private XNAContextMenu contextMenu;
 
-        CoopBriefingBox briefingBox;
+        private CoopBriefingBox briefingBox;
 
-        Rectangle textureRectangle;
+        private Rectangle textureRectangle;
 
-        Texture2D texture;
+        private Texture2D texture;
 
-        bool disposeTextures = true;
+        private bool disposeTextures = true;
 
-        bool useNearestNeighbour = false;
+        private bool useNearestNeighbour = false;
 
-        IniFile gameOptionsIni;
+        private IniFile gameOptionsIni;
 
-        SoundEffectInstance sndClickSound;
+        private SoundEffectInstance sndClickSound;
 
-        SoundEffectInstance sndDropdownSound;
+        private SoundEffectInstance sndDropdownSound;
 
         public override void Initialize()
         {
@@ -294,6 +294,12 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             {
                 texture = null;
                 briefingBox.Disable();
+
+                contextMenu.Disable();
+
+                foreach (var indicator in startingLocationIndicators)
+                    indicator.Disable();
+
                 return;
             }
 

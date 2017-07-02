@@ -1,16 +1,16 @@
-﻿using ClientGUI;
+﻿using ClientCore;
+using ClientCore.Statistics;
+using ClientGUI;
+using DTAClient.Domain.Multiplayer;
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
+using Rampastring.Tools;
+using Rampastring.XNAUI;
+using Rampastring.XNAUI.XNAControls;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using Microsoft.Xna.Framework;
-using Rampastring.XNAUI.XNAControls;
-using Rampastring.XNAUI;
-using Rampastring.Tools;
-using ClientCore;
 using System.IO;
-using ClientCore.Statistics;
-using Microsoft.Xna.Framework.Graphics;
-using DTAClient.Domain.Multiplayer;
+using System.Linq;
 
 namespace DTAClient.DXGUI.Multiplayer.GameLobby
 {
@@ -1178,6 +1178,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
                 lblMapAuthor.ClientRectangle = new Rectangle(MapPreviewBox.ClientRectangle.Right - lblMapAuthor.ClientRectangle.Width,
                     lblMapAuthor.ClientRectangle.Y, lblMapAuthor.ClientRectangle.Width, lblMapAuthor.ClientRectangle.Height);
+
+                MapPreviewBox.Map = null;
 
                 return;
             }
