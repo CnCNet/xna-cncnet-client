@@ -336,7 +336,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             {
                 // Changing the map applies forced settings (co-op sides etc.) to the
                 // new player, and it also sends an options broadcast message
-                CopyPlayerDataToUI();
+                //CopyPlayerDataToUI(); This is also called by ChangeMap()
                 ChangeMap(GameMode, Map);
                 BroadcastPlayerOptions();
             }
@@ -782,8 +782,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     RequestMap(mapSHA1);
                 else
                     AddOfficialMapMissingMessage(mapSHA1);
-
-                return;
             }
 
             Map = GameMode.Maps.Find(map => map.SHA1 == mapSHA1);
@@ -794,16 +792,18 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     RequestMap(mapSHA1);
                 else
                     AddOfficialMapMissingMessage(mapSHA1);
-
-                return;
             }
 
             if (GameMode != currentGameMode || Map != currentMap)
                 ChangeMap(GameMode, Map);
 
-            // By changing the game options after changing the map,
-            // we know which game options were changed by the map
-            // and which were changed by the game host
+            // By changing the game options after changing the map, we know which
+            // game options were changed by the map and which were changed by the game host
+
+            // If the map doesn't exist on the local installation, it's impossible
+            // to know which options were set by the host and which were set by the
+            // map, so we'll just assume that the host has set all the options.
+            // Very few (if any) custom maps force options, so it'll be correct nearly always
 
             for (int i = 0; i < checkBoxIntegerCount; i++)
             {
