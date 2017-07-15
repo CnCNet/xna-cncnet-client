@@ -38,7 +38,10 @@ namespace ClientCore
             const string MULTIPLAYER = "MultiPlayer";
             const string OPTIONS = "Options";
             const string AUDIO = "Audio";
-#if YR
+#if MO
+            const string WINDOWED_MODE_KEY = "Video.Windowed";
+            BackBufferInVRAM = new BoolSetting(iniFile, VIDEO, "VideoBackBuffer", false);
+#elif YR
             const string WINDOWED_MODE_KEY = "Windowed";
             BackBufferInVRAM = new BoolSetting(iniFile, VIDEO, "VideoBackBuffer", false);
 #else
