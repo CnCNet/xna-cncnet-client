@@ -231,6 +231,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 return;
             }
 
+            CheckLoadedPlayerVariableBounds(player);
+
             player.Name = ProgramConstants.PLAYERNAME;
             Players.Add(player);
 
@@ -246,6 +248,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             foreach (string key in keys)
             {
                 var aiPlayer = PlayerInfo.FromString(skirmishSettingsIni.GetStringValue("AIPlayers", key, string.Empty));
+
+                CheckLoadedPlayerVariableBounds(aiPlayer);
 
                 if (aiPlayer == null)
                 {
@@ -283,6 +287,29 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             }
 
             LoadDefaultMap();
+        }
+
+        /// <summary>
+        /// Checks that a player's color, team and starting location
+        /// don't exceed allowed bounds.
+        /// </summary>
+        /// <param name="pInfo">The PlayerInfo.</param>
+        private void CheckLoadedPlayerVariableBounds(PlayerInfo pInfo)
+        {
+            if (pInfo.ColorId < 0 || pInfo.ColorId > MPColors.Count)
+            {
+                pInfo.ColorId = 0;
+            }
+
+            if (pInfo.TeamId < 0 || pInfo.TeamId >= ddPlayerTeams[0].Items.Count)
+            {
+                pInfo.TeamId = 0;
+            }
+
+            if (pInfo.StartingLocation < 0 || pInfo.StartingLocation > MAX_PLAYER_COUNT)
+            {
+                pInfo.StartingLocation = 0;
+            }
         }
 
         private void InitDefaultSettings()
