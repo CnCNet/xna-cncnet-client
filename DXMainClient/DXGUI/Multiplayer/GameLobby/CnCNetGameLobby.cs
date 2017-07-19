@@ -783,15 +783,17 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 else
                     AddOfficialMapMissingMessage(mapSHA1);
             }
-
-            Map = GameMode.Maps.Find(map => map.SHA1 == mapSHA1);
-
-            if (Map == null)
+            else
             {
-                if (!isMapOfficial)
-                    RequestMap(mapSHA1);
-                else
-                    AddOfficialMapMissingMessage(mapSHA1);
+                Map = GameMode.Maps.Find(map => map.SHA1 == mapSHA1);
+
+                if (Map == null)
+                {
+                    if (!isMapOfficial)
+                        RequestMap(mapSHA1);
+                    else
+                        AddOfficialMapMissingMessage(mapSHA1);
+                }
             }
 
             if (GameMode != currentGameMode || Map != currentMap)
