@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Text;
 using System.Windows.Forms;
 
@@ -14,6 +15,8 @@ namespace ClientCore
 #else
         public static string GamePath = Directory.GetParent(Application.StartupPath).FullName + "\\";
 #endif
+
+        public static event EventHandler PlayerNameChanged;
 
         public const string QRES_EXECUTABLE = "qres.dat";
 
@@ -33,7 +36,20 @@ namespace ClientCore
         public static readonly Encoding LAN_ENCODING = Encoding.UTF8;
 
         public static string GAME_VERSION = "1.15";
-        public static string PLAYERNAME = "No name";
+        private static string PlayerName = "No name";
+
+        public static string PLAYERNAME
+        {
+            get { return PlayerName; }
+            set
+            {
+                string oldPlayerName = PlayerName;
+                PlayerName = value;
+                if (oldPlayerName != PlayerName)
+                    PlayerNameChanged?.Invoke(null, EventArgs.Empty);
+            }
+        }
+
         public static string BASE_RESOURCE_PATH = "Resources\\";
         public static string RESOURCES_DIR = BASE_RESOURCE_PATH;
 

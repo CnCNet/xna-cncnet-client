@@ -51,16 +51,18 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             LoadSettings();
 
             CopyPlayerDataToUI();
+
+            ProgramConstants.PlayerNameChanged += ProgramConstants_PlayerNameChanged;
+        }
+
+        private void ProgramConstants_PlayerNameChanged(object sender, EventArgs e)
+        {
+            Players[0].Name = ProgramConstants.PLAYERNAME;
+            CopyPlayerDataToUI();
         }
 
         private void MapPreviewBox_StartingLocationApplied(object sender, EventArgs e)
         {
-            CopyPlayerDataToUI();
-        }
-
-        public void RefreshPlayerName()
-        {
-            Players[0].Name = ProgramConstants.PLAYERNAME;
             CopyPlayerDataToUI();
         }
 
