@@ -19,7 +19,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
     /// </summary>
     public class MapPreviewBox : XNAPanel
     {
-        const int MAX_STARTING_LOCATIONS = 8;
+        private const int MAX_STARTING_LOCATIONS = 8;
 
         public delegate void LocalStartingLocationSelectedEventHandler(object sender, 
             LocalStartingLocationEventArgs e);
