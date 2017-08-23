@@ -350,7 +350,7 @@ namespace DTAClient.DXGUI.Multiplayer
 
             var matchStatistics = StatisticsManager.Instance.GetMatchWithGameID(uniqueGameId);
 
-            if (matchStatistics != null && !matchStatistics.SawCompletion)
+            if (matchStatistics != null)
             {
                 int oldLength = matchStatistics.LengthInSeconds;
                 int newLength = matchStatistics.LengthInSeconds + 
