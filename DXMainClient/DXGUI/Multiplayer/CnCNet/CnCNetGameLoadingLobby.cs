@@ -169,6 +169,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 channel.UserAdded -= Channel_UserAdded;
                 channel.UserLeft -= Channel_UserLeft;
                 channel.UserQuitIRC -= Channel_UserQuitIRC;
+                channel.CTCPReceived -= Channel_CTCPReceived;
             }
 
             if (Enabled)
