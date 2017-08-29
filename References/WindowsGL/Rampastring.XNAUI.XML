@@ -328,6 +328,12 @@
             Initializes the text box.
             </summary>
         </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNATextBox.AllowCharacterInput(System.Char)">
+            <summary>
+            Determines if the user is allowed to type a specific character into the textbox.
+            </summary>
+            <param name="character">The character.</param>
+        </member>
         <member name="T:Rampastring.XNAUI.XNAControls.Callback">
             <summary>
             A callback for storing a delegate and its parameters.
@@ -401,7 +407,23 @@
         </member>
         <member name="T:Rampastring.XNAUI.XNAControls.XNADropDown">
             <summary>
-            A drop-down.
+            A drop-down control.
+            </summary>
+        </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNADropDown.#ctor(Rampastring.XNAUI.WindowManager)">
+            <summary>
+            Creates a new drop-down control.
+            </summary>
+            <param name="windowManager">The WindowManager associated with this control.</param>
+        </member>
+        <member name="E:Rampastring.XNAUI.XNAControls.XNADropDown.IndexReselected">
+            <summary>
+            Raised when the user re-selects an already selected drop-down item.
+            </summary>
+        </member>
+        <member name="P:Rampastring.XNAUI.XNAControls.XNADropDown.ItemHeight">
+            <summary>
+            The height of drop-down items.
             </summary>
         </member>
         <member name="P:Rampastring.XNAUI.XNAControls.XNADropDown.IsDroppedDown">
@@ -515,6 +537,16 @@
             Shortcut for accessing and changing ClientRectangle.Height.
             </summary>
         </member>
+        <member name="P:Rampastring.XNAUI.XNAControls.XNAControl.Bottom">
+            <summary>
+            Shortcut for accessing ClientRectangle.Bottom.
+            </summary>
+        </member>
+        <member name="P:Rampastring.XNAUI.XNAControls.XNAControl.Right">
+            <summary>
+            Shortcut for accessing ClientRectangle.Right.
+            </summary>
+        </member>
         <member name="P:Rampastring.XNAUI.XNAControls.XNAControl.Focused">
             <summary>
             Determines whether the control should block other controls on the screen
@@ -546,6 +578,11 @@
         <member name="M:Rampastring.XNAUI.XNAControls.XNAControl.CenterOnParent">
             <summary>
             Centers the control on the middle of its parent's client rectangle.
+            </summary>
+        </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNAControl.CenterOnParentHorizontally">
+            <summary>
+            Centers the control horizontally on the middle of its parent's client rectangle.
             </summary>
         </member>
         <member name="M:Rampastring.XNAUI.XNAControls.XNAControl.GetCursorPoint">
@@ -1212,6 +1249,11 @@
             Enables or disables VSync.
             </summary>
             <param name="value">A boolean that determines whether VSync should be enabled or disabled.</param>
+        </member>
+        <member name="M:Rampastring.XNAUI.WindowManager.ReorderControls">
+            <summary>
+            Re-orders controls by their update order.
+            </summary>
         </member>
         <member name="M:Rampastring.XNAUI.WindowManager.InitGraphicsMode(System.Int32,System.Int32,System.Boolean)">
             <summary>
