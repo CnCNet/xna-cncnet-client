@@ -1,4 +1,5 @@
 ﻿using ClientCore;
+using System;
 using System.IO;
 using System.Windows.Forms;
 
@@ -9,7 +10,7 @@ namespace DTAClient.Domain
         public const string NEW_VERSION = "version";
 
 #if DEBUG
-        public static String gamepath = Application.StartupPath + "\\";
+        public static string gamepath = Application.StartupPath + "\\";
 #else
         public static string gamepath = Directory.GetParent(Application.StartupPath).FullName + "\\";
 #endif

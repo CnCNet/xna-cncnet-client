@@ -1,9 +1,13 @@
 ﻿using ClientGUI;
+using Microsoft.Xna.Framework;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
 
 namespace DTAConfig
 {
+    /// <summary>
+    /// A window for configuring in-game hotkeys.
+    /// </summary>
     public class HotkeyConfigurationWindow : XNAWindow
     {
         private const string CATEGORY_MULTIPLAYER = "Multiplayer";
@@ -16,7 +20,7 @@ namespace DTAConfig
         {
         }
 
-        private Hotkey[] hotkeys = new Hotkey[]
+        private readonly Hotkey[] hotkeys = new Hotkey[]
         {
             new Hotkey("Chat to allies", CATEGORY_MULTIPLAYER, "Chat to players in your team.", "ChatToAllies"),
             new Hotkey("Chat to everyone", CATEGORY_MULTIPLAYER, "Chat to all players in the game (same as F8).", "ChatToAll"),
@@ -116,9 +120,59 @@ namespace DTAConfig
         private XNAListBox lbHotkeys;
         private XNAButton btnOK;
 
+        private XNALabel lblCurrentCommand;
+        private XNALabel lblDescription;
+        private XNALabel lblCurrentHotkey;
+
         public override void Initialize()
         {
+            Name = "HotkeyConfigurationWindow";
+            ClientRectangle = new Rectangle(0, 0, 400, 300);
+
+            var lblCategory = new XNALabel(WindowManager);
+            lblCategory.Name = "lblCategory";
+            lblCategory.ClientRectangle = new Rectangle(12, 12, 0, 0);
+            lblCategory.Text = "Category:";
+
+            ddCategory = new XNAClientDropDown(WindowManager);
+            ddCategory.Name = "ddCategory";
+            ddCategory.ClientRectangle = new Rectangle(lblCategory.Right + 12, 
+                lblCategory.ClientRectangle.Y - 1, 100, ddCategory.Height);
+            ddCategory.AddItem(CATEGORY_MULTIPLAYER);
+            ddCategory.AddItem(CATEGORY_CONTROL);
+            ddCategory.AddItem(CATEGORY_INTERFACE);
+            ddCategory.AddItem(CATEGORY_SELECTION);
+            ddCategory.AddItem(CATEGORY_TEAM);
+
+            lbHotkeys = new XNAListBox(WindowManager);
+            lbHotkeys.Name = "lbHotkeys";
+            lbHotkeys.ClientRectangle = new Rectangle(12, ddCategory.Bottom + 12, 
+                ddCategory.Right - 12, ClientRectangle.Height - ddCategory.Bottom - 12);
+
+            ddCategory.SelectedIndexChanged += DdCategory_SelectedIndexChanged;
+            ddCategory.SelectedIndex = 0;
+
+            AddChild(lbHotkeys);
+            AddChild(lblCategory);
+            AddChild(ddCategory);
+
             base.Initialize();
+
+            CenterOnParent();
+        }
+
+        private void DdCategory_SelectedIndexChanged(object sender, System.EventArgs e)
+        {
+            lbHotkeys.Clear();
+            string category = ddCategory.SelectedItem.Text;
+            foreach (var hotkey in hotkeys)
+            {
+                if (hotkey.Category == category)
+                {
+                    lbHotkeys.AddItem(new XNAListBoxItem() { TextColor = lbHotkeys.DefaultItemColor,
+                        Tag = hotkey, Text = hotkey.UIName } );
+                }
+            }
         }
 
         class Hotkey
