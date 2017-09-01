@@ -5,7 +5,7 @@ using Microsoft.Xna.Framework.Input;
 using Rampastring.Tools;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
-using System.Windows.Forms;
+using System;
 
 namespace DTAConfig
 {
@@ -163,13 +163,7 @@ namespace DTAConfig
             AddChild(lblCategory);
             AddChild(ddCategory);
 
-            keyboardINI = new IniFile(ProgramConstants.GamePath + KEYBOARD_INI);
-            foreach (var command in keyCommands)
-            {
-                short hotkey = (short)keyboardINI.GetIntValue("Hotkey", command.ININame, 0);
-
-                command.Hotkey = new Hotkey(hotkey);
-            }
+            LoadKeyboardINI();
 
             ddCategory.SelectedIndexChanged += DdCategory_SelectedIndexChanged;
             ddCategory.SelectedIndex = 0;
@@ -177,29 +171,41 @@ namespace DTAConfig
             base.Initialize();
 
             CenterOnParent();
+
+            Keyboard.OnKeyPressed += Keyboard_OnKeyPressed;
+            //Game.Window.TextInput += Window_TextInput;
+
+            //EventInput.Initialize(Game.Window);
+        }
+
+        private void LoadKeyboardINI()
+        {
+            keyboardINI = new IniFile(ProgramConstants.GamePath + KEYBOARD_INI);
+            foreach (var command in keyCommands)
+            {
+                int hotkey = keyboardINI.GetIntValue("Hotkey", command.ININame, 0);
+
+                command.Hotkey = new Hotkey(hotkey);
+            }
         }
 
         private void DdCategory_SelectedIndexChanged(object sender, System.EventArgs e)
         {
             lbHotkeys.ClearItems();
             string category = ddCategory.SelectedItem.Text;
-            foreach (var hotkey in keyCommands)
+            foreach (var command in keyCommands)
             {
-                if (hotkey.Category == category)
+                if (command.Category == category)
                 {
-                    lbHotkeys.AddItem(new string[] { hotkey.UIName, string.Empty }, true );
+                    lbHotkeys.AddItem(new string[] { command.UIName, command.Hotkey.ToString() }, true );
                 }
             }
         }
 
-        private void HotkeyToString(Hotkey hotkey)
-        {
-            Keyboard.OnKeyPressed += Keyboard_OnKeyPressed;
-        }
-
         private void Keyboard_OnKeyPressed(object sender, Rampastring.XNAUI.Input.KeyPressEventArgs e)
         {
-            
+            return;
+            // The XNA keys seem to match the Windows virtual keycodes! This saves us some work
         }
 
 
@@ -221,6 +227,7 @@ namespace DTAConfig
             public Hotkey Hotkey { get; set; }
         }
 
+        [Flags]
         private enum KeyModifiers
         {
             Shift = 1,
@@ -230,14 +237,33 @@ namespace DTAConfig
 
         struct Hotkey
         {
-            public Hotkey(short encodedKeyValue)
+            public Hotkey(int encodedKeyValue)
             {
-                Key = (byte)(encodedKeyValue & 255);
-                KeyModifier = (byte)(encodedKeyValue >> 8);
+                Key = (Keys)(encodedKeyValue & 255);
+                Modifier = (KeyModifiers)(encodedKeyValue >> 8);
             }
 
-            public byte Key { get; private set; }
-            public byte KeyModifier { get; private set; }
+            public Keys Key { get; private set; }
+            public KeyModifiers Modifier { get; private set; }
+
+            public override string ToString()
+            {
+                if (Key == Keys.None)
+                    return string.Empty;
+
+                string str = "";
+
+                if (Modifier.HasFlag(KeyModifiers.Shift))
+                    str += "SHIFT+";
+
+                if (Modifier.HasFlag(KeyModifiers.Ctrl))
+                    str += "CTRL+";
+
+                if (Modifier.HasFlag(KeyModifiers.Alt))
+                    str += "ALT+";
+
+                return str + Key.ToString();
+            }
         }
     }
 }
