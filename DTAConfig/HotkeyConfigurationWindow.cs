@@ -6,6 +6,7 @@ using Rampastring.Tools;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
 using System;
+using System.Collections.Generic;
 
 namespace DTAConfig
 {
@@ -21,10 +22,24 @@ namespace DTAConfig
         private const string CATEGORY_TEAM = "Team";
 
         private const string KEYBOARD_INI = "Keyboard.ini";
+        private const string HOTKEY_TIP_TEXT = "Press a key...";
 
         public HotkeyConfigurationWindow(WindowManager windowManager) : base(windowManager)
         {
         }
+
+        /// <summary>
+        /// Keys that the client doesn't allow to be used regular hotkeys.
+        /// </summary>
+        private readonly Keys[] keyBlacklist = new Keys[]
+        {
+            Keys.LeftAlt,
+            Keys.RightAlt,
+            Keys.LeftControl,
+            Keys.RightControl,
+            Keys.LeftShift,
+            Keys.RightShift
+        };
 
         private readonly GameCommand[] keyCommands = new GameCommand[]
         {
@@ -70,7 +85,7 @@ namespace DTAConfig
             new GameCommand("Power Mode", CATEGORY_INTERFACE, "Enable power mode (allows powering structures on and off).", "TogglePower"),
             new GameCommand("Repair Mode", CATEGORY_INTERFACE, "Enable repair mode.", "ToggleRepair"),
             new GameCommand("Waypoint Mode", CATEGORY_INTERFACE, "Enable waypoint mode.", "WaypointMode"),
-            new GameCommand("Screen Capture", CATEGORY_INTERFACE, "Takes a screenshot and saves it to the \"Screenshots\" sub-directory in your game directory.", "ScreenCapture"),
+            new GameCommand("Screen Capture", CATEGORY_INTERFACE, "Takes a screenshot and saves it to the \n\"Screenshots\" sub-directory in your \ngame directory.", "ScreenCapture"),
             new GameCommand("Delete Waypoint", CATEGORY_INTERFACE, "Deletes a waypoint.", "DeleteWaypoint"),
             new GameCommand("Toggle Info Panel", CATEGORY_INTERFACE, "Toggles the state of the sidebar info panel.", "ToggleInfoPanel"),
             new GameCommand("Place Building", CATEGORY_INTERFACE, "Places a finished building.", "PlaceBuilding"),
@@ -126,16 +141,22 @@ namespace DTAConfig
         private XNAMultiColumnListBox lbHotkeys;
         private XNAButton btnOK;
 
-        private XNALabel lblCurrentCommand;
+        private XNAPanel hotkeyInfoPanel;
+        private XNALabel lblCommandCaption;
         private XNALabel lblDescription;
-        private XNALabel lblCurrentHotkey;
+        private XNALabel lblCurrentHotkeyValue;
+        private XNALabel lblNewHotkeyValue;
+        private XNALabel lblCurrentlyAssignedTo;
 
         private IniFile keyboardINI;
+
+        private Hotkey pendingHotkey;
+        private KeyModifiers lastFrameModifiers;
 
         public override void Initialize()
         {
             Name = "HotkeyConfigurationWindow";
-            ClientRectangle = new Rectangle(0, 0, 400, 300);
+            ClientRectangle = new Rectangle(0, 0, 600, 325);
 
             var lblCategory = new XNALabel(WindowManager);
             lblCategory.Name = "lblCategory";
@@ -145,7 +166,7 @@ namespace DTAConfig
             ddCategory = new XNAClientDropDown(WindowManager);
             ddCategory.Name = "ddCategory";
             ddCategory.ClientRectangle = new Rectangle(lblCategory.Right + 12, 
-                lblCategory.ClientRectangle.Y - 1, 200, ddCategory.Height);
+                lblCategory.ClientRectangle.Y - 1, 250, ddCategory.Height);
             ddCategory.AddItem(CATEGORY_MULTIPLAYER);
             ddCategory.AddItem(CATEGORY_CONTROL);
             ddCategory.AddItem(CATEGORY_INTERFACE);
@@ -159,11 +180,78 @@ namespace DTAConfig
             lbHotkeys.AddColumn("Command", 150);
             lbHotkeys.AddColumn("Shortcut", lbHotkeys.Width - 150);
 
+            hotkeyInfoPanel = new XNAPanel(WindowManager);
+            hotkeyInfoPanel.Name = "HotkeyInfoPanel";
+            hotkeyInfoPanel.ClientRectangle = new Rectangle(lbHotkeys.Right + 12,
+                ddCategory.Y, Width - lbHotkeys.Right - 24, lbHotkeys.Height + ddCategory.Height + 12);
+
+            lblCommandCaption = new XNALabel(WindowManager);
+            lblCommandCaption.Name = "lblCommandCaption";
+            lblCommandCaption.FontIndex = 1;
+            lblCommandCaption.ClientRectangle = new Rectangle(12, 12, 0, 0);
+            lblCommandCaption.Text = "Command name";
+
+            lblDescription = new XNALabel(WindowManager);
+            lblDescription.Name = "lblDescription";
+            lblDescription.ClientRectangle = new Rectangle(12, lblCommandCaption.Bottom + 12, 0, 0);
+            lblDescription.Text = "Command description";
+
+            var lblCurrentHotkey = new XNALabel(WindowManager);
+            lblCurrentHotkey.Name = "lblCurrentHotkey";
+            lblCurrentHotkey.ClientRectangle = new Rectangle(lblDescription.ClientRectangle.X,
+                lblDescription.Bottom + 36, 0, 0);
+            lblCurrentHotkey.FontIndex = 1;
+            lblCurrentHotkey.Text = "Currently assigned hotkey:";
+
+            lblCurrentHotkeyValue = new XNALabel(WindowManager);
+            lblCurrentHotkeyValue.Name = "lblCurrentHotkeyValue";
+            lblCurrentHotkeyValue.ClientRectangle = new Rectangle(lblDescription.ClientRectangle.X,
+                lblCurrentHotkey.Bottom + 6, 0, 0);
+            lblCurrentHotkeyValue.Text = "Current hotkey value";
+
+            var lblNewHotkey = new XNALabel(WindowManager);
+            lblNewHotkey.Name = "lblNewHotkey";
+            lblNewHotkey.ClientRectangle = new Rectangle(lblDescription.ClientRectangle.X,
+                lblCurrentHotkeyValue.Bottom + 36, 0, 0);
+            lblNewHotkey.FontIndex = 1;
+            lblNewHotkey.Text = "New hotkey:";
+
+            lblNewHotkeyValue = new XNALabel(WindowManager);
+            lblNewHotkeyValue.Name = "lblNewHotkeyValue";
+            lblNewHotkeyValue.ClientRectangle = new Rectangle(lblDescription.ClientRectangle.X,
+                lblNewHotkey.Bottom + 6, 0, 0);
+            lblNewHotkeyValue.Text = HOTKEY_TIP_TEXT;
+
+            lblCurrentlyAssignedTo = new XNALabel(WindowManager);
+            lblCurrentlyAssignedTo.Name = "lblCurrentlyAssignedTo";
+            lblCurrentlyAssignedTo.ClientRectangle = new Rectangle(lblDescription.ClientRectangle.X,
+                lblNewHotkeyValue.Bottom + 12, 0, 0);
+            lblCurrentlyAssignedTo.Text = "Currently assigned to:\nKey";
+
+            var btnAssign = new XNAClientButton(WindowManager);
+            btnAssign.Name = "btnAssign";
+            btnAssign.ClientRectangle = new Rectangle(lblDescription.ClientRectangle.X,
+                lblCurrentlyAssignedTo.Bottom + 18, 92, 23);
+            btnAssign.Text = "Assign";
+            btnAssign.LeftClick += BtnAssign_LeftClick;
+
             AddChild(lbHotkeys);
             AddChild(lblCategory);
             AddChild(ddCategory);
+            AddChild(hotkeyInfoPanel);
+            hotkeyInfoPanel.AddChild(lblCommandCaption);
+            hotkeyInfoPanel.AddChild(lblDescription);
+            hotkeyInfoPanel.AddChild(lblCurrentHotkey);
+            hotkeyInfoPanel.AddChild(lblCurrentHotkeyValue);
+            hotkeyInfoPanel.AddChild(lblNewHotkey);
+            hotkeyInfoPanel.AddChild(lblNewHotkeyValue);
+            hotkeyInfoPanel.AddChild(lblCurrentlyAssignedTo);
+            hotkeyInfoPanel.AddChild(btnAssign);
 
             LoadKeyboardINI();
+
+            hotkeyInfoPanel.Disable();
+            lbHotkeys.SelectedIndexChanged += LbHotkeys_SelectedIndexChanged;
 
             ddCategory.SelectedIndexChanged += DdCategory_SelectedIndexChanged;
             ddCategory.SelectedIndex = 0;
@@ -189,26 +277,141 @@ namespace DTAConfig
             }
         }
 
-        private void DdCategory_SelectedIndexChanged(object sender, System.EventArgs e)
+        private void LbHotkeys_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (lbHotkeys.SelectedIndex < 0 || lbHotkeys.SelectedIndex >= lbHotkeys.ItemCount)
+            {
+                hotkeyInfoPanel.Disable();
+                return;
+            }
+
+            hotkeyInfoPanel.Enable();
+            var command = (GameCommand)lbHotkeys.GetItem(0, lbHotkeys.SelectedIndex).Tag;
+            lblCommandCaption.Text = command.UIName;
+            lblDescription.Text = command.Description;
+
+            if (command.Hotkey.Key == Keys.None)
+                lblCurrentHotkeyValue.Text = "None";
+            else
+                lblCurrentHotkeyValue.Text = command.Hotkey.ToString();
+
+            lblNewHotkeyValue.Text = HOTKEY_TIP_TEXT;
+            pendingHotkey = new Hotkey(Keys.None, KeyModifiers.None);
+            lblCurrentlyAssignedTo.Text = string.Empty;
+        }
+
+        private void DdCategory_SelectedIndexChanged(object sender, EventArgs e)
         {
             lbHotkeys.ClearItems();
+            lbHotkeys.TopIndex = 0;
             string category = ddCategory.SelectedItem.Text;
             foreach (var command in keyCommands)
             {
                 if (command.Category == category)
                 {
-                    lbHotkeys.AddItem(new string[] { command.UIName, command.Hotkey.ToString() }, true );
+                    lbHotkeys.AddItem(new XNAListBoxItem[] {
+                        new XNAListBoxItem() { Text = command.UIName, Tag = command, TextColor = UISettings.AltColor },
+                        new XNAListBoxItem() { Text = command.Hotkey.ToString(), TextColor = UISettings.AltColor }
+                    });
                 }
             }
+
+            lbHotkeys.SelectedIndex = -1;
+        }
+
+        private void BtnAssign_LeftClick(object sender, EventArgs e)
+        {
+            if (lbHotkeys.SelectedIndex < 0 || lbHotkeys.SelectedIndex >= lbHotkeys.ItemCount)
+            {
+                return;
+            }
+
+            // If the hotkey is already assigned to other command,
+            // unbind it
+            foreach (var gameCommand in keyCommands)
+            {
+                if (pendingHotkey.Equals(gameCommand.Hotkey))
+                    gameCommand.Hotkey = new Hotkey(Keys.None, KeyModifiers.None);
+            }
+
+            var command = (GameCommand)lbHotkeys.GetItem(0, lbHotkeys.SelectedIndex).Tag;
+            command.Hotkey = pendingHotkey;
+            int selectedIndex = lbHotkeys.SelectedIndex;
+            DdCategory_SelectedIndexChanged(sender, EventArgs.Empty);
+            lbHotkeys.SelectedIndex = selectedIndex;
+            pendingHotkey = new Hotkey(Keys.None, KeyModifiers.None);
         }
 
         private void Keyboard_OnKeyPressed(object sender, Rampastring.XNAUI.Input.KeyPressEventArgs e)
         {
-            return;
+            foreach (var blacklistedKey in keyBlacklist)
+            {
+                if (e.PressedKey == blacklistedKey)
+                    return;
+            }
+
+            var currentModifiers = GetCurrentModifiers();
+
             // The XNA keys seem to match the Windows virtual keycodes! This saves us some work
+            pendingHotkey = new Hotkey(e.PressedKey, currentModifiers);
+
+            foreach (var command in keyCommands)
+            {
+                if (pendingHotkey.Equals(command.Hotkey))
+                    lblCurrentlyAssignedTo.Text = "Currently assigned to:" + Environment.NewLine + command.UIName;
+            }
         }
 
+        public override void Update(GameTime gameTime)
+        {
+            base.Update(gameTime);
 
+            var oldModifiers = pendingHotkey.Modifier;
+            var currentModifiers = GetCurrentModifiers();
+
+            if ((pendingHotkey.Key == Keys.None && currentModifiers != oldModifiers)
+                ||
+                (pendingHotkey.Key != Keys.None &&
+                lastFrameModifiers == KeyModifiers.None &&
+                currentModifiers != lastFrameModifiers))
+            {
+                pendingHotkey = new Hotkey(Keys.None, currentModifiers);
+                lblCurrentlyAssignedTo.Text = string.Empty;
+            }
+
+            string displayString = pendingHotkey.ToString();
+            if (displayString != string.Empty)
+                lblNewHotkeyValue.Text = pendingHotkey.ToString();
+            else
+                lblNewHotkeyValue.Text = HOTKEY_TIP_TEXT;
+
+            lastFrameModifiers = currentModifiers;
+        }
+
+        private KeyModifiers GetCurrentModifiers()
+        {
+            var currentModifiers = KeyModifiers.None;
+
+            if (Keyboard.IsKeyHeldDown(Keys.RightControl) ||
+                Keyboard.IsKeyHeldDown(Keys.LeftControl))
+            {
+                currentModifiers |= KeyModifiers.Ctrl;
+            }
+
+            if (Keyboard.IsKeyHeldDown(Keys.RightShift) ||
+                Keyboard.IsKeyHeldDown(Keys.LeftShift))
+            {
+                currentModifiers |= KeyModifiers.Shift;
+            }
+
+            if (Keyboard.IsKeyHeldDown(Keys.LeftAlt) ||
+                Keyboard.IsKeyHeldDown(Keys.RightAlt))
+            {
+                currentModifiers |= KeyModifiers.Alt;
+            }
+
+            return currentModifiers;
+        }
 
         class GameCommand
         {
@@ -230,6 +433,7 @@ namespace DTAConfig
         [Flags]
         private enum KeyModifiers
         {
+            None = 0,
             Shift = 1,
             Ctrl = 2,
             Alt = 4
@@ -243,12 +447,18 @@ namespace DTAConfig
                 Modifier = (KeyModifiers)(encodedKeyValue >> 8);
             }
 
+            public Hotkey(Keys key, KeyModifiers modifiers)
+            {
+                Key = key;
+                Modifier = modifiers;
+            }
+
             public Keys Key { get; private set; }
             public KeyModifiers Modifier { get; private set; }
 
             public override string ToString()
             {
-                if (Key == Keys.None)
+                if (Key == Keys.None && Modifier == KeyModifiers.None)
                     return string.Empty;
 
                 string str = "";
@@ -262,7 +472,29 @@ namespace DTAConfig
                 if (Modifier.HasFlag(KeyModifiers.Alt))
                     str += "ALT+";
 
+                if (Key == Keys.None)
+                    return str;
+
                 return str + Key.ToString();
+            }
+
+            public int GetTSEncoded()
+            {
+                return ((int)Modifier << 8) + (int)Key;
+            }
+
+            public override bool Equals(object obj)
+            {
+                if (!(obj is Hotkey))
+                    return false;
+
+                var hotkey = (Hotkey)obj;
+                return hotkey.Key == Key && hotkey.Modifier == Modifier;
+            }
+
+            public override int GetHashCode()
+            {
+                return GetTSEncoded();
             }
         }
     }
