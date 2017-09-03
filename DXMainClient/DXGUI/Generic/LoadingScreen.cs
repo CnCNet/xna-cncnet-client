@@ -114,8 +114,6 @@ namespace DTAClient.DXGUI.Generic
                 topBar, optionsWindow, cncnetLobby, cncnetManager);
             WindowManager.AddAndInitializeControl(mainMenu);
 
-            //var hotkeyConfigWindow = new HotkeyConfigurationWindow(WindowManager);
-
             DarkeningPanel.AddAndInitializeWithControl(WindowManager, skirmishLobby);
 
             DarkeningPanel.AddAndInitializeWithControl(WindowManager, cncnetGameLoadingLobby);
@@ -127,8 +125,6 @@ namespace DTAClient.DXGUI.Generic
             DarkeningPanel.AddAndInitializeWithControl(WindowManager, lanLobby);
 
             DarkeningPanel.AddAndInitializeWithControl(WindowManager, optionsWindow);
-
-            //DarkeningPanel.AddAndInitializeWithControl(WindowManager, hotkeyConfigWindow);
 
             WindowManager.AddAndInitializeControl(privateMessagingPanel);
             privateMessagingPanel.AddChild(pmWindow);

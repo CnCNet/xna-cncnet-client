@@ -32,6 +32,8 @@ namespace DTAConfig
 
         private XNATextBox tbPlayerName;
 
+        private HotkeyConfigurationWindow hotkeyConfigWindow;
+
         public override void Initialize()
         {
             base.Initialize();
@@ -144,6 +146,16 @@ namespace DTAConfig
             lblNotice.Text = "* If you are currently connected to CnCNet, you need to log out and reconnect" +
                 Environment.NewLine + "for your new name to be applied.";
 
+            hotkeyConfigWindow = new HotkeyConfigurationWindow(WindowManager);
+            DarkeningPanel.AddAndInitializeWithControl(WindowManager, hotkeyConfigWindow);
+            hotkeyConfigWindow.Disable();
+
+            var btnConfigureHotkeys = new XNAClientButton(WindowManager);
+            btnConfigureHotkeys.Name = "btnConfigureHotkeys";
+            btnConfigureHotkeys.ClientRectangle = new Rectangle(lblPlayerName.X, lblNotice.Bottom + 36, 160, 23);
+            btnConfigureHotkeys.Text = "Configure Hotkeys";
+            btnConfigureHotkeys.LeftClick += BtnConfigureHotkeys_LeftClick;
+
             AddChild(lblScrollRate);
             AddChild(lblScrollRateValue);
             AddChild(trbScrollRate);
@@ -153,6 +165,12 @@ namespace DTAConfig
             AddChild(lblPlayerName);
             AddChild(tbPlayerName);
             AddChild(lblNotice);
+            AddChild(btnConfigureHotkeys);
+        }
+
+        private void BtnConfigureHotkeys_LeftClick(object sender, EventArgs e)
+        {
+            hotkeyConfigWindow.Enable();
         }
 
         private void TrbScrollRate_ValueChanged(object sender, EventArgs e)

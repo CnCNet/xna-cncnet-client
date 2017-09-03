@@ -21,7 +21,6 @@ namespace DTAConfig
         private const string CATEGORY_SELECTION = "Selection";
         private const string CATEGORY_TEAM = "Team";
 
-        private const string KEYBOARD_INI = "Keyboard.ini";
         private const string HOTKEY_TIP_TEXT = "Press a key...";
 
         public HotkeyConfigurationWindow(WindowManager windowManager) : base(windowManager)
@@ -41,7 +40,7 @@ namespace DTAConfig
             Keys.RightShift
         };
 
-        private readonly GameCommand[] keyCommands = new GameCommand[]
+        private readonly GameCommand[] gameCommands = new GameCommand[]
         {
             new GameCommand("Chat to allies", CATEGORY_MULTIPLAYER, "Chat to players in your team.", "ChatToAllies"),
             new GameCommand("Chat to everyone", CATEGORY_MULTIPLAYER, "Chat to all players in the game (same as F8).", "ChatToAll"),
@@ -56,10 +55,10 @@ namespace DTAConfig
             new GameCommand("Options Menu", CATEGORY_INTERFACE, "Open the in-game Options menu.", "Options"),
             new GameCommand("Center Base", CATEGORY_INTERFACE, "Center the camera on your base.", "CenterBase"),
             new GameCommand("Follow", CATEGORY_INTERFACE, "Make the selected objects follow another object.", "Follow"),
-            new GameCommand("View Bookmark 1", CATEGORY_INTERFACE, "Center the camera around bookmark 1.", "View1"),
-            new GameCommand("View Bookmark 2", CATEGORY_INTERFACE, "Center the camera around bookmark 2.", "View2"),
-            new GameCommand("View Bookmark 3", CATEGORY_INTERFACE, "Center the camera around bookmark 3.", "View3"),
-            new GameCommand("View Bookmark 4", CATEGORY_INTERFACE, "Center the camera around bookmark 4.", "View4"),
+            new GameCommand("View Bookmark 1", CATEGORY_INTERFACE, "Center the camera on bookmark 1.", "View1"),
+            new GameCommand("View Bookmark 2", CATEGORY_INTERFACE, "Center the camera on bookmark 2.", "View2"),
+            new GameCommand("View Bookmark 3", CATEGORY_INTERFACE, "Center the camera on bookmark 3.", "View3"),
+            new GameCommand("View Bookmark 4", CATEGORY_INTERFACE, "Center the camera on bookmark 4.", "View4"),
             new GameCommand("Set Bookmark 1", CATEGORY_INTERFACE, "Sets bookmark 1.", "SetView1"),
             new GameCommand("Set Bookmark 2", CATEGORY_INTERFACE, "Sets bookmark 2.", "SetView2"),
             new GameCommand("Set Bookmark 3", CATEGORY_INTERFACE, "Sets bookmark 3.", "SetView3"),
@@ -85,7 +84,7 @@ namespace DTAConfig
             new GameCommand("Power Mode", CATEGORY_INTERFACE, "Enable power mode (allows powering structures on and off).", "TogglePower"),
             new GameCommand("Repair Mode", CATEGORY_INTERFACE, "Enable repair mode.", "ToggleRepair"),
             new GameCommand("Waypoint Mode", CATEGORY_INTERFACE, "Enable waypoint mode.", "WaypointMode"),
-            new GameCommand("Screen Capture", CATEGORY_INTERFACE, "Takes a screenshot and saves it to the \n\"Screenshots\" sub-directory in your \ngame directory.", "ScreenCapture"),
+            new GameCommand("Screen Capture", CATEGORY_INTERFACE, "Takes a screenshot and saves it to the \"Screenshots\" sub-directory in your game directory.", "ScreenCapture"),
             new GameCommand("Delete Waypoint", CATEGORY_INTERFACE, "Deletes a waypoint.", "DeleteWaypoint"),
             new GameCommand("Toggle Info Panel", CATEGORY_INTERFACE, "Toggles the state of the sidebar info panel.", "ToggleInfoPanel"),
             new GameCommand("Place Building", CATEGORY_INTERFACE, "Places a finished building.", "PlaceBuilding"),
@@ -139,7 +138,6 @@ namespace DTAConfig
 
         private XNAClientDropDown ddCategory;
         private XNAMultiColumnListBox lbHotkeys;
-        private XNAButton btnOK;
 
         private XNAPanel hotkeyInfoPanel;
         private XNALabel lblCommandCaption;
@@ -156,7 +154,7 @@ namespace DTAConfig
         public override void Initialize()
         {
             Name = "HotkeyConfigurationWindow";
-            ClientRectangle = new Rectangle(0, 0, 600, 325);
+            ClientRectangle = new Rectangle(0, 0, 600, 450);
 
             var lblCategory = new XNALabel(WindowManager);
             lblCategory.Name = "lblCategory";
@@ -176,7 +174,7 @@ namespace DTAConfig
             lbHotkeys = new XNAMultiColumnListBox(WindowManager);
             lbHotkeys.Name = "lbHotkeys";
             lbHotkeys.ClientRectangle = new Rectangle(12, ddCategory.Bottom + 12, 
-                ddCategory.Right - 12, ClientRectangle.Height - ddCategory.Bottom - 24);
+                ddCategory.Right - 12, ClientRectangle.Height - ddCategory.Bottom - 59);
             lbHotkeys.AddColumn("Command", 150);
             lbHotkeys.AddColumn("Shortcut", lbHotkeys.Width - 150);
 
@@ -199,7 +197,7 @@ namespace DTAConfig
             var lblCurrentHotkey = new XNALabel(WindowManager);
             lblCurrentHotkey.Name = "lblCurrentHotkey";
             lblCurrentHotkey.ClientRectangle = new Rectangle(lblDescription.ClientRectangle.X,
-                lblDescription.Bottom + 36, 0, 0);
+                lblDescription.Bottom + 48, 0, 0);
             lblCurrentHotkey.FontIndex = 1;
             lblCurrentHotkey.Text = "Currently assigned hotkey:";
 
@@ -212,7 +210,7 @@ namespace DTAConfig
             var lblNewHotkey = new XNALabel(WindowManager);
             lblNewHotkey.Name = "lblNewHotkey";
             lblNewHotkey.ClientRectangle = new Rectangle(lblDescription.ClientRectangle.X,
-                lblCurrentHotkeyValue.Bottom + 36, 0, 0);
+                lblCurrentHotkeyValue.Bottom + 48, 0, 0);
             lblNewHotkey.FontIndex = 1;
             lblNewHotkey.Text = "New hotkey:";
 
@@ -231,14 +229,28 @@ namespace DTAConfig
             var btnAssign = new XNAClientButton(WindowManager);
             btnAssign.Name = "btnAssign";
             btnAssign.ClientRectangle = new Rectangle(lblDescription.ClientRectangle.X,
-                lblCurrentlyAssignedTo.Bottom + 18, 92, 23);
+                lblCurrentlyAssignedTo.Bottom + 36, 92, 23);
             btnAssign.Text = "Assign";
             btnAssign.LeftClick += BtnAssign_LeftClick;
+
+            var btnSave = new XNAClientButton(WindowManager);
+            btnSave.Name = "btnSave";
+            btnSave.ClientRectangle = new Rectangle(12, lbHotkeys.Bottom + 12, 92, 23);
+            btnSave.Text = "Save";
+            btnSave.LeftClick += BtnSave_LeftClick;
+
+            var btnCancel = new XNAClientButton(WindowManager);
+            btnCancel.Name = "btnExit";
+            btnCancel.ClientRectangle = new Rectangle(Width - 104, btnSave.Y, 92, 23);
+            btnCancel.Text = "Cancel";
+            btnCancel.LeftClick += BtnCancel_LeftClick;
 
             AddChild(lbHotkeys);
             AddChild(lblCategory);
             AddChild(ddCategory);
             AddChild(hotkeyInfoPanel);
+            AddChild(btnSave);
+            AddChild(btnCancel);
             hotkeyInfoPanel.AddChild(lblCommandCaption);
             hotkeyInfoPanel.AddChild(lblDescription);
             hotkeyInfoPanel.AddChild(lblCurrentHotkey);
@@ -256,6 +268,8 @@ namespace DTAConfig
             ddCategory.SelectedIndexChanged += DdCategory_SelectedIndexChanged;
             ddCategory.SelectedIndex = 0;
 
+            GameProcessLogic.GameProcessExited += GameProcessLogic_GameProcessExited;
+
             base.Initialize();
 
             CenterOnParent();
@@ -266,10 +280,18 @@ namespace DTAConfig
             //EventInput.Initialize(Game.Window);
         }
 
+        /// <summary>
+        /// Reloads Keyboard.ini when the game process has exited.
+        /// </summary>
+        private void GameProcessLogic_GameProcessExited()
+        {
+            WindowManager.AddCallback(new Action(LoadKeyboardINI), null);
+        }
+
         private void LoadKeyboardINI()
         {
-            keyboardINI = new IniFile(ProgramConstants.GamePath + KEYBOARD_INI);
-            foreach (var command in keyCommands)
+            keyboardINI = new IniFile(ProgramConstants.GamePath + ClientConfiguration.Instance.KeyboardINI);
+            foreach (var command in gameCommands)
             {
                 int hotkey = keyboardINI.GetIntValue("Hotkey", command.ININame, 0);
 
@@ -288,7 +310,8 @@ namespace DTAConfig
             hotkeyInfoPanel.Enable();
             var command = (GameCommand)lbHotkeys.GetItem(0, lbHotkeys.SelectedIndex).Tag;
             lblCommandCaption.Text = command.UIName;
-            lblDescription.Text = command.Description;
+            lblDescription.Text = Renderer.FixText(command.Description, lblDescription.FontIndex, 
+                hotkeyInfoPanel.Width - lblDescription.X).Text;
 
             if (command.Hotkey.Key == Keys.None)
                 lblCurrentHotkeyValue.Text = "None";
@@ -305,7 +328,7 @@ namespace DTAConfig
             lbHotkeys.ClearItems();
             lbHotkeys.TopIndex = 0;
             string category = ddCategory.SelectedItem.Text;
-            foreach (var command in keyCommands)
+            foreach (var command in gameCommands)
             {
                 if (command.Category == category)
                 {
@@ -326,9 +349,8 @@ namespace DTAConfig
                 return;
             }
 
-            // If the hotkey is already assigned to other command,
-            // unbind it
-            foreach (var gameCommand in keyCommands)
+            // If the hotkey is already assigned to other command, unbind it
+            foreach (var gameCommand in gameCommands)
             {
                 if (pendingHotkey.Equals(gameCommand.Hotkey))
                     gameCommand.Hotkey = new Hotkey(Keys.None, KeyModifiers.None);
@@ -342,6 +364,9 @@ namespace DTAConfig
             pendingHotkey = new Hotkey(Keys.None, KeyModifiers.None);
         }
 
+        /// <summary>
+        /// Detects when the user has pressed a key to generate a new hotkey.
+        /// </summary>
         private void Keyboard_OnKeyPressed(object sender, Rampastring.XNAUI.Input.KeyPressEventArgs e)
         {
             foreach (var blacklistedKey in keyBlacklist)
@@ -355,13 +380,30 @@ namespace DTAConfig
             // The XNA keys seem to match the Windows virtual keycodes! This saves us some work
             pendingHotkey = new Hotkey(e.PressedKey, currentModifiers);
 
-            foreach (var command in keyCommands)
+            foreach (var command in gameCommands)
             {
                 if (pendingHotkey.Equals(command.Hotkey))
                     lblCurrentlyAssignedTo.Text = "Currently assigned to:" + Environment.NewLine + command.UIName;
             }
         }
 
+        private void BtnCancel_LeftClick(object sender, EventArgs e)
+        {
+            Disable();
+        }
+
+        private void BtnSave_LeftClick(object sender, EventArgs e)
+        {
+            WriteKeyboardINI();
+            Disable();
+        }
+
+        /// <summary>
+        /// Updates the logic of the window.
+        /// Used for keeping the "new hotkey" display in sync with the keyboard's
+        /// modifier keys.
+        /// </summary>
+        /// <param name="gameTime">Provides a snapshot of timing values.</param>
         public override void Update(GameTime gameTime)
         {
             base.Update(gameTime);
@@ -388,6 +430,9 @@ namespace DTAConfig
             lastFrameModifiers = currentModifiers;
         }
 
+        /// <summary>
+        /// Detects which key modifiers (Ctrl, Shift, Alt) the user is currently pressing.
+        /// </summary>
         private KeyModifiers GetCurrentModifiers()
         {
             var currentModifiers = KeyModifiers.None;
@@ -411,6 +456,17 @@ namespace DTAConfig
             }
 
             return currentModifiers;
+        }
+
+        private void WriteKeyboardINI()
+        {
+            var keyboardIni = new IniFile();
+            foreach (var command in gameCommands)
+            {
+                keyboardIni.SetStringValue("Hotkey", command.ININame, command.Hotkey.GetTSEncoded().ToString());
+            }
+
+            keyboardIni.WriteIniFile(ProgramConstants.GamePath + ClientConfiguration.Instance.KeyboardINI);
         }
 
         class GameCommand
