@@ -12,9 +12,10 @@ namespace DTAConfig
         private const int TEXT_BACKGROUND_COLOR_TRANSPARENT = 0;
         private const int TEXT_BACKGROUND_COLOR_BLACK = 12;
 
-        public GameOptionsPanel(WindowManager windowManager, UserINISettings iniSettings)
+        public GameOptionsPanel(WindowManager windowManager, UserINISettings iniSettings, XNAControl topBar)
             : base(windowManager, iniSettings)
         {
+            this.topBar = topBar;
         }
 
         private XNALabel lblScrollRateValue;
@@ -29,6 +30,7 @@ namespace DTAConfig
         private XNAClientCheckBox chkAltToUndeploy;
         private XNAClientCheckBox chkBlackChatBackground;
 #endif
+        private XNAControl topBar;
 
         private XNATextBox tbPlayerName;
 
@@ -171,6 +173,18 @@ namespace DTAConfig
         private void BtnConfigureHotkeys_LeftClick(object sender, EventArgs e)
         {
             hotkeyConfigWindow.Enable();
+
+            if (topBar.Enabled)
+            {
+                topBar.Disable();
+                hotkeyConfigWindow.EnabledChanged += HotkeyConfigWindow_EnabledChanged;
+            }
+        }
+
+        private void HotkeyConfigWindow_EnabledChanged(object sender, EventArgs e)
+        {
+            hotkeyConfigWindow.EnabledChanged -= HotkeyConfigWindow_EnabledChanged;
+            topBar.Enable();
         }
 
         private void TrbScrollRate_ValueChanged(object sender, EventArgs e)

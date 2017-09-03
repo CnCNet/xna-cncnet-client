@@ -4,6 +4,7 @@ using ClientGUI;
 using Microsoft.Xna.Framework;
 using Rampastring.Tools;
 using Rampastring.XNAUI;
+using Rampastring.XNAUI.XNAControls;
 using System;
 using Updater;
 
@@ -11,19 +12,21 @@ namespace DTAConfig
 {
     public class OptionsWindow : XNAWindow
     {
-        public OptionsWindow(WindowManager windowManager, GameCollection gameCollection) : base(windowManager)
+        public OptionsWindow(WindowManager windowManager, GameCollection gameCollection, XNAControl topBar) : base(windowManager)
         {
             this.gameCollection = gameCollection;
+            this.topBar = topBar;
         }
 
-        XNAClientTabControl tabControl;
+        private XNAClientTabControl tabControl;
 
-        XNAOptionsPanel[] optionsPanels;
-        ComponentsPanel componentsPanel;
+        private XNAOptionsPanel[] optionsPanels;
+        private ComponentsPanel componentsPanel;
 
-        DisplayOptionsPanel displayOptionsPanel;
+        private DisplayOptionsPanel displayOptionsPanel;
+        private XNAControl topBar;
 
-        GameCollection gameCollection;
+        private GameCollection gameCollection;
 
         public override void Initialize()
         {
@@ -64,7 +67,7 @@ namespace DTAConfig
             {
                 displayOptionsPanel,
                 new AudioOptionsPanel(WindowManager, UserINISettings.Instance),
-                new GameOptionsPanel(WindowManager, UserINISettings.Instance),
+                new GameOptionsPanel(WindowManager, UserINISettings.Instance, topBar),
                 new CnCNetOptionsPanel(WindowManager, UserINISettings.Instance, gameCollection),
                 new UpdaterOptionsPanel(WindowManager, UserINISettings.Instance),
                 componentsPanel

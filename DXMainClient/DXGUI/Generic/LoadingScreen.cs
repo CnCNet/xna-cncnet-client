@@ -84,14 +84,14 @@ namespace DTAClient.DXGUI.Generic
             var gameCollection = new GameCollection();
             gameCollection.Initialize(GraphicsDevice);
 
-            var optionsWindow = new OptionsWindow(WindowManager, gameCollection);
-
             var lanLobby = new LANLobby(WindowManager, gameCollection, mapLoader.GameModes);
 
             var cncnetManager = new CnCNetManager(WindowManager, gameCollection);
             var tunnelHandler = new TunnelHandler(WindowManager, cncnetManager);
 
             var topBar = new TopBar(WindowManager, cncnetManager);
+
+            var optionsWindow = new OptionsWindow(WindowManager, gameCollection, topBar);
 
             var pmWindow = new PrivateMessagingWindow(WindowManager,
                 cncnetManager, gameCollection);
