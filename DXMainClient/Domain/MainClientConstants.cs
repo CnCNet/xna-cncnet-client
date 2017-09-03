@@ -15,8 +15,8 @@ namespace DTAClient.Domain
         public static string gamepath = Directory.GetParent(Application.StartupPath).FullName + "\\";
 #endif
 
-        public static string GAME_NAME_LONG = "Tiberian Sun";
-        public static string GAME_NAME_SHORT = "TS";
+        public static string GAME_NAME_LONG = "CnCNet Client";
+        public static string GAME_NAME_SHORT = "CnCNet";
         public static string CNCNET_LIVE_STATUS_ID = "cncnet5_ts";
 
         public static string CHANGELOG_URL = "http://rampastring.cncnet.org/TSupdates/changelog.txt";
