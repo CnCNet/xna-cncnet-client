@@ -1,5 +1,6 @@
 ﻿using System;
 using Rampastring.Tools;
+using System.IO;
 
 namespace ClientCore
 {
@@ -17,6 +18,9 @@ namespace ClientCore
 
         protected ClientConfiguration()
         {
+            if (!File.Exists(ProgramConstants.GetBaseResourcePath() + CLIENT_DEFS))
+                throw new FileNotFoundException("Couldn't find " + CLIENT_DEFS + ". Please verify that you're running the client from the correct directory.");
+
             clientDefinitionsIni = new IniFile(ProgramConstants.GetBaseResourcePath() + CLIENT_DEFS);
 
             DTACnCNetClient_ini = new IniFile(ProgramConstants.GetResourcePath() + CLIENT_SETTINGS);
