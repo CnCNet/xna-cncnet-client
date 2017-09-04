@@ -7,6 +7,7 @@ using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
 using System;
 using System.Collections.Generic;
+using System.IO;
 
 namespace DTAConfig
 {
@@ -290,7 +291,11 @@ namespace DTAConfig
 
         private void LoadKeyboardINI()
         {
-            keyboardINI = new IniFile(ProgramConstants.GamePath + ClientConfiguration.Instance.KeyboardINI);
+            if (File.Exists(ProgramConstants.GamePath + ClientConfiguration.Instance.KeyboardINI))
+                keyboardINI = new IniFile(ProgramConstants.GamePath + ClientConfiguration.Instance.KeyboardINI);
+            else
+                keyboardINI = new IniFile(ProgramConstants.GamePath + ClientConfiguration.Instance.DefaultKeyboardINI);
+
             foreach (var command in gameCommands)
             {
                 int hotkey = keyboardINI.GetIntValue("Hotkey", command.ININame, 0);

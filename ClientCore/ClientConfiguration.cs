@@ -425,7 +425,7 @@ namespace ClientCore
         {
             get
             {
-                return clientDefinitionsIni.GetStringValue("Settings", "ExtraCommandLineParams", String.Empty);
+                return clientDefinitionsIni.GetStringValue("Settings", "ExtraCommandLineParams", string.Empty);
             }
         }
 
@@ -442,6 +442,17 @@ namespace ClientCore
             get
             {
                 return clientDefinitionsIni.GetStringValue("Settings", "KeyboardINI", "Keyboard.ini");
+            }
+        }
+
+        /// <summary>
+        /// Returns the path to the default Keyboard.ini that is used if KeyboardINI is not found.
+        /// </summary>
+        public string DefaultKeyboardINI
+        {
+            get
+            {
+                return clientDefinitionsIni.GetStringValue("Settings", "DefaultKeyboardINI", "INI\\Keyboard.ini");
             }
         }
 
