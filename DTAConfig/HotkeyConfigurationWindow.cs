@@ -21,6 +21,9 @@ namespace DTAConfig
         private const string CATEGORY_INTERFACE = "Interface";
         private const string CATEGORY_SELECTION = "Selection";
         private const string CATEGORY_TEAM = "Team";
+        private const string CATEGORY_SIDEBAR = "Sidebar";
+        private const string CATEGORY_TAUNTS = "Taunts";
+        private const string CATEGORY_DEVELOPMENT = "Development";
 
         private const string HOTKEY_TIP_TEXT = "Press a key...";
 
@@ -43,15 +46,72 @@ namespace DTAConfig
 
         private readonly GameCommand[] gameCommands = new GameCommand[]
         {
+#if DTA || TI || TS
             new GameCommand("Chat to allies", CATEGORY_MULTIPLAYER, "Chat to players in your team.", "ChatToAllies"),
             new GameCommand("Chat to everyone", CATEGORY_MULTIPLAYER, "Chat to all players in the game (same as F8).", "ChatToAll"),
-            new GameCommand("Alliance", CATEGORY_CONTROL, "Form an alliance with the owner of a selected object.", "ToggleAlliance"),
-            new GameCommand("Deploy Object", CATEGORY_CONTROL, "Deploy selected units.", "DeployObject"),
             new GameCommand("Grant Control", CATEGORY_CONTROL, "Give control of your units to the owner of a selected object.", "GrantControl"),
-            new GameCommand("Guard", CATEGORY_CONTROL, "Make your selected units guard the nearby area and automatically attack enemies.", "GuardObject"),
-            new GameCommand("Scatter", CATEGORY_CONTROL, "Make your selected units scatter.", "ScatterObject"),
             new GameCommand("Select One Unit Less", CATEGORY_CONTROL, "Randomly unselect one of your selected units.", "SelectOneUnitLess"),
-            new GameCommand("Stop Object", CATEGORY_CONTROL, "Stop your selected units.", "StopObject"),
+            new GameCommand("Radar Toggle", CATEGORY_INTERFACE, "Toggle between the radar and the kill count screen (multiplayer only).", "ToggleRadar"),
+            new GameCommand("Screen Capture", CATEGORY_INTERFACE, "Takes a screenshot and saves it to the \"Screenshots\" sub-directory in your game directory.", "ScreenCapture"),
+            new GameCommand("Toggle Info Panel", CATEGORY_INTERFACE, "Toggles the state of the sidebar info panel.", "ToggleInfoPanel"),
+            new GameCommand("Place Building", CATEGORY_INTERFACE, "Places a finished building.", "PlaceBuilding"),
+            new GameCommand("Repeat Last Building", CATEGORY_INTERFACE, "Repeats the last finished building.", "RepeatBuilding"),
+            new GameCommand("Power Mode", CATEGORY_INTERFACE, "Enable power mode (allows powering structures on and off).", "TogglePower"),
+            new GameCommand("Repair Mode", CATEGORY_INTERFACE, "Enable repair mode.", "ToggleRepair"),
+            new GameCommand("Waypoint Mode", CATEGORY_INTERFACE, "Enable waypoint mode.", "WaypointMode"),
+            new GameCommand("Delete Waypoint", CATEGORY_INTERFACE, "Deletes a waypoint.", "DeleteWaypoint"),
+
+            new GameCommand("Structure List Up", CATEGORY_SIDEBAR, "Scroll the sidebar's structure list up.", "LeftSidebarUp"),
+            new GameCommand("Unit List Up", CATEGORY_SIDEBAR, "Scroll the sidebar's unit list up.", "RightSidebarUp"),
+            new GameCommand("Sidebar Page Up", CATEGORY_SIDEBAR, "Scroll the sidebar up by a page.", "SidebarPageUp"),
+            new GameCommand("Structure List Page Up", CATEGORY_SIDEBAR, "Scroll the sidebar's structure list up by a page.", "LeftSidebarPageUp"),
+            new GameCommand("Unit List Page Up", CATEGORY_SIDEBAR, "Scroll the sidebar's unit list up by a page.", "RightSidebarPageUp"),
+            new GameCommand("Structure List Down", CATEGORY_SIDEBAR, "Scroll the sidebar's structure list down.", "LeftSidebarDown"),
+            new GameCommand("Unit List Down", CATEGORY_SIDEBAR, "Scroll the sidebar's unit list down.", "RightSidebarDown"),
+            new GameCommand("Sidebar Page Down", CATEGORY_SIDEBAR, "Scroll the sidebar down by a page.", "SidebarPageDown"),
+            new GameCommand("Structure List Page Down", CATEGORY_SIDEBAR, "Scroll the sidebar's structure list down by a page.", "LeftSidebarPageDown"),
+            new GameCommand("Unit List Page Down", CATEGORY_SIDEBAR, "Scroll the sidebar's unit list down by a page.", "RightSidebarPageDown"),
+            new GameCommand("Sidebar Up", CATEGORY_SIDEBAR, "Scroll the sidebar up.", "SidebarUp"),
+            new GameCommand("Sidebar Down", CATEGORY_SIDEBAR, "Scroll the sidebar down.", "SidebarDown"),
+
+            new GameCommand("Next Unit", CATEGORY_SELECTION, "Select the next unit.", "NextObject"),
+            new GameCommand("Previous Unit", CATEGORY_SELECTION, "Select the previous unit.", "PreviousObject"),
+            new GameCommand("Select Same Type", CATEGORY_SELECTION, "Select all units on the screen that are the type of your currently selected units.", "SelectType"),
+            new GameCommand("Select View", CATEGORY_SELECTION, "Select all units on the screen.", "SelectView"),
+
+#elif YR
+            new GameCommand("Select Same Type", CATEGORY_SELECTION, "Select units that are the type of your currently selected units.", "TypeSelect"),
+            new GameCommand("Combatant Select", CATEGORY_SELECTION, "Select units considered as combatants.", "CombatantSelect"),
+            new GameCommand("Health Navigation", CATEGORY_SELECTION, "Select units based on current health.", "HealthNav"),
+            new GameCommand("Veterancy Navigation", CATEGORY_SELECTION, "Select units based on current veterancy level.", "VeterancyNav"),
+
+            new GameCommand("Taunt 1", CATEGORY_TAUNTS, "Taunt 1", "Taunt_1"),
+            new GameCommand("Taunt 2", CATEGORY_TAUNTS, "Taunt 2", "Taunt_2"),
+            new GameCommand("Taunt 3", CATEGORY_TAUNTS, "Taunt 3", "Taunt_3"),
+            new GameCommand("Taunt 4", CATEGORY_TAUNTS, "Taunt 4", "Taunt_4"),
+            new GameCommand("Taunt 5", CATEGORY_TAUNTS, "Taunt 5", "Taunt_5"),
+            new GameCommand("Taunt 6", CATEGORY_TAUNTS, "Taunt 6", "Taunt_6"),
+            new GameCommand("Taunt 7", CATEGORY_TAUNTS, "Taunt 7", "Taunt_7"),
+            new GameCommand("Taunt 8", CATEGORY_TAUNTS, "Taunt 8", "Taunt_8"),
+
+            new GameCommand("Structures Tab", CATEGORY_INTERFACE, "Jump to sidebar structures tab.", "StructureTab"),
+            new GameCommand("Armory Tab", CATEGORY_INTERFACE, "Jump to sidebar armory tab.", "DefenseTab"),
+            new GameCommand("Infantry Tab", CATEGORY_INTERFACE, "Jump to sidebar infantry tab.", "InfantryTab"),
+            new GameCommand("Units Tab", CATEGORY_INTERFACE, "Jump to sidebar units tab.", "UnitTab"),
+            new GameCommand("Screen Capture", CATEGORY_INTERFACE, "Takes a screenshot and saves it in your game directory.", "ScreenCapture"),
+            new GameCommand("Waypoint Mode", CATEGORY_INTERFACE, "Enable waypoint mode.", "PlanningMode"),
+#endif
+
+#if MO
+            new GameCommand("Power Mode", CATEGORY_INTERFACE, "Enable power mode (allows powering structures on and off).", "TogglePower"),
+
+            new GameCommand("Dump AI Base Plan", CATEGORY_DEVELOPMENT, "Dumps AI base plan to debug log.", "Dump AI Base Plan"),
+            new GameCommand("Dump Process Memory", CATEGORY_DEVELOPMENT, "Dumps current process memory to debug log.", "Dump Process Memory"),
+            new GameCommand("Dump Type Lists", CATEGORY_DEVELOPMENT, "Dumps current type lists to debug log.", "Dump Data Types"),
+            new GameCommand("FPS Counter", CATEGORY_DEVELOPMENT, "Toggles FPS counter that shows current and average frames per second.", "FPS Counter"),
+            new GameCommand("Map Snapshot", CATEGORY_DEVELOPMENT, "Saves the currently played map in game directory.", "MapSnapshot"),
+#endif
+
             new GameCommand("Center View", CATEGORY_INTERFACE, "Center the camera to the selected objects.", "CenterView"),
             new GameCommand("Options Menu", CATEGORY_INTERFACE, "Open the in-game Options menu.", "Options"),
             new GameCommand("Center Base", CATEGORY_INTERFACE, "Center the camera on your base.", "CenterBase"),
@@ -68,33 +128,16 @@ namespace DTAConfig
             new GameCommand("Scroll South", CATEGORY_INTERFACE, "Scroll the camera towards the south.", "ScrollSouth"),
             new GameCommand("Scroll East", CATEGORY_INTERFACE, "Scroll the camera towards the east.", "ScrollEast"),
             new GameCommand("Scroll West", CATEGORY_INTERFACE, "Scroll the camera towards the west.", "ScrollWest"),
-            new GameCommand("Sidebar Up", CATEGORY_INTERFACE, "Scroll the sidebar up.", "SidebarUp"),
-            new GameCommand("Structure List Up", CATEGORY_INTERFACE, "Scroll the sidebar's structure list up.", "LeftSidebarUp"),
-            new GameCommand("Unit List Up", CATEGORY_INTERFACE, "Scroll the sidebar's unit list up.", "RightSidebarUp"),
-            new GameCommand("Sidebar Page Up", CATEGORY_INTERFACE, "Scroll the sidebar up by a page.", "SidebarPageUp"),
-            new GameCommand("Structure List Page Up", CATEGORY_INTERFACE, "Scroll the sidebar's structure list up by a page.", "LeftSidebarPageUp"),
-            new GameCommand("Unit List Page Up", CATEGORY_INTERFACE, "Scroll the sidebar's unit list up by a page.", "RightSidebarPageUp"),
-            new GameCommand("Sidebar Down", CATEGORY_INTERFACE, "Scroll the sidebar down.", "SidebarDown"),
-            new GameCommand("Structure List Down", CATEGORY_INTERFACE, "Scroll the sidebar's structure list down.", "LeftSidebarDown"),
-            new GameCommand("Unit List Down", CATEGORY_INTERFACE, "Scroll the sidebar's unit list down.", "RightSidebarDown"),
-            new GameCommand("Sidebar Page Down", CATEGORY_INTERFACE, "Scroll the sidebar down by a page.", "SidebarPageDown"),
-            new GameCommand("Structure List Page Down", CATEGORY_INTERFACE, "Scroll the sidebar's structure list down by a page.", "LeftSidebarPageDown"),
-            new GameCommand("Unit List Page Down", CATEGORY_INTERFACE, "Scroll the sidebar's unit list down by a page.", "RightSidebarPageDown"),
             new GameCommand("Goto Radar Event", CATEGORY_INTERFACE, "Center the camera around the latest radar event.", "CenterOnRadarEvent"),
-            new GameCommand("Radar Toggle", CATEGORY_INTERFACE, "Toggle between the radar and the kill count screen (multiplayer only).", "ToggleRadar"),
-            new GameCommand("Power Mode", CATEGORY_INTERFACE, "Enable power mode (allows powering structures on and off).", "TogglePower"),
-            new GameCommand("Repair Mode", CATEGORY_INTERFACE, "Enable repair mode.", "ToggleRepair"),
-            new GameCommand("Waypoint Mode", CATEGORY_INTERFACE, "Enable waypoint mode.", "WaypointMode"),
-            new GameCommand("Screen Capture", CATEGORY_INTERFACE, "Takes a screenshot and saves it to the \"Screenshots\" sub-directory in your game directory.", "ScreenCapture"),
-            new GameCommand("Delete Waypoint", CATEGORY_INTERFACE, "Deletes a waypoint.", "DeleteWaypoint"),
-            new GameCommand("Toggle Info Panel", CATEGORY_INTERFACE, "Toggles the state of the sidebar info panel.", "ToggleInfoPanel"),
-            new GameCommand("Place Building", CATEGORY_INTERFACE, "Places a finished building.", "PlaceBuilding"),
-            new GameCommand("Repeat Last Building", CATEGORY_INTERFACE, "Repeats the last finished building.", "RepeatBuilding"),
+
+            new GameCommand("Alliance", CATEGORY_CONTROL, "Form an alliance with the owner of a selected object.", "ToggleAlliance"),
+            new GameCommand("Deploy Object", CATEGORY_CONTROL, "Deploy selected units.", "DeployObject"),
+            new GameCommand("Guard", CATEGORY_CONTROL, "Make your selected units guard the nearby area and automatically attack enemies.", "GuardObject"),
+            new GameCommand("Scatter", CATEGORY_CONTROL, "Make your selected units scatter.", "ScatterObject"),
+            new GameCommand("Stop Object", CATEGORY_CONTROL, "Stop your selected units.", "StopObject"),
+
             // new Hotkey("Toggle Help", ...)
-            new GameCommand("Next Unit", CATEGORY_SELECTION, "Select the next unit.", "NextObject"),
-            new GameCommand("Previous Unit", CATEGORY_SELECTION, "Select the previous unit.", "PreviousObject"),
-            new GameCommand("Select Same Type", CATEGORY_SELECTION, "Select all units on the screen that are the type of your currently selected units.", "SelectType"),
-            new GameCommand("Select View", CATEGORY_SELECTION, "Select all units on the screen.", "SelectView"),
+
             new GameCommand("Add Select Team 1", CATEGORY_TEAM, "Select team 1 without unselecting already selected objects", "TeamAddSelect_1"),
             new GameCommand("Add Select Team 2", CATEGORY_TEAM, "Select team 2 without unselecting already selected objects", "TeamAddSelect_2"),
             new GameCommand("Add Select Team 3", CATEGORY_TEAM, "Select team 3 without unselecting already selected objects", "TeamAddSelect_3"),
@@ -166,11 +209,27 @@ namespace DTAConfig
             ddCategory.Name = "ddCategory";
             ddCategory.ClientRectangle = new Rectangle(lblCategory.Right + 12, 
                 lblCategory.ClientRectangle.Y - 1, 250, ddCategory.Height);
+
+#if DTA || TI || TS
+            ddCategory.AddItem(CATEGORY_MULTIPLAYER);
+            ddCategory.AddItem(CATEGORY_CONTROL);
+            ddCategory.AddItem(CATEGORY_INTERFACE);
+            ddCategory.AddItem(CATEGORY_SIDEBAR);
+            ddCategory.AddItem(CATEGORY_SELECTION);
+            ddCategory.AddItem(CATEGORY_TEAM);
+#elif YR
             ddCategory.AddItem(CATEGORY_MULTIPLAYER);
             ddCategory.AddItem(CATEGORY_CONTROL);
             ddCategory.AddItem(CATEGORY_INTERFACE);
             ddCategory.AddItem(CATEGORY_SELECTION);
             ddCategory.AddItem(CATEGORY_TEAM);
+            ddCategory.AddItem(CATEGORY_TAUNTS);
+#endif
+
+#if MO
+            ddCategory.AddItem(CATEGORY_DEVELOPMENT);
+#endif
+
 
             lbHotkeys = new XNAMultiColumnListBox(WindowManager);
             lbHotkeys.Name = "lbHotkeys";
