@@ -58,6 +58,7 @@ namespace DTAConfig
             new GameCommand("Repeat Last Building", CATEGORY_INTERFACE, "Repeats the last finished building.", "RepeatBuilding"),
             new GameCommand("Power Mode", CATEGORY_INTERFACE, "Enable power mode (allows powering structures on and off).", "TogglePower"),
             new GameCommand("Repair Mode", CATEGORY_INTERFACE, "Enable repair mode.", "ToggleRepair"),
+            new GameCommand("Sell Mode", CATEGORY_INTERFACE, "Enable sell mode.", "ToggleSell"),
             new GameCommand("Waypoint Mode", CATEGORY_INTERFACE, "Enable waypoint mode.", "WaypointMode"),
             new GameCommand("Delete Waypoint", CATEGORY_INTERFACE, "Deletes a waypoint.", "DeleteWaypoint"),
 
@@ -99,6 +100,8 @@ namespace DTAConfig
             new GameCommand("Infantry Tab", CATEGORY_INTERFACE, "Jump to sidebar infantry tab.", "InfantryTab"),
             new GameCommand("Units Tab", CATEGORY_INTERFACE, "Jump to sidebar units tab.", "UnitTab"),
             new GameCommand("Screen Capture", CATEGORY_INTERFACE, "Takes a screenshot and saves it in your game directory.", "ScreenCapture"),
+            new GameCommand("Repair Mode", CATEGORY_INTERFACE, "Enable repair mode.", "ToggleRepair"),
+            new GameCommand("Sell Mode", CATEGORY_INTERFACE, "Enable sell mode.", "ToggleSell"),
             new GameCommand("Waypoint Mode", CATEGORY_INTERFACE, "Enable waypoint mode.", "PlanningMode"),
 #endif
 
@@ -199,6 +202,7 @@ namespace DTAConfig
         {
             Name = "HotkeyConfigurationWindow";
             ClientRectangle = new Rectangle(0, 0, 600, 450);
+            BackgroundTexture = AssetLoader.LoadTextureUncached("hotkeyconfigbg.png");
 
             var lblCategory = new XNALabel(WindowManager);
             lblCategory.Name = "lblCategory";
@@ -218,7 +222,6 @@ namespace DTAConfig
             ddCategory.AddItem(CATEGORY_SELECTION);
             ddCategory.AddItem(CATEGORY_TEAM);
 #elif YR
-            ddCategory.AddItem(CATEGORY_MULTIPLAYER);
             ddCategory.AddItem(CATEGORY_CONTROL);
             ddCategory.AddItem(CATEGORY_INTERFACE);
             ddCategory.AddItem(CATEGORY_SELECTION);
