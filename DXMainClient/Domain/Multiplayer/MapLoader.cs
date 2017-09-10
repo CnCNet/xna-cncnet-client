@@ -20,6 +20,14 @@ namespace DTAClient.Domain.Multiplayer
         public event EventHandler MapLoadingComplete;
 
         /// <summary>
+        /// A list of game mode aliases.
+        /// Every game mode entry that exists in this dictionary will get 
+        /// replaced by the game mode entries of the value string array
+        /// when a map's game modes are parsed.
+        /// </summary>
+        public Dictionary<string, string[]> GameModeAliases = new Dictionary<string, string[]>();
+
+        /// <summary>
         /// Loads multiplayer map info asynchonously.
         /// </summary>
         public void LoadMapsAsync()
@@ -34,6 +42,17 @@ namespace DTAClient.Domain.Multiplayer
 
             IniFile mpMapsIni = new IniFile(ProgramConstants.GamePath + ClientConfiguration.Instance.MPMapsIniPath);
 
+            var gmAlises = mpMapsIni.GetSectionKeys("GameModeAliases");
+
+            if (gmAlises != null)
+            {
+                foreach (string key in gmAlises)
+                {
+                    GameModeAliases.Add(key, mpMapsIni.GetStringValue("GameModeAliases", key, string.Empty).Split(
+                        new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries));
+                }
+            }
+
             List<string> keys = mpMapsIni.GetSectionKeys("MultiMaps");
 
             if (keys == null)
@@ -46,7 +65,7 @@ namespace DTAClient.Domain.Multiplayer
 
             foreach (string key in keys)
             {
-                string mapFilePath = mpMapsIni.GetStringValue("MultiMaps", key, String.Empty);
+                string mapFilePath = mpMapsIni.GetStringValue("MultiMaps", key, string.Empty);
 
                 if (!File.Exists(ProgramConstants.GamePath + mapFilePath + MAP_FILE_EXTENSION))
                 {
@@ -56,7 +75,7 @@ namespace DTAClient.Domain.Multiplayer
 
                 Map map = new Map(mapFilePath, true);
 
-                if (!map.SetInfoFromINI(mpMapsIni))
+                if (!map.SetInfoFromINI(mpMapsIni, GameModeAliases))
                     continue;
 
                 maps.Add(map);
@@ -70,9 +89,7 @@ namespace DTAClient.Domain.Multiplayer
 
                     if (gm == null)
                     {
-                        gm = new GameMode();
-                        gm.Name = gameMode.Replace(";", string.Empty);
-                        gm.Initialize();
+                        gm = new GameMode(gameMode.Replace(";", string.Empty));
                         GameModes.Add(gm);
                     }
 
@@ -112,9 +129,7 @@ namespace DTAClient.Domain.Multiplayer
                         if (gameMode != "Standard" && gameMode != "Custom Map")
                             continue;
 
-                        gm = new GameMode();
-                        gm.Name = gameMode;
-                        gm.Initialize();
+                        gm = new GameMode(gameMode);
                         GameModes.Add(gm);
                     }
 
@@ -123,6 +138,11 @@ namespace DTAClient.Domain.Multiplayer
             }
 
             MapLoadingComplete?.Invoke(this, EventArgs.Empty);
+        }
+
+        public void WriteCustomMapCache()
+        {
+
         }
     }
 }

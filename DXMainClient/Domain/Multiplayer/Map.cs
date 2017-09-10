@@ -150,33 +150,53 @@ namespace DTAClient.Domain.Multiplayer
 
         List<KeyValuePair<string, string>> ForcedSpawnIniOptions = new List<KeyValuePair<string, string>>();
 
-        public bool SetInfoFromINI(IniFile iniFile)
+        public bool SetInfoFromINI(IniFile iniFile, Dictionary<string, string[]> gameModeAliases)
         {
             try
             {
-                string baseSectionName = iniFile.GetStringValue(BaseFilePath, "BaseSection", String.Empty);
+                string baseSectionName = iniFile.GetStringValue(BaseFilePath, "BaseSection", string.Empty);
 
-                if (!String.IsNullOrEmpty(baseSectionName))
+                if (!string.IsNullOrEmpty(baseSectionName))
                     iniFile.CombineSections(baseSectionName, BaseFilePath);
 
-                Name = iniFile.GetStringValue(BaseFilePath, "Description", "Unnamed map");
-                Author = iniFile.GetStringValue(BaseFilePath, "Author", "Unknown author");
-                GameModes = iniFile.GetStringValue(BaseFilePath, "GameModes", "Default").Split(',');
-                MinPlayers = iniFile.GetIntValue(BaseFilePath, "MinPlayers", 0);
-                MaxPlayers = iniFile.GetIntValue(BaseFilePath, "MaxPlayers", 0);
-                EnforceMaxPlayers = iniFile.GetBooleanValue(BaseFilePath, "EnforceMaxPlayers", false);
+                var section = iniFile.GetSection(BaseFilePath);
+
+                Name = section.GetStringValue("Description", "Unnamed map");
+                Author = section.GetStringValue("Author", "Unknown author");
+                List<string> gameModeList = new List<string>();
+                var gameModes = section.GetStringValue("GameModes", "Default").Split(',');
+
+                foreach (var gameMode in gameModes)
+                {
+                    string[] aliases;
+
+                    if (!gameModeAliases.TryGetValue(gameMode, out aliases))
+                    {
+                        gameModeList.Add(gameMode);
+                        continue;
+                    }
+
+                    foreach (var alias in aliases)
+                        gameModeList.Add(alias);
+                }
+
+                GameModes = gameModeList.ToArray();
+
+                MinPlayers = section.GetIntValue("MinPlayers", 0);
+                MaxPlayers = section.GetIntValue("MaxPlayers", 0);
+                EnforceMaxPlayers = section.GetBooleanValue("EnforceMaxPlayers", false);
                 PreviewPath = Path.GetDirectoryName(BaseFilePath) + "\\" +
-                    iniFile.GetStringValue(BaseFilePath, "PreviewImage", Path.GetFileNameWithoutExtension(BaseFilePath) + ".png");
-                Briefing = iniFile.GetStringValue(BaseFilePath, "Briefing", string.Empty).Replace("@", Environment.NewLine);
+                    section.GetStringValue("PreviewImage", Path.GetFileNameWithoutExtension(BaseFilePath) + ".png");
+                Briefing = section.GetStringValue("Briefing", string.Empty).Replace("@", Environment.NewLine);
                 SHA1 = Utilities.CalculateSHA1ForFile(ProgramConstants.GamePath + BaseFilePath + ".map");
-                IsCoop = iniFile.GetBooleanValue(BaseFilePath, "IsCoopMission", false);
-                Credits = iniFile.GetIntValue(BaseFilePath, "Credits", -1);
-                UnitCount = iniFile.GetIntValue(BaseFilePath, "UnitCount", -1);
-                NeutralHouseColor = iniFile.GetIntValue(BaseFilePath, "NeutralColor", -1);
-                SpecialHouseColor = iniFile.GetIntValue(BaseFilePath, "SpecialColor", -1);
-                MultiplayerOnly = iniFile.GetBooleanValue(BaseFilePath, "MultiplayerOnly", false);
-                ExtraININame = iniFile.GetStringValue(BaseFilePath, "ExtraININame", string.Empty);
-                string bases = iniFile.GetStringValue(BaseFilePath, "Bases", string.Empty);
+                IsCoop = section.GetBooleanValue("IsCoopMission", false);
+                Credits = section.GetIntValue("Credits", -1);
+                UnitCount = section.GetIntValue("UnitCount", -1);
+                NeutralHouseColor = section.GetIntValue("NeutralColor", -1);
+                SpecialHouseColor = section.GetIntValue("SpecialColor", -1);
+                MultiplayerOnly = section.GetBooleanValue("MultiplayerOnly", false);
+                ExtraININame = section.GetStringValue("ExtraININame", string.Empty);
+                string bases = section.GetStringValue("Bases", string.Empty);
                 if (!string.IsNullOrEmpty(bases))
                 {
                     Bases = Convert.ToInt32(Conversions.BooleanFromString(bases, false));
@@ -185,30 +205,30 @@ namespace DTAClient.Domain.Multiplayer
                 if (IsCoop)
                 {
                     CoopInfo = new CoopMapInfo();
-                    string[] disallowedSides = iniFile.GetStringValue(BaseFilePath, "DisallowedPlayerSides", string.Empty).Split(
+                    string[] disallowedSides = section.GetStringValue("DisallowedPlayerSides", string.Empty).Split(
                         new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
 
                     foreach (string sideIndex in disallowedSides)
                         CoopInfo.DisallowedPlayerSides.Add(int.Parse(sideIndex));
 
-                    string[] disallowedColors = iniFile.GetStringValue(BaseFilePath, "DisallowedPlayerColors", string.Empty).Split(
+                    string[] disallowedColors = section.GetStringValue("DisallowedPlayerColors", string.Empty).Split(
                         new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
 
                     foreach (string colorIndex in disallowedColors)
                         CoopInfo.DisallowedPlayerColors.Add(int.Parse(colorIndex));
 
-                    CoopInfo.SetHouseInfos(iniFile, BaseFilePath);
+                    CoopInfo.SetHouseInfos(section);
                 }
 
-                localSize = iniFile.GetStringValue(BaseFilePath, "LocalSize", "0,0,0,0").Split(',');
-                actualSize = iniFile.GetStringValue(BaseFilePath, "Size", "0,0,0,0").Split(',');
+                localSize = section.GetStringValue("LocalSize", "0,0,0,0").Split(',');
+                actualSize = section.GetStringValue("Size", "0,0,0,0").Split(',');
 
-                string[] previewSize = iniFile.GetStringValue(BaseFilePath, "PreviewSize", "10,10").Split(',');
+                string[] previewSize = section.GetStringValue("PreviewSize", "10,10").Split(',');
                 Point previewSizePoint = new Point(int.Parse(previewSize[0]), int.Parse(previewSize[1]));
 
                 for (int i = 0; i < MAX_PLAYERS; i++)
                 {
-                    string waypoint = iniFile.GetStringValue(BaseFilePath, "Waypoint" + i, string.Empty);
+                    string waypoint = section.GetStringValue("Waypoint" + i, string.Empty);
 
                     if (String.IsNullOrEmpty(waypoint))
                         break;
@@ -221,22 +241,22 @@ namespace DTAClient.Domain.Multiplayer
 
                 // Parse forced options
 
-                string forcedOptionsSection = iniFile.GetStringValue(BaseFilePath, "ForcedOptions", string.Empty);
+                string forcedOptionsSections = iniFile.GetStringValue(BaseFilePath, "ForcedOptions", string.Empty);
 
-                if (!string.IsNullOrEmpty(forcedOptionsSection))
+                if (!string.IsNullOrEmpty(forcedOptionsSections))
                 {
-                    string[] sections = forcedOptionsSection.Split(',');
-                    foreach (string section in sections)
-                        ParseForcedOptions(iniFile, section);
+                    string[] sections = forcedOptionsSections.Split(',');
+                    foreach (string foSection in sections)
+                        ParseForcedOptions(iniFile, foSection);
                 }
 
-                string forcedSpawnIniOptionsSection = iniFile.GetStringValue(BaseFilePath, "ForcedSpawnIniOptions", string.Empty);
+                string forcedSpawnIniOptionsSections = iniFile.GetStringValue(BaseFilePath, "ForcedSpawnIniOptions", string.Empty);
 
-                if (!string.IsNullOrEmpty(forcedSpawnIniOptionsSection))
+                if (!string.IsNullOrEmpty(forcedSpawnIniOptionsSections))
                 {
-                    string[] sections = forcedSpawnIniOptionsSection.Split(',');
-                    foreach (string section in sections)
-                        ParseSpawnIniOptions(iniFile, section);
+                    string[] sections = forcedSpawnIniOptionsSections.Split(',');
+                    foreach (string fsioSection in sections)
+                        ParseSpawnIniOptions(iniFile, fsioSection);
                 }
 
                 return true;
@@ -246,6 +266,12 @@ namespace DTAClient.Domain.Multiplayer
                 Logger.Log("Setting info for " + BaseFilePath + " failed! Reason: " + ex.Message);
                 return false;
             }
+        }
+
+        public void WriteInfoToIniSection(IniSection iniSection)
+        {
+            // TODO necessary for custom map caching
+            throw new NotImplementedException();
         }
 
         /// <summary>
@@ -264,15 +290,19 @@ namespace DTAClient.Domain.Multiplayer
                 iniFile.AddSection("Waypoints");
                 iniFile.AddSection("Preview");
                 iniFile.AddSection("PreviewPack");
+                iniFile.AddSection("ForcedOptions");
+                iniFile.AddSection("ForcedSpawnIniOptions");
                 iniFile.AllowNewSections = false;
 
                 iniFile.Parse();
 
                 mapIni = iniFile;
 
-                Name = iniFile.GetStringValue("Basic", "Name", "Unnamed map");
-                Author = iniFile.GetStringValue("Basic", "Author", "Unknown author");
-                GameModes = iniFile.GetStringValue("Basic", "GameMode", "Default").Split(',');
+                var basicSection = iniFile.GetSection("Basic");
+
+                Name = basicSection.GetStringValue("Name", "Unnamed map");
+                Author = basicSection.GetStringValue("Author", "Unknown author");
+                GameModes = basicSection.GetStringValue("GameMode", "Default").Split(',');
                 for (int i = 0; i < GameModes.Length; i++)
                 {
                     string gameMode = GameModes[i].Trim();
@@ -280,21 +310,23 @@ namespace DTAClient.Domain.Multiplayer
                     GameModes[i] = gameMode;
                 }
 
+                // TODO handle game mode aliases
+
                 MinPlayers = 0;
-                MaxPlayers = iniFile.GetIntValue("Basic", "MaxPlayer", 0);
-                EnforceMaxPlayers = iniFile.GetBooleanValue("Basic", "EnforceMaxPlayers", true);
+                MaxPlayers = basicSection.GetIntValue("MaxPlayer", 0);
+                EnforceMaxPlayers = basicSection.GetBooleanValue("EnforceMaxPlayers", true);
                 //PreviewPath = Path.GetDirectoryName(BaseFilePath) + "\\" +
                 //    iniFile.GetStringValue(BaseFilePath, "PreviewImage", Path.GetFileNameWithoutExtension(BaseFilePath) + ".png");
-                Briefing = iniFile.GetStringValue("Basic", "Briefing", string.Empty).Replace("@", Environment.NewLine);
+                Briefing = basicSection.GetStringValue("Briefing", string.Empty).Replace("@", Environment.NewLine);
                 SHA1 = Utilities.CalculateSHA1ForFile(path);
-                IsCoop = iniFile.GetBooleanValue("Basic", "IsCoopMission", false);
-                Credits = iniFile.GetIntValue("Basic", "Credits", -1);
-                UnitCount = iniFile.GetIntValue("Basic", "UnitCount", -1);
-                NeutralHouseColor = iniFile.GetIntValue("Basic", "NeutralColor", -1);
-                SpecialHouseColor = iniFile.GetIntValue("Basic", "SpecialColor", -1);
+                IsCoop = basicSection.GetBooleanValue("IsCoopMission", false);
+                Credits = basicSection.GetIntValue("Credits", -1);
+                UnitCount = basicSection.GetIntValue("UnitCount", -1);
+                NeutralHouseColor = basicSection.GetIntValue("NeutralColor", -1);
+                SpecialHouseColor = basicSection.GetIntValue("SpecialColor", -1);
                 PreviewPath = Path.ChangeExtension(path.Substring(ProgramConstants.GamePath.Length + 1), ".png");
 
-                string bases = iniFile.GetStringValue("Basic", "Bases", string.Empty);
+                string bases = basicSection.GetStringValue("Bases", string.Empty);
                 if (!string.IsNullOrEmpty(bases))
                 {
                     Bases = Convert.ToInt32(Conversions.BooleanFromString(bases, false));
@@ -307,15 +339,15 @@ namespace DTAClient.Domain.Multiplayer
                         new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
 
                     foreach (string sideIndex in disallowedSides)
-                        CoopInfo.DisallowedPlayerSides.Add(Int32.Parse(sideIndex));
+                        CoopInfo.DisallowedPlayerSides.Add(int.Parse(sideIndex));
 
                     string[] disallowedColors = iniFile.GetStringValue("Basic", "DisallowedPlayerColors", string.Empty).Split(
                         new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
 
                     foreach (string colorIndex in disallowedColors)
-                        CoopInfo.DisallowedPlayerColors.Add(Int32.Parse(colorIndex));
+                        CoopInfo.DisallowedPlayerColors.Add(int.Parse(colorIndex));
 
-                    CoopInfo.SetHouseInfos(iniFile, "Basic");
+                    CoopInfo.SetHouseInfos(basicSection);
                 }
 
                 localSize = iniFile.GetStringValue("Map", "LocalSize", "0,0,0,0").Split(',');
@@ -323,23 +355,8 @@ namespace DTAClient.Domain.Multiplayer
 
                 RefreshStartingLocationPositions();
 
-                //string forcedOptionsSection = iniFile.GetStringValue("Basic", "ForcedOptions", String.Empty);
-
-                //if (!string.IsNullOrEmpty(forcedOptionsSection))
-                //{
-                //    string[] sections = forcedOptionsSection.Split(',');
-                //    foreach (string section in sections)
-                //        ParseForcedOptions(iniFile, section);
-                //}
-
-                //string forcedSpawnIniOptionsSection = iniFile.GetStringValue("Basic", "ForcedSpawnIniOptions", String.Empty);
-
-                //if (!string.IsNullOrEmpty(forcedSpawnIniOptionsSection))
-                //{
-                //    string[] sections = forcedSpawnIniOptionsSection.Split(',');
-                //    foreach (string section in sections)
-                //        ParseSpawnIniOptions(iniFile, section);
-                //}
+                ParseForcedOptions(iniFile, "ForcedOptions");
+                ParseSpawnIniOptions(iniFile, "ForcedSpawnIniOptions");
 
                 return true;
             }

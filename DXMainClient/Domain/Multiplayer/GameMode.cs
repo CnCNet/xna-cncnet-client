@@ -10,8 +10,14 @@ namespace DTAClient.Domain.Multiplayer
     /// </summary>
     public class GameMode
     {
-        const string BASE_INI_PATH = "INI\\Map Code\\";
-        const string SPAWN_INI_OPTIONS_SECTION = "ForcedSpawnIniOptions";
+        public GameMode(string name)
+        {
+            Name = name;
+            Initialize();
+        }
+
+        private const string BASE_INI_PATH = "INI\\Map Code\\";
+        private const string SPAWN_INI_OPTIONS_SECTION = "ForcedSpawnIniOptions";
 
         /// <summary>
         /// The internal (INI) name of the game mode.
@@ -65,10 +71,10 @@ namespace DTAClient.Domain.Multiplayer
 
             foreach (string key in keys)
             {
-                string value = forcedOptionsIni.GetStringValue(forcedOptionsSection, key, String.Empty);
+                string value = forcedOptionsIni.GetStringValue(forcedOptionsSection, key, string.Empty);
 
                 int intValue = 0;
-                if (Int32.TryParse(value, out intValue))
+                if (int.TryParse(value, out intValue))
                 {
                     ForcedDropDownValues.Add(new KeyValuePair<string, int>(key, intValue));
                 }
@@ -91,7 +97,7 @@ namespace DTAClient.Domain.Multiplayer
             foreach (string key in spawnIniKeys)
             {
                 ForcedSpawnIniOptions.Add(new KeyValuePair<string, string>(key, 
-                    forcedOptionsIni.GetStringValue(section, key, String.Empty)));
+                    forcedOptionsIni.GetStringValue(section, key, string.Empty)));
             }
         }
 

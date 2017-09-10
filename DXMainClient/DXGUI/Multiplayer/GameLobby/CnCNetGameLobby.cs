@@ -1279,9 +1279,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                         if (gameMode != "Standard" && gameMode != "Custom Map")
                             continue;
 
-                        gm = new GameMode();
-                        gm.Name = gameMode;
-                        gm.Initialize();
+                        gm = new GameMode(gameMode);
                         GameModes.Add(gm);
                     }
 

@@ -11,19 +11,19 @@ namespace DTAClient.Domain.Multiplayer
         public List<int> DisallowedPlayerSides = new List<int>();
         public List<int> DisallowedPlayerColors = new List<int>();
 
-        public void SetHouseInfos(IniFile iniFile, string section)
+        public void SetHouseInfos(IniSection iniSection)
         {
-            EnemyHouses = GetGenericHouseInfo(iniFile, section, "EnemyHouse");
-            AllyHouses = GetGenericHouseInfo(iniFile, section, "AllyHouse");
+            EnemyHouses = GetGenericHouseInfo(iniSection, "EnemyHouse");
+            AllyHouses = GetGenericHouseInfo(iniSection, "AllyHouse");
         }
 
-        private List<CoopHouseInfo> GetGenericHouseInfo(IniFile iniFile, string section, string keyName)
+        private List<CoopHouseInfo> GetGenericHouseInfo(IniSection iniSection, string keyName)
         {
             var houseList = new List<CoopHouseInfo>();
 
             for (int i = 0; ; i++)
             {
-                string[] houseInfo = iniFile.GetStringValue(section, keyName + i, string.Empty).Split(
+                string[] houseInfo = iniSection.GetStringValue(keyName + i, string.Empty).Split(
                     new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
 
                 if (houseInfo.Length == 0)
