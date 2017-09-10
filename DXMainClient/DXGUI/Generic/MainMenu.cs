@@ -724,9 +724,16 @@ namespace DTAClient.DXGUI.Generic
 
         private void MusicOff()
         {
-            if (MainClientConstants.OSId != OSVersion.WINVISTA &&
-                MediaPlayer.State == MediaState.Playing)
-                isMusicFading = true;
+            try
+            {
+                if (MainClientConstants.OSId != OSVersion.WINVISTA &&
+                    MediaPlayer.State == MediaState.Playing)
+                    isMusicFading = true;
+            }
+            catch (Exception ex)
+            {
+                Logger.Log("Turning music off failed! Message: " + ex.Message);
+            }
         }
 
         public string GetSwitchName()
