@@ -135,7 +135,6 @@ namespace DTAClient.DXGUI.Multiplayer
             panelGameInformation = new GameInformationPanel(WindowManager);
             panelGameInformation.Name = "panelGameInformation";
             panelGameInformation.BackgroundTexture = AssetLoader.LoadTexture("cncnetlobbypanelbg.png");
-            panelGameInformation.ClientRectangle = new Rectangle(0, 0, 235, 240);
 
             panelGameInformation.Parent = this;
             panelGameInformation.Initialize();

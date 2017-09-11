@@ -11,7 +11,16 @@ namespace DTAClient.Domain.LAN
     {
         public IPEndPoint EndPoint { get; set; }
         public string LoadedGameID { get; set; }
+
         public TimeSpan TimeWithoutRefresh { get; set; }
+
+        public override int Ping
+        {
+            get
+            {
+                return -1;
+            }
+        }
 
         public bool SetDataFromStringArray(GameCollection gc, string[] parameters)
         {

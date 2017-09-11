@@ -29,6 +29,11 @@ namespace DTAClient.Domain.Multiplayer
             set { _maxPlayers = value; }
         }
 
+        public abstract int Ping
+        {
+            get;
+        }
+
         public DateTime LastRefreshTime { get; set; }
     }
 }

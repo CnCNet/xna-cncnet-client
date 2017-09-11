@@ -21,11 +21,13 @@ namespace DTAClient.DXGUI.Multiplayer
         XNALabel lblMap;
         XNALabel lblGameVersion;
         XNALabel lblHost;
+        XNALabel lblPing;
         XNALabel lblPlayers;
         XNALabel[] lblPlayerNames;
 
         public override void Initialize()
         {
+            ClientRectangle = new Rectangle(0, 0, 235, 264);
             BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 255), 1, 1);
             DrawMode = PanelBackgroundImageDrawMode.STRETCHED;
 
@@ -45,8 +47,11 @@ namespace DTAClient.DXGUI.Multiplayer
             lblHost = new XNALabel(WindowManager);
             lblHost.ClientRectangle = new Rectangle(6, 102, 0, 0);
 
+            lblPing = new XNALabel(WindowManager);
+            lblPing.ClientRectangle = new Rectangle(6, 126, 0, 0);
+
             lblPlayers = new XNALabel(WindowManager);
-            lblPlayers.ClientRectangle = new Rectangle(6, 126, 0, 0);
+            lblPlayers.ClientRectangle = new Rectangle(6, 150, 0, 0);
 
             lblPlayerNames = new XNALabel[MAX_PLAYERS];
             for (int i = 0; i < lblPlayerNames.Length / 2; i++)
@@ -70,6 +75,7 @@ namespace DTAClient.DXGUI.Multiplayer
             AddChild(lblMap);
             AddChild(lblGameVersion);
             AddChild(lblHost);
+            AddChild(lblPing);
             AddChild(lblPlayers);
             AddChild(lblGameInformation);
 
@@ -92,6 +98,8 @@ namespace DTAClient.DXGUI.Multiplayer
             lblGameVersion.Visible = true;
             lblHost.Text = "Host: " + Renderer.GetSafeString(game.HostName, lblHost.FontIndex);
             lblHost.Visible = true;
+            lblPing.Text = game.Ping > 0 ? "Ping: " + game.Ping.ToString() + " ms" : "Ping: Unknown";
+            lblPing.Visible = true;
             lblPlayers.Visible = true;
             lblPlayers.Text = "Players (" + game.Players.Length + " / " + game.MaxPlayers + "):";
 
@@ -113,6 +121,7 @@ namespace DTAClient.DXGUI.Multiplayer
             lblMap.Visible = false;
             lblGameVersion.Visible = false;
             lblHost.Visible = false;
+            lblPing.Visible = false;
             lblPlayers.Visible = false;
 
             foreach (XNALabel label in lblPlayerNames)

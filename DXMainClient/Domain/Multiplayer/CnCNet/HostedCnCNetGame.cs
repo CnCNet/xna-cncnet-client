@@ -1,4 +1,6 @@
-﻿namespace DTAClient.Domain.Multiplayer.CnCNet
+﻿using System;
+
+namespace DTAClient.Domain.Multiplayer.CnCNet
 {
     public class HostedCnCNetGame : GenericHostedGame
     {
@@ -28,5 +30,13 @@
         public bool IsLadder { get; set; }
         public string MatchID { get; set; }
         public CnCNetTunnel TunnelServer { get; set; }
+
+        public override int Ping
+        {
+            get
+            {
+                return TunnelServer.PingInMs;
+            }
+        }
     }
 }
