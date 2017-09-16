@@ -340,11 +340,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         protected virtual void OnGameOptionChanged()
         {
-            // Do nothing by default
-
-#if YR
-            CheckRa2Mode();
-#endif
+            CheckDisallowedSides();
         }
 
         protected void DdGameMode_SelectedIndexChanged(object sender, EventArgs e)
@@ -592,9 +588,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             PlayerOptionsPanel.AddChild(lblStart);
             PlayerOptionsPanel.AddChild(lblTeam);
 
-#if YR
-            CheckRa2Mode();
-#endif
+            CheckDisallowedSides();
         }
 
         protected abstract void BtnLaunchGame_LeftClick(object sender, EventArgs e);
@@ -614,6 +608,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 #if YR
         protected void CheckRa2Mode()
         {
+            // TODO obsolete, remove when it's certain that this is not needed anywhere
+
             foreach (GameLobbyCheckBox checkBox in CheckBoxes)
             {
                 if (checkBox.Name == "chkRA2Mode" && checkBox.Checked)
@@ -625,30 +621,59 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     RA2Mode = false;
                 }
             }
+        }
+#endif
 
-            if (RA2Mode)
-            {
-                foreach (XNADropDown dd in ddPlayerSides)
-                {
-                    dd.Items[10].Selectable = false;
-                }
+        /// <summary>
+        /// Applies disallowed side indexes to the side option drop-downs
+        /// and player options.
+        /// </summary>
+        protected void CheckDisallowedSides()
+        {
+            var disallowedSideArray = GetDisallowedSides();
 
-                var concatPlayerList = Players.Concat(AIPlayers);
-                foreach (PlayerInfo pInfo in concatPlayerList)
-                {
-                    if (pInfo.SideId == 10)
-                        pInfo.SideId = 0;
-                }
-            }
-            else
+            for (int i = 0; i < disallowedSideArray.Length; i++)
             {
-                foreach (XNADropDown dd in ddPlayerSides)
+                bool disabled = disallowedSideArray[i];
+
+                if (disabled)
                 {
-                    dd.Items[10].Selectable = true;
+                    foreach (XNADropDown dd in ddPlayerSides)
+                    {
+                        dd.Items[i + 1].Selectable = false;
+                    }
+
+                    var concatPlayerList = Players.Concat(AIPlayers);
+                    foreach (PlayerInfo pInfo in concatPlayerList)
+                    {
+                        if (pInfo.SideId == i + 1)
+                            pInfo.SideId = 0;
+                    }
+                }
+                else
+                {
+                    foreach (XNADropDown dd in ddPlayerSides)
+                    {
+                        dd.Items[i + 1].Selectable = true;
+                    }
                 }
             }
         }
-#endif
+
+        /// <summary>
+        /// Gets a list of side indexes that are disallowed because of the current
+        /// game options.
+        /// </summary>
+        /// <returns>A list of disallowed side indexes.</returns>
+        protected bool[] GetDisallowedSides()
+        {
+            var returnValue = new bool[SideCount];
+
+            foreach (var checkBox in CheckBoxes)
+                checkBox.ApplyDisallowedSideIndex(returnValue);
+
+            return returnValue;
+        }
 
         /// <summary>
         /// Randomizes options of both human and AI players
@@ -731,13 +756,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 else
                     pInfo = AIPlayers[i - Players.Count];
 
-                List<int> disallowedSides = new List<int>();
-
-#if YR
-                if (RA2Mode)
-                    disallowedSides.Add(10);
-#endif
-                pHouseInfo.RandomizeSide(pInfo, Map, _sideCount, random, disallowedSides);
+                pHouseInfo.RandomizeSide(pInfo, Map, _sideCount, random, GetDisallowedSides());
 
                 pHouseInfo.RandomizeColor(pInfo, freeColors, MPColors, random);
                 if (pHouseInfo.RandomizeStart(pInfo, Map, freeStartingLocations, random,
