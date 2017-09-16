@@ -24,7 +24,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         protected const int PLAYER_OPTION_VERTICAL_MARGIN = 12;
         protected const int PLAYER_OPTION_HORIZONTAL_MARGIN = 3;
         protected const int PLAYER_OPTION_CAPTION_Y = 6;
-        const int DROP_DOWN_HEIGHT = 21;
+        private const int DROP_DOWN_HEIGHT = 21;
 
         /// <summary>
         /// Creates a new instance of the game lobby base.
@@ -111,6 +111,13 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         private int _sideCount;
         protected int SideCount { get { return _sideCount; } }
 
+#if YR
+        /// <summary>
+        /// Controls whether Red Alert 2 mode is enabled for CnCNet YR. 
+        /// </summary>
+        protected bool RA2Mode = false;
+#endif
+
         private bool isMultiplayer = false;
 
         private MatchStatistics matchStatistics;
@@ -147,14 +154,12 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             GameOptionsPanel = new XNAPanel(WindowManager);
             GameOptionsPanel.Name = "GameOptionsPanel";
-            GameOptionsPanel.BackgroundTexture = AssetLoader.LoadTexture("gamelobbyoptionspanelbg.png");
             GameOptionsPanel.ClientRectangle = new Rectangle(ClientRectangle.Width - 411, 12, 399, 289);
             GameOptionsPanel.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 192), 1, 1);
             GameOptionsPanel.DrawMode = PanelBackgroundImageDrawMode.STRETCHED;
 
             PlayerOptionsPanel = new XNAPanel(WindowManager);
             PlayerOptionsPanel.Name = "PlayerOptionsPanel";
-            PlayerOptionsPanel.BackgroundTexture = AssetLoader.LoadTexture("gamelobbypanelbg.png");
             PlayerOptionsPanel.ClientRectangle = new Rectangle(GameOptionsPanel.ClientRectangle.Left - 401, 12, 395, GameOptionsPanel.ClientRectangle.Height);
             PlayerOptionsPanel.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 192), 1, 1);
             PlayerOptionsPanel.DrawMode = PanelBackgroundImageDrawMode.STRETCHED;
@@ -336,6 +341,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         protected virtual void OnGameOptionChanged()
         {
             // Do nothing by default
+
+#if YR
+            CheckRa2Mode();
+#endif
         }
 
         protected void DdGameMode_SelectedIndexChanged(object sender, EventArgs e)
@@ -582,6 +591,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             PlayerOptionsPanel.AddChild(lblColor);
             PlayerOptionsPanel.AddChild(lblStart);
             PlayerOptionsPanel.AddChild(lblTeam);
+
+#if YR
+            CheckRa2Mode();
+#endif
         }
 
         protected abstract void BtnLaunchGame_LeftClick(object sender, EventArgs e);
@@ -597,6 +610,45 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 lbMapList.SelectedIndex = 0;
             }
         }
+
+#if YR
+        protected void CheckRa2Mode()
+        {
+            foreach (GameLobbyCheckBox checkBox in CheckBoxes)
+            {
+                if (checkBox.Name == "chkRA2Mode" && checkBox.Checked)
+                {
+                    RA2Mode = true;
+                }
+                else if (checkBox.Name == "chkRA2Mode" && !checkBox.Checked)
+                {
+                    RA2Mode = false;
+                }
+            }
+
+            if (RA2Mode)
+            {
+                foreach (XNADropDown dd in ddPlayerSides)
+                {
+                    dd.Items[10].Selectable = false;
+                }
+
+                var concatPlayerList = Players.Concat(AIPlayers);
+                foreach (PlayerInfo pInfo in concatPlayerList)
+                {
+                    if (pInfo.SideId == 10)
+                        pInfo.SideId = 0;
+                }
+            }
+            else
+            {
+                foreach (XNADropDown dd in ddPlayerSides)
+                {
+                    dd.Items[10].Selectable = true;
+                }
+            }
+        }
+#endif
 
         /// <summary>
         /// Randomizes options of both human and AI players
@@ -667,18 +719,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             int fakeStartingLocationCount = 0;
 
-            #if YR
-            bool RA2Mode = false;
-
-            foreach (GameLobbyCheckBox checkBox in CheckBoxes)
-            {
-                if (checkBox.Name == "chkRA2Mode" && checkBox.Checked)
-                {
-                    RA2Mode = true;
-                }
-            }
-            #endif
-
             for (int i = 0; i < totalPlayerCount; i++)
             {
                 PlayerInfo pInfo;
@@ -691,11 +731,13 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 else
                     pInfo = AIPlayers[i - Players.Count];
 
-                #if YR
-                    pHouseInfo.RandomizeSide(pInfo, Map, _sideCount, random, RA2Mode);
-                #else
-                    pHouseInfo.RandomizeSide(pInfo, Map, _sideCount, random);
-                #endif
+                List<int> disallowedSides = new List<int>();
+
+#if YR
+                if (RA2Mode)
+                    disallowedSides.Add(10);
+#endif
+                pHouseInfo.RandomizeSide(pInfo, Map, _sideCount, random, disallowedSides);
 
                 pHouseInfo.RandomizeColor(pInfo, freeColors, MPColors, random);
                 if (pHouseInfo.RandomizeStart(pInfo, Map, freeStartingLocations, random,
@@ -1029,14 +1071,16 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 if (dd.SelectedIndex < 1)
                     continue;
 
-                PlayerInfo aiPlayer = new PlayerInfo();
-                aiPlayer.Name = dd.Items[dd.SelectedIndex].Text;
-                aiPlayer.AILevel = 2 - (dd.SelectedIndex - 1);
-                aiPlayer.SideId = Math.Max(ddPlayerSides[cmbId].SelectedIndex, 0);
-                aiPlayer.ColorId = Math.Max(ddPlayerColors[cmbId].SelectedIndex, 0);
-                aiPlayer.StartingLocation = Math.Max(ddPlayerStarts[cmbId].SelectedIndex, 0);
-                aiPlayer.TeamId = Math.Max(ddPlayerTeams[cmbId].SelectedIndex, 0);
-                aiPlayer.IsAI = true;
+                PlayerInfo aiPlayer = new PlayerInfo
+                {
+                    Name = dd.Items[dd.SelectedIndex].Text,
+                    AILevel = 2 - (dd.SelectedIndex - 1),
+                    SideId = Math.Max(ddPlayerSides[cmbId].SelectedIndex, 0),
+                    ColorId = Math.Max(ddPlayerColors[cmbId].SelectedIndex, 0),
+                    StartingLocation = Math.Max(ddPlayerStarts[cmbId].SelectedIndex, 0),
+                    TeamId = Math.Max(ddPlayerTeams[cmbId].SelectedIndex, 0),
+                    IsAI = true
+                };
 
                 AIPlayers.Add(aiPlayer);
             }

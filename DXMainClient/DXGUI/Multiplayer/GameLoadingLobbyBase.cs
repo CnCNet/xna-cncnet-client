@@ -62,12 +62,11 @@ namespace DTAClient.DXGUI.Multiplayer
 
         private string loadedGameID;
 
-        bool isSettingUp = false;
-        FileSystemWatcher fsw;
-        bool switched = false;
+        private bool isSettingUp = false;
+        private FileSystemWatcher fsw;
 
-        int uniqueGameId = 0;
-        DateTime gameLoadTime;
+        private int uniqueGameId = 0;
+        private DateTime gameLoadTime;
 
         public override void Initialize()
         {
@@ -386,7 +385,6 @@ namespace DTAClient.DXGUI.Multiplayer
         {
             isSettingUp = true;
             IsHost = isHost;
-            switched = false;
 
             SGPlayers.Clear();
             Players.Clear();

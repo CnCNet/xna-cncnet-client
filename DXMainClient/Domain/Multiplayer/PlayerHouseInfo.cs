@@ -21,7 +21,8 @@ namespace DTAClient.Domain.Multiplayer
         /// <param name="map">The selected map.</param>
         /// <param name="sideCount">The number of sides in the game.</param>
         /// <param name="random">Random number generator.</param>
-        public void RandomizeSide(PlayerInfo pInfo, Map map, int sideCount, Random random, bool RA2Mode = false)
+        /// <param name="disallowedSides">A list of side indexes that are disallowed by game options.</param>
+        public void RandomizeSide(PlayerInfo pInfo, Map map, int sideCount, Random random, List<int> disallowedSides)
         {
             if (pInfo.SideId == 0 || pInfo.SideId == sideCount + 1)
             {
@@ -33,19 +34,12 @@ namespace DTAClient.Domain.Multiplayer
                 {
                     sideId = random.Next(0, sideCount);
 
+                    if (disallowedSides != null && disallowedSides.Contains(sideId))
+                        continue;
+
                     if (map.CoopInfo == null || !map.CoopInfo.DisallowedPlayerSides.Contains(sideId))
                         break;
                 }
-
-                #if YR
-                if (RA2Mode)
-                {
-                    if (pInfo.SideId == 10)
-                    {
-                        SideIndex = sideId = random.Next(0, 9);
-                    }
-                }
-                #endif
 
                 SideIndex = sideId;
             }

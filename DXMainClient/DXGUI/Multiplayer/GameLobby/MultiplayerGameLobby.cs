@@ -67,10 +67,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private bool gameSaved = false;
 
-        private bool switched = false;
-        #if YR
-        private bool RA2Mode = false;
-        #endif
         public override void Initialize()
         {
             Name = "MultiplayerGameLobby";
@@ -170,50 +166,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             // To move the lblMapAuthor label into its correct position
             // if it was moved in the theme description INI file
             LoadDefaultMap();
-
-            #if YR
-            CheckRa2Mode();
-            #endif
         }
-
-        #if YR
-        private void CheckRa2Mode()
-        {
-            foreach (GameLobbyCheckBox checkBox in CheckBoxes)
-            {
-                if (checkBox.Name == "chkRA2Mode" && checkBox.Checked)
-                {
-                    RA2Mode = true;
-                }
-                else if (checkBox.Name == "chkRA2Mode" && !checkBox.Checked)
-                {
-                    RA2Mode = false;
-                }
-            }
-
-            if (RA2Mode)
-            {
-                foreach (XNADropDown dd in ddPlayerSides)
-                {
-                    dd.Items[10].Selectable = false;
-                }
-
-                IEnumerable<PlayerInfo> concatPlayerList = Players.Concat(AIPlayers);
-                foreach (PlayerInfo pInfo in concatPlayerList)
-                {
-                    if (pInfo.SideId == 10)
-                        pInfo.SideId = 0;
-                }
-            }
-            else
-            {
-                foreach (XNADropDown dd in ddPlayerSides)
-                {
-                    dd.Items[10].Selectable = true;
-                }
-            }
-        }
-        #endif
 
         private void fsw_Created(object sender, FileSystemEventArgs e)
         {
@@ -384,7 +337,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         protected void Refresh(bool isHost)
         {
             IsHost = isHost;
-            switched = false;
             Locked = false;
 
             MapPreviewBox.EnableContextMenu = IsHost;
@@ -687,9 +639,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             ClearReadyStatuses();
             CopyPlayerDataToUI();
-            #if YR
-            CheckRa2Mode();
-            #endif
         }
 
         protected abstract void HostLaunchGame();
