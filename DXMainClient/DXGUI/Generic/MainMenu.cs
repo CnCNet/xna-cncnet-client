@@ -17,6 +17,7 @@ using DTAClient.DXGUI.Multiplayer;
 using Microsoft.Xna.Framework.Media;
 using System.Threading;
 using DTAClient.DXGUI.Multiplayer.CnCNet;
+using System.IO;
 
 namespace DTAClient.DXGUI.Generic
 {
@@ -378,6 +379,17 @@ namespace DTAClient.DXGUI.Generic
 
             if (connectionManager.IsConnected)
                 connectionManager.Disconnect();
+
+#if YR
+            try
+            {
+                File.Delete(ProgramConstants.GamePath + "ddraw.dll");
+            }
+            catch
+            {
+                Logger.Log("MainMenu ** Failed to remove ddraw.dll");
+            }
+#endif
         }
 
         public void PostInit()
@@ -401,7 +413,7 @@ namespace DTAClient.DXGUI.Generic
             CheckIfFirstRun();
         }
 
-        #region Updating / versioning system
+#region Updating / versioning system
 
         private void UpdateWindow_UpdateFailed(object sender, UpdateFailureEventArgs e)
         {
@@ -524,7 +536,7 @@ namespace DTAClient.DXGUI.Generic
             CUpdater.StartAsyncUpdate();
         }
 
-        #endregion
+#endregion
 
         private void BtnOptions_LeftClick(object sender, EventArgs e)
         {
