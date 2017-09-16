@@ -10,6 +10,7 @@
 *.userprefs
 bin/
 obj/
+.vs/
 
 # Käyttiksen (Mac ja win) tekemiä tiedostoja joita jättää pois
 ._*
