@@ -24,6 +24,22 @@ namespace DTAClient.Online
             "rulesmo.ini",
             "artmo.ini",
             "soundmo.ini",
+#elif YR
+            "spawner.xdp",
+            "INI\\Cooperative.ini",
+            "INI\\Free For All.ini",
+            "INI\\Land Rush.ini",
+            "INI\\Meat Grinder.ini",
+            "INI\\Megawealth.ini",
+            "INI\\Naval War.ini",
+            "INI\\Standard.ini",
+            "INI\\Team Alliance.ini",
+            "INI\\Unholy Alliance.ini",
+            "INI\\Game Options\\Allies Allowed.ini",
+            "INI\\Game Options\\Brutal AI.ini",
+            "INI\\Game Options\\No Dog Engi Eat.ini",
+            "INI\\Game Options\\No Spawn Previews.ini",
+            "INI\\Game Options\\RA2 Classic Mode.ini",
 #else
             "spawner.xdp",
             "rules.ini",
@@ -63,6 +79,7 @@ namespace DTAClient.Online
                     Utilities.CalculateSHA1ForFile(ProgramConstants.GamePath + filePath));
             }
 
+            #if !YR
             if (Directory.Exists(ProgramConstants.GamePath + "INI\\Map Code"))
             {
                 foreach (GameMode gameMode in gameModes)
@@ -72,6 +89,7 @@ namespace DTAClient.Online
                         Utilities.CalculateSHA1ForFile(ProgramConstants.GamePath + "INI\\Map Code\\" + gameMode.Name + ".ini"));
                 }
             }
+            #endif
 
             if (Directory.Exists(ProgramConstants.GamePath + "INI\\Game Options"))
             {
