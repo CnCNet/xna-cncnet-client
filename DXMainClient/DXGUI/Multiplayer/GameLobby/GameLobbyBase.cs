@@ -667,6 +667,18 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             int fakeStartingLocationCount = 0;
 
+            #if YR
+            bool RA2Mode = false;
+
+            foreach (GameLobbyCheckBox checkBox in CheckBoxes)
+            {
+                if (checkBox.Name == "chkRA2Mode" && checkBox.Checked)
+                {
+                    RA2Mode = true;
+                }
+            }
+            #endif
+
             for (int i = 0; i < totalPlayerCount; i++)
             {
                 PlayerInfo pInfo;
@@ -679,7 +691,12 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 else
                     pInfo = AIPlayers[i - Players.Count];
 
-                pHouseInfo.RandomizeSide(pInfo, Map, _sideCount, random);
+                #if YR
+                    pHouseInfo.RandomizeSide(pInfo, Map, _sideCount, random, RA2Mode);
+                #else
+                    pHouseInfo.RandomizeSide(pInfo, Map, _sideCount, random);
+                #endif
+
                 pHouseInfo.RandomizeColor(pInfo, freeColors, MPColors, random);
                 if (pHouseInfo.RandomizeStart(pInfo, Map, freeStartingLocations, random,
                     fakeStartingLocationCount, takenStartingLocations))
