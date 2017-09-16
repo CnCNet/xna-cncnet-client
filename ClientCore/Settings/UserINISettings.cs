@@ -78,6 +78,7 @@ namespace ClientCore
             MoveToUndeploy = new BoolSetting(iniFile, OPTIONS, "MoveToUndeploy", true);
             TextBackgroundColor = new IntSetting(iniFile, OPTIONS, "TextBackgroundColor", 0);
             DragDistance = new IntSetting(iniFile, OPTIONS, "DragDistance", 4);
+            Win8CompatMode = new StringSetting(iniFile, OPTIONS, "Win8Compat", "No");
 
             PlayerName = new StringSetting(iniFile, MULTIPLAYER, "Handle", string.Empty);
 
@@ -149,6 +150,7 @@ namespace ClientCore
         public BoolSetting MoveToUndeploy { get; private set; }
         public IntSetting TextBackgroundColor { get; private set; }
         public IntSetting DragDistance { get; private set; }
+        public StringSetting Win8CompatMode { get; private set; }
 
         /************************/
         /* MULTIPLAYER (CnCNet) */

@@ -582,6 +582,11 @@ namespace DTAConfig
 
             ddIngameResolution.SelectedIndex = index > -1 ? index : 0;
 
+            if (ddRenderer.SelectedItem.Text == "TS_DDRAW")
+            {
+                IniSettings.Win8CompatMode.Value = "No";
+            }
+
             if (ddRenderer.SelectedItem.Text != "DxWnd")
             {
                 chkWindowedMode.Checked = UserINISettings.Instance.WindowedMode;
@@ -752,6 +757,7 @@ namespace DTAConfig
                 case 2:
                     renderer = "TS_DDRAW";
                     File.Copy(ProgramConstants.GamePath + "Resources\\ts_ddraw.dll", ProgramConstants.GamePath + "ddraw.dll");
+                    IniSettings.Win8CompatMode.Value = "No";
                     break;
                 case 1:
                     renderer = "IE_DDRAW";
