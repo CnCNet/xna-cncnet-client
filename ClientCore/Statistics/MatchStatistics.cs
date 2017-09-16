@@ -58,19 +58,21 @@ namespace ClientCore.Statistics
 
             LengthInSeconds = (int)(DateTime.Now - DateAndTime).TotalSeconds;
 
+            var parser = new DTAStatisticsParser(this);
+
             switch (gameName.ToUpper())
             {
                 case "DTA":
-                    DTAStatisticsParser dtaParser = new DTAStatisticsParser(this);
-                    dtaParser.ParseStatistics(gamePath);
+                    parser.ParseStats(gamePath, "DTA.LOG");
                     return;
                 case "TS":
-                    DTAStatisticsParser tsParser = new DTAStatisticsParser(this);
-                    tsParser.ParseStats(gamePath, "TS.LOG");
+                    parser.ParseStats(gamePath, "TS.LOG");
                     return;
                 case "TI":
-                    DTAStatisticsParser tiParser = new DTAStatisticsParser(this);
-                    tiParser.ParseStats(gamePath, "TI.LOG");
+                    parser.ParseStats(gamePath, "TI.LOG");
+                    return;
+                case "MO":
+                    parser.ParseStats(gamePath, "Debug\\debug.log");
                     return;
             }
         }
