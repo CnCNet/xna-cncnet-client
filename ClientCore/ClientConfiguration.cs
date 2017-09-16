@@ -517,6 +517,14 @@ namespace ClientCore
             get { return clientDefinitionsIni.GetBooleanValue("Settings", "CopyMissionsToSpawnmapINI", true); }
         }
 
+        public string GetAllowedGameModes
+        {
+            get
+            {
+                return clientDefinitionsIni.GetStringValue("Settings", "AllowedCustomGameModes", "Standard,Custom Map");
+            }
+        }
+
         public string GetGameExecutableName(int id)
         {
             string[] exeNames = clientDefinitionsIni.GetStringValue("Settings", "GameExecutableNames", "Game.exe").Split(','); ;

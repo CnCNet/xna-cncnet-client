@@ -28,6 +28,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         private const string MAP_SHARING_DISABLED_MESSAGE = "MAPSDISABLED";
         private const string CHEAT_DETECTED_MESSAGE = "CD";
 
+        private string[] allowedGameModes = ClientConfiguration.Instance.GetAllowedGameModes.Split(',');
+
         public CnCNetGameLobby(WindowManager windowManager, string iniName, 
             TopBar topBar, List<GameMode> GameModes, CnCNetManager connectionManager,
             TunnelHandler tunnelHandler) : 
@@ -1281,7 +1283,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
                     if (gm == null)
                     {
-                        if (gameMode != "Standard" && gameMode != "Custom Map")
+                        if (!allowedGameModes.Contains(gameMode))
                             continue;
 
                         gm = new GameMode(gameMode);

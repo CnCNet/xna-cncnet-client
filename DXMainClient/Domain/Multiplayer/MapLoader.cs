@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
+using System.Linq;
 
 namespace DTAClient.Domain.Multiplayer
 {
@@ -118,6 +119,8 @@ namespace DTAClient.Domain.Multiplayer
                 }
             }
 
+            string[] allowedGameModes = ClientConfiguration.Instance.GetAllowedGameModes.Split(',');
+
             foreach (Map map in customMaps)
             {
                 foreach (string gameMode in map.GameModes)
@@ -126,7 +129,7 @@ namespace DTAClient.Domain.Multiplayer
 
                     if (gm == null)
                     {
-                        if (gameMode != "Standard" && gameMode != "Custom Map")
+                        if (!allowedGameModes.Contains(gameMode))
                             continue;
 
                         gm = new GameMode(gameMode);
