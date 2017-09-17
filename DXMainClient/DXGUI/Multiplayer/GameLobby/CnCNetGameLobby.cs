@@ -515,7 +515,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             var disallowedSides = GetDisallowedSides();
 
-            if (side <= SideCount && disallowedSides[side - 1])
+            if (side > 0 && side <= SideCount && disallowedSides[side - 1])
                 return;
 
             if (Map.CoopInfo != null)
