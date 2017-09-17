@@ -243,6 +243,7 @@ namespace DTAConfig
             lbHotkeys.Name = "lbHotkeys";
             lbHotkeys.ClientRectangle = new Rectangle(12, ddCategory.Bottom + 12, 
                 ddCategory.Right - 12, ClientRectangle.Height - ddCategory.Bottom - 59);
+            lbHotkeys.DrawMode = PanelBackgroundImageDrawMode.STRETCHED;
             lbHotkeys.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 128), 1, 1);
             lbHotkeys.AddColumn("Command", 150);
             lbHotkeys.AddColumn("Shortcut", lbHotkeys.Width - 150);
