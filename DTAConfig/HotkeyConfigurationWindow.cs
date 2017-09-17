@@ -26,6 +26,7 @@ namespace DTAConfig
         private const string CATEGORY_DEVELOPMENT = "Development";
 
         private const string HOTKEY_TIP_TEXT = "Press a key...";
+        private const string HOTKEY_INI_SECTION = "Hotkey";
 
         public HotkeyConfigurationWindow(WindowManager windowManager) : base(windowManager)
         {
@@ -193,7 +194,11 @@ namespace DTAConfig
         private XNALabel lblNewHotkeyValue;
         private XNALabel lblCurrentlyAssignedTo;
 
+        private XNALabel lblDefaultHotkeyValue;
+        private XNAClientButton btnResetKey;
+
         private IniFile keyboardINI;
+        private IniFile defaultKeyboardINI;
 
         private Hotkey pendingHotkey;
         private KeyModifiers lastFrameModifiers;
@@ -259,48 +264,71 @@ namespace DTAConfig
 
             var lblCurrentHotkey = new XNALabel(WindowManager);
             lblCurrentHotkey.Name = "lblCurrentHotkey";
-            lblCurrentHotkey.ClientRectangle = new Rectangle(lblDescription.ClientRectangle.X,
+            lblCurrentHotkey.ClientRectangle = new Rectangle(lblDescription.X,
                 lblDescription.Bottom + 48, 0, 0);
             lblCurrentHotkey.FontIndex = 1;
             lblCurrentHotkey.Text = "Currently assigned hotkey:";
 
             lblCurrentHotkeyValue = new XNALabel(WindowManager);
             lblCurrentHotkeyValue.Name = "lblCurrentHotkeyValue";
-            lblCurrentHotkeyValue.ClientRectangle = new Rectangle(lblDescription.ClientRectangle.X,
+            lblCurrentHotkeyValue.ClientRectangle = new Rectangle(lblDescription.X,
                 lblCurrentHotkey.Bottom + 6, 0, 0);
             lblCurrentHotkeyValue.Text = "Current hotkey value";
 
             var lblNewHotkey = new XNALabel(WindowManager);
             lblNewHotkey.Name = "lblNewHotkey";
-            lblNewHotkey.ClientRectangle = new Rectangle(lblDescription.ClientRectangle.X,
+            lblNewHotkey.ClientRectangle = new Rectangle(lblDescription.X,
                 lblCurrentHotkeyValue.Bottom + 48, 0, 0);
             lblNewHotkey.FontIndex = 1;
             lblNewHotkey.Text = "New hotkey:";
 
             lblNewHotkeyValue = new XNALabel(WindowManager);
             lblNewHotkeyValue.Name = "lblNewHotkeyValue";
-            lblNewHotkeyValue.ClientRectangle = new Rectangle(lblDescription.ClientRectangle.X,
+            lblNewHotkeyValue.ClientRectangle = new Rectangle(lblDescription.X,
                 lblNewHotkey.Bottom + 6, 0, 0);
             lblNewHotkeyValue.Text = HOTKEY_TIP_TEXT;
 
             lblCurrentlyAssignedTo = new XNALabel(WindowManager);
             lblCurrentlyAssignedTo.Name = "lblCurrentlyAssignedTo";
-            lblCurrentlyAssignedTo.ClientRectangle = new Rectangle(lblDescription.ClientRectangle.X,
+            lblCurrentlyAssignedTo.ClientRectangle = new Rectangle(lblDescription.X,
                 lblNewHotkeyValue.Bottom + 12, 0, 0);
             lblCurrentlyAssignedTo.Text = "Currently assigned to:\nKey";
 
             var btnAssign = new XNAClientButton(WindowManager);
             btnAssign.Name = "btnAssign";
-            btnAssign.ClientRectangle = new Rectangle(lblDescription.ClientRectangle.X,
-                lblCurrentlyAssignedTo.Bottom + 36, 92, 23);
-            btnAssign.Text = "Assign";
+            btnAssign.ClientRectangle = new Rectangle(lblDescription.X,
+                lblCurrentlyAssignedTo.Bottom + 24, 121, 23);
+            btnAssign.Text = "Assign Hotkey";
             btnAssign.LeftClick += BtnAssign_LeftClick;
+
+            btnResetKey = new XNAClientButton(WindowManager);
+            btnResetKey.Name = "btnResetKey";
+            btnResetKey.ClientRectangle = new Rectangle(btnAssign.X, btnAssign.Bottom + 12, btnAssign.Width, 23);
+            btnResetKey.Text = "Reset to Default";
+            btnResetKey.LeftClick += BtnReset_LeftClick;
+
+            var lblDefaultHotkey = new XNALabel(WindowManager);
+            lblDefaultHotkey.Name = "lblOriginalHotkey";
+            lblDefaultHotkey.ClientRectangle = new Rectangle(lblCurrentHotkey.X, btnResetKey.Bottom + 12, 0, 0);
+            lblDefaultHotkey.Text = "Default hotkey:";
+
+            lblDefaultHotkeyValue = new XNALabel(WindowManager);
+            lblDefaultHotkeyValue.Name = "lblDefaultHotkeyValue";
+            lblDefaultHotkeyValue.ClientRectangle = new Rectangle(lblDefaultHotkey.Right + 12, lblDefaultHotkey.Y, 0, 0);
 
             var btnSave = new XNAClientButton(WindowManager);
             btnSave.Name = "btnSave";
             btnSave.ClientRectangle = new Rectangle(12, lbHotkeys.Bottom + 12, 92, 23);
             btnSave.Text = "Save";
             btnSave.LeftClick += BtnSave_LeftClick;
+
+            var btnResetAllKeys = new XNAClientButton(WindowManager);
+            btnResetAllKeys.Name = "btnResetAllToDefaults";
+            btnResetAllKeys.ClientRectangle = new Rectangle(0, btnSave.Y, 121, 23);
+            btnResetAllKeys.Text = "Reset All Keys";
+            btnResetAllKeys.LeftClick += BtnResetToDefaults_LeftClick;
+            AddChild(btnResetAllKeys);
+            btnResetAllKeys.CenterOnParentHorizontally();
 
             var btnCancel = new XNAClientButton(WindowManager);
             btnCancel.Name = "btnExit";
@@ -321,9 +349,12 @@ namespace DTAConfig
             hotkeyInfoPanel.AddChild(lblNewHotkey);
             hotkeyInfoPanel.AddChild(lblNewHotkeyValue);
             hotkeyInfoPanel.AddChild(lblCurrentlyAssignedTo);
+            hotkeyInfoPanel.AddChild(lblDefaultHotkey);
+            hotkeyInfoPanel.AddChild(lblDefaultHotkeyValue);
             hotkeyInfoPanel.AddChild(btnAssign);
+            hotkeyInfoPanel.AddChild(btnResetKey);
 
-            LoadKeyboardINI();
+            defaultKeyboardINI = new IniFile(ProgramConstants.GamePath + ClientConfiguration.Instance.DefaultKeyboardINI);
 
             hotkeyInfoPanel.Disable();
             lbHotkeys.SelectedIndexChanged += LbHotkeys_SelectedIndexChanged;
@@ -338,9 +369,50 @@ namespace DTAConfig
             CenterOnParent();
 
             Keyboard.OnKeyPressed += Keyboard_OnKeyPressed;
-            //Game.Window.TextInput += Window_TextInput;
+            EnabledChanged += HotkeyConfigurationWindow_EnabledChanged;
+        }
 
-            //EventInput.Initialize(Game.Window);
+        private void BtnReset_LeftClick(object sender, EventArgs e)
+        {
+            if (lbHotkeys.SelectedIndex < 0 || lbHotkeys.SelectedIndex >= lbHotkeys.ItemCount)
+            {
+                return;
+            }
+
+            var command = (GameCommand)lbHotkeys.GetItem(0, lbHotkeys.SelectedIndex).Tag;
+            var defaultHotkey = new Hotkey(defaultKeyboardINI.GetIntValue(HOTKEY_INI_SECTION, command.ININame, 0));
+            command.Hotkey = defaultHotkey;
+
+            // If the hotkey is already assigned to other command, unbind it
+            foreach (var gameCommand in gameCommands)
+            {
+                if (pendingHotkey.Equals(gameCommand.Hotkey))
+                    gameCommand.Hotkey = new Hotkey(Keys.None, KeyModifiers.None);
+            }
+
+            pendingHotkey = new Hotkey(Keys.None, KeyModifiers.None);
+            RefreshHotkeyList();
+        }
+
+        private void BtnResetToDefaults_LeftClick(object sender, EventArgs e)
+        {
+            foreach (var command in gameCommands)
+            {
+                int hotkey = defaultKeyboardINI.GetIntValue(HOTKEY_INI_SECTION, command.ININame, 0);
+
+                command.Hotkey = new Hotkey(hotkey);
+            }
+
+            RefreshHotkeyList();
+        }
+
+        private void HotkeyConfigurationWindow_EnabledChanged(object sender, EventArgs e)
+        {
+            if (Enabled)
+            {
+                LoadKeyboardINI();
+                RefreshHotkeyList();
+            }
         }
 
         /// <summary>
@@ -379,11 +451,11 @@ namespace DTAConfig
             lblCommandCaption.Text = command.UIName;
             lblDescription.Text = Renderer.FixText(command.Description, lblDescription.FontIndex, 
                 hotkeyInfoPanel.Width - lblDescription.X).Text;
+            lblCurrentHotkeyValue.Text = command.Hotkey.ToStringWithNone();
 
-            if (command.Hotkey.Key == Keys.None)
-                lblCurrentHotkeyValue.Text = "None";
-            else
-                lblCurrentHotkeyValue.Text = command.Hotkey.ToString();
+            var defaultHotkey = new Hotkey(defaultKeyboardINI.GetIntValue(HOTKEY_INI_SECTION, command.ININame, 0));
+            lblDefaultHotkeyValue.Text = defaultHotkey.ToStringWithNone();
+            btnResetKey.Enabled = !command.Hotkey.Equals(defaultHotkey);
 
             lblNewHotkeyValue.Text = HOTKEY_TIP_TEXT;
             pendingHotkey = new Hotkey(Keys.None, KeyModifiers.None);
@@ -425,10 +497,17 @@ namespace DTAConfig
 
             var command = (GameCommand)lbHotkeys.GetItem(0, lbHotkeys.SelectedIndex).Tag;
             command.Hotkey = pendingHotkey;
-            int selectedIndex = lbHotkeys.SelectedIndex;
-            DdCategory_SelectedIndexChanged(sender, EventArgs.Empty);
-            lbHotkeys.SelectedIndex = selectedIndex;
+            RefreshHotkeyList();
             pendingHotkey = new Hotkey(Keys.None, KeyModifiers.None);
+        }
+
+        private void RefreshHotkeyList()
+        {
+            int selectedIndex = lbHotkeys.SelectedIndex;
+            int topIndex = lbHotkeys.TopIndex;
+            DdCategory_SelectedIndexChanged(null, EventArgs.Empty);
+            lbHotkeys.TopIndex = topIndex;
+            lbHotkeys.SelectedIndex = selectedIndex;
         }
 
         /// <summary>
@@ -584,6 +663,19 @@ namespace DTAConfig
                 if (Key == Keys.None && Modifier == KeyModifiers.None)
                     return string.Empty;
 
+                return GetString();
+            }
+
+            public string ToStringWithNone()
+            {
+                if (Key == Keys.None && Modifier == KeyModifiers.None)
+                    return "None";
+
+                return GetString();
+            }
+
+            private string GetString()
+            {
                 string str = "";
 
                 if (Modifier.HasFlag(KeyModifiers.Shift))
