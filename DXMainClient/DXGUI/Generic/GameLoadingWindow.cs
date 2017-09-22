@@ -102,10 +102,8 @@ namespace DTAClient.DXGUI.Generic
             sw.WriteLine();
             sw.Close();
 
-            Logger.Log("About to launch main executable.");
-
             Enabled = false;
-            GameProcessLogic.StartGameProcess(0);
+            GameProcessLogic.StartGameProcess();
         }
 
         public void ListSaves()

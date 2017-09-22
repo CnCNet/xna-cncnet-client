@@ -331,7 +331,7 @@ namespace DTAClient.DXGUI.Multiplayer
             gameLoadTime = DateTime.Now;
 
             GameProcessLogic.GameProcessExited += SharedUILogic_GameProcessExited;
-            GameProcessLogic.StartGameProcess(0);
+            GameProcessLogic.StartGameProcess();
             
             fsw.EnableRaisingEvents = true;
         }

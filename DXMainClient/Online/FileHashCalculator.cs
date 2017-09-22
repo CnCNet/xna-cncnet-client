@@ -62,7 +62,7 @@ namespace DTAClient.Online
             fh.GameOptionsHash = Utilities.CalculateSHA1ForFile(ProgramConstants.GamePath + ProgramConstants.BASE_RESOURCE_PATH + "GameOptions.ini");
             fh.ClientDXHash = Utilities.CalculateSHA1ForFile(ProgramConstants.GetBaseResourcePath() + "clientdx.exe");
             fh.ClientXNAHash = Utilities.CalculateSHA1ForFile(ProgramConstants.GetBaseResourcePath() + "clientxna.exe");
-            fh.MainExeHash = Utilities.CalculateSHA1ForFile(ProgramConstants.GamePath + ClientConfiguration.Instance.GetGameExecutableName(0));
+            fh.MainExeHash = Utilities.CalculateSHA1ForFile(ProgramConstants.GamePath + ClientConfiguration.Instance.GetGameExecutableName());
             fh.MPMapsHash = Utilities.CalculateSHA1ForFile(ProgramConstants.GamePath + ClientConfiguration.Instance.MPMapsIniPath);
 
             fh.INIHashes = string.Empty;

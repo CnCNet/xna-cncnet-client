@@ -21,11 +21,20 @@ namespace ClientGUI
         /// <summary>
         /// Starts the main game process.
         /// </summary>
-        /// <param name="processId">The index of the game process to start (for RA2 support;
-        /// GameOptions.ini -> GameExecutableNames= allows multiple names).</param>
-        public static void StartGameProcess(int processId)
+        public static void StartGameProcess()
         {
-            string gameExecutableName = ClientConfiguration.Instance.GetGameExecutableName(processId);
+            Logger.Log("About to launch main game executable.");
+
+            OSVersion osVersion = ClientConfiguration.Instance.GetOperatingSystemVersion();
+
+            string gameExecutableName = osVersion == OSVersion.UNIX ? 
+                ClientConfiguration.Instance.GetUnixGameExecutableName() : 
+                ClientConfiguration.Instance.GetGameExecutableName();
+
+            if (osVersion == OSVersion.UNIX)
+                gameExecutableName = ClientConfiguration.Instance.GetUnixGameExecutableName();
+            else
+                gameExecutableName = ClientConfiguration.Instance.GetGameExecutableName();
 
             string extraCommandLine = ClientConfiguration.Instance.ExtraExeCommandLineParameters;
 

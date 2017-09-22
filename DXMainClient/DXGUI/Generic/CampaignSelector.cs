@@ -317,10 +317,8 @@ namespace DTAClient.DXGUI.Generic
             UserINISettings.Instance.Difficulty.Value = trbDifficultySelector.Value;
             UserINISettings.Instance.SaveSettings();
 
-            Logger.Log("About to launch main executable.");
-
             ((MainMenuDarkeningPanel)Parent).Hide();
-            GameProcessLogic.StartGameProcess(0);
+            GameProcessLogic.StartGameProcess();
         }
 
         /// <summary>

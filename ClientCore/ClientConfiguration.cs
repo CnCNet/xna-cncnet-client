@@ -525,22 +525,25 @@ namespace ClientCore
             }
         }
 
-        public string GetGameExecutableName(int id)
+        public string GetGameExecutableName()
         {
-            string[] exeNames = clientDefinitionsIni.GetStringValue("Settings", "GameExecutableNames", "Game.exe").Split(','); ;
+            string[] exeNames = clientDefinitionsIni.GetStringValue("Settings", "GameExecutableNames", "Game.exe").Split(',');
 
-            if (id < 0 || id >= exeNames.Length)
-                return exeNames[0];
+            return exeNames[0];
+        }
 
-            return exeNames[id];
+        /// <summary>
+        /// Returns the name of the game executable file that is used on
+        /// Linux and macOS.
+        /// </summary>
+        public string GetUnixGameExecutableName()
+        {
+            return clientDefinitionsIni.GetStringValue("Settings", "UnixGameExecutableName", "wine-dta.sh");
         }
 
         public OSVersion GetOperatingSystemVersion()
         {
             Version osVersion = Environment.OSVersion.Version;
-
-            if (Environment.OSVersion.Platform == PlatformID.Win32Windows)
-                return OSVersion.WIN9X;
 
             if (Environment.OSVersion.Platform == PlatformID.Win32NT)
             {
@@ -557,6 +560,10 @@ namespace ClientCore
 
                 return OSVersion.WIN7;
             }
+
+            int p = (int)Environment.OSVersion.Platform;
+            if (p == 2 || p == 6 || p == 128)
+                return OSVersion.UNIX;
 
             return OSVersion.UNKNOWN;
         }

@@ -1013,7 +1013,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             GameProcessLogic.GameProcessExited += GameProcessExited_Callback;
 
-            GameProcessLogic.StartGameProcess(0);
+            GameProcessLogic.StartGameProcess();
         }
 
         private void GameProcessExited_Callback()
