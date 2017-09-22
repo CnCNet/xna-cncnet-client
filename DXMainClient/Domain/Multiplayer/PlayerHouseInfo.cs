@@ -101,18 +101,26 @@ namespace DTAClient.Domain.Multiplayer
             {
                 // Randomize starting location
 
-                if (freeStartingLocations.Count == 0) // No free starting locs available
-                {
-                    RealStartingWaypoint = -1;
-                    StartingWaypoint = -1;
-                    return true;
-                }
-
-                int waypointIndex = random.Next(0, freeStartingLocations.Count);
-                RealStartingWaypoint = freeStartingLocations[waypointIndex];
-                StartingWaypoint = RealStartingWaypoint;
-                freeStartingLocations.Remove(StartingWaypoint);
+                // The game uses its own randomization logic that places
+                // randomized players on the opposite side of the map
+                // Players seem to prefer this behaviour, so use -1 to
+                // leave randomizing the starting location to the game itself
+                RealStartingWaypoint = -1;
+                StartingWaypoint = -1;
                 return false;
+
+                //if (freeStartingLocations.Count == 0) // No free starting locs available
+                //{
+                //    RealStartingWaypoint = -1;
+                //    StartingWaypoint = -1;
+                //    return true;
+                //}
+
+                //int waypointIndex = random.Next(0, freeStartingLocations.Count);
+                //RealStartingWaypoint = freeStartingLocations[waypointIndex];
+                //StartingWaypoint = RealStartingWaypoint;
+                //freeStartingLocations.Remove(StartingWaypoint);
+                //return false;
             }
 
             // Use the player's selected starting location
