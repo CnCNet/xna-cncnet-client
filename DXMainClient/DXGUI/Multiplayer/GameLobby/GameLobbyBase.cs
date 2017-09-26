@@ -631,6 +631,33 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         protected void CheckDisallowedSides()
         {
             var disallowedSideArray = GetDisallowedSides();
+            int defaultSide = 0;
+            int allowedSideCount = disallowedSideArray.Count(b => b == false);
+
+            if (allowedSideCount == 1)
+            {
+                // Disallow Random
+
+                for (int i = 0; i < disallowedSideArray.Length; i++)
+                {
+                    if (!disallowedSideArray[i])
+                        defaultSide = i + 1;
+                }
+
+                foreach (XNADropDown dd in ddPlayerSides)
+                {
+                    dd.Items[0].Selectable = false;
+                }
+            }
+            else
+            {
+                foreach (XNADropDown dd in ddPlayerSides)
+                {
+                    dd.Items[0].Selectable = true;
+                }
+            }
+
+            var concatPlayerList = Players.Concat(AIPlayers);
 
             for (int i = 0; i < disallowedSideArray.Length; i++)
             {
@@ -643,11 +670,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                         dd.Items[i + 1].Selectable = false;
                     }
 
-                    var concatPlayerList = Players.Concat(AIPlayers);
                     foreach (PlayerInfo pInfo in concatPlayerList)
                     {
                         if (pInfo.SideId == i + 1)
-                            pInfo.SideId = 0;
+                            pInfo.SideId = defaultSide;
                     }
                 }
                 else
@@ -658,16 +684,48 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     }
                 }
             }
+
+            if (Map.CoopInfo != null)
+            {
+                // Disallow spectator
+
+                foreach (PlayerInfo pInfo in concatPlayerList)
+                {
+                    if (pInfo.SideId == _sideCount + 1)
+                        pInfo.SideId = defaultSide;
+                }
+
+                foreach (XNADropDown dd in ddPlayerSides)
+                {
+                    dd.Items[_sideCount + 1].Selectable = false;
+                }
+            }
+            else
+            {
+                foreach (XNADropDown dd in ddPlayerSides)
+                {
+                    dd.Items[_sideCount + 1].Selectable = true;
+                }
+            }
         }
 
         /// <summary>
-        /// Gets a list of side indexes that are disallowed because of the current
-        /// game options.
+        /// Gets a list of side indexes that are disallowed.
         /// </summary>
         /// <returns>A list of disallowed side indexes.</returns>
         protected bool[] GetDisallowedSides()
         {
             var returnValue = new bool[SideCount];
+
+            if (Map != null && Map.CoopInfo != null)
+            {
+                // Co-Op map disallowed side logic
+
+                foreach (int disallowedSideIndex in Map.CoopInfo.DisallowedPlayerSides)
+                {
+                    returnValue[disallowedSideIndex] = true;
+                }
+            }
 
             foreach (var checkBox in CheckBoxes)
                 checkBox.ApplyDisallowedSideIndex(returnValue);
@@ -1348,56 +1406,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     pInfo.StartingLocation = 0;
             }
 
+            CheckDisallowedSides();
+
             if (map.CoopInfo != null)
             {
-                // Co-Op map disallowed side logic
-
-                List<int> disallowedSides = new List<int>(map.CoopInfo.DisallowedPlayerSides);
-                disallowedSides.Add(_sideCount); // Disallow spectator
-
-                bool disallowRandom = _sideCount == disallowedSides.Count; // Disallow Random if only 1 side is allowed
-                int defaultSideIndex = 0; // The side to switch to if we're currently using a disallowed side. 0 = random
-
-                if (disallowRandom)
-                {
-                    for (int sideIndex = 0; sideIndex < _sideCount; sideIndex++)
-                    {
-                        if (!disallowedSides.Contains(sideIndex))
-                        {
-                            defaultSideIndex = sideIndex + 1;
-                            break;
-                        }
-                    }
-
-                    foreach (XNADropDown dd in ddPlayerSides)
-                    {
-                        dd.Items[0].Selectable = false;
-                    }
-
-                    foreach (PlayerInfo pInfo in concatPlayerList)
-                    {
-                        if (pInfo.SideId == 0)
-                            pInfo.SideId = defaultSideIndex;
-                    }
-                }
-
-                foreach (int disallowedSideIndex in disallowedSides)
-                {
-                    foreach (XNADropDown ddSide in ddPlayerSides)
-                    {
-                        if (ddSide.Items.Count - 1 <= disallowedSideIndex)
-                            continue;
-
-                        ddSide.Items[disallowedSideIndex + 1].Selectable = false;
-                    }
-
-                    foreach (PlayerInfo pInfo in concatPlayerList)
-                    {
-                        if (pInfo.SideId == disallowedSideIndex + 1)
-                            pInfo.SideId = defaultSideIndex;
-                    }
-                }
-
                 // Co-Op map disallowed color logic
                 foreach (int disallowedColorIndex in map.CoopInfo.DisallowedPlayerColors)
                 {
