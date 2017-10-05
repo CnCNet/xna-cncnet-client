@@ -685,7 +685,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 }
             }
 
-            if (Map.CoopInfo != null)
+            if (Map != null && Map.CoopInfo != null)
             {
                 // Disallow spectator
 
@@ -697,14 +697,16 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
                 foreach (XNADropDown dd in ddPlayerSides)
                 {
-                    dd.Items[_sideCount + 1].Selectable = false;
+                    if (dd.Items.Count > _sideCount + 1)
+                        dd.Items[_sideCount + 1].Selectable = false;
                 }
             }
             else
             {
                 foreach (XNADropDown dd in ddPlayerSides)
                 {
-                    dd.Items[_sideCount + 1].Selectable = true;
+                    if (dd.Items.Count > _sideCount + 1)
+                        dd.Items[_sideCount + 1].Selectable = true;
                 }
             }
         }
