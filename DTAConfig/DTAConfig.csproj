@@ -147,7 +147,7 @@
     <Compile Include="MIXSettingCheckBox.cs" />
     <Compile Include="OptionsWindow.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Renderer.cs" />
+    <Compile Include="DirectDrawWrapper.cs" />
     <Compile Include="UpdaterOptionsPanel.cs" />
     <Compile Include="XNAOptionsPanel.cs" />
     <EmbeddedResource Include="Properties\Resources.resx">

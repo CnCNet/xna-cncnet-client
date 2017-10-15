@@ -11,7 +11,7 @@ namespace DTAConfig
     /// <summary>
     /// A DirectDraw wrapper option.
     /// </summary>
-    class Renderer
+    class DirectDrawWrapper
     {
         /// <summary>
         /// Creates a new Renderer instance and parses its configuration
@@ -19,7 +19,7 @@ namespace DTAConfig
         /// </summary>
         /// <param name="internalName">The internal name of the renderer.</param>
         /// <param name="iniFile">The file to parse the renderer's options from.</param>
-        public Renderer(string internalName, IniFile iniFile)
+        public DirectDrawWrapper(string internalName, IniFile iniFile)
         {
             InternalName = internalName;
             Parse(iniFile.GetSection(InternalName));
