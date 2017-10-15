@@ -194,6 +194,13 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 return;
             }
 
+            if (new ProfanityFilter().IsOffensive(gameName))
+            {
+                XNAMessageBox.Show(WindowManager, "Offensive game name", 
+                    "Please enter a less offensive game name.");
+                return;
+            }
+
             if (lbTunnelList.SelectedIndex < 0 || lbTunnelList.SelectedIndex >= lbTunnelList.ItemCount)
             {
                 return;

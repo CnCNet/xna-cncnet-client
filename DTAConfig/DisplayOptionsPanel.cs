@@ -749,7 +749,7 @@ namespace DTAConfig
 
                     break;
                 case 3:
-                    renderer = "DDWrapper"; ;
+                    renderer = "DDWrapper";
                     File.Copy(ProgramConstants.GamePath + "Resources\\ddwrapper.dll", ProgramConstants.GamePath + "ddraw.dll");
                     if (!File.Exists(ProgramConstants.GamePath + "aqrit.cfg"))
                         File.Copy(ProgramConstants.GamePath + "Resources\\aqrit.cfg", ProgramConstants.GamePath + "aqrit.cfg");
