@@ -1,0 +1,95 @@
+﻿using ClientCore;
+using Rampastring.Tools;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text;
+
+namespace DTAConfig
+{
+    /// <summary>
+    /// A DirectDraw wrapper option.
+    /// </summary>
+    class DirectDrawWrapper
+    {
+        /// <summary>
+        /// Creates a new Renderer instance and parses its configuration
+        /// from an INI file.
+        /// </summary>
+        /// <param name="internalName">The internal name of the renderer.</param>
+        /// <param name="iniFile">The file to parse the renderer's options from.</param>
+        public DirectDrawWrapper(string internalName, IniFile iniFile)
+        {
+            InternalName = internalName;
+            Parse(iniFile.GetSection(InternalName));
+        }
+
+        public string InternalName { get; private set; }
+        public string UIName { get; private set; }
+
+        /// <summary>
+        /// If set, windowed mode should be applied in DxWnd.ini
+        /// instead of the regular settings INI file.
+        /// </summary>
+        public bool IsDxWnd { get; private set; }
+
+        private string ddrawDLLPath;
+        private string configFileName;
+        private List<string> filesToCopy = new List<string>();
+
+        public void Parse(IniSection section)
+        {
+            if (section == null)
+                throw new ArgumentException("Configuration for renderer '" + InternalName + "' not found!");
+
+            UIName = section.GetStringValue("UIName", "Unnamed renderer");
+            IsDxWnd = section.GetBooleanValue("IsDxWnd", false);
+            ddrawDLLPath = section.GetStringValue("DLLPath", string.Empty);
+            configFileName = section.GetStringValue("ConfigFileName", string.Empty);
+
+            filesToCopy = section.GetStringValue("AdditionalFiles", string.Empty).Split(
+                new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries).ToList();
+
+            if (!File.Exists(ProgramConstants.GetBaseResourcePath() + ddrawDLLPath))
+                throw new FileNotFoundException("File specified in DLLPath= for renderer '" + InternalName + "' does not exist!");
+
+            foreach (var file in filesToCopy)
+            {
+                if (!File.Exists(ProgramConstants.GetBaseResourcePath() + file))
+                    throw new FileNotFoundException("Additional file '" + file + "' for renderer '" + InternalName + "' does not exist!");
+            }
+        }
+
+        /// <summary>
+        /// Applies the renderer's files to the game directory.
+        /// </summary>
+        public void Apply()
+        {
+            File.Copy(ProgramConstants.GetBaseResourcePath() + ddrawDLLPath,
+                ProgramConstants.GamePath + "ddraw.dll", true);
+
+            // Do not overwrite settings
+            File.Copy(ProgramConstants.GetBaseResourcePath() + configFileName,
+                ProgramConstants.GamePath + Path.GetFileName(configFileName));
+
+            foreach (var file in filesToCopy)
+            {
+                File.Copy(ProgramConstants.GetBaseResourcePath() + file,
+                    ProgramConstants.GamePath + Path.GetFileName(file));
+            }
+        }
+
+        /// <summary>
+        /// Call to clean the renderer's files from the game directory.
+        /// </summary>
+        public void Clean()
+        {
+            if (!string.IsNullOrEmpty(configFileName))
+                File.Delete(ProgramConstants.GamePath + configFileName);
+
+            foreach (var file in filesToCopy)
+                File.Delete(ProgramConstants.GamePath + Path.GetFileName(file));
+        }
+    }
+}

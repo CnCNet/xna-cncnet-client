@@ -12,10 +12,17 @@ namespace ClientCore.Statistics.GameParsers
         }
 
         private string fileName = "DTA.log";
+        private string loserString = "Losser"; // WW typo in TS logging
 
         public void ParseStats(string gamepath, string fileName)
         {
+            ParseStats(gamepath, fileName, loserString);
+        }
+
+        public void ParseStats(string gamepath, string fileName, string loserString)
+        {
             this.fileName = fileName;
+            this.loserString = loserString;
             ParseStatistics(gamepath);
         }
 
@@ -43,11 +50,11 @@ namespace ClientCore.Statistics.GameParsers
 
                 while ((line = reader.ReadLine()) != null)
                 {
-                    if (line.Contains(": Losser"))
+                    if (line.Contains(": " + loserString))
                     {
                         // Player found, game saw completion
                         sawCompletion = true;
-                        string playerName = line.Substring(0, line.Length - 8);
+                        string playerName = line.Substring(0, line.Length - (loserString.Length + 2));
                         currentPlayer = Statistics.GetEmptyPlayerByName(playerName);
 
                         Logger.Log("Found player " + playerName);

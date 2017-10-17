@@ -19,7 +19,7 @@
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>bin\Windows\Debug\</OutputPath>
-    <DefineConstants>TRACE;DEBUG;YR</DefineConstants>
+    <DefineConstants>TRACE;DEBUG;DTA</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
@@ -28,7 +28,7 @@
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Windows\Release\</OutputPath>
-    <DefineConstants>TRACE;TI</DefineConstants>
+    <DefineConstants>TRACE;YR MO</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
@@ -48,7 +48,7 @@
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\WindowsGL\Release</OutputPath>
-    <DefineConstants>TRACE;TI WINDOWSGL</DefineConstants>
+    <DefineConstants>TRACE;MO YR WINDOWSGL</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
@@ -65,7 +65,7 @@
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\XNAFramework\Release</OutputPath>
-    <DefineConstants>TRACE;XNA TI</DefineConstants>
+    <DefineConstants>TRACE;XNA MO YR</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
@@ -147,6 +147,7 @@
     <Compile Include="MIXSettingCheckBox.cs" />
     <Compile Include="OptionsWindow.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="DirectDrawWrapper.cs" />
     <Compile Include="UpdaterOptionsPanel.cs" />
     <Compile Include="XNAOptionsPanel.cs" />
     <EmbeddedResource Include="Properties\Resources.resx">

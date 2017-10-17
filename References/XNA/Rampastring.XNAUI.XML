@@ -806,6 +806,11 @@
             Initializes the list box.
             </summary>
         </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNAListBox.GetScrollBarWidth">
+            <summary>
+            Returns the width of the list box's scroll bar.
+            </summary>
+        </member>
         <member name="M:Rampastring.XNAUI.XNAControls.XNAListBox.Keyboard_OnKeyPressed(System.Object,Rampastring.XNAUI.Input.KeyPressEventArgs)">
             <summary>
             Allows copying items to the clipboard using Ctrl + C.

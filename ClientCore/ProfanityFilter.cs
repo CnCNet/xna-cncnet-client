@@ -26,7 +26,8 @@ namespace ClientCore
                 "twat",
                 "cock",
                 "pussy",
-                "hitler*"
+                "hitler*",
+                "anal"
             };
         }
 

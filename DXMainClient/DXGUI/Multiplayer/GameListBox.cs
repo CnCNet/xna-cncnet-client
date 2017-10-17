@@ -10,9 +10,15 @@ using ClientCore;
 
 namespace DTAClient.DXGUI.Multiplayer
 {
+    /// <summary>
+    /// A list box for listing hosted games.
+    /// </summary>
     public class GameListBox : XNAListBox
     {
         private const int GAME_REFRESH_RATE = 1;
+        private const int ICON_MARGIN = 2;
+        private const int FONT_INDEX = 0;
+        private const string LOADED_GAME_TEXT = " (Loaded Game)";
 
         public GameListBox(WindowManager windowManager,
             string localGameIdentifier)
@@ -21,6 +27,9 @@ namespace DTAClient.DXGUI.Multiplayer
             HostedGames = new List<GenericHostedGame>();
             this.localGameIdentifier = localGameIdentifier;
         }
+
+        private int loadedGameTextWidth;
+        private int maxGameNameWidth;
 
         public List<GenericHostedGame> HostedGames;
 
@@ -147,6 +156,8 @@ namespace DTAClient.DXGUI.Multiplayer
                 ClientConfiguration.Instance.HoverOnGameColor);
 
             base.Initialize();
+
+            loadedGameTextWidth = (int)Renderer.GetTextDimensions(LOADED_GAME_TEXT, FontIndex).X;
         }
 
         private void GameListBox_HoveredIndexChanged(object sender, EventArgs e)
@@ -172,9 +183,15 @@ namespace DTAClient.DXGUI.Multiplayer
 
         private void AddGameToList(GenericHostedGame hg)
         {
+            int maxTextWidth = Width - hg.Game.Texture.Width - txIncompatibleGame.Width -
+                txLockedGame.Width - txPasswordedGame.Width - (ICON_MARGIN * 3) - GetScrollBarWidth()
+                - loadedGameTextWidth;
+
             var lbItem = new XNAListBoxItem();
             lbItem.Tag = hg;
-            lbItem.Text = Renderer.GetSafeString(hg.RoomName, FontIndex);
+            lbItem.Text = Renderer.GetStringWithLimitedWidth(Renderer.GetSafeString(
+                hg.RoomName, FontIndex), FontIndex, maxTextWidth);
+
             if (hg.Game.InternalName == localGameIdentifier.ToLower())
                 lbItem.TextColor = UISettings.AltColor;
             else
@@ -262,14 +279,14 @@ namespace DTAClient.DXGUI.Multiplayer
                     new Rectangle(windowRectangle.X + x, windowRectangle.Y + height,
                     hostedGame.Game.Texture.Width, hostedGame.Game.Texture.Height), Color.White);
 
-                x += hostedGame.Game.Texture.Width + 2;
+                x += hostedGame.Game.Texture.Width + ICON_MARGIN;
 
                 if (hostedGame.Locked)
                 {
                     Renderer.DrawTexture(txLockedGame,
                         new Rectangle(windowRectangle.X + x, windowRectangle.Y + height,
                         txLockedGame.Width, txLockedGame.Height), Color.White);
-                    x += txLockedGame.Width + 2;
+                    x += txLockedGame.Width + ICON_MARGIN;
                 }
 
                 if (hostedGame.Incompatible)
@@ -277,7 +294,7 @@ namespace DTAClient.DXGUI.Multiplayer
                     Renderer.DrawTexture(txIncompatibleGame,
                         new Rectangle(windowRectangle.X + x, windowRectangle.Y + height,
                         txIncompatibleGame.Width, txIncompatibleGame.Height), Color.White);
-                    x += txIncompatibleGame.Width + 2;
+                    x += txIncompatibleGame.Width + ICON_MARGIN;
                 }
 
                 if (hostedGame.Passworded)
@@ -290,7 +307,7 @@ namespace DTAClient.DXGUI.Multiplayer
 
                 var text = lbItem.Text;
                 if (hostedGame.IsLoadedGame)
-                    text = lbItem.Text + " (Loaded Game)";
+                    text = lbItem.Text + LOADED_GAME_TEXT;
 
                 x += lbItem.TextXPadding;
 
