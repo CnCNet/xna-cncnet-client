@@ -6,6 +6,10 @@ namespace ClientCore
 {
     public class ClientConfiguration
     {
+        private const string GENERAL = "General";
+        private const string SETTINGS = "Settings";
+        private const string LINKS = "Links";
+
         private const string CLIENT_SETTINGS = "DTACnCNetClient.ini";
         private const string GAME_OPTIONS = "GameOptions.ini";
         private const string CLIENT_DEFS = "ClientDefinitions.ini";
@@ -53,7 +57,7 @@ namespace ClientCore
         {
             get
             {
-                return DTACnCNetClient_ini.GetStringValue("General", "UILabelColor", "0,0,0");
+                return DTACnCNetClient_ini.GetStringValue(GENERAL, "UILabelColor", "0,0,0");
             }
         }
 
@@ -61,7 +65,7 @@ namespace ClientCore
         {
             get
             {
-                return DTACnCNetClient_ini.GetStringValue("General", "HintTextColor", "128,128,128");
+                return DTACnCNetClient_ini.GetStringValue(GENERAL, "HintTextColor", "128,128,128");
             }
         }
 
@@ -69,7 +73,7 @@ namespace ClientCore
         {
             get
             {
-                return DTACnCNetClient_ini.GetStringValue("General", "DisabledButtonColor", "108,108,108");
+                return DTACnCNetClient_ini.GetStringValue(GENERAL, "DisabledButtonColor", "108,108,108");
             }
         }
 
@@ -77,7 +81,7 @@ namespace ClientCore
         {
             get
             {
-                return DTACnCNetClient_ini.GetStringValue("General", "AltUIColor", "255,255,255");
+                return DTACnCNetClient_ini.GetStringValue(GENERAL, "AltUIColor", "255,255,255");
             }
         }
 
@@ -85,7 +89,7 @@ namespace ClientCore
         {
             get
             {
-                return DTACnCNetClient_ini.GetStringValue("General", "ButtonHoverColor", "255,192,192");
+                return DTACnCNetClient_ini.GetStringValue(GENERAL, "ButtonHoverColor", "255,192,192");
             }
         }
 
@@ -93,7 +97,7 @@ namespace ClientCore
         {
             get
             {
-                return DTACnCNetClient_ini.GetStringValue("General", "MapPreviewNameBackgroundColor", "0,0,0,144");
+                return DTACnCNetClient_ini.GetStringValue(GENERAL, "MapPreviewNameBackgroundColor", "0,0,0,144");
             }
         }
 
@@ -101,7 +105,7 @@ namespace ClientCore
         {
             get
             {
-                return DTACnCNetClient_ini.GetStringValue("General", "MapPreviewNameBorderColor", "128,128,128,128");
+                return DTACnCNetClient_ini.GetStringValue(GENERAL, "MapPreviewNameBorderColor", "128,128,128,128");
             }
         }
 
@@ -109,7 +113,7 @@ namespace ClientCore
         {
             get
             {
-                return DTACnCNetClient_ini.GetStringValue("General", "StartingLocationHoverColor", "255,255,255,128");
+                return DTACnCNetClient_ini.GetStringValue(GENERAL, "StartingLocationHoverColor", "255,255,255,128");
             }
         }
 
@@ -117,7 +121,7 @@ namespace ClientCore
         {
             get
             {
-                return DTACnCNetClient_ini.GetStringValue("General", "AltUIBackgroundColor", "196,196,196");
+                return DTACnCNetClient_ini.GetStringValue(GENERAL, "AltUIBackgroundColor", "196,196,196");
             }
         }
 
@@ -125,7 +129,7 @@ namespace ClientCore
         {
             get
             {
-                return DTACnCNetClient_ini.GetStringValue("General", "WindowBorderColor", "128,128,128");
+                return DTACnCNetClient_ini.GetStringValue(GENERAL, "WindowBorderColor", "128,128,128");
             }
         }
 
@@ -133,7 +137,7 @@ namespace ClientCore
         {
             get
             {
-                return DTACnCNetClient_ini.GetStringValue("General", "PanelBorderColor", "255,255,255");
+                return DTACnCNetClient_ini.GetStringValue(GENERAL, "PanelBorderColor", "255,255,255");
             }
         }
 
@@ -141,7 +145,7 @@ namespace ClientCore
         {
             get
             {
-                return DTACnCNetClient_ini.GetStringValue("General", "ListBoxHeaderColor", "255,255,255");
+                return DTACnCNetClient_ini.GetStringValue(GENERAL, "ListBoxHeaderColor", "255,255,255");
             }
         }
 
@@ -149,7 +153,7 @@ namespace ClientCore
         {
             get
             {
-                return DTACnCNetClient_ini.GetSingleValue("General", "AlphaRate", 0.005f);
+                return DTACnCNetClient_ini.GetSingleValue(GENERAL, "AlphaRate", 0.005f);
             }
         }
 
@@ -157,7 +161,7 @@ namespace ClientCore
         {
             get
             {
-                return DTACnCNetClient_ini.GetSingleValue("General", "CheckBoxAlphaRate", 0.05f);
+                return DTACnCNetClient_ini.GetSingleValue(GENERAL, "CheckBoxAlphaRate", 0.05f);
             }
         }
 
@@ -165,7 +169,7 @@ namespace ClientCore
         {
             get
             {
-                return DTACnCNetClient_ini.GetStringValue("General", "DefaultChatColor", "0,255,0");
+                return DTACnCNetClient_ini.GetStringValue(GENERAL, "DefaultChatColor", "0,255,0");
             }
         }
 
@@ -173,7 +177,7 @@ namespace ClientCore
         {
             get
             {
-                return DTACnCNetClient_ini.GetStringValue("General", "AdminNameColor", "255,0,0");
+                return DTACnCNetClient_ini.GetStringValue(GENERAL, "AdminNameColor", "255,0,0");
             }
         }
 
@@ -181,20 +185,20 @@ namespace ClientCore
         {
             get
             {
-                return DTACnCNetClient_ini.GetStringValue("General", "PrivateMessageOtherUserColor", "196,196,196");
+                return DTACnCNetClient_ini.GetStringValue(GENERAL, "PrivateMessageOtherUserColor", "196,196,196");
             }
         }
 
         public string SentPMColor
         {
-            get { return DTACnCNetClient_ini.GetStringValue("General", "PrivateMessageColor", "128,128,128"); }
+            get { return DTACnCNetClient_ini.GetStringValue(GENERAL, "PrivateMessageColor", "128,128,128"); }
         }
 
         public int DefaultPersonalChatColorIndex
         {
             get
             {
-                return DTACnCNetClient_ini.GetIntValue("General", "DefaultPersonalChatColorIndex", 0);
+                return DTACnCNetClient_ini.GetIntValue(GENERAL, "DefaultPersonalChatColorIndex", 0);
             }
         }
 
@@ -202,7 +206,7 @@ namespace ClientCore
         {
             get
             {
-                return DTACnCNetClient_ini.GetStringValue("General", "ListBoxFocusColor", "64,64,168");
+                return DTACnCNetClient_ini.GetStringValue(GENERAL, "ListBoxFocusColor", "64,64,168");
             }
         }
 
@@ -210,26 +214,26 @@ namespace ClientCore
         {
             get
             {
-                return DTACnCNetClient_ini.GetStringValue("General", "HoverOnGameColor", "32,32,84");
+                return DTACnCNetClient_ini.GetStringValue(GENERAL, "HoverOnGameColor", "32,32,84");
             }
         }
 
         public string MainMenuMusicName
         {
-            get { return DTACnCNetClient_ini.GetStringValue("General", "MainMenuTheme", "mainmenu"); }
+            get { return DTACnCNetClient_ini.GetStringValue(GENERAL, "MainMenuTheme", "mainmenu"); }
         }
 
         public int LoadingScreenCount
         {
             get
             {
-                return clientDefinitionsIni.GetIntValue("Settings", "LoadingScreenCount", 2);
+                return clientDefinitionsIni.GetIntValue(SETTINGS, "LoadingScreenCount", 2);
             }
         }
 
         public string GetSides()
         {
-            return gameOptions_ini.GetStringValue("General", "Sides", "GDI,Nod,Allies,Soviet");
+            return gameOptions_ini.GetStringValue(GENERAL, "Sides", "GDI,Nod,Allies,Soviet");
         }
 
         public int ThemeCount
@@ -244,7 +248,7 @@ namespace ClientCore
         {
             get
             {
-                return clientDefinitionsIni.GetStringValue("Settings", "LocalGame", "DTA");
+                return clientDefinitionsIni.GetStringValue(SETTINGS, "LocalGame", "DTA");
             }
         }
 
@@ -252,7 +256,7 @@ namespace ClientCore
         {
             get
             {
-                return clientDefinitionsIni.GetIntValue("Settings", "SendSleep", 2500);
+                return clientDefinitionsIni.GetIntValue(SETTINGS, "SendSleep", 2500);
             }
         }
 
@@ -260,7 +264,7 @@ namespace ClientCore
         {
             get
             {
-                return clientDefinitionsIni.GetBooleanValue("Settings", "SidebarHack", false);
+                return clientDefinitionsIni.GetBooleanValue(SETTINGS, "SidebarHack", false);
             }
         }
 
@@ -268,7 +272,7 @@ namespace ClientCore
         {
             get
             {
-                return clientDefinitionsIni.GetIntValue("Settings", "MinimumRenderWidth", 1280);
+                return clientDefinitionsIni.GetIntValue(SETTINGS, "MinimumRenderWidth", 1280);
             }
         }
 
@@ -276,7 +280,7 @@ namespace ClientCore
         {
             get
             {
-                return clientDefinitionsIni.GetIntValue("Settings", "MinimumRenderHeight", 768);
+                return clientDefinitionsIni.GetIntValue(SETTINGS, "MinimumRenderHeight", 768);
             }
         }
 
@@ -284,7 +288,7 @@ namespace ClientCore
         {
             get
             {
-                return clientDefinitionsIni.GetIntValue("Settings", "MaximumRenderWidth", 1280);
+                return clientDefinitionsIni.GetIntValue(SETTINGS, "MaximumRenderWidth", 1280);
             }
         }
 
@@ -292,7 +296,7 @@ namespace ClientCore
         {
             get
             {
-                return clientDefinitionsIni.GetIntValue("Settings", "MaximumRenderHeight", 800);
+                return clientDefinitionsIni.GetIntValue(SETTINGS, "MaximumRenderHeight", 800);
             }
         }
 
@@ -300,7 +304,7 @@ namespace ClientCore
         {
             get
             {
-                return clientDefinitionsIni.GetStringValue("Settings", "WindowTitle", string.Empty);
+                return clientDefinitionsIni.GetStringValue(SETTINGS, "WindowTitle", string.Empty);
             }
         }
 
@@ -308,7 +312,7 @@ namespace ClientCore
         {
             get
             {
-                return clientDefinitionsIni.GetStringValue("Settings", "RegistryInstallPath", "TiberianSun");
+                return clientDefinitionsIni.GetStringValue(SETTINGS, "RegistryInstallPath", "TiberianSun");
             }
         }
 
@@ -316,7 +320,7 @@ namespace ClientCore
         {
             get
             {
-                return clientDefinitionsIni.GetStringValue("Settings", "CnCNetLiveStatusIdentifier", "cncnet5_ts");
+                return clientDefinitionsIni.GetStringValue(SETTINGS, "CnCNetLiveStatusIdentifier", "cncnet5_ts");
             }
         }
 
@@ -324,7 +328,7 @@ namespace ClientCore
         {
             get
             {
-                return clientDefinitionsIni.GetStringValue("Settings", "BattleFSFileName", "BattleFS.ini");
+                return clientDefinitionsIni.GetStringValue(SETTINGS, "BattleFSFileName", "BattleFS.ini");
             }
         }
 
@@ -332,7 +336,7 @@ namespace ClientCore
         {
             get
             {
-                return clientDefinitionsIni.GetStringValue("Settings", "MapEditorExePath", "FinalSun\\FinalSun.exe");
+                return clientDefinitionsIni.GetStringValue(SETTINGS, "MapEditorExePath", "FinalSun\\FinalSun.exe");
             }
         }
 
@@ -340,7 +344,7 @@ namespace ClientCore
         {
             get
             {
-                return clientDefinitionsIni.GetBooleanValue("Settings", "ModMode", false);
+                return clientDefinitionsIni.GetBooleanValue(SETTINGS, "ModMode", false);
             }
         }
 
@@ -348,7 +352,7 @@ namespace ClientCore
         {
             get
             {
-                return clientDefinitionsIni.GetStringValue("Settings", "LongGameName", "Tiberian Sun");
+                return clientDefinitionsIni.GetStringValue(SETTINGS, "LongGameName", "Tiberian Sun");
             }
         }
 
@@ -356,7 +360,7 @@ namespace ClientCore
         {
             get
             {
-                return clientDefinitionsIni.GetStringValue("Settings", "LongSupportURL", "http://www.moddb.com/members/rampastring");
+                return clientDefinitionsIni.GetStringValue(SETTINGS, "LongSupportURL", "http://www.moddb.com/members/rampastring");
             }
         }
 
@@ -364,7 +368,7 @@ namespace ClientCore
         {
             get
             {
-                return clientDefinitionsIni.GetStringValue("Settings", "ShortSupportURL", "www.moddb.com/members/rampastring");
+                return clientDefinitionsIni.GetStringValue(SETTINGS, "ShortSupportURL", "www.moddb.com/members/rampastring");
             }
         }
 
@@ -372,7 +376,7 @@ namespace ClientCore
         {
             get
             {
-                return clientDefinitionsIni.GetStringValue("Settings", "ChangelogURL", "http://www.moddb.com/mods/the-dawn-of-the-tiberium-age/tutorials/change-log");
+                return clientDefinitionsIni.GetStringValue(SETTINGS, "ChangelogURL", "http://www.moddb.com/mods/the-dawn-of-the-tiberium-age/tutorials/change-log");
             }
         }
 
@@ -380,7 +384,7 @@ namespace ClientCore
         {
             get
             {
-                return clientDefinitionsIni.GetStringValue("Settings", "CreditsURL", "http://www.moddb.com/mods/the-dawn-of-the-tiberium-age/tutorials/credits#Rampastring");
+                return clientDefinitionsIni.GetStringValue(SETTINGS, "CreditsURL", "http://www.moddb.com/mods/the-dawn-of-the-tiberium-age/tutorials/credits#Rampastring");
             }
         }
 
@@ -388,23 +392,23 @@ namespace ClientCore
         {
             get
             {
-                return clientDefinitionsIni.GetStringValue("Settings", "FSIniPath", "FinalSun\\FinalSun.ini");
+                return clientDefinitionsIni.GetStringValue(SETTINGS, "FSIniPath", "FinalSun\\FinalSun.ini");
             }
         }
 
         public int MaxNameLength
         {
-            get { return clientDefinitionsIni.GetIntValue("Settings", "MaxNameLength", 16); }
+            get { return clientDefinitionsIni.GetIntValue(SETTINGS, "MaxNameLength", 16); }
         }
 
         public int MapCellSizeX
         {
-            get { return clientDefinitionsIni.GetIntValue("Settings", "MapCellSizeX", 48); }
+            get { return clientDefinitionsIni.GetIntValue(SETTINGS, "MapCellSizeX", 48); }
         }
 
         public int MapCellSizeY
         {
-            get { return clientDefinitionsIni.GetIntValue("Settings", "MapCellSizeY", 24); }
+            get { return clientDefinitionsIni.GetIntValue(SETTINGS, "MapCellSizeY", 24); }
         }
 
         public string[] GetThemeInfoFromIndex(int themeIndex)
@@ -417,7 +421,7 @@ namespace ClientCore
         {
             get
             {
-                return clientDefinitionsIni.GetStringValue("Settings", "SettingsFile", "Settings.ini");
+                return clientDefinitionsIni.GetStringValue(SETTINGS, "SettingsFile", "Settings.ini");
             }
         }
 
@@ -425,7 +429,7 @@ namespace ClientCore
         {
             get
             {
-                return clientDefinitionsIni.GetStringValue("Settings", "ExtraCommandLineParams", string.Empty);
+                return clientDefinitionsIni.GetStringValue(SETTINGS, "ExtraCommandLineParams", string.Empty);
             }
         }
 
@@ -433,7 +437,7 @@ namespace ClientCore
         {
             get
             {
-                return clientDefinitionsIni.GetStringValue("Settings", "MPMapsPath", "INI\\MPMaps.ini");
+                return clientDefinitionsIni.GetStringValue(SETTINGS, "MPMapsPath", "INI\\MPMaps.ini");
             }
         }
 
@@ -441,7 +445,7 @@ namespace ClientCore
         {
             get
             {
-                return clientDefinitionsIni.GetStringValue("Settings", "KeyboardINI", "Keyboard.ini");
+                return clientDefinitionsIni.GetStringValue(SETTINGS, "KeyboardINI", "Keyboard.ini");
             }
         }
 
@@ -452,15 +456,36 @@ namespace ClientCore
         {
             get
             {
-                return clientDefinitionsIni.GetStringValue("Settings", "DefaultKeyboardINI", "INI\\Keyboard.ini");
+                return clientDefinitionsIni.GetStringValue(SETTINGS, "DefaultKeyboardINI", "INI\\Keyboard.ini");
             }
         }
+
+        public int MinimumIngameWidth
+        {
+            get { return clientDefinitionsIni.GetIntValue(SETTINGS, "MinimumIngameWidth", 640); }
+        }
+
+        public int MinimumIngameHeight
+        {
+            get { return clientDefinitionsIni.GetIntValue(SETTINGS, "MinimumIngameHeight", 480); }
+        }
+
+        public int MaximumIngameWidth
+        {
+            get { return clientDefinitionsIni.GetIntValue(SETTINGS, "MaximumIngameWidth", 4096); }
+        }
+
+        public int MaximumIngameHeight
+        {
+            get { return clientDefinitionsIni.GetIntValue(SETTINGS, "MaximumIngameHeight", 4096); }
+        }
+
 
         public string ModDBURL
         {
             get
             {
-                return clientDefinitionsIni.GetStringValue("Links", "ModDB", "http://www.moddb.com/mods/the-dawn-of-the-tiberium-age");
+                return clientDefinitionsIni.GetStringValue(LINKS, "ModDB", "http://www.moddb.com/mods/the-dawn-of-the-tiberium-age");
             }
         }
 
@@ -468,7 +493,7 @@ namespace ClientCore
         {
             get
             {
-                return clientDefinitionsIni.GetStringValue("Links", "Facebook", "https://www.facebook.com/DawnOfTheTiberiumAge");
+                return clientDefinitionsIni.GetStringValue(LINKS, "Facebook", "https://www.facebook.com/DawnOfTheTiberiumAge");
             }
         }
 
@@ -476,7 +501,7 @@ namespace ClientCore
         {
             get
             {
-                return clientDefinitionsIni.GetStringValue("Links", "Youtube", "https://www.youtube.com/user/BittahCommander");
+                return clientDefinitionsIni.GetStringValue(LINKS, "Youtube", "https://www.youtube.com/user/BittahCommander");
             }
         }
 
@@ -484,7 +509,7 @@ namespace ClientCore
         {
             get
             {
-                return clientDefinitionsIni.GetStringValue("Links", "Twitter", "https://twitter.com/twistedins");
+                return clientDefinitionsIni.GetStringValue(LINKS, "Twitter", "https://twitter.com/twistedins");
             }
         }
 
@@ -492,7 +517,7 @@ namespace ClientCore
         {
             get
             {
-                return clientDefinitionsIni.GetStringValue("Links", "GooglePlus", "https://plus.google.com/104355642453949180849/");
+                return clientDefinitionsIni.GetStringValue(LINKS, "GooglePlus", "https://plus.google.com/104355642453949180849/");
             }
         }
 
@@ -500,7 +525,7 @@ namespace ClientCore
         {
             get
             {
-                return clientDefinitionsIni.GetStringValue("Links", "Forum", "http://www.ppmforums.com");
+                return clientDefinitionsIni.GetStringValue(LINKS, "Forum", "http://www.ppmforums.com");
             }
         }
 
@@ -508,26 +533,26 @@ namespace ClientCore
         {
             get
             {
-                return clientDefinitionsIni.GetStringValue("Links", "Homepage", "http://rampastring.cnc-comm.com");
+                return clientDefinitionsIni.GetStringValue(LINKS, "Homepage", "http://rampastring.cnc-comm.com");
             }
         }
 
         public bool CopyMissionsToSpawnmapINI
         {
-            get { return clientDefinitionsIni.GetBooleanValue("Settings", "CopyMissionsToSpawnmapINI", true); }
+            get { return clientDefinitionsIni.GetBooleanValue(SETTINGS, "CopyMissionsToSpawnmapINI", true); }
         }
 
         public string GetAllowedGameModes
         {
             get
             {
-                return clientDefinitionsIni.GetStringValue("Settings", "AllowedCustomGameModes", "Standard,Custom Map");
+                return clientDefinitionsIni.GetStringValue(SETTINGS, "AllowedCustomGameModes", "Standard,Custom Map");
             }
         }
 
         public string GetGameExecutableName()
         {
-            string[] exeNames = clientDefinitionsIni.GetStringValue("Settings", "GameExecutableNames", "Game.exe").Split(',');
+            string[] exeNames = clientDefinitionsIni.GetStringValue(SETTINGS, "GameExecutableNames", "Game.exe").Split(',');
 
             return exeNames[0];
         }
@@ -538,7 +563,7 @@ namespace ClientCore
         /// </summary>
         public string GetUnixGameExecutableName()
         {
-            return clientDefinitionsIni.GetStringValue("Settings", "UnixGameExecutableName", "wine-dta.sh");
+            return clientDefinitionsIni.GetStringValue(SETTINGS, "UnixGameExecutableName", "wine-dta.sh");
         }
 
         public OSVersion GetOperatingSystemVersion()

@@ -14,7 +14,7 @@ namespace DTAConfig
     class DirectDrawWrapper
     {
         /// <summary>
-        /// Creates a new Renderer instance and parses its configuration
+        /// Creates a new DirectDrawWrapper instance and parses its configuration
         /// from an INI file.
         /// </summary>
         /// <param name="internalName">The internal name of the renderer.</param>
@@ -37,6 +37,7 @@ namespace DTAConfig
         private string ddrawDLLPath;
         private string configFileName;
         private List<string> filesToCopy = new List<string>();
+        private List<OSVersion> disallowedOSList = new List<OSVersion>();
 
         public void Parse(IniSection section)
         {
@@ -50,6 +51,15 @@ namespace DTAConfig
 
             filesToCopy = section.GetStringValue("AdditionalFiles", string.Empty).Split(
                 new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries).ToList();
+
+            string[] disallowedOSs = section.GetStringValue("DisallowedOperatingSystems", string.Empty).Split(
+                new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+
+            foreach (string os in disallowedOSs)
+            {
+                OSVersion disallowedOS = (OSVersion)Enum.Parse(typeof(OSVersion), os.Trim());
+                disallowedOSList.Add(disallowedOS);
+            }
 
             if (!File.Exists(ProgramConstants.GetBaseResourcePath() + ddrawDLLPath))
                 throw new FileNotFoundException("File specified in DLLPath= for renderer '" + InternalName + "' does not exist!");

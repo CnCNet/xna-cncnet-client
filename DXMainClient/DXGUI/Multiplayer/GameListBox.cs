@@ -29,7 +29,6 @@ namespace DTAClient.DXGUI.Multiplayer
         }
 
         private int loadedGameTextWidth;
-        private int maxGameNameWidth;
 
         public List<GenericHostedGame> HostedGames;
 

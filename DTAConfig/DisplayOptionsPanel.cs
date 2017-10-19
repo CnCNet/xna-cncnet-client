@@ -18,6 +18,7 @@ namespace DTAConfig
     {
         private const int DRAG_DISTANCE_DEFAULT = 4;
         private const int ORIGINAL_RESOLUTION_WIDTH = 640;
+        private const string RENDERERS_INI = "Renderers.ini";
 
         public DisplayOptionsPanel(WindowManager windowManager, UserINISettings iniSettings)
             : base(windowManager, iniSettings)
@@ -35,6 +36,9 @@ namespace DTAConfig
         private XNAClientDropDown ddClientTheme;
 
         private List<FileSettingCheckBox> fileSettingCheckBoxes = new List<FileSettingCheckBox>();
+        private List<DirectDrawWrapper> renderers;
+
+        private int defaultRendererIndex;
 
 #if !YR
         private XNALabel lblCompatibilityFixes;
@@ -75,11 +79,12 @@ namespace DTAConfig
                 lblIngameResolution.ClientRectangle.Right + 12,
                 lblIngameResolution.ClientRectangle.Y - 2, 120, 19);
 
-#if TI
-            var resolutions = GetResolutions(800, 600, 4096, 4096);
-#else
-            var resolutions = GetResolutions(640, 480, 4096, 4096);
-#endif
+            var clientConfig = ClientConfiguration.Instance;
+
+            var resolutions = GetResolutions(clientConfig.MinimumIngameWidth, 
+                clientConfig.MinimumIngameHeight,
+                clientConfig.MaximumIngameWidth, clientConfig.MaximumIngameHeight);
+
             resolutions.Sort();
 
             foreach (var res in resolutions)
@@ -353,6 +358,29 @@ namespace DTAConfig
             {
                 resolutions.Add(new ScreenResolution(width, height));
             }
+        }
+
+        private void GetRenderers()
+        {
+            renderers = new List<DirectDrawWrapper>();
+
+            var renderersIni = new IniFile(ProgramConstants.GetBaseResourcePath() + RENDERERS_INI);
+
+            var keys = renderersIni.GetSectionKeys("Renderers");
+            if (keys == null)
+                throw new Exception("[Renderers] not found from Renderers.ini!");
+
+            foreach (string key in keys)
+            {
+                string internalName = renderersIni.GetStringValue("Renderers", key, string.Empty);
+
+                var ddWrapper = new DirectDrawWrapper(internalName, renderersIni);
+                renderers.Add(ddWrapper);
+            }
+
+            OSVersion osVersion = ClientConfiguration.Instance.GetOperatingSystemVersion();
+
+            defaultRendererIndex = renderersIni.GetIntValue("DefaultRendererIndexes", osVersion.ToString(), 0);
         }
 
 #if !YR
