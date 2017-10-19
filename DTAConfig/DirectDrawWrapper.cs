@@ -46,7 +46,7 @@ namespace DTAConfig
 
             UIName = section.GetStringValue("UIName", "Unnamed renderer");
             IsDxWnd = section.GetBooleanValue("IsDxWnd", false);
-            ddrawDLLPath = section.GetStringValue("DLLPath", string.Empty);
+            ddrawDLLPath = section.GetStringValue("DLLName", string.Empty);
             configFileName = section.GetStringValue("ConfigFileName", string.Empty);
 
             filesToCopy = section.GetStringValue("AdditionalFiles", string.Empty).Split(
@@ -61,8 +61,13 @@ namespace DTAConfig
                 disallowedOSList.Add(disallowedOS);
             }
 
-            if (!File.Exists(ProgramConstants.GetBaseResourcePath() + ddrawDLLPath))
+            if (!string.IsNullOrEmpty(ddrawDLLPath) && 
+                !File.Exists(ProgramConstants.GetBaseResourcePath() + ddrawDLLPath))
                 throw new FileNotFoundException("File specified in DLLPath= for renderer '" + InternalName + "' does not exist!");
+
+            if (!string.IsNullOrEmpty(configFileName) &&
+                !File.Exists(ProgramConstants.GetBaseResourcePath() + configFileName))
+                throw new FileNotFoundException("File specified in ConfigFileName= for renderer '" + InternalName + "' does not exist!");
 
             foreach (var file in filesToCopy)
             {
@@ -72,21 +77,40 @@ namespace DTAConfig
         }
 
         /// <summary>
+        /// Returns true if this wrapper is compatible with the given operating
+        /// system, otherwise false.
+        /// </summary>
+        /// <param name="os">The operating system.</param>
+        public bool IsCompatibleWithOS(OSVersion os)
+        {
+            return !disallowedOSList.Contains(os);
+        }
+
+        /// <summary>
         /// Applies the renderer's files to the game directory.
         /// </summary>
         public void Apply()
         {
-            File.Copy(ProgramConstants.GetBaseResourcePath() + ddrawDLLPath,
-                ProgramConstants.GamePath + "ddraw.dll", true);
+            if (!string.IsNullOrEmpty(ddrawDLLPath))
+            {
+                File.Copy(ProgramConstants.GetBaseResourcePath() + ddrawDLLPath,
+                    ProgramConstants.GamePath + "ddraw.dll", true);
+            }
+            else
+                File.Delete(ProgramConstants.GamePath + "ddraw.dll");
 
-            // Do not overwrite settings
-            File.Copy(ProgramConstants.GetBaseResourcePath() + configFileName,
-                ProgramConstants.GamePath + Path.GetFileName(configFileName));
+
+            if (!string.IsNullOrEmpty(configFileName))
+            {
+                // Do not overwrite settings
+                File.Copy(ProgramConstants.GetBaseResourcePath() + configFileName,
+                    ProgramConstants.GamePath + Path.GetFileName(configFileName));
+            }
 
             foreach (var file in filesToCopy)
             {
                 File.Copy(ProgramConstants.GetBaseResourcePath() + file,
-                    ProgramConstants.GamePath + Path.GetFileName(file));
+                    ProgramConstants.GamePath + Path.GetFileName(file), true);
             }
         }
 

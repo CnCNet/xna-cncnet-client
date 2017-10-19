@@ -38,7 +38,7 @@ namespace DTAConfig
         private List<FileSettingCheckBox> fileSettingCheckBoxes = new List<FileSettingCheckBox>();
         private List<DirectDrawWrapper> renderers;
 
-        private int defaultRendererIndex;
+        private string defaultRenderer;
 
 #if !YR
         private XNALabel lblCompatibilityFixes;
@@ -121,13 +121,30 @@ namespace DTAConfig
                 ddDetailLevel.ClientRectangle.Width,
                 ddDetailLevel.ClientRectangle.Height);
 
-            ddRenderer.AddItem("Default");
-            ddRenderer.AddItem("IE-DDRAW");
-            ddRenderer.AddItem("TS-DDRAW");
-            ddRenderer.AddItem("DDWrapper");
-            ddRenderer.AddItem("DxWnd");
-            if (ClientConfiguration.Instance.GetOperatingSystemVersion() == OSVersion.WINXP)
-                ddRenderer.AddItem("Software");
+            GetRenderers();
+
+            var localOS = ClientConfiguration.Instance.GetOperatingSystemVersion();
+
+            foreach (var renderer in renderers)
+            {
+                if (renderer.IsCompatibleWithOS(localOS))
+                {
+                    ddRenderer.AddItem(new XNADropDownItem()
+                    {
+                        Text = renderer.UIName,
+                        TextColor = UISettings.AltColor,
+                        Tag = renderer
+                    });
+                }
+            }
+
+            //ddRenderer.AddItem("Default");
+            //ddRenderer.AddItem("IE-DDRAW");
+            //ddRenderer.AddItem("TS-DDRAW");
+            //ddRenderer.AddItem("DDWrapper");
+            //ddRenderer.AddItem("DxWnd");
+            //if (ClientConfiguration.Instance.GetOperatingSystemVersion() == OSVersion.WINXP)
+            //    ddRenderer.AddItem("Software");
 
             chkWindowedMode = new XNAClientCheckBox(WindowManager);
             chkWindowedMode.Name = "chkWindowedMode";
@@ -380,7 +397,10 @@ namespace DTAConfig
 
             OSVersion osVersion = ClientConfiguration.Instance.GetOperatingSystemVersion();
 
-            defaultRendererIndex = renderersIni.GetIntValue("DefaultRendererIndexes", osVersion.ToString(), 0);
+            defaultRenderer = renderersIni.GetStringValue("DefaultRenderer", osVersion.ToString(), string.Empty);
+
+            if (defaultRenderer == null)
+                throw new Exception("Invalid or missing default renderer for operating system: " + osVersion);
         }
 
 #if !YR
@@ -598,9 +618,38 @@ namespace DTAConfig
             chkBorderlessWindowedMode.Checked = false;
         }
 
+        /// <summary>
+        /// Loads the user's preferred renderer.
+        /// </summary>
+        private void LoadRenderer()
+        {
+            OSVersion osVersion = ClientConfiguration.Instance.GetOperatingSystemVersion();
+
+            int defaultIndex = ddRenderer.Items.FindIndex(
+                r => ((DirectDrawWrapper)r.Tag).InternalName == defaultRenderer);
+
+            if (defaultIndex == -1)
+                defaultIndex = 0;
+
+            string renderer = UserINISettings.Instance.Renderer;
+
+            if (string.IsNullOrEmpty(renderer))
+            {
+                // Use default
+                ddRenderer.SelectedIndex = defaultIndex;
+            }
+            else
+            {
+                int index = ddRenderer.Items.FindIndex(
+                    r => ((DirectDrawWrapper)r.Tag).InternalName == renderer);
+
+                ddRenderer.SelectedIndex = index == -1 ? defaultIndex : index;
+            }
+        }
+
         public override void Load()
         {
-            GetRenderer();
+            LoadRenderer();
             ddDetailLevel.SelectedIndex = UserINISettings.Instance.DetailLevel;
 
             string currentRes = UserINISettings.Instance.IngameScreenWidth.Value +
@@ -610,12 +659,15 @@ namespace DTAConfig
 
             ddIngameResolution.SelectedIndex = index > -1 ? index : 0;
 
-            if (ddRenderer.SelectedItem.Text == "TS_DDRAW")
-            {
-                IniSettings.Win8CompatMode.Value = "No";
-            }
+            // Wonder what this "Win8CompatMode" actually does..
+            // Disabling it used to be TS-DDRAW only, but it was never enabled after 
+            // you had tried TS-DDRAW once, so most players probably have it always
+            // disabled anyway
+            IniSettings.Win8CompatMode.Value = "No";
 
-            if (ddRenderer.SelectedItem.Text != "DxWnd")
+            var renderer = (DirectDrawWrapper)ddRenderer.SelectedItem.Tag;
+
+            if (!renderer.IsDxWnd)
             {
                 chkWindowedMode.Checked = UserINISettings.Instance.WindowedMode;
                 chkBorderlessWindowedMode.Checked = UserINISettings.Instance.BorderlessWindowedMode;
@@ -702,11 +754,13 @@ namespace DTAConfig
             int dragDistance = ingameRes[0] / ORIGINAL_RESOLUTION_WIDTH * DRAG_DISTANCE_DEFAULT;
             IniSettings.DragDistance.Value = dragDistance;
 
+            var selectedRenderer = (DirectDrawWrapper)ddRenderer.SelectedItem.Tag;
+
             IniSettings.WindowedMode.Value = chkWindowedMode.Checked &&
-                ddRenderer.SelectedItem.Text != "DxWnd";
+                !selectedRenderer.IsDxWnd;
 
             IniSettings.BorderlessWindowedMode.Value = chkBorderlessWindowedMode.Checked &&
-                ddRenderer.SelectedItem.Text != "DxWnd";
+                !selectedRenderer.IsDxWnd;
 
             string[] clientResolution = ((string)ddClientResolution.SelectedItem.Tag).Split('x');
 
@@ -737,12 +791,20 @@ namespace DTAConfig
 
             fileSettingCheckBoxes.ForEach(chkBox => chkBox.Save());
 
-            string renderer = "Default";
+            foreach (var renderer in renderers)
+                renderer.Clean();
 
-            File.Delete(ProgramConstants.GamePath + "ddraw.dll");
-            File.Delete(ProgramConstants.GamePath + "libwine.dll");
-            File.Delete(ProgramConstants.GamePath + "wined3d.dll");
-            File.Delete(ProgramConstants.GamePath + "dxwnd.dll");
+            selectedRenderer.Apply();
+
+            if (selectedRenderer.IsDxWnd)
+            {
+                IniFile dxWndIni = new IniFile(ProgramConstants.GamePath + "dxwnd.ini");
+                dxWndIni.SetBooleanValue("DxWnd", "RunInWindow", chkWindowedMode.Checked);
+                dxWndIni.SetBooleanValue("DxWnd", "NoWindowFrame", chkBorderlessWindowedMode.Checked);
+                dxWndIni.WriteIniFile();
+            }
+
+            IniSettings.Renderer.Value = selectedRenderer.InternalName;
 
 #if !YR
             File.Delete(ProgramConstants.GamePath + "Language.dll");
@@ -755,96 +817,7 @@ namespace DTAConfig
                 File.Copy(ProgramConstants.GamePath + "Resources\\language_640x480.dll", ProgramConstants.GamePath + "Language.dll");
 #endif
 
-            switch (ddRenderer.SelectedIndex)
-            {
-                case 5:
-                    renderer = "Software";
-                    File.Copy(ProgramConstants.GamePath + "Resources\\ddraw_nohw.dll", ProgramConstants.GamePath + "ddraw.dll");
-                    break;
-                case 4:
-                    renderer = "DxWnd";
-                    File.Copy(ProgramConstants.GamePath + "Resources\\ddraw_dxwnd.dll", ProgramConstants.GamePath + "ddraw.dll");
-                    File.Copy(ProgramConstants.GamePath + "Resources\\dxwnd.dll", ProgramConstants.GamePath + "dxwnd.dll");
-                    if (!File.Exists(ProgramConstants.GamePath + "dxwnd.ini"))
-                    {
-                        File.Copy(ProgramConstants.GamePath + "Resources\\dxwnd.ini", ProgramConstants.GamePath + "dxwnd.ini");
-                    }
-
-                    IniFile dxWndIni = new IniFile(ProgramConstants.GamePath + "dxwnd.ini");
-                    dxWndIni.SetBooleanValue("DxWnd", "RunInWindow", chkWindowedMode.Checked);
-                    dxWndIni.SetBooleanValue("DxWnd", "NoWindowFrame", chkBorderlessWindowedMode.Checked);
-                    dxWndIni.WriteIniFile();
-
-                    break;
-                case 3:
-                    renderer = "DDWrapper";
-                    File.Copy(ProgramConstants.GamePath + "Resources\\ddwrapper.dll", ProgramConstants.GamePath + "ddraw.dll");
-                    if (!File.Exists(ProgramConstants.GamePath + "aqrit.cfg"))
-                        File.Copy(ProgramConstants.GamePath + "Resources\\aqrit.cfg", ProgramConstants.GamePath + "aqrit.cfg");
-                    break;
-                case 2:
-                    renderer = "TS_DDRAW";
-                    File.Copy(ProgramConstants.GamePath + "Resources\\ts_ddraw.dll", ProgramConstants.GamePath + "ddraw.dll");
-                    IniSettings.Win8CompatMode.Value = "No";
-                    break;
-                case 1:
-                    renderer = "IE_DDRAW";
-                    File.Copy(ProgramConstants.GamePath + "Resources\\ie_ddraw.dll", ProgramConstants.GamePath + "ddraw.dll");
-                    File.Copy(ProgramConstants.GamePath + "Resources\\libwine.dll", ProgramConstants.GamePath + "libwine.dll");
-                    File.Copy(ProgramConstants.GamePath + "Resources\\wined3d.dll", ProgramConstants.GamePath + "wined3d.dll");
-                    break;
-            }
-
-            IniSettings.Renderer.Value = renderer;
-
             return restartRequired;
-        }
-
-        /// <summary>
-        /// Loads the user's preferred renderer.
-        /// </summary>
-        private void GetRenderer()
-        {
-            OSVersion osVersion = ClientConfiguration.Instance.GetOperatingSystemVersion();
-
-            string renderer = UserINISettings.Instance.Renderer;
-
-            if (string.IsNullOrEmpty(renderer))
-            {
-                // Use defaults
-                if (osVersion == OSVersion.WIN810)
-                    renderer = "TS_DDRAW";
-                else
-                    renderer = "Default";
-            }
-
-            switch (renderer)
-            {
-                case "IE_DDRAW":
-                    ddRenderer.SelectedIndex = 1;
-                    break;
-                case "TS_DDRAW":
-                    ddRenderer.SelectedIndex = 2;
-                    break;
-                case "DDWrapper":
-                    ddRenderer.SelectedIndex = 3;
-                    break;
-                case "DxWnd":
-                    ddRenderer.SelectedIndex = 4;
-                    break;
-                case "Software":
-                    if (osVersion == OSVersion.WIN7 ||
-                        osVersion == OSVersion.WIN810 ||
-                        osVersion == OSVersion.WINVISTA)
-                        goto case "TS_DDRAW";
-                    else
-                        ddRenderer.SelectedIndex = 5;
-                    break;
-                case "Default":
-                default:
-                    ddRenderer.SelectedIndex = 0;
-                    break;
-            }
         }
 
         private List<ScreenResolution> GetResolutions(int minWidth, int minHeight, int maxWidth, int maxHeight)
