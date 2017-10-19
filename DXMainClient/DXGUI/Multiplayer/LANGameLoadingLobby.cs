@@ -64,32 +64,32 @@ namespace DTAClient.DXGUI.Multiplayer
         public event EventHandler<LobbyNotificationEventArgs> LobbyNotification;
         public event EventHandler<GameBroadcastEventArgs> GameBroadcast;
 
-        TcpListener listener;
-        TcpClient client;
+        private TcpListener listener;
+        private TcpClient client;
 
-        IPEndPoint hostEndPoint;
-        LANColor[] chatColors;
-        int chatColorIndex;
-        Encoding encoding;
+        private IPEndPoint hostEndPoint;
+        private LANColor[] chatColors;
+        private int chatColorIndex;
+        private Encoding encoding;
 
-        LANServerCommandHandler[] hostCommandHandlers;
-        LANClientCommandHandler[] playerCommandHandlers;
+        private LANServerCommandHandler[] hostCommandHandlers;
+        private LANClientCommandHandler[] playerCommandHandlers;
 
-        TimeSpan timeSinceGameBroadcast = TimeSpan.Zero;
+        private TimeSpan timeSinceGameBroadcast = TimeSpan.Zero;
 
-        TimeSpan timeSinceLastReceivedCommand = TimeSpan.Zero;
+        private TimeSpan timeSinceLastReceivedCommand = TimeSpan.Zero;
 
-        string overMessage = string.Empty;
+        private string overMessage = string.Empty;
 
-        string localGame;
+        private string localGame;
 
-        string localFileHash;
+        private string localFileHash;
 
-        List<GameMode> gameModes;
+        private List<GameMode> gameModes;
 
-        int loadedGameId;
+        private int loadedGameId;
 
-        bool started = false;
+        private bool started = false;
 
         public void SetUp(bool isHost,
             IPEndPoint hostEndPoint, TcpClient client,
@@ -245,6 +245,8 @@ namespace DTAClient.DXGUI.Multiplayer
             lpInfo.MessageReceived += LpInfo_MessageReceived;
             lpInfo.ConnectionLost += LpInfo_ConnectionLost;
 
+            sndJoinSound.Play();
+
             AddNotice(lpInfo.Name + " connected from " + lpInfo.IPAddress);
             lpInfo.StartReceiveLoop();
 
@@ -259,6 +261,8 @@ namespace DTAClient.DXGUI.Multiplayer
             Players.Remove(lpInfo);
 
             AddNotice(lpInfo.Name + " has left the game.");
+
+            sndLeaveSound.Play();
 
             CopyPlayerDataToUI();
             BroadcastOptions();
@@ -434,6 +438,8 @@ namespace DTAClient.DXGUI.Multiplayer
         {
             SendMessageToHost(CHAT_COMMAND + " " + chatColorIndex + 
                 ProgramConstants.LAN_DATA_SEPARATOR + message);
+
+            sndMessageSound.Play();
         }
 
         #region Server's command handlers
@@ -492,6 +498,8 @@ namespace DTAClient.DXGUI.Multiplayer
 
             lbChatMessages.AddMessage(new ChatMessage(playerName,
                 chatColors[colorIndex].XNAColor, DateTime.Now, parts[2]));
+
+            sndMessageSound.Play();
         }
 
         private void Client_HandleOptionsMessage(string data)

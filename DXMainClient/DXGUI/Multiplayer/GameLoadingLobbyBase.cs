@@ -41,9 +41,9 @@ namespace DTAClient.DXGUI.Multiplayer
         protected ChatListBox lbChatMessages;
         protected XNATextBox tbChatInput;
 
-        protected SoundEffectInstance sndJoinSound;
-        protected SoundEffectInstance sndLeaveSound;
-        protected SoundEffectInstance sndMessageSound;
+        protected PrioritizedSound sndJoinSound;
+        protected PrioritizedSound sndLeaveSound;
+        protected PrioritizedSound sndMessageSound;
 
         private XNALabel lblDescription;
         private XNAPanel panelPlayers;
@@ -190,18 +190,9 @@ namespace DTAClient.DXGUI.Multiplayer
 
             base.Initialize();
 
-            SoundEffect seJoinSound = AssetLoader.LoadSound("joingame.wav");
-            SoundEffect seLeaveSound = AssetLoader.LoadSound("leavegame.wav");
-            SoundEffect seMessageSound = AssetLoader.LoadSound("message.wav");
-
-            if (seJoinSound != null)
-                sndJoinSound = seJoinSound.CreateInstance();
-
-            if (seLeaveSound != null)
-                sndLeaveSound = seLeaveSound.CreateInstance();
-
-            if (seMessageSound != null)
-                sndMessageSound = seMessageSound.CreateInstance();
+            sndJoinSound = new PrioritizedSound("joingame.wav");
+            sndLeaveSound = new PrioritizedSound("leavegame.wav");
+            sndMessageSound = new PrioritizedSound("message.wav");
 
             MPColors = MultiplayerColor.LoadColors();
 
