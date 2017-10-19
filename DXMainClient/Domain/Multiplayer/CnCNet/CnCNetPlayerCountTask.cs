@@ -10,12 +10,13 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
     /// </summary>
     public static class CnCNetPlayerCountTask
     {
-        private static int REFRESH_INTERVAL = 10000; // 10 seconds
+        private static int REFRESH_INTERVAL = 60000; // 1 minute
 
         internal static event EventHandler<PlayerCountEventArgs> CnCNetGameCountUpdated;
 
         public static void InitializeService(CancellationTokenSource cts)
         {
+            CnCNetGameCountUpdated?.Invoke(null, new PlayerCountEventArgs(GetCnCNetPlayerCount()));
             ThreadPool.QueueUserWorkItem(new WaitCallback(RunService), cts);
         }
 
