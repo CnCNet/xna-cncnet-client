@@ -659,6 +659,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             var concatPlayerList = Players.Concat(AIPlayers);
 
+            // Go over the side array and either disable or enable the side
+            // dropdown options depending on whether the side is available
             for (int i = 0; i < disallowedSideArray.Length; i++)
             {
                 bool disabled = disallowedSideArray[i];
@@ -670,6 +672,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                         dd.Items[i + 1].Selectable = false;
                     }
 
+                    // Change the sides of players that use the disabled 
+                    // side to the default side
                     foreach (PlayerInfo pInfo in concatPlayerList)
                     {
                         if (pInfo.SideId == i + 1)
@@ -682,6 +686,16 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     {
                         dd.Items[i + 1].Selectable = true;
                     }
+                }
+            }
+
+            // If only 1 side is allowed, change all players' sides to that
+            if (allowedSideCount == 1)
+            {
+                foreach (PlayerInfo pInfo in concatPlayerList)
+                {
+                    if (pInfo.SideId == 0)
+                        pInfo.SideId = defaultSide;
                 }
             }
 
