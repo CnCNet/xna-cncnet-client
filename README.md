@@ -20,7 +20,7 @@ However, there is no limitation in the client that would prevent incorporating i
 Requirements
 ------------
 
-The client relies on either MonoGame or Microsoft's XNA Framework, depending on the build platform. Building the solution requires Visual Studio 2015 or newer. A modern version of MonoDevelop could also work.
+The client relies on either MonoGame or Microsoft's XNA Framework, depending on the build platform. Building the solution requires Visual Studio 2017. A modern version of MonoDevelop or Visual Studio for Mac could also work.
 
 
 * If you're building for Windows (Vista and newer), you can just clone the repository, open the solution with Visual Studio 2015 and compile it right away; the repository includes MonoGame and other necessary references for building for the MonoGame Windows (Vista and newer) platform.

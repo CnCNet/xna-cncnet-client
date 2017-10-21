@@ -38,70 +38,68 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             this.gameCollection = gameCollection;
         }
 
-        CnCNetManager connectionManager;
+        private CnCNetManager connectionManager;
 
-        XNAListBox lbPlayerList;
-        ChatListBox lbChatMessages;
-        GameListBox lbGameList;
-        XNAContextMenu playerContextMenu;
+        private XNAListBox lbPlayerList;
+        private ChatListBox lbChatMessages;
+        private GameListBox lbGameList;
+        private XNAContextMenu playerContextMenu;
 
-        LinkButton btnForums;
-        LinkButton btnTwitter;
-        LinkButton btnGooglePlus;
-        LinkButton btnYoutube;
-        LinkButton btnFacebook;
-        LinkButton btnModDB;
-        LinkButton btnHomepage;
+        private LinkButton btnForums;
+        private LinkButton btnTwitter;
+        private LinkButton btnGooglePlus;
+        private LinkButton btnYoutube;
+        private LinkButton btnFacebook;
+        private LinkButton btnModDB;
+        private LinkButton btnHomepage;
 
-        XNAClientButton btnLogout;
-        XNAClientButton btnNewGame;
-        XNAClientButton btnJoinGame;
+        private XNAClientButton btnLogout;
+        private XNAClientButton btnNewGame;
+        private XNAClientButton btnJoinGame;
 
-        XNATextBox tbChatInput;
+        private XNATextBox tbChatInput;
 
-        List<CnCNetTunnel> tunnelList = new List<CnCNetTunnel>();
+        private XNALabel lblColor;
+        private XNALabel lblCurrentChannel;
 
-        XNALabel lblColor;
-        XNALabel lblCurrentChannel;
+        private XNAClientDropDown ddColor;
+        private XNAClientDropDown ddCurrentChannel;
 
-        XNAClientDropDown ddColor;
-        XNAClientDropDown ddCurrentChannel;
+        private DarkeningPanel gameCreationPanel;
 
-        DarkeningPanel gameCreationPanel;
+        private Channel currentChatChannel;
 
-        Channel currentChatChannel;
+        private GameCollection gameCollection;
 
-        GameCollection gameCollection;
+        private Color cAdminNameColor;
 
-        Color cAdminNameColor;
+        private Texture2D unknownGameIcon;
+        private Texture2D adminGameIcon;
 
-        Texture2D unknownGameIcon;
-        Texture2D adminGameIcon;
+        private SoundEffectInstance sndGameCreated;
 
-        SoundEffectInstance sndGameCreated;
+        private IRCColor[] chatColors;
 
-        IRCColor[] chatColors;
+        private CnCNetGameLobby gameLobby;
+        private CnCNetGameLoadingLobby gameLoadingLobby;
 
-        CnCNetGameLobby gameLobby;
-        CnCNetGameLoadingLobby gameLoadingLobby;
+        private TunnelHandler tunnelHandler;
 
-        TunnelHandler tunnelHandler;
+        private CnCNetLoginWindow loginWindow;
 
-        CnCNetLoginWindow loginWindow;
+        private TopBar topBar;
 
-        TopBar topBar;
+        private PrivateMessagingWindow pmWindow;
 
-        PrivateMessagingWindow pmWindow;
+        private PasswordRequestWindow passwordRequestWindow;
 
-        PasswordRequestWindow passwordRequestWindow;
+        private bool isInGameRoom = false;
+        private bool updateDenied = false;
 
-        bool isInGameRoom = false;
-        bool updateDenied = false;
+        private string localGameID;
+        private CnCNetGame localGame;
 
-        string localGameID;
-        CnCNetGame localGame;
-
-        List<string> followedGames = new List<string>();
+        private List<string> followedGames = new List<string>();
 
         public override void Initialize()
         {
@@ -135,61 +133,75 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             btnLogout.Text = "Log Out";
             btnLogout.LeftClick += BtnLogout_LeftClick;
 
-            btnForums = new LinkButton(WindowManager);
-            btnForums.Name = "btnForums";
-            btnForums.ClientRectangle = new Rectangle(ClientRectangle.Width - 33, 12, 21, 21);
-            btnForums.IdleTexture = AssetLoader.LoadTexture("forumsInactive.png");
-            btnForums.HoverTexture = AssetLoader.LoadTexture("forumsActive.png");
-            btnForums.HoverSoundEffect = AssetLoader.LoadSound("button.wav");
-            btnForums.URL = ClientConfiguration.Instance.ForumURL;
+            btnForums = new LinkButton(WindowManager)
+            {
+                Name = "btnForums",
+                ClientRectangle = new Rectangle(ClientRectangle.Width - 33, 12, 21, 21),
+                IdleTexture = AssetLoader.LoadTexture("forumsInactive.png"),
+                HoverTexture = AssetLoader.LoadTexture("forumsActive.png"),
+                HoverSoundEffect = AssetLoader.LoadSound("button.wav"),
+                URL = ClientConfiguration.Instance.ForumURL
+            };
 
-            btnTwitter = new LinkButton(WindowManager);
-            btnTwitter.Name = "btnTwitter";
-            btnTwitter.ClientRectangle = new Rectangle(ClientRectangle.Width - 61, 12, 21, 21);
-            btnTwitter.IdleTexture = AssetLoader.LoadTexture("twitterInactive.png");
-            btnTwitter.HoverTexture = AssetLoader.LoadTexture("twitterActive.png");
-            btnTwitter.HoverSoundEffect = AssetLoader.LoadSound("button.wav");
-            btnTwitter.URL = ClientConfiguration.Instance.TwitterURL;
+            btnTwitter = new LinkButton(WindowManager)
+            {
+                Name = "btnTwitter",
+                ClientRectangle = new Rectangle(ClientRectangle.Width - 61, 12, 21, 21),
+                IdleTexture = AssetLoader.LoadTexture("twitterInactive.png"),
+                HoverTexture = AssetLoader.LoadTexture("twitterActive.png"),
+                HoverSoundEffect = AssetLoader.LoadSound("button.wav"),
+                URL = ClientConfiguration.Instance.TwitterURL
+            };
 
-            btnGooglePlus = new LinkButton(WindowManager);
-            btnGooglePlus.Name = "btnGooglePlus";
-            btnGooglePlus.ClientRectangle = new Rectangle(ClientRectangle.Width - 89, 12, 21, 21);
-            btnGooglePlus.IdleTexture = AssetLoader.LoadTexture("googlePlusInactive.png");
-            btnGooglePlus.HoverTexture = AssetLoader.LoadTexture("googlePlusActive.png");
-            btnGooglePlus.HoverSoundEffect = AssetLoader.LoadSound("button.wav");
-            btnGooglePlus.URL = ClientConfiguration.Instance.GooglePlusURL;
+            btnGooglePlus = new LinkButton(WindowManager)
+            {
+                Name = "btnGooglePlus",
+                ClientRectangle = new Rectangle(ClientRectangle.Width - 89, 12, 21, 21),
+                IdleTexture = AssetLoader.LoadTexture("googlePlusInactive.png"),
+                HoverTexture = AssetLoader.LoadTexture("googlePlusActive.png"),
+                HoverSoundEffect = AssetLoader.LoadSound("button.wav"),
+                URL = ClientConfiguration.Instance.GooglePlusURL
+            };
 
-            btnYoutube = new LinkButton(WindowManager);
-            btnYoutube.Name = "btnYoutube";
-            btnYoutube.ClientRectangle = new Rectangle(ClientRectangle.Width - 117, 12, 21, 21);
-            btnYoutube.IdleTexture = AssetLoader.LoadTexture("youtubeInactive.png");
-            btnYoutube.HoverTexture = AssetLoader.LoadTexture("youtubeActive.png");
-            btnYoutube.HoverSoundEffect = AssetLoader.LoadSound("button.wav");
-            btnYoutube.URL = ClientConfiguration.Instance.YoutubeURL;
+            btnYoutube = new LinkButton(WindowManager)
+            {
+                Name = "btnYoutube",
+                ClientRectangle = new Rectangle(ClientRectangle.Width - 117, 12, 21, 21),
+                IdleTexture = AssetLoader.LoadTexture("youtubeInactive.png"),
+                HoverTexture = AssetLoader.LoadTexture("youtubeActive.png"),
+                HoverSoundEffect = AssetLoader.LoadSound("button.wav"),
+                URL = ClientConfiguration.Instance.YoutubeURL
+            };
 
-            btnFacebook = new LinkButton(WindowManager);
-            btnFacebook.Name = "btnFacebook";
-            btnFacebook.ClientRectangle = new Rectangle(ClientRectangle.Width - 145, 12, 21, 21);
-            btnFacebook.IdleTexture = AssetLoader.LoadTexture("facebookInactive.png");
-            btnFacebook.HoverTexture = AssetLoader.LoadTexture("facebookActive.png");
-            btnFacebook.HoverSoundEffect = AssetLoader.LoadSound("button.wav");
-            btnFacebook.URL = ClientConfiguration.Instance.FacebookURL;
+            btnFacebook = new LinkButton(WindowManager)
+            {
+                Name = "btnFacebook",
+                ClientRectangle = new Rectangle(ClientRectangle.Width - 145, 12, 21, 21),
+                IdleTexture = AssetLoader.LoadTexture("facebookInactive.png"),
+                HoverTexture = AssetLoader.LoadTexture("facebookActive.png"),
+                HoverSoundEffect = AssetLoader.LoadSound("button.wav"),
+                URL = ClientConfiguration.Instance.FacebookURL
+            };
 
-            btnModDB = new LinkButton(WindowManager);
-            btnModDB.Name = "btnModDB";
-            btnModDB.ClientRectangle = new Rectangle(ClientRectangle.Width - 173, 12, 21, 21);
-            btnModDB.IdleTexture = AssetLoader.LoadTexture("moddbInactive.png");
-            btnModDB.HoverTexture = AssetLoader.LoadTexture("moddbActive.png");
-            btnModDB.HoverSoundEffect = AssetLoader.LoadSound("button.wav");
-            btnModDB.URL = ClientConfiguration.Instance.ModDBURL;
+            btnModDB = new LinkButton(WindowManager)
+            {
+                Name = "btnModDB",
+                ClientRectangle = new Rectangle(ClientRectangle.Width - 173, 12, 21, 21),
+                IdleTexture = AssetLoader.LoadTexture("moddbInactive.png"),
+                HoverTexture = AssetLoader.LoadTexture("moddbActive.png"),
+                HoverSoundEffect = AssetLoader.LoadSound("button.wav"),
+                URL = ClientConfiguration.Instance.ModDBURL
+            };
 
-            btnHomepage = new LinkButton(WindowManager);
-            btnHomepage.Name = "btnHomepage";
-            btnHomepage.ClientRectangle = new Rectangle(ClientRectangle.Width - 201, 12, 21, 21);
-            btnHomepage.IdleTexture = AssetLoader.LoadTexture("homepageInactive.png");
-            btnHomepage.HoverTexture = AssetLoader.LoadTexture("homepageActive.png");
-            btnHomepage.HoverSoundEffect = AssetLoader.LoadSound("button.wav");
-            btnHomepage.URL = ClientConfiguration.Instance.HomepageURL;
+            btnHomepage = new LinkButton(WindowManager)
+            {
+                Name = "btnHomepage",
+                ClientRectangle = new Rectangle(ClientRectangle.Width - 201, 12, 21, 21),
+                IdleTexture = AssetLoader.LoadTexture("homepageInactive.png"),
+                HoverTexture = AssetLoader.LoadTexture("homepageActive.png"),
+                HoverSoundEffect = AssetLoader.LoadSound("button.wav"),
+                URL = ClientConfiguration.Instance.HomepageURL
+            };
 
             lbGameList = new GameListBox(WindowManager, localGameID);
             lbGameList.Name = "lbGameList";
@@ -219,7 +231,6 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             playerContextMenu.Visible = false;
             playerContextMenu.AddItem("Private Message");
             playerContextMenu.AddItem("Add Friend");
-            // playerContextMenu.AddItem("Add to Ignore List"); TODO implement the ignore list
             playerContextMenu.OptionSelected += PlayerContextMenu_OptionSelected;
 
             lbChatMessages = new ChatListBox(WindowManager);
@@ -509,19 +520,11 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             string userName = currentChatChannel.Users[lbPlayerList.SelectedIndex].IRCUser.Name;
 
-            if (pmWindow.IsFriend(userName))
-            {
-                playerContextMenu.Items[1].Text = "Remove Friend";
-            }
-            else
-            {
-                playerContextMenu.Items[1].Text = "Add Friend";
-            }
+            playerContextMenu.Items[1].Text = pmWindow.IsFriend(userName) ? "Remove Friend" : "Add Friend";
 
             Point cursorPoint = GetCursorPoint();
 
-            playerContextMenu.Enabled = true;
-            playerContextMenu.Visible = true;
+            playerContextMenu.Enable();
             playerContextMenu.ClientRectangle = new Rectangle(cursorPoint.X, cursorPoint.Y,
                 playerContextMenu.ClientRectangle.Width, playerContextMenu.ClientRectangle.Height);
 

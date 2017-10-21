@@ -39,7 +39,11 @@ namespace DTAConfig
         private List<string> filesToCopy = new List<string>();
         private List<OSVersion> disallowedOSList = new List<OSVersion>();
 
-        public void Parse(IniSection section)
+        /// <summary>
+        /// Reads the properties of this DirectDrawWrapper from an INI section.
+        /// </summary>
+        /// <param name="section">The INI section.</param>
+        private void Parse(IniSection section)
         {
             if (section == null)
                 throw new ArgumentException("Configuration for renderer '" + InternalName + "' not found!");
