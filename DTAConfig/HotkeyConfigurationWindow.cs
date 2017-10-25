@@ -76,8 +76,6 @@ namespace DTAConfig
             new GameCommand("Sidebar Up", CATEGORY_SIDEBAR, "Scroll the sidebar up.", "SidebarUp"),
             new GameCommand("Sidebar Down", CATEGORY_SIDEBAR, "Scroll the sidebar down.", "SidebarDown"),
 
-            new GameCommand("Next Unit", CATEGORY_SELECTION, "Select the next unit.", "NextObject"),
-            new GameCommand("Previous Unit", CATEGORY_SELECTION, "Select the previous unit.", "PreviousObject"),
             new GameCommand("Select Same Type", CATEGORY_SELECTION, "Select all units on the screen that are the type of your currently selected units.", "SelectType"),
             new GameCommand("Select View", CATEGORY_SELECTION, "Select all units on the screen.", "SelectView"),
 
@@ -115,6 +113,9 @@ namespace DTAConfig
             new GameCommand("FPS Counter", CATEGORY_DEVELOPMENT, "Toggles FPS counter that shows current and average frames per second.", "FPS Counter"),
             new GameCommand("Map Snapshot", CATEGORY_DEVELOPMENT, "Saves the currently played map in game directory.", "MapSnapshot"),
 #endif
+
+            new GameCommand("Next Unit", CATEGORY_SELECTION, "Select the next unit.", "NextObject"),
+            new GameCommand("Previous Unit", CATEGORY_SELECTION, "Select the previous unit.", "PreviousObject"),
 
             new GameCommand("Center View", CATEGORY_INTERFACE, "Center the camera to the selected objects.", "CenterView"),
             new GameCommand("Options Menu", CATEGORY_INTERFACE, "Open the in-game Options menu.", "Options"),
