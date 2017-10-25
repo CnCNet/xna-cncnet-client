@@ -43,7 +43,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         private XNAListBox lbPlayerList;
         private ChatListBox lbChatMessages;
         private GameListBox lbGameList;
-        private XNAContextMenu playerContextMenu;
+        private PlayerContextMenu playerContextMenu;
 
         private LinkButton btnForums;
         private LinkButton btnTwitter;
@@ -224,7 +224,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             lbPlayerList.DoubleLeftClick += LbPlayerList_DoubleLeftClick;
             lbPlayerList.RightClick += LbPlayerList_RightClick;
 
-            playerContextMenu = new XNAContextMenu(WindowManager);
+            playerContextMenu = new PlayerContextMenu(WindowManager);
             playerContextMenu.Name = "playerContextMenu";
             playerContextMenu.ClientRectangle = new Rectangle(0, 0, 150, 2);
             playerContextMenu.Enabled = false;
@@ -522,30 +522,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             playerContextMenu.Items[1].Text = pmWindow.IsFriend(userName) ? "Remove Friend" : "Add Friend";
 
-            Point cursorPoint = GetCursorPoint();
-
-            playerContextMenu.Enable();
-            playerContextMenu.ClientRectangle = new Rectangle(cursorPoint.X, cursorPoint.Y,
-                playerContextMenu.ClientRectangle.Width, playerContextMenu.ClientRectangle.Height);
-
-            // Position context menu so it never gets outside of the window borders
-
-            if (playerContextMenu.ClientRectangle.Right > ClientRectangle.Width)
-            {
-                playerContextMenu.ClientRectangle = new Rectangle(
-                    cursorPoint.X - playerContextMenu.ClientRectangle.Width,
-                    playerContextMenu.ClientRectangle.Y, playerContextMenu.ClientRectangle.Width,
-                    playerContextMenu.ClientRectangle.Height);
-            }
-
-            if (playerContextMenu.ClientRectangle.Bottom > ClientRectangle.Height)
-            {
-                playerContextMenu.ClientRectangle = new Rectangle(
-                    playerContextMenu.ClientRectangle.X,
-                    cursorPoint.Y - playerContextMenu.ClientRectangle.Height,
-                    playerContextMenu.ClientRectangle.Width,
-                    playerContextMenu.ClientRectangle.Height);
-            }
+            playerContextMenu.Show();
         }
 
         private void PlayerContextMenu_OptionSelected(object sender, ContextMenuOptionEventArgs e)
@@ -564,14 +541,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                     pmWindow.InitPM(userName);
                     break;
                 case 1:
-                    if (pmWindow.IsFriend(userName))
-                        pmWindow.RemoveFriend(userName);
-                    else
-                        pmWindow.AddFriend(userName);
-
-                    break;
-                case 2:
-                    pmWindow.Ignore(userName);
+                    pmWindow.ToggleFriend(userName);
                     break;
             }
         }

@@ -18,9 +18,9 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 {
     internal class PrivateMessagingWindow : XNAWindow, ISwitchable
     {
-        const int ALL_PLAYERS_VIEW_INDEX = 2;
-        const int FRIEND_LIST_VIEW_INDEX = 1;
-        const string FRIEND_LIST_PATH = "Client\\friend_list";
+        private const int ALL_PLAYERS_VIEW_INDEX = 2;
+        private const int FRIEND_LIST_VIEW_INDEX = 1;
+        private const string FRIEND_LIST_PATH = "Client\\friend_list";
 
         public PrivateMessagingWindow(WindowManager windowManager,
             CnCNetManager connectionManager, GameCollection gameCollection) : base(windowManager)
@@ -180,6 +180,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         XNATextBox tbMessageInput;
 
+        PlayerContextMenu playerContextMenu;
+
         CnCNetManager connectionManager;
 
         GameCollection gameCollection;
@@ -258,6 +260,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             lbUserList.ClientRectangle = new Rectangle(lblPlayers.ClientRectangle.X, 
                 lblPlayers.ClientRectangle.Bottom + 6,
                 150, ClientRectangle.Height - lblPlayers.ClientRectangle.Bottom - 18);
+            lbUserList.RightClick += LbUserList_RightClick;
             lbUserList.SelectedIndexChanged += LbUserList_SelectedIndexChanged;
             lbUserList.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 128), 1, 1);
             lbUserList.DrawMode = PanelBackgroundImageDrawMode.STRETCHED;
@@ -286,6 +289,14 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             tbMessageInput.MaximumTextLength = 200;
             tbMessageInput.Enabled = false;
 
+            playerContextMenu = new PlayerContextMenu(WindowManager);
+            playerContextMenu.Name = "playerContextMenu";
+            playerContextMenu.ClientRectangle = new Rectangle(0, 0, 150, 2);
+            playerContextMenu.Enabled = false;
+            playerContextMenu.Visible = false;
+            playerContextMenu.AddItem("Add Friend");
+            playerContextMenu.OptionSelected += PlayerContextMenu_OptionSelected;
+
             notificationBox = new PrivateMessageNotificationBox(WindowManager);
             notificationBox.Enabled = false;
             notificationBox.Visible = false;
@@ -296,6 +307,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             AddChild(lblMessages);
             AddChild(lbMessages);
             AddChild(tbMessageInput);
+            AddChild(playerContextMenu);
             WindowManager.AddAndInitializeControl(notificationBox);
 
             base.Initialize();
@@ -333,6 +345,37 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             }
 
             GameProcessLogic.GameProcessExited += SharedUILogic_GameProcessExited;
+        }
+
+        private void LbUserList_RightClick(object sender, EventArgs e)
+        {
+            lbUserList.SelectedIndex = lbUserList.HoveredIndex;
+
+            if (lbUserList.SelectedIndex < 0 ||
+                lbUserList.SelectedIndex >= lbUserList.Items.Count)
+            {
+                return;
+            }
+
+            playerContextMenu.Items[0].Text = IsFriend(lbUserList.SelectedItem.Text) ? "Remove Friend" : "Add Friend";
+
+            playerContextMenu.Show();
+        }
+
+        private void PlayerContextMenu_OptionSelected(object sender, ContextMenuOptionEventArgs e)
+        {
+            var lbItem = lbUserList.SelectedItem;
+
+            if (lbItem == null)
+            {
+                return;
+            }
+
+            ToggleFriend(lbItem.Text);
+
+            // lazy solution, but friends are removed rarely so it shouldn't bother players too much
+            if (tabControl.SelectedTab == FRIEND_LIST_VIEW_INDEX)
+                TabControl_SelectedIndexChanged(this, EventArgs.Empty); 
         }
 
         private void SharedUILogic_GameProcessExited()
@@ -522,7 +565,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 privateMessageUsers.ForEach(pmsgUser => AddPlayerToList(pmsgUser.IrcUser, 
                     connectionManager.UserList.Find(u => u.Name == pmsgUser.IrcUser.Name) != null));
             }
-            else if (tabControl.SelectedTab == 1)
+            else if (tabControl.SelectedTab == FRIEND_LIST_VIEW_INDEX)
             {
                 foreach (string friendName in friendList)
                 {
@@ -641,6 +684,19 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         public bool IsFriend(string name)
         {
             return friendList.Contains(name);
+        }
+
+        /// <summary>
+        /// Adds or removes an user from the friend list depending on whether
+        /// they already are on the friend list.
+        /// </summary>
+        /// <param name="name">The name of the user.</param>
+        public void ToggleFriend(string name)
+        {
+            if (IsFriend(name))
+                RemoveFriend(name);
+            else
+                AddFriend(name);
         }
 
         /// <summary>
