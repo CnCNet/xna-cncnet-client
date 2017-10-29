@@ -42,7 +42,7 @@ namespace ClientCore
             const string WINDOWED_MODE_KEY = "Video.Windowed";
             BackBufferInVRAM = new BoolSetting(iniFile, VIDEO, "VideoBackBuffer", false);
 #elif YR
-            const string WINDOWED_MODE_KEY = "Windowed";
+            const string WINDOWED_MODE_KEY = "Video.Windowed";
             BackBufferInVRAM = new BoolSetting(iniFile, VIDEO, "VideoBackBuffer", false);
 #else
             const string WINDOWED_MODE_KEY = "Video.Windowed";
