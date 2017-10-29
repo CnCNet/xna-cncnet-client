@@ -633,7 +633,16 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     pInfo.Name = AILevelToName(converted);
                 }
                 else
+                {
                     pInfo.Name = pName;
+
+                    // If we can't find the player from the channel user list,
+                    // ignore the player
+                    // They've either left the channel or got kicked before the 
+                    // player options message reached us
+                    if (channel.Users.Find(cu => cu.IRCUser.Name == pName) == null)
+                        continue;
+                }
 
                 if (parts.Length <= i + 1)
                 {

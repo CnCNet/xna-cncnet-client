@@ -226,7 +226,7 @@ namespace DTAClient.Online
         /// <param name="priority">The priority of the message in the send queue.</param>
         public void SendKickMessage(string userName, int priority)
         {
-            connection.QueueMessage(QueuedMessageType.SYSTEM_MESSAGE, priority, "KICK " + ChannelName + " " + userName);
+            connection.QueueMessage(QueuedMessageType.INSTANT_MESSAGE, priority, "KICK " + ChannelName + " " + userName);
         }
 
         /// <summary>
@@ -236,7 +236,7 @@ namespace DTAClient.Online
         /// <param name="priority">The priority of the message in the send queue.</param>
         public void SendBanMessage(string host, int priority)
         {
-            connection.QueueMessage(QueuedMessageType.SYSTEM_MESSAGE, priority,
+            connection.QueueMessage(QueuedMessageType.INSTANT_MESSAGE, priority,
                 string.Format("MODE {0} +b *!*@{1}", ChannelName, host));
         }
 
