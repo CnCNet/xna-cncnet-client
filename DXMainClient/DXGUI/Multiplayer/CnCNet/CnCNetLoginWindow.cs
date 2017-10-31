@@ -47,10 +47,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             tbPlayerName = new XNATextBox(WindowManager);
             tbPlayerName.Name = "tbPlayerName";
             tbPlayerName.ClientRectangle = new Rectangle(ClientRectangle.Width - 132, 50, 120, 19);
-            tbPlayerName.MaximumTextLength = 16;
+            tbPlayerName.MaximumTextLength = ClientConfiguration.Instance.MaxNameLength;
             string defgame = ClientConfiguration.Instance.LocalGame;
-            if (defgame == "YR" || defgame == "MO")
-                tbPlayerName.MaximumTextLength = 12; // YR can't handle names longer than 12 chars
 
             lblPlayerName = new XNALabel(WindowManager);
             lblPlayerName.Name = "lblPlayerName";
