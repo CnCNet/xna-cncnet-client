@@ -711,16 +711,36 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 gameLoadingLobby.SetUp(false, hg.TunnelServer, gameChannel, hg.HostName);
                 gameChannel.UserAdded += GameLoadingChannel_UserAdded;
                 gameChannel.MessageAdded += GameLoadingChannel_MessageAdded;
+                gameChannel.InvalidPasswordEntered += GameChannel_InvalidPasswordEntered_LoadedGame;
             }
             else
             {
                 gameLobby.SetUp(gameChannel, false, hg.MaxPlayers, hg.TunnelServer, hg.HostName, hg.Passworded);
                 gameChannel.UserAdded += GameChannel_UserAdded;
                 gameChannel.MessageAdded += GameChannel_MessageAdded;
+                gameChannel.InvalidPasswordEntered += GameChannel_InvalidPasswordEntered_NewGame;
             }
 
             connectionManager.SendCustomMessage(new QueuedMessage("JOIN " + hg.ChannelName + " " + password,
                 QueuedMessageType.INSTANT_MESSAGE, 0));
+        }
+
+        private void GameChannel_InvalidPasswordEntered_LoadedGame(object sender, EventArgs e)
+        {
+            var channel = (Channel)sender;
+            channel.UserAdded -= GameLoadingChannel_UserAdded;
+            channel.MessageAdded -= GameLoadingChannel_MessageAdded;
+            channel.InvalidPasswordEntered -= GameChannel_InvalidPasswordEntered_LoadedGame;
+            gameLoadingLobby.Clear();
+        }
+
+        private void GameChannel_InvalidPasswordEntered_NewGame(object sender, EventArgs e)
+        {
+            var channel = (Channel)sender;
+            channel.UserAdded -= GameChannel_UserAdded;
+            channel.MessageAdded -= GameChannel_MessageAdded;
+            channel.InvalidPasswordEntered -= GameChannel_InvalidPasswordEntered_NewGame;
+            gameLobby.Clear();
         }
 
         private void BtnNewGame_LeftClick(object sender, EventArgs e)

@@ -442,6 +442,10 @@ namespace DTAClient.Online
         private void DoIncorrectChannelPassword(string channelName)
         {
             MainChannel.AddMessage(new ChatMessage(null, Color.White, DateTime.Now, "Incorrect password!"));
+
+            var channel = channels.Find(c => c.ChannelName == channelName);
+            if (channel != null)
+                channel.OnInvalidJoinPassword();
         }
 
         public void OnNoticeMessageParsed(string notice, string userName)

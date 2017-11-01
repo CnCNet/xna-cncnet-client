@@ -22,6 +22,7 @@ namespace DTAClient.Online
         public event EventHandler<IRCMessageEventArgs> MessageAdded;
         public event EventHandler<ChannelModeEventArgs> ChannelModesChanged;
         public event EventHandler<ChannelCTCPEventArgs> CTCPReceived;
+        public event EventHandler InvalidPasswordEntered;
 
         public Channel(string uiName, string channelName, bool persistent, string password, Connection connection)
         {
@@ -188,6 +189,11 @@ namespace DTAClient.Online
         public void OnCTCPReceived(string userName, string message)
         {
             CTCPReceived?.Invoke(this, new ChannelCTCPEventArgs(userName, message));
+        }
+
+        public void OnInvalidJoinPassword()
+        {
+            InvalidPasswordEntered?.Invoke(this, EventArgs.Empty);
         }
 
         public void AddMessage(ChatMessage message)

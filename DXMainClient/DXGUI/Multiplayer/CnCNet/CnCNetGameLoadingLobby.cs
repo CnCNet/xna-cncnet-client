@@ -163,6 +163,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             if (channel != null)
             {
+                // TODO leave channel only if we've joined the channel
                 channel.Leave();
 
                 channel.MessageAdded -= Channel_MessageAdded;
@@ -466,7 +467,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             pInfo.Ready = false;
 
-            AddNotice(pInfo.Name + " does not have the selected saved game on their system!");
+            AddNotice(pInfo.Name + " does not have the selected saved game on their system! Try selecting an earlier saved game.");
 
             CopyPlayerDataToUI();
         }

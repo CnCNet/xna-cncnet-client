@@ -425,7 +425,6 @@ namespace DTAClient.Online
                             connectionManager.OnBannedFromChannel(parameters[1]);
                             break;
                         case 475: // Returned when attempting to join a key-locked channel either without a key or with the wrong key
-                            string invalidPasswordChannelName = parameters[1];
                             connectionManager.OnIncorrectChannelPassword(parameters[1]);
                             break;
                     }
