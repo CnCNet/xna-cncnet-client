@@ -18,6 +18,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 {
     public class CnCNetGameLobby : MultiplayerGameLobby
     {
+        private const int HUMAN_PLAYER_OPTIONS_LENGTH = 3;
+        private const int AI_PLAYER_OPTIONS_LENGTH = 2;
+
         private const double GAME_BROADCAST_INTERVAL = 30.0;
         private const double GAME_BROADCAST_ACCELERATION = 10.0;
         private const double INITIAL_GAME_BROADCAST_DELAY = 10.0;
@@ -619,7 +622,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             AIPlayers.Clear();
 
             string[] parts = message.Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
-            for (int i = 0; i < parts.Length; i++)
+            for (int i = 0; i < parts.Length;)
             {
                 PlayerInfo pInfo = new PlayerInfo();
 
@@ -641,7 +644,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     // They've either left the channel or got kicked before the 
                     // player options message reached us
                     if (channel.Users.Find(cu => cu.IRCUser.Name == pName) == null)
+                    {
+                        i += HUMAN_PLAYER_OPTIONS_LENGTH;
                         continue;
+                    }
                 }
 
                 if (parts.Length <= i + 1)
@@ -681,7 +687,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 {
                     pInfo.Ready = true;
                     AIPlayers.Add(pInfo);
-                    i++;
+                    i += AI_PLAYER_OPTIONS_LENGTH;
                 }
                 else
                 {
@@ -696,7 +702,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     pInfo.Ready = readyStatus > 0;
 
                     Players.Add(pInfo);
-                    i += 2;
+                    i += HUMAN_PLAYER_OPTIONS_LENGTH;
                 }
             }
 
