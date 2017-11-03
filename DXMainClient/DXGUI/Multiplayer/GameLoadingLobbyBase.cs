@@ -41,6 +41,7 @@ namespace DTAClient.DXGUI.Multiplayer
         protected ChatListBox lbChatMessages;
         protected XNATextBox tbChatInput;
 
+        protected PrioritizedSound sndGetReady;
         protected PrioritizedSound sndJoinSound;
         protected PrioritizedSound sndLeaveSound;
         protected PrioritizedSound sndMessageSound;
@@ -190,6 +191,7 @@ namespace DTAClient.DXGUI.Multiplayer
 
             base.Initialize();
 
+            sndGetReady = new PrioritizedSound("getready.wav");
             sndJoinSound = new PrioritizedSound("joingame.wav");
             sndLeaveSound = new PrioritizedSound("leavegame.wav");
             sndMessageSound = new PrioritizedSound("message.wav");
@@ -260,6 +262,7 @@ namespace DTAClient.DXGUI.Multiplayer
         protected virtual void GetReadyNotification()
         {
             AddNotice("The game host wants to load the game but cannot because not all players are ready!");
+            SoundPlayer.Play(sndGetReady);
 
             WindowManager.FlashWindow();
         }
