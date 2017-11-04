@@ -84,9 +84,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private IniFile gameOptionsIni;
 
-        private SoundEffectInstance sndClickSound;
+        private PrioritizedSound sndClickSound;
 
-        private SoundEffectInstance sndDropdownSound;
+        private PrioritizedSound sndDropdownSound;
 
         public override void Initialize()
         {
@@ -141,13 +141,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             ClientRectangleUpdated += MapPreviewBox_ClientRectangleUpdated;
 
-            SoundEffect seButton = AssetLoader.LoadSound("button.wav");
-            if (seButton != null)
-                sndClickSound = seButton.CreateInstance();
+            sndClickSound = new PrioritizedSound("button.wav");
 
-            SoundEffect seDropdown = AssetLoader.LoadSound("dropdown.wav");
-            if (seDropdown != null)
-                sndDropdownSound = seDropdown.CreateInstance();
+            sndDropdownSound = new PrioritizedSound("dropdown.wav");
 
             base.Initialize();
         }
@@ -159,8 +155,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private void ContextMenu_OptionSelected(object sender, ContextMenuOptionEventArgs e)
         {
-            if (sndDropdownSound != null)
-                AudioMaster.PlaySound(sndDropdownSound);
+            SoundPlayer.Play(sndDropdownSound);
 
             if (Map.EnforceMaxPlayers)
             {
@@ -197,8 +192,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             var indicator = (PlayerLocationIndicator)sender;
 
-            if (sndClickSound != null)
-                AudioMaster.PlaySound(sndClickSound);
+            SoundPlayer.Play(sndClickSound);
 
             if (!EnableContextMenu)
             {

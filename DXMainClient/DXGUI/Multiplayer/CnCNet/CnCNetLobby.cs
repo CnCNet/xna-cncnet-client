@@ -76,7 +76,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         private Texture2D unknownGameIcon;
         private Texture2D adminGameIcon;
 
-        private SoundEffectInstance sndGameCreated;
+        private PrioritizedSound sndGameCreated;
 
         private IRCColor[] chatColors;
 
@@ -391,10 +391,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         private void PostUIInit()
         {
-            SoundEffect gameCreatedSoundEffect = AssetLoader.LoadSound("gamecreated.wav");
-
-            if (gameCreatedSoundEffect != null)
-                sndGameCreated = gameCreatedSoundEffect.CreateInstance();
+            sndGameCreated = new PrioritizedSound("gamecreated.wav");
 
             cAdminNameColor = AssetLoader.GetColorFromString(ClientConfiguration.Instance.AdminNameColor);
             unknownGameIcon = AssetLoader.TextureFromImage(ClientCore.Properties.Resources.unknownicon);
@@ -1187,7 +1184,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                         cncnetGame.InternalName == localGameID.ToLower() &&
                         !ProgramConstants.IsInGame)
                     {
-                        AudioMaster.PlaySound(sndGameCreated);
+                        SoundPlayer.Play(sndGameCreated);
                     }
 
                     lbGameList.AddGame(game);
