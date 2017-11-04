@@ -27,7 +27,7 @@ namespace DTAClient.Online
         public Channel(string uiName, string channelName, bool persistent, string password, Connection connection)
         {
             UIName = uiName;
-            ChannelName = channelName;
+            ChannelName = channelName.ToLowerInvariant();
             Persistent = persistent;
             Password = password;
             this.connection = connection;

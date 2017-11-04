@@ -135,7 +135,18 @@ namespace DTAClient.Online
 
         public void AddChannel(Channel channel)
         {
+            if (channels.Find(c => c.ChannelName == channel.ChannelName) != null)
+                throw new Exception("The channel already exists!");
+
             channels.Add(channel);
+        }
+
+        public void RemoveChannel(Channel channel)
+        {
+            if (channel.Persistent)
+                throw new Exception("Persistent channels cannot be removed.");
+
+            channels.Remove(channel);
         }
 
         public IRCColor[] GetIRCColors()
@@ -218,7 +229,7 @@ namespace DTAClient.Online
 
         private void DoChannelModesChanged(string userName, string channelName, string modeString)
         {
-            Channel channel = channels.Find(c => c.ChannelName == channelName);
+            Channel channel = FindChannel(channelName);
 
             if (channel == null)
                 return;
@@ -233,7 +244,7 @@ namespace DTAClient.Online
 
         private void DoChannelTopicReceived(string channelName, string topic)
         {
-            Channel channel = channels.Find(c => c.ChannelName == channelName);
+            Channel channel = FindChannel(channelName);
 
             if (channel == null)
                 return;
@@ -249,7 +260,7 @@ namespace DTAClient.Online
 
         private void DoChatMessageReceived(string receiver, string sender, string message)
         {
-            Channel channel = channels.Find(c => c.ChannelName == receiver);
+            Channel channel = FindChannel(receiver);
 
             if (channel == null)
                 return;
@@ -309,7 +320,7 @@ namespace DTAClient.Online
 
         private void DoCTCPParsed(string channelName, string userName, string message)
         {
-            Channel channel = channels.Find(c => c.ChannelName == channelName);
+            Channel channel = FindChannel(channelName);
 
             if (channel == null)
                 return;
@@ -443,7 +454,7 @@ namespace DTAClient.Online
         {
             MainChannel.AddMessage(new ChatMessage(null, Color.White, DateTime.Now, "Incorrect password!"));
 
-            var channel = channels.Find(c => c.ChannelName == channelName);
+            var channel = FindChannel(channelName);
             if (channel != null)
                 channel.OnInvalidJoinPassword();
         }
@@ -488,7 +499,7 @@ namespace DTAClient.Online
 
         private void DoUserJoinedChannel(string channelName, string host, string userName, string userAddress)
         {
-            Channel channel = channels.Find(c => c.ChannelName == channelName);
+            Channel channel = FindChannel(channelName);
 
             if (channel == null)
                 return;
@@ -554,7 +565,7 @@ namespace DTAClient.Online
 
         private void DoUserKicked(string channelName, string userName)
         {
-            Channel channel = channels.Find(c => c.ChannelName == channelName);
+            Channel channel = FindChannel(channelName);
 
             if (channel == null)
                 return;
@@ -586,7 +597,7 @@ namespace DTAClient.Online
 
         private void DoUserLeftChannel(string channelName, string userName)
         {
-            Channel channel = channels.Find(c => c.ChannelName == channelName);
+            Channel channel = FindChannel(channelName);
 
             if (channel == null)
                 return;
@@ -642,7 +653,7 @@ namespace DTAClient.Online
 
         private void DoUserListReceived(string channelName, string[] userList)
         {
-            Channel channel = channels.Find(c => c.ChannelName == channelName);
+            Channel channel = FindChannel(channelName);
 
             if (channel == null)
                 return;
@@ -706,6 +717,25 @@ namespace DTAClient.Online
         public void OnWelcomeMessageReceived(string message)
         {
             wm.AddCallback(new Action<string>(DoWelcomeMessageReceived), message);
+        }
+
+
+        /// <summary>
+        /// Finds a channel with the specified internal name, case-insensitively.
+        /// </summary>
+        /// <param name="channelName">The internal name of the channel.</param>
+        /// <returns>A channel if one matching the name is found, otherwise null.</returns>
+        private Channel FindChannel(string channelName)
+        {
+            channelName = channelName.ToLower();
+
+            foreach (var channel in channels)
+            {
+                if (channel.ChannelName == channelName)
+                    return channel;
+            }
+
+            return null;
         }
 
         private void DoWelcomeMessageReceived(string message)
