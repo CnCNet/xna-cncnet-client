@@ -755,6 +755,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             sb.Append(Map.SHA1);
             sb.Append(GameMode.Name);
             sb.Append(FrameSendRate);
+            sb.Append(MaxAhead);
+            sb.Append(ProtocolVersion);
             sb.Append(RandomSeed);
 
             channel.SendCTCPMessage(sb.ToString(), QueuedMessageType.GAME_SETTINGS_MESSAGE, 11);
@@ -774,7 +776,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             int partIndex = checkBoxIntegerCount + DropDowns.Count;
 
-            if (parts.Length < partIndex + 4)
+            if (parts.Length < partIndex + 6)
                 return;
 
             string mapOfficial = parts[partIndex];
@@ -789,6 +791,20 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             {
                 FrameSendRate = frameSendRate;
                 AddNotice("The game host has changed FrameSendRate (order lag) to " + frameSendRate);
+            }
+
+            int maxAhead = Conversions.IntFromString(parts[partIndex + 4], MaxAhead);
+            if (maxAhead != MaxAhead)
+            {
+                MaxAhead = maxAhead;
+                AddNotice("The game host has changed MaxAhead to " + maxAhead);
+            }
+
+            int protocolVersion = Conversions.IntFromString(parts[partIndex + 5], ProtocolVersion);
+            if (protocolVersion != ProtocolVersion)
+            {
+                ProtocolVersion = protocolVersion;
+                AddNotice("The game host has changed ProtocolVersion to " + protocolVersion);
             }
 
             GameMode currentGameMode = GameMode;
@@ -893,7 +909,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             }
 
             int randomSeed;
-            bool parseSuccess = int.TryParse(parts[partIndex + 4], out randomSeed);
+            bool parseSuccess = int.TryParse(parts[partIndex + 6], out randomSeed);
 
             if (!parseSuccess)
                 return;

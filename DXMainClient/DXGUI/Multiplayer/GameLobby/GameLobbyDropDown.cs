@@ -55,11 +55,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             base.ParseAttributeFromINI(iniFile, key, value);
         }
 
-        public void SetDefaultValue()
-        {
-            SelectedIndex = defaultIndex;
-        }
-
         /// <summary>
         /// Applies the drop down's associated code to spawn.ini.
         /// </summary>

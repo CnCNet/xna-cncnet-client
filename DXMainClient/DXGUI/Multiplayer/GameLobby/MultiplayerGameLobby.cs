@@ -33,6 +33,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     new Action<string>(s => ShowMapList())),
                 new ChatBoxCommand("FRAMESENDRATE", "Change order lag / FrameSendRate (game host only)", true,
                     new Action<string>(s => SetFrameSendRate(s))),
+                new ChatBoxCommand("MAXAHEAD", "Change MaxAhead (game host only)", true,
+                    new Action<string>(s => SetMaxAhead(s))),
+                new ChatBoxCommand("PROTOCOLVERSION", "Change ProtocolVersion (game host only)", true,
+                    new Action<string>(s => SetProtocolVersion(s))),
             };
         }
 
@@ -59,6 +63,21 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             get { return _frameSendRate; }
             set { _frameSendRate = value; }
+        }
+
+        /// <summary>
+        /// Controls the MaxAhead parameter. The default value of 0 means that 
+        /// the value is not written to spawn.ini, which allows the spawner the
+        /// calculate and assign the MaxAhead value.
+        /// </summary>
+        protected int MaxAhead { get; set; }
+
+        private int _protocolVersion = 2;
+
+        protected int ProtocolVersion
+        {
+            get { return _protocolVersion; }
+            set { _protocolVersion = value; }
         }
 
         private ChatBoxCommand[] chatBoxCommands;
@@ -312,8 +331,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private void SetFrameSendRate(string value)
         {
-            int intValue;
-            bool success = int.TryParse(value, out intValue);
+            bool success = int.TryParse(value, out int intValue);
 
             if (!success)
             {
@@ -323,6 +341,46 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             FrameSendRate = intValue;
             AddNotice("FrameSendRate has been changed to " + intValue);
+
+            OnGameOptionChanged();
+            ClearReadyStatuses();
+        }
+
+        private void SetMaxAhead(string value)
+        {
+            bool success = int.TryParse(value, out int intValue);
+
+            if (!success)
+            {
+                AddNotice("Command syntax: /MaxAhead <number>");
+                return;
+            }
+
+            MaxAhead = intValue;
+            AddNotice("MaxAhead has been changed to " + intValue);
+
+            OnGameOptionChanged();
+            ClearReadyStatuses();
+        }
+
+        private void SetProtocolVersion(string value)
+        {
+            bool success = int.TryParse(value, out int intValue);
+
+            if (!success)
+            {
+                AddNotice("Command syntax: /ProtocolVersion <number>.");
+                return;
+            }
+
+            if (!(intValue == 0 || intValue == 2))
+            {
+                AddNotice("ProtocolVersion only allows values 0 and 2.");
+                return;
+            }
+
+            ProtocolVersion = intValue;
+            AddNotice("ProtocolVersion has been changed to " + intValue);
 
             OnGameOptionChanged();
             ClearReadyStatuses();
@@ -352,10 +410,16 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 btnLockGame.Visible = true;
 
                 foreach (GameLobbyDropDown dd in DropDowns)
+                {
                     dd.InputEnabled = true;
+                    dd.SelectedIndex = dd.UserDefinedIndex;
+                }
 
                 foreach (GameLobbyCheckBox checkBox in CheckBoxes)
+                {
                     checkBox.InputEnabled = true;
+                    checkBox.Checked = checkBox.UserDefinedValue;
+                }
 
                 GenerateGameID();
             }
@@ -736,6 +800,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             base.WriteSpawnIniAdditions(iniFile);
             iniFile.SetIntValue("Settings", "FrameSendRate", FrameSendRate);
+            if (MaxAhead > 0)
+                iniFile.SetIntValue("Settings", "MaxAhead", MaxAhead);
+            iniFile.SetIntValue("Settings", "Protocol", ProtocolVersion);
         }
 
         protected override int GetDefaultMapRankIndex(Map map)
