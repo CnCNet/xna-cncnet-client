@@ -750,7 +750,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         private void GameChannel_InvalidPasswordEntered_NewGame(object sender, EventArgs e)
         {
-            connectionManager.MainChannel.AddMessage(new ChatMessage(Color.White, "Invalid password!"));
+            connectionManager.MainChannel.AddMessage(new ChatMessage(Color.White, "Incorrect password!"));
             ClearGameChannelEvents((Channel)sender);
             gameLobby.Clear();
         }
