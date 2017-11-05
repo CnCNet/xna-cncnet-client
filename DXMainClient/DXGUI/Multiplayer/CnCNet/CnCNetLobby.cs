@@ -726,10 +726,17 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 //gameChannel.MessageAdded += GameChannel_MessageAdded;
                 gameChannel.InvalidPasswordEntered += GameChannel_InvalidPasswordEntered_NewGame;
                 gameChannel.InviteOnlyErrorOnJoin += GameChannel_InviteOnlyErrorOnJoin;
+                gameChannel.ChannelFull += GameChannel_ChannelFull;
             }
 
             connectionManager.SendCustomMessage(new QueuedMessage("JOIN " + hg.ChannelName + " " + password,
                 QueuedMessageType.INSTANT_MESSAGE, 0));
+        }
+
+        private void GameChannel_ChannelFull(object sender, EventArgs e)
+        {
+            // We'd do the exact same things here, so we can just call the method below
+            GameChannel_InviteOnlyErrorOnJoin(sender, e);
         }
 
         private void GameChannel_InviteOnlyErrorOnJoin(object sender, EventArgs e)
@@ -737,7 +744,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             connectionManager.MainChannel.AddMessage(new ChatMessage(Color.White, "The selected game is locked!"));
             var channel = (Channel)sender;
 
-            var game = lbGameList.HostedGames.Find(hg => ((HostedCnCNetGame)hg).ChannelName == channel.ChannelName);
+            var game = FindGameByChannelName(channel.ChannelName);
             if (game != null)
             {
                 game.Locked = true;
@@ -746,6 +753,15 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             ClearGameChannelEvents((Channel)sender);
             gameLobby.Clear();
+        }
+
+        private HostedCnCNetGame FindGameByChannelName(string channelName)
+        {
+            var game = lbGameList.HostedGames.Find(hg => ((HostedCnCNetGame)hg).ChannelName == channelName);
+            if (game == null)
+                return null;
+
+            return (HostedCnCNetGame)game;
         }
 
         private void GameChannel_InvalidPasswordEntered_NewGame(object sender, EventArgs e)
@@ -773,6 +789,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             channel.UserAdded -= GameChannel_UserAdded;
             channel.InvalidPasswordEntered -= GameChannel_InvalidPasswordEntered_NewGame;
             channel.InviteOnlyErrorOnJoin -= GameChannel_InviteOnlyErrorOnJoin;
+            channel.ChannelFull -= GameChannel_ChannelFull;
             isJoiningGame = false;
         }
 

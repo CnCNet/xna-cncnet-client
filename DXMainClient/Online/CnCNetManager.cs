@@ -30,7 +30,6 @@ namespace DTAClient.Online
         public event EventHandler<ServerMessageEventArgs> WelcomeMessageReceived;
         public event EventHandler<UserAwayEventArgs> AwayMessageReceived;
         public event EventHandler<WhoEventArgs> WhoReplyReceived;
-        public event EventHandler<ChannelEventArgs> ChannelFull;
         public event EventHandler<PrivateMessageEventArgs> PrivateMessageReceived;
         public event EventHandler<ChannelEventArgs> BannedFromChannel;
 
@@ -102,7 +101,6 @@ namespace DTAClient.Online
         private Connection connection;
 
         private List<Channel> channels = new List<Channel>();
-        private List<HostedCnCNetGame> hostedGames = new List<HostedCnCNetGame>();
 
         private GameCollection gameCollection;
 
@@ -198,22 +196,10 @@ namespace DTAClient.Online
 
         private void DoChannelFull(string channelName)
         {
-            ChannelFull?.Invoke(this, new ChannelEventArgs(channelName));
+            var channel = FindChannel(channelName);
 
-            int gameIndex = hostedGames.FindIndex(c => c.ChannelName == channelName);
-            string gameName = null;
-
-            if (gameIndex > -1)
-                gameName = hostedGames[gameIndex].ChannelName;
-
-            string message;
-
-            message = string.IsNullOrEmpty(gameName) ?
-                "The selected game is full! " + channelName :
-                string.Format("Cannot join game {0}; it is full!", gameName);
-
-            MainChannel.AddMessage(new ChatMessage(null, Color.White, DateTime.Now,
-                message));
+            if (channel != null)
+                channel.OnChannelFull();
         }
 
         public void OnChannelInviteOnly(string channelName)
@@ -225,10 +211,8 @@ namespace DTAClient.Online
         {
             var channel = FindChannel(channelName);
 
-            if (channel == null)
-                return;
-
-            channel.OnInviteOnlyOnJoin();
+            if (channel != null)
+                channel.OnInviteOnlyOnJoin();
         }
 
         public void OnChannelModesChanged(string userName, string channelName, string modeString)

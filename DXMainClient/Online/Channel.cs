@@ -25,6 +25,12 @@ namespace DTAClient.Online
         public event EventHandler InvalidPasswordEntered;
         public event EventHandler InviteOnlyErrorOnJoin;
 
+        /// <summary>
+        /// Raised when the server informs the client that it's is unable to 
+        /// join the channel because it's full.
+        /// </summary>
+        public event EventHandler ChannelFull;
+
         public Channel(string uiName, string channelName, bool persistent, string password, Connection connection)
         {
             UIName = uiName;
@@ -200,6 +206,11 @@ namespace DTAClient.Online
         public void OnInviteOnlyOnJoin()
         {
             InviteOnlyErrorOnJoin?.Invoke(this, EventArgs.Empty);
+        }
+
+        public void OnChannelFull()
+        {
+            ChannelFull?.Invoke(this, EventArgs.Empty);
         }
 
         public void AddMessage(ChatMessage message)
