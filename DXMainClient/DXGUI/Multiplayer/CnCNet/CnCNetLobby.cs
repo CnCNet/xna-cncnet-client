@@ -731,7 +731,6 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             channel.UserAdded -= GameLoadingChannel_UserAdded;
             channel.MessageAdded -= GameLoadingChannel_MessageAdded;
             channel.InvalidPasswordEntered -= GameChannel_InvalidPasswordEntered_LoadedGame;
-            connectionManager.RemoveChannel(channel);
             gameLoadingLobby.Clear();
         }
 
@@ -741,7 +740,6 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             channel.UserAdded -= GameChannel_UserAdded;
             channel.MessageAdded -= GameChannel_MessageAdded;
             channel.InvalidPasswordEntered -= GameChannel_InvalidPasswordEntered_NewGame;
-            connectionManager.RemoveChannel(channel);
             gameLobby.Clear();
         }
 

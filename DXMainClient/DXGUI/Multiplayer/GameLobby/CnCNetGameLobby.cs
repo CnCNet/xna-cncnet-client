@@ -229,6 +229,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 {
                     channel.ChannelModesChanged -= Channel_ChannelModesChanged;
                 }
+
+                connectionManager.RemoveChannel(channel);
             }
 
             connectionManager.ConnectionLost -= ConnectionManager_ConnectionLost;
