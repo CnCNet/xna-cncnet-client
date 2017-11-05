@@ -1496,7 +1496,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private void BroadcastGame()
         {
-            Channel broadcastChannel = connectionManager.GetChannel("#cncnet-" + localGame.ToLower() + "-games");
+            Channel broadcastChannel = connectionManager.FindChannel("#cncnet-" + localGame.ToLower() + "-games");
 
             if (broadcastChannel == null)
                 return;

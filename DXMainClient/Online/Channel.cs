@@ -23,6 +23,7 @@ namespace DTAClient.Online
         public event EventHandler<ChannelModeEventArgs> ChannelModesChanged;
         public event EventHandler<ChannelCTCPEventArgs> CTCPReceived;
         public event EventHandler InvalidPasswordEntered;
+        public event EventHandler InviteOnlyErrorOnJoin;
 
         public Channel(string uiName, string channelName, bool persistent, string password, Connection connection)
         {
@@ -194,6 +195,11 @@ namespace DTAClient.Online
         public void OnInvalidJoinPassword()
         {
             InvalidPasswordEntered?.Invoke(this, EventArgs.Empty);
+        }
+
+        public void OnInviteOnlyOnJoin()
+        {
+            InviteOnlyErrorOnJoin?.Invoke(this, EventArgs.Empty);
         }
 
         public void AddMessage(ChatMessage message)

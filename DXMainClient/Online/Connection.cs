@@ -418,8 +418,10 @@ namespace DTAClient.Online
                             connectionManager.OnGenericServerMessageReceived(message);
                             break;
                         case 471: // Returned when attempting to join a channel that is full (basically, player limit met)
-                            string fullChannelName = parameters[1];
-                            connectionManager.OnChannelFull(fullChannelName);
+                            connectionManager.OnChannelFull(parameters[1]);
+                            break;
+                        case 473: // Returned when attempting to join an invite-only channel (locked games)
+                            connectionManager.OnChannelInviteOnly(parameters[1]);
                             break;
                         case 474: // Returned when attempting to join a channel a user is banned from
                             connectionManager.OnBannedFromChannel(parameters[1]);

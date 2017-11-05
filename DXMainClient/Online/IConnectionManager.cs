@@ -19,6 +19,8 @@
 
         void OnChannelFull(string channelName);
 
+        void OnChannelInviteOnly(string channelName);
+
         void OnIncorrectChannelPassword(string channelName);
 
         void OnCTCPParsed(string channelName, string userName, string message);

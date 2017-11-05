@@ -128,11 +128,6 @@ namespace DTAClient.Online
             return new Channel(uiName, channelName, persistent, password, connection);
         }
 
-        public Channel GetChannel(string channelName)
-        {
-            return channels.Find(c => c.ChannelName == channelName);
-        }
-
         public void AddChannel(Channel channel)
         {
             if (channels.Find(c => c.ChannelName == channel.ChannelName) != null)
@@ -219,6 +214,21 @@ namespace DTAClient.Online
 
             MainChannel.AddMessage(new ChatMessage(null, Color.White, DateTime.Now,
                 message));
+        }
+
+        public void OnChannelInviteOnly(string channelName)
+        {
+            wm.AddCallback(new Action<string>(DoChannelInviteOnly), channelName);
+        }
+
+        private void DoChannelInviteOnly(string channelName)
+        {
+            var channel = FindChannel(channelName);
+
+            if (channel == null)
+                return;
+
+            channel.OnInviteOnlyOnJoin();
         }
 
         public void OnChannelModesChanged(string userName, string channelName, string modeString)
@@ -725,7 +735,7 @@ namespace DTAClient.Online
         /// </summary>
         /// <param name="channelName">The internal name of the channel.</param>
         /// <returns>A channel if one matching the name is found, otherwise null.</returns>
-        private Channel FindChannel(string channelName)
+        public Channel FindChannel(string channelName)
         {
             channelName = channelName.ToLower();
 
