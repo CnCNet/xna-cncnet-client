@@ -31,11 +31,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     new Action<string>(s => HideMapList())),
                 new ChatBoxCommand("SHOWMAPS", "Show map list (game host only)", true,
                     new Action<string>(s => ShowMapList())),
-                new ChatBoxCommand("FRAMESENDRATE", "Change order lag / FrameSendRate (game host only)", true,
+                new ChatBoxCommand("FRAMESENDRATE", "Change order lag / FrameSendRate (default 7) (game host only)", true,
                     new Action<string>(s => SetFrameSendRate(s))),
-                new ChatBoxCommand("MAXAHEAD", "Change MaxAhead (game host only)", true,
+                new ChatBoxCommand("MAXAHEAD", "Change MaxAhead (default 0) (game host only)", true,
                     new Action<string>(s => SetMaxAhead(s))),
-                new ChatBoxCommand("PROTOCOLVERSION", "Change ProtocolVersion (game host only)", true,
+                new ChatBoxCommand("PROTOCOLVERSION", "Change ProtocolVersion (default 2) (game host only)", true,
                     new Action<string>(s => SetProtocolVersion(s))),
             };
         }
