@@ -723,14 +723,20 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             {
                 gameLobby.SetUp(gameChannel, false, hg.MaxPlayers, hg.TunnelServer, hg.HostName, hg.Passworded);
                 gameChannel.UserAdded += GameChannel_UserAdded;
-                //gameChannel.MessageAdded += GameChannel_MessageAdded;
                 gameChannel.InvalidPasswordEntered += GameChannel_InvalidPasswordEntered_NewGame;
                 gameChannel.InviteOnlyErrorOnJoin += GameChannel_InviteOnlyErrorOnJoin;
                 gameChannel.ChannelFull += GameChannel_ChannelFull;
+                gameChannel.TargetChangeTooFast += GameChannel_TargetChangeTooFast;
             }
 
             connectionManager.SendCustomMessage(new QueuedMessage("JOIN " + hg.ChannelName + " " + password,
                 QueuedMessageType.INSTANT_MESSAGE, 0));
+        }
+
+        private void GameChannel_TargetChangeTooFast(object sender, MessageEventArgs e)
+        {
+            connectionManager.MainChannel.AddMessage(new ChatMessage(Color.White, e.Message));
+            ClearGameJoinAttempt((Channel)sender);
         }
 
         private void GameChannel_ChannelFull(object sender, EventArgs e)
@@ -751,8 +757,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 lbGameList.SortAndRefreshHostedGames();
             }
 
-            ClearGameChannelEvents((Channel)sender);
-            gameLobby.Clear();
+            ClearGameJoinAttempt((Channel)sender);
         }
 
         private HostedCnCNetGame FindGameByChannelName(string channelName)
@@ -767,8 +772,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         private void GameChannel_InvalidPasswordEntered_NewGame(object sender, EventArgs e)
         {
             connectionManager.MainChannel.AddMessage(new ChatMessage(Color.White, "Incorrect password!"));
-            ClearGameChannelEvents((Channel)sender);
-            gameLobby.Clear();
+            ClearGameJoinAttempt((Channel)sender);
         }
 
         private void GameChannel_UserAdded(object sender, Online.ChannelUserEventArgs e)
@@ -784,12 +788,19 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             }
         }
 
+        private void ClearGameJoinAttempt(Channel channel)
+        {
+            ClearGameChannelEvents(channel);
+            gameLobby.Clear();
+        }
+
         private void ClearGameChannelEvents(Channel channel)
         {
             channel.UserAdded -= GameChannel_UserAdded;
             channel.InvalidPasswordEntered -= GameChannel_InvalidPasswordEntered_NewGame;
             channel.InviteOnlyErrorOnJoin -= GameChannel_InviteOnlyErrorOnJoin;
             channel.ChannelFull -= GameChannel_ChannelFull;
+            channel.TargetChangeTooFast -= GameChannel_TargetChangeTooFast;
             isJoiningGame = false;
         }
 

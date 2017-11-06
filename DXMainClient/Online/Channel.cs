@@ -31,6 +31,13 @@ namespace DTAClient.Online
         /// </summary>
         public event EventHandler ChannelFull;
 
+        /// <summary>
+        /// Raised when the server informs the client that it's is unable to 
+        /// join the channel because the client has attempted to join too many
+        /// channels too quickly.
+        /// </summary>
+        public event EventHandler<MessageEventArgs> TargetChangeTooFast;
+
         public Channel(string uiName, string channelName, bool persistent, string password, Connection connection)
         {
             UIName = uiName;
@@ -213,6 +220,11 @@ namespace DTAClient.Online
             ChannelFull?.Invoke(this, EventArgs.Empty);
         }
 
+        public void OnTargetChangeTooFast(string message)
+        {
+            TargetChangeTooFast?.Invoke(this, new MessageEventArgs(message));
+        }
+
         public void AddMessage(ChatMessage message)
         {
             if (messages.Count == MESSAGE_LIMIT)
@@ -332,5 +344,15 @@ namespace DTAClient.Online
         }
 
         public ChatMessage Message { get; private set; }
+    }
+
+    public class MessageEventArgs : EventArgs
+    {
+        public MessageEventArgs(string message)
+        {
+            Message = message;
+        }
+
+        public string Message { get; private set; }
     }
 }

@@ -19,6 +19,8 @@
 
         void OnChannelFull(string channelName);
 
+        void OnTargetChangeTooFast(string channelName, string message);
+
         void OnChannelInviteOnly(string channelName);
 
         void OnIncorrectChannelPassword(string channelName);

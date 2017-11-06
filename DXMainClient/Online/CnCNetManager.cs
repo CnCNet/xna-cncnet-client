@@ -202,6 +202,19 @@ namespace DTAClient.Online
                 channel.OnChannelFull();
         }
 
+        public void OnTargetChangeTooFast(string channelName, string message)
+        {
+            wm.AddCallback(new Action<string, string>(DoTargetChangeTooFast), channelName, message);
+        }
+
+        private void DoTargetChangeTooFast(string channelName, string message)
+        {
+            var channel = FindChannel(channelName);
+
+            if (channel != null)
+                channel.OnTargetChangeTooFast(message);
+        }
+
         public void OnChannelInviteOnly(string channelName)
         {
             wm.AddCallback(new Action<string>(DoChannelInviteOnly), channelName);
