@@ -1,24 +1,21 @@
 ﻿using Rampastring.XNAUI.XNAControls;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 using Rampastring.XNAUI;
 using Rampastring.Tools;
 using System.Diagnostics;
 
-namespace DTAClient.DXGUI.Generic
+namespace ClientGUI
 {
-    public class LinkButton : XNAButton
+    public class XNALinkButton : XNAClientButton
     {
-        public LinkButton(WindowManager windowManager) : base(windowManager)
+        public XNALinkButton(WindowManager windowManager) : base(windowManager)
         {
         }
 
         public string URL { get; set; }
-
-        public override void OnLeftClick()
-        {
-            base.OnLeftClick();
-
-            Process.Start(URL);
-        }
 
         protected override void ParseAttributeFromINI(IniFile iniFile, string key, string value)
         {
@@ -29,6 +26,12 @@ namespace DTAClient.DXGUI.Generic
             }
 
             base.ParseAttributeFromINI(iniFile, key, value);
+        }
+
+        public override void OnLeftClick()
+        {
+            Process.Start(URL);
+            base.OnLeftClick();
         }
     }
 }

@@ -45,13 +45,13 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         private GameListBox lbGameList;
         private PlayerContextMenu playerContextMenu;
 
-        private LinkButton btnForums;
-        private LinkButton btnTwitter;
-        private LinkButton btnGooglePlus;
-        private LinkButton btnYoutube;
-        private LinkButton btnFacebook;
-        private LinkButton btnModDB;
-        private LinkButton btnHomepage;
+        private XNALinkButton btnForums;
+        private XNALinkButton btnTwitter;
+        private XNALinkButton btnGooglePlus;
+        private XNALinkButton btnYoutube;
+        private XNALinkButton btnFacebook;
+        private XNALinkButton btnModDB;
+        private XNALinkButton btnHomepage;
 
         private XNAClientButton btnLogout;
         private XNAClientButton btnNewGame;
@@ -135,7 +135,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             btnLogout.Text = "Log Out";
             btnLogout.LeftClick += BtnLogout_LeftClick;
 
-            btnForums = new LinkButton(WindowManager)
+            btnForums = new XNALinkButton(WindowManager)
             {
                 Name = "btnForums",
                 ClientRectangle = new Rectangle(ClientRectangle.Width - 33, 12, 21, 21),
@@ -145,7 +145,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 URL = ClientConfiguration.Instance.ForumURL
             };
 
-            btnTwitter = new LinkButton(WindowManager)
+            btnTwitter = new XNALinkButton(WindowManager)
             {
                 Name = "btnTwitter",
                 ClientRectangle = new Rectangle(ClientRectangle.Width - 61, 12, 21, 21),
@@ -155,7 +155,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 URL = ClientConfiguration.Instance.TwitterURL
             };
 
-            btnGooglePlus = new LinkButton(WindowManager)
+            btnGooglePlus = new XNALinkButton(WindowManager)
             {
                 Name = "btnGooglePlus",
                 ClientRectangle = new Rectangle(ClientRectangle.Width - 89, 12, 21, 21),
@@ -165,7 +165,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 URL = ClientConfiguration.Instance.GooglePlusURL
             };
 
-            btnYoutube = new LinkButton(WindowManager)
+            btnYoutube = new XNALinkButton(WindowManager)
             {
                 Name = "btnYoutube",
                 ClientRectangle = new Rectangle(ClientRectangle.Width - 117, 12, 21, 21),
@@ -175,7 +175,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 URL = ClientConfiguration.Instance.YoutubeURL
             };
 
-            btnFacebook = new LinkButton(WindowManager)
+            btnFacebook = new XNALinkButton(WindowManager)
             {
                 Name = "btnFacebook",
                 ClientRectangle = new Rectangle(ClientRectangle.Width - 145, 12, 21, 21),
@@ -185,7 +185,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 URL = ClientConfiguration.Instance.FacebookURL
             };
 
-            btnModDB = new LinkButton(WindowManager)
+            btnModDB = new XNALinkButton(WindowManager)
             {
                 Name = "btnModDB",
                 ClientRectangle = new Rectangle(ClientRectangle.Width - 173, 12, 21, 21),
@@ -195,7 +195,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 URL = ClientConfiguration.Instance.ModDBURL
             };
 
-            btnHomepage = new LinkButton(WindowManager)
+            btnHomepage = new XNALinkButton(WindowManager)
             {
                 Name = "btnHomepage",
                 ClientRectangle = new Rectangle(ClientRectangle.Width - 201, 12, 21, 21),
