@@ -48,6 +48,26 @@
             Creates a color based on a color string in the form "R,G,B,A". All values must be between 0 and 255.
             </summary>
         </member>
+        <member name="T:Rampastring.XNAUI.GUICreator">
+            <summary>
+            Allows creating controls based on their internal names with the help 
+            of reflection.
+            </summary>
+        </member>
+        <member name="M:Rampastring.XNAUI.GUICreator.AddControl(System.Type)">
+            <summary>
+            Adds a control type to the list of available control types.
+            </summary>
+            <param name="type">The control type to add. Needs to be a class type derived from XNAControl.</param>
+        </member>
+        <member name="M:Rampastring.XNAUI.GUICreator.CreateControl(Rampastring.XNAUI.WindowManager,System.String)">
+            <summary>
+            Creates and returns a control.
+            </summary>
+            <param name="windowManager">The WindowManager.</param>
+            <param name="controlTypeName">The name of the control class type to create.</param>
+            <returns>A control of the specified type.</returns>
+        </member>
         <member name="T:Rampastring.XNAUI.PrioritizedSound">
             <summary>
             A toggleable sound effect that can also have a defined priority
@@ -940,11 +960,33 @@
             A control that acts as a timer.
             </summary>
         </member>
+        <member name="E:Rampastring.XNAUI.XNAControls.XNATimerControl.TimeElapsed">
+            <summary>
+            Raised after the time specified in Interval has passed.
+            </summary>
+        </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNATimerControl.#ctor(Rampastring.XNAUI.WindowManager)">
+            <summary>
+            Creates a new timer.
+            </summary>
+            <param name="windowManager">The WindowManager associated with this control.</param>
+        </member>
+        <member name="P:Rampastring.XNAUI.XNAControls.XNATimerControl.Interval">
+            <summary>
+            The interval after which the TimeElapsed event is raised.
+            </summary>
+        </member>
         <member name="P:Rampastring.XNAUI.XNAControls.XNATimerControl.AutoReset">
             <summary>
             If set, the timer will automatically restart after calling
             the TimeElapsed event.
             </summary>
+        </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNATimerControl.Update(Microsoft.Xna.Framework.GameTime)">
+            <summary>
+            Updates the timer.
+            </summary>
+            <param name="gameTime">Provides a snapshot of timing values.</param>
         </member>
         <member name="M:Rampastring.XNAUI.XNAControls.XNATimerControl.Pause">
             <summary>
@@ -979,6 +1021,11 @@
             Returns the current time until the next TimeElapsed event.
             </summary>
             <returns>The time until the next TimeElapsed event.</returns>
+        </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNATimerControl.Draw(Microsoft.Xna.Framework.GameTime)">
+            <summary>
+            A dummy draw function. Doesn't actually do anything.
+            </summary>
         </member>
         <member name="M:Rampastring.XNAUI.XNAControls.XNATrackbar.OnMouseOnControl(Rampastring.XNAUI.XNAControls.MouseEventArgs)">
             <summary>
