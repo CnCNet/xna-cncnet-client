@@ -257,7 +257,6 @@
     <Compile Include="Domain\Multiplayer\LAN\HostedLANGame.cs" />
     <Compile Include="Domain\StatisticsSender.cs" />
     <Compile Include="DXGUI\Generic\CheaterWindow.cs" />
-    <Compile Include="DXGUI\Generic\LinkButton.cs" />
     <Compile Include="Domain\Multiplayer\Map.cs" />
     <Compile Include="Domain\Multiplayer\MapLoader.cs" />
     <Compile Include="Domain\Multiplayer\PlayerHouseInfo.cs" />
