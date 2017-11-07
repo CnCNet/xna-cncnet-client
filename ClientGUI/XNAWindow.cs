@@ -14,14 +14,16 @@ namespace ClientGUI
     /// </summary>
     public class XNAWindow : XNAPanel
     {
-        const string GENERIC_WINDOW_INI = "GenericWindow.ini";
-        const string GENERIC_WINDOW_SECTION = "GenericWindow";
-        const string EXTRA_PICTURE_BOXES = "ExtraPictureBoxes";
+        private const string GENERIC_WINDOW_INI = "GenericWindow.ini";
+        private const string GENERIC_WINDOW_SECTION = "GenericWindow";
+        private const string EXTRA_PICTURE_BOXES = "ExtraPictureBoxes";
+        private const string EXTRA_CONTROLS = "ExtraControls";
 
         public XNAWindow(WindowManager windowManager) : base(windowManager)
         {
-
         }
+
+        private static readonly ClientGUICreator guiCreator = new ClientGUICreator();
 
         /// <summary>
         /// The INI file that was used for theming this window.
@@ -70,19 +72,27 @@ namespace ClientGUI
                 }
             }
 
-            List<string> extraPbs = iniFile.GetSectionKeys(EXTRA_PICTURE_BOXES);
+            List<string> extraControls = iniFile.GetSectionKeys(EXTRA_CONTROLS);
 
-            if (extraPbs != null)
+            if (extraControls != null)
             {
-                foreach (string key in extraPbs)
+                foreach (string key in extraControls)
                 {
-                    XNAExtraPanel panel = new XNAExtraPanel(WindowManager);
-                    panel.Name = iniFile.GetStringValue(EXTRA_PICTURE_BOXES, key, String.Empty);
-                    panel.InputEnabled = false;
-                    panel.DrawBorders = false;
+                    string line = iniFile.GetStringValue(EXTRA_CONTROLS, key, string.Empty);
+                    string[] parts = line.Split(':');
+                    if (parts.Length != 2)
+                        throw new Exception("Invalid ExtraControl specified in " + Name + ": " + line);
 
-                    if (Children.Find(child => child.Name == panel.Name) == null)
-                        AddChildToFirstIndex(panel);
+                    Logger.Log("Line: " + line);
+                    Logger.Log("Control name: " + parts[0]);
+                    Logger.Log("Type: " + parts[1]);
+
+                    if (Children.Find(child => child.Name == parts[0]) == null)
+                    {
+                        var control = guiCreator.CreateControl(WindowManager, parts[1]);
+                        control.Name = parts[0];
+                        AddChildToFirstIndex(control);
+                    }
                 }
             }
 

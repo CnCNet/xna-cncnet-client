@@ -11,7 +11,11 @@ namespace ClientGUI
     /// </summary>
     public class XNAExtraPanel : XNAPanel
     {
-        public XNAExtraPanel(WindowManager windowManager) : base(windowManager) { }
+        public XNAExtraPanel(WindowManager windowManager) : base(windowManager)
+        {
+            InputEnabled = false;
+            DrawBorders = false;
+        }
 
         protected override void ParseAttributeFromINI(IniFile iniFile, string key, string value)
         {

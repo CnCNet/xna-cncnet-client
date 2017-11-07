@@ -131,6 +131,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ClientGUICreator.cs" />
     <Compile Include="XNAClientButton.cs" />
     <Compile Include="DarkeningPanel.cs" />
     <Compile Include="XNAClientCheckBox.cs" />

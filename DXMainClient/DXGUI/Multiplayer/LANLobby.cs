@@ -49,13 +49,13 @@ namespace DTAClient.DXGUI.Multiplayer
 
         XNATextBox tbChatInput;
 
-        LinkButton btnForums;
-        LinkButton btnTwitter;
-        LinkButton btnGooglePlus;
-        LinkButton btnYoutube;
-        LinkButton btnFacebook;
-        LinkButton btnModDB;
-        LinkButton btnHomepage;
+        XNALinkButton btnForums;
+        XNALinkButton btnTwitter;
+        XNALinkButton btnGooglePlus;
+        XNALinkButton btnYoutube;
+        XNALinkButton btnFacebook;
+        XNALinkButton btnModDB;
+        XNALinkButton btnHomepage;
 
         XNALabel lblColor;
 
@@ -123,7 +123,7 @@ namespace DTAClient.DXGUI.Multiplayer
             btnMainMenu.Text = "Main Menu";
             btnMainMenu.LeftClick += BtnMainMenu_LeftClick;
 
-            btnForums = new LinkButton(WindowManager);
+            btnForums = new XNALinkButton(WindowManager);
             btnForums.Name = "btnForums";
             btnForums.ClientRectangle = new Rectangle(ClientRectangle.Width - 33, 12, 21, 21);
             btnForums.IdleTexture = AssetLoader.LoadTexture("forumsInactive.png");
@@ -131,7 +131,7 @@ namespace DTAClient.DXGUI.Multiplayer
             btnForums.HoverSoundEffect = AssetLoader.LoadSound("button.wav");
             btnForums.URL = ClientConfiguration.Instance.ForumURL;
 
-            btnTwitter = new LinkButton(WindowManager);
+            btnTwitter = new XNALinkButton(WindowManager);
             btnTwitter.Name = "btnTwitter";
             btnTwitter.ClientRectangle = new Rectangle(ClientRectangle.Width - 61, 12, 21, 21);
             btnTwitter.IdleTexture = AssetLoader.LoadTexture("twitterInactive.png");
@@ -139,7 +139,7 @@ namespace DTAClient.DXGUI.Multiplayer
             btnTwitter.HoverSoundEffect = AssetLoader.LoadSound("button.wav");
             btnTwitter.URL = ClientConfiguration.Instance.TwitterURL;
 
-            btnGooglePlus = new LinkButton(WindowManager);
+            btnGooglePlus = new XNALinkButton(WindowManager);
             btnGooglePlus.Name = "btnGooglePlus";
             btnGooglePlus.ClientRectangle = new Rectangle(ClientRectangle.Width - 89, 12, 21, 21);
             btnGooglePlus.IdleTexture = AssetLoader.LoadTexture("googlePlusInactive.png");
@@ -147,7 +147,7 @@ namespace DTAClient.DXGUI.Multiplayer
             btnGooglePlus.HoverSoundEffect = AssetLoader.LoadSound("button.wav");
             btnGooglePlus.URL = ClientConfiguration.Instance.GooglePlusURL;
 
-            btnYoutube = new LinkButton(WindowManager);
+            btnYoutube = new XNALinkButton(WindowManager);
             btnYoutube.Name = "btnYoutube";
             btnYoutube.ClientRectangle = new Rectangle(ClientRectangle.Width - 117, 12, 21, 21);
             btnYoutube.IdleTexture = AssetLoader.LoadTexture("youtubeInactive.png");
@@ -155,7 +155,7 @@ namespace DTAClient.DXGUI.Multiplayer
             btnYoutube.HoverSoundEffect = AssetLoader.LoadSound("button.wav");
             btnYoutube.URL = ClientConfiguration.Instance.YoutubeURL;
 
-            btnFacebook = new LinkButton(WindowManager);
+            btnFacebook = new XNALinkButton(WindowManager);
             btnFacebook.Name = "btnFacebook";
             btnFacebook.ClientRectangle = new Rectangle(ClientRectangle.Width - 145, 12, 21, 21);
             btnFacebook.IdleTexture = AssetLoader.LoadTexture("facebookInactive.png");
@@ -163,7 +163,7 @@ namespace DTAClient.DXGUI.Multiplayer
             btnFacebook.HoverSoundEffect = AssetLoader.LoadSound("button.wav");
             btnFacebook.URL = ClientConfiguration.Instance.FacebookURL;
 
-            btnModDB = new LinkButton(WindowManager);
+            btnModDB = new XNALinkButton(WindowManager);
             btnModDB.Name = "btnModDB";
             btnModDB.ClientRectangle = new Rectangle(ClientRectangle.Width - 173, 12, 21, 21);
             btnModDB.IdleTexture = AssetLoader.LoadTexture("moddbInactive.png");
@@ -171,7 +171,7 @@ namespace DTAClient.DXGUI.Multiplayer
             btnModDB.HoverSoundEffect = AssetLoader.LoadSound("button.wav");
             btnModDB.URL = ClientConfiguration.Instance.ModDBURL;
 
-            btnHomepage = new LinkButton(WindowManager);
+            btnHomepage = new XNALinkButton(WindowManager);
             btnHomepage.Name = "btnHomepage";
             btnHomepage.ClientRectangle = new Rectangle(ClientRectangle.Width - 201, 12, 21, 21);
             btnHomepage.IdleTexture = AssetLoader.LoadTexture("homepageInactive.png");
