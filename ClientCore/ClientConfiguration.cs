@@ -480,63 +480,6 @@ namespace ClientCore
             get { return clientDefinitionsIni.GetIntValue(SETTINGS, "MaximumIngameHeight", 4096); }
         }
 
-
-        public string ModDBURL
-        {
-            get
-            {
-                return clientDefinitionsIni.GetStringValue(LINKS, "ModDB", "http://www.moddb.com/mods/the-dawn-of-the-tiberium-age");
-            }
-        }
-
-        public string FacebookURL
-        {
-            get
-            {
-                return clientDefinitionsIni.GetStringValue(LINKS, "Facebook", "https://www.facebook.com/DawnOfTheTiberiumAge");
-            }
-        }
-
-        public string YoutubeURL
-        {
-            get
-            {
-                return clientDefinitionsIni.GetStringValue(LINKS, "Youtube", "https://www.youtube.com/user/BittahCommander");
-            }
-        }
-
-        public string TwitterURL
-        {
-            get
-            {
-                return clientDefinitionsIni.GetStringValue(LINKS, "Twitter", "https://twitter.com/twistedins");
-            }
-        }
-
-        public string GooglePlusURL
-        {
-            get
-            {
-                return clientDefinitionsIni.GetStringValue(LINKS, "GooglePlus", "https://plus.google.com/104355642453949180849/");
-            }
-        }
-
-        public string ForumURL
-        {
-            get
-            {
-                return clientDefinitionsIni.GetStringValue(LINKS, "Forum", "http://www.ppmforums.com");
-            }
-        }
-
-        public string HomepageURL
-        {
-            get
-            {
-                return clientDefinitionsIni.GetStringValue(LINKS, "Homepage", "http://rampastring.cnc-comm.com");
-            }
-        }
-
         public bool CopyMissionsToSpawnmapINI
         {
             get { return clientDefinitionsIni.GetBooleanValue(SETTINGS, "CopyMissionsToSpawnmapINI", true); }
