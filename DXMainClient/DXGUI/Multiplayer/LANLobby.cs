@@ -49,14 +49,6 @@ namespace DTAClient.DXGUI.Multiplayer
 
         XNATextBox tbChatInput;
 
-        XNALinkButton btnForums;
-        XNALinkButton btnTwitter;
-        XNALinkButton btnGooglePlus;
-        XNALinkButton btnYoutube;
-        XNALinkButton btnFacebook;
-        XNALinkButton btnModDB;
-        XNALinkButton btnHomepage;
-
         XNALabel lblColor;
 
         XNAClientDropDown ddColor;
@@ -122,62 +114,6 @@ namespace DTAClient.DXGUI.Multiplayer
                 btnNewGame.ClientRectangle.Y, 133, 23);
             btnMainMenu.Text = "Main Menu";
             btnMainMenu.LeftClick += BtnMainMenu_LeftClick;
-
-            btnForums = new XNALinkButton(WindowManager);
-            btnForums.Name = "btnForums";
-            btnForums.ClientRectangle = new Rectangle(ClientRectangle.Width - 33, 12, 21, 21);
-            btnForums.IdleTexture = AssetLoader.LoadTexture("forumsInactive.png");
-            btnForums.HoverTexture = AssetLoader.LoadTexture("forumsActive.png");
-            btnForums.HoverSoundEffect = AssetLoader.LoadSound("button.wav");
-            btnForums.URL = ClientConfiguration.Instance.ForumURL;
-
-            btnTwitter = new XNALinkButton(WindowManager);
-            btnTwitter.Name = "btnTwitter";
-            btnTwitter.ClientRectangle = new Rectangle(ClientRectangle.Width - 61, 12, 21, 21);
-            btnTwitter.IdleTexture = AssetLoader.LoadTexture("twitterInactive.png");
-            btnTwitter.HoverTexture = AssetLoader.LoadTexture("twitterActive.png");
-            btnTwitter.HoverSoundEffect = AssetLoader.LoadSound("button.wav");
-            btnTwitter.URL = ClientConfiguration.Instance.TwitterURL;
-
-            btnGooglePlus = new XNALinkButton(WindowManager);
-            btnGooglePlus.Name = "btnGooglePlus";
-            btnGooglePlus.ClientRectangle = new Rectangle(ClientRectangle.Width - 89, 12, 21, 21);
-            btnGooglePlus.IdleTexture = AssetLoader.LoadTexture("googlePlusInactive.png");
-            btnGooglePlus.HoverTexture = AssetLoader.LoadTexture("googlePlusActive.png");
-            btnGooglePlus.HoverSoundEffect = AssetLoader.LoadSound("button.wav");
-            btnGooglePlus.URL = ClientConfiguration.Instance.GooglePlusURL;
-
-            btnYoutube = new XNALinkButton(WindowManager);
-            btnYoutube.Name = "btnYoutube";
-            btnYoutube.ClientRectangle = new Rectangle(ClientRectangle.Width - 117, 12, 21, 21);
-            btnYoutube.IdleTexture = AssetLoader.LoadTexture("youtubeInactive.png");
-            btnYoutube.HoverTexture = AssetLoader.LoadTexture("youtubeActive.png");
-            btnYoutube.HoverSoundEffect = AssetLoader.LoadSound("button.wav");
-            btnYoutube.URL = ClientConfiguration.Instance.YoutubeURL;
-
-            btnFacebook = new XNALinkButton(WindowManager);
-            btnFacebook.Name = "btnFacebook";
-            btnFacebook.ClientRectangle = new Rectangle(ClientRectangle.Width - 145, 12, 21, 21);
-            btnFacebook.IdleTexture = AssetLoader.LoadTexture("facebookInactive.png");
-            btnFacebook.HoverTexture = AssetLoader.LoadTexture("facebookActive.png");
-            btnFacebook.HoverSoundEffect = AssetLoader.LoadSound("button.wav");
-            btnFacebook.URL = ClientConfiguration.Instance.FacebookURL;
-
-            btnModDB = new XNALinkButton(WindowManager);
-            btnModDB.Name = "btnModDB";
-            btnModDB.ClientRectangle = new Rectangle(ClientRectangle.Width - 173, 12, 21, 21);
-            btnModDB.IdleTexture = AssetLoader.LoadTexture("moddbInactive.png");
-            btnModDB.HoverTexture = AssetLoader.LoadTexture("moddbActive.png");
-            btnModDB.HoverSoundEffect = AssetLoader.LoadSound("button.wav");
-            btnModDB.URL = ClientConfiguration.Instance.ModDBURL;
-
-            btnHomepage = new XNALinkButton(WindowManager);
-            btnHomepage.Name = "btnHomepage";
-            btnHomepage.ClientRectangle = new Rectangle(ClientRectangle.Width - 201, 12, 21, 21);
-            btnHomepage.IdleTexture = AssetLoader.LoadTexture("homepageInactive.png");
-            btnHomepage.HoverTexture = AssetLoader.LoadTexture("homepageActive.png");
-            btnHomepage.HoverSoundEffect = AssetLoader.LoadSound("button.wav");
-            btnHomepage.URL = ClientConfiguration.Instance.HomepageURL;
 
             lbGameList = new GameListBox(WindowManager, localGame);
             lbGameList.Name = "lbGameList";
@@ -256,13 +192,6 @@ namespace DTAClient.DXGUI.Multiplayer
             AddChild(btnJoinGame);
             AddChild(btnMainMenu);
 
-            AddChild(btnForums);
-            AddChild(btnTwitter);
-            AddChild(btnGooglePlus);
-            AddChild(btnYoutube);
-            AddChild(btnFacebook);
-            AddChild(btnModDB);
-            AddChild(btnHomepage);
             AddChild(lbPlayerList);
             AddChild(lbChatMessages);
             AddChild(lbGameList);

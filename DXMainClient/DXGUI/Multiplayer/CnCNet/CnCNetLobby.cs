@@ -45,14 +45,6 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         private GameListBox lbGameList;
         private PlayerContextMenu playerContextMenu;
 
-        private XNALinkButton btnForums;
-        private XNALinkButton btnTwitter;
-        private XNALinkButton btnGooglePlus;
-        private XNALinkButton btnYoutube;
-        private XNALinkButton btnFacebook;
-        private XNALinkButton btnModDB;
-        private XNALinkButton btnHomepage;
-
         private XNAClientButton btnLogout;
         private XNAClientButton btnNewGame;
         private XNAClientButton btnJoinGame;
@@ -135,76 +127,6 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             btnLogout.Text = "Log Out";
             btnLogout.LeftClick += BtnLogout_LeftClick;
 
-            btnForums = new XNALinkButton(WindowManager)
-            {
-                Name = "btnForums",
-                ClientRectangle = new Rectangle(ClientRectangle.Width - 33, 12, 21, 21),
-                IdleTexture = AssetLoader.LoadTexture("forumsInactive.png"),
-                HoverTexture = AssetLoader.LoadTexture("forumsActive.png"),
-                HoverSoundEffect = AssetLoader.LoadSound("button.wav"),
-                URL = ClientConfiguration.Instance.ForumURL
-            };
-
-            btnTwitter = new XNALinkButton(WindowManager)
-            {
-                Name = "btnTwitter",
-                ClientRectangle = new Rectangle(ClientRectangle.Width - 61, 12, 21, 21),
-                IdleTexture = AssetLoader.LoadTexture("twitterInactive.png"),
-                HoverTexture = AssetLoader.LoadTexture("twitterActive.png"),
-                HoverSoundEffect = AssetLoader.LoadSound("button.wav"),
-                URL = ClientConfiguration.Instance.TwitterURL
-            };
-
-            btnGooglePlus = new XNALinkButton(WindowManager)
-            {
-                Name = "btnGooglePlus",
-                ClientRectangle = new Rectangle(ClientRectangle.Width - 89, 12, 21, 21),
-                IdleTexture = AssetLoader.LoadTexture("googlePlusInactive.png"),
-                HoverTexture = AssetLoader.LoadTexture("googlePlusActive.png"),
-                HoverSoundEffect = AssetLoader.LoadSound("button.wav"),
-                URL = ClientConfiguration.Instance.GooglePlusURL
-            };
-
-            btnYoutube = new XNALinkButton(WindowManager)
-            {
-                Name = "btnYoutube",
-                ClientRectangle = new Rectangle(ClientRectangle.Width - 117, 12, 21, 21),
-                IdleTexture = AssetLoader.LoadTexture("youtubeInactive.png"),
-                HoverTexture = AssetLoader.LoadTexture("youtubeActive.png"),
-                HoverSoundEffect = AssetLoader.LoadSound("button.wav"),
-                URL = ClientConfiguration.Instance.YoutubeURL
-            };
-
-            btnFacebook = new XNALinkButton(WindowManager)
-            {
-                Name = "btnFacebook",
-                ClientRectangle = new Rectangle(ClientRectangle.Width - 145, 12, 21, 21),
-                IdleTexture = AssetLoader.LoadTexture("facebookInactive.png"),
-                HoverTexture = AssetLoader.LoadTexture("facebookActive.png"),
-                HoverSoundEffect = AssetLoader.LoadSound("button.wav"),
-                URL = ClientConfiguration.Instance.FacebookURL
-            };
-
-            btnModDB = new XNALinkButton(WindowManager)
-            {
-                Name = "btnModDB",
-                ClientRectangle = new Rectangle(ClientRectangle.Width - 173, 12, 21, 21),
-                IdleTexture = AssetLoader.LoadTexture("moddbInactive.png"),
-                HoverTexture = AssetLoader.LoadTexture("moddbActive.png"),
-                HoverSoundEffect = AssetLoader.LoadSound("button.wav"),
-                URL = ClientConfiguration.Instance.ModDBURL
-            };
-
-            btnHomepage = new XNALinkButton(WindowManager)
-            {
-                Name = "btnHomepage",
-                ClientRectangle = new Rectangle(ClientRectangle.Width - 201, 12, 21, 21),
-                IdleTexture = AssetLoader.LoadTexture("homepageInactive.png"),
-                HoverTexture = AssetLoader.LoadTexture("homepageActive.png"),
-                HoverSoundEffect = AssetLoader.LoadSound("button.wav"),
-                URL = ClientConfiguration.Instance.HomepageURL
-            };
-
             lbGameList = new GameListBox(WindowManager, localGameID);
             lbGameList.Name = "lbGameList";
             lbGameList.ClientRectangle = new Rectangle(btnNewGame.ClientRectangle.X,
@@ -218,8 +140,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             lbPlayerList = new XNAListBox(WindowManager);
             lbPlayerList.Name = "lbPlayerList";
             lbPlayerList.ClientRectangle = new Rectangle(ClientRectangle.Width - 202,
-                btnForums.ClientRectangle.Bottom + 8, 190,
-                btnLogout.ClientRectangle.Top - btnForums.ClientRectangle.Bottom - 14);
+                20, 190,
+                btnLogout.ClientRectangle.Top - 26);
             lbPlayerList.DrawMode = PanelBackgroundImageDrawMode.STRETCHED;
             lbPlayerList.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 128), 1, 1);
             lbPlayerList.LineHeight = 16;
@@ -260,7 +182,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             ddColor = new XNAClientDropDown(WindowManager);
             ddColor.Name = "ddColor";
-            ddColor.ClientRectangle = new Rectangle(lblColor.ClientRectangle.X + 95, btnForums.ClientRectangle.Y,
+            ddColor.ClientRectangle = new Rectangle(lblColor.ClientRectangle.X + 95, 12,
                 150, 21);
 
             chatColors = connectionManager.GetIRCColors();
@@ -308,13 +230,6 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             AddChild(btnJoinGame);
             AddChild(btnLogout);
 
-            AddChild(btnForums);
-            AddChild(btnTwitter);
-            AddChild(btnGooglePlus);
-            AddChild(btnYoutube);
-            AddChild(btnFacebook);
-            AddChild(btnModDB);
-            AddChild(btnHomepage);
             AddChild(lbPlayerList);
             AddChild(lbChatMessages);
             AddChild(lbGameList);
