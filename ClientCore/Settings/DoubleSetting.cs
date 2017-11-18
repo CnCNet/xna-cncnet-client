@@ -19,6 +19,11 @@ namespace ClientCore.Settings
             IniFile.SetDoubleValue(IniSection, IniKey, value);
         }
 
+        public override void Write()
+        {
+            IniFile.SetDoubleValue(IniSection, IniKey, Get());
+        }
+
         public override string ToString()
         {
             return Get().ToString();

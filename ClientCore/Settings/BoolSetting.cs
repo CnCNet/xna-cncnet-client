@@ -19,6 +19,11 @@ namespace ClientCore.Settings
             IniFile.SetBooleanValue(IniSection, IniKey, value);
         }
 
+        public override void Write()
+        {
+            IniFile.SetBooleanValue(IniSection, IniKey, Get());
+        }
+
         public override string ToString()
         {
             return Get().ToString();

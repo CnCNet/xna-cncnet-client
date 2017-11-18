@@ -40,5 +40,7 @@ namespace ClientCore.Settings
         protected abstract T Get();
 
         protected abstract void Set(T value);
+
+        public abstract void Write();
     }
 }

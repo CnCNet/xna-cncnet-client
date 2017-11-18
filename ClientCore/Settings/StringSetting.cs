@@ -19,6 +19,11 @@ namespace ClientCore.Settings
             IniFile.SetStringValue(IniSection, IniKey, value);
         }
 
+        public override void Write()
+        {
+            IniFile.SetStringValue(IniSection, IniKey, Get());
+        }
+
         public override string ToString()
         {
             return Get();

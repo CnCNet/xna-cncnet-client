@@ -38,10 +38,7 @@ namespace ClientCore
             const string MULTIPLAYER = "MultiPlayer";
             const string OPTIONS = "Options";
             const string AUDIO = "Audio";
-#if MO
-            const string WINDOWED_MODE_KEY = "Video.Windowed";
-            BackBufferInVRAM = new BoolSetting(iniFile, VIDEO, "VideoBackBuffer", false);
-#elif YR
+#if YR || MO
             const string WINDOWED_MODE_KEY = "Video.Windowed";
             BackBufferInVRAM = new BoolSetting(iniFile, VIDEO, "VideoBackBuffer", false);
 #else
@@ -78,6 +75,7 @@ namespace ClientCore
             MoveToUndeploy = new BoolSetting(iniFile, OPTIONS, "MoveToUndeploy", true);
             TextBackgroundColor = new IntSetting(iniFile, OPTIONS, "TextBackgroundColor", 0);
             DragDistance = new IntSetting(iniFile, OPTIONS, "DragDistance", 4);
+            DoubleTapInterval = new IntSetting(iniFile, OPTIONS, "DoubleTapInterval", 30);
             Win8CompatMode = new StringSetting(iniFile, OPTIONS, "Win8Compat", "No");
 
             PlayerName = new StringSetting(iniFile, MULTIPLAYER, "Handle", string.Empty);
@@ -150,6 +148,7 @@ namespace ClientCore
         public BoolSetting MoveToUndeploy { get; private set; }
         public IntSetting TextBackgroundColor { get; private set; }
         public IntSetting DragDistance { get; private set; }
+        public IntSetting DoubleTapInterval { get; private set; }
         public StringSetting Win8CompatMode { get; private set; }
 
         /************************/
@@ -209,6 +208,7 @@ namespace ClientCore
             Logger.Log("Writing settings INI.");
 
             ForceLowestDetailLevel.Value = false;
+            DoubleTapInterval.Write();
 
             SettingsIni.WriteIniFile();
 
