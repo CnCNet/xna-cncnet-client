@@ -472,12 +472,12 @@ namespace ClientCore
 
         public int MaximumIngameWidth
         {
-            get { return clientDefinitionsIni.GetIntValue(SETTINGS, "MaximumIngameWidth", 4096); }
+            get { return clientDefinitionsIni.GetIntValue(SETTINGS, "MaximumIngameWidth", int.MaxValue); }
         }
 
         public int MaximumIngameHeight
         {
-            get { return clientDefinitionsIni.GetIntValue(SETTINGS, "MaximumIngameHeight", 4096); }
+            get { return clientDefinitionsIni.GetIntValue(SETTINGS, "MaximumIngameHeight", int.MaxValue); }
         }
 
         public bool CopyMissionsToSpawnmapINI
