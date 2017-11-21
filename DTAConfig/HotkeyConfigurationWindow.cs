@@ -438,6 +438,8 @@ namespace DTAConfig
                 int hotkey = keyboardINI.GetIntValue("Hotkey", command.ININame, 0);
 
                 command.Hotkey = new Hotkey(hotkey);
+                // This is quite hacky
+                command.Hotkey = new Hotkey(GetKeyOverride(command.Hotkey.Key), command.Hotkey.Modifier);
             }
         }
 
@@ -527,7 +529,7 @@ namespace DTAConfig
             var currentModifiers = GetCurrentModifiers();
 
             // The XNA keys seem to match the Windows virtual keycodes! This saves us some work
-            pendingHotkey = new Hotkey(e.PressedKey, currentModifiers);
+            pendingHotkey = new Hotkey(GetKeyOverride(e.PressedKey), currentModifiers);
 
             lblCurrentlyAssignedTo.Text = string.Empty;
 
@@ -620,6 +622,20 @@ namespace DTAConfig
             keyboardIni.WriteIniFile(ProgramConstants.GamePath + ClientConfiguration.Instance.KeyboardINI);
         }
 
+        /// <summary>
+        /// Allows defining keys that match other keys for in-game purposes
+        /// and should be displayed as those keys instead.
+        /// </summary>
+        /// <param name="key">The key.</param>
+        private Keys GetKeyOverride(Keys key)
+        {
+            // 12 is actually NumPad5 for the game
+            if (key == (Keys)12)
+                return Keys.NumPad5;
+
+            return key;
+        }
+
         class GameCommand
         {
             public GameCommand(string uiName, string category, string description, string iniName)
@@ -695,7 +711,7 @@ namespace DTAConfig
                 if (Key == Keys.None)
                     return str;
 
-                return str + Key.ToString();
+                return str + GetKeyDisplayString(Key);
             }
 
             public int GetTSEncoded()
@@ -715,6 +731,42 @@ namespace DTAConfig
             public override int GetHashCode()
             {
                 return GetTSEncoded();
+            }
+
+            /// <summary>
+            /// Returns the display string for an XNA key.
+            /// Allows overriding specific key enum names to be more
+            /// suitable for the UI.
+            /// </summary>
+            /// <param name="key">The key.</param>
+            /// <returns>A string.</returns>
+            private string GetKeyDisplayString(Keys key)
+            {
+                switch (key)
+                {
+                    case Keys.D0:
+                        return "0";
+                    case Keys.D1:
+                        return "1";
+                    case Keys.D2:
+                        return "2";
+                    case Keys.D3:
+                        return "3";
+                    case Keys.D4:
+                        return "4";
+                    case Keys.D5:
+                        return "5";
+                    case Keys.D6:
+                        return "6";
+                    case Keys.D7:
+                        return "7";
+                    case Keys.D8:
+                        return "8";
+                    case Keys.D9:
+                        return "9";
+                    default:
+                        return key.ToString();
+                }
             }
         }
     }
