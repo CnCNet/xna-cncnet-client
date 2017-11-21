@@ -529,6 +529,8 @@ namespace DTAConfig
             // The XNA keys seem to match the Windows virtual keycodes! This saves us some work
             pendingHotkey = new Hotkey(e.PressedKey, currentModifiers);
 
+            lblCurrentlyAssignedTo.Text = string.Empty;
+
             foreach (var command in gameCommands)
             {
                 if (pendingHotkey.Equals(command.Hotkey))
