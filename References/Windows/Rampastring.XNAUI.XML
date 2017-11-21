@@ -772,6 +772,12 @@
             truncated!
             </summary>
         </member>
+        <member name="P:Rampastring.XNAUI.XNAControls.XNAListBox.AllowKeyboardInput">
+            <summary>
+            If set to true, the user is able to scroll the listbox items
+            by using keyboard keys.
+            </summary>
+        </member>
         <member name="P:Rampastring.XNAUI.XNAControls.XNAListBox.SelectedItem">
             <summary>
             Gets the currently selected list box item.
@@ -908,6 +914,12 @@
         <member name="P:Rampastring.XNAUI.XNAControls.XNAMultiColumnListBox.SelectedIndex">
             <summary>
             Gets or sets the index of the currently selected list box item.
+            </summary>
+        </member>
+        <member name="P:Rampastring.XNAUI.XNAControls.XNAMultiColumnListBox.AllowKeyboardInput">
+            <summary>
+            If set to true, the user is able to scroll the listbox items
+            by using keyboard keys.
             </summary>
         </member>
         <member name="P:Rampastring.XNAUI.XNAControls.XNAMultiColumnListBox.TopIndex">
