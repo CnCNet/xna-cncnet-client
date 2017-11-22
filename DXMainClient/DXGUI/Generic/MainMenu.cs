@@ -60,6 +60,7 @@ namespace DTAClient.DXGUI.Generic
 
         private bool updateInProgress = false;
         private bool customComponentDialogQueued = false;
+        private bool offerCustomComponents = false;
 
         private DateTime lastUpdateCheckTime;
 
@@ -252,8 +253,13 @@ namespace DTAClient.DXGUI.Generic
 
         private void OptionsWindow_EnabledChanged(object sender, EventArgs e)
         {
-            if (!optionsWindow.Enabled && customComponentDialogQueued)
-                CUpdater_OnCustomComponentsOutdated();
+            if (!optionsWindow.Enabled)
+            {
+                if (customComponentDialogQueued)
+                    CUpdater_OnCustomComponentsOutdated();
+                else if (offerCustomComponents)
+                    OfferCustomComponentsDialog();
+            }
         }
 
         private void SharedUILogic_GameProcessStarting()
@@ -309,6 +315,8 @@ namespace DTAClient.DXGUI.Generic
 
             if (UserINISettings.Instance.IsFirstRun)
             {
+                offerCustomComponents = true;
+
                 UserINISettings.Instance.IsFirstRun.Value = false;
                 UserINISettings.Instance.SaveSettings();
 
@@ -332,6 +340,8 @@ namespace DTAClient.DXGUI.Generic
             {
                 CUpdater_OnCustomComponentsOutdated();
             }
+            else if (offerCustomComponents)
+                OfferCustomComponentsDialog();
         }
 
         private void MsgBox_YesClicked(object sender, EventArgs e)
@@ -340,6 +350,54 @@ namespace DTAClient.DXGUI.Generic
             firstRunMessageBox.NoClicked -= MsgBox_NoClicked;
 
             optionsWindow.Open();
+        }
+
+        private void OfferCustomComponentsDialog()
+        {
+            offerCustomComponents = false;
+
+            if (CUpdater.CustomComponents != null && CUpdater.CustomComponents.Length > 0)
+            {
+                foreach (var cc in CUpdater.CustomComponents)
+                {
+                    if (cc.RemoteSize > 0 && File.Exists(ProgramConstants.GamePath + cc.LocalPath))
+                        return;
+                }
+            }
+
+            // TODO implement this in a better way
+            if (ClientConfiguration.Instance.LocalGame == "DTA")
+            {
+                XNAMessageBox ccOfferBox = XNAMessageBox.ShowYesNoDialog(WindowManager,
+                    "Custom Components Available",
+                    "You don't currently have any in-game music installed. Do you" + Environment.NewLine +
+                    "wish to enter the options menu to install it now?");
+                ccOfferBox.YesClicked += CcOfferBox_YesClicked;
+                ccOfferBox.NoClicked += CcOfferBox_NoClicked;
+            }
+        }
+
+        private void CcOfferBox_NoClicked(object sender, EventArgs e)
+        {
+            UserINISettings.Instance.CustomComponentsDenied.Value = true;
+            UserINISettings.Instance.SaveSettings();
+            CcOfferBox_Unsubscribe(sender, e);
+        }
+
+        private void CcOfferBox_YesClicked(object sender, EventArgs e)
+        {
+            CcOfferBox_Unsubscribe(sender, EventArgs.Empty);
+            optionsWindow.Open();
+            optionsWindow.SwitchToCustomComponentsPanel();
+            optionsWindow.InstallCustomComponent(0);
+            optionsWindow.InstallCustomComponent(1);
+        }
+
+        private void CcOfferBox_Unsubscribe(object sender, EventArgs e)
+        {
+            var msgBox = (XNAMessageBox)sender;
+            msgBox.YesClicked -= CcOfferBox_YesClicked;
+            msgBox.NoClicked -= CcOfferBox_NoClicked;
         }
 
         private void SharedUILogic_GameProcessStarted()
@@ -501,10 +559,15 @@ namespace DTAClient.DXGUI.Generic
             lastUpdateCheckTime = DateTime.Now;
         }
 
+        private void CUpdater_FileIdentifiersUpdated()
+        {
+            WindowManager.AddCallback(new Action(HandleFileIdentifierUpdate), null);
+        }
+
         /// <summary>
         /// Used for displaying the result of an update check in the UI.
         /// </summary>
-        private void CUpdater_FileIdentifiersUpdated()
+        private void HandleFileIdentifierUpdate()
         {
             if (updateInProgress)
             {
@@ -516,6 +579,12 @@ namespace DTAClient.DXGUI.Generic
                 lblUpdateStatus.Text = MainClientConstants.GAME_NAME_SHORT + " is up to date.";
                 lblUpdateStatus.Enabled = true;
                 lblUpdateStatus.DrawUnderline = false;
+
+                if (firstRunMessageBox != null && firstRunMessageBox.Visible)
+                    return;
+
+                if (!UserINISettings.Instance.CustomComponentsDenied)
+                    OfferCustomComponentsDialog();
             }
             else if (CUpdater.DTAVersionState == VersionState.OUTDATED)
             {

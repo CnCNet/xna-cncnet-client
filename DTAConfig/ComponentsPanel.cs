@@ -177,6 +177,19 @@ namespace DTAConfig
             thread.Start();
         }
 
+        public void InstallComponent(int id)
+        {
+            var btn = installationButtons[id];
+            btn.AllowClick = false;
+
+            var cc = (CustomComponent)btn.Tag;
+
+            cc.DownloadFinished += cc_DownloadFinished;
+            cc.DownloadProgressChanged += cc_DownloadProgressChanged;
+            Thread thread = new Thread(cc.DownloadComponent);
+            thread.Start();
+        }
+
         /// <summary>
         /// Called whenever a custom component download's progress is changed.
         /// </summary>
