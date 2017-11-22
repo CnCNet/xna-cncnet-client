@@ -134,6 +134,13 @@ namespace DTAConfig
                     btn.Text = "Install";
                     return;
                 }
+
+                btn.AllowClick = false;
+
+                cc.DownloadFinished += cc_DownloadFinished;
+                cc.DownloadProgressChanged += cc_DownloadProgressChanged;
+                Thread thread = new Thread(cc.DownloadComponent);
+                thread.Start();
             }
             else
             {
