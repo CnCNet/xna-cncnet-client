@@ -83,10 +83,6 @@ namespace ClientGUI
                     if (parts.Length != 2)
                         throw new Exception("Invalid ExtraControl specified in " + Name + ": " + line);
 
-                    Logger.Log("Line: " + line);
-                    Logger.Log("Control name: " + parts[0]);
-                    Logger.Log("Type: " + parts[1]);
-
                     if (Children.Find(child => child.Name == parts[0]) == null)
                     {
                         var control = guiCreator.CreateControl(WindowManager, parts[1]);
