@@ -239,6 +239,16 @@ namespace DTAConfig
             Enable();
         }
 
+        public void SwitchToCustomComponentsPanel()
+        {
+            foreach (var panel in optionsPanels)
+            {
+                panel.Disable();
+            }
+
+            componentsPanel.Enable();
+        }
+
         public void PostInit()
         {
 #if !YR

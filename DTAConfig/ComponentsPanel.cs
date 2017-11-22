@@ -93,13 +93,13 @@ namespace DTAConfig
                     buttonEnabled = true;
 
                     if (c.LocalIdentifier != c.RemoteIdentifier)
-                        buttonText = "Update";
+                        buttonText = "Update (" + (c.RemoteSize / 1048576) + " MB)";
                 }
                 else
                 {
                     if (!string.IsNullOrEmpty(c.RemoteIdentifier))
                     {
-                        buttonText = "Install";
+                        buttonText = "Install (" + (c.RemoteSize / 1048576) + " MB)";
                         buttonEnabled = true;
                     }
                 }

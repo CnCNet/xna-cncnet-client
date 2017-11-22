@@ -56,7 +56,10 @@ namespace DTAClient.DXGUI.Generic
 
         private TopBar topBar;
 
+        private XNAMessageBox firstRunMessageBox;
+
         private bool updateInProgress = false;
+        private bool customComponentDialogQueued = false;
 
         private DateTime lastUpdateCheckTime;
 
@@ -205,6 +208,7 @@ namespace DTAClient.DXGUI.Generic
                 AddChild(lblUpdateStatus);
 
                 CUpdater.FileIdentifiersUpdated += CUpdater_FileIdentifiersUpdated;
+                CUpdater.OnCustomComponentsOutdated += CUpdater_OnCustomComponentsOutdated;
             }
 
             innerPanel = new MainMenuDarkeningPanel(WindowManager);
@@ -236,6 +240,7 @@ namespace DTAClient.DXGUI.Generic
 
             skirmishLobby.Exited += SkirmishLobby_Exited;
             lanLobby.Exited += LanLobby_Exited;
+            optionsWindow.EnabledChanged += OptionsWindow_EnabledChanged;
 
             GameProcessLogic.GameProcessStarted += SharedUILogic_GameProcessStarted;
             GameProcessLogic.GameProcessStarting += SharedUILogic_GameProcessStarting;
@@ -243,6 +248,12 @@ namespace DTAClient.DXGUI.Generic
             UserINISettings.Instance.SettingsSaved += SettingsSaved;
 
             CUpdater.Restart += CUpdater_Restart;
+        }
+
+        private void OptionsWindow_EnabledChanged(object sender, EventArgs e)
+        {
+            if (!optionsWindow.Enabled && customComponentDialogQueued)
+                CUpdater_OnCustomComponentsOutdated();
         }
 
         private void SharedUILogic_GameProcessStarting()
@@ -301,12 +312,12 @@ namespace DTAClient.DXGUI.Generic
                 UserINISettings.Instance.IsFirstRun.Value = false;
                 UserINISettings.Instance.SaveSettings();
 
-                var msgBox = XNAMessageBox.ShowYesNoDialog(WindowManager, "Initial Installation",
+                firstRunMessageBox = XNAMessageBox.ShowYesNoDialog(WindowManager, "Initial Installation",
                     string.Format("You have just installed {0}." + Environment.NewLine +
                     "It's highly recommended that you configure your settings before playing." +
                     Environment.NewLine + "Do you want to configure them now?", ClientConfiguration.Instance.LocalGame));
-                msgBox.YesClicked += MsgBox_YesClicked;
-                msgBox.NoClicked += MsgBox_NoClicked;
+                firstRunMessageBox.YesClicked += MsgBox_YesClicked;
+                firstRunMessageBox.NoClicked += MsgBox_NoClicked;
             }
 
             optionsWindow.PostInit();
@@ -314,16 +325,19 @@ namespace DTAClient.DXGUI.Generic
 
         private void MsgBox_NoClicked(object sender, EventArgs e)
         {
-            var msgBox = (XNAMessageBox)sender;
-            msgBox.YesClicked -= MsgBox_YesClicked;
-            msgBox.NoClicked -= MsgBox_NoClicked;
+            firstRunMessageBox.YesClicked -= MsgBox_YesClicked;
+            firstRunMessageBox.NoClicked -= MsgBox_NoClicked;
+
+            if (customComponentDialogQueued)
+            {
+                CUpdater_OnCustomComponentsOutdated();
+            }
         }
 
         private void MsgBox_YesClicked(object sender, EventArgs e)
         {
-            var msgBox = (XNAMessageBox)sender;
-            msgBox.YesClicked -= MsgBox_YesClicked;
-            msgBox.NoClicked -= MsgBox_NoClicked;
+            firstRunMessageBox.YesClicked -= MsgBox_YesClicked;
+            firstRunMessageBox.NoClicked -= MsgBox_NoClicked;
 
             optionsWindow.Open();
         }
@@ -515,6 +529,44 @@ namespace DTAClient.DXGUI.Generic
                 lblUpdateStatus.Enabled = true;
                 lblUpdateStatus.DrawUnderline = true;
             }
+        }
+
+        private void CUpdater_OnCustomComponentsOutdated()
+        {
+            if (innerPanel.UpdateQueryWindow.Visible)
+                return;
+
+            if (updateInProgress)
+                return;
+
+            if ((firstRunMessageBox != null && firstRunMessageBox.Visible) || optionsWindow.Enabled)
+            {
+                customComponentDialogQueued = true;
+                return;
+            }
+
+            customComponentDialogQueued = false;
+
+            XNAMessageBox ccMsgBox = XNAMessageBox.ShowYesNoDialog(WindowManager,
+                "Custom Component Updates Available",
+                "Updates for custom components are available. Do you want to open" + Environment.NewLine +
+                "the Options menu where you can update the custom components?");
+            ccMsgBox.YesClicked += CCMsgBox_YesClicked;
+            ccMsgBox.NoClicked += CCMsgBox_Unsubscribe;
+        }
+
+        private void CCMsgBox_YesClicked(object sender, EventArgs e)
+        {
+            CCMsgBox_Unsubscribe(sender, EventArgs.Empty);
+            optionsWindow.Open();
+            optionsWindow.SwitchToCustomComponentsPanel();
+        }
+
+        private void CCMsgBox_Unsubscribe(object sender, EventArgs e)
+        {
+            var msgBox = (XNAMessageBox)sender;
+            msgBox.YesClicked -= CCMsgBox_YesClicked;
+            msgBox.NoClicked -= CCMsgBox_Unsubscribe;
         }
 
         private void UpdateQueryWindow_UpdateDeclined(object sender, EventArgs e)
