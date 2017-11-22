@@ -390,6 +390,7 @@ namespace DTAClient.DXGUI.Generic
             optionsWindow.Open();
             optionsWindow.SwitchToCustomComponentsPanel();
             optionsWindow.InstallCustomComponent(0);
+            Thread.Sleep(200); // HACK
             optionsWindow.InstallCustomComponent(1);
         }
 
