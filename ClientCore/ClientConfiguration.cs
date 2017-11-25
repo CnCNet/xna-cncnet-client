@@ -417,6 +417,23 @@ namespace ClientCore
             return values;
         }
 
+        /// <summary>
+        /// Determines whether a theme with a specific name is defined.
+        /// </summary>
+        /// <param name="theme">The name of the theme.</param>
+        /// <returns>True if a theme with the specified name exists, otherwise false.</returns>
+        public bool IsThemeDefined(string theme)
+        {
+            var themeSection = clientDefinitionsIni.GetSection("Themes");
+            foreach (var key in themeSection.Keys)
+            {
+                if (key.Value == theme)
+                    return true;
+            }
+
+            return false;
+        }
+
         public string SettingsIniName
         {
             get

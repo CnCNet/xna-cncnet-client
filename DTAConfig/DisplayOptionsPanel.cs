@@ -689,7 +689,9 @@ namespace DTAConfig
 
             chkBorderlessClient.Checked = UserINISettings.Instance.BorderlessWindowedClient;
 
-            ddClientTheme.SelectedIndex = UserINISettings.Instance.ClientTheme;
+            int selectedThemeIndex = ddClientTheme.Items.FindIndex(
+                ddi => ddi.Text == UserINISettings.Instance.ClientTheme);
+            ddClientTheme.SelectedIndex = selectedThemeIndex > -1 ? selectedThemeIndex : 0;
 
             fileSettingCheckBoxes.ForEach(chkBox => chkBox.Load());
 
@@ -778,10 +780,10 @@ namespace DTAConfig
 
             IniSettings.BorderlessWindowedClient.Value = chkBorderlessClient.Checked;
 
-            if (IniSettings.ClientTheme != ddClientTheme.SelectedIndex)
+            if (IniSettings.ClientTheme != ddClientTheme.SelectedItem.Text)
                 restartRequired = true;
 
-            IniSettings.ClientTheme.Value = ddClientTheme.SelectedIndex;
+            IniSettings.ClientTheme.Value = ddClientTheme.SelectedItem.Text;
 
 #if YR
             IniSettings.BackBufferInVRAM.Value = chkBackBufferInVRAM.Checked;

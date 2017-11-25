@@ -48,7 +48,7 @@ namespace ClientCore
 
             IngameScreenWidth = new IntSetting(iniFile, VIDEO, "ScreenWidth", 1024);
             IngameScreenHeight = new IntSetting(iniFile, VIDEO, "ScreenHeight", 768);
-            ClientTheme = new IntSetting(iniFile, MULTIPLAYER, "Theme", 0);
+            ClientTheme = new StringSetting(iniFile, MULTIPLAYER, "Theme", string.Empty);
             DetailLevel = new IntSetting(iniFile, OPTIONS, "DetailLevel", 2);
             Renderer = new StringSetting(iniFile, "Compatibility", "Renderer", string.Empty);
             WindowedMode = new BoolSetting(iniFile, VIDEO, WINDOWED_MODE_KEY, false);
@@ -114,7 +114,7 @@ namespace ClientCore
 
         public IntSetting IngameScreenWidth { get; private set; }
         public IntSetting IngameScreenHeight { get; private set; }
-        public IntSetting ClientTheme { get; private set; }
+        public StringSetting ClientTheme { get; private set; }
         public IntSetting DetailLevel { get; private set; }
         public StringSetting Renderer { get; private set; }
         public BoolSetting WindowedMode { get; private set; }

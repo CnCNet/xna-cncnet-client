@@ -21,15 +21,17 @@ namespace DTAClient
         /// </summary>
         public void Execute()
         {
-            int themeId = UserINISettings.Instance.ClientTheme;
+            string theme = UserINISettings.Instance.ClientTheme;
 
-            if (themeId >= ClientConfiguration.Instance.ThemeCount || themeId < 0)
+            if (!ClientConfiguration.Instance.IsThemeDefined(theme))
             {
-                themeId = 0;
-                UserINISettings.Instance.ClientTheme.Value = 0;
+               theme = ClientConfiguration.Instance.GetThemeInfoFromIndex(0)[1];
             }
 
-            ProgramConstants.RESOURCES_DIR = "Resources\\" + ClientConfiguration.Instance.GetThemeInfoFromIndex(themeId)[1];
+            ProgramConstants.RESOURCES_DIR = "Resources\\" + theme;
+
+            if (!Directory.Exists(ProgramConstants.RESOURCES_DIR))
+                throw new DirectoryNotFoundException("Theme directory not found!" + Environment.NewLine + ProgramConstants.RESOURCES_DIR);
 
             Logger.Log("Initializing updater.");
 
