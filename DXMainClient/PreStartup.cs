@@ -6,6 +6,8 @@ using DTAClient.Domain;
 using Rampastring.Tools;
 using ClientCore;
 using Rampastring.XNAUI;
+using System.Security.AccessControl;
+using System.Security.Principal;
 
 namespace DTAClient
 {
@@ -113,32 +115,71 @@ namespace DTAClient
                 "KABOOOOOOOM", MessageBoxButtons.OK);
         }
 
-        static void CheckPermissions()
+        private static void CheckPermissions()
         {
+            if (UserHasDirectoryAccessRights(Environment.CurrentDirectory, FileSystemRights.Modify))
+                return;
+
+            DialogResult dr = MessageBox.Show(string.Format("You seem to be running {0} from a write-protected directory." + Environment.NewLine + Environment.NewLine +
+                "For {1} to function properly when run from a write-protected directory, it needs administrative priveleges." + Environment.NewLine + Environment.NewLine +
+                "Would you like to restart the client with administrative rights?" + Environment.NewLine + Environment.NewLine +
+                "Please also make sure that your security software isn't blocking {1}.", MainClientConstants.GAME_NAME_LONG, MainClientConstants.GAME_NAME_SHORT),
+                "Administrative priveleges required", MessageBoxButtons.YesNo);
+
+            if (dr == DialogResult.No)
+                Environment.Exit(0);
+
+            ProcessStartInfo psInfo = new ProcessStartInfo();
+            psInfo.FileName = Application.ExecutablePath;
+            psInfo.Verb = "runas";
+            Process.Start(psInfo);
+            Environment.Exit(0);
+        }
+
+        /// <summary>
+        /// Checks whether the client has specific file system rights to a directory.
+        /// See ssds's answer at https://stackoverflow.com/questions/1410127/c-sharp-test-if-user-has-write-access-to-a-folder
+        /// </summary>
+        /// <param name="path">The path to the directory.</param>
+        /// <param name="accessRights">The file system rights.</param>
+        private static bool UserHasDirectoryAccessRights(string path, FileSystemRights accessRights)
+        {
+            var isInRoleWithAccess = false;
+
             try
             {
-                File.Delete(Environment.CurrentDirectory + "\\tmpfile");
-                FileStream fs = File.Create(Environment.CurrentDirectory + "\\tmpfile");
-                fs.Close();
-                File.Delete(Environment.CurrentDirectory + "\\tmpfile");
+                var di = new DirectoryInfo(path);
+                var acl = di.GetAccessControl();
+                var rules = acl.GetAccessRules(true, true, typeof(NTAccount));
+
+                var currentUser = WindowsIdentity.GetCurrent();
+                var principal = new WindowsPrincipal(currentUser);
+                foreach (AuthorizationRule rule in rules)
+                {
+                    var fsAccessRule = rule as FileSystemAccessRule;
+                    if (fsAccessRule == null)
+                        continue;
+
+                    if ((fsAccessRule.FileSystemRights & accessRights) > 0)
+                    {
+                        var ntAccount = rule.IdentityReference as NTAccount;
+                        if (ntAccount == null)
+                            continue;
+
+                        if (principal.IsInRole(ntAccount.Value))
+                        {
+                            if (fsAccessRule.AccessControlType == AccessControlType.Deny)
+                                return false;
+                            isInRoleWithAccess = true;
+                        }
+                    }
+                }
             }
             catch (UnauthorizedAccessException)
             {
-                DialogResult dr = MessageBox.Show(string.Format("You seem to be running {0} from a write-protected directory." + Environment.NewLine + Environment.NewLine +
-                    "For {1} to function properly when run from a write-protected directory, it needs administrative priveleges." + Environment.NewLine + Environment.NewLine +
-                    "Would you like to restart the client with administrative rights?" + Environment.NewLine + Environment.NewLine +
-                    "Please also make sure that your security software isn't blocking {1}.", MainClientConstants.GAME_NAME_LONG, MainClientConstants.GAME_NAME_SHORT),
-                    "Administrative priveleges required", MessageBoxButtons.YesNo);
-
-                if (dr == DialogResult.No)
-                    Environment.Exit(0);
-
-                ProcessStartInfo psInfo = new ProcessStartInfo();
-                psInfo.FileName = Application.ExecutablePath;
-                psInfo.Verb = "runas";
-                Process.Start(psInfo);
-                Environment.Exit(0);
+                return false;
             }
+            return isInRoleWithAccess;
         }
     }
 }
