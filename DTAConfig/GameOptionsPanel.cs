@@ -26,10 +26,14 @@ namespace DTAConfig
         private XNAClientCheckBox chkTooltips;
 #if YR
         private XNAClientCheckBox chkShowHiddenObjects;
-#else
+#elif DTA || TS
         private XNAClientCheckBox chkAltToUndeploy;
+#endif
+
+#if DTA || TS || TI
         private XNAClientCheckBox chkBlackChatBackground;
 #endif
+
         private XNAControl topBar;
 
         private XNATextBox tbPlayerName;
@@ -112,27 +116,37 @@ namespace DTAConfig
                 lblScrollRate.ClientRectangle.X,
                 chkTargetLines.ClientRectangle.Bottom + 24, 0, 0);
 
-            chkAltToUndeploy = new XNAClientCheckBox(WindowManager);
-            chkAltToUndeploy.Name = "chkAltToUndeploy";
-            chkAltToUndeploy.ClientRectangle = new Rectangle(
-                chkScrollCoasting.ClientRectangle.X,
-                chkTooltips.ClientRectangle.Bottom + 24, 0, 0);
-            chkAltToUndeploy.Text = "Undeploy units by holding Alt key instead of a regular move command";
-
             chkBlackChatBackground = new XNAClientCheckBox(WindowManager);
             chkBlackChatBackground.Name = "chkBlackChatBackground";
             chkBlackChatBackground.ClientRectangle = new Rectangle(
                 chkScrollCoasting.ClientRectangle.X,
-                chkAltToUndeploy.ClientRectangle.Bottom + 24, 0, 0);
+                chkTooltips.ClientRectangle.Bottom + 24, 0, 0);
             chkBlackChatBackground.Text = "Use black background for in-game chat messages";
+
+            AddChild(chkBlackChatBackground);
+#endif
+
+#if DTA || TS
+            chkAltToUndeploy = new XNAClientCheckBox(WindowManager);
+            chkAltToUndeploy.Name = "chkAltToUndeploy";
+            chkAltToUndeploy.ClientRectangle = new Rectangle(
+                chkScrollCoasting.ClientRectangle.X,
+                chkBlackChatBackground.ClientRectangle.Bottom + 24, 0, 0);
+            chkAltToUndeploy.Text = "Undeploy units by holding Alt key instead of a regular move command";
+
+            AddChild(chkAltToUndeploy);
 
             lblPlayerName.ClientRectangle = new Rectangle(
                 lblScrollRate.ClientRectangle.X,
+                chkAltToUndeploy.ClientRectangle.Bottom + 30, 0, 0);
+#elif TI
+            lblPlayerName.ClientRectangle = new Rectangle(
+                lblScrollRate.ClientRectangle.X,
                 chkBlackChatBackground.ClientRectangle.Bottom + 30, 0, 0);
+#endif
 
-            AddChild(chkAltToUndeploy);
-            AddChild(chkBlackChatBackground);
-#endif 
+
+
 
             tbPlayerName = new XNATextBox(WindowManager);
             tbPlayerName.Name = "tbPlayerName";
@@ -207,8 +221,13 @@ namespace DTAConfig
             chkTooltips.Checked = IniSettings.Tooltips;
 #if YR
             chkShowHiddenObjects.Checked = IniSettings.ShowHiddenObjects;
-#else
+#endif
+
+#if DTA || TS
             chkAltToUndeploy.Checked = !IniSettings.MoveToUndeploy;
+#endif
+
+#if DTA || TS || TI
             chkBlackChatBackground.Checked = IniSettings.TextBackgroundColor == TEXT_BACKGROUND_COLOR_BLACK;
 #endif
             tbPlayerName.Text = UserINISettings.Instance.PlayerName;
@@ -223,9 +242,13 @@ namespace DTAConfig
             IniSettings.Tooltips.Value = chkTooltips.Checked;
 #if YR
             IniSettings.ShowHiddenObjects.Value = chkShowHiddenObjects.Checked;
-#else
-            IniSettings.MoveToUndeploy.Value = !chkAltToUndeploy.Checked;
+#endif
 
+#if DTA || TS
+            IniSettings.MoveToUndeploy.Value = !chkAltToUndeploy.Checked;
+#endif
+
+#if DTA || TS || TI
             if (chkBlackChatBackground.Checked)
                 IniSettings.TextBackgroundColor.Value = TEXT_BACKGROUND_COLOR_BLACK;
             else
