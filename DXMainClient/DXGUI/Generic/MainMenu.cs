@@ -60,7 +60,6 @@ namespace DTAClient.DXGUI.Generic
 
         private bool updateInProgress = false;
         private bool customComponentDialogQueued = false;
-        private bool offerCustomComponents = false;
 
         private DateTime lastUpdateCheckTime;
 
@@ -257,8 +256,6 @@ namespace DTAClient.DXGUI.Generic
             {
                 if (customComponentDialogQueued)
                     CUpdater_OnCustomComponentsOutdated();
-                else if (offerCustomComponents)
-                    OfferCustomComponentsDialog();
             }
         }
 
@@ -315,8 +312,6 @@ namespace DTAClient.DXGUI.Generic
 
             if (UserINISettings.Instance.IsFirstRun)
             {
-                offerCustomComponents = true;
-
                 UserINISettings.Instance.IsFirstRun.Value = false;
                 UserINISettings.Instance.SaveSettings();
 
@@ -337,11 +332,7 @@ namespace DTAClient.DXGUI.Generic
             firstRunMessageBox.NoClicked -= MsgBox_NoClicked;
 
             if (customComponentDialogQueued)
-            {
                 CUpdater_OnCustomComponentsOutdated();
-            }
-            else if (offerCustomComponents)
-                OfferCustomComponentsDialog();
         }
 
         private void MsgBox_YesClicked(object sender, EventArgs e)
@@ -350,55 +341,6 @@ namespace DTAClient.DXGUI.Generic
             firstRunMessageBox.NoClicked -= MsgBox_NoClicked;
 
             optionsWindow.Open();
-        }
-
-        private void OfferCustomComponentsDialog()
-        {
-            offerCustomComponents = false;
-
-            if (CUpdater.CustomComponents != null && CUpdater.CustomComponents.Length > 0)
-            {
-                foreach (var cc in CUpdater.CustomComponents)
-                {
-                    if (cc.RemoteSize > 0 && File.Exists(ProgramConstants.GamePath + cc.LocalPath))
-                        return;
-                }
-            }
-
-            // TODO implement this in a better way
-            if (ClientConfiguration.Instance.LocalGame == "DTA")
-            {
-                XNAMessageBox ccOfferBox = XNAMessageBox.ShowYesNoDialog(WindowManager,
-                    "Custom Components Available",
-                    "You don't currently have any in-game music installed. Do you" + Environment.NewLine +
-                    "wish to enter the options menu to install it now?");
-                ccOfferBox.YesClicked += CcOfferBox_YesClicked;
-                ccOfferBox.NoClicked += CcOfferBox_NoClicked;
-            }
-        }
-
-        private void CcOfferBox_NoClicked(object sender, EventArgs e)
-        {
-            UserINISettings.Instance.CustomComponentsDenied.Value = true;
-            UserINISettings.Instance.SaveSettings();
-            CcOfferBox_Unsubscribe(sender, e);
-        }
-
-        private void CcOfferBox_YesClicked(object sender, EventArgs e)
-        {
-            CcOfferBox_Unsubscribe(sender, EventArgs.Empty);
-            optionsWindow.Open();
-            optionsWindow.SwitchToCustomComponentsPanel();
-            optionsWindow.InstallCustomComponent(0);
-            Thread.Sleep(200); // HACK
-            optionsWindow.InstallCustomComponent(1);
-        }
-
-        private void CcOfferBox_Unsubscribe(object sender, EventArgs e)
-        {
-            var msgBox = (XNAMessageBox)sender;
-            msgBox.YesClicked -= CcOfferBox_YesClicked;
-            msgBox.NoClicked -= CcOfferBox_NoClicked;
         }
 
         private void SharedUILogic_GameProcessStarted()
@@ -583,9 +525,6 @@ namespace DTAClient.DXGUI.Generic
 
                 if (firstRunMessageBox != null && firstRunMessageBox.Visible)
                     return;
-
-                if (!UserINISettings.Instance.CustomComponentsDenied)
-                    OfferCustomComponentsDialog();
             }
             else if (CUpdater.DTAVersionState == VersionState.OUTDATED)
             {

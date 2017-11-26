@@ -11,9 +11,9 @@ namespace ClientCore
     public static class ProgramConstants
     {
 #if DEBUG
-        public static string GamePath = Application.StartupPath + "\\";
+        public static readonly string GamePath = Application.StartupPath + "\\";
 #else
-        public static string GamePath = Directory.GetParent(Application.StartupPath).FullName + "\\";
+        public static readonly string GamePath = Directory.GetParent(Application.StartupPath).FullName + "\\";
 #endif
 
         public static event EventHandler PlayerNameChanged;
