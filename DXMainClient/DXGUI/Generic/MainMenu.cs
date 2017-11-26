@@ -1,32 +1,37 @@
 ﻿using ClientCore;
 using ClientGUI;
-using DTAConfig;
 using DTAClient.Domain;
+using DTAClient.Domain.Multiplayer.CnCNet;
+using DTAClient.DXGUI.Multiplayer;
+using DTAClient.DXGUI.Multiplayer.CnCNet;
+using DTAClient.DXGUI.Multiplayer.GameLobby;
+using DTAClient.Online;
+using DTAConfig;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
+using Microsoft.Xna.Framework.Media;
 using Rampastring.Tools;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
 using System;
 using System.Diagnostics;
-using Updater;
-using SkirmishLobby = DTAClient.DXGUI.Multiplayer.GameLobby.SkirmishLobby;
-using DTAClient.Online;
-using DTAClient.Domain.Multiplayer.CnCNet;
-using DTAClient.DXGUI.Multiplayer;
-using Microsoft.Xna.Framework.Media;
 using System.Threading;
-using DTAClient.DXGUI.Multiplayer.CnCNet;
-using System.IO;
+using Updater;
 
 namespace DTAClient.DXGUI.Generic
 {
+    /// <summary>
+    /// The main menu of the client.
+    /// </summary>
     class MainMenu : XNAWindow, ISwitchable
     {
         private const float MEDIA_PLAYER_VOLUME_FADE_STEP = 0.01f;
         private const float MEDIA_PLAYER_VOLUME_EXIT_FADE_STEP = 0.025f;
         private const double UPDATE_RE_CHECK_THRESHOLD = 30.0;
 
+        /// <summary>
+        /// Creates a new instance of the main menu.
+        /// </summary>
         public MainMenu(WindowManager windowManager, SkirmishLobby skirmishLobby,
             LANLobby lanLobby, TopBar topBar, OptionsWindow optionsWindow,
             CnCNetLobby cncnetLobby,
@@ -73,6 +78,9 @@ namespace DTAClient.DXGUI.Generic
 
         private CancellationTokenSource cncnetPlayerCountCancellationSource;
 
+        /// <summary>
+        /// Initializes the main menu's controls.
+        /// </summary>
         public override void Initialize()
         {
             GameProcessLogic.GameProcessExited += SharedUILogic_GameProcessExited;
@@ -204,6 +212,8 @@ namespace DTAClient.DXGUI.Generic
 
             if (!ClientConfiguration.Instance.ModMode)
             {
+                // ModMode disables version tracking and the updater if it's enabled
+
                 AddChild(lblVersion);
                 AddChild(lblUpdateStatus);
 
@@ -259,6 +269,9 @@ namespace DTAClient.DXGUI.Generic
             }
         }
 
+        /// <summary>
+        /// Refreshes settings. Called when the game process is starting.
+        /// </summary>
         private void SharedUILogic_GameProcessStarting()
         {
             UserINISettings.Instance.ReloadSettings();
@@ -281,6 +294,10 @@ namespace DTAClient.DXGUI.Generic
             WindowManager.AddCallback(new Action(WindowManager.CloseGame), null);
         }
 
+        /// <summary>
+        /// Applies configuration changes (music playback and volume)
+        /// when settings are saved.
+        /// </summary>
         private void SettingsSaved(object sender, EventArgs e)
         {
             musicVolume = (float)UserINISettings.Instance.ClientVolume;
@@ -305,6 +322,11 @@ namespace DTAClient.DXGUI.Generic
             }
         }
 
+        /// <summary>
+        /// Checks whether the client is running for the first time.
+        /// If it is, displays a dialog asking the user if they'd like
+        /// to configure settings.
+        /// </summary>
         private void CheckIfFirstRun()
         {
             if (ClientConfiguration.Instance.LocalGame == "YR")
@@ -319,26 +341,26 @@ namespace DTAClient.DXGUI.Generic
                     string.Format("You have just installed {0}." + Environment.NewLine +
                     "It's highly recommended that you configure your settings before playing." +
                     Environment.NewLine + "Do you want to configure them now?", ClientConfiguration.Instance.LocalGame));
-                firstRunMessageBox.YesClicked += MsgBox_YesClicked;
-                firstRunMessageBox.NoClicked += MsgBox_NoClicked;
+                firstRunMessageBox.YesClicked += FirstRunMessageBox_YesClicked;
+                firstRunMessageBox.NoClicked += FirstRunMessageBox_NoClicked;
             }
 
             optionsWindow.PostInit();
         }
 
-        private void MsgBox_NoClicked(object sender, EventArgs e)
+        private void FirstRunMessageBox_NoClicked(object sender, EventArgs e)
         {
-            firstRunMessageBox.YesClicked -= MsgBox_YesClicked;
-            firstRunMessageBox.NoClicked -= MsgBox_NoClicked;
+            firstRunMessageBox.YesClicked -= FirstRunMessageBox_YesClicked;
+            firstRunMessageBox.NoClicked -= FirstRunMessageBox_NoClicked;
 
             if (customComponentDialogQueued)
                 CUpdater_OnCustomComponentsOutdated();
         }
 
-        private void MsgBox_YesClicked(object sender, EventArgs e)
+        private void FirstRunMessageBox_YesClicked(object sender, EventArgs e)
         {
-            firstRunMessageBox.YesClicked -= MsgBox_YesClicked;
-            firstRunMessageBox.NoClicked -= MsgBox_NoClicked;
+            firstRunMessageBox.YesClicked -= FirstRunMessageBox_YesClicked;
+            firstRunMessageBox.NoClicked -= FirstRunMessageBox_NoClicked;
 
             optionsWindow.Open();
         }
@@ -407,6 +429,11 @@ namespace DTAClient.DXGUI.Generic
 #endif
         }
 
+        /// <summary>
+        /// Starts playing music, initiates an update check if automatic updates
+        /// are enabled and checks whether the client is run for the first time.
+        /// Called after all internal client UI logic has been initialized.
+        /// </summary>
         public void PostInit()
         {
             themeSong = AssetLoader.LoadSong(ClientConfiguration.Instance.MainMenuMusicName);
@@ -452,6 +479,8 @@ namespace DTAClient.DXGUI.Generic
 
         private void MsgBox_OKClicked(object sender, EventArgs e)
         {
+            var messageBox = (XNAMessageBox)sender;
+            messageBox.OKClicked -= MsgBox_OKClicked;
             innerPanel.Hide();
         }
 
@@ -522,9 +551,6 @@ namespace DTAClient.DXGUI.Generic
                 lblUpdateStatus.Text = MainClientConstants.GAME_NAME_SHORT + " is up to date.";
                 lblUpdateStatus.Enabled = true;
                 lblUpdateStatus.DrawUnderline = false;
-
-                if (firstRunMessageBox != null && firstRunMessageBox.Visible)
-                    return;
             }
             else if (CUpdater.DTAVersionState == VersionState.OUTDATED)
             {
@@ -540,6 +566,11 @@ namespace DTAClient.DXGUI.Generic
             }
         }
 
+        /// <summary>
+        /// Asks the user if they'd like to update their custom components.
+        /// Handles an event raised by the updater when it has detected
+        /// that the custom components are out of date.
+        /// </summary>
         private void CUpdater_OnCustomComponentsOutdated()
         {
             if (innerPanel.UpdateQueryWindow.Visible)
@@ -550,6 +581,8 @@ namespace DTAClient.DXGUI.Generic
 
             if ((firstRunMessageBox != null && firstRunMessageBox.Visible) || optionsWindow.Enabled)
             {
+                // If the custom components are out of date on the first run
+                // or the options window is already open, don't show the dialog
                 customComponentDialogQueued = true;
                 return;
             }
@@ -578,6 +611,9 @@ namespace DTAClient.DXGUI.Generic
             msgBox.NoClicked -= CCMsgBox_Unsubscribe;
         }
 
+        /// <summary>
+        /// Called when the user has declined an update.
+        /// </summary>
         private void UpdateQueryWindow_UpdateDeclined(object sender, EventArgs e)
         {
             UpdateQueryWindow uqw = (UpdateQueryWindow)sender;
@@ -587,6 +623,9 @@ namespace DTAClient.DXGUI.Generic
             lblUpdateStatus.DrawUnderline = true;
         }
 
+        /// <summary>
+        /// Called when the user has accepted an update.
+        /// </summary>
         private void UpdateQueryWindow_UpdateAccepted(object sender, EventArgs e)
         {
             innerPanel.Hide();
@@ -710,6 +749,9 @@ namespace DTAClient.DXGUI.Generic
             }
         }
 
+        /// <summary>
+        /// Attempts to start playing the menu music.
+        /// </summary>
         private void PlayMusic()
         {
             if (MainClientConstants.OSId == OSVersion.WINVISTA)
@@ -732,6 +774,11 @@ namespace DTAClient.DXGUI.Generic
             }
         }
 
+        /// <summary>
+        /// Lowers the volume of the menu music, or stops playing it if the
+        /// volume is unaudibly low.
+        /// </summary>
+        /// <param name="gameTime">Provides a snapshot of timing values.</param>
         private void FadeMusic(GameTime gameTime)
         {
             if (!isMusicFading || themeSong == null)
@@ -749,6 +796,9 @@ namespace DTAClient.DXGUI.Generic
             }
         }
 
+        /// <summary>
+        /// Exits the client. Quickly fades the music if it's playing.
+        /// </summary>
         private void FadeMusicExit()
         {
             if (themeSong == null || MainClientConstants.OSId == OSVersion.WINVISTA)
