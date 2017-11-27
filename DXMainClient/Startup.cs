@@ -21,14 +21,14 @@ namespace DTAClient
         /// </summary>
         public void Execute()
         {
-            string theme = UserINISettings.Instance.ClientTheme;
+            string themePath = ClientConfiguration.Instance.GetThemePath(UserINISettings.Instance.ClientTheme);
 
-            if (!ClientConfiguration.Instance.IsThemeDefined(theme))
+            if (themePath == null)
             {
-               theme = ClientConfiguration.Instance.GetThemeInfoFromIndex(0)[1];
+               themePath = ClientConfiguration.Instance.GetThemeInfoFromIndex(0)[1];
             }
 
-            ProgramConstants.RESOURCES_DIR = "Resources\\" + theme;
+            ProgramConstants.RESOURCES_DIR = "Resources\\" + themePath;
 
             if (!Directory.Exists(ProgramConstants.RESOURCES_DIR))
                 throw new DirectoryNotFoundException("Theme directory not found!" + Environment.NewLine + ProgramConstants.RESOURCES_DIR);

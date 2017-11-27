@@ -418,20 +418,22 @@ namespace ClientCore
         }
 
         /// <summary>
-        /// Determines whether a theme with a specific name is defined.
+        /// Returns the directory path for a theme, or null if the specified
+        /// theme name doesn't exist.
         /// </summary>
-        /// <param name="theme">The name of the theme.</param>
-        /// <returns>True if a theme with the specified name exists, otherwise false.</returns>
-        public bool IsThemeDefined(string theme)
+        /// <param name="themeName">The name of the theme.</param>
+        /// <returns>The path to the theme's directory.</returns>
+        public string GetThemePath(string themeName)
         {
             var themeSection = clientDefinitionsIni.GetSection("Themes");
             foreach (var key in themeSection.Keys)
             {
-                if (key.Value == theme)
-                    return true;
+                string[] parts = key.Value.Split(',');
+                if (parts[0] == themeName)
+                    return parts[1];
             }
 
-            return false;
+            return null;
         }
 
         public string SettingsIniName
