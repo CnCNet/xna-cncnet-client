@@ -17,61 +17,61 @@ namespace DTAClient.DXGUI.Generic
     {
         public StatisticsWindow(WindowManager windowManager) : base(windowManager) { }
 
-        XNAPanel panelGameStatistics;
-        XNAPanel panelTotalStatistics;
+        private XNAPanel panelGameStatistics;
+        private XNAPanel panelTotalStatistics;
 
-        XNAClientDropDown cmbGameModeFilter;
-        XNAClientDropDown cmbGameClassFilter;
+        private XNAClientDropDown cmbGameModeFilter;
+        private XNAClientDropDown cmbGameClassFilter;
 
-        XNAClientCheckBox chkIncludeSpectatedGames;
+        private XNAClientCheckBox chkIncludeSpectatedGames;
 
-        XNAClientTabControl tabControl;
+        private XNAClientTabControl tabControl;
 
         // Controls for game statistics
 
-        XNAMultiColumnListBox lbGameList;
-        XNAMultiColumnListBox lbGameStatistics;
+        private XNAMultiColumnListBox lbGameList;
+        private XNAMultiColumnListBox lbGameStatistics;
 
-        Texture2D[] sideTextures;
+        private Texture2D[] sideTextures;
 
         // *****************************
 
-        const int TOTAL_STATS_LOCATION_X1 = 40;
-        const int TOTAL_STATS_VALUE_LOCATION_X1 = 240;
-        const int TOTAL_STATS_LOCATION_X2 = 380;
-        const int TOTAL_STATS_VALUE_LOCATION_X2 = 580;
-        const int TOTAL_STATS_Y_INCREASE = 45;
-        const int TOTAL_STATS_FIRST_ITEM_Y = 20;
+        private const int TOTAL_STATS_LOCATION_X1 = 40;
+        private const int TOTAL_STATS_VALUE_LOCATION_X1 = 240;
+        private const int TOTAL_STATS_LOCATION_X2 = 380;
+        private const int TOTAL_STATS_VALUE_LOCATION_X2 = 580;
+        private const int TOTAL_STATS_Y_INCREASE = 45;
+        private const int TOTAL_STATS_FIRST_ITEM_Y = 20;
 
         // Controls for total statistics
 
-        XNALabel lblGamesStartedValue;
-        XNALabel lblGamesFinishedValue;
-        XNALabel lblWinsValue;
-        XNALabel lblLossesValue;
-        XNALabel lblWinLossRatioValue;
-        XNALabel lblAverageGameLengthValue;
-        XNALabel lblTotalTimePlayedValue;
-        XNALabel lblAverageEnemyCountValue;
-        XNALabel lblAverageAllyCountValue;
-        XNALabel lblTotalKillsValue;
-        XNALabel lblKillsPerGameValue;
-        XNALabel lblTotalLossesValue;
-        XNALabel lblLossesPerGameValue;
-        XNALabel lblKillLossRatioValue;
-        XNALabel lblTotalScoreValue;
-        XNALabel lblAverageEconomyValue;
-        XNALabel lblFavouriteSideValue;
-        XNALabel lblAverageAILevelValue;
+        private XNALabel lblGamesStartedValue;
+        private XNALabel lblGamesFinishedValue;
+        private XNALabel lblWinsValue;
+        private XNALabel lblLossesValue;
+        private XNALabel lblWinLossRatioValue;
+        private XNALabel lblAverageGameLengthValue;
+        private XNALabel lblTotalTimePlayedValue;
+        private XNALabel lblAverageEnemyCountValue;
+        private XNALabel lblAverageAllyCountValue;
+        private XNALabel lblTotalKillsValue;
+        private XNALabel lblKillsPerGameValue;
+        private XNALabel lblTotalLossesValue;
+        private XNALabel lblLossesPerGameValue;
+        private XNALabel lblKillLossRatioValue;
+        private XNALabel lblTotalScoreValue;
+        private XNALabel lblAverageEconomyValue;
+        private XNALabel lblFavouriteSideValue;
+        private XNALabel lblAverageAILevelValue;
 
         // *****************************
 
-        StatisticsManager sm;
-        List<int> listedGameIndexes = new List<int>();
+        private StatisticsManager sm;
+        private List<int> listedGameIndexes = new List<int>();
 
-        string[] sides;
+        private string[] sides;
 
-        List<MultiplayerColor> mpColors;
+        private List<MultiplayerColor> mpColors;
 
         public override void Initialize()
         {
@@ -159,6 +159,7 @@ namespace DTAClient.DXGUI.Generic
             lbGameList.AddColumn("COMPLETED", 90);
             lbGameList.ClientRectangle = new Rectangle(2, 25, 676, 250);
             lbGameList.SelectedIndexChanged += LbGameList_SelectedIndexChanged;
+            lbGameList.AllowKeyboardInput = true;
 
             lbGameStatistics = new XNAMultiColumnListBox(WindowManager);
             lbGameStatistics.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 128), 1, 1);

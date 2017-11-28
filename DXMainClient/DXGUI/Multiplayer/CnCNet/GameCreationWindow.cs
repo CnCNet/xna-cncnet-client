@@ -123,6 +123,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             lbTunnelList.Enabled = false;
             lbTunnelList.Visible = false;
             lbTunnelList.AllowRightClickUnselect = false;
+            lbTunnelList.AllowKeyboardInput = true;
 
             AddChild(btnCreateGame);
             AddChild(btnCancel);

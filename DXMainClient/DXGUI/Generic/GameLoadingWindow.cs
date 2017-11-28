@@ -12,18 +12,20 @@ using System.Linq;
 
 namespace DTAClient.DXGUI.Generic
 {
+    /// <summary>
+    /// A window for loading saved singleplayer games.
+    /// </summary>
     public class GameLoadingWindow : XNAWindow
     {
-        const string SAVED_GAMES_DIRECTORY = "Saved Games";
+        private const string SAVED_GAMES_DIRECTORY = "Saved Games";
 
         public GameLoadingWindow(WindowManager windowManager) : base(windowManager)
         {
-
         }
 
-        XNAMultiColumnListBox lbSaveGameList;
-        XNAClientButton btnLaunch;
-        List<SavedGame> savedGames = new List<SavedGame>();
+        private XNAMultiColumnListBox lbSaveGameList;
+        private XNAClientButton btnLaunch;
+        private List<SavedGame> savedGames = new List<SavedGame>();
 
         public override void Initialize()
         {
@@ -41,6 +43,7 @@ namespace DTAClient.DXGUI.Generic
             lbSaveGameList.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 128), 1, 1);
             lbSaveGameList.DrawMode = PanelBackgroundImageDrawMode.STRETCHED;
             lbSaveGameList.SelectedIndexChanged += ListBox_SelectedIndexChanged;
+            lbSaveGameList.AllowKeyboardInput = true;
 
             btnLaunch = new XNAClientButton(WindowManager);
             btnLaunch.ClientRectangle = new Rectangle(161, 345, 133, 23);
@@ -117,7 +120,8 @@ namespace DTAClient.DXGUI.Generic
                 return;
             }
 
-            string[] files = Directory.GetFiles(MainClientConstants.gamepath + SAVED_GAMES_DIRECTORY + "\\",
+            string[] files = Directory.GetFiles(MainClientConstants.gamepath + 
+                SAVED_GAMES_DIRECTORY + Path.DirectorySeparatorChar,
                 "*.SAV", SearchOption.TopDirectoryOnly);
 
             foreach (string file in files)
