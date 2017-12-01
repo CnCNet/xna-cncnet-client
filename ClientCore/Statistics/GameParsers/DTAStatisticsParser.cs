@@ -7,12 +7,14 @@ namespace ClientCore.Statistics.GameParsers
 {
     public class DTAStatisticsParser : GenericMatchParser
     {
-        public DTAStatisticsParser(MatchStatistics ms) : base(ms)
+        public DTAStatisticsParser(MatchStatistics ms, bool isLoadedGame) : base(ms)
         {
+            this.isLoadedGame = isLoadedGame;
         }
 
         private string fileName = "DTA.log";
         private string loserString = "Losser"; // WW typo in TS logging
+        private bool isLoadedGame;
 
         public void ParseStats(string gamepath, string fileName)
         {
@@ -57,6 +59,9 @@ namespace ClientCore.Statistics.GameParsers
                         string playerName = line.Substring(0, line.Length - (loserString.Length + 2));
                         currentPlayer = Statistics.GetEmptyPlayerByName(playerName);
 
+                        if (isLoadedGame && currentPlayer == null)
+                            currentPlayer = Statistics.Players.Find(p => p.Name == playerName);
+
                         Logger.Log("Found player " + playerName);
                         numPlayersFound++;
 
@@ -77,6 +82,9 @@ namespace ClientCore.Statistics.GameParsers
                         sawCompletion = true;
                         string playerName = line.Substring(0, line.Length - 8);
                         currentPlayer = Statistics.GetEmptyPlayerByName(playerName);
+
+                        if (isLoadedGame && currentPlayer == null)
+                            currentPlayer = Statistics.Players.Find(p => p.Name == playerName);
 
                         Logger.Log("Found player " + playerName);
                         numPlayersFound++;

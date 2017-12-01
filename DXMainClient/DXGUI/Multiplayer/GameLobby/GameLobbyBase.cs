@@ -1102,7 +1102,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             Logger.Log("GameProcessExited: Parsing statistics.");
 
-            matchStatistics.ParseStatistics(ProgramConstants.GamePath, ClientConfiguration.Instance.LocalGame);
+            matchStatistics.ParseStatistics(ProgramConstants.GamePath, ClientConfiguration.Instance.LocalGame, false);
 
             Logger.Log("GameProcessExited: Adding match to statistics.");
 

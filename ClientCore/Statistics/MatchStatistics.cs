@@ -52,13 +52,13 @@ namespace ClientCore.Statistics
             Players.Add(ps);
         }
 
-        public void ParseStatistics(string gamePath, string gameName)
+        public void ParseStatistics(string gamePath, string gameName, bool isLoadedGame)
         {
             Logger.Log("Parsing game statistics.");
 
             LengthInSeconds = (int)(DateTime.Now - DateAndTime).TotalSeconds;
 
-            var parser = new DTAStatisticsParser(this);
+            var parser = new DTAStatisticsParser(this, isLoadedGame);
 
             switch (gameName.ToUpper())
             {
