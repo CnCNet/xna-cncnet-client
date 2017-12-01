@@ -333,6 +333,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             sndJoinSound.Play();
 
+            WindowManager.FlashWindow();
+
             if (!IsHost)
             {
                 CopyPlayerDataToUI();
