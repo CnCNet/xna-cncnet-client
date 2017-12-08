@@ -4,6 +4,7 @@ using Rampastring.Tools;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Rampastring.XNAUI;
 
 namespace ClientGUI
@@ -83,11 +84,12 @@ namespace ClientGUI
                     if (parts.Length != 2)
                         throw new Exception("Invalid ExtraControl specified in " + Name + ": " + line);
 
-                    if (Children.Find(child => child.Name == parts[0]) == null)
+                    if (!Children.Any(child => child.Name == parts[0]))
                     {
                         var control = guiCreator.CreateControl(WindowManager, parts[1]);
                         control.Name = parts[0];
-                        AddChildToFirstIndex(control);
+                        control.DrawOrder = -Children.Count;
+                        AddChild(control);
                     }
                 }
             }

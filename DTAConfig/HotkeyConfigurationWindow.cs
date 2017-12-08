@@ -437,9 +437,8 @@ namespace DTAConfig
             {
                 int hotkey = keyboardINI.GetIntValue("Hotkey", command.ININame, 0);
 
-                command.Hotkey = new Hotkey(hotkey);
-                // This is quite hacky
-                command.Hotkey = new Hotkey(GetKeyOverride(command.Hotkey.Key), command.Hotkey.Modifier);
+                Hotkey hotkeyStruct = new Hotkey(hotkey);
+                command.Hotkey = new Hotkey(GetKeyOverride(hotkeyStruct.Key), hotkeyStruct.Modifier);
             }
         }
 

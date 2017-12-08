@@ -15,10 +15,23 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         public override void OnLeftClick()
         {
-            if (Children.Find(c => c.IsActive) == null)
+            bool hideControl = true;
+
+            foreach (var child in Children)
+            {
+                if (child.IsActive)
+                {
+                    hideControl = false;
+                    break;
+                }
+            }
+
+            if (hideControl)
                 Hide();
 
             base.OnLeftClick();
         }
+
+
     }
 }

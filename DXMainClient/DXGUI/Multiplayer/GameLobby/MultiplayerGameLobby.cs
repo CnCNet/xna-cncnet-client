@@ -139,6 +139,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             lbChatMessages.DrawMode = PanelBackgroundImageDrawMode.STRETCHED;
             lbChatMessages.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 128), 1, 1);
             lbChatMessages.LineHeight = 16;
+            lbChatMessages.DrawOrder = 1;
+            lbChatMessages.UpdateOrder = 1;
 
             tbChatInput = new XNASuggestionTextBox(WindowManager);
             tbChatInput.Name = "tbChatInput";
@@ -148,6 +150,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 lbChatMessages.ClientRectangle.Width, 21);
             tbChatInput.MaximumTextLength = 150;
             tbChatInput.EnterPressed += TbChatInput_EnterPressed;
+            tbChatInput.DrawOrder = 1;
+            tbChatInput.UpdateOrder = 1;
 
             btnLockGame = new XNAClientButton(WindowManager);
             btnLockGame.Name = "btnLockGame";
@@ -156,8 +160,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             btnLockGame.Text = "Lock Game";
             btnLockGame.LeftClick += BtnLockGame_LeftClick;
 
-            AddChildToFirstIndex(lbChatMessages);
-            AddChildToFirstIndex(tbChatInput);
+            AddChild(lbChatMessages);
+            AddChild(tbChatInput);
             AddChild(btnLockGame);
 
             MapPreviewBox.LocalStartingLocationSelected += MapPreviewBox_LocalStartingLocationSelected;

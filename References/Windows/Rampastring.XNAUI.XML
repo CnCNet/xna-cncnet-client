@@ -520,10 +520,26 @@
             Gets or sets the parent of this control.
             </summary>
         </member>
-        <member name="F:Rampastring.XNAUI.XNAControls.XNAControl.Children">
+        <member name="P:Rampastring.XNAUI.XNAControls.XNAControl.Cursor">
+            <summary>
+            Holds a reference to the cursor.
+            </summary>
+        </member>
+        <member name="P:Rampastring.XNAUI.XNAControls.XNAControl.Keyboard">
+            <summary>
+            Holds a reference to the keyboard.
+            </summary>
+        </member>
+        <member name="F:Rampastring.XNAUI.XNAControls.XNAControl._children">
             <summary>
             A list of the control's children. Don't add children to this list directly;
             call the AddChild method instead.
+            </summary>
+        </member>
+        <member name="P:Rampastring.XNAUI.XNAControls.XNAControl.Children">
+            <summary>
+            A read-only list of the control's children. 
+            Call the AddChild method to add children to the control.
             </summary>
         </member>
         <member name="P:Rampastring.XNAUI.XNAControls.XNAControl.Name">
@@ -595,6 +611,16 @@
             </summary>
             <returns>The client rectangle of the control inside the game window.</returns>
         </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNAControl.GetLocationX">
+            <summary>
+            Returns the control's absolute X coordinate within the game window.
+            </summary>
+        </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNAControl.GetLocationY">
+            <summary>
+            Returns the control's absolute Y coordinate within the game window.
+            </summary>
+        </member>
         <member name="M:Rampastring.XNAUI.XNAControls.XNAControl.CenterOnParent">
             <summary>
             Centers the control on the middle of its parent's client rectangle.
@@ -621,22 +647,50 @@
         </member>
         <member name="M:Rampastring.XNAUI.XNAControls.XNAControl.AddChild(Rampastring.XNAUI.XNAControls.XNAControl)">
             <summary>
-            Adds a child control to the control.
+            Adds a child to the control.
+            In case the control is currently being updated, schedules the child
+            to be added at the end of the current frame.
             </summary>
             <param name="child">The child control.</param>
         </member>
         <member name="M:Rampastring.XNAUI.XNAControls.XNAControl.AddChildWithoutInitialize(Rampastring.XNAUI.XNAControls.XNAControl)">
             <summary>
             Adds a child control to the control without calling the child's Initialize method.
+            In case the control is currently being updated, schedules the child
+            to be added at the end of the current frame.
             </summary>
             <param name="child">The child control.</param>
         </member>
-        <member name="M:Rampastring.XNAUI.XNAControls.XNAControl.AddChildToFirstIndex(Rampastring.XNAUI.XNAControls.XNAControl)">
+        <member name="M:Rampastring.XNAUI.XNAControls.XNAControl.AddChildImmediate(Rampastring.XNAUI.XNAControls.XNAControl)">
+            <summary>
+            Immediately adds a child control to the control.
+            </summary>
+            <param name="child">The child control.</param>
+        </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNAControl.AddChildImmediateWithoutInitialize(Rampastring.XNAUI.XNAControls.XNAControl)">
+            <summary>
+            Immediately adds a child control to the control without calling the child's Initialize method.
+            </summary>
+            <param name="child">The child control.</param>
+        </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNAControl.AddChildToFirstIndexImmediate(Rampastring.XNAUI.XNAControls.XNAControl)">
             <summary>
             Adds a child control to the control, making the added child
             the "first child" of this control.
             </summary>
             <param name="child">The child control.</param>
+        </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNAControl.RemoveChild(Rampastring.XNAUI.XNAControls.XNAControl)">
+            <summary>
+            Removes a child from the control.
+            </summary>
+            <param name="child">The child control to remove.</param>
+        </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNAControl.RemoveChildImmediate(Rampastring.XNAUI.XNAControls.XNAControl)">
+            <summary>
+            Immediately removes a child from the control.
+            </summary>
+            <param name="child">The child control to remove.</param>
         </member>
         <member name="M:Rampastring.XNAUI.XNAControls.XNAControl.Disable">
             <summary>
