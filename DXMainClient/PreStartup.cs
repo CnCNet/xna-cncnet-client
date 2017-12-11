@@ -144,6 +144,14 @@ namespace DTAClient
         /// <param name="accessRights">The file system rights.</param>
         private static bool UserHasDirectoryAccessRights(string path, FileSystemRights accessRights)
         {
+#if WINDOWSGL
+            // Mono doesn't implement everything necessary for the below to work,
+            // so we'll just return to make the client able to run on non-Windows
+            // platforms
+            // On Windows you rarely have a reason for using the OpenGL build anyway
+            return true;
+#endif
+
             var isInRoleWithAccess = false;
 
             try
