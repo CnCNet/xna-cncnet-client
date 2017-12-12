@@ -534,6 +534,13 @@ namespace DTAClient.Online
                             Logger.Log("PONG");
                         }
                         break;
+                    case "TOPIC":
+                        if (parameters.Count < 2)
+                            break;
+
+                        connectionManager.OnChannelTopicChanged(prefix.Substring(0, prefix.IndexOf('!')),
+                            parameters[0], parameters[1]);
+                        break;
                 }
             }
             catch

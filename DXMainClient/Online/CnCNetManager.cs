@@ -259,6 +259,11 @@ namespace DTAClient.Online
             channel.Topic = topic;
         }
 
+        public void OnChannelTopicChanged(string userName, string channelName, string topic)
+        {
+            wm.AddCallback(new Action<string, string>(DoChannelTopicReceived), channelName, topic);
+        }
+
         public void OnChatMessageReceived(string receiver, string sender, string message)
         {
             wm.AddCallback(new Action<string, string, string>(DoChatMessageReceived),

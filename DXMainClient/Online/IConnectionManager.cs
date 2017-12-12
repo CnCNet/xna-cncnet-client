@@ -13,6 +13,8 @@
 
         void OnChannelTopicReceived(string channelName, string topic);
 
+        void OnChannelTopicChanged(string userName, string channelName, string topic);
+
         void OnUserListReceived(string channelName, string[] userList);
 
         void OnWhoReplyReceived(string hostName, string userName, string extraInfo);
