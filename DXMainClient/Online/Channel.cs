@@ -146,9 +146,10 @@ namespace DTAClient.Online
                 users.RemoveAt(index);
             }
 
-            UserKicked?.Invoke(this, new UserNameIndexEventArgs(index, userName));
             AddMessage(new ChatMessage(null, Color.White, DateTime.Now,
                 userName + " has been kicked from " + UIName + "."));
+
+            UserKicked?.Invoke(this, new UserNameIndexEventArgs(index, userName));
         }
 
         public void OnUserLeft(string userName)
@@ -158,14 +159,14 @@ namespace DTAClient.Online
             if (index == -1)
                 return;
 
-            users.RemoveAt(index);
-            UserLeft?.Invoke(this, new UserNameIndexEventArgs(index, userName));
-
             if (notifyOnUserListChange)
             {
                 AddMessage(new ChatMessage(null, Color.White, DateTime.Now,
                     userName + " has left from " + UIName + "."));
             }
+
+            users.RemoveAt(index);
+            UserLeft?.Invoke(this, new UserNameIndexEventArgs(index, userName));
         }
 
         public void OnUserQuitIRC(string userName)
@@ -175,14 +176,14 @@ namespace DTAClient.Online
             if (index == -1)
                 return;
 
-            users.RemoveAt(index);
-            UserQuitIRC?.Invoke(this, new UserNameIndexEventArgs(index, userName));
-
             if (notifyOnUserListChange)
             {
                 AddMessage(new ChatMessage(null, Color.White, DateTime.Now,
                     userName + " has quit from CnCNet."));
             }
+
+            users.RemoveAt(index);
+            UserQuitIRC?.Invoke(this, new UserNameIndexEventArgs(index, userName));
         }
 
         public void UpdateGameIndexForUser(string userName)
