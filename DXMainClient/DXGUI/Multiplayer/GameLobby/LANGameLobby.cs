@@ -433,7 +433,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         protected override void AddNotice(string message, Color color)
         {
-            lbChatMessages.AddItem(message, color);
+            lbChatMessages.AddMessage(null, message, color);
         }
 
         protected override void BroadcastPlayerOptions()
@@ -577,7 +577,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             btnLockGame.Text = "Lock Game";
 
             if (manual)
-                lbChatMessages.AddItem("You've unlocked the game room.", Color.White);
+                AddNotice("You've unlocked the game room.");
         }
 
         protected override void LockGame()
@@ -587,7 +587,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             btnLockGame.Text = "Unlock Game";
 
             if (Locked)
-                lbChatMessages.AddItem("You've locked the game room.", Color.White);
+                AddNotice("You've locked the game room.");
         }
 
         protected override void GameProcessExited()
