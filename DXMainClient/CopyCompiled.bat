@@ -1,4 +1,6 @@
-echo Taking binaries compiled using Visual Studio and putting them into correct folders with the correct names for use in target projects. 
+@echo off
+echo Taking binaries compiled using Visual Studio and putting them into correct folders with the correct names for use in target projects.
+echo(
 cd bin
 rd /S CompiledResources
 mkdir CompiledResources
@@ -9,7 +11,7 @@ mkdir OpenGL
 mkdir Windows
 mkdir XNA
 
-REM Set paths
+REM Setting up paths
 
 set cr="..\..\CompiledResources\"
 set commonBinaries="..\..\CompiledResources\Binaries\"
@@ -17,7 +19,8 @@ set winBinaries="..\..\CompiledResources\Binaries\Windows\"
 set oglBinaries="..\..\CompiledResources\Binaries\OpenGL\"
 set xnaBinaries="..\..\CompiledResources\Binaries\XNA\"
 
-REM Windows
+echo(
+echo Windows
 
 cd ..\..\Windows\Release\
 copy DTAClient.exe %cr%clientdx.exe
@@ -36,7 +39,7 @@ copy SharpDX.RawInput.dll %winBinaries%SharpDX.RawInput.dll
 copy SharpDX.XAudio2.dll %winBinaries%SharpDX.XAudio2.dll
 copy SharpDX.XInput.dll %winBinaries%SharpDX.XInput.dll
 
-REM OpenGL
+echo OpenGL
 
 cd ..\..\WindowsGL\Release\
 copy DTAClient.exe %cr%clientogl.exe
@@ -48,7 +51,7 @@ copy NVorbis.dll %oglBinaries%NVorbis.dll
 copy OpenTK.dll %oglBinaries%OpenTK.dll
 copy Rampastring.XNAUI.dll %oglBinaries%Rampastring.XNAUI.dll
 
-REM XNA
+echo XNA
 
 cd ..\..\XNAFramework\Release\
 copy DTAClient.exe %cr%clientxna.exe
@@ -57,11 +60,13 @@ copy ClientGUI.dll %xnaBinaries%ClientGUI.dll
 copy DTAConfig.dll %xnaBinaries%DTAConfig.dll
 copy Rampastring.XNAUI.dll %xnaBinaries%Rampastring.XNAUI.dll
 
-REM Common
+echo Common
 
 copy DTAUpdater.dll %commonBinaries%DTAUpdater.dll
 copy Ionic.Zip.dll %commonBinaries%Ionic.Zip.dll
 copy MapThumbnailExtractor.dll %commonBinaries%MapThumbnailExtractor.dll
 copy Rampastring.Tools.dll %commonBinaries%Rampastring.Tools.dll
 
-pause Copying complete.
+echo(
+echo Copying complete.
+pause
