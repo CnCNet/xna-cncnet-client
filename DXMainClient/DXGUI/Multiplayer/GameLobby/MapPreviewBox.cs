@@ -10,6 +10,7 @@ using Rampastring.XNAUI.XNAControls;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 
 namespace DTAClient.DXGUI.Multiplayer.GameLobby
@@ -442,7 +443,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             if (Keyboard.IsKeyHeldDown(Keys.LeftControl))
             {
-                Process.Start(ProgramConstants.GamePath + Map.PreviewPath);
+                if (File.Exists(ProgramConstants.GamePath + Map.PreviewPath))
+                    Process.Start(ProgramConstants.GamePath + Map.PreviewPath);
             }
 
             base.OnLeftClick();
