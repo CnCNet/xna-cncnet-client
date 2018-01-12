@@ -8,6 +8,10 @@ using ClientCore;
 using Updater;
 using Rampastring.Tools;
 using DTAClient.DXGUI;
+using System.Security.Principal;
+using System.DirectoryServices;
+using System.Linq;
+using DTAClient.Online;
 
 namespace DTAClient
 {
@@ -46,6 +50,9 @@ namespace DTAClient
             // so we'll do it in a separate thread to make startup faster
             Thread thread = new Thread(CheckSystemSpecifications);
             thread.Start();
+
+            Thread idThread = new Thread(GenerateOnlineId);
+            idThread.Start();
 
             if (Directory.Exists(MainClientConstants.gamepath + "Updater"))
             {
@@ -122,6 +129,34 @@ namespace DTAClient
             {
                 Logger.Log("Checking system specifications failed. Message: " + ex.Message);
             }
+        }
+
+        
+        /// <summary>
+        /// Generate an ID for online play.
+        /// </summary>
+        private static void GenerateOnlineId()
+        {
+            ManagementObjectCollection mbsList = null;
+            ManagementObjectSearcher mbs = new ManagementObjectSearcher("Select * From Win32_processor");
+            mbsList = mbs.Get();
+            string cpuid = "";
+            foreach (ManagementObject mo in mbsList)
+            {
+                cpuid = mo["ProcessorID"].ToString();
+            }
+
+            ManagementObjectSearcher mos = new ManagementObjectSearcher("SELECT * FROM Win32_BaseBoard");
+            ManagementObjectCollection moc = mos.Get();
+            string mbid = "";
+            foreach (ManagementObject mo in moc)
+            {
+                mbid = (string)mo["SerialNumber"];
+            }
+
+            string sid = new SecurityIdentifier((byte[])new DirectoryEntry(string.Format("WinNT://{0},Computer", Environment.MachineName)).Children.Cast<DirectoryEntry>().First().InvokeGet("objectSID"), 0).AccountDomainSid.Value;
+
+            Connection.SetId(cpuid + mbid + sid);
         }
 
         /// <summary>

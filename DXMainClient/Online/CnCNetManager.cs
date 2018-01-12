@@ -111,6 +111,11 @@ namespace DTAClient.Online
 
         private bool disconnect = false;
 
+        public bool IsCnCNetInitialized()
+        {
+            return Connection.IsIdSet();
+        }
+
         /// <summary>
         /// Factory method for creating a new channel.
         /// </summary>

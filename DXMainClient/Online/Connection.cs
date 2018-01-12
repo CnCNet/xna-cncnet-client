@@ -14,8 +14,9 @@ namespace DTAClient.Online
     /// </summary>
     public class Connection
     {
-        const int MAX_RECONNECT_COUNT = 8;
-        const int RECONNECT_WAIT_DELAY = 4000;
+        private const int MAX_RECONNECT_COUNT = 8;
+        private const int RECONNECT_WAIT_DELAY = 4000;
+        private const int ID_LENGTH = 9;
 
         public Connection(IConnectionManager connectionManager)
         {
@@ -92,8 +93,29 @@ namespace DTAClient.Online
         private static readonly object locker = new object();
         private static readonly object messageQueueLocker = new object();
 
+        private static bool idSet = false;
+        private static string systemId;
+        private static readonly object idLocker = new object();
+
+        public static void SetId(string id)
+        {
+            lock (idLocker)
+            {
+                systemId = Utilities.CalculateSHA1ForString(id).Substring(0, ID_LENGTH);
+                idSet = true;
+            }
+        }
+
+        public static bool IsIdSet()
+        {
+            lock (idLocker)
+            {
+                return idSet;
+            }
+        }
+
         /// <summary>
-        /// Attempts to connects to CnCNet without blocking the calling thread.
+        /// Attempts to connect to CnCNet without blocking the calling thread.
         /// </summary>
         public void ConnectAsync()
         {
@@ -673,7 +695,7 @@ namespace DTAClient.Online
             string realname = ProgramConstants.GAME_VERSION + " " + defaultGame + " CnCNet";
 
             SendMessage(string.Format("USER {0} 0 * :{1}", defaultGame + "." + 
-                new Random().Next(10000, 99999).ToString(), realname));
+                systemId, realname));
 
             SendMessage("NICK " + ProgramConstants.PLAYERNAME);
         }
