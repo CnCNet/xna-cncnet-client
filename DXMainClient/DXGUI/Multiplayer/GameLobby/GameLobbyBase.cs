@@ -700,7 +700,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 }
             }
 
-            if (Map != null && Map.CoopInfo != null)
+            if (Map != null && Map.CoopInfo != null && !Map.CoopAllowSpectators)
             {
                 // Disallow spectator
 

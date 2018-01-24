@@ -54,6 +54,11 @@ namespace DTAClient.Domain.Multiplayer
         public bool IsCoop { get; private set; }
 
         /// <summary>
+        /// If set to yes enables Spectators on co-op maps.
+        /// </summary>
+        public bool CoopAllowSpectators { get; private set; }
+
+        /// <summary>
         /// If set, this map won't be automatically transferred over CnCNet when
         /// a player doesn't have it.
         /// </summary>
@@ -204,6 +209,7 @@ namespace DTAClient.Domain.Multiplayer
 
                 if (IsCoop)
                 {
+                    CoopAllowSpectators = section.GetBooleanValue("CoopAllowSpectators", false);
                     CoopInfo = new CoopMapInfo();
                     string[] disallowedSides = section.GetStringValue("DisallowedPlayerSides", string.Empty).Split(
                         new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
@@ -334,6 +340,7 @@ namespace DTAClient.Domain.Multiplayer
 
                 if (IsCoop)
                 {
+                    CoopAllowSpectators = basicSection.GetBooleanValue("CoopAllowSpectators", false);
                     CoopInfo = new CoopMapInfo();
                     string[] disallowedSides = iniFile.GetStringValue("Basic", "DisallowedPlayerSides", string.Empty).Split(
                         new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
