@@ -1016,7 +1016,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         private void InitializeMatchStatistics(PlayerHouseInfo[] houseInfos)
         {
             matchStatistics = new MatchStatistics(ProgramConstants.GAME_VERSION, UniqueGameID,
-                Map.Name, GameMode.UIName, Players.Count);
+                Map.Name, GameMode.UIName, Players.Count, Map.IsCoop);
 
             for (int pId = 0; pId < Players.Count; pId++)
             {
