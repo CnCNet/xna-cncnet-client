@@ -133,6 +133,7 @@ namespace DTAConfig
             new GameCommand("Set Bookmark 2", CATEGORY_INTERFACE, "Sets bookmark 2.", "SetView2"),
             new GameCommand("Set Bookmark 3", CATEGORY_INTERFACE, "Sets bookmark 3.", "SetView3"),
             new GameCommand("Set Bookmark 4", CATEGORY_INTERFACE, "Sets bookmark 4.", "SetView4"),
+            new GameCommand("Place Beacon", CATEGORY_INTERFACE, "Place a beacon on the map to alert your teammates.", "PlaceBeacon"),
             new GameCommand("Goto Radar Event", CATEGORY_INTERFACE, "Center the camera around the latest radar event.", "CenterOnRadarEvent"),
 
             new GameCommand("Alliance", CATEGORY_CONTROL, "Form an alliance with the owner of a selected object.", "ToggleAlliance"),
@@ -140,6 +141,7 @@ namespace DTAConfig
             new GameCommand("Guard", CATEGORY_CONTROL, "Make your selected units guard the nearby area and automatically attack enemies.", "GuardObject"),
             new GameCommand("Scatter", CATEGORY_CONTROL, "Make your selected units scatter.", "ScatterObject"),
             new GameCommand("Stop Object", CATEGORY_CONTROL, "Stop your selected units.", "StopObject"),
+            new GameCommand("Cheer", CATEGORY_CONTROL, "Make all of your infantry units cheer.", "AllToCheer"),
 
             // new Hotkey("Toggle Help", ...)
 
