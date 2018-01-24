@@ -14,6 +14,7 @@ namespace ClientCore.Statistics.GameParsers
 
         private string fileName = "DTA.log";
         private string loserString = "Losser"; // WW typo in TS logging
+        private string economyString = "Economy"; // RA2/YR do not have economy stat, but a number of built objects.
         private bool isLoadedGame;
 
         public void ParseStats(string gamepath, string fileName)
@@ -25,6 +26,14 @@ namespace ClientCore.Statistics.GameParsers
         {
             this.fileName = fileName;
             this.loserString = loserString;
+            ParseStatistics(gamepath);
+        }
+
+        public void ParseStats(string gamepath, string fileName, string loserString, string economyString)
+        {
+            this.fileName = fileName;
+            this.loserString = loserString;
+            this.economyString = economyString;
             ParseStatistics(gamepath);
         }
 
@@ -121,8 +130,8 @@ namespace ClientCore.Statistics.GameParsers
                         currentPlayer.Kills = Int32.Parse(line.Substring(8));
                     else if (line.StartsWith("Score = "))
                         currentPlayer.Score = Int32.Parse(line.Substring(8));
-                    else if (line.StartsWith("Economy = "))
-                        currentPlayer.Economy = Int32.Parse(line.Substring(10));
+                    else if (line.StartsWith(economyString+ " = "))
+                        currentPlayer.Economy = Int32.Parse(line.Substring(economyString.Length + 2));
                 }
 
                 reader.Close();

@@ -75,7 +75,7 @@ namespace ClientCore.Statistics
                     parser.ParseStats(gamePath, "TI.LOG");
                     return;
                 case "MO":
-                    parser.ParseStats(gamePath, "Debug\\debug.log", "Loser");
+                    parser.ParseStats(gamePath, "Debug\\debug.log", "Loser", "Built");
                     return;
             }
         }
