@@ -527,7 +527,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             if (Map.CoopInfo != null)
             {
-                if (!Map.CoopAllowSpectators && Map.CoopInfo.DisallowedPlayerSides.Contains(side - 1) || side == SideCount + 1)
+                if (Map.CoopInfo.DisallowedPlayerSides.Contains(side - 1) || side == SideCount + 1)
                     return;
 
                 if (Map.CoopInfo.DisallowedPlayerColors.Contains(color - 1))

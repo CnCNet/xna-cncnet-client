@@ -113,7 +113,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 }
             }
 
-            if (Map.IsCoop && !Map.CoopAllowSpectators && Players[0].SideId == ddPlayerSides[0].Items.Count - 1)
+            if (Map.IsCoop && Players[0].SideId == ddPlayerSides[0].Items.Count - 1)
             {
                 return "Co-op missions cannot be spectated. You'll have to show a bit more effort to cheat here.";
             }
