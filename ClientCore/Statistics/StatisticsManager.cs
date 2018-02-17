@@ -9,7 +9,7 @@ namespace ClientCore.Statistics
 {
     public class StatisticsManager : GenericStatisticsManager
     {
-        private const string VERSION = "1.04";
+        private const string VERSION = "1.05";
         private const string SCORE_FILE_PATH = "Client\\dscore.dat";
         private const string OLD_SCORE_FILE_PATH = "dscore.dat";
         private static StatisticsManager _instance;
@@ -89,6 +89,10 @@ namespace ClientCore.Statistics
                         break;
                     case "1.04":
                         ReadDatabase(filePath, 1.04);
+                        returnValue = true;
+                        break;
+                    case "1.05":
+                        ReadDatabase(filePath, 1.05);
                         break;
                     default:
                         throw new InvalidDataException("Invalid version for " + filePath + ": " + databaseVersion);
@@ -168,9 +172,19 @@ namespace ClientCore.Statistics
                         {
                             PlayerStatistics ps = new PlayerStatistics();
 
-                            // Economy is between 0 and 100, so it takes only one byte
-                            fs.Read(readBuffer, 0, 1);
-                            ps.Economy = readBuffer[0];
+                            if (versionDouble > 1.4)
+                            {
+                                // Economy is shared for the Built stat in YR
+                                fs.Read(readBuffer, 0, 4);
+                                ps.Economy = BitConverter.ToInt32(readBuffer, 0);
+                            }
+                            else
+                            {
+                                // Economy is between 0 and 100 in old versions, so it takes only one byte
+                                fs.Read(readBuffer, 0, 1);
+                                ps.Economy = readBuffer[0];
+                            }
+
                             // IsAI is a bool, so obviously one byte
                             fs.Read(readBuffer, 0, 1);
                             ps.IsAI = Convert.ToBoolean(readBuffer[0]);
@@ -344,8 +358,8 @@ namespace ClientCore.Statistics
                 for (int i = 0; i < ms.GetPlayerCount(); i++)
                 {
                     PlayerStatistics ps = ms.GetPlayer(i);
-                    // 1 byte for economy
-                    fs.WriteByte(Convert.ToByte(ps.Economy));
+                    // 4 bytes for economy / built
+                    fs.Write(BitConverter.GetBytes(ps.Economy), 0, 4);
                     // 1 byte for IsAI
                     fs.WriteByte(Convert.ToByte(ps.IsAI));
                     // 1 byte for IsLocalPlayer
