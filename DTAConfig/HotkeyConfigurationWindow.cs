@@ -635,6 +635,9 @@ namespace DTAConfig
             return key;
         }
 
+        /// <summary>
+        /// A game command that can be assigned into a key on the keyboard.
+        /// </summary>
         class GameCommand
         {
             public GameCommand(string uiName, string category, string description, string iniName)
@@ -645,11 +648,25 @@ namespace DTAConfig
                 ININame = iniName;
             }
 
+            /// <summary>
+            /// Creates a game command and parses its information from an INI section.
+            /// </summary>
+            /// <param name="iniSection">The INI section.</param>
+            public GameCommand(IniSection iniSection)
+            {
+                ININame = iniSection.SectionName;
+                UIName = iniSection.GetStringValue("UIName", "Unnamed command");
+                Category = iniSection.GetStringValue("Category", "Unknown category");
+                Description = iniSection.GetStringValue("Description", string.Empty);
+                DefaultHotkey = new Hotkey(iniSection.GetIntValue("DefaultKey", 0));
+            }
+
             public string UIName { get; private set; }
             public string Category { get; private set; }
             public string Description { get; private set; }
             public string ININame { get; private set; }
             public Hotkey Hotkey { get; set; }
+            public Hotkey DefaultHotkey { get; private set; }
         }
 
         [Flags]
@@ -661,8 +678,16 @@ namespace DTAConfig
             Alt = 4
         }
 
+        /// <summary>
+        /// Represents a keyboard key with modifiers.
+        /// </summary>
         struct Hotkey
         {
+            /// <summary>
+            /// Creates a new hotkey by decoding a Tiberian Sun / Red Alert 2
+            /// encoded key value.
+            /// </summary>
+            /// <param name="encodedKeyValue">The encoded key value.</param>
             public Hotkey(int encodedKeyValue)
             {
                 Key = (Keys)(encodedKeyValue & 255);
@@ -694,6 +719,9 @@ namespace DTAConfig
                 return GetString();
             }
 
+            /// <summary>
+            /// Creates the display string for this key.
+            /// </summary>
             private string GetString()
             {
                 string str = "";
@@ -713,6 +741,9 @@ namespace DTAConfig
                 return str + GetKeyDisplayString(Key);
             }
 
+            /// <summary>
+            /// Returns the hotkey in the Tiberian Sun / Red Alert 2 Keyboard.ini encoded format.
+            /// </summary>
             public int GetTSEncoded()
             {
                 return ((int)Modifier << 8) + (int)Key;
