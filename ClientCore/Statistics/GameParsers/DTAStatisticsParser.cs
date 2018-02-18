@@ -26,14 +26,7 @@ namespace ClientCore.Statistics.GameParsers
         {
             this.fileName = fileName;
             this.loserString = loserString;
-            ParseStatistics(gamepath);
-        }
-
-        public void ParseStats(string gamepath, string fileName, string loserString, string economyString)
-        {
-            this.fileName = fileName;
-            this.loserString = loserString;
-            this.economyString = economyString;
+            if (ClientConfiguration.Instance.UseBuiltStatistic) economyString = "Built";
             ParseStatistics(gamepath);
         }
 

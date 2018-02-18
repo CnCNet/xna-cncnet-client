@@ -411,6 +411,14 @@ namespace ClientCore
             get { return clientDefinitionsIni.GetIntValue(SETTINGS, "MapCellSizeY", 24); }
         }
 
+        public bool UseBuiltStatistic
+        {
+            get
+            {
+                return clientDefinitionsIni.GetBooleanValue(SETTINGS, "UseBuiltStatistic", false);
+            }
+        }
+
         public string[] GetThemeInfoFromIndex(int themeIndex)
         {
             string[] values = clientDefinitionsIni.GetStringValue("Themes", themeIndex.ToString(), ",").Split(',');

@@ -79,7 +79,7 @@ namespace DTAClient.DXGUI.Generic
 
             string strLblEconomy = "ECONOMY";
             string strLblAvgEconomy = "Average economy:";
-            if (ClientConfiguration.Instance.LocalGame.ToUpper() == "MO")
+            if (ClientConfiguration.Instance.UseBuiltStatistic)
             {
                 strLblEconomy = "BUILT";
                 strLblAvgEconomy = "Avg. number of objects built:";
