@@ -266,6 +266,13 @@ namespace ClientCore.Statistics
 
         public void AddMatchAndSaveDatabase(bool addMatch, MatchStatistics ms)
         {
+            // Skip adding stats if the game only had one player, make exception for co-op since it doesn't recognize pre-placed houses as players.
+            if (ms.GetPlayerCount() <= 1 && !ms.MapIsCoop)
+            {
+                Logger.Log("Skipping adding match to statistics because game only had one player.");
+                return;
+            }
+
             if (ms.LengthInSeconds < 60)
             {
                 Logger.Log("Skipping adding match to statistics because the game was cancelled.");

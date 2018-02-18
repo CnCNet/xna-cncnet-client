@@ -9,7 +9,7 @@ namespace ClientCore.Statistics
     {
         public MatchStatistics() { }
 
-        public MatchStatistics(string gameVersion, int gameId, string mapName, string gameMode, int numHumans)
+        public MatchStatistics(string gameVersion, int gameId, string mapName, string gameMode, int numHumans, bool mapIsCoop = false)
         {
             GameVersion = gameVersion;
             GameID = gameId;
@@ -17,6 +17,7 @@ namespace ClientCore.Statistics
             MapName = mapName;
             GameMode = gameMode;
             NumberOfHumanPlayers = numHumans;
+            MapIsCoop = mapIsCoop;
         }
 
         public List<PlayerStatistics> Players = new List<PlayerStatistics>();
@@ -38,6 +39,8 @@ namespace ClientCore.Statistics
         public int AverageFPS { get; set; }
 
         public int GameID { get; set; }
+
+        public bool MapIsCoop { get; set; }
 
         public void AddPlayer(string name, bool isLocal, bool isAI, bool isSpectator,
             int side, int team, int color, int aiLevel)
