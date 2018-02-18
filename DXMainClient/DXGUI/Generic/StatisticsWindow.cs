@@ -77,6 +77,14 @@ namespace DTAClient.DXGUI.Generic
         {
             sm = StatisticsManager.Instance;
 
+            string strLblEconomy = "ECONOMY";
+            string strLblAvgEconomy = "Average economy:";
+            if (ClientConfiguration.Instance.UseBuiltStatistic)
+            {
+                strLblEconomy = "BUILT";
+                strLblAvgEconomy = "Avg. number of objects built:";
+            }
+
             Name = "StatisticsWindow";
             BackgroundTexture = AssetLoader.LoadTexture("scoreviewerbg.png");
             ClientRectangle = new Rectangle(0, 0, 700, 521);
@@ -167,7 +175,7 @@ namespace DTAClient.DXGUI.Generic
             lbGameStatistics.AddColumn("NAME", 130);
             lbGameStatistics.AddColumn("KILLS", 78);
             lbGameStatistics.AddColumn("LOSSES", 78);
-            lbGameStatistics.AddColumn("ECONOMY", 80);
+            lbGameStatistics.AddColumn(strLblEconomy, 80);
             lbGameStatistics.AddColumn("SCORE", 100);
             lbGameStatistics.AddColumn("WON", 50);
             lbGameStatistics.AddColumn("SIDE", 100);
@@ -178,9 +186,9 @@ namespace DTAClient.DXGUI.Generic
             panelGameStatistics.AddChild(lbGameList);
             panelGameStatistics.AddChild(lbGameStatistics);
 
-            #endregion
+#endregion
 
-            #region Total statistics
+#region Total statistics
 
             panelTotalStatistics = new XNAPanel(WindowManager);
             panelTotalStatistics.Name = "panelTotalStatistics";
@@ -317,7 +325,7 @@ namespace DTAClient.DXGUI.Generic
             lblTotalScoreValue.RemapColor = UISettings.AltColor;
             locationY += TOTAL_STATS_Y_INCREASE;
 
-            AddTotalStatisticsLabel("lblAverageEconomy", "Average economy:", new Point(TOTAL_STATS_LOCATION_X2, locationY));
+            AddTotalStatisticsLabel("lblAverageEconomy", strLblAvgEconomy, new Point(TOTAL_STATS_LOCATION_X2, locationY));
 
             lblAverageEconomyValue = new XNALabel(WindowManager);
             lblAverageEconomyValue.Name = "lblAverageEconomyValue";
@@ -361,7 +369,7 @@ namespace DTAClient.DXGUI.Generic
             panelTotalStatistics.AddChild(lblFavouriteSideValue);
             panelTotalStatistics.AddChild(lblAverageAILevelValue);
 
-            #endregion
+#endregion
 
             AddChild(tabControl);
             AddChild(lblFilter);
@@ -571,7 +579,7 @@ namespace DTAClient.DXGUI.Generic
             }
         }
 
-        #region Statistics reading / game listing code
+#region Statistics reading / game listing code
 
         void ReadStatistics()
         {
@@ -988,7 +996,7 @@ namespace DTAClient.DXGUI.Generic
             return highestIndex;
         }
 
-        #endregion
+#endregion
 
         private void BtnReturnToMenu_LeftClick(object sender, EventArgs e)
         {
