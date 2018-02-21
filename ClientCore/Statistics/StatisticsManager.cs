@@ -172,7 +172,7 @@ namespace ClientCore.Statistics
                         {
                             PlayerStatistics ps = new PlayerStatistics();
 
-                            if (versionDouble > 1.4)
+                            if (versionDouble > 1.04)
                             {
                                 // Economy is shared for the Built stat in YR
                                 fs.Read(readBuffer, 0, 4);
