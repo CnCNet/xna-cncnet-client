@@ -90,6 +90,15 @@ namespace DTAClient.Online
 
         private readonly Encoding encoding = Encoding.UTF8;
 
+        /// <summary>
+        /// A list of server IDs that have dropped our connection.
+        /// The client skips these servers when attempting to re-connect, to
+        /// prevent a server that first accepts a connection and then drops it
+        /// right afterwards from preventing online play.
+        /// </summary>
+        private List<int> failedServerIds = new List<int>();
+        private volatile int currentConnectedServerId = 0;
+
         private static readonly object locker = new object();
         private static readonly object messageQueueLocker = new object();
 
@@ -141,8 +150,13 @@ namespace DTAClient.Online
         /// </summary>
         private void ConnectToServer()
         {
-            foreach (Server server in Servers)
+            for (int serverId = 0; serverId < Servers.Count; serverId++)
             {
+                if (failedServerIds.Contains(serverId))
+                    continue;
+
+                Server server = Servers[serverId];
+
                 try
                 {
                     for (var i = 0; i < server.Ports.Length; i++)
@@ -177,6 +191,7 @@ namespace DTAClient.Online
                             serverStream = tcpClient.GetStream();
                             serverStream.ReadTimeout = 1000;
 
+                            currentConnectedServerId = serverId;
                             HandleComm(client);
                             return;
                         }
@@ -189,6 +204,8 @@ namespace DTAClient.Online
             }
 
             Logger.Log("Connecting to CnCNet failed!");
+            // Clear the failed server list in case connecting to all servers has failed
+            failedServerIds.Clear();
             _attemptingConnection = false;
             connectionManager.OnConnectAttemptFailed();
         }
@@ -225,9 +242,10 @@ namespace DTAClient.Online
                 {
                     errorTimes++;
 
-                    if (errorTimes > 30)
+                    if (errorTimes > 30) // TODO Figure out if this hacky check is actually necessary
                     {
                         Logger.Log("Disconnected from CnCNet due to a socket error. Message: " + ex.Message);
+                        failedServerIds.Add(currentConnectedServerId);
                         connectionManager.OnConnectionLost(ex.Message);
                         break;
                     }
@@ -245,8 +263,9 @@ namespace DTAClient.Online
                 {
                     errorTimes++;
 
-                    if (errorTimes > 30)
+                    if (errorTimes > 30) // TODO Figure out if this hacky check is actually necessary
                     {
+                        failedServerIds.Add(currentConnectedServerId);
                         Logger.Log("Disconnected from CnCNet.");
                         connectionManager.OnConnectionLost("Server disconnected.");
                         break;
