@@ -419,6 +419,14 @@ namespace ClientCore
             }
         }
 
+        public string StatisticsLogFileName
+        {
+            get
+            {
+                return clientDefinitionsIni.GetStringValue(SETTINGS, "StatisticsLogFileName", "DTA.LOG");
+            }
+        }
+
         public string[] GetThemeInfoFromIndex(int themeIndex)
         {
             string[] values = clientDefinitionsIni.GetStringValue("Themes", themeIndex.ToString(), ",").Split(',');

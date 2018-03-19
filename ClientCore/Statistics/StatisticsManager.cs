@@ -230,6 +230,9 @@ namespace ClientCore.Statistics
                             ps.AILevel = readBuffer[0];
 
                             ms.AddPlayer(ps);
+
+                            if (!ps.IsAI)
+                                ms.NumberOfHumanPlayers++;
                         }
 
                         if (ms.Players.Find(p => p.IsLocalPlayer && !p.IsAI) == null)

@@ -61,23 +61,8 @@ namespace ClientCore.Statistics
 
             LengthInSeconds = (int)(DateTime.Now - DateAndTime).TotalSeconds;
 
-            var parser = new DTAStatisticsParser(this, isLoadedGame);
-
-            switch (gameName.ToUpper())
-            {
-                case "DTA":
-                    parser.ParseStats(gamePath, "DTA.LOG");
-                    return;
-                case "TS":
-                    parser.ParseStats(gamePath, "TS.LOG");
-                    return;
-                case "TI":
-                    parser.ParseStats(gamePath, "TI.LOG");
-                    return;
-                case "MO":
-                    parser.ParseStats(gamePath, "Debug\\debug.log", "Loser");
-                    return;
-            }
+            var parser = new LogFileStatisticsParser(this, isLoadedGame);
+            parser.ParseStats(gamePath, ClientConfiguration.Instance.StatisticsLogFileName);
         }
 
         public PlayerStatistics GetEmptyPlayerByName(string playerName)

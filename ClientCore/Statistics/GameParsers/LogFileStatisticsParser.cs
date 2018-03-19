@@ -5,32 +5,25 @@ using Rampastring.Tools;
 
 namespace ClientCore.Statistics.GameParsers
 {
-    public class DTAStatisticsParser : GenericMatchParser
+    public class LogFileStatisticsParser : GenericMatchParser
     {
-        public DTAStatisticsParser(MatchStatistics ms, bool isLoadedGame) : base(ms)
+        public LogFileStatisticsParser(MatchStatistics ms, bool isLoadedGame) : base(ms)
         {
             this.isLoadedGame = isLoadedGame;
         }
 
         private string fileName = "DTA.log";
-        private string loserString = "Losser"; // WW typo in TS logging
         private string economyString = "Economy"; // RA2/YR do not have economy stat, but a number of built objects.
         private bool isLoadedGame;
 
         public void ParseStats(string gamepath, string fileName)
         {
-            ParseStats(gamepath, fileName, loserString);
-        }
-
-        public void ParseStats(string gamepath, string fileName, string loserString)
-        {
             this.fileName = fileName;
-            this.loserString = loserString;
             if (ClientConfiguration.Instance.UseBuiltStatistic) economyString = "Built";
             ParseStatistics(gamepath);
         }
 
-        public override void ParseStatistics(string gamepath)
+        protected override void ParseStatistics(string gamepath)
         {
             if (!File.Exists(gamepath + fileName))
             {
@@ -54,11 +47,11 @@ namespace ClientCore.Statistics.GameParsers
 
                 while ((line = reader.ReadLine()) != null)
                 {
-                    if (line.Contains(": " + loserString))
+                    if (line.Contains(": Loser"))
                     {
                         // Player found, game saw completion
                         sawCompletion = true;
-                        string playerName = line.Substring(0, line.Length - (loserString.Length + 2));
+                        string playerName = line.Substring(0, line.Length - 7);
                         currentPlayer = Statistics.GetEmptyPlayerByName(playerName);
 
                         if (isLoadedGame && currentPlayer == null)

@@ -1,6 +1,6 @@
 ﻿namespace ClientCore.Statistics
 {
-    public abstract class GenericMatchParser : IMatchStatisticsParser
+    public abstract class GenericMatchParser
     {
         public MatchStatistics Statistics {get; set;}
 
@@ -9,6 +9,6 @@
             Statistics = ms;
         }
 
-        public abstract void ParseStatistics(string gamepath);
+        protected abstract void ParseStatistics(string gamepath);
     }
 }
