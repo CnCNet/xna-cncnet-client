@@ -351,7 +351,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             textureRectangle = new Rectangle(displayRectangle.X + texturePositionX, displayRectangle.Y + texturePositionY,
                 textureWidth, textureHeight);
 
-            for (int i = 0; i < Map.StartingLocations.Count; i++)
+            for (int i = 0; i < Map.StartingLocations.Count && i < Map.MaxPlayers; i++)
             {
                 PlayerLocationIndicator indicator = startingLocationIndicators[i];
 
