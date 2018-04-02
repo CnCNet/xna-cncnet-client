@@ -298,6 +298,13 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         /// <param name="pInfo">The PlayerInfo.</param>
         private void CheckLoadedPlayerVariableBounds(PlayerInfo pInfo)
         {
+            int sidecount = SideCount + RandomSelectorCount;
+
+            if (pInfo.SideId < 0 || pInfo.SideId > sidecount)
+            {
+                pInfo.SideId = 0;
+            }
+
             if (pInfo.ColorId < 0 || pInfo.ColorId > MPColors.Count)
             {
                 pInfo.ColorId = 0;

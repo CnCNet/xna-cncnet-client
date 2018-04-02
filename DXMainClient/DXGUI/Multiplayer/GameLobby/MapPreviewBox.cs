@@ -65,6 +65,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private string[] sides;
 
+        public int RandomSelectorCount { get; set; }
+
         private PlayerLocationIndicator[] startingLocationIndicators;
 
         private List<MultiplayerColor> mpColors;
@@ -242,7 +244,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             foreach (PlayerInfo pInfo in players.Concat(aiPlayers))
             {
                 contextMenu.Items[index].Selectable = pInfo.StartingLocation != (int)indicator.Tag + 1 && 
-                    pInfo.SideId < sides.Length + 1;
+                    pInfo.SideId < sides.Length + RandomSelectorCount;
                 index++;
             }
 

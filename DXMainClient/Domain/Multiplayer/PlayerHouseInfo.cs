@@ -22,9 +22,9 @@ namespace DTAClient.Domain.Multiplayer
         /// <param name="sideCount">The number of sides in the game.</param>
         /// <param name="random">Random number generator.</param>
         /// <param name="disallowedSideArray">A bool array that determines which side indexes are disallowed by game options.</param>
-        public void RandomizeSide(PlayerInfo pInfo, Map map, int sideCount, Random random, bool[] disallowedSideArray)
+        public void RandomizeSide(PlayerInfo pInfo, Map map, int sideCount, Random random, bool[] disallowedSideArray, List<int[]> randomSelectors, int randomCount)
         {
-            if (pInfo.SideId == 0 || pInfo.SideId == sideCount + 1)
+            if (pInfo.SideId == 0 || pInfo.SideId == sideCount + randomCount)
             {
                 // The player has selected Random or Spectator
 
@@ -44,7 +44,27 @@ namespace DTAClient.Domain.Multiplayer
                 SideIndex = sideId;
             }
             else
-                SideIndex = pInfo.SideId - 1; // The player has selected a side
+            {
+
+                // Use custom random selector.
+                if (pInfo.SideId > 0 && pInfo.SideId < randomCount)
+                {
+                    int[] randomsides = randomSelectors[pInfo.SideId - 1];
+                    int count = randomsides.Length;
+                    int sideId;
+                    while (true)
+                    {
+                        sideId = randomsides[random.Next(0, count)];
+                        if (disallowedSideArray[sideId])
+                            continue;
+
+                        if (map.CoopInfo == null || !map.CoopInfo.DisallowedPlayerSides.Contains(sideId))
+                            break;
+                    }
+                    SideIndex = sideId;
+                }
+                else SideIndex = pInfo.SideId - randomCount; // The player has selected a side
+            }
         }
 
         /// <summary>

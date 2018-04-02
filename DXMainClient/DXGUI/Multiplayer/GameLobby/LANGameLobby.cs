@@ -753,7 +753,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             int start = Conversions.IntFromString(parts[2], -1);
             int team = Conversions.IntFromString(parts[3], -1);
 
-            if (side < 0 || side > SideCount + 1)
+            if (side < 0 || side > SideCount + RandomSelectorCount)
                 return;
 
             if (color < 0 || color > MPColors.Count)
@@ -761,7 +761,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             if (Map.CoopInfo != null)
             {
-                if (Map.CoopInfo.DisallowedPlayerSides.Contains(side - 1) || side == SideCount + 1)
+                if (Map.CoopInfo.DisallowedPlayerSides.Contains(side - 1) || side == SideCount + RandomSelectorCount)
                     return;
 
                 if (Map.CoopInfo.DisallowedPlayerColors.Contains(color - 1))
@@ -818,7 +818,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 string ipAddress = parts[baseIndex + 6];
                 int aiLevel = Conversions.IntFromString(parts[baseIndex + 7], -1);
 
-                if (side < 0 || side > SideCount + 1)
+                if (side < 0 || side > SideCount + RandomSelectorCount)
                     return;
 
                 if (color < 0 || color > MPColors.Count)

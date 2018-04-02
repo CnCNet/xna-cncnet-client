@@ -514,7 +514,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             int start = bytes[2];
             int team = bytes[3];
 
-            if (side < 0 || side > SideCount + 1)
+            if (side < 0 || side > SideCount + RandomSelectorCount)
                 return;
 
             if (color < 0 || color > MPColors.Count)
@@ -527,7 +527,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             if (Map.CoopInfo != null)
             {
-                if (Map.CoopInfo.DisallowedPlayerSides.Contains(side - 1) || side == SideCount + 1)
+                if (Map.CoopInfo.DisallowedPlayerSides.Contains(side - 1) || side == SideCount + RandomSelectorCount)
                     return;
 
                 if (Map.CoopInfo.DisallowedPlayerColors.Contains(color - 1))
@@ -670,7 +670,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 int color = byteArray[2];
                 int side = byteArray[3];
 
-                if (side < 0 || side > SideCount + 1)
+                if (side < 0 || side > SideCount + RandomSelectorCount)
                     return;
 
                 if (color < 0 || color > MPColors.Count)
