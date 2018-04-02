@@ -622,7 +622,8 @@ namespace DTAClient.DXGUI.Multiplayer
 
         private void BtnNewGame_LeftClick(object sender, EventArgs e)
         {
-            gameCreationWindow.Open();
+            if (!ClientConfiguration.Instance.DisableMultiplayerSaveLoad) gameCreationWindow.Open();
+            else GameCreationWindow_NewGame(sender, e);
         }
 
         public override void Update(GameTime gameTime)

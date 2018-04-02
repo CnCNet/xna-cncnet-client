@@ -537,6 +537,21 @@ namespace ClientCore
             get { return clientDefinitionsIni.GetBooleanValue(SETTINGS, "CreateSaveGameDirectory", false); }
         }
 
+        public bool DisableMultiplayerSaveLoad
+        {
+            get { return clientDefinitionsIni.GetBooleanValue(SETTINGS, "DisableMultiplayerSaveLoad", false); }
+        }
+
+        public bool DisableUpdaterOptions
+        {
+            get { return clientDefinitionsIni.GetBooleanValue(SETTINGS, "DisableUpdaterOptions", false); }
+        }
+
+        public bool DisableComponentOptions
+        {
+            get { return clientDefinitionsIni.GetBooleanValue(SETTINGS, "DisableUpdaterOptions", false); }
+        }
+
         /// <summary>
         /// Returns the name of the game executable file that is used on
         /// Linux and macOS.

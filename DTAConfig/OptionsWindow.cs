@@ -43,8 +43,11 @@ namespace DTAConfig
             tabControl.AddTab("Audio", 92);
             tabControl.AddTab("Game", 92);
             tabControl.AddTab("CnCNet", 92);
-            tabControl.AddTab("Updater", 92);
-            tabControl.AddTab("Components", 92);
+            if (!ClientConfiguration.Instance.DisableUpdaterOptions)
+            {
+                tabControl.AddTab("Updater", 92);
+                if (!ClientConfiguration.Instance.DisableComponentOptions) tabControl.AddTab("Components", 92);
+            }
             tabControl.SelectedIndexChanged += TabControl_SelectedIndexChanged;
 
             var btnCancel = new XNAClientButton(WindowManager);
