@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ClientCore;
+using System;
 using System.IO;
 using System.Net;
 using System.Threading;
@@ -14,8 +15,12 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
 
         internal static event EventHandler<PlayerCountEventArgs> CnCNetGameCountUpdated;
 
+        private static string cncnetLiveStatusIdentifier;
+
         public static void InitializeService(CancellationTokenSource cts)
         {
+            cncnetLiveStatusIdentifier = ClientConfiguration.Instance.CnCNetLiveStatusIdentifier;
+
             CnCNetGameCountUpdated?.Invoke(null, new PlayerCountEventArgs(GetCnCNetPlayerCount()));
             ThreadPool.QueueUserWorkItem(new WaitCallback(RunService), cts);
         }
@@ -62,9 +67,9 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
 
                 foreach (string value in values)
                 {
-                    if (value.Contains(MainClientConstants.CNCNET_LIVE_STATUS_ID))
+                    if (value.Contains(cncnetLiveStatusIdentifier))
                     {
-                        numGames = Convert.ToInt32(value.Substring(MainClientConstants.CNCNET_LIVE_STATUS_ID.Length + 1));
+                        numGames = Convert.ToInt32(value.Substring(cncnetLiveStatusIdentifier.Length + 1));
                         return numGames;
                     }
                 }

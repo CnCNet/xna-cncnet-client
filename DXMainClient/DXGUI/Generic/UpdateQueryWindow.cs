@@ -1,4 +1,5 @@
-﻿using ClientGUI;
+﻿using ClientCore;
+using ClientGUI;
 using DTAClient.Domain;
 using Microsoft.Xna.Framework;
 using Rampastring.XNAUI;
@@ -8,6 +9,9 @@ using System.Diagnostics;
 
 namespace DTAClient.DXGUI.Generic
 {
+    /// <summary>
+    /// A window that asks the user whether they want to update their game.
+    /// </summary>
     public class UpdateQueryWindow : XNAWindow
     {
         public delegate void UpdateAcceptedEventHandler(object sender, EventArgs e);
@@ -16,16 +20,17 @@ namespace DTAClient.DXGUI.Generic
         public delegate void UpdateDeclinedEventHandler(object sender, EventArgs e);
         public event UpdateDeclinedEventHandler UpdateDeclined;
 
-        public UpdateQueryWindow(WindowManager windowManager) : base(windowManager)
-        {
+        public UpdateQueryWindow(WindowManager windowManager) : base(windowManager) { }
 
-        }
+        private XNALabel lblDescription;
+        private XNALabel lblUpdateSize;
 
-        XNALabel lblDescription;
-        XNALabel lblUpdateSize;
+        private string changelogUrl;
 
         public override void Initialize()
         {
+            changelogUrl = ClientConfiguration.Instance.ChangelogURL;
+
             Name = "UpdateQueryWindow";
             ClientRectangle = new Rectangle(0, 0, 251, 140);
             BackgroundTexture = AssetLoader.LoadTexture("updatequerybg.png");
@@ -70,7 +75,7 @@ namespace DTAClient.DXGUI.Generic
 
         private void LblChangelogLink_LeftClick(object sender, EventArgs e)
         {
-            Process.Start(MainClientConstants.CHANGELOG_URL);
+            Process.Start(changelogUrl);
         }
 
         private void BtnYes_LeftClick(object sender, EventArgs e)
