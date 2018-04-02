@@ -340,6 +340,14 @@ namespace ClientCore
             }
         }
 
+        public string UnixMapEditorExePath
+        {
+            get
+            {
+                return clientDefinitionsIni.GetStringValue(SETTINGS, "UnixMapEditorExePath", Instance.MapEditorExePath);
+            }
+        }
+
         public bool ModMode
         {
             get

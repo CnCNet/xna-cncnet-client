@@ -684,7 +684,8 @@ namespace DTAClient.DXGUI.Generic
 
         private void BtnMapEditor_LeftClick(object sender, EventArgs e)
         {
-            Process.Start(ProgramConstants.GamePath + ClientConfiguration.Instance.MapEditorExePath);
+            LaunchMapEditor();
+            //Process.Start(ProgramConstants.GamePath + ClientConfiguration.Instance.MapEditorExePath);
         }
 
         private void BtnStatistics_LeftClick(object sender, EventArgs e)
@@ -861,6 +862,22 @@ namespace DTAClient.DXGUI.Generic
             {
                 Logger.Log("Turning music off failed! Message: " + ex.Message);
             }
+        }
+
+        internal static void LaunchMapEditor()
+        {
+            OSVersion osVersion = ClientConfiguration.Instance.GetOperatingSystemVersion();
+            Process mapEditorProcess = new Process();
+            if (osVersion != OSVersion.UNIX)
+            {
+                mapEditorProcess.StartInfo.FileName = ProgramConstants.GamePath + ClientConfiguration.Instance.MapEditorExePath;
+            }
+            else
+            {
+                mapEditorProcess.StartInfo.FileName = ProgramConstants.GamePath + ClientConfiguration.Instance.UnixMapEditorExePath;
+                mapEditorProcess.StartInfo.UseShellExecute = false;
+            }
+            mapEditorProcess.Start();
         }
 
         public string GetSwitchName()
