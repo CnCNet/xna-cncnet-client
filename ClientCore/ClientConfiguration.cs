@@ -552,6 +552,11 @@ namespace ClientCore
             get { return clientDefinitionsIni.GetBooleanValue(SETTINGS, "DisableUpdaterOptions", false); }
         }
 
+        public bool DisplayPlayerCountInTopBar
+        {
+            get { return clientDefinitionsIni.GetBooleanValue(SETTINGS, "DisplayPlayerCountInTopBar", false); }
+        }
+
         /// <summary>
         /// Returns the name of the game executable file that is used on
         /// Linux and macOS.

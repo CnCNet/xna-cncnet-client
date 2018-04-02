@@ -242,9 +242,12 @@ namespace DTAClient.DXGUI.Generic
                 ClientRectangle.Width, ClientRectangle.Height);
             innerPanel.ClientRectangle = new Rectangle(0, 0, WindowManager.RenderResolutionX, WindowManager.RenderResolutionY);
 
-            CnCNetPlayerCountTask.CnCNetGameCountUpdated += CnCNetInfoController_CnCNetGameCountUpdated;
-            cncnetPlayerCountCancellationSource = new CancellationTokenSource();
-            CnCNetPlayerCountTask.InitializeService(cncnetPlayerCountCancellationSource);
+            if (!ClientConfiguration.Instance.DisplayPlayerCountInTopBar)
+            {
+                CnCNetPlayerCountTask.CnCNetGameCountUpdated += CnCNetInfoController_CnCNetGameCountUpdated;
+                cncnetPlayerCountCancellationSource = new CancellationTokenSource();
+                CnCNetPlayerCountTask.InitializeService(cncnetPlayerCountCancellationSource);
+            }
 
             WindowManager.GameClosing += WindowManager_GameClosing;
 
@@ -410,7 +413,8 @@ namespace DTAClient.DXGUI.Generic
         {
             CUpdater.FileIdentifiersUpdated -= CUpdater_FileIdentifiersUpdated;
 
-            cncnetPlayerCountCancellationSource.Cancel();
+            if (cncnetPlayerCountCancellationSource != null) cncnetPlayerCountCancellationSource.Cancel();
+            topBar.Clean();
             if (updateInProgress)
                 CUpdater.TerminateUpdate = true;
 
