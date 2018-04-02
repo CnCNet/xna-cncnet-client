@@ -206,6 +206,19 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 skirmishSettingsIni.SetStringValue("Settings", "Map", Map.SHA1);
                 skirmishSettingsIni.SetStringValue("Settings", "GameMode", GameMode.Name);
 
+                if (ClientConfiguration.Instance.SaveSkirmishGameOptions)
+                {
+                    foreach (GameLobbyDropDown dd in DropDowns)
+                    {
+                        skirmishSettingsIni.SetStringValue("GameOptions", dd.Name, dd.UserDefinedIndex + "");
+                    }
+
+                    foreach (GameLobbyCheckBox cb in CheckBoxes)
+                    {
+                        skirmishSettingsIni.SetStringValue("GameOptions", cb.Name, cb.Checked.ToString());
+                    }
+                }
+
                 skirmishSettingsIni.WriteIniFile();
             }
             catch (Exception ex)
@@ -242,9 +255,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             if (keys == null)
             {
-                Logger.Log("AI player information doesn't exist in skirmish settings!");
-                InitDefaultSettings();
-                return;
+                keys = new List<string>(); // No point skipping parsing all settings if only AI info is missing.
+                //Logger.Log("AI player information doesn't exist in skirmish settings!");
+                //InitDefaultSettings();
+                //return;
             }
 
             foreach (string key in keys)
@@ -270,25 +284,80 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             if (gameModeIndex > -1)
             {
-                GameMode gm = GameModes[gameModeIndex];
+                GameMode = GameModes[gameModeIndex];
+
+                tbMapSearch.Text = string.Empty;
+                tbMapSearch.OnSelectedChanged();
+                ListMaps();
+                if (lbMapList.SelectedIndex != -1)
+                    ChangeMap(GameMode, Map);
 
                 string mapSHA1 = skirmishSettingsIni.GetStringValue("Settings", "Map", string.Empty);
 
-                int mapIndex = gm.Maps.FindIndex(m => m.SHA1 == mapSHA1);
+                int mapIndex = GameMode.Maps.FindIndex(m => m.SHA1 == mapSHA1);
 
                 if (mapIndex > -1)
                 {
-                    ddGameMode.SelectedIndex = gameModeIndex;
                     lbMapList.SelectedIndex = mapIndex;
 
                     while (mapIndex > lbMapList.LastIndex)
                         lbMapList.TopIndex++;
+                }
 
-                    return;
+                ddGameMode.SelectedIndex = gameModeIndex;
+            }
+            else
+                LoadDefaultMap();
+
+            if (ClientConfiguration.Instance.SaveSkirmishGameOptions)
+            {
+                foreach (GameLobbyDropDown dd in DropDowns)
+                {
+                    if (GameMode != null)
+                    {
+                        var matchesgm = GameMode.ForcedDropDownValues.Where(p => p.Key.Equals(dd.Name));
+                        if (matchesgm.Count() > 0)
+                        {
+                            Logger.Log("Dropdown '" + dd.Name + "' has forced value in gamemode - saved settings ignored.");
+                            continue;
+                        }
+                    }
+                    if (Map != null)
+                    {
+                        var matchesmp = Map.ForcedDropDownValues.Where(p => p.Key.Equals(dd.Name));
+                        if (matchesmp.Count() > 0)
+                        {
+                            Logger.Log("Dropdown '" + dd.Name + "' has forced value in map - saved settings ignored.");
+                            continue;
+                        }
+                    }
+                    dd.UserDefinedIndex = skirmishSettingsIni.GetIntValue("GameOptions", dd.Name, dd.UserDefinedIndex);
+                    if (dd.Items.Count - 1 >= dd.UserDefinedIndex && dd.UserDefinedIndex > -1) dd.SelectedIndex = dd.UserDefinedIndex;
+                }
+
+                foreach (GameLobbyCheckBox cb in CheckBoxes)
+                {
+                    if (GameMode != null)
+                    {
+                        var matchesgm = GameMode.ForcedCheckBoxValues.Where(p => p.Key.Equals(cb.Name));
+                        if (matchesgm.Count() > 0)
+                        {
+                            Logger.Log("Checkbox '" + cb.Name + "' has forced value in gamemode - saved settings ignored.");
+                            continue;
+                        }
+                    }
+                    if (Map != null)
+                    {
+                        var matchesmp = Map.ForcedCheckBoxValues.Where(p => p.Key.Equals(cb.Name));
+                        if (matchesmp.Count() > 0)
+                        {
+                            Logger.Log("Checkbox '" + cb.Name + "' has forced value in map - saved settings ignored.");
+                            continue;
+                        }
+                    }
+                    cb.Checked = skirmishSettingsIni.GetBooleanValue("GameOptions", cb.Name, cb.Checked);
                 }
             }
-
-            LoadDefaultMap();
         }
 
         /// <summary>

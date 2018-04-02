@@ -366,7 +366,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 ChangeMap(GameMode, Map);
         }
 
-        private void ListMaps()
+        protected void ListMaps()
         {
             lbMapList.SelectedIndexChanged -= LbMapList_SelectedIndexChanged;
 
