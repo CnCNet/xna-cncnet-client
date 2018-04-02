@@ -527,6 +527,16 @@ namespace ClientCore
             return exeNames[0];
         }
 
+        public bool SaveSkirmishGameOptions
+        {
+            get { return clientDefinitionsIni.GetBooleanValue(SETTINGS, "SaveSkirmishGameOptions", false); }
+        }
+
+        public bool CreateSaveGameDirectory
+        {
+            get { return clientDefinitionsIni.GetBooleanValue(SETTINGS, "CreateSaveGameDirectory", false); }
+        }
+
         /// <summary>
         /// Returns the name of the game executable file that is used on
         /// Linux and macOS.

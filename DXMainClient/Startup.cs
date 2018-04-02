@@ -29,7 +29,7 @@ namespace DTAClient
 
             if (themePath == null)
             {
-               themePath = ClientConfiguration.Instance.GetThemeInfoFromIndex(0)[1];
+                themePath = ClientConfiguration.Instance.GetThemeInfoFromIndex(0)[1];
             }
 
             ProgramConstants.RESOURCES_DIR = "Resources\\" + themePath;
@@ -54,12 +54,27 @@ namespace DTAClient
             Thread idThread = new Thread(GenerateOnlineId);
             idThread.Start();
 
-            if (Directory.Exists(MainClientConstants.gamepath + "Updater"))
+            if (ClientConfiguration.Instance.CreateSaveGameDirectory)
             {
-                Logger.Log("Attempting to delete temporary updater directory.");
+                if (Directory.Exists(MainClientConstants.gamepath + "Updater"))
+                {
+                    Logger.Log("Attempting to delete temporary updater directory.");
+                    try
+                    {
+                        Directory.Delete(MainClientConstants.gamepath + "Updater", true);
+                    }
+                    catch
+                    {
+                    }
+                }
+            }
+
+            if (!Directory.Exists(MainClientConstants.gamepath + "Saved Games"))
+            {
+                Logger.Log("Saved Games directory does not exist - attempting to create one.");
                 try
                 {
-                    Directory.Delete(MainClientConstants.gamepath + "Updater", true);
+                    Directory.CreateDirectory(MainClientConstants.gamepath + "Saved Games");
                 }
                 catch
                 {
@@ -102,7 +117,7 @@ namespace DTAClient
                 string cpu = String.Empty;
                 string videoController = String.Empty;
 
-                ManagementObjectSearcher searcher = 
+                ManagementObjectSearcher searcher =
                     new ManagementObjectSearcher("SELECT * FROM Win32_Processor");
 
                 foreach (var proc in searcher.Get())
@@ -131,7 +146,7 @@ namespace DTAClient
             }
         }
 
-        
+
         /// <summary>
         /// Generate an ID for online play.
         /// </summary>
