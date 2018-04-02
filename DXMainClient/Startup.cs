@@ -54,30 +54,30 @@ namespace DTAClient
             Thread idThread = new Thread(GenerateOnlineId);
             idThread.Start();
 
+            if (Directory.Exists(MainClientConstants.gamepath + "Updater"))
+            {
+                Logger.Log("Attempting to delete temporary updater directory.");
+                try
+                {
+                    Directory.Delete(MainClientConstants.gamepath + "Updater", true);
+                }
+                catch
+                {
+                }
+            }
+
             if (ClientConfiguration.Instance.CreateSaveGameDirectory)
             {
-                if (Directory.Exists(MainClientConstants.gamepath + "Updater"))
+                if (!Directory.Exists(MainClientConstants.gamepath + "Saved Games"))
                 {
-                    Logger.Log("Attempting to delete temporary updater directory.");
+                    Logger.Log("Saved Games directory does not exist - attempting to create one.");
                     try
                     {
-                        Directory.Delete(MainClientConstants.gamepath + "Updater", true);
+                        Directory.CreateDirectory(MainClientConstants.gamepath + "Saved Games");
                     }
                     catch
                     {
                     }
-                }
-            }
-
-            if (!Directory.Exists(MainClientConstants.gamepath + "Saved Games"))
-            {
-                Logger.Log("Saved Games directory does not exist - attempting to create one.");
-                try
-                {
-                    Directory.CreateDirectory(MainClientConstants.gamepath + "Saved Games");
-                }
-                catch
-                {
                 }
             }
 
