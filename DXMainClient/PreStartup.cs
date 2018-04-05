@@ -151,6 +151,16 @@ namespace DTAClient
             // On Windows you rarely have a reason for using the OpenGL build anyway
             return true;
 #endif
+            var currentUser = WindowsIdentity.GetCurrent();
+            var principal = new WindowsPrincipal(currentUser);
+
+            // If the user is not running the client with administrator privileges in Program Files, they need to be prompted to do so.
+            if (!principal.IsInRole(WindowsBuiltInRole.Administrator))
+            {
+                string progfiles = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
+                string progfilesx86 = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86);
+                if (Environment.CurrentDirectory.Contains(progfiles) || Environment.CurrentDirectory.Contains(progfilesx86)) return false;
+            }
 
             var isInRoleWithAccess = false;
 
@@ -160,8 +170,6 @@ namespace DTAClient
                 var acl = di.GetAccessControl();
                 var rules = acl.GetAccessRules(true, true, typeof(NTAccount));
 
-                var currentUser = WindowsIdentity.GetCurrent();
-                var principal = new WindowsPrincipal(currentUser);
                 foreach (AuthorizationRule rule in rules)
                 {
                     var fsAccessRule = rule as FileSystemAccessRule;
