@@ -286,11 +286,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             {
                 GameMode = GameModes[gameModeIndex];
 
-                tbMapSearch.Text = string.Empty;
-                tbMapSearch.OnSelectedChanged();
-                ListMaps();
-                if (lbMapList.SelectedIndex != -1)
-                    ChangeMap(GameMode, Map);
+                ddGameMode.SelectedIndex = gameModeIndex;
 
                 string mapSHA1 = skirmishSettingsIni.GetStringValue("Settings", "Map", string.Empty);
 
@@ -303,8 +299,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     while (mapIndex > lbMapList.LastIndex)
                         lbMapList.TopIndex++;
                 }
-
-                ddGameMode.SelectedIndex = gameModeIndex;
             }
             else
                 LoadDefaultMap();
