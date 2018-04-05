@@ -160,13 +160,13 @@ namespace DTAClient.DXGUI.Generic
                 lblCnCNetStatus = new XNALabel(WindowManager);
                 lblCnCNetStatus.Name = "lblCnCNetStatus";
                 lblCnCNetStatus.FontIndex = 1;
-                lblCnCNetStatus.Text = "PLAYERS ON CNCNET:";
+                lblCnCNetStatus.Text = ClientConfiguration.Instance.LocalGame.ToUpper() + " PLAYERS ONLINE:";
                 lblCnCNetPlayerCount = new XNALabel(WindowManager);
                 lblCnCNetPlayerCount.Name = "lblCnCNetPlayerCount";
                 lblCnCNetPlayerCount.FontIndex = 1;
                 lblCnCNetPlayerCount.Text = "-";
                 lblCnCNetPlayerCount.ClientRectangle = new Rectangle(btnLogout.ClientRectangle.Left - 50, 11, lblCnCNetPlayerCount.ClientRectangle.Width, lblCnCNetPlayerCount.ClientRectangle.Height);
-                lblCnCNetStatus.ClientRectangle = new Rectangle(lblCnCNetPlayerCount.ClientRectangle.Left - 152, 11, lblCnCNetStatus.ClientRectangle.Width, lblCnCNetStatus.ClientRectangle.Height);
+                lblCnCNetStatus.ClientRectangle = new Rectangle(lblCnCNetPlayerCount.ClientRectangle.Left - lblCnCNetStatus.Width - 6, 11, lblCnCNetStatus.ClientRectangle.Width, lblCnCNetStatus.ClientRectangle.Height);
                 AddChild(lblCnCNetStatus);
                 AddChild(lblCnCNetPlayerCount);
                 CnCNetPlayerCountTask.CnCNetGameCountUpdated += CnCNetInfoController_CnCNetGameCountUpdated;
