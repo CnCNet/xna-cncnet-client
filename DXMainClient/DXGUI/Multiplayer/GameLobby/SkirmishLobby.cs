@@ -237,6 +237,31 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             var skirmishSettingsIni = new IniFile(ProgramConstants.GamePath + SETTINGS_PATH);
 
+            string gameModeName = skirmishSettingsIni.GetStringValue("Settings", "GameMode", string.Empty);
+
+            int gameModeIndex = GameModes.FindIndex(g => g.Name == gameModeName);
+
+            if (gameModeIndex > -1)
+            {
+                GameMode = GameModes[gameModeIndex];
+
+                ddGameMode.SelectedIndex = gameModeIndex;
+
+                string mapSHA1 = skirmishSettingsIni.GetStringValue("Settings", "Map", string.Empty);
+
+                int mapIndex = GameMode.Maps.FindIndex(m => m.SHA1 == mapSHA1);
+
+                if (mapIndex > -1)
+                {
+                    lbMapList.SelectedIndex = mapIndex;
+
+                    while (mapIndex > lbMapList.LastIndex)
+                        lbMapList.TopIndex++;
+                }
+            }
+            else
+                LoadDefaultMap();
+
             var player = PlayerInfo.FromString(skirmishSettingsIni.GetStringValue("Player", "Info", string.Empty));
 
             if (player == null)
@@ -277,31 +302,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 if (AIPlayers.Count < MAX_PLAYER_COUNT - 1)
                     AIPlayers.Add(aiPlayer);
             }
-
-            string gameModeName = skirmishSettingsIni.GetStringValue("Settings", "GameMode", string.Empty);
-
-            int gameModeIndex = GameModes.FindIndex(g => g.Name == gameModeName);
-
-            if (gameModeIndex > -1)
-            {
-                GameMode = GameModes[gameModeIndex];
-
-                ddGameMode.SelectedIndex = gameModeIndex;
-
-                string mapSHA1 = skirmishSettingsIni.GetStringValue("Settings", "Map", string.Empty);
-
-                int mapIndex = GameMode.Maps.FindIndex(m => m.SHA1 == mapSHA1);
-
-                if (mapIndex > -1)
-                {
-                    lbMapList.SelectedIndex = mapIndex;
-
-                    while (mapIndex > lbMapList.LastIndex)
-                        lbMapList.TopIndex++;
-                }
-            }
-            else
-                LoadDefaultMap();
 
             if (ClientConfiguration.Instance.SaveSkirmishGameOptions)
             {
