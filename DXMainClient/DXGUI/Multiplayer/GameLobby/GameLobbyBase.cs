@@ -739,8 +739,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     // side to the default side
                     foreach (PlayerInfo pInfo in concatPlayerList)
                     {
-                        if (pInfo.SideId == i + RandomSelectorCount)
-                            //TODO: Check if this actually works.
+                        if (pInfo.SideId == i)
                             pInfo.SideId = defaultSide;
                     }
                 }
