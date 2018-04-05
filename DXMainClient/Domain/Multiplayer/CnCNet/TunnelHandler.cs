@@ -16,7 +16,8 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
 {
     public class TunnelHandler : GameComponent
     {
-        const double TUNNEL_LIST_REFRESTH_INTERVAL = 120.0;
+        private const double TUNNEL_LIST_REFRESTH_INTERVAL = 120.0;
+        private const int SUPPORTED_TUNNEL_VERSION = 2;
 
         public TunnelHandler(WindowManager wm, CnCNetManager connectionManager) : base(wm.Game)
         {
@@ -112,7 +113,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
 
             try
             {
-                data = client.DownloadData("http://cncnet.org/master-list");
+                data = client.DownloadData(MainClientConstants.CNCNET_TUNNEL_LIST_URL);
             }
             catch (Exception ex)
             {
@@ -120,7 +121,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                 Logger.Log("Retrying.");
                 try
                 {
-                    data = client.DownloadData("http://cncnet.org/master-list");
+                    data = client.DownloadData(MainClientConstants.CNCNET_TUNNEL_LIST_URL);
                 }
                 catch
                 {
@@ -141,41 +142,19 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
 
             string[] serverList = convertedData.Split(new string[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries);
 
-            foreach (string serverinfo in serverList)
+            foreach (string serverInfo in serverList)
             {
-                string[] serverInfo = serverinfo.Split(new char[] { ';' });
-
-                CnCNetTunnel tunnel = new CnCNetTunnel();
-
                 try
                 {
-                    string address = serverInfo[0];
-                    string[] detailedAddress = address.Split(new char[] { ':' });
-                    tunnel.Address = detailedAddress[0];
-                    tunnel.Port = Convert.ToInt32(detailedAddress[1]);
+                    CnCNetTunnel tunnel = CnCNetTunnel.Parse(serverInfo);
 
-                    tunnel.Country = serverInfo[1];
-                    tunnel.CountryCode = serverInfo[2];
-                    tunnel.Name = serverInfo[3];
-                    tunnel.RequiresPassword = Conversions.BooleanFromString(serverInfo[4], true);
-                    tunnel.Clients = Convert.ToInt32(serverInfo[5]);
-                    tunnel.MaxClients = Convert.ToInt32(serverInfo[6]);
-                    tunnel.Official = (Convert.ToInt32(serverInfo[7]) == 2);
-                    if (!tunnel.Official)
-                        tunnel.Recommended = (Convert.ToInt32(serverInfo[7]) == 1);
-
-                    CultureInfo cultureInfo = CultureInfo.GetCultureInfo("en-US");
-
-                    tunnel.Latitude = Convert.ToDouble(serverInfo[8], cultureInfo);
-                    tunnel.Longitude = Convert.ToDouble(serverInfo[9], cultureInfo);
-                    tunnel.Version = Convert.ToInt32(serverInfo[10]);
-                    tunnel.Distance = Convert.ToDouble(serverInfo[11], cultureInfo);
-                    tunnel.PingInMs = -1;
+                    if (tunnel == null)
+                        continue;
 
                     if (tunnel.RequiresPassword)
                         continue;
                         
-                    if (tunnel.Version != 2)
+                    if (tunnel.Version != SUPPORTED_TUNNEL_VERSION)
                         continue;
 
                     if (tunnel.Official || tunnel.Recommended)
@@ -183,7 +162,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                         Ping p = new Ping();
                         try
                         {
-                            PingReply reply = p.Send(IPAddress.Parse(detailedAddress[0]), 500);
+                            PingReply reply = p.Send(IPAddress.Parse(tunnel.Address), 500);
                             if (reply.Status == IPStatus.Success)
                             {
                                 if (reply.RoundtripTime > 0)

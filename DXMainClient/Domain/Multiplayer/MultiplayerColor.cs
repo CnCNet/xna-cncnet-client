@@ -11,10 +11,9 @@ namespace DTAClient.Domain.Multiplayer
     /// </summary>
     public class MultiplayerColor
     {
-        public int GameColorIndex { get; set; }
-        public string Name { get; set; }
-        public Color XnaColor { get; set; }
-        public bool Enabled { get; set; }
+        public int GameColorIndex { get; private set; }
+        public string Name { get; private set; }
+        public Color XnaColor { get; private set; }
 
         private static List<MultiplayerColor> colorList;
 
@@ -36,10 +35,13 @@ namespace DTAClient.Domain.Multiplayer
             };
         }
 
+        /// <summary>
+        /// Returns the available multiplayer colors.
+        /// </summary>
         public static List<MultiplayerColor> LoadColors()
         {
             if (colorList != null)
-                return colorList;
+                return new List<MultiplayerColor>(colorList);
 
             IniFile gameOptionsIni = new IniFile(ProgramConstants.GetBaseResourcePath() + "GameOptions.ini");
 
@@ -67,14 +69,13 @@ namespace DTAClient.Domain.Multiplayer
             }
 
             colorList = mpColors;
-            return mpColors;
+            return new List<MultiplayerColor>(colorList);
         }
 
         /// <summary>
         /// An exception that is thrown when an INI file contains
         /// bad data or doesn't contain the expected data.
         /// </summary>
-        [Serializable]
         class InvalidINIFileException : Exception
         {
             public InvalidINIFileException(string message) : base(message)

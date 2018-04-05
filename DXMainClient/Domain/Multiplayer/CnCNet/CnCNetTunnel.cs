@@ -1,27 +1,88 @@
 ﻿using Rampastring.Tools;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Net;
 
 namespace DTAClient.Domain.Multiplayer.CnCNet
 {
+    /// <summary>
+    /// A CnCNet tunnel server.
+    /// </summary>
     public class CnCNetTunnel
     {
-        public string Address { get; set; }
-        public int Port { get; set; }
-        public string Country { get; set; }
-        public string CountryCode { get; set; }
-        public string Name { get; set; }
-        public bool RequiresPassword { get; set; }
-        public int Clients { get; set; }
-        public int MaxClients { get; set; }
+        private const int REQUEST_TIMEOUT = 10000; // In milliseconds
+
+        public CnCNetTunnel() { }
+
+        /// <summary>
+        /// Creates and returns a CnCNetTunnel based on a formatted string that
+        /// contains the tunnel server's information. 
+        /// Returns null if parsing fails.
+        /// </summary>
+        /// <param name="str">The string that contains the tunnel server's information.</param>
+        /// <returns>A </returns>
+        public static CnCNetTunnel Parse(string str)
+        {
+            // For the format, check http://cncnet.org/master-list
+
+            try
+            {
+                string[] parts = str.Split(';');
+
+                string address = parts[0];
+                string[] detailedAddress = address.Split(new char[] { ':' });
+                var tunnel = new CnCNetTunnel();
+                tunnel.Address = detailedAddress[0];
+                tunnel.Port = int.Parse(detailedAddress[1]);
+                tunnel.Country = parts[1];
+                tunnel.CountryCode = parts[2];
+                tunnel.Name = parts[3];
+                tunnel.RequiresPassword = parts[4] != "0";
+                tunnel.Clients = int.Parse(parts[5]);
+                tunnel.MaxClients = int.Parse(parts[6]);
+                int status = int.Parse(parts[7]);
+                tunnel.Official = status == 2;
+                if (!tunnel.Official)
+                    tunnel.Recommended = status == 1;
+
+                CultureInfo cultureInfo = CultureInfo.InvariantCulture;
+
+                tunnel.Latitude = double.Parse(parts[8], cultureInfo);
+                tunnel.Longitude = double.Parse(parts[9], cultureInfo);
+                tunnel.Version = int.Parse(parts[10]);
+                tunnel.Distance = double.Parse(parts[11], cultureInfo);
+                tunnel.PingInMs = -1;
+
+                return tunnel;
+            }
+            catch (Exception ex)
+            {
+                if (ex is FormatException || ex is OverflowException || ex is IndexOutOfRangeException)
+                {
+                    Logger.Log("Parsing tunnel information failed: " + ex.Message + Environment.NewLine + "Parsed string: " + str);
+                    return null;
+                }
+
+                throw ex;
+            }
+        }
+
+        public string Address { get; private  set; }
+        public int Port { get; private set; }
+        public string Country { get; private set; }
+        public string CountryCode { get; private set; }
+        public string Name { get; private set; }
+        public bool RequiresPassword { get; private set; }
+        public int Clients { get; private set; }
+        public int MaxClients { get; private set; }
+        public bool Official { get; private set; }
+        public bool Recommended { get; private set; }
+        public double Latitude { get; private set; }
+        public double Longitude { get; private set; }
+        public int Version { get; private set; }
+        public double Distance { get; private set; }
         public int PingInMs { get; set; }
-        public bool Official { get; set; }
-        public bool Recommended { get; set; }
-        public double Latitude { get; set; }
-        public double Longitude { get; set; }
-        public int Version { get; set; }
-        public double Distance { get; set; }
 
         /// <summary>
         /// Gets a list of player ports to use from a specific tunnel server.
@@ -37,22 +98,24 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                     Address, Port, playerCount);
                 Logger.Log("Downloading from " + addressString);
 
-                WebClient client = new WebClient();
-                string data = client.DownloadString(addressString);
-
-                data = data.Replace("[", String.Empty);
-                data = data.Replace("]", String.Empty);
-
-                string[] portIDs = data.Split(new char[] { ',' });
-                List<int> playerPorts = new List<int>();
-
-                foreach (string _port in portIDs)
+                using (ExtendedWebClient client = new ExtendedWebClient(REQUEST_TIMEOUT))
                 {
-                    playerPorts.Add(Convert.ToInt32(_port));
-                    Logger.Log("Added port " + _port);
-                }
+                    string data = client.DownloadString(addressString);
 
-                return playerPorts;
+                    data = data.Replace("[", String.Empty);
+                    data = data.Replace("]", String.Empty);
+
+                    string[] portIDs = data.Split(new char[] { ',' });
+                    List<int> playerPorts = new List<int>();
+
+                    foreach (string _port in portIDs)
+                    {
+                        playerPorts.Add(Convert.ToInt32(_port));
+                        Logger.Log("Added port " + _port);
+                    }
+
+                    return playerPorts;
+                }
             }
             catch (Exception ex)
             {

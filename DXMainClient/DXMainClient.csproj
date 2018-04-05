@@ -236,6 +236,9 @@
     <Compile Include="Domain\Multiplayer\AllianceHolder.cs" />
     <Compile Include="Domain\Multiplayer\CnCNet\CnCNetPlayerCountTask.cs" />
     <Compile Include="Domain\Multiplayer\CnCNet\CnCNetTunnel.cs" />
+    <Compile Include="Domain\Multiplayer\CnCNet\ExtendedWebClient.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="Domain\Multiplayer\CoopHouseInfo.cs" />
     <Compile Include="Domain\Multiplayer\CoopMapInfo.cs" />
     <Compile Include="Domain\Multiplayer\GameMode.cs" />

@@ -29,6 +29,7 @@ namespace DTAClient.Domain
         {
             UserAgentHandler.ChangeUserAgent();
             wb = new WebBrowser();
+            wb.ScriptErrorsSuppressed = true;
 
             var gameUrlInfos = new GameURLInfo[]
             {

@@ -18,7 +18,7 @@
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>bin\Windows\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DefineConstants>TRACE;DEBUG;DTA</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
@@ -88,7 +88,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
-    <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'YRRelease|SharpDX' ">
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'YRRelease|SharpDX' ">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Windows\Release\</OutputPath>
@@ -197,10 +197,9 @@
     <Compile Include="Settings\StringSetting.cs" />
     <Compile Include="LoadingScreenController.cs" />
     <Compile Include="ProgramConstants.cs" />
-    <Compile Include="Statistics\GameParsers\DTAStatisticsParser.cs" />
+    <Compile Include="Statistics\GameParsers\LogFileStatisticsParser.cs" />
     <Compile Include="Statistics\GenericMatchParser.cs" />
     <Compile Include="Statistics\GenericStatisticsManager.cs" />
-    <Compile Include="Statistics\IMatchStatisticsParser.cs" />
     <Compile Include="Statistics\MatchStatistics.cs" />
     <Compile Include="Statistics\PlayerStatistics.cs" />
     <Compile Include="Statistics\StatisticsManager.cs" />
