@@ -702,7 +702,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 }
             }
 
-            // Disable custom random groups if all included sides are unavailable.
+            // Disable custom random groups if all or all except one of included sides are unavailable.
             int c = 0;
             foreach (int[] randomsides in RandomSelectors)
             {
