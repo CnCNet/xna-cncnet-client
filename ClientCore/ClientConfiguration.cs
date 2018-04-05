@@ -565,7 +565,7 @@ namespace ClientCore
 
         public bool DisableComponentOptions
         {
-            get { return clientDefinitionsIni.GetBooleanValue(SETTINGS, "DisableUpdaterOptions", false); }
+            get { return clientDefinitionsIni.GetBooleanValue(SETTINGS, "DisableComponentOptions", false); }
         }
 
         public bool DisplayPlayerCountInTopBar
