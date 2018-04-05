@@ -12,6 +12,7 @@ namespace DTAClient.Online
     public class FileHashCalculator
     {
         FileHashes fh;
+        const string configname = "FHCConfig.ini";
 
         string[] fileNamesToCheck = new string[]
         {
@@ -54,7 +55,14 @@ namespace DTAClient.Online
             "INI\\AIFS.ini",
 #endif
             "INI\\GlobalCode.ini",
+            ProgramConstants.BASE_RESOURCE_PATH + configname,
         };
+
+
+        public FileHashCalculator()
+        {
+            GetFileListFromConfig();
+        }
 
         public void CalculateHashes(List<GameMode> gameModes)
         {
@@ -127,6 +135,16 @@ namespace DTAClient.Online
             Logger.Log("Complete hash: " + Utilities.CalculateSHA1ForString(str));
 
             return Utilities.CalculateSHA1ForString(str);
+        }
+
+        private void GetFileListFromConfig()
+        {
+            IniFile FileNamesConfig = new IniFile(ProgramConstants.GetBaseResourcePath() + configname);
+            List<string> filenames = FileNamesConfig.GetSectionKeys("FilenameList");
+            if (filenames == null || filenames.Count < 1) return;
+            filenames.Add("INI\\GlobalCode.ini");
+            filenames.Add(ProgramConstants.BASE_RESOURCE_PATH + configname);
+            fileNamesToCheck = filenames.ToArray();
         }
     }
 
