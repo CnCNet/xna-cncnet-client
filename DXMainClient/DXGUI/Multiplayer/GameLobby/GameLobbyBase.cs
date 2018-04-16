@@ -526,19 +526,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 ddPlayerColor.SelectedIndexChanged += CopyPlayerDataFromUI;
                 ddPlayerColor.Tag = false;
 
-                var ddPlayerStart = new XNAClientDropDown(WindowManager);
-                ddPlayerStart.Name = "ddPlayerStart" + i;
-                ddPlayerStart.ClientRectangle = new Rectangle(
-                    ddPlayerColor.ClientRectangle.Right + playerOptionHorizontalMargin,
-                    ddPlayerName.ClientRectangle.Y, startWidth, DROP_DOWN_HEIGHT);
-                for (int j = 1; j < 9; j++)
-                    ddPlayerStart.AddItem(j.ToString());
-                ddPlayerStart.AllowDropDown = false;
-                ddPlayerStart.SelectedIndexChanged += CopyPlayerDataFromUI;
-                ddPlayerStart.Visible = false;
-                ddPlayerStart.Enabled = false;
-                ddPlayerStart.Tag = true;
-
                 var ddPlayerTeam = new XNAClientDropDown(WindowManager);
                 ddPlayerTeam.Name = "ddPlayerTeam" + i;
                 ddPlayerTeam.ClientRectangle = new Rectangle(
@@ -552,6 +539,19 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 ddPlayerTeam.AllowDropDown = false;
                 ddPlayerTeam.SelectedIndexChanged += CopyPlayerDataFromUI;
                 ddPlayerTeam.Tag = true;
+
+                var ddPlayerStart = new XNAClientDropDown(WindowManager);
+                ddPlayerStart.Name = "ddPlayerStart" + i;
+                ddPlayerStart.ClientRectangle = new Rectangle(
+                    ddPlayerTeam.ClientRectangle.Right + playerOptionHorizontalMargin,
+                    ddPlayerName.ClientRectangle.Y, startWidth, DROP_DOWN_HEIGHT);
+                for (int j = 1; j < 9; j++)
+                    ddPlayerStart.AddItem(j.ToString());
+                ddPlayerStart.AllowDropDown = false;
+                ddPlayerStart.SelectedIndexChanged += CopyPlayerDataFromUI;
+                ddPlayerStart.Visible = false;
+                ddPlayerStart.Enabled = false;
+                ddPlayerStart.Tag = true;
 
                 ddPlayerNames[i] = ddPlayerName;
                 ddPlayerSides[i] = ddPlayerSide;
