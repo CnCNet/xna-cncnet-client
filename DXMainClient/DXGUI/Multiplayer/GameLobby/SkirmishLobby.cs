@@ -290,7 +290,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             {
                 var aiPlayer = PlayerInfo.FromString(skirmishSettingsIni.GetStringValue("AIPlayers", key, string.Empty));
 
-                CheckLoadedPlayerVariableBounds(aiPlayer);
+                CheckLoadedPlayerVariableBounds(aiPlayer, true);
 
                 if (aiPlayer == null)
                 {
@@ -359,9 +359,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         /// don't exceed allowed bounds.
         /// </summary>
         /// <param name="pInfo">The PlayerInfo.</param>
-        private void CheckLoadedPlayerVariableBounds(PlayerInfo pInfo)
+        private void CheckLoadedPlayerVariableBounds(PlayerInfo pInfo, bool isAIPlayer = false)
         {
             int sidecount = SideCount + RandomSelectorCount;
+            if (isAIPlayer) sidecount--;
 
             if (pInfo.SideId < 0 || pInfo.SideId > sidecount)
             {
