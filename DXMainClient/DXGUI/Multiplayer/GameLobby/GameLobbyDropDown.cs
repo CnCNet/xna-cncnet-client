@@ -1,6 +1,7 @@
 ﻿using System;
 using Rampastring.Tools;
 using Rampastring.XNAUI;
+using Rampastring.XNAUI.XNAControls;
 using ClientGUI;
 
 namespace DTAClient.DXGUI.Multiplayer.GameLobby
@@ -21,15 +22,26 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         private string spawnIniOption = string.Empty;
 
         private int defaultIndex;
-
+        
         protected override void ParseAttributeFromINI(IniFile iniFile, string key, string value)
         {
             switch (key)
             {
                 case "Items":
                     string[] items = value.Split(',');
-                    foreach (string itemValue in items)
-                        AddItem(itemValue);
+                    string[] itemlabels = iniFile.GetStringValue(Name, "ItemLabels", "").Split(',');
+                    for (int i = 0; i < items.Length; i++)
+                    {
+                        XNADropDownItem item = new XNADropDownItem();
+                        if (itemlabels.Length > i && !String.IsNullOrEmpty(itemlabels[i]))
+                        {
+                            item.Text = itemlabels[i];
+                            item.Tag = items[i];
+                        }
+                        else item.Text = items[i];
+                        item.TextColor = UISettings.AltColor;
+                        AddItem(item);
+                    }
                     return;
                 case "DataWriteMode":
                     if (value.ToUpper() == "INDEX")
@@ -77,7 +89,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     break;
                 default:
                 case DropDownDataWriteMode.STRING:
-                    spawnIni.SetStringValue("Settings", spawnIniOption, Items[SelectedIndex].Text);
+                    if (Items[SelectedIndex].Tag != null) spawnIni.SetStringValue("Settings", spawnIniOption, Items[SelectedIndex].Tag.ToString());
+                    else spawnIni.SetStringValue("Settings", spawnIniOption, Items[SelectedIndex].Text);
                     break;
             }
         }
