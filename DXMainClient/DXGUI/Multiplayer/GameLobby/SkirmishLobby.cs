@@ -376,12 +376,12 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 pInfo.ColorId = 0;
             }
 
-            if (pInfo.TeamId < 0 || pInfo.TeamId >= ddPlayerTeams[0].Items.Count)
+            if (pInfo.TeamId < 0 || pInfo.TeamId >= ddPlayerTeams[0].Items.Count || (Map != null && Map.ForceNoTeams))
             {
                 pInfo.TeamId = 0;
             }
 
-            if (pInfo.StartingLocation < 0 || pInfo.StartingLocation > MAX_PLAYER_COUNT)
+            if (pInfo.StartingLocation < 0 || pInfo.StartingLocation > MAX_PLAYER_COUNT || (Map != null && Map.ForceRandomStartLocations))
             {
                 pInfo.StartingLocation = 0;
             }

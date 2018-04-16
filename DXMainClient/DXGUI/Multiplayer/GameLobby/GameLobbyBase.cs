@@ -1286,11 +1286,14 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 ddPlayerColors[pId].AllowDropDown = allowPlayerOptionsChange;
 
                 ddPlayerStarts[pId].SelectedIndex = pInfo.StartingLocation;
-                ddPlayerStarts[pId].AllowDropDown = allowPlayerOptionsChange;
+                //ddPlayerStarts[pId].AllowDropDown = allowPlayerOptionsChange;
 
                 ddPlayerTeams[pId].SelectedIndex = pInfo.TeamId;
                 if (Map != null)
-                    ddPlayerTeams[pId].AllowDropDown = allowPlayerOptionsChange && !Map.IsCoop;
+                {
+                    ddPlayerTeams[pId].AllowDropDown = allowPlayerOptionsChange && !Map.IsCoop && !Map.ForceNoTeams;
+                    ddPlayerStarts[pId].AllowDropDown = allowPlayerOptionsChange && !Map.ForceRandomStartLocations;
+                }
             }
 
             // AI players
@@ -1317,12 +1320,15 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 ddPlayerColors[index].AllowDropDown = allowOptionsChange;
 
                 ddPlayerStarts[index].SelectedIndex = aiInfo.StartingLocation;
-                ddPlayerStarts[index].AllowDropDown = allowOptionsChange;
+                //ddPlayerStarts[index].AllowDropDown = allowOptionsChange;
 
                 ddPlayerTeams[index].SelectedIndex = aiInfo.TeamId;
 
                 if (Map != null)
-                    ddPlayerTeams[index].AllowDropDown = allowOptionsChange && !Map.IsCoop;
+                {
+                    ddPlayerTeams[index].AllowDropDown = allowOptionsChange && !Map.IsCoop && !Map.ForceNoTeams;
+                    ddPlayerStarts[index].AllowDropDown = allowOptionsChange && !Map.ForceRandomStartLocations;
+                }
             }
 
             // Unused player slots
@@ -1481,11 +1487,14 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             foreach (PlayerInfo pInfo in concatPlayerList)
             {
-                if (pInfo.StartingLocation > Map.MaxPlayers)
+                if (pInfo.StartingLocation > Map.MaxPlayers || Map.ForceRandomStartLocations)
                     pInfo.StartingLocation = 0;
+                if (Map.ForceNoTeams)
+                    pInfo.TeamId = 0;
             }
 
             CheckDisallowedSides();
+
 
             if (map.CoopInfo != null)
             {

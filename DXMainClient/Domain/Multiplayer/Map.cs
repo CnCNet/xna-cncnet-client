@@ -95,6 +95,16 @@ namespace DTAClient.Domain.Multiplayer
         public bool MultiplayerOnly { get; private set; }
 
         /// <summary>
+        /// If set, players are forced to random starting locations on this map.
+        /// </summary>
+        public bool ForceRandomStartLocations { get; private set; }
+
+        /// <summary>
+        /// If set, players are forced to different teams on this map.
+        /// </summary>
+        public bool ForceNoTeams { get; private set; }
+
+        /// <summary>
         /// The name of an extra INI file in INI\Map Code\ that should be
         /// embedded into this map's INI code when a game is started.
         /// </summary>
@@ -218,6 +228,11 @@ namespace DTAClient.Domain.Multiplayer
                         CoopInfo.DisallowedPlayerColors.Add(int.Parse(colorIndex));
 
                     CoopInfo.SetHouseInfos(section);
+                }
+                else
+                {
+                    ForceRandomStartLocations = section.GetBooleanValue("ForceRandomStartLocations", false);
+                    ForceNoTeams = section.GetBooleanValue("ForceNoTeams", false);
                 }
 
                 localSize = section.GetStringValue("LocalSize", "0,0,0,0").Split(',');
@@ -348,6 +363,11 @@ namespace DTAClient.Domain.Multiplayer
                         CoopInfo.DisallowedPlayerColors.Add(int.Parse(colorIndex));
 
                     CoopInfo.SetHouseInfos(basicSection);
+                }
+                else
+                {
+                    ForceRandomStartLocations = basicSection.GetBooleanValue("ForceRandomStartLocations", false);
+                    ForceNoTeams = basicSection.GetBooleanValue("ForceNoTeams", false);
                 }
 
                 localSize = iniFile.GetStringValue("Map", "LocalSize", "0,0,0,0").Split(',');
