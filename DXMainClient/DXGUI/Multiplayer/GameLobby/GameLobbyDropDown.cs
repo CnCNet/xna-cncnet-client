@@ -3,6 +3,7 @@ using Rampastring.Tools;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
 using ClientGUI;
+using ClientCore;
 
 namespace DTAClient.DXGUI.Multiplayer.GameLobby
 {
@@ -22,7 +23,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         private string spawnIniOption = string.Empty;
 
         private int defaultIndex;
-        
+
         protected override void ParseAttributeFromINI(IniFile iniFile, string key, string value)
         {
             switch (key)
@@ -48,6 +49,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                         dataWriteMode = DropDownDataWriteMode.INDEX;
                     else if (value.ToUpper() == "BOOLEAN")
                         dataWriteMode = DropDownDataWriteMode.BOOLEAN;
+                    else if (value.ToUpper() == "MAPINI")
+                        dataWriteMode = DropDownDataWriteMode.MAPINI;
                     else
                         dataWriteMode = DropDownDataWriteMode.STRING;
                     return;
@@ -73,6 +76,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         /// <param name="spawnIni">The spawn INI file.</param>
         public void ApplySpawnIniCode(IniFile spawnIni)
         {
+            if (dataWriteMode == DropDownDataWriteMode.MAPINI) return;
             if (String.IsNullOrEmpty(spawnIniOption))
             {
                 Logger.Log("GameLobbyDropDown.WriteSpawnIniCode: " + Name + " has no associated spawn INI option!");
@@ -93,6 +97,24 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     else spawnIni.SetStringValue("Settings", spawnIniOption, Items[SelectedIndex].Text);
                     break;
             }
+
         }
+
+        /// <summary>
+        /// Applies the drop down's associated code to the map INI file.
+        /// </summary>
+        /// <param name="mapIni">The map INI file.</param>
+        public void ApplyMapCode(IniFile mapIni)
+        {
+            if (dataWriteMode != DropDownDataWriteMode.MAPINI) return;
+
+            string customIniPath;
+            if (Items[SelectedIndex].Tag != null) customIniPath = Items[SelectedIndex].Tag.ToString();
+            else customIniPath = Items[SelectedIndex].Text;
+
+            IniFile associatedIni = new IniFile(ProgramConstants.GamePath + customIniPath);
+            IniFile.ConsolidateIniFiles(mapIni, associatedIni);
+        }
+
     }
 }

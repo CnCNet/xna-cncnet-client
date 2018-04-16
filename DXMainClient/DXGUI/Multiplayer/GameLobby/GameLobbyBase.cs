@@ -1121,6 +1121,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             foreach (GameLobbyCheckBox checkBox in CheckBoxes)
                 checkBox.ApplyMapCode(mapIni);
 
+            foreach (GameLobbyDropDown dropDown in DropDowns)
+                dropDown.ApplyMapCode(mapIni);
+
             mapIni.MoveSectionToFirst("MultiplayerDialogSettings"); // Required by YR
 
             // Add "fake" starting locations if needed, makes it possible to have multiple
