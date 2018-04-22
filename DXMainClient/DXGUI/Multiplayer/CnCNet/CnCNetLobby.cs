@@ -1117,7 +1117,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                     return;
                 }
 
-                // Seek for the game in the internal game list based on its channel name;
+                // Seek for the game in the internal game list based on the name of its host;
                 // if found, then refresh that game's information, otherwise add as new game
                 int gameIndex = lbGameList.HostedGames.FindIndex(hg => hg.HostName == e.UserName);
 
@@ -1130,7 +1130,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 {
                     if (UserINISettings.Instance.PlaySoundOnGameHosted &&
                         cncnetGame.InternalName == localGameID.ToLower() &&
-                        !ProgramConstants.IsInGame)
+                        !ProgramConstants.IsInGame && !game.Locked)
                     {
                         SoundPlayer.Play(sndGameCreated);
                     }
