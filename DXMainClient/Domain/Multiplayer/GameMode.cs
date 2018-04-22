@@ -31,6 +31,8 @@ namespace DTAClient.Domain.Multiplayer
 
         public bool MultiplayerOnly { get; private set; }
 
+        public bool HumanPlayersOnly { get; private set; }
+
         private string mapCodeININame;
 
         private string forcedOptionsSection;
@@ -51,6 +53,7 @@ namespace DTAClient.Domain.Multiplayer
             CoopDifficultyLevel = forcedOptionsIni.GetIntValue(Name, "CoopDifficultyLevel", 0);
             UIName = forcedOptionsIni.GetStringValue(Name, "UIName", Name);
             MultiplayerOnly = forcedOptionsIni.GetBooleanValue(Name, "MultiplayerOnly", false);
+            HumanPlayersOnly = forcedOptionsIni.GetBooleanValue(Name, "HumanPlayersOnly", false);
             forcedOptionsSection = forcedOptionsIni.GetStringValue(Name, "ForcedOptions", string.Empty);
             mapCodeININame = forcedOptionsIni.GetStringValue(Name, "MapCodeININame", Name + ".ini");
 
