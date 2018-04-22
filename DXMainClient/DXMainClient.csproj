@@ -301,6 +301,7 @@
     <Compile Include="DXGUI\Multiplayer\GameLobby\GameLobbyDropDown.cs" />
     <Compile Include="DXGUI\Multiplayer\GameLobby\CommandHandlers\IntCommandHandler.cs" />
     <Compile Include="DXGUI\Multiplayer\GameLobby\LANGameLobby.cs" />
+    <Compile Include="DXGUI\Multiplayer\GameLobby\MapCodeHelper.cs" />
     <Compile Include="DXGUI\Multiplayer\GameLobby\MapPreviewBox.cs" />
     <Compile Include="DXGUI\Multiplayer\GameLobby\MultiplayerGameLobby.cs" />
     <Compile Include="DXGUI\Multiplayer\GameLobby\CommandHandlers\NoParamCommandHandler.cs" />

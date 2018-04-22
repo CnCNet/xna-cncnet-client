@@ -4,6 +4,7 @@ using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
 using ClientGUI;
 using ClientCore;
+using DTAClient.Domain.Multiplayer;
 
 namespace DTAClient.DXGUI.Multiplayer.GameLobby
 {
@@ -104,7 +105,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         /// Applies the drop down's associated code to the map INI file.
         /// </summary>
         /// <param name="mapIni">The map INI file.</param>
-        public void ApplyMapCode(IniFile mapIni)
+        /// <param name="gameMode">Currently selected gamemode, if set.</param>
+        public void ApplyMapCode(IniFile mapIni, GameMode gameMode)
         {
             if (dataWriteMode != DropDownDataWriteMode.MAPINI) return;
 
@@ -112,8 +114,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (Items[SelectedIndex].Tag != null) customIniPath = Items[SelectedIndex].Tag.ToString();
             else customIniPath = Items[SelectedIndex].Text;
 
-            IniFile associatedIni = new IniFile(ProgramConstants.GamePath + customIniPath);
-            IniFile.ConsolidateIniFiles(mapIni, associatedIni);
+            MapCodeHelper.ApplyMapCode(mapIni, customIniPath, gameMode);
         }
 
     }

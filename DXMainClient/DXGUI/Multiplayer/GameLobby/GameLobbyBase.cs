@@ -1119,10 +1119,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             IniFile.ConsolidateIniFiles(mapIni, globalCodeIni);
 
             foreach (GameLobbyCheckBox checkBox in CheckBoxes)
-                checkBox.ApplyMapCode(mapIni);
+                checkBox.ApplyMapCode(mapIni, GameMode);
 
             foreach (GameLobbyDropDown dropDown in DropDowns)
-                dropDown.ApplyMapCode(mapIni);
+                dropDown.ApplyMapCode(mapIni, GameMode);
 
             mapIni.MoveSectionToFirst("MultiplayerDialogSettings"); // Required by YR
 

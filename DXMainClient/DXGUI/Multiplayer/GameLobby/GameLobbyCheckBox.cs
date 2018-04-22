@@ -4,6 +4,7 @@ using Rampastring.XNAUI;
 using ClientCore;
 using ClientGUI;
 using System.Collections.Generic;
+using DTAClient.Domain.Multiplayer;
 
 namespace DTAClient.DXGUI.Multiplayer.GameLobby
 {
@@ -105,13 +106,13 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         /// Applies the check-box's associated code to the map INI file.
         /// </summary>
         /// <param name="mapIni">The map INI file.</param>
-        public void ApplyMapCode(IniFile mapIni)
+        /// <param name="gameMode">Currently selected gamemode, if set.</param>
+        public void ApplyMapCode(IniFile mapIni, GameMode gameMode)
         {
             if (Checked == reversed || String.IsNullOrEmpty(customIniPath))
                 return;
 
-            IniFile associatedIni = new IniFile(ProgramConstants.GamePath + customIniPath);
-            IniFile.ConsolidateIniFiles(mapIni, associatedIni);
+            MapCodeHelper.ApplyMapCode(mapIni, customIniPath, gameMode);
         }
 
         /// <summary>
