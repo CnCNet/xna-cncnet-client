@@ -28,6 +28,6 @@
         /// The dropdown value is filename of a mapcode INI file, which will be applied to the map. 
         /// Nothing is written to spawn INI.
         /// </summary>
-        MAPINI
+        MAPCODE
     }
 }
