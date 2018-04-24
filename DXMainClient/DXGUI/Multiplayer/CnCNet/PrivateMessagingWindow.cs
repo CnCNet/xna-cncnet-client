@@ -121,7 +121,9 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                     if (lbItem == lbUserList.SelectedItem)
                     {
                         tbMessageInput.Enabled = true;
-                        lbMessages.AddMessage(joinMessage);
+
+                        if (joinMessage != null)
+                            lbMessages.AddMessage(joinMessage);
                     }
                 }
             }
