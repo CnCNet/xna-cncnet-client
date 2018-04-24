@@ -211,6 +211,8 @@ namespace DTAClient.Domain.Multiplayer
                 SpecialHouseColor = section.GetIntValue("SpecialColor", -1);
                 MultiplayerOnly = section.GetBooleanValue("MultiplayerOnly", false);
                 HumanPlayersOnly = section.GetBooleanValue("HumanPlayersOnly", false);
+                ForceRandomStartLocations = section.GetBooleanValue("ForceRandomStartLocations", false);
+                ForceNoTeams = section.GetBooleanValue("ForceNoTeams", false);
                 ExtraININame = section.GetStringValue("ExtraININame", string.Empty);
                 string bases = section.GetStringValue("Bases", string.Empty);
                 if (!string.IsNullOrEmpty(bases))
@@ -234,11 +236,6 @@ namespace DTAClient.Domain.Multiplayer
                         CoopInfo.DisallowedPlayerColors.Add(int.Parse(colorIndex));
 
                     CoopInfo.SetHouseInfos(section);
-                }
-                else
-                {
-                    ForceRandomStartLocations = section.GetBooleanValue("ForceRandomStartLocations", false);
-                    ForceNoTeams = section.GetBooleanValue("ForceNoTeams", false);
                 }
 
                 localSize = section.GetStringValue("LocalSize", "0,0,0,0").Split(',');
@@ -346,6 +343,8 @@ namespace DTAClient.Domain.Multiplayer
                 NeutralHouseColor = basicSection.GetIntValue("NeutralColor", -1);
                 SpecialHouseColor = basicSection.GetIntValue("SpecialColor", -1);
                 HumanPlayersOnly = basicSection.GetBooleanValue("HumanPlayersOnly", false);
+                ForceRandomStartLocations = basicSection.GetBooleanValue("ForceRandomStartLocations", false);
+                ForceNoTeams = basicSection.GetBooleanValue("ForceNoTeams", false);
                 PreviewPath = Path.ChangeExtension(path.Substring(ProgramConstants.GamePath.Length + 1), ".png");
 
                 string bases = basicSection.GetStringValue("Bases", string.Empty);
@@ -370,11 +369,6 @@ namespace DTAClient.Domain.Multiplayer
                         CoopInfo.DisallowedPlayerColors.Add(int.Parse(colorIndex));
 
                     CoopInfo.SetHouseInfos(basicSection);
-                }
-                else
-                {
-                    ForceRandomStartLocations = basicSection.GetBooleanValue("ForceRandomStartLocations", false);
-                    ForceNoTeams = basicSection.GetBooleanValue("ForceNoTeams", false);
                 }
 
                 localSize = iniFile.GetStringValue("Map", "LocalSize", "0,0,0,0").Split(',');

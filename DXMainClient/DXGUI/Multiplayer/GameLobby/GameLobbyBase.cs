@@ -1292,10 +1292,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 //ddPlayerStarts[pId].AllowDropDown = allowPlayerOptionsChange;
 
                 ddPlayerTeams[pId].SelectedIndex = pInfo.TeamId;
-                if (Map != null)
+                if (Map != null && GameMode != null)
                 {
-                    ddPlayerTeams[pId].AllowDropDown = allowPlayerOptionsChange && !Map.IsCoop && !Map.ForceNoTeams;
-                    ddPlayerStarts[pId].AllowDropDown = allowPlayerOptionsChange && !Map.ForceRandomStartLocations;
+                    ddPlayerTeams[pId].AllowDropDown = allowPlayerOptionsChange && !Map.IsCoop && !Map.ForceNoTeams && !GameMode.ForceNoTeams;
+                    ddPlayerStarts[pId].AllowDropDown = allowPlayerOptionsChange && (Map.IsCoop || !Map.ForceRandomStartLocations && !GameMode.ForceRandomStartLocations);
                 }
             }
 
@@ -1327,10 +1327,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
                 ddPlayerTeams[index].SelectedIndex = aiInfo.TeamId;
 
-                if (Map != null)
+                if (Map != null && GameMode != null)
                 {
-                    ddPlayerTeams[index].AllowDropDown = allowOptionsChange && !Map.IsCoop && !Map.ForceNoTeams;
-                    ddPlayerStarts[index].AllowDropDown = allowOptionsChange && !Map.ForceRandomStartLocations;
+                    ddPlayerTeams[index].AllowDropDown = allowOptionsChange && !Map.IsCoop && !Map.ForceNoTeams && !GameMode.ForceNoTeams;
+                    ddPlayerStarts[index].AllowDropDown = allowOptionsChange && (Map.IsCoop || !Map.ForceRandomStartLocations && !GameMode.ForceRandomStartLocations);
                 }
             }
 
@@ -1504,9 +1504,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             foreach (PlayerInfo pInfo in concatPlayerList)
             {
-                if (pInfo.StartingLocation > Map.MaxPlayers || Map.ForceRandomStartLocations)
+                if (pInfo.StartingLocation > Map.MaxPlayers || (!Map.IsCoop && (Map.ForceRandomStartLocations || GameMode.ForceRandomStartLocations)))
                     pInfo.StartingLocation = 0;
-                if (Map.ForceNoTeams)
+                if (!Map.IsCoop && (Map.ForceNoTeams || GameMode.ForceNoTeams))
                     pInfo.TeamId = 0;
             }
 

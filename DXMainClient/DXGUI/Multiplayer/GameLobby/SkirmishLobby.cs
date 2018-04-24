@@ -282,7 +282,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             if (keys == null)
             {
-                keys = new List<string>(); // No point skipping parsing all settings if only AI info is missing.
+                keys = new List<string>(); // No point skip parsing all settings if only AI info is missing.
                 //Logger.Log("AI player information doesn't exist in skirmish settings!");
                 //InitDefaultSettings();
                 //return;
@@ -378,12 +378,12 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 pInfo.ColorId = 0;
             }
 
-            if (pInfo.TeamId < 0 || pInfo.TeamId >= ddPlayerTeams[0].Items.Count || (Map != null && Map.ForceNoTeams))
+            if (pInfo.TeamId < 0 || pInfo.TeamId >= ddPlayerTeams[0].Items.Count || !Map.IsCoop && (Map.ForceNoTeams || GameMode.ForceNoTeams))
             {
                 pInfo.TeamId = 0;
             }
 
-            if (pInfo.StartingLocation < 0 || pInfo.StartingLocation > MAX_PLAYER_COUNT || (Map != null && Map.ForceRandomStartLocations))
+            if (pInfo.StartingLocation < 0 || pInfo.StartingLocation > MAX_PLAYER_COUNT || !Map.IsCoop && (Map.ForceRandomStartLocations || GameMode.ForceRandomStartLocations))
             {
                 pInfo.StartingLocation = 0;
             }
