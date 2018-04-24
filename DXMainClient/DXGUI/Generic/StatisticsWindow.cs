@@ -130,6 +130,13 @@ namespace DTAClient.DXGUI.Generic
             btnReturnToMenu.Text = "Return to Main Menu";
             btnReturnToMenu.LeftClick += BtnReturnToMenu_LeftClick;
 
+            var btnClearStatistics = new XNAClientButton(WindowManager);
+            btnClearStatistics.Name = "btnClearStatistics";
+            btnClearStatistics.ClientRectangle = new Rectangle(12, 486, 160, 23);
+            btnClearStatistics.Text = "Clear Statistics";
+            btnClearStatistics.LeftClick += BtnClearStatistics_LeftClick;
+            btnClearStatistics.Visible = false;
+
             chkIncludeSpectatedGames = new XNAClientCheckBox(WindowManager);
 
             AddChild(chkIncludeSpectatedGames);
@@ -377,6 +384,7 @@ namespace DTAClient.DXGUI.Generic
             AddChild(lblGameMode);
             AddChild(cmbGameModeFilter);
             AddChild(btnReturnToMenu);
+            AddChild(btnClearStatistics);
 
             base.Initialize();
 
@@ -996,13 +1004,48 @@ namespace DTAClient.DXGUI.Generic
             return highestIndex;
         }
 
-#endregion
+        private void ClearAllStatistics()
+        {
+            StatisticsManager.Instance.ClearDatabase();
+            ReadStatistics();
+            ListGameModes();
+            ListGames();
+        }
+
+        #endregion
 
         private void BtnReturnToMenu_LeftClick(object sender, EventArgs e)
         {
             // To hide the control, just set Enabled=false
             // and MainMenuDarkeningPanel will deal with the rest
             Enabled = false;
+        }
+
+        private void BtnClearStatistics_LeftClick(object sender, EventArgs e)
+        {
+            var msgBox = new XNAMessageBox(WindowManager, "Clear all statistics",
+                "All statistics data will be cleared from the database." +
+                Environment.NewLine + Environment.NewLine +
+                "Are you sure you want to continue?", DXMessageBoxButtons.YesNo);
+            msgBox.Show();
+            msgBox.NoClicked += ClearStatisticsConfirmation_NoClicked;
+            msgBox.YesClicked += ClearStatisticsConfirmation_YesClicked;
+        }
+
+        private void ClearStatisticsConfirmation_YesClicked(object sender, EventArgs e)
+        {
+            var msgBox = (XNAMessageBox)sender;
+            msgBox.YesClicked -= ClearStatisticsConfirmation_YesClicked;
+            msgBox.NoClicked -= ClearStatisticsConfirmation_NoClicked;
+
+            ClearAllStatistics();
+        }
+
+        private void ClearStatisticsConfirmation_NoClicked(object sender, EventArgs e)
+        {
+            var msgBox = (XNAMessageBox)sender;
+            msgBox.YesClicked -= ClearStatisticsConfirmation_YesClicked;
+            msgBox.NoClicked -= ClearStatisticsConfirmation_NoClicked;
         }
     }
 }

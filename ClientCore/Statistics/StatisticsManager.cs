@@ -267,6 +267,12 @@ namespace ClientCore.Statistics
                 SaveDatabase();
         }
 
+        public void ClearDatabase()
+        {
+            Statistics.Clear();
+            CreateDummyFile();
+        }
+
         public void AddMatchAndSaveDatabase(bool addMatch, MatchStatistics ms)
         {
             // Skip adding stats if the game only had one player, make exception for co-op since it doesn't recognize pre-placed houses as players.
@@ -731,5 +737,6 @@ namespace ClientCore.Statistics
         {
             return Statistics.Find(m => m.GameID == gameId);
         }
+
     }
 }
