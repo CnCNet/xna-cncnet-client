@@ -1364,9 +1364,12 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 ddPlayerNames[Players.Count + AIPlayers.Count].AllowDropDown = true;
 
             MapPreviewBox.UpdateStartingLocationTexts();
+            UpdateMapPreviewContextMenuStatus();
 
             PlayerUpdatingInProgress = false;
         }
+
+        internal abstract void UpdateMapPreviewContextMenuStatus();
 
         /// <summary>
         /// Override this in a derived class to kick players.

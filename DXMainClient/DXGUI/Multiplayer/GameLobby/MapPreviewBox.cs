@@ -60,6 +60,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         /// set have this set to true.
         /// </summary>
         public bool EnableContextMenu { get; set; }
+        public bool EnableStartLocationSelection { get; set; }
 
         private string[] teamIds = new string[] { String.Empty, "[A] ", "[B] ", "[C] ", "[D] " };
 
@@ -93,6 +94,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         public override void Initialize()
         {
+            EnableStartLocationSelection = true;
+            
             disposeTextures = !UserINISettings.Instance.PreloadMapPreviews;
 
             startingLocationIndicators = new PlayerLocationIndicator[MAX_STARTING_LOCATIONS];
@@ -193,6 +196,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         /// </summary>
         private void Indicator_LeftClick(object sender, EventArgs e)
         {
+            if (!EnableStartLocationSelection) return;
+
             var indicator = (PlayerLocationIndicator)sender;
 
             SoundPlayer.Play(sndClickSound);

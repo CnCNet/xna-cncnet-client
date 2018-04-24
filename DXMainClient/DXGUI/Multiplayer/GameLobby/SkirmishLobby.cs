@@ -37,7 +37,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             btnLeaveGame.Text = "Main Menu";
 
-            MapPreviewBox.EnableContextMenu = true;
+            //MapPreviewBox.EnableContextMenu = true;
 
             ddPlayerSides[0].AddItem("Spectator", AssetLoader.LoadTexture("spectatoricon.png"));
 
@@ -401,6 +401,12 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             AIPlayers.Add(aiPlayer);
 
             LoadDefaultMap();
+        }
+
+        internal override void UpdateMapPreviewContextMenuStatus()
+        {
+            MapPreviewBox.EnableContextMenu = !(Map.ForceRandomStartLocations || GameMode.ForceRandomStartLocations);
+            MapPreviewBox.EnableStartLocationSelection = MapPreviewBox.EnableContextMenu;
         }
     }
 }

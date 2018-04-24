@@ -1030,4 +1030,5 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         public string Message { get; private set; }
     }
+
 }
