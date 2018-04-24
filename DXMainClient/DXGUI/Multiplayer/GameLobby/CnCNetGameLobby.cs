@@ -1,4 +1,5 @@
 ﻿using ClientCore;
+using ClientCore.CnCNet5;
 using DTAClient.Domain.Multiplayer;
 using DTAClient.Domain.Multiplayer.CnCNet;
 using DTAClient.DXGUI.Generic;
@@ -35,12 +36,13 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         public CnCNetGameLobby(WindowManager windowManager, string iniName, 
             TopBar topBar, List<GameMode> GameModes, CnCNetManager connectionManager,
-            TunnelHandler tunnelHandler) : 
+            TunnelHandler tunnelHandler, GameCollection gameCollection) : 
             base(windowManager, iniName, topBar, GameModes)
         {
             this.connectionManager = connectionManager;
             localGame = ClientConfiguration.Instance.LocalGame;
             this.tunnelHandler = tunnelHandler;
+            this.gameCollection = gameCollection;
 
             ctcpCommandHandlers = new CommandHandlerBase[]
             {
@@ -83,6 +85,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         private Channel channel;
         private CnCNetManager connectionManager;
         private string localGame;
+
+        private GameCollection gameCollection;
 
         private string hostName;
 
@@ -1498,7 +1502,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private void BroadcastGame()
         {
-            Channel broadcastChannel = connectionManager.FindChannel("#cncnet-" + localGame.ToLower() + "-games");
+            Channel broadcastChannel = connectionManager.FindChannel(gameCollection.GetGameBroadcastingChannelNameFromIdentifier(localGame));
 
             if (broadcastChannel == null)
                 return;
