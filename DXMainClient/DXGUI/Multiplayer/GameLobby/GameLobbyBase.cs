@@ -610,20 +610,22 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             List<string> keys = GameOptionsIni.GetSectionKeys("RandomSelectors");
             if (keys == null || keys.Count < 1) return;
-            foreach (string randomselector in keys)
+            foreach (string randomselector in keys.Distinct())
             {
-                int[] randomsides = null;
+                List<int> randomsides = new List<int>();
                 try
                 {
-                    randomsides = Conversions.IntArrayFromStringArray(GameOptionsIni.GetStringValue("RandomSelectors", randomselector, String.Empty).Split(','));
+                    string[] tmp = GameOptionsIni.GetStringValue("RandomSelectors", randomselector, String.Empty).Split(',');
+                    randomsides = Conversions.IntArrayFromStringArray(tmp).Distinct().ToList();
+                    randomsides.RemoveAll(x => x >= _sideCount);
                 }
                 catch (Exception)
                 {
                 }
-                if (randomsides != null)
+                if (randomsides.Count > 1)
                 {
                     selectorNames.Add(randomselector);
-                    selectorSides.Add(randomsides);
+                    selectorSides.Add(randomsides.ToArray());
                 }
             }
         }
