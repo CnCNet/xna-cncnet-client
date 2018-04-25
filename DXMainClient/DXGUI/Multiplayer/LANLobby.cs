@@ -622,7 +622,7 @@ namespace DTAClient.DXGUI.Multiplayer
 
         private void BtnNewGame_LeftClick(object sender, EventArgs e)
         {
-            if (!ClientConfiguration.Instance.DisableMultiplayerSaveLoad) gameCreationWindow.Open();
+            if (!ClientConfiguration.Instance.DisableMultiplayerGameLoading) gameCreationWindow.Open();
             else GameCreationWindow_NewGame(sender, e);
         }
 

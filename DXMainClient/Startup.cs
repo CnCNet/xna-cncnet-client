@@ -66,7 +66,7 @@ namespace DTAClient
                 }
             }
 
-            if (ClientConfiguration.Instance.CreateSaveGameDirectory)
+            if (ClientConfiguration.Instance.CreateSavedGamesDirectory)
             {
                 if (!Directory.Exists(MainClientConstants.gamepath + "Saved Games"))
                 {

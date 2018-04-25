@@ -548,14 +548,14 @@ namespace ClientCore
             get { return clientDefinitionsIni.GetBooleanValue(SETTINGS, "SaveSkirmishGameOptions", false); }
         }
 
-        public bool CreateSaveGameDirectory
+        public bool CreateSavedGamesDirectory
         {
-            get { return clientDefinitionsIni.GetBooleanValue(SETTINGS, "CreateSaveGameDirectory", false); }
+            get { return clientDefinitionsIni.GetBooleanValue(SETTINGS, "CreateSavedGamesDirectory", false); }
         }
 
-        public bool DisableMultiplayerSaveLoad
+        public bool DisableMultiplayerGameLoading
         {
-            get { return clientDefinitionsIni.GetBooleanValue(SETTINGS, "DisableMultiplayerSaveLoad", false); }
+            get { return clientDefinitionsIni.GetBooleanValue(SETTINGS, "DisableMultiplayerGameLoading", false); }
         }
 
         public bool DisableUpdaterOptions
