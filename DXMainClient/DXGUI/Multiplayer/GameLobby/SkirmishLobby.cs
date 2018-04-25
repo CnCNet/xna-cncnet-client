@@ -403,7 +403,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             LoadDefaultMap();
         }
 
-        internal override void UpdateMapPreviewContextMenuStatus()
+        internal override void UpdateMapPreviewBoxEnabledStatus()
         {
             MapPreviewBox.EnableContextMenu = !(Map.ForceRandomStartLocations || GameMode.ForceRandomStartLocations);
             MapPreviewBox.EnableStartLocationSelection = MapPreviewBox.EnableContextMenu;

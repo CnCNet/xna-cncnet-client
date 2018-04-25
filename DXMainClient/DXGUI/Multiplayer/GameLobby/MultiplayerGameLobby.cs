@@ -401,7 +401,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             IsHost = isHost;
             Locked = false;
 
-            UpdateMapPreviewContextMenuStatus();
+            UpdateMapPreviewBoxEnabledStatus();
             //MapPreviewBox.EnableContextMenu = IsHost;
 
             btnLaunchGame.Text = IsHost ? "Launch Game" : "I'm Ready";
@@ -835,11 +835,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         public abstract string GetSwitchName();
 
-        internal override void UpdateMapPreviewContextMenuStatus()
+        internal override void UpdateMapPreviewBoxEnabledStatus()
         {
-            bool disablestartlocs = (Map.ForceRandomStartLocations || GameMode.ForceRandomStartLocations);
             if (Map != null && GameMode != null)
             {
+                bool disablestartlocs = (Map.ForceRandomStartLocations || GameMode.ForceRandomStartLocations);
                 MapPreviewBox.EnableContextMenu = disablestartlocs ? false : IsHost;
                 MapPreviewBox.EnableStartLocationSelection = !disablestartlocs;
             }
