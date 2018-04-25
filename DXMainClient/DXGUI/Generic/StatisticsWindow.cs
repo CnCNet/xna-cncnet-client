@@ -106,6 +106,7 @@ namespace DTAClient.DXGUI.Generic
 
             cmbGameClassFilter = new XNAClientDropDown(WindowManager);
             cmbGameClassFilter.ClientRectangle = new Rectangle(585, 11, 105, 21);
+            cmbGameClassFilter.Name = "cmbGameClassFilter";
             cmbGameClassFilter.AddItem("All games");
             cmbGameClassFilter.AddItem("Online games");
             cmbGameClassFilter.AddItem("Online PvP");
@@ -121,6 +122,7 @@ namespace DTAClient.DXGUI.Generic
             lblGameMode.ClientRectangle = new Rectangle(294, 12, 0, 0);
 
             cmbGameModeFilter = new XNAClientDropDown(WindowManager);
+            cmbGameModeFilter.Name = "cmbGameModeFilter";
             cmbGameModeFilter.ClientRectangle = new Rectangle(381, 11, 114, 21);
             cmbGameModeFilter.SelectedIndexChanged += CmbGameModeFilter_SelectedIndexChanged;
 
@@ -140,6 +142,7 @@ namespace DTAClient.DXGUI.Generic
             chkIncludeSpectatedGames = new XNAClientCheckBox(WindowManager);
 
             AddChild(chkIncludeSpectatedGames);
+            chkIncludeSpectatedGames.Name = "chkIncludeSpectatedGames";
             chkIncludeSpectatedGames.Text = "Include spectated games";
             chkIncludeSpectatedGames.Checked = true;
             chkIncludeSpectatedGames.ClientRectangle = new Rectangle(
@@ -164,6 +167,7 @@ namespace DTAClient.DXGUI.Generic
             lblMatches.ClientRectangle = new Rectangle(4, 2, 0, 0);
 
             lbGameList = new XNAMultiColumnListBox(WindowManager);
+            lbGameList.Name = "lbGameList";
             lbGameList.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 128), 1, 1);
             lbGameList.DrawMode = PanelBackgroundImageDrawMode.STRETCHED;
             lbGameList.AddColumn("DATE / TIME", 130);
@@ -177,6 +181,7 @@ namespace DTAClient.DXGUI.Generic
             lbGameList.AllowKeyboardInput = true;
 
             lbGameStatistics = new XNAMultiColumnListBox(WindowManager);
+            lbGameStatistics.Name = "lbGameStatistics";
             lbGameStatistics.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 128), 1, 1);
             lbGameStatistics.DrawMode = PanelBackgroundImageDrawMode.STRETCHED;
             lbGameStatistics.AddColumn("NAME", 130);
