@@ -325,6 +325,7 @@ namespace DTAClient.Domain.Multiplayer
                 NeutralHouseColor = basicSection.GetIntValue("NeutralColor", -1);
                 SpecialHouseColor = basicSection.GetIntValue("SpecialColor", -1);
                 PreviewPath = Path.ChangeExtension(path.Substring(ProgramConstants.GamePath.Length + 1), ".png");
+                MultiplayerOnly = basicSection.GetBooleanValue("ClientMultiplayerOnly", false);
 
                 string bases = basicSection.GetStringValue("Bases", string.Empty);
                 if (!string.IsNullOrEmpty(bases))
