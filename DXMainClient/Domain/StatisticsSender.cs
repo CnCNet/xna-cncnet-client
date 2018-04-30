@@ -53,30 +53,32 @@ namespace DTAClient.Domain
 
         public void SendUpdate()
         {
-            if (myGameInfo == null)
-                return;
-            try
-            {
-                wb.Navigate(myGameInfo.UpdateURL);
-            }
-            catch (Exception ex)
-            {
-                Logger.Log("Error sending statistics: " + ex.Message);
-            }
+            //if (myGameInfo == null)
+            //    return;
+
+            //try
+            //{
+            //    wb.Navigate(myGameInfo.UpdateURL);
+            //}
+            //catch (Exception ex)
+            //{
+            //    Logger.Log("Error sending statistics: " + ex.Message);
+            //}
         }
 
         public void SendCnCNet()
         {
-            if (myGameInfo == null)
-                return;
-            try
-            {
-                wb.Navigate(myGameInfo.CnCNetURL);
-            }
-            catch (Exception ex)
-            {
-                Logger.Log("Error sending statistics: " + ex.Message);
-            }
+            //if (myGameInfo == null)
+            //    return;
+
+            //try
+            //{
+            //    wb.Navigate(myGameInfo.CnCNetURL);
+            //}
+            //catch (Exception ex)
+            //{
+            //    Logger.Log("Error sending statistics: " + ex.Message);
+            //}
         }
 
         class GameURLInfo
