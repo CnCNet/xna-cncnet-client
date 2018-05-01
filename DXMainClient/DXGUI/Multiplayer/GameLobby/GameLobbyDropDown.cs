@@ -77,7 +77,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         /// <param name="spawnIni">The spawn INI file.</param>
         public void ApplySpawnIniCode(IniFile spawnIni)
         {
-            if (dataWriteMode == DropDownDataWriteMode.MAPCODE || SelectedIndex < 0 || SelectedIndex >= Items.Count) return;
+            if (dataWriteMode == DropDownDataWriteMode.MAPCODE || SelectedIndex < 0 || SelectedIndex >= Items.Count)
+                return;
+
             if (String.IsNullOrEmpty(spawnIniOption))
             {
                 Logger.Log("GameLobbyDropDown.WriteSpawnIniCode: " + Name + " has no associated spawn INI option!");
@@ -94,8 +96,14 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     break;
                 default:
                 case DropDownDataWriteMode.STRING:
-                    if (Items[SelectedIndex].Tag != null) spawnIni.SetStringValue("Settings", spawnIniOption, Items[SelectedIndex].Tag.ToString());
-                    else spawnIni.SetStringValue("Settings", spawnIniOption, Items[SelectedIndex].Text);
+                    if (Items[SelectedIndex].Tag != null)
+                    {
+                        spawnIni.SetStringValue("Settings", spawnIniOption, Items[SelectedIndex].Tag.ToString());
+                    }
+                    else
+                    {
+                        spawnIni.SetStringValue("Settings", spawnIniOption, Items[SelectedIndex].Text);
+                    }
                     break;
             }
 

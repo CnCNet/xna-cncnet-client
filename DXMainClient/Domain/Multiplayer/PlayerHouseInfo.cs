@@ -22,7 +22,8 @@ namespace DTAClient.Domain.Multiplayer
         /// <param name="sideCount">The number of sides in the game.</param>
         /// <param name="random">Random number generator.</param>
         /// <param name="disallowedSideArray">A bool array that determines which side indexes are disallowed by game options.</param>
-        public void RandomizeSide(PlayerInfo pInfo, Map map, int sideCount, Random random, bool[] disallowedSideArray, List<int[]> randomSelectors, int randomCount)
+        public void RandomizeSide(PlayerInfo pInfo, Map map, int sideCount, Random random,
+            bool[] disallowedSideArray, List<int[]> randomSelectors, int randomCount)
         {
             if (pInfo.SideId == 0 || pInfo.SideId == sideCount + randomCount)
             {
@@ -45,9 +46,8 @@ namespace DTAClient.Domain.Multiplayer
             }
             else
             {
-
                 // Use custom random selector.
-                if (pInfo.SideId > 0 && pInfo.SideId < randomCount)
+                if (pInfo.SideId < randomCount)
                 {
                     int[] randomsides = randomSelectors[pInfo.SideId - 1];
                     int count = randomsides.Length;

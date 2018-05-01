@@ -109,11 +109,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         protected int UniqueGameID { get; set; }
 
         private int _sideCount;
-        protected int SideCount { get { return _sideCount; } }
+        protected int SideCount => _sideCount;
 
-        private int _randomselectorcount = 1;
-
-        protected int RandomSelectorCount { get { return _randomselectorcount; } }
+        private int _randomSelectorCount = 1;
+        protected int RandomSelectorCount => _randomSelectorCount;
 
         protected List<int[]> RandomSelectors = new List<int[]>();
 
@@ -480,8 +479,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             List<string> selectorNames = new List<string>();
             GetRandomSelectors(selectorNames, RandomSelectors);
-            _randomselectorcount += RandomSelectors.Count;
-            MapPreviewBox.RandomSelectorCount = _randomselectorcount;
+            _randomSelectorCount = RandomSelectors.Count + 1;
+            MapPreviewBox.RandomSelectorCount = _randomSelectorCount;
 
             string randomColor = GameOptionsIni.GetStringValue("General", "RandomColor", "255,255,255");
 
@@ -606,26 +605,33 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             CheckDisallowedSides();
         }
 
+        /// <summary>
+        /// Loads random side selectors from GameOptions.ini
+        /// </summary>
+        /// <param name="selectorNames">TODO comment</param>
+        /// <param name="selectorSides">TODO comment</param>
         private void GetRandomSelectors(List<string> selectorNames, List<int[]> selectorSides)
         {
             List<string> keys = GameOptionsIni.GetSectionKeys("RandomSelectors");
-            if (keys == null || keys.Count < 1) return;
-            foreach (string randomselector in keys.Distinct())
+
+            if (keys == null)
+                return;
+
+            foreach (string randomSelector in keys)
             {
-                List<int> randomsides = new List<int>();
+                List<int> randomSides = new List<int>();
                 try
                 {
-                    string[] tmp = GameOptionsIni.GetStringValue("RandomSelectors", randomselector, String.Empty).Split(',');
-                    randomsides = Conversions.IntArrayFromStringArray(tmp).Distinct().ToList();
-                    randomsides.RemoveAll(x => (x >= _sideCount || x < 0));
+                    string[] tmp = GameOptionsIni.GetStringValue("RandomSelectors", randomSelector, string.Empty).Split(',');
+                    randomSides = Array.ConvertAll<string, int>(tmp, int.Parse).Distinct().ToList();
+                    randomSides.RemoveAll(x => (x >= _sideCount || x < 0));
                 }
-                catch (Exception)
+                catch (FormatException) { }
+
+                if (randomSides.Count > 1)
                 {
-                }
-                if (randomsides.Count > 1)
-                {
-                    selectorNames.Add(randomselector);
-                    selectorSides.Add(randomsides.ToArray());
+                    selectorNames.Add(randomSelector);
+                    selectorSides.Add(randomSides.ToArray());
                 }
             }
         }
@@ -1369,7 +1375,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             PlayerUpdatingInProgress = false;
         }
 
-        internal abstract void UpdateMapPreviewBoxEnabledStatus();
+        /// <summary>
+        /// Updates the enabled status of starting location selectors
+        /// in the map preview box.
+        /// </summary>
+        protected abstract void UpdateMapPreviewBoxEnabledStatus();
 
         /// <summary>
         /// Override this in a derived class to kick players.

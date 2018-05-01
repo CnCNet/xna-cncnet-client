@@ -835,7 +835,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         public abstract string GetSwitchName();
 
-        internal override void UpdateMapPreviewBoxEnabledStatus()
+        protected override void UpdateMapPreviewBoxEnabledStatus()
         {
             if (Map != null && GameMode != null)
             {

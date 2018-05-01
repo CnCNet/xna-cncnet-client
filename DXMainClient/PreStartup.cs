@@ -159,7 +159,8 @@ namespace DTAClient
             {
                 string progfiles = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
                 string progfilesx86 = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86);
-                if (Environment.CurrentDirectory.Contains(progfiles) || Environment.CurrentDirectory.Contains(progfilesx86)) return false;
+                if (Environment.CurrentDirectory.Contains(progfiles) || Environment.CurrentDirectory.Contains(progfilesx86))
+                    return false;
             }
 
             var isInRoleWithAccess = false;

@@ -189,6 +189,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             return "Skirmish Lobby";
         }
 
+        /// <summary>
+        /// Saves skirmish settings to an INI file on the file system.
+        /// </summary>
         private void SaveSettings()
         {
             try
@@ -229,6 +232,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             }
         }
 
+        /// <summary>
+        /// Loads skirmish settings from an INI file on the file system.
+        /// </summary>
         private void LoadSettings()
         {
             if (!File.Exists(ProgramConstants.GamePath + SETTINGS_PATH))
@@ -311,48 +317,57 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             {
                 foreach (GameLobbyDropDown dd in DropDowns)
                 {
+                    // Maybe we should build an union of the game mode and map
+                    // forced options, we'd have less repetitive code that way
+
                     if (GameMode != null)
                     {
-                        var matchesgm = GameMode.ForcedDropDownValues.Where(p => p.Key.Equals(dd.Name));
-                        if (matchesgm.Count() > 0)
+                        int gameModeMatchIndex = GameMode.ForcedDropDownValues.FindIndex(p => p.Key.Equals(dd.Name));
+                        if (gameModeMatchIndex > -1)
                         {
                             Logger.Log("Dropdown '" + dd.Name + "' has forced value in gamemode - saved settings ignored.");
                             continue;
                         }
                     }
+
                     if (Map != null)
                     {
-                        var matchesmp = Map.ForcedDropDownValues.Where(p => p.Key.Equals(dd.Name));
-                        if (matchesmp.Count() > 0)
+                        int gameModeMatchIndex = Map.ForcedDropDownValues.FindIndex(p => p.Key.Equals(dd.Name));
+                        if (gameModeMatchIndex > -1)
                         {
                             Logger.Log("Dropdown '" + dd.Name + "' has forced value in map - saved settings ignored.");
                             continue;
                         }
                     }
+
                     dd.UserDefinedIndex = skirmishSettingsIni.GetIntValue("GameOptions", dd.Name, dd.UserDefinedIndex);
-                    if (dd.Items.Count - 1 >= dd.UserDefinedIndex && dd.UserDefinedIndex > -1) dd.SelectedIndex = dd.UserDefinedIndex;
+
+                    if (dd.UserDefinedIndex > -1 && dd.UserDefinedIndex < dd.Items.Count)
+                        dd.SelectedIndex = dd.UserDefinedIndex;
                 }
 
                 foreach (GameLobbyCheckBox cb in CheckBoxes)
                 {
                     if (GameMode != null)
                     {
-                        var matchesgm = GameMode.ForcedCheckBoxValues.Where(p => p.Key.Equals(cb.Name));
-                        if (matchesgm.Count() > 0)
+                        int gameModeMatchIndex = GameMode.ForcedCheckBoxValues.FindIndex(p => p.Key.Equals(cb.Name));
+                        if (gameModeMatchIndex > -1)
                         {
                             Logger.Log("Checkbox '" + cb.Name + "' has forced value in gamemode - saved settings ignored.");
                             continue;
                         }
                     }
+
                     if (Map != null)
                     {
-                        var matchesmp = Map.ForcedCheckBoxValues.Where(p => p.Key.Equals(cb.Name));
-                        if (matchesmp.Count() > 0)
+                        int gameModeMatchIndex = Map.ForcedCheckBoxValues.FindIndex(p => p.Key.Equals(cb.Name));
+                        if (gameModeMatchIndex > -1)
                         {
                             Logger.Log("Checkbox '" + cb.Name + "' has forced value in map - saved settings ignored.");
                             continue;
                         }
                     }
+
                     cb.Checked = skirmishSettingsIni.GetBooleanValue("GameOptions", cb.Name, cb.Checked);
                 }
             }
@@ -365,10 +380,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         /// <param name="pInfo">The PlayerInfo.</param>
         private void CheckLoadedPlayerVariableBounds(PlayerInfo pInfo, bool isAIPlayer = false)
         {
-            int sidecount = SideCount + RandomSelectorCount;
-            if (isAIPlayer) sidecount--;
+            int sideCount = SideCount + RandomSelectorCount;
+            if (isAIPlayer) sideCount--;
 
-            if (pInfo.SideId < 0 || pInfo.SideId > sidecount)
+            if (pInfo.SideId < 0 || pInfo.SideId > sideCount)
             {
                 pInfo.SideId = 0;
             }
@@ -378,12 +393,14 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 pInfo.ColorId = 0;
             }
 
-            if (pInfo.TeamId < 0 || pInfo.TeamId >= ddPlayerTeams[0].Items.Count || !Map.IsCoop && (Map.ForceNoTeams || GameMode.ForceNoTeams))
+            if (pInfo.TeamId < 0 || pInfo.TeamId >= ddPlayerTeams[0].Items.Count || 
+                !Map.IsCoop && (Map.ForceNoTeams || GameMode.ForceNoTeams))
             {
                 pInfo.TeamId = 0;
             }
 
-            if (pInfo.StartingLocation < 0 || pInfo.StartingLocation > MAX_PLAYER_COUNT || !Map.IsCoop && (Map.ForceRandomStartLocations || GameMode.ForceRandomStartLocations))
+            if (pInfo.StartingLocation < 0 || pInfo.StartingLocation > MAX_PLAYER_COUNT || 
+                !Map.IsCoop && (Map.ForceRandomStartLocations || GameMode.ForceRandomStartLocations))
             {
                 pInfo.StartingLocation = 0;
             }
@@ -403,7 +420,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             LoadDefaultMap();
         }
 
-        internal override void UpdateMapPreviewBoxEnabledStatus()
+        protected override void UpdateMapPreviewBoxEnabledStatus()
         {
             MapPreviewBox.EnableContextMenu = !(Map.ForceRandomStartLocations || GameMode.ForceRandomStartLocations);
             MapPreviewBox.EnableStartLocationSelection = MapPreviewBox.EnableContextMenu;

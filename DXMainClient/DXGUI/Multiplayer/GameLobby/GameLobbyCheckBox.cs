@@ -24,17 +24,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         /// </summary>
         public bool UserDefinedValue { get; set; }
 
-        private int _disallowedSideIndex = -1;
-
         /// <summary>
         /// The side index that this check box disallows when checked.
         /// Defaults to -1, which means none.
         /// </summary>
-        public int DisallowedSideIndex
-        {
-            get { return _disallowedSideIndex; }
-            set { _disallowedSideIndex = value; }
-        }
+        public int DisallowedSideIndex { get; set; } = -1;
 
         private string spawnIniOption;
 

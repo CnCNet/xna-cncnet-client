@@ -683,7 +683,6 @@ namespace DTAClient.DXGUI.Generic
         private void BtnMapEditor_LeftClick(object sender, EventArgs e)
         {
             LaunchMapEditor();
-            //Process.Start(ProgramConstants.GamePath + ClientConfiguration.Instance.MapEditorExePath);
         }
 
         private void BtnStatistics_LeftClick(object sender, EventArgs e)
@@ -862,7 +861,7 @@ namespace DTAClient.DXGUI.Generic
             }
         }
 
-        internal static void LaunchMapEditor()
+        private void LaunchMapEditor()
         {
             OSVersion osVersion = ClientConfiguration.Instance.GetOperatingSystemVersion();
             Process mapEditorProcess = new Process();
