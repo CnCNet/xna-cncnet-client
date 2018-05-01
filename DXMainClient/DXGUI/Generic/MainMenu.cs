@@ -242,12 +242,9 @@ namespace DTAClient.DXGUI.Generic
                 ClientRectangle.Width, ClientRectangle.Height);
             innerPanel.ClientRectangle = new Rectangle(0, 0, WindowManager.RenderResolutionX, WindowManager.RenderResolutionY);
 
-            if (!ClientConfiguration.Instance.DisplayPlayerCountInTopBar)
-            {
-                CnCNetPlayerCountTask.CnCNetGameCountUpdated += CnCNetInfoController_CnCNetGameCountUpdated;
-                cncnetPlayerCountCancellationSource = new CancellationTokenSource();
-                CnCNetPlayerCountTask.InitializeService(cncnetPlayerCountCancellationSource);
-            }
+            CnCNetPlayerCountTask.CnCNetGameCountUpdated += CnCNetInfoController_CnCNetGameCountUpdated;
+            cncnetPlayerCountCancellationSource = new CancellationTokenSource();
+            CnCNetPlayerCountTask.InitializeService(cncnetPlayerCountCancellationSource);
 
             WindowManager.GameClosing += WindowManager_GameClosing;
 
@@ -459,7 +456,7 @@ namespace DTAClient.DXGUI.Generic
             CheckIfFirstRun();
         }
 
-#region Updating / versioning system
+        #region Updating / versioning system
 
         private void UpdateWindow_UpdateFailed(object sender, UpdateFailureEventArgs e)
         {
@@ -531,7 +528,8 @@ namespace DTAClient.DXGUI.Generic
             try
             {
                 StatisticsSender.Instance.SendUpdate();
-            } catch { }
+            }
+            catch { }
             lastUpdateCheckTime = DateTime.Now;
         }
 
@@ -640,7 +638,7 @@ namespace DTAClient.DXGUI.Generic
             CUpdater.StartAsyncUpdate();
         }
 
-#endregion
+        #endregion
 
         private void BtnOptions_LeftClick(object sender, EventArgs e)
         {
