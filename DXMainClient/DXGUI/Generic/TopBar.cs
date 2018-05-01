@@ -8,6 +8,8 @@ using Microsoft.Xna.Framework.Input;
 using DTAClient.Online;
 using ClientGUI;
 using ClientCore;
+using System.Threading;
+using DTAClient.Domain.Multiplayer.CnCNet;
 
 namespace DTAClient.DXGUI.Generic
 {
@@ -46,9 +48,14 @@ namespace DTAClient.DXGUI.Generic
         XNAClientButton btnLogout;
         XNALabel lblTime;
         XNALabel lblDate;
+        XNALabel lblCnCNetStatus;
+        XNALabel lblCnCNetPlayerCount;
         XNALabel lblConnectionStatus;
 
         CnCNetManager connectionManager;
+
+        private CancellationTokenSource cncnetPlayerCountCancellationSource;
+        private static readonly object locker = new object();
 
         TimeSpan downTime = TimeSpan.FromSeconds(DOWN_TIME_WAIT_SECONDS - STARTUP_DOWN_TIME_WAIT_SECONDS);
 
@@ -78,6 +85,11 @@ namespace DTAClient.DXGUI.Generic
         public void SetTertiarySwitch(ISwitchable switchable)
         {
             privateMessageSwitch = switchable;
+        }
+
+        public void Clean()
+        {
+            if (cncnetPlayerCountCancellationSource != null) cncnetPlayerCountCancellationSource.Cancel();
         }
 
         public override void Initialize()
@@ -111,7 +123,7 @@ namespace DTAClient.DXGUI.Generic
             lblDate.FontIndex = 1;
             lblDate.Text = Renderer.GetSafeString(DateTime.Now.ToShortDateString(), lblDate.FontIndex);
             lblDate.ClientRectangle = new Rectangle(ClientRectangle.Width -
-                (int)Renderer.GetTextDimensions(lblDate.Text, lblDate.FontIndex).X - 12, 18, 
+                (int)Renderer.GetTextDimensions(lblDate.Text, lblDate.FontIndex).X - 12, 18,
                 lblDate.ClientRectangle.Width, lblDate.ClientRectangle.Height);
 
             lblTime = new XNALabel(WindowManager);
@@ -143,6 +155,25 @@ namespace DTAClient.DXGUI.Generic
             AddChild(btnLogout);
             AddChild(lblConnectionStatus);
 
+            if (ClientConfiguration.Instance.DisplayPlayerCountInTopBar)
+            {
+                lblCnCNetStatus = new XNALabel(WindowManager);
+                lblCnCNetStatus.Name = "lblCnCNetStatus";
+                lblCnCNetStatus.FontIndex = 1;
+                lblCnCNetStatus.Text = ClientConfiguration.Instance.LocalGame.ToUpper() + " PLAYERS ONLINE:";
+                lblCnCNetPlayerCount = new XNALabel(WindowManager);
+                lblCnCNetPlayerCount.Name = "lblCnCNetPlayerCount";
+                lblCnCNetPlayerCount.FontIndex = 1;
+                lblCnCNetPlayerCount.Text = "-";
+                lblCnCNetPlayerCount.ClientRectangle = new Rectangle(btnLogout.ClientRectangle.Left - 50, 11, lblCnCNetPlayerCount.ClientRectangle.Width, lblCnCNetPlayerCount.ClientRectangle.Height);
+                lblCnCNetStatus.ClientRectangle = new Rectangle(lblCnCNetPlayerCount.ClientRectangle.Left - lblCnCNetStatus.Width - 6, 11, lblCnCNetStatus.ClientRectangle.Width, lblCnCNetStatus.ClientRectangle.Height);
+                AddChild(lblCnCNetStatus);
+                AddChild(lblCnCNetPlayerCount);
+                CnCNetPlayerCountTask.CnCNetGameCountUpdated += CnCNetInfoController_CnCNetGameCountUpdated;
+                cncnetPlayerCountCancellationSource = new CancellationTokenSource();
+                CnCNetPlayerCountTask.InitializeService(cncnetPlayerCountCancellationSource);
+            }
+
             lblConnectionStatus.CenterOnParent();
 
             base.Initialize();
@@ -154,6 +185,18 @@ namespace DTAClient.DXGUI.Generic
             connectionManager.WelcomeMessageReceived += ConnectionManager_WelcomeMessageReceived;
             connectionManager.AttemptedServerChanged += ConnectionManager_AttemptedServerChanged;
             connectionManager.ConnectAttemptFailed += ConnectionManager_ConnectAttemptFailed;
+
+        }
+
+        private void CnCNetInfoController_CnCNetGameCountUpdated(object sender, PlayerCountEventArgs e)
+        {
+            lock (locker)
+            {
+                if (e.PlayerCount == -1)
+                    lblCnCNetPlayerCount.Text = "N/A";
+                else
+                    lblCnCNetPlayerCount.Text = e.PlayerCount.ToString();
+            }
         }
 
         private void ConnectionManager_ConnectionLost(object sender, Online.EventArguments.ConnectionLostEventArgs e)
@@ -293,7 +336,7 @@ namespace DTAClient.DXGUI.Generic
                 if (locationY < 0)
                 {
                     locationY += DOWN_MOVEMENT_RATE * (gameTime.ElapsedGameTime.TotalMilliseconds / 10.0);
-                    ClientRectangle = new Rectangle(ClientRectangle.X, (int)locationY, 
+                    ClientRectangle = new Rectangle(ClientRectangle.X, (int)locationY,
                         ClientRectangle.Width, ClientRectangle.Height);
                 }
 
@@ -327,7 +370,7 @@ namespace DTAClient.DXGUI.Generic
         {
             base.Draw(gameTime);
 
-            Renderer.DrawRectangle(new Rectangle(ClientRectangle.X, ClientRectangle.Bottom - 2, ClientRectangle.Width, 1), Color.Gray);
+            Renderer.DrawRectangle(new Rectangle(ClientRectangle.X, ClientRectangle.Bottom - 2, ClientRectangle.Width, 1), UISettings.WindowBorderColor);
         }
     }
 

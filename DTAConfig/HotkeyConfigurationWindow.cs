@@ -134,6 +134,7 @@ namespace DTAConfig
             new GameCommand("Set Bookmark 3", CATEGORY_INTERFACE, "Sets bookmark 3.", "SetView3"),
             new GameCommand("Set Bookmark 4", CATEGORY_INTERFACE, "Sets bookmark 4.", "SetView4"),
             new GameCommand("Place Beacon", CATEGORY_INTERFACE, "Place a beacon on the map to alert your teammates.", "PlaceBeacon"),
+            new GameCommand("Delete Beacon", CATEGORY_INTERFACE, "Delete a selected map beacon.", "Delete"),
             new GameCommand("Goto Radar Event", CATEGORY_INTERFACE, "Center the camera around the latest radar event.", "CenterOnRadarEvent"),
 
             new GameCommand("Alliance", CATEGORY_CONTROL, "Form an alliance with the owner of a selected object.", "ToggleAlliance"),

@@ -127,7 +127,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             AddChild(btnCreateGame);
             AddChild(btnCancel);
-            AddChild(btnLoadMPGame);
+            if (!ClientConfiguration.Instance.DisableMultiplayerGameLoading) AddChild(btnLoadMPGame);
             AddChild(btnDisplayAdvancedOptions);
             AddChild(tbGameName);
             AddChild(lblRoomName);

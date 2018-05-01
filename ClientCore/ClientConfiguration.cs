@@ -340,6 +340,14 @@ namespace ClientCore
             }
         }
 
+        public string UnixMapEditorExePath
+        {
+            get
+            {
+                return clientDefinitionsIni.GetStringValue(SETTINGS, "UnixMapEditorExePath", Instance.MapEditorExePath);
+            }
+        }
+
         public bool ModMode
         {
             get
@@ -533,6 +541,36 @@ namespace ClientCore
             string[] exeNames = clientDefinitionsIni.GetStringValue(SETTINGS, "GameExecutableNames", "Game.exe").Split(',');
 
             return exeNames[0];
+        }
+
+        public bool SaveSkirmishGameOptions
+        {
+            get { return clientDefinitionsIni.GetBooleanValue(SETTINGS, "SaveSkirmishGameOptions", false); }
+        }
+
+        public bool CreateSavedGamesDirectory
+        {
+            get { return clientDefinitionsIni.GetBooleanValue(SETTINGS, "CreateSavedGamesDirectory", false); }
+        }
+
+        public bool DisableMultiplayerGameLoading
+        {
+            get { return clientDefinitionsIni.GetBooleanValue(SETTINGS, "DisableMultiplayerGameLoading", false); }
+        }
+
+        public bool DisableUpdaterOptions
+        {
+            get { return clientDefinitionsIni.GetBooleanValue(SETTINGS, "DisableUpdaterOptions", false); }
+        }
+
+        public bool DisableComponentOptions
+        {
+            get { return clientDefinitionsIni.GetBooleanValue(SETTINGS, "DisableComponentOptions", false); }
+        }
+
+        public bool DisplayPlayerCountInTopBar
+        {
+            get { return clientDefinitionsIni.GetBooleanValue(SETTINGS, "DisplayPlayerCountInTopBar", false); }
         }
 
         /// <summary>

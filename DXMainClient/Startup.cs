@@ -29,7 +29,7 @@ namespace DTAClient
 
             if (themePath == null)
             {
-               themePath = ClientConfiguration.Instance.GetThemeInfoFromIndex(0)[1];
+                themePath = ClientConfiguration.Instance.GetThemeInfoFromIndex(0)[1];
             }
 
             ProgramConstants.RESOURCES_DIR = "Resources\\" + themePath;
@@ -63,6 +63,21 @@ namespace DTAClient
                 }
                 catch
                 {
+                }
+            }
+
+            if (ClientConfiguration.Instance.CreateSavedGamesDirectory)
+            {
+                if (!Directory.Exists(MainClientConstants.gamepath + "Saved Games"))
+                {
+                    Logger.Log("Saved Games directory does not exist - attempting to create one.");
+                    try
+                    {
+                        Directory.CreateDirectory(MainClientConstants.gamepath + "Saved Games");
+                    }
+                    catch
+                    {
+                    }
                 }
             }
 
@@ -102,7 +117,7 @@ namespace DTAClient
                 string cpu = String.Empty;
                 string videoController = String.Empty;
 
-                ManagementObjectSearcher searcher = 
+                ManagementObjectSearcher searcher =
                     new ManagementObjectSearcher("SELECT * FROM Win32_Processor");
 
                 foreach (var proc in searcher.Get())
@@ -131,7 +146,7 @@ namespace DTAClient
             }
         }
 
-        
+
         /// <summary>
         /// Generate an ID for online play.
         /// </summary>

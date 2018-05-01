@@ -1,4 +1,5 @@
 ﻿using ClientCore;
+using ClientCore.CnCNet5;
 using DTAClient.Domain.Multiplayer;
 using DTAClient.Domain.Multiplayer.CnCNet;
 using DTAClient.DXGUI.Generic;
@@ -35,12 +36,13 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         public CnCNetGameLobby(WindowManager windowManager, string iniName, 
             TopBar topBar, List<GameMode> GameModes, CnCNetManager connectionManager,
-            TunnelHandler tunnelHandler) : 
+            TunnelHandler tunnelHandler, GameCollection gameCollection) : 
             base(windowManager, iniName, topBar, GameModes)
         {
             this.connectionManager = connectionManager;
             localGame = ClientConfiguration.Instance.LocalGame;
             this.tunnelHandler = tunnelHandler;
+            this.gameCollection = gameCollection;
 
             ctcpCommandHandlers = new CommandHandlerBase[]
             {
@@ -83,6 +85,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         private Channel channel;
         private CnCNetManager connectionManager;
         private string localGame;
+
+        private GameCollection gameCollection;
 
         private string hostName;
 
@@ -514,7 +518,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             int start = bytes[2];
             int team = bytes[3];
 
-            if (side < 0 || side > SideCount + 1)
+            if (side < 0 || side > SideCount + RandomSelectorCount)
                 return;
 
             if (color < 0 || color > MPColors.Count)
@@ -527,7 +531,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             if (Map.CoopInfo != null)
             {
-                if (Map.CoopInfo.DisallowedPlayerSides.Contains(side - 1) || side == SideCount + 1)
+                if (Map.CoopInfo.DisallowedPlayerSides.Contains(side - 1) || side == SideCount + RandomSelectorCount)
                     return;
 
                 if (Map.CoopInfo.DisallowedPlayerColors.Contains(color - 1))
@@ -670,7 +674,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 int color = byteArray[2];
                 int side = byteArray[3];
 
-                if (side < 0 || side > SideCount + 1)
+                if (side < 0 || side > SideCount + RandomSelectorCount)
                     return;
 
                 if (color < 0 || color > MPColors.Count)
@@ -1498,7 +1502,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private void BroadcastGame()
         {
-            Channel broadcastChannel = connectionManager.FindChannel("#cncnet-" + localGame.ToLower() + "-games");
+            Channel broadcastChannel = connectionManager.FindChannel(gameCollection.GetGameBroadcastingChannelNameFromIdentifier(localGame));
 
             if (broadcastChannel == null)
                 return;

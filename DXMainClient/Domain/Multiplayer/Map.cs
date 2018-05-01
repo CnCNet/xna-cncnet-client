@@ -95,6 +95,21 @@ namespace DTAClient.Domain.Multiplayer
         public bool MultiplayerOnly { get; private set; }
 
         /// <summary>
+        /// If set, this map cannot be played with AI players.
+        /// </summary>
+        public bool HumanPlayersOnly { get; private set; }
+
+        /// <summary>
+        /// If set, players are forced to random starting locations on this map.
+        /// </summary>
+        public bool ForceRandomStartLocations { get; private set; }
+
+        /// <summary>
+        /// If set, players are forced to different teams on this map.
+        /// </summary>
+        public bool ForceNoTeams { get; private set; }
+
+        /// <summary>
         /// The name of an extra INI file in INI\Map Code\ that should be
         /// embedded into this map's INI code when a game is started.
         /// </summary>
@@ -195,6 +210,9 @@ namespace DTAClient.Domain.Multiplayer
                 NeutralHouseColor = section.GetIntValue("NeutralColor", -1);
                 SpecialHouseColor = section.GetIntValue("SpecialColor", -1);
                 MultiplayerOnly = section.GetBooleanValue("MultiplayerOnly", false);
+                HumanPlayersOnly = section.GetBooleanValue("HumanPlayersOnly", false);
+                ForceRandomStartLocations = section.GetBooleanValue("ForceRandomStartLocations", false);
+                ForceNoTeams = section.GetBooleanValue("ForceNoTeams", false);
                 ExtraININame = section.GetStringValue("ExtraININame", string.Empty);
                 string bases = section.GetStringValue("Bases", string.Empty);
                 if (!string.IsNullOrEmpty(bases))
@@ -324,6 +342,9 @@ namespace DTAClient.Domain.Multiplayer
                 UnitCount = basicSection.GetIntValue("UnitCount", -1);
                 NeutralHouseColor = basicSection.GetIntValue("NeutralColor", -1);
                 SpecialHouseColor = basicSection.GetIntValue("SpecialColor", -1);
+                HumanPlayersOnly = basicSection.GetBooleanValue("HumanPlayersOnly", false);
+                ForceRandomStartLocations = basicSection.GetBooleanValue("ForceRandomStartLocations", false);
+                ForceNoTeams = basicSection.GetBooleanValue("ForceNoTeams", false);
                 PreviewPath = Path.ChangeExtension(path.Substring(ProgramConstants.GamePath.Length + 1), ".png");
                 MultiplayerOnly = basicSection.GetBooleanValue("ClientMultiplayerOnly", false);
 

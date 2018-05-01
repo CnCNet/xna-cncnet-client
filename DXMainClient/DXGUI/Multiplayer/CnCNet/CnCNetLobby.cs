@@ -922,7 +922,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 currentChatChannel.UserGameIndexUpdated -= CurrentChatChannel_UserGameIndexUpdated;
 
                 if (currentChatChannel.ChannelName != "#cncnet" &&
-                    currentChatChannel.ChannelName != string.Format("#cncnet-{0}", localGameID.ToLower()))
+                    currentChatChannel.ChannelName != gameCollection.GetGameChatChannelNameFromIdentifier(localGameID))
                 {
                     // Remove the assigned channels from the users so we don't have ghost users on the PM user list
                     foreach (var user in currentChatChannel.Users)
@@ -951,7 +951,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             RefreshPlayerList(this, EventArgs.Empty);
 
             if (currentChatChannel.ChannelName != "#cncnet" &&
-                currentChatChannel.ChannelName != string.Format("#cncnet-{0}", localGameID.ToLower()))
+                currentChatChannel.ChannelName != gameCollection.GetGameChatChannelNameFromIdentifier(localGameID))
             {
                 currentChatChannel.Join();
                 currentChatChannel.RequestUserInfo();

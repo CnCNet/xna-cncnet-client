@@ -182,9 +182,10 @@ namespace DTAClient.DXGUI.Multiplayer
 
         private void AddGameToList(GenericHostedGame hg)
         {
+            int lgTextWidth = hg.IsLoadedGame ? loadedGameTextWidth : 0;
             int maxTextWidth = Width - hg.Game.Texture.Width - txIncompatibleGame.Width -
                 txLockedGame.Width - txPasswordedGame.Width - (ICON_MARGIN * 3) - GetScrollBarWidth()
-                - loadedGameTextWidth;
+                - lgTextWidth;
 
             var lbItem = new XNAListBoxItem();
             lbItem.Tag = hg;

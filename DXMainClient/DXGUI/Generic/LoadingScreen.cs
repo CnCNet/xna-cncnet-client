@@ -98,9 +98,9 @@ namespace DTAClient.DXGUI.Generic
             privateMessagingPanel = new PrivateMessagingPanel(WindowManager);
 
             var cncnetGameLobby = new CnCNetGameLobby(WindowManager,
-                "MultiplayerGameLobby", topBar, mapLoader.GameModes, cncnetManager, tunnelHandler);
+                "MultiplayerGameLobby", topBar, mapLoader.GameModes, cncnetManager, tunnelHandler, gameCollection);
             var cncnetGameLoadingLobby = new CnCNetGameLoadingLobby(WindowManager, 
-                topBar, cncnetManager, tunnelHandler, mapLoader.GameModes);
+                topBar, cncnetManager, tunnelHandler, mapLoader.GameModes, gameCollection);
             var cncnetLobby = new CnCNetLobby(WindowManager, cncnetManager, 
                 cncnetGameLobby, cncnetGameLoadingLobby, topBar, pmWindow, tunnelHandler,
                 gameCollection);

@@ -410,7 +410,8 @@ namespace DTAClient.DXGUI.Generic
         {
             CUpdater.FileIdentifiersUpdated -= CUpdater_FileIdentifiersUpdated;
 
-            cncnetPlayerCountCancellationSource.Cancel();
+            if (cncnetPlayerCountCancellationSource != null) cncnetPlayerCountCancellationSource.Cancel();
+            topBar.Clean();
             if (updateInProgress)
                 CUpdater.TerminateUpdate = true;
 
@@ -455,7 +456,7 @@ namespace DTAClient.DXGUI.Generic
             CheckIfFirstRun();
         }
 
-#region Updating / versioning system
+        #region Updating / versioning system
 
         private void UpdateWindow_UpdateFailed(object sender, UpdateFailureEventArgs e)
         {
@@ -527,7 +528,8 @@ namespace DTAClient.DXGUI.Generic
             try
             {
                 StatisticsSender.Instance.SendUpdate();
-            } catch { }
+            }
+            catch { }
             lastUpdateCheckTime = DateTime.Now;
         }
 
@@ -636,7 +638,7 @@ namespace DTAClient.DXGUI.Generic
             CUpdater.StartAsyncUpdate();
         }
 
-#endregion
+        #endregion
 
         private void BtnOptions_LeftClick(object sender, EventArgs e)
         {
@@ -680,7 +682,8 @@ namespace DTAClient.DXGUI.Generic
 
         private void BtnMapEditor_LeftClick(object sender, EventArgs e)
         {
-            Process.Start(ProgramConstants.GamePath + ClientConfiguration.Instance.MapEditorExePath);
+            LaunchMapEditor();
+            //Process.Start(ProgramConstants.GamePath + ClientConfiguration.Instance.MapEditorExePath);
         }
 
         private void BtnStatistics_LeftClick(object sender, EventArgs e)
@@ -857,6 +860,22 @@ namespace DTAClient.DXGUI.Generic
             {
                 Logger.Log("Turning music off failed! Message: " + ex.Message);
             }
+        }
+
+        internal static void LaunchMapEditor()
+        {
+            OSVersion osVersion = ClientConfiguration.Instance.GetOperatingSystemVersion();
+            Process mapEditorProcess = new Process();
+            if (osVersion != OSVersion.UNIX)
+            {
+                mapEditorProcess.StartInfo.FileName = ProgramConstants.GamePath + ClientConfiguration.Instance.MapEditorExePath;
+            }
+            else
+            {
+                mapEditorProcess.StartInfo.FileName = ProgramConstants.GamePath + ClientConfiguration.Instance.UnixMapEditorExePath;
+                mapEditorProcess.StartInfo.UseShellExecute = false;
+            }
+            mapEditorProcess.Start();
         }
 
         public string GetSwitchName()

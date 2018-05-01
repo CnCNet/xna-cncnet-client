@@ -106,6 +106,7 @@ namespace DTAClient.DXGUI.Generic
 
             cmbGameClassFilter = new XNAClientDropDown(WindowManager);
             cmbGameClassFilter.ClientRectangle = new Rectangle(585, 11, 105, 21);
+            cmbGameClassFilter.Name = "cmbGameClassFilter";
             cmbGameClassFilter.AddItem("All games");
             cmbGameClassFilter.AddItem("Online games");
             cmbGameClassFilter.AddItem("Online PvP");
@@ -121,6 +122,7 @@ namespace DTAClient.DXGUI.Generic
             lblGameMode.ClientRectangle = new Rectangle(294, 12, 0, 0);
 
             cmbGameModeFilter = new XNAClientDropDown(WindowManager);
+            cmbGameModeFilter.Name = "cmbGameModeFilter";
             cmbGameModeFilter.ClientRectangle = new Rectangle(381, 11, 114, 21);
             cmbGameModeFilter.SelectedIndexChanged += CmbGameModeFilter_SelectedIndexChanged;
 
@@ -130,9 +132,17 @@ namespace DTAClient.DXGUI.Generic
             btnReturnToMenu.Text = "Return to Main Menu";
             btnReturnToMenu.LeftClick += BtnReturnToMenu_LeftClick;
 
+            var btnClearStatistics = new XNAClientButton(WindowManager);
+            btnClearStatistics.Name = "btnClearStatistics";
+            btnClearStatistics.ClientRectangle = new Rectangle(12, 486, 160, 23);
+            btnClearStatistics.Text = "Clear Statistics";
+            btnClearStatistics.LeftClick += BtnClearStatistics_LeftClick;
+            btnClearStatistics.Visible = false;
+
             chkIncludeSpectatedGames = new XNAClientCheckBox(WindowManager);
 
             AddChild(chkIncludeSpectatedGames);
+            chkIncludeSpectatedGames.Name = "chkIncludeSpectatedGames";
             chkIncludeSpectatedGames.Text = "Include spectated games";
             chkIncludeSpectatedGames.Checked = true;
             chkIncludeSpectatedGames.ClientRectangle = new Rectangle(
@@ -157,6 +167,7 @@ namespace DTAClient.DXGUI.Generic
             lblMatches.ClientRectangle = new Rectangle(4, 2, 0, 0);
 
             lbGameList = new XNAMultiColumnListBox(WindowManager);
+            lbGameList.Name = "lbGameList";
             lbGameList.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 128), 1, 1);
             lbGameList.DrawMode = PanelBackgroundImageDrawMode.STRETCHED;
             lbGameList.AddColumn("DATE / TIME", 130);
@@ -170,6 +181,7 @@ namespace DTAClient.DXGUI.Generic
             lbGameList.AllowKeyboardInput = true;
 
             lbGameStatistics = new XNAMultiColumnListBox(WindowManager);
+            lbGameStatistics.Name = "lbGameStatistics";
             lbGameStatistics.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 128), 1, 1);
             lbGameStatistics.DrawMode = PanelBackgroundImageDrawMode.STRETCHED;
             lbGameStatistics.AddColumn("NAME", 130);
@@ -377,6 +389,7 @@ namespace DTAClient.DXGUI.Generic
             AddChild(lblGameMode);
             AddChild(cmbGameModeFilter);
             AddChild(btnReturnToMenu);
+            AddChild(btnClearStatistics);
 
             base.Initialize();
 
@@ -996,13 +1009,48 @@ namespace DTAClient.DXGUI.Generic
             return highestIndex;
         }
 
-#endregion
+        private void ClearAllStatistics()
+        {
+            StatisticsManager.Instance.ClearDatabase();
+            ReadStatistics();
+            ListGameModes();
+            ListGames();
+        }
+
+        #endregion
 
         private void BtnReturnToMenu_LeftClick(object sender, EventArgs e)
         {
             // To hide the control, just set Enabled=false
             // and MainMenuDarkeningPanel will deal with the rest
             Enabled = false;
+        }
+
+        private void BtnClearStatistics_LeftClick(object sender, EventArgs e)
+        {
+            var msgBox = new XNAMessageBox(WindowManager, "Clear all statistics",
+                "All statistics data will be cleared from the database." +
+                Environment.NewLine + Environment.NewLine +
+                "Are you sure you want to continue?", DXMessageBoxButtons.YesNo);
+            msgBox.Show();
+            msgBox.NoClicked += ClearStatisticsConfirmation_NoClicked;
+            msgBox.YesClicked += ClearStatisticsConfirmation_YesClicked;
+        }
+
+        private void ClearStatisticsConfirmation_YesClicked(object sender, EventArgs e)
+        {
+            var msgBox = (XNAMessageBox)sender;
+            msgBox.YesClicked -= ClearStatisticsConfirmation_YesClicked;
+            msgBox.NoClicked -= ClearStatisticsConfirmation_NoClicked;
+
+            ClearAllStatistics();
+        }
+
+        private void ClearStatisticsConfirmation_NoClicked(object sender, EventArgs e)
+        {
+            var msgBox = (XNAMessageBox)sender;
+            msgBox.YesClicked -= ClearStatisticsConfirmation_YesClicked;
+            msgBox.NoClicked -= ClearStatisticsConfirmation_NoClicked;
         }
     }
 }

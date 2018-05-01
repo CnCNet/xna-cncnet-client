@@ -12,6 +12,7 @@ namespace DTAClient.Online
     public class FileHashCalculator
     {
         FileHashes fh;
+        const string CONFIGNAME = "FHCConfig.ini";
 
         string[] fileNamesToCheck = new string[]
         {
@@ -54,18 +55,26 @@ namespace DTAClient.Online
             "INI\\AIFS.ini",
 #endif
             "INI\\GlobalCode.ini",
+            ProgramConstants.BASE_RESOURCE_PATH + CONFIGNAME,
         };
+
+
+        public FileHashCalculator()
+        {
+            GetFileListFromConfig();
+        }
 
         public void CalculateHashes(List<GameMode> gameModes)
         {
-            fh = new FileHashes();
-            fh.GameOptionsHash = Utilities.CalculateSHA1ForFile(ProgramConstants.GamePath + ProgramConstants.BASE_RESOURCE_PATH + "GameOptions.ini");
-            fh.ClientDXHash = Utilities.CalculateSHA1ForFile(ProgramConstants.GetBaseResourcePath() + "clientdx.exe");
-            fh.ClientXNAHash = Utilities.CalculateSHA1ForFile(ProgramConstants.GetBaseResourcePath() + "clientxna.exe");
-            fh.MainExeHash = Utilities.CalculateSHA1ForFile(ProgramConstants.GamePath + ClientConfiguration.Instance.GetGameExecutableName());
-            fh.MPMapsHash = Utilities.CalculateSHA1ForFile(ProgramConstants.GamePath + ClientConfiguration.Instance.MPMapsIniPath);
-
-            fh.INIHashes = string.Empty;
+            fh = new FileHashes
+            {
+                GameOptionsHash = Utilities.CalculateSHA1ForFile(ProgramConstants.GamePath + ProgramConstants.BASE_RESOURCE_PATH + "GameOptions.ini"),
+                ClientDXHash = Utilities.CalculateSHA1ForFile(ProgramConstants.GetBaseResourcePath() + "clientdx.exe"),
+                ClientXNAHash = Utilities.CalculateSHA1ForFile(ProgramConstants.GetBaseResourcePath() + "clientxna.exe"),
+                MainExeHash = Utilities.CalculateSHA1ForFile(ProgramConstants.GamePath + ClientConfiguration.Instance.GetGameExecutableName()),
+                MPMapsHash = Utilities.CalculateSHA1ForFile(ProgramConstants.GamePath + ClientConfiguration.Instance.MPMapsIniPath),
+                INIHashes = string.Empty
+            };
 
             foreach (string filePath in fileNamesToCheck)
             {
@@ -127,6 +136,16 @@ namespace DTAClient.Online
             Logger.Log("Complete hash: " + Utilities.CalculateSHA1ForString(str));
 
             return Utilities.CalculateSHA1ForString(str);
+        }
+
+        private void GetFileListFromConfig()
+        {
+            IniFile filenamesconfig = new IniFile(ProgramConstants.GetBaseResourcePath() + CONFIGNAME);
+            List<string> filenames = filenamesconfig.GetSectionKeys("FilenameList");
+            if (filenames == null || filenames.Count < 1) return;
+            filenames.Add("INI\\GlobalCode.ini");
+            filenames.Add(ProgramConstants.BASE_RESOURCE_PATH + CONFIGNAME);
+            fileNamesToCheck = filenames.ToArray();
         }
     }
 

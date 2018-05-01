@@ -22,6 +22,12 @@
         /// The dropdown value displayed in the UI will
         /// be written into the INI.
         /// </summary>
-        STRING
+        STRING,
+
+        /// <summary>
+        /// The dropdown value is filename of a mapcode INI file, which will be applied to the map. 
+        /// Nothing is written to spawn INI.
+        /// </summary>
+        MAPCODE
     }
 }
