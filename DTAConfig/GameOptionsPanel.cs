@@ -115,7 +115,9 @@ namespace DTAConfig
             chkTooltips.ClientRectangle = new Rectangle(
                 lblScrollRate.ClientRectangle.X,
                 chkTargetLines.ClientRectangle.Bottom + 24, 0, 0);
+#endif
 
+#if DTA || TI || TS
             chkBlackChatBackground = new XNAClientCheckBox(WindowManager);
             chkBlackChatBackground.Name = "chkBlackChatBackground";
             chkBlackChatBackground.ClientRectangle = new Rectangle(
