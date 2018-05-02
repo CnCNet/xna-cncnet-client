@@ -124,7 +124,7 @@ namespace DTAConfig
         public void Clean()
         {
             if (!string.IsNullOrEmpty(configFileName))
-                File.Delete(ProgramConstants.GamePath + configFileName);
+                File.Delete(ProgramConstants.GamePath + Path.GetFileName(configFileName));
 
             foreach (var file in filesToCopy)
                 File.Delete(ProgramConstants.GamePath + Path.GetFileName(file));
