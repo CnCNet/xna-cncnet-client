@@ -16,17 +16,9 @@ namespace DTAConfig
     /// </summary>
     public class HotkeyConfigurationWindow : XNAWindow
     {
-        private const string CATEGORY_MULTIPLAYER = "Multiplayer";
-        private const string CATEGORY_CONTROL = "Control";
-        private const string CATEGORY_INTERFACE = "Interface";
-        private const string CATEGORY_SELECTION = "Selection";
-        private const string CATEGORY_TEAM = "Team";
-        private const string CATEGORY_SIDEBAR = "Sidebar";
-        private const string CATEGORY_TAUNTS = "Taunts";
-        private const string CATEGORY_DEVELOPMENT = "Development";
-
         private const string HOTKEY_TIP_TEXT = "Press a key...";
         private const string HOTKEY_INI_SECTION = "Hotkey";
+        private const string KEYBOARD_COMMANDS_INI = "KeyboardCommands.ini";
 
         public HotkeyConfigurationWindow(WindowManager windowManager) : base(windowManager)
         {
@@ -45,148 +37,7 @@ namespace DTAConfig
             Keys.RightShift
         };
 
-        private readonly GameCommand[] gameCommands = new GameCommand[]
-        {
-#if DTA || TI || TS
-            new GameCommand("Chat to allies", CATEGORY_MULTIPLAYER, "Chat to players in your team.", "ChatToAllies"),
-            new GameCommand("Chat to everyone", CATEGORY_MULTIPLAYER, "Chat to all players in the game (same as F8).", "ChatToAll"),
-            new GameCommand("Grant Control", CATEGORY_CONTROL, "Give control of your units to the owner of a selected object.", "GrantControl"),
-            new GameCommand("Select One Unit Less", CATEGORY_CONTROL, "Randomly unselect one of your selected units.", "SelectOneUnitLess"),
-            new GameCommand("Radar Toggle", CATEGORY_INTERFACE, "Toggle between the radar and the kill count screen (multiplayer only).", "ToggleRadar"),
-            new GameCommand("Screen Capture", CATEGORY_INTERFACE, "Takes a screenshot and saves it to the \"Screenshots\" sub-directory in your game directory.", "ScreenCapture"),
-            new GameCommand("Toggle Info Panel", CATEGORY_INTERFACE, "Toggles the state of the sidebar info panel.", "ToggleInfoPanel"),
-            new GameCommand("Place Building", CATEGORY_INTERFACE, "Places a finished building.", "PlaceBuilding"),
-            new GameCommand("Repeat Last Building", CATEGORY_INTERFACE, "Repeats the last finished building.", "RepeatBuilding"),
-            new GameCommand("Power Mode", CATEGORY_INTERFACE, "Enable power mode (allows powering structures on and off).", "TogglePower"),
-            new GameCommand("Repair Mode", CATEGORY_INTERFACE, "Enable repair mode.", "ToggleRepair"),
-            new GameCommand("Sell Mode", CATEGORY_INTERFACE, "Enable sell mode.", "ToggleSell"),
-            new GameCommand("Waypoint Mode", CATEGORY_INTERFACE, "Enable waypoint mode.", "WaypointMode"),
-            new GameCommand("Delete Waypoint", CATEGORY_INTERFACE, "Deletes a waypoint.", "DeleteWaypoint"),
-            new GameCommand("Scroll North", CATEGORY_INTERFACE, "Scroll the camera towards the north.", "ScrollNorth"),
-            new GameCommand("Scroll South", CATEGORY_INTERFACE, "Scroll the camera towards the south.", "ScrollSouth"),
-            new GameCommand("Scroll East", CATEGORY_INTERFACE, "Scroll the camera towards the east.", "ScrollEast"),
-            new GameCommand("Scroll West", CATEGORY_INTERFACE, "Scroll the camera towards the west.", "ScrollWest"),
-
-            new GameCommand("Structure List Up", CATEGORY_SIDEBAR, "Scroll the sidebar's structure list up.", "LeftSidebarUp"),
-            new GameCommand("Unit List Up", CATEGORY_SIDEBAR, "Scroll the sidebar's unit list up.", "RightSidebarUp"),
-            new GameCommand("Sidebar Page Up", CATEGORY_SIDEBAR, "Scroll the sidebar up by a page.", "SidebarPageUp"),
-            new GameCommand("Structure List Page Up", CATEGORY_SIDEBAR, "Scroll the sidebar's structure list up by a page.", "LeftSidebarPageUp"),
-            new GameCommand("Unit List Page Up", CATEGORY_SIDEBAR, "Scroll the sidebar's unit list up by a page.", "RightSidebarPageUp"),
-            new GameCommand("Structure List Down", CATEGORY_SIDEBAR, "Scroll the sidebar's structure list down.", "LeftSidebarDown"),
-            new GameCommand("Unit List Down", CATEGORY_SIDEBAR, "Scroll the sidebar's unit list down.", "RightSidebarDown"),
-            new GameCommand("Sidebar Page Down", CATEGORY_SIDEBAR, "Scroll the sidebar down by a page.", "SidebarPageDown"),
-            new GameCommand("Structure List Page Down", CATEGORY_SIDEBAR, "Scroll the sidebar's structure list down by a page.", "LeftSidebarPageDown"),
-            new GameCommand("Unit List Page Down", CATEGORY_SIDEBAR, "Scroll the sidebar's unit list down by a page.", "RightSidebarPageDown"),
-            new GameCommand("Sidebar Up", CATEGORY_SIDEBAR, "Scroll the sidebar up.", "SidebarUp"),
-            new GameCommand("Sidebar Down", CATEGORY_SIDEBAR, "Scroll the sidebar down.", "SidebarDown"),
-
-            new GameCommand("Select Same Type", CATEGORY_SELECTION, "Select all units on the screen that are the type of your currently selected units.", "SelectType"),
-            new GameCommand("Select View", CATEGORY_SELECTION, "Select all units on the screen.", "SelectView"),
-
-#elif YR
-            new GameCommand("Select Same Type", CATEGORY_SELECTION, "Select units that are the type of your currently selected units.", "TypeSelect"),
-            new GameCommand("Combatant Select", CATEGORY_SELECTION, "Select units considered as combatants.", "CombatantSelect"),
-            new GameCommand("Health Navigation", CATEGORY_SELECTION, "Select units based on current health.", "HealthNav"),
-            new GameCommand("Veterancy Navigation", CATEGORY_SELECTION, "Select units based on current veterancy level.", "VeterancyNav"),
-
-            new GameCommand("Taunt 1", CATEGORY_TAUNTS, "Taunt 1", "Taunt_1"),
-            new GameCommand("Taunt 2", CATEGORY_TAUNTS, "Taunt 2", "Taunt_2"),
-            new GameCommand("Taunt 3", CATEGORY_TAUNTS, "Taunt 3", "Taunt_3"),
-            new GameCommand("Taunt 4", CATEGORY_TAUNTS, "Taunt 4", "Taunt_4"),
-            new GameCommand("Taunt 5", CATEGORY_TAUNTS, "Taunt 5", "Taunt_5"),
-            new GameCommand("Taunt 6", CATEGORY_TAUNTS, "Taunt 6", "Taunt_6"),
-            new GameCommand("Taunt 7", CATEGORY_TAUNTS, "Taunt 7", "Taunt_7"),
-            new GameCommand("Taunt 8", CATEGORY_TAUNTS, "Taunt 8", "Taunt_8"),
-
-            new GameCommand("Structures Tab", CATEGORY_INTERFACE, "Jump to sidebar structures tab.", "StructureTab"),
-            new GameCommand("Armory Tab", CATEGORY_INTERFACE, "Jump to sidebar armory tab.", "DefenseTab"),
-            new GameCommand("Infantry Tab", CATEGORY_INTERFACE, "Jump to sidebar infantry tab.", "InfantryTab"),
-            new GameCommand("Units Tab", CATEGORY_INTERFACE, "Jump to sidebar units tab.", "UnitTab"),
-            new GameCommand("Screen Capture", CATEGORY_INTERFACE, "Takes a screenshot and saves it in your game directory.", "ScreenCapture"),
-            new GameCommand("Repair Mode", CATEGORY_INTERFACE, "Enable repair mode.", "ToggleRepair"),
-            new GameCommand("Sell Mode", CATEGORY_INTERFACE, "Enable sell mode.", "ToggleSell"),
-            new GameCommand("Waypoint Mode", CATEGORY_INTERFACE, "Enable waypoint mode.", "PlanningMode"),
-#endif
-
-#if MO
-            new GameCommand("Power Mode", CATEGORY_INTERFACE, "Enable power mode (allows powering structures on and off).", "TogglePower"),
-
-            new GameCommand("Dump AI Base Plan", CATEGORY_DEVELOPMENT, "Dumps AI base plan to debug log.", "Dump AI Base Plan"),
-            new GameCommand("Dump Process Memory", CATEGORY_DEVELOPMENT, "Dumps current process memory to debug log.", "Dump Process Memory"),
-            new GameCommand("Dump Type Lists", CATEGORY_DEVELOPMENT, "Dumps current type lists to debug log.", "Dump Data Types"),
-            new GameCommand("FPS Counter", CATEGORY_DEVELOPMENT, "Toggles FPS counter that shows current and average frames per second.", "FPS Counter"),
-            new GameCommand("Map Snapshot", CATEGORY_DEVELOPMENT, "Saves the currently played map in game directory.", "MapSnapshot"),
-#endif
-
-            new GameCommand("Next Unit", CATEGORY_SELECTION, "Select the next unit.", "NextObject"),
-            new GameCommand("Previous Unit", CATEGORY_SELECTION, "Select the previous unit.", "PreviousObject"),
-
-            new GameCommand("Center View", CATEGORY_INTERFACE, "Center the camera to the selected objects.", "CenterView"),
-            new GameCommand("Options Menu", CATEGORY_INTERFACE, "Open the in-game Options menu.", "Options"),
-            new GameCommand("Center Base", CATEGORY_INTERFACE, "Center the camera on your base.", "CenterBase"),
-            new GameCommand("Follow", CATEGORY_INTERFACE, "Make the selected objects follow another object.", "Follow"),
-            new GameCommand("View Bookmark 1", CATEGORY_INTERFACE, "Center the camera on bookmark 1.", "View1"),
-            new GameCommand("View Bookmark 2", CATEGORY_INTERFACE, "Center the camera on bookmark 2.", "View2"),
-            new GameCommand("View Bookmark 3", CATEGORY_INTERFACE, "Center the camera on bookmark 3.", "View3"),
-            new GameCommand("View Bookmark 4", CATEGORY_INTERFACE, "Center the camera on bookmark 4.", "View4"),
-            new GameCommand("Set Bookmark 1", CATEGORY_INTERFACE, "Sets bookmark 1.", "SetView1"),
-            new GameCommand("Set Bookmark 2", CATEGORY_INTERFACE, "Sets bookmark 2.", "SetView2"),
-            new GameCommand("Set Bookmark 3", CATEGORY_INTERFACE, "Sets bookmark 3.", "SetView3"),
-            new GameCommand("Set Bookmark 4", CATEGORY_INTERFACE, "Sets bookmark 4.", "SetView4"),
-            new GameCommand("Place Beacon", CATEGORY_INTERFACE, "Place a beacon on the map to alert your teammates.", "PlaceBeacon"),
-            new GameCommand("Delete Beacon", CATEGORY_INTERFACE, "Delete a selected map beacon.", "Delete"),
-            new GameCommand("Goto Radar Event", CATEGORY_INTERFACE, "Center the camera around the latest radar event.", "CenterOnRadarEvent"),
-
-            new GameCommand("Alliance", CATEGORY_CONTROL, "Form an alliance with the owner of a selected object.", "ToggleAlliance"),
-            new GameCommand("Deploy Object", CATEGORY_CONTROL, "Deploy selected units.", "DeployObject"),
-            new GameCommand("Guard", CATEGORY_CONTROL, "Make your selected units guard the nearby area and automatically attack enemies.", "GuardObject"),
-            new GameCommand("Scatter", CATEGORY_CONTROL, "Make your selected units scatter.", "ScatterObject"),
-            new GameCommand("Stop Object", CATEGORY_CONTROL, "Stop your selected units.", "StopObject"),
-            new GameCommand("Cheer", CATEGORY_CONTROL, "Make all of your infantry units cheer.", "AllToCheer"),
-
-            // new Hotkey("Toggle Help", ...)
-
-            new GameCommand("Add Select Team 1", CATEGORY_TEAM, "Select team 1 without unselecting already selected objects", "TeamAddSelect_1"),
-            new GameCommand("Add Select Team 2", CATEGORY_TEAM, "Select team 2 without unselecting already selected objects", "TeamAddSelect_2"),
-            new GameCommand("Add Select Team 3", CATEGORY_TEAM, "Select team 3 without unselecting already selected objects", "TeamAddSelect_3"),
-            new GameCommand("Add Select Team 4", CATEGORY_TEAM, "Select team 4 without unselecting already selected objects", "TeamAddSelect_4"),
-            new GameCommand("Add Select Team 5", CATEGORY_TEAM, "Select team 5 without unselecting already selected objects", "TeamAddSelect_5"),
-            new GameCommand("Add Select Team 6", CATEGORY_TEAM, "Select team 6 without unselecting already selected objects", "TeamAddSelect_6"),
-            new GameCommand("Add Select Team 7", CATEGORY_TEAM, "Select team 7 without unselecting already selected objects", "TeamAddSelect_7"),
-            new GameCommand("Add Select Team 8", CATEGORY_TEAM, "Select team 8 without unselecting already selected objects", "TeamAddSelect_8"),
-            new GameCommand("Add Select Team 9", CATEGORY_TEAM, "Select team 9 without unselecting already selected objects", "TeamAddSelect_9"),
-            new GameCommand("Add Select Team 10", CATEGORY_TEAM, "Select team 10 without unselecting already selected objects", "TeamAddSelect_10"),
-            new GameCommand("Center Team 1", CATEGORY_TEAM, "Center the camera around team 1", "TeamCenter_1"),
-            new GameCommand("Center Team 2", CATEGORY_TEAM, "Center the camera around team 2", "TeamCenter_2"),
-            new GameCommand("Center Team 3", CATEGORY_TEAM, "Center the camera around team 3", "TeamCenter_3"),
-            new GameCommand("Center Team 4", CATEGORY_TEAM, "Center the camera around team 4", "TeamCenter_4"),
-            new GameCommand("Center Team 5", CATEGORY_TEAM, "Center the camera around team 5", "TeamCenter_5"),
-            new GameCommand("Center Team 6", CATEGORY_TEAM, "Center the camera around team 6", "TeamCenter_6"),
-            new GameCommand("Center Team 7", CATEGORY_TEAM, "Center the camera around team 7", "TeamCenter_7"),
-            new GameCommand("Center Team 8", CATEGORY_TEAM, "Center the camera around team 8", "TeamCenter_8"),
-            new GameCommand("Center Team 9", CATEGORY_TEAM, "Center the camera around team 9", "TeamCenter_9"),
-            new GameCommand("Center Team 10", CATEGORY_TEAM, "Center the camera around team 10", "TeamCenter_10"),
-            new GameCommand("Create Team 1", CATEGORY_TEAM, "Creates team 1", "TeamCreate_1"),
-            new GameCommand("Create Team 2", CATEGORY_TEAM, "Creates team 2", "TeamCreate_2"),
-            new GameCommand("Create Team 3", CATEGORY_TEAM, "Creates team 3", "TeamCreate_3"),
-            new GameCommand("Create Team 4", CATEGORY_TEAM, "Creates team 4", "TeamCreate_4"),
-            new GameCommand("Create Team 5", CATEGORY_TEAM, "Creates team 5", "TeamCreate_5"),
-            new GameCommand("Create Team 6", CATEGORY_TEAM, "Creates team 6", "TeamCreate_6"),
-            new GameCommand("Create Team 7", CATEGORY_TEAM, "Creates team 7", "TeamCreate_7"),
-            new GameCommand("Create Team 8", CATEGORY_TEAM, "Creates team 8", "TeamCreate_8"),
-            new GameCommand("Create Team 9", CATEGORY_TEAM, "Creates team 9", "TeamCreate_9"),
-            new GameCommand("Create Team 10", CATEGORY_TEAM, "Creates team 10", "TeamCreate_10"),
-            new GameCommand("Select Team 1", CATEGORY_TEAM, "Selects team 1", "TeamSelect_1"),
-            new GameCommand("Select Team 2", CATEGORY_TEAM, "Selects team 2", "TeamSelect_2"),
-            new GameCommand("Select Team 3", CATEGORY_TEAM, "Selects team 3", "TeamSelect_3"),
-            new GameCommand("Select Team 4", CATEGORY_TEAM, "Selects team 4", "TeamSelect_4"),
-            new GameCommand("Select Team 5", CATEGORY_TEAM, "Selects team 5", "TeamSelect_5"),
-            new GameCommand("Select Team 6", CATEGORY_TEAM, "Selects team 6", "TeamSelect_6"),
-            new GameCommand("Select Team 7", CATEGORY_TEAM, "Selects team 7", "TeamSelect_7"),
-            new GameCommand("Select Team 8", CATEGORY_TEAM, "Selects team 8", "TeamSelect_8"),
-            new GameCommand("Select Team 9", CATEGORY_TEAM, "Selects team 9", "TeamSelect_9"),
-            new GameCommand("Select Team 10", CATEGORY_TEAM, "Selects team 10", "TeamSelect_10"),
-        };
+        private List<GameCommand> gameCommands = new List<GameCommand>();
 
         private XNAClientDropDown ddCategory;
         private XNAMultiColumnListBox lbHotkeys;
@@ -202,13 +53,14 @@ namespace DTAConfig
         private XNAClientButton btnResetKey;
 
         private IniFile keyboardINI;
-        private IniFile defaultKeyboardINI;
 
         private Hotkey pendingHotkey;
         private KeyModifiers lastFrameModifiers;
 
         public override void Initialize()
         {
+            ReadGameCommands();
+
             Name = "HotkeyConfigurationWindow";
             ClientRectangle = new Rectangle(0, 0, 600, 450);
             BackgroundTexture = AssetLoader.LoadTextureUncached("hotkeyconfigbg.png");
@@ -223,25 +75,16 @@ namespace DTAConfig
             ddCategory.ClientRectangle = new Rectangle(lblCategory.Right + 12, 
                 lblCategory.ClientRectangle.Y - 1, 250, ddCategory.Height);
 
-#if DTA || TI || TS
-            ddCategory.AddItem(CATEGORY_MULTIPLAYER);
-            ddCategory.AddItem(CATEGORY_CONTROL);
-            ddCategory.AddItem(CATEGORY_INTERFACE);
-            ddCategory.AddItem(CATEGORY_SIDEBAR);
-            ddCategory.AddItem(CATEGORY_SELECTION);
-            ddCategory.AddItem(CATEGORY_TEAM);
-#elif YR
-            ddCategory.AddItem(CATEGORY_CONTROL);
-            ddCategory.AddItem(CATEGORY_INTERFACE);
-            ddCategory.AddItem(CATEGORY_SELECTION);
-            ddCategory.AddItem(CATEGORY_TEAM);
-            ddCategory.AddItem(CATEGORY_TAUNTS);
-#endif
+            HashSet<string> categories = new HashSet<string>();
 
-#if MO
-            ddCategory.AddItem(CATEGORY_DEVELOPMENT);
-#endif
+            foreach (var command in gameCommands)
+            {
+                if (!categories.Contains(command.Category))
+                    categories.Add(command.Category);
+            }
 
+            foreach (string category in categories)
+                ddCategory.AddItem(category);
 
             lbHotkeys = new XNAMultiColumnListBox(WindowManager);
             lbHotkeys.Name = "lbHotkeys";
@@ -360,8 +203,6 @@ namespace DTAConfig
             hotkeyInfoPanel.AddChild(btnAssign);
             hotkeyInfoPanel.AddChild(btnResetKey);
 
-            defaultKeyboardINI = new IniFile(ProgramConstants.GamePath + ClientConfiguration.Instance.DefaultKeyboardINI);
-
             hotkeyInfoPanel.Disable();
             lbHotkeys.SelectedIndexChanged += LbHotkeys_SelectedIndexChanged;
 
@@ -378,6 +219,25 @@ namespace DTAConfig
             EnabledChanged += HotkeyConfigurationWindow_EnabledChanged;
         }
 
+        /// <summary>
+        /// Reads game commands from an INI file.
+        /// </summary>
+        private void ReadGameCommands()
+        {
+            var gameCommandsIni = new IniFile(ProgramConstants.GetBaseResourcePath() + KEYBOARD_COMMANDS_INI);
+
+            List<string> sections = gameCommandsIni.GetSections();
+
+            foreach (string sectionName in sections)
+            {
+                gameCommands.Add(new GameCommand(gameCommandsIni.GetSection(sectionName)));
+            }
+        }
+
+        /// <summary>
+        /// Resets the hotkey for the currently selected game command to its
+        /// default value.
+        /// </summary>
         private void BtnReset_LeftClick(object sender, EventArgs e)
         {
             if (lbHotkeys.SelectedIndex < 0 || lbHotkeys.SelectedIndex >= lbHotkeys.ItemCount)
@@ -386,10 +246,9 @@ namespace DTAConfig
             }
 
             var command = (GameCommand)lbHotkeys.GetItem(0, lbHotkeys.SelectedIndex).Tag;
-            var defaultHotkey = new Hotkey(defaultKeyboardINI.GetIntValue(HOTKEY_INI_SECTION, command.ININame, 0));
-            command.Hotkey = defaultHotkey;
+            command.Hotkey = command.DefaultHotkey;
 
-            // If the hotkey is already assigned to other command, unbind it
+            // If the hotkey is already assigned to some other command, unbind it
             foreach (var gameCommand in gameCommands)
             {
                 if (pendingHotkey.Equals(gameCommand.Hotkey))
@@ -404,9 +263,7 @@ namespace DTAConfig
         {
             foreach (var command in gameCommands)
             {
-                int hotkey = defaultKeyboardINI.GetIntValue(HOTKEY_INI_SECTION, command.ININame, 0);
-
-                command.Hotkey = new Hotkey(hotkey);
+                command.Hotkey = command.DefaultHotkey;
             }
 
             RefreshHotkeyList();
@@ -431,17 +288,24 @@ namespace DTAConfig
 
         private void LoadKeyboardINI()
         {
+            keyboardINI = new IniFile(ProgramConstants.GamePath + ClientConfiguration.Instance.KeyboardINI);
+
             if (File.Exists(ProgramConstants.GamePath + ClientConfiguration.Instance.KeyboardINI))
-                keyboardINI = new IniFile(ProgramConstants.GamePath + ClientConfiguration.Instance.KeyboardINI);
-            else
-                keyboardINI = new IniFile(ProgramConstants.GamePath + ClientConfiguration.Instance.DefaultKeyboardINI);
-
-            foreach (var command in gameCommands)
             {
-                int hotkey = keyboardINI.GetIntValue("Hotkey", command.ININame, 0);
+                foreach (var command in gameCommands)
+                {
+                    int hotkey = keyboardINI.GetIntValue("Hotkey", command.ININame, 0);
 
-                Hotkey hotkeyStruct = new Hotkey(hotkey);
-                command.Hotkey = new Hotkey(GetKeyOverride(hotkeyStruct.Key), hotkeyStruct.Modifier);
+                    Hotkey hotkeyStruct = new Hotkey(hotkey);
+                    command.Hotkey = new Hotkey(GetKeyOverride(hotkeyStruct.Key), hotkeyStruct.Modifier);
+                }
+            }
+            else
+            {
+                foreach (var command in gameCommands)
+                {
+                    command.Hotkey = command.DefaultHotkey;
+                }
             }
         }
 
@@ -460,9 +324,8 @@ namespace DTAConfig
                 hotkeyInfoPanel.Width - lblDescription.X).Text;
             lblCurrentHotkeyValue.Text = command.Hotkey.ToStringWithNone();
 
-            var defaultHotkey = new Hotkey(defaultKeyboardINI.GetIntValue(HOTKEY_INI_SECTION, command.ININame, 0));
-            lblDefaultHotkeyValue.Text = defaultHotkey.ToStringWithNone();
-            btnResetKey.Enabled = !command.Hotkey.Equals(defaultHotkey);
+            lblDefaultHotkeyValue.Text = command.DefaultHotkey.ToStringWithNone();
+            btnResetKey.Enabled = !command.Hotkey.Equals(command.DefaultHotkey);
 
             lblNewHotkeyValue.Text = HOTKEY_TIP_TEXT;
             pendingHotkey = new Hotkey(Keys.None, KeyModifiers.None);
@@ -660,8 +523,22 @@ namespace DTAConfig
                 ININame = iniSection.SectionName;
                 UIName = iniSection.GetStringValue("UIName", "Unnamed command");
                 Category = iniSection.GetStringValue("Category", "Unknown category");
-                Description = iniSection.GetStringValue("Description", string.Empty);
+                Description = iniSection.GetStringValue("Description", "Unknown description");
                 DefaultHotkey = new Hotkey(iniSection.GetIntValue("DefaultKey", 0));
+            }
+
+            /// <summary>
+            /// Writes the game command's information to an INI file.
+            /// </summary>
+            /// <param name="iniFile">The INI file.</param>
+            public void WriteToIni(IniFile iniFile)
+            {
+                var section = new IniSection(ININame);
+                section.SetStringValue("UIName", UIName);
+                section.SetStringValue("Category", Category);
+                section.SetStringValue("Description", Description);
+                section.SetIntValue("DefaultKey", DefaultHotkey.GetTSEncoded());
+                iniFile.AddSection(section);
             }
 
             public string UIName { get; private set; }

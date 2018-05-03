@@ -492,17 +492,6 @@ namespace ClientCore
             }
         }
 
-        /// <summary>
-        /// Returns the path to the default Keyboard.ini that is used if KeyboardINI is not found.
-        /// </summary>
-        public string DefaultKeyboardINI
-        {
-            get
-            {
-                return clientDefinitionsIni.GetStringValue(SETTINGS, "DefaultKeyboardINI", "INI\\Keyboard.ini");
-            }
-        }
-
         public int MinimumIngameWidth
         {
             get { return clientDefinitionsIni.GetIntValue(SETTINGS, "MinimumIngameWidth", 640); }
