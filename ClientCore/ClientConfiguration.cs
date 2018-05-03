@@ -562,6 +562,14 @@ namespace ClientCore
             get { return clientDefinitionsIni.GetBooleanValue(SETTINGS, "DisplayPlayerCountInTopBar", false); }
         }
 
+        public string ClientDefaultResolutionText
+        {
+            get
+            {
+                return clientDefinitionsIni.GetStringValue(SETTINGS, "ClientDefaultResolutionText", "(recommended)");
+            }
+        }
+
         /// <summary>
         /// Returns the name of the game executable file that is used on
         /// Linux and macOS.
