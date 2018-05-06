@@ -710,6 +710,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 }
             }
 
+            var concatPlayerList = Players.Concat(AIPlayers);
+
             // Disable custom random groups if all or all except one of included sides are unavailable.
             int c = 0;
             foreach (int[] randomsides in RandomSelectors)
@@ -725,10 +727,13 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 {
                     dd.Items[1 + c].Selectable = !disabled;
                 }
+                foreach (PlayerInfo pInfo in concatPlayerList)
+                {
+                    if (pInfo.SideId == 1 + c && disabled)
+                        pInfo.SideId = defaultSide;
+                }
                 c++;
             }
-
-            var concatPlayerList = Players.Concat(AIPlayers);
 
             // Go over the side array and either disable or enable the side
             // dropdown options depending on whether the side is available

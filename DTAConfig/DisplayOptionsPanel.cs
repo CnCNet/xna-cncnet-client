@@ -220,7 +220,7 @@ namespace DTAConfig
             if (optimalWindowedResIndex > -1)
             {
                 var item = ddClientResolution.Items[optimalWindowedResIndex];
-                item.Text = item.Text + " (recommended)";
+                item.Text = item.Text + " " + ClientConfiguration.Instance.ClientDefaultResolutionText;
             }
 
             chkBorderlessClient = new XNAClientCheckBox(WindowManager);
