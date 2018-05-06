@@ -341,27 +341,21 @@ namespace DTAClient.DXGUI.Generic
                     string.Format("You have just installed {0}." + Environment.NewLine +
                     "It's highly recommended that you configure your settings before playing." +
                     Environment.NewLine + "Do you want to configure them now?", ClientConfiguration.Instance.LocalGame));
-                firstRunMessageBox.YesClicked += FirstRunMessageBox_YesClicked;
-                firstRunMessageBox.NoClicked += FirstRunMessageBox_NoClicked;
+                firstRunMessageBox.YesClickedAction = FirstRunMessageBox_YesClicked;
+                firstRunMessageBox.NoClickedAction = FirstRunMessageBox_NoClicked;
             }
 
             optionsWindow.PostInit();
         }
 
-        private void FirstRunMessageBox_NoClicked(object sender, EventArgs e)
+        private void FirstRunMessageBox_NoClicked(XNAMessageBox messageBox)
         {
-            firstRunMessageBox.YesClicked -= FirstRunMessageBox_YesClicked;
-            firstRunMessageBox.NoClicked -= FirstRunMessageBox_NoClicked;
-
             if (customComponentDialogQueued)
                 CUpdater_OnCustomComponentsOutdated();
         }
 
-        private void FirstRunMessageBox_YesClicked(object sender, EventArgs e)
+        private void FirstRunMessageBox_YesClicked(XNAMessageBox messageBox)
         {
-            firstRunMessageBox.YesClicked -= FirstRunMessageBox_YesClicked;
-            firstRunMessageBox.NoClicked -= FirstRunMessageBox_NoClicked;
-
             optionsWindow.Open();
         }
 
@@ -473,15 +467,13 @@ namespace DTAClient.DXGUI.Generic
                 "If you are connected to the Internet and your firewall isn't blocking" + Environment.NewLine +
                 "{1}, and the issue is reproducible, contact us at " + Environment.NewLine +
                 "{2} for support.",
-                e.Reason, CUpdater.CURRENT_LAUNCHER_NAME, MainClientConstants.SUPPORT_URL_SHORT), DXMessageBoxButtons.OK);
-            msgBox.OKClicked += MsgBox_OKClicked;
+                e.Reason, CUpdater.CURRENT_LAUNCHER_NAME, MainClientConstants.SUPPORT_URL_SHORT), XNAMessageBoxButtons.OK);
+            msgBox.OKClickedAction = MsgBox_OKClicked;
             msgBox.Show();
         }
 
-        private void MsgBox_OKClicked(object sender, EventArgs e)
+        private void MsgBox_OKClicked(XNAMessageBox messageBox)
         {
-            var messageBox = (XNAMessageBox)sender;
-            messageBox.OKClicked -= MsgBox_OKClicked;
             innerPanel.Hide();
         }
 
@@ -595,22 +587,13 @@ namespace DTAClient.DXGUI.Generic
                 "Custom Component Updates Available",
                 "Updates for custom components are available. Do you want to open" + Environment.NewLine +
                 "the Options menu where you can update the custom components?");
-            ccMsgBox.YesClicked += CCMsgBox_YesClicked;
-            ccMsgBox.NoClicked += CCMsgBox_Unsubscribe;
+            ccMsgBox.YesClickedAction = CCMsgBox_YesClicked;
         }
 
-        private void CCMsgBox_YesClicked(object sender, EventArgs e)
+        private void CCMsgBox_YesClicked(XNAMessageBox messageBox)
         {
-            CCMsgBox_Unsubscribe(sender, EventArgs.Empty);
             optionsWindow.Open();
             optionsWindow.SwitchToCustomComponentsPanel();
-        }
-
-        private void CCMsgBox_Unsubscribe(object sender, EventArgs e)
-        {
-            var msgBox = (XNAMessageBox)sender;
-            msgBox.YesClicked -= CCMsgBox_YesClicked;
-            msgBox.NoClicked -= CCMsgBox_Unsubscribe;
         }
 
         /// <summary>

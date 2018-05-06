@@ -96,7 +96,7 @@ namespace DTAClient.DXGUI.Generic
             tabControl.FontIndex = 1;
             tabControl.AddTab("Game Statistics", 133);
             tabControl.AddTab("Total Statistics", 133);
-            tabControl.SelectedIndexChanged += tabControl_SelectedIndexChanged;
+            tabControl.SelectedIndexChanged += TabControl_SelectedIndexChanged;
 
             XNALabel lblFilter = new XNALabel(WindowManager);
             lblFilter.Name = "lblFilter";
@@ -422,7 +422,7 @@ namespace DTAClient.DXGUI.Generic
             ListGames();
         }
 
-        void AddTotalStatisticsLabel(string name, string text, Point location)
+        private void AddTotalStatisticsLabel(string name, string text, Point location)
         {
             XNALabel label = new XNALabel(WindowManager);
             label.Name = name;
@@ -431,7 +431,7 @@ namespace DTAClient.DXGUI.Generic
             panelTotalStatistics.AddChild(label);
         }
 
-        void tabControl_SelectedIndexChanged(object sender, EventArgs e)
+        private void TabControl_SelectedIndexChanged(object sender, EventArgs e)
         {
             if (tabControl.SelectedTab == 1)
             {
@@ -561,7 +561,7 @@ namespace DTAClient.DXGUI.Generic
             }
         }
 
-        string TeamIndexToString(int teamIndex)
+        private string TeamIndexToString(int teamIndex)
         {
             switch (teamIndex)
             {
@@ -578,7 +578,7 @@ namespace DTAClient.DXGUI.Generic
             }
         }
 
-        string AILevelToString(int aiLevel)
+        private string AILevelToString(int aiLevel)
         {
             switch (aiLevel)
             {
@@ -1031,26 +1031,14 @@ namespace DTAClient.DXGUI.Generic
             var msgBox = new XNAMessageBox(WindowManager, "Clear all statistics",
                 "All statistics data will be cleared from the database." +
                 Environment.NewLine + Environment.NewLine +
-                "Are you sure you want to continue?", DXMessageBoxButtons.YesNo);
+                "Are you sure you want to continue?", XNAMessageBoxButtons.YesNo);
             msgBox.Show();
-            msgBox.NoClicked += ClearStatisticsConfirmation_NoClicked;
-            msgBox.YesClicked += ClearStatisticsConfirmation_YesClicked;
+            msgBox.YesClickedAction = ClearStatisticsConfirmation_YesClicked;
         }
 
-        private void ClearStatisticsConfirmation_YesClicked(object sender, EventArgs e)
+        private void ClearStatisticsConfirmation_YesClicked(XNAMessageBox messageBox)
         {
-            var msgBox = (XNAMessageBox)sender;
-            msgBox.YesClicked -= ClearStatisticsConfirmation_YesClicked;
-            msgBox.NoClicked -= ClearStatisticsConfirmation_NoClicked;
-
             ClearAllStatistics();
-        }
-
-        private void ClearStatisticsConfirmation_NoClicked(object sender, EventArgs e)
-        {
-            var msgBox = (XNAMessageBox)sender;
-            msgBox.YesClicked -= ClearStatisticsConfirmation_YesClicked;
-            msgBox.NoClicked -= ClearStatisticsConfirmation_NoClicked;
         }
     }
 }

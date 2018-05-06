@@ -111,10 +111,9 @@ namespace DTAConfig
                 var msgBox = new XNAMessageBox(WindowManager, "Downloads in progress",
                     "Optional component downloads are in progress. The downloads will be cancelled if you exit the Options menu." +
                     Environment.NewLine + Environment.NewLine +
-                    "Are you sure you want to continue?", DXMessageBoxButtons.YesNo);
+                    "Are you sure you want to continue?", XNAMessageBoxButtons.YesNo);
                 msgBox.Show();
-                msgBox.NoClicked += ExitDownloadCancelConfirmation_NoClicked;
-                msgBox.YesClicked += ExitDownloadCancelConfirmation_YesClicked;
+                msgBox.YesClickedAction = ExitDownloadCancelConfirmation_YesClicked;
 
                 return;
             }
@@ -122,21 +121,10 @@ namespace DTAConfig
             Disable();
         }
 
-        private void ExitDownloadCancelConfirmation_YesClicked(object sender, EventArgs e)
+        private void ExitDownloadCancelConfirmation_YesClicked(XNAMessageBox messageBox)
         {
-            var msgBox = (XNAMessageBox)sender;
-            msgBox.YesClicked -= ExitDownloadCancelConfirmation_YesClicked;
-            msgBox.NoClicked -= SaveDownloadCancelConfirmation_NoClicked;
-
             componentsPanel.CancelAllDownloads();
             Disable();
-        }
-
-        private void ExitDownloadCancelConfirmation_NoClicked(object sender, EventArgs e)
-        {
-            var msgBox = (XNAMessageBox)sender;
-            msgBox.YesClicked -= ExitDownloadCancelConfirmation_YesClicked;
-            msgBox.NoClicked -= SaveDownloadCancelConfirmation_NoClicked;
         }
 
         private void BtnSave_LeftClick(object sender, EventArgs e)
@@ -146,10 +134,9 @@ namespace DTAConfig
                 var msgBox = new XNAMessageBox(WindowManager, "Downloads in progress",
                     "Optional component downloads are in progress. The downloads will be cancelled if you exit the Options menu." +
                     Environment.NewLine + Environment.NewLine +
-                    "Are you sure you want to continue?", DXMessageBoxButtons.YesNo);
+                    "Are you sure you want to continue?", XNAMessageBoxButtons.YesNo);
                 msgBox.Show();
-                msgBox.NoClicked += SaveDownloadCancelConfirmation_NoClicked;
-                msgBox.YesClicked += SaveDownloadCancelConfirmation_YesClicked;
+                msgBox.YesClickedAction = SaveDownloadCancelConfirmation_YesClicked;
 
                 return;
             }
@@ -157,22 +144,11 @@ namespace DTAConfig
             SaveSettings();
         }
 
-        private void SaveDownloadCancelConfirmation_YesClicked(object sender, EventArgs e)
+        private void SaveDownloadCancelConfirmation_YesClicked(XNAMessageBox messageBox)
         {
-            var msgBox = (XNAMessageBox)sender;
-            msgBox.YesClicked -= SaveDownloadCancelConfirmation_YesClicked;
-            msgBox.NoClicked -= SaveDownloadCancelConfirmation_NoClicked;
-
             componentsPanel.CancelAllDownloads();
 
             SaveSettings();
-        }
-
-        private void SaveDownloadCancelConfirmation_NoClicked(object sender, EventArgs e)
-        {
-            var msgBox = (XNAMessageBox)sender;
-            msgBox.YesClicked -= SaveDownloadCancelConfirmation_YesClicked;
-            msgBox.NoClicked -= SaveDownloadCancelConfirmation_NoClicked;
         }
 
         private void SaveSettings()
@@ -200,23 +176,15 @@ namespace DTAConfig
             if (restartRequired)
             {
                 var msgBox = new XNAMessageBox(WindowManager, "Restart Required",
-                    "The game needs to be restarted for some of the changes to take effect." +
+                    "The client needs to be restarted for some of the changes to take effect." +
                     Environment.NewLine + Environment.NewLine +
-                    "Do you want to restart now?", DXMessageBoxButtons.YesNo);
+                    "Do you want to restart now?", XNAMessageBoxButtons.YesNo);
                 msgBox.Show();
-                msgBox.YesClicked += RestartMsgBox_YesClicked;
-                msgBox.NoClicked += RestartMsgBox_NoClicked;
+                msgBox.YesClickedAction = RestartMsgBox_YesClicked;
             }
         }
 
-        private void RestartMsgBox_NoClicked(object sender, EventArgs e)
-        {
-            var msgBox = (XNAMessageBox)sender;
-            msgBox.YesClicked -= RestartMsgBox_YesClicked;
-            msgBox.NoClicked -= RestartMsgBox_NoClicked;
-        }
-
-        private void RestartMsgBox_YesClicked(object sender, EventArgs e)
+        private void RestartMsgBox_YesClicked(XNAMessageBox messageBox)
         {
             WindowManager.RestartGame();
         }

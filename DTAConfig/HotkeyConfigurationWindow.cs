@@ -203,11 +203,16 @@ namespace DTAConfig
             hotkeyInfoPanel.AddChild(btnAssign);
             hotkeyInfoPanel.AddChild(btnResetKey);
 
-            hotkeyInfoPanel.Disable();
-            lbHotkeys.SelectedIndexChanged += LbHotkeys_SelectedIndexChanged;
+            if (categories.Count > 0)
+            {
+                hotkeyInfoPanel.Disable();
+                lbHotkeys.SelectedIndexChanged += LbHotkeys_SelectedIndexChanged;
 
-            ddCategory.SelectedIndexChanged += DdCategory_SelectedIndexChanged;
-            ddCategory.SelectedIndex = 0;
+                ddCategory.SelectedIndexChanged += DdCategory_SelectedIndexChanged;
+                ddCategory.SelectedIndex = 0;
+            }
+            else
+                Logger.Log("No keyboard game commands exist!");
 
             GameProcessLogic.GameProcessExited += GameProcessLogic_GameProcessExited;
 

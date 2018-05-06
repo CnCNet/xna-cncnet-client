@@ -40,7 +40,7 @@
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>bin\Windows\Debug\</OutputPath>
-    <DefineConstants>TRACE;DEBUG</DefineConstants>
+    <DefineConstants>TRACE;DEBUG;DTA</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
@@ -121,7 +121,7 @@
     <PlatformTarget>x86</PlatformTarget>
   </PropertyGroup>
   <PropertyGroup>
-    <ApplicationIcon>mainclienticon.ico</ApplicationIcon>
+    <ApplicationIcon>clienticon.ico</ApplicationIcon>
   </PropertyGroup>
   <PropertyGroup>
     <ManifestCertificateThumbprint>7D9F5AD6595A94B72145ABE05A7F43AEF032AB45</ManifestCertificateThumbprint>
@@ -398,10 +398,6 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="clienticon.ico" />
-    <Content Include="mainclienticon.ico" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\ClientCore\ClientCore.csproj">
       <Project>{daa331a7-fdac-44fd-98b5-2dc5025f48c3}</Project>
       <Name>ClientCore</Name>
@@ -414,6 +410,9 @@
       <Project>{d517317d-8ea8-4225-af9e-5385d8a7f047}</Project>
       <Name>DTAConfig</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="clienticon.ico" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

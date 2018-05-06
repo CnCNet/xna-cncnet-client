@@ -6,22 +6,20 @@ using Microsoft.Xna.Framework.Input;
 
 namespace ClientGUI
 {
+    /// <summary>
+    /// A generic message box with OK or Yes/No or OK/Cancel buttons.
+    /// </summary>
     public class XNAMessageBox : XNAWindow
     {
-        public delegate void OKClickedEventHandler(object sender, EventArgs e);
-        public event OKClickedEventHandler OKClicked;
-
-        public delegate void YesClickedEventHandler(object sender, EventArgs e);
-        public event YesClickedEventHandler YesClicked;
-
-        public delegate void NoClickedEventHandler(object sender, EventArgs e);
-        public event NoClickedEventHandler NoClicked;
-
-        public delegate void CancelClickedEventHandler(object sender, EventArgs e);
-        public event CancelClickedEventHandler CancelClicked;
-
+        /// <summary>
+        /// Creates a new message box.
+        /// </summary>
+        /// <param name="windowManager">The window manager.</param>
+        /// <param name="caption">The caption of the message box.</param>
+        /// <param name="description">The actual message of the message box.</param>
+        /// <param name="messageBoxButtons">Defines which buttons are available in the dialog.</param>
         public XNAMessageBox(WindowManager windowManager,
-            string caption, string description, DXMessageBoxButtons messageBoxButtons)
+            string caption, string description, XNAMessageBoxButtons messageBoxButtons)
             : base(windowManager)
         {
             this.caption = caption;
@@ -29,9 +27,30 @@ namespace ClientGUI
             this.messageBoxButtons = messageBoxButtons;
         }
 
-        string caption;
-        string description;
-        DXMessageBoxButtons messageBoxButtons;
+        /// <summary>
+        /// The method that is called when the user clicks OK on the message box.
+        /// </summary>
+        public Action<XNAMessageBox> OKClickedAction { get; set; }
+
+        /// <summary>
+        /// The method that is called when the user clicks Yes on the message box.
+        /// </summary>
+        public Action<XNAMessageBox> YesClickedAction { get; set; }
+
+        /// <summary>
+        /// The method that is called when the user clicks No on the message box.
+        /// </summary>
+        public Action<XNAMessageBox> NoClickedAction { get; set; }
+
+        /// <summary>
+        /// The method that is called when the user clicks Cancel on the message box.
+        /// </summary>
+        public Action<XNAMessageBox> CancelClickedAction { get; set; }
+
+
+        private string caption;
+        private string description;
+        private XNAMessageBoxButtons messageBoxButtons;
 
         public override void Initialize()
         {
@@ -58,11 +77,11 @@ namespace ClientGUI
             ClientRectangle = new Rectangle(0, 0, (int)textDimensions.X + 24, (int)textDimensions.Y + 81);
             line.ClientRectangle = new Rectangle(6, 29, ClientRectangle.Width - 12, 1);
 
-            if (messageBoxButtons == DXMessageBoxButtons.OK)
+            if (messageBoxButtons == XNAMessageBoxButtons.OK)
             {
                 AddOKButton();
             }
-            else if (messageBoxButtons == DXMessageBoxButtons.YesNo)
+            else if (messageBoxButtons == XNAMessageBoxButtons.YesNo)
             {
                 AddYesNoButtons();
             }
@@ -169,25 +188,25 @@ namespace ClientGUI
         private void BtnOK_LeftClick(object sender, EventArgs e)
         {
             Hide();
-            OKClicked?.Invoke(this, EventArgs.Empty);
+            OKClickedAction?.Invoke(this);
         }
 
         private void BtnYes_LeftClick(object sender, EventArgs e)
         {
             Hide();
-            YesClicked?.Invoke(this, EventArgs.Empty);
+            YesClickedAction?.Invoke(this);
         }
 
         private void BtnNo_LeftClick(object sender, EventArgs e)
         {
             Hide();
-            NoClicked?.Invoke(this, EventArgs.Empty);
+            NoClickedAction?.Invoke(this);
         }
 
         private void BtnCancel_LeftClick(object sender, EventArgs e)
         {
             Hide();
-            CancelClicked?.Invoke(this, EventArgs.Empty);
+            CancelClickedAction?.Invoke(this);
         }
 
         private void Hide()
@@ -220,20 +239,16 @@ namespace ClientGUI
             var msgBox = new XNAMessageBox(windowManager,
                 Renderer.GetSafeString(caption, 1), 
                 Renderer.GetSafeString(description, 0), 
-                DXMessageBoxButtons.OK);
+                XNAMessageBoxButtons.OK);
 
             panel.AddChild(msgBox);
-            msgBox.OKClicked += MsgBox_OKClicked;
+            msgBox.OKClickedAction = MsgBox_OKClicked;
             windowManager.AddAndInitializeControl(msgBox);
         }
 
-        private static void MsgBox_OKClicked(object sender, EventArgs e)
+        private static void MsgBox_OKClicked(XNAMessageBox messageBox)
         {
-            var messagebox = (XNAMessageBox)sender;
-
-            messagebox.OKClicked -= MsgBox_OKClicked;
-
-            var parent = (DarkeningPanel)messagebox.Parent;
+            var parent = (DarkeningPanel)messageBox.Parent;
             parent.Hide();
             parent.Hidden += Parent_Hidden;
         }
@@ -253,35 +268,25 @@ namespace ClientGUI
             var msgBox = new XNAMessageBox(windowManager,
                 Renderer.GetSafeString(caption, 1),
                 Renderer.GetSafeString(description, 0),
-                DXMessageBoxButtons.YesNo);
+                XNAMessageBoxButtons.YesNo);
 
             panel.AddChild(msgBox);
-            msgBox.YesClicked += MsgBox_YesClicked;
-            msgBox.NoClicked += MsgBox_NoClicked;
+            msgBox.YesClickedAction = MsgBox_YesClicked;
+            msgBox.NoClickedAction = MsgBox_NoClicked;
 
             return msgBox;
         }
 
-        private static void MsgBox_NoClicked(object sender, EventArgs e)
+        private static void MsgBox_NoClicked(XNAMessageBox messageBox)
         {
-            var messagebox = (XNAMessageBox)sender;
-
-            messagebox.YesClicked -= MsgBox_YesClicked;
-            messagebox.NoClicked -= MsgBox_NoClicked;
-
-            var parent = (DarkeningPanel)messagebox.Parent;
+            var parent = (DarkeningPanel)messageBox.Parent;
             parent.Hide();
             parent.Hidden += Parent_Hidden;
         }
 
-        private static void MsgBox_YesClicked(object sender, EventArgs e)
+        private static void MsgBox_YesClicked(XNAMessageBox messageBox)
         {
-            var messagebox = (XNAMessageBox)sender;
-
-            messagebox.YesClicked -= MsgBox_YesClicked;
-            messagebox.NoClicked -= MsgBox_NoClicked;
-
-            var parent = (DarkeningPanel)messagebox.Parent;
+            var parent = (DarkeningPanel)messageBox.Parent;
             parent.Hide();
             parent.Hidden += Parent_Hidden;
         }
@@ -297,7 +302,7 @@ namespace ClientGUI
         #endregion
     }
 
-    public enum DXMessageBoxButtons
+    public enum XNAMessageBoxButtons
     {
         OK,
         YesNo,

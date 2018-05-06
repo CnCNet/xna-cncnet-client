@@ -1036,6 +1036,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 channel.ChannelName == localGame.GameBroadcastChannel &&
                 !updateDenied &&
                 channelUser.IsAdmin &&
+                !isInGameRoom &&
                 e.Message.StartsWith("UPDATE ") &&
                 e.Message.Length > 7)
             {
@@ -1044,8 +1045,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 {
                     var updateMessageBox = XNAMessageBox.ShowYesNoDialog(WindowManager, "Update available",
                         "An update is available. Do you want to perform the update now?");
-                    updateMessageBox.NoClicked += UpdateMessageBox_NoClicked;
-                    updateMessageBox.YesClicked += UpdateMessageBox_YesClicked;
+                    updateMessageBox.NoClickedAction = UpdateMessageBox_NoClicked;
+                    updateMessageBox.YesClickedAction = UpdateMessageBox_YesClicked;
                 }
             }
 
@@ -1144,12 +1145,12 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             }
         }
 
-        private void UpdateMessageBox_YesClicked(object sender, EventArgs e)
+        private void UpdateMessageBox_YesClicked(XNAMessageBox messageBox)
         {
             UpdateCheck?.Invoke(this, EventArgs.Empty);
         }
 
-        private void UpdateMessageBox_NoClicked(object sender, EventArgs e)
+        private void UpdateMessageBox_NoClicked(XNAMessageBox messageBox)
         {
             updateDenied = true;
         }

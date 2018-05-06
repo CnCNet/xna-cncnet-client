@@ -151,29 +151,17 @@ namespace DTAConfig
                     Environment.NewLine +
                     "from a few minutes to multiple hours depending on your Internet connection speed." +
                     Environment.NewLine + Environment.NewLine +
-                    "You will not be able to play during the download. Do you want to continue?", DXMessageBoxButtons.YesNo);
+                    "You will not be able to play during the download. Do you want to continue?", XNAMessageBoxButtons.YesNo);
                 msgBox.Tag = btn;
 
                 msgBox.Show();
-                msgBox.YesClicked += MsgBox_YesClicked;
-                msgBox.NoClicked += MsgBox_NoClicked;
+                msgBox.YesClickedAction = MsgBox_YesClicked;
             }
         }
 
-        private void MsgBox_NoClicked(object sender, EventArgs e)
+        private void MsgBox_YesClicked(XNAMessageBox messageBox)
         {
-            var msgBox = (XNAMessageBox)sender;
-            msgBox.YesClicked -= MsgBox_YesClicked;
-            msgBox.NoClicked -= MsgBox_NoClicked;
-        }
-
-        private void MsgBox_YesClicked(object sender, EventArgs e)
-        {
-            var msgBox = (XNAMessageBox)sender;
-            msgBox.YesClicked -= MsgBox_YesClicked;
-            msgBox.NoClicked -= MsgBox_NoClicked;
-
-            var btn = (XNAClientButton)msgBox.Tag;
+            var btn = (XNAClientButton)messageBox.Tag;
             btn.AllowClick = false;
 
             var cc = (CustomComponent)btn.Tag;

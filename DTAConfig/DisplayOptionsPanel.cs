@@ -417,21 +417,17 @@ namespace DTAConfig
                 string defaultGame = ClientConfiguration.Instance.LocalGame;
 
                 var messageBox = XNAMessageBox.ShowYesNoDialog(WindowManager, "New Compatibility Fix",
-                    "A performance-enhancing compatibility fix for Windows 8 and 10" + Environment.NewLine +
+                    "A performance-enhancing compatibility fix for modern Windows versions" + Environment.NewLine +
                     "has been included in this version of " + defaultGame + ". Enabling it requires" + Environment.NewLine +
                     "administrative priveleges. Would you like to install the compatibility fix?" + Environment.NewLine + Environment.NewLine + 
                     "You'll always be able to install or uninstall the compatibility fix later from the options menu.");
-                messageBox.YesClicked += MessageBox_YesClicked;
-                messageBox.NoClicked += MessageBox_NoClicked;
+                messageBox.YesClickedAction = MessageBox_YesClicked;
+                messageBox.NoClickedAction = MessageBox_NoClicked;
             }
         }
 
-        private void MessageBox_NoClicked(object sender, EventArgs e)
+        private void MessageBox_NoClicked(XNAMessageBox messageBox)
         {
-            var messageBox = (XNAMessageBox)sender;
-            messageBox.YesClicked -= MessageBox_YesClicked;
-            messageBox.NoClicked -= MessageBox_NoClicked;
-
             // Set compatibility fix declined flag in registry
             try
             {
@@ -451,12 +447,9 @@ namespace DTAConfig
             catch { }
         }
 
-        private void MessageBox_YesClicked(object sender, EventArgs e)
+        private void MessageBox_YesClicked(XNAMessageBox messageBox)
         {
-            var messageBox = (XNAMessageBox)sender;
-            messageBox.YesClicked -= MessageBox_YesClicked;
-            messageBox.NoClicked -= MessageBox_NoClicked;
-            BtnGameCompatibilityFix_LeftClick(sender, EventArgs.Empty);
+            BtnGameCompatibilityFix_LeftClick(messageBox, EventArgs.Empty);
         }
 
         private void BtnGameCompatibilityFix_LeftClick(object sender, EventArgs e)
