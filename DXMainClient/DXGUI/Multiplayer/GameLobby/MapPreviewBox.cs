@@ -88,9 +88,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private IniFile gameOptionsIni;
 
-        private PrioritizedSound sndClickSound;
+        private EnhancedSoundEffect sndClickSound;
 
-        private PrioritizedSound sndDropdownSound;
+        private EnhancedSoundEffect sndDropdownSound;
 
         public override void Initialize()
         {
@@ -147,9 +147,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             ClientRectangleUpdated += MapPreviewBox_ClientRectangleUpdated;
 
-            sndClickSound = new PrioritizedSound("button.wav");
+            sndClickSound = new EnhancedSoundEffect("button.wav");
 
-            sndDropdownSound = new PrioritizedSound("dropdown.wav");
+            sndDropdownSound = new EnhancedSoundEffect("dropdown.wav");
 
             base.Initialize();
         }

@@ -20,6 +20,11 @@
             <param name="name">The name of the texture.</param>
             <returns>The texture if it was found and could be loaded, otherwise a dummy texture.</returns>
         </member>
+        <member name="M:Rampastring.XNAUI.AssetLoader.CreateDummyTexture">
+            <summary>
+            Creates and returns a 100x100 pink square.
+            </summary>
+        </member>
         <member name="M:Rampastring.XNAUI.AssetLoader.AssetExists(System.String)">
             <summary>
             Checks if a specified asset file exists.
@@ -68,19 +73,19 @@
             <param name="controlTypeName">The name of the control class type to create.</param>
             <returns>A control of the specified type.</returns>
         </member>
-        <member name="T:Rampastring.XNAUI.PrioritizedSound">
+        <member name="T:Rampastring.XNAUI.EnhancedSoundEffect">
             <summary>
             A toggleable sound effect that can also have a defined priority
             and a decay rate for the priority.
             </summary>
         </member>
-        <member name="M:Rampastring.XNAUI.PrioritizedSound.#ctor(System.String)">
+        <member name="M:Rampastring.XNAUI.EnhancedSoundEffect.#ctor(System.String)">
             <summary>
             Creates a new prioritized sound. Loads the specified sound asset.
             </summary>
             <param name="assetName">The asset name of the sound file to load.</param>
         </member>
-        <member name="M:Rampastring.XNAUI.PrioritizedSound.#ctor(System.String,System.Double,System.Double,System.Single)">
+        <member name="M:Rampastring.XNAUI.EnhancedSoundEffect.#ctor(System.String,System.Double,System.Double,System.Single)">
             <summary>
             Creates a new prioritized sound. Loads the specified sound asset.
             </summary>
@@ -90,31 +95,31 @@
             <param name="repeatPrevention">If set above zero, will prevent the sound from being played again
             for the specified number of seconds after it has been played.</param>
         </member>
-        <member name="P:Rampastring.XNAUI.PrioritizedSound.Enabled">
+        <member name="P:Rampastring.XNAUI.EnhancedSoundEffect.Enabled">
             <summary>
             Gets or sets a bool that determines whether this sound is enabled.
             </summary>
         </member>
-        <member name="P:Rampastring.XNAUI.PrioritizedSound.Priority">
+        <member name="P:Rampastring.XNAUI.EnhancedSoundEffect.Priority">
             <summary>
             The priority of this sound.
             While this sound is playing, sounds with less priority than this sound's
             priority will not be played.
             </summary>
         </member>
-        <member name="P:Rampastring.XNAUI.PrioritizedSound.PriorityDecayRate">
+        <member name="P:Rampastring.XNAUI.EnhancedSoundEffect.PriorityDecayRate">
             <summary>
             The decay rate of this sound's priority.
             The sound's priority will be reduced by the specified number each second.
             </summary>
         </member>
-        <member name="P:Rampastring.XNAUI.PrioritizedSound.RepeatPrevention">
+        <member name="P:Rampastring.XNAUI.EnhancedSoundEffect.RepeatPrevention">
             <summary>
             If set above zero, will prevent the sound from being played again
             for the specified number of seconds after it has been played.
             </summary>
         </member>
-        <member name="M:Rampastring.XNAUI.PrioritizedSound.Play">
+        <member name="M:Rampastring.XNAUI.EnhancedSoundEffect.Play">
             <summary>
             Plays this sound if it's enabled.
             </summary>
@@ -135,29 +140,18 @@
             important sounds.
             </summary>
         </member>
-        <member name="M:Rampastring.XNAUI.SoundPlayer.Play(Rampastring.XNAUI.PrioritizedSound)">
+        <member name="M:Rampastring.XNAUI.SoundPlayer.Play(Rampastring.XNAUI.EnhancedSoundEffect)">
             <summary>
             Plays a sound.
             </summary>
             <param name="sound">The sound to play.</param>
         </member>
-        <member name="M:Rampastring.XNAUI.SoundPlayer.PlayWithVolume(System.Single,Rampastring.XNAUI.PrioritizedSound)">
+        <member name="M:Rampastring.XNAUI.SoundPlayer.PlayWithVolume(System.Single,Rampastring.XNAUI.EnhancedSoundEffect)">
             <summary>
             Plays a sound with the specified volume.
             </summary>
             <param name="volume">The volume that the sound will be played at.</param>
             <param name="sound">The sound to play.</param>
-        </member>
-        <member name="T:Rampastring.XNAUI.ToggleableSound">
-            <summary>
-            A wrapper around SoundEffectInstance that allows toggling
-            the sound on and off.
-            </summary>
-        </member>
-        <member name="M:Rampastring.XNAUI.ToggleableSound.Play">
-            <summary>
-            Plays the sound if it is enabled. Otherwise does nothing.
-            </summary>
         </member>
         <member name="T:Rampastring.XNAUI.XNAControls.XNALinkLabel">
             <summary>
@@ -172,6 +166,35 @@
         <member name="P:Rampastring.XNAUI.XNAControls.XNAListBoxItem.Tag">
             <summary>
             Stores optional custom data associated with the list box item.
+            </summary>
+        </member>
+        <member name="T:Rampastring.XNAUI.XNAControls.XNAPasswordBox">
+            <summary>
+            A text box that displays its characters as a different character 
+            (a star by default), regardless of what the characters actually are.
+            In other words, a text box for inputting passwords.
+            </summary>
+        </member>
+        <member name="P:Rampastring.XNAUI.XNAControls.XNAPasswordBox.VisibleChar">
+            <summary>
+            The character that is displayed in place of all other characters.
+            </summary>
+        </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNAPasswordBox.#ctor(Rampastring.XNAUI.WindowManager)">
+            <summary>
+            Creates a new XNAPasswordBox.
+            </summary>
+            <param name="wm">The WindowManager.</param>
+        </member>
+        <member name="P:Rampastring.XNAUI.XNAControls.XNAPasswordBox.Password">
+            <summary>
+            Gets or sets the real text of the password box.
+            </summary>
+        </member>
+        <member name="P:Rampastring.XNAUI.XNAControls.XNAPasswordBox.Text">
+            <summary>
+            Gets the visible string of the password box.
+            If set, changes the actual text / password in the box.
             </summary>
         </member>
         <member name="T:Rampastring.XNAUI.XNAControls.XNAScrollBar">
@@ -734,6 +757,18 @@
             Called when the mouse cursor leaves the control's client rectangle.
             </summary>
         </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNAControl.OnMouseLeftDown">
+            <summary>
+            Called once when the left mouse button is pressed down while the cursor
+            is on the control.
+            </summary>
+        </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNAControl.OnMouseRightDown">
+            <summary>
+            Called once when the right mouse button is pressed down while the cursor
+            is on the control.
+            </summary>
+        </member>
         <member name="M:Rampastring.XNAUI.XNAControls.XNAControl.OnLeftClick">
             <summary>
             Called when the left mouse button has been 
@@ -1170,11 +1205,6 @@
             <summary>
               Overrides the current thread's CurrentUICulture property for all
               resource lookups using this strongly typed resource class.
-            </summary>
-        </member>
-        <member name="P:Rampastring.XNAUI.Properties.Resources.hotbutton">
-            <summary>
-              Looks up a localized resource of type System.Drawing.Bitmap.
             </summary>
         </member>
         <member name="M:Rampastring.XNAUI.Renderer.GetSafeString(System.String,System.Int32)">

@@ -68,7 +68,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         private Texture2D unknownGameIcon;
         private Texture2D adminGameIcon;
 
-        private PrioritizedSound sndGameCreated;
+        private EnhancedSoundEffect sndGameCreated;
 
         private IRCColor[] chatColors;
 
@@ -308,7 +308,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         private void PostUIInit()
         {
-            sndGameCreated = new PrioritizedSound("gamecreated.wav");
+            sndGameCreated = new EnhancedSoundEffect("gamecreated.wav");
 
             cAdminNameColor = AssetLoader.GetColorFromString(ClientConfiguration.Instance.AdminNameColor);
             unknownGameIcon = AssetLoader.TextureFromImage(ClientCore.Properties.Resources.unknownicon);
@@ -487,10 +487,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             loginWindow.Disable();
 
             SetLogOutButtonText();
-            try
-            {
-                StatisticsSender.Instance.SendCnCNet();
-            } catch { }
+            StatisticsSender.Instance.SendCnCNet();
         }
 
         /// <summary>

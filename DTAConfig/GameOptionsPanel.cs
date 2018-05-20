@@ -11,6 +11,7 @@ namespace DTAConfig
     {
         private const int TEXT_BACKGROUND_COLOR_TRANSPARENT = 0;
         private const int TEXT_BACKGROUND_COLOR_BLACK = 12;
+        private const int MAX_SCROLL_RATE = 6;
 
         public GameOptionsPanel(WindowManager windowManager, UserINISettings iniSettings, XNAControl topBar)
             : base(windowManager, iniSettings)
@@ -69,7 +70,7 @@ namespace DTAConfig
                 22);
             trbScrollRate.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 128), 2, 2);
             trbScrollRate.MinValue = 0;
-            trbScrollRate.MaxValue = 6;
+            trbScrollRate.MaxValue = MAX_SCROLL_RATE;
             trbScrollRate.ValueChanged += TrbScrollRate_ValueChanged;
 
             chkScrollCoasting = new XNAClientCheckBox(WindowManager);
@@ -270,7 +271,7 @@ namespace DTAConfig
 
         private int ReverseScrollRate(int scrollRate)
         {
-            return Math.Abs(scrollRate - 6);
+            return Math.Abs(scrollRate - MAX_SCROLL_RATE);
         }
     }
 }

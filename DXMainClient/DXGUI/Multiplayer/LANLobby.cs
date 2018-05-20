@@ -72,7 +72,7 @@ namespace DTAClient.DXGUI.Multiplayer
 
         TimeSpan timeSinceGameRefresh = TimeSpan.Zero;
 
-        ToggleableSound sndGameCreated;
+        EnhancedSoundEffect sndGameCreated;
 
         Socket socket;
         IPEndPoint endPoint;
@@ -210,10 +210,7 @@ namespace DTAClient.DXGUI.Multiplayer
 
             unknownGameIcon = AssetLoader.TextureFromImage(ClientCore.Properties.Resources.unknownicon);
 
-            SoundEffect gameCreatedSoundEffect = AssetLoader.LoadSound("gamecreated.wav");
-
-            if (gameCreatedSoundEffect != null)
-                sndGameCreated = new ToggleableSound(gameCreatedSoundEffect.CreateInstance());
+            sndGameCreated = new EnhancedSoundEffect("gamecreated.wav");
 
             encoding = Encoding.UTF8;
 
@@ -247,10 +244,6 @@ namespace DTAClient.DXGUI.Multiplayer
             lanGameLoadingLobby.GameLeft += LanGameLoadingLobby_GameLeft;
 
             WindowManager.GameClosing += WindowManager_GameClosing;
-
-            lbChatMessages.AddMessage(null, "Please note that LAN game support is currently work-in-progress. " +
-                "While basic functionality should work, it is possible that you'll encounter various kinds of bugs and possibly even crashes. Please report all issues to the client lead developer (Rampastring) at " +
-                "http://www.moddb.com/members/rampastring so we can fix the issues for future builds.", Color.Yellow);
         }
 
         private void LanGameLoadingLobby_GameLeft(object sender, EventArgs e)

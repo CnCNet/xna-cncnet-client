@@ -50,10 +50,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         protected bool Locked = false;
 
-        protected PrioritizedSound sndJoinSound;
-        protected PrioritizedSound sndLeaveSound;
-        protected PrioritizedSound sndMessageSound;
-        protected PrioritizedSound sndGetReadySound;
+        protected EnhancedSoundEffect sndJoinSound;
+        protected EnhancedSoundEffect sndLeaveSound;
+        protected EnhancedSoundEffect sndMessageSound;
+        protected EnhancedSoundEffect sndGetReadySound;
 
         protected TopBar TopBar;
 
@@ -139,8 +139,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             lbChatMessages.DrawMode = PanelBackgroundImageDrawMode.STRETCHED;
             lbChatMessages.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 128), 1, 1);
             lbChatMessages.LineHeight = 16;
-            lbChatMessages.DrawOrder = 1;
-            lbChatMessages.UpdateOrder = 1;
+            lbChatMessages.DrawOrder = -1;
+            lbChatMessages.UpdateOrder = -1;
 
             tbChatInput = new XNASuggestionTextBox(WindowManager);
             tbChatInput.Name = "tbChatInput";
@@ -169,10 +169,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             InitializeWindow();
 
-            sndJoinSound = new PrioritizedSound("joingame.wav");
-            sndLeaveSound = new PrioritizedSound("leavegame.wav");
-            sndMessageSound = new PrioritizedSound("message.wav");
-            sndGetReadySound = new PrioritizedSound("getready.wav", 0.0, 0.0, 5.0f);
+            sndJoinSound = new EnhancedSoundEffect("joingame.wav");
+            sndLeaveSound = new EnhancedSoundEffect("leavegame.wav");
+            sndMessageSound = new EnhancedSoundEffect("message.wav");
+            sndGetReadySound = new EnhancedSoundEffect("getready.wav", 0.0, 0.0, 5.0f);
 
             if (SavedGameManager.AreSavedGamesAvailable())
             {

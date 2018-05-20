@@ -207,8 +207,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         PrivateMessageNotificationBox notificationBox;
 
-        ToggleableSound sndPrivateMessageSound;
-        ToggleableSound sndMessageSound;
+        EnhancedSoundEffect sndPrivateMessageSound;
+        EnhancedSoundEffect sndMessageSound;
 
         /// <summary>
         /// Because the user cannot view PMs during a game, we store the latest
@@ -330,21 +330,11 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             connectionManager.PrivateMessageReceived += ConnectionManager_PrivateMessageReceived;
 
-            SoundEffect seMessageSound = AssetLoader.LoadSound("message.wav");
+            EnhancedSoundEffect seMessageSound = new EnhancedSoundEffect("message.wav");
 
-            SoundEffect sePrivateMessageSound = AssetLoader.LoadSound("pm.wav");
+            EnhancedSoundEffect sePrivateMessageSound = new EnhancedSoundEffect("pm.wav");
 
-            if (sePrivateMessageSound != null)
-            {
-                sndPrivateMessageSound = new ToggleableSound(sePrivateMessageSound.CreateInstance());
-                sndPrivateMessageSound.Enabled = true;
-            }
-
-            if (seMessageSound != null)
-            {
-                sndMessageSound = new ToggleableSound(seMessageSound.CreateInstance());
-                sndMessageSound.Enabled = UserINISettings.Instance.MessageSound;
-            }
+            seMessageSound.Enabled = UserINISettings.Instance.MessageSound;
 
             GameProcessLogic.GameProcessExited += SharedUILogic_GameProcessExited;
         }
