@@ -15,9 +15,10 @@ namespace DTAClient.DXGUI.Multiplayer
     {
         public ChatListBox(WindowManager windowManager) : base(windowManager)
         {
+            DoubleLeftClick += ChatListBox_DoubleLeftClick;
         }
 
-        public override void OnDoubleLeftClick()
+        private void ChatListBox_DoubleLeftClick(object sender, EventArgs e)
         {
             if (SelectedIndex < 0 || SelectedIndex >= Items.Count)
                 return;
@@ -37,8 +38,6 @@ namespace DTAClient.DXGUI.Multiplayer
             link = link.Split(' ')[0]; // Nuke any words coming after the link
 
             Process.Start(link);
-
-            base.OnDoubleLeftClick();
         }
 
         public void AddMessage(string sender, string message, Color color)
