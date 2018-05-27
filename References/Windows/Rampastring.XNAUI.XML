@@ -4,6 +4,24 @@
         <name>Rampastring.XNAUI</name>
     </assembly>
     <members>
+        <member name="T:Rampastring.XNAUI.AssetLoader">
+            <summary>
+            A static class that provides easy-to-use methods
+            for loading and generating assets such as textures and sounds.
+            </summary>
+        </member>
+        <member name="F:Rampastring.XNAUI.AssetLoader.AssetSearchPaths">
+            <summary>
+            A list of filesystem paths that assets are attempted to load from.
+            </summary>
+        </member>
+        <member name="M:Rampastring.XNAUI.AssetLoader.Initialize(Microsoft.Xna.Framework.Graphics.GraphicsDevice,Microsoft.Xna.Framework.Content.ContentManager)">
+            <summary>
+            Initializes the AssetLoader.
+            </summary>
+            <param name="gd">The graphics device.</param>
+            <param name="content">The game content manager.</param>
+        </member>
         <member name="M:Rampastring.XNAUI.AssetLoader.LoadTexture(System.String)">
             <summary>
             Loads a texture with the specific name. If the texture isn't found from any
@@ -29,7 +47,7 @@
             <summary>
             Checks if a specified asset file exists.
             </summary>
-            <param name="name"></param>
+            <param name="name">The name of the asset file.</param>
             <returns></returns>
         </member>
         <member name="M:Rampastring.XNAUI.AssetLoader.CreateTexture(Microsoft.Xna.Framework.Color,System.Int32,System.Int32)">
@@ -40,6 +58,28 @@
             <param name="width">The width of the texture in pixels.</param>
             <param name="height">The height of the texture in pixels.</param>
             <returns>A texture.</returns>
+        </member>
+        <member name="M:Rampastring.XNAUI.AssetLoader.TextureFromImage(System.Drawing.Image)">
+            <summary>
+            Creates a texture from a <see cref="T:System.Drawing.Image"/>.
+            Returns null if creating the texture fails.
+            </summary>
+            <param name="image">The image.</param>
+            <returns>The created texture, or null if creating the texture fails.</returns>
+        </member>
+        <member name="M:Rampastring.XNAUI.AssetLoader.LoadSound(System.String)">
+            <summary>
+            Loads a sound effect with the given name.
+            </summary>
+            <param name="name">The name of the sound effect.</param>
+            <returns>The loaded sound effect, or null if the sound effect isn't found.</returns>
+        </member>
+        <member name="M:Rampastring.XNAUI.AssetLoader.LoadSong(System.String)">
+            <summary>
+            Loads a <see cref="T:Microsoft.Xna.Framework.Media.Song"/> with the specified name.
+            </summary>
+            <param name="name">The name of the song.</param>
+            <returns>The loaded song, or null if loading the song fails.</returns>
         </member>
         <member name="M:Rampastring.XNAUI.AssetLoader.GetColorFromString(System.String)">
             <summary>
@@ -131,6 +171,77 @@
             </summary>
             <param name="gameTime">Tells how much time has passed since the previous frame.</param>
             <returns>True if the sound effect is still playing, otherwise false.</returns>
+        </member>
+        <member name="T:Rampastring.XNAUI.PlatformSpecific.WindowsGameWindowManager">
+            <summary>
+            Manages the game window on Windows.
+            </summary>
+        </member>
+        <member name="M:Rampastring.XNAUI.PlatformSpecific.WindowsGameWindowManager.CenterOnScreen">
+            <summary>
+            Centers the game window on the screen.
+            </summary>
+        </member>
+        <member name="M:Rampastring.XNAUI.PlatformSpecific.WindowsGameWindowManager.SetBorderlessMode(System.Boolean)">
+            <summary>
+            Enables or disables borderless windowed mode.
+            </summary>
+            <param name="value">A boolean that determines whether borderless 
+            windowed mode should be enabled.</param>
+        </member>
+        <member name="M:Rampastring.XNAUI.PlatformSpecific.WindowsGameWindowManager.MinimizeWindow">
+            <summary>
+            Minimizes the game window.
+            </summary>
+        </member>
+        <member name="M:Rampastring.XNAUI.PlatformSpecific.WindowsGameWindowManager.MaximizeWindow">
+            <summary>
+            Maximizes the game window.
+            </summary>
+        </member>
+        <member name="M:Rampastring.XNAUI.PlatformSpecific.WindowsGameWindowManager.HideWindow">
+            <summary>
+            Hides the game window.
+            </summary>
+        </member>
+        <member name="M:Rampastring.XNAUI.PlatformSpecific.WindowsGameWindowManager.ShowWindow">
+            <summary>
+            Shows the game window.
+            </summary>
+        </member>
+        <member name="M:Rampastring.XNAUI.PlatformSpecific.WindowsGameWindowManager.FlashWindow">
+            <summary>
+            Flashes the game window on the taskbar.
+            </summary>
+        </member>
+        <member name="M:Rampastring.XNAUI.PlatformSpecific.WindowsGameWindowManager.SetIcon(System.String)">
+            <summary>
+            Sets the icon of the game window to an icon that exists on a specific
+            file path.
+            </summary>
+            <param name="path">The path to the icon file.</param>
+        </member>
+        <member name="M:Rampastring.XNAUI.PlatformSpecific.WindowsGameWindowManager.GetWindowHandle">
+            <summary>
+            Returns the IntPtr handle of the game window on Windows.
+            On other platforms, returns IntPtr.Zero.
+            </summary>
+        </member>
+        <member name="M:Rampastring.XNAUI.PlatformSpecific.WindowsGameWindowManager.SetControlBox(System.Boolean)">
+            <summary>
+            Enables or disables the "control box" (minimize/maximize/close buttons) for the game form.
+            </summary>
+            <param name="value">True to enable the control box, false to disable it.</param>
+        </member>
+        <member name="M:Rampastring.XNAUI.PlatformSpecific.WindowsGameWindowManager.PreventClosing">
+            <summary>
+            Prevents the user from closing the game form by Alt-F4.
+            </summary>
+        </member>
+        <member name="M:Rampastring.XNAUI.PlatformSpecific.WindowsGameWindowManager.AllowClosing">
+            <summary>
+            Allows the user to close the game form by Alt-F4.
+            </summary>
         </member>
         <member name="T:Rampastring.XNAUI.SoundPlayer">
             <summary>
@@ -538,9 +649,83 @@
             Gets the window manager associated with this control.
             </summary>
         </member>
+        <member name="E:Rampastring.XNAUI.XNAControls.XNAControl.MouseEnter">
+            <summary>
+            Raised when the mouse cursor enters the control's area.
+            </summary>
+        </member>
+        <member name="E:Rampastring.XNAUI.XNAControls.XNAControl.MouseLeftDown">
+            <summary>
+            Raised once when the left mouse button is pressed down while the
+            cursor is inside the control's area.
+            </summary>
+        </member>
+        <member name="E:Rampastring.XNAUI.XNAControls.XNAControl.MouseRightDown">
+            <summary>
+            Raised once when the right mouse button is pressed down while the
+            cursor is inside the control's area.
+            </summary>
+        </member>
+        <member name="E:Rampastring.XNAUI.XNAControls.XNAControl.MouseLeave">
+            <summary>
+            Raised when the mouse cursor leaves the control's area.
+            </summary>
+        </member>
+        <member name="E:Rampastring.XNAUI.XNAControls.XNAControl.MouseMove">
+            <summary>
+            Raised when the mouse cusor moves while inside the control's area.
+            </summary>
+        </member>
+        <member name="E:Rampastring.XNAUI.XNAControls.XNAControl.MouseScrolled">
+            <summary>
+            Raised when the scroll wheel is used while the cursor is inside
+            the control.
+            </summary>
+        </member>
+        <member name="E:Rampastring.XNAUI.XNAControls.XNAControl.LeftClick">
+            <summary>
+            Raised when the left mouse button is clicked (pressed and released)
+            while the cursor is inside the control's area.
+            </summary>
+        </member>
+        <member name="E:Rampastring.XNAUI.XNAControls.XNAControl.DoubleLeftClick">
+            <summary>
+            Raised when the left mouse button is clicked twice in a short
+            time-frame while the cursor is inside the control's area.
+            </summary>
+        </member>
+        <member name="E:Rampastring.XNAUI.XNAControls.XNAControl.RightClick">
+            <summary>
+            Raised when the right mouse button is clicked (pressed and released)
+            while the cursor is inside the control's area.
+            </summary>
+        </member>
+        <member name="E:Rampastring.XNAUI.XNAControls.XNAControl.ClientRectangleUpdated">
+            <summary>
+            Raised when the control's client rectangle is changed.
+            </summary>
+        </member>
+        <member name="E:Rampastring.XNAUI.XNAControls.XNAControl.SelectedChanged">
+            <summary>
+            Raised when the control is selected or un-selected.
+            </summary>
+        </member>
+        <member name="E:Rampastring.XNAUI.XNAControls.XNAControl.ParentChanged">
+            <summary>
+            Raised when the control's parent is changed.
+            </summary>
+        </member>
         <member name="P:Rampastring.XNAUI.XNAControls.XNAControl.Parent">
             <summary>
             Gets or sets the parent of this control.
+            </summary>
+        </member>
+        <member name="P:Rampastring.XNAUI.XNAControls.XNAControl.Detached">
+            <summary>
+            Set if the control is detached from its parent.
+            A detached control's mouse input is handled independently
+            from its parent, ie. it can grow beyond its parent's area
+            rectangle and still handle input correctly.
             </summary>
         </member>
         <member name="P:Rampastring.XNAUI.XNAControls.XNAControl.Cursor">
@@ -565,12 +750,6 @@
             Call the AddChild method to add children to the control.
             </summary>
         </member>
-        <member name="P:Rampastring.XNAUI.XNAControls.XNAControl.Name">
-            <summary>
-            Gets or sets the name of this control. The name is only an identifier
-            and does not affect functionality.
-            </summary>
-        </member>
         <member name="P:Rampastring.XNAUI.XNAControls.XNAControl.ClientRectangle">
             <summary>
             The display rectangle of the control inside its parent.
@@ -578,22 +757,22 @@
         </member>
         <member name="P:Rampastring.XNAUI.XNAControls.XNAControl.X">
             <summary>
-            Shortcut for accessing and changing ClientRectangle.X.
+            The X-coordinate of the control relative to its parent's location.
             </summary>
         </member>
         <member name="P:Rampastring.XNAUI.XNAControls.XNAControl.Y">
             <summary>
-            Shortcut for accessing and changing ClientRectangle.Y.
+            The Y-coordinate of the control relative to its parent's location.
             </summary>
         </member>
         <member name="P:Rampastring.XNAUI.XNAControls.XNAControl.Width">
             <summary>
-            Shortcut for accessing and changing ClientRectangle.Width.
+            The width of the control.
             </summary>
         </member>
         <member name="P:Rampastring.XNAUI.XNAControls.XNAControl.Height">
             <summary>
-            Shortcut for accessing and changing ClientRectangle.Height.
+            The height of the control.
             </summary>
         </member>
         <member name="P:Rampastring.XNAUI.XNAControls.XNAControl.Bottom">
@@ -604,6 +783,12 @@
         <member name="P:Rampastring.XNAUI.XNAControls.XNAControl.Right">
             <summary>
             Shortcut for accessing ClientRectangle.Right.
+            </summary>
+        </member>
+        <member name="P:Rampastring.XNAUI.XNAControls.XNAControl.Name">
+            <summary>
+            Gets or sets the name of this control. The name is only an identifier
+            and does not affect functionality.
             </summary>
         </member>
         <member name="P:Rampastring.XNAUI.XNAControls.XNAControl.Focused">
@@ -652,6 +837,17 @@
         <member name="M:Rampastring.XNAUI.XNAControls.XNAControl.CenterOnParentHorizontally">
             <summary>
             Centers the control horizontally on the middle of its parent's client rectangle.
+            </summary>
+        </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNAControl.Detach">
+            <summary>
+            Detaches the control from its parent.
+            See <see cref="P:Rampastring.XNAUI.XNAControls.XNAControl.Detached"/>.
+            </summary>
+        </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNAControl.Attach">
+            <summary>
+            Attaches the control to its parent.
             </summary>
         </member>
         <member name="M:Rampastring.XNAUI.XNAControls.XNAControl.GetCursorPoint">
@@ -1000,6 +1196,20 @@
             A list box with multiple columns.
             </summary>
         </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNAMultiColumnListBox.#ctor(Rampastring.XNAUI.WindowManager)">
+            <summary>
+            Creates a new multi-column list box.
+            </summary>
+            <param name="windowManager">The WindowManager.</param>
+        </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNAMultiColumnListBox.XNAMultiColumnListBox_ClientRectangleUpdated(System.Object,System.EventArgs)">
+            <summary>
+            Adjusts the positions and sizes of the columns
+            when the size of the list box is changed.
+            </summary>
+            <param name="sender"></param>
+            <param name="e"></param>
+        </member>
         <member name="P:Rampastring.XNAUI.XNAControls.XNAMultiColumnListBox.SelectedIndex">
             <summary>
             Gets or sets the index of the currently selected list box item.
@@ -1227,7 +1437,8 @@
         </member>
         <member name="T:Rampastring.XNAUI.WindowManager">
             <summary>
-            Manages the game window and all of the game's controls.
+            Manages the game window and all of the game's controls
+            inside the game window.
             </summary>
         </member>
         <member name="M:Rampastring.XNAUI.WindowManager.#ctor(Microsoft.Xna.Framework.Game,Microsoft.Xna.Framework.GraphicsDeviceManager)">
@@ -1333,6 +1544,14 @@
             </summary>
             <param name="control">The control to add.</param>
         </member>
+        <member name="M:Rampastring.XNAUI.WindowManager.AddControl(Rampastring.XNAUI.XNAControls.XNAControl)">
+            <summary>
+            Adds a control to the WindowManager, on the last place
+            in the list of controls. Does not call the control's
+            Initialize() method.
+            </summary>
+            <param name="control">The control to add.</param>
+        </member>
         <member name="M:Rampastring.XNAUI.WindowManager.InsertAndInitializeControl(Rampastring.XNAUI.XNAControls.XNAControl)">
             <summary>
             Inserts a control into the WindowManager on the first place
@@ -1360,7 +1579,7 @@
         </member>
         <member name="M:Rampastring.XNAUI.WindowManager.FlashWindow">
             <summary>
-            Flashes the game window on the taskbar (Windows only).
+            Flashes the game window on the taskbar.
             </summary>
         </member>
         <member name="M:Rampastring.XNAUI.WindowManager.SetIcon(System.String)">
@@ -1391,6 +1610,12 @@
             <summary>
             Allows the user to close the game form by Alt-F4.
             </summary>
+        </member>
+        <member name="M:Rampastring.XNAUI.WindowManager.RemoveControl(Rampastring.XNAUI.XNAControls.XNAControl)">
+            <summary>
+            Removes a control from the window manager.
+            </summary>
+            <param name="control">The control to remove.</param>
         </member>
         <member name="M:Rampastring.XNAUI.WindowManager.SetVSync(System.Boolean)">
             <summary>
