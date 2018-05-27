@@ -25,6 +25,11 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
             ThreadPool.QueueUserWorkItem(new WaitCallback(RunService), cts);
         }
 
+        public static void ForceRefresh()
+        {
+            CnCNetGameCountUpdated?.Invoke(null, new PlayerCountEventArgs(GetCnCNetPlayerCount()));
+        }
+
         private static void RunService(object tokenObj)
         {
             var waitHandle = ((CancellationTokenSource)tokenObj).Token.WaitHandle;

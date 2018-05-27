@@ -53,6 +53,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         private XNALabel lblColor;
         private XNALabel lblCurrentChannel;
+        private XNALabel lblOnline;
 
         private XNAClientDropDown ddColor;
         private XNAClientDropDown ddCurrentChannel;
@@ -94,6 +95,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         private List<string> followedGames = new List<string>();
 
         private bool isJoiningGame = false;
+        private static readonly object locker = new object();
 
         public override void Initialize()
         {
@@ -224,6 +226,12 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             lblCurrentChannel.FontIndex = 1;
             lblCurrentChannel.Text = "CURRENT CHANNEL:";
 
+            lblOnline = new XNALabel(WindowManager);
+            lblOnline.Name = "lblOnline";
+            lblOnline.ClientRectangle = new Rectangle(310, 14, 0, 0);
+            lblOnline.FontIndex = 1;
+            lblOnline.Text = "";
+
             InitializeGameList();
 
             AddChild(btnNewGame);
@@ -239,12 +247,24 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             AddChild(lblCurrentChannel);
             AddChild(ddCurrentChannel);
             AddChild(playerContextMenu);
+            AddChild(lblOnline);
+
+            CnCNetPlayerCountTask.CnCNetGameCountUpdated += OnCnCNetGameCountUpdated;
+            CnCNetPlayerCountTask.ForceRefresh();
 
             base.Initialize();
 
             WindowManager.CenterControlOnScreen(this);
 
             PostUIInit();
+        }
+
+        private void OnCnCNetGameCountUpdated(object sender, PlayerCountEventArgs e)
+        {
+            lock (locker)
+            {
+                lblOnline.Text = "Online: " + e.PlayerCount.ToString();
+            }
         }
 
         private void InitializeGameList()
