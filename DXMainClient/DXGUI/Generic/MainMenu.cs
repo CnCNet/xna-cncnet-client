@@ -415,7 +415,7 @@ namespace DTAClient.DXGUI.Generic
 #if YR
             try
             {
-                File.Delete(ProgramConstants.GamePath + "ddraw.dll");
+                System.IO.File.Delete(ProgramConstants.GamePath + "ddraw.dll");
             }
             catch
             {
