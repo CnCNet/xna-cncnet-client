@@ -48,7 +48,7 @@ copy ClientGUI.dll %oglBinaries%ClientGUI.dll
 copy DTAConfig.dll %oglBinaries%DTAConfig.dll
 copy MonoGame.Framework.dll %oglBinaries%MonoGame.Framework.dll
 copy NVorbis.dll %oglBinaries%NVorbis.dll
-copy OpenTK.dll %oglBinaries%OpenTK.dll
+copy ..\..\..\..\References\WindowsGL\OpenTK.dll %oglBinaries%OpenTK.dll
 copy Rampastring.XNAUI.dll %oglBinaries%Rampastring.XNAUI.dll
 
 echo XNA
