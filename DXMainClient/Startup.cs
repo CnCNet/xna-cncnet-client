@@ -152,26 +152,48 @@ namespace DTAClient
         /// </summary>
         private static void GenerateOnlineId()
         {
-            ManagementObjectCollection mbsList = null;
-            ManagementObjectSearcher mbs = new ManagementObjectSearcher("Select * From Win32_processor");
-            mbsList = mbs.Get();
-            string cpuid = "";
-            foreach (ManagementObject mo in mbsList)
+            try
             {
-                cpuid = mo["ProcessorID"].ToString();
-            }
+                ManagementObjectCollection mbsList = null;
+                ManagementObjectSearcher mbs = new ManagementObjectSearcher("Select * From Win32_processor");
+                mbsList = mbs.Get();
+                string cpuid = "";
+                foreach (ManagementObject mo in mbsList)
+                {
+                    cpuid = mo["ProcessorID"].ToString();
+                }
 
-            ManagementObjectSearcher mos = new ManagementObjectSearcher("SELECT * FROM Win32_BaseBoard");
-            ManagementObjectCollection moc = mos.Get();
-            string mbid = "";
-            foreach (ManagementObject mo in moc)
+                ManagementObjectSearcher mos = new ManagementObjectSearcher("SELECT * FROM Win32_BaseBoard");
+                ManagementObjectCollection moc = mos.Get();
+                string mbid = "";
+                foreach (ManagementObject mo in moc)
+                {
+                    mbid = (string)mo["SerialNumber"];
+                }
+
+                string sid = new SecurityIdentifier((byte[])new DirectoryEntry(string.Format("WinNT://{0},Computer", Environment.MachineName)).Children.Cast<DirectoryEntry>().First().InvokeGet("objectSID"), 0).AccountDomainSid.Value;
+
+                Connection.SetId(cpuid + mbid + sid);
+            }
+            catch (Exception ex)
             {
-                mbid = (string)mo["SerialNumber"];
-            }
+                Random rn = new Random();
 
-            string sid = new SecurityIdentifier((byte[])new DirectoryEntry(string.Format("WinNT://{0},Computer", Environment.MachineName)).Children.Cast<DirectoryEntry>().First().InvokeGet("objectSID"), 0).AccountDomainSid.Value;
+                RegistryKey key;
+                key = Registry.CurrentUser.CreateSubKey("SOFTWARE\\" + ClientConfiguration.Instance.InstallationPathRegKey);
+                string str;
+                Object o = key.GetValue("Ident");
+                if (o == null)
+                {
+                    str = rn.Next(Int32.MaxValue - 1).ToString();
+                    key.SetValue("Ident", str);
+                }
+                else
+                    str = o.ToString();
 
-            Connection.SetId(cpuid + mbid + sid);
+                key.Close();
+                Connection.SetId(str);
+           }
         }
 
         /// <summary>
