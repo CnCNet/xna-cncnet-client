@@ -330,11 +330,11 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             connectionManager.PrivateMessageReceived += ConnectionManager_PrivateMessageReceived;
 
-            EnhancedSoundEffect seMessageSound = new EnhancedSoundEffect("message.wav");
+            sndMessageSound = new EnhancedSoundEffect("message.wav");
 
-            EnhancedSoundEffect sePrivateMessageSound = new EnhancedSoundEffect("pm.wav");
+            sndPrivateMessageSound = new EnhancedSoundEffect("pm.wav");
 
-            seMessageSound.Enabled = UserINISettings.Instance.MessageSound;
+            sndMessageSound.Enabled = UserINISettings.Instance.MessageSound;
 
             GameProcessLogic.GameProcessExited += SharedUILogic_GameProcessExited;
         }
