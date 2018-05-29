@@ -175,7 +175,7 @@ namespace DTAClient
 
                 Connection.SetId(cpuid + mbid + sid);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 Random rn = new Random();
 
