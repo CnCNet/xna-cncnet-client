@@ -487,11 +487,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             loginWindow.Disable();
 
             SetLogOutButtonText();
-            try
-            {
-                StatisticsSender.Instance.SendCnCNet();
-            }
-            catch { }
+            StatisticsSender.Instance.SendCnCNet();
         }
 
         /// <summary>

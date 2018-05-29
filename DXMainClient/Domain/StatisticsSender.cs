@@ -27,9 +27,9 @@ namespace DTAClient.Domain
 
         private StatisticsSender()
         {
-            UserAgentHandler.ChangeUserAgent();
-            wb = new WebBrowser();
-            wb.ScriptErrorsSuppressed = true;
+            //UserAgentHandler.ChangeUserAgent();
+            //wb = new WebBrowser();
+            //wb.ScriptErrorsSuppressed = true;
 
             var gameUrlInfos = new GameURLInfo[]
             {
@@ -47,7 +47,7 @@ namespace DTAClient.Domain
 
         private List<GameURLInfo> urlInfos;
 
-        private WebBrowser wb;
+        //private WebBrowser wb;
 
         private GameURLInfo myGameInfo;
 
