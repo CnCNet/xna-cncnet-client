@@ -13,18 +13,15 @@ namespace ClientGUI
     /// A sub-window to be displayed inside the game window.
     /// Supports easy reading of child controls' attributes from an INI file.
     /// </summary>
-    public class XNAWindow : XNAPanel
+    public class XNAWindow : XNAWindowBase
     {
         private const string GENERIC_WINDOW_INI = "GenericWindow.ini";
         private const string GENERIC_WINDOW_SECTION = "GenericWindow";
-        private const string EXTRA_PICTURE_BOXES = "ExtraPictureBoxes";
         private const string EXTRA_CONTROLS = "ExtraControls";
 
         public XNAWindow(WindowManager windowManager) : base(windowManager)
         {
         }
-
-        private static readonly ClientGUICreator guiCreator = new ClientGUICreator();
 
         /// <summary>
         /// The INI file that was used for theming this window.
@@ -39,7 +36,7 @@ namespace ClientGUI
             }
         }
 
-        protected void SetAttributesFromIni()
+        protected virtual void SetAttributesFromIni()
         {
             if (File.Exists(ProgramConstants.GetResourcePath() + Name + ".ini"))
                 GetINIAttributes(new CCIniFile(ProgramConstants.GetResourcePath() + Name + ".ini"));
@@ -51,7 +48,10 @@ namespace ClientGUI
                 GetINIAttributes(new CCIniFile(ProgramConstants.GetBaseResourcePath() + GENERIC_WINDOW_INI));
         }
 
-        private void GetINIAttributes(IniFile iniFile)
+        /// <summary>
+        /// Reads this window's attributes from an INI file.
+        /// </summary>
+        protected virtual void GetINIAttributes(IniFile iniFile)
         {
             ThemeIni = iniFile;
 
@@ -73,32 +73,7 @@ namespace ClientGUI
                 }
             }
 
-            List<string> extraControls = iniFile.GetSectionKeys(EXTRA_CONTROLS);
-
-            if (extraControls != null)
-            {
-                foreach (string key in extraControls)
-                {
-                    string line = iniFile.GetStringValue(EXTRA_CONTROLS, key, string.Empty);
-                    string[] parts = line.Split(':');
-                    if (parts.Length != 2)
-                        throw new Exception("Invalid ExtraControl specified in " + Name + ": " + line);
-
-                    if (!Children.Any(child => child.Name == parts[0]))
-                    {
-                        var control = guiCreator.CreateControl(WindowManager, parts[1]);
-                        control.Name = parts[0];
-                        control.DrawOrder = -Children.Count;
-                        AddChild(control);
-                    }
-                }
-            }
-
-            foreach (XNAControl child in Children)
-            {
-                if (!(child is XNAWindow))
-                    child.GetAttributes(iniFile);
-            }
+            ParseExtraControls(iniFile, EXTRA_CONTROLS);
         }
 
         public override void Initialize()

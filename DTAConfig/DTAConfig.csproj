@@ -19,7 +19,7 @@
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>bin\Windows\Debug\</OutputPath>
-    <DefineConstants>TRACE;DEBUG;DTA</DefineConstants>
+    <DefineConstants>TRACE;DEBUG;TI</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
@@ -243,18 +243,19 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AudioOptionsPanel.cs" />
-    <Compile Include="CnCNetOptionsPanel.cs" />
-    <Compile Include="ComponentsPanel.cs" />
-    <Compile Include="DisplayOptionsPanel.cs" />
-    <Compile Include="GameOptionsPanel.cs" />
+    <Compile Include="OptionPanels\AudioOptionsPanel.cs" />
+    <Compile Include="OptionPanels\CnCNetOptionsPanel.cs" />
+    <Compile Include="OptionPanels\ComponentsPanel.cs" />
+    <Compile Include="OptionPanels\DisplayOptionsPanel.cs" />
+    <Compile Include="OptionPanels\GameOptionsPanel.cs" />
     <Compile Include="HotkeyConfigurationWindow.cs" />
-    <Compile Include="MIXSettingCheckBox.cs" />
+    <Compile Include="FileSettingCheckBox.cs" />
+    <Compile Include="OptionsGUICreator.cs" />
     <Compile Include="OptionsWindow.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="DirectDrawWrapper.cs" />
-    <Compile Include="UpdaterOptionsPanel.cs" />
-    <Compile Include="XNAOptionsPanel.cs" />
+    <Compile Include="OptionPanels\UpdaterOptionsPanel.cs" />
+    <Compile Include="OptionPanels\XNAOptionsPanel.cs" />
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>

@@ -1,6 +1,7 @@
 ﻿using ClientCore;
 using ClientCore.CnCNet5;
 using ClientGUI;
+using DTAConfig.OptionPanels;
 using Microsoft.Xna.Framework;
 using Rampastring.Tools;
 using Rampastring.XNAUI;
@@ -92,6 +93,21 @@ namespace DTAConfig
             base.Initialize();
 
             CenterOnParent();
+        }
+
+        /// <summary>
+        /// Parses extra options defined by the modder
+        /// from an INI file. Called from XNAWindow.SetAttributesFromINI.
+        /// </summary>
+        /// <param name="iniFile">The INI file.</param>
+        protected override void GetINIAttributes(IniFile iniFile)
+        {
+            base.GetINIAttributes(iniFile);
+
+            foreach (var panel in optionsPanels)
+            {
+                panel.ParseUserOptions(iniFile);
+            }
         }
 
         private void TabControl_SelectedIndexChanged(object sender, EventArgs e)

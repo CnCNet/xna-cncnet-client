@@ -6,7 +6,7 @@ using Rampastring.XNAUI.XNAControls;
 using System;
 using System.Collections.Generic;
 
-namespace DTAConfig
+namespace DTAConfig.OptionPanels
 {
     class AudioOptionsPanel : XNAOptionsPanel
     {
@@ -30,8 +30,6 @@ namespace DTAConfig
 
         XNAClientCheckBox chkMainMenuMusic;
         XNAClientCheckBox chkStopMusicOnMenu;
-
-        List<FileSettingCheckBox> fileSettingCheckBoxes = new List<FileSettingCheckBox>();
 
         public override void Initialize()
         {
@@ -163,29 +161,6 @@ namespace DTAConfig
                 lblScoreVolume.ClientRectangle.X, chkMainMenuMusic.ClientRectangle.Bottom + 24, 0, 0);
             chkStopMusicOnMenu.Text = "Don't play main menu music in lobbies";
 
-#if DTA
-            var chkRABuildingCrumbleSound = new FileSettingCheckBox(WindowManager,
-                "Resources\\Ecache03.mix", "MIX\\Ecache03.mix", false);
-            chkRABuildingCrumbleSound.Name = "chkRABuildingCrumbleSound";
-            chkRABuildingCrumbleSound.ClientRectangle = new Rectangle(
-                chkStopMusicOnMenu.ClientRectangle.X,
-                chkStopMusicOnMenu.ClientRectangle.Bottom + 24, 0, 0);
-            chkRABuildingCrumbleSound.Text = "Use Red Alert building crumble sound";
-
-            var chkReplaceRACannonSounds = new FileSettingCheckBox(WindowManager,
-                "Resources\\Ecache02.mix", "MIX\\Ecache02.mix", false);
-            chkReplaceRACannonSounds.Name = "chkReplaceRACannonSounds";
-            chkReplaceRACannonSounds.ClientRectangle = new Rectangle(
-                chkMainMenuMusic.ClientRectangle.X,
-                chkRABuildingCrumbleSound.ClientRectangle.Bottom + 24, 0, 0);
-            chkReplaceRACannonSounds.Text = "Replace Red Alert cannon sounds with Tiberian Dawn cannon sounds";
-
-            fileSettingCheckBoxes.Add(chkRABuildingCrumbleSound);
-            fileSettingCheckBoxes.Add(chkReplaceRACannonSounds);
-#endif
-
-            fileSettingCheckBoxes.ForEach(chkBox => AddChild(chkBox));
-
             AddChild(lblScoreVolume);
             AddChild(lblScoreVolumeValue);
             AddChild(trbScoreVolume);
@@ -241,6 +216,8 @@ namespace DTAConfig
 
         public override void Load()
         {
+            base.Load();
+
             trbScoreVolume.Value = (int)(IniSettings.ScoreVolume * 10);
             trbSoundVolume.Value = (int)(IniSettings.SoundVolume * 10);
             trbVoiceVolume.Value = (int)(IniSettings.VoiceVolume * 10);
@@ -251,12 +228,12 @@ namespace DTAConfig
 
             chkMainMenuMusic.Checked = IniSettings.PlayMainMenuMusic;
             chkStopMusicOnMenu.Checked = IniSettings.StopMusicOnMenu;
-
-            fileSettingCheckBoxes.ForEach(chkBox => chkBox.Load());
         }
 
         public override bool Save()
         {
+            base.Save();
+
             IniSettings.ScoreVolume.Value = trbScoreVolume.Value / 10.0;
             IniSettings.SoundVolume.Value = trbSoundVolume.Value / 10.0;
             IniSettings.VoiceVolume.Value = trbVoiceVolume.Value / 10.0;
@@ -267,8 +244,6 @@ namespace DTAConfig
 
             IniSettings.PlayMainMenuMusic.Value = chkMainMenuMusic.Checked;
             IniSettings.StopMusicOnMenu.Value = chkStopMusicOnMenu.Checked;
-
-            fileSettingCheckBoxes.ForEach(chkBox => chkBox.Save());
 
             return false;
         }

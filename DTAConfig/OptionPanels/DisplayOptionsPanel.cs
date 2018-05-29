@@ -12,7 +12,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Windows.Forms;
 
-namespace DTAConfig
+namespace DTAConfig.OptionPanels
 {
     class DisplayOptionsPanel : XNAOptionsPanel
     {
@@ -35,7 +35,6 @@ namespace DTAConfig
         private XNAClientCheckBox chkBorderlessClient;
         private XNAClientDropDown ddClientTheme;
 
-        private List<FileSettingCheckBox> fileSettingCheckBoxes = new List<FileSettingCheckBox>();
         private List<DirectDrawWrapper> renderers;
 
         private string defaultRenderer;
@@ -52,14 +51,6 @@ namespace DTAConfig
         private bool GameCompatFixDeclined = false;
         //private bool FinalSunCompatFixDeclined = false;
 #endif
-
-#if DTA
-        private FileSettingCheckBox chkEnableCannonTracers;
-#elif TI
-        private FileSettingCheckBox chkLargerInfantryGraphics;
-        private FileSettingCheckBox chkSmallerVehicleGraphics;
-#endif
-
 
 
         public override void Initialize()
@@ -251,43 +242,6 @@ namespace DTAConfig
 
             for (int i = 0; i < themeCount; i++)
                 ddClientTheme.AddItem(ClientConfiguration.Instance.GetThemeInfoFromIndex(i)[0]);
-
-#if DTA
-            chkEnableCannonTracers = new FileSettingCheckBox(WindowManager,
-                "Resources\\ECache91.mix", "MIX\\ECache91.mix", true);
-            chkEnableCannonTracers.Name = "chkEnableCannonTracers";
-            chkEnableCannonTracers.ClientRectangle = new Rectangle(
-                chkBorderlessClient.ClientRectangle.X,
-                chkWindowedMode.ClientRectangle.Y, 0, 0);
-            chkEnableCannonTracers.Text = "Use Cannon Tracers";
-
-            AddChild(chkEnableCannonTracers);
-
-            fileSettingCheckBoxes.Add(chkEnableCannonTracers);
-#elif TI
-            chkSmallerVehicleGraphics = new FileSettingCheckBox(WindowManager,
-                "Resources\\ecache02.mix", "MIX\\ecache02.mix", false);
-            chkSmallerVehicleGraphics.AddFile("Resources\\expand02.mix", "MIX\\expand02.mix");
-            chkSmallerVehicleGraphics.Name = "chkSmallerVehicleGraphics";
-            chkSmallerVehicleGraphics.ClientRectangle = new Rectangle(
-                chkBorderlessClient.ClientRectangle.X,
-                chkWindowedMode.ClientRectangle.Y, 0, 0);
-            chkSmallerVehicleGraphics.Text = "Smaller Vehicle Graphics";
-
-            AddChild(chkSmallerVehicleGraphics);
-            fileSettingCheckBoxes.Add(chkSmallerVehicleGraphics);
-
-            chkLargerInfantryGraphics = new FileSettingCheckBox(WindowManager,
-                "Resources\\ecache01.mix", "MIX\\ecache01.mix", false);
-            chkLargerInfantryGraphics.Name = "chkLargerInfantryGraphics";
-            chkLargerInfantryGraphics.ClientRectangle = new Rectangle(
-                chkSmallerVehicleGraphics.ClientRectangle.X,
-                chkBorderlessWindowedMode.ClientRectangle.Y, 0, 0);
-            chkLargerInfantryGraphics.Text = "Larger Infantry Graphics";
-
-            AddChild(chkLargerInfantryGraphics);
-            fileSettingCheckBoxes.Add(chkLargerInfantryGraphics);
-#endif
 
 #if !YR
             lblCompatibilityFixes = new XNALabel(WindowManager);
@@ -642,6 +596,8 @@ namespace DTAConfig
 
         public override void Load()
         {
+            base.Load();
+
             LoadRenderer();
             ddDetailLevel.SelectedIndex = UserINISettings.Instance.DetailLevel;
 
@@ -685,8 +641,6 @@ namespace DTAConfig
             int selectedThemeIndex = ddClientTheme.Items.FindIndex(
                 ddi => ddi.Text == UserINISettings.Instance.ClientTheme);
             ddClientTheme.SelectedIndex = selectedThemeIndex > -1 ? selectedThemeIndex : 0;
-
-            fileSettingCheckBoxes.ForEach(chkBox => chkBox.Load());
 
 #if YR
             chkBackBufferInVRAM.Checked = UserINISettings.Instance.BackBufferInVRAM;
@@ -734,6 +688,8 @@ namespace DTAConfig
 
         public override bool Save()
         {
+            base.Save();
+
             bool restartRequired = false;
 
             IniSettings.DetailLevel.Value = ddDetailLevel.SelectedIndex;
@@ -783,8 +739,6 @@ namespace DTAConfig
 #else
             IniSettings.BackBufferInVRAM.Value = !chkBackBufferInVRAM.Checked;
 #endif
-
-            fileSettingCheckBoxes.ForEach(chkBox => chkBox.Save());
 
             foreach (var renderer in renderers)
                 renderer.Clean();

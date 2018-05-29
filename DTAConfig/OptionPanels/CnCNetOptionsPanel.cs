@@ -7,7 +7,7 @@ using Rampastring.XNAUI.XNAControls;
 using System;
 using System.Collections.Generic;
 
-namespace DTAConfig
+namespace DTAConfig.OptionPanels
 {
     class CnCNetOptionsPanel : XNAOptionsPanel
     {
@@ -167,6 +167,8 @@ namespace DTAConfig
 
         public override void Load()
         {
+            base.Load();
+
             chkPingUnofficialTunnels.Checked = IniSettings.PingUnofficialCnCNetTunnels;
             chkWriteInstallPathToRegistry.Checked = IniSettings.WritePathToRegistry;
             chkPlaySoundOnGameHosted.Checked = IniSettings.PlaySoundOnGameHosted;
@@ -193,6 +195,8 @@ namespace DTAConfig
 
         public override bool Save()
         {
+            base.Save();
+
             IniSettings.PingUnofficialCnCNetTunnels.Value = chkPingUnofficialTunnels.Checked;
             IniSettings.WritePathToRegistry.Value = chkWriteInstallPathToRegistry.Checked;
             IniSettings.PlaySoundOnGameHosted.Value = chkPlaySoundOnGameHosted.Checked;

@@ -20,7 +20,7 @@ namespace DTAClient.Domain
 
         public static string CREDITS_URL = "http://rampastring.cncnet.org/TS/Credits.txt";
 
-        public static string SUPPORT_URL_SHORT = "www.moddb.com/members/rampastring";
+        public static string SUPPORT_URL_SHORT = "www.cncnet.org";
 
         public static int MAP_CELL_SIZE_X = 48;
         public static int MAP_CELL_SIZE_Y = 24;

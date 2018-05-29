@@ -5,7 +5,7 @@ using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
 using System;
 
-namespace DTAConfig
+namespace DTAConfig.OptionPanels
 {
     class GameOptionsPanel : XNAOptionsPanel
     {
@@ -211,6 +211,8 @@ namespace DTAConfig
 
         public override void Load()
         {
+            base.Load();
+            
             int scrollRate = ReverseScrollRate(IniSettings.ScrollRate);
 
             if (scrollRate >= trbScrollRate.MinValue && scrollRate <= trbScrollRate.MaxValue)
@@ -238,6 +240,8 @@ namespace DTAConfig
 
         public override bool Save()
         {
+            base.Save();
+
             IniSettings.ScrollRate.Value = ReverseScrollRate(trbScrollRate.Value);
 
             IniSettings.ScrollCoasting.Value = Convert.ToInt32(!chkScrollCoasting.Checked);

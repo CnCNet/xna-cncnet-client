@@ -10,7 +10,7 @@ using System.IO;
 using System.Threading;
 using Updater;
 
-namespace DTAConfig
+namespace DTAConfig.OptionPanels
 {
     class ComponentsPanel : XNAOptionsPanel
     {
@@ -77,6 +77,8 @@ namespace DTAConfig
 
         public override void Load()
         {
+            base.Load();
+
             int componentIndex = 0;
             bool buttonEnabled = false;
 
@@ -114,6 +116,8 @@ namespace DTAConfig
 
         public override bool Save()
         {
+            base.Save();
+
             return false;
         }
 

@@ -6,7 +6,7 @@ using Rampastring.XNAUI.XNAControls;
 using System;
 using Updater;
 
-namespace DTAConfig
+namespace DTAConfig.OptionPanels
 {
     class UpdaterOptionsPanel : XNAOptionsPanel
     {
@@ -103,6 +103,8 @@ namespace DTAConfig
 
         public override void Load()
         {
+            base.Load();
+
             lbUpdateServerList.Clear();
 
             foreach (var updaterMirror in CUpdater.UPDATEMIRRORS)
@@ -113,6 +115,8 @@ namespace DTAConfig
 
         public override bool Save()
         {
+            base.Save();
+
             IniSettings.CheckForUpdates.Value = chkAutoCheck.Checked;
 
             IniSettings.SettingsIni.EraseSectionKeys("DownloadMirrors");

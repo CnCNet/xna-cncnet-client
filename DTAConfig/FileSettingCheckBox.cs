@@ -1,5 +1,6 @@
 ﻿using ClientCore;
 using ClientGUI;
+using Rampastring.Tools;
 using Rampastring.XNAUI;
 using System.Collections.Generic;
 using System.IO;
@@ -11,20 +12,55 @@ namespace DTAConfig
     /// </summary>
     public class FileSettingCheckBox : XNAClientCheckBox
     {
+        public FileSettingCheckBox(WindowManager windowManager) : base (windowManager) { }
+
         public FileSettingCheckBox(WindowManager windowManager,
             string sourceFilePath, string destinationFilePath,
             bool reversed) : base(windowManager)
         {
             files.Add(new FileSourceDestinationInfo(sourceFilePath, destinationFilePath));
-            this.reversed = reversed;
         }
 
         List<FileSourceDestinationInfo> files = new List<FileSourceDestinationInfo>();
-        bool reversed;
+        private bool reversed;
 
-        public void AddFile(string sourceFile, string destinationFile)
+
+        public override void GetAttributes(IniFile iniFile)
         {
-            files.Add(new FileSourceDestinationInfo(sourceFile, destinationFile));
+            base.GetAttributes(iniFile);
+
+            var section = iniFile.GetSection(Name);
+            if (section == null)
+                return;
+
+            int i = 0;
+            while (true)
+            {
+                string fileInfo = section.GetStringValue("File" + i.ToString(), string.Empty);
+                if (fileInfo == string.Empty)
+                    break;
+                string[] parts = fileInfo.Split(',');
+                if (parts.Length != 2)
+                {
+                    Logger.Log("Invalid MIXSettingCheckBox information in " + Name + ": " + fileInfo);
+                    continue;
+                }
+
+                files.Add(new FileSourceDestinationInfo(parts[0], parts[1]));
+
+                i++;
+            }
+        }
+
+        protected override void ParseAttributeFromINI(IniFile iniFile, string key, string value)
+        {
+            if (key == "Reversed")
+            {
+                reversed = Conversions.BooleanFromString(value, false);
+                return;
+            }
+
+            base.ParseAttributeFromINI(iniFile, key, value);
         }
 
         public void Load()
