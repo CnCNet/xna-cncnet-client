@@ -151,7 +151,10 @@ namespace DTAClient
             // On Windows you rarely have a reason for using the OpenGL build anyway
             return true;
 #endif
+
+#pragma warning disable 0162
             var currentUser = WindowsIdentity.GetCurrent();
+#pragma warning restore 0162
             var principal = new WindowsPrincipal(currentUser);
 
             // If the user is not running the client with administrator privileges in Program Files, they need to be prompted to do so.
