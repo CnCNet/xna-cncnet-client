@@ -570,6 +570,22 @@ namespace ClientCore
             }
         }
 
+        public string CnCNetAnnouncementURL
+        {
+            get
+            {
+                return clientDefinitionsIni.GetStringValue(SETTINGS, "CnCNetAnnouncementURL", "");
+            }
+        }
+
+        public string CnCNetAnnouncementColorRGB
+        {
+            get
+            {
+                return clientDefinitionsIni.GetStringValue(SETTINGS, "CnCNetAnnouncementColorRGB", "0,255,116");
+            }
+        }
+
         /// <summary>
         /// Returns the name of the game executable file that is used on
         /// Linux and macOS.

@@ -234,6 +234,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Domain\Multiplayer\AllianceHolder.cs" />
+    <Compile Include="Domain\Multiplayer\CnCNet\CnCNetAnnouncement.cs" />
     <Compile Include="Domain\Multiplayer\CnCNet\CnCNetPlayerCountTask.cs" />
     <Compile Include="Domain\Multiplayer\CnCNet\CnCNetTunnel.cs" />
     <Compile Include="Domain\Multiplayer\CnCNet\ExtendedWebClient.cs">
