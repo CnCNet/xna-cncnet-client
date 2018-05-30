@@ -54,6 +54,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         private XNALabel lblColor;
         private XNALabel lblCurrentChannel;
         private XNALabel lblOnline;
+        private XNALabel lblOnlineCount;
 
         private XNAClientDropDown ddColor;
         private XNAClientDropDown ddCurrentChannel;
@@ -95,7 +96,6 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         private List<string> followedGames = new List<string>();
 
         private bool isJoiningGame = false;
-        private static readonly object locker = new object();
 
         public override void Initialize()
         {
@@ -229,15 +229,21 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             lblOnline = new XNALabel(WindowManager);
             lblOnline.Name = "lblOnline";
             lblOnline.ClientRectangle = new Rectangle(310, 14, 0, 0);
+            lblOnline.Text = "Online:";
             lblOnline.FontIndex = 1;
-            lblOnline.Text = "";
+            lblOnline.Disable();
+
+            lblOnlineCount = new XNALabel(WindowManager);
+            lblOnlineCount.Name = "lblOnlineCount";
+            lblOnlineCount.ClientRectangle = new Rectangle(lblOnline.ClientRectangle.X + 50, 14, 0, 0);
+            lblOnlineCount.FontIndex = 1;
+            lblOnlineCount.Disable();
 
             InitializeGameList();
 
             AddChild(btnNewGame);
             AddChild(btnJoinGame);
             AddChild(btnLogout);
-
             AddChild(lbPlayerList);
             AddChild(lbChatMessages);
             AddChild(lbGameList);
@@ -248,9 +254,10 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             AddChild(ddCurrentChannel);
             AddChild(playerContextMenu);
             AddChild(lblOnline);
+            AddChild(lblOnlineCount);
 
             CnCNetPlayerCountTask.CnCNetGameCountUpdated += OnCnCNetGameCountUpdated;
-            CnCNetPlayerCountTask.ForceRefresh();
+            UpdateOnlineCount(CnCNetPlayerCountTask.PlayerCount);
 
             base.Initialize();
 
@@ -261,10 +268,12 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         private void OnCnCNetGameCountUpdated(object sender, PlayerCountEventArgs e)
         {
-            lock (locker)
-            {
-                lblOnline.Text = "Online: " + e.PlayerCount.ToString();
-            }
+            UpdateOnlineCount(e.PlayerCount);
+        }
+
+        private void UpdateOnlineCount(int playerCount)
+        {
+            lblOnlineCount.Text = playerCount.ToString();
         }
 
         private void InitializeGameList()

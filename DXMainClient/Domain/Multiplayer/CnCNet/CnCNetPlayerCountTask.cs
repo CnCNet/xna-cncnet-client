@@ -20,14 +20,10 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
         public static void InitializeService(CancellationTokenSource cts)
         {
             cncnetLiveStatusIdentifier = ClientConfiguration.Instance.CnCNetLiveStatusIdentifier;
+            PlayerCount = GetCnCNetPlayerCount();
 
-            CnCNetGameCountUpdated?.Invoke(null, new PlayerCountEventArgs(GetCnCNetPlayerCount()));
+            CnCNetGameCountUpdated?.Invoke(null, new PlayerCountEventArgs(PlayerCount));
             ThreadPool.QueueUserWorkItem(new WaitCallback(RunService), cts);
-        }
-
-        public static void ForceRefresh()
-        {
-            CnCNetGameCountUpdated?.Invoke(null, new PlayerCountEventArgs(GetCnCNetPlayerCount()));
         }
 
         private static void RunService(object tokenObj)
@@ -86,6 +82,8 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                 return -1;
             }
         }
+
+        public static int PlayerCount { get; set; }
     }
 
     internal class PlayerCountEventArgs : EventArgs
