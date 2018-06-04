@@ -411,17 +411,6 @@ namespace DTAClient.DXGUI.Generic
 
             if (connectionManager.IsConnected)
                 connectionManager.Disconnect();
-
-#if YR
-            try
-            {
-                System.IO.File.Delete(ProgramConstants.GamePath + "ddraw.dll");
-            }
-            catch
-            {
-                Logger.Log("MainMenu ** Failed to remove ddraw.dll");
-            }
-#endif
         }
 
         /// <summary>
