@@ -24,6 +24,9 @@ namespace DTAClient.DXGUI
             graphics = new GraphicsDeviceManager(this);
             graphics.SynchronizeWithVerticalRetrace = false;
             content = new ContentManager(Services);
+            string windowTitle = ClientConfiguration.Instance.WindowTitle;
+            Window.Title = string.IsNullOrEmpty(windowTitle) ?
+                string.Format("{0} Client", MainClientConstants.GAME_NAME_SHORT) : windowTitle;
         }
 
         GraphicsDeviceManager graphics;
@@ -72,9 +75,6 @@ namespace DTAClient.DXGUI
             wm.CenterOnScreen();
             wm.SetRenderResolution(renderResolutionX, renderResolutionY);
             wm.SetIcon(ProgramConstants.GetBaseResourcePath() + "clienticon.ico");
-            string windowTitle = ClientConfiguration.Instance.WindowTitle;
-            Window.Title = string.IsNullOrEmpty(windowTitle) ? 
-                string.Format("{0} Client", MainClientConstants.GAME_NAME_SHORT) : windowTitle;
 
             wm.SetControlBox(true);
 
