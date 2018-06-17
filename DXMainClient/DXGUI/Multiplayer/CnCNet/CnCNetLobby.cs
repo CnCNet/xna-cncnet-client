@@ -254,17 +254,17 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         {
             cncnetAnnouncement = new CnCNetAnnouncement();
 
-            string message = cncnetAnnouncement.GetAnnouncementMessage();
+            string message = cncnetAnnouncement.Message;
+            Color color = cncnetAnnouncement.Color;
+
             if (message.Length == 0)
             {
                 return;
             }
 
-            if (cncnetAnnouncement.Color.Length == 3)
-            {
-                Color textColor = new Color(int.Parse(cncnetAnnouncement.Color[0]), int.Parse(cncnetAnnouncement.Color[1]), int.Parse(cncnetAnnouncement.Color[2]));
-                connectionManager.MainChannel.AddMessage(new ChatMessage(null, textColor, Renderer.GetSafeString(message, lbChatMessages.FontIndex)));
-            }
+            connectionManager.MainChannel.AddMessage(new ChatMessage(
+                null, color, Renderer.GetSafeString(message, lbChatMessages.FontIndex))
+            );
         }
 
         private void InitializeGameList()

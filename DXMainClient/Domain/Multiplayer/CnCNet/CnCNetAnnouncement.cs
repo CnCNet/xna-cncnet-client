@@ -1,7 +1,11 @@
 ﻿using Rampastring.Tools;
+using Rampastring.XNAUI;
 using System;
 using System.IO;
 using System.Net;
+using Microsoft.Xna.Framework;
+using Newtonsoft.Json;
+using System.Collections.Generic;
 
 namespace DTAClient.Domain.Multiplayer.CnCNet
 {
@@ -10,15 +14,23 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
     /// </summary>
     public class CnCNetAnnouncement
     {
+        private Announcement announcement;
+
         public CnCNetAnnouncement()
         {
-            Color = ClientCore.ClientConfiguration.Instance.CnCNetAnnouncementColorRGB.Split(',');
+            Message = "";
+            Color = AssetLoader.GetColorFromString(ClientCore.ClientConfiguration.Instance.CnCNetAnnouncementColor);
+
+            announcement = new Announcement()
+            {
+                Message = Message
+            };
+
+            fetchAnnouncement();
         }
 
-        public string GetAnnouncementMessage()
+        private void fetchAnnouncement()
         {
-            string message = "";
-
             try
             {
                 WebClient client = new WebClient();
@@ -26,20 +38,29 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                 Stream response = client.OpenRead(ClientCore.ClientConfiguration.Instance.CnCNetAnnouncementURL);
                 using (StreamReader reader = new StreamReader(response))
                 {
-                    message = reader.ReadToEnd();
+                    string json = reader.ReadToEnd();
+                    announcement = JsonConvert.DeserializeObject<Announcement>(json);
                 }
-                return message;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
-                Logger.Log("Error fetching Announcement text from remote url: " 
-                    + ClientCore.ClientConfiguration.Instance.CnCNetAnnouncementURL 
+                Logger.Log("Error fetching Announcement text from remote url: "
+                    + ClientCore.ClientConfiguration.Instance.CnCNetAnnouncementURL
                     + " Error: " + ex.Message);
             }
 
-            return message;
+            if (announcement.Color != null)
+            {
+                Color = AssetLoader.GetColorFromString(announcement.Color);
+            }
+
+            if (announcement.Message != null)
+            {
+                Message = announcement.Message;
+            }
         }
 
-        public string[] Color { get; private set; }
+        public string Message { get; private set; }
+        public Color Color { get; private set; }
     }
 }

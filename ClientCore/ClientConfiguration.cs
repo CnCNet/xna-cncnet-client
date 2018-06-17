@@ -578,11 +578,11 @@ namespace ClientCore
             }
         }
 
-        public string CnCNetAnnouncementColorRGB
+        public string CnCNetAnnouncementColor
         {
             get
             {
-                return clientDefinitionsIni.GetStringValue(SETTINGS, "CnCNetAnnouncementColorRGB", "0,255,116");
+                return clientDefinitionsIni.GetStringValue(SETTINGS, "CnCNetAnnouncementColor", "0,255,116");
             }
         }
 

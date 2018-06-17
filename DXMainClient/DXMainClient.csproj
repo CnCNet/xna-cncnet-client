@@ -211,6 +211,10 @@
     <Reference Include="MapThumbnailExtractor">
       <HintPath>..\References\MapThumbnailExtractor.dll</HintPath>
     </Reference>
+    <Reference Include="Newtonsoft.Json, Version=6.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\References\Newtonsoft.Json.dll</HintPath>
+    </Reference>
     <Reference Include="Rampastring.Tools, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\References\Rampastring.Tools.dll</HintPath>
@@ -234,6 +238,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Domain\Multiplayer\AllianceHolder.cs" />
+    <Compile Include="Domain\Multiplayer\CnCNet\Announcement.cs" />
     <Compile Include="Domain\Multiplayer\CnCNet\CnCNetAnnouncement.cs" />
     <Compile Include="Domain\Multiplayer\CnCNet\CnCNetPlayerCountTask.cs" />
     <Compile Include="Domain\Multiplayer\CnCNet\CnCNetTunnel.cs" />
