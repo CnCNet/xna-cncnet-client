@@ -95,6 +95,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         private bool isJoiningGame = false;
 
+        private CnCNetAnnouncement cncnetAnnouncement;
+
         public override void Initialize()
         {
             ClientRectangle = new Rectangle(0, 0, WindowManager.RenderResolutionX - 64,
@@ -244,7 +246,25 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             WindowManager.CenterControlOnScreen(this);
 
+            ShowCnCNetAnnouncement();
             PostUIInit();
+        }
+
+        private void ShowCnCNetAnnouncement()
+        {
+            cncnetAnnouncement = new CnCNetAnnouncement();
+
+            string message = cncnetAnnouncement.Message;
+            Color color = cncnetAnnouncement.Color;
+
+            if (message.Length == 0)
+            {
+                return;
+            }
+
+            connectionManager.MainChannel.AddMessage(new ChatMessage(
+                null, color, Renderer.GetSafeString(message, lbChatMessages.FontIndex))
+            );
         }
 
         private void InitializeGameList()
