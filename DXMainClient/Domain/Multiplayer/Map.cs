@@ -637,5 +637,12 @@ namespace DTAClient.Domain.Multiplayer
 
             return new Point(x, y);
         }
+
+        public string GetSizeString()
+        {
+            if (actualSize == null || actualSize.Length < 4)
+                return "Not available";
+            return actualSize[2] + "x" + actualSize[3];
+        }
     }
 }

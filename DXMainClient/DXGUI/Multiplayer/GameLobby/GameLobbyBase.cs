@@ -82,6 +82,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         protected XNALabel lblMapName;
         protected XNALabel lblMapAuthor;
         protected XNALabel lblGameMode;
+        protected XNALabel lblMapSize;
 
         protected MapPreviewBox MapPreviewBox;
 
@@ -215,6 +216,14 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             lblGameMode.FontIndex = 1;
             lblGameMode.Text = "Game mode:";
 
+            lblMapSize = new XNALabel(WindowManager);
+            lblMapSize.Name = "lblMapSize";
+            lblMapSize.ClientRectangle = new Rectangle(lblGameMode.ClientRectangle.X,
+                lblGameMode.ClientRectangle.Bottom + 3, 0, 0);
+            lblMapSize.FontIndex = 1;
+            lblMapSize.Text = "Size: ";
+            lblMapSize.Visible = false;
+
             lbMapList = new XNAMultiColumnListBox(WindowManager);
             lbMapList.Name = "lbMapList";
             lbMapList.ClientRectangle = new Rectangle(btnLaunchGame.ClientRectangle.X, GameOptionsPanel.ClientRectangle.Y + 23,
@@ -264,6 +273,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             AddChild(lblMapName);
             AddChild(lblMapAuthor);
             AddChild(lblGameMode);
+            AddChild(lblMapSize);
             AddChild(MapPreviewBox);
 
             AddChild(lbMapList);
@@ -1421,6 +1431,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 lblMapName.Text = "Map: Unknown";
                 lblMapAuthor.Text = "By Unknown Author";
                 lblGameMode.Text = "Game mode: Unknown";
+                lblMapSize.Text = "Size: Not available";
 
                 lblMapAuthor.ClientRectangle = new Rectangle(MapPreviewBox.ClientRectangle.Right - lblMapAuthor.ClientRectangle.Width,
                     lblMapAuthor.ClientRectangle.Y, lblMapAuthor.ClientRectangle.Width, lblMapAuthor.ClientRectangle.Height);
@@ -1433,6 +1444,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             lblMapName.Text = "Map: " + Renderer.GetSafeString(map.Name, lblMapName.FontIndex);
             lblMapAuthor.Text = "By " + Renderer.GetSafeString(map.Author, lblMapAuthor.FontIndex);
             lblGameMode.Text = "Game mode: " + gameMode.UIName;
+            lblMapSize.Text = "Size: " + map.GetSizeString();
 
             lblMapAuthor.ClientRectangle = new Rectangle(MapPreviewBox.ClientRectangle.Right - lblMapAuthor.ClientRectangle.Width,
                 lblMapAuthor.ClientRectangle.Y, lblMapAuthor.ClientRectangle.Width, lblMapAuthor.ClientRectangle.Height);
