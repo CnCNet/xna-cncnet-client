@@ -11,6 +11,8 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
     /// </summary>
     public static class CnCNetPlayerCountTask
     {
+        public static int PlayerCount { get; private set; }
+
         private static int REFRESH_INTERVAL = 60000; // 1 minute
 
         internal static event EventHandler<PlayerCountEventArgs> CnCNetGameCountUpdated;
@@ -82,8 +84,6 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                 return -1;
             }
         }
-
-        public static int PlayerCount { get; set; }
     }
 
     internal class PlayerCountEventArgs : EventArgs
