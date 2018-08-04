@@ -98,6 +98,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         private bool isJoiningGame = false;
 
+        private CancellationTokenSource gameCheckCancellation;
+
         public override void Initialize()
         {
             ClientRectangle = new Rectangle(0, 0, WindowManager.RenderResolutionX - 64,
@@ -247,10 +249,9 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             WindowManager.CenterControlOnScreen(this);
 
-            BackgroundWorker cheatEngineWorker = new BackgroundWorker();
-            cheatEngineWorker.DoWork += CheatEngineWatchEvent;
-            cheatEngineWorker.WorkerReportsProgress = true;
-            cheatEngineWorker.RunWorkerAsync();
+            gameCheckCancellation = new CancellationTokenSource();
+            CnCNetGameCheck gameCheck = new CnCNetGameCheck();
+            gameCheck.InitializeService(gameCheckCancellation);
 
             PostUIInit();
         }
@@ -371,55 +372,6 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             GameProcessLogic.GameProcessStarted += SharedUILogic_GameProcessStarted;
             GameProcessLogic.GameProcessExited += SharedUILogic_GameProcessExited;
-        }
-
-        private void CheatEngineWatchEvent(object sender, DoWorkEventArgs e)
-        {
-            while (true)
-            {
-                BackgroundWorker worker = sender as BackgroundWorker;
-                int delay = 5000; // 5 seconds
-                while (!worker.CancellationPending)
-                {
-                    Process[] processlist = Process.GetProcesses();
-                    foreach (Process process in processlist)
-                    {
-                        if (process.ProcessName.Contains("cheatengine") ||
-                            process.MainWindowTitle.ToLower().Contains("cheat engine") ||
-                            process.MainWindowHandle.ToString().ToLower().Contains("cheat engine")
-                        )
-                        {
-                            KillGameInstance();
-                        }
-                    }
-
-                    Thread.Sleep(delay);
-                }
-            }
-        }
-
-        private void KillGameInstance()
-        {
-            try
-            {
-                string gameExecutableName = ClientConfiguration.Instance.GetOperatingSystemVersion() == OSVersion.UNIX ?
-                    ClientConfiguration.Instance.GetUnixGameExecutableName() :
-                    ClientConfiguration.Instance.GetGameExecutableName();
-
-                gameExecutableName = gameExecutableName.Replace(".exe", "");
-
-                Process[] processlist = Process.GetProcesses();
-                foreach (Process process in processlist)
-                {
-                    if (process.ProcessName.Contains(gameExecutableName))
-                    {
-                        process.Kill();
-                    }
-                }
-            }
-            catch
-            {
-            }
         }
 
         /// <summary>
