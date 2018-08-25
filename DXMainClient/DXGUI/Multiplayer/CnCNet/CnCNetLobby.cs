@@ -53,6 +53,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         private XNALabel lblColor;
         private XNALabel lblCurrentChannel;
+        private XNALabel lblOnline;
+        private XNALabel lblOnlineCount;
 
         private XNAClientDropDown ddColor;
         private XNAClientDropDown ddCurrentChannel;
@@ -224,12 +226,24 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             lblCurrentChannel.FontIndex = 1;
             lblCurrentChannel.Text = "CURRENT CHANNEL:";
 
+            lblOnline = new XNALabel(WindowManager);
+            lblOnline.Name = "lblOnline";
+            lblOnline.ClientRectangle = new Rectangle(310, 14, 0, 0);
+            lblOnline.Text = "Online:";
+            lblOnline.FontIndex = 1;
+            lblOnline.Disable();
+
+            lblOnlineCount = new XNALabel(WindowManager);
+            lblOnlineCount.Name = "lblOnlineCount";
+            lblOnlineCount.ClientRectangle = new Rectangle(lblOnline.ClientRectangle.X + 50, 14, 0, 0);
+            lblOnlineCount.FontIndex = 1;
+            lblOnlineCount.Disable();
+
             InitializeGameList();
 
             AddChild(btnNewGame);
             AddChild(btnJoinGame);
             AddChild(btnLogout);
-
             AddChild(lbPlayerList);
             AddChild(lbChatMessages);
             AddChild(lbGameList);
@@ -239,12 +253,27 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             AddChild(lblCurrentChannel);
             AddChild(ddCurrentChannel);
             AddChild(playerContextMenu);
+            AddChild(lblOnline);
+            AddChild(lblOnlineCount);
+
+            CnCNetPlayerCountTask.CnCNetGameCountUpdated += OnCnCNetGameCountUpdated;
+            UpdateOnlineCount(CnCNetPlayerCountTask.PlayerCount);
 
             base.Initialize();
 
             WindowManager.CenterControlOnScreen(this);
 
             PostUIInit();
+        }
+
+        private void OnCnCNetGameCountUpdated(object sender, PlayerCountEventArgs e)
+        {
+            UpdateOnlineCount(e.PlayerCount);
+        }
+
+        private void UpdateOnlineCount(int playerCount)
+        {
+            lblOnlineCount.Text = playerCount.ToString();
         }
 
         private void InitializeGameList()
