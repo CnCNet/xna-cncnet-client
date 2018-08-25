@@ -90,33 +90,13 @@ namespace DTAClient.DXGUI.Multiplayer
                         GetColorWithAlpha(FocusColor));
                 }
 
-                if (user.IsAdmin)
-                {
-                    Renderer.DrawTexture(adminGameIcon,
-                        new Rectangle(windowRectangle.X + x, windowRectangle.Y + height,
+                Renderer.DrawTexture(lbItem.Texture, new Rectangle(windowRectangle.X + x, windowRectangle.Y + height,
                         adminGameIcon.Width, adminGameIcon.Height), Color.White);
-                }
-                else
-                {
-                    if (user.IRCUser.GameID < 0 || user.IRCUser.GameID >= gameCollection.GameList.Count)
-                    {
-                        Renderer.DrawTexture(unknownGameIcon,
-                            new Rectangle(windowRectangle.X + x, windowRectangle.Y + height,
-                            unknownGameIcon.Width, unknownGameIcon.Height), Color.White);
-                    }
-                    else
-                    {
-                        var gameIconTexture = gameCollection.GameList[user.IRCUser.GameID].Texture;
-                        Renderer.DrawTexture(gameIconTexture,
-                        new Rectangle(windowRectangle.X + x, windowRectangle.Y + height,
-                        gameIconTexture.Width, gameIconTexture.Height), Color.White);
-                    }
-                }
 
                 x += adminGameIcon.Width + margin;
 
                 // Friend Icon
-                if (user.IsFriend)
+                if (user.IRCUser.IsFriend)
                 {
                     Renderer.DrawTexture(friendIcon,
                         new Rectangle(windowRectangle.X + x, windowRectangle.Y + height,
@@ -147,6 +127,8 @@ namespace DTAClient.DXGUI.Multiplayer
 
             if (DrawBorders)
                 DrawPanelBorders();
+
+            DrawChildren(gameTime);
         }
 
         private void AddUserToList(ChannelUser user)

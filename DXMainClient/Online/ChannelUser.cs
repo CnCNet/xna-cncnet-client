@@ -13,6 +13,5 @@
         public IRCUser IRCUser { get; private set; }
 
         public bool IsAdmin { get; set; }
-        public bool IsFriend { get; set; }
     }
 }

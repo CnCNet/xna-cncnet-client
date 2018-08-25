@@ -964,7 +964,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             foreach (ChannelUser user in currentChatChannel.Users)
             {
-                user.IsFriend = pmWindow.IsFriend(user.IRCUser.Name);
+                user.IRCUser.IsFriend = pmWindow.IsFriend(user.IRCUser.Name);
                 lbPlayerList.AddUser(user);
             }
 
