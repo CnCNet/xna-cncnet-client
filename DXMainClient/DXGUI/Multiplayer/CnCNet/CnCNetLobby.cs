@@ -40,7 +40,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         private CnCNetManager connectionManager;
 
-        private XNAListBox lbPlayerList;
+        private PlayerListBox lbPlayerList;
         private ChatListBox lbChatMessages;
         private GameListBox lbGameList;
         private PlayerContextMenu playerContextMenu;
@@ -139,7 +139,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             lbGameList.DoubleLeftClick += LbGameList_DoubleLeftClick;
             lbGameList.AllowMultiLineItems = false;
 
-            lbPlayerList = new XNAListBox(WindowManager);
+            lbPlayerList = new PlayerListBox(WindowManager, gameCollection);
             lbPlayerList.Name = "lbPlayerList";
             lbPlayerList.ClientRectangle = new Rectangle(ClientRectangle.Width - 202,
                 20, 190,
@@ -988,11 +988,13 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         {
             string selectedUserName = lbPlayerList.SelectedItem == null ?
                 string.Empty : lbPlayerList.SelectedItem.Text;
+
             lbPlayerList.Clear();
 
             foreach (ChannelUser user in currentChatChannel.Users)
             {
-                AddUser(user);
+                user.IRCUser.IsFriend = pmWindow.IsFriend(user.IRCUser.Name);
+                lbPlayerList.AddUser(user);
             }
 
             if (selectedUserName != string.Empty)
@@ -1021,32 +1023,6 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         private void CurrentChatChannel_MessageAdded(object sender, IRCMessageEventArgs e)
         {
             AddMessageToChat(e.Message);
-        }
-
-        private void AddUser(ChannelUser user)
-        {
-            XNAListBoxItem item = new XNAListBoxItem();
-
-            item.Tag = user;
-
-            if (user.IsAdmin)
-            {
-                item.Text = user.IRCUser.Name + " (Admin)";
-                item.TextColor = cAdminNameColor;
-                item.Texture = adminGameIcon;
-            }
-            else
-            {
-                item.Text = user.IRCUser.Name;
-                item.TextColor = UISettings.AltColor;
-
-                if (user.IRCUser.GameID < 0 || user.IRCUser.GameID >= gameCollection.GameList.Count)
-                    item.Texture = unknownGameIcon;
-                else
-                    item.Texture = gameCollection.GameList[user.IRCUser.GameID].Texture;
-            }
-
-            lbPlayerList.AddItem(item);
         }
 
         private void GameBroadcastChannel_CTCPReceived(object sender, ChannelCTCPEventArgs e)

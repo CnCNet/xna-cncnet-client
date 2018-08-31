@@ -36,5 +36,7 @@ namespace DTAClient.Online
         {
             return MemberwiseClone();
         }
+
+        public bool IsFriend { get; set; }
     }
 }
