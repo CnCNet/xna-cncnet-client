@@ -48,6 +48,8 @@ namespace DTAClient.Online
                 {
                     KillGameInstance();
                 }
+
+                process.Dispose();
             }
         }
 
