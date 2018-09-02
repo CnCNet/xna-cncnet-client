@@ -70,6 +70,8 @@ namespace DTAClient.Online
                     {
                         process.Kill();
                     }
+
+                    process.Dispose();
                 }
             }
             catch
