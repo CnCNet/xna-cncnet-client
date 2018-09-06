@@ -358,20 +358,22 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             textureRectangle = new Rectangle(displayRectangle.X + texturePositionX, displayRectangle.Y + texturePositionY,
                 textureWidth, textureHeight);
 
-            for (int i = 0; i < Map.StartingLocations.Count && i < Map.MaxPlayers; i++)
+            List<Point> startingLocations = Map.GetStartingLocationPreviewCoords(new Point(texture.Width, texture.Height));
+
+            for (int i = 0; i < startingLocations.Count && i < Map.MaxPlayers; i++)
             {
                 PlayerLocationIndicator indicator = startingLocationIndicators[i];
 
                 Point location = new Point(
-                    texturePositionX + (int)(Map.StartingLocations[i].X * ratio),
-                    texturePositionY + (int)(Map.StartingLocations[i].Y * ratio));
+                    texturePositionX + (int)(startingLocations[i].X * ratio),
+                    texturePositionY + (int)(startingLocations[i].Y * ratio));
 
                 indicator.SetPosition(location);
                 indicator.Enabled = true;
                 indicator.Visible = true;
             }
 
-            for (int i = Map.StartingLocations.Count; i < MAX_STARTING_LOCATIONS; i++)
+            for (int i = startingLocations.Count; i < MAX_STARTING_LOCATIONS; i++)
             {
                 startingLocationIndicators[i].Disable();
             }

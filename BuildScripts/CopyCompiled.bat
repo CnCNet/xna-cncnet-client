@@ -1,10 +1,10 @@
 @echo off
 echo Taking binaries compiled using Visual Studio and putting them into correct folders with the correct names for use in target projects.
 echo(
-cd bin
-rd /S CompiledResources
-mkdir CompiledResources
-cd CompiledResources
+cd ..
+rd /s /q Compiled
+mkdir Compiled
+cd Compiled
 mkdir Binaries
 cd Binaries
 mkdir OpenGL
@@ -13,16 +13,16 @@ mkdir XNA
 
 REM Setting up paths
 
-set cr="..\..\CompiledResources\"
-set commonBinaries="..\..\CompiledResources\Binaries\"
-set winBinaries="..\..\CompiledResources\Binaries\Windows\"
-set oglBinaries="..\..\CompiledResources\Binaries\OpenGL\"
-set xnaBinaries="..\..\CompiledResources\Binaries\XNA\"
+set cr="..\..\..\..\Compiled\"
+set commonBinaries="..\..\..\..\Compiled\Binaries\"
+set winBinaries="..\..\..\..\Compiled\Binaries\Windows\"
+set oglBinaries="..\..\..\..\Compiled\Binaries\OpenGL\"
+set xnaBinaries="..\..\..\..\Compiled\Binaries\XNA\"
 
 echo(
 echo Windows
 
-cd ..\..\Windows\Release\
+cd ..\..\DXMainClient\bin\Windows\Release\
 copy DTAClient.exe %cr%clientdx.exe
 copy ClientCore.dll %winBinaries%ClientCore.dll
 copy ClientGUI.dll %winBinaries%ClientGUI.dll
@@ -69,4 +69,3 @@ copy Rampastring.Tools.dll %commonBinaries%Rampastring.Tools.dll
 
 echo(
 echo Copying complete.
-pause

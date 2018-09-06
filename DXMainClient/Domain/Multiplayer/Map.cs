@@ -142,10 +142,12 @@ namespace DTAClient.Domain.Multiplayer
 
         IniFile mapIni;
 
+        List<string> waypoints = new List<string>();
+
         /// <summary>
         /// The pixel coordinates of the map's player starting locations.
         /// </summary>
-        public List<Point> StartingLocations = new List<Point>();
+        List<Point> startingLocations;
 
         public Texture2D PreviewTexture { get; set; }
 
@@ -241,9 +243,6 @@ namespace DTAClient.Domain.Multiplayer
                 localSize = section.GetStringValue("LocalSize", "0,0,0,0").Split(',');
                 actualSize = section.GetStringValue("Size", "0,0,0,0").Split(',');
 
-                string[] previewSize = section.GetStringValue("PreviewSize", "10,10").Split(',');
-                Point previewSizePoint = new Point(int.Parse(previewSize[0]), int.Parse(previewSize[1]));
-
                 for (int i = 0; i < MAX_PLAYERS; i++)
                 {
                     string waypoint = section.GetStringValue("Waypoint" + i, string.Empty);
@@ -251,7 +250,7 @@ namespace DTAClient.Domain.Multiplayer
                     if (String.IsNullOrEmpty(waypoint))
                         break;
 
-                    StartingLocations.Add(GetWaypointCoords(waypoint, actualSize, localSize, previewSizePoint));
+                    waypoints.Add(waypoint);
                 }
 
                 if (UserINISettings.Instance.PreloadMapPreviews)
@@ -284,6 +283,21 @@ namespace DTAClient.Domain.Multiplayer
                 Logger.Log("Setting info for " + BaseFilePath + " failed! Reason: " + ex.Message);
                 return false;
             }
+        }
+
+        public List<Point> GetStartingLocationPreviewCoords(Point previewSize)
+        {
+            if (startingLocations == null)
+            {
+                startingLocations = new List<Point>();
+
+                foreach (string waypoint in waypoints)
+                {
+                    startingLocations.Add(GetWaypointCoords(waypoint, actualSize, localSize, previewSize));
+                }
+            }
+
+            return startingLocations;
         }
 
         public void WriteInfoToIniSection(IniSection iniSection)
@@ -375,7 +389,15 @@ namespace DTAClient.Domain.Multiplayer
                 localSize = iniFile.GetStringValue("Map", "LocalSize", "0,0,0,0").Split(',');
                 actualSize = iniFile.GetStringValue("Map", "Size", "0,0,0,0").Split(',');
 
-                RefreshStartingLocationPositions();
+                for (int i = 0; i < MAX_PLAYERS; i++)
+                {
+                    string waypoint = mapIni.GetStringValue("Waypoints", i.ToString(), string.Empty);
+
+                    if (string.IsNullOrEmpty(waypoint))
+                        break;
+
+                    waypoints.Add(waypoint);
+                }
 
                 ParseForcedOptions(iniFile, "ForcedOptions");
                 ParseSpawnIniOptions(iniFile, "ForcedSpawnIniOptions");
@@ -387,35 +409,6 @@ namespace DTAClient.Domain.Multiplayer
                 Logger.Log("Loading custom map " + path + " failed!");
                 return false;
             }
-        }
-
-        /// <summary>
-        /// Re-calculates the starting location indicator positions of a custom map.
-        /// </summary>
-        public void RefreshStartingLocationPositions()
-        {
-            if (Official)
-                throw new InvalidOperationException("RefreshStartingLocationPositions cannot be called for official maps!");
-
-            StartingLocations.Clear();
-
-            Point previewSizePoint;
-
-            Texture2D texture = LoadPreviewTexture();
-
-            previewSizePoint = new Point(texture.Width, texture.Height);
-
-            for (int i = 0; i < MAX_PLAYERS; i++)
-            {
-                string waypoint = mapIni.GetStringValue("Waypoints", i.ToString(), string.Empty);
-
-                if (string.IsNullOrEmpty(waypoint))
-                    break;
-
-                StartingLocations.Add(GetWaypointCoords(waypoint, actualSize, localSize, previewSizePoint));
-            }
-
-            texture.Dispose();
         }
 
         private void ParseForcedOptions(IniFile iniFile, string forcedOptionsSection)

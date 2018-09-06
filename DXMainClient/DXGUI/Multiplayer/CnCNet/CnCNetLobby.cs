@@ -40,7 +40,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         private CnCNetManager connectionManager;
 
-        private XNAListBox lbPlayerList;
+        private PlayerListBox lbPlayerList;
         private ChatListBox lbChatMessages;
         private GameListBox lbGameList;
         private PlayerContextMenu playerContextMenu;
@@ -53,6 +53,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         private XNALabel lblColor;
         private XNALabel lblCurrentChannel;
+        private XNALabel lblOnline;
+        private XNALabel lblOnlineCount;
 
         private XNAClientDropDown ddColor;
         private XNAClientDropDown ddCurrentChannel;
@@ -137,7 +139,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             lbGameList.DoubleLeftClick += LbGameList_DoubleLeftClick;
             lbGameList.AllowMultiLineItems = false;
 
-            lbPlayerList = new XNAListBox(WindowManager);
+            lbPlayerList = new PlayerListBox(WindowManager, gameCollection);
             lbPlayerList.Name = "lbPlayerList";
             lbPlayerList.ClientRectangle = new Rectangle(ClientRectangle.Width - 202,
                 20, 190,
@@ -224,12 +226,24 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             lblCurrentChannel.FontIndex = 1;
             lblCurrentChannel.Text = "CURRENT CHANNEL:";
 
+            lblOnline = new XNALabel(WindowManager);
+            lblOnline.Name = "lblOnline";
+            lblOnline.ClientRectangle = new Rectangle(310, 14, 0, 0);
+            lblOnline.Text = "Online:";
+            lblOnline.FontIndex = 1;
+            lblOnline.Disable();
+
+            lblOnlineCount = new XNALabel(WindowManager);
+            lblOnlineCount.Name = "lblOnlineCount";
+            lblOnlineCount.ClientRectangle = new Rectangle(lblOnline.ClientRectangle.X + 50, 14, 0, 0);
+            lblOnlineCount.FontIndex = 1;
+            lblOnlineCount.Disable();
+
             InitializeGameList();
 
             AddChild(btnNewGame);
             AddChild(btnJoinGame);
             AddChild(btnLogout);
-
             AddChild(lbPlayerList);
             AddChild(lbChatMessages);
             AddChild(lbGameList);
@@ -239,12 +253,27 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             AddChild(lblCurrentChannel);
             AddChild(ddCurrentChannel);
             AddChild(playerContextMenu);
+            AddChild(lblOnline);
+            AddChild(lblOnlineCount);
+
+            CnCNetPlayerCountTask.CnCNetGameCountUpdated += OnCnCNetGameCountUpdated;
+            UpdateOnlineCount(CnCNetPlayerCountTask.PlayerCount);
 
             base.Initialize();
 
             WindowManager.CenterControlOnScreen(this);
 
             PostUIInit();
+        }
+
+        private void OnCnCNetGameCountUpdated(object sender, PlayerCountEventArgs e)
+        {
+            UpdateOnlineCount(e.PlayerCount);
+        }
+
+        private void UpdateOnlineCount(int playerCount)
+        {
+            lblOnlineCount.Text = playerCount.ToString();
         }
 
         private void InitializeGameList()
@@ -959,11 +988,13 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         {
             string selectedUserName = lbPlayerList.SelectedItem == null ?
                 string.Empty : lbPlayerList.SelectedItem.Text;
+
             lbPlayerList.Clear();
 
             foreach (ChannelUser user in currentChatChannel.Users)
             {
-                AddUser(user);
+                user.IRCUser.IsFriend = pmWindow.IsFriend(user.IRCUser.Name);
+                lbPlayerList.AddUser(user);
             }
 
             if (selectedUserName != string.Empty)
@@ -992,32 +1023,6 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         private void CurrentChatChannel_MessageAdded(object sender, IRCMessageEventArgs e)
         {
             AddMessageToChat(e.Message);
-        }
-
-        private void AddUser(ChannelUser user)
-        {
-            XNAListBoxItem item = new XNAListBoxItem();
-
-            item.Tag = user;
-
-            if (user.IsAdmin)
-            {
-                item.Text = user.IRCUser.Name + " (Admin)";
-                item.TextColor = cAdminNameColor;
-                item.Texture = adminGameIcon;
-            }
-            else
-            {
-                item.Text = user.IRCUser.Name;
-                item.TextColor = UISettings.AltColor;
-
-                if (user.IRCUser.GameID < 0 || user.IRCUser.GameID >= gameCollection.GameList.Count)
-                    item.Texture = unknownGameIcon;
-                else
-                    item.Texture = gameCollection.GameList[user.IRCUser.GameID].Texture;
-            }
-
-            lbPlayerList.AddItem(item);
         }
 
         private void GameBroadcastChannel_CTCPReceived(object sender, ChannelCTCPEventArgs e)

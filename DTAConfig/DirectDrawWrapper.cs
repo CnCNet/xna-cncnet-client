@@ -34,8 +34,16 @@ namespace DTAConfig
         /// </summary>
         public bool IsDxWnd { get; private set; }
 
+        public bool hidden { get; private set; }
+
+		/// <summary>
+		/// Many ddraw wrappers need qres.dat to set the desktop to 16 bit mode
+		/// </summary>
+		public bool UseQres { get; private set; } = true;
+
         private string ddrawDLLPath;
         private string configFileName;
+        private string resConfigFileName;
         private List<string> filesToCopy = new List<string>();
         private List<OSVersion> disallowedOSList = new List<OSVersion>();
 
@@ -50,8 +58,11 @@ namespace DTAConfig
 
             UIName = section.GetStringValue("UIName", "Unnamed renderer");
             IsDxWnd = section.GetBooleanValue("IsDxWnd", false);
+            hidden = section.GetBooleanValue("Hidden", false);
+            UseQres = section.GetBooleanValue("UseQres", true);
             ddrawDLLPath = section.GetStringValue("DLLName", string.Empty);
             configFileName = section.GetStringValue("ConfigFileName", string.Empty);
+            resConfigFileName = section.GetStringValue("ResConfigFileName", configFileName);
 
             filesToCopy = section.GetStringValue("AdditionalFiles", string.Empty).Split(
                 new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries).ToList();
@@ -69,8 +80,8 @@ namespace DTAConfig
                 !File.Exists(ProgramConstants.GetBaseResourcePath() + ddrawDLLPath))
                 throw new FileNotFoundException("File specified in DLLPath= for renderer '" + InternalName + "' does not exist!");
 
-            if (!string.IsNullOrEmpty(configFileName) &&
-                !File.Exists(ProgramConstants.GetBaseResourcePath() + configFileName))
+            if (!string.IsNullOrEmpty(resConfigFileName) &&
+                !File.Exists(ProgramConstants.GetBaseResourcePath() + resConfigFileName))
                 throw new FileNotFoundException("File specified in ConfigFileName= for renderer '" + InternalName + "' does not exist!");
 
             foreach (var file in filesToCopy)
@@ -104,10 +115,10 @@ namespace DTAConfig
                 File.Delete(ProgramConstants.GamePath + "ddraw.dll");
 
 
-            if (!string.IsNullOrEmpty(configFileName))
+            if (!string.IsNullOrEmpty(configFileName) && !string.IsNullOrEmpty(resConfigFileName))
             {
                 // Do not overwrite settings
-                File.Copy(ProgramConstants.GetBaseResourcePath() + configFileName,
+                File.Copy(ProgramConstants.GetBaseResourcePath() + resConfigFileName,
                     ProgramConstants.GamePath + Path.GetFileName(configFileName));
             }
 
