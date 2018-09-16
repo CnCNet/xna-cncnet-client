@@ -1034,7 +1034,14 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         private void AddMessageToChat(ChatMessage message)
         {
-            lbChatMessages.AddMessage(message);
+            if (pmWindow.IsIgnored(message.Sender))
+            {
+                lbChatMessages.AddMessage(new ChatMessage(Color.Silver, "Message blocked from - " + message.Sender));
+            }
+            else
+            {
+                lbChatMessages.AddMessage(message);
+            }
         }
 
         private void CurrentChatChannel_MessageAdded(object sender, IRCMessageEventArgs e)

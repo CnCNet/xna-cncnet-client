@@ -319,6 +319,9 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             CenterOnParent();
 
+            friendList = new List<string>();
+            ignoreList = new List<string>();
+
             try
             {
                 friendList = File.ReadAllLines(ProgramConstants.GamePath + FRIEND_LIST_PATH).ToList();
@@ -327,8 +330,6 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             catch
             {
                 Logger.Log("Loading friend/ignore list failed!");
-                friendList = new List<string>();
-                ignoreList = new List<string>();
             }
 
             tabControl.SelectedTab = 0;
@@ -759,6 +760,9 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         /// <returns></returns>
         public bool IsIgnored(string name)
         {
+            if (ignoreList == null)
+                return false;
+
             return ignoreList.Contains(name);
         }
 
