@@ -414,6 +414,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private void Channel_MessageAdded(object sender, IRCMessageEventArgs e)
         {
+            
             lbChatMessages.AddMessage(e.Message);
 
             if (e.Message.Sender != null)

@@ -162,6 +162,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             playerContextMenu.Visible = false;
             playerContextMenu.AddItem("Private Message");
             playerContextMenu.AddItem("Add Friend");
+            playerContextMenu.AddItem("Ignore User");
             playerContextMenu.OptionSelected += PlayerContextMenu_OptionSelected;
 
             lbChatMessages = new ChatListBox(WindowManager);
@@ -472,6 +473,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             string userName = currentChatChannel.Users[lbPlayerList.SelectedIndex].IRCUser.Name;
 
             playerContextMenu.Items[1].Text = pmWindow.IsFriend(userName) ? "Remove Friend" : "Add Friend";
+            playerContextMenu.Items[2].Text = pmWindow.IsIgnored(userName) ? "Unblock" : "Block";
 
             playerContextMenu.Show();
         }
@@ -493,6 +495,9 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                     break;
                 case 1:
                     pmWindow.ToggleFriend(userName);
+                    break;
+                case 2:
+                    pmWindow.ToggleIgnoreUser(userName);
                     break;
             }
         }
@@ -1005,6 +1010,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             foreach (ChannelUser user in currentChatChannel.Users)
             {
                 user.IRCUser.IsFriend = pmWindow.IsFriend(user.IRCUser.Name);
+                user.IRCUser.IsIgnored = pmWindow.IsIgnored(user.IRCUser.Name);
                 lbPlayerList.AddUser(user);
             }
 

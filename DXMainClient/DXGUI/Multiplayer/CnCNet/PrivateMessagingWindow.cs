@@ -21,6 +21,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         private const int ALL_PLAYERS_VIEW_INDEX = 2;
         private const int FRIEND_LIST_VIEW_INDEX = 1;
         private const string FRIEND_LIST_PATH = "Client\\friend_list";
+        private const string IGNORE_LIST_PATH = "Client\\ignore_list";
 
         public PrivateMessagingWindow(WindowManager windowManager,
             CnCNetManager connectionManager, GameCollection gameCollection) : base(windowManager)
@@ -168,6 +169,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         private void WindowManager_GameClosing(object sender, EventArgs e)
         {
             SaveFriendList();
+            SaveIgnoreList();
         }
 
         XNALabel lblPrivateMessaging;
@@ -204,6 +206,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         List<PrivateMessageUser> privateMessageUsers = new List<PrivateMessageUser>();
 
         List<string> friendList;
+        List<string> ignoreList;
 
         PrivateMessageNotificationBox notificationBox;
 
@@ -319,11 +322,13 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             try
             {
                 friendList = File.ReadAllLines(ProgramConstants.GamePath + FRIEND_LIST_PATH).ToList();
+                ignoreList = File.ReadAllLines(ProgramConstants.GamePath + IGNORE_LIST_PATH).ToList();
             }
             catch
             {
-                Logger.Log("Loading friend list failed!");
+                Logger.Log("Loading friend/ignore list failed!");
                 friendList = new List<string>();
+                ignoreList = new List<string>();
             }
 
             tabControl.SelectedTab = 0;
@@ -391,6 +396,12 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             // We don't accept PMs from people who we don't share any channels with
             if (iu == null)
+            {
+                return;
+            }
+
+            // Messages from users we've blocked are not wanted
+            if (iu.IsIgnored)
             {
                 return;
             }
@@ -621,6 +632,22 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             }
         }
 
+        public void SaveIgnoreList()
+        {
+            Logger.Log("Saving ignore list.");
+
+            try
+            {
+                File.Delete(ProgramConstants.GamePath + IGNORE_LIST_PATH);
+                File.WriteAllLines(ProgramConstants.GamePath + IGNORE_LIST_PATH,
+                    ignoreList.ToArray());
+            }
+            catch (Exception ex)
+            {
+                Logger.Log("Saving ignore list failed! Error message: " + ex.Message);
+            }
+        }
+
         /// <summary>
         /// Prepares a recipient for sending a private message.
         /// </summary>
@@ -713,9 +740,44 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         /// Adds a specified user to the chat ignore list.
         /// </summary>
         /// <param name="name">The name of the user.</param>
-        public void Ignore(string name)
+        public void ToggleIgnoreUser(string name)
         {
-            // TODO implement
+            if (IsIgnored(name))
+            {
+                ignoreList.Remove(name);
+            }
+            else
+            {
+                ignoreList.Add(name);
+            }
+        }
+
+        /// <summary>
+        /// Checks to see if a user is in the ignore list.
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        public bool IsIgnored(string name)
+        {
+            return ignoreList.Contains(name);
+        }
+
+        /// <summary>
+        /// Adds user to the ignore list.
+        /// </summary>
+        /// <param name="name"></param>
+        public void IgnoreUser(string name)
+        {
+            ignoreList.Add(name);
+        }
+
+        /// <summary>
+        /// Removes user from the ignore list.
+        /// </summary>
+        /// <param name="name"></param>
+        public void UnIgnoreUser(string name)
+        {
+            ignoreList.Remove(name);
         }
 
         public void SwitchOn()

@@ -38,5 +38,6 @@ namespace DTAClient.Online
         }
 
         public bool IsFriend { get; set; }
+        public bool IsIgnored { get; set; }
     }
 }
