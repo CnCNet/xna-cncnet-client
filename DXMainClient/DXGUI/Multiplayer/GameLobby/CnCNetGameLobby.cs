@@ -36,13 +36,14 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         public CnCNetGameLobby(WindowManager windowManager, string iniName, 
             TopBar topBar, List<GameMode> GameModes, CnCNetManager connectionManager,
-            TunnelHandler tunnelHandler, GameCollection gameCollection) : 
+            TunnelHandler tunnelHandler, GameCollection gameCollection, CnCNetUserData cncnetUserData) : 
             base(windowManager, iniName, topBar, GameModes)
         {
             this.connectionManager = connectionManager;
             localGame = ClientConfiguration.Instance.LocalGame;
             this.tunnelHandler = tunnelHandler;
             this.gameCollection = gameCollection;
+            this.cncnetUserData = cncnetUserData;
 
             ctcpCommandHandlers = new CommandHandlerBase[]
             {
@@ -87,6 +88,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         private string localGame;
 
         private GameCollection gameCollection;
+        private CnCNetUserData cncnetUserData;
 
         private string hostName;
 
@@ -414,11 +416,17 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private void Channel_MessageAdded(object sender, IRCMessageEventArgs e)
         {
-            
-            lbChatMessages.AddMessage(e.Message);
+            if (cncnetUserData.IsIgnored(e.Message.Sender))
+            {
+                lbChatMessages.AddMessage(new ChatMessage(Color.Silver, "Message blocked from - " + e.Message.Sender));
+            }
+            else
+            {
+                lbChatMessages.AddMessage(e.Message);
 
-            if (e.Message.Sender != null)
-                sndMessageSound.Play();
+                if (e.Message.Sender != null)
+                    sndMessageSound.Play();
+            }
         }
 
         /// <summary>

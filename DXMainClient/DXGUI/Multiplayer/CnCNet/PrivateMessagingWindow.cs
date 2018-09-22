@@ -20,20 +20,19 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
     {
         private const int ALL_PLAYERS_VIEW_INDEX = 2;
         private const int FRIEND_LIST_VIEW_INDEX = 1;
-        private const string FRIEND_LIST_PATH = "Client\\friend_list";
-        private const string IGNORE_LIST_PATH = "Client\\ignore_list";
+
+        private CnCNetUserData cncnetUserData;
 
         public PrivateMessagingWindow(WindowManager windowManager,
-            CnCNetManager connectionManager, GameCollection gameCollection) : base(windowManager)
+            CnCNetManager connectionManager, GameCollection gameCollection, CnCNetUserData cncnetUserData) : base(windowManager)
         {
             this.gameCollection = gameCollection;
             this.connectionManager = connectionManager;
+            this.cncnetUserData = cncnetUserData;
 
             connectionManager.UserAdded += ConnectionManager_UserAdded;
             connectionManager.UserRemoved += ConnectionManager_UserRemoved;
             connectionManager.UserGameIndexUpdated += ConnectionManager_UserGameIndexUpdated;
-
-            WindowManager.GameClosing += WindowManager_GameClosing;
         }
 
         private void ConnectionManager_UserGameIndexUpdated(object sender, UserEventArgs e)
@@ -166,12 +165,6 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             lbUserList.SelectedIndexChanged += LbUserList_SelectedIndexChanged;
         }
 
-        private void WindowManager_GameClosing(object sender, EventArgs e)
-        {
-            SaveFriendList();
-            SaveIgnoreList();
-        }
-
         XNALabel lblPrivateMessaging;
 
         XNAClientTabControl tabControl;
@@ -204,9 +197,6 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         /// during this client session.
         /// </summary>
         List<PrivateMessageUser> privateMessageUsers = new List<PrivateMessageUser>();
-
-        List<string> friendList;
-        List<string> ignoreList;
 
         PrivateMessageNotificationBox notificationBox;
 
@@ -319,19 +309,6 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             CenterOnParent();
 
-            friendList = new List<string>();
-            ignoreList = new List<string>();
-
-            try
-            {
-                friendList = File.ReadAllLines(ProgramConstants.GamePath + FRIEND_LIST_PATH).ToList();
-                ignoreList = File.ReadAllLines(ProgramConstants.GamePath + IGNORE_LIST_PATH).ToList();
-            }
-            catch
-            {
-                Logger.Log("Loading friend/ignore list failed!");
-            }
-
             tabControl.SelectedTab = 0;
 
             connectionManager.PrivateMessageReceived += ConnectionManager_PrivateMessageReceived;
@@ -355,7 +332,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 return;
             }
 
-            playerContextMenu.Items[0].Text = IsFriend(lbUserList.SelectedItem.Text) ? "Remove Friend" : "Add Friend";
+            playerContextMenu.Items[0].Text = cncnetUserData.IsFriend(lbUserList.SelectedItem.Text) ? "Remove Friend" : "Add Friend";
 
             playerContextMenu.Show();
         }
@@ -369,7 +346,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 return;
             }
 
-            ToggleFriend(lbItem.Text);
+            cncnetUserData.ToggleFriend(lbItem.Text);
 
             // lazy solution, but friends are removed rarely so it shouldn't bother players too much
             if (tabControl.SelectedTab == FRIEND_LIST_VIEW_INDEX)
@@ -571,7 +548,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             }
             else if (tabControl.SelectedTab == FRIEND_LIST_VIEW_INDEX)
             {
-                foreach (string friendName in friendList)
+                foreach (string friendName in cncnetUserData.FriendList)
                 {
                     IRCUser iu = connectionManager.UserList.Find(u => u.Name == friendName);
                     bool isOnline = true;
@@ -617,38 +594,6 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 return gameCollection.GameList[user.GameID].Texture;
         }
 
-        public void SaveFriendList()
-        {
-            Logger.Log("Saving friend list.");
-
-            try
-            {
-                File.Delete(ProgramConstants.GamePath + FRIEND_LIST_PATH);
-                File.WriteAllLines(ProgramConstants.GamePath + FRIEND_LIST_PATH,
-                    friendList.ToArray());
-            }
-            catch (Exception ex)
-            {
-                Logger.Log("Saving friend list failed! Error message: " + ex.Message);
-            }
-        }
-
-        public void SaveIgnoreList()
-        {
-            Logger.Log("Saving ignore list.");
-
-            try
-            {
-                File.Delete(ProgramConstants.GamePath + IGNORE_LIST_PATH);
-                File.WriteAllLines(ProgramConstants.GamePath + IGNORE_LIST_PATH,
-                    ignoreList.ToArray());
-            }
-            catch (Exception ex)
-            {
-                Logger.Log("Saving ignore list failed! Error message: " + ex.Message);
-            }
-        }
-
         /// <summary>
         /// Prepares a recipient for sending a private message.
         /// </summary>
@@ -671,7 +616,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 return;
             }
 
-            if (friendList.Contains(name))
+            if (cncnetUserData.FriendList.Contains(name))
             {
                 // If we haven't talked with the user, check if they are a friend and if so,
                 // let's enter the friend list and talk to them there
@@ -695,93 +640,6 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             if (lbUserList.LastIndex - lbUserList.TopIndex < lbUserList.NumberOfLinesOnList - 1)
                 lbUserList.ScrollToBottom();
-        }
-
-        /// <summary>
-        /// Checks if a specified user belongs to the friend list.
-        /// </summary>
-        /// <param name="name">The name of the user.</param>
-        public bool IsFriend(string name)
-        {
-            return friendList.Contains(name);
-        }
-
-        /// <summary>
-        /// Adds or removes an user from the friend list depending on whether
-        /// they already are on the friend list.
-        /// </summary>
-        /// <param name="name">The name of the user.</param>
-        public void ToggleFriend(string name)
-        {
-            if (IsFriend(name))
-                RemoveFriend(name);
-            else
-                AddFriend(name);
-        }
-
-        /// <summary>
-        /// Adds an user into the friend list.
-        /// </summary>
-        /// <param name="name">The name of the user.</param>
-        public void AddFriend(string name)
-        {
-            friendList.Add(name);
-        }
-
-        /// <summary>
-        /// Removes an user from the friend list.
-        /// </summary>
-        /// <param name="name">The name of the user.</param>
-        public void RemoveFriend(string name)
-        {
-            friendList.Remove(name);
-        }
-
-        /// <summary>
-        /// Adds a specified user to the chat ignore list.
-        /// </summary>
-        /// <param name="name">The name of the user.</param>
-        public void ToggleIgnoreUser(string name)
-        {
-            if (IsIgnored(name))
-            {
-                ignoreList.Remove(name);
-            }
-            else
-            {
-                ignoreList.Add(name);
-            }
-        }
-
-        /// <summary>
-        /// Checks to see if a user is in the ignore list.
-        /// </summary>
-        /// <param name="name"></param>
-        /// <returns></returns>
-        public bool IsIgnored(string name)
-        {
-            if (ignoreList == null)
-                return false;
-
-            return ignoreList.Contains(name);
-        }
-
-        /// <summary>
-        /// Adds user to the ignore list.
-        /// </summary>
-        /// <param name="name"></param>
-        public void IgnoreUser(string name)
-        {
-            ignoreList.Add(name);
-        }
-
-        /// <summary>
-        /// Removes user from the ignore list.
-        /// </summary>
-        /// <param name="name"></param>
-        public void UnIgnoreUser(string name)
-        {
-            ignoreList.Remove(name);
         }
 
         public void SwitchOn()

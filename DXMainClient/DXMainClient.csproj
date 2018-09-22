@@ -317,6 +317,7 @@
     <Compile Include="DXGUI\Multiplayer\PlayerListBox.cs" />
     <Compile Include="Online\ChannelUser.cs" />
     <Compile Include="Online\CnCNetGameCheck.cs" />
+    <Compile Include="Online\CnCNetUserData.cs" />
     <Compile Include="Online\EventArguments\ChannelCTCPEventArgs.cs" />
     <Compile Include="Online\EventArguments\PrivateMessageEventArgs.cs" />
     <Compile Include="Online\FileHashCalculator.cs" />

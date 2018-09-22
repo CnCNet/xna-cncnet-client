@@ -29,7 +29,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         public CnCNetLobby(WindowManager windowManager, CnCNetManager connectionManager,
             CnCNetGameLobby gameLobby, CnCNetGameLoadingLobby gameLoadingLobby,
             TopBar topBar, PrivateMessagingWindow pmWindow, TunnelHandler tunnelHandler,
-            GameCollection gameCollection)
+            GameCollection gameCollection, CnCNetUserData cncnetUserData)
             : base(windowManager)
         {
             this.connectionManager = connectionManager;
@@ -39,9 +39,11 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             this.topBar = topBar;
             this.pmWindow = pmWindow;
             this.gameCollection = gameCollection;
+            this.cncnetUserData = cncnetUserData;
         }
 
         private CnCNetManager connectionManager;
+        private CnCNetUserData cncnetUserData;
 
         private PlayerListBox lbPlayerList;
         private ChatListBox lbChatMessages;
@@ -472,8 +474,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             string userName = currentChatChannel.Users[lbPlayerList.SelectedIndex].IRCUser.Name;
 
-            playerContextMenu.Items[1].Text = pmWindow.IsFriend(userName) ? "Remove Friend" : "Add Friend";
-            playerContextMenu.Items[2].Text = pmWindow.IsIgnored(userName) ? "Unblock" : "Block";
+            playerContextMenu.Items[1].Text = cncnetUserData.IsFriend(userName) ? "Remove Friend" : "Add Friend";
+            playerContextMenu.Items[2].Text = cncnetUserData.IsIgnored(userName) ? "Unblock" : "Block";
 
             playerContextMenu.Show();
         }
@@ -494,10 +496,10 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                     pmWindow.InitPM(userName);
                     break;
                 case 1:
-                    pmWindow.ToggleFriend(userName);
+                    cncnetUserData.ToggleFriend(userName);
                     break;
                 case 2:
-                    pmWindow.ToggleIgnoreUser(userName);
+                    cncnetUserData.ToggleIgnoreUser(userName);
                     break;
             }
         }
@@ -1009,8 +1011,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             foreach (ChannelUser user in currentChatChannel.Users)
             {
-                user.IRCUser.IsFriend = pmWindow.IsFriend(user.IRCUser.Name);
-                user.IRCUser.IsIgnored = pmWindow.IsIgnored(user.IRCUser.Name);
+                user.IRCUser.IsFriend = cncnetUserData.IsFriend(user.IRCUser.Name);
+                user.IRCUser.IsIgnored = cncnetUserData.IsIgnored(user.IRCUser.Name);
                 lbPlayerList.AddUser(user);
             }
 
@@ -1034,7 +1036,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         private void AddMessageToChat(ChatMessage message)
         {
-            if (pmWindow.IsIgnored(message.Sender))
+            if (cncnetUserData.IsIgnored(message.Sender))
             {
                 lbChatMessages.AddMessage(new ChatMessage(Color.Silver, "Message blocked from - " + message.Sender));
             }
