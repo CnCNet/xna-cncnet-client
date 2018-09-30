@@ -446,10 +446,11 @@ namespace DTAClient.Online
                             connectionManager.OnUserListReceived(channelName, users);
                             break;
                         case 352: // Reply to WHO query
+                            string ident = parameters[2];
                             string host = parameters[3];
                             string wUserName = parameters[5];
                             string extraInfo = parameters[7];
-                            connectionManager.OnWhoReplyReceived(host, wUserName, extraInfo);
+                            connectionManager.OnWhoReplyReceived(ident, host, wUserName, extraInfo);
                             break;
                         case 433: // Name already in use
                             message = serverMessagePart + parameters[1] + ": " + parameters[2];

@@ -544,13 +544,12 @@ namespace DTAClient.Online
             // If we don't know the user, create a new one
             if (ircUser == null)
             {
-                ircUser = new IRCUser(name, host);
-
-                string identifier = userAddress.Split('@')[0].Replace("~", "");
+                string identifier = userAddress.Split('@')[0];
                 string[] parts = identifier.Split('.');
+                ircUser = new IRCUser(name, identifier, host);
                 if (parts.Length > 1)
                 {
-                    ircUser.GameID = gameCollection.GameList.FindIndex(g => g.InternalName.ToUpper() == parts[0]);
+                    ircUser.GameID = gameCollection.GameList.FindIndex(g => g.InternalName.ToUpper() == parts[0].Replace("~", string.Empty));
                 }
 
                 AddUserToGlobalUserList(ircUser);
@@ -760,13 +759,13 @@ namespace DTAClient.Online
             WelcomeMessageReceived?.Invoke(this, new ServerMessageEventArgs(message));
         }
 
-        public void OnWhoReplyReceived(string hostName, string userName, string extraInfo)
+        public void OnWhoReplyReceived(string ident, string hostName, string userName, string extraInfo)
         {
-            wm.AddCallback(new Action<string, string, string>(DoWhoReplyReceived),
-                hostName, userName, extraInfo);
+            wm.AddCallback(new Action<string, string, string, string>(DoWhoReplyReceived),
+                ident, hostName, userName, extraInfo);
         }
 
-        private void DoWhoReplyReceived(string hostName, string userName, string extraInfo)
+        private void DoWhoReplyReceived(string ident, string hostName, string userName, string extraInfo)
         {
             WhoReplyReceived?.Invoke(this, new WhoEventArgs(userName, extraInfo));
 
@@ -786,6 +785,7 @@ namespace DTAClient.Online
             if (user != null)
             {
                 user.GameID = gameIndex;
+                user.Ident = ident;
                 user.Hostname = hostName;
 
                 channels.ForEach(ch => ch.UpdateGameIndexForUser(userName));
