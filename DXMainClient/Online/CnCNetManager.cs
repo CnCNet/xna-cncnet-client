@@ -547,6 +547,7 @@ namespace DTAClient.Online
                 string identifier = userAddress.Split('@')[0];
                 string[] parts = identifier.Split('.');
                 ircUser = new IRCUser(name, identifier, host);
+
                 if (parts.Length > 1)
                 {
                     ircUser.GameID = gameCollection.GameList.FindIndex(g => g.InternalName.ToUpper() == parts[0].Replace("~", string.Empty));

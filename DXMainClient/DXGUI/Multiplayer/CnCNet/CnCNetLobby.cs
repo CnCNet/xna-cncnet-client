@@ -471,10 +471,10 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 return;
             }
 
-            string userName = currentChatChannel.Users[lbPlayerList.SelectedIndex].IRCUser.Name;
+            IRCUser ircUser = currentChatChannel.Users[lbPlayerList.SelectedIndex].IRCUser;
 
-            playerContextMenu.Items[1].Text = cncnetUserData.IsFriend(userName) ? "Remove Friend" : "Add Friend";
-            playerContextMenu.Items[2].Text = cncnetUserData.IsIgnored(userName) ? "Unblock" : "Block";
+            playerContextMenu.Items[1].Text = cncnetUserData.IsFriend(ircUser.Name) ? "Remove Friend" : "Add Friend";
+            playerContextMenu.Items[2].Text = cncnetUserData.IsIgnored(ircUser.Ident) ? "Unblock" : "Block";
 
             playerContextMenu.Show();
         }
@@ -487,18 +487,18 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 return;
             }
 
-            string userName = currentChatChannel.Users[lbPlayerList.SelectedIndex].IRCUser.Name;
+            IRCUser ircUser = currentChatChannel.Users[lbPlayerList.SelectedIndex].IRCUser;
 
             switch (e.Index)
             {
                 case 0:
-                    pmWindow.InitPM(userName);
+                    pmWindow.InitPM(ircUser.Name);
                     break;
                 case 1:
-                    cncnetUserData.ToggleFriend(userName);
+                    cncnetUserData.ToggleFriend(ircUser.Name);
                     break;
                 case 2:
-                    cncnetUserData.ToggleIgnoreUser(userName);
+                    cncnetUserData.ToggleIgnoreUser(ircUser.Ident);
                     break;
             }
         }
