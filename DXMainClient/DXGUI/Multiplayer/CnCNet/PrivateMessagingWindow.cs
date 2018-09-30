@@ -616,7 +616,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 return;
             }
 
-            if (cncnetUserData.FriendList.Contains(name))
+            if (cncnetUserData.IsFriend(name))
             {
                 // If we haven't talked with the user, check if they are a friend and if so,
                 // let's enter the friend list and talk to them there

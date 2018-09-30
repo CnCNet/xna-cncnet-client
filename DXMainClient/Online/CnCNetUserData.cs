@@ -14,6 +14,9 @@ namespace DTAClient.Online
         private const string FRIEND_LIST_PATH = "Client\\friend_list";
         private const string IGNORE_LIST_PATH = "Client\\ignore_list";
 
+        public List<string> FriendList { get; private set; }
+        public List<string> IgnoreList { get; private set; }
+
         public CnCNetUserData(WindowManager windowManager)
         {
             FriendList = new List<string>();
@@ -107,7 +110,7 @@ namespace DTAClient.Online
         /// <summary>
         /// Checks to see if a user is in the ignore list.
         /// </summary>
-        /// <param name="name"></param>
+        /// <param name="name">The name of the user.</param>
         /// <returns></returns>
         public bool IsIgnored(string name)
         {
@@ -120,7 +123,7 @@ namespace DTAClient.Online
         /// <summary>
         /// Adds user to the ignore list.
         /// </summary>
-        /// <param name="name"></param>
+        /// <param name="name">The name of the user.</param>
         public void IgnoreUser(string name)
         {
             IgnoreList.Add(name);
@@ -129,7 +132,7 @@ namespace DTAClient.Online
         /// <summary>
         /// Removes user from the ignore list.
         /// </summary>
-        /// <param name="name"></param>
+        /// <param name="name">The name of the user.</param>
         public void UnIgnoreUser(string name)
         {
             IgnoreList.Remove(name);
@@ -143,8 +146,5 @@ namespace DTAClient.Online
         {
             return FriendList.Contains(name);
         }
-
-        public List<string> FriendList { get; private set; }
-        public List<string> IgnoreList { get; private set; }
     }
 }
