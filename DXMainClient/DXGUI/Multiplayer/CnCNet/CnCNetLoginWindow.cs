@@ -40,13 +40,13 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             AddChild(lblConnectToCnCNet);
             lblConnectToCnCNet.CenterOnParent();
             lblConnectToCnCNet.ClientRectangle = new Rectangle(
-                lblConnectToCnCNet.ClientRectangle.X, 12,
-                lblConnectToCnCNet.ClientRectangle.Width, 
-                lblConnectToCnCNet.ClientRectangle.Height);
+                lblConnectToCnCNet.X, 12,
+                lblConnectToCnCNet.Width, 
+                lblConnectToCnCNet.Height);
 
             tbPlayerName = new XNATextBox(WindowManager);
             tbPlayerName.Name = "tbPlayerName";
-            tbPlayerName.ClientRectangle = new Rectangle(ClientRectangle.Width - 132, 50, 120, 19);
+            tbPlayerName.ClientRectangle = new Rectangle(Width - 132, 50, 120, 19);
             tbPlayerName.MaximumTextLength = ClientConfiguration.Instance.MaxNameLength;
             string defgame = ClientConfiguration.Instance.LocalGame;
 
@@ -54,39 +54,39 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             lblPlayerName.Name = "lblPlayerName";
             lblPlayerName.FontIndex = 1;
             lblPlayerName.Text = "PLAYER NAME:";
-            lblPlayerName.ClientRectangle = new Rectangle(12, tbPlayerName.ClientRectangle.Y + 1,
-                lblPlayerName.ClientRectangle.Width, lblPlayerName.ClientRectangle.Height);
+            lblPlayerName.ClientRectangle = new Rectangle(12, tbPlayerName.Y + 1,
+                lblPlayerName.Width, lblPlayerName.Height);
 
             chkRememberMe = new XNAClientCheckBox(WindowManager);
             chkRememberMe.Name = "chkRememberMe";
-            chkRememberMe.ClientRectangle = new Rectangle(12, tbPlayerName.ClientRectangle.Bottom + 12, 0, 0);
+            chkRememberMe.ClientRectangle = new Rectangle(12, tbPlayerName.Bottom + 12, 0, 0);
             chkRememberMe.Text = "Remember me";
             chkRememberMe.TextPadding = 7;
             chkRememberMe.CheckedChanged += ChkRememberMe_CheckedChanged;
 
             chkPersistentMode = new XNAClientCheckBox(WindowManager);
             chkPersistentMode.Name = "chkPersistentMode";
-            chkPersistentMode.ClientRectangle = new Rectangle(12, chkRememberMe.ClientRectangle.Bottom + 30, 0, 0);
+            chkPersistentMode.ClientRectangle = new Rectangle(12, chkRememberMe.Bottom + 30, 0, 0);
             chkPersistentMode.Text = "Stay connected outside of the CnCNet lobby";
             chkPersistentMode.TextPadding = chkRememberMe.TextPadding;
             chkPersistentMode.CheckedChanged += ChkPersistentMode_CheckedChanged;
 
             chkAutoConnect = new XNAClientCheckBox(WindowManager);
             chkAutoConnect.Name = "chkAutoConnect";
-            chkAutoConnect.ClientRectangle = new Rectangle(12, chkPersistentMode.ClientRectangle.Bottom + 30, 0, 0);
+            chkAutoConnect.ClientRectangle = new Rectangle(12, chkPersistentMode.Bottom + 30, 0, 0);
             chkAutoConnect.Text = "Connect automatically on client startup";
             chkAutoConnect.TextPadding = chkRememberMe.TextPadding;
             chkAutoConnect.AllowChecking = false;
 
             btnConnect = new XNAClientButton(WindowManager);
             btnConnect.Name = "btnConnect";
-            btnConnect.ClientRectangle = new Rectangle(12, ClientRectangle.Height - 35, 110, 23);
+            btnConnect.ClientRectangle = new Rectangle(12, Height - 35, 110, 23);
             btnConnect.Text = "Connect";
             btnConnect.LeftClick += BtnConnect_LeftClick;
 
             btnCancel = new XNAClientButton(WindowManager);
             btnCancel.Name = "btnCancel";
-            btnCancel.ClientRectangle = new Rectangle(ClientRectangle.Width - 122, btnConnect.ClientRectangle.Y, 110, 23);
+            btnCancel.ClientRectangle = new Rectangle(Width - 122, btnConnect.Y, 110, 23);
             btnCancel.Text = "Cancel";
             btnCancel.LeftClick += BtnCancel_LeftClick;
 

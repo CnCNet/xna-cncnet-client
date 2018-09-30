@@ -55,7 +55,7 @@ namespace DTAConfig.OptionPanels
 
                 var btn = new XNAClientButton(WindowManager);
                 btn.Name = "btn" + c.ININame;
-                btn.ClientRectangle = new Rectangle(ClientRectangle.Width - 145,
+                btn.ClientRectangle = new Rectangle(Width - 145,
                     12 + componentIndex * 35, 133, 23);
                 btn.Text = buttonText;
                 btn.Tag = c;
@@ -63,7 +63,7 @@ namespace DTAConfig.OptionPanels
 
                 var lbl = new XNALabel(WindowManager);
                 lbl.Name = "lbl" + c.ININame;
-                lbl.ClientRectangle = new Rectangle(12, btn.ClientRectangle.Y + 2, 0, 0);
+                lbl.ClientRectangle = new Rectangle(12, btn.Y + 2, 0, 0);
                 lbl.Text = c.GUIName;
 
                 AddChild(btn);

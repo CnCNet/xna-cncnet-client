@@ -32,30 +32,30 @@ namespace DTAConfig.OptionPanels
 
             lbUpdateServerList = new XNAListBox(WindowManager);
             lbUpdateServerList.Name = "lblUpdateServerList";
-            lbUpdateServerList.ClientRectangle = new Rectangle(lblDescription.ClientRectangle.X,
-                lblDescription.ClientRectangle.Bottom + 12, ClientRectangle.Width - 24, 100);
+            lbUpdateServerList.ClientRectangle = new Rectangle(lblDescription.X,
+                lblDescription.Bottom + 12, Width - 24, 100);
             lbUpdateServerList.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 128), 2, 2);
             lbUpdateServerList.DrawMode = PanelBackgroundImageDrawMode.STRETCHED;
 
             var btnMoveUp = new XNAClientButton(WindowManager);
             btnMoveUp.Name = "btnMoveUp";
-            btnMoveUp.ClientRectangle = new Rectangle(lbUpdateServerList.ClientRectangle.X,
-                lbUpdateServerList.ClientRectangle.Bottom + 12, 133, 23);
+            btnMoveUp.ClientRectangle = new Rectangle(lbUpdateServerList.X,
+                lbUpdateServerList.Bottom + 12, 133, 23);
             btnMoveUp.Text = "Move Up";
             btnMoveUp.LeftClick += btnMoveUp_LeftClick;
 
             var btnMoveDown = new XNAClientButton(WindowManager);
             btnMoveDown.Name = "btnMoveDown";
             btnMoveDown.ClientRectangle = new Rectangle(
-                lbUpdateServerList.ClientRectangle.Right - 133,
-                btnMoveUp.ClientRectangle.Y, 133, 23);
+                lbUpdateServerList.Right - 133,
+                btnMoveUp.Y, 133, 23);
             btnMoveDown.Text = "Move Down";
             btnMoveDown.LeftClick += btnMoveDown_LeftClick;
 
             chkAutoCheck = new XNAClientCheckBox(WindowManager);
             chkAutoCheck.Name = "chkAutoCheck";
-            chkAutoCheck.ClientRectangle = new Rectangle(lblDescription.ClientRectangle.X,
-                btnMoveUp.ClientRectangle.Bottom + 24, 0, 0);
+            chkAutoCheck.ClientRectangle = new Rectangle(lblDescription.X,
+                btnMoveUp.Bottom + 24, 0, 0);
             chkAutoCheck.Text = "Check for updates automatically";
 
             AddChild(lblDescription);

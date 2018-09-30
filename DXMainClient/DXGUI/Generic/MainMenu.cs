@@ -223,8 +223,8 @@ namespace DTAClient.DXGUI.Generic
 
             innerPanel = new MainMenuDarkeningPanel(WindowManager);
             innerPanel.ClientRectangle = new Rectangle(0, 0,
-                ClientRectangle.Width,
-                ClientRectangle.Height);
+                Width,
+                Height);
             AddChild(innerPanel);
             innerPanel.Hide();
 
@@ -237,9 +237,9 @@ namespace DTAClient.DXGUI.Generic
             innerPanel.UpdateWindow.UpdateCancelled += UpdateWindow_UpdateCancelled;
             innerPanel.UpdateWindow.UpdateFailed += UpdateWindow_UpdateFailed;
 
-            this.ClientRectangle = new Rectangle((WindowManager.RenderResolutionX - ClientRectangle.Width) / 2,
-                (WindowManager.RenderResolutionY - ClientRectangle.Height) / 2,
-                ClientRectangle.Width, ClientRectangle.Height);
+            this.ClientRectangle = new Rectangle((WindowManager.RenderResolutionX - Width) / 2,
+                (WindowManager.RenderResolutionY - Height) / 2,
+                Width, Height);
             innerPanel.ClientRectangle = new Rectangle(0, 0, WindowManager.RenderResolutionX, WindowManager.RenderResolutionY);
 
             CnCNetPlayerCountTask.CnCNetGameCountUpdated += CnCNetInfoController_CnCNetGameCountUpdated;

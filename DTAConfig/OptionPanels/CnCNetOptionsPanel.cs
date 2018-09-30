@@ -48,8 +48,8 @@ namespace DTAConfig.OptionPanels
             chkWriteInstallPathToRegistry = new XNAClientCheckBox(WindowManager);
             chkWriteInstallPathToRegistry.Name = "chkWriteInstallPathToRegistry";
             chkWriteInstallPathToRegistry.ClientRectangle = new Rectangle(
-                chkPingUnofficialTunnels.ClientRectangle.X,
-                chkPingUnofficialTunnels.ClientRectangle.Bottom + 12, 0, 0);
+                chkPingUnofficialTunnels.X,
+                chkPingUnofficialTunnels.Bottom + 12, 0, 0);
             chkWriteInstallPathToRegistry.Text = "Write game installation path to Windows" + Environment.NewLine +
                 "Registry (makes it possible to join" + Environment.NewLine +
                  "other games' game rooms on CnCNet)";
@@ -59,8 +59,8 @@ namespace DTAConfig.OptionPanels
             chkPlaySoundOnGameHosted = new XNAClientCheckBox(WindowManager);
             chkPlaySoundOnGameHosted.Name = "chkPlaySoundOnGameHosted";
             chkPlaySoundOnGameHosted.ClientRectangle = new Rectangle(
-                chkPingUnofficialTunnels.ClientRectangle.X,
-                chkWriteInstallPathToRegistry.ClientRectangle.Bottom + 12, 0, 0);
+                chkPingUnofficialTunnels.X,
+                chkWriteInstallPathToRegistry.Bottom + 12, 0, 0);
             chkPlaySoundOnGameHosted.Text = "Play sound when a game is hosted";
 
             AddChild(chkPlaySoundOnGameHosted);
@@ -68,8 +68,8 @@ namespace DTAConfig.OptionPanels
             chkNotifyOnUserListChange = new XNAClientCheckBox(WindowManager);
             chkNotifyOnUserListChange.Name = "chkNotifyOnUserListChange";
             chkNotifyOnUserListChange.ClientRectangle = new Rectangle(
-                chkPingUnofficialTunnels.ClientRectangle.X,
-                chkPlaySoundOnGameHosted.ClientRectangle.Bottom + 12, 0, 0);
+                chkPingUnofficialTunnels.X,
+                chkPlaySoundOnGameHosted.Bottom + 12, 0, 0);
             chkNotifyOnUserListChange.Text = "Show player join / quit messages" + Environment.NewLine +
                 "on CnCNet lobby";
 
@@ -88,8 +88,8 @@ namespace DTAConfig.OptionPanels
             chkPersistentMode = new XNAClientCheckBox(WindowManager);
             chkPersistentMode.Name = "chkPersistentMode";
             chkPersistentMode.ClientRectangle = new Rectangle(
-                chkSkipLoginWindow.ClientRectangle.X,
-                chkSkipLoginWindow.ClientRectangle.Bottom + 12, 0, 0);
+                chkSkipLoginWindow.X,
+                chkSkipLoginWindow.Bottom + 12, 0, 0);
             chkPersistentMode.Text = "Stay connected outside of the CnCNet lobby";
             chkPersistentMode.CheckedChanged += ChkPersistentMode_CheckedChanged;
 
@@ -98,8 +98,8 @@ namespace DTAConfig.OptionPanels
             chkConnectOnStartup = new XNAClientCheckBox(WindowManager);
             chkConnectOnStartup.Name = "chkConnectOnStartup";
             chkConnectOnStartup.ClientRectangle = new Rectangle(
-                chkSkipLoginWindow.ClientRectangle.X,
-                chkPersistentMode.ClientRectangle.Bottom + 12, 0, 0);
+                chkSkipLoginWindow.X,
+                chkPersistentMode.Bottom + 12, 0, 0);
             chkConnectOnStartup.Text = "Connect automatically on client startup";
             chkConnectOnStartup.AllowChecking = false;
 
@@ -108,8 +108,8 @@ namespace DTAConfig.OptionPanels
             var lblFollowedGames = new XNALabel(WindowManager);
             lblFollowedGames.Name = "lblFollowedGames";
             lblFollowedGames.ClientRectangle = new Rectangle(
-                chkNotifyOnUserListChange.ClientRectangle.X,
-                chkNotifyOnUserListChange.ClientRectangle.Bottom + 24, 0, 0);
+                chkNotifyOnUserListChange.X,
+                chkNotifyOnUserListChange.Bottom + 24, 0, 0);
             lblFollowedGames.Text = "Show game rooms from the following games:";
 
             AddChild(lblFollowedGames);
@@ -123,16 +123,16 @@ namespace DTAConfig.OptionPanels
 
                 var panel = new XNAPanel(WindowManager);
                 panel.Name = "panel" + game.InternalName;
-                panel.ClientRectangle = new Rectangle(chkPingUnofficialTunnels.ClientRectangle.X,
-                    lblFollowedGames.ClientRectangle.Bottom + 12 + chkCount * 22, 16, 16);
+                panel.ClientRectangle = new Rectangle(chkPingUnofficialTunnels.X,
+                    lblFollowedGames.Bottom + 12 + chkCount * 22, 16, 16);
                 panel.DrawBorders = false;
                 panel.BackgroundTexture = game.Texture;
 
                 var chkBox = new XNAClientCheckBox(WindowManager);
                 chkBox.Name = game.InternalName.ToUpper();
                 chkBox.ClientRectangle = new Rectangle(
-                    panel.ClientRectangle.Right + 6,
-                    panel.ClientRectangle.Y, 0, 0);
+                    panel.Right + 6,
+                    panel.Y, 0, 0);
                 chkBox.Text = game.UIName;
 
                 chkCount++;

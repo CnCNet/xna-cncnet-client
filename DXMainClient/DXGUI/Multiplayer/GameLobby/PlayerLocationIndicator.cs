@@ -109,7 +109,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
                 bool textOnRight = true;
 
-                if (ClientRectangle.Right + textXPosition + (int)textSize.X > Parent.ClientRectangle.Width)
+                if (Right + textXPosition + (int)textSize.X > Parent.Width)
                 {
                     textXPosition = -(int)textSize.X - 3 - (int)(baseTexture.Width * TEXTURE_SCALE);
                     text = pInfo.TeamId > 0 ? pInfo.Name + " " + teamIds[pInfo.TeamId] : pInfo.Name;

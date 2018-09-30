@@ -88,6 +88,15 @@
             <param name="colorString">The color string in the form "R,G,B". All values must be between 0 and 255.</param>
             <returns>A XNA Color struct based on the given string.</returns>
         </member>
+        <member name="M:Rampastring.XNAUI.AssetLoader.GetColorFromString(System.String,Microsoft.Xna.Framework.Color)">
+            <summary>
+            Creates a color based on a color string in the form "R,G,B". All values must be between 0 and 255.
+            Returns a given default color if parsing the given string fails.
+            </summary>
+            <param name="colorString">The color string.</param>
+            <param name="defaultColor">The default color to return if parsing the string fails.</param>
+            <returns>A XNA Color struct.</returns>
+        </member>
         <member name="M:Rampastring.XNAUI.AssetLoader.GetRGBAColorFromString(System.String)">
             <summary>
             Creates a color based on a color string in the form "R,G,B,A". All values must be between 0 and 255.
@@ -125,9 +134,15 @@
             </summary>
             <param name="assetName">The asset name of the sound file to load.</param>
         </member>
+        <member name="M:Rampastring.XNAUI.EnhancedSoundEffect.#ctor(Microsoft.Xna.Framework.Audio.SoundEffect)">
+            <summary>
+            Creates a new enhanced sound. Uses the given sound assert.
+            </summary>
+            <param name="soundEffect">The sound effect.</param>
+        </member>
         <member name="M:Rampastring.XNAUI.EnhancedSoundEffect.#ctor(System.String,System.Double,System.Double,System.Single)">
             <summary>
-            Creates a new prioritized sound. Loads the specified sound asset.
+            Creates a new enhanced sound. Loads the specified sound asset.
             </summary>
             <param name="assetName">The asset name of the sound file to load.</param>
             <param name="priority">The priority of this sound</param>
@@ -312,6 +327,22 @@
             <summary>
             A vertical scroll bar, mainly for list boxes but it could also be utilized
             by other controls.
+            </summary>
+        </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNAScrollBar.#ctor(Rampastring.XNAUI.WindowManager)">
+            <summary>
+            Creates a new scroll bar.
+            </summary>
+            <param name="windowManager">The game window manager.</param>
+        </member>
+        <member name="E:Rampastring.XNAUI.XNAControls.XNAScrollBar.Scrolled">
+            <summary>
+            Raised when the scroll bar is scrolled. 
+            </summary>
+        </member>
+        <member name="E:Rampastring.XNAUI.XNAControls.XNAScrollBar.ScrolledToBottom">
+            <summary>
+            Raised when the scroll bar is scrolled and it reaches its lowest value.
             </summary>
         </member>
         <member name="P:Rampastring.XNAUI.XNAControls.XNAScrollBar.ItemCount">
@@ -755,6 +786,11 @@
             The display rectangle of the control inside its parent.
             </summary>
         </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNAControl.OnClientRectangleUpdated">
+            <summary>
+            Called when the control's client rectangle is changed.
+            </summary>
+        </member>
         <member name="P:Rampastring.XNAUI.XNAControls.XNAControl.X">
             <summary>
             The X-coordinate of the control relative to its parent's location.
@@ -838,6 +874,13 @@
             <summary>
             Centers the control horizontally on the middle of its parent's client rectangle.
             </summary>
+        </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNAControl.CenterOnControlVertically(Rampastring.XNAUI.XNAControls.XNAControl)">
+            <summary>
+            Centers the control vertically in proportion to another control.
+            Assumes that this control and the other control share the same parent control.
+            </summary>
+            <param name="control">The other control.</param>
         </member>
         <member name="M:Rampastring.XNAUI.XNAControls.XNAControl.Detach">
             <summary>

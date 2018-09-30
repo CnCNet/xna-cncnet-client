@@ -37,22 +37,22 @@ namespace DTAClient.DXGUI.Generic
             var imagePanel = new XNAPanel(WindowManager);
             imagePanel.Name = "imagePanel";
             imagePanel.DrawMode = PanelBackgroundImageDrawMode.STRETCHED;
-            imagePanel.ClientRectangle = new Rectangle(lblDescription.ClientRectangle.X,
-                lblDescription.ClientRectangle.Bottom + 12, ClientRectangle.Width - 24,
-                ClientRectangle.Height - (lblDescription.ClientRectangle.Bottom + 59));
+            imagePanel.ClientRectangle = new Rectangle(lblDescription.X,
+                lblDescription.Bottom + 12, Width - 24,
+                Height - (lblDescription.Bottom + 59));
             imagePanel.BackgroundTexture = AssetLoader.LoadTextureUncached("cheater.png");
 
             var btnCancel = new XNAClientButton(WindowManager);
             btnCancel.Name = "btnCancel";
-            btnCancel.ClientRectangle = new Rectangle(ClientRectangle.Width - 104,
-                ClientRectangle.Height - 35, 92, 23);
+            btnCancel.ClientRectangle = new Rectangle(Width - 104,
+                Height - 35, 92, 23);
             btnCancel.Text = "Cancel";
             btnCancel.LeftClick += BtnCancel_LeftClick;
 
             var btnYes = new XNAClientButton(WindowManager);
             btnYes.Name = "btnYes";
-            btnYes.ClientRectangle = new Rectangle(12, btnCancel.ClientRectangle.Y,
-                btnCancel.ClientRectangle.Width, btnCancel.ClientRectangle.Height);
+            btnYes.ClientRectangle = new Rectangle(12, btnCancel.Y,
+                btnCancel.Width, btnCancel.Height);
             btnYes.Text = "Yes";
             btnYes.LeftClick += BtnYes_LeftClick;
 
@@ -63,8 +63,8 @@ namespace DTAClient.DXGUI.Generic
             AddChild(btnYes);
 
             lblCheater.CenterOnParent();
-            lblCheater.ClientRectangle = new Rectangle(lblCheater.ClientRectangle.X, 12,
-                lblCheater.ClientRectangle.Width, lblCheater.ClientRectangle.Height);
+            lblCheater.ClientRectangle = new Rectangle(lblCheater.X, 12,
+                lblCheater.Width, lblCheater.Height);
 
             base.Initialize();
         }

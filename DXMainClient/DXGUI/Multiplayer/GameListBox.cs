@@ -167,11 +167,11 @@ namespace DTAClient.DXGUI.Multiplayer
                 return;
             }
 
-            panelGameInformation.ClientRectangle = new Rectangle(ClientRectangle.Width,
+            panelGameInformation.ClientRectangle = new Rectangle(Width,
                 Math.Min((HoveredIndex - TopIndex) * LineHeight,
-                         ClientRectangle.Height - panelGameInformation.ClientRectangle.Height),
-                panelGameInformation.ClientRectangle.Width,
-                panelGameInformation.ClientRectangle.Height);
+                         Height - panelGameInformation.Height),
+                panelGameInformation.Width,
+                panelGameInformation.Height);
 
             showGameInfo = true;
 
@@ -255,7 +255,7 @@ namespace DTAClient.DXGUI.Multiplayer
             {
                 var lbItem = Items[i];
 
-                if (height + lbItem.TextLines.Count * LineHeight > ClientRectangle.Height)
+                if (height + lbItem.TextLines.Count * LineHeight > Height)
                     break;
 
                 int x = TextBorderDistance;

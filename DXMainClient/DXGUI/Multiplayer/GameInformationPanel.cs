@@ -57,11 +57,11 @@ namespace DTAClient.DXGUI.Multiplayer
             for (int i = 0; i < lblPlayerNames.Length / 2; i++)
             {
                 XNALabel lblPlayerName1 = new XNALabel(WindowManager);
-                lblPlayerName1.ClientRectangle = new Rectangle(lblPlayers.ClientRectangle.X, lblPlayers.ClientRectangle.Y + 24 + i * 20, 0, 0);
+                lblPlayerName1.ClientRectangle = new Rectangle(lblPlayers.X, lblPlayers.Y + 24 + i * 20, 0, 0);
                 lblPlayerName1.RemapColor = UISettings.AltColor;
 
                 XNALabel lblPlayerName2 = new XNALabel(WindowManager);
-                lblPlayerName2.ClientRectangle = new Rectangle(lblPlayers.ClientRectangle.X + 115, lblPlayerName1.ClientRectangle.Y, 0, 0);
+                lblPlayerName2.ClientRectangle = new Rectangle(lblPlayers.X + 115, lblPlayerName1.Y, 0, 0);
                 lblPlayerName2.RemapColor = UISettings.AltColor;
 
                 AddChild(lblPlayerName1);
@@ -80,8 +80,8 @@ namespace DTAClient.DXGUI.Multiplayer
             AddChild(lblGameInformation);
 
             lblGameInformation.CenterOnParent();
-            lblGameInformation.ClientRectangle = new Rectangle( lblGameInformation.ClientRectangle.X, 6,
-                lblGameInformation.ClientRectangle.Width, lblGameInformation.ClientRectangle.Height);
+            lblGameInformation.ClientRectangle = new Rectangle( lblGameInformation.X, 6,
+                lblGameInformation.Width, lblGameInformation.Height);
 
             base.Initialize();
         }
@@ -89,10 +89,10 @@ namespace DTAClient.DXGUI.Multiplayer
         public void SetInfo(GenericHostedGame game)
         {
             lblGameMode.Text = Renderer.GetStringWithLimitedWidth("Game mode: " + Renderer.GetSafeString(game.GameMode, lblGameMode.FontIndex),
-                lblGameMode.FontIndex, ClientRectangle.Width - lblGameMode.ClientRectangle.X * 2);
+                lblGameMode.FontIndex, Width - lblGameMode.X * 2);
             lblGameMode.Visible = true;
             lblMap.Text = Renderer.GetStringWithLimitedWidth("Map: " + Renderer.GetSafeString(game.Map, lblMap.FontIndex),
-                lblMap.FontIndex, ClientRectangle.Width - lblMap.ClientRectangle.X * 2);
+                lblMap.FontIndex, Width - lblMap.X * 2);
             lblMap.Visible = true;
             lblGameVersion.Text = "Game version: " + Renderer.GetSafeString(game.GameVersion, lblGameVersion.FontIndex);
             lblGameVersion.Visible = true;

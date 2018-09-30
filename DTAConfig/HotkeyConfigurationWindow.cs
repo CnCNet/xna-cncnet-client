@@ -73,7 +73,7 @@ namespace DTAConfig
             ddCategory = new XNAClientDropDown(WindowManager);
             ddCategory.Name = "ddCategory";
             ddCategory.ClientRectangle = new Rectangle(lblCategory.Right + 12, 
-                lblCategory.ClientRectangle.Y - 1, 250, ddCategory.Height);
+                lblCategory.Y - 1, 250, ddCategory.Height);
 
             HashSet<string> categories = new HashSet<string>();
 
@@ -89,7 +89,7 @@ namespace DTAConfig
             lbHotkeys = new XNAMultiColumnListBox(WindowManager);
             lbHotkeys.Name = "lbHotkeys";
             lbHotkeys.ClientRectangle = new Rectangle(12, ddCategory.Bottom + 12, 
-                ddCategory.Right - 12, ClientRectangle.Height - ddCategory.Bottom - 59);
+                ddCategory.Right - 12, Height - ddCategory.Bottom - 59);
             lbHotkeys.DrawMode = PanelBackgroundImageDrawMode.STRETCHED;
             lbHotkeys.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 128), 1, 1);
             lbHotkeys.AddColumn("Command", 150);

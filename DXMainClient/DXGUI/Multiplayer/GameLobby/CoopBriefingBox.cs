@@ -47,9 +47,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (renderTarget != null)
                 renderTarget.Dispose();
 
-            if (Parent.ClientRectangle.Width > 0 && Parent.ClientRectangle.Height > 0)
+            if (Parent.Width > 0 && Parent.Height > 0)
             {
-                renderTarget = new RenderTarget2D(GraphicsDevice, Parent.ClientRectangle.Width, Parent.ClientRectangle.Height,
+                renderTarget = new RenderTarget2D(GraphicsDevice, Parent.Width, Parent.Height,
                     false, SurfaceFormat.Color, DepthFormat.Depth24Stencil8, 0, RenderTargetUsage.PlatformContents);
             }
         }
@@ -66,10 +66,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         public void SetText(string text)
         {
-            this.text = Renderer.FixText(text, fontIndex, ClientRectangle.Width - (MARGIN * 2)).Text;
+            this.text = Renderer.FixText(text, fontIndex, Width - (MARGIN * 2)).Text;
             int textHeight = (int)Renderer.GetTextDimensions(this.text, fontIndex).Y;
-            ClientRectangle = new Rectangle(ClientRectangle.X, 0,
-                ClientRectangle.Width, textHeight + MARGIN * 2);
+            ClientRectangle = new Rectangle(X, 0,
+                Width, textHeight + MARGIN * 2);
             CenterOnParent();
         }
 
@@ -102,7 +102,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             Renderer.DrawRectangle(ClientRectangle, BorderColor);
 
             Renderer.DrawStringWithShadow(text, fontIndex,
-                new Vector2(ClientRectangle.X + MARGIN, ClientRectangle.Y + MARGIN),
+                new Vector2(X + MARGIN, Y + MARGIN),
                 UISettings.AltColor);
 
             Renderer.EndDraw();

@@ -112,69 +112,69 @@ namespace DTAClient.DXGUI.Multiplayer
             lblMapName = new XNALabel(WindowManager);
             lblMapName.Name = "lblMapName";
             lblMapName.FontIndex = 1;
-            lblMapName.ClientRectangle = new Rectangle(panelPlayers.ClientRectangle.Right + 12,
-                panelPlayers.ClientRectangle.Y, 0, 0);
+            lblMapName.ClientRectangle = new Rectangle(panelPlayers.Right + 12,
+                panelPlayers.Y, 0, 0);
             lblMapName.Text = "MAP:";
 
             lblMapNameValue = new XNALabel(WindowManager);
             lblMapNameValue.Name = "lblMapNameValue";
-            lblMapNameValue.ClientRectangle = new Rectangle(lblMapName.ClientRectangle.X,
-                lblMapName.ClientRectangle.Y + 18, 0, 0);
+            lblMapNameValue.ClientRectangle = new Rectangle(lblMapName.X,
+                lblMapName.Y + 18, 0, 0);
             lblMapNameValue.Text = "Map name";
 
             lblGameMode = new XNALabel(WindowManager);
             lblGameMode.Name = "lblGameMode";
-            lblGameMode.ClientRectangle = new Rectangle(lblMapName.ClientRectangle.X,
-                panelPlayers.ClientRectangle.Y + 40, 0, 0);
+            lblGameMode.ClientRectangle = new Rectangle(lblMapName.X,
+                panelPlayers.Y + 40, 0, 0);
             lblGameMode.FontIndex = 1;
             lblGameMode.Text = "GAME MODE:";
 
             lblGameModeValue = new XNALabel(WindowManager);
             lblGameModeValue.Name = "lblGameModeValue";
-            lblGameModeValue.ClientRectangle = new Rectangle(lblGameMode.ClientRectangle.X,
-                lblGameMode.ClientRectangle.Y + 18, 0, 0);
+            lblGameModeValue.ClientRectangle = new Rectangle(lblGameMode.X,
+                lblGameMode.Y + 18, 0, 0);
             lblGameModeValue.Text = "Game mode";
 
             lblSavedGameTime = new XNALabel(WindowManager);
             lblSavedGameTime.Name = "lblSavedGameTime";
-            lblSavedGameTime.ClientRectangle = new Rectangle(lblMapName.ClientRectangle.X,
-                panelPlayers.ClientRectangle.Bottom - 40, 0, 0);
+            lblSavedGameTime.ClientRectangle = new Rectangle(lblMapName.X,
+                panelPlayers.Bottom - 40, 0, 0);
             lblSavedGameTime.FontIndex = 1;
             lblSavedGameTime.Text = "SAVED GAME:";
 
             ddSavedGame = new XNAClientDropDown(WindowManager);
             ddSavedGame.Name = "ddSavedGame";
-            ddSavedGame.ClientRectangle = new Rectangle(lblSavedGameTime.ClientRectangle.X,
-                panelPlayers.ClientRectangle.Bottom - 21,
-                ClientRectangle.Width - lblSavedGameTime.ClientRectangle.X - 12, 21);
+            ddSavedGame.ClientRectangle = new Rectangle(lblSavedGameTime.X,
+                panelPlayers.Bottom - 21,
+                Width - lblSavedGameTime.X - 12, 21);
             ddSavedGame.SelectedIndexChanged += DdSavedGame_SelectedIndexChanged;
 
             lbChatMessages = new ChatListBox(WindowManager);
             lbChatMessages.Name = "lbChatMessages";
             lbChatMessages.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 128), 1, 1);
             lbChatMessages.DrawMode = PanelBackgroundImageDrawMode.STRETCHED;
-            lbChatMessages.ClientRectangle = new Rectangle(12, panelPlayers.ClientRectangle.Bottom + 12,
-                ClientRectangle.Width - 24, 
-                ClientRectangle.Height - panelPlayers.ClientRectangle.Bottom - 12 - 29 - 34);
+            lbChatMessages.ClientRectangle = new Rectangle(12, panelPlayers.Bottom + 12,
+                Width - 24, 
+                Height - panelPlayers.Bottom - 12 - 29 - 34);
 
             tbChatInput = new XNATextBox(WindowManager);
             tbChatInput.Name = "tbChatInput";
-            tbChatInput.ClientRectangle = new Rectangle(lbChatMessages.ClientRectangle.X,
-                lbChatMessages.ClientRectangle.Bottom + 3, lbChatMessages.ClientRectangle.Width, 19);
+            tbChatInput.ClientRectangle = new Rectangle(lbChatMessages.X,
+                lbChatMessages.Bottom + 3, lbChatMessages.Width, 19);
             tbChatInput.MaximumTextLength = 200;
             tbChatInput.EnterPressed += TbChatInput_EnterPressed;
 
             btnLoadGame = new XNAClientButton(WindowManager);
             btnLoadGame.Name = "btnLoadGame";
-            btnLoadGame.ClientRectangle = new Rectangle(lbChatMessages.ClientRectangle.X,
-                tbChatInput.ClientRectangle.Bottom + 6, 133, 23);
+            btnLoadGame.ClientRectangle = new Rectangle(lbChatMessages.X,
+                tbChatInput.Bottom + 6, 133, 23);
             btnLoadGame.Text = "Load Game";
             btnLoadGame.LeftClick += BtnLoadGame_LeftClick;
 
             btnLeaveGame = new XNAClientButton(WindowManager);
             btnLeaveGame.Name = "btnLeaveGame";
-            btnLeaveGame.ClientRectangle = new Rectangle(ClientRectangle.Width - 145,
-                btnLoadGame.ClientRectangle.Y, 133, 23);
+            btnLeaveGame.ClientRectangle = new Rectangle(Width - 145,
+                btnLoadGame.Y, 133, 23);
             btnLeaveGame.Text = "Leave Game";
             btnLeaveGame.LeftClick += BtnLeaveGame_LeftClick;
 

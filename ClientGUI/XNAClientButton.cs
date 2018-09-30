@@ -12,7 +12,7 @@ namespace ClientGUI
 
         public override void Initialize()
         {
-            int width = ClientRectangle.Width;
+            int width = Width;
             if (IdleTexture == null)
                 IdleTexture = AssetLoader.LoadTexture(width + "pxbtn.png");
 
