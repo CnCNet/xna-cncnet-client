@@ -531,6 +531,7 @@ namespace DTAClient.Online
                             goto case "NOTICE";
                         }
                         string pmsgUserName = prefix.Substring(0, prefix.IndexOf('!'));
+                        string pmsgIdent = GetIdentFromPrefix(prefix);
                         string[] recipients = new string[parameters.Count - 1];
                         for (int pid = 0; pid < parameters.Count - 1; pid++)
                             recipients[pid] = parameters[pid];
@@ -540,7 +541,7 @@ namespace DTAClient.Online
                         foreach (string recipient in recipients)
                         {
                             if (recipient.StartsWith("#"))
-                                connectionManager.OnChatMessageReceived(recipient, pmsgUserName, privmsg);
+                                connectionManager.OnChatMessageReceived(recipient, pmsgUserName, pmsgIdent, privmsg);
                             else if (recipient == ProgramConstants.PLAYERNAME)
                                 connectionManager.OnPrivateMessageReceived(pmsgUserName, privmsg);
                             //else if (pmsgUserName == ProgramConstants.PLAYERNAME)
@@ -588,6 +589,17 @@ namespace DTAClient.Online
             {
                 Logger.Log("Warning: Failed to parse command " + message);
             }
+        }
+
+        private string GetIdentFromPrefix(string prefix)
+        {
+            int atIndex = prefix.IndexOf('@');
+            int exclamIndex = prefix.IndexOf('!');
+
+            if (exclamIndex == -1 || atIndex == -1)
+                return string.Empty;
+
+            return prefix.Substring(exclamIndex + 1, atIndex - (exclamIndex + 1));
         }
 
         /// <summary>

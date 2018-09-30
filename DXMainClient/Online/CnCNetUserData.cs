@@ -110,32 +110,32 @@ namespace DTAClient.Online
         /// <summary>
         /// Checks to see if a user is in the ignore list.
         /// </summary>
-        /// <param name="name">The name of the user.</param>
+        /// <param name="ident">The IRC identifier of the user.</param>
         /// <returns></returns>
-        public bool IsIgnored(string name)
+        public bool IsIgnored(string ident)
         {
             if (IgnoreList == null)
                 return false;
 
-            return IgnoreList.Contains(name);
+            return IgnoreList.Contains(ident);
         }
 
         /// <summary>
         /// Adds user to the ignore list.
         /// </summary>
-        /// <param name="name">The name of the user.</param>
-        public void IgnoreUser(string name)
+        /// <param name="ident">The IRC identifier of the user.</param>
+        public void IgnoreUser(string ident)
         {
-            IgnoreList.Add(name);
+            IgnoreList.Add(ident);
         }
 
         /// <summary>
         /// Removes user from the ignore list.
         /// </summary>
-        /// <param name="name">The name of the user.</param>
-        public void UnIgnoreUser(string name)
+        /// <param name="name">The IRC identifier of the user.</param>
+        public void UnIgnoreUser(string ident)
         {
-            IgnoreList.Remove(name);
+            IgnoreList.Remove(ident);
         }
 
         /// <summary>

@@ -290,7 +290,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (e.UserName == hostName)
             {
                 connectionManager.MainChannel.AddMessage(new ChatMessage(
-                    null, Color.Yellow, DateTime.Now, "The game host abandoned the game."));
+                    Color.Yellow, "The game host abandoned the game."));
                 BtnLeaveGame_LeftClick(this, EventArgs.Empty);
             }
         }
@@ -302,7 +302,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (e.UserName == hostName)
             {
                 connectionManager.MainChannel.AddMessage(new ChatMessage(
-                    null, Color.Yellow, DateTime.Now, "The game host abandoned the game."));
+                    Color.Yellow, "The game host abandoned the game."));
                 BtnLeaveGame_LeftClick(this, EventArgs.Empty);
             }
         }
@@ -312,7 +312,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (e.UserName == ProgramConstants.PLAYERNAME)
             {
                 connectionManager.MainChannel.AddMessage(new ChatMessage(
-                    null, Color.Yellow, DateTime.Now, "You were kicked from the game!"));
+                    Color.Yellow, "You were kicked from the game!"));
                 Clear();
                 this.Visible = false;
                 this.Enabled = false;
@@ -416,15 +416,15 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private void Channel_MessageAdded(object sender, IRCMessageEventArgs e)
         {
-            if (cncnetUserData.IsIgnored(e.Message.Sender))
+            if (cncnetUserData.IsIgnored(e.Message.SenderName))
             {
-                lbChatMessages.AddMessage(new ChatMessage(Color.Silver, "Message blocked from - " + e.Message.Sender));
+                lbChatMessages.AddMessage(new ChatMessage(Color.Silver, "Message blocked from - " + e.Message.SenderName));
             }
             else
             {
                 lbChatMessages.AddMessage(e.Message);
 
-                if (e.Message.Sender != null)
+                if (e.Message.SenderName != null)
                     sndMessageSound.Play();
             }
         }
@@ -501,7 +501,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         protected override void AddNotice(string message, Color color)
         {
-            channel.AddMessage(new ChatMessage(null, color, DateTime.Now, message));
+            channel.AddMessage(new ChatMessage(color, message));
         }
 
         /// <summary>

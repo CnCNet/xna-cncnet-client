@@ -37,7 +37,7 @@
 
         void OnUserQuitIRC(string userName);
 
-        void OnChatMessageReceived(string receiver, string sender, string message);
+        void OnChatMessageReceived(string receiver, string senderName, string senderIdent, string message);
 
         void OnPrivateMessageReceived(string sender, string message);
 

@@ -73,7 +73,7 @@ namespace DTAClient.Online
             {
                 _topic = value;
                 if (Persistent)
-                    AddMessage(new ChatMessage(null, Color.White, DateTime.Now, "Topic for " + UIName + " is: " + _topic));
+                    AddMessage(new ChatMessage("Topic for " + UIName + " is: " + _topic));
             }
         }
 
@@ -111,8 +111,7 @@ namespace DTAClient.Online
 
             if (notifyOnUserListChange)
             {
-                AddMessage(new ChatMessage(null, Color.White, DateTime.Now,
-                    user.IRCUser.Name + " has joined " + UIName + "."));
+                AddMessage(new ChatMessage(user.IRCUser.Name + " has joined " + UIName + "."));
             }
         }
 
@@ -146,8 +145,7 @@ namespace DTAClient.Online
                 users.RemoveAt(index);
             }
 
-            AddMessage(new ChatMessage(null, Color.White, DateTime.Now,
-                userName + " has been kicked from " + UIName + "."));
+            AddMessage(new ChatMessage(userName + " has been kicked from " + UIName + "."));
 
             UserKicked?.Invoke(this, new UserNameIndexEventArgs(index, userName));
         }
@@ -161,8 +159,7 @@ namespace DTAClient.Online
 
             if (notifyOnUserListChange)
             {
-                AddMessage(new ChatMessage(null, Color.White, DateTime.Now,
-                    userName + " has left from " + UIName + "."));
+                AddMessage(new ChatMessage(userName + " has left from " + UIName + "."));
             }
 
             users.RemoveAt(index);
@@ -178,8 +175,7 @@ namespace DTAClient.Online
 
             if (notifyOnUserListChange)
             {
-                AddMessage(new ChatMessage(null, Color.White, DateTime.Now,
-                    userName + " has quit from CnCNet."));
+                AddMessage(new ChatMessage(userName + " has quit from CnCNet."));
             }
 
             users.RemoveAt(index);

@@ -99,8 +99,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             if (pmUser != null)
             {
-                joinMessage = new ChatMessage(null, Color.White, DateTime.Now,
-                    e.User.Name + " is now online.");
+                joinMessage = new ChatMessage(e.User.Name + " is now online.");
                 pmUser.Messages.Add(joinMessage);
             }
 

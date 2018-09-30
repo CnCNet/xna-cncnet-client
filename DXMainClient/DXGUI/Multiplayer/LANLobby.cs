@@ -334,14 +334,14 @@ namespace DTAClient.DXGUI.Multiplayer
                 endPoint = new IPEndPoint(IPAddress.Broadcast, ProgramConstants.LAN_LOBBY_PORT);
                 initSuccess = true;
             }
-            catch (Exception ex)
+            catch (SocketException ex)
             {
                 Logger.Log("Creating LAN socket failed! Message: " + ex.Message);
-                lbChatMessages.AddMessage(new ChatMessage(null, Color.Red, DateTime.Now,
+                lbChatMessages.AddMessage(new ChatMessage(Color.Red,
                     "Creating LAN socket failed! Message: " + ex.Message));
-                lbChatMessages.AddMessage(new ChatMessage(null, Color.Red, DateTime.Now,
+                lbChatMessages.AddMessage(new ChatMessage(Color.Red,
                     "Please check your firewall settings."));
-                lbChatMessages.AddMessage(new ChatMessage(null, Color.Red, DateTime.Now,
+                lbChatMessages.AddMessage(new ChatMessage(Color.Red,
                     "Also make sure that no other application is listening to traffic on UDP ports 1232 - 1234."));
                 initSuccess = false;
                 return;
@@ -516,15 +516,14 @@ namespace DTAClient.DXGUI.Multiplayer
 
             if (hg.Game.InternalName.ToUpper() != localGame.ToUpper())
             {
-                lbChatMessages.AddMessage(new ChatMessage(null, Color.White, DateTime.Now,
-                    "The selected game is for " +
-                    gameCollection.GetGameNameFromInternalName(hg.Game.InternalName) + "!"));
+                lbChatMessages.AddMessage("The selected game is for " +
+                    gameCollection.GetGameNameFromInternalName(hg.Game.InternalName) + "!");
                 return;
             }
 
             if (hg.Locked)
             {
-                lbChatMessages.AddMessage(null, "The selected game is locked!", Color.White);
+                lbChatMessages.AddMessage("The selected game is locked!");
                 return;
             }
 
@@ -532,7 +531,7 @@ namespace DTAClient.DXGUI.Multiplayer
             {
                 if (!hg.Players.Contains(ProgramConstants.PLAYERNAME))
                 {
-                    lbChatMessages.AddMessage(null, "You do not exist in the saved game!", Color.White);
+                    lbChatMessages.AddMessage("You do not exist in the saved game!");
                     return;
                 }
             }
@@ -540,7 +539,7 @@ namespace DTAClient.DXGUI.Multiplayer
             {
                 if (hg.Players.Contains(ProgramConstants.PLAYERNAME))
                 {
-                    lbChatMessages.AddMessage(null, "Your name is already taken in the game.", Color.White);
+                    lbChatMessages.AddMessage("Your name is already taken in the game.");
                     return;
                 }
             }
@@ -550,8 +549,7 @@ namespace DTAClient.DXGUI.Multiplayer
                 // TODO Show warning
             }
 
-            lbChatMessages.AddMessage(new ChatMessage(null, Color.White, DateTime.Now,
-                "Attempting to join game " + hg.RoomName + "..."));
+            lbChatMessages.AddMessage("Attempting to join game " + hg.RoomName + "...");
 
             try
             {
