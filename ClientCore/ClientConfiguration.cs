@@ -20,6 +20,8 @@ namespace ClientCore
         private IniFile DTACnCNetClient_ini;
         private IniFile clientDefinitionsIni;
 
+		public bool UseQres { get; set; } = true;
+
         protected ClientConfiguration()
         {
             if (!File.Exists(ProgramConstants.GetBaseResourcePath() + CLIENT_DEFS))
@@ -600,7 +602,9 @@ namespace ClientCore
             }
 
             int p = (int)Environment.OSVersion.Platform;
-            if (p == 2 || p == 6 || p == 128)
+
+            // http://mono.wikia.com/wiki/Detecting_the_execution_platform
+            if (p == 4 || p == 6 || p == 128)
                 return OSVersion.UNIX;
 
             return OSVersion.UNKNOWN;

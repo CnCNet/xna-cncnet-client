@@ -43,9 +43,9 @@ namespace ClientGUI
             File.Delete(ProgramConstants.GamePath + "TS.LOG");
 
             GameProcessStarting?.Invoke();
-
-            if (UserINISettings.Instance.WindowedMode)
-            {
+            
+            if (UserINISettings.Instance.WindowedMode && ClientConfiguration.Instance.UseQres)
+			{
                 Logger.Log("Windowed mode is enabled - using QRes.");
                 Process QResProcess = new Process();
                 QResProcess.StartInfo.FileName = ProgramConstants.QRES_EXECUTABLE;

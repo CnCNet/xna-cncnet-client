@@ -15,7 +15,10 @@ using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
+using System.Threading;
 
 namespace DTAClient.DXGUI.Multiplayer.CnCNet
 {
@@ -96,6 +99,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         private List<string> followedGames = new List<string>();
 
         private bool isJoiningGame = false;
+
+        private CancellationTokenSource gameCheckCancellation;
 
         public override void Initialize()
         {
@@ -897,6 +902,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 if (gameIndex > -1)
                     ddCurrentChannel.SelectedIndex = gameIndex;
             }
+
+            gameCheckCancellation.Cancel();
         }
 
         private void ConnectionManager_WelcomeMessageReceived(object sender, EventArgs e)
@@ -933,6 +940,10 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                     }
                 }
             }
+
+            gameCheckCancellation = new CancellationTokenSource();
+            CnCNetGameCheck gameCheck = new CnCNetGameCheck();
+            gameCheck.InitializeService(gameCheckCancellation);
         }
 
         private void DdCurrentChannel_SelectedIndexChanged(object sender, EventArgs e)

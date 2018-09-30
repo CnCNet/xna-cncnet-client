@@ -14,3 +14,6 @@
 *.dll binary
 *.pdb binary
 
+# Shell scripts
+*.sh eof=lf
+
