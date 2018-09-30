@@ -66,7 +66,7 @@ namespace DTAClient.DXGUI.Multiplayer
                 XNAListBoxItem lbItem = Items[i];
                 var user = (ChannelUser)lbItem.Tag;
 
-                if (height + lbItem.TextLines.Count * LineHeight > ClientRectangle.Height)
+                if (height + lbItem.TextLines.Count * LineHeight > Height)
                     break;
 
                 int x = TextBorderDistance;
@@ -81,7 +81,7 @@ namespace DTAClient.DXGUI.Multiplayer
                     }
                     else
                     {
-                        drawnWidth = windowRectangle.Width - 2 - scrollBar.ClientRectangle.Width;
+                        drawnWidth = windowRectangle.Width - 2 - scrollBar.Width;
                     }
 
                     Renderer.FillRectangle(

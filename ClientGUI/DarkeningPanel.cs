@@ -35,7 +35,7 @@ namespace ClientGUI
         {
             if (Parent != null)
             {
-                ClientRectangle = new Rectangle(-Parent.ClientRectangle.X, -Parent.ClientRectangle.Y,
+                ClientRectangle = new Rectangle(-Parent.X, -Parent.Y,
                     WindowManager.RenderResolutionX,
                     WindowManager.RenderResolutionY);
             }

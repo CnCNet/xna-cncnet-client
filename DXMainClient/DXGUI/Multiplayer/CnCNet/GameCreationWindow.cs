@@ -62,12 +62,12 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             btnCreateGame.LeftClick += BtnCreateGame_LeftClick;
 
             btnCancel = new XNAClientButton(WindowManager);
-            btnCancel.ClientRectangle = new Rectangle(345, btnCreateGame.ClientRectangle.Y, 133, 23);
+            btnCancel.ClientRectangle = new Rectangle(345, btnCreateGame.Y, 133, 23);
             btnCancel.Text = "Cancel";
             btnCancel.LeftClick += BtnCancel_LeftClick;
 
             btnLoadMPGame = new XNAClientButton(WindowManager);
-            btnLoadMPGame.ClientRectangle = new Rectangle(178, btnCreateGame.ClientRectangle.Y, 133, 23);
+            btnLoadMPGame.ClientRectangle = new Rectangle(178, btnCreateGame.Y, 133, 23);
             btnLoadMPGame.Text = "Load Game";
             btnLoadMPGame.LeftClick += BtnLoadMPGame_LeftClick;
 
@@ -78,31 +78,31 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             tbGameName = new XNATextBox(WindowManager);
             tbGameName.MaximumTextLength = 23;
-            tbGameName.ClientRectangle = new Rectangle(ClientRectangle.Width - 162, 12, 150, 21);
+            tbGameName.ClientRectangle = new Rectangle(Width - 162, 12, 150, 21);
             tbGameName.Text = ProgramConstants.PLAYERNAME + "'s Game";
 
             lblRoomName = new XNALabel(WindowManager);
-            lblRoomName.ClientRectangle = new Rectangle(12, tbGameName.ClientRectangle.Y + 1, 0, 0);
+            lblRoomName.ClientRectangle = new Rectangle(12, tbGameName.Y + 1, 0, 0);
             lblRoomName.Text = "Game room name:";
 
             ddMaxPlayers = new XNAClientDropDown(WindowManager);
-            ddMaxPlayers.ClientRectangle = new Rectangle(tbGameName.ClientRectangle.X, 53, 
-                tbGameName.ClientRectangle.Width, 21);
+            ddMaxPlayers.ClientRectangle = new Rectangle(tbGameName.X, 53, 
+                tbGameName.Width, 21);
             for (int i = 8; i > 1; i--)
                 ddMaxPlayers.AddItem(i.ToString());
             ddMaxPlayers.SelectedIndex = 0;
 
             lblMaxPlayers = new XNALabel(WindowManager);
-            lblMaxPlayers.ClientRectangle = new Rectangle(12, ddMaxPlayers.ClientRectangle.Y + 1, 0, 0);
+            lblMaxPlayers.ClientRectangle = new Rectangle(12, ddMaxPlayers.Y + 1, 0, 0);
             lblMaxPlayers.Text = "Maximum number of players:";
 
             tbPassword = new XNATextBox(WindowManager);
             tbPassword.MaximumTextLength = 20;
-            tbPassword.ClientRectangle = new Rectangle(tbGameName.ClientRectangle.X, 94, 
-                tbGameName.ClientRectangle.Width, 21);
+            tbPassword.ClientRectangle = new Rectangle(tbGameName.X, 94, 
+                tbGameName.Width, 21);
 
             lblPassword = new XNALabel(WindowManager);
-            lblPassword.ClientRectangle = new Rectangle(12, tbPassword.ClientRectangle.Y + 1, 0, 0);
+            lblPassword.ClientRectangle = new Rectangle(12, tbPassword.Y + 1, 0, 0);
             lblPassword.Text = "Password (leave blank for none):";
 
             lblTunnelServer = new XNALabel(WindowManager);
@@ -327,20 +327,20 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         {
             Name = "GameCreationWindow_Advanced";
 
-            ClientRectangle = new Rectangle(ClientRectangle.X, ClientRectangle.Y,
-                ClientRectangle.Width, 420);
+            ClientRectangle = new Rectangle(X, Y,
+                Width, 420);
 
-            btnCreateGame.ClientRectangle = new Rectangle(btnCreateGame.ClientRectangle.X,
-                ClientRectangle.Height - 29, btnCreateGame.ClientRectangle.Width,
-                btnCreateGame.ClientRectangle.Height);
+            btnCreateGame.ClientRectangle = new Rectangle(btnCreateGame.X,
+                Height - 29, btnCreateGame.Width,
+                btnCreateGame.Height);
 
-            btnCancel.ClientRectangle = new Rectangle(btnCancel.ClientRectangle.X,
-                ClientRectangle.Height - 29, btnCancel.ClientRectangle.Width,
-                btnCancel.ClientRectangle.Height);
+            btnCancel.ClientRectangle = new Rectangle(btnCancel.X,
+                Height - 29, btnCancel.Width,
+                btnCancel.Height);
 
-            btnLoadMPGame.ClientRectangle = new Rectangle(btnLoadMPGame.ClientRectangle.X,
-                ClientRectangle.Height - 29, btnLoadMPGame.ClientRectangle.Width,
-                btnLoadMPGame.ClientRectangle.Height);
+            btnLoadMPGame.ClientRectangle = new Rectangle(btnLoadMPGame.X,
+                Height - 29, btnLoadMPGame.Width,
+                btnLoadMPGame.Height);
 
             lblTunnelServer.Enable();
             lbTunnelList.Enable();

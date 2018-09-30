@@ -237,9 +237,9 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             AddChild(lblPrivateMessaging);
             lblPrivateMessaging.CenterOnParent();
             lblPrivateMessaging.ClientRectangle = new Rectangle(
-                lblPrivateMessaging.ClientRectangle.X, 12,
-                lblPrivateMessaging.ClientRectangle.Width,
-                lblPrivateMessaging.ClientRectangle.Height);
+                lblPrivateMessaging.X, 12,
+                lblPrivateMessaging.Width,
+                lblPrivateMessaging.Height);
 
             tabControl = new XNAClientTabControl(WindowManager);
             tabControl.Name = "tabControl";
@@ -253,15 +253,15 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             lblPlayers = new XNALabel(WindowManager);
             lblPlayers.Name = "lblPlayers";
-            lblPlayers.ClientRectangle = new Rectangle(12, tabControl.ClientRectangle.Bottom + 24, 0, 0);
+            lblPlayers.ClientRectangle = new Rectangle(12, tabControl.Bottom + 24, 0, 0);
             lblPlayers.FontIndex = 1;
             lblPlayers.Text = "PLAYERS:";
 
             lbUserList = new XNAListBox(WindowManager);
             lbUserList.Name = "lbUserList";
-            lbUserList.ClientRectangle = new Rectangle(lblPlayers.ClientRectangle.X, 
-                lblPlayers.ClientRectangle.Bottom + 6,
-                150, ClientRectangle.Height - lblPlayers.ClientRectangle.Bottom - 18);
+            lbUserList.ClientRectangle = new Rectangle(lblPlayers.X, 
+                lblPlayers.Bottom + 6,
+                150, Height - lblPlayers.Bottom - 18);
             lbUserList.RightClick += LbUserList_RightClick;
             lbUserList.SelectedIndexChanged += LbUserList_SelectedIndexChanged;
             lbUserList.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 128), 1, 1);
@@ -269,24 +269,24 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             lblMessages = new XNALabel(WindowManager);
             lblMessages.Name = "lblMessages";
-            lblMessages.ClientRectangle = new Rectangle(lbUserList.ClientRectangle.Right + 12,
-                lblPlayers.ClientRectangle.Y, 0, 0);
+            lblMessages.ClientRectangle = new Rectangle(lbUserList.Right + 12,
+                lblPlayers.Y, 0, 0);
             lblMessages.FontIndex = 1;
             lblMessages.Text = "MESSAGES:";
 
             lbMessages = new ChatListBox(WindowManager);
             lbMessages.Name = "lbMessages";
-            lbMessages.ClientRectangle = new Rectangle(lblMessages.ClientRectangle.X,
-                lbUserList.ClientRectangle.Y,
-                ClientRectangle.Width - lblMessages.ClientRectangle.X - 12,
-                lbUserList.ClientRectangle.Height - 25);
+            lbMessages.ClientRectangle = new Rectangle(lblMessages.X,
+                lbUserList.Y,
+                Width - lblMessages.X - 12,
+                lbUserList.Height - 25);
             lbMessages.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 128), 1, 1);
             lbMessages.DrawMode = PanelBackgroundImageDrawMode.STRETCHED;
 
             tbMessageInput = new XNATextBox(WindowManager);
             tbMessageInput.Name = "tbMessageInput";
-            tbMessageInput.ClientRectangle = new Rectangle(lbMessages.ClientRectangle.X,
-                lbMessages.ClientRectangle.Bottom + 6, lbMessages.ClientRectangle.Width, 19);
+            tbMessageInput.ClientRectangle = new Rectangle(lbMessages.X,
+                lbMessages.Bottom + 6, lbMessages.Width, 19);
             tbMessageInput.EnterPressed += TbMessageInput_EnterPressed;
             tbMessageInput.MaximumTextLength = 200;
             tbMessageInput.Enabled = false;

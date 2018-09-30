@@ -31,24 +31,24 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             lblDescription.ClientRectangle = new Rectangle(12, 12, 0, 0);
             lblDescription.Text = "Please enter the password for the game and click OK.";
 
-            ClientRectangle = new Rectangle(0, 0, lblDescription.ClientRectangle.Width + 24, 110);
+            ClientRectangle = new Rectangle(0, 0, lblDescription.Width + 24, 110);
 
             tbPassword = new XNATextBox(WindowManager);
             tbPassword.Name = "tbPassword";
-            tbPassword.ClientRectangle = new Rectangle(lblDescription.ClientRectangle.X,
-                lblDescription.ClientRectangle.Bottom + 12, ClientRectangle.Width - 24, 21);
+            tbPassword.ClientRectangle = new Rectangle(lblDescription.X,
+                lblDescription.Bottom + 12, Width - 24, 21);
 
             var btnOK = new XNAClientButton(WindowManager);
             btnOK.Name = "btnOK";
-            btnOK.ClientRectangle = new Rectangle(lblDescription.ClientRectangle.X,
+            btnOK.ClientRectangle = new Rectangle(lblDescription.X,
                 ClientRectangle.Bottom - 35, 92, 23);
             btnOK.Text = "OK";
             btnOK.LeftClick += BtnOK_LeftClick;
 
             var btnCancel = new XNAClientButton(WindowManager);
             btnCancel.Name = "btnCancel";
-            btnCancel.ClientRectangle = new Rectangle(ClientRectangle.Width - 104,
-                btnOK.ClientRectangle.Y, 92, 23);
+            btnCancel.ClientRectangle = new Rectangle(Width - 104,
+                btnOK.Y, 92, 23);
             btnCancel.Text = "Cancel";
             btnCancel.LeftClick += BtnCancel_LeftClick;
 

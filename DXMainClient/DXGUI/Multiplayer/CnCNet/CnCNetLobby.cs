@@ -114,31 +114,31 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             btnNewGame = new XNAClientButton(WindowManager);
             btnNewGame.Name = "btnNewGame";
-            btnNewGame.ClientRectangle = new Rectangle(12, ClientRectangle.Height - 29, 133, 23);
+            btnNewGame.ClientRectangle = new Rectangle(12, Height - 29, 133, 23);
             btnNewGame.Text = "Create Game";
             btnNewGame.AllowClick = false;
             btnNewGame.LeftClick += BtnNewGame_LeftClick;
 
             btnJoinGame = new XNAClientButton(WindowManager);
             btnJoinGame.Name = "btnJoinGame";
-            btnJoinGame.ClientRectangle = new Rectangle(btnNewGame.ClientRectangle.Right + 12,
-                btnNewGame.ClientRectangle.Y, 133, 23);
+            btnJoinGame.ClientRectangle = new Rectangle(btnNewGame.Right + 12,
+                btnNewGame.Y, 133, 23);
             btnJoinGame.Text = "Join Game";
             btnJoinGame.AllowClick = false;
             btnJoinGame.LeftClick += BtnJoinGame_LeftClick;
 
             btnLogout = new XNAClientButton(WindowManager);
             btnLogout.Name = "btnLogout";
-            btnLogout.ClientRectangle = new Rectangle(ClientRectangle.Width - 145, btnNewGame.ClientRectangle.Y,
+            btnLogout.ClientRectangle = new Rectangle(Width - 145, btnNewGame.Y,
                 133, 23);
             btnLogout.Text = "Log Out";
             btnLogout.LeftClick += BtnLogout_LeftClick;
 
             lbGameList = new GameListBox(WindowManager, localGameID);
             lbGameList.Name = "lbGameList";
-            lbGameList.ClientRectangle = new Rectangle(btnNewGame.ClientRectangle.X,
-                41, btnJoinGame.ClientRectangle.Right - btnNewGame.ClientRectangle.X,
-                btnNewGame.ClientRectangle.Top - 47);
+            lbGameList.ClientRectangle = new Rectangle(btnNewGame.X,
+                41, btnJoinGame.Right - btnNewGame.X,
+                btnNewGame.Y - 47);
             lbGameList.DrawMode = PanelBackgroundImageDrawMode.STRETCHED;
             lbGameList.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 128), 1, 1);
             lbGameList.DoubleLeftClick += LbGameList_DoubleLeftClick;
@@ -146,9 +146,9 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             lbPlayerList = new PlayerListBox(WindowManager, gameCollection);
             lbPlayerList.Name = "lbPlayerList";
-            lbPlayerList.ClientRectangle = new Rectangle(ClientRectangle.Width - 202,
+            lbPlayerList.ClientRectangle = new Rectangle(Width - 202,
                 20, 190,
-                btnLogout.ClientRectangle.Top - 26);
+                btnLogout.Y - 26);
             lbPlayerList.DrawMode = PanelBackgroundImageDrawMode.STRETCHED;
             lbPlayerList.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 128), 1, 1);
             lbPlayerList.LineHeight = 16;
@@ -166,30 +166,30 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             lbChatMessages = new ChatListBox(WindowManager);
             lbChatMessages.Name = "lbChatMessages";
-            lbChatMessages.ClientRectangle = new Rectangle(lbGameList.ClientRectangle.Right + 12, lbGameList.ClientRectangle.Y,
-                lbPlayerList.ClientRectangle.Left - lbGameList.ClientRectangle.Right - 24, lbPlayerList.ClientRectangle.Height);
+            lbChatMessages.ClientRectangle = new Rectangle(lbGameList.Right + 12, lbGameList.Y,
+                lbPlayerList.X - lbGameList.Right - 24, lbPlayerList.Height);
             lbChatMessages.DrawMode = PanelBackgroundImageDrawMode.STRETCHED;
             lbChatMessages.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 128), 1, 1);
             lbChatMessages.LineHeight = 16;
 
             tbChatInput = new XNATextBox(WindowManager);
             tbChatInput.Name = "tbChatInput";
-            tbChatInput.ClientRectangle = new Rectangle(lbChatMessages.ClientRectangle.X,
-                btnNewGame.ClientRectangle.Y, lbChatMessages.ClientRectangle.Width,
-                btnNewGame.ClientRectangle.Height);
+            tbChatInput.ClientRectangle = new Rectangle(lbChatMessages.X,
+                btnNewGame.Y, lbChatMessages.Width,
+                btnNewGame.Height);
             tbChatInput.Enabled = false;
             tbChatInput.MaximumTextLength = 200;
             tbChatInput.EnterPressed += TbChatInput_EnterPressed;
 
             lblColor = new XNALabel(WindowManager);
             lblColor.Name = "lblColor";
-            lblColor.ClientRectangle = new Rectangle(lbChatMessages.ClientRectangle.X, 14, 0, 0);
+            lblColor.ClientRectangle = new Rectangle(lbChatMessages.X, 14, 0, 0);
             lblColor.FontIndex = 1;
             lblColor.Text = "YOUR COLOR:";
 
             ddColor = new XNAClientDropDown(WindowManager);
             ddColor.Name = "ddColor";
-            ddColor.ClientRectangle = new Rectangle(lblColor.ClientRectangle.X + 95, 12,
+            ddColor.ClientRectangle = new Rectangle(lblColor.X + 95, 12,
                 150, 21);
 
             chatColors = connectionManager.GetIRCColors();
@@ -218,16 +218,16 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             ddCurrentChannel = new XNAClientDropDown(WindowManager);
             ddCurrentChannel.Name = "ddCurrentChannel";
             ddCurrentChannel.ClientRectangle = new Rectangle(
-                lbChatMessages.ClientRectangle.Right - 200,
-                ddColor.ClientRectangle.Y, 200, 21);
+                lbChatMessages.Right - 200,
+                ddColor.Y, 200, 21);
             ddCurrentChannel.SelectedIndexChanged += DdCurrentChannel_SelectedIndexChanged;
             ddCurrentChannel.AllowDropDown = false;
 
             lblCurrentChannel = new XNALabel(WindowManager);
             lblCurrentChannel.Name = "lblCurrentChannel";
             lblCurrentChannel.ClientRectangle = new Rectangle(
-                ddCurrentChannel.ClientRectangle.X - 150,
-                ddCurrentChannel.ClientRectangle.Y + 2, 0, 0);
+                ddCurrentChannel.X - 150,
+                ddCurrentChannel.Y + 2, 0, 0);
             lblCurrentChannel.FontIndex = 1;
             lblCurrentChannel.Text = "CURRENT CHANNEL:";
 
@@ -240,7 +240,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             lblOnlineCount = new XNALabel(WindowManager);
             lblOnlineCount.Name = "lblOnlineCount";
-            lblOnlineCount.ClientRectangle = new Rectangle(lblOnline.ClientRectangle.X + 50, 14, 0, 0);
+            lblOnlineCount.ClientRectangle = new Rectangle(lblOnline.X + 50, 14, 0, 0);
             lblOnlineCount.FontIndex = 1;
             lblOnlineCount.Disable();
 

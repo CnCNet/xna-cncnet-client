@@ -122,21 +122,21 @@ namespace DTAClient.DXGUI.Generic
             lblDate.Name = "lblDate";
             lblDate.FontIndex = 1;
             lblDate.Text = Renderer.GetSafeString(DateTime.Now.ToShortDateString(), lblDate.FontIndex);
-            lblDate.ClientRectangle = new Rectangle(ClientRectangle.Width -
+            lblDate.ClientRectangle = new Rectangle(Width -
                 (int)Renderer.GetTextDimensions(lblDate.Text, lblDate.FontIndex).X - 12, 18,
-                lblDate.ClientRectangle.Width, lblDate.ClientRectangle.Height);
+                lblDate.Width, lblDate.Height);
 
             lblTime = new XNALabel(WindowManager);
             lblTime.Name = "lblTime";
             lblTime.FontIndex = 1;
             lblTime.Text = "99:99:99";
-            lblTime.ClientRectangle = new Rectangle(ClientRectangle.Width -
+            lblTime.ClientRectangle = new Rectangle(Width -
                 (int)Renderer.GetTextDimensions(lblTime.Text, lblTime.FontIndex).X - 12, 4,
-                lblTime.ClientRectangle.Width, lblTime.ClientRectangle.Height);
+                lblTime.Width, lblTime.Height);
 
             btnLogout = new XNAClientButton(WindowManager);
             btnLogout.Name = "btnLogout";
-            btnLogout.ClientRectangle = new Rectangle(lblDate.ClientRectangle.Left - 87, 9, 75, 23);
+            btnLogout.ClientRectangle = new Rectangle(lblDate.X - 87, 9, 75, 23);
             btnLogout.FontIndex = 1;
             btnLogout.Text = "Log Out";
             btnLogout.AllowClick = false;
@@ -165,8 +165,8 @@ namespace DTAClient.DXGUI.Generic
                 lblCnCNetPlayerCount.Name = "lblCnCNetPlayerCount";
                 lblCnCNetPlayerCount.FontIndex = 1;
                 lblCnCNetPlayerCount.Text = "-";
-                lblCnCNetPlayerCount.ClientRectangle = new Rectangle(btnLogout.ClientRectangle.Left - 50, 11, lblCnCNetPlayerCount.ClientRectangle.Width, lblCnCNetPlayerCount.ClientRectangle.Height);
-                lblCnCNetStatus.ClientRectangle = new Rectangle(lblCnCNetPlayerCount.ClientRectangle.Left - lblCnCNetStatus.Width - 6, 11, lblCnCNetStatus.ClientRectangle.Width, lblCnCNetStatus.ClientRectangle.Height);
+                lblCnCNetPlayerCount.ClientRectangle = new Rectangle(btnLogout.X - 50, 11, lblCnCNetPlayerCount.Width, lblCnCNetPlayerCount.Height);
+                lblCnCNetStatus.ClientRectangle = new Rectangle(lblCnCNetPlayerCount.X - lblCnCNetStatus.Width - 6, 11, lblCnCNetStatus.Width, lblCnCNetStatus.Height);
                 AddChild(lblCnCNetStatus);
                 AddChild(lblCnCNetPlayerCount);
                 CnCNetPlayerCountTask.CnCNetGameCountUpdated += CnCNetInfoController_CnCNetGameCountUpdated;
@@ -336,8 +336,8 @@ namespace DTAClient.DXGUI.Generic
                 if (locationY < 0)
                 {
                     locationY += DOWN_MOVEMENT_RATE * (gameTime.ElapsedGameTime.TotalMilliseconds / 10.0);
-                    ClientRectangle = new Rectangle(ClientRectangle.X, (int)locationY,
-                        ClientRectangle.Width, ClientRectangle.Height);
+                    ClientRectangle = new Rectangle(X, (int)locationY,
+                        Width, Height);
                 }
 
                 downTime += gameTime.ElapsedGameTime;
@@ -346,11 +346,11 @@ namespace DTAClient.DXGUI.Generic
             }
             else
             {
-                if (locationY > -ClientRectangle.Height - 1)
+                if (locationY > -Height - 1)
                 {
                     locationY -= UP_MOVEMENT_RATE * (gameTime.ElapsedGameTime.TotalMilliseconds / 10.0);
-                    ClientRectangle = new Rectangle(ClientRectangle.X, (int)locationY,
-                        ClientRectangle.Width, ClientRectangle.Height);
+                    ClientRectangle = new Rectangle(X, (int)locationY,
+                        Width, Height);
                 }
                 else
                     return; // Don't handle input when the cursor is above our game window
@@ -370,7 +370,7 @@ namespace DTAClient.DXGUI.Generic
         {
             base.Draw(gameTime);
 
-            Renderer.DrawRectangle(new Rectangle(ClientRectangle.X, ClientRectangle.Bottom - 2, ClientRectangle.Width, 1), UISettings.WindowBorderColor);
+            Renderer.DrawRectangle(new Rectangle(X, ClientRectangle.Bottom - 2, Width, 1), UISettings.WindowBorderColor);
         }
     }
 

@@ -233,16 +233,16 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             //    }
             //}
 
-            int x = indicator.ClientRectangle.Right;
-            int y = indicator.ClientRectangle.Top;
+            int x = indicator.Right;
+            int y = indicator.Y;
 
-            if (x + contextMenu.ClientRectangle.Width > ClientRectangle.Width)
-                x = indicator.ClientRectangle.Left - contextMenu.ClientRectangle.Width;
+            if (x + contextMenu.Width > Width)
+                x = indicator.X - contextMenu.Width;
 
-            if (y + contextMenu.ClientRectangle.Height > ClientRectangle.Height)
-                y = ClientRectangle.Height - contextMenu.ClientRectangle.Height;
+            if (y + contextMenu.Height > Height)
+                y = Height - contextMenu.Height;
 
-            contextMenu.ClientRectangle = new Rectangle(x, y, contextMenu.ClientRectangle.Width, contextMenu.ClientRectangle.Height);
+            contextMenu.ClientRectangle = new Rectangle(x, y, contextMenu.Width, contextMenu.Height);
             contextMenu.Tag = indicator.Tag;
 
             int index = 0;
@@ -326,8 +326,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             else
                 briefingBox.Disable();
 
-            double xRatio = (ClientRectangle.Width - 2) / (double)texture.Width;
-            double yRatio = (ClientRectangle.Height - 2) / (double)texture.Height;
+            double xRatio = (Width - 2) / (double)texture.Width;
+            double yRatio = (Height - 2) / (double)texture.Height;
 
             double ratio;
 
@@ -339,16 +339,16 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (xRatio > yRatio)
             {
                 ratio = yRatio;
-                textureHeight = ClientRectangle.Height - 2;
+                textureHeight = Height - 2;
                 textureWidth = (int)(texture.Width * ratio);
-                texturePositionX = (int)(ClientRectangle.Width - 2 - textureWidth) / 2;
+                texturePositionX = (int)(Width - 2 - textureWidth) / 2;
             }
             else
             {
                 ratio = xRatio;
-                textureWidth = ClientRectangle.Width - 2;
+                textureWidth = Width - 2;
                 textureHeight = (int)(texture.Height * ratio);
-                texturePositionY = (ClientRectangle.Height - 2 - textureHeight) / 2 + 1;
+                texturePositionY = (Height - 2 - textureHeight) / 2 + 1;
             }
 
             useNearestNeighbour = ratio < 1.0;

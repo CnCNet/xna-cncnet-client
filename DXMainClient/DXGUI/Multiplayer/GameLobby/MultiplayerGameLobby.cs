@@ -105,7 +105,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 chkPlayerReady.Name = "chkPlayerReady" + i;
                 chkPlayerReady.Checked = false;
                 chkPlayerReady.AllowChecking = false;
-                chkPlayerReady.ClientRectangle = new Rectangle(readyBoxX, ddPlayerTeams[i].ClientRectangle.Y + readyBoxY,
+                chkPlayerReady.ClientRectangle = new Rectangle(readyBoxX, ddPlayerTeams[i].Y + readyBoxY,
                     0, 0);
 
                 PlayerOptionsPanel.AddChild(chkPlayerReady);
@@ -118,24 +118,24 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             }
 
             ddGameMode.ClientRectangle = new Rectangle(
-                MapPreviewBox.ClientRectangle.X - 12 - ddGameMode.ClientRectangle.Width,
-                MapPreviewBox.ClientRectangle.Y, ddGameMode.ClientRectangle.Width,
-                ddGameMode.ClientRectangle.Height);
+                MapPreviewBox.X - 12 - ddGameMode.Width,
+                MapPreviewBox.Y, ddGameMode.Width,
+                ddGameMode.Height);
 
             lblGameModeSelect.ClientRectangle = new Rectangle(
-                btnLaunchGame.ClientRectangle.X, ddGameMode.ClientRectangle.Y + 1,
-                lblGameModeSelect.ClientRectangle.Width, lblGameModeSelect.ClientRectangle.Height);
+                btnLaunchGame.X, ddGameMode.Y + 1,
+                lblGameModeSelect.Width, lblGameModeSelect.Height);
 
-            lbMapList.ClientRectangle = new Rectangle(btnLaunchGame.ClientRectangle.X, 
-                MapPreviewBox.ClientRectangle.Y + 23,
-                MapPreviewBox.ClientRectangle.X - btnLaunchGame.ClientRectangle.X - 12,
-                MapPreviewBox.ClientRectangle.Height - 23);
+            lbMapList.ClientRectangle = new Rectangle(btnLaunchGame.X, 
+                MapPreviewBox.Y + 23,
+                MapPreviewBox.X - btnLaunchGame.X - 12,
+                MapPreviewBox.Height - 23);
 
             lbChatMessages = new ChatListBox(WindowManager);
             lbChatMessages.Name = "lbChatMessages";
-            lbChatMessages.ClientRectangle = new Rectangle(lbMapList.ClientRectangle.Left, 
-                GameOptionsPanel.ClientRectangle.Y,
-               lbMapList.ClientRectangle.Width, GameOptionsPanel.ClientRectangle.Height - 24);
+            lbChatMessages.ClientRectangle = new Rectangle(lbMapList.X, 
+                GameOptionsPanel.Y,
+               lbMapList.Width, GameOptionsPanel.Height - 24);
             lbChatMessages.DrawMode = PanelBackgroundImageDrawMode.STRETCHED;
             lbChatMessages.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 128), 1, 1);
             lbChatMessages.LineHeight = 16;
@@ -145,9 +145,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             tbChatInput = new XNASuggestionTextBox(WindowManager);
             tbChatInput.Name = "tbChatInput";
             tbChatInput.Suggestion = "Type here to chat..";
-            tbChatInput.ClientRectangle = new Rectangle(lbChatMessages.ClientRectangle.Left, 
-                lbChatMessages.ClientRectangle.Bottom + 3,
-                lbChatMessages.ClientRectangle.Width, 21);
+            tbChatInput.ClientRectangle = new Rectangle(lbChatMessages.X, 
+                lbChatMessages.Bottom + 3,
+                lbChatMessages.Width, 21);
             tbChatInput.MaximumTextLength = 150;
             tbChatInput.EnterPressed += TbChatInput_EnterPressed;
             tbChatInput.DrawOrder = 1;
@@ -155,8 +155,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             btnLockGame = new XNAClientButton(WindowManager);
             btnLockGame.Name = "btnLockGame";
-            btnLockGame.ClientRectangle = new Rectangle(btnLaunchGame.ClientRectangle.Right + 12,
-                btnLaunchGame.ClientRectangle.Y, 133, 23);
+            btnLockGame.ClientRectangle = new Rectangle(btnLaunchGame.Right + 12,
+                btnLaunchGame.Y, 133, 23);
             btnLockGame.Text = "Lock Game";
             btnLockGame.LeftClick += BtnLockGame_LeftClick;
 
@@ -457,15 +457,15 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private void HideMapList()
         {
-            lbChatMessages.ClientRectangle = new Rectangle(lbMapList.ClientRectangle.Left,
-                PlayerOptionsPanel.ClientRectangle.Y,
-                lbMapList.ClientRectangle.Width,
-                MapPreviewBox.ClientRectangle.Bottom - PlayerOptionsPanel.ClientRectangle.Y);
+            lbChatMessages.ClientRectangle = new Rectangle(lbMapList.X,
+                PlayerOptionsPanel.Y,
+                lbMapList.Width,
+                MapPreviewBox.Bottom - PlayerOptionsPanel.Y);
             lbChatMessages.Name = "lbChatMessages_Player";
 
-            tbChatInput.ClientRectangle = new Rectangle(lbChatMessages.ClientRectangle.Left,
-                lbChatMessages.ClientRectangle.Bottom + 3,
-                lbChatMessages.ClientRectangle.Width, 21);
+            tbChatInput.ClientRectangle = new Rectangle(lbChatMessages.X,
+                lbChatMessages.Bottom + 3,
+                lbChatMessages.Width, 21);
             tbChatInput.Name = "tbChatInput_Player";
 
             ddGameMode.Disable();
@@ -480,19 +480,19 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private void ShowMapList()
         {
-            lbMapList.ClientRectangle = new Rectangle(btnLaunchGame.ClientRectangle.X,
-                MapPreviewBox.ClientRectangle.Y + 23,
-                MapPreviewBox.ClientRectangle.X - btnLaunchGame.ClientRectangle.X - 12,
-                MapPreviewBox.ClientRectangle.Height - 23);
+            lbMapList.ClientRectangle = new Rectangle(btnLaunchGame.X,
+                MapPreviewBox.Y + 23,
+                MapPreviewBox.X - btnLaunchGame.X - 12,
+                MapPreviewBox.Height - 23);
 
-            lbChatMessages.ClientRectangle = new Rectangle(lbMapList.ClientRectangle.Left,
-                GameOptionsPanel.ClientRectangle.Y,
-                lbMapList.ClientRectangle.Width, GameOptionsPanel.ClientRectangle.Height - 26);
+            lbChatMessages.ClientRectangle = new Rectangle(lbMapList.X,
+                GameOptionsPanel.Y,
+                lbMapList.Width, GameOptionsPanel.Height - 26);
             lbChatMessages.Name = "lbChatMessages_Host";
 
-            tbChatInput.ClientRectangle = new Rectangle(lbChatMessages.ClientRectangle.Left,
-                lbChatMessages.ClientRectangle.Bottom + 3,
-                lbChatMessages.ClientRectangle.Width, 21);
+            tbChatInput.ClientRectangle = new Rectangle(lbChatMessages.X,
+                lbChatMessages.Bottom + 3,
+                lbChatMessages.Width, 21);
             tbChatInput.Name = "tbChatInput_Host";
 
             ddGameMode.Enable();
@@ -507,12 +507,12 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private void MapPreviewBox_LocalStartingLocationSelected(object sender, LocalStartingLocationEventArgs e)
         {
-            int myIndex = Players.FindIndex(p => p.Name == ProgramConstants.PLAYERNAME);
+            int mTopIndex = Players.FindIndex(p => p.Name == ProgramConstants.PLAYERNAME);
 
-            if (myIndex == -1 || Players[myIndex].SideId == ddPlayerSides[0].Items.Count - 1)
+            if (mTopIndex == -1 || Players[mTopIndex].SideId == ddPlayerSides[0].Items.Count - 1)
                 return;
 
-            ddPlayerStarts[myIndex].SelectedIndex = e.StartingLocationIndex;
+            ddPlayerStarts[mTopIndex].SelectedIndex = e.StartingLocationIndex;
         }
 
         private void MapPreviewBox_StartingLocationApplied(object sender, EventArgs e)
@@ -729,15 +729,15 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 return;
             }
 
-            int myIndex = Players.FindIndex(p => p.Name == ProgramConstants.PLAYERNAME);
+            int mTopIndex = Players.FindIndex(p => p.Name == ProgramConstants.PLAYERNAME);
 
-            if (myIndex == -1)
+            if (mTopIndex == -1)
                 return;
 
-            int requestedSide = ddPlayerSides[myIndex].SelectedIndex;
-            int requestedColor = ddPlayerColors[myIndex].SelectedIndex;
-            int requestedStart = ddPlayerStarts[myIndex].SelectedIndex;
-            int requestedTeam = ddPlayerTeams[myIndex].SelectedIndex;
+            int requestedSide = ddPlayerSides[mTopIndex].SelectedIndex;
+            int requestedColor = ddPlayerColors[mTopIndex].SelectedIndex;
+            int requestedStart = ddPlayerStarts[mTopIndex].SelectedIndex;
+            int requestedTeam = ddPlayerTeams[mTopIndex].SelectedIndex;
 
             RequestPlayerOptions(requestedSide, requestedColor, requestedStart, requestedTeam);
         }

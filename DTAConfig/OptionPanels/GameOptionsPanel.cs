@@ -58,15 +58,15 @@ namespace DTAConfig.OptionPanels
             lblScrollRateValue.FontIndex = 1;
             lblScrollRateValue.Text = "3";
             lblScrollRateValue.ClientRectangle = new Rectangle(
-                ClientRectangle.Width - lblScrollRateValue.ClientRectangle.Width - 12,
-                lblScrollRate.ClientRectangle.Y, 0, 0);
+                Width - lblScrollRateValue.Width - 12,
+                lblScrollRate.Y, 0, 0);
 
             trbScrollRate = new XNATrackbar(WindowManager);
             trbScrollRate.Name = "trbClientVolume";
             trbScrollRate.ClientRectangle = new Rectangle(
-                lblScrollRate.ClientRectangle.Right + 32,
-                lblScrollRate.ClientRectangle.Y - 2,
-                lblScrollRateValue.ClientRectangle.X - lblScrollRate.ClientRectangle.Right - 47,
+                lblScrollRate.Right + 32,
+                lblScrollRate.Y - 2,
+                lblScrollRateValue.X - lblScrollRate.Right - 47,
                 22);
             trbScrollRate.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 128), 2, 2);
             trbScrollRate.MinValue = 0;
@@ -76,15 +76,15 @@ namespace DTAConfig.OptionPanels
             chkScrollCoasting = new XNAClientCheckBox(WindowManager);
             chkScrollCoasting.Name = "chkScrollCoasting";
             chkScrollCoasting.ClientRectangle = new Rectangle(
-                lblScrollRate.ClientRectangle.X,
-                trbScrollRate.ClientRectangle.Bottom + 20, 0, 0);
+                lblScrollRate.X,
+                trbScrollRate.Bottom + 20, 0, 0);
             chkScrollCoasting.Text = "Scroll Coasting";
 
             chkTargetLines = new XNAClientCheckBox(WindowManager);
             chkTargetLines.Name = "chkTargetLines";
             chkTargetLines.ClientRectangle = new Rectangle(
-                lblScrollRate.ClientRectangle.X,
-                chkScrollCoasting.ClientRectangle.Bottom + 24, 0, 0);
+                lblScrollRate.X,
+                chkScrollCoasting.Bottom + 24, 0, 0);
             chkTargetLines.Text = "Target Lines";
 
             chkTooltips = new XNAClientCheckBox(WindowManager);
@@ -99,31 +99,31 @@ namespace DTAConfig.OptionPanels
             chkShowHiddenObjects = new XNAClientCheckBox(WindowManager);
             chkShowHiddenObjects.Name = "chkShowHiddenObjects";
             chkShowHiddenObjects.ClientRectangle = new Rectangle(
-                lblScrollRate.ClientRectangle.X,
-                chkTargetLines.ClientRectangle.Bottom + 24, 0, 0);
+                lblScrollRate.X,
+                chkTargetLines.Bottom + 24, 0, 0);
             chkShowHiddenObjects.Text = "Show Hidden Objects";
 
             chkTooltips.ClientRectangle = new Rectangle(
-                lblScrollRate.ClientRectangle.X,
-                chkShowHiddenObjects.ClientRectangle.Bottom + 24, 0, 0);
+                lblScrollRate.X,
+                chkShowHiddenObjects.Bottom + 24, 0, 0);
 
             lblPlayerName.ClientRectangle = new Rectangle(
-                lblScrollRate.ClientRectangle.X,
-                chkTooltips.ClientRectangle.Bottom + 30, 0, 0);
+                lblScrollRate.X,
+                chkTooltips.Bottom + 30, 0, 0);
 
             AddChild(chkShowHiddenObjects);
 #else
             chkTooltips.ClientRectangle = new Rectangle(
-                lblScrollRate.ClientRectangle.X,
-                chkTargetLines.ClientRectangle.Bottom + 24, 0, 0);
+                lblScrollRate.X,
+                chkTargetLines.Bottom + 24, 0, 0);
 #endif
 
 #if DTA || TI || TS
             chkBlackChatBackground = new XNAClientCheckBox(WindowManager);
             chkBlackChatBackground.Name = "chkBlackChatBackground";
             chkBlackChatBackground.ClientRectangle = new Rectangle(
-                chkScrollCoasting.ClientRectangle.X,
-                chkTooltips.ClientRectangle.Bottom + 24, 0, 0);
+                chkScrollCoasting.X,
+                chkTooltips.Bottom + 24, 0, 0);
             chkBlackChatBackground.Text = "Use black background for in-game chat messages";
 
             AddChild(chkBlackChatBackground);
@@ -133,19 +133,19 @@ namespace DTAConfig.OptionPanels
             chkAltToUndeploy = new XNAClientCheckBox(WindowManager);
             chkAltToUndeploy.Name = "chkAltToUndeploy";
             chkAltToUndeploy.ClientRectangle = new Rectangle(
-                chkScrollCoasting.ClientRectangle.X,
-                chkBlackChatBackground.ClientRectangle.Bottom + 24, 0, 0);
+                chkScrollCoasting.X,
+                chkBlackChatBackground.Bottom + 24, 0, 0);
             chkAltToUndeploy.Text = "Undeploy units by holding Alt key instead of a regular move command";
 
             AddChild(chkAltToUndeploy);
 
             lblPlayerName.ClientRectangle = new Rectangle(
-                lblScrollRate.ClientRectangle.X,
-                chkAltToUndeploy.ClientRectangle.Bottom + 30, 0, 0);
+                lblScrollRate.X,
+                chkAltToUndeploy.Bottom + 30, 0, 0);
 #elif TI
             lblPlayerName.ClientRectangle = new Rectangle(
-                lblScrollRate.ClientRectangle.X,
-                chkBlackChatBackground.ClientRectangle.Bottom + 30, 0, 0);
+                lblScrollRate.X,
+                chkBlackChatBackground.Bottom + 30, 0, 0);
 #endif
 
 
@@ -154,14 +154,14 @@ namespace DTAConfig.OptionPanels
             tbPlayerName = new XNATextBox(WindowManager);
             tbPlayerName.Name = "tbPlayerName";
             tbPlayerName.MaximumTextLength = ClientConfiguration.Instance.MaxNameLength;
-            tbPlayerName.ClientRectangle = new Rectangle(trbScrollRate.ClientRectangle.X,
-                lblPlayerName.ClientRectangle.Y - 2, 200, 19);
+            tbPlayerName.ClientRectangle = new Rectangle(trbScrollRate.X,
+                lblPlayerName.Y - 2, 200, 19);
             tbPlayerName.Text = ProgramConstants.PLAYERNAME;
 
             var lblNotice = new XNALabel(WindowManager);
             lblNotice.Name = "lblNotice";
-            lblNotice.ClientRectangle = new Rectangle(lblPlayerName.ClientRectangle.X,
-                lblPlayerName.ClientRectangle.Bottom + 30, 0, 0);
+            lblNotice.ClientRectangle = new Rectangle(lblPlayerName.X,
+                lblPlayerName.Bottom + 30, 0, 0);
             lblNotice.Text = "* If you are currently connected to CnCNet, you need to log out and reconnect" +
                 Environment.NewLine + "for your new name to be applied.";
 
