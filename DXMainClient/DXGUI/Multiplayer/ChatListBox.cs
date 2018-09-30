@@ -40,6 +40,11 @@ namespace DTAClient.DXGUI.Multiplayer
             Process.Start(link);
         }
 
+        public void AddMessage(string message)
+        {
+            AddMessage(new ChatMessage(message));
+        }
+
         public void AddMessage(string sender, string message, Color color)
         {
             AddMessage(new ChatMessage(sender, color, DateTime.Now, message));
@@ -47,7 +52,7 @@ namespace DTAClient.DXGUI.Multiplayer
 
         public void AddMessage(ChatMessage message)
         {
-            if (message.Sender == null)
+            if (message.SenderName == null)
                 AddItem(Renderer.GetSafeString(string.Format("[{0}] {1}",
                     message.DateTime.ToShortTimeString(),
                     message.Message), FontIndex),
@@ -55,7 +60,7 @@ namespace DTAClient.DXGUI.Multiplayer
             else
             {
                 AddItem(Renderer.GetSafeString(string.Format("[{0}] {1}: {2}",
-                    message.DateTime.ToShortTimeString(), message.Sender, message.Message), FontIndex),
+                    message.DateTime.ToShortTimeString(), message.SenderName, message.Message), FontIndex),
                     message.Color, true);
             }
 

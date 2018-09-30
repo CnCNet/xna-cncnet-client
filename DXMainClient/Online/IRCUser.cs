@@ -3,6 +3,9 @@ using System.Collections.Generic;
 
 namespace DTAClient.Online
 {
+    /// <summary>
+    /// A user on an IRC server.
+    /// </summary>
     public class IRCUser : ICloneable
     {
         public IRCUser() { }
@@ -12,23 +15,17 @@ namespace DTAClient.Online
             Name = name;
         }
 
-        public IRCUser(string name, string host)
+        public IRCUser(string name, string ident, string host)
         {
             Name = name;
+            Ident = ident;
             Hostname = host;
         }
 
         public string Name { get; set; }
-
+        public string Ident { get; set; }
         public string Hostname { get; set; }
-
-        int _gameId = -1;
-
-        public int GameID
-        {
-            get { return _gameId; }
-            set { _gameId = value; }
-        }
+        public int GameID { get; set; } = -1;
 
         public List<string> Channels = new List<string>();
 
@@ -38,5 +35,6 @@ namespace DTAClient.Online
         }
 
         public bool IsFriend { get; set; }
+        public bool IsIgnored { get; set; }
     }
 }

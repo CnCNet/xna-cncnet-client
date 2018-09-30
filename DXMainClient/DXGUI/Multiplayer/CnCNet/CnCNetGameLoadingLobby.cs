@@ -282,8 +282,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             if (!IsHost && playerName == hostName && !ProgramConstants.IsInGame)
             {
-                connectionManager.MainChannel.AddMessage(new ChatMessage(null,
-                    Color.Yellow, DateTime.Now, "The game host left the game!"));
+                connectionManager.MainChannel.AddMessage(new ChatMessage(
+                    Color.Yellow,"The game host left the game!"));
 
                 Clear();
             }
@@ -293,13 +293,13 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         {
             lbChatMessages.AddMessage(e.Message);
 
-            if (e.Message.Sender != null)
+            if (e.Message.SenderName != null)
                 sndMessageSound.Play();
         }
 
         protected override void AddNotice(string message, Color color)
         {
-            channel.AddMessage(new ChatMessage(null, color, DateTime.Now, message));
+            channel.AddMessage(new ChatMessage(color, message));
         }
 
         protected override void BroadcastOptions()

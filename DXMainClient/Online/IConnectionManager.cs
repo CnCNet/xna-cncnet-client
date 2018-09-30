@@ -17,7 +17,7 @@
 
         void OnUserListReceived(string channelName, string[] userList);
 
-        void OnWhoReplyReceived(string hostName, string userName, string extraInfo);
+        void OnWhoReplyReceived(string ident, string hostName, string userName, string extraInfo);
 
         void OnChannelFull(string channelName);
 
@@ -37,7 +37,7 @@
 
         void OnUserQuitIRC(string userName);
 
-        void OnChatMessageReceived(string receiver, string sender, string message);
+        void OnChatMessageReceived(string receiver, string senderName, string senderIdent, string message);
 
         void OnPrivateMessageReceived(string sender, string message);
 

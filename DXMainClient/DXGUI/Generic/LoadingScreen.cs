@@ -86,6 +86,7 @@ namespace DTAClient.DXGUI.Generic
 
             var lanLobby = new LANLobby(WindowManager, gameCollection, mapLoader.GameModes);
 
+            var cncnetUserData = new CnCNetUserData(WindowManager);
             var cncnetManager = new CnCNetManager(WindowManager, gameCollection);
             var tunnelHandler = new TunnelHandler(WindowManager, cncnetManager);
 
@@ -94,16 +95,16 @@ namespace DTAClient.DXGUI.Generic
             var optionsWindow = new OptionsWindow(WindowManager, gameCollection, topBar);
 
             var pmWindow = new PrivateMessagingWindow(WindowManager,
-                cncnetManager, gameCollection);
+                cncnetManager, gameCollection, cncnetUserData);
             privateMessagingPanel = new PrivateMessagingPanel(WindowManager);
 
             var cncnetGameLobby = new CnCNetGameLobby(WindowManager,
-                "MultiplayerGameLobby", topBar, mapLoader.GameModes, cncnetManager, tunnelHandler, gameCollection);
+                "MultiplayerGameLobby", topBar, mapLoader.GameModes, cncnetManager, tunnelHandler, gameCollection, cncnetUserData);
             var cncnetGameLoadingLobby = new CnCNetGameLoadingLobby(WindowManager, 
                 topBar, cncnetManager, tunnelHandler, mapLoader.GameModes, gameCollection);
             var cncnetLobby = new CnCNetLobby(WindowManager, cncnetManager, 
                 cncnetGameLobby, cncnetGameLoadingLobby, topBar, pmWindow, tunnelHandler,
-                gameCollection);
+                gameCollection, cncnetUserData);
             var gipw = new GameInProgressWindow(WindowManager);
 
             var skirmishLobby = new SkirmishLobby(WindowManager, topBar, mapLoader.GameModes);
