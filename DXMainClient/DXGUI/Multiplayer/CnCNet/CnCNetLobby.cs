@@ -1011,7 +1011,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             foreach (ChannelUser user in currentChatChannel.Users)
             {
                 user.IRCUser.IsFriend = cncnetUserData.IsFriend(user.IRCUser.Name);
-                user.IRCUser.IsIgnored = cncnetUserData.IsIgnored(user.IRCUser.Name);
+                user.IRCUser.IsIgnored = cncnetUserData.IsIgnored(user.IRCUser.Ident);
                 lbPlayerList.AddUser(user);
             }
 
