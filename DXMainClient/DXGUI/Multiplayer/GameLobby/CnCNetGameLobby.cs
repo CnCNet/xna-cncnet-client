@@ -416,7 +416,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private void Channel_MessageAdded(object sender, IRCMessageEventArgs e)
         {
-            if (cncnetUserData.IsIgnored(e.Message.SenderName))
+            if (cncnetUserData.IsIgnored(e.Message.SenderIdent))
             {
                 lbChatMessages.AddMessage(new ChatMessage(Color.Silver, "Message blocked from - " + e.Message.SenderName));
             }

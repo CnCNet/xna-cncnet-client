@@ -68,42 +68,31 @@ namespace DTAClient.Online
         public void ToggleFriend(string name)
         {
             if (IsFriend(name))
-                RemoveFriend(name);
+            {
+                FriendList.Remove(name);
+            }
             else
-                AddFriend(name);
-        }
-
-        /// <summary>
-        /// Adds an user into the friend list.
-        /// </summary>
-        /// <param name="name">The name of the user.</param>
-        public void AddFriend(string name)
-        {
-            FriendList.Add(name);
-        }
-
-        /// <summary>
-        /// Removes an user from the friend list.
-        /// </summary>
-        /// <param name="name">The name of the user.</param>
-        public void RemoveFriend(string name)
-        {
-            FriendList.Remove(name);
+            {
+                FriendList.Add(name);
+            }
         }
 
         /// <summary>
         /// Adds a specified user to the chat ignore list.
         /// </summary>
-        /// <param name="name">The name of the user.</param>
-        public void ToggleIgnoreUser(string name)
+        /// <param name="ident">The ident of the IRCUser.</param>
+        public void ToggleIgnoreUser(string ident)
         {
-            if (IsIgnored(name))
+            if (string.IsNullOrEmpty(ident))
+                return;
+
+            if (IsIgnored(ident))
             {
-                IgnoreList.Remove(name);
+                IgnoreList.Remove(ident);
             }
             else
             {
-                IgnoreList.Add(name);
+                IgnoreList.Add(ident);
             }
         }
 
@@ -118,24 +107,6 @@ namespace DTAClient.Online
                 return false;
 
             return IgnoreList.Contains(ident);
-        }
-
-        /// <summary>
-        /// Adds user to the ignore list.
-        /// </summary>
-        /// <param name="ident">The IRC identifier of the user.</param>
-        public void IgnoreUser(string ident)
-        {
-            IgnoreList.Add(ident);
-        }
-
-        /// <summary>
-        /// Removes user from the ignore list.
-        /// </summary>
-        /// <param name="name">The IRC identifier of the user.</param>
-        public void UnIgnoreUser(string ident)
-        {
-            IgnoreList.Remove(ident);
         }
 
         /// <summary>

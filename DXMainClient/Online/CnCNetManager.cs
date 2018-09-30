@@ -544,10 +544,11 @@ namespace DTAClient.Online
             // If we don't know the user, create a new one
             if (ircUser == null)
             {
-                ircUser = new IRCUser(name, host);
+                ircUser = new IRCUser(name, host, userAddress);
 
                 string identifier = userAddress.Split('@')[0].Replace("~", "");
                 string[] parts = identifier.Split('.');
+
                 if (parts.Length > 1)
                 {
                     ircUser.GameID = gameCollection.GameList.FindIndex(g => g.InternalName.ToUpper() == parts[0]);
