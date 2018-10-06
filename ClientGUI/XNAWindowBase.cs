@@ -55,10 +55,13 @@ namespace ClientGUI
                     AddChild(control);
                 }
             }
+        }
 
+        protected virtual void ReadChildControlAttributes(IniFile iniFile)
+        {
             foreach (XNAControl child in Children)
             {
-                if (!(child is XNAWindow))
+                if (!(typeof(XNAWindowBase).IsAssignableFrom(child.GetType())))
                     child.GetAttributes(iniFile);
             }
         }

@@ -44,6 +44,7 @@ namespace DTAConfig.OptionPanels
         public void ParseUserOptions(IniFile iniFile)
         {
             ParseExtraControls(iniFile, Name + "ExtraControls");
+            ReadChildControlAttributes(iniFile);
         }
 
         protected override void ParseExtraControls(IniFile iniFile, string sectionName)
