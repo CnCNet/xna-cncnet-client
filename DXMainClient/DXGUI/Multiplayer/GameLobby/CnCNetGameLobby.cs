@@ -1245,7 +1245,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         protected override void UnlockGame(bool announce)
         {
             connectionManager.SendCustomMessage(new QueuedMessage(
-                string.Format("MODE {0} -i", channel.ChannelName), QueuedMessageType.SYSTEM_MESSAGE, 10));
+                string.Format("MODE {0} -i", channel.ChannelName), QueuedMessageType.INSTANT_MESSAGE, -1));
 
             Locked = false;
             if (announce)
