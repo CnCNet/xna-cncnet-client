@@ -20,19 +20,19 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
     {
         private const int ALL_PLAYERS_VIEW_INDEX = 2;
         private const int FRIEND_LIST_VIEW_INDEX = 1;
-        private const string FRIEND_LIST_PATH = "Client\\friend_list";
+
+        private CnCNetUserData cncnetUserData;
 
         public PrivateMessagingWindow(WindowManager windowManager,
-            CnCNetManager connectionManager, GameCollection gameCollection) : base(windowManager)
+            CnCNetManager connectionManager, GameCollection gameCollection, CnCNetUserData cncnetUserData) : base(windowManager)
         {
             this.gameCollection = gameCollection;
             this.connectionManager = connectionManager;
+            this.cncnetUserData = cncnetUserData;
 
             connectionManager.UserAdded += ConnectionManager_UserAdded;
             connectionManager.UserRemoved += ConnectionManager_UserRemoved;
             connectionManager.UserGameIndexUpdated += ConnectionManager_UserGameIndexUpdated;
-
-            WindowManager.GameClosing += WindowManager_GameClosing;
         }
 
         private void ConnectionManager_UserGameIndexUpdated(object sender, UserEventArgs e)
@@ -99,8 +99,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             if (pmUser != null)
             {
-                joinMessage = new ChatMessage(null, Color.White, DateTime.Now,
-                    e.User.Name + " is now online.");
+                joinMessage = new ChatMessage(e.User.Name + " is now online.");
                 pmUser.Messages.Add(joinMessage);
             }
 
@@ -165,11 +164,6 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             lbUserList.SelectedIndexChanged += LbUserList_SelectedIndexChanged;
         }
 
-        private void WindowManager_GameClosing(object sender, EventArgs e)
-        {
-            SaveFriendList();
-        }
-
         XNALabel lblPrivateMessaging;
 
         XNAClientTabControl tabControl;
@@ -203,8 +197,6 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         /// </summary>
         List<PrivateMessageUser> privateMessageUsers = new List<PrivateMessageUser>();
 
-        List<string> friendList;
-
         PrivateMessageNotificationBox notificationBox;
 
         EnhancedSoundEffect sndPrivateMessageSound;
@@ -237,9 +229,9 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             AddChild(lblPrivateMessaging);
             lblPrivateMessaging.CenterOnParent();
             lblPrivateMessaging.ClientRectangle = new Rectangle(
-                lblPrivateMessaging.ClientRectangle.X, 12,
-                lblPrivateMessaging.ClientRectangle.Width,
-                lblPrivateMessaging.ClientRectangle.Height);
+                lblPrivateMessaging.X, 12,
+                lblPrivateMessaging.Width,
+                lblPrivateMessaging.Height);
 
             tabControl = new XNAClientTabControl(WindowManager);
             tabControl.Name = "tabControl";
@@ -253,15 +245,15 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             lblPlayers = new XNALabel(WindowManager);
             lblPlayers.Name = "lblPlayers";
-            lblPlayers.ClientRectangle = new Rectangle(12, tabControl.ClientRectangle.Bottom + 24, 0, 0);
+            lblPlayers.ClientRectangle = new Rectangle(12, tabControl.Bottom + 24, 0, 0);
             lblPlayers.FontIndex = 1;
             lblPlayers.Text = "PLAYERS:";
 
             lbUserList = new XNAListBox(WindowManager);
             lbUserList.Name = "lbUserList";
-            lbUserList.ClientRectangle = new Rectangle(lblPlayers.ClientRectangle.X, 
-                lblPlayers.ClientRectangle.Bottom + 6,
-                150, ClientRectangle.Height - lblPlayers.ClientRectangle.Bottom - 18);
+            lbUserList.ClientRectangle = new Rectangle(lblPlayers.X, 
+                lblPlayers.Bottom + 6,
+                150, Height - lblPlayers.Bottom - 18);
             lbUserList.RightClick += LbUserList_RightClick;
             lbUserList.SelectedIndexChanged += LbUserList_SelectedIndexChanged;
             lbUserList.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 128), 1, 1);
@@ -269,24 +261,24 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             lblMessages = new XNALabel(WindowManager);
             lblMessages.Name = "lblMessages";
-            lblMessages.ClientRectangle = new Rectangle(lbUserList.ClientRectangle.Right + 12,
-                lblPlayers.ClientRectangle.Y, 0, 0);
+            lblMessages.ClientRectangle = new Rectangle(lbUserList.Right + 12,
+                lblPlayers.Y, 0, 0);
             lblMessages.FontIndex = 1;
             lblMessages.Text = "MESSAGES:";
 
             lbMessages = new ChatListBox(WindowManager);
             lbMessages.Name = "lbMessages";
-            lbMessages.ClientRectangle = new Rectangle(lblMessages.ClientRectangle.X,
-                lbUserList.ClientRectangle.Y,
-                ClientRectangle.Width - lblMessages.ClientRectangle.X - 12,
-                lbUserList.ClientRectangle.Height - 25);
+            lbMessages.ClientRectangle = new Rectangle(lblMessages.X,
+                lbUserList.Y,
+                Width - lblMessages.X - 12,
+                lbUserList.Height - 25);
             lbMessages.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 128), 1, 1);
             lbMessages.DrawMode = PanelBackgroundImageDrawMode.STRETCHED;
 
             tbMessageInput = new XNATextBox(WindowManager);
             tbMessageInput.Name = "tbMessageInput";
-            tbMessageInput.ClientRectangle = new Rectangle(lbMessages.ClientRectangle.X,
-                lbMessages.ClientRectangle.Bottom + 6, lbMessages.ClientRectangle.Width, 19);
+            tbMessageInput.ClientRectangle = new Rectangle(lbMessages.X,
+                lbMessages.Bottom + 6, lbMessages.Width, 19);
             tbMessageInput.EnterPressed += TbMessageInput_EnterPressed;
             tbMessageInput.MaximumTextLength = 200;
             tbMessageInput.Enabled = false;
@@ -316,16 +308,6 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             CenterOnParent();
 
-            try
-            {
-                friendList = File.ReadAllLines(ProgramConstants.GamePath + FRIEND_LIST_PATH).ToList();
-            }
-            catch
-            {
-                Logger.Log("Loading friend list failed!");
-                friendList = new List<string>();
-            }
-
             tabControl.SelectedTab = 0;
 
             connectionManager.PrivateMessageReceived += ConnectionManager_PrivateMessageReceived;
@@ -349,7 +331,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 return;
             }
 
-            playerContextMenu.Items[0].Text = IsFriend(lbUserList.SelectedItem.Text) ? "Remove Friend" : "Add Friend";
+            playerContextMenu.Items[0].Text = cncnetUserData.IsFriend(lbUserList.SelectedItem.Text) ? "Remove Friend" : "Add Friend";
 
             playerContextMenu.Show();
         }
@@ -363,7 +345,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 return;
             }
 
-            ToggleFriend(lbItem.Text);
+            cncnetUserData.ToggleFriend(lbItem.Text);
 
             // lazy solution, but friends are removed rarely so it shouldn't bother players too much
             if (tabControl.SelectedTab == FRIEND_LIST_VIEW_INDEX)
@@ -391,6 +373,12 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             // We don't accept PMs from people who we don't share any channels with
             if (iu == null)
+            {
+                return;
+            }
+
+            // Messages from users we've blocked are not wanted
+            if (iu.IsIgnored)
             {
                 return;
             }
@@ -559,7 +547,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             }
             else if (tabControl.SelectedTab == FRIEND_LIST_VIEW_INDEX)
             {
-                foreach (string friendName in friendList)
+                foreach (string friendName in cncnetUserData.FriendList)
                 {
                     IRCUser iu = connectionManager.UserList.Find(u => u.Name == friendName);
                     bool isOnline = true;
@@ -605,22 +593,6 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 return gameCollection.GameList[user.GameID].Texture;
         }
 
-        public void SaveFriendList()
-        {
-            Logger.Log("Saving friend list.");
-
-            try
-            {
-                File.Delete(ProgramConstants.GamePath + FRIEND_LIST_PATH);
-                File.WriteAllLines(ProgramConstants.GamePath + FRIEND_LIST_PATH,
-                    friendList.ToArray());
-            }
-            catch (Exception ex)
-            {
-                Logger.Log("Saving friend list failed! Error message: " + ex.Message);
-            }
-        }
-
         /// <summary>
         /// Prepares a recipient for sending a private message.
         /// </summary>
@@ -643,7 +615,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 return;
             }
 
-            if (friendList.Contains(name))
+            if (cncnetUserData.IsFriend(name))
             {
                 // If we haven't talked with the user, check if they are a friend and if so,
                 // let's enter the friend list and talk to them there
@@ -667,55 +639,6 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             if (lbUserList.LastIndex - lbUserList.TopIndex < lbUserList.NumberOfLinesOnList - 1)
                 lbUserList.ScrollToBottom();
-        }
-
-        /// <summary>
-        /// Checks if a specified user belongs to the friend list.
-        /// </summary>
-        /// <param name="name">The name of the user.</param>
-        public bool IsFriend(string name)
-        {
-            return friendList.Contains(name);
-        }
-
-        /// <summary>
-        /// Adds or removes an user from the friend list depending on whether
-        /// they already are on the friend list.
-        /// </summary>
-        /// <param name="name">The name of the user.</param>
-        public void ToggleFriend(string name)
-        {
-            if (IsFriend(name))
-                RemoveFriend(name);
-            else
-                AddFriend(name);
-        }
-
-        /// <summary>
-        /// Adds an user into the friend list.
-        /// </summary>
-        /// <param name="name">The name of the user.</param>
-        public void AddFriend(string name)
-        {
-            friendList.Add(name);
-        }
-
-        /// <summary>
-        /// Removes an user from the friend list.
-        /// </summary>
-        /// <param name="name">The name of the user.</param>
-        public void RemoveFriend(string name)
-        {
-            friendList.Remove(name);
-        }
-
-        /// <summary>
-        /// Adds a specified user to the chat ignore list.
-        /// </summary>
-        /// <param name="name">The name of the user.</param>
-        public void Ignore(string name)
-        {
-            // TODO implement
         }
 
         public void SwitchOn()

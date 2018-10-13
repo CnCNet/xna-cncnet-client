@@ -68,8 +68,8 @@ namespace DTAConfig.OptionPanels
             ddIngameResolution = new XNAClientDropDown(WindowManager);
             ddIngameResolution.Name = "ddIngameResolution";
             ddIngameResolution.ClientRectangle = new Rectangle(
-                lblIngameResolution.ClientRectangle.Right + 12,
-                lblIngameResolution.ClientRectangle.Y - 2, 120, 19);
+                lblIngameResolution.Right + 12,
+                lblIngameResolution.Y - 2, 120, 19);
 
             var clientConfig = ClientConfiguration.Instance;
 
@@ -84,34 +84,34 @@ namespace DTAConfig.OptionPanels
 
             var  lblDetailLevel = new XNALabel(WindowManager);
             lblDetailLevel.Name = "lblDetailLevel";
-            lblDetailLevel.ClientRectangle = new Rectangle(lblIngameResolution.ClientRectangle.X,
-                ddIngameResolution.ClientRectangle.Bottom + 16, 0, 0);
+            lblDetailLevel.ClientRectangle = new Rectangle(lblIngameResolution.X,
+                ddIngameResolution.Bottom + 16, 0, 0);
             lblDetailLevel.Text = "Detail Level:";
 
             ddDetailLevel = new XNAClientDropDown(WindowManager);
             ddDetailLevel.Name = "ddDetailLevel";
             ddDetailLevel.ClientRectangle = new Rectangle(
-                ddIngameResolution.ClientRectangle.X,
-                lblDetailLevel.ClientRectangle.Y - 2,
-                ddIngameResolution.ClientRectangle.Width, 
-                ddIngameResolution.ClientRectangle.Height);
+                ddIngameResolution.X,
+                lblDetailLevel.Y - 2,
+                ddIngameResolution.Width, 
+                ddIngameResolution.Height);
             ddDetailLevel.AddItem("Low");
             ddDetailLevel.AddItem("Medium");
             ddDetailLevel.AddItem("High");
 
             var  lblRenderer = new XNALabel(WindowManager);
             lblRenderer.Name = "lblRenderer";
-            lblRenderer.ClientRectangle = new Rectangle(lblDetailLevel.ClientRectangle.X,
-                ddDetailLevel.ClientRectangle.Bottom + 16, 0, 0);
+            lblRenderer.ClientRectangle = new Rectangle(lblDetailLevel.X,
+                ddDetailLevel.Bottom + 16, 0, 0);
             lblRenderer.Text = "Renderer:";
 
             ddRenderer = new XNAClientDropDown(WindowManager);
             ddRenderer.Name = "ddRenderer";
             ddRenderer.ClientRectangle = new Rectangle(
-                ddDetailLevel.ClientRectangle.X,
-                lblRenderer.ClientRectangle.Y - 2,
-                ddDetailLevel.ClientRectangle.Width,
-                ddDetailLevel.ClientRectangle.Height);
+                ddDetailLevel.X,
+                lblRenderer.Y - 2,
+                ddDetailLevel.Width,
+                ddDetailLevel.Height);
 
             GetRenderers();
 
@@ -140,24 +140,24 @@ namespace DTAConfig.OptionPanels
 
             chkWindowedMode = new XNAClientCheckBox(WindowManager);
             chkWindowedMode.Name = "chkWindowedMode";
-            chkWindowedMode.ClientRectangle = new Rectangle(lblDetailLevel.ClientRectangle.X,
-                ddRenderer.ClientRectangle.Bottom + 16, 0, 0);
+            chkWindowedMode.ClientRectangle = new Rectangle(lblDetailLevel.X,
+                ddRenderer.Bottom + 16, 0, 0);
             chkWindowedMode.Text = "Windowed Mode";
             chkWindowedMode.CheckedChanged += ChkWindowedMode_CheckedChanged;
 
             chkBorderlessWindowedMode = new XNAClientCheckBox(WindowManager);
             chkBorderlessWindowedMode.Name = "chkBorderlessWindowedMode";
             chkBorderlessWindowedMode.ClientRectangle = new Rectangle(
-                chkWindowedMode.ClientRectangle.X + 50,
-                chkWindowedMode.ClientRectangle.Bottom + 24, 0, 0);
+                chkWindowedMode.X + 50,
+                chkWindowedMode.Bottom + 24, 0, 0);
             chkBorderlessWindowedMode.Text = "Borderless Windowed Mode";
             chkBorderlessWindowedMode.AllowChecking = false;
 
             chkBackBufferInVRAM = new XNAClientCheckBox(WindowManager);
             chkBackBufferInVRAM.Name = "chkBackBufferInVRAM";
             chkBackBufferInVRAM.ClientRectangle = new Rectangle(
-                lblDetailLevel.ClientRectangle.X,
-                chkBorderlessWindowedMode.ClientRectangle.Bottom + 28, 0, 0);
+                lblDetailLevel.X,
+                chkBorderlessWindowedMode.Bottom + 28, 0, 0);
             chkBackBufferInVRAM.Text = "Back Buffer in Video Memory" + Environment.NewLine +
                 "(lower performance, but is" + Environment.NewLine + "necessary on some systems)";
 
@@ -170,10 +170,10 @@ namespace DTAConfig.OptionPanels
             ddClientResolution = new XNAClientDropDown(WindowManager);
             ddClientResolution.Name = "ddClientResolution";
             ddClientResolution.ClientRectangle = new Rectangle(
-                lblClientResolution.ClientRectangle.Right + 12,
-                lblClientResolution.ClientRectangle.Y - 2,
-                ClientRectangle.Width - (lblClientResolution.ClientRectangle.Right + 24),
-                ddIngameResolution.ClientRectangle.Height);
+                lblClientResolution.Right + 12,
+                lblClientResolution.Y - 2,
+                Width - (lblClientResolution.Right + 24),
+                ddIngameResolution.Height);
             ddClientResolution.AllowDropDown = false;
 
             var screenBounds = Screen.PrimaryScreen.Bounds;
@@ -218,8 +218,8 @@ namespace DTAConfig.OptionPanels
             chkBorderlessClient = new XNAClientCheckBox(WindowManager);
             chkBorderlessClient.Name = "chkBorderlessClient";
             chkBorderlessClient.ClientRectangle = new Rectangle(
-                lblClientResolution.ClientRectangle.X,
-                lblDetailLevel.ClientRectangle.Y, 0, 0);
+                lblClientResolution.X,
+                lblDetailLevel.Y, 0, 0);
             chkBorderlessClient.Text = "Fullscreen Client";
             chkBorderlessClient.CheckedChanged += ChkBorderlessMenu_CheckedChanged;
             chkBorderlessClient.Checked = true;
@@ -227,17 +227,17 @@ namespace DTAConfig.OptionPanels
             var lblClientTheme = new XNALabel(WindowManager);
             lblClientTheme.Name = "lblClientTheme";
             lblClientTheme.ClientRectangle = new Rectangle(
-                lblClientResolution.ClientRectangle.X,
-                lblRenderer.ClientRectangle.Y, 0, 0);
+                lblClientResolution.X,
+                lblRenderer.Y, 0, 0);
             lblClientTheme.Text = "Client Theme:";
 
             ddClientTheme = new XNAClientDropDown(WindowManager);
             ddClientTheme.Name = "ddClientTheme";
             ddClientTheme.ClientRectangle = new Rectangle(
-                ddClientResolution.ClientRectangle.X,
-                ddRenderer.ClientRectangle.Y,
-                ddClientResolution.ClientRectangle.Width,
-                ddRenderer.ClientRectangle.Height);
+                ddClientResolution.X,
+                ddRenderer.Y,
+                ddClientResolution.Width,
+                ddRenderer.Height);
 
             int themeCount = ClientConfiguration.Instance.ThemeCount;
 
@@ -251,23 +251,19 @@ namespace DTAConfig.OptionPanels
             lblCompatibilityFixes.Text = "Compatibility Fixes (advanced):";
             AddChild(lblCompatibilityFixes);
             lblCompatibilityFixes.CenterOnParent();
-            lblCompatibilityFixes.ClientRectangle = new Rectangle(
-                lblCompatibilityFixes.ClientRectangle.X,
-                ClientRectangle.Height - 103,
-                lblCompatibilityFixes.ClientRectangle.Width,
-                lblCompatibilityFixes.ClientRectangle.Height);
+            lblCompatibilityFixes.Y = Height - 103;
 
             lblGameCompatibilityFix = new XNALabel(WindowManager);
             lblGameCompatibilityFix.Name = "lblGameCompatibilityFix";
             lblGameCompatibilityFix.ClientRectangle = new Rectangle(132, 
-                lblCompatibilityFixes.ClientRectangle.Bottom + 20, 0, 0);
+                lblCompatibilityFixes.Bottom + 20, 0, 0);
             lblGameCompatibilityFix.Text = "DTA/TI/TS Compatibility Fix:";
 
             btnGameCompatibilityFix = new XNAClientButton(WindowManager);
             btnGameCompatibilityFix.Name = "btnGameCompatibilityFix";
             btnGameCompatibilityFix.ClientRectangle = new Rectangle(
-                lblGameCompatibilityFix.ClientRectangle.Right + 20,
-                lblGameCompatibilityFix.ClientRectangle.Y - 4, 133, 23);
+                lblGameCompatibilityFix.Right + 20,
+                lblGameCompatibilityFix.Y - 4, 133, 23);
             btnGameCompatibilityFix.FontIndex = 1;
             btnGameCompatibilityFix.Text = "Enable";
             btnGameCompatibilityFix.LeftClick += BtnGameCompatibilityFix_LeftClick;
@@ -275,17 +271,17 @@ namespace DTAConfig.OptionPanels
             lblMapEditorCompatibilityFix = new XNALabel(WindowManager);
             lblMapEditorCompatibilityFix.Name = "lblMapEditorCompatibilityFix";
             lblMapEditorCompatibilityFix.ClientRectangle = new Rectangle(
-                lblGameCompatibilityFix.ClientRectangle.X,
-                lblGameCompatibilityFix.ClientRectangle.Bottom + 20, 0, 0);
+                lblGameCompatibilityFix.X,
+                lblGameCompatibilityFix.Bottom + 20, 0, 0);
             lblMapEditorCompatibilityFix.Text = "FinalSun Compatibility Fix:";
 
             btnMapEditorCompatibilityFix = new XNAClientButton(WindowManager);
             btnMapEditorCompatibilityFix.Name = "btnMapEditorCompatibilityFix";
             btnMapEditorCompatibilityFix.ClientRectangle = new Rectangle(
-                btnGameCompatibilityFix.ClientRectangle.X,
-                lblMapEditorCompatibilityFix.ClientRectangle.Y - 4,
-                btnGameCompatibilityFix.ClientRectangle.Width,
-                btnGameCompatibilityFix.ClientRectangle.Height);
+                btnGameCompatibilityFix.X,
+                lblMapEditorCompatibilityFix.Y - 4,
+                btnGameCompatibilityFix.Width,
+                btnGameCompatibilityFix.Height);
             btnMapEditorCompatibilityFix.FontIndex = 1;
             btnMapEditorCompatibilityFix.Text = "Enable";
             btnMapEditorCompatibilityFix.LeftClick += BtnMapEditorCompatibilityFix_LeftClick;

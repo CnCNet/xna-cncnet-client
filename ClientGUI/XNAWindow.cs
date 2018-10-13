@@ -74,6 +74,7 @@ namespace ClientGUI
             }
 
             ParseExtraControls(iniFile, EXTRA_CONTROLS);
+            ReadChildControlAttributes(iniFile);
         }
 
         public override void Initialize()

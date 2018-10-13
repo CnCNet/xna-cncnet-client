@@ -75,7 +75,7 @@ namespace ClientGUI
 
             Vector2 textDimensions = Renderer.GetTextDimensions(lblDescription.Text, lblDescription.FontIndex);
             ClientRectangle = new Rectangle(0, 0, (int)textDimensions.X + 24, (int)textDimensions.Y + 81);
-            line.ClientRectangle = new Rectangle(6, 29, ClientRectangle.Width - 12, 1);
+            line.ClientRectangle = new Rectangle(6, 29, Width - 12, 1);
 
             if (messageBoxButtons == XNAMessageBoxButtons.OK)
             {
@@ -111,8 +111,8 @@ namespace ClientGUI
             AddChild(btnOK);
 
             btnOK.CenterOnParent();
-            btnOK.ClientRectangle = new Rectangle(btnOK.ClientRectangle.X,
-                ClientRectangle.Height - 28, btnOK.ClientRectangle.Width, btnOK.ClientRectangle.Height);
+            btnOK.ClientRectangle = new Rectangle(btnOK.X,
+                Height - 28, btnOK.Width, btnOK.Height);
         }
 
         private void AddYesNoButtons()
@@ -130,8 +130,8 @@ namespace ClientGUI
 
             AddChild(btnYes);
 
-            btnYes.ClientRectangle = new Rectangle((ClientRectangle.Width - ((btnYes.ClientRectangle.Width + 5) * 2)) / 2,
-                ClientRectangle.Height - 28, btnYes.ClientRectangle.Width, btnYes.ClientRectangle.Height);
+            btnYes.ClientRectangle = new Rectangle((Width - ((btnYes.Width + 5) * 2)) / 2,
+                Height - 28, btnYes.Width, btnYes.Height);
 
             XNAButton btnNo = new XNAButton(WindowManager);
             btnNo.FontIndex = 1;
@@ -146,8 +146,8 @@ namespace ClientGUI
 
             AddChild(btnNo);
 
-            btnNo.ClientRectangle = new Rectangle(btnYes.ClientRectangle.X + btnYes.ClientRectangle.Width + 10,
-                ClientRectangle.Height - 28, btnNo.ClientRectangle.Width, btnNo.ClientRectangle.Height);
+            btnNo.ClientRectangle = new Rectangle(btnYes.X + btnYes.Width + 10,
+                Height - 28, btnNo.Width, btnNo.Height);
         }
 
         private void AddOKCancelButtons()
@@ -165,8 +165,8 @@ namespace ClientGUI
 
             AddChild(btnOK);
 
-            btnOK.ClientRectangle = new Rectangle((ClientRectangle.Width - ((btnOK.ClientRectangle.Width + 5) * 2)) / 2,
-                ClientRectangle.Height - 28, btnOK.ClientRectangle.Width, btnOK.ClientRectangle.Height);
+            btnOK.ClientRectangle = new Rectangle((Width - ((btnOK.Width + 5) * 2)) / 2,
+                Height - 28, btnOK.Width, btnOK.Height);
 
             XNAButton btnCancel = new XNAButton(WindowManager);
             btnCancel.FontIndex = 1;
@@ -181,8 +181,8 @@ namespace ClientGUI
 
             AddChild(btnCancel);
 
-            btnCancel.ClientRectangle = new Rectangle(btnOK.ClientRectangle.X + btnOK.ClientRectangle.Width + 10,
-                ClientRectangle.Height - 28, btnCancel.ClientRectangle.Width, btnCancel.ClientRectangle.Height);
+            btnCancel.ClientRectangle = new Rectangle(btnOK.X + btnOK.Width + 10,
+                Height - 28, btnCancel.Width, btnCancel.Height);
         }
 
         private void BtnOK_LeftClick(object sender, EventArgs e)

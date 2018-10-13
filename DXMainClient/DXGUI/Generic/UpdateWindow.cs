@@ -61,7 +61,7 @@ namespace DTAClient.DXGUI.Generic
 
             lblCurrentFileProgressPercentageValue = new XNALabel(WindowManager);
             lblCurrentFileProgressPercentageValue.Text = "0%";
-            lblCurrentFileProgressPercentageValue.ClientRectangle = new Rectangle(409, lblCurrentFileProgressPercentage.ClientRectangle.Y, 0, 0);
+            lblCurrentFileProgressPercentageValue.ClientRectangle = new Rectangle(409, lblCurrentFileProgressPercentage.Y, 0, 0);
             lblCurrentFileProgressPercentageValue.Name = "lblCurrentFileProgressPercentageValue";
 
             prgCurrentFile = new XNAProgressBar(WindowManager);
@@ -83,13 +83,13 @@ namespace DTAClient.DXGUI.Generic
 
             lblTotalProgressPercentageValue = new XNALabel(WindowManager);
             lblTotalProgressPercentageValue.Text = "0%";
-            lblTotalProgressPercentageValue.ClientRectangle = new Rectangle(409, lblTotalProgressPercentage.ClientRectangle.Y, 0, 0);
+            lblTotalProgressPercentageValue.ClientRectangle = new Rectangle(409, lblTotalProgressPercentage.Y, 0, 0);
             lblTotalProgressPercentageValue.Name = "lblTotalProgressPercentageValue";
 
             prgTotal = new XNAProgressBar(WindowManager);
             prgTotal.Name = "prgTotal";
             prgTotal.Maximum = 100;
-            prgTotal.ClientRectangle = new Rectangle(12, 190, prgCurrentFile.ClientRectangle.Width, prgCurrentFile.ClientRectangle.Height);
+            prgTotal.ClientRectangle = new Rectangle(12, 190, prgCurrentFile.Width, prgCurrentFile.Height);
             prgTotal.BorderColor = UISettings.WindowBorderColor;
 
             lblUpdaterStatus = new XNALabel(WindowManager);

@@ -29,8 +29,8 @@ namespace DTAConfig.OptionPanels
         public override void Initialize()
         {
             ClientRectangle = new Rectangle(12, 47,
-                Parent.ClientRectangle.Width - 24,
-                Parent.ClientRectangle.Height - 94);
+                Parent.Width - 24,
+                Parent.Height - 94);
             BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 128), 2, 2);
             DrawMode = PanelBackgroundImageDrawMode.STRETCHED;
 
@@ -44,6 +44,7 @@ namespace DTAConfig.OptionPanels
         public void ParseUserOptions(IniFile iniFile)
         {
             ParseExtraControls(iniFile, Name + "ExtraControls");
+            ReadChildControlAttributes(iniFile);
         }
 
         protected override void ParseExtraControls(IniFile iniFile, string sectionName)

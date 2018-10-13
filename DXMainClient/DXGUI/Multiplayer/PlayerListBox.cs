@@ -20,6 +20,7 @@ namespace DTAClient.DXGUI.Multiplayer
         private Texture2D unknownGameIcon;
         private Texture2D badgeGameIcon;
         private Texture2D friendIcon;
+        private Texture2D ignoreIcon;
 
         private XNAScrollBar scrollBar;
 
@@ -34,6 +35,7 @@ namespace DTAClient.DXGUI.Multiplayer
             adminGameIcon = AssetLoader.TextureFromImage(ClientCore.Properties.Resources.cncneticon);
             unknownGameIcon = AssetLoader.TextureFromImage(ClientCore.Properties.Resources.unknownicon);
             friendIcon = AssetLoader.LoadTexture("friendicon.png");
+            ignoreIcon = AssetLoader.LoadTexture("ignoreicon.png");
             badgeGameIcon = AssetLoader.LoadTexture("Badges\\badge.png");
 
             scrollBar = new XNAScrollBar(WindowManager);
@@ -66,7 +68,7 @@ namespace DTAClient.DXGUI.Multiplayer
                 XNAListBoxItem lbItem = Items[i];
                 var user = (ChannelUser)lbItem.Tag;
 
-                if (height + lbItem.TextLines.Count * LineHeight > ClientRectangle.Height)
+                if (height + lbItem.TextLines.Count * LineHeight > Height)
                     break;
 
                 int x = TextBorderDistance;
@@ -81,7 +83,7 @@ namespace DTAClient.DXGUI.Multiplayer
                     }
                     else
                     {
-                        drawnWidth = windowRectangle.Width - 2 - scrollBar.ClientRectangle.Width;
+                        drawnWidth = windowRectangle.Width - 2 - scrollBar.Width;
                     }
 
                     Renderer.FillRectangle(
@@ -103,6 +105,15 @@ namespace DTAClient.DXGUI.Multiplayer
                         friendIcon.Width, friendIcon.Height), Color.White);
 
                     x += friendIcon.Width + margin;
+                }
+                // Ignore Icon
+                else if (user.IRCUser.IsIgnored)
+                {
+                    Renderer.DrawTexture(ignoreIcon,
+                        new Rectangle(windowRectangle.X + x, windowRectangle.Y + height,
+                        ignoreIcon.Width, ignoreIcon.Height), Color.White);
+
+                    x += ignoreIcon.Width + margin;
                 }
 
                 // Badge Icon - coming soon

@@ -47,12 +47,12 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             lblHeader.Text = "PRIVATE MESSAGE";
             AddChild(lblHeader);
             lblHeader.CenterOnParent();
-            lblHeader.ClientRectangle = new Rectangle(lblHeader.ClientRectangle.X,
-                6, lblHeader.ClientRectangle.Width, lblHeader.ClientRectangle.Height);
+            lblHeader.ClientRectangle = new Rectangle(lblHeader.X,
+                6, lblHeader.Width, lblHeader.Height);
 
             XNAPanel linePanel = new XNAPanel(WindowManager);
             linePanel.Name = "linePanel";
-            linePanel.ClientRectangle = new Rectangle(0, ClientRectangle.Height - 20, ClientRectangle.Width, 1);
+            linePanel.ClientRectangle = new Rectangle(0, Height - 20, Width, 1);
 
             XNALabel lblHint = new XNALabel(WindowManager);
             lblHint.Name = "lblHint";
@@ -61,9 +61,9 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             AddChild(lblHint);
             lblHint.CenterOnParent();
-            lblHint.ClientRectangle = new Rectangle(lblHint.ClientRectangle.X,
-                linePanel.ClientRectangle.Y + 3,
-                lblHint.ClientRectangle.Width, lblHint.ClientRectangle.Height);
+            lblHint.ClientRectangle = new Rectangle(lblHint.X,
+                linePanel.Y + 3,
+                lblHint.Width, lblHint.Height);
 
             gameIconPanel = new XNAPanel(WindowManager);
             gameIconPanel.Name = "gameIconPanel";
@@ -74,13 +74,13 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             lblSender = new XNALabel(WindowManager);
             lblSender.Name = "lblSender";
             lblSender.FontIndex = 1;
-            lblSender.ClientRectangle = new Rectangle(gameIconPanel.ClientRectangle.Right + 3,
-                gameIconPanel.ClientRectangle.Y, 0, 0);
+            lblSender.ClientRectangle = new Rectangle(gameIconPanel.Right + 3,
+                gameIconPanel.Y, 0, 0);
             lblSender.Text = "Rampastring:";
 
             lblMessage = new XNALabel(WindowManager);
             lblMessage.Name = "lblMessage";
-            lblMessage.ClientRectangle = new Rectangle(12, lblSender.ClientRectangle.Bottom + 6, 0, 0);
+            lblMessage.ClientRectangle = new Rectangle(12, lblSender.Bottom + 6, 0, 0);
             lblMessage.RemapColor = AssetLoader.GetColorFromString(ClientConfiguration.Instance.ReceivedPMColor);
             lblMessage.Text = "This is a test message.";
 
@@ -101,9 +101,9 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             lblSender.Text = sender + ":";
             lblMessage.Text = message;
 
-            if (lblMessage.ClientRectangle.Right > ClientRectangle.Width)
+            if (lblMessage.Right > Width)
             {
-                while (lblMessage.ClientRectangle.Right > ClientRectangle.Width)
+                while (lblMessage.Right > Width)
                 {
                     lblMessage.Text = lblMessage.Text.Remove(lblMessage.Text.Length - 1);
                 }
@@ -121,9 +121,9 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         public void Hide()
         {
             isDown = false;
-            locationY = -ClientRectangle.Height;
-            ClientRectangle = new Rectangle(ClientRectangle.X, (int)locationY,
-                ClientRectangle.Width, ClientRectangle.Height);
+            locationY = -Height;
+            ClientRectangle = new Rectangle(X, (int)locationY,
+                Width, Height);
             Visible = false;
             Enabled = false;
         }
@@ -135,8 +135,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 if (locationY < 0)
                 {
                     locationY += DOWN_MOVEMENT_RATE;
-                    ClientRectangle = new Rectangle(ClientRectangle.X, (int)locationY,
-                        ClientRectangle.Width, ClientRectangle.Height);
+                    ClientRectangle = new Rectangle(X, (int)locationY,
+                        Width, Height);
                 }
 
                 if (WindowManager.HasFocus)
@@ -147,10 +147,10 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             }
             else
             {
-                if (locationY > -ClientRectangle.Height)
+                if (locationY > -Height)
                 {
                     locationY -= UP_MOVEMENT_RATE;
-                    ClientRectangle = new Rectangle(ClientRectangle.X, (int)locationY, ClientRectangle.Width, ClientRectangle.Height);
+                    ClientRectangle = new Rectangle(X, (int)locationY, Width, Height);
                 }
                 else
                 {

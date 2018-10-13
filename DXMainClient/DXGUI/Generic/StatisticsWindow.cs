@@ -146,10 +146,10 @@ namespace DTAClient.DXGUI.Generic
             chkIncludeSpectatedGames.Text = "Include spectated games";
             chkIncludeSpectatedGames.Checked = true;
             chkIncludeSpectatedGames.ClientRectangle = new Rectangle(
-                ClientRectangle.Width - chkIncludeSpectatedGames.ClientRectangle.Width - 12,
-                cmbGameModeFilter.ClientRectangle.Bottom + 3,
-                chkIncludeSpectatedGames.ClientRectangle.Width, 
-                chkIncludeSpectatedGames.ClientRectangle.Height);
+                Width - chkIncludeSpectatedGames.Width - 12,
+                cmbGameModeFilter.Bottom + 3,
+                chkIncludeSpectatedGames.Width, 
+                chkIncludeSpectatedGames.Height);
             chkIncludeSpectatedGames.CheckedChanged += ChkIncludeSpectatedGames_CheckedChanged;
 
             #region Match statistics

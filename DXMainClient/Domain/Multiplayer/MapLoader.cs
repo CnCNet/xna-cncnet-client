@@ -127,11 +127,11 @@ namespace DTAClient.Domain.Multiplayer
                 {
                     GameMode gm = GameModes.Find(g => g.Name == gameMode);
 
+                    if (!allowedGameModes.Contains(gameMode))
+                        continue;
+
                     if (gm == null)
                     {
-                        if (!allowedGameModes.Contains(gameMode))
-                            continue;
-
                         gm = new GameMode(gameMode);
                         GameModes.Add(gm);
                     }

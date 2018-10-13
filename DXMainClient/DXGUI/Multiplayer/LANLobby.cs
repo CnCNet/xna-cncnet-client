@@ -97,29 +97,29 @@ namespace DTAClient.DXGUI.Multiplayer
 
             btnNewGame = new XNAClientButton(WindowManager);
             btnNewGame.Name = "btnNewGame";
-            btnNewGame.ClientRectangle = new Rectangle(12, ClientRectangle.Height - 35, 133, 23);
+            btnNewGame.ClientRectangle = new Rectangle(12, Height - 35, 133, 23);
             btnNewGame.Text = "Create Game";
             btnNewGame.LeftClick += BtnNewGame_LeftClick;
 
             btnJoinGame = new XNAClientButton(WindowManager);
             btnJoinGame.Name = "btnJoinGame";
-            btnJoinGame.ClientRectangle = new Rectangle(btnNewGame.ClientRectangle.Right + 12,
-                btnNewGame.ClientRectangle.Y, 133, 23);
+            btnJoinGame.ClientRectangle = new Rectangle(btnNewGame.Right + 12,
+                btnNewGame.Y, 133, 23);
             btnJoinGame.Text = "Join Game";
             btnJoinGame.LeftClick += BtnJoinGame_LeftClick;
 
             btnMainMenu = new XNAClientButton(WindowManager);
             btnMainMenu.Name = "btnMainMenu";
-            btnMainMenu.ClientRectangle = new Rectangle(ClientRectangle.Width - 145,
-                btnNewGame.ClientRectangle.Y, 133, 23);
+            btnMainMenu.ClientRectangle = new Rectangle(Width - 145,
+                btnNewGame.Y, 133, 23);
             btnMainMenu.Text = "Main Menu";
             btnMainMenu.LeftClick += BtnMainMenu_LeftClick;
 
             lbGameList = new GameListBox(WindowManager, localGame);
             lbGameList.Name = "lbGameList";
-            lbGameList.ClientRectangle = new Rectangle(btnNewGame.ClientRectangle.X,
-                41, btnJoinGame.ClientRectangle.Right - btnNewGame.ClientRectangle.X,
-                btnNewGame.ClientRectangle.Top - 53);
+            lbGameList.ClientRectangle = new Rectangle(btnNewGame.X,
+                41, btnJoinGame.Right - btnNewGame.X,
+                btnNewGame.Y - 53);
             lbGameList.GameLifetime = 15.0; // Smaller lifetime in LAN
             lbGameList.DrawMode = PanelBackgroundImageDrawMode.STRETCHED;
             lbGameList.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 128), 1, 1);
@@ -128,40 +128,40 @@ namespace DTAClient.DXGUI.Multiplayer
 
             lbPlayerList = new XNAListBox(WindowManager);
             lbPlayerList.Name = "lbPlayerList";
-            lbPlayerList.ClientRectangle = new Rectangle(ClientRectangle.Width - 202,
-                lbGameList.ClientRectangle.Y, 190,
-                lbGameList.ClientRectangle.Height);
+            lbPlayerList.ClientRectangle = new Rectangle(Width - 202,
+                lbGameList.Y, 190,
+                lbGameList.Height);
             lbPlayerList.DrawMode = PanelBackgroundImageDrawMode.STRETCHED;
             lbPlayerList.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 128), 1, 1);
             lbPlayerList.LineHeight = 16;
 
             lbChatMessages = new ChatListBox(WindowManager);
             lbChatMessages.Name = "lbChatMessages";
-            lbChatMessages.ClientRectangle = new Rectangle(lbGameList.ClientRectangle.Right + 12,
-                lbGameList.ClientRectangle.Y,
-                lbPlayerList.ClientRectangle.Left - lbGameList.ClientRectangle.Right - 24,
-                lbGameList.ClientRectangle.Height);
+            lbChatMessages.ClientRectangle = new Rectangle(lbGameList.Right + 12,
+                lbGameList.Y,
+                lbPlayerList.X - lbGameList.Right - 24,
+                lbGameList.Height);
             lbChatMessages.DrawMode = PanelBackgroundImageDrawMode.STRETCHED;
             lbChatMessages.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 128), 1, 1);
             lbChatMessages.LineHeight = 16;
 
             tbChatInput = new XNATextBox(WindowManager);
             tbChatInput.Name = "tbChatInput";
-            tbChatInput.ClientRectangle = new Rectangle(lbChatMessages.ClientRectangle.X,
-                btnNewGame.ClientRectangle.Y, lbChatMessages.ClientRectangle.Width,
-                btnNewGame.ClientRectangle.Height);
+            tbChatInput.ClientRectangle = new Rectangle(lbChatMessages.X,
+                btnNewGame.Y, lbChatMessages.Width,
+                btnNewGame.Height);
             tbChatInput.MaximumTextLength = 200;
             tbChatInput.EnterPressed += TbChatInput_EnterPressed;
 
             lblColor = new XNALabel(WindowManager);
             lblColor.Name = "lblColor";
-            lblColor.ClientRectangle = new Rectangle(lbChatMessages.ClientRectangle.X, 14, 0, 0);
+            lblColor.ClientRectangle = new Rectangle(lbChatMessages.X, 14, 0, 0);
             lblColor.FontIndex = 1;
             lblColor.Text = "YOUR COLOR:";
 
             ddColor = new XNAClientDropDown(WindowManager);
             ddColor.Name = "ddColor";
-            ddColor.ClientRectangle = new Rectangle(lblColor.ClientRectangle.X + 95, 12,
+            ddColor.ClientRectangle = new Rectangle(lblColor.X + 95, 12,
                 150, 21);
 
             chatColors = new LANColor[]
@@ -334,14 +334,14 @@ namespace DTAClient.DXGUI.Multiplayer
                 endPoint = new IPEndPoint(IPAddress.Broadcast, ProgramConstants.LAN_LOBBY_PORT);
                 initSuccess = true;
             }
-            catch (Exception ex)
+            catch (SocketException ex)
             {
                 Logger.Log("Creating LAN socket failed! Message: " + ex.Message);
-                lbChatMessages.AddMessage(new ChatMessage(null, Color.Red, DateTime.Now,
+                lbChatMessages.AddMessage(new ChatMessage(Color.Red,
                     "Creating LAN socket failed! Message: " + ex.Message));
-                lbChatMessages.AddMessage(new ChatMessage(null, Color.Red, DateTime.Now,
+                lbChatMessages.AddMessage(new ChatMessage(Color.Red,
                     "Please check your firewall settings."));
-                lbChatMessages.AddMessage(new ChatMessage(null, Color.Red, DateTime.Now,
+                lbChatMessages.AddMessage(new ChatMessage(Color.Red,
                     "Also make sure that no other application is listening to traffic on UDP ports 1232 - 1234."));
                 initSuccess = false;
                 return;
@@ -516,15 +516,14 @@ namespace DTAClient.DXGUI.Multiplayer
 
             if (hg.Game.InternalName.ToUpper() != localGame.ToUpper())
             {
-                lbChatMessages.AddMessage(new ChatMessage(null, Color.White, DateTime.Now,
-                    "The selected game is for " +
-                    gameCollection.GetGameNameFromInternalName(hg.Game.InternalName) + "!"));
+                lbChatMessages.AddMessage("The selected game is for " +
+                    gameCollection.GetGameNameFromInternalName(hg.Game.InternalName) + "!");
                 return;
             }
 
             if (hg.Locked)
             {
-                lbChatMessages.AddMessage(null, "The selected game is locked!", Color.White);
+                lbChatMessages.AddMessage("The selected game is locked!");
                 return;
             }
 
@@ -532,7 +531,7 @@ namespace DTAClient.DXGUI.Multiplayer
             {
                 if (!hg.Players.Contains(ProgramConstants.PLAYERNAME))
                 {
-                    lbChatMessages.AddMessage(null, "You do not exist in the saved game!", Color.White);
+                    lbChatMessages.AddMessage("You do not exist in the saved game!");
                     return;
                 }
             }
@@ -540,7 +539,7 @@ namespace DTAClient.DXGUI.Multiplayer
             {
                 if (hg.Players.Contains(ProgramConstants.PLAYERNAME))
                 {
-                    lbChatMessages.AddMessage(null, "Your name is already taken in the game.", Color.White);
+                    lbChatMessages.AddMessage("Your name is already taken in the game.");
                     return;
                 }
             }
@@ -550,8 +549,7 @@ namespace DTAClient.DXGUI.Multiplayer
                 // TODO Show warning
             }
 
-            lbChatMessages.AddMessage(new ChatMessage(null, Color.White, DateTime.Now,
-                "Attempting to join game " + hg.RoomName + "..."));
+            lbChatMessages.AddMessage("Attempting to join game " + hg.RoomName + "...");
 
             try
             {

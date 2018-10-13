@@ -76,7 +76,7 @@ namespace DTAClient.DXGUI.Generic
                 Hide();
         }
 
-        public void Show(XNAControl dxControl)
+        public void Show(XNAControl control)
         {
             foreach (XNAControl child in Children)
             {
@@ -90,11 +90,11 @@ namespace DTAClient.DXGUI.Generic
             bgAlphaRate = BG_ALPHA_APPEAR_RATE;
             Alpha = 1.0f;
 
-            if (dxControl != null)
+            if (control != null)
             {
-                dxControl.Enabled = true;
-                dxControl.Visible = true;
-                dxControl.IgnoreInputOnFrame = true;
+                control.Enabled = true;
+                control.Visible = true;
+                control.IgnoreInputOnFrame = true;
             }
         }
 
