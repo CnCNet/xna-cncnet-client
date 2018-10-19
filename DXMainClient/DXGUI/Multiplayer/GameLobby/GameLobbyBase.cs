@@ -1173,18 +1173,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             ManipulateStartingLocations(mapIni, houseInfos);
 
-            // Add "fake" starting locations if needed, makes it possible to have multiple
-            // players start on the same location in DTA and all TS mods with more than 2 sides
-            foreach (PlayerHouseInfo houseInfo in houseInfos)
-            {
-                if (houseInfo.StartingWaypoint > -1 &&
-                    houseInfo.RealStartingWaypoint != houseInfo.StartingWaypoint)
-                {
-                    mapIni.SetIntValue("Waypoints", houseInfo.StartingWaypoint.ToString(),
-                        mapIni.GetIntValue("Waypoints", houseInfo.RealStartingWaypoint.ToString(), 0));
-                }
-            }
-
             mapIni.WriteIniFile(ProgramConstants.GamePath + ProgramConstants.SPAWNMAP_INI);
         }
 
