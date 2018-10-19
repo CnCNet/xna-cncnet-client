@@ -107,12 +107,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         /// An unique identifier for this game.
         /// </summary>
         protected int UniqueGameID { get; set; }
-
-        private int _sideCount;
-        protected int SideCount => _sideCount;
-
-        private int _randomSelectorCount = 1;
-        protected int RandomSelectorCount => _randomSelectorCount;
+        protected int SideCount { get; private set; }
+        protected int RandomSelectorCount { get; private set; } = 1;
 
         protected List<int[]> RandomSelectors = new List<int[]>();
 
@@ -475,12 +471,12 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             // InitPlayerOptionDropdowns(136, 91, 79, 49, 46, new Point(25, 24));
 
             string[] sides = ClientConfiguration.Instance.GetSides().Split(',');
-            _sideCount = sides.Length;
+            SideCount = sides.Length;
 
             List<string> selectorNames = new List<string>();
             GetRandomSelectors(selectorNames, RandomSelectors);
-            _randomSelectorCount = RandomSelectors.Count + 1;
-            MapPreviewBox.RandomSelectorCount = _randomSelectorCount;
+            RandomSelectorCount = RandomSelectors.Count + 1;
+            MapPreviewBox.RandomSelectorCount = RandomSelectorCount;
 
             string randomColor = GameOptionsIni.GetStringValue("General", "RandomColor", "255,255,255");
 
@@ -624,7 +620,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 {
                     string[] tmp = GameOptionsIni.GetStringValue("RandomSelectors", randomSelector, string.Empty).Split(',');
                     randomSides = Array.ConvertAll<string, int>(tmp, int.Parse).Distinct().ToList();
-                    randomSides.RemoveAll(x => (x >= _sideCount || x < 0));
+                    randomSides.RemoveAll(x => (x >= SideCount || x < 0));
                 }
                 catch (FormatException) { }
 
@@ -781,22 +777,22 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
                 foreach (PlayerInfo pInfo in concatPlayerList)
                 {
-                    if (pInfo.SideId == _sideCount + RandomSelectorCount)
+                    if (pInfo.SideId == SideCount + RandomSelectorCount)
                         pInfo.SideId = defaultSide;
                 }
 
                 foreach (XNADropDown dd in ddPlayerSides)
                 {
-                    if (dd.Items.Count > _sideCount + RandomSelectorCount)
-                        dd.Items[_sideCount + RandomSelectorCount].Selectable = false;
+                    if (dd.Items.Count > SideCount + RandomSelectorCount)
+                        dd.Items[SideCount + RandomSelectorCount].Selectable = false;
                 }
             }
             else
             {
                 foreach (XNADropDown dd in ddPlayerSides)
                 {
-                    if (dd.Items.Count > _sideCount + RandomSelectorCount)
-                        dd.Items[_sideCount + RandomSelectorCount].Selectable = true;
+                    if (dd.Items.Count > SideCount + RandomSelectorCount)
+                        dd.Items[SideCount + RandomSelectorCount].Selectable = true;
                 }
             }
         }
@@ -841,7 +837,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             // Gather list of spectators
             for (int i = 0; i < Players.Count; i++)
             {
-                houseInfos[i].IsSpectator = Players[i].SideId == _sideCount + RandomSelectorCount;
+                houseInfos[i].IsSpectator = Players[i].SideId == SideCount + RandomSelectorCount;
             }
 
             // Gather list of available colors
@@ -906,7 +902,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 else
                     pInfo = AIPlayers[i - Players.Count];
 
-                pHouseInfo.RandomizeSide(pInfo, Map, _sideCount, random, GetDisallowedSides(), RandomSelectors, RandomSelectorCount);
+                pHouseInfo.RandomizeSide(pInfo, Map, SideCount, random, GetDisallowedSides(), RandomSelectors, RandomSelectorCount);
 
                 pHouseInfo.RandomizeColor(pInfo, freeColors, MPColors, random);
                 if (pHouseInfo.RandomizeStart(pInfo, Map, freeStartingLocations, random,
@@ -953,6 +949,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             spawnIni.SetStringValue("Settings", "CustomLoadScreen", LoadingScreenController.GetLoadScreenName(houseInfos[myIndex].SideIndex));
             spawnIni.SetIntValue("Settings", "AIPlayers", AIPlayers.Count);
             spawnIni.SetIntValue("Settings", "Seed", RandomSeed);
+            if (GetPvPTeamCount() > 1)
+                spawnIni.SetBooleanValue("Settings", "CoachMode", true);
             WriteSpawnIniAdditions(spawnIni);
 
             foreach (GameLobbyCheckBox chkBox in CheckBoxes)
@@ -1072,6 +1070,44 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             return houseInfos;
         }
 
+        /// <summary>
+        /// Returns the number of teams with human players in them.
+        /// Does not count spectators and human players that don't have a team set.
+        /// </summary>
+        /// <returns>The number of human player teams in the game.</returns>
+        private int GetPvPTeamCount()
+        {
+            bool[] teamsEnabled = new bool[4];
+            int playerTeamCount = 0;
+
+            foreach (PlayerInfo pInfo in Players)
+            {
+                if (pInfo.IsAI || IsPlayerSpectator(pInfo))
+                    continue;
+
+                if (pInfo.TeamId > 0 && !teamsEnabled[pInfo.TeamId - 1])
+                {
+                    teamsEnabled[pInfo.TeamId - 1] = true;
+                    playerTeamCount++;
+                }
+            }
+
+            return playerTeamCount;
+        }
+
+        /// <summary>
+        /// Checks whether the specified player has selected Spectator as their side.
+        /// </summary>
+        /// <param name="pInfo">The player.</param>
+        /// <returns>True if the player is a spectator, otherwise false.</returns>
+        private bool IsPlayerSpectator(PlayerInfo pInfo)
+        {
+            if (pInfo.SideId == SideCount + RandomSelectorCount)
+                return true;
+
+            return false;
+        }
+
         protected virtual string GetIPAddressForPlayer(PlayerInfo player)
         {
             return "0.0.0.0";
@@ -1097,7 +1133,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             {
                 PlayerInfo pInfo = Players[pId];
                 matchStatistics.AddPlayer(pInfo.Name, pInfo.Name == ProgramConstants.PLAYERNAME,
-                    false, pInfo.SideId == _sideCount + RandomSelectorCount, houseInfos[pId].SideIndex + 1, pInfo.TeamId,
+                    false, pInfo.SideId == SideCount + RandomSelectorCount, houseInfos[pId].SideIndex + 1, pInfo.TeamId,
                     MPColors.FindIndex(c => c.GameColorIndex == houseInfos[pId].ColorIndex), 10);
             }
 
@@ -1213,7 +1249,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 pInfo.StartingLocation = ddPlayerStarts[pId].SelectedIndex;
                 pInfo.TeamId = ddPlayerTeams[pId].SelectedIndex;
 
-                if (pInfo.SideId == _sideCount + RandomSelectorCount)
+                if (pInfo.SideId == SideCount + RandomSelectorCount)
                     pInfo.StartingLocation = 0;
 
                 XNADropDown ddName = ddPlayerNames[pId];
