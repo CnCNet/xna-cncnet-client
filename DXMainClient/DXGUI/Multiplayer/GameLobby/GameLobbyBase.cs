@@ -888,8 +888,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             Random random = new Random(RandomSeed);
 
-            int fakeStartingLocationCount = 0;
-
             for (int i = 0; i < totalPlayerCount; i++)
             {
                 PlayerInfo pInfo;
@@ -905,11 +903,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 pHouseInfo.RandomizeSide(pInfo, Map, SideCount, random, GetDisallowedSides(), RandomSelectors, RandomSelectorCount);
 
                 pHouseInfo.RandomizeColor(pInfo, freeColors, MPColors, random);
-                if (pHouseInfo.RandomizeStart(pInfo, Map, freeStartingLocations, random,
-                    fakeStartingLocationCount, takenStartingLocations))
-                {
-                    fakeStartingLocationCount++;
-                }
+                pHouseInfo.RandomizeStart(pInfo, Map,
+                    freeStartingLocations, random, takenStartingLocations);
             }
 
             return houseInfos;
@@ -1088,7 +1083,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 if (pInfo.TeamId > 0)
                 {
                     teamPlayerCounts[pInfo.TeamId - 1]++;
-                    if (teamPlayerCounts[pInfo.TeamId] == 2)
+                    if (teamPlayerCounts[pInfo.TeamId - 1] == 2)
                         playerTeamCount++;
                 }
             }
@@ -1176,6 +1171,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             mapIni.MoveSectionToFirst("MultiplayerDialogSettings"); // Required by YR
 
+            ManipulateStartingLocations(mapIni, houseInfos);
+
             // Add "fake" starting locations if needed, makes it possible to have multiple
             // players start on the same location in DTA and all TS mods with more than 2 sides
             foreach (PlayerHouseInfo houseInfo in houseInfos)
@@ -1189,6 +1186,89 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             }
 
             mapIni.WriteIniFile(ProgramConstants.GamePath + ProgramConstants.SPAWNMAP_INI);
+        }
+
+        private void ManipulateStartingLocations(IniFile mapIni, PlayerHouseInfo[] houseInfos)
+        {
+            // Multiple players cannot properly share the same starting location
+            // without breaking the SpawnX house logic that pre-placed objects depend on
+
+            // To work around this, we add new starting locations that just point
+            // to the same cell coordinates as existing stacked starting locations
+            // and make additional players in the same start loc start from the new
+            // starting locations instead.
+
+            // As an additional restriction, players can only start from waypoints 0 to 7.
+            // That means that if the map already has too many starting waypoints,
+            // we need to move existing (but un-occupied) starting waypoints to point 
+            // to the stacked locations so we can spawn the players there.
+
+
+            // Check for stacked starting locations (locations with more than 1 player on it)
+            bool[] startingLocationUsed = new bool[MAX_PLAYER_COUNT];
+            bool stackedStartingLocations = false;
+            foreach (PlayerHouseInfo houseInfo in houseInfos)
+            {
+                if (houseInfo.RealStartingWaypoint > -1)
+                {
+                    startingLocationUsed[houseInfo.RealStartingWaypoint] = true;
+
+                    // If assigned starting waypoint is unknown while the real 
+                    // starting location is known, it means that
+                    // the location is shared with another player
+                    if (houseInfo.StartingWaypoint == -1)
+                    {
+                        stackedStartingLocations = true;
+                    }
+                }
+            }
+
+            // If any starting location is stacked, re-arrange all starting locations
+            // so that unused starting locations are removed and made to point at used
+            // starting locations
+            if (!stackedStartingLocations)
+                return;
+
+            // We also need to modify spawn.ini because WriteSpawnIni
+            // doesn't handle stacked positions.
+            // We could move this code there, but then we'd have to process
+            // the stacked locations in two places (here and in WriteSpawnIni)
+            // because we'd need to modify the map anyway.
+            // Not sure whether having it like this or in WriteSpawnIni
+            // is better, but this implementation is quicker to write for now.
+            IniFile spawnIni = new IniFile(ProgramConstants.GamePath + ProgramConstants.SPAWNER_SETTINGS);
+
+            // For each player, check if they're sharing the starting location
+            // with someone else
+            // If they are, find an unused waypoint and assign their 
+            // starting location to match that
+            for (int pId = 0; pId < houseInfos.Length; pId++)
+            {
+                PlayerHouseInfo houseInfo = houseInfos[pId];
+
+                if (houseInfo.RealStartingWaypoint > -1 && 
+                    houseInfo.StartingWaypoint == -1)
+                {
+                    // Find first unused starting location index
+                    int unusedLocation = -1;
+                    for (int i = 0; i < startingLocationUsed.Length; i++)
+                    {
+                        if (!startingLocationUsed[i])
+                        {
+                            unusedLocation = i;
+                            startingLocationUsed[i] = true;
+                            break;
+                        }
+                    }
+
+                    houseInfo.StartingWaypoint = unusedLocation;
+                    mapIni.SetIntValue("Waypoints", unusedLocation.ToString(),
+                        mapIni.GetIntValue("Waypoints", houseInfo.RealStartingWaypoint.ToString(), 0));
+                    spawnIni.SetIntValue("SpawnLocations", $"Multi{pId + 1}", unusedLocation);
+                }
+            }
+
+            spawnIni.WriteIniFile();
         }
 
         /// <summary>
