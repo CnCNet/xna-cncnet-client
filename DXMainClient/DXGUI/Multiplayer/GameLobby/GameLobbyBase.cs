@@ -1077,7 +1077,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         /// <returns>The number of human player teams in the game.</returns>
         private int GetPvPTeamCount()
         {
-            bool[] teamsEnabled = new bool[4];
+            int[] teamPlayerCounts = new int[4];
             int playerTeamCount = 0;
 
             foreach (PlayerInfo pInfo in Players)
@@ -1085,10 +1085,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 if (pInfo.IsAI || IsPlayerSpectator(pInfo))
                     continue;
 
-                if (pInfo.TeamId > 0 && !teamsEnabled[pInfo.TeamId - 1])
+                if (pInfo.TeamId > 0)
                 {
-                    teamsEnabled[pInfo.TeamId - 1] = true;
-                    playerTeamCount++;
+                    teamPlayerCounts[pInfo.TeamId - 1]++;
+                    if (teamPlayerCounts[pInfo.TeamId] == 2)
+                        playerTeamCount++;
                 }
             }
 
