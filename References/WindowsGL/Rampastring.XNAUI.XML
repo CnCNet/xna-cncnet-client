@@ -1106,6 +1106,12 @@
             by using keyboard keys.
             </summary>
         </member>
+        <member name="P:Rampastring.XNAUI.XNAControls.XNAListBox.TextBorderDistance">
+            <summary>
+            Gets or sets the distance between the text of a list box item
+            and the list box border in pixels.
+            </summary>
+        </member>
         <member name="P:Rampastring.XNAUI.XNAControls.XNAListBox.SelectedItem">
             <summary>
             Gets the currently selected list box item.
@@ -1209,7 +1215,7 @@
             Clears the selection on right-click.
             </summary>
         </member>
-        <member name="M:Rampastring.XNAUI.XNAControls.XNAListBox.OnLeftClick">
+        <member name="M:Rampastring.XNAUI.XNAControls.XNAListBox.OnMouseLeftDown">
             <summary>
             Selects an item when the user left-clicks on this control.
             </summary>
