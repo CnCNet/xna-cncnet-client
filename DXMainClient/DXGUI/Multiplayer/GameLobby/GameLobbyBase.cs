@@ -126,6 +126,12 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private bool mapChangeInProgress = false;
 
+        /// <summary>
+        /// If set, the client will remove all starting waypoints from the map
+        /// before launching it.
+        /// </summary>
+        protected bool RemoveStartingLocations { get; set; } = false;
+
         IniFile _gameOptionsIni;
         protected IniFile GameOptionsIni
         {
@@ -1178,6 +1184,27 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private void ManipulateStartingLocations(IniFile mapIni, PlayerHouseInfo[] houseInfos)
         {
+            if (RemoveStartingLocations)
+            {
+                if (Map.EnforceMaxPlayers)
+                    return;
+
+                // All random starting locations given by the game
+                IniSection waypointSection = mapIni.GetSection("Waypoints");
+                if (waypointSection == null)
+                    return;
+
+                // TODO implement IniSection.RemoveKey in Rampastring.Tools, then
+                // remove implementation that depends on internal implementation
+                // of IniSection
+                for (int i = 0; i <= 7; i++)
+                {
+                    int index = waypointSection.Keys.FindIndex(k => !string.IsNullOrEmpty(k.Key) && k.Key == i.ToString());
+                    if (index > -1)
+                        waypointSection.Keys.RemoveAt(index);
+                }
+            }
+
             // Multiple players cannot properly share the same starting location
             // without breaking the SpawnX house logic that pre-placed objects depend on
 

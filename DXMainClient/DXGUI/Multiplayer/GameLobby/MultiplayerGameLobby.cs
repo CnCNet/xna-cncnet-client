@@ -37,7 +37,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     s => SetMaxAhead(s)),
                 new ChatBoxCommand("PROTOCOLVERSION", "Change ProtocolVersion (default 2) (game host only)", true,
                     s => SetProtocolVersion(s)),
-                new ChatBoxCommand("LOADMAP", "Load custom map with given filename", true, s => LoadCustomMap($"Maps\\Custom\\{s}", true))
+                new ChatBoxCommand("LOADMAP", "Load custom map with given filename", true, s => LoadCustomMap($"Maps\\Custom\\{s}", true)),
+                new ChatBoxCommand("RANDOMSTARTS", "Enables completely random starting locations (Tiberian Sun based games only)", true,
+                    s => SetStartingLocationClearance(s)),
             };
         }
 
@@ -73,13 +75,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         /// </summary>
         protected int MaxAhead { get; set; }
 
-        private int _protocolVersion = 2;
-
-        protected int ProtocolVersion
-        {
-            get { return _protocolVersion; }
-            set { _protocolVersion = value; }
-        }
+        protected int ProtocolVersion { get; set; } = 2;
 
         private ChatBoxCommand[] chatBoxCommands;
 
@@ -391,6 +387,33 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             OnGameOptionChanged();
             ClearReadyStatuses();
+        }
+
+        private void SetStartingLocationClearance(string value)
+        {
+            bool removeStartingLocations = Conversions.BooleanFromString(value, RemoveStartingLocations);
+
+            SetRandomStartingLocations(removeStartingLocations);
+
+            OnGameOptionChanged();
+            ClearReadyStatuses();
+        }
+
+        /// <summary>
+        /// Enables or disables completely random starting locations and informs
+        /// the user accordingly.
+        /// </summary>
+        /// <param name="newValue">The new value of completely random starting locations.</param>
+        protected void SetRandomStartingLocations(bool newValue)
+        {
+            if (newValue != RemoveStartingLocations)
+            {
+                RemoveStartingLocations = newValue;
+                if (RemoveStartingLocations)
+                    AddNotice("The game host has enabled completely random starting locations (only works for regular maps)..");
+                else
+                    AddNotice("The game host has disabled completely random starting locations.");
+            }
         }
 
         protected abstract void SendChatMessage(string message);

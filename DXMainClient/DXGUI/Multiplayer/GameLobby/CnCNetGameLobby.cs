@@ -773,6 +773,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             sb.Append(MaxAhead);
             sb.Append(ProtocolVersion);
             sb.Append(RandomSeed);
+            sb.Append(Convert.ToInt32(RemoveStartingLocations));
 
             channel.SendCTCPMessage(sb.ToString(), QueuedMessageType.GAME_SETTINGS_MESSAGE, 11);
         }
@@ -928,6 +929,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             if (!parseSuccess)
                 return;
+
+            bool removeStartingLocations = Convert.ToBoolean(Conversions.IntFromString(parts[partIndex + 7],
+                Convert.ToInt32(RemoveStartingLocations)));
+            SetRandomStartingLocations(removeStartingLocations);
 
             RandomSeed = randomSeed;
         }
