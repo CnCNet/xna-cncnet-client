@@ -32,8 +32,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         private const string MAP_SHARING_DISABLED_MESSAGE = "MAPSDISABLED";
         private const string CHEAT_DETECTED_MESSAGE = "CD";
 
-        private string[] allowedGameModes = ClientConfiguration.Instance.GetAllowedGameModes.Split(',');
-
         public CnCNetGameLobby(WindowManager windowManager, string iniName, 
             TopBar topBar, List<GameMode> GameModes, CnCNetManager connectionManager,
             TunnelHandler tunnelHandler, GameCollection gameCollection, CnCNetUserData cncnetUserData) : 
@@ -1317,30 +1315,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private void MapSharer_HandleMapDownloadComplete(SHA1EventArgs e)
         {
+            Logger.Log("Map " + e.SHA1 + " downloaded, parsing.");
             string mapPath = "Maps\\Custom\\" + e.SHA1;
-            Map map = new Map(mapPath, false);
-
-            if (map.SetInfoFromMap(ProgramConstants.GamePath + mapPath + ".map"))
+            Map map = LoadCustomMap(mapPath, false);
+            if (map != null)
             {
-                Logger.Log("Map " + e.SHA1 + " downloaded succesfully.");
-                AddNotice("Map succesfully transferred.");
-
-                foreach (string gameMode in map.GameModes)
-                {
-                    GameMode gm = GameModes.Find(g => g.UIName == gameMode);
-
-                    if (gm == null)
-                    {
-                        if (!allowedGameModes.Contains(gameMode))
-                            continue;
-
-                        gm = new GameMode(gameMode);
-                        GameModes.Add(gm);
-                    }
-
-                    gm.Maps.Add(map);
-                }
-
                 if (lastMapSHA1 == e.SHA1)
                 {
                     Map = map;
@@ -1350,7 +1329,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             }
             else
             {
-                Logger.Log("Loading map " + e.SHA1 + " failed!");
                 AddNotice("Transfer of the custom map failed. The host needs to change the map or you will be unable to participate in this match.");
 
                 channel.SendCTCPMessage(MAP_SHARING_FAIL_MESSAGE + " " + e.SHA1, QueuedMessageType.SYSTEM_MESSAGE, 9);

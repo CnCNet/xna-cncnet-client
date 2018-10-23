@@ -28,15 +28,16 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             chatBoxCommands = new ChatBoxCommand[]
             {
                 new ChatBoxCommand("HIDEMAPS", "Hide map list (game host only)", true,
-                    new Action<string>(s => HideMapList())),
+                    s => HideMapList()),
                 new ChatBoxCommand("SHOWMAPS", "Show map list (game host only)", true,
-                    new Action<string>(s => ShowMapList())),
+                    s => ShowMapList()),
                 new ChatBoxCommand("FRAMESENDRATE", "Change order lag / FrameSendRate (default 7) (game host only)", true,
-                    new Action<string>(s => SetFrameSendRate(s))),
+                    s => SetFrameSendRate(s)),
                 new ChatBoxCommand("MAXAHEAD", "Change MaxAhead (default 0) (game host only)", true,
-                    new Action<string>(s => SetMaxAhead(s))),
+                    s => SetMaxAhead(s)),
                 new ChatBoxCommand("PROTOCOLVERSION", "Change ProtocolVersion (default 2) (game host only)", true,
-                    new Action<string>(s => SetProtocolVersion(s))),
+                    s => SetProtocolVersion(s)),
+                new ChatBoxCommand("LOADMAP", "Load custom map with given filename", true, s => LoadCustomMap($"Maps\\Custom\\{s}", true))
             };
         }
 
@@ -85,6 +86,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         private FileSystemWatcher fsw;
 
         private bool gameSaved = false;
+
+        private string[] allowedGameModes = ClientConfiguration.Instance.GetAllowedGameModes.Split(',');
 
         public override void Initialize()
         {
@@ -819,6 +822,70 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 return 2;
 
             return -1;
+        }
+
+        /// <summary>
+        /// Attempts to load a custom map.
+        /// </summary>
+        /// <param name="mapPath">The path to the map file relative to the game directory.</param>
+        /// <param name="userInvoked">Whether this function was invoked by the user. 
+        /// If true, displays notifications regarding the success of the map loading.</param>
+        /// <returns>The map if loading it was succesful, otherwise false.</returns>
+        protected Map LoadCustomMap(string mapPath, bool userInvoked)
+        {
+            Logger.Log("Loading custom map " + mapPath);
+            Map map = new Map(mapPath, false);
+
+            if (map.SetInfoFromMap(ProgramConstants.GamePath + mapPath + ".map"))
+            {
+                foreach (GameMode gm in GameModes)
+                {
+                    if (gm.Maps.Find(m => m.SHA1 == map.SHA1) != null)
+                    {
+                        Logger.Log("Custom map " + mapPath + " is already loaded!");
+
+                        if (userInvoked)
+                        {
+                            AddNotice($"Map {mapPath} is already loaded.");
+                        }
+
+                        return null;
+                    }
+                }
+
+                Logger.Log("Map " + mapPath + " added succesfully.");
+
+                foreach (string gameMode in map.GameModes)
+                {
+                    GameMode gm = GameModes.Find(g => g.UIName == gameMode);
+
+                    if (gm == null)
+                    {
+                        if (!allowedGameModes.Contains(gameMode))
+                            continue;
+
+                        gm = new GameMode(gameMode);
+                        GameModes.Add(gm);
+                    }
+
+                    gm.Maps.Add(map);
+                }
+
+                if (userInvoked)
+                {
+                    AddNotice($"Map {mapPath} loaded succesfully.");
+                }
+
+                return map;
+            }
+
+            if (userInvoked)
+            {
+                AddNotice($"Loading map {mapPath} failed!");
+            }
+
+            Logger.Log("Loading map " + mapPath + " failed!");
+            return null;
         }
 
         public void SwitchOn()
