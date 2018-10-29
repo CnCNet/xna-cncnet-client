@@ -37,6 +37,16 @@ namespace ClientCore.Settings
             set { Set(value); }
         }
 
+        /// <summary>
+        /// Writes the default value of this setting to the INI file if no value
+        /// for the setting is currently specified in the INI file.
+        /// </summary>
+        public void SetDefaultIfNonexistent()
+        {
+            if (!IniFile.KeyExists(IniSection, IniKey))
+                Set(DefaultValue);
+        }
+
         protected abstract T Get();
 
         protected abstract void Set(T value);

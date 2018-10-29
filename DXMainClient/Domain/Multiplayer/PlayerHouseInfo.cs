@@ -105,11 +105,12 @@ namespace DTAClient.Domain.Multiplayer
         /// <param name="map">The selected map.</param>
         /// <param name="freeStartingLocations">List of free starting locations.</param>
         /// <param name="random">Random number generator.</param>
+        /// <param name="takenStartingLocations">A list of starting locations that are already occupied.</param>
         /// <returns>True if the player's starting location index exceeds the map's number of starting waypoints,
         /// otherwise false.</returns>
         public bool RandomizeStart(PlayerInfo pInfo, Map map,
             List<int> freeStartingLocations, Random random,
-            int fakeStartingLocationCount, List<int> takenStartingLocations)
+            List<int> takenStartingLocations)
         {
             if (IsSpectator)
             {
@@ -148,7 +149,7 @@ namespace DTAClient.Domain.Multiplayer
 
             if (takenStartingLocations.Contains(RealStartingWaypoint))
             {
-                StartingWaypoint = map.MaxPlayers + fakeStartingLocationCount;
+                StartingWaypoint = -1; // Unknown starting location, stacked with another player
                 return true;
             }
 

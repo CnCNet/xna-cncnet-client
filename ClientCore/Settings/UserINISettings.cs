@@ -97,6 +97,7 @@ namespace ClientCore
             IsFirstRun = new BoolSetting(iniFile, OPTIONS, "IsFirstRun", true);
             CustomComponentsDenied = new BoolSetting(iniFile, OPTIONS, "CustomComponentsDenied", false);
             Difficulty = new IntSetting(iniFile, OPTIONS, "Difficulty", 1);
+            ScrollDelay = new IntSetting(iniFile, OPTIONS, "ScrollDelay", 4);
             GameSpeed = new IntSetting(iniFile, OPTIONS, "GameSpeed", 1);
             PreloadMapPreviews = new BoolSetting(iniFile, VIDEO, "PreloadMapPreviews", false);
             ForceLowestDetailLevel = new BoolSetting(iniFile, VIDEO, "ForceLowestDetailLevel", false);
@@ -187,6 +188,8 @@ namespace ClientCore
 
         public IntSetting GameSpeed { get; private set; }
 
+        public IntSetting ScrollDelay { get; private set; }
+
         public BoolSetting PreloadMapPreviews { get; private set; }
 
         public BoolSetting ForceLowestDetailLevel { get; private set; }
@@ -205,12 +208,18 @@ namespace ClientCore
             SettingsIni.Reload();
         }
 
+        public void ApplyDefaults()
+        {
+            ForceLowestDetailLevel.SetDefaultIfNonexistent();
+            DoubleTapInterval.SetDefaultIfNonexistent();
+            ScrollDelay.SetDefaultIfNonexistent();
+        }
+
         public void SaveSettings()
         {
             Logger.Log("Writing settings INI.");
 
-            ForceLowestDetailLevel.Value = false;
-            DoubleTapInterval.Write();
+            ApplyDefaults();
 
             SettingsIni.WriteIniFile();
 

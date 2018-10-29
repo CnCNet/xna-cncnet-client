@@ -108,12 +108,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         /// An unique identifier for this game.
         /// </summary>
         protected int UniqueGameID { get; set; }
-
-        private int _sideCount;
-        protected int SideCount => _sideCount;
-
-        private int _randomSelectorCount = 1;
-        protected int RandomSelectorCount => _randomSelectorCount;
+        protected int SideCount { get; private set; }
+        protected int RandomSelectorCount { get; private set; } = 1;
 
         protected List<int[]> RandomSelectors = new List<int[]>();
 
@@ -130,6 +126,12 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         private MatchStatistics matchStatistics;
 
         private bool mapChangeInProgress = false;
+
+        /// <summary>
+        /// If set, the client will remove all starting waypoints from the map
+        /// before launching it.
+        /// </summary>
+        protected bool RemoveStartingLocations { get; set; } = false;
 
         IniFile _gameOptionsIni;
         protected IniFile GameOptionsIni
@@ -485,12 +487,12 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             // InitPlayerOptionDropdowns(136, 91, 79, 49, 46, new Point(25, 24));
 
             string[] sides = ClientConfiguration.Instance.GetSides().Split(',');
-            _sideCount = sides.Length;
+            SideCount = sides.Length;
 
             List<string> selectorNames = new List<string>();
             GetRandomSelectors(selectorNames, RandomSelectors);
-            _randomSelectorCount = RandomSelectors.Count + 1;
-            MapPreviewBox.RandomSelectorCount = _randomSelectorCount;
+            RandomSelectorCount = RandomSelectors.Count + 1;
+            MapPreviewBox.RandomSelectorCount = RandomSelectorCount;
 
             string randomColor = GameOptionsIni.GetStringValue("General", "RandomColor", "255,255,255");
 
@@ -634,7 +636,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 {
                     string[] tmp = GameOptionsIni.GetStringValue("RandomSelectors", randomSelector, string.Empty).Split(',');
                     randomSides = Array.ConvertAll<string, int>(tmp, int.Parse).Distinct().ToList();
-                    randomSides.RemoveAll(x => (x >= _sideCount || x < 0));
+                    randomSides.RemoveAll(x => (x >= SideCount || x < 0));
                 }
                 catch (FormatException) { }
 
@@ -791,22 +793,22 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
                 foreach (PlayerInfo pInfo in concatPlayerList)
                 {
-                    if (pInfo.SideId == _sideCount + RandomSelectorCount)
+                    if (pInfo.SideId == SideCount + RandomSelectorCount)
                         pInfo.SideId = defaultSide;
                 }
 
                 foreach (XNADropDown dd in ddPlayerSides)
                 {
-                    if (dd.Items.Count > _sideCount + RandomSelectorCount)
-                        dd.Items[_sideCount + RandomSelectorCount].Selectable = false;
+                    if (dd.Items.Count > SideCount + RandomSelectorCount)
+                        dd.Items[SideCount + RandomSelectorCount].Selectable = false;
                 }
             }
             else
             {
                 foreach (XNADropDown dd in ddPlayerSides)
                 {
-                    if (dd.Items.Count > _sideCount + RandomSelectorCount)
-                        dd.Items[_sideCount + RandomSelectorCount].Selectable = true;
+                    if (dd.Items.Count > SideCount + RandomSelectorCount)
+                        dd.Items[SideCount + RandomSelectorCount].Selectable = true;
                 }
             }
         }
@@ -851,7 +853,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             // Gather list of spectators
             for (int i = 0; i < Players.Count; i++)
             {
-                houseInfos[i].IsSpectator = Players[i].SideId == _sideCount + RandomSelectorCount;
+                houseInfos[i].IsSpectator = Players[i].SideId == SideCount + RandomSelectorCount;
             }
 
             // Gather list of available colors
@@ -902,8 +904,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             Random random = new Random(RandomSeed);
 
-            int fakeStartingLocationCount = 0;
-
             for (int i = 0; i < totalPlayerCount; i++)
             {
                 PlayerInfo pInfo;
@@ -916,14 +916,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 else
                     pInfo = AIPlayers[i - Players.Count];
 
-                pHouseInfo.RandomizeSide(pInfo, Map, _sideCount, random, GetDisallowedSides(), RandomSelectors, RandomSelectorCount);
+                pHouseInfo.RandomizeSide(pInfo, Map, SideCount, random, GetDisallowedSides(), RandomSelectors, RandomSelectorCount);
 
                 pHouseInfo.RandomizeColor(pInfo, freeColors, MPColors, random);
-                if (pHouseInfo.RandomizeStart(pInfo, Map, freeStartingLocations, random,
-                    fakeStartingLocationCount, takenStartingLocations))
-                {
-                    fakeStartingLocationCount++;
-                }
+                pHouseInfo.RandomizeStart(pInfo, Map,
+                    freeStartingLocations, random, takenStartingLocations);
             }
 
             return houseInfos;
@@ -963,6 +960,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             spawnIni.SetStringValue("Settings", "CustomLoadScreen", LoadingScreenController.GetLoadScreenName(houseInfos[myIndex].SideIndex));
             spawnIni.SetIntValue("Settings", "AIPlayers", AIPlayers.Count);
             spawnIni.SetIntValue("Settings", "Seed", RandomSeed);
+            if (GetPvPTeamCount() > 1)
+                spawnIni.SetBooleanValue("Settings", "CoachMode", true);
             WriteSpawnIniAdditions(spawnIni);
 
             foreach (GameLobbyCheckBox chkBox in CheckBoxes)
@@ -1082,6 +1081,45 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             return houseInfos;
         }
 
+        /// <summary>
+        /// Returns the number of teams with human players in them.
+        /// Does not count spectators and human players that don't have a team set.
+        /// </summary>
+        /// <returns>The number of human player teams in the game.</returns>
+        private int GetPvPTeamCount()
+        {
+            int[] teamPlayerCounts = new int[4];
+            int playerTeamCount = 0;
+
+            foreach (PlayerInfo pInfo in Players)
+            {
+                if (pInfo.IsAI || IsPlayerSpectator(pInfo))
+                    continue;
+
+                if (pInfo.TeamId > 0)
+                {
+                    teamPlayerCounts[pInfo.TeamId - 1]++;
+                    if (teamPlayerCounts[pInfo.TeamId - 1] == 2)
+                        playerTeamCount++;
+                }
+            }
+
+            return playerTeamCount;
+        }
+
+        /// <summary>
+        /// Checks whether the specified player has selected Spectator as their side.
+        /// </summary>
+        /// <param name="pInfo">The player.</param>
+        /// <returns>True if the player is a spectator, otherwise false.</returns>
+        private bool IsPlayerSpectator(PlayerInfo pInfo)
+        {
+            if (pInfo.SideId == SideCount + RandomSelectorCount)
+                return true;
+
+            return false;
+        }
+
         protected virtual string GetIPAddressForPlayer(PlayerInfo player)
         {
             return "0.0.0.0";
@@ -1107,7 +1145,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             {
                 PlayerInfo pInfo = Players[pId];
                 matchStatistics.AddPlayer(pInfo.Name, pInfo.Name == ProgramConstants.PLAYERNAME,
-                    false, pInfo.SideId == _sideCount + RandomSelectorCount, houseInfos[pId].SideIndex + 1, pInfo.TeamId,
+                    false, pInfo.SideId == SideCount + RandomSelectorCount, houseInfos[pId].SideIndex + 1, pInfo.TeamId,
                     MPColors.FindIndex(c => c.GameColorIndex == houseInfos[pId].ColorIndex), 10);
             }
 
@@ -1149,19 +1187,113 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             mapIni.MoveSectionToFirst("MultiplayerDialogSettings"); // Required by YR
 
-            // Add "fake" starting locations if needed, makes it possible to have multiple
-            // players start on the same location in DTA and all TS mods with more than 2 sides
-            foreach (PlayerHouseInfo houseInfo in houseInfos)
+            ManipulateStartingLocations(mapIni, houseInfos);
+
+            mapIni.WriteIniFile(ProgramConstants.GamePath + ProgramConstants.SPAWNMAP_INI);
+        }
+
+        private void ManipulateStartingLocations(IniFile mapIni, PlayerHouseInfo[] houseInfos)
+        {
+            if (RemoveStartingLocations)
             {
-                if (houseInfo.StartingWaypoint > -1 &&
-                    houseInfo.RealStartingWaypoint != houseInfo.StartingWaypoint)
+                if (Map.EnforceMaxPlayers)
+                    return;
+
+                // All random starting locations given by the game
+                IniSection waypointSection = mapIni.GetSection("Waypoints");
+                if (waypointSection == null)
+                    return;
+
+                // TODO implement IniSection.RemoveKey in Rampastring.Tools, then
+                // remove implementation that depends on internal implementation
+                // of IniSection
+                for (int i = 0; i <= 7; i++)
                 {
-                    mapIni.SetIntValue("Waypoints", houseInfo.StartingWaypoint.ToString(),
-                        mapIni.GetIntValue("Waypoints", houseInfo.RealStartingWaypoint.ToString(), 0));
+                    int index = waypointSection.Keys.FindIndex(k => !string.IsNullOrEmpty(k.Key) && k.Key == i.ToString());
+                    if (index > -1)
+                        waypointSection.Keys.RemoveAt(index);
                 }
             }
 
-            mapIni.WriteIniFile(ProgramConstants.GamePath + ProgramConstants.SPAWNMAP_INI);
+            // Multiple players cannot properly share the same starting location
+            // without breaking the SpawnX house logic that pre-placed objects depend on
+
+            // To work around this, we add new starting locations that just point
+            // to the same cell coordinates as existing stacked starting locations
+            // and make additional players in the same start loc start from the new
+            // starting locations instead.
+
+            // As an additional restriction, players can only start from waypoints 0 to 7.
+            // That means that if the map already has too many starting waypoints,
+            // we need to move existing (but un-occupied) starting waypoints to point 
+            // to the stacked locations so we can spawn the players there.
+
+
+            // Check for stacked starting locations (locations with more than 1 player on it)
+            bool[] startingLocationUsed = new bool[MAX_PLAYER_COUNT];
+            bool stackedStartingLocations = false;
+            foreach (PlayerHouseInfo houseInfo in houseInfos)
+            {
+                if (houseInfo.RealStartingWaypoint > -1)
+                {
+                    startingLocationUsed[houseInfo.RealStartingWaypoint] = true;
+
+                    // If assigned starting waypoint is unknown while the real 
+                    // starting location is known, it means that
+                    // the location is shared with another player
+                    if (houseInfo.StartingWaypoint == -1)
+                    {
+                        stackedStartingLocations = true;
+                    }
+                }
+            }
+
+            // If any starting location is stacked, re-arrange all starting locations
+            // so that unused starting locations are removed and made to point at used
+            // starting locations
+            if (!stackedStartingLocations)
+                return;
+
+            // We also need to modify spawn.ini because WriteSpawnIni
+            // doesn't handle stacked positions.
+            // We could move this code there, but then we'd have to process
+            // the stacked locations in two places (here and in WriteSpawnIni)
+            // because we'd need to modify the map anyway.
+            // Not sure whether having it like this or in WriteSpawnIni
+            // is better, but this implementation is quicker to write for now.
+            IniFile spawnIni = new IniFile(ProgramConstants.GamePath + ProgramConstants.SPAWNER_SETTINGS);
+
+            // For each player, check if they're sharing the starting location
+            // with someone else
+            // If they are, find an unused waypoint and assign their 
+            // starting location to match that
+            for (int pId = 0; pId < houseInfos.Length; pId++)
+            {
+                PlayerHouseInfo houseInfo = houseInfos[pId];
+
+                if (houseInfo.RealStartingWaypoint > -1 && 
+                    houseInfo.StartingWaypoint == -1)
+                {
+                    // Find first unused starting location index
+                    int unusedLocation = -1;
+                    for (int i = 0; i < startingLocationUsed.Length; i++)
+                    {
+                        if (!startingLocationUsed[i])
+                        {
+                            unusedLocation = i;
+                            startingLocationUsed[i] = true;
+                            break;
+                        }
+                    }
+
+                    houseInfo.StartingWaypoint = unusedLocation;
+                    mapIni.SetIntValue("Waypoints", unusedLocation.ToString(),
+                        mapIni.GetIntValue("Waypoints", houseInfo.RealStartingWaypoint.ToString(), 0));
+                    spawnIni.SetIntValue("SpawnLocations", $"Multi{pId + 1}", unusedLocation);
+                }
+            }
+
+            spawnIni.WriteIniFile();
         }
 
         /// <summary>
@@ -1223,7 +1355,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 pInfo.StartingLocation = ddPlayerStarts[pId].SelectedIndex;
                 pInfo.TeamId = ddPlayerTeams[pId].SelectedIndex;
 
-                if (pInfo.SideId == _sideCount + RandomSelectorCount)
+                if (pInfo.SideId == SideCount + RandomSelectorCount)
                     pInfo.StartingLocation = 0;
 
                 XNADropDown ddName = ddPlayerNames[pId];

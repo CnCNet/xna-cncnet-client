@@ -460,6 +460,12 @@ namespace DTAClient.Domain.Multiplayer
             {
                 // Extract preview from the map itself
 
+                if (mapIni.GetSectionKeys("PreviewPack").Count == 0)
+                {
+                    Logger.Log(mapIni.FileName + " - no [PreviewPack] exists");
+                    return AssetLoader.CreateTexture(Color.Black, 10, 10);
+                }
+                    
                 if (mapIni.GetStringValue("PreviewPack", "1", string.Empty) ==
                     "yAsAIAXQ5PDQ5PDQ6JQATAEE6PDQ4PDI4JgBTAFEAkgAJyAATAG0AydEAEABpAJIA0wBVA")
                 {
