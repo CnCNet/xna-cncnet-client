@@ -74,6 +74,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             MapSharer.MapDownloadComplete += MapSharer_MapDownloadComplete;
             MapSharer.MapUploadFailed += MapSharer_MapUploadFailed;
             MapSharer.MapUploadComplete += MapSharer_MapUploadComplete;
+
+            AddChatBoxCommand(new ChatBoxCommand("TUNNELINFO", "View tunnel server information", false, PrintTunnelServerInformation));
         }
 
         public event EventHandler GameLeft;
@@ -208,6 +210,12 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             TopBar.AddPrimarySwitchable(this);
             TopBar.SwitchToPrimary();
             WindowManager.SelectedControl = tbChatInput;
+        }
+
+        private void PrintTunnelServerInformation(string s)
+        {
+            AddNotice($"Current tunnel server: {tunnel.Name} ({tunnel.Country}) " +
+                $"(Players: {tunnel.Clients}/{tunnel.MaxClients}) (Official:{tunnel.Official}");
         }
 
         public void ChangeChatColor(IRCColor chatColor)
