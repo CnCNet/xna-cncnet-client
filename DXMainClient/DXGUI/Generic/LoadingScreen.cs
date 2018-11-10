@@ -144,8 +144,6 @@ namespace DTAClient.DXGUI.Generic
             WindowManager.AddAndInitializeControl(topBar);
             topBar.AddPrimarySwitchable(mainMenu);
 
-            WindowManager.AddAndInitializeControl(new PrivateMessageNotificationBox(WindowManager));
-
             mainMenu.PostInit();
 
             if (UserINISettings.Instance.AutomaticCnCNetLogin &&
