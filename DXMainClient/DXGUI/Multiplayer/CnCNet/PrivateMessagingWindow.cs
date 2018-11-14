@@ -294,6 +294,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             notificationBox = new PrivateMessageNotificationBox(WindowManager);
             notificationBox.Enabled = false;
             notificationBox.Visible = false;
+            notificationBox.LeftClick += NotificationBox_LeftClick;
 
             AddChild(tabControl);
             AddChild(lblPlayers);
@@ -319,6 +320,11 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             sndMessageSound.Enabled = UserINISettings.Instance.MessageSound;
 
             GameProcessLogic.GameProcessExited += SharedUILogic_GameProcessExited;
+        }
+
+        private void NotificationBox_LeftClick(object sender, EventArgs e)
+        {
+            SwitchOn();
         }
 
         private void LbUserList_RightClick(object sender, EventArgs e)
