@@ -909,7 +909,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                     ddCurrentChannel.SelectedIndex = gameIndex;
             }
 
-            gameCheckCancellation.Cancel();
+            if (gameCheckCancellation != null)
+                gameCheckCancellation.Cancel();
         }
 
         private void ConnectionManager_WelcomeMessageReceived(object sender, EventArgs e)
