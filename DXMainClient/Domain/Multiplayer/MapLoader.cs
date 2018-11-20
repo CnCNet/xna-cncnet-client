@@ -26,7 +26,7 @@ namespace DTAClient.Domain.Multiplayer
         /// replaced by the game mode entries of the value string array
         /// when a map's game modes are parsed.
         /// </summary>
-        public Dictionary<string, string[]> GameModeAliases = new Dictionary<string, string[]>();
+        private Dictionary<string, string[]> gameModeAliases = new Dictionary<string, string[]>();
 
         /// <summary>
         /// Loads multiplayer map info asynchonously.
@@ -43,13 +43,13 @@ namespace DTAClient.Domain.Multiplayer
 
             IniFile mpMapsIni = new IniFile(ProgramConstants.GamePath + ClientConfiguration.Instance.MPMapsIniPath);
 
-            var gmAlises = mpMapsIni.GetSectionKeys("GameModeAliases");
+            var gmAliases = mpMapsIni.GetSectionKeys("GameModeAliases");
 
-            if (gmAlises != null)
+            if (gmAliases != null)
             {
-                foreach (string key in gmAlises)
+                foreach (string key in gmAliases)
                 {
-                    GameModeAliases.Add(key, mpMapsIni.GetStringValue("GameModeAliases", key, string.Empty).Split(
+                    gameModeAliases.Add(key, mpMapsIni.GetStringValue("GameModeAliases", key, string.Empty).Split(
                         new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries));
                 }
             }
@@ -76,7 +76,7 @@ namespace DTAClient.Domain.Multiplayer
 
                 Map map = new Map(mapFilePath, true);
 
-                if (!map.SetInfoFromINI(mpMapsIni, GameModeAliases))
+                if (!map.SetInfoFromINI(mpMapsIni, gameModeAliases))
                     continue;
 
                 maps.Add(map);

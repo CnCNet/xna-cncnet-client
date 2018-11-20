@@ -334,7 +334,21 @@ namespace DTAClient.Domain.Multiplayer
 
                 Name = basicSection.GetStringValue("Name", "Unnamed map");
                 Author = basicSection.GetStringValue("Author", "Unknown author");
-                GameModes = basicSection.GetStringValue("GameMode", "Default").Split(',');
+
+                string gameModesString = basicSection.GetStringValue("GameModes", string.Empty);
+                if (string.IsNullOrEmpty(gameModesString))
+                {
+                    gameModesString = basicSection.GetStringValue("GameMode", "Default");
+                }
+
+                GameModes = gameModesString.Split(',');
+
+                if (GameModes.Length == 0)
+                {
+                    Logger.Log("Custom map " + path + " has no game modes!");
+                    return false;
+                }
+
                 for (int i = 0; i < GameModes.Length; i++)
                 {
                     string gameMode = GameModes[i].Trim();
@@ -345,7 +359,10 @@ namespace DTAClient.Domain.Multiplayer
                 // TODO handle game mode aliases
 
                 MinPlayers = 0;
-                MaxPlayers = basicSection.GetIntValue("MaxPlayer", 0);
+                if (basicSection.KeyExists("ClientMaxPlayer"))
+                    MaxPlayers = basicSection.GetIntValue("ClientMaxPlayer", 0);
+                else
+                    MaxPlayers = basicSection.GetIntValue("MaxPlayer", 0);
                 EnforceMaxPlayers = basicSection.GetBooleanValue("EnforceMaxPlayers", true);
                 //PreviewPath = Path.GetDirectoryName(BaseFilePath) + "\\" +
                 //    iniFile.GetStringValue(BaseFilePath, "PreviewImage", Path.GetFileNameWithoutExtension(BaseFilePath) + ".png");

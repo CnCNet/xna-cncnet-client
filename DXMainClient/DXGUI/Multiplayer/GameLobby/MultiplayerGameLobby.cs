@@ -25,7 +25,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             TopBar = topBar;
 
-            chatBoxCommands = new ChatBoxCommand[]
+            chatBoxCommands = new List<ChatBoxCommand>
             {
                 new ChatBoxCommand("HIDEMAPS", "Hide map list (game host only)", true,
                     s => HideMapList()),
@@ -60,13 +60,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         protected TopBar TopBar;
 
-        private int _frameSendRate = 7;
-
-        protected int FrameSendRate
-        {
-            get { return _frameSendRate; }
-            set { _frameSendRate = value; }
-        }
+        protected int FrameSendRate { get; set; } = 7;
 
         /// <summary>
         /// Controls the MaxAhead parameter. The default value of 0 means that 
@@ -77,13 +71,23 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         protected int ProtocolVersion { get; set; } = 2;
 
-        private ChatBoxCommand[] chatBoxCommands;
+        protected List<ChatBoxCommand> chatBoxCommands;
 
         private FileSystemWatcher fsw;
 
         private bool gameSaved = false;
 
         private string[] allowedGameModes = ClientConfiguration.Instance.GetAllowedGameModes.Split(',');
+
+
+        /// <summary>
+        /// Allows derived classes to add their own chat box commands.
+        /// </summary>
+        /// <param name="command">The command to add.</param>
+        protected void AddChatBoxCommand(ChatBoxCommand command)
+        {
+            chatBoxCommands.Add(command);
+        }
 
         public override void Initialize()
         {
