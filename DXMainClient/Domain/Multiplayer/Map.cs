@@ -311,7 +311,7 @@ namespace DTAClient.Domain.Multiplayer
         /// Returns true if succesful, otherwise false.
         /// </summary>
         /// <param name="path">The full path to the map INI file.</param>
-        public bool SetInfoFromMap(string path)
+        public bool SetInfoFromMap(string path, Dictionary<string, string[]> gameModeAliases)
         {
             try
             {
@@ -349,14 +349,24 @@ namespace DTAClient.Domain.Multiplayer
                     return false;
                 }
 
+                List<string> gameModeList = new List<string>();
                 for (int i = 0; i < GameModes.Length; i++)
                 {
                     string gameMode = GameModes[i].Trim();
                     gameMode = gameMode.Substring(0, 1).ToUpperInvariant() + gameMode.Substring(1);
-                    GameModes[i] = gameMode;
-                }
 
-                // TODO handle game mode aliases
+                    string[] aliases;
+
+                    if (!gameModeAliases.TryGetValue(gameMode, out aliases))
+                    {
+                        gameModeList.Add(gameMode);
+                        continue;
+                    }
+
+                    foreach (var alias in aliases)
+                        gameModeList.Add(alias);
+                }
+                GameModes = gameModeList.ToArray();
 
                 MinPlayers = 0;
                 if (basicSection.KeyExists("ClientMaxPlayer"))

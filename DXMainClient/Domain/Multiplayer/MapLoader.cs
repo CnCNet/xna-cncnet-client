@@ -114,7 +114,7 @@ namespace DTAClient.Domain.Multiplayer
                     baseFilePath = baseFilePath.Substring(0, baseFilePath.Length - 4);
 
                     Map map = new Map(baseFilePath, false);
-                    if (map.SetInfoFromMap(file))
+                    if (map.SetInfoFromMap(file, gameModeAliases))
                         customMaps.Add(map);
                 }
             }

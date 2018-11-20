@@ -79,6 +79,14 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private string[] allowedGameModes = ClientConfiguration.Instance.GetAllowedGameModes.Split(',');
 
+        /// <summary>
+        /// A list of game mode aliases.
+        /// Every game mode entry that exists in this dictionary will get 
+        /// replaced by the game mode entries of the value string array
+        /// when a map's game modes are parsed.
+        /// </summary>
+        private Dictionary<string, string[]> gameModeAliases = new Dictionary<string, string[]>();
+
 
         /// <summary>
         /// Allows derived classes to add their own chat box commands.
@@ -192,6 +200,23 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             // To move the lblMapAuthor label into its correct position
             // if it was moved in the theme description INI file
             LoadDefaultMap();
+            GetGameModeAliases();
+        }
+
+        private void GetGameModeAliases()
+        {
+            IniFile mpMapsIni = new IniFile(ProgramConstants.GamePath + ClientConfiguration.Instance.MPMapsIniPath);
+
+            var gmAliases = mpMapsIni.GetSectionKeys("GameModeAliases");
+
+            if (gmAliases != null)
+            {
+                foreach (string key in gmAliases)
+                {
+                    gameModeAliases.Add(key, mpMapsIni.GetStringValue("GameModeAliases", key, string.Empty).Split(
+                        new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries));
+                }
+            }
         }
 
         private void fsw_Created(object sender, FileSystemEventArgs e)
@@ -863,7 +888,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             Logger.Log("Loading custom map " + mapPath);
             Map map = new Map(mapPath, false);
 
-            if (map.SetInfoFromMap(ProgramConstants.GamePath + mapPath + ".map"))
+            if (map.SetInfoFromMap(ProgramConstants.GamePath + mapPath + ".map", gameModeAliases))
             {
                 foreach (GameMode gm in GameModes)
                 {
