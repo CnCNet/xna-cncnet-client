@@ -860,6 +860,12 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         /// <returns>The map if loading it was succesful, otherwise false.</returns>
         protected Map LoadCustomMap(string mapPath, bool userInvoked)
         {
+            if (!File.Exists(mapPath))
+            {
+                AddNotice($"Map file {mapPath} doesn't exist!");
+                return null;
+            }
+                
             Logger.Log("Loading custom map " + mapPath);
             Map map = new Map(mapPath, false);
 
