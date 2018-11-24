@@ -313,6 +313,9 @@ namespace DTAClient.Domain.Multiplayer
         /// <param name="path">The full path to the map INI file.</param>
         public bool SetInfoFromMap(string path, Dictionary<string, string[]> gameModeAliases)
         {
+            if (!File.Exists(path))
+                return false;
+
             try
             {
                 IniFile iniFile = new IniFile();

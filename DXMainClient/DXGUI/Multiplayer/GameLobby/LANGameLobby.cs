@@ -20,6 +20,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 {
     public class LANGameLobby : MultiplayerGameLobby
     {
+        private const int GAME_OPTION_SPECIAL_FLAG_COUNT = 5;
+
         private const double DROPOUT_TIMEOUT = 20.0;
         private const double GAME_BROADCAST_INTERVAL = 10.0;
 
@@ -34,6 +36,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         private const string PLAYER_READY_REQUEST = "READY";
         private const string LAUNCH_GAME_COMMAND = "LAUNCH";
         private const string FILE_HASH_COMMAND = "FHASH";
+        private const string DICE_ROLL_COMMAND = "DR";
 
         public LANGameLobby(WindowManager windowManager, string iniName, 
             TopBar topBar, List<GameMode> GameModes, LANColor[] chatColors) : 
@@ -48,7 +51,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 new StringCommandHandler(PLAYER_OPTIONS_REQUEST_COMMAND, HandlePlayerOptionsRequest),
                 new NoParamCommandHandler(PLAYER_QUIT_COMMAND, HandlePlayerQuit),
                 new NoParamCommandHandler(PLAYER_READY_REQUEST, GameHost_HandleReadyRequest),
-                new StringCommandHandler(FILE_HASH_COMMAND, HandleFileHashCommand)
+                new StringCommandHandler(FILE_HASH_COMMAND, HandleFileHashCommand),
+                new StringCommandHandler(DICE_ROLL_COMMAND, Host_HandleDiceRoll),
             };
 
             playerCommandHandlers = new LANClientCommandHandler[]
@@ -59,6 +63,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 new ClientStringCommandHandler(PLAYER_OPTIONS_BROADCAST_COMMAND, HandlePlayerOptionsBroadcast),
                 new ClientStringCommandHandler(LAUNCH_GAME_COMMAND, HandleGameLaunchCommand),
                 new ClientStringCommandHandler(GAME_OPTIONS_COMMAND, HandleGameOptionsMessage),
+                new ClientStringCommandHandler(DICE_ROLL_COMMAND, Client_HandleDiceRoll),
                 new ClientNoParamCommandHandler("PING", HandlePing),
             };
 
@@ -887,7 +892,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             string[] parts = data.Split(ProgramConstants.LAN_DATA_SEPARATOR);
             
-            if (parts.Length != CheckBoxes.Count + DropDowns.Count + 4)
+            if (parts.Length != CheckBoxes.Count + DropDowns.Count + GAME_OPTION_SPECIAL_FLAG_COUNT)
             {
                 AddNotice("The game host has sent an invalid game options message. This " +
                     "usually means that the game host has a different game version than you.");
@@ -895,14 +900,14 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 return;
             }
 
-            int randomSeed = Conversions.IntFromString(parts[parts.Length - 5], -1);
+            int randomSeed = Conversions.IntFromString(parts[parts.Length - GAME_OPTION_SPECIAL_FLAG_COUNT], -1);
             if (randomSeed == -1)
                 return;
 
             RandomSeed = randomSeed;
 
-            string mapSHA1 = parts[parts.Length - 4];
-            string gameMode = parts[parts.Length - 3];
+            string mapSHA1 = parts[parts.Length - (GAME_OPTION_SPECIAL_FLAG_COUNT - 1)];
+            string gameMode = parts[parts.Length - (GAME_OPTION_SPECIAL_FLAG_COUNT - 2)];
 
             GameMode gm = GameModes.Find(g => g.Name == gameMode);
 
@@ -927,7 +932,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (GameMode != gm || Map != map)
                 ChangeMap(gm, map);
 
-            int frameSendRate = Conversions.IntFromString(parts[parts.Length - 2], FrameSendRate);
+            int frameSendRate = Conversions.IntFromString(parts[parts.Length - (GAME_OPTION_SPECIAL_FLAG_COUNT - 3)], FrameSendRate);
             if (frameSendRate != FrameSendRate)
             {
                 FrameSendRate = frameSendRate;
@@ -935,7 +940,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             }
 
             bool removeStartingLocations = Convert.ToBoolean(Conversions.IntFromString(
-                parts[parts.Length - 1], Convert.ToInt32(RemoveStartingLocations)));
+                parts[parts.Length - (GAME_OPTION_SPECIAL_FLAG_COUNT - 4)], Convert.ToInt32(RemoveStartingLocations)));
             SetRandomStartingLocations(removeStartingLocations);
 
             for (int i = 0; i < CheckBoxes.Count; i++)
@@ -1002,6 +1007,26 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         private void HandlePing()
         {
             SendMessageToHost("PING");
+        }
+
+        protected override void BroadcastDiceRoll(int dieSides, int[] results)
+        {
+            string resultString = string.Join(",", results);
+            SendMessageToHost($"DR {dieSides},{resultString}");
+        }
+
+        private void Host_HandleDiceRoll(string sender, string result)
+        {
+            BroadcastMessage($"{DICE_ROLL_COMMAND} {sender}{ProgramConstants.LAN_DATA_SEPARATOR}{result}");
+        }
+
+        private void Client_HandleDiceRoll(string data)
+        {
+            string[] parts = data.Split(ProgramConstants.LAN_DATA_SEPARATOR);
+            if (parts.Length != 2)
+                return;
+
+            HandleDiceRollResult(parts[0], parts[1]);
         }
 
         #endregion

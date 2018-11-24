@@ -11,6 +11,7 @@ using ClientCore.Statistics;
 using DTAClient.DXGUI.Generic;
 using DTAClient.Domain.Multiplayer;
 using ClientGUI;
+using System.Text;
 
 namespace DTAClient.DXGUI.Multiplayer.GameLobby
 {
@@ -19,6 +20,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
     /// </summary>
     public abstract class MultiplayerGameLobby : GameLobbyBase, ISwitchable
     {
+        private const int MAX_DICE = 10;
+        private const int MAX_DIE_SIDES = 100;
+
         public MultiplayerGameLobby(WindowManager windowManager, string iniName, 
             TopBar topBar, List<GameMode> GameModes)
             : base(windowManager, iniName, GameModes, true)
@@ -37,9 +41,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     s => SetMaxAhead(s)),
                 new ChatBoxCommand("PROTOCOLVERSION", "Change ProtocolVersion (default 2) (game host only)", true,
                     s => SetProtocolVersion(s)),
-                new ChatBoxCommand("LOADMAP", "Load custom map with given filename", true, s => LoadCustomMap($"Maps\\Custom\\{s}", true)),
-                new ChatBoxCommand("RANDOMSTARTS", "Enables completely random starting locations (Tiberian Sun based games only)", true,
+                new ChatBoxCommand("LOADMAP", "Load a custom map with given filename from \\Maps\\Custom\\ folder.", true, s => LoadCustomMap($"Maps\\Custom\\{s}", true)),
+                new ChatBoxCommand("RANDOMSTARTS", "Enables completely random starting locations (Tiberian Sun based games only).", true,
                     s => SetStartingLocationClearance(s)),
+                new ChatBoxCommand("ROLL", "Roll dice, for example /roll 3d6", false, RollDiceCommand),
             };
         }
 
@@ -346,14 +351,14 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     }
                 }
 
-                // The user typed a nonexistant command
-                AddNotice("Possible commands:");
+                StringBuilder sb = new StringBuilder("To use a command, start your message with /<command>. Possible chat box commands: ");
                 foreach (var chatBoxCommand in chatBoxCommands)
                 {
-                    AddNotice(string.Format("/{0}: {1}", 
-                        chatBoxCommand.Command, chatBoxCommand.Description));
+                    sb.Append(Environment.NewLine);
+                    sb.Append(Environment.NewLine);
+                    sb.Append($"{chatBoxCommand.Command}: {chatBoxCommand.Description}");
                 }
-
+                XNAMessageBox.Show(WindowManager, "Chat Box Command Help", sb.ToString());
                 return;
             }
 
@@ -443,6 +448,103 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 else
                     AddNotice("The game host has disabled completely random starting locations.");
             }
+        }
+
+        /// <summary>
+        /// Handles the dice rolling command.
+        /// </summary>
+        /// <param name="dieType">The parameters given for the command by the user.</param>
+        private void RollDiceCommand(string dieType)
+        {
+            int dieSides = 6;
+            int dieCount = 1;
+
+            if (!string.IsNullOrEmpty(dieType))
+            {
+                string[] parts = dieType.Split('d');
+                if (parts.Length == 2)
+                {
+                    if (!int.TryParse(parts[0], out dieCount) || !int.TryParse(parts[1], out dieSides))
+                    {
+                        AddNotice("Invalid dice specified. Expected format: /roll <die count>d<die sides>");
+                        return;
+                    }
+                }
+            }
+
+            if (dieCount > MAX_DICE || dieCount < 1)
+            {
+                AddNotice("You can only between 1 to 10 dies at once.");
+                return;
+            }
+            
+            if (dieSides > MAX_DIE_SIDES || dieSides < 2)
+            {
+                AddNotice("You can only have between 2 and 100 sides in a die.");
+                return;
+            }
+
+            int[] results = new int[dieCount];
+            Random random = new Random();
+            for (int i = 0; i < dieCount; i++)
+            {
+                results[i] = random.Next(1, dieSides + 1);
+            }
+
+            BroadcastDiceRoll(dieSides, results);
+        }
+
+        /// <summary>
+        /// Override in derived classes to broadcast the results of rolling dice to other players.
+        /// </summary>
+        /// <param name="dieSides">The number of sides in the dice.</param>
+        /// <param name="results">The results of the dice roll.</param>
+        protected abstract void BroadcastDiceRoll(int dieSides, int[] results);
+
+        /// <summary>
+        /// Parses and lists the results of rolling dice.
+        /// </summary>
+        /// <param name="senderName">The player that rolled the dice.</param>
+        /// <param name="result">The results of rolling dice, with each die separated by a comma
+        /// and the number of sides in the die included as the first number.</param>
+        /// <example>
+        /// HandleDiceRollResult("Rampastring", "6,3,5,1") would mean that
+        /// Rampastring rolled three six-sided dice and got 3, 5 and 1.
+        /// </example>
+        protected void HandleDiceRollResult(string senderName, string result)
+        {
+            if (string.IsNullOrEmpty(result))
+                return;
+
+            string[] parts = result.Split(',');
+            if (parts.Length < 2 || parts.Length > MAX_DICE + 1)
+                return;
+
+            int[] intArray = Array.ConvertAll(parts, (s) => { return Conversions.IntFromString(s, -1); });
+            int dieSides = intArray[0];
+            if (dieSides < 1 || dieSides > MAX_DIE_SIDES)
+                return;
+            int[] results = new int[intArray.Length - 1];
+            Array.ConstrainedCopy(intArray, 1, results, 0, results.Length);
+
+            for (int i = 1; i < intArray.Length; i++)
+            {
+                if (intArray[i] < 1 || intArray[i] > dieSides)
+                    return;
+            }
+
+            PrintDiceRollResult(senderName, dieSides, results);
+        }
+
+        /// <summary>
+        /// Prints the result of rolling dice.
+        /// </summary>
+        /// <param name="senderName">The player who rolled dice.</param>
+        /// <param name="dieSides">The number of sides in the die.</param>
+        /// <param name="results">The results of the roll.</param>
+        protected void PrintDiceRollResult(string senderName, int dieSides, int[] results)
+        {
+            AddNotice($"{senderName} rolled {results.Length}d{dieSides} and got {string.Join(", ", results)}");
         }
 
         protected abstract void SendChatMessage(string message);
@@ -885,6 +987,12 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         /// <returns>The map if loading it was succesful, otherwise false.</returns>
         protected Map LoadCustomMap(string mapPath, bool userInvoked)
         {
+            if (!File.Exists(mapPath))
+            {
+                AddNotice($"Map file {mapPath} doesn't exist!");
+                return null;
+            }
+            
             Logger.Log("Loading custom map " + mapPath);
             Map map = new Map(mapPath, false);
 

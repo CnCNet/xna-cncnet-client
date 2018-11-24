@@ -291,7 +291,7 @@ namespace DTAClient.DXGUI.Generic
 
         private void CUpdater_Restart(object sender, EventArgs e)
         {
-            WindowManager.AddCallback(new Action(WindowManager.CloseGame), null);
+            WindowManager.AddCallback(new Action(ExitClient), null);
         }
 
         /// <summary>
@@ -777,8 +777,7 @@ namespace DTAClient.DXGUI.Generic
         {
             if (themeSong == null || MainClientConstants.OSId == OSVersion.WINVISTA)
             {
-                Logger.Log("Exiting.");
-                WindowManager.CloseGame();
+                ExitClient();
                 return;
             }
 
@@ -790,13 +789,18 @@ namespace DTAClient.DXGUI.Generic
             else
             {
                 MediaPlayer.Stop();
-                Logger.Log("Exiting.");
-                WindowManager.CloseGame();
-#if !XNA
-                Thread.Sleep(1000);
-                Environment.Exit(0);
-#endif
+                ExitClient();
             }
+        }
+
+        private void ExitClient()
+        {
+            Logger.Log("Exiting.");
+            WindowManager.CloseGame();
+#if !XNA
+            Thread.Sleep(1000);
+            Environment.Exit(0);
+#endif
         }
 
         public void SwitchOn()

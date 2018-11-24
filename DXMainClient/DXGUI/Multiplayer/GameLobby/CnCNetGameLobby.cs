@@ -31,6 +31,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         private const string MAP_SHARING_UPLOAD_REQUEST = "MAPREQ";
         private const string MAP_SHARING_DISABLED_MESSAGE = "MAPSDISABLED";
         private const string CHEAT_DETECTED_MESSAGE = "CD";
+        private const string DICE_ROLL_MESSAGE = "DR";
 
         public CnCNetGameLobby(WindowManager windowManager, string iniName, 
             TopBar topBar, List<GameMode> GameModes, CnCNetManager connectionManager,
@@ -67,6 +68,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 new IntCommandHandler("TNLPNG", TunnelPingNotification),
                 new StringCommandHandler("FHSH", FileHashNotification),
                 new StringCommandHandler("MM", CheaterNotification),
+                new StringCommandHandler(DICE_ROLL_MESSAGE, HandleDiceRollResult),
                 new NoParamCommandHandler(CHEAT_DETECTED_MESSAGE, HandleCheatDetectedMessage),
             };
 
@@ -215,7 +217,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         private void PrintTunnelServerInformation(string s)
         {
             AddNotice($"Current tunnel server: {tunnel.Name} ({tunnel.Country}) " +
-                $"(Players: {tunnel.Clients}/{tunnel.MaxClients}) (Official:{tunnel.Official}");
+                $"(Players: {tunnel.Clients}/{tunnel.MaxClients}) (Official: {tunnel.Official}");
         }
 
         public void ChangeChatColor(IRCColor chatColor)
@@ -1219,6 +1221,13 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             AddNotice("Player " + cheaterName + " has different files compared to the game host. Either " + 
                 cheaterName + " or the game host could be cheating.", Color.Red);
+        }
+
+        protected override void BroadcastDiceRoll(int dieSides, int[] results)
+        {
+            string resultString = string.Join(",", results);
+            channel.SendCTCPMessage($"{DICE_ROLL_MESSAGE} {dieSides},{resultString}", QueuedMessageType.CHAT_MESSAGE, 0);
+            PrintDiceRollResult(ProgramConstants.PLAYERNAME, dieSides, results);
         }
 
         #endregion
