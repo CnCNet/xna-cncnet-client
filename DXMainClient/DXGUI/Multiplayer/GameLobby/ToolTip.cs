@@ -56,13 +56,23 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         public void Draw()
         {
-            Renderer.FillRectangle(new Rectangle(Location, Size),
-                new Color(UISettings.BackgroundColor, Alpha));
-            Renderer.DrawRectangle(new Rectangle(Location, Size),
-                new Color(UISettings.AltColor, Alpha));
+            Renderer.FillRectangle(new Rectangle(Location.X, Location.Y, Size.X, Size.Y),
+                ColorFromAlpha(UISettings.BackgroundColor));
+            Renderer.DrawRectangle(new Rectangle(Location.X, Location.Y, Size.X, Size.Y),
+                ColorFromAlpha(UISettings.AltColor));
             Renderer.DrawString(Text, FONT_INDEX, 1.0f,
                 new Vector2(Location.X + MARGIN, Location.Y + MARGIN),
-                new Color(UISettings.AltColor, Alpha));
+                ColorFromAlpha(UISettings.AltColor));
+        }
+
+        private Color ColorFromAlpha(Color color)
+        {
+#if XNA
+            return new Color(color.R, color.G, color.B, (int)(Alpha * 255.0f));
+#else
+            return new Color(color, Alpha);
+#endif
+
         }
     }
 }
