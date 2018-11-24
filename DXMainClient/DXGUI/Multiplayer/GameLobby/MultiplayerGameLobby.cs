@@ -992,7 +992,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
                 foreach (string gameMode in map.GameModes)
                 {
-                    GameMode gm = GameModes.Find(g => g.UIName == gameMode);
+                    GameMode gm = GameModes.Find(g => g.Name == gameMode);
 
                     if (gm == null)
                     {
@@ -1004,6 +1004,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     }
 
                     gm.Maps.Add(map);
+                    Logger.Log("Adding map to game mode " + gm.Name);
                 }
 
                 if (userInvoked)
