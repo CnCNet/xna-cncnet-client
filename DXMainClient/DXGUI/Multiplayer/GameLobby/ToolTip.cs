@@ -15,6 +15,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
     {
         private const int FONT_INDEX = 0;
         private const int MARGIN = 6;
+        private const int APPEAR_BELOW_CURSOR_PIXELS = 6;
         private const float ALPHA_RATE_PER_SECOND = 4.0f;
 
         /// <summary>
@@ -74,7 +75,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private void MasterControl_MouseEnter(object sender, EventArgs e)
         {
-            DisplayAtLocation(WindowManager.Cursor.Location + new Point(0, 5));
+            DisplayAtLocation(SumPoints(WindowManager.Cursor.Location,
+                new Point(0, APPEAR_BELOW_CURSOR_PIXELS)));
             IsMasterControlOnCursor = true;
         }
 
@@ -86,6 +88,14 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private void MasterControl_MouseMove(object sender, EventArgs e)
         {
+            if (!Visible)
+            {
+                // Move the tooltip if the cursor has moved while staying 
+                // on the control area and we're invisible
+                DisplayAtLocation(SumPoints(WindowManager.Cursor.Location,
+                    new Point(0, APPEAR_BELOW_CURSOR_PIXELS)));
+            }
+                
             cursorTime = TimeSpan.Zero;
         }
 
@@ -143,6 +153,16 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             return new Color(color.R, color.G, color.B, (int)(Alpha * 255.0f));
 #else
             return new Color(color, Alpha);
+#endif
+        }
+
+        private Point SumPoints(Point p1, Point p2)
+        {
+            // This is also needed for XNA compatibility
+#if XNA
+            return new Point(p1.X + p2.X, p1.Y + p2.Y);
+#else
+            return p1 + p2;
 #endif
         }
     }
