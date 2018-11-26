@@ -31,10 +31,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         /// <param name="masterControl">The control to attach the tool tip to.</param>
         public ToolTip(WindowManager windowManager, XNAControl masterControl) : base(windowManager)
         {
-            if (masterControl == null)
-                throw new ArgumentNullException("masterControl");
-
-            this.masterControl = masterControl;
+            this.masterControl = masterControl ?? throw new ArgumentNullException("masterControl");
             masterControl.MouseEnter += MasterControl_MouseEnter;
             masterControl.MouseLeave += MasterControl_MouseLeave;
             masterControl.MouseMove += MasterControl_MouseMove;
