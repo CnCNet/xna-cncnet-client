@@ -10,7 +10,7 @@ namespace DTAClient.Domain.Multiplayer
 {
     public class MapLoader
     {
-        private const string MAP_FILE_EXTENSION = ".map";
+        public const string MAP_FILE_EXTENSION = ".map";
         private const string CUSTOM_MAPS_DIRECTORY = "Maps\\Custom";
 
         public List<GameMode> GameModes = new List<GameMode>();

@@ -744,8 +744,11 @@ namespace DTAConfig.OptionPanels
 #endif
 
             foreach (var renderer in renderers)
-                renderer.Clean();
-
+            {
+                if (renderer != selectedRenderer)
+                    renderer.Clean();
+            }
+            
             selectedRenderer.Apply();
 
             ClientConfiguration.Instance.UseQres = selectedRenderer.UseQres;

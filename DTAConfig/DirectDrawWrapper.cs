@@ -54,8 +54,11 @@ namespace DTAConfig
         private void Parse(IniSection section)
         {
             if (section == null)
-                throw new ArgumentException("Configuration for renderer '" + InternalName + "' not found!");
-
+            {
+                Logger.Log("DirectDrawWrapper: Configuration for renderer '" + InternalName + "' not found!");
+                return;
+            }
+                
             UIName = section.GetStringValue("UIName", "Unnamed renderer");
             IsDxWnd = section.GetBooleanValue("IsDxWnd", false);
             hidden = section.GetBooleanValue("Hidden", false);
@@ -78,16 +81,16 @@ namespace DTAConfig
 
             if (!string.IsNullOrEmpty(ddrawDLLPath) && 
                 !File.Exists(ProgramConstants.GetBaseResourcePath() + ddrawDLLPath))
-                throw new FileNotFoundException("File specified in DLLPath= for renderer '" + InternalName + "' does not exist!");
+                Logger.Log("DirectDrawWrapper: File specified in DLLPath= for renderer '" + InternalName + "' does not exist!");
 
             if (!string.IsNullOrEmpty(resConfigFileName) &&
                 !File.Exists(ProgramConstants.GetBaseResourcePath() + resConfigFileName))
-                throw new FileNotFoundException("File specified in ConfigFileName= for renderer '" + InternalName + "' does not exist!");
+                Logger.Log("DirectDrawWrapper: File specified in ConfigFileName= for renderer '" + InternalName + "' does not exist!");
 
             foreach (var file in filesToCopy)
             {
                 if (!File.Exists(ProgramConstants.GetBaseResourcePath() + file))
-                    throw new FileNotFoundException("Additional file '" + file + "' for renderer '" + InternalName + "' does not exist!");
+                    Logger.Log("DirectDrawWrapper: Additional file '" + file + "' for renderer '" + InternalName + "' does not exist!");
             }
         }
 

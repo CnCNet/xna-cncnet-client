@@ -41,6 +41,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         private string enabledSpawnIniValue = "True";
         private string disabledSpawnIniValue = "False";
 
+        private ToolTip toolTip;
+
         protected override void ParseAttributeFromINI(IniFile iniFile, string key, string value)
         {
             switch (key)
@@ -72,6 +74,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     return;
                 case "DisallowedSideIndex":
                     DisallowedSideIndex = Conversions.IntFromString(value, DisallowedSideIndex);
+                    return;
+                case "ToolTip":
+                    toolTip.Text = value.Replace("@", Environment.NewLine);
                     return;
             }
 
@@ -121,6 +126,13 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             if (Checked != reversed)
                 disallowedArray[DisallowedSideIndex] = true;
+        }
+
+        public override void Initialize()
+        {
+            base.Initialize();
+
+            toolTip = new ToolTip(WindowManager, this);
         }
     }
 }

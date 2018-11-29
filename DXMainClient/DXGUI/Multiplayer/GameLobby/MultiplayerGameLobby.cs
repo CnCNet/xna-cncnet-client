@@ -987,16 +987,19 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         /// <returns>The map if loading it was succesful, otherwise false.</returns>
         protected Map LoadCustomMap(string mapPath, bool userInvoked)
         {
-            if (!File.Exists(mapPath))
+            // TODO This belongs to MapLoader
+
+            if (!File.Exists(ProgramConstants.GamePath + mapPath + MapLoader.MAP_FILE_EXTENSION))
             {
-                AddNotice($"Map file {mapPath} doesn't exist!");
+                Logger.Log("LoadCustomMap: Map " + mapPath + " not found!");
+                AddNotice($"Map file {mapPath}{MapLoader.MAP_FILE_EXTENSION} doesn't exist!");
                 return null;
             }
             
             Logger.Log("Loading custom map " + mapPath);
             Map map = new Map(mapPath, false);
 
-            if (map.SetInfoFromMap(ProgramConstants.GamePath + mapPath + ".map", gameModeAliases))
+            if (map.SetInfoFromMap(ProgramConstants.GamePath + mapPath + MapLoader.MAP_FILE_EXTENSION, gameModeAliases))
             {
                 foreach (GameMode gm in GameModes)
                 {
@@ -1017,7 +1020,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
                 foreach (string gameMode in map.GameModes)
                 {
-                    GameMode gm = GameModes.Find(g => g.UIName == gameMode);
+                    GameMode gm = GameModes.Find(g => g.Name == gameMode);
 
                     if (gm == null)
                     {
@@ -1029,6 +1032,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     }
 
                     gm.Maps.Add(map);
+                    Logger.Log("Adding map to game mode " + gm.Name);
                 }
 
                 if (userInvoked)
