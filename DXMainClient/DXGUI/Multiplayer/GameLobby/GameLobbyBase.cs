@@ -79,6 +79,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         protected XNAClientButton btnLeaveGame;
         protected XNAClientButton btnLaunchGame;
+        protected XNAClientButton btnPickRandomMap;
         protected XNALabel lblMapName;
         protected XNALabel lblMapAuthor;
         protected XNALabel lblGameMode;
@@ -264,13 +265,23 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             lblGameModeSelect.FontIndex = 1;
             lblGameModeSelect.Text = "GAME MODE:";
 
+            int randomMapButtonWidth = 0;
+            if (ClientConfiguration.Instance.EnableRandomMapButton)
+                randomMapButtonWidth = 143;
+
             tbMapSearch = new XNASuggestionTextBox(WindowManager);
             tbMapSearch.Name = "tbMapSearch";
-            tbMapSearch.ClientRectangle = new Rectangle(lbMapList.X,
-                lbMapList.Bottom + 3, lbMapList.Width, 21);
+            tbMapSearch.ClientRectangle = new Rectangle(lbMapList.X + randomMapButtonWidth,
+                lbMapList.Bottom + 3, lbMapList.Width - randomMapButtonWidth, 21);
             tbMapSearch.Suggestion = "Search map..";
             tbMapSearch.MaximumTextLength = 64;
             tbMapSearch.InputReceived += TbMapSearch_InputReceived;
+
+            btnPickRandomMap = new XNAClientButton(WindowManager);
+            btnPickRandomMap.Name = "btnPickRandomMap";
+            btnPickRandomMap.ClientRectangle = new Rectangle(lbMapList.X, lbMapList.Bottom + 2, randomMapButtonWidth - 10, 23);
+            btnPickRandomMap.Text = "Pick Random Map";
+            btnPickRandomMap.LeftClick += BtnPickRandomMap_LeftClick;
 
             AddChild(lblMapName);
             AddChild(lblMapAuthor);
@@ -322,6 +333,13 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             AddChild(PlayerOptionsPanel);
             AddChild(btnLaunchGame);
             AddChild(btnLeaveGame);
+            if (ClientConfiguration.Instance.EnableRandomMapButton)
+                AddChild(btnPickRandomMap);
+        }
+
+        private void BtnPickRandomMap_LeftClick(object sender, EventArgs e)
+        {
+            PickRandomMap();
         }
 
         private void TbMapSearch_InputReceived(object sender, EventArgs e)
@@ -440,6 +458,44 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             Map map = (Map)item.Tag;
 
             ChangeMap(GameMode, map);
+        }
+
+        private void PickRandomMap()
+        {
+            int totalPlayerCount = Players.Count(p => p.SideId < ddPlayerSides[0].Items.Count - 1)
+                   + AIPlayers.Count;
+            List<Map> maps = GetMapList(totalPlayerCount);
+            if (maps.Count < 1)
+                return;
+            Map newMap = maps[new Random().Next(0, maps.Count())];
+
+            tbMapSearch.Text = string.Empty;
+            tbMapSearch.OnSelectedChanged();
+            ListMaps();
+            SelectMapInList(newMap);
+        }
+
+        private List<Map> GetMapList(int playerCount)
+        {
+            List<Map> mapList = new List<Map>(GameMode.Maps.Where(x => x.MaxPlayers == playerCount));
+            if (mapList.Count < 1)
+                return GetMapList(playerCount + 1);
+            else
+                return mapList;
+        }
+
+        private void SelectMapInList(Map map)
+        {
+            for (int i = 0; i < lbMapList.ItemCount; i++)
+            {
+                Map listMap = (Map)lbMapList.GetItem(1, i).Tag;
+                if (listMap == map)
+                {
+                    lbMapList.SelectedIndex = i;
+                    while (i > lbMapList.LastIndex)
+                        lbMapList.TopIndex++;
+                }
+            }
         }
 
         /// <summary>
@@ -1271,7 +1327,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             {
                 PlayerHouseInfo houseInfo = houseInfos[pId];
 
-                if (houseInfo.RealStartingWaypoint > -1 && 
+                if (houseInfo.RealStartingWaypoint > -1 &&
                     houseInfo.StartingWaypoint == -1)
                 {
                     // Find first unused starting location index

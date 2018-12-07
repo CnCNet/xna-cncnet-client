@@ -564,6 +564,11 @@ namespace ClientCore
             get { return clientDefinitionsIni.GetBooleanValue(SETTINGS, "DisplayPlayerCountInTopBar", false); }
         }
 
+        public bool EnableRandomMapButton
+        {
+            get { return clientDefinitionsIni.GetBooleanValue(SETTINGS, "EnableRandomMapButton", false); }
+        }
+
         public string ClientDefaultResolutionText
         {
             get
