@@ -29,20 +29,37 @@ namespace DTAConfig
         public string UIName { get; private set; }
 
         /// <summary>
-        /// If set, windowed mode should be applied in DxWnd.ini
+        /// If not null or empty, windowed mode will be written to an INI key
+        /// in this section of the renderer settings file instead
+        /// of the regular game settings INI file.
+        /// </summary>
+        public string WindowedModeSection { get; private set; }
+
+        /// <summary>
+        /// If not null or empty, windowed mode will be written to this INI key
+        /// in the section defined in <see cref="DirectDrawWrapper.WindowedModeSection"/> 
         /// instead of the regular settings INI file.
         /// </summary>
-        public bool IsDxWnd { get; private set; }
+        public string WindowedModeKey { get; private set; }
 
-        public bool hidden { get; private set; }
+        /// <summary>
+        /// If not null or empty, windowed mode will be 
+        /// </summary>
+        public string BorderlessWindowedModeKey { get; private set; }
+
+        public bool Hidden { get; private set; }
 
 		/// <summary>
 		/// Many ddraw wrappers need qres.dat to set the desktop to 16 bit mode
 		/// </summary>
 		public bool UseQres { get; private set; } = true;
 
+        /// <summary>
+        /// The filename of the configuration INI of the renderer in the game directory.
+        /// </summary>
+        public string ConfigFileName { get; private set; }
+
         private string ddrawDLLPath;
-        private string configFileName;
         private string resConfigFileName;
         private List<string> filesToCopy = new List<string>();
         private List<OSVersion> disallowedOSList = new List<OSVersion>();
@@ -60,12 +77,24 @@ namespace DTAConfig
             }
                 
             UIName = section.GetStringValue("UIName", "Unnamed renderer");
-            IsDxWnd = section.GetBooleanValue("IsDxWnd", false);
-            hidden = section.GetBooleanValue("Hidden", false);
+
+            if (section.GetBooleanValue("IsDxWnd", false))
+            {
+                // For backwards compatibility with previous client versions
+                WindowedModeSection = "DxWnd";
+                WindowedModeKey = "RunInWindow";
+                BorderlessWindowedModeKey = "NoWindowFrame";
+            }
+
+            WindowedModeSection = section.GetStringValue("WindowedModeSection", string.Empty);
+            WindowedModeKey = section.GetStringValue("WindowedModeKey", string.Empty);
+            BorderlessWindowedModeKey = section.GetStringValue("BorderlessWindowedModeKey", string.Empty);
+            
+            Hidden = section.GetBooleanValue("Hidden", false);
             UseQres = section.GetBooleanValue("UseQres", true);
             ddrawDLLPath = section.GetStringValue("DLLName", string.Empty);
-            configFileName = section.GetStringValue("ConfigFileName", string.Empty);
-            resConfigFileName = section.GetStringValue("ResConfigFileName", configFileName);
+            ConfigFileName = section.GetStringValue("ConfigFileName", string.Empty);
+            resConfigFileName = section.GetStringValue("ResConfigFileName", ConfigFileName);
 
             filesToCopy = section.GetStringValue("AdditionalFiles", string.Empty).Split(
                 new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries).ToList();
@@ -118,11 +147,11 @@ namespace DTAConfig
                 File.Delete(ProgramConstants.GamePath + "ddraw.dll");
 
 
-            if (!string.IsNullOrEmpty(configFileName) && !string.IsNullOrEmpty(resConfigFileName))
+            if (!string.IsNullOrEmpty(ConfigFileName) && !string.IsNullOrEmpty(resConfigFileName)
+                && !File.Exists(ProgramConstants.GamePath + ConfigFileName)) // Do not overwrite settings
             {
-                // Do not overwrite settings
                 File.Copy(ProgramConstants.GetBaseResourcePath() + resConfigFileName,
-                    ProgramConstants.GamePath + Path.GetFileName(configFileName));
+                    ProgramConstants.GamePath + Path.GetFileName(ConfigFileName));
             }
 
             foreach (var file in filesToCopy)
@@ -137,11 +166,21 @@ namespace DTAConfig
         /// </summary>
         public void Clean()
         {
-            if (!string.IsNullOrEmpty(configFileName))
-                File.Delete(ProgramConstants.GamePath + Path.GetFileName(configFileName));
+            if (!string.IsNullOrEmpty(ConfigFileName))
+                File.Delete(ProgramConstants.GamePath + Path.GetFileName(ConfigFileName));
 
             foreach (var file in filesToCopy)
                 File.Delete(ProgramConstants.GamePath + Path.GetFileName(file));
+        }
+
+        /// <summary>
+        /// Checks whether this renderer enables windowed mode through its
+        /// own configuration INI file instead of the game settings INI file.
+        /// </summary>
+        public bool UsesCustomWindowedOption()
+        {
+            return !string.IsNullOrEmpty(WindowedModeSection) && 
+                !string.IsNullOrEmpty(WindowedModeKey);
         }
     }
 }
