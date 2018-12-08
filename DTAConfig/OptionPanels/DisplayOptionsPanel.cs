@@ -632,8 +632,9 @@ namespace DTAConfig.OptionPanels
 
                 if (!string.IsNullOrEmpty(renderer.BorderlessWindowedModeKey))
                 {
-                    chkBorderlessWindowedMode.Checked = rendererSettingsIni.GetBooleanValue(renderer.WindowedModeSection,
+                    bool setting = rendererSettingsIni.GetBooleanValue(renderer.WindowedModeSection,
                         renderer.BorderlessWindowedModeKey, false);
+                    chkBorderlessWindowedMode.Checked = renderer.IsBorderlessWindowedModeKeyReversed ? !setting : setting;
                 }
                 else
                 {
@@ -781,8 +782,12 @@ namespace DTAConfig.OptionPanels
 
                 if (!string.IsNullOrEmpty(selectedRenderer.BorderlessWindowedModeKey))
                 {
+                    bool borderlessModeIniValue = chkBorderlessWindowedMode.Checked;
+                    if (selectedRenderer.IsBorderlessWindowedModeKeyReversed)
+                        borderlessModeIniValue = !borderlessModeIniValue;
+
                     rendererSettingsIni.SetBooleanValue(selectedRenderer.WindowedModeSection,
-                        selectedRenderer.BorderlessWindowedModeKey, chkBorderlessWindowedMode.Checked);
+                        selectedRenderer.BorderlessWindowedModeKey, borderlessModeIniValue);
                 }
                 
                 rendererSettingsIni.WriteIniFile();

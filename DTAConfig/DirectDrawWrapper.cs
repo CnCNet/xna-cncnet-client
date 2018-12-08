@@ -43,9 +43,19 @@ namespace DTAConfig
         public string WindowedModeKey { get; private set; }
 
         /// <summary>
-        /// If not null or empty, windowed mode will be 
+        /// If not null or empty, the setting that controls whether the game is 
+        /// run in borderless windowed  mode will be written to this INI key in
+        /// the section defined by
+        /// <see cref="DirectDrawWrapper.WindowedModeSection"/> instead of the
+        /// regular settings INI file.
         /// </summary>
         public string BorderlessWindowedModeKey { get; private set; }
+
+        /// <summary>
+        /// If set, borderless mode is enabled if the setting is "false"
+        /// and disabled if the setting is "true".
+        /// </summary>
+        public bool IsBorderlessWindowedModeKeyReversed { get; private set; }
 
         public bool Hidden { get; private set; }
 
@@ -89,7 +99,16 @@ namespace DTAConfig
             WindowedModeSection = section.GetStringValue("WindowedModeSection", WindowedModeSection);
             WindowedModeKey = section.GetStringValue("WindowedModeKey", WindowedModeKey);
             BorderlessWindowedModeKey = section.GetStringValue("BorderlessWindowedModeKey", BorderlessWindowedModeKey);
-            
+            IsBorderlessWindowedModeKeyReversed = section.GetBooleanValue("IsBorderlessWindowedModeKeyReversed",
+                IsBorderlessWindowedModeKeyReversed);
+
+            if (BorderlessWindowedModeKey != null && WindowedModeSection == null)
+            {
+                throw new DirectDrawWrapperConfigurationException(
+                    "BorderlessWindowedModeKey= is defined for renderer" +
+                    $" {InternalName} but WindowedModeSection= is not!");
+            }
+
             Hidden = section.GetBooleanValue("Hidden", false);
             UseQres = section.GetBooleanValue("UseQres", true);
             ddrawDLLPath = section.GetStringValue("DLLName", string.Empty);
@@ -181,6 +200,13 @@ namespace DTAConfig
         {
             return !string.IsNullOrEmpty(WindowedModeSection) && 
                 !string.IsNullOrEmpty(WindowedModeKey);
+        }
+    }
+
+    class DirectDrawWrapperConfigurationException : Exception
+    {
+        public DirectDrawWrapperConfigurationException(string message) : base(message)
+        {
         }
     }
 }
