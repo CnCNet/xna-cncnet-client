@@ -86,9 +86,9 @@ namespace DTAConfig
                 BorderlessWindowedModeKey = "NoWindowFrame";
             }
 
-            WindowedModeSection = section.GetStringValue("WindowedModeSection", string.Empty);
-            WindowedModeKey = section.GetStringValue("WindowedModeKey", string.Empty);
-            BorderlessWindowedModeKey = section.GetStringValue("BorderlessWindowedModeKey", string.Empty);
+            WindowedModeSection = section.GetStringValue("WindowedModeSection", WindowedModeSection);
+            WindowedModeKey = section.GetStringValue("WindowedModeKey", WindowedModeKey);
+            BorderlessWindowedModeKey = section.GetStringValue("BorderlessWindowedModeKey", BorderlessWindowedModeKey);
             
             Hidden = section.GetBooleanValue("Hidden", false);
             UseQres = section.GetBooleanValue("UseQres", true);
