@@ -936,7 +936,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
                 GameLobbyDropDown dd = DropDowns[i - checkBoxIntegerCount];
 
-                if (ddSelectedIndex < 0 || ddSelectedIndex >= dd.Items.Count)
+                if (ddSelectedIndex < -1 || ddSelectedIndex >= dd.Items.Count)
                     continue;
 
                 if (dd.SelectedIndex != ddSelectedIndex)
