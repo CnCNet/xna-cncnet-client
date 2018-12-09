@@ -803,7 +803,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             int partIndex = checkBoxIntegerCount + DropDowns.Count;
 
             if (parts.Length < partIndex + 6)
+            {
+                AddNotice("The game host has sent an invalid game options message! " +
+                    "The game host's game version might be different from yours.", Color.Red);
                 return;
+            }
 
             string mapOfficial = parts[partIndex];
             bool isMapOfficial = Conversions.BooleanFromString(mapOfficial, true);
@@ -880,7 +884,12 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 bool success = int.TryParse(parts[i], out checkBoxStatusInt);
 
                 if (!success)
+                {
+                    AddNotice("Failed to parse check box options sent by game host!" +
+                        "The game host's game version might be different from yours.", Color.Red);
                     return;
+                }
+                    
 
                 byte[] byteArray = BitConverter.GetBytes(checkBoxStatusInt);
                 bool[] boolArray = Conversions.BytesIntoBoolArray(byteArray);
@@ -909,18 +918,26 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             for (int i = checkBoxIntegerCount; i < DropDowns.Count + checkBoxIntegerCount; i++)
             {
                 if (parts.Length <= i)
+                {
+                    AddNotice("The game host has sent an valid game options message! " +
+                        "The game host's game version might be different from yours.", Color.Red);
                     return;
+                }
 
                 int ddSelectedIndex;
                 bool success = int.TryParse(parts[i], out ddSelectedIndex);
 
                 if (!success)
+                {
+                    AddNotice("Failed to parse drop down options sent by game host (2)! " +
+                        "The game host's game version might be different from yours.", Color.Red);
                     return;
+                }
 
                 GameLobbyDropDown dd = DropDowns[i - checkBoxIntegerCount];
 
                 if (ddSelectedIndex < 0 || ddSelectedIndex >= dd.Items.Count)
-                    return;
+                    continue;
 
                 if (dd.SelectedIndex != ddSelectedIndex)
                 {
@@ -938,7 +955,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             bool parseSuccess = int.TryParse(parts[partIndex + 6], out randomSeed);
 
             if (!parseSuccess)
-                return;
+            {
+                AddNotice("Failed to parse random seed from game options message! " +
+                    "The game host's game version might be different from yours.", Color.Red);
+            }
 
             bool removeStartingLocations = Convert.ToBoolean(Conversions.IntFromString(parts[partIndex + 7],
                 Convert.ToInt32(RemoveStartingLocations)));
