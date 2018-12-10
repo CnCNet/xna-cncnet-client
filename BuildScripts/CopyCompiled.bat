@@ -30,12 +30,10 @@ copy DTAConfig.dll %winBinaries%DTAConfig.dll
 copy Rampastring.XNAUI.dll %winBinaries%Rampastring.XNAUI.dll
 copy MonoGame.Framework.dll %winBinaries%MonoGame.Framework.dll
 copy SharpDX.Direct2D1.dll %winBinaries%SharpDX.Direct2D1.dll
-copy SharpDX.Direct3D9.dll %winBinaries%SharpDX.Direct3D9.dll
 copy SharpDX.Direct3D11.dll %winBinaries%SharpDX.Direct3D11.dll
 copy SharpDX.dll %winBinaries%SharpDX.dll
 copy SharpDX.DXGI.dll %winBinaries%SharpDX.DXGI.dll
 copy SharpDX.MediaFoundation.dll %winBinaries%SharpDX.MediaFoundation.dll
-copy SharpDX.RawInput.dll %winBinaries%SharpDX.RawInput.dll
 copy SharpDX.XAudio2.dll %winBinaries%SharpDX.XAudio2.dll
 copy SharpDX.XInput.dll %winBinaries%SharpDX.XInput.dll
 
@@ -47,8 +45,8 @@ copy ClientCore.dll %oglBinaries%ClientCore.dll
 copy ClientGUI.dll %oglBinaries%ClientGUI.dll
 copy DTAConfig.dll %oglBinaries%DTAConfig.dll
 copy MonoGame.Framework.dll %oglBinaries%MonoGame.Framework.dll
-copy NVorbis.dll %oglBinaries%NVorbis.dll
-copy ..\..\..\..\References\WindowsGL\OpenTK.dll %oglBinaries%OpenTK.dll
+copy ..\..\..\..\References\WindowsGL\x86\SDL2.dll %oglBinaries%SDL2.dll
+copy ..\..\..\..\References\WindowsGL\x86\soft_oal.dll %oglBinaries%soft_oal.dll
 copy Rampastring.XNAUI.dll %oglBinaries%Rampastring.XNAUI.dll
 
 echo XNA

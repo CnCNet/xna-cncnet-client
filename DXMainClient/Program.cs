@@ -65,8 +65,8 @@ namespace DTAClient
             "DTAConfig",
             "MonoGame.Framework",
             "Rampastring.XNAUI",
-            "OpenTK",
-            "NVorbis",
+            "Sdl",
+            "soft_oal"
         };
 
         private static string COMMON_LIBRARY_PATH;
