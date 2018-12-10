@@ -119,7 +119,7 @@ namespace DTAConfig.OptionPanels
 
             foreach (var renderer in renderers)
             {
-                if (renderer.IsCompatibleWithOS(localOS) && !renderer.hidden)
+                if (renderer.IsCompatibleWithOS(localOS) && !renderer.Hidden)
                 {
                     ddRenderer.AddItem(new XNADropDownItem()
                     {
@@ -583,7 +583,7 @@ namespace DTAConfig.OptionPanels
             int index = ddRenderer.Items.FindIndex(
                            r => ((DirectDrawWrapper)r.Tag).InternalName == selectedRenderer.InternalName);
 
-            if (index < 0 && selectedRenderer.hidden)
+            if (index < 0 && selectedRenderer.Hidden)
             {
                 ddRenderer.AddItem(new XNADropDownItem()
             {
@@ -619,18 +619,32 @@ namespace DTAConfig.OptionPanels
 
             var renderer = (DirectDrawWrapper)ddRenderer.SelectedItem.Tag;
 
-            if (!renderer.IsDxWnd)
+            if (renderer.UsesCustomWindowedOption())
             {
-                chkWindowedMode.Checked = UserINISettings.Instance.WindowedMode;
-                chkBorderlessWindowedMode.Checked = UserINISettings.Instance.BorderlessWindowedMode;
+                // For renderers that have their own windowed mode implementation
+                // enabled through their own config INI file
+                // (for example DxWnd and CnC-DDRAW)
+
+                IniFile rendererSettingsIni = new IniFile(ProgramConstants.GamePath + renderer.ConfigFileName);
+
+                chkWindowedMode.Checked = rendererSettingsIni.GetBooleanValue(renderer.WindowedModeSection,
+                    renderer.WindowedModeKey, false);
+
+                if (!string.IsNullOrEmpty(renderer.BorderlessWindowedModeKey))
+                {
+                    bool setting = rendererSettingsIni.GetBooleanValue(renderer.WindowedModeSection,
+                        renderer.BorderlessWindowedModeKey, false);
+                    chkBorderlessWindowedMode.Checked = renderer.IsBorderlessWindowedModeKeyReversed ? !setting : setting;
+                }
+                else
+                {
+                    chkBorderlessWindowedMode.Checked = UserINISettings.Instance.BorderlessWindowedMode;
+                }
             }
             else
             {
-                // DxWnd needs to have the game's integrated windowed mode disabled
-                // Instead it has its own controls in its INI file
-                IniFile dxWndIni = new IniFile(ProgramConstants.GamePath + "dxwnd.ini");
-                chkWindowedMode.Checked = dxWndIni.GetBooleanValue("DxWnd", "RunInWindow", false);
-                chkBorderlessWindowedMode.Checked = dxWndIni.GetBooleanValue("DxWnd", "NoWindowFrame", false);
+                chkWindowedMode.Checked = UserINISettings.Instance.WindowedMode;
+                chkBorderlessWindowedMode.Checked = UserINISettings.Instance.BorderlessWindowedMode;
             }
 
             string currentClientRes = WindowManager.WindowWidth + "x" + WindowManager.WindowHeight;
@@ -708,13 +722,14 @@ namespace DTAConfig.OptionPanels
             int dragDistance = ingameRes[0] / ORIGINAL_RESOLUTION_WIDTH * DRAG_DISTANCE_DEFAULT;
             IniSettings.DragDistance.Value = dragDistance;
 
+            DirectDrawWrapper originalRenderer = selectedRenderer;
             selectedRenderer = (DirectDrawWrapper)ddRenderer.SelectedItem.Tag;
 
             IniSettings.WindowedMode.Value = chkWindowedMode.Checked &&
-                !selectedRenderer.IsDxWnd;
+                !selectedRenderer.UsesCustomWindowedOption();
 
             IniSettings.BorderlessWindowedMode.Value = chkBorderlessWindowedMode.Checked &&
-                !selectedRenderer.IsDxWnd;
+                !string.IsNullOrEmpty(selectedRenderer.BorderlessWindowedModeKey);
 
             string[] clientResolution = ((string)ddClientResolution.SelectedItem.Tag).Split('x');
 
@@ -743,22 +758,39 @@ namespace DTAConfig.OptionPanels
             IniSettings.BackBufferInVRAM.Value = !chkBackBufferInVRAM.Checked;
 #endif
 
-            foreach (var renderer in renderers)
+            if (selectedRenderer != originalRenderer || 
+                !File.Exists(ProgramConstants.GamePath + selectedRenderer.ConfigFileName))
             {
-                if (renderer != selectedRenderer)
-                    renderer.Clean();
+                foreach (var renderer in renderers)
+                {
+                    if (renderer != selectedRenderer)
+                        renderer.Clean();
+                }
             }
             
             selectedRenderer.Apply();
 
             ClientConfiguration.Instance.UseQres = selectedRenderer.UseQres;
 
-            if (selectedRenderer.IsDxWnd)
+            if (selectedRenderer.UsesCustomWindowedOption())
             {
-                IniFile dxWndIni = new IniFile(ProgramConstants.GamePath + "dxwnd.ini");
-                dxWndIni.SetBooleanValue("DxWnd", "RunInWindow", chkWindowedMode.Checked);
-                dxWndIni.SetBooleanValue("DxWnd", "NoWindowFrame", chkBorderlessWindowedMode.Checked);
-                dxWndIni.WriteIniFile();
+                IniFile rendererSettingsIni = new IniFile(
+                    ProgramConstants.GamePath + selectedRenderer.ConfigFileName);
+
+                rendererSettingsIni.SetBooleanValue(selectedRenderer.WindowedModeSection,
+                    selectedRenderer.WindowedModeKey, chkWindowedMode.Checked);
+
+                if (!string.IsNullOrEmpty(selectedRenderer.BorderlessWindowedModeKey))
+                {
+                    bool borderlessModeIniValue = chkBorderlessWindowedMode.Checked;
+                    if (selectedRenderer.IsBorderlessWindowedModeKeyReversed)
+                        borderlessModeIniValue = !borderlessModeIniValue;
+
+                    rendererSettingsIni.SetBooleanValue(selectedRenderer.WindowedModeSection,
+                        selectedRenderer.BorderlessWindowedModeKey, borderlessModeIniValue);
+                }
+                
+                rendererSettingsIni.WriteIniFile();
             }
 
             IniSettings.Renderer.Value = selectedRenderer.InternalName;
