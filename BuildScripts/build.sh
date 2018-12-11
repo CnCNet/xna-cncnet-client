@@ -25,12 +25,10 @@ function copyCompiled()
     cp ../DXMainClient/bin/Windows/Release/Rampastring.XNAUI.dll ../Compiled${arg}/Binaries/Windows/
     cp ../DXMainClient/bin/Windows/Release/MonoGame.Framework.dll ../Compiled${arg}/Binaries/Windows/MonoGame.Framework.dll
     cp ../DXMainClient/bin/Windows/Release/SharpDX.Direct2D1.dll ../Compiled${arg}/Binaries/Windows/SharpDX.Direct2D1.dll
-    cp ../DXMainClient/bin/Windows/Release/SharpDX.Direct3D9.dll ../Compiled${arg}/Binaries/Windows/SharpDX.Direct3D9.dll
     cp ../DXMainClient/bin/Windows/Release/SharpDX.Direct3D11.dll ../Compiled${arg}/Binaries/Windows/SharpDX.Direct3D11.dll
     cp ../DXMainClient/bin/Windows/Release/SharpDX.dll ../Compiled${arg}/Binaries/Windows/SharpDX.dll
     cp ../DXMainClient/bin/Windows/Release/SharpDX.DXGI.dll ../Compiled${arg}/Binaries/Windows/SharpDX.DXGI.dll
     cp ../DXMainClient/bin/Windows/Release/SharpDX.MediaFoundation.dll ../Compiled${arg}/Binaries/Windows/SharpDX.MediaFoundation.dll
-    cp ../DXMainClient/bin/Windows/Release/SharpDX.RawInput.dll ../Compiled${arg}/Binaries/Windows/SharpDX.RawInput.dll
     cp ../DXMainClient/bin/Windows/Release/SharpDX.XAudio2.dll ../Compiled${arg}/Binaries/Windows/SharpDX.XAudio2.dll
     cp ../DXMainClient/bin/Windows/Release/SharpDX.XInput.dll ../Compiled${arg}/Binaries/Windows/SharpDX.XInput.dll
 
@@ -39,9 +37,9 @@ function copyCompiled()
     cp ../DXMainClient/bin/WindowsGL/Release/ClientGUI.dll ../Compiled${arg}/Binaries/OpenGL/
     cp ../DXMainClient/bin/WindowsGL/Release/DTAConfig.dll ../Compiled${arg}/Binaries/OpenGL/
     cp ../DXMainClient/bin/WindowsGL/Release/MonoGame.Framework.dll ../Compiled${arg}/Binaries/OpenGL/
-    cp ../DXMainClient/bin/WindowsGL/Release/NVorbis.dll ../Compiled${arg}/Binaries/OpenGL/
     cp ../DXMainClient/bin/WindowsGL/Release/Rampastring.XNAUI.dll ../Compiled${arg}/Binaries/OpenGL/
-    cp ../References/WindowsGL/OpenTK.dll ../Compiled${arg}/Binaries/OpenGL/
+    cp ../References/WindowsGL/x86/SDL2.dll ../Compiled${arg}/Binaries/OpenGL/
+	cp ../References/WindowsGL/x86/soft_oal.dll ../Compiled${arg}/Binaries/OpenGL/
 
     cp ../DXMainClient/bin/XNAFramework/Release/DTAClient.exe ../Compiled${arg}/clientxna.exe
     cp ../DXMainClient/bin/XNAFramework/Release/ClientCore.dll ../Compiled${arg}/Binaries/XNA/
