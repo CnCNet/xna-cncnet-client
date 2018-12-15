@@ -244,7 +244,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     channel.ChannelModesChanged -= Channel_ChannelModesChanged;
                 }
 
-                connectionManager.RemoveChannel(channel);
+                // Remove the channel on the next frame to avoid a crash
+                // in CnCNetManager.DoUserQuitIRC
+                WindowManager.AddCallback(new Action<Channel>(connectionManager.RemoveChannel), channel);
             }
 
             connectionManager.ConnectionLost -= ConnectionManager_ConnectionLost;
