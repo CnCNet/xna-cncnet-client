@@ -13,7 +13,7 @@ function copyCompiled()
 {
     arg=$1
 
-    mkdir -p ../Compiled${arg}/Binaries/OpenGL
+    mkdir -p ../Compiled${arg}/Binaries/OpenGL/x86
     mkdir -p ../Compiled${arg}/Binaries/Windows
     mkdir -p ../Compiled${arg}/Binaries/XNA
 
@@ -38,8 +38,8 @@ function copyCompiled()
     cp ../DXMainClient/bin/WindowsGL/Release/DTAConfig.dll ../Compiled${arg}/Binaries/OpenGL/
     cp ../DXMainClient/bin/WindowsGL/Release/MonoGame.Framework.dll ../Compiled${arg}/Binaries/OpenGL/
     cp ../DXMainClient/bin/WindowsGL/Release/Rampastring.XNAUI.dll ../Compiled${arg}/Binaries/OpenGL/
-    cp ../References/WindowsGL/x86/SDL2.dll ../Compiled${arg}/Binaries/OpenGL/
-	cp ../References/WindowsGL/x86/soft_oal.dll ../Compiled${arg}/Binaries/OpenGL/
+    cp ../References/WindowsGL/x86/SDL2.dll ../Compiled${arg}/Binaries/OpenGL/x86/
+	cp ../References/WindowsGL/x86/soft_oal.dll ../Compiled${arg}/Binaries/OpenGL/x86/
 
     cp ../DXMainClient/bin/XNAFramework/Release/DTAClient.exe ../Compiled${arg}/clientxna.exe
     cp ../DXMainClient/bin/XNAFramework/Release/ClientCore.dll ../Compiled${arg}/Binaries/XNA/

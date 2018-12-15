@@ -23,6 +23,9 @@ namespace DTAClient.DXGUI
         {
             graphics = new GraphicsDeviceManager(this);
             graphics.SynchronizeWithVerticalRetrace = false;
+#if !XNA
+            graphics.HardwareModeSwitch = false;
+#endif
             content = new ContentManager(Services);
             string windowTitle = ClientConfiguration.Instance.WindowTitle;
             Window.Title = string.IsNullOrEmpty(windowTitle) ?
@@ -54,6 +57,8 @@ namespace DTAClient.DXGUI
             int windowWidth = UserINISettings.Instance.ClientResolutionX;
             int windowHeight = UserINISettings.Instance.ClientResolutionY;
 
+            bool borderlessWindowedClient = UserINISettings.Instance.BorderlessWindowedClient;
+
             if (Screen.PrimaryScreen.Bounds.Width >= windowWidth && Screen.PrimaryScreen.Bounds.Height >= windowHeight)
             {
                 if (!wm.InitGraphicsMode(windowWidth, windowHeight, false))
@@ -71,7 +76,14 @@ namespace DTAClient.DXGUI
             renderResolutionX = Math.Min(renderResolutionX, ClientConfiguration.Instance.MaximumRenderWidth);
             renderResolutionY = Math.Min(renderResolutionY, ClientConfiguration.Instance.MaximumRenderHeight);
 
-            wm.SetBorderlessMode(UserINISettings.Instance.BorderlessWindowedClient);
+            wm.SetBorderlessMode(borderlessWindowedClient);
+#if !XNA
+            if (borderlessWindowedClient)
+            {
+                graphics.IsFullScreen = true;
+                graphics.ApplyChanges();
+            }
+#endif
             wm.CenterOnScreen();
             wm.SetRenderResolution(renderResolutionX, renderResolutionY);
             wm.SetIcon(ProgramConstants.GetBaseResourcePath() + "clienticon.ico");
