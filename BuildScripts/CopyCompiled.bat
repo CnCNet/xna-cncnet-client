@@ -10,6 +10,9 @@ cd Binaries
 mkdir OpenGL
 mkdir Windows
 mkdir XNA
+cd OpenGL
+mkdir x86
+cd ..
 
 REM Setting up paths
 
@@ -45,8 +48,8 @@ copy ClientCore.dll %oglBinaries%ClientCore.dll
 copy ClientGUI.dll %oglBinaries%ClientGUI.dll
 copy DTAConfig.dll %oglBinaries%DTAConfig.dll
 copy MonoGame.Framework.dll %oglBinaries%MonoGame.Framework.dll
-copy ..\..\..\..\References\WindowsGL\x86\SDL2.dll %oglBinaries%SDL2.dll
-copy ..\..\..\..\References\WindowsGL\x86\soft_oal.dll %oglBinaries%soft_oal.dll
+copy ..\..\..\..\References\WindowsGL\x86\SDL2.dll %oglBinaries%x86\SDL2.dll
+copy ..\..\..\..\References\WindowsGL\x86\soft_oal.dll %oglBinaries%x86\soft_oal.dll
 copy Rampastring.XNAUI.dll %oglBinaries%Rampastring.XNAUI.dll
 
 echo XNA

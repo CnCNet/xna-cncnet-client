@@ -133,6 +133,18 @@ namespace DTAClient
                 return Assembly.Load(data);
             }
 
+#if WINDOWSGL
+            // MonoGame's OpenGL version checks its Assembly.Location for
+            // loading SDL2.dll. Loading an assembly with Assembly.Load(byte[] rawAssembly)
+            // does not set the Location of the assembly, making MonoGame crash when loading SDL2.dll.
+            // Assembly.LoadFrom sets the location, so we use it for loading 
+            // the OpenGL version of MonoGame.
+            // For some reason this doesn't always work for loading resources of other assemblies, however,
+            // so we only load MonoGame.Framework with this method.
+            if (args.Name.StartsWith("MonoGame.Framework"))
+                return Assembly.LoadFrom(string.Format("{0}{1}.dll", SPECIFIC_LIBRARY_PATH, "MonoGame.Framework"));
+#endif
+
             string name = SPECIFIC_LIBRARIES.Find(dll => args.Name.StartsWith(dll));
 
             if (name != null)
