@@ -81,7 +81,7 @@
     <DefineConstants>TRACE;DEBUG;XNA</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-	<TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|XNAFramework' ">
     <PlatformTarget>x86</PlatformTarget>
@@ -92,7 +92,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <PlatformTarget>x86</PlatformTarget>
-	<TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'YRRelease|SharpDX' ">
     <PlatformTarget>x86</PlatformTarget>
@@ -121,7 +121,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <PlatformTarget>x86</PlatformTarget>
-	<TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
   </PropertyGroup>
   <PropertyGroup>
     <ApplicationIcon>clienticon.ico</ApplicationIcon>
@@ -311,7 +311,6 @@
     <Compile Include="DXGUI\Multiplayer\GameLobby\PlayerLocationIndicator.cs" />
     <Compile Include="DXGUI\Multiplayer\GameLobby\SkirmishLobby.cs" />
     <Compile Include="DXGUI\Multiplayer\GameLobby\CommandHandlers\StringCommandHandler.cs" />
-    <Compile Include="DXGUI\Multiplayer\GameLobby\ToolTip.cs" />
     <Compile Include="DXGUI\Multiplayer\LANGameCreationWindow.cs" />
     <Compile Include="DXGUI\Multiplayer\LANGameLoadingLobby.cs" />
     <Compile Include="DXGUI\Multiplayer\LANLobby.cs" />
