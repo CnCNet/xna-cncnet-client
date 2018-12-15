@@ -79,12 +79,14 @@ namespace DTAClient.DXGUI
             wm.SetBorderlessMode(borderlessWindowedClient);
 #if !XNA
             if (borderlessWindowedClient)
-                wm.InitGraphicsMode(windowWidth, windowHeight, true);
+            {
+                graphics.IsFullScreen = true;
+                graphics.ApplyChanges();
+            }
 #endif
             wm.CenterOnScreen();
             wm.SetRenderResolution(renderResolutionX, renderResolutionY);
             wm.SetIcon(ProgramConstants.GetBaseResourcePath() + "clienticon.ico");
-            
 
             wm.SetControlBox(true);
 
