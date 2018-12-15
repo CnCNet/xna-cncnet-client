@@ -23,7 +23,9 @@ namespace DTAClient.DXGUI
         {
             graphics = new GraphicsDeviceManager(this);
             graphics.SynchronizeWithVerticalRetrace = false;
+#if !XNA
             graphics.HardwareModeSwitch = false;
+#endif
             content = new ContentManager(Services);
             string windowTitle = ClientConfiguration.Instance.WindowTitle;
             Window.Title = string.IsNullOrEmpty(windowTitle) ?
@@ -59,12 +61,12 @@ namespace DTAClient.DXGUI
 
             if (Screen.PrimaryScreen.Bounds.Width >= windowWidth && Screen.PrimaryScreen.Bounds.Height >= windowHeight)
             {
-                if (!wm.InitGraphicsMode(windowWidth, windowHeight, borderlessWindowedClient))
+                if (!wm.InitGraphicsMode(windowWidth, windowHeight, false))
                     throw new Exception("Setting graphics mode failed! " + windowWidth + "x" + windowHeight);
             }
             else
             {
-                if (!wm.InitGraphicsMode(1024, 600, borderlessWindowedClient))
+                if (!wm.InitGraphicsMode(1024, 600, false))
                     throw new Exception("Setting default graphics mode failed!");
             }
 
@@ -75,6 +77,10 @@ namespace DTAClient.DXGUI
             renderResolutionY = Math.Min(renderResolutionY, ClientConfiguration.Instance.MaximumRenderHeight);
 
             wm.SetBorderlessMode(borderlessWindowedClient);
+#if !XNA
+            if (borderlessWindowedClient)
+                wm.InitGraphicsMode(windowWidth, windowHeight, true);
+#endif
             wm.CenterOnScreen();
             wm.SetRenderResolution(renderResolutionX, renderResolutionY);
             wm.SetIcon(ProgramConstants.GetBaseResourcePath() + "clienticon.ico");
