@@ -23,6 +23,7 @@ namespace DTAClient.DXGUI
         {
             graphics = new GraphicsDeviceManager(this);
             graphics.SynchronizeWithVerticalRetrace = false;
+            graphics.HardwareModeSwitch = false;
             content = new ContentManager(Services);
             string windowTitle = ClientConfiguration.Instance.WindowTitle;
             Window.Title = string.IsNullOrEmpty(windowTitle) ?
@@ -54,14 +55,16 @@ namespace DTAClient.DXGUI
             int windowWidth = UserINISettings.Instance.ClientResolutionX;
             int windowHeight = UserINISettings.Instance.ClientResolutionY;
 
+            bool borderlessWindowedClient = UserINISettings.Instance.BorderlessWindowedClient;
+
             if (Screen.PrimaryScreen.Bounds.Width >= windowWidth && Screen.PrimaryScreen.Bounds.Height >= windowHeight)
             {
-                if (!wm.InitGraphicsMode(windowWidth, windowHeight, false))
+                if (!wm.InitGraphicsMode(windowWidth, windowHeight, borderlessWindowedClient))
                     throw new Exception("Setting graphics mode failed! " + windowWidth + "x" + windowHeight);
             }
             else
             {
-                if (!wm.InitGraphicsMode(1024, 600, false))
+                if (!wm.InitGraphicsMode(1024, 600, borderlessWindowedClient))
                     throw new Exception("Setting default graphics mode failed!");
             }
 
@@ -71,10 +74,11 @@ namespace DTAClient.DXGUI
             renderResolutionX = Math.Min(renderResolutionX, ClientConfiguration.Instance.MaximumRenderWidth);
             renderResolutionY = Math.Min(renderResolutionY, ClientConfiguration.Instance.MaximumRenderHeight);
 
-            wm.SetBorderlessMode(UserINISettings.Instance.BorderlessWindowedClient);
+            wm.SetBorderlessMode(borderlessWindowedClient);
             wm.CenterOnScreen();
             wm.SetRenderResolution(renderResolutionX, renderResolutionY);
             wm.SetIcon(ProgramConstants.GetBaseResourcePath() + "clienticon.ico");
+            
 
             wm.SetControlBox(true);
 
