@@ -17,11 +17,25 @@ namespace ClientGUI
 
         public string URL { get; set; }
 
+        public ToolTip ToolTip;
+
+        public override void Initialize()
+        {
+            base.Initialize();
+
+            ToolTip = new ToolTip(WindowManager, this);
+        }
+
         protected override void ParseAttributeFromINI(IniFile iniFile, string key, string value)
         {
             if (key == "URL")
             {
                 URL = value;
+                return;
+            }
+            else if (key == "ToolTip")
+            {
+                ToolTip.Text = value;
                 return;
             }
 

@@ -6,12 +6,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace DTAClient.DXGUI.Multiplayer.GameLobby
+namespace ClientGUI
 {
     /// <summary>
-    /// A tool tip for a game option.
+    /// A tool tip.
     /// </summary>
-    class ToolTip : XNAControl
+    public class ToolTip : XNAControl
     {
         private const int FONT_INDEX = 0;
         private const int MARGIN = 6;
@@ -72,6 +72,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private void MasterControl_MouseEnter(object sender, EventArgs e)
         {
+            if (string.IsNullOrEmpty(Text))
+                return;
+
             DisplayAtLocation(SumPoints(WindowManager.Cursor.Location,
                 new Point(0, APPEAR_BELOW_CURSOR_PIXELS)));
             IsMasterControlOnCursor = true;
@@ -85,7 +88,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private void MasterControl_MouseMove(object sender, EventArgs e)
         {
-            if (!Visible)
+            if (!Visible && !string.IsNullOrEmpty(Text))
             {
                 // Move the tooltip if the cursor has moved while staying 
                 // on the control area and we're invisible
