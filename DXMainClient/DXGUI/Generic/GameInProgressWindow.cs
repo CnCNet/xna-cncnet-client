@@ -118,6 +118,19 @@ namespace DTAClient.DXGUI
             if (deletingLogFilesFailed)
                 return;
 
+            if (UserINISettings.Instance.BorderlessWindowedClient)
+            {
+                // Hack: Re-set graphics mode
+                // Windows resizes our window if we're in fullscreen mode and
+                // the in-game resolution is lower than the user's desktop resolution.
+                // After the game exits, Windows doesn't properly re-size our window
+                // back to cover the entire screen, which causes graphics to get
+                // stretched and also messes up input handling since the window manager
+                // still thinks it's using the original resolution.
+                // Re-setting the graphics mode fixes it.
+                GameClass.SetGraphicsMode(WindowManager);
+            }
+
             try
             {
                 if (!Directory.Exists(ProgramConstants.GamePath + "Client\\ErrorLogs"))

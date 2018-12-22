@@ -32,7 +32,7 @@ namespace DTAClient.DXGUI
                 string.Format("{0} Client", MainClientConstants.GAME_NAME_SHORT) : windowTitle;
         }
 
-        GraphicsDeviceManager graphics;
+        private static GraphicsDeviceManager graphics;
         ContentManager content;
 
         protected override void Initialize()
@@ -54,38 +54,8 @@ namespace DTAClient.DXGUI
             WindowManager wm = new WindowManager(this, graphics);
             wm.Initialize(content, ProgramConstants.GetBaseResourcePath());
 
-            int windowWidth = UserINISettings.Instance.ClientResolutionX;
-            int windowHeight = UserINISettings.Instance.ClientResolutionY;
+            SetGraphicsMode(wm);
 
-            bool borderlessWindowedClient = UserINISettings.Instance.BorderlessWindowedClient;
-
-            if (Screen.PrimaryScreen.Bounds.Width >= windowWidth && Screen.PrimaryScreen.Bounds.Height >= windowHeight)
-            {
-                if (!wm.InitGraphicsMode(windowWidth, windowHeight, false))
-                    throw new Exception("Setting graphics mode failed! " + windowWidth + "x" + windowHeight);
-            }
-            else
-            {
-                if (!wm.InitGraphicsMode(1024, 600, false))
-                    throw new Exception("Setting default graphics mode failed!");
-            }
-
-            int renderResolutionX = Math.Max(windowWidth, ClientConfiguration.Instance.MinimumRenderWidth);
-            int renderResolutionY = Math.Max(windowHeight, ClientConfiguration.Instance.MinimumRenderHeight);
-
-            renderResolutionX = Math.Min(renderResolutionX, ClientConfiguration.Instance.MaximumRenderWidth);
-            renderResolutionY = Math.Min(renderResolutionY, ClientConfiguration.Instance.MaximumRenderHeight);
-
-            wm.SetBorderlessMode(borderlessWindowedClient);
-#if !XNA
-            if (borderlessWindowedClient)
-            {
-                graphics.IsFullScreen = true;
-                graphics.ApplyChanges();
-            }
-#endif
-            wm.CenterOnScreen();
-            wm.SetRenderResolution(renderResolutionX, renderResolutionY);
             wm.SetIcon(ProgramConstants.GetBaseResourcePath() + "clienticon.ico");
 
             wm.SetControlBox(true);
@@ -130,8 +100,8 @@ namespace DTAClient.DXGUI
 
             LoadingScreen ls = new LoadingScreen(wm);
             wm.AddAndInitializeControl(ls);
-            ls.ClientRectangle = new Rectangle((renderResolutionX - ls.Width) / 2,
-                (renderResolutionY - ls.Height) / 2, ls.Width, ls.Height);
+            ls.ClientRectangle = new Rectangle((wm.RenderResolutionX - ls.Width) / 2,
+                (wm.RenderResolutionY - ls.Height) / 2, ls.Width, ls.Height);
         }
 
         private void InitializeUISettings()
@@ -154,6 +124,47 @@ namespace DTAClient.DXGUI
             UISettings.CheckBoxCheckedTexture = AssetLoader.LoadTexture("checkBoxChecked.png");
             UISettings.CheckBoxDisabledClearTexture = AssetLoader.LoadTexture("checkBoxClearD.png");
             UISettings.CheckBoxDisabledCheckedTexture = AssetLoader.LoadTexture("checkBoxCheckedD.png");
+        }
+
+        /// <summary>
+        /// Sets the client's graphics mode.
+        /// TODO move to some helper class?
+        /// </summary>
+        /// <param name="wm">The window manager</param>
+        public static void SetGraphicsMode(WindowManager wm)
+        {
+            int windowWidth = UserINISettings.Instance.ClientResolutionX;
+            int windowHeight = UserINISettings.Instance.ClientResolutionY;
+
+            bool borderlessWindowedClient = UserINISettings.Instance.BorderlessWindowedClient;
+
+            if (Screen.PrimaryScreen.Bounds.Width >= windowWidth && Screen.PrimaryScreen.Bounds.Height >= windowHeight)
+            {
+                if (!wm.InitGraphicsMode(windowWidth, windowHeight, false))
+                    throw new Exception("Setting graphics mode failed! " + windowWidth + "x" + windowHeight);
+            }
+            else
+            {
+                if (!wm.InitGraphicsMode(1024, 600, false))
+                    throw new Exception("Setting default graphics mode failed!");
+            }
+
+            int renderResolutionX = Math.Max(windowWidth, ClientConfiguration.Instance.MinimumRenderWidth);
+            int renderResolutionY = Math.Max(windowHeight, ClientConfiguration.Instance.MinimumRenderHeight);
+
+            renderResolutionX = Math.Min(renderResolutionX, ClientConfiguration.Instance.MaximumRenderWidth);
+            renderResolutionY = Math.Min(renderResolutionY, ClientConfiguration.Instance.MaximumRenderHeight);
+
+            wm.SetBorderlessMode(borderlessWindowedClient);
+#if !XNA
+            if (borderlessWindowedClient)
+            {
+                graphics.IsFullScreen = true;
+                graphics.ApplyChanges();
+            }
+#endif
+            wm.CenterOnScreen();
+            wm.SetRenderResolution(renderResolutionX, renderResolutionY);
         }
     }
 }
