@@ -253,9 +253,10 @@ namespace DTAClient.Domain.Multiplayer
                     waypoints.Add(waypoint);
                 }
 
+#if !WINDOWSGL
                 if (UserINISettings.Instance.PreloadMapPreviews)
                     PreviewTexture = LoadPreviewTexture();
-
+#endif
                 // Parse forced options
 
                 string forcedOptionsSections = iniFile.GetStringValue(BaseFilePath, "ForcedOptions", string.Empty);
