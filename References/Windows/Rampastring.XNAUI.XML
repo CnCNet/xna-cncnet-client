@@ -1688,6 +1688,11 @@
             <param name="iHeight">Desired screen height.</param>
             <param name="bFullScreen">True if you wish to go to Full Screen, false for Windowed Mode.</param>
         </member>
+        <member name="P:Rampastring.XNAUI.WindowManager.IsFullscreen">
+            <summary>
+            Returns whether the game is running in fullscreen mode.
+            </summary>
+        </member>
         <member name="M:Rampastring.XNAUI.WindowManager.Update(Microsoft.Xna.Framework.GameTime)">
             <summary>
             Updates the WindowManager. Do not call manually; MonoGame will call 
