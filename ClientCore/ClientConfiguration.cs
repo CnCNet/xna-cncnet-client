@@ -20,7 +20,7 @@ namespace ClientCore
         private IniFile DTACnCNetClient_ini;
         private IniFile clientDefinitionsIni;
 
-		public bool UseQres { get; set; } = true;
+        public bool UseQres { get; set; } = true;
 
         protected ClientConfiguration()
         {
@@ -575,6 +575,15 @@ namespace ClientCore
             {
                 return clientDefinitionsIni.GetStringValue(SETTINGS, "ClientDefaultResolutionText", "(recommended)");
             }
+        }
+
+        public bool ProcessScreenshots
+        {
+#if MO
+            get { return clientDefinitionsIni.GetBooleanValue(SETTINGS, "ProcessScreenshots", true); }
+#else
+            get { return false; }
+#endif
         }
 
         /// <summary>
