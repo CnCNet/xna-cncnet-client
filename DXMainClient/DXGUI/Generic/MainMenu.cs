@@ -187,7 +187,13 @@ namespace DTAClient.DXGUI.Generic
             lblCnCNetPlayerCount.Name = "lblCnCNetPlayerCount";
             lblCnCNetPlayerCount.Text = "-";
 
-            lblVersion = new XNALabel(WindowManager);
+            if (!ClientConfiguration.Instance.EnableVersionNumberChangelogLink)
+                lblVersion = new XNALabel(WindowManager);
+            else
+            {
+                lblVersion = new XNALinkLabel(WindowManager);
+                lblVersion.LeftClick += LblVersion_LeftClick;
+            }
             lblVersion.Name = "lblVersion";
             lblVersion.Text = CUpdater.GameVersion;
 
@@ -496,6 +502,11 @@ namespace DTAClient.DXGUI.Generic
             {
                 CheckForUpdates();
             }
+        }
+
+        private void LblVersion_LeftClick(object sender, EventArgs e)
+        {
+            Process.Start(ClientConfiguration.Instance.ChangelogURL);
         }
 
         /// <summary>

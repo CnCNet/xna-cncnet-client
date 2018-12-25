@@ -569,6 +569,11 @@ namespace ClientCore
             get { return clientDefinitionsIni.GetBooleanValue(SETTINGS, "EnableRandomMapButton", false); }
         }
 
+        public bool EnableVersionNumberChangelogLink
+        {
+            get { return clientDefinitionsIni.GetBooleanValue(SETTINGS, "EnableVersionNumberChangelogLink", false); }
+        }
+
         public string ClientDefaultResolutionText
         {
             get
