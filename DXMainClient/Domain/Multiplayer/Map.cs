@@ -389,7 +389,7 @@ namespace DTAClient.Domain.Multiplayer
                 HumanPlayersOnly = basicSection.GetBooleanValue("HumanPlayersOnly", false);
                 ForceRandomStartLocations = basicSection.GetBooleanValue("ForceRandomStartLocations", false);
                 ForceNoTeams = basicSection.GetBooleanValue("ForceNoTeams", false);
-                PreviewPath = Path.ChangeExtension(path.Substring(ProgramConstants.GamePath.Length + 1), ".png");
+                PreviewPath = Path.ChangeExtension(path.Substring(ProgramConstants.GamePath.Length), ".png");
                 MultiplayerOnly = basicSection.GetBooleanValue("ClientMultiplayerOnly", false);
 
                 string bases = basicSection.GetStringValue("Bases", string.Empty);
