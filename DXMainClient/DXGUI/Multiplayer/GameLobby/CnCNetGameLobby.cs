@@ -26,6 +26,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         private const double GAME_BROADCAST_ACCELERATION = 10.0;
         private const double INITIAL_GAME_BROADCAST_DELAY = 10.0;
 
+        private static readonly Color ERROR_MESSAGE_COLOR = Color.Yellow;
+
         private const string MAP_SHARING_FAIL_MESSAGE = "MAPFAIL";
         private const string MAP_SHARING_DOWNLOAD_REQUEST = "MAPOK";
         private const string MAP_SHARING_UPLOAD_REQUEST = "MAPREQ";
@@ -299,7 +301,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (e.UserName == hostName)
             {
                 connectionManager.MainChannel.AddMessage(new ChatMessage(
-                    Color.Yellow, "The game host abandoned the game."));
+                    ERROR_MESSAGE_COLOR, "The game host abandoned the game."));
                 BtnLeaveGame_LeftClick(this, EventArgs.Empty);
             }
         }
@@ -311,7 +313,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (e.UserName == hostName)
             {
                 connectionManager.MainChannel.AddMessage(new ChatMessage(
-                    Color.Yellow, "The game host abandoned the game."));
+                    ERROR_MESSAGE_COLOR, "The game host abandoned the game."));
                 BtnLeaveGame_LeftClick(this, EventArgs.Empty);
             }
         }
@@ -321,7 +323,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (e.UserName == ProgramConstants.PLAYERNAME)
             {
                 connectionManager.MainChannel.AddMessage(new ChatMessage(
-                    Color.Yellow, "You were kicked from the game!"));
+                    ERROR_MESSAGE_COLOR, "You were kicked from the game!"));
                 Clear();
                 this.Visible = false;
                 this.Enabled = false;
@@ -345,7 +347,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 if (channel.Users.FindIndex(u => u.IRCUser.Name == hostName) < 0)
                 {
                     connectionManager.MainChannel.AddMessage(new ChatMessage(
-                        Color.Yellow, "The game host has abandoned the game."));
+                        ERROR_MESSAGE_COLOR, "The game host has abandoned the game."));
                     BtnLeaveGame_LeftClick(this, EventArgs.Empty);
                 }
             }
@@ -399,7 +401,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 Players.Remove(pInfo);
 
                 CopyPlayerDataToUI();
-                BroadcastPlayerOptions();
+
+                // This might not be necessary
+                if (IsHost)
+                    BroadcastPlayerOptions();
             }
 
             sndLeaveSound.Play();
@@ -465,7 +470,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 if (playerPorts.Count < Players.Count)
                 {
                     AddNotice("An error occured while contacting the specified CnCNet tunnel server. Please try using a different tunnel server " +
-                        "(accessible through the advanced options in the game creation window).", Color.Yellow);
+                        "(accessible through the advanced options in the game creation window).", ERROR_MESSAGE_COLOR);
                     return;
                 }
 
