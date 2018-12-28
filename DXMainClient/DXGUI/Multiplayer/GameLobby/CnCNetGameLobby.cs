@@ -150,6 +150,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             channel.UserQuitIRC += Channel_UserQuitIRC;
             channel.UserLeft += Channel_UserLeft;
             channel.UserAdded += Channel_UserAdded;
+            channel.UserListReceived += Channel_UserListReceived;
 
             this.hostName = hostName;
             this.playerLimit = playerLimit;
@@ -238,17 +239,17 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 channel.UserQuitIRC -= Channel_UserQuitIRC;
                 channel.UserLeft -= Channel_UserLeft;
                 channel.UserAdded -= Channel_UserAdded;
+                channel.UserListReceived -= Channel_UserListReceived;
 
                 if (!IsHost)
                 {
                     channel.ChannelModesChanged -= Channel_ChannelModesChanged;
                 }
 
-                // Remove the channel on the next frame to avoid a crash
-                // in CnCNetManager.DoUserQuitIRC
-                WindowManager.AddCallback(new Action<Channel>(connectionManager.RemoveChannel), channel);
+                connectionManager.RemoveChannel(channel);
             }
 
+            Disable();
             connectionManager.ConnectionLost -= ConnectionManager_ConnectionLost;
             connectionManager.Disconnected -= ConnectionManager_Disconnected;
 
@@ -289,8 +290,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             Clear();
             channel.Leave();
-            this.Visible = false;
-            this.Enabled = false;
         }
 
         private void Channel_UserQuitIRC(object sender, UserNameIndexEventArgs e)
@@ -336,6 +335,19 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 Players.RemoveAt(index);
                 CopyPlayerDataToUI();
                 ClearReadyStatuses();
+            }
+        }
+
+        private void Channel_UserListReceived(object sender, EventArgs e)
+        {
+            if (!IsHost)
+            {
+                if (channel.Users.FindIndex(u => u.IRCUser.Name == hostName) < 0)
+                {
+                    connectionManager.MainChannel.AddMessage(new ChatMessage(
+                        Color.Yellow, "The game host has abandoned the game."));
+                    BtnLeaveGame_LeftClick(this, EventArgs.Empty);
+                }
             }
         }
 
