@@ -326,6 +326,9 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                     }
 
                     gameBroadcastChannel.CTCPReceived += GameBroadcastChannel_CTCPReceived;
+                    gameBroadcastChannel.UserLeft += GameBroadcastChannel_UserLeftOrQuit;
+                    gameBroadcastChannel.UserQuitIRC += GameBroadcastChannel_UserLeftOrQuit;
+                    gameBroadcastChannel.UserKicked += GameBroadcastChannel_UserLeftOrQuit;
                 }
 
                 if (game.InternalName.ToUpper() == localGameID.ToUpper())
@@ -1049,6 +1052,18 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         private void CurrentChatChannel_MessageAdded(object sender, IRCMessageEventArgs e)
         {
             AddMessageToChat(e.Message);
+        }
+
+        /// <summary>
+        /// Removes a game from the list when the host quits CnCNet or
+        /// leaves the game broadcast channel.
+        /// </summary>
+        private void GameBroadcastChannel_UserLeftOrQuit(object sender, UserNameIndexEventArgs e)
+        {
+            int gameIndex = lbGameList.HostedGames.FindIndex(hg => hg.HostName == e.UserName);
+
+            if (gameIndex > -1)
+                lbGameList.RemoveGame(gameIndex);
         }
 
         private void GameBroadcastChannel_CTCPReceived(object sender, ChannelCTCPEventArgs e)

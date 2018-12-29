@@ -718,7 +718,7 @@ namespace DTAClient.Online
 
         private void DoUserQuitIRC(string userName)
         {
-            channels.ForEach(ch => ch.OnUserQuitIRC(userName));
+            new List<Channel>(channels).ForEach(ch => ch.OnUserQuitIRC(userName));
 
             int userIndex = UserList.FindIndex(user => user.Name == userName);
 
