@@ -15,5 +15,5 @@
 *.pdb binary
 
 # Shell scripts
-*.sh eof=lf
+*.sh text eof=lf
 
