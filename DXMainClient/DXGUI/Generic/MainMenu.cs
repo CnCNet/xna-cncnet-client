@@ -685,8 +685,8 @@ namespace DTAClient.DXGUI.Generic
 
         private void BtnExit_LeftClick(object sender, EventArgs e)
         {
-            FadeMusicExit();
             WindowManager.HideWindow();
+            FadeMusicExit();
         }
 
         private void SharedUILogic_GameProcessExited()

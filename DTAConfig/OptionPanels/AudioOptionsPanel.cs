@@ -184,7 +184,7 @@ namespace DTAConfig.OptionPanels
             lblSoundVolumeValue.Text = trbSoundVolume.Value.ToString();
             lblVoiceVolumeValue.Text = trbVoiceVolume.Value.ToString();
             lblClientVolumeValue.Text = trbClientVolume.Value.ToString();
-            AudioMaster.SetVolume(trbClientVolume.Value / 10.0f);
+            WindowManager.SoundPlayer.SetVolume(trbClientVolume.Value / 10.0f);
         }
 
         private void ChkMainMenuMusic_CheckedChanged(object sender, EventArgs e)
