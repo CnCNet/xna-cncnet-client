@@ -9,7 +9,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Rampastring")]
 [assembly: AssemblyProduct("Dawn of the Tiberium Age")]
-[assembly: AssemblyCopyright("Copyright © Rampastring 2014-2018")]
+[assembly: AssemblyCopyright("Copyright © Rampastring 2014-2019")]
 [assembly: AssemblyTrademark("Dawn of the Tiberium Age")]
 [assembly: AssemblyCulture("")]
 
