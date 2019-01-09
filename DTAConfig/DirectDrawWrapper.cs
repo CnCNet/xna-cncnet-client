@@ -65,6 +65,12 @@ namespace DTAConfig
 		public bool UseQres { get; private set; } = true;
 
         /// <summary>
+        /// If set to false, the client won't set single-core affinity
+        /// to the game executable when this renderer is used.
+        /// </summary>
+        public bool SingleCoreAffinity { get; private set; } = true;
+
+        /// <summary>
         /// The filename of the configuration INI of the renderer in the game directory.
         /// </summary>
         public string ConfigFileName { get; private set; }
@@ -110,7 +116,8 @@ namespace DTAConfig
             }
 
             Hidden = section.GetBooleanValue("Hidden", false);
-            UseQres = section.GetBooleanValue("UseQres", true);
+            UseQres = section.GetBooleanValue("UseQres", UseQres);
+            SingleCoreAffinity = section.GetBooleanValue("SingleCoreAffinity", SingleCoreAffinity);
             ddrawDLLPath = section.GetStringValue("DLLName", string.Empty);
             ConfigFileName = section.GetStringValue("ConfigFileName", string.Empty);
             resConfigFileName = section.GetStringValue("ResConfigFileName", ConfigFileName);

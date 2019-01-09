@@ -364,7 +364,8 @@ namespace DTAConfig.OptionPanels
 			if (selectedRenderer == null)
 				throw new Exception("Missing renderer: " + renderer);
 
-			ClientConfiguration.Instance.UseQres = selectedRenderer.UseQres;
+            GameProcessLogic.UseQres = selectedRenderer.UseQres;
+            GameProcessLogic.SingleCoreAffinity = selectedRenderer.SingleCoreAffinity;
 		}
 
 #if !YR
@@ -770,7 +771,8 @@ namespace DTAConfig.OptionPanels
             
             selectedRenderer.Apply();
 
-            ClientConfiguration.Instance.UseQres = selectedRenderer.UseQres;
+            GameProcessLogic.UseQres = selectedRenderer.UseQres;
+            GameProcessLogic.SingleCoreAffinity = selectedRenderer.SingleCoreAffinity;
 
             if (selectedRenderer.UsesCustomWindowedOption())
             {

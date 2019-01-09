@@ -20,8 +20,6 @@ namespace ClientCore
         private IniFile DTACnCNetClient_ini;
         private IniFile clientDefinitionsIni;
 
-		public bool UseQres { get; set; } = true;
-
         protected ClientConfiguration()
         {
             if (!File.Exists(ProgramConstants.GetBaseResourcePath() + CLIENT_DEFS))
