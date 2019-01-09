@@ -562,6 +562,13 @@ namespace ClientCore
             get { return clientDefinitionsIni.GetBooleanValue(SETTINGS, "DisplayPlayerCountInTopBar", false); }
         }
 
+        /// <summary>
+        /// The name of the executable in the main game directory that selects 
+        /// the correct main client executable.
+        /// For example, DTA.exe in case of DTA.
+        /// </summary>
+        public string LauncherExe => clientDefinitionsIni.GetStringValue(SETTINGS, "LauncherExe", string.Empty);
+
         public string ClientDefaultResolutionText
         {
             get
