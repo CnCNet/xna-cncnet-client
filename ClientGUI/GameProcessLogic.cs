@@ -18,6 +18,9 @@ namespace ClientGUI
 
         public static event Action GameProcessExited;
 
+        public static bool UseQres { get; set; }
+        public static bool SingleCoreAffinity { get; set; }
+
         /// <summary>
         /// Starts the main game process.
         /// </summary>
@@ -44,7 +47,7 @@ namespace ClientGUI
 
             GameProcessStarting?.Invoke();
             
-            if (UserINISettings.Instance.WindowedMode && ClientConfiguration.Instance.UseQres)
+            if (UserINISettings.Instance.WindowedMode && UseQres)
 			{
                 Logger.Log("Windowed mode is enabled - using QRes.");
                 Process QResProcess = new Process();
@@ -71,7 +74,7 @@ namespace ClientGUI
                     return;
                 }
 
-                if (Environment.ProcessorCount > 1)
+                if (Environment.ProcessorCount > 1 && SingleCoreAffinity)
                     QResProcess.ProcessorAffinity = (IntPtr)2;
             }
             else
@@ -100,7 +103,7 @@ namespace ClientGUI
                     return;
                 }
 
-                if (Environment.ProcessorCount > 1)
+                if (Environment.ProcessorCount > 1 && SingleCoreAffinity)
                     DtaProcess.ProcessorAffinity = (IntPtr)2;
             }
 

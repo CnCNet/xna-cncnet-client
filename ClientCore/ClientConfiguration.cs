@@ -20,8 +20,6 @@ namespace ClientCore
         private IniFile DTACnCNetClient_ini;
         private IniFile clientDefinitionsIni;
 
-        public bool UseQres { get; set; } = true;
-
         protected ClientConfiguration()
         {
             if (!File.Exists(ProgramConstants.GetBaseResourcePath() + CLIENT_DEFS))
@@ -563,6 +561,13 @@ namespace ClientCore
         {
             get { return clientDefinitionsIni.GetBooleanValue(SETTINGS, "DisplayPlayerCountInTopBar", false); }
         }
+
+        /// <summary>
+        /// The name of the executable in the main game directory that selects 
+        /// the correct main client executable.
+        /// For example, DTA.exe in case of DTA.
+        /// </summary>
+        public string LauncherExe => clientDefinitionsIni.GetStringValue(SETTINGS, "LauncherExe", string.Empty);
 
         public bool EnableRandomMapButton
         {
