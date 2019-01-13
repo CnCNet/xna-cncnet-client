@@ -266,23 +266,21 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             lblGameModeSelect.FontIndex = 1;
             lblGameModeSelect.Text = "GAME MODE:";
 
-            int randomMapButtonWidth = 0;
-            if (ClientConfiguration.Instance.EnableRandomMapButton)
-                randomMapButtonWidth = 143;
-
             tbMapSearch = new XNASuggestionTextBox(WindowManager);
             tbMapSearch.Name = "tbMapSearch";
-            tbMapSearch.ClientRectangle = new Rectangle(lbMapList.X + randomMapButtonWidth,
-                lbMapList.Bottom + 3, lbMapList.Width - randomMapButtonWidth, 21);
+            tbMapSearch.ClientRectangle = new Rectangle(lbMapList.X,
+                lbMapList.Bottom + 3, lbMapList.Width, 21);
             tbMapSearch.Suggestion = "Search map..";
             tbMapSearch.MaximumTextLength = 64;
             tbMapSearch.InputReceived += TbMapSearch_InputReceived;
 
             btnPickRandomMap = new XNAClientButton(WindowManager);
             btnPickRandomMap.Name = "btnPickRandomMap";
-            btnPickRandomMap.ClientRectangle = new Rectangle(lbMapList.X, lbMapList.Bottom + 2, randomMapButtonWidth - 10, 23);
+            btnPickRandomMap.ClientRectangle = new Rectangle(btnLaunchGame.Right + 157 , btnLaunchGame.Y, 133, 23);
             btnPickRandomMap.Text = "Pick Random Map";
             btnPickRandomMap.LeftClick += BtnPickRandomMap_LeftClick;
+            btnPickRandomMap.Visible = false;
+            btnPickRandomMap.Enabled = false;
 
             AddChild(lblMapName);
             AddChild(lblMapAuthor);
@@ -334,8 +332,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             AddChild(PlayerOptionsPanel);
             AddChild(btnLaunchGame);
             AddChild(btnLeaveGame);
-            if (ClientConfiguration.Instance.EnableRandomMapButton)
-                AddChild(btnPickRandomMap);
+            AddChild(btnPickRandomMap);
         }
 
         private void BtnPickRandomMap_LeftClick(object sender, EventArgs e)
@@ -468,7 +465,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             List<Map> maps = GetMapList(totalPlayerCount);
             if (maps.Count < 1)
                 return;
-            Map newMap = maps[new Random().Next(0, maps.Count())];
+            Map newMap = maps[new Random().Next(0, maps.Count)];
 
             tbMapSearch.Text = string.Empty;
             tbMapSearch.OnSelectedChanged();

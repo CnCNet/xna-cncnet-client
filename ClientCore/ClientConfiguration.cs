@@ -569,11 +569,6 @@ namespace ClientCore
         /// </summary>
         public string LauncherExe => clientDefinitionsIni.GetStringValue(SETTINGS, "LauncherExe", string.Empty);
 
-        public bool EnableRandomMapButton
-        {
-            get { return clientDefinitionsIni.GetBooleanValue(SETTINGS, "EnableRandomMapButton", false); }
-        }
-
         public string ClientDefaultResolutionText
         {
             get
