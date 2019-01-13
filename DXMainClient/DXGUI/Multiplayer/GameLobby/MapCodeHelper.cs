@@ -52,7 +52,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             string replaceSectionName = "ReplaceMap" + sectionName;
 
-            List<KeyValuePair<string, string>> objectRemapPairs = GetKeyValuePairs(mapIni, replaceSectionName);
+            List<KeyValuePair<string, string>> objectRemapPairs = GetKeyValuePairs(mapCodeIni, replaceSectionName);
             if (objectRemapPairs.Count < 1) return;
 
             List<KeyValuePair<string, string>> sectionKeyValuePairs = GetKeyValuePairs(mapIni, sectionName);
@@ -63,17 +63,17 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
                 foreach (KeyValuePair<string, string> matchingSectionKVP in matchingSectionKVPs)
                 {
-                    String ID = GetObjectID(matchingSectionKVP.Value, sectionName);
+                    string id = GetObjectID(matchingSectionKVP.Value, sectionName);
 
                     if (!String.IsNullOrEmpty(objectRemapPair.Value))
                     {
-                        mapIni.SetStringValue(sectionName, matchingSectionKVP.Key, matchingSectionKVP.Value.Replace(ID, objectRemapPair.Value));
-                        Logger.Log("MapCodeHelper: Changed an instance of '" + sectionName + "' object '" + ID + "' into '" + objectRemapPair.Value + "'.");
+                        mapIni.SetStringValue(sectionName, matchingSectionKVP.Key, matchingSectionKVP.Value.Replace(id, objectRemapPair.Value));
+                        Logger.Log("MapCodeHelper: Changed an instance of '" + sectionName + "' object '" + id + "' into '" + objectRemapPair.Value + "'.");
                     }
                     else
                     {
                         mapIni.SetStringValue(sectionName, matchingSectionKVP.Key, "");
-                        Logger.Log("MapCodeHelper: Removed an instance of '" + sectionName + "' object '" + ID + "'.");
+                        Logger.Log("MapCodeHelper: Removed an instance of '" + sectionName + "' object '" + id + "'.");
                     }
                 }
             }
@@ -107,17 +107,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         /// <returns>List of key/value pairs from the chosen ini file section. If ini file section has no keys, an empty list is returned.</returns>
         private static List<KeyValuePair<string, string>> GetKeyValuePairs(IniFile iniFile, string sectionName)
         {
-            List<KeyValuePair<string, string>> keyValuePairs = new List<KeyValuePair<string, string>>();
-            List<string> keys = iniFile.GetSectionKeys(sectionName);
-            if (keys == null) return keyValuePairs;
-            foreach (string key in keys)
-            {
-                string value = iniFile.GetStringValue(sectionName, key, null);
-                if (value == null)
-                    continue;
-                keyValuePairs.Add(new KeyValuePair<string, string>(key, value));
-            }
-            return keyValuePairs;
+            IniSection section = iniFile.GetSection(sectionName);
+            if (section == null)
+                return new List<KeyValuePair<string, string>>();
+            return section.Keys;
         }
     }
 }
