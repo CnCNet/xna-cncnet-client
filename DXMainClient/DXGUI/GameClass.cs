@@ -42,14 +42,23 @@ namespace DTAClient.DXGUI
 
             base.Initialize();
 
+            string primaryNativeCursorPath = ProgramConstants.GetResourcePath() + "cursor.cur";
+            string alternativeNativeCursorPath = ProgramConstants.GetBaseResourcePath() + "cursor.cur";
+
+            AssetLoader.Initialize(GraphicsDevice, content);
+            AssetLoader.AssetSearchPaths.Add(ProgramConstants.GetResourcePath());
+            AssetLoader.AssetSearchPaths.Add(ProgramConstants.GetBaseResourcePath());
+            AssetLoader.AssetSearchPaths.Add(ProgramConstants.GamePath);
 
 #if !XNA && !WINDOWSGL
-            // Try to create a texture to check for MonoGame 3.7.1 compatibility
+            // Try to create and load a texture to check for MonoGame 3.7.1 compatibility
             try
             {
                 Texture2D texture = new Texture2D(GraphicsDevice, 100, 100, false, SurfaceFormat.Color);
                 Color[] colorArray = new Color[100 * 100];
                 texture.SetData(colorArray);
+
+                UISettings.CheckBoxClearTexture = AssetLoader.LoadTextureUncached("checkBoxClear.png");
             }
             catch (Exception ex)
             {
@@ -87,14 +96,6 @@ namespace DTAClient.DXGUI
                 }
             }
 #endif
-
-            string primaryNativeCursorPath = ProgramConstants.GetResourcePath() + "cursor.cur";
-            string alternativeNativeCursorPath = ProgramConstants.GetBaseResourcePath() + "cursor.cur";
-
-            AssetLoader.Initialize(GraphicsDevice, content);
-            AssetLoader.AssetSearchPaths.Add(ProgramConstants.GetResourcePath());
-            AssetLoader.AssetSearchPaths.Add(ProgramConstants.GetBaseResourcePath());
-            AssetLoader.AssetSearchPaths.Add(ProgramConstants.GamePath);
 
             InitializeUISettings();
 
