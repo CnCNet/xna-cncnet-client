@@ -1468,7 +1468,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     SideId = Math.Max(ddPlayerSides[cmbId].SelectedIndex, 0),
                     ColorId = Math.Max(ddPlayerColors[cmbId].SelectedIndex, 0),
                     StartingLocation = Math.Max(ddPlayerStarts[cmbId].SelectedIndex, 0),
-                    TeamId = Math.Max(ddPlayerTeams[cmbId].SelectedIndex, 0),
+                    TeamId = Map != null && Map.IsCoop ? 1 : Math.Max(ddPlayerTeams[cmbId].SelectedIndex, 0),
                     IsAI = true
                 };
 
