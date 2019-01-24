@@ -402,6 +402,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             lbMapList.SelectedIndex = -1;
 
+            int mapIndex = -1;
+            int mapIndexCounter = 0;
+
             foreach (Map map in GameMode.Maps)
             {
                 if (tbMapSearch.Text != tbMapSearch.Suggestion)
@@ -438,7 +441,15 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 lbMapList.AddItem(mapInfoArray);
 
                 if (map == Map)
-                    lbMapList.SelectedIndex = lbMapList.ItemCount - 1;
+                    mapIndex = mapIndexCounter;
+                mapIndexCounter++;
+            }
+
+            if (mapIndex > -1)
+            {
+                lbMapList.SelectedIndex = mapIndex;
+                while (mapIndex > lbMapList.LastIndex)
+                    lbMapList.TopIndex++;
             }
 
             lbMapList.SelectedIndexChanged += LbMapList_SelectedIndexChanged;
@@ -465,12 +476,16 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             List<Map> maps = GetMapList(totalPlayerCount);
             if (maps.Count < 1)
                 return;
-            Map newMap = maps[new Random().Next(0, maps.Count)];
 
+            int random = new Random().Next(0, maps.Count);
+            Map = maps[random];
+
+            Logger.Log("PickRandomMap: Rolled " + random + " out of " + maps.Count + ". Picked map: " + Map.Name);
+
+            ChangeMap(GameMode, Map);
             tbMapSearch.Text = string.Empty;
             tbMapSearch.OnSelectedChanged();
             ListMaps();
-            SelectMapInList(newMap);
         }
 
         private List<Map> GetMapList(int playerCount)
@@ -480,20 +495,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 return GetMapList(playerCount + 1);
             else
                 return mapList;
-        }
-
-        private void SelectMapInList(Map map)
-        {
-            for (int i = 0; i < lbMapList.ItemCount; i++)
-            {
-                Map listMap = (Map)lbMapList.GetItem(1, i).Tag;
-                if (listMap == map)
-                {
-                    lbMapList.SelectedIndex = i;
-                    while (i > lbMapList.LastIndex)
-                        lbMapList.TopIndex++;
-                }
-            }
         }
 
         /// <summary>
