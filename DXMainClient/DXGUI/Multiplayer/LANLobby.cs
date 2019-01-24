@@ -30,11 +30,12 @@ namespace DTAClient.DXGUI.Multiplayer
         private const double GAME_INACTIVITY_REMOVE_TIME = 20.0;
 
         public LANLobby(WindowManager windowManager, GameCollection gameCollection,
-            List<GameMode> gameModes)
+            List<GameMode> gameModes, MapLoader mapLoader)
             : base(windowManager)
         {
-            this.gameCollection = gameCollection;
-            this.gameModes = gameModes;
+            GameCollection = gameCollection;
+            GameModes = gameModes;
+            MapLoader = mapLoader;
         }
 
         public event EventHandler Exited;
@@ -66,9 +67,9 @@ namespace DTAClient.DXGUI.Multiplayer
         string localGame;
         int localGameIndex;
 
-        GameCollection gameCollection;
+        GameCollection GameCollection;
 
-        List<GameMode> gameModes;
+        List<GameMode> GameModes;
 
         TimeSpan timeSinceGameRefresh = TimeSpan.Zero;
 
@@ -82,6 +83,8 @@ namespace DTAClient.DXGUI.Multiplayer
 
         TimeSpan timeSinceAliveMessage = TimeSpan.Zero;
 
+        MapLoader MapLoader;
+
         bool initSuccess = false;
 
         public override void Initialize()
@@ -92,7 +95,7 @@ namespace DTAClient.DXGUI.Multiplayer
                 WindowManager.RenderResolutionY - 64);
 
             localGame = ClientConfiguration.Instance.LocalGame;
-            localGameIndex = gameCollection.GameList.FindIndex(
+            localGameIndex = GameCollection.GameList.FindIndex(
                 g => g.InternalName.ToUpper() == localGame.ToUpper());
 
             btnNewGame = new XNAClientButton(WindowManager);
@@ -220,12 +223,12 @@ namespace DTAClient.DXGUI.Multiplayer
             gameCreationPanel.SetPositionAndSize();
 
             lanGameLobby = new LANGameLobby(WindowManager, "MultiplayerGameLobby",
-                null, gameModes, chatColors);
+                null, GameModes, chatColors, MapLoader);
             DarkeningPanel.AddAndInitializeWithControl(WindowManager, lanGameLobby);
             lanGameLobby.Disable();
 
             lanGameLoadingLobby = new LANGameLoadingLobby(WindowManager, 
-                gameModes, chatColors);
+                GameModes, chatColors);
             DarkeningPanel.AddAndInitializeWithControl(WindowManager, lanGameLoadingLobby);
             lanGameLoadingLobby.Disable();
 
@@ -420,8 +423,8 @@ namespace DTAClient.DXGUI.Multiplayer
                     {
                         Texture2D gameTexture = unknownGameIcon;
 
-                        if (gameIndex > -1 && gameIndex < gameCollection.GameList.Count)
-                            gameTexture = gameCollection.GameList[gameIndex].Texture;
+                        if (gameIndex > -1 && gameIndex < GameCollection.GameList.Count)
+                            gameTexture = GameCollection.GameList[gameIndex].Texture;
 
                         user = new LANLobbyUser(name, gameTexture, endPoint);
                         players.Add(user);
@@ -461,7 +464,7 @@ namespace DTAClient.DXGUI.Multiplayer
                         return;
 
                     HostedLANGame game = new HostedLANGame();
-                    if (!game.SetDataFromStringArray(gameCollection, parameters))
+                    if (!game.SetDataFromStringArray(GameCollection, parameters))
                         return;
                     game.EndPoint = endPoint;
 
@@ -517,7 +520,7 @@ namespace DTAClient.DXGUI.Multiplayer
             if (hg.Game.InternalName.ToUpper() != localGame.ToUpper())
             {
                 lbChatMessages.AddMessage("The selected game is for " +
-                    gameCollection.GetGameNameFromInternalName(hg.Game.InternalName) + "!");
+                    GameCollection.GetGameNameFromInternalName(hg.Game.InternalName) + "!");
                 return;
             }
 

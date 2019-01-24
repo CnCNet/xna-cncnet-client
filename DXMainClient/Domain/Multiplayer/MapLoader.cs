@@ -26,7 +26,12 @@ namespace DTAClient.Domain.Multiplayer
         /// replaced by the game mode entries of the value string array
         /// when a map's game modes are parsed.
         /// </summary>
-        private Dictionary<string, string[]> gameModeAliases = new Dictionary<string, string[]>();
+        private Dictionary<string, string[]> GameModeAliases = new Dictionary<string, string[]>();
+
+        /// <summary>
+        /// List of gamemodes allowed to be used on custom maps in order for them to display in map list.
+        /// </summary>
+        private string[] AllowedGameModes = ClientConfiguration.Instance.GetAllowedGameModes.Split(',');
 
         /// <summary>
         /// Loads multiplayer map info asynchonously.
@@ -49,7 +54,7 @@ namespace DTAClient.Domain.Multiplayer
             {
                 foreach (string key in gmAliases)
                 {
-                    gameModeAliases.Add(key, mpMapsIni.GetStringValue("GameModeAliases", key, string.Empty).Split(
+                    GameModeAliases.Add(key, mpMapsIni.GetStringValue("GameModeAliases", key, string.Empty).Split(
                         new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries));
                 }
             }
@@ -76,7 +81,7 @@ namespace DTAClient.Domain.Multiplayer
 
                 Map map = new Map(mapFilePath, true);
 
-                if (!map.SetInfoFromINI(mpMapsIni, gameModeAliases))
+                if (!map.SetInfoFromINI(mpMapsIni, GameModeAliases))
                     continue;
 
                 maps.Add(map);
@@ -114,7 +119,7 @@ namespace DTAClient.Domain.Multiplayer
                     baseFilePath = baseFilePath.Substring(0, baseFilePath.Length - 4);
 
                     Map map = new Map(baseFilePath, false);
-                    if (map.SetInfoFromMap(file, gameModeAliases))
+                    if (map.SetInfoFromMap(file, GameModeAliases))
                         customMaps.Add(map);
                 }
             }
@@ -141,6 +146,69 @@ namespace DTAClient.Domain.Multiplayer
             }
 
             MapLoadingComplete?.Invoke(this, EventArgs.Empty);
+        }
+
+        /// <summary>
+        /// Attempts to load a custom map.
+        /// </summary>
+        /// <param name="mapPath">The path to the map file relative to the game directory.</param>
+        /// <param name="resultMessage">When method returns, contains a message reporting whether or not loading the map failed and how.</param>
+        /// <returns>The map if loading it was succesful, otherwise false.</returns>
+        public Map LoadCustomMap(string mapPath, out string resultMessage)
+        {
+
+            if (!File.Exists(ProgramConstants.GamePath + mapPath + MAP_FILE_EXTENSION))
+            {
+                Logger.Log("LoadCustomMap: Map " + mapPath + " not found!");
+                resultMessage = $"Map file {mapPath}{MAP_FILE_EXTENSION} doesn't exist!";
+
+                return null;
+            }
+
+            Logger.Log("LoadCustomMap: Loading custom map " + mapPath);
+            Map map = new Map(mapPath, false);
+
+            if (map.SetInfoFromMap(ProgramConstants.GamePath + mapPath + MAP_FILE_EXTENSION, GameModeAliases))
+            {
+                foreach (GameMode gm in GameModes)
+                {
+                    if (gm.Maps.Find(m => m.SHA1 == map.SHA1) != null)
+                    {
+                        Logger.Log("LoadCustomMap: Custom map " + mapPath + " is already loaded!");
+                        resultMessage = $"Map {mapPath} is already loaded.";
+
+                        return null;
+                    }
+                }
+
+                Logger.Log("LoadCustomMap: Map " + mapPath + " added succesfully.");
+
+                foreach (string gameMode in map.GameModes)
+                {
+                    GameMode gm = GameModes.Find(g => g.Name == gameMode);
+
+                    if (gm == null)
+                    {
+                        if (!AllowedGameModes.Contains(gameMode))
+                            continue;
+
+                        gm = new GameMode(gameMode);
+                        GameModes.Add(gm);
+                    }
+
+                    gm.Maps.Add(map);
+                    Logger.Log("LoadCustomMap: Adding map to game mode " + gm.Name);
+                }
+
+                resultMessage = $"Map {mapPath} loaded succesfully.";
+
+                return map;
+            }
+
+            Logger.Log("LoadCustomMap: Loading map " + mapPath + " failed!");
+            resultMessage = $"Loading map {mapPath} failed!";
+
+            return null;
         }
 
         public void WriteCustomMapCache()

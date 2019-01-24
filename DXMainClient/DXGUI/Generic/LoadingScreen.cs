@@ -84,7 +84,7 @@ namespace DTAClient.DXGUI.Generic
             var gameCollection = new GameCollection();
             gameCollection.Initialize(GraphicsDevice);
 
-            var lanLobby = new LANLobby(WindowManager, gameCollection, mapLoader.GameModes);
+            var lanLobby = new LANLobby(WindowManager, gameCollection, mapLoader.GameModes, mapLoader);
 
             var cncnetUserData = new CnCNetUserData(WindowManager);
             var cncnetManager = new CnCNetManager(WindowManager, gameCollection);
@@ -99,7 +99,7 @@ namespace DTAClient.DXGUI.Generic
             privateMessagingPanel = new PrivateMessagingPanel(WindowManager);
 
             var cncnetGameLobby = new CnCNetGameLobby(WindowManager,
-                "MultiplayerGameLobby", topBar, mapLoader.GameModes, cncnetManager, tunnelHandler, gameCollection, cncnetUserData);
+                "MultiplayerGameLobby", topBar, mapLoader.GameModes, cncnetManager, tunnelHandler, gameCollection, cncnetUserData, mapLoader);
             var cncnetGameLoadingLobby = new CnCNetGameLoadingLobby(WindowManager, 
                 topBar, cncnetManager, tunnelHandler, mapLoader.GameModes, gameCollection);
             var cncnetLobby = new CnCNetLobby(WindowManager, cncnetManager, 
