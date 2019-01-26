@@ -403,34 +403,33 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             lbMapList.SelectedIndex = -1;
 
             int mapIndex = -1;
-            int mapIndexCounter = 0;
 
-            foreach (Map map in GameMode.Maps)
+            for (int i = 0; i < GameMode.Maps.Count; i++)
             {
                 if (tbMapSearch.Text != tbMapSearch.Suggestion)
                 {
-                    if (!map.Name.ToUpper().Contains(tbMapSearch.Text.ToUpper()))
+                    if (!GameMode.Maps[i].Name.ToUpper().Contains(tbMapSearch.Text.ToUpper()))
                         continue;
                 }
 
                 XNAListBoxItem rankItem = new XNAListBoxItem();
-                if (map.IsCoop)
+                if (GameMode.Maps[i].IsCoop)
                 {
-                    if (StatisticsManager.Instance.HasBeatCoOpMap(map.Name, GameMode.UIName))
+                    if (StatisticsManager.Instance.HasBeatCoOpMap(GameMode.Maps[i].Name, GameMode.UIName))
                         rankItem.Texture = RankTextures[Math.Abs(2 - GameMode.CoopDifficultyLevel) + 1];
                     else
                         rankItem.Texture = RankTextures[0];
                 }
                 else
-                    rankItem.Texture = RankTextures[GetDefaultMapRankIndex(map) + 1];
+                    rankItem.Texture = RankTextures[GetDefaultMapRankIndex(GameMode.Maps[i]) + 1];
 
                 XNAListBoxItem mapNameItem = new XNAListBoxItem();
-                mapNameItem.Text = Renderer.GetSafeString(map.Name, lbMapList.FontIndex);
-                if ((map.MultiplayerOnly || GameMode.MultiplayerOnly) && !isMultiplayer)
+                mapNameItem.Text = Renderer.GetSafeString(GameMode.Maps[i].Name, lbMapList.FontIndex);
+                if ((GameMode.Maps[i].MultiplayerOnly || GameMode.MultiplayerOnly) && !isMultiplayer)
                     mapNameItem.TextColor = UISettings.DisabledButtonColor;
                 else
                     mapNameItem.TextColor = UISettings.AltColor;
-                mapNameItem.Tag = map;
+                mapNameItem.Tag = GameMode.Maps[i];
 
                 XNAListBoxItem[] mapInfoArray = new XNAListBoxItem[]
                 {
@@ -440,9 +439,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
                 lbMapList.AddItem(mapInfoArray);
 
-                if (map == Map)
-                    mapIndex = mapIndexCounter;
-                mapIndexCounter++;
+                if (GameMode.Maps[i] == Map)
+                    mapIndex = i;
             }
 
             if (mapIndex > -1)
