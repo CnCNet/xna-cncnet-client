@@ -156,7 +156,6 @@ namespace DTAClient.Domain.Multiplayer
         /// <returns>The map if loading it was succesful, otherwise false.</returns>
         public Map LoadCustomMap(string mapPath, out string resultMessage)
         {
-
             if (!File.Exists(ProgramConstants.GamePath + mapPath + MAP_FILE_EXTENSION))
             {
                 Logger.Log("LoadCustomMap: Map " + mapPath + " not found!");
