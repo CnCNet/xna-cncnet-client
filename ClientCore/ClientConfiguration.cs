@@ -577,6 +577,15 @@ namespace ClientCore
             }
         }
 
+        public bool ProcessScreenshots
+        {
+#if MO
+            get { return clientDefinitionsIni.GetBooleanValue(SETTINGS, "ProcessScreenshots", true); }
+#else
+            get { return false; }
+#endif
+        }
+
         /// <summary>
         /// Returns the name of the game executable file that is used on
         /// Linux and macOS.

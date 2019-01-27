@@ -91,7 +91,10 @@ namespace DTAClient.DXGUI.Generic
         public void SetInfo(string version, int updateSize)
         {
             lblDescription.Text = string.Format("Version {0} is available for download." + Environment.NewLine + "Do you wish to install it?", version);
-            lblUpdateSize.Text = string.Format("The size of the update is {0} MB.", updateSize / 1000);
+            if (updateSize >= 1000)
+                lblUpdateSize.Text = string.Format("The size of the update is {0} MB.", updateSize / 1000);
+            else
+                lblUpdateSize.Text = string.Format("The size of the update is {0} KB.", updateSize);
         }
     }
 }

@@ -49,7 +49,7 @@ namespace DTAClient.DXGUI.Generic
 
         private XNALabel lblCnCNetPlayerCount;
         private XNALinkLabel lblUpdateStatus;
-        private XNALabel lblVersion;
+        private XNALinkLabel lblVersion;
 
         private SkirmishLobby skirmishLobby;
 
@@ -187,7 +187,9 @@ namespace DTAClient.DXGUI.Generic
             lblCnCNetPlayerCount.Name = "lblCnCNetPlayerCount";
             lblCnCNetPlayerCount.Text = "-";
 
-            lblVersion = new XNALabel(WindowManager);
+            lblVersion = new XNALinkLabel(WindowManager);
+            lblVersion.LeftClick += LblVersion_LeftClick;
+
             lblVersion.Name = "lblVersion";
             lblVersion.Text = CUpdater.GameVersion;
 
@@ -496,6 +498,11 @@ namespace DTAClient.DXGUI.Generic
             {
                 CheckForUpdates();
             }
+        }
+
+        private void LblVersion_LeftClick(object sender, EventArgs e)
+        {
+            Process.Start(ClientConfiguration.Instance.ChangelogURL);
         }
 
         /// <summary>

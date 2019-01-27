@@ -24,10 +24,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         private const int MAX_DIE_SIDES = 100;
 
         public MultiplayerGameLobby(WindowManager windowManager, string iniName, 
-            TopBar topBar, List<GameMode> GameModes)
+            TopBar topBar, List<GameMode> GameModes, MapLoader mapLoader)
             : base(windowManager, iniName, GameModes, true)
         {
             TopBar = topBar;
+            MapLoader = mapLoader;
 
             chatBoxCommands = new List<ChatBoxCommand>
             {
@@ -41,7 +42,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     s => SetMaxAhead(s)),
                 new ChatBoxCommand("PROTOCOLVERSION", "Change ProtocolVersion (default 2) (game host only)", true,
                     s => SetProtocolVersion(s)),
-                new ChatBoxCommand("LOADMAP", "Load a custom map with given filename from \\Maps\\Custom\\ folder.", true, s => LoadCustomMap($"Maps\\Custom\\{s}", true)),
+                new ChatBoxCommand("LOADMAP", "Load a custom map with given filename from \\Maps\\Custom\\ folder.", true, LoadCustomMap),
                 new ChatBoxCommand("RANDOMSTARTS", "Enables completely random starting locations (Tiberian Sun based games only).", true,
                     s => SetStartingLocationClearance(s)),
                 new ChatBoxCommand("ROLL", "Roll dice, for example /roll 3d6", false, RollDiceCommand),
@@ -57,6 +58,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         protected bool IsHost = false;
 
         protected bool Locked = false;
+
+        protected bool DisplayRandomMapButton = false;
 
         protected EnhancedSoundEffect sndJoinSound;
         protected EnhancedSoundEffect sndLeaveSound;
@@ -82,8 +85,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private bool gameSaved = false;
 
-        private string[] allowedGameModes = ClientConfiguration.Instance.GetAllowedGameModes.Split(',');
-
+        protected MapLoader MapLoader;
 
         /// <summary>
         /// Allows derived classes to add their own chat box commands.
@@ -176,6 +178,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             MapPreviewBox.StartingLocationApplied += MapPreviewBox_StartingLocationApplied;
 
             InitializeWindow();
+
+            DisplayRandomMapButton = btnPickRandomMap.Enabled && btnPickRandomMap.Visible;
 
             sndJoinSound = new EnhancedSoundEffect("joingame.wav");
             sndLeaveSound = new EnhancedSoundEffect("leavegame.wav");
@@ -470,6 +474,19 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         }
 
         /// <summary>
+        /// Handles custom map load command.
+        /// </summary>
+        /// <param name="mapName">Name of the map given as a parameter, without file extension.</param>
+        private void LoadCustomMap(string mapName)
+        {
+            Map map = MapLoader.LoadCustomMap($"Maps\\Custom\\{mapName}", out string resultMessage);
+            if (map != null)
+                AddNotice(resultMessage);
+            else
+                AddNotice(resultMessage, Color.Red);
+        }
+
+        /// <summary>
         /// Override in derived classes to broadcast the results of rolling dice to other players.
         /// </summary>
         /// <param name="dieSides">The number of sides in the dice.</param>
@@ -604,6 +621,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             lblGameModeSelect.Disable();
             lbMapList.Disable();
             tbMapSearch.Disable();
+            if (DisplayRandomMapButton)
+                btnPickRandomMap.Disable();
 
             lbChatMessages.GetAttributes(ThemeIni);
             tbChatInput.GetAttributes(ThemeIni);
@@ -631,6 +650,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             lblGameModeSelect.Enable();
             lbMapList.Enable();
             tbMapSearch.Enable();
+            if (DisplayRandomMapButton)
+                btnPickRandomMap.Enable();
 
             lbChatMessages.GetAttributes(ThemeIni);
             tbChatInput.GetAttributes(ThemeIni);
@@ -951,80 +972,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 return 2;
 
             return -1;
-        }
-
-        /// <summary>
-        /// Attempts to load a custom map.
-        /// </summary>
-        /// <param name="mapPath">The path to the map file relative to the game directory.</param>
-        /// <param name="userInvoked">Whether this function was invoked by the user. 
-        /// If true, displays notifications regarding the success of the map loading.</param>
-        /// <returns>The map if loading it was succesful, otherwise false.</returns>
-        protected Map LoadCustomMap(string mapPath, bool userInvoked)
-        {
-            // TODO This belongs to MapLoader
-
-            if (!File.Exists(ProgramConstants.GamePath + mapPath + MapLoader.MAP_FILE_EXTENSION))
-            {
-                Logger.Log("LoadCustomMap: Map " + mapPath + " not found!");
-                AddNotice($"Map file {mapPath}{MapLoader.MAP_FILE_EXTENSION} doesn't exist!");
-                return null;
-            }
-            
-            Logger.Log("Loading custom map " + mapPath);
-            Map map = new Map(mapPath, false);
-
-            if (map.SetInfoFromMap(ProgramConstants.GamePath + mapPath + MapLoader.MAP_FILE_EXTENSION))
-            {
-                foreach (GameMode gm in GameModes)
-                {
-                    if (gm.Maps.Find(m => m.SHA1 == map.SHA1) != null)
-                    {
-                        Logger.Log("Custom map " + mapPath + " is already loaded!");
-
-                        if (userInvoked)
-                        {
-                            AddNotice($"Map {mapPath} is already loaded.");
-                        }
-
-                        return null;
-                    }
-                }
-
-                Logger.Log("Map " + mapPath + " added succesfully.");
-
-                foreach (string gameMode in map.GameModes)
-                {
-                    GameMode gm = GameModes.Find(g => g.Name == gameMode);
-
-                    if (gm == null)
-                    {
-                        if (!allowedGameModes.Contains(gameMode))
-                            continue;
-
-                        gm = new GameMode(gameMode);
-                        GameModes.Add(gm);
-                    }
-
-                    gm.Maps.Add(map);
-                    Logger.Log("Adding map to game mode " + gm.Name);
-                }
-
-                if (userInvoked)
-                {
-                    AddNotice($"Map {mapPath} loaded succesfully.");
-                }
-
-                return map;
-            }
-
-            if (userInvoked)
-            {
-                AddNotice($"Loading map {mapPath} failed!");
-            }
-
-            Logger.Log("Loading map " + mapPath + " failed!");
-            return null;
         }
 
         public void SwitchOn()

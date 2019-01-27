@@ -39,8 +39,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         private const string DICE_ROLL_COMMAND = "DR";
 
         public LANGameLobby(WindowManager windowManager, string iniName, 
-            TopBar topBar, List<GameMode> GameModes, LANColor[] chatColors) : 
-            base(windowManager, iniName, topBar, GameModes)
+            TopBar topBar, List<GameMode> GameModes, LANColor[] chatColors, MapLoader mapLoader) : 
+            base(windowManager, iniName, topBar, GameModes, mapLoader)
         {
             this.chatColors = chatColors;
             encoding = Encoding.UTF8;

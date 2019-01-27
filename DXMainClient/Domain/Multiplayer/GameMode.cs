@@ -96,7 +96,7 @@ namespace DTAClient.Domain.Multiplayer
 
         private void ParseSpawnIniOptions(IniFile forcedOptionsIni)
         {
-            string section = Name + SPAWN_INI_OPTIONS_SECTION;
+            string section = forcedOptionsIni.GetStringValue(Name, "ForcedSpawnIniOptions", Name + SPAWN_INI_OPTIONS_SECTION);
 
             List<string> spawnIniKeys = forcedOptionsIni.GetSectionKeys(section);
 

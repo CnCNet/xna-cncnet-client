@@ -87,7 +87,7 @@ namespace DTAConfig.OptionPanels
         {
             int selectedIndex = lbUpdateServerList.SelectedIndex;
 
-            if (selectedIndex > lbUpdateServerList.Items.Count - 2)
+            if (selectedIndex > lbUpdateServerList.Items.Count - 2 || selectedIndex < 0)
                 return;
 
             var tmp = lbUpdateServerList.Items[selectedIndex + 1];

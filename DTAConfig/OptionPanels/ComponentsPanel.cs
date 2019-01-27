@@ -95,13 +95,13 @@ namespace DTAConfig.OptionPanels
                     buttonEnabled = true;
 
                     if (c.LocalIdentifier != c.RemoteIdentifier)
-                        buttonText = "Update (" + (c.RemoteSize / 1048576) + " MB)";
+                        buttonText = "Update (" + GetSizeString(c.RemoteSize) + ")";
                 }
                 else
                 {
                     if (!string.IsNullOrEmpty(c.RemoteIdentifier))
                     {
-                        buttonText = "Install (" + (c.RemoteSize / 1048576) + " MB)";
+                        buttonText = "Install (" + GetSizeString(c.RemoteSize) + ")";
                         buttonEnabled = true;
                     }
                 }
@@ -112,7 +112,6 @@ namespace DTAConfig.OptionPanels
                 componentIndex++;
             }
         }
-
 
         public override bool Save()
         {
@@ -151,7 +150,7 @@ namespace DTAConfig.OptionPanels
                 var msgBox = new XNAMessageBox(WindowManager, "Confirmation Required",
                     "To enable " + cc.GUIName + " the Client will download the necessary files to your game directory." +
                     Environment.NewLine + Environment.NewLine +
-                    "This will take an additional " + cc.RemoteSize / 1048576 + " MB of disk space, and the download may last" +
+                    "This will take an additional " + GetSizeString(cc.RemoteSize) + " of disk space, and the download may last" +
                     Environment.NewLine +
                     "from a few minutes to multiple hours depending on your Internet connection speed." +
                     Environment.NewLine + Environment.NewLine +
@@ -268,6 +267,18 @@ namespace DTAConfig.OptionPanels
         public void Open()
         {
             downloadCancelled = false;
+        }
+
+        private string GetSizeString(long size)
+        {
+            if (size < 1048576)
+            {
+                return (size / 1024) + " KB";
+            }
+            else
+            {
+                return (size / 1048576) + " MB";
+            }
         }
     }
 }

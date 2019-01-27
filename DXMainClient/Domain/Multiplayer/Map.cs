@@ -253,9 +253,10 @@ namespace DTAClient.Domain.Multiplayer
                     waypoints.Add(waypoint);
                 }
 
+#if !WINDOWSGL
                 if (UserINISettings.Instance.PreloadMapPreviews)
                     PreviewTexture = LoadPreviewTexture();
-
+#endif
                 // Parse forced options
 
                 string forcedOptionsSections = iniFile.GetStringValue(BaseFilePath, "ForcedOptions", string.Empty);
@@ -311,7 +312,7 @@ namespace DTAClient.Domain.Multiplayer
         /// Returns true if succesful, otherwise false.
         /// </summary>
         /// <param name="path">The full path to the map INI file.</param>
-        public bool SetInfoFromMap(string path)
+        public bool SetInfoFromMap(string path, Dictionary<string, string[]> gameModeAliases)
         {
             if (!File.Exists(path))
                 return false;
@@ -352,14 +353,24 @@ namespace DTAClient.Domain.Multiplayer
                     return false;
                 }
 
+                List<string> gameModeList = new List<string>();
                 for (int i = 0; i < GameModes.Length; i++)
                 {
                     string gameMode = GameModes[i].Trim();
                     gameMode = gameMode.Substring(0, 1).ToUpperInvariant() + gameMode.Substring(1);
-                    GameModes[i] = gameMode;
-                }
 
-                // TODO handle game mode aliases
+                    string[] aliases;
+
+                    if (!gameModeAliases.TryGetValue(gameMode, out aliases))
+                    {
+                        gameModeList.Add(gameMode);
+                        continue;
+                    }
+
+                    foreach (var alias in aliases)
+                        gameModeList.Add(alias);
+                }
+                GameModes = gameModeList.ToArray();
 
                 MinPlayers = 0;
                 if (basicSection.KeyExists("ClientMaxPlayer"))
@@ -379,7 +390,7 @@ namespace DTAClient.Domain.Multiplayer
                 HumanPlayersOnly = basicSection.GetBooleanValue("HumanPlayersOnly", false);
                 ForceRandomStartLocations = basicSection.GetBooleanValue("ForceRandomStartLocations", false);
                 ForceNoTeams = basicSection.GetBooleanValue("ForceNoTeams", false);
-                PreviewPath = Path.ChangeExtension(path.Substring(ProgramConstants.GamePath.Length + 1), ".png");
+                PreviewPath = Path.ChangeExtension(path.Substring(ProgramConstants.GamePath.Length), ".png");
                 MultiplayerOnly = basicSection.GetBooleanValue("ClientMultiplayerOnly", false);
 
                 string bases = basicSection.GetStringValue("Bases", string.Empty);
@@ -655,6 +666,13 @@ namespace DTAClient.Domain.Multiplayer
             int y = Convert.ToInt32(ratioY * previewSizePoint.Y);
 
             return new Point(x, y);
+        }
+
+        public string GetSizeString()
+        {
+            if (actualSize == null || actualSize.Length < 4)
+                return "Not available";
+            return actualSize[2] + "x" + actualSize[3];
         }
     }
 }

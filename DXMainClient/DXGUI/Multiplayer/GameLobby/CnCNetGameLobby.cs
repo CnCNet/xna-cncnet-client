@@ -35,10 +35,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         private const string CHEAT_DETECTED_MESSAGE = "CD";
         private const string DICE_ROLL_MESSAGE = "DR";
 
-        public CnCNetGameLobby(WindowManager windowManager, string iniName, 
+        public CnCNetGameLobby(WindowManager windowManager, string iniName,
             TopBar topBar, List<GameMode> GameModes, CnCNetManager connectionManager,
-            TunnelHandler tunnelHandler, GameCollection gameCollection, CnCNetUserData cncnetUserData) : 
-            base(windowManager, iniName, topBar, GameModes)
+            TunnelHandler tunnelHandler, GameCollection gameCollection, CnCNetUserData cncnetUserData, MapLoader mapLoader) : 
+            base(windowManager, iniName, topBar, GameModes, mapLoader)
         {
             this.connectionManager = connectionManager;
             localGame = ClientConfiguration.Instance.LocalGame;
@@ -1378,9 +1378,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             Logger.Log("Map " + e.SHA1 + " downloaded, parsing.");
             string mapPath = "Maps\\Custom\\" + e.SHA1;
-            Map map = LoadCustomMap(mapPath, false);
+            Map map = MapLoader.LoadCustomMap(mapPath, out string returnMessage);
             if (map != null)
             {
+                AddNotice(returnMessage);
                 if (lastMapSHA1 == e.SHA1)
                 {
                     Map = map;
@@ -1390,8 +1391,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             }
             else
             {
+                AddNotice(returnMessage, Color.Red);
                 AddNotice("Transfer of the custom map failed. The host needs to change the map or you will be unable to participate in this match.");
-
                 channel.SendCTCPMessage(MAP_SHARING_FAIL_MESSAGE + " " + e.SHA1, QueuedMessageType.SYSTEM_MESSAGE, 9);
             }
         }

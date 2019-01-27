@@ -11,6 +11,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 
 namespace DTAClient.DXGUI.Multiplayer.GameLobby
 {
@@ -79,9 +80,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         protected XNAClientButton btnLeaveGame;
         protected XNAClientButton btnLaunchGame;
+        protected XNAClientButton btnPickRandomMap;
         protected XNALabel lblMapName;
         protected XNALabel lblMapAuthor;
         protected XNALabel lblGameMode;
+        protected XNALabel lblMapSize;
 
         protected MapPreviewBox MapPreviewBox;
 
@@ -217,6 +220,14 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             lblGameMode.FontIndex = 1;
             lblGameMode.Text = "Game mode:";
 
+            lblMapSize = new XNALabel(WindowManager);
+            lblMapSize.Name = "lblMapSize";
+            lblMapSize.ClientRectangle = new Rectangle(lblGameMode.ClientRectangle.X,
+                lblGameMode.ClientRectangle.Bottom + 3, 0, 0);
+            lblMapSize.FontIndex = 1;
+            lblMapSize.Text = "Size: ";
+            lblMapSize.Visible = false;
+
             lbMapList = new XNAMultiColumnListBox(WindowManager);
             lbMapList.Name = "lbMapList";
             lbMapList.ClientRectangle = new Rectangle(btnLaunchGame.X, GameOptionsPanel.Y + 23,
@@ -263,9 +274,18 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             tbMapSearch.MaximumTextLength = 64;
             tbMapSearch.InputReceived += TbMapSearch_InputReceived;
 
+            btnPickRandomMap = new XNAClientButton(WindowManager);
+            btnPickRandomMap.Name = "btnPickRandomMap";
+            btnPickRandomMap.ClientRectangle = new Rectangle(btnLaunchGame.Right + 157 , btnLaunchGame.Y, 133, 23);
+            btnPickRandomMap.Text = "Pick Random Map";
+            btnPickRandomMap.LeftClick += BtnPickRandomMap_LeftClick;
+            btnPickRandomMap.Visible = false;
+            btnPickRandomMap.Enabled = false;
+
             AddChild(lblMapName);
             AddChild(lblMapAuthor);
             AddChild(lblGameMode);
+            AddChild(lblMapSize);
             AddChild(MapPreviewBox);
 
             AddChild(lbMapList);
@@ -312,6 +332,12 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             AddChild(PlayerOptionsPanel);
             AddChild(btnLaunchGame);
             AddChild(btnLeaveGame);
+            AddChild(btnPickRandomMap);
+        }
+
+        private void BtnPickRandomMap_LeftClick(object sender, EventArgs e)
+        {
+            PickRandomMap();
         }
 
         private void TbMapSearch_InputReceived(object sender, EventArgs e)
@@ -376,32 +402,34 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             lbMapList.SelectedIndex = -1;
 
-            foreach (Map map in GameMode.Maps)
+            int mapIndex = -1;
+
+            for (int i = 0; i < GameMode.Maps.Count; i++)
             {
                 if (tbMapSearch.Text != tbMapSearch.Suggestion)
                 {
-                    if (!map.Name.ToUpper().Contains(tbMapSearch.Text.ToUpper()))
+                    if (!GameMode.Maps[i].Name.ToUpper().Contains(tbMapSearch.Text.ToUpper()))
                         continue;
                 }
 
                 XNAListBoxItem rankItem = new XNAListBoxItem();
-                if (map.IsCoop)
+                if (GameMode.Maps[i].IsCoop)
                 {
-                    if (StatisticsManager.Instance.HasBeatCoOpMap(map.Name, GameMode.UIName))
+                    if (StatisticsManager.Instance.HasBeatCoOpMap(GameMode.Maps[i].Name, GameMode.UIName))
                         rankItem.Texture = RankTextures[Math.Abs(2 - GameMode.CoopDifficultyLevel) + 1];
                     else
                         rankItem.Texture = RankTextures[0];
                 }
                 else
-                    rankItem.Texture = RankTextures[GetDefaultMapRankIndex(map) + 1];
+                    rankItem.Texture = RankTextures[GetDefaultMapRankIndex(GameMode.Maps[i]) + 1];
 
                 XNAListBoxItem mapNameItem = new XNAListBoxItem();
-                mapNameItem.Text = Renderer.GetSafeString(map.Name, lbMapList.FontIndex);
-                if ((map.MultiplayerOnly || GameMode.MultiplayerOnly) && !isMultiplayer)
+                mapNameItem.Text = Renderer.GetSafeString(GameMode.Maps[i].Name, lbMapList.FontIndex);
+                if ((GameMode.Maps[i].MultiplayerOnly || GameMode.MultiplayerOnly) && !isMultiplayer)
                     mapNameItem.TextColor = UISettings.DisabledButtonColor;
                 else
                     mapNameItem.TextColor = UISettings.AltColor;
-                mapNameItem.Tag = map;
+                mapNameItem.Tag = GameMode.Maps[i];
 
                 XNAListBoxItem[] mapInfoArray = new XNAListBoxItem[]
                 {
@@ -411,8 +439,15 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
                 lbMapList.AddItem(mapInfoArray);
 
-                if (map == Map)
-                    lbMapList.SelectedIndex = lbMapList.ItemCount - 1;
+                if (GameMode.Maps[i] == Map)
+                    mapIndex = i;
+            }
+
+            if (mapIndex > -1)
+            {
+                lbMapList.SelectedIndex = mapIndex;
+                while (mapIndex > lbMapList.LastIndex)
+                    lbMapList.TopIndex++;
             }
 
             lbMapList.SelectedIndexChanged += LbMapList_SelectedIndexChanged;
@@ -430,6 +465,34 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             Map map = (Map)item.Tag;
 
             ChangeMap(GameMode, map);
+        }
+
+        private void PickRandomMap()
+        {
+            int totalPlayerCount = Players.Count(p => p.SideId < ddPlayerSides[0].Items.Count - 1)
+                   + AIPlayers.Count;
+            List<Map> maps = GetMapList(totalPlayerCount);
+            if (maps.Count < 1)
+                return;
+
+            int random = new Random().Next(0, maps.Count);
+            Map = maps[random];
+
+            Logger.Log("PickRandomMap: Rolled " + random + " out of " + maps.Count + ". Picked map: " + Map.Name);
+
+            ChangeMap(GameMode, Map);
+            tbMapSearch.Text = string.Empty;
+            tbMapSearch.OnSelectedChanged();
+            ListMaps();
+        }
+
+        private List<Map> GetMapList(int playerCount)
+        {
+            List<Map> mapList = new List<Map>(GameMode.Maps.Where(x => x.MaxPlayers == playerCount));
+            if (mapList.Count < 1 && playerCount <= MAX_PLAYER_COUNT)
+                return GetMapList(playerCount + 1);
+            else
+                return mapList;
         }
 
         /// <summary>
@@ -1166,8 +1229,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             IniFile globalCodeIni = new IniFile(ProgramConstants.GamePath + "INI\\Map Code\\GlobalCode.ini");
 
-            IniFile.ConsolidateIniFiles(mapIni, GameMode.GetMapRulesIniFile());
-            IniFile.ConsolidateIniFiles(mapIni, globalCodeIni);
+            MapCodeHelper.ApplyMapCode(mapIni, GameMode.GetMapRulesIniFile());
+            MapCodeHelper.ApplyMapCode(mapIni, globalCodeIni);
 
             foreach (GameLobbyCheckBox checkBox in CheckBoxes)
                 checkBox.ApplyMapCode(mapIni, GameMode);
@@ -1261,7 +1324,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             {
                 PlayerHouseInfo houseInfo = houseInfos[pId];
 
-                if (houseInfo.RealStartingWaypoint > -1 && 
+                if (houseInfo.RealStartingWaypoint > -1 &&
                     houseInfo.StartingWaypoint == -1)
                 {
                     // Find first unused starting location index
@@ -1321,6 +1384,28 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             ClearReadyStatuses();
 
             CopyPlayerDataToUI();
+
+            if (ClientConfiguration.Instance.ProcessScreenshots)
+            {
+                Logger.Log("GameProcessExited: Processing screenshots.");
+                Thread thread = new Thread(ProcessScreenshots);
+                thread.Start();
+            }
+        }
+
+        private void ProcessScreenshots()
+        {
+            string[] filenames = Directory.GetFiles(ProgramConstants.GamePath, "SCRN*.bmp");
+            string screenshotsDirectory = ProgramConstants.GamePath + "Screenshots";
+            foreach (string filename in filenames)
+            {
+                Directory.CreateDirectory(screenshotsDirectory);
+                System.Drawing.Bitmap bitmap = new System.Drawing.Bitmap(filename);
+                bitmap.Save(screenshotsDirectory + Path.DirectorySeparatorChar + Path.GetFileNameWithoutExtension(filename) + 
+                    ".png", System.Drawing.Imaging.ImageFormat.Png);
+                bitmap.Dispose();
+                File.Delete(filename);
+            }
         }
 
         /// <summary>
@@ -1553,6 +1638,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 lblMapName.Text = "Map: Unknown";
                 lblMapAuthor.Text = "By Unknown Author";
                 lblGameMode.Text = "Game mode: Unknown";
+                lblMapSize.Text = "Size: Not available";
 
                 lblMapAuthor.X = MapPreviewBox.Right - lblMapAuthor.Width;
 
@@ -1564,6 +1650,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             lblMapName.Text = "Map: " + Renderer.GetSafeString(map.Name, lblMapName.FontIndex);
             lblMapAuthor.Text = "By " + Renderer.GetSafeString(map.Author, lblMapAuthor.FontIndex);
             lblGameMode.Text = "Game mode: " + gameMode.UIName;
+            lblMapSize.Text = "Size: " + map.GetSizeString();
 
             lblMapAuthor.X = MapPreviewBox.Right - lblMapAuthor.Width;
 

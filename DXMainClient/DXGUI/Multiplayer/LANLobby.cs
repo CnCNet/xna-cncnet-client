@@ -30,11 +30,12 @@ namespace DTAClient.DXGUI.Multiplayer
         private const double GAME_INACTIVITY_REMOVE_TIME = 20.0;
 
         public LANLobby(WindowManager windowManager, GameCollection gameCollection,
-            List<GameMode> gameModes)
+            List<GameMode> gameModes, MapLoader mapLoader)
             : base(windowManager)
         {
             this.gameCollection = gameCollection;
             this.gameModes = gameModes;
+            this.mapLoader = mapLoader;
         }
 
         public event EventHandler Exited;
@@ -81,6 +82,8 @@ namespace DTAClient.DXGUI.Multiplayer
         List<LANLobbyUser> players = new List<LANLobbyUser>();
 
         TimeSpan timeSinceAliveMessage = TimeSpan.Zero;
+
+        MapLoader mapLoader;
 
         bool initSuccess = false;
 
@@ -220,7 +223,7 @@ namespace DTAClient.DXGUI.Multiplayer
             gameCreationPanel.SetPositionAndSize();
 
             lanGameLobby = new LANGameLobby(WindowManager, "MultiplayerGameLobby",
-                null, gameModes, chatColors);
+                null, gameModes, chatColors, mapLoader);
             DarkeningPanel.AddAndInitializeWithControl(WindowManager, lanGameLobby);
             lanGameLobby.Disable();
 

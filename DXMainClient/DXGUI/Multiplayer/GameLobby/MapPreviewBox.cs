@@ -95,9 +95,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         public override void Initialize()
         {
             EnableStartLocationSelection = true;
-            
-            disposeTextures = !UserINISettings.Instance.PreloadMapPreviews;
 
+#if !WINDOWSGL
+            disposeTextures = !UserINISettings.Instance.PreloadMapPreviews;
+#endif
             startingLocationIndicators = new PlayerLocationIndicator[MAX_STARTING_LOCATIONS];
 
             Color nameBackgroundColor = AssetLoader.GetRGBAColorFromString(
