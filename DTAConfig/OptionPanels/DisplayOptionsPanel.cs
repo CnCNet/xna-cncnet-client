@@ -730,7 +730,7 @@ namespace DTAConfig.OptionPanels
                 !selectedRenderer.UsesCustomWindowedOption();
 
             IniSettings.BorderlessWindowedMode.Value = chkBorderlessWindowedMode.Checked &&
-                !string.IsNullOrEmpty(selectedRenderer.BorderlessWindowedModeKey);
+                string.IsNullOrEmpty(selectedRenderer.BorderlessWindowedModeKey);
 
             string[] clientResolution = ((string)ddClientResolution.SelectedItem.Tag).Split('x');
 

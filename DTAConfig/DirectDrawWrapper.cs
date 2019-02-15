@@ -44,7 +44,7 @@ namespace DTAConfig
 
         /// <summary>
         /// If not null or empty, the setting that controls whether the game is 
-        /// run in borderless windowed  mode will be written to this INI key in
+        /// run in borderless windowed mode will be written to this INI key in
         /// the section defined by
         /// <see cref="DirectDrawWrapper.WindowedModeSection"/> instead of the
         /// regular settings INI file.
