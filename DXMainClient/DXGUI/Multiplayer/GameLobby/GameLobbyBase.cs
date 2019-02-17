@@ -403,13 +403,17 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             lbMapList.SelectedIndex = -1;
 
             int mapIndex = -1;
+            int skippedMapsCount = 0;
 
             for (int i = 0; i < GameMode.Maps.Count; i++)
             {
                 if (tbMapSearch.Text != tbMapSearch.Suggestion)
                 {
                     if (!GameMode.Maps[i].Name.ToUpper().Contains(tbMapSearch.Text.ToUpper()))
+                    {
+                        skippedMapsCount++;
                         continue;
+                    }
                 }
 
                 XNAListBoxItem rankItem = new XNAListBoxItem();
@@ -440,7 +444,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 lbMapList.AddItem(mapInfoArray);
 
                 if (GameMode.Maps[i] == Map)
-                    mapIndex = i;
+                    mapIndex = i - skippedMapsCount;
             }
 
             if (mapIndex > -1)
