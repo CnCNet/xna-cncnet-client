@@ -422,10 +422,25 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
-       Other similar extension points exist, see Microsoft.Common.targets.
+       Other similar extension points exist, see Microsoft.Common.targets. -->
   <Target Name="BeforeBuild">
   </Target>
-  <Target Name="AfterBuild">
+  <Target Name="AfterBuild" Condition=" '$(Configuration)' == 'Debug' ">
+    <ItemGroup>
+      <SDL86 Include="$(SolutionDir)\References\WindowsGL\x86\*" />
+    </ItemGroup>
+    <ItemGroup>
+      <ExampleClientResources  Include="$(SolutionDir)\DXMainClient\Resources\DTA\**\*.*" />
+      <ExampleClientMaps Include="$(SolutionDir)\DXMainClient\Resources\Maps\**\*.*" />
+      <ExampleClientIni Include="$(SolutionDir)\DXMainClient\Resources\INI\**\*.*" />
+      <ExampleClientSettings Include="$(SolutionDir)\DXMainClient\Resources\Settings.ini" />
+      <ExampleClientDefinitions Include="$(SolutionDir)\DXMainClient\Resources\ClientDefinitions.ini" />
+    </ItemGroup>    
+    <Copy Condition=" '$(Configuration)|$(Platform)' == 'Debug|WindowsGL' " SourceFiles="@(SDL86)" DestinationFolder="$(OutputPath)\x86" />
+    <Copy Condition="! Exists('$(OutputPath)\Resources\ClientDefinitions.ini') " SourceFiles="@(ExampleClientResources)" DestinationFolder="$(OutputPath)\Resources\%(RecursiveDir)" />
+    <Copy Condition="! Exists('$(OutputPath)\Resources\ClientDefinitions.ini') " SourceFiles="@(ExampleClientMaps)" DestinationFolder="$(OutputPath)\Maps\%(RecursiveDir)" />
+    <Copy Condition="! Exists('$(OutputPath)\Resources\ClientDefinitions.ini') " SourceFiles="@(ExampleClientIni)" DestinationFolder="$(OutputPath)\INI\%(RecursiveDir)" />
+    <Copy Condition="! Exists('$(OutputPath)\Resources\ClientDefinitions.ini') " SourceFiles="@(ExampleClientSettings)" DestinationFolder="$(OutputPath)\" />
+    <Copy Condition="! Exists('$(OutputPath)\Resources\ClientDefinitions.ini') " SourceFiles="@(ExampleClientDefinitions)" DestinationFolder="$(OutputPath)\Resources" />
   </Target>
-  -->
 </Project>

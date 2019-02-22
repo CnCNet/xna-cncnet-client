@@ -149,7 +149,19 @@ namespace DTAClient
 
             if (name != null)
             {
-                byte[] data = File.ReadAllBytes(string.Format("{0}{1}.dll", SPECIFIC_LIBRARY_PATH, name));
+                byte[] data;
+#if DEBUG
+                try
+                {
+                   data = File.ReadAllBytes(string.Format("{0}{1}.dll", SPECIFIC_LIBRARY_PATH, name));
+                }
+                catch
+                {
+                    data = File.ReadAllBytes(string.Format("{0}{1}{2}.dll", Application.StartupPath, Path.DirectorySeparatorChar, name));
+                }
+#else
+                data = File.ReadAllBytes(string.Format("{0}{1}.dll", SPECIFIC_LIBRARY_PATH, name));
+#endif
                 return Assembly.Load(data);
             }
 
