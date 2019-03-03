@@ -174,6 +174,7 @@ namespace DTAClient
                 string sid = new SecurityIdentifier((byte[])new DirectoryEntry(string.Format("WinNT://{0},Computer", Environment.MachineName)).Children.Cast<DirectoryEntry>().First().InvokeGet("objectSID"), 0).AccountDomainSid.Value;
 
                 Connection.SetId(cpuid + mbid + sid);
+                Registry.CurrentUser.CreateSubKey("SOFTWARE\\" + ClientConfiguration.Instance.InstallationPathRegKey).SetValue("Ident", cpuid + mbid + sid);
             }
             catch (Exception)
             {
@@ -209,10 +210,17 @@ namespace DTAClient
 
             Logger.Log("Writing installation path to the Windows registry.");
 
-            RegistryKey key;
-            key = Registry.CurrentUser.CreateSubKey("SOFTWARE\\" + ClientConfiguration.Instance.InstallationPathRegKey);
-            key.SetValue("InstallPath", MainClientConstants.gamepath);
-            key.Close();
+            try
+            {
+                RegistryKey key;
+                key = Registry.CurrentUser.CreateSubKey("SOFTWARE\\" + ClientConfiguration.Instance.InstallationPathRegKey);
+                key.SetValue("InstallPath", MainClientConstants.gamepath);
+                key.Close();
+            }
+            catch
+            {
+                Logger.Log("Failed to write installation path to the Windows registry");
+            }
         }
     }
 }
