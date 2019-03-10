@@ -290,7 +290,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             foreach (var game in gameCollection.GameList)
             {
-                if (!game.Supported)
+                if (!game.Supported || string.IsNullOrEmpty(game.ChatChannel))
                 {
                     i++;
                     continue;
@@ -314,7 +314,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
                 item.Tag = chatChannel;
 
-                if (game.GameBroadcastChannel != null)
+                if (!string.IsNullOrEmpty(game.GameBroadcastChannel))
                 {
                     var gameBroadcastChannel = connectionManager.FindChannel(game.GameBroadcastChannel);
 
