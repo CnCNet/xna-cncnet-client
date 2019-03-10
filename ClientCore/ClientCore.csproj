@@ -187,6 +187,8 @@
     <Compile Include="CCIniFile.cs" />
     <Compile Include="CnCNet5\CnCNetGame.cs" />
     <Compile Include="CnCNet5\GameCollection.cs" />
+    <Compile Include="Linkers\WinLinker.cs" />
+    <Compile Include="ClientUtils.cs" />
     <Compile Include="ClientConfiguration.cs" />
     <Compile Include="CnCNet5\NameValidator.cs" />
     <Compile Include="OSVersion.cs" />

@@ -597,31 +597,7 @@ namespace ClientCore
 
         public OSVersion GetOperatingSystemVersion()
         {
-            Version osVersion = Environment.OSVersion.Version;
-
-            if (Environment.OSVersion.Platform == PlatformID.Win32NT)
-            {
-                if (osVersion.Major < 5)
-                    return OSVersion.UNKNOWN;
-
-                if (osVersion.Major == 5)
-                    return OSVersion.WINXP;
-
-                if (osVersion.Minor > 1)
-                    return OSVersion.WIN810;
-                else if (osVersion.Minor == 0)
-                    return OSVersion.WINVISTA;
-
-                return OSVersion.WIN7;
-            }
-
-            int p = (int)Environment.OSVersion.Platform;
-
-            // http://mono.wikia.com/wiki/Detecting_the_execution_platform
-            if (p == 4 || p == 6 || p == 128)
-                return OSVersion.UNIX;
-
-            return OSVersion.UNKNOWN;
+            return ClientUtils.GetOperatingSystemVersion();
         }
     }
 }
