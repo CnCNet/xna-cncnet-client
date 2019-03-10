@@ -93,6 +93,16 @@ namespace ClientCore.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        public static System.Drawing.Bitmap ppicon {
+            get {
+                object obj = ResourceManager.GetObject("ppicon", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         public static System.Drawing.Bitmap raicon {
             get {
                 object obj = ResourceManager.GetObject("raicon", resourceCulture);

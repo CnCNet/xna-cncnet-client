@@ -86,6 +86,17 @@ namespace ClientCore.CnCNet5
                     RegistryInstallPath = "HKML\\Software\\RedResurrection",
                     UIName = "YR Red-Resurrection",
                     Texture = AssetLoader.TextureFromImage(Resources.rricon)
+                },
+
+                new CnCNetGame()
+                {
+                    ChatChannel = "#projectphantom",
+                    ClientExecutableName = "PPLauncher.exe",
+                    GameBroadcastChannel = "#projectphantom-games",
+                    InternalName = "pp",
+                    RegistryInstallPath = "HKML\\Software\\ProjectPhantom",
+                    UIName = "Project Phantom",
+                    Texture = AssetLoader.TextureFromImage(Resources.ppicon)
                 }
             });
 
