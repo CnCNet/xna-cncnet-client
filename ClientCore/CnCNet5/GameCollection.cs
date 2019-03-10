@@ -163,6 +163,7 @@ namespace ClientCore.CnCNet5
                 if (string.IsNullOrEmpty(ID) || existingGames.Find(g => g.InternalName == ID) != null ||
                     customGameIDs.Contains(ID))
                     continue;
+                string iconFilename = iniFile.GetStringValue(kvp.Value, "IconFilename", ID + "icon.png");
                 customGames.Add(new CnCNetGame
                 {
                     InternalName = ID,
@@ -172,20 +173,13 @@ namespace ClientCore.CnCNet5
                     ClientExecutableName = iniFile.GetStringValue(kvp.Value, "ClientExecutableName", string.Empty),
                     RegistryInstallPath = iniFile.GetStringValue(kvp.Value, "RegistryInstallPath", "HKCU\\Software\\"
                     + ID.ToUpper()),
-                    Texture = GetCustomGameIcon(iniFile.GetStringValue("CustomGame", "IconFilename", ID + "icon.png"))
+                    Texture = AssetLoader.AssetExists(iconFilename) ? AssetLoader.LoadTexture(iconFilename) :
+                    AssetLoader.TextureFromImage(Resources.unknownicon)
                 });
                 customGameIDs.Add(ID);
             }
 
             return customGames;
-        }
-
-        private Texture2D GetCustomGameIcon(string iconFilename)
-        {
-            if (AssetLoader.AssetExists(iconFilename))
-                return AssetLoader.LoadTexture(iconFilename);
-            else
-                return AssetLoader.TextureFromImage(Resources.unknownicon);
         }
 
         /// <summary>
