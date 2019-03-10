@@ -191,7 +191,6 @@ namespace DTAClient.DXGUI.Generic
             lblVersion.LeftClick += LblVersion_LeftClick;
 
             lblVersion.Name = "lblVersion";
-            lblVersion.Text = CUpdater.GameVersion;
 
             lblUpdateStatus = new XNALinkLabel(WindowManager);
             lblUpdateStatus.Name = "lblUpdateStatus";
@@ -231,6 +230,8 @@ namespace DTAClient.DXGUI.Generic
             innerPanel.Hide();
 
             base.Initialize(); // Read control attributes from INI
+
+            lblVersion.Text = CUpdater.GameVersion;
 
             innerPanel.UpdateQueryWindow.UpdateDeclined += UpdateQueryWindow_UpdateDeclined;
             innerPanel.UpdateQueryWindow.UpdateAccepted += UpdateQueryWindow_UpdateAccepted;
