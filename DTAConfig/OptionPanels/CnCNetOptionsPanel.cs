@@ -115,15 +115,24 @@ namespace DTAConfig.OptionPanels
             AddChild(lblFollowedGames);
 
             int chkCount = 0;
-
+            int chkCountPerColumn = 5;
+            int nextColumnXOffset = 0;
+            int columnXOffset = 0;
             foreach (CnCNetGame game in gameCollection.GameList)
             {
                 if (!game.Supported || string.IsNullOrEmpty(game.GameBroadcastChannel))
                     continue;
 
+                if (chkCount == chkCountPerColumn)
+                {
+                    chkCount = 0;
+                    columnXOffset += nextColumnXOffset + 6;
+                    nextColumnXOffset = 0;
+                }
+
                 var panel = new XNAPanel(WindowManager);
                 panel.Name = "panel" + game.InternalName;
-                panel.ClientRectangle = new Rectangle(chkPingUnofficialTunnels.X,
+                panel.ClientRectangle = new Rectangle(chkPingUnofficialTunnels.X + columnXOffset,
                     lblFollowedGames.Bottom + 12 + chkCount * 22, 16, 16);
                 panel.DrawBorders = false;
                 panel.BackgroundTexture = game.Texture;
@@ -140,6 +149,9 @@ namespace DTAConfig.OptionPanels
                 AddChild(panel);
                 AddChild(chkBox);
                 followedGameChks.Add(chkBox);
+
+                if (chkBox.Right > nextColumnXOffset)
+                    nextColumnXOffset = chkBox.Right;
             }
         }
 
