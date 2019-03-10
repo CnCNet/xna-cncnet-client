@@ -19,8 +19,8 @@ namespace ClientCore.CnCNet5
         {
             GameList = new List<CnCNetGame>();
 
-            // Add default games.
-            GameList.AddRange(new CnCNetGame[]
+            // Default supported games.
+            CnCNetGame[] defaultGames = new CnCNetGame[]
             {
                 new CnCNetGame()
                 {
@@ -98,13 +98,10 @@ namespace ClientCore.CnCNet5
                     UIName = "Project Phantom",
                     Texture = AssetLoader.TextureFromImage(Resources.ppicon)
                 }
-            });
+            };
 
-            // Add custom games.
-            GameList.AddRange(GetCustomGames());
-
-            // Add CnCNet chat + unsupported games.
-            GameList.AddRange(new CnCNetGame[]
+            // CnCNet chat + unsupported games.
+            CnCNetGame[] otherGames = new CnCNetGame[]
             {
                 new CnCNetGame()
                 {
@@ -141,10 +138,14 @@ namespace ClientCore.CnCNet5
                     Supported = false,
                     Texture = AssetLoader.TextureFromImage(Resources.unknownicon)
                 }
-            });
+            };
+
+            GameList.AddRange(defaultGames);
+            GameList.AddRange(GetCustomGames(defaultGames.Concat(otherGames).ToList()));
+            GameList.AddRange(otherGames);
         }
 
-        private List<CnCNetGame> GetCustomGames()
+        private List<CnCNetGame> GetCustomGames(List<CnCNetGame> existingGames)
         {
             IniFile iniFile = new IniFile(ProgramConstants.GetBaseResourcePath() + "CustomGameConfig.ini");
 
@@ -155,10 +156,12 @@ namespace ClientCore.CnCNet5
             if (section == null)
                 return customGames;
 
+            HashSet<string> customGameIDs = new HashSet<string>();
             foreach (var kvp in section.Keys)
             {
                 string ID = iniFile.GetStringValue(kvp.Value, "InternalName", string.Empty).ToLower();
-                if (string.IsNullOrEmpty(ID))
+                if (string.IsNullOrEmpty(ID) || existingGames.Find(g => g.InternalName == ID) != null ||
+                    customGameIDs.Contains(ID))
                     continue;
                 customGames.Add(new CnCNetGame
                 {
@@ -171,6 +174,7 @@ namespace ClientCore.CnCNet5
                     + ID.ToUpper()),
                     Texture = GetCustomGameIcon(iniFile.GetStringValue("CustomGame", "IconFilename", ID + "icon.png"))
                 });
+                customGameIDs.Add(ID);
             }
 
             return customGames;
