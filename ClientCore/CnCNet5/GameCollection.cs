@@ -75,8 +75,18 @@ namespace ClientCore.CnCNet5
                     RegistryInstallPath = "HKLM\\Software\\Westwood\\Yuri's Revenge",
                     UIName = "Yuri's Revenge",
                     Texture = AssetLoader.TextureFromImage(Resources.yricon)
-                }
+                },
 
+                new CnCNetGame()
+                {
+                    ChatChannel = "#redres-lobby",
+                    ClientExecutableName = "RRLauncher.exe",
+                    GameBroadcastChannel = "#redres-games",
+                    InternalName = "rr",
+                    RegistryInstallPath = "HKML\\Software\\RedResurrection",
+                    UIName = "YR Red-Resurrection",
+                    Texture = AssetLoader.TextureFromImage(Resources.rricon)
+                }
             });
 
             // Add custom games.
