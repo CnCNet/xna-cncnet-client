@@ -1,4 +1,8 @@
-# CnCNet Client #
+# CnCNet HydraCorps Client Fork #
+=================
+
+Public repo of features that could/should be included in main client.
+
 =================
 
 The MonoGame / XNA CnCNet client, a platform for setting up and launching both singleplayer and multiplayer games with a CnCNet game spawner. Includes an IRC-based chat client with advanced features like private messaging and a friend list, a configurable game lobby, flexible and moddable UI graphics, and extras like game setting configuration and keeping track of match statistics. And much more!
