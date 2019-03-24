@@ -166,8 +166,8 @@ namespace DTAConfig
         {
             if (!string.IsNullOrEmpty(ddrawDLLPath))
             {
-                ClientUtils.BindFile(ProgramConstants.GetBaseResourcePath() + ddrawDLLPath,
-                    ProgramConstants.GamePath + "ddraw.dll");
+                File.Copy(ProgramConstants.GetBaseResourcePath() + ddrawDLLPath,
+                    ProgramConstants.GamePath + "ddraw.dll", true);
             }
             else
                 File.Delete(ProgramConstants.GamePath + "ddraw.dll");
@@ -182,8 +182,8 @@ namespace DTAConfig
 
             foreach (var file in filesToCopy)
             {
-                ClientUtils.BindFile(ProgramConstants.GetBaseResourcePath() + file,
-                    ProgramConstants.GamePath + Path.GetFileName(file));
+                File.Copy(ProgramConstants.GetBaseResourcePath() + file,
+                    ProgramConstants.GamePath + Path.GetFileName(file), true);
             }
         }
 

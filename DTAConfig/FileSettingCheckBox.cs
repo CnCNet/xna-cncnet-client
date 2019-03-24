@@ -4,8 +4,6 @@ using Rampastring.Tools;
 using Rampastring.XNAUI;
 using System.Collections.Generic;
 using System.IO;
-using System;
-using System.Runtime.InteropServices;
 
 namespace DTAConfig
 {
@@ -14,7 +12,6 @@ namespace DTAConfig
     /// </summary>
     public class FileSettingCheckBox : XNAClientCheckBox
     {
-
         public FileSettingCheckBox(WindowManager windowManager) : base (windowManager) { }
 
         public FileSettingCheckBox(WindowManager windowManager,
@@ -77,7 +74,8 @@ namespace DTAConfig
             {
                 foreach (var info in files)
                 {
-                    ClientUtils.BindFile(ProgramConstants.GamePath + info.SourcePath, ProgramConstants.GamePath + info.DestinationPath);
+                    File.Copy(ProgramConstants.GamePath + info.SourcePath,
+                            ProgramConstants.GamePath + info.DestinationPath, true);
                 }
             }
             else
