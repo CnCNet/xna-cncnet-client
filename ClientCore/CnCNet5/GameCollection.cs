@@ -79,6 +79,39 @@ namespace ClientCore.CnCNet5
 
                 new CnCNetGame()
                 {
+                    ChatChannel = "#hydracorps",
+                    ClientExecutableName = "EmerCon.exe",
+                    GameBroadcastChannel = "#hydracorps-games",
+                    InternalName = "ec",
+                    RegistryInstallPath = "HKCU\\Software\\EmerCon",
+                    UIName = "Emergency Condition",
+                    Texture = AssetLoader.TextureFromImage(Resources.ecicon)
+                },
+
+                new CnCNetGame()
+                {
+                    ChatChannel = "#hydracorps",
+                    ClientExecutableName = "Reborn.exe",
+                    GameBroadcastChannel = "#hydracorps-games",
+                    InternalName = "rb",
+                    RegistryInstallPath = "HKCU\\Software\\Reborn",
+                    UIName = "Reborn",
+                    Texture = AssetLoader.TextureFromImage(Resources.rbicon)
+                },
+
+                new CnCNetGame()
+                {
+                    ChatChannel = "#hydracorps",
+                    ClientExecutableName = "Metamorphosis.exe",
+                    GameBroadcastChannel = "#hydracorps-games",
+                    InternalName = "mm",
+                    RegistryInstallPath = "HKCU\\Software\\Metamorphosis",
+                    UIName = "Metamorphosis",
+                    Texture = AssetLoader.TextureFromImage(Resources.mmicon)
+                },
+
+                new CnCNetGame()
+                {
                     ChatChannel = "#cncnet",
                     InternalName = "cncnet",
                     UIName = "General CnCNet Chat",
@@ -111,7 +144,7 @@ namespace ClientCore.CnCNet5
                     UIName = "Dune 2000",
                     Supported = false,
                     Texture = AssetLoader.TextureFromImage(Resources.unknownicon)
-                }
+                }  
 
             }.ToList();
         }

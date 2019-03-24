@@ -170,5 +170,37 @@ namespace ClientCore.Properties {
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
+
+        // CUSTOM HYDRACORPS ICONS
+
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        public static System.Drawing.Bitmap rbicon {
+            get {
+                object obj = ResourceManager.GetObject("rbicon", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        public static System.Drawing.Bitmap ecicon {
+            get {
+                object obj = ResourceManager.GetObject("ecicon", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        public static System.Drawing.Bitmap mmicon {
+            get {
+                object obj = ResourceManager.GetObject("mmicon", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
     }
 }
