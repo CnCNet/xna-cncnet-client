@@ -115,15 +115,21 @@ namespace DTAConfig.OptionPanels
             AddChild(lblFollowedGames);
 
             int chkCount = 0;
+            int maxChkCount = 5;
+            int xOffset = 0;
 
             foreach (CnCNetGame game in gameCollection.GameList)
             {
                 if (!game.Supported || string.IsNullOrEmpty(game.GameBroadcastChannel))
                     continue;
-
+                if (chkCount == maxChkCount)
+                {
+                    chkCount = 0;
+                    xOffset += 220;
+                }
                 var panel = new XNAPanel(WindowManager);
                 panel.Name = "panel" + game.InternalName;
-                panel.ClientRectangle = new Rectangle(chkPingUnofficialTunnels.X,
+                panel.ClientRectangle = new Rectangle(chkPingUnofficialTunnels.ClientRectangle.X + xOffset,
                     lblFollowedGames.Bottom + 12 + chkCount * 22, 16, 16);
                 panel.DrawBorders = false;
                 panel.BackgroundTexture = game.Texture;
