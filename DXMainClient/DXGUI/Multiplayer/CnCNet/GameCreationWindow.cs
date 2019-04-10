@@ -113,7 +113,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             lbTunnelList = new XNAMultiColumnListBox(WindowManager);
             lbTunnelList.ClientRectangle = new Rectangle(12, 154, 466, 200);
-            lbTunnelList.DrawMode = PanelBackgroundImageDrawMode.STRETCHED;
+            lbTunnelList.PanelBackgroundDrawMode = PanelBackgroundImageDrawMode.STRETCHED;
             lbTunnelList.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 128), 1, 1);
             lbTunnelList.AddColumn("Name", 230);
             lbTunnelList.AddColumn("Official", 70);

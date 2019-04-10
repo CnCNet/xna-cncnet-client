@@ -21,37 +21,22 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         string text = string.Empty;
         int fontIndex = 3;
 
-        private RenderTarget2D renderTarget;
-
         private bool isVisible = true;
         private float alpha = 0f;
 
         public override void Initialize()
         {
             Name = "CoopBriefingBox";
+            DrawMode = ControlDrawMode.UNIQUE_RENDER_TARGET;
             ClientRectangle = new Rectangle(0, 0, 400, 300);
-            DrawMode = PanelBackgroundImageDrawMode.STRETCHED;
+            PanelBackgroundDrawMode = PanelBackgroundImageDrawMode.STRETCHED;
             BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 196), 2, 2);
 
             InputEnabled = false;
 
             base.Initialize();
 
-            CreateRenderTarget();
-
             CenterOnParent();
-        }
-
-        public void CreateRenderTarget()
-        {
-            if (renderTarget != null)
-                renderTarget.Dispose();
-
-            if (Parent.Width > 0 && Parent.Height > 0)
-            {
-                renderTarget = new RenderTarget2D(GraphicsDevice, Parent.Width, Parent.Height,
-                    false, SurfaceFormat.Color, DepthFormat.Depth24Stencil8, 0, RenderTargetUsage.PlatformContents);
-            }
         }
 
         public void SetFadeVisibility(bool visible)
@@ -91,27 +76,12 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             //base.Draw(gameTime);
 
-            Renderer.EndDraw();
-
-            GraphicsDevice.SetRenderTarget(renderTarget);
-            GraphicsDevice.Clear(Color.Transparent);
-
-            Renderer.BeginDraw();
-
-            Renderer.FillRectangle(ClientRectangle, new Color(0, 0, 0, 224));
-            Renderer.DrawRectangle(ClientRectangle, BorderColor);
+            FillControlArea(new Color(0, 0, 0, 224));
+            DrawRectangle(new Rectangle(0, 0, Width, Height), BorderColor);
 
             Renderer.DrawStringWithShadow(text, fontIndex,
                 new Vector2(X + MARGIN, Y + MARGIN),
-                UISettings.AltColor);
-
-            Renderer.EndDraw();
-
-            WindowManager.SetFinalRenderTarget();
-
-            Renderer.BeginDraw();
-
-            Renderer.DrawTexture(renderTarget, Parent.WindowRectangle(), new Color(1.0f, 1.0f, 1.0f, alpha));
+                UISettings.ActiveSettings.AltColor);
         }
     }
 }

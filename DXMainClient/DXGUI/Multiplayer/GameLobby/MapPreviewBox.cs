@@ -137,7 +137,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             }
 
             contextMenu.ClientRectangle = new Rectangle(0, 0, 150, 2);
-            contextMenu.OptionSelected += ContextMenu_OptionSelected;
             AddChild(contextMenu);
             contextMenu.Enabled = false;
             contextMenu.Visible = false;
@@ -157,10 +156,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private void MapPreviewBox_ClientRectangleUpdated(object sender, EventArgs e)
         {
-            briefingBox.CreateRenderTarget();
         }
 
-        private void ContextMenu_OptionSelected(object sender, ContextMenuOptionEventArgs e)
+        private void ContextMenu_OptionSelected(int index)
         {
             SoundPlayer.Play(sndDropdownSound);
 
@@ -175,16 +173,16 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             PlayerInfo player;
 
-            if (e.Index >= players.Count)
+            if (index >= players.Count)
             {
-                int aiIndex = e.Index - players.Count;
+                int aiIndex = index - players.Count;
                 if (aiIndex >= aiPlayers.Count)
                     return;
 
                 player = aiPlayers[aiIndex];
             }
             else
-                player = players[e.Index];
+                player = players[index];
 
             player.StartingLocation = (int)contextMenu.Tag + 1;
 
@@ -354,9 +352,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             useNearestNeighbour = ratio < 1.0;
 
-            Rectangle displayRectangle = WindowRectangle();
+            Point windowPoint = GetWindowPoint();
 
-            textureRectangle = new Rectangle(displayRectangle.X + texturePositionX, displayRectangle.Y + texturePositionY,
+            textureRectangle = new Rectangle(windowPoint.X + texturePositionX, windowPoint.Y + texturePositionY,
                 textureWidth, textureHeight);
 
             List<Point> startingLocations = Map.GetStartingLocationPreviewCoords(new Point(texture.Width, texture.Height));
@@ -403,9 +401,12 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             contextMenu.ClearItems();
 
             int id = 1;
+            var playerList = players.Concat(aiPlayers).ToList();
 
-            foreach (PlayerInfo pInfo in players.Concat(aiPlayers))
+            for (int i = 0; i < playerList.Count; i++)
             {
+                PlayerInfo pInfo = playerList[i];
+
                 string text = pInfo.Name;
 
                 if (pInfo.TeamId > 0)
@@ -413,8 +414,13 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     text = teamIds[pInfo.TeamId] + text;
                 }
 
-                contextMenu.AddItem(id + ". " + text,
-                    pInfo.ColorId > 0 ? mpColors[pInfo.ColorId - 1].XnaColor : Color.White);
+                XNAContextMenuItem item = new XNAContextMenuItem()
+                {
+                    Text = id + ". " + text,
+                    TextColor = pInfo.ColorId > 0 ? mpColors[pInfo.ColorId - 1].XnaColor : Color.White,
+                    SelectAction = () => ContextMenu_OptionSelected(i),
+                };
+                contextMenu.AddItem(item);
 
                 id++;
             }
@@ -464,8 +470,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             if (useNearestNeighbour)
             {
-                Renderer.EndDraw();
-                Renderer.BeginDraw(SamplerState.PointClamp);
+                Renderer.PushSettings(new SpriteBatchSettings(SpriteSortMode.Deferred, null, SamplerState.PointClamp));
             }
 
             DrawPanel();
@@ -475,8 +480,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             if (useNearestNeighbour)
             {
-                Renderer.EndDraw();
-                Renderer.BeginDraw();
+                Renderer.PopSettings();
             }
 
             if (DrawBorders)

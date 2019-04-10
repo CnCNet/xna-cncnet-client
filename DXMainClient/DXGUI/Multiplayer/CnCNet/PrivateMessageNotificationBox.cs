@@ -39,7 +39,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             Name = "PrivateMessageNotificationBox";
             BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 196), 1, 1);
             ClientRectangle = new Rectangle(WindowManager.RenderResolutionX - 300, -100, 300, 100);
-            DrawMode = PanelBackgroundImageDrawMode.STRETCHED;
+            PanelBackgroundDrawMode = PanelBackgroundImageDrawMode.STRETCHED;
 
             XNALabel lblHeader = new XNALabel(WindowManager);
             lblHeader.Name = "lblHeader";
@@ -56,7 +56,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             XNALabel lblHint = new XNALabel(WindowManager);
             lblHint.Name = "lblHint";
-            lblHint.RemapColor = UISettings.SubtleTextColor;
+            lblHint.RemapColor = UISettings.ActiveSettings.SubtleTextColor;
             lblHint.Text = "Press F4 to respond";
 
             AddChild(lblHint);
@@ -84,7 +84,6 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             lblMessage.RemapColor = AssetLoader.GetColorFromString(ClientConfiguration.Instance.ReceivedPMColor);
             lblMessage.Text = "This is a test message.";
 
-            AddChild(lblHeader);
             AddChild(gameIconPanel);
             AddChild(linePanel);
             AddChild(lblSender);

@@ -65,7 +65,8 @@ namespace DTAClient
                 switch (argument)
                 {
                     case "-NOAUDIO":
-                        AudioMaster.DisableSounds = true;
+                        // TODO fix
+                        throw new NotImplementedException();
                         Logger.Log("Startup parameter: Audio disabled");
                         break;
                     default:
