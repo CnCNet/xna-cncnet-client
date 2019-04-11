@@ -775,19 +775,18 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     return;
                 }
 
-                if (!player.Ready)
-                {
-                    if (player.IsInGame)
-                    {
-                        StillInGameNotification(iId - 1);
-                    }
-                    else
-                    {
-                        GetReadyNotification();
-                    }
+                if (player.Ready || (IsPlayerSpectator(player) && !player.IsInGame)) continue;
 
-                    return;
+                if (player.IsInGame)
+                {
+                    StillInGameNotification(iId - 1);
                 }
+                else
+                {
+                    GetReadyNotification();
+                }
+
+                return;
             }
 
             HostLaunchGame();
