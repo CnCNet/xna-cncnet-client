@@ -169,7 +169,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             if (string.IsNullOrEmpty(gameName))
                 return;
 
-            if (lbTunnelList.SelectedIndex < 0 || lbTunnelList.SelectedIndex >= lbTunnelList.ItemCount)
+            if (!lbTunnelList.IsValidIndexSelected())
             {
                 return;
             }
@@ -177,7 +177,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             IniFile spawnSGIni = new IniFile(ProgramConstants.GamePath + 
                 ProgramConstants.SAVED_GAME_SPAWN_INI);
 
-            string password = Rampastring.Tools.Utilities.CalculateSHA1ForString(
+            string password = Utilities.CalculateSHA1ForString(
                 spawnSGIni.GetStringValue("Settings", "GameID", string.Empty)).Substring(0, 10);
 
             GameCreationEventArgs ea = new GameCreationEventArgs(gameName,
@@ -203,7 +203,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 return;
             }
 
-            if (lbTunnelList.SelectedIndex < 0 || lbTunnelList.SelectedIndex >= lbTunnelList.ItemCount)
+            if (!lbTunnelList.IsValidIndexSelected())
             {
                 return;
             }
@@ -215,7 +215,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         private void LbTunnelList_SelectedIndexChanged(object sender, EventArgs e)
         {
-            if (lbTunnelList.SelectedIndex < 0 || lbTunnelList.SelectedIndex >= lbTunnelList.ItemCount)
+            if (!lbTunnelList.IsValidIndexSelected())
             {
                 return;
             }
