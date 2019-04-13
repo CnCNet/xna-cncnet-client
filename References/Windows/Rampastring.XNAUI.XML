@@ -399,22 +399,28 @@
             Raised when the scroll bar is scrolled and it reaches its lowest value.
             </summary>
         </member>
-        <member name="P:Rampastring.XNAUI.XNAControls.XNAScrollBar.ItemCount">
+        <member name="P:Rampastring.XNAUI.XNAControls.XNAScrollBar.Length">
             <summary>
-            The number of items in the scrollable parent control.
+            The height of the entire scrollable area.
+            For example in a list box, the sum of the height of its items.
             </summary>
         </member>
-        <member name="P:Rampastring.XNAUI.XNAControls.XNAScrollBar.DisplayedItemCount">
+        <member name="P:Rampastring.XNAUI.XNAControls.XNAScrollBar.DisplayedPixelCount">
             <summary>
-            The number of items that the scrollable parent control
+            The number of pixels that the scrollable parent control
             is able to display at once.
             </summary>
         </member>
-        <member name="P:Rampastring.XNAUI.XNAControls.XNAScrollBar.TopIndex">
+        <member name="P:Rampastring.XNAUI.XNAControls.XNAScrollBar.ViewTop">
             <summary>
-            The index of the first displayed item of the scrollable parent control's items.
+            The scroll bar's current position.
             The parent of the scroll-bar has to keep the scrollbar up-to-date when the 
-            top index of the parent changes.
+            view of the parent changes.
+            </summary>
+        </member>
+        <member name="P:Rampastring.XNAUI.XNAControls.XNAScrollBar.ScrollStep">
+            <summary>
+            How many pixels to scroll at once.
             </summary>
         </member>
         <member name="P:Rampastring.XNAUI.XNAControls.XNAScrollBar.ScrollWidth">
@@ -647,6 +653,17 @@
         <member name="P:Rampastring.XNAUI.XNAControls.XNACheckBox.Text">
             <summary>
             Gets or sets the text of the check box.
+            </summary>
+        </member>
+        <member name="P:Rampastring.XNAUI.XNAControls.XNACheckBox.TextLocationY">
+            <summary>
+            The Y coordinate of the check box text
+            relative to the location of the check box.
+            </summary>
+        </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNACheckBox.SetTextPositionAndSize">
+            <summary>
+            Updates the size of the check box and the vertical position of its text.
             </summary>
         </member>
         <member name="M:Rampastring.XNAUI.XNAControls.XNACheckBox.OnLeftClick">
@@ -1097,6 +1114,13 @@
             Use for input handling; for rendering, use <see cref="M:Rampastring.XNAUI.XNAControls.XNAControl.GetRenderPoint"/> instead.
             </summary>
         </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNAControl.GetWindowRectangle">
+            <summary>
+            Gets the control's client area within the agme window.
+            Use for input handling; for rendering, use <see cref="M:Rampastring.XNAUI.XNAControls.XNAControl.RenderRectangle"/> instead.
+            </summary>
+            <returns></returns>
+        </member>
         <member name="M:Rampastring.XNAUI.XNAControls.XNAControl.RenderRectangle">
             <summary>
             Returns the draw area of the control relative to the used render target.
@@ -1220,7 +1244,6 @@
             <summary>
             Draws the control.
             DO NOT call manually unless you know what you're doing.
-            This will likely be made private in future versions.
             </summary>
         </member>
         <member name="M:Rampastring.XNAUI.XNAControls.XNAControl.Draw(Microsoft.Xna.Framework.GameTime)">
@@ -1410,6 +1433,19 @@
             </summary>
             <param name="windowManager"></param>
         </member>
+        <member name="F:Rampastring.XNAUI.XNAControls.XNAListBox.Items">
+            <summary>
+            Returns the list of items in the list box.
+            If you manipulate the list directly, call
+            RefreshScrollbar afterwards.
+            TODO change to ObservableCollection?
+            </summary>
+        </member>
+        <member name="P:Rampastring.XNAUI.XNAControls.XNAListBox.LineHeight">
+            <summary>
+            Gets or sets the height of a single line of text in the list box.
+            </summary>
+        </member>
         <member name="P:Rampastring.XNAUI.XNAControls.XNAListBox.AllowMultiLineItems">
             <summary>
             If set to false, only the first line will be displayed from items
@@ -1469,6 +1505,11 @@
             </summary>
             <param name="listBoxItem">The item to add.</param>
         </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNAListBox.RefreshScrollbar">
+            <summary>
+            Refreshes the scroll bar's status. Call when list box items are modified.
+            </summary>
+        </member>
         <member name="M:Rampastring.XNAUI.XNAControls.XNAListBox.GetTotalLineCount">
             <summary>
             Returns the total amount of lines in all list box items combined.
@@ -1476,7 +1517,7 @@
         </member>
         <member name="M:Rampastring.XNAUI.XNAControls.XNAListBox.ScrollToBottom">
             <summary>
-            Scrolls the list box so that the last item is visible.
+            Scrolls the list box so that the last item is entirely visible.
             </summary>
         </member>
         <member name="M:Rampastring.XNAUI.XNAControls.XNAListBox.Initialize">
@@ -1615,6 +1656,11 @@
             be drawn under the scrollbar area.
             </summary>
         </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNAMultiColumnListBox.IsValidIndexSelected">
+            <summary>
+            Checks whether an item is selected in the list box.
+            </summary>
+        </member>
         <member name="P:Rampastring.XNAUI.XNAControls.XNAPanel.BorderTexture">
             <summary>
             If this is set, the XNAPanel will render itself on a separate render target.
@@ -1631,6 +1677,23 @@
         <member name="T:Rampastring.XNAUI.XNAControls.XNATabControl">
             <summary>
             A control that has multiple tabs, of which only one can be selected at a time.
+            </summary>
+        </member>
+        <member name="T:Rampastring.XNAUI.XNAControls.XNATextPart">
+            <summary>
+            A part of a potentially long line of text.
+            </summary>
+        </member>
+        <member name="T:Rampastring.XNAUI.XNAControls.XNATextLine">
+            <summary>
+            A text line.
+            </summary>
+        </member>
+        <member name="T:Rampastring.XNAUI.XNAControls.XNATextRenderer">
+            <summary>
+            A text renderer.
+            Takes <see cref="T:Rampastring.XNAUI.XNAControls.XNATextPart"/>s, automatically formats them, applied line
+            breaks if necessary and renders them.
             </summary>
         </member>
         <member name="T:Rampastring.XNAUI.XNAControls.XNATimerControl">
@@ -1838,6 +1901,17 @@
             <summary>
             Draws the currently queued batch of sprites.
             </summary>
+        </member>
+        <member name="M:Rampastring.XNAUI.Renderer.DrawCircleWithTexture(Microsoft.Xna.Framework.Vector2,System.Single,Microsoft.Xna.Framework.Graphics.Texture2D,Microsoft.Xna.Framework.Color,System.Int32,System.Single)">
+            <summary>
+            Draws a circle where the circle's perimeter is dotted with a texture.
+            </summary>
+            <param name="position">The center point of the circle.</param>
+            <param name="radius">The radius of the circle.</param>
+            <param name="texture">The texture to dot the circle's perimiter with.</param>
+            <param name="color">The remap color of the texture.</param>
+            <param name="precision">How many times the texture is drawn on the perimiter.</param>
+            <param name="scale">The scale of the drawn texture compared to the size of the texture itself.</param>
         </member>
         <member name="T:Rampastring.XNAUI.UISettings">
             <summary>
