@@ -35,7 +35,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         private XNALabel lblPassword;
         
         private XNALabel lblTunnelServer;
-        private XNAMultiColumnListBox lbTunnelList;
+        private TunnelListBox lbTunnelList;
         
         private XNAClientButton btnCreateGame;
         private XNAClientButton btnCancel;
@@ -111,19 +111,11 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             lblTunnelServer.Enabled = false;
             lblTunnelServer.Visible = false;
 
-            lbTunnelList = new XNAMultiColumnListBox(WindowManager);
-            lbTunnelList.ClientRectangle = new Rectangle(12, 154, 466, 200);
-            lbTunnelList.PanelBackgroundDrawMode = PanelBackgroundImageDrawMode.STRETCHED;
-            lbTunnelList.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 128), 1, 1);
-            lbTunnelList.AddColumn("Name", 230);
-            lbTunnelList.AddColumn("Official", 70);
-            lbTunnelList.AddColumn("Ping", 76);
-            lbTunnelList.AddColumn("Players", 90);
-            lbTunnelList.SelectedIndexChanged += LbTunnelList_SelectedIndexChanged;
-            lbTunnelList.Enabled = false;
-            lbTunnelList.Visible = false;
-            lbTunnelList.AllowRightClickUnselect = false;
-            lbTunnelList.AllowKeyboardInput = true;
+            lbTunnelList = new TunnelListBox(WindowManager, tunnelHandler);
+            lbTunnelList.X = 12;
+            lbTunnelList.Y = 154;
+            lbTunnelList.Disable();
+            lbTunnelList.ListRefreshed += LbTunnelList_ListRefreshed;
 
             AddChild(btnCreateGame);
             AddChild(btnCancel);
@@ -143,13 +135,24 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             CenterOnParent();
 
-            tunnelHandler.TunnelsRefreshed += TunnelHandler_TunnelsRefreshed;
-            tunnelHandler.TunnelPinged += TunnelHandler_TunnelPinged;
-
             UserINISettings.Instance.SettingsSaved += Instance_SettingsSaved;
 
             if (UserINISettings.Instance.AlwaysDisplayTunnelList)
                 BtnDisplayAdvancedOptions_LeftClick(this, EventArgs.Empty);
+        }
+
+        private void LbTunnelList_ListRefreshed(object sender, EventArgs e)
+        {
+            if (lbTunnelList.ItemCount == 0)
+            {
+                btnCreateGame.AllowClick = false;
+                btnLoadMPGame.AllowClick = false;
+            }
+            else
+            {
+                btnCreateGame.AllowClick = true;
+                btnLoadMPGame.AllowClick = AllowLoadingGame();
+            }
         }
 
         private void Instance_SettingsSaved(object sender, EventArgs e)
@@ -211,116 +214,6 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             GameCreated?.Invoke(this, new GameCreationEventArgs(gameName, 
                 int.Parse(ddMaxPlayers.SelectedItem.Text), tbPassword.Text,
                 tunnelHandler.Tunnels[lbTunnelList.SelectedIndex]));
-        }
-
-        private void LbTunnelList_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            if (!lbTunnelList.IsValidIndexSelected())
-            {
-                return;
-            }
-
-            isManuallySelectedTunnel = true;
-            manuallySelectedTunnelAddress = tunnelHandler.Tunnels[lbTunnelList.SelectedIndex].Address;
-        }
-
-        private void TunnelHandler_TunnelPinged(int tunnelIndex)
-        {
-            XNAListBoxItem lbItem = lbTunnelList.GetItem(2, tunnelIndex);
-            CnCNetTunnel tunnel = tunnelHandler.Tunnels[tunnelIndex];
-
-            if (tunnel.PingInMs == -1)
-                lbItem.Text = "Unknown";
-            else
-            {
-                lbItem.Text = tunnel.PingInMs + " ms";
-                int rating = GetTunnelRating(tunnel);
-
-                if (isManuallySelectedTunnel)
-                    return;
-
-                if ((tunnel.Recommended || tunnel.Official) && rating < lowestTunnelRating)
-                {
-                    bestTunnelIndex = tunnelIndex;
-                    lowestTunnelRating = rating;
-                    lbTunnelList.SelectedIndex = tunnelIndex;
-                }
-            }
-        }
-
-        private void TunnelHandler_TunnelsRefreshed(object sender, EventArgs e)
-        {
-            lbTunnelList.ClearItems();
-
-            int tunnelIndex = 0;
-
-            foreach (CnCNetTunnel tunnel in tunnelHandler.Tunnels)
-            {
-                List<string> info = new List<string>();
-
-                info.Add(tunnel.Name);
-                info.Add(Conversions.BooleanToString(tunnel.Official, BooleanStringStyle.YESNO));
-                if (tunnel.PingInMs == -1)
-                    info.Add("Unknown");
-                else
-                    info.Add(tunnel.PingInMs + " ms");
-                info.Add(tunnel.Clients + " / " + tunnel.MaxClients);
-
-                lbTunnelList.AddItem(info, true);
-
-                if ((tunnel.Official || tunnel.Recommended) && tunnel.PingInMs > -1)
-                {
-                    int rating = GetTunnelRating(tunnel);
-                    if (rating < lowestTunnelRating)
-                    {
-                        bestTunnelIndex = tunnelIndex;
-                        lowestTunnelRating = rating;
-                    }
-                }
-
-                tunnelIndex++;
-            }
-
-            if (tunnelHandler.Tunnels.Count > 0)
-            {
-                if (!isManuallySelectedTunnel)
-                {
-                    lbTunnelList.SelectedIndex = bestTunnelIndex;
-                    isManuallySelectedTunnel = false;
-                }
-                else
-                {
-                    int manuallySelectedIndex = tunnelHandler.Tunnels.FindIndex(t => t.Address == manuallySelectedTunnelAddress);
-
-                    if (manuallySelectedIndex == -1)
-                    {
-                        lbTunnelList.SelectedIndex = bestTunnelIndex;
-                        isManuallySelectedTunnel = false;
-                    }
-                    else
-                        lbTunnelList.SelectedIndex = manuallySelectedIndex;
-                }
-
-                btnCreateGame.AllowClick = true;
-                btnLoadMPGame.AllowClick = AllowLoadingGame();
-            }
-            else
-            {
-                btnLoadMPGame.AllowClick = false;
-                btnCreateGame.AllowClick = false;
-            }
-        }
-
-        private int GetTunnelRating(CnCNetTunnel tunnel)
-        {
-            double usageRatio = (double)tunnel.Clients / (double)tunnel.MaxClients;
-
-            if (usageRatio == 0)
-                usageRatio = 0.1;
-
-            usageRatio *= 100.0;
-
-            return Convert.ToInt32(Math.Pow(tunnel.PingInMs, 2.0) * usageRatio);
         }
 
         private void BtnDisplayAdvancedOptions_LeftClick(object sender, EventArgs e)
