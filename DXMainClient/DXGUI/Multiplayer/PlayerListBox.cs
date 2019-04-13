@@ -59,14 +59,14 @@ namespace DTAClient.DXGUI.Multiplayer
         {
             DrawPanel();
 
-            int height = 2;
+            int height = 2 - (ViewTop % LineHeight);
 
             for (int i = TopIndex; i < Items.Count; i++)
             {
                 XNAListBoxItem lbItem = Items[i];
                 var user = (ChannelUser)lbItem.Tag;
 
-                if (height + lbItem.TextLines.Count * LineHeight > Height)
+                if (height > Height)
                     break;
 
                 int x = TextBorderDistance;
