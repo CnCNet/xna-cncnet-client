@@ -1656,6 +1656,14 @@
             be drawn under the scrollbar area.
             </summary>
         </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNAMultiColumnListBox.ChangeColumnWidth(System.Int32,System.Int32)">
+            <summary>
+            Changes the width of a column and adjusts the positions
+            of the following columns accordingly.
+            </summary>
+            <param name="columnIndex">The index of the column.</param>
+            <param name="width">The new width of the column.</param>
+        </member>
         <member name="M:Rampastring.XNAUI.XNAControls.XNAMultiColumnListBox.IsValidIndexSelected">
             <summary>
             Checks whether an item is selected in the list box.
