@@ -239,6 +239,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             lbMapList.LineHeight = 16;
             lbMapList.DrawListBoxBorders = true;
             lbMapList.AllowKeyboardInput = true;
+            lbMapList.AllowRightClickUnselect = false;
 
             XNAPanel rankHeader = new XNAPanel(WindowManager);
             rankHeader.BackgroundTexture = AssetLoader.LoadTexture("rank.png");
