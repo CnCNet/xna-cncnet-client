@@ -468,25 +468,27 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         public override void Draw(GameTime gameTime)
         {
-            if (useNearestNeighbour)
-            {
-                Renderer.PushSettings(new SpriteBatchSettings(SpriteSortMode.Deferred, null, SamplerState.PointClamp));
-            }
-
             DrawPanel();
 
             if (texture != null)
-                Renderer.DrawTexture(texture, textureRectangle, Color.White);
-
-            if (useNearestNeighbour)
             {
-                Renderer.PopSettings();
+                if (useNearestNeighbour)
+                {
+                    Renderer.PushSettings(new SpriteBatchSettings(SpriteSortMode.Deferred, null, SamplerState.PointClamp));
+                    Renderer.DrawTexture(texture, textureRectangle, Color.White);
+                    Renderer.PopSettings();
+                }
+                else
+                    Renderer.DrawTexture(texture, textureRectangle, Color.White);
             }
 
             if (DrawBorders)
                 DrawPanelBorders();
 
+            Renderer.PushSettings(new SpriteBatchSettings(SpriteSortMode.Deferred,
+                BlendState.NonPremultiplied, null));
             DrawChildren(gameTime);
+            Renderer.PopSettings();
         }
     }
 
