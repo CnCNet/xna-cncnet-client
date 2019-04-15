@@ -100,21 +100,21 @@ namespace DTAClient.DXGUI.Multiplayer
 
             btnNewGame = new XNAClientButton(WindowManager);
             btnNewGame.Name = "btnNewGame";
-            btnNewGame.ClientRectangle = new Rectangle(12, Height - 35, 133, 23);
+            btnNewGame.ClientRectangle = new Rectangle(12, Height - 35, 133, 25);
             btnNewGame.Text = "Create Game";
             btnNewGame.LeftClick += BtnNewGame_LeftClick;
 
             btnJoinGame = new XNAClientButton(WindowManager);
             btnJoinGame.Name = "btnJoinGame";
             btnJoinGame.ClientRectangle = new Rectangle(btnNewGame.Right + 12,
-                btnNewGame.Y, 133, 23);
+                btnNewGame.Y, 133, 25);
             btnJoinGame.Text = "Join Game";
             btnJoinGame.LeftClick += BtnJoinGame_LeftClick;
 
             btnMainMenu = new XNAClientButton(WindowManager);
             btnMainMenu.Name = "btnMainMenu";
             btnMainMenu.ClientRectangle = new Rectangle(Width - 145,
-                btnNewGame.Y, 133, 23);
+                btnNewGame.Y, 133, 25);
             btnMainMenu.Text = "Main Menu";
             btnMainMenu.LeftClick += BtnMainMenu_LeftClick;
 

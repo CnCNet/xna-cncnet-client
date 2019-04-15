@@ -46,14 +46,14 @@ namespace DTAClient.DXGUI.Generic
             lbSaveGameList.AllowKeyboardInput = true;
 
             btnLaunch = new XNAClientButton(WindowManager);
-            btnLaunch.ClientRectangle = new Rectangle(161, 345, 133, 23);
+            btnLaunch.ClientRectangle = new Rectangle(161, 345, 133, 25);
             btnLaunch.Text = "Load";
             btnLaunch.AllowClick = false;
             btnLaunch.LeftClick += BtnLaunch_LeftClick;
 
             var btnCancel = new XNAClientButton(WindowManager);
             btnCancel.Name = "btnCancel";
-            btnCancel.ClientRectangle = new Rectangle(304, btnLaunch.Y, 133, 23);
+            btnCancel.ClientRectangle = new Rectangle(304, btnLaunch.Y, 133, 25);
             btnCancel.Text = "Cancel";
             btnCancel.LeftClick += BtnCancel_LeftClick;
 

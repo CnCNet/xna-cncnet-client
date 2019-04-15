@@ -40,7 +40,7 @@ namespace DTAConfig.OptionPanels
             var btnMoveUp = new XNAClientButton(WindowManager);
             btnMoveUp.Name = "btnMoveUp";
             btnMoveUp.ClientRectangle = new Rectangle(lbUpdateServerList.X,
-                lbUpdateServerList.Bottom + 12, 133, 23);
+                lbUpdateServerList.Bottom + 12, 133, 25);
             btnMoveUp.Text = "Move Up";
             btnMoveUp.LeftClick += btnMoveUp_LeftClick;
 
@@ -48,7 +48,7 @@ namespace DTAConfig.OptionPanels
             btnMoveDown.Name = "btnMoveDown";
             btnMoveDown.ClientRectangle = new Rectangle(
                 lbUpdateServerList.Right - 133,
-                btnMoveUp.Y, 133, 23);
+                btnMoveUp.Y, 133, 25);
             btnMoveDown.Text = "Move Down";
             btnMoveDown.LeftClick += btnMoveDown_LeftClick;
 
