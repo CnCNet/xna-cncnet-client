@@ -48,6 +48,21 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         private string manuallySelectedTunnelAddress;
 
 
+        /// <summary>
+        /// Selects a tunnel from the list with the given address.
+        /// </summary>
+        /// <param name="address">The address of the tunnel server to select.</param>
+        public void SelectTunnel(string address)
+        {
+            int index = tunnelHandler.Tunnels.FindIndex(t => t.Address == address);
+            if (index > -1)
+            {
+                SelectedIndex = index;
+                isManuallySelectedTunnel = true;
+                manuallySelectedTunnelAddress = address;
+            }
+        }
+
         private void TunnelHandler_TunnelsRefreshed(object sender, EventArgs e)
         {
             ClearItems();

@@ -1,8 +1,10 @@
 ﻿using ClientCore;
 using ClientCore.CnCNet5;
+using ClientGUI;
 using DTAClient.Domain.Multiplayer;
 using DTAClient.Domain.Multiplayer.CnCNet;
 using DTAClient.DXGUI.Generic;
+using DTAClient.DXGUI.Multiplayer.CnCNet;
 using DTAClient.DXGUI.Multiplayer.GameLobby.CommandHandlers;
 using DTAClient.Online;
 using DTAClient.Online.EventArguments;
@@ -79,13 +81,18 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             MapSharer.MapUploadFailed += MapSharer_MapUploadFailed;
             MapSharer.MapUploadComplete += MapSharer_MapUploadComplete;
 
-            AddChatBoxCommand(new ChatBoxCommand("TUNNELINFO", "View tunnel server information", false, PrintTunnelServerInformation));
+            AddChatBoxCommand(new ChatBoxCommand("TUNNELINFO",
+                "View tunnel server information", false, PrintTunnelServerInformation));
+            AddChatBoxCommand(new ChatBoxCommand("CHANGETUNNEL",
+                "Change the used CnCNet tunnel server (game host only)",
+                true, ShowTunnelSelectionWindow));
         }
 
         public event EventHandler GameLeft;
 
         private TunnelHandler tunnelHandler;
         private CnCNetTunnel tunnel;
+        private TunnelSelectionWindow tunnelSelectionWindow;
 
         private Channel channel;
         private CnCNetManager connectionManager;
@@ -133,6 +140,14 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             gameBroadcastTimer.Interval = TimeSpan.FromSeconds(GAME_BROADCAST_INTERVAL);
             gameBroadcastTimer.Enabled = false;
             gameBroadcastTimer.TimeElapsed += GameBroadcastTimer_TimeElapsed;
+
+            tunnelSelectionWindow = new TunnelSelectionWindow(WindowManager, tunnelHandler);
+            tunnelSelectionWindow.Initialize();
+            tunnelSelectionWindow.DrawOrder = 1;
+            tunnelSelectionWindow.UpdateOrder = 1;
+            DarkeningPanel.AddAndInitializeWithControl(WindowManager, tunnelSelectionWindow);
+            tunnelSelectionWindow.CenterOnParent();
+            tunnelSelectionWindow.Disable();
 
             WindowManager.AddAndInitializeControl(gameBroadcastTimer);
         }
@@ -220,7 +235,19 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         private void PrintTunnelServerInformation(string s)
         {
             AddNotice($"Current tunnel server: {tunnel.Name} ({tunnel.Country}) " +
-                $"(Players: {tunnel.Clients}/{tunnel.MaxClients}) (Official: {tunnel.Official}");
+                $"(Players: {tunnel.Clients}/{tunnel.MaxClients}) (Official: {tunnel.Official})");
+        }
+
+        private void ShowTunnelSelectionWindow(string s)
+        {
+            tunnelSelectionWindow.Open("Select tunnel server:",
+                tunnel.Address);
+            tunnelSelectionWindow.TunnelSelected += TunnelSelectionWindow_TunnelSelected;
+        }
+
+        private void TunnelSelectionWindow_TunnelSelected(object sender, TunnelEventArgs e)
+        {
+            throw new NotImplementedException();
         }
 
         public void ChangeChatColor(IRCColor chatColor)
