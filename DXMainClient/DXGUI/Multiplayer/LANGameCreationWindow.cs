@@ -22,11 +22,11 @@ namespace DTAClient.DXGUI.Multiplayer
         public event EventHandler NewGame;
         public event EventHandler<GameLoadEventArgs> LoadGame;
 
-        XNALabel lblDescription;
+        private XNALabel lblDescription;
 
-        XNAButton btnNewGame;
-        XNAButton btnLoadGame;
-        XNAButton btnCancel;
+        private XNAButton btnNewGame;
+        private XNAButton btnLoadGame;
+        private XNAButton btnCancel;
 
         public override void Initialize()
         {
