@@ -90,7 +90,7 @@ namespace DTAConfig
             lbHotkeys.Name = "lbHotkeys";
             lbHotkeys.ClientRectangle = new Rectangle(12, ddCategory.Bottom + 12, 
                 ddCategory.Right - 12, Height - ddCategory.Bottom - 59);
-            lbHotkeys.DrawMode = PanelBackgroundImageDrawMode.STRETCHED;
+            lbHotkeys.PanelBackgroundDrawMode = PanelBackgroundImageDrawMode.STRETCHED;
             lbHotkeys.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 128), 1, 1);
             lbHotkeys.AddColumn("Command", 150);
             lbHotkeys.AddColumn("Shortcut", lbHotkeys.Width - 150);
@@ -347,8 +347,8 @@ namespace DTAConfig
                 if (command.Category == category)
                 {
                     lbHotkeys.AddItem(new XNAListBoxItem[] {
-                        new XNAListBoxItem() { Text = command.UIName, Tag = command, TextColor = UISettings.AltColor },
-                        new XNAListBoxItem() { Text = command.Hotkey.ToString(), TextColor = UISettings.AltColor }
+                        new XNAListBoxItem() { Text = command.UIName, Tag = command },
+                        new XNAListBoxItem() { Text = command.Hotkey.ToString() }
                     });
                 }
             }
