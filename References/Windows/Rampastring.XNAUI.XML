@@ -584,6 +584,13 @@
             </summary>
             <param name="character">The character.</param>
         </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNATextBox.HandleKeyPress(Microsoft.Xna.Framework.Input.Keys)">
+            <summary>
+            Handles a key press while the text box is the selected control.
+            Can be overridden in derived classes to handle additional key presses.
+            </summary>
+            <param name="key">The key that was pressed.</param>
+        </member>
         <member name="T:Rampastring.XNAUI.XNAControls.Callback">
             <summary>
             A callback for storing a delegate and its parameters.
