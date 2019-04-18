@@ -43,12 +43,6 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         private XNAClientButton btnDisplayAdvancedOptions;
         
         private TunnelHandler tunnelHandler;
-        
-        private int bestTunnelIndex = 0;
-        private int lowestTunnelRating = int.MaxValue;
-        
-        private bool isManuallySelectedTunnel { get; set; }
-        private string manuallySelectedTunnelAddress;
 
         public override void Initialize()
         {
