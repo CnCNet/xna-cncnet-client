@@ -244,6 +244,7 @@ namespace ClientGUI
             panel.AddChild(msgBox);
             msgBox.OKClickedAction = MsgBox_OKClicked;
             windowManager.AddAndInitializeControl(msgBox);
+            windowManager.SelectedControl = null;
         }
 
         private static void MsgBox_OKClicked(XNAMessageBox messageBox)
