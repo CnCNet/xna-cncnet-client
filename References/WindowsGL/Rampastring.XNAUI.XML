@@ -1123,7 +1123,7 @@
         </member>
         <member name="M:Rampastring.XNAUI.XNAControls.XNAControl.GetWindowRectangle">
             <summary>
-            Gets the control's client area within the agme window.
+            Gets the control's client area within the game window.
             Use for input handling; for rendering, use <see cref="M:Rampastring.XNAUI.XNAControls.XNAControl.RenderRectangle"/> instead.
             </summary>
             <returns></returns>
