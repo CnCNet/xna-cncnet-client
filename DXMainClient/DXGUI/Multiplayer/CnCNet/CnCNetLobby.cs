@@ -54,7 +54,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         private XNAClientButton btnNewGame;
         private XNAClientButton btnJoinGame;
 
-        private XNATextBox tbChatInput;
+        private XNAChatTextBox tbChatInput;
 
         private XNALabel lblColor;
         private XNALabel lblCurrentChannel;
@@ -177,11 +177,12 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             lbChatMessages.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 128), 1, 1);
             lbChatMessages.LineHeight = 16;
 
-            tbChatInput = new XNATextBox(WindowManager);
+            tbChatInput = new XNAChatTextBox(WindowManager);
             tbChatInput.Name = "tbChatInput";
             tbChatInput.ClientRectangle = new Rectangle(lbChatMessages.X,
                 btnNewGame.Y, lbChatMessages.Width,
                 btnNewGame.Height);
+            tbChatInput.Suggestion = "Type here to chat...";
             tbChatInput.Enabled = false;
             tbChatInput.MaximumTextLength = 200;
             tbChatInput.EnterPressed += TbChatInput_EnterPressed;
