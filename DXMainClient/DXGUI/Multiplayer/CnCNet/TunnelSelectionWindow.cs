@@ -40,7 +40,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             lblDescription = new XNALabel(WindowManager);
             lblDescription.Name = "lblDescription";
-            lblDescription.Text = "Select tunnel server:";
+            lblDescription.Text = "Line 1" + Environment.NewLine + "Line 2";
             lblDescription.X = UIDesignConstants.EMPTY_SPACE_SIDES;
             lblDescription.Y = UIDesignConstants.EMPTY_SPACE_TOP;
             AddChild(lblDescription);
