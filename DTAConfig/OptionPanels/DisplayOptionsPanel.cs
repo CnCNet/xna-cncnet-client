@@ -124,7 +124,6 @@ namespace DTAConfig.OptionPanels
                     ddRenderer.AddItem(new XNADropDownItem()
                     {
                         Text = renderer.UIName,
-                        TextColor = UISettings.AltColor,
                         Tag = renderer
                     });
                 }
@@ -198,7 +197,6 @@ namespace DTAConfig.OptionPanels
                 var item = new XNADropDownItem();
                 item.Text = res.ToString();
                 item.Tag = res.ToString();
-                item.TextColor = UISettings.AltColor;
                 ddClientResolution.AddItem(item);
             }
 
@@ -589,7 +587,6 @@ namespace DTAConfig.OptionPanels
                 ddRenderer.AddItem(new XNADropDownItem()
             {
                         Text = selectedRenderer.UIName,
-                        TextColor = UISettings.AltColor,
                         Tag = selectedRenderer
                     });
                 index = ddRenderer.Items.Count - 1;

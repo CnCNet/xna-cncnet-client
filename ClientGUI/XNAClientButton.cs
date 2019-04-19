@@ -20,7 +20,7 @@ namespace ClientGUI
                 HoverTexture = AssetLoader.LoadTexture(width + "pxbtn_c.png");
 
             if (HoverSoundEffect == null)
-                HoverSoundEffect = AssetLoader.LoadSound("button.wav");
+                HoverSoundEffect = new EnhancedSoundEffect("button.wav");
 
             base.Initialize();
         }

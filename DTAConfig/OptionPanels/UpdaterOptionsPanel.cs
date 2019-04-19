@@ -35,7 +35,7 @@ namespace DTAConfig.OptionPanels
             lbUpdateServerList.ClientRectangle = new Rectangle(lblDescription.X,
                 lblDescription.Bottom + 12, Width - 24, 100);
             lbUpdateServerList.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 128), 2, 2);
-            lbUpdateServerList.DrawMode = PanelBackgroundImageDrawMode.STRETCHED;
+            lbUpdateServerList.PanelBackgroundDrawMode = PanelBackgroundImageDrawMode.STRETCHED;
 
             var btnMoveUp = new XNAClientButton(WindowManager);
             btnMoveUp.Name = "btnMoveUp";

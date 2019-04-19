@@ -395,6 +395,8 @@ namespace DTAClient.Online
                 }
             }
 
+            UserList.Clear();
+
             MainChannel.AddMessage(new ChatMessage(Color.Red, "Connection to CnCNet has been lost."));
             connected = false;
         }
@@ -443,6 +445,8 @@ namespace DTAClient.Online
 
             MainChannel.AddMessage(new ChatMessage("You have disconnected from CnCNet."));
             connected = false;
+
+            UserList.Clear();
 
             Disconnected?.Invoke(this, EventArgs.Empty);
         }

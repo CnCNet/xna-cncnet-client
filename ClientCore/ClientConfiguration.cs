@@ -316,130 +316,39 @@ namespace ClientCore
             }
         }
 
-        public string CnCNetLiveStatusIdentifier
-        {
-            get
-            {
-                return clientDefinitionsIni.GetStringValue(SETTINGS, "CnCNetLiveStatusIdentifier", "cncnet5_ts");
-            }
-        }
+        public string CnCNetLiveStatusIdentifier => clientDefinitionsIni.GetStringValue(SETTINGS, "CnCNetLiveStatusIdentifier", "cncnet5_ts");
 
-        public string BattleFSFileName
-        {
-            get
-            {
-                return clientDefinitionsIni.GetStringValue(SETTINGS, "BattleFSFileName", "BattleFS.ini");
-            }
-        }
+        public string BattleFSFileName => clientDefinitionsIni.GetStringValue(SETTINGS, "BattleFSFileName", "BattleFS.ini");
 
-        public string MapEditorExePath
-        {
-            get
-            {
-                return clientDefinitionsIni.GetStringValue(SETTINGS, "MapEditorExePath", "FinalSun\\FinalSun.exe");
-            }
-        }
+        public string MapEditorExePath => clientDefinitionsIni.GetStringValue(SETTINGS, "MapEditorExePath", "FinalSun\\FinalSun.exe");
 
-        public string UnixMapEditorExePath
-        {
-            get
-            {
-                return clientDefinitionsIni.GetStringValue(SETTINGS, "UnixMapEditorExePath", Instance.MapEditorExePath);
-            }
-        }
+        public string UnixMapEditorExePath => clientDefinitionsIni.GetStringValue(SETTINGS, "UnixMapEditorExePath", Instance.MapEditorExePath);
 
-        public bool ModMode
-        {
-            get
-            {
-                return clientDefinitionsIni.GetBooleanValue(SETTINGS, "ModMode", false);
-            }
-        }
+        public bool ModMode => clientDefinitionsIni.GetBooleanValue(SETTINGS, "ModMode", false);
 
-        public string LongGameName
-        {
-            get
-            {
-                return clientDefinitionsIni.GetStringValue(SETTINGS, "LongGameName", "Tiberian Sun");
-            }
-        }
+        public string LongGameName => clientDefinitionsIni.GetStringValue(SETTINGS, "LongGameName", "Tiberian Sun");
 
-        public string LongSupportURL
-        {
-            get
-            {
-                return clientDefinitionsIni.GetStringValue(SETTINGS, "LongSupportURL", "http://www.moddb.com/members/rampastring");
-            }
-        }
+        public string LongSupportURL => clientDefinitionsIni.GetStringValue(SETTINGS, "LongSupportURL", "http://www.moddb.com/members/rampastring");
 
-        public string ShortSupportURL
-        {
-            get
-            {
-                return clientDefinitionsIni.GetStringValue(SETTINGS, "ShortSupportURL", "www.moddb.com/members/rampastring");
-            }
-        }
+        public string ShortSupportURL => clientDefinitionsIni.GetStringValue(SETTINGS, "ShortSupportURL", "www.moddb.com/members/rampastring");
 
-        public string ChangelogURL
-        {
-            get
-            {
-                return clientDefinitionsIni.GetStringValue(SETTINGS, "ChangelogURL", "http://www.moddb.com/mods/the-dawn-of-the-tiberium-age/tutorials/change-log");
-            }
-        }
+        public string ChangelogURL => clientDefinitionsIni.GetStringValue(SETTINGS, "ChangelogURL", "http://www.moddb.com/mods/the-dawn-of-the-tiberium-age/tutorials/change-log");
 
-        public string CreditsURL
-        {
-            get
-            {
-                return clientDefinitionsIni.GetStringValue(SETTINGS, "CreditsURL", "http://www.moddb.com/mods/the-dawn-of-the-tiberium-age/tutorials/credits#Rampastring");
-            }
-        }
+        public string CreditsURL => clientDefinitionsIni.GetStringValue(SETTINGS, "CreditsURL", "http://www.moddb.com/mods/the-dawn-of-the-tiberium-age/tutorials/credits#Rampastring");
 
-        public string FinalSunIniPath
-        {
-            get
-            {
-                return clientDefinitionsIni.GetStringValue(SETTINGS, "FSIniPath", "FinalSun\\FinalSun.ini");
-            }
-        }
+        public string FinalSunIniPath => clientDefinitionsIni.GetStringValue(SETTINGS, "FSIniPath", "FinalSun\\FinalSun.ini");
 
-        public int MaxNameLength
-        {
-            get { return clientDefinitionsIni.GetIntValue(SETTINGS, "MaxNameLength", 16); }
-        }
+        public int MaxNameLength => clientDefinitionsIni.GetIntValue(SETTINGS, "MaxNameLength", 16);
 
-        public int MapCellSizeX
-        {
-            get { return clientDefinitionsIni.GetIntValue(SETTINGS, "MapCellSizeX", 48); }
-        }
+        public int MapCellSizeX => clientDefinitionsIni.GetIntValue(SETTINGS, "MapCellSizeX", 48); 
 
-        public int MapCellSizeY
-        {
-            get { return clientDefinitionsIni.GetIntValue(SETTINGS, "MapCellSizeY", 24); }
-        }
+        public int MapCellSizeY => clientDefinitionsIni.GetIntValue(SETTINGS, "MapCellSizeY", 24);
 
-        public bool UseBuiltStatistic
-        {
-            get
-            {
-                return clientDefinitionsIni.GetBooleanValue(SETTINGS, "UseBuiltStatistic", false);
-            }
-        }
+        public bool UseBuiltStatistic => clientDefinitionsIni.GetBooleanValue(SETTINGS, "UseBuiltStatistic", false);
 
-        public string StatisticsLogFileName
-        {
-            get
-            {
-                return clientDefinitionsIni.GetStringValue(SETTINGS, "StatisticsLogFileName", "DTA.LOG");
-            }
-        }
+        public string StatisticsLogFileName => clientDefinitionsIni.GetStringValue(SETTINGS, "StatisticsLogFileName", "DTA.LOG");
 
-        public string[] GetThemeInfoFromIndex(int themeIndex)
-        {
-            string[] values = clientDefinitionsIni.GetStringValue("Themes", themeIndex.ToString(), ",").Split(',');
-            return values;
-        }
+        public string[] GetThemeInfoFromIndex(int themeIndex) => clientDefinitionsIni.GetStringValue("Themes", themeIndex.ToString(), ",").Split(',');
 
         /// <summary>
         /// Returns the directory path for a theme, or null if the specified
@@ -460,70 +369,25 @@ namespace ClientCore
             return null;
         }
 
-        public string SettingsIniName
-        {
-            get
-            {
-                return clientDefinitionsIni.GetStringValue(SETTINGS, "SettingsFile", "Settings.ini");
-            }
-        }
+        public string SettingsIniName => clientDefinitionsIni.GetStringValue(SETTINGS, "SettingsFile", "Settings.ini");
 
-        public string ExtraExeCommandLineParameters
-        {
-            get
-            {
-                return clientDefinitionsIni.GetStringValue(SETTINGS, "ExtraCommandLineParams", string.Empty);
-            }
-        }
+        public string ExtraExeCommandLineParameters => clientDefinitionsIni.GetStringValue(SETTINGS, "ExtraCommandLineParams", string.Empty);
 
-        public string MPMapsIniPath
-        {
-            get
-            {
-                return clientDefinitionsIni.GetStringValue(SETTINGS, "MPMapsPath", "INI\\MPMaps.ini");
-            }
-        }
+        public string MPMapsIniPath => clientDefinitionsIni.GetStringValue(SETTINGS, "MPMapsPath", "INI\\MPMaps.ini");
 
-        public string KeyboardINI
-        {
-            get
-            {
-                return clientDefinitionsIni.GetStringValue(SETTINGS, "KeyboardINI", "Keyboard.ini");
-            }
-        }
+        public string KeyboardINI => clientDefinitionsIni.GetStringValue(SETTINGS, "KeyboardINI", "Keyboard.ini");
 
-        public int MinimumIngameWidth
-        {
-            get { return clientDefinitionsIni.GetIntValue(SETTINGS, "MinimumIngameWidth", 640); }
-        }
+        public int MinimumIngameWidth => clientDefinitionsIni.GetIntValue(SETTINGS, "MinimumIngameWidth", 640);
 
-        public int MinimumIngameHeight
-        {
-            get { return clientDefinitionsIni.GetIntValue(SETTINGS, "MinimumIngameHeight", 480); }
-        }
+        public int MinimumIngameHeight => clientDefinitionsIni.GetIntValue(SETTINGS, "MinimumIngameHeight", 480);
 
-        public int MaximumIngameWidth
-        {
-            get { return clientDefinitionsIni.GetIntValue(SETTINGS, "MaximumIngameWidth", int.MaxValue); }
-        }
+        public int MaximumIngameWidth => clientDefinitionsIni.GetIntValue(SETTINGS, "MaximumIngameWidth", int.MaxValue);
 
-        public int MaximumIngameHeight
-        {
-            get { return clientDefinitionsIni.GetIntValue(SETTINGS, "MaximumIngameHeight", int.MaxValue); }
-        }
+        public int MaximumIngameHeight => clientDefinitionsIni.GetIntValue(SETTINGS, "MaximumIngameHeight", int.MaxValue);
 
-        public bool CopyMissionsToSpawnmapINI
-        {
-            get { return clientDefinitionsIni.GetBooleanValue(SETTINGS, "CopyMissionsToSpawnmapINI", true); }
-        }
+        public bool CopyMissionsToSpawnmapINI => clientDefinitionsIni.GetBooleanValue(SETTINGS, "CopyMissionsToSpawnmapINI", true);
 
-        public string GetAllowedGameModes
-        {
-            get
-            {
-                return clientDefinitionsIni.GetStringValue(SETTINGS, "AllowedCustomGameModes", "Standard,Custom Map");
-            }
-        }
+        public string GetAllowedGameModes => clientDefinitionsIni.GetStringValue(SETTINGS, "AllowedCustomGameModes", "Standard,Custom Map");
 
         public string GetGameExecutableName()
         {
@@ -532,35 +396,17 @@ namespace ClientCore
             return exeNames[0];
         }
 
-        public bool SaveSkirmishGameOptions
-        {
-            get { return clientDefinitionsIni.GetBooleanValue(SETTINGS, "SaveSkirmishGameOptions", false); }
-        }
+        public bool SaveSkirmishGameOptions => clientDefinitionsIni.GetBooleanValue(SETTINGS, "SaveSkirmishGameOptions", false);
 
-        public bool CreateSavedGamesDirectory
-        {
-            get { return clientDefinitionsIni.GetBooleanValue(SETTINGS, "CreateSavedGamesDirectory", false); }
-        }
+        public bool CreateSavedGamesDirectory => clientDefinitionsIni.GetBooleanValue(SETTINGS, "CreateSavedGamesDirectory", false);
 
-        public bool DisableMultiplayerGameLoading
-        {
-            get { return clientDefinitionsIni.GetBooleanValue(SETTINGS, "DisableMultiplayerGameLoading", false); }
-        }
+        public bool DisableMultiplayerGameLoading => clientDefinitionsIni.GetBooleanValue(SETTINGS, "DisableMultiplayerGameLoading", false);
 
-        public bool DisableUpdaterOptions
-        {
-            get { return clientDefinitionsIni.GetBooleanValue(SETTINGS, "DisableUpdaterOptions", false); }
-        }
+        public bool DisableUpdaterOptions => clientDefinitionsIni.GetBooleanValue(SETTINGS, "DisableUpdaterOptions", false);
 
-        public bool DisableComponentOptions
-        {
-            get { return clientDefinitionsIni.GetBooleanValue(SETTINGS, "DisableComponentOptions", false); }
-        }
+        public bool DisableComponentOptions => clientDefinitionsIni.GetBooleanValue(SETTINGS, "DisableComponentOptions", false);
 
-        public bool DisplayPlayerCountInTopBar
-        {
-            get { return clientDefinitionsIni.GetBooleanValue(SETTINGS, "DisplayPlayerCountInTopBar", false); }
-        }
+        public bool DisplayPlayerCountInTopBar => clientDefinitionsIni.GetBooleanValue(SETTINGS, "DisplayPlayerCountInTopBar", false);
 
         /// <summary>
         /// The name of the executable in the main game directory that selects 
@@ -569,13 +415,7 @@ namespace ClientCore
         /// </summary>
         public string LauncherExe => clientDefinitionsIni.GetStringValue(SETTINGS, "LauncherExe", string.Empty);
 
-        public string ClientDefaultResolutionText
-        {
-            get
-            {
-                return clientDefinitionsIni.GetStringValue(SETTINGS, "ClientDefaultResolutionText", "(recommended)");
-            }
-        }
+        public string ClientDefaultResolutionText => clientDefinitionsIni.GetStringValue(SETTINGS, "ClientDefaultResolutionText", "(recommended)");
 
         public bool ProcessScreenshots
         {
@@ -590,10 +430,7 @@ namespace ClientCore
         /// Returns the name of the game executable file that is used on
         /// Linux and macOS.
         /// </summary>
-        public string GetUnixGameExecutableName()
-        {
-            return clientDefinitionsIni.GetStringValue(SETTINGS, "UnixGameExecutableName", "wine-dta.sh");
-        }
+        public string GetUnixGameExecutableName() => clientDefinitionsIni.GetStringValue(SETTINGS, "UnixGameExecutableName", "wine-dta.sh");
 
         public OSVersion GetOperatingSystemVersion()
         {
