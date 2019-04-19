@@ -417,6 +417,8 @@ namespace ClientCore
 
         public string ClientDefaultResolutionText => clientDefinitionsIni.GetStringValue(SETTINGS, "ClientDefaultResolutionText", "(recommended)");
 
+        public bool UseClientRandomStartLocations => clientDefinitionsIni.GetBooleanValue(SETTINGS, "UseClientRandomStartLocations", false);
+
         public bool ProcessScreenshots
         {
 #if MO
