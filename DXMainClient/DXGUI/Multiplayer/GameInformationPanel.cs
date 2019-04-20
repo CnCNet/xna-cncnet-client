@@ -14,6 +14,7 @@ namespace DTAClient.DXGUI.Multiplayer
 
         public GameInformationPanel(WindowManager windowManager) : base(windowManager)
         {
+            DrawMode = ControlDrawMode.UNIQUE_RENDER_TARGET;
         }
 
         XNALabel lblGameInformation;
@@ -29,7 +30,7 @@ namespace DTAClient.DXGUI.Multiplayer
         {
             ClientRectangle = new Rectangle(0, 0, 235, 264);
             BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 255), 1, 1);
-            DrawMode = PanelBackgroundImageDrawMode.STRETCHED;
+            PanelBackgroundDrawMode = PanelBackgroundImageDrawMode.STRETCHED;
 
             lblGameInformation = new XNALabel(WindowManager);
             lblGameInformation.FontIndex = 1;
@@ -58,11 +59,11 @@ namespace DTAClient.DXGUI.Multiplayer
             {
                 XNALabel lblPlayerName1 = new XNALabel(WindowManager);
                 lblPlayerName1.ClientRectangle = new Rectangle(lblPlayers.X, lblPlayers.Y + 24 + i * 20, 0, 0);
-                lblPlayerName1.RemapColor = UISettings.AltColor;
+                lblPlayerName1.RemapColor = UISettings.ActiveSettings.AltColor;
 
                 XNALabel lblPlayerName2 = new XNALabel(WindowManager);
                 lblPlayerName2.ClientRectangle = new Rectangle(lblPlayers.X + 115, lblPlayerName1.Y, 0, 0);
-                lblPlayerName2.RemapColor = UISettings.AltColor;
+                lblPlayerName2.RemapColor = UISettings.ActiveSettings.AltColor;
 
                 AddChild(lblPlayerName1);
                 AddChild(lblPlayerName2);
@@ -126,6 +127,12 @@ namespace DTAClient.DXGUI.Multiplayer
 
             foreach (XNALabel label in lblPlayerNames)
                 label.Visible = false;
+        }
+
+        public override void Draw(GameTime gameTime)
+        {
+            if (Alpha > 0.0f)
+                base.Draw(gameTime);
         }
     }
 }

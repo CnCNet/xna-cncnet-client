@@ -78,7 +78,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
                 if (lbItem != null)
                 {
-                    lbItem.TextColor = UISettings.DisabledButtonColor;
+                    lbItem.TextColor = UISettings.ActiveSettings.DisabledItemColor;
                     lbItem.Texture = null;
                     lbItem.Tag = false;
 
@@ -113,7 +113,6 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
                 if (lbItem != null)
                 {
-                    lbItem.TextColor = UISettings.AltColor;
                     lbItem.Tag = true;
                     lbItem.Texture = GetUserTexture(e.User);
 
@@ -142,7 +141,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             foreach (var ircUser in connectionManager.UserList)
             {
-                var item = new XNAListBoxItem(ircUser.Name, UISettings.AltColor);
+                var item = new XNAListBoxItem(ircUser.Name);
                 item.Tag = true;
                 item.Texture = GetUserTexture(ircUser);
                 lbUserList.AddItem(item);
@@ -176,7 +175,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         XNATextBox tbMessageInput;
 
-        PlayerContextMenu playerContextMenu;
+        XNAContextMenu playerContextMenu;
 
         CnCNetManager connectionManager;
 
@@ -236,7 +235,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             tabControl = new XNAClientTabControl(WindowManager);
             tabControl.Name = "tabControl";
             tabControl.ClientRectangle = new Rectangle(60, 50, 0, 0);
-            tabControl.SoundOnClick = AssetLoader.LoadSound("button.wav");
+            tabControl.ClickSound = new EnhancedSoundEffect("button.wav");
             tabControl.FontIndex = 1;
             tabControl.AddTab("Messages", 160);
             tabControl.AddTab("Friend List", 160);
@@ -257,7 +256,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             lbUserList.RightClick += LbUserList_RightClick;
             lbUserList.SelectedIndexChanged += LbUserList_SelectedIndexChanged;
             lbUserList.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 128), 1, 1);
-            lbUserList.DrawMode = PanelBackgroundImageDrawMode.STRETCHED;
+            lbUserList.PanelBackgroundDrawMode = PanelBackgroundImageDrawMode.STRETCHED;
 
             lblMessages = new XNALabel(WindowManager);
             lblMessages.Name = "lblMessages";
@@ -273,7 +272,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 Width - lblMessages.X - 12,
                 lbUserList.Height - 25);
             lbMessages.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 128), 1, 1);
-            lbMessages.DrawMode = PanelBackgroundImageDrawMode.STRETCHED;
+            lbMessages.PanelBackgroundDrawMode = PanelBackgroundImageDrawMode.STRETCHED;
 
             tbMessageInput = new XNATextBox(WindowManager);
             tbMessageInput.Name = "tbMessageInput";
@@ -283,13 +282,12 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             tbMessageInput.MaximumTextLength = 200;
             tbMessageInput.Enabled = false;
 
-            playerContextMenu = new PlayerContextMenu(WindowManager);
+            playerContextMenu = new XNAContextMenu(WindowManager);
             playerContextMenu.Name = "playerContextMenu";
             playerContextMenu.ClientRectangle = new Rectangle(0, 0, 150, 2);
             playerContextMenu.Enabled = false;
             playerContextMenu.Visible = false;
-            playerContextMenu.AddItem("Add Friend");
-            playerContextMenu.OptionSelected += PlayerContextMenu_OptionSelected;
+            playerContextMenu.AddItem("Add Friend", PlayerContextMenu_ToggleFriend);
 
             notificationBox = new PrivateMessageNotificationBox(WindowManager);
             notificationBox.Enabled = false;
@@ -339,10 +337,10 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             playerContextMenu.Items[0].Text = cncnetUserData.IsFriend(lbUserList.SelectedItem.Text) ? "Remove Friend" : "Add Friend";
 
-            playerContextMenu.Show();
+            playerContextMenu.Open(GetCursorPoint());
         }
 
-        private void PlayerContextMenu_OptionSelected(object sender, ContextMenuOptionEventArgs e)
+        private void PlayerContextMenu_ToggleFriend()
         {
             var lbItem = lbUserList.SelectedItem;
 
@@ -582,7 +580,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             lbItem.Text = user.Name;
 
             lbItem.TextColor = isOnline ?
-                UISettings.AltColor : UISettings.DisabledButtonColor;
+                UISettings.ActiveSettings.AltColor : UISettings.ActiveSettings.DisabledItemColor;
             lbItem.Tag = isOnline;
             lbItem.Texture = isOnline ? GetUserTexture(user) : null;
 

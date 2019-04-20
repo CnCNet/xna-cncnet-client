@@ -22,11 +22,11 @@ namespace DTAClient.DXGUI.Multiplayer
         public event EventHandler NewGame;
         public event EventHandler<GameLoadEventArgs> LoadGame;
 
-        XNALabel lblDescription;
+        private XNALabel lblDescription;
 
-        XNAButton btnNewGame;
-        XNAButton btnLoadGame;
-        XNAButton btnCancel;
+        private XNAButton btnNewGame;
+        private XNAButton btnLoadGame;
+        private XNAButton btnCancel;
 
         public override void Initialize()
         {
@@ -55,7 +55,7 @@ namespace DTAClient.DXGUI.Multiplayer
             btnNewGame.HoverTexture = AssetLoader.LoadTexture("133pxbtn_c.png");
             btnNewGame.FontIndex = 1;
             btnNewGame.Text = "New Game";
-            btnNewGame.HoverSoundEffect = AssetLoader.LoadSound("button.wav");
+            btnNewGame.HoverSoundEffect = new EnhancedSoundEffect("button.wav");
             btnNewGame.LeftClick += BtnNewGame_LeftClick;
 
             btnLoadGame = new XNAButton(WindowManager);

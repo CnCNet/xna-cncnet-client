@@ -11,7 +11,7 @@ namespace ClientGUI
 
         public override void Initialize()
         {
-            ClickSoundEffect = AssetLoader.LoadSound("dropdown.wav");
+            ClickSoundEffect = new EnhancedSoundEffect("dropdown.wav");
 
             base.Initialize();
         }

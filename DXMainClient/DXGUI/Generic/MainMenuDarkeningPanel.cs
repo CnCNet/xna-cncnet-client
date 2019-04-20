@@ -14,7 +14,9 @@ namespace DTAClient.DXGUI.Generic
     {
         public MainMenuDarkeningPanel(WindowManager windowManager) : base(windowManager)
         {
-
+            DrawBorders = false;
+            DrawMode = ControlDrawMode.UNIQUE_RENDER_TARGET;
+            AlphaRate = 0.0f;
         }
 
         public CampaignSelector CampaignSelector;
@@ -27,7 +29,6 @@ namespace DTAClient.DXGUI.Generic
         const float BG_ALPHA_APPEAR_RATE = 0.1f;
         const float BG_ALPHA_DISAPPEAR_RATE = -0.1f;
 
-        float bgAlpha = 1.0f;
         float bgAlphaRate = -0.1f;
 
         public override void Initialize()
@@ -35,10 +36,11 @@ namespace DTAClient.DXGUI.Generic
             base.Initialize();
 
             Name = "DarkeningPanel";
-            BorderColor = UISettings.WindowBorderColor;
+            //BorderColor = UISettings.WindowBorderColor;
+            BorderColor = UISettings.ActiveSettings.PanelBorderColor;
             BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 128), 1, 1);
             //ClientRectangle = new Rectangle(0, 0, 1, 1);
-            DrawMode = PanelBackgroundImageDrawMode.STRETCHED;
+            PanelBackgroundDrawMode = PanelBackgroundImageDrawMode.STRETCHED;
             Alpha = 1.0f;
 
             //ClientRectangle = new Rectangle(0, 0, WindowManager.Instance.RenderResolutionX, WindowManager.Instance.RenderResolutionY);
@@ -88,7 +90,6 @@ namespace DTAClient.DXGUI.Generic
             Visible = true;
 
             bgAlphaRate = BG_ALPHA_APPEAR_RATE;
-            Alpha = 1.0f;
 
             if (control != null)
             {
@@ -96,13 +97,6 @@ namespace DTAClient.DXGUI.Generic
                 control.Visible = true;
                 control.IgnoreInputOnFrame = true;
             }
-        }
-
-        public void InstantShow()
-        {
-            bgAlpha = 1.0f;
-            Enabled = true;
-            Visible = true;
         }
 
         public void Hide()
@@ -120,18 +114,12 @@ namespace DTAClient.DXGUI.Generic
         {
             base.Update(gameTime);
 
-            bgAlpha += bgAlphaRate;
-            if (bgAlphaRate < 0.0f)
-                Alpha += bgAlphaRate;
+            Alpha += bgAlphaRate;
 
-            if (bgAlpha > 1f)
-                bgAlpha = 1f;
-
-            if (bgAlpha < 0f)
+            if (Alpha <= 0f)
             {
                 Enabled = false;
                 Visible = false;
-                bgAlpha = 0f;
 
                 foreach (XNAControl child in Children)
                 {
@@ -142,15 +130,8 @@ namespace DTAClient.DXGUI.Generic
 
         public override void Draw(GameTime gameTime)
         {
-            Renderer.DrawTexture(BackgroundTexture, ClientRectangle, new Color(255, 255, 255, (int)(bgAlpha * 255)));
-
-            for (int i = 0; i < Children.Count; i++)
-            {
-                if (Children[i].Visible)
-                {
-                    Children[i].Draw(gameTime);
-                }
-            }
+            DrawTexture(BackgroundTexture, Point.Zero, Color.White);
+            base.Draw(gameTime);
         }
     }
 }
