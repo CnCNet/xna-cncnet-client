@@ -12,13 +12,8 @@ using System.Text;
 
 namespace DTAClient.DXGUI.Multiplayer
 {
-    /// <summary>
-    /// A list box for listing the players in the CnCNet lobby.
-    /// </summary>
-    public class PlayerListBox : XNAListBox
+    public class PlayerListBox: XNAListBox
     {
-        private const int MARGIN = 2;
-
         public List<ChannelUser> Users;
 
         private Texture2D adminGameIcon;
@@ -26,6 +21,8 @@ namespace DTAClient.DXGUI.Multiplayer
         private Texture2D badgeGameIcon;
         private Texture2D friendIcon;
         private Texture2D ignoreIcon;
+
+        private XNAScrollBar scrollBar;
 
         private GameCollection gameCollection;
 
@@ -40,6 +37,8 @@ namespace DTAClient.DXGUI.Multiplayer
             friendIcon = AssetLoader.LoadTexture("friendicon.png");
             ignoreIcon = AssetLoader.LoadTexture("ignoreicon.png");
             badgeGameIcon = AssetLoader.LoadTexture("Badges\\badge.png");
+
+            scrollBar = new XNAScrollBar(WindowManager);
         }
 
         public void AddUser(ChannelUser user)
@@ -57,16 +56,19 @@ namespace DTAClient.DXGUI.Multiplayer
 
         public override void Draw(GameTime gameTime)
         {
+            Rectangle windowRectangle = WindowRectangle();
+            
             DrawPanel();
 
-            int height = 2 - (ViewTop % LineHeight);
+            int height = 2;
+            int margin = 2;
 
             for (int i = TopIndex; i < Items.Count; i++)
             {
                 XNAListBoxItem lbItem = Items[i];
                 var user = (ChannelUser)lbItem.Tag;
 
-                if (height > Height)
+                if (height + lbItem.TextLines.Count * LineHeight > Height)
                     break;
 
                 int x = TextBorderDistance;
@@ -75,42 +77,43 @@ namespace DTAClient.DXGUI.Multiplayer
                 {
                     int drawnWidth;
 
-                    if (DrawSelectionUnderScrollbar || !ScrollBar.IsDrawn() || !EnableScrollbar)
+                    if (DrawSelectionUnderScrollbar || !scrollBar.IsDrawn() || !EnableScrollbar)
                     {
-                        drawnWidth = Width - 2;
+                        drawnWidth = windowRectangle.Width - 2;
                     }
                     else
                     {
-                        drawnWidth = Width - 2 - ScrollBar.Width;
+                        drawnWidth = windowRectangle.Width - 2 - scrollBar.Width;
                     }
 
-                    FillRectangle(new Rectangle(1, height,
+                    Renderer.FillRectangle(
+                        new Rectangle(windowRectangle.X + 1, windowRectangle.Y + height,
                         drawnWidth, lbItem.TextLines.Count * LineHeight),
                         GetColorWithAlpha(FocusColor));
                 }
 
-                DrawTexture(lbItem.Texture, new Rectangle(x, height,
+                Renderer.DrawTexture(lbItem.Texture, new Rectangle(windowRectangle.X + x, windowRectangle.Y + height,
                         adminGameIcon.Width, adminGameIcon.Height), Color.White);
 
-                x += adminGameIcon.Width + MARGIN;
+                x += adminGameIcon.Width + margin;
 
                 // Friend Icon
                 if (user.IRCUser.IsFriend)
                 {
-                    DrawTexture(friendIcon,
-                        new Rectangle(x, height,
+                    Renderer.DrawTexture(friendIcon,
+                        new Rectangle(windowRectangle.X + x, windowRectangle.Y + height,
                         friendIcon.Width, friendIcon.Height), Color.White);
 
-                    x += friendIcon.Width + MARGIN;
+                    x += friendIcon.Width + margin;
                 }
                 // Ignore Icon
                 else if (user.IRCUser.IsIgnored)
                 {
-                    DrawTexture(ignoreIcon,
-                        new Rectangle(x, height,
+                    Renderer.DrawTexture(ignoreIcon,
+                        new Rectangle(windowRectangle.X + x, windowRectangle.Y + height,
                         ignoreIcon.Width, ignoreIcon.Height), Color.White);
 
-                    x += ignoreIcon.Width + MARGIN;
+                    x += ignoreIcon.Width + margin;
                 }
 
                 // Badge Icon - coming soon
@@ -126,8 +129,8 @@ namespace DTAClient.DXGUI.Multiplayer
                 string name = user.IsAdmin ? user.IRCUser.Name + " (Admin)" : user.IRCUser.Name;
                 x += lbItem.TextXPadding;
 
-                DrawStringWithShadow(name, FontIndex,
-                    new Vector2(x, height),
+                Renderer.DrawStringWithShadow(name, FontIndex,
+                    new Vector2(windowRectangle.X + x, windowRectangle.Y + height),
                     lbItem.TextColor);
 
                 height += LineHeight;
@@ -154,6 +157,7 @@ namespace DTAClient.DXGUI.Multiplayer
             else
             {
                 item.Text = user.IRCUser.Name;
+                item.TextColor = UISettings.AltColor;
 
                 if (user.IRCUser.GameID < 0 || user.IRCUser.GameID >= gameCollection.GameList.Count)
                     item.Texture = unknownGameIcon;

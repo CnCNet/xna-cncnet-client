@@ -11,7 +11,7 @@ namespace ClientGUI
 
         public override void Initialize()
         {
-            CheckSoundEffect = new EnhancedSoundEffect("checkbox.wav");
+            CheckSoundEffect = AssetLoader.LoadSound("checkbox.wav");
 
             base.Initialize();
         }

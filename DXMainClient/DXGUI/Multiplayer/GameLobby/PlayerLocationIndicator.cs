@@ -168,8 +168,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         public override void Draw(GameTime gameTime)
         {
-            Point p = GetWindowPoint();
-            Rectangle displayRectangle = new Rectangle(p.X, p.Y, Width, Height);
+            Rectangle displayRectangle = WindowRectangle();
 
             int y = displayRectangle.Y + ((int)(baseTexture.Height * TEXTURE_SCALE) - lineHeight) / 2;
 

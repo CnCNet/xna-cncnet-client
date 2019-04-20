@@ -11,11 +11,8 @@ namespace ClientGUI
 
         public override void Initialize()
         {
-            if (ClickSound == null)
-            {
-                ClickSound = new EnhancedSoundEffect("button.wav");
-            }
-                
+            if (SoundOnClick == null)
+                SoundOnClick = AssetLoader.LoadSound("button.wav");
 
             base.Initialize();
         }

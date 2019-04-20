@@ -58,7 +58,7 @@ namespace DTAClient.DXGUI
                 Color[] colorArray = new Color[100 * 100];
                 texture.SetData(colorArray);
 
-                UISettings.ActiveSettings.CheckBoxClearTexture = AssetLoader.LoadTextureUncached("checkBoxClear.png");
+                UISettings.CheckBoxClearTexture = AssetLoader.LoadTextureUncached("checkBoxClear.png");
             }
             catch (Exception ex)
             {
@@ -154,28 +154,24 @@ namespace DTAClient.DXGUI
 
         private void InitializeUISettings()
         {
-            UISettings settings = new UISettings();
+            UISettings.AltColor = AssetLoader.GetColorFromString(ClientConfiguration.Instance.AltUIColor);
+            UISettings.SubtleTextColor = AssetLoader.GetColorFromString(ClientConfiguration.Instance.UIHintTextColor);
+            UISettings.ButtonColor = UISettings.AltColor;
+            UISettings.ButtonHoverColor = AssetLoader.GetColorFromString(ClientConfiguration.Instance.ButtonHoverColor);
+            UISettings.TextColor = AssetLoader.GetColorFromString(ClientConfiguration.Instance.UILabelColor);
+            UISettings.WindowBorderColor = AssetLoader.GetColorFromString(ClientConfiguration.Instance.WindowBorderColor);
+            UISettings.PanelBorderColor = AssetLoader.GetColorFromString(ClientConfiguration.Instance.PanelBorderColor);
+            UISettings.BackgroundColor = AssetLoader.GetColorFromString(ClientConfiguration.Instance.AltUIBackgroundColor);
+            UISettings.FocusColor = AssetLoader.GetColorFromString(ClientConfiguration.Instance.ListBoxFocusColor);
+            UISettings.DisabledButtonColor = AssetLoader.GetColorFromString(ClientConfiguration.Instance.DisabledButtonColor);
 
-            settings.AltColor = AssetLoader.GetColorFromString(ClientConfiguration.Instance.AltUIColor);
-            settings.SubtleTextColor = AssetLoader.GetColorFromString(ClientConfiguration.Instance.UIHintTextColor);
-            settings.ButtonTextColor = settings.AltColor;
-            settings.ButtonHoverColor = AssetLoader.GetColorFromString(ClientConfiguration.Instance.ButtonHoverColor);
-            settings.TextColor = AssetLoader.GetColorFromString(ClientConfiguration.Instance.UILabelColor);
-            //settings.WindowBorderColor = AssetLoader.GetColorFromString(ClientConfiguration.Instance.WindowBorderColor);
-            settings.PanelBorderColor = AssetLoader.GetColorFromString(ClientConfiguration.Instance.PanelBorderColor);
-            settings.BackgroundColor = AssetLoader.GetColorFromString(ClientConfiguration.Instance.AltUIBackgroundColor);
-            settings.FocusColor = AssetLoader.GetColorFromString(ClientConfiguration.Instance.ListBoxFocusColor);
-            settings.DisabledItemColor = AssetLoader.GetColorFromString(ClientConfiguration.Instance.DisabledButtonColor);
-            
-            settings.DefaultAlphaRate = ClientConfiguration.Instance.DefaultAlphaRate;
-            settings.CheckBoxAlphaRate = ClientConfiguration.Instance.CheckBoxAlphaRate;
-            
-            settings.CheckBoxClearTexture = AssetLoader.LoadTexture("checkBoxClear.png");
-            settings.CheckBoxCheckedTexture = AssetLoader.LoadTexture("checkBoxChecked.png");
-            settings.CheckBoxDisabledClearTexture = AssetLoader.LoadTexture("checkBoxClearD.png");
-            settings.CheckBoxDisabledCheckedTexture = AssetLoader.LoadTexture("checkBoxCheckedD.png");
+            UISettings.DefaultAlphaRate = ClientConfiguration.Instance.DefaultAlphaRate;
+            UISettings.CheckBoxAlphaRate = ClientConfiguration.Instance.CheckBoxAlphaRate;
 
-            UISettings.ActiveSettings = settings;
+            UISettings.CheckBoxClearTexture = AssetLoader.LoadTexture("checkBoxClear.png");
+            UISettings.CheckBoxCheckedTexture = AssetLoader.LoadTexture("checkBoxChecked.png");
+            UISettings.CheckBoxDisabledClearTexture = AssetLoader.LoadTexture("checkBoxClearD.png");
+            UISettings.CheckBoxDisabledCheckedTexture = AssetLoader.LoadTexture("checkBoxCheckedD.png");
         }
 
         /// <summary>

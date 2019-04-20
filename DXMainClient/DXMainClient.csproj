@@ -289,8 +289,6 @@
     <Compile Include="DXGUI\Multiplayer\CnCNet\GameCreationWindow.cs" />
     <Compile Include="DXGUI\Multiplayer\CnCNet\PasswordRequestWindow.cs" />
     <Compile Include="DXGUI\Multiplayer\CnCNet\PlayerContextMenu.cs" />
-    <Compile Include="DXGUI\Multiplayer\CnCNet\TunnelListBox.cs" />
-    <Compile Include="DXGUI\Multiplayer\CnCNet\TunnelSelectionWindow.cs" />
     <Compile Include="DXGUI\Multiplayer\GameInformationPanel.cs" />
     <Compile Include="DXGUI\Generic\GameInProgressWindow.cs" />
     <Compile Include="DXGUI\Multiplayer\GameListBox.cs" />

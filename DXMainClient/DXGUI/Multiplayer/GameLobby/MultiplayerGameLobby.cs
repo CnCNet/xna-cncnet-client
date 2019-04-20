@@ -52,7 +52,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         protected XNACheckBox[] ReadyBoxes;
 
         protected ChatListBox lbChatMessages;
-        protected XNAChatTextBox tbChatInput;
+        protected XNASuggestionTextBox tbChatInput;
         protected XNAClientButton btnLockGame;
 
         protected bool IsHost = false;
@@ -146,13 +146,13 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             lbChatMessages.ClientRectangle = new Rectangle(lbMapList.X, 
                 GameOptionsPanel.Y,
                lbMapList.Width, GameOptionsPanel.Height - 24);
-            lbChatMessages.PanelBackgroundDrawMode = PanelBackgroundImageDrawMode.STRETCHED;
+            lbChatMessages.DrawMode = PanelBackgroundImageDrawMode.STRETCHED;
             lbChatMessages.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 128), 1, 1);
             lbChatMessages.LineHeight = 16;
             lbChatMessages.DrawOrder = -1;
             lbChatMessages.UpdateOrder = -1;
 
-            tbChatInput = new XNAChatTextBox(WindowManager);
+            tbChatInput = new XNASuggestionTextBox(WindowManager);
             tbChatInput.Name = "tbChatInput";
             tbChatInput.Suggestion = "Type here to chat..";
             tbChatInput.ClientRectangle = new Rectangle(lbChatMessages.X, 

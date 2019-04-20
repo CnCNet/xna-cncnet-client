@@ -102,7 +102,7 @@ namespace ClientGUI
             btnOK.ClientRectangle = new Rectangle(0, 0, 75, 23);
             btnOK.IdleTexture = AssetLoader.LoadTexture("75pxbtn.png");
             btnOK.HoverTexture = AssetLoader.LoadTexture("75pxbtn_c.png");
-            btnOK.HoverSoundEffect = new EnhancedSoundEffect("button.wav");
+            btnOK.HoverSoundEffect = AssetLoader.LoadSound("button.wav");
             btnOK.Name = "btnOK";
             btnOK.Text = "OK";
             btnOK.LeftClick += BtnOK_LeftClick;
@@ -122,7 +122,7 @@ namespace ClientGUI
             btnYes.ClientRectangle = new Rectangle(0, 0, 75, 23);
             btnYes.IdleTexture = AssetLoader.LoadTexture("75pxbtn.png");
             btnYes.HoverTexture = AssetLoader.LoadTexture("75pxbtn_c.png");
-            btnYes.HoverSoundEffect = new EnhancedSoundEffect("button.wav");
+            btnYes.HoverSoundEffect = AssetLoader.LoadSound("button.wav");
             btnYes.Name = "btnYes";
             btnYes.Text = "Yes";
             btnYes.LeftClick += BtnYes_LeftClick;
@@ -138,7 +138,7 @@ namespace ClientGUI
             btnNo.ClientRectangle = new Rectangle(0, 0, 75, 23);
             btnNo.IdleTexture = AssetLoader.LoadTexture("75pxbtn.png");
             btnNo.HoverTexture = AssetLoader.LoadTexture("75pxbtn_c.png");
-            btnNo.HoverSoundEffect = new EnhancedSoundEffect("button.wav");
+            btnNo.HoverSoundEffect = AssetLoader.LoadSound("button.wav");
             btnNo.Name = "btnNo";
             btnNo.Text = "No";
             btnNo.LeftClick += BtnNo_LeftClick;
@@ -157,7 +157,7 @@ namespace ClientGUI
             btnOK.ClientRectangle = new Rectangle(0, 0, 75, 23);
             btnOK.IdleTexture = AssetLoader.LoadTexture("75pxbtn.png");
             btnOK.HoverTexture = AssetLoader.LoadTexture("75pxbtn_c.png");
-            btnOK.HoverSoundEffect = new EnhancedSoundEffect("button.wav");
+            btnOK.HoverSoundEffect = AssetLoader.LoadSound("button.wav");
             btnOK.Name = "btnOK";
             btnOK.Text = "OK";
             btnOK.LeftClick += BtnYes_LeftClick;
@@ -173,7 +173,7 @@ namespace ClientGUI
             btnCancel.ClientRectangle = new Rectangle(0, 0, 75, 23);
             btnCancel.IdleTexture = AssetLoader.LoadTexture("75pxbtn.png");
             btnCancel.HoverTexture = AssetLoader.LoadTexture("75pxbtn_c.png");
-            btnCancel.HoverSoundEffect = new EnhancedSoundEffect("button.wav");
+            btnCancel.HoverSoundEffect = AssetLoader.LoadSound("button.wav");
             btnCancel.Name = "btnCancel";
             btnCancel.Text = "Cancel";
             btnCancel.LeftClick += BtnCancel_LeftClick;
@@ -244,7 +244,6 @@ namespace ClientGUI
             panel.AddChild(msgBox);
             msgBox.OKClickedAction = MsgBox_OKClicked;
             windowManager.AddAndInitializeControl(msgBox);
-            windowManager.SelectedControl = null;
         }
 
         private static void MsgBox_OKClicked(XNAMessageBox messageBox)

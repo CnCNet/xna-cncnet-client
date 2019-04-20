@@ -32,7 +32,7 @@ namespace DTAConfig.OptionPanels
                 Parent.Width - 24,
                 Parent.Height - 94);
             BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 128), 2, 2);
-            PanelBackgroundDrawMode = PanelBackgroundImageDrawMode.STRETCHED;
+            DrawMode = PanelBackgroundImageDrawMode.STRETCHED;
 
             base.Initialize();
         }

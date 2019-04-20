@@ -137,12 +137,12 @@ namespace ClientGUI
         public override void Draw(GameTime gameTime)
         {
             Renderer.FillRectangle(ClientRectangle,
-                ColorFromAlpha(UISettings.ActiveSettings.BackgroundColor));
+                ColorFromAlpha(UISettings.BackgroundColor));
             Renderer.DrawRectangle(ClientRectangle,
-                ColorFromAlpha(UISettings.ActiveSettings.AltColor));
-            Renderer.DrawString(Text, FONT_INDEX,
+                ColorFromAlpha(UISettings.AltColor));
+            Renderer.DrawString(Text, FONT_INDEX, 1.0f,
                 new Vector2(X + MARGIN, Y + MARGIN),
-                ColorFromAlpha(UISettings.ActiveSettings.AltColor), 1.0f);
+                ColorFromAlpha(UISettings.AltColor));
         }
 
         private Color ColorFromAlpha(Color color)

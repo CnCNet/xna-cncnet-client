@@ -36,7 +36,7 @@ namespace DTAClient.DXGUI.Generic
 
             var imagePanel = new XNAPanel(WindowManager);
             imagePanel.Name = "imagePanel";
-            imagePanel.PanelBackgroundDrawMode = PanelBackgroundImageDrawMode.STRETCHED;
+            imagePanel.DrawMode = PanelBackgroundImageDrawMode.STRETCHED;
             imagePanel.ClientRectangle = new Rectangle(lblDescription.X,
                 lblDescription.Bottom + 12, Width - 24,
                 Height - (lblDescription.Bottom + 59));
