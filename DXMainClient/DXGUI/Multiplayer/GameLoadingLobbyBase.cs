@@ -83,7 +83,7 @@ namespace DTAClient.DXGUI.Multiplayer
             panelPlayers = new XNAPanel(WindowManager);
             panelPlayers.ClientRectangle = new Rectangle(12, 32, 373, 125);
             panelPlayers.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 128), 1, 1);
-            panelPlayers.PanelBackgroundDrawMode = PanelBackgroundImageDrawMode.STRETCHED;
+            panelPlayers.DrawMode = PanelBackgroundImageDrawMode.STRETCHED;
 
             AddChild(lblDescription);
             AddChild(panelPlayers);
@@ -152,7 +152,7 @@ namespace DTAClient.DXGUI.Multiplayer
             lbChatMessages = new ChatListBox(WindowManager);
             lbChatMessages.Name = "lbChatMessages";
             lbChatMessages.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 128), 1, 1);
-            lbChatMessages.PanelBackgroundDrawMode = PanelBackgroundImageDrawMode.STRETCHED;
+            lbChatMessages.DrawMode = PanelBackgroundImageDrawMode.STRETCHED;
             lbChatMessages.ClientRectangle = new Rectangle(12, panelPlayers.Bottom + 12,
                 Width - 24, 
                 Height - panelPlayers.Bottom - 12 - 29 - 34);

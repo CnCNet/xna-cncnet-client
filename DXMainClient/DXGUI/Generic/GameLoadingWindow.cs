@@ -41,7 +41,7 @@ namespace DTAClient.DXGUI.Generic
             lbSaveGameList.AddColumn("DATE / TIME", 174);
             lbSaveGameList.ClientRectangle = new Rectangle(13, 13, 574, 317);
             lbSaveGameList.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 128), 1, 1);
-            lbSaveGameList.PanelBackgroundDrawMode = PanelBackgroundImageDrawMode.STRETCHED;
+            lbSaveGameList.DrawMode = PanelBackgroundImageDrawMode.STRETCHED;
             lbSaveGameList.SelectedIndexChanged += ListBox_SelectedIndexChanged;
             lbSaveGameList.AllowKeyboardInput = true;
 

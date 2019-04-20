@@ -39,7 +39,7 @@ namespace DTAConfig
             tabControl.Name = "tabControl";
             tabControl.ClientRectangle = new Rectangle(12, 12, 0, 23);
             tabControl.FontIndex = 1;
-            tabControl.ClickSound = new EnhancedSoundEffect("button.wav");
+            tabControl.SoundOnClick = AssetLoader.LoadSound("button.wav");
             tabControl.AddTab("Display", 92);
             tabControl.AddTab("Audio", 92);
             tabControl.AddTab("Game", 92);

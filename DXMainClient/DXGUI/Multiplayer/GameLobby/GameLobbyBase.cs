@@ -167,13 +167,13 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             GameOptionsPanel.Name = "GameOptionsPanel";
             GameOptionsPanel.ClientRectangle = new Rectangle(Width - 411, 12, 399, 289);
             GameOptionsPanel.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 192), 1, 1);
-            GameOptionsPanel.PanelBackgroundDrawMode = PanelBackgroundImageDrawMode.STRETCHED;
+            GameOptionsPanel.DrawMode = PanelBackgroundImageDrawMode.STRETCHED;
 
             PlayerOptionsPanel = new XNAPanel(WindowManager);
             PlayerOptionsPanel.Name = "PlayerOptionsPanel";
             PlayerOptionsPanel.ClientRectangle = new Rectangle(GameOptionsPanel.X - 401, 12, 395, GameOptionsPanel.Height);
             PlayerOptionsPanel.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 192), 1, 1);
-            PlayerOptionsPanel.PanelBackgroundDrawMode = PanelBackgroundImageDrawMode.STRETCHED;
+            PlayerOptionsPanel.DrawMode = PanelBackgroundImageDrawMode.STRETCHED;
 
             btnLeaveGame = new XNAClientButton(WindowManager);
             btnLeaveGame.Name = "btnLeaveGame";
@@ -196,7 +196,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 GameOptionsPanel.Right - PlayerOptionsPanel.X,
                 Height - PlayerOptionsPanel.Bottom - 65);
             MapPreviewBox.FontIndex = 1;
-            MapPreviewBox.PanelBackgroundDrawMode = PanelBackgroundImageDrawMode.STRETCHED;
+            MapPreviewBox.DrawMode = PanelBackgroundImageDrawMode.STRETCHED;
             MapPreviewBox.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 128), 1, 1);
 
             lblMapName = new XNALabel(WindowManager);
@@ -234,12 +234,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 MapPreviewBox.X - btnLaunchGame.X - 6,
                 MapPreviewBox.Bottom - 23 - GameOptionsPanel.Y);
             lbMapList.SelectedIndexChanged += LbMapList_SelectedIndexChanged;
-            lbMapList.PanelBackgroundDrawMode = PanelBackgroundImageDrawMode.STRETCHED;
+            lbMapList.DrawMode = PanelBackgroundImageDrawMode.STRETCHED;
             lbMapList.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 192), 1, 1);
             lbMapList.LineHeight = 16;
             lbMapList.DrawListBoxBorders = true;
             lbMapList.AllowKeyboardInput = true;
-            lbMapList.AllowRightClickUnselect = false;
 
             XNAPanel rankHeader = new XNAPanel(WindowManager);
             rankHeader.BackgroundTexture = AssetLoader.LoadTexture("rank.png");
@@ -431,7 +430,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 XNAListBoxItem mapNameItem = new XNAListBoxItem();
                 mapNameItem.Text = Renderer.GetSafeString(GameMode.Maps[i].Name, lbMapList.FontIndex);
                 if ((GameMode.Maps[i].MultiplayerOnly || GameMode.MultiplayerOnly) && !isMultiplayer)
-                    mapNameItem.TextColor = UISettings.ActiveSettings.DisabledItemColor;
+                    mapNameItem.TextColor = UISettings.DisabledButtonColor;
+                else
+                    mapNameItem.TextColor = UISettings.AltColor;
                 mapNameItem.Tag = GameMode.Maps[i];
 
                 XNAListBoxItem[] mapInfoArray = new XNAListBoxItem[]

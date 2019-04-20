@@ -48,6 +48,8 @@ namespace DTAClient.DXGUI.Multiplayer
 
         private GameInformationPanel panelGameInformation;
 
+        private bool showGameInfo = false;
+
         private TimeSpan timeSinceGameRefresh;
 
         private Color hoverOnGameColor;
@@ -132,8 +134,6 @@ namespace DTAClient.DXGUI.Multiplayer
             HostedGames.Clear();
         }
 
-        protected override int GetRenderTargetWidth() => Width + panelGameInformation.Width;
-
         public override void Initialize()
         {
             txLockedGame = AssetLoader.LoadTexture("lockedgame.png");
@@ -143,13 +143,11 @@ namespace DTAClient.DXGUI.Multiplayer
             panelGameInformation = new GameInformationPanel(WindowManager);
             panelGameInformation.Name = "panelGameInformation";
             panelGameInformation.BackgroundTexture = AssetLoader.LoadTexture("cncnetlobbypanelbg.png");
-            panelGameInformation.DrawMode = ControlDrawMode.UNIQUE_RENDER_TARGET;
+
+            panelGameInformation.Parent = this;
             panelGameInformation.Initialize();
+
             panelGameInformation.ClearInfo();
-            panelGameInformation.Disable();
-            panelGameInformation.InputEnabled = false;
-            panelGameInformation.Alpha = 0f;
-            AddChild(panelGameInformation);
 
             HoveredIndexChanged += GameListBox_HoveredIndexChanged;
 
@@ -165,16 +163,17 @@ namespace DTAClient.DXGUI.Multiplayer
         {
             if (HoveredIndex < 0 || HoveredIndex >= Items.Count)
             {
-                panelGameInformation.AlphaRate = -0.5f;
+                showGameInfo = false;
                 return;
             }
 
-            panelGameInformation.Enable();
-            panelGameInformation.X = Width;
-            panelGameInformation.Y = Math.Min((HoveredIndex - TopIndex) * LineHeight,
-                         Height - panelGameInformation.Height);
+            panelGameInformation.ClientRectangle = new Rectangle(Width,
+                Math.Min((HoveredIndex - TopIndex) * LineHeight,
+                         Height - panelGameInformation.Height),
+                panelGameInformation.Width,
+                panelGameInformation.Height);
 
-            panelGameInformation.AlphaRate = 0.5f;
+            showGameInfo = true;
 
             var hostedGame = (GenericHostedGame)Items[HoveredIndex].Tag;
 
@@ -193,10 +192,10 @@ namespace DTAClient.DXGUI.Multiplayer
             lbItem.Text = Renderer.GetStringWithLimitedWidth(Renderer.GetSafeString(
                 hg.RoomName, FontIndex), FontIndex, maxTextWidth);
 
-            if (hg.Game.InternalName != localGameIdentifier.ToLower())
-                lbItem.TextColor = UISettings.ActiveSettings.TextColor;
-            //else // made unnecessary by new Rampastring.XNAUI
-            //    lbItem.TextColor = UISettings.ActiveSettings.AltColor;
+            if (hg.Game.InternalName == localGameIdentifier.ToLower())
+                lbItem.TextColor = UISettings.AltColor;
+            else
+                lbItem.TextColor = UISettings.TextColor;
 
             if (hg.Incompatible || hg.Locked)
             {
@@ -208,7 +207,7 @@ namespace DTAClient.DXGUI.Multiplayer
 
         public override void OnMouseLeave()
         {
-            panelGameInformation.AlphaRate = -0.5f;
+            showGameInfo = false;
 
             base.OnMouseLeave();
         }
@@ -243,6 +242,11 @@ namespace DTAClient.DXGUI.Multiplayer
 
         public override void Draw(GameTime gameTime)
         {
+            Rectangle windowRectangle = WindowRectangle();
+
+            if (showGameInfo)
+                panelGameInformation.Draw(gameTime);
+
             DrawPanel();
 
             int height = 2;
@@ -258,46 +262,46 @@ namespace DTAClient.DXGUI.Multiplayer
 
                 if (i == SelectedIndex)
                 {
-                    FillRectangle(
-                        new Rectangle(1, height, Width - 2, lbItem.TextLines.Count * LineHeight),
+                    Renderer.FillRectangle(
+                        new Rectangle(windowRectangle.X + 1, windowRectangle.Y + height, windowRectangle.Width - 2, lbItem.TextLines.Count * LineHeight),
                         FocusColor);
                 }
                 else if (i == HoveredIndex)
                 {
-                    FillRectangle(
-                        new Rectangle(1, height, Width - 2, lbItem.TextLines.Count * LineHeight),
+                    Renderer.FillRectangle(
+                        new Rectangle(windowRectangle.X + 1, windowRectangle.Y + height, windowRectangle.Width - 2, lbItem.TextLines.Count * LineHeight),
                         hoverOnGameColor);
                 }
 
                 var hostedGame = (GenericHostedGame)lbItem.Tag;
 
-                DrawTexture(hostedGame.Game.Texture,
-                    new Rectangle(x, height,
+                Renderer.DrawTexture(hostedGame.Game.Texture,
+                    new Rectangle(windowRectangle.X + x, windowRectangle.Y + height,
                     hostedGame.Game.Texture.Width, hostedGame.Game.Texture.Height), Color.White);
 
                 x += hostedGame.Game.Texture.Width + ICON_MARGIN;
 
                 if (hostedGame.Locked)
                 {
-                    DrawTexture(txLockedGame,
-                        new Rectangle(x, height,
+                    Renderer.DrawTexture(txLockedGame,
+                        new Rectangle(windowRectangle.X + x, windowRectangle.Y + height,
                         txLockedGame.Width, txLockedGame.Height), Color.White);
                     x += txLockedGame.Width + ICON_MARGIN;
                 }
 
                 if (hostedGame.Incompatible)
                 {
-                    DrawTexture(txIncompatibleGame,
-                        new Rectangle(x, height,
+                    Renderer.DrawTexture(txIncompatibleGame,
+                        new Rectangle(windowRectangle.X + x, windowRectangle.Y + height,
                         txIncompatibleGame.Width, txIncompatibleGame.Height), Color.White);
                     x += txIncompatibleGame.Width + ICON_MARGIN;
                 }
 
                 if (hostedGame.Passworded)
                 {
-                    DrawTexture(txPasswordedGame,
-                        new Rectangle(Width - txPasswordedGame.Width - TextBorderDistance,
-                        height, txPasswordedGame.Width, txPasswordedGame.Height),
+                    Renderer.DrawTexture(txPasswordedGame,
+                        new Rectangle(windowRectangle.Right - txPasswordedGame.Width - TextBorderDistance,
+                        windowRectangle.Y + height, txPasswordedGame.Width, txPasswordedGame.Height),
                         Color.White);
                 }
 
@@ -307,8 +311,8 @@ namespace DTAClient.DXGUI.Multiplayer
 
                 x += lbItem.TextXPadding;
 
-                DrawStringWithShadow(text, FontIndex,
-                    new Vector2(x, height),
+                Renderer.DrawStringWithShadow(text, FontIndex,
+                    new Vector2(windowRectangle.X + x, windowRectangle.Y + height),
                     lbItem.TextColor);
 
                 height += LineHeight;
@@ -317,7 +321,7 @@ namespace DTAClient.DXGUI.Multiplayer
             if (DrawBorders)
                 DrawPanelBorders();
 
-            DrawChildren(gameTime);
+            //DrawChildren(gameTime);
         }
     }
 }

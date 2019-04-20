@@ -48,13 +48,13 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         private PlayerListBox lbPlayerList;
         private ChatListBox lbChatMessages;
         private GameListBox lbGameList;
-        private XNAContextMenu playerContextMenu;
+        private PlayerContextMenu playerContextMenu;
 
         private XNAClientButton btnLogout;
         private XNAClientButton btnNewGame;
         private XNAClientButton btnJoinGame;
 
-        private XNAChatTextBox tbChatInput;
+        private XNATextBox tbChatInput;
 
         private XNALabel lblColor;
         private XNALabel lblCurrentChannel;
@@ -141,7 +141,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             lbGameList.ClientRectangle = new Rectangle(btnNewGame.X,
                 41, btnJoinGame.Right - btnNewGame.X,
                 btnNewGame.Y - 47);
-            lbGameList.PanelBackgroundDrawMode = PanelBackgroundImageDrawMode.STRETCHED;
+            lbGameList.DrawMode = PanelBackgroundImageDrawMode.STRETCHED;
             lbGameList.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 128), 1, 1);
             lbGameList.DoubleLeftClick += LbGameList_DoubleLeftClick;
             lbGameList.AllowMultiLineItems = false;
@@ -151,38 +151,35 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             lbPlayerList.ClientRectangle = new Rectangle(Width - 202,
                 20, 190,
                 btnLogout.Y - 26);
-            lbPlayerList.PanelBackgroundDrawMode = PanelBackgroundImageDrawMode.STRETCHED;
+            lbPlayerList.DrawMode = PanelBackgroundImageDrawMode.STRETCHED;
             lbPlayerList.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 128), 1, 1);
             lbPlayerList.LineHeight = 16;
             lbPlayerList.DoubleLeftClick += LbPlayerList_DoubleLeftClick;
             lbPlayerList.RightClick += LbPlayerList_RightClick;
 
-            playerContextMenu = new XNAContextMenu(WindowManager);
+            playerContextMenu = new PlayerContextMenu(WindowManager);
             playerContextMenu.Name = "playerContextMenu";
             playerContextMenu.ClientRectangle = new Rectangle(0, 0, 150, 2);
             playerContextMenu.Enabled = false;
             playerContextMenu.Visible = false;
-            playerContextMenu.AddItem("Private Message", () => 
-                PerformUserListContextMenuAction(iu => pmWindow.InitPM(iu.Name)));
-            playerContextMenu.AddItem("Add Friend", () => 
-                PerformUserListContextMenuAction(iu => cncnetUserData.ToggleFriend(iu.Name)));
-            playerContextMenu.AddItem("Ignore User", () => 
-                PerformUserListContextMenuAction(iu => cncnetUserData.ToggleIgnoreUser(iu.Ident)));
+            playerContextMenu.AddItem("Private Message");
+            playerContextMenu.AddItem("Add Friend");
+            playerContextMenu.AddItem("Ignore User");
+            playerContextMenu.OptionSelected += PlayerContextMenu_OptionSelected;
 
             lbChatMessages = new ChatListBox(WindowManager);
             lbChatMessages.Name = "lbChatMessages";
             lbChatMessages.ClientRectangle = new Rectangle(lbGameList.Right + 12, lbGameList.Y,
                 lbPlayerList.X - lbGameList.Right - 24, lbPlayerList.Height);
-            lbChatMessages.PanelBackgroundDrawMode = PanelBackgroundImageDrawMode.STRETCHED;
+            lbChatMessages.DrawMode = PanelBackgroundImageDrawMode.STRETCHED;
             lbChatMessages.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 128), 1, 1);
             lbChatMessages.LineHeight = 16;
 
-            tbChatInput = new XNAChatTextBox(WindowManager);
+            tbChatInput = new XNATextBox(WindowManager);
             tbChatInput.Name = "tbChatInput";
             tbChatInput.ClientRectangle = new Rectangle(lbChatMessages.X,
                 btnNewGame.Y, lbChatMessages.Width,
                 btnNewGame.Height);
-            tbChatInput.Suggestion = "Type here to chat...";
             tbChatInput.Enabled = false;
             tbChatInput.MaximumTextLength = 200;
             tbChatInput.EnterPressed += TbChatInput_EnterPressed;
@@ -301,6 +298,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
                 var item = new XNADropDownItem();
                 item.Text = game.UIName;
+                item.TextColor = UISettings.AltColor;
                 item.Texture = game.Texture;
 
                 ddCurrentChannel.AddItem(item);
@@ -481,10 +479,10 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             playerContextMenu.Items[1].Text = cncnetUserData.IsFriend(ircUser.Name) ? "Remove Friend" : "Add Friend";
             playerContextMenu.Items[2].Text = cncnetUserData.IsIgnored(ircUser.Ident) ? "Unblock" : "Block";
 
-            playerContextMenu.Open(GetCursorPoint());
+            playerContextMenu.Show();
         }
 
-        private void PerformUserListContextMenuAction(Action<IRCUser> action)
+        private void PlayerContextMenu_OptionSelected(object sender, ContextMenuOptionEventArgs e)
         {
             if (lbPlayerList.SelectedIndex < 0 ||
                 lbPlayerList.SelectedIndex >= lbPlayerList.Items.Count)
@@ -494,7 +492,18 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             IRCUser ircUser = currentChatChannel.Users[lbPlayerList.SelectedIndex].IRCUser;
 
-            action(ircUser);
+            switch (e.Index)
+            {
+                case 0:
+                    pmWindow.InitPM(ircUser.Name);
+                    break;
+                case 1:
+                    cncnetUserData.ToggleFriend(ircUser.Name);
+                    break;
+                case 2:
+                    cncnetUserData.ToggleIgnoreUser(ircUser.Ident);
+                    break;
+            }
         }
 
         /// <summary>

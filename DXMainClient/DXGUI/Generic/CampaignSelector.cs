@@ -49,7 +49,7 @@ namespace DTAClient.DXGUI.Generic
         {
             BackgroundTexture = AssetLoader.LoadTexture("missionselectorbg.png");
             ClientRectangle = new Rectangle(0, 0, DEFAULT_WIDTH, DEFAULT_HEIGHT);
-            BorderColor = UISettings.ActiveSettings.PanelBorderColor;
+            BorderColor = UISettings.WindowBorderColor;
 
             Name = "CampaignSelector";
 
@@ -62,11 +62,10 @@ namespace DTAClient.DXGUI.Generic
             lbCampaignList = new XNAListBox(WindowManager);
             lbCampaignList.Name = "lbCampaignList";
             lbCampaignList.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 128), 2, 2);
-            lbCampaignList.PanelBackgroundDrawMode = PanelBackgroundImageDrawMode.STRETCHED;
+            lbCampaignList.DrawMode = PanelBackgroundImageDrawMode.STRETCHED;
             lbCampaignList.ClientRectangle = new Rectangle(12, 
                 lblSelectCampaign.Bottom + 6, 300, 516);
             lbCampaignList.SelectedIndexChanged += LbCampaignList_SelectedIndexChanged;
-            lbCampaignList.DrawMode = ControlDrawMode.NORMAL;
 
             var lblMissionDescriptionHeader = new XNALabel(WindowManager);
             lblMissionDescriptionHeader.Name = "lblMissionDescriptionHeader";
@@ -82,7 +81,7 @@ namespace DTAClient.DXGUI.Generic
                 lblMissionDescriptionHeader.X, 
                 lblMissionDescriptionHeader.Bottom + 6,
                 Width - 24 - lbCampaignList.Right, 430);
-            tbMissionDescription.PanelBackgroundDrawMode = PanelBackgroundImageDrawMode.STRETCHED;
+            tbMissionDescription.DrawMode = PanelBackgroundImageDrawMode.STRETCHED;
             tbMissionDescription.Alpha = 1.0f;
 
             tbMissionDescription.BackgroundTexture = AssetLoader.CreateTexture(AssetLoader.GetColorFromString(ClientConfiguration.Instance.AltUIBackgroundColor),
@@ -360,7 +359,7 @@ namespace DTAClient.DXGUI.Generic
                 item.Text = mission.GUIName;
                 if (!mission.Enabled)
                 {
-                    item.TextColor = UISettings.ActiveSettings.DisabledItemColor;
+                    item.TextColor = UISettings.DisabledButtonColor;
                 }
                 else if (string.IsNullOrEmpty(mission.Scenario))
                 {

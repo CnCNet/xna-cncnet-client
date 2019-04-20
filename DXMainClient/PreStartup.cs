@@ -8,39 +8,12 @@ using ClientCore;
 using Rampastring.XNAUI;
 using System.Security.AccessControl;
 using System.Security.Principal;
-using System.Collections.Generic;
 
 namespace DTAClient
 {
-    /// <summary>
-    /// Contains client startup parameters.
-    /// </summary>
-    struct StartupParams
-    {
-        public StartupParams(bool noAudio, bool multipleInstanceMode,
-            List<string> unknownParams)
-        {
-            NoAudio = noAudio;
-            MultipleInstanceMode = multipleInstanceMode;
-            UnknownStartupParams = unknownParams;
-        }
-
-        public bool NoAudio { get; }
-        public bool MultipleInstanceMode { get; }
-        public List<string> UnknownStartupParams { get; }
-    }
-
     static class PreStartup
     {
-        /// <summary>
-        /// Initializes various basic systems like the client's logger, 
-        /// constants, and the general exception handler.
-        /// Reads the user's settings from an INI file, 
-        /// checks for necessary permissions and starts the client if
-        /// everything goes as it should.
-        /// </summary>
-        /// <param name="parameters">The client's startup parameters.</param>
-        public static void Initialize(StartupParams parameters)
+        public static void Initialize(string[] args)
         {
             AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(HandleExcept);
 
@@ -61,15 +34,6 @@ namespace DTAClient
             Logger.Log("***Logfile for " + MainClientConstants.GAME_NAME_LONG + " client***");
             Logger.Log("Client version: " + Application.ProductVersion);
 
-            // Log information about given startup params
-            if (parameters.NoAudio)
-                Logger.Log("Startup parameter: No audio");
-
-            if (parameters.MultipleInstanceMode)
-                Logger.Log("Startup parameter: Allow multiple client instances");
-
-            parameters.UnknownStartupParams.ForEach(p => Logger.Log("Unknown startup parameter: " + p));
-
             Logger.Log("Loading settings.");
 
             UserINISettings.Initialize(ClientConfiguration.Instance.SettingsIniName);
@@ -84,15 +48,31 @@ namespace DTAClient
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Deleting wsock32.dll failed! Please close any " +
-                    "applications that could be using the file, and then start the client again."
-                    + Environment.NewLine + Environment.NewLine +
+                MessageBox.Show("Deleting wsock32.dll failed! Please close any applications that could be using the file, and then start the client again." + Environment.NewLine + Environment.NewLine +
                     "Message: " + ex.Message,
                     "CnCNet Client");
                 Environment.Exit(0);
             }
 
             Application.EnableVisualStyles();
+
+            int argsLength = args.GetLength(0);
+
+            for (int arg = 0; arg < argsLength; arg++)
+            {
+                string argument = args[arg].ToUpper();
+
+                switch (argument)
+                {
+                    case "-NOAUDIO":
+                        AudioMaster.DisableSounds = true;
+                        Logger.Log("Startup parameter: Audio disabled");
+                        break;
+                    default:
+                        Logger.Log("Unknown startup parameter: " + argument);
+                        break;
+                }
+            }
 
             new Startup().Execute();
         }

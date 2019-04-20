@@ -41,6 +41,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                             item.Tag = items[i];
                         }
                         else item.Text = items[i];
+                        item.TextColor = UISettings.AltColor;
                         AddItem(item);
                     }
                     return;

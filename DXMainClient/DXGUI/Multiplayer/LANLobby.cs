@@ -48,7 +48,7 @@ namespace DTAClient.DXGUI.Multiplayer
         XNAClientButton btnNewGame;
         XNAClientButton btnJoinGame;
 
-        XNAChatTextBox tbChatInput;
+        XNATextBox tbChatInput;
 
         XNALabel lblColor;
 
@@ -124,7 +124,7 @@ namespace DTAClient.DXGUI.Multiplayer
                 41, btnJoinGame.Right - btnNewGame.X,
                 btnNewGame.Y - 53);
             lbGameList.GameLifetime = 15.0; // Smaller lifetime in LAN
-            lbGameList.PanelBackgroundDrawMode = PanelBackgroundImageDrawMode.STRETCHED;
+            lbGameList.DrawMode = PanelBackgroundImageDrawMode.STRETCHED;
             lbGameList.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 128), 1, 1);
             lbGameList.DoubleLeftClick += LbGameList_DoubleLeftClick;
             lbGameList.AllowMultiLineItems = false;
@@ -134,7 +134,7 @@ namespace DTAClient.DXGUI.Multiplayer
             lbPlayerList.ClientRectangle = new Rectangle(Width - 202,
                 lbGameList.Y, 190,
                 lbGameList.Height);
-            lbPlayerList.PanelBackgroundDrawMode = PanelBackgroundImageDrawMode.STRETCHED;
+            lbPlayerList.DrawMode = PanelBackgroundImageDrawMode.STRETCHED;
             lbPlayerList.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 128), 1, 1);
             lbPlayerList.LineHeight = 16;
 
@@ -144,16 +144,15 @@ namespace DTAClient.DXGUI.Multiplayer
                 lbGameList.Y,
                 lbPlayerList.X - lbGameList.Right - 24,
                 lbGameList.Height);
-            lbChatMessages.PanelBackgroundDrawMode = PanelBackgroundImageDrawMode.STRETCHED;
+            lbChatMessages.DrawMode = PanelBackgroundImageDrawMode.STRETCHED;
             lbChatMessages.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 128), 1, 1);
             lbChatMessages.LineHeight = 16;
 
-            tbChatInput = new XNAChatTextBox(WindowManager);
+            tbChatInput = new XNATextBox(WindowManager);
             tbChatInput.Name = "tbChatInput";
             tbChatInput.ClientRectangle = new Rectangle(lbChatMessages.X,
                 btnNewGame.Y, lbChatMessages.Width,
                 btnNewGame.Height);
-            tbChatInput.Suggestion = "Type here to chat...";
             tbChatInput.MaximumTextLength = 200;
             tbChatInput.EnterPressed += TbChatInput_EnterPressed;
 

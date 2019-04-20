@@ -76,8 +76,10 @@ namespace DTAClient.DXGUI.Generic
 
         private void Finish()
         {
-            ProgramConstants.GAME_VERSION = ClientConfiguration.Instance.ModMode ? 
-                "N/A" : CUpdater.GameVersion;
+            if (!ClientConfiguration.Instance.ModMode)
+            {
+                ProgramConstants.GAME_VERSION = CUpdater.GameVersion;
+            }
 
             var gameCollection = new GameCollection();
             gameCollection.Initialize(GraphicsDevice);
