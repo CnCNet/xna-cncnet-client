@@ -78,6 +78,37 @@ namespace DTAClient
         [STAThread]
         static void Main(string[] args)
         {
+            bool noAudio = false;
+            bool multipleInstanceMode = false;
+            List<string> unknownStartupParams = new List<string>();
+
+            for (int arg = 0; arg < args.Length; arg++)
+            {
+                string argument = args[arg].ToUpper();
+
+                switch (argument)
+                {
+                    case "-NOAUDIO":
+                        // TODO fix
+                        throw new NotImplementedException("-NOAUDIO is currently not implemented, please run the client without it.");
+                    case "-MULTIPLEINSTANCE":
+                        multipleInstanceMode = true;
+                        break;
+                    default:
+                        unknownStartupParams.Add(argument);
+                        break;
+                }
+            }
+
+            StartupParams parameters = new StartupParams(noAudio, multipleInstanceMode, unknownStartupParams);
+
+            if (multipleInstanceMode)
+            {
+                // Proceed to client startup
+                PreStartup.Initialize(parameters);
+                return;
+            }
+
             // We're a single instance application!
             // http://stackoverflow.com/questions/229565/what-is-a-good-pattern-for-using-a-global-mutex-in-c/229567
 
@@ -114,7 +145,7 @@ namespace DTAClient
                     }
 
                     // Proceed to client startup
-                    PreStartup.Initialize(args);
+                    PreStartup.Initialize(parameters);
                 }
                 finally
                 {

@@ -68,7 +68,7 @@ namespace DTAClient.DXGUI.Generic
             prgCurrentFile.Name = "prgCurrentFile";
             prgCurrentFile.Maximum = 100;
             prgCurrentFile.ClientRectangle = new Rectangle(12, 110, 422, 30);
-            prgCurrentFile.BorderColor = UISettings.WindowBorderColor;
+            //prgCurrentFile.BorderColor = UISettings.WindowBorderColor;
             prgCurrentFile.SmoothForwardTransition = true;
             prgCurrentFile.SmoothTransitionRate = 10;
 
@@ -90,7 +90,7 @@ namespace DTAClient.DXGUI.Generic
             prgTotal.Name = "prgTotal";
             prgTotal.Maximum = 100;
             prgTotal.ClientRectangle = new Rectangle(12, 190, prgCurrentFile.Width, prgCurrentFile.Height);
-            prgTotal.BorderColor = UISettings.WindowBorderColor;
+            //prgTotal.BorderColor = UISettings.WindowBorderColor;
 
             lblUpdaterStatus = new XNALabel(WindowManager);
             lblUpdaterStatus.Name = "lblUpdaterStatus";

@@ -83,9 +83,9 @@
         </member>
         <member name="M:Rampastring.XNAUI.AssetLoader.GetColorFromString(System.String)">
             <summary>
-            Creates a color based on a color string in the form "R,G,B". All values must be between 0 and 255.
+            Creates a color based on a color string in the form "R,G,B" or "R,G,B,A". All values must be between 0 and 255.
             </summary>
-            <param name="colorString">The color string in the form "R,G,B". All values must be between 0 and 255.</param>
+            <param name="colorString">The color string in the form "R,G,B,A". All values must be between 0 and 255.</param>
             <returns>A XNA Color struct based on the given string.</returns>
         </member>
         <member name="M:Rampastring.XNAUI.AssetLoader.GetColorFromString(System.String,Microsoft.Xna.Framework.Color)">
@@ -179,6 +179,11 @@
             Plays this sound if it's enabled.
             </summary>
         </member>
+        <member name="M:Rampastring.XNAUI.EnhancedSoundEffect.Dispose">
+            <summary>
+            Disposes the sound effect.
+            </summary>
+        </member>
         <member name="M:Rampastring.XNAUI.PrioritizedSoundInstance.Update(Microsoft.Xna.Framework.GameTime)">
             <summary>
             Updates the priority of the sound. Returns true if the sound effect is
@@ -258,6 +263,29 @@
             Allows the user to close the game form by Alt-F4.
             </summary>
         </member>
+        <member name="T:Rampastring.XNAUI.RenderTargetStack">
+            <summary>
+            Handles render targets.
+            </summary>
+        </member>
+        <member name="T:Rampastring.XNAUI.RMath">
+            <summary>
+            Contains static vector math functions.
+            </summary>
+        </member>
+        <member name="M:Rampastring.XNAUI.RMath.AngleFromVector(Microsoft.Xna.Framework.Vector2)">
+            <summary>
+            Returns the angle / direction of a vector in radians.
+            </summary>
+            <param name="vector">The vector.</param>
+        </member>
+        <member name="M:Rampastring.XNAUI.RMath.VectorFromLengthAndAngle(System.Single,System.Single)">
+            <summary>
+            Creates and returns a new vector with the given length and angle.
+            </summary>
+            <param name="length">The length of the vector.</param>
+            <param name="angle">The angle of the vector.</param>
+        </member>
         <member name="T:Rampastring.XNAUI.SoundPlayer">
             <summary>
             A sound player that manages prioritized sounds, with the aim of preventing
@@ -279,9 +307,35 @@
             <param name="volume">The volume that the sound will be played at.</param>
             <param name="sound">The sound to play.</param>
         </member>
+        <member name="F:Rampastring.XNAUI.XNAControls.ControlDrawMode.NORMAL">
+            <summary>
+            The control is drawn on the same render target with its parent.
+            </summary>
+        </member>
+        <member name="F:Rampastring.XNAUI.XNAControls.ControlDrawMode.UNIQUE_RENDER_TARGET">
+            <summary>
+            The control is drawn on its own render target.
+            </summary>
+        </member>
         <member name="T:Rampastring.XNAUI.XNAControls.XNALinkLabel">
             <summary>
             A label that is underlined and changes its color when hovered on.
+            </summary>
+        </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNALinkLabel.#ctor(Rampastring.XNAUI.WindowManager)">
+            <summary>
+            Creates a new link label.
+            </summary>
+            <param name="windowManager">The window manager.</param>
+        </member>
+        <member name="P:Rampastring.XNAUI.XNAControls.XNALinkLabel.IdleColor">
+            <summary>
+            The color of the label when it's not hovered on.
+            </summary>
+        </member>
+        <member name="P:Rampastring.XNAUI.XNAControls.XNALinkLabel.HoverColor">
+            <summary>
+            The color of the label when it's hovered on.
             </summary>
         </member>
         <member name="P:Rampastring.XNAUI.XNAControls.XNALinkLabel.DrawUnderline">
@@ -345,22 +399,28 @@
             Raised when the scroll bar is scrolled and it reaches its lowest value.
             </summary>
         </member>
-        <member name="P:Rampastring.XNAUI.XNAControls.XNAScrollBar.ItemCount">
+        <member name="P:Rampastring.XNAUI.XNAControls.XNAScrollBar.Length">
             <summary>
-            The number of items in the scrollable parent control.
+            The height of the entire scrollable area.
+            For example in a list box, the sum of the height of its items.
             </summary>
         </member>
-        <member name="P:Rampastring.XNAUI.XNAControls.XNAScrollBar.DisplayedItemCount">
+        <member name="P:Rampastring.XNAUI.XNAControls.XNAScrollBar.DisplayedPixelCount">
             <summary>
-            The number of items that the scrollable parent control
+            The number of pixels that the scrollable parent control
             is able to display at once.
             </summary>
         </member>
-        <member name="P:Rampastring.XNAUI.XNAControls.XNAScrollBar.TopIndex">
+        <member name="P:Rampastring.XNAUI.XNAControls.XNAScrollBar.ViewTop">
             <summary>
-            The index of the first displayed item of the scrollable parent control's items.
+            The scroll bar's current position.
             The parent of the scroll-bar has to keep the scrollbar up-to-date when the 
-            top index of the parent changes.
+            view of the parent changes.
+            </summary>
+        </member>
+        <member name="P:Rampastring.XNAUI.XNAControls.XNAScrollBar.ScrollStep">
+            <summary>
+            How many pixels to scroll at once.
             </summary>
         </member>
         <member name="P:Rampastring.XNAUI.XNAControls.XNAScrollBar.ScrollWidth">
@@ -442,7 +502,7 @@
         </member>
         <member name="M:Rampastring.XNAUI.XNAControls.XNATextBox.#ctor(Rampastring.XNAUI.WindowManager)">
             <summary>
-            Creates a new XNATextBox.
+            Creates a new text box.
             </summary>
             <param name="windowManager">The WindowManager that will be associated with this control.</param>
         </member>
@@ -461,6 +521,11 @@
             <summary>
             Raised whenever the text of the text box is changed, by the user or
             programmatically.
+            </summary>
+        </member>
+        <member name="P:Rampastring.XNAUI.XNAControls.XNATextBox.TextColor">
+            <summary>
+            The color of the text in the text box.
             </summary>
         </member>
         <member name="P:Rampastring.XNAUI.XNAControls.XNATextBox.IdleBorderColor">
@@ -519,6 +584,13 @@
             </summary>
             <param name="character">The character.</param>
         </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNATextBox.HandleKeyPress(Microsoft.Xna.Framework.Input.Keys)">
+            <summary>
+            Handles a key press while the text box is the selected control.
+            Can be overridden in derived classes to handle additional key presses.
+            </summary>
+            <param name="key">The key that was pressed.</param>
+        </member>
         <member name="T:Rampastring.XNAUI.XNAControls.Callback">
             <summary>
             A callback for storing a delegate and its parameters.
@@ -529,9 +601,165 @@
             A basic button.
             </summary>
         </member>
+        <member name="F:Rampastring.XNAUI.XNAControls.XNAButton.textColor">
+            <summary>
+            The current color of the button's text.
+            </summary>
+        </member>
         <member name="T:Rampastring.XNAUI.XNAControls.XNACheckBox">
             <summary>
             A check-box.
+            </summary>
+        </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNACheckBox.#ctor(Rampastring.XNAUI.WindowManager)">
+            <summary>
+            Creates a new check box.
+            </summary>
+            <param name="windowManager">The window manager.</param>
+        </member>
+        <member name="P:Rampastring.XNAUI.XNAControls.XNACheckBox.CheckSoundEffect">
+            <summary>
+            The sound effect that is played when the check box is clicked on.
+            </summary>
+        </member>
+        <member name="P:Rampastring.XNAUI.XNAControls.XNACheckBox.HoverSoundEffect">
+            <summary>
+            The sound effect that is played when the cursor enters the check box's area.
+            </summary>
+        </member>
+        <member name="P:Rampastring.XNAUI.XNAControls.XNACheckBox.Checked">
+            <summary>
+            Determines whether the check box is currently checked.
+            </summary>
+        </member>
+        <member name="P:Rampastring.XNAUI.XNAControls.XNACheckBox.AllowChecking">
+            <summary>
+            Determines whether the user can (un)check the box by clicking on it.
+            </summary>
+        </member>
+        <member name="P:Rampastring.XNAUI.XNAControls.XNACheckBox.FontIndex">
+            <summary>
+            The index of the text font.
+            </summary>
+        </member>
+        <member name="P:Rampastring.XNAUI.XNAControls.XNACheckBox.TextPadding">
+            <summary>
+            The space, in pixels, between the check box and its text.
+            </summary>
+        </member>
+        <member name="P:Rampastring.XNAUI.XNAControls.XNACheckBox.IdleColor">
+            <summary>
+            The color of the check box's text when it's not hovered on.
+            </summary>
+        </member>
+        <member name="P:Rampastring.XNAUI.XNAControls.XNACheckBox.HighlightColor">
+            <summary>
+            The color of the check box's text when it's hovered on.
+            </summary>
+        </member>
+        <member name="P:Rampastring.XNAUI.XNAControls.XNACheckBox.Text">
+            <summary>
+            Gets or sets the text of the check box.
+            </summary>
+        </member>
+        <member name="P:Rampastring.XNAUI.XNAControls.XNACheckBox.TextLocationY">
+            <summary>
+            The Y coordinate of the check box text
+            relative to the location of the check box.
+            </summary>
+        </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNACheckBox.SetTextPositionAndSize">
+            <summary>
+            Updates the size of the check box and the vertical position of its text.
+            </summary>
+        </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNACheckBox.OnLeftClick">
+            <summary>
+            Handles left mouse button clicks on the check box.
+            </summary>
+        </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNACheckBox.Update(Microsoft.Xna.Framework.GameTime)">
+            <summary>
+            Updates the check box's alpha each frame.
+            </summary>
+        </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNACheckBox.Draw(Microsoft.Xna.Framework.GameTime)">
+            <summary>
+            Draws the check box.
+            </summary>
+        </member>
+        <member name="T:Rampastring.XNAUI.XNAControls.XNAContextMenuItem">
+            <summary>
+            A context menu item.
+            </summary>
+        </member>
+        <member name="P:Rampastring.XNAUI.XNAControls.XNAContextMenuItem.Text">
+            <summary>
+            The text of the context menu item.
+            </summary>
+        </member>
+        <member name="P:Rampastring.XNAUI.XNAControls.XNAContextMenuItem.Selectable">
+            <summary>
+            Determines whether the context menu item is enabled
+            (can be clicked on).
+            </summary>
+        </member>
+        <member name="P:Rampastring.XNAUI.XNAControls.XNAContextMenuItem.Visible">
+            <summary>
+            Determines whether the context menu item is visible.
+            </summary>
+        </member>
+        <member name="P:Rampastring.XNAUI.XNAControls.XNAContextMenuItem.Height">
+            <summary>
+            The height of the context menu item.
+            If null, the common item height is used.
+            </summary>
+        </member>
+        <member name="P:Rampastring.XNAUI.XNAControls.XNAContextMenuItem.FontIndex">
+            <summary>
+            The font index of the context menu item.
+            If null, the common font index is used.
+            </summary>
+        </member>
+        <member name="P:Rampastring.XNAUI.XNAControls.XNAContextMenuItem.Texture">
+            <summary>
+            The texture of the context menu item.
+            </summary>
+        </member>
+        <member name="P:Rampastring.XNAUI.XNAControls.XNAContextMenuItem.BackgroundColor">
+            <summary>
+            The background color of the context menu item.
+            If null, the common background color is used.
+            </summary>
+        </member>
+        <member name="P:Rampastring.XNAUI.XNAControls.XNAContextMenuItem.TextColor">
+            <summary>
+            The color of the context menu item's text.
+            If null, the common text color is used.
+            </summary>
+        </member>
+        <member name="P:Rampastring.XNAUI.XNAControls.XNAContextMenuItem.SelectAction">
+            <summary>
+            The method that is called when the item is selected.
+            </summary>
+        </member>
+        <member name="P:Rampastring.XNAUI.XNAControls.XNAContextMenuItem.SelectableChecker">
+            <summary>
+            When the context menu is shown, this function is called
+            to determine whether this item should be selectable. 
+            If null, the value of the Enabled property is not changed.
+            </summary>
+        </member>
+        <member name="P:Rampastring.XNAUI.XNAControls.XNAContextMenuItem.VisibilityChecker">
+            <summary>
+            When the context menu is shown, this function is called
+            to determine whether this item should be visible.
+            If null, the value of the Visible property is not changed.
+            </summary>
+        </member>
+        <member name="P:Rampastring.XNAUI.XNAControls.XNAContextMenuItem.TextY">
+            <summary>
+            The Y position of the item's text.
             </summary>
         </member>
         <member name="T:Rampastring.XNAUI.XNAControls.XNAContextMenu">
@@ -545,19 +773,7 @@
             </summary>
             <param name="windowManager">The WindowManager associated with this context menu.</param>
         </member>
-        <member name="T:Rampastring.XNAUI.XNAControls.XNAContextMenu.OptionSelectedEventHandler">
-            <summary>
-            A delegate for handling context menu option selections.
-            </summary>
-            <param name="sender">The sender of the event.</param>
-            <param name="e">EventArgs.</param>
-        </member>
-        <member name="E:Rampastring.XNAUI.XNAControls.XNAContextMenu.OptionSelected">
-            <summary>
-            Raised when the user has selected an option from the context menu.
-            </summary>
-        </member>
-        <member name="M:Rampastring.XNAUI.XNAControls.XNAContextMenu.AddItem(Rampastring.XNAUI.XNAControls.XNADropDownItem)">
+        <member name="M:Rampastring.XNAUI.XNAControls.XNAContextMenu.AddItem(Rampastring.XNAUI.XNAControls.XNAContextMenuItem)">
             <summary>
             Adds an item into the context menu.
             </summary>
@@ -569,26 +785,32 @@
             </summary>
             <param name="text">The text of the item.</param>
         </member>
-        <member name="M:Rampastring.XNAUI.XNAControls.XNAContextMenu.AddItem(System.String,Microsoft.Xna.Framework.Graphics.Texture2D)">
-            <summary>
-            Generates and adds an item with the specified text and texture
-            into the context menu.
-            </summary>
-            <param name="text">The text of the item.</param>
-            <param name="texture">The item's texture.</param>
-        </member>
-        <member name="M:Rampastring.XNAUI.XNAControls.XNAContextMenu.AddItem(System.String,Microsoft.Xna.Framework.Color)">
-            <summary>
-            Generates and adds an item with the specified text
-            and text color into the context menu.
-            </summary>
-            <param name="text">The text of the item.</param>
-            <param name="color">The color of the item's text.</param>
-        </member>
         <member name="M:Rampastring.XNAUI.XNAControls.XNAContextMenu.GetItemIndexOnCursor">
             <summary>
             Returns the index of the item that the cursor currently points to.
             </summary>
+        </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNAContextMenu.GetItemHeight(Rampastring.XNAUI.XNAControls.XNAContextMenuItem)">
+            <summary>
+            Gets the height of a context menu item.
+            </summary>
+            <param name="item">The item.</param>
+        </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNAContextMenu.GetItemFontIndex(Rampastring.XNAUI.XNAControls.XNAContextMenuItem)">
+            <summary>
+            Gets the index of an item's font.
+            </summary>
+            <param name="item">The item.</param>
+        </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNAContextMenu.DrawItem(System.Int32,Microsoft.Xna.Framework.Point)">
+            <summary>
+            Draws a single context menu item.
+            Returns the height of the item.
+            This can be overriden in derived classes to customize the drawing code.
+            </summary>
+            <param name="index">The index of the item to draw.</param>
+            <param name="point">The point (relative to the control) where to draw the item.</param>
+            <returns>The height of the item that was drawn.</returns>
         </member>
         <member name="T:Rampastring.XNAUI.XNAControls.XNADropDown">
             <summary>
@@ -611,7 +833,7 @@
             The height of drop-down items.
             </summary>
         </member>
-        <member name="P:Rampastring.XNAUI.XNAControls.XNADropDown.IsDroppedDown">
+        <member name="P:Rampastring.XNAUI.XNAControls.XNADropDown.DropDownState">
             <summary>
             Gets or sets the dropped-down status of the drop-down control.
             </summary>
@@ -629,6 +851,11 @@
         <member name="P:Rampastring.XNAUI.XNAControls.XNADropDown.SelectedItem">
             <summary>
             Gets the currently selected item of the drop-down control.
+            </summary>
+        </member>
+        <member name="P:Rampastring.XNAUI.XNAControls.XNADropDown.OpenUp">
+            <summary>
+            If set, the drop-down is opened upwards rather than downwards.
             </summary>
         </member>
         <member name="M:Rampastring.XNAUI.XNAControls.XNADropDown.AddItem(Rampastring.XNAUI.XNAControls.XNADropDownItem)">
@@ -659,10 +886,29 @@
             <param name="text">The text of the item.</param>
             <param name="color">The color of the item's text.</param>
         </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNADropDown.GetItemTextColor(Rampastring.XNAUI.XNAControls.XNADropDownItem)">
+            <summary>
+            Gets the text color of a drop-down item.
+            </summary>
+            <param name="item">The item.</param>
+        </member>
         <member name="M:Rampastring.XNAUI.XNAControls.XNADropDown.GetItemIndexOnCursor">
             <summary>
             Returns the index of the item that the cursor currently points to.
             </summary>
+        </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNADropDown.Draw(Microsoft.Xna.Framework.GameTime)">
+            <summary>
+            Draws the drop-down.
+            </summary>
+        </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNADropDown.DrawItem(System.Int32,System.Int32)">
+            <summary>
+            Draws a single drop-down item.
+            This can be overridden in derived classes to customize the drawing code.
+            </summary>
+            <param name="index">The index of the item to be drawn.</param>
+            <param name="y">The Y coordinate of the item's top border.</param>
         </member>
         <member name="T:Rampastring.XNAUI.XNAControls.XNAControl">
             <summary>
@@ -844,25 +1090,52 @@
             Gets or sets a bool that determines whether this control is the current focus of the mouse cursor.
             </summary>
         </member>
+        <member name="P:Rampastring.XNAUI.XNAControls.XNAControl.DrawMode">
+            <summary>
+            The draw mode of the control.
+            Cannot be changed after the control's <see cref="M:Rampastring.XNAUI.XNAControls.XNAControl.Initialize"/>
+            method has been run.
+            </summary>
+        </member>
+        <member name="P:Rampastring.XNAUI.XNAControls.XNAControl.IsChangingSize">
+            <summary>
+            If set to true and the control has 
+            <see cref="P:Rampastring.XNAUI.XNAControls.XNAControl.DrawMode"/> == <see cref="F:Rampastring.XNAUI.XNAControls.ControlDrawMode.UNIQUE_RENDER_TARGET"/>,
+            the control won't try to update its render target when its size is changed.
+            </summary>
+        </member>
         <member name="M:Rampastring.XNAUI.XNAControls.XNAControl.IsLastParentActive">
             <summary>
             Checks if the last parent of this control is active.
             </summary>
         </member>
-        <member name="M:Rampastring.XNAUI.XNAControls.XNAControl.WindowRectangle">
+        <member name="M:Rampastring.XNAUI.XNAControls.XNAControl.GetCursorPoint">
             <summary>
-            Returns the client rectangle of the control inside the game window.
+            Gets the cursor's location relative to this control's location.
             </summary>
-            <returns>The client rectangle of the control inside the game window.</returns>
+            <returns>A point that represents the cursor's location relative to this control's location.</returns>
         </member>
-        <member name="M:Rampastring.XNAUI.XNAControls.XNAControl.GetLocationX">
+        <member name="M:Rampastring.XNAUI.XNAControls.XNAControl.GetWindowPoint">
             <summary>
-            Returns the control's absolute X coordinate within the game window.
+            Gets the location of the control's top-left corner within the game window.
+            Use for input handling; for rendering, use <see cref="M:Rampastring.XNAUI.XNAControls.XNAControl.GetRenderPoint"/> instead.
             </summary>
         </member>
-        <member name="M:Rampastring.XNAUI.XNAControls.XNAControl.GetLocationY">
+        <member name="M:Rampastring.XNAUI.XNAControls.XNAControl.GetWindowRectangle">
             <summary>
-            Returns the control's absolute Y coordinate within the game window.
+            Gets the control's client area within the game window.
+            Use for input handling; for rendering, use <see cref="M:Rampastring.XNAUI.XNAControls.XNAControl.RenderRectangle"/> instead.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNAControl.RenderRectangle">
+            <summary>
+            Returns the draw area of the control relative to the used render target.
+            </summary>
+        </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNAControl.GetRenderPoint">
+            <summary>
+            Gets the location of the control's top-left corner within the current render target.
             </summary>
         </member>
         <member name="M:Rampastring.XNAUI.XNAControls.XNAControl.CenterOnParent">
@@ -892,12 +1165,6 @@
             <summary>
             Attaches the control to its parent.
             </summary>
-        </member>
-        <member name="M:Rampastring.XNAUI.XNAControls.XNAControl.GetCursorPoint">
-            <summary>
-            Gets the cursor's location relative to this control's location.
-            </summary>
-            <returns>A point that represents the cursor's location relative to this control's location.</returns>
         </member>
         <member name="M:Rampastring.XNAUI.XNAControls.XNAControl.AddCallback(System.Delegate,System.Object[])">
             <summary>
@@ -954,6 +1221,11 @@
             </summary>
             <param name="child">The child control to remove.</param>
         </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNAControl.Initialize">
+            <summary>
+            Initializes the control.
+            </summary>
+        </member>
         <member name="M:Rampastring.XNAUI.XNAControls.XNAControl.Disable">
             <summary>
             Disables and hides the control.
@@ -975,6 +1247,12 @@
             </summary>
             <param name="gameTime">Provides a snapshot of timing values.</param>
         </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNAControl.DrawInternal(Microsoft.Xna.Framework.GameTime)">
+            <summary>
+            Draws the control.
+            DO NOT call manually unless you know what you're doing.
+            </summary>
+        </member>
         <member name="M:Rampastring.XNAUI.XNAControls.XNAControl.Draw(Microsoft.Xna.Framework.GameTime)">
             <summary>
             Draws the control and its child controls.
@@ -985,6 +1263,76 @@
             <summary>
             Draws the control's child controls.
             </summary>
+        </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNAControl.DrawTexture(Microsoft.Xna.Framework.Graphics.Texture2D,Microsoft.Xna.Framework.Rectangle,Microsoft.Xna.Framework.Color)">
+            <summary>
+            Draws a texture relative to the control's location.
+            </summary>
+            <param name="texture">The texture.</param>
+            <param name="rectangle">The rectangle where to draw the texture
+            relative to the control.</param>
+            <param name="color">The remap color.</param>
+        </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNAControl.DrawTexture(Microsoft.Xna.Framework.Graphics.Texture2D,Microsoft.Xna.Framework.Point,Microsoft.Xna.Framework.Color)">
+            <summary>
+            Draws a texture relative to the control's location.
+            </summary>
+            <param name="texture">The texture.</param>
+            <param name="point">The point where to draw the texture
+            relative to the control.</param>
+            <param name="color">The remap color.</param>
+        </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNAControl.DrawTexture(Microsoft.Xna.Framework.Graphics.Texture2D,Microsoft.Xna.Framework.Rectangle,Microsoft.Xna.Framework.Rectangle,Microsoft.Xna.Framework.Color)">
+            <summary>
+            Draws a texture relative to the control's location
+            within the used render target.
+            </summary>
+        </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNAControl.DrawTexture(Microsoft.Xna.Framework.Graphics.Texture2D,Microsoft.Xna.Framework.Vector2,System.Single,Microsoft.Xna.Framework.Vector2,Microsoft.Xna.Framework.Vector2,Microsoft.Xna.Framework.Color)">
+            <summary>
+            Draws a texture relative to the control's location.
+            </summary>
+        </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNAControl.DrawString(System.String,System.Int32,Microsoft.Xna.Framework.Vector2,Microsoft.Xna.Framework.Color,System.Single)">
+            <summary>
+            Draws a string relative to the control's location.
+            </summary>
+        </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNAControl.DrawStringWithShadow(System.String,System.Int32,Microsoft.Xna.Framework.Vector2,Microsoft.Xna.Framework.Color,System.Single)">
+            <summary>
+            Draws a string with a shadow, relative to the control's location.
+            </summary>
+        </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNAControl.DrawRectangle(Microsoft.Xna.Framework.Rectangle,Microsoft.Xna.Framework.Color,System.Int32)">
+            <summary>
+            Draws a rectangle's borders relative to the control's location
+            with the given color and thickness.
+            </summary>
+            <param name="rect">The rectangle.</param>
+            <param name="color">The color.</param>
+            <param name="thickness">The thickness of the rectangle's borders.</param>
+        </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNAControl.FillControlArea(Microsoft.Xna.Framework.Color)">
+            <summary>
+            Fills the control's drawing area with the given color.
+            </summary>
+            <param name="color">The color to fill the area with.</param>
+        </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNAControl.FillRectangle(Microsoft.Xna.Framework.Rectangle,Microsoft.Xna.Framework.Color)">
+            <summary>
+            Fills a rectangle relative to the control's location with the given color.
+            </summary>
+            <param name="rect">The rectangle.</param>
+            <param name="color">The color to fill the rectangle with.</param>
+        </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNAControl.DrawLine(Microsoft.Xna.Framework.Vector2,Microsoft.Xna.Framework.Vector2,Microsoft.Xna.Framework.Color,System.Int32)">
+            <summary>
+            Draws a line relative to the control's location.
+            </summary>
+            <param name="start">The start point of the line.</param>
+            <param name="end">The end point of the line.</param>
+            <param name="color">The color of the line.</param>
+            <param name="thickness">The thickness of the line.</param>
         </member>
         <member name="M:Rampastring.XNAUI.XNAControls.XNAControl.OnMouseEnter">
             <summary>
@@ -1092,6 +1440,19 @@
             </summary>
             <param name="windowManager"></param>
         </member>
+        <member name="F:Rampastring.XNAUI.XNAControls.XNAListBox.Items">
+            <summary>
+            Returns the list of items in the list box.
+            If you manipulate the list directly, call
+            RefreshScrollbar afterwards.
+            TODO change to ObservableCollection?
+            </summary>
+        </member>
+        <member name="P:Rampastring.XNAUI.XNAControls.XNAListBox.LineHeight">
+            <summary>
+            Gets or sets the height of a single line of text in the list box.
+            </summary>
+        </member>
         <member name="P:Rampastring.XNAUI.XNAControls.XNAListBox.AllowMultiLineItems">
             <summary>
             If set to false, only the first line will be displayed from items
@@ -1151,6 +1512,11 @@
             </summary>
             <param name="listBoxItem">The item to add.</param>
         </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNAListBox.RefreshScrollbar">
+            <summary>
+            Refreshes the scroll bar's status. Call when list box items are modified.
+            </summary>
+        </member>
         <member name="M:Rampastring.XNAUI.XNAControls.XNAListBox.GetTotalLineCount">
             <summary>
             Returns the total amount of lines in all list box items combined.
@@ -1158,7 +1524,7 @@
         </member>
         <member name="M:Rampastring.XNAUI.XNAControls.XNAListBox.ScrollToBottom">
             <summary>
-            Scrolls the list box so that the last item is visible.
+            Scrolls the list box so that the last item is entirely visible.
             </summary>
         </member>
         <member name="M:Rampastring.XNAUI.XNAControls.XNAListBox.Initialize">
@@ -1297,6 +1663,19 @@
             be drawn under the scrollbar area.
             </summary>
         </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNAMultiColumnListBox.ChangeColumnWidth(System.Int32,System.Int32)">
+            <summary>
+            Changes the width of a column and adjusts the positions
+            of the following columns accordingly.
+            </summary>
+            <param name="columnIndex">The index of the column.</param>
+            <param name="width">The new width of the column.</param>
+        </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNAMultiColumnListBox.IsValidIndexSelected">
+            <summary>
+            Checks whether an item is selected in the list box.
+            </summary>
+        </member>
         <member name="P:Rampastring.XNAUI.XNAControls.XNAPanel.BorderTexture">
             <summary>
             If this is set, the XNAPanel will render itself on a separate render target.
@@ -1313,6 +1692,23 @@
         <member name="T:Rampastring.XNAUI.XNAControls.XNATabControl">
             <summary>
             A control that has multiple tabs, of which only one can be selected at a time.
+            </summary>
+        </member>
+        <member name="T:Rampastring.XNAUI.XNAControls.XNATextPart">
+            <summary>
+            A part of a potentially long line of text.
+            </summary>
+        </member>
+        <member name="T:Rampastring.XNAUI.XNAControls.XNATextLine">
+            <summary>
+            A text line.
+            </summary>
+        </member>
+        <member name="T:Rampastring.XNAUI.XNAControls.XNATextRenderer">
+            <summary>
+            A text renderer.
+            Takes <see cref="T:Rampastring.XNAUI.XNAControls.XNATextPart"/>s, automatically formats them, applied line
+            breaks if necessary and renders them.
             </summary>
         </member>
         <member name="T:Rampastring.XNAUI.XNAControls.XNATimerControl">
@@ -1466,6 +1862,11 @@
               resource lookups using this strongly typed resource class.
             </summary>
         </member>
+        <member name="T:Rampastring.XNAUI.Renderer">
+            <summary>
+            Provides static methods for drawing.
+            </summary>
+        </member>
         <member name="M:Rampastring.XNAUI.Renderer.GetSafeString(System.String,System.Int32)">
             <summary>
             Returns a version of the given string where all characters that don't
@@ -1483,6 +1884,59 @@
             <param name="fontIndex">The index of the font to use.</param>
             <param name="maxWidth">The maximum width of the string.</param>
             <returns></returns>
+        </member>
+        <member name="M:Rampastring.XNAUI.Renderer.PushSettings(Rampastring.XNAUI.SpriteBatchSettings)">
+            <summary>
+            Pushes new settings into the renderer's internal stack and applies them.
+            A call to <see cref="M:Rampastring.XNAUI.Renderer.PushSettings(Rampastring.XNAUI.SpriteBatchSettings)"/> should always
+            be followed by <see cref="M:Rampastring.XNAUI.Renderer.PopSettings"/> once drawing with the new settings is done.
+            </summary>
+            <param name="settings">The sprite batch settings.</param>
+        </member>
+        <member name="M:Rampastring.XNAUI.Renderer.PopSettings">
+            <summary>
+            Pops previous settings from the renderer's internal stack and applies them.
+            </summary>
+        </member>
+        <member name="M:Rampastring.XNAUI.Renderer.ChangeSettings(Rampastring.XNAUI.SpriteBatchSettings)">
+            <summary>
+            Changes current rendering settings. This can be called between 
+            <see cref="M:Rampastring.XNAUI.Renderer.PushSettings(Rampastring.XNAUI.SpriteBatchSettings)"/> and <see cref="M:Rampastring.XNAUI.Renderer.PopSettings"/>
+            when you want to draw something with new settings, but there's no reason 
+            to save those settings.
+            </summary>
+            <param name="settings">The sprite batch settings.</param>
+        </member>
+        <member name="M:Rampastring.XNAUI.Renderer.BeginDraw">
+            <summary>
+            Prepares the renderer for drawing a batch of sprites.
+            </summary>
+        </member>
+        <member name="M:Rampastring.XNAUI.Renderer.EndDraw">
+            <summary>
+            Draws the currently queued batch of sprites.
+            </summary>
+        </member>
+        <member name="M:Rampastring.XNAUI.Renderer.DrawCircleWithTexture(Microsoft.Xna.Framework.Vector2,System.Single,Microsoft.Xna.Framework.Graphics.Texture2D,Microsoft.Xna.Framework.Color,System.Int32,System.Single)">
+            <summary>
+            Draws a circle where the circle's perimeter is dotted with a texture.
+            </summary>
+            <param name="position">The center point of the circle.</param>
+            <param name="radius">The radius of the circle.</param>
+            <param name="texture">The texture to dot the circle's perimiter with.</param>
+            <param name="color">The remap color of the texture.</param>
+            <param name="precision">How many times the texture is drawn on the perimiter.</param>
+            <param name="scale">The scale of the drawn texture compared to the size of the texture itself.</param>
+        </member>
+        <member name="T:Rampastring.XNAUI.UISettings">
+            <summary>
+            A class that contains UI-related settings, like default UI colors.
+            </summary>
+        </member>
+        <member name="P:Rampastring.XNAUI.UISettings.ActiveSettings">
+            <summary>
+            The currently active UI settings.
+            </summary>
         </member>
         <member name="T:Rampastring.XNAUI.WindowManager">
             <summary>
