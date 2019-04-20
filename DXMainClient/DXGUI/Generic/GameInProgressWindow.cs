@@ -35,7 +35,7 @@ namespace DTAClient.DXGUI
             initialized = true;
 
             BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 128), 1, 1);
-            DrawMode = PanelBackgroundImageDrawMode.STRETCHED;
+            PanelBackgroundDrawMode = PanelBackgroundImageDrawMode.STRETCHED;
             DrawBorders = false;
             ClientRectangle = new Rectangle(0, 0, WindowManager.RenderResolutionX, WindowManager.RenderResolutionY);
 

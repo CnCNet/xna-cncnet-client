@@ -1,8 +1,10 @@
 ﻿using ClientCore;
 using ClientCore.CnCNet5;
+using ClientGUI;
 using DTAClient.Domain.Multiplayer;
 using DTAClient.Domain.Multiplayer.CnCNet;
 using DTAClient.DXGUI.Generic;
+using DTAClient.DXGUI.Multiplayer.CnCNet;
 using DTAClient.DXGUI.Multiplayer.GameLobby.CommandHandlers;
 using DTAClient.Online;
 using DTAClient.Online.EventArguments;
@@ -34,6 +36,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         private const string MAP_SHARING_DISABLED_MESSAGE = "MAPSDISABLED";
         private const string CHEAT_DETECTED_MESSAGE = "CD";
         private const string DICE_ROLL_MESSAGE = "DR";
+        private const string CHANGE_TUNNEL_SERVER_MESSAGE = "CHTNL";
 
         public CnCNetGameLobby(WindowManager windowManager, string iniName,
             TopBar topBar, List<GameMode> GameModes, CnCNetManager connectionManager,
@@ -72,6 +75,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 new StringCommandHandler("MM", CheaterNotification),
                 new StringCommandHandler(DICE_ROLL_MESSAGE, HandleDiceRollResult),
                 new NoParamCommandHandler(CHEAT_DETECTED_MESSAGE, HandleCheatDetectedMessage),
+                new StringCommandHandler(CHANGE_TUNNEL_SERVER_MESSAGE, HandleTunnelServerChangeMessage)
             };
 
             MapSharer.MapDownloadFailed += MapSharer_MapDownloadFailed;
@@ -79,13 +83,18 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             MapSharer.MapUploadFailed += MapSharer_MapUploadFailed;
             MapSharer.MapUploadComplete += MapSharer_MapUploadComplete;
 
-            AddChatBoxCommand(new ChatBoxCommand("TUNNELINFO", "View tunnel server information", false, PrintTunnelServerInformation));
+            AddChatBoxCommand(new ChatBoxCommand("TUNNELINFO",
+                "View tunnel server information", false, PrintTunnelServerInformation));
+            AddChatBoxCommand(new ChatBoxCommand("CHANGETUNNEL",
+                "Change the used CnCNet tunnel server (game host only)",
+                true, (s) => ShowTunnelSelectionWindow("Select tunnel server:")));
         }
 
         public event EventHandler GameLeft;
 
         private TunnelHandler tunnelHandler;
         private CnCNetTunnel tunnel;
+        private TunnelSelectionWindow tunnelSelectionWindow;
 
         private Channel channel;
         private CnCNetManager connectionManager;
@@ -133,6 +142,14 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             gameBroadcastTimer.Interval = TimeSpan.FromSeconds(GAME_BROADCAST_INTERVAL);
             gameBroadcastTimer.Enabled = false;
             gameBroadcastTimer.TimeElapsed += GameBroadcastTimer_TimeElapsed;
+
+            tunnelSelectionWindow = new TunnelSelectionWindow(WindowManager, tunnelHandler);
+            tunnelSelectionWindow.Initialize();
+            tunnelSelectionWindow.DrawOrder = 1;
+            tunnelSelectionWindow.UpdateOrder = 1;
+            DarkeningPanel.AddAndInitializeWithControl(WindowManager, tunnelSelectionWindow);
+            tunnelSelectionWindow.CenterOnParent();
+            tunnelSelectionWindow.Disable();
 
             WindowManager.AddAndInitializeControl(gameBroadcastTimer);
         }
@@ -220,7 +237,22 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         private void PrintTunnelServerInformation(string s)
         {
             AddNotice($"Current tunnel server: {tunnel.Name} ({tunnel.Country}) " +
-                $"(Players: {tunnel.Clients}/{tunnel.MaxClients}) (Official: {tunnel.Official}");
+                $"(Players: {tunnel.Clients}/{tunnel.MaxClients}) (Official: {tunnel.Official})");
+        }
+
+        private void ShowTunnelSelectionWindow(string description)
+        {
+            tunnelSelectionWindow.Open(description,
+                tunnel.Address);
+            tunnelSelectionWindow.TunnelSelected += TunnelSelectionWindow_TunnelSelected;
+        }
+
+        private void TunnelSelectionWindow_TunnelSelected(object sender, TunnelEventArgs e)
+        {
+            tunnelSelectionWindow.TunnelSelected -= TunnelSelectionWindow_TunnelSelected;
+            channel.SendCTCPMessage(CHANGE_TUNNEL_SERVER_MESSAGE + " " + e.Tunnel.Address,
+                QueuedMessageType.SYSTEM_MESSAGE, 10);
+            HandleTunnelServerChange(e.Tunnel);
         }
 
         public void ChangeChatColor(IRCColor chatColor)
@@ -469,8 +501,12 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
                 if (playerPorts.Count < Players.Count)
                 {
-                    AddNotice("An error occured while contacting the specified CnCNet tunnel server. Please try using a different tunnel server " +
-                        "(accessible through the advanced options in the game creation window).", ERROR_MESSAGE_COLOR);
+                    ShowTunnelSelectionWindow("An error occured while contacting " +
+                        "the CnCNet tunnel server." + Environment.NewLine + 
+                        "Try picking a different tunnel server:");
+                    AddNotice("An error occured while contacting the specified CnCNet " +
+                        "tunnel server. Please try using a different tunnel server " +
+                        "(accessible by typing /CHANGETUNNEL in the chat box).", ERROR_MESSAGE_COLOR);
                     return;
                 }
 
@@ -1344,6 +1380,37 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         private void HandleCheatDetectedMessage(string sender)
         {
             AddNotice(sender + " has modified game files during the client session. They are likely attempting to cheat!", Color.Red);
+        }
+
+        private void HandleTunnelServerChangeMessage(string sender, string tunnelAddress)
+        {
+            if (sender != hostName)
+                return;
+
+            CnCNetTunnel tunnel = tunnelHandler.Tunnels.Find(t => t.Address == tunnelAddress);
+            if (tunnel == null)
+            {
+                AddNotice("The game host has selected an invalid tunnel server! " +
+                    "The game host needs to change the server or you will be unable " +
+                    "to participate in the match.",
+                    Color.Yellow);
+                btnLaunchGame.AllowClick = false;
+                return;
+            }
+
+            HandleTunnelServerChange(tunnel);
+            btnLaunchGame.AllowClick = true;
+        }
+
+        /// <summary>
+        /// Changes the tunnel server used for the game.
+        /// </summary>
+        /// <param name="tunnel">The new tunnel server to use.</param>
+        private void HandleTunnelServerChange(CnCNetTunnel tunnel)
+        {
+            this.tunnel = tunnel;
+            AddNotice($"The game host has changed the tunnel server to: " +
+                $"{tunnel.Name} (Your ping: {tunnel.PingInMs} ms)");
         }
 
         #region CnCNet map sharing

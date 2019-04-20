@@ -96,7 +96,7 @@ namespace DTAClient.DXGUI.Generic
         {
             Name = "TopBar";
             ClientRectangle = new Rectangle(0, -39, WindowManager.RenderResolutionX, 39);
-            DrawMode = PanelBackgroundImageDrawMode.STRETCHED;
+            PanelBackgroundDrawMode = PanelBackgroundImageDrawMode.STRETCHED;
             BackgroundTexture = AssetLoader.CreateTexture(Color.Black, 1, 1);
             DrawBorders = false;
 
@@ -370,7 +370,7 @@ namespace DTAClient.DXGUI.Generic
         {
             base.Draw(gameTime);
 
-            Renderer.DrawRectangle(new Rectangle(X, ClientRectangle.Bottom - 2, Width, 1), UISettings.WindowBorderColor);
+            Renderer.DrawRectangle(new Rectangle(X, ClientRectangle.Bottom - 2, Width, 1), UISettings.ActiveSettings.PanelBorderColor);
         }
     }
 
