@@ -59,7 +59,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             foreach (KeyValuePair<string, string> objectRemapPair in objectRemapPairs)
             {
-                var matchingSectionKVPs = sectionKeyValuePairs.Where(x => GetObjectID(x.Value, sectionName) == objectRemapPair.Key);
+                List<KeyValuePair<string, string>> matchingSectionKVPs =
+                    sectionKeyValuePairs.Where(x => GetObjectID(x.Value, sectionName) == objectRemapPair.Key).ToList();
 
                 foreach (KeyValuePair<string, string> matchingSectionKVP in matchingSectionKVPs)
                 {
