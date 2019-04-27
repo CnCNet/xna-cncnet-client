@@ -12,7 +12,7 @@ call FindMSBuild
 if exist "%msbuild%" goto msbuildok
 ECHO.
 ECHO.
-echo Visual Studio 2017 required.
+echo Visual Studio 2017, Visual Studio 2019 or MSBuild required.
 ECHO.
 ECHO.
 goto error
