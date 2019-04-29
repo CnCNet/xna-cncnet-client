@@ -134,7 +134,7 @@ namespace DTAClient.DXGUI.Generic
 
             btnLaunch = new XNAClientButton(WindowManager);
             btnLaunch.Name = "btnLaunch";
-            btnLaunch.ClientRectangle = new Rectangle(12, Height - 35, 133, 23);
+            btnLaunch.ClientRectangle = new Rectangle(12, Height - 35, 133, 25);
             btnLaunch.Text = "Launch";
             btnLaunch.AllowClick = false;
             btnLaunch.LeftClick += BtnLaunch_LeftClick;
@@ -142,7 +142,7 @@ namespace DTAClient.DXGUI.Generic
             var btnCancel = new XNAClientButton(WindowManager);
             btnCancel.Name = "btnCancel";
             btnCancel.ClientRectangle = new Rectangle(Width - 145,
-                btnLaunch.Y, 133, 23);
+                btnLaunch.Y, 133, 25);
             btnCancel.Text = "Cancel";
             btnCancel.LeftClick += BtnCancel_LeftClick;
 

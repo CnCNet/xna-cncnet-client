@@ -98,7 +98,7 @@ namespace DTAClient.DXGUI.Generic
             lblUpdaterStatus.ClientRectangle = new Rectangle(12, 240, 0, 0);
 
             var btnCancel = new XNAClientButton(WindowManager);
-            btnCancel.ClientRectangle = new Rectangle(301, 240, 133, 23);
+            btnCancel.ClientRectangle = new Rectangle(301, 240, 133, 25);
             btnCancel.Text = "Cancel";
             btnCancel.LeftClick += BtnCancel_LeftClick;
 

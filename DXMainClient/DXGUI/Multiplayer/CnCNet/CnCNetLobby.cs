@@ -116,7 +116,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             btnNewGame = new XNAClientButton(WindowManager);
             btnNewGame.Name = "btnNewGame";
-            btnNewGame.ClientRectangle = new Rectangle(12, Height - 29, 133, 23);
+            btnNewGame.ClientRectangle = new Rectangle(12, Height - 29, 133, 25);
             btnNewGame.Text = "Create Game";
             btnNewGame.AllowClick = false;
             btnNewGame.LeftClick += BtnNewGame_LeftClick;
@@ -124,7 +124,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             btnJoinGame = new XNAClientButton(WindowManager);
             btnJoinGame.Name = "btnJoinGame";
             btnJoinGame.ClientRectangle = new Rectangle(btnNewGame.Right + 12,
-                btnNewGame.Y, 133, 23);
+                btnNewGame.Y, 133, 25);
             btnJoinGame.Text = "Join Game";
             btnJoinGame.AllowClick = false;
             btnJoinGame.LeftClick += BtnJoinGame_LeftClick;
@@ -132,7 +132,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             btnLogout = new XNAClientButton(WindowManager);
             btnLogout.Name = "btnLogout";
             btnLogout.ClientRectangle = new Rectangle(Width - 145, btnNewGame.Y,
-                133, 23);
+                133, 25);
             btnLogout.Text = "Log Out";
             btnLogout.LeftClick += BtnLogout_LeftClick;
 

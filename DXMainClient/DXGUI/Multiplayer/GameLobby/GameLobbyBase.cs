@@ -177,13 +177,13 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             btnLeaveGame = new XNAClientButton(WindowManager);
             btnLeaveGame.Name = "btnLeaveGame";
-            btnLeaveGame.ClientRectangle = new Rectangle(Width - 143, Height - 28, 133, 23);
+            btnLeaveGame.ClientRectangle = new Rectangle(Width - 143, Height - 28, 133, 25);
             btnLeaveGame.Text = "Leave Game";
             btnLeaveGame.LeftClick += BtnLeaveGame_LeftClick;
 
             btnLaunchGame = new XNAClientButton(WindowManager);
             btnLaunchGame.Name = "btnLaunchGame";
-            btnLaunchGame.ClientRectangle = new Rectangle(12, btnLeaveGame.Y, 133, 23);
+            btnLaunchGame.ClientRectangle = new Rectangle(12, btnLeaveGame.Y, 133, 25);
             btnLaunchGame.Text = "Launch Game";
             btnLaunchGame.LeftClick += BtnLaunchGame_LeftClick;
 
@@ -276,7 +276,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             btnPickRandomMap = new XNAClientButton(WindowManager);
             btnPickRandomMap.Name = "btnPickRandomMap";
-            btnPickRandomMap.ClientRectangle = new Rectangle(btnLaunchGame.Right + 157 , btnLaunchGame.Y, 133, 23);
+            btnPickRandomMap.ClientRectangle = new Rectangle(btnLaunchGame.Right + 157 , btnLaunchGame.Y, 133, 25);
             btnPickRandomMap.Text = "Pick Random Map";
             btnPickRandomMap.LeftClick += BtnPickRandomMap_LeftClick;
             btnPickRandomMap.Visible = false;

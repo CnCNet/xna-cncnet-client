@@ -57,17 +57,17 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             BackgroundTexture = AssetLoader.LoadTexture("gamecreationoptionsbg.png");
 
             btnCreateGame = new XNAClientButton(WindowManager);
-            btnCreateGame.ClientRectangle = new Rectangle(12, 159, 133, 23);
+            btnCreateGame.ClientRectangle = new Rectangle(12, 159, 133, 25);
             btnCreateGame.Text = "Create Game";
             btnCreateGame.LeftClick += BtnCreateGame_LeftClick;
 
             btnCancel = new XNAClientButton(WindowManager);
-            btnCancel.ClientRectangle = new Rectangle(345, btnCreateGame.Y, 133, 23);
+            btnCancel.ClientRectangle = new Rectangle(345, btnCreateGame.Y, 133, 25);
             btnCancel.Text = "Cancel";
             btnCancel.LeftClick += BtnCancel_LeftClick;
 
             btnLoadMPGame = new XNAClientButton(WindowManager);
-            btnLoadMPGame.ClientRectangle = new Rectangle(178, btnCreateGame.Y, 133, 23);
+            btnLoadMPGame.ClientRectangle = new Rectangle(178, btnCreateGame.Y, 133, 25);
             btnLoadMPGame.Text = "Load Game";
             btnLoadMPGame.LeftClick += BtnLoadMPGame_LeftClick;
 
