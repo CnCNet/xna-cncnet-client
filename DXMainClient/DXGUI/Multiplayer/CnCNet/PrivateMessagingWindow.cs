@@ -59,6 +59,9 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             if (tabControl.SelectedTab == ALL_PLAYERS_VIEW_INDEX)
             {
+                if (e.UserIndex >= lbUserList.Items.Count || e.UserIndex < 0)
+                    return;
+
                 if (e.UserIndex == lbUserList.SelectedIndex)
                 {
                     lbUserList.SelectedIndex = -1;
