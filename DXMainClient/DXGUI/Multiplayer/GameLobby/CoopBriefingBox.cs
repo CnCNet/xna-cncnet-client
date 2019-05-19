@@ -26,7 +26,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         public override void Initialize()
         {
             Name = "CoopBriefingBox";
-            //DrawMode = ControlDrawMode.UNIQUE_RENDER_TARGET;
+            DrawMode = ControlDrawMode.UNIQUE_RENDER_TARGET;
             ClientRectangle = new Rectangle(0, 0, 400, 300);
             PanelBackgroundDrawMode = PanelBackgroundImageDrawMode.STRETCHED;
             BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 224), 2, 2);
@@ -77,11 +77,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             //base.Draw(gameTime);
 
-            FillControlArea(new Color(0, 0, 0, (int)(224 * Alpha)));
-            DrawRectangle(new Rectangle(0, 0, Width, Height), GetColorWithAlpha(BorderColor));
+            FillControlArea(new Color(0, 0, 0, 224));
+            DrawRectangle(new Rectangle(0, 0, Width, Height), BorderColor);
             DrawStringWithShadow(text, fontIndex,
                 new Vector2(MARGIN, MARGIN),
-                GetColorWithAlpha(UISettings.ActiveSettings.AltColor));
+                UISettings.ActiveSettings.AltColor);
         }
     }
 }
