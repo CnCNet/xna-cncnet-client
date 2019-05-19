@@ -237,7 +237,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             if (WaypointTexture != null)
             {
+                // Non-premultiplied blending makes the indicators look sharper for some reason
+                // TODO figure out why
+                Renderer.PushSettings(new SpriteBatchSettings(SpriteSortMode.Deferred, BlendState.NonPremultiplied, null));
                 Renderer.DrawTexture(WaypointTexture, displayRectangle, Color.White);
+                Renderer.PopSettings();
             }
 
             base.Draw(gameTime);
