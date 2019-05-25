@@ -30,6 +30,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         /// </summary>
         public int DisallowedSideIndex { get; set; } = -1;
 
+        public bool AllowChanges { get; set; } = true;
+
         private string spawnIniOption;
 
         private string customIniPath;
@@ -133,6 +135,14 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             base.Initialize();
 
             toolTip = new ToolTip(WindowManager, this);
+        }
+
+        public override void OnLeftClick()
+        {
+            if (!AllowChanges)
+                return;
+
+            base.OnLeftClick();
         }
     }
 }
