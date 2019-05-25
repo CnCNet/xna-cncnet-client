@@ -744,9 +744,9 @@ namespace DTAClient.DXGUI.Generic
 
             if (themeSong != null && UserINISettings.Instance.PlayMainMenuMusic)
             {
-                musicVolume = 1.0f;
                 isMusicFading = false;
                 MediaPlayer.IsRepeating = true;
+                MediaPlayer.Volume = musicVolume;
                 try
                 {
                     MediaPlayer.Play(themeSong);
