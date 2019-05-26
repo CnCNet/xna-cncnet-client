@@ -104,7 +104,7 @@ namespace DTAClient.DXGUI.Multiplayer
                     x += friendIcon.Width + MARGIN;
                 }
                 // Ignore Icon
-                else if (user.IRCUser.IsIgnored)
+                else if (user.IRCUser.IsIgnored && !user.IsAdmin)
                 {
                     DrawTexture(ignoreIcon,
                         new Rectangle(x, height,

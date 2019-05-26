@@ -357,7 +357,10 @@ namespace DTAClient.Online
             if (message.Length > 1 && message[message.Length - 1] == '\u001f')
                 message = message.Remove(message.Length - 1);
 
-            channel.AddMessage(new ChatMessage(senderName, ident, foreColor, DateTime.Now, message.Replace('\r', ' ')));
+            ChannelUser user = channel.Users.Find(x => x.IRCUser.Ident == ident);
+            bool senderIsAdmin = user != null && user.IsAdmin ? true : false;
+
+            channel.AddMessage(new ChatMessage(senderName, ident, senderIsAdmin, foreColor, DateTime.Now, message.Replace('\r', ' ')));
         }
 
         public void OnCTCPParsed(string channelName, string userName, string message)

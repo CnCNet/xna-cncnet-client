@@ -33,12 +33,14 @@ namespace DTAClient.Online
         /// </summary>
         /// <param name="senderName">The sender of the message. Use null for none (system messages).</param>
         /// <param name="ident">The IRC identifier of the sender.</param>
+        /// <param name="senderIsAdmin">The sender of the message is a channel admin.</param>
         /// <param name="color">The color of the message.</param>
         /// <param name="dateTime">The date and time of the message.</param>
         /// <param name="message">The message.</param>
-        public ChatMessage(string senderName, string ident, Color color, DateTime dateTime, string message) : this(senderName, color, dateTime, message)
+        public ChatMessage(string senderName, string ident, bool senderIsAdmin, Color color, DateTime dateTime, string message) : this(senderName, color, dateTime, message)
         {
             SenderIdent = ident;
+            SenderIsAdmin = senderIsAdmin;
         }
 
         /// <summary>
@@ -61,5 +63,6 @@ namespace DTAClient.Online
         public Color Color { get; private set; }
         public DateTime DateTime { get; private set; }
         public string Message { get; private set; }
+        public bool SenderIsAdmin { get; private set; }
     }
 }
