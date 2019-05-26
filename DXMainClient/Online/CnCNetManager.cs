@@ -807,15 +807,16 @@ namespace DTAClient.Online
 
             string[] eInfoParts = extraInfo.Split(' ');
 
-            if (eInfoParts.Length < 3)
-                return;
+            int gameIndex = -1;
+            if (eInfoParts.Length > 2)
+            {
+                string gameName = eInfoParts[2];
 
-            string gameName = eInfoParts[2];
+                gameIndex = gameCollection.GetGameIndexFromInternalName(gameName);
 
-            int gameIndex = gameCollection.GetGameIndexFromInternalName(gameName);
-
-            if (gameIndex == -1)
-                return;
+                if (gameIndex == -1)
+                    return;
+            }
 
             var user = UserList.Find(u => u.Name == userName);
             if (user != null)
@@ -824,9 +825,11 @@ namespace DTAClient.Online
                 user.Ident = ident;
                 user.Hostname = hostName;
 
-                channels.ForEach(ch => ch.UpdateGameIndexForUser(userName));
-
-                UserGameIndexUpdated?.Invoke(this, new UserEventArgs(user));
+                if (gameIndex != -1)
+                {
+                    channels.ForEach(ch => ch.UpdateGameIndexForUser(userName));
+                    UserGameIndexUpdated?.Invoke(this, new UserEventArgs(user));
+                }
             }
         }
 
