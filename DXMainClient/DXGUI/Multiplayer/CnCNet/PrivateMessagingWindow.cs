@@ -385,7 +385,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             }
 
             // Messages from users we've blocked are not wanted
-            if (iu.IsIgnored)
+            if (cncnetUserData.IsIgnored(iu.Ident))
             {
                 return;
             }
