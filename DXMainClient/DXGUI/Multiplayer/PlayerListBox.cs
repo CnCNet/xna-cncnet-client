@@ -89,7 +89,7 @@ namespace DTAClient.DXGUI.Multiplayer
                         GetColorWithAlpha(FocusColor));
                 }
 
-                DrawTexture(lbItem.Texture, new Rectangle(x, height,
+                DrawTexture(user.IsAdmin ? adminGameIcon : lbItem.Texture, new Rectangle(x, height,
                         adminGameIcon.Width, adminGameIcon.Height), Color.White);
 
                 x += adminGameIcon.Width + MARGIN;
@@ -128,7 +128,7 @@ namespace DTAClient.DXGUI.Multiplayer
 
                 DrawStringWithShadow(name, FontIndex,
                     new Vector2(x, height),
-                    lbItem.TextColor);
+                    user.IsAdmin ? Color.Red : lbItem.TextColor);
 
                 height += LineHeight;
             }
