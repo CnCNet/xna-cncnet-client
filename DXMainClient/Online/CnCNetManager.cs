@@ -233,20 +233,51 @@ namespace DTAClient.Online
                 channel.OnInviteOnlyOnJoin();
         }
 
-        public void OnChannelModesChanged(string userName, string channelName, string modeString)
+        public void OnChannelModesChanged(string userName, string channelName, string modeString, List<string> modeParameters)
         {
-            wm.AddCallback(new Action<string, string, string>(DoChannelModesChanged),
-                userName, channelName, modeString);
+            wm.AddCallback(new Action<string, string, string, List<string>>(DoChannelModesChanged),
+                userName, channelName, modeString, modeParameters);
         }
 
-        private void DoChannelModesChanged(string userName, string channelName, string modeString)
+        private void DoChannelModesChanged(string userName, string channelName, string modeString, List<string> modeParameters)
         {
             Channel channel = FindChannel(channelName);
 
             if (channel == null)
                 return;
 
+            ApplyChannelModes(channel, modeString, modeParameters);
+
             channel.OnChannelModesChanged(userName, modeString);
+        }
+
+        private void ApplyChannelModes(Channel channel, string modeString, List<string> modeParameters)
+        {
+            bool addMode = true;
+            int parameterCount = 0;
+            foreach (char modeChar in modeString)
+            {
+                if (modeChar == '+')
+                    addMode = true;
+                else if (modeChar == '-')
+                    addMode = false;
+                else
+                {
+                    switch (modeChar)
+                    {
+                        // Add/remove channel operator status on user.
+                        case 'o':
+                            if (parameterCount >= modeParameters.Count)
+                                break;
+                            string parameter = modeParameters[parameterCount++];
+                            ChannelUser user = channel.Users.Find(x => x.IRCUser.Name == parameter);
+                            if (user == null)
+                                break;
+                            user.IsAdmin = addMode ? true : false;
+                            break;
+                    }
+                }
+            }
         }
 
         public void OnChannelTopicReceived(string channelName, string topic)
