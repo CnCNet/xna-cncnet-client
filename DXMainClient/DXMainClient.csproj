@@ -310,6 +310,7 @@
     <Compile Include="DXGUI\Multiplayer\GameLobby\GameLobbyCheckBox.cs" />
     <Compile Include="DXGUI\Multiplayer\GameLobby\GameLobbyDropDown.cs" />
     <Compile Include="DXGUI\Multiplayer\GameLobby\CommandHandlers\IntCommandHandler.cs" />
+    <Compile Include="DXGUI\Multiplayer\GameLobby\GameType.cs" />
     <Compile Include="DXGUI\Multiplayer\GameLobby\LANGameLobby.cs" />
     <Compile Include="DXGUI\Multiplayer\GameLobby\MapCodeHelper.cs" />
     <Compile Include="DXGUI\Multiplayer\GameLobby\MapPreviewBox.cs" />
@@ -441,7 +442,7 @@
       <ExampleClientResources Include="$(SolutionDir)\DXMainClient\Resources\DTA\**\*.*" />
       <ExampleClientMaps Include="$(SolutionDir)\DXMainClient\Resources\Maps\**\*.*" />
       <ExampleClientIni Include="$(SolutionDir)\DXMainClient\Resources\INI\**\*.*" />
-	  <ExampleClientMix Include="$(SolutionDir)\DXMainClient\Resources\MIX\**\*.*" />
+      <ExampleClientMix Include="$(SolutionDir)\DXMainClient\Resources\MIX\**\*.*" />
       <ExampleClientSettings Include="$(SolutionDir)\DXMainClient\Resources\Settings.ini" />
       <ExampleClientLinuxRun Include="$(SolutionDir)\DXMainClient\Resources\run.sh" />
       <ExampleClientDefinitions Include="$(SolutionDir)\DXMainClient\Resources\ClientDefinitions.ini" />
@@ -450,7 +451,7 @@
     <Copy Condition="! Exists('$(OutputPath)\Resources\ClientDefinitions.ini') " SourceFiles="@(ExampleClientResources)" DestinationFolder="$(OutputPath)\Resources\%(RecursiveDir)" />
     <Copy Condition="! Exists('$(OutputPath)\Resources\ClientDefinitions.ini') " SourceFiles="@(ExampleClientMaps)" DestinationFolder="$(OutputPath)\Maps\%(RecursiveDir)" />
     <Copy Condition="! Exists('$(OutputPath)\Resources\ClientDefinitions.ini') " SourceFiles="@(ExampleClientIni)" DestinationFolder="$(OutputPath)\INI\%(RecursiveDir)" />
-	<Copy Condition="! Exists('$(OutputPath)\Resources\ClientDefinitions.ini') " SourceFiles="@(ExampleClientMix)" DestinationFolder="$(OutputPath)\MIX\%(RecursiveDir)" />
+    <Copy Condition="! Exists('$(OutputPath)\Resources\ClientDefinitions.ini') " SourceFiles="@(ExampleClientMix)" DestinationFolder="$(OutputPath)\MIX\%(RecursiveDir)" />
     <Copy Condition="! Exists('$(OutputPath)\Resources\ClientDefinitions.ini') " SourceFiles="@(ExampleClientSettings)" DestinationFolder="$(OutputPath)" />
     <Copy Condition="! Exists('$(OutputPath)\Resources\ClientDefinitions.ini') " SourceFiles="@(ExampleClientLinuxRun)" DestinationFolder="$(OutputPath)" />
     <Copy Condition="! Exists('$(OutputPath)\Resources\ClientDefinitions.ini') " SourceFiles="@(ExampleClientDefinitions)" DestinationFolder="$(OutputPath)\Resources" />

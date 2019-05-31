@@ -1004,20 +1004,25 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             IniFile spawnIni = new IniFile(ProgramConstants.GamePath + ProgramConstants.SPAWNER_SETTINGS);
 
-            spawnIni.SetStringValue("Settings", "Name", ProgramConstants.PLAYERNAME);
-            spawnIni.SetStringValue("Settings", "Scenario", ProgramConstants.SPAWNMAP_INI);
-            spawnIni.SetStringValue("Settings", "UIGameMode", GameMode.UIName);
-            spawnIni.SetStringValue("Settings", "UIMapName", Map.Name);
-            spawnIni.SetIntValue("Settings", "PlayerCount", Players.Count);
+            IniSection settings = new IniSection("Settings");
+
+            settings.SetStringValue("Name", ProgramConstants.PLAYERNAME);
+            settings.SetStringValue("Scenario", ProgramConstants.SPAWNMAP_INI);
+            settings.SetStringValue("UIGameMode", GameMode.UIName);
+            settings.SetStringValue("UIMapName", Map.Name);
+            settings.SetIntValue("PlayerCount", Players.Count);
             int myIndex = Players.FindIndex(c => c.Name == ProgramConstants.PLAYERNAME);
-            spawnIni.SetIntValue("Settings", "Side", houseInfos[myIndex].SideIndex);
-            spawnIni.SetBooleanValue("Settings", "IsSpectator", houseInfos[myIndex].IsSpectator);
-            spawnIni.SetIntValue("Settings", "Color", houseInfos[myIndex].ColorIndex);
-            spawnIni.SetStringValue("Settings", "CustomLoadScreen", LoadingScreenController.GetLoadScreenName(houseInfos[myIndex].SideIndex));
-            spawnIni.SetIntValue("Settings", "AIPlayers", AIPlayers.Count);
-            spawnIni.SetIntValue("Settings", "Seed", RandomSeed);
+            settings.SetIntValue("Side", houseInfos[myIndex].SideIndex);
+            settings.SetBooleanValue("IsSpectator", houseInfos[myIndex].IsSpectator);
+            settings.SetIntValue("Color", houseInfos[myIndex].ColorIndex);
+            settings.SetStringValue("CustomLoadScreen", LoadingScreenController.GetLoadScreenName(houseInfos[myIndex].SideIndex));
+            settings.SetIntValue("AIPlayers", AIPlayers.Count);
+            settings.SetIntValue("Seed", RandomSeed);
             if (GetPvPTeamCount() > 1)
-                spawnIni.SetBooleanValue("Settings", "CoachMode", true);
+                settings.SetBooleanValue("CoachMode", true);
+            if (GetGameType() == GameType.Coop)
+                settings.SetBooleanValue("AutoSurrender", false);
+            spawnIni.AddSection(settings);
             WriteSpawnIniAdditions(spawnIni);
 
             foreach (GameLobbyCheckBox chkBox in CheckBoxes)
@@ -1827,6 +1832,19 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             }
 
             return string.Empty;
+        }
+
+        protected GameType GetGameType()
+        {
+            int teamCount = GetPvPTeamCount();
+
+            if (teamCount == 0)
+                return GameType.FFA;
+
+            if (teamCount == 1)
+                return GameType.Coop;
+
+            return GameType.TeamGame;
         }
 
         protected abstract bool AllowPlayerOptionsChange();
