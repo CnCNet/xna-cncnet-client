@@ -75,7 +75,7 @@ namespace DTAClient.DXGUI.Generic
 
         private bool isMusicFading = false;
 
-        private readonly bool isMediaPlayerAvailable = true;
+        private readonly bool isMediaPlayerAvailable;
 
         private float musicVolume = 1.0f;
 
