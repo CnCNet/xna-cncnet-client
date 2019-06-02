@@ -358,7 +358,7 @@ namespace DTAClient.Online
                 message = message.Remove(message.Length - 1);
 
             ChannelUser user = channel.Users.Find(x => x.IRCUser.Ident == ident);
-            bool senderIsAdmin = user != null && user.IsAdmin ? true : false;
+            bool senderIsAdmin = user != null && user.IsAdmin;
 
             channel.AddMessage(new ChatMessage(senderName, ident, senderIsAdmin, foreColor, DateTime.Now, message.Replace('\r', ' ')));
         }
