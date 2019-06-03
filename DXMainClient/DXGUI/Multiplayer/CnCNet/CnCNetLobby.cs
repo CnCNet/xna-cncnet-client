@@ -293,7 +293,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             foreach (var game in gameCollection.GameList)
             {
-                if (!game.Supported)
+                if (!game.Supported || string.IsNullOrEmpty(game.ChatChannel))
                 {
                     i++;
                     continue;
@@ -316,7 +316,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
                 item.Tag = chatChannel;
 
-                if (game.GameBroadcastChannel != null)
+                if (!string.IsNullOrEmpty(game.GameBroadcastChannel))
                 {
                     var gameBroadcastChannel = connectionManager.FindChannel(game.GameBroadcastChannel);
 
@@ -916,16 +916,41 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             Channel cncnetChannel = connectionManager.FindChannel("#cncnet");
             cncnetChannel.Join();
+            cncnetChannel.RequestUserInfo();
 
             string localGameChatChannelName = gameCollection.GetGameChatChannelNameFromIdentifier(localGameID);
-            Channel localGameChatChannel = connectionManager.FindChannel(localGameChatChannelName);
-            localGameChatChannel.Join();
+            bool chatChannelMissing = false;
+            if (string.IsNullOrEmpty(localGameChatChannelName))
+            {
+                chatChannelMissing = true;
+                Logger.Log("Could not find chat channel info for current local game " + localGameID + ".");
+            }
+            else
+            {
+                Channel localGameChatChannel = connectionManager.FindChannel(localGameChatChannelName);
+                localGameChatChannel.Join();
+                localGameChatChannel.RequestUserInfo();
+            }
 
             string localGameBroadcastChannel = gameCollection.GetGameBroadcastingChannelNameFromIdentifier(localGameID);
-            connectionManager.FindChannel(localGameBroadcastChannel).Join();
+            bool broadcastChannelMissing = false;
+            if (string.IsNullOrEmpty(localGameBroadcastChannel))
+            {
+                btnNewGame.AllowClick = false;
+                broadcastChannelMissing = true;
+                Logger.Log("Could not find game broadcast channel info for current local game " + localGameID + ".");
+            }
+            else
+                connectionManager.FindChannel(localGameBroadcastChannel).Join();
 
-            cncnetChannel.RequestUserInfo();
-            localGameChatChannel.RequestUserInfo();
+            if (chatChannelMissing || broadcastChannelMissing)
+                XNAMessageBox.Show(WindowManager, "Error joining channels", "Following problems were encountered " +
+                    "when attempting to join channels for the currently set local game " + localGameID +":" + Environment.NewLine + Environment.NewLine +
+                    (chatChannelMissing ? "- Chat channel info could not be found. No chat channel will be available for this game in Current Channel dropdown." +
+                    Environment.NewLine + Environment.NewLine : "") +
+                    (broadcastChannelMissing ? "- Broadcast channel info could not be found. Creating & hosting games will be disabled." +
+                    Environment.NewLine + Environment.NewLine : "") +
+                    "Please check that the local game is set correctly in client configuration, and if using a custom-defined game, that its channel info is set properly.");
 
             foreach (CnCNetGame game in gameCollection.GameList)
             {

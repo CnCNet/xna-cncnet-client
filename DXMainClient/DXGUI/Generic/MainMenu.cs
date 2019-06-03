@@ -43,6 +43,7 @@ namespace DTAClient.DXGUI.Generic
             this.connectionManager = connectionManager;
             this.optionsWindow = optionsWindow;
             cncnetLobby.UpdateCheck += CncnetLobby_UpdateCheck;
+            isMediaPlayerAvailable = IsMediaPlayerAvailable();
         }
 
         private MainMenuDarkeningPanel innerPanel;
@@ -73,6 +74,8 @@ namespace DTAClient.DXGUI.Generic
         private static readonly object locker = new object();
 
         private bool isMusicFading = false;
+
+        private readonly bool isMediaPlayerAvailable;
 
         private float musicVolume = 1.0f;
 
@@ -191,7 +194,6 @@ namespace DTAClient.DXGUI.Generic
             lblVersion.LeftClick += LblVersion_LeftClick;
 
             lblVersion.Name = "lblVersion";
-            lblVersion.Text = CUpdater.GameVersion;
 
             lblUpdateStatus = new XNALinkLabel(WindowManager);
             lblUpdateStatus.Name = "lblUpdateStatus";
@@ -231,6 +233,8 @@ namespace DTAClient.DXGUI.Generic
             innerPanel.Hide();
 
             base.Initialize(); // Read control attributes from INI
+
+            lblVersion.Text = CUpdater.GameVersion;
 
             innerPanel.UpdateQueryWindow.UpdateDeclined += UpdateQueryWindow_UpdateDeclined;
             innerPanel.UpdateQueryWindow.UpdateAccepted += UpdateQueryWindow_UpdateAccepted;
@@ -304,7 +308,7 @@ namespace DTAClient.DXGUI.Generic
         {
             musicVolume = (float)UserINISettings.Instance.ClientVolume;
 
-            if (MainClientConstants.OSId != OSVersion.WINVISTA)
+            if (isMediaPlayerAvailable)
             {
                 if (MediaPlayer.State == MediaState.Playing)
                 {
@@ -735,14 +739,14 @@ namespace DTAClient.DXGUI.Generic
         /// </summary>
         private void PlayMusic()
         {
-            if (MainClientConstants.OSId == OSVersion.WINVISTA)
+            if (!isMediaPlayerAvailable)
                 return; // SharpDX fails at music playback on Vista
 
             if (themeSong != null && UserINISettings.Instance.PlayMainMenuMusic)
             {
-                musicVolume = 1.0f;
                 isMusicFading = false;
                 MediaPlayer.IsRepeating = true;
+                MediaPlayer.Volume = musicVolume;
                 try
                 {
                     MediaPlayer.Play(themeSong);
@@ -761,7 +765,7 @@ namespace DTAClient.DXGUI.Generic
         /// <param name="gameTime">Provides a snapshot of timing values.</param>
         private void FadeMusic(GameTime gameTime)
         {
-            if (!isMusicFading || themeSong == null)
+            if (!isMediaPlayerAvailable || !isMusicFading || themeSong == null)
                 return;
 
             // Fade during 1 second
@@ -781,7 +785,7 @@ namespace DTAClient.DXGUI.Generic
         /// </summary>
         private void FadeMusicExit()
         {
-            if (themeSong == null || MainClientConstants.OSId == OSVersion.WINVISTA)
+            if (!isMediaPlayerAvailable || themeSong == null)
             {
                 ExitClient();
                 return;
@@ -833,13 +837,34 @@ namespace DTAClient.DXGUI.Generic
         {
             try
             {
-                if (MainClientConstants.OSId != OSVersion.WINVISTA &&
+                if (isMediaPlayerAvailable &&
                     MediaPlayer.State == MediaState.Playing)
                     isMusicFading = true;
             }
             catch (Exception ex)
             {
                 Logger.Log("Turning music off failed! Message: " + ex.Message);
+            }
+        }
+
+        /// <summary>
+        /// Checks if media player is available currently.
+        /// It is not available on Windows Vista or other systems without the appropriate media player components.
+        /// </summary>
+        /// <returns>True if media player is available, false otherwise.</returns>
+        private bool IsMediaPlayerAvailable()
+        {
+            if (MainClientConstants.OSId == OSVersion.WINVISTA)
+                return false;
+            try
+            {
+                MediaState state = MediaPlayer.State;
+                return true;
+            }
+            catch (Exception e)
+            {
+                Logger.Log("Error encountered when checking media player availability. Error message: " + e.Message);
+                return false;
             }
         }
 

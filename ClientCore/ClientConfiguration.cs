@@ -396,6 +396,8 @@ namespace ClientCore
             return exeNames[0];
         }
 
+        public string GetGameLauncherExecutableName => clientDefinitionsIni.GetStringValue(SETTINGS, "GameLauncherExecutableName", string.Empty);
+
         public bool SaveSkirmishGameOptions => clientDefinitionsIni.GetBooleanValue(SETTINGS, "SaveSkirmishGameOptions", false);
 
         public bool CreateSavedGamesDirectory => clientDefinitionsIni.GetBooleanValue(SETTINGS, "CreateSavedGamesDirectory", false);
@@ -416,6 +418,8 @@ namespace ClientCore
         public string LauncherExe => clientDefinitionsIni.GetStringValue(SETTINGS, "LauncherExe", string.Empty);
 
         public string ClientDefaultResolutionText => clientDefinitionsIni.GetStringValue(SETTINGS, "ClientDefaultResolutionText", "(recommended)");
+
+        public bool UseClientRandomStartLocations => clientDefinitionsIni.GetBooleanValue(SETTINGS, "UseClientRandomStartLocations", false);
 
         public bool ProcessScreenshots
         {

@@ -3,6 +3,8 @@ using Rampastring.XNAUI;
 using Microsoft.Xna.Framework.Graphics;
 using ClientCore.Properties;
 using System.Linq;
+using System;
+using Rampastring.Tools;
 
 namespace ClientCore.CnCNet5
 {
@@ -11,16 +13,14 @@ namespace ClientCore.CnCNet5
     /// </summary>
     public class GameCollection
     {
-        public List<CnCNetGame> GameList
-        {
-            get { return _gameList; }
-        }
-
-        private List<CnCNetGame> _gameList;
+        public List<CnCNetGame> GameList { get; private set; }
 
         public void Initialize(GraphicsDevice gd)
         {
-            _gameList = new CnCNetGame[]
+            GameList = new List<CnCNetGame>();
+
+            // Default supported games.
+            CnCNetGame[] defaultGames = new CnCNetGame[]
             {
                 new CnCNetGame()
                 {
@@ -79,6 +79,32 @@ namespace ClientCore.CnCNet5
 
                 new CnCNetGame()
                 {
+                    ChatChannel = "#redres-lobby",
+                    ClientExecutableName = "RRLauncher.exe",
+                    GameBroadcastChannel = "#redres-games",
+                    InternalName = "rr",
+                    RegistryInstallPath = "HKML\\Software\\RedResurrection",
+                    UIName = "YR Red-Resurrection",
+                    Texture = AssetLoader.TextureFromImage(Resources.rricon)
+                },
+
+                new CnCNetGame()
+                {
+                    ChatChannel = "#projectphantom",
+                    ClientExecutableName = "PPLauncher.exe",
+                    GameBroadcastChannel = "#projectphantom-games",
+                    InternalName = "pp",
+                    RegistryInstallPath = "HKML\\Software\\ProjectPhantom",
+                    UIName = "Project Phantom",
+                    Texture = AssetLoader.TextureFromImage(Resources.ppicon)
+                }
+            };
+
+            // CnCNet chat + unsupported games.
+            CnCNetGame[] otherGames = new CnCNetGame[]
+            {
+                new CnCNetGame()
+                {
                     ChatChannel = "#cncnet",
                     InternalName = "cncnet",
                     UIName = "General CnCNet Chat",
@@ -112,8 +138,48 @@ namespace ClientCore.CnCNet5
                     Supported = false,
                     Texture = AssetLoader.TextureFromImage(Resources.unknownicon)
                 }
+            };
 
-            }.ToList();
+            GameList.AddRange(defaultGames);
+            GameList.AddRange(GetCustomGames(defaultGames.Concat(otherGames).ToList()));
+            GameList.AddRange(otherGames);
+        }
+
+        private List<CnCNetGame> GetCustomGames(List<CnCNetGame> existingGames)
+        {
+            IniFile iniFile = new IniFile(ProgramConstants.GetBaseResourcePath() + "GameCollectionConfig.ini");
+
+            List<CnCNetGame> customGames = new List<CnCNetGame>();
+
+            var section = iniFile.GetSection("CustomGames");
+
+            if (section == null)
+                return customGames;
+
+            HashSet<string> customGameIDs = new HashSet<string>();
+            foreach (var kvp in section.Keys)
+            {
+                string ID = iniFile.GetStringValue(kvp.Value, "InternalName", string.Empty).ToLower();
+                if (string.IsNullOrEmpty(ID) || existingGames.Find(g => g.InternalName == ID) != null ||
+                    customGameIDs.Contains(ID))
+                    continue;
+                string iconFilename = iniFile.GetStringValue(kvp.Value, "IconFilename", ID + "icon.png");
+                customGames.Add(new CnCNetGame
+                {
+                    InternalName = ID,
+                    UIName = iniFile.GetStringValue(kvp.Value, "UIName", ID.ToUpper()),
+                    ChatChannel = iniFile.GetStringValue(kvp.Value, "ChatChannel", string.Empty),
+                    GameBroadcastChannel = iniFile.GetStringValue(kvp.Value, "GameBroadcastChannel", string.Empty),
+                    ClientExecutableName = iniFile.GetStringValue(kvp.Value, "ClientExecutableName", string.Empty),
+                    RegistryInstallPath = iniFile.GetStringValue(kvp.Value, "RegistryInstallPath", "HKCU\\Software\\"
+                    + ID.ToUpper()),
+                    Texture = AssetLoader.AssetExists(iconFilename) ? AssetLoader.LoadTexture(iconFilename) :
+                    AssetLoader.TextureFromImage(Resources.unknownicon)
+                });
+                customGameIDs.Add(ID);
+            }
+
+            return customGames;
         }
 
         /// <summary>
@@ -123,9 +189,9 @@ namespace ClientCore.CnCNet5
         /// <returns>The index of the specified CnCNet game. -1 if the game is unknown or not supported.</returns>
         public int GetGameIndexFromInternalName(string gameName)
         {
-            for (int gId = 0; gId < _gameList.Count; gId++)
+            for (int gId = 0; gId < GameList.Count; gId++)
             {
-                CnCNetGame game = _gameList[gId];
+                CnCNetGame game = GameList[gId];
 
                 if (gameName.ToLower() == game.InternalName)
                     return gId;
@@ -143,7 +209,7 @@ namespace ClientCore.CnCNet5
         /// Returns the given parameter if the name isn't found in the supported game list.</returns>
         public string GetGameNameFromInternalName(string gameName)
         {
-            CnCNetGame game = _gameList.Find(g => g.InternalName == gameName.ToLower());
+            CnCNetGame game = GameList.Find(g => g.InternalName == gameName.ToLower());
 
             if (game == null)
                 return gameName;
@@ -158,7 +224,7 @@ namespace ClientCore.CnCNet5
         /// <returns>The UI name of the game.</returns>
         public string GetFullGameNameFromIndex(int gameIndex)
         {
-            return _gameList[gameIndex].UIName;
+            return GameList[gameIndex].UIName;
         }
 
         /// <summary>
@@ -168,17 +234,23 @@ namespace ClientCore.CnCNet5
         /// <returns>The internal name (suffix) of the game.</returns>
         public string GetGameIdentifierFromIndex(int gameIndex)
         {
-            return _gameList[gameIndex].InternalName;
+            return GameList[gameIndex].InternalName;
         }
 
         public string GetGameBroadcastingChannelNameFromIdentifier(string gameIdentifier)
         {
-            return _gameList.Find(g => g.InternalName == gameIdentifier.ToLower()).GameBroadcastChannel;
+            CnCNetGame game = GameList.Find(g => g.InternalName == gameIdentifier.ToLower());
+            if (game == null)
+                return null;
+            return game.GameBroadcastChannel;
         }
 
         public string GetGameChatChannelNameFromIdentifier(string gameIdentifier)
         {
-            return _gameList.Find(g => g.InternalName == gameIdentifier.ToLower()).ChatChannel;
+            CnCNetGame game = GameList.Find(g => g.InternalName == gameIdentifier.ToLower());
+            if (game == null)
+                return null;
+            return game.ChatChannel;
         }
     }
 }
