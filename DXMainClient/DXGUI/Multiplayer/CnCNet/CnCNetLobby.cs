@@ -165,9 +165,9 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             playerContextMenu.AddItem("Private Message", () => 
                 PerformUserListContextMenuAction(iu => pmWindow.InitPM(iu.Name)));
             playerContextMenu.AddItem("Add Friend", () => 
-                PerformUserListContextMenuAction(iu => cncnetUserData.ToggleFriend(iu.Name)));
+                PerformUserListContextMenuAction(iu => ToggleFriend(iu.Name)));
             playerContextMenu.AddItem("Ignore User", () => 
-                PerformUserListContextMenuAction(iu => cncnetUserData.ToggleIgnoreUser(iu.Ident)));
+                PerformUserListContextMenuAction(iu => ToggleIgnoreUser(iu.Ident)));
 
             lbChatMessages = new ChatListBox(WindowManager);
             lbChatMessages.Name = "lbChatMessages";
@@ -477,9 +477,11 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             }
 
             IRCUser ircUser = currentChatChannel.Users[lbPlayerList.SelectedIndex].IRCUser;
+            bool isAdmin = currentChatChannel.Users[lbPlayerList.SelectedIndex].IsAdmin;
 
             playerContextMenu.Items[1].Text = cncnetUserData.IsFriend(ircUser.Name) ? "Remove Friend" : "Add Friend";
-            playerContextMenu.Items[2].Text = cncnetUserData.IsIgnored(ircUser.Ident) ? "Unblock" : "Block";
+            playerContextMenu.Items[2].Text = cncnetUserData.IsIgnored(ircUser.Ident) && !isAdmin ? "Unblock" : "Block";
+            playerContextMenu.Items[2].Selectable = !isAdmin;
 
             playerContextMenu.Open(GetCursorPoint());
         }
@@ -510,6 +512,32 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             var channelUser = (ChannelUser)lbPlayerList.SelectedItem.Tag;
 
             pmWindow.InitPM(channelUser.IRCUser.Name);
+        }
+
+        /// <summary>
+        /// Adds or removes a specified user to from the chat ignore list depending on whether
+        /// they already are on the ignore list.
+        /// </summary>
+        /// <param name="ident">The ident of the IRCUser.</param>
+        private void ToggleIgnoreUser(string ident)
+        {
+            cncnetUserData.ToggleIgnoreUser(ident);
+            ChannelUser user = currentChatChannel.Users.Find(x => x.IRCUser.Ident == ident);
+            if (user != null)
+                RefreshPlayerListUser(user);
+        }
+
+        /// <summary>
+        /// Adds or removes an user from the friend list depending on whether
+        /// they already are on the friend list.
+        /// </summary>
+        /// <param name="name">The name of the user.</param>
+        private void ToggleFriend(string name)
+        {
+            cncnetUserData.ToggleFriend(name);
+            ChannelUser user = currentChatChannel.Users.Find(x => x.IRCUser.Name == name);
+            if (user != null)
+                RefreshPlayerListUser(user);
         }
 
         /// <summary>
@@ -1042,6 +1070,17 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             }
         }
 
+        /// <summary>
+        /// Refreshes a single user's info on the player list.
+        /// </summary>
+        /// <param name="user">User on the current chat channel.</param>
+        private void RefreshPlayerListUser(ChannelUser user)
+        {
+            user.IRCUser.IsFriend = cncnetUserData.IsFriend(user.IRCUser.Name);
+            user.IRCUser.IsIgnored = cncnetUserData.IsIgnored(user.IRCUser.Ident);
+            lbPlayerList.UpdateUserInfo(user);
+        }
+
         private void CurrentChatChannel_UserGameIndexUpdated(object sender, ChannelUserEventArgs e)
         {
             var ircUser = e.User.IRCUser;
@@ -1055,7 +1094,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         private void AddMessageToChat(ChatMessage message)
         {
-            if (!string.IsNullOrEmpty(message.SenderIdent) && cncnetUserData.IsIgnored(message.SenderIdent))
+            if (!string.IsNullOrEmpty(message.SenderIdent) && cncnetUserData.IsIgnored(message.SenderIdent) && !message.SenderIsAdmin)
             {
                 lbChatMessages.AddMessage(new ChatMessage(Color.Silver, "Message blocked from - " + message.SenderName));
             }

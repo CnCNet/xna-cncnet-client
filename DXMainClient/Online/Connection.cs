@@ -555,7 +555,9 @@ namespace DTAClient.Online
                         string modeUserName = prefix.Substring(0, prefix.IndexOf('!'));
                         string modeChannelName = parameters[0];
                         string modeString = parameters[1];
-                        connectionManager.OnChannelModesChanged(modeUserName, modeChannelName, modeString);
+                        List<string> modeParameters = 
+                            parameters.Count > 2 ? parameters.GetRange(2, parameters.Count - 2) : new List<string>();
+                        connectionManager.OnChannelModesChanged(modeUserName, modeChannelName, modeString, modeParameters);
                         break;
                     case "KICK":
                         string kickChannelName = parameters[0];

@@ -1,4 +1,6 @@
-﻿namespace DTAClient.Online
+﻿using System.Collections.Generic;
+
+namespace DTAClient.Online
 {
     /// <summary>
     /// An interface for handling IRC messages.
@@ -41,7 +43,7 @@
 
         void OnPrivateMessageReceived(string sender, string message);
 
-        void OnChannelModesChanged(string userName, string channelName, string modeString);
+        void OnChannelModesChanged(string userName, string channelName, string modeString, List<string> modeParameters);
 
         void OnUserKicked(string channelName, string userName);
 
