@@ -201,6 +201,7 @@
     <Compile Include="Settings\StringSetting.cs" />
     <Compile Include="LoadingScreenController.cs" />
     <Compile Include="ProgramConstants.cs" />
+    <Compile Include="Statistics\DataWriter.cs" />
     <Compile Include="Statistics\GameParsers\LogFileStatisticsParser.cs" />
     <Compile Include="Statistics\GenericMatchParser.cs" />
     <Compile Include="Statistics\GenericStatisticsManager.cs" />
