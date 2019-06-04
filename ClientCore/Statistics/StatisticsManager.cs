@@ -550,7 +550,8 @@ namespace ClientCore.Statistics
                 if (ms.SawCompletion && 
                     ms.IsValidForStar &&
                     ms.MapName == mapName &&
-                    ms.Players.Count == requiredPlayerCount)
+                    ms.Players.Count == requiredPlayerCount &&
+                    ms.Players.Count(p => !p.IsAI) == 1)
                     matches.Add(ms);
             }
 
@@ -571,8 +572,6 @@ namespace ClientCore.Statistics
 
                 teamMemberCounts[localPlayer.Team]++;
 
-                bool allowContinue = true;
-
                 for (int i = 0; i < ms.Players.Count; i++)
                 {
                     PlayerStatistics ps = ms.GetPlayer(i);
@@ -580,14 +579,6 @@ namespace ClientCore.Statistics
                     if (ps.IsLocalPlayer)
                     {
                         continue;
-                    }
-
-                    if (!ps.IsAI)
-                    {
-                        // We're looking for Skirmish games, so skip all matches
-                        // that have more than 1 human player
-                        allowContinue = false;
-                        break;
                     }
 
                     teamMemberCounts[ps.Team]++;
@@ -604,9 +595,6 @@ namespace ClientCore.Statistics
                     }
                 }
 
-                if (!allowContinue)
-                    continue;
-
                 if (lowestEnemyAILevel < highestAllyAILevel)
                 {
                     // Check that the player's AI allies weren't stronger 
@@ -615,26 +603,46 @@ namespace ClientCore.Statistics
 
                 if (localPlayer.Team > 0)
                 {
-                    // Check that all teams had an equal number of players
+                    // Check that all teams had at least
 
                     int allyCount = teamMemberCounts[localPlayer.Team];
-                    int lowestEnemyTeamMemberCount = Int32.MaxValue;
+                    bool pass = true;
 
                     for (int i = 1; i < 5; i++)
                     {
-                        if (teamMemberCounts[i] > 0 && i != localPlayer.Team)
+                        if (i == localPlayer.Team)
+                            continue;
+
+                        if (teamMemberCounts[i] > 0)
                         {
-                            if (teamMemberCounts[i] < lowestEnemyTeamMemberCount)
-                                lowestEnemyTeamMemberCount = teamMemberCounts[i];
+                            if (teamMemberCounts[i] < allyCount)
+                            {
+                                // The enemy team has fewer players than the player's team
+                                pass = false;
+                                break;
+                            }
                         }
                     }
 
-                    if (lowestEnemyTeamMemberCount == Int32.MaxValue || lowestEnemyTeamMemberCount < allyCount)
-                    {
-                        // The human player either had more allies than one of
-                        // the enemy teams or the enemies weren't allied at all
+                    if (!pass)
                         continue;
+
+                    // Check that there is a team other than the players' team that is at least as large
+                    pass = false;
+                    for (int i = 1; i < 5; i++)
+                    {
+                        if (i == localPlayer.Team)
+                            continue;
+
+                        if (teamMemberCounts[i] >= allyCount)
+                        {
+                            pass = true;
+                            break;
+                        }
                     }
+
+                    if (!pass)
+                        continue;
                 }
 
                 if (rank < lowestEnemyAILevel)
