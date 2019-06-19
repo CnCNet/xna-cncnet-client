@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Text;
 using ClientCore.Statistics.GameParsers;
 using Rampastring.Tools;
 
@@ -41,6 +43,8 @@ namespace ClientCore.Statistics
         public int GameID { get; set; }
 
         public bool MapIsCoop { get; set; }
+
+        public bool IsValidForStar { get; set; } = true;
 
         public void AddPlayer(string name, bool isLocal, bool isAI, bool isSpectator,
             int side, int team, int color, int aiLevel)
@@ -95,6 +99,39 @@ namespace ClientCore.Statistics
         public PlayerStatistics GetPlayer(int index)
         {
             return Players[index];
+        }
+
+        public void Write(Stream stream)
+        {
+            // Game length
+            stream.WriteInt(LengthInSeconds);
+
+            // Game version, 8 bytes, ASCII
+            stream.WriteString(GameVersion, 8, Encoding.ASCII);
+
+            // Date and time, 8 bytes
+            stream.WriteLong(DateAndTime.ToBinary());
+            // SawCompletion, 1 byte
+            stream.WriteBool(SawCompletion);
+            // Number of players, 1 byte
+            stream.WriteByte(Convert.ToByte(GetPlayerCount()));
+            // Average FPS, 4 bytes
+            stream.WriteInt(AverageFPS);
+            // Map name, 128 bytes (64 chars), Unicode
+            stream.WriteString(MapName, 128);
+            // Game mode, 64 bytes (32 chars), Unicode
+            stream.WriteString(GameMode, 64);
+            // Unique game ID, 4 bytes
+            stream.WriteInt(GameID);
+            // Whether game options were valid for earning a star, 1 byte
+            stream.WriteBool(IsValidForStar);
+
+            // Write player info
+            for (int i = 0; i < GetPlayerCount(); i++)
+            {
+                PlayerStatistics ps = GetPlayer(i);
+                ps.Write(stream);
+            }
         }
     }
 }

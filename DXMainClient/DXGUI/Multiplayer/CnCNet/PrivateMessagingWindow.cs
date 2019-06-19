@@ -59,6 +59,9 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             if (tabControl.SelectedTab == ALL_PLAYERS_VIEW_INDEX)
             {
+                if (e.UserIndex >= lbUserList.Items.Count || e.UserIndex < 0)
+                    return;
+
                 if (e.UserIndex == lbUserList.SelectedIndex)
                 {
                     lbUserList.SelectedIndex = -1;
@@ -382,7 +385,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             }
 
             // Messages from users we've blocked are not wanted
-            if (iu.IsIgnored)
+            if (cncnetUserData.IsIgnored(iu.Ident))
             {
                 return;
             }

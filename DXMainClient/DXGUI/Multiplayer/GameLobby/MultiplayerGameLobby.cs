@@ -571,7 +571,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
                 foreach (GameLobbyCheckBox checkBox in CheckBoxes)
                 {
-                    checkBox.InputEnabled = true;
+                    checkBox.AllowChanges = true;
                     checkBox.Checked = checkBox.UserDefinedValue;
                 }
 
@@ -588,7 +588,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     dd.InputEnabled = false;
 
                 foreach (GameLobbyCheckBox checkBox in CheckBoxes)
-                    checkBox.InputEnabled = false;
+                    checkBox.AllowChanges = false;
             }
 
             LoadDefaultMap();

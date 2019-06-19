@@ -8,6 +8,24 @@ using DTAClient.Domain.Multiplayer;
 
 namespace DTAClient.DXGUI.Multiplayer.GameLobby
 {
+    public enum CheckBoxMapScoringMode
+    {
+        /// <summary>
+        /// The value of the check box makes no difference for scoring maps.
+        /// </summary>
+        Irrelevant = 0,
+
+        /// <summary>
+        /// The check box prevents map scoring when it's checked.
+        /// </summary>
+        DenyWhenChecked = 1,
+
+        /// <summary>
+        /// The check box prevents map scoring when it's unchecked.
+        /// </summary>
+        DenyWhenUnchecked = 2
+    }
+
     /// <summary>
     /// A game option check box for the game lobby.
     /// </summary>
@@ -29,6 +47,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         /// Defaults to -1, which means none.
         /// </summary>
         public int DisallowedSideIndex { get; set; } = -1;
+
+        public bool AllowChanges { get; set; } = true;
+
+        public CheckBoxMapScoringMode MapScoringMode { get; private set; } = CheckBoxMapScoringMode.Irrelevant;
 
         private string spawnIniOption;
 
@@ -74,6 +96,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     return;
                 case "DisallowedSideIndex":
                     DisallowedSideIndex = Conversions.IntFromString(value, DisallowedSideIndex);
+                    return;
+                case "MapScoringMode":
+                    MapScoringMode = (CheckBoxMapScoringMode)Enum.Parse(typeof(CheckBoxMapScoringMode), value);
                     return;
                 case "ToolTip":
                     toolTip.Text = value.Replace("@", Environment.NewLine);
@@ -133,6 +158,14 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             base.Initialize();
 
             toolTip = new ToolTip(WindowManager, this);
+        }
+
+        public override void OnLeftClick()
+        {
+            if (!AllowChanges)
+                return;
+
+            base.OnLeftClick();
         }
     }
 }

@@ -30,14 +30,22 @@ namespace ClientGUI
 
             OSVersion osVersion = ClientConfiguration.Instance.GetOperatingSystemVersion();
 
-            string gameExecutableName = osVersion == OSVersion.UNIX ? 
-                ClientConfiguration.Instance.GetUnixGameExecutableName() : 
-                ClientConfiguration.Instance.GetGameExecutableName();
+            string gameExecutableName;
+            string additionalExecutableName = string.Empty;
 
             if (osVersion == OSVersion.UNIX)
                 gameExecutableName = ClientConfiguration.Instance.GetUnixGameExecutableName();
             else
-                gameExecutableName = ClientConfiguration.Instance.GetGameExecutableName();
+            {
+                string launcherExecutableName = ClientConfiguration.Instance.GetGameLauncherExecutableName;
+                if (string.IsNullOrEmpty(launcherExecutableName))
+                    gameExecutableName = ClientConfiguration.Instance.GetGameExecutableName();
+                else
+                {
+                    gameExecutableName = launcherExecutableName;
+                    additionalExecutableName = "\"" + ClientConfiguration.Instance.GetGameExecutableName() + "\" ";
+                }
+            }
 
             string extraCommandLine = ClientConfiguration.Instance.ExtraExeCommandLineParameters;
 
@@ -54,11 +62,13 @@ namespace ClientGUI
                 QResProcess.StartInfo.FileName = ProgramConstants.QRES_EXECUTABLE;
                 QResProcess.StartInfo.UseShellExecute = false;
                 if (!string.IsNullOrEmpty(extraCommandLine))
-                    QResProcess.StartInfo.Arguments = "c=16 /R " + "\"" + ProgramConstants.GamePath + gameExecutableName + "\" " + extraCommandLine + " -SPAWN";
+                    QResProcess.StartInfo.Arguments = "c=16 /R " + "\"" + ProgramConstants.GamePath + gameExecutableName + "\" "  + additionalExecutableName + "-SPAWN " + extraCommandLine;
                 else
-                    QResProcess.StartInfo.Arguments = "c=16 /R " + "\"" + ProgramConstants.GamePath + gameExecutableName + "\" " + "-SPAWN";
+                    QResProcess.StartInfo.Arguments = "c=16 /R " + "\"" + ProgramConstants.GamePath + gameExecutableName + "\" " + additionalExecutableName  + "-SPAWN";
                 QResProcess.EnableRaisingEvents = true;
                 QResProcess.Exited += new EventHandler(Process_Exited);
+                Logger.Log("Launch executable: " + QResProcess.StartInfo.FileName);
+                Logger.Log("Launch arguments: " + QResProcess.StartInfo.Arguments);
                 try
                 {
                     QResProcess.Start();
@@ -83,11 +93,13 @@ namespace ClientGUI
                 DtaProcess.StartInfo.FileName = gameExecutableName;
                 DtaProcess.StartInfo.UseShellExecute = false;
                 if (!string.IsNullOrEmpty(extraCommandLine))
-                    DtaProcess.StartInfo.Arguments = " " + extraCommandLine + " -SPAWN";
+                    DtaProcess.StartInfo.Arguments = " " + additionalExecutableName + "-SPAWN " + extraCommandLine;
                 else
-                    DtaProcess.StartInfo.Arguments = "-SPAWN";
+                    DtaProcess.StartInfo.Arguments = additionalExecutableName + "-SPAWN";
                 DtaProcess.EnableRaisingEvents = true;
                 DtaProcess.Exited += new EventHandler(Process_Exited);
+                Logger.Log("Launch executable: " + DtaProcess.StartInfo.FileName);
+                Logger.Log("Launch arguments: " + DtaProcess.StartInfo.Arguments);
                 try
                 {
                     DtaProcess.Start();

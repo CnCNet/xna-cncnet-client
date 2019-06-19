@@ -233,20 +233,51 @@ namespace DTAClient.Online
                 channel.OnInviteOnlyOnJoin();
         }
 
-        public void OnChannelModesChanged(string userName, string channelName, string modeString)
+        public void OnChannelModesChanged(string userName, string channelName, string modeString, List<string> modeParameters)
         {
-            wm.AddCallback(new Action<string, string, string>(DoChannelModesChanged),
-                userName, channelName, modeString);
+            wm.AddCallback(new Action<string, string, string, List<string>>(DoChannelModesChanged),
+                userName, channelName, modeString, modeParameters);
         }
 
-        private void DoChannelModesChanged(string userName, string channelName, string modeString)
+        private void DoChannelModesChanged(string userName, string channelName, string modeString, List<string> modeParameters)
         {
             Channel channel = FindChannel(channelName);
 
             if (channel == null)
                 return;
 
+            ApplyChannelModes(channel, modeString, modeParameters);
+
             channel.OnChannelModesChanged(userName, modeString);
+        }
+
+        private void ApplyChannelModes(Channel channel, string modeString, List<string> modeParameters)
+        {
+            bool addMode = true;
+            int parameterCount = 0;
+            foreach (char modeChar in modeString)
+            {
+                if (modeChar == '+')
+                    addMode = true;
+                else if (modeChar == '-')
+                    addMode = false;
+                else
+                {
+                    switch (modeChar)
+                    {
+                        // Add/remove channel operator status on user.
+                        case 'o':
+                            if (parameterCount >= modeParameters.Count)
+                                break;
+                            string parameter = modeParameters[parameterCount++];
+                            ChannelUser user = channel.Users.Find(x => x.IRCUser.Name == parameter);
+                            if (user == null)
+                                break;
+                            user.IsAdmin = addMode ? true : false;
+                            break;
+                    }
+                }
+            }
         }
 
         public void OnChannelTopicReceived(string channelName, string topic)
@@ -326,7 +357,10 @@ namespace DTAClient.Online
             if (message.Length > 1 && message[message.Length - 1] == '\u001f')
                 message = message.Remove(message.Length - 1);
 
-            channel.AddMessage(new ChatMessage(senderName, ident, foreColor, DateTime.Now, message.Replace('\r', ' ')));
+            ChannelUser user = channel.Users.Find(x => x.IRCUser.Ident == ident);
+            bool senderIsAdmin = user != null && user.IsAdmin;
+
+            channel.AddMessage(new ChatMessage(senderName, ident, senderIsAdmin, foreColor, DateTime.Now, message.Replace('\r', ' ')));
         }
 
         public void OnCTCPParsed(string channelName, string userName, string message)
@@ -776,15 +810,16 @@ namespace DTAClient.Online
 
             string[] eInfoParts = extraInfo.Split(' ');
 
-            if (eInfoParts.Length < 3)
-                return;
+            int gameIndex = -1;
+            if (eInfoParts.Length > 2)
+            {
+                string gameName = eInfoParts[2];
 
-            string gameName = eInfoParts[2];
+                gameIndex = gameCollection.GetGameIndexFromInternalName(gameName);
 
-            int gameIndex = gameCollection.GetGameIndexFromInternalName(gameName);
-
-            if (gameIndex == -1)
-                return;
+                if (gameIndex == -1)
+                    return;
+            }
 
             var user = UserList.Find(u => u.Name == userName);
             if (user != null)
@@ -793,9 +828,11 @@ namespace DTAClient.Online
                 user.Ident = ident;
                 user.Hostname = hostName;
 
-                channels.ForEach(ch => ch.UpdateGameIndexForUser(userName));
-
-                UserGameIndexUpdated?.Invoke(this, new UserEventArgs(user));
+                if (gameIndex != -1)
+                {
+                    channels.ForEach(ch => ch.UpdateGameIndexForUser(userName));
+                    UserGameIndexUpdated?.Invoke(this, new UserEventArgs(user));
+                }
             }
         }
 

@@ -77,7 +77,9 @@ namespace DTAClient.Online
                 GameOptionsHash = Utilities.CalculateSHA1ForFile(ProgramConstants.GamePath + ProgramConstants.BASE_RESOURCE_PATH + "GameOptions.ini"),
                 ClientDXHash = Utilities.CalculateSHA1ForFile(ProgramConstants.GetBaseResourcePath() + "clientdx.exe"),
                 ClientXNAHash = Utilities.CalculateSHA1ForFile(ProgramConstants.GetBaseResourcePath() + "clientxna.exe"),
+                ClientOGLHash = Utilities.CalculateSHA1ForFile(ProgramConstants.GetBaseResourcePath() + "clientogl.exe"),
                 MainExeHash = Utilities.CalculateSHA1ForFile(ProgramConstants.GamePath + ClientConfiguration.Instance.GetGameExecutableName()),
+                LauncherExeHash = Utilities.CalculateSHA1ForFile(ProgramConstants.GamePath + ClientConfiguration.Instance.GetGameLauncherExecutableName),
                 MPMapsHash = Utilities.CalculateSHA1ForFile(ProgramConstants.GamePath + ClientConfiguration.Instance.MPMapsIniPath),
                 INIHashes = string.Empty
             };
@@ -135,7 +137,9 @@ namespace DTAClient.Online
             string str = fh.GameOptionsHash;
             str = str + fh.ClientDXHash;
             str = str + fh.ClientXNAHash;
+            str = str + fh.ClientOGLHash;
             str = str + fh.MainExeHash;
+            str = str + fh.LauncherExeHash;
             str = str + fh.INIHashes;
             str = str + fh.MPMapsHash;
 
@@ -160,18 +164,22 @@ namespace DTAClient.Online
         public string GameOptionsHash { get; set; }
         public string ClientDXHash { get; set; }
         public string ClientXNAHash { get; set; }
+        public string ClientOGLHash { get; set; }
         public string INIHashes { get; set; }
         public string MPMapsHash { get; set; }
         public string MainExeHash { get; set; }
+        public string LauncherExeHash { get; set; }
 
         public override string ToString()
         {
             return "GameOptions Hash: " + GameOptionsHash + Environment.NewLine +
                 "ClientDXHash: " + ClientDXHash + Environment.NewLine +
                 "ClientXNAHash: " + ClientXNAHash + Environment.NewLine +
+                "ClientOGLHash: " + ClientOGLHash + Environment.NewLine +
                 "INI Hashes: " + INIHashes + Environment.NewLine + 
                 "MPMaps Hash: " + MPMapsHash + Environment.NewLine + 
-                "MainExe Hash: " + MainExeHash;
+                "MainExe Hash: " + MainExeHash + Environment.NewLine +
+                "LauncherExe Hash: " + LauncherExeHash;
         }
     }
 }

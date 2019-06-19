@@ -123,6 +123,5 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             MapCodeHelper.ApplyMapCode(mapIni, customIniPath, gameMode);
         }
-
     }
 }

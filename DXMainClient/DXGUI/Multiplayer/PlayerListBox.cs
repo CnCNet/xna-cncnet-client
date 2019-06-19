@@ -44,15 +44,15 @@ namespace DTAClient.DXGUI.Multiplayer
 
         public void AddUser(ChannelUser user)
         {
-            AddUserToList(user);
+            XNAListBoxItem item = new XNAListBoxItem();
+            UpdateItemInfo(user, item);
+            AddItem(item);
         }
 
-        /// <summary>
-        /// Refreshes game information in the game list box.
-        /// </summary>
-        public void Refresh()
+        public void UpdateUserInfo(ChannelUser user)
         {
-            Items.Clear();
+            XNAListBoxItem item = Items.Find(x => x.Tag == user);
+            UpdateItemInfo(user, item);
         }
 
         public override void Draw(GameTime gameTime)
@@ -89,7 +89,7 @@ namespace DTAClient.DXGUI.Multiplayer
                         GetColorWithAlpha(FocusColor));
                 }
 
-                DrawTexture(lbItem.Texture, new Rectangle(x, height,
+                DrawTexture(user.IsAdmin ? adminGameIcon : lbItem.Texture, new Rectangle(x, height,
                         adminGameIcon.Width, adminGameIcon.Height), Color.White);
 
                 x += adminGameIcon.Width + MARGIN;
@@ -104,7 +104,7 @@ namespace DTAClient.DXGUI.Multiplayer
                     x += friendIcon.Width + MARGIN;
                 }
                 // Ignore Icon
-                else if (user.IRCUser.IsIgnored)
+                else if (user.IRCUser.IsIgnored && !user.IsAdmin)
                 {
                     DrawTexture(ignoreIcon,
                         new Rectangle(x, height,
@@ -128,7 +128,7 @@ namespace DTAClient.DXGUI.Multiplayer
 
                 DrawStringWithShadow(name, FontIndex,
                     new Vector2(x, height),
-                    lbItem.TextColor);
+                    user.IsAdmin ? Color.Red : lbItem.TextColor);
 
                 height += LineHeight;
             }
@@ -139,10 +139,8 @@ namespace DTAClient.DXGUI.Multiplayer
             DrawChildren(gameTime);
         }
 
-        private void AddUserToList(ChannelUser user)
+        private void UpdateItemInfo(ChannelUser user, XNAListBoxItem item)
         {
-            XNAListBoxItem item = new XNAListBoxItem();
-
             item.Tag = user;
 
             if (user.IsAdmin)
@@ -160,8 +158,6 @@ namespace DTAClient.DXGUI.Multiplayer
                 else
                     item.Texture = gameCollection.GameList[user.IRCUser.GameID].Texture;
             }
-
-            AddItem(item);
         }
     }
 }

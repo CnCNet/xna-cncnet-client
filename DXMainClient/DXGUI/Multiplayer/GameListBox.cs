@@ -184,9 +184,10 @@ namespace DTAClient.DXGUI.Multiplayer
         private void AddGameToList(GenericHostedGame hg)
         {
             int lgTextWidth = hg.IsLoadedGame ? loadedGameTextWidth : 0;
-            int maxTextWidth = Width - hg.Game.Texture.Width - txIncompatibleGame.Width -
-                txLockedGame.Width - txPasswordedGame.Width - (ICON_MARGIN * 3) - GetScrollBarWidth()
-                - lgTextWidth;
+            int maxTextWidth = Width - hg.Game.Texture.Width - 
+                (hg.Incompatible ? txIncompatibleGame.Width : 0) -
+                (hg.Locked ? txLockedGame.Width : 0) - (hg.Passworded ? txPasswordedGame.Width : 0) - 
+                (ICON_MARGIN * 3) - GetScrollBarWidth() - lgTextWidth;
 
             var lbItem = new XNAListBoxItem();
             lbItem.Tag = hg;
@@ -256,16 +257,19 @@ namespace DTAClient.DXGUI.Multiplayer
 
                 int x = TextBorderDistance;
 
+                bool scrollBarDrawn = ScrollBar.IsDrawn() && EnableScrollbar;
+                int drawnWidth = !scrollBarDrawn || DrawSelectionUnderScrollbar ? Width - 2 : Width - 2 - ScrollBar.Width;
+
                 if (i == SelectedIndex)
                 {
                     FillRectangle(
-                        new Rectangle(1, height, Width - 2, lbItem.TextLines.Count * LineHeight),
+                        new Rectangle(1, height, drawnWidth, lbItem.TextLines.Count * LineHeight),
                         FocusColor);
                 }
                 else if (i == HoveredIndex)
                 {
                     FillRectangle(
-                        new Rectangle(1, height, Width - 2, lbItem.TextLines.Count * LineHeight),
+                        new Rectangle(1, height, drawnWidth, lbItem.TextLines.Count * LineHeight),
                         hoverOnGameColor);
                 }
 
@@ -296,7 +300,7 @@ namespace DTAClient.DXGUI.Multiplayer
                 if (hostedGame.Passworded)
                 {
                     DrawTexture(txPasswordedGame,
-                        new Rectangle(Width - txPasswordedGame.Width - TextBorderDistance,
+                        new Rectangle(Width - txPasswordedGame.Width - TextBorderDistance - (scrollBarDrawn ? ScrollBar.Width : 0),
                         height, txPasswordedGame.Width, txPasswordedGame.Height),
                         Color.White);
                 }

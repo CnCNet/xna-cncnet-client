@@ -9,7 +9,7 @@ namespace ClientCore.Statistics
 {
     public class StatisticsManager : GenericStatisticsManager
     {
-        private const string VERSION = "1.05";
+        private const string VERSION = "1.06";
         private const string SCORE_FILE_PATH = "Client\\dscore.dat";
         private const string OLD_SCORE_FILE_PATH = "dscore.dat";
         private static StatisticsManager _instance;
@@ -76,23 +76,27 @@ namespace ClientCore.Statistics
                 {
                     case "1.00":
                     case "1.01":
-                        ReadDatabase(filePath, 1.00);
+                        ReadDatabase(filePath, 0);
                         returnValue = true;
                         break;
                     case "1.02":
-                        ReadDatabase(filePath, 1.02);
+                        ReadDatabase(filePath, 2);
                         returnValue = true;
                         break;
                     case "1.03":
-                        ReadDatabase(filePath, 1.03);
+                        ReadDatabase(filePath, 3);
                         returnValue = true;
                         break;
                     case "1.04":
-                        ReadDatabase(filePath, 1.04);
+                        ReadDatabase(filePath, 4);
                         returnValue = true;
                         break;
                     case "1.05":
-                        ReadDatabase(filePath, 1.05);
+                        ReadDatabase(filePath, 5);
+                        returnValue = true;
+                        break;
+                    case "1.06":
+                        ReadDatabase(filePath, 6);
                         break;
                     default:
                         throw new InvalidDataException("Invalid version for " + filePath + ": " + databaseVersion);
@@ -106,8 +110,10 @@ namespace ClientCore.Statistics
             return returnValue;
         }
 
-        private void ReadDatabase(string filePath, double versionDouble)
+        private void ReadDatabase(string filePath, int version)
         {
+            // TODO split this function with the MatchStatistics and PlayerStatistics classes
+
             try
             {
                 using (FileStream fs = File.OpenRead(filePath))
@@ -138,7 +144,7 @@ namespace ClientCore.Statistics
                         // Then 1 byte for the amount of players
                         fs.Read(readBuffer, 0, 1);
                         int playerCount = readBuffer[0];
-                        if (versionDouble > 1.01)
+                        if (version > 0)
                         {
                             // 4 bytes for average FPS
                             fs.Read(readBuffer, 0, 4);
@@ -147,7 +153,7 @@ namespace ClientCore.Statistics
 
                         int mapNameLength = 64;
 
-                        if (versionDouble > 1.03)
+                        if (version > 3)
                         {
                             mapNameLength = 128;
                         }
@@ -160,11 +166,17 @@ namespace ClientCore.Statistics
                         fs.Read(readBuffer, 0, 64);
                         ms.GameMode = Encoding.Unicode.GetString(readBuffer, 0, 64).Replace("\0", "");
 
-                        if (versionDouble > 1.02)
+                        if (version > 2)
                         {
                             // Unique game ID, 32 bytes (int32)
                             fs.Read(readBuffer, 0, 4);
                             ms.GameID = BitConverter.ToInt32(readBuffer, 0);
+                        }
+
+                        if (version > 5)
+                        {
+                            fs.Read(readBuffer, 0, 1);
+                            ms.IsValidForStar = Convert.ToBoolean(readBuffer[0]);
                         }
 
                         // Player info comes right after the general match info
@@ -172,7 +184,7 @@ namespace ClientCore.Statistics
                         {
                             PlayerStatistics ps = new PlayerStatistics();
 
-                            if (versionDouble > 1.04)
+                            if (version > 4)
                             {
                                 // Economy is shared for the Built stat in YR
                                 fs.Read(readBuffer, 0, 4);
@@ -213,7 +225,7 @@ namespace ClientCore.Statistics
                             // 1 byte for Team
                             fs.Read(readBuffer, 0, 1);
                             ps.Team = readBuffer[0];
-                            if (versionDouble > 1.02)
+                            if (version > 2)
                             {
                                 // 1 byte for Color
                                 fs.Read(readBuffer, 0, 1);
@@ -244,7 +256,7 @@ namespace ClientCore.Statistics
             }
             catch (Exception ex)
             {
-                Logger.Log("Adding match to statistics failed! Message: " + ex.Message);
+                Logger.Log("Reading the statistics file failed! Message: " + ex.Message);
             }
         }
 
@@ -304,115 +316,10 @@ namespace ClientCore.Statistics
             using (FileStream fs = File.Open(ProgramConstants.GamePath + SCORE_FILE_PATH, FileMode.Open, FileAccess.ReadWrite))
             {
                 fs.Position = 4; // First 4 bytes after the version mean the amount of games
-                byte[] writeBuffer = BitConverter.GetBytes(Statistics.Count);
-                fs.Write(writeBuffer, 0, 4);
+                fs.WriteInt(Statistics.Count);
 
                 fs.Position = fs.Length;
-
-                // Game length
-                writeBuffer = BitConverter.GetBytes(ms.LengthInSeconds);
-                fs.Write(writeBuffer, 0, 4);
-                // Game version, 8 bytes, ASCII
-                writeBuffer = Encoding.ASCII.GetBytes(ms.GameVersion);
-                if (writeBuffer.Length != 8)
-                {
-                    // If the game version's byte representation is not 8 bytes,
-                    // let's resize the array
-                    byte[] temp = writeBuffer;
-                    writeBuffer = new byte[8];
-                    for (int i = 0; i < temp.Length && i < writeBuffer.Length; i++)
-                        writeBuffer[i] = temp[i];
-                }
-                fs.Write(writeBuffer, 0, 8);
-                // Date and time, 8 bytes
-                writeBuffer = BitConverter.GetBytes(ms.DateAndTime.ToBinary());
-                fs.Write(writeBuffer, 0, 8);
-                // SawCompletion, 1 byte
-                fs.WriteByte(Convert.ToByte(ms.SawCompletion));
-                // Number of players, 1 byte
-                fs.WriteByte(Convert.ToByte(ms.GetPlayerCount()));
-                // Average FPS, 4 bytes
-                fs.Write(BitConverter.GetBytes(ms.AverageFPS), 0, 4);
-                // Map name, 128 bytes (64 chars), Unicode
-                writeBuffer = Encoding.Unicode.GetBytes(ms.MapName);
-                if (writeBuffer.Length != 128)
-                {
-                    // If the map name's byte representation is shorter than 128 bytes,
-                    // let's resize the array
-                    byte[] temp = writeBuffer;
-                    writeBuffer = new byte[128];
-                    if (temp.Length < 129)
-                    {
-                        for (int i = 0; i < temp.Length; i++)
-                            writeBuffer[i] = temp[i];
-                    }
-                    else
-                    {
-                        for (int i = 0; i < 128; i++)
-                            writeBuffer[i] = temp[i];
-                    }
-                }
-                fs.Write(writeBuffer, 0, 128);
-
-                // Game mode, 64 bytes (32 chars), Unicode
-                writeBuffer = Encoding.Unicode.GetBytes(ms.GameMode);
-                if (writeBuffer.Length != 64)
-                {
-                    // If the game mode's byte representation is shorter than 64 bytes,
-                    // let's resize the array
-                    byte[] temp = writeBuffer;
-                    writeBuffer = new byte[64];
-                    for (int i = 0; i < temp.Length; i++)
-                        writeBuffer[i] = temp[i];
-                }
-                fs.Write(writeBuffer, 0, 64);
-
-                // Unique game ID, 4 bytes
-                fs.Write(BitConverter.GetBytes(ms.GameID), 0, 4);
-
-                // Write player info
-                for (int i = 0; i < ms.GetPlayerCount(); i++)
-                {
-                    PlayerStatistics ps = ms.GetPlayer(i);
-                    // 4 bytes for economy / built
-                    fs.Write(BitConverter.GetBytes(ps.Economy), 0, 4);
-                    // 1 byte for IsAI
-                    fs.WriteByte(Convert.ToByte(ps.IsAI));
-                    // 1 byte for IsLocalPlayer
-                    fs.WriteByte(Convert.ToByte(ps.IsLocalPlayer));
-                    // 4 bytes for kills
-                    fs.Write(BitConverter.GetBytes(ps.Kills), 0, 4);
-                    // 4 bytes for losses
-                    fs.Write(BitConverter.GetBytes(ps.Losses), 0, 4);
-                    // Name takes 32 bytes
-                    writeBuffer = Encoding.Unicode.GetBytes(ps.Name);
-                    if (writeBuffer.Length != 32)
-                    {
-                        // If the name's byte presentation is shorter than 32 bytes,
-                        // let's resize the array
-                        byte[] temp = writeBuffer;
-                        writeBuffer = new byte[32];
-                        for (int j = 0; j < temp.Length; j++)
-                            writeBuffer[j] = temp[j];
-                    }
-                    fs.Write(writeBuffer, 0, 32);
-                    // 1 byte for SawEnd
-                    fs.WriteByte(Convert.ToByte(ps.SawEnd));
-                    // 4 bytes for Score
-                    fs.Write(BitConverter.GetBytes(ps.Score), 0, 4);
-                    // 1 byte for Side
-                    fs.WriteByte(Convert.ToByte(ps.Side));
-                    // 1 byte for Team
-                    fs.WriteByte(Convert.ToByte(ps.Team));
-                    // 1 byte color Color
-                    fs.WriteByte(Convert.ToByte(ps.Color));
-                    // 1 byte for WasSpectator
-                    fs.WriteByte(Convert.ToByte(ps.WasSpectator));
-                    // 1 byte for Won
-                    fs.WriteByte(Convert.ToByte(ps.Won));
-                    // 1 byte for AI level
-                    fs.WriteByte(Convert.ToByte(ps.AILevel));
-                }
+                ms.Write(fs);
             }
 
             Logger.Log("Finished writing statistics.");
@@ -433,10 +340,17 @@ namespace ClientCore.Statistics
         public void SaveDatabase()
         {
             File.Delete(ProgramConstants.GamePath + SCORE_FILE_PATH);
+            CreateDummyFile();
 
-            foreach (MatchStatistics ms in Statistics)
+            using (FileStream fs = File.Open(ProgramConstants.GamePath + SCORE_FILE_PATH, FileMode.Open, FileAccess.ReadWrite))
             {
-                AddMatchAndSaveDatabase(false, ms);
+                fs.Position = 4; // First 4 bytes after the version mean the amount of games
+                fs.WriteInt(Statistics.Count);
+
+                foreach (MatchStatistics ms in Statistics)
+                {
+                    ms.Write(fs);
+                }
             }
         }
 
@@ -467,6 +381,9 @@ namespace ClientCore.Statistics
             foreach (MatchStatistics ms in Statistics)
             {
                 if (!ms.SawCompletion)
+                    continue;
+
+                if (!ms.IsValidForStar)
                     continue;
 
                 if (ms.MapName != mapName)
@@ -570,6 +487,9 @@ namespace ClientCore.Statistics
                 if (!ms.SawCompletion)
                     continue;
 
+                if (!ms.IsValidForStar)
+                    continue;
+
                 if (ms.MapName != mapName)
                     continue;
 
@@ -628,8 +548,10 @@ namespace ClientCore.Statistics
             foreach (MatchStatistics ms in Statistics)
             {
                 if (ms.SawCompletion && 
+                    ms.IsValidForStar &&
                     ms.MapName == mapName &&
-                    ms.Players.Count == requiredPlayerCount)
+                    ms.Players.Count == requiredPlayerCount &&
+                    ms.Players.Count(p => !p.IsAI) == 1)
                     matches.Add(ms);
             }
 
@@ -650,8 +572,6 @@ namespace ClientCore.Statistics
 
                 teamMemberCounts[localPlayer.Team]++;
 
-                bool allowContinue = true;
-
                 for (int i = 0; i < ms.Players.Count; i++)
                 {
                     PlayerStatistics ps = ms.GetPlayer(i);
@@ -659,14 +579,6 @@ namespace ClientCore.Statistics
                     if (ps.IsLocalPlayer)
                     {
                         continue;
-                    }
-
-                    if (!ps.IsAI)
-                    {
-                        // We're looking for Skirmish games, so skip all matches
-                        // that have more than 1 human player
-                        allowContinue = false;
-                        break;
                     }
 
                     teamMemberCounts[ps.Team]++;
@@ -683,9 +595,6 @@ namespace ClientCore.Statistics
                     }
                 }
 
-                if (!allowContinue)
-                    continue;
-
                 if (lowestEnemyAILevel < highestAllyAILevel)
                 {
                     // Check that the player's AI allies weren't stronger 
@@ -694,26 +603,46 @@ namespace ClientCore.Statistics
 
                 if (localPlayer.Team > 0)
                 {
-                    // Check that all teams had an equal number of players
+                    // Check that all teams had at least
 
                     int allyCount = teamMemberCounts[localPlayer.Team];
-                    int lowestEnemyTeamMemberCount = Int32.MaxValue;
+                    bool pass = true;
 
                     for (int i = 1; i < 5; i++)
                     {
-                        if (teamMemberCounts[i] > 0 && i != localPlayer.Team)
+                        if (i == localPlayer.Team)
+                            continue;
+
+                        if (teamMemberCounts[i] > 0)
                         {
-                            if (teamMemberCounts[i] < lowestEnemyTeamMemberCount)
-                                lowestEnemyTeamMemberCount = teamMemberCounts[i];
+                            if (teamMemberCounts[i] < allyCount)
+                            {
+                                // The enemy team has fewer players than the player's team
+                                pass = false;
+                                break;
+                            }
                         }
                     }
 
-                    if (lowestEnemyTeamMemberCount == Int32.MaxValue || lowestEnemyTeamMemberCount < allyCount)
-                    {
-                        // The human player either had more allies than one of
-                        // the enemy teams or the enemies weren't allied at all
+                    if (!pass)
                         continue;
+
+                    // Check that there is a team other than the players' team that is at least as large
+                    pass = false;
+                    for (int i = 1; i < 5; i++)
+                    {
+                        if (i == localPlayer.Team)
+                            continue;
+
+                        if (teamMemberCounts[i] >= allyCount)
+                        {
+                            pass = true;
+                            break;
+                        }
                     }
+
+                    if (!pass)
+                        continue;
                 }
 
                 if (rank < lowestEnemyAILevel)
