@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Net;
 using System.Net.NetworkInformation;
+using System.Net.Sockets;
+using System.Threading;
 
 namespace DTAClient.Domain.Multiplayer.CnCNet
 {
@@ -12,7 +14,8 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
     /// </summary>
     public class CnCNetTunnel
     {
-        private const int REQUEST_TIMEOUT = 10000; // In milliseconds
+        private const int VERSION_3_PING_PACKET_SEND_SIZE = 800;
+        private const int VERSION_3_PING_PACKET_RECEIVE_SIZE = 12;
         private const int PING_TIMEOUT = 1000;
 
         public CnCNetTunnel() { }
@@ -69,6 +72,20 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
             }
         }
 
+        private string _ipAddress;
+        public string Address
+        {
+            get => _ipAddress;
+            set
+            {
+                _ipAddress = value;
+                if (IPAddress.TryParse(_ipAddress, out IPAddress address))
+                    IPAddress = address;
+            }
+        }
+
+        public IPAddress IPAddress { get; private set; }
+
         public string Address { get; private set; }
         public int Port { get; private set; }
         public string Country { get; private set; }
@@ -85,12 +102,17 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
         public double Distance { get; private set; }
         public int PingInMs { get; set; } = -1;
 
+        public event EventHandler Pinged;
+
         /// <summary>
         /// Gets a list of player ports to use from a specific tunnel server.
         /// </summary>
         /// <returns>A list of player ports to use.</returns>
         public List<int> GetPlayerPortInfo(int playerCount)
         {
+            if (Version != Constants.TUNNEL_VERSION_2)
+                throw new InvalidOperationException("GetPlayerPortInfo only works with version 2 tunnels.");
+
             try
             {
                 Logger.Log($"Contacting tunnel at {Address}:{Port}");
@@ -98,12 +120,12 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                 string addressString = $"http://{Address}:{Port}/request?clients={playerCount}";
                 Logger.Log($"Downloading from {addressString}");
 
-                using (var client = new ExtendedWebClient(REQUEST_TIMEOUT))
+                using (var client = new ExtendedWebClient(Constants.TUNNEL_CONNECTION_TIMEOUT))
                 {
                     string data = client.DownloadString(addressString);
 
-                    data = data.Replace("[", String.Empty);
-                    data = data.Replace("]", String.Empty);
+                    data = data.Replace("[", string.Empty);
+                    data = data.Replace("]", string.Empty);
 
                     string[] portIDs = data.Split(',');
                     List<int> playerPorts = new List<int>();
@@ -140,6 +162,93 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                     Logger.Log($"Caught an exception when pinging {Name} tunnel server: {ex.Message}");
                 }
             }
+        }
+
+        public void PingAsync()
+        {
+            Thread thread = new Thread(new ThreadStart(Ping));
+            thread.Start();
+        }
+
+        public void Ping()
+        {
+            if (Version == Constants.TUNNEL_VERSION_2)
+            {
+                PingV2();
+            }
+            else if (Version == Constants.TUNNEL_VERSION_3)
+            {
+                PingV3();
+            }
+        }
+
+        private void PingV2()
+        {
+            int pingInMs = -1;
+            Ping p = new Ping();
+            try
+            {
+                PingReply reply = p.Send(IPAddress.Parse(Address), PING_TIMEOUT);
+                if (reply.Status == IPStatus.Success)
+                {
+                    if (reply.RoundtripTime > 0)
+                        pingInMs = Convert.ToInt32(reply.RoundtripTime);
+                }
+            }
+            catch { }
+
+            if (pingInMs > -1)
+                PingInMs = pingInMs;
+
+            Pinged?.Invoke(this, EventArgs.Empty);
+        }
+
+        private void PingV3()
+        {
+            using (Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp))
+            {
+                socket.SendTimeout = PING_TIMEOUT;
+                socket.ReceiveTimeout = PING_TIMEOUT;
+
+                try
+                {
+                    byte[] buffer = new byte[VERSION_3_PING_PACKET_SEND_SIZE];
+                    EndPoint ep = new IPEndPoint(IPAddress, Port);
+                    long ticks = DateTime.Now.Ticks;
+                    socket.SendTo(buffer, ep);
+
+                    buffer = new byte[VERSION_3_PING_PACKET_RECEIVE_SIZE];
+                    socket.ReceiveFrom(buffer, ref ep);
+
+                    ticks = DateTime.Now.Ticks - ticks;
+                    PingInMs = new TimeSpan(ticks).Milliseconds;
+                }
+                catch (SocketException ex)
+                {
+                    Logger.Log($"Failed to ping V3 tunnel {Name} ({Address}:{Port}). Message: {ex.Message}");
+
+                    PingInMs = -1;
+                }
+            }
+
+            Pinged?.Invoke(this, EventArgs.Empty);
+        }
+
+        /// <summary>
+        /// Returns a bool that tells if the tunnel server has passed
+        /// initial connection checks and is available for online games.
+        /// </summary>
+        public bool IsAvailable()
+        {
+            return true; // temporary hack until all v3 tunnels support pinging
+
+            if (Version == Constants.TUNNEL_VERSION_2)
+                return true;
+
+            if (Version == Constants.TUNNEL_VERSION_3)
+                return PingInMs > -1;
+
+            return false;
         }
     }
 }
