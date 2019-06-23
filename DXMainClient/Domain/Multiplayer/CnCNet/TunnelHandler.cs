@@ -31,10 +31,14 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
 
         private const int SUPPORTED_TUNNEL_VERSION = 2;
 
-        public TunnelHandler(WindowManager wm, CnCNetManager connectionManager) : base(wm.Game)
+        private const string CNCNET_TUNNEL_LIST_URL = "http://cncnet.org/master-list";
+
+        public TunnelHandler(WindowManager wm, CnCNetManager connectionManager, string cacheFilePath) : base(wm.Game)
         {
             this.wm = wm;
             this.connectionManager = connectionManager;
+
+            TunnelCacheFilePath = cacheFilePath;
 
             wm.Game.Components.Add(this);
 
@@ -161,17 +165,17 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
 
             try
             {
-                data = client.DownloadData(MainClientConstants.CNCNET_TUNNEL_LIST_URL);
+                data = client.DownloadData(CNCNET_TUNNEL_LIST_URL);
             }
-            catch (Exception ex)
+            catch (WebException ex)
             {
                 Logger.Log("Error when downloading tunnel server info: " + ex.Message);
                 Logger.Log("Retrying.");
                 try
                 {
-                    data = client.DownloadData(MainClientConstants.CNCNET_TUNNEL_LIST_URL);
+                    data = client.DownloadData(CNCNET_TUNNEL_LIST_URL);
                 }
-                catch
+                catch (WebException)
                 {
                     if (!tunnelCacheFile.Exists)
                     {
@@ -203,7 +207,8 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                     if (tunnel.RequiresPassword)
                         continue;
 
-                    if (tunnel.Version != SUPPORTED_TUNNEL_VERSION)
+                    if (tunnel.Version != Constants.TUNNEL_VERSION_2 &&
+                        tunnel.Version != Constants.TUNNEL_VERSION_3)
                         continue;
 
                     returnValue.Add(tunnel);
