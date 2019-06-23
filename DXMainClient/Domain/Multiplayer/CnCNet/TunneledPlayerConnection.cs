@@ -17,19 +17,18 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
     {
         private const int Timeout = 60000;
 
-        public TunneledPlayerConnection(ulong playerId)
+        public TunneledPlayerConnection(uint playerId)
         {
             PlayerID = playerId;
         }
 
-        public delegate void PacketReceivedEventHandler(byte[] data);
+        public delegate void PacketReceivedEventHandler(TunneledPlayerConnection sender, byte[] data);
         public event PacketReceivedEventHandler PacketReceived;
 
         public int PortNumber { get; private set; }
-        public ulong PlayerID { get; private set; }
+        public uint PlayerID { get; }
 
         private bool _aborted;
-
         private bool Aborted
         {
             get { lock (locker) return _aborted; }
@@ -83,7 +82,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                     byte[] data = new byte[received];
                     Array.Copy(buffer, data, received);
                     Array.Clear(buffer, 0, received);
-                    PacketReceived?.Invoke(data);
+                    PacketReceived?.Invoke(this, data);
                 }
             }
             catch (SocketException)

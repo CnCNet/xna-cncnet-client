@@ -30,6 +30,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
 
         public event EventHandler Connected;
         public event EventHandler ConnectionFailed;
+        public event EventHandler ConnectionCut;
 
         public delegate void MessageDelegate(byte[] data, uint senderId);
         public event MessageDelegate MessageReceived;
@@ -110,29 +111,38 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
 
         private void ReceiveLoop()
         {
-            while (true)
+            try
             {
-                if (Aborted)
+                while (true)
                 {
-                    DoClose();
-                    Logger.Log("Exiting receive loop.");
-                    return;
+                    if (Aborted)
+                    {
+                        DoClose();
+                        Logger.Log("Exiting receive loop.");
+                        return;
+                    }
+
+                    byte[] buffer = new byte[1024];
+                    int size = tunnelSocket.ReceiveFrom(buffer, ref tunnelEndPoint);
+
+                    if (size < 8)
+                    {
+                        Logger.Log("Invalid data packet from tunnel server");
+                        continue;
+                    }
+
+                    byte[] data = new byte[size - 8];
+                    Array.Copy(buffer, 8, data, 0, data.Length);
+                    uint senderId = BitConverter.ToUInt32(buffer, 0);
+
+                    MessageReceived?.Invoke(data, senderId);
                 }
-
-                byte[] buffer = new byte[1024];
-                int size = tunnelSocket.ReceiveFrom(buffer, ref tunnelEndPoint);
-
-                if (size < 8)
-                {
-                    Logger.Log("Invalid data packet from tunnel server");
-                    continue;
-                }
-
-                byte[] data = new byte[size - 8];
-                Array.Copy(buffer, 8, data, 0, data.Length);
-                uint senderId = BitConverter.ToUInt32(buffer, 0);
-
-                MessageReceived?.Invoke(data, senderId);
+            }
+            catch (SocketException ex)
+            {
+                Logger.Log("Socket exception in V3 tunnel receive loop: " + ex.Message);
+                DoClose();
+                ConnectionCut?.Invoke(this, EventArgs.Empty);
             }
         }
 
