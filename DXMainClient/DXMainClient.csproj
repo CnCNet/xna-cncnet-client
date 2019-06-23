@@ -248,6 +248,7 @@
     <Compile Include="Domain\Multiplayer\CnCNet\ExtendedWebClient.cs">
       <SubType>Component</SubType>
     </Compile>
+    <Compile Include="Domain\Multiplayer\CnCNet\GameTunnelHandler.cs" />
     <Compile Include="Domain\Multiplayer\CnCNet\IPUtilities.cs" />
     <Compile Include="Domain\Multiplayer\CnCNet\TunneledPlayerConnection.cs" />
     <Compile Include="Domain\Multiplayer\CnCNet\V3TunnelConnection.cs" />
