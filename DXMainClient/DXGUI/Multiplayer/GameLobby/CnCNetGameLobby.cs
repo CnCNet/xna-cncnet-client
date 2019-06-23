@@ -28,7 +28,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         private const double GAME_BROADCAST_ACCELERATION = 10.0;
         private const double INITIAL_GAME_BROADCAST_DELAY = 10.0;
 
+        private const double MAX_TIME_FOR_GAME_LAUNCH = 20.0;
+
         private static readonly Color ERROR_MESSAGE_COLOR = Color.Yellow;
+
+        #region Commands
 
         private const string MAP_SHARING_FAIL_MESSAGE = "MAPFAIL";
         private const string MAP_SHARING_DOWNLOAD_REQUEST = "MAPOK";
@@ -37,6 +41,18 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         private const string CHEAT_DETECTED_MESSAGE = "CD";
         private const string DICE_ROLL_MESSAGE = "DR";
         private const string CHANGE_TUNNEL_SERVER_MESSAGE = "CHTNL";
+        private const string GAME_START_MESSAGE = "START";
+        private const string GAME_START_MESSAGE_V3 = "STARTV3";
+        private const string TUNNEL_CONNECTION_OK_MESSAGE = "TNLOK";
+        private const string TUNNEL_CONNECTION_FAIL_MESSAGE = "TNLFAIL";
+
+        #endregion
+
+        #region Priorities
+
+        private const int PRIORITY_START_GAME = 10;
+
+        #endregion
 
         public CnCNetGameLobby(WindowManager windowManager, string iniName,
             TopBar topBar, List<GameMode> GameModes, CnCNetManager connectionManager,
@@ -51,11 +67,14 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             ctcpCommandHandlers = new CommandHandlerBase[]
             {
-                new IntCommandHandler("OR", new Action<string, int>(HandleOptionsRequest)),
-                new IntCommandHandler("R", new Action<string, int>(HandleReadyRequest)),
-                new StringCommandHandler("PO", new Action<string, string>(ApplyPlayerOptions)),
-                new StringCommandHandler("GO", new Action<string, string>(ApplyGameOptions)),
-                new StringCommandHandler("START", new Action<string, string>(NonHostLaunchGame)),
+                new IntCommandHandler("OR", HandleOptionsRequest),
+                new IntCommandHandler("R", HandleReadyRequest),
+                new StringCommandHandler("PO", ApplyPlayerOptions),
+                new StringCommandHandler("GO", ApplyGameOptions),
+                new StringCommandHandler(GAME_START_MESSAGE, NonHostLaunchGame),
+                new StringCommandHandler(GAME_START_MESSAGE_V3, HandleGameStartV3TunnelMessage),
+                new NoParamCommandHandler(TUNNEL_CONNECTION_OK_MESSAGE, HandleTunnelConnected),
+                new NoParamCommandHandler(TUNNEL_CONNECTION_FAIL_MESSAGE, HandleTunnelFail),
                 new NotificationHandler("AISPECS", HandleNotification, AISpectatorsNotification),
                 new NotificationHandler("GETREADY", HandleNotification, GetReadyNotification),
                 new NotificationHandler("INSFSPLRS", HandleNotification, InsufficientPlayersNotification),
@@ -110,12 +129,19 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         private IRCColor chatColor;
 
         private XNATimerControl gameBroadcastTimer;
+        private XNATimerControl gameStartTimer;
 
         private int playerLimit;
 
         private bool closed = false;
 
         private bool isCustomPassword = false;
+        private bool isP2P = false;
+
+        private List<uint> tunnelPlayerIds = new List<uint>();
+        private bool[] isPlayerConnectedToTunnel;
+        private GameTunnelHandler gameTunnelHandler;
+        private bool isStartingGame;
 
         private string gameFilesHash;
 
@@ -137,11 +163,21 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             base.Initialize();
 
+            gameTunnelHandler = new GameTunnelHandler();
+            gameTunnelHandler.Connected += GameTunnelHandler_Connected;
+            gameTunnelHandler.ConnectionFailed += GameTunnelHandler_ConnectionFailed;
+
             gameBroadcastTimer = new XNATimerControl(WindowManager);
             gameBroadcastTimer.AutoReset = true;
             gameBroadcastTimer.Interval = TimeSpan.FromSeconds(GAME_BROADCAST_INTERVAL);
             gameBroadcastTimer.Enabled = false;
             gameBroadcastTimer.TimeElapsed += GameBroadcastTimer_TimeElapsed;
+
+            gameStartTimer = new XNATimerControl(WindowManager);
+            gameStartTimer.AutoReset = false;
+            gameStartTimer.Interval = TimeSpan.FromSeconds(MAX_TIME_FOR_GAME_LAUNCH);
+            gameStartTimer.Enabled = false;
+            gameStartTimer.TimeElapsed += GameStartTimer_TimeElapsed;
 
             tunnelSelectionWindow = new TunnelSelectionWindow(WindowManager, tunnelHandler);
             tunnelSelectionWindow.Initialize();
@@ -152,6 +188,12 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             tunnelSelectionWindow.Disable();
 
             WindowManager.AddAndInitializeControl(gameBroadcastTimer);
+            AddChild(gameStartTimer);
+        }
+
+        private void GameStartTimer_TimeElapsed(object sender, EventArgs e)
+        {
+            AbortGameStart();
         }
 
         private void GameBroadcastTimer_TimeElapsed(object sender, EventArgs e)
@@ -160,7 +202,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         }
 
         public void SetUp(Channel channel, bool isHost, int playerLimit, 
-            CnCNetTunnel tunnel, string hostName, bool isCustomPassword)
+            CnCNetTunnel tunnel, string hostName, bool isCustomPassword, bool isP2P)
         {
             this.channel = channel;
             channel.MessageAdded += Channel_MessageAdded;
@@ -174,6 +216,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             this.hostName = hostName;
             this.playerLimit = playerLimit;
             this.isCustomPassword = isCustomPassword;
+            this.isP2P = isP2P;
 
             if (isHost)
             {
@@ -426,6 +469,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private void RemovePlayer(string playerName)
         {
+            AbortGameStart();
+
             PlayerInfo pInfo = Players.Find(p => p.Name == playerName);
 
             if (pInfo != null)
@@ -495,42 +540,196 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             if (Players.Count > 1)
             {
-                AddNotice("Contacting tunnel server..");
+                if (isP2P)
+                    throw new NotImplementedException("Peer-to-peer is not implemented yet.");
 
-                List<int> playerPorts = tunnel.GetPlayerPortInfo(Players.Count);
-
-                if (playerPorts.Count < Players.Count)
+                if (tunnel.Version == Constants.TUNNEL_VERSION_2)
                 {
-                    ShowTunnelSelectionWindow("An error occured while contacting " +
-                        "the CnCNet tunnel server." + Environment.NewLine + 
-                        "Try picking a different tunnel server:");
-                    AddNotice("An error occured while contacting the specified CnCNet " +
-                        "tunnel server. Please try using a different tunnel server " +
-                        "(accessible by typing /CHANGETUNNEL in the chat box).", ERROR_MESSAGE_COLOR);
-                    return;
+                    StartGame_V2Tunnel();
+                }
+                else if (tunnel.Version == Constants.TUNNEL_VERSION_3)
+                {
+                    StartGame_V3Tunnel();
+                }
+                else
+                {
+                    throw new InvalidOperationException("Unknown tunnel server version!");
                 }
 
-                StringBuilder sb = new StringBuilder("START ");
-                sb.Append(UniqueGameID);
-                for (int pId = 0; pId < Players.Count; pId++)
-                {
-                    Players[pId].Port = playerPorts[pId];
-                    sb.Append(";");
-                    sb.Append(Players[pId].Name);
-                    sb.Append(";");
-                    sb.Append("0.0.0.0:");
-                    sb.Append(playerPorts[pId]);
-                }
-                channel.SendCTCPMessage(sb.ToString(), QueuedMessageType.SYSTEM_MESSAGE, 10);
+                return;
             }
-            else
+
+            Logger.Log("One player MP -- starting!");
+            StartGame();
+        }
+
+        private void StartGame_V2Tunnel()
+        {
+            AddNotice("Contacting tunnel server..");
+
+            List<int> playerPorts = tunnel.GetPlayerPortInfo(Players.Count);
+
+            if (playerPorts.Count < Players.Count)
             {
-                Logger.Log("One player MP -- starting!");
+                ShowTunnelSelectionWindow("An error occured while contacting " +
+                    "the CnCNet tunnel server." + Environment.NewLine +
+                    "Try picking a different tunnel server:");
+                AddNotice("An error occured while contacting the specified CnCNet " +
+                    "tunnel server. Please try using a different tunnel server " +
+                    "(accessible by typing /CHANGETUNNEL in the chat box).", ERROR_MESSAGE_COLOR);
+                return;
             }
+
+            StringBuilder sb = new StringBuilder(GAME_START_MESSAGE + " ");
+            sb.Append(UniqueGameID);
+            for (int pId = 0; pId < Players.Count; pId++)
+            {
+                Players[pId].Port = playerPorts[pId];
+                sb.Append(";");
+                sb.Append(Players[pId].Name);
+                sb.Append(";");
+                sb.Append("0.0.0.0:");
+                sb.Append(playerPorts[pId]);
+            }
+            channel.SendCTCPMessage(sb.ToString(), QueuedMessageType.SYSTEM_MESSAGE, PRIORITY_START_GAME);
 
             Players.ForEach(pInfo => pInfo.IsInGame = true);
 
             StartGame();
+        }
+
+        private void StartGame_V3Tunnel()
+        {
+            AddNotice("Contacting tunnel server..");
+            btnLaunchGame.InputEnabled = false;
+
+            Random random = new Random();
+            uint randomNumber = (uint)random.Next(0, int.MaxValue - (MAX_PLAYER_COUNT / 2)) * (uint)random.Next(1, 3);
+
+            StringBuilder sb = new StringBuilder(GAME_START_MESSAGE_V3 + " ");
+            sb.Append(UniqueGameID);
+            tunnelPlayerIds.Clear();
+            for (int i = 0; i < Players.Count; i++)
+            {
+                uint id = randomNumber + (uint)i;
+                sb.Append(";");
+                sb.Append(id);
+                tunnelPlayerIds.Add(id);
+            }
+            channel.SendCTCPMessage(sb.ToString(), QueuedMessageType.SYSTEM_MESSAGE, PRIORITY_START_GAME);
+            isStartingGame = true;
+
+            ContactTunnel();
+        }
+
+        private void HandleGameStartV3TunnelMessage(string sender, string message)
+        {
+            if (sender != hostName)
+                return;
+
+            string[] parts = message.Split(';');
+
+            if (parts.Length != Players.Count + 1)
+                return;
+
+            UniqueGameID = Conversions.IntFromString(parts[0], -1);
+            if (UniqueGameID < 0)
+                return;
+
+            tunnelPlayerIds.Clear();
+
+            for (int i = 1; i < parts.Length; i++)
+            {
+                if (!uint.TryParse(parts[i], out uint id))
+                    return;
+
+                tunnelPlayerIds.Add(id);
+            }
+
+            isStartingGame = true;
+            ContactTunnel();
+        }
+
+        private void ContactTunnel()
+        {
+            isPlayerConnectedToTunnel = new bool[Players.Count];
+            gameTunnelHandler.SetUp(tunnel, 
+                tunnelPlayerIds[Players.FindIndex(p => p.Name == ProgramConstants.PLAYERNAME)]);
+            gameTunnelHandler.ConnectToTunnel();
+            // Abort starting the game if not everyone 
+            // replies within the timer's limit
+            gameStartTimer.Start();
+        }
+
+        private void GameTunnelHandler_Connected(object sender, EventArgs e)
+        {
+            isPlayerConnectedToTunnel[Players.FindIndex(p => p.Name == ProgramConstants.PLAYERNAME)] = true;
+            channel.SendCTCPMessage(TUNNEL_CONNECTION_OK_MESSAGE, QueuedMessageType.SYSTEM_MESSAGE, PRIORITY_START_GAME);
+        }
+
+        private void GameTunnelHandler_ConnectionFailed(object sender, EventArgs e)
+        {
+            channel.SendCTCPMessage(TUNNEL_CONNECTION_FAIL_MESSAGE, QueuedMessageType.INSTANT_MESSAGE, 0);
+            HandleTunnelFail(ProgramConstants.PLAYERNAME);
+        }
+
+        private void HandleTunnelFail(string playerName)
+        {
+            Logger.Log(playerName + " failed to connect to tunnel - aborting game launch.");
+            AddNotice(playerName + " failed to connect to the tunnel server. Please " +
+                "retry or pick another tunnel server by type /CHANGETUNNEL to the chat input box.");
+            AbortGameStart();
+        }
+
+        private void HandleTunnelConnected(string playerName)
+        {
+            if (!isStartingGame)
+                return;
+
+            int index = Players.FindIndex(p => p.Name == playerName);
+            if (index == -1)
+            {
+                Logger.Log("HandleTunnelConnected: Couldn't find player " + playerName + "!");
+                AbortGameStart();
+                return;
+            }
+
+            isPlayerConnectedToTunnel[index] = true;
+
+            if (isPlayerConnectedToTunnel.All(b => b))
+            {
+                Logger.Log("All players are connected to the tunnel, starting game!");
+                AddNotice("All players have connected to the tunnel...");
+
+                // Remove our own ID from the list
+                List<uint> ids = new List<uint>(tunnelPlayerIds);
+                ids.Remove(tunnelPlayerIds[Players.FindIndex(p => p.Name == ProgramConstants.PLAYERNAME)]);
+                int[] ports = gameTunnelHandler.CreatePlayerConnections(ids);
+                for (int i = 0; i < ports.Length; i++)
+                {
+                    Players[i].Port = ports[i];
+                }
+                btnLaunchGame.InputEnabled = true;
+                StartGame();
+            }
+        }
+
+        private void AbortGameStart()
+        {
+            btnLaunchGame.InputEnabled = true;
+            gameTunnelHandler.Clear();
+            isStartingGame = false;
+        }
+
+        protected override string GetIPAddressForPlayer(PlayerInfo player)
+        {
+            if (isP2P)
+                return player.IPAddress;
+
+            if (tunnel.Version == Constants.TUNNEL_VERSION_3)
+                return "127.0.0.1";
+
+            return base.GetIPAddressForPlayer(player);
         }
 
         protected override void RequestPlayerOptions(int side, int color, int start, int team)
@@ -1079,6 +1278,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         /// </summary>
         private void NonHostLaunchGame(string sender, string message)
         {
+            if (tunnel.Version != Constants.TUNNEL_VERSION_2)
+                return;
+
             if (sender != hostName)
                 return;
 
@@ -1121,7 +1323,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         protected override void StartGame()
         {
-            AddNotice("Starting game..");
+            AddNotice("Starting game...");
+
+            isStartingGame = false;
 
             FileHashCalculator fhc = new FileHashCalculator();
             fhc.CalculateHashes(GameModes);
