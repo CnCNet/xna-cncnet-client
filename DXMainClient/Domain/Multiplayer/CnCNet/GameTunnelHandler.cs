@@ -19,7 +19,8 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
         private uint senderId;
 
         private V3TunnelConnection tunnelConnection;
-        private Dictionary<uint, TunneledPlayerConnection> playerConnections;
+        private Dictionary<uint, TunneledPlayerConnection> playerConnections = 
+            new Dictionary<uint, TunneledPlayerConnection>();
 
         public void SetUp(CnCNetTunnel tunnel, uint ourSenderId)
         {
@@ -31,6 +32,14 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
             tunnelConnection.ConnectionFailed += TunnelConnection_ConnectionFailed;
             tunnelConnection.ConnectionCut += TunnelConnection_ConnectionCut;
             tunnelConnection.MessageReceived += TunnelConnection_MessageReceived;
+        }
+
+        public void ConnectToTunnel()
+        {
+            if (tunnelConnection == null)
+                throw new InvalidOperationException("GameTunnelHandler: Call SetUp before calling ConnectToTunnel.");
+
+            tunnelConnection.ConnectAsync();
         }
 
         public int[] CreatePlayerConnections(List<uint> playerIds)
