@@ -86,7 +86,8 @@ namespace DTAClient.DXGUI.Generic
 
             var cncnetUserData = new CnCNetUserData(WindowManager);
             var cncnetManager = new CnCNetManager(WindowManager, gameCollection);
-            var tunnelHandler = new TunnelHandler(WindowManager, cncnetManager);
+            var tunnelHandler = new TunnelHandler(WindowManager, cncnetManager,
+                ProgramConstants.GamePath + "Client/tunnel_cache");
 
             var topBar = new TopBar(WindowManager, cncnetManager);
 

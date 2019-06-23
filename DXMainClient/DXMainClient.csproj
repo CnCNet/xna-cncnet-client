@@ -249,8 +249,8 @@
       <SubType>Component</SubType>
     </Compile>
     <Compile Include="Domain\Multiplayer\CnCNet\IPUtilities.cs" />
+    <Compile Include="Domain\Multiplayer\CnCNet\TunneledPlayerConnection.cs" />
     <Compile Include="Domain\Multiplayer\CnCNet\V3TunnelConnection.cs" />
-    <Compile Include="Domain\Multiplayer\CnCNet\V3TunnelHandler.cs" />
     <Compile Include="Domain\Multiplayer\CoopHouseInfo.cs" />
     <Compile Include="Domain\Multiplayer\CoopMapInfo.cs" />
     <Compile Include="Domain\Multiplayer\GameMode.cs" />
