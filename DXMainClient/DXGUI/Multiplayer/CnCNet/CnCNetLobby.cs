@@ -1184,7 +1184,11 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
                 CnCNetGame cncnetGame = gameCollection.GameList.Find(g => g.GameBroadcastChannel == channel.ChannelName);
 
-                CnCNetTunnel tunnel = tunnelHandler.Tunnels.Find(t => t.Address == tunnelAddress);
+                string[] addressAndPort = tunnelAddress.Split(':');
+                if (addressAndPort.Length != 2)
+                    return;
+                CnCNetTunnel tunnel = tunnelHandler.Tunnels.Find(t => t.Address == tunnelAddress &&
+                    t.Port == Conversions.IntFromString(addressAndPort[1], -1));
 
                 if (tunnel == null)
                     return;

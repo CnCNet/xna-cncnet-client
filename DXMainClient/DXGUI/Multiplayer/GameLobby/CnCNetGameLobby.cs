@@ -176,7 +176,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             gameStartTimer = new XNATimerControl(WindowManager);
             gameStartTimer.AutoReset = false;
             gameStartTimer.Interval = TimeSpan.FromSeconds(MAX_TIME_FOR_GAME_LAUNCH);
-            gameStartTimer.Enabled = false;
             gameStartTimer.TimeElapsed += GameStartTimer_TimeElapsed;
 
             tunnelSelectionWindow = new TunnelSelectionWindow(WindowManager, tunnelHandler);
@@ -193,6 +192,22 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private void GameStartTimer_TimeElapsed(object sender, EventArgs e)
         {
+            string playerString = "";
+
+            for (int i = 0; i < Players.Count; i++)
+            {
+                if (!isPlayerConnectedToTunnel[i])
+                {
+                    if (playerString == "")
+                        playerString = Players[i].Name;
+                    else
+                        playerString += ", " + Players[i].Name;
+                }  
+            }
+
+            AddNotice($"Some players ({playerString}) failed to connect within the time limit. " +
+                $"Aborting game launch.");
+
             AbortGameStart();
         }
 
@@ -293,7 +308,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         private void TunnelSelectionWindow_TunnelSelected(object sender, TunnelEventArgs e)
         {
             tunnelSelectionWindow.TunnelSelected -= TunnelSelectionWindow_TunnelSelected;
-            channel.SendCTCPMessage(CHANGE_TUNNEL_SERVER_MESSAGE + " " + e.Tunnel.Address,
+            channel.SendCTCPMessage(CHANGE_TUNNEL_SERVER_MESSAGE + " " + e.Tunnel.Address + ":" + e.Tunnel.Port,
                 QueuedMessageType.SYSTEM_MESSAGE, 10);
             HandleTunnelServerChange(e.Tunnel);
         }
@@ -600,7 +615,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private void StartGame_V3Tunnel()
         {
-            AddNotice("Contacting tunnel server..");
             btnLaunchGame.InputEnabled = false;
 
             Random random = new Random();
@@ -652,6 +666,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private void ContactTunnel()
         {
+            AddNotice("Contacting tunnel server..");
             isPlayerConnectedToTunnel = new bool[Players.Count];
             gameTunnelHandler.SetUp(tunnel, 
                 tunnelPlayerIds[Players.FindIndex(p => p.Name == ProgramConstants.PLAYERNAME)]);
@@ -663,11 +678,21 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private void GameTunnelHandler_Connected(object sender, EventArgs e)
         {
+            AddCallback(new Action(GameTunnelHandler_Connected_Callback), null);
+        }
+
+        private void GameTunnelHandler_Connected_Callback()
+        {
             isPlayerConnectedToTunnel[Players.FindIndex(p => p.Name == ProgramConstants.PLAYERNAME)] = true;
             channel.SendCTCPMessage(TUNNEL_CONNECTION_OK_MESSAGE, QueuedMessageType.SYSTEM_MESSAGE, PRIORITY_START_GAME);
         }
 
         private void GameTunnelHandler_ConnectionFailed(object sender, EventArgs e)
+        {
+            AddCallback(new Action(GameTunnelHandler_ConnectionFailed_Callback), null);
+        }
+
+        private void GameTunnelHandler_ConnectionFailed_Callback()
         {
             channel.SendCTCPMessage(TUNNEL_CONNECTION_FAIL_MESSAGE, QueuedMessageType.INSTANT_MESSAGE, 0);
             HandleTunnelFail(ProgramConstants.PLAYERNAME);
@@ -718,6 +743,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             btnLaunchGame.InputEnabled = true;
             gameTunnelHandler.Clear();
+            gameStartTimer.Pause();
             isStartingGame = false;
         }
 
@@ -1591,7 +1617,12 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (sender != hostName)
                 return;
 
-            CnCNetTunnel tunnel = tunnelHandler.Tunnels.Find(t => t.Address == tunnelAddress);
+            string[] addressAndPort = tunnelAddress.Split(':');
+            if (addressAndPort.Length != 2)
+                return;
+
+            CnCNetTunnel tunnel = tunnelHandler.Tunnels.Find(t => t.Address == tunnelAddress && 
+                t.Port == Conversions.IntFromString(addressAndPort[1], 0));
             if (tunnel == null)
             {
                 AddNotice("The game host has selected an invalid tunnel server! " +
@@ -1863,6 +1894,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             sb.Append(GameMode.UIName);
             sb.Append(";");
             sb.Append(tunnel.Address);
+            sb.Append(":");
+            sb.Append(tunnel.Port);
             sb.Append(";");
             sb.Append(0); // LoadedGameId
 
