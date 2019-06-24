@@ -934,7 +934,7 @@ namespace DTAClient.DXGUI.Generic
 
             if (gamesStarted > 0)
             {
-                lblAverageGameLengthValue.Text = TimeSpan.FromSeconds((int)timePlayed.TotalSeconds / gamesStarted).ToString();
+                lblAverageGameLengthValue.Text = TimeSpanToString(TimeSpan.FromSeconds((int)timePlayed.TotalSeconds / gamesStarted));
             }
             else
                 lblAverageGameLengthValue.Text = "-";
@@ -963,7 +963,7 @@ namespace DTAClient.DXGUI.Generic
             else
                 lblKillLossRatioValue.Text = "-";
 
-            lblTotalTimePlayedValue.Text = timePlayed.ToString();
+            lblTotalTimePlayedValue.Text = TimeSpanToString(timePlayed);
             lblTotalKillsValue.Text = totalKills.ToString();
             lblTotalLossesValue.Text = totalLosses.ToString();
             lblTotalScoreValue.Text = totalScore.ToString();
@@ -975,6 +975,13 @@ namespace DTAClient.DXGUI.Generic
                 lblAverageAILevelValue.Text = "Medium";
             else
                 lblAverageAILevelValue.Text = "Hard";
+        }
+
+        private string TimeSpanToString(TimeSpan timeSpan)
+        {
+            return timeSpan.Days > 0 ?
+                    $"{timeSpan.Days} d {timeSpan.Hours} h {timeSpan.Minutes} m {timeSpan.Seconds} s" :
+                    $"{timeSpan.Hours} h {timeSpan.Minutes} m {timeSpan.Seconds} s";
         }
 
         private PlayerStatistics FindLocalPlayer(MatchStatistics ms)
