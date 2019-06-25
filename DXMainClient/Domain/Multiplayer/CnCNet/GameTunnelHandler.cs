@@ -90,7 +90,8 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
         {
             lock (locker)
             {
-                tunnelConnection.SendData(data, sender.PlayerID);
+                if (tunnelConnection != null)
+                    tunnelConnection.SendData(data, sender.PlayerID);
             }
         }
 
