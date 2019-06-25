@@ -22,6 +22,8 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
         private Dictionary<uint, TunneledPlayerConnection> playerConnections = 
             new Dictionary<uint, TunneledPlayerConnection>();
 
+        private readonly object locker = new object();
+
         public void SetUp(CnCNetTunnel tunnel, uint ourSenderId)
         {
             this.tunnel = tunnel;
@@ -62,55 +64,59 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
 
         public void Clear()
         {
-            foreach (var connection in playerConnections)
+            lock (locker)
             {
-                connection.Value.Stop();
-                connection.Value.PacketReceived -= PlayerConnection_PacketReceived;
-            }
+                foreach (var connection in playerConnections)
+                {
+                    connection.Value.Stop();
+                    connection.Value.PacketReceived -= PlayerConnection_PacketReceived;
+                }
 
-            playerConnections.Clear();
-            ClearTunnelConnection();
+                playerConnections.Clear();
+
+                if (tunnelConnection == null)
+                    return;
+
+                tunnelConnection.CloseConnection();
+                tunnelConnection.Connected -= TunnelConnection_Connected;
+                tunnelConnection.ConnectionFailed -= TunnelConnection_ConnectionFailed;
+                tunnelConnection.ConnectionCut -= TunnelConnection_ConnectionCut;
+                tunnelConnection.MessageReceived -= TunnelConnection_MessageReceived;
+                tunnelConnection = null;
+            }
         }
 
         private void PlayerConnection_PacketReceived(TunneledPlayerConnection sender, byte[] data)
         {
-            tunnelConnection.SendData(data, sender.PlayerID);
+            lock (locker)
+            {
+                tunnelConnection.SendData(data, sender.PlayerID);
+            }
         }
 
         private void TunnelConnection_MessageReceived(byte[] data, uint senderId)
         {
-            if (playerConnections.TryGetValue(senderId, out TunneledPlayerConnection connection))
-                connection.SendPacket(data);
+            lock (locker)
+            {
+                if (playerConnections.TryGetValue(senderId, out TunneledPlayerConnection connection))
+                    connection.SendPacket(data);
+            }
         }
 
         private void TunnelConnection_Connected(object sender, EventArgs e)
         {
             Connected?.Invoke(this, EventArgs.Empty);
-            ClearTunnelConnection();
         }
 
         private void TunnelConnection_ConnectionFailed(object sender, EventArgs e)
         {
             ConnectionFailed?.Invoke(this, EventArgs.Empty);
-            ClearTunnelConnection();
+            Clear();
         }
 
         private void TunnelConnection_ConnectionCut(object sender, EventArgs e)
         {
-            ClearTunnelConnection();
-        }
-
-        private void ClearTunnelConnection()
-        {
-            if (tunnelConnection == null)
-                return;
-
-            tunnelConnection.CloseConnection();
-            tunnelConnection.Connected -= TunnelConnection_Connected;
-            tunnelConnection.ConnectionFailed -= TunnelConnection_ConnectionFailed;
-            tunnelConnection.ConnectionCut -= TunnelConnection_ConnectionCut;
-            tunnelConnection.MessageReceived -= TunnelConnection_MessageReceived;
-            tunnelConnection = null;
+            Clear();
         }
     }
 }

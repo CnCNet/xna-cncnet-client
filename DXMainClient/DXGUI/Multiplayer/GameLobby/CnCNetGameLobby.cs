@@ -871,11 +871,14 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 // Remove our own ID from the list
                 List<uint> ids = new List<uint>(tunnelPlayerIds);
                 ids.Remove(tunnelPlayerIds[Players.FindIndex(p => p.Name == ProgramConstants.PLAYERNAME)]);
+                List<PlayerInfo> players = new List<PlayerInfo>(Players);
+                players.RemoveAt(Players.FindIndex(p => p.Name == ProgramConstants.PLAYERNAME));
                 int[] ports = gameTunnelHandler.CreatePlayerConnections(ids);
                 for (int i = 0; i < ports.Length; i++)
                 {
-                    Players[i].Port = ports[i];
+                    players[i].Port = ports[i];
                 }
+                gameStartTimer.Pause();
                 btnLaunchGame.InputEnabled = true;
                 StartGame();
             }
@@ -1544,8 +1547,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             base.WriteSpawnIniAdditions(iniFile);
 
-            iniFile.SetStringValue("Tunnel", "Ip", tunnelHandler.CurrentTunnel.Address);
-            iniFile.SetIntValue("Tunnel", "Port", tunnelHandler.CurrentTunnel.Port);
+            if (!isP2P && tunnel.Version == Constants.TUNNEL_VERSION_2)
+            {
+                iniFile.SetStringValue("Tunnel", "Ip", tunnelHandler.CurrentTunnel.Address);
+                iniFile.SetIntValue("Tunnel", "Port", tunnelHandler.CurrentTunnel.Port);
+            }
 
             iniFile.SetIntValue("Settings", "GameID", UniqueGameID);
             iniFile.SetBooleanValue("Settings", "Host", IsHost);

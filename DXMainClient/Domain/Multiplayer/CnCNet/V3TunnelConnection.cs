@@ -154,6 +154,8 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
 
         private void DoClose()
         {
+            Aborted = true;
+
             if (tunnelSocket != null)
             {
                 tunnelSocket.Close();
@@ -171,7 +173,11 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
             Array.Copy(BitConverter.GetBytes(receiverId), 0, packet, 4, sizeof(uint));
             Array.Copy(data, 0, packet, 8, data.Length);
 
-            tunnelSocket.SendTo(packet, tunnelEndPoint);
+            lock (locker)
+            {
+                if (!aborted)
+                    tunnelSocket.SendTo(packet, tunnelEndPoint);
+            }
         }
     }
 }

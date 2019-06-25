@@ -66,7 +66,6 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
 
         private void Run()
         {
-            socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
             socket.ReceiveTimeout = Timeout;
             byte[] buffer = new byte[1024];
 
@@ -89,13 +88,21 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
             {
                 // Timeout
             }
-            
-            socket.Close();
+
+            lock (locker)
+            {
+                _aborted = true;
+                socket.Close();
+            }
         }
 
         public void SendPacket(byte[] packet)
         {
-            socket.SendTo(packet, endPoint);
+            lock (locker)
+            {
+                if (!_aborted)
+                    socket.SendTo(packet, endPoint);
+            }
         }
     }
 }
