@@ -1187,7 +1187,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 string[] addressAndPort = tunnelAddress.Split(':');
                 if (addressAndPort.Length != 2)
                     return;
-                CnCNetTunnel tunnel = tunnelHandler.Tunnels.Find(t => t.Address == tunnelAddress &&
+                CnCNetTunnel tunnel = tunnelHandler.Tunnels.Find(t => t.Address == addressAndPort[0] &&
                     t.Port == Conversions.IntFromString(addressAndPort[1], -1));
 
                 if (tunnel == null)
