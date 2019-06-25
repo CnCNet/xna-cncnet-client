@@ -24,6 +24,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 {
     public class CnCNetGameLobby : MultiplayerGameLobby
     {
+        private const int INGAME_PORT = 1234;
+
         private const int HUMAN_PLAYER_OPTIONS_LENGTH = 3;
         private const int AI_PLAYER_OPTIONS_LENGTH = 2;
 
@@ -868,7 +870,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 List<uint> ids = new List<uint>(tunnelPlayerIds);
                 ids.Remove(tunnelPlayerIds[Players.FindIndex(p => p.Name == ProgramConstants.PLAYERNAME)]);
                 List<PlayerInfo> players = new List<PlayerInfo>(Players);
-                players.RemoveAt(Players.FindIndex(p => p.Name == ProgramConstants.PLAYERNAME));
+                int myIndex = Players.FindIndex(p => p.Name == ProgramConstants.PLAYERNAME);
+                Players[myIndex].Port = INGAME_PORT;
+                players.RemoveAt(myIndex);
                 int[] ports = gameTunnelHandler.CreatePlayerConnections(ids);
                 for (int i = 0; i < ports.Length; i++)
                 {
