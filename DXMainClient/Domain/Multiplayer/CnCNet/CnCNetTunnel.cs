@@ -172,6 +172,9 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
 
         public void Ping()
         {
+            PingV2();  // temporary hack until all v3 tunnels support pinging
+            return;
+
             if (Version == Constants.TUNNEL_VERSION_2)
             {
                 PingV2();
