@@ -241,6 +241,11 @@ namespace ClientCore
             return gameOptions_ini.GetStringValue(GENERAL, "InternalSideIds", string.Empty);
         }
 
+        public string GetSpectatorInternalSideId()
+        {
+            return gameOptions_ini.GetStringValue(GENERAL, "SpectatorInternalSideId", string.Empty);
+        }
+
         public int ThemeCount
         {
             get

@@ -1017,7 +1017,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             settings.SetIntValue("PlayerCount", Players.Count);
             int myIndex = Players.FindIndex(c => c.Name == ProgramConstants.PLAYERNAME);
 
-            if (string.IsNullOrEmpty(ClientConfiguration.Instance.GetInternalSideIds()))
+            if (houseInfos[myIndex].IsSpectator && !string.IsNullOrEmpty(ClientConfiguration.Instance.GetSpectatorInternalSideId()))
+            {
+                settings.SetIntValue("Side", int.Parse(ClientConfiguration.Instance.GetSpectatorInternalSideId()));
+            }
+            else if (string.IsNullOrEmpty(ClientConfiguration.Instance.GetInternalSideIds()))
             {
                 settings.SetIntValue("Side", houseInfos[myIndex].SideIndex);
             }
