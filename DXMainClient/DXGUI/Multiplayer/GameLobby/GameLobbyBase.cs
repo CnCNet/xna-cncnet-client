@@ -1016,7 +1016,17 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             settings.SetStringValue("UIMapName", Map.Name);
             settings.SetIntValue("PlayerCount", Players.Count);
             int myIndex = Players.FindIndex(c => c.Name == ProgramConstants.PLAYERNAME);
-            settings.SetIntValue("Side", houseInfos[myIndex].SideIndex);
+
+            if (string.IsNullOrEmpty(ClientConfiguration.Instance.GetInternalSideIds()))
+            {
+                settings.SetIntValue("Side", houseInfos[myIndex].SideIndex);
+            }
+            else
+            {
+                int[] sideIds = Array.ConvertAll(ClientConfiguration.Instance.GetInternalSideIds().Split(','), int.Parse);
+                settings.SetIntValue("Side", sideIds[houseInfos[myIndex].SideIndex]);
+            }
+            
             settings.SetBooleanValue("IsSpectator", houseInfos[myIndex].IsSpectator);
             settings.SetIntValue("Color", houseInfos[myIndex].ColorIndex);
             settings.SetStringValue("CustomLoadScreen", LoadingScreenController.GetLoadScreenName(houseInfos[myIndex].SideIndex));
