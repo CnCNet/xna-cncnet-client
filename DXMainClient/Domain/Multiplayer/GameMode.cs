@@ -52,7 +52,16 @@ namespace DTAClient.Domain.Multiplayer
 
         public void Initialize()
         {
-            IniFile forcedOptionsIni = new IniFile(ProgramConstants.GamePath + ClientConfiguration.Instance.MPMapsIniPath);
+            string forcedOptionsIniPath;
+            if (!string.IsNullOrEmpty(ClientConfiguration.Instance.MPModesIniPath))
+            {
+                forcedOptionsIniPath = ClientConfiguration.Instance.MPModesIniPath;
+            }
+            else
+            {
+                forcedOptionsIniPath = ClientConfiguration.Instance.MPMapsIniPath;
+            }
+            IniFile forcedOptionsIni = new IniFile(ProgramConstants.GamePath + forcedOptionsIniPath);
 
             CoopDifficultyLevel = forcedOptionsIni.GetIntValue(Name, "CoopDifficultyLevel", 0);
             UIName = forcedOptionsIni.GetStringValue(Name, "UIName", Name);

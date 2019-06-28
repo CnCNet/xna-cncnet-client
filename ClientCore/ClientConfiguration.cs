@@ -385,6 +385,8 @@ namespace ClientCore
 
         public string MPMapsIniPath => clientDefinitionsIni.GetStringValue(SETTINGS, "MPMapsPath", "INI\\MPMaps.ini");
 
+        public string MPModesIniPath => clientDefinitionsIni.GetStringValue(SETTINGS, "MPModesPath", "INI\\MPModes.ini");
+
         public string KeyboardINI => clientDefinitionsIni.GetStringValue(SETTINGS, "KeyboardINI", "Keyboard.ini");
 
         public int MinimumIngameWidth => clientDefinitionsIni.GetIntValue(SETTINGS, "MinimumIngameWidth", 640);
