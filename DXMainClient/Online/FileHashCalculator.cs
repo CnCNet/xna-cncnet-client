@@ -1,4 +1,4 @@
-﻿using ClientCore;
+using ClientCore;
 using DTAClient.Domain.Multiplayer;
 using Rampastring.Tools;
 using System;
@@ -81,6 +81,7 @@ namespace DTAClient.Online
                 MainExeHash = Utilities.CalculateSHA1ForFile(ProgramConstants.GamePath + ClientConfiguration.Instance.GetGameExecutableName()),
                 LauncherExeHash = Utilities.CalculateSHA1ForFile(ProgramConstants.GamePath + ClientConfiguration.Instance.GetGameLauncherExecutableName),
                 MPMapsHash = Utilities.CalculateSHA1ForFile(ProgramConstants.GamePath + ClientConfiguration.Instance.MPMapsIniPath),
+                MPModesHash = Utilities.CalculateSHA1ForFile(ProgramConstants.GamePath + ClientConfiguration.Instance.MPModesIniPath),
                 INIHashes = string.Empty
             };
 
@@ -142,6 +143,7 @@ namespace DTAClient.Online
             str = str + fh.LauncherExeHash;
             str = str + fh.INIHashes;
             str = str + fh.MPMapsHash;
+            str = str + fh.MPModesHash;
 
             Logger.Log("Complete hash: " + Utilities.CalculateSHA1ForString(str));
 
@@ -167,6 +169,7 @@ namespace DTAClient.Online
         public string ClientOGLHash { get; set; }
         public string INIHashes { get; set; }
         public string MPMapsHash { get; set; }
+        public string MPModesHash { get; set; }
         public string MainExeHash { get; set; }
         public string LauncherExeHash { get; set; }
 
@@ -178,6 +181,7 @@ namespace DTAClient.Online
                 "ClientOGLHash: " + ClientOGLHash + Environment.NewLine +
                 "INI Hashes: " + INIHashes + Environment.NewLine + 
                 "MPMaps Hash: " + MPMapsHash + Environment.NewLine + 
+                "MPModes Hash: " + MPModesHash + Environment.NewLine +
                 "MainExe Hash: " + MainExeHash + Environment.NewLine +
                 "LauncherExe Hash: " + LauncherExeHash;
         }
