@@ -27,11 +27,8 @@ namespace DTAConfig.OptionPanels
         private XNAClientCheckBox chkTooltips;
 #if YR
         private XNAClientCheckBox chkShowHiddenObjects;
-#elif DTA || TS
+#elif DTA || TS || TI
         private XNAClientCheckBox chkAltToUndeploy;
-#endif
-
-#if DTA || TS || TI
         private XNAClientCheckBox chkBlackChatBackground;
 #endif
 
@@ -129,7 +126,7 @@ namespace DTAConfig.OptionPanels
             AddChild(chkBlackChatBackground);
 #endif
 
-#if DTA || TS
+#if DTA || TS || TI
             chkAltToUndeploy = new XNAClientCheckBox(WindowManager);
             chkAltToUndeploy.Name = "chkAltToUndeploy";
             chkAltToUndeploy.ClientRectangle = new Rectangle(
@@ -142,10 +139,6 @@ namespace DTAConfig.OptionPanels
             lblPlayerName.ClientRectangle = new Rectangle(
                 lblScrollRate.X,
                 chkAltToUndeploy.Bottom + 30, 0, 0);
-#elif TI
-            lblPlayerName.ClientRectangle = new Rectangle(
-                lblScrollRate.X,
-                chkBlackChatBackground.Bottom + 30, 0, 0);
 #endif
 
 
@@ -228,11 +221,8 @@ namespace DTAConfig.OptionPanels
             chkShowHiddenObjects.Checked = IniSettings.ShowHiddenObjects;
 #endif
 
-#if DTA || TS
-            chkAltToUndeploy.Checked = !IniSettings.MoveToUndeploy;
-#endif
-
 #if DTA || TS || TI
+            chkAltToUndeploy.Checked = !IniSettings.MoveToUndeploy;
             chkBlackChatBackground.Checked = IniSettings.TextBackgroundColor == TEXT_BACKGROUND_COLOR_BLACK;
 #endif
             tbPlayerName.Text = UserINISettings.Instance.PlayerName;
@@ -251,11 +241,8 @@ namespace DTAConfig.OptionPanels
             IniSettings.ShowHiddenObjects.Value = chkShowHiddenObjects.Checked;
 #endif
 
-#if DTA || TS
-            IniSettings.MoveToUndeploy.Value = !chkAltToUndeploy.Checked;
-#endif
-
 #if DTA || TS || TI
+            IniSettings.MoveToUndeploy.Value = !chkAltToUndeploy.Checked;
             if (chkBlackChatBackground.Checked)
                 IniSettings.TextBackgroundColor.Value = TEXT_BACKGROUND_COLOR_BLACK;
             else
