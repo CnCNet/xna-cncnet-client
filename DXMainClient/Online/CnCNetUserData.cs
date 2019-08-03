@@ -1,26 +1,29 @@
 ﻿using ClientCore;
+using DTAClient.Domain.Multiplayer.CnCNet;
 using Rampastring.Tools;
 using Rampastring.XNAUI;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 
 namespace DTAClient.Online
 {
     public class CnCNetUserData
     {
+        private CnCNetBadges cncnetBadges;
         private const string FRIEND_LIST_PATH = "Client\\friend_list";
         private const string IGNORE_LIST_PATH = "Client\\ignore_list";
 
         public List<string> FriendList { get; private set; }
         public List<string> IgnoreList { get; private set; }
+        public List<Badge> Badges { get; private set; }
 
         public CnCNetUserData(WindowManager windowManager)
         {
             FriendList = new List<string>();
             IgnoreList = new List<string>();
+            Badges = new List<Badge>();
 
             try
             {
@@ -33,6 +36,15 @@ namespace DTAClient.Online
             }
 
             windowManager.GameClosing += WindowManager_GameClosing;
+
+            cncnetBadges = new CnCNetBadges();
+            cncnetBadges.BadgesReceived += CncnetBadges_BadgesReceived;
+            cncnetBadges.GetBadges();
+        }
+
+        private void CncnetBadges_BadgesReceived(object obj)
+        {
+            cncnetBadges.BadgesReceived -= CncnetBadges_BadgesReceived;
         }
 
         private void WindowManager_GameClosing(object sender, EventArgs e)
@@ -58,6 +70,19 @@ namespace DTAClient.Online
             {
                 Logger.Log("Saving User Data failed! Error message: " + ex.Message);
             }
+        }
+
+        public string HasBadge(string ident)
+        {
+            foreach (Badge badge in cncnetBadges.Badges)
+            {
+                if (badge.Ident == ident)
+                {
+                    return badge.Type;
+                }
+            }
+
+            return "";
         }
 
         /// <summary>

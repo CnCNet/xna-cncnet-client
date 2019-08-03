@@ -1060,6 +1060,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             {
                 user.IRCUser.IsFriend = cncnetUserData.IsFriend(user.IRCUser.Name);
                 user.IRCUser.IsIgnored = cncnetUserData.IsIgnored(user.IRCUser.Ident);
+                user.IRCUser.Badge = cncnetUserData.HasBadge(user.IRCUser.Ident);
                 lbPlayerList.AddUser(user);
             }
 

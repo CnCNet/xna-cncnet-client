@@ -1,6 +1,7 @@
 ﻿using System;
 using Rampastring.Tools;
 using System.IO;
+using System.Collections.Generic;
 
 namespace ClientCore
 {
@@ -244,6 +245,14 @@ namespace ClientCore
             }
         }
 
+        public List<string> Badges
+        {
+            get
+            {
+                return clientDefinitionsIni.GetSectionKeys("Badges");
+            }
+        }
+
         public string LocalGame
         {
             get
@@ -350,6 +359,7 @@ namespace ClientCore
 
         public string[] GetThemeInfoFromIndex(int themeIndex) => clientDefinitionsIni.GetStringValue("Themes", themeIndex.ToString(), ",").Split(',');
 
+        public string GetBadgeFromIndex(int badgeIndex) => clientDefinitionsIni.GetStringValue("Badges", badgeIndex.ToString(), "");
         /// <summary>
         /// Returns the directory path for a theme, or null if the specified
         /// theme name doesn't exist.

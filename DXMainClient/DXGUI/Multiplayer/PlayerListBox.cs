@@ -1,5 +1,5 @@
-﻿using ClientCore.CnCNet5;
-using DTAClient.DXGUI.Multiplayer.CnCNet;
+﻿using ClientCore;
+using ClientCore.CnCNet5;
 using DTAClient.Online;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -7,8 +7,6 @@ using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace DTAClient.DXGUI.Multiplayer
 {
@@ -23,9 +21,9 @@ namespace DTAClient.DXGUI.Multiplayer
 
         private Texture2D adminGameIcon;
         private Texture2D unknownGameIcon;
-        private Texture2D badgeGameIcon;
         private Texture2D friendIcon;
         private Texture2D ignoreIcon;
+        private List<BadgeTexture> badgeTextures;
 
         private GameCollection gameCollection;
 
@@ -39,7 +37,28 @@ namespace DTAClient.DXGUI.Multiplayer
             unknownGameIcon = AssetLoader.TextureFromImage(ClientCore.Properties.Resources.unknownicon);
             friendIcon = AssetLoader.LoadTexture("friendicon.png");
             ignoreIcon = AssetLoader.LoadTexture("ignoreicon.png");
-            badgeGameIcon = AssetLoader.LoadTexture("Badges\\badge.png");
+
+            badgeTextures = new List<BadgeTexture>();
+            LoadBadges();
+        }
+
+        private void LoadBadges()
+        {
+            List<string> badgesConfig = ClientConfiguration.Instance.Badges;
+            foreach (string badgeIndex in badgesConfig)
+            {
+                int index = Convert.ToInt32(badgeIndex);
+
+                string badge = ClientConfiguration.Instance.GetBadgeFromIndex(index);
+                if (badge != null)
+                {
+                    BadgeTexture badgeTexture = new BadgeTexture();
+                    badgeTexture.Id = badge;
+                    badgeTexture.Texture = AssetLoader.LoadTexture(badge + ".png");
+
+                    badgeTextures.Add(badgeTexture);
+                }
+            }
         }
 
         public void AddUser(ChannelUser user)
@@ -113,14 +132,19 @@ namespace DTAClient.DXGUI.Multiplayer
                     x += ignoreIcon.Width + MARGIN;
                 }
 
-                // Badge Icon - coming soon
-                /*
-                Renderer.DrawTexture(badgeGameIcon,
-                    new Rectangle(windowRectangle.X + x, windowRectangle.Y + height,
-                    badgeGameIcon.Width, badgeGameIcon.Height), Color.White);
+                // Badge Icon 
+                if (!user.IsAdmin && user.IRCUser.Badge.Length > 0)
+                {
+                    BadgeTexture badge = badgeTextures.Find(b => b.Id == user.IRCUser.Badge);
+                    if (badge != null)
+                    {
+                        DrawTexture(badge.Texture,
+                            new Rectangle(x, height,
+                            badge.Texture.Width, badge.Texture.Height), Color.White);
 
-                x += badgeGameIcon.Width + margin;
-                */
+                        x += badge.Texture.Width + MARGIN;
+                    }
+                }
 
                 // Player Name
                 string name = user.IsAdmin ? user.IRCUser.Name + " (Admin)" : user.IRCUser.Name;
@@ -159,5 +183,11 @@ namespace DTAClient.DXGUI.Multiplayer
                     item.Texture = gameCollection.GameList[user.IRCUser.GameID].Texture;
             }
         }
+    }
+
+    public class BadgeTexture
+    {
+        public string Id { get; set; }
+        public Texture2D Texture { get; set; }
     }
 }

@@ -26,6 +26,7 @@ namespace DTAClient.Online
         public string Ident { get; set; }
         public string Hostname { get; set; }
         public int GameID { get; set; } = -1;
+        public string Badge { get; set; }
 
         public List<string> Channels = new List<string>();
 
