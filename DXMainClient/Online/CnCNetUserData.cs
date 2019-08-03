@@ -45,6 +45,7 @@ namespace DTAClient.Online
         private void CncnetBadges_BadgesReceived(object obj)
         {
             cncnetBadges.BadgesReceived -= CncnetBadges_BadgesReceived;
+            Badges = cncnetBadges.Badges;
         }
 
         private void WindowManager_GameClosing(object sender, EventArgs e)
@@ -72,9 +73,14 @@ namespace DTAClient.Online
             }
         }
 
+        /// <summary>
+        /// Checks if user ident matches list of badges returned from ladder
+        /// </summary>
+        /// <param name="ident"></param>
+        /// <returns></returns>
         public string HasBadge(string ident)
         {
-            foreach (Badge badge in cncnetBadges.Badges)
+            foreach (Badge badge in Badges)
             {
                 if (badge.Ident == ident)
                 {

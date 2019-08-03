@@ -45,6 +45,12 @@ namespace DTAClient.DXGUI.Multiplayer
         private void LoadBadges()
         {
             List<string> badgesConfig = ClientConfiguration.Instance.Badges;
+
+            if (badgesConfig == null)
+            {
+                return;
+            }
+
             foreach (string badgeIndex in badgesConfig)
             {
                 int index = Convert.ToInt32(badgeIndex);
