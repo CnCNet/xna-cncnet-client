@@ -101,20 +101,9 @@ namespace ClientCore.CnCNet5
 
                 new CnCNetGame()
                 {
-                    ChatChannel = "#hydracorps",
-                    ClientExecutableName = "EmerCon.exe",
-                    GameBroadcastChannel = "#hydracorps-games",
-                    InternalName = "ec",
-                    RegistryInstallPath = "HKCU\\Software\\EmerCon",
-                    UIName = "Emergency Condition",
-                    Texture = AssetLoader.TextureFromImage(Resources.ecicon)
-                },
-
-                new CnCNetGame()
-                {
-                    ChatChannel = "#hydracorps",
+                    ChatChannel = "#hydracorps-rb",
                     ClientExecutableName = "Reborn.exe",
-                    GameBroadcastChannel = "#hydracorps-games",
+                    GameBroadcastChannel = "#hydracorps-rb-games",
                     InternalName = "rb",
                     RegistryInstallPath = "HKCU\\Software\\Reborn",
                     UIName = "Reborn",
@@ -123,9 +112,20 @@ namespace ClientCore.CnCNet5
 
                 new CnCNetGame()
                 {
-                    ChatChannel = "#hydracorps",
+                    ChatChannel = "#hydracorps-ec",
+                    ClientExecutableName = "EmerCon.exe",
+                    GameBroadcastChannel = "#hydracorps-ec-games",
+                    InternalName = "ec",
+                    RegistryInstallPath = "HKCU\\Software\\EmerCon",
+                    UIName = "Emergency Condition",
+                    Texture = AssetLoader.TextureFromImage(Resources.ecicon)
+                },
+
+                new CnCNetGame()
+                {
+                    ChatChannel = "#hydracorps-mm",
                     ClientExecutableName = "Metamorphosis.exe",
-                    GameBroadcastChannel = "#hydracorps-games",
+                    GameBroadcastChannel = "#hydracorps-mm-games",
                     InternalName = "mm",
                     RegistryInstallPath = "HKCU\\Software\\Metamorphosis",
                     UIName = "Metamorphosis",
