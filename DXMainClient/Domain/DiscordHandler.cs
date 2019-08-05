@@ -37,6 +37,16 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
         public override void Initialize()
         {
             client = new DiscordRpcClient(ClientConfiguration.Instance.DiscordAppId);
+
+            client.OnReady += OnReady;
+            client.OnClose += OnClose;
+            client.OnError += OnError;
+            client.OnConnectionEstablished += OnConnectionEstablished;
+            client.OnConnectionFailed += OnConnectionFailed;
+            client.OnPresenceUpdate += OnPresenceUpdate;
+            client.OnSubscribe += OnSubscribe;
+            client.OnUnsubscribe += OnUnsubscribe;
+
             client.Initialize();
             base.Initialize();
         }
