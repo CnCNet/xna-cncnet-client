@@ -253,6 +253,7 @@
     <Compile Include="Domain\Multiplayer\CnCNet\ExtendedWebClient.cs">
       <SubType>Component</SubType>
     </Compile>
+    <Compile Include="Domain\DiscordHandler.cs" />
     <Compile Include="Domain\Multiplayer\CoopHouseInfo.cs" />
     <Compile Include="Domain\Multiplayer\CoopMapInfo.cs" />
     <Compile Include="Domain\Multiplayer\GameMode.cs" />

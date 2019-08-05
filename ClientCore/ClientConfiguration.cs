@@ -252,6 +252,14 @@ namespace ClientCore
             }
         }
 
+        public string DiscordAppId
+        {
+            get
+            {
+                return clientDefinitionsIni.GetStringValue(SETTINGS, "DiscordAppId", string.Empty);
+            }
+        }
+
         public int SendSleep
         {
             get
