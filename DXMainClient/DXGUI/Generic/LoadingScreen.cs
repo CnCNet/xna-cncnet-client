@@ -1,6 +1,7 @@
 ﻿using ClientCore;
 using ClientCore.CnCNet5;
 using ClientGUI;
+using DTAClient.Domain;
 using DTAClient.Domain.Multiplayer;
 using DTAClient.Domain.Multiplayer.CnCNet;
 using DTAClient.DXGUI.Multiplayer;
@@ -87,6 +88,9 @@ namespace DTAClient.DXGUI.Generic
             var cncnetUserData = new CnCNetUserData(WindowManager);
             var cncnetManager = new CnCNetManager(WindowManager, gameCollection);
             var tunnelHandler = new TunnelHandler(WindowManager, cncnetManager);
+            DiscordHandler discordHandler = null;
+            if (!string.IsNullOrEmpty(ClientConfiguration.Instance.DiscordAppId))
+                discordHandler = new DiscordHandler(WindowManager);
 
             var topBar = new TopBar(WindowManager, cncnetManager);
 
