@@ -69,19 +69,14 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
         {
             client.SetPresence(new RichPresence()
             {
+                State = state,
+                Details = details,
                 Assets = new Assets()
                 {
                     LargeImageKey = "logo",
                     LargeImageText = "Logo"
                 }
             });
-
-            if (!string.IsNullOrEmpty(details))
-                client.UpdateDetails(details);
-
-            if (!string.IsNullOrEmpty(state))
-                client.UpdateState(state);
-
         }
 
 
@@ -90,39 +85,39 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
         private void OnReady(object sender, ReadyMessage args)
         {
             Enabled = true;
-            SetPresence(null, "In client");
-            Logger.Log("Discord: Received Ready from user {0}", args.User.Username);
+            SetPresence("Idle", "In client");
+            Logger.Log($"Discord: Received Ready from user {args.User.Username}");
         }
         private void OnClose(object sender, CloseMessage args)
         {
             Enabled = false;
-            Logger.Log("Discord: Lost Connection with client because of '{0}'", args.Reason);
+            Logger.Log($"Discord: Lost Connection with client because of '{args.Reason}'");
         }
         private void OnError(object sender, ErrorMessage args)
         {
-            Logger.Log("Discord: Error occured. ({1}) {0}", args.Message, args.Code);
+            Logger.Log($"Discord: Error occured. ({args.Code}) {args.Message}");
         }
 
         private void OnConnectionEstablished(object sender, ConnectionEstablishedMessage args)
         {
-            Logger.Log("Discord: Pipe Connection Established. Valid on pipe #{0}", args.ConnectedPipe);
+            Logger.Log($"Discord: Pipe Connection Established. Valid on pipe #{args.ConnectedPipe}");
         }
         private void OnConnectionFailed(object sender, ConnectionFailedMessage args)
         {
-            Logger.Log("Discord: Pipe Connection Failed. Could not connect to pipe #{0}", args.FailedPipe);
+            Logger.Log($"Discord: Pipe Connection Failed. Could not connect to pipe #{args.FailedPipe}");
         }
         private void OnPresenceUpdate(object sender, PresenceMessage args)
         {
-            Logger.Log("Discord: Rich Presence Updated. Playing {0}", args.Presence == null ? "Nothing (NULL)" : args.Presence.State);
+            Logger.Log($"Discord: Rich Presence Updated. Playing {args.Presence}");
         }
 
         private void OnSubscribe(object sender, SubscribeMessage args)
         {
-            Logger.Log("Discord: Subscribed: {0}", args.Event);
+            Logger.Log($"Discord: Subscribed: {args.Event}");
         }
         private void OnUnsubscribe(object sender, UnsubscribeMessage args)
         {
-            Logger.Log("Discord: Unsubscribed: {0}", args.Event);
+            Logger.Log($"Discord: Unsubscribed: {args.Event}");
         }
 
     }
