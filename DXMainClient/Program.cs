@@ -56,6 +56,8 @@ namespace DTAClient
             "Ionic.Zip",
             "MapThumbnailExtractor",
             "DTAUpdater",
+            "Newtonsoft.Json",
+            "DiscordRPC"
         };
 
         static List<string> SPECIFIC_LIBRARIES = new List<string>()
