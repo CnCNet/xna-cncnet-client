@@ -1128,7 +1128,21 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     string keyName = "Multi" + multiId;
 
                     spawnIni.SetIntValue("HouseHandicaps", keyName, AIPlayers[aiId].AILevel);
-                    spawnIni.SetIntValue("HouseCountries", keyName, houseInfos[Players.Count + aiId].SideIndex);
+
+                    if (houseInfos[Players.Count + aiId].IsSpectator && !string.IsNullOrEmpty(ClientConfiguration.Instance.GetSpectatorInternalSideId()))
+                    {
+                        spawnIni.SetIntValue("HouseCountries", keyName, int.Parse(ClientConfiguration.Instance.GetSpectatorInternalSideId()));
+                    }
+                    else if (string.IsNullOrEmpty(ClientConfiguration.Instance.GetInternalSideIds()))
+                    {
+                        spawnIni.SetIntValue("HouseCountries", keyName, houseInfos[Players.Count + aiId].SideIndex);
+                    }
+                    else
+                    {
+                        int[] sideIds = Array.ConvertAll(ClientConfiguration.Instance.GetInternalSideIds().Split(','), int.Parse);
+                        spawnIni.SetIntValue("HouseCountries", keyName, sideIds[houseInfos[Players.Count + aiId].SideIndex]);
+                    }
+
                     spawnIni.SetIntValue("HouseColors", keyName, houseInfos[Players.Count + aiId].ColorIndex);
                 }
             }
