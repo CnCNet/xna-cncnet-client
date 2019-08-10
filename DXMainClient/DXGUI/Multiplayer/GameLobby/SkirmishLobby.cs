@@ -9,6 +9,7 @@ using DTAClient.Domain.Multiplayer;
 using ClientGUI;
 using Rampastring.Tools;
 using System.IO;
+using DTAClient.Domain;
 
 namespace DTAClient.DXGUI.Multiplayer.GameLobby
 {
@@ -16,8 +17,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
     {
         private const string SETTINGS_PATH = "Client\\SkirmishSettings.ini";
 
-        public SkirmishLobby(WindowManager windowManager, TopBar topBar, List<GameMode> GameModes)
-            : base(windowManager, "SkirmishLobby", GameModes, false)
+        public SkirmishLobby(WindowManager windowManager, TopBar topBar, List<GameMode> GameModes, DiscordHandler discordHandler)
+            : base(windowManager, "SkirmishLobby", GameModes, false, discordHandler)
         {
             this.topBar = topBar;
         }
@@ -145,6 +146,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             Exited?.Invoke(this, EventArgs.Empty);
 
             topBar.RemovePrimarySwitchable(this);
+        }
+
+        protected override void UpdateDiscordPresence(bool resetTimer)
+        {
+            
         }
 
         protected override bool AllowPlayerOptionsChange()
