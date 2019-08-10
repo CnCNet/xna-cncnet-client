@@ -1085,7 +1085,21 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 string sectionName = "Other" + otherId;
 
                 spawnIni.SetStringValue(sectionName, "Name", pInfo.Name);
-                spawnIni.SetIntValue(sectionName, "Side", pHouseInfo.SideIndex);
+
+                if (pHouseInfo.IsSpectator && !string.IsNullOrEmpty(ClientConfiguration.Instance.GetSpectatorInternalSideId()))
+                {
+                    spawnIni.SetIntValue(sectionName, "Side", int.Parse(ClientConfiguration.Instance.GetSpectatorInternalSideId()));
+                }
+                else if (string.IsNullOrEmpty(ClientConfiguration.Instance.GetInternalSideIds()))
+                {
+                    spawnIni.SetIntValue(sectionName, "Side", pHouseInfo.SideIndex);
+                }
+                else
+                {
+                    int[] sideIds = Array.ConvertAll(ClientConfiguration.Instance.GetInternalSideIds().Split(','), int.Parse);
+                    spawnIni.SetIntValue(sectionName, "Side", sideIds[pHouseInfo.SideIndex]);
+                }
+
                 spawnIni.SetBooleanValue(sectionName, "IsSpectator", pHouseInfo.IsSpectator);
                 spawnIni.SetIntValue(sectionName, "Color", pHouseInfo.ColorIndex);
                 spawnIni.SetStringValue(sectionName, "Ip", GetIPAddressForPlayer(pInfo));
@@ -1114,7 +1128,21 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     string keyName = "Multi" + multiId;
 
                     spawnIni.SetIntValue("HouseHandicaps", keyName, AIPlayers[aiId].AILevel);
-                    spawnIni.SetIntValue("HouseCountries", keyName, houseInfos[Players.Count + aiId].SideIndex);
+
+                    if (houseInfos[Players.Count + aiId].IsSpectator && !string.IsNullOrEmpty(ClientConfiguration.Instance.GetSpectatorInternalSideId()))
+                    {
+                        spawnIni.SetIntValue("HouseCountries", keyName, int.Parse(ClientConfiguration.Instance.GetSpectatorInternalSideId()));
+                    }
+                    else if (string.IsNullOrEmpty(ClientConfiguration.Instance.GetInternalSideIds()))
+                    {
+                        spawnIni.SetIntValue("HouseCountries", keyName, houseInfos[Players.Count + aiId].SideIndex);
+                    }
+                    else
+                    {
+                        int[] sideIds = Array.ConvertAll(ClientConfiguration.Instance.GetInternalSideIds().Split(','), int.Parse);
+                        spawnIni.SetIntValue("HouseCountries", keyName, sideIds[houseInfos[Players.Count + aiId].SideIndex]);
+                    }
+
                     spawnIni.SetIntValue("HouseColors", keyName, houseInfos[Players.Count + aiId].ColorIndex);
                 }
             }
