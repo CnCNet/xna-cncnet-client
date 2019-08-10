@@ -80,17 +80,19 @@ namespace DTAClient.DXGUI.Generic
             ProgramConstants.GAME_VERSION = ClientConfiguration.Instance.ModMode ? 
                 "N/A" : CUpdater.GameVersion;
 
+            DiscordHandler discordHandler = null;
+            if (!string.IsNullOrEmpty(ClientConfiguration.Instance.DiscordAppId))
+                discordHandler = new DiscordHandler(WindowManager);
+
             var gameCollection = new GameCollection();
             gameCollection.Initialize(GraphicsDevice);
 
-            var lanLobby = new LANLobby(WindowManager, gameCollection, mapLoader.GameModes, mapLoader);
+            var lanLobby = new LANLobby(WindowManager, gameCollection, mapLoader.GameModes, mapLoader, discordHandler);
 
             var cncnetUserData = new CnCNetUserData(WindowManager);
             var cncnetManager = new CnCNetManager(WindowManager, gameCollection);
             var tunnelHandler = new TunnelHandler(WindowManager, cncnetManager);
-            DiscordHandler discordHandler = null;
-            if (!string.IsNullOrEmpty(ClientConfiguration.Instance.DiscordAppId))
-                discordHandler = new DiscordHandler(WindowManager);
+            
 
             var topBar = new TopBar(WindowManager, cncnetManager);
 
@@ -101,7 +103,7 @@ namespace DTAClient.DXGUI.Generic
             privateMessagingPanel = new PrivateMessagingPanel(WindowManager);
 
             var cncnetGameLobby = new CnCNetGameLobby(WindowManager,
-                "MultiplayerGameLobby", topBar, mapLoader.GameModes, cncnetManager, tunnelHandler, gameCollection, cncnetUserData, mapLoader);
+                "MultiplayerGameLobby", topBar, mapLoader.GameModes, cncnetManager, tunnelHandler, gameCollection, cncnetUserData, mapLoader, discordHandler);
             var cncnetGameLoadingLobby = new CnCNetGameLoadingLobby(WindowManager, 
                 topBar, cncnetManager, tunnelHandler, mapLoader.GameModes, gameCollection);
             var cncnetLobby = new CnCNetLobby(WindowManager, cncnetManager, 
@@ -109,7 +111,7 @@ namespace DTAClient.DXGUI.Generic
                 gameCollection, cncnetUserData);
             var gipw = new GameInProgressWindow(WindowManager);
 
-            var skirmishLobby = new SkirmishLobby(WindowManager, topBar, mapLoader.GameModes);
+            var skirmishLobby = new SkirmishLobby(WindowManager, topBar, mapLoader.GameModes, discordHandler);
 
             topBar.SetSecondarySwitch(cncnetLobby);
 

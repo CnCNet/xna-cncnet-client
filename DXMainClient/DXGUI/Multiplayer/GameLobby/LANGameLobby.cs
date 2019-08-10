@@ -15,6 +15,7 @@ using DTAClient.Domain.LAN;
 using DTAClient.Online;
 using System.Threading;
 using DTAClient.DXGUI.Multiplayer.GameLobby.CommandHandlers;
+using DTAClient.Domain;
 
 namespace DTAClient.DXGUI.Multiplayer.GameLobby
 {
@@ -39,8 +40,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         private const string DICE_ROLL_COMMAND = "DR";
 
         public LANGameLobby(WindowManager windowManager, string iniName, 
-            TopBar topBar, List<GameMode> GameModes, LANColor[] chatColors, MapLoader mapLoader) : 
-            base(windowManager, iniName, topBar, GameModes, mapLoader)
+            TopBar topBar, List<GameMode> GameModes, LANColor[] chatColors, MapLoader mapLoader, DiscordHandler discordHandler) : 
+            base(windowManager, iniName, topBar, GameModes, mapLoader, discordHandler)
         {
             this.chatColors = chatColors;
             encoding = Encoding.UTF8;
@@ -403,6 +404,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             Clear();
             GameLeft?.Invoke(this, EventArgs.Empty);
             Disable();
+        }
+
+        protected override void UpdateDiscordPresence(bool resetTimer)
+        {
+
         }
 
         public override void Clear()
