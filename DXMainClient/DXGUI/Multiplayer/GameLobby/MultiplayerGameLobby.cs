@@ -363,6 +363,14 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             RequestReadyStatus();
         }
 
+        protected void ResetAutoReadyCheckbox()
+        {
+            chkAutoReady.CheckedChanged -= ChkAutoReady_CheckedChanged;
+            chkAutoReady.Checked = false;
+            chkAutoReady.CheckedChanged += ChkAutoReady_CheckedChanged;
+            btnLaunchGame.Enabled = true;
+        }
+
         private void SetFrameSendRate(string value)
         {
             bool success = int.TryParse(value, out int intValue);

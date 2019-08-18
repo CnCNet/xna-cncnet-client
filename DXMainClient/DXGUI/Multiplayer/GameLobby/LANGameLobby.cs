@@ -159,6 +159,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             var fhc = new FileHashCalculator();
             fhc.CalculateHashes(GameModes);
             SendMessageToHost(FILE_HASH_COMMAND + " " + fhc.GetCompleteHash());
+            ResetAutoReadyCheckbox();
         }
 
         #region Server code
