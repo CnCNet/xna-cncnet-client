@@ -225,13 +225,14 @@ namespace DTAClient.Domain.Multiplayer
             string[] gameDirMapFiles = Directory.GetFiles(ProgramConstants.GamePath, customMapSearchPattern);
             foreach (string filename in gameDirMapFiles)
             {
-                string newFilename = Path.ChangeExtension(filename.Replace(ProgramConstants.GamePath, ProgramConstants.GamePath + CUSTOM_MAPS_DIRECTORY +
-                    Path.DirectorySeparatorChar), MAP_FILE_EXTENSION);
+                string newFilename = Path.ChangeExtension(filename.Replace(ProgramConstants.GamePath,
+                    ProgramConstants.GamePath + CUSTOM_MAPS_DIRECTORY + Path.DirectorySeparatorChar), MAP_FILE_EXTENSION);
                 if (!File.Exists(newFilename))
                     File.Move(filename, newFilename);
             }
 
-            string[] customMapFiles = Directory.GetFiles(ProgramConstants.GamePath + CUSTOM_MAPS_DIRECTORY, customMapSearchPattern);
+            string[] customMapFiles = Directory.GetFiles(ProgramConstants.GamePath + CUSTOM_MAPS_DIRECTORY,
+                customMapSearchPattern);
             foreach (string filename in customMapFiles)
             {
                 string newFilename = Path.ChangeExtension(filename, MAP_FILE_EXTENSION);
