@@ -336,7 +336,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 return;
 
             PlayerInfo player = Players.Find(p => p.Name == ProgramConstants.PLAYERNAME);
-            string country = ddPlayerSides[Players.IndexOf(player)].SelectedItem.Text;
+            string country = "";
+            if (ddPlayerSides.Length > Players.IndexOf(player))
+                country = ddPlayerSides[Players.IndexOf(player)].SelectedItem.Text;
             string currentState = (player.IsInGame) ? "In Game" : "In Lobby";
 
             discordHandler.UpdatePresence(

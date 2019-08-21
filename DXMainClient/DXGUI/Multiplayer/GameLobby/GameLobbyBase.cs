@@ -1499,21 +1499,16 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if ((bool)senderDropDown.Tag)
                 ClearReadyStatuses();
 
-            
+            var oldSideId = Players.Find(p => p.Name == ProgramConstants.PLAYERNAME).SideId;
 
             for (int pId = 0; pId < Players.Count; pId++)
             {
                 PlayerInfo pInfo = Players[pId];
 
-                var oldSideId = pInfo.SideId;
-
                 pInfo.ColorId = ddPlayerColors[pId].SelectedIndex;
                 pInfo.SideId = ddPlayerSides[pId].SelectedIndex;
                 pInfo.StartingLocation = ddPlayerStarts[pId].SelectedIndex;
                 pInfo.TeamId = ddPlayerTeams[pId].SelectedIndex;
-
-                if (oldSideId != pInfo.SideId)
-                    UpdateDiscordPresence();
 
                 if (pInfo.SideId == SideCount + RandomSelectorCount)
                     pInfo.StartingLocation = 0;
@@ -1561,6 +1556,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             CopyPlayerDataToUI();
             btnLaunchGame.SetRank(GetRank());
+
+            if (oldSideId != Players.Find(p => p.Name == ProgramConstants.PLAYERNAME).SideId)
+                UpdateDiscordPresence();
         }
 
         /// <summary>
