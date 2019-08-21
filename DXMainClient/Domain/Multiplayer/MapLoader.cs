@@ -111,6 +111,10 @@ namespace DTAClient.Domain.Multiplayer
             }
             else
             {
+
+#if YR || MO
+                CopyAndRenameCustomMaps();
+#endif
                 string[] files = Directory.GetFiles(ProgramConstants.GamePath + CUSTOM_MAPS_DIRECTORY, "*.map");
 
                 foreach (string file in files)
@@ -208,6 +212,32 @@ namespace DTAClient.Domain.Multiplayer
             resultMessage = $"Loading map {mapPath} failed!";
 
             return null;
+        }
+
+        /// <summary>
+        /// Copies custom maps from main game directory to custom maps directory, and also changes the file extensions to allow them to be loaded.
+        /// Existing maps in custom maps directory with the unusable custom map file extension will also be renamed.
+        /// </summary>
+        private void CopyAndRenameCustomMaps()
+        {
+            string customMapSearchPattern = "*.yrm";
+
+            string[] gameDirMapFiles = Directory.GetFiles(ProgramConstants.GamePath, customMapSearchPattern);
+            foreach (string filename in gameDirMapFiles)
+            {
+                string newFilename = Path.ChangeExtension(filename.Replace(ProgramConstants.GamePath, ProgramConstants.GamePath + CUSTOM_MAPS_DIRECTORY +
+                    Path.DirectorySeparatorChar), MAP_FILE_EXTENSION);
+                if (!File.Exists(newFilename))
+                    File.Move(filename, newFilename);
+            }
+
+            string[] customMapFiles = Directory.GetFiles(ProgramConstants.GamePath + CUSTOM_MAPS_DIRECTORY, customMapSearchPattern);
+            foreach (string filename in customMapFiles)
+            {
+                string newFilename = Path.ChangeExtension(filename, MAP_FILE_EXTENSION);
+                if (!File.Exists(newFilename))
+                    File.Move(filename, newFilename);
+            }
         }
 
         public void WriteCustomMapCache()
