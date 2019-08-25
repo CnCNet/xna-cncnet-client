@@ -64,7 +64,7 @@ namespace DTAClient.DXGUI.Multiplayer
                     message.Color, true);
             }
 
-            if (LastIndex == Items.Count - 2)
+            if (LastIndex >= Items.Count - 2)
             {
                 ScrollToBottom();
             }
