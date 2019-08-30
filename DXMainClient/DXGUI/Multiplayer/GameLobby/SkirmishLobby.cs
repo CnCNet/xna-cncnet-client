@@ -58,6 +58,21 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             ProgramConstants.PlayerNameChanged += ProgramConstants_PlayerNameChanged;
         }
 
+        protected override void OnEnabledChanged(object sender, EventArgs args)
+        {
+            base.OnEnabledChanged(sender, args);
+            if (Enabled)
+            {
+                ddPlayerSides[0].SelectedIndexChanged += PlayerSideChanged;
+                UpdateDiscordPresence(true);
+            }
+            else
+            {
+                ddPlayerSides[0].SelectedIndexChanged -= PlayerSideChanged;
+                ResetDiscordPresence();
+            }       
+        }
+
         private void ProgramConstants_PlayerNameChanged(object sender, EventArgs e)
         {
             Players[0].Name = ProgramConstants.PLAYERNAME;
@@ -146,11 +161,29 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             Exited?.Invoke(this, EventArgs.Empty);
 
             topBar.RemovePrimarySwitchable(this);
+            ResetDiscordPresence();
         }
 
-        protected override void UpdateDiscordPresence(bool resetTimer)
+        private void PlayerSideChanged(object sender, EventArgs e)
         {
-            
+            UpdateDiscordPresence();
+        }
+
+        protected override void UpdateDiscordPresence(bool resetTimer = false)
+        {
+            if (discordHandler == null)
+                return;
+
+            PlayerInfo player = Players.Find(p => p.Name == ProgramConstants.PLAYERNAME);
+            if (player == null || Map == null || GameMode == null)
+                return;
+            string country = "";
+            if (ddPlayerSides.Length > Players.IndexOf(player))
+                country = ddPlayerSides[Players.IndexOf(player)].SelectedItem.Text;
+            string currentState = (player.IsInGame) ? "In Game" : "Setting Up";
+
+            discordHandler.UpdatePresence(
+                Map.Name, GameMode.Name, currentState, country, resetTimer);
         }
 
         protected override bool AllowPlayerOptionsChange()
