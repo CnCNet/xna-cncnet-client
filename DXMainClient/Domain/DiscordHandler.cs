@@ -85,7 +85,6 @@ namespace DTAClient.Domain
         {
             CurrentPresence = new RichPresence()
             {
-                State = "Idle",
                 Details = "In Client",
                 Assets = new Assets()
                 {
@@ -122,7 +121,7 @@ namespace DTAClient.Domain
             CurrentPresence = new RichPresence()
             {
                 State = stateString,
-                Details = $"{map} • {mode} • {type}",
+                Details = $"{type} • {map} • {mode}",
                 Assets = new Assets()
                 {
                     LargeImageKey = "logo",
@@ -141,7 +140,7 @@ namespace DTAClient.Domain
             CurrentPresence = new RichPresence()
             {
                 State = $"{state}",
-                Details = $"{map} • {mode} • Skirmish",
+                Details = $"Skirmish • {map} • {mode}",
                 Assets = new Assets()
                 {
                     LargeImageKey = "logo",
