@@ -336,6 +336,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 return;
 
             PlayerInfo player = Players.Find(p => p.Name == ProgramConstants.PLAYERNAME);
+            if (player == null || Map == null || GameMode == null)
+                return;
             string country = "";
             if (ddPlayerSides.Length > Players.IndexOf(player))
                 country = ddPlayerSides[Players.IndexOf(player)].SelectedItem.Text;

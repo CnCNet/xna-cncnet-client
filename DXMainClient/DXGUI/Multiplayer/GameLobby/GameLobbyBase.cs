@@ -82,7 +82,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             {
                 var oldGameMode = gameMode;
                 gameMode = value;
-                if (map != null && value != null && oldGameMode.Name != value.Name)
+                if (oldGameMode != null && value != null && oldGameMode.Name != value.Name)
                     UpdateDiscordPresence();
             }
         }
