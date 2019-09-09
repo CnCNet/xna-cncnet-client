@@ -36,7 +36,7 @@ namespace ClientCore.Statistics
                 // let's resize the array
                 byte[] temp = writeBuffer;
                 writeBuffer = new byte[reservedSpace];
-                for (int j = 0; j < temp.Length; j++)
+                for (int j = 0; j < temp.Length && j < writeBuffer.Length; j++)
                     writeBuffer[j] = temp[j];
             }
 
