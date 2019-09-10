@@ -361,8 +361,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (mapChangeInProgress)
                 return;
 
-            var checkBox = (GameLobbyCheckBox)sender;
-            checkBox.UserDefinedValue = checkBox.Checked;
             OnGameOptionChanged();
         }
 
