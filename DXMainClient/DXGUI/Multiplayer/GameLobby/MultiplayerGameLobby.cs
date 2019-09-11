@@ -46,6 +46,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 new ChatBoxCommand("RANDOMSTARTS", "Enables completely random starting locations (Tiberian Sun based games only).", true,
                     s => SetStartingLocationClearance(s)),
                 new ChatBoxCommand("ROLL", "Roll dice, for example /roll 3d6", false, RollDiceCommand),
+                new ChatBoxCommand("SAVEOPTIONS", "Save game option preset so it can be loaded later", false, HandleGameOptionPresetSaveCommand),
+                new ChatBoxCommand("LOADOPTIONS", "Load game option preset", true, HandleGameOptionPresetLoadCommand)
             };
         }
 
@@ -537,6 +539,21 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         protected void PrintDiceRollResult(string senderName, int dieSides, int[] results)
         {
             AddNotice($"{senderName} rolled {results.Length}d{dieSides} and got {string.Join(", ", results)}");
+        }
+
+        private void HandleGameOptionPresetSaveCommand(string presetName)
+        {
+            string error = AddGameOptionPreset(presetName);
+            if (!string.IsNullOrEmpty(error))
+                AddNotice(error);
+        }
+
+        private void HandleGameOptionPresetLoadCommand(string presetName)
+        {
+            if (LoadGameOptionPreset(presetName))
+                AddNotice("Game option preset loaded succesfully.");
+            else
+                AddNotice($"Preset {presetName} not found!");
         }
 
         protected abstract void SendChatMessage(string message);

@@ -16,6 +16,8 @@ namespace ClientCore
         public static readonly string GamePath = Directory.GetParent(Application.StartupPath).FullName + "\\";
 #endif
 
+        public static string ClientUserFilesPath => GamePath + "Client\\";
+
         public static event EventHandler PlayerNameChanged;
 
         public const string QRES_EXECUTABLE = "qres.dat";

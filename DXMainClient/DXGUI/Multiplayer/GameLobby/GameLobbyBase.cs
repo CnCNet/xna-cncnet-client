@@ -132,7 +132,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private MatchStatistics matchStatistics;
 
-        private bool mapChangeInProgress = false;
+        private bool disableGameOptionUpdateBroadcast = false;
 
         /// <summary>
         /// If set, the client will remove all starting waypoints from the map
@@ -348,7 +348,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private void Dropdown_SelectedIndexChanged(object sender, EventArgs e)
         {
-            if (mapChangeInProgress)
+            if (disableGameOptionUpdateBroadcast)
                 return;
 
             var dd = (GameLobbyDropDown)sender;
@@ -358,7 +358,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private void ChkBox_CheckedChanged(object sender, EventArgs e)
         {
-            if (mapChangeInProgress)
+            if (disableGameOptionUpdateBroadcast)
                 return;
 
             OnGameOptionChanged();
@@ -1678,7 +1678,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             lblMapAuthor.X = MapPreviewBox.Right - lblMapAuthor.Width;
 
-            mapChangeInProgress = true;
+            disableGameOptionUpdateBroadcast = true;
 
             // Clear forced options
             foreach (var ddGameOption in DropDowns)
@@ -1802,7 +1802,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             MapPreviewBox.Map = map;
             CopyPlayerDataToUI();
 
-            mapChangeInProgress = false;
+            disableGameOptionUpdateBroadcast = false;
         }
 
         private void ApplyForcedCheckBoxOptions(List<GameLobbyCheckBox> optionList,
@@ -2026,6 +2026,56 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             }
 
             return lowestEnemyAILevel + 1;
+        }
+
+        protected string AddGameOptionPreset(string name)
+        {
+            string error = GameOptionPreset.IsNameValid(name);
+            if (!string.IsNullOrEmpty(error))
+                return error;
+
+            GameOptionPreset preset = new GameOptionPreset(name);
+            foreach (GameLobbyCheckBox checkBox in CheckBoxes)
+            {
+                preset.AddCheckBoxValue(checkBox.Name, checkBox.Checked);
+            }
+
+            foreach (GameLobbyDropDown dropDown in DropDowns)
+            {
+                preset.AddDropDownValue(dropDown.Name, dropDown.SelectedIndex);
+            }
+
+            GameOptionPresets.Instance.AddPreset(preset);
+            return null;
+        }
+
+        public bool LoadGameOptionPreset(string name)
+        {
+            GameOptionPreset preset = GameOptionPresets.Instance.GetPreset(name);
+            if (preset == null)
+                return false;
+
+            disableGameOptionUpdateBroadcast = true;
+
+            var checkBoxValues = preset.GetCheckBoxValues();
+            foreach (var kvp in checkBoxValues)
+            {
+                GameLobbyCheckBox checkBox = CheckBoxes.Find(c => c.Name == kvp.Key);
+                if (checkBox != null && checkBox.AllowChanges && checkBox.AllowChecking)
+                    checkBox.Checked = kvp.Value;
+            }
+
+            var dropDownValues = preset.GetDropDownValues();
+            foreach (var kvp in dropDownValues)
+            {
+                GameLobbyDropDown dropDown = DropDowns.Find(d => d.Name == kvp.Key);
+                if (dropDown != null && dropDown.AllowDropDown)
+                    dropDown.SelectedIndex = kvp.Value;
+            }
+
+            disableGameOptionUpdateBroadcast = false;
+            OnGameOptionChanged();
+            return true;
         }
 
         protected abstract bool AllowPlayerOptionsChange();

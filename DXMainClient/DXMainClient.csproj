@@ -253,6 +253,7 @@
     <Compile Include="Domain\Multiplayer\CnCNet\HostedCnCNetGame.cs" />
     <Compile Include="Domain\Multiplayer\CnCNet\MapEventArgs.cs" />
     <Compile Include="Domain\Multiplayer\CnCNet\MapSharer.cs" />
+    <Compile Include="Domain\Multiplayer\GameOptionPresets.cs" />
     <Compile Include="Domain\Multiplayer\LAN\ClientIntCommandHandler.cs" />
     <Compile Include="Domain\Multiplayer\LAN\LANLobbyUser.cs" />
     <Compile Include="Domain\Multiplayer\LAN\LANPlayerInfo.cs" />
