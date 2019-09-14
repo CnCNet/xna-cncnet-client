@@ -30,13 +30,18 @@ namespace DTAClient.Domain
             }
             set
             {
-                PreviousPresence = CurrentPresence;
-                currentPresence = value;
                 if (!currentPresence.Equals(PreviousPresence))
+                {
+                    PreviousPresence = CurrentPresence;
+                    currentPresence = value;
                     client.SetPresence(currentPresence);
+                }
             }
         }
 
+        /// <summary>
+        /// RichPresence instance that was last displayed before the current one.
+        /// </summary>
         public RichPresence PreviousPresence { get; private set; }
         public DiscordHandler(WindowManager wm) : base(wm.Game)
         {
@@ -81,6 +86,9 @@ namespace DTAClient.Domain
 
         // Methods
 
+        /// <summary>
+        /// Updates Discord Rich Presence with default info.
+        /// </summary>
         public void UpdatePresence()
         {
             CurrentPresence = new RichPresence()
@@ -92,6 +100,10 @@ namespace DTAClient.Domain
                 }
             };
         }
+
+        /// <summary>
+        /// Updates Discord Rich Presence with simple state and details info.
+        /// </summary>
         public void UpdatePresence(string state, string details)
         {
             CurrentPresence = new RichPresence()
@@ -105,6 +117,9 @@ namespace DTAClient.Domain
             };
         }
 
+        /// <summary>
+        /// Updates Discord Rich Presence with info from game lobbies.
+        /// </summary>
         public void UpdatePresence(string map, string mode, string type, string state,
             int players, int maxPlayers, string side, string roomName,
             bool isHost = false, bool isPassworded = false,
@@ -133,7 +148,33 @@ namespace DTAClient.Domain
             };
         }
 
+        /// <summary>
+        /// Updates Discord Rich Presence with info from game loading lobbies.
+        /// </summary>
+        public void UpdatePresence(string map, string mode, string type, string state,
+            int players, int maxPlayers, string roomName,
+            bool isHost = false, bool resetTimer = false)
+        {
+            string stateString = $"{state} [{players}/{maxPlayers}] • {roomName}";
+            stateString += "💾";
+            if (isHost)
+                stateString += "👑";
+            CurrentPresence = new RichPresence()
+            {
+                State = stateString,
+                Details = $"{type} • {map} • {mode}",
+                Assets = new Assets()
+                {
+                    LargeImageKey = "logo"
+                },
+                Timestamps = (client.CurrentPresence.HasTimestamps() && !resetTimer) ?
+                    client.CurrentPresence.Timestamps : Timestamps.Now
+            };
+        }
 
+        /// <summary>
+        /// Updates Discord Rich Presence with info from skirmish "lobby".
+        /// </summary>
         public void UpdatePresence(string map, string mode, string state, string side, bool resetTimer = false)
         {
             string sideKey = new Regex("[^a-zA-Z0-9]").Replace(side.ToLower(), "");
@@ -152,6 +193,9 @@ namespace DTAClient.Domain
             };
         }
 
+        /// <summary>
+        /// Updates Discord Rich Presence with info from campaign screen.
+        /// </summary>
         public void UpdatePresence(string mission, string difficulty, bool resetTimer = false)
         {
             CurrentPresence = new RichPresence()
@@ -168,7 +212,6 @@ namespace DTAClient.Domain
         }
 
         // Event handlers
-
         private void OnReady(object sender, ReadyMessage args)
         {
             Logger.Log($"Discord: Received Ready from user {args.User.Username}");
