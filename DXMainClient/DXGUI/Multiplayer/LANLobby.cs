@@ -233,7 +233,7 @@ namespace DTAClient.DXGUI.Multiplayer
             lanGameLobby.Disable();
 
             lanGameLoadingLobby = new LANGameLoadingLobby(WindowManager, 
-                gameModes, chatColors);
+                gameModes, chatColors, discordHandler);
             DarkeningPanel.AddAndInitializeWithControl(WindowManager, lanGameLoadingLobby);
             lanGameLoadingLobby.Disable();
 
