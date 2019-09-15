@@ -127,8 +127,26 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         private void Keyboard_OnKeyPressed(object sender, KeyPressEventArgs e)
         {
-            if (Enabled && e.PressedKey == Keys.Enter)
-                BtnLogin_LeftClick(this, EventArgs.Empty);
+            if (Enabled)
+            {
+                switch (e.PressedKey)
+                {
+                    case Keys.Enter:
+                        BtnLogin_LeftClick(this, EventArgs.Empty);
+                        break;
+
+                    case Keys.Tab:
+                        if (tbPlayerEmail.IsActive)
+                        {
+                            WindowManager.SelectedControl = tbPlayerPassword;
+                        }
+                        else
+                        {
+                            WindowManager.SelectedControl = tbPlayerEmail;
+                        }
+                        break;
+                }
+            }
         }
 
         private void BtnCancel_LeftClick(object sender, EventArgs e)
