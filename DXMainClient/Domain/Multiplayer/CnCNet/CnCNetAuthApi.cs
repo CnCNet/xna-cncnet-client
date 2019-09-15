@@ -15,7 +15,8 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
         public event Action<bool> Initialized;
         public event Action<object> AccountUpdated;
 
-        public const string API_URL = "https://ladder.cncnet.org/api/v1/";
+        public static string API_URL = "https://ladder.cncnet.org/api/v1/";
+        public static string API_REGISTER_URL = "https://ladder.cncnet.org/auth/register";
 
         public string Nickname { get; set; }
         public string AuthToken { get; private set; }
@@ -164,7 +165,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
         }
 
         /// <summary>
-        /// Gets players account names from their account
+        /// Gets players nicknames names from their account
         /// </summary>
         /// <returns></returns>
         public bool GetAccounts()

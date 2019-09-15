@@ -6,6 +6,7 @@ using Rampastring.XNAUI;
 using Rampastring.XNAUI.Input;
 using Rampastring.XNAUI.XNAControls;
 using System;
+using System.Diagnostics;
 using System.Net;
 
 namespace DTAClient.DXGUI.Multiplayer.CnCNet
@@ -19,8 +20,6 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         private XNALabel lblPlayerPassword;
         private XNAPasswordBox tbPlayerPassword;
         private XNALabel lblLoginWindowTitle;
-
-        private XNAButton loginBtn;
 
         public CnCNetAccountLoginWindow(WindowManager windowManager) : base(windowManager)
         {
@@ -45,16 +44,22 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             AddChild(lblLoginWindowTitle);
 
-            loginBtn = new XNAClientButton(WindowManager);
-            loginBtn.Name = "btnOK";
-            loginBtn.ClientRectangle = new Rectangle(12,ClientRectangle.Bottom - 35, 92, 23);
-            loginBtn.Text = "Login";
-            loginBtn.LeftClick += BtnLogin_LeftClick;
+            var btnLogin = new XNAClientButton(WindowManager);
+            btnLogin.Name = "btnLogin";
+            btnLogin.ClientRectangle = new Rectangle(12, ClientRectangle.Bottom - 35, 92, 23);
+            btnLogin.Text = "Login";
+            btnLogin.LeftClick += BtnLogin_LeftClick;
+
+            var btnRegister = new XNAClientButton(WindowManager);
+            btnRegister.Name = "btnRegister";
+            btnRegister.ClientRectangle = new Rectangle(btnLogin.Width + 25, ClientRectangle.Bottom - 35, 92, 23);
+            btnRegister.Text = "Register";
+            btnRegister.LeftClick += BtnRegister_LeftClick;
 
             var btnCancel = new XNAClientButton(WindowManager);
             btnCancel.Name = "btnCancel";
             btnCancel.ClientRectangle = new Rectangle(Width - 104,
-                loginBtn.Y, 92, 23);
+                btnLogin.Y, 92, 23);
             btnCancel.Text = "Cancel";
             btnCancel.LeftClick += BtnCancel_LeftClick;
 
@@ -91,14 +96,20 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             AddChild(tbPlayerPassword);
             AddChild(lblPlayerEmail);
             AddChild(lblPlayerPassword);
-            AddChild(loginBtn);
+            AddChild(btnLogin);
             AddChild(btnCancel);
+            AddChild(btnRegister);
 
             base.Initialize();
 
             CenterOnParent();
 
             Keyboard.OnKeyPressed += Keyboard_OnKeyPressed;
+        }
+
+        private void BtnRegister_LeftClick(object sender, EventArgs e)
+        {
+            Process.Start(CnCNetAuthApi.API_REGISTER_URL);
         }
 
         private void Keyboard_OnKeyPressed(object sender, KeyPressEventArgs e)
