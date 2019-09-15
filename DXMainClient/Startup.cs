@@ -12,6 +12,7 @@ using System.Security.Principal;
 using System.DirectoryServices;
 using System.Linq;
 using DTAClient.Online;
+using DTAClient.Domain.Multiplayer.CnCNet;
 
 namespace DTAClient
 {

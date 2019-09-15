@@ -1,6 +1,7 @@
 ﻿using ClientCore;
 using ClientCore.CnCNet5;
 using ClientGUI;
+using DTAClient.Domain.Multiplayer.CnCNet;
 using Microsoft.Xna.Framework;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
@@ -25,6 +26,10 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         public event EventHandler Cancelled;
         public event EventHandler Connect;
+
+        private CnCNetAccountLoginWindow accountLoginWindow;
+
+        private bool CnCNetLoginEnabled = ClientConfiguration.Instance.LocalGame == "YR";
 
         public override void Initialize()
         {

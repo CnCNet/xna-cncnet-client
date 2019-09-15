@@ -85,6 +85,9 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         private TunnelHandler tunnelHandler;
 
         private CnCNetLoginWindow loginWindow;
+        private CnCNetAccountLoginPrompt loginWindowPrompt;
+        private CnCNetAccountLoginWindow accountLoginWindow;
+        private CnCNetAccountManagerWindow accountManagerWindow;
 
         private TopBar topBar;
 
@@ -162,11 +165,11 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             playerContextMenu.ClientRectangle = new Rectangle(0, 0, 150, 2);
             playerContextMenu.Enabled = false;
             playerContextMenu.Visible = false;
-            playerContextMenu.AddItem("Private Message", () => 
+            playerContextMenu.AddItem("Private Message", () =>
                 PerformUserListContextMenuAction(iu => pmWindow.InitPM(iu.Name)));
-            playerContextMenu.AddItem("Add Friend", () => 
+            playerContextMenu.AddItem("Add Friend", () =>
                 PerformUserListContextMenuAction(iu => ToggleFriend(iu.Name)));
-            playerContextMenu.AddItem("Ignore User", () => 
+            playerContextMenu.AddItem("Ignore User", () =>
                 PerformUserListContextMenuAction(iu => ToggleIgnoreUser(iu.Ident)));
 
             lbChatMessages = new ChatListBox(WindowManager);
@@ -216,7 +219,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             int selectedColor = UserINISettings.Instance.ChatColor;
 
             ddColor.SelectedIndex = selectedColor >= ddColor.Items.Count || selectedColor < 0
-                ? ClientConfiguration.Instance.DefaultPersonalChatColorIndex:
+                ? ClientConfiguration.Instance.DefaultPersonalChatColorIndex :
                 selectedColor;
             SetChatColor();
             ddColor.SelectedIndexChanged += DdColor_SelectedIndexChanged;
@@ -388,6 +391,30 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             loginWindowPanel.AddChild(loginWindow);
             loginWindow.Disable();
 
+            if (ClientConfiguration.Instance.UseCnCNetAuthApi)
+            {
+                loginWindowPrompt = new CnCNetAccountLoginPrompt(WindowManager);
+                loginWindowPrompt.ConnectAsGuest += LoginWindowPrompt_ConnectAsGuest;
+                loginWindowPrompt.ConnectWithAccount += LoginWindowPrompt_ConnectWithAccount;
+
+                accountLoginWindow = new CnCNetAccountLoginWindow(WindowManager);
+                accountLoginWindow.LoginSuccess += AccountLoginWindow_LoginSuccess;
+
+                accountManagerWindow = new CnCNetAccountManagerWindow(WindowManager);
+                accountManagerWindow.Connect += AccountManagerWindow_Connect;
+
+                AddChild(loginWindowPrompt);
+                AddChild(accountLoginWindow);
+                AddChild(accountManagerWindow);
+
+                CnCNetAuthApi.Instance.Initialized += CnCNetAuthApi_Initialized;
+                CnCNetAuthApi.Instance.InitializeAccount();
+            }
+            else
+            {
+                EnableGuestLoginWindow();
+            }
+
             passwordRequestWindow = new PasswordRequestWindow(WindowManager);
             passwordRequestWindow.PasswordEntered += PasswordRequestWindow_PasswordEntered;
 
@@ -404,6 +431,65 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             GameProcessLogic.GameProcessStarted += SharedUILogic_GameProcessStarted;
             GameProcessLogic.GameProcessExited += SharedUILogic_GameProcessExited;
+        }
+
+        /// <summary>
+        /// Login with nickname picked from account
+        /// </summary>
+        /// <param name="obj"></param>
+        private void AccountManagerWindow_Connect(object obj)
+        {
+            accountManagerWindow.Disable();
+            accountLoginWindow.Disable();
+            loginWindow.Disable();
+
+            connectionManager.Connect();
+
+            SetLogOutButtonText();
+            StatisticsSender.Instance.SendCnCNet();
+        }
+
+        private void AccountLoginWindow_LoginSuccess(bool obj)
+        {
+            accountManagerWindow.Enable();
+        }
+
+        private void CnCNetAuthApi_Initialized(bool authed)
+        {
+            CnCNetAuthApi.Instance.Initialized -= CnCNetAuthApi_Initialized;
+
+            UpdateAccountLoginState();
+        }
+
+        private void UpdateAccountLoginState()
+        {
+            loginWindowPrompt.Disable();
+            accountLoginWindow.Disable();
+            accountManagerWindow.Disable();
+
+            if (CnCNetAuthApi.Instance.IsAuthed)
+            {
+                accountManagerWindow.Enable();
+            }
+            else
+            {
+                loginWindowPrompt.Enable();
+            }
+        }
+
+        private void LoginWindowPrompt_ConnectWithAccount(object obj)
+        {
+            accountLoginWindow.Enable();
+        }
+
+        private void EnableGuestLoginWindow()
+        {
+            loginWindow.Enable();
+        }
+
+        private void LoginWindowPrompt_ConnectAsGuest(object obj)
+        {
+            EnableGuestLoginWindow();
         }
 
         /// <summary>
@@ -1280,13 +1366,20 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             Visible = true;
             Enabled = true;
 
-            if (!connectionManager.IsConnected && !connectionManager.IsAttemptingConnection)
+            if (ClientConfiguration.Instance.UseCnCNetAuthApi)
             {
-                loginWindow.Enable();
-                loginWindow.LoadSettings();
+                UpdateAccountLoginState();
             }
+            else
+            {
+                if (!connectionManager.IsConnected && !connectionManager.IsAttemptingConnection)
+                {
+                    loginWindow.Enable();
+                    loginWindow.LoadSettings();
+                }
 
-            SetLogOutButtonText();
+                SetLogOutButtonText();
+            }
         }
 
         public void SwitchOff()

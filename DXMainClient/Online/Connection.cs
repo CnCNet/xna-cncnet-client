@@ -614,8 +614,7 @@ namespace DTAClient.Online
         /// <param name="parameters">(out) The parameters of the command.</param>
         private void ParseIrcMessage(string message, out string prefix, out string command, out List<string> parameters)
         {
-            int prefixEnd = -1, trailingStart = message.Length;
-            string trailing = null;
+            int prefixEnd = -1;
             prefix = command = String.Empty;
             parameters = new List<string>();
 
@@ -631,7 +630,8 @@ namespace DTAClient.Online
             // Grab the trailing if it is present. If a message contains
             // a space immediately following a colon, all characters after
             // the colon are the trailing part.
-            trailingStart = message.IndexOf(" :");
+            int trailingStart = message.IndexOf(" :");
+            string trailing = null;
             if (trailingStart >= 0)
                 trailing = message.Substring(trailingStart + 2);
             else
@@ -663,7 +663,7 @@ namespace DTAClient.Online
 
             // If the trailing part is valid add the trailing part to the
             // end of the parameters.
-            if (!String.IsNullOrEmpty(trailing))
+            if (!string.IsNullOrEmpty(trailing))
                 parameters.Add(trailing);
         }
 

@@ -430,6 +430,8 @@ namespace ClientCore
 #endif
         }
 
+        public bool UseCnCNetAuthApi => clientDefinitionsIni.GetBooleanValue(SETTINGS, "CnCNetAuthApi", true);
+
         /// <summary>
         /// Returns the name of the game executable file that is used on
         /// Linux and macOS.
