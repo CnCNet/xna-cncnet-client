@@ -21,6 +21,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         private XNALabel lblPlayerPassword;
         private XNAPasswordBox tbPlayerPassword;
         private XNALabel lblLoginWindowTitle;
+        private XNALabel lblError;
 
         public CnCNetAccountLoginWindow(WindowManager windowManager) : base(windowManager)
         {
@@ -30,7 +31,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         {
             Name = "CnCNetAccountLoginWindow";
             BackgroundTexture = AssetLoader.LoadTextureUncached("logindialogbg.png");
-            ClientRectangle = new Rectangle(0, 0, 350, 150);
+            ClientRectangle = new Rectangle(0, 0, 350, 200);
 
             lblLoginWindowTitle = new XNALabel(WindowManager);
             lblLoginWindowTitle.Name = "lblWindowTitle";
@@ -81,7 +82,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             lblPlayerPassword.FontIndex = 1;
             lblPlayerPassword.Text = "Password:";
             lblPlayerPassword.ClientRectangle = new Rectangle(
-                12, tbPlayerEmail.ClientRectangle.Y + 25,
+                12, tbPlayerEmail.ClientRectangle.Y + 35,
                 lblPlayerPassword.ClientRectangle.Width,
                 lblPlayerPassword.ClientRectangle.Height
             );
@@ -92,6 +93,17 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             tbPlayerPassword.ClientRectangle = new Rectangle(100, lblPlayerPassword.ClientRectangle.Y, 200, 19);
             tbPlayerPassword.Text = "";
 
+            lblError = new XNALabel(WindowManager);
+            lblError.Name = "lblPlayerPassword";
+            lblError.FontIndex = 1;
+            lblError.TextColor = Color.Red;
+            lblError.Text = "";
+            lblError.ClientRectangle = new Rectangle(
+                12, tbPlayerPassword.ClientRectangle.Y + 35,
+                lblError.ClientRectangle.Width,
+                lblError.ClientRectangle.Height
+            );
+
             AddChild(tbPlayerEmail);
             AddChild(tbPlayerPassword);
             AddChild(lblPlayerEmail);
@@ -99,6 +111,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             AddChild(btnLogin);
             AddChild(btnCancel);
             AddChild(btnRegister);
+            AddChild(lblError);
 
             base.Initialize();
 
@@ -126,8 +139,11 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         private void BtnLogin_LeftClick(object sender, EventArgs e)
         {
-            if (string.IsNullOrEmpty(tbPlayerEmail.Text))
+            if (string.IsNullOrEmpty(tbPlayerEmail.Text) || string.IsNullOrEmpty(tbPlayerPassword.Password))
+            {
+                lblError.Text = "Email and password are required";
                 return;
+            }
 
             Login();
         }
@@ -142,6 +158,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             else
             {
                 // Handle error message
+                lblError.Text = CnCNetAuthApi.Instance.ErrorMessage;
             }
         }
     }

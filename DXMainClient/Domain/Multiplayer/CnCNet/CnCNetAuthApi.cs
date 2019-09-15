@@ -137,7 +137,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                 switch (statusCode.ToString())
                 {
                     case "Unauthorized":
-                        ErrorMessage = "This account exists already, try a different username";
+                        ErrorMessage = "You have entered an incorrect email or password";
                         break;
 
                     default:
