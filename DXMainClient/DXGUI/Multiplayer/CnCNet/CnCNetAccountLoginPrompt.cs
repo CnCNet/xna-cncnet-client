@@ -27,7 +27,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         {
             Name = "CnCNetAccountLoginPrompt";
             BackgroundTexture = AssetLoader.LoadTextureUncached("logindialogbg.png");
-            ClientRectangle = new Rectangle(0, 0, 400, 150);
+            ClientRectangle = new Rectangle(0, 0, 350, 150);
 
             lblWindowTitle = new XNALabel(WindowManager);
             lblWindowTitle.Name = "lblWindowTitle";

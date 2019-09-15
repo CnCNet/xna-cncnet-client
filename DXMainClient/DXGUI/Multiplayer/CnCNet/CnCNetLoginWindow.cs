@@ -11,25 +11,21 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 {
     class CnCNetLoginWindow : XNAWindow
     {
-        public CnCNetLoginWindow(WindowManager windowManager) : base(windowManager)
-        {
-        }
-
-        XNALabel lblConnectToCnCNet;
-        XNATextBox tbPlayerName;
-        XNALabel lblPlayerName;
-        XNAClientCheckBox chkRememberMe;
-        XNAClientCheckBox chkPersistentMode;
-        XNAClientCheckBox chkAutoConnect;
-        XNAClientButton btnConnect;
-        XNAClientButton btnCancel;
+        private XNALabel lblConnectToCnCNet;
+        private XNATextBox tbPlayerName;
+        private XNALabel lblPlayerName;
+        private XNAClientCheckBox chkRememberMe;
+        private XNAClientCheckBox chkPersistentMode;
+        private XNAClientCheckBox chkAutoConnect;
+        private XNAClientButton btnConnect;
+        private XNAClientButton btnCancel;
 
         public event EventHandler Cancelled;
         public event EventHandler Connect;
 
-        private CnCNetAccountLoginWindow accountLoginWindow;
-
-        private bool CnCNetLoginEnabled = ClientConfiguration.Instance.LocalGame == "YR";
+        public CnCNetLoginWindow(WindowManager windowManager) : base(windowManager)
+        {
+        }
 
         public override void Initialize()
         {

@@ -399,6 +399,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
                 accountLoginWindow = new CnCNetAccountLoginWindow(WindowManager);
                 accountLoginWindow.LoginSuccess += AccountLoginWindow_LoginSuccess;
+                accountLoginWindow.Cancel += AccountLoginWindow_Cancel;
 
                 accountManagerWindow = new CnCNetAccountManagerWindow(WindowManager);
                 accountManagerWindow.Connect += AccountManagerWindow_Connect;
@@ -431,6 +432,11 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             GameProcessLogic.GameProcessStarted += SharedUILogic_GameProcessStarted;
             GameProcessLogic.GameProcessExited += SharedUILogic_GameProcessExited;
+        }
+
+        private void AccountLoginWindow_Cancel(object obj)
+        {
+            UpdateAccountLoginState();
         }
 
         /// <summary>

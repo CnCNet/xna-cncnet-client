@@ -25,7 +25,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
         public List<AuthPlayer> Accounts { get; private set; }
         public string ErrorMessage { get; private set; }
 
-        private string TokenPath = "SOFTWARE\\CnCNet\\QuickMatch";
+        private string tokenPath = "SOFTWARE\\CnCNet\\QuickMatch";
 
         public CnCNetAuthApi()
         {
@@ -52,7 +52,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
         {
             try
             {
-                RegistryKey key = Registry.CurrentUser.OpenSubKey(@TokenPath);
+                RegistryKey key = Registry.CurrentUser.OpenSubKey(tokenPath);
                 key.GetValue("accessToken", "");
                 if (key != null)
                 {
@@ -122,7 +122,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                 AuthToken authToken = JsonConvert.DeserializeObject<AuthToken>(response);
                 AuthToken = authToken.Token;
 
-                RegistryKey key = Registry.CurrentUser.CreateSubKey(@TokenPath);
+                RegistryKey key = Registry.CurrentUser.CreateSubKey(tokenPath);
                 key.SetValue("accessToken", AuthToken);
                 key.Close();
 
@@ -139,11 +139,11 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                     case "Unauthorized":
                         ErrorMessage = "This account exists already, try a different username";
                         break;
+
                     default:
                         ErrorMessage = "An error occurred, status code: " + statusCode;
                         break;
                 }
-
                 return false;
             }
         }
@@ -152,7 +152,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
         {
             try
             {
-                RegistryKey key = Registry.CurrentUser.CreateSubKey(@TokenPath);
+                RegistryKey key = Registry.CurrentUser.CreateSubKey(tokenPath);
                 key.SetValue("accessToken", "");
                 key.Close();
             }

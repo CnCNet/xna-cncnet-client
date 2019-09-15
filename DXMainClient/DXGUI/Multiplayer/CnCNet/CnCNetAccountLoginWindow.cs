@@ -13,6 +13,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 {
     public class CnCNetAccountLoginWindow : XNAWindow
     {
+        public event Action<object> Cancel;
         public event Action<bool> LoginSuccess;
 
         private XNALabel lblPlayerEmail;
@@ -29,20 +30,19 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         {
             Name = "CnCNetAccountLoginWindow";
             BackgroundTexture = AssetLoader.LoadTextureUncached("logindialogbg.png");
-            ClientRectangle = new Rectangle(0, 0, 400, 150);
+            ClientRectangle = new Rectangle(0, 0, 350, 150);
 
             lblLoginWindowTitle = new XNALabel(WindowManager);
-            lblLoginWindowTitle.Name = "lblConnectToCnCNet";
+            lblLoginWindowTitle.Name = "lblWindowTitle";
             lblLoginWindowTitle.FontIndex = 1;
             lblLoginWindowTitle.Text = "LOGIN TO CNCNET";
 
+            AddChild(lblLoginWindowTitle);
+            lblLoginWindowTitle.CenterOnParent();
             lblLoginWindowTitle.ClientRectangle = new Rectangle(
-                12, 12,
+                lblLoginWindowTitle.X, 12,
                 lblLoginWindowTitle.Width,
                 lblLoginWindowTitle.Height);
-
-
-            AddChild(lblLoginWindowTitle);
 
             var btnLogin = new XNAClientButton(WindowManager);
             btnLogin.Name = "btnLogin";
@@ -120,6 +120,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         private void BtnCancel_LeftClick(object sender, EventArgs e)
         {
+            Cancel?.Invoke(this);
             Disable();
         }
 

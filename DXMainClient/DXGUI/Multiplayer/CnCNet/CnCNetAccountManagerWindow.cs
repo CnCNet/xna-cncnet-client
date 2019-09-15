@@ -17,10 +17,9 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         public event Action<object> Logout;
         public event Action<object> Connect;
 
-        private XNALabel lblWindowTitle;
+        private XNALabel lblAccountManager;
         private XNADropDown ddAccounts;
         private XNALabel lblAccounts;
-
         private XNAButton btnConnect;
 
         public CnCNetAccountManagerWindow(WindowManager windowManager) : base(windowManager)
@@ -33,17 +32,17 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             BackgroundTexture = AssetLoader.LoadTextureUncached("logindialogbg.png");
             ClientRectangle = new Rectangle(0, 0, 400, 250);
 
-            lblWindowTitle = new XNALabel(WindowManager);
-            lblWindowTitle.Name = "lblConnectToCnCNet";
-            lblWindowTitle.FontIndex = 1;
-            lblWindowTitle.Text = "YOUR NICKNAMES";
+            lblAccountManager = new XNALabel(WindowManager);
+            lblAccountManager.Name = "lblAccountManager";
+            lblAccountManager.FontIndex = 1;
+            lblAccountManager.Text = "YOUR NICKNAMES";
 
-            lblWindowTitle.ClientRectangle = new Rectangle(
+            lblAccountManager.ClientRectangle = new Rectangle(
                 12, 12,
-                lblWindowTitle.Width,
-                lblWindowTitle.Height);
+                lblAccountManager.Width,
+                lblAccountManager.Height);
 
-            AddChild(lblWindowTitle);
+            AddChild(lblAccountManager);
 
             btnConnect = new XNAClientButton(WindowManager);
             btnConnect.Name = "btnConnect";
