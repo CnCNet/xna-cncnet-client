@@ -122,7 +122,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         private void BtnRegister_LeftClick(object sender, EventArgs e)
         {
-            Process.Start(CnCNetAuthApi.API_REGISTER_URL);
+            Process.Start(CnCNetAPI.API_REGISTER_URL);
         }
 
         private void Keyboard_OnKeyPressed(object sender, KeyPressEventArgs e)
@@ -168,7 +168,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         private void Login()
         {
-            bool success = CnCNetAuthApi.Instance.Login(tbPlayerEmail.Text, tbPlayerPassword.Password);
+            bool success = CnCNetAPI.Instance.Login(tbPlayerEmail.Text, tbPlayerPassword.Password);
             if (success)
             {
                 LoginSuccess?.Invoke(true);
@@ -176,7 +176,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             else
             {
                 // Handle error message
-                lblError.Text = CnCNetAuthApi.Instance.ErrorMessage;
+                lblError.Text = CnCNetAPI.Instance.ErrorMessage;
             }
         }
     }

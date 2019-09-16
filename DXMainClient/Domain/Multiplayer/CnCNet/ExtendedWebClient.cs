@@ -14,6 +14,12 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
         public ExtendedWebClient(int timeout)
         {
             this.timeout = timeout;
+
+            // Inteferes with post requests to API
+            // https://docs.microsoft.com/en-us/dotnet/api/system.net.servicepointmanager.expect100continue?view=netframework-4.8
+
+            ServicePointManager.Expect100Continue = false; 
+            ServicePointManager.DefaultConnectionLimit = 5; // Default is 2
         }
 
         private int timeout;
@@ -22,6 +28,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
         {
             WebRequest webRequest = base.GetWebRequest(address);
             webRequest.Timeout = timeout;
+
             return webRequest;
         }
     }

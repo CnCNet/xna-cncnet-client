@@ -106,6 +106,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         private bool isJoiningGame = false;
 
         private CancellationTokenSource gameCheckCancellation;
+        private CancellationTokenSource verifyAccountCancellation;
 
         public override void Initialize()
         {
@@ -279,7 +280,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             PostUIInit();
         }
-
+        
         private void OnCnCNetGameCountUpdated(object sender, PlayerCountEventArgs e)
         {
             UpdateOnlineCount(e.PlayerCount);
@@ -391,7 +392,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             loginWindowPanel.AddChild(loginWindow);
             loginWindow.Disable();
 
-            if (ClientConfiguration.Instance.UseCnCNetAuthApi)
+            if (ClientConfiguration.Instance.UseCnCNetAPI)
             {
                 loginWindowPrompt = new CnCNetAccountLoginPrompt(WindowManager);
                 loginWindowPrompt.ConnectAsGuest += LoginWindowPrompt_ConnectAsGuest;
@@ -408,8 +409,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 AddChild(accountLoginWindow);
                 AddChild(accountManagerWindow);
 
-                CnCNetAuthApi.Instance.Initialized += CnCNetAuthApi_Initialized;
-                CnCNetAuthApi.Instance.InitializeAccount();
+                CnCNetAPI.Instance.Initialized += CnCNetAuthApi_Initialized;
+                CnCNetAPI.Instance.InitializeAccount();
             }
             else
             {
@@ -462,7 +463,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         private void CnCNetAuthApi_Initialized(bool authed)
         {
-            CnCNetAuthApi.Instance.Initialized -= CnCNetAuthApi_Initialized;
+            CnCNetAPI.Instance.Initialized -= CnCNetAuthApi_Initialized;
 
             UpdateAccountLoginState();
         }
@@ -473,7 +474,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             accountLoginWindow.Disable();
             accountManagerWindow.Disable();
 
-            if (CnCNetAuthApi.Instance.IsAuthed)
+            if (CnCNetAPI.Instance.IsAuthed)
             {
                 accountManagerWindow.Enable();
             }
@@ -639,7 +640,6 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         {
             connectionManager.Connect();
             loginWindow.Disable();
-
             SetLogOutButtonText();
             StatisticsSender.Instance.SendCnCNet();
         }
@@ -1024,7 +1024,17 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             }
 
             if (gameCheckCancellation != null)
+            {
                 gameCheckCancellation.Cancel();
+            }
+            
+            if (ClientConfiguration.Instance.UseCnCNetAPI)
+            {
+                if (verifyAccountCancellation != null)
+                {
+                    verifyAccountCancellation.Cancel();
+                }
+            }
         }
 
         private void ConnectionManager_WelcomeMessageReceived(object sender, EventArgs e)
@@ -1092,6 +1102,48 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             gameCheck.InitializeService(gameCheckCancellation);
         }
 
+        private void CnCNetVerifyAccountsTask_VerifyCall(object obj)
+        {
+            CnCNetVerifyAccountsTask.VerifyCall += CnCNetVerifyAccountsTask_VerifyCall;
+            UpdateVerifiedUsers();
+        }
+
+        /// <summary>
+        /// Sets verified users 
+        /// </summary>
+        private void UpdateVerifiedUsers()
+        {
+            List<string> idents = new List<string>();
+            foreach (ChannelUser user in currentChatChannel.Users)
+            {
+                if (user.IRCUser.Ident != null)
+                {
+                    idents.Add(user.IRCUser.Ident);
+                }
+            }
+
+            CnCNetAPI.Instance.VerifyAccountsComplete += CnCNetAuthApi_VerifyAccountsComplete;
+            CnCNetAPI.Instance.VerifyAccounts(idents);
+        }
+
+        /// <summary>
+        /// Update accounts that are returned as verified
+        /// </summary>
+        /// <param name="verifiedAccounts"></param>
+        private void CnCNetAuthApi_VerifyAccountsComplete(List<VerifiedAccounts> verifiedAccounts)
+        {
+            CnCNetAPI.Instance.VerifyAccountsComplete -= CnCNetAuthApi_VerifyAccountsComplete;
+
+            foreach (VerifiedAccounts user in verifiedAccounts)
+            {
+                var verifiedUser = currentChatChannel.Users.Find(u => u.IRCUser.Ident == user.ident);
+                if (verifiedUser != null)
+                {
+                    verifiedUser.IRCUser.IsVerified = true;
+                }
+            }
+        }
+
         private void DdCurrentChannel_SelectedIndexChanged(object sender, EventArgs e)
         {
             if (currentChatChannel != null)
@@ -1125,6 +1177,11 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             currentChatChannel.UserGameIndexUpdated += CurrentChatChannel_UserGameIndexUpdated;
             connectionManager.SetMainChannel(currentChatChannel);
 
+            if (ClientConfiguration.Instance.UseCnCNetAPI)
+            {
+                currentChatChannel.UserListReceived += VerifyUserList;
+            }
+
             lbPlayerList.TopIndex = 0;
 
             lbChatMessages.TopIndex = 0;
@@ -1138,6 +1195,19 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             {
                 currentChatChannel.Join();
                 currentChatChannel.RequestUserInfo();
+            }
+        }
+
+        private void VerifyUserList(object sender, EventArgs e)
+        {
+            currentChatChannel.UserListReceived -= VerifyUserList;
+                
+            if (verifyAccountCancellation == null)
+            {
+                verifyAccountCancellation = new CancellationTokenSource();
+
+                CnCNetVerifyAccountsTask.VerifyCall += CnCNetVerifyAccountsTask_VerifyCall;
+                CnCNetVerifyAccountsTask.InitializeService(verifyAccountCancellation);
             }
         }
 
@@ -1372,7 +1442,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             Visible = true;
             Enabled = true;
 
-            if (ClientConfiguration.Instance.UseCnCNetAuthApi)
+            if (ClientConfiguration.Instance.UseCnCNetAPI)
             {
                 UpdateAccountLoginState();
             }

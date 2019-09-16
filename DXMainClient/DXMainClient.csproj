@@ -6,7 +6,7 @@
     <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{97458C1E-2E6C-4C5C-93C7-16A6712802E9}</ProjectGuid>
-    <OutputType>WinExe</OutputType>
+    <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>DTAClient</RootNamespace>
     <AssemblyName>DTAClient</AssemblyName>
@@ -246,9 +246,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Domain\Multiplayer\AllianceHolder.cs" />
-    <Compile Include="Domain\Multiplayer\CnCNet\CnCNetAuthApi.cs" />
+    <Compile Include="Domain\Multiplayer\CnCNet\CnCNetAPI.cs" />
     <Compile Include="Domain\Multiplayer\CnCNet\CnCNetPlayerCountTask.cs" />
     <Compile Include="Domain\Multiplayer\CnCNet\CnCNetTunnel.cs" />
+    <Compile Include="Domain\Multiplayer\CnCNet\CnCNetVerifyAccountsTask.cs" />
     <Compile Include="Domain\Multiplayer\CnCNet\ExtendedWebClient.cs">
       <SubType>Component</SubType>
     </Compile>

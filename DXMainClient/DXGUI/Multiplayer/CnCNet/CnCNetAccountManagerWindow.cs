@@ -80,7 +80,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             Keyboard.OnKeyPressed += Keyboard_OnKeyPressed;
 
-            CnCNetAuthApi.Instance.AccountUpdated += CnCNetAuthApi_AccountUpdated;
+            CnCNetAPI.Instance.AccountUpdated += CnCNetAuthApi_AccountUpdated;
         }
 
         private void CnCNetAuthApi_AccountUpdated(object obj)
@@ -96,7 +96,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         private void BtnLogout_LeftClick(object sender, EventArgs e)
         {
-            CnCNetAuthApi.Instance.Logout();
+            CnCNetAPI.Instance.Logout();
             Disable();
         }
 
@@ -124,9 +124,9 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         private void PopulateAccountList()
         {
-            for (int i = 0; i < CnCNetAuthApi.Instance.Accounts.Count; i++)
+            for (int i = 0; i < CnCNetAPI.Instance.Accounts.Count; i++)
             {
-                AuthPlayer player = CnCNetAuthApi.Instance.Accounts[i];
+                AuthPlayer player = CnCNetAPI.Instance.Accounts[i];
 
                 XNADropDownItem ddItem = new XNADropDownItem();
                 ddItem.Text = player.username;

@@ -11,6 +11,8 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
     /// </summary>
     public static class CnCNetPlayerCountTask
     {
+        private const int REQUEST_TIMEOUT = 10000; // In milliseconds
+
         public static int PlayerCount { get; private set; }
 
         private static int REFRESH_INTERVAL = 60000; // 1 minute
@@ -50,34 +52,34 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
         {
             try
             {
-                WebClient client = new WebClient();
-
-                Stream data = client.OpenRead("http://api.cncnet.org/status");
-                
-                string info = string.Empty;
-
-                using (StreamReader reader = new StreamReader(data))
+                using (ExtendedWebClient client = new ExtendedWebClient(REQUEST_TIMEOUT))
                 {
-                    info = reader.ReadToEnd();
-                }
+                    Stream data = client.OpenRead("http://api.cncnet.org/status");
 
-                info = info.Replace("{", String.Empty);
-                info = info.Replace("}", String.Empty);
-                info = info.Replace("\"", String.Empty);
-                string[] values = info.Split(new char[] { ',' });
+                    string info = string.Empty;
 
-                int numGames = -1;
-
-                foreach (string value in values)
-                {
-                    if (value.Contains(cncnetLiveStatusIdentifier))
+                    using (StreamReader reader = new StreamReader(data))
                     {
-                        numGames = Convert.ToInt32(value.Substring(cncnetLiveStatusIdentifier.Length + 1));
-                        return numGames;
+                        info = reader.ReadToEnd();
                     }
-                }
 
-                return numGames;
+                    info = info.Replace("{", String.Empty);
+                    info = info.Replace("}", String.Empty);
+                    info = info.Replace("\"", String.Empty);
+                    string[] values = info.Split(new char[] { ',' });
+
+                    int numGames = -1;
+
+                    foreach (string value in values)
+                    {
+                        if (value.Contains(cncnetLiveStatusIdentifier))
+                        {
+                            numGames = Convert.ToInt32(value.Substring(cncnetLiveStatusIdentifier.Length + 1));
+                            return numGames;
+                        }
+                    }
+                    return numGames;
+                }
             }
             catch
             {

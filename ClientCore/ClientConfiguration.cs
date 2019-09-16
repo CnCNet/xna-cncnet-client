@@ -1,6 +1,7 @@
 ﻿using System;
 using Rampastring.Tools;
 using System.IO;
+using Microsoft.Win32;
 
 namespace ClientCore
 {
@@ -430,7 +431,7 @@ namespace ClientCore
 #endif
         }
 
-        public bool UseCnCNetAuthApi => clientDefinitionsIni.GetBooleanValue(SETTINGS, "CnCNetAuthApi", true);
+        public bool UseCnCNetAPI => clientDefinitionsIni.GetBooleanValue(SETTINGS, "UseCnCNetAPI", true);
 
         /// <summary>
         /// Returns the name of the game executable file that is used on
