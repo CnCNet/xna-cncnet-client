@@ -6,7 +6,7 @@
     <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{97458C1E-2E6C-4C5C-93C7-16A6712802E9}</ProjectGuid>
-    <OutputType>Exe</OutputType>
+    <OutputType>WinExe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>DTAClient</RootNamespace>
     <AssemblyName>DTAClient</AssemblyName>
@@ -219,9 +219,9 @@
     <Reference Include="MapThumbnailExtractor">
       <HintPath>..\References\MapThumbnailExtractor.dll</HintPath>
     </Reference>
-    <Reference Include="Newtonsoft.Json, Version=12.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+    <Reference Include="Newtonsoft.Json, Version=6.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\..\..\Downloads\Newtonsoft.Json.dll</HintPath>
+      <HintPath>..\References\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="Rampastring.Tools, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -290,13 +290,13 @@
     <Compile Include="DXGUI\ISwitchable.cs" />
     <Compile Include="DXGUI\Multiplayer\ChatListBox.cs" />
     <Compile Include="DXGUI\Multiplayer\CnCNet\CnCNetAccountLoginPrompt.cs" />
+    <Compile Include="DXGUI\Multiplayer\CnCNet\CnCNetAccountLoginWindow.cs" />
     <Compile Include="DXGUI\Multiplayer\CnCNet\CnCNetAccountManagerWindow.cs" />
     <Compile Include="DXGUI\Multiplayer\CnCNet\CnCNetGameLoadingLobby.cs" />
     <Compile Include="DXGUI\Multiplayer\CnCNet\CnCNetLobby.cs" />
     <Compile Include="DXGUI\Multiplayer\CnCNet\CnCNetLoginWindow.cs" />
     <Compile Include="DXGUI\Multiplayer\CnCNet\GameCreationEventArgs.cs" />
     <Compile Include="DXGUI\Multiplayer\CnCNet\GameCreationWindow.cs" />
-    <Compile Include="DXGUI\Multiplayer\CnCNet\CnCNetAccountLoginWindow.cs" />
     <Compile Include="DXGUI\Multiplayer\CnCNet\PasswordRequestWindow.cs" />
     <Compile Include="DXGUI\Multiplayer\CnCNet\PlayerContextMenu.cs" />
     <Compile Include="DXGUI\Multiplayer\CnCNet\TunnelListBox.cs" />
