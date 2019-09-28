@@ -423,7 +423,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             string country = "";
             if (ddPlayerSides.Length > Players.IndexOf(player))
                 country = ddPlayerSides[Players.IndexOf(player)].SelectedItem.Text;
-            string currentState = (player.IsInGame) ? "In Game" : "In Lobby";
+            string currentState = (ProgramConstants.IsInGame) ? "In Game" : "In Lobby";
 
             discordHandler.UpdatePresence(
                 Map.Name, GameMode.Name, "LAN",
