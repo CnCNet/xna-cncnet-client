@@ -755,9 +755,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         /// </summary>
         protected void ResetDiscordPresence()
         {
-            if (discordHandler == null)
-                return;
-            discordHandler.UpdatePresence();
+            discordHandler?.UpdatePresence();
         }
 
         protected void LoadDefaultMap()

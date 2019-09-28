@@ -223,9 +223,7 @@ namespace DTAClient.DXGUI.Multiplayer
         /// </summary>
         protected void ResetDiscordPresence()
         {
-            if (discordHandler == null)
-                return;
-            discordHandler.UpdatePresence();
+            discordHandler?.UpdatePresence();
         }
 
         private void BtnLeaveGame_LeftClick(object sender, EventArgs e)
