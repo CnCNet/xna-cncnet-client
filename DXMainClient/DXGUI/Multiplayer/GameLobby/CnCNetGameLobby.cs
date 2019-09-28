@@ -1,4 +1,4 @@
-using ClientCore;
+﻿using ClientCore;
 using ClientCore.CnCNet5;
 using ClientGUI;
 using DTAClient.Domain.Multiplayer;
@@ -344,8 +344,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             string currentState = (ProgramConstants.IsInGame) ? "In Game" : "In Lobby";
 
             discordHandler.UpdatePresence(
-                Map.Name, GameMode.Name, currentState, "Multiplayer",
-                Players.Count, playerLimit, country,
+                Map.Name, GameMode.Name, "Multiplayer",
+                currentState, Players.Count, playerLimit, country,
                 channel.UIName, IsHost, isCustomPassword, Locked, resetTimer);
         }
 
