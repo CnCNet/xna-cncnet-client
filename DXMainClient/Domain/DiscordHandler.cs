@@ -1,4 +1,4 @@
-using ClientCore;
+﻿using ClientCore;
 using DiscordRPC;
 using DiscordRPC.Message;
 using DTAClient.Online;
@@ -202,6 +202,24 @@ namespace DTAClient.Domain
             {
                 State = "Playing Mission",
                 Details = $"{mission} • {difficulty}",
+                Assets = new Assets()
+                {
+                    LargeImageKey = "logo"
+                },
+                Timestamps = (client.CurrentPresence.HasTimestamps() && !resetTimer) ?
+                    client.CurrentPresence.Timestamps : Timestamps.Now
+            };
+        }
+
+        /// <summary>
+        /// Updates Discord Rich Presence with info from game loading screen.
+        /// </summary>
+        public void UpdatePresence(string save, bool resetTimer = false)
+        {
+            CurrentPresence = new RichPresence()
+            {
+                State = "Playing Saved Game",
+                Details = $"{save}",
                 Assets = new Assets()
                 {
                     LargeImageKey = "logo"
