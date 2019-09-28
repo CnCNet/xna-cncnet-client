@@ -1,4 +1,4 @@
-﻿using ClientCore;
+using ClientCore;
 using DiscordRPC;
 using DiscordRPC.Message;
 using DTAClient.Online;
@@ -30,7 +30,7 @@ namespace DTAClient.Domain
             }
             set
             {
-                if (!currentPresence.Equals(PreviousPresence))
+                if (currentPresence == null || !currentPresence.Equals(PreviousPresence))
                 {
                     PreviousPresence = CurrentPresence;
                     currentPresence = value;
