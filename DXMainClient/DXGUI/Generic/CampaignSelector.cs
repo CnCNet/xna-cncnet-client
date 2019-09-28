@@ -17,10 +17,12 @@ namespace DTAClient.DXGUI.Generic
         private const int DEFAULT_WIDTH = 650;
         private const int DEFAULT_HEIGHT = 600;
 
-        public CampaignSelector(WindowManager windowManager) : base(windowManager)
+        public CampaignSelector(WindowManager windowManager, DiscordHandler discordHandler) : base(windowManager)
         {
-
+            this.discordHandler = discordHandler;
         }
+
+        private DiscordHandler discordHandler;
 
         private List<Mission> Missions = new List<Mission>();
         private XNAListBox lbCampaignList;
@@ -282,6 +284,7 @@ namespace DTAClient.DXGUI.Generic
             swriter.WriteLine("BuildOffAlly=" + mission.BuildOffAlly);
 
             IniFile difficultyIni;
+            string difficultyName;
 
             UserINISettings.Instance.Difficulty.Value = trbDifficultySelector.Value;
             if (trbDifficultySelector.Value == 0) // Easy
@@ -289,18 +292,21 @@ namespace DTAClient.DXGUI.Generic
                 swriter.WriteLine("DifficultyModeHuman=0");
                 swriter.WriteLine("DifficultyModeComputer=2");
                 difficultyIni = new IniFile(ProgramConstants.GamePath + "INI\\Map Code\\Difficulty Easy.ini");
+                difficultyName = "Easy";
             }
             else if (trbDifficultySelector.Value == 1) // Normal
             {
                 swriter.WriteLine("DifficultyModeHuman=1");
                 swriter.WriteLine("DifficultyModeComputer=1");
                 difficultyIni = new IniFile(ProgramConstants.GamePath + "INI\\Map Code\\Difficulty Medium.ini");
+                difficultyName = "Medium";
             }
             else //if (tbDifficultyLevel.Value == 2) // Hard
             {
                 swriter.WriteLine("DifficultyModeHuman=2");
                 swriter.WriteLine("DifficultyModeComputer=0");
                 difficultyIni = new IniFile(ProgramConstants.GamePath + "INI\\Map Code\\Difficulty Hard.ini");
+                difficultyName = "Hard";
             }
             swriter.WriteLine();
             swriter.WriteLine();
@@ -318,7 +324,23 @@ namespace DTAClient.DXGUI.Generic
             UserINISettings.Instance.SaveSettings();
 
             ((MainMenuDarkeningPanel)Parent).Hide();
+
+            discordHandler?.UpdatePresence(mission.GUIName, difficultyName, true);
+            GameProcessLogic.GameProcessExited += GameProcessExited_Callback;
+
             GameProcessLogic.StartGameProcess();
+        }
+
+        private void GameProcessExited_Callback()
+        {
+            WindowManager.AddCallback(new Action(GameProcessExited), null);
+        }
+
+        protected virtual void GameProcessExited()
+        {
+            GameProcessLogic.GameProcessExited -= GameProcessExited_Callback;
+            // Logger.Log("GameProcessExited: Updating Discord Presence.");
+            discordHandler?.UpdatePresence();
         }
 
         /// <summary>

@@ -116,7 +116,7 @@ namespace DTAClient.DXGUI.Generic
             topBar.SetSecondarySwitch(cncnetLobby);
 
             var mainMenu = new MainMenu(WindowManager, skirmishLobby, lanLobby,
-                topBar, optionsWindow, cncnetLobby, cncnetManager);
+                topBar, optionsWindow, cncnetLobby, cncnetManager, discordHandler);
             WindowManager.AddAndInitializeControl(mainMenu);
 
             DarkeningPanel.AddAndInitializeWithControl(WindowManager, skirmishLobby);

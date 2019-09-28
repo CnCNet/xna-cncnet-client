@@ -35,13 +35,14 @@ namespace DTAClient.DXGUI.Generic
         public MainMenu(WindowManager windowManager, SkirmishLobby skirmishLobby,
             LANLobby lanLobby, TopBar topBar, OptionsWindow optionsWindow,
             CnCNetLobby cncnetLobby,
-            CnCNetManager connectionManager) : base(windowManager)
+            CnCNetManager connectionManager, DiscordHandler discordHandler) : base(windowManager)
         {
             this.skirmishLobby = skirmishLobby;
             this.lanLobby = lanLobby;
             this.topBar = topBar;
             this.connectionManager = connectionManager;
             this.optionsWindow = optionsWindow;
+            this.discordHandler = discordHandler;
             cncnetLobby.UpdateCheck += CncnetLobby_UpdateCheck;
             isMediaPlayerAvailable = IsMediaPlayerAvailable();
         }
@@ -59,6 +60,8 @@ namespace DTAClient.DXGUI.Generic
         private CnCNetManager connectionManager;
 
         private OptionsWindow optionsWindow;
+
+        private DiscordHandler discordHandler;
 
         private TopBar topBar;
 
@@ -225,7 +228,7 @@ namespace DTAClient.DXGUI.Generic
                 CUpdater.OnCustomComponentsOutdated += CUpdater_OnCustomComponentsOutdated;
             }
 
-            innerPanel = new MainMenuDarkeningPanel(WindowManager);
+            innerPanel = new MainMenuDarkeningPanel(WindowManager, discordHandler);
             innerPanel.ClientRectangle = new Rectangle(0, 0,
                 Width,
                 Height);

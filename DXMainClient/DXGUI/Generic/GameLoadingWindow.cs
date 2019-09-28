@@ -19,9 +19,12 @@ namespace DTAClient.DXGUI.Generic
     {
         private const string SAVED_GAMES_DIRECTORY = "Saved Games";
 
-        public GameLoadingWindow(WindowManager windowManager) : base(windowManager)
+        public GameLoadingWindow(WindowManager windowManager, DiscordHandler discordHandler) : base(windowManager)
         {
+            this.discordHandler = discordHandler;
         }
+
+        private DiscordHandler discordHandler;
 
         private XNAMultiColumnListBox lbSaveGameList;
         private XNAClientButton btnLaunch;
@@ -105,8 +108,24 @@ namespace DTAClient.DXGUI.Generic
             sw.WriteLine();
             sw.Close();
 
+            discordHandler?.UpdatePresence(sg.GUIName, true);
+
             Enabled = false;
+            GameProcessLogic.GameProcessExited += GameProcessExited_Callback;
+
             GameProcessLogic.StartGameProcess();
+        }
+
+        private void GameProcessExited_Callback()
+        {
+            WindowManager.AddCallback(new Action(GameProcessExited), null);
+        }
+
+        protected virtual void GameProcessExited()
+        {
+            GameProcessLogic.GameProcessExited -= GameProcessExited_Callback;
+            // Logger.Log("GameProcessExited: Updating Discord Presence.");
+            discordHandler?.UpdatePresence();
         }
 
         public void ListSaves()
