@@ -180,7 +180,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             string country = "";
             if (ddPlayerSides.Length > Players.IndexOf(player))
                 country = ddPlayerSides[Players.IndexOf(player)].SelectedItem.Text;
-            string currentState = (player.IsInGame) ? "In Game" : "Setting Up";
+            string currentState = (ProgramConstants.IsInGame) ? "In Game" : "Setting Up";
 
             discordHandler.UpdatePresence(
                 Map.Name, GameMode.Name, currentState, country, resetTimer);

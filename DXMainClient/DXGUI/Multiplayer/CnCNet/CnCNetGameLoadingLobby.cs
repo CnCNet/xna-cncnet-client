@@ -1,4 +1,4 @@
-﻿using ClientCore;
+using ClientCore;
 using ClientCore.CnCNet5;
 using ClientGUI;
 using DTAClient.Domain;
@@ -654,7 +654,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             PlayerInfo player = Players.Find(p => p.Name == ProgramConstants.PLAYERNAME);
             if (player == null || lblMapNameValue == null || lblGameModeValue == null)
                 return;
-            string currentState = (player.IsInGame) ? "In Game" : "In Lobby";
+            string currentState = (ProgramConstants.IsInGame) ? "In Game" : "In Lobby";
 
             discordHandler.UpdatePresence(
                 lblMapNameValue.Text, lblGameModeValue.Text, currentState, "Multiplayer",
