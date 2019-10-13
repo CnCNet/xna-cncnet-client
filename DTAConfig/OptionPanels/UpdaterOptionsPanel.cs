@@ -6,7 +6,7 @@ using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
 using System;
 using System.IO;
-using Updater;
+using ClientUpdater;
 
 namespace DTAConfig.OptionPanels
 {
@@ -95,7 +95,7 @@ namespace DTAConfig.OptionPanels
 
         private void ForceUpdateMsgBox_YesClicked(XNAMessageBox obj)
         {
-            CUpdater.ClearVersionInfo();
+            Updater.ClearVersionInfo();
             OnForceUpdate?.Invoke(this, EventArgs.Empty);
         }
 
@@ -112,9 +112,7 @@ namespace DTAConfig.OptionPanels
 
             lbUpdateServerList.SelectedIndex--;
 
-            UpdateMirror umtmp = CUpdater.UPDATEMIRRORS[selectedIndex - 1];
-            CUpdater.UPDATEMIRRORS[selectedIndex - 1] = CUpdater.UPDATEMIRRORS[selectedIndex];
-            CUpdater.UPDATEMIRRORS[selectedIndex] = umtmp;
+            Updater.MoveMirrorUp(selectedIndex);
         }
 
         private void btnMoveDown_LeftClick(object sender, EventArgs e)
@@ -130,9 +128,7 @@ namespace DTAConfig.OptionPanels
 
             lbUpdateServerList.SelectedIndex++;
 
-            UpdateMirror umtmp = CUpdater.UPDATEMIRRORS[selectedIndex + 1];
-            CUpdater.UPDATEMIRRORS[selectedIndex + 1] = CUpdater.UPDATEMIRRORS[selectedIndex];
-            CUpdater.UPDATEMIRRORS[selectedIndex] = umtmp;
+            Updater.MoveMirrorDown(selectedIndex);
         }
 
         public override void Load()
@@ -141,8 +137,9 @@ namespace DTAConfig.OptionPanels
 
             lbUpdateServerList.Clear();
 
-            foreach (var updaterMirror in CUpdater.UPDATEMIRRORS)
-                lbUpdateServerList.AddItem(updaterMirror.Name + " (" + updaterMirror.Location + ")");
+            foreach (var updaterMirror in Updater.UpdateMirrors)
+                lbUpdateServerList.AddItem(updaterMirror.Name + (!string.IsNullOrEmpty(updaterMirror.Location) ? 
+                    " (" + updaterMirror.Location + ")" : ""));
 
             chkAutoCheck.Checked = IniSettings.CheckForUpdates;
         }
@@ -157,7 +154,7 @@ namespace DTAConfig.OptionPanels
 
             int id = 0;
 
-            foreach (UpdateMirror um in CUpdater.UPDATEMIRRORS)
+            foreach (UpdateMirror um in Updater.UpdateMirrors)
             {
                 IniSettings.SettingsIni.SetStringValue("DownloadMirrors", id.ToString(), um.Name);
                 id++;

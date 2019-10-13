@@ -257,9 +257,8 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
-    <Reference Include="DTAUpdater, Version=1.0.0.6, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\References\DTAUpdater.dll</HintPath>
+    <Reference Include="ClientUpdater">
+      <HintPath>..\References\ClientUpdater.dll</HintPath>
     </Reference>
     <Reference Include="Rampastring.Tools, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>

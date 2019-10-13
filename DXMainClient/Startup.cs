@@ -5,9 +5,9 @@ using System.Management;
 using Microsoft.Win32;
 using DTAClient.Domain;
 using ClientCore;
-using Updater;
 using Rampastring.Tools;
 using DTAClient.DXGUI;
+using ClientUpdater;
 using System.Security.Principal;
 using System.DirectoryServices;
 using System.Linq;
@@ -44,7 +44,7 @@ namespace DTAClient
 
             File.Delete(ProgramConstants.GamePath + "version_u");
 
-            CUpdater.Initialize(ClientConfiguration.Instance.LocalGame);
+            Updater.Initialize(ProgramConstants.GamePath, ProgramConstants.GetBaseResourcePath(), ClientConfiguration.Instance.SettingsIniName, ClientConfiguration.Instance.LocalGame);
 
             Logger.Log("Operating system: " + Environment.OSVersion.VersionString);
             Logger.Log("Selected OS profile: " + MainClientConstants.OSId.ToString());
@@ -90,10 +90,10 @@ namespace DTAClient
                 }
             }
 
-            if (CUpdater.CustomComponents != null)
+            if (Updater.CustomComponents != null)
             {
                 Logger.Log("Removing partial custom component downloads.");
-                foreach (var component in CUpdater.CustomComponents)
+                foreach (var component in Updater.CustomComponents)
                 {
                     try
                     {
