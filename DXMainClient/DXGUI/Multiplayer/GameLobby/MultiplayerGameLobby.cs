@@ -840,19 +840,20 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     return;
                 }
 
-                if (!player.Ready)
-                {
-                    if (player.IsInGame)
-                    {
-                        StillInGameNotification(iId - 1);
-                    }
-                    else
-                    {
-                        GetReadyNotification();
-                    }
 
+                if (player.IsInGame)
+                {
+                    StillInGameNotification(iId - 1);
                     return;
                 }
+
+                // Only account ready status if player is not a spectator
+                if (!player.Ready && !IsPlayerSpectator(player))
+                {
+                    GetReadyNotification();
+                    return;
+                }
+                
             }
 
             HostLaunchGame();
