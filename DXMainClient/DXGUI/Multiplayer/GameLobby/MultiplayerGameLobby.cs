@@ -75,6 +75,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             }
         }
 
+        protected bool DisableSpectatorReadyChecking = false;
+
         protected EnhancedSoundEffect sndJoinSound;
         protected EnhancedSoundEffect sndLeaveSound;
         protected EnhancedSoundEffect sndMessageSound;
@@ -115,6 +117,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             Name = nameof(MultiplayerGameLobby);
 
             base.Initialize();
+
+            DisableSpectatorReadyChecking = GameOptionsIni.GetBooleanValue("General", "DisableSpectatorReadyChecking", false);
 
             PingTextures = new Texture2D[5]
             {
@@ -846,12 +850,22 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     StillInGameNotification(iId - 1);
                     return;
                 }
-
-                // Only account ready status if player is not a spectator
-                if (!player.Ready && !IsPlayerSpectator(player))
+                if (DisableSpectatorReadyChecking)
                 {
-                    GetReadyNotification();
-                    return;
+                    // Only account ready status if player is not a spectator
+                    if (!player.Ready && !IsPlayerSpectator(player))
+                    {
+                        GetReadyNotification();
+                        return;
+                    }
+                }
+                else
+                {
+                    if (!player.Ready)
+                    {
+                        GetReadyNotification();
+                        return;
+                    }
                 }
                 
             }
