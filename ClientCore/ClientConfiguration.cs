@@ -404,10 +404,6 @@ namespace ClientCore
 
         public bool DisableMultiplayerGameLoading => clientDefinitionsIni.GetBooleanValue(SETTINGS, "DisableMultiplayerGameLoading", false);
 
-        public bool DisableUpdaterOptions => clientDefinitionsIni.GetBooleanValue(SETTINGS, "DisableUpdaterOptions", false);
-
-        public bool DisableComponentOptions => clientDefinitionsIni.GetBooleanValue(SETTINGS, "DisableComponentOptions", false);
-
         public bool DisplayPlayerCountInTopBar => clientDefinitionsIni.GetBooleanValue(SETTINGS, "DisplayPlayerCountInTopBar", false);
 
         /// <summary>
