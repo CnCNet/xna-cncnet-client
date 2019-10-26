@@ -613,6 +613,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             lbChatMessages.Clear();
             lbChatMessages.TopIndex = 0;
 
+            lbChatMessages.AddItem("Type / to view a list of available chat commands.", Color.Silver, true);
+
             if (SavedGameManager.GetSaveGameCount() > 0)
             {
                 lbChatMessages.AddItem("Multiplayer saved games from a previous match have been detected. " +
