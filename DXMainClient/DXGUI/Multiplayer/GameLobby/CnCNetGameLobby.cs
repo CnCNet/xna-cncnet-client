@@ -95,6 +95,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         private TunnelHandler tunnelHandler;
         private CnCNetTunnel tunnel;
         private TunnelSelectionWindow tunnelSelectionWindow;
+        private XNAClientButton btnChangeTunnel;
 
         private Channel channel;
         private CnCNetManager connectionManager;
@@ -151,7 +152,23 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             tunnelSelectionWindow.CenterOnParent();
             tunnelSelectionWindow.Disable();
 
+            btnChangeTunnel = new XNAClientButton(WindowManager);
+            btnChangeTunnel.Name = "btnChangeTunnel";
+            btnChangeTunnel.ClientRectangle = new Rectangle(btnLeaveGame.Right - btnLeaveGame.Width - 145,
+                btnLeaveGame.Y, 133, 23);
+            btnChangeTunnel.Text = "Change Tunnel";
+            btnChangeTunnel.LeftClick += BtnChangeTunnel_LeftClick;
+
+            btnChangeTunnel.Enabled = false;
+            btnChangeTunnel.Visible = false;
+
+            AddChild(btnChangeTunnel);
             WindowManager.AddAndInitializeControl(gameBroadcastTimer);
+        }
+
+        private void BtnChangeTunnel_LeftClick(object sender, EventArgs e)
+        {
+            ShowTunnelSelectionWindow("Select tunnel server:");
         }
 
         private void GameBroadcastTimer_TimeElapsed(object sender, EventArgs e)
@@ -179,11 +196,15 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             {
                 RandomSeed = new Random().Next();
                 RefreshMapSelectionUI();
+                btnChangeTunnel.Enabled = true;
+                btnChangeTunnel.Visible = true;
             }
             else
             {
                 channel.ChannelModesChanged += Channel_ChannelModesChanged;
                 AIPlayers.Clear();
+                btnChangeTunnel.Enabled = false;
+                btnChangeTunnel.Visible = false;
             }
 
             this.tunnel = tunnel;
