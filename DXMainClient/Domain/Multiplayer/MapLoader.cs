@@ -48,35 +48,16 @@ namespace DTAClient.Domain.Multiplayer
 
             IniFile mpMapsIni = new IniFile(ProgramConstants.GamePath + ClientConfiguration.Instance.MPMapsIniPath);
 
-            if (!string.IsNullOrEmpty(ClientConfiguration.Instance.MPModesIniPath))
+            var gmAliases = mpMapsIni.GetSectionKeys("GameModeAliases");
+
+            if (gmAliases != null)
             {
-                IniFile mpModesIni = new IniFile(ProgramConstants.GamePath + ClientConfiguration.Instance.MPModesIniPath);
-
-                var gmAliases = mpModesIni.GetSectionKeys("GameModeAliases");
-
-                if (gmAliases != null)
+                foreach (string key in gmAliases)
                 {
-                    foreach (string key in gmAliases)
-                    {
-                        GameModeAliases.Add(key, mpModesIni.GetStringValue("GameModeAliases", key, string.Empty).Split(
-                            new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries));
-                    }
+                    GameModeAliases.Add(key, mpMapsIni.GetStringValue("GameModeAliases", key, string.Empty).Split(
+                        new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries));
                 }
             }
-            else
-            {
-                var gmAliases = mpMapsIni.GetSectionKeys("GameModeAliases");
-
-                if (gmAliases != null)
-                {
-                    foreach (string key in gmAliases)
-                    {
-                        GameModeAliases.Add(key, mpMapsIni.GetStringValue("GameModeAliases", key, string.Empty).Split(
-                            new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries));
-                    }
-                }
-            }
-            
 
             List<string> keys = mpMapsIni.GetSectionKeys("MultiMaps");
 
