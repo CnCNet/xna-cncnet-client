@@ -196,15 +196,18 @@ namespace DTAClient.Domain
         /// <summary>
         /// Updates Discord Rich Presence with info from campaign screen.
         /// </summary>
-        public void UpdatePresence(string mission, string difficulty, bool resetTimer = false)
+        public void UpdatePresence(string mission, string difficulty, string side, bool resetTimer = false)
         {
+            string sideKey = new Regex("[^a-zA-Z0-9]").Replace(side.ToLower(), "");
             CurrentPresence = new RichPresence()
             {
                 State = "Playing Mission",
                 Details = $"{mission} • {difficulty}",
                 Assets = new Assets()
                 {
-                    LargeImageKey = "logo"
+                    LargeImageKey = "logo",
+                    SmallImageKey = sideKey,
+                    SmallImageText = side
                 },
                 Timestamps = (client.CurrentPresence.HasTimestamps() && !resetTimer) ?
                     client.CurrentPresence.Timestamps : Timestamps.Now
