@@ -10,6 +10,7 @@ using ClientGUI;
 using ClientCore;
 using System.Threading;
 using DTAClient.Domain.Multiplayer.CnCNet;
+using DTAConfig;
 
 namespace DTAClient.DXGUI.Generic
 {
@@ -41,10 +42,12 @@ namespace DTAClient.DXGUI.Generic
         List<ISwitchable> primarySwitches = new List<ISwitchable>();
         ISwitchable cncnetLobbySwitch;
         ISwitchable privateMessageSwitch;
+        OptionsWindow optionsWindow;
 
         XNAClientButton btnMainButton;
         XNAClientButton btnCnCNetLobby;
         XNAClientButton btnPrivateMessages;
+        XNAClientButton btnOptions;
         XNAClientButton btnLogout;
         XNALabel lblTime;
         XNALabel lblDate;
@@ -85,6 +88,20 @@ namespace DTAClient.DXGUI.Generic
         public void SetTertiarySwitch(ISwitchable switchable)
         {
             privateMessageSwitch = switchable;
+        }
+
+        public void SetOptionsWindow(OptionsWindow optionsWindow)
+        {
+            this.optionsWindow = optionsWindow;
+            optionsWindow.EnabledChanged += OptionsWindow_EnabledChanged;
+        }
+
+        private void OptionsWindow_EnabledChanged(object sender, EventArgs e)
+        {
+            if (!optionsWindow.Enabled)
+                UnlockSwitchButtons();
+            else
+                LockSwitchButtons();
         }
 
         public void Clean()
@@ -142,6 +159,12 @@ namespace DTAClient.DXGUI.Generic
             btnLogout.AllowClick = false;
             btnLogout.LeftClick += BtnLogout_LeftClick;
 
+            btnOptions = new XNAClientButton(WindowManager);
+            btnOptions.Name = "btnOptions";
+            btnOptions.ClientRectangle = new Rectangle(btnLogout.X - 122, 9, 110, 23);
+            btnOptions.Text = "Options (F12)";
+            btnOptions.LeftClick += BtnOptions_LeftClick;
+
             lblConnectionStatus = new XNALabel(WindowManager);
             lblConnectionStatus.Name = "lblConnectionStatus";
             lblConnectionStatus.FontIndex = 1;
@@ -150,6 +173,7 @@ namespace DTAClient.DXGUI.Generic
             AddChild(btnMainButton);
             AddChild(btnCnCNetLobby);
             AddChild(btnPrivateMessages);
+            AddChild(btnOptions);
             AddChild(lblTime);
             AddChild(lblDate);
             AddChild(btnLogout);
@@ -165,7 +189,7 @@ namespace DTAClient.DXGUI.Generic
                 lblCnCNetPlayerCount.Name = "lblCnCNetPlayerCount";
                 lblCnCNetPlayerCount.FontIndex = 1;
                 lblCnCNetPlayerCount.Text = "-";
-                lblCnCNetPlayerCount.ClientRectangle = new Rectangle(btnLogout.X - 50, 11, lblCnCNetPlayerCount.Width, lblCnCNetPlayerCount.Height);
+                lblCnCNetPlayerCount.ClientRectangle = new Rectangle(btnOptions.X - 50, 11, lblCnCNetPlayerCount.Width, lblCnCNetPlayerCount.Height);
                 lblCnCNetStatus.ClientRectangle = new Rectangle(lblCnCNetPlayerCount.X - lblCnCNetStatus.Width - 6, 11, lblCnCNetStatus.Width, lblCnCNetStatus.Height);
                 AddChild(lblCnCNetStatus);
                 AddChild(lblCnCNetPlayerCount);
@@ -281,6 +305,12 @@ namespace DTAClient.DXGUI.Generic
             privateMessageSwitch.SwitchOn();
         }
 
+        private void BtnOptions_LeftClick(object sender, EventArgs e)
+        {
+            privateMessageSwitch.SwitchOff();
+            optionsWindow.Open();
+        }
+
         private void Keyboard_OnKeyPressed(object sender, KeyPressEventArgs e)
         {
             if (!Enabled || !WindowManager.HasFocus || ProgramConstants.IsInGame)
@@ -290,17 +320,21 @@ namespace DTAClient.DXGUI.Generic
             {
                 BringDown();
             }
-            else if (e.PressedKey == Keys.F2)
+            else if (e.PressedKey == Keys.F2 && btnMainButton.AllowClick)
             {
                 BtnMainButton_LeftClick(this, EventArgs.Empty);
             }
-            else if (e.PressedKey == Keys.F3)
+            else if (e.PressedKey == Keys.F3 && btnCnCNetLobby.AllowClick)
             {
                 BtnCnCNetLobby_LeftClick(this, EventArgs.Empty);
             }
-            else if (e.PressedKey == Keys.F4)
+            else if (e.PressedKey == Keys.F4 && btnPrivateMessages.AllowClick)
             {
                 BtnPrivateMessages_LeftClick(this, EventArgs.Empty);
+            }
+            else if (e.PressedKey == Keys.F12 && btnOptions.AllowClick)
+            {
+                BtnOptions_LeftClick(this, EventArgs.Empty);
             }
         }
 
@@ -321,6 +355,27 @@ namespace DTAClient.DXGUI.Generic
         public void SetMainButtonText(string text)
         {
             btnMainButton.Text = text;
+        }
+
+        public void LockSwitchButtons()
+        {
+            if (btnMainButton != null && btnCnCNetLobby != null && btnPrivateMessages != null)
+            {
+                btnMainButton.AllowClick = false;
+                btnCnCNetLobby.AllowClick = false;
+                btnPrivateMessages.AllowClick = false;
+            }
+        }
+
+        public void UnlockSwitchButtons()
+        {
+            if (btnMainButton != null && btnCnCNetLobby != null && btnPrivateMessages != null)
+            {
+                btnMainButton.AllowClick = true;
+                btnCnCNetLobby.AllowClick = true;
+                btnPrivateMessages.AllowClick = true;
+            }
+            
         }
 
         public override void Update(GameTime gameTime)
