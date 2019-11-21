@@ -60,7 +60,7 @@ namespace DTAClient.Online
             "INI\\AIE.ini",
             "INI\\AIFS.ini",
 #endif
-            "INI\\GlobalCode.ini",
+            "INI\\Map Code\\GlobalCode.ini",
             ProgramConstants.BASE_RESOURCE_PATH + CONFIGNAME,
         };
 
@@ -94,11 +94,26 @@ namespace DTAClient.Online
             #if !YR
             if (Directory.Exists(ProgramConstants.GamePath + "INI\\Map Code"))
             {
+                HashSet<string> extraINIFilenames = new HashSet<string>();
+
                 foreach (GameMode gameMode in gameModes)
                 {
                     fh.INIHashes = AddToStringIfFileExists(fh.INIHashes, "INI\\Map Code\\" + gameMode.Name + ".ini");
-                    Logger.Log("Hash for INI\\Map Code\\" + gameMode.Name + ".ini :" +
+                    Logger.Log("Hash for INI\\Map Code\\" + gameMode.Name + ".ini: " +
                         Utilities.CalculateSHA1ForFile(ProgramConstants.GamePath + "INI\\Map Code\\" + gameMode.Name + ".ini"));
+
+                    foreach (Map map in gameMode.Maps)
+                    {
+                        if (!string.IsNullOrEmpty(map.ExtraININame))
+                            extraINIFilenames.Add("INI\\Map Code\\" + map.ExtraININame);
+                    }
+                }
+
+                foreach (string extraINIFilename in extraINIFilenames)
+                {
+                    fh.INIHashes = AddToStringIfFileExists(fh.INIHashes, extraINIFilename);
+                    Logger.Log("Hash for " + extraINIFilename + ": " +
+                        Utilities.CalculateSHA1ForFile(ProgramConstants.GamePath + extraINIFilename));
                 }
             }
             #endif
@@ -153,7 +168,7 @@ namespace DTAClient.Online
             IniFile filenamesconfig = new IniFile(ProgramConstants.GetBaseResourcePath() + CONFIGNAME);
             List<string> filenames = filenamesconfig.GetSectionKeys("FilenameList");
             if (filenames == null || filenames.Count < 1) return;
-            filenames.Add("INI\\GlobalCode.ini");
+            filenames.Add("INI\\Map Code\\GlobalCode.ini");
             filenames.Add(ProgramConstants.BASE_RESOURCE_PATH + CONFIGNAME);
             fileNamesToCheck = filenames.ToArray();
         }
