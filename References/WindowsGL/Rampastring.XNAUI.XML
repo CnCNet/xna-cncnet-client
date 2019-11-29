@@ -1522,6 +1522,12 @@
             Returns the total amount of lines in all list box items combined.
             </summary>
         </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNAListBox.IsScrolledToBottom">
+            <summary>
+            Checks whether the list box is scrolled so that
+            the last item in the list is entirely visible.
+            </summary>
+        </member>
         <member name="M:Rampastring.XNAUI.XNAControls.XNAListBox.ScrollToBottom">
             <summary>
             Scrolls the list box so that the last item is entirely visible.
