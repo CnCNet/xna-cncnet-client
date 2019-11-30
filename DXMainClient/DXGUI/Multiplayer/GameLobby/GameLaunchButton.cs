@@ -1,9 +1,13 @@
 ﻿using ClientGUI;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using Rampastring.Tools;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace DTAClient.DXGUI.Multiplayer.GameLobby
 {
@@ -16,7 +20,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         }
 
         private readonly StarDisplay starDisplay;
-        private bool UseStarDisplay = true;
 
         public override void Initialize()
         {
@@ -33,34 +36,14 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private void UpdateStarPosition()
         {
-            if (UseStarDisplay)
-            {
-                starDisplay.Visible = true;
-                starDisplay.Y = (Height - starDisplay.Height) / 2;
-                starDisplay.X = (Width / 2) + (int)(Renderer.GetTextDimensions(Text, FontIndex).X / 2) + 3;
-            }
-            else
-            {
-                starDisplay.Visible = false;
-            }
+            starDisplay.Y = (Height - starDisplay.Height) / 2;
+            starDisplay.X = (Width / 2) + (int)(Renderer.GetTextDimensions(Text, FontIndex).X / 2) + 3;
         }
 
         public void SetRank(int rank)
         {
             starDisplay.Rank = rank;
             UpdateStarPosition();
-        }
-
-        protected override void ParseAttributeFromINI(IniFile iniFile, string key, string value)
-        {
-            switch (key)
-            {
-                case "UseStarDisplay":
-                    UseStarDisplay = Conversions.BooleanFromString(value, true);
-                    return;
-            }
-
-            base.ParseAttributeFromINI(iniFile, key, value);
         }
     }
 
