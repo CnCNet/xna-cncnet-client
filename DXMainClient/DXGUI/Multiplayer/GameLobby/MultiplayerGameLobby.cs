@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Rampastring.XNAUI;
@@ -67,6 +67,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         protected EnhancedSoundEffect sndLeaveSound;
         protected EnhancedSoundEffect sndMessageSound;
         protected EnhancedSoundEffect sndGetReadySound;
+        protected EnhancedSoundEffect sndReturnSound;
 
         protected TopBar TopBar;
 
@@ -183,10 +184,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             DisplayRandomMapButton = btnPickRandomMap.Enabled && btnPickRandomMap.Visible;
 
-            sndJoinSound = new EnhancedSoundEffect("joingame.wav");
-            sndLeaveSound = new EnhancedSoundEffect("leavegame.wav");
-            sndMessageSound = new EnhancedSoundEffect("message.wav");
+            sndJoinSound = new EnhancedSoundEffect("joingame.wav", 0.0, 0.0, 1.0f);
+            sndLeaveSound = new EnhancedSoundEffect("leavegame.wav", 0.0, 0.0, 1.0f);
+            sndMessageSound = new EnhancedSoundEffect("message.wav", 0.0, 0.0, 0.5f);
             sndGetReadySound = new EnhancedSoundEffect("getready.wav", 0.0, 0.0, 5.0f);
+            sndReturnSound = new EnhancedSoundEffect("return.wav", 0.0, 0.0, 3.0f);
 
             if (SavedGameManager.AreSavedGamesAvailable())
             {
