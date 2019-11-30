@@ -413,8 +413,6 @@ namespace ClientCore
         /// </summary>
         public string LauncherExe => clientDefinitionsIni.GetStringValue(SETTINGS, "LauncherExe", string.Empty);
 
-        public string ClientDefaultResolutionText => clientDefinitionsIni.GetStringValue(SETTINGS, "ClientDefaultResolutionText", "(recommended)");
-
         public bool UseClientRandomStartLocations => clientDefinitionsIni.GetBooleanValue(SETTINGS, "UseClientRandomStartLocations", false);
 
         public bool ProcessScreenshots
