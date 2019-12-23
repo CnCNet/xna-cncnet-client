@@ -280,8 +280,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             btnPickRandomMap.ClientRectangle = new Rectangle(btnLaunchGame.Right + 157 , btnLaunchGame.Y, 133, 23);
             btnPickRandomMap.Text = "Pick Random Map";
             btnPickRandomMap.LeftClick += BtnPickRandomMap_LeftClick;
-            btnPickRandomMap.Visible = false;
-            btnPickRandomMap.Enabled = false;
+            btnPickRandomMap.Disable();
 
             AddChild(lblMapName);
             AddChild(lblMapAuthor);

@@ -61,8 +61,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         protected bool Locked = false;
 
-        protected bool DisplayRandomMapButton = false;
-
         protected EnhancedSoundEffect sndJoinSound;
         protected EnhancedSoundEffect sndLeaveSound;
         protected EnhancedSoundEffect sndMessageSound;
@@ -180,8 +178,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             MapPreviewBox.StartingLocationApplied += MapPreviewBox_StartingLocationApplied;
 
             InitializeWindow();
-
-            DisplayRandomMapButton = btnPickRandomMap.Enabled && btnPickRandomMap.Visible;
 
             sndJoinSound = new EnhancedSoundEffect("joingame.wav");
             sndLeaveSound = new EnhancedSoundEffect("leavegame.wav");
@@ -640,8 +636,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             lblGameModeSelect.Disable();
             lbMapList.Disable();
             tbMapSearch.Disable();
-            if (DisplayRandomMapButton)
-                btnPickRandomMap.Disable();
+            btnPickRandomMap.Disable();
 
             lbChatMessages.GetAttributes(ThemeIni);
             tbChatInput.GetAttributes(ThemeIni);
@@ -669,8 +664,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             lblGameModeSelect.Enable();
             lbMapList.Enable();
             tbMapSearch.Enable();
-            if (DisplayRandomMapButton)
-                btnPickRandomMap.Enable();
+            btnPickRandomMap.GetAttributes(ThemeIni);
 
             lbChatMessages.GetAttributes(ThemeIni);
             tbChatInput.GetAttributes(ThemeIni);
