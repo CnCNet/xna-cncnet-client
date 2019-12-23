@@ -155,7 +155,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|WindowsGL' ">
-    <Optimize>false</Optimize>
+    <Optimize>true</Optimize>
     <OutputPath>bin\WindowsGL\Release</OutputPath>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
@@ -173,8 +173,6 @@
     <DebugType>pdbonly</DebugType>
     <PlatformTarget>x86</PlatformTarget>
     <ErrorReport>prompt</ErrorReport>
-    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
-    <Prefer32Bit>true</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'MORelease|WindowsGL'">
     <OutputPath>bin\WindowsGL\Release\</OutputPath>
@@ -182,8 +180,7 @@
     <DebugType>pdbonly</DebugType>
     <PlatformTarget>x86</PlatformTarget>
     <ErrorReport>prompt</ErrorReport>
-    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
-    <Prefer32Bit>true</Prefer32Bit>
+    <Optimize>true</Optimize>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'MORelease|XNAFramework'">
     <OutputPath>bin\XNAFramework\Release\</OutputPath>
@@ -192,7 +189,7 @@
     <DebugType>pdbonly</DebugType>
     <PlatformTarget>x86</PlatformTarget>
     <ErrorReport>prompt</ErrorReport>
-    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+	<TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
   </PropertyGroup>
   <Choose>
     <When Condition="'$(Platform)' != 'XNAFramework'">
