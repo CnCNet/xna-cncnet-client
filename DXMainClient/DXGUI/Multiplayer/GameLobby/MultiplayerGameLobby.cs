@@ -61,7 +61,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         protected bool Locked = false;
 
         protected bool DisplayRandomMapButton = false;
-        protected bool DisplayAutoReadyCheckbox = false;
 
         protected EnhancedSoundEffect sndJoinSound;
         protected EnhancedSoundEffect sndLeaveSound;
@@ -178,7 +177,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 btnLaunchGame.Y + 2, 133, 23);
             chkAutoReady.Text = "Auto-Ready";
             chkAutoReady.CheckedChanged += ChkAutoReady_CheckedChanged;
-            chkAutoReady.Visible = false;
+            chkAutoReady.Disable();
 
             AddChild(lbChatMessages);
             AddChild(tbChatInput);
@@ -191,7 +190,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             InitializeWindow();
 
             DisplayRandomMapButton = btnPickRandomMap.Enabled && btnPickRandomMap.Visible;
-            DisplayAutoReadyCheckbox = chkAutoReady.Visible;
 
             sndJoinSound = new EnhancedSoundEffect("joingame.wav");
             sndLeaveSound = new EnhancedSoundEffect("leavegame.wav");
@@ -588,7 +586,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 btnLockGame.Text = "Lock Game";
                 btnLockGame.Enabled = true;
                 btnLockGame.Visible = true;
-                chkAutoReady.Visible = false;
+                chkAutoReady.Disable();
 
                 foreach (GameLobbyDropDown dd in DropDowns)
                 {
@@ -610,8 +608,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
                 btnLockGame.Enabled = false;
                 btnLockGame.Visible = false;
-                if (DisplayAutoReadyCheckbox)
-                    chkAutoReady.Visible = true;
+                chkAutoReady.GetAttributes(ThemeIni);
 
                 foreach (GameLobbyDropDown dd in DropDowns)
                     dd.InputEnabled = false;
