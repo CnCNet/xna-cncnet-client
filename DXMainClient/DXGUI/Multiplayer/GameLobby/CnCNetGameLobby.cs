@@ -159,9 +159,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             btnChangeTunnel.Text = "Change Tunnel";
             btnChangeTunnel.LeftClick += BtnChangeTunnel_LeftClick;
 
-            btnChangeTunnel.Enabled = false;
-            btnChangeTunnel.Visible = false;
-
             AddChild(btnChangeTunnel);
             WindowManager.AddAndInitializeControl(gameBroadcastTimer);
         }
@@ -196,15 +193,13 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             {
                 RandomSeed = new Random().Next();
                 RefreshMapSelectionUI();
-                btnChangeTunnel.Enabled = true;
-                btnChangeTunnel.Visible = true;
+                btnChangeTunnel.Enable();
             }
             else
             {
                 channel.ChannelModesChanged += Channel_ChannelModesChanged;
                 AIPlayers.Clear();
-                btnChangeTunnel.Enabled = false;
-                btnChangeTunnel.Visible = false;
+                btnChangeTunnel.Disable();
             }
 
             this.tunnel = tunnel;
