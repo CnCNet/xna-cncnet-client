@@ -1,4 +1,4 @@
-﻿using ClientCore;
+using ClientCore;
 using ClientCore.CnCNet5;
 using ClientGUI;
 using DTAClient.Domain.Multiplayer;
@@ -338,14 +338,14 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             PlayerInfo player = Players.Find(p => p.Name == ProgramConstants.PLAYERNAME);
             if (player == null || Map == null || GameMode == null)
                 return;
-            string country = "";
+            string side = "";
             if (ddPlayerSides.Length > Players.IndexOf(player))
-                country = ddPlayerSides[Players.IndexOf(player)].SelectedItem.Text;
-            string currentState = (ProgramConstants.IsInGame) ? "In Game" : "In Lobby";
+                side = ddPlayerSides[Players.IndexOf(player)].SelectedItem.Text;
+            string currentState = ProgramConstants.IsInGame ? "In Game" : "In Lobby";
 
             discordHandler.UpdatePresence(
                 Map.Name, GameMode.Name, "Multiplayer",
-                currentState, Players.Count, playerLimit, country,
+                currentState, Players.Count, playerLimit, side,
                 channel.UIName, IsHost, isCustomPassword, Locked, resetTimer);
         }
 

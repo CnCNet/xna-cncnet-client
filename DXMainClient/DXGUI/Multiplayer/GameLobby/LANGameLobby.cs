@@ -420,14 +420,14 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             PlayerInfo player = Players.Find(p => p.Name == ProgramConstants.PLAYERNAME);
             if (player == null || Map == null || GameMode == null)
                 return;
-            string country = "";
+            string side = "";
             if (ddPlayerSides.Length > Players.IndexOf(player))
-                country = ddPlayerSides[Players.IndexOf(player)].SelectedItem.Text;
-            string currentState = (ProgramConstants.IsInGame) ? "In Game" : "In Lobby";
+                side = ddPlayerSides[Players.IndexOf(player)].SelectedItem.Text;
+            string currentState = ProgramConstants.IsInGame ? "In Game" : "In Lobby";
 
             discordHandler.UpdatePresence(
                 Map.Name, GameMode.Name, "LAN",
-                currentState, Players.Count, 8, country,
+                currentState, Players.Count, 8, side,
                 "LAN Game", IsHost, false, Locked, resetTimer);
         }
 

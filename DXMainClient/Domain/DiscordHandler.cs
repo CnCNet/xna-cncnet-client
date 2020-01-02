@@ -50,7 +50,7 @@ namespace DTAClient.Domain
             wm.Game.Components.Add(this);
         }
 
-        WindowManager wm;
+        private WindowManager wm;
 
         // Overrides
 
@@ -233,39 +233,46 @@ namespace DTAClient.Domain
         }
 
         // Event handlers
+
         private void OnReady(object sender, ReadyMessage args)
         {
             Logger.Log($"Discord: Received Ready from user {args.User.Username}");
             client.SetPresence(CurrentPresence);
         }
+
         private void OnClose(object sender, CloseMessage args)
         {
             Logger.Log($"Discord: Lost Connection with client because of '{args.Reason}'");
         }
+
         private void OnError(object sender, ErrorMessage args)
         {
             Logger.Log($"Discord: Error occured. ({args.Code}) {args.Message}");
         }
+
         private void OnConnectionEstablished(object sender, ConnectionEstablishedMessage args)
         {
             Logger.Log($"Discord: Pipe Connection Established. Valid on pipe #{args.ConnectedPipe}");
         }
+
         private void OnConnectionFailed(object sender, ConnectionFailedMessage args)
         {
             Logger.Log($"Discord: Pipe Connection Failed. Could not connect to pipe #{args.FailedPipe}");
         }
+
         private void OnPresenceUpdate(object sender, PresenceMessage args)
         {
             Logger.Log($"Discord: Rich Presence Updated. State: {args.Presence?.State}; Details: {args.Presence?.Details}");
         }
+
         private void OnSubscribe(object sender, SubscribeMessage args)
         {
             Logger.Log($"Discord: Subscribed: {args.Event}");
         }
+
         private void OnUnsubscribe(object sender, UnsubscribeMessage args)
         {
             Logger.Log($"Discord: Unsubscribed: {args.Event}");
         }
-
     }
 }

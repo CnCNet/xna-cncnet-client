@@ -74,15 +74,12 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         private GameMode gameMode;
         protected GameMode GameMode
         {
-            get
-            {
-                return gameMode;
-            }
+            get => gameMode;
             set
             {
                 var oldGameMode = gameMode;
                 gameMode = value;
-                if (oldGameMode != null && value != null && oldGameMode.Name != value.Name)
+                if (value != null && oldGameMode != value)
                     UpdateDiscordPresence();
             }
         }
@@ -92,18 +89,16 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         /// </summary>
 
         private Map map;
-        protected Map Map {
-            get
-            {
-                return map;
-            }
+        protected Map Map
+        {
+            get => map;
             set
             {
                 var oldMap = map;
                 map = value;
-                if (oldMap != null && value != null && oldMap.Name != value.Name)
+                if (value != null && oldMap != value)
                     UpdateDiscordPresence();
-                
+
             }
         }
 
@@ -1497,7 +1492,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if ((bool)senderDropDown.Tag)
                 ClearReadyStatuses();
 
-            var oldSideId = Players.Find(p => p.Name == ProgramConstants.PLAYERNAME).SideId;
+            var oldSideId = Players.Find(p => p.Name == ProgramConstants.PLAYERNAME)?.SideId;
 
             for (int pId = 0; pId < Players.Count; pId++)
             {
@@ -1555,7 +1550,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             CopyPlayerDataToUI();
             btnLaunchGame.SetRank(GetRank());
 
-            if (oldSideId != Players.Find(p => p.Name == ProgramConstants.PLAYERNAME).SideId)
+            if (oldSideId != Players.Find(p => p.Name == ProgramConstants.PLAYERNAME)?.SideId)
                 UpdateDiscordPresence();
         }
 

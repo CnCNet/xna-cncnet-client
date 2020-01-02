@@ -679,9 +679,9 @@ namespace DTAClient.DXGUI.Multiplayer
                 return;
 
             PlayerInfo player = Players.Find(p => p.Name == ProgramConstants.PLAYERNAME);
-            if (player == null || lblMapNameValue == null || lblGameModeValue == null)
+            if (player == null || String.IsNullOrEmpty(lblMapNameValue.Text) || String.IsNullOrEmpty(lblGameModeValue.Text))
                 return;
-            string currentState = (ProgramConstants.IsInGame) ? "In Game" : "In Lobby";
+            string currentState = ProgramConstants.IsInGame ? "In Game" : "In Lobby";
 
             discordHandler.UpdatePresence(
                 lblMapNameValue.Text, lblGameModeValue.Text, currentState, "LAN",

@@ -177,13 +177,13 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             PlayerInfo player = Players.Find(p => p.Name == ProgramConstants.PLAYERNAME);
             if (player == null || Map == null || GameMode == null)
                 return;
-            string country = "";
+            string side = "";
             if (ddPlayerSides.Length > Players.IndexOf(player))
-                country = ddPlayerSides[Players.IndexOf(player)].SelectedItem.Text;
-            string currentState = (ProgramConstants.IsInGame) ? "In Game" : "Setting Up";
+                side = ddPlayerSides[Players.IndexOf(player)].SelectedItem.Text;
+            string currentState = ProgramConstants.IsInGame ? "In Game" : "Setting Up";
 
             discordHandler.UpdatePresence(
-                Map.Name, GameMode.Name, currentState, country, resetTimer);
+                Map.Name, GameMode.Name, currentState, side, resetTimer);
         }
 
         protected override bool AllowPlayerOptionsChange()

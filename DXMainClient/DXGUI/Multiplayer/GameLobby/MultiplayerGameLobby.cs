@@ -63,13 +63,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         private bool locked = false;
         protected bool Locked
         {
-            get
-            {
-                return locked;
-            }
+            get => locked;
             set
             {
-                var oldLocked = locked;
+                bool oldLocked = locked;
                 locked = value;
                 if (oldLocked != value)
                     UpdateDiscordPresence();
