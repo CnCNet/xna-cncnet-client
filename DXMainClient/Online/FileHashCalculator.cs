@@ -42,6 +42,7 @@ namespace DTAClient.Online
             "INI\\Game Options\\No Dog Engi Eat.ini",
             "INI\\Game Options\\No Spawn Previews.ini",
             "INI\\Game Options\\RA2 Classic Mode.ini",
+            "INI\\Map Code\\GlobalCode.ini"
 #else
             "spawner.xdp",
             "rules.ini",
@@ -60,7 +61,6 @@ namespace DTAClient.Online
             "INI\\AIE.ini",
             "INI\\AIFS.ini",
 #endif
-            "INI\\GlobalCode.ini",
             ProgramConstants.BASE_RESOURCE_PATH + CONFIGNAME,
         };
 
@@ -87,35 +87,34 @@ namespace DTAClient.Online
             foreach (string filePath in fileNamesToCheck)
             {
                 fh.INIHashes = AddToStringIfFileExists(fh.INIHashes, filePath);
-                Logger.Log("Hash for " + filePath + ": " + 
+                Logger.Log("Hash for " + filePath + ": " +
                     Utilities.CalculateSHA1ForFile(ProgramConstants.GamePath + filePath));
             }
 
-            #if !YR
-            if (Directory.Exists(ProgramConstants.GamePath + "INI\\Map Code"))
+            string[] iniPaths = new string[]
             {
-                foreach (GameMode gameMode in gameModes)
-                {
-                    fh.INIHashes = AddToStringIfFileExists(fh.INIHashes, "INI\\Map Code\\" + gameMode.Name + ".ini");
-                    Logger.Log("Hash for INI\\Map Code\\" + gameMode.Name + ".ini :" +
-                        Utilities.CalculateSHA1ForFile(ProgramConstants.GamePath + "INI\\Map Code\\" + gameMode.Name + ".ini"));
-                }
-            }
-            #endif
+#if !YR
+                ProgramConstants.GamePath + "INI\\Map Code",
+#endif
+                ProgramConstants.GamePath + "INI\\Game Options"
+            };
 
-            if (Directory.Exists(ProgramConstants.GamePath + "INI\\Game Options"))
+            foreach (string path in iniPaths)
             {
-                List<string> files = Directory.GetFiles(
-                    ProgramConstants.GamePath + "INI\\Game Options",
-                    "*", SearchOption.AllDirectories).ToList();
-
-                files.Sort();
-
-                foreach (string fileName in files)
+                if (!string.IsNullOrEmpty(path) && Directory.Exists(path))
                 {
-                    fh.INIHashes = fh.INIHashes + Utilities.CalculateSHA1ForFile(fileName);
-                    Logger.Log("Hash for " + fileName + ": " +
-                        Utilities.CalculateSHA1ForFile(fileName));
+                    List<string> files = Directory.GetFiles(path,
+                        "*", SearchOption.AllDirectories).ToList();
+
+                    files.Sort();
+
+                    foreach (string fileName in files)
+                    {
+                        fh.INIHashes = fh.INIHashes + Utilities.CalculateSHA1ForFile(fileName);
+                        Logger.Log("Hash for " + fileName.Replace(ProgramConstants.GamePath, "") + 
+                            ": " + Utilities.CalculateSHA1ForFile(fileName));
+
+                    }
                 }
             }
 
@@ -153,7 +152,9 @@ namespace DTAClient.Online
             IniFile filenamesconfig = new IniFile(ProgramConstants.GetBaseResourcePath() + CONFIGNAME);
             List<string> filenames = filenamesconfig.GetSectionKeys("FilenameList");
             if (filenames == null || filenames.Count < 1) return;
-            filenames.Add("INI\\GlobalCode.ini");
+#if YR
+            filenames.Add("INI\\Map Code\\GlobalCode.ini");
+#endif
             filenames.Add(ProgramConstants.BASE_RESOURCE_PATH + CONFIGNAME);
             fileNamesToCheck = filenames.ToArray();
         }
@@ -176,8 +177,8 @@ namespace DTAClient.Online
                 "ClientDXHash: " + ClientDXHash + Environment.NewLine +
                 "ClientXNAHash: " + ClientXNAHash + Environment.NewLine +
                 "ClientOGLHash: " + ClientOGLHash + Environment.NewLine +
-                "INI Hashes: " + INIHashes + Environment.NewLine + 
-                "MPMaps Hash: " + MPMapsHash + Environment.NewLine + 
+                "INI Hashes: " + INIHashes + Environment.NewLine +
+                "MPMaps Hash: " + MPMapsHash + Environment.NewLine +
                 "MainExe Hash: " + MainExeHash + Environment.NewLine +
                 "LauncherExe Hash: " + LauncherExeHash;
         }

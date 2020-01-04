@@ -114,8 +114,9 @@ namespace DTAClient
         {
             try
             {
-                string cpu = String.Empty;
-                string videoController = String.Empty;
+                string cpu = string.Empty;
+                string videoController = string.Empty;
+                string memory = string.Empty;
 
                 ManagementObjectSearcher searcher =
                     new ManagementObjectSearcher("SELECT * FROM Win32_Processor");
@@ -138,7 +139,19 @@ namespace DTAClient
                     }
                 }
 
-                Logger.Log("Hardware info: {0} {1}", cpu, videoController);
+                searcher = new ManagementObjectSearcher("Select * From Win32_PhysicalMemory");
+                ulong total = 0;
+
+                foreach (ManagementObject ram in searcher.Get())
+                {
+                    total += Convert.ToUInt64(ram.GetPropertyValue("Capacity"));
+                }
+
+                if (total != 0)
+                    memory = "Total physical memory: " + (total >= 1073741824 ? total / 1073741824 + "GB" : total / 1048576 + "MB");
+
+                Logger.Log(string.Format("Hardware info: {0} | {1} | {2}", cpu.Trim(), videoController.Trim(), memory));
+
             }
             catch (Exception ex)
             {
