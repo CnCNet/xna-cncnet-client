@@ -1506,7 +1506,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         protected void ClearReadyStatuses()
         {
             for (int i = 1; i < Players.Count; i++)
-                Players[i].Ready = false;
+            {
+                if (!Players[i].AutoReady)
+                    Players[i].Ready = false;
+            }
         }
 
         /// <summary>

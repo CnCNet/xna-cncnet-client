@@ -232,6 +232,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             TopBar.AddPrimarySwitchable(this);
             TopBar.SwitchToPrimary();
             WindowManager.SelectedControl = tbChatInput;
+            ResetAutoReadyCheckbox();
         }
 
         private void PrintTunnelServerInformation(string s)
@@ -559,7 +560,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 return;
             }
 
-            channel.SendCTCPMessage("R 1", QueuedMessageType.GAME_PLAYERS_READY_STATUS_MESSAGE, 5);
+            if (chkAutoReady.Checked)
+                channel.SendCTCPMessage("R 2", QueuedMessageType.GAME_PLAYERS_READY_STATUS_MESSAGE, 5);
+            else
+                channel.SendCTCPMessage("R 1", QueuedMessageType.GAME_PLAYERS_READY_STATUS_MESSAGE, 5);
         }
 
         protected override void AddNotice(string message, Color color)
@@ -646,6 +650,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 return;
 
             pInfo.Ready = readyStatus > 0;
+            pInfo.AutoReady = readyStatus > 1;
 
             CopyPlayerDataToUI();
             BroadcastPlayerOptions();
@@ -682,7 +687,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 sb.Append(";");
                 if (!pInfo.IsAI)
                 {
-                    sb.Append(Convert.ToInt32(pInfo.Ready));
+                    if (pInfo.AutoReady)
+                        sb.Append(2);
+                    else
+                        sb.Append(Convert.ToInt32(pInfo.Ready));
                     sb.Append(';');
                 }
             }
@@ -780,6 +788,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                         return;
 
                     pInfo.Ready = readyStatus > 0;
+                    pInfo.AutoReady = readyStatus > 1;
 
                     Players.Add(pInfo);
                     i += HUMAN_PLAYER_OPTIONS_LENGTH;

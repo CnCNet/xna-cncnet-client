@@ -56,6 +56,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         protected ChatListBox lbChatMessages;
         protected XNAChatTextBox tbChatInput;
         protected XNAClientButton btnLockGame;
+        protected XNAClientCheckBox chkAutoReady;
 
         protected bool IsHost = false;
 
@@ -170,9 +171,18 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             btnLockGame.Text = "Lock Game";
             btnLockGame.LeftClick += BtnLockGame_LeftClick;
 
+            chkAutoReady = new XNAClientCheckBox(WindowManager);
+            chkAutoReady.Name = "chkAutoReady";
+            chkAutoReady.ClientRectangle = new Rectangle(btnLaunchGame.Right + 12,
+                btnLaunchGame.Y + 2, 133, 23);
+            chkAutoReady.Text = "Auto-Ready";
+            chkAutoReady.CheckedChanged += ChkAutoReady_CheckedChanged;
+            chkAutoReady.Disable();
+
             AddChild(lbChatMessages);
             AddChild(tbChatInput);
             AddChild(btnLockGame);
+            AddChild(chkAutoReady);
 
             MapPreviewBox.LocalStartingLocationSelected += MapPreviewBox_LocalStartingLocationSelected;
             MapPreviewBox.StartingLocationApplied += MapPreviewBox_StartingLocationApplied;
@@ -341,6 +351,20 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             SendChatMessage(tbChatInput.Text);
             tbChatInput.Text = string.Empty;
+        }
+
+        private void ChkAutoReady_CheckedChanged(object sender, EventArgs e)
+        {
+            btnLaunchGame.Enabled = !chkAutoReady.Checked;
+            RequestReadyStatus();
+        }
+
+        protected void ResetAutoReadyCheckbox()
+        {
+            chkAutoReady.CheckedChanged -= ChkAutoReady_CheckedChanged;
+            chkAutoReady.Checked = false;
+            chkAutoReady.CheckedChanged += ChkAutoReady_CheckedChanged;
+            btnLaunchGame.Enabled = true;
         }
 
         private void SetFrameSendRate(string value)
@@ -575,6 +599,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 btnLockGame.Text = "Lock Game";
                 btnLockGame.Enabled = true;
                 btnLockGame.Visible = true;
+                chkAutoReady.Disable();
 
                 foreach (GameLobbyDropDown dd in DropDowns)
                 {
@@ -596,6 +621,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
                 btnLockGame.Enabled = false;
                 btnLockGame.Visible = false;
+                chkAutoReady.GetAttributes(ThemeIni);
 
                 foreach (GameLobbyDropDown dd in DropDowns)
                     dd.InputEnabled = false;
