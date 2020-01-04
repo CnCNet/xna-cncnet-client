@@ -56,21 +56,16 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             CopyPlayerDataToUI();
 
             ProgramConstants.PlayerNameChanged += ProgramConstants_PlayerNameChanged;
+            ddPlayerSides[0].SelectedIndexChanged += PlayerSideChanged;
         }
 
         protected override void OnEnabledChanged(object sender, EventArgs args)
         {
             base.OnEnabledChanged(sender, args);
             if (Enabled)
-            {
-                ddPlayerSides[0].SelectedIndexChanged += PlayerSideChanged;
                 UpdateDiscordPresence(true);
-            }
             else
-            {
-                ddPlayerSides[0].SelectedIndexChanged -= PlayerSideChanged;
                 ResetDiscordPresence();
-            }       
         }
 
         private void ProgramConstants_PlayerNameChanged(object sender, EventArgs e)

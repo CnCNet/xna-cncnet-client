@@ -679,7 +679,7 @@ namespace DTAClient.DXGUI.Multiplayer
                 return;
 
             PlayerInfo player = Players.Find(p => p.Name == ProgramConstants.PLAYERNAME);
-            if (player == null || String.IsNullOrEmpty(lblMapNameValue.Text) || String.IsNullOrEmpty(lblGameModeValue.Text))
+            if (player == null)
                 return;
             string currentState = ProgramConstants.IsInGame ? "In Game" : "In Lobby";
 
