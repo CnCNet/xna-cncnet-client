@@ -1104,6 +1104,12 @@
             the control won't try to update its render target when its size is changed.
             </summary>
         </member>
+        <member name="P:Rampastring.XNAUI.XNAControls.XNAControl.Initialized">
+            <summary>
+            Determines whether the control's <see cref="M:Rampastring.XNAUI.XNAControls.XNAControl.Initialize"/> method
+            has been called yet.
+            </summary>
+        </member>
         <member name="M:Rampastring.XNAUI.XNAControls.XNAControl.IsLastParentActive">
             <summary>
             Checks if the last parent of this control is active.
@@ -1677,6 +1683,27 @@
             <param name="columnIndex">The index of the column.</param>
             <param name="width">The new width of the column.</param>
         </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNAMultiColumnListBox.AddColumn(System.String,System.Int32)">
+            <summary>
+            Creates a column with the given header text and width.
+            </summary>
+            <param name="headerText"></param>
+            <param name="width"></param>
+        </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNAMultiColumnListBox.AddColumn(Rampastring.XNAUI.XNAControls.XNAPanel)">
+            <summary>
+            Creates a column with the given header and an automatically generated list box.
+            The width of the header defines the width of the list box.
+            </summary>
+            <param name="header">The header panel.</param>
+        </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNAMultiColumnListBox.AddColumn(Rampastring.XNAUI.XNAControls.XNAPanel,Rampastring.XNAUI.XNAControls.XNAListBox)">
+            <summary>
+            Creates a column with the given header and list box.
+            </summary>
+            <param name="header">The header panel.</param>
+            <param name="listBox">The list box.</param>
+        </member>
         <member name="M:Rampastring.XNAUI.XNAControls.XNAMultiColumnListBox.IsValidIndexSelected">
             <summary>
             Checks whether an item is selected in the list box.
@@ -1922,6 +1949,17 @@
             <summary>
             Draws the currently queued batch of sprites.
             </summary>
+        </member>
+        <member name="M:Rampastring.XNAUI.Renderer.DrawCircle(Microsoft.Xna.Framework.Vector2,System.Single,Microsoft.Xna.Framework.Color,System.Int32,System.Int32)">
+            <summary>
+            Draws a circle's perimiter.
+            </summary>
+            <param name="position">The center point of the circle.</param>
+            <param name="radius">The radius of the circle.</param>
+            <param name="color">The color of the circle.</param>
+            <param name="precision">Defines how smooth the circle's perimiter is. 
+            Larger values make the circle smoother, but have a larger effect on performance.</param>
+            <param name="thickness">The thickness of the perimiter.</param>
         </member>
         <member name="M:Rampastring.XNAUI.Renderer.DrawCircleWithTexture(Microsoft.Xna.Framework.Vector2,System.Single,Microsoft.Xna.Framework.Graphics.Texture2D,Microsoft.Xna.Framework.Color,System.Int32,System.Single)">
             <summary>

@@ -116,24 +116,24 @@ namespace DTAClient.DXGUI.Generic
             cmbGameClassFilter.SelectedIndexChanged += CmbGameClassFilter_SelectedIndexChanged;
 
             XNALabel lblGameMode = new XNALabel(WindowManager);
-            lblGameMode.Name = "lblGameMode";
+            lblGameMode.Name = nameof(lblGameMode);
             lblGameMode.FontIndex = 1;
             lblGameMode.Text = "GAME MODE:";
             lblGameMode.ClientRectangle = new Rectangle(294, 12, 0, 0);
 
             cmbGameModeFilter = new XNAClientDropDown(WindowManager);
-            cmbGameModeFilter.Name = "cmbGameModeFilter";
+            cmbGameModeFilter.Name = nameof(cmbGameModeFilter);
             cmbGameModeFilter.ClientRectangle = new Rectangle(381, 11, 114, 21);
             cmbGameModeFilter.SelectedIndexChanged += CmbGameModeFilter_SelectedIndexChanged;
 
             var btnReturnToMenu = new XNAClientButton(WindowManager);
-            btnReturnToMenu.Name = "btnReturnToMenu";
+            btnReturnToMenu.Name = nameof(btnReturnToMenu);
             btnReturnToMenu.ClientRectangle = new Rectangle(270, 486, 160, 23);
             btnReturnToMenu.Text = "Return to Main Menu";
             btnReturnToMenu.LeftClick += BtnReturnToMenu_LeftClick;
 
             var btnClearStatistics = new XNAClientButton(WindowManager);
-            btnClearStatistics.Name = "btnClearStatistics";
+            btnClearStatistics.Name = nameof(btnClearStatistics);
             btnClearStatistics.ClientRectangle = new Rectangle(12, 486, 160, 23);
             btnClearStatistics.Text = "Clear Statistics";
             btnClearStatistics.LeftClick += BtnClearStatistics_LeftClick;
@@ -142,7 +142,7 @@ namespace DTAClient.DXGUI.Generic
             chkIncludeSpectatedGames = new XNAClientCheckBox(WindowManager);
 
             AddChild(chkIncludeSpectatedGames);
-            chkIncludeSpectatedGames.Name = "chkIncludeSpectatedGames";
+            chkIncludeSpectatedGames.Name = nameof(chkIncludeSpectatedGames);
             chkIncludeSpectatedGames.Text = "Include spectated games";
             chkIncludeSpectatedGames.Checked = true;
             chkIncludeSpectatedGames.ClientRectangle = new Rectangle(
@@ -161,13 +161,15 @@ namespace DTAClient.DXGUI.Generic
 
             AddChild(panelGameStatistics);
 
-            XNALabel lblMatches = new XNALabel(WindowManager);
-            lblMatches.Text = "GAMES:";
-            lblMatches.FontIndex = 1;
-            lblMatches.ClientRectangle = new Rectangle(4, 2, 0, 0);
+            XNALabel lblGames = new XNALabel(WindowManager);
+            lblGames.Name = nameof(lblGames);
+            lblGames.Text = "GAMES:";
+            lblGames.FontIndex = 1;
+            lblGames.ClientRectangle = new Rectangle(4, 2, 0, 0);
 
             lbGameList = new XNAMultiColumnListBox(WindowManager);
-            lbGameList.Name = "lbGameList";
+            lbGameList.Name = nameof(lbGameList);
+            lbGameList.ClientRectangle = new Rectangle(2, 25, 676, 250);
             lbGameList.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 128), 1, 1);
             lbGameList.PanelBackgroundDrawMode = PanelBackgroundImageDrawMode.STRETCHED;
             lbGameList.AddColumn("DATE / TIME", 130);
@@ -176,12 +178,12 @@ namespace DTAClient.DXGUI.Generic
             lbGameList.AddColumn("FPS", 50);
             lbGameList.AddColumn("DURATION", 76);
             lbGameList.AddColumn("COMPLETED", 90);
-            lbGameList.ClientRectangle = new Rectangle(2, 25, 676, 250);
             lbGameList.SelectedIndexChanged += LbGameList_SelectedIndexChanged;
             lbGameList.AllowKeyboardInput = true;
 
             lbGameStatistics = new XNAMultiColumnListBox(WindowManager);
-            lbGameStatistics.Name = "lbGameStatistics";
+            lbGameStatistics.Name = nameof(lbGameStatistics);
+            lbGameStatistics.ClientRectangle = new Rectangle(2, 280, 676, 143);
             lbGameStatistics.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 128), 1, 1);
             lbGameStatistics.PanelBackgroundDrawMode = PanelBackgroundImageDrawMode.STRETCHED;
             lbGameStatistics.AddColumn("NAME", 130);
@@ -192,9 +194,8 @@ namespace DTAClient.DXGUI.Generic
             lbGameStatistics.AddColumn("WON", 50);
             lbGameStatistics.AddColumn("SIDE", 100);
             lbGameStatistics.AddColumn("TEAM", 60);
-            lbGameStatistics.ClientRectangle = new Rectangle(2, 280, 676, 143);
 
-            panelGameStatistics.AddChild(lblMatches);
+            panelGameStatistics.AddChild(lblGames);
             panelGameStatistics.AddChild(lbGameList);
             panelGameStatistics.AddChild(lbGameStatistics);
 

@@ -25,7 +25,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private int defaultIndex;
 
-        protected override void ParseAttributeFromINI(IniFile iniFile, string key, string value)
+        public override void ParseAttributeFromINI(IniFile iniFile, string key, string value)
         {
             switch (key)
             {
