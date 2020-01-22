@@ -22,8 +22,6 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         public event EventHandler<TunnelEventArgs> TunnelSelected;
 
-        public bool Initialized { get; private set; }
-
         private readonly TunnelHandler tunnelHandler;
         private TunnelListBox lbTunnelList;
         private XNALabel lblDescription;
@@ -65,8 +63,6 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             btnApply.CenterOnParentHorizontally();
 
             base.Initialize();
-
-            Initialized = true;
         }
 
         private void BtnApply_LeftClick(object sender, EventArgs e)
