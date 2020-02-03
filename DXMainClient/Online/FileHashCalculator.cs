@@ -42,7 +42,7 @@ namespace DTAClient.Online
             "INI\\Game Options\\No Dog Engi Eat.ini",
             "INI\\Game Options\\No Spawn Previews.ini",
             "INI\\Game Options\\RA2 Classic Mode.ini",
-            "INI\\Map Code\\GlobalCode.ini"
+            "INI\\Map Code\\GlobalCode.ini",
 #else
             "spawner.xdp",
             "rules.ini",
