@@ -1,4 +1,4 @@
-using ClientCore;
+﻿using ClientCore;
 using ClientGUI;
 using Microsoft.Win32;
 using Microsoft.Xna.Framework;
@@ -160,7 +160,7 @@ namespace DTAConfig.OptionPanels
             chkBackBufferInVRAM.Text = "Back Buffer in Video Memory" + Environment.NewLine +
                 "(lower performance, but is" + Environment.NewLine + "necessary on some systems)";
 
-            var  lblClientResolution = new XNALabel(WindowManager);
+            var lblClientResolution = new XNALabel(WindowManager);
             lblClientResolution.Name = "lblClientResolution";
             lblClientResolution.ClientRectangle = new Rectangle(
                 285, 14, 0, 0);
