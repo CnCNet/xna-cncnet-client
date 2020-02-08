@@ -207,7 +207,7 @@ namespace DTAConfig.OptionPanels
 
         public override bool Save()
         {
-            base.Save();
+            bool restartRequired = base.Save();
 
             IniSettings.PingUnofficialCnCNetTunnels.Value = chkPingUnofficialTunnels.Checked;
             IniSettings.WritePathToRegistry.Value = chkWriteInstallPathToRegistry.Checked;
@@ -222,7 +222,7 @@ namespace DTAConfig.OptionPanels
                 IniSettings.SettingsIni.SetBooleanValue("Channels", chkBox.Name, chkBox.Checked);
             }
 
-            return false;
+            return restartRequired;
         }
     }
 }

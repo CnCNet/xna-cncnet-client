@@ -69,10 +69,11 @@ namespace DTAConfig.OptionPanels
         /// </summary>
         public virtual bool Save()
         {
+            bool restartRequired = false;
             foreach (var checkBox in fileSettingCheckBoxes)
-                checkBox.Save();
-
-            return false;
+                restartRequired = checkBox.Save() || restartRequired;
+            
+            return restartRequired;
         }
 
         /// <summary>

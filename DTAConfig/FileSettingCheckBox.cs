@@ -12,7 +12,7 @@ namespace DTAConfig
     /// </summary>
     public class FileSettingCheckBox : XNAClientCheckBox
     {
-        public FileSettingCheckBox(WindowManager windowManager) : base (windowManager) { }
+        public FileSettingCheckBox(WindowManager windowManager) : base(windowManager) { }
 
         public FileSettingCheckBox(WindowManager windowManager,
             string sourceFilePath, string destinationFilePath,
@@ -21,9 +21,10 @@ namespace DTAConfig
             files.Add(new FileSourceDestinationInfo(sourceFilePath, destinationFilePath));
         }
 
-        List<FileSourceDestinationInfo> files = new List<FileSourceDestinationInfo>();
+        private List<FileSourceDestinationInfo> files = new List<FileSourceDestinationInfo>();
         private bool reversed;
-
+        private bool originalState;
+        private bool restartRequired;
 
         public override void GetAttributes(IniFile iniFile)
         {
@@ -42,7 +43,7 @@ namespace DTAConfig
                 string[] parts = fileInfo.Split(',');
                 if (parts.Length != 2)
                 {
-                    Logger.Log("Invalid MIXSettingCheckBox information in " + Name + ": " + fileInfo);
+                    Logger.Log("Invalid FileSettingCheckBox information in " + Name + ": " + fileInfo);
                     continue;
                 }
 
@@ -54,10 +55,14 @@ namespace DTAConfig
 
         public override void ParseAttributeFromINI(IniFile iniFile, string key, string value)
         {
-            if (key == "Reversed")
+            switch (key)
             {
-                reversed = Conversions.BooleanFromString(value, false);
-                return;
+                case "Reversed":
+                    reversed = Conversions.BooleanFromString(value, false);
+                    return;
+                case "RestartRequired":
+                    restartRequired = Conversions.BooleanFromString(value, false);
+                    return;
             }
 
             base.ParseAttributeFromINI(iniFile, key, value);
@@ -66,9 +71,15 @@ namespace DTAConfig
         public void Load()
         {
             Checked = reversed != File.Exists(ProgramConstants.GamePath + files[0].DestinationPath);
+            originalState = Checked;
         }
 
-        public void Save()
+        /// <summary>
+        /// Applies file operations based on current checkbox state.
+        /// Returns a bool that determines whether the 
+        /// client needs to restart for changes to apply.
+        /// </summary>
+        public bool Save()
         {
             if (reversed != Checked)
             {
@@ -82,6 +93,10 @@ namespace DTAConfig
             {
                 files.ForEach(f => File.Delete(ProgramConstants.GamePath + f.DestinationPath));
             }
+
+            if (restartRequired && (Checked != originalState))
+                return true;
+            return false;
         }
 
         sealed class FileSourceDestinationInfo
