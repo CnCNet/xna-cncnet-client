@@ -31,7 +31,7 @@ namespace DTAClient.Domain.Multiplayer
         /// <summary>
         /// List of gamemodes allowed to be used on custom maps in order for them to display in map list.
         /// </summary>
-        private string[] AllowedGameModes = ClientConfiguration.Instance.GetAllowedGameModes.Split(',');
+        private string[] AllowedGameModes = ClientConfiguration.Instance.AllowedCustomGameModes.Split(',');
 
         /// <summary>
         /// Loads multiplayer map info asynchonously.
@@ -124,7 +124,7 @@ namespace DTAClient.Domain.Multiplayer
                 }
             }
 
-            string[] allowedGameModes = ClientConfiguration.Instance.GetAllowedGameModes.Split(',');
+            string[] allowedGameModes = ClientConfiguration.Instance.AllowedCustomGameModes.Split(',');
 
             foreach (Map map in customMaps)
             {

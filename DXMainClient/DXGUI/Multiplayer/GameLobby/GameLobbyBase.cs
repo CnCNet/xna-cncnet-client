@@ -541,7 +541,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             // InitPlayerOptionDropdowns(136, 91, 79, 49, 46, new Point(25, 24));
 
-            string[] sides = ClientConfiguration.Instance.GetSides().Split(',');
+            string[] sides = ClientConfiguration.Instance.Sides.Split(',');
             SideCount = sides.Length;
 
             List<string> selectorNames = new List<string>();
