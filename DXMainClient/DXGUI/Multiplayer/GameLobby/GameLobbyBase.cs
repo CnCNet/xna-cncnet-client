@@ -1017,17 +1017,17 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             settings.SetIntValue("PlayerCount", Players.Count);
             int myIndex = Players.FindIndex(c => c.Name == ProgramConstants.PLAYERNAME);
 
-            if (houseInfos[myIndex].IsSpectator && !string.IsNullOrEmpty(ClientConfiguration.Instance.GetSpectatorInternalSideId()))
+            if (houseInfos[myIndex].IsSpectator && !string.IsNullOrEmpty(ClientConfiguration.Instance.SpectatorInternalSideId))
             {
-                settings.SetIntValue("Side", int.Parse(ClientConfiguration.Instance.GetSpectatorInternalSideId()));
+                settings.SetIntValue("Side", int.Parse(ClientConfiguration.Instance.SpectatorInternalSideId));
             }
-            else if (string.IsNullOrEmpty(ClientConfiguration.Instance.GetInternalSideIds()))
+            else if (string.IsNullOrEmpty(ClientConfiguration.Instance.InternalSideIds))
             {
                 settings.SetIntValue("Side", houseInfos[myIndex].SideIndex);
             }
             else
             {
-                int[] sideIds = Array.ConvertAll(ClientConfiguration.Instance.GetInternalSideIds().Split(','), int.Parse);
+                int[] sideIds = Array.ConvertAll(ClientConfiguration.Instance.InternalSideIds.Split(','), int.Parse);
                 settings.SetIntValue("Side", sideIds[houseInfos[myIndex].SideIndex]);
             }
             
@@ -1086,17 +1086,17 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
                 spawnIni.SetStringValue(sectionName, "Name", pInfo.Name);
 
-                if (pHouseInfo.IsSpectator && !string.IsNullOrEmpty(ClientConfiguration.Instance.GetSpectatorInternalSideId()))
+                if (pHouseInfo.IsSpectator && !string.IsNullOrEmpty(ClientConfiguration.Instance.SpectatorInternalSideId))
                 {
-                    spawnIni.SetIntValue(sectionName, "Side", int.Parse(ClientConfiguration.Instance.GetSpectatorInternalSideId()));
+                    spawnIni.SetIntValue(sectionName, "Side", int.Parse(ClientConfiguration.Instance.SpectatorInternalSideId));
                 }
-                else if (string.IsNullOrEmpty(ClientConfiguration.Instance.GetInternalSideIds()))
+                else if (string.IsNullOrEmpty(ClientConfiguration.Instance.InternalSideIds))
                 {
                     spawnIni.SetIntValue(sectionName, "Side", pHouseInfo.SideIndex);
                 }
                 else
                 {
-                    int[] sideIds = Array.ConvertAll(ClientConfiguration.Instance.GetInternalSideIds().Split(','), int.Parse);
+                    int[] sideIds = Array.ConvertAll(ClientConfiguration.Instance.InternalSideIds.Split(','), int.Parse);
                     spawnIni.SetIntValue(sectionName, "Side", sideIds[pHouseInfo.SideIndex]);
                 }
 
@@ -1129,17 +1129,17 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
                     spawnIni.SetIntValue("HouseHandicaps", keyName, AIPlayers[aiId].AILevel);
 
-                    if (houseInfos[Players.Count + aiId].IsSpectator && !string.IsNullOrEmpty(ClientConfiguration.Instance.GetSpectatorInternalSideId()))
+                    if (houseInfos[Players.Count + aiId].IsSpectator && !string.IsNullOrEmpty(ClientConfiguration.Instance.SpectatorInternalSideId))
                     {
-                        spawnIni.SetIntValue("HouseCountries", keyName, int.Parse(ClientConfiguration.Instance.GetSpectatorInternalSideId()));
+                        spawnIni.SetIntValue("HouseCountries", keyName, int.Parse(ClientConfiguration.Instance.SpectatorInternalSideId));
                     }
-                    else if (string.IsNullOrEmpty(ClientConfiguration.Instance.GetInternalSideIds()))
+                    else if (string.IsNullOrEmpty(ClientConfiguration.Instance.InternalSideIds))
                     {
                         spawnIni.SetIntValue("HouseCountries", keyName, houseInfos[Players.Count + aiId].SideIndex);
                     }
                     else
                     {
-                        int[] sideIds = Array.ConvertAll(ClientConfiguration.Instance.GetInternalSideIds().Split(','), int.Parse);
+                        int[] sideIds = Array.ConvertAll(ClientConfiguration.Instance.InternalSideIds.Split(','), int.Parse);
                         spawnIni.SetIntValue("HouseCountries", keyName, sideIds[houseInfos[Players.Count + aiId].SideIndex]);
                     }
 
