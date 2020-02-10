@@ -244,6 +244,10 @@
     <Reference Include="MapThumbnailExtractor">
       <HintPath>..\References\MapThumbnailExtractor.dll</HintPath>
     </Reference>
+    <Reference Include="Newtonsoft.Json, Version=6.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\References\Newtonsoft.Json.dll</HintPath>
+    </Reference>
     <Reference Include="Rampastring.Tools, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\References\Rampastring.Tools.dll</HintPath>
@@ -267,8 +271,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Domain\Multiplayer\AllianceHolder.cs" />
+    <Compile Include="Domain\Multiplayer\CnCNet\CnCNetAPI.cs" />
     <Compile Include="Domain\Multiplayer\CnCNet\CnCNetPlayerCountTask.cs" />
     <Compile Include="Domain\Multiplayer\CnCNet\CnCNetTunnel.cs" />
+    <Compile Include="Domain\Multiplayer\CnCNet\CnCNetVerifyAccountsTask.cs" />
     <Compile Include="Domain\Multiplayer\CnCNet\ExtendedWebClient.cs">
       <SubType>Component</SubType>
     </Compile>
@@ -308,6 +314,9 @@
     <Compile Include="DXGUI\Generic\TopBar.cs" />
     <Compile Include="DXGUI\ISwitchable.cs" />
     <Compile Include="DXGUI\Multiplayer\ChatListBox.cs" />
+    <Compile Include="DXGUI\Multiplayer\CnCNet\CnCNetAccountLoginPrompt.cs" />
+    <Compile Include="DXGUI\Multiplayer\CnCNet\CnCNetAccountLoginWindow.cs" />
+    <Compile Include="DXGUI\Multiplayer\CnCNet\CnCNetAccountManagerWindow.cs" />
     <Compile Include="DXGUI\Multiplayer\CnCNet\CnCNetGameLoadingLobby.cs" />
     <Compile Include="DXGUI\Multiplayer\CnCNet\CnCNetLobby.cs" />
     <Compile Include="DXGUI\Multiplayer\CnCNet\CnCNetLoginWindow.cs" />

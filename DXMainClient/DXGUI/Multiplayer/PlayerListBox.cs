@@ -24,6 +24,7 @@ namespace DTAClient.DXGUI.Multiplayer
         private Texture2D adminGameIcon;
         private Texture2D unknownGameIcon;
         private Texture2D badgeGameIcon;
+        private Texture2D verifiedIcon;
         private Texture2D friendIcon;
         private Texture2D ignoreIcon;
 
@@ -39,6 +40,7 @@ namespace DTAClient.DXGUI.Multiplayer
             unknownGameIcon = AssetLoader.TextureFromImage(ClientCore.Properties.Resources.unknownicon);
             friendIcon = AssetLoader.LoadTexture("friendicon.png");
             ignoreIcon = AssetLoader.LoadTexture("ignoreicon.png");
+            verifiedIcon = AssetLoader.LoadTexture("verifiedicon.png");
             badgeGameIcon = AssetLoader.LoadTexture("Badges\\badge.png");
         }
 
@@ -121,6 +123,15 @@ namespace DTAClient.DXGUI.Multiplayer
 
                 x += badgeGameIcon.Width + margin;
                 */
+
+                if (user.IRCUser.IsVerified)
+                {
+                    Renderer.DrawTexture(verifiedIcon, 
+                        new Rectangle(x, height, verifiedIcon.Width, verifiedIcon.Height), Color.White
+                    );
+
+                    x += verifiedIcon.Width + MARGIN;
+                }
 
                 // Player Name
                 string name = user.IsAdmin ? user.IRCUser.Name + " (Admin)" : user.IRCUser.Name;
