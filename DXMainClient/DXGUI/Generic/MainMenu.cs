@@ -42,6 +42,7 @@ namespace DTAClient.DXGUI.Generic
             this.topBar = topBar;
             this.connectionManager = connectionManager;
             this.optionsWindow = optionsWindow;
+            this.cncnetLobby = cncnetLobby;
             cncnetLobby.UpdateCheck += CncnetLobby_UpdateCheck;
             isMediaPlayerAvailable = IsMediaPlayerAvailable();
         }
@@ -51,6 +52,8 @@ namespace DTAClient.DXGUI.Generic
         private XNALabel lblCnCNetPlayerCount;
         private XNALinkLabel lblUpdateStatus;
         private XNALinkLabel lblVersion;
+
+        private CnCNetLobby cncnetLobby;
 
         private SkirmishLobby skirmishLobby;
 
@@ -383,7 +386,8 @@ namespace DTAClient.DXGUI.Generic
 
         private void LanLobby_Exited(object sender, EventArgs e)
         {
-            topBar.Enable();
+            //topBar.Enable();
+            topBar.SetLanMode(false);
 
             if (UserINISettings.Instance.AutomaticCnCNetLogin)
                 connectionManager.Connect();
@@ -645,7 +649,8 @@ namespace DTAClient.DXGUI.Generic
             if (UserINISettings.Instance.StopMusicOnMenu)
                 MusicOff();
 
-            topBar.Disable();
+            //topBar.Disable();
+            topBar.SetLanMode(true);
             if (connectionManager.IsConnected)
                 connectionManager.Disconnect();
         }
