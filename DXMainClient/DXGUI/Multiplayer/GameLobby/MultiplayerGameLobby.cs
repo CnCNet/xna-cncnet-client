@@ -184,11 +184,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             DisplayRandomMapButton = btnPickRandomMap.Enabled && btnPickRandomMap.Visible;
 
-            sndJoinSound = new EnhancedSoundEffect("joingame.wav", 0.0, 0.0, 1.0f);
-            sndLeaveSound = new EnhancedSoundEffect("leavegame.wav", 0.0, 0.0, 1.0f);
-            sndMessageSound = new EnhancedSoundEffect("message.wav", 0.0, 0.0, 0.5f);
-            sndGetReadySound = new EnhancedSoundEffect("getready.wav", 0.0, 0.0, 5.0f);
-            sndReturnSound = new EnhancedSoundEffect("return.wav", 0.0, 0.0, 3.0f);
+            sndJoinSound = new EnhancedSoundEffect("joingame.wav", 0.0, 0.0, ClientConfiguration.Instance.SoundGameLobbyJoinCooldown);
+            sndLeaveSound = new EnhancedSoundEffect("leavegame.wav", 0.0, 0.0, ClientConfiguration.Instance.SoundGameLobbyLeaveCooldown);
+            sndMessageSound = new EnhancedSoundEffect("message.wav", 0.0, 0.0, ClientConfiguration.Instance.SoundMessageCooldown);
+            sndGetReadySound = new EnhancedSoundEffect("getready.wav", 0.0, 0.0, ClientConfiguration.Instance.SoundGameLobbyGetReadyCooldown);
+            sndReturnSound = new EnhancedSoundEffect("return.wav", 0.0, 0.0, ClientConfiguration.Instance.SoundGameLobbyReturnCooldown);
 
             if (SavedGameManager.AreSavedGamesAvailable())
             {

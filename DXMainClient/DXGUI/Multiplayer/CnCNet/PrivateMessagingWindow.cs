@@ -314,9 +314,9 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             connectionManager.PrivateMessageReceived += ConnectionManager_PrivateMessageReceived;
 
-            sndMessageSound = new EnhancedSoundEffect("message.wav");
+            sndMessageSound = new EnhancedSoundEffect("message.wav", 0.0, 0.0, ClientConfiguration.Instance.SoundMessageCooldown);
 
-            sndPrivateMessageSound = new EnhancedSoundEffect("pm.wav");
+            sndPrivateMessageSound = new EnhancedSoundEffect("pm.wav", 0.0, 0.0, ClientConfiguration.Instance.SoundPrivateMessageCooldown);
 
             sndMessageSound.Enabled = UserINISettings.Instance.MessageSound;
 

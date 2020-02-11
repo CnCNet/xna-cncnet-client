@@ -223,6 +223,22 @@ namespace ClientCore
             get { return DTACnCNetClient_ini.GetStringValue(GENERAL, "MainMenuTheme", "mainmenu"); }
         }
 
+        #region Sound options
+
+        public float SoundGameLobbyJoinCooldown => DTACnCNetClient_ini.GetSingleValue(GENERAL, "SoundGameLobbyJoinCooldown", 0.25f);
+
+        public float SoundGameLobbyLeaveCooldown => DTACnCNetClient_ini.GetSingleValue(GENERAL, "SoundGameLobbyLeaveCooldown", 0.25f);
+
+        public float SoundMessageCooldown => DTACnCNetClient_ini.GetSingleValue(GENERAL, "SoundMessageCooldown", 0.25f);
+
+        public float SoundPrivateMessageCooldown => DTACnCNetClient_ini.GetSingleValue(GENERAL, "SoundPrivateMessageCooldown", 0.25f);
+
+        public float SoundGameLobbyGetReadyCooldown => DTACnCNetClient_ini.GetSingleValue(GENERAL, "SoundGameLobbyGetReadyCooldown", 5.0f);
+
+        public float SoundGameLobbyReturnCooldown => DTACnCNetClient_ini.GetSingleValue(GENERAL, "SoundGameLobbyReturnCooldown", 1.0f);
+
+        #endregion
+
         public int LoadingScreenCount
         {
             get
