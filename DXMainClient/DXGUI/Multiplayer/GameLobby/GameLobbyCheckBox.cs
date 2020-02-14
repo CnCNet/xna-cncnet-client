@@ -166,7 +166,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 return;
 
             base.OnLeftClick();
-            UserDefinedValue = Checked;
         }
     }
 }

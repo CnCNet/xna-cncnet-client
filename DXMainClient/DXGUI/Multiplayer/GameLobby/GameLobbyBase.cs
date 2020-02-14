@@ -360,6 +360,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (disableGameOptionUpdateBroadcast)
                 return;
 
+            var checkBox = (GameLobbyCheckBox)sender;
+            checkBox.UserDefinedValue = checkBox.Checked;
             OnGameOptionChanged();
         }
 
