@@ -40,14 +40,14 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         /// Defaults to the default value of Checked after the check-box
         /// has been initialized, but its value is only changed by user interaction.
         /// </summary>
-        public bool LastHostChecked { get; set; }
+        public bool HostChecked { get; set; }
 
         /// <summary>
         /// The last this user checked value for this check box.
         /// Defaults to the default value of Checked after the check-box
         /// has been initialized, but its value is only changed by user interaction.
         /// </summary>
-        public bool LastUserChecked { get; set; }
+        public bool UserChecked { get; set; }
 
         /// <summary>
         /// The side index that this check box disallows when checked.
@@ -99,8 +99,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     bool checkedValue = Conversions.BooleanFromString(value, false);
                     Checked = checkedValue;
                     defaultValue = checkedValue;
-                    LastHostChecked = checkedValue;
-                    LastUserChecked = checkedValue;
+                    HostChecked = checkedValue;
+                    UserChecked = checkedValue;
                     return;
                 case "DisallowedSideIndex":
                     DisallowedSideIndex = Conversions.IntFromString(value, DisallowedSideIndex);
@@ -174,7 +174,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 return;
 
             base.OnLeftClick();
-            LastUserChecked = Checked;
+            UserChecked = Checked;
         }
     }
 }

@@ -17,9 +17,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         public string OptionName { get; private set; }
 
-        public int LastHostSelectedIndex { get; set; }
+        public int HostSelectedIndex { get; set; }
 
-        public int LastUserSelectedIndex { get; set; }
+        public int UserSelectedIndex { get; set; }
 
         private DropDownDataWriteMode dataWriteMode = DropDownDataWriteMode.BOOLEAN;
 
@@ -62,8 +62,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 case "DefaultIndex":
                     SelectedIndex = int.Parse(value);
                     defaultIndex = SelectedIndex;
-                    LastHostSelectedIndex = SelectedIndex;
-                    LastUserSelectedIndex = SelectedIndex;
+                    HostSelectedIndex = SelectedIndex;
+                    UserSelectedIndex = SelectedIndex;
                     return;
                 case "OptionName":
                     OptionName = value;
@@ -133,7 +133,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 return;
 
             base.OnLeftClick();
-            LastUserSelectedIndex = SelectedIndex;
+            UserSelectedIndex = SelectedIndex;
         }
     }
 }
