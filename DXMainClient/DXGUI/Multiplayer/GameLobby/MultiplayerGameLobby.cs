@@ -604,13 +604,13 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 foreach (GameLobbyDropDown dd in DropDowns)
                 {
                     dd.InputEnabled = true;
-                    dd.SelectedIndex = dd.UserDefinedIndex;
+                    dd.SelectedIndex = dd.UserSelectedIndex;
                 }
 
                 foreach (GameLobbyCheckBox checkBox in CheckBoxes)
                 {
                     checkBox.AllowChanges = true;
-                    checkBox.Checked = checkBox.UserDefinedValue;
+                    checkBox.Checked = checkBox.UserChecked;
                 }
 
                 GenerateGameID();

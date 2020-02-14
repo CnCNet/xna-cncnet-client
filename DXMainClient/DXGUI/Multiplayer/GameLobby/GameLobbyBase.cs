@@ -351,7 +351,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 return;
 
             var dd = (GameLobbyDropDown)sender;
-            dd.UserDefinedIndex = dd.SelectedIndex;
+            dd.HostSelectedIndex = dd.SelectedIndex;
             OnGameOptionChanged();
         }
 
@@ -360,6 +360,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (disableGameOptionUpdateBroadcast)
                 return;
 
+            var checkBox = (GameLobbyCheckBox)sender;
+            checkBox.HostChecked = checkBox.Checked;
             OnGameOptionChanged();
         }
 
@@ -1721,10 +1723,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             ApplyForcedDropDownOptions(dropDownListClone, map.ForcedDropDownValues);
 
             foreach (var chkBox in checkBoxListClone)
-                chkBox.Checked = chkBox.UserDefinedValue;
+                chkBox.Checked = chkBox.HostChecked;
 
             foreach (var dd in dropDownListClone)
-                dd.SelectedIndex = dd.UserDefinedIndex;
+                dd.SelectedIndex = dd.HostSelectedIndex;
 
             // Enable all sides by default
             foreach (var ddSide in ddPlayerSides)
