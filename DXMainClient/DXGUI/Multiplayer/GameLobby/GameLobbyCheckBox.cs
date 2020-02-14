@@ -36,14 +36,14 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         public bool IsMultiplayer { get; set; }
 
         /// <summary>
-        /// The last host checked value for this check box.
+        /// The last host-defined value for this check box.
         /// Defaults to the default value of Checked after the check-box
         /// has been initialized, but its value is only changed by user interaction.
         /// </summary>
         public bool HostChecked { get; set; }
 
         /// <summary>
-        /// The last this user checked value for this check box.
+        /// The last value that the local player gave for this check box.
         /// Defaults to the default value of Checked after the check-box
         /// has been initialized, but its value is only changed by user interaction.
         /// </summary>
