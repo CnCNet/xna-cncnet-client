@@ -48,6 +48,21 @@ namespace DTAClient.Domain.Multiplayer
 
             IniFile mpMapsIni = new IniFile(ProgramConstants.GamePath + ClientConfiguration.Instance.MPMapsIniPath);
 
+            var gameModes = mpMapsIni.GetSectionKeys("GameModes");
+
+            if (gameModes != null)
+            {
+                foreach (string key in gameModes)
+                {
+                    string gameModeName = mpMapsIni.GetStringValue("GameModes", key, string.Empty);
+                    if (!string.IsNullOrEmpty(gameModeName))
+                    {
+                        GameMode gm = new GameMode(gameModeName);
+                        GameModes.Add(gm);
+                    }
+                }
+            }
+
             var gmAliases = mpMapsIni.GetSectionKeys("GameModeAliases");
 
             if (gmAliases != null)
@@ -144,6 +159,8 @@ namespace DTAClient.Domain.Multiplayer
                     gm.Maps.Add(map);
                 }
             }
+
+            GameModes.RemoveAll(g => g.Maps.Count < 1);
 
             MapLoadingComplete?.Invoke(this, EventArgs.Empty);
         }
