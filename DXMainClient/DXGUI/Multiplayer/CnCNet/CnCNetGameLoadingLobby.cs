@@ -1,6 +1,7 @@
 ﻿using ClientCore;
 using ClientCore.CnCNet5;
 using ClientGUI;
+using DTAClient.Domain;
 using DTAClient.Domain.Multiplayer;
 using DTAClient.Domain.Multiplayer.CnCNet;
 using DTAClient.DXGUI.Generic;
@@ -36,7 +37,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         public CnCNetGameLoadingLobby(WindowManager windowManager, TopBar topBar,
             CnCNetManager connectionManager, TunnelHandler tunnelHandler,
-            List<GameMode> gameModes, GameCollection gameCollection) : base(windowManager)
+            List<GameMode> gameModes, GameCollection gameCollection, DiscordHandler discordHandler) : base(windowManager, discordHandler)
         {
             this.connectionManager = connectionManager;
             this.tunnelHandler = tunnelHandler;
@@ -242,6 +243,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             topBar.AddPrimarySwitchable(this);
             topBar.SwitchToPrimary();
             WindowManager.SelectedControl = tbChatInput;
+            UpdateDiscordPresence(true);
         }
 
         private void Channel_UserAdded(object sender, ChannelUserEventArgs e)
@@ -255,16 +257,19 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             BroadcastOptions();
             CopyPlayerDataToUI();
+            UpdateDiscordPresence();
         }
 
         private void Channel_UserLeft(object sender, UserNameIndexEventArgs e)
         {
             RemovePlayer(e.UserName);
+            UpdateDiscordPresence();
         }
 
         private void Channel_UserQuitIRC(object sender, UserNameIndexEventArgs e)
         {
             RemovePlayer(e.UserName);
+            UpdateDiscordPresence();
         }
 
         private void RemovePlayer(string playerName)
@@ -639,6 +644,22 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         public override string GetSwitchName()
         {
             return "Load Game";
+        }
+
+        protected override void UpdateDiscordPresence(bool resetTimer = false)
+        {
+            if (discordHandler == null)
+                return;
+
+            PlayerInfo player = Players.Find(p => p.Name == ProgramConstants.PLAYERNAME);
+            if (player == null)
+                return;
+            string currentState = ProgramConstants.IsInGame ? "In Game" : "In Lobby";
+
+            discordHandler.UpdatePresence(
+                lblMapNameValue.Text, lblGameModeValue.Text, "Multiplayer",
+                currentState, Players.Count, SGPlayers.Count,
+                channel.UIName, IsHost, resetTimer);
         }
     }
 }
