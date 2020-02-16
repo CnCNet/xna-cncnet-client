@@ -66,6 +66,7 @@ namespace DTAClient.DXGUI.Generic
         private TopBar topBar;
 
         private XNAMessageBox firstRunMessageBox;
+        private XNAMessageBox privacyMessageBox;
 
         private bool updateInProgress = false;
         private bool customComponentDialogQueued = false;
@@ -357,6 +358,41 @@ namespace DTAClient.DXGUI.Generic
             optionsWindow.PostInit();
         }
 
+        /// <summary>
+        /// Checks whether it's necessary to show the privacy notice.
+        /// If it is, displays a privacy notice message box.
+        /// </summary>
+        private void CheckPrivacyNotice()
+        {
+            string privacyNoticeText = String.Empty;
+
+            if (!UserINISettings.Instance.DiscordPrivacyNoticeShown &&
+                !String.IsNullOrEmpty(ClientConfiguration.Instance.DiscordAppId))
+            {
+                UserINISettings.Instance.DiscordPrivacyNoticeShown.Value = true;
+                UserINISettings.Instance.SaveSettings();
+
+                privacyNoticeText += 
+                    "This application optionally interacts with Discord by" + Environment.NewLine +
+                    "sending certain not personally identifying information" + Environment.NewLine +
+                    "(like current game details) to Discord application (in" + Environment.NewLine +
+                    "case it's installed) in order to provide details about" + Environment.NewLine +
+                    "the game played to other users of Discord." + Environment.NewLine +
+                    Environment.NewLine +
+                    "You can read Discord's Privacy Policy here:" + Environment.NewLine +
+                    "https://discordapp.com/privacy" + Environment.NewLine +
+                    Environment.NewLine +
+                    "You can disable Discord integration in settings.";
+            }
+
+            if (!String.IsNullOrEmpty(privacyNoticeText))
+            {
+                privacyMessageBox = new XNAMessageBox(WindowManager, "Privacy Notice",
+                    privacyNoticeText, XNAMessageBoxButtons.OK);
+                privacyMessageBox.Show();
+            }
+        }
+
         private void FirstRunMessageBox_NoClicked(XNAMessageBox messageBox)
         {
             if (customComponentDialogQueued)
@@ -445,6 +481,7 @@ namespace DTAClient.DXGUI.Generic
                 }
             }
 
+            CheckPrivacyNotice();
             CheckIfFirstRun();
         }
 
