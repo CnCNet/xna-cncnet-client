@@ -1,4 +1,4 @@
-﻿using ClientCore;
+using ClientCore;
 using ClientGUI;
 using DTAClient.Domain;
 using Microsoft.Xna.Framework;
@@ -131,7 +131,7 @@ namespace DTAClient.DXGUI.Generic
         {
             SavedGame sg = savedGames[lbSaveGameList.SelectedIndex];
             var msgBox = new XNAMessageBox(WindowManager, "Delete Confirmation",
-                    "The next saved game will be deleted permanently:" + Environment.NewLine +
+                    "The following saved game will be deleted permanently:" + Environment.NewLine +
                     Environment.NewLine +
                     "Filename: " + sg.FileName + Environment.NewLine +
                     "Saved game name: " + Renderer.GetSafeString(sg.GUIName, lbSaveGameList.FontIndex) + Environment.NewLine +
