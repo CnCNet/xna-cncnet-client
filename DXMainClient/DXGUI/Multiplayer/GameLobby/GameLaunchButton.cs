@@ -16,6 +16,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         public GameLaunchButton(WindowManager windowManager, Texture2D[] rankTextures) : base(windowManager)
         {
             starDisplay = new StarDisplay(windowManager, rankTextures);
+            starDisplay.InputEnabled = false;
             ClientRectangleUpdated += (e, sender) => UpdateStarPosition();
         }
 

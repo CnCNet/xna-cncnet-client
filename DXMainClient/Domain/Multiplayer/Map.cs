@@ -504,12 +504,19 @@ namespace DTAClient.Domain.Multiplayer
                     return AssetLoader.CreateTexture(Color.Black, 10, 10);
                 }
 
-                var extractor = new MapThumbnailExtractor(mapIni, 1);
-                var bitmap = extractor.Get_Bitmap();
+                try
+                {
+                    var extractor = new MapThumbnailExtractor(mapIni, 1);
+                    var bitmap = extractor.Get_Bitmap();
 
-                var texture = AssetLoader.TextureFromImage(bitmap);
-                if (texture != null)
-                    return texture;
+                    var texture = AssetLoader.TextureFromImage(bitmap);
+                    if (texture != null)
+                        return texture;
+                }
+                catch (Exception ex)
+                {
+                    Logger.Log(mapIni.FileName + " - Failed to extract preview from map: " + ex.Message);
+                }
             }
 
             return AssetLoader.CreateTexture(Color.Black, 10, 10);

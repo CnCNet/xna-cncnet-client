@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Rampastring.XNAUI;
@@ -249,7 +249,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 {
                     foreach (GameLobbyDropDown dd in DropDowns)
                     {
-                        skirmishSettingsIni.SetStringValue("GameOptions", dd.Name, dd.UserDefinedIndex + "");
+                        skirmishSettingsIni.SetStringValue("GameOptions", dd.Name, dd.UserSelectedIndex + "");
                     }
 
                     foreach (GameLobbyCheckBox cb in CheckBoxes)
@@ -374,10 +374,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                         }
                     }
 
-                    dd.UserDefinedIndex = skirmishSettingsIni.GetIntValue("GameOptions", dd.Name, dd.UserDefinedIndex);
+                    dd.UserSelectedIndex = skirmishSettingsIni.GetIntValue("GameOptions", dd.Name, dd.UserSelectedIndex);
 
-                    if (dd.UserDefinedIndex > -1 && dd.UserDefinedIndex < dd.Items.Count)
-                        dd.SelectedIndex = dd.UserDefinedIndex;
+                    if (dd.UserSelectedIndex > -1 && dd.UserSelectedIndex < dd.Items.Count)
+                        dd.SelectedIndex = dd.UserSelectedIndex;
                 }
 
                 foreach (GameLobbyCheckBox cb in CheckBoxes)

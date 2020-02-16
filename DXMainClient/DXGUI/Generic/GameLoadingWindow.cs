@@ -39,23 +39,24 @@ namespace DTAClient.DXGUI.Generic
             CenterOnParent();
 
             lbSaveGameList = new XNAMultiColumnListBox(WindowManager);
-            lbSaveGameList.Name = "lbSaveGameList";
+            lbSaveGameList.Name = nameof(lbSaveGameList);
+            lbSaveGameList.ClientRectangle = new Rectangle(13, 13, 574, 317);
             lbSaveGameList.AddColumn("SAVED GAME NAME", 400);
             lbSaveGameList.AddColumn("DATE / TIME", 174);
-            lbSaveGameList.ClientRectangle = new Rectangle(13, 13, 574, 317);
             lbSaveGameList.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 128), 1, 1);
             lbSaveGameList.PanelBackgroundDrawMode = PanelBackgroundImageDrawMode.STRETCHED;
             lbSaveGameList.SelectedIndexChanged += ListBox_SelectedIndexChanged;
             lbSaveGameList.AllowKeyboardInput = true;
 
             btnLaunch = new XNAClientButton(WindowManager);
+            btnLaunch.Name = nameof(btnLaunch);
             btnLaunch.ClientRectangle = new Rectangle(161, 345, 133, 23);
             btnLaunch.Text = "Load";
             btnLaunch.AllowClick = false;
             btnLaunch.LeftClick += BtnLaunch_LeftClick;
 
             var btnCancel = new XNAClientButton(WindowManager);
-            btnCancel.Name = "btnCancel";
+            btnCancel.Name = nameof(btnCancel);
             btnCancel.ClientRectangle = new Rectangle(304, btnLaunch.Y, 133, 23);
             btnCancel.Text = "Cancel";
             btnCancel.LeftClick += BtnCancel_LeftClick;

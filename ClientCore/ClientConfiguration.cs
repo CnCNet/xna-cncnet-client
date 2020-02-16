@@ -406,10 +406,6 @@ namespace ClientCore
 
         public bool DisableMultiplayerGameLoading => clientDefinitionsIni.GetBooleanValue(SETTINGS, "DisableMultiplayerGameLoading", false);
 
-        public bool DisableUpdaterOptions => clientDefinitionsIni.GetBooleanValue(SETTINGS, "DisableUpdaterOptions", false);
-
-        public bool DisableComponentOptions => clientDefinitionsIni.GetBooleanValue(SETTINGS, "DisableComponentOptions", false);
-
         public bool DisplayPlayerCountInTopBar => clientDefinitionsIni.GetBooleanValue(SETTINGS, "DisplayPlayerCountInTopBar", false);
 
         /// <summary>
@@ -418,8 +414,6 @@ namespace ClientCore
         /// For example, DTA.exe in case of DTA.
         /// </summary>
         public string LauncherExe => clientDefinitionsIni.GetStringValue(SETTINGS, "LauncherExe", string.Empty);
-
-        public string ClientDefaultResolutionText => clientDefinitionsIni.GetStringValue(SETTINGS, "ClientDefaultResolutionText", "(recommended)");
 
         public bool UseClientRandomStartLocations => clientDefinitionsIni.GetBooleanValue(SETTINGS, "UseClientRandomStartLocations", false);
 

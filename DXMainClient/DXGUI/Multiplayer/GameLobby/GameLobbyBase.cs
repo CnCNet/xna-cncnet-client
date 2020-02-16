@@ -311,8 +311,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             btnPickRandomMap.ClientRectangle = new Rectangle(btnLaunchGame.Right + 157 , btnLaunchGame.Y, 133, 23);
             btnPickRandomMap.Text = "Pick Random Map";
             btnPickRandomMap.LeftClick += BtnPickRandomMap_LeftClick;
-            btnPickRandomMap.Visible = false;
-            btnPickRandomMap.Enabled = false;
+            btnPickRandomMap.Disable();
 
             AddChild(lblMapName);
             AddChild(lblMapAuthor);
@@ -383,7 +382,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 return;
 
             var dd = (GameLobbyDropDown)sender;
-            dd.UserDefinedIndex = dd.SelectedIndex;
+            dd.HostSelectedIndex = dd.SelectedIndex;
             OnGameOptionChanged();
         }
 
@@ -392,6 +391,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (disableGameOptionUpdateBroadcast)
                 return;
 
+            var checkBox = (GameLobbyCheckBox)sender;
+            checkBox.HostChecked = checkBox.Checked;
             OnGameOptionChanged();
         }
 
@@ -1560,7 +1561,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         protected void ClearReadyStatuses()
         {
             for (int i = 1; i < Players.Count; i++)
-                Players[i].Ready = false;
+            {
+                if (!Players[i].AutoReady)
+                    Players[i].Ready = false;
+            }
         }
 
         /// <summary>
@@ -1772,10 +1776,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             ApplyForcedDropDownOptions(dropDownListClone, map.ForcedDropDownValues);
 
             foreach (var chkBox in checkBoxListClone)
-                chkBox.Checked = chkBox.UserDefinedValue;
+                chkBox.Checked = chkBox.HostChecked;
 
             foreach (var dd in dropDownListClone)
-                dd.SelectedIndex = dd.UserDefinedIndex;
+                dd.SelectedIndex = dd.HostSelectedIndex;
 
             // Enable all sides by default
             foreach (var ddSide in ddPlayerSides)

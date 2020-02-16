@@ -135,6 +135,7 @@ namespace DTAClient.DXGUI.Generic
             privateMessagingPanel.AddChild(pmWindow);
 
             topBar.SetTertiarySwitch(pmWindow);
+            topBar.SetOptionsWindow(optionsWindow);
 
             WindowManager.AddAndInitializeControl(gipw);
             skirmishLobby.Disable();

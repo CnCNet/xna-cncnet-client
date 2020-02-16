@@ -38,29 +38,31 @@ namespace DTAClient.DXGUI.Generic
             lblDescription = new XNALabel(WindowManager);
             lblDescription.ClientRectangle = new Rectangle(12, 9, 0, 0);
             lblDescription.Text = String.Empty;
-            lblDescription.Name = "lblDescription";
+            lblDescription.Name = nameof(lblDescription);
 
             var lblChangelogLink = new XNALinkLabel(WindowManager);
             lblChangelogLink.ClientRectangle = new Rectangle(12, 50, 0, 0);
             lblChangelogLink.Text = "View Changelog";
             lblChangelogLink.IdleColor = Color.Goldenrod;
-            lblChangelogLink.Name = "lblChangelogLink";
+            lblChangelogLink.Name = nameof(lblChangelogLink);
             lblChangelogLink.LeftClick += LblChangelogLink_LeftClick;
 
             lblUpdateSize = new XNALabel(WindowManager);
             lblUpdateSize.ClientRectangle = new Rectangle(12, 80, 0, 0);
             lblUpdateSize.Text = String.Empty;
-            lblUpdateSize.Name = "lblUpdateSize";
+            lblUpdateSize.Name = nameof(lblUpdateSize);
 
             var btnYes = new XNAClientButton(WindowManager);
             btnYes.ClientRectangle = new Rectangle(12, 110, 75, 23);
             btnYes.Text = "Yes";
             btnYes.LeftClick += BtnYes_LeftClick;
+            btnYes.Name = nameof(btnYes);
 
             var btnNo = new XNAClientButton(WindowManager);
             btnNo.ClientRectangle = new Rectangle(164, 110, 75, 23);
             btnNo.Text = "No";
             btnNo.LeftClick += BtnNo_LeftClick;
+            btnNo.Name = nameof(btnNo);
 
             AddChild(lblDescription);
             AddChild(lblChangelogLink);

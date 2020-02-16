@@ -30,6 +30,7 @@ namespace DTAClient.Domain.Multiplayer
         public int ColorId { get; set; }
         public int TeamId { get; set; }
         public bool Ready { get; set; }
+        public bool AutoReady { get; set; }
         public bool IsAI { get; set; }
 
         public bool IsInGame { get; set; }
