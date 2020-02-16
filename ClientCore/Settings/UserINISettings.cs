@@ -96,7 +96,6 @@ namespace ClientCore
             CheckForUpdates = new BoolSetting(iniFile, OPTIONS, "CheckforUpdates", true);
 
             IsFirstRun = new BoolSetting(iniFile, OPTIONS, "IsFirstRun", true);
-            DiscordPrivacyNoticeShown = new BoolSetting(iniFile, OPTIONS, "DiscordPrivacyNoticeShown", false);
             CustomComponentsDenied = new BoolSetting(iniFile, OPTIONS, "CustomComponentsDenied", false);
             Difficulty = new IntSetting(iniFile, OPTIONS, "Difficulty", 1);
             ScrollDelay = new IntSetting(iniFile, OPTIONS, "ScrollDelay", 4);
@@ -185,9 +184,6 @@ namespace ClientCore
         public BoolSetting CheckForUpdates { get; private set; }
 
         public BoolSetting IsFirstRun { get; private set; }
-
-        public BoolSetting DiscordPrivacyNoticeShown { get; private set; }
-
         public BoolSetting CustomComponentsDenied { get; private set; }
 
         public IntSetting Difficulty { get; private set; }
