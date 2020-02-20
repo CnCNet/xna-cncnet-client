@@ -1,5 +1,6 @@
 ﻿using ClientCore;
 using ClientGUI;
+using DTAConfig.FileSettings;
 using Rampastring.Tools;
 using Rampastring.XNAUI;
 using System.Collections.Generic;
@@ -10,7 +11,7 @@ namespace DTAConfig
     /// <summary>
     /// A check-box fitting for a file presence toggle setting.
     /// </summary>
-    public class FileSettingCheckBox : XNAClientCheckBox
+    public class FileSettingCheckBox : XNAClientCheckBox, ICustomSetting
     {
         public FileSettingCheckBox(WindowManager windowManager) : base(windowManager) { }
 
@@ -97,18 +98,6 @@ namespace DTAConfig
             if (restartRequired && (Checked != originalState))
                 return true;
             return false;
-        }
-
-        sealed class FileSourceDestinationInfo
-        {
-            public FileSourceDestinationInfo(string source, string destination)
-            {
-                SourcePath = source;
-                DestinationPath = destination;
-            }
-
-            public string SourcePath { get; private set; }
-            public string DestinationPath { get; private set; }
         }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using ClientCore;
 using ClientGUI;
+using DTAConfig.FileSettings;
 using Microsoft.Xna.Framework;
 using Rampastring.Tools;
 using Rampastring.XNAUI;
@@ -24,7 +25,7 @@ namespace DTAConfig.OptionPanels
 
         private static readonly OptionsGUICreator optionsGUICreator = new OptionsGUICreator();
 
-        private List<FileSettingCheckBox> fileSettingCheckBoxes = new List<FileSettingCheckBox>();
+        private List<ICustomSetting> customSettings = new List<ICustomSetting>();
 
         public override void Initialize()
         {
@@ -56,7 +57,7 @@ namespace DTAConfig.OptionPanels
                 if (!(control is FileSettingCheckBox controlAsFileSettingCheckBox))
                     continue;
 
-                fileSettingCheckBoxes.Add(controlAsFileSettingCheckBox);
+                customSettings.Add(controlAsFileSettingCheckBox);
             }
         }
 
@@ -70,8 +71,8 @@ namespace DTAConfig.OptionPanels
         public virtual bool Save()
         {
             bool restartRequired = false;
-            foreach (var checkBox in fileSettingCheckBoxes)
-                restartRequired = checkBox.Save() || restartRequired;
+            foreach (var setting in customSettings)
+                restartRequired = setting.Save() || restartRequired;
             
             return restartRequired;
         }
@@ -81,8 +82,8 @@ namespace DTAConfig.OptionPanels
         /// </summary>
         public virtual void Load()
         {
-            foreach (var checkBox in fileSettingCheckBoxes)
-                checkBox.Load();
+            foreach (var setting in customSettings)
+                setting.Load();
         }
     }
 }
