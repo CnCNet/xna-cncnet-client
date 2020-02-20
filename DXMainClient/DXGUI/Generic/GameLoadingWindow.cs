@@ -1,4 +1,4 @@
-﻿using ClientCore;
+using ClientCore;
 using ClientGUI;
 using DTAClient.Domain;
 using Microsoft.Xna.Framework;
@@ -28,6 +28,9 @@ namespace DTAClient.DXGUI.Generic
 
         private XNAMultiColumnListBox lbSaveGameList;
         private XNAClientButton btnLaunch;
+        private XNAClientButton btnDelete;
+        private XNAClientButton btnCancel;
+
         private List<SavedGame> savedGames = new List<SavedGame>();
 
         public override void Initialize()
@@ -50,19 +53,27 @@ namespace DTAClient.DXGUI.Generic
 
             btnLaunch = new XNAClientButton(WindowManager);
             btnLaunch.Name = nameof(btnLaunch);
-            btnLaunch.ClientRectangle = new Rectangle(161, 345, 133, 23);
+            btnLaunch.ClientRectangle = new Rectangle(125, 345, 110, 23);
             btnLaunch.Text = "Load";
             btnLaunch.AllowClick = false;
             btnLaunch.LeftClick += BtnLaunch_LeftClick;
 
-            var btnCancel = new XNAClientButton(WindowManager);
+            btnDelete = new XNAClientButton(WindowManager);
+            btnDelete.Name = nameof(btnDelete);
+            btnDelete.ClientRectangle = new Rectangle(btnLaunch.Right + 10, btnLaunch.Y, 110, 23);
+            btnDelete.Text = "Delete";
+            btnDelete.AllowClick = false;
+            btnDelete.LeftClick += BtnDelete_LeftClick;
+
+            btnCancel = new XNAClientButton(WindowManager);
             btnCancel.Name = nameof(btnCancel);
-            btnCancel.ClientRectangle = new Rectangle(304, btnLaunch.Y, 133, 23);
+            btnCancel.ClientRectangle = new Rectangle(btnDelete.Right + 10, btnLaunch.Y, 110, 23);
             btnCancel.Text = "Cancel";
             btnCancel.LeftClick += BtnCancel_LeftClick;
 
             AddChild(lbSaveGameList);
             AddChild(btnLaunch);
+            AddChild(btnDelete);
             AddChild(btnCancel);
 
             base.Initialize();
@@ -73,9 +84,15 @@ namespace DTAClient.DXGUI.Generic
         private void ListBox_SelectedIndexChanged(object sender, EventArgs e)
         {
             if (lbSaveGameList.SelectedIndex == -1)
+            {
                 btnLaunch.AllowClick = false;
+                btnDelete.AllowClick = false;
+            }
             else
+            {
                 btnLaunch.AllowClick = true;
+                btnDelete.AllowClick = true;
+            }
         }
 
         private void BtnCancel_LeftClick(object sender, EventArgs e)
@@ -117,6 +134,30 @@ namespace DTAClient.DXGUI.Generic
             GameProcessLogic.StartGameProcess();
         }
 
+        private void BtnDelete_LeftClick(object sender, EventArgs e)
+        {
+            SavedGame sg = savedGames[lbSaveGameList.SelectedIndex];
+            var msgBox = new XNAMessageBox(WindowManager, "Delete Confirmation",
+                    "The following saved game will be deleted permanently:" + Environment.NewLine +
+                    Environment.NewLine +
+                    "Filename: " + sg.FileName + Environment.NewLine +
+                    "Saved game name: " + Renderer.GetSafeString(sg.GUIName, lbSaveGameList.FontIndex) + Environment.NewLine +
+                    "Date and time: " + sg.LastModified.ToString() + Environment.NewLine +
+                    Environment.NewLine +
+                    "Are you sure you want to proceed?", XNAMessageBoxButtons.YesNo);
+            msgBox.Show();
+            msgBox.YesClickedAction = DeleteMsgBox_YesClicked;
+        }
+
+        private void DeleteMsgBox_YesClicked(XNAMessageBox obj)
+        {
+            SavedGame sg = savedGames[lbSaveGameList.SelectedIndex];
+
+            Logger.Log("Deleting saved game " + sg.FileName);
+            File.Delete(MainClientConstants.gamepath + SAVED_GAMES_DIRECTORY + Path.DirectorySeparatorChar + sg.FileName);
+            ListSaves();
+        }
+        
         private void GameProcessExited_Callback()
         {
             WindowManager.AddCallback(new Action(GameProcessExited), null);
@@ -125,7 +166,6 @@ namespace DTAClient.DXGUI.Generic
         protected virtual void GameProcessExited()
         {
             GameProcessLogic.GameProcessExited -= GameProcessExited_Callback;
-            // Logger.Log("GameProcessExited: Updating Discord Presence.");
             discordHandler?.UpdatePresence();
         }
 
