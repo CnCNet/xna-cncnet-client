@@ -160,7 +160,7 @@ namespace DTAConfig.OptionPanels
             chkBackBufferInVRAM.Text = "Back Buffer in Video Memory" + Environment.NewLine +
                 "(lower performance, but is" + Environment.NewLine + "necessary on some systems)";
 
-            var  lblClientResolution = new XNALabel(WindowManager);
+            var lblClientResolution = new XNALabel(WindowManager);
             lblClientResolution.Name = "lblClientResolution";
             lblClientResolution.ClientRectangle = new Rectangle(
                 285, 14, 0, 0);
@@ -643,7 +643,7 @@ namespace DTAConfig.OptionPanels
                 chkBorderlessWindowedMode.Checked = UserINISettings.Instance.BorderlessWindowedMode;
             }
 
-            string currentClientRes = WindowManager.WindowWidth + "x" + WindowManager.WindowHeight;
+            string currentClientRes = IniSettings.ClientResolutionX.Value + "x" + IniSettings.ClientResolutionY.Value;
 
             int clientResIndex = ddClientResolution.Items.FindIndex(i => (string)i.Tag == currentClientRes);
 
@@ -731,12 +731,12 @@ namespace DTAConfig.OptionPanels
 
             int[] clientRes = new int[2] { int.Parse(clientResolution[0]), int.Parse(clientResolution[1]) };
 
+            if (clientRes[0] != IniSettings.ClientResolutionX.Value ||
+                clientRes[1] != IniSettings.ClientResolutionY.Value)
+                restartRequired = true;
+
             IniSettings.ClientResolutionX.Value = clientRes[0];
             IniSettings.ClientResolutionY.Value = clientRes[1];
-
-            if (clientRes[0] != WindowManager.WindowWidth ||
-                clientRes[1] != WindowManager.WindowHeight)
-                restartRequired = true;
 
             if (IniSettings.BorderlessWindowedClient.Value != chkBorderlessClient.Checked)
                 restartRequired = true;

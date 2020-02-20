@@ -15,6 +15,7 @@ using DTAClient.Domain.LAN;
 using DTAClient.Online;
 using System.Threading;
 using DTAClient.DXGUI.Multiplayer.GameLobby.CommandHandlers;
+using DTAClient.Domain;
 
 namespace DTAClient.DXGUI.Multiplayer.GameLobby
 {
@@ -39,8 +40,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         private const string DICE_ROLL_COMMAND = "DR";
 
         public LANGameLobby(WindowManager windowManager, string iniName, 
-            TopBar topBar, List<GameMode> GameModes, LANColor[] chatColors, MapLoader mapLoader) : 
-            base(windowManager, iniName, topBar, GameModes, mapLoader)
+            TopBar topBar, List<GameMode> GameModes, LANColor[] chatColors, MapLoader mapLoader, DiscordHandler discordHandler) : 
+            base(windowManager, iniName, topBar, GameModes, mapLoader, discordHandler)
         {
             this.chatColors = chatColors;
             encoding = Encoding.UTF8;
@@ -279,6 +280,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             CopyPlayerDataToUI();
             BroadcastPlayerOptions();
             OnGameOptionChanged();
+            UpdateDiscordPresence();
         }
 
         private void LpInfo_ConnectionLost(object sender, EventArgs e)
@@ -291,6 +293,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             CopyPlayerDataToUI();
             BroadcastPlayerOptions();
+
+            if (lpInfo.Name == ProgramConstants.PLAYERNAME)
+                ResetDiscordPresence(); 
+            else
+                UpdateDiscordPresence();
         }
 
         private void LpInfo_MessageReceived(object sender, NetworkMessageEventArgs e)
@@ -406,6 +413,25 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             Disable();
         }
 
+        protected override void UpdateDiscordPresence(bool resetTimer = false)
+        {
+            if (discordHandler == null)
+                return;
+
+            PlayerInfo player = Players.Find(p => p.Name == ProgramConstants.PLAYERNAME);
+            if (player == null || Map == null || GameMode == null)
+                return;
+            string side = "";
+            if (ddPlayerSides.Length > Players.IndexOf(player))
+                side = ddPlayerSides[Players.IndexOf(player)].SelectedItem.Text;
+            string currentState = ProgramConstants.IsInGame ? "In Game" : "In Lobby";
+
+            discordHandler.UpdatePresence(
+                Map.Name, GameMode.Name, "LAN",
+                currentState, Players.Count, 8, side,
+                "LAN Game", IsHost, false, Locked, resetTimer);
+        }
+
         public override void Clear()
         {
             base.Clear();
@@ -424,6 +450,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             if (this.client.Connected)
                 this.client.Close();
+
+            ResetDiscordPresence();
         }
 
         public void SetChatColorIndex(int colorIndex)
@@ -645,6 +673,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                         AddNotice(lpInfo.Name + " - connection timed out");
                         CopyPlayerDataToUI();
                         BroadcastPlayerOptions();
+                        UpdateDiscordPresence();
                         i--;
                     }
                 }
@@ -812,6 +841,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (parts.Length != playerCount * 8)
                 return;
 
+            int oldSide = Players.Find(p => p.Name == ProgramConstants.PLAYERNAME).SideId;
+
             Players.Clear();
             AIPlayers.Clear();
 
@@ -874,6 +905,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             }
 
             CopyPlayerDataToUI();
+            if (oldSide != Players.Find(p => p.Name == ProgramConstants.PLAYERNAME).SideId)
+                UpdateDiscordPresence();
         }
 
         private void HandlePlayerQuit(string sender)
@@ -888,6 +921,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             ClearReadyStatuses();
             CopyPlayerDataToUI();
             BroadcastPlayerOptions();
+            UpdateDiscordPresence();
         }
 
         private void HandleGameOptionsMessage(string data)

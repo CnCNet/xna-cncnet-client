@@ -103,6 +103,7 @@ namespace ClientGUI
                 try
                 {
                     DtaProcess.Start();
+                    Logger.Log("GameProcessLogic: Process started.");
                 }
                 catch (Exception ex)
                 {
@@ -126,6 +127,7 @@ namespace ClientGUI
 
         static void Process_Exited(object sender, EventArgs e)
         {
+            Logger.Log("GameProcessLogic: Process exited.");
             Process proc = (Process)sender;
             proc.Exited -= Process_Exited;
             proc.Dispose();
