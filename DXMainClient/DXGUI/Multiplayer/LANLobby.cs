@@ -1,6 +1,7 @@
 ﻿using ClientCore;
 using ClientCore.CnCNet5;
 using ClientGUI;
+using DTAClient.Domain;
 using DTAClient.Domain.LAN;
 using DTAClient.Domain.Multiplayer;
 using DTAClient.Domain.Multiplayer.LAN;
@@ -30,12 +31,13 @@ namespace DTAClient.DXGUI.Multiplayer
         private const double GAME_INACTIVITY_REMOVE_TIME = 20.0;
 
         public LANLobby(WindowManager windowManager, GameCollection gameCollection,
-            List<GameMode> gameModes, MapLoader mapLoader)
+            List<GameMode> gameModes, MapLoader mapLoader, DiscordHandler discordHandler)
             : base(windowManager)
         {
             this.gameCollection = gameCollection;
             this.gameModes = gameModes;
             this.mapLoader = mapLoader;
+            this.discordHandler = discordHandler;
         }
 
         public event EventHandler Exited;
@@ -84,6 +86,8 @@ namespace DTAClient.DXGUI.Multiplayer
         TimeSpan timeSinceAliveMessage = TimeSpan.Zero;
 
         MapLoader mapLoader;
+
+        DiscordHandler discordHandler;
 
         bool initSuccess = false;
 
@@ -224,12 +228,12 @@ namespace DTAClient.DXGUI.Multiplayer
             gameCreationPanel.SetPositionAndSize();
 
             lanGameLobby = new LANGameLobby(WindowManager, "MultiplayerGameLobby",
-                null, gameModes, chatColors, mapLoader);
+                null, gameModes, chatColors, mapLoader, discordHandler);
             DarkeningPanel.AddAndInitializeWithControl(WindowManager, lanGameLobby);
             lanGameLobby.Disable();
 
             lanGameLoadingLobby = new LANGameLoadingLobby(WindowManager, 
-                gameModes, chatColors);
+                gameModes, chatColors, discordHandler);
             DarkeningPanel.AddAndInitializeWithControl(WindowManager, lanGameLoadingLobby);
             lanGameLoadingLobby.Disable();
 

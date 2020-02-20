@@ -1,4 +1,5 @@
-﻿using Microsoft.Xna.Framework;
+﻿using ClientCore;
+using Microsoft.Xna.Framework;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
 using System;
@@ -13,17 +14,6 @@ namespace ClientGUI
     /// </summary>
     public class ToolTip : XNAControl
     {
-        private const int FONT_INDEX = 0;
-        private const int MARGIN = 6;
-        private const int APPEAR_BELOW_CURSOR_PIXELS = 6;
-        private const float ALPHA_RATE_PER_SECOND = 4.0f;
-
-        /// <summary>
-        /// The time in seconds that the cursor must stay still on top of the 
-        /// master control for the tooltip to be displayed.
-        /// </summary>
-        private const float SECONDS_BEFORE_DISPLAYING = 0.67f;
-
         /// <summary>
         /// Creates a new tool tip and attaches it to the given control.
         /// </summary>
@@ -46,19 +36,17 @@ namespace ClientGUI
         }
 
         private void MasterControl_EnabledChanged(object sender, EventArgs e)
-        {
-            Enabled = masterControl.Enabled;
-        }
+            => Enabled = masterControl.Enabled;
 
         public override string Text
         {
-            get { return base.Text; }
+            get => base.Text;
             set
             {
                 base.Text = value;
-                Vector2 textSize = Renderer.GetTextDimensions(base.Text, FONT_INDEX);
-                Width = (int)textSize.X + MARGIN * 2;
-                Height = (int)textSize.Y + MARGIN * 2;
+                Vector2 textSize = Renderer.GetTextDimensions(base.Text, ClientConfiguration.Instance.ToolTipFontIndex);
+                Width = (int)textSize.X + ClientConfiguration.Instance.ToolTipMargin * 2;
+                Height = (int)textSize.Y + ClientConfiguration.Instance.ToolTipMargin * 2;
             }
         }
 
@@ -76,7 +64,7 @@ namespace ClientGUI
                 return;
 
             DisplayAtLocation(SumPoints(WindowManager.Cursor.Location,
-                new Point(0, APPEAR_BELOW_CURSOR_PIXELS)));
+                new Point(ClientConfiguration.Instance.ToolTipOffsetX, ClientConfiguration.Instance.ToolTipOffsetY)));
             IsMasterControlOnCursor = true;
         }
 
@@ -93,21 +81,19 @@ namespace ClientGUI
                 // Move the tooltip if the cursor has moved while staying 
                 // on the control area and we're invisible
                 DisplayAtLocation(SumPoints(WindowManager.Cursor.Location,
-                    new Point(0, APPEAR_BELOW_CURSOR_PIXELS)));
+                    new Point(ClientConfiguration.Instance.ToolTipOffsetX, ClientConfiguration.Instance.ToolTipOffsetY)));
             }
-                
-            cursorTime = TimeSpan.Zero;
         }
 
         /// <summary>
         /// Sets the tool tip's location, checking that it doesn't exceed the window's bounds.
         /// </summary>
-        /// <param name="location">The location.</param>
+        /// <param name="location">The point at location coordinates.</param>
         public void DisplayAtLocation(Point location)
         {
             X = location.X + Width > WindowManager.RenderResolutionX ?
                 WindowManager.RenderResolutionX - Width : location.X;
-            Y = location.Y;
+            Y = location.Y - Height < 0 ? 0 : location.Y - Height;
         }
 
         public override void Update(GameTime gameTime)
@@ -116,9 +102,9 @@ namespace ClientGUI
             {
                 cursorTime += gameTime.ElapsedGameTime;
 
-                if (cursorTime > TimeSpan.FromSeconds(SECONDS_BEFORE_DISPLAYING))
+                if (cursorTime > TimeSpan.FromSeconds(ClientConfiguration.Instance.ToolTipDelay))
                 {
-                    Alpha += ALPHA_RATE_PER_SECOND * (float)gameTime.ElapsedGameTime.TotalSeconds;
+                    Alpha += ClientConfiguration.Instance.ToolTipAlphaRatePerSecond * (float)gameTime.ElapsedGameTime.TotalSeconds;
                     Visible = true;
                     if (Alpha > 1.0f)
                         Alpha = 1.0f;
@@ -126,7 +112,7 @@ namespace ClientGUI
                 }
             }
 
-            Alpha -= ALPHA_RATE_PER_SECOND * (float)gameTime.ElapsedGameTime.TotalSeconds;
+            Alpha -= ClientConfiguration.Instance.ToolTipAlphaRatePerSecond * (float)gameTime.ElapsedGameTime.TotalSeconds;
             if (Alpha < 0f)
             {
                 Alpha = 0f;
@@ -140,30 +126,26 @@ namespace ClientGUI
                 ColorFromAlpha(UISettings.ActiveSettings.BackgroundColor));
             Renderer.DrawRectangle(ClientRectangle,
                 ColorFromAlpha(UISettings.ActiveSettings.AltColor));
-            Renderer.DrawString(Text, FONT_INDEX,
-                new Vector2(X + MARGIN, Y + MARGIN),
+            Renderer.DrawString(Text, ClientConfiguration.Instance.ToolTipFontIndex,
+                new Vector2(X + ClientConfiguration.Instance.ToolTipMargin, Y + ClientConfiguration.Instance.ToolTipMargin),
                 ColorFromAlpha(UISettings.ActiveSettings.AltColor), 1.0f);
         }
 
         private Color ColorFromAlpha(Color color)
-        {
             // This is necessary because XNA lacks the color constructor that
             // takes a color and a float value for alpha.
 #if XNA
-            return new Color(color.R, color.G, color.B, (int)(Alpha * 255.0f));
+            => new Color(color.R, color.G, color.B, (int)(Alpha * 255.0f));
 #else
-            return new Color(color, Alpha);
+            => new Color(color, Alpha);
 #endif
-        }
 
         private Point SumPoints(Point p1, Point p2)
-        {
             // This is also needed for XNA compatibility
 #if XNA
-            return new Point(p1.X + p2.X, p1.Y + p2.Y);
+            => new Point(p1.X + p2.X, p1.Y + p2.Y);
 #else
-            return p1 + p2;
+            => p1 + p2;
 #endif
-        }
     }
 }
