@@ -30,16 +30,18 @@ namespace DTAClient.DXGUI.Generic
 
         }
 
-        XNALabel lblDescription;
-        XNALabel lblCurrentFileProgressPercentageValue;
-        XNALabel lblTotalProgressPercentageValue;
-        XNALabel lblCurrentFile;
-        XNALabel lblUpdaterStatus;
+        private XNALabel lblDescription;
+        private XNALabel lblCurrentFileProgressPercentageValue;
+        private XNALabel lblTotalProgressPercentageValue;
+        private XNALabel lblCurrentFile;
+        private XNALabel lblUpdaterStatus;
 
-        XNAProgressBar prgCurrentFile;
-        XNAProgressBar prgTotal;
+        private XNAProgressBar prgCurrentFile;
+        private XNAProgressBar prgTotal;
 
-        TaskbarProgress tbp;
+        private TaskbarProgress tbp;
+
+        private bool isStartingForceUpdate;
 
         private static readonly object locker = new object();
 
@@ -117,6 +119,7 @@ namespace DTAClient.DXGUI.Generic
 
             CenterOnParent();
 
+            CUpdater.FileIdentifiersUpdated += CUpdater_FileIdentifiersUpdated;
             CUpdater.OnUpdateCompleted += Updater_OnUpdateCompleted;
             CUpdater.OnUpdateFailed += Updater_OnUpdateFailed;
             CUpdater.UpdateProgressChanged += Updater_UpdateProgressChanged;
@@ -124,6 +127,23 @@ namespace DTAClient.DXGUI.Generic
 
             if (IsTaskbarSupported())
                 tbp = new TaskbarProgress();
+        }
+
+        private void CUpdater_FileIdentifiersUpdated()
+        {
+            if (!isStartingForceUpdate)
+                return;
+
+            if (CUpdater.DTAVersionState == VersionState.UNKNOWN)
+            {
+                XNAMessageBox.Show(WindowManager, "Force Update Failure", "Checking for updates failed.");
+                CloseWindow();
+                return;
+            }
+
+            SetData(CUpdater.ServerGameVersion);
+            CUpdater.StartAsyncUpdate();
+            isStartingForceUpdate = false;
         }
 
         private void CUpdater_LocalFileCheckProgressChanged(int checkedFileCount, int totalFileCount)
@@ -213,7 +233,15 @@ namespace DTAClient.DXGUI.Generic
 
         private void BtnCancel_LeftClick(object sender, EventArgs e)
         {
-            CUpdater.TerminateUpdate = true;
+            if (!isStartingForceUpdate)
+                CUpdater.TerminateUpdate = true;
+
+            CloseWindow();
+        }
+
+        private void CloseWindow()
+        {
+            isStartingForceUpdate = false;
 
             if (IsTaskbarSupported())
                 tbp.SetState(WindowManager.GetWindowHandle(), TaskbarProgress.TaskbarStates.NoProgress);
@@ -227,6 +255,14 @@ namespace DTAClient.DXGUI.Generic
                 "This window will automatically close once the update is complete." + Environment.NewLine + Environment.NewLine +
                 "The client may also restart after the update has been downloaded.", MainClientConstants.GAME_NAME_SHORT, newGameVersion);
             lblUpdaterStatus.Text = "Preparing...";
+        }
+
+        public void ForceUpdate()
+        {
+            isStartingForceUpdate = true;
+            lblDescription.Text = $"Force updating {MainClientConstants.GAME_NAME_SHORT} to latest version...";
+            lblUpdaterStatus.Text = "Preparing...";
+            CUpdater.CheckForUpdates();
         }
 
         private bool IsTaskbarSupported()

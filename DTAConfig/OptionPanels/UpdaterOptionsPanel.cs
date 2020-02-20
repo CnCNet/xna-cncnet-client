@@ -16,11 +16,11 @@ namespace DTAConfig.OptionPanels
         {
         }
 
+        public event EventHandler OnForceUpdate;
+
         private XNAListBox lbUpdateServerList;
         private XNAClientCheckBox chkAutoCheck;
         private XNAClientButton btnForceUpdate;
-
-        private bool isForceUpdateActivated;
 
         public override void Initialize()
         {
@@ -79,20 +79,23 @@ namespace DTAConfig.OptionPanels
         private void BtnForceUpdate_LeftClick(object sender, EventArgs e)
         {
             var msgBox = new XNAMessageBox(WindowManager, "Force Update Confirmation",
-                    "WARNING: Force update will result in some files being re-verified" + Environment.NewLine +
-                    "and re-downloaded on the next client run. While this may fix some" + Environment.NewLine +
-                    "of the problems with game files, this also may delete some custom" + Environment.NewLine +
-                    "modifications made to this installation. Use at your own risk!" +
+                    "WARNING: Force update will result in files being re-verified" + Environment.NewLine +
+                    "and re-downloaded. While this may fix problems with game" + Environment.NewLine +
+                    "files, this also may delete some custom modifications" + Environment.NewLine +
+                    "made to this installation. Use at your own risk!" +
                     Environment.NewLine + Environment.NewLine +
-                    "Do you really want to force update?", XNAMessageBoxButtons.YesNo);
+                    "If you proceed, the options window will close and the" + Environment.NewLine +
+                    "client will proceed to checking for updates." + 
+                    Environment.NewLine + Environment.NewLine +
+                    "Do you really want to force update?" + Environment.NewLine, XNAMessageBoxButtons.YesNo);
             msgBox.Show();
-            msgBox.YesClickedAction = RestartMsgBox_YesClicked;
+            msgBox.YesClickedAction = ForceUpdateMsgBox_YesClicked;
         }
 
-        private void RestartMsgBox_YesClicked(XNAMessageBox obj)
+        private void ForceUpdateMsgBox_YesClicked(XNAMessageBox obj)
         {
-            btnForceUpdate.AllowClick = false;
-            isForceUpdateActivated = true;
+            CUpdater.ClearVersionInfo();
+            OnForceUpdate?.Invoke(this, EventArgs.Empty);
         }
 
         private void btnMoveUp_LeftClick(object sender, EventArgs e)
@@ -137,13 +140,6 @@ namespace DTAConfig.OptionPanels
 
             lbUpdateServerList.Clear();
 
-            if (!File.Exists(ProgramConstants.GamePath + "version"))
-                btnForceUpdate.AllowClick = false;
-            else
-                btnForceUpdate.AllowClick = true;
-
-            isForceUpdateActivated = false;
-
             foreach (var updaterMirror in CUpdater.UPDATEMIRRORS)
                 lbUpdateServerList.AddItem(updaterMirror.Name + " (" + updaterMirror.Location + ")");
 
@@ -156,9 +152,6 @@ namespace DTAConfig.OptionPanels
 
             IniSettings.CheckForUpdates.Value = chkAutoCheck.Checked;
 
-            if (isForceUpdateActivated)
-                File.Delete(ProgramConstants.GamePath + "version");
-
             IniSettings.SettingsIni.EraseSectionKeys("DownloadMirrors");
 
             int id = 0;
@@ -169,7 +162,7 @@ namespace DTAConfig.OptionPanels
                 id++;
             }
 
-            return isForceUpdateActivated;
+            return false;
         }
     }
 }
