@@ -34,10 +34,10 @@ namespace ClientGUI
             string additionalExecutableName = string.Empty;
 
             if (osVersion == OSVersion.UNIX)
-                gameExecutableName = ClientConfiguration.Instance.GetUnixGameExecutableName();
+                gameExecutableName = ClientConfiguration.Instance.UnixGameExecutableName;
             else
             {
-                string launcherExecutableName = ClientConfiguration.Instance.GetGameLauncherExecutableName;
+                string launcherExecutableName = ClientConfiguration.Instance.GameLauncherExecutableName;
                 if (string.IsNullOrEmpty(launcherExecutableName))
                     gameExecutableName = ClientConfiguration.Instance.GetGameExecutableName();
                 else
