@@ -1,7 +1,9 @@
 ﻿using ClientCore;
 using ClientCore.Statistics;
 using ClientGUI;
+using DTAClient.Domain;
 using DTAClient.Domain.Multiplayer;
+using DTAClient.Domain.Multiplayer.CnCNet;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Rampastring.Tools;
@@ -12,6 +14,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
+
 
 namespace DTAClient.DXGUI.Multiplayer.GameLobby
 {
@@ -38,11 +41,12 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         /// <param name="game">The game.</param>
         /// <param name="iniName">The name of the lobby in GameOptions.ini.</param>
         public GameLobbyBase(WindowManager windowManager, string iniName,
-            List<GameMode> GameModes, bool isMultiplayer) : base(windowManager)
+            List<GameMode> GameModes, bool isMultiplayer, DiscordHandler discordHandler) : base(windowManager)
         {
             _iniSectionName = iniName;
             this.GameModes = GameModes;
             this.isMultiplayer = isMultiplayer;
+            this.discordHandler = discordHandler;
         }
 
         private string _iniSectionName;
@@ -56,6 +60,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         protected List<GameLobbyCheckBox> CheckBoxes = new List<GameLobbyCheckBox>();
         protected List<GameLobbyDropDown> DropDowns = new List<GameLobbyDropDown>();
 
+        protected DiscordHandler discordHandler;
+
         /// <summary>
         /// The list of multiplayer game modes.
         /// </summary>
@@ -64,12 +70,37 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         /// <summary>
         /// The currently selected game mode.
         /// </summary>
-        protected GameMode GameMode { get; set; }
+
+        private GameMode gameMode;
+        protected GameMode GameMode
+        {
+            get => gameMode;
+            set
+            {
+                var oldGameMode = gameMode;
+                gameMode = value;
+                if (value != null && oldGameMode != value)
+                    UpdateDiscordPresence();
+            }
+        }
 
         /// <summary>
         /// The currently selected map.
         /// </summary>
-        protected Map Map { get; set; }
+
+        private Map map;
+        protected Map Map
+        {
+            get => map;
+            set
+            {
+                var oldMap = map;
+                map = value;
+                if (value != null && oldMap != value)
+                    UpdateDiscordPresence();
+
+            }
+        }
 
         protected XNAClientDropDown[] ddPlayerNames;
         protected XNAClientDropDown[] ddPlayerSides;
@@ -351,7 +382,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 return;
 
             var dd = (GameLobbyDropDown)sender;
-            dd.UserDefinedIndex = dd.SelectedIndex;
+            dd.HostSelectedIndex = dd.SelectedIndex;
             OnGameOptionChanged();
         }
 
@@ -360,6 +391,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (disableGameOptionUpdateBroadcast)
                 return;
 
+            var checkBox = (GameLobbyCheckBox)sender;
+            checkBox.HostChecked = checkBox.Checked;
             OnGameOptionChanged();
         }
 
@@ -541,7 +574,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             // InitPlayerOptionDropdowns(136, 91, 79, 49, 46, new Point(25, 24));
 
-            string[] sides = ClientConfiguration.Instance.GetSides().Split(',');
+            string[] sides = ClientConfiguration.Instance.Sides.Split(',');
             SideCount = sides.Length;
 
             List<string> selectorNames = new List<string>();
@@ -706,6 +739,20 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         protected abstract void BtnLaunchGame_LeftClick(object sender, EventArgs e);
 
         protected abstract void BtnLeaveGame_LeftClick(object sender, EventArgs e);
+
+        /// <summary>
+        /// Updates Discord Rich Presence with actual information.
+        /// </summary>
+        /// <param name="resetTimer">Whether to restart the "Elapsed" timer or not</param>
+        protected abstract void UpdateDiscordPresence(bool resetTimer = false);
+
+        /// <summary>
+        /// Resets Discord Rich Presence to default state.
+        /// </summary>
+        protected void ResetDiscordPresence()
+        {
+            discordHandler?.UpdatePresence();
+        }
 
         protected void LoadDefaultMap()
         {
@@ -1384,6 +1431,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             GameProcessLogic.GameProcessExited += GameProcessExited_Callback;
 
             GameProcessLogic.StartGameProcess();
+            UpdateDiscordPresence(true);
         }
 
         private void GameProcessExited_Callback()
@@ -1413,6 +1461,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 Thread thread = new Thread(ProcessScreenshots);
                 thread.Start();
             }
+
+            UpdateDiscordPresence(true);
         }
 
         private void ProcessScreenshots()
@@ -1442,6 +1492,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             var senderDropDown = (XNADropDown)sender;
             if ((bool)senderDropDown.Tag)
                 ClearReadyStatuses();
+
+            var oldSideId = Players.Find(p => p.Name == ProgramConstants.PLAYERNAME)?.SideId;
 
             for (int pId = 0; pId < Players.Count; pId++)
             {
@@ -1498,6 +1550,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             CopyPlayerDataToUI();
             btnLaunchGame.SetRank(GetRank());
+
+            if (oldSideId != Players.Find(p => p.Name == ProgramConstants.PLAYERNAME)?.SideId)
+                UpdateDiscordPresence();
         }
 
         /// <summary>
@@ -1721,10 +1776,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             ApplyForcedDropDownOptions(dropDownListClone, map.ForcedDropDownValues);
 
             foreach (var chkBox in checkBoxListClone)
-                chkBox.Checked = chkBox.UserDefinedValue;
+                chkBox.Checked = chkBox.HostChecked;
 
             foreach (var dd in dropDownListClone)
-                dd.SelectedIndex = dd.UserDefinedIndex;
+                dd.SelectedIndex = dd.HostSelectedIndex;
 
             // Enable all sides by default
             foreach (var ddSide in ddPlayerSides)

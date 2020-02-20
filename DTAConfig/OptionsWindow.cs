@@ -19,6 +19,8 @@ namespace DTAConfig
             this.topBar = topBar;
         }
 
+        public event EventHandler OnForceUpdate;
+
         private XNAClientTabControl tabControl;
 
         private XNAOptionsPanel[] optionsPanels;
@@ -63,6 +65,8 @@ namespace DTAConfig
 
             displayOptionsPanel = new DisplayOptionsPanel(WindowManager, UserINISettings.Instance);
             componentsPanel = new ComponentsPanel(WindowManager, UserINISettings.Instance);
+            var updaterOptionsPanel = new UpdaterOptionsPanel(WindowManager, UserINISettings.Instance);
+            updaterOptionsPanel.OnForceUpdate += (s, e) => { Disable(); OnForceUpdate?.Invoke(this, EventArgs.Empty); };
 
             optionsPanels = new XNAOptionsPanel[]
             {
@@ -70,7 +74,7 @@ namespace DTAConfig
                 new AudioOptionsPanel(WindowManager, UserINISettings.Instance),
                 new GameOptionsPanel(WindowManager, UserINISettings.Instance, topBar),
                 new CnCNetOptionsPanel(WindowManager, UserINISettings.Instance, gameCollection),
-                new UpdaterOptionsPanel(WindowManager, UserINISettings.Instance),
+                updaterOptionsPanel,
                 componentsPanel
             };
 

@@ -34,7 +34,7 @@ namespace DTAClient.Domain.Multiplayer
         /// <summary>
         /// List of gamemodes allowed to be used on custom maps in order for them to display in map list.
         /// </summary>
-        private string[] AllowedGameModes = ClientConfiguration.Instance.GetAllowedGameModes.Split(',');
+        private string[] AllowedGameModes = ClientConfiguration.Instance.AllowedCustomGameModes.Split(',');
 
         /// <summary>
         /// Loads multiplayer map info asynchonously.
@@ -53,6 +53,21 @@ namespace DTAClient.Domain.Multiplayer
             Logger.Log("Loading maps.");
 
             IniFile mpMapsIni = new IniFile(ProgramConstants.GamePath + ClientConfiguration.Instance.MPMapsIniPath);
+
+            var gameModes = mpMapsIni.GetSectionKeys("GameModes");
+
+            if (gameModes != null)
+            {
+                foreach (string key in gameModes)
+                {
+                    string gameModeName = mpMapsIni.GetStringValue("GameModes", key, string.Empty);
+                    if (!string.IsNullOrEmpty(gameModeName))
+                    {
+                        GameMode gm = new GameMode(gameModeName);
+                        GameModes.Add(gm);
+                    }
+                }
+            }
 
             var gmAliases = mpMapsIni.GetSectionKeys("GameModeAliases");
 
@@ -123,6 +138,8 @@ namespace DTAClient.Domain.Multiplayer
             {
                 AddMapToGameModes(map, false);
             }
+
+            GameModes.RemoveAll(g => g.Maps.Count < 1);
 
             MapLoadingComplete?.Invoke(this, EventArgs.Empty);
         }

@@ -4,6 +4,7 @@ using Microsoft.Xna.Framework;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
 using System;
+using System.IO;
 using Updater;
 
 namespace DTAConfig.OptionPanels
@@ -15,8 +16,11 @@ namespace DTAConfig.OptionPanels
         {
         }
 
+        public event EventHandler OnForceUpdate;
+
         private XNAListBox lbUpdateServerList;
         private XNAClientCheckBox chkAutoCheck;
+        private XNAClientButton btnForceUpdate;
 
         public override void Initialize()
         {
@@ -58,11 +62,40 @@ namespace DTAConfig.OptionPanels
                 btnMoveUp.Bottom + 24, 0, 0);
             chkAutoCheck.Text = "Check for updates automatically";
 
+            btnForceUpdate = new XNAClientButton(WindowManager);
+            btnForceUpdate.Name = "btnForceUpdate";
+            btnForceUpdate.ClientRectangle = new Rectangle(btnMoveDown.X, btnMoveDown.Bottom + 24, 133, 23);
+            btnForceUpdate.Text = "Force Update";
+            btnForceUpdate.LeftClick += BtnForceUpdate_LeftClick;
+
             AddChild(lblDescription);
             AddChild(lbUpdateServerList);
             AddChild(btnMoveUp);
             AddChild(btnMoveDown);
             AddChild(chkAutoCheck);
+            AddChild(btnForceUpdate);
+        }
+
+        private void BtnForceUpdate_LeftClick(object sender, EventArgs e)
+        {
+            var msgBox = new XNAMessageBox(WindowManager, "Force Update Confirmation",
+                    "WARNING: Force update will result in files being re-verified" + Environment.NewLine +
+                    "and re-downloaded. While this may fix problems with game" + Environment.NewLine +
+                    "files, this also may delete some custom modifications" + Environment.NewLine +
+                    "made to this installation. Use at your own risk!" +
+                    Environment.NewLine + Environment.NewLine +
+                    "If you proceed, the options window will close and the" + Environment.NewLine +
+                    "client will proceed to checking for updates." + 
+                    Environment.NewLine + Environment.NewLine +
+                    "Do you really want to force update?" + Environment.NewLine, XNAMessageBoxButtons.YesNo);
+            msgBox.Show();
+            msgBox.YesClickedAction = ForceUpdateMsgBox_YesClicked;
+        }
+
+        private void ForceUpdateMsgBox_YesClicked(XNAMessageBox obj)
+        {
+            CUpdater.ClearVersionInfo();
+            OnForceUpdate?.Invoke(this, EventArgs.Empty);
         }
 
         private void btnMoveUp_LeftClick(object sender, EventArgs e)

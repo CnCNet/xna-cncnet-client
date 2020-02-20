@@ -12,6 +12,7 @@ using DTAClient.DXGUI.Generic;
 using DTAClient.Domain.Multiplayer;
 using ClientGUI;
 using System.Text;
+using DTAClient.Domain;
 
 namespace DTAClient.DXGUI.Multiplayer.GameLobby
 {
@@ -24,8 +25,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         private const int MAX_DIE_SIDES = 100;
 
         public MultiplayerGameLobby(WindowManager windowManager, string iniName, 
-            TopBar topBar, List<GameMode> GameModes, MapLoader mapLoader)
-            : base(windowManager, iniName, GameModes, true)
+            TopBar topBar, List<GameMode> GameModes, MapLoader mapLoader, DiscordHandler discordHandler)
+            : base(windowManager, iniName, GameModes, true, discordHandler)
         {
             TopBar = topBar;
             MapLoader = mapLoader;
@@ -60,7 +61,18 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         protected bool IsHost = false;
 
-        protected bool Locked = false;
+        private bool locked = false;
+        protected bool Locked
+        {
+            get => locked;
+            set
+            {
+                bool oldLocked = locked;
+                locked = value;
+                if (oldLocked != value)
+                    UpdateDiscordPresence();
+            }
+        }
 
         protected EnhancedSoundEffect sndJoinSound;
         protected EnhancedSoundEffect sndLeaveSound;
@@ -604,13 +616,13 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 foreach (GameLobbyDropDown dd in DropDowns)
                 {
                     dd.InputEnabled = true;
-                    dd.SelectedIndex = dd.UserDefinedIndex;
+                    dd.SelectedIndex = dd.UserSelectedIndex;
                 }
 
                 foreach (GameLobbyCheckBox checkBox in CheckBoxes)
                 {
                     checkBox.AllowChanges = true;
-                    checkBox.Checked = checkBox.UserDefinedValue;
+                    checkBox.Checked = checkBox.UserChecked;
                 }
 
                 GenerateGameID();

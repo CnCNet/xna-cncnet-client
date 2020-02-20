@@ -35,13 +35,15 @@ namespace DTAClient.DXGUI.Generic
         public MainMenu(WindowManager windowManager, SkirmishLobby skirmishLobby,
             LANLobby lanLobby, TopBar topBar, OptionsWindow optionsWindow,
             CnCNetLobby cncnetLobby,
-            CnCNetManager connectionManager) : base(windowManager)
+            CnCNetManager connectionManager, DiscordHandler discordHandler) : base(windowManager)
         {
             this.skirmishLobby = skirmishLobby;
             this.lanLobby = lanLobby;
             this.topBar = topBar;
             this.connectionManager = connectionManager;
             this.optionsWindow = optionsWindow;
+            this.cncnetLobby = cncnetLobby;
+            this.discordHandler = discordHandler;
             cncnetLobby.UpdateCheck += CncnetLobby_UpdateCheck;
             isMediaPlayerAvailable = IsMediaPlayerAvailable();
         }
@@ -52,6 +54,8 @@ namespace DTAClient.DXGUI.Generic
         private XNALinkLabel lblUpdateStatus;
         private XNALinkLabel lblVersion;
 
+        private CnCNetLobby cncnetLobby;
+
         private SkirmishLobby skirmishLobby;
 
         private LANLobby lanLobby;
@@ -59,6 +63,8 @@ namespace DTAClient.DXGUI.Generic
         private CnCNetManager connectionManager;
 
         private OptionsWindow optionsWindow;
+
+        private DiscordHandler discordHandler;
 
         private TopBar topBar;
 
@@ -225,7 +231,7 @@ namespace DTAClient.DXGUI.Generic
                 CUpdater.OnCustomComponentsOutdated += CUpdater_OnCustomComponentsOutdated;
             }
 
-            innerPanel = new MainMenuDarkeningPanel(WindowManager);
+            innerPanel = new MainMenuDarkeningPanel(WindowManager, discordHandler);
             innerPanel.ClientRectangle = new Rectangle(0, 0,
                 Width,
                 Height);
@@ -257,6 +263,8 @@ namespace DTAClient.DXGUI.Generic
             skirmishLobby.Exited += SkirmishLobby_Exited;
             lanLobby.Exited += LanLobby_Exited;
             optionsWindow.EnabledChanged += OptionsWindow_EnabledChanged;
+
+            optionsWindow.OnForceUpdate += (s, e) => ForceUpdate();
 
             GameProcessLogic.GameProcessStarted += SharedUILogic_GameProcessStarted;
             GameProcessLogic.GameProcessStarting += SharedUILogic_GameProcessStarting;
@@ -383,7 +391,8 @@ namespace DTAClient.DXGUI.Generic
 
         private void LanLobby_Exited(object sender, EventArgs e)
         {
-            topBar.Enable();
+            //topBar.Enable();
+            topBar.SetLanMode(false);
 
             if (UserINISettings.Instance.AutomaticCnCNetLogin)
                 connectionManager.Connect();
@@ -507,6 +516,15 @@ namespace DTAClient.DXGUI.Generic
         private void LblVersion_LeftClick(object sender, EventArgs e)
         {
             Process.Start(ClientConfiguration.Instance.ChangelogURL);
+        }
+
+        private void ForceUpdate()
+        {
+            updateInProgress = true;
+            innerPanel.Hide();
+            innerPanel.UpdateWindow.ForceUpdate();
+            innerPanel.Show(innerPanel.UpdateWindow);
+            lblUpdateStatus.Text = "Force updating...";
         }
 
         /// <summary>
@@ -645,7 +663,8 @@ namespace DTAClient.DXGUI.Generic
             if (UserINISettings.Instance.StopMusicOnMenu)
                 MusicOff();
 
-            topBar.Disable();
+            //topBar.Disable();
+            topBar.SetLanMode(true);
             if (connectionManager.IsConnected)
                 connectionManager.Disconnect();
         }

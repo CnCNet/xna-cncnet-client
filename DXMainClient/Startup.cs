@@ -54,12 +54,12 @@ namespace DTAClient
             Thread idThread = new Thread(GenerateOnlineId);
             idThread.Start();
 
-            if (Directory.Exists(MainClientConstants.gamepath + "Updater"))
+            if (Directory.Exists(ProgramConstants.GamePath + "Updater"))
             {
                 Logger.Log("Attempting to delete temporary updater directory.");
                 try
                 {
-                    Directory.Delete(MainClientConstants.gamepath + "Updater", true);
+                    Directory.Delete(ProgramConstants.GamePath + "Updater", true);
                 }
                 catch
                 {
@@ -68,12 +68,12 @@ namespace DTAClient
 
             if (ClientConfiguration.Instance.CreateSavedGamesDirectory)
             {
-                if (!Directory.Exists(MainClientConstants.gamepath + "Saved Games"))
+                if (!Directory.Exists(ProgramConstants.GamePath + "Saved Games"))
                 {
                     Logger.Log("Saved Games directory does not exist - attempting to create one.");
                     try
                     {
-                        Directory.CreateDirectory(MainClientConstants.gamepath + "Saved Games");
+                        Directory.CreateDirectory(ProgramConstants.GamePath + "Saved Games");
                     }
                     catch
                     {
@@ -88,7 +88,7 @@ namespace DTAClient
                 {
                     try
                     {
-                        File.Delete(MainClientConstants.gamepath + component.LocalPath + "_u");
+                        File.Delete(ProgramConstants.GamePath + component.LocalPath + "_u");
                     }
                     catch
                     {
@@ -227,7 +227,7 @@ namespace DTAClient
             {
                 RegistryKey key;
                 key = Registry.CurrentUser.CreateSubKey("SOFTWARE\\" + ClientConfiguration.Instance.InstallationPathRegKey);
-                key.SetValue("InstallPath", MainClientConstants.gamepath);
+                key.SetValue("InstallPath", ProgramConstants.GamePath);
                 key.Close();
             }
             catch

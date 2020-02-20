@@ -1,8 +1,8 @@
-﻿using ClientCore;
+using ClientCore;
 using ClientCore.CnCNet5;
 using ClientGUI;
 using DTAClient.Domain.Multiplayer;
-using DTAClient.Domain.Multiplayer.CnCNet;
+using DTAClient.Domain;
 using DTAClient.DXGUI.Generic;
 using DTAClient.DXGUI.Multiplayer.CnCNet;
 using DTAClient.DXGUI.Multiplayer.GameLobby.CommandHandlers;
@@ -16,6 +16,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using DTAClient.Domain.Multiplayer.CnCNet;
 
 namespace DTAClient.DXGUI.Multiplayer.GameLobby
 {
@@ -40,8 +41,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         public CnCNetGameLobby(WindowManager windowManager, string iniName,
             TopBar topBar, List<GameMode> GameModes, CnCNetManager connectionManager,
-            TunnelHandler tunnelHandler, GameCollection gameCollection, CnCNetUserData cncnetUserData, MapLoader mapLoader) : 
-            base(windowManager, iniName, topBar, GameModes, mapLoader)
+            TunnelHandler tunnelHandler, GameCollection gameCollection, CnCNetUserData cncnetUserData, MapLoader mapLoader, DiscordHandler discordHandler) : 
+            base(windowManager, iniName, topBar, GameModes, mapLoader, discordHandler)
         {
             this.connectionManager = connectionManager;
             localGame = ClientConfiguration.Instance.LocalGame;
@@ -233,6 +234,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             TopBar.SwitchToPrimary();
             WindowManager.SelectedControl = tbChatInput;
             ResetAutoReadyCheckbox();
+            UpdateDiscordPresence(true);
         }
 
         private void PrintTunnelServerInformation(string s)
@@ -296,6 +298,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             GameLeft?.Invoke(this, EventArgs.Empty);
 
             TopBar.RemovePrimarySwitchable(this);
+            ResetDiscordPresence();
         }
 
         private void ConnectionManager_Disconnected(object sender, EventArgs e)
@@ -327,6 +330,25 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             channel.Leave();
         }
 
+        protected override void UpdateDiscordPresence(bool resetTimer = false)
+        {
+            if (discordHandler == null)
+                return;
+
+            PlayerInfo player = Players.Find(p => p.Name == ProgramConstants.PLAYERNAME);
+            if (player == null || Map == null || GameMode == null)
+                return;
+            string side = "";
+            if (ddPlayerSides.Length > Players.IndexOf(player))
+                side = ddPlayerSides[Players.IndexOf(player)].SelectedItem.Text;
+            string currentState = ProgramConstants.IsInGame ? "In Game" : "In Lobby";
+
+            discordHandler.UpdatePresence(
+                Map.Name, GameMode.Name, "Multiplayer",
+                currentState, Players.Count, playerLimit, side,
+                channel.UIName, IsHost, isCustomPassword, Locked, resetTimer);
+        }
+
         private void Channel_UserQuitIRC(object sender, UserNameIndexEventArgs e)
         {
             RemovePlayer(e.UserName);
@@ -337,6 +359,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     ERROR_MESSAGE_COLOR, "The game host abandoned the game."));
                 BtnLeaveGame_LeftClick(this, EventArgs.Empty);
             }
+            else
+                UpdateDiscordPresence();
         }
 
         private void Channel_UserLeft(object sender, UserNameIndexEventArgs e)
@@ -349,6 +373,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     ERROR_MESSAGE_COLOR, "The game host abandoned the game."));
                 BtnLeaveGame_LeftClick(this, EventArgs.Empty);
             }
+            else
+                UpdateDiscordPresence();
         }
 
         private void Channel_UserKicked(object sender, UserNameIndexEventArgs e)
@@ -369,6 +395,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             {
                 Players.RemoveAt(index);
                 CopyPlayerDataToUI();
+                UpdateDiscordPresence();
                 ClearReadyStatuses();
             }
         }
@@ -384,6 +411,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     BtnLeaveGame_LeftClick(this, EventArgs.Empty);
                 }
             }
+            UpdateDiscordPresence();
         }
 
         private void Channel_UserAdded(object sender, ChannelUserEventArgs e)
@@ -411,6 +439,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 //CopyPlayerDataToUI(); This is also called by ChangeMap()
                 ChangeMap(GameMode, Map);
                 BroadcastPlayerOptions();
+                UpdateDiscordPresence();
             }
             else
             {
@@ -468,7 +497,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             foreach (CommandHandlerBase cmdHandler in ctcpCommandHandlers)
             {
                 if (cmdHandler.Handle(e.UserName, e.Message))
+                {
+                    UpdateDiscordPresence();
                     return;
+                }
             }
 
             Logger.Log("Unhandled CTCP command: " + e.Message + " from " + e.UserName);

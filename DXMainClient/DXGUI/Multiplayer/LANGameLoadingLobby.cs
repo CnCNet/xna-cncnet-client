@@ -1,4 +1,5 @@
 ﻿using ClientCore;
+using DTAClient.Domain;
 using DTAClient.Domain.LAN;
 using DTAClient.Domain.Multiplayer;
 using DTAClient.Domain.Multiplayer.LAN;
@@ -30,7 +31,7 @@ namespace DTAClient.DXGUI.Multiplayer
         private const string FILE_HASH_COMMAND = "FHASH";
 
         public LANGameLoadingLobby(WindowManager windowManager,
-            List<GameMode> gameModes, LANColor[] chatColors) : base(windowManager)
+            List<GameMode> gameModes, LANColor[] chatColors, DiscordHandler discordHandler) : base(windowManager, discordHandler)
         {
             encoding = ProgramConstants.LAN_ENCODING;
             this.gameModes = gameModes;
@@ -140,6 +141,7 @@ namespace DTAClient.DXGUI.Multiplayer
             var fhc = new FileHashCalculator();
             fhc.CalculateHashes(gameModes);
             SendMessageToHost(FILE_HASH_COMMAND + " " + fhc.GetCompleteHash());
+            UpdateDiscordPresence(true);
         }
 
         #region Server code
@@ -252,6 +254,7 @@ namespace DTAClient.DXGUI.Multiplayer
 
             CopyPlayerDataToUI();
             BroadcastOptions();
+            UpdateDiscordPresence();
         }
 
         private void LpInfo_ConnectionLost(object sender, EventArgs e)
@@ -266,6 +269,7 @@ namespace DTAClient.DXGUI.Multiplayer
 
             CopyPlayerDataToUI();
             BroadcastOptions();
+            UpdateDiscordPresence();
         }
 
         private void LpInfo_MessageReceived(object sender, NetworkMessageEventArgs e)
@@ -614,6 +618,7 @@ namespace DTAClient.DXGUI.Multiplayer
                         AddNotice(lpInfo.Name + " - connection timed out");
                         CopyPlayerDataToUI();
                         BroadcastOptions();
+                        UpdateDiscordPresence();
                         i--;
                     }
                 }
@@ -666,6 +671,22 @@ namespace DTAClient.DXGUI.Multiplayer
             base.HandleGameProcessExited();
 
             LeaveGame();
+        }
+
+        protected override void UpdateDiscordPresence(bool resetTimer = false)
+        {
+            if (discordHandler == null)
+                return;
+
+            PlayerInfo player = Players.Find(p => p.Name == ProgramConstants.PLAYERNAME);
+            if (player == null)
+                return;
+            string currentState = ProgramConstants.IsInGame ? "In Game" : "In Lobby";
+
+            discordHandler.UpdatePresence(
+                lblMapNameValue.Text, lblGameModeValue.Text, currentState, "LAN",
+                Players.Count, SGPlayers.Count,
+                "LAN Game", IsHost, resetTimer);
         }
     }
 }

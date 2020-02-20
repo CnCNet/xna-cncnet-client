@@ -34,10 +34,10 @@ namespace ClientGUI
             string additionalExecutableName = string.Empty;
 
             if (osVersion == OSVersion.UNIX)
-                gameExecutableName = ClientConfiguration.Instance.GetUnixGameExecutableName();
+                gameExecutableName = ClientConfiguration.Instance.UnixGameExecutableName;
             else
             {
-                string launcherExecutableName = ClientConfiguration.Instance.GetGameLauncherExecutableName;
+                string launcherExecutableName = ClientConfiguration.Instance.GameLauncherExecutableName;
                 if (string.IsNullOrEmpty(launcherExecutableName))
                     gameExecutableName = ClientConfiguration.Instance.GetGameExecutableName();
                 else
@@ -103,6 +103,7 @@ namespace ClientGUI
                 try
                 {
                     DtaProcess.Start();
+                    Logger.Log("GameProcessLogic: Process started.");
                 }
                 catch (Exception ex)
                 {
@@ -126,6 +127,7 @@ namespace ClientGUI
 
         static void Process_Exited(object sender, EventArgs e)
         {
+            Logger.Log("GameProcessLogic: Process exited.");
             Process proc = (Process)sender;
             proc.Exited -= Process_Exited;
             proc.Dispose();

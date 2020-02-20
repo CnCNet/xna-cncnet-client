@@ -1,15 +1,15 @@
-﻿using ClientGUI;
+﻿using ClientCore;
+using ClientCore.Statistics;
+using ClientGUI;
+using DTAClient.Domain;
+using DTAClient.Domain.Multiplayer;
+using Microsoft.Xna.Framework;
+using Rampastring.Tools;
+using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
 using System;
 using System.Collections.Generic;
-using Rampastring.XNAUI;
-using Microsoft.Xna.Framework;
-using ClientCore;
-using Rampastring.Tools;
 using System.IO;
-using Microsoft.Xna.Framework.Audio;
-using DTAClient.Domain.Multiplayer;
-using ClientCore.Statistics;
 
 namespace DTAClient.DXGUI.Multiplayer
 {
@@ -18,8 +18,9 @@ namespace DTAClient.DXGUI.Multiplayer
     /// </summary>
     public abstract class GameLoadingLobbyBase : XNAWindow, ISwitchable
     {
-        public GameLoadingLobbyBase(WindowManager windowManager) : base(windowManager)
+        public GameLoadingLobbyBase(WindowManager windowManager, DiscordHandler discordHandler) : base(windowManager)
         {
+            this.discordHandler = discordHandler;
         }
 
         public event EventHandler GameLeft;
@@ -35,6 +36,8 @@ namespace DTAClient.DXGUI.Multiplayer
         protected List<PlayerInfo> Players = new List<PlayerInfo>();
 
         protected bool IsHost = false;
+
+        protected DiscordHandler discordHandler;
 
         protected XNAClientDropDown ddSavedGame;
 
@@ -154,7 +157,7 @@ namespace DTAClient.DXGUI.Multiplayer
             lbChatMessages.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 128), 1, 1);
             lbChatMessages.PanelBackgroundDrawMode = PanelBackgroundImageDrawMode.STRETCHED;
             lbChatMessages.ClientRectangle = new Rectangle(12, panelPlayers.Bottom + 12,
-                Width - 24, 
+                Width - 24,
                 Height - panelPlayers.Bottom - 12 - 29 - 34);
 
             tbChatInput = new XNATextBox(WindowManager);
@@ -209,6 +212,20 @@ namespace DTAClient.DXGUI.Multiplayer
             }
         }
 
+        /// <summary>
+        /// Updates Discord Rich Presence with actual information.
+        /// </summary>
+        /// <param name="resetTimer">Whether to restart the "Elapsed" timer or not</param>
+        protected abstract void UpdateDiscordPresence(bool resetTimer = false);
+
+        /// <summary>
+        /// Resets Discord Rich Presence to default state.
+        /// </summary>
+        protected void ResetDiscordPresence()
+        {
+            discordHandler?.UpdatePresence();
+        }
+
         private void BtnLeaveGame_LeftClick(object sender, EventArgs e)
         {
             LeaveGame();
@@ -217,6 +234,7 @@ namespace DTAClient.DXGUI.Multiplayer
         protected virtual void LeaveGame()
         {
             GameLeft?.Invoke(this, EventArgs.Empty);
+            ResetDiscordPresence();
         }
 
         private void fsw_Created(object sender, FileSystemEventArgs e)
@@ -326,8 +344,9 @@ namespace DTAClient.DXGUI.Multiplayer
 
             GameProcessLogic.GameProcessExited += SharedUILogic_GameProcessExited;
             GameProcessLogic.StartGameProcess();
-            
+
             fsw.EnableRaisingEvents = true;
+            UpdateDiscordPresence(true);
         }
 
         private void SharedUILogic_GameProcessExited()
@@ -346,7 +365,7 @@ namespace DTAClient.DXGUI.Multiplayer
             if (matchStatistics != null)
             {
                 int oldLength = matchStatistics.LengthInSeconds;
-                int newLength = matchStatistics.LengthInSeconds + 
+                int newLength = matchStatistics.LengthInSeconds +
                     (int)(DateTime.Now - gameLoadTime).TotalSeconds;
 
                 matchStatistics.ParseStatistics(ProgramConstants.GamePath,
@@ -356,6 +375,7 @@ namespace DTAClient.DXGUI.Multiplayer
 
                 StatisticsManager.Instance.SaveDatabase();
             }
+            UpdateDiscordPresence(true);
         }
 
         protected virtual void WriteSpawnIniAdditions(IniFile spawnIni)
@@ -482,6 +502,7 @@ namespace DTAClient.DXGUI.Multiplayer
 
             if (!isSettingUp)
                 BroadcastOptions();
+            UpdateDiscordPresence();
         }
 
         private void TbChatInput_EnterPressed(object sender, EventArgs e)
