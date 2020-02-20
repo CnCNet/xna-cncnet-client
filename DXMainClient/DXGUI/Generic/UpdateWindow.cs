@@ -25,6 +25,9 @@ namespace DTAClient.DXGUI.Generic
 
         delegate void UpdateProgressChangedDelegate(string fileName, int filePercentage, int totalPercentage);
 
+        private const double DOT_TIME = 0.66;
+        private const int MAX_DOTS = 5;
+
         public UpdateWindow(WindowManager windowManager) : base(windowManager)
         {
 
@@ -42,6 +45,14 @@ namespace DTAClient.DXGUI.Generic
         private TaskbarProgress tbp;
 
         private bool isStartingForceUpdate;
+
+        bool infoUpdated = false;
+
+        string currFileName = string.Empty;
+        int currFilePercentage = 0;
+        int totalPercentage = 0;
+        int dotCount = 0;
+        double currentDotTime = 0.0;
 
         private static readonly object locker = new object();
 
@@ -96,7 +107,7 @@ namespace DTAClient.DXGUI.Generic
 
             lblUpdaterStatus = new XNALabel(WindowManager);
             lblUpdaterStatus.Name = "lblUpdaterStatus";
-            lblUpdaterStatus.Text = "Preparing...";
+            lblUpdaterStatus.Text = "Preparing";
             lblUpdaterStatus.ClientRectangle = new Rectangle(12, 240, 0, 0);
 
             var btnCancel = new XNAClientButton(WindowManager);
@@ -160,16 +171,26 @@ namespace DTAClient.DXGUI.Generic
 
         private void Updater_UpdateProgressChanged(string currFileName, int currFilePercentage, int totalPercentage)
         {
-            AddCallback(new UpdateProgressChangedDelegate(HandleUpdateProgressChange),
-                currFileName, currFilePercentage, totalPercentage);
+            lock (locker)
+            {
+                infoUpdated = true;
+                this.currFileName = currFileName;
+                this.currFilePercentage = currFilePercentage;
+                this.totalPercentage = totalPercentage;
+            }
         }
 
-        private void HandleUpdateProgressChange(string fileName, int filePercentage, int totalPercentage)
+        private void HandleUpdateProgressChange()
         {
-            if (filePercentage < 0 || filePercentage > prgCurrentFile.Maximum)
+            if (!infoUpdated)
+                return;
+
+            infoUpdated = false;
+
+            if (currFilePercentage < 0 || currFilePercentage > prgCurrentFile.Maximum)
                 prgCurrentFile.Value = 0;
             else
-                prgCurrentFile.Value = filePercentage;
+                prgCurrentFile.Value = currFilePercentage;
 
             if (totalPercentage < 0 || totalPercentage > prgTotal.Maximum)
                 prgTotal.Value = 0;
@@ -178,8 +199,8 @@ namespace DTAClient.DXGUI.Generic
 
             lblCurrentFileProgressPercentageValue.Text = prgCurrentFile.Value.ToString() + "%";
             lblTotalProgressPercentageValue.Text = prgTotal.Value.ToString() + "%";
-            lblCurrentFile.Text = "Current file: " + fileName;
-            lblUpdaterStatus.Text = "Downloading files...";
+            lblCurrentFile.Text = "Current file: " + currFileName;
+            lblUpdaterStatus.Text = "Downloading files";
 
             /*/ TODO Improve the updater
              * When the updater thread in DTAUpdater.dll has completed the update, it will
@@ -254,20 +275,54 @@ namespace DTAClient.DXGUI.Generic
             lblDescription.Text = String.Format("Please wait while {0} is updated to version {1}." + Environment.NewLine +
                 "This window will automatically close once the update is complete." + Environment.NewLine + Environment.NewLine +
                 "The client may also restart after the update has been downloaded.", MainClientConstants.GAME_NAME_SHORT, newGameVersion);
-            lblUpdaterStatus.Text = "Preparing...";
+            lblUpdaterStatus.Text = "Preparing";
         }
 
         public void ForceUpdate()
         {
             isStartingForceUpdate = true;
             lblDescription.Text = $"Force updating {MainClientConstants.GAME_NAME_SHORT} to latest version...";
-            lblUpdaterStatus.Text = "Preparing...";
+            lblUpdaterStatus.Text = "Connecting";
             CUpdater.CheckForUpdates();
         }
 
         private bool IsTaskbarSupported()
         {
             return MainClientConstants.OSId == OSVersion.WIN7 || MainClientConstants.OSId == OSVersion.WIN810;
+        }
+
+        public override void Update(GameTime gameTime)
+        {
+            base.Update(gameTime);
+
+            lock (locker)
+            {
+                HandleUpdateProgressChange();
+            }
+
+            currentDotTime += gameTime.ElapsedGameTime.TotalSeconds;
+            if (currentDotTime > DOT_TIME)
+            {
+                currentDotTime = 0.0;
+                dotCount++;
+                if (dotCount > MAX_DOTS)
+                    dotCount = 0;
+            }
+        }
+
+        public override void Draw(GameTime gameTime)
+        {
+            base.Draw(gameTime);
+
+            float xOffset = 3.0f;
+
+            for (int i = 0; i < dotCount; i++)
+            {
+                var wrect = lblUpdaterStatus.RenderRectangle();
+                Renderer.DrawStringWithShadow(".", lblUpdaterStatus.FontIndex,
+                    new Vector2(wrect.Right + xOffset, wrect.Bottom - 15.0f), lblUpdaterStatus.TextColor);
+                xOffset += 3.0f;
+            }
         }
     }
 
