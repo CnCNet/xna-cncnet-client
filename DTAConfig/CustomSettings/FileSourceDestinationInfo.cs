@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DTAConfig.FileSettings
+namespace DTAConfig.CustomSettings
 {
     sealed class FileSourceDestinationInfo
     {

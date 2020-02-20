@@ -1,6 +1,6 @@
 ﻿using ClientCore;
 using ClientGUI;
-using DTAConfig.FileSettings;
+using DTAConfig.CustomSettings;
 using Microsoft.Xna.Framework;
 using Rampastring.Tools;
 using Rampastring.XNAUI;

@@ -1,12 +1,11 @@
-﻿using ClientCore;
+using ClientCore;
 using ClientGUI;
-using DTAConfig.FileSettings;
 using Rampastring.Tools;
 using Rampastring.XNAUI;
 using System.Collections.Generic;
 using System.IO;
 
-namespace DTAConfig
+namespace DTAConfig.CustomSettings
 {
     /// <summary>
     /// A check-box fitting for a file presence toggle setting.

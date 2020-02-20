@@ -1,4 +1,4 @@
-﻿namespace DTAConfig.FileSettings
+﻿namespace DTAConfig.CustomSettings
 {
     interface ICustomSetting
     {
