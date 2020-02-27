@@ -377,6 +377,8 @@
     <Compile Include="DXGUI\Generic\UpdateQueryWindow.cs" />
     <Compile Include="DXGUI\Generic\UpdateWindow.cs" />
     <Compile Include="Domain\FinalSunSettings.cs" />
+    <Compile Include="Domain\WindowsFirewallSettings.cs" />
+    <Compile Include="Domain\UACHelper.cs" />
     <Compile Include="Online\Channel.cs" />
     <Compile Include="Online\CnCNetManager.cs" />
     <Compile Include="Online\Connection.cs" />

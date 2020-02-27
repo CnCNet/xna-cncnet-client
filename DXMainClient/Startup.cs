@@ -101,6 +101,8 @@ namespace DTAClient
 
             WriteInstallPathToRegistry();
 
+            //WindowsFirewallSettings.BypassFirewallForGame();
+
             ClientConfiguration.Instance.RefreshSettings();
 
             GameClass gameClass = new GameClass();

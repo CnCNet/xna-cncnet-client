@@ -141,10 +141,10 @@ namespace DTAClient
                 return;
 
             DialogResult dr = MessageBox.Show(string.Format("You seem to be running {0} from a write-protected directory." + Environment.NewLine + Environment.NewLine +
-                "For {1} to function properly when run from a write-protected directory, it needs administrative priveleges." + Environment.NewLine + Environment.NewLine +
+                "For {1} to function properly when run from a write-protected directory, it needs administrative privileges." + Environment.NewLine + Environment.NewLine +
                 "Would you like to restart the client with administrative rights?" + Environment.NewLine + Environment.NewLine +
                 "Please also make sure that your security software isn't blocking {1}.", MainClientConstants.GAME_NAME_LONG, MainClientConstants.GAME_NAME_SHORT),
-                "Administrative priveleges required", MessageBoxButtons.YesNo);
+                "Administrative privileges required", MessageBoxButtons.YesNo);
 
             if (dr == DialogResult.No)
                 Environment.Exit(0);

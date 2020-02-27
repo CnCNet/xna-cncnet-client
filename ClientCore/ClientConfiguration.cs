@@ -175,6 +175,8 @@ namespace ClientCore
 
         public string FinalSunIniPath => clientDefinitionsIni.GetStringValue(SETTINGS, "FSIniPath", "FinalSun\\FinalSun.ini");
 
+        public bool BypassWindowsFirewall => clientDefinitionsIni.GetBooleanValue(SETTINGS, "BypassWindowsFirewall", true);
+
         public int MaxNameLength => clientDefinitionsIni.GetIntValue(SETTINGS, "MaxNameLength", 16);
 
         public int MapCellSizeX => clientDefinitionsIni.GetIntValue(SETTINGS, "MapCellSizeX", 48); 

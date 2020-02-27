@@ -14,6 +14,7 @@ using Rampastring.Tools;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
 using Updater;
@@ -439,6 +440,8 @@ namespace DTAClient.DXGUI.Generic
 
             PlayMusic();
 
+            BypassWindowsFirewall();
+
             if (!ClientConfiguration.Instance.ModMode)
             {
                 if (UserINISettings.Instance.CheckForUpdates)
@@ -452,6 +455,81 @@ namespace DTAClient.DXGUI.Generic
             }
 
             CheckIfFirstRun();
+
+        }
+
+        private void BypassWindowsFirewall()
+        {
+            try
+            {
+                // Only for Windows Vista+
+                OSVersion osVersion = ClientConfiguration.Instance.GetOperatingSystemVersion();
+                if (!(osVersion == OSVersion.WINVISTA ||
+                    osVersion == OSVersion.WIN7 ||
+                    osVersion == OSVersion.WIN810
+                    ))
+                {
+                    return;
+                }
+
+                Logger.Log("Checking Windows Firewall settings...");
+
+                List<string> programPaths = new List<string>
+                {
+                    ProgramConstants.GamePath + ClientConfiguration.Instance.GetGameExecutableName(),
+                    System.Windows.Forms.Application.ExecutablePath
+                };
+
+                // The launcher exe usually doesn't need Firewall exception.
+                //if (!string.IsNullOrEmpty(ClientConfiguration.Instance.GameLauncherExecutableName))
+                //    programPaths.Add(ClientConfiguration.Instance.GameLauncherExecutableName);
+
+                bool itemsExist = true;
+                foreach (var programPath in programPaths)
+                {
+                    if (!WindowsFirewallSettings.ItemExists(programPath))
+                    {
+                        itemsExist = false;
+                        break;
+                    }
+                }
+
+                if (!itemsExist)
+                {
+                    Logger.Log("Windows Firewall settings not found. Setting up...");
+                    if (UACHelper.IsElevated())
+                    {
+                        foreach (var programPath in programPaths)
+                        {
+                            WindowsFirewallSettings.AddItem(programPath);
+                        }
+                    }
+                    else
+                    {
+                        firstRunMessageBox = XNAMessageBox.ShowYesNoDialog(WindowManager, "Elevated privileges required",
+                  string.Format("You have just installed {0}." + Environment.NewLine +
+                  "The client can help you setting up Windows Firewall for the game." +
+                  Environment.NewLine + "Do you want to set up now? The client will be restarted.", ClientConfiguration.Instance.LocalGame));
+                        firstRunMessageBox.YesClickedAction = (XNAMessageBox messageBox) =>
+                        {
+                            UACHelper.RestartAsElevated();
+                        };
+                        firstRunMessageBox.NoClickedAction = (XNAMessageBox messageBox) =>
+                        {
+                            // do nothing
+                        };
+                    }
+                }
+                else
+                {
+                    Logger.Log("Windows Firewall settings found.");
+                }
+
+            }
+            catch (Exception)
+            {
+                Logger.Log("An exception occured while setting up Windows Firewall.");
+            }
         }
 
         #region Updating / versioning system

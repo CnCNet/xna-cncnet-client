@@ -380,7 +380,7 @@ namespace DTAConfig.OptionPanels
                 var messageBox = XNAMessageBox.ShowYesNoDialog(WindowManager, "New Compatibility Fix",
                     "A performance-enhancing compatibility fix for modern Windows versions" + Environment.NewLine +
                     "has been included in this version of " + defaultGame + ". Enabling it requires" + Environment.NewLine +
-                    "administrative priveleges. Would you like to install the compatibility fix?" + Environment.NewLine + Environment.NewLine + 
+                    "administrative privileges. Would you like to install the compatibility fix?" + Environment.NewLine + Environment.NewLine + 
                     "You'll always be able to install or uninstall the compatibility fix later from the options menu.");
                 messageBox.YesClickedAction = MessageBox_YesClicked;
                 messageBox.NoClickedAction = MessageBox_NoClicked;
