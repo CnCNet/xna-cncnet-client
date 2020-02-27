@@ -440,7 +440,8 @@ namespace DTAClient.DXGUI.Generic
 
             PlayMusic();
 
-            BypassWindowsFirewall();
+            if (ClientConfiguration.Instance.BypassWindowsFirewall)
+                BypassWindowsFirewall();
 
             if (!ClientConfiguration.Instance.ModMode)
             {
