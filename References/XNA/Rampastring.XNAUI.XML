@@ -1115,6 +1115,12 @@
             Checks if the last parent of this control is active.
             </summary>
         </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNAControl.AppliesToSelfAndAllParents(System.Func{Rampastring.XNAUI.XNAControls.XNAControl,System.Boolean})">
+            <summary>
+            Checks whether a condition applies to this control and all of its parents.
+            </summary>
+            <param name="func">The condition.</param>
+        </member>
         <member name="M:Rampastring.XNAUI.XNAControls.XNAControl.GetCursorPoint">
             <summary>
             Gets the cursor's location relative to this control's location.
