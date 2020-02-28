@@ -69,7 +69,7 @@ namespace DTAClient.DXGUI.Generic
 
         private TopBar topBar;
 
-        private XNAMessageBox firstRunMessageBox;
+        private XNAMessageBox xnaMessageBox;
 
         private bool updateInProgress = false;
         private bool customComponentDialogQueued = false;
@@ -352,26 +352,24 @@ namespace DTAClient.DXGUI.Generic
                 UserINISettings.Instance.IsFirstRun.Value = false;
                 UserINISettings.Instance.SaveSettings();
 
-                firstRunMessageBox = XNAMessageBox.ShowYesNoDialog(WindowManager, "Initial Installation",
+                xnaMessageBox = XNAMessageBox.ShowYesNoDialog(WindowManager, "Initial Installation",
                     string.Format("You have just installed {0}." + Environment.NewLine +
                     "It's highly recommended that you configure your settings before playing." +
                     Environment.NewLine + "Do you want to configure them now?", ClientConfiguration.Instance.LocalGame));
-                firstRunMessageBox.YesClickedAction = FirstRunMessageBox_YesClicked;
-                firstRunMessageBox.NoClickedAction = FirstRunMessageBox_NoClicked;
+                xnaMessageBox.YesClickedAction = (XNAMessageBox messageBox) =>
+                {
+                    optionsWindow.Open();
+                };
+                xnaMessageBox.NoClickedAction = XNAMessageBox_NoClicked;
             }
 
             optionsWindow.PostInit();
         }
 
-        private void FirstRunMessageBox_NoClicked(XNAMessageBox messageBox)
+        private void XNAMessageBox_NoClicked(XNAMessageBox messageBox)
         {
             if (customComponentDialogQueued)
                 CUpdater_OnCustomComponentsOutdated();
-        }
-
-        private void FirstRunMessageBox_YesClicked(XNAMessageBox messageBox)
-        {
-            optionsWindow.Open();
         }
 
         private void SharedUILogic_GameProcessStarted()
@@ -440,6 +438,8 @@ namespace DTAClient.DXGUI.Generic
 
             PlayMusic();
 
+            // I don't know how to deal with two XNAMessageBoxes
+            // So currently, fallback to the common MessageBox which shows and blocks the thread.
             if (ClientConfiguration.Instance.BypassWindowsFirewall)
                 BypassWindowsFirewall();
 
@@ -507,18 +507,20 @@ namespace DTAClient.DXGUI.Generic
                     }
                     else
                     {
-                        firstRunMessageBox = XNAMessageBox.ShowYesNoDialog(WindowManager, "Elevated privileges required",
-                  string.Format("You have just installed {0}." + Environment.NewLine +
-                  "The client can help you setting up Windows Firewall for the game." +
-                  Environment.NewLine + "Do you want to set up now? The client will be restarted.", ClientConfiguration.Instance.LocalGame));
-                        firstRunMessageBox.YesClickedAction = (XNAMessageBox messageBox) =>
-                        {
-                            UACHelper.RestartAsElevated();
-                        };
-                        firstRunMessageBox.NoClickedAction = (XNAMessageBox messageBox) =>
-                        {
-                            // do nothing
-                        };
+                        // I don't know how to deal with two XNAMessageBoxes
+                        // So currently, fallback to the common MessageBox which shows and blocks the thread.
+                        UACHelper.RequireElevated("The client can help you setting up Windows Firewall for the game.", true);
+
+                        //      var firewallMessageBox = XNAMessageBox.ShowYesNoDialog(WindowManager, "Elevated privileges required",
+                        //string.Format("You have just installed {0}." + Environment.NewLine +
+                        //"The client can help you setting up Windows Firewall for the game." +
+                        //Environment.NewLine + "Do you want to set up now? The client will be restarted.", ClientConfiguration.Instance.LocalGame));
+                        //      firewallMessageBox.YesClickedAction = (XNAMessageBox messageBox) =>
+                        //      {
+                        //          UACHelper.RestartAsElevated();
+                        //      };
+                        //      firewallMessageBox.NoClickedAction = XNAMessageBox_NoClicked;
+                        //      xnaMessageBoxes.Add(firewallMessageBox);
                     }
                 }
                 else
@@ -551,13 +553,11 @@ namespace DTAClient.DXGUI.Generic
                 "{1}, and the issue is reproducible, contact us at " + Environment.NewLine +
                 "{2} for support.",
                 e.Reason, CUpdater.CURRENT_LAUNCHER_NAME, MainClientConstants.SUPPORT_URL_SHORT), XNAMessageBoxButtons.OK);
-            msgBox.OKClickedAction = MsgBox_OKClicked;
+            msgBox.OKClickedAction = (XNAMessageBox messageBox) =>
+            {
+                innerPanel.Hide();
+            };
             msgBox.Show();
-        }
-
-        private void MsgBox_OKClicked(XNAMessageBox messageBox)
-        {
-            innerPanel.Hide();
         }
 
         private void UpdateWindow_UpdateCancelled(object sender, EventArgs e)
@@ -670,7 +670,7 @@ namespace DTAClient.DXGUI.Generic
             if (updateInProgress)
                 return;
 
-            if ((firstRunMessageBox != null && firstRunMessageBox.Visible) || optionsWindow.Enabled)
+            if ((xnaMessageBox != null && xnaMessageBox.Visible) || optionsWindow.Enabled)
             {
                 // If the custom components are out of date on the first run
                 // or the options window is already open, don't show the dialog
@@ -684,13 +684,11 @@ namespace DTAClient.DXGUI.Generic
                 "Custom Component Updates Available",
                 "Updates for custom components are available. Do you want to open" + Environment.NewLine +
                 "the Options menu where you can update the custom components?");
-            ccMsgBox.YesClickedAction = CCMsgBox_YesClicked;
-        }
-
-        private void CCMsgBox_YesClicked(XNAMessageBox messageBox)
-        {
-            optionsWindow.Open();
-            optionsWindow.SwitchToCustomComponentsPanel();
+            ccMsgBox.YesClickedAction = (XNAMessageBox messageBox) =>
+            {
+                optionsWindow.Open();
+                optionsWindow.SwitchToCustomComponentsPanel();
+            };
         }
 
         /// <summary>
