@@ -167,7 +167,7 @@ namespace DTAClient.Domain.Multiplayer
 
         List<KeyValuePair<string, string>> ForcedSpawnIniOptions = new List<KeyValuePair<string, string>>();
 
-        public bool SetInfoFromINI(IniFile iniFile, Dictionary<string, string[]> gameModeAliases)
+        public bool SetInfoFromINI(IniFile iniFile)
         {
             try
             {
@@ -180,24 +180,7 @@ namespace DTAClient.Domain.Multiplayer
 
                 Name = section.GetStringValue("Description", "Unnamed map");
                 Author = section.GetStringValue("Author", "Unknown author");
-                List<string> gameModeList = new List<string>();
-                var gameModes = section.GetStringValue("GameModes", "Default").Split(',');
-
-                foreach (var gameMode in gameModes)
-                {
-                    string[] aliases;
-
-                    if (!gameModeAliases.TryGetValue(gameMode, out aliases))
-                    {
-                        gameModeList.Add(gameMode);
-                        continue;
-                    }
-
-                    foreach (var alias in aliases)
-                        gameModeList.Add(alias);
-                }
-
-                GameModes = gameModeList.ToArray();
+                GameModes = section.GetStringValue("GameModes", "Default").Split(',');
 
                 MinPlayers = section.GetIntValue("MinPlayers", 0);
                 MaxPlayers = section.GetIntValue("MaxPlayers", 0);
@@ -312,7 +295,7 @@ namespace DTAClient.Domain.Multiplayer
         /// Returns true if succesful, otherwise false.
         /// </summary>
         /// <param name="path">The full path to the map INI file.</param>
-        public bool SetInfoFromMap(string path, Dictionary<string, string[]> gameModeAliases)
+        public bool SetInfoFromMap(string path)
         {
             if (!File.Exists(path))
                 return false;
@@ -352,25 +335,6 @@ namespace DTAClient.Domain.Multiplayer
                     Logger.Log("Custom map " + path + " has no game modes!");
                     return false;
                 }
-
-                List<string> gameModeList = new List<string>();
-                for (int i = 0; i < GameModes.Length; i++)
-                {
-                    string gameMode = GameModes[i].Trim();
-                    gameMode = gameMode.Substring(0, 1).ToUpperInvariant() + gameMode.Substring(1);
-
-                    string[] aliases;
-
-                    if (!gameModeAliases.TryGetValue(gameMode, out aliases))
-                    {
-                        gameModeList.Add(gameMode);
-                        continue;
-                    }
-
-                    foreach (var alias in aliases)
-                        gameModeList.Add(alias);
-                }
-                GameModes = gameModeList.ToArray();
 
                 MinPlayers = 0;
                 if (basicSection.KeyExists("ClientMaxPlayer"))
