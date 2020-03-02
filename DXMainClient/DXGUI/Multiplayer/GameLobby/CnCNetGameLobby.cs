@@ -96,6 +96,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         private TunnelHandler tunnelHandler;
         private CnCNetTunnel tunnel;
         private TunnelSelectionWindow tunnelSelectionWindow;
+        private XNAClientButton btnChangeTunnel;
 
         private Channel channel;
         private CnCNetManager connectionManager;
@@ -152,13 +153,20 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             tunnelSelectionWindow.CenterOnParent();
             tunnelSelectionWindow.Disable();
 
+            btnChangeTunnel = new XNAClientButton(WindowManager);
+            btnChangeTunnel.Name = "btnChangeTunnel";
+            btnChangeTunnel.ClientRectangle = new Rectangle(btnLeaveGame.Right - btnLeaveGame.Width - 145,
+                btnLeaveGame.Y, 133, 23);
+            btnChangeTunnel.Text = "Change Tunnel";
+            btnChangeTunnel.LeftClick += BtnChangeTunnel_LeftClick;
+
+            AddChild(btnChangeTunnel);
             WindowManager.AddAndInitializeControl(gameBroadcastTimer);
         }
 
-        private void GameBroadcastTimer_TimeElapsed(object sender, EventArgs e)
-        {
-            BroadcastGame();
-        }
+        private void BtnChangeTunnel_LeftClick(object sender, EventArgs e) => ShowTunnelSelectionWindow("Select tunnel server:");
+
+        private void GameBroadcastTimer_TimeElapsed(object sender, EventArgs e) => BroadcastGame();
 
         public void SetUp(Channel channel, bool isHost, int playerLimit, 
             CnCNetTunnel tunnel, string hostName, bool isCustomPassword)
@@ -180,11 +188,13 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             {
                 RandomSeed = new Random().Next();
                 RefreshMapSelectionUI();
+                btnChangeTunnel.Enable();
             }
             else
             {
                 channel.ChannelModesChanged += Channel_ChannelModesChanged;
                 AIPlayers.Clear();
+                btnChangeTunnel.Disable();
             }
 
             this.tunnel = tunnel;
@@ -301,15 +311,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             ResetDiscordPresence();
         }
 
-        private void ConnectionManager_Disconnected(object sender, EventArgs e)
-        {
-            HandleConnectionLoss();
-        }
+        private void ConnectionManager_Disconnected(object sender, EventArgs e) => HandleConnectionLoss();
 
-        private void ConnectionManager_ConnectionLost(object sender, ConnectionLostEventArgs e)
-        {
-            HandleConnectionLoss();
-        }
+        private void ConnectionManager_ConnectionLost(object sender, ConnectionLostEventArgs e) => HandleConnectionLoss();
 
         private void HandleConnectionLoss()
         {
@@ -598,10 +602,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 channel.SendCTCPMessage("R 1", QueuedMessageType.GAME_PLAYERS_READY_STATUS_MESSAGE, 5);
         }
 
-        protected override void AddNotice(string message, Color color)
-        {
-            channel.AddMessage(new ChatMessage(color, message));
-        }
+        protected override void AddNotice(string message, Color color) => channel.AddMessage(new ChatMessage(color, message));
 
         /// <summary>
         /// Handles player option requests received from non-host players.
@@ -1195,10 +1196,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             iniFile.SetIntValue("Settings", "Port", localPlayer.Port);
         }
 
-        protected override void SendChatMessage(string message)
-        {
-            channel.SendChatMessage(message, chatColor);
-        }
+        protected override void SendChatMessage(string message) => channel.SendChatMessage(message, chatColor);
 
         #region Notifications
 
@@ -1456,10 +1454,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         #region CnCNet map sharing
 
-        private void MapSharer_MapDownloadFailed(object sender, SHA1EventArgs e)
-        {
-            WindowManager.AddCallback(new Action<SHA1EventArgs>(MapSharer_HandleMapDownloadFailed), e);
-        }
+        private void MapSharer_MapDownloadFailed(object sender, SHA1EventArgs e) 
+            => WindowManager.AddCallback(new Action<SHA1EventArgs>(MapSharer_HandleMapDownloadFailed), e);
 
         private void MapSharer_HandleMapDownloadFailed(SHA1EventArgs e)
         {
@@ -1478,9 +1474,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         }
 
         private void MapSharer_MapDownloadComplete(object sender, SHA1EventArgs e)
-        {
-            WindowManager.AddCallback(new Action<SHA1EventArgs>(MapSharer_HandleMapDownloadComplete), e);
-        }
+            => WindowManager.AddCallback(new Action<SHA1EventArgs>(MapSharer_HandleMapDownloadComplete), e);
 
         private void MapSharer_HandleMapDownloadComplete(SHA1EventArgs e)
         {
@@ -1506,9 +1500,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         }
 
         private void MapSharer_MapUploadFailed(object sender, MapEventArgs e)
-        {
-            WindowManager.AddCallback(new Action<MapEventArgs>(MapSharer_HandleMapUploadFailed), e);
-        }
+            => WindowManager.AddCallback(new Action<MapEventArgs>(MapSharer_HandleMapUploadFailed), e);
 
         private void MapSharer_HandleMapUploadFailed(MapEventArgs e)
         {
@@ -1525,9 +1517,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         }
 
         private void MapSharer_MapUploadComplete(object sender, MapEventArgs e)
-        {
-            WindowManager.AddCallback(new Action<MapEventArgs>(MapSharer_HandleMapUploadComplete), e);
-        }
+            => WindowManager.AddCallback(new Action<MapEventArgs>(MapSharer_HandleMapUploadComplete), e);
 
         private void MapSharer_HandleMapUploadComplete(MapEventArgs e)
         {
@@ -1653,9 +1643,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         /// Lowers the time until the next game broadcasting message.
         /// </summary>
         private void AccelerateGameBroadcasting()
-        {
-            gameBroadcastTimer.Accelerate(TimeSpan.FromSeconds(GAME_BROADCAST_ACCELERATION));
-        }
+            => gameBroadcastTimer.Accelerate(TimeSpan.FromSeconds(GAME_BROADCAST_ACCELERATION));
 
         private void BroadcastGame()
         {
@@ -1708,9 +1696,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         #endregion
 
-        public override string GetSwitchName()
-        {
-            return "Game Lobby";
-        }
+        public override string GetSwitchName() => "Game Lobby";
     }
 }
