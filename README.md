@@ -1,7 +1,6 @@
 # CnCNet Client #
-=================
 
-The MonoGame / XNA CnCNet client, a platform for setting up and launching both singleplayer and multiplayer games with a CnCNet game spawner. Includes an IRC-based chat client with advanced features like private messaging and a friend list, a configurable game lobby, flexible and moddable UI graphics, and extras like game setting configuration and keeping track of match statistics. And much more!
+The MonoGame / XNA CnCNet client, a platform for playing classic Command & Conquer games and their mods both online and offline. Supports setting up and launching both singleplayer and multiplayer games with [a CnCNet game spawner](https://github.com/CnCNet/ts-patches). Includes an IRC-based chat client with advanced features like private messaging, a friend list, a configurable game lobby, flexible and moddable UI graphics, and extras like game setting configuration and keeping track of match statistics. And much more!
 
 Targets
 -------
@@ -15,22 +14,29 @@ The primary targets of the client project are
 * [CnCNet Yuri's Revenge](https://cncnet.org/yuris-revenge)
 
 
-However, there is no limitation in the client that would prevent incorporating it into other projects. Any game or mod with a CnCNet-style spawner can be supported.
+However, there is no limitation in the client that would prevent incorporating it into other projects. Any game or mod project that utilizes the CnCNet spawner for Tiberian Sun and Red Alert 2 can be supported. Several other projects also use the client or an unofficial fork of it, including [Tiberian Sun Client](https://www.moddb.com/mods/tiberian-sun-client), [Project Phantom](https://www.moddb.com/mods/project-phantom), [YR Red-Resurrection](https://www.moddb.com/mods/yr-red-resurrection), [The Second Tiberium War](https://www.moddb.com/mods/the-second-tiberium-war) and [CnC: Final War](https://www.moddb.com/mods/cncfinalwar).
 
 Requirements
 ------------
 
-The client relies on either MonoGame or Microsoft's XNA Framework, depending on the build platform. Building the solution requires Visual Studio 2017. A modern version of MonoDevelop or Visual Studio for Mac could also work.
+The client has 3 builds: Windows (DirectX11), OpenGL and XNA.
+* The Windows and OpenGL builds rely on .NET Framework 4.5 and MonoGame.
+* The XNA build relies on .NET Framework 4.0 and Microsoft's XNA Framework 4.0 Refresh. [Guide for installing XNA for Visual Studio 2017](https://gist.github.com/roy-t/2f089414078bf7218350e8c847951255)
 
+Building the solution for any platform requires Visual Studio 2017 or newer. A modern version of Visual Studio Code, MonoDevelop or Visual Studio for Mac could also work, but are not officially supported.
 
-* If you're building for Windows (Vista and newer), you can just clone the repository, open the solution with Visual Studio 2015 and compile it right away; the repository includes MonoGame and other necessary references for building for the MonoGame Windows (Vista and newer) platform.
-*  For compiling the XNA build, Microsoft XNA Game Studio 4.0 Refresh is needed.
+Compiling
+---------
 
+* Compiling itself is simple: assuming you have the prerequisites installed, you can just open the solution with Visual Studio and compile it right away; the repository includes MonoGame and other necessary DLLs for quick compiling.
+* The `BuildScripts` directory has automated build scripts that build the client for all platforms and copy the output files to a folder named `Compiled` in the project root. Note that by default the build scripts also build the XNA version of the client, which requires XNA Framework 4.0 Refresh to be installed. If you don't want to install XNA, then you need to modify `BuildGame.bat` to leave the XNAFramework build out.
 
-For end-users running Vista or newer Windows, the MonoGame build is preferred. The MonoGame build cannot be run on Windows XP, so the XNA build is intended for XP users.
+Usage
+-----
 
+For end-users running Vista or newer Windows, the MonoGame (DirectX11) build is preferred. The MonoGame build cannot be run on Windows XP, so the XNA build is intended for XP users and for those users whose GPUs do not properly support DX11.
 
-There is also a MonoGame WindowsGL / DesktopGL build platform option for currently experimental Linux and Mac support. Like with the Windows platform, the repository includes all necessary files and references for compiling the client directly for the WindowsGL / DesktopGL platform.
+The MonoGame WindowsGL / DesktopGL build is primarily meant for experimental Linux and Mac support.
 
 Screenshots
 -----------
