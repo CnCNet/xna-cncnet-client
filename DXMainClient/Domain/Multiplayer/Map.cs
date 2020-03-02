@@ -85,6 +85,12 @@ namespace DTAClient.Domain.Multiplayer
         public string BaseFilePath { get; private set; }
 
         /// <summary>
+        /// Returns the complete path to the map file.
+        /// Includes the game directory in the path.
+        /// </summary>
+        public string CompleteFilePath => ProgramConstants.GamePath + BaseFilePath + ".map";
+
+        /// <summary>
         /// The file name of the preview image.
         /// </summary>
         public string PreviewPath { get; private set; }
@@ -188,7 +194,7 @@ namespace DTAClient.Domain.Multiplayer
                 PreviewPath = Path.GetDirectoryName(BaseFilePath) + "\\" +
                     section.GetStringValue("PreviewImage", Path.GetFileNameWithoutExtension(BaseFilePath) + ".png");
                 Briefing = section.GetStringValue("Briefing", string.Empty).Replace("@", Environment.NewLine);
-                SHA1 = Utilities.CalculateSHA1ForFile(ProgramConstants.GamePath + BaseFilePath + ".map");
+                SHA1 = Utilities.CalculateSHA1ForFile(CompleteFilePath);
                 IsCoop = section.GetBooleanValue("IsCoopMission", false);
                 Credits = section.GetIntValue("Credits", -1);
                 UnitCount = section.GetIntValue("UnitCount", -1);
@@ -488,7 +494,7 @@ namespace DTAClient.Domain.Multiplayer
 
         public IniFile GetMapIni()
         {
-            var mapIni = new IniFile(ProgramConstants.GamePath + BaseFilePath + ".map");
+            var mapIni = new IniFile(CompleteFilePath);
 
             if (!string.IsNullOrEmpty(ExtraININame))
             {

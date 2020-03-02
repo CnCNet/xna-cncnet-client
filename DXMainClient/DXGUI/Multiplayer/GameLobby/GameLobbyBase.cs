@@ -67,11 +67,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         /// </summary>
         protected List<GameMode> GameModes;
 
+        private GameMode gameMode;
+
         /// <summary>
         /// The currently selected game mode.
         /// </summary>
-
-        private GameMode gameMode;
         protected GameMode GameMode
         {
             get => gameMode;
@@ -84,11 +84,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             }
         }
 
+        private Map map;
+
         /// <summary>
         /// The currently selected map.
         /// </summary>
-
-        private Map map;
         protected Map Map
         {
             get => map;
@@ -98,7 +98,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 map = value;
                 if (value != null && oldMap != value)
                     UpdateDiscordPresence();
-
             }
         }
 
@@ -127,6 +126,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         protected XNAMultiColumnListBox lbMapList;
         protected XNAClientDropDown ddGameMode;
         protected XNALabel lblGameModeSelect;
+        protected XNAContextMenu mapContextMenu;
 
         protected XNASuggestionTextBox tbMapSearch;
 
@@ -159,7 +159,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         protected bool RA2Mode = false;
 #endif
 
-        private bool isMultiplayer = false;
+        private readonly bool isMultiplayer = false;
 
         private MatchStatistics matchStatistics;
 
@@ -265,12 +265,19 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 MapPreviewBox.X - btnLaunchGame.X - 6,
                 MapPreviewBox.Bottom - 23 - GameOptionsPanel.Y);
             lbMapList.SelectedIndexChanged += LbMapList_SelectedIndexChanged;
+            lbMapList.RightClick += LbMapList_RightClick;
             lbMapList.PanelBackgroundDrawMode = PanelBackgroundImageDrawMode.STRETCHED;
             lbMapList.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 192), 1, 1);
             lbMapList.LineHeight = 16;
             lbMapList.DrawListBoxBorders = true;
             lbMapList.AllowKeyboardInput = true;
             lbMapList.AllowRightClickUnselect = false;
+
+            mapContextMenu = new XNAContextMenu(WindowManager);
+            mapContextMenu.Name = nameof(mapContextMenu);
+            mapContextMenu.Width = 100;
+            mapContextMenu.AddItem("Delete Map", DeleteMapConfirmation, () => Map != null && !Map.Official);
+            AddChild(mapContextMenu);
 
             XNAPanel rankHeader = new XNAPanel(WindowManager);
             rankHeader.BackgroundTexture = AssetLoader.LoadTexture("rank.png");
@@ -489,6 +496,52 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         }
 
         protected abstract int GetDefaultMapRankIndex(Map map);
+
+        private void LbMapList_RightClick(object sender, EventArgs e)
+        {
+            if (isMultiplayer || lbMapList.SelectedIndex < 0 || lbMapList.SelectedIndex >= lbMapList.ItemCount)
+                return;
+
+            mapContextMenu.Open(GetCursorPoint());
+        }
+
+        private void DeleteMapConfirmation()
+        {
+            if (Map == null)
+                return;
+
+            var messageBox = XNAMessageBox.ShowYesNoDialog(WindowManager, "Delete Confirmation",
+                "Are you sure you wish to delete the custom map \"" + Map.Name + "\"?");
+            messageBox.YesClickedAction = DeleteSelectedMap;
+        }
+
+        private void DeleteSelectedMap(XNAMessageBox messageBox)
+        {
+            try
+            {
+                Logger.Log("Deleting map " + Map.BaseFilePath);
+                File.Delete(Map.CompleteFilePath);
+                foreach (GameMode gameMode in GameModes)
+                {
+                    gameMode.Maps.Remove(Map);
+                }
+
+                tbMapSearch.Text = string.Empty;
+                GameMode newGameMode = GameMode;
+                if (newGameMode.Maps.Count == 0)
+                    newGameMode = GameModes.Find(gm => gm.Maps.Count > 0);
+
+                Map = newGameMode?.Maps[0];
+
+                ListMaps();
+                ChangeMap(newGameMode, Map);
+            }
+            catch (IOException ex)
+            {
+                Logger.Log($"Deleting map {Map.BaseFilePath} failed! Message: {ex.Message}");
+                XNAMessageBox.Show(WindowManager, "Deleting Map Failed", "Deleting map failed! Reason: " + ex.Message);
+            }
+        }
 
         private void LbMapList_SelectedIndexChanged(object sender, EventArgs e)
         {
@@ -1291,8 +1344,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             Logger.Log("Writing map.");
 
-            Logger.Log("Loading map INI from " +
-                ProgramConstants.GamePath + Map.BaseFilePath + ".map");
+            Logger.Log("Loading map INI from " + Map.CompleteFilePath);
 
             IniFile mapIni = Map.GetMapIni();
 

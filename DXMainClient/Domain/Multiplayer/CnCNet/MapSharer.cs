@@ -127,7 +127,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
 
             string mapFileName = map.SHA1 + ".map";
 
-            File.Copy(ProgramConstants.GamePath + map.BaseFilePath + ".map", ProgramConstants.GamePath + mapFileName);
+            File.Copy(map.CompleteFilePath, ProgramConstants.GamePath + mapFileName);
 
             CreateZipFile(mapFileName, zipFile);
 
