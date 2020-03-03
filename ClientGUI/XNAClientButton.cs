@@ -26,6 +26,9 @@ namespace ClientGUI
                 HoverSoundEffect = new EnhancedSoundEffect("button.wav");
 
             base.Initialize();
+
+            if (Width == 0)
+                Width = IdleTexture.Width;
         }
 
         public override void ParseAttributeFromINI(IniFile iniFile, string key, string value)
@@ -36,6 +39,8 @@ namespace ClientGUI
                 Height = IdleTexture.Height;
                 return;
             }
+
+            base.ParseAttributeFromINI(iniFile, key, value);
         }
     }
 }
