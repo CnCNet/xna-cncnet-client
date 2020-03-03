@@ -203,19 +203,17 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         public void Open()
         {
             topBar.AddPrimarySwitchable(this);
-            SwitchOn();
+            Enable();
         }
 
         public void SwitchOn()
         {
-            Enabled = true;
-            Visible = true;
+            Enable();
         }
 
         public void SwitchOff()
         {
-            Enabled = false;
-            Visible = false;
+            Disable();
         }
 
         public string GetSwitchName()
