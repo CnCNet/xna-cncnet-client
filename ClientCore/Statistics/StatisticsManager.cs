@@ -510,6 +510,9 @@ namespace ClientCore.Statistics
                 if (localPlayer.WasSpectator)
                     continue;
 
+                if (!localPlayer.Won)
+                    continue;
+
                 int[] teamMemberCounts = new int[5];
 
                 ms.Players.FindAll(ps => !ps.WasSpectator).ForEach(ps => teamMemberCounts[ps.Team]++);
