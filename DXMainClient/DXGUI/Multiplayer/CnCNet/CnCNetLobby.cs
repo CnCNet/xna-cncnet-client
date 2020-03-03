@@ -101,6 +101,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         private List<string> followedGames = new List<string>();
 
         private bool isJoiningGame = false;
+        private HostedCnCNetGame gameOfLastJoinAttempt;
 
         private CancellationTokenSource gameCheckCancellation;
 
@@ -424,6 +425,15 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 connectionManager.MainChannel.AddMessage(new ChatMessage(
                     Color.White, "Cannot join game " + game.RoomName + ", you've been banned by the game host!"));
             }
+
+            isJoiningGame = false;
+            if (gameOfLastJoinAttempt != null)
+            {
+                if (gameOfLastJoinAttempt.IsLoadedGame)
+                    gameLoadingLobby.Clear();
+                else
+                    gameLobby.Clear();
+            }
         }
 
         private void SharedUILogic_GameProcessStarted()
@@ -682,6 +692,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             connectionManager.MainChannel.AddMessage(new ChatMessage(Color.White,
                 "Attempting to join game " + hg.RoomName + "..."));
             isJoiningGame = true;
+            gameOfLastJoinAttempt = hg;
 
             Channel gameChannel = connectionManager.CreateChannel(hg.RoomName, hg.ChannelName, false, password);
             connectionManager.AddChannel(gameChannel);
