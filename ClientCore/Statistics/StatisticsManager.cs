@@ -573,18 +573,16 @@ namespace ClientCore.Statistics
                 int lowestEnemyAILevel = 2;
                 int highestAllyAILevel = 0;
 
-                teamMemberCounts[localPlayer.Team]++;
-
                 for (int i = 0; i < ms.Players.Count; i++)
                 {
                     PlayerStatistics ps = ms.GetPlayer(i);
+
+                    teamMemberCounts[ps.Team]++;
 
                     if (ps.IsLocalPlayer)
                     {
                         continue;
                     }
-
-                    teamMemberCounts[ps.Team]++;
 
                     if (ps.Team > 0 && ps.Team == localPlayer.Team)
                     {
@@ -606,7 +604,7 @@ namespace ClientCore.Statistics
 
                 if (localPlayer.Team > 0)
                 {
-                    // Check that all teams had at least
+                    // Check that all teams had at least as many players as the human player's team
 
                     int allyCount = teamMemberCounts[localPlayer.Team];
                     bool pass = true;
