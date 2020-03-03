@@ -119,8 +119,11 @@ namespace DTAClient.Online
         {
             foreach (var user in userList)
             {
-                if (users.Find(u => u.IRCUser.Name == user.IRCUser.Name) == null)
+                var existingUser = users.Find(u => u.IRCUser.Name == user.IRCUser.Name);
+                if (existingUser == null)
                     users.Add(user);
+                else
+                    existingUser.IsAdmin = user.IsAdmin;
             }
 
             users = users.OrderBy(u => u.IRCUser.Name).OrderBy(u => !u.IsAdmin).ToList();
