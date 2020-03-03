@@ -213,8 +213,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             }
             else
                 Logger.Log("MultiplayerGameLobby: Saved games are not available!");
-
-            CenterOnParent();
         }
 
         /// <summary>
@@ -224,6 +222,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         protected void PostInitialize()
         {
             InitializeWindow();
+            CenterOnParent();
             LoadDefaultMap();
         }
 
