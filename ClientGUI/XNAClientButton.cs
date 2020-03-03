@@ -1,5 +1,6 @@
 ﻿using Rampastring.XNAUI.XNAControls;
 using Rampastring.XNAUI;
+using Rampastring.Tools;
 
 namespace ClientGUI
 {
@@ -14,6 +15,7 @@ namespace ClientGUI
         public override void Initialize()
         {
             int width = Width;
+
             if (IdleTexture == null)
                 IdleTexture = AssetLoader.LoadTexture(width + "pxbtn.png");
 
@@ -24,6 +26,16 @@ namespace ClientGUI
                 HoverSoundEffect = new EnhancedSoundEffect("button.wav");
 
             base.Initialize();
+        }
+
+        public override void ParseAttributeFromINI(IniFile iniFile, string key, string value)
+        {
+            if (key == "MatchTextureSize" && Conversions.BooleanFromString(key, false))
+            {
+                Width = IdleTexture.Width;
+                Height = IdleTexture.Height;
+                return;
+            }
         }
     }
 }
