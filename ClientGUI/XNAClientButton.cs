@@ -8,6 +8,7 @@ namespace ClientGUI
         public XNAClientButton(WindowManager windowManager) : base(windowManager)
         {
             FontIndex = 1;
+            Height = UIDesignConstants.BUTTON_HEIGHT;
         }
 
         public override void Initialize()

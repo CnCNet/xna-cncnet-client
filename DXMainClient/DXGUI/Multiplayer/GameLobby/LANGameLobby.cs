@@ -93,26 +93,32 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         public event EventHandler GameLeft;
         public event EventHandler<GameBroadcastEventArgs> GameBroadcast;
 
-        TcpListener listener;
-        TcpClient client;
+        private TcpListener listener;
+        private TcpClient client;
 
-        IPEndPoint hostEndPoint;
-        LANColor[] chatColors;
-        int chatColorIndex;
-        Encoding encoding;
+        private IPEndPoint hostEndPoint;
+        private LANColor[] chatColors;
+        private int chatColorIndex;
+        private Encoding encoding;
 
-        CommandHandlerBase[] hostCommandHandlers;
-        LANClientCommandHandler[] playerCommandHandlers;
+        private CommandHandlerBase[] hostCommandHandlers;
+        private LANClientCommandHandler[] playerCommandHandlers;
 
-        TimeSpan timeSinceGameBroadcast = TimeSpan.Zero;
+        private TimeSpan timeSinceGameBroadcast = TimeSpan.Zero;
 
-        TimeSpan timeSinceLastReceivedCommand = TimeSpan.Zero;
+        private TimeSpan timeSinceLastReceivedCommand = TimeSpan.Zero;
 
-        string overMessage = string.Empty;
+        private string overMessage = string.Empty;
 
-        string localGame;
+        private string localGame;
 
-        string localFileHash;
+        private string localFileHash;
+
+        public override void Initialize()
+        {
+            base.Initialize();
+            PostInitialize();
+        }
 
         public void SetUp(bool isHost,
             IPEndPoint hostEndPoint, TcpClient client)
