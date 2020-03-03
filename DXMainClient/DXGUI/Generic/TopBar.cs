@@ -349,6 +349,8 @@ namespace DTAClient.DXGUI.Generic
             SetSwitchButtonsClickable(!lanMode);
             if (lanMode)
                 ConnectionEvent("LAN MODE");
+            else
+                ConnectionEvent("OFFLINE");
         }
 
         public override void Update(GameTime gameTime)

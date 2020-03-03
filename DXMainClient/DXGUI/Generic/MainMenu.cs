@@ -391,7 +391,6 @@ namespace DTAClient.DXGUI.Generic
 
         private void LanLobby_Exited(object sender, EventArgs e)
         {
-            //topBar.Enable();
             topBar.SetLanMode(false);
 
             if (UserINISettings.Instance.AutomaticCnCNetLogin)
@@ -663,10 +662,10 @@ namespace DTAClient.DXGUI.Generic
             if (UserINISettings.Instance.StopMusicOnMenu)
                 MusicOff();
 
-            //topBar.Disable();
-            topBar.SetLanMode(true);
             if (connectionManager.IsConnected)
                 connectionManager.Disconnect();
+
+            topBar.SetLanMode(true);
         }
 
         private void BtnCnCNet_LeftClick(object sender, EventArgs e)
