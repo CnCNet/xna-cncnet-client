@@ -11,7 +11,7 @@ namespace DTAClient.Domain
         /// </summary>
         public static void WriteFinalSunIni()
         {
-            // the encoding of the FinalSun/FinalAlert ini file should be ANSI instead of UTF-8. Otherwise, the map editor will not work in a non-ASCII path.
+            // the encoding of the FinalSun/FinalAlert ini file should be ANSI instead of UTF-8. Otherwise, the map editor will not work in a non-ASCII path. Be sure to use .NET Framework instead of .NET Core as the latter doesn't support ANSI. Also, ANSI doesn't mean a specific codepage, it means the default non-Unicode codepage which can be changed from Control Panel.
             try
             {
                 string finalSunIniPath = ClientConfiguration.Instance.FinalSunIniPath;
@@ -23,7 +23,7 @@ namespace DTAClient.Domain
 
                     IniFile iniFile = new IniFile();
                     iniFile.FileName = ProgramConstants.GamePath + finalSunIniPath;
-                    // Be sure to use .NET Framework instead of .NET Core as the latter doesn't support ANSI          
+                    // 
                     iniFile.Encoding = System.Text.Encoding.Default;
                     iniFile.Parse();
                     
@@ -37,8 +37,6 @@ namespace DTAClient.Domain
 
                 Logger.Log("FinalSun.ini doesn't exist - writing default settings.");
 
-                // Write as ANSI encoding.
-                // Be sure to use .NET Framework instead of .NET Core as the latter doesn't support ANSI                 
                 StreamWriter sw = new StreamWriter(ProgramConstants.GamePath + finalSunIniPath, false, System.Text.Encoding.Default);
 
                 sw.WriteLine("[FinalSun]");
