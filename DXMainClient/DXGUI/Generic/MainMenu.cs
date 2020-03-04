@@ -178,7 +178,7 @@ namespace DTAClient.DXGUI.Generic
             btnExtras.HoverTexture = AssetLoader.LoadTexture("MainMenu\\extras_c.png");
             btnExtras.HoverSoundEffect = new EnhancedSoundEffect("MainMenu\\button.wav");
             btnExtras.LeftClick += BtnExtras_LeftClick;
-            btnExtras.HotKey = Keys.E;
+            btnExtras.HotKey = Keys.X;
 
             var btnExit = new XNAClientButton(WindowManager);
             btnExit.Name = "btnExit";
