@@ -13,6 +13,7 @@ namespace DTAClient.Online
     {
         private FileHashes fh;
         private const string CONFIGNAME = "FHCConfig.ini";
+        private bool calculateGameExeHash = true;
 
         string[] fileNamesToCheck = new string[]
         {
@@ -77,7 +78,8 @@ namespace DTAClient.Online
                 ClientDXHash = Utilities.CalculateSHA1ForFile(ProgramConstants.GetBaseResourcePath() + "clientdx.exe"),
                 ClientXNAHash = Utilities.CalculateSHA1ForFile(ProgramConstants.GetBaseResourcePath() + "clientxna.exe"),
                 ClientOGLHash = Utilities.CalculateSHA1ForFile(ProgramConstants.GetBaseResourcePath() + "clientogl.exe"),
-                MainExeHash = Utilities.CalculateSHA1ForFile(ProgramConstants.GamePath + ClientConfiguration.Instance.GetGameExecutableName()),
+                GameExeHash = calculateGameExeHash ?
+                Utilities.CalculateSHA1ForFile(ProgramConstants.GamePath + ClientConfiguration.Instance.GetGameExecutableName()) : string.Empty,
                 LauncherExeHash = Utilities.CalculateSHA1ForFile(ProgramConstants.GamePath + ClientConfiguration.Instance.GameLauncherExecutableName),
                 MPMapsHash = Utilities.CalculateSHA1ForFile(ProgramConstants.GamePath + ClientConfiguration.Instance.MPMapsIniPath),
                 FHCConfigHash = Utilities.CalculateSHA1ForFile(ProgramConstants.BASE_RESOURCE_PATH + CONFIGNAME),
@@ -111,7 +113,7 @@ namespace DTAClient.Online
                     foreach (string fileName in files)
                     {
                         fh.INIHashes += Utilities.CalculateSHA1ForFile(fileName);
-                        Logger.Log("Hash for " + fileName.Replace(ProgramConstants.GamePath, "") + 
+                        Logger.Log("Hash for " + fileName.Replace(ProgramConstants.GamePath, "") +
                             ": " + Utilities.CalculateSHA1ForFile(fileName));
                     }
                 }
@@ -136,7 +138,7 @@ namespace DTAClient.Online
             str += fh.ClientDXHash;
             str += fh.ClientXNAHash;
             str += fh.ClientOGLHash;
-            str += fh.MainExeHash;
+            str += fh.GameExeHash;
             str += fh.LauncherExeHash;
             str += fh.INIHashes;
             str += fh.MPMapsHash;
@@ -150,6 +152,7 @@ namespace DTAClient.Online
         private void ParseConfigFile()
         {
             IniFile config = new IniFile(ProgramConstants.GetBaseResourcePath() + CONFIGNAME);
+            calculateGameExeHash = config.GetBooleanValue("Settings", "CalculateGameExeHash", true);
 
             List<string> keys = config.GetSectionKeys("FilenameList");
             if (keys == null || keys.Count < 1)
@@ -174,7 +177,7 @@ namespace DTAClient.Online
         public string ClientOGLHash { get; set; }
         public string INIHashes { get; set; }
         public string MPMapsHash { get; set; }
-        public string MainExeHash { get; set; }
+        public string GameExeHash { get; set; }
         public string LauncherExeHash { get; set; }
         public string FHCConfigHash { get; set; }
 
@@ -186,7 +189,7 @@ namespace DTAClient.Online
                 "ClientOGLHash: " + ClientOGLHash + Environment.NewLine +
                 "INI Hashes: " + INIHashes + Environment.NewLine +
                 "MPMaps Hash: " + MPMapsHash + Environment.NewLine +
-                "MainExe Hash: " + MainExeHash + Environment.NewLine +
+                "MainExe Hash: " + GameExeHash + Environment.NewLine +
                 "LauncherExe Hash: " + LauncherExeHash + Environment.NewLine +
                 "FHCConfig Hash: " + FHCConfigHash;
         }
