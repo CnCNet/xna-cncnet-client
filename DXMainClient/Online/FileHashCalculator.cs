@@ -86,6 +86,17 @@ namespace DTAClient.Online
                 INIHashes = string.Empty
             };
 
+            Logger.Log("Hash for " + ProgramConstants.BASE_RESOURCE_PATH + CONFIGNAME + ": " + fh.FHCConfigHash);
+            Logger.Log("Hash for " + ProgramConstants.BASE_RESOURCE_PATH + "GameOptions.ini: " + fh.GameOptionsHash);
+            Logger.Log("Hash for " + ProgramConstants.BASE_RESOURCE_PATH + "clientdx.exe: " + fh.ClientDXHash);
+            Logger.Log("Hash for " + ProgramConstants.BASE_RESOURCE_PATH + "clientxna.exe: " + fh.ClientXNAHash);
+            Logger.Log("Hash for " + ProgramConstants.BASE_RESOURCE_PATH + "clientogl.exe: " + fh.ClientOGLHash);
+            Logger.Log("Hash for " + ClientConfiguration.Instance.MPMapsIniPath + ": " + fh.MPMapsHash);
+            if (calculateGameExeHash)
+                Logger.Log("Hash for " + ClientConfiguration.Instance.GetGameExecutableName() + ": " + fh.GameExeHash);
+            if (!string.IsNullOrEmpty(ClientConfiguration.Instance.GameLauncherExecutableName))
+                Logger.Log("Hash for " + ClientConfiguration.Instance.GameLauncherExecutableName + ": " + fh.LauncherExeHash);
+
             foreach (string filePath in fileNamesToCheck)
             {
                 fh.INIHashes = AddToStringIfFileExists(fh.INIHashes, filePath);
