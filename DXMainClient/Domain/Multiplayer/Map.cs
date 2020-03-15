@@ -341,13 +341,11 @@ namespace DTAClient.Domain.Multiplayer
                     Logger.Log("Custom map " + path + " has no game modes!");
                     return false;
                 }
-                else
+                
+                for (int i = 0; i < GameModes.Length; i++)
                 {
-                    for (int i = 0; i < GameModes.Length; i++)
-                    {
-                        string gameMode = GameModes[i].Trim();
-                        GameModes[i] = gameMode.Substring(0, 1).ToUpperInvariant() + gameMode.Substring(1);
-                    }
+                    string gameMode = GameModes[i].Trim();
+                    GameModes[i] = gameMode.Substring(0, 1).ToUpperInvariant() + gameMode.Substring(1);
                 }
 
                 MinPlayers = 0;
