@@ -45,15 +45,15 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             MapPreviewBox.LocalStartingLocationSelected += MapPreviewBox_LocalStartingLocationSelected;
             MapPreviewBox.StartingLocationApplied += MapPreviewBox_StartingLocationApplied;
 
-            InitializeWindow();
-
-            WindowManager.CenterControlOnScreen(this);
-
             LoadSettings();
 
             CheckDisallowedSides();
 
             CopyPlayerDataToUI();
+
+            InitializeWindow();
+
+            WindowManager.CenterControlOnScreen(this);
 
             ProgramConstants.PlayerNameChanged += ProgramConstants_PlayerNameChanged;
             ddPlayerSides[0].SelectedIndexChanged += PlayerSideChanged;
@@ -166,15 +166,18 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         protected override void UpdateDiscordPresence(bool resetTimer = false)
         {
-            if (discordHandler == null)
+            if (discordHandler == null || Map == null || GameMode == null || !Initialized)
                 return;
 
-            PlayerInfo player = Players.Find(p => p.Name == ProgramConstants.PLAYERNAME);
-            if (player == null || Map == null || GameMode == null)
+            int playerIndex = Players.FindIndex(p => p.Name == ProgramConstants.PLAYERNAME);
+            if (playerIndex >= MAX_PLAYER_COUNT || playerIndex < 0)
                 return;
-            string side = "";
-            if (ddPlayerSides.Length > Players.IndexOf(player))
-                side = ddPlayerSides[Players.IndexOf(player)].SelectedItem.Text;
+
+            XNAClientDropDown sideDropDown = ddPlayerSides[playerIndex];
+            if (sideDropDown.SelectedItem == null)
+                return;
+
+            string side = sideDropDown.SelectedItem.Text;
             string currentState = ProgramConstants.IsInGame ? "In Game" : "Setting Up";
 
             discordHandler.UpdatePresence(

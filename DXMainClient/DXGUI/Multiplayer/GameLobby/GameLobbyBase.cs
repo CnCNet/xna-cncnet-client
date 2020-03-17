@@ -409,6 +409,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         protected void InitializeWindow()
         {
             base.Initialize();
+            lblMapAuthor.X = MapPreviewBox.Right - lblMapAuthor.Width;
+            lblMapAuthor.TextAnchor = LabelTextAnchorInfo.LEFT;
+            lblMapAuthor.AnchorPoint = new Vector2(MapPreviewBox.Right, lblMapAuthor.Y);
         }
 
         protected virtual void OnGameOptionChanged()
@@ -1784,8 +1787,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             lblMapAuthor.Text = "By " + Renderer.GetSafeString(map.Author, lblMapAuthor.FontIndex);
             lblGameMode.Text = "Game mode: " + gameMode.UIName;
             lblMapSize.Text = "Size: " + map.GetSizeString();
-
-            lblMapAuthor.X = MapPreviewBox.Right - lblMapAuthor.Width;
 
             disableGameOptionUpdateBroadcast = true;
 
