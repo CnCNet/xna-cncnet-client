@@ -97,12 +97,17 @@ namespace DTAClient.DXGUI.Generic
 
         private void OptionsWindow_EnabledChanged(object sender, EventArgs e)
         {
-            if (!lanMode) SetSwitchButtonsClickable(!optionsWindow.Enabled);
+            if (!lanMode) 
+                SetSwitchButtonsClickable(!optionsWindow.Enabled);
+
+            if (btnOptions != null)
+                btnOptions.AllowClick = !optionsWindow.Enabled;
         }
 
         public void Clean()
         {
-            if (cncnetPlayerCountCancellationSource != null) cncnetPlayerCountCancellationSource.Cancel();
+            if (cncnetPlayerCountCancellationSource != null) 
+                cncnetPlayerCountCancellationSource.Cancel();
         }
 
         public override void Initialize()
