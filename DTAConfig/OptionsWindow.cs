@@ -235,6 +235,14 @@ namespace DTAConfig
             Enable();
         }
 
+        public void ToggleMainMenuOnlyOptions(bool enable)
+        {
+            foreach (var panel in optionsPanels)
+            {
+                panel.ToggleMainMenuOnlyOptions(enable);
+            }
+        }
+
         public void SwitchToCustomComponentsPanel()
         {
             foreach (var panel in optionsPanels)

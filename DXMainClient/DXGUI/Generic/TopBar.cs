@@ -101,6 +101,9 @@ namespace DTAClient.DXGUI.Generic
                 SetSwitchButtonsClickable(!optionsWindow.Enabled);
 
             SetOptionsButtonClickable(!optionsWindow.Enabled);
+
+            if (optionsWindow != null)
+                optionsWindow.ToggleMainMenuOnlyOptions(primarySwitches.Count == 1 && !lanMode);
         }
 
         public void Clean()
