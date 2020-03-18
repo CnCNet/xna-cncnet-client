@@ -100,8 +100,7 @@ namespace DTAClient.DXGUI.Generic
             if (!lanMode) 
                 SetSwitchButtonsClickable(!optionsWindow.Enabled);
 
-            if (btnOptions != null)
-                btnOptions.AllowClick = !optionsWindow.Enabled;
+            SetOptionsButtonClickable(!optionsWindow.Enabled);
         }
 
         public void Clean()
@@ -355,6 +354,12 @@ namespace DTAClient.DXGUI.Generic
                 btnCnCNetLobby.AllowClick = allowClick;
             if (btnPrivateMessages != null)
                 btnPrivateMessages.AllowClick = allowClick;
+        }
+
+        public void SetOptionsButtonClickable(bool allowClick)
+        {
+            if (btnOptions != null)
+                btnOptions.AllowClick = allowClick;
         }
 
         public void SetLanMode(bool lanMode)
