@@ -227,10 +227,16 @@ namespace DTAClient.DXGUI.Generic
         }
 
         private void ConnectionManager_ConnectionLost(object sender, Online.EventArguments.ConnectionLostEventArgs e)
-            => ConnectionEvent("OFFLINE");
+        {
+            if (!lanMode)
+                ConnectionEvent("OFFLINE");
+        }
 
         private void ConnectionManager_ConnectAttemptFailed(object sender, EventArgs e)
-            => ConnectionEvent("OFFLINE");
+        {
+            if (!lanMode)
+                ConnectionEvent("OFFLINE");
+        }
 
         private void ConnectionManager_AttemptedServerChanged(object sender, Online.EventArguments.AttemptedServerEventArgs e)
         {
@@ -244,7 +250,8 @@ namespace DTAClient.DXGUI.Generic
         private void ConnectionManager_Disconnected(object sender, EventArgs e)
         {
             btnLogout.AllowClick = false;
-            ConnectionEvent("OFFLINE");
+            if (!lanMode)
+                ConnectionEvent("OFFLINE");
         }
 
         private void ConnectionEvent(string text)
