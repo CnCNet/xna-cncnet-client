@@ -123,7 +123,7 @@ namespace DTAClient
 
                 foreach (var proc in searcher.Get())
                 {
-                    cpu = cpu + proc["Name"] + " (" + proc["NumberOfCores"] + " cores) ";
+                    cpu = cpu + proc["Name"].ToString().Trim() + " (" + proc["NumberOfCores"] + " cores) ";
                 }
 
                 searcher = new ManagementObjectSearcher("SELECT * FROM Win32_VideoController");
@@ -135,7 +135,7 @@ namespace DTAClient
                     if (currentBitsPerPixel != null && description != null)
                     {
                         if (currentBitsPerPixel.Value != null)
-                            videoController = videoController + "Video controller: " + description.Value.ToString() + " ";
+                            videoController = videoController + "Video controller: " + description.Value.ToString().Trim() + " ";
                     }
                 }
 
