@@ -245,14 +245,14 @@ namespace DTAClient.DXGUI.Generic
                 CUpdater.OnCustomComponentsOutdated += CUpdater_OnCustomComponentsOutdated;
             }
 
+            base.Initialize(); // Read control attributes from INI
+
             innerPanel = new MainMenuDarkeningPanel(WindowManager, discordHandler);
             innerPanel.ClientRectangle = new Rectangle(0, 0,
                 Width,
                 Height);
             AddChild(innerPanel);
             innerPanel.Hide();
-
-            base.Initialize(); // Read control attributes from INI
 
             lblVersion.Text = CUpdater.GameVersion;
 
