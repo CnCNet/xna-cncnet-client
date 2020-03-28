@@ -100,16 +100,16 @@ namespace DTAClient.DXGUI.Generic
         private CancellationTokenSource cncnetPlayerCountCancellationSource;
 
         // Main Menu Buttons
-        XNAClientButton btnNewCampaign;
-        XNAClientButton btnLoadGame;
-        XNAClientButton btnSkirmish;
-        XNAClientButton btnCnCNet;
-        XNAClientButton btnLan;
-        XNAClientButton btnOptions;
-        XNAClientButton btnMapEditor;
-        XNAClientButton btnStatistics;
-        XNAClientButton btnCredits;
-        XNAClientButton btnExtras;
+        private XNAClientButton btnNewCampaign;
+        private XNAClientButton btnLoadGame;
+        private XNAClientButton btnSkirmish;
+        private XNAClientButton btnCnCNet;
+        private XNAClientButton btnLan;
+        private XNAClientButton btnOptions;
+        private XNAClientButton btnMapEditor;
+        private XNAClientButton btnStatistics;
+        private XNAClientButton btnCredits;
+        private XNAClientButton btnExtras;
 
         /// <summary>
         /// Initializes the main menu's controls.
