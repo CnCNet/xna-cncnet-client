@@ -235,6 +235,8 @@ namespace DTAClient.DXGUI.Generic
             innerPanel.ClientRectangle = new Rectangle(0, 0,
                 Width,
                 Height);
+            innerPanel.DrawOrder = int.MaxValue;
+            innerPanel.UpdateOrder = int.MaxValue;
             AddChild(innerPanel);
             innerPanel.Hide();
 
