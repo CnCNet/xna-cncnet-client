@@ -149,6 +149,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             sndDropdownSound = new EnhancedSoundEffect("dropdown.wav");
 
             base.Initialize();
+
+            ClientRectangleUpdated += (s, e) => UpdateMap();
         }
 
         private void ContextMenu_OptionSelected(int index)
