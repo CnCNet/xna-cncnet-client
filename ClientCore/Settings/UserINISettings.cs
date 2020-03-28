@@ -1,4 +1,4 @@
-﻿using ClientCore.Settings;
+using ClientCore.Settings;
 using Rampastring.Tools;
 using System;
 using System.Windows.Forms;
@@ -8,6 +8,13 @@ namespace ClientCore
     public class UserINISettings
     {
         private static UserINISettings _instance;
+
+        private const string VIDEO = "Video";
+        private const string MULTIPLAYER = "MultiPlayer";
+        private const string OPTIONS = "Options";
+        private const string AUDIO = "Audio";
+        private const string CUSTOM_SETTINGS = "Custom Settings";
+        private const string COMPATIBILITY = "Compatibility";
 
         public static UserINISettings Instance
         {
@@ -34,10 +41,6 @@ namespace ClientCore
         {
             SettingsIni = iniFile;
 
-            const string VIDEO = "Video";
-            const string MULTIPLAYER = "MultiPlayer";
-            const string OPTIONS = "Options";
-            const string AUDIO = "Audio";
 #if YR || MO
             const string WINDOWED_MODE_KEY = "Video.Windowed";
             BackBufferInVRAM = new BoolSetting(iniFile, VIDEO, "VideoBackBuffer", false);
@@ -50,7 +53,7 @@ namespace ClientCore
             IngameScreenHeight = new IntSetting(iniFile, VIDEO, "ScreenHeight", 768);
             ClientTheme = new StringSetting(iniFile, MULTIPLAYER, "Theme", string.Empty);
             DetailLevel = new IntSetting(iniFile, OPTIONS, "DetailLevel", 2);
-            Renderer = new StringSetting(iniFile, "Compatibility", "Renderer", string.Empty);
+            Renderer = new StringSetting(iniFile, COMPATIBILITY, "Renderer", string.Empty);
             WindowedMode = new BoolSetting(iniFile, VIDEO, WINDOWED_MODE_KEY, false);
             BorderlessWindowedMode = new BoolSetting(iniFile, VIDEO, "NoWindowFrame", false);
 

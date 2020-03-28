@@ -8,7 +8,7 @@ using System.IO;
 namespace DTAConfig.CustomSettings
 {
     /// <summary>
-    /// A check-box fitting for a file presence toggle setting.
+    /// A legacy implementation of a check-box fitting for a file presence toggle setting.
     /// </summary>
     public class FileSettingCheckBox : XNAClientCheckBox, ICustomSetting
     {
@@ -31,19 +31,22 @@ namespace DTAConfig.CustomSettings
             base.GetAttributes(iniFile);
 
             var section = iniFile.GetSection(Name);
+
             if (section == null)
                 return;
 
             int i = 0;
             while (true)
             {
-                string fileInfo = section.GetStringValue("File" + i.ToString(), string.Empty);
-                if (fileInfo == string.Empty)
+                string fileInfo = section.GetStringValue($"File{i}", string.Empty);
+
+                if (string.IsNullOrWhiteSpace(fileInfo))
                     break;
+
                 string[] parts = fileInfo.Split(',');
                 if (parts.Length != 2)
                 {
-                    Logger.Log("Invalid FileSettingCheckBox information in " + Name + ": " + fileInfo);
+                    Logger.Log($"Invalid FileSettingCheckBox information in {Name}: {fileInfo}");
                     continue;
                 }
 
@@ -90,12 +93,11 @@ namespace DTAConfig.CustomSettings
                 }
             }
             else
-            {
                 files.ForEach(f => File.Delete(ProgramConstants.GamePath + f.DestinationPath));
-            }
 
             if (restartRequired && (Checked != originalState))
                 return true;
+
             return false;
         }
     }

@@ -1,4 +1,4 @@
-﻿using ClientCore;
+using ClientCore;
 using ClientCore.CnCNet5;
 using ClientGUI;
 using DTAConfig.OptionPanels;
@@ -110,17 +110,13 @@ namespace DTAConfig
             base.GetINIAttributes(iniFile);
 
             foreach (var panel in optionsPanels)
-            {
                 panel.ParseUserOptions(iniFile);
-            }
         }
 
         private void TabControl_SelectedIndexChanged(object sender, EventArgs e)
         {
             foreach (var panel in optionsPanels)
-            {
                 panel.Disable();
-            }
 
             optionsPanels[tabControl.SelectedTab].Enable();
         }
@@ -179,9 +175,7 @@ namespace DTAConfig
             try
             {
                 foreach (var panel in optionsPanels)
-                {
                     restartRequired = panel.Save() || restartRequired;
-                }
 
                 UserINISettings.Instance.SaveSettings();
             }
@@ -234,23 +228,16 @@ namespace DTAConfig
         public void SwitchToCustomComponentsPanel()
         {
             foreach (var panel in optionsPanels)
-            {
                 panel.Disable();
-            }
 
             tabControl.SelectedTab = 5;
         }
 
-        public void InstallCustomComponent(int id)
-        {
-            componentsPanel.InstallComponent(id);
-        }
+        public void InstallCustomComponent(int id) => componentsPanel.InstallComponent(id);
 
         public void PostInit()
-        {
 #if !YR
-            displayOptionsPanel.PostInit();
+            => displayOptionsPanel.PostInit();
 #endif
-        }
     }
 }

@@ -1,4 +1,4 @@
-﻿using ClientCore;
+using ClientCore;
 using ClientGUI;
 using DTAConfig.CustomSettings;
 using Microsoft.Xna.Framework;
@@ -65,8 +65,8 @@ namespace DTAConfig.OptionPanels
 
         /// <summary>
         /// Saves the options of this panel.
-        /// Returns a bool that determines whether the 
-        /// client needs to restart for changes to apply.
+        /// <returns>A bool that determines whether the 
+        /// client needs to restart for changes to apply.</returns>
         /// </summary>
         public virtual bool Save()
         {
