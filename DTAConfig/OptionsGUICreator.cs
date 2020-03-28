@@ -16,6 +16,8 @@ namespace DTAConfig
         public OptionsGUICreator()
         {
             AddControl(typeof(FileSettingCheckBox));
+            AddControl(typeof(CustomSettingFileCheckBox));
+            AddControl(typeof(CustomSettingFileDropDown));
         }
     }
 }

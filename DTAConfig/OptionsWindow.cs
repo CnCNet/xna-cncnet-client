@@ -1,4 +1,4 @@
-using ClientCore;
+﻿using ClientCore;
 using ClientCore.CnCNet5;
 using ClientGUI;
 using DTAConfig.OptionPanels;
@@ -119,6 +119,7 @@ namespace DTAConfig
                 panel.Disable();
 
             optionsPanels[tabControl.SelectedTab].Enable();
+            optionsPanels[tabControl.SelectedTab].RefreshPanel();
         }
 
         private void BtnBack_LeftClick(object sender, EventArgs e)
@@ -170,6 +171,9 @@ namespace DTAConfig
 
         private void SaveSettings()
         {
+            if (RefreshOptionPanels())
+                return;
+
             bool restartRequired = false;
 
             try
@@ -199,18 +203,45 @@ namespace DTAConfig
             }
         }
 
-        private void RestartMsgBox_YesClicked(XNAMessageBox messageBox)
+        private void RestartMsgBox_YesClicked(XNAMessageBox messageBox) => WindowManager.RestartGame();
+
+        /// <summary>
+        /// Refreshes the option panels to account for possible
+        /// changes that could affect theirs functionality.
+        /// Shows the popup to inform the user if needed.
+        /// </summary>
+        /// <returns>A bool that determines whether the 
+        /// setting's value was changed.</returns>
+        private bool RefreshOptionPanels()
         {
-            WindowManager.RestartGame();
+            bool optionValuesChanged = false;
+
+            foreach (var panel in optionsPanels)
+                optionValuesChanged = panel.RefreshPanel() || optionValuesChanged;
+
+            if (optionValuesChanged)
+            {
+                XNAMessageBox.Show(WindowManager, "Setting Value(s) Changed",
+                    "One or more setting values were no longer available" + Environment.NewLine +
+                    "and were changed to their default values instead." +
+                    Environment.NewLine + Environment.NewLine +
+                    "You may want to verify the new setting values in" + Environment.NewLine +
+                    "application's options window.");
+                return true;
+            }
+
+            return false;
         }
 
         public void RefreshSettings()
         {
             foreach (var panel in optionsPanels)
-            {
                 panel.Load();
+
+            RefreshOptionPanels();
+
+            foreach (var panel in optionsPanels)
                 panel.Save();
-            }
 
             UserINISettings.Instance.SaveSettings();
         }
@@ -219,6 +250,8 @@ namespace DTAConfig
         {
             foreach (var panel in optionsPanels)
                 panel.Load();
+
+            RefreshOptionPanels();
 
             componentsPanel.Open();
 

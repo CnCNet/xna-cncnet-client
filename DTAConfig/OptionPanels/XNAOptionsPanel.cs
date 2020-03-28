@@ -1,4 +1,4 @@
-using ClientCore;
+﻿using ClientCore;
 using ClientGUI;
 using DTAConfig.CustomSettings;
 using Microsoft.Xna.Framework;
@@ -54,10 +54,18 @@ namespace DTAConfig.OptionPanels
 
             foreach (var control in Children)
             {
-                if (!(control is FileSettingCheckBox controlAsFileSettingCheckBox))
-                    continue;
-
-                customSettings.Add(controlAsFileSettingCheckBox);
+                switch (control)
+                {
+                    case FileSettingCheckBox controlAsFileSettingCheckBox:
+                        customSettings.Add(controlAsFileSettingCheckBox);
+                        break;
+                    case CustomSettingFileCheckBox controlAsAdvancedFileCheckBox:
+                        customSettings.Add(controlAsAdvancedFileCheckBox);
+                        break;
+                    case CustomSettingFileDropDown controlAsFileSettingDropDown:
+                        customSettings.Add(controlAsFileSettingDropDown);
+                        break;
+                }
             }
         }
 
@@ -75,6 +83,21 @@ namespace DTAConfig.OptionPanels
                 restartRequired = setting.Save() || restartRequired;
             
             return restartRequired;
+        }
+
+        /// <summary>
+        /// Refreshes the panel's settings to account for possible
+        /// changes that could affect the functionality.
+        /// </summary>
+        /// <returns>A bool that determines whether the 
+        /// setting's value was changed.</returns>
+        public virtual bool RefreshPanel()
+        {
+            bool valuesChanged = false;
+            foreach (var setting in customSettings)
+                valuesChanged = setting.RefreshSetting() || valuesChanged;
+
+            return valuesChanged;
         }
 
         /// <summary>

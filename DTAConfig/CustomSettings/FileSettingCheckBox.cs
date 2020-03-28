@@ -77,11 +77,10 @@ namespace DTAConfig.CustomSettings
             originalState = Checked;
         }
 
-        /// <summary>
-        /// Applies file operations based on current checkbox state.
-        /// Returns a bool that determines whether the 
-        /// client needs to restart for changes to apply.
-        /// </summary>
+        public bool RefreshSetting()
+            // TODO implement custom logic for refreshing the checkbox
+            => false;
+
         public bool Save()
         {
             if (reversed != Checked)

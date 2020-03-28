@@ -1,4 +1,4 @@
-using ClientCore.Settings;
+﻿using ClientCore.Settings;
 using Rampastring.Tools;
 using System;
 using System.Windows.Forms;
@@ -217,6 +217,28 @@ namespace ClientCore
             DoubleTapInterval.SetDefaultIfNonexistent();
             ScrollDelay.SetDefaultIfNonexistent();
         }
+
+        #region Custom settings
+
+        public bool CustomSettingCheckBoxValueExists(string name)
+            => SettingsIni.KeyExists(CUSTOM_SETTINGS, $"{name}_Checked");
+
+        public bool GetCustomSettingValue(string name, bool defaultValue)
+            => SettingsIni.GetBooleanValue(CUSTOM_SETTINGS, $"{name}_Checked", defaultValue);
+
+        public void SetCustomSettingValue(string name, bool value)
+            => SettingsIni.SetBooleanValue(CUSTOM_SETTINGS, $"{name}_Checked", value);
+
+        public bool CustomSettingDropDownValueExists(string name)
+            => SettingsIni.KeyExists(CUSTOM_SETTINGS, $"{name}_SelectedIndex");
+
+        public int GetCustomSettingValue(string name, int defaultValue)
+            => SettingsIni.GetIntValue(CUSTOM_SETTINGS, $"{name}_SelectedIndex", defaultValue);
+
+        public void SetCustomSettingValue(string name, int value)
+            => SettingsIni.SetIntValue(CUSTOM_SETTINGS, $"{name}_SelectedIndex", value);
+
+        #endregion
 
         public void SaveSettings()
         {

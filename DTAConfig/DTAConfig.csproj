@@ -277,6 +277,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CustomSettings\CustomSettingFileCheckBox.cs" />
+    <Compile Include="CustomSettings\CustomSettingFileDropDown.cs" />
     <Compile Include="CustomSettings\FileSourceDestinationInfo.cs" />
     <Compile Include="CustomSettings\ICustomSetting.cs" />
     <Compile Include="OptionPanels\AudioOptionsPanel.cs" />
