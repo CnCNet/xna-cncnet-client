@@ -157,6 +157,11 @@ namespace DTAClient.DXGUI.Generic
                 cncnetManager.Connect();
             }
 
+            if (!UserINISettings.Instance.PrivacyPolicyAccepted)
+            {
+                WindowManager.AddAndInitializeControl(new PrivacyNotification(WindowManager));
+            }
+
             WindowManager.RemoveControl(this);
 
             Cursor.Visible = visibleSpriteCursor;

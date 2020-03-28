@@ -86,7 +86,7 @@ namespace DTAClient.DXGUI.Multiplayer
 
                     FillRectangle(new Rectangle(1, height,
                         drawnWidth, lbItem.TextLines.Count * LineHeight),
-                        GetColorWithAlpha(FocusColor));
+                        FocusColor);
                 }
 
                 DrawTexture(user.IsAdmin ? adminGameIcon : lbItem.Texture, new Rectangle(x, height,

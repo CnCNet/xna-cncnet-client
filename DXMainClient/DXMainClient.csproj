@@ -314,6 +314,7 @@
     <Compile Include="Domain\MainClientConstants.cs" />
     <Compile Include="Domain\UserAgentHandler.cs" />
     <Compile Include="DXGUI\Generic\CampaignSelector.cs" />
+    <Compile Include="DXGUI\Generic\PrivacyNotification.cs" />
     <Compile Include="DXGUI\Generic\TopBar.cs" />
     <Compile Include="DXGUI\ISwitchable.cs" />
     <Compile Include="DXGUI\Multiplayer\ChatListBox.cs" />
