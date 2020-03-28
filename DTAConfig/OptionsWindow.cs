@@ -143,12 +143,14 @@ namespace DTAConfig
                 return;
             }
 
+            WindowManager.SoundPlayer.SetVolume(Convert.ToSingle(UserINISettings.Instance.ClientVolume));
             Disable();
         }
 
         private void ExitDownloadCancelConfirmation_YesClicked(XNAMessageBox messageBox)
         {
             componentsPanel.CancelAllDownloads();
+            WindowManager.SoundPlayer.SetVolume(Convert.ToSingle(UserINISettings.Instance.ClientVolume));
             Disable();
         }
 
@@ -233,6 +235,14 @@ namespace DTAConfig
             componentsPanel.Open();
 
             Enable();
+        }
+
+        public void ToggleMainMenuOnlyOptions(bool enable)
+        {
+            foreach (var panel in optionsPanels)
+            {
+                panel.ToggleMainMenuOnlyOptions(enable);
+            }
         }
 
         public void SwitchToCustomComponentsPanel()

@@ -17,13 +17,13 @@ namespace ClientGUI
 
         public string URL { get; set; }
 
-        public ToolTip ToolTip;
+        private ToolTip toolTip;
 
         public override void Initialize()
         {
             base.Initialize();
 
-            ToolTip = new ToolTip(WindowManager, this);
+            toolTip = new ToolTip(WindowManager, this);
         }
 
         public override void ParseAttributeFromINI(IniFile iniFile, string key, string value)
@@ -35,7 +35,7 @@ namespace ClientGUI
             }
             else if (key == "ToolTip")
             {
-                ToolTip.Text = value;
+                toolTip.Text = value.Replace("@", Environment.NewLine);
                 return;
             }
 
