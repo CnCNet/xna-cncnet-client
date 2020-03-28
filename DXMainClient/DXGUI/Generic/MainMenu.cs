@@ -83,7 +83,7 @@ namespace DTAClient.DXGUI.Generic
 
         private readonly bool isMediaPlayerAvailable;
 
-        private float musicVolume = 1.0f;
+        private float musicVolume;
 
         private CancellationTokenSource cncnetPlayerCountCancellationSource;
 
@@ -438,6 +438,7 @@ namespace DTAClient.DXGUI.Generic
         {
             themeSong = AssetLoader.LoadSong(ClientConfiguration.Instance.MainMenuMusicName);
 
+            musicVolume = (float)UserINISettings.Instance.ClientVolume;
             PlayMusic();
 
             if (!ClientConfiguration.Instance.ModMode)
