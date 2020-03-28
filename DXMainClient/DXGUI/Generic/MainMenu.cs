@@ -95,8 +95,6 @@ namespace DTAClient.DXGUI.Generic
 
         private readonly bool isMediaPlayerAvailable;
 
-        private float musicVolume;
-
         private CancellationTokenSource cncnetPlayerCountCancellationSource;
 
         // Main Menu Buttons
@@ -365,8 +363,6 @@ namespace DTAClient.DXGUI.Generic
         /// </summary>
         private void SettingsSaved(object sender, EventArgs e)
         {
-            musicVolume = (float)UserINISettings.Instance.ClientVolume;
-
             if (isMediaPlayerAvailable)
             {
                 if (MediaPlayer.State == MediaState.Playing)
@@ -487,7 +483,6 @@ namespace DTAClient.DXGUI.Generic
         {
             themeSong = AssetLoader.LoadSong(ClientConfiguration.Instance.MainMenuMusicName);
 
-            musicVolume = (float)UserINISettings.Instance.ClientVolume;
             PlayMusic();
 
             if (!ClientConfiguration.Instance.ModMode)
@@ -816,7 +811,7 @@ namespace DTAClient.DXGUI.Generic
             {
                 isMusicFading = false;
                 MediaPlayer.IsRepeating = true;
-                MediaPlayer.Volume = musicVolume;
+                MediaPlayer.Volume = (float)UserINISettings.Instance.ClientVolume;
                 try
                 {
                     MediaPlayer.Play(themeSong);
@@ -861,9 +856,11 @@ namespace DTAClient.DXGUI.Generic
                 return;
             }
 
-            if (MediaPlayer.Volume > MEDIA_PLAYER_VOLUME_EXIT_FADE_STEP * musicVolume)
+            float step = MEDIA_PLAYER_VOLUME_EXIT_FADE_STEP * (float)UserINISettings.Instance.ClientVolume;
+
+            if (MediaPlayer.Volume > step)
             {
-                MediaPlayer.Volume -= MEDIA_PLAYER_VOLUME_EXIT_FADE_STEP * musicVolume;
+                MediaPlayer.Volume -= step;
                 AddCallback(new Action(FadeMusicExit), null);
             }
             else
