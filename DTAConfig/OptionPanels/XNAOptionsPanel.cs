@@ -83,5 +83,14 @@ namespace DTAConfig.OptionPanels
             foreach (var checkBox in fileSettingCheckBoxes)
                 checkBox.Load();
         }
+
+        /// <summary>
+        /// Enables or disables any options that should only be available when
+        /// options window was opened in main menu.
+        /// </summary>
+        /// <param name="enable">If true enables options, disables if false.</param>
+        public virtual void ToggleMainMenuOnlyOptions(bool enable)
+        {
+        }
     }
 }

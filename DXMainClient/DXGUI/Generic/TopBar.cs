@@ -97,12 +97,19 @@ namespace DTAClient.DXGUI.Generic
 
         private void OptionsWindow_EnabledChanged(object sender, EventArgs e)
         {
-            if (!lanMode) SetSwitchButtonsClickable(!optionsWindow.Enabled);
+            if (!lanMode) 
+                SetSwitchButtonsClickable(!optionsWindow.Enabled);
+
+            SetOptionsButtonClickable(!optionsWindow.Enabled);
+
+            if (optionsWindow != null)
+                optionsWindow.ToggleMainMenuOnlyOptions(primarySwitches.Count == 1 && !lanMode);
         }
 
         public void Clean()
         {
-            if (cncnetPlayerCountCancellationSource != null) cncnetPlayerCountCancellationSource.Cancel();
+            if (cncnetPlayerCountCancellationSource != null) 
+                cncnetPlayerCountCancellationSource.Cancel();
         }
 
         public override void Initialize()
@@ -220,10 +227,16 @@ namespace DTAClient.DXGUI.Generic
         }
 
         private void ConnectionManager_ConnectionLost(object sender, Online.EventArguments.ConnectionLostEventArgs e)
-            => ConnectionEvent("OFFLINE");
+        {
+            if (!lanMode)
+                ConnectionEvent("OFFLINE");
+        }
 
         private void ConnectionManager_ConnectAttemptFailed(object sender, EventArgs e)
-            => ConnectionEvent("OFFLINE");
+        {
+            if (!lanMode)
+                ConnectionEvent("OFFLINE");
+        }
 
         private void ConnectionManager_AttemptedServerChanged(object sender, Online.EventArguments.AttemptedServerEventArgs e)
         {
@@ -237,7 +250,8 @@ namespace DTAClient.DXGUI.Generic
         private void ConnectionManager_Disconnected(object sender, EventArgs e)
         {
             btnLogout.AllowClick = false;
-            ConnectionEvent("OFFLINE");
+            if (!lanMode)
+                ConnectionEvent("OFFLINE");
         }
 
         private void ConnectionEvent(string text)
@@ -350,6 +364,12 @@ namespace DTAClient.DXGUI.Generic
                 btnCnCNetLobby.AllowClick = allowClick;
             if (btnPrivateMessages != null)
                 btnPrivateMessages.AllowClick = allowClick;
+        }
+
+        public void SetOptionsButtonClickable(bool allowClick)
+        {
+            if (btnOptions != null)
+                btnOptions.AllowClick = allowClick;
         }
 
         public void SetLanMode(bool lanMode)

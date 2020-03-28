@@ -70,7 +70,19 @@ namespace DTAClient.DXGUI.Generic
 
         private XNAMessageBox firstRunMessageBox;
 
-        private bool updateInProgress = false;
+        private bool _updateInProgress;
+        private bool UpdateInProgress
+        {
+            get { return _updateInProgress; }
+            set 
+            {
+                _updateInProgress = value;
+                topBar.SetSwitchButtonsClickable(!_updateInProgress);
+                topBar.SetOptionsButtonClickable(!_updateInProgress);
+                SetButtonHotkeys(!_updateInProgress);
+            }
+        }
+
         private bool customComponentDialogQueued = false;
 
         private DateTime lastUpdateCheckTime;
@@ -87,6 +99,18 @@ namespace DTAClient.DXGUI.Generic
 
         private CancellationTokenSource cncnetPlayerCountCancellationSource;
 
+        // Main Menu Buttons
+        private XNAClientButton btnNewCampaign;
+        private XNAClientButton btnLoadGame;
+        private XNAClientButton btnSkirmish;
+        private XNAClientButton btnCnCNet;
+        private XNAClientButton btnLan;
+        private XNAClientButton btnOptions;
+        private XNAClientButton btnMapEditor;
+        private XNAClientButton btnStatistics;
+        private XNAClientButton btnCredits;
+        private XNAClientButton btnExtras;
+
         /// <summary>
         /// Initializes the main menu's controls.
         /// </summary>
@@ -100,85 +124,75 @@ namespace DTAClient.DXGUI.Generic
 
             WindowManager.CenterControlOnScreen(this);
 
-            var btnNewCampaign = new XNAClientButton(WindowManager);
+            btnNewCampaign = new XNAClientButton(WindowManager);
             btnNewCampaign.Name = "btnNewCampaign";
             btnNewCampaign.IdleTexture = AssetLoader.LoadTexture("MainMenu\\campaign.png");
             btnNewCampaign.HoverTexture = AssetLoader.LoadTexture("MainMenu\\campaign_c.png");
             btnNewCampaign.HoverSoundEffect = new EnhancedSoundEffect("MainMenu\\button.wav");
             btnNewCampaign.LeftClick += BtnNewCampaign_LeftClick;
-            btnNewCampaign.HotKey = Keys.C;
 
-            var btnLoadGame = new XNAClientButton(WindowManager);
+            btnLoadGame = new XNAClientButton(WindowManager);
             btnLoadGame.Name = "btnLoadGame";
             btnLoadGame.IdleTexture = AssetLoader.LoadTexture("MainMenu\\loadmission.png");
             btnLoadGame.HoverTexture = AssetLoader.LoadTexture("MainMenu\\loadmission_c.png");
             btnLoadGame.HoverSoundEffect = new EnhancedSoundEffect("MainMenu\\button.wav");
             btnLoadGame.LeftClick += BtnLoadGame_LeftClick;
-            btnLoadGame.HotKey = Keys.L;
 
-            var btnSkirmish = new XNAClientButton(WindowManager);
+            btnSkirmish = new XNAClientButton(WindowManager);
             btnSkirmish.Name = "btnSkirmish";
             btnSkirmish.IdleTexture = AssetLoader.LoadTexture("MainMenu\\skirmish.png");
             btnSkirmish.HoverTexture = AssetLoader.LoadTexture("MainMenu\\skirmish_c.png");
             btnSkirmish.HoverSoundEffect = new EnhancedSoundEffect("MainMenu\\button.wav");
             btnSkirmish.LeftClick += BtnSkirmish_LeftClick;
-            btnSkirmish.HotKey = Keys.S;
 
-            var btnCnCNet = new XNAClientButton(WindowManager);
+            btnCnCNet = new XNAClientButton(WindowManager);
             btnCnCNet.Name = "btnCnCNet";
             btnCnCNet.IdleTexture = AssetLoader.LoadTexture("MainMenu\\cncnet.png");
             btnCnCNet.HoverTexture = AssetLoader.LoadTexture("MainMenu\\cncnet_c.png");
             btnCnCNet.HoverSoundEffect = new EnhancedSoundEffect("MainMenu\\button.wav");
             btnCnCNet.LeftClick += BtnCnCNet_LeftClick;
-            btnCnCNet.HotKey = Keys.M;
 
-            var btnLan = new XNAClientButton(WindowManager);
+            btnLan = new XNAClientButton(WindowManager);
             btnLan.Name = "btnLan";
             btnLan.IdleTexture = AssetLoader.LoadTexture("MainMenu\\lan.png");
             btnLan.HoverTexture = AssetLoader.LoadTexture("MainMenu\\lan_c.png");
             btnLan.HoverSoundEffect = new EnhancedSoundEffect("MainMenu\\button.wav");
             btnLan.LeftClick += BtnLan_LeftClick;
-            btnLan.HotKey = Keys.N;
 
-            var btnOptions = new XNAClientButton(WindowManager);
+            btnOptions = new XNAClientButton(WindowManager);
             btnOptions.Name = "btnOptions";
             btnOptions.IdleTexture = AssetLoader.LoadTexture("MainMenu\\options.png");
             btnOptions.HoverTexture = AssetLoader.LoadTexture("MainMenu\\options_c.png");
             btnOptions.HoverSoundEffect = new EnhancedSoundEffect("MainMenu\\button.wav");
             btnOptions.LeftClick += BtnOptions_LeftClick;
-            btnOptions.HotKey = Keys.O;
 
-            var btnMapEditor = new XNAClientButton(WindowManager);
+            btnMapEditor = new XNAClientButton(WindowManager);
             btnMapEditor.Name = "btnMapEditor";
             btnMapEditor.IdleTexture = AssetLoader.LoadTexture("MainMenu\\mapeditor.png");
             btnMapEditor.HoverTexture = AssetLoader.LoadTexture("MainMenu\\mapeditor_c.png");
             btnMapEditor.HoverSoundEffect = new EnhancedSoundEffect("MainMenu\\button.wav");
             btnMapEditor.LeftClick += BtnMapEditor_LeftClick;
-            btnMapEditor.HotKey = Keys.E;
 
-            var btnStatistics = new XNAClientButton(WindowManager);
+            btnStatistics = new XNAClientButton(WindowManager);
             btnStatistics.Name = "btnStatistics";
             btnStatistics.IdleTexture = AssetLoader.LoadTexture("MainMenu\\statistics.png");
             btnStatistics.HoverTexture = AssetLoader.LoadTexture("MainMenu\\statistics_c.png");
             btnStatistics.HoverSoundEffect = new EnhancedSoundEffect("MainMenu\\button.wav");
             btnStatistics.LeftClick += BtnStatistics_LeftClick;
-            btnStatistics.HotKey = Keys.T;
 
-            var btnCredits = new XNAClientButton(WindowManager);
+            btnCredits = new XNAClientButton(WindowManager);
             btnCredits.Name = "btnCredits";
             btnCredits.IdleTexture = AssetLoader.LoadTexture("MainMenu\\credits.png");
             btnCredits.HoverTexture = AssetLoader.LoadTexture("MainMenu\\credits_c.png");
             btnCredits.HoverSoundEffect = new EnhancedSoundEffect("MainMenu\\button.wav");
             btnCredits.LeftClick += BtnCredits_LeftClick;
-            btnCredits.HotKey = Keys.R;
 
-            var btnExtras = new XNAClientButton(WindowManager);
+            btnExtras = new XNAClientButton(WindowManager);
             btnExtras.Name = "btnExtras";
             btnExtras.IdleTexture = AssetLoader.LoadTexture("MainMenu\\extras.png");
             btnExtras.HoverTexture = AssetLoader.LoadTexture("MainMenu\\extras_c.png");
             btnExtras.HoverSoundEffect = new EnhancedSoundEffect("MainMenu\\button.wav");
             btnExtras.LeftClick += BtnExtras_LeftClick;
-            btnExtras.HotKey = Keys.E;
 
             var btnExit = new XNAClientButton(WindowManager);
             btnExit.Name = "btnExit";
@@ -231,6 +245,8 @@ namespace DTAClient.DXGUI.Generic
                 CUpdater.OnCustomComponentsOutdated += CUpdater_OnCustomComponentsOutdated;
             }
 
+            base.Initialize(); // Read control attributes from INI
+
             innerPanel = new MainMenuDarkeningPanel(WindowManager, discordHandler);
             innerPanel.ClientRectangle = new Rectangle(0, 0,
                 Width,
@@ -239,8 +255,6 @@ namespace DTAClient.DXGUI.Generic
             innerPanel.UpdateOrder = int.MaxValue;
             AddChild(innerPanel);
             innerPanel.Hide();
-
-            base.Initialize(); // Read control attributes from INI
 
             lblVersion.Text = CUpdater.GameVersion;
 
@@ -274,6 +288,41 @@ namespace DTAClient.DXGUI.Generic
             UserINISettings.Instance.SettingsSaved += SettingsSaved;
 
             CUpdater.Restart += CUpdater_Restart;
+
+            SetButtonHotkeys(true);
+        }
+
+        private void SetButtonHotkeys(bool enableHotkeys)
+        {
+            if (!Initialized)
+                return;
+
+            if (enableHotkeys)
+            {
+                btnNewCampaign.HotKey = Keys.C;
+                btnLoadGame.HotKey = Keys.L;
+                btnSkirmish.HotKey = Keys.S;
+                btnCnCNet.HotKey = Keys.M;
+                btnLan.HotKey = Keys.N;
+                btnOptions.HotKey = Keys.O;
+                btnMapEditor.HotKey = Keys.E;
+                btnStatistics.HotKey = Keys.T;
+                btnCredits.HotKey = Keys.R;
+                btnExtras.HotKey = Keys.X;
+            }
+            else
+            {
+                btnNewCampaign.HotKey = Keys.None;
+                btnLoadGame.HotKey = Keys.None;
+                btnSkirmish.HotKey = Keys.None;
+                btnCnCNet.HotKey = Keys.None;
+                btnLan.HotKey = Keys.None;
+                btnOptions.HotKey = Keys.None;
+                btnMapEditor.HotKey = Keys.None;
+                btnStatistics.HotKey = Keys.None;
+                btnCredits.HotKey = Keys.None;
+                btnExtras.HotKey = Keys.None;
+            }
         }
 
         private void OptionsWindow_EnabledChanged(object sender, EventArgs e)
@@ -422,7 +471,7 @@ namespace DTAClient.DXGUI.Generic
 
             if (cncnetPlayerCountCancellationSource != null) cncnetPlayerCountCancellationSource.Cancel();
             topBar.Clean();
-            if (updateInProgress)
+            if (UpdateInProgress)
                 CUpdater.TerminateUpdate = true;
 
             if (connectionManager.IsConnected)
@@ -464,7 +513,7 @@ namespace DTAClient.DXGUI.Generic
             lblUpdateStatus.Text = "Updating failed! Click to retry.";
             lblUpdateStatus.DrawUnderline = true;
             lblUpdateStatus.Enabled = true;
-            updateInProgress = false;
+            UpdateInProgress = false;
 
             innerPanel.Show(null); // Darkening
             XNAMessageBox msgBox = new XNAMessageBox(WindowManager, "Update failed",
@@ -489,7 +538,7 @@ namespace DTAClient.DXGUI.Generic
             lblUpdateStatus.Text = "The update was cancelled. Click to retry.";
             lblUpdateStatus.DrawUnderline = true;
             lblUpdateStatus.Enabled = true;
-            updateInProgress = false;
+            UpdateInProgress = false;
         }
 
         private void UpdateWindow_UpdateCompleted(object sender, EventArgs e)
@@ -497,7 +546,7 @@ namespace DTAClient.DXGUI.Generic
             innerPanel.Hide();
             lblUpdateStatus.Text = MainClientConstants.GAME_NAME_SHORT + " was succesfully updated to v." + CUpdater.GameVersion;
             lblVersion.Text = CUpdater.GameVersion;
-            updateInProgress = false;
+            UpdateInProgress = false;
             lblUpdateStatus.Enabled = true;
             lblUpdateStatus.DrawUnderline = false;
         }
@@ -522,7 +571,7 @@ namespace DTAClient.DXGUI.Generic
 
         private void ForceUpdate()
         {
-            updateInProgress = true;
+            UpdateInProgress = true;
             innerPanel.Hide();
             innerPanel.UpdateWindow.ForceUpdate();
             innerPanel.Show(innerPanel.UpdateWindow);
@@ -555,7 +604,7 @@ namespace DTAClient.DXGUI.Generic
         /// </summary>
         private void HandleFileIdentifierUpdate()
         {
-            if (updateInProgress)
+            if (UpdateInProgress)
             {
                 return;
             }
@@ -590,7 +639,7 @@ namespace DTAClient.DXGUI.Generic
             if (innerPanel.UpdateQueryWindow.Visible)
                 return;
 
-            if (updateInProgress)
+            if (UpdateInProgress)
                 return;
 
             if ((firstRunMessageBox != null && firstRunMessageBox.Visible) || optionsWindow.Enabled)
@@ -637,7 +686,7 @@ namespace DTAClient.DXGUI.Generic
             innerPanel.UpdateWindow.SetData(CUpdater.ServerGameVersion);
             innerPanel.Show(innerPanel.UpdateWindow);
             lblUpdateStatus.Text = "Updating...";
-            updateInProgress = true;
+            UpdateInProgress = true;
             CUpdater.StartAsyncUpdate();
         }
 

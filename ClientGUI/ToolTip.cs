@@ -27,12 +27,17 @@ namespace ClientGUI
             masterControl.MouseMove += MasterControl_MouseMove;
             masterControl.EnabledChanged += MasterControl_EnabledChanged;
             InputEnabled = false;
-            DrawOrder = int.MinValue;
-            // TODO: adding tool tips as root-level controls might be CPU-intensive.
-            // instead we could find out the root-level parent and only have the tooltip
-            // in the window manager's list when the root-level parent is visible.
-            WindowManager.AddControl(this);
+            DrawOrder = int.MaxValue;
+            GetParentWindow(masterControl.Parent).AddChild(this);
             Visible = false;
+        }
+
+        private XNAWindow GetParentWindow(XNAControl parent)
+        {
+            if (parent is XNAWindow)
+                return parent as XNAWindow;
+            else
+                return GetParentWindow(parent.Parent);
         }
 
         private void MasterControl_EnabledChanged(object sender, EventArgs e)
