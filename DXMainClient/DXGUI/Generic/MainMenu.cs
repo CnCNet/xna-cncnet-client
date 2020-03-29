@@ -266,7 +266,9 @@ namespace DTAClient.DXGUI.Generic
             this.ClientRectangle = new Rectangle((WindowManager.RenderResolutionX - Width) / 2,
                 (WindowManager.RenderResolutionY - Height) / 2,
                 Width, Height);
-            innerPanel.ClientRectangle = new Rectangle(0, 0, WindowManager.RenderResolutionX, WindowManager.RenderResolutionY);
+            innerPanel.ClientRectangle = new Rectangle(0, 0, 
+                Math.Max(WindowManager.RenderResolutionX, Width),
+                Math.Max(WindowManager.RenderResolutionY, Height));
 
             CnCNetPlayerCountTask.CnCNetGameCountUpdated += CnCNetInfoController_CnCNetGameCountUpdated;
             cncnetPlayerCountCancellationSource = new CancellationTokenSource();
