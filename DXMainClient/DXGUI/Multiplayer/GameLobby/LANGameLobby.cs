@@ -424,7 +424,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (discordHandler == null)
                 return;
 
-            PlayerInfo player = Players.Find(p => p.Name == ProgramConstants.PLAYERNAME);
+            PlayerInfo player = FindLocalPlayer();
             if (player == null || Map == null || GameMode == null)
                 return;
             string side = "";
@@ -847,7 +847,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (parts.Length != playerCount * 8)
                 return;
 
-            int oldSide = Players.Find(p => p.Name == ProgramConstants.PLAYERNAME).SideId;
+            PlayerInfo localPlayer = FindLocalPlayer();
+            int oldSideId = localPlayer == null ? -1 : localPlayer.SideId;
 
             Players.Clear();
             AIPlayers.Clear();
@@ -911,7 +912,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             }
 
             CopyPlayerDataToUI();
-            if (oldSide != Players.Find(p => p.Name == ProgramConstants.PLAYERNAME).SideId)
+            localPlayer = FindLocalPlayer();
+            if (localPlayer != null && oldSideId != localPlayer.SideId)
                 UpdateDiscordPresence();
         }
 

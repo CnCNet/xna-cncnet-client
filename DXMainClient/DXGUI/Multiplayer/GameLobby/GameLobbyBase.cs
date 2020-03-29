@@ -133,6 +133,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         protected List<PlayerInfo> Players = new List<PlayerInfo>();
         protected List<PlayerInfo> AIPlayers = new List<PlayerInfo>();
 
+        protected virtual PlayerInfo FindLocalPlayer() => Players.Find(p => p.Name == ProgramConstants.PLAYERNAME);
+
         protected bool PlayerUpdatingInProgress { get; set; }
 
         protected Texture2D[] RankTextures;
