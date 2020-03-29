@@ -269,8 +269,10 @@ namespace DTAConfig
         public void InstallCustomComponent(int id) => componentsPanel.InstallComponent(id);
 
         public void PostInit()
+        {
 #if !YR
-            => displayOptionsPanel.PostInit();
+            displayOptionsPanel.PostInit();
 #endif
+        }
     }
 }
