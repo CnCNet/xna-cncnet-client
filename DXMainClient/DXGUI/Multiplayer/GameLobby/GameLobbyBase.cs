@@ -985,8 +985,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     returnValue[disallowedSideIndex] = true;
             }
 
-            foreach (int disallowedSideIndex in GameMode.DisallowedPlayerSides)
-                returnValue[disallowedSideIndex] = true;
+            if (GameMode != null)
+            {
+                foreach (int disallowedSideIndex in GameMode.DisallowedPlayerSides)
+                    returnValue[disallowedSideIndex] = true;
+            }
 
             foreach (var checkBox in CheckBoxes)
                 checkBox.ApplyDisallowedSideIndex(returnValue);
