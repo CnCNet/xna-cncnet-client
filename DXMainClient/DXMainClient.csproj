@@ -40,7 +40,7 @@
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>bin\Windows\Debug\</OutputPath>
-    <DefineConstants>TRACE;DEBUG;DTA</DefineConstants>
+    <DefineConstants>TRACE;DEBUG;YR</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
@@ -466,6 +466,9 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="clienticon.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="DXGUI\Generic\ActivityHandler.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.

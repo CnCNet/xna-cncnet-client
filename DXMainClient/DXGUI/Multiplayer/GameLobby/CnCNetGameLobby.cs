@@ -89,6 +89,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             AddChatBoxCommand(new ChatBoxCommand("CHANGETUNNEL",
                 "Change the used CnCNet tunnel server (game host only)",
                 true, (s) => ShowTunnelSelectionWindow("Select tunnel server:")));
+
+            
         }
 
         public event EventHandler GameLeft;
@@ -124,6 +126,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         private List<string> hostUploadedMaps = new List<string>();
 
         private MapSharingConfirmationPanel mapSharingConfirmationPanel;
+
+        private IActivityHandler activityHandler;
 
         /// <summary>
         /// The SHA1 of the latest selected map.
@@ -197,6 +201,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 RandomSeed = new Random().Next();
                 RefreshMapSelectionUI();
                 btnChangeTunnel.Enable();
+                InitializeActivityHandler();
             }
             else
             {
@@ -211,6 +216,45 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             connectionManager.Disconnected += ConnectionManager_Disconnected;
 
             Refresh(isHost);
+        }
+
+        private void InitializeActivityHandler()
+        {
+            if (activityHandler == null)
+            {
+                activityHandler = new ActivityHandler();
+                activityHandler.PromptInactiveMessage += onPromptInactiveMessage;
+                activityHandler.PromptRemoval += onPromptRemovalFromGame;
+                activityHandler.Start();
+            }
+        }
+
+        private void DisposeOfActivityHandler()
+        {
+            activityHandler.PromptInactiveMessage -= onPromptInactiveMessage;
+            activityHandler.PromptRemoval -= onPromptRemovalFromGame;
+            activityHandler.Dispose();
+            activityHandler = null;
+        }
+
+        public override void OnMouseMove()
+        {
+            base.OnMouseMove();
+
+            if (activityHandler != null)
+            {
+                activityHandler.Reset();
+            }
+        }
+
+        private void onPromptRemovalFromGame(object sender, EventArgs e)
+        {
+            LeaveGame();
+        }
+
+        private void onPromptInactiveMessage(object sender, EventArgs e)
+        {
+            XNAMessageBox.Show(WindowManager, "Are you here?", ClientConfiguration.Instance.InactiveHostMessagePrompt);
         }
 
         public void OnJoined()
@@ -332,6 +376,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         protected override void BtnLeaveGame_LeftClick(object sender, EventArgs e)
         {
+            LeaveGame();
+        }
+
+        private void LeaveGame()
+        {
             if (IsHost)
             {
                 closed = true;
@@ -340,6 +389,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             Clear();
             channel.Leave();
+            DisposeOfActivityHandler();
         }
 
         protected override void UpdateDiscordPresence(bool resetTimer = false)
@@ -1112,6 +1162,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             base.ChangeMap(gameMode, map);
         }
 
+
         /// <summary>
         /// Signals other players that the local player has returned from the game,
         /// and unlocks the game as well as generates a new random seed as the game host.
@@ -1130,6 +1181,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 ClearReadyStatuses();
                 CopyPlayerDataToUI();
                 BroadcastPlayerOptions();
+                InitializeActivityHandler();
 
                 if (Players.Count < playerLimit)
                 {
@@ -1197,6 +1249,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 HandleCheatDetectedMessage(ProgramConstants.PLAYERNAME);
             }
 
+            DisposeOfActivityHandler();
             base.StartGame();
         }
 
