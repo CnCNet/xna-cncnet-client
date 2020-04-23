@@ -81,7 +81,7 @@ namespace DTAClient.DXGUI.Generic
                 "N/A" : CUpdater.GameVersion;
 
             DiscordHandler discordHandler = null;
-            if (!string.IsNullOrEmpty(ClientConfiguration.Instance.DiscordAppId))
+            if (!string.IsNullOrEmpty(ClientConfiguration.Instance.DiscordAppId) && UserINISettings.Instance.DiscordIntegration)
                 discordHandler = new DiscordHandler(WindowManager);
 
             var gameCollection = new GameCollection();
