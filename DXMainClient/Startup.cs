@@ -195,15 +195,18 @@ namespace DTAClient
 
                 RegistryKey key;
                 key = Registry.CurrentUser.CreateSubKey("SOFTWARE\\" + ClientConfiguration.Instance.InstallationPathRegKey);
-                string str;
-                Object o = key.GetValue("Ident");
-                if (o == null)
-                {
-                    str = rn.Next(Int32.MaxValue - 1).ToString();
-                    key.SetValue("Ident", str);
+                string str = rn.Next(Int32.MaxValue - 1).ToString();
+
+                try {
+                    Object o = key.GetValue("Ident");
+                    if (o == null)
+                    {
+                        key.SetValue("Ident", str);
+                    }
+                    else
+                        str = o.ToString();
                 }
-                else
-                    str = o.ToString();
+                catch { }
 
                 key.Close();
                 Connection.SetId(str);
