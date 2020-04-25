@@ -1,9 +1,12 @@
 ﻿using ClientCore;
+using Rampastring.Tools;
 using DTAClient.Online.EventArguments;
 using Microsoft.Xna.Framework;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace DTAClient.Online
 {
@@ -26,13 +29,13 @@ namespace DTAClient.Online
         public event EventHandler InviteOnlyErrorOnJoin;
 
         /// <summary>
-        /// Raised when the server informs the client that it's is unable to 
+        /// Raised when the server informs the client that it's is unable to
         /// join the channel because it's full.
         /// </summary>
         public event EventHandler ChannelFull;
 
         /// <summary>
-        /// Raised when the server informs the client that it's is unable to 
+        /// Raised when the server informs the client that it's is unable to
         /// join the channel because the client has attempted to join too many
         /// channels too quickly.
         /// </summary>
@@ -250,7 +253,7 @@ namespace DTAClient.Online
             char CTCPChar1 = (char)58;
             char CTCPChar2 = (char)01;
 
-            connection.QueueMessage(qmType, priority, 
+            connection.QueueMessage(qmType, priority,
                 "NOTICE " + ChannelName + " " + CTCPChar1 + CTCPChar2 + message + CTCPChar2);
         }
 
@@ -275,8 +278,16 @@ namespace DTAClient.Online
                 string.Format("MODE {0} +b *!*@{1}", ChannelName, host));
         }
 
-        public void Join()
+        public async void Join()
         {
+            // Wait a random amount of time before joining to prevent join/part floods
+            if (Persistent)
+            {
+                int rn = connection.Rng.Next(1, 10000);
+                Logger.Log("Waiting " + rn + "ms to join " + ChannelName);
+                await Task.Delay(rn);
+            }
+
             if (string.IsNullOrEmpty(Password))
                 connection.QueueMessage(QueuedMessageType.SYSTEM_MESSAGE, 9, "JOIN " + ChannelName);
             else
@@ -288,8 +299,16 @@ namespace DTAClient.Online
             connection.QueueMessage(QueuedMessageType.SYSTEM_MESSAGE, 9, "WHO " + ChannelName);
         }
 
-        public void Leave()
+        public async void Leave()
         {
+            // Wait a random amount of time before joining to prevent join/part floods
+            if (Persistent)
+            {
+                int rn = connection.Rng.Next(1, 10000);
+                Logger.Log("Waiting " + rn + "ms to leave " + ChannelName);
+                await Task.Delay(rn);
+            }
+
             connection.QueueMessage(QueuedMessageType.SYSTEM_MESSAGE, 9, "PART " + ChannelName);
             ClearUsers();
         }
