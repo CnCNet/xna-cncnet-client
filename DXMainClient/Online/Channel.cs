@@ -26,13 +26,13 @@ namespace DTAClient.Online
         public event EventHandler InviteOnlyErrorOnJoin;
 
         /// <summary>
-        /// Raised when the server informs the client that it's is unable to 
+        /// Raised when the server informs the client that it's is unable to
         /// join the channel because it's full.
         /// </summary>
         public event EventHandler ChannelFull;
 
         /// <summary>
-        /// Raised when the server informs the client that it's is unable to 
+        /// Raised when the server informs the client that it's is unable to
         /// join the channel because the client has attempted to join too many
         /// channels too quickly.
         /// </summary>
@@ -250,7 +250,7 @@ namespace DTAClient.Online
             char CTCPChar1 = (char)58;
             char CTCPChar2 = (char)01;
 
-            connection.QueueMessage(qmType, priority, 
+            connection.QueueMessage(qmType, priority,
                 "NOTICE " + ChannelName + " " + CTCPChar1 + CTCPChar2 + message + CTCPChar2);
         }
 
@@ -277,10 +277,23 @@ namespace DTAClient.Online
 
         public void Join()
         {
-            if (string.IsNullOrEmpty(Password))
-                connection.QueueMessage(QueuedMessageType.SYSTEM_MESSAGE, 9, "JOIN " + ChannelName);
+            // Wait a random amount of time before joining to prevent join/part floods
+            if (Persistent)
+            {
+                int rn = connection.Rng.Next(1, 10000);
+
+                if (string.IsNullOrEmpty(Password))
+                    connection.QueueMessage(QueuedMessageType.SYSTEM_MESSAGE, 9, rn, "JOIN " + ChannelName);
+                else
+                    connection.QueueMessage(QueuedMessageType.SYSTEM_MESSAGE, 9, rn, "JOIN " + ChannelName + " " + Password);
+            }
             else
-                connection.QueueMessage(QueuedMessageType.SYSTEM_MESSAGE, 9, "JOIN " + ChannelName + " " + Password);
+            {
+                if (string.IsNullOrEmpty(Password))
+                    connection.QueueMessage(QueuedMessageType.SYSTEM_MESSAGE, 9, "JOIN " + ChannelName);
+                else
+                    connection.QueueMessage(QueuedMessageType.SYSTEM_MESSAGE, 9, "JOIN " + ChannelName + " " + Password);
+            }
         }
 
         public void RequestUserInfo()
@@ -290,7 +303,16 @@ namespace DTAClient.Online
 
         public void Leave()
         {
-            connection.QueueMessage(QueuedMessageType.SYSTEM_MESSAGE, 9, "PART " + ChannelName);
+            // Wait a random amount of time before joining to prevent join/part floods
+            if (Persistent)
+            {
+                int rn = connection.Rng.Next(1, 10000);
+                connection.QueueMessage(QueuedMessageType.SYSTEM_MESSAGE, 9, rn, "PART " + ChannelName);
+            }
+            else
+            {
+                connection.QueueMessage(QueuedMessageType.SYSTEM_MESSAGE, 9, "PART " + ChannelName);
+            }
             ClearUsers();
         }
 
