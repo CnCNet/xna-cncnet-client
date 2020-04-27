@@ -60,12 +60,6 @@ namespace DTAClient.Online
             get { return _attemptingConnection; }
         }
 
-        Random _rng = new Random();
-        public Random Rng
-        {
-            get { return _rng; }
-        }
-
         private List<QueuedMessage> MessageQueue = new List<QueuedMessage>();
         private TimeSpan MessageQueueDelay;
 
@@ -563,7 +557,7 @@ namespace DTAClient.Online
                         string modeUserName = prefix.Substring(0, prefix.IndexOf('!'));
                         string modeChannelName = parameters[0];
                         string modeString = parameters[1];
-                        List<string> modeParameters =
+                        List<string> modeParameters = 
                             parameters.Count > 2 ? parameters.GetRange(2, parameters.Count - 2) : new List<string>();
                         connectionManager.OnChannelModesChanged(modeUserName, modeChannelName, modeString, modeParameters);
                         break;
@@ -736,7 +730,7 @@ namespace DTAClient.Online
 
             string realname = ProgramConstants.GAME_VERSION + " " + defaultGame + " CnCNet";
 
-            SendMessage(string.Format("USER {0} 0 * :{1}", defaultGame + "." +
+            SendMessage(string.Format("USER {0} 0 * :{1}", defaultGame + "." + 
                 systemId, realname));
 
             SendMessage("NICK " + ProgramConstants.PLAYERNAME);
