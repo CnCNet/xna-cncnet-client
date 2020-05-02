@@ -687,10 +687,27 @@ namespace DTAClient.Online
 
                 lock (messageQueueLocker)
                 {
-                    if (MessageQueue.Count > 0)
+                    for (int i = 0; i < MessageQueue.Count; i++)
                     {
-                        message = MessageQueue[0].Command;
-                        MessageQueue.RemoveAt(0);
+                        QueuedMessage qm = MessageQueue[i];
+                        if (qm.Delay > 0)
+                        {
+                            if (qm.SendAt < DateTime.Now)
+                            {
+                                message = qm.Command;
+
+                                Logger.Log("Delayed message sent: " + qm.ID);
+
+                                MessageQueue.RemoveAt(i);
+                                break;
+                            }
+                        }
+                        else
+                        {
+                            message = qm.Command;
+                            MessageQueue.RemoveAt(i);
+                            break;
+                        }
                     }
                 }
 
@@ -753,6 +770,13 @@ namespace DTAClient.Online
             QueueMessage(qm);
         }
 
+        public void QueueMessage(QueuedMessageType type, int priority, int delay, string message)
+        {
+            QueuedMessage qm = new QueuedMessage(message, type, priority, delay);
+            QueueMessage(qm);
+            Logger.Log("Setting delay to " + delay + "ms for " + qm.ID);
+        }
+
         /// <summary>
         /// Send a message to the CnCNet server.
         /// </summary>
@@ -779,6 +803,7 @@ namespace DTAClient.Online
             }
         }
 
+        private int NextQueueID { get; set; } = 0;
         /// <summary>
         /// Adds a message to the send queue.
         /// </summary>
@@ -787,6 +812,8 @@ namespace DTAClient.Online
         {
             if (!_isConnected)
                 return;
+
+            qm.ID = NextQueueID++;
 
             lock (messageQueueLocker)
             {
@@ -828,6 +855,8 @@ namespace DTAClient.Online
         private void AddSpecialQueuedMessage(QueuedMessage qm)
         {
             int broadcastingMessageIndex = MessageQueue.FindIndex(m => m.MessageType == qm.MessageType);
+
+            qm.ID = NextQueueID++;
 
             if (broadcastingMessageIndex > -1)
             {

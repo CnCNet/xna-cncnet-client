@@ -1,12 +1,9 @@
 ﻿using ClientCore;
-using Rampastring.Tools;
 using DTAClient.Online.EventArguments;
 using Microsoft.Xna.Framework;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace DTAClient.Online
 {
@@ -278,20 +275,25 @@ namespace DTAClient.Online
                 string.Format("MODE {0} +b *!*@{1}", ChannelName, host));
         }
 
-        public async void Join()
+        public void Join()
         {
             // Wait a random amount of time before joining to prevent join/part floods
             if (Persistent)
             {
                 int rn = connection.Rng.Next(1, 10000);
-                Logger.Log("Waiting " + rn + "ms to join " + ChannelName);
-                await Task.Delay(rn);
-            }
 
-            if (string.IsNullOrEmpty(Password))
-                connection.QueueMessage(QueuedMessageType.SYSTEM_MESSAGE, 9, "JOIN " + ChannelName);
+                if (string.IsNullOrEmpty(Password))
+                    connection.QueueMessage(QueuedMessageType.SYSTEM_MESSAGE, 9, rn, "JOIN " + ChannelName);
+                else
+                    connection.QueueMessage(QueuedMessageType.SYSTEM_MESSAGE, 9, rn, "JOIN " + ChannelName + " " + Password);
+            }
             else
-                connection.QueueMessage(QueuedMessageType.SYSTEM_MESSAGE, 9, "JOIN " + ChannelName + " " + Password);
+            {
+                if (string.IsNullOrEmpty(Password))
+                    connection.QueueMessage(QueuedMessageType.SYSTEM_MESSAGE, 9, "JOIN " + ChannelName);
+                else
+                    connection.QueueMessage(QueuedMessageType.SYSTEM_MESSAGE, 9, "JOIN " + ChannelName + " " + Password);
+            }
         }
 
         public void RequestUserInfo()
@@ -299,17 +301,18 @@ namespace DTAClient.Online
             connection.QueueMessage(QueuedMessageType.SYSTEM_MESSAGE, 9, "WHO " + ChannelName);
         }
 
-        public async void Leave()
+        public void Leave()
         {
             // Wait a random amount of time before joining to prevent join/part floods
             if (Persistent)
             {
                 int rn = connection.Rng.Next(1, 10000);
-                Logger.Log("Waiting " + rn + "ms to leave " + ChannelName);
-                await Task.Delay(rn);
+                connection.QueueMessage(QueuedMessageType.SYSTEM_MESSAGE, 9, rn, "PART " + ChannelName);
             }
-
-            connection.QueueMessage(QueuedMessageType.SYSTEM_MESSAGE, 9, "PART " + ChannelName);
+            else
+            {
+                connection.QueueMessage(QueuedMessageType.SYSTEM_MESSAGE, 9, "PART " + ChannelName);
+            }
             ClearUsers();
         }
 
