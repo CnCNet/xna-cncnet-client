@@ -48,7 +48,7 @@ namespace DTAClient.Online
 
             if (persistent)
             {
-                notifyOnUserListChange = UserINISettings.Instance.NotifyOnUserListChange;
+                Instance_SettingsSaved(null, EventArgs.Empty);
                 UserINISettings.Instance.SettingsSaved += Instance_SettingsSaved;
             }
         }
@@ -95,7 +95,11 @@ namespace DTAClient.Online
 
         private void Instance_SettingsSaved(object sender, EventArgs e)
         {
+#if YR
+            notifyOnUserListChange = false;
+#else
             notifyOnUserListChange = UserINISettings.Instance.NotifyOnUserListChange;
+#endif
         }
 
         public void AddUser(ChannelUser user)
