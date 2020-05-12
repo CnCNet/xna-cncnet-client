@@ -1676,6 +1676,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (broadcastChannel == null)
                 return;
 
+            if (ProgramConstants.IsInGame && broadcastChannel.Users.Count > 500)
+                return;
+
             if (GameMode == null || Map == null)
                 return;
 
