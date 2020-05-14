@@ -41,7 +41,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         public CnCNetGameLobby(WindowManager windowManager, string iniName,
             TopBar topBar, List<GameMode> GameModes, CnCNetManager connectionManager,
-            TunnelHandler tunnelHandler, GameCollection gameCollection, CnCNetUserData cncnetUserData, MapLoader mapLoader, DiscordHandler discordHandler) : 
+            TunnelHandler tunnelHandler, GameCollection gameCollection, CnCNetUserData cncnetUserData, MapLoader mapLoader, DiscordHandler discordHandler) :
             base(windowManager, iniName, topBar, GameModes, mapLoader, discordHandler)
         {
             this.connectionManager = connectionManager;
@@ -176,7 +176,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private void GameBroadcastTimer_TimeElapsed(object sender, EventArgs e) => BroadcastGame();
 
-        public void SetUp(Channel channel, bool isHost, int playerLimit, 
+        public void SetUp(Channel channel, bool isHost, int playerLimit,
             CnCNetTunnel tunnel, string hostName, bool isCustomPassword)
         {
             this.channel = channel;
@@ -547,7 +547,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 if (playerPorts.Count < Players.Count)
                 {
                     ShowTunnelSelectionWindow("An error occured while contacting " +
-                        "the CnCNet tunnel server." + Environment.NewLine + 
+                        "the CnCNet tunnel server." + Environment.NewLine +
                         "Try picking a different tunnel server:");
                     AddNotice("An error occured while contacting the specified CnCNet " +
                         "tunnel server. Please try using a different tunnel server " +
@@ -599,7 +599,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             if (Map == null || GameMode == null)
             {
-                AddNotice("The game host needs to select a different map or " + 
+                AddNotice("The game host needs to select a different map or " +
                     "you will be unable to participate in the match.");
                 return;
             }
@@ -661,8 +661,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (team < 0 || team > 4)
                 return;
 
-            if (side != pInfo.SideId 
-                || start != pInfo.StartingLocation 
+            if (side != pInfo.SideId
+                || start != pInfo.StartingLocation
                 || team != pInfo.TeamId)
             {
                 ClearReadyStatuses();
@@ -770,7 +770,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
                     // If we can't find the player from the channel user list,
                     // ignore the player
-                    // They've either left the channel or got kicked before the 
+                    // They've either left the channel or got kicked before the
                     // player options message reached us
                     if (channel.Users.Find(cu => cu.IRCUser.Name == pName) == null)
                     {
@@ -856,7 +856,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             // Let's pack the booleans into bytes
             List<byte> byteList = Conversions.BoolArrayIntoBytes(optionValues).ToList();
-            
+
             while (byteList.Count % 4 != 0)
             {
                 byteList.Add(0);
@@ -1139,7 +1139,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         }
 
         /// <summary>
-        /// Handles the "START" (game start) command sent by the game host.  
+        /// Handles the "START" (game start) command sent by the game host.
         /// </summary>
         private void NonHostLaunchGame(string sender, string message)
         {
@@ -1355,7 +1355,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (sender != hostName)
                 return;
 
-            AddNotice("Player " + cheaterName + " has different files compared to the game host. Either " + 
+            AddNotice("Player " + cheaterName + " has different files compared to the game host. Either " +
                 cheaterName + " or the game host could be cheating.", Color.Red);
         }
 
@@ -1391,7 +1391,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         protected override void LockGame()
         {
             connectionManager.SendCustomMessage(new QueuedMessage(
-                string.Format("MODE {0} +i", channel.ChannelName), QueuedMessageType.INSTANT_MESSAGE, -1));
+                string.Format("MODE {0} +i +l 1", channel.ChannelName), QueuedMessageType.INSTANT_MESSAGE, -1));
 
             Locked = true;
             btnLockGame.Text = "Unlock Game";
@@ -1401,7 +1401,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         protected override void UnlockGame(bool announce)
         {
             connectionManager.SendCustomMessage(new QueuedMessage(
-                string.Format("MODE {0} -i", channel.ChannelName), QueuedMessageType.INSTANT_MESSAGE, -1));
+                string.Format("MODE {0} -i +l {1}", channel.ChannelName, playerLimit), QueuedMessageType.INSTANT_MESSAGE, -1));
 
             Locked = false;
             if (announce)
@@ -1476,7 +1476,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         #region CnCNet map sharing
 
-        private void MapSharer_MapDownloadFailed(object sender, SHA1EventArgs e) 
+        private void MapSharer_MapDownloadFailed(object sender, SHA1EventArgs e)
             => WindowManager.AddCallback(new Action<SHA1EventArgs>(MapSharer_HandleMapDownloadFailed), e);
 
         private void MapSharer_HandleMapDownloadFailed(SHA1EventArgs e)
@@ -1587,7 +1587,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             {
                 Logger.Log("HandleMapUploadRequest: Map is official, so skip request");
 
-                AddNotice(string.Format("{0} doesn't have the map '{1}' on their local installation. " + 
+                AddNotice(string.Format("{0} doesn't have the map '{1}' on their local installation. " +
                     "The map needs to be changed or {0} is unable to participate in the match.",
                     sender, map.Name));
 
