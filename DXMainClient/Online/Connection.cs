@@ -381,7 +381,7 @@ namespace DTAClient.Online
             ParseIrcMessage(message, out prefix, out command, out parameters);
             string paramString = String.Empty;
             foreach (string param in parameters) { paramString = paramString + param + ","; }
-            Logger.Log("RMP: " + prefix + " " + command + " " + paramString);
+            //Logger.Log("RMP: " + prefix + " " + command + " " + paramString);
 
             try
             {
