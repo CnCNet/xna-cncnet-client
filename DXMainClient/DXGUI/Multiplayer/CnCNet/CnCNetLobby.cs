@@ -955,7 +955,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             Channel cncnetChannel = connectionManager.FindChannel("#cncnet");
             cncnetChannel.Join();
-            cncnetChannel.RequestUserInfo();
+            //cncnetChannel.RequestUserInfo();
 
             string localGameChatChannelName = gameCollection.GetGameChatChannelNameFromIdentifier(localGameID);
             bool chatChannelMissing = false;
