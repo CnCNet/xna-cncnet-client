@@ -1242,7 +1242,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                         cncnetGame.InternalName == localGameID.ToLower() &&
                         !ProgramConstants.IsInGame && !game.Locked)
                     {
-                        SoundPlayer.Play(sndGameCreated);
+                        //SoundPlayer.Play(sndGameCreated);
                     }
 
                     lbGameList.AddGame(game);
