@@ -286,7 +286,7 @@ namespace DTAClient.Online
 
                 // A message has been succesfully received
                 string msg = encoding.GetString(message, 0, bytesRead);
-                Logger.Log("Message received: " + msg);
+                //Logger.Log("Message received: " + msg);
 
                 HandleMessage(msg);
                 timer.Change(30000, 30000);
