@@ -18,6 +18,10 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 {
     internal class PrivateMessagingWindow : XNAWindow, ISwitchable
     {
+        // these are kept up-to-date by the lobby
+        public string inviteGameName;
+        public string inviteGamePassword;
+
         private const int ALL_PLAYERS_VIEW_INDEX = 2;
         private const int FRIEND_LIST_VIEW_INDEX = 1;
 
@@ -291,6 +295,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             playerContextMenu.Enabled = false;
             playerContextMenu.Visible = false;
             playerContextMenu.AddItem("Add Friend", PlayerContextMenu_ToggleFriend);
+            playerContextMenu.AddItem("Invite", PlayerContextMenu_Invite, null, () => !string.IsNullOrEmpty(inviteGameName));
 
             notificationBox = new PrivateMessageNotificationBox(WindowManager);
             notificationBox.Enabled = false;
@@ -357,6 +362,25 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             // lazy solution, but friends are removed rarely so it shouldn't bother players too much
             if (tabControl.SelectedTab == FRIEND_LIST_VIEW_INDEX)
                 TabControl_SelectedIndexChanged(this, EventArgs.Empty); 
+        }
+
+        private void PlayerContextMenu_Invite()
+        {
+            var lbItem = lbUserList.SelectedItem;
+
+            if (lbItem == null)
+            {
+                return;
+            }
+
+            if (inviteGameName == string.Empty || ProgramConstants.IsInGame)
+            {
+                return;
+            }
+
+            connectionManager.SendCustomMessage(new QueuedMessage("PRIVMSG " + lbItem.Text + " :" +
+                "|INVITE|" + inviteGameName + "|" + inviteGamePassword + "|",
+                QueuedMessageType.CHAT_MESSAGE, 0));
         }
 
         private void SharedUILogic_GameProcessExited()

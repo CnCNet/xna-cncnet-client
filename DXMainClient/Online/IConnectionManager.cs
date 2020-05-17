@@ -43,6 +43,10 @@ namespace DTAClient.Online
 
         void OnPrivateMessageReceived(string sender, string message);
 
+        void OnGameInvitationReceived(string sender, string roomName, string password);
+
+        void OnGameInvitationFailedReceived(string sender);
+
         void OnChannelModesChanged(string userName, string channelName, string modeString, List<string> modeParameters);
 
         void OnUserKicked(string channelName, string userName);

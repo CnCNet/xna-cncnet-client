@@ -369,6 +369,8 @@
     <Compile Include="Online\CnCNetUserData.cs" />
     <Compile Include="Online\EventArguments\ChannelCTCPEventArgs.cs" />
     <Compile Include="Online\EventArguments\PrivateMessageEventArgs.cs" />
+    <Compile Include="Online\EventArguments\GameInvitationEventArgs.cs" />
+    <Compile Include="Online\EventArguments\GameInvitationFailedEventArgs.cs" />
     <Compile Include="Online\FileHashCalculator.cs" />
     <Compile Include="Online\IRCColor.cs" />
     <Compile Include="DXGUI\Generic\LoadingScreen.cs" />

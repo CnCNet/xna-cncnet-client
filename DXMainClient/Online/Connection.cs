@@ -6,6 +6,7 @@ using System.IO;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
+using System.Text.RegularExpressions;
 
 namespace DTAClient.Online
 {
@@ -552,7 +553,28 @@ namespace DTAClient.Online
                             if (recipient.StartsWith("#"))
                                 connectionManager.OnChatMessageReceived(recipient, pmsgUserName, pmsgIdent, privmsg);
                             else if (recipient == ProgramConstants.PLAYERNAME)
-                                connectionManager.OnPrivateMessageReceived(pmsgUserName, privmsg);
+                            {
+                                // check if this is actually an invitation message
+                                var inviteRegex = new Regex("^\\|INVITE\\|(?<roomName>[^\\|]+)\\|(?<password>[^\\|]*)\\|$");
+
+                                var matches = inviteRegex.Matches(privmsg);
+
+                                if (matches.Count > 0)
+                                {
+                                    var roomName = matches[0].Groups["roomName"].Value;
+                                    var password = matches[0].Groups["password"].Value;
+
+                                    connectionManager.OnGameInvitationReceived(pmsgUserName, roomName, password);
+                                }
+                                else if (privmsg == "|INVITATION_FAILED|")
+                                {
+                                    connectionManager.OnGameInvitationFailedReceived(pmsgUserName);
+                                }
+                                else
+                                {
+                                    connectionManager.OnPrivateMessageReceived(pmsgUserName, privmsg);
+                                }
+                            }
                             //else if (pmsgUserName == ProgramConstants.PLAYERNAME)
                             //{
                             //    DoPrivateMessageSent(privmsg, recipient);

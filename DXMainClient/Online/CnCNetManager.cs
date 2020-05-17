@@ -31,6 +31,8 @@ namespace DTAClient.Online
         public event EventHandler<UserAwayEventArgs> AwayMessageReceived;
         public event EventHandler<WhoEventArgs> WhoReplyReceived;
         public event EventHandler<PrivateMessageEventArgs> PrivateMessageReceived;
+        public event EventHandler<GameInvitationEventArgs> GameInvitationReceived;
+        public event EventHandler<GameInvitationFailedEventArgs> GameInvitationFailedReceived;
         public event EventHandler<ChannelEventArgs> BannedFromChannel;
 
         public event EventHandler<AttemptedServerEventArgs> AttemptedServerChanged;
@@ -528,6 +530,32 @@ namespace DTAClient.Online
             PrivateMessageEventArgs e = new PrivateMessageEventArgs(sender, message);
 
             PrivateMessageReceived?.Invoke(this, e);
+        }
+
+        public void OnGameInvitationReceived(string sender, string roomName, string password)
+        {
+            wm.AddCallback(new Action<string, string, string>(DoGameInvitationReceived),
+                sender, roomName, password);
+        }
+
+        private void DoGameInvitationReceived(string sender, string roomName, string password)
+        {
+            GameInvitationEventArgs e = new GameInvitationEventArgs(sender, roomName, password);
+
+            GameInvitationReceived?.Invoke(this, e);
+        }
+
+        public void OnGameInvitationFailedReceived(string sender)
+        {
+            wm.AddCallback(new Action<string>(DoGameInvitationFailedReceived),
+                sender);
+        }
+
+        private void DoGameInvitationFailedReceived(string sender)
+        {
+            GameInvitationFailedEventArgs e = new GameInvitationFailedEventArgs(sender);
+
+            GameInvitationFailedReceived?.Invoke(this, e);
         }
 
         public void OnReconnectAttempt()
