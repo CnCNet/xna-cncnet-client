@@ -15,6 +15,7 @@ using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
 using System;
 using System.Diagnostics;
+using System.IO;
 using System.Threading;
 using Updater;
 
@@ -693,7 +694,30 @@ namespace DTAClient.DXGUI.Generic
 
         private void BtnNewCampaign_LeftClick(object sender, EventArgs e)
         {
-            innerPanel.Show(innerPanel.CampaignSelector);
+            if (ClientConfiguration.Instance.LocalGame == ProgramConstants.YR)
+            {
+                if (File.Exists(ProgramConstants.GamePath + ClientConfiguration.Instance.CampaignPath))
+                {
+                    LaunchCampaignExe();
+                }
+                else
+                {
+                    innerPanel.Show(null); // Darkening
+
+                    XNAMessageBox msgBox = new XNAMessageBox(WindowManager,
+                        "Failed to launch",
+                        "Could not find the campaign, please contact support.",
+                        XNAMessageBoxButtons.OK
+                    );
+
+                    msgBox.OKClickedAction = MsgBox_OKClicked;
+                    msgBox.Show();
+                }
+            }
+            else
+            {
+                innerPanel.Show(innerPanel.CampaignSelector);
+            }
         }
 
         private void BtnLoadGame_LeftClick(object sender, EventArgs e)
@@ -953,6 +977,18 @@ namespace DTAClient.DXGUI.Generic
         public string GetSwitchName()
         {
             return "Main Menu";
+        }
+
+        private void LaunchCampaignExe()
+        {
+            try
+            {
+                // Safety if user declines launching windows permission prompt
+                Process.Start(ProgramConstants.GamePath + ClientConfiguration.Instance.CampaignPath);
+            }
+            catch
+            {
+            }
         }
     }
 }

@@ -68,5 +68,7 @@ namespace ClientCore
         {
             return GamePath + BASE_RESOURCE_PATH;
         }
+
+        public static string YR = "YR";
     }
 }

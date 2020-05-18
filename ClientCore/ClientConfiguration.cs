@@ -187,6 +187,8 @@ namespace ClientCore
 
         public string[] GetThemeInfoFromIndex(int themeIndex) => clientDefinitionsIni.GetStringValue("Themes", themeIndex.ToString(), ",").Split(',');
 
+        public string CampaignPath => clientDefinitionsIni.GetStringValue(SETTINGS, "CampaignPath", "YURI.exe");
+
         /// <summary>
         /// Returns the directory path for a theme, or null if the specified
         /// theme name doesn't exist.
