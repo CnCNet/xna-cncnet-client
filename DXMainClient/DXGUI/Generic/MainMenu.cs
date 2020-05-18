@@ -416,9 +416,6 @@ namespace DTAClient.DXGUI.Generic
         /// </summary>
         private void CheckIfFirstRun()
         {
-            if (ClientConfiguration.Instance.LocalGame == "YR")
-                return;
-
             if (UserINISettings.Instance.IsFirstRun)
             {
                 UserINISettings.Instance.IsFirstRun.Value = false;
