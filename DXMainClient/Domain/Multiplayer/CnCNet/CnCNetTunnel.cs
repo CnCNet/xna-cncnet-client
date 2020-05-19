@@ -85,6 +85,29 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
         public double Distance { get; private set; }
         public int PingInMs { get; set; } = -1;
 
+        public int Rating 
+        { 
+            get 
+            { 
+                if (Clients + 24 >= MaxClients)
+                    return int.MaxValue;
+
+                if (Official || Recommended)
+                {
+                    if (PingInMs <= -1)
+                        return int.MaxValue - 200000 + Clients;
+
+                    int ping = PingInMs < 1 ? 1 : PingInMs;
+
+                    return (int)(Math.Ceiling((double)ping / 70) * 100000) + Clients;
+                }
+                else
+                {
+                    return int.MaxValue - 100000 + Clients;
+                }
+            }
+        }
+        
         /// <summary>
         /// Gets a list of player ports to use from a specific tunnel server.
         /// </summary>
