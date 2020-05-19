@@ -146,7 +146,10 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         private int GetTunnelRating(CnCNetTunnel tunnel)
         {
-            double usageRatio = (double)tunnel.Clients / tunnel.MaxClients;
+            int maxClients = tunnel.MaxClients > 200 ? 200 : tunnel.MaxClients;
+            int clients = tunnel.Clients > maxClients ? maxClients : tunnel.Clients;
+        
+            double usageRatio = (double)clients / maxClients;
 
             if (usageRatio == 0)
                 usageRatio = 0.1;
