@@ -13,6 +13,8 @@ using DTAClient.Domain.Multiplayer;
 using ClientGUI;
 using System.Text;
 using DTAClient.Domain;
+using DTAClient.Online;
+using System.Threading;
 
 namespace DTAClient.DXGUI.Multiplayer.GameLobby
 {

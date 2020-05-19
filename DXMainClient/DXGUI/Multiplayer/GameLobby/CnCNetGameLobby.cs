@@ -17,6 +17,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using DTAClient.Domain.Multiplayer.CnCNet;
+using DTAClient.Online;
+using System.Threading;
 
 namespace DTAClient.DXGUI.Multiplayer.GameLobby
 {
@@ -38,6 +40,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         private const string CHEAT_DETECTED_MESSAGE = "CD";
         private const string DICE_ROLL_MESSAGE = "DR";
         private const string CHANGE_TUNNEL_SERVER_MESSAGE = "CHTNL";
+
+        private CancellationTokenSource gameCheckCancellation;
 
         public CnCNetGameLobby(WindowManager windowManager, string iniName,
             TopBar topBar, List<GameMode> GameModes, CnCNetManager connectionManager,
@@ -317,6 +321,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             TopBar.RemovePrimarySwitchable(this);
             ResetDiscordPresence();
+
+            if (gameCheckCancellation != null)
+            {
+                gameCheckCancellation.Cancel();
+            }
         }
 
         private void ConnectionManager_Disconnected(object sender, EventArgs e) => HandleConnectionLoss();
@@ -1123,6 +1132,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             channel.SendCTCPMessage("RETURN", QueuedMessageType.SYSTEM_MESSAGE, 20);
             ReturnNotification(ProgramConstants.PLAYERNAME);
 
+            if (gameCheckCancellation != null)
+            {
+                gameCheckCancellation.Cancel();
+            }
+
             if (IsHost)
             {
                 RandomSeed = new Random().Next();
@@ -1186,6 +1200,15 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         protected override void StartGame()
         {
             AddNotice("Starting game..");
+
+            if (gameCheckCancellation != null)
+            {
+                gameCheckCancellation.Cancel();
+            }
+
+            gameCheckCancellation = new CancellationTokenSource();
+            CnCNetGameCheck gameCheck = new CnCNetGameCheck();
+            gameCheck.InitializeService(gameCheckCancellation);
 
             FileHashCalculator fhc = new FileHashCalculator();
             fhc.CalculateHashes(GameModes);
