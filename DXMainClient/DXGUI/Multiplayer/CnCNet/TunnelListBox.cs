@@ -148,6 +148,10 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         {
             int maxClients = tunnel.MaxClients > 200 ? 200 : tunnel.MaxClients;
             int clients = tunnel.Clients > maxClients ? maxClients : tunnel.Clients;
+            int ping = tunnel.PingInMs <= 100 ? 100 : tunnel.PingInMs;
+        
+            if (clients == maxClients)
+                return int.MaxValue;
         
             double usageRatio = (double)clients / maxClients;
 
@@ -156,7 +160,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             usageRatio *= 100.0;
 
-            return Convert.ToInt32(Math.Pow(tunnel.PingInMs, 2.0) * usageRatio);
+            return Convert.ToInt32(Math.Pow(ping, 2.0) * usageRatio);
         }
 
         private void TunnelListBox_SelectedIndexChanged(object sender, EventArgs e)
