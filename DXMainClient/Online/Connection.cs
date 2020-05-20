@@ -3,7 +3,10 @@ using Rampastring.Tools;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Net;
+using System.Net.Security;
 using System.Net.Sockets;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading;
 
@@ -69,7 +72,7 @@ namespace DTAClient.Online
         private List<QueuedMessage> MessageQueue = new List<QueuedMessage>();
         private TimeSpan MessageQueueDelay;
 
-        private NetworkStream serverStream;
+        private Stream serverStream;
         private TcpClient tcpClient;
 
         volatile int reconnectCount = 0;
@@ -196,7 +199,11 @@ namespace DTAClient.Online
                             sendQueueHandler.Start();
 
                             tcpClient = client;
-                            serverStream = tcpClient.GetStream();
+                            var netStream = tcpClient.GetStream();
+                            if (server.UseSsl)
+                                serverStream = GetWrappedSslStream(server.Host, netStream);
+                            else
+                                serverStream = netStream;
                             serverStream.ReadTimeout = 1000;
 
                             currentConnectedServerId = serverId;
@@ -216,6 +223,46 @@ namespace DTAClient.Online
             failedServerIds.Clear();
             _attemptingConnection = false;
             connectionManager.OnConnectAttemptFailed();
+        }
+
+        private SslStream GetWrappedSslStream(string hostname, NetworkStream networkStream)
+        {
+            var certValidation = ServicePointManager.ServerCertificateValidationCallback;
+            if (certValidation is null)
+                certValidation = delegate (object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors)
+                {
+                    if (sslPolicyErrors == SslPolicyErrors.None)
+                    {
+                        return true;
+                    }
+                    Logger.Log("Connected server failed certificate validation: " + sslPolicyErrors);
+                    return false;
+                };
+            
+            bool certValidationWithIrcAsSender(object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors)
+            {
+                return certValidation(this, certificate, chain, sslPolicyErrors);
+            }
+            X509Certificate selectionCallback(object sender, string targetHost, X509CertificateCollection localCertificates, X509Certificate remoteCertificate, string[] acceptableIssuers)
+            {
+                return localCertificates?.Count > 0 ? localCertificates[0] : null;
+            }
+
+            var sslStream = new SslStream(networkStream, 
+                leaveInnerStreamOpen: false,
+                certValidationWithIrcAsSender,
+                selectionCallback);
+            try
+            {
+                sslStream.AuthenticateAsClient(hostname);
+            }
+            catch (IOException)
+            {
+                Logger.Log("Failed to establish SSL communication channel to: " + hostname);
+                throw;
+            }
+
+            return sslStream;
         }
 
         private void HandleComm(object client)
