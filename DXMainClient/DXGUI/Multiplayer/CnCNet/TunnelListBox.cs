@@ -144,8 +144,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         {
             if (tunnel.Official || tunnel.Recommended)
             {
-                int maxClients = tunnel.MaxClients > 200 ? 200 : tunnel.MaxClients;
-                int clients = tunnel.Clients + 10 > maxClients ? maxClients : tunnel.Clients + 10;
+                int maxClients = tunnel.MaxClients > 400 ? 400 : tunnel.MaxClients;
+                int clients = tunnel.Clients + 20 > maxClients ? maxClients : tunnel.Clients + 20;
             
                 if (clients == maxClients)
                     return int.MaxValue;
