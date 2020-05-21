@@ -83,14 +83,11 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
                 AddItem(info, true);
 
-                if ((tunnel.Official || tunnel.Recommended) && tunnel.PingInMs > -1)
+                int rating = GetTunnelRating(tunnel);
+                if (rating < lowestTunnelRating)
                 {
-                    int rating = GetTunnelRating(tunnel);
-                    if (rating < lowestTunnelRating)
-                    {
-                        bestTunnelIndex = tunnelIndex;
-                        lowestTunnelRating = rating;
-                    }
+                    bestTunnelIndex = tunnelIndex;
+                    lowestTunnelRating = rating;
                 }
 
                 tunnelIndex++;
@@ -128,39 +125,52 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             if (tunnel.PingInMs == -1)
                 lbItem.Text = "Unknown";
             else
-            {
                 lbItem.Text = tunnel.PingInMs + " ms";
-                int rating = GetTunnelRating(tunnel);
+                
+            int rating = GetTunnelRating(tunnel);
 
-                if (isManuallySelectedTunnel)
-                    return;
+            if (isManuallySelectedTunnel)
+                return;
 
-                if ((tunnel.Recommended || tunnel.Official) && rating < lowestTunnelRating)
-                {
-                    bestTunnelIndex = tunnelIndex;
-                    lowestTunnelRating = rating;
-                    SelectedIndex = tunnelIndex;
-                }
+            if (rating < lowestTunnelRating)
+            {
+                bestTunnelIndex = tunnelIndex;
+                lowestTunnelRating = rating;
+                SelectedIndex = tunnelIndex;
             }
         }
 
         private int GetTunnelRating(CnCNetTunnel tunnel)
         {
-            int maxClients = tunnel.MaxClients > 200 ? 200 : tunnel.MaxClients;
-            int clients = tunnel.Clients > maxClients ? maxClients : tunnel.Clients;
-            int ping = tunnel.PingInMs <= 100 ? 100 : tunnel.PingInMs;
-        
-            if (clients == maxClients)
-                return int.MaxValue;
-        
-            double usageRatio = (double)clients / maxClients;
+            if (tunnel.Official || tunnel.Recommended)
+            {
+                if (tunnel.PingInMs <= -1)
+                {
+                    int rating = int.MaxValue - 200000;
+                    return rating + tunnel.Clients;
+                }
+            
+                int maxClients = tunnel.MaxClients > 200 ? 200 : tunnel.MaxClients;
+                int clients = tunnel.Clients > maxClients ? maxClients : tunnel.Clients;
+                int ping = tunnel.PingInMs <= 100 ? 100 : tunnel.PingInMs;
+            
+                if (clients == maxClients)
+                    return int.MaxValue;
+            
+                double usageRatio = (double)clients / maxClients;
 
-            if (usageRatio == 0)
-                usageRatio = 0.1;
+                if (usageRatio == 0)
+                    usageRatio = 0.1;
 
-            usageRatio *= 100.0;
+                usageRatio *= 100.0;
 
-            return Convert.ToInt32(Math.Pow(ping, 2.0) * usageRatio);
+                return Convert.ToInt32(Math.Pow(ping, 2.0) * usageRatio);
+            }
+            else
+            {
+                int rating = int.MaxValue - 100000;
+                return rating + tunnel.Clients;
+            }
         }
 
         private void TunnelListBox_SelectedIndexChanged(object sender, EventArgs e)
