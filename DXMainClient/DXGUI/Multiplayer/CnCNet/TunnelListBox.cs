@@ -140,22 +140,21 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             }
         }
 
-        private int GetTunnelRating(CnCNetTunnel tunnel)
+       private int GetTunnelRating(CnCNetTunnel tunnel)
         {
             if (tunnel.Official || tunnel.Recommended)
             {
+                int maxClients = tunnel.MaxClients > 200 ? 200 : tunnel.MaxClients;
+                int clients = tunnel.Clients > maxClients ? maxClients : tunnel.Clients;
+            
+                if (clients == maxClients)
+                    return int.MaxValue;
+            
                 if (tunnel.PingInMs <= -1)
                 {
                     int rating = int.MaxValue - 200000;
                     return rating + tunnel.Clients;
                 }
-            
-                int maxClients = tunnel.MaxClients > 200 ? 200 : tunnel.MaxClients;
-                int clients = tunnel.Clients > maxClients ? maxClients : tunnel.Clients;
-                int ping = tunnel.PingInMs <= 100 ? 100 : tunnel.PingInMs;
-            
-                if (clients == maxClients)
-                    return int.MaxValue;
             
                 double usageRatio = (double)clients / maxClients;
 
@@ -164,6 +163,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
                 usageRatio *= 100.0;
 
+                int ping = tunnel.PingInMs <= 100 ? 100 : tunnel.PingInMs;
+                
                 return Convert.ToInt32(Math.Pow(ping, 2.0) * usageRatio);
             }
             else
