@@ -140,12 +140,12 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             }
         }
 
-       private int GetTunnelRating(CnCNetTunnel tunnel)
+        private int GetTunnelRating(CnCNetTunnel tunnel)
         {
             if (tunnel.Official || tunnel.Recommended)
             {
                 int maxClients = tunnel.MaxClients > 200 ? 200 : tunnel.MaxClients;
-                int clients = tunnel.Clients > maxClients ? maxClients : tunnel.Clients;
+                int clients = tunnel.Clients + 10 > maxClients ? maxClients : tunnel.Clients + 10;
             
                 if (clients == maxClients)
                     return int.MaxValue;
