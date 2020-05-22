@@ -953,8 +953,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             ddCurrentChannel.AllowDropDown = true;
             tbChatInput.Enabled = true;
 
-            Channel cncnetChannel = connectionManager.FindChannel("#cncnet");
-            cncnetChannel.Join();
+            //Channel cncnetChannel = connectionManager.FindChannel("#cncnet");
+            //cncnetChannel.Join();
             //cncnetChannel.RequestUserInfo();
 
             string localGameChatChannelName = gameCollection.GetGameChatChannelNameFromIdentifier(localGameID);
