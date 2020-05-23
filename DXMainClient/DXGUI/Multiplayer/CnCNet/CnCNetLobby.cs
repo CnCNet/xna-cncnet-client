@@ -1070,7 +1070,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             lbPlayerList.Clear();
 
-            var current = ((SortedUserCollection<ChannelUser>)currentChatChannel.Users).GetFirst();
+            var current = currentChatChannel.Users.GetFirst();
             while (current != null)
             {
                 var user = current.Value;

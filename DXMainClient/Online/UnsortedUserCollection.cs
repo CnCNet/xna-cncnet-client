@@ -52,7 +52,7 @@ namespace DTAClient.Online
 
         public void Reinsert(string username)
         {
-            // We have no need to do this
+            throw new NotImplementedException();
         }
 
         public void Remove(string username)
