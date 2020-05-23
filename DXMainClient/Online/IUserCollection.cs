@@ -13,6 +13,6 @@ namespace DTAClient.Online
         T Find(string username);
         LinkedListNode<T> GetFirst();
         void Reinsert(string username);
-        void Remove(string username);
+        bool Remove(string username);
     }
 }

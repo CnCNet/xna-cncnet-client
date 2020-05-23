@@ -57,13 +57,16 @@ namespace DTAClient.Online
             }
         }
 
-        public void Remove(string username)
+        public bool Remove(string username)
         {
             if (dictionary.TryGetValue(username, out var node))
             {
                 linkedList.Remove(node);
                 dictionary.Remove(username);
+                return true;
             }
+
+            return false;
         }
 
         public T Find(string username)
