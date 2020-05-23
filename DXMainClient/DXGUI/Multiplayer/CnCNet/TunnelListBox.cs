@@ -84,7 +84,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
                 AddItem(info, true);
 
-                int rating = GetTunnelRating(tunnel);
+                int rating = tunnel.Rating;
                 if (rating < lowestTunnelRating)
                 {
                     bestTunnelIndex = tunnelIndex;
@@ -128,7 +128,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             else
                 lbItem.Text = tunnel.PingInMs + " ms";
                 
-            int rating = GetTunnelRating(tunnel);
+            int rating = tunnel.Rating;
 
             if (isManuallySelectedTunnel)
                 return;
@@ -138,26 +138,6 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 bestTunnelIndex = tunnelIndex;
                 lowestTunnelRating = rating;
                 SelectedIndex = tunnelIndex;
-            }
-        }
-
-        private int GetTunnelRating(CnCNetTunnel tunnel)
-        {
-            if (tunnel.Clients + 24 >= tunnel.MaxClients)
-                return int.MaxValue;
-        
-            if (tunnel.Official || tunnel.Recommended)
-            {
-                if (tunnel.PingInMs <= -1)
-                    return int.MaxValue - 200000 + tunnel.Clients;
-                
-                int ping = tunnel.PingInMs < 1 ? 1 : tunnel.PingInMs;
-            
-                return (int)(Math.Ceiling((double)ping / 70) * 100000) + tunnel.Clients;
-            }
-            else
-            {
-                return int.MaxValue - 100000 + tunnel.Clients;
             }
         }
 
