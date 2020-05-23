@@ -260,13 +260,13 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             UpdateDiscordPresence();
         }
 
-        private void Channel_UserLeft(object sender, UserNameIndexEventArgs e)
+        private void Channel_UserLeft(object sender, UserNameEventArgs e)
         {
             RemovePlayer(e.UserName);
             UpdateDiscordPresence();
         }
 
-        private void Channel_UserQuitIRC(object sender, UserNameIndexEventArgs e)
+        private void Channel_UserQuitIRC(object sender, UserNameEventArgs e)
         {
             RemovePlayer(e.UserName);
             UpdateDiscordPresence();
