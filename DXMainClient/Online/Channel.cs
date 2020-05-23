@@ -145,40 +145,43 @@ namespace DTAClient.Online
 
         public void OnUserKicked(string userName)
         {
-            if (userName == ProgramConstants.PLAYERNAME)
+            if (users.Remove(userName))
             {
-                users.Clear();
-            }
-            else
-            {
-                users.Remove(userName);
-            }
+                if (userName == ProgramConstants.PLAYERNAME)
+                {
+                    users.Clear();
+                }
 
-            AddMessage(new ChatMessage(userName + " has been kicked from " + UIName + "."));
+                AddMessage(new ChatMessage(userName + " has been kicked from " + UIName + "."));
 
-            UserKicked?.Invoke(this, new UserNameEventArgs(userName));
+                UserKicked?.Invoke(this, new UserNameEventArgs(userName));
+            }
         }
 
         public void OnUserLeft(string userName)
         {
-            if (notifyOnUserListChange)
+            if (users.Remove(userName))
             {
-                AddMessage(new ChatMessage(userName + " has left from " + UIName + "."));
-            }
+                if (notifyOnUserListChange)
+                {
+                    AddMessage(new ChatMessage(userName + " has left from " + UIName + "."));
+                }
 
-            users.Remove(userName);
-            UserLeft?.Invoke(this, new UserNameEventArgs(userName));
+                UserLeft?.Invoke(this, new UserNameEventArgs(userName));
+            }
         }
 
         public void OnUserQuitIRC(string userName)
         {
-            if (notifyOnUserListChange)
+            if (users.Remove(userName))
             {
-                AddMessage(new ChatMessage(userName + " has quit from CnCNet."));
-            }
+                if (notifyOnUserListChange && users.Find(userName) != null)
+                {
+                    AddMessage(new ChatMessage(userName + " has quit from CnCNet."));
+                }
 
-            users.Remove(userName);
-            UserQuitIRC?.Invoke(this, new UserNameEventArgs(userName));
+                UserQuitIRC?.Invoke(this, new UserNameEventArgs(userName));
+            }
         }
 
         public void UpdateGameIndexForUser(string userName)

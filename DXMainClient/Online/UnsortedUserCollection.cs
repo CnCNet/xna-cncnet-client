@@ -55,9 +55,9 @@ namespace DTAClient.Online
             throw new NotImplementedException();
         }
 
-        public void Remove(string username)
+        public bool Remove(string username)
         {
-            dictionary.Remove(username);
+            return dictionary.Remove(username);
         }
     }
 }
