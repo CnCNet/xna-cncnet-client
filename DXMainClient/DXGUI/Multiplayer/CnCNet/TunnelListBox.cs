@@ -144,28 +144,15 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         {
             if (tunnel.Official || tunnel.Recommended)
             {
-                int maxClients = tunnel.MaxClients > 600 ? 600 : tunnel.MaxClients;
-                int clients = tunnel.Clients + 24 >= maxClients ? maxClients : tunnel.Clients;
-            
-                if (clients == maxClients)
+                if (tunnel.Clients + 24 >= tunnel.MaxClients)
                     return int.MaxValue;
             
                 if (tunnel.PingInMs <= -1)
-                {
-                    int rating = int.MaxValue - 200000;
-                    return rating + tunnel.Clients;
-                }
-            
-                double usageRatio = (double)clients / maxClients;
-
-                if (usageRatio == 0)
-                    usageRatio = 0.1;
-
-                usageRatio *= 100.0;
-
-                int ping = tunnel.PingInMs <= 100 ? 100 : tunnel.PingInMs;
+                    return int.MaxValue - 200000 + tunnel.Clients;
                 
-                return Convert.ToInt32(Math.Pow(ping, 2.0) * usageRatio);
+                int ping = tunnel.PingInMs < 1 ? 1 : tunnel.PingInMs;
+            
+                return (int)(Math.Ceiling((double)ping / 70) * 100000) + tunnel.Clients;
             }
             else
             {
