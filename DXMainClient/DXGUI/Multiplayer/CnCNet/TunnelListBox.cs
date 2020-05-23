@@ -66,7 +66,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         private void TunnelHandler_TunnelsRefreshed(object sender, EventArgs e)
         {
             ClearItems();
-
+            
+            lowestTunnelRating = int.MaxValue;
             int tunnelIndex = 0;
 
             foreach (CnCNetTunnel tunnel in tunnelHandler.Tunnels)
