@@ -544,6 +544,12 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
                 List<int> playerPorts = tunnel.GetPlayerPortInfo(Players.Count);
 
+                if (playerPorts.Count < Players.Count && tunnelHandler.Tunnels.Any())
+                {
+                    tunnel = tunnelHandler.Tunnels.Aggregate((i1, i2) => i1.Rating < i2.Rating ? i1 : i2);
+                    playerPorts = tunnel.GetPlayerPortInfo(Players.Count);
+                }
+
                 if (playerPorts.Count < Players.Count)
                 {
                     ShowTunnelSelectionWindow("An error occured while contacting " +
