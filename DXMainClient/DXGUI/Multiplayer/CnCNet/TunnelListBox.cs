@@ -111,7 +111,19 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                         isManuallySelectedTunnel = false;
                     }
                     else
-                        SelectedIndex = manuallySelectedIndex;
+                    {
+                        CnCNetTunnel tunnel = tunnelHandler.Tunnels[manuallySelectedIndex];
+                    
+                        if (tunnel.Clients < tunnel.MaxClients)
+                        {
+                            SelectedIndex = manuallySelectedIndex;
+                        }
+                        else
+                        {
+                            SelectedIndex = bestTunnelIndex;
+                            isManuallySelectedTunnel = false;
+                        }
+                    }
                 }
             }
 
