@@ -396,6 +396,9 @@
     <Compile Include="Online\IConnectionManager.cs" />
     <Compile Include="Online\ChatMessage.cs" />
     <Compile Include="Online\IRCUser.cs" />
+    <Compile Include="Online\IUserCollection.cs" />
+    <Compile Include="Online\UnsortedUserCollection.cs" />
+    <Compile Include="Online\SortedUserCollection.cs" />
     <Compile Include="Online\PrivateMessageUser.cs" />
     <Compile Include="Online\QueuedMessage.cs" />
     <Compile Include="Online\QueuedMessageType.cs" />

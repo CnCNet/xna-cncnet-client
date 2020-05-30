@@ -361,7 +361,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 channel.UIName, IsHost, isCustomPassword, Locked, resetTimer);
         }
 
-        private void Channel_UserQuitIRC(object sender, UserNameIndexEventArgs e)
+        private void Channel_UserQuitIRC(object sender, UserNameEventArgs e)
         {
             RemovePlayer(e.UserName);
 
@@ -375,7 +375,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 UpdateDiscordPresence();
         }
 
-        private void Channel_UserLeft(object sender, UserNameIndexEventArgs e)
+        private void Channel_UserLeft(object sender, UserNameEventArgs e)
         {
             RemovePlayer(e.UserName);
 
@@ -389,7 +389,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 UpdateDiscordPresence();
         }
 
-        private void Channel_UserKicked(object sender, UserNameIndexEventArgs e)
+        private void Channel_UserKicked(object sender, UserNameEventArgs e)
         {
             if (e.UserName == ProgramConstants.PLAYERNAME)
             {
@@ -416,7 +416,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             if (!IsHost)
             {
-                if (channel.Users.FindIndex(u => u.IRCUser.Name == hostName) < 0)
+                if (channel.Users.Find(hostName) == null)
                 {
                     connectionManager.MainChannel.AddMessage(new ChatMessage(
                         ERROR_MESSAGE_COLOR, "The game host has abandoned the game."));
@@ -772,7 +772,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     // ignore the player
                     // They've either left the channel or got kicked before the 
                     // player options message reached us
-                    if (channel.Users.Find(cu => cu.IRCUser.Name == pName) == null)
+                    if (channel.Users.Find(pName) == null)
                     {
                         i += HUMAN_PLAYER_OPTIONS_LENGTH;
                         continue;
