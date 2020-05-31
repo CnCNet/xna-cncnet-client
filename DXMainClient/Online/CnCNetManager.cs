@@ -684,7 +684,7 @@ namespace DTAClient.Online
         /// <param name="channelName">The name of the channel.</param>
         public void RemoveChannelFromUser(string userName, string channelName)
         {
-            var userIndex = UserList.FindIndex(user => user.Name == userName);
+            var userIndex = UserList.FindIndex(user => user.Name.ToLower() == userName.ToLower());
             if (userIndex > -1)
             {
                 var ircUser = UserList[userIndex];
