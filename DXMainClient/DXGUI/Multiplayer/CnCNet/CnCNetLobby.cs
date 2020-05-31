@@ -83,6 +83,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         private Texture2D adminGameIcon;
 
         private EnhancedSoundEffect sndGameCreated;
+        private EnhancedSoundEffect sndGameInviteReceived;
 
         private IRCColor[] chatColors;
 
@@ -287,15 +288,9 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             PostUIInit();
         }
 
-        private void OnCnCNetGameCountUpdated(object sender, PlayerCountEventArgs e)
-        {
-            UpdateOnlineCount(e.PlayerCount);
-        }
+        private void OnCnCNetGameCountUpdated(object sender, PlayerCountEventArgs e) => UpdateOnlineCount(e.PlayerCount);
 
-        private void UpdateOnlineCount(int playerCount)
-        {
-            lblOnlineCount.Text = playerCount.ToString();
-        }
+        private void UpdateOnlineCount(int playerCount) => lblOnlineCount.Text = playerCount.ToString();
 
         private void InitializeGameList()
         {
@@ -361,6 +356,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         private void PostUIInit()
         {
             sndGameCreated = new EnhancedSoundEffect("gamecreated.wav");
+            sndGameInviteReceived = new EnhancedSoundEffect("pm.wav");
 
             cAdminNameColor = AssetLoader.GetColorFromString(ClientConfiguration.Instance.AdminNameColor);
             unknownGameIcon = AssetLoader.TextureFromImage(ClientCore.Properties.Resources.unknownicon);
@@ -589,8 +585,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             SetLogOutButtonText();
 
             // keep the friends window up to date so it can disable the Invite option
-            pmWindow.inviteGameName = string.Empty;
-            pmWindow.inviteGamePassword = string.Empty;
+            pmWindow.inviteChannelName = string.Empty;
+            pmWindow.inviteChannelPassword = string.Empty;
         }
 
         private void GameLobby_GameLeft(object sender, EventArgs e)
@@ -600,8 +596,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             SetLogOutButtonText();
 
             // keep the friends window up to date so it can disable the Invite option
-            pmWindow.inviteGameName = string.Empty;
-            pmWindow.inviteGamePassword = string.Empty;
+            pmWindow.inviteChannelName = string.Empty;
+            pmWindow.inviteChannelPassword = string.Empty;
         }
 
         private void SetLogOutButtonText()
@@ -621,20 +617,11 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             btnLogout.Text = "Log Out";
         }
 
-        private void BtnJoinGame_LeftClick(object sender, EventArgs e)
-        {
-            LbGameList_DoubleLeftClick(this, EventArgs.Empty);
-        }
+        private void BtnJoinGame_LeftClick(object sender, EventArgs e) => LbGameList_DoubleLeftClick(this, EventArgs.Empty);
 
-        private void LbGameList_DoubleLeftClick(object sender, EventArgs e)
-        {
-            JoinGameByIndex(lbGameList.SelectedIndex, string.Empty);
-        }
+        private void LbGameList_DoubleLeftClick(object sender, EventArgs e) => JoinGameByIndex(lbGameList.SelectedIndex, string.Empty);
 
-        private void PasswordRequestWindow_PasswordEntered(object sender, PasswordEventArgs e)
-        {
-            JoinGame(e.HostedGame, e.Password);
-        }
+        private void PasswordRequestWindow_PasswordEntered(object sender, PasswordEventArgs e) => JoinGame(e.HostedGame, e.Password);
 
         private bool CanJoinGameByIndex(int gameIndex)
         {
@@ -884,11 +871,11 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             gameCreationPanel.Hide();
 
             // update the friends window so it can enable the Invite option
-            pmWindow.inviteGameName = e.GameRoomName;
+            pmWindow.inviteChannelName = channelName;
 
-            if (isCustomPassword)
+            if (!string.IsNullOrEmpty(e.Password))
             {
-                pmWindow.inviteGamePassword = e.Password;
+                pmWindow.inviteChannelPassword = e.Password;
             }
         }
 
@@ -909,6 +896,14 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 "Creating a game named " + e.GameRoomName + "..."));
 
             gameCreationPanel.Hide();
+
+            // update the friends window so it can enable the Invite option
+            pmWindow.inviteChannelName = channelName;
+
+            if (!string.IsNullOrEmpty(e.Password))
+            {
+                pmWindow.inviteChannelPassword = e.Password;
+            }
         }
 
         private void GameChannel_InvalidPasswordEntered_LoadedGame(object sender, EventArgs e)
@@ -950,10 +945,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             }
         }
 
-        private void Gcw_Cancelled(object sender, EventArgs e)
-        {
-            gameCreationPanel.Hide();
-        }
+        private void Gcw_Cancelled(object sender, EventArgs e) => gameCreationPanel.Hide();
 
         private void TbChatInput_EnterPressed(object sender, EventArgs e)
         {
@@ -1088,17 +1080,17 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             // arguments are semicolon-delimited
             var arguments = argumentsString.Split(';');
 
-            // we expect to be given a game name and optionally a password
+            // we expect to be given a channel name and optionally a password
             if (arguments.Length < 1 || arguments.Length > 2)
                 return;
 
-            string roomName = arguments[0];
+            string channelName = arguments[0];
             string password = (arguments.Length == 2) ? arguments[1] : string.Empty;
 
             if (!CanReceiveInvitationMessagesFrom(sender))
                 return;
 
-            var gameIndex = lbGameList.HostedGames.FindIndex(hg => hg.RoomName == roomName);
+            var gameIndex = lbGameList.HostedGames.FindIndex(hg => ((HostedCnCNetGame)hg).ChannelName == channelName);
 
             if (!CanJoinGameByIndex(gameIndex))
             {
@@ -1111,14 +1103,22 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 return;
             }
 
-            var inviteMessageBox = XNAMessageBox.ShowYesNoDialog(WindowManager, "Invitation received",
-                sender + " wants you to join their game (" + roomName + ").  Accept?");
+            var gameInviteChoiceBox = new ChoiceNotificationBox(WindowManager);
 
-            inviteMessageBox.YesClickedAction = delegate (XNAMessageBox messageBox)
+            WindowManager.AddAndInitializeControl(gameInviteChoiceBox);
+
+            // show the invitation at top left for 60 seconds
+            gameInviteChoiceBox.Show(
+                sender + " wants you to join their game.",
+                "Accept", "Ignore", 60);
+
+            gameInviteChoiceBox.AffirmativeClickedAction = delegate (ChoiceNotificationBox choiceBox)
             {
                 // JoinGameByIndex does bounds checking so we're safe to pass -1 if the game doesn't exist
-                JoinGameByIndex(lbGameList.HostedGames.FindIndex(hg => hg.RoomName == roomName), password);
+                JoinGameByIndex(lbGameList.HostedGames.FindIndex(hg => ((HostedCnCNetGame)hg).ChannelName == channelName), password);
             };
+
+            sndGameInviteReceived.Play();
         }
 
         private void HandleGameInvitationFailedNotification(string sender)
@@ -1240,10 +1240,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             }
         }
 
-        private void CurrentChatChannel_MessageAdded(object sender, IRCMessageEventArgs e)
-        {
-            AddMessageToChat(e.Message);
-        }
+        private void CurrentChatChannel_MessageAdded(object sender, IRCMessageEventArgs e) => AddMessageToChat(e.Message);
 
         /// <summary>
         /// Removes a game from the list when the host quits CnCNet or
@@ -1379,15 +1376,9 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             }
         }
 
-        private void UpdateMessageBox_YesClicked(XNAMessageBox messageBox)
-        {
-            UpdateCheck?.Invoke(this, EventArgs.Empty);
-        }
+        private void UpdateMessageBox_YesClicked(XNAMessageBox messageBox) => UpdateCheck?.Invoke(this, EventArgs.Empty);
 
-        private void UpdateMessageBox_NoClicked(XNAMessageBox messageBox)
-        {
-            updateDenied = true;
-        }
+        private void UpdateMessageBox_NoClicked(XNAMessageBox messageBox) => updateDenied = true;
 
         private void BtnLogout_LeftClick(object sender, EventArgs e)
         {
@@ -1406,10 +1397,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             topBar.SwitchToPrimary();
         }
 
-        protected override void OnVisibleChanged(object sender, EventArgs args)
-        {
-            base.OnVisibleChanged(sender, args);
-        }
+        protected override void OnVisibleChanged(object sender, EventArgs args) => base.OnVisibleChanged(sender, args);
 
         public void SwitchOn()
         {
@@ -1431,10 +1419,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             Enabled = false;
         }
 
-        public string GetSwitchName()
-        {
-            return "CnCNet Lobby";
-        }
+        public string GetSwitchName() => "CnCNet Lobby";
 
         private bool CanReceiveInvitationMessagesFrom(string username)
         {

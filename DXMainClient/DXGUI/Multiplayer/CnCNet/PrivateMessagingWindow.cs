@@ -20,8 +20,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
     {
         // these are used by the "invite to game" feature in the
         // context menu and are kept up-to-date by the lobby
-        public string inviteGameName;
-        public string inviteGamePassword;
+        public string inviteChannelName;
+        public string inviteChannelPassword;
 
         private const int ALL_PLAYERS_VIEW_INDEX = 2;
         private const int FRIEND_LIST_VIEW_INDEX = 1;
@@ -296,7 +296,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             playerContextMenu.Enabled = false;
             playerContextMenu.Visible = false;
             playerContextMenu.AddItem("Add Friend", PlayerContextMenu_ToggleFriend);
-            playerContextMenu.AddItem("Invite", PlayerContextMenu_Invite, null, () => !string.IsNullOrEmpty(inviteGameName));
+            playerContextMenu.AddItem("Invite", PlayerContextMenu_Invite, null, () => !string.IsNullOrEmpty(inviteChannelName));
 
             notificationBox = new PrivateMessageNotificationBox(WindowManager);
             notificationBox.Enabled = false;
@@ -374,16 +374,16 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 return;
             }
 
-            if (string.IsNullOrEmpty(inviteGameName) || ProgramConstants.IsInGame)
+            if (string.IsNullOrEmpty(inviteChannelName) || ProgramConstants.IsInGame)
             {
                 return;
             }
 
-            string messageBody = ProgramConstants.GAME_INVITE_CTCP_COMMAND + " " + inviteGameName;
+            string messageBody = ProgramConstants.GAME_INVITE_CTCP_COMMAND + " " + inviteChannelName;
 
-            if (!string.IsNullOrEmpty(inviteGamePassword))
+            if (!string.IsNullOrEmpty(inviteChannelPassword))
             {
-                messageBody += ";" + inviteGamePassword;
+                messageBody += ";" + inviteChannelPassword;
             }
 
             connectionManager.SendCustomMessage(new QueuedMessage("PRIVMSG " + lbItem.Text + " :\u0001" +
