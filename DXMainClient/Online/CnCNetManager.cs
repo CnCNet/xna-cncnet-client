@@ -133,7 +133,7 @@ namespace DTAClient.Online
 
         public void AddChannel(Channel channel)
         {
-            if (channels.Find(c => c.ChannelName == channel.ChannelName) != null)
+            if (FindChannel(channel.ChannelName) != null)
                 throw new Exception("The channel already exists!");
 
             channels.Add(channel);
@@ -784,7 +784,7 @@ namespace DTAClient.Online
 
             foreach (var channel in channels)
             {
-                if (channel.ChannelName == channelName)
+                if (channel.ChannelName.ToLower() == channelName)
                     return channel;
             }
 
