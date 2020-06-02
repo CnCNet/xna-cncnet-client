@@ -1109,7 +1109,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             // show the invitation at top left for 60 seconds
             gameInviteChoiceBox.Show(
-                sender + " wants you to join their game.",
+                "GAME INVITE",
+                "From: " + sender,
                 "Accept", "Ignore", 60);
 
             gameInviteChoiceBox.AffirmativeClickedAction = delegate (ChoiceNotificationBox choiceBox)

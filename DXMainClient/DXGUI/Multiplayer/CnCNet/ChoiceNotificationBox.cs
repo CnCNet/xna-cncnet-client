@@ -25,6 +25,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         public Action<ChoiceNotificationBox> AffirmativeClickedAction { get; set; }
         public Action<ChoiceNotificationBox> NegativeClickedAction { get; set; }
 
+        XNALabel lblHeader;
         XNALabel lblChoiceText;
         XNAButton affirmativeButton;
         XNAButton negativeButton;
@@ -35,7 +36,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         bool isDown = false;
 
-        const int boxHeight = 57;
+        const int boxHeight = 79;
 
         double locationY = -boxHeight;
 
@@ -43,20 +44,27 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         {
             Name = "ChoiceNotificationBox";
             BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 196), 1, 1);
-            ClientRectangle = new Rectangle(0, -boxHeight, 400, boxHeight);
+            ClientRectangle = new Rectangle(0, -boxHeight, 300, boxHeight);
             PanelBackgroundDrawMode = PanelBackgroundImageDrawMode.STRETCHED;
+
+            lblHeader = new XNALabel(WindowManager);
+            lblHeader.Name = "lblHeader";
+            lblHeader.FontIndex = 1;
+            lblHeader.AnchorPoint = new Vector2(ClientRectangle.Width / 2, 12);
+            lblHeader.TextAnchor = LabelTextAnchorInfo.CENTER;
+            lblHeader.Text = "MAKE A CHOICE";
+            AddChild(lblHeader);
 
             lblChoiceText = new XNALabel(WindowManager);
             lblChoiceText.Name = "lblChoiceText";
             lblChoiceText.FontIndex = 1;
-            lblChoiceText.AnchorPoint = new Vector2(ClientRectangle.Width / 2, 13);
-            lblChoiceText.TextAnchor = LabelTextAnchorInfo.CENTER;
+            lblChoiceText.ClientRectangle = new Rectangle(12, lblHeader.Bottom + 6, 0, 0);
             lblChoiceText.Text = "What do you want to do?";
             AddChild(lblChoiceText);
 
             affirmativeButton = new XNAButton(WindowManager);
             affirmativeButton.FontIndex = 1;
-            affirmativeButton.ClientRectangle = new Rectangle(6, lblChoiceText.Bottom + 6, 75, 23);
+            affirmativeButton.ClientRectangle = new Rectangle(ClientRectangle.Left + 8, lblChoiceText.Bottom + 6, 75, 23);
             affirmativeButton.IdleTexture = AssetLoader.LoadTexture("75pxbtn.png");
             affirmativeButton.HoverTexture = AssetLoader.LoadTexture("75pxbtn_c.png");
             affirmativeButton.HoverSoundEffect = new EnhancedSoundEffect("button.wav");
@@ -67,7 +75,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             negativeButton = new XNAButton(WindowManager);
             negativeButton.FontIndex = 1;
-            negativeButton.ClientRectangle = new Rectangle(ClientRectangle.Width - (75 + 6), lblChoiceText.Bottom + 6, 75, 23);
+            negativeButton.ClientRectangle = new Rectangle(ClientRectangle.Width - (75 + 8), lblChoiceText.Bottom + 6, 75, 23);
             negativeButton.IdleTexture = AssetLoader.LoadTexture("75pxbtn.png");
             negativeButton.HoverTexture = AssetLoader.LoadTexture("75pxbtn_c.png");
             negativeButton.HoverSoundEffect = new EnhancedSoundEffect("button.wav");
@@ -79,11 +87,12 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             base.Initialize();
         }
 
-        public void Show(string choiceText, string affirmativeText, string negativeText, int timeout)
+        public void Show(string headerText, string choiceText, string affirmativeText, string negativeText, int timeout)
         {
             Visible = true;
             Enabled = true;
 
+            lblHeader.Text = headerText;
             lblChoiceText.Text = choiceText;
             affirmativeButton.Text = affirmativeText;
             negativeButton.Text = negativeText;
