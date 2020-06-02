@@ -21,6 +21,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         // these are used by the "invite to game" feature in the
         // context menu and are kept up-to-date by the lobby
         public string inviteChannelName;
+        public string inviteGameName;
         public string inviteChannelPassword;
 
         private const int ALL_PLAYERS_VIEW_INDEX = 2;
@@ -374,12 +375,13 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 return;
             }
 
+            // note it's assumed that if the channel name is specified, the game name must be also
             if (string.IsNullOrEmpty(inviteChannelName) || ProgramConstants.IsInGame)
             {
                 return;
             }
 
-            string messageBody = ProgramConstants.GAME_INVITE_CTCP_COMMAND + " " + inviteChannelName;
+            string messageBody = ProgramConstants.GAME_INVITE_CTCP_COMMAND + " " + inviteChannelName + ";" + inviteGameName;
 
             if (!string.IsNullOrEmpty(inviteChannelPassword))
             {

@@ -586,6 +586,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             // keep the friends window up to date so it can disable the Invite option
             pmWindow.inviteChannelName = string.Empty;
+            pmWindow.inviteGameName = string.Empty;
             pmWindow.inviteChannelPassword = string.Empty;
         }
 
@@ -597,6 +598,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             // keep the friends window up to date so it can disable the Invite option
             pmWindow.inviteChannelName = string.Empty;
+            pmWindow.inviteGameName = string.Empty;
             pmWindow.inviteChannelPassword = string.Empty;
         }
 
@@ -872,6 +874,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             // update the friends window so it can enable the Invite option
             pmWindow.inviteChannelName = channelName;
+            pmWindow.inviteGameName = e.GameRoomName;
 
             if (!string.IsNullOrEmpty(e.Password))
             {
@@ -899,6 +902,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             // update the friends window so it can enable the Invite option
             pmWindow.inviteChannelName = channelName;
+            pmWindow.inviteGameName = e.GameRoomName;
 
             if (!string.IsNullOrEmpty(e.Password))
             {
@@ -1080,12 +1084,13 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             // arguments are semicolon-delimited
             var arguments = argumentsString.Split(';');
 
-            // we expect to be given a channel name and optionally a password
-            if (arguments.Length < 1 || arguments.Length > 2)
+            // we expect to be given a channel name, a (human-friendly) game name and optionally a password
+            if (arguments.Length < 2 || arguments.Length > 3)
                 return;
 
             string channelName = arguments[0];
-            string password = (arguments.Length == 2) ? arguments[1] : string.Empty;
+            string gameName = arguments[1];
+            string password = (arguments.Length == 2) ? arguments[2] : string.Empty;
 
             if (!CanReceiveInvitationMessagesFrom(sender))
                 return;
@@ -1109,9 +1114,11 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             // show the invitation at top left for 60 seconds
             gameInviteChoiceBox.Show(
-                "GAME INVITE",
-                "From: " + sender,
-                "Accept", "Ignore", 60);
+                "GAME INVITATION",
+                GetUserTexture(sender),
+                sender,
+                "Join " + gameName + "?",
+                "Yes", "No", 60);
 
             gameInviteChoiceBox.AffirmativeClickedAction = delegate (ChoiceNotificationBox choiceBox)
             {
@@ -1439,6 +1446,20 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             }
 
             return true;
+        }
+
+        private Texture2D GetUserTexture(string username)
+        {
+            Texture2D senderGameIcon = unknownGameIcon;
+
+            IRCUser iu = connectionManager.UserList.Find(u => u.Name == username);
+
+            if (iu != null && iu.GameID >= 0 || iu.GameID < gameCollection.GameList.Count)
+            {
+                senderGameIcon = gameCollection.GameList[iu.GameID].Texture;
+            }
+
+            return senderGameIcon;
         }
     }
 }

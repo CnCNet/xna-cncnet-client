@@ -26,6 +26,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         public Action<ChoiceNotificationBox> NegativeClickedAction { get; set; }
 
         XNALabel lblHeader;
+        XNAPanel gameIconPanel;
+        XNALabel lblSender;
         XNALabel lblChoiceText;
         XNAButton affirmativeButton;
         XNAButton negativeButton;
@@ -36,7 +38,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         bool isDown = false;
 
-        const int boxHeight = 79;
+        const int boxHeight = 101;
 
         double locationY = -boxHeight;
 
@@ -55,10 +57,24 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             lblHeader.Text = "MAKE A CHOICE";
             AddChild(lblHeader);
 
+            gameIconPanel = new XNAPanel(WindowManager);
+            gameIconPanel.Name = "gameIconPanel";
+            gameIconPanel.ClientRectangle = new Rectangle(12, lblHeader.Bottom + 6, 16, 16);
+            gameIconPanel.DrawBorders = false;
+            gameIconPanel.BackgroundTexture = AssetLoader.TextureFromImage(ClientCore.Properties.Resources.dtaicon);
+            AddChild(gameIconPanel);
+
+            lblSender = new XNALabel(WindowManager);
+            lblSender.Name = "lblSender";
+            lblSender.FontIndex = 1;
+            lblSender.ClientRectangle = new Rectangle(gameIconPanel.Right + 3, lblHeader.Bottom + 6, 0, 0);
+            lblSender.Text = "fonger";
+            AddChild(lblSender);
+
             lblChoiceText = new XNALabel(WindowManager);
             lblChoiceText.Name = "lblChoiceText";
             lblChoiceText.FontIndex = 1;
-            lblChoiceText.ClientRectangle = new Rectangle(12, lblHeader.Bottom + 6, 0, 0);
+            lblChoiceText.ClientRectangle = new Rectangle(12, lblSender.Bottom + 6, 0, 0);
             lblChoiceText.Text = "What do you want to do?";
             AddChild(lblChoiceText);
 
@@ -87,12 +103,14 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             base.Initialize();
         }
 
-        public void Show(string headerText, string choiceText, string affirmativeText, string negativeText, int timeout)
+        public void Show(string headerText, Texture2D gameIcon, string sender, string choiceText, string affirmativeText, string negativeText, int timeout)
         {
             Visible = true;
             Enabled = true;
 
             lblHeader.Text = headerText;
+            gameIconPanel.BackgroundTexture = gameIcon;
+            lblSender.Text = sender;
             lblChoiceText.Text = choiceText;
             affirmativeButton.Text = affirmativeText;
             negativeButton.Text = negativeText;
