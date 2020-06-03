@@ -1,4 +1,5 @@
 ﻿using ClientCore;
+using ClientGUI;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Rampastring.XNAUI;
@@ -29,8 +30,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         XNAPanel gameIconPanel;
         XNALabel lblSender;
         XNALabel lblChoiceText;
-        XNAButton affirmativeButton;
-        XNAButton negativeButton;
+        XNAClientButton affirmativeButton;
+        XNAClientButton negativeButton;
 
         TimeSpan downTime = TimeSpan.Zero;
 
@@ -78,23 +79,15 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             lblChoiceText.Text = "What do you want to do?";
             AddChild(lblChoiceText);
 
-            affirmativeButton = new XNAButton(WindowManager);
-            affirmativeButton.FontIndex = 1;
+            affirmativeButton = new XNAClientButton(WindowManager);
             affirmativeButton.ClientRectangle = new Rectangle(ClientRectangle.Left + 8, lblChoiceText.Bottom + 6, 75, 23);
-            affirmativeButton.IdleTexture = AssetLoader.LoadTexture("75pxbtn.png");
-            affirmativeButton.HoverTexture = AssetLoader.LoadTexture("75pxbtn_c.png");
-            affirmativeButton.HoverSoundEffect = new EnhancedSoundEffect("button.wav");
             affirmativeButton.Name = "affirmativeButton";
             affirmativeButton.Text = "Yes";
             affirmativeButton.LeftClick += AffirmativeButton_LeftClick;
             AddChild(affirmativeButton);
 
-            negativeButton = new XNAButton(WindowManager);
-            negativeButton.FontIndex = 1;
+            negativeButton = new XNAClientButton(WindowManager);
             negativeButton.ClientRectangle = new Rectangle(ClientRectangle.Width - (75 + 8), lblChoiceText.Bottom + 6, 75, 23);
-            negativeButton.IdleTexture = AssetLoader.LoadTexture("75pxbtn.png");
-            negativeButton.HoverTexture = AssetLoader.LoadTexture("75pxbtn_c.png");
-            negativeButton.HoverSoundEffect = new EnhancedSoundEffect("button.wav");
             negativeButton.Name = "negativeButton";
             negativeButton.Text = "No";
             negativeButton.LeftClick += NegativeButton_LeftClick;
@@ -103,10 +96,17 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             base.Initialize();
         }
 
-        public void Show(string headerText, Texture2D gameIcon, string sender, string choiceText, string affirmativeText, string negativeText, int timeout)
+        // a timeout of zero means the notification will never be automatically dismissed
+        public void Show(
+            string headerText, 
+            Texture2D gameIcon,
+            string sender,
+            string choiceText,
+            string affirmativeText,
+            string negativeText,
+            int timeout = 0)
         {
-            Visible = true;
-            Enabled = true;
+            Enable();
 
             lblHeader.Text = headerText;
             gameIconPanel.BackgroundTexture = gameIcon;
@@ -136,8 +136,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             locationY = -Height;
             ClientRectangle = new Rectangle(X, (int)locationY,
                 Width, Height);
-            Visible = false;
-            Enabled = false;
+            Disable();
         }
 
         public override void Update(GameTime gameTime)
@@ -154,7 +153,12 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 if (WindowManager.HasFocus)
                 {
                     downTime += gameTime.ElapsedGameTime;
-                    isDown = downTime < downTimeWaitTime;
+
+                    // only change our "down" state if we have a valid timeout
+                    if (downTimeWaitTime != TimeSpan.Zero)
+                    {
+                        isDown = downTime < downTimeWaitTime;
+                    }
                 }
             }
             else
