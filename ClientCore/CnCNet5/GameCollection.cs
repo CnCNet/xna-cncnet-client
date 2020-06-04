@@ -15,6 +15,8 @@ namespace ClientCore.CnCNet5
     {
         public List<CnCNetGame> GameList { get; private set; }
 
+        public string CommonChatChannel;
+
         public void Initialize(GraphicsDevice gd)
         {
             GameList = new List<CnCNetGame>();
@@ -74,7 +76,81 @@ namespace ClientCore.CnCNet5
                     InternalName = "yr",
                     RegistryInstallPath = "HKLM\\Software\\Westwood\\Yuri's Revenge",
                     UIName = "Yuri's Revenge",
-                    Texture = AssetLoader.TextureFromImage(Resources.yricon)
+                    Texture = AssetLoader.TextureFromImage(Resources.yricon),
+                    MultiRegion = true,
+                    Regions = new Region[]
+                    {
+                        new Region()
+                        {
+                            UIName = "Europe",
+                            InternalName = "west",
+                            ChatChannel = "#cncnet-yra",
+                            GameBroadcastChannel = "#cncnet-yra-games",
+                            TimeZones = new int[]{ -8, -7, -6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4 },
+                            CnCNetLiveStatsKey = "cncnet5_yra",
+                            AutoFillAmount = 1000
+                        },
+                        new Region()
+                        {
+                            UIName = "Asia 1",
+                            InternalName = "east",
+                            ChatChannel = "#cncnet-yrb",
+                            GameBroadcastChannel = "#cncnet-yrb-games",
+                            TimeZones = new int[]{ 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, -12, -11, -10 },
+                            CnCNetLiveStatsKey = "cncnet5_yrb",
+                            AutoFillAmount = 1500
+                        },
+                        new Region()
+                        {
+                            UIName = "China",
+                            InternalName = "china",
+                            ChatChannel = "#cncnet-yre",
+                            GameBroadcastChannel = "#cncnet-yre-games",
+                            TimeZones = new int[]{ -12, -11, -10, -9, -8, -7, -6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14 },
+                            CnCNetLiveStatsKey = "cncnet5_yre",
+                            AutoFillAmount = 0
+                        },
+                        new Region()
+                        {
+                            UIName = "Americas",
+                            InternalName = "west2",
+                            ChatChannel = "#cncnet-yrc",
+                            GameBroadcastChannel = "#cncnet-yrc-games",
+                            TimeZones = new int[]{ -8, -7, -6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4 },
+                            CnCNetLiveStatsKey = "cncnet5_yrc",
+                            AutoFillAmount = 1500
+                        },
+                        new Region()
+                        {
+                            UIName = "Asia 2",
+                            InternalName = "east2",
+                            ChatChannel = "#cncnet-yrd",
+                            GameBroadcastChannel = "#cncnet-yrd-games",
+                            TimeZones = new int[]{ 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, -12, -11, -10 },
+                            CnCNetLiveStatsKey = "cncnet5_yrd",
+                            AutoFillAmount = 1500
+                        },
+                        new Region()
+                        {
+                            UIName = "Moon Base",
+                            InternalName = "moon",
+                            ChatChannel = "#cncnet-yrf",
+                            GameBroadcastChannel = "#cncnet-yrf-games",
+                            TimeZones = new int[]{ -12, -11, -10, -9, -8, -7, -6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14 },
+                            CnCNetLiveStatsKey = "cncnet5_yrf",
+                            AutoFillAmount = 4000
+                        },
+                        new Region()
+                        {
+                            UIName = "ZiGZaG's Lounge",
+                            InternalName = "zigzag",
+                            ChatChannel = "#cncnet-yrg",
+                            GameBroadcastChannel = "#cncnet-yrg-games",
+                            TimeZones = new int[]{ -12, -11, -10, -9, -8, -7, -6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14 },
+                            CnCNetLiveStatsKey = "cncnet5_yrg",
+                            AutoFillAmount = 0
+                        }
+                    }
                 },
 
                 new CnCNetGame()
@@ -139,6 +215,8 @@ namespace ClientCore.CnCNet5
                     Texture = AssetLoader.TextureFromImage(Resources.unknownicon)
                 }
             };
+
+            CommonChatChannel = "#cncnet";
 
             GameList.AddRange(defaultGames);
             GameList.AddRange(GetCustomGames(defaultGames.Concat(otherGames).ToList()));
@@ -242,6 +320,13 @@ namespace ClientCore.CnCNet5
             CnCNetGame game = GameList.Find(g => g.InternalName == gameIdentifier.ToLower());
             if (game == null)
                 return null;
+            if (game.MultiRegion)
+            {
+                if (game.CurrentRegion != null)
+                    return game.CurrentRegion.GameBroadcastChannel;
+                else
+                    return null;
+            }
             return game.GameBroadcastChannel;
         }
 
@@ -250,6 +335,14 @@ namespace ClientCore.CnCNet5
             CnCNetGame game = GameList.Find(g => g.InternalName == gameIdentifier.ToLower());
             if (game == null)
                 return null;
+
+            if (game.MultiRegion)
+            {
+                if (game.CurrentRegion != null)
+                    return game.CurrentRegion.ChatChannel;
+                else
+                    return null;
+            }
             return game.ChatChannel;
         }
     }

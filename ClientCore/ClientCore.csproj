@@ -186,6 +186,7 @@
   <ItemGroup>
     <Compile Include="CCIniFile.cs" />
     <Compile Include="CnCNet5\CnCNetGame.cs" />
+    <Compile Include="CnCNet5\Region.cs" />
     <Compile Include="CnCNet5\GameCollection.cs" />
     <Compile Include="ClientConfiguration.cs" />
     <Compile Include="CnCNet5\NameValidator.cs" />

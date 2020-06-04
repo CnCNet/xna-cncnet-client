@@ -55,5 +55,16 @@ namespace ClientCore.CnCNet5
         /// If true, the client should always be connected to this game's chat channel.
         /// </summary>
         public bool AlwaysEnabled { get; set; }
+
+        /// <summary>
+        /// If true, the client will display multiple region channels define in Regions
+        /// </summary>
+        public bool MultiRegion { get; set; } = false;
+
+        /// <summary>
+        /// If true, the client will display multiple region channels define in Regions
+        /// </summary>
+        public Region[] Regions { get; set; }
+        public Region CurrentRegion { get; set; }
     }
 }

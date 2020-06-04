@@ -3,6 +3,7 @@ using System;
 using System.IO;
 using System.Net;
 using System.Threading;
+using System.Collections.Generic;
 
 namespace DTAClient.Domain.Multiplayer.CnCNet
 {
@@ -19,12 +20,19 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
 
         private static string cncnetLiveStatusIdentifier;
 
+        public static Dictionary<string, int> AllOnlineCounts { get; private set; }
+
         public static void InitializeService(CancellationTokenSource cts)
         {
             cncnetLiveStatusIdentifier = ClientConfiguration.Instance.CnCNetLiveStatusIdentifier;
-            PlayerCount = GetCnCNetPlayerCount();
+            AllOnlineCounts = GetCnCNetPlayerCount();
 
-            CnCNetGameCountUpdated?.Invoke(null, new PlayerCountEventArgs(PlayerCount));
+            if (AllOnlineCounts.TryGetValue(ClientConfiguration.Instance.CnCNetLiveStatusIdentifier, out int value))
+                PlayerCount = value;
+            else
+                PlayerCount = -1;
+
+            CnCNetGameCountUpdated?.Invoke(null, new PlayerCountEventArgs(AllOnlineCounts));
             ThreadPool.QueueUserWorkItem(new WaitCallback(RunService), cts);
         }
 
@@ -46,14 +54,15 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
             }
         }
 
-        private static int GetCnCNetPlayerCount()
+        private static Dictionary<string, int> GetCnCNetPlayerCount()
         {
+            var counts = new Dictionary<string, int>();
             try
             {
                 WebClient client = new WebClient();
 
                 Stream data = client.OpenRead("http://api.cncnet.org/status");
-                
+
                 string info = string.Empty;
 
                 using (StreamReader reader = new StreamReader(data))
@@ -66,33 +75,36 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                 info = info.Replace("\"", String.Empty);
                 string[] values = info.Split(new char[] { ',' });
 
-                int numGames = -1;
-
                 foreach (string value in values)
                 {
-                    if (value.Contains(cncnetLiveStatusIdentifier))
-                    {
-                        numGames = Convert.ToInt32(value.Substring(cncnetLiveStatusIdentifier.Length + 1));
-                        return numGames;
-                    }
+                    string[] kv = value.Split(new char[] { ':' });
+
+                    if (kv.Length > 1 && int.TryParse(kv[1], out int c))
+                        counts[kv[0]] = c;
                 }
 
-                return numGames;
+                return counts;
             }
             catch
             {
-                return -1;
+                return counts;
             }
         }
     }
 
     internal class PlayerCountEventArgs : EventArgs
     {
-        public PlayerCountEventArgs(int playerCount)
+        public PlayerCountEventArgs(Dictionary<string, int> allOnline)
         {
-            PlayerCount = playerCount;
+            AllOnlineCounts = allOnline;
+
+            if (AllOnlineCounts.TryGetValue(ClientConfiguration.Instance.CnCNetLiveStatusIdentifier, out int value))
+                PlayerCount = value;
+            else
+                PlayerCount = -1;
         }
 
         public int PlayerCount { get; set; }
+        public Dictionary<string, int> AllOnlineCounts { get; private set; }
     }
 }

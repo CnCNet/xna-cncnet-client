@@ -47,6 +47,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         private PlayerListBox lbPlayerList;
         private ChatListBox lbChatMessages;
+        private XNAListBox lbRegionList;
         private GameListBox lbGameList;
         private XNAContextMenu playerContextMenu;
 
@@ -97,6 +98,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         private string localGameID;
         private CnCNetGame localGame;
+        private Region connectedRegion;
 
         private List<string> followedGames = new List<string>();
 
@@ -137,6 +139,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             btnLogout.Text = "Log Out";
             btnLogout.LeftClick += BtnLogout_LeftClick;
 
+
             lbGameList = new GameListBox(WindowManager, localGameID);
             lbGameList.Name = "lbGameList";
             lbGameList.ClientRectangle = new Rectangle(btnNewGame.X,
@@ -147,11 +150,23 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             lbGameList.DoubleLeftClick += LbGameList_DoubleLeftClick;
             lbGameList.AllowMultiLineItems = false;
 
+
+
+            lbRegionList = new XNAListBox(WindowManager);
+            lbRegionList.Name = "lbRegionList";
+            if (localGame.MultiRegion)
+                lbRegionList.ClientRectangle = new Rectangle(Width - 202, 41, 190, 90);
+            else
+                lbRegionList.ClientRectangle = new Rectangle(Width - 202, 41, 190, -12);
+            lbRegionList.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 128), 1, 1);
+            lbRegionList.DoubleLeftClick += LbRegionList_DoubleLeftClick;
+            lbRegionList.AllowMultiLineItems = false;
+
             lbPlayerList = new PlayerListBox(WindowManager, gameCollection);
             lbPlayerList.Name = "lbPlayerList";
             lbPlayerList.ClientRectangle = new Rectangle(Width - 202,
-                20, 190,
-                btnLogout.Y - 26);
+                lbRegionList.Bottom + 12, 190,
+                lbGameList.Height - (lbRegionList.Height + 12));
             lbPlayerList.PanelBackgroundDrawMode = PanelBackgroundImageDrawMode.STRETCHED;
             lbPlayerList.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 128), 1, 1);
             lbPlayerList.LineHeight = 16;
@@ -163,17 +178,17 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             playerContextMenu.ClientRectangle = new Rectangle(0, 0, 150, 2);
             playerContextMenu.Enabled = false;
             playerContextMenu.Visible = false;
-            playerContextMenu.AddItem("Private Message", () => 
+            playerContextMenu.AddItem("Private Message", () =>
                 PerformUserListContextMenuAction(iu => pmWindow.InitPM(iu.Name)));
-            playerContextMenu.AddItem("Add Friend", () => 
+            playerContextMenu.AddItem("Add Friend", () =>
                 PerformUserListContextMenuAction(iu => ToggleFriend(iu.Name)));
-            playerContextMenu.AddItem("Ignore User", () => 
+            playerContextMenu.AddItem("Ignore User", () =>
                 PerformUserListContextMenuAction(iu => ToggleIgnoreUser(iu)));
 
             lbChatMessages = new ChatListBox(WindowManager);
             lbChatMessages.Name = "lbChatMessages";
             lbChatMessages.ClientRectangle = new Rectangle(lbGameList.Right + 12, lbGameList.Y,
-                lbPlayerList.X - lbGameList.Right - 24, lbPlayerList.Height);
+                lbPlayerList.X - lbGameList.Right - 24, lbGameList.Height);
             lbChatMessages.PanelBackgroundDrawMode = PanelBackgroundImageDrawMode.STRETCHED;
             lbChatMessages.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 128), 1, 1);
             lbChatMessages.LineHeight = 16;
@@ -251,13 +266,18 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             lblOnlineCount.FontIndex = 1;
             lblOnlineCount.Disable();
 
-            InitializeGameList();
+            if (localGame.MultiRegion)
+                InitializeRegionList();
+            else
+                InitializeGameList();
 
             AddChild(btnNewGame);
             AddChild(btnJoinGame);
             AddChild(btnLogout);
             AddChild(lbPlayerList);
             AddChild(lbChatMessages);
+            if (localGame.MultiRegion)
+                AddChild(lbRegionList);
             AddChild(lbGameList);
             AddChild(tbChatInput);
             AddChild(lblColor);
@@ -270,6 +290,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             CnCNetPlayerCountTask.CnCNetGameCountUpdated += OnCnCNetGameCountUpdated;
             UpdateOnlineCount(CnCNetPlayerCountTask.PlayerCount);
+            UpdateRegionCounts(CnCNetPlayerCountTask.AllOnlineCounts);
 
             base.Initialize();
 
@@ -281,11 +302,136 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         private void OnCnCNetGameCountUpdated(object sender, PlayerCountEventArgs e)
         {
             UpdateOnlineCount(e.PlayerCount);
+            UpdateRegionCounts(e.AllOnlineCounts);
         }
 
         private void UpdateOnlineCount(int playerCount)
         {
             lblOnlineCount.Text = playerCount.ToString();
+        }
+
+        private Random rand = new Random(); //#TODO:
+        private void UpdateRegionCounts(Dictionary<string, int> counts)
+        {
+            //#TODO delete this part
+            if (localGame.MultiRegion)
+            {
+                lbRegionList.Clear();
+
+                foreach (Region region in localGame.Regions)
+                {
+                    //counts[region.CnCNetLiveStatsKey] = rand.Next(800,1500); //#TODO: delete
+
+                    if (!counts.ContainsKey(region.CnCNetLiveStatsKey))
+                        counts[region.CnCNetLiveStatsKey] = 0;
+
+                    region.CurrentCount = counts[region.CnCNetLiveStatsKey];
+
+                    var item = new XNAListBoxItem();
+                    item.Text = region.UIName + " (" + counts[region.CnCNetLiveStatsKey] + ")";
+
+                    if (connectedRegion != null && connectedRegion.InternalName == region.InternalName)
+                        item.Texture = UISettings.ActiveSettings.CheckBoxCheckedTexture;
+                    else
+                        item.Texture = UISettings.ActiveSettings.CheckBoxClearTexture;
+                    item.Tag = region;
+                    lbRegionList.AddItem(item);
+                }
+            }
+        }
+
+        private int FindBestRegion(int startRegionIdx)
+        {
+            int bestRegionIdx = localGame.Regions.Length + 1;
+            int bestTzDiff = 25;
+
+            int tz = TimeZone.CurrentTimeZone.GetUtcOffset(DateTime.Now).Hours;
+            Logger.Log("Current Time Zone = " + tz);
+
+            for (int i = startRegionIdx; i < localGame.Regions.Length; i++)
+            {
+                var region = localGame.Regions[i];
+
+                if (region.AutoFillAmount > region.CurrentCount)
+                {
+                    for (int j = 0; j < region.TimeZones.Length; j++)
+                    {
+                        int diff = Math.Abs(region.TimeZones[j] - tz);
+                        if (diff < bestTzDiff)
+                        {
+                            bestRegionIdx = i;
+                            bestTzDiff = diff;
+                        }
+                    }
+                }
+            }
+            Logger.Log("Best RegionIdx = " + bestRegionIdx);
+            Logger.Log("Best Region = " + localGame.Regions[bestRegionIdx].UIName);
+            return bestRegionIdx;
+        }
+
+        private void InitializeRegionList()
+        {
+            gameCollection.CommonChatChannel = localGame.ChatChannel;
+
+            lbRegionList.Clear();
+            foreach (var region in localGame.Regions)
+            {
+                var item = new XNAListBoxItem();
+                item.Text = region.UIName;
+                item.Texture = UISettings.ActiveSettings.CheckBoxClearTexture;
+                item.Tag = region;
+                lbRegionList.AddItem(item);
+
+
+                var gameBroadcastChannel = connectionManager.FindChannel(region.GameBroadcastChannel);
+
+                if (gameBroadcastChannel == null)
+                {
+                    gameBroadcastChannel = connectionManager.CreateChannel(region.UIName + " Broadcast Channel",
+                                                                           region.GameBroadcastChannel, true, false, null);
+                    connectionManager.AddChannel(gameBroadcastChannel);
+                }
+
+                gameBroadcastChannel.CTCPReceived += GameBroadcastChannel_CTCPReceived;
+                gameBroadcastChannel.UserLeft += GameBroadcastChannel_UserLeftOrQuit;
+                gameBroadcastChannel.UserQuitIRC += GameBroadcastChannel_UserLeftOrQuit;
+                gameBroadcastChannel.UserKicked += GameBroadcastChannel_UserLeftOrQuit;
+                gameBroadcastChannel.ChannelFull += GameBroadcastChannel_ChannelFull;
+                gameBroadcastChannel.UserAdded += GameBroadcastChannel_UserAdded;
+
+                var chatChannel = connectionManager.FindChannel(region.ChatChannel);
+
+                if (chatChannel == null)
+                {
+                    chatChannel = connectionManager.CreateChannel(region.UIName + " Chat", region.ChatChannel, true, true, null);
+                    connectionManager.AddChannel(chatChannel);
+                }
+            }
+
+            lbRegionList.SelectedIndex = 0;
+            lbRegionList.SelectedItem.Texture = UISettings.ActiveSettings.CheckBoxCheckedTexture;
+            lbRegionList.Enabled = false;
+
+            var r = (Region)lbRegionList.SelectedItem.Tag;
+            var ddItem = new XNADropDownItem();
+            ddItem.Text = r.UIName;
+            ddItem.Texture = localGame.Texture;
+            ddItem.Tag = connectionManager.FindChannel(r.ChatChannel);
+            ddCurrentChannel.AddItem(ddItem);
+
+
+            var cc = connectionManager.CreateChannel(localGame.UIName + " Common Channel",
+                                                     localGame.ChatChannel, true, true, "ra1-derp");
+            connectionManager.AddChannel(cc);
+            ddItem = new XNADropDownItem();
+            ddItem.Text = localGame.UIName + " Chat";
+            ddItem.Texture = localGame.Texture;
+            ddItem.Tag = cc;
+            ddCurrentChannel.AddItem(ddItem);
+
+            ddCurrentChannel.SelectedIndex = 0;
+
         }
 
         private void InitializeGameList()
@@ -294,7 +440,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             foreach (var game in gameCollection.GameList)
             {
-                if (!game.Supported || string.IsNullOrEmpty(game.ChatChannel))
+                if (!game.Supported || string.IsNullOrEmpty(game.ChatChannel) || game.MultiRegion)
                 {
                     i++;
                     continue;
@@ -602,6 +748,11 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             }
 
             btnLogout.Text = "Log Out";
+        }
+
+        private void LbRegionList_DoubleLeftClick(object sender, EventArgs e)
+        {
+            ConnectToRegion();
         }
 
         private void BtnJoinGame_LeftClick(object sender, EventArgs e)
@@ -954,10 +1105,26 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             ddCurrentChannel.AllowDropDown = true;
             tbChatInput.Enabled = true;
 
-            //Channel cncnetChannel = connectionManager.FindChannel("#cncnet");
-            //cncnetChannel.Join();
-            //cncnetChannel.RequestUserInfo();
+            Channel cncnetChannel = connectionManager.FindChannel(gameCollection.CommonChatChannel);
+            if (localGame.MultiRegion)
+            {
+                cncnetChannel = connectionManager.FindChannel(localGame.ChatChannel);
+            }
 
+            cncnetChannel.Join();
+            cncnetChannel.RequestUserInfo();
+
+            if (localGame.MultiRegion)
+            {
+                lbRegionList.SelectedIndex = FindBestRegion(0);
+                ConnectToRegion();
+            }
+            else
+                ConnectToLocalGame();
+        }
+
+        private void ConnectToLocalGame()
+        {
             string localGameChatChannelName = gameCollection.GetGameChatChannelNameFromIdentifier(localGameID);
             bool chatChannelMissing = false;
             if (string.IsNullOrEmpty(localGameChatChannelName))
@@ -969,7 +1136,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             {
                 Channel localGameChatChannel = connectionManager.FindChannel(localGameChatChannelName);
                 localGameChatChannel.Join();
-                //localGameChatChannel.RequestUserInfo();
+                localGameChatChannel.RequestUserInfo();
             }
 
             string localGameBroadcastChannel = gameCollection.GetGameBroadcastingChannelNameFromIdentifier(localGameID);
@@ -992,6 +1159,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                     Environment.NewLine + Environment.NewLine : "") +
                     "Please check that the local game is set correctly in client configuration, and if using a custom-defined game, that its channel info is set properly.");
 
+
             foreach (CnCNetGame game in gameCollection.GameList)
             {
                 if (!game.Supported)
@@ -1012,6 +1180,48 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             gameCheck.InitializeService(gameCheckCancellation);
         }
 
+        private void ConnectToRegion()
+        {
+            if (connectedRegion != null)
+            {
+                AddMessageToChat(new ChatMessage(Color.White,"Leaving region " + connectedRegion.UIName));
+
+                connectionManager.FindChannel(connectedRegion.GameBroadcastChannel).Leave();
+
+                if (ddCurrentChannel.SelectedIndex != 0)
+                {
+                    var chatChannel = connectionManager.FindChannel(connectedRegion.ChatChannel);
+                    chatChannel.Users.DoForAllUsers(user =>
+                    {
+                        connectionManager.RemoveChannelFromUser(user.IRCUser.Name, chatChannel.ChannelName);
+                    });
+                    chatChannel.Leave();
+                }
+            }
+
+            foreach (var item in lbRegionList.Items)
+            {
+                item.Texture = UISettings.ActiveSettings.CheckBoxClearTexture;
+            }
+
+            lbRegionList.SelectedItem.Texture = UISettings.ActiveSettings.CheckBoxCheckedTexture;
+
+            connectedRegion = (Region)lbRegionList.SelectedItem.Tag;
+            connectionManager.FindChannel(connectedRegion.GameBroadcastChannel).Join();
+
+            lbRegionList.Enabled = false;
+
+            ddCurrentChannel.Items[0].Tag = connectionManager.FindChannel(connectedRegion.ChatChannel);
+            ddCurrentChannel.Items[0].Text = connectedRegion.UIName;
+
+            localGame.CurrentRegion = connectedRegion;
+
+            if (ddCurrentChannel.SelectedIndex == 0)
+            {
+                DdCurrentChannel_SelectedIndexChanged(null, null);
+            }
+        }
+
         private void DdCurrentChannel_SelectedIndexChanged(object sender, EventArgs e)
         {
             if (currentChatChannel != null)
@@ -1024,8 +1234,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 currentChatChannel.MessageAdded -= CurrentChatChannel_MessageAdded;
                 currentChatChannel.UserGameIndexUpdated -= CurrentChatChannel_UserGameIndexUpdated;
 
-                if (currentChatChannel.ChannelName != "#cncnet" &&
-                    currentChatChannel.ChannelName != gameCollection.GetGameChatChannelNameFromIdentifier(localGameID))
+                if (currentChatChannel.ChannelName != gameCollection.CommonChatChannel &&
+                     currentChatChannel.ChannelName != gameCollection.GetGameChatChannelNameFromIdentifier(localGameID))
                 {
                     // Remove the assigned channels from the users so we don't have ghost users on the PM user list
                     currentChatChannel.Users.DoForAllUsers(user =>
@@ -1055,11 +1265,15 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             RefreshPlayerList(this, EventArgs.Empty);
 
-            if (currentChatChannel.ChannelName != "#cncnet" &&
-                currentChatChannel.ChannelName != gameCollection.GetGameChatChannelNameFromIdentifier(localGameID))
+            if (currentChatChannel.ChannelName != gameCollection.CommonChatChannel &&
+                (localGame.MultiRegion ||
+                 currentChatChannel.ChannelName != gameCollection.GetGameChatChannelNameFromIdentifier(localGameID)))
             {
                 currentChatChannel.Join();
                 currentChatChannel.RequestUserInfo();
+
+                if (localGame.MultiRegion && connectedRegion != null)
+                    AddMessageToChat(new ChatMessage(Color.White, string.Format("Attempting to connect to {0}...", connectedRegion.UIName)));
             }
         }
 
@@ -1199,7 +1413,15 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 string loadedGameId = splitMessage[10];
                 bool isRA2Mode = 11 < splitMessage.Length ? Conversions.BooleanFromString(splitMessage[11], false) : false;
 
-                CnCNetGame cncnetGame = gameCollection.GameList.Find(g => g.GameBroadcastChannel == channel.ChannelName);
+                CnCNetGame cncnetGame = null;
+
+                if (localGame.MultiRegion)
+                {
+                    if (channel.ChannelName == connectedRegion.GameBroadcastChannel)
+                        cncnetGame = localGame;
+                }
+                else
+                    cncnetGame = gameCollection.GameList.Find(g => g.GameBroadcastChannel == channel.ChannelName);
 
                 CnCNetTunnel tunnel = tunnelHandler.Tunnels.Find(t => t.Address == tunnelAddress);
 
@@ -1257,6 +1479,28 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             catch (Exception ex)
             {
                 Logger.Log("Game parsing error:" + ex.Message);
+            }
+        }
+
+        private void GameBroadcastChannel_ChannelFull(object sender, EventArgs e)
+        {
+            var channel = (Channel)sender;
+            if (channel.ChannelName == connectedRegion.GameBroadcastChannel)
+            {
+                string uiName = connectedRegion.UIName;
+                lbRegionList.SelectedIndex = FindBestRegion(lbRegionList.SelectedIndex);
+                ConnectToRegion();
+                AddMessageToChat(new ChatMessage(Color.White, string.Format("Region {0} has reached max capacity.", uiName)));
+            }
+        }
+
+        private void GameBroadcastChannel_UserAdded(object sender, Online.ChannelUserEventArgs e)
+        {
+            var channel = (Channel)sender;
+            if (e.User.IRCUser.Name == ProgramConstants.PLAYERNAME)
+            {
+                lbRegionList.Enabled = true;
+                AddMessageToChat(new ChatMessage(Color.White,string.Format("Successfully Connected to {0}.", connectedRegion.UIName)));
             }
         }
 
