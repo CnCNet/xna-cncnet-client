@@ -118,6 +118,11 @@ namespace DTAClient.Online
             {
                 AddMessage(new ChatMessage(user.IRCUser.Name + " has joined " + UIName + "."));
             }
+
+#if !YR
+            if (Persistent && IsChatChannel)
+                RequestUserInfo();
+#endif
         }
 
         public void OnUserListReceived(List<ChannelUser> userList)
