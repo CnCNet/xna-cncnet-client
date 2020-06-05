@@ -19,7 +19,6 @@ namespace DTAClient.Domain.Multiplayer
         /// and randomizes it if necessary.
         /// </summary>
         /// <param name="pInfo">The PlayerInfo of the player.</param>
-        /// <param name="map">The selected map.</param>
         /// <param name="sideCount">The number of sides in the game.</param>
         /// <param name="random">Random number generator.</param>
         /// <param name="disallowedSideArray">A bool array that determines which side indexes are disallowed by game options.</param>
