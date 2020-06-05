@@ -2,6 +2,7 @@
 using ClientCore.CnCNet5;
 using ClientGUI;
 using DTAClient.Domain;
+using DTAClient.Domain.Multiplayer;
 using DTAClient.Domain.Multiplayer.CnCNet;
 using DTAClient.DXGUI.Generic;
 using DTAClient.DXGUI.Multiplayer.GameLobby;
@@ -64,6 +65,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         private XNAClientDropDown ddColor;
         private XNAClientDropDown ddCurrentChannel;
 
+        private XNASuggestionTextBox tbGameSearch;
+
         private DarkeningPanel gameCreationPanel;
 
         private Channel currentChatChannel;
@@ -116,14 +119,14 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             localGame = gameCollection.GameList.Find(g => g.InternalName.ToUpper() == localGameID.ToUpper());
 
             btnNewGame = new XNAClientButton(WindowManager);
-            btnNewGame.Name = "btnNewGame";
+            btnNewGame.Name = nameof(btnNewGame);
             btnNewGame.ClientRectangle = new Rectangle(12, Height - 29, 133, 23);
             btnNewGame.Text = "Create Game";
             btnNewGame.AllowClick = false;
             btnNewGame.LeftClick += BtnNewGame_LeftClick;
 
             btnJoinGame = new XNAClientButton(WindowManager);
-            btnJoinGame.Name = "btnJoinGame";
+            btnJoinGame.Name = nameof(btnJoinGame);
             btnJoinGame.ClientRectangle = new Rectangle(btnNewGame.Right + 12,
                 btnNewGame.Y, 133, 23);
             btnJoinGame.Text = "Join Game";
@@ -131,24 +134,25 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             btnJoinGame.LeftClick += BtnJoinGame_LeftClick;
 
             btnLogout = new XNAClientButton(WindowManager);
-            btnLogout.Name = "btnLogout";
+            btnLogout.Name = nameof(btnLogout);
             btnLogout.ClientRectangle = new Rectangle(Width - 145, btnNewGame.Y,
                 133, 23);
             btnLogout.Text = "Log Out";
             btnLogout.LeftClick += BtnLogout_LeftClick;
 
             lbGameList = new GameListBox(WindowManager, localGameID);
-            lbGameList.Name = "lbGameList";
+            lbGameList.Name = nameof(lbGameList);
             lbGameList.ClientRectangle = new Rectangle(btnNewGame.X,
                 41, btnJoinGame.Right - btnNewGame.X,
                 btnNewGame.Y - 47);
             lbGameList.PanelBackgroundDrawMode = PanelBackgroundImageDrawMode.STRETCHED;
             lbGameList.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 128), 1, 1);
             lbGameList.DoubleLeftClick += LbGameList_DoubleLeftClick;
+            lbGameList.GameMatchesFilter = HostedGameMatches;
             lbGameList.AllowMultiLineItems = false;
 
             lbPlayerList = new PlayerListBox(WindowManager, gameCollection);
-            lbPlayerList.Name = "lbPlayerList";
+            lbPlayerList.Name = nameof(lbPlayerList);
             lbPlayerList.ClientRectangle = new Rectangle(Width - 202,
                 20, 190,
                 btnLogout.Y - 26);
@@ -159,7 +163,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             lbPlayerList.RightClick += LbPlayerList_RightClick;
 
             playerContextMenu = new XNAContextMenu(WindowManager);
-            playerContextMenu.Name = "playerContextMenu";
+            playerContextMenu.Name = nameof(playerContextMenu);
             playerContextMenu.ClientRectangle = new Rectangle(0, 0, 150, 2);
             playerContextMenu.Enabled = false;
             playerContextMenu.Visible = false;
@@ -171,7 +175,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 PerformUserListContextMenuAction(iu => ToggleIgnoreUser(iu)));
 
             lbChatMessages = new ChatListBox(WindowManager);
-            lbChatMessages.Name = "lbChatMessages";
+            lbChatMessages.Name = nameof(lbChatMessages);
             lbChatMessages.ClientRectangle = new Rectangle(lbGameList.Right + 12, lbGameList.Y,
                 lbPlayerList.X - lbGameList.Right - 24, lbPlayerList.Height);
             lbChatMessages.PanelBackgroundDrawMode = PanelBackgroundImageDrawMode.STRETCHED;
@@ -179,7 +183,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             lbChatMessages.LineHeight = 16;
 
             tbChatInput = new XNAChatTextBox(WindowManager);
-            tbChatInput.Name = "tbChatInput";
+            tbChatInput.Name = nameof(tbChatInput);
             tbChatInput.ClientRectangle = new Rectangle(lbChatMessages.X,
                 btnNewGame.Y, lbChatMessages.Width,
                 btnNewGame.Height);
@@ -189,13 +193,13 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             tbChatInput.EnterPressed += TbChatInput_EnterPressed;
 
             lblColor = new XNALabel(WindowManager);
-            lblColor.Name = "lblColor";
+            lblColor.Name = nameof(lblColor);
             lblColor.ClientRectangle = new Rectangle(lbChatMessages.X, 14, 0, 0);
             lblColor.FontIndex = 1;
             lblColor.Text = "YOUR COLOR:";
 
             ddColor = new XNAClientDropDown(WindowManager);
-            ddColor.Name = "ddColor";
+            ddColor.Name = nameof(ddColor);
             ddColor.ClientRectangle = new Rectangle(lblColor.X + 95, 12,
                 150, 21);
 
@@ -223,7 +227,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             ddColor.SelectedIndexChanged += DdColor_SelectedIndexChanged;
 
             ddCurrentChannel = new XNAClientDropDown(WindowManager);
-            ddCurrentChannel.Name = "ddCurrentChannel";
+            ddCurrentChannel.Name = nameof(ddCurrentChannel);
             ddCurrentChannel.ClientRectangle = new Rectangle(
                 lbChatMessages.Right - 200,
                 ddColor.Y, 200, 21);
@@ -231,7 +235,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             ddCurrentChannel.AllowDropDown = false;
 
             lblCurrentChannel = new XNALabel(WindowManager);
-            lblCurrentChannel.Name = "lblCurrentChannel";
+            lblCurrentChannel.Name = nameof(lblCurrentChannel);
             lblCurrentChannel.ClientRectangle = new Rectangle(
                 ddCurrentChannel.X - 150,
                 ddCurrentChannel.Y + 2, 0, 0);
@@ -239,17 +243,25 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             lblCurrentChannel.Text = "CURRENT CHANNEL:";
 
             lblOnline = new XNALabel(WindowManager);
-            lblOnline.Name = "lblOnline";
+            lblOnline.Name = nameof(lblOnline);
             lblOnline.ClientRectangle = new Rectangle(310, 14, 0, 0);
             lblOnline.Text = "Online:";
             lblOnline.FontIndex = 1;
             lblOnline.Disable();
 
             lblOnlineCount = new XNALabel(WindowManager);
-            lblOnlineCount.Name = "lblOnlineCount";
+            lblOnlineCount.Name = nameof(lblOnlineCount);
             lblOnlineCount.ClientRectangle = new Rectangle(lblOnline.X + 50, 14, 0, 0);
             lblOnlineCount.FontIndex = 1;
             lblOnlineCount.Disable();
+
+            tbGameSearch = new XNASuggestionTextBox(WindowManager);
+            tbGameSearch.Name = nameof(tbGameSearch);
+            tbGameSearch.ClientRectangle = new Rectangle(lbGameList.X,
+                12, lbGameList.Width, 21);
+            tbGameSearch.Suggestion = "Filter by name, map, game mode, player...";
+            tbGameSearch.MaximumTextLength = 64;
+            tbGameSearch.InputReceived += TbGameSearch_InputReceived;
 
             InitializeGameList();
 
@@ -267,6 +279,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             AddChild(playerContextMenu);
             AddChild(lblOnline);
             AddChild(lblOnlineCount);
+            AddChild(tbGameSearch);
 
             CnCNetPlayerCountTask.CnCNetGameCountUpdated += OnCnCNetGameCountUpdated;
             UpdateOnlineCount(CnCNetPlayerCountTask.PlayerCount);
@@ -278,15 +291,23 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             PostUIInit();
         }
 
-        private void OnCnCNetGameCountUpdated(object sender, PlayerCountEventArgs e)
+        private void TbGameSearch_InputReceived(object sender, EventArgs e)
         {
-            UpdateOnlineCount(e.PlayerCount);
+            lbGameList.SortAndRefreshHostedGames();
+            lbGameList.ViewTop = 0;
         }
 
-        private void UpdateOnlineCount(int playerCount)
-        {
-            lblOnlineCount.Text = playerCount.ToString();
-        }
+        private bool HostedGameMatches(GenericHostedGame hg) => 
+            String.IsNullOrWhiteSpace(tbGameSearch?.Text) ||
+            tbGameSearch.Text == tbGameSearch.Suggestion ||
+            hg.RoomName.ToUpper().Contains(tbGameSearch.Text.ToUpper()) ||
+            hg.GameMode.ToUpper().Equals(tbGameSearch.Text.ToUpper()) ||
+            hg.Map.ToUpper().Contains(tbGameSearch.Text.ToUpper()) ||
+            hg.Players.Where(pl => pl.ToUpper().Equals(tbGameSearch.Text.ToUpper())).Any();
+
+        private void OnCnCNetGameCountUpdated(object sender, PlayerCountEventArgs e) => UpdateOnlineCount(e.PlayerCount);
+
+        private void UpdateOnlineCount(int playerCount) => lblOnlineCount.Text = playerCount.ToString();
 
         private void InitializeGameList()
         {
@@ -604,10 +625,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             btnLogout.Text = "Log Out";
         }
 
-        private void BtnJoinGame_LeftClick(object sender, EventArgs e)
-        {
-            LbGameList_DoubleLeftClick(this, EventArgs.Empty);
-        }
+        private void BtnJoinGame_LeftClick(object sender, EventArgs e) => LbGameList_DoubleLeftClick(this, EventArgs.Empty);
 
         private void LbGameList_DoubleLeftClick(object sender, EventArgs e)
         {
@@ -683,10 +701,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             JoinGame(hg, password);
         }
 
-        private void PasswordRequestWindow_PasswordEntered(object sender, PasswordEventArgs e)
-        {
-            JoinGame(e.HostedGame, e.Password);
-        }
+        private void PasswordRequestWindow_PasswordEntered(object sender, PasswordEventArgs e) => JoinGame(e.HostedGame, e.Password);
 
         private void JoinGame(HostedCnCNetGame hg, string password)
         {
@@ -725,11 +740,9 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             ClearGameJoinAttempt((Channel)sender);
         }
 
-        private void GameChannel_ChannelFull(object sender, EventArgs e)
-        {
+        private void GameChannel_ChannelFull(object sender, EventArgs e) =>
             // We'd do the exact same things here, so we can just call the method below
             GameChannel_InviteOnlyErrorOnJoin(sender, e);
-        }
 
         private void GameChannel_InviteOnlyErrorOnJoin(object sender, EventArgs e)
         {
@@ -890,10 +903,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             }
         }
 
-        private void Gcw_Cancelled(object sender, EventArgs e)
-        {
-            gameCreationPanel.Hide();
-        }
+        private void Gcw_Cancelled(object sender, EventArgs e) => gameCreationPanel.Hide();
 
         private void TbChatInput_EnterPressed(object sender, EventArgs e)
         {
@@ -1121,10 +1131,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             }
         }
 
-        private void CurrentChatChannel_MessageAdded(object sender, IRCMessageEventArgs e)
-        {
-            AddMessageToChat(e.Message);
-        }
+        private void CurrentChatChannel_MessageAdded(object sender, IRCMessageEventArgs e) => AddMessageToChat(e.Message);
 
         /// <summary>
         /// Removes a game from the list when the host quits CnCNet or
@@ -1256,19 +1263,13 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             }
             catch (Exception ex)
             {
-                Logger.Log("Game parsing error:" + ex.Message);
+                Logger.Log("Game parsing error: " + ex.Message);
             }
         }
 
-        private void UpdateMessageBox_YesClicked(XNAMessageBox messageBox)
-        {
-            UpdateCheck?.Invoke(this, EventArgs.Empty);
-        }
+        private void UpdateMessageBox_YesClicked(XNAMessageBox messageBox) => UpdateCheck?.Invoke(this, EventArgs.Empty);
 
-        private void UpdateMessageBox_NoClicked(XNAMessageBox messageBox)
-        {
-            updateDenied = true;
-        }
+        private void UpdateMessageBox_NoClicked(XNAMessageBox messageBox) => updateDenied = true;
 
         private void BtnLogout_LeftClick(object sender, EventArgs e)
         {
@@ -1287,15 +1288,9 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             topBar.SwitchToPrimary();
         }
 
-        protected override void OnVisibleChanged(object sender, EventArgs args)
-        {
-            base.OnVisibleChanged(sender, args);
-        }
-
         public void SwitchOn()
         {
-            Visible = true;
-            Enabled = true;
+            Enable();
 
             if (!connectionManager.IsConnected && !connectionManager.IsAttemptingConnection)
             {
@@ -1306,15 +1301,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             SetLogOutButtonText();
         }
 
-        public void SwitchOff()
-        {
-            Visible = false;
-            Enabled = false;
-        }
+        public void SwitchOff() => Disable();
 
-        public string GetSwitchName()
-        {
-            return "CnCNet Lobby";
-        }
+        public string GetSwitchName() => "CnCNet Lobby";
     }
 }
