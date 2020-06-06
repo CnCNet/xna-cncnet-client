@@ -1103,7 +1103,12 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             var gameIndex = lbGameList.HostedGames.FindIndex(hg => ((HostedCnCNetGame)hg).ChannelName == channelName);
 
-            if (!CanJoinGameByIndex(gameIndex))
+            // also enforce user preference on whether to accept invitations from non-friends
+            // this is kept separate from CanReceiveInvitationMessagesFrom() as we still
+            // want to let the host know that we couldn't receive the invitation
+            if (!CanJoinGameByIndex(gameIndex) ||
+                (UserINISettings.Instance.AllowGameInvitesFromFriendsOnly &&
+                !cncnetUserData.IsFriend(sender)))
             {
                 // let the host know that we can't accept
                 // note this is not reached for the rejection case
@@ -1155,7 +1160,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 {
                     XNAMessageBox.Show(WindowManager,
                         "Failed to join",
-                        "Unable to join " + sender + "'s game. The game may be locked, closed or full.");
+                        "Unable to join " + sender + "'s game. The game may be locked or closed.");
                 }
 
                 // clean up the index as this invitation no longer exists
@@ -1180,8 +1185,9 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             {
                 XNAMessageBox.Show(WindowManager,
                     "Invitation failed",
-                    sender + " could not receive your invitation. They might be in game,\r\n" +
-                    "your game is not visible yet or locked. Try again later.");
+                    sender + " could not receive your invitation. They might be in game\r\n" +
+                    "or only accepting invitations from friends. Ensure your game is\r\n" +
+                    "unlocked and visible in the lobby before trying again.");
             }
         }
 
