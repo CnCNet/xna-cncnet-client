@@ -1112,7 +1112,6 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             }
 
             cncnetChannel.Join();
-            cncnetChannel.RequestUserInfo();
 
             if (localGame.MultiRegion)
             {
@@ -1136,7 +1135,6 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             {
                 Channel localGameChatChannel = connectionManager.FindChannel(localGameChatChannelName);
                 localGameChatChannel.Join();
-                localGameChatChannel.RequestUserInfo();
             }
 
             string localGameBroadcastChannel = gameCollection.GetGameBroadcastingChannelNameFromIdentifier(localGameID);
@@ -1270,7 +1268,6 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                  currentChatChannel.ChannelName != gameCollection.GetGameChatChannelNameFromIdentifier(localGameID)))
             {
                 currentChatChannel.Join();
-                currentChatChannel.RequestUserInfo();
 
                 if (localGame.MultiRegion && connectedRegion != null)
                     AddMessageToChat(new ChatMessage(Color.White, string.Format("Attempting to connect to {0}...", connectedRegion.UIName)));
