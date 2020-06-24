@@ -1624,6 +1624,12 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             }
         }
 
+        protected void UpdateUIPlayerNameWithPing(PlayerInfo pInfo)
+        {
+            XNADropDown ddPlayerName = ddPlayerNames[pInfo.Index];
+            ddPlayerName.Items[0].Text = $"{pInfo.Name} " + (pInfo.Ping >= 0 ? $"{pInfo.Ping.ToString()} ms" : "? ms");
+        }
+
         /// <summary>
         /// Applies player information changes done in memory to the UI.
         /// </summary>
@@ -1641,7 +1647,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 pInfo.Index = pId;
 
                 XNADropDown ddPlayerName = ddPlayerNames[pId];
-                ddPlayerName.Items[0].Text = $"{pInfo.Name} " + (pInfo.Ping >= 0 ? $"{pInfo.Ping.ToString()} ms" : "? ms");
+                UpdateUIPlayerNameWithPing(pInfo);
                 ddPlayerName.Items[1].Text = string.Empty;
                 ddPlayerName.Items[2].Text = "Kick";
                 ddPlayerName.Items[3].Text = "Ban";

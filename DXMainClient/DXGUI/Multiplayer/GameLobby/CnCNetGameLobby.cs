@@ -25,7 +25,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
     {
         private const int HUMAN_PLAYER_OPTIONS_LENGTH = 3;
         private const int AI_PLAYER_OPTIONS_LENGTH = 2;
-        private const int PING_UPDATE_INTERVAL = 5000;
+        private const int PING_UPDATE_INTERVAL = 1000;
 
         private const double GAME_BROADCAST_INTERVAL = 30.0;
         private const double GAME_BROADCAST_ACCELERATION = 10.0;
@@ -260,13 +260,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             timer = new Timer(PING_UPDATE_INTERVAL);
             timer.Elapsed += UpdatePing;
             timer.Enabled = true;
-            Logger.Log("TTTTTTTTTTTT");
             timer.Start();
         }
 
         private void UpdatePing(object sender, ElapsedEventArgs e)
         {
-            Logger.Log("Updating ping");
             List <CnCNetTunnel> tunnelsToPing = new List<CnCNetTunnel>()
             { tunnel };
             tunnelHandler.PingTunnels(tunnelsToPing);
@@ -276,7 +274,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if(pInfo != null)
             {
                 pInfo.Ping = tunnel.PingInMs;
-                CopyPlayerDataToUI();
+                UpdateUIPlayerNameWithPing(pInfo);
             }
         }
 
@@ -1364,7 +1362,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if(pInfo != null)
             {
                 pInfo.Ping = ping;
-                CopyPlayerDataToUI();
+                UpdateUIPlayerNameWithPing(pInfo);
             }
         }
 
