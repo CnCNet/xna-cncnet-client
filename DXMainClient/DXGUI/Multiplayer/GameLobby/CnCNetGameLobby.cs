@@ -17,6 +17,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using DTAClient.Domain.Multiplayer.CnCNet;
+using System.Timers;
 
 namespace DTAClient.DXGUI.Multiplayer.GameLobby
 {
@@ -24,6 +25,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
     {
         private const int HUMAN_PLAYER_OPTIONS_LENGTH = 3;
         private const int AI_PLAYER_OPTIONS_LENGTH = 2;
+        private const int PING_UPDATE_INTERVAL = 5000;
 
         private const double GAME_BROADCAST_INTERVAL = 30.0;
         private const double GAME_BROADCAST_ACCELERATION = 10.0;
@@ -72,6 +74,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 new NoParamCommandHandler(MAP_SHARING_DISABLED_MESSAGE, HandleMapSharingBlockedMessage),
                 new NoParamCommandHandler("RETURN", ReturnNotification),
                 new IntCommandHandler("TNLPNG", TunnelPingNotification),
+                new IntCommandHandler("PNGCHK", PingCheckNotification),
                 new StringCommandHandler("FHSH", FileHashNotification),
                 new StringCommandHandler("MM", CheaterNotification),
                 new StringCommandHandler(DICE_ROLL_MESSAGE, HandleDiceRollResult),
@@ -124,6 +127,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         private List<string> hostUploadedMaps = new List<string>();
 
         private MapSharingConfirmationPanel mapSharingConfirmationPanel;
+        private static System.Timers.Timer timer;
 
         /// <summary>
         /// The SHA1 of the latest selected map.
@@ -253,6 +257,27 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             WindowManager.SelectedControl = tbChatInput;
             ResetAutoReadyCheckbox();
             UpdateDiscordPresence(true);
+            timer = new Timer(PING_UPDATE_INTERVAL);
+            timer.Elapsed += UpdatePing;
+            timer.Enabled = true;
+            Logger.Log("TTTTTTTTTTTT");
+            timer.Start();
+        }
+
+        private void UpdatePing(object sender, ElapsedEventArgs e)
+        {
+            Logger.Log("Updating ping");
+            List <CnCNetTunnel> tunnelsToPing = new List<CnCNetTunnel>()
+            { tunnel };
+            tunnelHandler.PingTunnels(tunnelsToPing);
+            channel.SendCTCPMessage("PNGCHK " + tunnel.PingInMs, QueuedMessageType.SYSTEM_MESSAGE, 10);
+
+            PlayerInfo pInfo = Players.Find(p => p.Name.Equals(ProgramConstants.PLAYERNAME));
+            if(pInfo != null)
+            {
+                pInfo.Ping = tunnel.PingInMs;
+                CopyPlayerDataToUI();
+            }
         }
 
         private void PrintTunnelServerInformation(string s)
@@ -1331,6 +1356,16 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             }
             else
                 AddNotice(sender + " - unknown ping to tunnel server.");
+        }
+
+        private void PingCheckNotification(string sender, int ping)
+        {
+            PlayerInfo pInfo = Players.Find(p => p.Name.Equals(sender));
+            if(pInfo != null)
+            {
+                pInfo.Ping = ping;
+                CopyPlayerDataToUI();
+            }
         }
 
         private void FileHashNotification(string sender, string filesHash)

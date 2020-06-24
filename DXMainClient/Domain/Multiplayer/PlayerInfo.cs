@@ -13,6 +13,7 @@ namespace DTAClient.Domain.Multiplayer
         public PlayerInfo(string name)
         {
             Name = name;
+            Ping = -1;
         }
 
         public PlayerInfo(string name, int sideId, int startingLocation, int colorId, int teamId)
@@ -22,6 +23,7 @@ namespace DTAClient.Domain.Multiplayer
             StartingLocation = startingLocation;
             ColorId = colorId;
             TeamId = teamId;
+            Ping = -1;
         }
 
         public string Name { get; set; }
@@ -40,6 +42,8 @@ namespace DTAClient.Domain.Multiplayer
         public bool Verified { get; set; }
 
         public int Index { get; set; }
+
+        public int Ping { get; set; }
 
         /// <summary>
         /// Returns the "reversed" AI level ("how it was in Tiberian Sun UI") of the AI.

@@ -1641,7 +1641,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 pInfo.Index = pId;
 
                 XNADropDown ddPlayerName = ddPlayerNames[pId];
-                ddPlayerName.Items[0].Text = pInfo.Name;
+                ddPlayerName.Items[0].Text = $"{pInfo.Name} " + (pInfo.Ping >= 0 ? $"{pInfo.Ping.ToString()} ms" : "? ms");
                 ddPlayerName.Items[1].Text = string.Empty;
                 ddPlayerName.Items[2].Text = "Kick";
                 ddPlayerName.Items[3].Text = "Ban";

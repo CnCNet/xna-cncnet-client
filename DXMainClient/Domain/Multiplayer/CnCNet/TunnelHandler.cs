@@ -206,7 +206,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
             thread.Start(tunnels);
         }
 
-        private void PingTunnels(object _tunnels)
+        public void PingTunnels(object _tunnels)
         {
             List<CnCNetTunnel> Tunnels = (List<CnCNetTunnel>)_tunnels;
             for (int tnlId = 0; tnlId < Tunnels.Count; tnlId++)
