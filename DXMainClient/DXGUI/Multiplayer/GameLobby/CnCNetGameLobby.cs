@@ -25,11 +25,12 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
     {
         private const int HUMAN_PLAYER_OPTIONS_LENGTH = 3;
         private const int AI_PLAYER_OPTIONS_LENGTH = 2;
-        private const int PING_UPDATE_INTERVAL = 5000;
 
         private const double GAME_BROADCAST_INTERVAL = 30.0;
+        private const double PING_BROADCAST_INTERVAL = 5.0;
         private const double GAME_BROADCAST_ACCELERATION = 10.0;
         private const double INITIAL_GAME_BROADCAST_DELAY = 10.0;
+        private const double INITIAL_PING_BROADCAST_DELAY = 1.0;
 
         private static readonly Color ERROR_MESSAGE_COLOR = Color.Yellow;
 
@@ -73,8 +74,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 new StringCommandHandler(MAP_SHARING_DOWNLOAD_REQUEST, HandleMapDownloadRequest),
                 new NoParamCommandHandler(MAP_SHARING_DISABLED_MESSAGE, HandleMapSharingBlockedMessage),
                 new NoParamCommandHandler("RETURN", ReturnNotification),
-                new IntCommandHandler("TNLPNG", TunnelPingNotification),
-                new IntCommandHandler("PNGCHK", PingCheckNotification),
+                new IntCommandHandler("TNLPNG", HandleTunnelPing),
                 new StringCommandHandler("FHSH", FileHashNotification),
                 new StringCommandHandler("MM", CheaterNotification),
                 new StringCommandHandler(DICE_ROLL_MESSAGE, HandleDiceRollResult),
@@ -115,6 +115,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         private IRCColor chatColor;
 
         private XNATimerControl gameBroadcastTimer;
+        private XNATimerControl pingBroadcastTimer;
 
         private int playerLimit;
 
@@ -127,7 +128,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         private List<string> hostUploadedMaps = new List<string>();
 
         private MapSharingConfirmationPanel mapSharingConfirmationPanel;
-        private static System.Timers.Timer timer;
 
         /// <summary>
         /// The SHA1 of the latest selected map.
@@ -159,6 +159,12 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             gameBroadcastTimer.Enabled = false;
             gameBroadcastTimer.TimeElapsed += GameBroadcastTimer_TimeElapsed;
 
+            pingBroadcastTimer = new XNATimerControl(WindowManager);
+            pingBroadcastTimer.AutoReset = true;
+            pingBroadcastTimer.Interval = TimeSpan.FromSeconds(PING_BROADCAST_INTERVAL);
+            pingBroadcastTimer.Enabled = false;
+            pingBroadcastTimer.TimeElapsed += PingBroadcastTimer_TimeElapsed;
+
             tunnelSelectionWindow = new TunnelSelectionWindow(WindowManager, tunnelHandler);
             tunnelSelectionWindow.Initialize();
             tunnelSelectionWindow.DrawOrder = 1;
@@ -172,6 +178,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             mapSharingConfirmationPanel.MapDownloadConfirmed += MapSharingConfirmationPanel_MapDownloadConfirmed;
 
             WindowManager.AddAndInitializeControl(gameBroadcastTimer);
+            WindowManager.AddAndInitializeControl(pingBroadcastTimer);
 
             PostInitialize();
         }
@@ -179,6 +186,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         private void BtnChangeTunnel_LeftClick(object sender, EventArgs e) => ShowTunnelSelectionWindow("Select tunnel server:");
 
         private void GameBroadcastTimer_TimeElapsed(object sender, EventArgs e) => BroadcastGame();
+
+        private void PingBroadcastTimer_TimeElapsed(object sender, EventArgs e) => UpdatePing();
 
         public void SetUp(Channel channel, bool isHost, int playerLimit, 
             CnCNetTunnel tunnel, string hostName, bool isCustomPassword)
@@ -244,34 +253,32 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             {
                 channel.SendCTCPMessage("FHSH " + fhc.GetCompleteHash(), QueuedMessageType.SYSTEM_MESSAGE, 10);
 
-                channel.SendCTCPMessage("TNLPNG " + tunnel.PingInMs, QueuedMessageType.SYSTEM_MESSAGE, 10);
+                //channel.SendCTCPMessage("TNLPNG " + tunnel.PingInMs, QueuedMessageType.SYSTEM_MESSAGE, 10);
 
-                if (tunnel.PingInMs < 0)
-                    AddNotice(ProgramConstants.PLAYERNAME + " - unknown ping to tunnel server.");
-                else
-                    AddNotice(ProgramConstants.PLAYERNAME + " - ping to tunnel server: " + tunnel.PingInMs + " ms");
+                //if (tunnel.PingInMs < 0)
+                //    AddNotice(ProgramConstants.PLAYERNAME + " - unknown ping to tunnel server.");
+                //else
+                //    AddNotice(ProgramConstants.PLAYERNAME + " - ping to tunnel server: " + tunnel.PingInMs + " ms");
             }
+
+            gameBroadcastTimer.Enabled = true;
+            gameBroadcastTimer.Start();
+            gameBroadcastTimer.SetTime(TimeSpan.FromSeconds(INITIAL_PING_BROADCAST_DELAY));
 
             TopBar.AddPrimarySwitchable(this);
             TopBar.SwitchToPrimary();
             WindowManager.SelectedControl = tbChatInput;
             ResetAutoReadyCheckbox();
             UpdateDiscordPresence(true);
-            timer = new Timer(PING_UPDATE_INTERVAL);
-            timer.Elapsed += UpdatePing;
-            timer.Enabled = true;
-            timer.Start();
         }
 
-        private void UpdatePing(object sender, ElapsedEventArgs e)
+        private void UpdatePing()
         {
-            List <CnCNetTunnel> tunnelsToPing = new List<CnCNetTunnel>()
-            { tunnel };
-            tunnelHandler.PingTunnels(tunnelsToPing);
-            channel.SendCTCPMessage("PNGCHK " + tunnel.PingInMs, QueuedMessageType.SYSTEM_MESSAGE, 10);
+            tunnelHandler.PingTunnels(new List<CnCNetTunnel>() { tunnel });
+            channel.SendCTCPMessage("TNLPNG " + tunnel.PingInMs, QueuedMessageType.SYSTEM_MESSAGE, 10);
 
             PlayerInfo pInfo = Players.Find(p => p.Name.Equals(ProgramConstants.PLAYERNAME));
-            if(pInfo != null)
+            if (pInfo != null)
             {
                 pInfo.Ping = tunnel.PingInMs;
                 UpdateUIPlayerNameWithPing(pInfo);
@@ -332,6 +339,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             connectionManager.Disconnected -= ConnectionManager_Disconnected;
 
             gameBroadcastTimer.Enabled = false;
+            pingBroadcastTimer.Enabled = false;
             closed = false;
 
             tbChatInput.Text = string.Empty;
@@ -1346,20 +1354,17 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 pInfo.IsInGame = false;
         }
 
-        private void TunnelPingNotification(string sender, int ping)
+        private void HandleTunnelPing(string sender, int ping)
         {
-            if (ping > -1)
-            {
-                AddNotice(sender + " - ping to tunnel server: " + ping + " ms");
-            }
-            else
-                AddNotice(sender + " - unknown ping to tunnel server.");
-        }
+            //if (ping > -1)
+            //{
+            //    AddNotice(sender + " - ping to tunnel server: " + ping + " ms");
+            //}
+            //else
+            //    AddNotice(sender + " - unknown ping to tunnel server.");
 
-        private void PingCheckNotification(string sender, int ping)
-        {
             PlayerInfo pInfo = Players.Find(p => p.Name.Equals(sender));
-            if(pInfo != null)
+            if (pInfo != null)
             {
                 pInfo.Ping = ping;
                 UpdateUIPlayerNameWithPing(pInfo);

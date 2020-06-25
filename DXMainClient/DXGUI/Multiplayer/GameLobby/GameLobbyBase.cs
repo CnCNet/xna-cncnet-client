@@ -1627,7 +1627,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         protected void UpdateUIPlayerNameWithPing(PlayerInfo pInfo)
         {
             XNADropDown ddPlayerName = ddPlayerNames[pInfo.Index];
-            ddPlayerName.Items[0].Text = $"{pInfo.Name} " + (pInfo.Ping >= 0 ? $"{pInfo.Ping.ToString()} ms" : "? ms");
+            ddPlayerName.Items[0].Text = $"{pInfo.Name} " + (pInfo.Ping >= 0 ? $"{pInfo.Ping} ms" : "? ms");
         }
 
         /// <summary>
