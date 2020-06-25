@@ -25,7 +25,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
     {
         private const int HUMAN_PLAYER_OPTIONS_LENGTH = 3;
         private const int AI_PLAYER_OPTIONS_LENGTH = 2;
-        private const int PING_UPDATE_INTERVAL = 1000;
+        private const int PING_UPDATE_INTERVAL = 5000;
 
         private const double GAME_BROADCAST_INTERVAL = 30.0;
         private const double GAME_BROADCAST_ACCELERATION = 10.0;
