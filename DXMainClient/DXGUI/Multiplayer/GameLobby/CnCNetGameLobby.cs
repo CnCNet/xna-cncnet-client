@@ -232,6 +232,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             fhc.CalculateHashes(GameModes);
 
             gameFilesHash = fhc.GetCompleteHash();
+            pingBroadcastTimer.Enabled = true;
+            pingBroadcastTimer.Start();
 
             if (IsHost)
             {
@@ -1356,12 +1358,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private void HandleTunnelPing(string sender, int ping)
         {
-            //if (ping > -1)
-            //{
-            //    AddNotice(sender + " - ping to tunnel server: " + ping + " ms");
-            //}
-            //else
-            //    AddNotice(sender + " - unknown ping to tunnel server.");
 
             PlayerInfo pInfo = Players.Find(p => p.Name.Equals(sender));
             if (pInfo != null)
