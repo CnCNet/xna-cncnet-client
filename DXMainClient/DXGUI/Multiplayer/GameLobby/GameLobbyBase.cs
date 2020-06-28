@@ -1624,10 +1624,29 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             }
         }
 
-        protected void UpdateUIPlayerNameWithPing(PlayerInfo pInfo)
+        protected void UpdatePlayerPingIndicator(PlayerInfo pInfo)
         {
             XNADropDown ddPlayerName = ddPlayerNames[pInfo.Index];
-            ddPlayerName.Items[0].Text = $"{pInfo.Name} " + (pInfo.Ping >= 0 ? $"{pInfo.Ping} ms" : "? ms");
+            ddPlayerName.Items[0].Texture = AssetLoader.LoadTexture(GetAssetForPing(pInfo.Ping));
+        }
+
+        private String GetAssetForPing(int ping)
+        {
+            switch (ping)
+            {
+                case int p when (p < 0 ):
+                    return "ping0.png";
+                case int p when (p < 100 ):
+                    return "ping1.png";
+                case int p when (p < 250 ):
+                    return "ping2.png";
+                case int p when (p < 350 ):
+                    return "ping3.png";
+                case int p when (p >= 350 ):
+                    return "ping4.png";
+                default:
+                    return "ping0.png";
+            }
         }
 
         /// <summary>
@@ -1647,7 +1666,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 pInfo.Index = pId;
 
                 XNADropDown ddPlayerName = ddPlayerNames[pId];
-                UpdateUIPlayerNameWithPing(pInfo);
+                ddPlayerName.Items[0].Text = pInfo.Name;
+                UpdatePlayerPingIndicator(pInfo);
                 ddPlayerName.Items[1].Text = string.Empty;
                 ddPlayerName.Items[2].Text = "Kick";
                 ddPlayerName.Items[3].Text = "Ban";

@@ -283,7 +283,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (pInfo != null)
             {
                 pInfo.Ping = tunnel.PingInMs;
-                UpdateUIPlayerNameWithPing(pInfo);
+                UpdatePlayerPingIndicator(pInfo);
             }
         }
 
@@ -1363,7 +1363,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (pInfo != null)
             {
                 pInfo.Ping = ping;
-                UpdateUIPlayerNameWithPing(pInfo);
+                UpdatePlayerPingIndicator(pInfo);
             }
         }
 
