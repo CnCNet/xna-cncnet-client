@@ -254,13 +254,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             else
             {
                 channel.SendCTCPMessage("FHSH " + fhc.GetCompleteHash(), QueuedMessageType.SYSTEM_MESSAGE, 10);
-
-                //channel.SendCTCPMessage("TNLPNG " + tunnel.PingInMs, QueuedMessageType.SYSTEM_MESSAGE, 10);
-
-                //if (tunnel.PingInMs < 0)
-                //    AddNotice(ProgramConstants.PLAYERNAME + " - unknown ping to tunnel server.");
-                //else
-                //    AddNotice(ProgramConstants.PLAYERNAME + " - ping to tunnel server: " + tunnel.PingInMs + " ms");
             }
 
             gameBroadcastTimer.Enabled = true;
