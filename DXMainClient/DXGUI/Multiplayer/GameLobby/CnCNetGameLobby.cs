@@ -17,7 +17,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using DTAClient.Domain.Multiplayer.CnCNet;
-using System.Timers;
 
 namespace DTAClient.DXGUI.Multiplayer.GameLobby
 {
@@ -1498,7 +1497,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             this.tunnel = tunnel;
             AddNotice($"The game host has changed the tunnel server to: " +
-                $"{tunnel.Name} (Your ping: {tunnel.PingInMs} ms)");
+                $"{tunnel.Name}");
+            UpdatePing();
         }
 
         #region CnCNet map sharing

@@ -1634,16 +1634,14 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             switch (ping)
             {
-                case int p when (p < 0 ):
-                    return "ping0.png";
-                case int p when (p < 100 ):
-                    return "ping1.png";
-                case int p when (p < 250 ):
-                    return "ping2.png";
-                case int p when (p < 350 ):
-                    return "ping3.png";
-                case int p when (p >= 350 ):
+                case int p when (p > 350):
                     return "ping4.png";
+                case int p when (p > 250):
+                    return "ping3.png";
+                case int p when (p > 100):  
+                    return "ping2.png";
+                case int p when (p >= 0):
+                    return "ping1.png";
                 default:
                     return "ping0.png";
             }
