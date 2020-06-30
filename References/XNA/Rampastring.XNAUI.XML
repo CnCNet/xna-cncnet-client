@@ -1485,6 +1485,12 @@
             and the list box border in pixels.
             </summary>
         </member>
+        <member name="P:Rampastring.XNAUI.XNAControls.XNAListBox.ViewTop">
+            <summary>
+            The number of pixels that the list box has been scrolled down from its
+            top-most position.
+            </summary>
+        </member>
         <member name="P:Rampastring.XNAUI.XNAControls.XNAListBox.SelectedItem">
             <summary>
             Gets the currently selected list box item.
