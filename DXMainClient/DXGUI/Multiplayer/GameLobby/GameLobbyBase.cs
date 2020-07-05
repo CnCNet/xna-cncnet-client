@@ -1623,6 +1623,13 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     Players[i].Ready = false;
             }
         }
+        protected void ClearPingIndicators()
+        {
+            foreach(XNADropDown dd in ddPlayerNames)
+            {
+                dd.Items[0].Texture = null;
+            }
+        }
 
         protected void UpdatePlayerPingIndicator(PlayerInfo pInfo)
         {
@@ -1655,7 +1662,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             PlayerUpdatingInProgress = true;
 
             bool allowOptionsChange = AllowPlayerOptionsChange();
-
+            ClearPingIndicators();
             // Human players
             for (int pId = 0; pId < Players.Count; pId++)
             {
