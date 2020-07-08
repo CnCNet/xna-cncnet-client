@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Rampastring.XNAUI;
@@ -104,14 +104,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         /// Allows derived classes to add their own chat box commands.
         /// </summary>
         /// <param name="command">The command to add.</param>
-        protected void AddChatBoxCommand(ChatBoxCommand command)
-        {
-            chatBoxCommands.Add(command);
-        }
+        protected void AddChatBoxCommand(ChatBoxCommand command) => chatBoxCommands.Add(command);
 
         public override void Initialize()
         {
-            Name = "MultiplayerGameLobby";
+            Name = nameof(MultiplayerGameLobby);
 
             base.Initialize();
 
@@ -847,40 +844,28 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             HostLaunchGame();
         }
 
-        protected virtual void LockGameNotification()
-        {
+        protected virtual void LockGameNotification() =>
             AddNotice("You need to lock the game room before launching the game.");
-        }
 
-        protected virtual void SharedColorsNotification()
-        {
+        protected virtual void SharedColorsNotification() =>
             AddNotice("Multiple human players cannot share the same color.");
-        }
 
-        protected virtual void AISpectatorsNotification()
-        {
+        protected virtual void AISpectatorsNotification() =>
             AddNotice("AI players don't enjoy spectating matches. They want some action!");
-        }
 
-        protected virtual void SharedStartingLocationNotification()
-        {
+        protected virtual void SharedStartingLocationNotification() =>
             AddNotice("Multiple players cannot share the same starting location on this map.");
-        }
 
         protected virtual void NotVerifiedNotification(int playerIndex)
         {
             if (playerIndex > -1 && playerIndex < Players.Count)
-            {
                 AddNotice(string.Format("Unable to launch game; player {0} hasn't been verified.", Players[playerIndex].Name));
-            }
         }
 
         protected virtual void StillInGameNotification(int playerIndex)
         {
             if (playerIndex > -1 && playerIndex < Players.Count)
-            {
                 AddNotice("Unable to launch game; player " + Players[playerIndex].Name + " is still playing the game you started previously.");
-            }
         }
 
         protected virtual void GetReadyNotification()
@@ -918,11 +903,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         }
 
         protected abstract void HostLaunchGame();
-
-        protected override void BtnLeaveGame_LeftClick(object sender, EventArgs e)
-        {
-            throw new NotImplementedException();
-        }
 
         protected override void CopyPlayerDataFromUI(object sender, EventArgs e)
         {
@@ -986,17 +966,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         protected abstract void RequestReadyStatus();
 
-        protected void AddNotice(string message)
-        {
-            AddNotice(message, Color.White);
-        }
+        protected void AddNotice(string message) => AddNotice(message, Color.White);
 
         protected abstract void AddNotice(string message, Color color);
 
-        protected override bool AllowPlayerOptionsChange()
-        {
-            return IsHost;
-        }
+        protected override bool AllowPlayerOptionsChange() => IsHost;
 
         protected override void ChangeMap(GameMode gameMode, Map map)
         {
@@ -1028,17 +1002,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             return -1;
         }
 
-        public void SwitchOn()
-        {
-            Enabled = true;
-            Visible = true;
-        }
+        public void SwitchOn() => Enable();
 
-        public void SwitchOff()
-        {
-            Enabled = false;
-            Visible = false;
-        }
+        public void SwitchOff() => Disable();
 
         public abstract string GetSwitchName();
 

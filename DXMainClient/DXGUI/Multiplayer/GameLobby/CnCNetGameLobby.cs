@@ -145,7 +145,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             base.Initialize();
 
             btnChangeTunnel = new XNAClientButton(WindowManager);
-            btnChangeTunnel.Name = "btnChangeTunnel";
+            btnChangeTunnel.Name = nameof(btnChangeTunnel);
             btnChangeTunnel.ClientRectangle = new Rectangle(btnLeaveGame.Right - btnLeaveGame.Width - 145,
                 btnLeaveGame.Y, 133, 23);
             btnChangeTunnel.Text = "Change Tunnel";
@@ -547,7 +547,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             if (cncnetUserData.IsIgnored(e.Message.SenderIdent))
             {
-                lbChatMessages.AddMessage(new ChatMessage(Color.Silver, "Message blocked from - " + e.Message.SenderName));
+                lbChatMessages.AddMessage(new ChatMessage(Color.Silver, "Message blocked from " + e.Message.SenderName));
             }
             else
             {
@@ -565,7 +565,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             if (Players.Count > 1)
             {
-                AddNotice("Contacting tunnel server..");
+                AddNotice("Contacting tunnel server...");
 
                 List<int> playerPorts = tunnel.GetPlayerPortInfo(Players.Count);
 
@@ -575,8 +575,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                         "the CnCNet tunnel server." + Environment.NewLine + 
                         "Try picking a different tunnel server:");
                     AddNotice("An error occured while contacting the specified CnCNet " +
-                        "tunnel server. Please try using a different tunnel server " +
-                        "(accessible by typing /CHANGETUNNEL in the chat box).", ERROR_MESSAGE_COLOR);
+                        "tunnel server. Please try using a different tunnel server ", ERROR_MESSAGE_COLOR);
                     return;
                 }
 
@@ -1464,10 +1463,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             }
         }
 
-        private void HandleCheatDetectedMessage(string sender)
-        {
+        private void HandleCheatDetectedMessage(string sender) => 
             AddNotice(sender + " has modified game files during the client session. They are likely attempting to cheat!", Color.Red);
-        }
 
         private void HandleTunnelServerChangeMessage(string sender, string tunnelAddress)
         {
@@ -1523,8 +1520,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             channel.SendCTCPMessage(MAP_SHARING_UPLOAD_REQUEST + " " + e.SHA1, QueuedMessageType.SYSTEM_MESSAGE, 9);
         }
 
-        private void MapSharer_MapDownloadComplete(object sender, SHA1EventArgs e)
-            => WindowManager.AddCallback(new Action<SHA1EventArgs>(MapSharer_HandleMapDownloadComplete), e);
+        private void MapSharer_MapDownloadComplete(object sender, SHA1EventArgs e) =>
+            WindowManager.AddCallback(new Action<SHA1EventArgs>(MapSharer_HandleMapDownloadComplete), e);
 
         private void MapSharer_HandleMapDownloadComplete(SHA1EventArgs e)
         {
@@ -1550,8 +1547,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             }
         }
 
-        private void MapSharer_MapUploadFailed(object sender, MapEventArgs e)
-            => WindowManager.AddCallback(new Action<MapEventArgs>(MapSharer_HandleMapUploadFailed), e);
+        private void MapSharer_MapUploadFailed(object sender, MapEventArgs e) =>
+            WindowManager.AddCallback(new Action<MapEventArgs>(MapSharer_HandleMapUploadFailed), e);
 
         private void MapSharer_HandleMapUploadFailed(MapEventArgs e)
         {
@@ -1567,8 +1564,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             }
         }
 
-        private void MapSharer_MapUploadComplete(object sender, MapEventArgs e)
-            => WindowManager.AddCallback(new Action<MapEventArgs>(MapSharer_HandleMapUploadComplete), e);
+        private void MapSharer_MapUploadComplete(object sender, MapEventArgs e) =>
+            WindowManager.AddCallback(new Action<MapEventArgs>(MapSharer_HandleMapUploadComplete), e);
 
         private void MapSharer_HandleMapUploadComplete(MapEventArgs e)
         {
@@ -1693,8 +1690,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         /// <summary>
         /// Lowers the time until the next game broadcasting message.
         /// </summary>
-        private void AccelerateGameBroadcasting()
-            => gameBroadcastTimer.Accelerate(TimeSpan.FromSeconds(GAME_BROADCAST_ACCELERATION));
+        private void AccelerateGameBroadcasting() =>
+            gameBroadcastTimer.Accelerate(TimeSpan.FromSeconds(GAME_BROADCAST_ACCELERATION));
 
         private void BroadcastGame()
         {

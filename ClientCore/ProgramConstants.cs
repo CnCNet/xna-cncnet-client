@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Text;
 using System.Windows.Forms;
@@ -37,7 +37,7 @@ namespace ClientCore
 
         public static readonly Encoding LAN_ENCODING = Encoding.UTF8;
 
-        public static string GAME_VERSION = "1.15";
+        public static string GAME_VERSION = "Undefined";
         private static string PlayerName = "No name";
 
         public static string PLAYERNAME
