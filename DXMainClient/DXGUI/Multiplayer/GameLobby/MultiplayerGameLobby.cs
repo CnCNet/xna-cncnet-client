@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using Rampastring.XNAUI;
@@ -13,6 +13,7 @@ using DTAClient.Domain.Multiplayer;
 using ClientGUI;
 using System.Text;
 using DTAClient.Domain;
+using Microsoft.Xna.Framework.Graphics;
 
 namespace DTAClient.DXGUI.Multiplayer.GameLobby
 {
@@ -79,6 +80,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         protected EnhancedSoundEffect sndMessageSound;
         protected EnhancedSoundEffect sndGetReadySound;
 
+        protected Texture2D[] PingTextures;
+
         protected TopBar TopBar;
 
         protected int FrameSendRate { get; set; } = 7;
@@ -111,6 +114,15 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             Name = nameof(MultiplayerGameLobby);
 
             base.Initialize();
+
+            PingTextures = new Texture2D[5]
+            {
+                AssetLoader.LoadTexture("ping0.png"),
+                AssetLoader.LoadTexture("ping1.png"),
+                AssetLoader.LoadTexture("ping2.png"),
+                AssetLoader.LoadTexture("ping3.png"),
+                AssetLoader.LoadTexture("ping4.png")
+            };
 
             InitPlayerOptionDropdowns();
 
@@ -936,17 +948,18 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             base.CopyPlayerDataToUI();
 
+            ClearPingIndicators();
+
             if (IsHost)
             {
                 for (int pId = 1; pId < Players.Count; pId++)
-                {
                     ddPlayerNames[pId].AllowDropDown = true;
-                }
             }
 
             for (int pId = 0; pId < Players.Count; pId++)
             {
                 ReadyBoxes[pId].Checked = Players[pId].Ready;
+                UpdatePlayerPingIndicator(Players[pId]);
             }
 
             for (int aiId = 0; aiId < AIPlayers.Count; aiId++)
@@ -957,6 +970,35 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             for (int i = AIPlayers.Count + Players.Count; i < MAX_PLAYER_COUNT; i++)
             {
                 ReadyBoxes[i].Checked = false;
+            }
+        }
+
+        protected void ClearPingIndicators()
+        {
+            foreach (XNADropDown dd in ddPlayerNames)
+                dd.Items[0].Texture = null;
+        }
+
+        protected void UpdatePlayerPingIndicator(PlayerInfo pInfo)
+        {
+            XNADropDown ddPlayerName = ddPlayerNames[pInfo.Index];
+            ddPlayerName.Items[0].Texture = GetTextureForPing(pInfo.Ping);
+        }
+
+        private Texture2D GetTextureForPing(int ping)
+        {
+            switch (ping)
+            {
+                case int p when (p > 350):
+                    return PingTextures[4];
+                case int p when (p > 250):
+                    return PingTextures[3];
+                case int p when (p > 100):
+                    return PingTextures[2];
+                case int p when (p >= 0):
+                    return PingTextures[1];
+                default:
+                    return PingTextures[0];
             }
         }
 

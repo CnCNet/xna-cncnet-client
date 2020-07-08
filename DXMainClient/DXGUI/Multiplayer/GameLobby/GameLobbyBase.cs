@@ -1,4 +1,4 @@
-using ClientCore;
+﻿using ClientCore;
 using ClientCore.Statistics;
 using ClientGUI;
 using DTAClient.Domain;
@@ -1597,36 +1597,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     Players[i].Ready = false;
             }
         }
-        protected void ClearPingIndicators()
-        {
-            foreach(XNADropDown dd in ddPlayerNames)
-            {
-                dd.Items[0].Texture = null;
-            }
-        }
-
-        protected void UpdatePlayerPingIndicator(PlayerInfo pInfo)
-        {
-            XNADropDown ddPlayerName = ddPlayerNames[pInfo.Index];
-            ddPlayerName.Items[0].Texture = AssetLoader.LoadTexture(GetAssetForPing(pInfo.Ping));
-        }
-
-        private String GetAssetForPing(int ping)
-        {
-            switch (ping)
-            {
-                case int p when (p > 350):
-                    return "ping4.png";
-                case int p when (p > 250):
-                    return "ping3.png";
-                case int p when (p > 100):  
-                    return "ping2.png";
-                case int p when (p >= 0):
-                    return "ping1.png";
-                default:
-                    return "ping0.png";
-            }
-        }
 
         /// <summary>
         /// Applies player information changes done in memory to the UI.
@@ -1636,7 +1606,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             PlayerUpdatingInProgress = true;
 
             bool allowOptionsChange = AllowPlayerOptionsChange();
-            ClearPingIndicators();
+            
             // Human players
             for (int pId = 0; pId < Players.Count; pId++)
             {
@@ -1646,7 +1616,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
                 XNADropDown ddPlayerName = ddPlayerNames[pId];
                 ddPlayerName.Items[0].Text = pInfo.Name;
-                UpdatePlayerPingIndicator(pInfo);
                 ddPlayerName.Items[1].Text = string.Empty;
                 ddPlayerName.Items[2].Text = "Kick";
                 ddPlayerName.Items[3].Text = "Ban";

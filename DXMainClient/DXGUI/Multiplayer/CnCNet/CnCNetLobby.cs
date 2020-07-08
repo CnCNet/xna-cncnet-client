@@ -1192,13 +1192,17 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 List<string> playerNames = players.ToList();
                 string mapName = splitMessage[7];
                 string gameMode = splitMessage[8];
-                string tunnelAddress = splitMessage[9];
+
+                string[] tunnelAddressPort = splitMessage[9].Split(':');
+                string tunnelAddress = tunnelAddressPort[0];
+                int tunnelPort = int.Parse(tunnelAddressPort[1]);
+
                 string loadedGameId = splitMessage[10];
                 bool isRA2Mode = 11 < splitMessage.Length ? Conversions.BooleanFromString(splitMessage[11], false) : false;
 
                 CnCNetGame cncnetGame = gameCollection.GameList.Find(g => g.GameBroadcastChannel == channel.ChannelName);
 
-                CnCNetTunnel tunnel = tunnelHandler.Tunnels.Find(t => t.Address == tunnelAddress);
+                CnCNetTunnel tunnel = tunnelHandler.Tunnels.Find(t => t.Address == tunnelAddress && t.Port == tunnelPort);
 
                 if (tunnel == null)
                     return;
