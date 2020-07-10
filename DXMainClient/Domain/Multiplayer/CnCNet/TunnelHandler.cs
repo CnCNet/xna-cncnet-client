@@ -8,7 +8,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Text;
-using System.Threading;
+using System.Threading.Tasks;
 
 namespace DTAClient.Domain.Multiplayer.CnCNet
 {
@@ -45,11 +45,11 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
         private TimeSpan timeSinceTunnelRefresh = TimeSpan.MaxValue;
         private uint skipCount = 0;
 
-        private void DoTunnelPinged(int tunnelIndex) => 
-            wm.AddCallback((Action<int>) (i => TunnelPinged?.Invoke(i)), tunnelIndex);
+        private void DoTunnelPinged(int index) =>
+            wm.AddCallback(TunnelPinged, index);
 
         private void DoCurrentTunnelPinged() =>
-            CurrentTunnelPinged?.Invoke(this, EventArgs.Empty);
+            wm.AddCallback(CurrentTunnelPinged, this, EventArgs.Empty);
 
         private void ConnectionManager_Connected(object sender, EventArgs e) => Enabled = true;
 
@@ -57,16 +57,13 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
 
         private void ConnectionManager_Disconnected(object sender, EventArgs e) => Enabled = false;
 
-        private void RefreshTunnelsThreaded()
+        private void RefreshTunnelsAsync()
         {
-            Thread thread = new Thread(RefreshTunnelsMain);
-            thread.Start();
-        }
-
-        private void RefreshTunnelsMain()
-        {
-            List<CnCNetTunnel> tunnels = RefreshTunnels();
-            wm.AddCallback(new Action<List<CnCNetTunnel>>(HandleRefreshedTunnels), tunnels);
+            Task.Factory.StartNew(() =>
+            {
+                List<CnCNetTunnel> tunnels = RefreshTunnels();
+                wm.AddCallback(new Action<List<CnCNetTunnel>>(HandleRefreshedTunnels), tunnels);
+            });
         }
 
         private void HandleRefreshedTunnels(List<CnCNetTunnel> tunnels)
@@ -74,27 +71,62 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
             if (tunnels.Count > 0)
                 Tunnels = tunnels;
 
+            Task[] pingTasks = new Task[Tunnels.Count];
+
             for (int i = 0; i < Tunnels.Count; i++)
             {
                 if (UserINISettings.Instance.PingUnofficialCnCNetTunnels || Tunnels[i].Official || Tunnels[i].Recommended)
-                {
-                    Tunnels[i].UpdatePing();
-                    DoTunnelPinged(i);
-                }
+                    pingTasks[i] = PingListTunnelAsync(i);
             }
 
             if (CurrentTunnel != null)
             {
-                var updatedTunnel = Tunnels.Find(t => t.Address.Equals(CurrentTunnel.Address) && t.Port.Equals(CurrentTunnel.Port));
+                var updatedTunnel = Tunnels.Find(t => t.Address == CurrentTunnel.Address && t.Port == CurrentTunnel.Port);
                 if (updatedTunnel != null)
+                {
+                    // don't re-ping if still exists in list, just update the tunnel and fire the event handler
                     CurrentTunnel = updatedTunnel;
+                    DoCurrentTunnelPinged();
+                }
                 else
-                    CurrentTunnel.UpdatePing();
-
-                DoCurrentTunnelPinged();
+                {
+                    // tunnel is not in the list anymore so it's pinged
+                    PingCurrentTunnelAsync();
+                }
             }
 
-            TunnelsRefreshed?.Invoke(this, EventArgs.Empty);
+            Task.Factory.StartNew(() =>
+            {
+                Task.WaitAll(pingTasks);
+                TunnelsRefreshed?.Invoke(this, EventArgs.Empty);
+            });
+        }
+
+        private Task PingListTunnelAsync(int index)
+        {
+            return Task.Factory.StartNew(() =>
+            {
+                Tunnels[index].UpdatePing();
+                if (TunnelPinged != null)
+                    DoTunnelPinged(index);
+            });
+        }
+
+        private Task PingCurrentTunnelAsync(bool checkTunnelList = false)
+        {
+            return Task.Factory.StartNew(() =>
+            {
+                CurrentTunnel.UpdatePing();
+                if (CurrentTunnelPinged != null)
+                    DoCurrentTunnelPinged();
+
+                if (checkTunnelList && TunnelPinged != null)
+                {
+                    int tunnelIndex = Tunnels.FindIndex(t => t.Address == CurrentTunnel.Address && t.Port == CurrentTunnel.Port);
+                    if (tunnelIndex > -1)
+                        DoTunnelPinged(tunnelIndex);
+                }
+            });
         }
 
         /// <summary>
@@ -155,7 +187,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
 
                     if (tunnel.RequiresPassword)
                         continue;
-                        
+
                     if (tunnel.Version != SUPPORTED_TUNNEL_VERSION)
                         continue;
 
@@ -193,18 +225,13 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                 if (skipCount % CYCLES_PER_TUNNEL_LIST_REFRESH == 0)
                 {
                     skipCount = 0;
-                    RefreshTunnelsThreaded();
+                    RefreshTunnelsAsync();
                 }
                 else if (CurrentTunnel != null)
                 {
-                    CurrentTunnel.UpdatePing();
-                    DoCurrentTunnelPinged();
-
-                    int tunnelIndex = Tunnels.IndexOf(CurrentTunnel);
-                    if (tunnelIndex > -1)
-                        DoTunnelPinged(Tunnels.IndexOf(CurrentTunnel));
+                    PingCurrentTunnelAsync(true);
                 }
-                
+
                 timeSinceTunnelRefresh = TimeSpan.Zero;
                 skipCount++;
             }

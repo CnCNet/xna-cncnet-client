@@ -122,6 +122,9 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         private void TunnelHandler_TunnelPinged(int tunnelIndex)
         {
+            if (tunnelIndex >= ItemCount)
+                return;
+
             XNAListBoxItem lbItem = GetItem(2, tunnelIndex);
             CnCNetTunnel tunnel = tunnelHandler.Tunnels[tunnelIndex];
 
