@@ -247,6 +247,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             TopBar.SwitchToPrimary();
             WindowManager.SelectedControl = tbChatInput;
             ResetAutoReadyCheckbox();
+            UpdatePing();
             UpdateDiscordPresence(true);
         }
 
