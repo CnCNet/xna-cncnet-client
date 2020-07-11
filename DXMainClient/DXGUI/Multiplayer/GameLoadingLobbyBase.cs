@@ -262,7 +262,9 @@ namespace DTAClient.DXGUI.Multiplayer
         protected virtual void GetReadyNotification()
         {
             AddNotice("The game host wants to load the game but cannot because not all players are ready!");
-            SoundPlayer.Play(sndGetReadySound);
+
+            if (!IsHost && !Players.Find(p => p.Name == ProgramConstants.PLAYERNAME).Ready)
+                sndGetReadySound.Play();
 
             WindowManager.FlashWindow();
         }

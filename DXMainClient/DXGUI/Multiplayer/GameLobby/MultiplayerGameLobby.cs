@@ -851,7 +851,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         protected virtual void GetReadyNotification()
         {
             AddNotice("The host wants to start the game but cannot because not all players are ready!");
-            sndGetReadySound.Play();
+            if (!IsHost && !Players.Find(p => p.Name == ProgramConstants.PLAYERNAME).Ready)
+                sndGetReadySound.Play();
         }
 
         protected virtual void InsufficientPlayersNotification()
