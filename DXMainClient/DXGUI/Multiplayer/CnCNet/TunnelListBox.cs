@@ -75,7 +75,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
                 info.Add(tunnel.Name);
                 info.Add(Conversions.BooleanToString(tunnel.Official, BooleanStringStyle.YESNO));
-                if (tunnel.PingInMs == -1)
+                if (tunnel.PingInMs < 0)
                     info.Add("Unknown");
                 else
                     info.Add(tunnel.PingInMs + " ms");
@@ -122,9 +122,6 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         private void TunnelHandler_TunnelPinged(int tunnelIndex)
         {
-            if (tunnelIndex >= ItemCount)
-                return;
-
             XNAListBoxItem lbItem = GetItem(2, tunnelIndex);
             CnCNetTunnel tunnel = tunnelHandler.Tunnels[tunnelIndex];
 

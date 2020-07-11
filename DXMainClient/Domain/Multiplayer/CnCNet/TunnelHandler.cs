@@ -83,6 +83,8 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
             if (tunnels.Count > 0)
                 Tunnels = tunnels;
 
+            TunnelsRefreshed?.Invoke(this, EventArgs.Empty);
+
             Task[] pingTasks = new Task[Tunnels.Count];
 
             for (int i = 0; i < Tunnels.Count; i++)
@@ -96,22 +98,17 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                 var updatedTunnel = Tunnels.Find(t => t.Address == CurrentTunnel.Address && t.Port == CurrentTunnel.Port);
                 if (updatedTunnel != null)
                 {
-                    // don't re-ping if still exists in list, just update the tunnel and fire the event handler
+                    // don't re-ping if the tunnel still exists in list, just update the tunnel instance and
+                    // fire the event handler (the tunnel was already pinged when traversing the tunnel list)
                     CurrentTunnel = updatedTunnel;
                     DoCurrentTunnelPinged();
                 }
                 else
                 {
-                    // tunnel is not in the list anymore so it's pinged
+                    // tunnel is not in the list anymore so it's not updated with a list instance and pinged
                     PingCurrentTunnelAsync();
                 }
             }
-
-            Task.Factory.StartNew(() =>
-            {
-                Task.WaitAll(pingTasks);
-                TunnelsRefreshed?.Invoke(this, EventArgs.Empty);
-            });
         }
 
         private Task PingListTunnelAsync(int index)
