@@ -1193,9 +1193,9 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 string mapName = splitMessage[7];
                 string gameMode = splitMessage[8];
 
-                string[] tunnelAddressPort = splitMessage[9].Split(':');
-                string tunnelAddress = tunnelAddressPort[0];
-                int tunnelPort = int.Parse(tunnelAddressPort[1]);
+                string[] tunnelAddressAndPort = splitMessage[9].Split(':');
+                string tunnelAddress = tunnelAddressAndPort[0];
+                int tunnelPort = int.Parse(tunnelAddressAndPort[1]);
 
                 string loadedGameId = splitMessage[10];
                 bool isRA2Mode = 11 < splitMessage.Length ? Conversions.BooleanFromString(splitMessage[11], false) : false;

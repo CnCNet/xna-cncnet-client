@@ -14,8 +14,20 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
 {
     public class TunnelHandler : GameComponent
     {
+        /// <summary>
+        /// Determines the time between pinging the current tunnel (if it's set).
+        /// </summary>
         private const double CURRENT_TUNNEL_REFRESH_INTERVAL = 5.0;
+
+        /// <summary>
+        /// A reciprocal to the value which determines how frequent the full tunnel
+        /// refresh would be done instead of just pinging the current tunnel (1/N of 
+        /// current tunnel ping refreshes would be substituted by a full list refresh).
+        /// Multiply by CURRENT_TUNNEL_REFRESH_INTERVAL to get the interval between full
+        /// list refreshes.
+        /// </summary>
         private const uint CYCLES_PER_TUNNEL_LIST_REFRESH = 24;
+
         private const int SUPPORTED_TUNNEL_VERSION = 2;
 
         public TunnelHandler(WindowManager wm, CnCNetManager connectionManager) : base(wm.Game)
@@ -151,7 +163,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
             }
             catch (Exception ex)
             {
-                Logger.Log($"Error when downloading tunnel server info: {ex.Message}");
+                Logger.Log("Error when downloading tunnel server info: " + ex.Message);
                 Logger.Log("Retrying.");
                 try
                 {
@@ -195,7 +207,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                 }
                 catch (Exception ex)
                 {
-                    Logger.Log($"Caught an exception when parsing a tunnel server: {ex.Message}");
+                    Logger.Log("Caught an exception when parsing a tunnel server: " + ex.Message);
                 }
             }
 
@@ -211,7 +223,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                 }
                 catch (Exception ex)
                 {
-                    Logger.Log($"Refreshing tunnel cache file failed! Returned error: {ex.Message}");
+                    Logger.Log("Refreshing tunnel cache file failed! Returned error: " + ex.Message);
                 }
             }
 

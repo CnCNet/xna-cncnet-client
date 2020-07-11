@@ -84,8 +84,12 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         public void Open(string description, string tunnelAddress = null)
         {
             lblDescription.Text = description;
-            if (!String.IsNullOrWhiteSpace(tunnelAddress))
+
+            if (!string.IsNullOrWhiteSpace(tunnelAddress))
                 lbTunnelList.SelectTunnel(tunnelAddress);
+            else
+                lbTunnelList.SelectedIndex = -1;
+
             Enable();
         }
     }

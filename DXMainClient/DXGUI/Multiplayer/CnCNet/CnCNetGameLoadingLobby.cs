@@ -551,12 +551,12 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 BroadcastOptions();
         }
 
-        private void HandleTunnelServerChangeMessage(string sender, string tunnelAddressPort)
+        private void HandleTunnelServerChangeMessage(string sender, string tunnelAddressAndPort)
         {
             if (sender != hostName)
                 return;
 
-            string[] split = tunnelAddressPort.Split(':');
+            string[] split = tunnelAddressAndPort.Split(':');
             string tunnelAddress = split[0];
             int tunnelPort = int.Parse(split[1]);
 

@@ -22,7 +22,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
         /// information into a CnCNetTunnel instance.
         /// </summary>
         /// <param name="str">The string that contains the tunnel server's information.</param>
-        /// <returns>A CnCNetTunnel instance based on parsed string.</returns>
+        /// <returns>A CnCNetTunnel instance parsed from the given string string.</returns>
         public static CnCNetTunnel Parse(string str)
         {
             // For the format, check http://cncnet.org/master-list

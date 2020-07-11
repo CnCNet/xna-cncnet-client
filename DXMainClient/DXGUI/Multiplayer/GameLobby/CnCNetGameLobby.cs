@@ -1458,12 +1458,12 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         private void HandleCheatDetectedMessage(string sender) => 
             AddNotice(sender + " has modified game files during the client session. They are likely attempting to cheat!", Color.Red);
 
-        private void HandleTunnelServerChangeMessage(string sender, string tunnelAddressPort)
+        private void HandleTunnelServerChangeMessage(string sender, string tunnelAddressAndPort)
         {
             if (sender != hostName)
                 return;
 
-            string[] split = tunnelAddressPort.Split(':');
+            string[] split = tunnelAddressAndPort.Split(':');
             string tunnelAddress = split[0];
             int tunnelPort = int.Parse(split[1]);
 
