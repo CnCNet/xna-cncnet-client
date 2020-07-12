@@ -224,7 +224,7 @@ namespace ClientCore
             get { return DTACnCNetClient_ini.GetStringValue(GENERAL, "MainMenuTheme", "mainmenu"); }
         }
 
-        #region Sound options
+        #region Audio options
 
         public float SoundGameLobbyJoinCooldown => DTACnCNetClient_ini.GetSingleValue(AUDIO, "SoundGameLobbyJoinCooldown", 0.25f);
 
