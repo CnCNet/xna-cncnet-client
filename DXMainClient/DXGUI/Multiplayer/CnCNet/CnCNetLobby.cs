@@ -1183,10 +1183,9 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             if (isInGameRoom && !ProgramConstants.IsInGame)
             {
-                XNAMessageBox.Show(WindowManager,
-                    "Invitation failed",
-                    sender + " could not receive your invitation. They might be in game\r\n" +
-                    "or only accepting invitations from friends. Ensure your game is\r\n" +
+                gameLobby.AddWarning(
+                    sender + " could not receive your invitation. They might be in game " +
+                    "or only accepting invitations from friends. Ensure your game is " +
                     "unlocked and visible in the lobby before trying again.");
             }
         }
