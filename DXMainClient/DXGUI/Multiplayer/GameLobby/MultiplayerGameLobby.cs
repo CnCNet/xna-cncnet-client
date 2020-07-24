@@ -975,14 +975,21 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         protected void ClearPingIndicators()
         {
-            foreach (XNADropDown dd in ddPlayerNames)
+            foreach (XNAClientDropDown dd in ddPlayerNames)
+            {
                 dd.Items[0].Texture = null;
+                dd.ToolTip.Text = string.Empty;
+            }
         }
 
         protected void UpdatePlayerPingIndicator(PlayerInfo pInfo)
         {
-            XNADropDown ddPlayerName = ddPlayerNames[pInfo.Index];
+            XNAClientDropDown ddPlayerName = ddPlayerNames[pInfo.Index];
             ddPlayerName.Items[0].Texture = GetTextureForPing(pInfo.Ping);
+            if (pInfo.Ping < 0)
+                ddPlayerName.ToolTip.Text = "Ping: ? ms";
+            else
+                ddPlayerName.ToolTip.Text = $"Ping: {pInfo.Ping} ms";
         }
 
         private Texture2D GetTextureForPing(int ping)

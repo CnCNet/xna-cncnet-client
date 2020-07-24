@@ -17,7 +17,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
         /// <summary>
         /// Determines the time between pinging the current tunnel (if it's set).
         /// </summary>
-        private const double CURRENT_TUNNEL_REFRESH_INTERVAL = 5.0;
+        private const double CURRENT_TUNNEL_PING_INTERVAL = 20.0;
 
         /// <summary>
         /// A reciprocal to the value which determines how frequent the full tunnel
@@ -26,7 +26,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
         /// Multiply by CURRENT_TUNNEL_REFRESH_INTERVAL to get the interval between full
         /// list refreshes.
         /// </summary>
-        private const uint CYCLES_PER_TUNNEL_LIST_REFRESH = 24;
+        private const uint CYCLES_PER_TUNNEL_LIST_REFRESH = 6;
 
         private const int SUPPORTED_TUNNEL_VERSION = 2;
 
@@ -229,7 +229,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
 
         public override void Update(GameTime gameTime)
         {
-            if (timeSinceTunnelRefresh > TimeSpan.FromSeconds(CURRENT_TUNNEL_REFRESH_INTERVAL))
+            if (timeSinceTunnelRefresh > TimeSpan.FromSeconds(CURRENT_TUNNEL_PING_INTERVAL))
             {
                 if (skipCount % CYCLES_PER_TUNNEL_LIST_REFRESH == 0)
                 {
