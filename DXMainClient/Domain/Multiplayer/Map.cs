@@ -468,9 +468,11 @@ namespace DTAClient.Domain.Multiplayer
                 System.Drawing.Bitmap preview = MapPreviewExtractor.ExtractMapPreview(mapIni);
 
                 if (preview != null)
-                    return AssetLoader.TextureFromImage(preview);
-                else
-                    return AssetLoader.CreateTexture(Color.Black, 10, 10);
+                {
+                    Texture2D texture = AssetLoader.TextureFromImage(preview);
+                    if (texture != null)
+                        return texture;
+                }
             }
 
             return AssetLoader.CreateTexture(Color.Black, 10, 10);
