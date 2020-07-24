@@ -65,7 +65,6 @@ echo Common
 
 copy DTAUpdater.dll %commonBinaries%DTAUpdater.dll
 copy Ionic.Zip.dll %commonBinaries%Ionic.Zip.dll
-copy MapThumbnailExtractor.dll %commonBinaries%MapThumbnailExtractor.dll
 copy Rampastring.Tools.dll %commonBinaries%Rampastring.Tools.dll
 copy Newtonsoft.Json.dll %commonBinaries%Newtonsoft.Json.dll
 copy DiscordRPC.dll %commonBinaries%DiscordRPC.dll
