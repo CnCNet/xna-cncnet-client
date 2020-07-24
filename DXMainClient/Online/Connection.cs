@@ -3,9 +3,13 @@ using Rampastring.Tools;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Net;
+using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace DTAClient.Online
 {
@@ -17,6 +21,7 @@ namespace DTAClient.Online
         private const int MAX_RECONNECT_COUNT = 8;
         private const int RECONNECT_WAIT_DELAY = 4000;
         private const int ID_LENGTH = 9;
+        private const int MAXIMUM_LATENCY = 400;
 
         public Connection(IConnectionManager connectionManager)
         {
@@ -97,13 +102,13 @@ namespace DTAClient.Online
         private readonly Encoding encoding = Encoding.UTF8;
 
         /// <summary>
-        /// A list of server IDs that have dropped our connection.
+        /// A list of server IPs that have dropped our connection.
         /// The client skips these servers when attempting to re-connect, to
         /// prevent a server that first accepts a connection and then drops it
         /// right afterwards from preventing online play.
         /// </summary>
-        private List<int> failedServerIds = new List<int>();
-        private volatile int currentConnectedServerId = 0;
+        private readonly List<string> failedServerIPs = new List<string>();
+        private volatile string currentConnectedServerIP;
 
         private static readonly object locker = new object();
         private static readonly object messageQueueLocker = new object();
@@ -158,13 +163,10 @@ namespace DTAClient.Online
         /// </summary>
         private void ConnectToServer()
         {
-            for (int serverId = 0; serverId < Servers.Count; serverId++)
+            var availableServerSortedList = GetAvailableServerList();
+
+            foreach (var server in availableServerSortedList)
             {
-                if (failedServerIds.Contains(serverId))
-                    continue;
-
-                Server server = Servers[serverId];
-
                 try
                 {
                     for (var i = 0; i < server.Ports.Length; i++)
@@ -199,7 +201,7 @@ namespace DTAClient.Online
                             serverStream = tcpClient.GetStream();
                             serverStream.ReadTimeout = 1000;
 
-                            currentConnectedServerId = serverId;
+                            currentConnectedServerIP = server.Host;
                             HandleComm(client);
                             return;
                         }
@@ -213,7 +215,7 @@ namespace DTAClient.Online
 
             Logger.Log("Connecting to CnCNet failed!");
             // Clear the failed server list in case connecting to all servers has failed
-            failedServerIds.Clear();
+            failedServerIPs.Clear();
             _attemptingConnection = false;
             connectionManager.OnConnectAttemptFailed();
         }
@@ -253,7 +255,7 @@ namespace DTAClient.Online
                     if (errorTimes > 30) // TODO Figure out if this hacky check is actually necessary
                     {
                         Logger.Log("Disconnected from CnCNet due to a socket error. Message: " + ex.Message);
-                        failedServerIds.Add(currentConnectedServerId);
+                        failedServerIPs.Add(currentConnectedServerIP);
                         connectionManager.OnConnectionLost(ex.Message);
                         break;
                     }
@@ -273,7 +275,7 @@ namespace DTAClient.Online
 
                     if (errorTimes > 30) // TODO Figure out if this hacky check is actually necessary
                     {
-                        failedServerIds.Add(currentConnectedServerId);
+                        failedServerIPs.Add(currentConnectedServerIP);
                         Logger.Log("Disconnected from CnCNet.");
                         connectionManager.OnConnectionLost("Server disconnected.");
                         break;
@@ -322,6 +324,110 @@ namespace DTAClient.Online
                 Logger.Log("Attempting to reconnect to CnCNet.");
                 connectionManager.OnReconnectAttempt();
             }
+        }
+
+        /// <summary>
+        /// Get all IP addresses of Lobby servers by resolving the hostname and test the latency to the servers.
+        /// The maximum latency is defined in <c>MAXIMUM_LATENCY</c>, see <see cref="Connection.MAXIMUM_LATENCY"/>.
+        /// </summary>
+        /// <returns>A list of available Lobby servers sorted by latency.</returns>
+        private IEnumerable<Server> GetAvailableServerList()
+        {
+            var availableServerAndLatencyDict = new Dictionary<Server, long>();
+
+            try
+            {
+                var dnsAndPingTasks = new List<Task>();
+
+                foreach (var server in Servers)
+                {
+                    var serverHostnameOrIPAddress = server.Host;
+                    var serverName = server.Name;
+                    var serverPorts = server.Ports;
+
+                    var dnsAndPingTask = new Task(() =>
+                    {
+                        Logger.Log($"Attempting to DNS resolve {serverName} ({serverHostnameOrIPAddress}).");
+
+                        // If hostNameOrAddress is an IP address, this address is returned without querying the DNS server.
+                        var serverIPAddresses = Dns.GetHostAddresses(serverHostnameOrIPAddress).Where(item => item.AddressFamily == AddressFamily.InterNetwork).ToList();
+
+                        Logger.Log($"DNS resolved {serverName} ({serverHostnameOrIPAddress}): {string.Join(", ", serverIPAddresses.Select(item => item.ToString()))}");
+
+                        var pingTasks = new List<Task>();
+
+                        foreach (var serverIPAddress in serverIPAddresses)
+                        {
+                            var theIPAddress = serverIPAddress;
+
+                            if (availableServerAndLatencyDict.Any(item => item.Key.Host == theIPAddress.ToString()))
+                            {
+                                Logger.Log($"Skipped a duplicate IP from {serverName} ({theIPAddress}).");
+
+                                continue;
+                            }
+
+                            if (failedServerIPs.Contains(theIPAddress.ToString()))
+                            {
+                                Logger.Log($"Skipped a failed server {serverName} ({theIPAddress}).");
+
+                                continue;
+                            }
+
+                            var pingTask = new Task(() =>
+                            {
+                                Logger.Log($"Attempting to ping {serverName} ({theIPAddress}).");
+
+                                var pingReply = new Ping().Send(theIPAddress, MAXIMUM_LATENCY);
+
+                                if (pingReply.Status == IPStatus.Success)
+                                {
+                                    var pingInMs = pingReply.RoundtripTime;
+
+                                    Logger.Log($"The latency in milliseconds to the server {serverName} ({theIPAddress}): {pingInMs}.");
+
+                                    availableServerAndLatencyDict.Add(new Server(theIPAddress.ToString(), serverName, serverPorts), pingInMs);
+                                }
+                                else
+                                {
+                                    if (pingReply.Status == IPStatus.TimedOut)
+                                    {
+                                        Logger.Log($"Pinging the server {serverName} ({theIPAddress}) timed out!");
+                                    }
+                                }
+                            });
+
+                            pingTask.Start();
+                            pingTasks.Add(pingTask);
+                        }
+
+                        Task.WaitAll(pingTasks.ToArray());
+                    });
+
+                    dnsAndPingTask.Start();
+                    dnsAndPingTasks.Add(dnsAndPingTask);
+                }
+
+                Task.WaitAll(dnsAndPingTasks.ToArray());
+            }
+            catch (Exception ex)
+            {
+                if (ex is AggregateException)
+                {
+                    foreach (var innerEx in ((AggregateException)ex).Flatten().InnerExceptions)
+                    {
+                        Logger.Log("Unable to contact with the server. " + innerEx.Message);
+                    }
+                }
+                else
+                {
+                    Logger.Log("Unable to contact with the server. " + ex.Message);
+                }
+            }
+
+            Logger.Log($"The number of available Lobby servers is {availableServerAndLatencyDict.Count}.");
+
+            return availableServerAndLatencyDict.OrderBy(item => item.Value).Select(item => item.Key);
         }
 
         public void Disconnect()
