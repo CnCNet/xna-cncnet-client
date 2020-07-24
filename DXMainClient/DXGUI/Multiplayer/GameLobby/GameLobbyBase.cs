@@ -375,15 +375,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             AddChild(btnPickRandomMap);
         }
 
-        private void BtnPickRandomMap_LeftClick(object sender, EventArgs e)
-        {
-            PickRandomMap();
-        }
+        private void BtnPickRandomMap_LeftClick(object sender, EventArgs e) => PickRandomMap();
 
-        private void TbMapSearch_InputReceived(object sender, EventArgs e)
-        {
-            ListMaps();
-        }
+        private void TbMapSearch_InputReceived(object sender, EventArgs e) => ListMaps();
 
         private void Dropdown_SelectedIndexChanged(object sender, EventArgs e)
         {
@@ -662,11 +656,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 ddPlayerSide.ClientRectangle = new Rectangle(
                     ddPlayerName.Right + playerOptionHorizontalMargin,
                     ddPlayerName.Y, sideWidth, DROP_DOWN_HEIGHT);
-                ddPlayerSide.AddItem("Random", AssetLoader.LoadTexture("randomicon.png"));
+                ddPlayerSide.AddItem("Random", LoadTextureOrNull("randomicon.png"));
                 foreach (string randomSelector in selectorNames)
-                    ddPlayerSide.AddItem(randomSelector, AssetLoader.LoadTexture(randomSelector + "icon.png"));
+                    ddPlayerSide.AddItem(randomSelector, LoadTextureOrNull(randomSelector + "icon.png"));
                 foreach (string sideName in sides)
-                    ddPlayerSide.AddItem(sideName, AssetLoader.LoadTexture(sideName + "icon.png"));
+                    ddPlayerSide.AddItem(sideName, LoadTextureOrNull(sideName + "icon.png"));
                 ddPlayerSide.AllowDropDown = false;
                 ddPlayerSide.SelectedIndexChanged += CopyPlayerDataFromUI;
                 ddPlayerSide.Tag = true;
@@ -762,6 +756,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             CheckDisallowedSides();
         }
+
+        private Texture2D LoadTextureOrNull(string name) =>
+            AssetLoader.AssetExists(name) ? AssetLoader.LoadTexture(name) : null;
 
         /// <summary>
         /// Loads random side selectors from GameOptions.ini
@@ -984,6 +981,12 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     returnValue[disallowedSideIndex] = true;
             }
 
+            if (GameMode != null)
+            {
+                foreach (int disallowedSideIndex in GameMode.DisallowedPlayerSides)
+                    returnValue[disallowedSideIndex] = true;
+            }
+
             foreach (var checkBox in CheckBoxes)
                 checkBox.ApplyDisallowedSideIndex(returnValue);
 
@@ -1063,7 +1066,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 else
                     pInfo = AIPlayers[i - Players.Count];
 
-                pHouseInfo.RandomizeSide(pInfo, Map, SideCount, random, GetDisallowedSides(), RandomSelectors, RandomSelectorCount);
+                pHouseInfo.RandomizeSide(pInfo, SideCount, random, GetDisallowedSides(), RandomSelectors, RandomSelectorCount);
 
                 pHouseInfo.RandomizeColor(pInfo, freeColors, MPColors, random);
                 pHouseInfo.RandomizeStart(pInfo, Map, freeStartingLocations, random, takenStartingLocations);
