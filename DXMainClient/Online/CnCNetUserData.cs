@@ -1,4 +1,4 @@
-using ClientCore;
+﻿using ClientCore;
 using Rampastring.Tools;
 using Rampastring.XNAUI;
 using System;
@@ -14,14 +14,25 @@ namespace DTAClient.Online
         private const string FRIEND_LIST_PATH = "Client\\friend_list";
         private const string IGNORE_LIST_PATH = "Client\\ignore_list";
 
-        public List<string> FriendList { get; private set; }
-        public List<string> IgnoreList { get; private set; }
+        /// <summary>
+        /// A list which contains names of friended users. If you manipulate this list
+        /// directly you have to also invoke UserFriendToggled event handler for every
+        /// user name added or removed.
+        /// </summary>
+        public List<string> FriendList { get; private set; } = new List<string>();
+
+        /// <summary>
+        /// A list which contains idents of ignored users. If you manipulate this list
+        /// directly you have to also invoke UserIgnoreToggled event handler for every
+        /// user ident added or removed.
+        /// </summary>
+        public List<string> IgnoreList { get; private set; } = new List<string>();
+
+        public event EventHandler<UserNameEventArgs> UserFriendToggled;
+        public event EventHandler<IdentEventArgs> UserIgnoreToggled;
 
         public CnCNetUserData(WindowManager windowManager)
         {
-            FriendList = new List<string>();
-            IgnoreList = new List<string>();
-
             try
             {
                 FriendList = File.ReadAllLines(ProgramConstants.GamePath + FRIEND_LIST_PATH).ToList();
@@ -72,6 +83,7 @@ namespace DTAClient.Online
             else
                 FriendList.Add(name);
 
+            UserFriendToggled?.Invoke(this, new UserNameEventArgs(name));
         }
 
         /// <summary>
@@ -89,6 +101,7 @@ namespace DTAClient.Online
             else
                 IgnoreList.Add(ident);
 
+            UserIgnoreToggled?.Invoke(this, new IdentEventArgs(ident));
         }
 
         /// <summary>
@@ -105,4 +118,13 @@ namespace DTAClient.Online
         public bool IsFriend(string name) => FriendList.Contains(name);
     }
 
+    public class IdentEventArgs : EventArgs
+    {
+        public IdentEventArgs(string ident)
+        {
+            Ident = ident;
+        }
+
+        public string Ident { get; private set; }
+    }
 }

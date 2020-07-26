@@ -1,4 +1,4 @@
-using ClientCore;
+﻿using ClientCore;
 using ClientCore.CnCNet5;
 using ClientGUI;
 using DTAClient.Online;
@@ -156,6 +156,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             playerContextMenu.Enabled = false;
             playerContextMenu.Visible = false;
             playerContextMenu.AddItem("Add Friend", PlayerContextMenu_ToggleFriend);
+            playerContextMenu.AddItem("Toggle Block", PlayerContextMenu_ToggleIgnore);
+            playerContextMenu.Items[1].Selectable = false;
 
             notificationBox = new PrivateMessageNotificationBox(WindowManager);
             notificationBox.Enabled = false;
@@ -333,6 +335,17 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             }
 
             playerContextMenu.Items[0].Text = cncnetUserData.IsFriend(lbUserList.SelectedItem.Text) ? "Remove Friend" : "Add Friend";
+            if ((bool)lbUserList.SelectedItem.Tag)
+            {
+                IRCUser iu = connectionManager.UserList.Find(u => u.Name == lbUserList.SelectedItem.Text);
+                playerContextMenu.Items[1].Text = cncnetUserData.IsIgnored(iu.Ident) ? "Unblock" : "Block";
+                playerContextMenu.Items[1].Selectable = true;
+            }
+            else
+            {
+                playerContextMenu.Items[1].Text = "Toggle Block";
+                playerContextMenu.Items[1].Selectable = false;
+            }
 
             playerContextMenu.Open(GetCursorPoint());
         }
@@ -351,10 +364,20 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 TabControl_SelectedIndexChanged(this, EventArgs.Empty); 
         }
 
-        private void SharedUILogic_GameProcessExited()
+        private void PlayerContextMenu_ToggleIgnore()
         {
-            WindowManager.AddCallback(new Action(HandleGameProcessExited), null);
+            var lbItem = lbUserList.SelectedItem;
+
+            if (lbItem == null || !(bool)lbUserList.SelectedItem.Tag)
+                return;
+
+            IRCUser iu = connectionManager.UserList.Find(u => u.Name == lbUserList.SelectedItem.Text);
+
+            cncnetUserData.ToggleIgnoreUser(iu.Ident);
         }
+
+        private void SharedUILogic_GameProcessExited() =>
+            WindowManager.AddCallback(new Action(HandleGameProcessExited), null);
 
         private void HandleGameProcessExited()
         {

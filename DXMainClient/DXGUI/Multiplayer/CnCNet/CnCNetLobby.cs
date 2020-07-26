@@ -1,4 +1,4 @@
-using ClientCore;
+﻿using ClientCore;
 using ClientCore.CnCNet5;
 using ClientGUI;
 using DTAClient.Domain;
@@ -163,9 +163,9 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             playerContextMenu.AddItem("Private Message", () => 
                 PerformUserListContextMenuAction(iu => pmWindow.InitPM(iu.Name)));
             playerContextMenu.AddItem("Add Friend", () => 
-                PerformUserListContextMenuAction(iu => ToggleFriend(iu.Name)));
+                PerformUserListContextMenuAction(iu => cncnetUserData.ToggleFriend(iu.Name)));
             playerContextMenu.AddItem("Ignore User", () => 
-                PerformUserListContextMenuAction(iu => ToggleIgnoreUser(iu)));
+                PerformUserListContextMenuAction(iu => cncnetUserData.ToggleIgnoreUser(iu.Ident)));
 
             lbChatMessages = new ChatListBox(WindowManager);
             lbChatMessages.Name = nameof(lbChatMessages);
@@ -352,6 +352,9 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             connectionManager.WelcomeMessageReceived += ConnectionManager_WelcomeMessageReceived;
             connectionManager.Disconnected += ConnectionManager_Disconnected;
 
+            cncnetUserData.UserFriendToggled += RefreshPlayerList;
+            cncnetUserData.UserIgnoreToggled += RefreshPlayerList;
+
             gameCreationPanel = new DarkeningPanel(WindowManager);
             AddChild(gameCreationPanel);
 
@@ -513,32 +516,6 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             var channelUser = (ChannelUser)lbPlayerList.SelectedItem.Tag;
 
             pmWindow.InitPM(channelUser.IRCUser.Name);
-        }
-
-        /// <summary>
-        /// Adds or removes a specified user to from the chat ignore list depending on whether
-        /// they already are on the ignore list.
-        /// </summary>
-        /// <param name="ident">The ident of the IRCUser.</param>
-        private void ToggleIgnoreUser(IRCUser ircUser)
-        {
-            cncnetUserData.ToggleIgnoreUser(ircUser.Ident);
-            ChannelUser user = (ChannelUser)lbPlayerList.SelectedItem.Tag;
-            if (user != null)
-                RefreshPlayerListUser(user);
-        }
-
-        /// <summary>
-        /// Adds or removes an user from the friend list depending on whether
-        /// they already are on the friend list.
-        /// </summary>
-        /// <param name="name">The name of the user.</param>
-        private void ToggleFriend(string name)
-        {
-            cncnetUserData.ToggleFriend(name);
-            ChannelUser user = currentChatChannel.Users.Find(name);
-            if (user != null)
-                RefreshPlayerListUser(user);
         }
 
         /// <summary>
