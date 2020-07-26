@@ -44,17 +44,17 @@ namespace DTAClient
         {
             AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(HandleExcept);
 
-            Environment.CurrentDirectory = MainClientConstants.gamepath;
+            Environment.CurrentDirectory = ProgramConstants.GamePath;
 
             CheckPermissions();
 
-            Logger.Initialize(MainClientConstants.gamepath + "Client\\", "client.log");
+            Logger.Initialize(ProgramConstants.GamePath + "Client\\", "client.log");
             Logger.WriteLogFile = true;
 
-            if (!Directory.Exists(MainClientConstants.gamepath + "Client"))
-                Directory.CreateDirectory(MainClientConstants.gamepath + "Client");
+            if (!Directory.Exists(ProgramConstants.GamePath + "Client"))
+                Directory.CreateDirectory(ProgramConstants.GamePath + "Client");
 
-            File.Delete(MainClientConstants.gamepath + "Client\\client.log");
+            File.Delete(ProgramConstants.GamePath + "Client\\client.log");
 
             MainClientConstants.Initialize();
 
@@ -76,11 +76,11 @@ namespace DTAClient
 
             // Delete obsolete files from old target project versions
 
-            File.Delete(MainClientConstants.gamepath + "mainclient.log");
-            File.Delete(MainClientConstants.gamepath + "launchupdt.dat");
+            File.Delete(ProgramConstants.GamePath + "mainclient.log");
+            File.Delete(ProgramConstants.GamePath + "launchupdt.dat");
             try
             {
-                File.Delete(MainClientConstants.gamepath + "wsock32.dll");
+                File.Delete(ProgramConstants.GamePath + "wsock32.dll");
             }
             catch (Exception ex)
             {
