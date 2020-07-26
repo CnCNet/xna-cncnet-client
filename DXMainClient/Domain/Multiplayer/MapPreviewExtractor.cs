@@ -99,12 +99,12 @@ namespace DTAClient.Domain.Multiplayer
                     read += 2;
                     readBytes += 4;
 
+                    if (sizeCompressed == 0 || sizeUncompressed == 0)
+                        break;
+
                     if (readBytes + sizeCompressed > dataSource.Length ||
                         writtenBytes + sizeUncompressed > dataDest.Length)
                         return false;
-
-                    if (sizeCompressed == 0 || sizeUncompressed == 0)
-                        break;
 
                     MiniLZO.Decompress(read, sizeCompressed, write, ref sizeUncompressed);
 
