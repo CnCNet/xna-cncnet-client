@@ -1,4 +1,4 @@
-﻿using ClientCore;
+using ClientCore;
 using ClientCore.CnCNet5;
 using ClientGUI;
 using DTAClient.Online;
@@ -29,10 +29,166 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             this.gameCollection = gameCollection;
             this.connectionManager = connectionManager;
             this.cncnetUserData = cncnetUserData;
+        }
 
+        XNALabel lblPrivateMessaging;
+
+        XNAClientTabControl tabControl;
+
+        XNALabel lblPlayers;
+        XNAListBox lbUserList;
+
+        XNALabel lblMessages;
+        ChatListBox lbMessages;
+
+        XNATextBox tbMessageInput;
+
+        XNAContextMenu playerContextMenu;
+
+        CnCNetManager connectionManager;
+
+        GameCollection gameCollection;
+
+        Texture2D unknownGameIcon;
+        Texture2D adminGameIcon;
+
+        Color personalMessageColor;
+        Color otherUserMessageColor;
+
+        string lastReceivedPMSender;
+        string lastConversationPartner;
+
+        /// <summary>
+        /// Holds the users that the local user has had conversations with
+        /// during this client session.
+        /// </summary>
+        List<PrivateMessageUser> privateMessageUsers = new List<PrivateMessageUser>();
+
+        PrivateMessageNotificationBox notificationBox;
+
+        EnhancedSoundEffect sndPrivateMessageSound;
+        EnhancedSoundEffect sndMessageSound;
+
+        /// <summary>
+        /// Because the user cannot view PMs during a game, we store the latest
+        /// PM received during a game in this variable and display it when the
+        /// user has returned from the game.
+        /// </summary>
+        PrivateMessage pmReceivedDuringGame;
+
+        public override void Initialize()
+        {
+            Name = nameof(PrivateMessagingWindow);
+            ClientRectangle = new Rectangle(0, 0, 600, 600);
+            BackgroundTexture = AssetLoader.LoadTextureUncached("privatemessagebg.png");
+
+            unknownGameIcon = AssetLoader.TextureFromImage(ClientCore.Properties.Resources.unknownicon);
+            adminGameIcon = AssetLoader.TextureFromImage(ClientCore.Properties.Resources.cncneticon);
+
+            personalMessageColor = AssetLoader.GetColorFromString(ClientConfiguration.Instance.SentPMColor);
+            otherUserMessageColor = AssetLoader.GetColorFromString(ClientConfiguration.Instance.ReceivedPMColor);
+
+            lblPrivateMessaging = new XNALabel(WindowManager);
+            lblPrivateMessaging.Name = nameof(lblPrivateMessaging);
+            lblPrivateMessaging.FontIndex = 1;
+            lblPrivateMessaging.Text = "PRIVATE MESSAGING";
+
+            AddChild(lblPrivateMessaging);
+            lblPrivateMessaging.CenterOnParent();
+            lblPrivateMessaging.ClientRectangle = new Rectangle(
+                lblPrivateMessaging.X, 12,
+                lblPrivateMessaging.Width,
+                lblPrivateMessaging.Height);
+
+            tabControl = new XNAClientTabControl(WindowManager);
+            tabControl.Name = nameof(tabControl);
+            tabControl.ClientRectangle = new Rectangle(60, 50, 0, 0);
+            tabControl.ClickSound = new EnhancedSoundEffect("button.wav");
+            tabControl.FontIndex = 1;
+            tabControl.AddTab("Messages", 160);
+            tabControl.AddTab("Friend List", 160);
+            tabControl.AddTab("All Players", 160);
+            tabControl.SelectedIndexChanged += TabControl_SelectedIndexChanged;
+
+            lblPlayers = new XNALabel(WindowManager);
+            lblPlayers.Name = nameof(lblPlayers);
+            lblPlayers.ClientRectangle = new Rectangle(12, tabControl.Bottom + 24, 0, 0);
+            lblPlayers.FontIndex = 1;
+            lblPlayers.Text = "PLAYERS:";
+
+            lbUserList = new XNAListBox(WindowManager);
+            lbUserList.Name = nameof(lbUserList);
+            lbUserList.ClientRectangle = new Rectangle(lblPlayers.X, 
+                lblPlayers.Bottom + 6,
+                150, Height - lblPlayers.Bottom - 18);
+            lbUserList.RightClick += LbUserList_RightClick;
+            lbUserList.SelectedIndexChanged += LbUserList_SelectedIndexChanged;
+            lbUserList.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 128), 1, 1);
+            lbUserList.PanelBackgroundDrawMode = PanelBackgroundImageDrawMode.STRETCHED;
+
+            lblMessages = new XNALabel(WindowManager);
+            lblMessages.Name = nameof(lblMessages);
+            lblMessages.ClientRectangle = new Rectangle(lbUserList.Right + 12,
+                lblPlayers.Y, 0, 0);
+            lblMessages.FontIndex = 1;
+            lblMessages.Text = "MESSAGES:";
+
+            lbMessages = new ChatListBox(WindowManager);
+            lbMessages.Name = nameof(lbMessages);
+            lbMessages.ClientRectangle = new Rectangle(lblMessages.X,
+                lbUserList.Y,
+                Width - lblMessages.X - 12,
+                lbUserList.Height - 25);
+            lbMessages.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 128), 1, 1);
+            lbMessages.PanelBackgroundDrawMode = PanelBackgroundImageDrawMode.STRETCHED;
+
+            tbMessageInput = new XNATextBox(WindowManager);
+            tbMessageInput.Name = nameof(tbMessageInput);
+            tbMessageInput.ClientRectangle = new Rectangle(lbMessages.X,
+                lbMessages.Bottom + 6, lbMessages.Width, 19);
+            tbMessageInput.EnterPressed += TbMessageInput_EnterPressed;
+            tbMessageInput.MaximumTextLength = 200;
+            tbMessageInput.Enabled = false;
+
+            playerContextMenu = new XNAContextMenu(WindowManager);
+            playerContextMenu.Name = nameof(playerContextMenu);
+            playerContextMenu.ClientRectangle = new Rectangle(0, 0, 150, 2);
+            playerContextMenu.Enabled = false;
+            playerContextMenu.Visible = false;
+            playerContextMenu.AddItem("Add Friend", PlayerContextMenu_ToggleFriend);
+
+            notificationBox = new PrivateMessageNotificationBox(WindowManager);
+            notificationBox.Enabled = false;
+            notificationBox.Visible = false;
+            notificationBox.LeftClick += NotificationBox_LeftClick;
+
+            AddChild(tabControl);
+            AddChild(lblPlayers);
+            AddChild(lbUserList);
+            AddChild(lblMessages);
+            AddChild(lbMessages);
+            AddChild(tbMessageInput);
+            AddChild(playerContextMenu);
+            WindowManager.AddAndInitializeControl(notificationBox);
+
+            base.Initialize();
+
+            CenterOnParent();
+
+            tabControl.SelectedTab = 0;
+
+            connectionManager.PrivateMessageReceived += ConnectionManager_PrivateMessageReceived;
             connectionManager.UserAdded += ConnectionManager_UserAdded;
             connectionManager.UserRemoved += ConnectionManager_UserRemoved;
             connectionManager.UserGameIndexUpdated += ConnectionManager_UserGameIndexUpdated;
+
+            sndMessageSound = new EnhancedSoundEffect("message.wav");
+
+            sndPrivateMessageSound = new EnhancedSoundEffect("pm.wav");
+
+            sndMessageSound.Enabled = UserINISettings.Instance.MessageSound;
+
+            GameProcessLogic.GameProcessExited += SharedUILogic_GameProcessExited;
         }
 
         private void ConnectionManager_UserGameIndexUpdated(object sender, UserEventArgs e)
@@ -40,9 +196,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             var userItem = lbUserList.Items.Find(item => item.Text == e.User.Name);
 
             if (userItem != null)
-            {
                 userItem.Texture = GetUserTexture(e.User);
-            }
         }
 
         private void ConnectionManager_UserRemoved(object sender, UserNameIndexEventArgs e)
@@ -166,167 +320,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             lbUserList.SelectedIndexChanged += LbUserList_SelectedIndexChanged;
         }
 
-        XNALabel lblPrivateMessaging;
-
-        XNAClientTabControl tabControl;
-
-        XNALabel lblPlayers;
-        XNAListBox lbUserList;
-
-        XNALabel lblMessages;
-        ChatListBox lbMessages;
-
-        XNATextBox tbMessageInput;
-
-        XNAContextMenu playerContextMenu;
-
-        CnCNetManager connectionManager;
-
-        GameCollection gameCollection;
-
-        Texture2D unknownGameIcon;
-        Texture2D adminGameIcon;
-
-        Color personalMessageColor;
-        Color otherUserMessageColor;
-
-        string lastReceivedPMSender;
-        string lastConversationPartner;
-
-        /// <summary>
-        /// Holds the users that the local user has had conversations with
-        /// during this client session.
-        /// </summary>
-        List<PrivateMessageUser> privateMessageUsers = new List<PrivateMessageUser>();
-
-        PrivateMessageNotificationBox notificationBox;
-
-        EnhancedSoundEffect sndPrivateMessageSound;
-        EnhancedSoundEffect sndMessageSound;
-
-        /// <summary>
-        /// Because the user cannot view PMs during a game, we store the latest
-        /// PM received during a game in this variable and display it when the
-        /// user has returned from the game.
-        /// </summary>
-        PrivateMessage pmReceivedDuringGame;
-
-        public override void Initialize()
-        {
-            Name = "PrivateMessagingWindow";
-            ClientRectangle = new Rectangle(0, 0, 600, 600);
-            BackgroundTexture = AssetLoader.LoadTextureUncached("privatemessagebg.png");
-
-            unknownGameIcon = AssetLoader.TextureFromImage(ClientCore.Properties.Resources.unknownicon);
-            adminGameIcon = AssetLoader.TextureFromImage(ClientCore.Properties.Resources.cncneticon);
-
-            personalMessageColor = AssetLoader.GetColorFromString(ClientConfiguration.Instance.SentPMColor);
-            otherUserMessageColor = AssetLoader.GetColorFromString(ClientConfiguration.Instance.ReceivedPMColor);
-
-            lblPrivateMessaging = new XNALabel(WindowManager);
-            lblPrivateMessaging.Name = "lblPrivateMessaging";
-            lblPrivateMessaging.FontIndex = 1;
-            lblPrivateMessaging.Text = "PRIVATE MESSAGING";
-
-            AddChild(lblPrivateMessaging);
-            lblPrivateMessaging.CenterOnParent();
-            lblPrivateMessaging.ClientRectangle = new Rectangle(
-                lblPrivateMessaging.X, 12,
-                lblPrivateMessaging.Width,
-                lblPrivateMessaging.Height);
-
-            tabControl = new XNAClientTabControl(WindowManager);
-            tabControl.Name = "tabControl";
-            tabControl.ClientRectangle = new Rectangle(60, 50, 0, 0);
-            tabControl.ClickSound = new EnhancedSoundEffect("button.wav");
-            tabControl.FontIndex = 1;
-            tabControl.AddTab("Messages", 160);
-            tabControl.AddTab("Friend List", 160);
-            tabControl.AddTab("All Players", 160);
-            tabControl.SelectedIndexChanged += TabControl_SelectedIndexChanged;
-
-            lblPlayers = new XNALabel(WindowManager);
-            lblPlayers.Name = "lblPlayers";
-            lblPlayers.ClientRectangle = new Rectangle(12, tabControl.Bottom + 24, 0, 0);
-            lblPlayers.FontIndex = 1;
-            lblPlayers.Text = "PLAYERS:";
-
-            lbUserList = new XNAListBox(WindowManager);
-            lbUserList.Name = "lbUserList";
-            lbUserList.ClientRectangle = new Rectangle(lblPlayers.X, 
-                lblPlayers.Bottom + 6,
-                150, Height - lblPlayers.Bottom - 18);
-            lbUserList.RightClick += LbUserList_RightClick;
-            lbUserList.SelectedIndexChanged += LbUserList_SelectedIndexChanged;
-            lbUserList.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 128), 1, 1);
-            lbUserList.PanelBackgroundDrawMode = PanelBackgroundImageDrawMode.STRETCHED;
-
-            lblMessages = new XNALabel(WindowManager);
-            lblMessages.Name = "lblMessages";
-            lblMessages.ClientRectangle = new Rectangle(lbUserList.Right + 12,
-                lblPlayers.Y, 0, 0);
-            lblMessages.FontIndex = 1;
-            lblMessages.Text = "MESSAGES:";
-
-            lbMessages = new ChatListBox(WindowManager);
-            lbMessages.Name = "lbMessages";
-            lbMessages.ClientRectangle = new Rectangle(lblMessages.X,
-                lbUserList.Y,
-                Width - lblMessages.X - 12,
-                lbUserList.Height - 25);
-            lbMessages.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 128), 1, 1);
-            lbMessages.PanelBackgroundDrawMode = PanelBackgroundImageDrawMode.STRETCHED;
-
-            tbMessageInput = new XNATextBox(WindowManager);
-            tbMessageInput.Name = "tbMessageInput";
-            tbMessageInput.ClientRectangle = new Rectangle(lbMessages.X,
-                lbMessages.Bottom + 6, lbMessages.Width, 19);
-            tbMessageInput.EnterPressed += TbMessageInput_EnterPressed;
-            tbMessageInput.MaximumTextLength = 200;
-            tbMessageInput.Enabled = false;
-
-            playerContextMenu = new XNAContextMenu(WindowManager);
-            playerContextMenu.Name = "playerContextMenu";
-            playerContextMenu.ClientRectangle = new Rectangle(0, 0, 150, 2);
-            playerContextMenu.Enabled = false;
-            playerContextMenu.Visible = false;
-            playerContextMenu.AddItem("Add Friend", PlayerContextMenu_ToggleFriend);
-
-            notificationBox = new PrivateMessageNotificationBox(WindowManager);
-            notificationBox.Enabled = false;
-            notificationBox.Visible = false;
-            notificationBox.LeftClick += NotificationBox_LeftClick;
-
-            AddChild(tabControl);
-            AddChild(lblPlayers);
-            AddChild(lbUserList);
-            AddChild(lblMessages);
-            AddChild(lbMessages);
-            AddChild(tbMessageInput);
-            AddChild(playerContextMenu);
-            WindowManager.AddAndInitializeControl(notificationBox);
-
-            base.Initialize();
-
-            CenterOnParent();
-
-            tabControl.SelectedTab = 0;
-
-            connectionManager.PrivateMessageReceived += ConnectionManager_PrivateMessageReceived;
-
-            sndMessageSound = new EnhancedSoundEffect("message.wav");
-
-            sndPrivateMessageSound = new EnhancedSoundEffect("pm.wav");
-
-            sndMessageSound.Enabled = UserINISettings.Instance.MessageSound;
-
-            GameProcessLogic.GameProcessExited += SharedUILogic_GameProcessExited;
-        }
-
-        private void NotificationBox_LeftClick(object sender, EventArgs e)
-        {
-            SwitchOn();
-        }
+        private void NotificationBox_LeftClick(object sender, EventArgs e) => SwitchOn();
 
         private void LbUserList_RightClick(object sender, EventArgs e)
         {
@@ -348,9 +342,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             var lbItem = lbUserList.SelectedItem;
 
             if (lbItem == null)
-            {
                 return;
-            }
 
             cncnetUserData.ToggleFriend(lbItem.Text);
 
@@ -593,9 +585,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         private Texture2D GetUserTexture(IRCUser user)
         {
             if (user.GameID < 0 || user.GameID >= gameCollection.GameList.Count)
-            {
                 return unknownGameIcon;
-            }
             else
                 return gameCollection.GameList[user.GameID].Texture;
         }
@@ -682,15 +672,9 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             }
         }
 
-        public void SwitchOff()
-        {
-            Disable();
-        }   
+        public void SwitchOff() => Disable();
 
-        public string GetSwitchName()
-        {
-            return "Private Messaging";
-        }
+        public string GetSwitchName() => "Private Messaging";
 
         /// <summary>
         /// A class for storing a private message in memory.

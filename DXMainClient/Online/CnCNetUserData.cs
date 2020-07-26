@@ -1,4 +1,4 @@
-﻿using ClientCore;
+using ClientCore;
 using Rampastring.Tools;
 using Rampastring.XNAUI;
 using System;
@@ -35,10 +35,7 @@ namespace DTAClient.Online
             windowManager.GameClosing += WindowManager_GameClosing;
         }
 
-        private void WindowManager_GameClosing(object sender, EventArgs e)
-        {
-            Save();
-        }
+        private void WindowManager_GameClosing(object sender, EventArgs e) => Save();
 
         public void Save()
         {
@@ -61,24 +58,25 @@ namespace DTAClient.Online
         }
 
         /// <summary>
-        /// Adds or removes an user from the friend list depending on whether
-        /// they already are on the friend list.
+        /// Adds or removes a specified user to or from the friend list
+        /// depending on whether they already are on the friend list.
         /// </summary>
         /// <param name="name">The name of the user.</param>
         public void ToggleFriend(string name)
         {
+            if (string.IsNullOrEmpty(name))
+                return;
+
             if (IsFriend(name))
-            {
                 FriendList.Remove(name);
-            }
             else
-            {
                 FriendList.Add(name);
-            }
+
         }
 
         /// <summary>
-        /// Adds a specified user to the chat ignore list.
+        /// Adds or removes a specified user to or from the chat ignore list
+        /// depending on whether they already are on the ignore list.
         /// </summary>
         /// <param name="ident">The ident of the IRCUser.</param>
         public void ToggleIgnoreUser(string ident)
@@ -87,13 +85,10 @@ namespace DTAClient.Online
                 return;
 
             if (IsIgnored(ident))
-            {
                 IgnoreList.Remove(ident);
-            }
             else
-            {
                 IgnoreList.Add(ident);
-            }
+
         }
 
         /// <summary>
@@ -101,21 +96,13 @@ namespace DTAClient.Online
         /// </summary>
         /// <param name="ident">The IRC identifier of the user.</param>
         /// <returns></returns>
-        public bool IsIgnored(string ident)
-        {
-            if (IgnoreList == null)
-                return false;
-
-            return IgnoreList.Contains(ident);
-        }
+        public bool IsIgnored(string ident) => IgnoreList.Contains(ident);
 
         /// <summary>
         /// Checks if a specified user belongs to the friend list.
         /// </summary>
         /// <param name="name">The name of the user.</param>
-        public bool IsFriend(string name)
-        {
-            return FriendList.Contains(name);
-        }
+        public bool IsFriend(string name) => FriendList.Contains(name);
     }
+
 }
