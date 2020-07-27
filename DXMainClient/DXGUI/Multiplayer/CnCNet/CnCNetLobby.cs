@@ -140,7 +140,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             btnLogout.Text = "Log Out";
             btnLogout.LeftClick += BtnLogout_LeftClick;
 
-            lbGameList = new GameListBox(WindowManager, localGameID);
+            lbGameList = new GameListBox(WindowManager, localGameID, HostedGameMatches);
             lbGameList.Name = nameof(lbGameList);
             lbGameList.ClientRectangle = new Rectangle(btnNewGame.X,
                 41, btnJoinGame.Right - btnNewGame.X,
@@ -148,7 +148,6 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             lbGameList.PanelBackgroundDrawMode = PanelBackgroundImageDrawMode.STRETCHED;
             lbGameList.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 128), 1, 1);
             lbGameList.DoubleLeftClick += LbGameList_DoubleLeftClick;
-            lbGameList.GameMatchesFilter = HostedGameMatches;
             lbGameList.AllowMultiLineItems = false;
 
             lbPlayerList = new PlayerListBox(WindowManager, gameCollection);
@@ -262,6 +261,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             tbGameSearch.Suggestion = "Filter by name, map, game mode, player...";
             tbGameSearch.MaximumTextLength = 64;
             tbGameSearch.InputReceived += TbGameSearch_InputReceived;
+            tbGameSearch.Disable();
 
             InitializeGameList();
 
@@ -298,7 +298,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         }
 
         private bool HostedGameMatches(GenericHostedGame hg) => 
-            String.IsNullOrWhiteSpace(tbGameSearch?.Text) ||
+            string.IsNullOrWhiteSpace(tbGameSearch?.Text) ||
             tbGameSearch.Text == tbGameSearch.Suggestion ||
             hg.RoomName.ToUpper().Contains(tbGameSearch.Text.ToUpper()) ||
             hg.GameMode.ToUpper().Equals(tbGameSearch.Text.ToUpper()) ||

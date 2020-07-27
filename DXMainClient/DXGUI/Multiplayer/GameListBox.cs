@@ -21,11 +21,12 @@ namespace DTAClient.DXGUI.Multiplayer
         private const string LOADED_GAME_TEXT = " (Loaded Game)";
 
         public GameListBox(WindowManager windowManager,
-            string localGameIdentifier)
+            string localGameIdentifier, Predicate<GenericHostedGame> gameMatchesFilter)
             : base(windowManager)
         {
             HostedGames = new List<GenericHostedGame>();
             this.localGameIdentifier = localGameIdentifier;
+            GameMatchesFilter = gameMatchesFilter;
         }
 
         private int loadedGameTextWidth;
@@ -37,7 +38,7 @@ namespace DTAClient.DXGUI.Multiplayer
         /// <summary>
         /// A predicate for setting a filter expression for displayed games.
         /// </summary>
-        public Predicate<GenericHostedGame> GameMatchesFilter { get; set; }
+        private Predicate<GenericHostedGame> GameMatchesFilter { get; set; }
 
         private Texture2D txLockedGame;
         private Texture2D txIncompatibleGame;
