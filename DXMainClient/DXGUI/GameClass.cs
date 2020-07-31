@@ -62,8 +62,6 @@ namespace DTAClient.DXGUI
             }
             catch (Exception ex)
             {
-                if (ex.Message.Contains("DeviceRemoved"))
-                {
                     Logger.Log("Creating texture on startup failed! Creating .dxfail file and re-launching client launcher.");
 
                     if (!Directory.Exists(ProgramConstants.GamePath + "Client"))
@@ -93,7 +91,6 @@ namespace DTAClient.DXGUI
                         Process.Start(ProgramConstants.GamePath + launcherExe);
                         Environment.Exit(0);
                     }
-                }
             }
 #endif
 
@@ -122,7 +119,7 @@ namespace DTAClient.DXGUI
             Components.Add(wm);
 
             string playerName = UserINISettings.Instance.PlayerName.Value.Trim();
-            
+
             if (UserINISettings.Instance.AutoRemoveUnderscoresFromName)
             {
                 while (playerName.EndsWith("_"))
@@ -166,10 +163,10 @@ namespace DTAClient.DXGUI
             settings.BackgroundColor = AssetLoader.GetColorFromString(ClientConfiguration.Instance.AltUIBackgroundColor);
             settings.FocusColor = AssetLoader.GetColorFromString(ClientConfiguration.Instance.ListBoxFocusColor);
             settings.DisabledItemColor = AssetLoader.GetColorFromString(ClientConfiguration.Instance.DisabledButtonColor);
-            
+
             settings.DefaultAlphaRate = ClientConfiguration.Instance.DefaultAlphaRate;
             settings.CheckBoxAlphaRate = ClientConfiguration.Instance.CheckBoxAlphaRate;
-            
+
             settings.CheckBoxClearTexture = AssetLoader.LoadTexture("checkBoxClear.png");
             settings.CheckBoxCheckedTexture = AssetLoader.LoadTexture("checkBoxChecked.png");
             settings.CheckBoxDisabledClearTexture = AssetLoader.LoadTexture("checkBoxClearD.png");
