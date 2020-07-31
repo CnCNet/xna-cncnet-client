@@ -311,7 +311,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             tbMapSearch.Name = "tbMapSearch";
             tbMapSearch.ClientRectangle = new Rectangle(lbMapList.X,
                 lbMapList.Bottom + 3, lbMapList.Width, 21);
-            tbMapSearch.Suggestion = "Search map..";
+            tbMapSearch.Suggestion = "Search map...";
             tbMapSearch.MaximumTextLength = 64;
             tbMapSearch.InputReceived += TbMapSearch_InputReceived;
 
@@ -375,15 +375,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             AddChild(btnPickRandomMap);
         }
 
-        private void BtnPickRandomMap_LeftClick(object sender, EventArgs e)
-        {
-            PickRandomMap();
-        }
+        private void BtnPickRandomMap_LeftClick(object sender, EventArgs e) => PickRandomMap();
 
-        private void TbMapSearch_InputReceived(object sender, EventArgs e)
-        {
-            ListMaps();
-        }
+        private void TbMapSearch_InputReceived(object sender, EventArgs e) => ListMaps();
 
         private void Dropdown_SelectedIndexChanged(object sender, EventArgs e)
         {
@@ -807,10 +801,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         /// <summary>
         /// Resets Discord Rich Presence to default state.
         /// </summary>
-        protected void ResetDiscordPresence()
-        {
-            discordHandler?.UpdatePresence();
-        }
+        protected void ResetDiscordPresence() => discordHandler?.UpdatePresence();
 
         protected void LoadDefaultMap()
         {
@@ -1491,10 +1482,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             UpdateDiscordPresence(true);
         }
 
-        private void GameProcessExited_Callback()
-        {
-            AddCallback(new Action(GameProcessExited), null);
-        }
+        private void GameProcessExited_Callback() => AddCallback(new Action(GameProcessExited), null);
 
         protected virtual void GameProcessExited()
         {
