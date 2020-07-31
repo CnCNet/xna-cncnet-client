@@ -18,6 +18,12 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 {
     internal class PrivateMessagingWindow : XNAWindow, ISwitchable
     {
+        // these are used by the "invite to game" feature in the
+        // context menu and are kept up-to-date by the lobby
+        public string inviteChannelName;
+        public string inviteGameName;
+        public string inviteChannelPassword;
+
         private const int ALL_PLAYERS_VIEW_INDEX = 2;
         private const int FRIEND_LIST_VIEW_INDEX = 1;
 
@@ -291,6 +297,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             playerContextMenu.Enabled = false;
             playerContextMenu.Visible = false;
             playerContextMenu.AddItem("Add Friend", PlayerContextMenu_ToggleFriend);
+            playerContextMenu.AddItem("Invite", PlayerContextMenu_Invite, null, () => !string.IsNullOrEmpty(inviteChannelName));
 
             notificationBox = new PrivateMessageNotificationBox(WindowManager);
             notificationBox.Enabled = false;
@@ -357,6 +364,33 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             // lazy solution, but friends are removed rarely so it shouldn't bother players too much
             if (tabControl.SelectedTab == FRIEND_LIST_VIEW_INDEX)
                 TabControl_SelectedIndexChanged(this, EventArgs.Empty); 
+        }
+
+        private void PlayerContextMenu_Invite()
+        {
+            var lbItem = lbUserList.SelectedItem;
+
+            if (lbItem == null)
+            {
+                return;
+            }
+
+            // note it's assumed that if the channel name is specified, the game name must be also
+            if (string.IsNullOrEmpty(inviteChannelName) || ProgramConstants.IsInGame)
+            {
+                return;
+            }
+
+            string messageBody = ProgramConstants.GAME_INVITE_CTCP_COMMAND + " " + inviteChannelName + ";" + inviteGameName;
+
+            if (!string.IsNullOrEmpty(inviteChannelPassword))
+            {
+                messageBody += ";" + inviteChannelPassword;
+            }
+
+            connectionManager.SendCustomMessage(new QueuedMessage("PRIVMSG " + lbItem.Text + " :\u0001" +
+                messageBody + "\u0001",
+                QueuedMessageType.CHAT_MESSAGE, 0));
         }
 
         private void SharedUILogic_GameProcessExited()

@@ -360,6 +360,7 @@
     <Compile Include="DXGUI\Multiplayer\LANGameCreationWindow.cs" />
     <Compile Include="DXGUI\Multiplayer\LANGameLoadingLobby.cs" />
     <Compile Include="DXGUI\Multiplayer\LANLobby.cs" />
+    <Compile Include="DXGUI\Multiplayer\CnCNet\ChoiceNotificationBox.cs" />
     <Compile Include="DXGUI\Multiplayer\CnCNet\PrivateMessageNotificationBox.cs" />
     <Compile Include="DXGUI\Multiplayer\CnCNet\PrivateMessagingPanel.cs" />
     <Compile Include="DXGUI\Multiplayer\CnCNet\PrivateMessagingWindow.cs" />
@@ -369,6 +370,7 @@
     <Compile Include="Online\CnCNetUserData.cs" />
     <Compile Include="Online\EventArguments\ChannelCTCPEventArgs.cs" />
     <Compile Include="Online\EventArguments\PrivateMessageEventArgs.cs" />
+    <Compile Include="Online\EventArguments\PrivateCTCPEventArgs.cs" />
     <Compile Include="Online\FileHashCalculator.cs" />
     <Compile Include="Online\IRCColor.cs" />
     <Compile Include="DXGUI\Generic\LoadingScreen.cs" />
