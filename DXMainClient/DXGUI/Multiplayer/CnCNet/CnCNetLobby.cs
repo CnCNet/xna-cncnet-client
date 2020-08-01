@@ -607,6 +607,13 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             {
                 connectionManager.MainChannel.AddMessage(new ChatMessage(
                     Color.White, "Cannot join channel " + e.ChannelName + ", you're banned!"));
+
+                if (localGame.MultiRegion && e.ChannelName == localGame.ChatChannel)
+                {
+                    XNAMessageBox.Show(WindowManager, "Banned!", "You have been Banned!");
+                    BtnLogout_LeftClick(null, null);
+                }
+
             }
             else
             {

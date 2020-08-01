@@ -221,30 +221,39 @@
     <Otherwise>
       <ItemGroup>
         <Reference Include="Microsoft.Xna.Framework, Version=4.0.0.0, Culture=neutral, PublicKeyToken=842cf8be1de50553, processorArchitecture=x86">
+          <HintPath>../BuildScripts/wine/drive_c/windows/Microsoft.NET/assembly/GAC_32/Microsoft.Xna.Framework/v4.0_4.0.0.0__842cf8be1de50553/Microsoft.Xna.Framework.dll</HintPath>
           <Private>False</Private>
         </Reference>
         <Reference Include="Microsoft.Xna.Framework.Game, Version=4.0.0.0, Culture=neutral, PublicKeyToken=842cf8be1de50553, processorArchitecture=x86">
+          <HintPath>../BuildScripts/wine/drive_c/windows/Microsoft.NET/assembly/GAC_32/Microsoft.Xna.Framework.Game/v4.0_4.0.0.0__842cf8be1de50553/Microsoft.Xna.Framework.Game.dll</HintPath>
           <Private>False</Private>
         </Reference>
         <Reference Include="Microsoft.Xna.Framework.Graphics, Version=4.0.0.0, Culture=neutral, PublicKeyToken=842cf8be1de50553, processorArchitecture=x86">
+          <HintPath>../BuildScripts/wine/drive_c/windows/Microsoft.NET/assembly/GAC_32/Microsoft.Xna.Framework.Graphics/v4.0_4.0.0.0__842cf8be1de50553/Microsoft.Xna.Framework.Graphics.dll</HintPath>
           <Private>False</Private>
         </Reference>
         <Reference Include="Microsoft.Xna.Framework.GamerServices, Version=4.0.0.0, Culture=neutral, PublicKeyToken=842cf8be1de50553, processorArchitecture=x86">
+          <HintPath>../BuildScripts/wine/wine/drive_c/windows/Microsoft.NET/assembly/GAC_MSIL/Microsoft.Xna.Framework.GamerServices/v4.0_4.0.0.0__842cf8be1de50553/Microsoft.Xna.Framework.GamerServices.dll</HintPath>
           <Private>False</Private>
         </Reference>
         <Reference Include="Microsoft.Xna.Framework.Xact, Version=4.0.0.0, Culture=neutral, PublicKeyToken=842cf8be1de50553, processorArchitecture=x86">
+          <HintPath>../BuildScripts/wine/drive_c/windows/Microsoft.NET/assembly/GAC_32/Microsoft.Xna.Framework.Xact/v4.0_4.0.0.0__842cf8be1de50553/Microsoft.Xna.Framework.Xact.dll</HintPath>
           <Private>False</Private>
         </Reference>
         <Reference Include="Microsoft.Xna.Framework.Video, Version=4.0.0.0, Culture=neutral, PublicKeyToken=842cf8be1de50553, processorArchitecture=x86">
+          <HintPath>../BuildScripts/wine/drive_c/windows/Microsoft.NET/assembly/GAC_MSIL/Microsoft.Xna.Framework.Video/v4.0_4.0.0.0__842cf8be1de50553/Microsoft.Xna.Framework.Video.dll</HintPath>
           <Private>False</Private>
         </Reference>
         <Reference Include="Microsoft.Xna.Framework.Avatar, Version=4.0.0.0, Culture=neutral, PublicKeyToken=842cf8be1de50553, processorArchitecture=x86">
+          <HintPath>../BuildScripts/wine/drive_c/windows/Microsoft.NET/assembly/GAC_MSIL/Microsoft.Xna.Framework.Avatar/v4.0_4.0.0.0__842cf8be1de50553/Microsoft.Xna.Framework.Avatar.dll</HintPath>
           <Private>False</Private>
         </Reference>
         <Reference Include="Microsoft.Xna.Framework.Net, Version=4.0.0.0, Culture=neutral, PublicKeyToken=842cf8be1de50553, processorArchitecture=x86">
+          <HintPath>../BuildScripts/wine/drive_c/windows/Microsoft.NET/assembly/GAC_MSIL/Microsoft.Xna.Framework.Net/v4.0_4.0.0.0__842cf8be1de50553/Microsoft.Xna.Framework.Net.dll</HintPath>
           <Private>False</Private>
         </Reference>
         <Reference Include="Microsoft.Xna.Framework.Storage, Version=4.0.0.0, Culture=neutral, PublicKeyToken=842cf8be1de50553, processorArchitecture=x86">
+          <HintPath>../BuildScripts/wine/drive_c/windows/Microsoft.NET/assembly/GAC_MSIL/Microsoft.Xna.Framework.Storage/v4.0_4.0.0.0__842cf8be1de50553/Microsoft.Xna.Framework.Storage.dll</HintPath>
           <Private>False</Private>
         </Reference>
       </ItemGroup>
@@ -324,7 +333,7 @@
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">
   </Target>
