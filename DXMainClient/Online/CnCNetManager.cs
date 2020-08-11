@@ -894,6 +894,23 @@ namespace DTAClient.Online
         {
             BannedFromChannel?.Invoke(this, new ChannelEventArgs(channelName));
         }
+
+        public void OnUserNicknameChange(string oldNickname, string newNickname)
+            => wm.AddCallback(new Action<string, string>(DoUserNicknameChange), oldNickname, newNickname);
+
+        private void DoUserNicknameChange(string oldNickname, string newNickname)
+        {
+            IRCUser user = UserList.Find(u => u.Name.ToUpper() == oldNickname.ToUpper());
+            if (user == null)
+            {
+                Logger.Log("DoUserNicknameChange: Failed to find user with nickname " + oldNickname);
+                return;
+            }
+            string realOldNickname = user.Name; // To make sure that case matches
+            user.Name = newNickname;
+
+            channels.ForEach(ch => ch.OnUserNameChanged(realOldNickname, newNickname));
+        }
     }
 
     public class UserEventArgs : EventArgs
@@ -914,5 +931,17 @@ namespace DTAClient.Online
         }
 
         public int Index { get; private set; }
+    }
+
+    public class UserNameChangedEventArgs : EventArgs
+    {
+        public UserNameChangedEventArgs(string oldUserName, IRCUser user)
+        {
+            OldUserName = oldUserName;
+            User = user;
+        }
+
+        public string OldUserName { get; }
+        public IRCUser User { get; }
     }
 }

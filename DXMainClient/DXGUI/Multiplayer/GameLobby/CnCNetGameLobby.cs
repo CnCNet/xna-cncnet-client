@@ -186,6 +186,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             channel.UserQuitIRC += Channel_UserQuitIRC;
             channel.UserLeft += Channel_UserLeft;
             channel.UserAdded += Channel_UserAdded;
+            channel.UserNameChanged += Channel_UserNameChanged;
             channel.UserListReceived += Channel_UserListReceived;
 
             this.hostName = hostName;
@@ -294,6 +295,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 channel.UserQuitIRC -= Channel_UserQuitIRC;
                 channel.UserLeft -= Channel_UserLeft;
                 channel.UserAdded -= Channel_UserAdded;
+                channel.UserNameChanged -= Channel_UserNameChanged;
                 channel.UserListReceived -= Channel_UserListReceived;
 
                 if (!IsHost)
@@ -326,8 +328,20 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         private void HandleConnectionLoss()
         {
             Clear();
-            this.Visible = false;
-            this.Enabled = false;
+            Disable();
+        }
+
+        private void Channel_UserNameChanged(object sender, UserNameChangedEventArgs e)
+        {
+            Logger.Log("CnCNetGameLobby: Nickname change: " + e.OldUserName + " to " + e.User.Name);
+            int index = Players.FindIndex(p => p.Name == e.OldUserName);
+            if (index > -1)
+            {
+                PlayerInfo player = Players[index];
+                player.Name = e.User.Name;
+                ddPlayerNames[index].Items[0].Text = player.Name;
+                AddNotice("Player " + e.OldUserName + " changed their name to " + e.User.Name);
+            }
         }
 
         protected override void BtnLeaveGame_LeftClick(object sender, EventArgs e)

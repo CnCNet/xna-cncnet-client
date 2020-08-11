@@ -16,6 +16,7 @@ namespace DTAClient.Online
         public event EventHandler<UserNameEventArgs> UserKicked;
         public event EventHandler<UserNameEventArgs> UserQuitIRC;
         public event EventHandler<ChannelUserEventArgs> UserGameIndexUpdated;
+        public event EventHandler<UserNameChangedEventArgs> UserNameChanged;
         public event EventHandler UserListReceived;
         public event EventHandler UserListCleared;
 
@@ -194,6 +195,17 @@ namespace DTAClient.Online
             var user = users.Find(userName);
             if (user != null)
                 UserGameIndexUpdated?.Invoke(this, new ChannelUserEventArgs(user));
+        }
+
+        public void OnUserNameChanged(string oldUserName, string newUserName)
+        {
+            var user = users.Find(oldUserName);
+            if (user != null)
+            {
+                users.Remove(oldUserName);
+                users.Add(newUserName, user);
+                UserNameChanged?.Invoke(this, new UserNameChangedEventArgs(oldUserName, user.IRCUser));
+            }
         }
 
         public void OnChannelModesChanged(string sender, string modes)
