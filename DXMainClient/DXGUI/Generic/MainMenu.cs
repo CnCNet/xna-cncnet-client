@@ -1,4 +1,4 @@
-﻿using ClientCore;
+using ClientCore;
 using ClientGUI;
 using DTAClient.Domain;
 using DTAClient.Domain.Multiplayer.CnCNet;
@@ -14,7 +14,10 @@ using Rampastring.Tools;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
+using System.Linq;
 using System.Threading;
 using Updater;
 
@@ -386,6 +389,31 @@ namespace DTAClient.DXGUI.Generic
         }
 
         /// <summary>
+        /// Checks files which are required for the mod to function
+        /// but not distributed with the mod (usually base game files
+        /// for YR mods which can't be standalone).
+        /// </summary>
+        private void CheckRequiredFiles()
+        {
+            List<string> absentFiles = ClientConfiguration.Instance.RequiredFiles.ToList()
+                .FindAll(f => !string.IsNullOrEmpty(f) && !File.Exists(ProgramConstants.GamePath + f));
+
+            if (absentFiles.Count > 0)
+                XNAMessageBox.Show(WindowManager, "Missing Files",
+#if MO
+                    "You are missing Yuri's Revenge files that are required to play this mod!" + Environment.NewLine +
+                    "Please note that Yuri's Revenge mods are not standalone, so you need a copy of" + Environment.NewLine +
+                    "Yuri's Revenge (version 1.001) files placed in the mod folder to play the mod." +
+                    Environment.NewLine + Environment.NewLine +
+#endif
+                    "The following required files are missing:" +
+                    Environment.NewLine + Environment.NewLine +
+                    String.Join(Environment.NewLine, absentFiles) +
+                    Environment.NewLine + Environment.NewLine +
+                    "You won't be able to play without those files present.");
+        }
+
+        /// <summary>
         /// Checks whether the client is running for the first time.
         /// If it is, displays a dialog asking the user if they'd like
         /// to configure settings.
@@ -499,6 +527,7 @@ namespace DTAClient.DXGUI.Generic
                 }
             }
 
+            CheckRequiredFiles();
             CheckIfFirstRun();
         }
 
