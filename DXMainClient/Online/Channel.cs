@@ -121,7 +121,7 @@ namespace DTAClient.Online
             }
 
 #if !YR
-            if (Persistent && IsChatChannel)
+            if (Persistent && IsChatChannel && user.IRCUser.Name == ProgramConstants.PLAYERNAME)
                 RequestUserInfo();
 #endif
         }
