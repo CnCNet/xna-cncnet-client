@@ -343,8 +343,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         private void HandleConnectionLoss()
         {
             Clear();
-            this.Visible = false;
-            this.Enabled = false;
+            Disable();
         }
 
         protected override void BtnLeaveGame_LeftClick(object sender, EventArgs e)
@@ -796,9 +795,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 }
 
                 if (parts.Length <= i + 1)
-                {
                     return;
-                }
 
                 int playerOptions = Conversions.IntFromString(parts[i + 1], -1);
                 if (playerOptions == -1)
@@ -874,9 +871,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             List<byte> byteList = Conversions.BoolArrayIntoBytes(optionValues).ToList();
             
             while (byteList.Count % 4 != 0)
-            {
                 byteList.Add(0);
-            }
 
             int integerCount = byteList.Count / 4;
             byte[] byteArray = byteList.ToArray();
@@ -884,18 +879,14 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             ExtendedStringBuilder sb = new ExtendedStringBuilder("GO ", true, ';');
 
             for (int i = 0; i < integerCount; i++)
-            {
                 sb.Append(BitConverter.ToInt32(byteArray, i * 4));
-            }
 
             // We don't gain much in most cases by packing the drop-down values
             // (because they're bytes to begin with, and usually non-zero),
             // so let's just transfer them as usual
 
             foreach (GameLobbyDropDown dd in DropDowns)
-            {
                 sb.Append(dd.SelectedIndex);
-            }
 
             sb.Append(Convert.ToInt32(Map.Official));
             sb.Append(Map.SHA1);
@@ -1148,9 +1139,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 BroadcastPlayerOptions();
 
                 if (Players.Count < playerLimit)
-                {
                     UnlockGame(true);
-                }
             }
         }
 
@@ -1341,7 +1330,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private void HandleTunnelPing(string sender, int ping)
         {
-
             PlayerInfo pInfo = Players.Find(p => p.Name.Equals(sender));
             if (pInfo != null)
             {
@@ -1489,8 +1477,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         private void HandleTunnelServerChange(CnCNetTunnel tunnel)
         {
             tunnelHandler.CurrentTunnel = tunnel;
-            AddNotice($"The game host has changed the tunnel server to: " +
-                $"{tunnel.Name}");
+            AddNotice($"The game host has changed the tunnel server to: {tunnel.Name}");
             UpdatePing();
         }
 

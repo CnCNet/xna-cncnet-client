@@ -57,11 +57,17 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
         private TimeSpan timeSinceTunnelRefresh = TimeSpan.MaxValue;
         private uint skipCount = 0;
 
-        private void DoTunnelPinged(int index) =>
-            wm.AddCallback(TunnelPinged, index);
+        private void DoTunnelPinged(int index)
+        {
+            if (TunnelPinged != null)
+                wm.AddCallback(TunnelPinged, index);
+        }
 
-        private void DoCurrentTunnelPinged() =>
-            wm.AddCallback(CurrentTunnelPinged, this, EventArgs.Empty);
+        private void DoCurrentTunnelPinged()
+        {
+            if (CurrentTunnelPinged != null)
+                wm.AddCallback(CurrentTunnelPinged, this, EventArgs.Empty);
+        }
 
         private void ConnectionManager_Connected(object sender, EventArgs e) => Enabled = true;
 
@@ -116,8 +122,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
             return Task.Factory.StartNew(() =>
             {
                 Tunnels[index].UpdatePing();
-                if (TunnelPinged != null)
-                    DoTunnelPinged(index);
+                DoTunnelPinged(index);
             });
         }
 
@@ -126,10 +131,9 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
             return Task.Factory.StartNew(() =>
             {
                 CurrentTunnel.UpdatePing();
-                if (CurrentTunnelPinged != null)
-                    DoCurrentTunnelPinged();
+                DoCurrentTunnelPinged();
 
-                if (checkTunnelList && TunnelPinged != null)
+                if (checkTunnelList)
                 {
                     int tunnelIndex = Tunnels.FindIndex(t => t.Address == CurrentTunnel.Address && t.Port == CurrentTunnel.Port);
                     if (tunnelIndex > -1)

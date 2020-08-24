@@ -466,15 +466,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             tbChatInput.TextColor = chatColors[colorIndex].XNAColor;
         }
 
-        public override string GetSwitchName()
-        {
-            return "LAN Game Lobby";
-        }
+        public override string GetSwitchName() => "LAN Game Lobby";
 
-        protected override void AddNotice(string message, Color color)
-        {
+        protected override void AddNotice(string message, Color color) =>
             lbChatMessages.AddMessage(null, message, color);
-        }
 
         protected override void BroadcastPlayerOptions()
         {
@@ -504,10 +499,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             BroadcastMessage(sb.ToString());
         }
 
-        protected override void HostLaunchGame()
-        {
-            BroadcastMessage(LAUNCH_GAME_COMMAND + " " + UniqueGameID);
-        }
+        protected override void HostLaunchGame() => BroadcastMessage(LAUNCH_GAME_COMMAND + " " + UniqueGameID);
 
         protected override string GetIPAddressForPlayer(PlayerInfo player)
         {
@@ -526,10 +518,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             SendMessageToHost(sb.ToString());
         }
 
-        protected override void RequestReadyStatus()
-        {
+        protected override void RequestReadyStatus() =>
             SendMessageToHost(PLAYER_READY_REQUEST + " " + Convert.ToInt32(chkAutoReady.Checked));
-        }
 
         protected override void SendChatMessage(string message)
         {
@@ -576,6 +566,16 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             if (IsHost)
                 BroadcastMessage(GET_READY_COMMAND);
+        }
+
+        protected override void ClearPingIndicators()
+        {
+            // TODO Implement pings for LAN lobbies
+        }
+
+        protected override void UpdatePlayerPingIndicator(PlayerInfo pInfo)
+        {
+            // TODO Implement pings for LAN lobbies
         }
 
         /// <summary>

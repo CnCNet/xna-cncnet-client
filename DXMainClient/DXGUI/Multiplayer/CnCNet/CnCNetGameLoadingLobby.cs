@@ -53,7 +53,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 new NoParamCommandHandler(GET_READY_CTCP_COMMAND, HandleGetReadyNotification),
                 new StringCommandHandler(FILE_HASH_CTCP_COMMAND, HandleFileHashCommand),
                 new StringCommandHandler(INVALID_FILE_HASH_CTCP_COMMAND, HandleCheaterNotification),
-                new IntCommandHandler(TUNNEL_PING_CTCP_COMMAND, HandleTunnelPingNotification),
+                new IntCommandHandler(TUNNEL_PING_CTCP_COMMAND, HandleTunnelPing),
                 new StringCommandHandler(OPTIONS_CTCP_COMMAND, HandleOptionsMessage),
                 new NoParamCommandHandler(INVALID_SAVED_GAME_INDEX_CTCP_COMMAND, HandleInvalidSaveIndexCommand),
                 new StringCommandHandler(START_GAME_CTCP_COMMAND, HandleStartGameCommand),
@@ -157,10 +157,16 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             channel.CTCPReceived += Channel_CTCPReceived;
 
             tunnelHandler.CurrentTunnel = tunnel;
+            tunnelHandler.CurrentTunnelPinged += TunnelHandler_CurrentTunnelPinged;
 
             started = false;
 
             Refresh(isHost);
+        }
+
+        private void TunnelHandler_CurrentTunnelPinged(object sender, EventArgs e)
+        {
+            // TODO Rampastring pls, review and merge that XNAIndicator PR already
         }
 
         /// <summary>
@@ -193,6 +199,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             }
 
             tunnelHandler.CurrentTunnel = null;
+            tunnelHandler.CurrentTunnelPinged -= TunnelHandler_CurrentTunnelPinged;
 
             topBar.RemovePrimarySwitchable(this);
         }
@@ -426,7 +433,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 channel.SendCTCPMessage(INVALID_FILE_HASH_CTCP_COMMAND + " " + cheaterName, QueuedMessageType.SYSTEM_MESSAGE, 0);
         }
 
-        private void HandleTunnelPingNotification(string sender, int pingInMs)
+        private void HandleTunnelPing(string sender, int pingInMs)
         {
             if (pingInMs < 0)
                 AddNotice(sender + " - unknown ping to tunnel server.");
@@ -582,8 +589,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         private void HandleTunnelServerChange(CnCNetTunnel tunnel)
         {
             tunnelHandler.CurrentTunnel = tunnel;
-            AddNotice($"The game host has changed the tunnel server to: " +
-                $"{tunnel.Name}");
+            AddNotice($"The game host has changed the tunnel server to: {tunnel.Name}");
             //UpdatePing();
         }
 

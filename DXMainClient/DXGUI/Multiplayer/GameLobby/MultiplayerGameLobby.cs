@@ -973,7 +973,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             }
         }
 
-        protected void ClearPingIndicators()
+        protected virtual void ClearPingIndicators()
         {
             foreach (XNAClientDropDown dd in ddPlayerNames)
             {
@@ -982,7 +982,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             }
         }
 
-        protected void UpdatePlayerPingIndicator(PlayerInfo pInfo)
+        protected virtual void UpdatePlayerPingIndicator(PlayerInfo pInfo)
         {
             XNAClientDropDown ddPlayerName = ddPlayerNames[pInfo.Index];
             ddPlayerName.Items[0].Texture = GetTextureForPing(pInfo.Ping);
