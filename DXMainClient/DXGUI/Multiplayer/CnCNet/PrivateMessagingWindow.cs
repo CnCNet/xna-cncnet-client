@@ -157,7 +157,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             playerContextMenu.Visible = false;
             playerContextMenu.AddItem("Add Friend", PlayerContextMenu_ToggleFriend);
             playerContextMenu.AddItem("Toggle Block", PlayerContextMenu_ToggleIgnore);
-            playerContextMenu.Items[1].Selectable = false;
+            playerContextMenu.Items[1].VisibilityChecker = () => (bool)lbUserList.SelectedItem.Tag;
 
             notificationBox = new PrivateMessageNotificationBox(WindowManager);
             notificationBox.Enabled = false;
@@ -335,16 +335,11 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             }
 
             playerContextMenu.Items[0].Text = cncnetUserData.IsFriend(lbUserList.SelectedItem.Text) ? "Remove Friend" : "Add Friend";
+            
             if ((bool)lbUserList.SelectedItem.Tag)
             {
                 IRCUser iu = connectionManager.UserList.Find(u => u.Name == lbUserList.SelectedItem.Text);
                 playerContextMenu.Items[1].Text = cncnetUserData.IsIgnored(iu.Ident) ? "Unblock" : "Block";
-                playerContextMenu.Items[1].Selectable = true;
-            }
-            else
-            {
-                playerContextMenu.Items[1].Text = "Toggle Block";
-                playerContextMenu.Items[1].Selectable = false;
             }
 
             playerContextMenu.Open(GetCursorPoint());
