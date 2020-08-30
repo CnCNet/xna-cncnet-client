@@ -39,7 +39,7 @@ namespace DTAClient.DXGUI.Multiplayer
             unknownGameIcon = AssetLoader.TextureFromImage(ClientCore.Properties.Resources.unknownicon);
             friendIcon = AssetLoader.LoadTexture("friendicon.png");
             ignoreIcon = AssetLoader.LoadTexture("ignoreicon.png");
-            badgeGameIcon = AssetLoader.LoadTexture("Badges\\badge.png");
+            badgeGameIcon = AssetLoader.LoadTexture("Badges/badge.png");
         }
 
         public void AddUser(ChannelUser user)

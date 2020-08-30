@@ -48,13 +48,13 @@ namespace DTAClient
 
             CheckPermissions();
 
-            Logger.Initialize(ProgramConstants.GamePath + "Client\\", "client.log");
+            Logger.Initialize(ProgramConstants.GamePath + "Client/", "client.log");
             Logger.WriteLogFile = true;
 
             if (!Directory.Exists(ProgramConstants.GamePath + "Client"))
                 Directory.CreateDirectory(ProgramConstants.GamePath + "Client");
 
-            File.Delete(ProgramConstants.GamePath + "Client\\client.log");
+            File.Delete(ProgramConstants.GamePath + "Client/client.log");
 
             MainClientConstants.Initialize();
 
@@ -115,12 +115,12 @@ namespace DTAClient
 
             try
             {
-                if (Directory.Exists(Environment.CurrentDirectory + "\\Client\\ErrorLogs"))
+                if (Directory.Exists(Environment.CurrentDirectory + "/Client/ErrorLogs"))
                 {
                     DateTime dtn = DateTime.Now;
 
-                    File.Copy(Environment.CurrentDirectory + "\\Client\\client.log",
-                        Environment.CurrentDirectory + string.Format("\\Client\\ErrorLogs\\ClientCrashLog_{0}_{1}_{2}_{3}_{4}.txt",
+                    File.Copy(Environment.CurrentDirectory + "/Client/client.log",
+                        Environment.CurrentDirectory + string.Format("/Client/ErrorLogs/ClientCrashLog_{0}_{1}_{2}_{3}_{4}.txt",
                         dtn.Day, dtn.Month, dtn.Year, dtn.Hour, dtn.Minute), true);
                 }
             }

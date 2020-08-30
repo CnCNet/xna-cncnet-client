@@ -1347,7 +1347,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             IniFile mapIni = Map.GetMapIni();
 
-            IniFile globalCodeIni = new IniFile(ProgramConstants.GamePath + "INI\\Map Code\\GlobalCode.ini");
+            IniFile globalCodeIni = new IniFile(ProgramConstants.GamePath + "INI/Map Code/GlobalCode.ini");
 
             MapCodeHelper.ApplyMapCode(mapIni, GameMode.GetMapRulesIniFile());
             MapCodeHelper.ApplyMapCode(mapIni, globalCodeIni);

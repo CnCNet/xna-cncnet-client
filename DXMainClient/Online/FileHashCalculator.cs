@@ -29,21 +29,21 @@ namespace DTAClient.Online
 #elif YR
             "spawner.xdp",
             "spawner2.xdp",
-            "INI\\Map Code\\Cooperative.ini",
-            "INI\\Map Code\\Free For All.ini",
-            "INI\\Map Code\\Land Rush.ini",
-            "INI\\Map Code\\Meat Grinder.ini",
-            "INI\\Map Code\\Megawealth.ini",
-            "INI\\Map Code\\Naval War.ini",
-            "INI\\Map Code\\Standard.ini",
-            "INI\\Map Code\\Team Alliance.ini",
-            "INI\\Map Code\\Unholy Alliance.ini",
-            "INI\\Game Options\\Allies Allowed.ini",
-            "INI\\Game Options\\Brutal AI.ini",
-            "INI\\Game Options\\No Dog Engi Eat.ini",
-            "INI\\Game Options\\No Spawn Previews.ini",
-            "INI\\Game Options\\RA2 Classic Mode.ini",
-            "INI\\Map Code\\GlobalCode.ini",
+            "INI/Map Code/Cooperative.ini",
+            "INI/Map Code/Free For All.ini",
+            "INI/Map Code/Land Rush.ini",
+            "INI/Map Code/Meat Grinder.ini",
+            "INI/Map Code/Megawealth.ini",
+            "INI/Map Code/Naval War.ini",
+            "INI/Map Code/Standard.ini",
+            "INI/Map Code/Team Alliance.ini",
+            "INI/Map Code/Unholy Alliance.ini",
+            "INI/Game Options/Allies Allowed.ini",
+            "INI/Game Options/Brutal AI.ini",
+            "INI/Game Options/No Dog Engi Eat.ini",
+            "INI/Game Options/No Spawn Previews.ini",
+            "INI/Game Options/RA2 Classic Mode.ini",
+            "INI/Map Code/GlobalCode.ini",
 #else
             "spawner.xdp",
             "rules.ini",
@@ -52,15 +52,15 @@ namespace DTAClient.Online
             "art.ini",
             "artmd.ini",
             "aimd.ini",
-            "INI\\Rules.ini",
-            "INI\\Enhance.ini",
-            "INI\\Firestrm.ini",
-            "INI\\Art.ini",
-            "INI\\ArtE.ini",
-            "INI\\ArtFS.ini",
-            "INI\\AI.ini",
-            "INI\\AIE.ini",
-            "INI\\AIFS.ini",
+            "INI/Rules.ini",
+            "INI/Enhance.ini",
+            "INI/Firestrm.ini",
+            "INI/Art.ini",
+            "INI/ArtE.ini",
+            "INI/ArtFS.ini",
+            "INI/AI.ini",
+            "INI/AIE.ini",
+            "INI/AIFS.ini",
 #endif
         };
 
@@ -107,9 +107,9 @@ namespace DTAClient.Online
             string[] iniPaths = new string[]
             {
 #if !YR
-                ProgramConstants.GamePath + "INI\\Map Code",
+                ProgramConstants.GamePath + "INI/Map Code",
 #endif
-                ProgramConstants.GamePath + "INI\\Game Options"
+                ProgramConstants.GamePath + "INI/Game Options"
             };
 
             foreach (string path in iniPaths)

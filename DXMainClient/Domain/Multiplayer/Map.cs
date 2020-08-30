@@ -190,7 +190,7 @@ namespace DTAClient.Domain.Multiplayer
                 MinPlayers = section.GetIntValue("MinPlayers", 0);
                 MaxPlayers = section.GetIntValue("MaxPlayers", 0);
                 EnforceMaxPlayers = section.GetBooleanValue("EnforceMaxPlayers", false);
-                PreviewPath = Path.GetDirectoryName(BaseFilePath) + "\\" +
+                PreviewPath = Path.GetDirectoryName(BaseFilePath) + "/" +
                     section.GetStringValue("PreviewImage", Path.GetFileNameWithoutExtension(BaseFilePath) + ".png");
                 Briefing = section.GetStringValue("Briefing", string.Empty).Replace("@", Environment.NewLine);
                 SHA1 = Utilities.CalculateSHA1ForFile(CompleteFilePath);
@@ -353,7 +353,7 @@ namespace DTAClient.Domain.Multiplayer
                 else
                     MaxPlayers = basicSection.GetIntValue("MaxPlayer", 0);
                 EnforceMaxPlayers = basicSection.GetBooleanValue("EnforceMaxPlayers", true);
-                //PreviewPath = Path.GetDirectoryName(BaseFilePath) + "\\" +
+                //PreviewPath = Path.GetDirectoryName(BaseFilePath) + "/" +
                 //    iniFile.GetStringValue(BaseFilePath, "PreviewImage", Path.GetFileNameWithoutExtension(BaseFilePath) + ".png");
                 Briefing = basicSection.GetStringValue("Briefing", string.Empty).Replace("@", Environment.NewLine);
                 SHA1 = Utilities.CalculateSHA1ForFile(path);
@@ -484,7 +484,7 @@ namespace DTAClient.Domain.Multiplayer
 
             if (!string.IsNullOrEmpty(ExtraININame))
             {
-                var extraIni = new IniFile(ProgramConstants.GamePath + "INI\\Map Code\\" + ExtraININame);
+                var extraIni = new IniFile(ProgramConstants.GamePath + "INI/Map Code/" + ExtraININame);
                 IniFile.ConsolidateIniFiles(mapIni, extraIni);
             }
 

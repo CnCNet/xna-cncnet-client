@@ -1502,7 +1502,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         private void MapSharer_HandleMapDownloadComplete(SHA1EventArgs e)
         {
             Logger.Log("Map " + e.SHA1 + " downloaded, parsing.");
-            string mapPath = "Maps\\Custom\\" + e.SHA1;
+            string mapPath = "Maps/Custom/" + e.SHA1;
             Map map = MapLoader.LoadCustomMap(mapPath, out string returnMessage);
             if (map != null)
             {

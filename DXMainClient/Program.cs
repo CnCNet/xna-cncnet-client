@@ -117,7 +117,7 @@ namespace DTAClient
                 typeof(GuidAttribute), false).GetValue(0)).Value.ToString();
 
             // Global prefix means that the mutex is global to the machine
-            string mutexId = string.Format("Global\\{{{0}}}", appGuid);
+            string mutexId = string.Format("Global/{{{0}}}", appGuid);
 
 
             var allowEveryoneRule = new MutexAccessRule(new SecurityIdentifier(WellKnownSidType.WorldSid, null),

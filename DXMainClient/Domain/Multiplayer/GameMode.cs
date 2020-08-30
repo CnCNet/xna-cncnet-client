@@ -16,7 +16,7 @@ namespace DTAClient.Domain.Multiplayer
             Initialize();
         }
 
-        private const string BASE_INI_PATH = "INI\\Map Code\\";
+        private const string BASE_INI_PATH = "INI/Map Code/";
         private const string SPAWN_INI_OPTIONS_SECTION = "ForcedSpawnIniOptions";
 
         /// <summary>
