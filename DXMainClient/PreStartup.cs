@@ -150,7 +150,7 @@ namespace DTAClient
                 Environment.Exit(0);
 
             ProcessStartInfo psInfo = new ProcessStartInfo();
-            psInfo.FileName = Application.ExecutablePath;
+            psInfo.FileName = Application.ExecutablePath.Replace('\\', '/');
             psInfo.Verb = "runas";
             Process.Start(psInfo);
             Environment.Exit(0);
