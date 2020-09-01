@@ -186,6 +186,9 @@
     <Compile Include="CnCNet5\GameCollection.cs" />
     <Compile Include="ClientConfiguration.cs" />
     <Compile Include="CnCNet5\NameValidator.cs" />
+    <Compile Include="INIProcessing\IniPreprocessInfoStore.cs" />
+    <Compile Include="INIProcessing\IniPreprocessor.cs" />
+    <Compile Include="INIProcessing\PreprocessorBackgroundTask.cs" />
     <Compile Include="OSVersion.cs" />
     <Compile Include="ProfanityFilter.cs" />
     <Compile Include="SavedGameManager.cs" />
