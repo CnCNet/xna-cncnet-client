@@ -31,50 +31,50 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             this.cncnetUserData = cncnetUserData;
         }
 
-        XNALabel lblPrivateMessaging;
+        private XNALabel lblPrivateMessaging;
 
-        XNAClientTabControl tabControl;
+        private XNAClientTabControl tabControl;
 
-        XNALabel lblPlayers;
-        XNAListBox lbUserList;
+        private XNALabel lblPlayers;
+        private XNAListBox lbUserList;
 
-        XNALabel lblMessages;
-        ChatListBox lbMessages;
+        private XNALabel lblMessages;
+        private ChatListBox lbMessages;
 
-        XNATextBox tbMessageInput;
+        private XNATextBox tbMessageInput;
 
-        XNAContextMenu playerContextMenu;
+        private XNAContextMenu playerContextMenu;
 
-        CnCNetManager connectionManager;
+        private CnCNetManager connectionManager;
 
-        GameCollection gameCollection;
+        private GameCollection gameCollection;
 
-        Texture2D unknownGameIcon;
-        Texture2D adminGameIcon;
+        private Texture2D unknownGameIcon;
+        private Texture2D adminGameIcon;
 
-        Color personalMessageColor;
-        Color otherUserMessageColor;
+        private Color personalMessageColor;
+        private Color otherUserMessageColor;
 
-        string lastReceivedPMSender;
-        string lastConversationPartner;
+        private string lastReceivedPMSender;
+        private string lastConversationPartner;
 
         /// <summary>
         /// Holds the users that the local user has had conversations with
         /// during this client session.
         /// </summary>
-        List<PrivateMessageUser> privateMessageUsers = new List<PrivateMessageUser>();
+        private List<PrivateMessageUser> privateMessageUsers = new List<PrivateMessageUser>();
 
-        PrivateMessageNotificationBox notificationBox;
+        private PrivateMessageNotificationBox notificationBox;
 
-        EnhancedSoundEffect sndPrivateMessageSound;
-        EnhancedSoundEffect sndMessageSound;
+        private EnhancedSoundEffect sndPrivateMessageSound;
+        private EnhancedSoundEffect sndMessageSound;
 
         /// <summary>
         /// Because the user cannot view PMs during a game, we store the latest
         /// PM received during a game in this variable and display it when the
         /// user has returned from the game.
         /// </summary>
-        PrivateMessage pmReceivedDuringGame;
+        private PrivateMessage pmReceivedDuringGame;
 
         public override void Initialize()
         {
@@ -153,11 +153,9 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             playerContextMenu = new XNAContextMenu(WindowManager);
             playerContextMenu.Name = nameof(playerContextMenu);
             playerContextMenu.ClientRectangle = new Rectangle(0, 0, 150, 2);
-            playerContextMenu.Enabled = false;
-            playerContextMenu.Visible = false;
+            playerContextMenu.Disable();
             playerContextMenu.AddItem("Add Friend", PlayerContextMenu_ToggleFriend);
-            playerContextMenu.AddItem("Toggle Block", PlayerContextMenu_ToggleIgnore);
-            playerContextMenu.Items[1].VisibilityChecker = () => (bool)lbUserList.SelectedItem.Tag;
+            playerContextMenu.AddItem("Toggle Block", PlayerContextMenu_ToggleIgnore, null, () => (bool)lbUserList.SelectedItem.Tag, null);
 
             notificationBox = new PrivateMessageNotificationBox(WindowManager);
             notificationBox.Enabled = false;
