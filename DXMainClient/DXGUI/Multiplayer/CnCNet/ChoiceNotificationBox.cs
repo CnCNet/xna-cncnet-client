@@ -14,9 +14,9 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
     /// </summary>
     public class ChoiceNotificationBox : XNAPanel
     {
-        const double DOWN_TIME_WAIT_SECONDS = 4.0;
-        const double DOWN_MOVEMENT_RATE = 2.0;
-        const double UP_MOVEMENT_RATE = 2.0;
+        private const double DOWN_TIME_WAIT_SECONDS = 4.0;
+        private const double DOWN_MOVEMENT_RATE = 2.0;
+        private const double UP_MOVEMENT_RATE = 2.0;
 
         public ChoiceNotificationBox(WindowManager windowManager) : base(windowManager)
         {
@@ -26,32 +26,32 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         public Action<ChoiceNotificationBox> AffirmativeClickedAction { get; set; }
         public Action<ChoiceNotificationBox> NegativeClickedAction { get; set; }
 
-        XNALabel lblHeader;
-        XNAPanel gameIconPanel;
-        XNALabel lblSender;
-        XNALabel lblChoiceText;
-        XNAClientButton affirmativeButton;
-        XNAClientButton negativeButton;
+        private XNALabel lblHeader;
+        private XNAPanel gameIconPanel;
+        private XNALabel lblSender;
+        private XNALabel lblChoiceText;
+        private XNAClientButton affirmativeButton;
+        private XNAClientButton negativeButton;
 
-        TimeSpan downTime = TimeSpan.Zero;
+        private TimeSpan downTime = TimeSpan.Zero;
 
-        TimeSpan downTimeWaitTime;
+        private TimeSpan downTimeWaitTime;
 
-        bool isDown = false;
+        private bool isDown = false;
 
-        const int boxHeight = 101;
+        private const int boxHeight = 101;
 
-        double locationY = -boxHeight;
+        private double locationY = -boxHeight;
 
         public override void Initialize()
         {
-            Name = "ChoiceNotificationBox";
+            Name = nameof(ChoiceNotificationBox);
             BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 196), 1, 1);
             ClientRectangle = new Rectangle(0, -boxHeight, 300, boxHeight);
             PanelBackgroundDrawMode = PanelBackgroundImageDrawMode.STRETCHED;
 
             lblHeader = new XNALabel(WindowManager);
-            lblHeader.Name = "lblHeader";
+            lblHeader.Name = nameof(lblHeader);
             lblHeader.FontIndex = 1;
             lblHeader.AnchorPoint = new Vector2(ClientRectangle.Width / 2, 12);
             lblHeader.TextAnchor = LabelTextAnchorInfo.CENTER;
@@ -59,21 +59,21 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             AddChild(lblHeader);
 
             gameIconPanel = new XNAPanel(WindowManager);
-            gameIconPanel.Name = "gameIconPanel";
+            gameIconPanel.Name = nameof(gameIconPanel);
             gameIconPanel.ClientRectangle = new Rectangle(12, lblHeader.Bottom + 6, 16, 16);
             gameIconPanel.DrawBorders = false;
             gameIconPanel.BackgroundTexture = AssetLoader.TextureFromImage(ClientCore.Properties.Resources.dtaicon);
             AddChild(gameIconPanel);
 
             lblSender = new XNALabel(WindowManager);
-            lblSender.Name = "lblSender";
+            lblSender.Name = nameof(lblSender);
             lblSender.FontIndex = 1;
             lblSender.ClientRectangle = new Rectangle(gameIconPanel.Right + 3, lblHeader.Bottom + 6, 0, 0);
             lblSender.Text = "fonger";
             AddChild(lblSender);
 
             lblChoiceText = new XNALabel(WindowManager);
-            lblChoiceText.Name = "lblChoiceText";
+            lblChoiceText.Name = nameof(lblChoiceText);
             lblChoiceText.FontIndex = 1;
             lblChoiceText.ClientRectangle = new Rectangle(12, lblSender.Bottom + 6, 0, 0);
             lblChoiceText.Text = "What do you want to do?";
@@ -81,14 +81,14 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             affirmativeButton = new XNAClientButton(WindowManager);
             affirmativeButton.ClientRectangle = new Rectangle(ClientRectangle.Left + 8, lblChoiceText.Bottom + 6, 75, 23);
-            affirmativeButton.Name = "affirmativeButton";
+            affirmativeButton.Name = nameof(affirmativeButton);
             affirmativeButton.Text = "Yes";
             affirmativeButton.LeftClick += AffirmativeButton_LeftClick;
             AddChild(affirmativeButton);
 
             negativeButton = new XNAClientButton(WindowManager);
             negativeButton.ClientRectangle = new Rectangle(ClientRectangle.Width - (75 + 8), lblChoiceText.Bottom + 6, 75, 23);
-            negativeButton.Name = "negativeButton";
+            negativeButton.Name = nameof(negativeButton);
             negativeButton.Text = "No";
             negativeButton.LeftClick += NegativeButton_LeftClick;
             AddChild(negativeButton);

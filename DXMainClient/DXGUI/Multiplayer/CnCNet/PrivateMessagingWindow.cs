@@ -18,12 +18,6 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 {
     internal class PrivateMessagingWindow : XNAWindow, ISwitchable
     {
-        // these are used by the "invite to game" feature in the
-        // context menu and are kept up-to-date by the lobby
-        public string inviteChannelName;
-        public string inviteGameName;
-        public string inviteChannelPassword;
-
         private const int ALL_PLAYERS_VIEW_INDEX = 2;
         private const int FRIEND_LIST_VIEW_INDEX = 1;
 
@@ -217,6 +211,12 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         /// </summary>
         PrivateMessage pmReceivedDuringGame;
 
+        // these are used by the "invite to game" feature in the
+        // context menu and are kept up-to-date by the lobby
+        private string inviteChannelName;
+        private string inviteGameName;
+        private string inviteChannelPassword;
+
         public override void Initialize()
         {
             Name = "PrivateMessagingWindow";
@@ -328,6 +328,18 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             sndMessageSound.Enabled = UserINISettings.Instance.MessageSound;
 
             GameProcessLogic.GameProcessExited += SharedUILogic_GameProcessExited;
+        }
+
+        public void SetInviteChannelInfo(string channelName, string gameName, string channelPassword)
+        {
+            inviteChannelName = channelName;
+            inviteGameName = gameName;
+            inviteChannelPassword = channelPassword;
+        }
+
+        public void ClearInviteChannelInfo()
+        {
+            SetInviteChannelInfo(string.Empty, string.Empty, string.Empty);
         }
 
         private void NotificationBox_LeftClick(object sender, EventArgs e)

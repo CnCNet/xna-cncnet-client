@@ -592,9 +592,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             SetLogOutButtonText();
 
             // keep the friends window up to date so it can disable the Invite option
-            pmWindow.inviteChannelName = string.Empty;
-            pmWindow.inviteGameName = string.Empty;
-            pmWindow.inviteChannelPassword = string.Empty;
+            pmWindow.ClearInviteChannelInfo();
         }
 
         private void GameLobby_GameLeft(object sender, EventArgs e)
@@ -604,9 +602,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             SetLogOutButtonText();
 
             // keep the friends window up to date so it can disable the Invite option
-            pmWindow.inviteChannelName = string.Empty;
-            pmWindow.inviteGameName = string.Empty;
-            pmWindow.inviteChannelPassword = string.Empty;
+            pmWindow.ClearInviteChannelInfo();
         }
 
         private void SetLogOutButtonText()
@@ -879,13 +875,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             gameCreationPanel.Hide();
 
             // update the friends window so it can enable the Invite option
-            pmWindow.inviteChannelName = channelName;
-            pmWindow.inviteGameName = e.GameRoomName;
-
-            if (!string.IsNullOrEmpty(e.Password))
-            {
-                pmWindow.inviteChannelPassword = e.Password;
-            }
+            pmWindow.SetInviteChannelInfo(channelName, e.GameRoomName, string.IsNullOrEmpty(e.Password) ? string.Empty : e.Password);
         }
 
         private void Gcw_LoadedGameCreated(object sender, GameCreationEventArgs e)
@@ -907,13 +897,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             gameCreationPanel.Hide();
 
             // update the friends window so it can enable the Invite option
-            pmWindow.inviteChannelName = channelName;
-            pmWindow.inviteGameName = e.GameRoomName;
-
-            if (!string.IsNullOrEmpty(e.Password))
-            {
-                pmWindow.inviteChannelPassword = e.Password;
-            }
+            pmWindow.SetInviteChannelInfo(channelName, e.GameRoomName, string.IsNullOrEmpty(e.Password) ? string.Empty : e.Password);
         }
 
         private void GameChannel_InvalidPasswordEntered_LoadedGame(object sender, EventArgs e)
