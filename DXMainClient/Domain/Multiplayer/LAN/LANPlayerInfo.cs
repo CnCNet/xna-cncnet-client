@@ -204,7 +204,7 @@ namespace DTAClient.Domain.Multiplayer.LAN
 
                     wm.AddCallback(PlayerPinged, this, EventArgs.Empty);
                 }
-                catch (Exception ex)
+                catch (PingException ex)
                 {
                     Logger.Log($"Caught an exception when pinging {Name} LAN player: {ex.Message}");
                 }

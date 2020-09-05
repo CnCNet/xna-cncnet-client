@@ -269,10 +269,14 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         private void PrintTunnelServerInformation(string s)
         {
             if (tunnelHandler.CurrentTunnel == null)
+            {
                 AddNotice("Tunnel server unavailable!");
+            }
             else
+            {
                 AddNotice($"Current tunnel server: {tunnelHandler.CurrentTunnel.Name} ({tunnelHandler.CurrentTunnel.Country}) " +
                     $"(Players: {tunnelHandler.CurrentTunnel.Clients}/{tunnelHandler.CurrentTunnel.MaxClients}) (Official: {tunnelHandler.CurrentTunnel.Official})");
+            }
         }
 
         private void ShowTunnelSelectionWindow(string description)

@@ -135,7 +135,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                     if (reply.Status == IPStatus.Success)
                         PingInMs = Convert.ToInt32(reply.RoundtripTime);
                 }
-                catch (Exception ex)
+                catch (PingException ex)
                 {
                     Logger.Log($"Caught an exception when pinging {Name} tunnel server: {ex.Message}");
                 }

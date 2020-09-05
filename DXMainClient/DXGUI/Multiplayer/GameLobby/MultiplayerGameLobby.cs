@@ -877,7 +877,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         protected virtual void StillInGameNotification(int playerIndex)
         {
             if (playerIndex > -1 && playerIndex < Players.Count)
-                AddNotice("Unable to launch game; player " + Players[playerIndex].Name + " is still playing the game you started previously.");
+            {
+                AddNotice("Unable to launch game; player " + Players[playerIndex].Name +
+                    " is still playing the game you started previously.");
+            }
         }
 
         protected virtual void GetReadyNotification()

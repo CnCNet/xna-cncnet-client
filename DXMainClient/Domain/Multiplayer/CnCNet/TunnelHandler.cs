@@ -23,8 +23,8 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
         /// A reciprocal to the value which determines how frequent the full tunnel
         /// refresh would be done instead of just pinging the current tunnel (1/N of 
         /// current tunnel ping refreshes would be substituted by a full list refresh).
-        /// Multiply by CURRENT_TUNNEL_REFRESH_INTERVAL to get the interval between full
-        /// list refreshes.
+        /// Multiply by <see cref="CURRENT_TUNNEL_PING_INTERVAL"/> to get the interval 
+        /// between full list refreshes.
         /// </summary>
         private const uint CYCLES_PER_TUNNEL_LIST_REFRESH = 6;
 
