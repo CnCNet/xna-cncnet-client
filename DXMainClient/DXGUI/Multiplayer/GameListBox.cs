@@ -38,7 +38,7 @@ namespace DTAClient.DXGUI.Multiplayer
         /// <summary>
         /// A predicate for setting a filter expression for displayed games.
         /// </summary>
-        private Predicate<GenericHostedGame> GameMatchesFilter { get; set; }
+        private Predicate<GenericHostedGame> GameMatchesFilter { get; }
 
         private Texture2D txLockedGame;
         private Texture2D txIncompatibleGame;
