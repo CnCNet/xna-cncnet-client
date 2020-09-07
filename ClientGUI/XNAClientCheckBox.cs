@@ -7,7 +7,7 @@ namespace ClientGUI
 {
     public class XNAClientCheckBox : XNACheckBox
     {
-        public ToolTip ToolTip { get; set; }
+        private ToolTip toolTip;
 
         public XNAClientCheckBox(WindowManager windowManager) : base(windowManager)
         {
@@ -19,14 +19,14 @@ namespace ClientGUI
 
             base.Initialize();
 
-            ToolTip = new ToolTip(WindowManager, this);
+            toolTip = new ToolTip(WindowManager, this);
         }
 
         public override void ParseAttributeFromINI(IniFile iniFile, string key, string value)
         {
             if (key == "ToolTip")
             {
-                ToolTip.Text = value.Replace("@", Environment.NewLine);
+                toolTip.Text = value.Replace("@", Environment.NewLine);
                 return;
             }
 

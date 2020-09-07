@@ -43,7 +43,6 @@
     <DefineConstants>TRACE;DEBUG;DTA</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|SharpDX' ">
     <PlatformTarget>x86</PlatformTarget>
@@ -53,7 +52,6 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|WindowsGL' ">
     <PlatformTarget>x86</PlatformTarget>
@@ -84,7 +82,6 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|XNAFramework' ">
     <PlatformTarget>x86</PlatformTarget>
@@ -96,7 +93,6 @@
     <WarningLevel>4</WarningLevel>
     <PlatformTarget>x86</PlatformTarget>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'YRRelease|SharpDX' ">
     <PlatformTarget>x86</PlatformTarget>
@@ -106,7 +102,6 @@
     <DefineConstants>TRACE;YR</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'YRRelease|WindowsGL' ">
     <PlatformTarget>x86</PlatformTarget>
@@ -116,7 +111,6 @@
     <DefineConstants>TRACE;WINDOWSGL YR</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'YRRelease|XNAFramework' ">
     <PlatformTarget>x86</PlatformTarget>
@@ -128,7 +122,6 @@
     <WarningLevel>4</WarningLevel>
     <PlatformTarget>x86</PlatformTarget>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup>
     <ApplicationIcon>clienticon.ico</ApplicationIcon>
@@ -160,13 +153,11 @@
     <Optimize>false</Optimize>
     <OutputPath>bin\WindowsGL\Debug</OutputPath>
     <WarningLevel>4</WarningLevel>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|WindowsGL' ">
     <Optimize>true</Optimize>
     <OutputPath>bin\WindowsGL\Release</OutputPath>
     <WarningLevel>4</WarningLevel>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(RunConfiguration)' == 'Linux' ">
     <StartAction>Project</StartAction>
@@ -182,7 +173,6 @@
     <DebugType>pdbonly</DebugType>
     <PlatformTarget>x86</PlatformTarget>
     <ErrorReport>prompt</ErrorReport>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'MORelease|WindowsGL'">
     <OutputPath>bin\WindowsGL\Release\</OutputPath>
@@ -191,7 +181,6 @@
     <PlatformTarget>x86</PlatformTarget>
     <ErrorReport>prompt</ErrorReport>
     <Optimize>true</Optimize>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'MORelease|XNAFramework'">
     <OutputPath>bin\XNAFramework\Release\</OutputPath>
@@ -201,7 +190,6 @@
     <PlatformTarget>x86</PlatformTarget>
     <ErrorReport>prompt</ErrorReport>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <Choose>
     <When Condition="'$(Platform)' != 'XNAFramework'">
@@ -257,6 +245,9 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\References\Ionic.Zip.dll</HintPath>
     </Reference>
+    <Reference Include="MapThumbnailExtractor">
+      <HintPath>..\References\MapThumbnailExtractor.dll</HintPath>
+    </Reference>
     <Reference Include="Newtonsoft.Json, Version=9.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\References\Newtonsoft.Json.dll</HintPath>
@@ -306,8 +297,6 @@
     <Compile Include="Domain\Multiplayer\LAN\LANServerCommandHandler.cs" />
     <Compile Include="Domain\Multiplayer\LAN\ServerNoParamCommandHandler.cs" />
     <Compile Include="Domain\Multiplayer\LAN\ServerStringCommandHandler.cs" />
-    <Compile Include="Domain\Multiplayer\MapPreviewExtractor.cs" />
-    <Compile Include="Domain\Multiplayer\MiniLZO.cs" />
     <Compile Include="Domain\Multiplayer\SavedGamePlayer.cs" />
     <Compile Include="Domain\Multiplayer\CnCNet\SHA1EventArgs.cs" />
     <Compile Include="Domain\Multiplayer\GenericHostedGame.cs" />
@@ -409,9 +398,6 @@
     <Compile Include="Online\IConnectionManager.cs" />
     <Compile Include="Online\ChatMessage.cs" />
     <Compile Include="Online\IRCUser.cs" />
-    <Compile Include="Online\IUserCollection.cs" />
-    <Compile Include="Online\UnsortedUserCollection.cs" />
-    <Compile Include="Online\SortedUserCollection.cs" />
     <Compile Include="Online\PrivateMessageUser.cs" />
     <Compile Include="Online\QueuedMessage.cs" />
     <Compile Include="Online\QueuedMessageType.cs" />

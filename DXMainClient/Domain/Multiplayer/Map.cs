@@ -1,6 +1,7 @@
 ﻿using ClientCore;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using PreviewExtractor;
 using Rampastring.Tools;
 using Rampastring.XNAUI;
 using System;
@@ -465,13 +466,32 @@ namespace DTAClient.Domain.Multiplayer
             if (!Official)
             {
                 // Extract preview from the map itself
-                System.Drawing.Bitmap preview = MapPreviewExtractor.ExtractMapPreview(mapIni);
 
-                if (preview != null)
+                if (mapIni.GetSectionKeys("PreviewPack").Count == 0)
                 {
-                    Texture2D texture = AssetLoader.TextureFromImage(preview);
+                    Logger.Log(mapIni.FileName + " - no [PreviewPack] exists");
+                    return AssetLoader.CreateTexture(Color.Black, 10, 10);
+                }
+                    
+                if (mapIni.GetStringValue("PreviewPack", "1", string.Empty) ==
+                    "yAsAIAXQ5PDQ5PDQ6JQATAEE6PDQ4PDI4JgBTAFEAkgAJyAATAG0AydEAEABpAJIA0wBVA")
+                {
+                    Logger.Log(mapIni.FileName + " - Hidden preview detected - not extracting.");
+                    return AssetLoader.CreateTexture(Color.Black, 10, 10);
+                }
+
+                try
+                {
+                    var extractor = new MapThumbnailExtractor(mapIni, 1);
+                    var bitmap = extractor.Get_Bitmap();
+
+                    var texture = AssetLoader.TextureFromImage(bitmap);
                     if (texture != null)
                         return texture;
+                }
+                catch (Exception ex)
+                {
+                    Logger.Log(mapIni.FileName + " - Failed to extract preview from map: " + ex.Message);
                 }
             }
 

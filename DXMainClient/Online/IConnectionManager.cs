@@ -53,8 +53,6 @@ namespace DTAClient.Online
 
         void OnBannedFromChannel(string channelName);
 
-        void OnUserNicknameChange(string oldNickname, string newNickname);
-
         // **********************
         // Connection-related methods
         // **********************

@@ -1,4 +1,4 @@
-using ClientCore;
+﻿using ClientCore;
 using Microsoft.Xna.Framework;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
@@ -14,11 +14,6 @@ namespace ClientGUI
     /// </summary>
     public class ToolTip : XNAControl
     {
-        /// <summary>
-        /// If set to true - makes tooltip not appear and instantly hides it if currently shown.
-        /// </summary>
-        public bool Blocked { get; set; }
-
         /// <summary>
         /// Creates a new tool tip and attaches it to the given control.
         /// </summary>
@@ -108,13 +103,6 @@ namespace ClientGUI
 
         public override void Update(GameTime gameTime)
         {
-            if (Blocked)
-            {
-                Alpha = 0f;
-                Visible = false;
-                return;
-            }
-
             if (IsMasterControlOnCursor)
             {
                 cursorTime += gameTime.ElapsedGameTime;

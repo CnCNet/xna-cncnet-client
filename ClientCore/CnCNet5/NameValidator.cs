@@ -20,7 +20,8 @@ namespace ClientCore.CnCNet5
             if (profanityFilter.IsOffensive(name))
                 return "Please enter a name that is less offensive.";
 
-            if (int.TryParse(name.Substring(0, 1), out _))
+            int number = -1;
+            if (int.TryParse(name.Substring(0, 1), out number))
                 return "The first character in the player name cannot be a number.";
 
             if (name[0] == '-')
@@ -43,24 +44,6 @@ namespace ClientCore.CnCNet5
                 return "Your nickname is too long.";
 
             return null;
-        }
-
-        /// <summary>
-        /// Returns player nickname constrained to maximum allowed length and with invalid characters for offline nicknames removed.
-        /// Does not check for offensive words or invalid characters for CnCNet.
-        /// </summary>
-        /// <param name="name">Player nickname.</param>
-        /// <returns>Player nickname with invalid offline nickname characters removed and constrained to maximum name length.</returns>
-        public static string GetValidOfflineName(string name)
-        {
-            char[] disallowedCharacters = ",;".ToCharArray();
-
-            string validName = new string(name.Trim().Where(c => !disallowedCharacters.Contains(c)).ToArray());
-
-            if (validName.Length > ClientConfiguration.Instance.MaxNameLength)
-                return validName.Substring(0, ClientConfiguration.Instance.MaxNameLength);
-            
-            return validName;
         }
     }
 }
