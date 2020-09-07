@@ -23,9 +23,17 @@ set oglBinaries="..\..\..\..\Compiled\Binaries\OpenGL\"
 set xnaBinaries="..\..\..\..\Compiled\Binaries\XNA\"
 
 echo(
-echo Windows
+echo Common
 
 cd ..\..\DXMainClient\bin\Windows\Release\
+
+copy DTAUpdater.dll %commonBinaries%DTAUpdater.dll
+copy Ionic.Zip.dll %commonBinaries%Ionic.Zip.dll
+copy Rampastring.Tools.dll %commonBinaries%Rampastring.Tools.dll
+copy Newtonsoft.Json.dll %commonBinaries%Newtonsoft.Json.dll
+copy DiscordRPC.dll %commonBinaries%DiscordRPC.dll
+
+echo Windows
 copy DTAClient.exe %cr%clientdx.exe
 copy ClientCore.dll %winBinaries%ClientCore.dll
 copy ClientGUI.dll %winBinaries%ClientGUI.dll
@@ -60,15 +68,6 @@ copy ClientCore.dll %xnaBinaries%ClientCore.dll
 copy ClientGUI.dll %xnaBinaries%ClientGUI.dll
 copy DTAConfig.dll %xnaBinaries%DTAConfig.dll
 copy Rampastring.XNAUI.dll %xnaBinaries%Rampastring.XNAUI.dll
-
-echo Common
-
-copy DTAUpdater.dll %commonBinaries%DTAUpdater.dll
-copy Ionic.Zip.dll %commonBinaries%Ionic.Zip.dll
-copy MapThumbnailExtractor.dll %commonBinaries%MapThumbnailExtractor.dll
-copy Rampastring.Tools.dll %commonBinaries%Rampastring.Tools.dll
-copy Newtonsoft.Json.dll %commonBinaries%Newtonsoft.Json.dll
-copy DiscordRPC.dll %commonBinaries%DiscordRPC.dll
 
 echo(
 echo Copying complete.

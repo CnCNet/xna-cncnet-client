@@ -54,7 +54,6 @@ namespace DTAClient
         {
             "Rampastring.Tools",
             "Ionic.Zip",
-            "MapThumbnailExtractor",
             "DTAUpdater",
             "Newtonsoft.Json",
             "DiscordRPC"

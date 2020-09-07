@@ -127,14 +127,14 @@ namespace DTAClient.Online
         /// <param name="password">The password for the channel. Use null for none.</param>
         /// <returns>A channel.</returns>
         public Channel CreateChannel(string uiName, string channelName, 
-            bool persistent, string password)
+            bool persistent, bool isChatChannel, string password)
         {
-            return new Channel(uiName, channelName, persistent, password, connection);
+            return new Channel(uiName, channelName, persistent, isChatChannel, password, connection);
         }
 
         public void AddChannel(Channel channel)
         {
-            if (channels.Find(c => c.ChannelName == channel.ChannelName) != null)
+            if (FindChannel(channel.ChannelName) != null)
                 throw new Exception("The channel already exists!");
 
             channels.Add(channel);
@@ -271,7 +271,7 @@ namespace DTAClient.Online
                             if (parameterCount >= modeParameters.Count)
                                 break;
                             string parameter = modeParameters[parameterCount++];
-                            ChannelUser user = channel.Users.Find(x => x.IRCUser.Name == parameter);
+                            ChannelUser user = channel.Users.Find(parameter);
                             if (user == null)
                                 break;
                             user.IsAdmin = addMode ? true : false;
@@ -358,7 +358,7 @@ namespace DTAClient.Online
             if (message.Length > 1 && message[message.Length - 1] == '\u001f')
                 message = message.Remove(message.Length - 1);
 
-            ChannelUser user = channel.Users.Find(x => x.IRCUser.Ident == ident);
+            ChannelUser user = channel.Users.Find(senderName);
             bool senderIsAdmin = user != null && user.IsAdmin;
 
             channel.AddMessage(new ChatMessage(senderName, ident, senderIsAdmin, foreColor, DateTime.Now, message.Replace('\r', ' ')));
@@ -639,10 +639,10 @@ namespace DTAClient.Online
 
             if (userName == ProgramConstants.PLAYERNAME)
             {
-                foreach (ChannelUser user in channel.Users)
+                channel.Users.DoForAllUsers(user =>
                 {
                     RemoveChannelFromUser(user.IRCUser.Name, channelName);
-                }
+                });
 
                 if (!channel.Persistent)
                     channels.Remove(channel);
@@ -671,10 +671,10 @@ namespace DTAClient.Online
 
             if (userName == ProgramConstants.PLAYERNAME)
             {
-                foreach (ChannelUser user in channel.Users)
+                channel.Users.DoForAllUsers(user =>
                 {
                     RemoveChannelFromUser(user.IRCUser.Name, channelName);
-                }
+                });
 
                 if (!channel.Persistent)
                     channels.Remove(channel);
@@ -696,7 +696,7 @@ namespace DTAClient.Online
         /// <param name="channelName">The name of the channel.</param>
         public void RemoveChannelFromUser(string userName, string channelName)
         {
-            var userIndex = UserList.FindIndex(user => user.Name == userName);
+            var userIndex = UserList.FindIndex(user => user.Name.ToLower() == userName.ToLower());
             if (userIndex > -1)
             {
                 var ircUser = UserList[userIndex];
@@ -796,7 +796,7 @@ namespace DTAClient.Online
 
             foreach (var channel in channels)
             {
-                if (channel.ChannelName == channelName)
+                if (channel.ChannelName.ToLower() == channelName)
                     return channel;
             }
 
@@ -906,6 +906,23 @@ namespace DTAClient.Online
         {
             BannedFromChannel?.Invoke(this, new ChannelEventArgs(channelName));
         }
+
+        public void OnUserNicknameChange(string oldNickname, string newNickname)
+            => wm.AddCallback(new Action<string, string>(DoUserNicknameChange), oldNickname, newNickname);
+
+        private void DoUserNicknameChange(string oldNickname, string newNickname)
+        {
+            IRCUser user = UserList.Find(u => u.Name.ToUpper() == oldNickname.ToUpper());
+            if (user == null)
+            {
+                Logger.Log("DoUserNicknameChange: Failed to find user with nickname " + oldNickname);
+                return;
+            }
+            string realOldNickname = user.Name; // To make sure that case matches
+            user.Name = newNickname;
+
+            channels.ForEach(ch => ch.OnUserNameChanged(realOldNickname, newNickname));
+        }
     }
 
     public class UserEventArgs : EventArgs
@@ -926,5 +943,17 @@ namespace DTAClient.Online
         }
 
         public int Index { get; private set; }
+    }
+
+    public class UserNameChangedEventArgs : EventArgs
+    {
+        public UserNameChangedEventArgs(string oldUserName, IRCUser user)
+        {
+            OldUserName = oldUserName;
+            User = user;
+        }
+
+        public string OldUserName { get; }
+        public IRCUser User { get; }
     }
 }

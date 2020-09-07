@@ -1,4 +1,5 @@
 ﻿using ClientCore;
+using ClientCore.CnCNet5;
 using DTAClient.Domain;
 using DTAClient.DXGUI.Generic;
 using Microsoft.Xna.Framework;
@@ -136,12 +137,7 @@ namespace DTAClient.DXGUI
                 playerName = playerName.Substring(playerName.IndexOf("\\") + 1);
             }
 
-            playerName = playerName.Replace(",", string.Empty);
-            playerName = Renderer.GetSafeString(playerName, 0);
-            playerName.Trim();
-            int maxNameLength = ClientConfiguration.Instance.MaxNameLength;
-            if (playerName.Length > maxNameLength)
-                playerName = playerName.Substring(0, maxNameLength);
+            playerName = Renderer.GetSafeString(NameValidator.GetValidOfflineName(playerName), 0);
 
             ProgramConstants.PLAYERNAME = playerName;
             UserINISettings.Instance.PlayerName.Value = playerName;
