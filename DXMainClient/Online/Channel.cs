@@ -12,10 +12,11 @@ namespace DTAClient.Online
         const int MESSAGE_LIMIT = 1024;
 
         public event EventHandler<ChannelUserEventArgs> UserAdded;
-        public event EventHandler<UserNameIndexEventArgs> UserLeft;
-        public event EventHandler<UserNameIndexEventArgs> UserKicked;
-        public event EventHandler<UserNameIndexEventArgs> UserQuitIRC;
+        public event EventHandler<UserNameEventArgs> UserLeft;
+        public event EventHandler<UserNameEventArgs> UserKicked;
+        public event EventHandler<UserNameEventArgs> UserQuitIRC;
         public event EventHandler<ChannelUserEventArgs> UserGameIndexUpdated;
+        public event EventHandler<UserNameChangedEventArgs> UserNameChanged;
         public event EventHandler UserListReceived;
         public event EventHandler UserListCleared;
 
@@ -38,11 +39,17 @@ namespace DTAClient.Online
         /// </summary>
         public event EventHandler<MessageEventArgs> TargetChangeTooFast;
 
-        public Channel(string uiName, string channelName, bool persistent, string password, Connection connection)
+        public Channel(string uiName, string channelName, bool persistent, bool isChatChannel, string password, Connection connection)
         {
+            if (isChatChannel)
+                users = new SortedUserCollection<ChannelUser>(ChannelUser.ChannelUserComparison);
+            else
+                users = new UnsortedUserCollection<ChannelUser>();
+
             UIName = uiName;
             ChannelName = channelName.ToLowerInvariant();
             Persistent = persistent;
+            IsChatChannel = isChatChannel;
             Password = password;
             this.connection = connection;
 
@@ -55,15 +62,17 @@ namespace DTAClient.Online
 
         #region Public members
 
-        public string UIName { get; private set; }
+        public string UIName { get; }
 
-        public string ChannelName { get; private set; }
+        public string ChannelName { get; }
 
-        public bool Persistent { get; private set; }
+        public bool Persistent { get; }
+
+        public bool IsChatChannel { get; }
 
         public string Password { get; private set; }
 
-        Connection connection { get; set; }
+        private readonly Connection connection;
 
         string _topic;
         public string Topic
@@ -78,16 +87,10 @@ namespace DTAClient.Online
         }
 
         List<ChatMessage> messages = new List<ChatMessage>();
-        public List<ChatMessage> Messages
-        {
-            get { return messages; }
-        }
+        public List<ChatMessage> Messages => messages;
 
-        List<ChannelUser> users = new List<ChannelUser>();
-        public List<ChannelUser> Users
-        {
-            get { return users; }
-        }
+        IUserCollection<ChannelUser> users;
+        public IUserCollection<ChannelUser> Users => users;
 
         #endregion
 
@@ -104,9 +107,8 @@ namespace DTAClient.Online
 
         public void AddUser(ChannelUser user)
         {
-            users.Add(user);
-            users = users.OrderBy(u => u.IRCUser.Name).OrderBy(u => !u.IsAdmin).ToList();
-            UserAdded?.Invoke(this, new ChannelUserEventArgs(-1, user));
+            users.Add(user.IRCUser.Name, user);
+            UserAdded?.Invoke(this, new ChannelUserEventArgs(user));
         }
 
         public void OnUserJoined(ChannelUser user)
@@ -117,85 +119,92 @@ namespace DTAClient.Online
             {
                 AddMessage(new ChatMessage(user.IRCUser.Name + " has joined " + UIName + "."));
             }
+
+#if !YR
+            if (Persistent && IsChatChannel && user.IRCUser.Name == ProgramConstants.PLAYERNAME)
+                RequestUserInfo();
+#endif
         }
 
         public void OnUserListReceived(List<ChannelUser> userList)
         {
-            foreach (var user in userList)
+            for (int i = 0; i < userList.Count; i++)
             {
-                var existingUser = users.Find(u => u.IRCUser.Name == user.IRCUser.Name);
+                ChannelUser user = userList[i];
+                var existingUser = users.Find(user.IRCUser.Name);
                 if (existingUser == null)
-                    users.Add(user);
-                else
-                    existingUser.IsAdmin = user.IsAdmin;
+                {
+                    users.Add(user.IRCUser.Name, user);
+                }
+                else if (IsChatChannel)
+                {
+                    if (existingUser.IsAdmin != user.IsAdmin)
+                    {
+                        existingUser.IsAdmin = user.IsAdmin;
+                        users.Reinsert(user.IRCUser.Name);
+                    }
+                }
             }
 
-            users = users.OrderBy(u => u.IRCUser.Name).OrderBy(u => !u.IsAdmin).ToList();
             UserListReceived?.Invoke(this, EventArgs.Empty);
         }
 
         public void OnUserKicked(string userName)
         {
-            int index = users.FindIndex(u => u.IRCUser.Name == userName);
-
-            if (index == -1)
-                return;
-
-            ChannelUser user = users[index];
-
-            if (user.IRCUser.Name == ProgramConstants.PLAYERNAME)
+            if (users.Remove(userName))
             {
-                users.Clear();
-            }
-            else
-            {
-                users.RemoveAt(index);
-            }
+                if (userName == ProgramConstants.PLAYERNAME)
+                {
+                    users.Clear();
+                }
 
-            AddMessage(new ChatMessage(userName + " has been kicked from " + UIName + "."));
+                AddMessage(new ChatMessage(userName + " has been kicked from " + UIName + "."));
 
-            UserKicked?.Invoke(this, new UserNameIndexEventArgs(index, userName));
+                UserKicked?.Invoke(this, new UserNameEventArgs(userName));
+            }
         }
 
         public void OnUserLeft(string userName)
         {
-            int index = users.FindIndex(u => u.IRCUser.Name == userName);
-
-            if (index == -1)
-                return;
-
-            if (notifyOnUserListChange)
+            if (users.Remove(userName))
             {
-                AddMessage(new ChatMessage(userName + " has left from " + UIName + "."));
-            }
+                if (notifyOnUserListChange)
+                {
+                    AddMessage(new ChatMessage(userName + " has left from " + UIName + "."));
+                }
 
-            users.RemoveAt(index);
-            UserLeft?.Invoke(this, new UserNameIndexEventArgs(index, userName));
+                UserLeft?.Invoke(this, new UserNameEventArgs(userName));
+            }
         }
 
         public void OnUserQuitIRC(string userName)
         {
-            int index = users.FindIndex(u => u.IRCUser.Name == userName);
-
-            if (index == -1)
-                return;
-
-            if (notifyOnUserListChange)
+            if (users.Remove(userName))
             {
-                AddMessage(new ChatMessage(userName + " has quit from CnCNet."));
-            }
+                if (notifyOnUserListChange && users.Find(userName) != null)
+                {
+                    AddMessage(new ChatMessage(userName + " has quit from CnCNet."));
+                }
 
-            users.RemoveAt(index);
-            UserQuitIRC?.Invoke(this, new UserNameIndexEventArgs(index, userName));
+                UserQuitIRC?.Invoke(this, new UserNameEventArgs(userName));
+            }
         }
 
         public void UpdateGameIndexForUser(string userName)
         {
-            int index = users.FindIndex(u => u.IRCUser.Name == userName);
+            var user = users.Find(userName);
+            if (user != null)
+                UserGameIndexUpdated?.Invoke(this, new ChannelUserEventArgs(user));
+        }
 
-            if (index > -1)
+        public void OnUserNameChanged(string oldUserName, string newUserName)
+        {
+            var user = users.Find(oldUserName);
+            if (user != null)
             {
-                UserGameIndexUpdated?.Invoke(this, new ChannelUserEventArgs(index, users[index]));
+                users.Remove(oldUserName);
+                users.Add(newUserName, user);
+                UserNameChanged?.Invoke(this, new UserNameChangedEventArgs(oldUserName, user.IRCUser));
             }
         }
 
@@ -329,13 +338,10 @@ namespace DTAClient.Online
 
     public class ChannelUserEventArgs : EventArgs
     {
-        public ChannelUserEventArgs(int index, ChannelUser user)
+        public ChannelUserEventArgs(ChannelUser user)
         {
-            UserIndex = index;
             User = user;
         }
-
-        public int UserIndex { get; private set; }
 
         public ChannelUser User { get; private set; }
     }

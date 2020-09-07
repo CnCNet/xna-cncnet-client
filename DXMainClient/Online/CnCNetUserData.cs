@@ -14,14 +14,25 @@ namespace DTAClient.Online
         private const string FRIEND_LIST_PATH = "Client\\friend_list";
         private const string IGNORE_LIST_PATH = "Client\\ignore_list";
 
-        public List<string> FriendList { get; private set; }
-        public List<string> IgnoreList { get; private set; }
+        /// <summary>
+        /// A list which contains names of friended users. If you manipulate this list
+        /// directly you have to also invoke UserFriendToggled event handler for every
+        /// user name added or removed.
+        /// </summary>
+        public List<string> FriendList { get; private set; } = new List<string>();
+
+        /// <summary>
+        /// A list which contains idents of ignored users. If you manipulate this list
+        /// directly you have to also invoke UserIgnoreToggled event handler for every
+        /// user ident added or removed.
+        /// </summary>
+        public List<string> IgnoreList { get; private set; } = new List<string>();
+
+        public event EventHandler<UserNameEventArgs> UserFriendToggled;
+        public event EventHandler<IdentEventArgs> UserIgnoreToggled;
 
         public CnCNetUserData(WindowManager windowManager)
         {
-            FriendList = new List<string>();
-            IgnoreList = new List<string>();
-
             try
             {
                 FriendList = File.ReadAllLines(ProgramConstants.GamePath + FRIEND_LIST_PATH).ToList();
@@ -35,10 +46,7 @@ namespace DTAClient.Online
             windowManager.GameClosing += WindowManager_GameClosing;
         }
 
-        private void WindowManager_GameClosing(object sender, EventArgs e)
-        {
-            Save();
-        }
+        private void WindowManager_GameClosing(object sender, EventArgs e) => Save();
 
         public void Save()
         {
@@ -61,24 +69,26 @@ namespace DTAClient.Online
         }
 
         /// <summary>
-        /// Adds or removes an user from the friend list depending on whether
-        /// they already are on the friend list.
+        /// Adds or removes a specified user to or from the friend list
+        /// depending on whether they already are on the friend list.
         /// </summary>
         /// <param name="name">The name of the user.</param>
         public void ToggleFriend(string name)
         {
+            if (string.IsNullOrEmpty(name))
+                return;
+
             if (IsFriend(name))
-            {
                 FriendList.Remove(name);
-            }
             else
-            {
                 FriendList.Add(name);
-            }
+
+            UserFriendToggled?.Invoke(this, new UserNameEventArgs(name));
         }
 
         /// <summary>
-        /// Adds a specified user to the chat ignore list.
+        /// Adds or removes a specified user to or from the chat ignore list
+        /// depending on whether they already are on the ignore list.
         /// </summary>
         /// <param name="ident">The ident of the IRCUser.</param>
         public void ToggleIgnoreUser(string ident)
@@ -87,13 +97,11 @@ namespace DTAClient.Online
                 return;
 
             if (IsIgnored(ident))
-            {
                 IgnoreList.Remove(ident);
-            }
             else
-            {
                 IgnoreList.Add(ident);
-            }
+
+            UserIgnoreToggled?.Invoke(this, new IdentEventArgs(ident));
         }
 
         /// <summary>
@@ -101,21 +109,22 @@ namespace DTAClient.Online
         /// </summary>
         /// <param name="ident">The IRC identifier of the user.</param>
         /// <returns></returns>
-        public bool IsIgnored(string ident)
-        {
-            if (IgnoreList == null)
-                return false;
-
-            return IgnoreList.Contains(ident);
-        }
+        public bool IsIgnored(string ident) => IgnoreList.Contains(ident);
 
         /// <summary>
         /// Checks if a specified user belongs to the friend list.
         /// </summary>
         /// <param name="name">The name of the user.</param>
-        public bool IsFriend(string name)
+        public bool IsFriend(string name) => FriendList.Contains(name);
+    }
+
+    public class IdentEventArgs : EventArgs
+    {
+        public IdentEventArgs(string ident)
         {
-            return FriendList.Contains(name);
+            Ident = ident;
         }
+
+        public string Ident { get; private set; }
     }
 }

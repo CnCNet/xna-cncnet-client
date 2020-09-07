@@ -17,6 +17,15 @@ namespace DTAClient.DXGUI.Generic
         private const int DEFAULT_WIDTH = 650;
         private const int DEFAULT_HEIGHT = 600;
 
+        private static string[] DifficultyNames = new string[] { "Easy", "Medium", "Hard" };
+
+        private static string[] DifficultyIniPaths = new string[]
+        {
+            "INI\\Map Code\\Difficulty Easy.ini",
+            "INI\\Map Code\\Difficulty Medium.ini",
+            "INI\\Map Code\\Difficulty Hard.ini"
+        };
+
         public CampaignSelector(WindowManager windowManager, DiscordHandler discordHandler) : base(windowManager)
         {
             this.discordHandler = discordHandler;
@@ -283,31 +292,14 @@ namespace DTAClient.DXGUI.Generic
             swriter.WriteLine("Side=" + mission.Side);
             swriter.WriteLine("BuildOffAlly=" + mission.BuildOffAlly);
 
-            IniFile difficultyIni;
-            string difficultyName;
-
             UserINISettings.Instance.Difficulty.Value = trbDifficultySelector.Value;
-            if (trbDifficultySelector.Value == 0) // Easy
-            {
-                swriter.WriteLine("DifficultyModeHuman=0");
-                swriter.WriteLine("DifficultyModeComputer=2");
-                difficultyIni = new IniFile(ProgramConstants.GamePath + "INI\\Map Code\\Difficulty Easy.ini");
-                difficultyName = "Easy";
-            }
-            else if (trbDifficultySelector.Value == 1) // Normal
-            {
-                swriter.WriteLine("DifficultyModeHuman=1");
-                swriter.WriteLine("DifficultyModeComputer=1");
-                difficultyIni = new IniFile(ProgramConstants.GamePath + "INI\\Map Code\\Difficulty Medium.ini");
-                difficultyName = "Medium";
-            }
-            else //if (tbDifficultyLevel.Value == 2) // Hard
-            {
-                swriter.WriteLine("DifficultyModeHuman=2");
-                swriter.WriteLine("DifficultyModeComputer=0");
-                difficultyIni = new IniFile(ProgramConstants.GamePath + "INI\\Map Code\\Difficulty Hard.ini");
-                difficultyName = "Hard";
-            }
+
+            swriter.WriteLine("DifficultyModeHuman=" + (mission.PlayerAlwaysOnNormalDifficulty ? "1" : trbDifficultySelector.Value.ToString()));
+            swriter.WriteLine("DifficultyModeComputer=" + GetComputerDifficulty());
+
+            IniFile difficultyIni = new IniFile(ProgramConstants.GamePath + DifficultyIniPaths[trbDifficultySelector.Value]);
+            string difficultyName = DifficultyNames[trbDifficultySelector.Value];
+
             swriter.WriteLine();
             swriter.WriteLine();
             swriter.WriteLine();
@@ -330,6 +322,9 @@ namespace DTAClient.DXGUI.Generic
 
             GameProcessLogic.StartGameProcess();
         }
+
+        private int GetComputerDifficulty() =>
+            Math.Abs(trbDifficultySelector.Value - 2);
 
         private void GameProcessExited_Callback()
         {
