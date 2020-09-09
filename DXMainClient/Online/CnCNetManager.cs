@@ -31,6 +31,7 @@ namespace DTAClient.Online
         public event EventHandler<UserAwayEventArgs> AwayMessageReceived;
         public event EventHandler<WhoEventArgs> WhoReplyReceived;
         public event EventHandler<PrivateMessageEventArgs> PrivateMessageReceived;
+        public event EventHandler<PrivateCTCPEventArgs> PrivateCTCPReceived;
         public event EventHandler<ChannelEventArgs> BannedFromChannel;
 
         public event EventHandler<AttemptedServerEventArgs> AttemptedServerChanged;
@@ -373,8 +374,19 @@ namespace DTAClient.Online
         {
             Channel channel = FindChannel(channelName);
 
+            // it's possible that we received this CTCP via PRIVMSG, in which case we
+            // expect our username instead of a channel as the first parameter
             if (channel == null)
+            {
+                if (channelName == ProgramConstants.PLAYERNAME)
+                {
+                    PrivateCTCPEventArgs e = new PrivateCTCPEventArgs(userName, message);
+
+                    PrivateCTCPReceived?.Invoke(this, e);
+                }
+
                 return;
+            }
 
             channel.OnCTCPReceived(userName, message);
         }

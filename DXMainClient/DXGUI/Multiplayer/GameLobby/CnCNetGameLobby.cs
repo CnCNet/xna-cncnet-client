@@ -321,6 +321,18 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             ResetDiscordPresence();
         }
 
+        public void LeaveGameLobby()
+        {
+            if (IsHost)
+            {
+                closed = true;
+                BroadcastGame();
+            }
+
+            Clear();
+            channel.Leave();
+        }
+
         private void ConnectionManager_Disconnected(object sender, EventArgs e) => HandleConnectionLoss();
 
         private void ConnectionManager_ConnectionLost(object sender, ConnectionLostEventArgs e) => HandleConnectionLoss();
@@ -344,17 +356,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             }
         }
 
-        protected override void BtnLeaveGame_LeftClick(object sender, EventArgs e)
-        {
-            if (IsHost)
-            {
-                closed = true;
-                BroadcastGame();
-            }
-
-            Clear();
-            channel.Leave();
-        }
+        protected override void BtnLeaveGame_LeftClick(object sender, EventArgs e) => LeaveGameLobby();
 
         protected override void UpdateDiscordPresence(bool resetTimer = false)
         {

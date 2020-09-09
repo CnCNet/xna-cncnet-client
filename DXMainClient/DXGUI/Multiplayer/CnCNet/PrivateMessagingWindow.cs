@@ -76,6 +76,12 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         /// </summary>
         private PrivateMessage pmReceivedDuringGame;
 
+        // These are used by the "invite to game" feature in the
+        // context menu and are kept up-to-date by the lobby
+        private string inviteChannelName;
+        private string inviteGameName;
+        private string inviteChannelPassword;
+
         public override void Initialize()
         {
             Name = nameof(PrivateMessagingWindow);
@@ -320,6 +326,15 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             lbUserList.SelectedIndexChanged += LbUserList_SelectedIndexChanged;
         }
 
+        public void SetInviteChannelInfo(string channelName, string gameName, string channelPassword)
+        {
+            inviteChannelName = channelName;
+            inviteGameName = gameName;
+            inviteChannelPassword = channelPassword;
+        }
+
+        public void ClearInviteChannelInfo() => SetInviteChannelInfo(string.Empty, string.Empty, string.Empty);
+
         private void NotificationBox_LeftClick(object sender, EventArgs e) => SwitchOn();
 
         private void LbUserList_RightClick(object sender, EventArgs e)
@@ -355,6 +370,33 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             // lazy solution, but friends are removed rarely so it shouldn't bother players too much
             if (tabControl.SelectedTab == FRIEND_LIST_VIEW_INDEX)
                 TabControl_SelectedIndexChanged(this, EventArgs.Empty); 
+        }
+
+        private void PlayerContextMenu_Invite()
+        {
+            var lbItem = lbUserList.SelectedItem;
+
+            if (lbItem == null)
+            {
+                return;
+            }
+
+            // note it's assumed that if the channel name is specified, the game name must be also
+            if (string.IsNullOrEmpty(inviteChannelName) || ProgramConstants.IsInGame)
+            {
+                return;
+            }
+
+            string messageBody = ProgramConstants.GAME_INVITE_CTCP_COMMAND + " " + inviteChannelName + ";" + inviteGameName;
+
+            if (!string.IsNullOrEmpty(inviteChannelPassword))
+            {
+                messageBody += ";" + inviteChannelPassword;
+            }
+
+            connectionManager.SendCustomMessage(new QueuedMessage("PRIVMSG " + lbItem.Text + " :\u0001" +
+                messageBody + "\u0001",
+                QueuedMessageType.CHAT_MESSAGE, 0));
         }
 
         private void PlayerContextMenu_ToggleIgnore()
