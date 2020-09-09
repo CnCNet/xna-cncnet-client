@@ -104,7 +104,7 @@ namespace DTAClient.DXGUI.Multiplayer
             lblPlayers.Visible = true;
             lblPlayers.Text = "Players (" + game.Players.Length + " / " + game.MaxPlayers + "):";
 
-            for (int i = 0; i < game.Players.Length; i++)
+            for (int i = 0; i < game.Players.Length && i < MAX_PLAYERS; i++)
             {
                 lblPlayerNames[i].Visible = true;
                 lblPlayerNames[i].Text = Renderer.GetSafeString(game.Players[i], lblPlayerNames[i].FontIndex);

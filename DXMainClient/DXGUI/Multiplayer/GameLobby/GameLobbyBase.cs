@@ -375,15 +375,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             AddChild(btnPickRandomMap);
         }
 
-        private void BtnPickRandomMap_LeftClick(object sender, EventArgs e)
-        {
-            PickRandomMap();
-        }
+        private void BtnPickRandomMap_LeftClick(object sender, EventArgs e) => PickRandomMap();
 
-        private void TbMapSearch_InputReceived(object sender, EventArgs e)
-        {
-            ListMaps();
-        }
+        private void TbMapSearch_InputReceived(object sender, EventArgs e) => ListMaps();
 
         private void Dropdown_SelectedIndexChanged(object sender, EventArgs e)
         {
@@ -662,11 +656,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 ddPlayerSide.ClientRectangle = new Rectangle(
                     ddPlayerName.Right + playerOptionHorizontalMargin,
                     ddPlayerName.Y, sideWidth, DROP_DOWN_HEIGHT);
-                ddPlayerSide.AddItem("Random", AssetLoader.LoadTexture("randomicon.png"));
+                ddPlayerSide.AddItem("Random", LoadTextureOrNull("randomicon.png"));
                 foreach (string randomSelector in selectorNames)
-                    ddPlayerSide.AddItem(randomSelector, AssetLoader.LoadTexture(randomSelector + "icon.png"));
+                    ddPlayerSide.AddItem(randomSelector, LoadTextureOrNull(randomSelector + "icon.png"));
                 foreach (string sideName in sides)
-                    ddPlayerSide.AddItem(sideName, AssetLoader.LoadTexture(sideName + "icon.png"));
+                    ddPlayerSide.AddItem(sideName, LoadTextureOrNull(sideName + "icon.png"));
                 ddPlayerSide.AllowDropDown = false;
                 ddPlayerSide.SelectedIndexChanged += CopyPlayerDataFromUI;
                 ddPlayerSide.Tag = true;
@@ -762,6 +756,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             CheckDisallowedSides();
         }
+
+        private Texture2D LoadTextureOrNull(string name) =>
+            AssetLoader.AssetExists(name) ? AssetLoader.LoadTexture(name) : null;
 
         /// <summary>
         /// Loads random side selectors from GameOptions.ini
@@ -988,9 +985,13 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 // Co-Op map disallowed side logic
 
                 foreach (int disallowedSideIndex in Map.CoopInfo.DisallowedPlayerSides)
-                {
                     returnValue[disallowedSideIndex] = true;
-                }
+            }
+
+            if (GameMode != null)
+            {
+                foreach (int disallowedSideIndex in GameMode.DisallowedPlayerSides)
+                    returnValue[disallowedSideIndex] = true;
             }
 
             foreach (var checkBox in CheckBoxes)
@@ -1078,7 +1079,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 else
                     pInfo = AIPlayers[i - Players.Count];
 
-                pHouseInfo.RandomizeSide(pInfo, Map, SideCount, random, GetDisallowedSides(), RandomSelectors, RandomSelectorCount);
+                pHouseInfo.RandomizeSide(pInfo, SideCount, random, GetDisallowedSides(), RandomSelectors, RandomSelectorCount);
 
                 pHouseInfo.RandomizeColor(pInfo, freeColors, MPColors, random);
                 pHouseInfo.RandomizeStart(pInfo, Map,
@@ -1132,14 +1133,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             WriteSpawnIniAdditions(spawnIni);
 
             foreach (GameLobbyCheckBox chkBox in CheckBoxes)
-            {
                 chkBox.ApplySpawnINICode(spawnIni);
-            }
 
             foreach (GameLobbyDropDown dd in DropDowns)
-            {
                 dd.ApplySpawnIniCode(spawnIni);
-            }
 
             // Apply forced options from GameOptions.ini
 
@@ -1287,10 +1284,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             return false;
         }
 
-        protected virtual string GetIPAddressForPlayer(PlayerInfo player)
-        {
-            return "0.0.0.0";
-        }
+        protected virtual string GetIPAddressForPlayer(PlayerInfo player) => "0.0.0.0";
 
         /// <summary>
         /// Override this in a derived class to write game lobby specific code to
@@ -1491,10 +1485,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             UpdateDiscordPresence(true);
         }
 
-        private void GameProcessExited_Callback()
-        {
-            AddCallback(new Action(GameProcessExited), null);
-        }
+        private void GameProcessExited_Callback() => AddCallback(new Action(GameProcessExited), null);
 
         protected virtual void GameProcessExited()
         {

@@ -1,4 +1,5 @@
 ﻿using ClientCore;
+using ClientCore.CnCNet5;
 using ClientGUI;
 using Microsoft.Xna.Framework;
 using Rampastring.XNAUI;
@@ -249,13 +250,10 @@ namespace DTAConfig.OptionPanels
                 IniSettings.TextBackgroundColor.Value = TEXT_BACKGROUND_COLOR_TRANSPARENT;
 #endif
 
-            string playerName = tbPlayerName.Text;
-            playerName = playerName.Replace(",", string.Empty);
-            playerName = Renderer.GetSafeString(playerName, 0);
-            playerName.Trim();
+            string playerName = NameValidator.GetValidOfflineName(tbPlayerName.Text);
 
             if (playerName.Length > 0)
-                IniSettings.PlayerName.Value = tbPlayerName.Text;
+                IniSettings.PlayerName.Value = playerName;
 
             return false;
         }
