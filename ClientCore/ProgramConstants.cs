@@ -68,5 +68,8 @@ namespace ClientCore
         {
             return GamePath + BASE_RESOURCE_PATH;
         }
+
+        public const string GAME_INVITE_CTCP_COMMAND = "INVITE";
+        public const string GAME_INVITATION_FAILED_CTCP_COMMAND = "INVITATION_FAILED";
     }
 }

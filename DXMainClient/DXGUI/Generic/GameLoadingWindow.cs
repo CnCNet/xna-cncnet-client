@@ -173,6 +173,7 @@ namespace DTAClient.DXGUI.Generic
         {
             savedGames.Clear();
             lbSaveGameList.ClearItems();
+            lbSaveGameList.SelectedIndex = -1;
 
             if (!Directory.Exists(ProgramConstants.GamePath + SAVED_GAMES_DIRECTORY))
             {

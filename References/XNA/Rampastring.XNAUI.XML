@@ -781,6 +781,12 @@
             </summary>
             <param name="windowManager">The WindowManager associated with this context menu.</param>
         </member>
+        <member name="P:Rampastring.XNAUI.XNAControls.XNAContextMenu.HoveredIndex">
+            <summary>
+            The index of the context menu item that 
+            the user's cursor is hovering on. -1 for none.
+            </summary>
+        </member>
         <member name="M:Rampastring.XNAUI.XNAControls.XNAContextMenu.AddItem(Rampastring.XNAUI.XNAControls.XNAContextMenuItem)">
             <summary>
             Adds an item into the context menu.

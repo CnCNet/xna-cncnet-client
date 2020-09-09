@@ -1018,6 +1018,12 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         protected abstract void RequestReadyStatus();
 
+        // this public as it is used by the main lobby to notify the user of invitation failure
+        public void AddWarning(string message)
+        {
+            AddNotice(message, Color.Yellow);
+        }
+
         protected void AddNotice(string message) => AddNotice(message, Color.White);
 
         protected abstract void AddNotice(string message, Color color);
