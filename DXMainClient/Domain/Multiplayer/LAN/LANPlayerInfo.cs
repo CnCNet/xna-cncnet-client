@@ -1,9 +1,11 @@
 ﻿using ClientCore;
 using Microsoft.Xna.Framework;
 using Rampastring.Tools;
+using Rampastring.XNAUI;
 using System;
 using System.Collections.Generic;
 using System.Net;
+using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
@@ -20,11 +22,13 @@ namespace DTAClient.Domain.Multiplayer.LAN
 
         public event EventHandler<NetworkMessageEventArgs> MessageReceived;
         public event EventHandler ConnectionLost;
+        public event EventHandler PlayerPinged;
 
         private const int PORT = 1234;
         private const int LOBBY_PORT = 1233;
         private const double SEND_PING_TIMEOUT = 10.0;
         private const double DROP_TIMEOUT = 20.0;
+        private const int LAN_PING_TIMEOUT = 1000;
 
         public TimeSpan TimeSinceLastReceivedMessage { get; set; }
         public TimeSpan TimeSinceLastSentMessage { get; set; }
@@ -51,7 +55,6 @@ namespace DTAClient.Domain.Multiplayer.LAN
         /// Updates logic timers for the player.
         /// </summary>
         /// <param name="gameTime">Provides a snapshot of timing values.</param>
-        /// <param name="socket">A socket that is used for sending data to the player.</param>
         /// <returns>True if the player is still considered connected, otherwise false.</returns>
         public bool Update(GameTime gameTime)
         {
@@ -189,5 +192,23 @@ namespace DTAClient.Domain.Multiplayer.LAN
             }
         }
 
+        public void UpdatePing(WindowManager wm)
+        {
+            using (Ping p = new Ping())
+            {
+                try
+                {
+                    PingReply reply = p.Send(System.Net.IPAddress.Parse(IPAddress), LAN_PING_TIMEOUT);
+                    if (reply.Status == IPStatus.Success)
+                        Ping = Convert.ToInt32(reply.RoundtripTime);
+
+                    wm.AddCallback(PlayerPinged, this, EventArgs.Empty);
+                }
+                catch (PingException ex)
+                {
+                    Logger.Log($"Caught an exception when pinging {Name} LAN player: {ex.Message}");
+                }
+            }
+        }
     }
 }
