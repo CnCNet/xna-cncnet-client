@@ -162,6 +162,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             playerContextMenu.Disable();
             playerContextMenu.AddItem("Add Friend", PlayerContextMenu_ToggleFriend);
             playerContextMenu.AddItem("Toggle Block", PlayerContextMenu_ToggleIgnore, null, () => (bool)lbUserList.SelectedItem.Tag, null);
+            playerContextMenu.AddItem("Invite", PlayerContextMenu_Invite, null, () => !string.IsNullOrEmpty(inviteChannelName));
 
             notificationBox = new PrivateMessageNotificationBox(WindowManager);
             notificationBox.Enabled = false;
