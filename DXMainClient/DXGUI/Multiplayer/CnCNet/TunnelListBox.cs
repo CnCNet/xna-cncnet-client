@@ -66,7 +66,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         private void TunnelHandler_TunnelsRefreshed(object sender, EventArgs e)
         {
             ClearItems();
-            
+
             lowestTunnelRating = int.MaxValue;
             int tunnelIndex = 0;
 
@@ -113,7 +113,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                     else
                     {
                         CnCNetTunnel tunnel = tunnelHandler.Tunnels[manuallySelectedIndex];
-                    
+
                         if (tunnel.Clients < tunnel.MaxClients)
                         {
                             SelectedIndex = manuallySelectedIndex;
@@ -139,7 +139,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 lbItem.Text = "Unknown";
             else
                 lbItem.Text = tunnel.PingInMs + " ms";
-                
+
             int rating = tunnel.Rating;
 
             if (isManuallySelectedTunnel)
@@ -150,6 +150,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 bestTunnelIndex = tunnelIndex;
                 lowestTunnelRating = rating;
                 SelectedIndex = tunnelIndex;
+                isManuallySelectedTunnel = false;
             }
         }
 

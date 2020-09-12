@@ -18,7 +18,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
         public CnCNetTunnel() { }
 
         /// <summary>
-        /// Parses a formatted string that contains the tunnel server's 
+        /// Parses a formatted string that contains the tunnel server's
         /// information into a CnCNetTunnel instance.
         /// </summary>
         /// <param name="str">The string that contains the tunnel server's information.</param>
@@ -34,7 +34,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
 
                 string address = parts[0];
                 string[] detailedAddress = address.Split(new char[] { ':' });
-                
+
                 tunnel.Address = detailedAddress[0];
                 tunnel.Port = int.Parse(detailedAddress[1]);
                 tunnel.Country = parts[1];
@@ -85,10 +85,10 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
         public double Distance { get; private set; }
         public int PingInMs { get; set; } = -1;
 
-        public int Rating 
-        { 
-            get 
-            { 
+        public int Rating
+        {
+            get
+            {
                 if (Clients + 24 >= MaxClients)
                     return int.MaxValue;
 
@@ -97,7 +97,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                     if (PingInMs <= -1)
                         return int.MaxValue - 200000 + Clients;
 
-                    int ping = PingInMs < 1 ? 1 : PingInMs;
+                    int ping = PingInMs < 1 ? 1000 : PingInMs;
 
                     return (int)(Math.Ceiling((double)ping / 70) * 100000) + Clients;
                 }
@@ -107,7 +107,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                 }
             }
         }
-        
+
         /// <summary>
         /// Gets a list of player ports to use from a specific tunnel server.
         /// </summary>
