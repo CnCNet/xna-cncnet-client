@@ -265,6 +265,11 @@ namespace ClientCore
         /// </summary>
         public string UnixGameExecutableName => clientDefinitionsIni.GetStringValue(SETTINGS, "UnixGameExecutableName", "wine-dta.sh");
 
+        /// <summary>
+        /// List of files that are not distributed but required to play.
+        /// </summary>
+        public string[] RequiredFiles => clientDefinitionsIni.GetStringValue(SETTINGS, "RequiredFiles", String.Empty).Split(',');
+
         #endregion
 
         public OSVersion GetOperatingSystemVersion()

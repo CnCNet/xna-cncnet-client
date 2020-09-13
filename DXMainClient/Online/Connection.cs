@@ -505,7 +505,7 @@ namespace DTAClient.Online
                             }
                             else
                             {
-                                string noticeUserName = prefix.Substring(0, prefix.IndexOf('!'));
+                                string noticeUserName = prefix.Substring(0, noticeExclamIndex);
                                 string notice = parameters[parameters.Count - 1];
                                 connectionManager.OnNoticeMessageParsed(notice, noticeUserName);
                                 break;
@@ -593,6 +593,16 @@ namespace DTAClient.Online
 
                         connectionManager.OnChannelTopicChanged(prefix.Substring(0, prefix.IndexOf('!')),
                             parameters[0], parameters[1]);
+                        break;
+                    case "NICK":
+                        int nickExclamIndex = prefix.IndexOf('!');
+                        if (nickExclamIndex > -1 || parameters.Count < 1)
+                        {
+                            string oldNick = prefix.Substring(0, nickExclamIndex);
+                            string newNick = parameters[0];
+                            Logger.Log("Nick change - " + oldNick + " -> " + newNick);
+                            connectionManager.OnUserNicknameChange(oldNick, newNick);
+                        }
                         break;
                 }
             }

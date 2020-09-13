@@ -12,6 +12,7 @@ using System.Security.Principal;
 using System.DirectoryServices;
 using System.Linq;
 using DTAClient.Online;
+using ClientCore.INIProcessing;
 
 namespace DTAClient
 {
@@ -102,6 +103,9 @@ namespace DTAClient
             WriteInstallPathToRegistry();
 
             ClientConfiguration.Instance.RefreshSettings();
+
+            // Start INI file preprocessor
+            PreprocessorBackgroundTask.Instance.Run();
 
             GameClass gameClass = new GameClass();
             gameClass.Run();
