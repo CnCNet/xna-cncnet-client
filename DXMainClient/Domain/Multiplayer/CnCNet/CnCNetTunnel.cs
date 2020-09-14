@@ -85,25 +85,55 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
         public double Distance { get; private set; }
         public int PingInMs { get; set; } = -1;
 
+        /// <summary>
+        /// Rating Factor:
+        ///   The latency in milleseconds that ping times are rounded off to.
+        /// </summary>
+        private const int LATENCY_PRECISION =  70;
+
+        /// <summary>
+        /// Rating Factor:
+        ///   The importance of latency compared to client count.
+        /// </summary>
+        private const int LATENCY_WEIGHT = 100000;
+
+        /// <summary>
+        /// Rating Factor:
+        ///   The value of client count compared to latency
+        /// </summary>
+        private const int CLIENTS_WEIGHT = 1;
+
+        /// <summary>
+        /// Rating Factor:
+        ///   Base Rating for untrusted servers and unpingable servers.
+        /// </summary>
+        private const int UNTRUSTED_RATING = int.MaxValue - 100000;
+
+        /// <summary>
+        /// Rating Factor:
+        ///   The amount of free client slots needed for the tunnel to be eligible for autoselection
+        /// </summary>
+        private const int CLIENTS_HEADROOM = 24;
+
         public int Rating
         {
             get
             {
-                if (Clients + 24 >= MaxClients)
+                if (Clients + CLIENTS_HEADROOM >= MaxClients)
                     return int.MaxValue;
 
                 if (Official || Recommended)
                 {
                     if (PingInMs <= -1)
-                        return int.MaxValue - 200000 + Clients;
+                        return UNTRUSTED_RATING + Clients;
 
-                    int ping = PingInMs < 1 ? 1000 : PingInMs;
+                    int latency = 1 + PingInMs / LATENCY_PRECISION;
 
-                    return (int)(Math.Ceiling((double)ping / 70) * 100000) + Clients;
+                    return (latency * LATENCY_WEIGHT) + (Clients * CLIENTS_WEIGHT);
                 }
                 else
                 {
-                    return int.MaxValue - 100000 + Clients;
+                    return UNTRUSTED_RATING + Clients;
                 }
             }
         }
