@@ -396,6 +396,13 @@
             <returns>The given key's value if the section and key was found and
             the value is a valid boolean. Otherwise the given defaultValue.</returns>
         </member>
+        <member name="M:Rampastring.Tools.IniFile.GetPathStringValue(System.String,System.String,System.String)">
+            <summary>
+            Parses and returns a path string from the INI file.
+            The path string has all of its directory separators ( / \ )
+            replaced with an environment-specific one.
+            </summary>
+        </member>
         <member name="M:Rampastring.Tools.IniFile.GetSection(System.String)">
             <summary>
             Returns an INI section from the file, or null if the section doesn't exist.
