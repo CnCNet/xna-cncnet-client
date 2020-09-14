@@ -583,9 +583,12 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
                 if (playerPorts.Count < Players.Count && tunnelHandler.Tunnels.Any())
                 {
+                    Logger.Log($"Picking a new tunnel server because '{tunnelHandler.CurrentTunnel.Name}' was full");
                     tunnelHandler.CurrentTunnel = tunnelHandler.Tunnels.Aggregate((i1, i2) => i1.Rating < i2.Rating ? i1 : i2);
                     playerPorts = tunnelHandler.CurrentTunnel.GetPlayerPortInfo(Players.Count);
                 }
+
+                Logger.Log($"Launching Game using tunnel server '{tunnelHandler.CurrentTunnel.Name}'");
 
                 if (playerPorts.Count < Players.Count)
                 {
