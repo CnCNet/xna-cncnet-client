@@ -148,7 +148,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
         /// <returns>A list of tunnel servers.</returns>
         private List<CnCNetTunnel> RefreshTunnels()
         {
-            string tunnelCacheFile = ProgramConstants.GamePath + "Client\\tunnel_cache";
+            string tunnelCacheFile = ProgramConstants.GamePath + "Client/tunnel_cache";
 
             List<CnCNetTunnel> returnValue = new List<CnCNetTunnel>();
 

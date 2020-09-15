@@ -11,8 +11,8 @@ namespace DTAClient.Online
 {
     public class CnCNetUserData
     {
-        private const string FRIEND_LIST_PATH = "Client\\friend_list";
-        private const string IGNORE_LIST_PATH = "Client\\ignore_list";
+        private const string FRIEND_LIST_PATH = "Client/friend_list";
+        private const string IGNORE_LIST_PATH = "Client/ignore_list";
 
         /// <summary>
         /// A list which contains names of friended users. If you manipulate this list

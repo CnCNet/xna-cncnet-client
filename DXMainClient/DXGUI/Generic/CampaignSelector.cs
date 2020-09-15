@@ -21,9 +21,9 @@ namespace DTAClient.DXGUI.Generic
 
         private static string[] DifficultyIniPaths = new string[]
         {
-            "INI\\Map Code\\Difficulty Easy.ini",
-            "INI\\Map Code\\Difficulty Medium.ini",
-            "INI\\Map Code\\Difficulty Hard.ini"
+            "INI/Map Code/Difficulty Easy.ini",
+            "INI/Map Code/Difficulty Medium.ini",
+            "INI/Map Code/Difficulty Hard.ini"
         };
 
         public CampaignSelector(WindowManager windowManager, DiscordHandler discordHandler) : base(windowManager)
@@ -43,15 +43,15 @@ namespace DTAClient.DXGUI.Generic
 
         private string[] filesToCheck = new string[]
         {
-            "INI\\AI.ini",
-            "INI\\AIE.ini",
-            "INI\\Art.ini",
-            "INI\\ArtE.ini",
-            "INI\\Enhance.ini",
-            "INI\\Rules.ini",
-            "INI\\Map Code\\Difficulty Hard.ini",
-            "INI\\Map Code\\Difficulty Medium.ini",
-            "INI\\Map Code\\Difficulty Easy.ini"
+            "INI/AI.ini",
+            "INI/AIE.ini",
+            "INI/Art.ini",
+            "INI/ArtE.ini",
+            "INI/Enhance.ini",
+            "INI/Rules.ini",
+            "INI/Map Code/Difficulty Hard.ini",
+            "INI/Map Code/Difficulty Medium.ini",
+            "INI/Map Code/Difficulty Easy.ini"
         };
 
         private Mission missionToLaunch;
@@ -177,8 +177,8 @@ namespace DTAClient.DXGUI.Generic
 
             trbDifficultySelector.Value = UserINISettings.Instance.Difficulty;
 
-            ParseBattleIni("INI\\Battle.ini");
-            ParseBattleIni("INI\\" + ClientConfiguration.Instance.BattleFSFileName);
+            ParseBattleIni("INI/Battle.ini");
+            ParseBattleIni("INI/" + ClientConfiguration.Instance.BattleFSFileName);
 
             cheaterWindow = new CheaterWindow(WindowManager);
             DarkeningPanel dp = new DarkeningPanel(WindowManager);

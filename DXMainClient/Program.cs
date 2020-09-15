@@ -22,31 +22,31 @@ namespace DTAClient
              * depending on the build platform. /*/
 
 #if DEBUG
-            COMMON_LIBRARY_PATH = string.Format("{0}{1}Resources{1}Binaries{1}", Application.StartupPath, dsc);
+            COMMON_LIBRARY_PATH = string.Format("{0}{1}Resources{1}Binaries{1}", Application.StartupPath.Replace('\\', '/'), dsc);
 #else
-            COMMON_LIBRARY_PATH = string.Format("{0}{1}Binaries{1}", Application.StartupPath, dsc);
+            COMMON_LIBRARY_PATH = string.Format("{0}{1}Binaries{1}", Application.StartupPath.Replace('\\', '/'), dsc);
 #endif
 
 #if XNA && DEBUG
-            SPECIFIC_LIBRARY_PATH = string.Format("{0}{1}Resources{1}Binaries{1}XNA{1}", Application.StartupPath, dsc);
+            SPECIFIC_LIBRARY_PATH = string.Format("{0}{1}Resources{1}Binaries{1}XNA{1}", Application.StartupPath.Replace('\\', '/'), dsc);
 #elif XNA
-            SPECIFIC_LIBRARY_PATH = string.Format("{0}{1}Binaries{1}XNA{1}", Application.StartupPath, dsc);
+            SPECIFIC_LIBRARY_PATH = string.Format("{0}{1}Binaries{1}XNA{1}", Application.StartupPath.Replace('\\', '/'), dsc);
 #elif WINDOWSGL && DEBUG
-            SPECIFIC_LIBRARY_PATH = string.Format("{0}{1}Resources{1}Binaries{1}OpenGL{1}", Application.StartupPath, dsc);
+            SPECIFIC_LIBRARY_PATH = string.Format("{0}{1}Resources{1}Binaries{1}OpenGL{1}", Application.StartupPath.Replace('\\', '/'), dsc);
 #elif WINDOWSGL
-            SPECIFIC_LIBRARY_PATH = string.Format("{0}{1}Binaries{1}OpenGL{1}", Application.StartupPath, dsc);
+            SPECIFIC_LIBRARY_PATH = string.Format("{0}{1}Binaries{1}OpenGL{1}", Application.StartupPath.Replace('\\', '/'), dsc);
 #elif DEBUG
-            SPECIFIC_LIBRARY_PATH = string.Format("{0}{1}Resources{1}Binaries{1}Windows{1}", Application.StartupPath, dsc);
+            SPECIFIC_LIBRARY_PATH = string.Format("{0}{1}Resources{1}Binaries{1}Windows{1}", Application.StartupPath.Replace('\\', '/'), dsc);
 #else
-            SPECIFIC_LIBRARY_PATH = string.Format("{0}{1}Binaries{1}Windows{1}", Application.StartupPath, dsc);
-            #endif
+            SPECIFIC_LIBRARY_PATH = string.Format("{0}{1}Binaries{1}Windows{1}", Application.StartupPath.Replace('\\', '/'), dsc);
+#endif
 
             // Set up DLL load paths as early as possible
             AppDomain.CurrentDomain.AssemblyResolve += CurrentDomain_AssemblyResolve;
 #if !DEBUG
-            Environment.CurrentDirectory = Directory.GetParent(Application.StartupPath).FullName;
+            Environment.CurrentDirectory = Directory.GetParent(Application.StartupPath.Replace('\\', '/')).FullName;
 #else
-            Environment.CurrentDirectory = Application.StartupPath;
+            Environment.CurrentDirectory = Application.StartupPath.Replace('\\', '/');
 #endif
         }
 
@@ -117,7 +117,7 @@ namespace DTAClient
                 typeof(GuidAttribute), false).GetValue(0)).Value.ToString();
 
             // Global prefix means that the mutex is global to the machine
-            string mutexId = string.Format("Global\\{{{0}}}", appGuid);
+            string mutexId = string.Format("Global/{{{0}}}", appGuid);
 
 
             var allowEveryoneRule = new MutexAccessRule(new SecurityIdentifier(WellKnownSidType.WorldSid, null),
@@ -189,7 +189,7 @@ namespace DTAClient
                 }
                 catch
                 {
-                    data = File.ReadAllBytes(string.Format("{0}{1}{2}.dll", Application.StartupPath, Path.DirectorySeparatorChar, name));
+                    data = File.ReadAllBytes(string.Format("{0}{1}{2}.dll", Application.StartupPath.Replace('\\', '/'), Path.DirectorySeparatorChar, name));
                 }
 #else
                 data = File.ReadAllBytes(string.Format("{0}{1}.dll", SPECIFIC_LIBRARY_PATH, name));

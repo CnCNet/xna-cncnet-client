@@ -12,6 +12,7 @@ mkdir Windows
 mkdir XNA
 cd OpenGL
 mkdir x86
+mkdir x64
 cd ..
 
 REM Setting up paths
@@ -58,6 +59,14 @@ copy DTAConfig.dll %oglBinaries%DTAConfig.dll
 copy MonoGame.Framework.dll %oglBinaries%MonoGame.Framework.dll
 copy ..\..\..\..\References\WindowsGL\x86\SDL2.dll %oglBinaries%x86\SDL2.dll
 copy ..\..\..\..\References\WindowsGL\x86\soft_oal.dll %oglBinaries%x86\soft_oal.dll
+copy ..\..\..\..\References\WindowsGL\x86\libopenal.so.1 %oglBinaries%x86\libopenal.so.1
+copy ..\..\..\..\References\WindowsGL\x86\libSDL2-2.0.so.0 %oglBinaries%x86\libSDL2-2.0.so.0
+copy ..\..\..\..\References\WindowsGL\x64\SDL2.dll %oglBinaries%x64\SDL2.dll
+copy ..\..\..\..\References\WindowsGL\x64\soft_oal.dll %oglBinaries%x64\soft_oal.dll
+copy ..\..\..\..\References\WindowsGL\x64\libopenal.so.1 %oglBinaries%x64\libopenal.so.1
+copy ..\..\..\..\References\WindowsGL\x64\libSDL2-2.0.so.0 %oglBinaries%x64\libSDL2-2.0.so.0
+copy ..\..\..\..\References\WindowsGL\libopenal.1.dylib %oglBinaries%libopenal.1.dylib
+copy ..\..\..\..\References\WindowsGL\libSDL2-2.0.0.dylib %oglBinaries%libSDL2-2.0.0.dylib
 copy Rampastring.XNAUI.dll %oglBinaries%Rampastring.XNAUI.dll
 
 echo XNA

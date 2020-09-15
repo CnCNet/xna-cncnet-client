@@ -29,9 +29,6 @@ namespace DTAClient.DXGUI
             graphics.HardwareModeSwitch = false;
 #endif
             content = new ContentManager(Services);
-            string windowTitle = ClientConfiguration.Instance.WindowTitle;
-            Window.Title = string.IsNullOrEmpty(windowTitle) ?
-                string.Format("{0} Client", MainClientConstants.GAME_NAME_SHORT) : windowTitle;
         }
 
         private static GraphicsDeviceManager graphics;
@@ -40,6 +37,10 @@ namespace DTAClient.DXGUI
         protected override void Initialize()
         {
             Logger.Log("Initializing GameClass.");
+
+            string windowTitle = ClientConfiguration.Instance.WindowTitle;
+            Window.Title = string.IsNullOrEmpty(windowTitle) ?
+                string.Format("{0} Client", MainClientConstants.GAME_NAME_SHORT) : windowTitle;
 
             base.Initialize();
 

@@ -33,7 +33,7 @@ namespace DTAClient
                 themePath = ClientConfiguration.Instance.GetThemeInfoFromIndex(0)[1];
             }
 
-            ProgramConstants.RESOURCES_DIR = "Resources\\" + themePath;
+            ProgramConstants.RESOURCES_DIR = "Resources/" + themePath;
 
             if (!Directory.Exists(ProgramConstants.RESOURCES_DIR))
                 throw new DirectoryNotFoundException("Theme directory not found!" + Environment.NewLine + ProgramConstants.RESOURCES_DIR);

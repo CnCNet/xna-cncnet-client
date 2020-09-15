@@ -11,12 +11,12 @@ namespace ClientCore
     public static class ProgramConstants
     {
 #if DEBUG
-        public static readonly string GamePath = Application.StartupPath + "\\";
+        public static readonly string GamePath = Application.StartupPath.Replace('\\', '/') + "/";
 #else
-        public static readonly string GamePath = Directory.GetParent(Application.StartupPath).FullName + "\\";
+        public static readonly string GamePath = Directory.GetParent(Application.StartupPath.TrimEnd(new char[] { '\\' })).FullName.Replace('\\', '/') + "/";
 #endif
 
-        public static string ClientUserFilesPath => GamePath + "Client\\";
+        public static string ClientUserFilesPath => GamePath + "Client/";
 
         public static event EventHandler PlayerNameChanged;
 
@@ -33,7 +33,7 @@ namespace ClientCore
 
         public const string SPAWNMAP_INI = "spawnmap.ini";
         public const string SPAWNER_SETTINGS = "spawn.ini";
-        public const string SAVED_GAME_SPAWN_INI = "Saved Games\\spawnSG.ini";
+        public const string SAVED_GAME_SPAWN_INI = "Saved Games/spawnSG.ini";
 
         public static readonly Encoding LAN_ENCODING = Encoding.UTF8;
 
@@ -52,7 +52,7 @@ namespace ClientCore
             }
         }
 
-        public static string BASE_RESOURCE_PATH = "Resources\\";
+        public static string BASE_RESOURCE_PATH = "Resources/";
         public static string RESOURCES_DIR = BASE_RESOURCE_PATH;
 
         public static int LOG_LEVEL = 1;
