@@ -191,14 +191,14 @@ namespace DTAClient
                 string sid = new SecurityIdentifier((byte[])new DirectoryEntry(string.Format("WinNT://{0},Computer", Environment.MachineName)).Children.Cast<DirectoryEntry>().First().InvokeGet("objectSID"), 0).AccountDomainSid.Value;
 
                 Connection.SetId(cpuid + mbid + sid);
-                Registry.CurrentUser.CreateSubKey("SOFTWARE/" + ClientConfiguration.Instance.InstallationPathRegKey).SetValue("Ident", cpuid + mbid + sid);
+                Registry.CurrentUser.CreateSubKey("SOFTWARE\\" + ClientConfiguration.Instance.InstallationPathRegKey).SetValue("Ident", cpuid + mbid + sid);
             }
             catch (Exception)
             {
                 Random rn = new Random();
 
                 RegistryKey key;
-                key = Registry.CurrentUser.CreateSubKey("SOFTWARE/" + ClientConfiguration.Instance.InstallationPathRegKey);
+                key = Registry.CurrentUser.CreateSubKey("SOFTWARE\\" + ClientConfiguration.Instance.InstallationPathRegKey);
                 string str = rn.Next(Int32.MaxValue - 1).ToString();
 
                 try {
@@ -233,7 +233,7 @@ namespace DTAClient
             try
             {
                 RegistryKey key;
-                key = Registry.CurrentUser.CreateSubKey("SOFTWARE/" + ClientConfiguration.Instance.InstallationPathRegKey);
+                key = Registry.CurrentUser.CreateSubKey("SOFTWARE\\" + ClientConfiguration.Instance.InstallationPathRegKey);
                 key.SetValue("InstallPath", ProgramConstants.GamePath);
                 key.Close();
             }
