@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -663,6 +663,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             if (pInfo != null)
                 pInfo.IsInGame = false;
+
+            sndReturnSound.Play();
         }
 
         public override void Update(GameTime gameTime)

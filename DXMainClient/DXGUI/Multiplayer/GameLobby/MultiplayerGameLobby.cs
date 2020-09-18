@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Rampastring.XNAUI;
@@ -79,6 +79,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         protected EnhancedSoundEffect sndLeaveSound;
         protected EnhancedSoundEffect sndMessageSound;
         protected EnhancedSoundEffect sndGetReadySound;
+        protected EnhancedSoundEffect sndReturnSound;
 
         protected Texture2D[] PingTextures;
 
@@ -208,10 +209,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             MapPreviewBox.LocalStartingLocationSelected += MapPreviewBox_LocalStartingLocationSelected;
             MapPreviewBox.StartingLocationApplied += MapPreviewBox_StartingLocationApplied;
 
-            sndJoinSound = new EnhancedSoundEffect("joingame.wav");
-            sndLeaveSound = new EnhancedSoundEffect("leavegame.wav");
-            sndMessageSound = new EnhancedSoundEffect("message.wav");
-            sndGetReadySound = new EnhancedSoundEffect("getready.wav", 0.0, 0.0, 5.0f);
+            sndJoinSound = new EnhancedSoundEffect("joingame.wav", 0.0, 0.0, ClientConfiguration.Instance.SoundGameLobbyJoinCooldown);
+            sndLeaveSound = new EnhancedSoundEffect("leavegame.wav", 0.0, 0.0, ClientConfiguration.Instance.SoundGameLobbyLeaveCooldown);
+            sndMessageSound = new EnhancedSoundEffect("message.wav", 0.0, 0.0, ClientConfiguration.Instance.SoundMessageCooldown);
+            sndGetReadySound = new EnhancedSoundEffect("getready.wav", 0.0, 0.0, ClientConfiguration.Instance.SoundGameLobbyGetReadyCooldown);
+            sndReturnSound = new EnhancedSoundEffect("return.wav", 0.0, 0.0, ClientConfiguration.Instance.SoundGameLobbyReturnCooldown);
 
             if (SavedGameManager.AreSavedGamesAvailable())
             {
@@ -886,7 +888,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         protected virtual void GetReadyNotification()
         {
             AddNotice("The host wants to start the game but cannot because not all players are ready!");
-            sndGetReadySound.Play();
+            if (!IsHost && !Players.Find(p => p.Name == ProgramConstants.PLAYERNAME).Ready)
+                sndGetReadySound.Play();
         }
 
         protected virtual void InsufficientPlayersNotification()

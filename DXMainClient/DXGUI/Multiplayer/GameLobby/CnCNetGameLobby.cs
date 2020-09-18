@@ -1347,6 +1347,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             if (pInfo != null)
                 pInfo.IsInGame = false;
+
+            sndReturnSound.Play();
         }
 
         private void HandleTunnelPing(string sender, int ping)
