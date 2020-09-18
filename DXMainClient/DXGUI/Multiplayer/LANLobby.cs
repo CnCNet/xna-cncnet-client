@@ -122,7 +122,7 @@ namespace DTAClient.DXGUI.Multiplayer
             btnMainMenu.Text = "Main Menu";
             btnMainMenu.LeftClick += BtnMainMenu_LeftClick;
 
-            lbGameList = new GameListBox(WindowManager, localGame);
+            lbGameList = new GameListBox(WindowManager, localGame, null);
             lbGameList.Name = "lbGameList";
             lbGameList.ClientRectangle = new Rectangle(btnNewGame.X,
                 41, btnJoinGame.Right - btnNewGame.X,
