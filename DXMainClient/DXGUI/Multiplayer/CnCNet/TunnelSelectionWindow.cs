@@ -22,8 +22,6 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         public event EventHandler<TunnelEventArgs> TunnelSelected;
 
-        public bool Initialized { get; private set; }
-
         private readonly TunnelHandler tunnelHandler;
         private TunnelListBox lbTunnelList;
         private XNALabel lblDescription;
@@ -65,8 +63,6 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             btnApply.CenterOnParentHorizontally();
 
             base.Initialize();
-
-            Initialized = true;
         }
 
         private void BtnApply_LeftClick(object sender, EventArgs e)
@@ -85,10 +81,15 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         /// </summary>
         /// <param name="description">The window description.</param>
         /// <param name="tunnelAddress">The address of the tunnel server to select.</param>
-        public void Open(string description, string tunnelAddress)
+        public void Open(string description, string tunnelAddress = null)
         {
             lblDescription.Text = description;
-            lbTunnelList.SelectTunnel(tunnelAddress);
+
+            if (!string.IsNullOrWhiteSpace(tunnelAddress))
+                lbTunnelList.SelectTunnel(tunnelAddress);
+            else
+                lbTunnelList.SelectedIndex = -1;
+
             Enable();
         }
     }

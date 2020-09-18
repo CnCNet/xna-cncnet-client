@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Rampastring.Tools;
 using System.IO;
 
@@ -54,175 +54,71 @@ namespace ClientCore
             DTACnCNetClient_ini = new IniFile(ProgramConstants.GetResourcePath() + CLIENT_SETTINGS);
         }
 
-        public string UILabelColor
-        {
-            get
-            {
-                return DTACnCNetClient_ini.GetStringValue(GENERAL, "UILabelColor", "0,0,0");
-            }
-        }
+        #region Client settings
 
-        public string UIHintTextColor
-        {
-            get
-            {
-                return DTACnCNetClient_ini.GetStringValue(GENERAL, "HintTextColor", "128,128,128");
-            }
-        }
+        public string MainMenuMusicName => DTACnCNetClient_ini.GetStringValue(GENERAL, "MainMenuTheme", "mainmenu");
 
-        public string DisabledButtonColor
-        {
-            get
-            {
-                return DTACnCNetClient_ini.GetStringValue(GENERAL, "DisabledButtonColor", "108,108,108");
-            }
-        }
+        public float DefaultAlphaRate => DTACnCNetClient_ini.GetSingleValue(GENERAL, "AlphaRate", 0.005f);
 
-        public string AltUIColor
-        {
-            get
-            {
-                return DTACnCNetClient_ini.GetStringValue(GENERAL, "AltUIColor", "255,255,255");
-            }
-        }
+        public float CheckBoxAlphaRate => DTACnCNetClient_ini.GetSingleValue(GENERAL, "CheckBoxAlphaRate", 0.05f);
 
-        public string ButtonHoverColor
-        {
-            get
-            {
-                return DTACnCNetClient_ini.GetStringValue(GENERAL, "ButtonHoverColor", "255,192,192");
-            }
-        }
+        #region Color settings
 
-        public string MapPreviewNameBackgroundColor
-        {
-            get
-            {
-                return DTACnCNetClient_ini.GetStringValue(GENERAL, "MapPreviewNameBackgroundColor", "0,0,0,144");
-            }
-        }
+        public string UILabelColor => DTACnCNetClient_ini.GetStringValue(GENERAL, "UILabelColor", "0,0,0");
 
-        public string MapPreviewNameBorderColor
-        {
-            get
-            {
-                return DTACnCNetClient_ini.GetStringValue(GENERAL, "MapPreviewNameBorderColor", "128,128,128,128");
-            }
-        }
+        public string UIHintTextColor => DTACnCNetClient_ini.GetStringValue(GENERAL, "HintTextColor", "128,128,128");
 
-        public string MapPreviewStartingLocationHoverRemapColor
-        {
-            get
-            {
-                return DTACnCNetClient_ini.GetStringValue(GENERAL, "StartingLocationHoverColor", "255,255,255,128");
-            }
-        }
+        public string DisabledButtonColor => DTACnCNetClient_ini.GetStringValue(GENERAL, "DisabledButtonColor", "108,108,108");
 
-        public string AltUIBackgroundColor
-        {
-            get
-            {
-                return DTACnCNetClient_ini.GetStringValue(GENERAL, "AltUIBackgroundColor", "196,196,196");
-            }
-        }
+        public string AltUIColor => DTACnCNetClient_ini.GetStringValue(GENERAL, "AltUIColor", "255,255,255");
 
-        public string WindowBorderColor
-        {
-            get
-            {
-                return DTACnCNetClient_ini.GetStringValue(GENERAL, "WindowBorderColor", "128,128,128");
-            }
-        }
+        public string ButtonHoverColor => DTACnCNetClient_ini.GetStringValue(GENERAL, "ButtonHoverColor", "255,192,192");
 
-        public string PanelBorderColor
-        {
-            get
-            {
-                return DTACnCNetClient_ini.GetStringValue(GENERAL, "PanelBorderColor", "255,255,255");
-            }
-        }
+        public string MapPreviewNameBackgroundColor => DTACnCNetClient_ini.GetStringValue(GENERAL, "MapPreviewNameBackgroundColor", "0,0,0,144");
 
-        public string ListBoxHeaderColor
-        {
-            get
-            {
-                return DTACnCNetClient_ini.GetStringValue(GENERAL, "ListBoxHeaderColor", "255,255,255");
-            }
-        }
+        public string MapPreviewNameBorderColor => DTACnCNetClient_ini.GetStringValue(GENERAL, "MapPreviewNameBorderColor", "128,128,128,128");
 
-        public float DefaultAlphaRate
-        {
-            get
-            {
-                return DTACnCNetClient_ini.GetSingleValue(GENERAL, "AlphaRate", 0.005f);
-            }
-        }
+        public string MapPreviewStartingLocationHoverRemapColor => DTACnCNetClient_ini.GetStringValue(GENERAL, "StartingLocationHoverColor", "255,255,255,128");
 
-        public float CheckBoxAlphaRate
-        {
-            get
-            {
-                return DTACnCNetClient_ini.GetSingleValue(GENERAL, "CheckBoxAlphaRate", 0.05f);
-            }
-        }
+        public string AltUIBackgroundColor => DTACnCNetClient_ini.GetStringValue(GENERAL, "AltUIBackgroundColor", "196,196,196");
 
-        public string DefaultChatColor
-        {
-            get
-            {
-                return DTACnCNetClient_ini.GetStringValue(GENERAL, "DefaultChatColor", "0,255,0");
-            }
-        }
+        public string WindowBorderColor => DTACnCNetClient_ini.GetStringValue(GENERAL, "WindowBorderColor", "128,128,128");
 
-        public string AdminNameColor
-        {
-            get
-            {
-                return DTACnCNetClient_ini.GetStringValue(GENERAL, "AdminNameColor", "255,0,0");
-            }
-        }
+        public string PanelBorderColor => DTACnCNetClient_ini.GetStringValue(GENERAL, "PanelBorderColor", "255,255,255");
 
-        public string ReceivedPMColor
-        {
-            get
-            {
-                return DTACnCNetClient_ini.GetStringValue(GENERAL, "PrivateMessageOtherUserColor", "196,196,196");
-            }
-        }
+        public string ListBoxHeaderColor => DTACnCNetClient_ini.GetStringValue(GENERAL, "ListBoxHeaderColor", "255,255,255");
 
-        public string SentPMColor
-        {
-            get { return DTACnCNetClient_ini.GetStringValue(GENERAL, "PrivateMessageColor", "128,128,128"); }
-        }
+        public string DefaultChatColor => DTACnCNetClient_ini.GetStringValue(GENERAL, "DefaultChatColor", "0,255,0");
 
-        public int DefaultPersonalChatColorIndex
-        {
-            get
-            {
-                return DTACnCNetClient_ini.GetIntValue(GENERAL, "DefaultPersonalChatColorIndex", 0);
-            }
-        }
+        public string AdminNameColor => DTACnCNetClient_ini.GetStringValue(GENERAL, "AdminNameColor", "255,0,0");
 
-        public string ListBoxFocusColor
-        {
-            get
-            {
-                return DTACnCNetClient_ini.GetStringValue(GENERAL, "ListBoxFocusColor", "64,64,168");
-            }
-        }
+        public string ReceivedPMColor => DTACnCNetClient_ini.GetStringValue(GENERAL, "PrivateMessageOtherUserColor", "196,196,196");
 
-        public string HoverOnGameColor
-        {
-            get
-            {
-                return DTACnCNetClient_ini.GetStringValue(GENERAL, "HoverOnGameColor", "32,32,84");
-            }
-        }
+        public string SentPMColor => DTACnCNetClient_ini.GetStringValue(GENERAL, "PrivateMessageColor", "128,128,128");
 
-        public string MainMenuMusicName
-        {
-            get { return DTACnCNetClient_ini.GetStringValue(GENERAL, "MainMenuTheme", "mainmenu"); }
-        }
+        public int DefaultPersonalChatColorIndex => DTACnCNetClient_ini.GetIntValue(GENERAL, "DefaultPersonalChatColorIndex", 0);
+
+        public string ListBoxFocusColor => DTACnCNetClient_ini.GetStringValue(GENERAL, "ListBoxFocusColor", "64,64,168");
+
+        public string HoverOnGameColor => DTACnCNetClient_ini.GetStringValue(GENERAL, "HoverOnGameColor", "32,32,84");
+
+        #endregion
+
+        #region Tool tip settings
+
+        public int ToolTipFontIndex => DTACnCNetClient_ini.GetIntValue(GENERAL, "ToolTipFontIndex", 0);
+
+        public int ToolTipOffsetX => DTACnCNetClient_ini.GetIntValue(GENERAL, "ToolTipOffsetX", 0);
+
+        public int ToolTipOffsetY => DTACnCNetClient_ini.GetIntValue(GENERAL, "ToolTipOffsetY", 0);
+
+        public int ToolTipMargin => DTACnCNetClient_ini.GetIntValue(GENERAL, "ToolTipMargin", 4);
+
+        public float ToolTipDelay => DTACnCNetClient_ini.GetSingleValue(GENERAL, "ToolTipDelay", 0.67f);
+
+        public float ToolTipAlphaRatePerSecond => DTACnCNetClient_ini.GetSingleValue(GENERAL, "ToolTipAlphaRate", 4.0f);
+
+        #endregion
 
         #region Audio options
 
@@ -240,104 +136,45 @@ namespace ClientCore
 
         #endregion
 
-        public int LoadingScreenCount
-        {
-            get
-            {
-                return clientDefinitionsIni.GetIntValue(SETTINGS, "LoadingScreenCount", 2);
-            }
-        }
+        #endregion
 
-        public string GetSides()
-        {
-            return gameOptions_ini.GetStringValue(GENERAL, "Sides", "GDI,Nod,Allies,Soviet");
-        }
+        #region Game options
 
-        public int ThemeCount
-        {
-            get
-            {
-                return clientDefinitionsIni.GetSectionKeys("Themes").Count;
-            }
-        }
+        public string Sides => gameOptions_ini.GetStringValue(GENERAL, "Sides", "GDI,Nod,Allies,Soviet");
 
-        public string LocalGame
-        {
-            get
-            {
-                return clientDefinitionsIni.GetStringValue(SETTINGS, "LocalGame", "DTA");
-            }
-        }
+        #endregion
 
-        public int SendSleep
-        {
-            get
-            {
-                return clientDefinitionsIni.GetIntValue(SETTINGS, "SendSleep", 2500);
-            }
-        }
+        #region Client definitions
 
-        public bool SidebarHack
-        {
-            get
-            {
-                return clientDefinitionsIni.GetBooleanValue(SETTINGS, "SidebarHack", false);
-            }
-        }
+        public string DiscordAppId => clientDefinitionsIni.GetStringValue(SETTINGS, "DiscordAppId", string.Empty);
 
-        public int MinimumRenderWidth
-        {
-            get
-            {
-                return clientDefinitionsIni.GetIntValue(SETTINGS, "MinimumRenderWidth", 1280);
-            }
-        }
+        public int SendSleep => clientDefinitionsIni.GetIntValue(SETTINGS, "SendSleep", 2500);
+          
+        public int LoadingScreenCount => clientDefinitionsIni.GetIntValue(SETTINGS, "LoadingScreenCount", 2);
 
-        public int MinimumRenderHeight
-        {
-            get
-            {
-                return clientDefinitionsIni.GetIntValue(SETTINGS, "MinimumRenderHeight", 768);
-            }
-        }
+        public int ThemeCount => clientDefinitionsIni.GetSectionKeys("Themes").Count;
 
-        public int MaximumRenderWidth
-        {
-            get
-            {
-                return clientDefinitionsIni.GetIntValue(SETTINGS, "MaximumRenderWidth", 1280);
-            }
-        }
+        public string LocalGame => clientDefinitionsIni.GetStringValue(SETTINGS, "LocalGame", "DTA");
 
-        public int MaximumRenderHeight
-        {
-            get
-            {
-                return clientDefinitionsIni.GetIntValue(SETTINGS, "MaximumRenderHeight", 800);
-            }
-        }
+        public bool SidebarHack => clientDefinitionsIni.GetBooleanValue(SETTINGS, "SidebarHack", false);
 
-        public string WindowTitle
-        {
-            get
-            {
-                return clientDefinitionsIni.GetStringValue(SETTINGS, "WindowTitle", string.Empty);
-            }
-        }
+        public int MinimumRenderWidth => clientDefinitionsIni.GetIntValue(SETTINGS, "MinimumRenderWidth", 1280);
 
-        public string InstallationPathRegKey
-        {
-            get
-            {
-                return clientDefinitionsIni.GetStringValue(SETTINGS, "RegistryInstallPath", "TiberianSun");
-            }
-        }
+        public int MinimumRenderHeight => clientDefinitionsIni.GetIntValue(SETTINGS, "MinimumRenderHeight", 768);
+
+        public int MaximumRenderWidth => clientDefinitionsIni.GetIntValue(SETTINGS, "MaximumRenderWidth", 1280);
+
+        public int MaximumRenderHeight => clientDefinitionsIni.GetIntValue(SETTINGS, "MaximumRenderHeight", 800);
+
+        public string WindowTitle => clientDefinitionsIni.GetStringValue(SETTINGS, "WindowTitle", string.Empty);
+
+        public string InstallationPathRegKey => clientDefinitionsIni.GetStringValue(SETTINGS, "RegistryInstallPath", "TiberianSun");
 
         public string CnCNetLiveStatusIdentifier => clientDefinitionsIni.GetStringValue(SETTINGS, "CnCNetLiveStatusIdentifier", "cncnet5_ts");
 
         public string BattleFSFileName => clientDefinitionsIni.GetStringValue(SETTINGS, "BattleFSFileName", "BattleFS.ini");
 
-        public string MapEditorExePath => clientDefinitionsIni.GetStringValue(SETTINGS, "MapEditorExePath", "FinalSun\\FinalSun.exe");
+        public string MapEditorExePath => clientDefinitionsIni.GetStringValue(SETTINGS, "MapEditorExePath", "FinalSun/FinalSun.exe");
 
         public string UnixMapEditorExePath => clientDefinitionsIni.GetStringValue(SETTINGS, "UnixMapEditorExePath", Instance.MapEditorExePath);
 
@@ -353,7 +190,7 @@ namespace ClientCore
 
         public string CreditsURL => clientDefinitionsIni.GetStringValue(SETTINGS, "CreditsURL", "http://www.moddb.com/mods/the-dawn-of-the-tiberium-age/tutorials/credits#Rampastring");
 
-        public string FinalSunIniPath => clientDefinitionsIni.GetStringValue(SETTINGS, "FSIniPath", "FinalSun\\FinalSun.ini");
+        public string FinalSunIniPath => clientDefinitionsIni.GetStringValue(SETTINGS, "FSIniPath", "FinalSun/FinalSun.ini");
 
         public int MaxNameLength => clientDefinitionsIni.GetIntValue(SETTINGS, "MaxNameLength", 16);
 
@@ -390,7 +227,7 @@ namespace ClientCore
 
         public string ExtraExeCommandLineParameters => clientDefinitionsIni.GetStringValue(SETTINGS, "ExtraCommandLineParams", string.Empty);
 
-        public string MPMapsIniPath => clientDefinitionsIni.GetStringValue(SETTINGS, "MPMapsPath", "INI\\MPMaps.ini");
+        public string MPMapsIniPath => clientDefinitionsIni.GetStringValue(SETTINGS, "MPMapsPath", "INI/MPMaps.ini");
 
         public string KeyboardINI => clientDefinitionsIni.GetStringValue(SETTINGS, "KeyboardINI", "Keyboard.ini");
 
@@ -404,7 +241,7 @@ namespace ClientCore
 
         public bool CopyMissionsToSpawnmapINI => clientDefinitionsIni.GetBooleanValue(SETTINGS, "CopyMissionsToSpawnmapINI", true);
 
-        public string GetAllowedGameModes => clientDefinitionsIni.GetStringValue(SETTINGS, "AllowedCustomGameModes", "Standard,Custom Map");
+        public string AllowedCustomGameModes => clientDefinitionsIni.GetStringValue(SETTINGS, "AllowedCustomGameModes", "Standard,Custom Map");
 
         public string GetGameExecutableName()
         {
@@ -413,17 +250,13 @@ namespace ClientCore
             return exeNames[0];
         }
 
-        public string GetGameLauncherExecutableName => clientDefinitionsIni.GetStringValue(SETTINGS, "GameLauncherExecutableName", string.Empty);
+        public string GameLauncherExecutableName => clientDefinitionsIni.GetStringValue(SETTINGS, "GameLauncherExecutableName", string.Empty);
 
         public bool SaveSkirmishGameOptions => clientDefinitionsIni.GetBooleanValue(SETTINGS, "SaveSkirmishGameOptions", false);
 
         public bool CreateSavedGamesDirectory => clientDefinitionsIni.GetBooleanValue(SETTINGS, "CreateSavedGamesDirectory", false);
 
         public bool DisableMultiplayerGameLoading => clientDefinitionsIni.GetBooleanValue(SETTINGS, "DisableMultiplayerGameLoading", false);
-
-        public bool DisableUpdaterOptions => clientDefinitionsIni.GetBooleanValue(SETTINGS, "DisableUpdaterOptions", false);
-
-        public bool DisableComponentOptions => clientDefinitionsIni.GetBooleanValue(SETTINGS, "DisableComponentOptions", false);
 
         public bool DisplayPlayerCountInTopBar => clientDefinitionsIni.GetBooleanValue(SETTINGS, "DisplayPlayerCountInTopBar", false);
 
@@ -434,24 +267,27 @@ namespace ClientCore
         /// </summary>
         public string LauncherExe => clientDefinitionsIni.GetStringValue(SETTINGS, "LauncherExe", string.Empty);
 
-        public string ClientDefaultResolutionText => clientDefinitionsIni.GetStringValue(SETTINGS, "ClientDefaultResolutionText", "(recommended)");
-
         public bool UseClientRandomStartLocations => clientDefinitionsIni.GetBooleanValue(SETTINGS, "UseClientRandomStartLocations", false);
 
         public bool ProcessScreenshots
-        {
 #if MO
-            get { return clientDefinitionsIni.GetBooleanValue(SETTINGS, "ProcessScreenshots", true); }
+            => clientDefinitionsIni.GetBooleanValue(SETTINGS, "ProcessScreenshots", true);
 #else
-            get { return false; }
+            => false;
 #endif
-        }
 
         /// <summary>
         /// Returns the name of the game executable file that is used on
         /// Linux and macOS.
         /// </summary>
-        public string GetUnixGameExecutableName() => clientDefinitionsIni.GetStringValue(SETTINGS, "UnixGameExecutableName", "wine-dta.sh");
+        public string UnixGameExecutableName => clientDefinitionsIni.GetStringValue(SETTINGS, "UnixGameExecutableName", "wine-dta.sh");
+
+        /// <summary>
+        /// List of files that are not distributed but required to play.
+        /// </summary>
+        public string[] RequiredFiles => clientDefinitionsIni.GetStringValue(SETTINGS, "RequiredFiles", String.Empty).Split(',');
+
+        #endregion
 
         public OSVersion GetOperatingSystemVersion()
         {

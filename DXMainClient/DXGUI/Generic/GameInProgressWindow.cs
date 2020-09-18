@@ -133,8 +133,8 @@ namespace DTAClient.DXGUI
 
             try
             {
-                if (!Directory.Exists(ProgramConstants.GamePath + "Client\\ErrorLogs"))
-                    Directory.CreateDirectory(ProgramConstants.GamePath + "Client\\ErrorLogs");
+                if (!Directory.Exists(ProgramConstants.GamePath + "Client/ErrorLogs"))
+                    Directory.CreateDirectory(ProgramConstants.GamePath + "Client/ErrorLogs");
 
                 DateTime dtn = DateTime.Now;
 
@@ -143,7 +143,7 @@ namespace DTAClient.DXGUI
                     Logger.Log("The game crashed! Copying EXCEPT.TXT file.");
 
                     File.Copy(ProgramConstants.GamePath + "EXCEPT.TXT",
-                        string.Format(ProgramConstants.GamePath + "Client\\ErrorLogs\\EXCEPT_{0}_{1}_{2}_{3}_{4}.TXT",
+                        string.Format(ProgramConstants.GamePath + "Client/ErrorLogs/EXCEPT_{0}_{1}_{2}_{3}_{4}.TXT",
                         dtn.Day, dtn.Month, dtn.Year, dtn.Hour, dtn.Minute));
                 }
 
@@ -156,7 +156,7 @@ namespace DTAClient.DXGUI
                         Logger.Log("There was a sync error! Copying file " + syncFileName);
 
                         File.Copy(ProgramConstants.GamePath + syncFileName,
-                            string.Format(ProgramConstants.GamePath + "Client\\ErrorLogs\\" + syncFileName + "_{0}_{1}_{2}_{3}_{4}.TXT",
+                            string.Format(ProgramConstants.GamePath + "Client/ErrorLogs/" + syncFileName + "_{0}_{1}_{2}_{3}_{4}.TXT",
                             dtn.Day, dtn.Month, dtn.Year, dtn.Hour, dtn.Minute));
                         File.Delete(ProgramConstants.GamePath + syncFileName);
                     }

@@ -27,6 +27,8 @@ namespace DTAConfig.OptionPanels
         XNAClientCheckBox chkSkipLoginWindow;
         XNAClientCheckBox chkPersistentMode;
         XNAClientCheckBox chkConnectOnStartup;
+        XNAClientCheckBox chkDiscordIntegration;
+        XNAClientCheckBox chkAllowGameInvitesFromFriendsOnly;
 
         GameCollection gameCollection;
 
@@ -104,6 +106,34 @@ namespace DTAConfig.OptionPanels
             chkConnectOnStartup.AllowChecking = false;
 
             AddChild(chkConnectOnStartup);
+
+            chkDiscordIntegration = new XNAClientCheckBox(WindowManager);
+            chkDiscordIntegration.Name = "chkDiscordIntegration";
+            chkDiscordIntegration.ClientRectangle = new Rectangle(
+                chkSkipLoginWindow.X,
+                chkConnectOnStartup.Bottom + 12, 0, 0);
+            chkDiscordIntegration.Text = "Show detailed game info in Discord status";
+            
+            if (String.IsNullOrEmpty(ClientConfiguration.Instance.DiscordAppId))
+            {
+                chkDiscordIntegration.AllowChecking = false;
+                chkDiscordIntegration.Checked = false;
+            }
+            else
+            {
+                chkDiscordIntegration.AllowChecking = true;
+            }
+
+            AddChild(chkDiscordIntegration);
+
+            chkAllowGameInvitesFromFriendsOnly = new XNAClientCheckBox(WindowManager);
+            chkAllowGameInvitesFromFriendsOnly.Name = "chkAllowGameInvitesFromFriendsOnly";
+            chkAllowGameInvitesFromFriendsOnly.ClientRectangle = new Rectangle(
+                chkDiscordIntegration.X,
+                chkDiscordIntegration.Bottom + 12, 0, 0);
+            chkAllowGameInvitesFromFriendsOnly.Text = "Only receive game invitations from friends";
+
+            AddChild(chkAllowGameInvitesFromFriendsOnly);
 
             var lblFollowedGames = new XNALabel(WindowManager);
             lblFollowedGames.Name = "lblFollowedGames";
@@ -189,6 +219,11 @@ namespace DTAConfig.OptionPanels
             chkSkipLoginWindow.Checked = IniSettings.SkipConnectDialog;
             chkPersistentMode.Checked = IniSettings.PersistentMode;
 
+            chkDiscordIntegration.Checked = !String.IsNullOrEmpty(ClientConfiguration.Instance.DiscordAppId)
+                && IniSettings.DiscordIntegration;
+
+            chkAllowGameInvitesFromFriendsOnly.Checked = IniSettings.AllowGameInvitesFromFriendsOnly;
+
             string localGame = ClientConfiguration.Instance.LocalGame;
 
             foreach (var chkBox in followedGameChks)
@@ -207,7 +242,7 @@ namespace DTAConfig.OptionPanels
 
         public override bool Save()
         {
-            base.Save();
+            bool restartRequired = base.Save();
 
             IniSettings.PingUnofficialCnCNetTunnels.Value = chkPingUnofficialTunnels.Checked;
             IniSettings.WritePathToRegistry.Value = chkWriteInstallPathToRegistry.Checked;
@@ -217,12 +252,20 @@ namespace DTAConfig.OptionPanels
             IniSettings.SkipConnectDialog.Value = chkSkipLoginWindow.Checked;
             IniSettings.PersistentMode.Value = chkPersistentMode.Checked;
 
+            if (!String.IsNullOrEmpty(ClientConfiguration.Instance.DiscordAppId))
+            {
+                restartRequired = IniSettings.DiscordIntegration != chkDiscordIntegration.Checked;
+                IniSettings.DiscordIntegration.Value = chkDiscordIntegration.Checked;
+            }
+
+            IniSettings.AllowGameInvitesFromFriendsOnly.Value = chkAllowGameInvitesFromFriendsOnly.Checked;
+
             foreach (var chkBox in followedGameChks)
             {
                 IniSettings.SettingsIni.SetBooleanValue("Channels", chkBox.Name, chkBox.Checked);
             }
 
-            return false;
+            return restartRequired;
         }
     }
 }

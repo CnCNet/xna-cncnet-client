@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Net;
+using System.Net.NetworkInformation;
 
 namespace DTAClient.Domain.Multiplayer.CnCNet
 {
@@ -12,27 +13,28 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
     public class CnCNetTunnel
     {
         private const int REQUEST_TIMEOUT = 10000; // In milliseconds
+        private const int PING_TIMEOUT = 1000;
 
         public CnCNetTunnel() { }
 
         /// <summary>
-        /// Creates and returns a CnCNetTunnel based on a formatted string that
-        /// contains the tunnel server's information. 
-        /// Returns null if parsing fails.
+        /// Parses a formatted string that contains the tunnel server's 
+        /// information into a CnCNetTunnel instance.
         /// </summary>
         /// <param name="str">The string that contains the tunnel server's information.</param>
-        /// <returns>A </returns>
+        /// <returns>A CnCNetTunnel instance parsed from the given string.</returns>
         public static CnCNetTunnel Parse(string str)
         {
             // For the format, check http://cncnet.org/master-list
 
             try
             {
+                var tunnel = new CnCNetTunnel();
                 string[] parts = str.Split(';');
 
                 string address = parts[0];
                 string[] detailedAddress = address.Split(new char[] { ':' });
-                var tunnel = new CnCNetTunnel();
+                
                 tunnel.Address = detailedAddress[0];
                 tunnel.Port = int.Parse(detailedAddress[1]);
                 tunnel.Country = parts[1];
@@ -52,7 +54,6 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                 tunnel.Longitude = double.Parse(parts[9], cultureInfo);
                 tunnel.Version = int.Parse(parts[10]);
                 tunnel.Distance = double.Parse(parts[11], cultureInfo);
-                tunnel.PingInMs = -1;
 
                 return tunnel;
             }
@@ -68,7 +69,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
             }
         }
 
-        public string Address { get; private  set; }
+        public string Address { get; private set; }
         public int Port { get; private set; }
         public string Country { get; private set; }
         public string CountryCode { get; private set; }
@@ -82,7 +83,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
         public double Longitude { get; private set; }
         public int Version { get; private set; }
         public double Distance { get; private set; }
-        public int PingInMs { get; set; }
+        public int PingInMs { get; set; } = -1;
 
         /// <summary>
         /// Gets a list of player ports to use from a specific tunnel server.
@@ -92,26 +93,25 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
         {
             try
             {
-                Logger.Log("Contacting tunnel at " + Address + ":" + Port);
+                Logger.Log($"Contacting tunnel at {Address}:{Port}");
 
-                string addressString = string.Format("http://{0}:{1}/request?clients={2}",
-                    Address, Port, playerCount);
-                Logger.Log("Downloading from " + addressString);
+                string addressString = $"http://{Address}:{Port}/request?clients={playerCount}";
+                Logger.Log($"Downloading from {addressString}");
 
-                using (ExtendedWebClient client = new ExtendedWebClient(REQUEST_TIMEOUT))
+                using (var client = new ExtendedWebClient(REQUEST_TIMEOUT))
                 {
                     string data = client.DownloadString(addressString);
 
                     data = data.Replace("[", String.Empty);
                     data = data.Replace("]", String.Empty);
 
-                    string[] portIDs = data.Split(new char[] { ',' });
+                    string[] portIDs = data.Split(',');
                     List<int> playerPorts = new List<int>();
 
                     foreach (string _port in portIDs)
                     {
                         playerPorts.Add(Convert.ToInt32(_port));
-                        Logger.Log("Added port " + _port);
+                        Logger.Log($"Added port {_port}");
                     }
 
                     return playerPorts;
@@ -123,6 +123,23 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
             }
 
             return new List<int>();
+        }
+
+        public void UpdatePing()
+        {
+            using (Ping p = new Ping())
+            {
+                try
+                {
+                    PingReply reply = p.Send(IPAddress.Parse(Address), PING_TIMEOUT);
+                    if (reply.Status == IPStatus.Success)
+                        PingInMs = Convert.ToInt32(reply.RoundtripTime);
+                }
+                catch (PingException ex)
+                {
+                    Logger.Log($"Caught an exception when pinging {Name} tunnel server: {ex.Message}");
+                }
+            }
         }
     }
 }

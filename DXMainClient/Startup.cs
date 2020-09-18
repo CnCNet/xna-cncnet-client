@@ -12,6 +12,7 @@ using System.Security.Principal;
 using System.DirectoryServices;
 using System.Linq;
 using DTAClient.Online;
+using ClientCore.INIProcessing;
 
 namespace DTAClient
 {
@@ -32,7 +33,7 @@ namespace DTAClient
                 themePath = ClientConfiguration.Instance.GetThemeInfoFromIndex(0)[1];
             }
 
-            ProgramConstants.RESOURCES_DIR = "Resources\\" + themePath;
+            ProgramConstants.RESOURCES_DIR = "Resources/" + themePath;
 
             if (!Directory.Exists(ProgramConstants.RESOURCES_DIR))
                 throw new DirectoryNotFoundException("Theme directory not found!" + Environment.NewLine + ProgramConstants.RESOURCES_DIR);
@@ -54,12 +55,12 @@ namespace DTAClient
             Thread idThread = new Thread(GenerateOnlineId);
             idThread.Start();
 
-            if (Directory.Exists(MainClientConstants.gamepath + "Updater"))
+            if (Directory.Exists(ProgramConstants.GamePath + "Updater"))
             {
                 Logger.Log("Attempting to delete temporary updater directory.");
                 try
                 {
-                    Directory.Delete(MainClientConstants.gamepath + "Updater", true);
+                    Directory.Delete(ProgramConstants.GamePath + "Updater", true);
                 }
                 catch
                 {
@@ -68,12 +69,12 @@ namespace DTAClient
 
             if (ClientConfiguration.Instance.CreateSavedGamesDirectory)
             {
-                if (!Directory.Exists(MainClientConstants.gamepath + "Saved Games"))
+                if (!Directory.Exists(ProgramConstants.GamePath + "Saved Games"))
                 {
                     Logger.Log("Saved Games directory does not exist - attempting to create one.");
                     try
                     {
-                        Directory.CreateDirectory(MainClientConstants.gamepath + "Saved Games");
+                        Directory.CreateDirectory(ProgramConstants.GamePath + "Saved Games");
                     }
                     catch
                     {
@@ -88,7 +89,7 @@ namespace DTAClient
                 {
                     try
                     {
-                        File.Delete(MainClientConstants.gamepath + component.LocalPath + "_u");
+                        File.Delete(ProgramConstants.GamePath + component.LocalPath + "_u");
                     }
                     catch
                     {
@@ -103,6 +104,9 @@ namespace DTAClient
 
             ClientConfiguration.Instance.RefreshSettings();
 
+            // Start INI file preprocessor
+            PreprocessorBackgroundTask.Instance.Run();
+
             GameClass gameClass = new GameClass();
             gameClass.Run();
         }
@@ -114,15 +118,16 @@ namespace DTAClient
         {
             try
             {
-                string cpu = String.Empty;
-                string videoController = String.Empty;
+                string cpu = string.Empty;
+                string videoController = string.Empty;
+                string memory = string.Empty;
 
                 ManagementObjectSearcher searcher =
                     new ManagementObjectSearcher("SELECT * FROM Win32_Processor");
 
                 foreach (var proc in searcher.Get())
                 {
-                    cpu = cpu + proc["Name"] + " (" + proc["NumberOfCores"] + " cores) ";
+                    cpu = cpu + proc["Name"].ToString().Trim() + " (" + proc["NumberOfCores"] + " cores) ";
                 }
 
                 searcher = new ManagementObjectSearcher("SELECT * FROM Win32_VideoController");
@@ -134,11 +139,23 @@ namespace DTAClient
                     if (currentBitsPerPixel != null && description != null)
                     {
                         if (currentBitsPerPixel.Value != null)
-                            videoController = videoController + "Video controller: " + description.Value.ToString() + " ";
+                            videoController = videoController + "Video controller: " + description.Value.ToString().Trim() + " ";
                     }
                 }
 
-                Logger.Log("Hardware info: {0} {1}", cpu, videoController);
+                searcher = new ManagementObjectSearcher("Select * From Win32_PhysicalMemory");
+                ulong total = 0;
+
+                foreach (ManagementObject ram in searcher.Get())
+                {
+                    total += Convert.ToUInt64(ram.GetPropertyValue("Capacity"));
+                }
+
+                if (total != 0)
+                    memory = "Total physical memory: " + (total >= 1073741824 ? total / 1073741824 + "GB" : total / 1048576 + "MB");
+
+                Logger.Log(string.Format("Hardware info: {0} | {1} | {2}", cpu.Trim(), videoController.Trim(), memory));
+
             }
             catch (Exception ex)
             {
@@ -182,15 +199,18 @@ namespace DTAClient
 
                 RegistryKey key;
                 key = Registry.CurrentUser.CreateSubKey("SOFTWARE\\" + ClientConfiguration.Instance.InstallationPathRegKey);
-                string str;
-                Object o = key.GetValue("Ident");
-                if (o == null)
-                {
-                    str = rn.Next(Int32.MaxValue - 1).ToString();
-                    key.SetValue("Ident", str);
+                string str = rn.Next(Int32.MaxValue - 1).ToString();
+
+                try {
+                    Object o = key.GetValue("Ident");
+                    if (o == null)
+                    {
+                        key.SetValue("Ident", str);
+                    }
+                    else
+                        str = o.ToString();
                 }
-                else
-                    str = o.ToString();
+                catch { }
 
                 key.Close();
                 Connection.SetId(str);
@@ -214,7 +234,7 @@ namespace DTAClient
             {
                 RegistryKey key;
                 key = Registry.CurrentUser.CreateSubKey("SOFTWARE\\" + ClientConfiguration.Instance.InstallationPathRegKey);
-                key.SetValue("InstallPath", MainClientConstants.gamepath);
+                key.SetValue("InstallPath", ProgramConstants.GamePath);
                 key.Close();
             }
             catch

@@ -11,8 +11,11 @@ namespace DTAClient.Domain.Multiplayer
     public class MapLoader
     {
         public const string MAP_FILE_EXTENSION = ".map";
-        private const string CUSTOM_MAPS_DIRECTORY = "Maps\\Custom";
+        private const string CUSTOM_MAPS_DIRECTORY = "Maps/Custom";
 
+        /// <summary>
+        /// List of game modes.
+        /// </summary>
         public List<GameMode> GameModes = new List<GameMode>();
 
         /// <summary>
@@ -24,14 +27,14 @@ namespace DTAClient.Domain.Multiplayer
         /// A list of game mode aliases.
         /// Every game mode entry that exists in this dictionary will get 
         /// replaced by the game mode entries of the value string array
-        /// when a map's game modes are parsed.
+        /// when map is added to game mode map lists.
         /// </summary>
         private Dictionary<string, string[]> GameModeAliases = new Dictionary<string, string[]>();
 
         /// <summary>
         /// List of gamemodes allowed to be used on custom maps in order for them to display in map list.
         /// </summary>
-        private string[] AllowedGameModes = ClientConfiguration.Instance.GetAllowedGameModes.Split(',');
+        private string[] AllowedGameModes = ClientConfiguration.Instance.AllowedCustomGameModes.Split(',');
 
         /// <summary>
         /// Loads multiplayer map info asynchonously.
@@ -42,11 +45,29 @@ namespace DTAClient.Domain.Multiplayer
             thread.Start();
         }
 
+        /// <summary>
+        /// Load maps based on INI info as well as those in the custom maps directory.
+        /// </summary>
         public void LoadMaps()
         {
             Logger.Log("Loading maps.");
 
             IniFile mpMapsIni = new IniFile(ProgramConstants.GamePath + ClientConfiguration.Instance.MPMapsIniPath);
+
+            var gameModes = mpMapsIni.GetSectionKeys("GameModes");
+
+            if (gameModes != null)
+            {
+                foreach (string key in gameModes)
+                {
+                    string gameModeName = mpMapsIni.GetStringValue("GameModes", key, string.Empty);
+                    if (!string.IsNullOrEmpty(gameModeName))
+                    {
+                        GameMode gm = new GameMode(gameModeName);
+                        GameModes.Add(gm);
+                    }
+                }
+            }
 
             var gmAliases = mpMapsIni.GetSectionKeys("GameModeAliases");
 
@@ -81,7 +102,7 @@ namespace DTAClient.Domain.Multiplayer
 
                 Map map = new Map(mapFilePath, true);
 
-                if (!map.SetInfoFromINI(mpMapsIni, GameModeAliases))
+                if (!map.SetInfoFromINI(mpMapsIni))
                     continue;
 
                 maps.Add(map);
@@ -89,18 +110,7 @@ namespace DTAClient.Domain.Multiplayer
 
             foreach (Map map in maps)
             {
-                foreach (string gameMode in map.GameModes)
-                {
-                    GameMode gm = GameModes.Find(g => g.Name == gameMode);
-
-                    if (gm == null)
-                    {
-                        gm = new GameMode(gameMode.Replace(";", string.Empty));
-                        GameModes.Add(gm);
-                    }
-
-                    gm.Maps.Add(map);
-                }
+                AddMapToGameModes(map, false);
             }
 
             List<Map> customMaps = new List<Map>();
@@ -119,31 +129,17 @@ namespace DTAClient.Domain.Multiplayer
                     baseFilePath = baseFilePath.Substring(0, baseFilePath.Length - 4);
 
                     Map map = new Map(baseFilePath, false);
-                    if (map.SetInfoFromMap(file, GameModeAliases))
+                    if (map.SetInfoFromMap(file))
                         customMaps.Add(map);
                 }
             }
 
-            string[] allowedGameModes = ClientConfiguration.Instance.GetAllowedGameModes.Split(',');
-
             foreach (Map map in customMaps)
             {
-                foreach (string gameMode in map.GameModes)
-                {
-                    GameMode gm = GameModes.Find(g => g.Name == gameMode);
-
-                    if (!allowedGameModes.Contains(gameMode))
-                        continue;
-
-                    if (gm == null)
-                    {
-                        gm = new GameMode(gameMode);
-                        GameModes.Add(gm);
-                    }
-
-                    gm.Maps.Add(map);
-                }
+                AddMapToGameModes(map, false);
             }
+
+            GameModes.RemoveAll(g => g.Maps.Count < 1);
 
             MapLoadingComplete?.Invoke(this, EventArgs.Empty);
         }
@@ -167,7 +163,7 @@ namespace DTAClient.Domain.Multiplayer
             Logger.Log("LoadCustomMap: Loading custom map " + mapPath);
             Map map = new Map(mapPath, false);
 
-            if (map.SetInfoFromMap(ProgramConstants.GamePath + mapPath + MAP_FILE_EXTENSION, GameModeAliases))
+            if (map.SetInfoFromMap(ProgramConstants.GamePath + mapPath + MAP_FILE_EXTENSION))
             {
                 foreach (GameMode gm in GameModes)
                 {
@@ -182,22 +178,7 @@ namespace DTAClient.Domain.Multiplayer
 
                 Logger.Log("LoadCustomMap: Map " + mapPath + " added succesfully.");
 
-                foreach (string gameMode in map.GameModes)
-                {
-                    GameMode gm = GameModes.Find(g => g.Name == gameMode);
-
-                    if (gm == null)
-                    {
-                        if (!AllowedGameModes.Contains(gameMode))
-                            continue;
-
-                        gm = new GameMode(gameMode);
-                        GameModes.Add(gm);
-                    }
-
-                    gm.Maps.Add(map);
-                    Logger.Log("LoadCustomMap: Adding map to game mode " + gm.Name);
-                }
+                AddMapToGameModes(map, true);
 
                 resultMessage = $"Map {mapPath} loaded succesfully.";
 
@@ -208,6 +189,37 @@ namespace DTAClient.Domain.Multiplayer
             resultMessage = $"Loading map {mapPath} failed!";
 
             return null;
+        }
+
+        /// <summary>
+        /// Adds map to all eligible game modes.
+        /// </summary>
+        /// <param name="map">Map to add.</param>
+        /// <param name="enableLogging">If set to true, a message for each game mode the map is added to is output to the log file.</param>
+        private void AddMapToGameModes(Map map, bool enableLogging)
+        {
+            foreach (string gameMode in map.GameModes)
+            {
+                if (!GameModeAliases.TryGetValue(gameMode, out string[] gameModeAliases))
+                    gameModeAliases = new string[] { gameMode };
+
+                foreach (string gameModeAlias in gameModeAliases)
+                {
+                    if (!map.Official && !(AllowedGameModes.Contains(gameMode) || AllowedGameModes.Contains(gameModeAlias)))
+                        continue;
+
+                    GameMode gm = GameModes.Find(g => g.Name == gameModeAlias);
+                    if (gm == null)
+                    {
+                        gm = new GameMode(gameModeAlias);
+                        GameModes.Add(gm);
+                    }
+
+                    gm.Maps.Add(map);
+                    if (enableLogging)
+                        Logger.Log("AddMapToGameModes: Added map " + map.Name + " to game mode " + gm.Name);
+                }
+            }
         }
 
         public void WriteCustomMapCache()

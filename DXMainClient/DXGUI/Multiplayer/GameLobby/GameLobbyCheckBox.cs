@@ -36,11 +36,18 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         public bool IsMultiplayer { get; set; }
 
         /// <summary>
-        /// The last user-defined value for this check box.
+        /// The last host-defined value for this check box.
         /// Defaults to the default value of Checked after the check-box
         /// has been initialized, but its value is only changed by user interaction.
         /// </summary>
-        public bool UserDefinedValue { get; set; }
+        public bool HostChecked { get; set; }
+
+        /// <summary>
+        /// The last value that the local player gave for this check box.
+        /// Defaults to the default value of Checked after the check-box
+        /// has been initialized, but its value is only changed by user interaction.
+        /// </summary>
+        public bool UserChecked { get; set; }
 
         /// <summary>
         /// The side index that this check box disallows when checked.
@@ -63,9 +70,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         private string enabledSpawnIniValue = "True";
         private string disabledSpawnIniValue = "False";
 
-        private ToolTip toolTip;
-
-        protected override void ParseAttributeFromINI(IniFile iniFile, string key, string value)
+        public override void ParseAttributeFromINI(IniFile iniFile, string key, string value)
         {
             switch (key)
             {
@@ -92,16 +97,14 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     bool checkedValue = Conversions.BooleanFromString(value, false);
                     Checked = checkedValue;
                     defaultValue = checkedValue;
-                    UserDefinedValue = checkedValue;
+                    HostChecked = checkedValue;
+                    UserChecked = checkedValue;
                     return;
                 case "DisallowedSideIndex":
                     DisallowedSideIndex = Conversions.IntFromString(value, DisallowedSideIndex);
                     return;
                 case "MapScoringMode":
                     MapScoringMode = (CheckBoxMapScoringMode)Enum.Parse(typeof(CheckBoxMapScoringMode), value);
-                    return;
-                case "ToolTip":
-                    toolTip.Text = value.Replace("@", Environment.NewLine);
                     return;
             }
 
@@ -153,20 +156,13 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 disallowedArray[DisallowedSideIndex] = true;
         }
 
-        public override void Initialize()
-        {
-            base.Initialize();
-
-            toolTip = new ToolTip(WindowManager, this);
-        }
-
         public override void OnLeftClick()
         {
             if (!AllowChanges)
                 return;
 
             base.OnLeftClick();
-            UserDefinedValue = Checked;
+            UserChecked = Checked;
         }
     }
 }

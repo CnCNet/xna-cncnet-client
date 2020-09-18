@@ -17,7 +17,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         public string OptionName { get; private set; }
 
-        public int UserDefinedIndex { get; set; }
+        public int HostSelectedIndex { get; set; }
+
+        public int UserSelectedIndex { get; set; }
 
         private DropDownDataWriteMode dataWriteMode = DropDownDataWriteMode.BOOLEAN;
 
@@ -25,7 +27,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private int defaultIndex;
 
-        protected override void ParseAttributeFromINI(IniFile iniFile, string key, string value)
+        public override void ParseAttributeFromINI(IniFile iniFile, string key, string value)
         {
             switch (key)
             {
@@ -60,7 +62,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 case "DefaultIndex":
                     SelectedIndex = int.Parse(value);
                     defaultIndex = SelectedIndex;
-                    UserDefinedIndex = SelectedIndex;
+                    HostSelectedIndex = SelectedIndex;
+                    UserSelectedIndex = SelectedIndex;
                     return;
                 case "OptionName":
                     OptionName = value;
@@ -122,6 +125,15 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             else customIniPath = Items[SelectedIndex].Text;
 
             MapCodeHelper.ApplyMapCode(mapIni, customIniPath, gameMode);
+        }
+
+        public override void OnLeftClick()
+        {
+            if (!AllowDropDown)
+                return;
+
+            base.OnLeftClick();
+            UserSelectedIndex = SelectedIndex;
         }
     }
 }

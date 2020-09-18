@@ -52,7 +52,7 @@ namespace DTAConfig
             }
         }
 
-        protected override void ParseAttributeFromINI(IniFile iniFile, string key, string value)
+        public override void ParseAttributeFromINI(IniFile iniFile, string key, string value)
         {
             if (key == "Reversed")
             {

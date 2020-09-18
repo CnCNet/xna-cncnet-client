@@ -4,6 +4,8 @@ using System.Windows.Forms;
 using System.Diagnostics;
 using ClientCore;
 using Rampastring.Tools;
+using ClientCore.INIProcessing;
+using System.Threading;
 
 namespace ClientGUI
 {
@@ -28,16 +30,32 @@ namespace ClientGUI
         {
             Logger.Log("About to launch main game executable.");
 
+            // In the relatively unlikely event that INI preprocessing is still going on, just wait until it's done.
+            // TODO ideally this should be handled in the UI so the client doesn't appear just frozen for the user.
+            int waitTimes = 0;
+            while (PreprocessorBackgroundTask.Instance.IsRunning)
+            {
+                Thread.Sleep(1000);
+                waitTimes++;
+                if (waitTimes > 10)
+                {
+                    MessageBox.Show("INI preprocessing not complete. Please try " + 
+                        "launching the game again. If the problem persists, " +
+                        "contact the game or mod authors for support.");
+                    return;
+                }
+            }
+
             OSVersion osVersion = ClientConfiguration.Instance.GetOperatingSystemVersion();
 
             string gameExecutableName;
             string additionalExecutableName = string.Empty;
 
             if (osVersion == OSVersion.UNIX)
-                gameExecutableName = ClientConfiguration.Instance.GetUnixGameExecutableName();
+                gameExecutableName = ClientConfiguration.Instance.UnixGameExecutableName;
             else
             {
-                string launcherExecutableName = ClientConfiguration.Instance.GetGameLauncherExecutableName;
+                string launcherExecutableName = ClientConfiguration.Instance.GameLauncherExecutableName;
                 if (string.IsNullOrEmpty(launcherExecutableName))
                     gameExecutableName = ClientConfiguration.Instance.GetGameExecutableName();
                 else
@@ -103,6 +121,7 @@ namespace ClientGUI
                 try
                 {
                     DtaProcess.Start();
+                    Logger.Log("GameProcessLogic: Process started.");
                 }
                 catch (Exception ex)
                 {
@@ -126,6 +145,7 @@ namespace ClientGUI
 
         static void Process_Exited(object sender, EventArgs e)
         {
+            Logger.Log("GameProcessLogic: Process exited.");
             Process proc = (Process)sender;
             proc.Exited -= Process_Exited;
             proc.Dispose();

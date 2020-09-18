@@ -1,4 +1,4 @@
-﻿using ClientCore;
+using ClientCore;
 using ClientGUI;
 using Microsoft.Win32;
 using Microsoft.Xna.Framework;
@@ -31,7 +31,7 @@ namespace DTAConfig.OptionPanels
         private XNAClientCheckBox chkWindowedMode;
         private XNAClientCheckBox chkBorderlessWindowedMode;
         private XNAClientCheckBox chkBackBufferInVRAM;
-        private XNAClientDropDown ddClientResolution;
+        private XNAClientPreferredItemDropDown ddClientResolution;
         private XNAClientCheckBox chkBorderlessClient;
         private XNAClientDropDown ddClientTheme;
 
@@ -160,13 +160,13 @@ namespace DTAConfig.OptionPanels
             chkBackBufferInVRAM.Text = "Back Buffer in Video Memory" + Environment.NewLine +
                 "(lower performance, but is" + Environment.NewLine + "necessary on some systems)";
 
-            var  lblClientResolution = new XNALabel(WindowManager);
+            var lblClientResolution = new XNALabel(WindowManager);
             lblClientResolution.Name = "lblClientResolution";
             lblClientResolution.ClientRectangle = new Rectangle(
                 285, 14, 0, 0);
             lblClientResolution.Text = "Client Resolution:";
 
-            ddClientResolution = new XNAClientDropDown(WindowManager);
+            ddClientResolution = new XNAClientPreferredItemDropDown(WindowManager);
             ddClientResolution.Name = "ddClientResolution";
             ddClientResolution.ClientRectangle = new Rectangle(
                 lblClientResolution.Right + 12,
@@ -174,6 +174,7 @@ namespace DTAConfig.OptionPanels
                 Width - (lblClientResolution.Right + 24),
                 ddIngameResolution.Height);
             ddClientResolution.AllowDropDown = false;
+            ddClientResolution.PreferredItemLabel = "(recommended)";
 
             var screenBounds = Screen.PrimaryScreen.Bounds;
 
@@ -208,10 +209,7 @@ namespace DTAConfig.OptionPanels
                 optimalWindowedResIndex = resolutions.FindIndex(res => res.ToString() == "1280x768");
 
             if (optimalWindowedResIndex > -1)
-            {
-                var item = ddClientResolution.Items[optimalWindowedResIndex];
-                item.Text = item.Text + " " + ClientConfiguration.Instance.ClientDefaultResolutionText;
-            }
+                ddClientResolution.PreferredItemIndex = optimalWindowedResIndex;
 
             chkBorderlessClient = new XNAClientCheckBox(WindowManager);
             chkBorderlessClient.Name = "chkBorderlessClient";
@@ -449,7 +447,7 @@ namespace DTAConfig.OptionPanels
 
             try
             {
-                Process sdbinst = Process.Start("sdbinst.exe", "-q \"" + ProgramConstants.GamePath + "Resources\\compatfix.sdb\"");
+                Process sdbinst = Process.Start("sdbinst.exe", "-q \"" + ProgramConstants.GamePath + "Resources/compatfix.sdb\"");
 
                 sdbinst.WaitForExit();
 
@@ -508,7 +506,7 @@ namespace DTAConfig.OptionPanels
 
             try
             {
-                Process sdbinst = Process.Start("sdbinst.exe", "-q \"" + ProgramConstants.GamePath + "Resources\\FSCompatFix.sdb\"");
+                Process sdbinst = Process.Start("sdbinst.exe", "-q \"" + ProgramConstants.GamePath + "Resources/FSCompatFix.sdb\"");
 
                 sdbinst.WaitForExit();
 
@@ -645,7 +643,7 @@ namespace DTAConfig.OptionPanels
                 chkBorderlessWindowedMode.Checked = UserINISettings.Instance.BorderlessWindowedMode;
             }
 
-            string currentClientRes = WindowManager.WindowWidth + "x" + WindowManager.WindowHeight;
+            string currentClientRes = IniSettings.ClientResolutionX.Value + "x" + IniSettings.ClientResolutionY.Value;
 
             int clientResIndex = ddClientResolution.Items.FindIndex(i => (string)i.Tag == currentClientRes);
 
@@ -733,12 +731,12 @@ namespace DTAConfig.OptionPanels
 
             int[] clientRes = new int[2] { int.Parse(clientResolution[0]), int.Parse(clientResolution[1]) };
 
+            if (clientRes[0] != IniSettings.ClientResolutionX.Value ||
+                clientRes[1] != IniSettings.ClientResolutionY.Value)
+                restartRequired = true;
+
             IniSettings.ClientResolutionX.Value = clientRes[0];
             IniSettings.ClientResolutionY.Value = clientRes[1];
-
-            if (clientRes[0] != WindowManager.WindowWidth ||
-                clientRes[1] != WindowManager.WindowHeight)
-                restartRequired = true;
 
             if (IniSettings.BorderlessWindowedClient.Value != chkBorderlessClient.Checked)
                 restartRequired = true;
@@ -798,11 +796,11 @@ namespace DTAConfig.OptionPanels
             File.Delete(ProgramConstants.GamePath + "Language.dll");
 
             if (ingameRes[0] >= 1024 && ingameRes[1] >= 720)
-                File.Copy(ProgramConstants.GamePath + "Resources\\language_1024x720.dll", ProgramConstants.GamePath + "Language.dll");
+                File.Copy(ProgramConstants.GamePath + "Resources/language_1024x720.dll", ProgramConstants.GamePath + "Language.dll");
             else if (ingameRes[0] >= 800 && ingameRes[1] >= 600)
-                File.Copy(ProgramConstants.GamePath + "Resources\\language_800x600.dll", ProgramConstants.GamePath + "Language.dll");
+                File.Copy(ProgramConstants.GamePath + "Resources/language_800x600.dll", ProgramConstants.GamePath + "Language.dll");
             else
-                File.Copy(ProgramConstants.GamePath + "Resources\\language_640x480.dll", ProgramConstants.GamePath + "Language.dll");
+                File.Copy(ProgramConstants.GamePath + "Resources/language_640x480.dll", ProgramConstants.GamePath + "Language.dll");
 #endif
 
             return restartRequired;
