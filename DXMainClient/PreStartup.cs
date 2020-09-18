@@ -44,17 +44,17 @@ namespace DTAClient
         {
             AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(HandleExcept);
 
-            Environment.CurrentDirectory = MainClientConstants.gamepath;
+            Environment.CurrentDirectory = ProgramConstants.GamePath;
 
             CheckPermissions();
 
-            Logger.Initialize(MainClientConstants.gamepath + "Client\\", "client.log");
+            Logger.Initialize(ProgramConstants.GamePath + "Client/", "client.log");
             Logger.WriteLogFile = true;
 
-            if (!Directory.Exists(MainClientConstants.gamepath + "Client"))
-                Directory.CreateDirectory(MainClientConstants.gamepath + "Client");
+            if (!Directory.Exists(ProgramConstants.GamePath + "Client"))
+                Directory.CreateDirectory(ProgramConstants.GamePath + "Client");
 
-            File.Delete(MainClientConstants.gamepath + "Client\\client.log");
+            File.Delete(ProgramConstants.GamePath + "Client/client.log");
 
             MainClientConstants.Initialize();
 
@@ -76,11 +76,11 @@ namespace DTAClient
 
             // Delete obsolete files from old target project versions
 
-            File.Delete(MainClientConstants.gamepath + "mainclient.log");
-            File.Delete(MainClientConstants.gamepath + "launchupdt.dat");
+            File.Delete(ProgramConstants.GamePath + "mainclient.log");
+            File.Delete(ProgramConstants.GamePath + "launchupdt.dat");
             try
             {
-                File.Delete(MainClientConstants.gamepath + "wsock32.dll");
+                File.Delete(ProgramConstants.GamePath + "wsock32.dll");
             }
             catch (Exception ex)
             {
@@ -115,12 +115,12 @@ namespace DTAClient
 
             try
             {
-                if (Directory.Exists(Environment.CurrentDirectory + "\\Client\\ErrorLogs"))
+                if (Directory.Exists(Environment.CurrentDirectory + "/Client/ErrorLogs"))
                 {
                     DateTime dtn = DateTime.Now;
 
-                    File.Copy(Environment.CurrentDirectory + "\\Client\\client.log",
-                        Environment.CurrentDirectory + string.Format("\\Client\\ErrorLogs\\ClientCrashLog_{0}_{1}_{2}_{3}_{4}.txt",
+                    File.Copy(Environment.CurrentDirectory + "/Client/client.log",
+                        Environment.CurrentDirectory + string.Format("/Client/ErrorLogs/ClientCrashLog_{0}_{1}_{2}_{3}_{4}.txt",
                         dtn.Day, dtn.Month, dtn.Year, dtn.Hour, dtn.Minute), true);
                 }
             }
@@ -150,7 +150,7 @@ namespace DTAClient
                 Environment.Exit(0);
 
             ProcessStartInfo psInfo = new ProcessStartInfo();
-            psInfo.FileName = Application.ExecutablePath;
+            psInfo.FileName = Application.ExecutablePath.Replace('\\', '/');
             psInfo.Verb = "runas";
             Process.Start(psInfo);
             Environment.Exit(0);

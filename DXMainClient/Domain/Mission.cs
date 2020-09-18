@@ -10,29 +10,31 @@ namespace DTAClient.Domain
     {
         public Mission(IniFile iniFile, string sectionName)
         {
-            CD = iniFile.GetIntValue(sectionName, "CD", 0);
-            Side = iniFile.GetIntValue(sectionName, "Side", 0);
-            Scenario = iniFile.GetStringValue(sectionName, "Scenario", string.Empty);
+            CD = iniFile.GetIntValue(sectionName, nameof(CD), 0);
+            Side = iniFile.GetIntValue(sectionName, nameof(Side), 0);
+            Scenario = iniFile.GetStringValue(sectionName, nameof(Scenario), string.Empty);
             GUIName = iniFile.GetStringValue(sectionName, "Description", "Undefined mission");
             IconPath = iniFile.GetStringValue(sectionName, "SideName", string.Empty);
             GUIDescription = iniFile.GetStringValue(sectionName, "LongDescription", string.Empty);
-            FinalMovie = iniFile.GetStringValue(sectionName, "FinalMovie", "none");
-            RequiredAddon = iniFile.GetBooleanValue(sectionName, "RequiredAddon", false);
-            Enabled = iniFile.GetBooleanValue(sectionName, "Enabled", true);
-            BuildOffAlly = iniFile.GetBooleanValue(sectionName, "BuildOffAlly", false);
+            FinalMovie = iniFile.GetStringValue(sectionName, nameof(FinalMovie), "none");
+            RequiredAddon = iniFile.GetBooleanValue(sectionName, nameof(RequiredAddon), false);
+            Enabled = iniFile.GetBooleanValue(sectionName, nameof(Enabled), true);
+            BuildOffAlly = iniFile.GetBooleanValue(sectionName, nameof(BuildOffAlly), false);
+            PlayerAlwaysOnNormalDifficulty = iniFile.GetBooleanValue(sectionName, nameof(PlayerAlwaysOnNormalDifficulty), false);
 
             GUIDescription = GUIDescription.Replace("@", Environment.NewLine);
         }
 
-        public int CD { get; private set; }
-        public int Side { get; private set; }
-        public string Scenario { get; private set; }
-        public string GUIName { get; private set; }
-        public string IconPath { get; private set; }
-        public string GUIDescription { get; private set; }
-        public string FinalMovie { get; private set; }
-        public bool RequiredAddon { get; private set; }
-        public bool Enabled { get; private set; }
-        public bool BuildOffAlly { get; private set; }
+        public int CD { get; }
+        public int Side { get; }
+        public string Scenario { get; }
+        public string GUIName { get; }
+        public string IconPath { get; }
+        public string GUIDescription { get; }
+        public string FinalMovie { get; }
+        public bool RequiredAddon { get; }
+        public bool Enabled { get; }
+        public bool BuildOffAlly { get; }
+        public bool PlayerAlwaysOnNormalDifficulty { get; }
     }
 }

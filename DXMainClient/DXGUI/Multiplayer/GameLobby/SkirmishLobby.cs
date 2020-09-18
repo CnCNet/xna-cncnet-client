@@ -15,7 +15,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 {
     public class SkirmishLobby : GameLobbyBase, ISwitchable
     {
-        private const string SETTINGS_PATH = "Client\\SkirmishSettings.ini";
+        private const string SETTINGS_PATH = "Client/SkirmishSettings.ini";
 
         public SkirmishLobby(WindowManager windowManager, TopBar topBar, List<GameMode> GameModes, DiscordHandler discordHandler)
             : base(windowManager, "SkirmishLobby", GameModes, false, discordHandler)

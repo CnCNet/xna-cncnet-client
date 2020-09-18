@@ -121,7 +121,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
         {
             ServicePointManager.Expect100Continue = false;
 
-            string zipFile = ProgramConstants.GamePath + "Maps\\Custom\\" + map.SHA1 + ".zip";
+            string zipFile = ProgramConstants.GamePath + "Maps/Custom/" + map.SHA1 + ".zip";
 
             if (File.Exists(zipFile)) File.Delete(zipFile);
 
@@ -374,7 +374,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
 
         private static string DownloadMain(string sha1, string myGame, out bool success)
         {
-            string customMapsDirectory = ProgramConstants.GamePath + "Maps\\Custom\\";
+            string customMapsDirectory = ProgramConstants.GamePath + "Maps/Custom/";
 
             string destinationFilePath = customMapsDirectory + sha1 + ".zip";
 

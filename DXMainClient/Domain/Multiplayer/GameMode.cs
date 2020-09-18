@@ -16,7 +16,7 @@ namespace DTAClient.Domain.Multiplayer
             Initialize();
         }
 
-        private const string BASE_INI_PATH = "INI\\Map Code\\";
+        private const string BASE_INI_PATH = "INI/Map Code/";
         private const string SPAWN_INI_OPTIONS_SECTION = "ForcedSpawnIniOptions";
 
         /// <summary>
@@ -36,6 +36,8 @@ namespace DTAClient.Domain.Multiplayer
         public bool ForceRandomStartLocations { get; private set; }
 
         public bool ForceNoTeams { get; private set; }
+
+        public List<int> DisallowedPlayerSides = new List<int>();
 
         private string mapCodeININame;
 
@@ -62,6 +64,13 @@ namespace DTAClient.Domain.Multiplayer
             ForceNoTeams = forcedOptionsIni.GetBooleanValue(Name, "ForceNoTeams", false);
             forcedOptionsSection = forcedOptionsIni.GetStringValue(Name, "ForcedOptions", string.Empty);
             mapCodeININame = forcedOptionsIni.GetStringValue(Name, "MapCodeININame", Name + ".ini");
+
+            string[] disallowedSides = forcedOptionsIni
+                .GetStringValue(Name, "DisallowedPlayerSides", string.Empty)
+                .Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+
+            foreach (string sideIndex in disallowedSides)
+                DisallowedPlayerSides.Add(int.Parse(sideIndex));
 
             ParseForcedOptions(forcedOptionsIni);
 

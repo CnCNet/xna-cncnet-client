@@ -4,6 +4,8 @@ using System.Windows.Forms;
 using System.Diagnostics;
 using ClientCore;
 using Rampastring.Tools;
+using ClientCore.INIProcessing;
+using System.Threading;
 
 namespace ClientGUI
 {
@@ -27,6 +29,22 @@ namespace ClientGUI
         public static void StartGameProcess()
         {
             Logger.Log("About to launch main game executable.");
+
+            // In the relatively unlikely event that INI preprocessing is still going on, just wait until it's done.
+            // TODO ideally this should be handled in the UI so the client doesn't appear just frozen for the user.
+            int waitTimes = 0;
+            while (PreprocessorBackgroundTask.Instance.IsRunning)
+            {
+                Thread.Sleep(1000);
+                waitTimes++;
+                if (waitTimes > 10)
+                {
+                    MessageBox.Show("INI preprocessing not complete. Please try " + 
+                        "launching the game again. If the problem persists, " +
+                        "contact the game or mod authors for support.");
+                    return;
+                }
+            }
 
             OSVersion osVersion = ClientConfiguration.Instance.GetOperatingSystemVersion();
 

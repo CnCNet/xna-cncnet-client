@@ -11,18 +11,18 @@ namespace ClientCore
     public static class ProgramConstants
     {
 #if DEBUG
-        public static readonly string GamePath = Application.StartupPath + "\\";
+        public static readonly string GamePath = Application.StartupPath.Replace('\\', '/') + "/";
 #else
-        public static readonly string GamePath = Directory.GetParent(Application.StartupPath).FullName + "\\";
+        public static readonly string GamePath = Directory.GetParent(Application.StartupPath.TrimEnd(new char[] { '\\' })).FullName.Replace('\\', '/') + "/";
 #endif
 
-        public static string ClientUserFilesPath => GamePath + "Client\\";
+        public static string ClientUserFilesPath => GamePath + "Client/";
 
         public static event EventHandler PlayerNameChanged;
 
         public const string QRES_EXECUTABLE = "qres.dat";
 
-        public const string CNCNET_PROTOCOL_REVISION = "R7";
+        public const string CNCNET_PROTOCOL_REVISION = "R8";
         public const string LAN_PROTOCOL_REVISION = "RL5";
         public const int LAN_PORT = 1234;
         public const int LAN_INGAME_PORT = 1234;
@@ -33,11 +33,11 @@ namespace ClientCore
 
         public const string SPAWNMAP_INI = "spawnmap.ini";
         public const string SPAWNER_SETTINGS = "spawn.ini";
-        public const string SAVED_GAME_SPAWN_INI = "Saved Games\\spawnSG.ini";
+        public const string SAVED_GAME_SPAWN_INI = "Saved Games/spawnSG.ini";
 
         public static readonly Encoding LAN_ENCODING = Encoding.UTF8;
 
-        public static string GAME_VERSION = "1.15";
+        public static string GAME_VERSION = "Undefined";
         private static string PlayerName = "No name";
 
         public static string PLAYERNAME
@@ -52,7 +52,7 @@ namespace ClientCore
             }
         }
 
-        public static string BASE_RESOURCE_PATH = "Resources\\";
+        public static string BASE_RESOURCE_PATH = "Resources/";
         public static string RESOURCES_DIR = BASE_RESOURCE_PATH;
 
         public static int LOG_LEVEL = 1;
@@ -68,5 +68,8 @@ namespace ClientCore
         {
             return GamePath + BASE_RESOURCE_PATH;
         }
+
+        public const string GAME_INVITE_CTCP_COMMAND = "INVITE";
+        public const string GAME_INVITATION_FAILED_CTCP_COMMAND = "INVITATION_FAILED";
     }
 }

@@ -1,7 +1,6 @@
 ﻿using ClientCore;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using PreviewExtractor;
 using Rampastring.Tools;
 using Rampastring.XNAUI;
 using System;
@@ -191,7 +190,7 @@ namespace DTAClient.Domain.Multiplayer
                 MinPlayers = section.GetIntValue("MinPlayers", 0);
                 MaxPlayers = section.GetIntValue("MaxPlayers", 0);
                 EnforceMaxPlayers = section.GetBooleanValue("EnforceMaxPlayers", false);
-                PreviewPath = Path.GetDirectoryName(BaseFilePath) + "\\" +
+                PreviewPath = Path.GetDirectoryName(BaseFilePath) + "/" +
                     section.GetStringValue("PreviewImage", Path.GetFileNameWithoutExtension(BaseFilePath) + ".png");
                 Briefing = section.GetStringValue("Briefing", string.Empty).Replace("@", Environment.NewLine);
                 SHA1 = Utilities.CalculateSHA1ForFile(CompleteFilePath);
@@ -354,7 +353,7 @@ namespace DTAClient.Domain.Multiplayer
                 else
                     MaxPlayers = basicSection.GetIntValue("MaxPlayer", 0);
                 EnforceMaxPlayers = basicSection.GetBooleanValue("EnforceMaxPlayers", true);
-                //PreviewPath = Path.GetDirectoryName(BaseFilePath) + "\\" +
+                //PreviewPath = Path.GetDirectoryName(BaseFilePath) + "/" +
                 //    iniFile.GetStringValue(BaseFilePath, "PreviewImage", Path.GetFileNameWithoutExtension(BaseFilePath) + ".png");
                 Briefing = basicSection.GetStringValue("Briefing", string.Empty).Replace("@", Environment.NewLine);
                 SHA1 = Utilities.CalculateSHA1ForFile(path);
@@ -466,32 +465,13 @@ namespace DTAClient.Domain.Multiplayer
             if (!Official)
             {
                 // Extract preview from the map itself
+                System.Drawing.Bitmap preview = MapPreviewExtractor.ExtractMapPreview(mapIni);
 
-                if (mapIni.GetSectionKeys("PreviewPack").Count == 0)
+                if (preview != null)
                 {
-                    Logger.Log(mapIni.FileName + " - no [PreviewPack] exists");
-                    return AssetLoader.CreateTexture(Color.Black, 10, 10);
-                }
-                    
-                if (mapIni.GetStringValue("PreviewPack", "1", string.Empty) ==
-                    "yAsAIAXQ5PDQ5PDQ6JQATAEE6PDQ4PDI4JgBTAFEAkgAJyAATAG0AydEAEABpAJIA0wBVA")
-                {
-                    Logger.Log(mapIni.FileName + " - Hidden preview detected - not extracting.");
-                    return AssetLoader.CreateTexture(Color.Black, 10, 10);
-                }
-
-                try
-                {
-                    var extractor = new MapThumbnailExtractor(mapIni, 1);
-                    var bitmap = extractor.Get_Bitmap();
-
-                    var texture = AssetLoader.TextureFromImage(bitmap);
+                    Texture2D texture = AssetLoader.TextureFromImage(preview);
                     if (texture != null)
                         return texture;
-                }
-                catch (Exception ex)
-                {
-                    Logger.Log(mapIni.FileName + " - Failed to extract preview from map: " + ex.Message);
                 }
             }
 
@@ -504,7 +484,7 @@ namespace DTAClient.Domain.Multiplayer
 
             if (!string.IsNullOrEmpty(ExtraININame))
             {
-                var extraIni = new IniFile(ProgramConstants.GamePath + "INI\\Map Code\\" + ExtraININame);
+                var extraIni = new IniFile(ProgramConstants.GamePath + "INI/Map Code/" + ExtraININame);
                 IniFile.ConsolidateIniFiles(mapIni, extraIni);
             }
 

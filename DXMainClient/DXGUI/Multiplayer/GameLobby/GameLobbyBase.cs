@@ -656,11 +656,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 ddPlayerSide.ClientRectangle = new Rectangle(
                     ddPlayerName.Right + playerOptionHorizontalMargin,
                     ddPlayerName.Y, sideWidth, DROP_DOWN_HEIGHT);
-                ddPlayerSide.AddItem("Random", AssetLoader.LoadTexture("randomicon.png"));
+                ddPlayerSide.AddItem("Random", LoadTextureOrNull("randomicon.png"));
                 foreach (string randomSelector in selectorNames)
-                    ddPlayerSide.AddItem(randomSelector, AssetLoader.LoadTexture(randomSelector + "icon.png"));
+                    ddPlayerSide.AddItem(randomSelector, LoadTextureOrNull(randomSelector + "icon.png"));
                 foreach (string sideName in sides)
-                    ddPlayerSide.AddItem(sideName, AssetLoader.LoadTexture(sideName + "icon.png"));
+                    ddPlayerSide.AddItem(sideName, LoadTextureOrNull(sideName + "icon.png"));
                 ddPlayerSide.AllowDropDown = false;
                 ddPlayerSide.SelectedIndexChanged += CopyPlayerDataFromUI;
                 ddPlayerSide.Tag = true;
@@ -757,6 +757,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             CheckDisallowedSides();
         }
 
+        private Texture2D LoadTextureOrNull(string name) =>
+            AssetLoader.AssetExists(name) ? AssetLoader.LoadTexture(name) : null;
+
         /// <summary>
         /// Loads random side selectors from GameOptions.ini
         /// </summary>
@@ -775,7 +778,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 try
                 {
                     string[] tmp = GameOptionsIni.GetStringValue("RandomSelectors", randomSelector, string.Empty).Split(',');
-                    randomSides = Array.ConvertAll<string, int>(tmp, int.Parse).Distinct().ToList();
+                    randomSides = Array.ConvertAll(tmp, int.Parse).Distinct().ToList();
                     randomSides.RemoveAll(x => (x >= SideCount || x < 0));
                 }
                 catch (FormatException) { }
@@ -858,9 +861,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 {
                     //dd.Items[0].Selectable = false;
                     for (int i = 0; i < RandomSelectorCount; i++)
-                    {
                         dd.Items[i].Selectable = false;
-                    }
                 }
             }
             else
@@ -869,9 +870,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 {
                     //dd.Items[0].Selectable = true;
                     for (int i = 0; i < RandomSelectorCount; i++)
-                    {
                         dd.Items[i].Selectable = true;
-                    }
                 }
             }
 
@@ -879,24 +878,28 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             // Disable custom random groups if all or all except one of included sides are unavailable.
             int c = 0;
-            foreach (int[] randomsides in RandomSelectors)
+            foreach (int[] randomSides in RandomSelectors)
             {
-                int disablecount = 0;
-                foreach (int side in randomsides)
+                int disableCount = 0;
+
+                foreach (int side in randomSides)
                 {
-                    if (disallowedSideArray[side]) disablecount++;
+                    if (disallowedSideArray[side])
+                        disableCount++;
                 }
+
                 bool disabled = false;
-                if (disablecount >= randomsides.Length - 1) disabled = true;
+                if (disableCount >= randomSides.Length - 1) disabled = true;
+
                 foreach (XNADropDown dd in ddPlayerSides)
-                {
                     dd.Items[1 + c].Selectable = !disabled;
-                }
+
                 foreach (PlayerInfo pInfo in concatPlayerList)
                 {
                     if (pInfo.SideId == 1 + c && disabled)
                         pInfo.SideId = defaultSide;
                 }
+
                 c++;
             }
 
@@ -909,9 +912,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 if (disabled)
                 {
                     foreach (XNADropDown dd in ddPlayerSides)
-                    {
                         dd.Items[i + RandomSelectorCount].Selectable = false;
-                    }
 
                     // Change the sides of players that use the disabled 
                     // side to the default side
@@ -924,9 +925,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 else
                 {
                     foreach (XNADropDown dd in ddPlayerSides)
-                    {
                         dd.Items[i + RandomSelectorCount].Selectable = true;
-                    }
                 }
             }
 
@@ -979,9 +978,13 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 // Co-Op map disallowed side logic
 
                 foreach (int disallowedSideIndex in Map.CoopInfo.DisallowedPlayerSides)
-                {
                     returnValue[disallowedSideIndex] = true;
-                }
+            }
+
+            if (GameMode != null)
+            {
+                foreach (int disallowedSideIndex in GameMode.DisallowedPlayerSides)
+                    returnValue[disallowedSideIndex] = true;
             }
 
             foreach (var checkBox in CheckBoxes)
@@ -1005,9 +1008,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             // Gather list of spectators
             for (int i = 0; i < Players.Count; i++)
-            {
                 houseInfos[i].IsSpectator = Players[i].SideId == GetSpectatorSideIndex();
-            }
 
             // Gather list of available colors
 
@@ -1049,9 +1050,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             }
 
             for (int i = 0; i < AIPlayers.Count; i++)
-            {
                 freeStartingLocations.Remove(AIPlayers[i].StartingLocation - 1);
-            }
 
             // Randomize options
 
@@ -1063,17 +1062,14 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 PlayerHouseInfo pHouseInfo = houseInfos[i];
 
                 if (i < Players.Count)
-                {
                     pInfo = Players[i];
-                }
                 else
                     pInfo = AIPlayers[i - Players.Count];
 
-                pHouseInfo.RandomizeSide(pInfo, Map, SideCount, random, GetDisallowedSides(), RandomSelectors, RandomSelectorCount);
+                pHouseInfo.RandomizeSide(pInfo, SideCount, random, GetDisallowedSides(), RandomSelectors, RandomSelectorCount);
 
                 pHouseInfo.RandomizeColor(pInfo, freeColors, MPColors, random);
-                pHouseInfo.RandomizeStart(pInfo, Map,
-                    freeStartingLocations, random, takenStartingLocations);
+                pHouseInfo.RandomizeStart(pInfo, Map, freeStartingLocations, random, takenStartingLocations);
             }
 
             return houseInfos;
@@ -1123,14 +1119,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             WriteSpawnIniAdditions(spawnIni);
 
             foreach (GameLobbyCheckBox chkBox in CheckBoxes)
-            {
                 chkBox.ApplySpawnINICode(spawnIni);
-            }
 
             foreach (GameLobbyDropDown dd in DropDowns)
-            {
                 dd.ApplySpawnIniCode(spawnIni);
-            }
 
             // Apply forced options from GameOptions.ini
 
@@ -1278,10 +1270,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             return false;
         }
 
-        protected virtual string GetIPAddressForPlayer(PlayerInfo player)
-        {
-            return "0.0.0.0";
-        }
+        protected virtual string GetIPAddressForPlayer(PlayerInfo player) => "0.0.0.0";
 
         /// <summary>
         /// Override this in a derived class to write game lobby specific code to
@@ -1344,7 +1333,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             IniFile mapIni = Map.GetMapIni();
 
-            IniFile globalCodeIni = new IniFile(ProgramConstants.GamePath + "INI\\Map Code\\GlobalCode.ini");
+            IniFile globalCodeIni = new IniFile(ProgramConstants.GamePath + "INI/Map Code/GlobalCode.ini");
 
             MapCodeHelper.ApplyMapCode(mapIni, GameMode.GetMapRulesIniFile());
             MapCodeHelper.ApplyMapCode(mapIni, globalCodeIni);
@@ -1620,7 +1609,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             PlayerUpdatingInProgress = true;
 
             bool allowOptionsChange = AllowPlayerOptionsChange();
-
+            
             // Human players
             for (int pId = 0; pId < Players.Count; pId++)
             {

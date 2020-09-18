@@ -28,6 +28,7 @@ namespace DTAConfig.OptionPanels
         XNAClientCheckBox chkPersistentMode;
         XNAClientCheckBox chkConnectOnStartup;
         XNAClientCheckBox chkDiscordIntegration;
+        XNAClientCheckBox chkAllowGameInvitesFromFriendsOnly;
 
         GameCollection gameCollection;
 
@@ -125,6 +126,15 @@ namespace DTAConfig.OptionPanels
 
             AddChild(chkDiscordIntegration);
 
+            chkAllowGameInvitesFromFriendsOnly = new XNAClientCheckBox(WindowManager);
+            chkAllowGameInvitesFromFriendsOnly.Name = "chkAllowGameInvitesFromFriendsOnly";
+            chkAllowGameInvitesFromFriendsOnly.ClientRectangle = new Rectangle(
+                chkDiscordIntegration.X,
+                chkDiscordIntegration.Bottom + 12, 0, 0);
+            chkAllowGameInvitesFromFriendsOnly.Text = "Only receive game invitations from friends";
+
+            AddChild(chkAllowGameInvitesFromFriendsOnly);
+
             var lblFollowedGames = new XNALabel(WindowManager);
             lblFollowedGames.Name = "lblFollowedGames";
             lblFollowedGames.ClientRectangle = new Rectangle(
@@ -212,6 +222,8 @@ namespace DTAConfig.OptionPanels
             chkDiscordIntegration.Checked = !String.IsNullOrEmpty(ClientConfiguration.Instance.DiscordAppId)
                 && IniSettings.DiscordIntegration;
 
+            chkAllowGameInvitesFromFriendsOnly.Checked = IniSettings.AllowGameInvitesFromFriendsOnly;
+
             string localGame = ClientConfiguration.Instance.LocalGame;
 
             foreach (var chkBox in followedGameChks)
@@ -245,6 +257,8 @@ namespace DTAConfig.OptionPanels
                 restartRequired = IniSettings.DiscordIntegration != chkDiscordIntegration.Checked;
                 IniSettings.DiscordIntegration.Value = chkDiscordIntegration.Checked;
             }
+
+            IniSettings.AllowGameInvitesFromFriendsOnly.Value = chkAllowGameInvitesFromFriendsOnly.Checked;
 
             foreach (var chkBox in followedGameChks)
             {
