@@ -4,6 +4,7 @@ using Rampastring.Tools;
 using Rampastring.XNAUI;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 namespace DTAConfig.CustomSettings
 {
@@ -17,9 +18,15 @@ namespace DTAConfig.CustomSettings
         private List<FileSourceDestinationInfo> enabledFiles = new List<FileSourceDestinationInfo>();
         private List<FileSourceDestinationInfo> disabledFiles = new List<FileSourceDestinationInfo>();
 
+        private bool EnabledFilesComplete => enabledFiles.All(f => File.Exists(f.SourcePath));
+        private bool DisabledFilesComplete => disabledFiles.All(f => File.Exists(f.SourcePath));
+
         private bool defaultValue;
         private bool originalState;
         private bool restartRequired;
+        private bool checkFilePresence;
+        private bool resetUnselectableItem;
+        private bool forceApplyUnselectableItem;
 
         public override void GetAttributes(IniFile iniFile)
         {
@@ -78,6 +85,15 @@ namespace DTAConfig.CustomSettings
                 case "DefaultValue":
                     defaultValue = Conversions.BooleanFromString(value, false);
                     return;
+                case "CheckFilePresence":
+                    checkFilePresence = Conversions.BooleanFromString(value, false);
+                    return;
+                case "ResetUnselectableItem":
+                    resetUnselectableItem = Conversions.BooleanFromString(value, false);
+                    return;
+                case "ForceApplyUnselectableItem":
+                    forceApplyUnselectableItem = Conversions.BooleanFromString(value, false);
+                    return;
                 case "RestartRequired":
                     restartRequired = Conversions.BooleanFromString(value, false);
                     return;
@@ -93,22 +109,46 @@ namespace DTAConfig.CustomSettings
         }
 
         public bool RefreshSetting()
-            // TODO implement custom logic for refreshing the checkbox
-            => false;
+        {
+            bool currentValue = Checked;
+
+            if (checkFilePresence)
+            {
+                Enabled = true;
+                
+                if (resetUnselectableItem)
+                {
+                    if (DisabledFilesComplete != EnabledFilesComplete)
+                        Checked = EnabledFilesComplete;
+                    else if (!DisabledFilesComplete && !EnabledFilesComplete)
+                        Checked = defaultValue;
+                }
+            }
+
+            return Checked == currentValue;
+        }
 
         public bool Save()
         {
-            if (Checked)
+            bool canBeChecked = !checkFilePresence || forceApplyUnselectableItem || EnabledFilesComplete;
+            bool canBeUnchecked = !checkFilePresence || forceApplyUnselectableItem || DisabledFilesComplete;
+
+            if (Checked && canBeChecked)
             {
                 disabledFiles.ForEach(f => File.Delete(ProgramConstants.GamePath + f.DestinationPath));
                 enabledFiles.ForEach(f => File.Copy(ProgramConstants.GamePath + f.SourcePath,
                     ProgramConstants.GamePath + f.DestinationPath, true));
             }
-            else
+            else if (!Checked && canBeUnchecked)
             {
                 enabledFiles.ForEach(f => File.Delete(ProgramConstants.GamePath + f.DestinationPath));
                 disabledFiles.ForEach(f => File.Copy(ProgramConstants.GamePath + f.SourcePath,
                     ProgramConstants.GamePath + f.DestinationPath, true));
+            }
+            else // undefined state, delete everything? TBD
+            {
+                disabledFiles.ForEach(f => File.Delete(ProgramConstants.GamePath + f.DestinationPath));
+                enabledFiles.ForEach(f => File.Delete(ProgramConstants.GamePath + f.DestinationPath));
             }
 
             UserINISettings.Instance.SetCustomSettingValue(Name, Checked);

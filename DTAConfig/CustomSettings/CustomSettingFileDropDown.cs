@@ -96,6 +96,8 @@ namespace DTAConfig.CustomSettings
 
         public bool RefreshSetting()
         {
+            int currentValue = SelectedIndex;
+
             if (checkFilePresence)
             {
                 for (int i = 0; i < Items.Count; i++)
@@ -110,15 +112,12 @@ namespace DTAConfig.CustomSettings
                         }
                     }
                 }
+
+                if (resetUnselectableItem && !Items[SelectedIndex].Selectable)
+                    SelectedIndex = defaultValue;
             }
 
-            if (resetUnselectableItem && !Items[SelectedIndex].Selectable)
-            {
-                SelectedIndex = defaultValue;
-                return true;
-            }
-
-            return false;
+            return SelectedIndex == currentValue;
         }
 
         public bool Save()
