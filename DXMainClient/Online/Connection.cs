@@ -163,9 +163,9 @@ namespace DTAClient.Online
         /// </summary>
         private void ConnectToServer()
         {
-            var availableServerSortedList = GetAvailableServerList();
+            IEnumerable<Server> availableServerSortedList = GetAvailableServerList();
 
-            foreach (var server in availableServerSortedList)
+            foreach (Server server in availableServerSortedList)
             {
                 try
                 {
@@ -333,32 +333,32 @@ namespace DTAClient.Online
         /// <returns>A list of available Lobby servers sorted by latency.</returns>
         private IEnumerable<Server> GetAvailableServerList()
         {
-            var availableServerAndLatencyDict = new Dictionary<Server, long>();
+            Dictionary<Server, long> availableServerAndLatencyDict = new Dictionary<Server, long>();
 
             try
             {
-                var dnsAndPingTasks = new List<Task>();
+                List<Task> dnsAndPingTasks = new List<Task>();
 
-                foreach (var server in Servers)
+                foreach (Server server in Servers)
                 {
-                    var serverHostnameOrIPAddress = server.Host;
-                    var serverName = server.Name;
-                    var serverPorts = server.Ports;
+                    string serverHostnameOrIPAddress = server.Host;
+                    string serverName = server.Name;
+                    int[] serverPorts = server.Ports;
 
-                    var dnsAndPingTask = new Task(() =>
+                    Task dnsAndPingTask = new Task(() =>
                     {
                         Logger.Log($"Attempting to DNS resolve {serverName} ({serverHostnameOrIPAddress}).");
 
                         // If hostNameOrAddress is an IP address, this address is returned without querying the DNS server.
-                        var serverIPAddresses = Dns.GetHostAddresses(serverHostnameOrIPAddress).Where(item => item.AddressFamily == AddressFamily.InterNetwork).ToList();
+                        List<IPAddress> serverIPAddresses = Dns.GetHostAddresses(serverHostnameOrIPAddress).Where(item => item.AddressFamily == AddressFamily.InterNetwork).ToList();
 
                         Logger.Log($"DNS resolved {serverName} ({serverHostnameOrIPAddress}): {string.Join(", ", serverIPAddresses.Select(item => item.ToString()))}");
 
-                        var pingTasks = new List<Task>();
+                        List<Task> pingTasks = new List<Task>();
 
-                        foreach (var serverIPAddress in serverIPAddresses)
+                        foreach (IPAddress serverIPAddress in serverIPAddresses)
                         {
-                            var theIPAddress = serverIPAddress;
+                            IPAddress theIPAddress = serverIPAddress;
 
                             if (availableServerAndLatencyDict.Any(item => item.Key.Host == theIPAddress.ToString()))
                             {
@@ -374,15 +374,15 @@ namespace DTAClient.Online
                                 continue;
                             }
 
-                            var pingTask = new Task(() =>
+                            Task pingTask = new Task(() =>
                             {
                                 Logger.Log($"Attempting to ping {serverName} ({theIPAddress}).");
 
-                                var pingReply = new Ping().Send(theIPAddress, MAXIMUM_LATENCY);
+                                PingReply pingReply = new Ping().Send(theIPAddress, MAXIMUM_LATENCY);
 
                                 if (pingReply.Status == IPStatus.Success)
                                 {
-                                    var pingInMs = pingReply.RoundtripTime;
+                                    long pingInMs = pingReply.RoundtripTime;
 
                                     Logger.Log($"The latency in milliseconds to the server {serverName} ({theIPAddress}): {pingInMs}.");
 
@@ -414,7 +414,7 @@ namespace DTAClient.Online
             {
                 if (ex is AggregateException)
                 {
-                    foreach (var innerEx in ((AggregateException)ex).Flatten().InnerExceptions)
+                    foreach (Exception innerEx in ((AggregateException)ex).Flatten().InnerExceptions)
                     {
                         Logger.Log("Unable to contact with the server. " + innerEx.Message);
                     }
