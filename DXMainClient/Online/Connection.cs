@@ -380,8 +380,8 @@ namespace DTAClient.Online
                                     Logger.Log($"The latency in milliseconds to the server {serverName} ({serverIPAddress}): {pingInMs}.");
                                     availableServerAndLatencyDict.Add(new Server(serverIPAddress.ToString(), serverName, serverPorts), pingInMs);
                                 }
-                                else if (pingReply.Status == IPStatus.TimedOut)
-                                    Logger.Log($"Pinging the server {serverName} ({serverIPAddress}) timed out!");
+                                else
+                                    Logger.Log($"Failed to ping the server {serverName} ({serverIPAddress}): {Enum.GetName(typeof(IPStatus), pingReply.Status)}.");
                             });
 
                             pingTask.Start();
