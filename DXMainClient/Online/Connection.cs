@@ -363,38 +363,27 @@ namespace DTAClient.Online
                             if (availableServerAndLatencyDict.Any(item => item.Key.Host == theIPAddress.ToString()))
                             {
                                 Logger.Log($"Skipped a duplicate IP from {serverName} ({theIPAddress}).");
-
                                 continue;
                             }
 
                             if (failedServerIPs.Contains(theIPAddress.ToString()))
                             {
                                 Logger.Log($"Skipped a failed server {serverName} ({theIPAddress}).");
-
                                 continue;
                             }
 
                             Task pingTask = new Task(() =>
                             {
                                 Logger.Log($"Attempting to ping {serverName} ({theIPAddress}).");
-
                                 PingReply pingReply = new Ping().Send(theIPAddress, MAXIMUM_LATENCY);
-
                                 if (pingReply.Status == IPStatus.Success)
                                 {
                                     long pingInMs = pingReply.RoundtripTime;
-
                                     Logger.Log($"The latency in milliseconds to the server {serverName} ({theIPAddress}): {pingInMs}.");
-
                                     availableServerAndLatencyDict.Add(new Server(theIPAddress.ToString(), serverName, serverPorts), pingInMs);
                                 }
-                                else
-                                {
-                                    if (pingReply.Status == IPStatus.TimedOut)
-                                    {
-                                        Logger.Log($"Pinging the server {serverName} ({theIPAddress}) timed out!");
-                                    }
-                                }
+                                else if (pingReply.Status == IPStatus.TimedOut)
+                                    Logger.Log($"Pinging the server {serverName} ({theIPAddress}) timed out!");
                             });
 
                             pingTask.Start();
@@ -413,20 +402,13 @@ namespace DTAClient.Online
             catch (Exception ex)
             {
                 if (ex is AggregateException)
-                {
                     foreach (Exception innerEx in ((AggregateException)ex).Flatten().InnerExceptions)
-                    {
                         Logger.Log("Unable to contact with the server. " + innerEx.Message);
-                    }
-                }
                 else
-                {
                     Logger.Log("Unable to contact with the server. " + ex.Message);
-                }
             }
 
             Logger.Log($"The number of available Lobby servers is {availableServerAndLatencyDict.Count}.");
-
             return availableServerAndLatencyDict.OrderBy(item => item.Value).Select(item => item.Key);
         }
 
