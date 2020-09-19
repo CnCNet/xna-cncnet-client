@@ -333,6 +333,7 @@ namespace DTAClient.Online
         /// <returns>A list of available Lobby servers sorted by latency.</returns>
         private IEnumerable<Server> GetAvailableServerList()
         {
+            List<string> triedIPAddressList = new List<string>();
             Dictionary<Server, long> availableServerAndLatencyDict = new Dictionary<Server, long>();
 
             try
@@ -358,11 +359,12 @@ namespace DTAClient.Online
 
                         foreach (IPAddress serverIPAddress in serverIPAddresses)
                         {
-                            if (availableServerAndLatencyDict.Any(item => item.Key.Host == serverIPAddress.ToString()))
+                            if (triedIPAddressList.Contains(serverIPAddress.ToString()))
                             {
                                 Logger.Log($"Skipped a duplicate IP from {serverName} ({serverIPAddress}).");
                                 continue;
                             }
+                            triedIPAddressList.Add(serverIPAddress.ToString());
 
                             if (failedServerIPs.Contains(serverIPAddress.ToString()))
                             {
