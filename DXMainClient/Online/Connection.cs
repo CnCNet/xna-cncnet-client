@@ -358,32 +358,30 @@ namespace DTAClient.Online
 
                         foreach (IPAddress serverIPAddress in serverIPAddresses)
                         {
-                            IPAddress theIPAddress = serverIPAddress;
-
-                            if (availableServerAndLatencyDict.Any(item => item.Key.Host == theIPAddress.ToString()))
+                            if (availableServerAndLatencyDict.Any(item => item.Key.Host == serverIPAddress.ToString()))
                             {
-                                Logger.Log($"Skipped a duplicate IP from {serverName} ({theIPAddress}).");
+                                Logger.Log($"Skipped a duplicate IP from {serverName} ({serverIPAddress}).");
                                 continue;
                             }
 
-                            if (failedServerIPs.Contains(theIPAddress.ToString()))
+                            if (failedServerIPs.Contains(serverIPAddress.ToString()))
                             {
-                                Logger.Log($"Skipped a failed server {serverName} ({theIPAddress}).");
+                                Logger.Log($"Skipped a failed server {serverName} ({serverIPAddress}).");
                                 continue;
                             }
 
                             Task pingTask = new Task(() =>
                             {
-                                Logger.Log($"Attempting to ping {serverName} ({theIPAddress}).");
-                                PingReply pingReply = new Ping().Send(theIPAddress, MAXIMUM_LATENCY);
+                                Logger.Log($"Attempting to ping {serverName} ({serverIPAddress}).");
+                                PingReply pingReply = new Ping().Send(serverIPAddress, MAXIMUM_LATENCY);
                                 if (pingReply.Status == IPStatus.Success)
                                 {
                                     long pingInMs = pingReply.RoundtripTime;
-                                    Logger.Log($"The latency in milliseconds to the server {serverName} ({theIPAddress}): {pingInMs}.");
-                                    availableServerAndLatencyDict.Add(new Server(theIPAddress.ToString(), serverName, serverPorts), pingInMs);
+                                    Logger.Log($"The latency in milliseconds to the server {serverName} ({serverIPAddress}): {pingInMs}.");
+                                    availableServerAndLatencyDict.Add(new Server(serverIPAddress.ToString(), serverName, serverPorts), pingInMs);
                                 }
                                 else if (pingReply.Status == IPStatus.TimedOut)
-                                    Logger.Log($"Pinging the server {serverName} ({theIPAddress}) timed out!");
+                                    Logger.Log($"Pinging the server {serverName} ({serverIPAddress}) timed out!");
                             });
 
                             pingTask.Start();
