@@ -351,9 +351,11 @@ namespace DTAClient.Online
                         Logger.Log($"Attempting to DNS resolve {serverName} ({serverHostnameOrIPAddress}).");
 
                         // If hostNameOrAddress is an IP address, this address is returned without querying the DNS server.
-                        List<IPAddress> serverIPAddresses = Dns.GetHostAddresses(serverHostnameOrIPAddress).Where(item => item.AddressFamily == AddressFamily.InterNetwork).ToList();
+                        List<IPAddress> serverIPAddresses = Dns.GetHostAddresses(serverHostnameOrIPAddress)
+                            .Where(item => item.AddressFamily == AddressFamily.InterNetwork).ToList();
 
-                        Logger.Log($"DNS resolved {serverName} ({serverHostnameOrIPAddress}): {string.Join(", ", serverIPAddresses.Select(item => item.ToString()))}");
+                        Logger.Log($"DNS resolved {serverName} ({serverHostnameOrIPAddress}): " +
+                            $"{string.Join(", ", serverIPAddresses.Select(item => item.ToString()))}");
 
                         List<Task> pingTasks = new List<Task>();
 
@@ -364,6 +366,7 @@ namespace DTAClient.Online
                                 Logger.Log($"Skipped a duplicate IP from {serverName} ({serverIPAddress}).");
                                 continue;
                             }
+
                             triedIPAddressList.Add(serverIPAddress.ToString());
 
                             if (failedServerIPs.Contains(serverIPAddress.ToString()))
@@ -376,6 +379,7 @@ namespace DTAClient.Online
                             {
                                 Logger.Log($"Attempting to ping {serverName} ({serverIPAddress}).");
                                 PingReply pingReply = new Ping().Send(serverIPAddress, MAXIMUM_LATENCY);
+
                                 if (pingReply.Status == IPStatus.Success)
                                 {
                                     long pingInMs = pingReply.RoundtripTime;
@@ -383,7 +387,10 @@ namespace DTAClient.Online
                                     availableServerAndLatencyDict.Add(new Server(serverIPAddress.ToString(), serverName, serverPorts), pingInMs);
                                 }
                                 else
-                                    Logger.Log($"Failed to ping the server {serverName} ({serverIPAddress}): {Enum.GetName(typeof(IPStatus), pingReply.Status)}.");
+                                {
+                                    Logger.Log($"Failed to ping the server {serverName} ({serverIPAddress}): " +
+                                        $"{Enum.GetName(typeof(IPStatus), pingReply.Status)}.");
+                                }
                             });
 
                             pingTask.Start();
@@ -402,13 +409,18 @@ namespace DTAClient.Online
             catch (Exception ex)
             {
                 if (ex is AggregateException)
+                {
                     foreach (Exception innerEx in ((AggregateException)ex).Flatten().InnerExceptions)
                         Logger.Log("Unable to contact with the server. " + innerEx.Message);
+                }
                 else
+                {
                     Logger.Log("Unable to contact with the server. " + ex.Message);
+                }
             }
 
             Logger.Log($"The number of available Lobby servers is {availableServerAndLatencyDict.Count}.");
+
             return availableServerAndLatencyDict.OrderBy(item => item.Value).Select(item => item.Key);
         }
 
