@@ -395,7 +395,7 @@ namespace DTAClient.DXGUI.Generic
 
             if (absentFiles.Count > 0)
                 XNAMessageBox.Show(WindowManager, "Missing Files",
-#if MO
+#if ARES
                     "You are missing Yuri's Revenge files that are required" + Environment.NewLine +
                     "to play this mod! Yuri's Revenge mods are not standalone," + Environment.NewLine +
                     "so you need a copy of following Yuri's Revenge (v. 1.001)" + Environment.NewLine +

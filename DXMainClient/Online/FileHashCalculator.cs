@@ -17,18 +17,24 @@ namespace DTAClient.Online
 
         string[] fileNamesToCheck = new string[]
         {
-#if MO
+#if ARES
             "Ares.dll",
             "Ares.dll.inj",
-            "expandmo97.mix",
-            "expandmo99.mix",
+            "Ares.mix",
+            "Syringe.exe",
             "cncnet5.dll",
-            "rulesmo.ini",
-            "artmo.ini",
-            "soundmo.ini",
+            "rulesmd.ini",
+            "artmd.ini",
+            "soundmd.ini",
+            "aimd.ini",
+            "shroud.shp",
 #elif YR
             "spawner.xdp",
             "spawner2.xdp",
+            "artmd.ini",
+            "soundmd.ini",
+            "aimd.ini",
+            "shroud.shp",
             "INI/Map Code/Cooperative.ini",
             "INI/Map Code/Free For All.ini",
             "INI/Map Code/Land Rush.ini",
@@ -47,11 +53,9 @@ namespace DTAClient.Online
 #else
             "spawner.xdp",
             "rules.ini",
-            "rulesmd.ini",
             "ai.ini",
             "art.ini",
-            "artmd.ini",
-            "aimd.ini",
+            "shroud.shp",
             "INI/Rules.ini",
             "INI/Enhance.ini",
             "INI/Firestrm.ini",
@@ -64,11 +68,7 @@ namespace DTAClient.Online
 #endif
         };
 
-
-        public FileHashCalculator()
-        {
-            ParseConfigFile();
-        }
+        public FileHashCalculator() => ParseConfigFile();
 
         public void CalculateHashes(List<GameMode> gameModes)
         {
@@ -136,9 +136,7 @@ namespace DTAClient.Online
         string AddToStringIfFileExists(string str, string path)
         {
             if (File.Exists(path))
-            {
                 return str + Utilities.CalculateSHA1ForFile(ProgramConstants.GamePath + path);
-            }
 
             return str;
         }

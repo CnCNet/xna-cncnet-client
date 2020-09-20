@@ -270,7 +270,7 @@ namespace ClientCore
         public bool UseClientRandomStartLocations => clientDefinitionsIni.GetBooleanValue(SETTINGS, "UseClientRandomStartLocations", false);
 
         public bool ProcessScreenshots
-#if MO
+#if ARES
             => clientDefinitionsIni.GetBooleanValue(SETTINGS, "ProcessScreenshots", true);
 #else
             => false;
