@@ -1311,7 +1311,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             string msg = e.Message.Substring(5); // Cut out GAME part
             string[] splitMessage = msg.Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
 
-            if (splitMessage.Length < 11 || splitMessage.Length > 12) // Support for optional isRA2Mode param
+            if (splitMessage.Length != 11) 
             {
                 Logger.Log("Ignoring CTCP game message because of an invalid amount of parameters.");
                 return;
@@ -1341,7 +1341,6 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 int tunnelPort = int.Parse(tunnelAddressAndPort[1]);
 
                 string loadedGameId = splitMessage[10];
-                bool isRA2Mode = 11 < splitMessage.Length ? Conversions.BooleanFromString(splitMessage[11], false) : false;
 
                 CnCNetGame cncnetGame = gameCollection.GameList.Find(g => g.GameBroadcastChannel == channel.ChannelName);
 

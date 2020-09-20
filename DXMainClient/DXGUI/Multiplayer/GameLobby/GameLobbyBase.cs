@@ -153,14 +153,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         protected List<int[]> RandomSelectors = new List<int[]>();
 
-
-#if YR
-        /// <summary>
-        /// Controls whether Red Alert 2 mode is enabled for CnCNet YR. 
-        /// </summary>
-        protected bool RA2Mode = false;
-#endif
-
         private readonly bool isMultiplayer = false;
 
         private MatchStatistics matchStatistics;
@@ -815,25 +807,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 lbMapList.SelectedIndex = 0;
             }
         }
-
-#if YR
-        protected void CheckRa2Mode()
-        {
-            // TODO obsolete, remove when it's certain that this is not needed anywhere
-
-            foreach (GameLobbyCheckBox checkBox in CheckBoxes)
-            {
-                if (checkBox.Name == "chkRA2Mode" && checkBox.Checked)
-                {
-                    RA2Mode = true;
-                }
-                else if (checkBox.Name == "chkRA2Mode" && !checkBox.Checked)
-                {
-                    RA2Mode = false;
-                }
-            }
-        }
-#endif
 
         private int GetSpectatorSideIndex() => SideCount + RandomSelectorCount;
 
