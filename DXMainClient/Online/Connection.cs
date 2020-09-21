@@ -173,7 +173,8 @@ namespace DTAClient.Online
                     {
                         connectionManager.OnAttemptedServerChanged(server.Name);
 
-                        TcpClient client = new TcpClient(AddressFamily.InterNetwork);
+                        TcpClient client = new TcpClient(AddressFamily.InterNetworkV6);
+                        client.Client.DualMode = true;
                         var result = client.BeginConnect(server.Host, server.Ports[i], null, null);
                         result.AsyncWaitHandle.WaitOne(TimeSpan.FromSeconds(3), false);
 
@@ -351,8 +352,7 @@ namespace DTAClient.Online
                         Logger.Log($"Attempting to DNS resolve {serverName} ({serverHostnameOrIPAddress}).");
 
                         // If hostNameOrAddress is an IP address, this address is returned without querying the DNS server.
-                        List<IPAddress> serverIPAddresses = Dns.GetHostAddresses(serverHostnameOrIPAddress)
-                            .Where(item => item.AddressFamily == AddressFamily.InterNetwork).ToList();
+                        List<IPAddress> serverIPAddresses = Dns.GetHostAddresses(serverHostnameOrIPAddress).ToList();
 
                         Logger.Log($"DNS resolved {serverName} ({serverHostnameOrIPAddress}): " +
                             $"{string.Join(", ", serverIPAddresses.Select(item => item.ToString()))}");
