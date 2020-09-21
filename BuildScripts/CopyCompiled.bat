@@ -26,7 +26,7 @@ set xnaBinaries="..\..\..\..\Compiled\Binaries\XNA\"
 echo(
 echo Common
 
-cd ..\..\DXMainClient\bin\Windows\Release\
+cd ..\..\DXMainClient\bin\SharpDX\Release\
 
 copy DTAUpdater.dll %commonBinaries%DTAUpdater.dll
 copy Ionic.Zip.dll %commonBinaries%Ionic.Zip.dll
