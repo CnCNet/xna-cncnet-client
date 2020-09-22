@@ -75,6 +75,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         private List<PlayerInfo> aiPlayers;
 
         private XNAContextMenu contextMenu;
+        private Point lastContextMenuPoint;
 
         private CoopBriefingBox briefingBox;
 
@@ -245,8 +246,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     pInfo.SideId < sides.Length + RandomSelectorCount;
                 index++;
             }
-
-            contextMenu.Open(new Point(x, y));
+            lastContextMenuPoint = new Point(x, y);
+            contextMenu.Open(lastContextMenuPoint);
         }
 
         private void Indicator_RightClick(object sender, EventArgs e)
@@ -415,6 +416,12 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 contextMenu.AddItem(item);
 
                 id++;
+            }
+
+            if (EnableContextMenu && contextMenu.Enabled && contextMenu.Visible)
+            {
+                contextMenu.Disable();
+                contextMenu.Open(lastContextMenuPoint);
             }
         }
 
