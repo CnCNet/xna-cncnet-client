@@ -116,16 +116,16 @@ namespace DTAClient.Online
             {
                 if (!string.IsNullOrEmpty(path) && Directory.Exists(path))
                 {
-                    List<string> files = Directory.GetFiles(path,
-                        "*", SearchOption.AllDirectories).ToList();
+                    List<string> files = Directory.GetFiles(path, "*", SearchOption.AllDirectories).
+                        Select(s => s.Replace(ProgramConstants.GamePath, "").Replace("\\", "/")).ToList();
 
                     files.Sort();
 
-                    foreach (string fileName in files)
+                    foreach (string filename in files)
                     {
-                        fh.INIHashes += Utilities.CalculateSHA1ForFile(fileName);
-                        Logger.Log("Hash for " + fileName.Replace(ProgramConstants.GamePath, "") +
-                            ": " + Utilities.CalculateSHA1ForFile(fileName));
+                        string sha1 = Utilities.CalculateSHA1ForFile(ProgramConstants.GamePath + filename);
+                        fh.INIHashes += sha1;
+                        Logger.Log("Hash for " + filename + ": " + sha1);
                     }
                 }
             }
