@@ -12,6 +12,7 @@ using System.Security.Principal;
 using System.DirectoryServices;
 using System.Linq;
 using DTAClient.Online;
+using ClientCore.INIProcessing;
 
 namespace DTAClient
 {
@@ -32,7 +33,7 @@ namespace DTAClient
                 themePath = ClientConfiguration.Instance.GetThemeInfoFromIndex(0)[1];
             }
 
-            ProgramConstants.RESOURCES_DIR = "Resources\\" + themePath;
+            ProgramConstants.RESOURCES_DIR = "Resources/" + themePath;
 
             if (!Directory.Exists(ProgramConstants.RESOURCES_DIR))
                 throw new DirectoryNotFoundException("Theme directory not found!" + Environment.NewLine + ProgramConstants.RESOURCES_DIR);
@@ -102,6 +103,9 @@ namespace DTAClient
             WriteInstallPathToRegistry();
 
             ClientConfiguration.Instance.RefreshSettings();
+
+            // Start INI file preprocessor
+            PreprocessorBackgroundTask.Instance.Run();
 
             GameClass gameClass = new GameClass();
             gameClass.Run();

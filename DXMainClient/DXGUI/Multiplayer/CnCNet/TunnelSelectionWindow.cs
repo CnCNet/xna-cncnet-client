@@ -81,10 +81,15 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         /// </summary>
         /// <param name="description">The window description.</param>
         /// <param name="tunnelAddress">The address of the tunnel server to select.</param>
-        public void Open(string description, string tunnelAddress)
+        public void Open(string description, string tunnelAddress = null)
         {
             lblDescription.Text = description;
-            lbTunnelList.SelectTunnel(tunnelAddress);
+
+            if (!string.IsNullOrWhiteSpace(tunnelAddress))
+                lbTunnelList.SelectTunnel(tunnelAddress);
+            else
+                lbTunnelList.SelectedIndex = -1;
+
             Enable();
         }
     }

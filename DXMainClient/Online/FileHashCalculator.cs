@@ -17,58 +17,58 @@ namespace DTAClient.Online
 
         string[] fileNamesToCheck = new string[]
         {
-#if MO
+#if ARES
             "Ares.dll",
             "Ares.dll.inj",
-            "expandmo97.mix",
-            "expandmo99.mix",
+            "Ares.mix",
+            "Syringe.exe",
             "cncnet5.dll",
-            "rulesmo.ini",
-            "artmo.ini",
-            "soundmo.ini",
+            "rulesmd.ini",
+            "artmd.ini",
+            "soundmd.ini",
+            "aimd.ini",
+            "shroud.shp",
 #elif YR
             "spawner.xdp",
             "spawner2.xdp",
-            "INI\\Map Code\\Cooperative.ini",
-            "INI\\Map Code\\Free For All.ini",
-            "INI\\Map Code\\Land Rush.ini",
-            "INI\\Map Code\\Meat Grinder.ini",
-            "INI\\Map Code\\Megawealth.ini",
-            "INI\\Map Code\\Naval War.ini",
-            "INI\\Map Code\\Standard.ini",
-            "INI\\Map Code\\Team Alliance.ini",
-            "INI\\Map Code\\Unholy Alliance.ini",
-            "INI\\Game Options\\Allies Allowed.ini",
-            "INI\\Game Options\\Brutal AI.ini",
-            "INI\\Game Options\\No Dog Engi Eat.ini",
-            "INI\\Game Options\\No Spawn Previews.ini",
-            "INI\\Game Options\\RA2 Classic Mode.ini",
-            "INI\\Map Code\\GlobalCode.ini",
+            "artmd.ini",
+            "soundmd.ini",
+            "aimd.ini",
+            "shroud.shp",
+            "INI/Map Code/Cooperative.ini",
+            "INI/Map Code/Free For All.ini",
+            "INI/Map Code/Land Rush.ini",
+            "INI/Map Code/Meat Grinder.ini",
+            "INI/Map Code/Megawealth.ini",
+            "INI/Map Code/Naval War.ini",
+            "INI/Map Code/Standard.ini",
+            "INI/Map Code/Team Alliance.ini",
+            "INI/Map Code/Unholy Alliance.ini",
+            "INI/Game Options/Allies Allowed.ini",
+            "INI/Game Options/Brutal AI.ini",
+            "INI/Game Options/No Dog Engi Eat.ini",
+            "INI/Game Options/No Spawn Previews.ini",
+            "INI/Game Options/RA2 Classic Mode.ini",
+            "INI/Map Code/GlobalCode.ini",
 #else
             "spawner.xdp",
             "rules.ini",
-            "rulesmd.ini",
             "ai.ini",
             "art.ini",
-            "artmd.ini",
-            "aimd.ini",
-            "INI\\Rules.ini",
-            "INI\\Enhance.ini",
-            "INI\\Firestrm.ini",
-            "INI\\Art.ini",
-            "INI\\ArtE.ini",
-            "INI\\ArtFS.ini",
-            "INI\\AI.ini",
-            "INI\\AIE.ini",
-            "INI\\AIFS.ini",
+            "shroud.shp",
+            "INI/Rules.ini",
+            "INI/Enhance.ini",
+            "INI/Firestrm.ini",
+            "INI/Art.ini",
+            "INI/ArtE.ini",
+            "INI/ArtFS.ini",
+            "INI/AI.ini",
+            "INI/AIE.ini",
+            "INI/AIFS.ini",
 #endif
         };
 
-
-        public FileHashCalculator()
-        {
-            ParseConfigFile();
-        }
+        public FileHashCalculator() => ParseConfigFile();
 
         public void CalculateHashes(List<GameMode> gameModes)
         {
@@ -107,25 +107,25 @@ namespace DTAClient.Online
             string[] iniPaths = new string[]
             {
 #if !YR
-                ProgramConstants.GamePath + "INI\\Map Code",
+                ProgramConstants.GamePath + "INI/Map Code",
 #endif
-                ProgramConstants.GamePath + "INI\\Game Options"
+                ProgramConstants.GamePath + "INI/Game Options"
             };
 
             foreach (string path in iniPaths)
             {
                 if (!string.IsNullOrEmpty(path) && Directory.Exists(path))
                 {
-                    List<string> files = Directory.GetFiles(path,
-                        "*", SearchOption.AllDirectories).ToList();
+                    List<string> files = Directory.GetFiles(path, "*", SearchOption.AllDirectories).
+                        Select(s => s.Replace(ProgramConstants.GamePath, "").Replace("\\", "/")).ToList();
 
                     files.Sort();
 
-                    foreach (string fileName in files)
+                    foreach (string filename in files)
                     {
-                        fh.INIHashes += Utilities.CalculateSHA1ForFile(fileName);
-                        Logger.Log("Hash for " + fileName.Replace(ProgramConstants.GamePath, "") +
-                            ": " + Utilities.CalculateSHA1ForFile(fileName));
+                        string sha1 = Utilities.CalculateSHA1ForFile(ProgramConstants.GamePath + filename);
+                        fh.INIHashes += sha1;
+                        Logger.Log("Hash for " + filename + ": " + sha1);
                     }
                 }
             }
@@ -136,9 +136,7 @@ namespace DTAClient.Online
         string AddToStringIfFileExists(string str, string path)
         {
             if (File.Exists(path))
-            {
                 return str + Utilities.CalculateSHA1ForFile(ProgramConstants.GamePath + path);
-            }
 
             return str;
         }

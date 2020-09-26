@@ -21,24 +21,24 @@ namespace DTAClient.DXGUI.Multiplayer
         private const string LOADED_GAME_TEXT = " (Loaded Game)";
 
         public GameListBox(WindowManager windowManager,
-            string localGameIdentifier)
+            string localGameIdentifier, Predicate<GenericHostedGame> gameMatchesFilter)
             : base(windowManager)
         {
             HostedGames = new List<GenericHostedGame>();
             this.localGameIdentifier = localGameIdentifier;
+            GameMatchesFilter = gameMatchesFilter;
         }
 
         private int loadedGameTextWidth;
 
         public List<GenericHostedGame> HostedGames;
 
-        private double _gameLifetime = 35.0;
+        public double GameLifetime { get; set; } = 35.0;
 
-        public double GameLifetime
-        {
-            get { return _gameLifetime; }
-            set { _gameLifetime = value; }
-        }
+        /// <summary>
+        /// A predicate for setting a filter expression for displayed games.
+        /// </summary>
+        private Predicate<GenericHostedGame> GameMatchesFilter { get; }
 
         private Texture2D txLockedGame;
         private Texture2D txIncompatibleGame;
@@ -75,7 +75,16 @@ namespace DTAClient.DXGUI.Multiplayer
         {
             Items.Clear();
 
-            HostedGames.ForEach(AddGameToList);
+            if (GameMatchesFilter != null)
+            {
+                foreach (var hg in HostedGames)
+                {
+                    if (GameMatchesFilter(hg))
+                        AddGameToList(hg);
+                }
+            }
+            else HostedGames.ForEach(AddGameToList);
+
             GameListBox_HoveredIndexChanged(this, EventArgs.Empty);
         }
 

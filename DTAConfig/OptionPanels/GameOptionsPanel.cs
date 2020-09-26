@@ -28,7 +28,7 @@ namespace DTAConfig.OptionPanels
         private XNAClientCheckBox chkTooltips;
 #if YR
         private XNAClientCheckBox chkShowHiddenObjects;
-#elif DTA || TS || TI
+#elif TS
         private XNAClientCheckBox chkAltToUndeploy;
         private XNAClientCheckBox chkBlackChatBackground;
 #endif
@@ -116,7 +116,7 @@ namespace DTAConfig.OptionPanels
                 chkTargetLines.Bottom + 24, 0, 0);
 #endif
 
-#if DTA || TI || TS
+#if TS
             chkBlackChatBackground = new XNAClientCheckBox(WindowManager);
             chkBlackChatBackground.Name = "chkBlackChatBackground";
             chkBlackChatBackground.ClientRectangle = new Rectangle(
@@ -127,7 +127,7 @@ namespace DTAConfig.OptionPanels
             AddChild(chkBlackChatBackground);
 #endif
 
-#if DTA || TS || TI
+#if TS
             chkAltToUndeploy = new XNAClientCheckBox(WindowManager);
             chkAltToUndeploy.Name = "chkAltToUndeploy";
             chkAltToUndeploy.ClientRectangle = new Rectangle(
@@ -222,7 +222,7 @@ namespace DTAConfig.OptionPanels
             chkShowHiddenObjects.Checked = IniSettings.ShowHiddenObjects;
 #endif
 
-#if DTA || TS || TI
+#if TS
             chkAltToUndeploy.Checked = !IniSettings.MoveToUndeploy;
             chkBlackChatBackground.Checked = IniSettings.TextBackgroundColor == TEXT_BACKGROUND_COLOR_BLACK;
 #endif
@@ -242,7 +242,7 @@ namespace DTAConfig.OptionPanels
             IniSettings.ShowHiddenObjects.Value = chkShowHiddenObjects.Checked;
 #endif
 
-#if DTA || TS || TI
+#if TS
             IniSettings.MoveToUndeploy.Value = !chkAltToUndeploy.Checked;
             if (chkBlackChatBackground.Checked)
                 IniSettings.TextBackgroundColor.Value = TEXT_BACKGROUND_COLOR_BLACK;

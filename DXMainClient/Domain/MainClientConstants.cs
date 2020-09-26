@@ -9,12 +9,6 @@ namespace DTAClient.Domain
     {
         public const string CNCNET_TUNNEL_LIST_URL = "http://cncnet.org/master-list";
 
-#if DEBUG
-        public static string gamepath = Application.StartupPath + "\\";
-#else
-        public static string gamepath = Directory.GetParent(Application.StartupPath).FullName + "\\";
-#endif
-
         public static string GAME_NAME_LONG = "CnCNet Client";
         public static string GAME_NAME_SHORT = "CnCNet";
 

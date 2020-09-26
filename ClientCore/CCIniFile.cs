@@ -18,10 +18,10 @@ namespace ClientCore
                 string path = string.Empty;
                 if (basedOn.Contains("$THEME_DIR$"))
                 {
-                    path = basedOn.Replace("$THEME_DIR$\\", ProgramConstants.GetResourcePath());
+                    path = basedOn.Replace("$THEME_DIR$/", ProgramConstants.GetResourcePath());
                 }
                 else
-                    path = Path.GetDirectoryName(FileName) + "\\" + basedOn;
+                    path = Path.GetDirectoryName(FileName) + "/" + basedOn;
 
                 // Consolidate with the INI file that this INI file is based on
                 if (!File.Exists(path))
