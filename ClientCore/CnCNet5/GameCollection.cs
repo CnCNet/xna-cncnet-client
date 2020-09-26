@@ -159,10 +159,20 @@ namespace ClientCore.CnCNet5
             HashSet<string> customGameIDs = new HashSet<string>();
             foreach (var kvp in section.Keys)
             {
-                string ID = iniFile.GetStringValue(kvp.Value, "InternalName", string.Empty).ToLower();
-                if (string.IsNullOrEmpty(ID) || existingGames.Find(g => g.InternalName == ID) != null ||
-                    customGameIDs.Contains(ID))
+                if (!iniFile.SectionExists(kvp.Value))
                     continue;
+
+                string ID = iniFile.GetStringValue(kvp.Value, "InternalName", string.Empty).ToLower();
+
+                if (string.IsNullOrEmpty(ID))
+                    throw new Exception("InternalName for game " + kvp.Value + " is not defined or set to an empty value.");
+
+                if (ID.Length > ProgramConstants.GAME_ID_MAX_LENGTH)
+                    throw new Exception("InternalGame for game " + kvp.Value + " is set to a value that exceeds length limit of " + ProgramConstants.GAME_ID_MAX_LENGTH + " characters.");
+
+                if (existingGames.Find(g => g.InternalName == ID) != null || customGameIDs.Contains(ID))
+                    throw new Exception("Game with InternalName " + ID.ToUpper() + " already exists in the game collection.");
+
                 string iconFilename = iniFile.GetStringValue(kvp.Value, "IconFilename", ID + "icon.png");
                 customGames.Add(new CnCNetGame
                 {

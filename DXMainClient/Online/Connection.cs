@@ -121,8 +121,7 @@ namespace DTAClient.Online
         {
             lock (idLocker)
             {
-                // E.g "DTA". or "YR."
-                int maxLength = (ID_LENGTH - ClientConfiguration.Instance.LocalGame.Length + 1);
+                int maxLength = ID_LENGTH - (ClientConfiguration.Instance.LocalGame.Length + 1);
                 systemId = Utilities.CalculateSHA1ForString(id).Substring(0, maxLength);
                 idSet = true;
             }

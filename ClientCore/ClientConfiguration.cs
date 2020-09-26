@@ -154,7 +154,21 @@ namespace ClientCore
 
         public int ThemeCount => clientDefinitionsIni.GetSectionKeys("Themes").Count;
 
-        public string LocalGame => clientDefinitionsIni.GetStringValue(SETTINGS, "LocalGame", "DTA");
+        public string LocalGame 
+        { 
+            get
+            {
+                string localGame = clientDefinitionsIni.GetStringValue(SETTINGS, "LocalGame", "DTA");
+
+                if (string.IsNullOrEmpty(localGame))
+                    throw new Exception("LocalGame is set to an empty value.");
+
+                if (localGame.Length > ProgramConstants.GAME_ID_MAX_LENGTH)
+                    throw new Exception("LocalGame is set to a value that exceeds length limit of " + ProgramConstants.GAME_ID_MAX_LENGTH + " characters.");
+
+                return localGame;
+            }
+        }
 
         public bool SidebarHack => clientDefinitionsIni.GetBooleanValue(SETTINGS, "SidebarHack", false);
 
