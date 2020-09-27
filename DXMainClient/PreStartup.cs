@@ -113,22 +113,26 @@ namespace DTAClient
                 Logger.Log("Stacktrace: " + ex.InnerException.StackTrace);
             }
 
+            DateTime dtn = DateTime.Now;
+            string errorLogPath = Environment.CurrentDirectory.Replace("\\", "/") + string.Format("/Client/ErrorLogs/ClientCrashLog_{0}_{1}_{2}_{3}_{4}.txt",
+                dtn.Day, dtn.Month, dtn.Year, dtn.Hour, dtn.Minute);
+            bool crashLogCopied = false;
+
             try
             {
-                if (Directory.Exists(Environment.CurrentDirectory + "/Client/ErrorLogs"))
-                {
-                    DateTime dtn = DateTime.Now;
+                if (!Directory.Exists(Environment.CurrentDirectory + "/Client/ErrorLogs"))
+                    Directory.CreateDirectory(Environment.CurrentDirectory + "/Client/ErrorLogs");
 
-                    File.Copy(Environment.CurrentDirectory + "/Client/client.log",
-                        Environment.CurrentDirectory + string.Format("/Client/ErrorLogs/ClientCrashLog_{0}_{1}_{2}_{3}_{4}.txt",
-                        dtn.Day, dtn.Month, dtn.Year, dtn.Hour, dtn.Minute), true);
-                }
+                File.Copy(Environment.CurrentDirectory + "/Client/client.log", errorLogPath, true);
+                crashLogCopied = true;
             }
             catch { }
 
             MessageBox.Show(string.Format("{0} has crashed. Error message:" + Environment.NewLine + Environment.NewLine +
-                ex.Message + Environment.NewLine + Environment.NewLine +
-                "If the issue is repeatable, contact the {1} staff at {2}.",
+                ex.Message + Environment.NewLine + Environment.NewLine + (crashLogCopied ?
+                "A crash log has been saved to the following file: " + Environment.NewLine + Environment.NewLine +
+                errorLogPath + Environment.NewLine + Environment.NewLine : "") +
+                "If the issue is repeatable, contact the {1} staff at {2}" + (crashLogCopied ? "and provide the crash log file" : "") + ".",
                 MainClientConstants.GAME_NAME_LONG,
                 MainClientConstants.GAME_NAME_SHORT,
                 MainClientConstants.SUPPORT_URL_SHORT),
