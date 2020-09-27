@@ -90,13 +90,13 @@ namespace ClientCore.CnCNet5
 
                 new CnCNetGame()
                 {
-                    ChatChannel = "#projectphantom",
-                    ClientExecutableName = "PPLauncher.exe",
-                    GameBroadcastChannel = "#projectphantom-games",
-                    InternalName = "pp",
-                    RegistryInstallPath = "HKML\\Software\\ProjectPhantom",
-                    UIName = "Project Phantom",
-                    Texture = AssetLoader.TextureFromImage(Resources.ppicon)
+                    ChatChannel = "#cncreloaded",
+                    ClientExecutableName = "CnCReloadedClient.exe",
+                    GameBroadcastChannel = "#cncreloaded-games",
+                    InternalName = "cncr",
+                    RegistryInstallPath = "HKCU\\Software\\CnCReloaded",
+                    UIName = "C&C: Reloaded",
+                    Texture = AssetLoader.TextureFromImage(Resources.cncricon)
                 }
             };
 

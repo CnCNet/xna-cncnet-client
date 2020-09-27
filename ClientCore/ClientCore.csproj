@@ -290,9 +290,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\cncneticon.png" />
+    <Content Include="Resources\cncricon.png" />
     <Content Include="Resources\dtaicon.png" />
     <None Include="Resources\moicon.png" />
-    <Content Include="Resources\ppicon.png" />
     <Content Include="Resources\raicon.png" />
     <Content Include="Resources\rricon.png" />
     <Content Include="Resources\tdicon.png" />
