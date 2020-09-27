@@ -35,7 +35,7 @@ namespace ClientCore
         public const string SPAWNER_SETTINGS = "spawn.ini";
         public const string SAVED_GAME_SPAWN_INI = "Saved Games/spawnSG.ini";
 
-        public const int GAME_ID_MAX_LENGTH = 3;
+        public const int GAME_ID_MAX_LENGTH = 4;
 
         public static readonly Encoding LAN_ENCODING = Encoding.UTF8;
 
