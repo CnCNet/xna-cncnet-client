@@ -173,8 +173,12 @@ namespace DTAClient.Online
                     {
                         connectionManager.OnAttemptedServerChanged(server.Name);
 
+#if XNA
+                        TcpClient client = new TcpClient(AddressFamily.InterNetwork);
+#else
                         TcpClient client = new TcpClient(AddressFamily.InterNetworkV6);
                         client.Client.DualMode = true;
+#endif
                         var result = client.BeginConnect(server.Host, server.Ports[i], null, null);
                         result.AsyncWaitHandle.WaitOne(TimeSpan.FromSeconds(3), false);
 
@@ -334,6 +338,11 @@ namespace DTAClient.Online
         /// <returns>A list of available Lobby servers sorted by latency.</returns>
         private IEnumerable<Server> GetAvailableServerList()
         {
+#if XNA
+            Logger.Log($"Finding available Lobby servers (IPv4 only).");
+#else
+            Logger.Log($"Finding available Lobby servers (IPv4 and IPv6).");
+#endif
             List<string> triedIPAddressList = new List<string>();
             Dictionary<Server, long> availableServerAndLatencyDict = new Dictionary<Server, long>();
 
@@ -352,7 +361,12 @@ namespace DTAClient.Online
                         Logger.Log($"Attempting to DNS resolve {serverName} ({serverHostnameOrIPAddress}).");
 
                         // If hostNameOrAddress is an IP address, this address is returned without querying the DNS server.
+#if XNA
+                        List<IPAddress> serverIPAddresses = Dns.GetHostAddresses(serverHostnameOrIPAddress)
+                            .Where(item => item.AddressFamily == AddressFamily.InterNetwork).ToList();
+#else
                         List<IPAddress> serverIPAddresses = Dns.GetHostAddresses(serverHostnameOrIPAddress).ToList();
+#endif
 
                         Logger.Log($"DNS resolved {serverName} ({serverHostnameOrIPAddress}): " +
                             $"{string.Join(", ", serverIPAddresses.Select(item => item.ToString()))}");
