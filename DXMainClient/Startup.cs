@@ -13,6 +13,7 @@ using System.DirectoryServices;
 using System.Linq;
 using DTAClient.Online;
 using ClientCore.INIProcessing;
+using System.Threading.Tasks;
 
 namespace DTAClient
 {
@@ -54,6 +55,11 @@ namespace DTAClient
 
             Thread idThread = new Thread(GenerateOnlineId);
             idThread.Start();
+
+#if ARES
+            Logger.Log("Attempting to prune Ares debug logs.");
+            Task.Factory.StartNew(() => PruneFiles(ProgramConstants.GamePath + "debug", DateTime.Now.AddDays(-7)));
+#endif
 
             if (Directory.Exists(ProgramConstants.GamePath + "Updater"))
             {
@@ -110,6 +116,53 @@ namespace DTAClient
             GameClass gameClass = new GameClass();
             gameClass.Run();
         }
+
+#if ARES
+        /// <summary>
+        /// Recursively deletes all files from the specified directory that were created at <paramref name="pruneThresholdTime"/> or before.
+        /// If directory is empty after deleting files, the directory itself will also be deleted.
+        /// </summary>
+        /// <param name="directoryPath">Directory to prune files from.</param>
+        /// <param name="pruneThresholdTime">Time at or before which files must have been created for them to be pruned.</param>
+        private void PruneFiles(string directoryPath, DateTime pruneThresholdTime)
+        {
+            if (!Directory.Exists(directoryPath))
+                return;
+
+            try
+            {
+                foreach (string fsEntry in Directory.EnumerateFileSystemEntries(directoryPath))
+                {
+                    FileAttributes attr = File.GetAttributes(fsEntry);
+                    if ((attr & FileAttributes.Directory) == FileAttributes.Directory)
+                        PruneFiles(fsEntry, pruneThresholdTime);
+                    else
+                    {
+                        try
+                        {
+                            FileInfo fileInfo = new FileInfo(fsEntry);
+                            if (fileInfo.CreationTime <= pruneThresholdTime)
+                                fileInfo.Delete();
+                        }
+                        catch (Exception e)
+                        {
+                            Logger.Log("PruneFiles: Could not delete file " + fsEntry.Replace(ProgramConstants.GamePath, "") +
+                                ". Error message: " + e.Message);
+                            continue;
+                        }
+                    }
+                }
+
+                if (!Directory.EnumerateFileSystemEntries(directoryPath).Any())
+                    Directory.Delete(directoryPath);
+            }
+            catch (Exception e)
+            {
+                Logger.Log("PruneFiles: Error encountered pruning files from " +
+                    directoryPath.Replace(ProgramConstants.GamePath, "") + ". Error message: " + e.Message);
+            }
+        }
+#endif
 
         /// <summary>
         /// Writes processor and graphics card info to the log file.
@@ -201,7 +254,8 @@ namespace DTAClient
                 key = Registry.CurrentUser.CreateSubKey("SOFTWARE\\" + ClientConfiguration.Instance.InstallationPathRegKey);
                 string str = rn.Next(Int32.MaxValue - 1).ToString();
 
-                try {
+                try
+                {
                     Object o = key.GetValue("Ident");
                     if (o == null)
                     {
@@ -214,7 +268,7 @@ namespace DTAClient
 
                 key.Close();
                 Connection.SetId(str);
-           }
+            }
         }
 
         /// <summary>
