@@ -7,6 +7,8 @@ using Rampastring.XNAUI;
 using ClientGUI;
 using System.IO;
 using System.Threading.Tasks;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace DTAClient.DXGUI
 {
@@ -25,8 +27,14 @@ namespace DTAClient.DXGUI
         }
 
         private bool initialized = false;
-        private bool deletingLogFilesFailed = false;
         private bool nativeCursorUsed = false;
+
+#if ARES
+        private List<string> debugSnapshotDirectories;
+        private DateTime debugLogLastWriteTime;
+#else
+        private bool deletingLogFilesFailed = false;
+#endif
 
         public override void Initialize()
         {
@@ -66,10 +74,23 @@ namespace DTAClient.DXGUI
 
             Visible = false;
             Enabled = false;
+
+#if ARES
+            try
+            {
+                if (File.Exists(ProgramConstants.GamePath + "debug/debug.log"))
+                    debugLogLastWriteTime = File.GetLastWriteTimeUtc(ProgramConstants.GamePath + "debug/debug.log");
+            }
+            catch { }
+#endif
         }
 
         private void SharedUILogic_GameProcessStarted()
         {
+
+#if ARES
+            debugSnapshotDirectories = GetAllDebugSnapshotDirectories();
+#else
             try
             {
                 File.Delete(ProgramConstants.GamePath + "EXCEPT.TXT");
@@ -84,6 +105,7 @@ namespace DTAClient.DXGUI
                 Logger.Log("Exception when deleting error log files! Message: " + ex.Message);
                 deletingLogFilesFailed = true;
             }
+#endif
 
             Visible = true;
             Enabled = true;
@@ -94,6 +116,7 @@ namespace DTAClient.DXGUI
             Game.TargetElapsedTime = TimeSpan.FromMilliseconds(1000.0 / POWER_SAVING_FPS);
             if (UserINISettings.Instance.MinimizeWindowsOnGameStart)
                 WindowManager.MinimizeWindow();
+
         }
 
         private void SharedUILogic_GameProcessExited()
@@ -116,10 +139,6 @@ namespace DTAClient.DXGUI
 
             UserINISettings.Instance.ReloadSettings();
 
-#if ARES
-            Task.Factory.StartNew(ProcessScreenshots);
-#endif
-
             if (UserINISettings.Instance.BorderlessWindowedClient)
             {
                 // Hack: Re-set graphics mode
@@ -133,47 +152,183 @@ namespace DTAClient.DXGUI
                 GameClass.SetGraphicsMode(WindowManager);
             }
 
+            DateTime dtn = DateTime.Now;
+
+#if ARES
+            Task.Factory.StartNew(ProcessScreenshots);
+
+            // TODO: Ares debug log handling should be addressed in Ares DLL itself.
+            // For now the following are handled here:
+            // 1. Make a copy of syringe.log in debug snapshot directory on both crash and desync.
+            // 2. Move SYNCX.txt from game directory to debug snapshot directory on desync.
+            // 3. Make a debug snapshot directory & copy debug.log to it on desync even if full crash dump wasn't created.
+            // 4. Handle the empty snapshot directories created on a crash if debug logging was disabled.
+
+            string snapshotDirectory = GetNewestDebugSnapshotDirectory();
+            bool snapshotCreated = snapshotDirectory != null;
+
+            snapshotDirectory = snapshotDirectory ?? ProgramConstants.GamePath + "debug/snapshot-" +
+                dtn.ToString("yyyyMMdd-HHmmss");
+
+            bool debugLogModified = false;
+            string debugLogPath = ProgramConstants.GamePath + "debug/debug.log";
+            DateTime lastWriteTime = new DateTime();
+
+            if (File.Exists(debugLogPath))
+                lastWriteTime = File.GetLastWriteTimeUtc(debugLogPath);
+
+            if (!lastWriteTime.Equals(debugLogLastWriteTime))
+            {
+                debugLogModified = true;
+                debugLogLastWriteTime = lastWriteTime;
+            }
+
+            if (CopySyncErrorLogs(snapshotDirectory, null) || snapshotCreated)
+            {
+                if (File.Exists(debugLogPath) && !File.Exists(snapshotDirectory + "/debug.log") && debugLogModified)
+                    File.Copy(debugLogPath, snapshotDirectory + "/debug.log");
+
+                CopyErrorLog(snapshotDirectory, "syringe.log", null);
+            }
+#else
             if (deletingLogFilesFailed)
                 return;
 
+            CopyErrorLog(ProgramConstants.GamePath + "Client/ErrorLogs", "EXCEPT.TXT", dtn);
+            CopySyncErrorLogs(ProgramConstants.GamePath + "Client/ErrorLogs", dtn);
+#endif
+        }
+
+        /// <summary>
+        /// Attempts to copy a general error log from game directory to another directory.
+        /// </summary>
+        /// <param name="directory">Directory to copy error log to.</param>
+        /// <param name="filename">Filename of the error log.</param>
+        /// <param name="dateTime">Time to to apply as a timestamp to filename. Set to null to not apply a timestamp.</param>
+        /// <returns>True if error log was copied, false otherwise.</returns>
+        private bool CopyErrorLog(string directory, string filename, DateTime? dateTime)
+        {
+            bool copied = false;
+
             try
             {
-                if (!Directory.Exists(ProgramConstants.GamePath + "Client/ErrorLogs"))
-                    Directory.CreateDirectory(ProgramConstants.GamePath + "Client/ErrorLogs");
-
-                DateTime dtn = DateTime.Now;
-
-                if (File.Exists(ProgramConstants.GamePath + "EXCEPT.TXT"))
+                if (File.Exists(ProgramConstants.GamePath + filename))
                 {
-                    Logger.Log("The game crashed! Copying EXCEPT.TXT file.");
+                    if (!Directory.Exists(directory))
+                        Directory.CreateDirectory(directory);
 
-                    File.Copy(ProgramConstants.GamePath + "EXCEPT.TXT",
-                        string.Format(ProgramConstants.GamePath + "Client/ErrorLogs/EXCEPT_{0}_{1}_{2}_{3}_{4}.TXT",
-                        dtn.Day, dtn.Month, dtn.Year, dtn.Hour, dtn.Minute));
+                    Logger.Log("The game crashed! Copying " + filename + " file.");
+
+                    string timeStamp = dateTime.HasValue ? string.Format("_{0}_{1}_{2}_{3}_{4}",
+                        dateTime.Value.Day, dateTime.Value.Month, dateTime.Value.Year,
+                        dateTime.Value.Hour, dateTime.Value.Minute) : "";
+
+                    string filenameCopy = Path.GetFileNameWithoutExtension(filename) +
+                        timeStamp + Path.GetExtension(filename);
+
+                    File.Copy(ProgramConstants.GamePath + filename, directory + "/" + filenameCopy);
+                    copied = true;
                 }
+            }
+            catch (Exception ex)
+            {
+                Logger.Log("An error occured while checking for " + filename + " file. Message: " + ex.Message);
+            }
+            return copied;
+        }
 
+        /// <summary>
+        /// Attempts to copy sync error logs from game directory to another directory.
+        /// </summary>
+        /// <param name="directory">Directory to copy sync error logs to.</param>
+        /// <param name="dateTime">Time to to apply as a timestamp to filename. Set to null to not apply a timestamp.</param>
+        /// <returns>True if any sync logs were copied, false otherwise.</returns>
+        private bool CopySyncErrorLogs(string directory, DateTime? dateTime)
+        {
+            bool copied = false;
+
+            try
+            {
                 for (int i = 0; i < 8; i++)
                 {
-                    string syncFileName = "SYNC" + i + ".TXT";
+                    string filename = "SYNC" + i + ".TXT";
 
-                    if (File.Exists(ProgramConstants.GamePath + syncFileName))
+                    if (File.Exists(ProgramConstants.GamePath + filename))
                     {
-                        Logger.Log("There was a sync error! Copying file " + syncFileName);
+                        if (!Directory.Exists(directory))
+                            Directory.CreateDirectory(directory);
 
-                        File.Copy(ProgramConstants.GamePath + syncFileName,
-                            string.Format(ProgramConstants.GamePath + "Client/ErrorLogs/" + syncFileName + "_{0}_{1}_{2}_{3}_{4}.TXT",
-                            dtn.Day, dtn.Month, dtn.Year, dtn.Hour, dtn.Minute));
-                        File.Delete(ProgramConstants.GamePath + syncFileName);
+                        Logger.Log("There was a sync error! Copying file " + filename);
+
+                        string timeStamp = dateTime.HasValue ? string.Format("_{0}_{1}_{2}_{3}_{4}",
+                            dateTime.Value.Day, dateTime.Value.Month, dateTime.Value.Year,
+                            dateTime.Value.Hour, dateTime.Value.Minute) : "";
+
+                        string filenameCopy = Path.GetFileNameWithoutExtension(filename) +
+                            timeStamp + Path.GetExtension(filename);
+
+                        File.Copy(ProgramConstants.GamePath + filename, directory + "/" + filenameCopy);
+                        copied = true;
+                        File.Delete(ProgramConstants.GamePath + filename);
                     }
                 }
             }
             catch (Exception ex)
             {
-                Logger.Log("An error occured while checking for EXCEPT.TXT and SYNCX.TXT files. Message: " + ex.Message);
+                Logger.Log("An error occured while checking for SYNCX.TXT files. Message: " + ex.Message);
             }
+            return copied;
         }
 
 #if ARES
+        /// <summary>
+        /// Returns the first debug snapshot directory found in Ares debug log directory that was created after last game launch and isn't empty.
+        /// Additionally any empty snapshot directories encountered are deleted.
+        /// </summary>
+        /// <returns>Full path of the debug snapshot directory. If one isn't found, null is returned.</returns>
+        private string GetNewestDebugSnapshotDirectory()
+        {
+            string snapshotDirectory = null;
+
+            if (debugSnapshotDirectories != null)
+            {
+                var newDirectories = GetAllDebugSnapshotDirectories().Except(debugSnapshotDirectories);
+
+                foreach (string directory in newDirectories)
+                {
+                    if (Directory.EnumerateFileSystemEntries(directory).Any())
+                        snapshotDirectory = directory;
+                    else
+                    {
+                        try
+                        {
+                            Directory.Delete(directory);
+                        }
+                        catch { }
+                    }
+                }
+            }
+
+            return snapshotDirectory;
+        }
+
+        /// <summary>
+        /// Returns list of all debug snapshot directories in Ares debug logs directory.
+        /// </summary>
+        /// <returns>List of all debug snapshot directories in Ares debug logs directory. Empty list if none are found or an error was encountered.</returns>
+        private List<string> GetAllDebugSnapshotDirectories()
+        {
+            List<string> directories = new List<string>();
+
+            try
+            {
+                directories.AddRange(Directory.GetDirectories(ProgramConstants.GamePath + "debug", "snapshot-*"));
+            }
+            catch { }
+
+            return directories;
+        }
+
         /// <summary>
         /// Converts BMP screenshots to PNG and copies them from game directory to Screenshots sub-directory.
         /// </summary>
