@@ -3,7 +3,6 @@ using ClientCore.Statistics;
 using ClientGUI;
 using DTAClient.Domain;
 using DTAClient.Domain.Multiplayer;
-using DTAClient.Domain.Multiplayer.CnCNet;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Rampastring.Tools;
@@ -13,7 +12,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Threading;
 
 
 namespace DTAClient.DXGUI.Multiplayer.GameLobby
@@ -1462,29 +1460,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             CopyPlayerDataToUI();
 
-            if (ClientConfiguration.Instance.ProcessScreenshots)
-            {
-                Logger.Log("GameProcessExited: Processing screenshots.");
-                Thread thread = new Thread(ProcessScreenshots);
-                thread.Start();
-            }
-
             UpdateDiscordPresence(true);
-        }
-
-        private void ProcessScreenshots()
-        {
-            string[] filenames = Directory.GetFiles(ProgramConstants.GamePath, "SCRN*.bmp");
-            string screenshotsDirectory = ProgramConstants.GamePath + "Screenshots";
-            foreach (string filename in filenames)
-            {
-                Directory.CreateDirectory(screenshotsDirectory);
-                System.Drawing.Bitmap bitmap = new System.Drawing.Bitmap(filename);
-                bitmap.Save(screenshotsDirectory + Path.DirectorySeparatorChar + Path.GetFileNameWithoutExtension(filename) + 
-                    ".png", System.Drawing.Imaging.ImageFormat.Png);
-                bitmap.Dispose();
-                File.Delete(filename);
-            }
         }
 
         /// <summary>

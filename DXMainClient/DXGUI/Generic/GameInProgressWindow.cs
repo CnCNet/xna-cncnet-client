@@ -6,6 +6,7 @@ using ClientCore;
 using Rampastring.XNAUI;
 using ClientGUI;
 using System.IO;
+using System.Threading.Tasks;
 
 namespace DTAClient.DXGUI
 {
@@ -115,8 +116,9 @@ namespace DTAClient.DXGUI
 
             UserINISettings.Instance.ReloadSettings();
 
-            if (deletingLogFilesFailed)
-                return;
+#if ARES
+            Task.Factory.StartNew(ProcessScreenshots);
+#endif
 
             if (UserINISettings.Instance.BorderlessWindowedClient)
             {
@@ -130,6 +132,9 @@ namespace DTAClient.DXGUI
                 // Re-setting the graphics mode fixes it.
                 GameClass.SetGraphicsMode(WindowManager);
             }
+
+            if (deletingLogFilesFailed)
+                return;
 
             try
             {
@@ -167,5 +172,48 @@ namespace DTAClient.DXGUI
                 Logger.Log("An error occured while checking for EXCEPT.TXT and SYNCX.TXT files. Message: " + ex.Message);
             }
         }
+
+#if ARES
+        /// <summary>
+        /// Converts BMP screenshots to PNG and copies them from game directory to Screenshots sub-directory.
+        /// </summary>
+        private void ProcessScreenshots()
+        {
+            string[] filenames = Directory.GetFiles(ProgramConstants.GamePath, "SCRN*.bmp");
+            string screenshotsDirectory = ProgramConstants.GamePath + "Screenshots";
+
+            if (!Directory.Exists(screenshotsDirectory))
+            {
+                try
+                {
+                    Directory.CreateDirectory(screenshotsDirectory);
+                }
+                catch (Exception e)
+                {
+                    Logger.Log("ProcessScreenshots: Failed to create Screenshots directory. Error message: " + e.Message);
+                    return;
+                }
+            }
+
+            foreach (string filename in filenames)
+            {
+                try
+                {
+                    System.Drawing.Bitmap bitmap = new System.Drawing.Bitmap(filename);
+                    bitmap.Save(screenshotsDirectory + Path.DirectorySeparatorChar + Path.GetFileNameWithoutExtension(filename) +
+                        ".png", System.Drawing.Imaging.ImageFormat.Png);
+                    bitmap.Dispose();
+                }
+                catch (Exception e)
+                {
+                    Logger.Log("ProcessScreenshots: Failed to save " + Path.GetFileNameWithoutExtension(filename) + ".png. Error message: " + e.Message);
+                    continue;
+                }
+
+                Logger.Log("ProcessScreenshots: " + Path.GetFileNameWithoutExtension(filename) + ".png has been saved to Screenshots directory.");
+                File.Delete(filename);
+            }
+        }
+#endif
     }
 }

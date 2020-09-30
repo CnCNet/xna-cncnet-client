@@ -269,13 +269,6 @@ namespace ClientCore
 
         public bool UseClientRandomStartLocations => clientDefinitionsIni.GetBooleanValue(SETTINGS, "UseClientRandomStartLocations", false);
 
-        public bool ProcessScreenshots
-#if ARES
-            => clientDefinitionsIni.GetBooleanValue(SETTINGS, "ProcessScreenshots", true);
-#else
-            => false;
-#endif
-
         /// <summary>
         /// Returns the name of the game executable file that is used on
         /// Linux and macOS.
