@@ -332,7 +332,7 @@ namespace DTAConfig.OptionPanels
 
 			var keys = renderersIni.GetSectionKeys("Renderers");
 			if (keys == null)
-				throw new Exception("[Renderers] not found from Renderers.ini!");
+				throw new ClientConfigurationException("[Renderers] not found from Renderers.ini!");
 
 			foreach (string key in keys)
 			{
@@ -347,7 +347,7 @@ namespace DTAConfig.OptionPanels
 			defaultRenderer = renderersIni.GetStringValue("DefaultRenderer", osVersion.ToString(), string.Empty);
 
 			if (defaultRenderer == null)
-				throw new Exception("Invalid or missing default renderer for operating system: " + osVersion);
+				throw new ClientConfigurationException("Invalid or missing default renderer for operating system: " + osVersion);
 
 
 			string renderer = UserINISettings.Instance.Renderer;
@@ -358,7 +358,7 @@ namespace DTAConfig.OptionPanels
 				selectedRenderer = renderers.Find(r => r.InternalName == defaultRenderer);
 
 			if (selectedRenderer == null)
-				throw new Exception("Missing renderer: " + renderer);
+				throw new ClientConfigurationException("Missing renderer: " + renderer);
 
             GameProcessLogic.UseQres = selectedRenderer.UseQres;
             GameProcessLogic.SingleCoreAffinity = selectedRenderer.SingleCoreAffinity;

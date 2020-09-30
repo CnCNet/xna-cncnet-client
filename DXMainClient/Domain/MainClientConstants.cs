@@ -38,10 +38,13 @@ namespace DTAClient.Domain
             MAP_CELL_SIZE_Y = clientConfiguration.MapCellSizeY;
 
             if (string.IsNullOrEmpty(GAME_NAME_SHORT))
-                throw new Exception("LocalGame is set to an empty value.");
+                throw new ClientConfigurationException("LocalGame is set to an empty value.");
 
             if (GAME_NAME_SHORT.Length > ProgramConstants.GAME_ID_MAX_LENGTH)
-                throw new Exception("LocalGame is set to a value that exceeds length limit of " + ProgramConstants.GAME_ID_MAX_LENGTH + " characters.");
+            {
+                throw new ClientConfigurationException("LocalGame is set to a value that exceeds length limit of " +
+                    ProgramConstants.GAME_ID_MAX_LENGTH + " characters.");
+            }
         }
     }
 }

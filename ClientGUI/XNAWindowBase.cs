@@ -1,4 +1,5 @@
-﻿using Rampastring.Tools;
+﻿using ClientCore;
+using Rampastring.Tools;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
 using System;
@@ -46,7 +47,7 @@ namespace ClientGUI
             {
                 string[] parts = kvp.Value.Split(':');
                 if (parts.Length != 2)
-                    throw new Exception("Invalid ExtraControl specified in " + Name + ": " + kvp.Value);
+                    throw new ClientConfigurationException("Invalid ExtraControl specified in " + Name + ": " + kvp.Value);
 
                 if (!Children.Any(child => child.Name == parts[0]))
                 {

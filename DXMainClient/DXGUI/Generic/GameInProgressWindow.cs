@@ -30,7 +30,7 @@ namespace DTAClient.DXGUI
         public override void Initialize()
         {
             if (initialized)
-                throw new Exception("GameInProgressWindow cannot be initialized twice!");
+                throw new InvalidOperationException("GameInProgressWindow cannot be initialized twice!");
 
             initialized = true;
 

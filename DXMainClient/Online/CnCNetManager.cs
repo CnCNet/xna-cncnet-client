@@ -135,7 +135,7 @@ namespace DTAClient.Online
         public void AddChannel(Channel channel)
         {
             if (FindChannel(channel.ChannelName) != null)
-                throw new Exception("The channel already exists!");
+                throw new ArgumentException("The channel already exists!", "channel");
 
             channels.Add(channel);
         }
@@ -143,7 +143,7 @@ namespace DTAClient.Online
         public void RemoveChannel(Channel channel)
         {
             if (channel.Persistent)
-                throw new Exception("Persistent channels cannot be removed.");
+                throw new ArgumentException("Persistent channels cannot be removed.", "channel");
 
             channels.Remove(channel);
         }
