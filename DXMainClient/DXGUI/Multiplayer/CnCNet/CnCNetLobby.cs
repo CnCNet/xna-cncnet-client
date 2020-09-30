@@ -980,37 +980,10 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             cncnetChannel.Join();
 
             string localGameChatChannelName = gameCollection.GetGameChatChannelNameFromIdentifier(localGameID);
-            bool chatChannelMissing = false;
-            if (string.IsNullOrEmpty(localGameChatChannelName))
-            {
-                chatChannelMissing = true;
-                Logger.Log("Could not find chat channel info for current local game " + localGameID + ".");
-            }
-            else
-            {
-                Channel localGameChatChannel = connectionManager.FindChannel(localGameChatChannelName);
-                localGameChatChannel.Join();
-            }
+            connectionManager.FindChannel(localGameChatChannelName).Join();
 
             string localGameBroadcastChannel = gameCollection.GetGameBroadcastingChannelNameFromIdentifier(localGameID);
-            bool broadcastChannelMissing = false;
-            if (string.IsNullOrEmpty(localGameBroadcastChannel))
-            {
-                btnNewGame.AllowClick = false;
-                broadcastChannelMissing = true;
-                Logger.Log("Could not find game broadcast channel info for current local game " + localGameID + ".");
-            }
-            else
-                connectionManager.FindChannel(localGameBroadcastChannel).Join();
-
-            if (chatChannelMissing || broadcastChannelMissing)
-                XNAMessageBox.Show(WindowManager, "Error joining channels", "Following problems were encountered " +
-                    "when attempting to join channels for the currently set local game " + localGameID +":" + Environment.NewLine + Environment.NewLine +
-                    (chatChannelMissing ? "- Chat channel info could not be found. No chat channel will be available for this game in Current Channel dropdown." +
-                    Environment.NewLine + Environment.NewLine : "") +
-                    (broadcastChannelMissing ? "- Broadcast channel info could not be found. Creating & hosting games will be disabled." +
-                    Environment.NewLine + Environment.NewLine : "") +
-                    "Please check that the local game is set correctly in client configuration, and if using a custom-defined game, that its channel info is set properly.");
+            connectionManager.FindChannel(localGameBroadcastChannel).Join();
 
             foreach (CnCNetGame game in gameCollection.GameList)
             {

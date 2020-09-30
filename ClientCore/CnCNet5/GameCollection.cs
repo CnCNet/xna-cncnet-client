@@ -143,6 +143,12 @@ namespace ClientCore.CnCNet5
             GameList.AddRange(defaultGames);
             GameList.AddRange(GetCustomGames(defaultGames.Concat(otherGames).ToList()));
             GameList.AddRange(otherGames);
+
+            if (GetGameIndexFromInternalName(ClientConfiguration.Instance.LocalGame) == -1)
+            {
+                throw new ClientConfigurationException("Could not find a game in the game collection matching LocalGame value of " +
+                    ClientConfiguration.Instance.LocalGame + ".");
+            }
         }
 
         private List<CnCNetGame> GetCustomGames(List<CnCNetGame> existingGames)
@@ -181,8 +187,8 @@ namespace ClientCore.CnCNet5
                 {
                     InternalName = ID,
                     UIName = iniFile.GetStringValue(kvp.Value, "UIName", ID.ToUpper()),
-                    ChatChannel = iniFile.GetStringValue(kvp.Value, "ChatChannel", string.Empty),
-                    GameBroadcastChannel = iniFile.GetStringValue(kvp.Value, "GameBroadcastChannel", string.Empty),
+                    ChatChannel = GetIRCChannelNameFromIniFile(iniFile, kvp.Value, "ChatChannel"),
+                    GameBroadcastChannel = GetIRCChannelNameFromIniFile(iniFile, kvp.Value, "GameBroadcastChannel"),
                     ClientExecutableName = iniFile.GetStringValue(kvp.Value, "ClientExecutableName", string.Empty),
                     RegistryInstallPath = iniFile.GetStringValue(kvp.Value, "RegistryInstallPath", "HKCU\\Software\\"
                     + ID.ToUpper()),
@@ -193,6 +199,22 @@ namespace ClientCore.CnCNet5
             }
 
             return customGames;
+        }
+
+        private string GetIRCChannelNameFromIniFile(IniFile iniFile, string section, string key)
+        {
+            string channel = iniFile.GetStringValue(section, key, string.Empty);
+
+            if (string.IsNullOrEmpty(channel))
+                throw new GameCollectionConfigurationException(key + " for game " + section + " is not defined or set to an empty value.");
+
+            if (channel.Contains(' ') || channel.Contains(',') || channel.Contains((char)7))
+                throw new GameCollectionConfigurationException(key + " for game " + section + " contains characters not allowed on IRC channel names.");
+
+            if (!channel.StartsWith("#"))
+                return "#" + channel;
+
+            return channel;
         }
 
         /// <summary>
