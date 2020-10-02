@@ -13,6 +13,7 @@ using System.DirectoryServices;
 using System.Linq;
 using DTAClient.Online;
 using ClientCore.INIProcessing;
+using System.Threading.Tasks;
 
 namespace DTAClient
 {
@@ -54,6 +55,11 @@ namespace DTAClient
 
             Thread idThread = new Thread(GenerateOnlineId);
             idThread.Start();
+
+#if ARES
+            Task.Factory.StartNew(() => PruneFiles(ProgramConstants.GamePath + "debug", DateTime.Now.AddDays(-7)));
+#endif
+            Task.Factory.StartNew(MigrateOldLogFiles);
 
             if (Directory.Exists(ProgramConstants.GamePath + "Updater"))
             {
@@ -109,6 +115,105 @@ namespace DTAClient
 
             GameClass gameClass = new GameClass();
             gameClass.Run();
+        }
+
+#if ARES
+        /// <summary>
+        /// Recursively deletes all files from the specified directory that were created at <paramref name="pruneThresholdTime"/> or before.
+        /// If directory is empty after deleting files, the directory itself will also be deleted.
+        /// </summary>
+        /// <param name="directoryPath">Directory to prune files from.</param>
+        /// <param name="pruneThresholdTime">Time at or before which files must have been created for them to be pruned.</param>
+        private void PruneFiles(string directoryPath, DateTime pruneThresholdTime)
+        {
+            if (!Directory.Exists(directoryPath))
+                return;
+
+            try
+            {
+                foreach (string fsEntry in Directory.EnumerateFileSystemEntries(directoryPath))
+                {
+                    FileAttributes attr = File.GetAttributes(fsEntry);
+                    if ((attr & FileAttributes.Directory) == FileAttributes.Directory)
+                        PruneFiles(fsEntry, pruneThresholdTime);
+                    else
+                    {
+                        try
+                        {
+                            FileInfo fileInfo = new FileInfo(fsEntry);
+                            if (fileInfo.CreationTime <= pruneThresholdTime)
+                                fileInfo.Delete();
+                        }
+                        catch (Exception e)
+                        {
+                            Logger.Log("PruneFiles: Could not delete file " + fsEntry.Replace(ProgramConstants.GamePath, "") +
+                                ". Error message: " + e.Message);
+                            continue;
+                        }
+                    }
+                }
+
+                if (!Directory.EnumerateFileSystemEntries(directoryPath).Any())
+                    Directory.Delete(directoryPath);
+            }
+            catch (Exception ex)
+            {
+                Logger.Log("PruneFiles: An error occured while pruning files from " +
+                    directoryPath.Replace(ProgramConstants.GamePath, "") + ". Message: " + ex.Message);
+            }
+        }
+#endif
+
+        /// <summary>
+        /// Move log files from obsolete directories to currently used ones and adjust filenames to match currently used timestamp scheme.
+        /// </summary>
+        private void MigrateOldLogFiles()
+        {
+            MigrateLogFiles(ProgramConstants.ClientUserFilesPath + "ErrorLogs", ProgramConstants.ClientUserFilesPath + "ClientCrashLogs", "ClientCrashLog");
+            MigrateLogFiles(ProgramConstants.ClientUserFilesPath + "ErrorLogs", ProgramConstants.ClientUserFilesPath + "GameCrashLogs", "EXCEPT");
+            MigrateLogFiles(ProgramConstants.ClientUserFilesPath + "ErrorLogs", ProgramConstants.ClientUserFilesPath + "SyncErrorLogs", "SYNC");
+        }
+
+        /// <summary>
+        /// Move log files from specified directory to another one and adjust filename timestamps.
+        /// </summary>
+        /// <param name="currentDirectory">Current log files directory.</param>
+        /// <param name="newDirectory">New log files directory.</param>
+        /// <param name="baseFilename">Base filename of log files.</param>
+        private static void MigrateLogFiles(string currentDirectory, string newDirectory, string baseFilename)
+        {
+            try
+            {
+                if (!Directory.Exists(currentDirectory))
+                    return;
+
+                if (!Directory.Exists(newDirectory))
+                    Directory.CreateDirectory(newDirectory);
+
+                foreach (string filename in Directory.EnumerateFiles(currentDirectory, baseFilename + "*"))
+                {
+                    string filenameTS = Path.GetFileNameWithoutExtension(filename.Replace(baseFilename, ""));
+                    string[] ts = filenameTS.Split(new string[] { "_" }, StringSplitOptions.RemoveEmptyEntries);
+
+                    string timestamp = string.Empty;
+                    if (ts.Length >= 5)
+                    {
+                        timestamp = string.Format("_{0}_{1}_{2}_{3}_{4}",
+                            ts[2], ts[1].PadLeft(2, '0'), ts[0].PadLeft(2, '0'), ts[3].PadLeft(2, '0'), ts[4].PadLeft(2, '0'));
+                    }
+                    string newFilename = newDirectory + "/" + baseFilename + timestamp + Path.GetExtension(filename);
+                    File.Move(filename, newFilename);
+                }
+
+                if (!Directory.EnumerateFiles(currentDirectory).Any())
+                    Directory.Delete(currentDirectory);
+            }
+            catch (Exception ex)
+            {
+                Logger.Log("MigrateLogFiles: An error occured while moving log files from " + 
+                    currentDirectory.Replace(ProgramConstants.GamePath, "") + " to " + 
+                    newDirectory.Replace(ProgramConstants.GamePath, "") + ". Message: " + ex.Message);
+            }
         }
 
         /// <summary>
@@ -201,7 +306,8 @@ namespace DTAClient
                 key = Registry.CurrentUser.CreateSubKey("SOFTWARE\\" + ClientConfiguration.Instance.InstallationPathRegKey);
                 string str = rn.Next(Int32.MaxValue - 1).ToString();
 
-                try {
+                try
+                {
                     Object o = key.GetValue("Ident");
                     if (o == null)
                     {
@@ -214,7 +320,7 @@ namespace DTAClient
 
                 key.Close();
                 Connection.SetId(str);
-           }
+            }
         }
 
         /// <summary>
