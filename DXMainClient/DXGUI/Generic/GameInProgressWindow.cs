@@ -194,8 +194,8 @@ namespace DTAClient.DXGUI
             if (deletingLogFilesFailed)
                 return;
 
-            CopyErrorLog(ProgramConstants.GamePath + "Client/ErrorLogs", "EXCEPT.TXT", dtn);
-            CopySyncErrorLogs(ProgramConstants.GamePath + "Client/ErrorLogs", dtn);
+            CopyErrorLog(ProgramConstants.ClientUserFilesPath + "GameCrashLogs", "EXCEPT.TXT", dtn);
+            CopySyncErrorLogs(ProgramConstants.ClientUserFilesPath + "SyncErrorLogs", dtn);
 #endif
         }
 
@@ -219,9 +219,7 @@ namespace DTAClient.DXGUI
 
                     Logger.Log("The game crashed! Copying " + filename + " file.");
 
-                    string timeStamp = dateTime.HasValue ? string.Format("_{0}_{1}_{2}_{3}_{4}",
-                        dateTime.Value.Day, dateTime.Value.Month, dateTime.Value.Year,
-                        dateTime.Value.Hour, dateTime.Value.Minute) : "";
+                    string timeStamp = dateTime.HasValue ? dateTime.Value.ToString("_yyyy_MM_dd_HH_mm") : "";
 
                     string filenameCopy = Path.GetFileNameWithoutExtension(filename) +
                         timeStamp + Path.GetExtension(filename);
@@ -260,9 +258,7 @@ namespace DTAClient.DXGUI
 
                         Logger.Log("There was a sync error! Copying file " + filename);
 
-                        string timeStamp = dateTime.HasValue ? string.Format("_{0}_{1}_{2}_{3}_{4}",
-                            dateTime.Value.Day, dateTime.Value.Month, dateTime.Value.Year,
-                            dateTime.Value.Hour, dateTime.Value.Minute) : "";
+                        string timeStamp = dateTime.HasValue ? dateTime.Value.ToString("_yyyy_MM_dd_HH_mm") : "";
 
                         string filenameCopy = Path.GetFileNameWithoutExtension(filename) +
                             timeStamp + Path.GetExtension(filename);
@@ -343,9 +339,9 @@ namespace DTAClient.DXGUI
                 {
                     Directory.CreateDirectory(screenshotsDirectory);
                 }
-                catch (Exception e)
+                catch (Exception ex)
                 {
-                    Logger.Log("ProcessScreenshots: Failed to create Screenshots directory. Error message: " + e.Message);
+                    Logger.Log("ProcessScreenshots: An error occured trying to create Screenshots directory. Message: " + ex.Message);
                     return;
                 }
             }
@@ -359,9 +355,9 @@ namespace DTAClient.DXGUI
                         ".png", System.Drawing.Imaging.ImageFormat.Png);
                     bitmap.Dispose();
                 }
-                catch (Exception e)
+                catch (Exception ex)
                 {
-                    Logger.Log("ProcessScreenshots: Failed to save " + Path.GetFileNameWithoutExtension(filename) + ".png. Error message: " + e.Message);
+                    Logger.Log("ProcessScreenshots: Error occured when trying to save " + Path.GetFileNameWithoutExtension(filename) + ".png. Message: " + ex.Message);
                     continue;
                 }
 

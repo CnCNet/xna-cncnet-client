@@ -5,7 +5,6 @@ using System.IO;
 using DTAClient.Domain;
 using Rampastring.Tools;
 using ClientCore;
-using Rampastring.XNAUI;
 using System.Security.AccessControl;
 using System.Security.Principal;
 using System.Collections.Generic;
@@ -48,13 +47,13 @@ namespace DTAClient
 
             CheckPermissions();
 
-            Logger.Initialize(ProgramConstants.GamePath + "Client/", "client.log");
+            Logger.Initialize(ProgramConstants.ClientUserFilesPath, "client.log");
             Logger.WriteLogFile = true;
 
-            if (!Directory.Exists(ProgramConstants.GamePath + "Client"))
-                Directory.CreateDirectory(ProgramConstants.GamePath + "Client");
+            if (!Directory.Exists(ProgramConstants.ClientUserFilesPath))
+                Directory.CreateDirectory(ProgramConstants.ClientUserFilesPath);
 
-            File.Delete(ProgramConstants.GamePath + "Client/client.log");
+            File.Delete(ProgramConstants.ClientUserFilesPath + "client.log");
 
             MainClientConstants.Initialize();
 
@@ -113,15 +112,14 @@ namespace DTAClient
                 Logger.Log("Stacktrace: " + ex.InnerException.StackTrace);
             }
 
-            DateTime dtn = DateTime.Now;
-            string errorLogPath = Environment.CurrentDirectory.Replace("\\", "/") + string.Format("/Client/ErrorLogs/ClientCrashLog_{0}_{1}_{2}_{3}_{4}.txt",
-                dtn.Day, dtn.Month, dtn.Year, dtn.Hour, dtn.Minute);
+            string errorLogPath = Environment.CurrentDirectory.Replace("\\", "/") + "/Client/ClientCrashLogs/ClientCrashLog" +
+                DateTime.Now.ToString("_yyyy_MM_dd_HH_mm") + ".txt";
             bool crashLogCopied = false;
 
             try
             {
-                if (!Directory.Exists(Environment.CurrentDirectory + "/Client/ErrorLogs"))
-                    Directory.CreateDirectory(Environment.CurrentDirectory + "/Client/ErrorLogs");
+                if (!Directory.Exists(Environment.CurrentDirectory + "/Client/ClientCrashLogs"))
+                    Directory.CreateDirectory(Environment.CurrentDirectory + "/Client/ClientCrashLogs");
 
                 File.Copy(Environment.CurrentDirectory + "/Client/client.log", errorLogPath, true);
                 crashLogCopied = true;

@@ -57,9 +57,9 @@ namespace DTAClient
             idThread.Start();
 
 #if ARES
-            Logger.Log("Attempting to prune Ares debug logs.");
             Task.Factory.StartNew(() => PruneFiles(ProgramConstants.GamePath + "debug", DateTime.Now.AddDays(-7)));
 #endif
+            Task.Factory.StartNew(MigrateOldLogFiles);
 
             if (Directory.Exists(ProgramConstants.GamePath + "Updater"))
             {
@@ -156,13 +156,65 @@ namespace DTAClient
                 if (!Directory.EnumerateFileSystemEntries(directoryPath).Any())
                     Directory.Delete(directoryPath);
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                Logger.Log("PruneFiles: Error encountered pruning files from " +
-                    directoryPath.Replace(ProgramConstants.GamePath, "") + ". Error message: " + e.Message);
+                Logger.Log("PruneFiles: An error occured while pruning files from " +
+                    directoryPath.Replace(ProgramConstants.GamePath, "") + ". Message: " + ex.Message);
             }
         }
 #endif
+
+        /// <summary>
+        /// Move log files from obsolete directories to currently used ones and adjust filenames to match currently used timestamp scheme.
+        /// </summary>
+        private void MigrateOldLogFiles()
+        {
+            MigrateLogFiles(ProgramConstants.ClientUserFilesPath + "ErrorLogs", ProgramConstants.ClientUserFilesPath + "ClientCrashLogs", "ClientCrashLog");
+            MigrateLogFiles(ProgramConstants.ClientUserFilesPath + "ErrorLogs", ProgramConstants.ClientUserFilesPath + "GameCrashLogs", "EXCEPT");
+            MigrateLogFiles(ProgramConstants.ClientUserFilesPath + "ErrorLogs", ProgramConstants.ClientUserFilesPath + "SyncErrorLogs", "SYNC");
+        }
+
+        /// <summary>
+        /// Move log files from specified directory to another one and adjust filename timestamps.
+        /// </summary>
+        /// <param name="currentDirectory">Current log files directory.</param>
+        /// <param name="newDirectory">New log files directory.</param>
+        /// <param name="baseFilename">Base filename of log files.</param>
+        private static void MigrateLogFiles(string currentDirectory, string newDirectory, string baseFilename)
+        {
+            try
+            {
+                if (!Directory.Exists(currentDirectory))
+                    return;
+
+                if (!Directory.Exists(newDirectory))
+                    Directory.CreateDirectory(newDirectory);
+
+                foreach (string filename in Directory.EnumerateFiles(currentDirectory, baseFilename + "*"))
+                {
+                    string filenameTS = Path.GetFileNameWithoutExtension(filename.Replace(baseFilename, ""));
+                    string[] ts = filenameTS.Split(new string[] { "_" }, StringSplitOptions.RemoveEmptyEntries);
+
+                    string timestamp = string.Empty;
+                    if (ts.Length >= 5)
+                    {
+                        timestamp = string.Format("_{0}_{1}_{2}_{3}_{4}",
+                            ts[2], ts[1].PadLeft(2, '0'), ts[0].PadLeft(2, '0'), ts[3].PadLeft(2, '0'), ts[4].PadLeft(2, '0'));
+                    }
+                    string newFilename = newDirectory + "/" + baseFilename + timestamp + Path.GetExtension(filename);
+                    File.Move(filename, newFilename);
+                }
+
+                if (!Directory.EnumerateFiles(currentDirectory).Any())
+                    Directory.Delete(currentDirectory);
+            }
+            catch (Exception ex)
+            {
+                Logger.Log("MigrateLogFiles: An error occured while moving log files from " + 
+                    currentDirectory.Replace(ProgramConstants.GamePath, "") + " to " + 
+                    newDirectory.Replace(ProgramConstants.GamePath, "") + ". Message: " + ex.Message);
+            }
+        }
 
         /// <summary>
         /// Writes processor and graphics card info to the log file.
