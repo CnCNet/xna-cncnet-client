@@ -409,6 +409,30 @@ namespace DTAClient.DXGUI.Generic
                     "You won't be able to play without those files.");
         }
 
+        private void CheckForbiddenFiles()
+        {
+            List<string> presentFiles = ClientConfiguration.Instance.ForbiddenFiles.ToList()
+                .FindAll(f => !string.IsNullOrWhiteSpace(f) && File.Exists(ProgramConstants.GamePath + f));
+
+            if (presentFiles.Count > 0)
+                XNAMessageBox.Show(WindowManager, "Interfering Files Detected",
+#if TS
+                    "You have installed the mod on top of a Tiberian Sun" + Environment.NewLine +
+                    "copy! This mod is standalone, therefore you have to" + Environment.NewLine +
+                    "install it in an empty folder. Otherwise the mod won't" + Environment.NewLine +
+                    "function correctly." +
+                    Environment.NewLine + Environment.NewLine +
+                    "Please reinstall the mod into an empty folder to play."
+#else
+                    "The following interfering files are present:" +
+                    Environment.NewLine + Environment.NewLine +
+                    String.Join(Environment.NewLine, presentFiles) +
+                    Environment.NewLine + Environment.NewLine +
+                    "The mod won't work correctly without those files removed."
+#endif
+                    );
+        }
+
         /// <summary>
         /// Checks whether the client is running for the first time.
         /// If it is, displays a dialog asking the user if they'd like
@@ -508,6 +532,7 @@ namespace DTAClient.DXGUI.Generic
             }
 
             CheckRequiredFiles();
+            CheckForbiddenFiles();
             CheckIfFirstRun();
         }
 
