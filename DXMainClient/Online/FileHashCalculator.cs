@@ -50,7 +50,7 @@ namespace DTAClient.Online
             "INI/Game Options/No Spawn Previews.ini",
             "INI/Game Options/RA2 Classic Mode.ini",
             "INI/Map Code/GlobalCode.ini",
-#else
+#elif TS
             "spawner.xdp",
             "rules.ini",
             "ai.ini",
