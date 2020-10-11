@@ -169,18 +169,18 @@ namespace DTAClient
         /// </summary>
         private void MigrateOldLogFiles()
         {
-            MigrateLogFiles(ProgramConstants.ClientUserFilesPath + "ErrorLogs", ProgramConstants.ClientUserFilesPath + "ClientCrashLogs", "ClientCrashLog");
-            MigrateLogFiles(ProgramConstants.ClientUserFilesPath + "ErrorLogs", ProgramConstants.ClientUserFilesPath + "GameCrashLogs", "EXCEPT");
-            MigrateLogFiles(ProgramConstants.ClientUserFilesPath + "ErrorLogs", ProgramConstants.ClientUserFilesPath + "SyncErrorLogs", "SYNC");
+            MigrateLogFiles(ProgramConstants.ClientUserFilesPath + "ErrorLogs", ProgramConstants.ClientUserFilesPath + "ClientCrashLogs", "ClientCrashLog*.txt");
+            MigrateLogFiles(ProgramConstants.ClientUserFilesPath + "ErrorLogs", ProgramConstants.ClientUserFilesPath + "GameCrashLogs", "EXCEPT*.txt");
+            MigrateLogFiles(ProgramConstants.ClientUserFilesPath + "ErrorLogs", ProgramConstants.ClientUserFilesPath + "SyncErrorLogs", "SYNC*.txt");
         }
 
         /// <summary>
-        /// Move log files from specified directory to another one and adjust filename timestamps.
+        /// Move log files matching given search pattern from specified directory to another one and adjust filename timestamps.
         /// </summary>
         /// <param name="currentDirectory">Current log files directory.</param>
         /// <param name="newDirectory">New log files directory.</param>
-        /// <param name="baseFilename">Base filename of log files.</param>
-        private static void MigrateLogFiles(string currentDirectory, string newDirectory, string baseFilename)
+        /// <param name="searchPattern">Search string the log file names must match against to be copied. Can contain wildcard characters (* and ?) but doesn't support regular expressions.</param>
+        private static void MigrateLogFiles(string currentDirectory, string newDirectory, string searchPattern)
         {
             try
             {
@@ -190,17 +190,20 @@ namespace DTAClient
                 if (!Directory.Exists(newDirectory))
                     Directory.CreateDirectory(newDirectory);
 
-                foreach (string filename in Directory.EnumerateFiles(currentDirectory, baseFilename + "*"))
+                foreach (string filename in Directory.EnumerateFiles(currentDirectory, searchPattern))
                 {
-                    string filenameTS = Path.GetFileNameWithoutExtension(filename.Replace(baseFilename, ""));
+                    string filenameTS = Path.GetFileNameWithoutExtension(filename.Replace(currentDirectory, ""));
                     string[] ts = filenameTS.Split(new string[] { "_" }, StringSplitOptions.RemoveEmptyEntries);
 
                     string timestamp = string.Empty;
-                    if (ts.Length >= 5)
+                    string baseFilename = Path.GetFileNameWithoutExtension(ts[0]);
+
+                    if (ts.Length >= 6)
                     {
                         timestamp = string.Format("_{0}_{1}_{2}_{3}_{4}",
-                            ts[2], ts[1].PadLeft(2, '0'), ts[0].PadLeft(2, '0'), ts[3].PadLeft(2, '0'), ts[4].PadLeft(2, '0'));
+                            ts[3], ts[2].PadLeft(2, '0'), ts[1].PadLeft(2, '0'), ts[4].PadLeft(2, '0'), ts[5].PadLeft(2, '0'));
                     }
+
                     string newFilename = newDirectory + "/" + baseFilename + timestamp + Path.GetExtension(filename);
                     File.Move(filename, newFilename);
                 }
@@ -210,8 +213,8 @@ namespace DTAClient
             }
             catch (Exception ex)
             {
-                Logger.Log("MigrateLogFiles: An error occured while moving log files from " + 
-                    currentDirectory.Replace(ProgramConstants.GamePath, "") + " to " + 
+                Logger.Log("MigrateLogFiles: An error occured while moving log files from " +
+                    currentDirectory.Replace(ProgramConstants.GamePath, "") + " to " +
                     newDirectory.Replace(ProgramConstants.GamePath, "") + ". Message: " + ex.Message);
             }
         }
