@@ -40,7 +40,7 @@ namespace DTAConfig.OptionPanels
         private string defaultRenderer;
         private DirectDrawWrapper selectedRenderer = null;
 
-#if !YR
+#if TS
         private XNALabel lblCompatibilityFixes;
         private XNALabel lblGameCompatibilityFix;
         private XNALabel lblMapEditorCompatibilityFix;
@@ -240,7 +240,7 @@ namespace DTAConfig.OptionPanels
             for (int i = 0; i < themeCount; i++)
                 ddClientTheme.AddItem(ClientConfiguration.Instance.GetThemeInfoFromIndex(i)[0]);
 
-#if !YR
+#if TS
             lblCompatibilityFixes = new XNALabel(WindowManager);
             lblCompatibilityFixes.Name = "lblCompatibilityFixes";
             lblCompatibilityFixes.FontIndex = 1;
@@ -364,7 +364,7 @@ namespace DTAConfig.OptionPanels
             GameProcessLogic.SingleCoreAffinity = selectedRenderer.SingleCoreAffinity;
 		}
 
-#if !YR
+#if TS
 
         /// <summary>
         /// Asks the user whether they want to install the DTA/TI/TS compatibility fix.
@@ -792,7 +792,7 @@ namespace DTAConfig.OptionPanels
 
             IniSettings.Renderer.Value = selectedRenderer.InternalName;
 
-#if !YR
+#if TS
             File.Delete(ProgramConstants.GamePath + "Language.dll");
 
             if (ingameRes[0] >= 1024 && ingameRes[1] >= 720)
