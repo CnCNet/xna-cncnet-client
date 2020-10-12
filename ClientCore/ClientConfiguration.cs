@@ -280,6 +280,11 @@ namespace ClientCore
         /// </summary>
         public string[] RequiredFiles => clientDefinitionsIni.GetStringValue(SETTINGS, "RequiredFiles", String.Empty).Split(',');
 
+        /// <summary>
+        /// List of files that can interfere with the mod functioning.
+        /// </summary>
+        public string[] ForbiddenFiles => clientDefinitionsIni.GetStringValue(SETTINGS, "ForbiddenFiles", String.Empty).Split(',');
+
         #endregion
 
         public OSVersion GetOperatingSystemVersion()
