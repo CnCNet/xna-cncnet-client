@@ -5,12 +5,25 @@ using Rampastring.Tools;
 using Rampastring.XNAUI;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using Utilities = Rampastring.Tools.Utilities;
 
 namespace DTAClient.Domain.Multiplayer
 {
+    public struct ExtraMapPreviewTexture
+    {
+        public string TextureName;
+        public Point Point;
+
+        public ExtraMapPreviewTexture(string textureName, Point point)
+        {
+            TextureName = textureName;
+            Point = point;
+        }
+    }
+
     /// <summary>
     /// A multiplayer map.
     /// </summary>
@@ -167,10 +180,14 @@ namespace DTAClient.Domain.Multiplayer
             set { extractCustomPreview = value; }
         }
 
-        public List<KeyValuePair<string, bool>> ForcedCheckBoxValues = new List<KeyValuePair<string, bool>>();
-        public List<KeyValuePair<string, int>> ForcedDropDownValues = new List<KeyValuePair<string, int>>();
+        public List<KeyValuePair<string, bool>> ForcedCheckBoxValues = new List<KeyValuePair<string, bool>>(0);
+        public List<KeyValuePair<string, int>> ForcedDropDownValues = new List<KeyValuePair<string, int>>(0);
 
-        List<KeyValuePair<string, string>> ForcedSpawnIniOptions = new List<KeyValuePair<string, string>>();
+        private List<ExtraMapPreviewTexture> extraTextures = new List<ExtraMapPreviewTexture>(0);
+        public List<ExtraMapPreviewTexture> GetExtraMapPreviewTextures() => extraTextures;
+
+        private List<KeyValuePair<string, string>> ForcedSpawnIniOptions = new List<KeyValuePair<string, string>>(0);
+
 
         public bool SetInfoFromINI(IniFile iniFile)
         {
@@ -210,6 +227,30 @@ namespace DTAClient.Domain.Multiplayer
                     Bases = Convert.ToInt32(Conversions.BooleanFromString(bases, false));
                 }
 
+                int i = 0;
+                while (true)
+                {
+                    // Format example:
+                    // ExtraTexture0=oilderrick.png,200,150
+
+                    string value = section.GetStringValue("ExtraTexture" + i, null);
+                    if (string.IsNullOrWhiteSpace(value))
+                        break;
+
+                    string[] parts = value.Split(',');
+                    if (parts.Length != 3)
+                    {
+                        Logger.Log($"Invalid format for ExtraTexture{i} in map " + BaseFilePath);
+                        continue;
+                    }
+
+                    bool success = int.TryParse(parts[1], NumberStyles.Integer, CultureInfo.InvariantCulture, out int x);
+                    success &= int.TryParse(parts[2], NumberStyles.Integer, CultureInfo.InvariantCulture, out int y);
+                    extraTextures.Add(new ExtraMapPreviewTexture(parts[0], new Point(x, y)));
+
+                    i++;
+                }
+
                 if (IsCoop)
                 {
                     CoopInfo = new CoopMapInfo();
@@ -231,7 +272,7 @@ namespace DTAClient.Domain.Multiplayer
                 localSize = section.GetStringValue("LocalSize", "0,0,0,0").Split(',');
                 actualSize = section.GetStringValue("Size", "0,0,0,0").Split(',');
 
-                for (int i = 0; i < MAX_PLAYERS; i++)
+                for (i = 0; i < MAX_PLAYERS; i++)
                 {
                     string waypoint = section.GetStringValue("Waypoint" + i, string.Empty);
 
@@ -288,6 +329,12 @@ namespace DTAClient.Domain.Multiplayer
 
             return startingLocations;
         }
+
+        public Point MapPointToMapPreviewPoint(Point mapPoint, Point previewSize)
+        {
+            return GetIsoTilePixelCoord(mapPoint.X, mapPoint.Y, actualSize, localSize, previewSize);
+        }
+
 
         public void WriteInfoToIniSection(IniSection iniSection)
         {
@@ -597,6 +644,13 @@ namespace DTAClient.Domain.Multiplayer
             return houseAllyIndexStrings[index];
         }
 
+        public string GetSizeString()
+        {
+            if (actualSize == null || actualSize.Length < 4)
+                return "Not available";
+            return actualSize[2] + "x" + actualSize[3];
+        }
+
         /// <summary>
         /// Converts a waypoint's coordinate string into pixel coordinates on the preview image.
         /// </summary>
@@ -606,14 +660,19 @@ namespace DTAClient.Domain.Multiplayer
         {
             int xCoordIndex = waypoint.Length - 3;
 
-            int ry = Convert.ToInt32(waypoint.Substring(0, xCoordIndex));
-            int rx = Convert.ToInt32(waypoint.Substring(xCoordIndex));
+            int isoTileY = Convert.ToInt32(waypoint.Substring(0, xCoordIndex));
+            int isoTileX = Convert.ToInt32(waypoint.Substring(xCoordIndex));
 
-            int isoTileX = rx - ry + Convert.ToInt32(actualSizeValues[2]) - 1;
-            int isoTileY = rx + ry - Convert.ToInt32(actualSizeValues[2]) - 1;
+            return GetIsoTilePixelCoord(isoTileX, isoTileY, actualSizeValues, localSizeValues, previewSizePoint);
+        }
 
-            int pixelPosX = isoTileX * MainClientConstants.MAP_CELL_SIZE_X / 2;
-            int pixelPosY = isoTileY * MainClientConstants.MAP_CELL_SIZE_Y / 2;
+        private static Point GetIsoTilePixelCoord(int isoTileX, int isoTileY, string[] actualSizeValues, string[] localSizeValues, Point previewSizePoint)
+        {
+            int rx = isoTileX - isoTileY + Convert.ToInt32(actualSizeValues[2]) - 1;
+            int ry = isoTileX + isoTileY - Convert.ToInt32(actualSizeValues[2]) - 1;
+
+            int pixelPosX = rx * MainClientConstants.MAP_CELL_SIZE_X / 2;
+            int pixelPosY = ry * MainClientConstants.MAP_CELL_SIZE_Y / 2;
 
             pixelPosX = pixelPosX - (Convert.ToInt32(localSizeValues[0]) * MainClientConstants.MAP_CELL_SIZE_X);
             pixelPosY = pixelPosY - (Convert.ToInt32(localSizeValues[1]) * MainClientConstants.MAP_CELL_SIZE_Y);
@@ -625,17 +684,12 @@ namespace DTAClient.Domain.Multiplayer
             double ratioX = Convert.ToDouble(pixelPosX) / mapSizeX;
             double ratioY = Convert.ToDouble(pixelPosY) / mapSizeY;
 
-            int x = Convert.ToInt32(ratioX * previewSizePoint.X);
-            int y = Convert.ToInt32(ratioY * previewSizePoint.Y);
+            int pixelX = Convert.ToInt32(ratioX * previewSizePoint.X);
+            int pixelY = Convert.ToInt32(ratioY * previewSizePoint.Y);
 
-            return new Point(x, y);
+            return new Point(pixelX, pixelY);
         }
 
-        public string GetSizeString()
-        {
-            if (actualSize == null || actualSize.Length < 4)
-                return "Not available";
-            return actualSize[2] + "x" + actualSize[3];
-        }
+
     }
 }
