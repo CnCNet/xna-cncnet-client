@@ -125,7 +125,7 @@ namespace DTAConfig.CustomSettings
                 }
             }
 
-            return Checked == currentValue;
+            return Checked != currentValue;
         }
 
         public bool Save()

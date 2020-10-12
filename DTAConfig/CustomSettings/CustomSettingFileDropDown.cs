@@ -117,7 +117,7 @@ namespace DTAConfig.CustomSettings
                     SelectedIndex = defaultValue;
             }
 
-            return SelectedIndex == currentValue;
+            return SelectedIndex != currentValue;
         }
 
         public bool Save()
