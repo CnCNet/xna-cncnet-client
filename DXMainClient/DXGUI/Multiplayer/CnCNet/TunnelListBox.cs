@@ -30,7 +30,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             PanelBackgroundDrawMode = PanelBackgroundImageDrawMode.STRETCHED;
             BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 128), 1, 1);
             AddColumn("Name", 230);
-            AddColumn("Official", 70);
+            AddColumn("Status", 70);
             AddColumn("Ping", 76);
             AddColumn("Players", 90);
             AllowRightClickUnselect = false;
@@ -68,14 +68,13 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             ClearItems();
 
             lowestTunnelRating = int.MaxValue;
-            int tunnelIndex = 0;
 
             foreach (CnCNetTunnel tunnel in tunnelHandler.Tunnels)
             {
                 List<string> info = new List<string>();
 
                 info.Add(tunnel.Name);
-                info.Add(Conversions.BooleanToString(tunnel.Official, BooleanStringStyle.YESNO));
+                info.Add(tunnel.Official ? "Official" : (tunnel.Recommended) ? "Verified" : "Regular");
                 if (tunnel.PingInMs < 0)
                     info.Add("Unknown");
                 else
@@ -83,44 +82,26 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 info.Add(tunnel.Clients + " / " + tunnel.MaxClients);
 
                 AddItem(info, true);
-
-                int rating = tunnel.Rating;
-                if (rating < lowestTunnelRating)
-                {
-                    bestTunnelIndex = tunnelIndex;
-                    lowestTunnelRating = rating;
-                }
-
-                tunnelIndex++;
             }
 
             if (tunnelHandler.Tunnels.Count > 0)
             {
-                if (!isManuallySelectedTunnel)
-                {
-                    SelectedIndex = bestTunnelIndex;
-                    isManuallySelectedTunnel = false;
-                }
-                else
+                if (isManuallySelectedTunnel)
                 {
                     int manuallySelectedIndex = tunnelHandler.Tunnels.FindIndex(t => t.Address == manuallySelectedTunnelAddress);
 
                     if (manuallySelectedIndex == -1)
                     {
-                        SelectedIndex = bestTunnelIndex;
+                        SelectedIndex = -1;
                         isManuallySelectedTunnel = false;
                     }
                     else
                     {
                         CnCNetTunnel tunnel = tunnelHandler.Tunnels[manuallySelectedIndex];
 
-                        if (tunnel.Clients < tunnel.MaxClients)
+                        if (tunnel.Clients >= tunnel.MaxClients)
                         {
-                            SelectedIndex = manuallySelectedIndex;
-                        }
-                        else
-                        {
-                            SelectedIndex = bestTunnelIndex;
+                            SelectedIndex = -1;
                             isManuallySelectedTunnel = false;
                         }
                     }
@@ -140,17 +121,16 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             else
                 lbItem.Text = tunnel.PingInMs + " ms";
 
-            int rating = tunnel.Rating;
-
-            if (isManuallySelectedTunnel)
-                return;
-
-            if (rating < lowestTunnelRating)
+            if (tunnel.Rating < lowestTunnelRating)
             {
                 bestTunnelIndex = tunnelIndex;
-                lowestTunnelRating = rating;
-                SelectedIndex = tunnelIndex;
-                isManuallySelectedTunnel = false;
+                lowestTunnelRating = tunnel.Rating;
+
+                if (!isManuallySelectedTunnel || tunnel.Clients >= tunnel.MaxClients)
+                {
+                    SelectedIndex = tunnelIndex;
+                    isManuallySelectedTunnel = false;
+                } 
             }
         }
 
