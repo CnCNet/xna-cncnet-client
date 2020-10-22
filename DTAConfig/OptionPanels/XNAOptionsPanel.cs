@@ -43,6 +43,7 @@ namespace DTAConfig.OptionPanels
         /// <param name="iniFile">The INI file.</param>
         public void ParseUserOptions(IniFile iniFile)
         {
+            GetAttributes(iniFile);
             ParseExtraControls(iniFile, Name + "ExtraControls");
             ReadChildControlAttributes(iniFile);
         }
