@@ -1,6 +1,7 @@
 ﻿using ClientCore;
 using Rampastring.Tools;
 using System;
+using System.Collections.Generic;
 using System.IO;
 
 namespace DTAClient.Domain
@@ -34,26 +35,25 @@ namespace DTAClient.Domain
                     br.BaseStream.Position = 2256; // 00000980
 
                     string saveGameName = String.Empty;
-                    // Read name until we encounter two zero-bytes
-                    // TODO remake, it's probably an Unicode string
-                    bool wasLastByteZero = false;
+                    // Read a UTF-16 LE string, until a null character is met. A null character in UTF-16 LE usually consists of two 0x00 bytes, but it's not always the case.
+                    var saveGameNameBuffer = new List<byte>();
                     while (true)
                     {
-                        byte characterByte = br.ReadByte();
-                        if (characterByte == 0)
+                        byte lowByte = br.ReadByte();
+                        byte highByte = br.ReadByte();
+
+                        if (lowByte == 0 && highByte == 0)
                         {
-                            if (wasLastByteZero)
-                                break;
-                            wasLastByteZero = true;
+                            // TODO: if the character is a surrogate pair (i.e. two 16-bit code units) and one of the 16-bit code units happens to be 0x0000, the string will be truncated.
+                            // However, very few characters are influenced and none of them are common characters. It's so rare that I can't take an example easily.
+                            break;
                         }
-                        else
-                        {
-                            wasLastByteZero = false;
-                            char character = Convert.ToChar(characterByte);
-                            saveGameName = saveGameName + character;
-                        }
+
+                        saveGameNameBuffer.Add(lowByte);
+                        saveGameNameBuffer.Add(highByte);
                     }
 
+                    saveGameName = System.Text.Encoding.Unicode.GetString(saveGameNameBuffer.ToArray());
                     GUIName = saveGameName;
                 }
 
