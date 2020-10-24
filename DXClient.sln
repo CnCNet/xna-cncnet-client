@@ -113,7 +113,9 @@ Global
 		{4C26AD04-FF2E-4465-9F40-DEB9DDC2C1D6}.AresDebug|SharpDX.ActiveCfg = Debug|SharpDX
 		{4C26AD04-FF2E-4465-9F40-DEB9DDC2C1D6}.AresDebug|SharpDX.Build.0 = Debug|SharpDX
 		{4C26AD04-FF2E-4465-9F40-DEB9DDC2C1D6}.AresDebug|WindowsGL.ActiveCfg = Debug|WindowsGL
+		{4C26AD04-FF2E-4465-9F40-DEB9DDC2C1D6}.AresDebug|WindowsGL.Build.0 = Debug|WindowsGL
 		{4C26AD04-FF2E-4465-9F40-DEB9DDC2C1D6}.AresDebug|XNAFramework.ActiveCfg = Debug|XNAFramework
+		{4C26AD04-FF2E-4465-9F40-DEB9DDC2C1D6}.AresDebug|XNAFramework.Build.0 = Debug|XNAFramework
 		{4C26AD04-FF2E-4465-9F40-DEB9DDC2C1D6}.AresRelease|SharpDX.ActiveCfg = Release|SharpDX
 		{4C26AD04-FF2E-4465-9F40-DEB9DDC2C1D6}.AresRelease|SharpDX.Build.0 = Release|SharpDX
 		{4C26AD04-FF2E-4465-9F40-DEB9DDC2C1D6}.AresRelease|WindowsGL.ActiveCfg = Release|WindowsGL
@@ -135,7 +137,9 @@ Global
 		{4C26AD04-FF2E-4465-9F40-DEB9DDC2C1D6}.YRDebug|SharpDX.ActiveCfg = Debug|SharpDX
 		{4C26AD04-FF2E-4465-9F40-DEB9DDC2C1D6}.YRDebug|SharpDX.Build.0 = Debug|SharpDX
 		{4C26AD04-FF2E-4465-9F40-DEB9DDC2C1D6}.YRDebug|WindowsGL.ActiveCfg = Debug|WindowsGL
+		{4C26AD04-FF2E-4465-9F40-DEB9DDC2C1D6}.YRDebug|WindowsGL.Build.0 = Debug|WindowsGL
 		{4C26AD04-FF2E-4465-9F40-DEB9DDC2C1D6}.YRDebug|XNAFramework.ActiveCfg = Debug|XNAFramework
+		{4C26AD04-FF2E-4465-9F40-DEB9DDC2C1D6}.YRDebug|XNAFramework.Build.0 = Debug|XNAFramework
 		{4C26AD04-FF2E-4465-9F40-DEB9DDC2C1D6}.YRRelease|SharpDX.ActiveCfg = Release|SharpDX
 		{4C26AD04-FF2E-4465-9F40-DEB9DDC2C1D6}.YRRelease|SharpDX.Build.0 = Release|SharpDX
 		{4C26AD04-FF2E-4465-9F40-DEB9DDC2C1D6}.YRRelease|WindowsGL.ActiveCfg = Release|WindowsGL

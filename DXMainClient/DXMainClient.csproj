@@ -654,9 +654,9 @@
       <ExampleClientLinuxRun Include="$(SolutionDir)\DXMainClient\Resources\run.sh" />
       <ExampleClientDefinitions Include="$(SolutionDir)\DXMainClient\Resources\ClientDefinitions.ini" />
     </ItemGroup>
-    <Copy Condition=" '$(Configuration)|$(Platform)' == 'Debug|WindowsGL' " SourceFiles="@(SDL86)" DestinationFolder="$(OutputPath)\x86" />
-    <Copy Condition=" '$(Configuration)|$(Platform)' == 'Debug|WindowsGL' " SourceFiles="@(SDL64)" DestinationFolder="$(OutputPath)\x64" />
-    <Copy Condition=" '$(Configuration)|$(Platform)' == 'Debug|WindowsGL' " SourceFiles="@(SDLOSX)" DestinationFolder="$(OutputPath)" />
+    <Copy Condition=" '$(Platform)' == 'WindowsGL' " SourceFiles="@(SDL86)" DestinationFolder="$(OutputPath)\x86" />
+    <Copy Condition=" '$(Platform)' == 'WindowsGL' " SourceFiles="@(SDL64)" DestinationFolder="$(OutputPath)\x64" />
+    <Copy Condition=" '$(Platform)' == 'WindowsGL' " SourceFiles="@(SDLOSX)" DestinationFolder="$(OutputPath)" />
     <Copy Condition="! Exists('$(OutputPath)\Resources\ClientDefinitions.ini') " SourceFiles="@(ExampleClientResources)" DestinationFolder="$(OutputPath)\Resources\%(RecursiveDir)" />
     <Copy Condition="! Exists('$(OutputPath)\Resources\ClientDefinitions.ini') " SourceFiles="@(ExampleClientMaps)" DestinationFolder="$(OutputPath)\Maps\%(RecursiveDir)" />
     <Copy Condition="! Exists('$(OutputPath)\Resources\ClientDefinitions.ini') " SourceFiles="@(ExampleClientIni)" DestinationFolder="$(OutputPath)\INI\%(RecursiveDir)" />
