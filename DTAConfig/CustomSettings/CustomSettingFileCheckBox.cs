@@ -26,7 +26,6 @@ namespace DTAConfig.CustomSettings
         private bool restartRequired;
         private bool checkFilePresence;
         private bool resetUnselectableItem;
-        private bool forceApplyUnselectableItem;
 
         public override void GetAttributes(IniFile iniFile)
         {
@@ -91,9 +90,6 @@ namespace DTAConfig.CustomSettings
                 case "ResetUnselectableItem":
                     resetUnselectableItem = Conversions.BooleanFromString(value, false);
                     return;
-                case "ForceApplyUnselectableItem":
-                    forceApplyUnselectableItem = Conversions.BooleanFromString(value, false);
-                    return;
                 case "RestartRequired":
                     restartRequired = Conversions.BooleanFromString(value, false);
                     return;
@@ -130,8 +126,8 @@ namespace DTAConfig.CustomSettings
 
         public bool Save()
         {
-            bool canBeChecked = !checkFilePresence || forceApplyUnselectableItem || EnabledFilesComplete;
-            bool canBeUnchecked = !checkFilePresence || forceApplyUnselectableItem || DisabledFilesComplete;
+            bool canBeChecked = !checkFilePresence || EnabledFilesComplete;
+            bool canBeUnchecked = !checkFilePresence || DisabledFilesComplete;
 
             if (Checked && canBeChecked)
             {

@@ -2,6 +2,9 @@
 {
     interface ICustomSetting
     {
+        /// <summary>
+        /// Loads the current value for the custom setting.
+        /// </summary>
         void Load();
 
         /// <summary>

@@ -22,7 +22,6 @@ namespace DTAConfig.CustomSettings
         private bool restartRequired;
         private bool checkFilePresence;
         private bool resetUnselectableItem;
-        private bool forceApplyUnselectableItem;
 
         public override void GetAttributes(IniFile iniFile)
         {
@@ -77,9 +76,6 @@ namespace DTAConfig.CustomSettings
                 case "ResetUnselectableItem":
                     resetUnselectableItem = Conversions.BooleanFromString(value, false);
                     return;
-                case "ForceApplyUnselectableItem":
-                    forceApplyUnselectableItem = Conversions.BooleanFromString(value, false);
-                    return;
                 case "RestartRequired":
                     restartRequired = Conversions.BooleanFromString(value, false);
                     return;
@@ -128,7 +124,7 @@ namespace DTAConfig.CustomSettings
                     f => File.Delete(ProgramConstants.GamePath + f.DestinationPath));
             }
 
-            if (Items[SelectedIndex].Selectable || forceApplyUnselectableItem)
+            if (Items[SelectedIndex].Selectable)
             {
                 itemFilesList[SelectedIndex].ForEach(
                     f => File.Copy(ProgramConstants.GamePath + f.SourcePath,
