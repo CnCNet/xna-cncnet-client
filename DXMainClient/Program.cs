@@ -56,7 +56,8 @@ namespace DTAClient
             "Ionic.Zip",
             "DTAUpdater",
             "Newtonsoft.Json",
-            "DiscordRPC"
+            "DiscordRPC",
+            "lzo.net"
         };
 
         static List<string> SPECIFIC_LIBRARIES = new List<string>()

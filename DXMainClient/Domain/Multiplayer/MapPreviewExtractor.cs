@@ -2,9 +2,13 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
+using System.IO;
+using System.IO.Compression;
+using System.Runtime.InteropServices;
 using System.Text;
 using ClientCore;
 using Rampastring.Tools;
+using lzo.net;
 
 namespace DTAClient.Domain.Multiplayer
 {
@@ -67,9 +71,11 @@ namespace DTAClient.Domain.Multiplayer
 
             byte[] dataDest = new byte[previewWidth * previewHeight * 3];
 
-            if (!DecompressPreviewData(dataSrc, dataDest))
+            string errorMsg = DecompressPreviewData(dataSrc, ref dataDest);
+
+            if (errorMsg != null)
             {
-                Logger.Log("MapPreviewExtractor: " + baseFilename + " - Preview data does not match preview size or the data is corrupted, unable to extract preview.");
+                Logger.Log("MapPreviewExtractor: " + baseFilename + " - " + errorMsg);
                 return null;
             }
 
@@ -81,40 +87,45 @@ namespace DTAClient.Domain.Multiplayer
         /// </summary>
         /// <param name="dataSource">Array of compressed map preview image data.</param>
         /// <param name="dataDest">Array to write decompressed preview image data to.</param>
-        /// <returns>True if successfully decompressed all of the data, otherwise false.</returns>
-        private static unsafe bool DecompressPreviewData(byte[] dataSource, byte[] dataDest)
+        /// <returns>Error message if something went wrong, otherwise null.</returns>
+        private static string DecompressPreviewData(byte[] dataSource, ref byte[] dataDest)
         {
-            fixed (byte* pRead = dataSource, pWrite = dataDest)
+            try
             {
-                byte* read = pRead, write = pWrite;
-                byte* writeEnd = write + dataDest.Length;
-                int readBytes = 0;
-                int writtenBytes = 0;
+                int readBytes = 0, writtenBytes = 0;
 
-                while (write < writeEnd)
+                while (true)
                 {
-                    ushort sizeCompressed = *(ushort*)read;
-                    read += 2;
-                    uint sizeUncompressed = *(ushort*)read;
-                    read += 2;
-                    readBytes += 4;
+                    if (readBytes >= dataSource.Length)
+                        break;
+
+                    ushort sizeCompressed = BitConverter.ToUInt16(dataSource, readBytes);
+                    readBytes += 2;
+                    ushort sizeUncompressed = BitConverter.ToUInt16(dataSource, readBytes);
+                    readBytes += 2;
 
                     if (sizeCompressed == 0 || sizeUncompressed == 0)
                         break;
 
                     if (readBytes + sizeCompressed > dataSource.Length ||
                         writtenBytes + sizeUncompressed > dataDest.Length)
-                        return false;
+                        return "Preview data does not match preview size or the data is corrupted, unable to extract preview.";
 
-                    MiniLZO.Decompress(read, sizeCompressed, write, ref sizeUncompressed);
+                    LzoStream stream = new LzoStream(new MemoryStream(dataSource, readBytes, sizeCompressed), CompressionMode.Decompress);
+                    byte[] uncompressedData = new byte[sizeUncompressed];
+                    stream.Read(uncompressedData, 0, sizeUncompressed);
+                    Array.Copy(uncompressedData, 0, dataDest, writtenBytes, sizeUncompressed);
 
-                    read += sizeCompressed;
-                    write += sizeUncompressed;
                     readBytes += sizeCompressed;
-                    writtenBytes += (int)sizeUncompressed;
+                    writtenBytes += sizeUncompressed;
                 }
             }
-            return true;
+            catch (Exception e)
+            {
+                return "Error encountered decompressing preview data. Message: " + e.Message;
+            }
+
+            return null;
         }
 
         /// <summary>
@@ -124,31 +135,26 @@ namespace DTAClient.Domain.Multiplayer
         /// <param name="height">Height of the bitmap.</param>
         /// <param name="imageData">Raw image data in BGR format.</param>
         /// <returns>Bitmap based on the provided dimensions and raw image data, or null if length of image data does not match the provided dimensions.</returns>
-        private static unsafe Bitmap CreateBitmapFromImageData(int width, int height, byte[] imageData)
+        private static Bitmap CreateBitmapFromImageData(int width, int height, byte[] imageData)
         {
             if (imageData.Length != width * height * 3)
                 return null;
 
             Bitmap bitmap = new Bitmap(width, height, PixelFormat.Format24bppRgb);
             BitmapData bitmapData = bitmap.LockBits(new Rectangle(0, 0, bitmap.Width, bitmap.Height), ImageLockMode.WriteOnly, PixelFormat.Format24bppRgb);
+            IntPtr scan0 = bitmapData.Scan0;
+            byte[] rgbData = new byte[Math.Abs(bitmapData.Stride) * bitmapData.Height];
 
-            byte* scan0 = (byte*)bitmapData.Scan0.ToPointer();
-            int c = 0;
-
-            for (int i = 0; i < bitmapData.Height; ++i)
+            for (int i = 0; i < rgbData.Length; i+=3)
             {
-                for (int j = 0; j < bitmapData.Width; ++j)
-                {
-                    byte* data = scan0 + i * bitmapData.Stride + j * 24 / 8;
-
-                    data[0] = imageData[c + 2];
-                    data[1] = imageData[c + 1];
-                    data[2] = imageData[c];
-                    c += 3;
-                }
+                rgbData[i] = imageData[i + 2];
+                rgbData[i+1] = imageData[i + 1];
+                rgbData[i+2] = imageData[i];
             }
 
+            Marshal.Copy(rgbData, 0, scan0, rgbData.Length);
             bitmap.UnlockBits(bitmapData);
+
             return bitmap;
         }
     }
