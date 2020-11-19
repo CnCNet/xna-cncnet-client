@@ -34,12 +34,13 @@ namespace DTAClient.Domain.Multiplayer
         public bool IsAI { get; set; }
 
         public bool IsInGame { get; set; }
-        string ipAddress = "0.0.0.0";
-        public virtual string IPAddress { get { return ipAddress; } set { ipAddress = value; } }
+        public virtual string IPAddress { get; set; } = "0.0.0.0";
         public int Port { get; set; }
         public bool Verified { get; set; }
 
         public int Index { get; set; }
+
+        public int Ping { get; set; } = -1;
 
         /// <summary>
         /// Returns the "reversed" AI level ("how it was in Tiberian Sun UI") of the AI.

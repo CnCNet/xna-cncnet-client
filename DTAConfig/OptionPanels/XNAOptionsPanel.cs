@@ -44,6 +44,7 @@ namespace DTAConfig.OptionPanels
         /// <param name="iniFile">The INI file.</param>
         public void ParseUserOptions(IniFile iniFile)
         {
+            GetAttributes(iniFile);
             ParseExtraControls(iniFile, Name + "ExtraControls");
             ReadChildControlAttributes(iniFile);
         }
@@ -107,6 +108,15 @@ namespace DTAConfig.OptionPanels
         {
             foreach (var setting in customSettings)
                 setting.Load();
+        }
+
+        /// <summary>
+        /// Enables or disables any options that should only be available when
+        /// options window was opened in main menu.
+        /// </summary>
+        /// <param name="enable">If true enables options, disables if false.</param>
+        public virtual void ToggleMainMenuOnlyOptions(bool enable)
+        {
         }
     }
 }

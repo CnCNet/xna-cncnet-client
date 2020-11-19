@@ -3,9 +3,13 @@ using Rampastring.Tools;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Net;
+using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace DTAClient.Online
 {
@@ -17,6 +21,7 @@ namespace DTAClient.Online
         private const int MAX_RECONNECT_COUNT = 8;
         private const int RECONNECT_WAIT_DELAY = 4000;
         private const int ID_LENGTH = 9;
+        private const int MAXIMUM_LATENCY = 400;
 
         public Connection(IConnectionManager connectionManager)
         {
@@ -60,6 +65,12 @@ namespace DTAClient.Online
             get { return _attemptingConnection; }
         }
 
+        Random _rng = new Random();
+        public Random Rng
+        {
+            get { return _rng; }
+        }
+
         private List<QueuedMessage> MessageQueue = new List<QueuedMessage>();
         private TimeSpan MessageQueueDelay;
 
@@ -91,13 +102,13 @@ namespace DTAClient.Online
         private readonly Encoding encoding = Encoding.UTF8;
 
         /// <summary>
-        /// A list of server IDs that have dropped our connection.
+        /// A list of server IPs that have dropped our connection.
         /// The client skips these servers when attempting to re-connect, to
         /// prevent a server that first accepts a connection and then drops it
         /// right afterwards from preventing online play.
         /// </summary>
-        private List<int> failedServerIds = new List<int>();
-        private volatile int currentConnectedServerId = 0;
+        private readonly List<string> failedServerIPs = new List<string>();
+        private volatile string currentConnectedServerIP;
 
         private static readonly object locker = new object();
         private static readonly object messageQueueLocker = new object();
@@ -110,8 +121,7 @@ namespace DTAClient.Online
         {
             lock (idLocker)
             {
-                // E.g "DTA". or "YR."
-                int maxLength = (ID_LENGTH - ClientConfiguration.Instance.LocalGame.Length + 1);
+                int maxLength = ID_LENGTH - (ClientConfiguration.Instance.LocalGame.Length + 1);
                 systemId = Utilities.CalculateSHA1ForString(id).Substring(0, maxLength);
                 idSet = true;
             }
@@ -131,7 +141,7 @@ namespace DTAClient.Online
         public void ConnectAsync()
         {
             if (_isConnected)
-                throw new Exception("The client is already connected!");
+                throw new InvalidOperationException("The client is already connected!");
 
             if (_attemptingConnection)
                 return; // Maybe we should throw in this case as well?
@@ -152,13 +162,10 @@ namespace DTAClient.Online
         /// </summary>
         private void ConnectToServer()
         {
-            for (int serverId = 0; serverId < Servers.Count; serverId++)
+            IEnumerable<Server> availableServerSortedList = GetAvailableServerList();
+
+            foreach (Server server in availableServerSortedList)
             {
-                if (failedServerIds.Contains(serverId))
-                    continue;
-
-                Server server = Servers[serverId];
-
                 try
                 {
                     for (var i = 0; i < server.Ports.Length; i++)
@@ -193,7 +200,7 @@ namespace DTAClient.Online
                             serverStream = tcpClient.GetStream();
                             serverStream.ReadTimeout = 1000;
 
-                            currentConnectedServerId = serverId;
+                            currentConnectedServerIP = server.Host;
                             HandleComm(client);
                             return;
                         }
@@ -207,7 +214,7 @@ namespace DTAClient.Online
 
             Logger.Log("Connecting to CnCNet failed!");
             // Clear the failed server list in case connecting to all servers has failed
-            failedServerIds.Clear();
+            failedServerIPs.Clear();
             _attemptingConnection = false;
             connectionManager.OnConnectAttemptFailed();
         }
@@ -247,7 +254,7 @@ namespace DTAClient.Online
                     if (errorTimes > 30) // TODO Figure out if this hacky check is actually necessary
                     {
                         Logger.Log("Disconnected from CnCNet due to a socket error. Message: " + ex.Message);
-                        failedServerIds.Add(currentConnectedServerId);
+                        failedServerIPs.Add(currentConnectedServerIP);
                         connectionManager.OnConnectionLost(ex.Message);
                         break;
                     }
@@ -267,7 +274,7 @@ namespace DTAClient.Online
 
                     if (errorTimes > 30) // TODO Figure out if this hacky check is actually necessary
                     {
-                        failedServerIds.Add(currentConnectedServerId);
+                        failedServerIPs.Add(currentConnectedServerIP);
                         Logger.Log("Disconnected from CnCNet.");
                         connectionManager.OnConnectionLost("Server disconnected.");
                         break;
@@ -316,6 +323,104 @@ namespace DTAClient.Online
                 Logger.Log("Attempting to reconnect to CnCNet.");
                 connectionManager.OnReconnectAttempt();
             }
+        }
+
+        /// <summary>
+        /// Get all IP addresses of Lobby servers by resolving the hostname and test the latency to the servers.
+        /// The maximum latency is defined in <c>MAXIMUM_LATENCY</c>, see <see cref="Connection.MAXIMUM_LATENCY"/>.
+        /// </summary>
+        /// <returns>A list of available Lobby servers sorted by latency.</returns>
+        private IEnumerable<Server> GetAvailableServerList()
+        {
+            List<string> triedIPAddressList = new List<string>();
+            Dictionary<Server, long> availableServerAndLatencyDict = new Dictionary<Server, long>();
+
+            try
+            {
+                List<Task> dnsAndPingTasks = new List<Task>();
+
+                foreach (Server server in Servers)
+                {
+                    string serverHostnameOrIPAddress = server.Host;
+                    string serverName = server.Name;
+                    int[] serverPorts = server.Ports;
+
+                    Task dnsAndPingTask = new Task(() =>
+                    {
+                        Logger.Log($"Attempting to DNS resolve {serverName} ({serverHostnameOrIPAddress}).");
+
+                        // If hostNameOrAddress is an IP address, this address is returned without querying the DNS server.
+                        List<IPAddress> serverIPAddresses = Dns.GetHostAddresses(serverHostnameOrIPAddress)
+                            .Where(item => item.AddressFamily == AddressFamily.InterNetwork).ToList();
+
+                        Logger.Log($"DNS resolved {serverName} ({serverHostnameOrIPAddress}): " +
+                            $"{string.Join(", ", serverIPAddresses.Select(item => item.ToString()))}");
+
+                        List<Task> pingTasks = new List<Task>();
+
+                        foreach (IPAddress serverIPAddress in serverIPAddresses)
+                        {
+                            if (triedIPAddressList.Contains(serverIPAddress.ToString()))
+                            {
+                                Logger.Log($"Skipped a duplicate IP from {serverName} ({serverIPAddress}).");
+                                continue;
+                            }
+
+                            triedIPAddressList.Add(serverIPAddress.ToString());
+
+                            if (failedServerIPs.Contains(serverIPAddress.ToString()))
+                            {
+                                Logger.Log($"Skipped a failed server {serverName} ({serverIPAddress}).");
+                                continue;
+                            }
+
+                            Task pingTask = new Task(() =>
+                            {
+                                Logger.Log($"Attempting to ping {serverName} ({serverIPAddress}).");
+                                PingReply pingReply = new Ping().Send(serverIPAddress, MAXIMUM_LATENCY);
+
+                                if (pingReply.Status == IPStatus.Success)
+                                {
+                                    long pingInMs = pingReply.RoundtripTime;
+                                    Logger.Log($"The latency in milliseconds to the server {serverName} ({serverIPAddress}): {pingInMs}.");
+                                    availableServerAndLatencyDict.Add(new Server(serverIPAddress.ToString(), serverName, serverPorts), pingInMs);
+                                }
+                                else
+                                {
+                                    Logger.Log($"Failed to ping the server {serverName} ({serverIPAddress}): " +
+                                        $"{Enum.GetName(typeof(IPStatus), pingReply.Status)}.");
+                                }
+                            });
+
+                            pingTask.Start();
+                            pingTasks.Add(pingTask);
+                        }
+
+                        Task.WaitAll(pingTasks.ToArray());
+                    });
+
+                    dnsAndPingTask.Start();
+                    dnsAndPingTasks.Add(dnsAndPingTask);
+                }
+
+                Task.WaitAll(dnsAndPingTasks.ToArray());
+            }
+            catch (Exception ex)
+            {
+                if (ex is AggregateException)
+                {
+                    foreach (Exception innerEx in ((AggregateException)ex).Flatten().InnerExceptions)
+                        Logger.Log("Unable to contact with the server. " + innerEx.Message);
+                }
+                else
+                {
+                    Logger.Log("Unable to contact with the server. " + ex.Message);
+                }
+            }
+
+            Logger.Log($"The number of available Lobby servers is {availableServerAndLatencyDict.Count}.");
+
+            return availableServerAndLatencyDict.OrderBy(item => item.Value).Select(item => item.Key);
         }
 
         public void Disconnect()
@@ -499,7 +604,7 @@ namespace DTAClient.Online
                             }
                             else
                             {
-                                string noticeUserName = prefix.Substring(0, prefix.IndexOf('!'));
+                                string noticeUserName = prefix.Substring(0, noticeExclamIndex);
                                 string notice = parameters[parameters.Count - 1];
                                 connectionManager.OnNoticeMessageParsed(notice, noticeUserName);
                                 break;
@@ -557,7 +662,7 @@ namespace DTAClient.Online
                         string modeUserName = prefix.Substring(0, prefix.IndexOf('!'));
                         string modeChannelName = parameters[0];
                         string modeString = parameters[1];
-                        List<string> modeParameters = 
+                        List<string> modeParameters =
                             parameters.Count > 2 ? parameters.GetRange(2, parameters.Count - 2) : new List<string>();
                         connectionManager.OnChannelModesChanged(modeUserName, modeChannelName, modeString, modeParameters);
                         break;
@@ -587,6 +692,16 @@ namespace DTAClient.Online
 
                         connectionManager.OnChannelTopicChanged(prefix.Substring(0, prefix.IndexOf('!')),
                             parameters[0], parameters[1]);
+                        break;
+                    case "NICK":
+                        int nickExclamIndex = prefix.IndexOf('!');
+                        if (nickExclamIndex > -1 || parameters.Count < 1)
+                        {
+                            string oldNick = prefix.Substring(0, nickExclamIndex);
+                            string newNick = parameters[0];
+                            Logger.Log("Nick change - " + oldNick + " -> " + newNick);
+                            connectionManager.OnUserNicknameChange(oldNick, newNick);
+                        }
                         break;
                 }
             }
@@ -681,10 +796,27 @@ namespace DTAClient.Online
 
                 lock (messageQueueLocker)
                 {
-                    if (MessageQueue.Count > 0)
+                    for (int i = 0; i < MessageQueue.Count; i++)
                     {
-                        message = MessageQueue[0].Command;
-                        MessageQueue.RemoveAt(0);
+                        QueuedMessage qm = MessageQueue[i];
+                        if (qm.Delay > 0)
+                        {
+                            if (qm.SendAt < DateTime.Now)
+                            {
+                                message = qm.Command;
+
+                                Logger.Log("Delayed message sent: " + qm.ID);
+
+                                MessageQueue.RemoveAt(i);
+                                break;
+                            }
+                        }
+                        else
+                        {
+                            message = qm.Command;
+                            MessageQueue.RemoveAt(i);
+                            break;
+                        }
                     }
                 }
 
@@ -730,7 +862,7 @@ namespace DTAClient.Online
 
             string realname = ProgramConstants.GAME_VERSION + " " + defaultGame + " CnCNet";
 
-            SendMessage(string.Format("USER {0} 0 * :{1}", defaultGame + "." + 
+            SendMessage(string.Format("USER {0} 0 * :{1}", defaultGame + "." +
                 systemId, realname));
 
             SendMessage("NICK " + ProgramConstants.PLAYERNAME);
@@ -745,6 +877,13 @@ namespace DTAClient.Online
         {
             QueuedMessage qm = new QueuedMessage(message, type, priority);
             QueueMessage(qm);
+        }
+
+        public void QueueMessage(QueuedMessageType type, int priority, int delay, string message)
+        {
+            QueuedMessage qm = new QueuedMessage(message, type, priority, delay);
+            QueueMessage(qm);
+            Logger.Log("Setting delay to " + delay + "ms for " + qm.ID);
         }
 
         /// <summary>
@@ -773,6 +912,7 @@ namespace DTAClient.Online
             }
         }
 
+        private int NextQueueID { get; set; } = 0;
         /// <summary>
         /// Adds a message to the send queue.
         /// </summary>
@@ -781,6 +921,8 @@ namespace DTAClient.Online
         {
             if (!_isConnected)
                 return;
+
+            qm.ID = NextQueueID++;
 
             lock (messageQueueLocker)
             {
@@ -822,6 +964,8 @@ namespace DTAClient.Online
         private void AddSpecialQueuedMessage(QueuedMessage qm)
         {
             int broadcastingMessageIndex = MessageQueue.FindIndex(m => m.MessageType == qm.MessageType);
+
+            qm.ID = NextQueueID++;
 
             if (broadcastingMessageIndex > -1)
             {

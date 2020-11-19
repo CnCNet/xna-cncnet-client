@@ -396,7 +396,7 @@ namespace DTAClient.DXGUI.Generic
 
             CenterOnParent();
 
-            sides = ClientConfiguration.Instance.GetSides().Split(',');
+            sides = ClientConfiguration.Instance.Sides.Split(',');
 
             sideTextures = new Texture2D[sides.Length + 1];
             for (int i = 0; i < sides.Length; i++)

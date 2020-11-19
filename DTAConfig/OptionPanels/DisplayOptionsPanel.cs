@@ -1,4 +1,4 @@
-﻿using ClientCore;
+using ClientCore;
 using ClientGUI;
 using Microsoft.Win32;
 using Microsoft.Xna.Framework;
@@ -40,7 +40,7 @@ namespace DTAConfig.OptionPanels
         private string defaultRenderer;
         private DirectDrawWrapper selectedRenderer = null;
 
-#if !YR
+#if TS
         private XNALabel lblCompatibilityFixes;
         private XNALabel lblGameCompatibilityFix;
         private XNALabel lblMapEditorCompatibilityFix;
@@ -160,7 +160,7 @@ namespace DTAConfig.OptionPanels
             chkBackBufferInVRAM.Text = "Back Buffer in Video Memory" + Environment.NewLine +
                 "(lower performance, but is" + Environment.NewLine + "necessary on some systems)";
 
-            var  lblClientResolution = new XNALabel(WindowManager);
+            var lblClientResolution = new XNALabel(WindowManager);
             lblClientResolution.Name = "lblClientResolution";
             lblClientResolution.ClientRectangle = new Rectangle(
                 285, 14, 0, 0);
@@ -240,7 +240,7 @@ namespace DTAConfig.OptionPanels
             for (int i = 0; i < themeCount; i++)
                 ddClientTheme.AddItem(ClientConfiguration.Instance.GetThemeInfoFromIndex(i)[0]);
 
-#if !YR
+#if TS
             lblCompatibilityFixes = new XNALabel(WindowManager);
             lblCompatibilityFixes.Name = "lblCompatibilityFixes";
             lblCompatibilityFixes.FontIndex = 1;
@@ -332,7 +332,7 @@ namespace DTAConfig.OptionPanels
 
 			var keys = renderersIni.GetSectionKeys("Renderers");
 			if (keys == null)
-				throw new Exception("[Renderers] not found from Renderers.ini!");
+				throw new ClientConfigurationException("[Renderers] not found from Renderers.ini!");
 
 			foreach (string key in keys)
 			{
@@ -347,7 +347,7 @@ namespace DTAConfig.OptionPanels
 			defaultRenderer = renderersIni.GetStringValue("DefaultRenderer", osVersion.ToString(), string.Empty);
 
 			if (defaultRenderer == null)
-				throw new Exception("Invalid or missing default renderer for operating system: " + osVersion);
+				throw new ClientConfigurationException("Invalid or missing default renderer for operating system: " + osVersion);
 
 
 			string renderer = UserINISettings.Instance.Renderer;
@@ -358,13 +358,13 @@ namespace DTAConfig.OptionPanels
 				selectedRenderer = renderers.Find(r => r.InternalName == defaultRenderer);
 
 			if (selectedRenderer == null)
-				throw new Exception("Missing renderer: " + renderer);
+				throw new ClientConfigurationException("Missing renderer: " + renderer);
 
             GameProcessLogic.UseQres = selectedRenderer.UseQres;
             GameProcessLogic.SingleCoreAffinity = selectedRenderer.SingleCoreAffinity;
 		}
 
-#if !YR
+#if TS
 
         /// <summary>
         /// Asks the user whether they want to install the DTA/TI/TS compatibility fix.
@@ -447,7 +447,7 @@ namespace DTAConfig.OptionPanels
 
             try
             {
-                Process sdbinst = Process.Start("sdbinst.exe", "-q \"" + ProgramConstants.GamePath + "Resources\\compatfix.sdb\"");
+                Process sdbinst = Process.Start("sdbinst.exe", "-q \"" + ProgramConstants.GamePath + "Resources/compatfix.sdb\"");
 
                 sdbinst.WaitForExit();
 
@@ -506,7 +506,7 @@ namespace DTAConfig.OptionPanels
 
             try
             {
-                Process sdbinst = Process.Start("sdbinst.exe", "-q \"" + ProgramConstants.GamePath + "Resources\\FSCompatFix.sdb\"");
+                Process sdbinst = Process.Start("sdbinst.exe", "-q \"" + ProgramConstants.GamePath + "Resources/FSCompatFix.sdb\"");
 
                 sdbinst.WaitForExit();
 
@@ -643,7 +643,7 @@ namespace DTAConfig.OptionPanels
                 chkBorderlessWindowedMode.Checked = UserINISettings.Instance.BorderlessWindowedMode;
             }
 
-            string currentClientRes = WindowManager.WindowWidth + "x" + WindowManager.WindowHeight;
+            string currentClientRes = IniSettings.ClientResolutionX.Value + "x" + IniSettings.ClientResolutionY.Value;
 
             int clientResIndex = ddClientResolution.Items.FindIndex(i => (string)i.Tag == currentClientRes);
 
@@ -729,12 +729,12 @@ namespace DTAConfig.OptionPanels
 
             int[] clientRes = new int[2] { int.Parse(clientResolution[0]), int.Parse(clientResolution[1]) };
 
+            if (clientRes[0] != IniSettings.ClientResolutionX.Value ||
+                clientRes[1] != IniSettings.ClientResolutionY.Value)
+                restartRequired = true;
+
             IniSettings.ClientResolutionX.Value = clientRes[0];
             IniSettings.ClientResolutionY.Value = clientRes[1];
-
-            if (clientRes[0] != WindowManager.WindowWidth ||
-                clientRes[1] != WindowManager.WindowHeight)
-                restartRequired = true;
 
             if (IniSettings.BorderlessWindowedClient.Value != chkBorderlessClient.Checked)
                 restartRequired = true;
@@ -790,15 +790,15 @@ namespace DTAConfig.OptionPanels
 
             IniSettings.Renderer.Value = selectedRenderer.InternalName;
 
-#if !YR
+#if TS
             File.Delete(ProgramConstants.GamePath + "Language.dll");
 
             if (ingameRes[0] >= 1024 && ingameRes[1] >= 720)
-                File.Copy(ProgramConstants.GamePath + "Resources\\language_1024x720.dll", ProgramConstants.GamePath + "Language.dll");
+                File.Copy(ProgramConstants.GamePath + "Resources/language_1024x720.dll", ProgramConstants.GamePath + "Language.dll");
             else if (ingameRes[0] >= 800 && ingameRes[1] >= 600)
-                File.Copy(ProgramConstants.GamePath + "Resources\\language_800x600.dll", ProgramConstants.GamePath + "Language.dll");
+                File.Copy(ProgramConstants.GamePath + "Resources/language_800x600.dll", ProgramConstants.GamePath + "Language.dll");
             else
-                File.Copy(ProgramConstants.GamePath + "Resources\\language_640x480.dll", ProgramConstants.GamePath + "Language.dll");
+                File.Copy(ProgramConstants.GamePath + "Resources/language_640x480.dll", ProgramConstants.GamePath + "Language.dll");
 #endif
 
             return restartRequired;

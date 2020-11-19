@@ -41,7 +41,11 @@ namespace ClientCore
         {
             SettingsIni = iniFile;
 
-#if YR || MO
+            const string VIDEO = "Video";
+            const string MULTIPLAYER = "MultiPlayer";
+            const string OPTIONS = "Options";
+            const string AUDIO = "Audio";
+#if YR || ARES
             const string WINDOWED_MODE_KEY = "Video.Windowed";
             BackBufferInVRAM = new BoolSetting(iniFile, VIDEO, "VideoBackBuffer", false);
 #else
@@ -91,12 +95,15 @@ namespace ClientCore
             SkipConnectDialog = new BoolSetting(iniFile, MULTIPLAYER, "SkipConnectDialog", false);
             PersistentMode = new BoolSetting(iniFile, MULTIPLAYER, "PersistentMode", false);
             AutomaticCnCNetLogin = new BoolSetting(iniFile, MULTIPLAYER, "AutomaticCnCNetLogin", false);
+            DiscordIntegration = new BoolSetting(iniFile, MULTIPLAYER, "DiscordIntegration", true);
+            AllowGameInvitesFromFriendsOnly = new BoolSetting(iniFile, MULTIPLAYER, "AllowGameInvitesFromFriendsOnly", false);
             NotifyOnUserListChange = new BoolSetting(iniFile, MULTIPLAYER, "NotifyOnUserListChange", true);
             EnableMapSharing = new BoolSetting(iniFile, MULTIPLAYER, "EnableMapSharing", true);
             AlwaysDisplayTunnelList = new BoolSetting(iniFile, MULTIPLAYER, "AlwaysDisplayTunnelList", false);
 
             CheckForUpdates = new BoolSetting(iniFile, OPTIONS, "CheckforUpdates", true);
 
+            PrivacyPolicyAccepted = new BoolSetting(iniFile, OPTIONS, "PrivacyPolicyAccepted", false);
             IsFirstRun = new BoolSetting(iniFile, OPTIONS, "IsFirstRun", true);
             CustomComponentsDenied = new BoolSetting(iniFile, OPTIONS, "CustomComponentsDenied", false);
             Difficulty = new IntSetting(iniFile, OPTIONS, "Difficulty", 1);
@@ -171,6 +178,8 @@ namespace ClientCore
         public BoolSetting SkipConnectDialog { get; private set; }
         public BoolSetting PersistentMode { get; private set; }
         public BoolSetting AutomaticCnCNetLogin { get; private set; }
+        public BoolSetting DiscordIntegration { get; private set; }
+        public BoolSetting AllowGameInvitesFromFriendsOnly { get; private set; }
 
         public BoolSetting NotifyOnUserListChange { get; private set; }
 
@@ -184,6 +193,7 @@ namespace ClientCore
 
         public BoolSetting CheckForUpdates { get; private set; }
 
+        public BoolSetting PrivacyPolicyAccepted { get; private set; }
         public BoolSetting IsFirstRun { get; private set; }
         public BoolSetting CustomComponentsDenied { get; private set; }
 

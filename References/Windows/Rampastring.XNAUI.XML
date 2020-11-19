@@ -343,6 +343,14 @@
             Determines whether the label's text is drawn as underlined.
             </summary>
         </member>
+        <member name="P:Rampastring.XNAUI.XNAControls.XNAListBoxItem.Text">
+            <summary>
+            The text of the list box item prior to its parsing by the list box.
+            If this is modified when the item belongs to a <see cref="T:Rampastring.XNAUI.XNAControls.XNAListBox"/>, the ListBox
+            will re-parse it and save the result <see cref="F:Rampastring.XNAUI.XNAControls.XNAListBoxItem.TextLines"/> to support multi-line
+            items and potentially cut the text if it's too long.
+            </summary>
+        </member>
         <member name="P:Rampastring.XNAUI.XNAControls.XNAListBoxItem.Tag">
             <summary>
             Stores optional custom data associated with the list box item.
@@ -773,6 +781,12 @@
             </summary>
             <param name="windowManager">The WindowManager associated with this context menu.</param>
         </member>
+        <member name="P:Rampastring.XNAUI.XNAControls.XNAContextMenu.HoveredIndex">
+            <summary>
+            The index of the context menu item that 
+            the user's cursor is hovering on. -1 for none.
+            </summary>
+        </member>
         <member name="M:Rampastring.XNAUI.XNAControls.XNAContextMenu.AddItem(Rampastring.XNAUI.XNAControls.XNAContextMenuItem)">
             <summary>
             Adds an item into the context menu.
@@ -1115,6 +1129,12 @@
             Checks if the last parent of this control is active.
             </summary>
         </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNAControl.AppliesToSelfAndAllParents(System.Func{Rampastring.XNAUI.XNAControls.XNAControl,System.Boolean})">
+            <summary>
+            Checks whether a condition applies to this control and all of its parents.
+            </summary>
+            <param name="func">The condition.</param>
+        </member>
         <member name="M:Rampastring.XNAUI.XNAControls.XNAControl.GetCursorPoint">
             <summary>
             Gets the cursor's location relative to this control's location.
@@ -1451,6 +1471,9 @@
             Returns the list of items in the list box.
             If you manipulate the list directly, call
             RefreshScrollbar afterwards.
+            !!! DO NOT remove items directly, use <see cref="M:Rampastring.XNAUI.XNAControls.XNAListBox.Clear"/> or
+            one of the <see cref="M:Rampastring.XNAUI.XNAControls.XNAListBox.RemoveItem(System.Int32)"/> overloads instead
+            or you risk leaking memory.
             TODO change to ObservableCollection?
             </summary>
         </member>
@@ -1517,6 +1540,26 @@
             Adds an item into the list box.
             </summary>
             <param name="listBoxItem">The item to add.</param>
+        </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNAListBox.RemoveItem(System.Int32)">
+            <summary>
+            Removes the item at the specified index of the list box.
+            </summary>
+            <param name="index">The zero-based index of the item to remove.</param>
+        </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNAListBox.RemoveItem(System.Predicate{Rampastring.XNAUI.XNAControls.XNAListBoxItem})">
+            <summary>
+            Removes the first item of the list box that fills the given condition.
+            Returns a bool that tells whether an item filling the condition
+            was found (and removed) from the list.
+            </summary>
+        </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNAListBox.RemoveItem(Rampastring.XNAUI.XNAControls.XNAListBoxItem)">
+            <summary>
+            Removes the given item at the specified index of the list box.
+            Returns a bool that tells whether the item was found (and removed)
+            from the list.
+            </summary>
         </member>
         <member name="M:Rampastring.XNAUI.XNAControls.XNAListBox.RefreshScrollbar">
             <summary>

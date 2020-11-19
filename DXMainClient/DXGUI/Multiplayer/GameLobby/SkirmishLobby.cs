@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Rampastring.XNAUI;
@@ -9,15 +9,16 @@ using DTAClient.Domain.Multiplayer;
 using ClientGUI;
 using Rampastring.Tools;
 using System.IO;
+using DTAClient.Domain;
 
 namespace DTAClient.DXGUI.Multiplayer.GameLobby
 {
     public class SkirmishLobby : GameLobbyBase, ISwitchable
     {
-        private const string SETTINGS_PATH = "Client\\SkirmishSettings.ini";
+        private const string SETTINGS_PATH = "Client/SkirmishSettings.ini";
 
-        public SkirmishLobby(WindowManager windowManager, TopBar topBar, List<GameMode> GameModes)
-            : base(windowManager, "SkirmishLobby", GameModes, false)
+        public SkirmishLobby(WindowManager windowManager, TopBar topBar, List<GameMode> GameModes, DiscordHandler discordHandler)
+            : base(windowManager, "SkirmishLobby", GameModes, false, discordHandler)
         {
             this.topBar = topBar;
         }
@@ -44,17 +45,27 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             MapPreviewBox.LocalStartingLocationSelected += MapPreviewBox_LocalStartingLocationSelected;
             MapPreviewBox.StartingLocationApplied += MapPreviewBox_StartingLocationApplied;
 
-            InitializeWindow();
-
-            WindowManager.CenterControlOnScreen(this);
-
             LoadSettings();
 
             CheckDisallowedSides();
 
             CopyPlayerDataToUI();
 
+            InitializeWindow();
+
+            WindowManager.CenterControlOnScreen(this);
+
             ProgramConstants.PlayerNameChanged += ProgramConstants_PlayerNameChanged;
+            ddPlayerSides[0].SelectedIndexChanged += PlayerSideChanged;
+        }
+
+        protected override void OnEnabledChanged(object sender, EventArgs args)
+        {
+            base.OnEnabledChanged(sender, args);
+            if (Enabled)
+                UpdateDiscordPresence(true);
+            else
+                ResetDiscordPresence();
         }
 
         private void ProgramConstants_PlayerNameChanged(object sender, EventArgs e)
@@ -145,6 +156,32 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             Exited?.Invoke(this, EventArgs.Empty);
 
             topBar.RemovePrimarySwitchable(this);
+            ResetDiscordPresence();
+        }
+
+        private void PlayerSideChanged(object sender, EventArgs e)
+        {
+            UpdateDiscordPresence();
+        }
+
+        protected override void UpdateDiscordPresence(bool resetTimer = false)
+        {
+            if (discordHandler == null || Map == null || GameMode == null || !Initialized)
+                return;
+
+            int playerIndex = Players.FindIndex(p => p.Name == ProgramConstants.PLAYERNAME);
+            if (playerIndex >= MAX_PLAYER_COUNT || playerIndex < 0)
+                return;
+
+            XNAClientDropDown sideDropDown = ddPlayerSides[playerIndex];
+            if (sideDropDown.SelectedItem == null)
+                return;
+
+            string side = sideDropDown.SelectedItem.Text;
+            string currentState = ProgramConstants.IsInGame ? "In Game" : "Setting Up";
+
+            discordHandler.UpdatePresence(
+                Map.Name, GameMode.Name, currentState, side, resetTimer);
         }
 
         protected override bool AllowPlayerOptionsChange()
@@ -169,19 +206,17 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         public void Open()
         {
             topBar.AddPrimarySwitchable(this);
-            SwitchOn();
+            Enable();
         }
 
         public void SwitchOn()
         {
-            Enabled = true;
-            Visible = true;
+            Enable();
         }
 
         public void SwitchOff()
         {
-            Enabled = false;
-            Visible = false;
+            Disable();
         }
 
         public string GetSwitchName()
@@ -215,7 +250,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 {
                     foreach (GameLobbyDropDown dd in DropDowns)
                     {
-                        skirmishSettingsIni.SetStringValue("GameOptions", dd.Name, dd.UserDefinedIndex + "");
+                        skirmishSettingsIni.SetStringValue("GameOptions", dd.Name, dd.UserSelectedIndex + "");
                     }
 
                     foreach (GameLobbyCheckBox cb in CheckBoxes)
@@ -340,10 +375,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                         }
                     }
 
-                    dd.UserDefinedIndex = skirmishSettingsIni.GetIntValue("GameOptions", dd.Name, dd.UserDefinedIndex);
+                    dd.UserSelectedIndex = skirmishSettingsIni.GetIntValue("GameOptions", dd.Name, dd.UserSelectedIndex);
 
-                    if (dd.UserDefinedIndex > -1 && dd.UserDefinedIndex < dd.Items.Count)
-                        dd.SelectedIndex = dd.UserDefinedIndex;
+                    if (dd.UserSelectedIndex > -1 && dd.UserSelectedIndex < dd.Items.Count)
+                        dd.SelectedIndex = dd.UserSelectedIndex;
                 }
 
                 foreach (GameLobbyCheckBox cb in CheckBoxes)

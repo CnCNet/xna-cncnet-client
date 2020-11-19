@@ -15,6 +15,18 @@ using System.Linq;
 
 namespace DTAClient.DXGUI.Multiplayer.GameLobby
 {
+    struct ExtraMapPreviewTexture
+    {
+        public Texture2D Texture;
+        public Point Point;
+
+        public ExtraMapPreviewTexture(Texture2D texture, Point point)
+        {
+            Texture = texture;
+            Point = point;
+        }
+    }
+
     /// <summary>
     /// The picture box for displaying the map preview.
     /// </summary>
@@ -75,12 +87,13 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         private List<PlayerInfo> aiPlayers;
 
         private XNAContextMenu contextMenu;
+        private Point lastContextMenuPoint;
 
         private CoopBriefingBox briefingBox;
 
         private Rectangle textureRectangle;
 
-        private Texture2D texture;
+        private Texture2D previewTexture;
 
         private bool disposeTextures = true;
 
@@ -91,6 +104,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         private EnhancedSoundEffect sndClickSound;
 
         private EnhancedSoundEffect sndDropdownSound;
+
+        private List<ExtraMapPreviewTexture> extraTextures = new List<ExtraMapPreviewTexture>(0);
 
         public override void Initialize()
         {
@@ -149,6 +164,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             sndDropdownSound = new EnhancedSoundEffect("dropdown.wav");
 
             base.Initialize();
+
+            ClientRectangleUpdated += (s, e) => UpdateMap();
         }
 
         private void ContextMenu_OptionSelected(int index)
@@ -243,8 +260,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     pInfo.SideId < sides.Length + RandomSelectorCount;
                 index++;
             }
-
-            contextMenu.Open(new Point(x, y));
+            lastContextMenuPoint = new Point(x, y);
+            contextMenu.Open(lastContextMenuPoint);
         }
 
         private void Indicator_RightClick(object sender, EventArgs e)
@@ -279,12 +296,14 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         /// </summary>
         private void UpdateMap()
         {
-            if (disposeTextures && texture != null && !texture.IsDisposed)
-                texture.Dispose();
+            if (disposeTextures && previewTexture != null && !previewTexture.IsDisposed)
+                previewTexture.Dispose();
+
+            extraTextures.Clear();
 
             if (Map == null)
             {
-                texture = null;
+                previewTexture = null;
                 briefingBox.Disable();
 
                 contextMenu.Disable();
@@ -297,12 +316,12 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             if (Map.PreviewTexture == null)
             {
-                texture = Map.LoadPreviewTexture();
+                previewTexture = Map.LoadPreviewTexture();
                 disposeTextures = true;
             }
             else
             {
-                texture = Map.PreviewTexture;
+                previewTexture = Map.PreviewTexture;
                 disposeTextures = false;
             }
 
@@ -316,8 +335,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             else
                 briefingBox.Disable();
 
-            double xRatio = (Width - 2) / (double)texture.Width;
-            double yRatio = (Height - 2) / (double)texture.Height;
+            double xRatio = (Width - 2) / (double)previewTexture.Width;
+            double yRatio = (Height - 2) / (double)previewTexture.Height;
 
             double ratio;
 
@@ -330,25 +349,23 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             {
                 ratio = yRatio;
                 textureHeight = Height - 2;
-                textureWidth = (int)(texture.Width * ratio);
+                textureWidth = (int)(previewTexture.Width * ratio);
                 texturePositionX = (int)(Width - 2 - textureWidth) / 2;
             }
             else
             {
                 ratio = xRatio;
                 textureWidth = Width - 2;
-                textureHeight = (int)(texture.Height * ratio);
+                textureHeight = (int)(previewTexture.Height * ratio);
                 texturePositionY = (Height - 2 - textureHeight) / 2 + 1;
             }
 
             useNearestNeighbour = ratio < 1.0;
 
-            Point windowPoint = GetWindowPoint();
-
-            textureRectangle = new Rectangle(windowPoint.X + texturePositionX, windowPoint.Y + texturePositionY,
+            textureRectangle = new Rectangle(texturePositionX, texturePositionY,
                 textureWidth, textureHeight);
 
-            List<Point> startingLocations = Map.GetStartingLocationPreviewCoords(new Point(texture.Width, texture.Height));
+            List<Point> startingLocations = Map.GetStartingLocationPreviewCoords(new Point(previewTexture.Width, previewTexture.Height));
 
             for (int i = 0; i < startingLocations.Count && i < Map.MaxPlayers; i++)
             {
@@ -367,6 +384,27 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             {
                 startingLocationIndicators[i].Disable();
             }
+
+
+            foreach (var mapExtraTexture in Map.GetExtraMapPreviewTextures())
+            {
+                // LoadTexture makes use of a texture cache 
+                // so we don't need to cache the textures manually
+                Texture2D extraTexture = AssetLoader.LoadTexture(mapExtraTexture.TextureName);
+                Point location = PreviewTexturePointToControlAreaPoint(
+                    Map.MapPointToMapPreviewPoint(mapExtraTexture.Point,
+                    new Point(previewTexture.Width - (extraTexture.Width / 2),
+                              previewTexture.Height - (extraTexture.Height / 2))),
+                              ratio);
+
+                extraTextures.Add(new ExtraMapPreviewTexture(extraTexture, location));
+            }
+        }
+
+        private Point PreviewTexturePointToControlAreaPoint(Point previewTexturePoint, double scaleRatio)
+        {
+            return new Point(textureRectangle.X + (int)(previewTexturePoint.X * scaleRatio),
+                textureRectangle.Y + (int)(previewTexturePoint.Y * scaleRatio));
         }
 
         public void UpdateStartingLocationTexts()
@@ -416,6 +454,12 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
                 id++;
             }
+
+            if (EnableContextMenu && contextMenu.Enabled && contextMenu.Visible)
+            {
+                contextMenu.Disable();
+                contextMenu.Open(lastContextMenuPoint);
+            }
         }
 
         public override void OnMouseEnter()
@@ -462,22 +506,43 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             DrawPanel();
 
-            if (texture != null)
+            if (previewTexture != null)
             {
+                Point renderPoint = GetRenderPoint();
+
                 if (useNearestNeighbour)
                 {
                     Renderer.PushSettings(new SpriteBatchSettings(SpriteSortMode.Deferred, null, SamplerState.PointClamp));
-                    Renderer.DrawTexture(texture, textureRectangle, Color.White);
+                    DrawPreviewTexture(renderPoint);
                     Renderer.PopSettings();
                 }
                 else
-                    Renderer.DrawTexture(texture, textureRectangle, Color.White);
+                {
+                    DrawPreviewTexture(renderPoint);
+                }
+
+                foreach (var extraTexture in extraTextures)
+                {
+                    Renderer.DrawTexture(extraTexture.Texture,
+                        new Rectangle(renderPoint.X + extraTexture.Point.X,
+                        renderPoint.Y + extraTexture.Point.Y,
+                        extraTexture.Texture.Width, extraTexture.Texture.Height), Color.White);
+                }
             }
 
             if (DrawBorders)
                 DrawPanelBorders();
 
             DrawChildren(gameTime);
+        }
+
+        private void DrawPreviewTexture(Point renderPoint)
+        {
+            Renderer.DrawTexture(previewTexture,
+                new Rectangle(renderPoint.X + textureRectangle.X,
+                renderPoint.Y + textureRectangle.Y,
+                textureRectangle.Width, textureRectangle.Height),
+                Color.White);
         }
     }
 
