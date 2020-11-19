@@ -211,7 +211,7 @@ namespace DTAConfig
         /// Shows the popup to inform the user if needed.
         /// </summary>
         /// <returns>A bool that determines whether the 
-        /// setting's value was changed.</returns>
+        /// settings values were changed.</returns>
         private bool RefreshOptionPanels()
         {
             bool optionValuesChanged = false;
@@ -222,11 +222,12 @@ namespace DTAConfig
             if (optionValuesChanged)
             {
                 XNAMessageBox.Show(WindowManager, "Setting Value(s) Changed",
-                    "One or more setting values were no longer available" + Environment.NewLine +
-                    "and were changed to their default values instead." +
+                    "One or more setting values are" + Environment.NewLine +
+                    "no longer available and were changed." +
                     Environment.NewLine + Environment.NewLine +
-                    "You may want to verify the new setting values in" + Environment.NewLine +
-                    "application's options window.");
+                    "You may want to verify the new setting" + Environment.NewLine +
+                    "values in client's options window.");
+
                 return true;
             }
 
