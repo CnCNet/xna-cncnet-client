@@ -119,7 +119,7 @@ namespace DTAClient.Online
                     List<string> files = Directory.GetFiles(path, "*", SearchOption.AllDirectories).
                         Select(s => s.Replace(ProgramConstants.GamePath, "").Replace("\\", "/")).ToList();
 
-                    files.Sort();
+                    files.Sort(StringComparer.Ordinal);
 
                     foreach (string filename in files)
                     {

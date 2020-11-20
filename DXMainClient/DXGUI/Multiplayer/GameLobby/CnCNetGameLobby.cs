@@ -241,7 +241,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             }
             else
             {
-                channel.SendCTCPMessage("FHSH " + fhc.GetCompleteHash(), QueuedMessageType.SYSTEM_MESSAGE, 10);
+                channel.SendCTCPMessage("FHSH " + gameFilesHash, QueuedMessageType.SYSTEM_MESSAGE, 10);
             }
 
             TopBar.AddPrimarySwitchable(this);
