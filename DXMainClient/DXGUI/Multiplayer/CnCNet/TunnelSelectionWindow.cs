@@ -90,15 +90,10 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             TunnelSelected?.Invoke(this, new TunnelEventArgs(tunnel));
         }
 
-        private void BtnCancel_LeftClick(object sender, EventArgs e)
-        {
-            Disable();
-        }
+        private void BtnCancel_LeftClick(object sender, EventArgs e) => Disable();
 
-        private void LbTunnelList_SelectedIndexChanged(object sender, EventArgs e)
-        {
+        private void LbTunnelList_SelectedIndexChanged(object sender, EventArgs e) =>
             btnApply.AllowClick = !lbTunnelList.IsTunnelSelected(originalTunnelAddress) && lbTunnelList.IsValidIndexSelected();
-        }
 
         /// <summary>
         /// Sets the window's description and selects the tunnel server

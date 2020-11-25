@@ -70,11 +70,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         /// </summary>
         /// <param name="address">The address of the tunnel server</param>
         /// <returns>True if tunnel with given address is selected, otherwise false.</returns>
-        public bool IsTunnelSelected(string address)
-        {
-            int index = tunnelHandler.Tunnels.FindIndex(t => t.Address == address);
-            return index == SelectedIndex;
-        }
+        public bool IsTunnelSelected(string address) =>
+            tunnelHandler.Tunnels.FindIndex(t => t.Address == address) == SelectedIndex;
 
         private void TunnelHandler_TunnelsRefreshed(object sender, EventArgs e)
         {
