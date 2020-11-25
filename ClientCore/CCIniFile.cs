@@ -15,11 +15,9 @@ namespace ClientCore
             string basedOn = GetStringValue("INISystem", "BasedOn", string.Empty);
             if (!string.IsNullOrEmpty(basedOn))
             {
-                string path = string.Empty;
+                string path;
                 if (basedOn.Contains("$THEME_DIR$"))
-                {
-                    path = basedOn.Replace("$THEME_DIR$/", ProgramConstants.GetResourcePath());
-                }
+                    path = basedOn.Replace("$THEME_DIR$", ProgramConstants.GetResourcePath().TrimEnd(new char[] { '/', '\\' }));
                 else
                     path = Path.GetDirectoryName(FileName) + "/" + basedOn;
 
@@ -29,7 +27,7 @@ namespace ClientCore
 
                 CCIniFile baseIni = new CCIniFile(path);
                 ConsolidateIniFiles(baseIni, this);
-                this.Sections = baseIni.Sections;
+                Sections = baseIni.Sections;
             }
         }
     }
