@@ -161,6 +161,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             DarkeningPanel.AddAndInitializeWithControl(WindowManager, tunnelSelectionWindow);
             tunnelSelectionWindow.CenterOnParent();
             tunnelSelectionWindow.Disable();
+            tunnelSelectionWindow.TunnelSelected += TunnelSelectionWindow_TunnelSelected;
 
             mapSharingConfirmationPanel = new MapSharingConfirmationPanel(WindowManager);
             MapPreviewBox.AddChild(mapSharingConfirmationPanel);
@@ -284,12 +285,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             tunnelSelectionWindow.Open(description,
                 tunnelHandler.CurrentTunnel?.Address);
-            tunnelSelectionWindow.TunnelSelected += TunnelSelectionWindow_TunnelSelected;
         }
 
         private void TunnelSelectionWindow_TunnelSelected(object sender, TunnelEventArgs e)
         {
-            tunnelSelectionWindow.TunnelSelected -= TunnelSelectionWindow_TunnelSelected;
             channel.SendCTCPMessage($"{CHANGE_TUNNEL_SERVER_MESSAGE} {e.Tunnel.Address}:{e.Tunnel.Port}",
                 QueuedMessageType.SYSTEM_MESSAGE, 10);
             HandleTunnelServerChange(e.Tunnel);

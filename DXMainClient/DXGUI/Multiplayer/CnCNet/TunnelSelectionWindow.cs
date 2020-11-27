@@ -25,6 +25,9 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         private readonly TunnelHandler tunnelHandler;
         private TunnelListBox lbTunnelList;
         private XNALabel lblDescription;
+        private XNAClientButton btnApply;
+
+        private string originalTunnelAddress;
 
         public override void Initialize()
         {
@@ -37,30 +40,41 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             PanelBackgroundDrawMode = PanelBackgroundImageDrawMode.STRETCHED;
 
             lblDescription = new XNALabel(WindowManager);
-            lblDescription.Name = "lblDescription";
+            lblDescription.Name = nameof(lblDescription);
             lblDescription.Text = "Line 1" + Environment.NewLine + "Line 2";
-            lblDescription.X = UIDesignConstants.EMPTY_SPACE_SIDES;
-            lblDescription.Y = UIDesignConstants.EMPTY_SPACE_TOP;
+            lblDescription.X = UIDesignConstants.EMPTY_SPACE_SIDES + UIDesignConstants.CONTROL_HORIZONTAL_MARGIN;
+            lblDescription.Y = UIDesignConstants.EMPTY_SPACE_TOP + UIDesignConstants.CONTROL_VERTICAL_MARGIN;
             AddChild(lblDescription);
 
             lbTunnelList = new TunnelListBox(WindowManager, tunnelHandler);
-            lbTunnelList.Name = "lbTunnelList";
+            lbTunnelList.Name = nameof(lbTunnelList);
             lbTunnelList.Y = lblDescription.Bottom + UIDesignConstants.CONTROL_VERTICAL_MARGIN;
-            lbTunnelList.X = UIDesignConstants.EMPTY_SPACE_SIDES;
+            lbTunnelList.X = UIDesignConstants.EMPTY_SPACE_SIDES + UIDesignConstants.CONTROL_HORIZONTAL_MARGIN;
             AddChild(lbTunnelList);
+            lbTunnelList.SelectedIndexChanged += LbTunnelList_SelectedIndexChanged;
 
-            var btnApply = new XNAClientButton(WindowManager);
-            btnApply.Name = "btnApply";
+            btnApply = new XNAClientButton(WindowManager);
+            btnApply.Name = nameof(btnApply);
             btnApply.Width = UIDesignConstants.BUTTON_WIDTH_92;
             btnApply.Height = UIDesignConstants.BUTTON_HEIGHT;
             btnApply.Text = "Apply";
-            btnApply.Y = lbTunnelList.Bottom + UIDesignConstants.CONTROL_VERTICAL_MARGIN;
+            btnApply.X = UIDesignConstants.EMPTY_SPACE_SIDES + UIDesignConstants.CONTROL_HORIZONTAL_MARGIN;
+            btnApply.Y = lbTunnelList.Bottom + UIDesignConstants.CONTROL_VERTICAL_MARGIN * 3;
             AddChild(btnApply);
             btnApply.LeftClick += BtnApply_LeftClick;
 
-            Width = lbTunnelList.Right + UIDesignConstants.EMPTY_SPACE_SIDES;
-            Height = btnApply.Bottom + UIDesignConstants.EMPTY_SPACE_BOTTOM;
-            btnApply.CenterOnParentHorizontally();
+            var btnCancel = new XNAClientButton(WindowManager);
+            btnCancel.Name = nameof(btnCancel);
+            btnCancel.Width = UIDesignConstants.BUTTON_WIDTH_92;
+            btnCancel.Height = UIDesignConstants.BUTTON_HEIGHT;
+            btnCancel.Text = "Cancel";
+            btnCancel.Y = btnApply.Y;
+            AddChild(btnCancel);
+            btnCancel.LeftClick += BtnCancel_LeftClick;
+
+            Width = lbTunnelList.Right + UIDesignConstants.CONTROL_HORIZONTAL_MARGIN + UIDesignConstants.EMPTY_SPACE_SIDES;
+            Height = btnApply.Bottom + UIDesignConstants.CONTROL_VERTICAL_MARGIN + UIDesignConstants.EMPTY_SPACE_BOTTOM;
+            btnCancel.X = Width - btnCancel.Width - UIDesignConstants.EMPTY_SPACE_SIDES - UIDesignConstants.CONTROL_HORIZONTAL_MARGIN;
 
             base.Initialize();
         }
@@ -68,12 +82,18 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         private void BtnApply_LeftClick(object sender, EventArgs e)
         {
             Disable();
+
             if (!lbTunnelList.IsValidIndexSelected())
                 return;
 
             CnCNetTunnel tunnel = tunnelHandler.Tunnels[lbTunnelList.SelectedIndex];
             TunnelSelected?.Invoke(this, new TunnelEventArgs(tunnel));
         }
+
+        private void BtnCancel_LeftClick(object sender, EventArgs e) => Disable();
+
+        private void LbTunnelList_SelectedIndexChanged(object sender, EventArgs e) =>
+            btnApply.AllowClick = !lbTunnelList.IsTunnelSelected(originalTunnelAddress) && lbTunnelList.IsValidIndexSelected();
 
         /// <summary>
         /// Sets the window's description and selects the tunnel server
@@ -84,12 +104,22 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         public void Open(string description, string tunnelAddress = null)
         {
             lblDescription.Text = description;
+            originalTunnelAddress = tunnelAddress;
 
             if (!string.IsNullOrWhiteSpace(tunnelAddress))
                 lbTunnelList.SelectTunnel(tunnelAddress);
             else
                 lbTunnelList.SelectedIndex = -1;
 
+            if (lbTunnelList.SelectedIndex > -1)
+            {
+                lbTunnelList.SetTopIndex(0);
+
+                while (lbTunnelList.SelectedIndex > lbTunnelList.LastIndex)
+                    lbTunnelList.TopIndex++;
+            }
+
+            btnApply.AllowClick = false;
             Enable();
         }
     }

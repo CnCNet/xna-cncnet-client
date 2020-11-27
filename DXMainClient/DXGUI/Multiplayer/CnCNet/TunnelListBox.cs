@@ -25,8 +25,10 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             SelectedIndexChanged += TunnelListBox_SelectedIndexChanged;
 
+            int headerHeight = (int)Renderer.GetTextDimensions("Name", HeaderFontIndex).Y;
+
             Width = 466;
-            Height = 200;
+            Height = LineHeight * 12 + headerHeight + 3;
             PanelBackgroundDrawMode = PanelBackgroundImageDrawMode.STRETCHED;
             BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 128), 1, 1);
             AddColumn("Name", 230);
@@ -62,6 +64,14 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 manuallySelectedTunnelAddress = address;
             }
         }
+
+        /// <summary>
+        /// Gets whether or not a tunnel from the list with the given address is selected.
+        /// </summary>
+        /// <param name="address">The address of the tunnel server</param>
+        /// <returns>True if tunnel with given address is selected, otherwise false.</returns>
+        public bool IsTunnelSelected(string address) =>
+            tunnelHandler.Tunnels.FindIndex(t => t.Address == address) == SelectedIndex;
 
         private void TunnelHandler_TunnelsRefreshed(object sender, EventArgs e)
         {
