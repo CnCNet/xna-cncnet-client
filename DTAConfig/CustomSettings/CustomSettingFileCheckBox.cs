@@ -2,6 +2,7 @@ using ClientCore;
 using ClientGUI;
 using Rampastring.Tools;
 using Rampastring.XNAUI;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -51,7 +52,11 @@ namespace DTAConfig.CustomSettings
                     continue;
                 }
 
-                enabledFiles.Add(new FileSourceDestinationInfo(parts[0], parts[1]));
+                FileOperationOptions options = default;
+                if (parts.Length >= 3)
+                    Enum.TryParse(parts[2], out options);
+
+                enabledFiles.Add(new FileSourceDestinationInfo(parts[0], parts[1], options));
 
                 i++;
             }
@@ -71,7 +76,11 @@ namespace DTAConfig.CustomSettings
                     continue;
                 }
 
-                disabledFiles.Add(new FileSourceDestinationInfo(parts[0], parts[1]));
+                FileOperationOptions options = default;
+                if (parts.Length >= 3)
+                    Enum.TryParse(parts[2], out options);
+
+                disabledFiles.Add(new FileSourceDestinationInfo(parts[0], parts[1], options));
 
                 i++;
             }
@@ -131,20 +140,17 @@ namespace DTAConfig.CustomSettings
 
             if (Checked && canBeChecked)
             {
-                disabledFiles.ForEach(f => File.Delete(ProgramConstants.GamePath + f.DestinationPath));
-                enabledFiles.ForEach(f => File.Copy(ProgramConstants.GamePath + f.SourcePath,
-                    ProgramConstants.GamePath + f.DestinationPath, true));
+                disabledFiles.ForEach(f => f.Revert());
+                enabledFiles.ForEach(f => f.Apply());
             }
             else if (!Checked && canBeUnchecked)
             {
-                enabledFiles.ForEach(f => File.Delete(ProgramConstants.GamePath + f.DestinationPath));
-                disabledFiles.ForEach(f => File.Copy(ProgramConstants.GamePath + f.SourcePath,
-                    ProgramConstants.GamePath + f.DestinationPath, true));
+                enabledFiles.ForEach(f => f.Revert());
+                disabledFiles.ForEach(f => f.Apply());
             }
-            else // undefined state, delete everything? TBD
+            else // undefined state, the checkbox is bork, don't continue
             {
-                disabledFiles.ForEach(f => File.Delete(ProgramConstants.GamePath + f.DestinationPath));
-                enabledFiles.ForEach(f => File.Delete(ProgramConstants.GamePath + f.DestinationPath));
+                return false;
             }
 
             UserINISettings.Instance.SetCustomSettingValue(Name, Checked);

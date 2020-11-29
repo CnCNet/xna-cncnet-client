@@ -2,6 +2,7 @@ using ClientCore;
 using ClientGUI;
 using Rampastring.Tools;
 using Rampastring.XNAUI;
+using System;
 using System.Collections.Generic;
 using System.IO;
 
@@ -15,10 +16,11 @@ namespace DTAConfig.CustomSettings
         public FileSettingCheckBox(WindowManager windowManager) : base(windowManager) { }
 
         public FileSettingCheckBox(WindowManager windowManager,
-            string sourceFilePath, string destinationFilePath,
+            string sourceFilePath, string destinationFilePath, FileOperationOptions options,
             bool reversed) : base(windowManager)
         {
-            files.Add(new FileSourceDestinationInfo(sourceFilePath, destinationFilePath));
+            files.Add(new FileSourceDestinationInfo(sourceFilePath, destinationFilePath, options));
+            this.reversed = reversed;
         }
 
         private List<FileSourceDestinationInfo> files = new List<FileSourceDestinationInfo>();
@@ -50,7 +52,11 @@ namespace DTAConfig.CustomSettings
                     continue;
                 }
 
-                files.Add(new FileSourceDestinationInfo(parts[0], parts[1]));
+                FileOperationOptions options = default;
+                if (parts.Length >= 3)
+                    Enum.TryParse(parts[2], out options);
+
+                files.Add(new FileSourceDestinationInfo(parts[0], parts[1], options));
 
                 i++;
             }
@@ -84,20 +90,11 @@ namespace DTAConfig.CustomSettings
         public bool Save()
         {
             if (reversed != Checked)
-            {
-                foreach (var info in files)
-                {
-                    File.Copy(ProgramConstants.GamePath + info.SourcePath,
-                            ProgramConstants.GamePath + info.DestinationPath, true);
-                }
-            }
+                files.ForEach(f => f.Apply());
             else
-                files.ForEach(f => File.Delete(ProgramConstants.GamePath + f.DestinationPath));
+                files.ForEach(f => f.Revert());
 
-            if (restartRequired && (Checked != originalState))
-                return true;
-
-            return false;
+            return restartRequired && (Checked != originalState);
         }
     }
 }

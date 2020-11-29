@@ -3,6 +3,7 @@ using ClientGUI;
 using Rampastring.Tools;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
+using System;
 using System.Collections.Generic;
 using System.IO;
 
@@ -38,16 +39,22 @@ namespace DTAConfig.CustomSettings
                 while (true)
                 {
                     string fileInfo = section.GetStringValue($"Item{i}File{j}", string.Empty);
+
                     if (string.IsNullOrWhiteSpace(fileInfo))
                         break;
+
                     string[] parts = fileInfo.Split(',');
-                    if (parts.Length != 2)
+                    if (parts.Length < 2)
                     {
                         Logger.Log($"Invalid CustomSettingFileDropDown information in {Name}: {fileInfo}");
                         continue;
                     }
                     
-                    itemFilesList[i].Add(new FileSourceDestinationInfo(parts[0], parts[1]));
+                    FileOperationOptions options = default;
+                    if (parts.Length >= 3)
+                        Enum.TryParse(parts[2], out options);
+
+                    itemFilesList[i].Add(new FileSourceDestinationInfo(parts[0], parts[1], options));
 
                     j++;
                 }
@@ -118,18 +125,11 @@ namespace DTAConfig.CustomSettings
 
         public bool Save()
         {
-            for (int i = 0; i < itemFilesList.Count; i++)
-            {
-                itemFilesList[i].ForEach(
-                    f => File.Delete(ProgramConstants.GamePath + f.DestinationPath));
-            }
+            foreach (var list in itemFilesList)
+                list.ForEach(f => f.Revert());
 
             if (Items[SelectedIndex].Selectable)
-            {
-                itemFilesList[SelectedIndex].ForEach(
-                    f => File.Copy(ProgramConstants.GamePath + f.SourcePath,
-                    ProgramConstants.GamePath + f.DestinationPath, true));
-            }
+                itemFilesList[SelectedIndex].ForEach(f => f.Apply());
             
             UserINISettings.Instance.SetCustomSettingValue(Name, SelectedIndex);
 
