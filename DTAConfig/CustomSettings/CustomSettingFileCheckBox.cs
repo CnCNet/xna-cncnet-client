@@ -46,7 +46,7 @@ namespace DTAConfig.CustomSettings
                     break;
 
                 string[] parts = fileInfo.Split(',');
-                if (parts.Length != 2)
+                if (parts.Length < 2)
                 {
                     Logger.Log($"Invalid CustomSettingFileCheckBox information in {Name}: {fileInfo}");
                     continue;
@@ -70,7 +70,7 @@ namespace DTAConfig.CustomSettings
                     break;
 
                 string[] parts = fileInfo.Split(',');
-                if (parts.Length != 2)
+                if (parts.Length < 2)
                 {
                     Logger.Log($"Invalid CustomSettingFileCheckBox information in {Name}: {fileInfo}");
                     continue;

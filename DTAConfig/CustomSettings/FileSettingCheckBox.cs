@@ -46,7 +46,7 @@ namespace DTAConfig.CustomSettings
                     break;
 
                 string[] parts = fileInfo.Split(',');
-                if (parts.Length != 2)
+                if (parts.Length < 2)
                 {
                     Logger.Log($"Invalid FileSettingCheckBox information in {Name}: {fileInfo}");
                     continue;
