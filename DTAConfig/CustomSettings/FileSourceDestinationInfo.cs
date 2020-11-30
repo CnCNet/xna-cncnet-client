@@ -40,19 +40,25 @@ namespace DTAConfig.CustomSettings
                     break;
 
                 case FileOperationOptions.DontOverwrite:
+                    if (File.Exists(ProgramConstants.GamePath + DestinationPath))
+                        break;
+
                     File.Copy(ProgramConstants.GamePath + SourcePath,
                         ProgramConstants.GamePath + DestinationPath, false);
                     break;
 
                 case FileOperationOptions.KeepChanges:
-                    if (File.Exists(CachedPath))
+                    if (!File.Exists(ProgramConstants.GamePath + DestinationPath))
                     {
-                        File.Copy(CachedPath, ProgramConstants.GamePath + DestinationPath, false);
-                    }
-                    else
-                    {
-                        File.Copy(ProgramConstants.GamePath + SourcePath,
-                            ProgramConstants.GamePath + DestinationPath, false);
+                        if (File.Exists(CachedPath))
+                        {
+                            File.Copy(CachedPath, ProgramConstants.GamePath + DestinationPath, false);
+                        }
+                        else
+                        {
+                            File.Copy(ProgramConstants.GamePath + SourcePath,
+                                ProgramConstants.GamePath + DestinationPath, false);
+                        }
                     }
 
                     Directory.CreateDirectory(Path.GetDirectoryName(CachedPath));
