@@ -3,113 +3,165 @@ using Rampastring.Tools;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace DTAConfig.CustomSettings
 {
     sealed class FileSourceDestinationInfo
     {
+        private readonly string destinationPath;
+        private readonly string sourcePath;
+
+        public string SourcePath => ProgramConstants.GamePath + sourcePath;
+
+        public string DestinationPath => ProgramConstants.GamePath + destinationPath;
+        /// <summary>
+        /// A path where the files edited by user are saved if
+        /// <see cref="FileOperationOptions"/> is set to <see cref="FileOperationOptions.KeepChanges"/>.
+        /// </summary>
+        public string CachedPath => ProgramConstants.ClientUserFilesPath + "SettingsCache/" + sourcePath;
+
+        public FileOperationOptions FileOperationOptions { get; }
+
         public FileSourceDestinationInfo(string source, string destination, FileOperationOptions options)
         {
-            SourcePath = source;
-            DestinationPath = destination;
+            sourcePath = source;
+            destinationPath = destination;
             FileOperationOptions = options;
         }
 
-        public string SourcePath { get; }
-        public string DestinationPath { get; }
-        public string CachedPath => ProgramConstants.ClientUserFilesPath + "SettingsCache/" + SourcePath;
-        public FileOperationOptions FileOperationOptions { get; }
+        /// <summary>
+        /// Constructs a new instance of <see cref="FileSourceDestinationInfo"/> from a given string.
+        /// </summary>
+        /// <param name="value">A string to be parsed.</param>
+        public FileSourceDestinationInfo(string value)
+        {
+            string[] parts = value.Split(',');
+            if (parts.Length < 2)
+                throw new ArgumentException($"{nameof(FileSourceDestinationInfo)}: " +
+                    $"Too few parameters specified in parsed value", nameof(value));
 
+            FileOperationOptions options = default;
+            if (parts.Length >= 3)
+                Enum.TryParse(parts[2], out options);
+
+            sourcePath = parts[0];
+            destinationPath = parts[1];
+            FileOperationOptions = options;
+        }
+
+        /// <summary>
+        /// A method which parses certain key list values from an INI section
+        /// into a list of <see cref="FileSourceDestinationInfo"/> objects.
+        /// </summary>
+        /// <param name="section">An INI section to parse key values from.</param>
+        /// <param name="iniKeyPrefix">A string to append index to when
+        /// parsing the values from key list.</param>
+        /// <returns>A <see cref="List{FileSourceDestinationInfo}"/> of all correctly defined <see cref="FileSourceDestinationInfo"/>s.</returns>
+        public static List<FileSourceDestinationInfo> ParseFSDInfoList(IniSection section, string iniKeyPrefix)
+        {
+            if (section == null)
+                throw new ArgumentNullException(nameof(section));
+
+            List<FileSourceDestinationInfo> result = new List<FileSourceDestinationInfo>();
+            string fileInfo;
+
+            for (int i = 0;
+                !string.IsNullOrWhiteSpace(
+                    fileInfo = section.GetStringValue($"{iniKeyPrefix}{i}", string.Empty));
+                i++)
+            {
+                result.Add(new FileSourceDestinationInfo(fileInfo));
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Performs file operations from <see cref="SourcePath"/> to
+        /// <see cref="DestinationPath"/> according to <see cref="FileOperationOptions"/>.
+        /// </summary>
         public void Apply()
         {
             switch (FileOperationOptions)
             {
                 case FileOperationOptions.OverwriteOnMismatch:
-                    string sourceHash = Utilities.CalculateSHA1ForFile(ProgramConstants.GamePath + SourcePath);
-                    string destinationHash = Utilities.CalculateSHA1ForFile(ProgramConstants.GamePath + DestinationPath);
+                    string sourceHash = Utilities.CalculateSHA1ForFile(SourcePath);
+                    string destinationHash = Utilities.CalculateSHA1ForFile(DestinationPath);
 
                     if (sourceHash != destinationHash)
-                    {
-                        File.Copy(ProgramConstants.GamePath + SourcePath,
-                            ProgramConstants.GamePath + DestinationPath, true);
-                    }
+                        File.Copy(SourcePath, DestinationPath, true);
 
                     break;
 
                 case FileOperationOptions.DontOverwrite:
-                    if (File.Exists(ProgramConstants.GamePath + DestinationPath))
-                        break;
+                    if (!File.Exists(DestinationPath))
+                        File.Copy(SourcePath, DestinationPath, false);
 
-                    File.Copy(ProgramConstants.GamePath + SourcePath,
-                        ProgramConstants.GamePath + DestinationPath, false);
                     break;
 
                 case FileOperationOptions.KeepChanges:
-                    if (!File.Exists(ProgramConstants.GamePath + DestinationPath))
+                    if (!File.Exists(DestinationPath))
                     {
                         if (File.Exists(CachedPath))
-                        {
-                            File.Copy(CachedPath, ProgramConstants.GamePath + DestinationPath, false);
-                        }
+                            File.Copy(CachedPath, DestinationPath, false);
                         else
-                        {
-                            File.Copy(ProgramConstants.GamePath + SourcePath,
-                                ProgramConstants.GamePath + DestinationPath, false);
-                        }
+                            File.Copy(SourcePath, DestinationPath, false);
                     }
 
                     Directory.CreateDirectory(Path.GetDirectoryName(CachedPath));
-                    File.Copy(ProgramConstants.GamePath + DestinationPath, CachedPath, true);
+                    File.Copy(DestinationPath, CachedPath, true);
 
-                    break;
-
-                case FileOperationOptions.MoveFile:
-                    File.Move(ProgramConstants.GamePath + SourcePath,
-                        ProgramConstants.GamePath + DestinationPath);
                     break;
 
                 case FileOperationOptions.AlwaysOverwrite:
-                default:
-                    File.Copy(ProgramConstants.GamePath + SourcePath,
-                        ProgramConstants.GamePath + DestinationPath, true);
+                    File.Copy(SourcePath, DestinationPath, true);
                     break;
+
+                default:
+                    throw new InvalidOperationException($"{nameof(FileSourceDestinationInfo)}: " +
+                        $"Invalid {nameof(FileOperationOptions)} value of {FileOperationOptions}");
             }
         }
 
+        /// <summary>
+        /// Performs file operations to undo changes made by <see cref="Apply"/>
+        /// to <see cref="DestinationPath"/> according to <see cref="FileOperationOptions"/>.
+        /// </summary>
         public void Revert()
         {
             switch (FileOperationOptions)
             {
-                case FileOperationOptions.MoveFile:
-                    File.Move(ProgramConstants.GamePath + DestinationPath,
-                        ProgramConstants.GamePath + SourcePath);
-                    break;
-
                 case FileOperationOptions.KeepChanges:
-                    Directory.CreateDirectory(Path.GetDirectoryName(CachedPath));
-                    File.Copy(ProgramConstants.GamePath + DestinationPath, CachedPath, true);
-                    File.Delete(ProgramConstants.GamePath + DestinationPath);
+                    if (File.Exists(DestinationPath))
+                    {
+                        Directory.CreateDirectory(Path.GetDirectoryName(CachedPath));
+                        File.Copy(DestinationPath, CachedPath, true);
+                        File.Delete(DestinationPath);
+                    }
                     break;
 
                 case FileOperationOptions.OverwriteOnMismatch:
                 case FileOperationOptions.DontOverwrite:
                 case FileOperationOptions.AlwaysOverwrite:
-                default:
-                    File.Delete(ProgramConstants.GamePath + DestinationPath);
+                    File.Delete(DestinationPath);
                     break;
+
+                default:
+                    throw new InvalidOperationException($"{nameof(FileSourceDestinationInfo)}: " +
+                        $"Invalid {nameof(FileOperationOptions)} value of {FileOperationOptions}");
             }
         }
     }
 
+    /// <summary>
+    /// Defines the expected behavior of file operations performed with
+    /// <see cref="FileSourceDestinationInfo"/>.
+    /// </summary>
     public enum FileOperationOptions
     {
         AlwaysOverwrite,
         OverwriteOnMismatch,
         DontOverwrite,
-        KeepChanges,
-        MoveFile
+        KeepChanges
     }
 }

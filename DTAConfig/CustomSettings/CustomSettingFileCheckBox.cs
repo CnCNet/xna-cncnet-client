@@ -2,7 +2,6 @@ using ClientCore;
 using ClientGUI;
 using Rampastring.Tools;
 using Rampastring.XNAUI;
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -24,9 +23,10 @@ namespace DTAConfig.CustomSettings
 
         private bool defaultValue;
         private bool originalState;
-        private bool restartRequired;
-        private bool checkFilePresence;
-        private bool resetUnselectableItem;
+
+        public bool RestartRequired { get; private set; }
+        public bool CheckAvailability { get; private set; }
+        public bool ResetUnavailableValue { get; private set; }
 
         public override void GetAttributes(IniFile iniFile)
         {
@@ -37,53 +37,8 @@ namespace DTAConfig.CustomSettings
             if (section == null)
                 return;
 
-            int i = 0;
-            while (true)
-            {
-                string fileInfo = section.GetStringValue($"EnabledFile{i}", string.Empty);
-
-                if (string.IsNullOrWhiteSpace(fileInfo))
-                    break;
-
-                string[] parts = fileInfo.Split(',');
-                if (parts.Length < 2)
-                {
-                    Logger.Log($"Invalid CustomSettingFileCheckBox information in {Name}: {fileInfo}");
-                    continue;
-                }
-
-                FileOperationOptions options = default;
-                if (parts.Length >= 3)
-                    Enum.TryParse(parts[2], out options);
-
-                enabledFiles.Add(new FileSourceDestinationInfo(parts[0], parts[1], options));
-
-                i++;
-            }
-
-            i = 0;
-            while (true)
-            {
-                string fileInfo = section.GetStringValue($"DisabledFile{i}", string.Empty);
-
-                if (string.IsNullOrWhiteSpace(fileInfo))
-                    break;
-
-                string[] parts = fileInfo.Split(',');
-                if (parts.Length < 2)
-                {
-                    Logger.Log($"Invalid CustomSettingFileCheckBox information in {Name}: {fileInfo}");
-                    continue;
-                }
-
-                FileOperationOptions options = default;
-                if (parts.Length >= 3)
-                    Enum.TryParse(parts[2], out options);
-
-                disabledFiles.Add(new FileSourceDestinationInfo(parts[0], parts[1], options));
-
-                i++;
-            }
+            enabledFiles = FileSourceDestinationInfo.ParseFSDInfoList(section, "EnabledFile");
+            disabledFiles = FileSourceDestinationInfo.ParseFSDInfoList(section, "DisabledFile");
         }
 
         public override void ParseAttributeFromINI(IniFile iniFile, string key, string value)
@@ -93,14 +48,14 @@ namespace DTAConfig.CustomSettings
                 case "DefaultValue":
                     defaultValue = Conversions.BooleanFromString(value, false);
                     return;
-                case "CheckFilePresence":
-                    checkFilePresence = Conversions.BooleanFromString(value, false);
+                case "CheckAvailability":
+                    CheckAvailability = Conversions.BooleanFromString(value, false);
                     return;
-                case "ResetUnselectableItem":
-                    resetUnselectableItem = Conversions.BooleanFromString(value, false);
+                case "ResetUnavailableValue":
+                    ResetUnavailableValue = Conversions.BooleanFromString(value, false);
                     return;
                 case "RestartRequired":
-                    restartRequired = Conversions.BooleanFromString(value, false);
+                    RestartRequired = Conversions.BooleanFromString(value, false);
                     return;
             }
 
@@ -117,11 +72,11 @@ namespace DTAConfig.CustomSettings
         {
             bool currentValue = Checked;
 
-            if (checkFilePresence)
+            if (CheckAvailability)
             {
                 Enabled = true;
                 
-                if (resetUnselectableItem)
+                if (ResetUnavailableValue)
                 {
                     if (DisabledFilesComplete != EnabledFilesComplete)
                         Checked = EnabledFilesComplete;
@@ -135,8 +90,10 @@ namespace DTAConfig.CustomSettings
 
         public bool Save()
         {
-            bool canBeChecked = !checkFilePresence || EnabledFilesComplete;
-            bool canBeUnchecked = !checkFilePresence || DisabledFilesComplete;
+            UserINISettings.Instance.SetCustomSettingValue(Name, Checked);
+
+            bool canBeChecked = !CheckAvailability || EnabledFilesComplete;
+            bool canBeUnchecked = !CheckAvailability || DisabledFilesComplete;
 
             if (Checked && canBeChecked)
             {
@@ -148,14 +105,14 @@ namespace DTAConfig.CustomSettings
                 enabledFiles.ForEach(f => f.Revert());
                 disabledFiles.ForEach(f => f.Apply());
             }
-            else // undefined state, the checkbox is bork, don't continue
+            else // selected state is unavailable, don't do anything
             {
+                Logger.Log($"{nameof(CustomSettingFileCheckBox)}: " +
+                    $"The selected state ({Checked}) is unavailable in {Name}");
                 return false;
             }
 
-            UserINISettings.Instance.SetCustomSettingValue(Name, Checked);
-
-            return restartRequired && (Checked != originalState);
+            return RestartRequired && (Checked != originalState);
         }
     }
 }

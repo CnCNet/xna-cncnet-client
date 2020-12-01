@@ -3,6 +3,23 @@
     interface ICustomSetting
     {
         /// <summary>
+        /// Determines if this option requires the client to be restarted
+        /// in order to be correctly applied.
+        /// </summary>
+        bool RestartRequired { get; }
+
+        /// <summary>
+        /// Determines if the option availability is checked on runtime.
+        /// </summary>
+        bool CheckAvailability { get; }
+
+        /// <summary>
+        /// Determines if the client would adjust the setting value automatically
+        /// if the current value becomes unavailable.
+        /// </summary>
+        bool ResetUnavailableValue { get; }
+
+        /// <summary>
         /// Loads the current value for the custom setting.
         /// </summary>
         void Load();

@@ -55,18 +55,8 @@ namespace DTAConfig.OptionPanels
 
             foreach (var control in Children)
             {
-                switch (control)
-                {
-                    case FileSettingCheckBox controlAsFileSettingCheckBox:
-                        customSettings.Add(controlAsFileSettingCheckBox);
-                        break;
-                    case CustomSettingFileCheckBox controlAsAdvancedFileCheckBox:
-                        customSettings.Add(controlAsAdvancedFileCheckBox);
-                        break;
-                    case CustomSettingFileDropDown controlAsFileSettingDropDown:
-                        customSettings.Add(controlAsFileSettingDropDown);
-                        break;
-                }
+                if (control is ICustomSetting setting)
+                    customSettings.Add(setting);
             }
         }
 

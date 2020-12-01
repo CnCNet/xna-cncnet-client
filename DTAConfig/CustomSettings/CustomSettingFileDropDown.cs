@@ -3,7 +3,6 @@ using ClientGUI;
 using Rampastring.Tools;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
-using System;
 using System.Collections.Generic;
 using System.IO;
 
@@ -20,9 +19,10 @@ namespace DTAConfig.CustomSettings
 
         private int defaultValue;
         private int originalState;
-        private bool restartRequired;
-        private bool checkFilePresence;
-        private bool resetUnselectableItem;
+
+        public bool RestartRequired { get; private set; }
+        public bool CheckAvailability { get; private set; }
+        public bool ResetUnavailableValue { get; private set; }
 
         public override void GetAttributes(IniFile iniFile)
         {
@@ -33,32 +33,7 @@ namespace DTAConfig.CustomSettings
                 return;
 
             for (int i = 0; i < Items.Count; i++)
-            {
-                itemFilesList.Add(new List<FileSourceDestinationInfo>());
-                int j = 0;
-                while (true)
-                {
-                    string fileInfo = section.GetStringValue($"Item{i}File{j}", string.Empty);
-
-                    if (string.IsNullOrWhiteSpace(fileInfo))
-                        break;
-
-                    string[] parts = fileInfo.Split(',');
-                    if (parts.Length < 2)
-                    {
-                        Logger.Log($"Invalid CustomSettingFileDropDown information in {Name}: {fileInfo}");
-                        continue;
-                    }
-                    
-                    FileOperationOptions options = default;
-                    if (parts.Length >= 3)
-                        Enum.TryParse(parts[2], out options);
-
-                    itemFilesList[i].Add(new FileSourceDestinationInfo(parts[0], parts[1], options));
-
-                    j++;
-                }
-            }
+                itemFilesList.Add(FileSourceDestinationInfo.ParseFSDInfoList(section, $"Item{i}File"));
         }
 
         public override void ParseAttributeFromINI(IniFile iniFile, string key, string value)
@@ -77,14 +52,14 @@ namespace DTAConfig.CustomSettings
                 case "DefaultValue":
                     defaultValue = Conversions.IntFromString(value, 0);
                     return;
-                case "CheckFilePresence":
-                    checkFilePresence = Conversions.BooleanFromString(value, false);
+                case "CheckAvailability":
+                    CheckAvailability = Conversions.BooleanFromString(value, false);
                     return;
-                case "ResetUnselectableItem":
-                    resetUnselectableItem = Conversions.BooleanFromString(value, false);
+                case "ResetUnavailableValue":
+                    ResetUnavailableValue = Conversions.BooleanFromString(value, false);
                     return;
                 case "RestartRequired":
-                    restartRequired = Conversions.BooleanFromString(value, false);
+                    RestartRequired = Conversions.BooleanFromString(value, false);
                     return;
             }
 
@@ -101,7 +76,7 @@ namespace DTAConfig.CustomSettings
         {
             int currentValue = SelectedIndex;
 
-            if (checkFilePresence)
+            if (CheckAvailability)
             {
                 for (int i = 0; i < Items.Count; i++)
                 {
@@ -116,7 +91,7 @@ namespace DTAConfig.CustomSettings
                     }
                 }
 
-                if (resetUnselectableItem && !Items[SelectedIndex].Selectable)
+                if (ResetUnavailableValue && !Items[SelectedIndex].Selectable)
                     SelectedIndex = defaultValue;
             }
 
@@ -125,15 +100,26 @@ namespace DTAConfig.CustomSettings
 
         public bool Save()
         {
-            foreach (var list in itemFilesList)
-                list.ForEach(f => f.Revert());
-
-            if (Items[SelectedIndex].Selectable)
-                itemFilesList[SelectedIndex].ForEach(f => f.Apply());
-            
             UserINISettings.Instance.SetCustomSettingValue(Name, SelectedIndex);
 
-            return restartRequired && (SelectedIndex != originalState);
+            if (Items[SelectedIndex].Selectable)
+            {
+                for (int i = 0; i < itemFilesList.Count; i++)
+                {
+                    if (i != SelectedIndex)
+                        itemFilesList[i].ForEach(f => f.Revert());
+                }
+
+                itemFilesList[SelectedIndex].ForEach(f => f.Apply());
+            }
+            else // selected item is unavailable, don't do anything
+            {
+                Logger.Log($"{nameof(CustomSettingFileDropDown)}: " +
+                    $"The selected item ({Items[SelectedIndex].Text}) is unavailable in {Name}");
+                return false;
+            }
+
+            return RestartRequired && (SelectedIndex != originalState);
         }
     }
 }

@@ -13,7 +13,7 @@ namespace ClientCore
         private const string MULTIPLAYER = "MultiPlayer";
         private const string OPTIONS = "Options";
         private const string AUDIO = "Audio";
-        private const string CUSTOM_SETTINGS = "Custom Settings";
+        private const string CUSTOM_SETTINGS = "CustomSettings";
         private const string COMPATIBILITY = "Compatibility";
 
         public static UserINISettings Instance
@@ -41,10 +41,6 @@ namespace ClientCore
         {
             SettingsIni = iniFile;
 
-            const string VIDEO = "Video";
-            const string MULTIPLAYER = "MultiPlayer";
-            const string OPTIONS = "Options";
-            const string AUDIO = "Audio";
 #if YR || ARES
             const string WINDOWED_MODE_KEY = "Video.Windowed";
             BackBufferInVRAM = new BoolSetting(iniFile, VIDEO, "VideoBackBuffer", false);

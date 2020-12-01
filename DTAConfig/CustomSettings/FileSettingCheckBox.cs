@@ -1,8 +1,6 @@
-using ClientCore;
 using ClientGUI;
 using Rampastring.Tools;
 using Rampastring.XNAUI;
-using System;
 using System.Collections.Generic;
 using System.IO;
 
@@ -19,14 +17,21 @@ namespace DTAConfig.CustomSettings
             string sourceFilePath, string destinationFilePath, FileOperationOptions options,
             bool reversed) : base(windowManager)
         {
-            files.Add(new FileSourceDestinationInfo(sourceFilePath, destinationFilePath, options));
+            files = new List<FileSourceDestinationInfo>
+            {
+                new FileSourceDestinationInfo(sourceFilePath, destinationFilePath, options)
+            };
+
             this.reversed = reversed;
         }
 
-        private List<FileSourceDestinationInfo> files = new List<FileSourceDestinationInfo>();
+        private List<FileSourceDestinationInfo> files;
         private bool reversed;
         private bool originalState;
-        private bool restartRequired;
+
+        public bool RestartRequired { get; private set; }
+        public bool CheckAvailability { get; private set; }
+        public bool ResetUnavailableValue { get; private set; }
 
         public override void GetAttributes(IniFile iniFile)
         {
@@ -37,29 +42,7 @@ namespace DTAConfig.CustomSettings
             if (section == null)
                 return;
 
-            int i = 0;
-            while (true)
-            {
-                string fileInfo = section.GetStringValue($"File{i}", string.Empty);
-
-                if (string.IsNullOrWhiteSpace(fileInfo))
-                    break;
-
-                string[] parts = fileInfo.Split(',');
-                if (parts.Length < 2)
-                {
-                    Logger.Log($"Invalid FileSettingCheckBox information in {Name}: {fileInfo}");
-                    continue;
-                }
-
-                FileOperationOptions options = default;
-                if (parts.Length >= 3)
-                    Enum.TryParse(parts[2], out options);
-
-                files.Add(new FileSourceDestinationInfo(parts[0], parts[1], options));
-
-                i++;
-            }
+            files = FileSourceDestinationInfo.ParseFSDInfoList(section, "File");
         }
 
         public override void ParseAttributeFromINI(IniFile iniFile, string key, string value)
@@ -70,7 +53,7 @@ namespace DTAConfig.CustomSettings
                     reversed = Conversions.BooleanFromString(value, false);
                     return;
                 case "RestartRequired":
-                    restartRequired = Conversions.BooleanFromString(value, false);
+                    RestartRequired = Conversions.BooleanFromString(value, false);
                     return;
             }
 
@@ -79,7 +62,7 @@ namespace DTAConfig.CustomSettings
 
         public void Load()
         {
-            Checked = reversed != File.Exists(ProgramConstants.GamePath + files[0].DestinationPath);
+            Checked = reversed != File.Exists(files[0].DestinationPath);
             originalState = Checked;
         }
 
@@ -94,7 +77,7 @@ namespace DTAConfig.CustomSettings
             else
                 files.ForEach(f => f.Revert());
 
-            return restartRequired && (Checked != originalState);
+            return RestartRequired && (Checked != originalState);
         }
     }
 }
