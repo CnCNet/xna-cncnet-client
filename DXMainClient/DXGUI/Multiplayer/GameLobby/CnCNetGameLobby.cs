@@ -268,6 +268,17 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             }
         }
 
+        protected override void CopyPlayerDataToUI()
+        {
+            base.CopyPlayerDataToUI();
+
+            for (int i = AIPlayers.Count + Players.Count; i < MAX_PLAYER_COUNT; i++)
+            {
+                StatusIndicators[i].SwitchTexture(
+                    i < playerLimit ? PlayerSlotState.Empty : PlayerSlotState.Unavailable);
+            }
+        }
+
         private void PrintTunnelServerInformation(string s)
         {
             if (tunnelHandler.CurrentTunnel == null)
@@ -533,9 +544,13 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     AddNotice("Player limit reached; the game room has been locked.");
                 else
                     AddNotice("The game host has locked the game room.");
+                Locked = true;
             }
             else if (e.ModeString == "-i")
+            {
                 AddNotice("The game room has been unlocked.");
+                Locked = false;
+            }
         }
 
         private void Channel_CTCPReceived(object sender, ChannelCTCPEventArgs e)
@@ -609,7 +624,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             }
 
             Players.ForEach(pInfo => pInfo.IsInGame = true);
-
+            CopyPlayerDataToUI();
             StartGame();
         }
 
@@ -1348,6 +1363,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 pInfo.IsInGame = false;
 
             sndReturnSound.Play();
+            CopyPlayerDataToUI();
         }
 
         private void HandleTunnelPing(string sender, int ping)
@@ -1369,6 +1385,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             if (pInfo != null)
                 pInfo.Verified = true;
+            CopyPlayerDataToUI();
 
             if (filesHash != gameFilesHash)
             {

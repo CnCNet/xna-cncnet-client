@@ -53,7 +53,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             };
         }
 
-        protected XNACheckBox[] ReadyBoxes;
+        protected XNAPlayerSlotIndicator[] StatusIndicators;
 
         protected ChatListBox lbChatMessages;
         protected XNAChatTextBox tbChatInput;
@@ -71,11 +71,14 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 bool oldLocked = locked;
                 locked = value;
                 if (oldLocked != value)
+                {
+                    CopyPlayerDataToUI();
                     UpdateDiscordPresence();
+                }
             }
         }
 
-        protected bool DisableSpectatorReadyChecking = false;
+        // protected bool DisableSpectatorReadyChecking = false;
 
         protected EnhancedSoundEffect sndJoinSound;
         protected EnhancedSoundEffect sndLeaveSound;
@@ -118,7 +121,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             base.Initialize();
 
-            DisableSpectatorReadyChecking = GameOptionsIni.GetBooleanValue("General", "DisableSpectatorReadyChecking", false);
+            // DisableSpectatorReadyChecking = GameOptionsIni.GetBooleanValue("General", "DisableSpectatorReadyChecking", false);
 
             PingTextures = new Texture2D[5]
             {
@@ -131,26 +134,21 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             InitPlayerOptionDropdowns();
 
-            ReadyBoxes = new XNACheckBox[MAX_PLAYER_COUNT];
+            StatusIndicators = new XNAPlayerSlotIndicator[MAX_PLAYER_COUNT];
 
-            int readyBoxX = GameOptionsIni.GetIntValue(Name, "PlayerReadyBoxX", 7);
-            int readyBoxY = GameOptionsIni.GetIntValue(Name, "PlayerReadyBoxY", 4);
+            int statusIndicatorX = GameOptionsIni.GetIntValue(Name, "PlayerStatusIndicatorX", 0);
+            int statusIndicatorY = GameOptionsIni.GetIntValue(Name, "PlayerStatusIndicatorY", 0);
 
             for (int i = 0; i < MAX_PLAYER_COUNT; i++)
             {
-                XNACheckBox chkPlayerReady = new XNACheckBox(WindowManager);
-                chkPlayerReady.Name = "chkPlayerReady" + i;
-                chkPlayerReady.Checked = false;
-                chkPlayerReady.AllowChecking = false;
-                chkPlayerReady.ClientRectangle = new Rectangle(readyBoxX, ddPlayerTeams[i].Y + readyBoxY,
+                var indicatorPlayerReady = new XNAPlayerSlotIndicator(WindowManager);
+                indicatorPlayerReady.Name = "playerStatusIndicator" + i;
+                indicatorPlayerReady.ClientRectangle = new Rectangle(statusIndicatorX, ddPlayerTeams[i].Y + statusIndicatorY,
                     0, 0);
 
-                PlayerOptionsPanel.AddChild(chkPlayerReady);
+                PlayerOptionsPanel.AddChild(indicatorPlayerReady);
 
-                chkPlayerReady.DisabledClearTexture = chkPlayerReady.ClearTexture;
-                chkPlayerReady.DisabledCheckedTexture = chkPlayerReady.CheckedTexture;
-
-                ReadyBoxes[i] = chkPlayerReady;
+                StatusIndicators[i] = indicatorPlayerReady;
                 ddPlayerSides[i].AddItem("Spectator", AssetLoader.LoadTexture("spectatoricon.png"));
             }
 
@@ -271,6 +269,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (fsw != null)
                 fsw.EnableRaisingEvents = true;
 
+            for (int pId = 0; pId < Players.Count; pId++)
+            {
+                Players[pId].IsInGame = true;
+            }
+
             base.StartGame();
         }
 
@@ -280,6 +283,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             if (fsw != null)
                 fsw.EnableRaisingEvents = false;
+
+            PlayerInfo pInfo = Players.Find(p => p.Name == ProgramConstants.PLAYERNAME);
+            pInfo.IsInGame = false;
 
             base.GameProcessExited();
 
@@ -616,6 +622,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             IsHost = isHost;
             Locked = false;
+            CopyPlayerDataToUI();
 
             UpdateMapPreviewBoxEnabledStatus();
             //MapPreviewBox.EnableContextMenu = IsHost;
@@ -850,6 +857,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     StillInGameNotification(iId - 1);
                     return;
                 }
+                /*
                 if (DisableSpectatorReadyChecking)
                 {
                     // Only account ready status if player is not a spectator
@@ -866,6 +874,13 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                         GetReadyNotification();
                         return;
                     }
+                }
+                */
+
+                if (!player.Ready)
+                {
+                    GetReadyNotification();
+                    return;
                 }
                 
             }
@@ -977,20 +992,55 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     ddPlayerNames[pId].AllowDropDown = true;
             }
 
+            // Player statuses
             for (int pId = 0; pId < Players.Count; pId++)
             {
-                ReadyBoxes[pId].Checked = Players[pId].Ready;
+                /* if (pId != 0 && !Players[pId].Verified) // If player is not verified (not counting the host)
+                {
+                    StatusIndicators[pId].SwitchTexture("error");
+                }
+                else */ if (Players[pId].IsInGame) // If player is ingame
+                {
+                    StatusIndicators[pId].SwitchTexture(PlayerSlotState.InGame);
+                }
+                else if (pId == 0) // If player is host
+                {
+                    StatusIndicators[pId].SwitchTexture(Locked ? PlayerSlotState.Ready : PlayerSlotState.NotReady); // Display room lock
+                }
+                else
+                {
+                    // StatusIndicators[pId].SwitchTexture(
+                    //     (IsPlayerSpectator(Players[pId]) && DisableSpectatorReadyChecking) 
+                    //     ? "okDisabled" : "ok");
+                    StatusIndicators[pId].SwitchTexture(Players[pId].Ready ? PlayerSlotState.Ready : PlayerSlotState.NotReady);
+                }
+                /*
+                else
+                {
+                    // StatusIndicators[pId].SwitchTexture(
+                    //     (IsPlayerSpectator(Players[pId]) && DisableSpectatorReadyChecking) 
+                    //     ? "offDisabled" : "off");
+
+                }
+                */
+
                 UpdatePlayerPingIndicator(Players[pId]);
             }
 
+            // AI statuses
             for (int aiId = 0; aiId < AIPlayers.Count; aiId++)
             {
-                ReadyBoxes[aiId + Players.Count].Checked = true;
+                StatusIndicators[aiId + Players.Count].SwitchTexture(
+                    IsPlayerSpectator(AIPlayers[aiId]) ? PlayerSlotState.Error : PlayerSlotState.AI);
+
+                if (IsPlayerSpectator(AIPlayers[aiId]))
+                    StatusIndicators[aiId + Players.Count].ToolTip.Text += Environment.NewLine + "AI players can't be spectators.";
             }
 
+            // Empty slot statuses
             for (int i = AIPlayers.Count + Players.Count; i < MAX_PLAYER_COUNT; i++)
             {
-                ReadyBoxes[i].Checked = false;
+                StatusIndicators[i].SwitchTexture(PlayerSlotState.Empty);
             }
         }
 

@@ -87,6 +87,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             PlayerInfo pInfo = Players.Find(p => p.Name == sender);
 
             pInfo.Verified = true;
+            CopyPlayerDataToUI();
         }
 
         public event EventHandler<LobbyNotificationEventArgs> LobbyNotification;
@@ -665,6 +666,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 pInfo.IsInGame = false;
 
             sndReturnSound.Play();
+            CopyPlayerDataToUI();
         }
 
         public override void Update(GameTime gameTime)
@@ -1051,6 +1053,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (UniqueGameID < 0)
                 return;
 
+            CopyPlayerDataToUI();
             StartGame();
         }
 

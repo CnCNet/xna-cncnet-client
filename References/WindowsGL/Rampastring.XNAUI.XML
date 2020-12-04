@@ -317,6 +317,80 @@
             The control is drawn on its own render target.
             </summary>
         </member>
+        <member name="T:Rampastring.XNAUI.XNAControls.XNAIndicator`1">
+            <summary>
+            An indicator with dynamic textures pool.
+            </summary>
+            <typeparam name="T">The type of the enum that specifies the possible indicator states.</typeparam>
+        </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNAIndicator`1.#ctor(Rampastring.XNAUI.WindowManager)">
+            <summary>
+            Creates a new indicator.
+            </summary>
+            <param name="windowManager">The window manager.</param>
+        </member>
+        <member name="P:Rampastring.XNAUI.XNAControls.XNAIndicator`1.Textures">
+            <summary>
+            Contains a pool of textures for indicator.
+            </summary>
+        </member>
+        <member name="P:Rampastring.XNAUI.XNAControls.XNAIndicator`1.CurrentTexture">
+            <summary>
+            Determines the currently displayed texture.
+            </summary>
+        </member>
+        <member name="P:Rampastring.XNAUI.XNAControls.XNAIndicator`1.FontIndex">
+            <summary>
+            The index of the text font.
+            </summary>
+        </member>
+        <member name="P:Rampastring.XNAUI.XNAControls.XNAIndicator`1.TextPadding">
+            <summary>
+            The space, in pixels, between the indicator and its text.
+            </summary>
+        </member>
+        <member name="P:Rampastring.XNAUI.XNAControls.XNAIndicator`1.IdleColor">
+            <summary>
+            The color of the indicator's text when it's not hovered on.
+            </summary>
+        </member>
+        <member name="P:Rampastring.XNAUI.XNAControls.XNAIndicator`1.HighlightColor">
+            <summary>
+            The color of the indicator's text when it's hovered on.
+            </summary>
+        </member>
+        <member name="P:Rampastring.XNAUI.XNAControls.XNAIndicator`1.Text">
+            <summary>
+            Gets or sets the text of the indicator.
+            </summary>
+        </member>
+        <member name="P:Rampastring.XNAUI.XNAControls.XNAIndicator`1.TextLocationY">
+            <summary>
+            The Y coordinate of the indicator text
+            relative to the location of the indicator.
+            </summary>
+        </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNAIndicator`1.SwitchTexture(`0)">
+            <summary>
+            Switches the texture of the indicator.
+            </summary>
+            <param name="key">The enum texture key.</param>
+        </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNAIndicator`1.SetTextPositionAndSize">
+            <summary>
+            Updates the size of the indicator and the vertical position of its text.
+            </summary>
+        </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNAIndicator`1.Update(Microsoft.Xna.Framework.GameTime)">
+            <summary>
+            Updates the indicator's alpha each frame.
+            </summary>
+        </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNAIndicator`1.Draw(Microsoft.Xna.Framework.GameTime)">
+            <summary>
+            Draws the indicator.
+            </summary>
+        </member>
         <member name="T:Rampastring.XNAUI.XNAControls.XNALinkLabel">
             <summary>
             A label that is underlined and changes its color when hovered on.
@@ -581,6 +655,20 @@
             The end character index of the visible part of the text string.
             </summary>
         </member>
+        <member name="P:Rampastring.XNAUI.XNAControls.XNATextBox.PreviousControl">
+            <summary>
+            The control to switch selection state to when
+            the user presses Tab while holding Shift.
+            See also <see cref="P:Rampastring.XNAUI.XNAControls.XNATextBox.NextControl"/>.
+            </summary>
+        </member>
+        <member name="P:Rampastring.XNAUI.XNAControls.XNATextBox.NextControl">
+            <summary>
+            The control to switch selection state to when
+            the user presses Tab without holding Shift.
+            See also <see cref="P:Rampastring.XNAUI.XNAControls.XNATextBox.PreviousControl"/>.
+            </summary>
+        </member>
         <member name="M:Rampastring.XNAUI.XNAControls.XNATextBox.Initialize">
             <summary>
             Initializes the text box.
@@ -596,6 +684,7 @@
             <summary>
             Handles a key press while the text box is the selected control.
             Can be overridden in derived classes to handle additional key presses.
+            Returns true if the key was handled.
             </summary>
             <param name="key">The key that was pressed.</param>
         </member>
@@ -1782,8 +1871,8 @@
         </member>
         <member name="T:Rampastring.XNAUI.XNAControls.XNATextRenderer">
             <summary>
-            A text renderer.
-            Takes <see cref="T:Rampastring.XNAUI.XNAControls.XNATextPart"/>s, automatically formats them, applied line
+            A text renderer, practically an enhanced label control.
+            Takes <see cref="T:Rampastring.XNAUI.XNAControls.XNATextPart"/>s, automatically formats them, applies line
             breaks if necessary and renders them.
             </summary>
         </member>
