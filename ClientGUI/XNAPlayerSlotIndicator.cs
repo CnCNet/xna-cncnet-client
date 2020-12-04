@@ -76,6 +76,10 @@ namespace ClientGUI
                     ToolTip.Text = "The player is ready.";
                     break;
 
+                case PlayerSlotState.InGame:
+                    ToolTip.Text = "The player is in game.";
+                    break;
+
                 case PlayerSlotState.Warning:
                     ToolTip.Text = "The player has some issue(s) that may impact gameplay.";
                     break;
