@@ -105,7 +105,8 @@ namespace ClientCore
             PreloadMapPreviews = new BoolSetting(iniFile, VIDEO, "PreloadMapPreviews", false);
             ForceLowestDetailLevel = new BoolSetting(iniFile, VIDEO, "ForceLowestDetailLevel", false);
             MinimizeWindowsOnGameStart = new BoolSetting(iniFile, OPTIONS, "MinimizeWindowsOnGameStart", true);
-            AutoRemoveUnderscoresFromName = new BoolSetting(iniFile, OPTIONS, "AutoRemoveUnderscoresFromName", true);
+            AutoRemoveUnderscoresFromName = new BoolSetting(iniFile, OPTIONS, "AutoRemoveUnderscoresFromName", true); 
+            AutoRemoveNonASCIIFromName = new BoolSetting(iniFile, OPTIONS, "AutoRemoveNonASCIIFromName", true);
         }
 
         public IniFile SettingsIni { get; private set; }
@@ -203,6 +204,8 @@ namespace ClientCore
         public BoolSetting MinimizeWindowsOnGameStart { get; private set; }
 
         public BoolSetting AutoRemoveUnderscoresFromName { get; private set; }
+
+        public BoolSetting AutoRemoveNonASCIIFromName { get; private set; }
 
         public bool IsGameFollowed(string gameName)
         {

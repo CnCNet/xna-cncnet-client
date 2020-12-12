@@ -124,19 +124,24 @@ namespace DTAClient.DXGUI
             Components.Add(wm);
 
             string playerName = UserINISettings.Instance.PlayerName.Value.Trim();
-            
+
+            if (String.IsNullOrEmpty(playerName))
+                playerName = WindowsIdentity.GetCurrent().Name.Split(new char[] { '\\' }, 2)[1];
+
+            if (UserINISettings.Instance.AutoRemoveNonASCIIFromName)
+            {
+                byte[] playerNameAsciiBytes = System.Text.Encoding.ASCII.GetBytes(playerName);
+                playerName = System.Text.Encoding.ASCII.GetString(playerNameAsciiBytes);
+            }
+
             if (UserINISettings.Instance.AutoRemoveUnderscoresFromName)
             {
                 while (playerName.EndsWith("_"))
                     playerName = playerName.Substring(0, playerName.Length - 1);
             }
 
-            if (string.IsNullOrEmpty(playerName))
-            {
-                playerName = WindowsIdentity.GetCurrent().Name;
-
-                playerName = playerName.Substring(playerName.IndexOf("\\") + 1);
-            }
+            if (String.IsNullOrEmpty(playerName))
+                playerName = "NewPlayer";
 
             playerName = Renderer.GetSafeString(NameValidator.GetValidOfflineName(playerName), 0);
 
