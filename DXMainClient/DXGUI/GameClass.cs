@@ -136,8 +136,7 @@ namespace DTAClient.DXGUI
 
             if (UserINISettings.Instance.AutoRemoveUnderscoresFromName)
             {
-                while (playerName.EndsWith("_"))
-                    playerName = playerName.Substring(0, playerName.Length - 1);
+                playerName = playerName.TrimEnd(new char[] { '_' });
             }
 
             if (String.IsNullOrEmpty(playerName))
