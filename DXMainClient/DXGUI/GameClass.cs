@@ -125,27 +125,6 @@ namespace DTAClient.DXGUI
             Components.Add(wm);
 
             string playerName = UserINISettings.Instance.PlayerName.Value.Trim();
-
-            if (String.IsNullOrEmpty(playerName))
-                playerName = WindowsIdentity.GetCurrent().Name.Split(new char[] { '\\' }, 2)[1];
-
-            if (UserINISettings.Instance.AutoRemoveNonASCIIFromName)
-            {
-                byte[] playerNameAsciiBytes = System.Text.Encoding.ASCII.GetBytes(playerName);
-                playerName = System.Text.Encoding.ASCII.GetString(playerNameAsciiBytes);
-
-                // remove invisible ASCII characters, e.g. control characters
-                playerName = new string(playerName.ToList().Where(c => c >= 32 && c <= 127).ToArray());
-            }
-
-            if (UserINISettings.Instance.AutoRemoveUnderscoresFromName)
-            {
-                playerName = playerName.TrimEnd(new char[] { '_' });
-            }
-
-            if (String.IsNullOrWhiteSpace(playerName))
-                playerName = "NewPlayer";
-
             playerName = Renderer.GetSafeString(NameValidator.GetValidOfflineName(playerName), 0);
 
             ProgramConstants.PLAYERNAME = playerName;

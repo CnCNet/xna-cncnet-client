@@ -1,4 +1,5 @@
 using ClientCore;
+using ClientCore.CnCNet5;
 using ClientGUI;
 using DTAClient.Domain;
 using DTAClient.Domain.Multiplayer.CnCNet;
@@ -380,7 +381,7 @@ namespace DTAClient.DXGUI.Generic
             }
 
             if (!connectionManager.IsConnected)
-                ProgramConstants.PLAYERNAME = UserINISettings.Instance.PlayerName;
+                ProgramConstants.PLAYERNAME = Renderer.GetSafeString(NameValidator.GetValidOfflineName(UserINISettings.Instance.PlayerName), 0);
         }
 
         /// <summary>
