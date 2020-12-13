@@ -33,6 +33,7 @@ copy Ionic.Zip.dll %commonBinaries%Ionic.Zip.dll
 copy Rampastring.Tools.dll %commonBinaries%Rampastring.Tools.dll
 copy Newtonsoft.Json.dll %commonBinaries%Newtonsoft.Json.dll
 copy DiscordRPC.dll %commonBinaries%DiscordRPC.dll
+copy lzo.net.dll %commonBinaries%lzo.net.dll
 
 echo Windows
 copy DTAClient.exe %cr%clientdx.exe

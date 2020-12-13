@@ -43,7 +43,6 @@
     <DefineConstants>TRACE;DEBUG</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|SharpDX' ">
@@ -54,7 +53,6 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|WindowsGL' ">
@@ -86,7 +84,6 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|XNAFramework' ">
     <PlatformTarget>x86</PlatformTarget>
@@ -98,7 +95,6 @@
     <WarningLevel>4</WarningLevel>
     <PlatformTarget>x86</PlatformTarget>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'TSRelease|SharpDX' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -108,7 +104,6 @@
     <DefineConstants>TRACE;TS</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'TSRelease|WindowsGL' ">
@@ -119,7 +114,6 @@
     <DefineConstants>TRACE;WINDOWSGL TS</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'TSRelease|XNAFramework' ">
@@ -132,7 +126,6 @@
     <WarningLevel>4</WarningLevel>
     <PlatformTarget>x86</PlatformTarget>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'YRRelease|SharpDX' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -142,7 +135,6 @@
     <DefineConstants>TRACE;YR</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'YRRelease|WindowsGL' ">
@@ -153,7 +145,6 @@
     <DefineConstants>TRACE;WINDOWSGL YR</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'YRRelease|XNAFramework' ">
@@ -166,7 +157,6 @@
     <WarningLevel>4</WarningLevel>
     <PlatformTarget>x86</PlatformTarget>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup>
     <ApplicationIcon>clienticon.ico</ApplicationIcon>
@@ -198,14 +188,12 @@
     <Optimize>false</Optimize>
     <OutputPath>bin\WindowsGL\Debug</OutputPath>
     <WarningLevel>4</WarningLevel>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|WindowsGL' ">
     <Optimize>true</Optimize>
     <OutputPath>bin\WindowsGL\Release</OutputPath>
     <WarningLevel>4</WarningLevel>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(RunConfiguration)' == 'Linux' ">
@@ -222,7 +210,6 @@
     <DebugType>pdbonly</DebugType>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <ErrorReport>prompt</ErrorReport>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'AresRelease|WindowsGL' ">
@@ -232,7 +219,6 @@
     <PlatformTarget>AnyCPU</PlatformTarget>
     <ErrorReport>prompt</ErrorReport>
     <Optimize>true</Optimize>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'AresRelease|XNAFramework' ">
@@ -243,14 +229,12 @@
     <PlatformTarget>x86</PlatformTarget>
     <ErrorReport>prompt</ErrorReport>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'AresDebug|SharpDX'">
     <DebugSymbols>true</DebugSymbols>
     <OutputPath>bin\SharpDX\Debug\</OutputPath>
     <DefineConstants>TRACE;DEBUG;ARES</DefineConstants>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <DebugType>full</DebugType>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <LangVersion>7.3</LangVersion>
@@ -262,7 +246,6 @@
     <DebugSymbols>true</DebugSymbols>
     <OutputPath>bin\WindowsGL\Debug\</OutputPath>
     <DefineConstants>TRACE;DEBUG;WINDOWSGL ARES</DefineConstants>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <DebugType>full</DebugType>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <LangVersion>7.3</LangVersion>
@@ -274,7 +257,6 @@
     <DebugSymbols>true</DebugSymbols>
     <OutputPath>bin\XNAFramework\Debug\</OutputPath>
     <DefineConstants>TRACE;DEBUG;XNA ARES</DefineConstants>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <DebugType>full</DebugType>
     <PlatformTarget>x86</PlatformTarget>
     <LangVersion>7.3</LangVersion>
@@ -286,7 +268,6 @@
     <DebugSymbols>true</DebugSymbols>
     <OutputPath>bin\SharpDX\Debug\</OutputPath>
     <DefineConstants>TRACE;DEBUG;TS</DefineConstants>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <DebugType>full</DebugType>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <LangVersion>7.3</LangVersion>
@@ -298,7 +279,6 @@
     <DebugSymbols>true</DebugSymbols>
     <OutputPath>bin\WindowsGL\Debug\</OutputPath>
     <DefineConstants>TRACE;DEBUG;WINDOWSGL TS</DefineConstants>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <DebugType>full</DebugType>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <LangVersion>7.3</LangVersion>
@@ -310,7 +290,6 @@
     <DebugSymbols>true</DebugSymbols>
     <OutputPath>bin\XNAFramework\Debug\</OutputPath>
     <DefineConstants>TRACE;DEBUG;XNA TS</DefineConstants>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <DebugType>full</DebugType>
     <PlatformTarget>x86</PlatformTarget>
     <LangVersion>7.3</LangVersion>
@@ -322,7 +301,6 @@
     <DebugSymbols>true</DebugSymbols>
     <OutputPath>bin\SharpDX\Debug\</OutputPath>
     <DefineConstants>TRACE;DEBUG;YR</DefineConstants>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <DebugType>full</DebugType>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <LangVersion>7.3</LangVersion>
@@ -334,7 +312,6 @@
     <DebugSymbols>true</DebugSymbols>
     <OutputPath>bin\WindowsGL\Debug\</OutputPath>
     <DefineConstants>TRACE;DEBUG;WINDOWSGL YR</DefineConstants>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <DebugType>full</DebugType>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <LangVersion>7.3</LangVersion>
@@ -346,7 +323,6 @@
     <DebugSymbols>true</DebugSymbols>
     <OutputPath>bin\XNAFramework\Debug\</OutputPath>
     <DefineConstants>TRACE;DEBUG;XNA YR</DefineConstants>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <DebugType>full</DebugType>
     <PlatformTarget>x86</PlatformTarget>
     <LangVersion>7.3</LangVersion>
@@ -408,6 +384,9 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\References\Ionic.Zip.dll</HintPath>
     </Reference>
+    <Reference Include="lzo.net">
+      <HintPath>..\References\lzo.net.dll</HintPath>
+    </Reference>
     <Reference Include="Newtonsoft.Json, Version=9.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\References\Newtonsoft.Json.dll</HintPath>
@@ -458,7 +437,6 @@
     <Compile Include="Domain\Multiplayer\LAN\ServerNoParamCommandHandler.cs" />
     <Compile Include="Domain\Multiplayer\LAN\ServerStringCommandHandler.cs" />
     <Compile Include="Domain\Multiplayer\MapPreviewExtractor.cs" />
-    <Compile Include="Domain\Multiplayer\MiniLZO.cs" />
     <Compile Include="Domain\Multiplayer\SavedGamePlayer.cs" />
     <Compile Include="Domain\Multiplayer\CnCNet\SHA1EventArgs.cs" />
     <Compile Include="Domain\Multiplayer\GenericHostedGame.cs" />
