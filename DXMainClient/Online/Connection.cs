@@ -35,7 +35,6 @@ namespace DTAClient.Online
         /// </summary>
         private static readonly IList<Server> Servers = new List<Server>
         {
-            new Server("irc.gamesurge.net", "GameSurge", new int[1] { 6667 }),
             new Server("Burstfire.UK.EU.GameSurge.net", "GameSurge London, UK", new int[3] { 6667, 6668, 7000 }),
             new Server("ColoCrossing.IL.US.GameSurge.net", "GameSurge Chicago, IL", new int[5] { 6660, 6666, 6667, 6668, 6669 }),
             new Server("Gameservers.NJ.US.GameSurge.net", "GameSurge Newark, NJ", new int[7] { 6665, 6666, 6667, 6668, 6669, 7000, 8080 }),
@@ -51,6 +50,7 @@ namespace DTAClient.Online
             new Server("195.8.250.180", "GameSurge IP 195.8.250.180", new int[7] { 6660, 6666, 6667, 6668, 6669, 7000, 8080 }),
             new Server("91.217.189.76", "GameSurge IP 91.217.189.76", new int[7] { 6660, 6666, 6667, 6668, 6669, 7000, 8080 }),
             new Server("195.68.206.250", "GameSurge IP 195.68.206.250", new int[7] { 6660, 6666, 6667, 6668, 6669, 7000, 8080 }),
+            new Server("irc.gamesurge.net", "GameSurge", new int[1] { 6667 }),
         }.AsReadOnly();
 
         bool _isConnected = false;
