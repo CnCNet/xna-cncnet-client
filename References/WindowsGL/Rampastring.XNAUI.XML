@@ -581,6 +581,20 @@
             The end character index of the visible part of the text string.
             </summary>
         </member>
+        <member name="P:Rampastring.XNAUI.XNAControls.XNATextBox.PreviousControl">
+            <summary>
+            The control to switch selection state to when
+            the user presses Tab while holding Shift.
+            See also <see cref="P:Rampastring.XNAUI.XNAControls.XNATextBox.NextControl"/>.
+            </summary>
+        </member>
+        <member name="P:Rampastring.XNAUI.XNAControls.XNATextBox.NextControl">
+            <summary>
+            The control to switch selection state to when
+            the user presses Tab without holding Shift.
+            See also <see cref="P:Rampastring.XNAUI.XNAControls.XNATextBox.PreviousControl"/>.
+            </summary>
+        </member>
         <member name="M:Rampastring.XNAUI.XNAControls.XNATextBox.Initialize">
             <summary>
             Initializes the text box.
@@ -596,6 +610,7 @@
             <summary>
             Handles a key press while the text box is the selected control.
             Can be overridden in derived classes to handle additional key presses.
+            Returns true if the key was handled.
             </summary>
             <param name="key">The key that was pressed.</param>
         </member>
@@ -1782,8 +1797,8 @@
         </member>
         <member name="T:Rampastring.XNAUI.XNAControls.XNATextRenderer">
             <summary>
-            A text renderer.
-            Takes <see cref="T:Rampastring.XNAUI.XNAControls.XNATextPart"/>s, automatically formats them, applied line
+            A text renderer, practically an enhanced label control.
+            Takes <see cref="T:Rampastring.XNAUI.XNAControls.XNATextPart"/>s, automatically formats them, applies line
             breaks if necessary and renders them.
             </summary>
         </member>
