@@ -1136,13 +1136,15 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 otherId++;
             }
 
+            // The spawner assigns players to SpawnX houses based on their in-game color index
             List<int> multiCmbIndexes = new List<int>();
+            var sortedColorList = MPColors.OrderBy(mpc => mpc.GameColorIndex).ToList();
 
-            for (int cId = 0; cId < MPColors.Count; cId++)
+            for (int cId = 0; cId < sortedColorList.Count; cId++)
             {
                 for (int pId = 0; pId < Players.Count; pId++)
                 {
-                    if (houseInfos[pId].ColorIndex == MPColors[cId].GameColorIndex)
+                    if (houseInfos[pId].ColorIndex == sortedColorList[cId].GameColorIndex)
                         multiCmbIndexes.Add(pId);
                 }
             }
