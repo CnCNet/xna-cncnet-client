@@ -21,7 +21,7 @@ namespace DTAClient.Domain.Multiplayer
         /// Extracts map preview image as a bitmap.
         /// </summary>
         /// <param name="mapIni">Map file.</param>
-        /// <returns>Bitmap of map preview image, blank bitmap if not present.</returns>
+        /// <returns>Bitmap of map preview image, or null if preview could not be extracted.</returns>
         public static Bitmap ExtractMapPreview(IniFile mapIni)
         {
             List<string> sectionKeys = mapIni.GetSectionKeys("PreviewPack");
@@ -58,10 +58,11 @@ namespace DTAClient.Domain.Multiplayer
                     sb.Append(mapIni.GetStringValue("PreviewPack", key, string.Empty));
             }
 
-            byte[] dataSrc;
+            byte[] dataSource;
+
             try
             {
-                dataSrc = Convert.FromBase64String(sb.ToString());
+                dataSource = Convert.FromBase64String(sb.ToString());
             }
             catch (Exception)
             {
@@ -69,29 +70,37 @@ namespace DTAClient.Domain.Multiplayer
                 return null;
             }
 
-            byte[] dataDest = new byte[previewWidth * previewHeight * 3];
+            byte[] dataDest = DecompressPreviewData(dataSource, previewWidth * previewHeight * 3, out string errorMessage);
 
-            string errorMsg = DecompressPreviewData(dataSrc, ref dataDest);
-
-            if (errorMsg != null)
+            if (errorMessage != null)
             {
-                Logger.Log("MapPreviewExtractor: " + baseFilename + " - " + errorMsg);
+                Logger.Log("MapPreviewExtractor: " + baseFilename + " - " + errorMessage);
                 return null;
             }
 
-            return CreateBitmapFromImageData(previewWidth, previewHeight, dataDest);
+            Bitmap bitmap = CreatePreviewBitmapFromImageData(previewWidth, previewHeight, dataDest, out errorMessage);
+
+            if (errorMessage != null)
+            {
+                Logger.Log("MapPreviewExtractor: " + baseFilename + " - " + errorMessage);
+                return null;
+            }
+
+            return bitmap;
         }
 
         /// <summary>
         /// Decompresses map preview image data.
         /// </summary>
         /// <param name="dataSource">Array of compressed map preview image data.</param>
-        /// <param name="dataDest">Array to write decompressed preview image data to.</param>
-        /// <returns>Error message if something went wrong, otherwise null.</returns>
-        private static string DecompressPreviewData(byte[] dataSource, ref byte[] dataDest)
+        /// <param name="decompressedDataSize">Size of decompressed preview image data.</param>
+        /// <param name="errorMessage">Will be set to error message if something went wrong, otherwise null.</param>
+        /// <returns>Array of decompressed preview image data if successfully decompressed, otherwise null.</returns>
+        private static byte[] DecompressPreviewData(byte[] dataSource, int decompressedDataSize, out string errorMessage)
         {
             try
             {
+                byte[] dataDest = new byte[decompressedDataSize];
                 int readBytes = 0, writtenBytes = 0;
 
                 while (true)
@@ -109,53 +118,82 @@ namespace DTAClient.Domain.Multiplayer
 
                     if (readBytes + sizeCompressed > dataSource.Length ||
                         writtenBytes + sizeUncompressed > dataDest.Length)
-                        return "Preview data does not match preview size or the data is corrupted, unable to extract preview.";
+                    {
+                        errorMessage = "Preview data does not match preview size or the data is corrupted, unable to extract preview.";
+                        return null;
+                    }
 
                     LzoStream stream = new LzoStream(new MemoryStream(dataSource, readBytes, sizeCompressed), CompressionMode.Decompress);
-                    byte[] uncompressedData = new byte[sizeUncompressed];
-                    stream.Read(uncompressedData, 0, sizeUncompressed);
-                    Array.Copy(uncompressedData, 0, dataDest, writtenBytes, sizeUncompressed);
-
+                    stream.Read(dataDest, writtenBytes, sizeUncompressed);
                     readBytes += sizeCompressed;
                     writtenBytes += sizeUncompressed;
                 }
+
+                errorMessage = null;
+                return dataDest;
             }
             catch (Exception e)
             {
-                return "Error encountered decompressing preview data. Message: " + e.Message;
+                errorMessage = "Error encountered decompressing preview data. Message: " + e.Message;
+                return null;
             }
-
-            return null;
         }
 
         /// <summary>
-        /// Creates a bitmap based on a provided dimensions and raw image data in BGR format.
+        /// Creates a preview bitmap based on a provided dimensions and raw image pixel data in 24-bit RGB format.
         /// </summary>
         /// <param name="width">Width of the bitmap.</param>
         /// <param name="height">Height of the bitmap.</param>
-        /// <param name="imageData">Raw image data in BGR format.</param>
-        /// <returns>Bitmap based on the provided dimensions and raw image data, or null if length of image data does not match the provided dimensions.</returns>
-        private static Bitmap CreateBitmapFromImageData(int width, int height, byte[] imageData)
+        /// <param name="imageData">Raw image pixel data in 24-bit RGB format.</param>
+        /// <param name="errorMessage">Will be set to error message if something went wrong, otherwise null.</param>
+        /// <returns>Bitmap based on the provided dimensions and raw image data, or null if length of image data does not match the provided dimensions or if something went wrong.</returns>
+        private static Bitmap CreatePreviewBitmapFromImageData(int width, int height, byte[] imageData, out string errorMessage)
         {
             if (imageData.Length != width * height * 3)
-                return null;
-
-            Bitmap bitmap = new Bitmap(width, height, PixelFormat.Format24bppRgb);
-            BitmapData bitmapData = bitmap.LockBits(new Rectangle(0, 0, bitmap.Width, bitmap.Height), ImageLockMode.WriteOnly, PixelFormat.Format24bppRgb);
-            IntPtr scan0 = bitmapData.Scan0;
-            byte[] rgbData = new byte[Math.Abs(bitmapData.Stride) * bitmapData.Height];
-
-            for (int i = 0; i < rgbData.Length; i+=3)
             {
-                rgbData[i] = imageData[i + 2];
-                rgbData[i+1] = imageData[i + 1];
-                rgbData[i+2] = imageData[i];
+                errorMessage = "Provided preview image dimensions do not match preview image data length.";
+                return null;
             }
 
-            Marshal.Copy(rgbData, 0, scan0, rgbData.Length);
-            bitmap.UnlockBits(bitmapData);
+            try
+            {
+                Bitmap bitmap = new Bitmap(width, height, PixelFormat.Format24bppRgb);
+                BitmapData bitmapData = bitmap.LockBits(new Rectangle(0, 0, bitmap.Width, bitmap.Height), ImageLockMode.WriteOnly, PixelFormat.Format24bppRgb);
+                IntPtr scan0 = bitmapData.Scan0;
+                int strideWidth = Math.Abs(bitmapData.Stride);
+                int numSkipBytes = strideWidth % 3;
+                byte[] bitmapPixelData = new byte[strideWidth * bitmapData.Height];
+                int writtenBytes = 0;
+                int readBytes = 0;
 
-            return bitmap;
+                for (int h = 0; h < bitmapData.Height; h++)
+                {
+                    for (int w = 0; w < bitmapData.Width; w++)
+                    {
+                        // GDI+ bitmap raw pixel data is in BGR format, red & blue values need to be flipped around for each pixel.
+                        bitmapPixelData[writtenBytes] = imageData[readBytes + 2];
+                        bitmapPixelData[writtenBytes + 1] = imageData[readBytes + 1];
+                        bitmapPixelData[writtenBytes + 2] = imageData[readBytes];
+                        writtenBytes += 3;
+                        readBytes += 3;
+                    }
+
+                    // GDI+ bitmap stride / scan width has to be a multiple of 4, so the end of each stride / scanline can contain extra bytes
+                    // in the bitmap raw pixel data that are not present in the image data and should be skipped when copying.
+                    writtenBytes += numSkipBytes;
+                }
+
+                Marshal.Copy(bitmapPixelData, 0, scan0, bitmapPixelData.Length);
+                bitmap.UnlockBits(bitmapData);
+                errorMessage = null;
+                return bitmap;
+
+            }
+            catch (Exception e)
+            {
+                errorMessage = "Error encountered creating preview bitmap. Message: " + e.Message;
+                return null;
+            }
         }
     }
 }
