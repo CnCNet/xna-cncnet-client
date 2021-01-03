@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+
 using Rampastring.Tools;
 
 namespace ClientCore
@@ -81,10 +82,8 @@ namespace ClientCore
             return false;
         }
 
-        private static string GetSaveGameDirectoryPath()
-        {
-            return ProgramConstants.GamePath + SAVED_GAMES_DIRECTORY;
-        }
+        private static string GetSaveGameDirectoryPath()// Use System.IO.Path Member and NOT use character '/' or '\\'
+            => Path.Combine(ProgramConstants.GamePath, SAVED_GAMES_DIRECTORY);
 
         /// <summary>
         /// Initializes saved MP games for a match.
