@@ -76,10 +76,7 @@ namespace ClientCore
 
         public static bool AreSavedGamesAvailable()
         {
-            if (Directory.Exists(SaveGameDirectoryPath))
-                return true;
-
-            return false;
+            return Directory.Exists(SaveGameDirectoryPath);
         }
 
         private static string SaveGameDirectoryPath // Use System.IO.Path Member and NOT use character '/' or '\\'
