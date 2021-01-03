@@ -228,7 +228,7 @@ namespace DTAConfig.OptionPanels
 
         public override bool Save()
         {
-            base.Save();
+            bool restartRequired = base.Save();
 
             IniSettings.ScoreVolume.Value = trbScoreVolume.Value / 10.0;
             IniSettings.SoundVolume.Value = trbSoundVolume.Value / 10.0;
@@ -241,7 +241,7 @@ namespace DTAConfig.OptionPanels
             IniSettings.PlayMainMenuMusic.Value = chkMainMenuMusic.Checked;
             IniSettings.StopMusicOnMenu.Value = chkStopMusicOnMenu.Checked;
 
-            return false;
+            return restartRequired;
         }
     }
 }

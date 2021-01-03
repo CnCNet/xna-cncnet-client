@@ -9,6 +9,13 @@ namespace ClientCore
     {
         private static UserINISettings _instance;
 
+        private const string VIDEO = "Video";
+        private const string MULTIPLAYER = "MultiPlayer";
+        private const string OPTIONS = "Options";
+        private const string AUDIO = "Audio";
+        private const string CUSTOM_SETTINGS = "CustomSettings";
+        private const string COMPATIBILITY = "Compatibility";
+
         public static UserINISettings Instance
         {
             get
@@ -34,10 +41,6 @@ namespace ClientCore
         {
             SettingsIni = iniFile;
 
-            const string VIDEO = "Video";
-            const string MULTIPLAYER = "MultiPlayer";
-            const string OPTIONS = "Options";
-            const string AUDIO = "Audio";
 #if YR || ARES
             const string WINDOWED_MODE_KEY = "Video.Windowed";
             BackBufferInVRAM = new BoolSetting(iniFile, VIDEO, "VideoBackBuffer", false);
@@ -50,7 +53,7 @@ namespace ClientCore
             IngameScreenHeight = new IntSetting(iniFile, VIDEO, "ScreenHeight", 768);
             ClientTheme = new StringSetting(iniFile, MULTIPLAYER, "Theme", string.Empty);
             DetailLevel = new IntSetting(iniFile, OPTIONS, "DetailLevel", 2);
-            Renderer = new StringSetting(iniFile, "Compatibility", "Renderer", string.Empty);
+            Renderer = new StringSetting(iniFile, COMPATIBILITY, "Renderer", string.Empty);
             WindowedMode = new BoolSetting(iniFile, VIDEO, WINDOWED_MODE_KEY, false);
             BorderlessWindowedMode = new BoolSetting(iniFile, VIDEO, "NoWindowFrame", false);
 
@@ -220,6 +223,28 @@ namespace ClientCore
             DoubleTapInterval.SetDefaultIfNonexistent();
             ScrollDelay.SetDefaultIfNonexistent();
         }
+
+        #region Custom settings
+
+        public bool CustomSettingCheckBoxValueExists(string name)
+            => SettingsIni.KeyExists(CUSTOM_SETTINGS, $"{name}_Checked");
+
+        public bool GetCustomSettingValue(string name, bool defaultValue)
+            => SettingsIni.GetBooleanValue(CUSTOM_SETTINGS, $"{name}_Checked", defaultValue);
+
+        public void SetCustomSettingValue(string name, bool value)
+            => SettingsIni.SetBooleanValue(CUSTOM_SETTINGS, $"{name}_Checked", value);
+
+        public bool CustomSettingDropDownValueExists(string name)
+            => SettingsIni.KeyExists(CUSTOM_SETTINGS, $"{name}_SelectedIndex");
+
+        public int GetCustomSettingValue(string name, int defaultValue)
+            => SettingsIni.GetIntValue(CUSTOM_SETTINGS, $"{name}_SelectedIndex", defaultValue);
+
+        public void SetCustomSettingValue(string name, int value)
+            => SettingsIni.SetIntValue(CUSTOM_SETTINGS, $"{name}_SelectedIndex", value);
+
+        #endregion
 
         public void SaveSettings()
         {

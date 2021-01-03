@@ -283,13 +283,17 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CustomSettings\CustomSettingFileCheckBox.cs" />
+    <Compile Include="CustomSettings\CustomSettingFileDropDown.cs" />
+    <Compile Include="CustomSettings\FileSourceDestinationInfo.cs" />
+    <Compile Include="CustomSettings\ICustomSetting.cs" />
     <Compile Include="OptionPanels\AudioOptionsPanel.cs" />
     <Compile Include="OptionPanels\CnCNetOptionsPanel.cs" />
     <Compile Include="OptionPanels\ComponentsPanel.cs" />
     <Compile Include="OptionPanels\DisplayOptionsPanel.cs" />
     <Compile Include="OptionPanels\GameOptionsPanel.cs" />
     <Compile Include="HotkeyConfigurationWindow.cs" />
-    <Compile Include="FileSettingCheckBox.cs" />
+    <Compile Include="CustomSettings\FileSettingCheckBox.cs" />
     <Compile Include="OptionsGUICreator.cs" />
     <Compile Include="OptionsWindow.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

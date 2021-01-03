@@ -231,7 +231,7 @@ namespace DTAConfig.OptionPanels
 
         public override bool Save()
         {
-            base.Save();
+            bool restartRequired = base.Save();
 
             IniSettings.ScrollRate.Value = ReverseScrollRate(trbScrollRate.Value);
 
@@ -255,7 +255,7 @@ namespace DTAConfig.OptionPanels
             if (playerName.Length > 0)
                 IniSettings.PlayerName.Value = playerName;
 
-            return false;
+            return restartRequired;
         }
 
         private int ReverseScrollRate(int scrollRate)

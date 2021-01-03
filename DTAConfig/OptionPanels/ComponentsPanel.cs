@@ -115,9 +115,7 @@ namespace DTAConfig.OptionPanels
 
         public override bool Save()
         {
-            base.Save();
-
-            return false;
+            return base.Save();
         }
 
         private void Btn_LeftClick(object sender, EventArgs e)

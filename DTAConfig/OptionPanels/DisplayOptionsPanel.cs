@@ -701,9 +701,7 @@ namespace DTAConfig.OptionPanels
 
         public override bool Save()
         {
-            base.Save();
-
-            bool restartRequired = false;
+            bool restartRequired = base.Save();
 
             IniSettings.DetailLevel.Value = ddDetailLevel.SelectedIndex;
 
