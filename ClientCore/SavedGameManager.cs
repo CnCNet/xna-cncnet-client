@@ -14,6 +14,27 @@ namespace ClientCore
 
         private static bool saveRenameInProgress = false;
 
+        /// <summary>
+        /// Get Archive Name
+        /// </summary>
+        /// <param name="stream">FileStream</param>
+        /// <returns>Archive Name</returns>
+        public static string GetSaveGameName(Stream stream)
+        {
+            var buffer = new byte[4];
+            stream.Seek(0x08CC, SeekOrigin.Begin);
+            stream.Read(buffer, 0, 4);// Get Name Length.
+
+            if (!BitConverter.IsLittleEndian)
+                Array.Reverse(buffer);
+            buffer = new byte[(BitConverter.ToInt32(buffer, 0) - 1) << 1];
+
+            stream.Read(buffer, 0, buffer.Length);// Get Name.
+            var result = System.Text.Encoding.Unicode.GetString(buffer);
+            Logger.Log($"[SavedGameManager]\tFound Archive: {result}");
+            return result;
+        }
+
         public static int GetSaveGameCount()
         {
             string saveGameDirectory = GetSaveGameDirectoryPath() + "/";
@@ -167,7 +188,7 @@ namespace ClientCore
             {
                 for (int i = 0; i < 1000; i++)
                 {
-                    File.Delete(GetSaveGameDirectoryPath() + 
+                    File.Delete(GetSaveGameDirectoryPath() +
                         "/" + string.Format("SVGM_{0}.NET", i.ToString("D3")));
                 }
             }
