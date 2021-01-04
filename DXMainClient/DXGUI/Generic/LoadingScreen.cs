@@ -40,22 +40,32 @@ namespace DTAClient.DXGUI.Generic
             ClientRectangle = new Rectangle(0, 0, 800, 600);
             Name = "LoadingScreen";
 
-            string backgroundName = "loadingscreen.png";
-
-            var rand = new System.Random();
-            for (int i = 0; ; i++)
+            string GetBackgroundName(int id)
             {
-                string currentName = "loadingscreen" + i.ToString(System.Globalization.CultureInfo.InvariantCulture) + ".png";
+                if (id == 0)
+                    return "loadingscreen.png";
+                else
+                    return "loadingscreen" + id.ToString(System.Globalization.CultureInfo.InvariantCulture) + ".png";
+            }
+
+            string backgroundName = GetBackgroundName(0);
+
+            // Randomly select a background picture if there are more than one pictures.
+            int backgroundMaximum = 0;
+            for (int i = 1; ; i++)
+            {
+                string currentName = GetBackgroundName(i);
                 if (!AssetLoader.AssetExists(currentName))
                 {
+                    backgroundMaximum = i - 1;
                     break;
                 }
-
-                var roll = rand.Next();
-                if (roll % 2 == 0)
-                {
-                    backgroundName = currentName;
-                }
+            }
+            if (backgroundMaximum > 0)
+            {
+                var rand = new System.Random();
+                var roll = rand.Next(backgroundMaximum + 1);
+                backgroundName = GetBackgroundName(roll);
             }
 
             BackgroundTexture = AssetLoader.LoadTexture(backgroundName);
