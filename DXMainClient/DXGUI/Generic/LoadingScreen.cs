@@ -34,19 +34,19 @@ namespace DTAClient.DXGUI.Generic
 
         private Task updaterInitTask = null;
         private Task mapLoadTask = null;
+        private string GetBackgroundName(int id)
+        {
+            if (id == 0)
+                return "loadingscreen.png";
+            else
+                return "loadingscreen" + id.ToString(System.Globalization.CultureInfo.InvariantCulture) + ".png";
+        }
 
         public override void Initialize()
         {
             ClientRectangle = new Rectangle(0, 0, 800, 600);
             Name = "LoadingScreen";
 
-            string GetBackgroundName(int id)
-            {
-                if (id == 0)
-                    return "loadingscreen.png";
-                else
-                    return "loadingscreen" + id.ToString(System.Globalization.CultureInfo.InvariantCulture) + ".png";
-            }
 
             string backgroundName = GetBackgroundName(0);
 
@@ -63,8 +63,8 @@ namespace DTAClient.DXGUI.Generic
             }
             if (backgroundMaximum > 0)
             {
-                var rand = new System.Random();
-                var roll = rand.Next(backgroundMaximum + 1);
+                System.Random rand = new System.Random();
+                int roll = rand.Next(backgroundMaximum + 1);
                 backgroundName = GetBackgroundName(roll);
             }
 
