@@ -34,6 +34,7 @@ namespace DTAClient.DXGUI.Generic
 
         private Task updaterInitTask = null;
         private Task mapLoadTask = null;
+        
         private string GetBackgroundName(int id)
         {
             if (id == 0)
