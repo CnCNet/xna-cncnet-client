@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 using Rampastring.Tools;
 
@@ -12,14 +15,13 @@ namespace ClientCore
     public static class SavedGameManager
     {
         private const string SAVED_GAMES_DIRECTORY = "Saved Games";
-
-        private static bool saveRenameInProgress = false;
+        private static readonly Mutex saveRenameProcess = new Mutex();
 
         /// <summary>
         /// Get Archive Name
         /// </summary>
-        /// <param name="stream">FileStream</param>
-        /// <returns>Archive Name</returns>
+        /// <param name="stream"> FileStream </param>
+        /// <returns> Archive Name </returns>
         public static string GetSaveGameName(Stream stream)
         {
             var buffer = new byte[4];
@@ -36,48 +38,16 @@ namespace ClientCore
             return result;
         }
 
-        public static int GetSaveGameCount()
-        {
-            string saveGameDirectory = SaveGameDirectoryPath + "/";
-
-            if (!AreSavedGamesAvailable())
-                return 0;
-
-            for (int i = 0; i < 1000; i++)
-            {
-                if (!File.Exists(saveGameDirectory + string.Format("SVGM_{0}.NET", i.ToString("D3"))))
-                {
-                    return i;
-                }
-            }
-
-            return 1000;
-        }
+        public static int GetSaveGameCount() => AreSavedGamesAvailable()
+            ? new DirectoryInfo(SaveGameDirectoryPath).GetFiles("SVGM_???.NET").Length : 0;
 
         public static List<string> GetSaveGameTimestamps()
-        {
-            int saveGameCount = GetSaveGameCount();
+            => new DirectoryInfo(SaveGameDirectoryPath)
+                .GetFiles("SVGM_???.NET")
+                .Select(i => i.LastWriteTime.ToString())
+                .ToList();
 
-            List<string> timestamps = new List<string>();
-
-            string saveGameDirectory = SaveGameDirectoryPath + "/";
-
-            for (int i = 0; i < saveGameCount; i++)
-            {
-                string sgPath = saveGameDirectory + string.Format("SVGM_{0}.NET", i.ToString("D3"));
-
-                DateTime dt = File.GetLastWriteTime(sgPath);
-
-                timestamps.Add(dt.ToString());
-            }
-
-            return timestamps;
-        }
-
-        public static bool AreSavedGamesAvailable()
-        {
-            return Directory.Exists(SaveGameDirectoryPath);
-        }
+        public static bool AreSavedGamesAvailable() => Directory.Exists(SaveGameDirectoryPath);
 
         private static string SaveGameDirectoryPath // Use System.IO.Path Member and NOT use character '/' or '\\'
             => Path.Combine(ProgramConstants.GamePath, SAVED_GAMES_DIRECTORY);
@@ -87,16 +57,14 @@ namespace ClientCore
         /// </summary>
         public static bool InitSavedGames()
         {
-            bool success = EraseSavedGames();
-
-            if (!success)
+            if (!EraseSavedGames())
                 return false;
 
             try
             {
                 Logger.Log("Writing spawn.ini for saved game.");
-                File.Delete(ProgramConstants.GamePath + SAVED_GAMES_DIRECTORY + "/spawnSG.ini");
-                File.Copy(ProgramConstants.GamePath + "spawn.ini", ProgramConstants.GamePath + SAVED_GAMES_DIRECTORY + "/spawnSG.ini");
+                File.Delete(Path.Combine(SaveGameDirectoryPath, "spawnSG.ini"));
+                File.Copy(Path.Combine(ProgramConstants.GamePath, "spawn.ini"), Path.Combine(SaveGameDirectoryPath, "spawnSG.ini"));
             }
             catch (Exception ex)
             {
@@ -111,69 +79,70 @@ namespace ClientCore
         {
             Logger.Log("Renaming saved game.");
 
-            if (saveRenameInProgress)
+            if (saveRenameProcess.WaitOne(1))
+            {
+                var file = new FileInfo(Path.Combine(SaveGameDirectoryPath, "SAVEGAME.NET"));
+
+                if (!file.Exists)
+                {
+                    Logger.Log("SAVEGAME.NET doesn't exist!");
+                    return;
+                }
+
+                try
+                {
+                    int saveGameId;
+                    for (saveGameId = 0; saveGameId < 1000; saveGameId++)
+                    {
+                        if (!File.Exists(Path.Combine(SaveGameDirectoryPath, $"SVGM_{saveGameId:D3}.NET")))
+                            break;
+                    }
+
+                    if (saveGameId == 999
+                        && File.Exists(Path.Combine(SaveGameDirectoryPath, "SVGM_999.NET")))
+                    {
+                        Logger.Log("1000 saved games exceeded! Overwriting previous MP save.");
+                    }
+
+                    var sgPath = Path.Combine(SaveGameDirectoryPath, $"SVGM_{saveGameId:D3}.NET");
+
+                    int tryCount = 0;
+
+                    while (true)
+                    {
+                        try
+                        {
+                            file.MoveTo(sgPath);
+                            break;
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log("Renaming saved game failed! Exception message: " + ex.Message);
+                        }
+
+                        tryCount++;
+
+                        if (tryCount > 40)
+                        {
+                            Logger.Log("Renaming saved game failed 40 times! Aborting.");
+                            return;
+                        }
+
+                        Thread.Sleep(250);
+                    }
+
+                    Logger.Log("Saved game SAVEGAME.NET succesfully renamed to " + Path.GetFileName(sgPath));
+                }
+                finally
+                {
+                    saveRenameProcess.ReleaseMutex();
+                }
+            }
+            else
             {
                 Logger.Log("Save renaming in progress!");
                 return;
             }
-
-            string saveGameDirectory = SaveGameDirectoryPath + "/";
-
-            if (!File.Exists(saveGameDirectory + "SAVEGAME.NET"))
-            {
-                Logger.Log("SAVEGAME.NET doesn't exist!");
-                return;
-            }
-
-            saveRenameInProgress = true;
-
-            int saveGameId = 0;
-
-            for (int i = 0; i < 1000; i++)
-            {
-                if (!File.Exists(saveGameDirectory + string.Format("SVGM_{0}.NET", i.ToString("D3"))))
-                {
-                    saveGameId = i;
-                    break;
-                }
-            }
-
-            if (saveGameId == 999)
-            {
-                if (File.Exists(saveGameDirectory + "SVGM_999.NET"))
-                    Logger.Log("1000 saved games exceeded! Overwriting previous MP save.");
-            }
-
-            string sgPath = saveGameDirectory + string.Format("SVGM_{0}.NET", saveGameId.ToString("D3"));
-
-            int tryCount = 0;
-
-            while (true)
-            {
-                try
-                {
-                    File.Move(saveGameDirectory + "SAVEGAME.NET", sgPath);
-                    break;
-                }
-                catch (Exception ex)
-                {
-                    Logger.Log("Renaming saved game failed! Exception message: " + ex.Message);
-                }
-
-                tryCount++;
-
-                if (tryCount > 40)
-                {
-                    Logger.Log("Renaming saved game failed 40 times! Aborting.");
-                    return;
-                }
-
-                System.Threading.Thread.Sleep(250);
-            }
-
-            saveRenameInProgress = false;
-
-            Logger.Log("Saved game SAVEGAME.NET succesfully renamed to " + Path.GetFileName(sgPath));
         }
 
         public static bool EraseSavedGames()
@@ -182,11 +151,7 @@ namespace ClientCore
 
             try
             {
-                for (int i = 0; i < 1000; i++)
-                {
-                    File.Delete(SaveGameDirectoryPath +
-                        "/" + string.Format("SVGM_{0}.NET", i.ToString("D3")));
-                }
+                Parallel.ForEach(new DirectoryInfo(SaveGameDirectoryPath).GetFiles("SVGM_???.NET").Select(i => i.FullName), File.Delete);
             }
             catch (Exception ex)
             {
