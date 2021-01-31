@@ -40,7 +40,7 @@ namespace DTAConfig.CustomSettings
                 throw new ArgumentException($"{nameof(FileSourceDestinationInfo)}: " +
                     $"Too few parameters specified in parsed value", nameof(value));
 
-            FileOperationOptions options = default;
+            FileOperationOptions options = default(FileOperationOptions);
             if (parts.Length >= 3)
                 Enum.TryParse(parts[2], out options);
 
