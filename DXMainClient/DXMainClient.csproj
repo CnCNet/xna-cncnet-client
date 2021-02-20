@@ -391,6 +391,9 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\References\Newtonsoft.Json.dll</HintPath>
     </Reference>
+    <Reference Include="OpenMcdf">
+      <HintPath>..\References\OpenMcdf.dll</HintPath>
+    </Reference>
     <Reference Include="Rampastring.Tools, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\References\Rampastring.Tools.dll</HintPath>
