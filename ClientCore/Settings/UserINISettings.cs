@@ -60,6 +60,7 @@ namespace ClientCore
             ClientResolutionX = new IntSetting(iniFile, VIDEO, "ClientResolutionX", Screen.PrimaryScreen.Bounds.Width);
             ClientResolutionY = new IntSetting(iniFile, VIDEO, "ClientResolutionY", Screen.PrimaryScreen.Bounds.Height);
             BorderlessWindowedClient = new BoolSetting(iniFile, VIDEO, "BorderlessWindowedClient", true);
+            ClientFPS = new IntSetting(iniFile, VIDEO, "ClientFPS", 60);
 
             ScoreVolume = new DoubleSetting(iniFile, AUDIO, "ScoreVolume", 0.7);
             SoundVolume = new DoubleSetting(iniFile, AUDIO, "SoundVolume", 0.7);
@@ -130,6 +131,7 @@ namespace ClientCore
         public IntSetting ClientResolutionX { get; private set; }
         public IntSetting ClientResolutionY { get; private set; }
         public BoolSetting BorderlessWindowedClient { get; private set; }
+        public IntSetting ClientFPS { get; private set; }
 
         /*********/
         /* AUDIO */
