@@ -11,13 +11,12 @@ namespace ClientCore
     {
         private static UserINISettings _instance;
 
-        private const string VIDEO = "Video";
-        private const string MULTIPLAYER = "MultiPlayer";
-        private const string OPTIONS = "Options";
-        private const string AUDIO = "Audio";
-        private const string CUSTOM_SETTINGS = "CustomSettings";
-        private const string COMPATIBILITY = "Compatibility";
-        private const string GAME_FILTERS = "GameFilters";
+        public const string VIDEO = "Video";
+        public const string MULTIPLAYER = "MultiPlayer";
+        public const string OPTIONS = "Options";
+        public const string AUDIO = "Audio";
+        public const string COMPATIBILITY = "Compatibility";
+        public const string GAME_FILTERS = "GameFilters";
 
         private const bool DEFAULT_SHOW_FRIENDS_ONLY_GAMES = false;
         private const bool DEFAULT_HIDE_LOCKED_GAMES = false;
@@ -81,12 +80,6 @@ namespace ClientCore
             MessageSound = new BoolSetting(iniFile, AUDIO, "ChatMessageSound", true);
 
             ScrollRate = new IntSetting(iniFile, OPTIONS, "ScrollRate", 3);
-            TargetLines = new BoolSetting(iniFile, OPTIONS, "UnitActionLines", true);
-            ScrollCoasting = new IntSetting(iniFile, OPTIONS, "ScrollMethod", 0);
-            Tooltips = new BoolSetting(iniFile, OPTIONS, "ToolTips", true);
-            ShowHiddenObjects = new BoolSetting(iniFile, OPTIONS, "ShowHidden", true);
-            MoveToUndeploy = new BoolSetting(iniFile, OPTIONS, "MoveToUndeploy", true);
-            TextBackgroundColor = new IntSetting(iniFile, OPTIONS, "TextBackgroundColor", 0);
             DragDistance = new IntSetting(iniFile, OPTIONS, "DragDistance", 4);
             DoubleTapInterval = new IntSetting(iniFile, OPTIONS, "DoubleTapInterval", 30);
             Win8CompatMode = new StringSetting(iniFile, OPTIONS, "Win8Compat", "No");
@@ -172,12 +165,6 @@ namespace ClientCore
         /********/
 
         public IntSetting ScrollRate { get; private set; }
-        public BoolSetting TargetLines { get; private set; }
-        public IntSetting ScrollCoasting { get; private set; }
-        public BoolSetting Tooltips { get; private set; }
-        public BoolSetting ShowHiddenObjects { get; private set; }
-        public BoolSetting MoveToUndeploy { get; private set; }
-        public IntSetting TextBackgroundColor { get; private set; }
         public IntSetting DragDistance { get; private set; }
         public IntSetting DoubleTapInterval { get; private set; }
         public StringSetting Win8CompatMode { get; private set; }
@@ -254,6 +241,24 @@ namespace ClientCore
         
         public StringListSetting FavoriteMaps { get; private set; }
         
+        public void SetValue(string section, string key, string value)
+               => SettingsIni.SetStringValue(section, key, value);
+
+        public void SetValue(string section, string key, bool value)
+            => SettingsIni.SetBooleanValue(section, key, value);
+
+        public void SetValue(string section, string key, int value)
+            => SettingsIni.SetIntValue(section, key, value);
+
+        public string GetValue(string section, string key, string defaultValue)
+            => SettingsIni.GetStringValue(section, key, defaultValue);
+
+        public bool GetValue(string section, string key, bool defaultValue)
+            => SettingsIni.GetBooleanValue(section, key, defaultValue);
+
+        public int GetValue(string section, string key, int defaultValue)
+            => SettingsIni.GetIntValue(section, key, defaultValue);
+
         public bool IsGameFollowed(string gameName)
         {
             return SettingsIni.GetBooleanValue("Channels", gameName, false);
@@ -297,28 +302,6 @@ namespace ClientCore
             ScrollDelay.SetDefaultIfNonexistent();
         }
 
-        #region Custom settings
-
-        public bool CustomSettingCheckBoxValueExists(string name)
-            => SettingsIni.KeyExists(CUSTOM_SETTINGS, $"{name}_Checked");
-
-        public bool GetCustomSettingValue(string name, bool defaultValue)
-            => SettingsIni.GetBooleanValue(CUSTOM_SETTINGS, $"{name}_Checked", defaultValue);
-
-        public void SetCustomSettingValue(string name, bool value)
-            => SettingsIni.SetBooleanValue(CUSTOM_SETTINGS, $"{name}_Checked", value);
-
-        public bool CustomSettingDropDownValueExists(string name)
-            => SettingsIni.KeyExists(CUSTOM_SETTINGS, $"{name}_SelectedIndex");
-
-        public int GetCustomSettingValue(string name, int defaultValue)
-            => SettingsIni.GetIntValue(CUSTOM_SETTINGS, $"{name}_SelectedIndex", defaultValue);
-
-        public void SetCustomSettingValue(string name, int value)
-            => SettingsIni.SetIntValue(CUSTOM_SETTINGS, $"{name}_SelectedIndex", value);
-
-        #endregion
-
         public void SaveSettings()
         {
             Logger.Log("Writing settings INI.");
@@ -347,14 +330,6 @@ namespace ClientCore
             HideIncompatibleGames.Value = DEFAULT_HIDE_INCOMPATIBLE_GAMES;
             HidePasswordedGames.Value = DEFAULT_HIDE_PASSWORDED_GAMES;
             MaxPlayerCount.Value = DEFAULT_MAX_PLAYER_COUNT;
-        }
-
-        /// <summary>
-        /// Used to remove old sections/keys to avoid confusion when viewing the ini file directly.
-        /// </summary>
-        private void CleanUpLegacySettings()
-        {
-            SettingsIni.GetSection(GAME_FILTERS).RemoveKey("SortAlpha");
         }
     }
 }
