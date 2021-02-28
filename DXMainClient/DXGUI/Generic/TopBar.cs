@@ -39,34 +39,37 @@ namespace DTAClient.DXGUI.Generic
 
         public SwitchType LastSwitchType { get; private set; }
 
-        List<ISwitchable> primarySwitches = new List<ISwitchable>();
-        ISwitchable cncnetLobbySwitch;
-        ISwitchable privateMessageSwitch;
-        OptionsWindow optionsWindow;
+        private List<ISwitchable> primarySwitches = new List<ISwitchable>();
+        private ISwitchable cncnetLobbySwitch;
+        private ISwitchable privateMessageSwitch;
 
-        XNAClientButton btnMainButton;
-        XNAClientButton btnCnCNetLobby;
-        XNAClientButton btnPrivateMessages;
-        XNAClientButton btnOptions;
-        XNAClientButton btnLogout;
-        XNALabel lblTime;
-        XNALabel lblDate;
-        XNALabel lblCnCNetStatus;
-        XNALabel lblCnCNetPlayerCount;
-        XNALabel lblConnectionStatus;
+        private OptionsWindow optionsWindow;
 
-        CnCNetManager connectionManager;
+        private XNAClientButton btnMainButton;
+        private XNAClientButton btnCnCNetLobby;
+        private XNAClientButton btnPrivateMessages;
+        private XNAClientButton btnOptions;
+        private XNAClientButton btnLogout;
+        private XNALabel lblTime;
+        private XNALabel lblDate;
+        private XNALabel lblCnCNetStatus;
+        private XNALabel lblCnCNetPlayerCount;
+        private XNALabel lblConnectionStatus;
+
+        private CnCNetManager connectionManager;
 
         private CancellationTokenSource cncnetPlayerCountCancellationSource;
         private static readonly object locker = new object();
 
-        TimeSpan downTime = TimeSpan.FromSeconds(DOWN_TIME_WAIT_SECONDS - STARTUP_DOWN_TIME_WAIT_SECONDS);
+        private TimeSpan downTime = TimeSpan.FromSeconds(DOWN_TIME_WAIT_SECONDS - STARTUP_DOWN_TIME_WAIT_SECONDS);
 
-        TimeSpan downTimeWaitTime;
+        private TimeSpan downTimeWaitTime;
 
-        bool isDown = true;
+        private bool isDown = true;
 
-        double locationY = -40.0;
+        private double locationY = -40.0;
+
+        private bool lanMode;
 
         public void AddPrimarySwitchable(ISwitchable switchable)
         {
@@ -81,14 +84,10 @@ namespace DTAClient.DXGUI.Generic
         }
 
         public void SetSecondarySwitch(ISwitchable switchable)
-        {
-            cncnetLobbySwitch = switchable;
-        }
+            => cncnetLobbySwitch = switchable;
 
         public void SetTertiarySwitch(ISwitchable switchable)
-        {
-            privateMessageSwitch = switchable;
-        }
+            => privateMessageSwitch = switchable;
 
         public void SetOptionsWindow(OptionsWindow optionsWindow)
         {
@@ -98,15 +97,19 @@ namespace DTAClient.DXGUI.Generic
 
         private void OptionsWindow_EnabledChanged(object sender, EventArgs e)
         {
-            if (!optionsWindow.Enabled)
-                UnlockSwitchButtons();
-            else
-                LockSwitchButtons();
+            if (!lanMode) 
+                SetSwitchButtonsClickable(!optionsWindow.Enabled);
+
+            SetOptionsButtonClickable(!optionsWindow.Enabled);
+
+            if (optionsWindow != null)
+                optionsWindow.ToggleMainMenuOnlyOptions(primarySwitches.Count == 1 && !lanMode);
         }
 
         public void Clean()
         {
-            if (cncnetPlayerCountCancellationSource != null) cncnetPlayerCountCancellationSource.Cancel();
+            if (cncnetPlayerCountCancellationSource != null) 
+                cncnetPlayerCountCancellationSource.Cancel();
         }
 
         public override void Initialize()
@@ -225,12 +228,14 @@ namespace DTAClient.DXGUI.Generic
 
         private void ConnectionManager_ConnectionLost(object sender, Online.EventArguments.ConnectionLostEventArgs e)
         {
-            ConnectionEvent("OFFLINE");
+            if (!lanMode)
+                ConnectionEvent("OFFLINE");
         }
 
         private void ConnectionManager_ConnectAttemptFailed(object sender, EventArgs e)
         {
-            ConnectionEvent("OFFLINE");
+            if (!lanMode)
+                ConnectionEvent("OFFLINE");
         }
 
         private void ConnectionManager_AttemptedServerChanged(object sender, Online.EventArguments.AttemptedServerEventArgs e)
@@ -240,14 +245,13 @@ namespace DTAClient.DXGUI.Generic
         }
 
         private void ConnectionManager_WelcomeMessageReceived(object sender, Online.EventArguments.ServerMessageEventArgs e)
-        {
-            ConnectionEvent("CONNECTED");
-        }
+            => ConnectionEvent("CONNECTED");
 
         private void ConnectionManager_Disconnected(object sender, EventArgs e)
         {
             btnLogout.AllowClick = false;
-            ConnectionEvent("OFFLINE");
+            if (!lanMode)
+                ConnectionEvent("OFFLINE");
         }
 
         private void ConnectionEvent(string text)
@@ -265,24 +269,16 @@ namespace DTAClient.DXGUI.Generic
         }
 
         private void ConnectionManager_Connected(object sender, EventArgs e)
-        {
-            btnLogout.AllowClick = true;
-        }
+            => btnLogout.AllowClick = true;
 
         public void SwitchToPrimary()
-        {
-            BtnMainButton_LeftClick(this, EventArgs.Empty);
-        }
+            => BtnMainButton_LeftClick(this, EventArgs.Empty);
 
         public ISwitchable GetTopMostPrimarySwitchable()
-        {
-            return primarySwitches[primarySwitches.Count - 1];
-        }
+            => primarySwitches[primarySwitches.Count - 1];
 
         public void SwitchToSecondary()
-        {
-            BtnCnCNetLobby_LeftClick(this, EventArgs.Empty);
-        }
+            => BtnCnCNetLobby_LeftClick(this, EventArgs.Empty);
 
         private void BtnCnCNetLobby_LeftClick(object sender, EventArgs e)
         {
@@ -290,6 +286,10 @@ namespace DTAClient.DXGUI.Generic
             primarySwitches[primarySwitches.Count - 1].SwitchOff();
             cncnetLobbySwitch.SwitchOn();
             privateMessageSwitch.SwitchOff();
+
+            // HACK warning
+            // TODO: add a way for DarkeningPanel to skip transitions
+            ((DarkeningPanel)((XNAControl)cncnetLobbySwitch).Parent).Alpha = 1.0f;
         }
 
         private void BtnMainButton_LeftClick(object sender, EventArgs e)
@@ -298,12 +298,15 @@ namespace DTAClient.DXGUI.Generic
             cncnetLobbySwitch.SwitchOff();
             privateMessageSwitch.SwitchOff();
             primarySwitches[primarySwitches.Count - 1].SwitchOn();
+
+            // HACK warning
+            // TODO: add a way for DarkeningPanel to skip transitions
+            if (((XNAControl)primarySwitches[primarySwitches.Count - 1]).Parent is DarkeningPanel darkeningPanel)
+                darkeningPanel.Alpha = 1.0f;
         }
 
         private void BtnPrivateMessages_LeftClick(object sender, EventArgs e)
-        {
-            privateMessageSwitch.SwitchOn();
-        }
+            => privateMessageSwitch.SwitchOn();
 
         private void BtnOptions_LeftClick(object sender, EventArgs e)
         {
@@ -316,25 +319,23 @@ namespace DTAClient.DXGUI.Generic
             if (!Enabled || !WindowManager.HasFocus || ProgramConstants.IsInGame)
                 return;
 
-            if (e.PressedKey == Keys.F1)
+            switch (e.PressedKey)
             {
-                BringDown();
-            }
-            else if (e.PressedKey == Keys.F2 && btnMainButton.AllowClick)
-            {
-                BtnMainButton_LeftClick(this, EventArgs.Empty);
-            }
-            else if (e.PressedKey == Keys.F3 && btnCnCNetLobby.AllowClick)
-            {
-                BtnCnCNetLobby_LeftClick(this, EventArgs.Empty);
-            }
-            else if (e.PressedKey == Keys.F4 && btnPrivateMessages.AllowClick)
-            {
-                BtnPrivateMessages_LeftClick(this, EventArgs.Empty);
-            }
-            else if (e.PressedKey == Keys.F12 && btnOptions.AllowClick)
-            {
-                BtnOptions_LeftClick(this, EventArgs.Empty);
+                case Keys.F1:
+                    BringDown();
+                    break;
+                case Keys.F2 when btnMainButton.AllowClick:
+                    BtnMainButton_LeftClick(this, EventArgs.Empty);
+                    break;
+                case Keys.F3 when btnCnCNetLobby.AllowClick:
+                    BtnCnCNetLobby_LeftClick(this, EventArgs.Empty);
+                    break;
+                case Keys.F4 when btnPrivateMessages.AllowClick:
+                    BtnPrivateMessages_LeftClick(this, EventArgs.Empty);
+                    break;
+                case Keys.F12 when btnOptions.AllowClick:
+                    BtnOptions_LeftClick(this, EventArgs.Empty);
+                    break;
             }
         }
 
@@ -353,38 +354,38 @@ namespace DTAClient.DXGUI.Generic
         }
 
         public void SetMainButtonText(string text)
+            => btnMainButton.Text = text;
+
+        public void SetSwitchButtonsClickable(bool allowClick)
         {
-            btnMainButton.Text = text;
+            if (btnMainButton != null)
+                btnMainButton.AllowClick = allowClick;
+            if (btnCnCNetLobby != null)
+                btnCnCNetLobby.AllowClick = allowClick;
+            if (btnPrivateMessages != null)
+                btnPrivateMessages.AllowClick = allowClick;
         }
 
-        public void LockSwitchButtons()
+        public void SetOptionsButtonClickable(bool allowClick)
         {
-            if (btnMainButton != null && btnCnCNetLobby != null && btnPrivateMessages != null)
-            {
-                btnMainButton.AllowClick = false;
-                btnCnCNetLobby.AllowClick = false;
-                btnPrivateMessages.AllowClick = false;
-            }
+            if (btnOptions != null)
+                btnOptions.AllowClick = allowClick;
         }
 
-        public void UnlockSwitchButtons()
+        public void SetLanMode(bool lanMode)
         {
-            if (btnMainButton != null && btnCnCNetLobby != null && btnPrivateMessages != null)
-            {
-                btnMainButton.AllowClick = true;
-                btnCnCNetLobby.AllowClick = true;
-                btnPrivateMessages.AllowClick = true;
-            }
-            
+            this.lanMode = lanMode;
+            SetSwitchButtonsClickable(!lanMode);
+            if (lanMode)
+                ConnectionEvent("LAN MODE");
+            else
+                ConnectionEvent("OFFLINE");
         }
 
         public override void Update(GameTime gameTime)
         {
-            if (Cursor.Location.Y < APPEAR_CURSOR_THRESHOLD_Y && Cursor.Location.Y > -1
-                && !ProgramConstants.IsInGame)
-            {
+            if (Cursor.Location.Y < APPEAR_CURSOR_THRESHOLD_Y && Cursor.Location.Y > -1 && !ProgramConstants.IsInGame)
                 BringDown();
-            }
 
             if (isDown)
             {

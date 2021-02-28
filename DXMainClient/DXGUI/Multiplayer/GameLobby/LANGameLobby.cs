@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -15,6 +15,7 @@ using DTAClient.Domain.LAN;
 using DTAClient.Online;
 using System.Threading;
 using DTAClient.DXGUI.Multiplayer.GameLobby.CommandHandlers;
+using DTAClient.Domain;
 
 namespace DTAClient.DXGUI.Multiplayer.GameLobby
 {
@@ -39,8 +40,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         private const string DICE_ROLL_COMMAND = "DR";
 
         public LANGameLobby(WindowManager windowManager, string iniName, 
-            TopBar topBar, List<GameMode> GameModes, LANColor[] chatColors, MapLoader mapLoader) : 
-            base(windowManager, iniName, topBar, GameModes, mapLoader)
+            TopBar topBar, List<GameMode> GameModes, LANColor[] chatColors, MapLoader mapLoader, DiscordHandler discordHandler) : 
+            base(windowManager, iniName, topBar, GameModes, mapLoader, discordHandler)
         {
             this.chatColors = chatColors;
             encoding = Encoding.UTF8;
@@ -92,26 +93,32 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         public event EventHandler GameLeft;
         public event EventHandler<GameBroadcastEventArgs> GameBroadcast;
 
-        TcpListener listener;
-        TcpClient client;
+        private TcpListener listener;
+        private TcpClient client;
 
-        IPEndPoint hostEndPoint;
-        LANColor[] chatColors;
-        int chatColorIndex;
-        Encoding encoding;
+        private IPEndPoint hostEndPoint;
+        private LANColor[] chatColors;
+        private int chatColorIndex;
+        private Encoding encoding;
 
-        CommandHandlerBase[] hostCommandHandlers;
-        LANClientCommandHandler[] playerCommandHandlers;
+        private CommandHandlerBase[] hostCommandHandlers;
+        private LANClientCommandHandler[] playerCommandHandlers;
 
-        TimeSpan timeSinceGameBroadcast = TimeSpan.Zero;
+        private TimeSpan timeSinceGameBroadcast = TimeSpan.Zero;
 
-        TimeSpan timeSinceLastReceivedCommand = TimeSpan.Zero;
+        private TimeSpan timeSinceLastReceivedCommand = TimeSpan.Zero;
 
-        string overMessage = string.Empty;
+        private string overMessage = string.Empty;
 
-        string localGame;
+        private string localGame;
 
-        string localFileHash;
+        private string localFileHash;
+
+        public override void Initialize()
+        {
+            base.Initialize();
+            PostInitialize();
+        }
 
         public void SetUp(bool isHost,
             IPEndPoint hostEndPoint, TcpClient client)
@@ -279,6 +286,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             CopyPlayerDataToUI();
             BroadcastPlayerOptions();
             OnGameOptionChanged();
+            UpdateDiscordPresence();
         }
 
         private void LpInfo_ConnectionLost(object sender, EventArgs e)
@@ -291,6 +299,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             CopyPlayerDataToUI();
             BroadcastPlayerOptions();
+
+            if (lpInfo.Name == ProgramConstants.PLAYERNAME)
+                ResetDiscordPresence(); 
+            else
+                UpdateDiscordPresence();
         }
 
         private void LpInfo_MessageReceived(object sender, NetworkMessageEventArgs e)
@@ -406,6 +419,25 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             Disable();
         }
 
+        protected override void UpdateDiscordPresence(bool resetTimer = false)
+        {
+            if (discordHandler == null)
+                return;
+
+            PlayerInfo player = FindLocalPlayer();
+            if (player == null || Map == null || GameMode == null)
+                return;
+            string side = "";
+            if (ddPlayerSides.Length > Players.IndexOf(player))
+                side = ddPlayerSides[Players.IndexOf(player)].SelectedItem.Text;
+            string currentState = ProgramConstants.IsInGame ? "In Game" : "In Lobby";
+
+            discordHandler.UpdatePresence(
+                Map.Name, GameMode.Name, "LAN",
+                currentState, Players.Count, 8, side,
+                "LAN Game", IsHost, false, Locked, resetTimer);
+        }
+
         public override void Clear()
         {
             base.Clear();
@@ -424,6 +456,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             if (this.client.Connected)
                 this.client.Close();
+
+            ResetDiscordPresence();
         }
 
         public void SetChatColorIndex(int colorIndex)
@@ -432,15 +466,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             tbChatInput.TextColor = chatColors[colorIndex].XNAColor;
         }
 
-        public override string GetSwitchName()
-        {
-            return "LAN Game Lobby";
-        }
+        public override string GetSwitchName() => "LAN Game Lobby";
 
-        protected override void AddNotice(string message, Color color)
-        {
+        protected override void AddNotice(string message, Color color) =>
             lbChatMessages.AddMessage(null, message, color);
-        }
 
         protected override void BroadcastPlayerOptions()
         {
@@ -470,10 +499,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             BroadcastMessage(sb.ToString());
         }
 
-        protected override void HostLaunchGame()
-        {
-            BroadcastMessage(LAUNCH_GAME_COMMAND + " " + UniqueGameID);
-        }
+        protected override void HostLaunchGame() => BroadcastMessage(LAUNCH_GAME_COMMAND + " " + UniqueGameID);
 
         protected override string GetIPAddressForPlayer(PlayerInfo player)
         {
@@ -492,10 +518,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             SendMessageToHost(sb.ToString());
         }
 
-        protected override void RequestReadyStatus()
-        {
+        protected override void RequestReadyStatus() =>
             SendMessageToHost(PLAYER_READY_REQUEST + " " + Convert.ToInt32(chkAutoReady.Checked));
-        }
 
         protected override void SendChatMessage(string message)
         {
@@ -542,6 +566,16 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             if (IsHost)
                 BroadcastMessage(GET_READY_COMMAND);
+        }
+
+        protected override void ClearPingIndicators()
+        {
+            // TODO Implement pings for LAN lobbies
+        }
+
+        protected override void UpdatePlayerPingIndicator(PlayerInfo pInfo)
+        {
+            // TODO Implement pings for LAN lobbies
         }
 
         /// <summary>
@@ -629,6 +663,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             if (pInfo != null)
                 pInfo.IsInGame = false;
+
+            sndReturnSound.Play();
         }
 
         public override void Update(GameTime gameTime)
@@ -645,6 +681,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                         AddNotice(lpInfo.Name + " - connection timed out");
                         CopyPlayerDataToUI();
                         BroadcastPlayerOptions();
+                        UpdateDiscordPresence();
                         i--;
                     }
                 }
@@ -812,6 +849,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (parts.Length != playerCount * 8)
                 return;
 
+            PlayerInfo localPlayer = FindLocalPlayer();
+            int oldSideId = localPlayer == null ? -1 : localPlayer.SideId;
+
             Players.Clear();
             AIPlayers.Clear();
 
@@ -874,6 +914,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             }
 
             CopyPlayerDataToUI();
+            localPlayer = FindLocalPlayer();
+            if (localPlayer != null && oldSideId != localPlayer.SideId)
+                UpdateDiscordPresence();
         }
 
         private void HandlePlayerQuit(string sender)
@@ -888,6 +931,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             ClearReadyStatuses();
             CopyPlayerDataToUI();
             BroadcastPlayerOptions();
+            UpdateDiscordPresence();
         }
 
         private void HandleGameOptionsMessage(string data)

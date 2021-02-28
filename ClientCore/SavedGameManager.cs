@@ -16,7 +16,7 @@ namespace ClientCore
 
         public static int GetSaveGameCount()
         {
-            string saveGameDirectory = GetSaveGameDirectoryPath() + "\\";
+            string saveGameDirectory = GetSaveGameDirectoryPath() + "/";
 
             if (!AreSavedGamesAvailable())
                 return 0;
@@ -38,7 +38,7 @@ namespace ClientCore
 
             List<string> timestamps = new List<string>();
 
-            string saveGameDirectory = GetSaveGameDirectoryPath() + "\\";
+            string saveGameDirectory = GetSaveGameDirectoryPath() + "/";
 
             for (int i = 0; i < saveGameCount; i++)
             {
@@ -78,8 +78,8 @@ namespace ClientCore
             try
             {
                 Logger.Log("Writing spawn.ini for saved game.");
-                File.Delete(ProgramConstants.GamePath + SAVED_GAMES_DIRECTORY + "\\spawnSG.ini");
-                File.Copy(ProgramConstants.GamePath + "spawn.ini", ProgramConstants.GamePath + SAVED_GAMES_DIRECTORY + "\\spawnSG.ini");
+                File.Delete(ProgramConstants.GamePath + SAVED_GAMES_DIRECTORY + "/spawnSG.ini");
+                File.Copy(ProgramConstants.GamePath + "spawn.ini", ProgramConstants.GamePath + SAVED_GAMES_DIRECTORY + "/spawnSG.ini");
             }
             catch (Exception ex)
             {
@@ -100,7 +100,7 @@ namespace ClientCore
                 return;
             }
 
-            string saveGameDirectory = GetSaveGameDirectoryPath() + "\\";
+            string saveGameDirectory = GetSaveGameDirectoryPath() + "/";
 
             if (!File.Exists(saveGameDirectory + "SAVEGAME.NET"))
             {
@@ -168,7 +168,7 @@ namespace ClientCore
                 for (int i = 0; i < 1000; i++)
                 {
                     File.Delete(GetSaveGameDirectoryPath() + 
-                        "\\" + string.Format("SVGM_{0}.NET", i.ToString("D3")));
+                        "/" + string.Format("SVGM_{0}.NET", i.ToString("D3")));
                 }
             }
             catch (Exception ex)

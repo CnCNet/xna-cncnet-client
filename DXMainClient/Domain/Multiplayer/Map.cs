@@ -1,17 +1,29 @@
 ﻿using ClientCore;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using PreviewExtractor;
 using Rampastring.Tools;
 using Rampastring.XNAUI;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using Utilities = Rampastring.Tools.Utilities;
 
 namespace DTAClient.Domain.Multiplayer
 {
+    public struct ExtraMapPreviewTexture
+    {
+        public string TextureName;
+        public Point Point;
+
+        public ExtraMapPreviewTexture(string textureName, Point point)
+        {
+            TextureName = textureName;
+            Point = point;
+        }
+    }
+
     /// <summary>
     /// A multiplayer map.
     /// </summary>
@@ -83,6 +95,12 @@ namespace DTAClient.Domain.Multiplayer
         /// The path to the map file.
         /// </summary>
         public string BaseFilePath { get; private set; }
+
+        /// <summary>
+        /// Returns the complete path to the map file.
+        /// Includes the game directory in the path.
+        /// </summary>
+        public string CompleteFilePath => ProgramConstants.GamePath + BaseFilePath + ".map";
 
         /// <summary>
         /// The file name of the preview image.
@@ -162,12 +180,16 @@ namespace DTAClient.Domain.Multiplayer
             set { extractCustomPreview = value; }
         }
 
-        public List<KeyValuePair<string, bool>> ForcedCheckBoxValues = new List<KeyValuePair<string, bool>>();
-        public List<KeyValuePair<string, int>> ForcedDropDownValues = new List<KeyValuePair<string, int>>();
+        public List<KeyValuePair<string, bool>> ForcedCheckBoxValues = new List<KeyValuePair<string, bool>>(0);
+        public List<KeyValuePair<string, int>> ForcedDropDownValues = new List<KeyValuePair<string, int>>(0);
 
-        List<KeyValuePair<string, string>> ForcedSpawnIniOptions = new List<KeyValuePair<string, string>>();
+        private List<ExtraMapPreviewTexture> extraTextures = new List<ExtraMapPreviewTexture>(0);
+        public List<ExtraMapPreviewTexture> GetExtraMapPreviewTextures() => extraTextures;
 
-        public bool SetInfoFromINI(IniFile iniFile, Dictionary<string, string[]> gameModeAliases)
+        private List<KeyValuePair<string, string>> ForcedSpawnIniOptions = new List<KeyValuePair<string, string>>(0);
+
+
+        public bool SetInfoFromINI(IniFile iniFile)
         {
             try
             {
@@ -180,32 +202,15 @@ namespace DTAClient.Domain.Multiplayer
 
                 Name = section.GetStringValue("Description", "Unnamed map");
                 Author = section.GetStringValue("Author", "Unknown author");
-                List<string> gameModeList = new List<string>();
-                var gameModes = section.GetStringValue("GameModes", "Default").Split(',');
-
-                foreach (var gameMode in gameModes)
-                {
-                    string[] aliases;
-
-                    if (!gameModeAliases.TryGetValue(gameMode, out aliases))
-                    {
-                        gameModeList.Add(gameMode);
-                        continue;
-                    }
-
-                    foreach (var alias in aliases)
-                        gameModeList.Add(alias);
-                }
-
-                GameModes = gameModeList.ToArray();
+                GameModes = section.GetStringValue("GameModes", "Default").Split(',');
 
                 MinPlayers = section.GetIntValue("MinPlayers", 0);
                 MaxPlayers = section.GetIntValue("MaxPlayers", 0);
                 EnforceMaxPlayers = section.GetBooleanValue("EnforceMaxPlayers", false);
-                PreviewPath = Path.GetDirectoryName(BaseFilePath) + "\\" +
+                PreviewPath = Path.GetDirectoryName(BaseFilePath) + "/" +
                     section.GetStringValue("PreviewImage", Path.GetFileNameWithoutExtension(BaseFilePath) + ".png");
                 Briefing = section.GetStringValue("Briefing", string.Empty).Replace("@", Environment.NewLine);
-                SHA1 = Utilities.CalculateSHA1ForFile(ProgramConstants.GamePath + BaseFilePath + ".map");
+                SHA1 = Utilities.CalculateSHA1ForFile(CompleteFilePath);
                 IsCoop = section.GetBooleanValue("IsCoopMission", false);
                 Credits = section.GetIntValue("Credits", -1);
                 UnitCount = section.GetIntValue("UnitCount", -1);
@@ -220,6 +225,30 @@ namespace DTAClient.Domain.Multiplayer
                 if (!string.IsNullOrEmpty(bases))
                 {
                     Bases = Convert.ToInt32(Conversions.BooleanFromString(bases, false));
+                }
+
+                int i = 0;
+                while (true)
+                {
+                    // Format example:
+                    // ExtraTexture0=oilderrick.png,200,150
+
+                    string value = section.GetStringValue("ExtraTexture" + i, null);
+                    if (string.IsNullOrWhiteSpace(value))
+                        break;
+
+                    string[] parts = value.Split(',');
+                    if (parts.Length != 3)
+                    {
+                        Logger.Log($"Invalid format for ExtraTexture{i} in map " + BaseFilePath);
+                        continue;
+                    }
+
+                    bool success = int.TryParse(parts[1], NumberStyles.Integer, CultureInfo.InvariantCulture, out int x);
+                    success &= int.TryParse(parts[2], NumberStyles.Integer, CultureInfo.InvariantCulture, out int y);
+                    extraTextures.Add(new ExtraMapPreviewTexture(parts[0], new Point(x, y)));
+
+                    i++;
                 }
 
                 if (IsCoop)
@@ -243,7 +272,7 @@ namespace DTAClient.Domain.Multiplayer
                 localSize = section.GetStringValue("LocalSize", "0,0,0,0").Split(',');
                 actualSize = section.GetStringValue("Size", "0,0,0,0").Split(',');
 
-                for (int i = 0; i < MAX_PLAYERS; i++)
+                for (i = 0; i < MAX_PLAYERS; i++)
                 {
                     string waypoint = section.GetStringValue("Waypoint" + i, string.Empty);
 
@@ -301,6 +330,12 @@ namespace DTAClient.Domain.Multiplayer
             return startingLocations;
         }
 
+        public Point MapPointToMapPreviewPoint(Point mapPoint, Point previewSize)
+        {
+            return GetIsoTilePixelCoord(mapPoint.X, mapPoint.Y, actualSize, localSize, previewSize);
+        }
+
+
         public void WriteInfoToIniSection(IniSection iniSection)
         {
             // TODO necessary for custom map caching
@@ -312,7 +347,7 @@ namespace DTAClient.Domain.Multiplayer
         /// Returns true if succesful, otherwise false.
         /// </summary>
         /// <param name="path">The full path to the map INI file.</param>
-        public bool SetInfoFromMap(string path, Dictionary<string, string[]> gameModeAliases)
+        public bool SetInfoFromMap(string path)
         {
             if (!File.Exists(path))
                 return false;
@@ -352,25 +387,12 @@ namespace DTAClient.Domain.Multiplayer
                     Logger.Log("Custom map " + path + " has no game modes!");
                     return false;
                 }
-
-                List<string> gameModeList = new List<string>();
+                
                 for (int i = 0; i < GameModes.Length; i++)
                 {
                     string gameMode = GameModes[i].Trim();
-                    gameMode = gameMode.Substring(0, 1).ToUpperInvariant() + gameMode.Substring(1);
-
-                    string[] aliases;
-
-                    if (!gameModeAliases.TryGetValue(gameMode, out aliases))
-                    {
-                        gameModeList.Add(gameMode);
-                        continue;
-                    }
-
-                    foreach (var alias in aliases)
-                        gameModeList.Add(alias);
+                    GameModes[i] = gameMode.Substring(0, 1).ToUpperInvariant() + gameMode.Substring(1);
                 }
-                GameModes = gameModeList.ToArray();
 
                 MinPlayers = 0;
                 if (basicSection.KeyExists("ClientMaxPlayer"))
@@ -378,7 +400,7 @@ namespace DTAClient.Domain.Multiplayer
                 else
                     MaxPlayers = basicSection.GetIntValue("MaxPlayer", 0);
                 EnforceMaxPlayers = basicSection.GetBooleanValue("EnforceMaxPlayers", true);
-                //PreviewPath = Path.GetDirectoryName(BaseFilePath) + "\\" +
+                //PreviewPath = Path.GetDirectoryName(BaseFilePath) + "/" +
                 //    iniFile.GetStringValue(BaseFilePath, "PreviewImage", Path.GetFileNameWithoutExtension(BaseFilePath) + ".png");
                 Briefing = basicSection.GetStringValue("Briefing", string.Empty).Replace("@", Environment.NewLine);
                 SHA1 = Utilities.CalculateSHA1ForFile(path);
@@ -490,32 +512,13 @@ namespace DTAClient.Domain.Multiplayer
             if (!Official)
             {
                 // Extract preview from the map itself
+                System.Drawing.Bitmap preview = MapPreviewExtractor.ExtractMapPreview(mapIni);
 
-                if (mapIni.GetSectionKeys("PreviewPack").Count == 0)
+                if (preview != null)
                 {
-                    Logger.Log(mapIni.FileName + " - no [PreviewPack] exists");
-                    return AssetLoader.CreateTexture(Color.Black, 10, 10);
-                }
-                    
-                if (mapIni.GetStringValue("PreviewPack", "1", string.Empty) ==
-                    "yAsAIAXQ5PDQ5PDQ6JQATAEE6PDQ4PDI4JgBTAFEAkgAJyAATAG0AydEAEABpAJIA0wBVA")
-                {
-                    Logger.Log(mapIni.FileName + " - Hidden preview detected - not extracting.");
-                    return AssetLoader.CreateTexture(Color.Black, 10, 10);
-                }
-
-                try
-                {
-                    var extractor = new MapThumbnailExtractor(mapIni, 1);
-                    var bitmap = extractor.Get_Bitmap();
-
-                    var texture = AssetLoader.TextureFromImage(bitmap);
+                    Texture2D texture = AssetLoader.TextureFromImage(preview);
                     if (texture != null)
                         return texture;
-                }
-                catch (Exception ex)
-                {
-                    Logger.Log(mapIni.FileName + " - Failed to extract preview from map: " + ex.Message);
                 }
             }
 
@@ -524,11 +527,11 @@ namespace DTAClient.Domain.Multiplayer
 
         public IniFile GetMapIni()
         {
-            var mapIni = new IniFile(ProgramConstants.GamePath + BaseFilePath + ".map");
+            var mapIni = new IniFile(CompleteFilePath);
 
             if (!string.IsNullOrEmpty(ExtraININame))
             {
-                var extraIni = new IniFile(ProgramConstants.GamePath + "INI\\Map Code\\" + ExtraININame);
+                var extraIni = new IniFile(ProgramConstants.GamePath + "INI/Map Code/" + ExtraININame);
                 IniFile.ConsolidateIniFiles(mapIni, extraIni);
             }
 
@@ -641,6 +644,13 @@ namespace DTAClient.Domain.Multiplayer
             return houseAllyIndexStrings[index];
         }
 
+        public string GetSizeString()
+        {
+            if (actualSize == null || actualSize.Length < 4)
+                return "Not available";
+            return actualSize[2] + "x" + actualSize[3];
+        }
+
         /// <summary>
         /// Converts a waypoint's coordinate string into pixel coordinates on the preview image.
         /// </summary>
@@ -650,14 +660,19 @@ namespace DTAClient.Domain.Multiplayer
         {
             int xCoordIndex = waypoint.Length - 3;
 
-            int ry = Convert.ToInt32(waypoint.Substring(0, xCoordIndex));
-            int rx = Convert.ToInt32(waypoint.Substring(xCoordIndex));
+            int isoTileY = Convert.ToInt32(waypoint.Substring(0, xCoordIndex));
+            int isoTileX = Convert.ToInt32(waypoint.Substring(xCoordIndex));
 
-            int isoTileX = rx - ry + Convert.ToInt32(actualSizeValues[2]) - 1;
-            int isoTileY = rx + ry - Convert.ToInt32(actualSizeValues[2]) - 1;
+            return GetIsoTilePixelCoord(isoTileX, isoTileY, actualSizeValues, localSizeValues, previewSizePoint);
+        }
 
-            int pixelPosX = isoTileX * MainClientConstants.MAP_CELL_SIZE_X / 2;
-            int pixelPosY = isoTileY * MainClientConstants.MAP_CELL_SIZE_Y / 2;
+        private static Point GetIsoTilePixelCoord(int isoTileX, int isoTileY, string[] actualSizeValues, string[] localSizeValues, Point previewSizePoint)
+        {
+            int rx = isoTileX - isoTileY + Convert.ToInt32(actualSizeValues[2]) - 1;
+            int ry = isoTileX + isoTileY - Convert.ToInt32(actualSizeValues[2]) - 1;
+
+            int pixelPosX = rx * MainClientConstants.MAP_CELL_SIZE_X / 2;
+            int pixelPosY = ry * MainClientConstants.MAP_CELL_SIZE_Y / 2;
 
             pixelPosX = pixelPosX - (Convert.ToInt32(localSizeValues[0]) * MainClientConstants.MAP_CELL_SIZE_X);
             pixelPosY = pixelPosY - (Convert.ToInt32(localSizeValues[1]) * MainClientConstants.MAP_CELL_SIZE_Y);
@@ -669,17 +684,12 @@ namespace DTAClient.Domain.Multiplayer
             double ratioX = Convert.ToDouble(pixelPosX) / mapSizeX;
             double ratioY = Convert.ToDouble(pixelPosY) / mapSizeY;
 
-            int x = Convert.ToInt32(ratioX * previewSizePoint.X);
-            int y = Convert.ToInt32(ratioY * previewSizePoint.Y);
+            int pixelX = Convert.ToInt32(ratioX * previewSizePoint.X);
+            int pixelY = Convert.ToInt32(ratioY * previewSizePoint.Y);
 
-            return new Point(x, y);
+            return new Point(pixelX, pixelY);
         }
 
-        public string GetSizeString()
-        {
-            if (actualSize == null || actualSize.Length < 4)
-                return "Not available";
-            return actualSize[2] + "x" + actualSize[3];
-        }
+
     }
 }

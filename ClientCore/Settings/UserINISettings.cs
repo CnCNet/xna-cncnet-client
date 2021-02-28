@@ -9,6 +9,13 @@ namespace ClientCore
     {
         private static UserINISettings _instance;
 
+        private const string VIDEO = "Video";
+        private const string MULTIPLAYER = "MultiPlayer";
+        private const string OPTIONS = "Options";
+        private const string AUDIO = "Audio";
+        private const string CUSTOM_SETTINGS = "CustomSettings";
+        private const string COMPATIBILITY = "Compatibility";
+
         public static UserINISettings Instance
         {
             get
@@ -34,11 +41,7 @@ namespace ClientCore
         {
             SettingsIni = iniFile;
 
-            const string VIDEO = "Video";
-            const string MULTIPLAYER = "MultiPlayer";
-            const string OPTIONS = "Options";
-            const string AUDIO = "Audio";
-#if YR || MO
+#if YR || ARES
             const string WINDOWED_MODE_KEY = "Video.Windowed";
             BackBufferInVRAM = new BoolSetting(iniFile, VIDEO, "VideoBackBuffer", false);
 #else
@@ -50,13 +53,14 @@ namespace ClientCore
             IngameScreenHeight = new IntSetting(iniFile, VIDEO, "ScreenHeight", 768);
             ClientTheme = new StringSetting(iniFile, MULTIPLAYER, "Theme", string.Empty);
             DetailLevel = new IntSetting(iniFile, OPTIONS, "DetailLevel", 2);
-            Renderer = new StringSetting(iniFile, "Compatibility", "Renderer", string.Empty);
+            Renderer = new StringSetting(iniFile, COMPATIBILITY, "Renderer", string.Empty);
             WindowedMode = new BoolSetting(iniFile, VIDEO, WINDOWED_MODE_KEY, false);
             BorderlessWindowedMode = new BoolSetting(iniFile, VIDEO, "NoWindowFrame", false);
 
             ClientResolutionX = new IntSetting(iniFile, VIDEO, "ClientResolutionX", Screen.PrimaryScreen.Bounds.Width);
             ClientResolutionY = new IntSetting(iniFile, VIDEO, "ClientResolutionY", Screen.PrimaryScreen.Bounds.Height);
             BorderlessWindowedClient = new BoolSetting(iniFile, VIDEO, "BorderlessWindowedClient", true);
+            ClientFPS = new IntSetting(iniFile, VIDEO, "ClientFPS", 60);
 
             ScoreVolume = new DoubleSetting(iniFile, AUDIO, "ScoreVolume", 0.7);
             SoundVolume = new DoubleSetting(iniFile, AUDIO, "SoundVolume", 0.7);
@@ -88,12 +92,15 @@ namespace ClientCore
             SkipConnectDialog = new BoolSetting(iniFile, MULTIPLAYER, "SkipConnectDialog", false);
             PersistentMode = new BoolSetting(iniFile, MULTIPLAYER, "PersistentMode", false);
             AutomaticCnCNetLogin = new BoolSetting(iniFile, MULTIPLAYER, "AutomaticCnCNetLogin", false);
+            DiscordIntegration = new BoolSetting(iniFile, MULTIPLAYER, "DiscordIntegration", true);
+            AllowGameInvitesFromFriendsOnly = new BoolSetting(iniFile, MULTIPLAYER, "AllowGameInvitesFromFriendsOnly", false);
             NotifyOnUserListChange = new BoolSetting(iniFile, MULTIPLAYER, "NotifyOnUserListChange", true);
             EnableMapSharing = new BoolSetting(iniFile, MULTIPLAYER, "EnableMapSharing", true);
             AlwaysDisplayTunnelList = new BoolSetting(iniFile, MULTIPLAYER, "AlwaysDisplayTunnelList", false);
 
             CheckForUpdates = new BoolSetting(iniFile, OPTIONS, "CheckforUpdates", true);
 
+            PrivacyPolicyAccepted = new BoolSetting(iniFile, OPTIONS, "PrivacyPolicyAccepted", false);
             IsFirstRun = new BoolSetting(iniFile, OPTIONS, "IsFirstRun", true);
             CustomComponentsDenied = new BoolSetting(iniFile, OPTIONS, "CustomComponentsDenied", false);
             Difficulty = new IntSetting(iniFile, OPTIONS, "Difficulty", 1);
@@ -124,6 +131,7 @@ namespace ClientCore
         public IntSetting ClientResolutionX { get; private set; }
         public IntSetting ClientResolutionY { get; private set; }
         public BoolSetting BorderlessWindowedClient { get; private set; }
+        public IntSetting ClientFPS { get; private set; }
 
         /*********/
         /* AUDIO */
@@ -168,6 +176,8 @@ namespace ClientCore
         public BoolSetting SkipConnectDialog { get; private set; }
         public BoolSetting PersistentMode { get; private set; }
         public BoolSetting AutomaticCnCNetLogin { get; private set; }
+        public BoolSetting DiscordIntegration { get; private set; }
+        public BoolSetting AllowGameInvitesFromFriendsOnly { get; private set; }
 
         public BoolSetting NotifyOnUserListChange { get; private set; }
 
@@ -181,6 +191,7 @@ namespace ClientCore
 
         public BoolSetting CheckForUpdates { get; private set; }
 
+        public BoolSetting PrivacyPolicyAccepted { get; private set; }
         public BoolSetting IsFirstRun { get; private set; }
         public BoolSetting CustomComponentsDenied { get; private set; }
 
@@ -214,6 +225,28 @@ namespace ClientCore
             DoubleTapInterval.SetDefaultIfNonexistent();
             ScrollDelay.SetDefaultIfNonexistent();
         }
+
+        #region Custom settings
+
+        public bool CustomSettingCheckBoxValueExists(string name)
+            => SettingsIni.KeyExists(CUSTOM_SETTINGS, $"{name}_Checked");
+
+        public bool GetCustomSettingValue(string name, bool defaultValue)
+            => SettingsIni.GetBooleanValue(CUSTOM_SETTINGS, $"{name}_Checked", defaultValue);
+
+        public void SetCustomSettingValue(string name, bool value)
+            => SettingsIni.SetBooleanValue(CUSTOM_SETTINGS, $"{name}_Checked", value);
+
+        public bool CustomSettingDropDownValueExists(string name)
+            => SettingsIni.KeyExists(CUSTOM_SETTINGS, $"{name}_SelectedIndex");
+
+        public int GetCustomSettingValue(string name, int defaultValue)
+            => SettingsIni.GetIntValue(CUSTOM_SETTINGS, $"{name}_SelectedIndex", defaultValue);
+
+        public void SetCustomSettingValue(string name, int value)
+            => SettingsIni.SetIntValue(CUSTOM_SETTINGS, $"{name}_SelectedIndex", value);
+
+        #endregion
 
         public void SaveSettings()
         {

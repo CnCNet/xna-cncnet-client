@@ -29,14 +29,14 @@ namespace ClientGUI
                 enteredMessages.AddFirst(Text);
         }
 
-        protected override void HandleKeyPress(Keys key)
+        protected override bool HandleKeyPress(Keys key)
         {
             if (key == Keys.Up)
             {
                 if (currentNode == null)
                 {
                     if (enteredMessages.First == null)
-                        return;
+                        return true;
 
                     currentNode = enteredMessages.First;
                 }
@@ -51,7 +51,7 @@ namespace ClientGUI
             else if (key == Keys.Down)
             {
                 if (currentNode == null || currentNode.Previous == null)
-                    return;
+                    return true;
 
                 currentNode = currentNode.Previous;
                 Text = currentNode.Value;
@@ -60,8 +60,10 @@ namespace ClientGUI
             {
                 currentNode = null;
 
-                base.HandleKeyPress(key);
+                return base.HandleKeyPress(key);
             }
+
+            return true;
         }
     }
 }

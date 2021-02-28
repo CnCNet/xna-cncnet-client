@@ -5,7 +5,6 @@ using System.IO;
 using DTAClient.Domain;
 using Rampastring.Tools;
 using ClientCore;
-using Rampastring.XNAUI;
 using System.Security.AccessControl;
 using System.Security.Principal;
 using System.Collections.Generic;
@@ -44,17 +43,17 @@ namespace DTAClient
         {
             AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(HandleExcept);
 
-            Environment.CurrentDirectory = MainClientConstants.gamepath;
+            Environment.CurrentDirectory = ProgramConstants.GamePath;
 
             CheckPermissions();
 
-            Logger.Initialize(MainClientConstants.gamepath + "Client\\", "client.log");
+            Logger.Initialize(ProgramConstants.ClientUserFilesPath, "client.log");
             Logger.WriteLogFile = true;
 
-            if (!Directory.Exists(MainClientConstants.gamepath + "Client"))
-                Directory.CreateDirectory(MainClientConstants.gamepath + "Client");
+            if (!Directory.Exists(ProgramConstants.ClientUserFilesPath))
+                Directory.CreateDirectory(ProgramConstants.ClientUserFilesPath);
 
-            File.Delete(MainClientConstants.gamepath + "Client\\client.log");
+            File.Delete(ProgramConstants.ClientUserFilesPath + "client.log");
 
             MainClientConstants.Initialize();
 
@@ -76,11 +75,11 @@ namespace DTAClient
 
             // Delete obsolete files from old target project versions
 
-            File.Delete(MainClientConstants.gamepath + "mainclient.log");
-            File.Delete(MainClientConstants.gamepath + "launchupdt.dat");
+            File.Delete(ProgramConstants.GamePath + "mainclient.log");
+            File.Delete(ProgramConstants.GamePath + "launchupdt.dat");
             try
             {
-                File.Delete(MainClientConstants.gamepath + "wsock32.dll");
+                File.Delete(ProgramConstants.GamePath + "wsock32.dll");
             }
             catch (Exception ex)
             {
@@ -113,22 +112,25 @@ namespace DTAClient
                 Logger.Log("Stacktrace: " + ex.InnerException.StackTrace);
             }
 
+            string errorLogPath = Environment.CurrentDirectory.Replace("\\", "/") + "/Client/ClientCrashLogs/ClientCrashLog" +
+                DateTime.Now.ToString("_yyyy_MM_dd_HH_mm") + ".txt";
+            bool crashLogCopied = false;
+
             try
             {
-                if (Directory.Exists(Environment.CurrentDirectory + "\\Client\\ErrorLogs"))
-                {
-                    DateTime dtn = DateTime.Now;
+                if (!Directory.Exists(Environment.CurrentDirectory + "/Client/ClientCrashLogs"))
+                    Directory.CreateDirectory(Environment.CurrentDirectory + "/Client/ClientCrashLogs");
 
-                    File.Copy(Environment.CurrentDirectory + "\\Client\\client.log",
-                        Environment.CurrentDirectory + string.Format("\\Client\\ErrorLogs\\ClientCrashLog_{0}_{1}_{2}_{3}_{4}.txt",
-                        dtn.Day, dtn.Month, dtn.Year, dtn.Hour, dtn.Minute), true);
-                }
+                File.Copy(Environment.CurrentDirectory + "/Client/client.log", errorLogPath, true);
+                crashLogCopied = true;
             }
             catch { }
 
             MessageBox.Show(string.Format("{0} has crashed. Error message:" + Environment.NewLine + Environment.NewLine +
-                ex.Message + Environment.NewLine + Environment.NewLine +
-                "If the issue is repeatable, contact the {1} staff at {2}.",
+                ex.Message + Environment.NewLine + Environment.NewLine + (crashLogCopied ?
+                "A crash log has been saved to the following file: " + Environment.NewLine + Environment.NewLine +
+                errorLogPath + Environment.NewLine + Environment.NewLine : "") +
+                "If the issue is repeatable, contact the {1} staff at {2}" + (crashLogCopied ? "and provide the crash log file" : "") + ".",
                 MainClientConstants.GAME_NAME_LONG,
                 MainClientConstants.GAME_NAME_SHORT,
                 MainClientConstants.SUPPORT_URL_SHORT),
@@ -150,7 +152,7 @@ namespace DTAClient
                 Environment.Exit(0);
 
             ProcessStartInfo psInfo = new ProcessStartInfo();
-            psInfo.FileName = Application.ExecutablePath;
+            psInfo.FileName = Application.ExecutablePath.Replace('\\', '/');
             psInfo.Verb = "runas";
             Process.Start(psInfo);
             Environment.Exit(0);

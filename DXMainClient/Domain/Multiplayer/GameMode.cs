@@ -16,7 +16,7 @@ namespace DTAClient.Domain.Multiplayer
             Initialize();
         }
 
-        private const string BASE_INI_PATH = "INI\\Map Code\\";
+        private const string BASE_INI_PATH = "INI/Map Code/";
         private const string SPAWN_INI_OPTIONS_SECTION = "ForcedSpawnIniOptions";
 
         /// <summary>
@@ -50,6 +50,11 @@ namespace DTAClient.Domain.Multiplayer
         public bool ForceNoTeams { get; private set; }
 
         /// <summary>
+        /// List of side indices players cannot select in this game mode.
+        /// </summary>
+        public List<int> DisallowedPlayerSides = new List<int>();
+
+        /// </summary>
         /// Override for minimum amount of players needed to play any map in this game mode.
         /// </summary>
         public int MinPlayersOverride { get; private set; } = -1;
@@ -80,6 +85,13 @@ namespace DTAClient.Domain.Multiplayer
             MinPlayersOverride = forcedOptionsIni.GetIntValue(Name, "MinPlayersOverride", -1);
             forcedOptionsSection = forcedOptionsIni.GetStringValue(Name, "ForcedOptions", string.Empty);
             mapCodeININame = forcedOptionsIni.GetStringValue(Name, "MapCodeININame", Name + ".ini");
+
+            string[] disallowedSides = forcedOptionsIni
+                .GetStringValue(Name, "DisallowedPlayerSides", string.Empty)
+                .Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+
+            foreach (string sideIndex in disallowedSides)
+                DisallowedPlayerSides.Add(int.Parse(sideIndex));
 
             ParseForcedOptions(forcedOptionsIni);
 

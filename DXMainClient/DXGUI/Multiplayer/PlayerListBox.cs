@@ -39,7 +39,7 @@ namespace DTAClient.DXGUI.Multiplayer
             unknownGameIcon = AssetLoader.TextureFromImage(ClientCore.Properties.Resources.unknownicon);
             friendIcon = AssetLoader.LoadTexture("friendicon.png");
             ignoreIcon = AssetLoader.LoadTexture("ignoreicon.png");
-            badgeGameIcon = AssetLoader.LoadTexture("Badges\\badge.png");
+            badgeGameIcon = AssetLoader.LoadTexture("Badges/badge.png");
         }
 
         public void AddUser(ChannelUser user)
@@ -86,7 +86,7 @@ namespace DTAClient.DXGUI.Multiplayer
 
                     FillRectangle(new Rectangle(1, height,
                         drawnWidth, lbItem.TextLines.Count * LineHeight),
-                        GetColorWithAlpha(FocusColor));
+                        FocusColor);
                 }
 
                 DrawTexture(user.IsAdmin ? adminGameIcon : lbItem.Texture, new Rectangle(x, height,

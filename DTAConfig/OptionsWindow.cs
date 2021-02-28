@@ -19,6 +19,8 @@ namespace DTAConfig
             this.topBar = topBar;
         }
 
+        public event EventHandler OnForceUpdate;
+
         private XNAClientTabControl tabControl;
 
         private XNAOptionsPanel[] optionsPanels;
@@ -63,6 +65,8 @@ namespace DTAConfig
 
             displayOptionsPanel = new DisplayOptionsPanel(WindowManager, UserINISettings.Instance);
             componentsPanel = new ComponentsPanel(WindowManager, UserINISettings.Instance);
+            var updaterOptionsPanel = new UpdaterOptionsPanel(WindowManager, UserINISettings.Instance);
+            updaterOptionsPanel.OnForceUpdate += (s, e) => { Disable(); OnForceUpdate?.Invoke(this, EventArgs.Empty); };
 
             optionsPanels = new XNAOptionsPanel[]
             {
@@ -70,7 +74,7 @@ namespace DTAConfig
                 new AudioOptionsPanel(WindowManager, UserINISettings.Instance),
                 new GameOptionsPanel(WindowManager, UserINISettings.Instance, topBar),
                 new CnCNetOptionsPanel(WindowManager, UserINISettings.Instance, gameCollection),
-                new UpdaterOptionsPanel(WindowManager, UserINISettings.Instance),
+                updaterOptionsPanel,
                 componentsPanel
             };
 
@@ -110,19 +114,16 @@ namespace DTAConfig
             base.GetINIAttributes(iniFile);
 
             foreach (var panel in optionsPanels)
-            {
                 panel.ParseUserOptions(iniFile);
-            }
         }
 
         private void TabControl_SelectedIndexChanged(object sender, EventArgs e)
         {
             foreach (var panel in optionsPanels)
-            {
                 panel.Disable();
-            }
 
             optionsPanels[tabControl.SelectedTab].Enable();
+            optionsPanels[tabControl.SelectedTab].RefreshPanel();
         }
 
         private void BtnBack_LeftClick(object sender, EventArgs e)
@@ -139,12 +140,14 @@ namespace DTAConfig
                 return;
             }
 
+            WindowManager.SoundPlayer.SetVolume(Convert.ToSingle(UserINISettings.Instance.ClientVolume));
             Disable();
         }
 
         private void ExitDownloadCancelConfirmation_YesClicked(XNAMessageBox messageBox)
         {
             componentsPanel.CancelAllDownloads();
+            WindowManager.SoundPlayer.SetVolume(Convert.ToSingle(UserINISettings.Instance.ClientVolume));
             Disable();
         }
 
@@ -174,14 +177,15 @@ namespace DTAConfig
 
         private void SaveSettings()
         {
+            if (RefreshOptionPanels())
+                return;
+
             bool restartRequired = false;
 
             try
             {
                 foreach (var panel in optionsPanels)
-                {
                     restartRequired = panel.Save() || restartRequired;
-                }
 
                 UserINISettings.Instance.SaveSettings();
             }
@@ -205,18 +209,46 @@ namespace DTAConfig
             }
         }
 
-        private void RestartMsgBox_YesClicked(XNAMessageBox messageBox)
+        private void RestartMsgBox_YesClicked(XNAMessageBox messageBox) => WindowManager.RestartGame();
+
+        /// <summary>
+        /// Refreshes the option panels to account for possible
+        /// changes that could affect theirs functionality.
+        /// Shows the popup to inform the user if needed.
+        /// </summary>
+        /// <returns>A bool that determines whether the 
+        /// settings values were changed.</returns>
+        private bool RefreshOptionPanels()
         {
-            WindowManager.RestartGame();
+            bool optionValuesChanged = false;
+
+            foreach (var panel in optionsPanels)
+                optionValuesChanged = panel.RefreshPanel() || optionValuesChanged;
+
+            if (optionValuesChanged)
+            {
+                XNAMessageBox.Show(WindowManager, "Setting Value(s) Changed",
+                    "One or more setting values are" + Environment.NewLine +
+                    "no longer available and were changed." +
+                    Environment.NewLine + Environment.NewLine +
+                    "You may want to verify the new setting" + Environment.NewLine +
+                    "values in client's options window.");
+
+                return true;
+            }
+
+            return false;
         }
 
         public void RefreshSettings()
         {
             foreach (var panel in optionsPanels)
-            {
                 panel.Load();
+
+            RefreshOptionPanels();
+
+            foreach (var panel in optionsPanels)
                 panel.Save();
-            }
 
             UserINISettings.Instance.SaveSettings();
         }
@@ -226,29 +258,34 @@ namespace DTAConfig
             foreach (var panel in optionsPanels)
                 panel.Load();
 
+            RefreshOptionPanels();
+
             componentsPanel.Open();
 
             Enable();
         }
 
-        public void SwitchToCustomComponentsPanel()
+        public void ToggleMainMenuOnlyOptions(bool enable)
         {
             foreach (var panel in optionsPanels)
             {
-                panel.Disable();
+                panel.ToggleMainMenuOnlyOptions(enable);
             }
+        }
+
+        public void SwitchToCustomComponentsPanel()
+        {
+            foreach (var panel in optionsPanels)
+                panel.Disable();
 
             tabControl.SelectedTab = 5;
         }
 
-        public void InstallCustomComponent(int id)
-        {
-            componentsPanel.InstallComponent(id);
-        }
+        public void InstallCustomComponent(int id) => componentsPanel.InstallComponent(id);
 
         public void PostInit()
         {
-#if !YR
+#if TS
             displayOptionsPanel.PostInit();
 #endif
         }

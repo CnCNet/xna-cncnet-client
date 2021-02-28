@@ -1,4 +1,5 @@
 ﻿using ClientGUI;
+using DTAClient.Domain;
 using Microsoft.Xna.Framework;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
@@ -12,12 +13,14 @@ namespace DTAClient.DXGUI.Generic
     /// </summary>
     public class MainMenuDarkeningPanel : XNAPanel
     {
-        public MainMenuDarkeningPanel(WindowManager windowManager) : base(windowManager)
+        public MainMenuDarkeningPanel(WindowManager windowManager, DiscordHandler discordHandler) : base(windowManager)
         {
+            this.discordHandler = discordHandler;
             DrawBorders = false;
             DrawMode = ControlDrawMode.UNIQUE_RENDER_TARGET;
-            AlphaRate = 0.0f;
         }
+
+        private DiscordHandler discordHandler;
 
         public CampaignSelector CampaignSelector;
         public GameLoadingWindow GameLoadingWindow;
@@ -26,29 +29,20 @@ namespace DTAClient.DXGUI.Generic
         public UpdateWindow UpdateWindow;
         public ExtrasWindow ExtrasWindow;
 
-        const float BG_ALPHA_APPEAR_RATE = 0.1f;
-        const float BG_ALPHA_DISAPPEAR_RATE = -0.1f;
-
-        float bgAlphaRate = -0.1f;
-
         public override void Initialize()
         {
             base.Initialize();
 
             Name = "DarkeningPanel";
-            //BorderColor = UISettings.WindowBorderColor;
             BorderColor = UISettings.ActiveSettings.PanelBorderColor;
             BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 128), 1, 1);
-            //ClientRectangle = new Rectangle(0, 0, 1, 1);
             PanelBackgroundDrawMode = PanelBackgroundImageDrawMode.STRETCHED;
             Alpha = 1.0f;
 
-            //ClientRectangle = new Rectangle(0, 0, WindowManager.Instance.RenderResolutionX, WindowManager.Instance.RenderResolutionY);
-
-            CampaignSelector = new CampaignSelector(WindowManager);
+            CampaignSelector = new CampaignSelector(WindowManager, discordHandler);
             AddChild(CampaignSelector);
 
-            GameLoadingWindow = new GameLoadingWindow(WindowManager);
+            GameLoadingWindow = new GameLoadingWindow(WindowManager, discordHandler);
             AddChild(GameLoadingWindow);
 
             StatisticsWindow = new StatisticsWindow(WindowManager);
@@ -89,7 +83,7 @@ namespace DTAClient.DXGUI.Generic
             Enabled = true;
             Visible = true;
 
-            bgAlphaRate = BG_ALPHA_APPEAR_RATE;
+            AlphaRate = DarkeningPanel.ALPHA_RATE;
 
             if (control != null)
             {
@@ -101,7 +95,7 @@ namespace DTAClient.DXGUI.Generic
 
         public void Hide()
         {
-            bgAlphaRate = BG_ALPHA_DISAPPEAR_RATE;
+            AlphaRate = -DarkeningPanel.ALPHA_RATE;
 
             foreach (XNAControl child in Children)
             {
@@ -113,8 +107,6 @@ namespace DTAClient.DXGUI.Generic
         public override void Update(GameTime gameTime)
         {
             base.Update(gameTime);
-
-            Alpha += bgAlphaRate;
 
             if (Alpha <= 0f)
             {

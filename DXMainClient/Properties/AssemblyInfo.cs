@@ -1,15 +1,15 @@
-﻿using System.Reflection;
+using System.Reflection;
 using System.Runtime.InteropServices;
 
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("DTA Client")]
-[assembly: AssemblyDescription("Dawn of the Tiberium Age Client")]
+[assembly: AssemblyTitle("DTA CnCNet Client")]
+[assembly: AssemblyDescription("Dawn of the Tiberium Age CnCNet Client")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("Rampastring")]
-[assembly: AssemblyProduct("Dawn of the Tiberium Age")]
-[assembly: AssemblyCopyright("Copyright © Rampastring 2011-2020")]
+[assembly: AssemblyCompany("CnCNet")]
+[assembly: AssemblyProduct("CnCNet")]
+[assembly: AssemblyCopyright("Copyright © Rampastring 2011-2021")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -31,5 +31,5 @@ using System.Runtime.InteropServices;
 // You can specify all the values or you can default the Build and Revision Numbers 
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("2.5.1.2")]
-[assembly: AssemblyFileVersion("2.5.1.2")]
+[assembly: AssemblyVersion("2.6.8.0")]
+[assembly: AssemblyFileVersion("2.6.8.0")]

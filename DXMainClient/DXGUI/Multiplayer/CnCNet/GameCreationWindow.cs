@@ -29,101 +29,130 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         private XNATextBox tbGameName;
         private XNAClientDropDown ddMaxPlayers;
         private XNATextBox tbPassword;
-        
+
         private XNALabel lblRoomName;
         private XNALabel lblMaxPlayers;
         private XNALabel lblPassword;
-        
+
         private XNALabel lblTunnelServer;
         private TunnelListBox lbTunnelList;
-        
+
         private XNAClientButton btnCreateGame;
         private XNAClientButton btnCancel;
         private XNAClientButton btnLoadMPGame;
         private XNAClientButton btnDisplayAdvancedOptions;
-        
+
         private TunnelHandler tunnelHandler;
 
         public override void Initialize()
         {
+            lbTunnelList = new TunnelListBox(WindowManager, tunnelHandler);
+            lbTunnelList.Name = nameof(lbTunnelList);
+
             Name = "GameCreationWindow";
-            ClientRectangle = new Rectangle(0, 0, 490, 188);
+            Width = lbTunnelList.Width + UIDesignConstants.EMPTY_SPACE_SIDES * 2 +
+                UIDesignConstants.CONTROL_HORIZONTAL_MARGIN * 2;
             BackgroundTexture = AssetLoader.LoadTexture("gamecreationoptionsbg.png");
 
-            btnCreateGame = new XNAClientButton(WindowManager);
-            btnCreateGame.ClientRectangle = new Rectangle(12, 159, 133, 23);
-            btnCreateGame.Text = "Create Game";
-            btnCreateGame.LeftClick += BtnCreateGame_LeftClick;
-
-            btnCancel = new XNAClientButton(WindowManager);
-            btnCancel.ClientRectangle = new Rectangle(345, btnCreateGame.Y, 133, 23);
-            btnCancel.Text = "Cancel";
-            btnCancel.LeftClick += BtnCancel_LeftClick;
-
-            btnLoadMPGame = new XNAClientButton(WindowManager);
-            btnLoadMPGame.ClientRectangle = new Rectangle(178, btnCreateGame.Y, 133, 23);
-            btnLoadMPGame.Text = "Load Game";
-            btnLoadMPGame.LeftClick += BtnLoadMPGame_LeftClick;
-
-            btnDisplayAdvancedOptions = new XNAClientButton(WindowManager);
-            btnDisplayAdvancedOptions.ClientRectangle = new Rectangle(12, 124, 160, 23);
-            btnDisplayAdvancedOptions.Text = "Advanced Options";
-            btnDisplayAdvancedOptions.LeftClick += BtnDisplayAdvancedOptions_LeftClick;
-
             tbGameName = new XNATextBox(WindowManager);
+            tbGameName.Name = nameof(tbGameName);
             tbGameName.MaximumTextLength = 23;
-            tbGameName.ClientRectangle = new Rectangle(Width - 162, 12, 150, 21);
+            tbGameName.ClientRectangle = new Rectangle(Width - 150 - UIDesignConstants.EMPTY_SPACE_SIDES -
+                UIDesignConstants.CONTROL_HORIZONTAL_MARGIN, UIDesignConstants.EMPTY_SPACE_TOP +
+                UIDesignConstants.CONTROL_VERTICAL_MARGIN, 150, 21);
             tbGameName.Text = ProgramConstants.PLAYERNAME + "'s Game";
 
             lblRoomName = new XNALabel(WindowManager);
-            lblRoomName.ClientRectangle = new Rectangle(12, tbGameName.Y + 1, 0, 0);
+            lblRoomName.Name = nameof(lblRoomName);
+            lblRoomName.ClientRectangle = new Rectangle(UIDesignConstants.EMPTY_SPACE_SIDES +
+                UIDesignConstants.CONTROL_HORIZONTAL_MARGIN, tbGameName.Y + 1, 0, 0);
             lblRoomName.Text = "Game room name:";
 
             ddMaxPlayers = new XNAClientDropDown(WindowManager);
-            ddMaxPlayers.ClientRectangle = new Rectangle(tbGameName.X, 53, 
+            ddMaxPlayers.Name = nameof(ddMaxPlayers);
+            ddMaxPlayers.ClientRectangle = new Rectangle(tbGameName.X, tbGameName.Bottom + 20,
                 tbGameName.Width, 21);
             for (int i = 8; i > 1; i--)
                 ddMaxPlayers.AddItem(i.ToString());
             ddMaxPlayers.SelectedIndex = 0;
 
             lblMaxPlayers = new XNALabel(WindowManager);
-            lblMaxPlayers.ClientRectangle = new Rectangle(12, ddMaxPlayers.Y + 1, 0, 0);
+            lblMaxPlayers.Name = nameof(lblMaxPlayers);
+            lblMaxPlayers.ClientRectangle = new Rectangle(UIDesignConstants.EMPTY_SPACE_SIDES +
+                UIDesignConstants.CONTROL_HORIZONTAL_MARGIN, ddMaxPlayers.Y + 1, 0, 0);
             lblMaxPlayers.Text = "Maximum number of players:";
 
             tbPassword = new XNATextBox(WindowManager);
+            tbPassword.Name = nameof(tbPassword);
             tbPassword.MaximumTextLength = 20;
-            tbPassword.ClientRectangle = new Rectangle(tbGameName.X, 94, 
+            tbPassword.ClientRectangle = new Rectangle(tbGameName.X, ddMaxPlayers.Bottom + 20,
                 tbGameName.Width, 21);
 
             lblPassword = new XNALabel(WindowManager);
-            lblPassword.ClientRectangle = new Rectangle(12, tbPassword.Y + 1, 0, 0);
+            lblPassword.Name = nameof(lblPassword);
+            lblPassword.ClientRectangle = new Rectangle(UIDesignConstants.EMPTY_SPACE_SIDES +
+                UIDesignConstants.CONTROL_HORIZONTAL_MARGIN, tbPassword.Y + 1, 0, 0);
             lblPassword.Text = "Password (leave blank for none):";
 
+            btnDisplayAdvancedOptions = new XNAClientButton(WindowManager);
+            btnDisplayAdvancedOptions.Name = nameof(btnDisplayAdvancedOptions);
+            btnDisplayAdvancedOptions.ClientRectangle = new Rectangle(UIDesignConstants.EMPTY_SPACE_SIDES +
+                UIDesignConstants.CONTROL_HORIZONTAL_MARGIN, lblPassword.Bottom + UIDesignConstants.CONTROL_VERTICAL_MARGIN * 3, 160, 23);
+            btnDisplayAdvancedOptions.Text = "Advanced Options";
+            btnDisplayAdvancedOptions.LeftClick += BtnDisplayAdvancedOptions_LeftClick;
+
             lblTunnelServer = new XNALabel(WindowManager);
-            lblTunnelServer.ClientRectangle = new Rectangle(12, 134, 0, 0);
+            lblTunnelServer.Name = nameof(lblTunnelServer);
+            lblTunnelServer.ClientRectangle = new Rectangle(UIDesignConstants.EMPTY_SPACE_SIDES +
+                UIDesignConstants.CONTROL_HORIZONTAL_MARGIN, lblPassword.Bottom + UIDesignConstants.CONTROL_VERTICAL_MARGIN * 4, 0, 0);
             lblTunnelServer.Text = "Tunnel server:";
             lblTunnelServer.Enabled = false;
             lblTunnelServer.Visible = false;
 
-            lbTunnelList = new TunnelListBox(WindowManager, tunnelHandler);
-            lbTunnelList.X = 12;
-            lbTunnelList.Y = 154;
+            lbTunnelList.X = UIDesignConstants.EMPTY_SPACE_SIDES +
+                UIDesignConstants.CONTROL_HORIZONTAL_MARGIN;
+            lbTunnelList.Y = lblTunnelServer.Bottom + UIDesignConstants.CONTROL_VERTICAL_MARGIN;
             lbTunnelList.Disable();
             lbTunnelList.ListRefreshed += LbTunnelList_ListRefreshed;
 
-            AddChild(btnCreateGame);
-            AddChild(btnCancel);
-            if (!ClientConfiguration.Instance.DisableMultiplayerGameLoading)
-                AddChild(btnLoadMPGame);
-            AddChild(btnDisplayAdvancedOptions);
+            btnCreateGame = new XNAClientButton(WindowManager);
+            btnCreateGame.Name = nameof(btnCreateGame);
+            btnCreateGame.ClientRectangle = new Rectangle(UIDesignConstants.EMPTY_SPACE_SIDES +
+                UIDesignConstants.CONTROL_HORIZONTAL_MARGIN, btnDisplayAdvancedOptions.Bottom + UIDesignConstants.CONTROL_VERTICAL_MARGIN * 3,
+                UIDesignConstants.BUTTON_WIDTH_133, UIDesignConstants.BUTTON_HEIGHT);
+            btnCreateGame.Text = "Create Game";
+            btnCreateGame.LeftClick += BtnCreateGame_LeftClick;
+
+            btnCancel = new XNAClientButton(WindowManager);
+            btnCancel.Name = nameof(btnCancel);
+            btnCancel.ClientRectangle = new Rectangle(Width - UIDesignConstants.BUTTON_WIDTH_133 - UIDesignConstants.EMPTY_SPACE_SIDES -
+                UIDesignConstants.CONTROL_HORIZONTAL_MARGIN, btnCreateGame.Y, UIDesignConstants.BUTTON_WIDTH_133, UIDesignConstants.BUTTON_HEIGHT);
+            btnCancel.Text = "Cancel";
+            btnCancel.LeftClick += BtnCancel_LeftClick;
+
+            int btnLoadMPGameX = btnCreateGame.Right + (btnCancel.X - btnCreateGame.Right) / 2 - UIDesignConstants.BUTTON_WIDTH_133 / 2;
+
+            btnLoadMPGame = new XNAClientButton(WindowManager);
+            btnLoadMPGame.Name = nameof(btnLoadMPGame);
+            btnLoadMPGame.ClientRectangle = new Rectangle(btnLoadMPGameX, btnCreateGame.Y, UIDesignConstants.BUTTON_WIDTH_133, UIDesignConstants.BUTTON_HEIGHT);
+            btnLoadMPGame.Text = "Load Game";
+            btnLoadMPGame.LeftClick += BtnLoadMPGame_LeftClick;
+
+            Height = btnCreateGame.Bottom + UIDesignConstants.CONTROL_VERTICAL_MARGIN + UIDesignConstants.EMPTY_SPACE_BOTTOM;
+
             AddChild(tbGameName);
             AddChild(lblRoomName);
+            AddChild(ddMaxPlayers);
             AddChild(lblMaxPlayers);
             AddChild(tbPassword);
             AddChild(lblPassword);
+            AddChild(btnDisplayAdvancedOptions);
             AddChild(lblTunnelServer);
             AddChild(lbTunnelList);
-            AddChild(ddMaxPlayers);
+            AddChild(btnCreateGame);
+            if (!ClientConfiguration.Instance.DisableMultiplayerGameLoading)
+                AddChild(btnLoadMPGame);
+            AddChild(btnCancel);
 
             base.Initialize();
 
@@ -171,7 +200,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 return;
             }
 
-            IniFile spawnSGIni = new IniFile(ProgramConstants.GamePath + 
+            IniFile spawnSGIni = new IniFile(ProgramConstants.GamePath +
                 ProgramConstants.SAVED_GAME_SPAWN_INI);
 
             string password = Utilities.CalculateSHA1ForString(
@@ -195,7 +224,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             if (new ProfanityFilter().IsOffensive(gameName))
             {
-                XNAMessageBox.Show(WindowManager, "Offensive game name", 
+                XNAMessageBox.Show(WindowManager, "Offensive game name",
                     "Please enter a less offensive game name.");
                 return;
             }
@@ -205,7 +234,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 return;
             }
 
-            GameCreated?.Invoke(this, new GameCreationEventArgs(gameName, 
+            GameCreated?.Invoke(this, new GameCreationEventArgs(gameName,
                 int.Parse(ddMaxPlayers.SelectedItem.Text), tbPassword.Text,
                 tunnelHandler.Tunnels[lbTunnelList.SelectedIndex]));
         }
@@ -214,20 +243,17 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         {
             Name = "GameCreationWindow_Advanced";
 
-            ClientRectangle = new Rectangle(X, Y,
-                Width, 420);
-
             btnCreateGame.ClientRectangle = new Rectangle(btnCreateGame.X,
-                Height - 29, btnCreateGame.Width,
-                btnCreateGame.Height);
+                lbTunnelList.Bottom + UIDesignConstants.CONTROL_VERTICAL_MARGIN * 3,
+                btnCreateGame.Width, btnCreateGame.Height);
 
             btnCancel.ClientRectangle = new Rectangle(btnCancel.X,
-                Height - 29, btnCancel.Width,
-                btnCancel.Height);
+                btnCreateGame.Y, btnCancel.Width, btnCancel.Height);
 
             btnLoadMPGame.ClientRectangle = new Rectangle(btnLoadMPGame.X,
-                Height - 29, btnLoadMPGame.Width,
-                btnLoadMPGame.Height);
+                btnCreateGame.Y, btnLoadMPGame.Width, btnLoadMPGame.Height);
+
+            Height = btnCreateGame.Bottom + UIDesignConstants.CONTROL_VERTICAL_MARGIN + UIDesignConstants.EMPTY_SPACE_BOTTOM;
 
             lblTunnelServer.Enable();
             lbTunnelList.Enable();
@@ -248,7 +274,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             if (!File.Exists(ProgramConstants.GamePath + ProgramConstants.SAVED_GAME_SPAWN_INI))
                 return false;
 
-            IniFile iniFile = new IniFile(ProgramConstants.GamePath + 
+            IniFile iniFile = new IniFile(ProgramConstants.GamePath +
                 ProgramConstants.SAVED_GAME_SPAWN_INI);
 
             if (iniFile.GetStringValue("Settings", "Name", string.Empty) != ProgramConstants.PLAYERNAME)
