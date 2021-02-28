@@ -34,6 +34,7 @@ copy Rampastring.Tools.dll %commonBinaries%Rampastring.Tools.dll
 copy Newtonsoft.Json.dll %commonBinaries%Newtonsoft.Json.dll
 copy DiscordRPC.dll %commonBinaries%DiscordRPC.dll
 copy lzo.net.dll %commonBinaries%lzo.net.dll
+copy OpenMcdf.dll %commonBinaries%OpenMcdf.dll
 
 echo Windows
 copy DTAClient.exe %cr%clientdx.exe
