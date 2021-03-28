@@ -53,8 +53,8 @@ namespace DTAClient.Domain.Multiplayer
         public int MinPlayers { get; private set; }
 
         /// <summary>
-        /// Whether to use AmountOfPlayers for limiting the player count of the map.
-        /// If false (which is the default), AmountOfPlayers is only used for randomizing
+        /// Whether to use MaxPlayers for limiting the player count of the map.
+        /// If false (which is the default), MaxPlayers is only used for randomizing
         /// players to starting waypoints.
         /// </summary>
         public bool EnforceMaxPlayers { get; private set; }

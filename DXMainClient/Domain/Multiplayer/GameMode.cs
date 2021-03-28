@@ -29,15 +29,35 @@ namespace DTAClient.Domain.Multiplayer
         /// </summary>
         public string UIName { get; private set; }
 
+        /// <summary>
+        /// If set, this game mode cannot be played on Skirmish.
+        /// </summary>
         public bool MultiplayerOnly { get; private set; }
 
+        /// <summary>
+        /// If set, this game mode cannot be played with AI players.
+        /// </summary>
         public bool HumanPlayersOnly { get; private set; }
 
+        /// <summary>
+        /// If set, players are forced to random starting locations on this game mode.
+        /// </summary>
         public bool ForceRandomStartLocations { get; private set; }
 
+        /// <summary>
+        /// If set, players are forced to different teams on this game mode.
+        /// </summary>
         public bool ForceNoTeams { get; private set; }
 
+        /// <summary>
+        /// List of side indices players cannot select in this game mode.
+        /// </summary>
         public List<int> DisallowedPlayerSides = new List<int>();
+
+        /// </summary>
+        /// Override for minimum amount of players needed to play any map in this game mode.
+        /// </summary>
+        public int MinPlayersOverride { get; private set; } = -1;
 
         private string mapCodeININame;
 
@@ -62,6 +82,7 @@ namespace DTAClient.Domain.Multiplayer
             HumanPlayersOnly = forcedOptionsIni.GetBooleanValue(Name, "HumanPlayersOnly", false);
             ForceRandomStartLocations = forcedOptionsIni.GetBooleanValue(Name, "ForceRandomStartLocations", false);
             ForceNoTeams = forcedOptionsIni.GetBooleanValue(Name, "ForceNoTeams", false);
+            MinPlayersOverride = forcedOptionsIni.GetIntValue(Name, "MinPlayersOverride", -1);
             forcedOptionsSection = forcedOptionsIni.GetStringValue(Name, "ForcedOptions", string.Empty);
             mapCodeININame = forcedOptionsIni.GetStringValue(Name, "MapCodeININame", Name + ".ini");
 

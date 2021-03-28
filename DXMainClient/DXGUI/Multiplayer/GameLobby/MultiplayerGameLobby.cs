@@ -813,7 +813,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 int totalPlayerCount = Players.Count(p => p.SideId < ddPlayerSides[0].Items.Count - 1)
                     + AIPlayers.Count;
 
-                if (totalPlayerCount < Map.MinPlayers)
+                int minPlayers = GameMode.MinPlayersOverride > -1 ? GameMode.MinPlayersOverride : Map.MinPlayers;
+                if (totalPlayerCount < minPlayers)
                 {
                     InsufficientPlayersNotification();
                     return;
@@ -894,7 +895,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         protected virtual void InsufficientPlayersNotification()
         {
-            if (Map != null)
+            if (GameMode != null && GameMode.MinPlayersOverride > -1)
+                AddNotice("Unable to launch game: " + GameMode.UIName + " cannot be played with fewer than " + GameMode.MinPlayersOverride + " players.");
+            else if (Map != null)
                 AddNotice("Unable to launch game: this map cannot be played with fewer than " + Map.MinPlayers + " players.");
         }
 

@@ -95,6 +95,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 return GameMode.UIName + " can only be played on CnCNet and LAN.";
             }
 
+            if (GameMode.MinPlayersOverride > -1 && totalPlayerCount < GameMode.MinPlayersOverride)
+            {
+                return GameMode.UIName + " cannot be played with less than " + GameMode.MinPlayersOverride + " players.";
+            }
+
             if (Map.MultiplayerOnly)
             {
                 return "The selected map can only be played on CnCNet and LAN.";
