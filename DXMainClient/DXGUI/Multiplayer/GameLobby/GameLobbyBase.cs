@@ -1079,7 +1079,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             settings.SetIntValue("Side", houseInfos[myIndex].InternalSideIndex);
             settings.SetBooleanValue("IsSpectator", houseInfos[myIndex].IsSpectator);
             settings.SetIntValue("Color", houseInfos[myIndex].ColorIndex);
-            settings.SetStringValue("CustomLoadScreen", LoadingScreenController.GetLoadScreenName(houseInfos[myIndex].InternalSideIndex));
+            settings.SetStringValue("CustomLoadScreen", LoadingScreenController.GetLoadScreenName(houseInfos[myIndex].InternalSideIndex.ToString()));
             settings.SetIntValue("AIPlayers", AIPlayers.Count);
             settings.SetIntValue("Seed", RandomSeed);
             if (GetPvPTeamCount() > 1)

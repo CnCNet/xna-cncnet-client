@@ -286,7 +286,7 @@ namespace DTAClient.DXGUI.Generic
 
             swriter.WriteLine("GameSpeed=" + UserINISettings.Instance.GameSpeed);
             swriter.WriteLine("Firestorm=" + mission.RequiredAddon);
-            swriter.WriteLine("CustomLoadScreen=" + LoadingScreenController.GetLoadScreenName(mission.Side));
+            swriter.WriteLine("CustomLoadScreen=" + LoadingScreenController.GetLoadScreenName(mission.Side.ToString()));
             swriter.WriteLine("IsSinglePlayer=Yes");
             swriter.WriteLine("SidebarHack=" + ClientConfiguration.Instance.SidebarHack);
             swriter.WriteLine("Side=" + mission.Side);
