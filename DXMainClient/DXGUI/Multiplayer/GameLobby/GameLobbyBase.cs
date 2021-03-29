@@ -1311,6 +1311,12 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             MapCodeHelper.ApplyMapCode(mapIni, GameMode.GetMapRulesIniFile());
             MapCodeHelper.ApplyMapCode(mapIni, globalCodeIni);
 
+            if (isMultiplayer)
+            {
+                IniFile mpGlobalCodeIni = new IniFile(ProgramConstants.GamePath + "INI/Map Code/MultiplayerGlobalCode.ini");
+                MapCodeHelper.ApplyMapCode(mapIni, mpGlobalCodeIni);
+            }
+
             foreach (GameLobbyCheckBox checkBox in CheckBoxes)
                 checkBox.ApplyMapCode(mapIni, GameMode);
 

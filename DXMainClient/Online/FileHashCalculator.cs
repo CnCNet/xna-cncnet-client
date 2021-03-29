@@ -50,6 +50,7 @@ namespace DTAClient.Online
             "INI/Game Options/No Spawn Previews.ini",
             "INI/Game Options/RA2 Classic Mode.ini",
             "INI/Map Code/GlobalCode.ini",
+            "INI/Map Code/MultiplayerGlobalCode.ini",
 #elif TS
             "spawner.xdp",
             "rules.ini",
@@ -92,8 +93,10 @@ namespace DTAClient.Online
             Logger.Log("Hash for " + ProgramConstants.BASE_RESOURCE_PATH + "clientxna.exe: " + fh.ClientXNAHash);
             Logger.Log("Hash for " + ProgramConstants.BASE_RESOURCE_PATH + "clientogl.exe: " + fh.ClientOGLHash);
             Logger.Log("Hash for " + ClientConfiguration.Instance.MPMapsIniPath + ": " + fh.MPMapsHash);
+
             if (calculateGameExeHash)
                 Logger.Log("Hash for " + ClientConfiguration.Instance.GetGameExecutableName() + ": " + fh.GameExeHash);
+
             if (!string.IsNullOrEmpty(ClientConfiguration.Instance.GameLauncherExecutableName))
                 Logger.Log("Hash for " + ClientConfiguration.Instance.GameLauncherExecutableName + ": " + fh.LauncherExeHash);
 
