@@ -342,12 +342,15 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 ddCurrentChannel.AddItem(item);
 
                 var chatChannel = connectionManager.FindChannel(game.ChatChannel);
-
+                var GameBroadcastChannel = connectionManager.FindChannel(game.GameBroadcastChannel);
                 if (chatChannel == null)
                 {
                     chatChannel = connectionManager.CreateChannel(game.UIName, game.ChatChannel,
                         true, true, "ra1-derp");
                     connectionManager.AddChannel(chatChannel);
+                    GameBroadcastChannel = connectionManager.CreateChannel(game.UIName, game.GameBroadcastChannel,
+                        true, true, "ra1-derp");
+                    connectionManager.AddChannel(GameBroadcastChannel);
                 }
 
                 item.Tag = chatChannel;

@@ -1746,6 +1746,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             sb.Append(tunnelHandler.CurrentTunnel.Address + ":" + tunnelHandler.CurrentTunnel.Port);
             sb.Append(";");
             sb.Append(0); // LoadedGameId
+            if (channel.Password.Length != 10)
+            {
+                sb.Append(";");
+                sb.Append(channel.Password);
+            }
 
             broadcastChannel.SendCTCPMessage(sb.ToString(), QueuedMessageType.SYSTEM_MESSAGE, 20);
         }
