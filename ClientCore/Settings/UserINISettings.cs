@@ -81,7 +81,6 @@ namespace ClientCore
             DragDistance = new IntSetting(iniFile, OPTIONS, "DragDistance", 4);
             DoubleTapInterval = new IntSetting(iniFile, OPTIONS, "DoubleTapInterval", 30);
             Win8CompatMode = new StringSetting(iniFile, OPTIONS, "Win8Compat", "No");
-            Language = new IntSetting(iniFile, OPTIONS, "Language", 0);
 
             PlayerName = new StringSetting(iniFile, MULTIPLAYER, "Handle", string.Empty);
 
@@ -161,7 +160,6 @@ namespace ClientCore
         public IntSetting DragDistance { get; private set; }
         public IntSetting DoubleTapInterval { get; private set; }
         public StringSetting Win8CompatMode { get; private set; }
-        public IntSetting Language { get; private set; }
 
         /************************/
         /* MULTIPLAYER (CnCNet) */

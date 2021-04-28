@@ -42,61 +42,13 @@ namespace DTAConfig
             tabControl.ClientRectangle = new Rectangle(12, 12, 0, 23);
             tabControl.FontIndex = 1;
             tabControl.ClickSound = new EnhancedSoundEffect("button.wav");
-            #region Language Settings
-            if (UserINISettings.Instance.Language == 0)
-            {
-                tabControl.AddTab("Display", 92);
-            }
-            else if (UserINISettings.Instance.Language == 1)
-            {
-                tabControl.AddTab("Ekran", 92);
-            }
-            else if (UserINISettings.Instance.Language == 2)
-            {
-                tabControl.AddTab("Отображать", 92);
-            }
-            if (UserINISettings.Instance.Language == 0)
-            {
-                tabControl.AddTab("Audio", 92);
-
-            }
-            else if (UserINISettings.Instance.Language == 1)
-            {
-                tabControl.AddTab("Ses", 92);
-            }
-            else if (UserINISettings.Instance.Language == 2)
-            {
-                tabControl.AddTab("Аудио", 92);
-            }
-            if (UserINISettings.Instance.Language == 0)
-            {
-                tabControl.AddTab("Game", 92);
-            }
-            else if (UserINISettings.Instance.Language == 1)
-            {
-                tabControl.AddTab("Oyun", 92);
-            }
-            else if (UserINISettings.Instance.Language == 2)
-            {
-                tabControl.AddTab("Игра", 92);
-            }
+            tabControl.AddTab("Display", 92);
+            tabControl.AddTab("Audio", 92);
+            tabControl.AddTab("Game", 92);
             tabControl.AddTab("CnCNet", 92);
-            if (UserINISettings.Instance.Language == 0)
-            {
-                tabControl.AddTab("Updater", 92);
-            }
-            else if (UserINISettings.Instance.Language == 1)
-            {
-                tabControl.AddTab("Guncelleyici", 92);
-            }
-            else if (UserINISettings.Instance.Language == 2)
-            {
-                tabControl.AddTab("апдейтер", 92);
-            }
+            tabControl.AddTab("Updater", 92);
             tabControl.AddTab("Components", 92);
-
             tabControl.SelectedIndexChanged += TabControl_SelectedIndexChanged;
-            #endregion
 
             var btnCancel = new XNAClientButton(WindowManager);
             btnCancel.Name = "btnCancel";
@@ -266,7 +218,7 @@ namespace DTAConfig
         /// </summary>
         /// <returns>A bool that determines whether the 
         /// settings values were changed.</returns>
-        public bool RefreshOptionPanels()
+        private bool RefreshOptionPanels()
         {
             bool optionValuesChanged = false;
 

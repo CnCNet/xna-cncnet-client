@@ -29,7 +29,6 @@ namespace DTAConfig.OptionPanels
         XNAClientCheckBox chkConnectOnStartup;
         XNAClientCheckBox chkDiscordIntegration;
         XNAClientCheckBox chkAllowGameInvitesFromFriendsOnly;
-        XNAClientDropDown Language;
 
         GameCollection gameCollection;
 
@@ -114,7 +113,7 @@ namespace DTAConfig.OptionPanels
                 chkSkipLoginWindow.X,
                 chkConnectOnStartup.Bottom + 12, 0, 0);
             chkDiscordIntegration.Text = "Show detailed game info in Discord status";
-
+            
             if (String.IsNullOrEmpty(ClientConfiguration.Instance.DiscordAppId))
             {
                 chkDiscordIntegration.AllowChecking = false;
@@ -135,24 +134,6 @@ namespace DTAConfig.OptionPanels
             chkAllowGameInvitesFromFriendsOnly.Text = "Only receive game invitations from friends";
 
             AddChild(chkAllowGameInvitesFromFriendsOnly);
-
-            /*
-            multiple language option
-            0 = EN
-            1 = TR
-            2 = RU
-            */
-            Language = new XNAClientDropDown(WindowManager);
-            Language.Name = "Language";
-            Language.ClientRectangle = new Rectangle(
-                chkAllowGameInvitesFromFriendsOnly.X,
-                chkNotifyOnUserListChange.Y,
-                chkAllowGameInvitesFromFriendsOnly.Width,
-                chkNotifyOnUserListChange.Height);
-            Language.AddItem("EN");
-            Language.AddItem("TR");
-            Language.AddItem("RU");
-            AddChild(Language);
 
             var lblFollowedGames = new XNALabel(WindowManager);
             lblFollowedGames.Name = "lblFollowedGames";
@@ -237,7 +218,7 @@ namespace DTAConfig.OptionPanels
             chkConnectOnStartup.Checked = IniSettings.AutomaticCnCNetLogin;
             chkSkipLoginWindow.Checked = IniSettings.SkipConnectDialog;
             chkPersistentMode.Checked = IniSettings.PersistentMode;
-            Language.SelectedIndex = UserINISettings.Instance.Language;
+
             chkDiscordIntegration.Checked = !String.IsNullOrEmpty(ClientConfiguration.Instance.DiscordAppId)
                 && IniSettings.DiscordIntegration;
 
@@ -270,14 +251,6 @@ namespace DTAConfig.OptionPanels
             IniSettings.AutomaticCnCNetLogin.Value = chkConnectOnStartup.Checked;
             IniSettings.SkipConnectDialog.Value = chkSkipLoginWindow.Checked;
             IniSettings.PersistentMode.Value = chkPersistentMode.Checked;
-
-            if (IniSettings.Language.Value != Language.SelectedIndex)
-            {
-                restartRequired = true;
-                IniSettings.Language.Value = Language.SelectedIndex;
-            }
-
-            IniSettings.Language.Value = Language.SelectedIndex;
 
             if (!String.IsNullOrEmpty(ClientConfiguration.Instance.DiscordAppId))
             {
