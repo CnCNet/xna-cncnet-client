@@ -1443,7 +1443,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             IRCUser iu = connectionManager.UserList.Find(u => u.Name == username);
 
-            if (iu != null && iu.GameID >= 0 || iu.GameID < gameCollection.GameList.Count)
+            if (iu != null && iu.GameID >= 0 && iu.GameID < gameCollection.GameList.Count)
             {
                 senderGameIcon = gameCollection.GameList[iu.GameID].Texture;
             }
