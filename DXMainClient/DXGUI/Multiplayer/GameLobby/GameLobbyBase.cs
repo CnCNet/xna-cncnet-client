@@ -1553,7 +1553,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             for (int i = 1; i < Players.Count; i++)
             {
-                if (!Players[i].AutoReady)
+                if (!Players[i].AutoReady || Players[i].IsInGame)
                     Players[i].Ready = false;
             }
         }
