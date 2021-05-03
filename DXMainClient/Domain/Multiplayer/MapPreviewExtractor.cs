@@ -161,7 +161,7 @@ namespace DTAClient.Domain.Multiplayer
                 BitmapData bitmapData = bitmap.LockBits(new Rectangle(0, 0, bitmap.Width, bitmap.Height), ImageLockMode.WriteOnly, PixelFormat.Format24bppRgb);
                 IntPtr scan0 = bitmapData.Scan0;
                 int strideWidth = Math.Abs(bitmapData.Stride);
-                int numSkipBytes = strideWidth % 3;
+                int numSkipBytes = strideWidth - bitmapData.Width * 3;
                 byte[] bitmapPixelData = new byte[strideWidth * bitmapData.Height];
                 int writtenBytes = 0;
                 int readBytes = 0;
