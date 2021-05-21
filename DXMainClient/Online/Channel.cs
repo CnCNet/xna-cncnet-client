@@ -4,10 +4,11 @@ using Microsoft.Xna.Framework;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using DTAClient.DXGUI;
 
 namespace DTAClient.Online
 {
-    public class Channel
+    public class Channel : IMessageView
     {
         const int MESSAGE_LIMIT = 1024;
 

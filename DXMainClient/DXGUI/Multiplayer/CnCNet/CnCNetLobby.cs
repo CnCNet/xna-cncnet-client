@@ -186,6 +186,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 PerformUserListContextMenuAction(iu => cncnetUserData.ToggleFriend(iu.Name)));
             playerContextMenu.AddItem("Ignore User", () => 
                 PerformUserListContextMenuAction(iu => cncnetUserData.ToggleIgnoreUser(iu.Ident)));
+            playerContextMenu.AddItem("Join", () => 
+                PerformUserListContextMenuAction(iu => JoinUser(iu, connectionManager.MainChannel)));
 
             lbChatMessages = new ChatListBox(WindowManager);
             lbChatMessages.Name = nameof(lbChatMessages);
@@ -297,6 +299,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             CnCNetPlayerCountTask.CnCNetGameCountUpdated += OnCnCNetGameCountUpdated;
             UpdateOnlineCount(CnCNetPlayerCountTask.PlayerCount);
+            
+            pmWindow.SetJoinUserAction(JoinUser);
 
             base.Initialize();
 
@@ -429,7 +433,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             loginWindowPanel.AddChild(loginWindow);
             loginWindow.Disable();
 
-            passwordRequestWindow = new PasswordRequestWindow(WindowManager);
+            passwordRequestWindow = new PasswordRequestWindow(WindowManager, pmWindow);
             passwordRequestWindow.PasswordEntered += PasswordRequestWindow_PasswordEntered;
 
             var passwordRequestWindowPanel = new DarkeningPanel(WindowManager);
@@ -626,7 +630,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         private void LbGameList_DoubleLeftClick(object sender, EventArgs e) => JoinGameByIndex(lbGameList.SelectedIndex, string.Empty);
 
-        private void PasswordRequestWindow_PasswordEntered(object sender, PasswordEventArgs e) => JoinGame(e.HostedGame, e.Password);
+        private void PasswordRequestWindow_PasswordEntered(object sender, PasswordEventArgs e) => _JoinGame(e.HostedGame, e.Password);
 
         /// <summary>
         /// Checks if the user can join a game.
@@ -645,8 +649,17 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             if (ProgramConstants.IsInGame)
                 return "Cannot join game while the main game executable is running.";
 
-            HostedCnCNetGame hg = (HostedCnCNetGame)lbGameList.Items[gameIndex].Tag;
-
+            return null;
+        }
+        
+        /// <summary>
+        /// Determines whether or not a game is join-able.
+        /// If not, an error message is returned. Otherwise, null.
+        /// </summary>
+        /// <param name="hg"></param>
+        /// <returns></returns>
+        private string CanJoinGame(HostedCnCNetGame hg)
+        {
             if (hg.Game.InternalName.ToUpper() != localGameID.ToUpper())
                 return "The selected game is for " + gameCollection.GetGameNameFromInternalName(hg.Game.InternalName);
 
@@ -674,8 +687,24 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 return false;
             }
 
-            HostedCnCNetGame hg = (HostedCnCNetGame)lbGameList.Items[gameIndex].Tag;
-
+            return JoinGame((HostedCnCNetGame) lbGameList.Items[gameIndex].Tag, password, connectionManager.MainChannel);
+        }
+        
+        /// <summary>
+        /// Attempt to join a game
+        /// </summary>
+        /// <param name="hg">the game to join</param>
+        /// <param name="password">the password to join with</param>
+        /// <param name="messageView">the message view/list to write error messages to</param>
+        /// <returns></returns>
+        private bool JoinGame(HostedCnCNetGame hg, string password, IMessageView messageView)
+        {
+            string error = CanJoinGame(hg);
+            if (!string.IsNullOrEmpty(error))
+            {
+                messageView.AddMessage(new ChatMessage(Color.White, error));
+                return false;
+            }
             // if (hg.GameVersion != ProgramConstants.GAME_VERSION)
             // TODO Show warning
 
@@ -704,12 +733,12 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 }
             }
 
-            JoinGame(hg, password);
+            _JoinGame(hg, password);
 
             return true;
         }
 
-        private void JoinGame(HostedCnCNetGame hg, string password)
+        private void _JoinGame(HostedCnCNetGame hg, string password)
         {
             connectionManager.MainChannel.AddMessage(new ChatMessage(Color.White,
                 "Attempting to join game " + hg.RoomName + "..."));
@@ -1487,6 +1516,40 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
                 invitationIndex.Remove(invitationIdentity);
             }
+        }
+
+        /// <summary>
+        /// Attempts to find a hosted game that the specified user is in
+        /// </summary>
+        /// <param name="user">The user to find a game for</param>
+        /// <returns></returns>
+        private HostedCnCNetGame GetHostedGameForUser(IRCUser user)
+        {
+            return lbGameList.Items.Select(g => (HostedCnCNetGame) g.Tag).FirstOrDefault(g => g.Players.Contains(user.Name));
+        }
+
+        /// <summary>
+        /// Joins a specified user's game depending on whether or not
+        /// they are currently in one.
+        /// </summary>
+        /// <param name="user">The user to join.</param>
+        /// <param name="messageView">The message view/list to write error messages to</param>
+        private void JoinUser(IRCUser user, IMessageView messageView)
+        {
+            if (user == null)
+            {
+                // can happen if a user is selected while offline
+                messageView.AddMessage(new ChatMessage(Color.White, "User is not currently available!"));
+                return;
+            }
+            var game = GetHostedGameForUser(user);
+            if (game == null)
+            {
+                messageView.AddMessage(new ChatMessage(Color.White, user.Name + " is not in a game!"));
+                return;
+            }
+
+            JoinGame(game, string.Empty, messageView);
         }
     }
 }
