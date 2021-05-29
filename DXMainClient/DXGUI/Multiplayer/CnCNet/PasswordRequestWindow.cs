@@ -9,10 +9,11 @@ using System;
 
 namespace DTAClient.DXGUI.Multiplayer.CnCNet
 {
-    public class PasswordRequestWindow : XNAWindow
+    internal class PasswordRequestWindow : XNAWindow
     {
-        public PasswordRequestWindow(WindowManager windowManager) : base(windowManager)
+        public PasswordRequestWindow(WindowManager windowManager, PrivateMessagingWindow privateMessagingWindow) : base(windowManager)
         {
+            this.privateMessagingWindow = privateMessagingWindow;
         }
 
         public event EventHandler<PasswordEventArgs> PasswordEntered;
@@ -20,6 +21,9 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         private XNATextBox tbPassword;
 
         private HostedCnCNetGame hostedGame;
+
+        private PrivateMessagingWindow privateMessagingWindow;
+        private bool pmWindowWasEnabled { get; set; }
 
         public override void Initialize()
         {
@@ -74,7 +78,16 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         private void PasswordRequestWindow_EnabledChanged(object sender, EventArgs e)
         {
             if (Enabled)
+            {
                 WindowManager.SelectedControl = tbPassword;
+                if (!privateMessagingWindow.Enabled) return;
+                pmWindowWasEnabled = true;
+                privateMessagingWindow.Disable();
+            } 
+            else if(pmWindowWasEnabled)
+            {
+                privateMessagingWindow.Enable();
+            }
         }
 
         private void BtnCancel_LeftClick(object sender, EventArgs e)
@@ -87,6 +100,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             if (string.IsNullOrEmpty(tbPassword.Text))
                 return;
 
+            pmWindowWasEnabled = false;
             Disable();
 
             PasswordEntered?.Invoke(this, new PasswordEventArgs(tbPassword.Text, hostedGame));
