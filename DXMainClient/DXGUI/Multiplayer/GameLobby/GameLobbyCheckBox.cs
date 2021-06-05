@@ -53,7 +53,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         /// The side index that this check box disallows when checked.
         /// Defaults to -1, which means none.
         /// </summary>
-        public int DisallowedSideIndex { get; set; } = -1;
+        public string[] DisallowedSideIndex;
 
         public bool AllowChanges { get; set; } = true;
 
@@ -101,7 +101,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     UserChecked = checkedValue;
                     return;
                 case "DisallowedSideIndex":
-                    DisallowedSideIndex = Conversions.IntFromString(value, DisallowedSideIndex);
+
+                   /// string disallowedSides  = IIniSection.GetStringValue(key, value);
+                    DisallowedSideIndex = value.Split(',');
+
                     return;
                 case "MapScoringMode":
                     MapScoringMode = (CheckBoxMapScoringMode)Enum.Parse(typeof(CheckBoxMapScoringMode), value);
@@ -149,11 +152,16 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         /// <param name="disallowedArray">An array that determines which sides are disabled.</param>
         public void ApplyDisallowedSideIndex(bool[] disallowedArray)
         {
-            if (DisallowedSideIndex < 0)
+            if (DisallowedSideIndex == null || DisallowedSideIndex.Length == 0)
                 return;
 
-            if (Checked != reversed)
-                disallowedArray[DisallowedSideIndex] = true;
+            if (Checked != reversed) {
+                for (int i = 0; i < DisallowedSideIndex.Length; i++) {
+                    String sideNotAllowed = DisallowedSideIndex[i];
+                    int a = int.Parse(sideNotAllowed);
+                    disallowedArray[a] = true;
+                }
+            }
         }
 
         public override void OnLeftClick()
