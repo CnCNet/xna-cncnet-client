@@ -10,7 +10,6 @@ using Rampastring.XNAUI;
 using System;
 using System.Diagnostics;
 using System.IO;
-using System.Security.Principal;
 using System.Windows.Forms;
 
 namespace DTAClient.DXGUI
@@ -124,20 +123,6 @@ namespace DTAClient.DXGUI
             Components.Add(wm);
 
             string playerName = UserINISettings.Instance.PlayerName.Value.Trim();
-            
-            if (UserINISettings.Instance.AutoRemoveUnderscoresFromName)
-            {
-                while (playerName.EndsWith("_"))
-                    playerName = playerName.Substring(0, playerName.Length - 1);
-            }
-
-            if (string.IsNullOrEmpty(playerName))
-            {
-                playerName = WindowsIdentity.GetCurrent().Name;
-
-                playerName = playerName.Substring(playerName.IndexOf("\\") + 1);
-            }
-
             playerName = Renderer.GetSafeString(NameValidator.GetValidOfflineName(playerName), 0);
 
             ProgramConstants.PLAYERNAME = playerName;

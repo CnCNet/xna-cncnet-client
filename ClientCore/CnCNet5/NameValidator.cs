@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace ClientCore.CnCNet5
@@ -53,14 +54,49 @@ namespace ClientCore.CnCNet5
         /// <returns>Player nickname with invalid offline nickname characters removed and constrained to maximum name length.</returns>
         public static string GetValidOfflineName(string name)
         {
-            char[] disallowedCharacters = ",;".ToCharArray();
+            // Choose Windows username as the default player nickname
+            if (String.IsNullOrEmpty(name))
+                name = System.Security.Principal.WindowsIdentity.GetCurrent().Name.Split(new char[] { '\\' }, 2)[1];
 
-            string validName = new string(name.Trim().Where(c => !disallowedCharacters.Contains(c)).ToArray());
+            // Remove forbidden characters
 
-            if (validName.Length > ClientConfiguration.Instance.MaxNameLength)
-                return validName.Substring(0, ClientConfiguration.Instance.MaxNameLength);
-            
-            return validName;
+            // forbid "," and ";"
+            List<char> disallowedCharacters = ",;".ToList();
+            // also, forbid ASCII control characters, which is less than 32 or equals 128.
+            for (char c = (char) 0; c < 32; c++)
+            {
+                disallowedCharacters.Add(c);
+            }
+            disallowedCharacters.Add((char) 128);
+
+            name = new string(name.Trim().Where(c => !disallowedCharacters.Contains(c)).ToArray());
+
+            // AutoRemoveNonASCIIFromName
+
+            if (UserINISettings.Instance.AutoRemoveNonASCIIFromName)
+            {
+                byte[] playerNameAsciiBytes = System.Text.Encoding.ASCII.GetBytes(name);
+                name = System.Text.Encoding.ASCII.GetString(playerNameAsciiBytes);
+            }
+
+            // AutoRemoveUnderscoresFromName
+
+            if (UserINISettings.Instance.AutoRemoveUnderscoresFromName)
+            {
+                name = name.TrimEnd(new char[] { '_' });
+            }
+
+            // Length check
+
+            if (name.Length > ClientConfiguration.Instance.MaxNameLength)
+                name = name.Substring(0, ClientConfiguration.Instance.MaxNameLength);
+
+            // Empty name fallback. Note: can't use Windows username at this time.
+
+            if (String.IsNullOrWhiteSpace(name))
+                name = "New Player";
+
+            return name;
         }
     }
 }
