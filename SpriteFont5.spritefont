@@ -1,21 +1,21 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 
 <XnaContent xmlns:Graphics="Microsoft.Xna.Framework.Content.Pipeline.Graphics">
-  <Asset Type="Graphics:FontDescription">
+	<Asset Type="Graphics:FontDescription">
 
-    <FontName>Arial</FontName>
+		<FontName>Arial</FontName>
 
-    <Size>12</Size>
+		<Size>12</Size>
     
-    <Spacing>0</Spacing>
+		<Spacing>0</Spacing>
 
-    <UseKerning>true</UseKerning>
+		<UseKerning>true</UseKerning>
 
-    <Style>Bold</Style>
+		<Style>Bold</Style>
 
-    <DefaultCharacter>▯</DefaultCharacter>
+		<DefaultCharacter>▯</DefaultCharacter>
 		
-    <CharacterRegions>
+		<CharacterRegions>
 			<!-- English Chars + Numbers + Symbols -->
 			<CharacterRegion>
 				<Start>&#32;</Start>
@@ -24,9 +24,9 @@
 			
 			<!-- Arabic Alef Char (Shapes) -->
 			<CharacterRegion>
-        <Start>&#1570;</Start>
-        <End>&#1575;</End>
-      </CharacterRegion>
+				<Start>&#1570;</Start>
+				<End>&#1575;</End>
+			</CharacterRegion>
 
 			<!-- Arabic Tatweel Char -->
 			<CharacterRegion>
@@ -42,9 +42,9 @@
 
 			<!-- Rest Of Arabic Chars (Shaped) -->
 			<CharacterRegion>
-        <Start>&#65152;</Start>
-        <End>&#65276;</End>
-      </CharacterRegion>
+				<Start>&#65152;</Start>
+				<End>&#65276;</End>
+			</CharacterRegion>
 		</CharacterRegions>
-  </Asset>
+	</Asset>
 </XnaContent>
