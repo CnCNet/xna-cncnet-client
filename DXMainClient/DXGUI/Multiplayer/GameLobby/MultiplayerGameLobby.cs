@@ -284,6 +284,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 GenerateGameID();
                 DdGameMode_SelectedIndexChanged(null, EventArgs.Empty); // Refresh ranks
             }
+            else if (chkAutoReady.Checked)
+            {
+                RequestReadyStatus();
+            }
         }
 
         private void GenerateGameID()
