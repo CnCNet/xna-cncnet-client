@@ -632,6 +632,16 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         private void PasswordRequestWindow_PasswordEntered(object sender, PasswordEventArgs e) => _JoinGame(e.HostedGame, e.Password);
 
+        private string GetJoinGameErrorBase()
+        {
+            if (isJoiningGame)
+                return "Cannot join game - joining game in progress";
+
+            if (ProgramConstants.IsInGame)
+                return "Cannot join game while the main game executable is running.";
+
+            return null;
+        }
         /// <summary>
         /// Checks if the user can join a game.
         /// Returns null if the user can, otherwise returns an error message
@@ -643,13 +653,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             if (gameIndex < 0 || gameIndex >= lbGameList.Items.Count)
                 return "Invalid game index";
 
-            if (isJoiningGame)
-                return "Cannot join game - joining game in progress";
-
-            if (ProgramConstants.IsInGame)
-                return "Cannot join game while the main game executable is running.";
-
-            return null;
+            return GetJoinGameErrorBase();
         }
         
         /// <summary>
@@ -668,7 +672,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             if (hg.IsLoadedGame && !hg.Players.Contains(ProgramConstants.PLAYERNAME))
                 return "You do not exist in the saved game!";
 
-            return null;
+            return GetJoinGameErrorBase();
         }
 
         private bool JoinGameByIndex(int gameIndex, string password)
