@@ -638,7 +638,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         /// that tells the reason why the user cannot join the game.
         /// </summary>
         /// <param name="gameIndex">The index of the game in the game list box.</param>
-        private string CanJoinGameByIndex(int gameIndex)
+        private string GetJoinGameErrorByIndex(int gameIndex)
         {
             if (gameIndex < 0 || gameIndex >= lbGameList.Items.Count)
                 return "Invalid game index";
@@ -653,12 +653,11 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         }
         
         /// <summary>
-        /// Determines whether or not a game is join-able.
-        /// If not, an error message is returned. Otherwise, null.
+        /// Returns an error message if game is not join-able, otherwise null.
         /// </summary>
         /// <param name="hg"></param>
         /// <returns></returns>
-        private string CanJoinGame(HostedCnCNetGame hg)
+        private string GetJoinGameError(HostedCnCNetGame hg)
         {
             if (hg.Game.InternalName.ToUpper() != localGameID.ToUpper())
                 return "The selected game is for " + gameCollection.GetGameNameFromInternalName(hg.Game.InternalName);
@@ -674,7 +673,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         private bool JoinGameByIndex(int gameIndex, string password)
         {
-            string error = CanJoinGameByIndex(gameIndex);
+            string error = GetJoinGameErrorByIndex(gameIndex);
             if (!string.IsNullOrEmpty(error))
             {
                 connectionManager.MainChannel.AddMessage(new ChatMessage(Color.White, error));
@@ -693,7 +692,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         /// <returns></returns>
         private bool JoinGame(HostedCnCNetGame hg, string password, IMessageView messageView)
         {
-            string error = CanJoinGame(hg);
+            string error = GetJoinGameError(hg);
             if (!string.IsNullOrEmpty(error))
             {
                 messageView.AddMessage(new ChatMessage(Color.White, error));
@@ -1067,7 +1066,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             // also enforce user preference on whether to accept invitations from non-friends
             // this is kept separate from CanReceiveInvitationMessagesFrom() as we still
             // want to let the host know that we couldn't receive the invitation
-            if (!string.IsNullOrEmpty(CanJoinGameByIndex(gameIndex)) ||
+            if (!string.IsNullOrEmpty(GetJoinGameErrorByIndex(gameIndex)) ||
                 (UserINISettings.Instance.AllowGameInvitesFromFriendsOnly &&
                 !cncnetUserData.IsFriend(sender)))
             {
