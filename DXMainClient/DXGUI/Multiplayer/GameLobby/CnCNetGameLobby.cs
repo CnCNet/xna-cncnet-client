@@ -634,8 +634,12 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             if (Map == null || GameMode == null)
             {
-                AddNotice("The game host needs to select a different map or " + 
+                AddNotice("The game host needs to select a different map or " +
                     "you will be unable to participate in the match.");
+                
+                if (chkAutoReady.Checked)
+                    channel.SendCTCPMessage("R 0", QueuedMessageType.GAME_PLAYERS_READY_STATUS_MESSAGE, 5);
+
                 return;
             }
 
