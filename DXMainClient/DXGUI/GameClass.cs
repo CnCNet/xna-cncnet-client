@@ -12,6 +12,15 @@ using System.Diagnostics;
 using System.IO;
 using System.Security.Principal;
 using System.Windows.Forms;
+using Autofac;
+using DTAClient.Domain.Multiplayer;
+using DTAClient.Domain.Multiplayer.CnCNet;
+using DTAClient.DXGUI.Multiplayer;
+using DTAClient.DXGUI.Multiplayer.CnCNet;
+using DTAClient.DXGUI.Multiplayer.GameLobby;
+using DTAClient.Online;
+using DTAConfig;
+using MainMenu = DTAClient.DXGUI.Generic.MainMenu;
 
 namespace DTAClient.DXGUI
 {
@@ -143,10 +152,46 @@ namespace DTAClient.DXGUI
             ProgramConstants.PLAYERNAME = playerName;
             UserINISettings.Instance.PlayerName.Value = playerName;
 
-            LoadingScreen ls = new LoadingScreen(wm);
-            wm.AddAndInitializeControl(ls);
-            ls.ClientRectangle = new Rectangle((wm.RenderResolutionX - ls.Width) / 2,
-                (wm.RenderResolutionY - ls.Height) / 2, ls.Width, ls.Height);
+            var loadingScreen = BuildContainer(wm).Resolve<LoadingScreen>();
+            wm.AddAndInitializeControl(loadingScreen);
+            loadingScreen.ClientRectangle = new Rectangle((wm.RenderResolutionX - loadingScreen.Width) / 2,
+                (wm.RenderResolutionY - loadingScreen.Height) / 2, loadingScreen.Width, loadingScreen.Height);
+            
+        }
+
+        private IContainer BuildContainer(WindowManager windowManager)
+        {
+            var builder = new ContainerBuilder();
+
+            builder.RegisterType<ServiceProvider>().AsSelf().SingleInstance();
+            builder.RegisterInstance(windowManager).SingleInstance();
+            builder.RegisterInstance(GraphicsDevice).SingleInstance();
+            builder.RegisterType<LoadingScreen>().AsSelf().SingleInstance();
+            builder.RegisterType<GameCollection>().AsSelf().SingleInstance();
+            builder.RegisterType<CnCNetUserData>().AsSelf().SingleInstance();
+            builder.RegisterType<CnCNetManager>().AsSelf().SingleInstance();
+            builder.RegisterType<TunnelHandler>().AsSelf().SingleInstance();
+            builder.RegisterType<TopBar>().AsSelf().SingleInstance();
+            builder.RegisterType<OptionsWindow>().AsSelf().SingleInstance();
+            builder.RegisterType<PrivateMessagingWindow>().AsSelf().SingleInstance();
+            builder.RegisterType<PrivateMessagingPanel>().AsSelf().SingleInstance();
+            builder.RegisterType<LANLobby>().AsSelf().SingleInstance();
+            builder.RegisterType<CnCNetGameLobby>().AsSelf().SingleInstance();
+            builder.RegisterType<CnCNetGameLoadingLobby>().AsSelf().SingleInstance();
+            builder.RegisterType<CnCNetLobby>().AsSelf().SingleInstance();
+            builder.RegisterType<GameInProgressWindow>().AsSelf().SingleInstance();
+            builder.RegisterType<SkirmishLobby>().AsSelf().SingleInstance();
+            builder.RegisterType<MainMenu>().AsSelf().SingleInstance();
+            builder.RegisterType<MapLoader>().AsSelf().SingleInstance();
+            // register optional DiscordHandler
+            builder.Register(c =>
+            {
+                if (!string.IsNullOrEmpty(ClientConfiguration.Instance.DiscordAppId) && UserINISettings.Instance.DiscordIntegration)
+                    return new DiscordHandler(c.Resolve<WindowManager>());
+                return null;
+            }).SingleInstance();
+            
+            return builder.Build();
         }
 
         private void InitializeUISettings()

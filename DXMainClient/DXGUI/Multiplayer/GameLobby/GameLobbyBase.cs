@@ -36,18 +36,27 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         /// <summary>
         /// Creates a new instance of the game lobby base.
         /// </summary>
-        /// <param name="game">The game.</param>
+        /// <param name="windowManager"></param>
         /// <param name="iniName">The name of the lobby in GameOptions.ini.</param>
-        public GameLobbyBase(WindowManager windowManager, string iniName,
-            List<GameMode> GameModes, bool isMultiplayer, DiscordHandler discordHandler) : base(windowManager)
+        /// <param name="isMultiplayer"></param>
+        /// <param name="discordHandler"></param>
+        /// <param name="mapLoader"></param>
+        public GameLobbyBase(
+            WindowManager windowManager, 
+            string iniName,
+            MapLoader mapLoader, 
+            bool isMultiplayer, 
+            DiscordHandler discordHandler
+            ) : base(windowManager)
         {
             _iniSectionName = iniName;
-            this.GameModes = GameModes;
+            _mapLoader = mapLoader;
             this.isMultiplayer = isMultiplayer;
             this.discordHandler = discordHandler;
         }
 
         private string _iniSectionName;
+        private readonly MapLoader _mapLoader;
 
         protected XNAPanel PlayerOptionsPanel;
 
@@ -63,7 +72,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         /// <summary>
         /// The list of multiplayer game modes.
         /// </summary>
-        protected List<GameMode> GameModes;
+        protected List<GameMode> GameModes => _mapLoader.GameModes;
 
         private GameMode gameMode;
 
