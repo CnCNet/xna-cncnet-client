@@ -12,6 +12,15 @@ using System.Diagnostics;
 using System.IO;
 using System.Security.Principal;
 using System.Windows.Forms;
+using DTAClient.Domain.Multiplayer;
+using DTAClient.Domain.Multiplayer.CnCNet;
+using DTAClient.DXGUI.Multiplayer;
+using DTAClient.DXGUI.Multiplayer.CnCNet;
+using DTAClient.DXGUI.Multiplayer.GameLobby;
+using DTAClient.Online;
+using DTAConfig;
+using SimpleInjector;
+using MainMenu = DTAClient.DXGUI.Generic.MainMenu;
 
 namespace DTAClient.DXGUI
 {
@@ -143,10 +152,42 @@ namespace DTAClient.DXGUI
             ProgramConstants.PLAYERNAME = playerName;
             UserINISettings.Instance.PlayerName.Value = playerName;
 
-            LoadingScreen ls = new LoadingScreen(wm);
-            wm.AddAndInitializeControl(ls);
-            ls.ClientRectangle = new Rectangle((wm.RenderResolutionX - ls.Width) / 2,
-                (wm.RenderResolutionY - ls.Height) / 2, ls.Width, ls.Height);
+            var loadingScreen = BuildContainer(wm).GetInstance<LoadingScreen>();
+            wm.AddAndInitializeControl(loadingScreen);
+            loadingScreen.ClientRectangle = new Rectangle((wm.RenderResolutionX - loadingScreen.Width) / 2,
+                (wm.RenderResolutionY - loadingScreen.Height) / 2, loadingScreen.Width, loadingScreen.Height);
+            
+        }
+
+        private Container BuildContainer(WindowManager windowManager)
+        {
+            var container = new Container();
+
+            container.RegisterSingleton<ServiceProvider>();
+            container.RegisterInstance(windowManager);
+            container.RegisterInstance(GraphicsDevice);
+            container.RegisterSingleton<LoadingScreen>();
+            container.RegisterSingleton<GameCollection>();
+            container.RegisterSingleton<CnCNetUserData>();
+            container.RegisterSingleton<CnCNetManager>();
+            container.RegisterSingleton<TunnelHandler>();
+            container.RegisterSingleton<TopBar>();
+            container.RegisterSingleton<OptionsWindow>();
+            container.RegisterSingleton<PrivateMessagingWindow>();
+            container.RegisterSingleton<PrivateMessagingPanel>();
+            container.RegisterSingleton<LANLobby>();
+            container.RegisterSingleton<CnCNetGameLobby>();
+            container.RegisterSingleton<CnCNetGameLoadingLobby>();
+            container.RegisterSingleton<CnCNetLobby>();
+            container.RegisterSingleton<GameInProgressWindow>();
+            container.RegisterSingleton<SkirmishLobby>();
+            container.RegisterSingleton<MainMenu>();
+            container.RegisterSingleton<MapLoader>();
+            container.RegisterSingleton<DiscordHandler>();
+            
+            container.Verify();
+            
+            return container;
         }
 
         private void InitializeUISettings()

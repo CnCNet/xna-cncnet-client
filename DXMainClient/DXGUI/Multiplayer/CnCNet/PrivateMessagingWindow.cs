@@ -1,30 +1,31 @@
-﻿using ClientCore;
+﻿using System;
+using System.Collections.Generic;
+using ClientCore;
 using ClientCore.CnCNet5;
 using ClientGUI;
 using DTAClient.Online;
 using DTAClient.Online.EventArguments;
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Graphics;
 using Rampastring.Tools;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 
 namespace DTAClient.DXGUI.Multiplayer.CnCNet
 {
-    internal class PrivateMessagingWindow : XNAWindow, ISwitchable
+    public class PrivateMessagingWindow : XNAWindow, ISwitchable
     {
         private const int ALL_PLAYERS_VIEW_INDEX = 2;
         private const int FRIEND_LIST_VIEW_INDEX = 1;
 
         private CnCNetUserData cncnetUserData;
 
-        public PrivateMessagingWindow(WindowManager windowManager,
-            CnCNetManager connectionManager, GameCollection gameCollection, CnCNetUserData cncnetUserData) : base(windowManager)
+        public PrivateMessagingWindow(
+            WindowManager windowManager,
+            CnCNetManager connectionManager, 
+            GameCollection gameCollection, 
+            CnCNetUserData cncnetUserData
+            ) : base(windowManager)
         {
             this.gameCollection = gameCollection;
             this.connectionManager = connectionManager;
