@@ -50,10 +50,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         public bool UserChecked { get; set; }
 
         /// <summary>
-        /// The side index that this check box disallows when checked.
+        /// The side indices that this check box disallows when checked.
         /// Defaults to -1, which means none.
         /// </summary>
-        public string[] DisallowedSideIndex;
+        public List<int> DisallowedSideIndices = new List<int>();
 
         public bool AllowChanges { get; set; } = true;
 
@@ -101,10 +101,14 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     UserChecked = checkedValue;
                     return;
                 case "DisallowedSideIndex":
-
-                   /// string disallowedSides  = IIniSection.GetStringValue(key, value);
-                    DisallowedSideIndex = value.Split(',');
-
+                    DisallowedSideIndices.Add(int.Parse(value));
+                    return;
+                case "DisallowedSideIndices":
+                    string[] sides = value.Split(',');
+                    for (int i = 0; i < sides.Length; i++)
+                    {
+                        DisallowedSideIndices.Add(int.Parse(sides[i]));
+                    }
                     return;
                 case "MapScoringMode":
                     MapScoringMode = (CheckBoxMapScoringMode)Enum.Parse(typeof(CheckBoxMapScoringMode), value);
@@ -152,14 +156,15 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         /// <param name="disallowedArray">An array that determines which sides are disabled.</param>
         public void ApplyDisallowedSideIndex(bool[] disallowedArray)
         {
-            if (DisallowedSideIndex == null || DisallowedSideIndex.Length == 0)
+            if (DisallowedSideIndices.Count == 0)
                 return;
 
-            if (Checked != reversed) {
-                for (int i = 0; i < DisallowedSideIndex.Length; i++) {
-                    String sideNotAllowed = DisallowedSideIndex[i];
-                    int a = int.Parse(sideNotAllowed);
-                    disallowedArray[a] = true;
+            if (Checked != reversed)
+            {
+                for (int i = 0; i < DisallowedSideIndices.Count; i++)
+                {
+                    int sideNotAllowed = DisallowedSideIndices[i];
+                    disallowedArray[sideNotAllowed] = true;
                 }
             }
         }
