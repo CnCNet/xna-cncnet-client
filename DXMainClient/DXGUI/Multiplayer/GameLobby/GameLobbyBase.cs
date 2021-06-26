@@ -1549,11 +1549,12 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         /// <summary>
         /// Sets the ready status of all non-host human players to false.
         /// </summary>
-        protected void ClearReadyStatuses()
+        /// <param name="resetAutoReady">If set, players with autoready enabled are reset as well.</param>
+        protected void ClearReadyStatuses(bool resetAutoReady = false)
         {
             for (int i = 1; i < Players.Count; i++)
             {
-                if (!Players[i].AutoReady)
+                if (resetAutoReady || !Players[i].AutoReady || Players[i].IsInGame)
                     Players[i].Ready = false;
             }
         }

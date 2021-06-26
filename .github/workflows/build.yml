@@ -1,0 +1,48 @@
+name: build client
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build-clients:
+    runs-on: windows-2019
+
+    steps:
+    - uses: actions/checkout@v2
+        
+    - name: Create Artifacts Directories
+      run: mkdir .\Artifacts\YR & mkdir .\Artifacts\Ares & mkdir .\Artifacts\TS
+      shell: cmd
+      
+    - name: Build YR
+      run: BuildYR.bat
+      shell: cmd
+      working-directory: ./BuildScripts
+      
+    - name: Archive YR
+      run: Get-ChildItem -Path "./Compiled/*" -Recurse | Move-Item -Destination "./Artifacts/YR"
+      
+    - name: Build Ares
+      run: BuildAres.bat
+      shell: cmd
+      working-directory: ./BuildScripts
+
+    - name: Archive Ares
+      run: Get-ChildItem -Path "./Compiled/*" -Recurse | Move-Item -Destination "./Artifacts/Ares"
+
+    - name: Build TS
+      run: BuildTS.bat
+      shell: cmd
+      working-directory: ./BuildScripts
+
+    - name: Archive TS
+      run: Get-ChildItem -Path "./Compiled/*" -Recurse | Move-Item -Destination "./Artifacts/TS"
+
+    - uses: actions/upload-artifact@v2
+      name: Upload Artifacts
+      with:
+        name: artifacts
+        path: ./Artifacts

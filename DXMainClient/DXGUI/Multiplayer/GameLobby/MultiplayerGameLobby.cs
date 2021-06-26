@@ -104,6 +104,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         protected MapLoader MapLoader;
 
+        private bool lastMapChangeWasInvalid = false;
+
         /// <summary>
         /// Allows derived classes to add their own chat box commands.
         /// </summary>
@@ -283,6 +285,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             {
                 GenerateGameID();
                 DdGameMode_SelectedIndexChanged(null, EventArgs.Empty); // Refresh ranks
+            }
+            else if (chkAutoReady.Checked)
+            {
+                RequestReadyStatus();
             }
         }
 
@@ -1040,7 +1046,14 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             base.ChangeMap(gameMode, map);
 
-            ClearReadyStatuses();
+            bool resetAutoReady = gameMode == null || map == null;
+
+            ClearReadyStatuses(resetAutoReady);
+
+            if ((lastMapChangeWasInvalid || resetAutoReady) && chkAutoReady.Checked)
+                RequestReadyStatus();
+
+            lastMapChangeWasInvalid = resetAutoReady;
 
             //if (IsHost)
             //    OnGameOptionChanged();
