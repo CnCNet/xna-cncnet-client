@@ -53,7 +53,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         /// The side indices that this check box disallows when checked.
         /// Defaults to -1, which means none.
         /// </summary>
-        public List<int> DisallowedSideIndices = new List<int>();
+        public int[] DisallowedSideIndices;
 
         public bool AllowChanges { get; set; } = true;
 
@@ -101,14 +101,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     UserChecked = checkedValue;
                     return;
                 case "DisallowedSideIndex":
-                    DisallowedSideIndices.Add(int.Parse(value));
+                     DisallowedSideIndices = new int[]{int.Parse(value)};
                     return;
                 case "DisallowedSideIndices":
                     string[] sides = value.Split(',');
-                    for (int i = 0; i < sides.Length; i++)
-                    {
-                        DisallowedSideIndices.Add(int.Parse(sides[i]));
-                    }
+                    DisallowedSideIndices = Array.ConvertAll(value.Split(','), (s) => { return Conversions.IntFromString(s, -1); });
                     return;
                 case "MapScoringMode":
                     MapScoringMode = (CheckBoxMapScoringMode)Enum.Parse(typeof(CheckBoxMapScoringMode), value);
@@ -156,12 +153,12 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         /// <param name="disallowedArray">An array that determines which sides are disabled.</param>
         public void ApplyDisallowedSideIndex(bool[] disallowedArray)
         {
-            if (DisallowedSideIndices.Count == 0)
+            if (DisallowedSideIndices == null || DisallowedSideIndices.Length == 0)
                 return;
 
             if (Checked != reversed)
             {
-                for (int i = 0; i < DisallowedSideIndices.Count; i++)
+                for (int i = 0; i < DisallowedSideIndices.Length; i++)
                 {
                     int sideNotAllowed = DisallowedSideIndices[i];
                     disallowedArray[sideNotAllowed] = true;
