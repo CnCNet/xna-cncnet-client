@@ -82,6 +82,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         private string inviteGameName;
         private string inviteChannelPassword;
 
+        private Action<IRCUser, IMessageView> JoinUserAction;
+
         public override void Initialize()
         {
             Name = nameof(PrivateMessagingWindow);
@@ -163,6 +165,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             playerContextMenu.AddItem("Add Friend", PlayerContextMenu_ToggleFriend);
             playerContextMenu.AddItem("Toggle Block", PlayerContextMenu_ToggleIgnore, null, () => (bool)lbUserList.SelectedItem.Tag, null);
             playerContextMenu.AddItem("Invite", PlayerContextMenu_Invite, null, () => !string.IsNullOrEmpty(inviteChannelName));
+            playerContextMenu.AddItem("Join", PlayerContextMenu_JoinUser, null, () => JoinUserAction != null && IsSelectedUserOnline());
 
             notificationBox = new PrivateMessageNotificationBox(WindowManager);
             notificationBox.Enabled = false;
@@ -371,6 +374,30 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             // lazy solution, but friends are removed rarely so it shouldn't bother players too much
             if (tabControl.SelectedTab == FRIEND_LIST_VIEW_INDEX)
                 TabControl_SelectedIndexChanged(this, EventArgs.Empty); 
+        }
+
+        private bool IsSelectedUserOnline()
+        {
+            return GetSelectedUser() != null;
+        }
+
+        private IRCUser GetSelectedUser()
+        {
+            return connectionManager.UserList.Find(u => u.Name == lbUserList.SelectedItem.Text);
+        }
+
+        private void PlayerContextMenu_JoinUser()
+        {
+            var lbItem = lbUserList.SelectedItem;
+
+            if (lbItem == null)
+            {
+                return;
+            }
+            
+            var user = connectionManager.UserList.Find(u => u.Name == lbUserList.SelectedItem.Text);
+
+            JoinUserAction(user, lbMessages);
         }
 
         private void PlayerContextMenu_Invite()
@@ -729,6 +756,11 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                     }
                 }
             }
+        }
+
+        public void SetJoinUserAction(Action<IRCUser, IMessageView> joinUserAction)
+        {
+            JoinUserAction = joinUserAction;
         }
 
         public void SwitchOff() => Disable();
