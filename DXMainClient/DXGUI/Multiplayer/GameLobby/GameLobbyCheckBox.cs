@@ -101,7 +101,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     UserChecked = checkedValue;
                     return;
                 case "DisallowedSideIndex":
-                     DisallowedSideIndices = new int[]{int.Parse(value)};
+                    DisallowedSideIndices = new int[]{ int.Parse(value) };
                     return;
                 case "DisallowedSideIndices":
                     string[] sides = value.Split(',');
