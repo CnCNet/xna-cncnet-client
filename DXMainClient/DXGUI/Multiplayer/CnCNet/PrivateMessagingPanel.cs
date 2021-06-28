@@ -9,8 +9,11 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
     /// </summary>
     public class PrivateMessagingPanel : DarkeningPanel
     {
-        public PrivateMessagingPanel(WindowManager windowManager) : base(windowManager)
+        private readonly PrivateMessagingWindow _pmWindow;
+
+        public PrivateMessagingPanel(WindowManager windowManager, PrivateMessagingWindow pmWindow) : base(windowManager)
         {
+            _pmWindow = pmWindow;
         }
 
         public override void OnLeftClick()
@@ -31,7 +34,5 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             base.OnLeftClick();
         }
-
-
     }
 }

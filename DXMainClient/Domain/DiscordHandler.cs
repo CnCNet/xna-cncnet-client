@@ -1,19 +1,10 @@
-﻿using ClientCore;
+﻿using System.Text.RegularExpressions;
+using ClientCore;
 using DiscordRPC;
 using DiscordRPC.Message;
-using DTAClient.Online;
 using Microsoft.Xna.Framework;
 using Rampastring.Tools;
 using Rampastring.XNAUI;
-using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.IO;
-using System.Net;
-using System.Net.NetworkInformation;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading;
 
 namespace DTAClient.Domain
 {
@@ -34,7 +25,7 @@ namespace DTAClient.Domain
                 {
                     PreviousPresence = CurrentPresence;
                     currentPresence = value;
-                    client.SetPresence(currentPresence);
+                    client?.SetPresence(currentPresence);
                 }
             }
         }
@@ -43,20 +34,23 @@ namespace DTAClient.Domain
         /// RichPresence instance that was last displayed before the current one.
         /// </summary>
         public RichPresence PreviousPresence { get; private set; }
+        
         public DiscordHandler(WindowManager wm) : base(wm.Game)
         {
-            this.wm = wm;
+            if (!string.IsNullOrEmpty(ClientConfiguration.Instance.DiscordAppId))
+            {
+                client = new DiscordRpcClient(ClientConfiguration.Instance.DiscordAppId);
+            }
 
             wm.Game.Components.Add(this);
         }
-
-        private WindowManager wm;
 
         // Overrides
 
         public override void Initialize()
         {
-            client = new DiscordRpcClient(ClientConfiguration.Instance.DiscordAppId);
+            if (client == null)
+                return;
 
             UpdatePresence();
             client.OnReady += OnReady;
@@ -74,12 +68,18 @@ namespace DTAClient.Domain
 
         public override void Update(GameTime gameTime)
         {
+            if (client == null)
+                return;
+
             client.Invoke();
             base.Update(gameTime);
         }
 
         protected override void Dispose(bool disposing)
         {
+            if (client == null)
+                return;
+
             client.Dispose();
             base.Dispose(disposing);
         }
@@ -91,6 +91,9 @@ namespace DTAClient.Domain
         /// </summary>
         public void UpdatePresence()
         {
+            if (client == null)
+                return;
+            
             CurrentPresence = new RichPresence()
             {
                 Details = "In Client",
@@ -106,6 +109,9 @@ namespace DTAClient.Domain
         /// </summary>
         public void UpdatePresence(string state, string details)
         {
+            if (client == null)
+                return;
+
             CurrentPresence = new RichPresence()
             {
                 State = state,
@@ -125,6 +131,9 @@ namespace DTAClient.Domain
             bool isHost = false, bool isPassworded = false,
             bool isLocked = false, bool resetTimer = false)
         {
+            if (client == null)
+                return;
+
             string sideKey = new Regex("[^a-zA-Z0-9]").Replace(side.ToLower(), "");
             string stateString = $"{state} [{players}/{maxPlayers}] • {roomName}";
             if (isHost)
@@ -155,6 +164,9 @@ namespace DTAClient.Domain
             int players, int maxPlayers, string roomName,
             bool isHost = false, bool resetTimer = false)
         {
+            if (client == null)
+                return;
+
             string stateString = $"{state} [{players}/{maxPlayers}] • {roomName}";
             stateString += "💾";
             if (isHost)
@@ -177,6 +189,9 @@ namespace DTAClient.Domain
         /// </summary>
         public void UpdatePresence(string map, string mode, string state, string side, bool resetTimer = false)
         {
+            if (client == null)
+                return;
+
             string sideKey = new Regex("[^a-zA-Z0-9]").Replace(side.ToLower(), "");
             CurrentPresence = new RichPresence()
             {
@@ -198,6 +213,9 @@ namespace DTAClient.Domain
         /// </summary>
         public void UpdatePresence(string mission, string difficulty, string side, bool resetTimer = false)
         {
+            if (client == null)
+                return;
+
             string sideKey = new Regex("[^a-zA-Z0-9]").Replace(side.ToLower(), "");
             CurrentPresence = new RichPresence()
             {
@@ -219,6 +237,9 @@ namespace DTAClient.Domain
         /// </summary>
         public void UpdatePresence(string save, bool resetTimer = false)
         {
+            if (client == null)
+                return;
+
             CurrentPresence = new RichPresence()
             {
                 State = "Playing Saved Game",
@@ -236,6 +257,9 @@ namespace DTAClient.Domain
 
         private void OnReady(object sender, ReadyMessage args)
         {
+            if (client == null)
+                return;
+
             Logger.Log($"Discord: Received Ready from user {args.User.Username}");
             client.SetPresence(CurrentPresence);
         }

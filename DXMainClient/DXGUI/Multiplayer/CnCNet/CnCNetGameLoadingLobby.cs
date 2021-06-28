@@ -37,15 +37,21 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         private const string PLAYER_READY_CTCP_COMMAND = "READY";
         private const string CHANGE_TUNNEL_SERVER_MESSAGE = "CHTNL";
 
-        public CnCNetGameLoadingLobby(WindowManager windowManager, TopBar topBar,
-            CnCNetManager connectionManager, TunnelHandler tunnelHandler,
-            List<GameMode> gameModes, GameCollection gameCollection, DiscordHandler discordHandler) : base(windowManager, discordHandler)
+        public CnCNetGameLoadingLobby(
+            WindowManager windowManager, 
+            TopBar topBar,
+            CnCNetManager connectionManager, 
+            TunnelHandler tunnelHandler,
+            MapLoader mapLoader, 
+            GameCollection gameCollection, 
+            DiscordHandler discordHandler
+        ) : base(windowManager, discordHandler)
         {
             this.connectionManager = connectionManager;
             this.tunnelHandler = tunnelHandler;
-            this.gameModes = gameModes;
             this.topBar = topBar;
             this.gameCollection = gameCollection;
+            this.mapLoader = mapLoader;
 
             ctcpCommandHandlers = new CommandHandlerBase[]
             {
@@ -66,9 +72,10 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         private CnCNetManager connectionManager;
 
-        private List<GameMode> gameModes;
+        private List<GameMode> gameModes => mapLoader.GameModes;
 
         private TunnelHandler tunnelHandler;
+        private readonly MapLoader mapLoader;
         private TunnelSelectionWindow tunnelSelectionWindow;
         private XNAClientButton btnChangeTunnel;
 
