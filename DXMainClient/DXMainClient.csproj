@@ -514,8 +514,10 @@
     <Compile Include="Online\CnCNetGameCheck.cs" />
     <Compile Include="Online\CnCNetUserData.cs" />
     <Compile Include="Online\EventArguments\ChannelCTCPEventArgs.cs" />
-    <Compile Include="Online\EventArguments\PrivateMessageEventArgs.cs" />
+    <Compile Include="Online\EventArguments\CnCNetPrivateMessageEventArgs.cs" />
     <Compile Include="Online\EventArguments\PrivateCTCPEventArgs.cs" />
+    <Compile Include="Online\EventArguments\PrivateMessageEventArgs.cs" />
+    <Compile Include="Online\EventArguments\UnreadMessageCountEventArgs.cs" />
     <Compile Include="Online\FileHashCalculator.cs" />
     <Compile Include="Online\IRCColor.cs" />
     <Compile Include="DXGUI\Generic\LoadingScreen.cs" />
@@ -544,6 +546,7 @@
     <Compile Include="Online\ChatMessage.cs" />
     <Compile Include="Online\IRCUser.cs" />
     <Compile Include="Online\IUserCollection.cs" />
+    <Compile Include="Online\PrivateMessageHandler.cs" />
     <Compile Include="Online\UnsortedUserCollection.cs" />
     <Compile Include="Online\SortedUserCollection.cs" />
     <Compile Include="Online\PrivateMessageUser.cs" />

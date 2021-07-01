@@ -29,6 +29,7 @@ namespace DTAConfig.OptionPanels
         XNAClientCheckBox chkConnectOnStartup;
         XNAClientCheckBox chkDiscordIntegration;
         XNAClientCheckBox chkAllowGameInvitesFromFriendsOnly;
+        XNAClientCheckBox chkDisablePrivateMessagePopup;
 
         GameCollection gameCollection;
 
@@ -76,6 +77,15 @@ namespace DTAConfig.OptionPanels
                 "on CnCNet lobby";
 
             AddChild(chkNotifyOnUserListChange);
+
+            chkDisablePrivateMessagePopup = new XNAClientCheckBox(WindowManager);
+            chkDisablePrivateMessagePopup.Name = "chkDisablePrivateMessagePopup";
+            chkDisablePrivateMessagePopup.ClientRectangle = new Rectangle(
+                chkNotifyOnUserListChange.X,
+                chkNotifyOnUserListChange.Bottom + 12, 0, 0);
+            chkDisablePrivateMessagePopup.Text = "Disable Popups from Private Messages";
+
+            AddChild(chkDisablePrivateMessagePopup);
 
             chkSkipLoginWindow = new XNAClientCheckBox(WindowManager);
             chkSkipLoginWindow.Name = "chkSkipLoginWindow";
@@ -138,14 +148,14 @@ namespace DTAConfig.OptionPanels
             var lblFollowedGames = new XNALabel(WindowManager);
             lblFollowedGames.Name = "lblFollowedGames";
             lblFollowedGames.ClientRectangle = new Rectangle(
-                chkNotifyOnUserListChange.X,
-                chkNotifyOnUserListChange.Bottom + 24, 0, 0);
+                chkDisablePrivateMessagePopup.X,
+                chkDisablePrivateMessagePopup.Bottom + 24, 0, 0);
             lblFollowedGames.Text = "Show game rooms from the following games:";
 
             AddChild(lblFollowedGames);
 
             int chkCount = 0;
-            int chkCountPerColumn = 5;
+            int chkCountPerColumn = 4;
             int nextColumnXOffset = 0;
             int columnXOffset = 0;
             foreach (CnCNetGame game in gameCollection.GameList)
@@ -215,6 +225,7 @@ namespace DTAConfig.OptionPanels
             chkWriteInstallPathToRegistry.Checked = IniSettings.WritePathToRegistry;
             chkPlaySoundOnGameHosted.Checked = IniSettings.PlaySoundOnGameHosted;
             chkNotifyOnUserListChange.Checked = IniSettings.NotifyOnUserListChange;
+            chkDisablePrivateMessagePopup.Checked = IniSettings.DisablePrivateMessagePopups;
             chkConnectOnStartup.Checked = IniSettings.AutomaticCnCNetLogin;
             chkSkipLoginWindow.Checked = IniSettings.SkipConnectDialog;
             chkPersistentMode.Checked = IniSettings.PersistentMode;
@@ -248,6 +259,7 @@ namespace DTAConfig.OptionPanels
             IniSettings.WritePathToRegistry.Value = chkWriteInstallPathToRegistry.Checked;
             IniSettings.PlaySoundOnGameHosted.Value = chkPlaySoundOnGameHosted.Checked;
             IniSettings.NotifyOnUserListChange.Value = chkNotifyOnUserListChange.Checked;
+            IniSettings.DisablePrivateMessagePopups.Value = chkDisablePrivateMessagePopup.Checked;
             IniSettings.AutomaticCnCNetLogin.Value = chkConnectOnStartup.Checked;
             IniSettings.SkipConnectDialog.Value = chkSkipLoginWindow.Checked;
             IniSettings.PersistentMode.Value = chkPersistentMode.Checked;
