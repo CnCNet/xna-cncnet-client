@@ -27,6 +27,7 @@ namespace DTAConfig
         private ComponentsPanel componentsPanel;
 
         private DisplayOptionsPanel displayOptionsPanel;
+        private GameFilterOptionsPanel gameFilterOptionsPanel;
         private XNAControl topBar;
 
         private GameCollection gameCollection;
@@ -34,7 +35,7 @@ namespace DTAConfig
         public override void Initialize()
         {
             Name = "OptionsWindow";
-            ClientRectangle = new Rectangle(0, 0, 576, 435);
+            ClientRectangle = new Rectangle(0, 0, 668, 435);
             BackgroundTexture = AssetLoader.LoadTextureUncached("optionsbg.png");
 
             tabControl = new XNAClientTabControl(WindowManager);
@@ -42,24 +43,25 @@ namespace DTAConfig
             tabControl.ClientRectangle = new Rectangle(12, 12, 0, 23);
             tabControl.FontIndex = 1;
             tabControl.ClickSound = new EnhancedSoundEffect("button.wav");
-            tabControl.AddTab("Display", 92);
-            tabControl.AddTab("Audio", 92);
-            tabControl.AddTab("Game", 92);
-            tabControl.AddTab("CnCNet", 92);
-            tabControl.AddTab("Updater", 92);
-            tabControl.AddTab("Components", 92);
+            tabControl.AddTab("Display", UIDesignConstants.BUTTON_WIDTH_92);
+            tabControl.AddTab("Audio", UIDesignConstants.BUTTON_WIDTH_92);
+            tabControl.AddTab("Game", UIDesignConstants.BUTTON_WIDTH_92);
+            tabControl.AddTab("CnCNet", UIDesignConstants.BUTTON_WIDTH_92);
+            tabControl.AddTab("Updater", UIDesignConstants.BUTTON_WIDTH_92);
+            tabControl.AddTab("Components", UIDesignConstants.BUTTON_WIDTH_92);
+            tabControl.AddTab("Game Filters", UIDesignConstants.BUTTON_WIDTH_92);
             tabControl.SelectedIndexChanged += TabControl_SelectedIndexChanged;
 
             var btnCancel = new XNAClientButton(WindowManager);
             btnCancel.Name = "btnCancel";
             btnCancel.ClientRectangle = new Rectangle(Width - 104,
-                Height - 35, 92, 23);
+                Height - 35, UIDesignConstants.BUTTON_WIDTH_92, UIDesignConstants.BUTTON_HEIGHT);
             btnCancel.Text = "Cancel";
             btnCancel.LeftClick += BtnBack_LeftClick;
 
             var btnSave = new XNAClientButton(WindowManager);
             btnSave.Name = "btnSave";
-            btnSave.ClientRectangle = new Rectangle(12, btnCancel.Y, 92, 23);
+            btnSave.ClientRectangle = new Rectangle(12, btnCancel.Y, UIDesignConstants.BUTTON_WIDTH_92, UIDesignConstants.BUTTON_HEIGHT);
             btnSave.Text = "Save";
             btnSave.LeftClick += BtnSave_LeftClick;
 
@@ -68,6 +70,8 @@ namespace DTAConfig
             var updaterOptionsPanel = new UpdaterOptionsPanel(WindowManager, UserINISettings.Instance);
             updaterOptionsPanel.OnForceUpdate += (s, e) => { Disable(); OnForceUpdate?.Invoke(this, EventArgs.Empty); };
 
+            gameFilterOptionsPanel = new GameFilterOptionsPanel(WindowManager, UserINISettings.Instance);
+
             optionsPanels = new XNAOptionsPanel[]
             {
                 displayOptionsPanel,
@@ -75,7 +79,8 @@ namespace DTAConfig
                 new GameOptionsPanel(WindowManager, UserINISettings.Instance, topBar),
                 new CnCNetOptionsPanel(WindowManager, UserINISettings.Instance, gameCollection),
                 updaterOptionsPanel,
-                componentsPanel
+                componentsPanel,
+                gameFilterOptionsPanel
             };
 
             if (ClientConfiguration.Instance.ModMode || CUpdater.UPDATEMIRRORS == null || CUpdater.UPDATEMIRRORS.Count < 1)
@@ -288,6 +293,12 @@ namespace DTAConfig
 #if TS
             displayOptionsPanel.PostInit();
 #endif
+        }
+
+        public void ShowGameFilters()
+        {
+            tabControl.SelectedTab = 6;
+            Enable();
         }
     }
 }

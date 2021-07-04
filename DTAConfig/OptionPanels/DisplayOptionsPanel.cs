@@ -259,7 +259,7 @@ namespace DTAConfig.OptionPanels
             btnGameCompatibilityFix.Name = "btnGameCompatibilityFix";
             btnGameCompatibilityFix.ClientRectangle = new Rectangle(
                 lblGameCompatibilityFix.Right + 20,
-                lblGameCompatibilityFix.Y - 4, 133, 23);
+                lblGameCompatibilityFix.Y - 4, UIDesignConstants.BUTTON_WIDTH_133, UIDesignConstants.BUTTON_HEIGHT);
             btnGameCompatibilityFix.FontIndex = 1;
             btnGameCompatibilityFix.Text = "Enable";
             btnGameCompatibilityFix.LeftClick += BtnGameCompatibilityFix_LeftClick;

@@ -218,7 +218,7 @@ namespace DTAClient.DXGUI.Generic
             lblUpdateStatus = new XNALinkLabel(WindowManager);
             lblUpdateStatus.Name = nameof(lblUpdateStatus);
             lblUpdateStatus.LeftClick += LblUpdateStatus_LeftClick;
-            lblUpdateStatus.ClientRectangle = new Rectangle(0, 0, 160, 20);
+            lblUpdateStatus.ClientRectangle = new Rectangle(0, 0, UIDesignConstants.BUTTON_WIDTH_160, 20);
 
             AddChild(btnNewCampaign);
             AddChild(btnLoadGame);

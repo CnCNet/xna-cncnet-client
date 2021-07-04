@@ -7,6 +7,7 @@ using Microsoft.Xna.Framework.Graphics;
 using DTAClient.Domain.Multiplayer;
 using System.Linq;
 using ClientCore;
+using DTAClient.Domain;
 
 namespace DTAClient.DXGUI.Multiplayer
 {
@@ -124,10 +125,16 @@ namespace DTAClient.DXGUI.Multiplayer
                 selectedGame = HostedGames[SelectedIndex];
             }
 
-            HostedGames = HostedGames.OrderBy(hg => hg.Passworded).OrderBy(hg =>
-                hg.GameVersion != ProgramConstants.GAME_VERSION).OrderBy(hg =>
-                hg.Game.InternalName.ToUpper() == localGameIdentifier.ToUpper()).OrderBy(hg =>
-                hg.Locked).ToList();
+            var orderedGames = HostedGames
+                .OrderBy(hg => hg.Locked)
+                .ThenBy(hg => string.Equals(hg.Game.InternalName, localGameIdentifier, StringComparison.CurrentCultureIgnoreCase))
+                .ThenBy(hg => hg.GameVersion != ProgramConstants.GAME_VERSION)
+                .ThenBy(hg => hg.Passworded);
+
+            if (UserINISettings.Instance.SortAlpha)
+                orderedGames = orderedGames.ThenBy(hg => hg.RoomName);
+
+            HostedGames = orderedGames.ToList();
 
             Refresh();
 

@@ -113,9 +113,9 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             tabControl.ClientRectangle = new Rectangle(60, 50, 0, 0);
             tabControl.ClickSound = new EnhancedSoundEffect("button.wav");
             tabControl.FontIndex = 1;
-            tabControl.AddTab("Messages", 160);
-            tabControl.AddTab("Friend List", 160);
-            tabControl.AddTab("All Players", 160);
+            tabControl.AddTab("Messages", UIDesignConstants.BUTTON_WIDTH_160);
+            tabControl.AddTab("Friend List", UIDesignConstants.BUTTON_WIDTH_160);
+            tabControl.AddTab("All Players", UIDesignConstants.BUTTON_WIDTH_160);
             tabControl.SelectedIndexChanged += TabControl_SelectedIndexChanged;
 
             lblPlayers = new XNALabel(WindowManager);

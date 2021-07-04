@@ -165,7 +165,7 @@ namespace DTAConfig.OptionPanels
 
             var btnConfigureHotkeys = new XNAClientButton(WindowManager);
             btnConfigureHotkeys.Name = "btnConfigureHotkeys";
-            btnConfigureHotkeys.ClientRectangle = new Rectangle(lblPlayerName.X, lblNotice.Bottom + 36, 160, 23);
+            btnConfigureHotkeys.ClientRectangle = new Rectangle(lblPlayerName.X, lblNotice.Bottom + 36, UIDesignConstants.BUTTON_WIDTH_160, UIDesignConstants.BUTTON_HEIGHT);
             btnConfigureHotkeys.Text = "Configure Hotkeys";
             btnConfigureHotkeys.LeftClick += BtnConfigureHotkeys_LeftClick;
 

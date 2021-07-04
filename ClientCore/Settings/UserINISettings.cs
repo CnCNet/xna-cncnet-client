@@ -15,6 +15,13 @@ namespace ClientCore
         private const string AUDIO = "Audio";
         private const string CUSTOM_SETTINGS = "CustomSettings";
         private const string COMPATIBILITY = "Compatibility";
+        private const string GAME_FILTERS = "GameFilters";
+
+        private const bool DEFAULT_SHOW_FRIENDS_ONLY_GAMES = false;
+        private const bool DEFAULT_HIDE_LOCKED_GAMES = false;
+        private const bool DEFAULT_HIDE_PASSWORDED_GAMES = false;
+        private const bool DEFAULT_HIDE_INCOMPATIBLE_GAMES = false;
+        private const int DEFAULT_MAX_PLAYER_COUNT = 8;
 
         public static UserINISettings Instance
         {
@@ -110,6 +117,13 @@ namespace ClientCore
             ForceLowestDetailLevel = new BoolSetting(iniFile, VIDEO, "ForceLowestDetailLevel", false);
             MinimizeWindowsOnGameStart = new BoolSetting(iniFile, OPTIONS, "MinimizeWindowsOnGameStart", true);
             AutoRemoveUnderscoresFromName = new BoolSetting(iniFile, OPTIONS, "AutoRemoveUnderscoresFromName", true);
+
+            SortAlpha = new BoolSetting(iniFile, GAME_FILTERS, "SortAlpha", false);
+            ShowFriendGamesOnly = new BoolSetting(iniFile, GAME_FILTERS, "ShowFriendGamesOnly", DEFAULT_SHOW_FRIENDS_ONLY_GAMES);
+            HideLockedGames = new BoolSetting(iniFile, GAME_FILTERS, "HideLockedGames", DEFAULT_HIDE_LOCKED_GAMES);
+            HidePasswordedGames = new BoolSetting(iniFile, GAME_FILTERS, "HidePasswordedGames", DEFAULT_HIDE_PASSWORDED_GAMES);
+            HideIncompatibleGames = new BoolSetting(iniFile, GAME_FILTERS, "HideIncompatibleGames", DEFAULT_HIDE_INCOMPATIBLE_GAMES);
+            MaxPlayerCount = new IntRangeSetting(iniFile, GAME_FILTERS, "MaxPlayerCount", DEFAULT_MAX_PLAYER_COUNT, 2, 8);
         }
 
         public IniFile SettingsIni { get; private set; }
@@ -184,6 +198,22 @@ namespace ClientCore
         public BoolSetting EnableMapSharing { get; private set; }
 
         public BoolSetting AlwaysDisplayTunnelList { get; private set; }
+        
+        /*********************/
+        /* GAME LIST FILTERS */
+        /*********************/
+
+        public BoolSetting SortAlpha { get; private set; }
+        
+        public BoolSetting ShowFriendGamesOnly { get; private set; }
+        
+        public BoolSetting HideLockedGames { get; private set; }
+        
+        public BoolSetting HidePasswordedGames { get; private set; }
+        
+        public BoolSetting HideIncompatibleGames { get; private set; }
+        
+        public IntRangeSetting MaxPlayerCount { get; private set; }
 
         /********/
         /* MISC */
@@ -208,7 +238,7 @@ namespace ClientCore
         public BoolSetting MinimizeWindowsOnGameStart { get; private set; }
 
         public BoolSetting AutoRemoveUnderscoresFromName { get; private set; }
-
+        
         public bool IsGameFollowed(string gameName)
         {
             return SettingsIni.GetBooleanValue("Channels", gameName, false);
@@ -257,6 +287,24 @@ namespace ClientCore
             SettingsIni.WriteIniFile();
 
             SettingsSaved?.Invoke(this, EventArgs.Empty);
+        }
+
+        public bool IsGameFiltersApplied()
+        {
+            return ShowFriendGamesOnly.Value != DEFAULT_SHOW_FRIENDS_ONLY_GAMES ||
+                   HideLockedGames.Value != DEFAULT_HIDE_LOCKED_GAMES ||
+                   HidePasswordedGames.Value != DEFAULT_HIDE_PASSWORDED_GAMES ||
+                   HideIncompatibleGames.Value != DEFAULT_HIDE_INCOMPATIBLE_GAMES ||
+                   MaxPlayerCount.Value != DEFAULT_MAX_PLAYER_COUNT;
+        }
+
+        public void ResetGameFilters()
+        {
+            ShowFriendGamesOnly.Value = DEFAULT_SHOW_FRIENDS_ONLY_GAMES;
+            HideLockedGames.Value = DEFAULT_HIDE_LOCKED_GAMES;
+            HideIncompatibleGames.Value = DEFAULT_HIDE_INCOMPATIBLE_GAMES;
+            HidePasswordedGames.Value = DEFAULT_HIDE_PASSWORDED_GAMES;
+            MaxPlayerCount.Value = DEFAULT_MAX_PLAYER_COUNT;
         }
     }
 }

@@ -122,19 +122,19 @@ namespace DTAClient.DXGUI.Generic
 
             btnMainButton = new XNAClientButton(WindowManager);
             btnMainButton.Name = "btnMainButton";
-            btnMainButton.ClientRectangle = new Rectangle(12, 9, 160, 23);
+            btnMainButton.ClientRectangle = new Rectangle(12, 9, UIDesignConstants.BUTTON_WIDTH_160, UIDesignConstants.BUTTON_HEIGHT);
             btnMainButton.Text = "Main Menu (F2)";
             btnMainButton.LeftClick += BtnMainButton_LeftClick;
 
             btnCnCNetLobby = new XNAClientButton(WindowManager);
             btnCnCNetLobby.Name = "btnCnCNetLobby";
-            btnCnCNetLobby.ClientRectangle = new Rectangle(184, 9, 160, 23);
+            btnCnCNetLobby.ClientRectangle = new Rectangle(184, 9, UIDesignConstants.BUTTON_WIDTH_160, UIDesignConstants.BUTTON_HEIGHT);
             btnCnCNetLobby.Text = "CnCNet Lobby (F3)";
             btnCnCNetLobby.LeftClick += BtnCnCNetLobby_LeftClick;
 
             btnPrivateMessages = new XNAClientButton(WindowManager);
             btnPrivateMessages.Name = "btnPrivateMessages";
-            btnPrivateMessages.ClientRectangle = new Rectangle(356, 9, 160, 23);
+            btnPrivateMessages.ClientRectangle = new Rectangle(356, 9, UIDesignConstants.BUTTON_WIDTH_160, UIDesignConstants.BUTTON_HEIGHT);
             btnPrivateMessages.Text = "Private Messages (F4)";
             btnPrivateMessages.LeftClick += BtnPrivateMessages_LeftClick;
 
