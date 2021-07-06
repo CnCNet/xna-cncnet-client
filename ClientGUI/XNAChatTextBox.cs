@@ -33,9 +33,7 @@ namespace ClientGUI
                 if (currentNode == null)
                 {
                     if (enteredMessages.First != null)
-                    {
                         currentNode = enteredMessages.First;
-                    }
                 }
                 else
                 {
@@ -43,7 +41,8 @@ namespace ClientGUI
                         currentNode = currentNode.Next;
                 }
 
-                Text = currentNode.Value;
+                if (currentNode != null)
+                    Text = currentNode.Value;
 
                 return true;
             }
