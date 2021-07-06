@@ -5,24 +5,21 @@ using Microsoft.Xna.Framework;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
 
-namespace DTAConfig.OptionPanels
+namespace DTAClient.DXGUI.Multiplayer
 {
-    class GameFilterOptionsPanel : XNAOptionsPanel
+    public class GameFiltersPanel : XNAPanel
     {
         private const int minPlayerCount = 2;
         private const int maxPlayerCount = 8;
 
-        private XNAClientCheckBox chkBoxSortAlpha;
         private XNAClientCheckBox chkBoxFriendsOnly;
         private XNAClientCheckBox chkBoxHideLockedGames;
         private XNAClientCheckBox chkBoxHidePasswordedGames;
         private XNAClientCheckBox chkBoxHideIncompatibleGames;
         private XNAClientDropDown ddMaxPlayerCount;
-        private UserINISettings userIniSettings;
 
-        public GameFilterOptionsPanel(WindowManager windowManager, UserINISettings userIniSettings) : base(windowManager, userIniSettings)
+        public GameFiltersPanel(WindowManager windowManager) : base(windowManager)
         {
-            this.userIniSettings = userIniSettings;
         }
 
         public override void Initialize()
@@ -30,22 +27,22 @@ namespace DTAConfig.OptionPanels
             base.Initialize();
 
             Name = "GameFiltersWindow";
+            BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0), Width, Height);
 
             const int gap = 12;
 
-            chkBoxSortAlpha = new XNAClientCheckBox(WindowManager);
-            chkBoxSortAlpha.Name = nameof(chkBoxSortAlpha);
-            chkBoxSortAlpha.Text = "Sort Alphabetically";
-            chkBoxSortAlpha.ClientRectangle = new Rectangle(
-                gap, gap,
-                0, 0
+            var lblTitle = new XNALabel(WindowManager);
+            lblTitle.Name = nameof(lblTitle);
+            lblTitle.Text = "Game Filters";
+            lblTitle.ClientRectangle = new Rectangle(
+                gap, gap, 120, UIDesignConstants.BUTTON_HEIGHT
             );
 
             chkBoxFriendsOnly = new XNAClientCheckBox(WindowManager);
             chkBoxFriendsOnly.Name = nameof(chkBoxFriendsOnly);
             chkBoxFriendsOnly.Text = "Show Friend Games Only";
             chkBoxFriendsOnly.ClientRectangle = new Rectangle(
-                gap, chkBoxSortAlpha.Y + UIDesignConstants.BUTTON_HEIGHT + gap,
+                gap, lblTitle.Y + UIDesignConstants.BUTTON_HEIGHT + gap,
                 0, 0
             );
 
@@ -99,9 +96,27 @@ namespace DTAConfig.OptionPanels
                 gap, ddMaxPlayerCount.Y + UIDesignConstants.BUTTON_HEIGHT + gap,
                 UIDesignConstants.BUTTON_WIDTH_133, UIDesignConstants.BUTTON_HEIGHT
             );
-            btnResetDefaults.LeftClick += ResetDefaults;
+            btnResetDefaults.LeftClick += BtnResetDefaults_LeftClick;
 
-            AddChild(chkBoxSortAlpha);
+            var btnSave = new XNAClientButton(WindowManager);
+            btnSave.Name = nameof(btnSave);
+            btnSave.Text = "Save";
+            btnSave.ClientRectangle = new Rectangle(
+                gap, btnResetDefaults.Y + UIDesignConstants.BUTTON_HEIGHT + gap,
+                UIDesignConstants.BUTTON_WIDTH_92, UIDesignConstants.BUTTON_HEIGHT
+            );
+            btnSave.LeftClick += BtnSave_LeftClick;
+
+            var btnCancel = new XNAClientButton(WindowManager);
+            btnCancel.Name = nameof(btnCancel);
+            btnCancel.Text = "Cancel";
+            btnCancel.ClientRectangle = new Rectangle(
+                Width - gap - UIDesignConstants.BUTTON_WIDTH_92, btnSave.Y,
+                UIDesignConstants.BUTTON_WIDTH_92, UIDesignConstants.BUTTON_HEIGHT
+            );
+            btnCancel.LeftClick += BtnCancel_LeftClick;
+
+            AddChild(lblTitle);
             AddChild(chkBoxFriendsOnly);
             AddChild(chkBoxHideLockedGames);
             AddChild(chkBoxHidePasswordedGames);
@@ -109,25 +124,41 @@ namespace DTAConfig.OptionPanels
             AddChild(lblMaxPlayerCount);
             AddChild(ddMaxPlayerCount);
             AddChild(btnResetDefaults);
+            AddChild(btnSave);
+            AddChild(btnCancel);
         }
 
-        public override bool Save()
+        private void BtnSave_LeftClick(object sender, EventArgs e)
         {
-            userIniSettings.SortAlpha.Value = chkBoxSortAlpha.Checked;
+            Save();
+            Disable();
+        }
+
+        private void BtnCancel_LeftClick(object sender, EventArgs e)
+        {
+            Disable();
+        }
+
+        private void BtnResetDefaults_LeftClick(object sender, EventArgs e)
+        {
+            ResetDefaults();
+        }
+
+        private void Save()
+        {
+            var userIniSettings = UserINISettings.Instance;
             userIniSettings.ShowFriendGamesOnly.Value = chkBoxFriendsOnly.Checked;
             userIniSettings.HideLockedGames.Value = chkBoxHideLockedGames.Checked;
             userIniSettings.HidePasswordedGames.Value = chkBoxHidePasswordedGames.Checked;
             userIniSettings.HideIncompatibleGames.Value = chkBoxHideIncompatibleGames.Checked;
             userIniSettings.MaxPlayerCount.Value = int.Parse(ddMaxPlayerCount.SelectedItem.Text);
-
-            return false;
+            
+            UserINISettings.Instance.SaveSettings();
         }
 
-        public override void Load()
+        private void Load()
         {
-            base.Load();
-
-            chkBoxSortAlpha.Checked = userIniSettings.SortAlpha.Value;
+            var userIniSettings = UserINISettings.Instance;
             chkBoxFriendsOnly.Checked = userIniSettings.ShowFriendGamesOnly.Value;
             chkBoxHideLockedGames.Checked = userIniSettings.HideLockedGames.Value;
             chkBoxHidePasswordedGames.Checked = userIniSettings.HidePasswordedGames.Value;
@@ -135,10 +166,16 @@ namespace DTAConfig.OptionPanels
             ddMaxPlayerCount.SelectedIndex = ddMaxPlayerCount.Items.FindIndex(i => i.Text == userIniSettings.MaxPlayerCount.Value.ToString());
         }
 
-        public void ResetDefaults(object sender, EventArgs e)
+        private void ResetDefaults()
         {
-            userIniSettings.ResetGameFilters();
+            UserINISettings.Instance.ResetGameFilters();
             Load();
+        }
+
+        public void Show()
+        {
+            Load();
+            Enable();
         }
     }
 }

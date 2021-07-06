@@ -291,7 +291,6 @@
     <Compile Include="OptionPanels\CnCNetOptionsPanel.cs" />
     <Compile Include="OptionPanels\ComponentsPanel.cs" />
     <Compile Include="OptionPanels\DisplayOptionsPanel.cs" />
-    <Compile Include="OptionPanels\GameFilterOptionsPanel.cs" />
     <Compile Include="OptionPanels\GameOptionsPanel.cs" />
     <Compile Include="HotkeyConfigurationWindow.cs" />
     <Compile Include="CustomSettings\FileSettingCheckBox.cs" />

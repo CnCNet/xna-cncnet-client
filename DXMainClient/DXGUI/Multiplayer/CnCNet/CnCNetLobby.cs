@@ -19,7 +19,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using DTAConfig;
-using DTAConfig.OptionPanels;
 
 namespace DTAClient.DXGUI.Multiplayer.CnCNet
 {
@@ -128,6 +127,13 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         private CommandHandlerBase[] ctcpCommandHandlers;
 
         private InvitationIndex invitationIndex;
+
+        private GameFiltersPanel panelGameFilters;
+
+        private void GameList_ClientRectangleUpdated(object sender, EventArgs e)
+        {
+            panelGameFilters.ClientRectangle = lbGameList.ClientRectangle;
+        }
         
         public override void Initialize()
         {
@@ -162,16 +168,24 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 UIDesignConstants.BUTTON_WIDTH_133, UIDesignConstants.BUTTON_HEIGHT);
             btnLogout.Text = "Log Out";
             btnLogout.LeftClick += BtnLogout_LeftClick;
+            
+            var gameListRectangle = new Rectangle(
+                btnNewGame.X, 41,
+                btnJoinGame.Right - btnNewGame.X, btnNewGame.Y - 47
+            );
+            
+            panelGameFilters = new GameFiltersPanel(WindowManager);
+            panelGameFilters.ClientRectangle = gameListRectangle;
+            panelGameFilters.Disable();
 
             lbGameList = new GameListBox(WindowManager, localGameID, HostedGameMatches);
             lbGameList.Name = nameof(lbGameList);
-            lbGameList.ClientRectangle = new Rectangle(btnNewGame.X,
-                41, btnJoinGame.Right - btnNewGame.X,
-                btnNewGame.Y - 47);
+            lbGameList.ClientRectangle = gameListRectangle;
             lbGameList.PanelBackgroundDrawMode = PanelBackgroundImageDrawMode.STRETCHED;
             lbGameList.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 128), 1, 1);
             lbGameList.DoubleLeftClick += LbGameList_DoubleLeftClick;
             lbGameList.AllowMultiLineItems = false;
+            lbGameList.ClientRectangleUpdated += GameList_ClientRectangleUpdated;
 
             lbPlayerList = new PlayerListBox(WindowManager, gameCollection);
             lbPlayerList.Name = nameof(lbPlayerList);
@@ -318,6 +332,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             AddChild(lbPlayerList);
             AddChild(lbChatMessages);
             AddChild(lbGameList);
+            AddChild(panelGameFilters);
             AddChild(tbChatInput);
             AddChild(lblColor);
             AddChild(ddColor);
@@ -331,7 +346,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             AddChild(btnGameFilterOptions);
             
             
-            optionsWindow.VisibleChanged += OptionsWindow_VisibleChanged;
+            panelGameFilters.VisibleChanged += GameFiltersPanel_VisibleChanged;
 
             CnCNetPlayerCountTask.CnCNetGameCountUpdated += OnCnCNetGameCountUpdated;
             UpdateOnlineCount(CnCNetPlayerCountTask.PlayerCount);
@@ -350,12 +365,18 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             UserINISettings.Instance.SortAlpha.Value = !UserINISettings.Instance.SortAlpha.Value;
             
             RefreshGameSortAlphaBtn();
+            SortAndRefreshHostedGames();
+            UserINISettings.Instance.SaveSettings();
+        }
+
+        private void SortAndRefreshHostedGames()
+        {
             lbGameList.SortAndRefreshHostedGames();
         }
 
         private void BtnGameFilterOptions_LeftClick(object sender, EventArgs e)
         {
-            optionsWindow.ShowGameFilters();
+            panelGameFilters.Show();
         }
 
         private void RefreshGameSortAlphaBtn()
@@ -368,19 +389,18 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             btnGameFilterOptions.Checked = UserINISettings.Instance.IsGameFiltersApplied();
         }
 
-        private void OptionsWindow_VisibleChanged(object sender, EventArgs e)
+        private void GameFiltersPanel_VisibleChanged(object sender, EventArgs e)
         {
-            if (optionsWindow.Visible)
+            if (panelGameFilters.Visible)
                 return;
             
-            RefreshGameSortAlphaBtn();
             RefreshGameFiltersBtn();
-            lbGameList.SortAndRefreshHostedGames();
+            SortAndRefreshHostedGames();
         }
 
         private void TbGameSearch_InputReceived(object sender, EventArgs e)
         {
-            lbGameList.SortAndRefreshHostedGames();
+            SortAndRefreshHostedGames();
             lbGameList.ViewTop = 0;
         }
 
@@ -881,7 +901,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             if (game != null)
             {
                 game.Locked = true;
-                lbGameList.SortAndRefreshHostedGames();
+                SortAndRefreshHostedGames();
             }
 
             ClearGameJoinAttempt((Channel)sender);
@@ -1493,7 +1513,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
                     lbGameList.AddGame(game);
                 }
-                lbGameList.SortAndRefreshHostedGames();
+                SortAndRefreshHostedGames();
             }
             catch (Exception ex)
             {

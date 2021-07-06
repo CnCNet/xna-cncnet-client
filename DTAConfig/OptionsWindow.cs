@@ -27,7 +27,6 @@ namespace DTAConfig
         private ComponentsPanel componentsPanel;
 
         private DisplayOptionsPanel displayOptionsPanel;
-        private GameFilterOptionsPanel gameFilterOptionsPanel;
         private XNAControl topBar;
 
         private GameCollection gameCollection;
@@ -35,7 +34,7 @@ namespace DTAConfig
         public override void Initialize()
         {
             Name = "OptionsWindow";
-            ClientRectangle = new Rectangle(0, 0, 668, 435);
+            ClientRectangle = new Rectangle(0, 0, 576, 435);
             BackgroundTexture = AssetLoader.LoadTextureUncached("optionsbg.png");
 
             tabControl = new XNAClientTabControl(WindowManager);
@@ -49,7 +48,6 @@ namespace DTAConfig
             tabControl.AddTab("CnCNet", UIDesignConstants.BUTTON_WIDTH_92);
             tabControl.AddTab("Updater", UIDesignConstants.BUTTON_WIDTH_92);
             tabControl.AddTab("Components", UIDesignConstants.BUTTON_WIDTH_92);
-            tabControl.AddTab("Game Filters", UIDesignConstants.BUTTON_WIDTH_92);
             tabControl.SelectedIndexChanged += TabControl_SelectedIndexChanged;
 
             var btnCancel = new XNAClientButton(WindowManager);
@@ -70,7 +68,6 @@ namespace DTAConfig
             var updaterOptionsPanel = new UpdaterOptionsPanel(WindowManager, UserINISettings.Instance);
             updaterOptionsPanel.OnForceUpdate += (s, e) => { Disable(); OnForceUpdate?.Invoke(this, EventArgs.Empty); };
 
-            gameFilterOptionsPanel = new GameFilterOptionsPanel(WindowManager, UserINISettings.Instance);
 
             optionsPanels = new XNAOptionsPanel[]
             {
@@ -79,8 +76,7 @@ namespace DTAConfig
                 new GameOptionsPanel(WindowManager, UserINISettings.Instance, topBar),
                 new CnCNetOptionsPanel(WindowManager, UserINISettings.Instance, gameCollection),
                 updaterOptionsPanel,
-                componentsPanel,
-                gameFilterOptionsPanel
+                componentsPanel
             };
 
             if (ClientConfiguration.Instance.ModMode || CUpdater.UPDATEMIRRORS == null || CUpdater.UPDATEMIRRORS.Count < 1)
@@ -293,12 +289,6 @@ namespace DTAConfig
 #if TS
             displayOptionsPanel.PostInit();
 #endif
-        }
-
-        public void ShowGameFilters()
-        {
-            tabControl.SelectedTab = 6;
-            Enable();
         }
     }
 }
