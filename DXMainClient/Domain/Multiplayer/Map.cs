@@ -16,11 +16,13 @@ namespace DTAClient.Domain.Multiplayer
     {
         public string TextureName;
         public Point Point;
+        public int Level;
 
-        public ExtraMapPreviewTexture(string textureName, Point point)
+        public ExtraMapPreviewTexture(string textureName, Point point, int level)
         {
             TextureName = textureName;
             Point = point;
+            Level = level;
         }
     }
 
@@ -231,14 +233,17 @@ namespace DTAClient.Domain.Multiplayer
                 while (true)
                 {
                     // Format example:
-                    // ExtraTexture0=oilderrick.png,200,150
+                    // ExtraTexture0=oilderrick.png,200,150,1
+                    // Last value is map cell level and is optional, defaults to 0 if unspecified.
 
                     string value = section.GetStringValue("ExtraTexture" + i, null);
+
                     if (string.IsNullOrWhiteSpace(value))
                         break;
 
                     string[] parts = value.Split(',');
-                    if (parts.Length != 3)
+
+                    if (parts.Length < 3 || parts.Length > 4)
                     {
                         Logger.Log($"Invalid format for ExtraTexture{i} in map " + BaseFilePath);
                         continue;
@@ -246,7 +251,13 @@ namespace DTAClient.Domain.Multiplayer
 
                     bool success = int.TryParse(parts[1], NumberStyles.Integer, CultureInfo.InvariantCulture, out int x);
                     success &= int.TryParse(parts[2], NumberStyles.Integer, CultureInfo.InvariantCulture, out int y);
-                    extraTextures.Add(new ExtraMapPreviewTexture(parts[0], new Point(x, y)));
+
+                    int level = 0;
+
+                    if (parts.Length > 3)
+                        int.TryParse(parts[3], NumberStyles.Integer, CultureInfo.InvariantCulture, out level);
+
+                    extraTextures.Add(new ExtraMapPreviewTexture(parts[0], new Point(x, y), level));
 
                     i++;
                 }
@@ -330,9 +341,9 @@ namespace DTAClient.Domain.Multiplayer
             return startingLocations;
         }
 
-        public Point MapPointToMapPreviewPoint(Point mapPoint, Point previewSize)
+        public Point MapPointToMapPreviewPoint(Point mapPoint, Point previewSize, int level)
         {
-            return GetIsoTilePixelCoord(mapPoint.X, mapPoint.Y, actualSize, localSize, previewSize);
+            return GetIsoTilePixelCoord(mapPoint.X, mapPoint.Y, actualSize, localSize, previewSize, level);
         }
 
 
@@ -658,21 +669,28 @@ namespace DTAClient.Domain.Multiplayer
         private static Point GetWaypointCoords(string waypoint, string[] actualSizeValues, string[] localSizeValues,
             Point previewSizePoint)
         {
-            int xCoordIndex = waypoint.Length - 3;
+            string[] parts = waypoint.Split(',');
 
-            int isoTileY = Convert.ToInt32(waypoint.Substring(0, xCoordIndex));
-            int isoTileX = Convert.ToInt32(waypoint.Substring(xCoordIndex));
+            int xCoordIndex = parts[0].Length - 3;
 
-            return GetIsoTilePixelCoord(isoTileX, isoTileY, actualSizeValues, localSizeValues, previewSizePoint);
+            int isoTileY = Convert.ToInt32(parts[0].Substring(0, xCoordIndex));
+            int isoTileX = Convert.ToInt32(parts[0].Substring(xCoordIndex));
+
+            int level = 0;
+
+            if (parts.Length > 1)
+                level = Conversions.IntFromString(parts[1], 0);
+
+            return GetIsoTilePixelCoord(isoTileX, isoTileY, actualSizeValues, localSizeValues, previewSizePoint, level);
         }
 
-        private static Point GetIsoTilePixelCoord(int isoTileX, int isoTileY, string[] actualSizeValues, string[] localSizeValues, Point previewSizePoint)
+        private static Point GetIsoTilePixelCoord(int isoTileX, int isoTileY, string[] actualSizeValues, string[] localSizeValues, Point previewSizePoint, int level)
         {
             int rx = isoTileX - isoTileY + Convert.ToInt32(actualSizeValues[2]) - 1;
             int ry = isoTileX + isoTileY - Convert.ToInt32(actualSizeValues[2]) - 1;
 
             int pixelPosX = rx * MainClientConstants.MAP_CELL_SIZE_X / 2;
-            int pixelPosY = ry * MainClientConstants.MAP_CELL_SIZE_Y / 2;
+            int pixelPosY = ry * MainClientConstants.MAP_CELL_SIZE_Y / 2 - level * MainClientConstants.MAP_CELL_SIZE_Y / 2;
 
             pixelPosX = pixelPosX - (Convert.ToInt32(localSizeValues[0]) * MainClientConstants.MAP_CELL_SIZE_X);
             pixelPosY = pixelPosY - (Convert.ToInt32(localSizeValues[1]) * MainClientConstants.MAP_CELL_SIZE_Y);

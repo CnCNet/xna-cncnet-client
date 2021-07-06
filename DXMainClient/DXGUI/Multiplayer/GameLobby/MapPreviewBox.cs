@@ -394,7 +394,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 Point location = PreviewTexturePointToControlAreaPoint(
                     Map.MapPointToMapPreviewPoint(mapExtraTexture.Point,
                     new Point(previewTexture.Width - (extraTexture.Width / 2),
-                              previewTexture.Height - (extraTexture.Height / 2))),
+                              previewTexture.Height - (extraTexture.Height / 2)), mapExtraTexture.Level),
                               ratio);
 
                 extraTextures.Add(new ExtraMapPreviewTexture(extraTexture, location));
@@ -521,6 +521,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     DrawPreviewTexture(renderPoint);
                 }
 
+                if (DrawBorders)
+                    DrawPanelBorders();
+
                 foreach (var extraTexture in extraTextures)
                 {
                     Renderer.DrawTexture(extraTexture.Texture,
@@ -529,9 +532,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                         extraTexture.Texture.Width, extraTexture.Texture.Height), Color.White);
                 }
             }
-
-            if (DrawBorders)
+            else if (DrawBorders)
+            {
                 DrawPanelBorders();
+            }
 
             DrawChildren(gameTime);
         }
