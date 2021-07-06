@@ -1,7 +1,7 @@
-name: Nightly Build comment on pull request
+name: automatic comment on pull request
 on:
   workflow_run:
-    workflows: ['Nightly Build']
+    workflows: ['build client']
     types: [completed]
 jobs:
   pr_comment:
@@ -40,7 +40,7 @@ jobs:
             for (const art of artifacts) {
               body += `\n* [${art.name}.zip](https://nightly.link/${owner}/${repo}/actions/artifacts/${art.id}.zip)`;
             }
-            body += `\nThis comment is automatic and is meant to allow guests to get latest nightly builds without registering. It is updated on every successful build.`;
+            body += `\nThis comment is automatic and is meant to allow guests to get latest automatic builds without registering. It is updated on every successful build.`;
             const {data: comments} = await github.issues.listComments({repo, owner, issue_number});
             const existing_comment = comments.find((c) => c.user.login === 'github-actions[bot]');
             if (existing_comment) {
