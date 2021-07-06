@@ -688,11 +688,11 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         }
         
         /// <summary>
-        /// Attempt to join a game
+        /// Attempt to join a game.
         /// </summary>
-        /// <param name="hg">the game to join</param>
-        /// <param name="password">the password to join with</param>
-        /// <param name="messageView">the message view/list to write error messages to</param>
+        /// <param name="hg">The game to join.</param>
+        /// <param name="password">The password to join with.</param>
+        /// <param name="messageView">The message view/list to write error messages to.</param>
         /// <returns></returns>
         private bool JoinGame(HostedCnCNetGame hg, string password, IMessageView messageView)
         {
@@ -1525,7 +1525,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         /// <summary>
         /// Attempts to find a hosted game that the specified user is in
         /// </summary>
-        /// <param name="user">The user to find a game for</param>
+        /// <param name="user">The user to find a game for.</param>
         /// <returns></returns>
         private HostedCnCNetGame GetHostedGameForUser(IRCUser user)
         {
@@ -1537,7 +1537,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         /// they are currently in one.
         /// </summary>
         /// <param name="user">The user to join.</param>
-        /// <param name="messageView">The message view/list to write error messages to</param>
+        /// <param name="messageView">The message view/list to write error messages to.</param>
         private void JoinUser(IRCUser user, IMessageView messageView)
         {
             if (user == null)
