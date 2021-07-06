@@ -381,6 +381,11 @@ namespace DTAClient.DXGUI.Generic
 
             if (!connectionManager.IsConnected)
                 ProgramConstants.PLAYERNAME = UserINISettings.Instance.PlayerName;
+                
+            if (UserINISettings.Instance.DiscordIntegration)
+                discordHandler?.Connect();
+            else
+                discordHandler?.Disconnect();
         }
 
         /// <summary>

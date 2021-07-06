@@ -254,7 +254,6 @@ namespace DTAConfig.OptionPanels
 
             if (!String.IsNullOrEmpty(ClientConfiguration.Instance.DiscordAppId))
             {
-                restartRequired = IniSettings.DiscordIntegration != chkDiscordIntegration.Checked;
                 IniSettings.DiscordIntegration.Value = chkDiscordIntegration.Checked;
             }
 
