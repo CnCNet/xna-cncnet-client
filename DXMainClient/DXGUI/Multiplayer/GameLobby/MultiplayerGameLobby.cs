@@ -477,7 +477,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             {
                 RemoveStartingLocations = newValue;
                 if (RemoveStartingLocations)
-                    AddNotice("The game host has enabled completely random starting locations (only works for regular maps)..");
+                    AddNotice("The game host has enabled completely random starting locations (only works for regular maps).");
                 else
                     AddNotice("The game host has disabled completely random starting locations.");
             }
@@ -677,6 +677,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 lbChatMessages.Width, 21);
             tbChatInput.Name = "tbChatInput_Player";
 
+            MapPreviewBox.Name = "MapPreviewBox_NonHost";
+            lblMapAuthor.Name = "lblMapAuthor_NonHost";
+
             ddGameMode.Disable();
             lblGameModeSelect.Disable();
             lbMapList.Disable();
@@ -686,6 +689,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             lbChatMessages.GetAttributes(ThemeIni);
             tbChatInput.GetAttributes(ThemeIni);
             lbMapList.GetAttributes(ThemeIni);
+            MapPreviewBox.GetAttributes(ThemeIni);
+            lblMapAuthor.GetAttributes(ThemeIni);
         }
 
         private void ShowMapList()
@@ -705,6 +710,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 lbChatMessages.Width, 21);
             tbChatInput.Name = "tbChatInput_Host";
 
+            MapPreviewBox.Name = "MapPreviewBox";
+            lblMapAuthor.Name = "lblMapAuthor";
+
             ddGameMode.Enable();
             lblGameModeSelect.Enable();
             lbMapList.Enable();
@@ -714,6 +722,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             lbChatMessages.GetAttributes(ThemeIni);
             tbChatInput.GetAttributes(ThemeIni);
             lbMapList.GetAttributes(ThemeIni);
+            MapPreviewBox.GetAttributes(ThemeIni);
+            lblMapAuthor.GetAttributes(ThemeIni);
         }
 
         private void MapPreviewBox_LocalStartingLocationSelected(object sender, LocalStartingLocationEventArgs e)
