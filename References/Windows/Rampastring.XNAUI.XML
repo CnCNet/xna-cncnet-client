@@ -263,9 +263,57 @@
             Allows the user to close the game form by Alt-F4.
             </summary>
         </member>
+        <member name="T:Rampastring.XNAUI.RenderTargetPool">
+            <summary>
+            A pool for render targets. Safe for multithreaded use.
+            </summary>
+        </member>
+        <member name="M:Rampastring.XNAUI.RenderTargetPool.Add(Microsoft.Xna.Framework.Graphics.RenderTarget2D)">
+            <summary>
+            Adds a render target to the pool.
+            </summary>
+            <param name="renderTarget">The render target to add.</param>
+        </member>
+        <member name="M:Rampastring.XNAUI.RenderTargetPool.Create(System.Int32,System.Int32)">
+            <summary>
+            Creates and adds a new render target to the pool.
+            Returns the created render target.
+            </summary>
+            <param name="width">The width of the render target.</param>
+            <param name="height">The height of the render target.</param>
+        </member>
+        <member name="M:Rampastring.XNAUI.RenderTargetPool.Get(System.Int32,System.Int32)">
+            <summary>
+            Gets the smallest render target from the pool that is at least as large as the given size.
+            If a suitable render target is not found, then creates and returns
+            a new render target. The returned render target can be larger
+            than requested if no render targets of the exact requested size are available.
+            Removes the returned render target from the pool.
+            </summary>
+            <param name="width">The width of the render target.</param>
+            <param name="height">The height of the render target.</param>
+        </member>
+        <member name="M:Rampastring.XNAUI.RenderTargetPool.Remove(Microsoft.Xna.Framework.Graphics.RenderTarget2D)">
+            <summary>
+            Removes a render target from the pool.
+            Returns a value that determines whether 
+            the given render target was found and 
+            removed from the pool.
+            Does NOT call Dispose on the render target,
+            so do it after calling this if you're not using the render
+            target afterwards.
+            </summary>
+            <param name="renderTarget">The render target to remove.</param>
+        </member>
         <member name="T:Rampastring.XNAUI.RenderTargetStack">
             <summary>
             Handles render targets.
+            </summary>
+        </member>
+        <member name="P:Rampastring.XNAUI.RenderTargetStack.DetachedScaledControlRenderTarget">
+            <summary>
+            A render target for controls that
+            are detached and have scaling applied to them.
             </summary>
         </member>
         <member name="T:Rampastring.XNAUI.RMath">
@@ -982,6 +1030,11 @@
             Raised when the mouse cusor moves while inside the control's area.
             </summary>
         </member>
+        <member name="E:Rampastring.XNAUI.XNAControls.XNAControl.MouseOnControl">
+            <summary>
+            Raised each frame when the mouse cursor is inside the control's area.
+            </summary>
+        </member>
         <member name="E:Rampastring.XNAUI.XNAControls.XNAControl.MouseScrolled">
             <summary>
             Raised when the scroll wheel is used while the cursor is inside
@@ -1058,7 +1111,12 @@
         </member>
         <member name="P:Rampastring.XNAUI.XNAControls.XNAControl.ClientRectangle">
             <summary>
-            The display rectangle of the control inside its parent.
+            The non-scaled display rectangle of the control inside its parent.
+            </summary>
+        </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNAControl.OnSizeChanged">
+            <summary>
+            Called when the control's size is changed.
             </summary>
         </member>
         <member name="M:Rampastring.XNAUI.XNAControls.XNAControl.OnClientRectangleUpdated">
@@ -1133,6 +1191,26 @@
             the control won't try to update its render target when its size is changed.
             </summary>
         </member>
+        <member name="P:Rampastring.XNAUI.XNAControls.XNAControl.InputPassthrough">
+            <summary>
+            Whether this control should allow input to pass through to controls
+            that come after this in the control hierarchy when the control
+            itself is the focus of input, but none of its children are.
+            Useful for controls that act as composite for other controls.
+            </summary>
+        </member>
+        <member name="F:Rampastring.XNAUI.XNAControls.XNAControl.ChildHandledInput">
+            <summary>
+            Whether a child of this control handled input during the ongoing frame.
+            Used for input pass-through.
+            </summary>
+        </member>
+        <member name="P:Rampastring.XNAUI.XNAControls.XNAControl.RenderTarget">
+            <summary>
+            The render target of the control
+            in unique render target mode.
+            </summary>
+        </member>
         <member name="P:Rampastring.XNAUI.XNAControls.XNAControl.Initialized">
             <summary>
             Determines whether the control's <see cref="M:Rampastring.XNAUI.XNAControls.XNAControl.Initialize"/> method
@@ -1167,7 +1245,6 @@
             Gets the control's client area within the game window.
             Use for input handling; for rendering, use <see cref="M:Rampastring.XNAUI.XNAControls.XNAControl.RenderRectangle"/> instead.
             </summary>
-            <returns></returns>
         </member>
         <member name="M:Rampastring.XNAUI.XNAControls.XNAControl.RenderRectangle">
             <summary>
@@ -1267,6 +1344,13 @@
             Initializes the control.
             </summary>
         </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNAControl.FreeRenderTarget">
+            <summary>
+            Called for a control with an unique render target when its Visible= is set to false.
+            Can be used to free up the render target in derived classes.
+            Returns true if the render target should be cleared after this call, false otherwise.
+            </summary>
+        </member>
         <member name="M:Rampastring.XNAUI.XNAControls.XNAControl.Disable">
             <summary>
             Disables and hides the control.
@@ -1292,6 +1376,11 @@
             <summary>
             Draws the control.
             DO NOT call manually unless you know what you're doing.
+            </summary>
+        </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNAControl.DrawInternal_Detached(Microsoft.Xna.Framework.GameTime)">
+            <summary>
+            Draws the control when it is detached from its parent.
             </summary>
         </member>
         <member name="M:Rampastring.XNAUI.XNAControls.XNAControl.Draw(Microsoft.Xna.Framework.GameTime)">
@@ -1420,7 +1509,7 @@
             Called when the mouse moves on the control's client rectangle.
             </summary>
         </member>
-        <member name="M:Rampastring.XNAUI.XNAControls.XNAControl.OnMouseOnControl(Rampastring.XNAUI.XNAControls.MouseEventArgs)">
+        <member name="M:Rampastring.XNAUI.XNAControls.XNAControl.OnMouseOnControl">
             <summary>
             Called on each frame while the mouse is on the control's
             client rectangle.
@@ -1641,7 +1730,7 @@
             Handles input from a scroll wheel.
             </summary>
         </member>
-        <member name="M:Rampastring.XNAUI.XNAControls.XNAListBox.OnMouseOnControl(Rampastring.XNAUI.XNAControls.MouseEventArgs)">
+        <member name="M:Rampastring.XNAUI.XNAControls.XNAListBox.OnMouseOnControl">
             <summary>
             Updates the hovered item index while the cursor is on this control.
             </summary>
@@ -1874,7 +1963,7 @@
             A dummy draw function. Doesn't actually do anything.
             </summary>
         </member>
-        <member name="M:Rampastring.XNAUI.XNAControls.XNATrackbar.OnMouseOnControl(Rampastring.XNAUI.XNAControls.MouseEventArgs)">
+        <member name="M:Rampastring.XNAUI.XNAControls.XNATrackbar.OnMouseOnControl">
             <summary>
             Scrolls the scrollbar if the user presses the mouse left button
             while moving the cursor over the scrollbar.
