@@ -131,6 +131,12 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         private string lastMapSHA1;
 
         /// <summary>
+        /// The map name of the latest selected map.
+        /// Used for map sharing.
+        /// </summary>
+        private string lastMapName;
+
+        /// <summary>
         /// The game mode of the latest selected map.
         /// Used for map sharing.
         /// </summary>
@@ -978,6 +984,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             lastGameMode = gameMode;
             lastMapSHA1 = mapSHA1;
+            lastMapName = currentMap.Name;
 
             GameMode = GameModes.Find(gm => gm.Name == gameMode);
             if (GameMode == null)
@@ -1134,7 +1141,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             Logger.Log("Map sharing confirmed.");
             AddNotice("Attempting to download map.");
             mapSharingConfirmationPanel.SetDownloadingStatus();
-            MapSharer.DownloadMap(lastMapSHA1, localGame);
+            MapSharer.DownloadMap(lastMapSHA1, localGame, lastMapName);
         }
 
         protected override void ChangeMap(GameMode gameMode, Map map)

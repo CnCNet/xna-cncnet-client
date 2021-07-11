@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="4b729b47-96e7-42f2-9973-6e2e36068cec" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/DXMainClient/DXGUI/Multiplayer/GameLobby/CnCNetGameLobby.cs" beforeDir="false" afterPath="$PROJECT_DIR$/DXMainClient/DXGUI/Multiplayer/GameLobby/CnCNetGameLobby.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/DXMainClient/Domain/Multiplayer/CnCNet/MapSharer.cs" beforeDir="false" afterPath="$PROJECT_DIR$/DXMainClient/Domain/Multiplayer/CnCNet/MapSharer.cs" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_BRANCH_BY_REPOSITORY">
+      <map>
+        <entry key="$PROJECT_DIR$" value="feature/testJoin" />
+      </map>
+    </option>
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="MavenImportPreferences">
+    <option name="generalSettings">
+      <MavenGeneralSettings>
+        <option name="mavenHome" value="C:\Program Files\JetBrains\IntelliJ IDEA Community Edition 2020.2\plugins\maven\lib\maven3" />
+      </MavenGeneralSettings>
+    </option>
+  </component>
+  <component name="ProjectId" id="1tT9J74A6YA7Y31osR7H2EhPsoJ" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">
+    <property name="ASKED_SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
+    <property name="Git.Branch.Popup.ShowAllRemotes" value="true" />
+    <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="4b729b47-96e7-42f2-9973-6e2e36068cec" name="Default Changelist" comment="" />
+      <created>1622782136494</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1622782136494</updated>
+    </task>
+    <task id="LOCAL-00001" summary="Append disallowed side index to list">
+      <created>1626039369001</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1626039369001</updated>
+    </task>
+    <option name="localTasksCounter" value="2" />
+    <servers />
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="Append disallowed side index to list" />
+    <option name="LAST_COMMIT_MESSAGE" value="Append disallowed side index to list" />
+  </component>
+  <component name="WindowStateProjectService">
+    <state x="563" y="88" key="CommitChangelistDialog2" timestamp="1626039368540">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state x="563" y="88" key="CommitChangelistDialog2/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1626039368540" />
+    <state width="304" height="968" key="Git.Branch.Popup" timestamp="1624833138964">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state width="304" height="968" key="Git.Branch.Popup/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1624833138964" />
+    <state x="184" y="86" key="MergeDialog" timestamp="1626039441423">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state x="184" y="86" key="MergeDialog/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1626039441423" />
+    <state x="598" y="281" key="MultipleFileMergeDialog" timestamp="1626039441428">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state x="598" y="281" key="MultipleFileMergeDialog/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1626039441428" />
+    <state x="670" y="222" key="RollbackChangesDialog" timestamp="1626039306399">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state x="670" y="222" key="RollbackChangesDialog/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1626039306399" />
+    <state x="670" y="222" key="RollbackChangesDialog/0.0.1920.1040@0.0.1920.1040" timestamp="1624043089837" />
+    <state width="498" height="446" key="SwitcherDM" timestamp="1624833123893">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state width="498" height="446" key="SwitcherDM/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1624833123893" />
+    <state x="552" y="240" key="Vcs.Push.Dialog.v2" timestamp="1626039373487">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state x="552" y="240" key="Vcs.Push.Dialog.v2/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1626039373487" />
+    <state x="151" y="111" width="1542" height="929" key="find.popup" timestamp="1626041764844">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state x="151" y="111" width="1542" height="929" key="find.popup/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1626041764844" />
+    <state x="151" y="133" width="1542" height="907" key="find.popup/0.0.1920.1040@0.0.1920.1040" timestamp="1625717760574" />
+    <state x="616" y="173" width="672" height="676" key="search.everywhere.popup" timestamp="1626041717929">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state x="616" y="173" width="672" height="676" key="search.everywhere.popup/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1626041717929" />
+  </component>
+</project>

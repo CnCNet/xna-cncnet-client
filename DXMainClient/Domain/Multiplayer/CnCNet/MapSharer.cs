@@ -86,7 +86,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
 
                 lock (locker)
                 {
-                    UploadedMaps.Add(map.SHA1);
+                    UploadedMaps.Add(map.Name, map.SHA1);
                 }
 
                 Logger.Log("MapSharer: Uploading map " + map.BaseFilePath + " completed succesfully.");
@@ -121,11 +121,11 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
         {
             ServicePointManager.Expect100Continue = false;
 
-            string zipFile = ProgramConstants.GamePath + "Maps/Custom/" + map.SHA1 + ".zip";
+            string zipFile = ProgramConstants.GamePath + "Maps/Custom/" + map.Name + "_" + map.SHA1 + ".zip";
 
             if (File.Exists(zipFile)) File.Delete(zipFile);
 
-            string mapFileName = map.SHA1 + ".map";
+            string mapFileName = map.Name + "_" + map.SHA1 + ".map";
 
             File.Copy(map.CompleteFilePath, ProgramConstants.GamePath + mapFileName);
 
@@ -297,7 +297,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
             return null;
         }
 
-        public static void DownloadMap(string sha1, string myGame)
+        public static void DownloadMap(string sha1, string myGame, string lastMapName)
         {
             lock (locker)
             {
@@ -314,6 +314,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                     object[] details = new object[2];
                     details[0] = sha1;
                     details[1] = myGame.ToLower();
+                    details[2] = mapName;
 
                     ParameterizedThreadStart pts = new ParameterizedThreadStart(Download);
                     Thread thread = new Thread(pts);
@@ -327,6 +328,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
             object[] sha1AndGame = (object[])details;
             string sha1 = (string)sha1AndGame[0];
             string myGameId = (string)sha1AndGame[1];
+            string mapName = (string)sha1AndGame[2];
 
             Logger.Log("MapSharer: Preparing to download map " + sha1);
 
@@ -342,7 +344,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                 Logger.Log("MapSharer: ERROR " + ex.Message);
             }
 
-            string mapPath = DownloadMain(sha1, myGameId, out success);
+            string mapPath = DownloadMain(sha1, myGameId, mapName, out success);
 
             lock (locker)
             {
@@ -372,11 +374,11 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
             }
         }
 
-        private static string DownloadMain(string sha1, string myGame, out bool success)
+        private static string DownloadMain(string sha1, string myGame, string mapName, out bool success)
         {
             string customMapsDirectory = ProgramConstants.GamePath + "Maps/Custom/";
 
-            string destinationFilePath = customMapsDirectory + sha1 + ".zip";
+            string destinationFilePath = customMapsDirectory + mapName + "_" + sha1 + ".zip";
 
             try
             {
