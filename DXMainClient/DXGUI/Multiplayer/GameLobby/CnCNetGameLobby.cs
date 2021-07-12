@@ -981,8 +981,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             }
 
             string mapName = parts[partIndex + 8];
-
-
             GameMode currentGameMode = GameMode;
             Map currentMap = Map;
 
