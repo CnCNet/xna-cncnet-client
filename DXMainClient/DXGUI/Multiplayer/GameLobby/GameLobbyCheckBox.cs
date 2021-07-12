@@ -4,6 +4,7 @@ using Rampastring.XNAUI;
 using ClientCore;
 using ClientGUI;
 using System.Collections.Generic;
+using System.Linq;
 using DTAClient.Domain.Multiplayer;
 
 namespace DTAClient.DXGUI.Multiplayer.GameLobby
@@ -101,13 +102,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     UserChecked = checkedValue;
                     return;
                 case "DisallowedSideIndex":
-                    if (!DisallowedSideIndices.Contains(int.Parse(value)))
-                        DisallowedSideIndices.Add(int.Parse(value));
-                    return;
                 case "DisallowedSideIndices":
-                    string[] sides = value.Split(',');
-                    int[] arr = Array.ConvertAll(value.Split(','), (s) => { return Conversions.IntFromString(s, -1); });
-                    DisallowedSideIndices.AddRange(arr);
+                    List<int> sides = value.Split(',').ToList()
+                        .Select(s => Conversions.IntFromString(s, -1)).Distinct().ToList();
+                    DisallowedSideIndices.AddRange(sides.Where(s => !DisallowedSideIndices.Contains(s)));
                     return;
                 case "MapScoringMode":
                     MapScoringMode = (CheckBoxMapScoringMode)Enum.Parse(typeof(CheckBoxMapScoringMode), value);
