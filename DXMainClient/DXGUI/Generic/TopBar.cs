@@ -10,6 +10,7 @@ using ClientGUI;
 using ClientCore;
 using System.Threading;
 using DTAClient.Domain.Multiplayer.CnCNet;
+using DTAClient.Online.EventArguments;
 using DTAConfig;
 
 namespace DTAClient.DXGUI.Generic
@@ -31,10 +32,17 @@ namespace DTAClient.DXGUI.Generic
         const double UP_MOVEMENT_RATE = 1.7;
         const int APPEAR_CURSOR_THRESHOLD_Y = 8;
 
-        public TopBar(WindowManager windowManager, CnCNetManager connectionManager) : base(windowManager)
+        private const string DEFAULT_PM_BTN_LABEL = "Private Messages (F4)";
+
+        public TopBar(
+            WindowManager windowManager, 
+            CnCNetManager connectionManager,
+            PrivateMessageHandler privateMessageHandler
+        ) : base(windowManager)
         {
             downTimeWaitTime = TimeSpan.FromSeconds(DOWN_TIME_WAIT_SECONDS);
             this.connectionManager = connectionManager;
+            this.privateMessageHandler = privateMessageHandler;
         }
 
         public SwitchType LastSwitchType { get; private set; }
@@ -57,6 +65,7 @@ namespace DTAClient.DXGUI.Generic
         private XNALabel lblConnectionStatus;
 
         private CnCNetManager connectionManager;
+        private readonly PrivateMessageHandler privateMessageHandler;
 
         private CancellationTokenSource cncnetPlayerCountCancellationSource;
         private static readonly object locker = new object();
@@ -135,7 +144,7 @@ namespace DTAClient.DXGUI.Generic
             btnPrivateMessages = new XNAClientButton(WindowManager);
             btnPrivateMessages.Name = "btnPrivateMessages";
             btnPrivateMessages.ClientRectangle = new Rectangle(356, 9, UIDesignConstants.BUTTON_WIDTH_160, UIDesignConstants.BUTTON_HEIGHT);
-            btnPrivateMessages.Text = "Private Messages (F4)";
+            btnPrivateMessages.Text = DEFAULT_PM_BTN_LABEL;
             btnPrivateMessages.LeftClick += BtnPrivateMessages_LeftClick;
 
             lblDate = new XNALabel(WindowManager);
@@ -213,6 +222,20 @@ namespace DTAClient.DXGUI.Generic
             connectionManager.AttemptedServerChanged += ConnectionManager_AttemptedServerChanged;
             connectionManager.ConnectAttemptFailed += ConnectionManager_ConnectAttemptFailed;
 
+            privateMessageHandler.UnreadMessageCountUpdated += PrivateMessageHandler_UnreadMessageCountUpdated;
+        }
+
+        private void PrivateMessageHandler_UnreadMessageCountUpdated(object sender, UnreadMessageCountEventArgs args) 
+            => UpdatePrivateMessagesBtnLabel(args.UnreadMessageCount);
+
+        private void UpdatePrivateMessagesBtnLabel(int unreadMessageCount)
+        {
+            btnPrivateMessages.Text = DEFAULT_PM_BTN_LABEL;
+            if (unreadMessageCount > 0)
+            {
+                // TODO need to make a wider button to accommodate count
+                // btnPrivateMessages.Text += $" ({unreadMessageCount})";
+            }
         }
 
         private void CnCNetInfoController_CnCNetGameCountUpdated(object sender, PlayerCountEventArgs e)

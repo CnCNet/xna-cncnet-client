@@ -30,7 +30,7 @@ namespace DTAClient.Online
         public event EventHandler<ServerMessageEventArgs> WelcomeMessageReceived;
         public event EventHandler<UserAwayEventArgs> AwayMessageReceived;
         public event EventHandler<WhoEventArgs> WhoReplyReceived;
-        public event EventHandler<PrivateMessageEventArgs> PrivateMessageReceived;
+        public event EventHandler<CnCNetPrivateMessageEventArgs> PrivateMessageReceived;
         public event EventHandler<PrivateCTCPEventArgs> PrivateCTCPReceived;
         public event EventHandler<ChannelEventArgs> BannedFromChannel;
 
@@ -537,7 +537,7 @@ namespace DTAClient.Online
 
         private void DoPrivateMessageReceived(string sender, string message)
         {
-            PrivateMessageEventArgs e = new PrivateMessageEventArgs(sender, message);
+            CnCNetPrivateMessageEventArgs e = new CnCNetPrivateMessageEventArgs(sender, message);
 
             PrivateMessageReceived?.Invoke(this, e);
         }
