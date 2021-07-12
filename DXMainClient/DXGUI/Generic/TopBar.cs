@@ -225,16 +225,15 @@ namespace DTAClient.DXGUI.Generic
             privateMessageHandler.UnreadMessageCountUpdated += PrivateMessageHandler_UnreadMessageCountUpdated;
         }
 
-        private void PrivateMessageHandler_UnreadMessageCountUpdated(object sender, UnreadMessageCountEventArgs args)
-        {
-            UpdatePrivateMessagesBtnLabel(args.UnreadMessageCount);
-        }
+        private void PrivateMessageHandler_UnreadMessageCountUpdated(object sender, UnreadMessageCountEventArgs args) 
+            => UpdatePrivateMessagesBtnLabel(args.UnreadMessageCount);
 
         private void UpdatePrivateMessagesBtnLabel(int unreadMessageCount)
         {
             btnPrivateMessages.Text = DEFAULT_PM_BTN_LABEL;
             if (unreadMessageCount > 0)
             {
+                // TODO need to make a wider button to accommodate count
                 // btnPrivateMessages.Text += $" ({unreadMessageCount})";
             }
         }

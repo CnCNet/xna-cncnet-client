@@ -35,25 +35,19 @@ namespace DTAClient.Online
 
             // We don't accept PMs from people who we don't share any channels with
             if (iu == null)
-            {
                 return;
-            }
 
             // Messages from users we've blocked are not wanted
             if (_cncnetUserData.IsIgnored(iu.Ident))
-            {
                 return;
-            }
 
             var privateMessageEventArgs = new PrivateMessageEventArgs(e.Sender, e.Message, iu);
 
             PrivateMessageReceived?.Invoke(this, privateMessageEventArgs);
         }
 
-        private void DoUnreadMessageCountUpdated()
-        {
-            UnreadMessageCountUpdated?.Invoke(this, new UnreadMessageCountEventArgs(UnreadMessageCount));
-        }
+        private void DoUnreadMessageCountUpdated() 
+            => UnreadMessageCountUpdated?.Invoke(this, new UnreadMessageCountEventArgs(UnreadMessageCount));
 
         private void SetUnreadMessageCount(int unreadMessageCount)
         {
@@ -65,18 +59,14 @@ namespace DTAClient.Online
         /// This can be called by specific GUI components to trigger than any unread counts should be reset,
         /// because the PrivateMessageWindow was made visible.
         /// </summary>
-        public void ResetUnreadMessageCount()
-        {
-            SetUnreadMessageCount(0);
-        }
+        public void ResetUnreadMessageCount() 
+            => SetUnreadMessageCount(0);
 
         /// <summary>
         /// This can be called by specific GUI components to trigger than any unread counts should be incremented,
         /// because the PrivateMessageWindow may not currently be visible.
         /// </summary>
-        public void IncrementUnreadMessageCount()
-        {
-            SetUnreadMessageCount(UnreadMessageCount + 1);
-        }
+        public void IncrementUnreadMessageCount() 
+            => SetUnreadMessageCount(UnreadMessageCount + 1);
     }
 }
