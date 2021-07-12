@@ -131,6 +131,12 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         private string lastMapSHA1;
 
         /// <summary>
+        /// The map name of the latest selected map.
+        /// Used for map sharing.
+        /// </summary>
+        private string lastMapName;
+
+        /// <summary>
         /// The game mode of the latest selected map.
         /// Used for map sharing.
         /// </summary>
@@ -920,6 +926,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             sb.Append(ProtocolVersion);
             sb.Append(RandomSeed);
             sb.Append(Convert.ToInt32(RemoveStartingLocations));
+            sb.Append(Map.Name);
 
             channel.SendCTCPMessage(sb.ToString(), QueuedMessageType.GAME_SETTINGS_MESSAGE, 11);
         }
@@ -973,11 +980,13 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 AddNotice("The game host has changed ProtocolVersion to " + protocolVersion);
             }
 
+            string mapName = parts[partIndex + 8];
             GameMode currentGameMode = GameMode;
             Map currentMap = Map;
 
             lastGameMode = gameMode;
             lastMapSHA1 = mapSHA1;
+            lastMapName = mapName;
 
             GameMode = GameModes.Find(gm => gm.Name == gameMode);
             if (GameMode == null)
@@ -1134,7 +1143,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             Logger.Log("Map sharing confirmed.");
             AddNotice("Attempting to download map.");
             mapSharingConfirmationPanel.SetDownloadingStatus();
-            MapSharer.DownloadMap(lastMapSHA1, localGame);
+            MapSharer.DownloadMap(lastMapSHA1, localGame, lastMapName);
         }
 
         protected override void ChangeMap(GameMode gameMode, Map map)
@@ -1534,8 +1543,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private void MapSharer_HandleMapDownloadComplete(SHA1EventArgs e)
         {
-            Logger.Log("Map " + e.SHA1 + " downloaded, parsing.");
-            string mapPath = "Maps/Custom/" + e.SHA1;
+            string mapFileName = MapSharer.GetMapFileName(e.SHA1, e.MapName);
+            Logger.Log("Map " + mapFileName + " downloaded, parsing.");
+            string mapPath = "Maps/Custom/" + mapFileName;
             Map map = MapLoader.LoadCustomMap(mapPath, out string returnMessage);
             if (map != null)
             {
@@ -1681,7 +1691,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (lastMapSHA1 == sha1 && Map == null)
             {
                 Logger.Log("The game host has uploaded the map into the database. Re-attempting download...");
-                MapSharer.DownloadMap(sha1, localGame);
+                MapSharer.DownloadMap(sha1, localGame, lastMapName);
             }
         }
 
