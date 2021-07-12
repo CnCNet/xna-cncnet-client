@@ -45,14 +45,14 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             var btnOK = new XNAClientButton(WindowManager);
             btnOK.Name = "btnOK";
             btnOK.ClientRectangle = new Rectangle(lblDescription.X,
-                ClientRectangle.Bottom - 35, 92, 23);
+                ClientRectangle.Bottom - 35, UIDesignConstants.BUTTON_WIDTH_92, UIDesignConstants.BUTTON_HEIGHT);
             btnOK.Text = "OK";
             btnOK.LeftClick += BtnOK_LeftClick;
 
             var btnCancel = new XNAClientButton(WindowManager);
             btnCancel.Name = "btnCancel";
             btnCancel.ClientRectangle = new Rectangle(Width - 104,
-                btnOK.Y, 92, 23);
+                btnOK.Y, UIDesignConstants.BUTTON_WIDTH_92, UIDesignConstants.BUTTON_HEIGHT);
             btnCancel.Text = "Cancel";
             btnCancel.LeftClick += BtnCancel_LeftClick;
 

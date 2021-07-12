@@ -1,12 +1,12 @@
-﻿using Rampastring.XNAUI.XNAControls;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using Rampastring.XNAUI;
-using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
-using DTAClient.Domain.Multiplayer;
 using System.Linq;
 using ClientCore;
+using DTAClient.Domain.Multiplayer;
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
+using Rampastring.XNAUI;
+using Rampastring.XNAUI.XNAControls;
 
 namespace DTAClient.DXGUI.Multiplayer
 {
@@ -75,15 +75,9 @@ namespace DTAClient.DXGUI.Multiplayer
         {
             Items.Clear();
 
-            if (GameMatchesFilter != null)
-            {
-                foreach (var hg in HostedGames)
-                {
-                    if (GameMatchesFilter(hg))
-                        AddGameToList(hg);
-                }
-            }
-            else HostedGames.ForEach(AddGameToList);
+            GetSortedAndFilteredGames()
+                .ToList()
+                .ForEach(AddGameToList);
 
             GameListBox_HoveredIndexChanged(this, EventArgs.Empty);
         }
@@ -102,15 +96,32 @@ namespace DTAClient.DXGUI.Multiplayer
 
             HostedGames.Add(game);
 
-            HostedGames = HostedGames.OrderBy(hg => hg.Passworded).OrderBy(hg =>
-                hg.GameVersion != ProgramConstants.GAME_VERSION).OrderBy(hg =>
-                hg.Game.InternalName.ToUpper() == localGameIdentifier.ToUpper()).OrderBy(hg =>
-                hg.Locked).ToList();
-
             Refresh();
 
             if (selectedGame != null)
                 SelectedIndex = HostedGames.FindIndex(hg => hg == selectedGame);
+        }
+
+        private IEnumerable<GenericHostedGame> GetSortedAndFilteredGames()
+        {
+            var sortedGames = GetSortedGames();
+
+            return GameMatchesFilter == null ? sortedGames : sortedGames.Where(hg => GameMatchesFilter(hg));
+        }
+
+        private IEnumerable<GenericHostedGame> GetSortedGames()
+        {
+            var sortedGames =
+                HostedGames
+                    .OrderBy(hg => hg.Locked)
+                    .ThenBy(hg => string.Equals(hg.Game.InternalName, localGameIdentifier, StringComparison.CurrentCultureIgnoreCase))
+                    .ThenBy(hg => hg.GameVersion != ProgramConstants.GAME_VERSION)
+                    .ThenBy(hg => hg.Passworded);
+            
+            if (UserINISettings.Instance.SortAlpha)
+                sortedGames = sortedGames.ThenBy(hg => hg.RoomName);
+
+            return sortedGames;
         }
 
         /// <summary>
@@ -123,11 +134,6 @@ namespace DTAClient.DXGUI.Multiplayer
             {
                 selectedGame = HostedGames[SelectedIndex];
             }
-
-            HostedGames = HostedGames.OrderBy(hg => hg.Passworded).OrderBy(hg =>
-                hg.GameVersion != ProgramConstants.GAME_VERSION).OrderBy(hg =>
-                hg.Game.InternalName.ToUpper() == localGameIdentifier.ToUpper()).OrderBy(hg =>
-                hg.Locked).ToList();
 
             Refresh();
 

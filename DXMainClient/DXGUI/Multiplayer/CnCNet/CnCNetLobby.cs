@@ -18,6 +18,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using DTAConfig;
 
 namespace DTAClient.DXGUI.Multiplayer.CnCNet
 {
@@ -31,7 +32,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         public CnCNetLobby(WindowManager windowManager, CnCNetManager connectionManager,
             CnCNetGameLobby gameLobby, CnCNetGameLoadingLobby gameLoadingLobby,
             TopBar topBar, PrivateMessagingWindow pmWindow, TunnelHandler tunnelHandler,
-            GameCollection gameCollection, CnCNetUserData cncnetUserData)
+            GameCollection gameCollection, CnCNetUserData cncnetUserData,
+            OptionsWindow optionsWindow)
             : base(windowManager)
         {
             this.connectionManager = connectionManager;
@@ -42,6 +44,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             this.pmWindow = pmWindow;
             this.gameCollection = gameCollection;
             this.cncnetUserData = cncnetUserData;
+            this.optionsWindow = optionsWindow;
 
             ctcpCommandHandlers = new CommandHandlerBase[]
             {
@@ -52,6 +55,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         private CnCNetManager connectionManager;
         private CnCNetUserData cncnetUserData;
+        private readonly OptionsWindow optionsWindow;
 
         private PlayerListBox lbPlayerList;
         private ChatListBox lbChatMessages;
@@ -74,6 +78,10 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         private XNASuggestionTextBox tbGameSearch;
 
+        private XNAClientToggleButton btnGameSortAlpha;
+
+        private XNAClientToggleButton btnGameFilterOptions;
+
         private DarkeningPanel gameCreationPanel;
 
         private Channel currentChatChannel;
@@ -81,7 +89,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         private GameCollection gameCollection;
 
         private Color cAdminNameColor;
-
+        
         private Texture2D unknownGameIcon;
         private Texture2D adminGameIcon;
 
@@ -120,6 +128,13 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         private InvitationIndex invitationIndex;
 
+        private GameFiltersPanel panelGameFilters;
+
+        private void GameList_ClientRectangleUpdated(object sender, EventArgs e)
+        {
+            panelGameFilters.ClientRectangle = lbGameList.ClientRectangle;
+        }
+        
         public override void Initialize()
         {
             invitationIndex = new InvitationIndex();
@@ -134,7 +149,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             btnNewGame = new XNAClientButton(WindowManager);
             btnNewGame.Name = nameof(btnNewGame);
-            btnNewGame.ClientRectangle = new Rectangle(12, Height - 29, 133, 23);
+            btnNewGame.ClientRectangle = new Rectangle(12, Height - 29, UIDesignConstants.BUTTON_WIDTH_133, UIDesignConstants.BUTTON_HEIGHT);
             btnNewGame.Text = "Create Game";
             btnNewGame.AllowClick = false;
             btnNewGame.LeftClick += BtnNewGame_LeftClick;
@@ -142,7 +157,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             btnJoinGame = new XNAClientButton(WindowManager);
             btnJoinGame.Name = nameof(btnJoinGame);
             btnJoinGame.ClientRectangle = new Rectangle(btnNewGame.Right + 12,
-                btnNewGame.Y, 133, 23);
+                btnNewGame.Y, UIDesignConstants.BUTTON_WIDTH_133, UIDesignConstants.BUTTON_HEIGHT);
             btnJoinGame.Text = "Join Game";
             btnJoinGame.AllowClick = false;
             btnJoinGame.LeftClick += BtnJoinGame_LeftClick;
@@ -150,19 +165,27 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             btnLogout = new XNAClientButton(WindowManager);
             btnLogout.Name = nameof(btnLogout);
             btnLogout.ClientRectangle = new Rectangle(Width - 145, btnNewGame.Y,
-                133, 23);
+                UIDesignConstants.BUTTON_WIDTH_133, UIDesignConstants.BUTTON_HEIGHT);
             btnLogout.Text = "Log Out";
             btnLogout.LeftClick += BtnLogout_LeftClick;
+            
+            var gameListRectangle = new Rectangle(
+                btnNewGame.X, 41,
+                btnJoinGame.Right - btnNewGame.X, btnNewGame.Y - 47
+            );
+            
+            panelGameFilters = new GameFiltersPanel(WindowManager);
+            panelGameFilters.ClientRectangle = gameListRectangle;
+            panelGameFilters.Disable();
 
             lbGameList = new GameListBox(WindowManager, localGameID, HostedGameMatches);
             lbGameList.Name = nameof(lbGameList);
-            lbGameList.ClientRectangle = new Rectangle(btnNewGame.X,
-                41, btnJoinGame.Right - btnNewGame.X,
-                btnNewGame.Y - 47);
+            lbGameList.ClientRectangle = gameListRectangle;
             lbGameList.PanelBackgroundDrawMode = PanelBackgroundImageDrawMode.STRETCHED;
             lbGameList.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 128), 1, 1);
             lbGameList.DoubleLeftClick += LbGameList_DoubleLeftClick;
             lbGameList.AllowMultiLineItems = false;
+            lbGameList.ClientRectangleUpdated += GameList_ClientRectangleUpdated;
 
             lbPlayerList = new PlayerListBox(WindowManager, gameCollection);
             lbPlayerList.Name = nameof(lbPlayerList);
@@ -273,11 +296,33 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             tbGameSearch = new XNASuggestionTextBox(WindowManager);
             tbGameSearch.Name = nameof(tbGameSearch);
             tbGameSearch.ClientRectangle = new Rectangle(lbGameList.X,
-                12, lbGameList.Width, 21);
+                12, lbGameList.Width - 62, 21);
             tbGameSearch.Suggestion = "Filter by name, map, game mode, player...";
             tbGameSearch.MaximumTextLength = 64;
             tbGameSearch.InputReceived += TbGameSearch_InputReceived;
             tbGameSearch.Disable();
+
+            btnGameSortAlpha = new XNAClientToggleButton(WindowManager);
+            btnGameSortAlpha.Name = nameof(btnGameFilterOptions);
+            btnGameSortAlpha.ClientRectangle = new Rectangle(
+                tbGameSearch.X + tbGameSearch.Width + 10, tbGameSearch.Y,
+                21, 21
+            );
+            btnGameSortAlpha.CheckedTexture = AssetLoader.LoadTexture("sortAlphaActive.png");
+            btnGameSortAlpha.UncheckedTexture = AssetLoader.LoadTexture("sortAlphaInactive.png");
+            btnGameSortAlpha.LeftClick += BtnGameSortAlpha_LeftClick;
+            RefreshGameSortAlphaBtn();
+
+            btnGameFilterOptions = new XNAClientToggleButton(WindowManager);
+            btnGameFilterOptions.Name = nameof(btnGameFilterOptions);
+            btnGameFilterOptions.ClientRectangle = new Rectangle(
+                btnGameSortAlpha.X + btnGameSortAlpha.Width + 10, tbGameSearch.Y,
+                21, 21
+            );
+            btnGameFilterOptions.CheckedTexture = AssetLoader.LoadTexture("filterActive.png");
+            btnGameFilterOptions.UncheckedTexture = AssetLoader.LoadTexture("filterInactive.png");
+            btnGameFilterOptions.LeftClick += BtnGameFilterOptions_LeftClick;
+            RefreshGameFiltersBtn();
 
             InitializeGameList();
 
@@ -287,6 +332,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             AddChild(lbPlayerList);
             AddChild(lbChatMessages);
             AddChild(lbGameList);
+            AddChild(panelGameFilters);
             AddChild(tbChatInput);
             AddChild(lblColor);
             AddChild(ddColor);
@@ -296,6 +342,11 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             AddChild(lblOnline);
             AddChild(lblOnlineCount);
             AddChild(tbGameSearch);
+            AddChild(btnGameSortAlpha);
+            AddChild(btnGameFilterOptions);
+            
+            
+            panelGameFilters.VisibleChanged += GameFiltersPanel_VisibleChanged;
 
             CnCNetPlayerCountTask.CnCNetGameCountUpdated += OnCnCNetGameCountUpdated;
             UpdateOnlineCount(CnCNetPlayerCountTask.PlayerCount);
@@ -309,19 +360,77 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             PostUIInit();
         }
 
-        private void TbGameSearch_InputReceived(object sender, EventArgs e)
+        private void BtnGameSortAlpha_LeftClick(object sender, EventArgs e)
+        {
+            UserINISettings.Instance.SortAlpha.Value = !UserINISettings.Instance.SortAlpha.Value;
+            
+            RefreshGameSortAlphaBtn();
+            SortAndRefreshHostedGames();
+            UserINISettings.Instance.SaveSettings();
+        }
+
+        private void SortAndRefreshHostedGames()
         {
             lbGameList.SortAndRefreshHostedGames();
+        }
+
+        private void BtnGameFilterOptions_LeftClick(object sender, EventArgs e)
+        {
+            panelGameFilters.Show();
+        }
+
+        private void RefreshGameSortAlphaBtn()
+        {
+            btnGameSortAlpha.Checked = UserINISettings.Instance.SortAlpha.Value;
+        }
+
+        private void RefreshGameFiltersBtn()
+        {
+            btnGameFilterOptions.Checked = UserINISettings.Instance.IsGameFiltersApplied();
+        }
+
+        private void GameFiltersPanel_VisibleChanged(object sender, EventArgs e)
+        {
+            if (panelGameFilters.Visible)
+                return;
+            
+            RefreshGameFiltersBtn();
+            SortAndRefreshHostedGames();
+        }
+
+        private void TbGameSearch_InputReceived(object sender, EventArgs e)
+        {
+            SortAndRefreshHostedGames();
             lbGameList.ViewTop = 0;
         }
 
-        private bool HostedGameMatches(GenericHostedGame hg) => 
-            string.IsNullOrWhiteSpace(tbGameSearch?.Text) ||
-            tbGameSearch.Text == tbGameSearch.Suggestion ||
-            hg.RoomName.ToUpper().Contains(tbGameSearch.Text.ToUpper()) ||
-            hg.GameMode.ToUpper().Equals(tbGameSearch.Text.ToUpper()) ||
-            hg.Map.ToUpper().Contains(tbGameSearch.Text.ToUpper()) ||
-            hg.Players.Where(pl => pl.ToUpper().Equals(tbGameSearch.Text.ToUpper())).Any();
+        private bool HostedGameMatches(GenericHostedGame hg)
+        {
+            // friends list takes priority over other filters below
+            if (UserINISettings.Instance.ShowFriendGamesOnly)
+                return hg.Players.Any(p => cncnetUserData.IsFriend(p));
+            
+            if (UserINISettings.Instance.HideLockedGames.Value && hg.Locked)
+                return false;
+
+            if (UserINISettings.Instance.HideIncompatibleGames.Value && hg.Incompatible)
+                return false;
+
+            if (UserINISettings.Instance.HidePasswordedGames.Value && hg.Passworded)
+                return false;
+
+            if (hg.MaxPlayers > UserINISettings.Instance.MaxPlayerCount.Value)
+                return false;
+
+            return
+                string.IsNullOrWhiteSpace(tbGameSearch?.Text) ||
+                tbGameSearch.Text == tbGameSearch.Suggestion ||
+                hg.RoomName.ToUpper().Contains(tbGameSearch.Text.ToUpper()) ||
+                hg.GameMode.ToUpper().Equals(tbGameSearch.Text.ToUpper()) ||
+                hg.Map.ToUpper().Contains(tbGameSearch.Text.ToUpper()) ||
+                hg.Players.Any(pl => pl.ToUpper().Equals(tbGameSearch.Text.ToUpper()));
+        }
+            
 
         private void OnCnCNetGameCountUpdated(object sender, PlayerCountEventArgs e) => UpdateOnlineCount(e.PlayerCount);
 
@@ -792,7 +901,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             if (game != null)
             {
                 game.Locked = true;
-                lbGameList.SortAndRefreshHostedGames();
+                SortAndRefreshHostedGames();
             }
 
             ClearGameJoinAttempt((Channel)sender);
@@ -1392,7 +1501,6 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 if (gameIndex > -1)
                 {
                     lbGameList.HostedGames[gameIndex] = game;
-                    lbGameList.SortAndRefreshHostedGames();
                 }
                 else
                 {
@@ -1405,6 +1513,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
                     lbGameList.AddGame(game);
                 }
+                SortAndRefreshHostedGames();
             }
             catch (Exception ex)
             {

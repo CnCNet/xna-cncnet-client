@@ -44,15 +44,15 @@ namespace DTAConfig.OptionPanels
             var btnMoveUp = new XNAClientButton(WindowManager);
             btnMoveUp.Name = "btnMoveUp";
             btnMoveUp.ClientRectangle = new Rectangle(lbUpdateServerList.X,
-                lbUpdateServerList.Bottom + 12, 133, 23);
+                lbUpdateServerList.Bottom + 12, UIDesignConstants.BUTTON_WIDTH_133, UIDesignConstants.BUTTON_HEIGHT);
             btnMoveUp.Text = "Move Up";
             btnMoveUp.LeftClick += btnMoveUp_LeftClick;
 
             var btnMoveDown = new XNAClientButton(WindowManager);
             btnMoveDown.Name = "btnMoveDown";
             btnMoveDown.ClientRectangle = new Rectangle(
-                lbUpdateServerList.Right - 133,
-                btnMoveUp.Y, 133, 23);
+                lbUpdateServerList.Right - UIDesignConstants.BUTTON_WIDTH_133,
+                btnMoveUp.Y, UIDesignConstants.BUTTON_WIDTH_133, UIDesignConstants.BUTTON_HEIGHT);
             btnMoveDown.Text = "Move Down";
             btnMoveDown.LeftClick += btnMoveDown_LeftClick;
 
@@ -64,7 +64,7 @@ namespace DTAConfig.OptionPanels
 
             btnForceUpdate = new XNAClientButton(WindowManager);
             btnForceUpdate.Name = "btnForceUpdate";
-            btnForceUpdate.ClientRectangle = new Rectangle(btnMoveDown.X, btnMoveDown.Bottom + 24, 133, 23);
+            btnForceUpdate.ClientRectangle = new Rectangle(btnMoveDown.X, btnMoveDown.Bottom + 24, UIDesignConstants.BUTTON_WIDTH_133, UIDesignConstants.BUTTON_HEIGHT);
             btnForceUpdate.Text = "Force Update";
             btnForceUpdate.LeftClick += BtnForceUpdate_LeftClick;
 

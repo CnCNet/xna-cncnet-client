@@ -56,7 +56,7 @@ namespace DTAConfig.OptionPanels
                 var btn = new XNAClientButton(WindowManager);
                 btn.Name = "btn" + c.ININame;
                 btn.ClientRectangle = new Rectangle(Width - 145,
-                    12 + componentIndex * 35, 133, 23);
+                    12 + componentIndex * 35, UIDesignConstants.BUTTON_WIDTH_133, UIDesignConstants.BUTTON_HEIGHT);
                 btn.Text = buttonText;
                 btn.Tag = c;
                 btn.LeftClick += Btn_LeftClick;

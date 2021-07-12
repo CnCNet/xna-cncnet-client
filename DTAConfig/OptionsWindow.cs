@@ -42,24 +42,24 @@ namespace DTAConfig
             tabControl.ClientRectangle = new Rectangle(12, 12, 0, 23);
             tabControl.FontIndex = 1;
             tabControl.ClickSound = new EnhancedSoundEffect("button.wav");
-            tabControl.AddTab("Display", 92);
-            tabControl.AddTab("Audio", 92);
-            tabControl.AddTab("Game", 92);
-            tabControl.AddTab("CnCNet", 92);
-            tabControl.AddTab("Updater", 92);
-            tabControl.AddTab("Components", 92);
+            tabControl.AddTab("Display", UIDesignConstants.BUTTON_WIDTH_92);
+            tabControl.AddTab("Audio", UIDesignConstants.BUTTON_WIDTH_92);
+            tabControl.AddTab("Game", UIDesignConstants.BUTTON_WIDTH_92);
+            tabControl.AddTab("CnCNet", UIDesignConstants.BUTTON_WIDTH_92);
+            tabControl.AddTab("Updater", UIDesignConstants.BUTTON_WIDTH_92);
+            tabControl.AddTab("Components", UIDesignConstants.BUTTON_WIDTH_92);
             tabControl.SelectedIndexChanged += TabControl_SelectedIndexChanged;
 
             var btnCancel = new XNAClientButton(WindowManager);
             btnCancel.Name = "btnCancel";
             btnCancel.ClientRectangle = new Rectangle(Width - 104,
-                Height - 35, 92, 23);
+                Height - 35, UIDesignConstants.BUTTON_WIDTH_92, UIDesignConstants.BUTTON_HEIGHT);
             btnCancel.Text = "Cancel";
             btnCancel.LeftClick += BtnBack_LeftClick;
 
             var btnSave = new XNAClientButton(WindowManager);
             btnSave.Name = "btnSave";
-            btnSave.ClientRectangle = new Rectangle(12, btnCancel.Y, 92, 23);
+            btnSave.ClientRectangle = new Rectangle(12, btnCancel.Y, UIDesignConstants.BUTTON_WIDTH_92, UIDesignConstants.BUTTON_HEIGHT);
             btnSave.Text = "Save";
             btnSave.LeftClick += BtnSave_LeftClick;
 

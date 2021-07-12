@@ -259,6 +259,7 @@
     <Compile Include="ProfanityFilter.cs" />
     <Compile Include="SavedGameManager.cs" />
     <Compile Include="Settings\IIniSetting.cs" />
+    <Compile Include="Settings\IntRangeSetting.cs" />
     <Compile Include="Settings\UserINISettings.cs" />
     <Compile Include="Settings\BoolSetting.cs" />
     <Compile Include="Settings\DoubleSetting.cs" />

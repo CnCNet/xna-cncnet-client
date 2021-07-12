@@ -165,14 +165,14 @@ namespace DTAClient.DXGUI.Multiplayer
             btnLoadGame = new XNAClientButton(WindowManager);
             btnLoadGame.Name = nameof(btnLoadGame);
             btnLoadGame.ClientRectangle = new Rectangle(lbChatMessages.X,
-                tbChatInput.Bottom + 6, 133, 23);
+                tbChatInput.Bottom + 6, UIDesignConstants.BUTTON_WIDTH_133, UIDesignConstants.BUTTON_HEIGHT);
             btnLoadGame.Text = "Load Game";
             btnLoadGame.LeftClick += BtnLoadGame_LeftClick;
 
             btnLeaveGame = new XNAClientButton(WindowManager);
             btnLeaveGame.Name = nameof(btnLeaveGame);
             btnLeaveGame.ClientRectangle = new Rectangle(Width - 145,
-                btnLoadGame.Y, 133, 23);
+                btnLoadGame.Y, UIDesignConstants.BUTTON_WIDTH_133, UIDesignConstants.BUTTON_HEIGHT);
             btnLeaveGame.Text = "Leave Game";
             btnLeaveGame.LeftClick += BtnLeaveGame_LeftClick;
 
