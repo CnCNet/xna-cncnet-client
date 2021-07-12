@@ -375,11 +375,18 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
             }
         }
 
+        private static string GetMapFileName(string sha1, string mapName)
+        {
+            return mapName + "_" + sha1;
+        }
+
         private static string DownloadMain(string sha1, string myGame, string mapName, out bool success)
         {
             string customMapsDirectory = ProgramConstants.GamePath + "Maps/Custom/";
 
-            string destinationFilePath = customMapsDirectory + mapName + "_" + sha1 + ".zip";
+            string mapFileName = GetMapFileName(sha1, mapName);
+
+            string destinationFilePath = customMapsDirectory + mapFileName + ".zip";
 
             try
             {
@@ -423,7 +430,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
 
             string extractedFile = ExtractZipFile(destinationFilePath, customMapsDirectory);
 
-            string newFilename = customMapsDirectory + mapName + "_" + sha1 + ".map";
+            string newFilename = customMapsDirectory + mapFileName + ".map";
             File.Move(customMapsDirectory + extractedFile, newFilename);
 
             if (String.IsNullOrEmpty(extractedFile))
