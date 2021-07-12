@@ -68,7 +68,6 @@ namespace DTAConfig
             var updaterOptionsPanel = new UpdaterOptionsPanel(WindowManager, UserINISettings.Instance);
             updaterOptionsPanel.OnForceUpdate += (s, e) => { Disable(); OnForceUpdate?.Invoke(this, EventArgs.Empty); };
 
-
             optionsPanels = new XNAOptionsPanel[]
             {
                 displayOptionsPanel,
