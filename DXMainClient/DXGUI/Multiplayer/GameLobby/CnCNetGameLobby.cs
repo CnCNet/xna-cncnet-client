@@ -982,6 +982,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             string mapName = parts[partIndex + 8];
 
+
             GameMode currentGameMode = GameMode;
             Map currentMap = Map;
 
@@ -1544,8 +1545,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private void MapSharer_HandleMapDownloadComplete(SHA1EventArgs e)
         {
-            Logger.Log("Map " + e.MapName + "_" + e.SHA1 + " downloaded, parsing.");
-            string mapPath = "Maps/Custom/" + e.MapName + "_" + e.SHA1;
+            string mapFileName = MapSharer.GetMapFileName(e.SHA1, e.MapName);
+            Logger.Log("Map " + mapFileName + " downloaded, parsing.");
+            string mapPath = "Maps/Custom/" + mapFileName;
             Map map = MapLoader.LoadCustomMap(mapPath, out string returnMessage);
             if (map != null)
             {

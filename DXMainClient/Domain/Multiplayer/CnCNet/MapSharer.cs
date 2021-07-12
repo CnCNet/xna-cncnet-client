@@ -375,7 +375,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
             }
         }
 
-        private static string GetMapFileName(string sha1, string mapName)
+        public static string GetMapFileName(string sha1, string mapName)
         {
             return mapName + "_" + sha1;
         }
