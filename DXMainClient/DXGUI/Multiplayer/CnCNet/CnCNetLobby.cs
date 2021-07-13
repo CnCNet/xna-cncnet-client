@@ -303,7 +303,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             tbGameSearch.Disable();
 
             btnGameSortAlpha = new XNAClientToggleButton(WindowManager);
-            btnGameSortAlpha.Name = nameof(btnGameFilterOptions);
+            btnGameSortAlpha.Name = nameof(btnGameSortAlpha);
             btnGameSortAlpha.ClientRectangle = new Rectangle(
                 tbGameSearch.X + tbGameSearch.Width + 10, tbGameSearch.Y,
                 21, 21
