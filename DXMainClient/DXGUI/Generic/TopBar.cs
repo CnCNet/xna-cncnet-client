@@ -362,12 +362,12 @@ namespace DTAClient.DXGUI.Generic
             }
         }
 
-        public override void OnMouseOnControl()
+        public override void OnMouseOnControl(MouseEventArgs eventArgs)
         {
             if (Cursor.Location.Y > -1 && !ProgramConstants.IsInGame)
                 BringDown();
 
-            base.OnMouseOnControl();
+            base.OnMouseOnControl(eventArgs);
         }
 
         void BringDown()

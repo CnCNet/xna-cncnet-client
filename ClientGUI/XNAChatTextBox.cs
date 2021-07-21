@@ -3,6 +3,9 @@ using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace ClientGUI
 {
@@ -43,23 +46,23 @@ namespace ClientGUI
 
                 if (currentNode != null)
                     Text = currentNode.Value;
-
-                return true;
             }
-
-            if (key == Keys.Down)
+            else if (key == Keys.Down)
             {
-                if (currentNode != null && currentNode.Previous != null)
-                {
-                    currentNode = currentNode.Previous;
-                    Text = currentNode.Value;
-                }
+                if (currentNode == null || currentNode.Previous == null)
+                    return true;
 
-                return true;
+                currentNode = currentNode.Previous;
+                Text = currentNode.Value;
+            }
+            else
+            {
+                currentNode = null;
+
+                return base.HandleKeyPress(key);
             }
 
-            currentNode = null;
-            return base.HandleKeyPress(key);
+            return true;
         }
     }
 }
