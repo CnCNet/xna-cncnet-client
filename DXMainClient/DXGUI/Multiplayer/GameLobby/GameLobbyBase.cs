@@ -27,6 +27,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         protected const int PLAYER_OPTION_HORIZONTAL_MARGIN = 3;
         protected const int PLAYER_OPTION_CAPTION_Y = 6;
         private const int DROP_DOWN_HEIGHT = 21;
+        public const string FAVORITES = "Favorites";
 
         private const int RANK_NONE = 0;
         private const int RANK_EASY = 1;
@@ -221,6 +222,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             MapPreviewBox.FontIndex = 1;
             MapPreviewBox.PanelBackgroundDrawMode = PanelBackgroundImageDrawMode.STRETCHED;
             MapPreviewBox.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 128), 1, 1);
+            MapPreviewBox.LeftClickFavoriteMapBtn += MapPreviewBox_FavoriteMapBtnLeftClick;
 
             lblMapName = new XNALabel(WindowManager);
             lblMapName.Name = "lblMapName";
@@ -288,6 +290,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             ddGameMode.ClientRectangle = new Rectangle(lbMapList.Right - 150, GameOptionsPanel.Y, 150, 21);
             ddGameMode.SelectedIndexChanged += DdGameMode_SelectedIndexChanged;
 
+            ddGameMode.AddItem(FAVORITES);
             foreach (GameMode gm in GameModes)
                 ddGameMode.AddItem(gm.UIName);
 
@@ -365,6 +368,12 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             AddChild(btnPickRandomMap);
         }
 
+        private void MapPreviewBox_FavoriteMapBtnLeftClick(object sender, EventArgs e)
+        {
+            if (IsFavoritesSelected())
+                ListMaps();
+        }
+
         private void BtnPickRandomMap_LeftClick(object sender, EventArgs e) => PickRandomMap();
 
         private void TbMapSearch_InputReceived(object sender, EventArgs e) => ListMaps();
@@ -430,15 +439,20 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             lbMapList.SetTopIndex(0);
 
             lbMapList.SelectedIndex = -1;
+            
+            var maps = IsFavoritesSelected() ? 
+                GameModes.SelectMany(gm => gm.Maps).Where(m => IsFavoriteMap(m.SHA1)).Distinct().ToList() :
+                GameMode.Maps;
 
             int mapIndex = -1;
             int skippedMapsCount = 0;
 
-            for (int i = 0; i < GameMode.Maps.Count; i++)
+            for (int i = 0; i < maps.Count; i++)
             {
+                var _map = maps[i];
                 if (tbMapSearch.Text != tbMapSearch.Suggestion)
                 {
-                    if (!GameMode.Maps[i].Name.ToUpper().Contains(tbMapSearch.Text.ToUpper()))
+                    if (!_map.Name.ToUpper().Contains(tbMapSearch.Text.ToUpper()))
                     {
                         skippedMapsCount++;
                         continue;
@@ -446,21 +460,21 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 }
 
                 XNAListBoxItem rankItem = new XNAListBoxItem();
-                if (GameMode.Maps[i].IsCoop)
+                if (_map.IsCoop)
                 {
-                    if (StatisticsManager.Instance.HasBeatCoOpMap(GameMode.Maps[i].Name, GameMode.UIName))
+                    if (StatisticsManager.Instance.HasBeatCoOpMap(_map.Name, GameMode.UIName))
                         rankItem.Texture = RankTextures[Math.Abs(2 - GameMode.CoopDifficultyLevel) + 1];
                     else
                         rankItem.Texture = RankTextures[0];
                 }
                 else
-                    rankItem.Texture = RankTextures[GetDefaultMapRankIndex(GameMode.Maps[i]) + 1];
+                    rankItem.Texture = RankTextures[GetDefaultMapRankIndex(_map) + 1];
 
                 XNAListBoxItem mapNameItem = new XNAListBoxItem();
-                mapNameItem.Text = Renderer.GetSafeString(GameMode.Maps[i].Name, lbMapList.FontIndex);
-                if ((GameMode.Maps[i].MultiplayerOnly || GameMode.MultiplayerOnly) && !isMultiplayer)
+                mapNameItem.Text = Renderer.GetSafeString(_map.Name, lbMapList.FontIndex);
+                if ((_map.MultiplayerOnly || GameMode.MultiplayerOnly) && !isMultiplayer)
                     mapNameItem.TextColor = UISettings.ActiveSettings.DisabledItemColor;
-                mapNameItem.Tag = GameMode.Maps[i];
+                mapNameItem.Tag = _map;
 
                 XNAListBoxItem[] mapInfoArray = new XNAListBoxItem[]
                 {
@@ -503,6 +517,13 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 "Are you sure you wish to delete the custom map \"" + Map.Name + "\"?");
             messageBox.YesClickedAction = DeleteSelectedMap;
         }
+
+        private bool IsFavoritesSelected()
+        {
+            return ddGameMode.SelectedItem.Text == FAVORITES;
+        }
+
+        private bool IsFavoriteMap(string mapSHA) => UserINISettings.Instance.IsFavoriteMap(mapSHA);
 
         private void DeleteSelectedMap(XNAMessageBox messageBox)
         {

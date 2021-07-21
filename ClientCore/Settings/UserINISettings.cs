@@ -1,6 +1,7 @@
 ﻿using ClientCore.Settings;
 using Rampastring.Tools;
 using System;
+using System.Collections.Generic;
 using System.Windows.Forms;
 
 namespace ClientCore
@@ -125,6 +126,8 @@ namespace ClientCore
             HidePasswordedGames = new BoolSetting(iniFile, GAME_FILTERS, "HidePasswordedGames", DEFAULT_HIDE_PASSWORDED_GAMES);
             HideIncompatibleGames = new BoolSetting(iniFile, GAME_FILTERS, "HideIncompatibleGames", DEFAULT_HIDE_INCOMPATIBLE_GAMES);
             MaxPlayerCount = new IntRangeSetting(iniFile, GAME_FILTERS, "MaxPlayerCount", DEFAULT_MAX_PLAYER_COUNT, 2, 8);
+
+            FavoriteMapSHAs = new StringListSetting(iniFile, OPTIONS, "FavoriteMapSHAs", new List<string>());
         }
 
         public IniFile SettingsIni { get; private set; }
@@ -242,11 +245,30 @@ namespace ClientCore
 
         public BoolSetting AutoRemoveUnderscoresFromName { get; private set; }
         
+        public StringListSetting FavoriteMapSHAs { get; private set; }
+        
         public bool IsGameFollowed(string gameName)
         {
             return SettingsIni.GetBooleanValue("Channels", gameName, false);
         }
 
+        public void ToggleFavoriteMap(string mapSHA)
+        {
+            if (string.IsNullOrEmpty(mapSHA))
+                return;
+            
+            if (!IsFavoriteMap(mapSHA))
+                FavoriteMapSHAs.Value.Add(mapSHA);
+            else
+                FavoriteMapSHAs.Value.Remove(mapSHA);
+        }
+
+        /// <summary>
+        /// Checks if a specified map SHA belongs to the favorite map list.
+        /// </summary>
+        /// <param name="mapSha">The SHA of the map.</param>
+        public bool IsFavoriteMap(string mapSha) => FavoriteMapSHAs.Value.Contains(mapSha);
+        
         public void ReloadSettings()
         {
             SettingsIni.Reload();
