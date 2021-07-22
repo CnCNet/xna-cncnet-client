@@ -261,6 +261,8 @@ namespace ClientCore
                 FavoriteMapSHAs.Value.Add(mapSHA);
             else
                 FavoriteMapSHAs.Value.Remove(mapSHA);
+            
+            Instance.SaveSettings();
         }
 
         /// <summary>

@@ -187,7 +187,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         private void BtnFavMap_LeftClick(object sender, EventArgs e)
         {
             UserINISettings.Instance.ToggleFavoriteMap(Map.SHA1);
-            UserINISettings.Instance.SaveSettings();
             UpdateFavoriteMapBtn();
             LeftClickFavoriteMapBtn?.Invoke(sender, e);
         }
