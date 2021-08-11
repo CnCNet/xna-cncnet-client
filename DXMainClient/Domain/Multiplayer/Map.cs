@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using Newtonsoft.Json;
 using Utilities = Rampastring.Tools.Utilities;
 
 namespace DTAClient.Domain.Multiplayer
@@ -33,25 +34,29 @@ namespace DTAClient.Domain.Multiplayer
     {
         private const int MAX_PLAYERS = 8;
 
-        public Map(string path, bool official)
+        public Map(string baseFilePath, string customMapFilePath = null)
         {
-            BaseFilePath = path;
-            Official = official;
+            BaseFilePath = baseFilePath;
+            this.customMapFilePath = customMapFilePath;
+            Official = string.IsNullOrEmpty(this.customMapFilePath);
         }
 
         /// <summary>
         /// The name of the map.
         /// </summary>
+        [JsonProperty]
         public string Name { get; private set; }
 
         /// <summary>
         /// The maximum amount of players supported by the map.
         /// </summary>
+        [JsonProperty]
         public int MaxPlayers { get; private set; }
 
         /// <summary>
         /// The minimum amount of players supported by the map.
         /// </summary>
+        [JsonProperty]
         public int MinPlayers { get; private set; }
 
         /// <summary>
@@ -59,43 +64,51 @@ namespace DTAClient.Domain.Multiplayer
         /// If false (which is the default), MaxPlayers is only used for randomizing
         /// players to starting waypoints.
         /// </summary>
+        [JsonProperty]
         public bool EnforceMaxPlayers { get; private set; }
 
         /// <summary>
         /// Controls if the map is meant for a co-operation game mode
         /// (enables briefing logic and forcing options, among others).
         /// </summary>
+        [JsonProperty]
         public bool IsCoop { get; private set; }
 
         /// <summary>
         /// If set, this map won't be automatically transferred over CnCNet when
         /// a player doesn't have it.
         /// </summary>
+        [JsonIgnore]
         public bool Official { get; private set; }
 
         /// <summary>
         /// Contains co-op information.
         /// </summary>
+        [JsonProperty]
         public CoopMapInfo CoopInfo { get; private set; }
 
         /// <summary>
         /// The briefing of the map.
         /// </summary>
+        [JsonProperty]
         public string Briefing { get; private set; }
 
         /// <summary>
         /// The author of the map.
         /// </summary>
+        [JsonProperty]
         public string Author { get; private set; }
 
         /// <summary>
         /// The calculated SHA1 of the map.
         /// </summary>
+        [JsonIgnore]
         public string SHA1 { get; private set; }
 
         /// <summary>
         /// The path to the map file.
         /// </summary>
+        [JsonProperty]
         public string BaseFilePath { get; private set; }
 
         /// <summary>
@@ -107,71 +120,95 @@ namespace DTAClient.Domain.Multiplayer
         /// <summary>
         /// The file name of the preview image.
         /// </summary>
+        [JsonProperty]
         public string PreviewPath { get; private set; }
 
         /// <summary>
         /// If set, this map cannot be played on Skirmish.
         /// </summary>
+        [JsonProperty]
         public bool MultiplayerOnly { get; private set; }
 
         /// <summary>
         /// If set, this map cannot be played with AI players.
         /// </summary>
+        [JsonProperty]
         public bool HumanPlayersOnly { get; private set; }
 
         /// <summary>
         /// If set, players are forced to random starting locations on this map.
         /// </summary>
+        [JsonProperty]
         public bool ForceRandomStartLocations { get; private set; }
 
         /// <summary>
         /// If set, players are forced to different teams on this map.
         /// </summary>
+        [JsonProperty]
         public bool ForceNoTeams { get; private set; }
 
         /// <summary>
         /// The name of an extra INI file in INI\Map Code\ that should be
         /// embedded into this map's INI code when a game is started.
         /// </summary>
+        [JsonProperty]
         public string ExtraININame { get; private set; }
 
         /// <summary>
         /// The game modes that the map is listed for.
         /// </summary>
+        [JsonProperty]
         public string[] GameModes;
 
         /// <summary>
         /// The forced UnitCount for the map. -1 means none.
         /// </summary>
+        [JsonProperty]
         int UnitCount = -1;
 
         /// <summary>
         /// The forced starting credits for the map. -1 means none.
         /// </summary>
+        [JsonProperty]
         int Credits = -1;
 
+        [JsonProperty]
         int NeutralHouseColor = -1;
 
+        [JsonProperty]
         int SpecialHouseColor = -1;
 
+        [JsonProperty]
         int Bases = -1;
 
+        [JsonProperty]
         string[] localSize;
 
+        [JsonProperty]
         string[] actualSize;
 
-        IniFile mapIni;
+        private IniFile customMapIni;
 
+        [JsonProperty]
+        private string customMapFilePath;
+
+        [JsonProperty]
         List<string> waypoints = new List<string>();
 
         /// <summary>
         /// The pixel coordinates of the map's player starting locations.
         /// </summary>
+        [JsonProperty]
         List<Point> startingLocations;
 
         public Texture2D PreviewTexture { get; set; }
 
         private bool extractCustomPreview = true;
+
+        public void CalculateSHA()
+        {
+            SHA1 = Utilities.CalculateSHA1ForFile(CompleteFilePath);
+        }
 
         /// <summary>
         /// If false, the preview shouldn't be extracted for this (custom) map.
@@ -190,8 +227,12 @@ namespace DTAClient.Domain.Multiplayer
 
         private List<KeyValuePair<string, string>> ForcedSpawnIniOptions = new List<KeyValuePair<string, string>>(0);
 
-
-        public bool SetInfoFromINI(IniFile iniFile)
+        /// <summary>
+        /// This is used to load a map from the MPMaps.ini (default name) file.
+        /// </summary>
+        /// <param name="iniFile"></param>
+        /// <returns></returns>
+        public bool SetInfoFromMpMapsINI(IniFile iniFile)
         {
             try
             {
@@ -212,7 +253,7 @@ namespace DTAClient.Domain.Multiplayer
                 PreviewPath = Path.GetDirectoryName(BaseFilePath) + "/" +
                     section.GetStringValue("PreviewImage", Path.GetFileNameWithoutExtension(BaseFilePath) + ".png");
                 Briefing = section.GetStringValue("Briefing", string.Empty).Replace("@", Environment.NewLine);
-                SHA1 = Utilities.CalculateSHA1ForFile(CompleteFilePath);
+                CalculateSHA();
                 IsCoop = section.GetBooleanValue("IsCoopMission", false);
                 Credits = section.GetIntValue("Credits", -1);
                 UnitCount = section.GetIntValue("UnitCount", -1);
@@ -346,39 +387,41 @@ namespace DTAClient.Domain.Multiplayer
             return GetIsoTilePixelCoord(mapPoint.X, mapPoint.Y, actualSize, localSize, previewSize, level);
         }
 
-
-        public void WriteInfoToIniSection(IniSection iniSection)
+        /// <summary>
+        /// Due to caching, this may not have been loaded on application start.
+        /// This function provides the ability to load when needed.
+        /// </summary>
+        /// <returns></returns>
+        private IniFile GetCustomMapIniFile()
         {
-            // TODO necessary for custom map caching
-            throw new NotImplementedException();
+            if (customMapIni != null) return customMapIni;
+
+            customMapIni = new IniFile { FileName = customMapFilePath };
+            customMapIni.AddSection("Basic");
+            customMapIni.AddSection("Map");
+            customMapIni.AddSection("Waypoints");
+            customMapIni.AddSection("Preview");
+            customMapIni.AddSection("PreviewPack");
+            customMapIni.AddSection("ForcedOptions");
+            customMapIni.AddSection("ForcedSpawnIniOptions");
+            customMapIni.AllowNewSections = false;
+            customMapIni.Parse();
+
+            return customMapIni;
         }
 
         /// <summary>
         /// Loads map information from a TS/RA2 map INI file.
-        /// Returns true if succesful, otherwise false.
+        /// Returns true if successful, otherwise false.
         /// </summary>
-        /// <param name="path">The full path to the map INI file.</param>
-        public bool SetInfoFromMap(string path)
+        public bool SetInfoFromCustomMap()
         {
-            if (!File.Exists(path))
+            if (!File.Exists(customMapFilePath))
                 return false;
 
             try
             {
-                IniFile iniFile = new IniFile();
-                iniFile.FileName = path;
-                iniFile.AddSection("Basic");
-                iniFile.AddSection("Map");
-                iniFile.AddSection("Waypoints");
-                iniFile.AddSection("Preview");
-                iniFile.AddSection("PreviewPack");
-                iniFile.AddSection("ForcedOptions");
-                iniFile.AddSection("ForcedSpawnIniOptions");
-                iniFile.AllowNewSections = false;
-
-                iniFile.Parse();
-
-                mapIni = iniFile;
+                IniFile iniFile = GetCustomMapIniFile();
 
                 var basicSection = iniFile.GetSection("Basic");
 
@@ -395,7 +438,7 @@ namespace DTAClient.Domain.Multiplayer
 
                 if (GameModes.Length == 0)
                 {
-                    Logger.Log("Custom map " + path + " has no game modes!");
+                    Logger.Log("Custom map " + customMapFilePath + " has no game modes!");
                     return false;
                 }
                 
@@ -414,7 +457,7 @@ namespace DTAClient.Domain.Multiplayer
                 //PreviewPath = Path.GetDirectoryName(BaseFilePath) + "/" +
                 //    iniFile.GetStringValue(BaseFilePath, "PreviewImage", Path.GetFileNameWithoutExtension(BaseFilePath) + ".png");
                 Briefing = basicSection.GetStringValue("Briefing", string.Empty).Replace("@", Environment.NewLine);
-                SHA1 = Utilities.CalculateSHA1ForFile(path);
+                CalculateSHA();
                 IsCoop = basicSection.GetBooleanValue("IsCoopMission", false);
                 Credits = basicSection.GetIntValue("Credits", -1);
                 UnitCount = basicSection.GetIntValue("UnitCount", -1);
@@ -423,7 +466,7 @@ namespace DTAClient.Domain.Multiplayer
                 HumanPlayersOnly = basicSection.GetBooleanValue("HumanPlayersOnly", false);
                 ForceRandomStartLocations = basicSection.GetBooleanValue("ForceRandomStartLocations", false);
                 ForceNoTeams = basicSection.GetBooleanValue("ForceNoTeams", false);
-                PreviewPath = Path.ChangeExtension(path.Substring(ProgramConstants.GamePath.Length), ".png");
+                PreviewPath = Path.ChangeExtension(customMapFilePath.Substring(ProgramConstants.GamePath.Length), ".png");
                 MultiplayerOnly = basicSection.GetBooleanValue("ClientMultiplayerOnly", false);
 
                 string bases = basicSection.GetStringValue("Bases", string.Empty);
@@ -455,7 +498,7 @@ namespace DTAClient.Domain.Multiplayer
 
                 for (int i = 0; i < MAX_PLAYERS; i++)
                 {
-                    string waypoint = mapIni.GetStringValue("Waypoints", i.ToString(), string.Empty);
+                    string waypoint = GetCustomMapIniFile().GetStringValue("Waypoints", i.ToString(), string.Empty);
 
                     if (string.IsNullOrEmpty(waypoint))
                         break;
@@ -470,7 +513,7 @@ namespace DTAClient.Domain.Multiplayer
             }
             catch
             {
-                Logger.Log("Loading custom map " + path + " failed!");
+                Logger.Log("Loading custom map " + customMapFilePath + " failed!");
                 return false;
             }
         }
@@ -523,7 +566,7 @@ namespace DTAClient.Domain.Multiplayer
             if (!Official)
             {
                 // Extract preview from the map itself
-                System.Drawing.Bitmap preview = MapPreviewExtractor.ExtractMapPreview(mapIni);
+                System.Drawing.Bitmap preview = MapPreviewExtractor.ExtractMapPreview(GetCustomMapIniFile());
 
                 if (preview != null)
                 {
