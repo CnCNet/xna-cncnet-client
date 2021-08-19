@@ -147,10 +147,10 @@ namespace DTAClient.DXGUI.Multiplayer
             HostedGames.Clear();
         }
 
-        protected override int GetRenderTargetWidth() => Width + panelGameInformation.Width;
-
         public override void Initialize()
         {
+            base.Initialize();
+
             txLockedGame = AssetLoader.LoadTexture("lockedgame.png");
             txIncompatibleGame = AssetLoader.LoadTexture("incompatible.png");
             txPasswordedGame = AssetLoader.LoadTexture("passwordedgame.png");
@@ -164,14 +164,12 @@ namespace DTAClient.DXGUI.Multiplayer
             panelGameInformation.Disable();
             panelGameInformation.InputEnabled = false;
             panelGameInformation.Alpha = 0f;
-            AddChild(panelGameInformation);
+            Parent.AddChild(panelGameInformation); // make this a child of our parent so it's not drawn on our rendertarget
 
             HoveredIndexChanged += GameListBox_HoveredIndexChanged;
 
             hoverOnGameColor = AssetLoader.GetColorFromString(
                 ClientConfiguration.Instance.HoverOnGameColor);
-
-            base.Initialize();
 
             loadedGameTextWidth = (int)Renderer.GetTextDimensions(LOADED_GAME_TEXT, FontIndex).X;
         }
@@ -185,8 +183,8 @@ namespace DTAClient.DXGUI.Multiplayer
             }
 
             panelGameInformation.Enable();
-            panelGameInformation.X = Width;
-            panelGameInformation.Y = Math.Min((HoveredIndex - TopIndex) * LineHeight,
+            panelGameInformation.X = Right;
+            panelGameInformation.Y = Y + Math.Min((HoveredIndex - TopIndex) * LineHeight,
                          Height - panelGameInformation.Height);
 
             panelGameInformation.AlphaRate = 0.5f;
