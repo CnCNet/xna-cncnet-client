@@ -136,7 +136,7 @@ namespace DTAClient.DXGUI.Multiplayer
 
         private void BtnCancel_LeftClick(object sender, EventArgs e)
         {
-            Disable();
+            Cancel();
         }
 
         private void BtnResetDefaults_LeftClick(object sender, EventArgs e)
@@ -176,6 +176,11 @@ namespace DTAClient.DXGUI.Multiplayer
         {
             Load();
             Enable();
+        }
+
+        public void Cancel()
+        {
+            Disable();
         }
     }
 }
