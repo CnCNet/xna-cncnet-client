@@ -382,7 +382,10 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         private void BtnGameFilterOptions_LeftClick(object sender, EventArgs e)
         {
-            panelGameFilters.Show();
+            if (panelGameFilters.Visible)
+                panelGameFilters.Cancel();
+            else
+                panelGameFilters.Show();
         }
 
         private void RefreshGameSortAlphaBtn()
