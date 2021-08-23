@@ -1,17 +1,18 @@
-﻿using ClientCore;
+﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using ClientCore;
+using ClientGUI;
 using DTAClient.Domain.Multiplayer;
+using DTAClient.Online.EventArguments;
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using Rampastring.Tools;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
 
 namespace DTAClient.DXGUI.Multiplayer.GameLobby
 {
@@ -61,6 +62,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             {
                 _map = value;
                 UpdateMap();
+                UpdateFavoriteMapBtn();
             }
         }
 
@@ -105,6 +107,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private EnhancedSoundEffect sndDropdownSound;
 
+        private XNAClientToggleButton btnFavMap;
+
+        public event EventHandler<FavoriteMapEventArgs> LeftClickFavoriteMapBtn;
+        
         private List<ExtraMapPreviewTexture> extraTextures = new List<ExtraMapPreviewTexture>(0);
 
         public override void Initialize()
@@ -158,6 +164,17 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             briefingBox = new CoopBriefingBox(WindowManager);
             AddChild(briefingBox);
             briefingBox.Disable();
+            
+            btnFavMap = new XNAClientToggleButton(WindowManager);
+            btnFavMap.Name = nameof(btnFavMap);
+            btnFavMap.ClientRectangle = new Rectangle(
+                Width - 37, 3,
+                34, 34
+            );
+            btnFavMap.CheckedTexture = AssetLoader.LoadTexture("favActive.png");
+            btnFavMap.UncheckedTexture = AssetLoader.LoadTexture("favInactive.png");
+            btnFavMap.LeftClick += BtnFavMap_LeftClick;
+            AddChild(btnFavMap);
 
             sndClickSound = new EnhancedSoundEffect("button.wav");
 
@@ -166,6 +183,22 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             base.Initialize();
 
             ClientRectangleUpdated += (s, e) => UpdateMap();
+        }
+
+        private void BtnFavMap_LeftClick(object sender, EventArgs e)
+        {
+            if (Map == null)
+                return;
+
+            UserINISettings.Instance.ToggleFavoriteMap(Map.SHA1);
+            UpdateFavoriteMapBtn();
+            LeftClickFavoriteMapBtn?.Invoke(sender, new FavoriteMapEventArgs(Map));
+        }
+
+        private void UpdateFavoriteMapBtn()
+        {
+            
+            btnFavMap.Checked = UserINISettings.Instance.IsFavoriteMap(Map?.SHA1);
         }
 
         private void ContextMenu_OptionSelected(int index)
@@ -399,6 +432,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
                 extraTextures.Add(new ExtraMapPreviewTexture(extraTexture, location));
             }
+            
+            btnFavMap.ClientRectangle = new Rectangle(
+                Width - 37, 3,
+                34, 34
+            );
         }
 
         private Point PreviewTexturePointToControlAreaPoint(Point previewTexturePoint, double scaleRatio)

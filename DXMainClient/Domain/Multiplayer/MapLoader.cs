@@ -14,6 +14,7 @@ namespace DTAClient.Domain.Multiplayer
     public class MapLoader
     {
         public const string MAP_FILE_EXTENSION = ".map";
+        public const string FAVORITES = "Favorites";
         private const string CUSTOM_MAPS_DIRECTORY = "Maps/Custom";
         private const string CUSTOM_MAPS_CACHE = CUSTOM_MAPS_DIRECTORY + "/cache";
         private const string MultiMapsSection = "MultiMaps";
@@ -66,7 +67,7 @@ namespace DTAClient.Domain.Multiplayer
             LoadMultiMaps(mpMapsIni);
             LoadCustomMaps();
 
-            GameModes.RemoveAll(g => g.Maps.Count < 1);
+            GameModes.RemoveAll(g => g.Maps.Count < 1 && g.UIName != FAVORITES);
 
             MapLoadingComplete?.Invoke(this, EventArgs.Empty);
         }
@@ -110,6 +111,7 @@ namespace DTAClient.Domain.Multiplayer
         private void LoadGameModes(IniFile mpMapsIni)
         {
             var gameModes = mpMapsIni.GetSectionKeys(GameModesSection);
+            GameModes.Add(new GameMode(FAVORITES));
             if (gameModes != null)
             {
                 foreach (string key in gameModes)
@@ -269,6 +271,13 @@ namespace DTAClient.Domain.Multiplayer
         /// <param name="enableLogging">If set to true, a message for each game mode the map is added to is output to the log file.</param>
         private void AddMapToGameModes(Map map, bool enableLogging)
         {
+            // Strip possible Favorites mode added by map creator
+            map.GameModes = map.GameModes.Where(gm => !string.Equals(gm, FAVORITES)).ToArray();
+            
+            // If map is a favorite, add Favorites to the map's GameModes
+            if (UserINISettings.Instance.IsFavoriteMap(map.SHA1))
+                map.GameModes = map.GameModes.Concat(new[] {FAVORITES}).ToArray();
+            
             foreach (string gameMode in map.GameModes)
             {
                 if (!GameModeAliases.TryGetValue(gameMode, out string[] gameModeAliases))

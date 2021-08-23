@@ -30,7 +30,7 @@ namespace DTAClient.Domain.Multiplayer
     /// <summary>
     /// A multiplayer map.
     /// </summary>
-    public class Map
+    public class Map: IEquatable<Map>
     {
         private const int MAX_PLAYERS = 8;
 
@@ -751,6 +751,9 @@ namespace DTAClient.Domain.Multiplayer
             return new Point(pixelX, pixelY);
         }
 
-
+        public bool Equals(Map other)
+        {
+            return string.Equals(SHA1, other.SHA1, StringComparison.InvariantCultureIgnoreCase);
+        }
     }
 }

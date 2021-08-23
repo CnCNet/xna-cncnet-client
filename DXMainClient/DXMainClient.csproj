@@ -515,6 +515,7 @@
     <Compile Include="Online\CnCNetUserData.cs" />
     <Compile Include="Online\EventArguments\ChannelCTCPEventArgs.cs" />
     <Compile Include="Online\EventArguments\CnCNetPrivateMessageEventArgs.cs" />
+    <Compile Include="Online\EventArguments\FavoriteMapEventArgs.cs" />
     <Compile Include="Online\EventArguments\PrivateCTCPEventArgs.cs" />
     <Compile Include="Online\EventArguments\PrivateMessageEventArgs.cs" />
     <Compile Include="Online\EventArguments\UnreadMessageCountEventArgs.cs" />

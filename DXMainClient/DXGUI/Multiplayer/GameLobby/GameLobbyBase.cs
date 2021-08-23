@@ -12,6 +12,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using DTAClient.Online.EventArguments;
 
 
 namespace DTAClient.DXGUI.Multiplayer.GameLobby
@@ -65,35 +66,35 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         /// </summary>
         protected List<GameMode> GameModes;
 
-        private GameMode gameMode;
+        private GameMode _gameMode;
 
         /// <summary>
         /// The currently selected game mode.
         /// </summary>
         protected GameMode GameMode
         {
-            get => gameMode;
+            get => _gameMode;
             set
             {
-                var oldGameMode = gameMode;
-                gameMode = value;
+                var oldGameMode = _gameMode;
+                _gameMode = value;
                 if (value != null && oldGameMode != value)
                     UpdateDiscordPresence();
             }
         }
 
-        private Map map;
+        private Map _map;
 
         /// <summary>
         /// The currently selected map.
         /// </summary>
         protected Map Map
         {
-            get => map;
+            get => _map;
             set
             {
-                var oldMap = map;
-                map = value;
+                var oldMap = _map;
+                _map = value;
                 if (value != null && oldMap != value)
                     UpdateDiscordPresence();
             }
@@ -221,6 +222,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             MapPreviewBox.FontIndex = 1;
             MapPreviewBox.PanelBackgroundDrawMode = PanelBackgroundImageDrawMode.STRETCHED;
             MapPreviewBox.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 128), 1, 1);
+            MapPreviewBox.LeftClickFavoriteMapBtn += MapPreviewBox_FavoriteMapBtnLeftClick;
 
             lblMapName = new XNALabel(WindowManager);
             lblMapName.Name = "lblMapName";
@@ -365,6 +367,24 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             AddChild(btnPickRandomMap);
         }
 
+        private void MapPreviewBox_FavoriteMapBtnLeftClick(object sender, FavoriteMapEventArgs e)
+        {
+            // the game has already been added/removed as a favorite at this point
+            var isFavorite = IsFavoriteMap(e.Map.SHA1);
+            if (isFavorite)
+                GetFavoritesGameMode().Maps.Add(e.Map);
+            else
+                GetFavoritesGameMode().Maps.Remove(e.Map);
+                    
+            if (!IsFavoritesSelected())
+                return;
+            
+            if (!GameMode.Maps.Any())
+                ChangeMap(null, null); // stay on Favorites, but deselect the current map
+            else if (e.Map == Map)
+                lbMapList.SelectedIndex = 0; // select the first map in the list
+        }
+
         private void BtnPickRandomMap_LeftClick(object sender, EventArgs e) => PickRandomMap();
 
         private void TbMapSearch_InputReceived(object sender, EventArgs e) => ListMaps();
@@ -420,6 +440,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 lbMapList.SelectedIndex = 0; // Select default map
             else
                 ChangeMap(GameMode, Map);
+        }
+
+        private int GetFirstGameModeWithMapsIndex()
+        {
+            return GameModes?.FindIndex(gm => gm.Maps.Any()) ?? 0;
         }
 
         private void ListMaps()
@@ -503,6 +528,23 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 "Are you sure you wish to delete the custom map \"" + Map.Name + "\"?");
             messageBox.YesClickedAction = DeleteSelectedMap;
         }
+
+        private bool IsFavoritesSelected()
+        {
+            return IsFavoritesGameModeName(ddGameMode.SelectedItem.Text);
+        }
+
+        private bool IsFavoritesGameModeName(string gameModeName)
+        {
+            return gameModeName == MapLoader.FAVORITES;
+        }
+
+        private GameMode GetFavoritesGameMode()
+        {
+            return GameModes.FirstOrDefault(gm => IsFavoritesGameModeName(gm.UIName));
+        }
+
+        private static bool IsFavoriteMap(string mapSHA) => UserINISettings.Instance.IsFavoriteMap(mapSHA);
 
         private void DeleteSelectedMap(XNAMessageBox messageBox)
         {
@@ -800,7 +842,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             if (ddGameMode.Items.Count > 0)
             {
-                ddGameMode.SelectedIndex = 0;
+                ddGameMode.SelectedIndex = GetFirstGameModeWithMapsIndex();
 
                 lbMapList.SelectedIndex = 0;
             }
@@ -1701,7 +1743,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         /// <param name="map">The new map.</param>
         protected virtual void ChangeMap(GameMode gameMode, Map map)
         {
-            var oldGameMode = GameMode;
             GameMode = gameMode;
 
             Map = map;
