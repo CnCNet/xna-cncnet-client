@@ -769,6 +769,12 @@
             The text of the context menu item.
             </summary>
         </member>
+        <member name="P:Rampastring.XNAUI.XNAControls.XNAContextMenuItem.HintText">
+            <summary>
+            The hint text of the context menu item.
+            Drawn in the end of the item.
+            </summary>
+        </member>
         <member name="P:Rampastring.XNAUI.XNAControls.XNAContextMenuItem.Selectable">
             <summary>
             Determines whether the context menu item is enabled
@@ -1985,6 +1991,12 @@
             Gets a value that indicates whether the left mouse button was pressed
             down on this frame (meaning it's down on the current frame, but wasn't down
             on the previous frame).
+            </summary>
+        </member>
+        <member name="P:Rampastring.XNAUI.Input.Cursor.RightDown">
+            <summary>
+            Gets a value that indicates whether the right mouse button is held down
+            on the current frame.
             </summary>
         </member>
         <member name="P:Rampastring.XNAUI.Input.Cursor.RightPressedDown">
