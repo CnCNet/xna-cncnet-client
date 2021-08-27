@@ -311,6 +311,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             btnGameSortAlpha.CheckedTexture = AssetLoader.LoadTexture("sortAlphaActive.png");
             btnGameSortAlpha.UncheckedTexture = AssetLoader.LoadTexture("sortAlphaInactive.png");
             btnGameSortAlpha.LeftClick += BtnGameSortAlpha_LeftClick;
+            btnGameSortAlpha.SetToolTipText("Sort Games Alphabetically");
             RefreshGameSortAlphaBtn();
 
             btnGameFilterOptions = new XNAClientToggleButton(WindowManager);
@@ -322,6 +323,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             btnGameFilterOptions.CheckedTexture = AssetLoader.LoadTexture("filterActive.png");
             btnGameFilterOptions.UncheckedTexture = AssetLoader.LoadTexture("filterInactive.png");
             btnGameFilterOptions.LeftClick += BtnGameFilterOptions_LeftClick;
+            btnGameFilterOptions.SetToolTipText("Game Filters");
             RefreshGameFiltersBtn();
 
             InitializeGameList();

@@ -14,6 +14,9 @@ namespace ClientGUI
         public Texture2D CheckedTexture { get; set; }
         public Texture2D UncheckedTexture { get; set; }
 
+        private string _toolTipText { get; set; }
+        private ToolTip _toolTip { get; set; }
+
         private bool _checked { get; set; }
 
         public override void Initialize()
@@ -30,6 +33,9 @@ namespace ClientGUI
                 HoverSoundEffect = new EnhancedSoundEffect("button.wav");
 
             base.Initialize();
+
+            _toolTip = new ToolTip(WindowManager, this);
+            SetToolTipText(_toolTipText);
 
             if (Width == 0)
                 Width = IdleTexture.Width;
@@ -48,6 +54,13 @@ namespace ClientGUI
         private void UpdateIdleTexture()
         {
             IdleTexture = _checked ? CheckedTexture : UncheckedTexture;
+        }
+
+        public void SetToolTipText(string text)
+        {
+            _toolTipText = text ?? string.Empty;
+            if (_toolTip != null)
+                _toolTip.Text = _toolTipText;
         }
 
         public XNAClientToggleButton(WindowManager windowManager) : base(windowManager)
