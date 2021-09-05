@@ -228,7 +228,7 @@ namespace ClientCore.CnCNet5
             {
                 CnCNetGame game = GameList[gId];
 
-                if (gameName.ToLower() == game.InternalName)
+                if (gameName.ToLowerInvariant() == game.InternalName)
                     return gId;
             }
 
@@ -244,7 +244,7 @@ namespace ClientCore.CnCNet5
         /// Returns the given parameter if the name isn't found in the supported game list.</returns>
         public string GetGameNameFromInternalName(string gameName)
         {
-            CnCNetGame game = GameList.Find(g => g.InternalName == gameName.ToLower());
+            CnCNetGame game = GameList.Find(g => g.InternalName == gameName.ToLowerInvariant());
 
             if (game == null)
                 return gameName;
@@ -274,7 +274,7 @@ namespace ClientCore.CnCNet5
 
         public string GetGameBroadcastingChannelNameFromIdentifier(string gameIdentifier)
         {
-            CnCNetGame game = GameList.Find(g => g.InternalName == gameIdentifier.ToLower());
+            CnCNetGame game = GameList.Find(g => g.InternalName == gameIdentifier.ToLowerInvariant());
             if (game == null)
                 return null;
             return game.GameBroadcastChannel;
@@ -282,7 +282,7 @@ namespace ClientCore.CnCNet5
 
         public string GetGameChatChannelNameFromIdentifier(string gameIdentifier)
         {
-            CnCNetGame game = GameList.Find(g => g.InternalName == gameIdentifier.ToLower());
+            CnCNetGame game = GameList.Find(g => g.InternalName == gameIdentifier.ToLowerInvariant());
             if (game == null)
                 return null;
             return game.ChatChannel;
