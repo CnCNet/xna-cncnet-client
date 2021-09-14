@@ -15,10 +15,11 @@ namespace DTAClient.Domain.Multiplayer
     {
         public const string MAP_FILE_EXTENSION = ".map";
         private const string CUSTOM_MAPS_DIRECTORY = "Maps/Custom";
-        private const string CUSTOM_MAPS_CACHE = CUSTOM_MAPS_DIRECTORY + "/cache";
+        private static readonly string CUSTOM_MAPS_CACHE = ProgramConstants.ClientUserFilesPath + "custom_map_cache";
         private const string MultiMapsSection = "MultiMaps";
         private const string GameModesSection = "GameModes";
         private const string GameModeAliasesSection = "GameModeAliases";
+        private const int CurrentCustomMapCacheVersion = 1;
 
         /// <summary>
         /// List of game modes.
@@ -188,9 +189,14 @@ namespace DTAClient.Domain.Multiplayer
         /// <summary>
         /// Save cache of custom maps.
         /// </summary>
-        /// <param name="customMapCache">Custom maps to cache</param>
-        private void CacheCustomMaps(ConcurrentDictionary<string, Map> customMapCache)
+        /// <param name="customMaps">Custom maps to cache</param>
+        private void CacheCustomMaps(ConcurrentDictionary<string, Map> customMaps)
         {
+            var customMapCache = new CustomMapCache
+            {
+                Maps = customMaps,
+                Version = CurrentCustomMapCacheVersion
+            };
             var jsonData = JsonConvert.SerializeObject(customMapCache);
             
             File.WriteAllText(CUSTOM_MAPS_CACHE, jsonData);
@@ -205,8 +211,16 @@ namespace DTAClient.Domain.Multiplayer
             try
             {
                 var jsonData = File.ReadAllText(CUSTOM_MAPS_CACHE);
-            
-                return JsonConvert.DeserializeObject<ConcurrentDictionary<string, Map>>(jsonData) ?? new ConcurrentDictionary<string, Map>();
+
+                var customMapCache = JsonConvert.DeserializeObject<CustomMapCache>(jsonData);
+
+                var customMaps = customMapCache?.Version == CurrentCustomMapCacheVersion && customMapCache.Maps != null
+                    ? customMapCache.Maps : new ConcurrentDictionary<string, Map>();
+
+                foreach (var customMap in customMaps.Values)
+                    customMap.CalculateSHA();
+
+                return customMaps;
             }
             catch (Exception)
             {

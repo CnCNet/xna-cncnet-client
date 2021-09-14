@@ -425,6 +425,7 @@
     <Compile Include="Domain\DiscordHandler.cs" />
     <Compile Include="Domain\Multiplayer\CoopHouseInfo.cs" />
     <Compile Include="Domain\Multiplayer\CoopMapInfo.cs" />
+    <Compile Include="Domain\Multiplayer\CustomMapCache.cs" />
     <Compile Include="Domain\Multiplayer\GameMode.cs" />
     <Compile Include="Domain\Multiplayer\CnCNet\HostedCnCNetGame.cs" />
     <Compile Include="Domain\Multiplayer\CnCNet\MapEventArgs.cs" />
