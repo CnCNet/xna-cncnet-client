@@ -142,6 +142,7 @@
     <Compile Include="XNAClientCheckBox.cs" />
     <Compile Include="XNAClientDropDown.cs" />
     <Compile Include="XNAClientPreferredItemDropDown.cs" />
+    <Compile Include="XNAClientStateButton.cs" />
     <Compile Include="XNAClientTabControl.cs" />
     <Compile Include="XNAClientToggleButton.cs" />
     <Compile Include="XNAExtraPanel.cs" />
