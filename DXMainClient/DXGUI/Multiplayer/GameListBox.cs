@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using ClientCore;
+using ClientCore.Enums;
 using DTAClient.Domain.Multiplayer;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -118,8 +119,15 @@ namespace DTAClient.DXGUI.Multiplayer
                     .ThenBy(hg => hg.GameVersion != ProgramConstants.GAME_VERSION)
                     .ThenBy(hg => hg.Passworded);
             
-            if (UserINISettings.Instance.SortAlpha)
-                sortedGames = sortedGames.ThenBy(hg => hg.RoomName);
+            switch ((SortDirection)UserINISettings.Instance.SortState.Value)
+            {
+                case SortDirection.Asc:
+                    sortedGames = sortedGames.ThenBy(hg => hg.RoomName);
+                    break;
+                case SortDirection.Desc:
+                    sortedGames = sortedGames.ThenByDescending(hg => hg.RoomName);
+                    break;
+            }
 
             return sortedGames;
         }

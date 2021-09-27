@@ -18,6 +18,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using ClientCore.Enums;
 using DTAConfig;
 
 namespace DTAClient.DXGUI.Multiplayer.CnCNet
@@ -78,7 +79,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         private XNASuggestionTextBox tbGameSearch;
 
-        private XNAClientToggleButton btnGameSortAlpha;
+        private XNAClientStateButton<SortDirection> btnGameSortAlpha;
 
         private XNAClientToggleButton btnGameFilterOptions;
 
@@ -302,15 +303,19 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             tbGameSearch.InputReceived += TbGameSearch_InputReceived;
             tbGameSearch.Disable();
 
-            btnGameSortAlpha = new XNAClientToggleButton(WindowManager);
+            btnGameSortAlpha = new XNAClientStateButton<SortDirection>(WindowManager, new Dictionary<SortDirection,Texture2D>()
+            {
+                { SortDirection.None , AssetLoader.LoadTexture("sortAlphaNone.png")},
+                { SortDirection.Asc , AssetLoader.LoadTexture("sortAlphaAsc.png")},
+                { SortDirection.Desc , AssetLoader.LoadTexture("sortAlphaDesc.png")},
+            });
             btnGameSortAlpha.Name = nameof(btnGameSortAlpha);
             btnGameSortAlpha.ClientRectangle = new Rectangle(
                 tbGameSearch.X + tbGameSearch.Width + 10, tbGameSearch.Y,
                 21, 21
             );
-            btnGameSortAlpha.CheckedTexture = AssetLoader.LoadTexture("sortAlphaActive.png");
-            btnGameSortAlpha.UncheckedTexture = AssetLoader.LoadTexture("sortAlphaInactive.png");
             btnGameSortAlpha.LeftClick += BtnGameSortAlpha_LeftClick;
+            btnGameSortAlpha.SetToolTipText("Sort Games Alphabetically");
             RefreshGameSortAlphaBtn();
 
             btnGameFilterOptions = new XNAClientToggleButton(WindowManager);
@@ -322,6 +327,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             btnGameFilterOptions.CheckedTexture = AssetLoader.LoadTexture("filterActive.png");
             btnGameFilterOptions.UncheckedTexture = AssetLoader.LoadTexture("filterInactive.png");
             btnGameFilterOptions.LeftClick += BtnGameFilterOptions_LeftClick;
+            btnGameFilterOptions.SetToolTipText("Game Filters");
             RefreshGameFiltersBtn();
 
             InitializeGameList();
@@ -362,7 +368,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         private void BtnGameSortAlpha_LeftClick(object sender, EventArgs e)
         {
-            UserINISettings.Instance.SortAlpha.Value = !UserINISettings.Instance.SortAlpha.Value;
+            UserINISettings.Instance.SortState.Value = (int)btnGameSortAlpha.GetState();
             
             RefreshGameSortAlphaBtn();
             SortAndRefreshHostedGames();
@@ -376,12 +382,16 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         private void BtnGameFilterOptions_LeftClick(object sender, EventArgs e)
         {
-            panelGameFilters.Show();
+            if (panelGameFilters.Visible)
+                panelGameFilters.Cancel();
+            else
+                panelGameFilters.Show();
         }
 
         private void RefreshGameSortAlphaBtn()
         {
-            btnGameSortAlpha.Checked = UserINISettings.Instance.SortAlpha.Value;
+            if (Enum.IsDefined(typeof(SortDirection), UserINISettings.Instance.SortState.Value))
+                btnGameSortAlpha.SetState((SortDirection)UserINISettings.Instance.SortState.Value);
         }
 
         private void RefreshGameFiltersBtn()

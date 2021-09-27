@@ -2,6 +2,7 @@
 using Rampastring.Tools;
 using System;
 using System.Windows.Forms;
+using ClientCore.Enums;
 
 namespace ClientCore
 {
@@ -119,7 +120,7 @@ namespace ClientCore
             MinimizeWindowsOnGameStart = new BoolSetting(iniFile, OPTIONS, "MinimizeWindowsOnGameStart", true);
             AutoRemoveUnderscoresFromName = new BoolSetting(iniFile, OPTIONS, "AutoRemoveUnderscoresFromName", true);
 
-            SortAlpha = new BoolSetting(iniFile, GAME_FILTERS, "SortAlpha", false);
+            SortState = new IntSetting(iniFile, GAME_FILTERS, "SortState", (int)SortDirection.None);
             ShowFriendGamesOnly = new BoolSetting(iniFile, GAME_FILTERS, "ShowFriendGamesOnly", DEFAULT_SHOW_FRIENDS_ONLY_GAMES);
             HideLockedGames = new BoolSetting(iniFile, GAME_FILTERS, "HideLockedGames", DEFAULT_HIDE_LOCKED_GAMES);
             HidePasswordedGames = new BoolSetting(iniFile, GAME_FILTERS, "HidePasswordedGames", DEFAULT_HIDE_PASSWORDED_GAMES);
@@ -206,7 +207,7 @@ namespace ClientCore
         /* GAME LIST FILTERS */
         /*********************/
 
-        public BoolSetting SortAlpha { get; private set; }
+        public IntSetting SortState { get; private set; }
         
         public BoolSetting ShowFriendGamesOnly { get; private set; }
         
@@ -286,6 +287,7 @@ namespace ClientCore
             Logger.Log("Writing settings INI.");
 
             ApplyDefaults();
+            CleanUpLegacySettings();
 
             SettingsIni.WriteIniFile();
 
@@ -308,6 +310,14 @@ namespace ClientCore
             HideIncompatibleGames.Value = DEFAULT_HIDE_INCOMPATIBLE_GAMES;
             HidePasswordedGames.Value = DEFAULT_HIDE_PASSWORDED_GAMES;
             MaxPlayerCount.Value = DEFAULT_MAX_PLAYER_COUNT;
+        }
+
+        /// <summary>
+        /// Used to remove old sections/keys to avoid confusion when viewing the ini file directly.
+        /// </summary>
+        private void CleanUpLegacySettings()
+        {
+            SettingsIni.GetSection(GAME_FILTERS).RemoveKey("SortAlpha");
         }
     }
 }
