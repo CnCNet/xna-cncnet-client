@@ -287,7 +287,7 @@ namespace ClientCore
             Logger.Log("Writing settings INI.");
 
             ApplyDefaults();
-            CleanUpLegacySettings();
+            // CleanUpLegacySettings();
 
             SettingsIni.WriteIniFile();
 
