@@ -220,6 +220,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             lbChatMessages.PanelBackgroundDrawMode = PanelBackgroundImageDrawMode.STRETCHED;
             lbChatMessages.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 128), 1, 1);
             lbChatMessages.LineHeight = 16;
+            lbChatMessages.LeftClick += (sender, args) => lbGameList.SelectedIndex = -1;
 
             tbChatInput = new XNAChatTextBox(WindowManager);
             tbChatInput.Name = nameof(tbChatInput);
