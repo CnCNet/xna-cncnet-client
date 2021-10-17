@@ -59,11 +59,6 @@ namespace DTAClient.DXGUI.Multiplayer
         /// <param name="index">The index of the game to remove.</param>
         public void RemoveGame(int index)
         {
-            if (SelectedIndex == index)
-                SelectedIndex = -1;
-            else if (SelectedIndex > index)
-                SelectedIndex--;
-
             HostedGames.RemoveAt(index);
 
             Refresh();
@@ -74,11 +69,15 @@ namespace DTAClient.DXGUI.Multiplayer
         /// </summary>
         public void Refresh()
         {
+            var selectedItem = SelectedItem;
             Items.Clear();
 
             GetSortedAndFilteredGames()
                 .ToList()
                 .ForEach(AddGameToList);
+
+            if (selectedItem != null)
+                SelectedIndex = Items.FindIndex(item => item.Text.ToUpper() == selectedItem.Text.ToUpper());
 
             GameListBox_HoveredIndexChanged(this, EventArgs.Empty);
         }
@@ -89,18 +88,9 @@ namespace DTAClient.DXGUI.Multiplayer
         /// <param name="game">The game to add.</param>
         public void AddGame(GenericHostedGame game)
         {
-            GenericHostedGame selectedGame = null;
-            if (SelectedIndex > -1 && SelectedIndex < HostedGames.Count)
-            {
-                selectedGame = HostedGames[SelectedIndex];
-            }
-
             HostedGames.Add(game);
 
             Refresh();
-
-            if (selectedGame != null)
-                SelectedIndex = HostedGames.FindIndex(hg => hg == selectedGame);
         }
 
         private IEnumerable<GenericHostedGame> GetSortedAndFilteredGames()
@@ -137,16 +127,7 @@ namespace DTAClient.DXGUI.Multiplayer
         /// </summary>
         public void SortAndRefreshHostedGames()
         {
-            GenericHostedGame selectedGame = null;
-            if (SelectedIndex > -1 && SelectedIndex < HostedGames.Count)
-            {
-                selectedGame = HostedGames[SelectedIndex];
-            }
-
             Refresh();
-
-            if (selectedGame != null)
-                SelectedIndex = HostedGames.FindIndex(hg => hg == selectedGame);
         }
 
         public void ClearGames()
@@ -247,11 +228,6 @@ namespace DTAClient.DXGUI.Multiplayer
                     {
                         HostedGames.RemoveAt(i);
                         i--;
-
-                        if (SelectedIndex == i)
-                            SelectedIndex = -1;
-                        else if (SelectedIndex > i)
-                            SelectedIndex--;
                     }
                 }
 
