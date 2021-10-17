@@ -79,7 +79,7 @@ namespace DTAClient.DXGUI.Multiplayer
             if (selectedItem != null)
                 SelectedIndex = Items.FindIndex(item => item.Text.ToUpper() == selectedItem.Text.ToUpper());
 
-            GameListBox_HoveredIndexChanged(this, EventArgs.Empty);
+            GameListBox_SelectedIndexChanged(this, EventArgs.Empty);
         }
 
         /// <summary>
@@ -155,7 +155,7 @@ namespace DTAClient.DXGUI.Multiplayer
             panelGameInformation.Alpha = 0f;
             Parent.AddChild(panelGameInformation); // make this a child of our parent so it's not drawn on our rendertarget
 
-            HoveredIndexChanged += GameListBox_HoveredIndexChanged;
+            SelectedIndexChanged += GameListBox_SelectedIndexChanged;
 
             hoverOnGameColor = AssetLoader.GetColorFromString(
                 ClientConfiguration.Instance.HoverOnGameColor);
@@ -163,9 +163,9 @@ namespace DTAClient.DXGUI.Multiplayer
             loadedGameTextWidth = (int)Renderer.GetTextDimensions(LOADED_GAME_TEXT, FontIndex).X;
         }
 
-        private void GameListBox_HoveredIndexChanged(object sender, EventArgs e)
+        private void GameListBox_SelectedIndexChanged(object sender, EventArgs e)
         {
-            if (HoveredIndex < 0 || HoveredIndex >= Items.Count)
+            if (SelectedIndex < 0 || SelectedIndex >= Items.Count)
             {
                 panelGameInformation.AlphaRate = -0.5f;
                 return;
@@ -173,12 +173,11 @@ namespace DTAClient.DXGUI.Multiplayer
 
             panelGameInformation.Enable();
             panelGameInformation.X = Right;
-            panelGameInformation.Y = Y + Math.Min((HoveredIndex - TopIndex) * LineHeight,
-                         Height - panelGameInformation.Height);
+            panelGameInformation.Y = Y;
 
             panelGameInformation.AlphaRate = 0.5f;
 
-            var hostedGame = (GenericHostedGame)Items[HoveredIndex].Tag;
+            var hostedGame = (GenericHostedGame)Items[SelectedIndex].Tag;
 
             panelGameInformation.SetInfo(hostedGame);
         }
@@ -207,13 +206,6 @@ namespace DTAClient.DXGUI.Multiplayer
             }
 
             AddItem(lbItem);
-        }
-
-        public override void OnMouseLeave()
-        {
-            panelGameInformation.AlphaRate = -0.5f;
-
-            base.OnMouseLeave();
         }
 
         public override void Update(GameTime gameTime)
