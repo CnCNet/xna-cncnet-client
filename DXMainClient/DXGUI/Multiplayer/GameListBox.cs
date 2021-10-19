@@ -70,6 +70,8 @@ namespace DTAClient.DXGUI.Multiplayer
         public void Refresh()
         {
             var selectedItem = SelectedItem;
+            var hoveredItem = HoveredItem;
+            
             Items.Clear();
 
             GetSortedAndFilteredGames()
@@ -78,8 +80,10 @@ namespace DTAClient.DXGUI.Multiplayer
 
             if (selectedItem != null)
                 SelectedIndex = Items.FindIndex(item => item.Text.ToUpper() == selectedItem.Text.ToUpper());
+            if (hoveredItem != null)
+                HoveredIndex = Items.FindIndex(item => item.Text.ToUpper() == hoveredItem.Text.ToUpper());
 
-            GameListBox_SelectedIndexChanged(this, EventArgs.Empty);
+            ShowGamePanelInfoForIndex(IsValidGameIndex(SelectedIndex) ? SelectedIndex : HoveredIndex);
         }
 
         /// <summary>
@@ -156,6 +160,7 @@ namespace DTAClient.DXGUI.Multiplayer
             Parent.AddChild(panelGameInformation); // make this a child of our parent so it's not drawn on our rendertarget
 
             SelectedIndexChanged += GameListBox_SelectedIndexChanged;
+            HoveredIndexChanged += GameListBox_HoveredIndexChanged;
 
             hoverOnGameColor = AssetLoader.GetColorFromString(
                 ClientConfiguration.Instance.HoverOnGameColor);
@@ -163,9 +168,14 @@ namespace DTAClient.DXGUI.Multiplayer
             loadedGameTextWidth = (int)Renderer.GetTextDimensions(LOADED_GAME_TEXT, FontIndex).X;
         }
 
-        private void GameListBox_SelectedIndexChanged(object sender, EventArgs e)
+        private bool IsValidGameIndex(int index)
         {
-            if (SelectedIndex < 0 || SelectedIndex >= Items.Count)
+            return index >= 0 && index < Items.Count;
+        }
+
+        private void ShowGamePanelInfoForIndex(int index)
+        {
+            if (!IsValidGameIndex(index))
             {
                 panelGameInformation.AlphaRate = -0.5f;
                 return;
@@ -177,9 +187,19 @@ namespace DTAClient.DXGUI.Multiplayer
 
             panelGameInformation.AlphaRate = 0.5f;
 
-            var hostedGame = (GenericHostedGame)Items[SelectedIndex].Tag;
-
+            var hostedGame = (GenericHostedGame)Items[index].Tag;
             panelGameInformation.SetInfo(hostedGame);
+        }
+
+        private void GameListBox_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            ShowGamePanelInfoForIndex(SelectedIndex);
+        }
+
+        private void GameListBox_HoveredIndexChanged(object sender, EventArgs e)
+        {
+            if (!IsValidGameIndex(SelectedIndex))
+                ShowGamePanelInfoForIndex(HoveredIndex);
         }
 
         private void AddGameToList(GenericHostedGame hg)
