@@ -80,6 +80,8 @@ namespace DTAClient.DXGUI.Generic
 
         private bool lanMode;
 
+        public EventHandler LogoutEvent;
+
         public void AddPrimarySwitchable(ISwitchable switchable)
         {
             primarySwitches.Add(switchable);
@@ -288,6 +290,7 @@ namespace DTAClient.DXGUI.Generic
         private void BtnLogout_LeftClick(object sender, EventArgs e)
         {
             connectionManager.Disconnect();
+            LogoutEvent?.Invoke(this, null);
             SwitchToPrimary();
         }
 

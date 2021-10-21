@@ -52,6 +52,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 new StringCommandHandler(ProgramConstants.GAME_INVITE_CTCP_COMMAND, HandleGameInviteCommand),
                 new NoParamCommandHandler(ProgramConstants.GAME_INVITATION_FAILED_CTCP_COMMAND, HandleGameInvitationFailedNotification)
             };
+
+            topBar.LogoutEvent += LogoutEvent;
         }
 
         private CnCNetManager connectionManager;
@@ -134,6 +136,11 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         private void GameList_ClientRectangleUpdated(object sender, EventArgs e)
         {
             panelGameFilters.ClientRectangle = lbGameList.ClientRectangle;
+        }
+
+        private void LogoutEvent(object sender, EventArgs e)
+        {
+            isJoiningGame = false;
         }
         
         public override void Initialize()
@@ -755,7 +762,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         private string GetJoinGameErrorBase()
         {
             if (isJoiningGame)
-                return "Cannot join game - joining game in progress";
+                return "Cannot join game - joining game in progress. If you believe this is an error, please log out and back in.";
 
             if (ProgramConstants.IsInGame)
                 return "Cannot join game while the main game executable is running.";
