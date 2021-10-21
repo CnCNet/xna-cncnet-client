@@ -746,9 +746,9 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             btnLogout.Text = "Log Out";
         }
 
-        private void BtnJoinGame_LeftClick(object sender, EventArgs e) => LbGameList_DoubleLeftClick(this, EventArgs.Empty);
+        private void BtnJoinGame_LeftClick(object sender, EventArgs e) => JoinSelectedGame();
 
-        private void LbGameList_DoubleLeftClick(object sender, EventArgs e) => JoinGameByIndex(lbGameList.SelectedIndex, string.Empty);
+        private void LbGameList_DoubleLeftClick(object sender, EventArgs e) => JoinSelectedGame();
 
         private void PasswordRequestWindow_PasswordEntered(object sender, PasswordEventArgs e) => _JoinGame(e.HostedGame, e.Password);
 
@@ -770,7 +770,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         /// <param name="gameIndex">The index of the game in the game list box.</param>
         private string GetJoinGameErrorByIndex(int gameIndex)
         {
-            if (gameIndex < 0 || gameIndex >= lbGameList.Items.Count)
+            if (gameIndex < 0 || gameIndex >= lbGameList.HostedGames.Count)
                 return "Invalid game index";
 
             return GetJoinGameErrorBase();
@@ -795,6 +795,15 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             return GetJoinGameErrorBase();
         }
 
+        private void JoinSelectedGame()
+        {
+            var listedGame = (HostedCnCNetGame)lbGameList.SelectedItem?.Tag;
+            if (listedGame == null)
+                return;
+            var hostedGameIndex = lbGameList.HostedGames.IndexOf(listedGame);
+            JoinGameByIndex(hostedGameIndex, string.Empty);
+        }
+
         private bool JoinGameByIndex(int gameIndex, string password)
         {
             string error = GetJoinGameErrorByIndex(gameIndex);
@@ -804,7 +813,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 return false;
             }
 
-            return JoinGame((HostedCnCNetGame) lbGameList.Items[gameIndex].Tag, password, connectionManager.MainChannel);
+            return JoinGame((HostedCnCNetGame) lbGameList.HostedGames[gameIndex], password, connectionManager.MainChannel);
         }
         
         /// <summary>
@@ -1649,7 +1658,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         /// <returns></returns>
         private HostedCnCNetGame GetHostedGameForUser(IRCUser user)
         {
-            return lbGameList.Items.Select(g => (HostedCnCNetGame) g.Tag).FirstOrDefault(g => g.Players.Contains(user.Name));
+            return lbGameList.HostedGames.Select(g => (HostedCnCNetGame) g).FirstOrDefault(g => g.Players.Contains(user.Name));
         }
 
         /// <summary>
