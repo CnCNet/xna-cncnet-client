@@ -63,7 +63,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         private PlayerListBox lbPlayerList;
         private ChatListBox lbChatMessages;
         private GameListBox lbGameList;
-        private XNAContextMenu playerContextMenu;
+        private PlayerContextMenu playerContextMenu;
 
         private XNAClientButton btnLogout;
         private XNAClientButton btnNewGame;
@@ -206,19 +206,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             lbPlayerList.DoubleLeftClick += LbPlayerList_DoubleLeftClick;
             lbPlayerList.RightClick += LbPlayerList_RightClick;
 
-            playerContextMenu = new XNAContextMenu(WindowManager);
-            playerContextMenu.Name = nameof(playerContextMenu);
-            playerContextMenu.ClientRectangle = new Rectangle(0, 0, 150, 2);
-            playerContextMenu.Enabled = false;
-            playerContextMenu.Visible = false;
-            playerContextMenu.AddItem("Private Message", () => 
-                PerformUserListContextMenuAction(iu => pmWindow.InitPM(iu.Name)));
-            playerContextMenu.AddItem("Add Friend", () => 
-                PerformUserListContextMenuAction(iu => cncnetUserData.ToggleFriend(iu.Name)));
-            playerContextMenu.AddItem("Ignore User", () => 
-                PerformUserListContextMenuAction(iu => cncnetUserData.ToggleIgnoreUser(iu.Ident)));
-            playerContextMenu.AddItem("Join", () => 
-                PerformUserListContextMenuAction(iu => JoinUser(iu, connectionManager.MainChannel)));
+            playerContextMenu = new PlayerContextMenu(WindowManager, connectionManager, cncnetUserData, pmWindow);
+            playerContextMenu.JoinEvent += (sender, args) => JoinUser(args.IrcUser, connectionManager.MainChannel);
 
             lbChatMessages = new ChatListBox(WindowManager);
             lbChatMessages.Name = nameof(lbChatMessages);
@@ -658,27 +647,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             }
 
             var user = (ChannelUser)lbPlayerList.SelectedItem.Tag;
-            bool isAdmin = user.IsAdmin;
 
-            playerContextMenu.Items[1].Text = cncnetUserData.IsFriend(user.IRCUser.Name) ? "Remove Friend" : "Add Friend";
-            playerContextMenu.Items[2].Text = cncnetUserData.IsIgnored(user.IRCUser.Ident) && !isAdmin ? "Unblock" : "Block";
-            playerContextMenu.Items[2].Selectable = !isAdmin;
-
-            playerContextMenu.Open(GetCursorPoint());
-        }
-
-        private void PerformUserListContextMenuAction(Action<IRCUser> action)
-        {
-            if (lbPlayerList.SelectedIndex < 0 ||
-                lbPlayerList.SelectedIndex >= lbPlayerList.Items.Count)
-            {
-                return;
-            }
-
-            var user = (ChannelUser)lbPlayerList.SelectedItem.Tag;
-            IRCUser ircUser = user.IRCUser;
-
-            action(ircUser);
+            playerContextMenu.Show(user, GetCursorPoint());
         }
 
         /// <summary>

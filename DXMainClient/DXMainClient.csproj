@@ -471,6 +471,7 @@
     <Compile Include="DXGUI\Multiplayer\CnCNet\MapSharingConfirmationPanel.cs" />
     <Compile Include="DXGUI\Multiplayer\CnCNet\PasswordRequestWindow.cs" />
     <Compile Include="DXGUI\Multiplayer\CnCNet\PlayerContextMenu.cs" />
+    <Compile Include="DXGUI\Multiplayer\CnCNet\PlayerContextMenuData.cs" />
     <Compile Include="DXGUI\Multiplayer\CnCNet\TunnelListBox.cs" />
     <Compile Include="DXGUI\Multiplayer\CnCNet\TunnelSelectionWindow.cs" />
     <Compile Include="DXGUI\Multiplayer\GameFiltersPanel.cs" />
@@ -516,6 +517,8 @@
     <Compile Include="Online\CnCNetUserData.cs" />
     <Compile Include="Online\EventArguments\ChannelCTCPEventArgs.cs" />
     <Compile Include="Online\EventArguments\CnCNetPrivateMessageEventArgs.cs" />
+    <Compile Include="Online\EventArguments\JoinUserEventArgs.cs" />
+    <Compile Include="Online\EventArguments\MultiplayerNameRightClickedEventArgs.cs" />
     <Compile Include="Online\EventArguments\PrivateCTCPEventArgs.cs" />
     <Compile Include="Online\EventArguments\PrivateMessageEventArgs.cs" />
     <Compile Include="Online\EventArguments\UnreadMessageCountEventArgs.cs" />

@@ -41,7 +41,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         public CnCNetGameLobby(WindowManager windowManager, string iniName,
             TopBar topBar, List<GameMode> GameModes, CnCNetManager connectionManager,
-            TunnelHandler tunnelHandler, GameCollection gameCollection, CnCNetUserData cncnetUserData, MapLoader mapLoader, DiscordHandler discordHandler) : 
+            TunnelHandler tunnelHandler, GameCollection gameCollection, CnCNetUserData cncnetUserData, MapLoader mapLoader, DiscordHandler discordHandler,
+            PrivateMessagingWindow pmWindow) : 
             base(windowManager, iniName, topBar, GameModes, mapLoader, discordHandler)
         {
             this.connectionManager = connectionManager;
@@ -49,6 +50,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             this.tunnelHandler = tunnelHandler;
             this.gameCollection = gameCollection;
             this.cncnetUserData = cncnetUserData;
+            this.pmWindow = pmWindow;
 
             ctcpCommandHandlers = new CommandHandlerBase[]
             {
@@ -103,6 +105,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private GameCollection gameCollection;
         private CnCNetUserData cncnetUserData;
+        private readonly PrivateMessagingWindow pmWindow;
+        private PlayerContextMenu playerContextMenu;
 
         private string hostName;
 
@@ -175,7 +179,21 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             WindowManager.AddAndInitializeControl(gameBroadcastTimer);
 
+            playerContextMenu = new PlayerContextMenu(WindowManager, connectionManager, cncnetUserData, pmWindow);
+            AddChild(playerContextMenu);
+
+            MultiplayerNameRightClicked += MultiplayerName_RightClick;
+            
             PostInitialize();
+        }
+
+        private void MultiplayerName_RightClick(object sender, MultiplayerNameRightClickedEventArgs args)
+        {
+            playerContextMenu.Show(new PlayerContextMenuData()
+            {
+                PlayerName = args.PlayerName,
+                PreventJoinGame = true
+            }, GetCursorPoint());
         }
 
         private void BtnChangeTunnel_LeftClick(object sender, EventArgs e) => ShowTunnelSelectionWindow("Select tunnel server:");

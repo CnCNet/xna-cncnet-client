@@ -10,6 +10,7 @@ using ClientGUI;
 using Rampastring.Tools;
 using System.IO;
 using DTAClient.Domain;
+using DTAClient.Online;
 
 namespace DTAClient.DXGUI.Multiplayer.GameLobby
 {
