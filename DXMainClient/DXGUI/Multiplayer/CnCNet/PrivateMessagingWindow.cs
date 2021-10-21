@@ -16,7 +16,7 @@ using System.Linq;
 
 namespace DTAClient.DXGUI.Multiplayer.CnCNet
 {
-    internal class PrivateMessagingWindow : XNAWindow, ISwitchable
+    public class PrivateMessagingWindow : XNAWindow, ISwitchable
     {
         private const int ALL_PLAYERS_VIEW_INDEX = 2;
         private const int FRIEND_LIST_VIEW_INDEX = 1;
@@ -50,7 +50,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         private XNATextBox tbMessageInput;
 
-        private XNAContextMenu playerContextMenu;
+        private PlayerContextMenu playerContextMenu;
 
         private CnCNetManager connectionManager;
 
@@ -165,14 +165,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             tbMessageInput.MaximumTextLength = 200;
             tbMessageInput.Enabled = false;
 
-            playerContextMenu = new XNAContextMenu(WindowManager);
-            playerContextMenu.Name = nameof(playerContextMenu);
-            playerContextMenu.ClientRectangle = new Rectangle(0, 0, 150, 2);
-            playerContextMenu.Disable();
-            playerContextMenu.AddItem("Add Friend", PlayerContextMenu_ToggleFriend);
-            playerContextMenu.AddItem("Toggle Block", PlayerContextMenu_ToggleIgnore, null, () => (bool)lbUserList.SelectedItem.Tag, null);
-            playerContextMenu.AddItem("Invite", PlayerContextMenu_Invite, null, () => !string.IsNullOrEmpty(inviteChannelName));
-            playerContextMenu.AddItem("Join", PlayerContextMenu_JoinUser, null, () => JoinUserAction != null && IsSelectedUserOnline());
+            playerContextMenu = new PlayerContextMenu(WindowManager, connectionManager, cncnetUserData, this);
+            playerContextMenu.JoinEvent += PlayerContextMenu_JoinUser;
 
             notificationBox = new PrivateMessageNotificationBox(WindowManager);
             notificationBox.Enabled = false;
@@ -254,7 +248,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 {
                     lbItem.TextColor = UISettings.ActiveSettings.DisabledItemColor;
                     lbItem.Texture = null;
-                    lbItem.Tag = false;
+                    lbItem.Tag = null;
 
                     if (lbItem == lbUserList.SelectedItem && leaveMessage != null)
                     {
@@ -287,7 +281,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
                 if (lbItem != null)
                 {
-                    lbItem.Tag = true;
+                    lbItem.Tag = e.User;
                     lbItem.Texture = GetUserTexture(e.User);
 
                     if (lbItem == lbUserList.SelectedItem)
@@ -316,7 +310,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             foreach (var ircUser in connectionManager.UserList)
             {
                 var item = new XNAListBoxItem(ircUser.Name);
-                item.Tag = true;
+                item.Tag = ircUser;
                 item.Texture = GetUserTexture(ircUser);
                 lbUserList.AddItem(item);
             }
@@ -351,99 +345,22 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         private void LbUserList_RightClick(object sender, EventArgs e)
         {
             lbUserList.SelectedIndex = lbUserList.HoveredIndex;
-
-            if (lbUserList.SelectedIndex < 0 ||
-                lbUserList.SelectedIndex >= lbUserList.Items.Count)
-            {
-                return;
-            }
-
-            playerContextMenu.Items[0].Text = cncnetUserData.IsFriend(lbUserList.SelectedItem.Text) ? "Remove Friend" : "Add Friend";
-            
-            if ((bool)lbUserList.SelectedItem.Tag)
-            {
-                IRCUser iu = connectionManager.UserList.Find(u => u.Name == lbUserList.SelectedItem.Text);
-                playerContextMenu.Items[1].Text = cncnetUserData.IsIgnored(iu.Ident) ? "Unblock" : "Block";
-            }
-
-            playerContextMenu.Open(GetCursorPoint());
-        }
-
-        private void PlayerContextMenu_ToggleFriend()
-        {
-            var lbItem = lbUserList.SelectedItem;
-
-            if (lbItem == null)
+            var ircUser = (IRCUser)lbUserList.SelectedItem?.Tag;
+            if (ircUser == null)
                 return;
 
-            cncnetUserData.ToggleFriend(lbItem.Text);
-
-            // lazy solution, but friends are removed rarely so it shouldn't bother players too much
-            if (tabControl.SelectedTab == FRIEND_LIST_VIEW_INDEX)
-                TabControl_SelectedIndexChanged(this, EventArgs.Empty); 
-        }
-
-        private bool IsSelectedUserOnline()
-        {
-            return GetSelectedUser() != null;
-        }
-
-        private IRCUser GetSelectedUser()
-        {
-            return connectionManager.UserList.Find(u => u.Name == lbUserList.SelectedItem.Text);
-        }
-
-        private void PlayerContextMenu_JoinUser()
-        {
-            var lbItem = lbUserList.SelectedItem;
-
-            if (lbItem == null)
+            playerContextMenu.Show(new PlayerContextMenuData()
             {
-                return;
-            }
-            
-            var user = connectionManager.UserList.Find(u => u.Name == lbUserList.SelectedItem.Text);
-
-            JoinUserAction(user, lbMessages);
+                IrcUser = ircUser,
+                inviteChannelName = inviteChannelName,
+                inviteChannelPassword = inviteChannelPassword,
+                inviteGameName = inviteGameName
+            }, GetCursorPoint());
         }
 
-        private void PlayerContextMenu_Invite()
+        private void PlayerContextMenu_JoinUser(object sender, JoinUserEventArgs args)
         {
-            var lbItem = lbUserList.SelectedItem;
-
-            if (lbItem == null)
-            {
-                return;
-            }
-
-            // note it's assumed that if the channel name is specified, the game name must be also
-            if (string.IsNullOrEmpty(inviteChannelName) || ProgramConstants.IsInGame)
-            {
-                return;
-            }
-
-            string messageBody = ProgramConstants.GAME_INVITE_CTCP_COMMAND + " " + inviteChannelName + ";" + inviteGameName;
-
-            if (!string.IsNullOrEmpty(inviteChannelPassword))
-            {
-                messageBody += ";" + inviteChannelPassword;
-            }
-
-            connectionManager.SendCustomMessage(new QueuedMessage("PRIVMSG " + lbItem.Text + " :\u0001" +
-                messageBody + "\u0001",
-                QueuedMessageType.CHAT_MESSAGE, 0));
-        }
-
-        private void PlayerContextMenu_ToggleIgnore()
-        {
-            var lbItem = lbUserList.SelectedItem;
-
-            if (lbItem == null || !(bool)lbUserList.SelectedItem.Tag)
-                return;
-
-            IRCUser iu = connectionManager.UserList.Find(u => u.Name == lbUserList.SelectedItem.Text);
-
-            cncnetUserData.ToggleIgnoreUser(iu.Ident);
+            JoinUserAction(args.IrcUser, lbMessages);
         }
 
         private void SharedUILogic_GameProcessExited() =>
@@ -457,6 +374,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 pmReceivedDuringGame = null;
             }
         }
+
+        private bool IsPlayerOnline(string playerName) => !string.IsNullOrEmpty(playerName) && connectionManager.UserList.Find(u => u.Name == playerName) != null;
 
         private void PrivateMessageHandler_PrivateMessageReceived(object sender, PrivateMessageEventArgs e)
         {
@@ -476,7 +395,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
                     lbUserList.Clear();
                     privateMessageUsers.ForEach(pmsgUser => AddPlayerToList(pmsgUser.IrcUser,
-                        connectionManager.UserList.Find(u => u.Name == pmsgUser.IrcUser.Name) != null));
+                        IsPlayerOnline(pmsgUser.IrcUser.Name)));
 
                     lbUserList.SelectedIndex = lbUserList.Items.FindIndex(i => i.Text == selecterUserName);
                 }
@@ -595,7 +514,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 return;
             }
 
-            tbMessageInput.Enabled = (bool)lbUserList.SelectedItem.Tag == true;
+            var ircUser = (IRCUser)lbUserList.SelectedItem.Tag;
+            tbMessageInput.Enabled = IsPlayerOnline(ircUser?.Name);
 
             var pmUser = privateMessageUsers.Find(u => 
                 u.IrcUser.Name == lbUserList.SelectedItem.Text);
@@ -660,7 +580,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             lbItem.TextColor = isOnline ?
                 UISettings.ActiveSettings.AltColor : UISettings.ActiveSettings.DisabledItemColor;
-            lbItem.Tag = isOnline;
+            lbItem.Tag = user;
             lbItem.Texture = isOnline ? GetUserTexture(user) : null;
 
             lbUserList.AddItem(lbItem);

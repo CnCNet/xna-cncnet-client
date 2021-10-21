@@ -12,6 +12,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using DTAClient.Online;
+using DTAClient.Online.EventArguments;
 
 
 namespace DTAClient.DXGUI.Multiplayer.GameLobby
@@ -33,13 +35,25 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         private const int RANK_MEDIUM = 2;
         private const int RANK_HARD = 3;
 
+        private readonly List<string> aiPlayerNames = new List<string>()
+        {
+            "Easy AI",
+            "Medium AI",
+            "Hard AI"
+        };
+
         /// <summary>
         /// Creates a new instance of the game lobby base.
         /// </summary>
         /// <param name="game">The game.</param>
         /// <param name="iniName">The name of the lobby in GameOptions.ini.</param>
-        public GameLobbyBase(WindowManager windowManager, string iniName,
-            List<GameMode> GameModes, bool isMultiplayer, DiscordHandler discordHandler) : base(windowManager)
+        public GameLobbyBase(
+            WindowManager windowManager, 
+            string iniName,
+            List<GameMode> GameModes, 
+            bool isMultiplayer, 
+            DiscordHandler discordHandler
+        ) : base(windowManager)
         {
             _iniSectionName = iniName;
             this.GameModes = GameModes;
@@ -156,6 +170,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         private MatchStatistics matchStatistics;
 
         private bool disableGameOptionUpdateBroadcast = false;
+
+        protected EventHandler<MultiplayerNameRightClickedEventArgs> MultiplayerNameRightClicked;
 
         /// <summary>
         /// If set, the client will remove all starting waypoints from the map
@@ -634,11 +650,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     locationY + (DROP_DOWN_HEIGHT + playerOptionVecticalMargin) * i,
                     playerNameWidth, DROP_DOWN_HEIGHT);
                 ddPlayerName.AddItem(String.Empty);
-                ddPlayerName.AddItem("Easy AI");
-                ddPlayerName.AddItem("Medium AI");
-                ddPlayerName.AddItem("Hard AI");
+                aiPlayerNames.ForEach(ddPlayerName.AddItem);
                 ddPlayerName.AllowDropDown = true;
                 ddPlayerName.SelectedIndexChanged += CopyPlayerDataFromUI;
+                ddPlayerName.RightClick += MultiplayerName_RightClick;
                 ddPlayerName.Tag = true;
 
                 var ddPlayerSide = new XNAClientDropDown(WindowManager);
@@ -1559,6 +1574,28 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             }
         }
 
+        private bool CanRightClickMultiplayer(XNADropDownItem selectedPlayer)
+        {
+            return selectedPlayer != null &&
+                   selectedPlayer.Text != ProgramConstants.PLAYERNAME &&
+                   !aiPlayerNames.Contains(selectedPlayer.Text);
+        }
+
+        private void MultiplayerName_RightClick(object sender, EventArgs e)
+        {
+            var selectedPlayer = ((XNADropDown) sender).SelectedItem;
+            if (!CanRightClickMultiplayer(selectedPlayer))
+                return;
+            
+            if (selectedPlayer == null ||
+                selectedPlayer.Text == ProgramConstants.PLAYERNAME)
+            {
+                return;
+            }
+
+            MultiplayerNameRightClicked?.Invoke(this, new MultiplayerNameRightClickedEventArgs(selectedPlayer.Text));
+        }
+
         /// <summary>
         /// Applies player information changes done in memory to the UI.
         /// </summary>
@@ -1613,9 +1650,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
                 XNADropDown ddPlayerName = ddPlayerNames[index];
                 ddPlayerName.Items[0].Text = "-";
-                ddPlayerName.Items[1].Text = "Easy AI";
-                ddPlayerName.Items[2].Text = "Medium AI";
-                ddPlayerName.Items[3].Text = "Hard AI";
+                ddPlayerName.Items[1].Text = aiPlayerNames[0];
+                ddPlayerName.Items[2].Text = aiPlayerNames[1];
+                ddPlayerName.Items[3].Text = aiPlayerNames[2];
                 ddPlayerName.SelectedIndex = 3 - aiInfo.AILevel;
                 ddPlayerName.AllowDropDown = allowOptionsChange;
 
@@ -1643,9 +1680,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 XNADropDown ddPlayerName = ddPlayerNames[ddIndex];
                 ddPlayerName.AllowDropDown = false;
                 ddPlayerName.Items[0].Text = string.Empty;
-                ddPlayerName.Items[1].Text = "Easy AI";
-                ddPlayerName.Items[2].Text = "Medium AI";
-                ddPlayerName.Items[3].Text = "Hard AI";
+                ddPlayerName.Items[1].Text = aiPlayerNames[0];
+                ddPlayerName.Items[2].Text = aiPlayerNames[1];
+                ddPlayerName.Items[3].Text = aiPlayerNames[2];
                 ddPlayerName.SelectedIndex = 0;
 
                 ddPlayerSides[ddIndex].SelectedIndex = -1;
@@ -1887,11 +1924,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             switch (aiLevel)
             {
                 case 0:
-                    return "Hard AI";
+                    return aiPlayerNames[2];
                 case 1:
-                    return "Medium AI";
+                    return aiPlayerNames[1];
                 case 2:
-                    return "Easy AI";
+                    return aiPlayerNames[0];
             }
 
             return string.Empty;
