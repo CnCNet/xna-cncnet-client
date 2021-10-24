@@ -66,13 +66,12 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             CenterOnParent();
 
             EnabledChanged += PasswordRequestWindow_EnabledChanged;
-            Keyboard.OnKeyPressed += Keyboard_OnKeyPressed;
+            tbPassword.EnterPressed += TextBoxPassword_EnterPressed;
         }
 
-        private void Keyboard_OnKeyPressed(object sender, KeyPressEventArgs e)
+        private void TextBoxPassword_EnterPressed(object sender, EventArgs eventArgs)
         {
-            if (Enabled && e.PressedKey == Keys.Enter)
-                BtnOK_LeftClick(this, EventArgs.Empty);
+            BtnOK_LeftClick(this, eventArgs);
         }
 
         private void PasswordRequestWindow_EnabledChanged(object sender, EventArgs e)
