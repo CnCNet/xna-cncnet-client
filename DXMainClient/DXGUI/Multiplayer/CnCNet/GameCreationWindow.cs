@@ -137,9 +137,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             btnLoadMPGame.ClientRectangle = new Rectangle(btnLoadMPGameX, btnCreateGame.Y, UIDesignConstants.BUTTON_WIDTH_133, UIDesignConstants.BUTTON_HEIGHT);
             btnLoadMPGame.Text = "Load Game";
             btnLoadMPGame.LeftClick += BtnLoadMPGame_LeftClick;
-
-            Height = btnCreateGame.Bottom + UIDesignConstants.CONTROL_VERTICAL_MARGIN + UIDesignConstants.EMPTY_SPACE_BOTTOM;
-
+            
             AddChild(tbGameName);
             AddChild(lblRoomName);
             AddChild(ddMaxPlayers);
@@ -155,6 +153,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             AddChild(btnCancel);
 
             base.Initialize();
+            
+            Height = btnCreateGame.Bottom + UIDesignConstants.CONTROL_VERTICAL_MARGIN + UIDesignConstants.EMPTY_SPACE_BOTTOM;
 
             CenterOnParent();
 
