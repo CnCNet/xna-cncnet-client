@@ -4,6 +4,7 @@ using System.Linq;
 using ClientCore;
 using ClientCore.Enums;
 using DTAClient.Domain.Multiplayer;
+using DTAClient.Domain.Multiplayer.CnCNet;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Rampastring.XNAUI;
@@ -65,6 +66,21 @@ namespace DTAClient.DXGUI.Multiplayer
         }
 
         /// <summary>
+        /// Compares each listed XNAListBoxItem item in the GameListBox to the refernece XNAListBoxItem item for equality.
+        /// </summary>
+        /// <param name="referencedItem">The XNAListBoxItem to compare against</param>
+        /// <returns>bool</returns>
+        private static Predicate<XNAListBoxItem> GameListMatch(XNAListBoxItem referencedItem) => listedItem =>
+        {
+            var referencedGame = (HostedCnCNetGame)referencedItem?.Tag;
+            var listedGame = (HostedCnCNetGame)listedItem?.Tag;
+
+            if (referencedGame == null || listedGame == null)
+                return false;
+
+            return string.Equals(referencedGame.ChannelName, listedGame.ChannelName, StringComparison.InvariantCultureIgnoreCase);
+        };
+        /// <summary>
         /// Refreshes game information in the game list box.
         /// </summary>
         public void Refresh()
@@ -79,9 +95,9 @@ namespace DTAClient.DXGUI.Multiplayer
                 .ForEach(AddGameToList);
 
             if (selectedItem != null)
-                SelectedIndex = Items.FindIndex(item => item.Text.ToUpper() == selectedItem.Text.ToUpper());
+                SelectedIndex = Items.FindIndex(GameListMatch(selectedItem));
             if (hoveredItem != null)
-                HoveredIndex = Items.FindIndex(item => item.Text.ToUpper() == hoveredItem.Text.ToUpper());
+                HoveredIndex = Items.FindIndex(GameListMatch(hoveredItem));
 
             ShowGamePanelInfoForIndex(IsValidGameIndex(SelectedIndex) ? SelectedIndex : HoveredIndex);
         }
