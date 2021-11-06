@@ -102,6 +102,11 @@ namespace ClientCore
 
         public string HoverOnGameColor => DTACnCNetClient_ini.GetStringValue(GENERAL, "HoverOnGameColor", "32,32,84");
 
+        public IniSection GetParserConstants()
+        {
+            return DTACnCNetClient_ini.GetSection("ParserConstants");
+        }
+
         #endregion
 
         #region Tool tip settings

@@ -1,21 +1,21 @@
+using ClientCore;
+using DTAClient.Domain;
+using DTAClient.Domain.LAN;
+using DTAClient.Domain.Multiplayer;
+using DTAClient.Domain.Multiplayer.LAN;
+using DTAClient.DXGUI.Generic;
+using DTAClient.DXGUI.Multiplayer.GameLobby.CommandHandlers;
+using DTAClient.Online;
+using Microsoft.Xna.Framework;
+using Rampastring.Tools;
+using Rampastring.XNAUI;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using DTAClient.Domain.Multiplayer;
-using DTAClient.DXGUI.Generic;
-using Microsoft.Xna.Framework;
-using Rampastring.XNAUI;
-using System.Net.Sockets;
-using Rampastring.Tools;
 using System.Net;
-using DTAClient.Domain.Multiplayer.LAN;
-using ClientCore;
-using DTAClient.Domain.LAN;
-using DTAClient.Online;
+using System.Net.Sockets;
+using System.Text;
 using System.Threading;
-using DTAClient.DXGUI.Multiplayer.GameLobby.CommandHandlers;
-using DTAClient.Domain;
 
 namespace DTAClient.DXGUI.Multiplayer.GameLobby
 {
@@ -116,6 +116,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         public override void Initialize()
         {
+            IniNameOverride = nameof(LANGameLobby);
             base.Initialize();
             PostInitialize();
         }

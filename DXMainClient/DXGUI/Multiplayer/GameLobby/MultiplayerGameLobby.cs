@@ -25,7 +25,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         private const int MAX_DICE = 10;
         private const int MAX_DIE_SIDES = 100;
 
-        public MultiplayerGameLobby(WindowManager windowManager, string iniName, 
+        public MultiplayerGameLobby(WindowManager windowManager, string iniName,
             TopBar topBar, List<GameMode> GameModes, MapLoader mapLoader, DiscordHandler discordHandler)
             : base(windowManager, iniName, GameModes, true, discordHandler)
         {
@@ -131,8 +131,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             ReadyBoxes = new XNACheckBox[MAX_PLAYER_COUNT];
 
-            int readyBoxX = GameOptionsIni.GetIntValue(Name, "PlayerReadyBoxX", 7);
-            int readyBoxY = GameOptionsIni.GetIntValue(Name, "PlayerReadyBoxY", 4);
+            int readyBoxX = ConfigIni.GetIntValue(Name, "PlayerReadyBoxX", 7);
+            int readyBoxY = ConfigIni.GetIntValue(Name, "PlayerReadyBoxY", 4);
 
             for (int i = 0; i < MAX_PLAYER_COUNT; i++)
             {
@@ -152,61 +152,18 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 ddPlayerSides[i].AddItem("Spectator", AssetLoader.LoadTexture("spectatoricon.png"));
             }
 
-            ddGameMode.ClientRectangle = new Rectangle(
-                MapPreviewBox.X - 12 - ddGameMode.Width,
-                MapPreviewBox.Y, ddGameMode.Width,
-                ddGameMode.Height);
+            lbChatMessages = FindChild<ChatListBox>(nameof(lbChatMessages));
 
-            lblGameModeSelect.ClientRectangle = new Rectangle(
-                btnLaunchGame.X, ddGameMode.Y + 1,
-                lblGameModeSelect.Width, lblGameModeSelect.Height);
-
-            lbMapList.ClientRectangle = new Rectangle(btnLaunchGame.X, 
-                MapPreviewBox.Y + 23,
-                MapPreviewBox.X - btnLaunchGame.X - 12,
-                MapPreviewBox.Height - 23);
-
-            lbChatMessages = new ChatListBox(WindowManager);
-            lbChatMessages.Name = "lbChatMessages";
-            lbChatMessages.ClientRectangle = new Rectangle(lbMapList.X, 
-                GameOptionsPanel.Y,
-               lbMapList.Width, GameOptionsPanel.Height - 24);
-            lbChatMessages.PanelBackgroundDrawMode = PanelBackgroundImageDrawMode.STRETCHED;
-            lbChatMessages.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 128), 1, 1);
-            lbChatMessages.LineHeight = 16;
-            lbChatMessages.DrawOrder = -1;
-            lbChatMessages.UpdateOrder = -1;
-
-            tbChatInput = new XNAChatTextBox(WindowManager);
-            tbChatInput.Name = "tbChatInput";
-            tbChatInput.Suggestion = "Type here to chat..";
-            tbChatInput.ClientRectangle = new Rectangle(lbChatMessages.X, 
-                lbChatMessages.Bottom + 3,
-                lbChatMessages.Width, 21);
+            tbChatInput = FindChild<XNAChatTextBox>(nameof(tbChatInput));
             tbChatInput.MaximumTextLength = 150;
             tbChatInput.EnterPressed += TbChatInput_EnterPressed;
-            tbChatInput.DrawOrder = 1;
-            tbChatInput.UpdateOrder = 1;
 
-            btnLockGame = new XNAClientButton(WindowManager);
-            btnLockGame.Name = "btnLockGame";
-            btnLockGame.ClientRectangle = new Rectangle(btnLaunchGame.Right + 12,
-                btnLaunchGame.Y, UIDesignConstants.BUTTON_WIDTH_133, UIDesignConstants.BUTTON_HEIGHT);
-            btnLockGame.Text = "Lock Game";
+            btnLockGame = FindChild<XNAClientButton>(nameof(btnLockGame));
             btnLockGame.LeftClick += BtnLockGame_LeftClick;
 
-            chkAutoReady = new XNAClientCheckBox(WindowManager);
-            chkAutoReady.Name = "chkAutoReady";
-            chkAutoReady.ClientRectangle = new Rectangle(btnLaunchGame.Right + 12,
-                btnLaunchGame.Y + 2, UIDesignConstants.BUTTON_WIDTH_133, UIDesignConstants.BUTTON_HEIGHT);
-            chkAutoReady.Text = "Auto-Ready";
+            chkAutoReady = FindChild<XNAClientCheckBox>(nameof(chkAutoReady));
             chkAutoReady.CheckedChanged += ChkAutoReady_CheckedChanged;
             chkAutoReady.Disable();
-
-            AddChild(lbChatMessages);
-            AddChild(tbChatInput);
-            AddChild(btnLockGame);
-            AddChild(chkAutoReady);
 
             MapPreviewBox.LocalStartingLocationSelected += MapPreviewBox_LocalStartingLocationSelected;
             MapPreviewBox.StartingLocationApplied += MapPreviewBox_StartingLocationApplied;
@@ -234,7 +191,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         /// </summary>
         protected void PostInitialize()
         {
-            InitializeWindow();
             CenterOnParent();
             LoadDefaultMap();
         }
@@ -352,7 +308,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     command = text.Substring(1, spaceIndex - 1);
                     parameters = text.Substring(spaceIndex + 1);
                 }
-                
+
                 tbChatInput.Text = string.Empty;
 
                 foreach (var chatBoxCommand in chatBoxCommands)
@@ -510,7 +466,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 AddNotice("You can only between 1 to 10 dies at once.");
                 return;
             }
-            
+
             if (dieSides > MAX_DIE_SIDES || dieSides < 2)
             {
                 AddNotice("You can only have between 2 and 100 sides in a die.");
@@ -640,7 +596,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
                 btnLockGame.Enabled = false;
                 btnLockGame.Visible = false;
-                chkAutoReady.GetAttributes(ThemeIni);
+                ReadINIForControl(chkAutoReady);
 
                 foreach (GameLobbyDropDown dd in DropDowns)
                     dd.InputEnabled = false;
@@ -666,19 +622,13 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private void HideMapList()
         {
-            lbChatMessages.ClientRectangle = new Rectangle(lbMapList.X,
-                PlayerOptionsPanel.Y,
-                lbMapList.Width,
-                MapPreviewBox.Bottom - PlayerOptionsPanel.Y);
             lbChatMessages.Name = "lbChatMessages_Player";
-
-            tbChatInput.ClientRectangle = new Rectangle(lbChatMessages.X,
-                lbChatMessages.Bottom + 3,
-                lbChatMessages.Width, 21);
             tbChatInput.Name = "tbChatInput_Player";
-
-            MapPreviewBox.Name = "MapPreviewBox_NonHost";
-            lblMapAuthor.Name = "lblMapAuthor_NonHost";
+            MapPreviewBox.Name = "MapPreviewBox";
+            lblMapName.Name = "lblMapName";
+            lblMapAuthor.Name = "lblMapAuthor";
+            lblGameMode.Name = "lblGameMode";
+            lblMapSize.Name = "lblMapSize";
 
             ddGameMode.Disable();
             lblGameModeSelect.Disable();
@@ -686,44 +636,39 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             tbMapSearch.Disable();
             btnPickRandomMap.Disable();
 
-            lbChatMessages.GetAttributes(ThemeIni);
-            tbChatInput.GetAttributes(ThemeIni);
-            lbMapList.GetAttributes(ThemeIni);
-            MapPreviewBox.GetAttributes(ThemeIni);
-            lblMapAuthor.GetAttributes(ThemeIni);
+            ReadINIForControl(btnPickRandomMap);
+            ReadINIForControl(lbChatMessages);
+            ReadINIForControl(tbChatInput);
+            ReadINIForControl(lbMapList);
+            ReadINIForControl(lblMapName);
+            ReadINIForControl(lblMapAuthor);
+            ReadINIForControl(lblGameMode);
+            ReadINIForControl(lblMapSize);
         }
 
         private void ShowMapList()
         {
-            lbMapList.ClientRectangle = new Rectangle(btnLaunchGame.X,
-                MapPreviewBox.Y + 23,
-                MapPreviewBox.X - btnLaunchGame.X - 12,
-                MapPreviewBox.Height - 23);
-
-            lbChatMessages.ClientRectangle = new Rectangle(lbMapList.X,
-                GameOptionsPanel.Y,
-                lbMapList.Width, GameOptionsPanel.Height - 26);
             lbChatMessages.Name = "lbChatMessages_Host";
-
-            tbChatInput.ClientRectangle = new Rectangle(lbChatMessages.X,
-                lbChatMessages.Bottom + 3,
-                lbChatMessages.Width, 21);
             tbChatInput.Name = "tbChatInput_Host";
-
             MapPreviewBox.Name = "MapPreviewBox";
+            lblMapName.Name = "lblMapName";
             lblMapAuthor.Name = "lblMapAuthor";
+            lblGameMode.Name = "lblGameMode";
+            lblMapSize.Name = "lblMapSize";
 
             ddGameMode.Enable();
             lblGameModeSelect.Enable();
             lbMapList.Enable();
             tbMapSearch.Enable();
-            btnPickRandomMap.GetAttributes(ThemeIni);
 
-            lbChatMessages.GetAttributes(ThemeIni);
-            tbChatInput.GetAttributes(ThemeIni);
-            lbMapList.GetAttributes(ThemeIni);
-            MapPreviewBox.GetAttributes(ThemeIni);
-            lblMapAuthor.GetAttributes(ThemeIni);
+            ReadINIForControl(btnPickRandomMap);
+            ReadINIForControl(lbChatMessages);
+            ReadINIForControl(tbChatInput);
+            ReadINIForControl(lbMapList);
+            ReadINIForControl(lblMapName);
+            ReadINIForControl(lblMapAuthor);
+            ReadINIForControl(lblGameMode);
+            ReadINIForControl(lblMapSize);
         }
 
         private void MapPreviewBox_LocalStartingLocationSelected(object sender, LocalStartingLocationEventArgs e)
@@ -789,7 +734,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                         continue;
 
                     if (Players.Concat(AIPlayers).ToList().Find(
-                        p => p.StartingLocation == pInfo.StartingLocation && 
+                        p => p.StartingLocation == pInfo.StartingLocation &&
                         p.Name != pInfo.Name) != null)
                     {
                         SharedStartingLocationNotification();

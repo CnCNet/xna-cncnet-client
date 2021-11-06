@@ -73,5 +73,22 @@ namespace ClientCore
 
         public const string GAME_INVITE_CTCP_COMMAND = "INVITE";
         public const string GAME_INVITATION_FAILED_CTCP_COMMAND = "INVITATION_FAILED";
+
+        public static string GetAILevelName(int aiLevel)
+        {
+            switch (aiLevel)
+            {
+                case 3:
+                    return "Brutal AI";
+                case 2:
+                    return "Hard AI";
+                case 1:
+                    return "Medium AI";
+                case 0:
+                    return "Easy AI";
+                default:
+                    return string.Empty;
+            }
+        }
     }
 }

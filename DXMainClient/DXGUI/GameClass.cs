@@ -182,6 +182,8 @@ namespace DTAClient.DXGUI
         /// <param name="wm">The window manager</param>
         public static void SetGraphicsMode(WindowManager wm)
         {
+            var clientConfiguration = ClientConfiguration.Instance;
+
             int windowWidth = UserINISettings.Instance.ClientResolutionX;
             int windowHeight = UserINISettings.Instance.ClientResolutionY;
 
@@ -198,11 +200,63 @@ namespace DTAClient.DXGUI
                     throw new GraphicsModeInitializationException("Setting default graphics mode failed!");
             }
 
-            int renderResolutionX = Math.Max(windowWidth, ClientConfiguration.Instance.MinimumRenderWidth);
-            int renderResolutionY = Math.Max(windowHeight, ClientConfiguration.Instance.MinimumRenderHeight);
+            int renderResolutionX = 0;
+            int renderResolutionY = 0;
 
-            renderResolutionX = Math.Min(renderResolutionX, ClientConfiguration.Instance.MaximumRenderWidth);
-            renderResolutionY = Math.Min(renderResolutionY, ClientConfiguration.Instance.MaximumRenderHeight);
+            int initialXRes = Math.Max(windowWidth, clientConfiguration.MinimumRenderWidth);
+            initialXRes = Math.Min(initialXRes, clientConfiguration.MaximumRenderWidth);
+
+            int initialYRes = Math.Max(windowHeight, clientConfiguration.MinimumRenderHeight);
+            initialYRes = Math.Min(initialYRes, clientConfiguration.MaximumRenderHeight);
+
+            double xRatio = (windowWidth) / (double)initialXRes;
+            double yRatio = (windowHeight) / (double)initialYRes;
+
+            double ratio;
+
+            if (xRatio > yRatio)
+            {
+                ratio = yRatio;
+            }
+            else
+            {
+                ratio = xRatio;
+            }
+
+            if ((windowWidth == 1366 || windowWidth == 1360) && windowHeight == 768)
+            {
+                renderResolutionX = windowWidth;
+                renderResolutionY = windowHeight;
+            }
+
+            if (ratio > 1.0)
+            {
+                // Check whether we could sharp-scale our client window
+                for (int i = 2; i < 10; i++)
+                {
+                    int sharpScaleRenderResX = windowWidth / i;
+                    int sharpScaleRenderResY = windowHeight / i;
+
+                    if (sharpScaleRenderResX >= clientConfiguration.MinimumRenderWidth &&
+                        sharpScaleRenderResX <= clientConfiguration.MaximumRenderWidth &&
+                        sharpScaleRenderResY >= clientConfiguration.MinimumRenderHeight &&
+                        sharpScaleRenderResY <= clientConfiguration.MaximumRenderHeight)
+                    {
+                        renderResolutionX = sharpScaleRenderResX;
+                        renderResolutionY = sharpScaleRenderResY;
+                        break;
+                    }
+                }
+            }
+
+            if (renderResolutionX == 0 || renderResolutionY == 0)
+            {
+                renderResolutionX = initialXRes;
+                renderResolutionY = initialYRes;
+
+                if (ratio == xRatio)
+                    renderResolutionY = (int)(windowHeight / ratio);
+            }
 
             wm.SetBorderlessMode(borderlessWindowedClient);
 #if !XNA

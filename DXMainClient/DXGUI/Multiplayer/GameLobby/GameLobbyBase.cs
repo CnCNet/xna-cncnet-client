@@ -23,7 +23,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
     /// A generic base for all game lobbies (Skirmish, LAN and CnCNet).
     /// Contains the common logic for parsing game options and handling player info.
     /// </summary>
-    public abstract class GameLobbyBase : XNAWindow
+    public abstract class GameLobbyBase : INItializableWindow
     {
         protected const int MAX_PLAYER_COUNT = 8;
         protected const int PLAYER_OPTION_VERTICAL_MARGIN = 12;
@@ -66,12 +66,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         protected XNAPanel PlayerOptionsPanel;
 
-        protected XNAPanel GameOptionsPanel;
-
         protected List<MultiplayerColor> MPColors;
 
-        protected List<GameLobbyCheckBox> CheckBoxes = new List<GameLobbyCheckBox>();
-        protected List<GameLobbyDropDown> DropDowns = new List<GameLobbyDropDown>();
+        public List<GameLobbyCheckBox> CheckBoxes = new List<GameLobbyCheckBox>();
+        public List<GameLobbyDropDown> DropDowns = new List<GameLobbyDropDown>();
 
         protected DiscordHandler discordHandler;
 
@@ -119,12 +117,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         protected XNAClientDropDown[] ddPlayerColors;
         protected XNAClientDropDown[] ddPlayerStarts;
         protected XNAClientDropDown[] ddPlayerTeams;
-
-        protected XNALabel lblName;
-        protected XNALabel lblSide;
-        protected XNALabel lblColor;
-        protected XNALabel lblStart;
-        protected XNALabel lblTeam;
 
         protected XNAClientButton btnLeaveGame;
         protected GameLaunchButton btnLaunchGame;
@@ -209,80 +201,28 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             GameOptionsIni = new IniFile(ProgramConstants.GetBaseResourcePath() + "GameOptions.ini");
 
-            InitializeGameOptionsPanel();
+            base.Initialize();
 
-            PlayerOptionsPanel = new XNAPanel(WindowManager);
-            PlayerOptionsPanel.Name = "PlayerOptionsPanel";
-            PlayerOptionsPanel.ClientRectangle = new Rectangle(GameOptionsPanel.X - 401, 12, 395, GameOptionsPanel.Height);
-            PlayerOptionsPanel.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 192), 1, 1);
-            PlayerOptionsPanel.PanelBackgroundDrawMode = PanelBackgroundImageDrawMode.STRETCHED;
+            PlayerOptionsPanel = FindChild<XNAPanel>(nameof(PlayerOptionsPanel));
 
-            btnLeaveGame = new XNAClientButton(WindowManager);
-            btnLeaveGame.Name = "btnLeaveGame";
-            btnLeaveGame.ClientRectangle = new Rectangle(Width - 143, Height - 28, UIDesignConstants.BUTTON_WIDTH_133, UIDesignConstants.BUTTON_HEIGHT);
-            btnLeaveGame.Text = "Leave Game";
+            btnLeaveGame = FindChild<XNAClientButton>(nameof(btnLeaveGame));
             btnLeaveGame.LeftClick += BtnLeaveGame_LeftClick;
 
-            btnLaunchGame = new GameLaunchButton(WindowManager, RankTextures);
-            btnLaunchGame.Name = "btnLaunchGame";
-            btnLaunchGame.ClientRectangle = new Rectangle(12, btnLeaveGame.Y, UIDesignConstants.BUTTON_WIDTH_133, UIDesignConstants.BUTTON_HEIGHT);
-            btnLaunchGame.Text = "Launch Game";
+            btnLaunchGame = FindChild<GameLaunchButton>(nameof(btnLaunchGame));
             btnLaunchGame.LeftClick += BtnLaunchGame_LeftClick;
+            btnLaunchGame.InitStarDisplay(RankTextures);
 
-            MapPreviewBox = new MapPreviewBox(WindowManager, Players, AIPlayers, MPColors,
-                GameOptionsIni.GetStringValue("General", "Sides", String.Empty).Split(','),
-                GameOptionsIni);
-            MapPreviewBox.Name = "MapPreviewBox";
-            MapPreviewBox.ClientRectangle = new Rectangle(PlayerOptionsPanel.X,
-                PlayerOptionsPanel.Bottom + 6,
-                GameOptionsPanel.Right - PlayerOptionsPanel.X,
-                Height - PlayerOptionsPanel.Bottom - 65);
-            MapPreviewBox.FontIndex = 1;
-            MapPreviewBox.PanelBackgroundDrawMode = PanelBackgroundImageDrawMode.STRETCHED;
-            MapPreviewBox.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 128), 1, 1);
+            MapPreviewBox = FindChild<MapPreviewBox>("MapPreviewBox");
+            MapPreviewBox.SetFields(Players, AIPlayers, MPColors, GameOptionsIni.GetStringValue("General", "Sides", String.Empty).Split(','), GameOptionsIni);
 
-            lblMapName = new XNALabel(WindowManager);
-            lblMapName.Name = "lblMapName";
-            lblMapName.ClientRectangle = new Rectangle(MapPreviewBox.X,
-                MapPreviewBox.Bottom + 3, 0, 0);
-            lblMapName.FontIndex = 1;
-            lblMapName.Text = "Map:";
+            lblMapName = FindChild<XNALabel>(nameof(lblMapName));
+            lblMapAuthor = FindChild<XNALabel>(nameof(lblMapAuthor));
+            lblGameMode = FindChild<XNALabel>(nameof(lblGameMode));
+            lblMapSize = FindChild<XNALabel>(nameof(lblMapSize));
 
-            lblMapAuthor = new XNALabel(WindowManager);
-            lblMapAuthor.Name = "lblMapAuthor";
-            lblMapAuthor.ClientRectangle = new Rectangle(MapPreviewBox.Right,
-                lblMapName.Y, 0, 0);
-            lblMapAuthor.FontIndex = 1;
-            lblMapAuthor.Text = "By ";
-
-            lblGameMode = new XNALabel(WindowManager);
-            lblGameMode.Name = "lblGameMode";
-            lblGameMode.ClientRectangle = new Rectangle(lblMapName.X,
-                lblMapName.Bottom + 3, 0, 0);
-            lblGameMode.FontIndex = 1;
-            lblGameMode.Text = "Game mode:";
-
-            lblMapSize = new XNALabel(WindowManager);
-            lblMapSize.Name = "lblMapSize";
-            lblMapSize.ClientRectangle = new Rectangle(lblGameMode.ClientRectangle.X,
-                lblGameMode.ClientRectangle.Bottom + 3, 0, 0);
-            lblMapSize.FontIndex = 1;
-            lblMapSize.Text = "Size: ";
-            lblMapSize.Visible = false;
-
-            lbMapList = new XNAMultiColumnListBox(WindowManager);
-            lbMapList.Name = "lbMapList";
-            lbMapList.ClientRectangle = new Rectangle(btnLaunchGame.X, GameOptionsPanel.Y + 23,
-                MapPreviewBox.X - btnLaunchGame.X - 6,
-                MapPreviewBox.Bottom - 23 - GameOptionsPanel.Y);
+            lbMapList = FindChild<XNAMultiColumnListBox>(nameof(lbMapList));
             lbMapList.SelectedIndexChanged += LbMapList_SelectedIndexChanged;
             lbMapList.RightClick += LbMapList_RightClick;
-            lbMapList.PanelBackgroundDrawMode = PanelBackgroundImageDrawMode.STRETCHED;
-            lbMapList.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 192), 1, 1);
-            lbMapList.LineHeight = 16;
-            lbMapList.DrawListBoxBorders = true;
-            lbMapList.AllowKeyboardInput = true;
-            lbMapList.AllowRightClickUnselect = false;
 
             mapContextMenu = new XNAContextMenu(WindowManager);
             mapContextMenu.Name = nameof(mapContextMenu);
@@ -299,102 +239,28 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             rankListBox.TextBorderDistance = 2;
 
             lbMapList.AddColumn(rankHeader, rankListBox);
-
             lbMapList.AddColumn("MAP NAME", lbMapList.Width - RankTextures[1].Width - 3);
 
-            ddGameMode = new XNAClientDropDown(WindowManager);
-            ddGameMode.Name = "ddGameMode";
-            ddGameMode.ClientRectangle = new Rectangle(lbMapList.Right - 150, GameOptionsPanel.Y, 150, 21);
+            ddGameMode = FindChild<XNAClientDropDown>(nameof(ddGameMode));
             ddGameMode.SelectedIndexChanged += DdGameMode_SelectedIndexChanged;
 
             foreach (GameMode gm in GameModes)
                 ddGameMode.AddItem(gm.UIName);
 
-            lblGameModeSelect = new XNALabel(WindowManager);
-            lblGameModeSelect.Name = "lblGameModeSelect";
-            lblGameModeSelect.ClientRectangle = new Rectangle(lbMapList.X, ddGameMode.Y + 2, 0, 0);
-            lblGameModeSelect.FontIndex = 1;
-            lblGameModeSelect.Text = "GAME MODE:";
+            lblGameModeSelect = FindChild<XNALabel>(nameof(lblGameModeSelect));
 
-            tbMapSearch = new XNASuggestionTextBox(WindowManager);
-            tbMapSearch.Name = "tbMapSearch";
-            tbMapSearch.ClientRectangle = new Rectangle(lbMapList.X,
-                lbMapList.Bottom + 3, lbMapList.Width, 21);
-            tbMapSearch.Suggestion = "Search map...";
-            tbMapSearch.MaximumTextLength = 64;
+            tbMapSearch = FindChild<XNASuggestionTextBox>(nameof(tbMapSearch));
             tbMapSearch.InputReceived += TbMapSearch_InputReceived;
 
-            btnPickRandomMap = new XNAClientButton(WindowManager);
-            btnPickRandomMap.Name = "btnPickRandomMap";
-            btnPickRandomMap.ClientRectangle = new Rectangle(btnLaunchGame.Right + 157 , btnLaunchGame.Y, UIDesignConstants.BUTTON_WIDTH_133, UIDesignConstants.BUTTON_HEIGHT);
-            btnPickRandomMap.Text = "Pick Random Map";
+            btnPickRandomMap = FindChild<XNAClientButton>(nameof(btnPickRandomMap));
             btnPickRandomMap.LeftClick += BtnPickRandomMap_LeftClick;
-            btnPickRandomMap.Disable();
 
-            AddChild(lblMapName);
-            AddChild(lblMapAuthor);
-            AddChild(lblGameMode);
-            AddChild(lblMapSize);
-            AddChild(MapPreviewBox);
-
-            AddChild(lbMapList);
-            AddChild(tbMapSearch);
-            AddChild(lblGameModeSelect);
-            AddChild(ddGameMode);
-
-            AddChild(GameOptionsPanel);
-            AddChild(BtnSaveLoadGameOptions);
-            AddChild(loadSaveGameOptionsMenu);
-            AddChild(loadOrSaveGameOptionPresetWindow);
-
-            string[] checkBoxes = GameOptionsIni.GetStringValue(_iniSectionName, "CheckBoxes", String.Empty).Split(',');
-
-            foreach (string chkName in checkBoxes)
-            {
-                GameLobbyCheckBox chkBox = new GameLobbyCheckBox(WindowManager);
-                chkBox.Name = chkName;
-                AddChild(chkBox);
-                chkBox.GetAttributes(GameOptionsIni);
-                CheckBoxes.Add(chkBox);
-                chkBox.CheckedChanged += ChkBox_CheckedChanged;
-            }
-
-            string[] labels = GameOptionsIni.GetStringValue(_iniSectionName, "Labels", String.Empty).Split(',');
-
-            foreach (string labelName in labels)
-            {
-                XNALabel label = new XNALabel(WindowManager);
-                label.Name = labelName;
-                AddChild(label);
-                label.GetAttributes(GameOptionsIni);
-            }
-
-            string[] dropDowns = GameOptionsIni.GetStringValue(_iniSectionName, "DropDowns", String.Empty).Split(',');
-
-            foreach (string ddName in dropDowns)
-            {
-                GameLobbyDropDown dropdown = new GameLobbyDropDown(WindowManager);
-                dropdown.Name = ddName;
-                AddChild(dropdown);
-                dropdown.GetAttributes(GameOptionsIni);
-                DropDowns.Add(dropdown);
-                dropdown.SelectedIndexChanged += Dropdown_SelectedIndexChanged;
-            }
-
-            AddChild(PlayerOptionsPanel);
-            AddChild(btnLaunchGame);
-            AddChild(btnLeaveGame);
-            AddChild(btnPickRandomMap);
+            CheckBoxes.ForEach(chk => chk.CheckedChanged += ChkBox_CheckedChanged);
+            DropDowns.ForEach(dd => dd.SelectedIndexChanged += Dropdown_SelectedIndexChanged);
         }
 
         private void InitializeGameOptionsPanel()
         {
-            GameOptionsPanel = new XNAPanel(WindowManager);
-            GameOptionsPanel.Name = nameof(GameOptionsPanel);
-            GameOptionsPanel.ClientRectangle = new Rectangle(Width - 411, 12, 399, 289);
-            GameOptionsPanel.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 192), 1, 1);
-            GameOptionsPanel.PanelBackgroundDrawMode = PanelBackgroundImageDrawMode.STRETCHED;
-
             loadOrSaveGameOptionPresetWindow = new LoadOrSaveGameOptionPresetWindow(WindowManager);
             loadOrSaveGameOptionPresetWindow.Name = nameof(loadOrSaveGameOptionPresetWindow);
             loadOrSaveGameOptionPresetWindow.PresetLoaded += (sender, s) => HandleGameOptionPresetLoadCommand(s);
@@ -473,17 +339,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             var checkBox = (GameLobbyCheckBox)sender;
             checkBox.HostChecked = checkBox.Checked;
             OnGameOptionChanged();
-        }
-
-        /// <summary>
-        /// Initializes the underlying window class.
-        /// </summary>
-        protected void InitializeWindow()
-        {
-            base.Initialize();
-            lblMapAuthor.X = MapPreviewBox.Right - lblMapAuthor.Width;
-            lblMapAuthor.TextAnchor = LabelTextAnchorInfo.LEFT;
-            lblMapAuthor.AnchorPoint = new Vector2(MapPreviewBox.Right, lblMapAuthor.Y);
         }
 
         protected virtual void OnGameOptionChanged()
@@ -689,16 +544,16 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             ddPlayerStarts = new XNAClientDropDown[MAX_PLAYER_COUNT];
             ddPlayerTeams = new XNAClientDropDown[MAX_PLAYER_COUNT];
 
-            int playerOptionVecticalMargin = GameOptionsIni.GetIntValue(Name, "PlayerOptionVerticalMargin", PLAYER_OPTION_VERTICAL_MARGIN);
-            int playerOptionHorizontalMargin = GameOptionsIni.GetIntValue(Name, "PlayerOptionHorizontalMargin", PLAYER_OPTION_HORIZONTAL_MARGIN);
-            int playerOptionCaptionLocationY = GameOptionsIni.GetIntValue(Name, "PlayerOptionCaptionLocationY", PLAYER_OPTION_CAPTION_Y);
-            int playerNameWidth = GameOptionsIni.GetIntValue(Name, "PlayerNameWidth", 136);
-            int sideWidth = GameOptionsIni.GetIntValue(Name, "SideWidth", 91);
-            int colorWidth = GameOptionsIni.GetIntValue(Name, "ColorWidth", 79);
-            int startWidth = GameOptionsIni.GetIntValue(Name, "StartWidth", 49);
-            int teamWidth = GameOptionsIni.GetIntValue(Name, "TeamWidth", 46);
-            int locationX = GameOptionsIni.GetIntValue(Name, "PlayerOptionLocationX", 25);
-            int locationY = GameOptionsIni.GetIntValue(Name, "PlayerOptionLocationY", 24);
+            int playerOptionVecticalMargin = ConfigIni.GetIntValue(Name, "PlayerOptionVerticalMargin", PLAYER_OPTION_VERTICAL_MARGIN);
+            int playerOptionHorizontalMargin = ConfigIni.GetIntValue(Name, "PlayerOptionHorizontalMargin", PLAYER_OPTION_HORIZONTAL_MARGIN);
+            int playerOptionCaptionLocationY = ConfigIni.GetIntValue(Name, "PlayerOptionCaptionLocationY", PLAYER_OPTION_CAPTION_Y);
+            int playerNameWidth = ConfigIni.GetIntValue(Name, "PlayerNameWidth", 136);
+            int sideWidth = ConfigIni.GetIntValue(Name, "SideWidth", 91);
+            int colorWidth = ConfigIni.GetIntValue(Name, "ColorWidth", 79);
+            int startWidth = ConfigIni.GetIntValue(Name, "StartWidth", 49);
+            int teamWidth = ConfigIni.GetIntValue(Name, "TeamWidth", 46);
+            int locationX = ConfigIni.GetIntValue(Name, "PlayerOptionLocationX", 25);
+            int locationY = ConfigIni.GetIntValue(Name, "PlayerOptionLocationY", 24);
 
             // InitPlayerOptionDropdowns(136, 91, 79, 49, 46, new Point(25, 24));
 
@@ -790,46 +645,42 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 PlayerOptionsPanel.AddChild(ddPlayerColor);
                 PlayerOptionsPanel.AddChild(ddPlayerStart);
                 PlayerOptionsPanel.AddChild(ddPlayerTeam);
+
+                ReadINIForControl(ddPlayerName);
+                ReadINIForControl(ddPlayerSide);
+                ReadINIForControl(ddPlayerColor);
+                ReadINIForControl(ddPlayerStart);
+                ReadINIForControl(ddPlayerTeam);
             }
 
-            lblName = new XNALabel(WindowManager);
-            lblName.Name = "lblName";
-            lblName.Text = "PLAYER";
-            lblName.FontIndex = 1;
-            lblName.ClientRectangle = new Rectangle(ddPlayerNames[0].X, playerOptionCaptionLocationY, 0, 0);
+            var lblName = GeneratePlayerOptionCaption("lblName", "PLAYER", ddPlayerNames[0].X, playerOptionCaptionLocationY);
+            var lblSide = GeneratePlayerOptionCaption("lblSide", "SIDE", ddPlayerSides[0].X, playerOptionCaptionLocationY);
+            var lblColor = GeneratePlayerOptionCaption("lblColor", "COLOR", ddPlayerColors[0].X, playerOptionCaptionLocationY);
 
-            lblSide = new XNALabel(WindowManager);
-            lblSide.Name = "lblSide";
-            lblSide.Text = "SIDE";
-            lblSide.FontIndex = 1;
-            lblSide.ClientRectangle = new Rectangle(ddPlayerSides[0].X, playerOptionCaptionLocationY, 0, 0);
-
-            lblColor = new XNALabel(WindowManager);
-            lblColor.Name = "lblColor";
-            lblColor.Text = "COLOR";
-            lblColor.FontIndex = 1;
-            lblColor.ClientRectangle = new Rectangle(ddPlayerColors[0].X, playerOptionCaptionLocationY, 0, 0);
-
-            lblStart = new XNALabel(WindowManager);
-            lblStart.Name = "lblStart";
-            lblStart.Text = "START";
-            lblStart.FontIndex = 1;
-            lblStart.ClientRectangle = new Rectangle(ddPlayerStarts[0].X, playerOptionCaptionLocationY, 0, 0);
+            var lblStart = GeneratePlayerOptionCaption("lblStart", "START", ddPlayerStarts[0].X, playerOptionCaptionLocationY);
             lblStart.Visible = false;
 
-            lblTeam = new XNALabel(WindowManager);
-            lblTeam.Name = "lblTeam";
-            lblTeam.Text = "TEAM";
-            lblTeam.FontIndex = 1;
-            lblTeam.ClientRectangle = new Rectangle(ddPlayerTeams[0].X, playerOptionCaptionLocationY, 0, 0);
+            var lblTeam = GeneratePlayerOptionCaption("lblTeam", "TEAM", ddPlayerTeams[0].X, playerOptionCaptionLocationY);
 
-            PlayerOptionsPanel.AddChild(lblName);
-            PlayerOptionsPanel.AddChild(lblSide);
-            PlayerOptionsPanel.AddChild(lblColor);
-            PlayerOptionsPanel.AddChild(lblStart);
-            PlayerOptionsPanel.AddChild(lblTeam);
+            ReadINIForControl(lblName);
+            ReadINIForControl(lblSide);
+            ReadINIForControl(lblColor);
+            ReadINIForControl(lblStart);
+            ReadINIForControl(lblTeam);
 
             CheckDisallowedSides();
+        }
+
+        private XNALabel GeneratePlayerOptionCaption(string name, string text, int x, int y)
+        {
+            var label = new XNALabel(WindowManager);
+            label.Name = name;
+            label.Text = text;
+            label.FontIndex = 1;
+            label.ClientRectangle = new Rectangle(x, y, 0, 0);
+            PlayerOptionsPanel.AddChild(label);
+
+            return label;
         }
 
         private Texture2D LoadTextureOrNull(string name) =>
@@ -1820,8 +1671,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 lblGameMode.Text = "Game mode: Unknown";
                 lblMapSize.Text = "Size: Not available";
 
-                lblMapAuthor.X = MapPreviewBox.Right - lblMapAuthor.Width;
-
                 MapPreviewBox.Map = null;
 
                 return;
@@ -1991,17 +1840,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         protected string AILevelToName(int aiLevel)
         {
-            switch (aiLevel)
-            {
-                case 0:
-                    return aiPlayerNames[2];
-                case 1:
-                    return aiPlayerNames[1];
-                case 2:
-                    return aiPlayerNames[0];
-            }
-
-            return string.Empty;
+            return ProgramConstants.GetAILevelName(aiLevel);
         }
 
         protected GameType GetGameType()

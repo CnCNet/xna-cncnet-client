@@ -47,8 +47,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             MapPreviewBox.LocalStartingLocationSelected += MapPreviewBox_LocalStartingLocationSelected;
             MapPreviewBox.StartingLocationApplied += MapPreviewBox_StartingLocationApplied;
 
-            InitializeWindow();
-
             WindowManager.CenterControlOnScreen(this);
 
             LoadSettings();

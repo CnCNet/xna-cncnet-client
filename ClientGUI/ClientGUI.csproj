@@ -134,6 +134,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ClientGUICreator.cs" />
+    <Compile Include="INIConfigException.cs" />
+    <Compile Include="INItializableWindow.cs" />
+    <Compile Include="Parser.cs" />
     <Compile Include="ToolTip.cs" />
     <Compile Include="UIDesignConstants.cs" />
     <Compile Include="XNAChatTextBox.cs" />

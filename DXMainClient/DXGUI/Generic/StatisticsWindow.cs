@@ -492,7 +492,7 @@ namespace DTAClient.DXGUI.Generic
 
                 if (ps.IsAI)
                 {
-                    items.Add(new XNAListBoxItem(AILevelToString(ps.AILevel), textColor));
+                    items.Add(new XNAListBoxItem(ProgramConstants.GetAILevelName(ps.AILevel), textColor));
                 }
                 else
                     items.Add(new XNAListBoxItem(ps.Name, textColor));
@@ -576,20 +576,6 @@ namespace DTAClient.DXGUI.Generic
                     return "D";
                 default:
                     return "-";
-            }
-        }
-
-        private string AILevelToString(int aiLevel)
-        {
-            switch (aiLevel)
-            {
-                case 2:
-                    return "Hard AI";
-                case 1:
-                    return "Medium AI";
-                case 0:
-                default:
-                    return "Easy AI";
             }
         }
 

@@ -37,10 +37,12 @@ namespace ClientGUI
             Visible = false;
         }
 
-        private XNAWindow GetParentWindow(XNAControl parent)
+        private XNAControl GetParentWindow(XNAControl parent)
         {
             if (parent is XNAWindow)
                 return parent as XNAWindow;
+            else if (parent is INItializableWindow)
+                return parent as INItializableWindow;
             else
                 return GetParentWindow(parent.Parent);
         }
