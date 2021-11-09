@@ -624,6 +624,9 @@ namespace DTAClient.Online
                             string extraInfo = parameters[7];
                             connectionManager.OnWhoReplyReceived(ident, host, wUserName, extraInfo);
                             break;
+                        case 311: // Reply to WHOIS NAME query
+                            connectionManager.OnWhoReplyReceived(parameters[2], parameters[3], parameters[1], string.Empty);
+                            break;
                         case 433: // Name already in use
                             message = serverMessagePart + parameters[1] + ": " + parameters[2];
                             //connectionManager.OnGenericServerMessageReceived(message);
