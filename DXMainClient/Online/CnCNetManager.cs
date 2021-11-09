@@ -171,6 +171,11 @@ namespace DTAClient.Online
             connection.QueueMessage(qm);
         }
 
+        public void SendWhoIsMessage(string nick)
+        {
+            SendCustomMessage(new QueuedMessage($"WHOIS {nick}", QueuedMessageType.WHOIS_MESSAGE, 0));
+        }
+
         public void OnAttemptedServerChanged(string serverName)
         {
             // AddCallback is necessary for thread-safety; OnAttemptedServerChanged
@@ -818,7 +823,7 @@ namespace DTAClient.Online
 
         private void DoWhoReplyReceived(string ident, string hostName, string userName, string extraInfo)
         {
-            WhoReplyReceived?.Invoke(this, new WhoEventArgs(userName, extraInfo));
+            WhoReplyReceived?.Invoke(this, new WhoEventArgs(ident, userName, extraInfo));
 
             string[] eInfoParts = extraInfo.Split(' ');
 

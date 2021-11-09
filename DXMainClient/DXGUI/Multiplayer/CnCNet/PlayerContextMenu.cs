@@ -13,10 +13,23 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 {
     class PlayerContextMenu : XNAContextMenu
     {
+        private const string PRIVATE_MESSAGE = "Private Message";
+        private const string ADD_FRIEND = "Add Friend";
+        private const string REMOVE_FRIEND = "Remove Friend";
+        private const string BLOCK = "Block";
+        private const string UNBLOCK = "Unblock";
+        private const string INVITE = "Invite";
+        private const string JOIN = "Join";
+        
         private readonly CnCNetManager connectionManager;
         private readonly CnCNetUserData cncnetUserData;
         private readonly PrivateMessagingWindow pmWindow;
         private PlayerContextMenuData contextMenuData;
+        private XNAContextMenuItem privateMessageItem;
+        private XNAContextMenuItem toggleFriendItem;
+        private XNAContextMenuItem toggleIgnoreItem;
+        private XNAContextMenuItem invitePlayerItem;
+        private XNAContextMenuItem joinPlayerItem;
 
         public EventHandler<JoinUserEventArgs> JoinEvent;
 
@@ -31,7 +44,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             this.cncnetUserData = cncnetUserData;
             this.pmWindow = pmWindow;
 
-            Name = "PlayerContextMenu";
+            Name = nameof(PlayerContextMenu);
             ClientRectangle = new Rectangle(0, 0, 150, 2);
             Enabled = false;
             Visible = false;
@@ -39,11 +52,36 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         public override void Initialize()
         {
-            AddItem("Private Message", () => pmWindow.InitPM(GetIrcUser().Name));
-            AddItem("Add Friend", () => cncnetUserData.ToggleFriend(GetIrcUser().Name));
-            AddItem("Ignore User", () => cncnetUserData.ToggleIgnoreUser(GetIrcUser().Ident));
-            AddItem("Invite", Invite);
-            AddItem("Join", () => JoinEvent?.Invoke(this, new JoinUserEventArgs(GetIrcUser())));
+            privateMessageItem = new XNAContextMenuItem()
+            {
+                Text = PRIVATE_MESSAGE,
+                SelectAction = () => pmWindow.InitPM(GetIrcUser().Name)
+            };
+            toggleFriendItem = new XNAContextMenuItem()
+            {
+                Text = ADD_FRIEND,
+                SelectAction = () => cncnetUserData.ToggleFriend(GetIrcUser().Name)
+            };
+            toggleIgnoreItem = new XNAContextMenuItem()
+            {
+                Text = BLOCK,
+                SelectAction = () => GetIrcUserIdent(cncnetUserData.ToggleIgnoreUser)
+            };
+            invitePlayerItem = new XNAContextMenuItem()
+            {
+                Text = INVITE,
+                SelectAction = Invite
+            };
+            joinPlayerItem = new XNAContextMenuItem()
+            {
+                Text = JOIN,
+                SelectAction = () => JoinEvent?.Invoke(this, new JoinUserEventArgs(GetIrcUser()))
+            };
+            AddItem(privateMessageItem);
+            AddItem(toggleFriendItem);
+            AddItem(toggleIgnoreItem);
+            AddItem(invitePlayerItem);
+            AddItem(joinPlayerItem);
         }
 
         private void Invite()
@@ -71,13 +109,34 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             var isOnline = connectionManager.UserList.Any(u => u.Name == ircUser.Name);
             var isAdmin = channelUser?.IsAdmin ?? false;
 
-            Items[0].Visible = isOnline;
-            Items[2].Visible = !isAdmin && !string.IsNullOrEmpty(ircUser.Ident);
-            Items[3].Visible = isOnline && !string.IsNullOrEmpty(contextMenuData.inviteChannelName);
-            Items[4].Visible = !contextMenuData.PreventJoinGame && isOnline;
+            privateMessageItem.Visible = isOnline;
+            toggleIgnoreItem.Selectable = !isAdmin;
+            invitePlayerItem.Visible = isOnline && !string.IsNullOrEmpty(contextMenuData.inviteChannelName);
+            joinPlayerItem.Visible = !contextMenuData.PreventJoinGame && isOnline;
 
-            Items[1].Text = cncnetUserData.IsFriend(ircUser.Name) ? "Remove Friend" : "Add Friend";
-            Items[2].Text = cncnetUserData.IsIgnored(ircUser.Ident) ? "Unblock" : "Block";
+            toggleFriendItem.Text = cncnetUserData.IsFriend(ircUser.Name) ? REMOVE_FRIEND : ADD_FRIEND;
+            toggleIgnoreItem.Text = cncnetUserData.IsIgnored(ircUser.Ident) ? UNBLOCK : BLOCK;
+        }
+
+        private void GetIrcUserIdent(Action<string> callback)
+        {
+            var ircUser = GetIrcUser();
+
+            if (!string.IsNullOrEmpty(ircUser.Ident))
+            {
+                callback.Invoke(ircUser.Ident);
+                return;
+            }
+
+            void WhoIsReply(object sender, WhoEventArgs whoEventargs)
+            {
+                ircUser.Ident = whoEventargs.Ident;
+                callback.Invoke(whoEventargs.Ident);
+                connectionManager.WhoReplyReceived -= WhoIsReply;
+            }
+
+            connectionManager.WhoReplyReceived += WhoIsReply;
+            connectionManager.SendWhoIsMessage(ircUser.Name);
         }
 
         private IRCUser GetIrcUser()
