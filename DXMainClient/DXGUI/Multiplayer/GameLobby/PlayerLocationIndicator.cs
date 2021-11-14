@@ -6,6 +6,7 @@ using Microsoft.Xna.Framework.Graphics;
 using PlayerInfo = DTAClient.Domain.Multiplayer.PlayerInfo;
 using Microsoft.Xna.Framework;
 using DTAClient.Domain.Multiplayer;
+using ClientCore;
 
 namespace DTAClient.DXGUI.Multiplayer.GameLobby
 {
@@ -24,6 +25,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             this.nameBorderColor = nameBorderColor;
             this.contextMenu = contextMenu;
             HoverRemapColor = Color.White;
+            usePlayerRemapColor = ClientConfiguration.Instance.MapPreviewStartingLocationUsePlayerRemapColor;
         }
 
         Texture2D baseTexture;
@@ -49,6 +51,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         Color nameBorderColor;
 
         string[] teamIds = new string[] { String.Empty, "[A]", "[B]", "[C]", "[D]" };
+
+        bool usePlayerRemapColor = false;
 
         bool isHoveredOn = false;
 
@@ -219,6 +223,14 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 origin,
                 new Vector2(TEXTURE_SCALE), Color.Black);
 
+            Color remapColor = Color.White;
+            Color hoverRemapColor = HoverRemapColor;
+            if (Players.Count == 1 && Players[0].ColorId > 0)
+            {
+                remapColor = mpColors[Players[0].ColorId - 1].XnaColor;
+                hoverRemapColor = remapColor;
+            }
+
             if (isHoveredOn ||
                 (contextMenu.Tag == this.Tag && contextMenu.Visible))
             {
@@ -226,21 +238,28 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 new Vector2(displayRectangle.Center.X + 0.5f, displayRectangle.Center.Y),
                 (float)angle,
                 origin,
-                new Vector2(TEXTURE_SCALE + 0.1f), HoverRemapColor);
+                new Vector2(TEXTURE_SCALE + 0.1f), hoverRemapColor);
             }
 
             Renderer.DrawTexture(usedTexture,
                 new Vector2(displayRectangle.Center.X + 0.5f, displayRectangle.Center.Y),
                 (float)angle,
                 origin,
-                new Vector2(TEXTURE_SCALE), Color.White);
+                new Vector2(TEXTURE_SCALE), remapColor);
 
             if (WaypointTexture != null)
             {
                 // Non-premultiplied blending makes the indicators look sharper for some reason
                 // TODO figure out why
                 Renderer.PushSettings(new SpriteBatchSettings(SpriteSortMode.Deferred, BlendState.NonPremultiplied, null));
-                Renderer.DrawTexture(WaypointTexture, displayRectangle, Color.White);
+
+                Renderer.DrawTexture(WaypointTexture,
+                    new Vector2(displayRectangle.Center.X + 0.5f, displayRectangle.Center.Y),
+                    0f, 
+                    new Vector2(WaypointTexture.Width / 2, WaypointTexture.Height / 2),
+                    new Vector2(1f, 1f),
+                    Color.White);
+
                 Renderer.PopSettings();
             }
 
