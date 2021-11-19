@@ -1645,6 +1645,41 @@
             An enum for determining which part of a text is anchored to a specific point.
             </summary>
         </member>
+        <member name="F:Rampastring.XNAUI.XNAControls.LabelTextAnchorInfo.LEFT">
+            <summary>
+            The text is anchored to be to the left of the given point.
+            </summary>
+        </member>
+        <member name="F:Rampastring.XNAUI.XNAControls.LabelTextAnchorInfo.RIGHT">
+            <summary>
+            The text is anchored to be to the right of the given point.
+            </summary>
+        </member>
+        <member name="F:Rampastring.XNAUI.XNAControls.LabelTextAnchorInfo.HORIZONTAL_CENTER">
+            <summary>
+            The text is horizontally centered on the given point.
+            </summary>
+        </member>
+        <member name="F:Rampastring.XNAUI.XNAControls.LabelTextAnchorInfo.TOP">
+            <summary>
+            The text is anchored to be just above the given point.
+            </summary>
+        </member>
+        <member name="F:Rampastring.XNAUI.XNAControls.LabelTextAnchorInfo.BOTTOM">
+            <summary>
+            The text is anchored to be just below the given point.
+            </summary>
+        </member>
+        <member name="F:Rampastring.XNAUI.XNAControls.LabelTextAnchorInfo.VERTICAL_CENTER">
+            <summary>
+            The text is vertical centered on the given point.
+            </summary>
+        </member>
+        <member name="F:Rampastring.XNAUI.XNAControls.LabelTextAnchorInfo.CENTER">
+            <summary>
+            The text is both horizontally and vertically centered on the given point.
+            </summary>
+        </member>
         <member name="T:Rampastring.XNAUI.XNAControls.XNAListBox">
             <summary>
             A list box.
@@ -1953,6 +1988,23 @@
             <summary>
             The panel's transparency changing rate per 100 milliseconds.
             If the panel is transparent, it'll become non-transparent at this rate.
+            </summary>
+        </member>
+        <member name="F:Rampastring.XNAUI.XNAControls.PanelBackgroundImageDrawMode.TILED">
+            <summary>
+            The texture is tiled to fill the whole surface of the panel.
+            </summary>
+        </member>
+        <member name="F:Rampastring.XNAUI.XNAControls.PanelBackgroundImageDrawMode.STRETCHED">
+            <summary>
+            The texture is stretched to fill the whole surface of the panel.
+            </summary>
+        </member>
+        <member name="F:Rampastring.XNAUI.XNAControls.PanelBackgroundImageDrawMode.CENTERED">
+            <summary>
+            The texture is drawn once, centered on the panel.
+            If the texture is too large for the panel, parts
+            that would end up outside of the panel are cut off.
             </summary>
         </member>
         <member name="T:Rampastring.XNAUI.XNAControls.XNATabControl">

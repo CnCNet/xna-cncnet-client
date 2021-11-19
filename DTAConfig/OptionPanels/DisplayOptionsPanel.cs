@@ -204,12 +204,15 @@ namespace DTAConfig.OptionPanels
             // So we add the optimal resolutions to the list, sort it and then find
             // out the optimal resolution index - it's inefficient, but works
 
-            int optimalWindowedResIndex = resolutions.FindIndex(res => res.ToString() == "1280x800");
-            if (optimalWindowedResIndex == -1)
-                optimalWindowedResIndex = resolutions.FindIndex(res => res.ToString() == "1280x768");
+            string[] recommendedResolutions = clientConfig.RecommendedResolutions;
 
-            if (optimalWindowedResIndex > -1)
-                ddClientResolution.PreferredItemIndex = optimalWindowedResIndex;
+            foreach (string resolution in recommendedResolutions)
+            {
+                string trimmedresolution = resolution.Trim();
+                int index = resolutions.FindIndex(res => res.ToString() == trimmedresolution);
+                if (index > -1)
+                    ddClientResolution.PreferredItemIndexes.Add(index);
+            }
 
             chkBorderlessClient = new XNAClientCheckBox(WindowManager);
             chkBorderlessClient.Name = "chkBorderlessClient";
@@ -548,13 +551,9 @@ namespace DTAConfig.OptionPanels
             {
                 ddClientResolution.AllowDropDown = true;
 
-                int optimalWindowedResIndex = ddClientResolution.Items.FindIndex(i => (string)i.Tag == "1280x800");
-
-                if (optimalWindowedResIndex == -1)
-                    optimalWindowedResIndex = ddClientResolution.Items.FindIndex(i => (string)i.Tag == "1280x768");
-
-                if (optimalWindowedResIndex > -1)
+                if (ddClientResolution.PreferredItemIndexes.Count > 0)
                 {
+                    int optimalWindowedResIndex = ddClientResolution.PreferredItemIndexes[0];
                     ddClientResolution.SelectedIndex = optimalWindowedResIndex;
                 }
             }
