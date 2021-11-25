@@ -633,6 +633,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             }
 
             Players.ForEach(pInfo => pInfo.IsInGame = true);
+            
+            cncnetUserData.AddRecentPlayers(Players.Select(p => p.Name), channel.UIName);
 
             StartGame();
         }
@@ -1211,6 +1213,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (UniqueGameID < 0)
                 return;
 
+            var recentPlayers = new List<string>();
+
             for (int i = 1; i < parts.Length; i += 2)
             {
                 if (parts.Length <= i + 1)
@@ -1234,7 +1238,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     return;
 
                 pInfo.Port = port;
+                recentPlayers.Add(pName);
             }
+            cncnetUserData.AddRecentPlayers(recentPlayers, channel.UIName);
 
             StartGame();
         }
