@@ -64,6 +64,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         private ChatListBox lbChatMessages;
         private GameListBox lbGameList;
         private PlayerContextMenu playerContextMenu;
+        private PlayerMessageContextMenu playerMessageContextMenu;
 
         private XNAClientButton btnLogout;
         private XNAClientButton btnNewGame;
@@ -209,6 +210,9 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             playerContextMenu = new PlayerContextMenu(WindowManager, connectionManager, cncnetUserData, pmWindow);
             playerContextMenu.JoinEvent += (sender, args) => JoinUser(args.IrcUser, connectionManager.MainChannel);
 
+            playerMessageContextMenu = new PlayerMessageContextMenu(WindowManager, connectionManager, cncnetUserData, pmWindow);
+            playerMessageContextMenu.JoinEvent += (sender, args) => JoinUser(args.IrcUser, connectionManager.MainChannel);
+
             lbChatMessages = new ChatListBox(WindowManager);
             lbChatMessages.Name = nameof(lbChatMessages);
             lbChatMessages.ClientRectangle = new Rectangle(lbGameList.Right + 12, lbGameList.Y,
@@ -217,6 +221,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             lbChatMessages.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 128), 1, 1);
             lbChatMessages.LineHeight = 16;
             lbChatMessages.LeftClick += (sender, args) => lbGameList.SelectedIndex = -1;
+            lbChatMessages.RightClick += LbChatMessages_RightClick;
 
             tbChatInput = new XNAChatTextBox(WindowManager);
             tbChatInput.Name = nameof(tbChatInput);
@@ -342,6 +347,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             AddChild(lblCurrentChannel);
             AddChild(ddCurrentChannel);
             AddChild(playerContextMenu);
+            AddChild(playerMessageContextMenu);
             AddChild(lblOnline);
             AddChild(lblOnlineCount);
             AddChild(tbGameSearch);
@@ -649,6 +655,27 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             var user = (ChannelUser)lbPlayerList.SelectedItem.Tag;
 
             playerContextMenu.Show(user, GetCursorPoint());
+        }
+
+        private void LbChatMessages_RightClick(object sender, EventArgs e)
+        {
+            var item = lbChatMessages.HoveredItem;
+            var chatMessage = item?.Tag as ChatMessage;
+            if (!(chatMessage?.IsUser ?? false))
+                return;
+
+            ShowPlayerMessageContextMenu(chatMessage);
+        }
+
+        private void ShowPlayerMessageContextMenu(ChatMessage chatMessage)
+        {
+            lbChatMessages.SelectedIndex = lbChatMessages.HoveredIndex;
+
+            var user = connectionManager.UserList.Find(u => string.Equals(u.Ident, chatMessage.SenderIdent));
+            if (user == null)
+                return;
+
+            playerMessageContextMenu.Show(user, GetCursorPoint());
         }
 
         /// <summary>

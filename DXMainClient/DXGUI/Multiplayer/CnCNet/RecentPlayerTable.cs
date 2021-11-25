@@ -47,7 +47,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                     Tag = iu
                 },
                 new XNAListBoxItem(recentPlayer.GameName, textColor),
-                new XNAListBoxItem(recentPlayer.GameTime.ToString("ddd, MMM d, yyyy @ h:mm tt"), textColor)
+                new XNAListBoxItem(recentPlayer.GameTime.ToLocalTime().ToString("ddd, MMM d, yyyy @ h:mm tt"), textColor)
             });
         }
 

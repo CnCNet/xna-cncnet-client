@@ -52,17 +52,26 @@ namespace DTAClient.DXGUI.Multiplayer
 
         public void AddMessage(ChatMessage message)
         {
+            var listBoxItem = new XNAListBoxItem
+            {
+                TextColor = message.Color,
+                Selectable = true,
+                Tag = message
+            };
+            
             if (message.SenderName == null)
-                AddItem(Renderer.GetSafeString(string.Format("[{0}] {1}",
+            {
+                listBoxItem.Text = Renderer.GetSafeString(string.Format("[{0}] {1}",
                     message.DateTime.ToShortTimeString(),
-                    message.Message), FontIndex),
-                    message.Color, true);
+                    message.Message), FontIndex);
+            }
             else
             {
-                AddItem(Renderer.GetSafeString(string.Format("[{0}] {1}: {2}",
-                    message.DateTime.ToShortTimeString(), message.SenderName, message.Message), FontIndex),
-                    message.Color, true);
+                listBoxItem.Text = Renderer.GetSafeString(string.Format("[{0}] {1}: {2}",
+                    message.DateTime.ToShortTimeString(), message.SenderName, message.Message), FontIndex);
             }
+            
+            AddItem(listBoxItem);
 
             if (LastIndex >= Items.Count - 2)
             {
