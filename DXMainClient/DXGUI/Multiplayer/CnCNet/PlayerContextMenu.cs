@@ -11,7 +11,7 @@ using Microsoft.Xna.Framework;
 
 namespace DTAClient.DXGUI.Multiplayer.CnCNet
 {
-    class PlayerContextMenu : XNAContextMenu
+    public class PlayerContextMenu : XNAContextMenu
     {
         private const string PRIVATE_MESSAGE = "Private Message";
         private const string ADD_FRIEND = "Add Friend";
