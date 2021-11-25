@@ -472,6 +472,7 @@
     <Compile Include="DXGUI\Multiplayer\CnCNet\PasswordRequestWindow.cs" />
     <Compile Include="DXGUI\Multiplayer\CnCNet\PlayerContextMenu.cs" />
     <Compile Include="DXGUI\Multiplayer\CnCNet\PlayerContextMenuData.cs" />
+    <Compile Include="DXGUI\Multiplayer\CnCNet\RecentPlayerTable.cs" />
     <Compile Include="DXGUI\Multiplayer\CnCNet\TunnelListBox.cs" />
     <Compile Include="DXGUI\Multiplayer\CnCNet\TunnelSelectionWindow.cs" />
     <Compile Include="DXGUI\Multiplayer\GameFiltersPanel.cs" />
@@ -551,6 +552,7 @@
     <Compile Include="Online\IRCUser.cs" />
     <Compile Include="Online\IUserCollection.cs" />
     <Compile Include="Online\PrivateMessageHandler.cs" />
+    <Compile Include="Online\RecentPlayer.cs" />
     <Compile Include="Online\UnsortedUserCollection.cs" />
     <Compile Include="Online\SortedUserCollection.cs" />
     <Compile Include="Online\PrivateMessageUser.cs" />
