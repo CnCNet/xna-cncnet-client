@@ -11,6 +11,7 @@ using Rampastring.Tools;
 using System.IO;
 using DTAClient.Domain;
 using DTAClient.Online;
+using Microsoft.Xna.Framework;
 
 namespace DTAClient.DXGUI.Multiplayer.GameLobby
 {
@@ -58,6 +59,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             ProgramConstants.PlayerNameChanged += ProgramConstants_PlayerNameChanged;
             ddPlayerSides[0].SelectedIndexChanged += PlayerSideChanged;
+        }
+
+        protected override void AddNotice(string message, Color color)
+        {
+            XNAMessageBox.Show(WindowManager, "Message", message);
         }
 
         protected override void OnEnabledChanged(object sender, EventArgs args)
