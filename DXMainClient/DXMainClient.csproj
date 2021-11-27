@@ -468,6 +468,7 @@
     <Compile Include="DXGUI\Multiplayer\CnCNet\CnCNetLoginWindow.cs" />
     <Compile Include="DXGUI\Multiplayer\CnCNet\GameCreationEventArgs.cs" />
     <Compile Include="DXGUI\Multiplayer\CnCNet\GameCreationWindow.cs" />
+    <Compile Include="DXGUI\Multiplayer\CnCNet\LoadOrSaveGameOptionPresetWindow.cs" />
     <Compile Include="DXGUI\Multiplayer\CnCNet\MapSharingConfirmationPanel.cs" />
     <Compile Include="DXGUI\Multiplayer\CnCNet\PasswordRequestWindow.cs" />
     <Compile Include="DXGUI\Multiplayer\CnCNet\PlayerContextMenu.cs" />

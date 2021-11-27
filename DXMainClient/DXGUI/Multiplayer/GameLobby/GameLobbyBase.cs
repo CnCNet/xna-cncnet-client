@@ -12,6 +12,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using DTAClient.DXGUI.Multiplayer.CnCNet;
 using DTAClient.Online;
 using DTAClient.Online.EventArguments;
 
@@ -179,6 +180,12 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         /// </summary>
         protected bool RemoveStartingLocations { get; set; } = false;
         protected IniFile GameOptionsIni { get; private set; }
+        
+        private XNAClientButton btnSaveLoadGameOptions { get; set; }
+        
+        private XNAContextMenu loadSaveGameOptionsMenu { get; set; }
+        
+        private LoadOrSaveGameOptionPresetWindow loadOrSaveGameOptionPresetWindow;
 
         public override void Initialize()
         {
@@ -202,11 +209,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             GameOptionsIni = new IniFile(ProgramConstants.GetBaseResourcePath() + "GameOptions.ini");
 
-            GameOptionsPanel = new XNAPanel(WindowManager);
-            GameOptionsPanel.Name = "GameOptionsPanel";
-            GameOptionsPanel.ClientRectangle = new Rectangle(Width - 411, 12, 399, 289);
-            GameOptionsPanel.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 192), 1, 1);
-            GameOptionsPanel.PanelBackgroundDrawMode = PanelBackgroundImageDrawMode.STRETCHED;
+            InitializeGameOptionsPanel();
 
             PlayerOptionsPanel = new XNAPanel(WindowManager);
             PlayerOptionsPanel.Name = "PlayerOptionsPanel";
@@ -340,6 +343,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             AddChild(ddGameMode);
 
             AddChild(GameOptionsPanel);
+            AddChild(btnSaveLoadGameOptions);
+            AddChild(loadSaveGameOptionsMenu);
+            AddChild(loadOrSaveGameOptionPresetWindow);
 
             string[] checkBoxes = GameOptionsIni.GetStringValue(_iniSectionName, "CheckBoxes", String.Empty).Split(',');
 
@@ -381,6 +387,66 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             AddChild(btnPickRandomMap);
         }
 
+        private void InitializeGameOptionsPanel()
+        {
+            GameOptionsPanel = new XNAPanel(WindowManager);
+            GameOptionsPanel.Name = nameof(GameOptionsPanel);
+            GameOptionsPanel.ClientRectangle = new Rectangle(Width - 411, 12, 399, 289);
+            GameOptionsPanel.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 192), 1, 1);
+            GameOptionsPanel.PanelBackgroundDrawMode = PanelBackgroundImageDrawMode.STRETCHED;
+
+            loadOrSaveGameOptionPresetWindow = new LoadOrSaveGameOptionPresetWindow(WindowManager);
+            loadOrSaveGameOptionPresetWindow.Name = nameof(loadOrSaveGameOptionPresetWindow);
+            loadOrSaveGameOptionPresetWindow.PresetLoaded += (sender, s) => HandleGameOptionPresetLoadCommand(s);
+            loadOrSaveGameOptionPresetWindow.PresetSaved += (sender, s) => HandleGameOptionPresetSaveCommand(s);
+            loadOrSaveGameOptionPresetWindow.Disable();
+            var loadConfigMenuItem = new XNAContextMenuItem()
+            {
+                Text = "Load",
+                SelectAction = () => loadOrSaveGameOptionPresetWindow.Show(true)
+            };
+            var saveConfigMenuItem = new XNAContextMenuItem()
+            {
+                Text = "Save",
+                SelectAction = () => loadOrSaveGameOptionPresetWindow.Show(false)
+            };
+
+            loadSaveGameOptionsMenu = new XNAContextMenu(WindowManager);
+            loadSaveGameOptionsMenu.Name = nameof(loadSaveGameOptionsMenu);
+            loadSaveGameOptionsMenu.ClientRectangle = new Rectangle(0, 0, 75, 0);
+            loadSaveGameOptionsMenu.Items.Add(loadConfigMenuItem);
+            loadSaveGameOptionsMenu.Items.Add(saveConfigMenuItem);
+            
+            btnSaveLoadGameOptions = new XNAClientButton(WindowManager);
+            btnSaveLoadGameOptions.Name = nameof(btnSaveLoadGameOptions);
+            btnSaveLoadGameOptions.ClientRectangle = new Rectangle(Width - 12, 14, 18, 22);
+            btnSaveLoadGameOptions.IdleTexture = AssetLoader.LoadTexture("comboBoxArrow.png");
+            btnSaveLoadGameOptions.HoverTexture = AssetLoader.LoadTexture("comboBoxArrow.png");
+            btnSaveLoadGameOptions.LeftClick += (sender, args) =>
+            {
+                loadSaveGameOptionsMenu.Open(new Point(btnSaveLoadGameOptions.X - 74, btnSaveLoadGameOptions.Y));
+            };
+        }
+        
+        protected void HandleGameOptionPresetSaveCommand(string presetName)
+        {
+            string error = AddGameOptionPreset(presetName);
+            if (!string.IsNullOrEmpty(error))
+                AddNotice(error);
+        }
+
+        protected void HandleGameOptionPresetLoadCommand(string presetName)
+        {
+            if (LoadGameOptionPreset(presetName))
+                AddNotice("Game option preset loaded succesfully.");
+            else
+                AddNotice($"Preset {presetName} not found!");
+        }
+
+        protected void AddNotice(string message) => AddNotice(message, Color.White);
+
+        protected abstract void AddNotice(string message, Color color);
+        
         private void BtnPickRandomMap_LeftClick(object sender, EventArgs e) => PickRandomMap();
 
         private void TbMapSearch_InputReceived(object sender, EventArgs e) => ListMaps();

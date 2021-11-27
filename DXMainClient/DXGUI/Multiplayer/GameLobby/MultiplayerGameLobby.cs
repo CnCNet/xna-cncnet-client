@@ -593,21 +593,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             AddNotice($"{senderName} rolled {results.Length}d{dieSides} and got {string.Join(", ", results)}");
         }
 
-        private void HandleGameOptionPresetSaveCommand(string presetName)
-        {
-            string error = AddGameOptionPreset(presetName);
-            if (!string.IsNullOrEmpty(error))
-                AddNotice(error);
-        }
-
-        private void HandleGameOptionPresetLoadCommand(string presetName)
-        {
-            if (LoadGameOptionPreset(presetName))
-                AddNotice("Game option preset loaded succesfully.");
-            else
-                AddNotice($"Preset {presetName} not found!");
-        }
-
         protected abstract void SendChatMessage(string message);
 
         /// <summary>
@@ -1035,10 +1020,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             AddNotice(message, Color.Yellow);
         }
-
-        protected void AddNotice(string message) => AddNotice(message, Color.White);
-
-        protected abstract void AddNotice(string message, Color color);
 
         protected override bool AllowPlayerOptionsChange() => IsHost;
 

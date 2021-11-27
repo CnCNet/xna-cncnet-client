@@ -115,8 +115,7 @@ namespace DTAClient.Domain.Multiplayer
 
         public GameOptionPreset GetPreset(string name)
         {
-            if (gameOptionPresetsIni == null)
-                LoadIni();
+            LoadIniIfNotInitialized();
 
             if (presets.TryGetValue(name, out GameOptionPreset value))
             {
@@ -127,13 +126,27 @@ namespace DTAClient.Domain.Multiplayer
             return null;
         }
 
+        public List<string> GetPresetNames()
+        {
+            LoadIniIfNotInitialized();
+
+            return presets.Keys
+                .Where(key  => !string.IsNullOrWhiteSpace(key))
+                .ToList();
+        }
+
         public void AddPreset(GameOptionPreset preset)
         {
-            if (gameOptionPresetsIni == null)
-                LoadIni();
+            LoadIniIfNotInitialized();
 
             presets[preset.ProfileName] = preset;
             WriteIni();
+        }
+
+        private void LoadIniIfNotInitialized()
+        {
+            if (gameOptionPresetsIni == null)
+                LoadIni();
         }
 
         private void LoadIni()
