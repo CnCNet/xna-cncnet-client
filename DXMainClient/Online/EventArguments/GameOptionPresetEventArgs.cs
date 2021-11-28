@@ -1,6 +1,8 @@
-﻿namespace DTAClient.Online.EventArguments
+﻿using System;
+
+namespace DTAClient.Online.EventArguments
 {
-    public class GameOptionPresetEventArgs
+    public class GameOptionPresetEventArgs : EventArgs
     {
         public string PresetName { get; }
 
