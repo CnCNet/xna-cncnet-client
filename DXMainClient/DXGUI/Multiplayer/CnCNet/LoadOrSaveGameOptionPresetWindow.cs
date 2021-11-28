@@ -2,6 +2,7 @@
 using System.Linq;
 using ClientGUI;
 using DTAClient.Domain.Multiplayer;
+using DTAClient.Online.EventArguments;
 using Microsoft.Xna.Framework;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
@@ -26,9 +27,9 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         private readonly XNATextBox tbNewPresetName;
 
-        public EventHandler<string> PresetLoaded;
+        public EventHandler<GameOptionPresetEventArgs> PresetLoaded;
 
-        public EventHandler<string> PresetSaved;
+        public EventHandler<GameOptionPresetEventArgs> PresetSaved;
 
         public LoadOrSaveGameOptionPresetWindow(WindowManager windowManager) : base(windowManager)
         {
@@ -233,12 +234,12 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             var selectedItem = ddPresetSelect.Items[ddPresetSelect.SelectedIndex];
             if (_isLoad)
             {
-                PresetLoaded?.Invoke(this, selectedItem.Text);
+                PresetLoaded?.Invoke(this, new GameOptionPresetEventArgs(selectedItem.Text));
             }
             else
             {
                 var presetName = IsCreatePresetSelected ? tbNewPresetName.Text : selectedItem.Text;
-                PresetSaved?.Invoke(this, presetName);
+                PresetSaved?.Invoke(this, new GameOptionPresetEventArgs(presetName));
             }
 
             Disable();

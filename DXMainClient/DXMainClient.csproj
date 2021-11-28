@@ -521,6 +521,7 @@
     <Compile Include="Online\CnCNetUserData.cs" />
     <Compile Include="Online\EventArguments\ChannelCTCPEventArgs.cs" />
     <Compile Include="Online\EventArguments\CnCNetPrivateMessageEventArgs.cs" />
+    <Compile Include="Online\EventArguments\GameOptionPresetEventArgs.cs" />
     <Compile Include="Online\EventArguments\JoinUserEventArgs.cs" />
     <Compile Include="Online\EventArguments\MultiplayerNameRightClickedEventArgs.cs" />
     <Compile Include="Online\EventArguments\PrivateCTCPEventArgs.cs" />

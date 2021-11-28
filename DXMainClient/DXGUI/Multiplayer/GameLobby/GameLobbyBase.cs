@@ -427,6 +427,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 loadSaveGameOptionsMenu.Open(new Point(btnSaveLoadGameOptions.X - 74, btnSaveLoadGameOptions.Y));
             };
         }
+
+        protected void HandleGameOptionPresetSaveCommand(GameOptionPresetEventArgs e) => HandleGameOptionPresetSaveCommand(e.PresetName);
         
         protected void HandleGameOptionPresetSaveCommand(string presetName)
         {
@@ -434,6 +436,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (!string.IsNullOrEmpty(error))
                 AddNotice(error);
         }
+
+        protected void HandleGameOptionPresetLoadCommand(GameOptionPresetEventArgs e) => HandleGameOptionPresetLoadCommand(e.PresetName);
 
         protected void HandleGameOptionPresetLoadCommand(string presetName)
         {
