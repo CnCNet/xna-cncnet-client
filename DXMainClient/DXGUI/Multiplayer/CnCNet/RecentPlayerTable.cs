@@ -10,7 +10,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
     {
         private readonly CnCNetManager connectionManager;
 
-        public EventHandler<IRCUser> PlayerRightClick;
+        public EventHandler<RecentPlayerTableRightClickEventArgs> PlayerRightClick;
 
         public RecentPlayerTable(WindowManager windowManager, CnCNetManager connectionManager) : base(windowManager)
         {
@@ -86,7 +86,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             SelectedIndex = HoveredIndex;
 
             var selectedItem = GetItem(0, SelectedIndex);
-            PlayerRightClick?.Invoke(this, (IRCUser)selectedItem.Tag);
+            PlayerRightClick?.Invoke(this, new RecentPlayerTableRightClickEventArgs((IRCUser)selectedItem.Tag));
         }
     }
 }

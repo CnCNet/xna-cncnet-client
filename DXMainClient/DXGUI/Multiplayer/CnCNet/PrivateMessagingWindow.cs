@@ -224,8 +224,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 tabControl.SelectedTab = MESSAGES_INDEX;
         }
 
-        private void RecentPlayersList_RightClick(object sender, IRCUser ircUser)
-            => playerContextMenu.Show(ircUser, GetCursorPoint());
+        private void RecentPlayersList_RightClick(object sender, RecentPlayerTableRightClickEventArgs e)
+            => playerContextMenu.Show(e.IrcUser, GetCursorPoint());
 
         private void ConnectionManager_UserGameIndexUpdated(object sender, UserEventArgs e)
         {
