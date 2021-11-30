@@ -4,6 +4,7 @@ using System.Diagnostics;
 using DTAClient.Online;
 using Microsoft.Xna.Framework;
 using System;
+using ClientCore.Extensions;
 
 namespace DTAClient.DXGUI.Multiplayer
 {
@@ -23,19 +24,9 @@ namespace DTAClient.DXGUI.Multiplayer
             if (SelectedIndex < 0 || SelectedIndex >= Items.Count)
                 return;
 
-            string itemText = Items[SelectedIndex].Text;
-
-            int index = itemText.IndexOf("http://");
-            if (index == -1)
-                index = itemText.IndexOf("ftp://");
-            if (index == -1)
-                index = itemText.IndexOf("https://");
-
-            if (index == -1)
-                return; // No link found
-
-            string link = itemText.Substring(index);
-            link = link.Split(' ')[0]; // Nuke any words coming after the link
+            var link = Items[SelectedIndex].Text?.GetLink();
+            if (link == null)
+                return;
 
             Process.Start(link);
         }

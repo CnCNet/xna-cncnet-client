@@ -1,17 +1,19 @@
-﻿using Rampastring.XNAUI.XNAControls;
-using System;
-using System.Collections.Generic;
+﻿using System;
+using System.Diagnostics;
 using System.Linq;
-using System.Text;
+using System.Windows.Forms;
 using ClientCore;
+using ClientCore.Extensions;
+using ClientGUI;
 using DTAClient.Online;
 using DTAClient.Online.EventArguments;
-using Rampastring.XNAUI;
 using Microsoft.Xna.Framework;
+using Rampastring.XNAUI;
+using Rampastring.XNAUI.XNAControls;
 
 namespace DTAClient.DXGUI.Multiplayer.CnCNet
 {
-    public class PlayerContextMenu : XNAContextMenu
+    public class GlobalContextMenu : XNAContextMenu
     {
         private const string PRIVATE_MESSAGE = "Private Message";
         private const string ADD_FRIEND = "Add Friend";
@@ -20,20 +22,25 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         private const string UNBLOCK = "Unblock";
         private const string INVITE = "Invite";
         private const string JOIN = "Join";
-        
-        private readonly CnCNetManager connectionManager;
+        private const string COPY_LINK = "Copy Link";
+        private const string OPEN_LINK = "Open Link";
+
         private readonly CnCNetUserData cncnetUserData;
         private readonly PrivateMessagingWindow pmWindow;
-        private PlayerContextMenuData contextMenuData;
         private XNAContextMenuItem privateMessageItem;
         private XNAContextMenuItem toggleFriendItem;
         private XNAContextMenuItem toggleIgnoreItem;
         private XNAContextMenuItem invitePlayerItem;
         private XNAContextMenuItem joinPlayerItem;
+        private XNAContextMenuItem copyLinkItem;
+        private XNAContextMenuItem openLinkItem;
+
+        protected readonly CnCNetManager connectionManager;
+        protected GlobalContextMenuData contextMenuData;
 
         public EventHandler<JoinUserEventArgs> JoinEvent;
 
-        public PlayerContextMenu(
+        public GlobalContextMenu(
             WindowManager windowManager,
             CnCNetManager connectionManager,
             CnCNetUserData cncnetUserData,
@@ -44,7 +51,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             this.cncnetUserData = cncnetUserData;
             this.pmWindow = pmWindow;
 
-            Name = nameof(PlayerContextMenu);
+            Name = nameof(GlobalContextMenu);
             ClientRectangle = new Rectangle(0, 0, 150, 2);
             Enabled = false;
             Visible = false;
@@ -77,11 +84,24 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 Text = JOIN,
                 SelectAction = () => JoinEvent?.Invoke(this, new JoinUserEventArgs(GetIrcUser()))
             };
+
+            copyLinkItem = new XNAContextMenuItem()
+            {
+                Text = COPY_LINK
+            };
+
+            openLinkItem = new XNAContextMenuItem()
+            {
+                Text = OPEN_LINK
+            };
+
             AddItem(privateMessageItem);
             AddItem(toggleFriendItem);
             AddItem(toggleIgnoreItem);
             AddItem(invitePlayerItem);
             AddItem(joinPlayerItem);
+            AddItem(copyLinkItem);
+            AddItem(openLinkItem);
         }
 
         private void Invite()
@@ -104,18 +124,64 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             ));
         }
 
-        private void UpdateButtons(IRCUser ircUser, ChannelUser channelUser = null)
+        private void UpdateButtons()
         {
-            var isOnline = connectionManager.UserList.Any(u => u.Name == ircUser.Name);
-            var isAdmin = channelUser?.IsAdmin ?? false;
+            UpdatePlayerBasedButtons();
+            UpdateMessageBasedButtons();
+        }
 
-            privateMessageItem.Visible = isOnline;
+        private void UpdatePlayerBasedButtons()
+        {
+            var ircUser = GetIrcUser();
+            var isOnline = ircUser != null && connectionManager.UserList.Any(u => u.Name == ircUser.Name);
+            var isAdmin = contextMenuData.ChannelUser?.IsAdmin ?? false;
+
+            toggleFriendItem.Visible = ircUser != null;
+            privateMessageItem.Visible = ircUser != null && isOnline;
+            toggleIgnoreItem.Visible = ircUser != null;
+            invitePlayerItem.Visible = ircUser != null && isOnline && !string.IsNullOrEmpty(contextMenuData.inviteChannelName);
+            joinPlayerItem.Visible = ircUser != null && !contextMenuData.PreventJoinGame && isOnline;
+
             toggleIgnoreItem.Selectable = !isAdmin;
-            invitePlayerItem.Visible = isOnline && !string.IsNullOrEmpty(contextMenuData.inviteChannelName);
-            joinPlayerItem.Visible = !contextMenuData.PreventJoinGame && isOnline;
+
+            if (ircUser == null)
+                return;
 
             toggleFriendItem.Text = cncnetUserData.IsFriend(ircUser.Name) ? REMOVE_FRIEND : ADD_FRIEND;
             toggleIgnoreItem.Text = cncnetUserData.IsIgnored(ircUser.Ident) ? UNBLOCK : BLOCK;
+        }
+
+        private void UpdateMessageBasedButtons()
+        {
+            var link = contextMenuData?.ChatMessage?.Message?.GetLink();
+
+            copyLinkItem.Visible = link != null;
+            openLinkItem.Visible = link != null;
+
+            copyLinkItem.SelectAction = () =>
+            {
+                if (link == null)
+                    return;
+                CopyLink(link);
+            };
+            openLinkItem.SelectAction = () =>
+            {
+                if (link == null)
+                    return;
+                Process.Start(link);
+            };
+        }
+
+        private void CopyLink(string link)
+        {
+            try
+            {
+                Clipboard.SetText(link);
+            }
+            catch (Exception)
+            {
+                XNAMessageBox.Show(WindowManager, "Error", "Unable to copy link");
+            }
         }
 
         private void GetIrcUserIdent(Action<string> callback)
@@ -143,19 +209,22 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         {
             if (contextMenuData.IrcUser != null)
                 return contextMenuData.IrcUser;
-            
+
             if (contextMenuData.ChannelUser?.IRCUser != null)
                 return contextMenuData.ChannelUser.IRCUser;
 
             if (!string.IsNullOrEmpty(contextMenuData.PlayerName))
                 return connectionManager.UserList.Find(u => u.Name == contextMenuData.PlayerName);
 
+            if (!string.IsNullOrEmpty(contextMenuData.ChatMessage?.SenderName))
+                return connectionManager.UserList.Find(u => u.Name == contextMenuData.ChatMessage.SenderName);
+
             return null;
         }
 
         public void Show(string playerName, Point cursorPoint)
         {
-            Show(new PlayerContextMenuData
+            Show(new GlobalContextMenuData
             {
                 PlayerName = playerName
             }, cursorPoint);
@@ -163,7 +232,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         public void Show(IRCUser ircUser, Point cursorPoint)
         {
-            Show(new PlayerContextMenuData
+            Show(new GlobalContextMenuData
             {
                 IrcUser = ircUser
             }, cursorPoint);
@@ -171,20 +240,29 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         public void Show(ChannelUser channelUser, Point cursorPoint)
         {
-            Show(new PlayerContextMenuData
+            Show(new GlobalContextMenuData
             {
                 ChannelUser = channelUser
             }, cursorPoint);
         }
 
-        public void Show(PlayerContextMenuData data, Point cursorPoint)
+        public void Show(ChatMessage chatMessage, Point cursorPoint)
         {
+            Show(new GlobalContextMenuData()
+            {
+                ChatMessage = chatMessage
+            }, cursorPoint);
+        }
+
+        public void Show(GlobalContextMenuData data, Point cursorPoint)
+        {
+            Disable();
             contextMenuData = data;
-            var ircUser = GetIrcUser();
-            if (ircUser == null)
+            UpdateButtons();
+
+            if (!Items.Any(i => i.Visible))
                 return;
 
-            UpdateButtons(ircUser, contextMenuData.ChannelUser);
             Open(cursorPoint);
         }
     }
