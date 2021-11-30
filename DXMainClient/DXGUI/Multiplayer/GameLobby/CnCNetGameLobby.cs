@@ -106,7 +106,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         private GameCollection gameCollection;
         private CnCNetUserData cncnetUserData;
         private readonly PrivateMessagingWindow pmWindow;
-        private PlayerContextMenu playerContextMenu;
+        private GlobalContextMenu globalContextMenu;
 
         private string hostName;
 
@@ -179,8 +179,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             WindowManager.AddAndInitializeControl(gameBroadcastTimer);
 
-            playerContextMenu = new PlayerContextMenu(WindowManager, connectionManager, cncnetUserData, pmWindow);
-            AddChild(playerContextMenu);
+            globalContextMenu = new GlobalContextMenu(WindowManager, connectionManager, cncnetUserData, pmWindow);
+            AddChild(globalContextMenu);
 
             MultiplayerNameRightClicked += MultiplayerName_RightClick;
             
@@ -189,7 +189,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private void MultiplayerName_RightClick(object sender, MultiplayerNameRightClickedEventArgs args)
         {
-            playerContextMenu.Show(new PlayerContextMenuData()
+            globalContextMenu.Show(new GlobalContextMenuData()
             {
                 PlayerName = args.PlayerName,
                 PreventJoinGame = true

@@ -58,7 +58,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         private XNATextBox tbMessageInput;
 
-        private PlayerContextMenu playerContextMenu;
+        private GlobalContextMenu globalContextMenu;
 
         private CnCNetManager connectionManager;
 
@@ -166,6 +166,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 lbUserList.Height - 25);
             lbMessages.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 128), 1, 1);
             lbMessages.PanelBackgroundDrawMode = PanelBackgroundImageDrawMode.STRETCHED;
+            lbMessages.RightClick += ChatListBox_RightClick;
 
             tbMessageInput = new XNATextBox(WindowManager);
             tbMessageInput.Name = nameof(tbMessageInput);
@@ -180,8 +181,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             mclbRecentPlayerList.PlayerRightClick += RecentPlayersList_RightClick;
             mclbRecentPlayerList.Disable();
 
-            playerContextMenu = new PlayerContextMenu(WindowManager, connectionManager, cncnetUserData, this);
-            playerContextMenu.JoinEvent += PlayerContextMenu_JoinUser;
+            globalContextMenu = new GlobalContextMenu(WindowManager, connectionManager, cncnetUserData, this);
+            globalContextMenu.JoinEvent += PlayerContextMenu_JoinUser;
 
             notificationBox = new PrivateMessageNotificationBox(WindowManager);
             notificationBox.Enabled = false;
@@ -195,7 +196,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             AddChild(lbMessages);
             AddChild(tbMessageInput);
             AddChild(mclbRecentPlayerList);
-            AddChild(playerContextMenu);
+            AddChild(globalContextMenu);
             WindowManager.AddAndInitializeControl(notificationBox);
 
             base.Initialize();
@@ -218,6 +219,19 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             GameProcessLogic.GameProcessExited += SharedUILogic_GameProcessExited;
         }
 
+        private void ChatListBox_RightClick(object sender, EventArgs e)
+        {
+            if (lbMessages.HoveredIndex < 0 || lbMessages.HoveredIndex >= lbMessages.Items.Count)
+                return;
+
+            lbMessages.SelectedIndex = lbMessages.HoveredIndex;
+            var chatMessage = lbMessages.SelectedItem.Tag as ChatMessage;
+            if (chatMessage == null)
+                return;
+
+            globalContextMenu.Show(chatMessage, GetCursorPoint());
+        }
+
         private void UserList_LeftDoubleClick(object sender, EventArgs e)
         {
             if (lbUserList.SelectedItem != null)
@@ -225,7 +239,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         }
 
         private void RecentPlayersList_RightClick(object sender, RecentPlayerTableRightClickEventArgs e)
-            => playerContextMenu.Show(e.IrcUser, GetCursorPoint());
+            => globalContextMenu.Show(e.IrcUser, GetCursorPoint());
 
         private void ConnectionManager_UserGameIndexUpdated(object sender, UserEventArgs e)
         {
@@ -374,7 +388,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             if (ircUser == null)
                 return;
 
-            playerContextMenu.Show(new PlayerContextMenuData()
+            globalContextMenu.Show(new GlobalContextMenuData()
             {
                 IrcUser = ircUser,
                 inviteChannelName = inviteChannelName,
