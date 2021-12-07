@@ -181,7 +181,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         protected bool RemoveStartingLocations { get; set; } = false;
         protected IniFile GameOptionsIni { get; private set; }
         
-        private XNAClientButton btnSaveLoadGameOptions { get; set; }
+        protected XNAClientButton BtnSaveLoadGameOptions { get; set; }
         
         private XNAContextMenu loadSaveGameOptionsMenu { get; set; }
         
@@ -343,7 +343,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             AddChild(ddGameMode);
 
             AddChild(GameOptionsPanel);
-            AddChild(btnSaveLoadGameOptions);
+            AddChild(BtnSaveLoadGameOptions);
             AddChild(loadSaveGameOptionsMenu);
             AddChild(loadOrSaveGameOptionPresetWindow);
 
@@ -417,14 +417,14 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             loadSaveGameOptionsMenu.Items.Add(loadConfigMenuItem);
             loadSaveGameOptionsMenu.Items.Add(saveConfigMenuItem);
             
-            btnSaveLoadGameOptions = new XNAClientButton(WindowManager);
-            btnSaveLoadGameOptions.Name = nameof(btnSaveLoadGameOptions);
-            btnSaveLoadGameOptions.ClientRectangle = new Rectangle(Width - 12, 14, 18, 22);
-            btnSaveLoadGameOptions.IdleTexture = AssetLoader.LoadTexture("comboBoxArrow.png");
-            btnSaveLoadGameOptions.HoverTexture = AssetLoader.LoadTexture("comboBoxArrow.png");
-            btnSaveLoadGameOptions.LeftClick += (sender, args) =>
+            BtnSaveLoadGameOptions = new XNAClientButton(WindowManager);
+            BtnSaveLoadGameOptions.Name = nameof(BtnSaveLoadGameOptions);
+            BtnSaveLoadGameOptions.ClientRectangle = new Rectangle(Width - 12, 14, 18, 22);
+            BtnSaveLoadGameOptions.IdleTexture = AssetLoader.LoadTexture("comboBoxArrow.png");
+            BtnSaveLoadGameOptions.HoverTexture = AssetLoader.LoadTexture("comboBoxArrow.png");
+            BtnSaveLoadGameOptions.LeftClick += (sender, args) =>
             {
-                loadSaveGameOptionsMenu.Open(new Point(btnSaveLoadGameOptions.X - 74, btnSaveLoadGameOptions.Y));
+                loadSaveGameOptionsMenu.Open(new Point(BtnSaveLoadGameOptions.X - 74, BtnSaveLoadGameOptions.Y));
             };
         }
 

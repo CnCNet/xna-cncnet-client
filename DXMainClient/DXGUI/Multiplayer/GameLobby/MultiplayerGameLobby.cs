@@ -612,6 +612,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (IsHost)
             {
                 ShowMapList();
+                BtnSaveLoadGameOptions.Enable();
 
                 btnLockGame.Text = "Lock Game";
                 btnLockGame.Enabled = true;
@@ -635,6 +636,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             else
             {
                 HideMapList();
+                BtnSaveLoadGameOptions.Disable();
 
                 btnLockGame.Enabled = false;
                 btnLockGame.Visible = false;
