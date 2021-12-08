@@ -421,6 +421,9 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         private void PrivateMessageHandler_PrivateMessageReceived(object sender, PrivateMessageEventArgs e)
         {
+            if (UserINISettings.Instance.DisablePrivateMessages)
+                return;
+            
             PrivateMessageUser pmUser = privateMessageUsers.Find(u => u.IrcUser.Name == e.Sender);
 
             if (pmUser == null)
