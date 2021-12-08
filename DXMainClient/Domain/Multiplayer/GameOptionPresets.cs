@@ -143,6 +143,17 @@ namespace DTAClient.Domain.Multiplayer
             WriteIni();
         }
 
+        public void DeletePreset(string name)
+        {
+            LoadIniIfNotInitialized();
+
+            if (!presets.ContainsKey(name))
+                return;
+
+            presets.Remove(name);
+            WriteIni();
+        }
+
         private void LoadIniIfNotInitialized()
         {
             if (gameOptionPresetsIni == null)

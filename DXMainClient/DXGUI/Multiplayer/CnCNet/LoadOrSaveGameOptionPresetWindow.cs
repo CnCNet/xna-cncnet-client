@@ -21,6 +21,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         private readonly XNAClientButton btnLoadSave;
 
+        private readonly XNAClientButton btnDelete;
+
         private readonly XNAClientDropDown ddPresetSelect;
 
         private readonly XNALabel lblNewPresetName;
@@ -33,11 +35,12 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         public LoadOrSaveGameOptionPresetWindow(WindowManager windowManager) : base(windowManager)
         {
-            ClientRectangle = new Rectangle(0, 0, 300, 185);
+            ClientRectangle = new Rectangle(0, 0, 325, 185);
 
             var margin = 10;
 
             lblHeader = new XNALabel(WindowManager);
+            lblHeader.Name = nameof(lblHeader);
             lblHeader.FontIndex = 1;
             lblHeader.ClientRectangle = new Rectangle(
                 margin, margin,
@@ -45,6 +48,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             );
 
             var lblPresetName = new XNALabel(WindowManager);
+            lblPresetName.Name = nameof(lblPresetName);
             lblPresetName.Text = "Preset Name";
             lblPresetName.ClientRectangle = new Rectangle(
                 margin, lblHeader.Bottom + margin,
@@ -59,6 +63,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             ddiSelectPresetItem.Selectable = false;
 
             ddPresetSelect = new XNAClientDropDown(WindowManager);
+            ddPresetSelect.Name = nameof(ddPresetSelect);
             ddPresetSelect.ClientRectangle = new Rectangle(
                 10, lblPresetName.Bottom + 2,
                 150, 22
@@ -66,6 +71,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             ddPresetSelect.SelectedIndexChanged += DropDownPresetSelect_SelectedIndexChanged;
 
             lblNewPresetName = new XNALabel(WindowManager);
+            lblNewPresetName.Name = nameof(lblNewPresetName);
             lblNewPresetName.Text = "New Preset Name";
             lblNewPresetName.ClientRectangle = new Rectangle(
                 margin, ddPresetSelect.Bottom + margin,
@@ -73,13 +79,15 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             );
 
             tbNewPresetName = new XNATextBox(WindowManager);
+            tbNewPresetName.Name = nameof(tbNewPresetName);
             tbNewPresetName.ClientRectangle = new Rectangle(
                 10, lblNewPresetName.Bottom + 2,
                 150, 22
             );
-            tbNewPresetName.TextChanged += (sender, args) => RefreshLoadSaveBtn();
+            tbNewPresetName.TextChanged += (sender, args) => RefreshButtons();
 
             btnLoadSave = new XNAClientButton(WindowManager);
+            btnLoadSave.Name = nameof(btnLoadSave);
             btnLoadSave.LeftClick += BtnLoadSave_LeftClick;
             btnLoadSave.ClientRectangle = new Rectangle(
                 margin,
@@ -88,10 +96,21 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 UIDesignConstants.BUTTON_HEIGHT
             );
 
+            btnDelete = new XNAClientButton(WindowManager);
+            btnDelete.Name = nameof(btnDelete);
+            btnDelete.Text = "Delete";
+            btnDelete.LeftClick += BtnDelete_LeftClick;
+            btnDelete.ClientRectangle = new Rectangle(
+                btnLoadSave.Right + margin,
+                btnLoadSave.Y,
+                UIDesignConstants.BUTTON_WIDTH_92,
+                UIDesignConstants.BUTTON_HEIGHT
+            );
+
             var btnCancel = new XNAClientButton(WindowManager);
             btnCancel.Text = "Cancel";
             btnCancel.ClientRectangle = new Rectangle(
-                btnLoadSave.Right + margin,
+                btnDelete.Right + margin,
                 btnLoadSave.Y,
                 UIDesignConstants.BUTTON_WIDTH_92,
                 UIDesignConstants.BUTTON_HEIGHT
@@ -104,6 +123,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             AddChild(lblNewPresetName);
             AddChild(tbNewPresetName);
             AddChild(btnLoadSave);
+            AddChild(btnDelete);
             AddChild(btnCancel);
 
             Disable();
@@ -124,6 +144,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             else
                 ShowSave();
 
+            RefreshButtons();
             CenterOnParent();
             Enable();
         }
@@ -133,24 +154,10 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         /// </summary>
         private void DropDownPresetSelect_SelectedIndexChanged(object sender, EventArgs eventArgs)
         {
-            if (_isLoad)
-                DropDownPresetSelect_SelectedIndexChanged_IsLoad();
-            else
+            if (!_isLoad)
                 DropDownPresetSelect_SelectedIndexChanged_IsSave();
 
-            RefreshLoadSaveBtn();
-        }
-
-        /// <summary>
-        /// Callback when the Preset drop down selection has changed during "load" mode
-        /// </summary>
-        private void DropDownPresetSelect_SelectedIndexChanged_IsLoad()
-        {
-            if (!IsSelectPresetSelected && ddPresetSelect.Items.Contains(ddiSelectPresetItem))
-            {
-                ddPresetSelect.Items.Remove(ddiSelectPresetItem);
-                ddPresetSelect.SelectedIndex--;
-            }
+            RefreshButtons();
         }
 
         /// <summary>
@@ -175,12 +182,14 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         /// <summary>
         /// Refresh the state of the load/save button
         /// </summary>
-        private void RefreshLoadSaveBtn()
+        private void RefreshButtons()
         {
             if (_isLoad)
                 btnLoadSave.Enabled = !IsSelectPresetSelected;
             else
                 btnLoadSave.Enabled = !IsCreatePresetSelected || !IsNewPresetNameFieldEmpty;
+
+            btnDelete.Enabled = !IsCreatePresetSelected && !IsSelectPresetSelected;
         }
 
         private bool IsCreatePresetSelected => ddPresetSelect.SelectedItem == ddiCreatePresetItem;
@@ -227,6 +236,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             // show fields to specify a preset name during "save" mode
             lblNewPresetName.Enable();
             tbNewPresetName.Enable();
+            tbNewPresetName.Text = string.Empty;
         }
 
         private void BtnLoadSave_LeftClick(object sender, EventArgs e)
@@ -243,6 +253,18 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             }
 
             Disable();
+        }
+
+        private void BtnDelete_LeftClick(object sender, EventArgs e)
+        {
+            var selectedItem = ddPresetSelect.Items[ddPresetSelect.SelectedIndex];
+            var messageBox = XNAMessageBox.ShowYesNoDialog(WindowManager, "Confirm Preset Delete", $"Are you sure you want to delete this preset?\n\n{selectedItem.Text}");
+            messageBox.YesClickedAction = box =>
+            {
+                GameOptionPresets.Instance.DeletePreset(selectedItem.Text);
+                ddPresetSelect.Items.Remove(selectedItem);
+                ddPresetSelect.SelectedIndex = 0;
+            };
         }
     }
 }
