@@ -6,6 +6,7 @@ using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
 using System;
 using System.Collections.Generic;
+using ClientCore.Enums;
 
 namespace DTAConfig.OptionPanels
 {
@@ -29,9 +30,9 @@ namespace DTAConfig.OptionPanels
         XNAClientCheckBox chkConnectOnStartup;
         XNAClientCheckBox chkDiscordIntegration;
         XNAClientCheckBox chkAllowGameInvitesFromFriendsOnly;
-        XNAClientCheckBox chkDisablePrivateMessages;
         XNAClientCheckBox chkDisablePrivateMessagePopup;
-        XNAClientCheckBox chkDisablePrivateMessagesFromNonFriends;
+
+        XNAClientDropDown ddAllowPrivateMessagesFrom;
 
         GameCollection gameCollection;
 
@@ -87,33 +88,16 @@ namespace DTAConfig.OptionPanels
 
             AddChild(chkNotifyOnUserListChange);
 
-            chkDisablePrivateMessages = new XNAClientCheckBox(WindowManager);
-            chkDisablePrivateMessages.Name = nameof(chkDisablePrivateMessages);
-            chkDisablePrivateMessages.ClientRectangle = new Rectangle(
-                chkNotifyOnUserListChange.X,
-                chkNotifyOnUserListChange.Bottom + 12, 0, 0);
-            chkDisablePrivateMessages.Text = "Disable Private Messages";
-            chkDisablePrivateMessages.CheckedChanged += ChkDisablePrivateMessages_CheckChanged;
-
-            AddChild(chkDisablePrivateMessages);
-
             chkDisablePrivateMessagePopup = new XNAClientCheckBox(WindowManager);
             chkDisablePrivateMessagePopup.Name = nameof(chkDisablePrivateMessagePopup);
             chkDisablePrivateMessagePopup.ClientRectangle = new Rectangle(
-                chkDisablePrivateMessages.X + 22,
-                chkDisablePrivateMessages.Bottom + 8, 0, 0);
-            chkDisablePrivateMessagePopup.Text = "Disable Popups";
+                chkNotifyOnUserListChange.X,
+                chkNotifyOnUserListChange.Bottom + 8, 0, 0);
+            chkDisablePrivateMessagePopup.Text = "Disable Popups from Private Messages";
 
             AddChild(chkDisablePrivateMessagePopup);
 
-            chkDisablePrivateMessagesFromNonFriends = new XNAClientCheckBox(WindowManager);
-            chkDisablePrivateMessagesFromNonFriends.Name = nameof(chkDisablePrivateMessagesFromNonFriends);
-            chkDisablePrivateMessagesFromNonFriends.ClientRectangle = new Rectangle(
-                chkDisablePrivateMessagePopup.X,
-                chkDisablePrivateMessagePopup.Bottom + 8, 0, 0);
-            chkDisablePrivateMessagesFromNonFriends.Text = "Disable From Non-Friends";
-
-            AddChild(chkDisablePrivateMessagesFromNonFriends);
+            InitAllowPrivateMessagesFromDropdown();
             
             // RIGHT COLUMN
 
@@ -176,6 +160,44 @@ namespace DTAConfig.OptionPanels
             AddChild(chkAllowGameInvitesFromFriendsOnly);
         }
 
+        private void InitAllowPrivateMessagesFromDropdown()
+        {
+            XNALabel lblAllPrivateMessagesFrom = new XNALabel(WindowManager);
+            lblAllPrivateMessagesFrom.Name = nameof(lblAllPrivateMessagesFrom);
+            lblAllPrivateMessagesFrom.Text = "Allow Private Messages From:";
+            lblAllPrivateMessagesFrom.ClientRectangle = new Rectangle(
+                chkDisablePrivateMessagePopup.X,
+                chkDisablePrivateMessagePopup.Bottom + 12, 165, 0);
+
+            AddChild(lblAllPrivateMessagesFrom);
+
+            ddAllowPrivateMessagesFrom = new XNAClientDropDown(WindowManager);
+            ddAllowPrivateMessagesFrom.Name = nameof(ddAllowPrivateMessagesFrom);
+            ddAllowPrivateMessagesFrom.ClientRectangle = new Rectangle(
+                lblAllPrivateMessagesFrom.Right,
+                lblAllPrivateMessagesFrom.Y - 2, 65, 0);
+
+            ddAllowPrivateMessagesFrom.AddItem(new XNADropDownItem()
+            {
+                Text = "All",
+                Tag =  AllowPrivateMessagesFromEnum.All
+            });
+
+            ddAllowPrivateMessagesFrom.AddItem(new XNADropDownItem()
+            {
+                Text = "Friends",
+                Tag =  AllowPrivateMessagesFromEnum.Friends
+            });
+
+            ddAllowPrivateMessagesFrom.AddItem(new XNADropDownItem()
+            {
+                Text = "None",
+                Tag =  AllowPrivateMessagesFromEnum.None
+            });
+
+            AddChild(ddAllowPrivateMessagesFrom);
+        }
+
         private void InitGameListPanel()
         {
             const int gameListPanelHeight = 185;
@@ -234,11 +256,6 @@ namespace DTAConfig.OptionPanels
             }
         }
 
-        private void ChkDisablePrivateMessages_CheckChanged(object sender, EventArgs e)
-        {
-            RefreshOptions();
-        }
-
         private void ChkSkipLoginWindow_CheckedChanged(object sender, EventArgs e)
         {
             CheckConnectOnStartupAllowance();
@@ -269,9 +286,8 @@ namespace DTAConfig.OptionPanels
             chkWriteInstallPathToRegistry.Checked = IniSettings.WritePathToRegistry;
             chkPlaySoundOnGameHosted.Checked = IniSettings.PlaySoundOnGameHosted;
             chkNotifyOnUserListChange.Checked = IniSettings.NotifyOnUserListChange;
-            chkDisablePrivateMessages.Checked = IniSettings.DisablePrivateMessages;
             chkDisablePrivateMessagePopup.Checked = IniSettings.DisablePrivateMessagePopups;
-            chkDisablePrivateMessagesFromNonFriends.Checked = IniSettings.DisablePrivateMessagesFromNonFriends;
+            SetAllowPrivateMessagesFromState(IniSettings.AllowPrivateMessagesFromState);
             chkConnectOnStartup.Checked = IniSettings.AutomaticCnCNetLogin;
             chkSkipLoginWindow.Checked = IniSettings.SkipConnectDialog;
             chkPersistentMode.Checked = IniSettings.PersistentMode;
@@ -305,9 +321,8 @@ namespace DTAConfig.OptionPanels
             IniSettings.WritePathToRegistry.Value = chkWriteInstallPathToRegistry.Checked;
             IniSettings.PlaySoundOnGameHosted.Value = chkPlaySoundOnGameHosted.Checked;
             IniSettings.NotifyOnUserListChange.Value = chkNotifyOnUserListChange.Checked;
-            IniSettings.DisablePrivateMessages.Value = chkDisablePrivateMessages.Checked;
             IniSettings.DisablePrivateMessagePopups.Value = chkDisablePrivateMessagePopup.Checked;
-            IniSettings.DisablePrivateMessagesFromNonFriends.Value = chkDisablePrivateMessagesFromNonFriends.Checked;
+            IniSettings.AllowPrivateMessagesFromState.Value = GetAllowPrivateMessagesFromState();
             IniSettings.AutomaticCnCNetLogin.Value = chkConnectOnStartup.Checked;
             IniSettings.SkipConnectDialog.Value = chkSkipLoginWindow.Checked;
             IniSettings.PersistentMode.Value = chkPersistentMode.Checked;
@@ -327,10 +342,18 @@ namespace DTAConfig.OptionPanels
             return restartRequired;
         }
 
-        public void RefreshOptions()
+        private void SetAllowPrivateMessagesFromState(int state)
         {
-            chkDisablePrivateMessagePopup.AllowChecking = !chkDisablePrivateMessages.Checked;
-            chkDisablePrivateMessagesFromNonFriends.AllowChecking = !chkDisablePrivateMessages.Checked;
+            var selectedIndex = ddAllowPrivateMessagesFrom.Items.FindIndex(i => (int)i.Tag == state);
+            if (selectedIndex < 0)
+                selectedIndex = ddAllowPrivateMessagesFrom.Items.FindIndex(i => (AllowPrivateMessagesFromEnum)i.Tag == AllowPrivateMessagesFromEnum.All);
+
+            ddAllowPrivateMessagesFrom.SelectedIndex = selectedIndex;
+        }
+
+        private int GetAllowPrivateMessagesFromState()
+        {
+            return (int)(ddAllowPrivateMessagesFrom.SelectedItem?.Tag ?? AllowPrivateMessagesFromEnum.All);
         }
     }
 }

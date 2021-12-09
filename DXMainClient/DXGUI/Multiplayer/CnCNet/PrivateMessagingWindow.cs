@@ -13,6 +13,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using ClientCore.Enums;
 
 namespace DTAClient.DXGUI.Multiplayer.CnCNet
 {
@@ -421,13 +422,10 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         private void PrivateMessageHandler_PrivateMessageReceived(object sender, PrivateMessageEventArgs e)
         {
-            if (UserINISettings.Instance.DisablePrivateMessages)
+            if (UserINISettings.Instance.AllowPrivateMessagesFromState == (int)AllowPrivateMessagesFromEnum.None)
                 return;
             
             PrivateMessageUser pmUser = privateMessageUsers.Find(u => u.IrcUser.Name == e.Sender);
-
-            if (UserINISettings.Instance.DisablePrivateMessagesFromNonFriends && !cncnetUserData.IsFriend(pmUser.IrcUser.Name))
-                return;
 
             if (pmUser == null)
             {
@@ -448,6 +446,9 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                     lbUserList.SelectedIndex = FindItemIndexForName(selecterUserName);
                 }
             }
+
+            if (UserINISettings.Instance.AllowPrivateMessagesFromState == (int)AllowPrivateMessagesFromEnum.Friends && !cncnetUserData.IsFriend(pmUser.IrcUser.Name))
+                return;
 
             ChatMessage message = new ChatMessage(e.Sender, otherUserMessageColor, DateTime.Now, e.Message);
 
