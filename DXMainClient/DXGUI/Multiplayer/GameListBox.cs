@@ -72,14 +72,15 @@ namespace DTAClient.DXGUI.Multiplayer
         /// <returns>bool</returns>
         private static Predicate<XNAListBoxItem> GameListMatch(XNAListBoxItem referencedItem) => listedItem =>
         {
-            var referencedGame = (HostedCnCNetGame)referencedItem?.Tag;
-            var listedGame = (HostedCnCNetGame)listedItem?.Tag;
+            var referencedGame = (GenericHostedGame)referencedItem?.Tag;
+            var listedGame = (GenericHostedGame)listedItem?.Tag;
 
             if (referencedGame == null || listedGame == null)
                 return false;
 
-            return string.Equals(referencedGame.ChannelName, listedGame.ChannelName, StringComparison.InvariantCultureIgnoreCase);
+            return referencedGame.Equals(listedGame);
         };
+        
         /// <summary>
         /// Refreshes game information in the game list box.
         /// </summary>
