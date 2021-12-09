@@ -426,6 +426,9 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             
             PrivateMessageUser pmUser = privateMessageUsers.Find(u => u.IrcUser.Name == e.Sender);
 
+            if (UserINISettings.Instance.DisablePrivateMessagesFromNonFriends && !cncnetUserData.IsFriend(pmUser.IrcUser.Name))
+                return;
+
             if (pmUser == null)
             {
                 pmUser = new PrivateMessageUser(e.ircUser);

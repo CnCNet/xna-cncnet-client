@@ -31,6 +31,7 @@ namespace DTAConfig.OptionPanels
         XNAClientCheckBox chkAllowGameInvitesFromFriendsOnly;
         XNAClientCheckBox chkDisablePrivateMessages;
         XNAClientCheckBox chkDisablePrivateMessagePopup;
+        XNAClientCheckBox chkDisablePrivateMessagesFromNonFriends;
 
         GameCollection gameCollection;
 
@@ -104,6 +105,15 @@ namespace DTAConfig.OptionPanels
             chkDisablePrivateMessagePopup.Text = "Disable Popups";
 
             AddChild(chkDisablePrivateMessagePopup);
+
+            chkDisablePrivateMessagesFromNonFriends = new XNAClientCheckBox(WindowManager);
+            chkDisablePrivateMessagesFromNonFriends.Name = nameof(chkDisablePrivateMessagesFromNonFriends);
+            chkDisablePrivateMessagesFromNonFriends.ClientRectangle = new Rectangle(
+                chkDisablePrivateMessagePopup.X,
+                chkDisablePrivateMessagePopup.Bottom + 8, 0, 0);
+            chkDisablePrivateMessagesFromNonFriends.Text = "Disable From Non-Friends";
+
+            AddChild(chkDisablePrivateMessagesFromNonFriends);
             
             // RIGHT COLUMN
 
@@ -261,6 +271,7 @@ namespace DTAConfig.OptionPanels
             chkNotifyOnUserListChange.Checked = IniSettings.NotifyOnUserListChange;
             chkDisablePrivateMessages.Checked = IniSettings.DisablePrivateMessages;
             chkDisablePrivateMessagePopup.Checked = IniSettings.DisablePrivateMessagePopups;
+            chkDisablePrivateMessagesFromNonFriends.Checked = IniSettings.DisablePrivateMessagesFromNonFriends;
             chkConnectOnStartup.Checked = IniSettings.AutomaticCnCNetLogin;
             chkSkipLoginWindow.Checked = IniSettings.SkipConnectDialog;
             chkPersistentMode.Checked = IniSettings.PersistentMode;
@@ -296,6 +307,7 @@ namespace DTAConfig.OptionPanels
             IniSettings.NotifyOnUserListChange.Value = chkNotifyOnUserListChange.Checked;
             IniSettings.DisablePrivateMessages.Value = chkDisablePrivateMessages.Checked;
             IniSettings.DisablePrivateMessagePopups.Value = chkDisablePrivateMessagePopup.Checked;
+            IniSettings.DisablePrivateMessagesFromNonFriends.Value = chkDisablePrivateMessagesFromNonFriends.Checked;
             IniSettings.AutomaticCnCNetLogin.Value = chkConnectOnStartup.Checked;
             IniSettings.SkipConnectDialog.Value = chkSkipLoginWindow.Checked;
             IniSettings.PersistentMode.Value = chkPersistentMode.Checked;
@@ -318,6 +330,7 @@ namespace DTAConfig.OptionPanels
         public void RefreshOptions()
         {
             chkDisablePrivateMessagePopup.AllowChecking = !chkDisablePrivateMessages.Checked;
+            chkDisablePrivateMessagesFromNonFriends.AllowChecking = !chkDisablePrivateMessages.Checked;
         }
     }
 }
