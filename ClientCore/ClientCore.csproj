@@ -252,6 +252,7 @@
     <Compile Include="CnCNet5\GameCollection.cs" />
     <Compile Include="ClientConfiguration.cs" />
     <Compile Include="CnCNet5\NameValidator.cs" />
+    <Compile Include="Enums\AllowPrivateMessagesFromEnum.cs" />
     <Compile Include="Enums\SortDirection.cs" />
     <Compile Include="Extensions\EnumExtensions.cs" />
     <Compile Include="Extensions\StringExtensions.cs" />
