@@ -117,7 +117,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             Name = nameof(MultiplayerGameLobby);
 
             base.Initialize();
-
+            
             PingTextures = new Texture2D[5]
             {
                 AssetLoader.LoadTexture("ping0.png"),
@@ -605,6 +605,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             Locked = false;
 
             UpdateMapPreviewBoxEnabledStatus();
+            PlayerExtraOptionsPanel.SetIsHost(isHost);
             //MapPreviewBox.EnableContextMenu = IsHost;
 
             btnLaunchGame.Text = IsHost ? "Launch Game" : "I'm Ready";
@@ -753,6 +754,13 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 return;
             }
 
+            var teamMappingsError = GetTeamMappingsError();
+            if (!string.IsNullOrEmpty(teamMappingsError))
+            {
+                AddNotice(teamMappingsError);
+                return;
+            }
+
             List<int> occupiedColorIds = new List<int>();
             foreach (PlayerInfo player in Players)
             {
@@ -854,7 +862,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         protected virtual void LockGameNotification() =>
             AddNotice("You need to lock the game room before launching the game.");
-
+        
         protected virtual void SharedColorsNotification() =>
             AddNotice("Multiple human players cannot share the same color.");
 
@@ -1013,6 +1021,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         protected abstract void BroadcastPlayerOptions();
 
+        protected abstract void BroadcastPlayerExtraOptions();
+
         protected abstract void RequestPlayerOptions(int side, int color, int start, int team);
 
         protected abstract void RequestReadyStatus();
@@ -1072,7 +1082,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             if (Map != null && GameMode != null)
             {
-                bool disablestartlocs = (Map.ForceRandomStartLocations || GameMode.ForceRandomStartLocations);
+                bool disablestartlocs = (Map.ForceRandomStartLocations || GameMode.ForceRandomStartLocations || GetPlayerExtraOptions().IsForceRandomStarts);
                 MapPreviewBox.EnableContextMenu = disablestartlocs ? false : IsHost;
                 MapPreviewBox.EnableStartLocationSelection = !disablestartlocs;
             }

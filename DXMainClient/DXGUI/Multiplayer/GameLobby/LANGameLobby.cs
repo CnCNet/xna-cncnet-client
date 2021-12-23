@@ -38,6 +38,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         private const string LAUNCH_GAME_COMMAND = "LAUNCH";
         private const string FILE_HASH_COMMAND = "FHASH";
         private const string DICE_ROLL_COMMAND = "DR";
+        public const string PING = "PING";
 
         public LANGameLobby(WindowManager windowManager, string iniName, 
             TopBar topBar, List<GameMode> GameModes, LANColor[] chatColors, MapLoader mapLoader, DiscordHandler discordHandler) : 
@@ -54,6 +55,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 new StringCommandHandler(PLAYER_READY_REQUEST, GameHost_HandleReadyRequest),
                 new StringCommandHandler(FILE_HASH_COMMAND, HandleFileHashCommand),
                 new StringCommandHandler(DICE_ROLL_COMMAND, Host_HandleDiceRoll),
+                new NoParamCommandHandler(PING, s => { }),
             };
 
             playerCommandHandlers = new LANClientCommandHandler[]
@@ -62,10 +64,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 new ClientNoParamCommandHandler(GET_READY_COMMAND, HandleGetReadyCommand),
                 new ClientStringCommandHandler(RETURN_COMMAND, Player_HandleReturnCommand),
                 new ClientStringCommandHandler(PLAYER_OPTIONS_BROADCAST_COMMAND, HandlePlayerOptionsBroadcast),
+                new ClientStringCommandHandler(PlayerExtraOptions.LAN_MESSAGE_KEY, HandlePlayerExtraOptionsBroadcast),
                 new ClientStringCommandHandler(LAUNCH_GAME_COMMAND, HandleGameLaunchCommand),
                 new ClientStringCommandHandler(GAME_OPTIONS_COMMAND, HandleGameOptionsMessage),
                 new ClientStringCommandHandler(DICE_ROLL_COMMAND, Client_HandleDiceRoll),
-                new ClientNoParamCommandHandler("PING", HandlePing),
+                new ClientNoParamCommandHandler(PING, HandlePing),
             };
 
             localGame = ClientConfiguration.Instance.LocalGame;
@@ -285,6 +288,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             CopyPlayerDataToUI();
             BroadcastPlayerOptions();
+            BroadcastPlayerExtraOptions();
             OnGameOptionChanged();
             UpdateDiscordPresence();
         }
@@ -499,6 +503,13 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             BroadcastMessage(sb.ToString());
         }
 
+        protected override void BroadcastPlayerExtraOptions()
+        {
+            var playerExtraOptions = GetPlayerExtraOptions();
+            
+            BroadcastMessage(playerExtraOptions.ToLanMessage(), true);
+        }
+
         protected override void HostLaunchGame() => BroadcastMessage(LAUNCH_GAME_COMMAND + " " + UniqueGameID);
 
         protected override string GetIPAddressForPlayer(PlayerInfo player)
@@ -582,16 +593,23 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         /// Broadcasts a command to all players in the game as the game host.
         /// </summary>
         /// <param name="message">The command to send.</param>
-        private void BroadcastMessage(string message)
+        /// <param name="otherPlayersOnly">If true, only send this to other players. Otherwise, even the sender will receive their message.</param>
+        private void BroadcastMessage(string message, bool otherPlayersOnly = false)
         {
             if (!IsHost)
                 return;
 
-            foreach (PlayerInfo pInfo in Players)
+            foreach (PlayerInfo pInfo in Players.Where(p => !otherPlayersOnly || p.Name != ProgramConstants.PLAYERNAME))
             {
                 var lpInfo = (LANPlayerInfo)pInfo;
                 lpInfo.SendMessage(message);
             }
+        }
+
+        protected override void PlayerExtraOptions_OptionsChanged(object sender, EventArgs e)
+        {
+            base.PlayerExtraOptions_OptionsChanged(sender, e);
+            BroadcastPlayerExtraOptions();
         }
 
         private void SendMessageToHost(string message)
@@ -647,6 +665,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 ClearReadyStatuses();
                 CopyPlayerDataToUI();
                 BroadcastPlayerOptions();
+                BroadcastPlayerExtraOptions();
 
                 if (Players.Count < MAX_PLAYER_COUNT)
                 {
@@ -681,6 +700,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                         AddNotice(lpInfo.Name + " - connection timed out");
                         CopyPlayerDataToUI();
                         BroadcastPlayerOptions();
+                        BroadcastPlayerExtraOptions();
                         UpdateDiscordPresence();
                         i--;
                     }
@@ -835,6 +855,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             CopyPlayerDataToUI();
             BroadcastPlayerOptions();
+        }
+
+        private void HandlePlayerExtraOptionsBroadcast(string data)
+        {
+            ApplyPlayerExtraOptions(null, data);
         }
 
         private void HandlePlayerOptionsBroadcast(string data)
@@ -1056,7 +1081,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private void HandlePing()
         {
-            SendMessageToHost("PING");
+            SendMessageToHost(PING);
         }
 
         protected override void BroadcastDiceRoll(int dieSides, int[] results)

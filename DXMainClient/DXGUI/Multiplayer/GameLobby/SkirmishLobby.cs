@@ -59,6 +59,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             ProgramConstants.PlayerNameChanged += ProgramConstants_PlayerNameChanged;
             ddPlayerSides[0].SelectedIndexChanged += PlayerSideChanged;
+            
+            PlayerExtraOptionsPanel.SetIsHost(true);
         }
 
         protected override void AddNotice(string message, Color color)
@@ -142,6 +144,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             {
                 return "Co-op missions cannot be spectated. You'll have to show a bit more effort to cheat here.";
             }
+
+            var teamMappingsError = GetTeamMappingsError();
+            if (!string.IsNullOrEmpty(teamMappingsError))
+                return teamMappingsError;
 
             return null;
         }
@@ -469,7 +475,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         protected override void UpdateMapPreviewBoxEnabledStatus()
         {
-            MapPreviewBox.EnableContextMenu = !((Map != null && Map.ForceRandomStartLocations) || (GameMode != null && GameMode.ForceRandomStartLocations));
+            MapPreviewBox.EnableContextMenu = !((Map != null && Map.ForceRandomStartLocations) || (GameMode != null && GameMode.ForceRandomStartLocations) || GetPlayerExtraOptions().IsForceRandomStarts);
             MapPreviewBox.EnableStartLocationSelection = MapPreviewBox.EnableContextMenu;
         }
     }

@@ -7,26 +7,32 @@ namespace DTAClient.Online
     /// </summary>
     public class QueuedMessage
     {
-        public QueuedMessage() { }
-
-        public QueuedMessage(string command) { }
-
-        public QueuedMessage(string command, QueuedMessageType type, int priority)
+        private const int DEFAULT_DELAY = -1;
+        private const int REPLACE_DELAY = 1;
+        
+        public QueuedMessage(string command, QueuedMessageType type, int priority) : 
+            this(command, type, priority, DEFAULT_DELAY, false)
         {
-            Command = command;
-            MessageType = type;
-            Priority = priority;
-            Delay = -1;
-            SendAt = DateTime.Now;
         }
 
-        public QueuedMessage(string command, QueuedMessageType type, int priority, int delay)
+        public QueuedMessage(string command, QueuedMessageType type, int priority, bool replace) : 
+            this(command, type, priority, replace ? REPLACE_DELAY : DEFAULT_DELAY, replace)
+        {
+        }
+
+        public QueuedMessage(string command, QueuedMessageType type, int priority, int delay) :
+            this(command, type, priority, delay, false)
+        {
+        }
+
+        private QueuedMessage(string command, QueuedMessageType type, int priority, int delay, bool replace)
         {
             Command = command;
             MessageType = type;
             Priority = priority;
             Delay = delay;
-            SendAt = DateTime.Now.AddMilliseconds(Delay);
+            SendAt = Delay < 0  ? DateTime.Now : DateTime.Now.AddMilliseconds(Delay);
+            Replace = replace;
         }
 
         /// <summary>
@@ -52,11 +58,17 @@ namespace DTAClient.Online
         /// <summary>
         /// The amount of milliseconds to delay the message.
         /// </summary>
-        public int Delay { get; set; } = -1;
+        public int Delay { get; set; }
 
         /// <summary>
         /// The amount of milliseconds to delay the message.
         /// </summary>
-        public DateTime SendAt { get; set; } = DateTime.Now;
+        public DateTime SendAt { get; set; }
+
+        /// <summary>
+        /// This can be used to replace a message on the queue to help prevent flooding purposes.
+        /// This should be used with at least a small delay.
+        /// </summary>
+        public bool Replace { get; set; } = false;
     }
 }

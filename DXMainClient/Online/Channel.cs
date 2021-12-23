@@ -259,13 +259,23 @@ namespace DTAClient.Online
                 "PRIVMSG " + ChannelName + " :" + colorString + message);
         }
 
-        public void SendCTCPMessage(string message, QueuedMessageType qmType, int priority)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="message"></param>
+        /// <param name="qmType"></param>
+        /// <param name="priority"></param>
+        /// <param name="replace">
+        ///     This can be used to help prevent flooding for multiple options that are changed quickly. It allows for a single message
+        ///     for multiple changes.
+        /// </param>
+        public void SendCTCPMessage(string message, QueuedMessageType qmType, int priority, bool replace = false)
         {
             char CTCPChar1 = (char)58;
             char CTCPChar2 = (char)01;
 
             connection.QueueMessage(qmType, priority,
-                "NOTICE " + ChannelName + " " + CTCPChar1 + CTCPChar2 + message + CTCPChar2);
+                "NOTICE " + ChannelName + " " + CTCPChar1 + CTCPChar2 + message + CTCPChar2, replace);
         }
 
         /// <summary>

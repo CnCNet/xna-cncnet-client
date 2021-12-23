@@ -201,6 +201,12 @@ namespace DTAClient.Domain.Multiplayer
         [JsonProperty]
         List<Point> startingLocations;
 
+        [JsonProperty]
+        public List<TeamStartMappingPreset> TeamStartMappingPresets = new List<TeamStartMappingPreset>();
+
+        [JsonIgnore]
+        public List<TeamStartMapping> TeamStartMappings => TeamStartMappingPresets?.FirstOrDefault()?.TeamStartMappings;
+
         public Texture2D PreviewTexture { get; set; }
 
         private bool extractCustomPreview = true;
@@ -334,6 +340,8 @@ namespace DTAClient.Domain.Multiplayer
                     waypoints.Add(waypoint);
                 }
 
+                GetTeamStartMappingPresets(section);
+
 #if !WINDOWSGL
                 if (UserINISettings.Instance.PreloadMapPreviews)
                     PreviewTexture = LoadPreviewTexture();
@@ -364,6 +372,51 @@ namespace DTAClient.Domain.Multiplayer
             {
                 Logger.Log("Setting info for " + BaseFilePath + " failed! Reason: " + ex.Message);
                 return false;
+            }
+        }
+
+        private void GetTeamStartMappingPresets(IniSection section)
+        {
+            try
+            {
+                var iniTeamStartMappingPresets = section.GetStringValue("TeamStartMappingPresets", string.Empty);
+                if (iniTeamStartMappingPresets == string.Empty)
+                    return;
+
+                var iniTeamStartMappingPresetNames = iniTeamStartMappingPresets
+                    .Split(',')
+                    .Distinct();
+                
+                TeamStartMappingPresets = iniTeamStartMappingPresetNames
+                    .Select(name => GetTeamStartMappingPreset(section, name))
+                    .Where(p => p != null)
+                    .ToList();
+            }
+            catch (Exception e)
+            {
+                Logger.Log($"Unable to parse team start mappings. Map: \"{Name}\", Error: {e.Message}");
+                TeamStartMappingPresets = new List<TeamStartMappingPreset>();
+            }
+        }
+
+        private TeamStartMappingPreset GetTeamStartMappingPreset(IniSection section, string presetName)
+        {
+            try
+            {
+                var iniPresetName = $"TeamStartMappingPreset_{presetName.Replace(" ", "").ToLower()}";
+                var iniTeamStartMappingPreset = section.GetStringValue(iniPresetName, string.Empty);
+                if (iniTeamStartMappingPreset == string.Empty)
+                    return null;
+                return new TeamStartMappingPreset()
+                {
+                    Name = presetName,
+                    TeamStartMappings = TeamStartMapping.FromListString(iniTeamStartMappingPreset)
+                };
+            }
+            catch (Exception e)
+            {
+                Logger.Log($"Unable to parse team start mapping preset. Map: \"{Name}\", Preset: \"{presetName}\", Error: {e.Message}");
+                return null;
             }
         }
 
@@ -505,6 +558,8 @@ namespace DTAClient.Domain.Multiplayer
 
                     waypoints.Add(waypoint);
                 }
+                
+                GetTeamStartMappingPresets(basicSection);
 
                 ParseForcedOptions(iniFile, "ForcedOptions");
                 ParseSpawnIniOptions(iniFile, "ForcedSpawnIniOptions");
