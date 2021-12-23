@@ -36,13 +36,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         private const int RANK_MEDIUM = 2;
         private const int RANK_HARD = 3;
 
-        private readonly List<string> aiPlayerNames = new List<string>()
-        {
-            "Easy AI",
-            "Medium AI",
-            "Hard AI"
-        };
-
         /// <summary>
         /// Creates a new instance of the game lobby base.
         /// </summary>
@@ -120,6 +113,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         protected XNAClientDropDown[] ddPlayerStarts;
         protected XNAClientDropDown[] ddPlayerTeams;
 
+        protected XNAClientButton btnPlayerExtraOptionsOpen;
+        protected PlayerExtraOptionsPanel PlayerExtraOptionsPanel;
+        
         protected XNALabel lblName;
         protected XNALabel lblSide;
         protected XNALabel lblColor;
@@ -217,6 +213,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             PlayerOptionsPanel.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 192), 1, 1);
             PlayerOptionsPanel.PanelBackgroundDrawMode = PanelBackgroundImageDrawMode.STRETCHED;
 
+            InitializePlayerExtraOptionsPanel();
+            
             btnLeaveGame = new XNAClientButton(WindowManager);
             btnLeaveGame.Name = "btnLeaveGame";
             btnLeaveGame.ClientRectangle = new Rectangle(Width - 143, Height - 28, UIDesignConstants.BUTTON_WIDTH_133, UIDesignConstants.BUTTON_HEIGHT);
@@ -382,9 +380,17 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             }
 
             AddChild(PlayerOptionsPanel);
+            AddChild(PlayerExtraOptionsPanel);
             AddChild(btnLaunchGame);
             AddChild(btnLeaveGame);
             AddChild(btnPickRandomMap);
+        }
+
+        private void InitializePlayerExtraOptionsPanel()
+        {
+            PlayerExtraOptionsPanel = new PlayerExtraOptionsPanel(WindowManager);
+            PlayerExtraOptionsPanel.ClientRectangle = new Rectangle(PlayerOptionsPanel.X, PlayerOptionsPanel.Y, PlayerOptionsPanel.Width, PlayerOptionsPanel.Height);
+            PlayerExtraOptionsPanel.OptionsChanged += PlayerExtraOptions_OptionsChanged;
         }
 
         private void InitializeGameOptionsPanel()
@@ -507,6 +513,38 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             else
                 ChangeMap(GameMode, Map);
         }
+
+        protected void BtnPlayerExtraOptions_LeftClick(object sender, EventArgs e) => PlayerExtraOptionsPanel.Enable();
+
+        protected void ApplyPlayerExtraOptions(string sender, string message)
+        {
+            var playerExtraOptions = PlayerExtraOptions.FromMessage(message);
+
+            if (playerExtraOptions.IsForceRandomSides != PlayerExtraOptionsPanel.IsForcedRandomSides())
+                AddPlayerExtraOptionForcedNotice(playerExtraOptions.IsForceRandomSides, "side");
+
+            if (playerExtraOptions.IsForceRandomColors != PlayerExtraOptionsPanel.IsForcedRandomColors())
+                AddPlayerExtraOptionForcedNotice(playerExtraOptions.IsForceRandomColors, "color");
+
+            if (playerExtraOptions.IsUseTeamStartMappings && playerExtraOptions.IsUseTeamStartMappings != PlayerExtraOptionsPanel.IsUseTeamStartMappings())
+            {
+                AddPlayerExtraOptionForcedNotice(playerExtraOptions.IsUseTeamStartMappings, "team/start");
+            }
+            else
+            {
+                if (playerExtraOptions.IsForceRandomStarts != PlayerExtraOptionsPanel.IsForcedRandomStarts())
+                    AddPlayerExtraOptionForcedNotice(playerExtraOptions.IsForceRandomStarts, "start");
+
+                if (playerExtraOptions.IsForceRandomTeams != PlayerExtraOptionsPanel.IsForcedRandomTeams())
+                    AddPlayerExtraOptionForcedNotice(playerExtraOptions.IsForceRandomTeams, "team");
+            }
+
+            SetPlayerExtraOptions(playerExtraOptions);
+            UpdateMapPreviewBoxEnabledStatus();
+        }
+
+        private void AddPlayerExtraOptionForcedNotice(bool disabled, string type)
+            => AddNotice($"The game host has {(disabled ? "disabled" : "enabled")} {type} selection");
 
         private void ListMaps()
         {
@@ -720,7 +758,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     locationY + (DROP_DOWN_HEIGHT + playerOptionVecticalMargin) * i,
                     playerNameWidth, DROP_DOWN_HEIGHT);
                 ddPlayerName.AddItem(String.Empty);
-                aiPlayerNames.ForEach(ddPlayerName.AddItem);
+                ProgramConstants.AI_PLAYER_NAMES.ForEach(ddPlayerName.AddItem);
                 ddPlayerName.AllowDropDown = true;
                 ddPlayerName.SelectedIndexChanged += CopyPlayerDataFromUI;
                 ddPlayerName.RightClick += MultiplayerName_RightClick;
@@ -758,10 +796,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     ddPlayerColor.Right + playerOptionHorizontalMargin,
                     ddPlayerName.Y, teamWidth, DROP_DOWN_HEIGHT);
                 ddPlayerTeam.AddItem("-");
-                ddPlayerTeam.AddItem("A");
-                ddPlayerTeam.AddItem("B");
-                ddPlayerTeam.AddItem("C");
-                ddPlayerTeam.AddItem("D");
+                ProgramConstants.TEAMS.ForEach(ddPlayerTeam.AddItem);
                 ddPlayerTeam.AllowDropDown = false;
                 ddPlayerTeam.SelectedIndexChanged += CopyPlayerDataFromUI;
                 ddPlayerTeam.Tag = true;
@@ -791,6 +826,14 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 PlayerOptionsPanel.AddChild(ddPlayerStart);
                 PlayerOptionsPanel.AddChild(ddPlayerTeam);
             }
+
+            btnPlayerExtraOptionsOpen = new XNAClientButton(WindowManager);
+            btnPlayerExtraOptionsOpen.Name = nameof(btnPlayerExtraOptionsOpen);
+            btnPlayerExtraOptionsOpen.ClientRectangle = new Rectangle(0, 0, 0, 0);
+            btnPlayerExtraOptionsOpen.IdleTexture = AssetLoader.LoadTexture("comboBoxArrow.png");
+            btnPlayerExtraOptionsOpen.HoverTexture = AssetLoader.LoadTexture("comboBoxArrow.png");
+            btnPlayerExtraOptionsOpen.LeftClick += BtnPlayerExtraOptions_LeftClick;
+            btnPlayerExtraOptionsOpen.Visible = false;
 
             lblName = new XNALabel(WindowManager);
             lblName.Name = "lblName";
@@ -823,6 +866,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             lblTeam.FontIndex = 1;
             lblTeam.ClientRectangle = new Rectangle(ddPlayerTeams[0].X, playerOptionCaptionLocationY, 0, 0);
 
+            PlayerOptionsPanel.AddChild(btnPlayerExtraOptionsOpen);
             PlayerOptionsPanel.AddChild(lblName);
             PlayerOptionsPanel.AddChild(lblSide);
             PlayerOptionsPanel.AddChild(lblColor);
@@ -831,6 +875,38 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             CheckDisallowedSides();
         }
+        
+        protected virtual void PlayerExtraOptions_OptionsChanged(object sender, EventArgs e)
+        {
+            var playerExtraOptions = GetPlayerExtraOptions();
+            
+            foreach (var ddPlayerSide in ddPlayerSides)
+                EnablePlayerOptionDropDown(ddPlayerSide, !playerExtraOptions.IsForceRandomSides);
+            
+            foreach (var ddPlayerTeam in ddPlayerTeams)
+                EnablePlayerOptionDropDown(ddPlayerTeam, !playerExtraOptions.IsForceRandomTeams);
+
+            foreach (var ddPlayerColor in ddPlayerColors)
+                EnablePlayerOptionDropDown(ddPlayerColor, !playerExtraOptions.IsForceRandomColors);
+
+            foreach (var ddPlayerStart in ddPlayerStarts)
+                EnablePlayerOptionDropDown(ddPlayerStart, !playerExtraOptions.IsForceRandomStarts);
+
+            UpdateMapPreviewBoxEnabledStatus();
+        }
+
+        private void EnablePlayerOptionDropDown(XNAClientDropDown clientDropDown, bool enable)
+        {
+            clientDropDown.AllowDropDown = enable;
+            if (!clientDropDown.AllowDropDown)
+                clientDropDown.SelectedIndex = clientDropDown.SelectedIndex > 0 ? 0 : clientDropDown.SelectedIndex;
+        }
+
+        protected PlayerExtraOptions GetPlayerExtraOptions() => PlayerExtraOptionsPanel.GetPlayerExtraOptions();
+        
+        protected void SetPlayerExtraOptions(PlayerExtraOptions playerExtraOptions) => PlayerExtraOptionsPanel?.SetPlayerExtraOptions(playerExtraOptions);
+
+        protected string GetTeamMappingsError() => GetPlayerExtraOptions()?.GetTeamMappingsError();
 
         private Texture2D LoadTextureOrNull(string name) =>
             AssetLoader.AssetExists(name) ? AssetLoader.LoadTexture(name) : null;
@@ -934,6 +1010,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             // Disable custom random groups if all or all except one of included sides are unavailable.
             int c = 0;
+            var playerInfos = concatPlayerList.ToList();
             foreach (int[] randomSides in RandomSelectors)
             {
                 int disableCount = 0;
@@ -944,13 +1021,12 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                         disableCount++;
                 }
 
-                bool disabled = false;
-                if (disableCount >= randomSides.Length - 1) disabled = true;
+                bool disabled = disableCount >= randomSides.Length - 1;
 
                 foreach (XNADropDown dd in ddPlayerSides)
                     dd.Items[1 + c].Selectable = !disabled;
 
-                foreach (PlayerInfo pInfo in concatPlayerList)
+                foreach (PlayerInfo pInfo in playerInfos)
                 {
                     if (pInfo.SideId == 1 + c && disabled)
                         pInfo.SideId = defaultSide;
@@ -972,7 +1048,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
                     // Change the sides of players that use the disabled 
                     // side to the default side
-                    foreach (PlayerInfo pInfo in concatPlayerList)
+                    foreach (PlayerInfo pInfo in playerInfos)
                     {
                         if (pInfo.SideId == i + RandomSelectorCount)
                             pInfo.SideId = defaultSide;
@@ -988,7 +1064,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             // If only 1 side is allowed, change all players' sides to that
             if (allowedSideCount == 1)
             {
-                foreach (PlayerInfo pInfo in concatPlayerList)
+                foreach (PlayerInfo pInfo in playerInfos)
                 {
                     if (pInfo.SideId == 0)
                         pInfo.SideId = defaultSide;
@@ -999,7 +1075,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             {
                 // Disallow spectator
 
-                foreach (PlayerInfo pInfo in concatPlayerList)
+                foreach (PlayerInfo pInfo in playerInfos)
                 {
                     if (pInfo.SideId == GetSpectatorSideIndex())
                         pInfo.SideId = defaultSide;
@@ -1054,7 +1130,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         /// and returns the options as an array of PlayerHouseInfos.
         /// </summary>
         /// <returns>An array of PlayerHouseInfos.</returns>
-        protected virtual PlayerHouseInfo[] Randomize()
+        protected virtual PlayerHouseInfo[] Randomize(List<TeamStartMapping> teamStartMappings)
         {
             int totalPlayerCount = Players.Count + AIPlayers.Count;
             PlayerHouseInfo[] houseInfos = new PlayerHouseInfo[totalPlayerCount];
@@ -1108,6 +1184,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             for (int i = 0; i < AIPlayers.Count; i++)
                 freeStartingLocations.Remove(AIPlayers[i].StartingLocation - 1);
 
+            foreach (var teamStartMapping in teamStartMappings.Where(mapping => mapping.IsBlock))
+                freeStartingLocations.Remove(teamStartMapping.StartingWaypoint);
+
             // Randomize options
 
             Random random = new Random(RandomSeed);
@@ -1125,7 +1204,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 pHouseInfo.RandomizeSide(pInfo, SideCount, random, GetDisallowedSides(), RandomSelectors, RandomSelectorCount);
 
                 pHouseInfo.RandomizeColor(pInfo, freeColors, MPColors, random);
-                pHouseInfo.RandomizeStart(pInfo, Map, freeStartingLocations, random, takenStartingLocations);
+                pHouseInfo.RandomizeStart(pInfo, random, freeStartingLocations, takenStartingLocations, teamStartMappings.Any());
             }
 
             return houseInfos;
@@ -1149,7 +1228,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     pInfo.TeamId = 1;
             }
 
-            PlayerHouseInfo[] houseInfos = Randomize();
+            var teamStartMappings = PlayerExtraOptionsPanel.GetTeamStartMappings();
+
+            PlayerHouseInfo[] houseInfos = Randomize(teamStartMappings);
 
             IniFile spawnIni = new IniFile(ProgramConstants.GamePath + ProgramConstants.SPAWNER_SETTINGS);
 
@@ -1256,7 +1337,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             }
 
             // Write alliances, the code is pretty big so let's take it to another class
-            AllianceHolder.WriteInfoToSpawnIni(Players, AIPlayers, multiCmbIndexes, spawnIni);
+            AllianceHolder.WriteInfoToSpawnIni(Players, AIPlayers, multiCmbIndexes, houseInfos.ToList(), teamStartMappings, spawnIni);
 
             for (int pId = 0; pId < Players.Count; pId++)
             {
@@ -1648,7 +1729,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             return selectedPlayer != null &&
                    selectedPlayer.Text != ProgramConstants.PLAYERNAME &&
-                   !aiPlayerNames.Contains(selectedPlayer.Text);
+                   !ProgramConstants.AI_PLAYER_NAMES.Contains(selectedPlayer.Text);
         }
 
         private void MultiplayerName_RightClick(object sender, EventArgs e)
@@ -1720,9 +1801,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
                 XNADropDown ddPlayerName = ddPlayerNames[index];
                 ddPlayerName.Items[0].Text = "-";
-                ddPlayerName.Items[1].Text = aiPlayerNames[0];
-                ddPlayerName.Items[2].Text = aiPlayerNames[1];
-                ddPlayerName.Items[3].Text = aiPlayerNames[2];
+                ddPlayerName.Items[1].Text = ProgramConstants.AI_PLAYER_NAMES[0];
+                ddPlayerName.Items[2].Text = ProgramConstants.AI_PLAYER_NAMES[1];
+                ddPlayerName.Items[3].Text = ProgramConstants.AI_PLAYER_NAMES[2];
                 ddPlayerName.SelectedIndex = 3 - aiInfo.AILevel;
                 ddPlayerName.AllowDropDown = allowOptionsChange;
 
@@ -1750,9 +1831,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 XNADropDown ddPlayerName = ddPlayerNames[ddIndex];
                 ddPlayerName.AllowDropDown = false;
                 ddPlayerName.Items[0].Text = string.Empty;
-                ddPlayerName.Items[1].Text = aiPlayerNames[0];
-                ddPlayerName.Items[2].Text = aiPlayerNames[1];
-                ddPlayerName.Items[3].Text = aiPlayerNames[2];
+                ddPlayerName.Items[1].Text = ProgramConstants.AI_PLAYER_NAMES[0];
+                ddPlayerName.Items[2].Text = ProgramConstants.AI_PLAYER_NAMES[1];
+                ddPlayerName.Items[3].Text = ProgramConstants.AI_PLAYER_NAMES[2];
                 ddPlayerName.SelectedIndex = 0;
 
                 ddPlayerSides[ddIndex].SelectedIndex = -1;
@@ -1915,7 +1996,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             }
 
             if (!AIAllowed) AIPlayers.Clear();
-            IEnumerable<PlayerInfo> concatPlayerList = Players.Concat(AIPlayers);
+            IEnumerable<PlayerInfo> concatPlayerList = Players.Concat(AIPlayers).ToList();
 
             foreach (PlayerInfo pInfo in concatPlayerList)
             {
@@ -1957,6 +2038,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             CopyPlayerDataToUI();
 
             disableGameOptionUpdateBroadcast = false;
+
+            PlayerExtraOptionsPanel.UpdateForMap(map);
         }
 
         private void ApplyForcedCheckBoxOptions(List<GameLobbyCheckBox> optionList,
@@ -1994,11 +2077,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             switch (aiLevel)
             {
                 case 0:
-                    return aiPlayerNames[2];
+                    return ProgramConstants.AI_PLAYER_NAMES[2];
                 case 1:
-                    return aiPlayerNames[1];
+                    return ProgramConstants.AI_PLAYER_NAMES[1];
                 case 2:
-                    return aiPlayerNames[0];
+                    return ProgramConstants.AI_PLAYER_NAMES[0];
             }
 
             return string.Empty;

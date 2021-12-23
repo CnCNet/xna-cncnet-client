@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 
@@ -73,5 +75,9 @@ namespace ClientCore
 
         public const string GAME_INVITE_CTCP_COMMAND = "INVITE";
         public const string GAME_INVITATION_FAILED_CTCP_COMMAND = "INVITATION_FAILED";
+
+        public static readonly List<string> TEAMS = new List<string> { "A", "B", "C", "D" };
+        public static readonly List<string> AI_PLAYER_NAMES = new List<string> { "Easy AI", "Medium AI", "Hard AI" };
+        
     }
 }

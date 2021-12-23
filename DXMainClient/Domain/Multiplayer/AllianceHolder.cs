@@ -8,9 +8,14 @@ namespace DTAClient.Domain.Multiplayer
     /// </summary>
     public static class AllianceHolder
     {
-        public static void WriteInfoToSpawnIni(List<PlayerInfo> players,
-            List<PlayerInfo> aiPlayers, List<int> multiCmbIndexes,
-            IniFile spawnIni)
+        public static void WriteInfoToSpawnIni(
+            List<PlayerInfo> players,
+            List<PlayerInfo> aiPlayers, 
+            List<int> multiCmbIndexes,
+            List<PlayerHouseInfo> playerHouseInfos,
+            List<TeamStartMapping> teamStartMappings,
+            IniFile spawnIni
+        )
         {
             List<int> team1MultiMemberIds = new List<int>();
             List<int> team2MultiMemberIds = new List<int>();
@@ -19,7 +24,10 @@ namespace DTAClient.Domain.Multiplayer
 
             for (int pId = 0; pId < players.Count; pId++)
             {
+                var phi = playerHouseInfos[pId];
                 int teamId = players[pId].TeamId;
+                if (teamId <= 0)
+                    teamId = teamStartMappings?.Find(sa => sa.StartingWaypoint == phi.StartingWaypoint)?.TeamId ?? 0;
 
                 if (teamId > 0)
                 {
@@ -45,7 +53,11 @@ namespace DTAClient.Domain.Multiplayer
 
             for (int aiId = 0; aiId < aiPlayers.Count; aiId++)
             {
+                var phi = playerHouseInfos[multiCmbIndexes.Count + aiId];
                 int teamId = aiPlayers[aiId].TeamId;
+                if (teamId <= 0)
+                    teamId = teamStartMappings?.Find(sa => sa.StartingWaypoint == phi.StartingWaypoint)?.TeamId ?? 0;
+
 
                 if (teamId > 0)
                 {

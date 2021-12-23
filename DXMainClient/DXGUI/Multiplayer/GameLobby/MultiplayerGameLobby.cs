@@ -605,6 +605,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             Locked = false;
 
             UpdateMapPreviewBoxEnabledStatus();
+            PlayerExtraOptionsPanel.SetIsHost(isHost);
             //MapPreviewBox.EnableContextMenu = IsHost;
 
             btnLaunchGame.Text = IsHost ? "Launch Game" : "I'm Ready";
@@ -750,6 +751,13 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (!Locked)
             {
                 LockGameNotification();
+                return;
+            }
+
+            var teamMappingsError = GetTeamMappingsError();
+            if (!string.IsNullOrEmpty(teamMappingsError))
+            {
+                AddNotice(teamMappingsError);
                 return;
             }
 
@@ -1013,6 +1021,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         protected abstract void BroadcastPlayerOptions();
 
+        protected abstract void BroadcastPlayerExtraOptions();
+
         protected abstract void RequestPlayerOptions(int side, int color, int start, int team);
 
         protected abstract void RequestReadyStatus();
@@ -1072,7 +1082,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             if (Map != null && GameMode != null)
             {
-                bool disablestartlocs = (Map.ForceRandomStartLocations || GameMode.ForceRandomStartLocations);
+                bool disablestartlocs = (Map.ForceRandomStartLocations || GameMode.ForceRandomStartLocations || GetPlayerExtraOptions().IsForceRandomStarts);
                 MapPreviewBox.EnableContextMenu = disablestartlocs ? false : IsHost;
                 MapPreviewBox.EnableStartLocationSelection = !disablestartlocs;
             }

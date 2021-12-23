@@ -1,6 +1,8 @@
 ﻿using Rampastring.XNAUI.XNAControls;
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using ClientCore;
 using Rampastring.XNAUI;
 using Microsoft.Xna.Framework.Graphics;
 using PlayerInfo = DTAClient.Domain.Multiplayer.PlayerInfo;
@@ -48,7 +50,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         Color nameBackgroundColor;
         Color nameBorderColor;
 
-        string[] teamIds = new string[] { String.Empty, "[A]", "[B]", "[C]", "[D]" };
+        readonly string[] teamIds = new[] { string.Empty }
+            .Concat(ProgramConstants.TEAMS.Select(team => $"[{team}]")).ToArray();
 
         bool isHoveredOn = false;
 
