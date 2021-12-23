@@ -564,36 +564,15 @@ namespace DTAClient.DXGUI.Generic
 
         private string TeamIndexToString(int teamIndex)
         {
-            switch (teamIndex)
-            {
-                case 1:
-                    return "A";
-                case 2:
-                    return "B";
-                case 3:
-                    return "C";
-                case 4:
-                    return "D";
-                default:
-                    return "-";
-            }
+            if (teamIndex < 0 || teamIndex >= ProgramConstants.TEAMS.Count)
+                return "-";
+
+            return ProgramConstants.TEAMS[teamIndex - 1];
         }
 
-        private string AILevelToString(int aiLevel)
-        {
-            switch (aiLevel)
-            {
-                case 2:
-                    return "Hard AI";
-                case 1:
-                    return "Medium AI";
-                case 0:
-                default:
-                    return "Easy AI";
-            }
-        }
+        private string AILevelToString(int aiLevel) => ProgramConstants.AI_PLAYER_NAMES[aiLevel];
 
-#region Statistics reading / game listing code
+        #region Statistics reading / game listing code
 
         void ReadStatistics()
         {

@@ -14,7 +14,9 @@ using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using DTAClient.Domain.Multiplayer.CnCNet;
 
@@ -54,11 +56,12 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             ctcpCommandHandlers = new CommandHandlerBase[]
             {
-                new IntCommandHandler("OR", new Action<string, int>(HandleOptionsRequest)),
-                new IntCommandHandler("R", new Action<string, int>(HandleReadyRequest)),
-                new StringCommandHandler("PO", new Action<string, string>(ApplyPlayerOptions)),
-                new StringCommandHandler("GO", new Action<string, string>(ApplyGameOptions)),
-                new StringCommandHandler("START", new Action<string, string>(NonHostLaunchGame)),
+                new IntCommandHandler("OR", HandleOptionsRequest),
+                new IntCommandHandler("R", HandleReadyRequest),
+                new StringCommandHandler("PO", ApplyPlayerOptions),
+                new StringCommandHandler(PlayerExtraOptions.CNCNET_MESSAGE_KEY, ApplyPlayerExtraOptions),
+                new StringCommandHandler("GO", ApplyGameOptions),
+                new StringCommandHandler("START", NonHostLaunchGame),
                 new NotificationHandler("AISPECS", HandleNotification, AISpectatorsNotification),
                 new NotificationHandler("GETREADY", HandleNotification, GetReadyNotification),
                 new NotificationHandler("INSFSPLRS", HandleNotification, InsufficientPlayersNotification),
@@ -511,6 +514,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 //CopyPlayerDataToUI(); This is also called by ChangeMap()
                 ChangeMap(GameMode, Map);
                 BroadcastPlayerOptions();
+                BroadcastPlayerExtraOptions();
                 UpdateDiscordPresence();
             }
             else
@@ -802,6 +806,22 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             }
 
             channel.SendCTCPMessage(sb.ToString(), QueuedMessageType.GAME_PLAYERS_MESSAGE, 11);
+        }
+
+        protected override void PlayerExtraOptions_OptionsChanged(object sender, EventArgs e)
+        {
+            base.PlayerExtraOptions_OptionsChanged(sender, e);
+            BroadcastPlayerExtraOptions();
+        }
+
+        protected override void BroadcastPlayerExtraOptions()
+        {
+            if (!IsHost)
+                return;
+
+            var playerExtraOptions = GetPlayerExtraOptions();
+
+            channel.SendCTCPMessage(playerExtraOptions.ToCncnetMessage(), QueuedMessageType.GAME_PLAYERS_EXTRA_MESSAGE, 11, true);
         }
 
         /// <summary>
@@ -1190,6 +1210,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 ClearReadyStatuses();
                 CopyPlayerDataToUI();
                 BroadcastPlayerOptions();
+                BroadcastPlayerExtraOptions();
 
                 if (Players.Count < playerLimit)
                     UnlockGame(true);

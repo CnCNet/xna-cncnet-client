@@ -74,7 +74,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         public bool EnableContextMenu { get; set; }
         public bool EnableStartLocationSelection { get; set; }
 
-        private string[] teamIds = new string[] { String.Empty, "[A] ", "[B] ", "[C] ", "[D] " };
+        private readonly string[] teamIds = new[] { string.Empty }
+            .Concat(ProgramConstants.TEAMS.Select(team => $"[{team}]")).ToArray();
 
         private string[] sides;
 

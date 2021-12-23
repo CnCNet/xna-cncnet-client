@@ -201,6 +201,12 @@ namespace DTAClient.Domain.Multiplayer
         [JsonProperty]
         List<Point> startingLocations;
 
+        [JsonProperty]
+        public List<TeamStartMappingPreset> TeamStartMappingPresets = new List<TeamStartMappingPreset>();
+
+        [JsonIgnore]
+        public List<TeamStartMapping> TeamStartMappings => TeamStartMappingPresets?.FirstOrDefault()?.TeamStartMappings;
+
         public Texture2D PreviewTexture { get; set; }
 
         private bool extractCustomPreview = true;
@@ -334,6 +340,8 @@ namespace DTAClient.Domain.Multiplayer
                     waypoints.Add(waypoint);
                 }
 
+                GetTeamStartMappingPresets(section);
+
 #if !WINDOWSGL
                 if (UserINISettings.Instance.PreloadMapPreviews)
                     PreviewTexture = LoadPreviewTexture();
@@ -364,6 +372,35 @@ namespace DTAClient.Domain.Multiplayer
             {
                 Logger.Log("Setting info for " + BaseFilePath + " failed! Reason: " + ex.Message);
                 return false;
+            }
+        }
+
+        private void GetTeamStartMappingPresets(IniSection section)
+        {
+            TeamStartMappingPresets = new List<TeamStartMappingPreset>();
+            for (int i = 0; ; i++)
+            {
+                try
+                {
+                    var teamStartMappingPreset = section.GetStringValue($"TeamStartMapping{i}", string.Empty);
+                    if (string.IsNullOrEmpty(teamStartMappingPreset))
+                        return; // mapping not found
+
+                    var teamStartMappingPresetName = section.GetStringValue($"TeamStartMapping{i}Name", string.Empty);
+                    if (string.IsNullOrEmpty(teamStartMappingPresetName))
+                        continue; // mapping found, but no name specified
+
+                    TeamStartMappingPresets.Add(new TeamStartMappingPreset()
+                    {
+                        Name = teamStartMappingPresetName,
+                        TeamStartMappings = TeamStartMapping.FromListString(teamStartMappingPreset)
+                    });
+                }
+                catch (Exception e)
+                {
+                    Logger.Log($"Unable to parse team start mappings. Map: \"{Name}\", Error: {e.Message}");
+                    TeamStartMappingPresets = new List<TeamStartMappingPreset>();
+                }
             }
         }
 
@@ -505,6 +542,8 @@ namespace DTAClient.Domain.Multiplayer
 
                     waypoints.Add(waypoint);
                 }
+                
+                GetTeamStartMappingPresets(basicSection);
 
                 ParseForcedOptions(iniFile, "ForcedOptions");
                 ParseSpawnIniOptions(iniFile, "ForcedSpawnIniOptions");

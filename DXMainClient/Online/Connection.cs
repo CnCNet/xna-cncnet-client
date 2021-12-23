@@ -168,7 +168,7 @@ namespace DTAClient.Online
             {
                 try
                 {
-                    for (var i = 0; i < server.Ports.Length; i++)
+                    for (int i = 0; i < server.Ports.Length; i++)
                     {
                         connectionManager.OnAttemptedServerChanged(server.Name);
 
@@ -941,9 +941,9 @@ namespace DTAClient.Online
             SendMessage("NICK " + ProgramConstants.PLAYERNAME);
         }
 
-        public void QueueMessage(QueuedMessageType type, int priority, string message)
+        public void QueueMessage(QueuedMessageType type, int priority, string message, bool replace = false)
         {
-            QueuedMessage qm = new QueuedMessage(message, type, priority);
+            QueuedMessage qm = new QueuedMessage(message, type, priority, replace);
             QueueMessage(qm);
         }
 
@@ -981,13 +981,36 @@ namespace DTAClient.Online
         }
 
         private int NextQueueID { get; set; } = 0;
+
+        /// <summary>
+        /// This will attempt to replace a previously queued message of the same type.
+        /// </summary>
+        /// <param name="qm">The new message to replace with</param>
+        /// <returns>Whether or not a replace occurred</returns>
+        private bool ReplaceMessage(QueuedMessage qm)
+        {
+            lock (messageQueueLocker)
+            {
+                var previousMessageIndex = MessageQueue.FindIndex(m => m.MessageType == qm.MessageType);
+                if (previousMessageIndex == -1)
+                    return false;
+                
+                MessageQueue[previousMessageIndex] = qm;
+                return true;
+            }
+        }
+
         /// <summary>
         /// Adds a message to the send queue.
         /// </summary>
         /// <param name="qm">The message to queue.</param>
+        /// <param name="replace">If true, attempt to replace a previous message of the same type</param>
         public void QueueMessage(QueuedMessage qm)
         {
             if (!_isConnected)
+                return;
+
+            if (qm.Replace && ReplaceMessage(qm))
                 return;
 
             qm.ID = NextQueueID++;
