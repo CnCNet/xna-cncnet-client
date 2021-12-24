@@ -42,10 +42,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         private const string CHANGE_TUNNEL_SERVER_MESSAGE = "CHTNL";
 
         public CnCNetGameLobby(WindowManager windowManager, string iniName,
-            TopBar topBar, List<GameMode> GameModes, CnCNetManager connectionManager,
+            TopBar topBar, CnCNetManager connectionManager,
             TunnelHandler tunnelHandler, GameCollection gameCollection, CnCNetUserData cncnetUserData, MapLoader mapLoader, DiscordHandler discordHandler,
             PrivateMessagingWindow pmWindow) : 
-            base(windowManager, iniName, topBar, GameModes, mapLoader, discordHandler)
+            base(windowManager, iniName, topBar, mapLoader, discordHandler)
         {
             this.connectionManager = connectionManager;
             localGame = ClientConfiguration.Instance.LocalGame;
@@ -247,7 +247,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         public void OnJoined()
         {
             FileHashCalculator fhc = new FileHashCalculator();
-            fhc.CalculateHashes(GameModes);
+            fhc.CalculateHashes(GameModeMaps.GameModes);
 
             gameFilesHash = fhc.GetCompleteHash();
 
@@ -512,7 +512,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 // Changing the map applies forced settings (co-op sides etc.) to the
                 // new player, and it also sends an options broadcast message
                 //CopyPlayerDataToUI(); This is also called by ChangeMap()
-                ChangeMap(GameMode, Map);
+                ChangeMap(GameModeMap);
                 BroadcastPlayerOptions();
                 BroadcastPlayerExtraOptions();
                 UpdateDiscordPresence();
@@ -1028,10 +1028,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             lastMapSHA1 = mapSHA1;
             lastMapName = mapName;
 
-            GameMode = GameModes.Find(gm => gm.Name == gameMode);
+            GameModeMap = GameModeMaps.Find(gmm => gmm.GameMode.UIName == gameMode);
             if (GameMode == null)
             {
-                ChangeMap(null, null);
+                ChangeMap(null);
 
                 if (!isMapOfficial)
                     RequestMap(mapSHA1);
@@ -1040,11 +1040,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             }
             else
             {
-                Map = GameMode.Maps.Find(map => map.SHA1 == mapSHA1);
+                GameModeMap = GameModeMaps.Find(gmm => gmm.Map.SHA1 == mapSHA1);
 
                 if (Map == null)
                 {
-                    ChangeMap(null, null);
+                    ChangeMap(null);
 
                     if (!isMapOfficial)
                         RequestMap(mapSHA1);
@@ -1052,7 +1052,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                         ShowOfficialMapMissingMessage(mapSHA1);
                 }
                 else if (GameMode != currentGameMode || Map != currentMap)
-                    ChangeMap(GameMode, Map);
+                    ChangeMap(GameModeMap);
             }
 
             // By changing the game options after changing the map, we know which
@@ -1186,10 +1186,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             MapSharer.DownloadMap(lastMapSHA1, localGame, lastMapName);
         }
 
-        protected override void ChangeMap(GameMode gameMode, Map map)
+        protected override void ChangeMap(GameModeMap gameModeMap)
         {
             mapSharingConfirmationPanel.Disable();
-            base.ChangeMap(gameMode, map);
+            base.ChangeMap(gameModeMap);
         }
 
         /// <summary>
@@ -1271,7 +1271,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             AddNotice("Starting game..");
 
             FileHashCalculator fhc = new FileHashCalculator();
-            fhc.CalculateHashes(GameModes);
+            fhc.CalculateHashes(GameModeMaps.GameModes);
 
             if (gameFilesHash != fhc.GetCompleteHash())
             {
@@ -1597,9 +1597,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 AddNotice(returnMessage);
                 if (lastMapSHA1 == e.SHA1)
                 {
-                    Map = map;
-                    GameMode = GameModes.Find(gm => gm.UIName == lastGameMode);
-                    ChangeMap(GameMode, Map);
+                    GameModeMap = GameModeMaps.Find(gmm => gmm.GameMode.UIName == lastGameMode);
+                    ChangeMap(GameModeMap);
                 }
             }
             else
@@ -1657,7 +1656,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             Map map = null;
 
-            foreach (GameMode gm in GameModes)
+            foreach (GameMode gm in GameModeMaps.GameModes)
             {
                 map = gm.Maps.Find(m => m.SHA1 == mapSHA1);
 

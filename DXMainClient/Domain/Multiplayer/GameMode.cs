@@ -150,5 +150,9 @@ namespace DTAClient.Domain.Multiplayer
         {
             return new IniFile(ProgramConstants.GamePath + BASE_INI_PATH + mapCodeININame);
         }
+
+        protected bool Equals(GameMode other) => string.Equals(Name, other?.Name, StringComparison.InvariantCultureIgnoreCase);
+
+        public override int GetHashCode() => (Name != null ? Name.GetHashCode() : 0);
     }
 }

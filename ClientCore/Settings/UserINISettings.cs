@@ -1,6 +1,7 @@
 ﻿using ClientCore.Settings;
 using Rampastring.Tools;
 using System;
+using System.Collections.Generic;
 using System.Windows.Forms;
 using ClientCore.Enums;
 
@@ -127,6 +128,8 @@ namespace ClientCore
             HidePasswordedGames = new BoolSetting(iniFile, GAME_FILTERS, "HidePasswordedGames", DEFAULT_HIDE_PASSWORDED_GAMES);
             HideIncompatibleGames = new BoolSetting(iniFile, GAME_FILTERS, "HideIncompatibleGames", DEFAULT_HIDE_INCOMPATIBLE_GAMES);
             MaxPlayerCount = new IntRangeSetting(iniFile, GAME_FILTERS, "MaxPlayerCount", DEFAULT_MAX_PLAYER_COUNT, 2, 8);
+
+            FavoriteMapSHAs = new StringListSetting(iniFile, OPTIONS, "FavoriteMaps", new List<string>());
         }
 
         public IniFile SettingsIni { get; private set; }
@@ -246,11 +249,39 @@ namespace ClientCore
 
         public BoolSetting AutoRemoveUnderscoresFromName { get; private set; }
         
+        public StringListSetting FavoriteMapSHAs { get; private set; }
+        
         public bool IsGameFollowed(string gameName)
         {
             return SettingsIni.GetBooleanValue("Channels", gameName, false);
         }
 
+        public bool ToggleFavoriteMap(string mapName, string gameModeName, bool isFavorite)
+        {
+            if (string.IsNullOrEmpty(mapName))
+                return isFavorite;
+
+            var favoriteMapKey = FavoriteMapKey(mapName, gameModeName);
+            isFavorite = IsFavoriteMap(mapName, gameModeName);
+            if (isFavorite)
+                FavoriteMapSHAs.Remove(favoriteMapKey);
+            else
+                FavoriteMapSHAs.Add(favoriteMapKey);
+            
+            Instance.SaveSettings();
+
+            return !isFavorite;
+        }
+
+        /// <summary>
+        /// Checks if a specified map SHA belongs to the favorite map list.
+        /// </summary>
+        /// <param name="nameName">The SHA of the map.</param>
+        /// <param name="gameModeName">The name of the game mode</param>
+        public bool IsFavoriteMap(string nameName, string gameModeName) => FavoriteMapSHAs.Value.Contains(FavoriteMapKey(nameName, gameModeName));
+
+        private string FavoriteMapKey(string nameName, string gameModeName) => $"{nameName}:{gameModeName}";
+        
         public void ReloadSettings()
         {
             SettingsIni.Reload();

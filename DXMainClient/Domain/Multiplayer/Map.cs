@@ -806,6 +806,8 @@ namespace DTAClient.Domain.Multiplayer
             return new Point(pixelX, pixelY);
         }
 
+        protected bool Equals(Map other) => string.Equals(SHA1, other?.SHA1, StringComparison.InvariantCultureIgnoreCase);
 
+        public override int GetHashCode() => (SHA1 != null ? SHA1.GetHashCode() : 0);
     }
 }
