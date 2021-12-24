@@ -430,6 +430,8 @@
     <Compile Include="Domain\Multiplayer\CnCNet\HostedCnCNetGame.cs" />
     <Compile Include="Domain\Multiplayer\CnCNet\MapEventArgs.cs" />
     <Compile Include="Domain\Multiplayer\CnCNet\MapSharer.cs" />
+    <Compile Include="Domain\Multiplayer\GameModeMap.cs" />
+    <Compile Include="Domain\Multiplayer\GameModeMapCollection.cs" />
     <Compile Include="Domain\Multiplayer\GameOptionPresets.cs" />
     <Compile Include="Domain\Multiplayer\LAN\ClientIntCommandHandler.cs" />
     <Compile Include="Domain\Multiplayer\LAN\LANLobbyUser.cs" />
@@ -496,6 +498,7 @@
     <Compile Include="DXGUI\Multiplayer\GameLobby\CommandHandlers\NotificationHandler.cs" />
     <Compile Include="DXGUI\Multiplayer\GameLobby\CoopBriefingBox.cs" />
     <Compile Include="DXGUI\Multiplayer\GameLobby\DropDownDataWriteMode.cs" />
+    <Compile Include="DXGUI\Multiplayer\GameLobby\GameModeMapFilter.cs" />
     <Compile Include="DXGUI\Multiplayer\GameLobby\GameLaunchButton.cs" />
     <Compile Include="DXGUI\Multiplayer\GameLobby\GameLobbyBase.cs" />
     <Compile Include="DXGUI\Multiplayer\GameLobby\GameLobbyCheckBox.cs" />
@@ -529,6 +532,7 @@
     <Compile Include="Online\EventArguments\GameOptionPresetEventArgs.cs" />
     <Compile Include="Online\EventArguments\JoinUserEventArgs.cs" />
     <Compile Include="Online\EventArguments\MultiplayerNameRightClickedEventArgs.cs" />
+    <Compile Include="Online\EventArguments\FavoriteMapEventArgs.cs" />
     <Compile Include="Online\EventArguments\PrivateCTCPEventArgs.cs" />
     <Compile Include="Online\EventArguments\PrivateMessageEventArgs.cs" />
     <Compile Include="Online\EventArguments\UnreadMessageCountEventArgs.cs" />

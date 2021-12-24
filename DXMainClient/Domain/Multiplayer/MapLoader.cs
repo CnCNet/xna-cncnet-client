@@ -26,6 +26,8 @@ namespace DTAClient.Domain.Multiplayer
         /// </summary>
         public List<GameMode> GameModes = new List<GameMode>();
 
+        public GameModeMapCollection GameModeMaps;
+
         /// <summary>
         /// An event that is fired when the maps have been loaded.
         /// </summary>
@@ -68,6 +70,7 @@ namespace DTAClient.Domain.Multiplayer
             LoadCustomMaps();
 
             GameModes.RemoveAll(g => g.Maps.Count < 1);
+            GameModeMaps = new GameModeMapCollection(GameModes);
 
             MapLoadingComplete?.Invoke(this, EventArgs.Empty);
         }

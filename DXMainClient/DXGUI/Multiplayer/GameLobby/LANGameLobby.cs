@@ -41,8 +41,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         public const string PING = "PING";
 
         public LANGameLobby(WindowManager windowManager, string iniName, 
-            TopBar topBar, List<GameMode> GameModes, LANColor[] chatColors, MapLoader mapLoader, DiscordHandler discordHandler) : 
-            base(windowManager, iniName, topBar, GameModes, mapLoader, discordHandler)
+            TopBar topBar, LANColor[] chatColors, MapLoader mapLoader, DiscordHandler discordHandler) : 
+            base(windowManager, iniName, topBar, mapLoader, discordHandler)
         {
             this.chatColors = chatColors;
             encoding = Encoding.UTF8;
@@ -146,7 +146,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 this.client.GetStream().Flush();
 
                 var fhc = new FileHashCalculator();
-                fhc.CalculateHashes(GameModes);
+                fhc.CalculateHashes(GameModeMaps.GameModes);
                 localFileHash = fhc.GetCompleteHash();
 
                 RefreshMapSelectionUI();
@@ -167,7 +167,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         public void PostJoin()
         {
             var fhc = new FileHashCalculator();
-            fhc.CalculateHashes(GameModes);
+            fhc.CalculateHashes(GameModeMaps.GameModes);
             SendMessageToHost(FILE_HASH_COMMAND + " " + fhc.GetCompleteHash());
             ResetAutoReadyCheckbox();
         }
@@ -980,28 +980,18 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             string mapSHA1 = parts[parts.Length - (GAME_OPTION_SPECIAL_FLAG_COUNT - 1)];
             string gameMode = parts[parts.Length - (GAME_OPTION_SPECIAL_FLAG_COUNT - 2)];
 
-            GameMode gm = GameModes.Find(g => g.Name == gameMode);
+            GameModeMap gameModeMap = GameModeMaps.Find(gmm => gmm.GameMode.Name == gameMode && gmm.Map.SHA1 == mapSHA1);
 
-            if (gm == null)
+            if (gameModeMap == null)
             {
                 AddNotice("The game host has selected a map that doesn't exist on your " +
                     "installation. The host needs to change the map or you won't be able to play.");
-                ChangeMap(null, null);
+                ChangeMap(null);
                 return;
             }
 
-            Map map = gm.Maps.Find(m => m.SHA1 == mapSHA1);
-
-            if (map == null)
-            {
-                AddNotice("The game host has selected a map that doesn't exist on your " +
-                    "installation. The host needs to change the map or you won't be able to play.");
-                ChangeMap(null, null);
-                return;
-            }
-
-            if (GameMode != gm || Map != map)
-                ChangeMap(gm, map);
+            if (GameModeMap != gameModeMap)
+                ChangeMap(gameModeMap);
 
             int frameSendRate = Conversions.IntFromString(parts[parts.Length - (GAME_OPTION_SPECIAL_FLAG_COUNT - 3)], FrameSendRate);
             if (frameSendRate != FrameSendRate)
