@@ -257,41 +257,46 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             CheckBoxes.ForEach(chk => chk.CheckedChanged += ChkBox_CheckedChanged);
             DropDowns.ForEach(dd => dd.SelectedIndexChanged += Dropdown_SelectedIndexChanged);
+
+            InitializeGameOptionPresetUI();
         }
 
-        private void InitializeGameOptionsPanel()
+        private void InitializeGameOptionPresetUI()
         {
-            loadOrSaveGameOptionPresetWindow = new LoadOrSaveGameOptionPresetWindow(WindowManager);
-            loadOrSaveGameOptionPresetWindow.Name = nameof(loadOrSaveGameOptionPresetWindow);
-            loadOrSaveGameOptionPresetWindow.PresetLoaded += (sender, s) => HandleGameOptionPresetLoadCommand(s);
-            loadOrSaveGameOptionPresetWindow.PresetSaved += (sender, s) => HandleGameOptionPresetSaveCommand(s);
-            loadOrSaveGameOptionPresetWindow.Disable();
-            var loadConfigMenuItem = new XNAContextMenuItem()
-            {
-                Text = "Load",
-                SelectAction = () => loadOrSaveGameOptionPresetWindow.Show(true)
-            };
-            var saveConfigMenuItem = new XNAContextMenuItem()
-            {
-                Text = "Save",
-                SelectAction = () => loadOrSaveGameOptionPresetWindow.Show(false)
-            };
+            BtnSaveLoadGameOptions = FindChild<XNAClientButton>(nameof(BtnSaveLoadGameOptions), true);
 
-            loadSaveGameOptionsMenu = new XNAContextMenu(WindowManager);
-            loadSaveGameOptionsMenu.Name = nameof(loadSaveGameOptionsMenu);
-            loadSaveGameOptionsMenu.ClientRectangle = new Rectangle(0, 0, 75, 0);
-            loadSaveGameOptionsMenu.Items.Add(loadConfigMenuItem);
-            loadSaveGameOptionsMenu.Items.Add(saveConfigMenuItem);
-            
-            BtnSaveLoadGameOptions = new XNAClientButton(WindowManager);
-            BtnSaveLoadGameOptions.Name = nameof(BtnSaveLoadGameOptions);
-            BtnSaveLoadGameOptions.ClientRectangle = new Rectangle(Width - 12, 14, 18, 22);
-            BtnSaveLoadGameOptions.IdleTexture = AssetLoader.LoadTexture("comboBoxArrow.png");
-            BtnSaveLoadGameOptions.HoverTexture = AssetLoader.LoadTexture("comboBoxArrow.png");
-            BtnSaveLoadGameOptions.LeftClick += (sender, args) =>
+            if (BtnSaveLoadGameOptions != null)
             {
-                loadSaveGameOptionsMenu.Open(new Point(BtnSaveLoadGameOptions.X - 74, BtnSaveLoadGameOptions.Y));
-            };
+                loadOrSaveGameOptionPresetWindow = new LoadOrSaveGameOptionPresetWindow(WindowManager);
+                loadOrSaveGameOptionPresetWindow.Name = nameof(loadOrSaveGameOptionPresetWindow);
+                loadOrSaveGameOptionPresetWindow.PresetLoaded += (sender, s) => HandleGameOptionPresetLoadCommand(s);
+                loadOrSaveGameOptionPresetWindow.PresetSaved += (sender, s) => HandleGameOptionPresetSaveCommand(s);
+                loadOrSaveGameOptionPresetWindow.Disable();
+                var loadConfigMenuItem = new XNAContextMenuItem()
+                {
+                    Text = "Load",
+                    SelectAction = () => loadOrSaveGameOptionPresetWindow.Show(true)
+                };
+                var saveConfigMenuItem = new XNAContextMenuItem()
+                {
+                    Text = "Save",
+                    SelectAction = () => loadOrSaveGameOptionPresetWindow.Show(false)
+                };
+
+                loadSaveGameOptionsMenu = new XNAContextMenu(WindowManager);
+                loadSaveGameOptionsMenu.Name = nameof(loadSaveGameOptionsMenu);
+                loadSaveGameOptionsMenu.ClientRectangle = new Rectangle(0, 0, 75, 0);
+                loadSaveGameOptionsMenu.Items.Add(loadConfigMenuItem);
+                loadSaveGameOptionsMenu.Items.Add(saveConfigMenuItem);
+
+                BtnSaveLoadGameOptions.LeftClick += (sender, args) =>
+                {
+                    loadSaveGameOptionsMenu.Open(new Point(BtnSaveLoadGameOptions.X - 74, BtnSaveLoadGameOptions.Y));
+                };
+
+                AddChild(loadSaveGameOptionsMenu);
+                AddChild(loadOrSaveGameOptionPresetWindow);
+            }
         }
 
         protected void HandleGameOptionPresetSaveCommand(GameOptionPresetEventArgs e) => HandleGameOptionPresetSaveCommand(e.PresetName);
