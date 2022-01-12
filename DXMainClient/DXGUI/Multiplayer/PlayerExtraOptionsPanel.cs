@@ -247,8 +247,8 @@ namespace DTAClient.DXGUI.Multiplayer
             XNAMessageBox.Show(WindowManager, "Team/Start Mappings",
                 "Team/start mappings allow the host to assign starting locations to teams, not players.\n" +
                 "When players are assigned to spawn locations, they will be auto assigned to teams based on these mappings.\n" +
-                "This is best used with random teams/starts. However, it is not required.\n" +
-                "Manually specified teams/starts will take precedence.\n\n" +
+                "This is best used with random teams/starts. However, only random teams is required.\n" +
+                "Manually specified starts will take precedence.\n\n" +
                 $"{TeamStartMapping.NO_TEAM} : Block this location from being assigned to a player.\n" +
                 $"{TeamStartMapping.RANDOM_TEAM} : Allow a player here, but don't assign a team."
             );
