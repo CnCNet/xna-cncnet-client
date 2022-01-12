@@ -545,18 +545,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (playerExtraOptions.IsForceRandomColors != PlayerExtraOptionsPanel.IsForcedRandomColors())
                 AddPlayerExtraOptionForcedNotice(playerExtraOptions.IsForceRandomColors, "color");
 
-            if (playerExtraOptions.IsUseTeamStartMappings && playerExtraOptions.IsUseTeamStartMappings != PlayerExtraOptionsPanel.IsUseTeamStartMappings())
-            {
-                AddPlayerExtraOptionForcedNotice(playerExtraOptions.IsUseTeamStartMappings, "team/start");
-            }
-            else
-            {
-                if (playerExtraOptions.IsForceRandomStarts != PlayerExtraOptionsPanel.IsForcedRandomStarts())
-                    AddPlayerExtraOptionForcedNotice(playerExtraOptions.IsForceRandomStarts, "start");
+            if (playerExtraOptions.IsForceRandomStarts != PlayerExtraOptionsPanel.IsForcedRandomStarts())
+                AddPlayerExtraOptionForcedNotice(playerExtraOptions.IsForceRandomStarts, "start");
 
-                if (playerExtraOptions.IsForceRandomTeams != PlayerExtraOptionsPanel.IsForcedRandomTeams())
-                    AddPlayerExtraOptionForcedNotice(playerExtraOptions.IsForceRandomTeams, "team");
-            }
+            if (playerExtraOptions.IsForceRandomTeams != PlayerExtraOptionsPanel.IsForcedRandomTeams())
+                AddPlayerExtraOptionForcedNotice(playerExtraOptions.IsForceRandomTeams, "team");
 
             SetPlayerExtraOptions(playerExtraOptions);
             UpdateMapPreviewBoxEnabledStatus();
@@ -942,26 +935,38 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             var playerExtraOptions = GetPlayerExtraOptions();
             
-            foreach (var ddPlayerSide in ddPlayerSides)
-                EnablePlayerOptionDropDown(ddPlayerSide, !playerExtraOptions.IsForceRandomSides);
+            for (int i = 0; i < ddPlayerSides.Length; i++)
+                EnablePlayerOptionDropDown(ddPlayerSides[i], i, !playerExtraOptions.IsForceRandomSides);
             
-            foreach (var ddPlayerTeam in ddPlayerTeams)
-                EnablePlayerOptionDropDown(ddPlayerTeam, !playerExtraOptions.IsForceRandomTeams);
+            for (int i = 0; i < ddPlayerTeams.Length; i++)
+                EnablePlayerOptionDropDown(ddPlayerTeams[i], i, !playerExtraOptions.IsForceRandomTeams);
 
-            foreach (var ddPlayerColor in ddPlayerColors)
-                EnablePlayerOptionDropDown(ddPlayerColor, !playerExtraOptions.IsForceRandomColors);
+            for (int i = 0; i < ddPlayerColors.Length; i++)
+                EnablePlayerOptionDropDown(ddPlayerColors[i], i, !playerExtraOptions.IsForceRandomColors);
 
-            foreach (var ddPlayerStart in ddPlayerStarts)
-                EnablePlayerOptionDropDown(ddPlayerStart, !playerExtraOptions.IsForceRandomStarts);
+            for (int i = 0; i < ddPlayerStarts.Length; i++)
+                EnablePlayerOptionDropDown(ddPlayerStarts[i], i, !playerExtraOptions.IsForceRandomStarts);
 
             UpdateMapPreviewBoxEnabledStatus();
         }
 
-        private void EnablePlayerOptionDropDown(XNAClientDropDown clientDropDown, bool enable)
+        private void EnablePlayerOptionDropDown(XNAClientDropDown clientDropDown, int playerIndex, bool enable)
         {
-            clientDropDown.AllowDropDown = enable;
+            var pInfo = GetPlayerInfoForIndex(playerIndex);
+            clientDropDown.AllowDropDown = enable && pInfo?.Name == ProgramConstants.PLAYERNAME;
             if (!clientDropDown.AllowDropDown)
                 clientDropDown.SelectedIndex = clientDropDown.SelectedIndex > 0 ? 0 : clientDropDown.SelectedIndex;
+        }
+
+        protected PlayerInfo GetPlayerInfoForIndex(int playerIndex)
+        {
+            if (playerIndex < Players.Count)
+                return Players[playerIndex];
+
+            if (playerIndex < Players.Count + AIPlayers.Count)
+                return AIPlayers[playerIndex - Players.Count];
+
+            return null;
         }
 
         protected PlayerExtraOptions GetPlayerExtraOptions() => PlayerExtraOptionsPanel.GetPlayerExtraOptions();
