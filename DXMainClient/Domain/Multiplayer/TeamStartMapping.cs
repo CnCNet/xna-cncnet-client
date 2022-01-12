@@ -27,7 +27,7 @@ namespace DTAClient.Domain.Multiplayer
         public int TeamIndex => TEAMS.IndexOf(Team);
 
         [JsonIgnore]
-        public int TeamId => ProgramConstants.TEAMS.IndexOf(Team);
+        public int TeamId => ProgramConstants.TEAMS.IndexOf(Team) + 1;
 
         [JsonIgnore]
         public int StartingWaypoint => Start - 1;
