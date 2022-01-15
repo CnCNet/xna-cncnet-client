@@ -267,6 +267,8 @@ namespace DTAClient.Domain.Multiplayer
                 Logger.Log("LoadCustomMap: Map " + mapPath + " added succesfully.");
 
                 AddMapToGameModes(map, true);
+                var gameModes = GameModes.Where(gm => gm.Maps.Contains(map));
+                GameModeMaps.AddRange(gameModes.Select(gm => new GameModeMap(gm, map, false)));
 
                 resultMessage = $"Map {mapPath} loaded succesfully.";
 

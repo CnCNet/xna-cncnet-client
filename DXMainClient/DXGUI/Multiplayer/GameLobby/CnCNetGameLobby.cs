@@ -1597,7 +1597,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 AddNotice(returnMessage);
                 if (lastMapSHA1 == e.SHA1)
                 {
-                    GameModeMap = GameModeMaps.Find(gmm => gmm.GameMode.UIName == lastGameMode);
+                    GameModeMap = GameModeMaps.Find(gmm => gmm.Map.SHA1 == lastMapSHA1);
                     ChangeMap(GameModeMap);
                 }
             }
