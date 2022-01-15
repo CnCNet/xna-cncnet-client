@@ -129,6 +129,14 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             Disable();
         }
 
+        public override void Initialize()
+        {
+            PanelBackgroundDrawMode = PanelBackgroundImageDrawMode.STRETCHED;
+            BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 255), 1, 1);
+            
+            base.Initialize();
+        }
+
         /// <summary>
         /// Show the window.
         /// </summary>
