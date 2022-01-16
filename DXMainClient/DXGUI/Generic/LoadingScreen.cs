@@ -111,7 +111,7 @@ namespace DTAClient.DXGUI.Generic
                 gameCollection, cncnetUserData, optionsWindow);
             var gipw = new GameInProgressWindow(WindowManager);
 
-            var skirmishLobby = new SkirmishLobby(WindowManager, topBar, mapLoader.GameModeMaps, discordHandler);
+            var skirmishLobby = new SkirmishLobby(WindowManager, topBar, mapLoader, discordHandler);
 
             topBar.SetSecondarySwitch(cncnetLobby);
 
