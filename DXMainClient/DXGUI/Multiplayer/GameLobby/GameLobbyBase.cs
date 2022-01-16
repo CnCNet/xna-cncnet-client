@@ -43,19 +43,19 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         /// </summary>
         /// <param name="windowManager"></param>
         /// <param name="iniName">The name of the lobby in GameOptions.ini.</param>
-        /// <param name="gameModeMaps"></param>
+        /// <param name="mapLoader"></param>
         /// <param name="isMultiplayer"></param>
         /// <param name="discordHandler"></param>
         public GameLobbyBase(
             WindowManager windowManager, 
             string iniName,
-            GameModeMapCollection gameModeMaps, 
+            MapLoader mapLoader, 
             bool isMultiplayer, 
             DiscordHandler discordHandler
         ) : base(windowManager)
         {
             _iniSectionName = iniName;
-            GameModeMaps = gameModeMaps;
+            MapLoader = mapLoader;
             this.isMultiplayer = isMultiplayer;
             this.discordHandler = discordHandler;
         }
@@ -73,10 +73,12 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         protected DiscordHandler discordHandler;
 
+        protected MapLoader MapLoader;
         /// <summary>
-        /// The list of multiplayer game modes.
+        /// The list of multiplayer game mode maps.
+        /// Each is an instance of a map for a specific game mode.
         /// </summary>
-        protected GameModeMapCollection GameModeMaps;
+        protected GameModeMapCollection GameModeMaps => MapLoader.GameModeMaps;
 
         protected GameModeMapFilter gameModeMapFilter;
 
@@ -687,16 +689,19 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             try
             {
-                Logger.Log("Deleting map " + Map.BaseFilePath);
-                File.Delete(Map.CompleteFilePath);
-                foreach (GameMode gameMode in GameModeMaps.GameModes)
-                {
-                    gameMode.Maps.Remove(Map);
-                }
+                MapLoader.DeleteCustomMap(GameModeMap);
 
                 tbMapSearch.Text = string.Empty;
                 if (GameMode.Maps.Count == 0)
+                {
+                    // this will trigger another GameMode to be selected
                     GameModeMap = GameModeMaps.Find(gm => gm.GameMode.Maps.Count > 0);
+                }
+                else
+                {
+                    // this will trigger another Map to be selected
+                    lbGameModeMapList.SelectedIndex = lbGameModeMapList.SelectedIndex == 0 ? 1 : lbGameModeMapList.SelectedIndex - 1;
+                }
 
                 ListMaps();
                 ChangeMap(GameModeMap);

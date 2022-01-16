@@ -27,7 +27,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         public MultiplayerGameLobby(WindowManager windowManager, string iniName, 
             TopBar topBar, MapLoader mapLoader, DiscordHandler discordHandler)
-            : base(windowManager, iniName, mapLoader.GameModeMaps, true, discordHandler)
+            : base(windowManager, iniName, mapLoader, true, discordHandler)
         {
             TopBar = topBar;
             MapLoader = mapLoader;

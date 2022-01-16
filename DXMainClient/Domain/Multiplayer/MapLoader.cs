@@ -149,7 +149,7 @@ namespace DTAClient.Domain.Multiplayer
                 Logger.Log("Custom maps directory does not exist!");
                 return;
             }
-            
+
             string[] mapFiles = Directory.GetFiles(ProgramConstants.GamePath + CUSTOM_MAPS_DIRECTORY, "*.map");
             ConcurrentDictionary<string, Map> customMapCache = LoadCustomMapCache();
             var localMapSHAs = new List<string>();
@@ -188,7 +188,7 @@ namespace DTAClient.Domain.Multiplayer
                 AddMapToGameModes(map, false);
             }
         }
-        
+
         /// <summary>
         /// Save cache of custom maps.
         /// </summary>
@@ -201,7 +201,7 @@ namespace DTAClient.Domain.Multiplayer
                 Version = CurrentCustomMapCacheVersion
             };
             var jsonData = JsonConvert.SerializeObject(customMapCache);
-            
+
             File.WriteAllText(CUSTOM_MAPS_CACHE, jsonData);
         }
 
@@ -279,6 +279,18 @@ namespace DTAClient.Domain.Multiplayer
             resultMessage = $"Loading map {mapPath} failed!";
 
             return null;
+        }
+
+        public void DeleteCustomMap(GameModeMap gameModeMap)
+        {
+            Logger.Log("Deleting map " + gameModeMap.Map.Name);
+            File.Delete(gameModeMap.Map.CompleteFilePath);
+            foreach (GameMode gameMode in GameModeMaps.GameModes)
+            {
+                gameMode.Maps.Remove(gameModeMap.Map);
+            }
+
+            GameModeMaps.Remove(gameModeMap);
         }
 
         /// <summary>
