@@ -672,11 +672,16 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
                 return;
             }
+            
+            PlayerInfo pInfo = Players.Find(p => p.Name == ProgramConstants.PLAYERNAME);
+            int readyState = 0;
 
             if (chkAutoReady.Checked)
-                channel.SendCTCPMessage("R 2", QueuedMessageType.GAME_PLAYERS_READY_STATUS_MESSAGE, 5);
-            else
-                channel.SendCTCPMessage("R 1", QueuedMessageType.GAME_PLAYERS_READY_STATUS_MESSAGE, 5);
+                readyState = 2;
+            else if (!pInfo.Ready)
+                readyState = 1;
+            
+            channel.SendCTCPMessage($"R {readyState}", QueuedMessageType.GAME_PLAYERS_READY_STATUS_MESSAGE, 5);
         }
 
         protected override void AddNotice(string message, Color color) => channel.AddMessage(new ChatMessage(color, message));
@@ -913,6 +918,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
                     pInfo.Ready = readyStatus > 0;
                     pInfo.AutoReady = readyStatus > 1;
+                    if (pInfo.Name == ProgramConstants.PLAYERNAME)
+                        btnLaunchGame.Text = pInfo.Ready ? BTN_LAUNCH_NOT_READY : BTN_LAUNCH_READY;
 
                     Players.Add(pInfo);
                     i += HUMAN_PLAYER_OPTIONS_LENGTH;

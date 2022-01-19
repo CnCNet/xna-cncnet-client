@@ -30,6 +30,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         protected const int PLAYER_OPTION_HORIZONTAL_MARGIN = 3;
         protected const int PLAYER_OPTION_CAPTION_Y = 6;
         private const int DROP_DOWN_HEIGHT = 21;
+        protected const string BTN_LAUNCH_GAME = "Launch Game";
+        protected const string BTN_LAUNCH_READY = "I'm Ready";
+        protected const string BTN_LAUNCH_NOT_READY = "Not Ready";
 
         private const string FavoriteMapsLabel = "Favorite Maps";
 
