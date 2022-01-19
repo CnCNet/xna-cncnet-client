@@ -608,7 +608,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             PlayerExtraOptionsPanel.SetIsHost(isHost);
             //MapPreviewBox.EnableContextMenu = IsHost;
 
-            btnLaunchGame.Text = IsHost ? "Launch Game" : "I'm Ready";
+            btnLaunchGame.Text = IsHost ? BTN_LAUNCH_GAME : BTN_LAUNCH_READY;
 
             if (IsHost)
             {
