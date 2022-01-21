@@ -78,5 +78,15 @@ namespace DTAClient.Domain.Multiplayer
                 TeamStartMappings = TeamStartMapping.FromListString(parts[1])
             };
         }
+
+        public bool IsDefault()
+        {
+            var defaultPLayerExtraOptions = new PlayerExtraOptions();
+            return IsForceRandomColors == defaultPLayerExtraOptions.IsForceRandomColors &&
+                   IsForceRandomStarts == defaultPLayerExtraOptions.IsForceRandomStarts &&
+                   IsForceRandomTeams == defaultPLayerExtraOptions.IsForceRandomTeams &&
+                   IsForceRandomSides == defaultPLayerExtraOptions.IsForceRandomSides &&
+                   IsUseTeamStartMappings == defaultPLayerExtraOptions.IsUseTeamStartMappings;
+        }
     }
 }
