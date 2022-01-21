@@ -142,6 +142,7 @@ namespace DTAClient.Online
                     if (existingUser.IsAdmin != user.IsAdmin)
                     {
                         existingUser.IsAdmin = user.IsAdmin;
+                        existingUser.IsFriend = user.IsFriend;
                         users.Reinsert(user.IRCUser.Name);
                     }
                 }

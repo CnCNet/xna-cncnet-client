@@ -90,7 +90,7 @@ namespace DTAClient.DXGUI.Generic
             var lanLobby = new LANLobby(WindowManager, gameCollection, mapLoader.GameModes, mapLoader, discordHandler);
 
             var cncnetUserData = new CnCNetUserData(WindowManager);
-            var cncnetManager = new CnCNetManager(WindowManager, gameCollection);
+            var cncnetManager = new CnCNetManager(WindowManager, gameCollection, cncnetUserData);
             var tunnelHandler = new TunnelHandler(WindowManager, cncnetManager);
             var privateMessageHandler = new PrivateMessageHandler(cncnetManager, cncnetUserData);
             
