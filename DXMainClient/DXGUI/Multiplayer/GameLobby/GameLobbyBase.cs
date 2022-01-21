@@ -961,7 +961,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         private void EnablePlayerOptionDropDown(XNAClientDropDown clientDropDown, int playerIndex, bool enable)
         {
             var pInfo = GetPlayerInfoForIndex(playerIndex);
-            clientDropDown.AllowDropDown = enable && pInfo?.Name == ProgramConstants.PLAYERNAME;
+            var allowOtherPlayerOptionsChange = AllowPlayerOptionsChange() && pInfo != null;
+            clientDropDown.AllowDropDown = enable && (allowOtherPlayerOptionsChange || pInfo?.Name == ProgramConstants.PLAYERNAME);
             if (!clientDropDown.AllowDropDown)
                 clientDropDown.SelectedIndex = clientDropDown.SelectedIndex > 0 ? 0 : clientDropDown.SelectedIndex;
         }
