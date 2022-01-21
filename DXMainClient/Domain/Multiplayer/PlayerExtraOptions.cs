@@ -8,7 +8,7 @@ namespace DTAClient.Domain.Multiplayer
     public class PlayerExtraOptions
     {
         private const string INVALID_OPTIONS_MESSAGE = "Invalid player extra options message";
-        private const string MAPPING_ERROR_PREFIX = "Team/Start Mappings:";
+        private const string MAPPING_ERROR_PREFIX = "Auto Allying:";
         protected static readonly string NOT_ALL_MAPPINGS_ASSIGNED = $"{MAPPING_ERROR_PREFIX} You must have all mappings assigned.";
         protected static readonly string MULTIPLE_MAPPINGS_ASSIGNED_TO_SAME_START = $"{MAPPING_ERROR_PREFIX} Multiple mappings assigned to the same start location.";
         protected static readonly string ONLY_ONE_TEAM = $"{MAPPING_ERROR_PREFIX} You must have more than one team assigned.";

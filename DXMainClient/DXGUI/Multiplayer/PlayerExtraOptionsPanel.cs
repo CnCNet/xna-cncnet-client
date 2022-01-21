@@ -205,7 +205,7 @@ namespace DTAClient.DXGUI.Multiplayer
 
             chkBoxUseTeamStartMappings = new XNAClientCheckBox(WindowManager);
             chkBoxUseTeamStartMappings.Name = nameof(chkBoxUseTeamStartMappings);
-            chkBoxUseTeamStartMappings.Text = "Use Team/Start Mappings:";
+            chkBoxUseTeamStartMappings.Text = "Enable Auto Allying:";
             chkBoxUseTeamStartMappings.ClientRectangle = new Rectangle(defaultTeamStartMappingX, lblHeader.Y, 0, 0);
             chkBoxUseTeamStartMappings.CheckedChanged += ChkBoxUseTeamStartMappings_Changed;
             AddChild(chkBoxUseTeamStartMappings);
@@ -244,10 +244,10 @@ namespace DTAClient.DXGUI.Multiplayer
 
         private void BtnHelp_LeftClick(object sender, EventArgs args)
         {
-            XNAMessageBox.Show(WindowManager, "Team/Start Mappings",
-                "Team/start mappings allow the host to assign starting locations to teams, not players.\n" +
+            XNAMessageBox.Show(WindowManager, "Auto Allying", 
+                "Auto allying allows the host to assign starting locations to teams, not players.\n" +
                 "When players are assigned to spawn locations, they will be auto assigned to teams based on these mappings.\n" +
-                "This is best used with random teams/starts. However, only random teams is required.\n" +
+                "This is best used with random teams and random starts. However, only random teams is required.\n" +
                 "Manually specified starts will take precedence.\n\n" +
                 $"{TeamStartMapping.NO_TEAM} : Block this location from being assigned to a player.\n" +
                 $"{TeamStartMapping.RANDOM_TEAM} : Allow a player here, but don't assign a team."
