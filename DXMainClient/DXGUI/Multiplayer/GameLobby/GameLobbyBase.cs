@@ -414,6 +414,13 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             PlayerExtraOptionsPanel.OptionsChanged += PlayerExtraOptions_OptionsChanged;
         }
 
+        private void RefreshBthPlayerExtraOptionsOpenTexture()
+        {
+            var texture = GetPlayerExtraOptions().IsDefault() ? "comboBoxArrow.png" : "comboBoxArrow-highlight.png";
+            btnPlayerExtraOptionsOpen.IdleTexture = AssetLoader.LoadTexture(texture);
+            btnPlayerExtraOptionsOpen.HoverTexture = AssetLoader.LoadTexture(texture);
+        }
+
         private void InitializeGameOptionsPanel()
         {
             GameOptionsPanel = new XNAPanel(WindowManager);
@@ -956,6 +963,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 EnablePlayerOptionDropDown(ddPlayerStarts[i], i, !playerExtraOptions.IsForceRandomStarts);
 
             UpdateMapPreviewBoxEnabledStatus();
+            RefreshBthPlayerExtraOptionsOpenTexture();
         }
 
         private void EnablePlayerOptionDropDown(XNAClientDropDown clientDropDown, int playerIndex, bool enable)
