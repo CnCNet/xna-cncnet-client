@@ -432,7 +432,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 pmUser = new PrivateMessageUser(e.ircUser);
                 privateMessageUsers.Add(pmUser);
 
-                if (tabControl.SelectedTab == 0)
+                if (tabControl.SelectedTab == MESSAGES_INDEX)
                 {
                     string selecterUserName = string.Empty;
 
@@ -598,19 +598,22 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         private void FriendsListTabSelected()
         {
             ShowRecentPlayers(false);
-            foreach (string friendName in cncnetUserData.FriendList)
+            var friends = cncnetUserData.FriendList.Select(friendName =>
             {
-                IRCUser iu = connectionManager.UserList.Find(u => u.Name == friendName);
-                bool isOnline = true;
+                var ircUser = connectionManager.UserList.Find(u => u.Name == friendName);
 
-                if (iu == null)
+                return new
                 {
-                    iu = new IRCUser(friendName);
-                    isOnline = false;
-                }
+                    ircUser = ircUser ?? new IRCUser(friendName),
+                    isOnline = ircUser != null
+                };
+            });
 
-                AddPlayerToList(iu, isOnline);
-            }
+            friends
+                .OrderBy(friend => !friend.isOnline)
+                .ThenBy(friend => friend.ircUser.Name)
+                .ToList()
+                .ForEach(friend => AddPlayerToList(friend.ircUser, friend.isOnline));
         }
 
         private void RecentPlayersTabSelected()
