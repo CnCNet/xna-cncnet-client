@@ -114,6 +114,12 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
+    <Reference Include="H.Hooks, Version=1.4.14.0, Culture=neutral, PublicKeyToken=603f13207e65c17b">
+      <HintPath>..\References\H.Hooks.dll</HintPath>
+    </Reference>
+    <Reference Include="WindowsInput, Version=1.0.4.0, Culture=neutral, PublicKeyToken=9b287f7dc5073cad">
+      <HintPath>..\References\WindowsInput.dll</HintPath>
+    </Reference>
     <Reference Include="Rampastring.Tools, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\References\Rampastring.Tools.dll</HintPath>
@@ -133,6 +139,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AutoClickSubscriber.cs" />
     <Compile Include="ClientGUICreator.cs" />
     <Compile Include="ToolTip.cs" />
     <Compile Include="UIDesignConstants.cs" />

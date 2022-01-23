@@ -121,6 +121,7 @@ namespace ClientGUI
                 try
                 {
                     DtaProcess.Start();
+                    AutoClickSubscriber.Subscribe();
                     Logger.Log("GameProcessLogic: Process started.");
                 }
                 catch (Exception ex)
@@ -145,6 +146,7 @@ namespace ClientGUI
 
         static void Process_Exited(object sender, EventArgs e)
         {
+            AutoClickSubscriber.Unsubscribe();
             Logger.Log("GameProcessLogic: Process exited.");
             Process proc = (Process)sender;
             proc.Exited -= Process_Exited;
