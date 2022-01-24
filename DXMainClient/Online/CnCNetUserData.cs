@@ -79,7 +79,7 @@ namespace DTAClient.Online
         {
             try
             {
-                RecentList = JsonConvert.DeserializeObject<List<RecentPlayer>>(File.ReadAllText(ProgramConstants.GamePath + RECENT_LIST_PATH));
+                RecentList = JsonConvert.DeserializeObject<List<RecentPlayer>>(File.ReadAllText(ProgramConstants.GamePath + RECENT_LIST_PATH)) ?? new List<RecentPlayer>();
             }
             catch
             {
