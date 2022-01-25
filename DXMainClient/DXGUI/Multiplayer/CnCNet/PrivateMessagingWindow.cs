@@ -34,8 +34,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         public PrivateMessagingWindow(
             WindowManager windowManager,
-            CnCNetManager connectionManager, 
-            GameCollection gameCollection, 
+            CnCNetManager connectionManager,
+            GameCollection gameCollection,
             CnCNetUserData cncnetUserData,
             PrivateMessageHandler privateMessageHandler
         ) : base(windowManager)
@@ -424,7 +424,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         {
             if (UserINISettings.Instance.AllowPrivateMessagesFromState == (int)AllowPrivateMessagesFromEnum.None)
                 return;
-            
+
             PrivateMessageUser pmUser = privateMessageUsers.Find(u => u.IrcUser.Name == e.Sender);
 
             if (pmUser == null)
@@ -495,9 +495,9 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         {
             if (!UserINISettings.Instance.DisablePrivateMessagePopups)
                 notificationBox.Show(GetUserTexture(ircUser), ircUser.Name, message);
-            else 
+            else
                 privateMessageHandler.IncrementUnreadMessageCount();
-            
+
             if (sndPrivateMessageSound != null)
                 sndPrivateMessageSound.Play();
         }
@@ -572,7 +572,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             var ircUser = (IRCUser)lbUserList.SelectedItem.Tag;
             tbMessageInput.Enabled = IsPlayerOnline(ircUser?.Name);
 
-            var pmUser = privateMessageUsers.Find(u => 
+            var pmUser = privateMessageUsers.Find(u =>
                 u.IrcUser.Name == lbUserList.SelectedItem.Text);
 
             if (pmUser == null)
@@ -591,8 +591,21 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         private void MessagesTabSelected()
         {
             ShowRecentPlayers(false);
-            privateMessageUsers.ForEach(pmsgUser => AddPlayerToList(pmsgUser.IrcUser,
-                connectionManager.UserList.Find(u => u.Name == pmsgUser.IrcUser.Name) != null));
+            var _privateMessageUsers = privateMessageUsers.Select(pMsgUser =>
+                new
+                {
+                    ircUser = pMsgUser.IrcUser,
+                    isFriend = cncnetUserData.FriendList.Contains(pMsgUser.IrcUser.Name),
+                    isOnline = connectionManager.UserList.Any(u => u.Name == pMsgUser.IrcUser.Name)
+                });
+
+            var sortedPrivateMessageUsers = _privateMessageUsers
+                .OrderBy(pMsgUser => !pMsgUser.isOnline)
+                .ThenBy(pMsgUser => !pMsgUser.isFriend)
+                .ThenBy(pMsguser => pMsguser.ircUser.Name);
+
+            foreach (var pMsgUser in sortedPrivateMessageUsers)
+                AddPlayerToList(pMsgUser.ircUser, pMsgUser.isOnline);
         }
 
         private void FriendsListTabSelected()
@@ -621,7 +634,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             ShowRecentPlayers(true);
             var recentPlayers = cncnetUserData.RecentList.OrderByDescending(rp => rp.GameTime);
             mclbRecentPlayerList.ClearItems();
-            
+
             foreach (RecentPlayer recentPlayer in recentPlayers)
                 mclbRecentPlayerList.AddRecentPlayer(recentPlayer);
         }
@@ -629,7 +642,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         private void AllPlayersTabSelected()
         {
             ShowRecentPlayers(false);
-            
+
             foreach (var user in connectionManager.UserList)
                 AddPlayerToList(user, true);
         }
@@ -713,7 +726,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             Visible = true;
             Enabled = true;
 
-            // Check if we've already talked with the user during this session 
+            // Check if we've already talked with the user during this session
             // and if so, open the old conversation
             int pmUserIndex = privateMessageUsers.FindIndex(
                 pmUser => pmUser.IrcUser.Name == name);
