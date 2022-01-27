@@ -7,6 +7,7 @@ namespace ClientCore
     public class ClientConfiguration
     {
         private const string GENERAL = "General";
+        private const string AUDIO = "Audio";
         private const string SETTINGS = "Settings";
         private const string LINKS = "Links";
 
@@ -119,11 +120,31 @@ namespace ClientCore
 
         #endregion
 
+        #region Audio options
+
+        public float SoundGameLobbyJoinCooldown => DTACnCNetClient_ini.GetSingleValue(AUDIO, "SoundGameLobbyJoinCooldown", 0.25f);
+
+        public float SoundGameLobbyLeaveCooldown => DTACnCNetClient_ini.GetSingleValue(AUDIO, "SoundGameLobbyLeaveCooldown", 0.25f);
+
+        public float SoundMessageCooldown => DTACnCNetClient_ini.GetSingleValue(AUDIO, "SoundMessageCooldown", 0.25f);
+
+        public float SoundPrivateMessageCooldown => DTACnCNetClient_ini.GetSingleValue(AUDIO, "SoundPrivateMessageCooldown", 0.25f);
+
+        public float SoundGameLobbyGetReadyCooldown => DTACnCNetClient_ini.GetSingleValue(AUDIO, "SoundGameLobbyGetReadyCooldown", 5.0f);
+
+        public float SoundGameLobbyReturnCooldown => DTACnCNetClient_ini.GetSingleValue(AUDIO, "SoundGameLobbyReturnCooldown", 1.0f);
+
+        #endregion
+
         #endregion
 
         #region Game options
 
-        public string Sides => gameOptions_ini.GetStringValue(GENERAL, "Sides", "GDI,Nod,Allies,Soviet");
+        public string Sides => gameOptions_ini.GetStringValue(GENERAL, nameof(Sides), "GDI,Nod,Allies,Soviet");
+        
+        public string InternalSideIndices => gameOptions_ini.GetStringValue(GENERAL, nameof(InternalSideIndices), string.Empty);
+
+        public string SpectatorInternalSideIndex => gameOptions_ini.GetStringValue(GENERAL, nameof(SpectatorInternalSideIndex), string.Empty);
 
         #endregion
 
@@ -157,7 +178,7 @@ namespace ClientCore
 
         public string BattleFSFileName => clientDefinitionsIni.GetStringValue(SETTINGS, "BattleFSFileName", "BattleFS.ini");
 
-        public string MapEditorExePath => clientDefinitionsIni.GetStringValue(SETTINGS, "MapEditorExePath", "FinalSun\\FinalSun.exe");
+        public string MapEditorExePath => clientDefinitionsIni.GetStringValue(SETTINGS, "MapEditorExePath", "FinalSun/FinalSun.exe");
 
         public string UnixMapEditorExePath => clientDefinitionsIni.GetStringValue(SETTINGS, "UnixMapEditorExePath", Instance.MapEditorExePath);
 
@@ -173,7 +194,7 @@ namespace ClientCore
 
         public string CreditsURL => clientDefinitionsIni.GetStringValue(SETTINGS, "CreditsURL", "http://www.moddb.com/mods/the-dawn-of-the-tiberium-age/tutorials/credits#Rampastring");
 
-        public string FinalSunIniPath => clientDefinitionsIni.GetStringValue(SETTINGS, "FSIniPath", "FinalSun\\FinalSun.ini");
+        public string FinalSunIniPath => clientDefinitionsIni.GetStringValue(SETTINGS, "FSIniPath", "FinalSun/FinalSun.ini");
 
         public int MaxNameLength => clientDefinitionsIni.GetIntValue(SETTINGS, "MaxNameLength", 16);
 
@@ -210,7 +231,7 @@ namespace ClientCore
 
         public string ExtraExeCommandLineParameters => clientDefinitionsIni.GetStringValue(SETTINGS, "ExtraCommandLineParams", string.Empty);
 
-        public string MPMapsIniPath => clientDefinitionsIni.GetStringValue(SETTINGS, "MPMapsPath", "INI\\MPMaps.ini");
+        public string MPMapsIniPath => clientDefinitionsIni.GetStringValue(SETTINGS, "MPMapsPath", "INI/MPMaps.ini");
 
         public string KeyboardINI => clientDefinitionsIni.GetStringValue(SETTINGS, "KeyboardINI", "Keyboard.ini");
 
@@ -252,18 +273,21 @@ namespace ClientCore
 
         public bool UseClientRandomStartLocations => clientDefinitionsIni.GetBooleanValue(SETTINGS, "UseClientRandomStartLocations", false);
 
-        public bool ProcessScreenshots
-#if MO
-            => clientDefinitionsIni.GetBooleanValue(SETTINGS, "ProcessScreenshots", true);
-#else
-            => false;
-#endif
-
         /// <summary>
         /// Returns the name of the game executable file that is used on
         /// Linux and macOS.
         /// </summary>
         public string UnixGameExecutableName => clientDefinitionsIni.GetStringValue(SETTINGS, "UnixGameExecutableName", "wine-dta.sh");
+
+        /// <summary>
+        /// List of files that are not distributed but required to play.
+        /// </summary>
+        public string[] RequiredFiles => clientDefinitionsIni.GetStringValue(SETTINGS, "RequiredFiles", String.Empty).Split(',');
+
+        /// <summary>
+        /// List of files that can interfere with the mod functioning.
+        /// </summary>
+        public string[] ForbiddenFiles => clientDefinitionsIni.GetStringValue(SETTINGS, "ForbiddenFiles", String.Empty).Split(',');
 
         #endregion
 
@@ -294,6 +318,17 @@ namespace ClientCore
                 return OSVersion.UNIX;
 
             return OSVersion.UNKNOWN;
+        }
+    }
+
+    /// <summary>
+    /// An exception that is thrown when a client configuration file contains invalid or
+    /// unexpected settings / data or required settings / data are missing.
+    /// </summary>
+    public class ClientConfigurationException : Exception
+    {
+        public ClientConfigurationException(string message) : base(message)
+        {
         }
     }
 }

@@ -1,40 +1,38 @@
 ﻿using ClientCore;
 using DiscordRPC;
 using DiscordRPC.Message;
-using DTAClient.Online;
 using Microsoft.Xna.Framework;
 using Rampastring.Tools;
 using Rampastring.XNAUI;
-using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.IO;
-using System.Net;
-using System.Net.NetworkInformation;
-using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading;
 
 namespace DTAClient.Domain
 {
+    /// <summary>
+    /// A class for handling Discord integration.
+    /// </summary>
     public class DiscordHandler : GameComponent
     {
-        public DiscordRpcClient client;
+        private DiscordRpcClient client;
 
-        private RichPresence currentPresence;
+        private RichPresence _currentPresence;
+
+        /// <summary>
+        /// RichPresence instance that is currently being displayed.
+        /// </summary>
         public RichPresence CurrentPresence
         {
             get
             {
-                return currentPresence;
+                return _currentPresence;
             }
             set
             {
-                if (currentPresence == null || !currentPresence.Equals(PreviousPresence))
+                if (_currentPresence == null || !_currentPresence.Equals(PreviousPresence))
                 {
-                    PreviousPresence = CurrentPresence;
-                    currentPresence = value;
-                    client.SetPresence(currentPresence);
+                    PreviousPresence = _currentPresence;
+                    _currentPresence = value;
+                    client.SetPresence(_currentPresence);
                 }
             }
         }
@@ -43,22 +41,54 @@ namespace DTAClient.Domain
         /// RichPresence instance that was last displayed before the current one.
         /// </summary>
         public RichPresence PreviousPresence { get; private set; }
-        public DiscordHandler(WindowManager wm) : base(wm.Game)
-        {
-            this.wm = wm;
 
-            wm.Game.Components.Add(this);
+        /// <summary>
+        /// Creates a new instance of Discord handler.
+        /// </summary>
+        /// <param name="windowManager">The window manager.</param>
+        public DiscordHandler(WindowManager windowManager) : base(windowManager.Game)
+        {
+            windowManager.Game.Components.Add(this);
         }
 
-        private WindowManager wm;
-
-        // Overrides
+        #region overrides
 
         public override void Initialize()
         {
-            client = new DiscordRpcClient(ClientConfiguration.Instance.DiscordAppId);
-
+            InitializeClient();
             UpdatePresence();
+
+            if (UserINISettings.Instance.DiscordIntegration)
+                Connect();
+
+            base.Initialize();
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (client.IsInitialized)
+                client.ClearPresence();
+
+            client.Dispose();
+            base.Dispose(disposing);
+        }
+
+        #endregion
+
+        #region methods
+
+        /// <summary>
+        /// Initializes or reinitializes Discord RPC client object & event handlers.
+        /// </summary>
+        private void InitializeClient()
+        {
+            if (client != null && client.IsInitialized)
+            {
+                client.ClearPresence();
+                client.Dispose();
+            }
+
+            client = new DiscordRpcClient(ClientConfiguration.Instance.DiscordAppId);
             client.OnReady += OnReady;
             client.OnClose += OnClose;
             client.OnError += OnError;
@@ -68,23 +98,44 @@ namespace DTAClient.Domain
             client.OnSubscribe += OnSubscribe;
             client.OnUnsubscribe += OnUnsubscribe;
 
-            client.Initialize();
-            base.Initialize();
+            if (CurrentPresence != null)
+                client.SetPresence(CurrentPresence);
         }
 
-        public override void Update(GameTime gameTime)
+        /// <summary>
+        /// Connects to Discord.
+        /// Does not do anything if the Discord RPC client has not been initialized or is already connected.
+        /// </summary>
+        public void Connect()
         {
-            client.Invoke();
-            base.Update(gameTime);
+            if (client == null || client != null && client.IsInitialized)
+                return;
+
+            bool success = client.Initialize();
+
+            if (success)
+                Logger.Log("DiscordHandler: Connected Discord RPC client.");
+            else
+                Logger.Log("DiscordHandler: Failed to connect Discord RPC client.");
         }
 
-        protected override void Dispose(bool disposing)
+        /// <summary>
+        /// Disconnects from Discord.
+        /// Does not do anything if the Discord RPC client has not been initialized or is not connected.
+        /// </summary>
+        public void Disconnect()
         {
-            client.Dispose();
-            base.Dispose(disposing);
-        }
+            if (client == null || !client.IsInitialized)
+                return;
 
-        // Methods
+            // HACK warning
+            // Currently DiscordRpcClient does not appear to have any way to reliably disconnect and reconnect using same client object.
+            // Deinitialize does not appear to completely reset connection state & resources and any attempts to call Initialize afterwards will fail.
+            // A hacky solution is to dispose current client object and create and initialize a new one.
+            InitializeClient(); //client.Deinitialize();
+
+            Logger.Log("DiscordHandler: Disconnected Discord RPC client.");
+        }
 
         /// <summary>
         /// Updates Discord Rich Presence with default info.
@@ -232,7 +283,9 @@ namespace DTAClient.Domain
             };
         }
 
-        // Event handlers
+        #endregion
+
+        #region eventhandlers
 
         private void OnReady(object sender, ReadyMessage args)
         {
@@ -274,5 +327,7 @@ namespace DTAClient.Domain
         {
             Logger.Log($"Discord: Unsubscribed: {args.Event}");
         }
+
+        #endregion
     }
 }

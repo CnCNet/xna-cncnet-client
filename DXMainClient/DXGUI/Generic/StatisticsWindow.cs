@@ -94,8 +94,8 @@ namespace DTAClient.DXGUI.Generic
             tabControl.ClientRectangle = new Rectangle(12, 10, 0, 0);
             tabControl.ClickSound = new EnhancedSoundEffect("button.wav");
             tabControl.FontIndex = 1;
-            tabControl.AddTab("Game Statistics", 133);
-            tabControl.AddTab("Total Statistics", 133);
+            tabControl.AddTab("Game Statistics", UIDesignConstants.BUTTON_WIDTH_133);
+            tabControl.AddTab("Total Statistics", UIDesignConstants.BUTTON_WIDTH_133);
             tabControl.SelectedIndexChanged += TabControl_SelectedIndexChanged;
 
             XNALabel lblFilter = new XNALabel(WindowManager);
@@ -128,13 +128,13 @@ namespace DTAClient.DXGUI.Generic
 
             var btnReturnToMenu = new XNAClientButton(WindowManager);
             btnReturnToMenu.Name = nameof(btnReturnToMenu);
-            btnReturnToMenu.ClientRectangle = new Rectangle(270, 486, 160, 23);
+            btnReturnToMenu.ClientRectangle = new Rectangle(270, 486, UIDesignConstants.BUTTON_WIDTH_160, UIDesignConstants.BUTTON_HEIGHT);
             btnReturnToMenu.Text = "Return to Main Menu";
             btnReturnToMenu.LeftClick += BtnReturnToMenu_LeftClick;
 
             var btnClearStatistics = new XNAClientButton(WindowManager);
             btnClearStatistics.Name = nameof(btnClearStatistics);
-            btnClearStatistics.ClientRectangle = new Rectangle(12, 486, 160, 23);
+            btnClearStatistics.ClientRectangle = new Rectangle(12, 486, UIDesignConstants.BUTTON_WIDTH_160, UIDesignConstants.BUTTON_HEIGHT);
             btnClearStatistics.Text = "Clear Statistics";
             btnClearStatistics.LeftClick += BtnClearStatistics_LeftClick;
             btnClearStatistics.Visible = false;
@@ -564,36 +564,15 @@ namespace DTAClient.DXGUI.Generic
 
         private string TeamIndexToString(int teamIndex)
         {
-            switch (teamIndex)
-            {
-                case 1:
-                    return "A";
-                case 2:
-                    return "B";
-                case 3:
-                    return "C";
-                case 4:
-                    return "D";
-                default:
-                    return "-";
-            }
+            if (teamIndex < 0 || teamIndex >= ProgramConstants.TEAMS.Count)
+                return "-";
+
+            return ProgramConstants.TEAMS[teamIndex - 1];
         }
 
-        private string AILevelToString(int aiLevel)
-        {
-            switch (aiLevel)
-            {
-                case 2:
-                    return "Hard AI";
-                case 1:
-                    return "Medium AI";
-                case 0:
-                default:
-                    return "Easy AI";
-            }
-        }
+        private string AILevelToString(int aiLevel) => ProgramConstants.AI_PLAYER_NAMES[aiLevel];
 
-#region Statistics reading / game listing code
+        #region Statistics reading / game listing code
 
         void ReadStatistics()
         {

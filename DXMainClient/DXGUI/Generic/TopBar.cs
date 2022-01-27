@@ -10,6 +10,7 @@ using ClientGUI;
 using ClientCore;
 using System.Threading;
 using DTAClient.Domain.Multiplayer.CnCNet;
+using DTAClient.Online.EventArguments;
 using DTAConfig;
 
 namespace DTAClient.DXGUI.Generic
@@ -31,10 +32,17 @@ namespace DTAClient.DXGUI.Generic
         const double UP_MOVEMENT_RATE = 1.7;
         const int APPEAR_CURSOR_THRESHOLD_Y = 8;
 
-        public TopBar(WindowManager windowManager, CnCNetManager connectionManager) : base(windowManager)
+        private const string DEFAULT_PM_BTN_LABEL = "Private Messages (F4)";
+
+        public TopBar(
+            WindowManager windowManager, 
+            CnCNetManager connectionManager,
+            PrivateMessageHandler privateMessageHandler
+        ) : base(windowManager)
         {
             downTimeWaitTime = TimeSpan.FromSeconds(DOWN_TIME_WAIT_SECONDS);
             this.connectionManager = connectionManager;
+            this.privateMessageHandler = privateMessageHandler;
         }
 
         public SwitchType LastSwitchType { get; private set; }
@@ -57,6 +65,7 @@ namespace DTAClient.DXGUI.Generic
         private XNALabel lblConnectionStatus;
 
         private CnCNetManager connectionManager;
+        private readonly PrivateMessageHandler privateMessageHandler;
 
         private CancellationTokenSource cncnetPlayerCountCancellationSource;
         private static readonly object locker = new object();
@@ -70,6 +79,8 @@ namespace DTAClient.DXGUI.Generic
         private double locationY = -40.0;
 
         private bool lanMode;
+
+        public EventHandler LogoutEvent;
 
         public void AddPrimarySwitchable(ISwitchable switchable)
         {
@@ -122,20 +133,20 @@ namespace DTAClient.DXGUI.Generic
 
             btnMainButton = new XNAClientButton(WindowManager);
             btnMainButton.Name = "btnMainButton";
-            btnMainButton.ClientRectangle = new Rectangle(12, 9, 160, 23);
+            btnMainButton.ClientRectangle = new Rectangle(12, 9, UIDesignConstants.BUTTON_WIDTH_160, UIDesignConstants.BUTTON_HEIGHT);
             btnMainButton.Text = "Main Menu (F2)";
             btnMainButton.LeftClick += BtnMainButton_LeftClick;
 
             btnCnCNetLobby = new XNAClientButton(WindowManager);
             btnCnCNetLobby.Name = "btnCnCNetLobby";
-            btnCnCNetLobby.ClientRectangle = new Rectangle(184, 9, 160, 23);
+            btnCnCNetLobby.ClientRectangle = new Rectangle(184, 9, UIDesignConstants.BUTTON_WIDTH_160, UIDesignConstants.BUTTON_HEIGHT);
             btnCnCNetLobby.Text = "CnCNet Lobby (F3)";
             btnCnCNetLobby.LeftClick += BtnCnCNetLobby_LeftClick;
 
             btnPrivateMessages = new XNAClientButton(WindowManager);
             btnPrivateMessages.Name = "btnPrivateMessages";
-            btnPrivateMessages.ClientRectangle = new Rectangle(356, 9, 160, 23);
-            btnPrivateMessages.Text = "Private Messages (F4)";
+            btnPrivateMessages.ClientRectangle = new Rectangle(356, 9, UIDesignConstants.BUTTON_WIDTH_160, UIDesignConstants.BUTTON_HEIGHT);
+            btnPrivateMessages.Text = DEFAULT_PM_BTN_LABEL;
             btnPrivateMessages.LeftClick += BtnPrivateMessages_LeftClick;
 
             lblDate = new XNALabel(WindowManager);
@@ -213,6 +224,20 @@ namespace DTAClient.DXGUI.Generic
             connectionManager.AttemptedServerChanged += ConnectionManager_AttemptedServerChanged;
             connectionManager.ConnectAttemptFailed += ConnectionManager_ConnectAttemptFailed;
 
+            privateMessageHandler.UnreadMessageCountUpdated += PrivateMessageHandler_UnreadMessageCountUpdated;
+        }
+
+        private void PrivateMessageHandler_UnreadMessageCountUpdated(object sender, UnreadMessageCountEventArgs args) 
+            => UpdatePrivateMessagesBtnLabel(args.UnreadMessageCount);
+
+        private void UpdatePrivateMessagesBtnLabel(int unreadMessageCount)
+        {
+            btnPrivateMessages.Text = DEFAULT_PM_BTN_LABEL;
+            if (unreadMessageCount > 0)
+            {
+                // TODO need to make a wider button to accommodate count
+                // btnPrivateMessages.Text += $" ({unreadMessageCount})";
+            }
         }
 
         private void CnCNetInfoController_CnCNetGameCountUpdated(object sender, PlayerCountEventArgs e)
@@ -265,6 +290,7 @@ namespace DTAClient.DXGUI.Generic
         private void BtnLogout_LeftClick(object sender, EventArgs e)
         {
             connectionManager.Disconnect();
+            LogoutEvent?.Invoke(this, null);
             SwitchToPrimary();
         }
 
@@ -339,12 +365,12 @@ namespace DTAClient.DXGUI.Generic
             }
         }
 
-        public override void OnMouseOnControl(MouseEventArgs eventArgs)
+        public override void OnMouseOnControl()
         {
             if (Cursor.Location.Y > -1 && !ProgramConstants.IsInGame)
                 BringDown();
 
-            base.OnMouseOnControl(eventArgs);
+            base.OnMouseOnControl();
         }
 
         void BringDown()

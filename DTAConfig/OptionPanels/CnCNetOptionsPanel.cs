@@ -6,6 +6,7 @@ using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
 using System;
 using System.Collections.Generic;
+using ClientCore.Enums;
 
 namespace DTAConfig.OptionPanels
 {
@@ -28,6 +29,10 @@ namespace DTAConfig.OptionPanels
         XNAClientCheckBox chkPersistentMode;
         XNAClientCheckBox chkConnectOnStartup;
         XNAClientCheckBox chkDiscordIntegration;
+        XNAClientCheckBox chkAllowGameInvitesFromFriendsOnly;
+        XNAClientCheckBox chkDisablePrivateMessagePopup;
+
+        XNAClientDropDown ddAllowPrivateMessagesFrom;
 
         GameCollection gameCollection;
 
@@ -36,18 +41,25 @@ namespace DTAConfig.OptionPanels
         public override void Initialize()
         {
             base.Initialize();
-
             Name = "CnCNetOptionsPanel";
 
+            InitOptions();
+            InitGameListPanel();
+        }
+
+        private void InitOptions()
+        {
+            // LEFT COLUMN
+            
             chkPingUnofficialTunnels = new XNAClientCheckBox(WindowManager);
-            chkPingUnofficialTunnels.Name = "chkPingUnofficialTunnels";
+            chkPingUnofficialTunnels.Name = nameof(chkPingUnofficialTunnels);
             chkPingUnofficialTunnels.ClientRectangle = new Rectangle(12, 12, 0, 0);
             chkPingUnofficialTunnels.Text = "Ping unofficial CnCNet tunnels";
 
             AddChild(chkPingUnofficialTunnels);
 
             chkWriteInstallPathToRegistry = new XNAClientCheckBox(WindowManager);
-            chkWriteInstallPathToRegistry.Name = "chkWriteInstallPathToRegistry";
+            chkWriteInstallPathToRegistry.Name = nameof(chkWriteInstallPathToRegistry);
             chkWriteInstallPathToRegistry.ClientRectangle = new Rectangle(
                 chkPingUnofficialTunnels.X,
                 chkPingUnofficialTunnels.Bottom + 12, 0, 0);
@@ -58,7 +70,7 @@ namespace DTAConfig.OptionPanels
             AddChild(chkWriteInstallPathToRegistry);
 
             chkPlaySoundOnGameHosted = new XNAClientCheckBox(WindowManager);
-            chkPlaySoundOnGameHosted.Name = "chkPlaySoundOnGameHosted";
+            chkPlaySoundOnGameHosted.Name = nameof(chkPlaySoundOnGameHosted);
             chkPlaySoundOnGameHosted.ClientRectangle = new Rectangle(
                 chkPingUnofficialTunnels.X,
                 chkWriteInstallPathToRegistry.Bottom + 12, 0, 0);
@@ -67,7 +79,7 @@ namespace DTAConfig.OptionPanels
             AddChild(chkPlaySoundOnGameHosted);
 
             chkNotifyOnUserListChange = new XNAClientCheckBox(WindowManager);
-            chkNotifyOnUserListChange.Name = "chkNotifyOnUserListChange";
+            chkNotifyOnUserListChange.Name = nameof(chkNotifyOnUserListChange);
             chkNotifyOnUserListChange.ClientRectangle = new Rectangle(
                 chkPingUnofficialTunnels.X,
                 chkPlaySoundOnGameHosted.Bottom + 12, 0, 0);
@@ -76,8 +88,21 @@ namespace DTAConfig.OptionPanels
 
             AddChild(chkNotifyOnUserListChange);
 
+            chkDisablePrivateMessagePopup = new XNAClientCheckBox(WindowManager);
+            chkDisablePrivateMessagePopup.Name = nameof(chkDisablePrivateMessagePopup);
+            chkDisablePrivateMessagePopup.ClientRectangle = new Rectangle(
+                chkNotifyOnUserListChange.X,
+                chkNotifyOnUserListChange.Bottom + 8, 0, 0);
+            chkDisablePrivateMessagePopup.Text = "Disable Popups from Private Messages";
+
+            AddChild(chkDisablePrivateMessagePopup);
+
+            InitAllowPrivateMessagesFromDropdown();
+            
+            // RIGHT COLUMN
+
             chkSkipLoginWindow = new XNAClientCheckBox(WindowManager);
-            chkSkipLoginWindow.Name = "chkSkipLoginWindow";
+            chkSkipLoginWindow.Name = nameof(chkSkipLoginWindow);
             chkSkipLoginWindow.ClientRectangle = new Rectangle(
                 276,
                 12, 0, 0);
@@ -87,7 +112,7 @@ namespace DTAConfig.OptionPanels
             AddChild(chkSkipLoginWindow);
 
             chkPersistentMode = new XNAClientCheckBox(WindowManager);
-            chkPersistentMode.Name = "chkPersistentMode";
+            chkPersistentMode.Name = nameof(chkPersistentMode);
             chkPersistentMode.ClientRectangle = new Rectangle(
                 chkSkipLoginWindow.X,
                 chkSkipLoginWindow.Bottom + 12, 0, 0);
@@ -97,7 +122,7 @@ namespace DTAConfig.OptionPanels
             AddChild(chkPersistentMode);
 
             chkConnectOnStartup = new XNAClientCheckBox(WindowManager);
-            chkConnectOnStartup.Name = "chkConnectOnStartup";
+            chkConnectOnStartup.Name = nameof(chkConnectOnStartup);
             chkConnectOnStartup.ClientRectangle = new Rectangle(
                 chkSkipLoginWindow.X,
                 chkPersistentMode.Bottom + 12, 0, 0);
@@ -107,7 +132,7 @@ namespace DTAConfig.OptionPanels
             AddChild(chkConnectOnStartup);
 
             chkDiscordIntegration = new XNAClientCheckBox(WindowManager);
-            chkDiscordIntegration.Name = "chkDiscordIntegration";
+            chkDiscordIntegration.Name = nameof(chkDiscordIntegration);
             chkDiscordIntegration.ClientRectangle = new Rectangle(
                 chkSkipLoginWindow.X,
                 chkConnectOnStartup.Bottom + 12, 0, 0);
@@ -125,17 +150,73 @@ namespace DTAConfig.OptionPanels
 
             AddChild(chkDiscordIntegration);
 
+            chkAllowGameInvitesFromFriendsOnly = new XNAClientCheckBox(WindowManager);
+            chkAllowGameInvitesFromFriendsOnly.Name = nameof(chkAllowGameInvitesFromFriendsOnly);
+            chkAllowGameInvitesFromFriendsOnly.ClientRectangle = new Rectangle(
+                chkDiscordIntegration.X,
+                chkDiscordIntegration.Bottom + 12, 0, 0);
+            chkAllowGameInvitesFromFriendsOnly.Text = "Only receive game invitations from friends";
+
+            AddChild(chkAllowGameInvitesFromFriendsOnly);
+        }
+
+        private void InitAllowPrivateMessagesFromDropdown()
+        {
+            XNALabel lblAllPrivateMessagesFrom = new XNALabel(WindowManager);
+            lblAllPrivateMessagesFrom.Name = nameof(lblAllPrivateMessagesFrom);
+            lblAllPrivateMessagesFrom.Text = "Allow Private Messages From:";
+            lblAllPrivateMessagesFrom.ClientRectangle = new Rectangle(
+                chkDisablePrivateMessagePopup.X,
+                chkDisablePrivateMessagePopup.Bottom + 12, 165, 0);
+
+            AddChild(lblAllPrivateMessagesFrom);
+
+            ddAllowPrivateMessagesFrom = new XNAClientDropDown(WindowManager);
+            ddAllowPrivateMessagesFrom.Name = nameof(ddAllowPrivateMessagesFrom);
+            ddAllowPrivateMessagesFrom.ClientRectangle = new Rectangle(
+                lblAllPrivateMessagesFrom.Right,
+                lblAllPrivateMessagesFrom.Y - 2, 65, 0);
+
+            ddAllowPrivateMessagesFrom.AddItem(new XNADropDownItem()
+            {
+                Text = "All",
+                Tag =  AllowPrivateMessagesFromEnum.All
+            });
+
+            ddAllowPrivateMessagesFrom.AddItem(new XNADropDownItem()
+            {
+                Text = "Friends",
+                Tag =  AllowPrivateMessagesFromEnum.Friends
+            });
+
+            ddAllowPrivateMessagesFrom.AddItem(new XNADropDownItem()
+            {
+                Text = "None",
+                Tag =  AllowPrivateMessagesFromEnum.None
+            });
+
+            AddChild(ddAllowPrivateMessagesFrom);
+        }
+
+        private void InitGameListPanel()
+        {
+            const int gameListPanelHeight = 185;
+            XNAPanel gameListPanel = new XNAPanel(WindowManager);
+            gameListPanel.DrawBorders = false;
+            gameListPanel.Name = nameof(gameListPanel);
+            gameListPanel.ClientRectangle = new Rectangle(0, Bottom - gameListPanelHeight, Width, gameListPanelHeight);
+            
+            AddChild(gameListPanel);
+            
             var lblFollowedGames = new XNALabel(WindowManager);
-            lblFollowedGames.Name = "lblFollowedGames";
-            lblFollowedGames.ClientRectangle = new Rectangle(
-                chkNotifyOnUserListChange.X,
-                chkNotifyOnUserListChange.Bottom + 24, 0, 0);
+            lblFollowedGames.Name = nameof(lblFollowedGames);
+            lblFollowedGames.ClientRectangle = new Rectangle(12, 12, 0, 0);
             lblFollowedGames.Text = "Show game rooms from the following games:";
 
-            AddChild(lblFollowedGames);
+            gameListPanel.AddChild(lblFollowedGames);
 
             int chkCount = 0;
-            int chkCountPerColumn = 5;
+            int chkCountPerColumn = 4;
             int nextColumnXOffset = 0;
             int columnXOffset = 0;
             foreach (CnCNetGame game in gameCollection.GameList)
@@ -152,7 +233,7 @@ namespace DTAConfig.OptionPanels
 
                 var panel = new XNAPanel(WindowManager);
                 panel.Name = "panel" + game.InternalName;
-                panel.ClientRectangle = new Rectangle(chkPingUnofficialTunnels.X + columnXOffset,
+                panel.ClientRectangle = new Rectangle(lblFollowedGames.X + columnXOffset,
                     lblFollowedGames.Bottom + 12 + chkCount * 22, 16, 16);
                 panel.DrawBorders = false;
                 panel.BackgroundTexture = game.Texture;
@@ -166,8 +247,8 @@ namespace DTAConfig.OptionPanels
 
                 chkCount++;
 
-                AddChild(panel);
-                AddChild(chkBox);
+                gameListPanel.AddChild(panel);
+                gameListPanel.AddChild(chkBox);
                 followedGameChks.Add(chkBox);
 
                 if (chkBox.Right > nextColumnXOffset)
@@ -205,12 +286,16 @@ namespace DTAConfig.OptionPanels
             chkWriteInstallPathToRegistry.Checked = IniSettings.WritePathToRegistry;
             chkPlaySoundOnGameHosted.Checked = IniSettings.PlaySoundOnGameHosted;
             chkNotifyOnUserListChange.Checked = IniSettings.NotifyOnUserListChange;
+            chkDisablePrivateMessagePopup.Checked = IniSettings.DisablePrivateMessagePopups;
+            SetAllowPrivateMessagesFromState(IniSettings.AllowPrivateMessagesFromState);
             chkConnectOnStartup.Checked = IniSettings.AutomaticCnCNetLogin;
             chkSkipLoginWindow.Checked = IniSettings.SkipConnectDialog;
             chkPersistentMode.Checked = IniSettings.PersistentMode;
 
             chkDiscordIntegration.Checked = !String.IsNullOrEmpty(ClientConfiguration.Instance.DiscordAppId)
                 && IniSettings.DiscordIntegration;
+
+            chkAllowGameInvitesFromFriendsOnly.Checked = IniSettings.AllowGameInvitesFromFriendsOnly;
 
             string localGame = ClientConfiguration.Instance.LocalGame;
 
@@ -236,15 +321,18 @@ namespace DTAConfig.OptionPanels
             IniSettings.WritePathToRegistry.Value = chkWriteInstallPathToRegistry.Checked;
             IniSettings.PlaySoundOnGameHosted.Value = chkPlaySoundOnGameHosted.Checked;
             IniSettings.NotifyOnUserListChange.Value = chkNotifyOnUserListChange.Checked;
+            IniSettings.DisablePrivateMessagePopups.Value = chkDisablePrivateMessagePopup.Checked;
+            IniSettings.AllowPrivateMessagesFromState.Value = GetAllowPrivateMessagesFromState();
             IniSettings.AutomaticCnCNetLogin.Value = chkConnectOnStartup.Checked;
             IniSettings.SkipConnectDialog.Value = chkSkipLoginWindow.Checked;
             IniSettings.PersistentMode.Value = chkPersistentMode.Checked;
 
             if (!String.IsNullOrEmpty(ClientConfiguration.Instance.DiscordAppId))
             {
-                restartRequired = IniSettings.DiscordIntegration != chkDiscordIntegration.Checked;
                 IniSettings.DiscordIntegration.Value = chkDiscordIntegration.Checked;
             }
+
+            IniSettings.AllowGameInvitesFromFriendsOnly.Value = chkAllowGameInvitesFromFriendsOnly.Checked;
 
             foreach (var chkBox in followedGameChks)
             {
@@ -252,6 +340,20 @@ namespace DTAConfig.OptionPanels
             }
 
             return restartRequired;
+        }
+
+        private void SetAllowPrivateMessagesFromState(int state)
+        {
+            var selectedIndex = ddAllowPrivateMessagesFrom.Items.FindIndex(i => (int)i.Tag == state);
+            if (selectedIndex < 0)
+                selectedIndex = ddAllowPrivateMessagesFrom.Items.FindIndex(i => (AllowPrivateMessagesFromEnum)i.Tag == AllowPrivateMessagesFromEnum.All);
+
+            ddAllowPrivateMessagesFrom.SelectedIndex = selectedIndex;
+        }
+
+        private int GetAllowPrivateMessagesFromState()
+        {
+            return (int)(ddAllowPrivateMessagesFrom.SelectedItem?.Tag ?? AllowPrivateMessagesFromEnum.All);
         }
     }
 }

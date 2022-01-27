@@ -3,9 +3,6 @@ using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ClientGUI
 {
@@ -29,16 +26,14 @@ namespace ClientGUI
                 enteredMessages.AddFirst(Text);
         }
 
-        protected override void HandleKeyPress(Keys key)
+        protected override bool HandleKeyPress(Keys key)
         {
             if (key == Keys.Up)
             {
                 if (currentNode == null)
                 {
-                    if (enteredMessages.First == null)
-                        return;
-
-                    currentNode = enteredMessages.First;
+                    if (enteredMessages.First != null)
+                        currentNode = enteredMessages.First;
                 }
                 else
                 {
@@ -46,22 +41,25 @@ namespace ClientGUI
                         currentNode = currentNode.Next;
                 }
 
-                Text = currentNode.Value;
-            }
-            else if (key == Keys.Down)
-            {
-                if (currentNode == null || currentNode.Previous == null)
-                    return;
+                if (currentNode != null)
+                    Text = currentNode.Value;
 
-                currentNode = currentNode.Previous;
-                Text = currentNode.Value;
+                return true;
             }
-            else
-            {
-                currentNode = null;
 
-                base.HandleKeyPress(key);
+            if (key == Keys.Down)
+            {
+                if (currentNode != null && currentNode.Previous != null)
+                {
+                    currentNode = currentNode.Previous;
+                    Text = currentNode.Value;
+                }
+
+                return true;
             }
+
+            currentNode = null;
+            return base.HandleKeyPress(key);
         }
     }
 }

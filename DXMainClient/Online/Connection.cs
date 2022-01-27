@@ -3,9 +3,13 @@ using Rampastring.Tools;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Net;
+using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace DTAClient.Online
 {
@@ -17,6 +21,7 @@ namespace DTAClient.Online
         private const int MAX_RECONNECT_COUNT = 8;
         private const int RECONNECT_WAIT_DELAY = 4000;
         private const int ID_LENGTH = 9;
+        private const int MAXIMUM_LATENCY = 400;
 
         public Connection(IConnectionManager connectionManager)
         {
@@ -30,7 +35,6 @@ namespace DTAClient.Online
         /// </summary>
         private static readonly IList<Server> Servers = new List<Server>
         {
-            new Server("irc.gamesurge.net", "GameSurge", new int[1] { 6667 }),
             new Server("Burstfire.UK.EU.GameSurge.net", "GameSurge London, UK", new int[3] { 6667, 6668, 7000 }),
             new Server("ColoCrossing.IL.US.GameSurge.net", "GameSurge Chicago, IL", new int[5] { 6660, 6666, 6667, 6668, 6669 }),
             new Server("Gameservers.NJ.US.GameSurge.net", "GameSurge Newark, NJ", new int[7] { 6665, 6666, 6667, 6668, 6669, 7000, 8080 }),
@@ -46,6 +50,7 @@ namespace DTAClient.Online
             new Server("195.8.250.180", "GameSurge IP 195.8.250.180", new int[7] { 6660, 6666, 6667, 6668, 6669, 7000, 8080 }),
             new Server("91.217.189.76", "GameSurge IP 91.217.189.76", new int[7] { 6660, 6666, 6667, 6668, 6669, 7000, 8080 }),
             new Server("195.68.206.250", "GameSurge IP 195.68.206.250", new int[7] { 6660, 6666, 6667, 6668, 6669, 7000, 8080 }),
+            new Server("irc.gamesurge.net", "GameSurge", new int[1] { 6667 }),
         }.AsReadOnly();
 
         bool _isConnected = false;
@@ -97,13 +102,13 @@ namespace DTAClient.Online
         private readonly Encoding encoding = Encoding.UTF8;
 
         /// <summary>
-        /// A list of server IDs that have dropped our connection.
+        /// A list of server IPs that have dropped our connection.
         /// The client skips these servers when attempting to re-connect, to
         /// prevent a server that first accepts a connection and then drops it
         /// right afterwards from preventing online play.
         /// </summary>
-        private List<int> failedServerIds = new List<int>();
-        private volatile int currentConnectedServerId = 0;
+        private readonly List<string> failedServerIPs = new List<string>();
+        private volatile string currentConnectedServerIP;
 
         private static readonly object locker = new object();
         private static readonly object messageQueueLocker = new object();
@@ -116,8 +121,7 @@ namespace DTAClient.Online
         {
             lock (idLocker)
             {
-                // E.g "DTA". or "YR."
-                int maxLength = (ID_LENGTH - ClientConfiguration.Instance.LocalGame.Length + 1);
+                int maxLength = ID_LENGTH - (ClientConfiguration.Instance.LocalGame.Length + 1);
                 systemId = Utilities.CalculateSHA1ForString(id).Substring(0, maxLength);
                 idSet = true;
             }
@@ -137,7 +141,7 @@ namespace DTAClient.Online
         public void ConnectAsync()
         {
             if (_isConnected)
-                throw new Exception("The client is already connected!");
+                throw new InvalidOperationException("The client is already connected!");
 
             if (_attemptingConnection)
                 return; // Maybe we should throw in this case as well?
@@ -158,16 +162,13 @@ namespace DTAClient.Online
         /// </summary>
         private void ConnectToServer()
         {
-            for (int serverId = 0; serverId < Servers.Count; serverId++)
+            IList<Server> sortedServerList = GetServerListSortedByLatency();
+
+            foreach (Server server in sortedServerList)
             {
-                if (failedServerIds.Contains(serverId))
-                    continue;
-
-                Server server = Servers[serverId];
-
                 try
                 {
-                    for (var i = 0; i < server.Ports.Length; i++)
+                    for (int i = 0; i < server.Ports.Length; i++)
                     {
                         connectionManager.OnAttemptedServerChanged(server.Name);
 
@@ -199,7 +200,7 @@ namespace DTAClient.Online
                             serverStream = tcpClient.GetStream();
                             serverStream.ReadTimeout = 1000;
 
-                            currentConnectedServerId = serverId;
+                            currentConnectedServerIP = server.Host;
                             HandleComm(client);
                             return;
                         }
@@ -213,7 +214,7 @@ namespace DTAClient.Online
 
             Logger.Log("Connecting to CnCNet failed!");
             // Clear the failed server list in case connecting to all servers has failed
-            failedServerIds.Clear();
+            failedServerIPs.Clear();
             _attemptingConnection = false;
             connectionManager.OnConnectAttemptFailed();
         }
@@ -253,7 +254,7 @@ namespace DTAClient.Online
                     if (errorTimes > 30) // TODO Figure out if this hacky check is actually necessary
                     {
                         Logger.Log("Disconnected from CnCNet due to a socket error. Message: " + ex.Message);
-                        failedServerIds.Add(currentConnectedServerId);
+                        failedServerIPs.Add(currentConnectedServerIP);
                         connectionManager.OnConnectionLost(ex.Message);
                         break;
                     }
@@ -273,7 +274,7 @@ namespace DTAClient.Online
 
                     if (errorTimes > 30) // TODO Figure out if this hacky check is actually necessary
                     {
-                        failedServerIds.Add(currentConnectedServerId);
+                        failedServerIPs.Add(currentConnectedServerIP);
                         Logger.Log("Disconnected from CnCNet.");
                         connectionManager.OnConnectionLost("Server disconnected.");
                         break;
@@ -322,6 +323,169 @@ namespace DTAClient.Online
                 Logger.Log("Attempting to reconnect to CnCNet.");
                 connectionManager.OnReconnectAttempt();
             }
+        }
+
+        /// <summary>
+        /// Get all IP addresses of Lobby servers by resolving the hostname and test the latency to the servers.
+        /// The maximum latency is defined in <c>MAXIMUM_LATENCY</c>, see <see cref="Connection.MAXIMUM_LATENCY"/>.
+        /// Servers that did not respond to ICMP messages in time will be placed at the end of the list.
+        /// </summary>
+        /// <returns>A list of Lobby servers sorted by latency.</returns>
+        private IList<Server> GetServerListSortedByLatency()
+        {
+            // Resolve the hostnames.
+            ICollection<Task<IEnumerable<Tuple<IPAddress, string, int[]>>>>
+                dnsTasks = new List<Task<IEnumerable<Tuple<IPAddress, string, int[]>>>>(Servers.Count);
+
+            foreach (Server server in Servers)
+            {
+                string serverHostnameOrIPAddress = server.Host;
+                string serverName = server.Name;
+                int[] serverPorts = server.Ports;
+
+                Task<IEnumerable<Tuple<IPAddress, string, int[]>>> dnsTask = new Task<IEnumerable<Tuple<IPAddress, string, int[]>>>(() =>
+                {
+                    Logger.Log($"Attempting to DNS resolve {serverName} ({serverHostnameOrIPAddress}).");
+                    ICollection<Tuple<IPAddress, string, int[]>> _serverInfos = new List<Tuple<IPAddress, string, int[]>>();
+
+                    try
+                    {
+                        // If hostNameOrAddress is an IP address, this address is returned without querying the DNS server.
+                        IEnumerable<IPAddress> serverIPAddresses = Dns.GetHostAddresses(serverHostnameOrIPAddress)
+                                                                      .Where(IPAddress => IPAddress.AddressFamily == AddressFamily.InterNetwork);
+
+                        Logger.Log($"DNS resolved {serverName} ({serverHostnameOrIPAddress}): " +
+                            $"{string.Join(", ", serverIPAddresses.Select(item => item.ToString()))}");
+
+                        // Store each IPAddress in a different tuple.
+                        foreach (IPAddress serverIPAddress in serverIPAddresses)
+                        {
+                            _serverInfos.Add(new Tuple<IPAddress, string, int[]>(serverIPAddress, serverName, serverPorts));
+                        }
+                    }
+                    catch (SocketException ex)
+                    {
+                        Logger.Log($"Caught an exception when DNS resolving {serverName} ({serverHostnameOrIPAddress}) Lobby server: {ex.Message}");
+                    }
+
+                    return _serverInfos;
+                });
+
+                dnsTask.Start();
+                dnsTasks.Add(dnsTask);
+            }
+
+            Task.WaitAll(dnsTasks.ToArray());
+
+            // Group the tuples by IPAddress to merge duplicate servers.
+            IEnumerable<IGrouping<IPAddress, Tuple<string, int[]>>>
+                serverInfosGroupedByIPAddress = dnsTasks.SelectMany(dnsTask => dnsTask.Result)      // Tuple<IPAddress, serverName, serverPorts>
+                                                        .GroupBy(
+                                                            serverInfo => serverInfo.Item1,         // IPAddress
+                                                            serverInfo => new Tuple<string, int[]>(
+                                                                serverInfo.Item2,                   // serverName
+                                                                serverInfo.Item3                    // serverPorts
+                                                            )
+                                                        );
+
+            // Process each group:
+            //   1. Get IPAddress.
+            //   2. Concatenate serverNames.
+            //   3. Remove duplicate ports.
+            //   4. Construct and return a tuple that contains the IPAddress, concatenated serverNames and unique ports.
+            IEnumerable<Tuple<IPAddress, string, int[]>> serverInfos = serverInfosGroupedByIPAddress.Select(serverInfoGroup =>
+            {
+                IPAddress ipAddress = serverInfoGroup.Key;
+                string serverNames = string.Join(", ", serverInfoGroup.Select(serverInfo => serverInfo.Item1));
+                int[] serverPorts = serverInfoGroup.SelectMany(serverInfo => serverInfo.Item2).Distinct().ToArray();
+
+                return new Tuple<IPAddress, string, int[]>(ipAddress, serverNames, serverPorts);
+            });
+
+            // Do logging.
+            foreach (Tuple<IPAddress, string, int[]> serverInfo in serverInfos)
+            {
+                string serverIPAddress = serverInfo.Item1.ToString();
+                string serverNames = string.Join(", ", serverInfo.Item2.ToString());
+                string serverPorts = string.Join(", ", serverInfo.Item3.Select(port => port.ToString()));
+
+                Logger.Log($"Got a Lobby server. IP: {serverIPAddress}; Name: {serverNames}; Ports: {serverPorts}.");
+            }
+
+            Logger.Log($"The number of Lobby servers is {serverInfos.Count()}.");
+
+            // Test the latency.
+            ICollection<Task<Tuple<Server, long>>> pingTasks = new List<Task<Tuple<Server, long>>>(serverInfos.Count());
+
+            foreach (Tuple<IPAddress, string, int[]> serverInfo in serverInfos)
+            {
+                IPAddress serverIPAddress = serverInfo.Item1;
+                string serverNames = serverInfo.Item2;
+                int[] serverPorts = serverInfo.Item3;
+
+                if (failedServerIPs.Contains(serverIPAddress.ToString()))
+                {
+                    Logger.Log($"Skipped a failed server {serverNames} ({serverIPAddress}).");
+                    continue;
+                }
+
+                Task<Tuple<Server, long>> pingTask = new Task<Tuple<Server, long>>(() =>
+                {
+                    Logger.Log($"Attempting to ping {serverNames} ({serverIPAddress}).");
+                    Server server = new Server(serverIPAddress.ToString(), serverNames, serverPorts);
+
+                    using (Ping ping = new Ping())
+                    {
+                        try
+                        {
+                            PingReply pingReply = ping.Send(serverIPAddress, MAXIMUM_LATENCY);
+
+                            if (pingReply.Status == IPStatus.Success)
+                            {
+                                long pingInMs = pingReply.RoundtripTime;
+                                Logger.Log($"The latency in milliseconds to the server {serverNames} ({serverIPAddress}): {pingInMs}.");
+
+                                return new Tuple<Server, long>(server, pingInMs);
+                            }
+                            else
+                            {
+                                Logger.Log($"Failed to ping the server {serverNames} ({serverIPAddress}): " +
+                                    $"{Enum.GetName(typeof(IPStatus), pingReply.Status)}.");
+
+                                return new Tuple<Server, long>(server, long.MaxValue);
+                            }
+                        }
+                        catch (PingException ex)
+                        {
+                            Logger.Log($"Caught an exception when pinging {serverNames} ({serverIPAddress}) Lobby server: {ex.Message}");
+
+                            return new Tuple<Server, long>(server, long.MaxValue);
+                        }
+                    }
+                });
+
+                pingTask.Start();
+                pingTasks.Add(pingTask);
+            }
+
+            Task.WaitAll(pingTasks.ToArray());
+
+            // Sort the servers by latency.
+            IOrderedEnumerable<Tuple<Server, long>>
+                sortedServerAndLatencyResults = pingTasks.Select(task => task.Result)              // Tuple<Server, Latency>
+                                                         .OrderBy(taskResult => taskResult.Item2); // Latency
+
+            // Do logging.
+            foreach (Tuple<Server, long> serverAndLatencyResult in sortedServerAndLatencyResults)
+            {
+                string serverIPAddress = serverAndLatencyResult.Item1.Host;
+                long serverLatencyValue = serverAndLatencyResult.Item2;
+                string serverLatencyString = serverLatencyValue <= MAXIMUM_LATENCY ? serverLatencyValue.ToString() : "DNF";
+
+                Logger.Log($"Lobby server IP: {serverIPAddress}, latency: {serverLatencyString}.");
+            }
+
+            return sortedServerAndLatencyResults.Select(taskResult => taskResult.Item1).ToList(); // Server
         }
 
         public void Disconnect()
@@ -459,6 +623,9 @@ namespace DTAClient.Online
                             string wUserName = parameters[5];
                             string extraInfo = parameters[7];
                             connectionManager.OnWhoReplyReceived(ident, host, wUserName, extraInfo);
+                            break;
+                        case 311: // Reply to WHOIS NAME query
+                            connectionManager.OnWhoReplyReceived(parameters[2], parameters[3], parameters[1], string.Empty);
                             break;
                         case 433: // Name already in use
                             message = serverMessagePart + parameters[1] + ": " + parameters[2];
@@ -774,9 +941,9 @@ namespace DTAClient.Online
             SendMessage("NICK " + ProgramConstants.PLAYERNAME);
         }
 
-        public void QueueMessage(QueuedMessageType type, int priority, string message)
+        public void QueueMessage(QueuedMessageType type, int priority, string message, bool replace = false)
         {
-            QueuedMessage qm = new QueuedMessage(message, type, priority);
+            QueuedMessage qm = new QueuedMessage(message, type, priority, replace);
             QueueMessage(qm);
         }
 
@@ -814,13 +981,36 @@ namespace DTAClient.Online
         }
 
         private int NextQueueID { get; set; } = 0;
+
+        /// <summary>
+        /// This will attempt to replace a previously queued message of the same type.
+        /// </summary>
+        /// <param name="qm">The new message to replace with</param>
+        /// <returns>Whether or not a replace occurred</returns>
+        private bool ReplaceMessage(QueuedMessage qm)
+        {
+            lock (messageQueueLocker)
+            {
+                var previousMessageIndex = MessageQueue.FindIndex(m => m.MessageType == qm.MessageType);
+                if (previousMessageIndex == -1)
+                    return false;
+                
+                MessageQueue[previousMessageIndex] = qm;
+                return true;
+            }
+        }
+
         /// <summary>
         /// Adds a message to the send queue.
         /// </summary>
         /// <param name="qm">The message to queue.</param>
+        /// <param name="replace">If true, attempt to replace a previous message of the same type</param>
         public void QueueMessage(QueuedMessage qm)
         {
             if (!_isConnected)
+                return;
+
+            if (qm.Replace && ReplaceMessage(qm))
                 return;
 
             qm.ID = NextQueueID++;

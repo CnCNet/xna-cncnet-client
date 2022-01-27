@@ -21,9 +21,9 @@ namespace DTAClient.DXGUI.Generic
 
         private static string[] DifficultyIniPaths = new string[]
         {
-            "INI\\Map Code\\Difficulty Easy.ini",
-            "INI\\Map Code\\Difficulty Medium.ini",
-            "INI\\Map Code\\Difficulty Hard.ini"
+            "INI/Map Code/Difficulty Easy.ini",
+            "INI/Map Code/Difficulty Medium.ini",
+            "INI/Map Code/Difficulty Hard.ini"
         };
 
         public CampaignSelector(WindowManager windowManager, DiscordHandler discordHandler) : base(windowManager)
@@ -43,15 +43,15 @@ namespace DTAClient.DXGUI.Generic
 
         private string[] filesToCheck = new string[]
         {
-            "INI\\AI.ini",
-            "INI\\AIE.ini",
-            "INI\\Art.ini",
-            "INI\\ArtE.ini",
-            "INI\\Enhance.ini",
-            "INI\\Rules.ini",
-            "INI\\Map Code\\Difficulty Hard.ini",
-            "INI\\Map Code\\Difficulty Medium.ini",
-            "INI\\Map Code\\Difficulty Easy.ini"
+            "INI/AI.ini",
+            "INI/AIE.ini",
+            "INI/Art.ini",
+            "INI/ArtE.ini",
+            "INI/Enhance.ini",
+            "INI/Rules.ini",
+            "INI/Map Code/Difficulty Hard.ini",
+            "INI/Map Code/Difficulty Medium.ini",
+            "INI/Map Code/Difficulty Easy.ini"
         };
 
         private Mission missionToLaunch;
@@ -145,7 +145,7 @@ namespace DTAClient.DXGUI.Generic
 
             btnLaunch = new XNAClientButton(WindowManager);
             btnLaunch.Name = "btnLaunch";
-            btnLaunch.ClientRectangle = new Rectangle(12, Height - 35, 133, 23);
+            btnLaunch.ClientRectangle = new Rectangle(12, Height - 35, UIDesignConstants.BUTTON_WIDTH_133, UIDesignConstants.BUTTON_HEIGHT);
             btnLaunch.Text = "Launch";
             btnLaunch.AllowClick = false;
             btnLaunch.LeftClick += BtnLaunch_LeftClick;
@@ -153,7 +153,7 @@ namespace DTAClient.DXGUI.Generic
             var btnCancel = new XNAClientButton(WindowManager);
             btnCancel.Name = "btnCancel";
             btnCancel.ClientRectangle = new Rectangle(Width - 145,
-                btnLaunch.Y, 133, 23);
+                btnLaunch.Y, UIDesignConstants.BUTTON_WIDTH_133, UIDesignConstants.BUTTON_HEIGHT);
             btnCancel.Text = "Cancel";
             btnCancel.LeftClick += BtnCancel_LeftClick;
 
@@ -177,8 +177,8 @@ namespace DTAClient.DXGUI.Generic
 
             trbDifficultySelector.Value = UserINISettings.Instance.Difficulty;
 
-            ParseBattleIni("INI\\Battle.ini");
-            ParseBattleIni("INI\\" + ClientConfiguration.Instance.BattleFSFileName);
+            ParseBattleIni("INI/Battle.ini");
+            ParseBattleIni("INI/" + ClientConfiguration.Instance.BattleFSFileName);
 
             cheaterWindow = new CheaterWindow(WindowManager);
             DarkeningPanel dp = new DarkeningPanel(WindowManager);
@@ -286,7 +286,7 @@ namespace DTAClient.DXGUI.Generic
 
             swriter.WriteLine("GameSpeed=" + UserINISettings.Instance.GameSpeed);
             swriter.WriteLine("Firestorm=" + mission.RequiredAddon);
-            swriter.WriteLine("CustomLoadScreen=" + LoadingScreenController.GetLoadScreenName(mission.Side));
+            swriter.WriteLine("CustomLoadScreen=" + LoadingScreenController.GetLoadScreenName(mission.Side.ToString()));
             swriter.WriteLine("IsSinglePlayer=Yes");
             swriter.WriteLine("SidebarHack=" + ClientConfiguration.Instance.SidebarHack);
             swriter.WriteLine("Side=" + mission.Side);

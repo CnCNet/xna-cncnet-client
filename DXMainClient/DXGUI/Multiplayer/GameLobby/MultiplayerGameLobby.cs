@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Rampastring.XNAUI;
@@ -13,6 +13,7 @@ using DTAClient.Domain.Multiplayer;
 using ClientGUI;
 using System.Text;
 using DTAClient.Domain;
+using Microsoft.Xna.Framework.Graphics;
 
 namespace DTAClient.DXGUI.Multiplayer.GameLobby
 {
@@ -25,8 +26,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         private const int MAX_DIE_SIDES = 100;
 
         public MultiplayerGameLobby(WindowManager windowManager, string iniName, 
-            TopBar topBar, List<GameMode> GameModes, MapLoader mapLoader, DiscordHandler discordHandler)
-            : base(windowManager, iniName, GameModes, true, discordHandler)
+            TopBar topBar, MapLoader mapLoader, DiscordHandler discordHandler)
+            : base(windowManager, iniName, mapLoader, true, discordHandler)
         {
             TopBar = topBar;
             MapLoader = mapLoader;
@@ -43,7 +44,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     s => SetMaxAhead(s)),
                 new ChatBoxCommand("PROTOCOLVERSION", "Change ProtocolVersion (default 2) (game host only)", true,
                     s => SetProtocolVersion(s)),
-                new ChatBoxCommand("LOADMAP", "Load a custom map with given filename from \\Maps\\Custom\\ folder.", true, LoadCustomMap),
+                new ChatBoxCommand("LOADMAP", "Load a custom map with given filename from /Maps/Custom/ folder.", true, LoadCustomMap),
                 new ChatBoxCommand("RANDOMSTARTS", "Enables completely random starting locations (Tiberian Sun based games only).", true,
                     s => SetStartingLocationClearance(s)),
                 new ChatBoxCommand("ROLL", "Roll dice, for example /roll 3d6", false, RollDiceCommand),
@@ -78,6 +79,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         protected EnhancedSoundEffect sndLeaveSound;
         protected EnhancedSoundEffect sndMessageSound;
         protected EnhancedSoundEffect sndGetReadySound;
+        protected EnhancedSoundEffect sndReturnSound;
+
+        protected Texture2D[] PingTextures;
 
         protected TopBar TopBar;
 
@@ -100,20 +104,28 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         protected MapLoader MapLoader;
 
+        private bool lastMapChangeWasInvalid = false;
+
         /// <summary>
         /// Allows derived classes to add their own chat box commands.
         /// </summary>
         /// <param name="command">The command to add.</param>
-        protected void AddChatBoxCommand(ChatBoxCommand command)
-        {
-            chatBoxCommands.Add(command);
-        }
+        protected void AddChatBoxCommand(ChatBoxCommand command) => chatBoxCommands.Add(command);
 
         public override void Initialize()
         {
-            Name = "MultiplayerGameLobby";
+            Name = nameof(MultiplayerGameLobby);
 
             base.Initialize();
+
+            PingTextures = new Texture2D[5]
+            {
+                AssetLoader.LoadTexture("ping0.png"),
+                AssetLoader.LoadTexture("ping1.png"),
+                AssetLoader.LoadTexture("ping2.png"),
+                AssetLoader.LoadTexture("ping3.png"),
+                AssetLoader.LoadTexture("ping4.png")
+            };
 
             InitPlayerOptionDropdowns();
 
@@ -140,25 +152,25 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 ddPlayerSides[i].AddItem("Spectator", AssetLoader.LoadTexture("spectatoricon.png"));
             }
 
-            ddGameMode.ClientRectangle = new Rectangle(
-                MapPreviewBox.X - 12 - ddGameMode.Width,
-                MapPreviewBox.Y, ddGameMode.Width,
-                ddGameMode.Height);
+            ddGameModeMapFilter.ClientRectangle = new Rectangle(
+                MapPreviewBox.X - 12 - ddGameModeMapFilter.Width,
+                MapPreviewBox.Y, ddGameModeMapFilter.Width,
+                ddGameModeMapFilter.Height);
 
             lblGameModeSelect.ClientRectangle = new Rectangle(
-                btnLaunchGame.X, ddGameMode.Y + 1,
+                btnLaunchGame.X, ddGameModeMapFilter.Y + 1,
                 lblGameModeSelect.Width, lblGameModeSelect.Height);
 
-            lbMapList.ClientRectangle = new Rectangle(btnLaunchGame.X, 
+            lbGameModeMapList.ClientRectangle = new Rectangle(btnLaunchGame.X, 
                 MapPreviewBox.Y + 23,
                 MapPreviewBox.X - btnLaunchGame.X - 12,
                 MapPreviewBox.Height - 23);
 
             lbChatMessages = new ChatListBox(WindowManager);
             lbChatMessages.Name = "lbChatMessages";
-            lbChatMessages.ClientRectangle = new Rectangle(lbMapList.X, 
+            lbChatMessages.ClientRectangle = new Rectangle(lbGameModeMapList.X, 
                 GameOptionsPanel.Y,
-               lbMapList.Width, GameOptionsPanel.Height - 24);
+               lbGameModeMapList.Width, GameOptionsPanel.Height - 24);
             lbChatMessages.PanelBackgroundDrawMode = PanelBackgroundImageDrawMode.STRETCHED;
             lbChatMessages.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 128), 1, 1);
             lbChatMessages.LineHeight = 16;
@@ -179,14 +191,14 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             btnLockGame = new XNAClientButton(WindowManager);
             btnLockGame.Name = "btnLockGame";
             btnLockGame.ClientRectangle = new Rectangle(btnLaunchGame.Right + 12,
-                btnLaunchGame.Y, 133, 23);
+                btnLaunchGame.Y, UIDesignConstants.BUTTON_WIDTH_133, UIDesignConstants.BUTTON_HEIGHT);
             btnLockGame.Text = "Lock Game";
             btnLockGame.LeftClick += BtnLockGame_LeftClick;
 
             chkAutoReady = new XNAClientCheckBox(WindowManager);
             chkAutoReady.Name = "chkAutoReady";
             chkAutoReady.ClientRectangle = new Rectangle(btnLaunchGame.Right + 12,
-                btnLaunchGame.Y + 2, 133, 23);
+                btnLaunchGame.Y + 2, UIDesignConstants.BUTTON_WIDTH_133, UIDesignConstants.BUTTON_HEIGHT);
             chkAutoReady.Text = "Auto-Ready";
             chkAutoReady.CheckedChanged += ChkAutoReady_CheckedChanged;
             chkAutoReady.Disable();
@@ -199,10 +211,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             MapPreviewBox.LocalStartingLocationSelected += MapPreviewBox_LocalStartingLocationSelected;
             MapPreviewBox.StartingLocationApplied += MapPreviewBox_StartingLocationApplied;
 
-            sndJoinSound = new EnhancedSoundEffect("joingame.wav");
-            sndLeaveSound = new EnhancedSoundEffect("leavegame.wav");
-            sndMessageSound = new EnhancedSoundEffect("message.wav");
-            sndGetReadySound = new EnhancedSoundEffect("getready.wav", 0.0, 0.0, 5.0f);
+            sndJoinSound = new EnhancedSoundEffect("joingame.wav", 0.0, 0.0, ClientConfiguration.Instance.SoundGameLobbyJoinCooldown);
+            sndLeaveSound = new EnhancedSoundEffect("leavegame.wav", 0.0, 0.0, ClientConfiguration.Instance.SoundGameLobbyLeaveCooldown);
+            sndMessageSound = new EnhancedSoundEffect("message.wav", 0.0, 0.0, ClientConfiguration.Instance.SoundMessageCooldown);
+            sndGetReadySound = new EnhancedSoundEffect("getready.wav", 0.0, 0.0, ClientConfiguration.Instance.SoundGameLobbyGetReadyCooldown);
+            sndReturnSound = new EnhancedSoundEffect("return.wav", 0.0, 0.0, ClientConfiguration.Instance.SoundGameLobbyReturnCooldown);
 
             if (SavedGameManager.AreSavedGamesAvailable())
             {
@@ -223,7 +236,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             InitializeWindow();
             CenterOnParent();
-            LoadDefaultMap();
+            LoadDefaultGameModeMap();
         }
 
         private void fsw_Created(object sender, FileSystemEventArgs e)
@@ -271,7 +284,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (IsHost)
             {
                 GenerateGameID();
-                DdGameMode_SelectedIndexChanged(null, EventArgs.Empty); // Refresh ranks
+                DdGameModeMapFilter_SelectedIndexChanged(null, EventArgs.Empty); // Refresh ranks
+            }
+            else if (chkAutoReady.Checked)
+            {
+                RequestReadyStatus();
             }
         }
 
@@ -516,7 +533,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         /// <param name="mapName">Name of the map given as a parameter, without file extension.</param>
         private void LoadCustomMap(string mapName)
         {
-            Map map = MapLoader.LoadCustomMap($"Maps\\Custom\\{mapName}", out string resultMessage);
+            Map map = MapLoader.LoadCustomMap($"Maps/Custom/{mapName}", out string resultMessage);
             if (map != null)
                 AddNotice(resultMessage);
             else
@@ -576,21 +593,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             AddNotice($"{senderName} rolled {results.Length}d{dieSides} and got {string.Join(", ", results)}");
         }
 
-        private void HandleGameOptionPresetSaveCommand(string presetName)
-        {
-            string error = AddGameOptionPreset(presetName);
-            if (!string.IsNullOrEmpty(error))
-                AddNotice(error);
-        }
-
-        private void HandleGameOptionPresetLoadCommand(string presetName)
-        {
-            if (LoadGameOptionPreset(presetName))
-                AddNotice("Game option preset loaded succesfully.");
-            else
-                AddNotice($"Preset {presetName} not found!");
-        }
-
         protected abstract void SendChatMessage(string message);
 
         /// <summary>
@@ -603,13 +605,15 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             Locked = false;
 
             UpdateMapPreviewBoxEnabledStatus();
+            PlayerExtraOptionsPanel.SetIsHost(isHost);
             //MapPreviewBox.EnableContextMenu = IsHost;
 
-            btnLaunchGame.Text = IsHost ? "Launch Game" : "I'm Ready";
+            btnLaunchGame.Text = IsHost ? BTN_LAUNCH_GAME : BTN_LAUNCH_READY;
 
             if (IsHost)
             {
                 ShowMapList();
+                BtnSaveLoadGameOptions.Enable();
 
                 btnLockGame.Text = "Lock Game";
                 btnLockGame.Enabled = true;
@@ -633,6 +637,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             else
             {
                 HideMapList();
+                BtnSaveLoadGameOptions.Disable();
 
                 btnLockGame.Enabled = false;
                 btnLockGame.Visible = false;
@@ -645,7 +650,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     checkBox.AllowChanges = false;
             }
 
-            LoadDefaultMap();
+            LoadDefaultGameModeMap();
 
             lbChatMessages.Clear();
             lbChatMessages.TopIndex = 0;
@@ -662,9 +667,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private void HideMapList()
         {
-            lbChatMessages.ClientRectangle = new Rectangle(lbMapList.X,
+            lbChatMessages.ClientRectangle = new Rectangle(lbGameModeMapList.X,
                 PlayerOptionsPanel.Y,
-                lbMapList.Width,
+                lbGameModeMapList.Width,
                 MapPreviewBox.Bottom - PlayerOptionsPanel.Y);
             lbChatMessages.Name = "lbChatMessages_Player";
 
@@ -673,27 +678,27 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 lbChatMessages.Width, 21);
             tbChatInput.Name = "tbChatInput_Player";
 
-            ddGameMode.Disable();
+            ddGameModeMapFilter.Disable();
             lblGameModeSelect.Disable();
-            lbMapList.Disable();
+            lbGameModeMapList.Disable();
             tbMapSearch.Disable();
             btnPickRandomMap.Disable();
 
             lbChatMessages.GetAttributes(ThemeIni);
             tbChatInput.GetAttributes(ThemeIni);
-            lbMapList.GetAttributes(ThemeIni);
+            lbGameModeMapList.GetAttributes(ThemeIni);
         }
 
         private void ShowMapList()
         {
-            lbMapList.ClientRectangle = new Rectangle(btnLaunchGame.X,
+            lbGameModeMapList.ClientRectangle = new Rectangle(btnLaunchGame.X,
                 MapPreviewBox.Y + 23,
                 MapPreviewBox.X - btnLaunchGame.X - 12,
                 MapPreviewBox.Height - 23);
 
-            lbChatMessages.ClientRectangle = new Rectangle(lbMapList.X,
+            lbChatMessages.ClientRectangle = new Rectangle(lbGameModeMapList.X,
                 GameOptionsPanel.Y,
-                lbMapList.Width, GameOptionsPanel.Height - 26);
+                lbGameModeMapList.Width, GameOptionsPanel.Height - 26);
             lbChatMessages.Name = "lbChatMessages_Host";
 
             tbChatInput.ClientRectangle = new Rectangle(lbChatMessages.X,
@@ -701,15 +706,15 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 lbChatMessages.Width, 21);
             tbChatInput.Name = "tbChatInput_Host";
 
-            ddGameMode.Enable();
+            ddGameModeMapFilter.Enable();
             lblGameModeSelect.Enable();
-            lbMapList.Enable();
+            lbGameModeMapList.Enable();
             tbMapSearch.Enable();
             btnPickRandomMap.GetAttributes(ThemeIni);
 
             lbChatMessages.GetAttributes(ThemeIni);
             tbChatInput.GetAttributes(ThemeIni);
-            lbMapList.GetAttributes(ThemeIni);
+            lbGameModeMapList.GetAttributes(ThemeIni);
         }
 
         private void MapPreviewBox_LocalStartingLocationSelected(object sender, LocalStartingLocationEventArgs e)
@@ -746,6 +751,13 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (!Locked)
             {
                 LockGameNotification();
+                return;
+            }
+
+            var teamMappingsError = GetTeamMappingsError();
+            if (!string.IsNullOrEmpty(teamMappingsError))
+            {
+                AddNotice(teamMappingsError);
                 return;
             }
 
@@ -802,7 +814,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 int totalPlayerCount = Players.Count(p => p.SideId < ddPlayerSides[0].Items.Count - 1)
                     + AIPlayers.Count;
 
-                if (totalPlayerCount < Map.MinPlayers)
+                int minPlayers = GameMode.MinPlayersOverride > -1 ? GameMode.MinPlayersOverride : Map.MinPlayers;
+                if (totalPlayerCount < minPlayers)
                 {
                     InsufficientPlayersNotification();
                     return;
@@ -847,51 +860,45 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             HostLaunchGame();
         }
 
-        protected virtual void LockGameNotification()
-        {
+        protected virtual void LockGameNotification() =>
             AddNotice("You need to lock the game room before launching the game.");
-        }
 
-        protected virtual void SharedColorsNotification()
-        {
+        protected virtual void SharedColorsNotification() =>
             AddNotice("Multiple human players cannot share the same color.");
-        }
 
-        protected virtual void AISpectatorsNotification()
-        {
+        protected virtual void AISpectatorsNotification() =>
             AddNotice("AI players don't enjoy spectating matches. They want some action!");
-        }
 
-        protected virtual void SharedStartingLocationNotification()
-        {
+        protected virtual void SharedStartingLocationNotification() =>
             AddNotice("Multiple players cannot share the same starting location on this map.");
-        }
 
         protected virtual void NotVerifiedNotification(int playerIndex)
         {
             if (playerIndex > -1 && playerIndex < Players.Count)
-            {
                 AddNotice(string.Format("Unable to launch game; player {0} hasn't been verified.", Players[playerIndex].Name));
-            }
         }
 
         protected virtual void StillInGameNotification(int playerIndex)
         {
             if (playerIndex > -1 && playerIndex < Players.Count)
             {
-                AddNotice("Unable to launch game; player " + Players[playerIndex].Name + " is still playing the game you started previously.");
+                AddNotice("Unable to launch game; player " + Players[playerIndex].Name +
+                    " is still playing the game you started previously.");
             }
         }
 
         protected virtual void GetReadyNotification()
         {
             AddNotice("The host wants to start the game but cannot because not all players are ready!");
-            sndGetReadySound.Play();
+            if (!IsHost && !Players.Find(p => p.Name == ProgramConstants.PLAYERNAME).Ready)
+                sndGetReadySound.Play();
         }
 
         protected virtual void InsufficientPlayersNotification()
         {
-            if (Map != null)
+            if (GameMode != null && GameMode.MinPlayersOverride > -1)
+                AddNotice("Unable to launch game: " + GameMode.UIName + " cannot be played with fewer than " + GameMode.MinPlayersOverride + " players.");
+            else if (Map != null)
                 AddNotice("Unable to launch game: this map cannot be played with fewer than " + Map.MinPlayers + " players.");
         }
 
@@ -918,11 +925,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         }
 
         protected abstract void HostLaunchGame();
-
-        protected override void BtnLeaveGame_LeftClick(object sender, EventArgs e)
-        {
-            throw new NotImplementedException();
-        }
 
         protected override void CopyPlayerDataFromUI(object sender, EventArgs e)
         {
@@ -956,17 +958,18 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             base.CopyPlayerDataToUI();
 
+            ClearPingIndicators();
+
             if (IsHost)
             {
                 for (int pId = 1; pId < Players.Count; pId++)
-                {
                     ddPlayerNames[pId].AllowDropDown = true;
-                }
             }
 
             for (int pId = 0; pId < Players.Count; pId++)
             {
                 ReadyBoxes[pId].Checked = Players[pId].Ready;
+                UpdatePlayerPingIndicator(Players[pId]);
             }
 
             for (int aiId = 0; aiId < AIPlayers.Count; aiId++)
@@ -980,32 +983,83 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             }
         }
 
+        protected virtual void ClearPingIndicators()
+        {
+            foreach (XNAClientDropDown dd in ddPlayerNames)
+            {
+                dd.Items[0].Texture = null;
+                dd.ToolTip.Text = string.Empty;
+            }
+        }
+
+        protected virtual void UpdatePlayerPingIndicator(PlayerInfo pInfo)
+        {
+            XNAClientDropDown ddPlayerName = ddPlayerNames[pInfo.Index];
+            ddPlayerName.Items[0].Texture = GetTextureForPing(pInfo.Ping);
+            if (pInfo.Ping < 0)
+                ddPlayerName.ToolTip.Text = "Ping: ? ms";
+            else
+                ddPlayerName.ToolTip.Text = $"Ping: {pInfo.Ping} ms";
+        }
+
+        private Texture2D GetTextureForPing(int ping)
+        {
+            switch (ping)
+            {
+                case int p when (p > 350):
+                    return PingTextures[4];
+                case int p when (p > 250):
+                    return PingTextures[3];
+                case int p when (p > 100):
+                    return PingTextures[2];
+                case int p when (p >= 0):
+                    return PingTextures[1];
+                default:
+                    return PingTextures[0];
+            }
+        }
+
         protected abstract void BroadcastPlayerOptions();
+
+        protected abstract void BroadcastPlayerExtraOptions();
 
         protected abstract void RequestPlayerOptions(int side, int color, int start, int team);
 
         protected abstract void RequestReadyStatus();
 
-        protected void AddNotice(string message)
+        // this public as it is used by the main lobby to notify the user of invitation failure
+        public void AddWarning(string message)
         {
-            AddNotice(message, Color.White);
+            AddNotice(message, Color.Yellow);
         }
 
-        protected abstract void AddNotice(string message, Color color);
+        protected override bool AllowPlayerOptionsChange() => IsHost;
 
-        protected override bool AllowPlayerOptionsChange()
+        protected override void ChangeMap(GameModeMap gameModeMap)
         {
-            return IsHost;
-        }
+            base.ChangeMap(gameModeMap);
 
-        protected override void ChangeMap(GameMode gameMode, Map map)
-        {
-            base.ChangeMap(gameMode, map);
+            bool resetAutoReady = gameModeMap?.GameMode == null || gameModeMap?.Map == null;
 
-            ClearReadyStatuses();
+            ClearReadyStatuses(resetAutoReady);
+
+            if ((lastMapChangeWasInvalid || resetAutoReady) && chkAutoReady.Checked)
+                RequestReadyStatus();
+
+            lastMapChangeWasInvalid = resetAutoReady;
 
             //if (IsHost)
             //    OnGameOptionChanged();
+        }
+
+        protected override void ToggleFavoriteMap()
+        {
+            base.ToggleFavoriteMap();
+            
+            if (GameModeMap.IsFavorite || !IsHost)
+                return;
+
+            RefreshForFavoriteMapRemoved();
         }
 
         protected override void WriteSpawnIniAdditions(IniFile iniFile)
@@ -1017,28 +1071,20 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             iniFile.SetIntValue("Settings", "Protocol", ProtocolVersion);
         }
 
-        protected override int GetDefaultMapRankIndex(Map map)
+        protected override int GetDefaultMapRankIndex(GameModeMap gameModeMap)
         {
-            if (map.MaxPlayers > 3)
-                return StatisticsManager.Instance.GetCoopRankForDefaultMap(map.Name, map.MaxPlayers);
+            if (gameModeMap.Map.MaxPlayers > 3)
+                return StatisticsManager.Instance.GetCoopRankForDefaultMap(gameModeMap.Map.Name, gameModeMap.Map.MaxPlayers);
 
-            if (StatisticsManager.Instance.HasWonMapInPvP(map.Name, GameMode.UIName, map.MaxPlayers))
+            if (StatisticsManager.Instance.HasWonMapInPvP(gameModeMap.Map.Name, gameModeMap.GameMode.UIName, gameModeMap.Map.MaxPlayers))
                 return 2;
 
             return -1;
         }
 
-        public void SwitchOn()
-        {
-            Enabled = true;
-            Visible = true;
-        }
+        public void SwitchOn() => Enable();
 
-        public void SwitchOff()
-        {
-            Enabled = false;
-            Visible = false;
-        }
+        public void SwitchOff() => Disable();
 
         public abstract string GetSwitchName();
 
@@ -1046,7 +1092,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             if (Map != null && GameMode != null)
             {
-                bool disablestartlocs = (Map.ForceRandomStartLocations || GameMode.ForceRandomStartLocations);
+                bool disablestartlocs = (Map.ForceRandomStartLocations || GameMode.ForceRandomStartLocations || GetPlayerExtraOptions().IsForceRandomStarts);
                 MapPreviewBox.EnableContextMenu = disablestartlocs ? false : IsHost;
                 MapPreviewBox.EnableStartLocationSelection = !disablestartlocs;
             }

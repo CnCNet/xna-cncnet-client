@@ -10,15 +10,17 @@ using ClientGUI;
 using Rampastring.Tools;
 using System.IO;
 using DTAClient.Domain;
+using DTAClient.Online;
+using Microsoft.Xna.Framework;
 
 namespace DTAClient.DXGUI.Multiplayer.GameLobby
 {
     public class SkirmishLobby : GameLobbyBase, ISwitchable
     {
-        private const string SETTINGS_PATH = "Client\\SkirmishSettings.ini";
+        private const string SETTINGS_PATH = "Client/SkirmishSettings.ini";
 
-        public SkirmishLobby(WindowManager windowManager, TopBar topBar, List<GameMode> GameModes, DiscordHandler discordHandler)
-            : base(windowManager, "SkirmishLobby", GameModes, false, discordHandler)
+        public SkirmishLobby(WindowManager windowManager, TopBar topBar, MapLoader mapLoader, DiscordHandler discordHandler)
+            : base(windowManager, "SkirmishLobby", mapLoader, false, discordHandler)
         {
             this.topBar = topBar;
         }
@@ -45,18 +47,35 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             MapPreviewBox.LocalStartingLocationSelected += MapPreviewBox_LocalStartingLocationSelected;
             MapPreviewBox.StartingLocationApplied += MapPreviewBox_StartingLocationApplied;
 
+            InitializeWindow();
+
+            WindowManager.CenterControlOnScreen(this);
+
             LoadSettings();
 
             CheckDisallowedSides();
 
             CopyPlayerDataToUI();
 
-            InitializeWindow();
-
-            WindowManager.CenterControlOnScreen(this);
-
             ProgramConstants.PlayerNameChanged += ProgramConstants_PlayerNameChanged;
             ddPlayerSides[0].SelectedIndexChanged += PlayerSideChanged;
+            
+            PlayerExtraOptionsPanel.SetIsHost(true);
+        }
+
+        protected override void ToggleFavoriteMap()
+        {
+            base.ToggleFavoriteMap();
+            
+            if (GameModeMap.IsFavorite)
+                return;
+
+            RefreshForFavoriteMapRemoved();
+        }
+
+        protected override void AddNotice(string message, Color color)
+        {
+            XNAMessageBox.Show(WindowManager, "Message", message);
         }
 
         protected override void OnEnabledChanged(object sender, EventArgs args)
@@ -95,6 +114,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 return GameMode.UIName + " can only be played on CnCNet and LAN.";
             }
 
+            if (GameMode.MinPlayersOverride > -1 && totalPlayerCount < GameMode.MinPlayersOverride)
+            {
+                return GameMode.UIName + " cannot be played with less than " + GameMode.MinPlayersOverride + " players.";
+            }
+
             if (Map.MultiplayerOnly)
             {
                 return "The selected map can only be played on CnCNet and LAN.";
@@ -130,6 +154,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             {
                 return "Co-op missions cannot be spectated. You'll have to show a bit more effort to cheat here.";
             }
+
+            var teamMappingsError = GetTeamMappingsError();
+            if (!string.IsNullOrEmpty(teamMappingsError))
+                return teamMappingsError;
 
             return null;
         }
@@ -189,16 +217,16 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             return true;
         }
 
-        protected override int GetDefaultMapRankIndex(Map map)
+        protected override int GetDefaultMapRankIndex(GameModeMap gameModeMap)
         {
-            return StatisticsManager.Instance.GetSkirmishRankForDefaultMap(map.Name, map.MaxPlayers);
+            return StatisticsManager.Instance.GetSkirmishRankForDefaultMap(gameModeMap.Map.Name, gameModeMap.Map.MaxPlayers);
         }
 
         protected override void GameProcessExited()
         {
             base.GameProcessExited();
 
-            DdGameMode_SelectedIndexChanged(null, EventArgs.Empty); // Refresh ranks
+            DdGameModeMapFilter_SelectedIndexChanged(null, EventArgs.Empty); // Refresh ranks
 
             RandomSeed = new Random().Next();
         }
@@ -244,7 +272,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 }
 
                 skirmishSettingsIni.SetStringValue("Settings", "Map", Map.SHA1);
-                skirmishSettingsIni.SetStringValue("Settings", "GameMode", GameMode.Name);
+                skirmishSettingsIni.SetStringValue("Settings", "GameModeMapFilter", ddGameModeMapFilter.SelectedItem?.Text);
 
                 if (ClientConfiguration.Instance.SaveSkirmishGameOptions)
                 {
@@ -280,30 +308,36 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             var skirmishSettingsIni = new IniFile(ProgramConstants.GamePath + SETTINGS_PATH);
 
-            string gameModeName = skirmishSettingsIni.GetStringValue("Settings", "GameMode", string.Empty);
+            string gameModeMapFilterName = skirmishSettingsIni.GetStringValue("Settings", "GameModeMapFilter", string.Empty);
+            if (string.IsNullOrEmpty(gameModeMapFilterName))
+                gameModeMapFilterName = skirmishSettingsIni.GetStringValue("Settings", "GameMode", string.Empty); // legacy
 
-            int gameModeIndex = GameModes.FindIndex(g => g.Name == gameModeName);
+            var gameModeMapFilter = ddGameModeMapFilter.Items.Find(i => i.Text == gameModeMapFilterName)?.Tag as GameModeMapFilter;
+            if (gameModeMapFilter == null || !gameModeMapFilter.Any())
+                gameModeMapFilter = GetDefaultGameModeMapFilter();
 
-            if (gameModeIndex > -1)
+            var gameModeMap = gameModeMapFilter.GetGameModeMaps().First();
+
+            if (gameModeMap != null)
             {
-                GameMode = GameModes[gameModeIndex];
+                GameModeMap = gameModeMap;
 
-                ddGameMode.SelectedIndex = gameModeIndex;
+                ddGameModeMapFilter.SelectedIndex = ddGameModeMapFilter.Items.FindIndex(i => i.Tag == gameModeMapFilter);
 
                 string mapSHA1 = skirmishSettingsIni.GetStringValue("Settings", "Map", string.Empty);
 
-                int mapIndex = GameMode.Maps.FindIndex(m => m.SHA1 == mapSHA1);
+                int gameModeMapIndex = gameModeMapFilter.GetGameModeMaps().FindIndex(gmm => gmm.Map.SHA1 == mapSHA1);
 
-                if (mapIndex > -1)
+                if (gameModeMapIndex > -1)
                 {
-                    lbMapList.SelectedIndex = mapIndex;
+                    lbGameModeMapList.SelectedIndex = gameModeMapIndex;
 
-                    while (mapIndex > lbMapList.LastIndex)
-                        lbMapList.TopIndex++;
+                    while (gameModeMapIndex > lbGameModeMapList.LastIndex)
+                        lbGameModeMapList.TopIndex++;
                 }
             }
             else
-                LoadDefaultMap();
+                LoadDefaultGameModeMap();
 
             var player = PlayerInfo.FromString(skirmishSettingsIni.GetStringValue("Player", "Info", string.Empty));
 
@@ -452,12 +486,12 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             aiPlayer.AILevel = 2;
             AIPlayers.Add(aiPlayer);
 
-            LoadDefaultMap();
+            LoadDefaultGameModeMap();
         }
 
         protected override void UpdateMapPreviewBoxEnabledStatus()
         {
-            MapPreviewBox.EnableContextMenu = !((Map != null && Map.ForceRandomStartLocations) || (GameMode != null && GameMode.ForceRandomStartLocations));
+            MapPreviewBox.EnableContextMenu = !((Map != null && Map.ForceRandomStartLocations) || (GameMode != null && GameMode.ForceRandomStartLocations) || GetPlayerExtraOptions().IsForceRandomStarts);
             MapPreviewBox.EnableStartLocationSelection = MapPreviewBox.EnableContextMenu;
         }
     }

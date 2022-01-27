@@ -34,7 +34,7 @@ namespace DTAConfig
         public override void Initialize()
         {
             Name = "OptionsWindow";
-            ClientRectangle = new Rectangle(0, 0, 576, 435);
+            ClientRectangle = new Rectangle(0, 0, 576, 475);
             BackgroundTexture = AssetLoader.LoadTextureUncached("optionsbg.png");
 
             tabControl = new XNAClientTabControl(WindowManager);
@@ -42,24 +42,24 @@ namespace DTAConfig
             tabControl.ClientRectangle = new Rectangle(12, 12, 0, 23);
             tabControl.FontIndex = 1;
             tabControl.ClickSound = new EnhancedSoundEffect("button.wav");
-            tabControl.AddTab("Display", 92);
-            tabControl.AddTab("Audio", 92);
-            tabControl.AddTab("Game", 92);
-            tabControl.AddTab("CnCNet", 92);
-            tabControl.AddTab("Updater", 92);
-            tabControl.AddTab("Components", 92);
+            tabControl.AddTab("Display", UIDesignConstants.BUTTON_WIDTH_92);
+            tabControl.AddTab("Audio", UIDesignConstants.BUTTON_WIDTH_92);
+            tabControl.AddTab("Game", UIDesignConstants.BUTTON_WIDTH_92);
+            tabControl.AddTab("CnCNet", UIDesignConstants.BUTTON_WIDTH_92);
+            tabControl.AddTab("Updater", UIDesignConstants.BUTTON_WIDTH_92);
+            tabControl.AddTab("Components", UIDesignConstants.BUTTON_WIDTH_92);
             tabControl.SelectedIndexChanged += TabControl_SelectedIndexChanged;
 
             var btnCancel = new XNAClientButton(WindowManager);
             btnCancel.Name = "btnCancel";
             btnCancel.ClientRectangle = new Rectangle(Width - 104,
-                Height - 35, 92, 23);
+                Height - 35, UIDesignConstants.BUTTON_WIDTH_92, UIDesignConstants.BUTTON_HEIGHT);
             btnCancel.Text = "Cancel";
             btnCancel.LeftClick += BtnBack_LeftClick;
 
             var btnSave = new XNAClientButton(WindowManager);
             btnSave.Name = "btnSave";
-            btnSave.ClientRectangle = new Rectangle(12, btnCancel.Y, 92, 23);
+            btnSave.ClientRectangle = new Rectangle(12, btnCancel.Y, UIDesignConstants.BUTTON_WIDTH_92, UIDesignConstants.BUTTON_HEIGHT);
             btnSave.Text = "Save";
             btnSave.LeftClick += BtnSave_LeftClick;
 
@@ -114,19 +114,16 @@ namespace DTAConfig
             base.GetINIAttributes(iniFile);
 
             foreach (var panel in optionsPanels)
-            {
                 panel.ParseUserOptions(iniFile);
-            }
         }
 
         private void TabControl_SelectedIndexChanged(object sender, EventArgs e)
         {
             foreach (var panel in optionsPanels)
-            {
                 panel.Disable();
-            }
 
             optionsPanels[tabControl.SelectedTab].Enable();
+            optionsPanels[tabControl.SelectedTab].RefreshPanel();
         }
 
         private void BtnBack_LeftClick(object sender, EventArgs e)
@@ -180,14 +177,15 @@ namespace DTAConfig
 
         private void SaveSettings()
         {
+            if (RefreshOptionPanels())
+                return;
+
             bool restartRequired = false;
 
             try
             {
                 foreach (var panel in optionsPanels)
-                {
                     restartRequired = panel.Save() || restartRequired;
-                }
 
                 UserINISettings.Instance.SaveSettings();
             }
@@ -211,18 +209,46 @@ namespace DTAConfig
             }
         }
 
-        private void RestartMsgBox_YesClicked(XNAMessageBox messageBox)
+        private void RestartMsgBox_YesClicked(XNAMessageBox messageBox) => WindowManager.RestartGame();
+
+        /// <summary>
+        /// Refreshes the option panels to account for possible
+        /// changes that could affect theirs functionality.
+        /// Shows the popup to inform the user if needed.
+        /// </summary>
+        /// <returns>A bool that determines whether the 
+        /// settings values were changed.</returns>
+        private bool RefreshOptionPanels()
         {
-            WindowManager.RestartGame();
+            bool optionValuesChanged = false;
+
+            foreach (var panel in optionsPanels)
+                optionValuesChanged = panel.RefreshPanel() || optionValuesChanged;
+
+            if (optionValuesChanged)
+            {
+                XNAMessageBox.Show(WindowManager, "Setting Value(s) Changed",
+                    "One or more setting values are" + Environment.NewLine +
+                    "no longer available and were changed." +
+                    Environment.NewLine + Environment.NewLine +
+                    "You may want to verify the new setting" + Environment.NewLine +
+                    "values in client's options window.");
+
+                return true;
+            }
+
+            return false;
         }
 
         public void RefreshSettings()
         {
             foreach (var panel in optionsPanels)
-            {
                 panel.Load();
+
+            RefreshOptionPanels();
+
+            foreach (var panel in optionsPanels)
                 panel.Save();
-            }
 
             UserINISettings.Instance.SaveSettings();
         }
@@ -231,6 +257,8 @@ namespace DTAConfig
         {
             foreach (var panel in optionsPanels)
                 panel.Load();
+
+            RefreshOptionPanels();
 
             componentsPanel.Open();
 
@@ -248,21 +276,16 @@ namespace DTAConfig
         public void SwitchToCustomComponentsPanel()
         {
             foreach (var panel in optionsPanels)
-            {
                 panel.Disable();
-            }
 
             tabControl.SelectedTab = 5;
         }
 
-        public void InstallCustomComponent(int id)
-        {
-            componentsPanel.InstallComponent(id);
-        }
+        public void InstallCustomComponent(int id) => componentsPanel.InstallComponent(id);
 
         public void PostInit()
         {
-#if !YR
+#if TS
             displayOptionsPanel.PostInit();
 #endif
         }

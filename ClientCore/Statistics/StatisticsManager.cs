@@ -10,7 +10,7 @@ namespace ClientCore.Statistics
     public class StatisticsManager : GenericStatisticsManager
     {
         private const string VERSION = "1.06";
-        private const string SCORE_FILE_PATH = "Client\\dscore.dat";
+        private const string SCORE_FILE_PATH = "Client/dscore.dat";
         private const string OLD_SCORE_FILE_PATH = "dscore.dat";
         private static StatisticsManager _instance;
 
@@ -48,7 +48,7 @@ namespace ClientCore.Statistics
             {
                 if (File.Exists(gamePath + OLD_SCORE_FILE_PATH))
                 {
-                    File.Copy(gamePath + OLD_SCORE_FILE_PATH, gamePath + "Client\\dscore_old.dat");
+                    File.Copy(gamePath + OLD_SCORE_FILE_PATH, gamePath + "Client/dscore_old.dat");
                     File.Delete(gamePath + OLD_SCORE_FILE_PATH);
                 }
 

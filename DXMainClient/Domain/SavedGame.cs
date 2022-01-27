@@ -1,7 +1,9 @@
 ﻿using ClientCore;
 using Rampastring.Tools;
 using System;
+using System.Collections.Generic;
 using System.IO;
+using OpenMcdf;
 
 namespace DTAClient.Domain
 {
@@ -10,7 +12,7 @@ namespace DTAClient.Domain
     /// </summary>
     public class SavedGame
     {
-        const string SAVED_GAME_PATH = "Saved Games\\";
+        const string SAVED_GAME_PATH = "Saved Games/";
 
         public SavedGame(string fileName)
         {
@@ -22,6 +24,20 @@ namespace DTAClient.Domain
         public DateTime LastModified { get; private set; }
 
         /// <summary>
+        /// Get the saved game's name from a .sav file.
+        /// </summary>
+        /// <param name="file"></param>
+        /// <returns></returns>
+        private static string GetArchiveName(Stream file)
+        {
+            var cf = new CompoundFile(file);
+            var archiveNameBytes = cf.RootStorage.GetStream("Scenario Description").GetData();
+            var archiveName = System.Text.Encoding.Unicode.GetString(archiveNameBytes);
+            archiveName = archiveName.TrimEnd(new char[] { '\0' });
+            return archiveName;
+        }
+
+        /// <summary>
         /// Reads and sets the saved game's name and last modified date, and returns true if succesful.
         /// </summary>
         /// <returns>True if parsing the info was succesful, otherwise false.</returns>
@@ -29,32 +45,9 @@ namespace DTAClient.Domain
         {
             try
             {
-                using (BinaryReader br = new BinaryReader(File.Open(ProgramConstants.GamePath + SAVED_GAME_PATH + FileName, FileMode.Open, FileAccess.Read)))
+                using (Stream file = (File.Open(ProgramConstants.GamePath + SAVED_GAME_PATH + FileName, FileMode.Open, FileAccess.Read)))
                 {
-                    br.BaseStream.Position = 2256; // 00000980
-
-                    string saveGameName = String.Empty;
-                    // Read name until we encounter two zero-bytes
-                    // TODO remake, it's probably an Unicode string
-                    bool wasLastByteZero = false;
-                    while (true)
-                    {
-                        byte characterByte = br.ReadByte();
-                        if (characterByte == 0)
-                        {
-                            if (wasLastByteZero)
-                                break;
-                            wasLastByteZero = true;
-                        }
-                        else
-                        {
-                            wasLastByteZero = false;
-                            char character = Convert.ToChar(characterByte);
-                            saveGameName = saveGameName + character;
-                        }
-                    }
-
-                    GUIName = saveGameName;
+                    GUIName = GetArchiveName(file);
                 }
 
                 LastModified = File.GetLastWriteTime(ProgramConstants.GamePath + SAVED_GAME_PATH + FileName);

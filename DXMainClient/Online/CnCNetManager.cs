@@ -30,7 +30,8 @@ namespace DTAClient.Online
         public event EventHandler<ServerMessageEventArgs> WelcomeMessageReceived;
         public event EventHandler<UserAwayEventArgs> AwayMessageReceived;
         public event EventHandler<WhoEventArgs> WhoReplyReceived;
-        public event EventHandler<PrivateMessageEventArgs> PrivateMessageReceived;
+        public event EventHandler<CnCNetPrivateMessageEventArgs> PrivateMessageReceived;
+        public event EventHandler<PrivateCTCPEventArgs> PrivateCTCPReceived;
         public event EventHandler<ChannelEventArgs> BannedFromChannel;
 
         public event EventHandler<AttemptedServerEventArgs> AttemptedServerChanged;
@@ -45,9 +46,10 @@ namespace DTAClient.Online
         public event EventHandler<UserNameIndexEventArgs> UserRemoved;
         public event EventHandler MultipleUsersAdded;
 
-        public CnCNetManager(WindowManager wm, GameCollection gc)
+        public CnCNetManager(WindowManager wm, GameCollection gc, CnCNetUserData cncNetUserData)
         {
             gameCollection = gc;
+            this.cncNetUserData = cncNetUserData;
             connection = new Connection(this);
 
             this.wm = wm;
@@ -103,6 +105,7 @@ namespace DTAClient.Online
         private List<Channel> channels = new List<Channel>();
 
         private GameCollection gameCollection;
+        private readonly CnCNetUserData cncNetUserData;
 
         private Color cDefaultChatColor;
         private IRCColor[] ircChatColors;
@@ -134,7 +137,7 @@ namespace DTAClient.Online
         public void AddChannel(Channel channel)
         {
             if (FindChannel(channel.ChannelName) != null)
-                throw new Exception("The channel already exists!");
+                throw new ArgumentException("The channel already exists!", "channel");
 
             channels.Add(channel);
         }
@@ -142,7 +145,7 @@ namespace DTAClient.Online
         public void RemoveChannel(Channel channel)
         {
             if (channel.Persistent)
-                throw new Exception("Persistent channels cannot be removed.");
+                throw new ArgumentException("Persistent channels cannot be removed.", "channel");
 
             channels.Remove(channel);
         }
@@ -168,6 +171,11 @@ namespace DTAClient.Online
         public void SendCustomMessage(QueuedMessage qm)
         {
             connection.QueueMessage(qm);
+        }
+
+        public void SendWhoIsMessage(string nick)
+        {
+            SendCustomMessage(new QueuedMessage($"WHOIS {nick}", QueuedMessageType.WHOIS_MESSAGE, 0));
         }
 
         public void OnAttemptedServerChanged(string serverName)
@@ -273,7 +281,7 @@ namespace DTAClient.Online
                             ChannelUser user = channel.Users.Find(parameter);
                             if (user == null)
                                 break;
-                            user.IsAdmin = addMode ? true : false;
+                            user.IsAdmin = addMode;
                             break;
                     }
                 }
@@ -373,8 +381,19 @@ namespace DTAClient.Online
         {
             Channel channel = FindChannel(channelName);
 
+            // it's possible that we received this CTCP via PRIVMSG, in which case we
+            // expect our username instead of a channel as the first parameter
             if (channel == null)
+            {
+                if (channelName == ProgramConstants.PLAYERNAME)
+                {
+                    PrivateCTCPEventArgs e = new PrivateCTCPEventArgs(userName, message);
+
+                    PrivateCTCPReceived?.Invoke(this, e);
+                }
+
                 return;
+            }
 
             channel.OnCTCPReceived(userName, message);
         }
@@ -525,7 +544,7 @@ namespace DTAClient.Online
 
         private void DoPrivateMessageReceived(string sender, string message)
         {
-            PrivateMessageEventArgs e = new PrivateMessageEventArgs(sender, message);
+            CnCNetPrivateMessageEventArgs e = new CnCNetPrivateMessageEventArgs(sender, message);
 
             PrivateMessageReceived?.Invoke(this, e);
         }
@@ -596,6 +615,7 @@ namespace DTAClient.Online
 
             var channelUser = new ChannelUser(ircUser);
             channelUser.IsAdmin = isAdmin;
+            channelUser.IsFriend = cncNetUserData.IsFriend(channelUser.IRCUser.Name);
 
             ircUser.Channels.Add(channelName);
             channel.OnUserJoined(channelUser);
@@ -739,6 +759,7 @@ namespace DTAClient.Online
 
                 var channelUser = new ChannelUser(ircUser);
                 channelUser.IsAdmin = isAdmin;
+                channelUser.IsFriend = cncNetUserData.IsFriend(channelUser.IRCUser.Name);
 
                 channelUserList.Add(channelUser);
             }
@@ -806,7 +827,7 @@ namespace DTAClient.Online
 
         private void DoWhoReplyReceived(string ident, string hostName, string userName, string extraInfo)
         {
-            WhoReplyReceived?.Invoke(this, new WhoEventArgs(userName, extraInfo));
+            WhoReplyReceived?.Invoke(this, new WhoEventArgs(ident, userName, extraInfo));
 
             string[] eInfoParts = extraInfo.Split(' ');
 

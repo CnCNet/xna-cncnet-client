@@ -10,7 +10,7 @@ namespace ClientGUI
     /// </summary>
     public class DarkeningPanel : XNAPanel
     {
-        private const float ALPHA_RATE = 0.6f;
+        public const float ALPHA_RATE = 0.6f;
 
         public DarkeningPanel(WindowManager windowManager) : base(windowManager)
         {

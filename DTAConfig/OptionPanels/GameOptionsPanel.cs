@@ -28,7 +28,7 @@ namespace DTAConfig.OptionPanels
         private XNAClientCheckBox chkTooltips;
 #if YR
         private XNAClientCheckBox chkShowHiddenObjects;
-#elif DTA || TS || TI
+#elif TS
         private XNAClientCheckBox chkAltToUndeploy;
         private XNAClientCheckBox chkBlackChatBackground;
 #endif
@@ -116,7 +116,7 @@ namespace DTAConfig.OptionPanels
                 chkTargetLines.Bottom + 24, 0, 0);
 #endif
 
-#if DTA || TI || TS
+#if TS
             chkBlackChatBackground = new XNAClientCheckBox(WindowManager);
             chkBlackChatBackground.Name = "chkBlackChatBackground";
             chkBlackChatBackground.ClientRectangle = new Rectangle(
@@ -127,7 +127,7 @@ namespace DTAConfig.OptionPanels
             AddChild(chkBlackChatBackground);
 #endif
 
-#if DTA || TS || TI
+#if TS
             chkAltToUndeploy = new XNAClientCheckBox(WindowManager);
             chkAltToUndeploy.Name = "chkAltToUndeploy";
             chkAltToUndeploy.ClientRectangle = new Rectangle(
@@ -165,7 +165,7 @@ namespace DTAConfig.OptionPanels
 
             var btnConfigureHotkeys = new XNAClientButton(WindowManager);
             btnConfigureHotkeys.Name = "btnConfigureHotkeys";
-            btnConfigureHotkeys.ClientRectangle = new Rectangle(lblPlayerName.X, lblNotice.Bottom + 36, 160, 23);
+            btnConfigureHotkeys.ClientRectangle = new Rectangle(lblPlayerName.X, lblNotice.Bottom + 36, UIDesignConstants.BUTTON_WIDTH_160, UIDesignConstants.BUTTON_HEIGHT);
             btnConfigureHotkeys.Text = "Configure Hotkeys";
             btnConfigureHotkeys.LeftClick += BtnConfigureHotkeys_LeftClick;
 
@@ -222,7 +222,7 @@ namespace DTAConfig.OptionPanels
             chkShowHiddenObjects.Checked = IniSettings.ShowHiddenObjects;
 #endif
 
-#if DTA || TS || TI
+#if TS
             chkAltToUndeploy.Checked = !IniSettings.MoveToUndeploy;
             chkBlackChatBackground.Checked = IniSettings.TextBackgroundColor == TEXT_BACKGROUND_COLOR_BLACK;
 #endif
@@ -231,7 +231,7 @@ namespace DTAConfig.OptionPanels
 
         public override bool Save()
         {
-            base.Save();
+            bool restartRequired = base.Save();
 
             IniSettings.ScrollRate.Value = ReverseScrollRate(trbScrollRate.Value);
 
@@ -242,7 +242,7 @@ namespace DTAConfig.OptionPanels
             IniSettings.ShowHiddenObjects.Value = chkShowHiddenObjects.Checked;
 #endif
 
-#if DTA || TS || TI
+#if TS
             IniSettings.MoveToUndeploy.Value = !chkAltToUndeploy.Checked;
             if (chkBlackChatBackground.Checked)
                 IniSettings.TextBackgroundColor.Value = TEXT_BACKGROUND_COLOR_BLACK;
@@ -255,7 +255,7 @@ namespace DTAConfig.OptionPanels
             if (playerName.Length > 0)
                 IniSettings.PlayerName.Value = playerName;
 
-            return false;
+            return restartRequired;
         }
 
         private int ReverseScrollRate(int scrollRate)

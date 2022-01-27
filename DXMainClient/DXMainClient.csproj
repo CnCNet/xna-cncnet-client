@@ -35,28 +35,28 @@
     <BootstrapperEnabled>true</BootstrapperEnabled>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|SharpDX' ">
-    <PlatformTarget>x86</PlatformTarget>
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>bin\Windows\Debug\</OutputPath>
-    <DefineConstants>TRACE;DEBUG;DTA</DefineConstants>
+    <OutputPath>bin\SharpDX\Debug\</OutputPath>
+    <DefineConstants>TRACE;DEBUG</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|SharpDX' ">
-    <PlatformTarget>x86</PlatformTarget>
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>bin\Windows\Release\</OutputPath>
+    <OutputPath>bin\SharpDX\Release\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|WindowsGL' ">
-    <PlatformTarget>x86</PlatformTarget>
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
@@ -66,7 +66,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|WindowsGL' ">
-    <PlatformTarget>x86</PlatformTarget>
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\WindowsGL\Release</OutputPath>
@@ -84,7 +84,6 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|XNAFramework' ">
     <PlatformTarget>x86</PlatformTarget>
@@ -96,27 +95,57 @@
     <WarningLevel>4</WarningLevel>
     <PlatformTarget>x86</PlatformTarget>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'YRRelease|SharpDX' ">
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'TSRelease|SharpDX' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\SharpDX\Release\</OutputPath>
+    <DefineConstants>TRACE;TS</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'TSRelease|WindowsGL' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\WindowsGL\Release</OutputPath>
+    <DefineConstants>TRACE;WINDOWSGL TS</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'TSRelease|XNAFramework' ">
     <PlatformTarget>x86</PlatformTarget>
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>bin\Windows\Release\</OutputPath>
+    <OutputPath>bin\XNAFramework\Release</OutputPath>
+    <DefineConstants>TRACE;XNA TS</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <PlatformTarget>x86</PlatformTarget>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'YRRelease|SharpDX' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\SharpDX\Release\</OutputPath>
     <DefineConstants>TRACE;YR</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'YRRelease|WindowsGL' ">
-    <PlatformTarget>x86</PlatformTarget>
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\WindowsGL\Release</OutputPath>
     <DefineConstants>TRACE;WINDOWSGL YR</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'YRRelease|XNAFramework' ">
     <PlatformTarget>x86</PlatformTarget>
@@ -128,7 +157,6 @@
     <WarningLevel>4</WarningLevel>
     <PlatformTarget>x86</PlatformTarget>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup>
     <ApplicationIcon>clienticon.ico</ApplicationIcon>
@@ -160,13 +188,13 @@
     <Optimize>false</Optimize>
     <OutputPath>bin\WindowsGL\Debug</OutputPath>
     <WarningLevel>4</WarningLevel>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|WindowsGL' ">
     <Optimize>true</Optimize>
     <OutputPath>bin\WindowsGL\Release</OutputPath>
     <WarningLevel>4</WarningLevel>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(RunConfiguration)' == 'Linux' ">
     <StartAction>Project</StartAction>
@@ -175,33 +203,132 @@
       <Variable name="MONO_IOMAP" value="all" />
     </EnvironmentVariables>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'MORelease|SharpDX'">
-    <OutputPath>bin\Windows\Release\</OutputPath>
-    <DefineConstants>TRACE;MO</DefineConstants>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'AresRelease|SharpDX' ">
+    <OutputPath>bin\SharpDX\Release\</OutputPath>
+    <DefineConstants>TRACE;ARES</DefineConstants>
     <Optimize>true</Optimize>
     <DebugType>pdbonly</DebugType>
-    <PlatformTarget>x86</PlatformTarget>
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <ErrorReport>prompt</ErrorReport>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'MORelease|WindowsGL'">
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'AresRelease|WindowsGL' ">
     <OutputPath>bin\WindowsGL\Release\</OutputPath>
-    <DefineConstants>TRACE;WINDOWSGL MO</DefineConstants>
+    <DefineConstants>TRACE;WINDOWSGL ARES</DefineConstants>
     <DebugType>pdbonly</DebugType>
-    <PlatformTarget>x86</PlatformTarget>
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <ErrorReport>prompt</ErrorReport>
     <Optimize>true</Optimize>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'MORelease|XNAFramework'">
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'AresRelease|XNAFramework' ">
     <OutputPath>bin\XNAFramework\Release\</OutputPath>
-    <DefineConstants>TRACE;XNA MO</DefineConstants>
+    <DefineConstants>TRACE;XNA ARES</DefineConstants>
     <Optimize>true</Optimize>
     <DebugType>pdbonly</DebugType>
     <PlatformTarget>x86</PlatformTarget>
     <ErrorReport>prompt</ErrorReport>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'AresDebug|SharpDX'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\SharpDX\Debug\</OutputPath>
+    <DefineConstants>TRACE;DEBUG;ARES</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'AresDebug|WindowsGL'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\WindowsGL\Debug\</OutputPath>
+    <DefineConstants>TRACE;DEBUG;WINDOWSGL ARES</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'AresDebug|XNAFramework'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\XNAFramework\Debug\</OutputPath>
+    <DefineConstants>TRACE;DEBUG;XNA ARES</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x86</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'TSDebug|SharpDX'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\SharpDX\Debug\</OutputPath>
+    <DefineConstants>TRACE;DEBUG;TS</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'TSDebug|WindowsGL'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\WindowsGL\Debug\</OutputPath>
+    <DefineConstants>TRACE;DEBUG;WINDOWSGL TS</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'TSDebug|XNAFramework'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\XNAFramework\Debug\</OutputPath>
+    <DefineConstants>TRACE;DEBUG;XNA TS</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x86</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'YRDebug|SharpDX'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\SharpDX\Debug\</OutputPath>
+    <DefineConstants>TRACE;DEBUG;YR</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'YRDebug|WindowsGL'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\WindowsGL\Debug\</OutputPath>
+    <DefineConstants>TRACE;DEBUG;WINDOWSGL YR</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'YRDebug|XNAFramework'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\XNAFramework\Debug\</OutputPath>
+    <DefineConstants>TRACE;DEBUG;XNA YR</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x86</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <Choose>
     <When Condition="'$(Platform)' != 'XNAFramework'">
@@ -257,9 +384,15 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\References\Ionic.Zip.dll</HintPath>
     </Reference>
+    <Reference Include="lzo.net">
+      <HintPath>..\References\lzo.net.dll</HintPath>
+    </Reference>
     <Reference Include="Newtonsoft.Json, Version=9.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\References\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="OpenMcdf">
+      <HintPath>..\References\OpenMcdf.dll</HintPath>
     </Reference>
     <Reference Include="Rampastring.Tools, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -292,10 +425,13 @@
     <Compile Include="Domain\DiscordHandler.cs" />
     <Compile Include="Domain\Multiplayer\CoopHouseInfo.cs" />
     <Compile Include="Domain\Multiplayer\CoopMapInfo.cs" />
+    <Compile Include="Domain\Multiplayer\CustomMapCache.cs" />
     <Compile Include="Domain\Multiplayer\GameMode.cs" />
     <Compile Include="Domain\Multiplayer\CnCNet\HostedCnCNetGame.cs" />
     <Compile Include="Domain\Multiplayer\CnCNet\MapEventArgs.cs" />
     <Compile Include="Domain\Multiplayer\CnCNet\MapSharer.cs" />
+    <Compile Include="Domain\Multiplayer\GameModeMap.cs" />
+    <Compile Include="Domain\Multiplayer\GameModeMapCollection.cs" />
     <Compile Include="Domain\Multiplayer\GameOptionPresets.cs" />
     <Compile Include="Domain\Multiplayer\LAN\ClientIntCommandHandler.cs" />
     <Compile Include="Domain\Multiplayer\LAN\LANLobbyUser.cs" />
@@ -306,13 +442,15 @@
     <Compile Include="Domain\Multiplayer\LAN\LANServerCommandHandler.cs" />
     <Compile Include="Domain\Multiplayer\LAN\ServerNoParamCommandHandler.cs" />
     <Compile Include="Domain\Multiplayer\LAN\ServerStringCommandHandler.cs" />
+    <Compile Include="Domain\Multiplayer\PlayerExtraOptions.cs" />
+    <Compile Include="Domain\Multiplayer\TeamStartMapping.cs" />
     <Compile Include="Domain\Multiplayer\MapPreviewExtractor.cs" />
-    <Compile Include="Domain\Multiplayer\MiniLZO.cs" />
     <Compile Include="Domain\Multiplayer\SavedGamePlayer.cs" />
     <Compile Include="Domain\Multiplayer\CnCNet\SHA1EventArgs.cs" />
     <Compile Include="Domain\Multiplayer\GenericHostedGame.cs" />
     <Compile Include="Domain\Multiplayer\LAN\LANColor.cs" />
     <Compile Include="Domain\Multiplayer\LAN\HostedLANGame.cs" />
+    <Compile Include="Domain\Multiplayer\TeamStartMappingPreset.cs" />
     <Compile Include="Domain\StatisticsSender.cs" />
     <Compile Include="DXGUI\Generic\CheaterWindow.cs" />
     <Compile Include="Domain\Multiplayer\Map.cs" />
@@ -327,6 +465,7 @@
     <Compile Include="DXGUI\Generic\CampaignSelector.cs" />
     <Compile Include="DXGUI\Generic\PrivacyNotification.cs" />
     <Compile Include="DXGUI\Generic\TopBar.cs" />
+    <Compile Include="DXGUI\IMessageView.cs" />
     <Compile Include="DXGUI\ISwitchable.cs" />
     <Compile Include="DXGUI\Multiplayer\ChatListBox.cs" />
     <Compile Include="DXGUI\Multiplayer\CnCNet\CnCNetGameLoadingLobby.cs" />
@@ -334,11 +473,16 @@
     <Compile Include="DXGUI\Multiplayer\CnCNet\CnCNetLoginWindow.cs" />
     <Compile Include="DXGUI\Multiplayer\CnCNet\GameCreationEventArgs.cs" />
     <Compile Include="DXGUI\Multiplayer\CnCNet\GameCreationWindow.cs" />
+    <Compile Include="DXGUI\Multiplayer\CnCNet\LoadOrSaveGameOptionPresetWindow.cs" />
     <Compile Include="DXGUI\Multiplayer\CnCNet\MapSharingConfirmationPanel.cs" />
     <Compile Include="DXGUI\Multiplayer\CnCNet\PasswordRequestWindow.cs" />
-    <Compile Include="DXGUI\Multiplayer\CnCNet\PlayerContextMenu.cs" />
+    <Compile Include="DXGUI\Multiplayer\CnCNet\GlobalContextMenu.cs" />
+    <Compile Include="DXGUI\Multiplayer\CnCNet\GlobalContextMenuData.cs" />
+    <Compile Include="DXGUI\Multiplayer\CnCNet\RecentPlayerTable.cs" />
+    <Compile Include="DXGUI\Multiplayer\CnCNet\RecentPlayerTableRightClickEventArgs.cs" />
     <Compile Include="DXGUI\Multiplayer\CnCNet\TunnelListBox.cs" />
     <Compile Include="DXGUI\Multiplayer\CnCNet\TunnelSelectionWindow.cs" />
+    <Compile Include="DXGUI\Multiplayer\GameFiltersPanel.cs" />
     <Compile Include="DXGUI\Multiplayer\GameInformationPanel.cs" />
     <Compile Include="DXGUI\Generic\GameInProgressWindow.cs" />
     <Compile Include="DXGUI\Multiplayer\GameListBox.cs" />
@@ -354,6 +498,7 @@
     <Compile Include="DXGUI\Multiplayer\GameLobby\CommandHandlers\NotificationHandler.cs" />
     <Compile Include="DXGUI\Multiplayer\GameLobby\CoopBriefingBox.cs" />
     <Compile Include="DXGUI\Multiplayer\GameLobby\DropDownDataWriteMode.cs" />
+    <Compile Include="DXGUI\Multiplayer\GameLobby\GameModeMapFilter.cs" />
     <Compile Include="DXGUI\Multiplayer\GameLobby\GameLaunchButton.cs" />
     <Compile Include="DXGUI\Multiplayer\GameLobby\GameLobbyBase.cs" />
     <Compile Include="DXGUI\Multiplayer\GameLobby\GameLobbyCheckBox.cs" />
@@ -371,15 +516,26 @@
     <Compile Include="DXGUI\Multiplayer\LANGameCreationWindow.cs" />
     <Compile Include="DXGUI\Multiplayer\LANGameLoadingLobby.cs" />
     <Compile Include="DXGUI\Multiplayer\LANLobby.cs" />
+    <Compile Include="DXGUI\Multiplayer\CnCNet\ChoiceNotificationBox.cs" />
     <Compile Include="DXGUI\Multiplayer\CnCNet\PrivateMessageNotificationBox.cs" />
     <Compile Include="DXGUI\Multiplayer\CnCNet\PrivateMessagingPanel.cs" />
     <Compile Include="DXGUI\Multiplayer\CnCNet\PrivateMessagingWindow.cs" />
+    <Compile Include="DXGUI\Multiplayer\TeamStartMappingPanel.cs" />
+    <Compile Include="DXGUI\Multiplayer\PlayerExtraOptionsPanel.cs" />
     <Compile Include="DXGUI\Multiplayer\PlayerListBox.cs" />
+    <Compile Include="DXGUI\Multiplayer\TeamStartMappingsPanel.cs" />
     <Compile Include="Online\ChannelUser.cs" />
     <Compile Include="Online\CnCNetGameCheck.cs" />
     <Compile Include="Online\CnCNetUserData.cs" />
     <Compile Include="Online\EventArguments\ChannelCTCPEventArgs.cs" />
+    <Compile Include="Online\EventArguments\CnCNetPrivateMessageEventArgs.cs" />
+    <Compile Include="Online\EventArguments\GameOptionPresetEventArgs.cs" />
+    <Compile Include="Online\EventArguments\JoinUserEventArgs.cs" />
+    <Compile Include="Online\EventArguments\MultiplayerNameRightClickedEventArgs.cs" />
+    <Compile Include="Online\EventArguments\FavoriteMapEventArgs.cs" />
+    <Compile Include="Online\EventArguments\PrivateCTCPEventArgs.cs" />
     <Compile Include="Online\EventArguments\PrivateMessageEventArgs.cs" />
+    <Compile Include="Online\EventArguments\UnreadMessageCountEventArgs.cs" />
     <Compile Include="Online\FileHashCalculator.cs" />
     <Compile Include="Online\IRCColor.cs" />
     <Compile Include="DXGUI\Generic\LoadingScreen.cs" />
@@ -408,6 +564,8 @@
     <Compile Include="Online\ChatMessage.cs" />
     <Compile Include="Online\IRCUser.cs" />
     <Compile Include="Online\IUserCollection.cs" />
+    <Compile Include="Online\PrivateMessageHandler.cs" />
+    <Compile Include="Online\RecentPlayer.cs" />
     <Compile Include="Online\UnsortedUserCollection.cs" />
     <Compile Include="Online\SortedUserCollection.cs" />
     <Compile Include="Online\PrivateMessageUser.cs" />
@@ -486,9 +644,11 @@
        Other similar extension points exist, see Microsoft.Common.targets. -->
   <Target Name="BeforeBuild">
   </Target>
-  <Target Name="AfterBuild" Condition=" '$(Configuration)' == 'Debug' ">
+  <Target Name="AfterBuild" Condition=" '$(Configuration)' == 'Debug' OR '$(Configuration)' == 'AresDebug' OR '$(Configuration)' == 'TSDebug' OR '$(Configuration)' == 'YRDebug' ">
     <ItemGroup>
       <SDL86 Include="$(SolutionDir)\References\WindowsGL\x86\*" />
+      <SDL64 Include="$(SolutionDir)\References\WindowsGL\x64\*" />
+      <SDLOSX Include="$(SolutionDir)\References\WindowsGL\libopenal.1.dylib;$(SolutionDir)\References\WindowsGL\libSDL2-2.0.0.dylib" />
     </ItemGroup>
     <ItemGroup>
       <ExampleClientResources Include="$(SolutionDir)\DXMainClient\Resources\DTA\**\*.*" />
@@ -499,7 +659,9 @@
       <ExampleClientLinuxRun Include="$(SolutionDir)\DXMainClient\Resources\run.sh" />
       <ExampleClientDefinitions Include="$(SolutionDir)\DXMainClient\Resources\ClientDefinitions.ini" />
     </ItemGroup>
-    <Copy Condition=" '$(Configuration)|$(Platform)' == 'Debug|WindowsGL' " SourceFiles="@(SDL86)" DestinationFolder="$(OutputPath)\x86" />
+    <Copy Condition=" '$(Platform)' == 'WindowsGL' " SourceFiles="@(SDL86)" DestinationFolder="$(OutputPath)\x86" />
+    <Copy Condition=" '$(Platform)' == 'WindowsGL' " SourceFiles="@(SDL64)" DestinationFolder="$(OutputPath)\x64" />
+    <Copy Condition=" '$(Platform)' == 'WindowsGL' " SourceFiles="@(SDLOSX)" DestinationFolder="$(OutputPath)" />
     <Copy Condition="! Exists('$(OutputPath)\Resources\ClientDefinitions.ini') " SourceFiles="@(ExampleClientResources)" DestinationFolder="$(OutputPath)\Resources\%(RecursiveDir)" />
     <Copy Condition="! Exists('$(OutputPath)\Resources\ClientDefinitions.ini') " SourceFiles="@(ExampleClientMaps)" DestinationFolder="$(OutputPath)\Maps\%(RecursiveDir)" />
     <Copy Condition="! Exists('$(OutputPath)\Resources\ClientDefinitions.ini') " SourceFiles="@(ExampleClientIni)" DestinationFolder="$(OutputPath)\INI\%(RecursiveDir)" />

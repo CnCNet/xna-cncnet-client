@@ -29,9 +29,6 @@ namespace DTAClient.DXGUI
             graphics.HardwareModeSwitch = false;
 #endif
             content = new ContentManager(Services);
-            string windowTitle = ClientConfiguration.Instance.WindowTitle;
-            Window.Title = string.IsNullOrEmpty(windowTitle) ?
-                string.Format("{0} Client", MainClientConstants.GAME_NAME_SHORT) : windowTitle;
         }
 
         private static GraphicsDeviceManager graphics;
@@ -40,6 +37,10 @@ namespace DTAClient.DXGUI
         protected override void Initialize()
         {
             Logger.Log("Initializing GameClass.");
+
+            string windowTitle = ClientConfiguration.Instance.WindowTitle;
+            Window.Title = string.IsNullOrEmpty(windowTitle) ?
+                string.Format("{0} Client", MainClientConstants.GAME_NAME_SHORT) : windowTitle;
 
             base.Initialize();
 
@@ -189,12 +190,12 @@ namespace DTAClient.DXGUI
             if (Screen.PrimaryScreen.Bounds.Width >= windowWidth && Screen.PrimaryScreen.Bounds.Height >= windowHeight)
             {
                 if (!wm.InitGraphicsMode(windowWidth, windowHeight, false))
-                    throw new Exception("Setting graphics mode failed! " + windowWidth + "x" + windowHeight);
+                    throw new GraphicsModeInitializationException("Setting graphics mode failed! " + windowWidth + "x" + windowHeight);
             }
             else
             {
                 if (!wm.InitGraphicsMode(1024, 600, false))
-                    throw new Exception("Setting default graphics mode failed!");
+                    throw new GraphicsModeInitializationException("Setting default graphics mode failed!");
             }
 
             int renderResolutionX = Math.Max(windowWidth, ClientConfiguration.Instance.MinimumRenderWidth);
@@ -213,6 +214,16 @@ namespace DTAClient.DXGUI
 #endif
             wm.CenterOnScreen();
             wm.SetRenderResolution(renderResolutionX, renderResolutionY);
+        }
+    }
+
+    /// <summary>
+    /// An exception that is thrown when initializing display / graphics mode fails.
+    /// </summary>
+    class GraphicsModeInitializationException : Exception
+    {
+        public GraphicsModeInitializationException(string message) : base(message)
+        {
         }
     }
 }

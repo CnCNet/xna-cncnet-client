@@ -18,7 +18,7 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>bin\Windows\Debug\</OutputPath>
+    <OutputPath>bin\SharpDX\Debug\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -26,27 +26,27 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|SharpDX' ">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>bin\Windows\Release\</OutputPath>
+    <OutputPath>bin\SharpDX\Release\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|WindowsGL' ">
-    <PlatformTarget>x86</PlatformTarget>
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>bin\WindowsGL\Debug</OutputPath>
-    <DefineConstants>TRACE;DEBUG;WINDOWSGL LINUX</DefineConstants>
+    <DefineConstants>TRACE;DEBUG;WINDOWSGL</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|WindowsGL' ">
-    <PlatformTarget>x86</PlatformTarget>
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\WindowsGL\Release</OutputPath>
-    <DefineConstants>TRACE;WINDOWSGL LINUX</DefineConstants>
+    <DefineConstants>TRACE;WINDOWSGL</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
@@ -84,31 +84,31 @@
     <Otherwise>
       <ItemGroup>
         <Reference Include="Microsoft.Xna.Framework, Version=4.0.0.0, Culture=neutral, PublicKeyToken=842cf8be1de50553, processorArchitecture=x86">
-          <Private>False</Private>
+          <HintPath>..\References\XNA\Microsoft.Xna.Framework.dll</HintPath>
         </Reference>
         <Reference Include="Microsoft.Xna.Framework.Game, Version=4.0.0.0, Culture=neutral, PublicKeyToken=842cf8be1de50553, processorArchitecture=x86">
-          <Private>False</Private>
+          <HintPath>..\References\XNA\Microsoft.Xna.Framework.Game.dll</HintPath>
         </Reference>
         <Reference Include="Microsoft.Xna.Framework.Graphics, Version=4.0.0.0, Culture=neutral, PublicKeyToken=842cf8be1de50553, processorArchitecture=x86">
-          <Private>False</Private>
+          <HintPath>..\References\XNA\Microsoft.Xna.Framework.Graphics.dll</HintPath>
         </Reference>
         <Reference Include="Microsoft.Xna.Framework.GamerServices, Version=4.0.0.0, Culture=neutral, PublicKeyToken=842cf8be1de50553, processorArchitecture=x86">
-          <Private>False</Private>
+          <HintPath>..\References\XNA\Microsoft.Xna.Framework.GamerServices.dll</HintPath>
         </Reference>
         <Reference Include="Microsoft.Xna.Framework.Xact, Version=4.0.0.0, Culture=neutral, PublicKeyToken=842cf8be1de50553, processorArchitecture=x86">
-          <Private>False</Private>
+          <HintPath>..\References\XNA\Microsoft.Xna.Framework.Xact.dll</HintPath>
         </Reference>
         <Reference Include="Microsoft.Xna.Framework.Video, Version=4.0.0.0, Culture=neutral, PublicKeyToken=842cf8be1de50553, processorArchitecture=x86">
-          <Private>False</Private>
+          <HintPath>..\References\XNA\Microsoft.Xna.Framework.Video.dll</HintPath>
         </Reference>
         <Reference Include="Microsoft.Xna.Framework.Avatar, Version=4.0.0.0, Culture=neutral, PublicKeyToken=842cf8be1de50553, processorArchitecture=x86">
-          <Private>False</Private>
+          <HintPath>..\References\XNA\Microsoft.Xna.Framework.Avatar.dll</HintPath>
         </Reference>
         <Reference Include="Microsoft.Xna.Framework.Net, Version=4.0.0.0, Culture=neutral, PublicKeyToken=842cf8be1de50553, processorArchitecture=x86">
-          <Private>False</Private>
+          <HintPath>..\References\XNA\Microsoft.Xna.Framework.Net.dll</HintPath>
         </Reference>
         <Reference Include="Microsoft.Xna.Framework.Storage, Version=4.0.0.0, Culture=neutral, PublicKeyToken=842cf8be1de50553, processorArchitecture=x86">
-          <Private>False</Private>
+          <HintPath>..\References\XNA\Microsoft.Xna.Framework.Storage.dll</HintPath>
         </Reference>
       </ItemGroup>
     </Otherwise>
@@ -142,7 +142,9 @@
     <Compile Include="XNAClientCheckBox.cs" />
     <Compile Include="XNAClientDropDown.cs" />
     <Compile Include="XNAClientPreferredItemDropDown.cs" />
+    <Compile Include="XNAClientStateButton.cs" />
     <Compile Include="XNAClientTabControl.cs" />
+    <Compile Include="XNAClientToggleButton.cs" />
     <Compile Include="XNAExtraPanel.cs" />
     <Compile Include="XNALinkButton.cs" />
     <Compile Include="XNAMessageBox.cs" />

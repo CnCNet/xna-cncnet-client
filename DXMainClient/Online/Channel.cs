@@ -4,10 +4,11 @@ using Microsoft.Xna.Framework;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using DTAClient.DXGUI;
 
 namespace DTAClient.Online
 {
-    public class Channel
+    public class Channel : IMessageView
     {
         const int MESSAGE_LIMIT = 1024;
 
@@ -141,6 +142,7 @@ namespace DTAClient.Online
                     if (existingUser.IsAdmin != user.IsAdmin)
                     {
                         existingUser.IsAdmin = user.IsAdmin;
+                        existingUser.IsFriend = user.IsFriend;
                         users.Reinsert(user.IRCUser.Name);
                     }
                 }
@@ -258,13 +260,20 @@ namespace DTAClient.Online
                 "PRIVMSG " + ChannelName + " :" + colorString + message);
         }
 
-        public void SendCTCPMessage(string message, QueuedMessageType qmType, int priority)
+        /// <param name="message"></param>
+        /// <param name="qmType"></param>
+        /// <param name="priority"></param>
+        /// <param name="replace">
+        ///     This can be used to help prevent flooding for multiple options that are changed quickly. It allows for a single message
+        ///     for multiple changes.
+        /// </param>
+        public void SendCTCPMessage(string message, QueuedMessageType qmType, int priority, bool replace = false)
         {
             char CTCPChar1 = (char)58;
             char CTCPChar2 = (char)01;
 
             connection.QueueMessage(qmType, priority,
-                "NOTICE " + ChannelName + " " + CTCPChar1 + CTCPChar2 + message + CTCPChar2);
+                "NOTICE " + ChannelName + " " + CTCPChar1 + CTCPChar2 + message + CTCPChar2, replace);
         }
 
         /// <summary>

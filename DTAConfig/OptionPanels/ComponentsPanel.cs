@@ -56,7 +56,7 @@ namespace DTAConfig.OptionPanels
                 var btn = new XNAClientButton(WindowManager);
                 btn.Name = "btn" + c.ININame;
                 btn.ClientRectangle = new Rectangle(Width - 145,
-                    12 + componentIndex * 35, 133, 23);
+                    12 + componentIndex * 35, UIDesignConstants.BUTTON_WIDTH_133, UIDesignConstants.BUTTON_HEIGHT);
                 btn.Text = buttonText;
                 btn.Tag = c;
                 btn.LeftClick += Btn_LeftClick;
@@ -80,7 +80,7 @@ namespace DTAConfig.OptionPanels
             base.Load();
 
             int componentIndex = 0;
-            bool buttonEnabled = false;
+            bool buttonEnabled;
 
             if (CUpdater.CustomComponents == null)
                 return;
@@ -88,6 +88,7 @@ namespace DTAConfig.OptionPanels
             foreach (CustomComponent c in CUpdater.CustomComponents)
             {
                 string buttonText = "Not Available";
+                buttonEnabled = false;
 
                 if (File.Exists(ProgramConstants.GamePath + c.LocalPath))
                 {
@@ -115,9 +116,7 @@ namespace DTAConfig.OptionPanels
 
         public override bool Save()
         {
-            base.Save();
-
-            return false;
+            return base.Save();
         }
 
         private void Btn_LeftClick(object sender, EventArgs e)

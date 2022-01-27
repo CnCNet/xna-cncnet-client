@@ -17,14 +17,14 @@ namespace DTAClient.DXGUI.Multiplayer
             DrawMode = ControlDrawMode.UNIQUE_RENDER_TARGET;
         }
 
-        XNALabel lblGameInformation;
-        XNALabel lblGameMode;
-        XNALabel lblMap;
-        XNALabel lblGameVersion;
-        XNALabel lblHost;
-        XNALabel lblPing;
-        XNALabel lblPlayers;
-        XNALabel[] lblPlayerNames;
+        private XNALabel lblGameInformation;
+        private XNALabel lblGameMode;
+        private XNALabel lblMap;
+        private XNALabel lblGameVersion;
+        private XNALabel lblHost;
+        private XNALabel lblPing;
+        private XNALabel lblPlayers;
+        private XNALabel[] lblPlayerNames;
 
         public override void Initialize()
         {
