@@ -8,6 +8,7 @@ using ClientCore;
 using System.Security.AccessControl;
 using System.Security.Principal;
 using System.Collections.Generic;
+using Localization;
 
 namespace DTAClient
 {
@@ -72,6 +73,52 @@ namespace DTAClient
             Logger.Log("Loading settings.");
 
             UserINISettings.Initialize(ClientConfiguration.Instance.SettingsIniName);
+
+            // Try to load translations
+            try
+            {
+                var translation = TranslationTable.LoadFromIniFile(ClientConfiguration.Instance.TranslationIniName);
+                LanguageInstance.TranslationTable = translation;
+                Logger.Log("Load translation: " + translation.LanguageName);
+            }
+            catch (Exception ex)
+            {
+                Logger.Log("Failed to load the translation file. " + ex.Message);
+            }
+
+            try
+            {
+                if (ClientConfiguration.Instance.GenerateTranslationStub)
+                {
+                    // Not use using statement as variable "fs" will be destroyed after the lambda function be destroyed
+                    var fs = File.Open("Client/Translation.stub.ini", FileMode.Create);
+                    var sw = new StreamWriter(fs, new System.Text.UTF8Encoding(false)) { AutoFlush = true };
+                    Logger.Log("Generating translation stub feature is now enabled.");
+
+                    // Note, the TranslationTable.SaveIni() method is not used to avoid re-writing the file.
+                    sw.WriteLine("[General]");
+                    sw.WriteLine("LanguageTag=en-US");
+                    sw.WriteLine("LanguageName=English (United States)");
+                    sw.WriteLine("CultureInfo=en-US");
+                    sw.WriteLine("");
+                    sw.WriteLine("[Translation]");
+
+                    foreach (var kv in LanguageInstance.TranslationTable.Table)
+                    {
+                        sw.WriteLine(kv.Key + "=" + TranslationTable.EscapeIniValue(kv.Value));
+                    }
+
+                    LanguageInstance.TranslationTable.MissingTranslationEvent += (sender, e) =>
+                    {
+                        sw.WriteLine(e.Label + "=" + TranslationTable.EscapeIniValue(e.DefaultValue));
+                    };
+
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Log("Failed to generate the translation stub. " + ex.Message);
+            }
 
             // Delete obsolete files from old target project versions
 

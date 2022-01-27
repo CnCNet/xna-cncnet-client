@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using DTAClient.DXGUI;
+using Localization;
 
 namespace DTAClient.Online
 {
@@ -83,7 +84,8 @@ namespace DTAClient.Online
             {
                 _topic = value;
                 if (Persistent)
-                    AddMessage(new ChatMessage("Topic for " + UIName + " is: " + _topic));
+                    AddMessage(new ChatMessage(
+                        string.Format("Topic for {0} is: {1}".L10N("UI:Main:ChannelTopic"), UIName, _topic)));
             }
         }
 
@@ -118,7 +120,8 @@ namespace DTAClient.Online
 
             if (notifyOnUserListChange)
             {
-                AddMessage(new ChatMessage(user.IRCUser.Name + " has joined " + UIName + "."));
+                AddMessage(new ChatMessage(
+                    string.Format("{0} has joined {1}.".L10N("UI:Main:PlayerJoinChannel"), user.IRCUser.Name, UIName)));
             }
 
 #if !YR
@@ -160,7 +163,8 @@ namespace DTAClient.Online
                     users.Clear();
                 }
 
-                AddMessage(new ChatMessage(userName + " has been kicked from " + UIName + "."));
+                AddMessage(new ChatMessage(
+                    string.Format("{0} has been kicked from {1}.".L10N("UI:Main:PlayerKickedFromChannel"), userName, UIName)));
 
                 UserKicked?.Invoke(this, new UserNameEventArgs(userName));
             }
@@ -172,7 +176,8 @@ namespace DTAClient.Online
             {
                 if (notifyOnUserListChange)
                 {
-                    AddMessage(new ChatMessage(userName + " has left from " + UIName + "."));
+                    AddMessage(new ChatMessage(
+                         string.Format("{0} has left from {1}.".L10N("UI:Main:PlayerLeftFromChannel"), userName, UIName)));
                 }
 
                 UserLeft?.Invoke(this, new UserNameEventArgs(userName));
@@ -185,7 +190,8 @@ namespace DTAClient.Online
             {
                 if (notifyOnUserListChange && users.Find(userName) != null)
                 {
-                    AddMessage(new ChatMessage(userName + " has quit from CnCNet."));
+                    AddMessage(new ChatMessage(
+                        string.Format("{0} has quit from CnCNet.".L10N("UI:Main:PlayerQuitCncNet"), userName)));
                 }
 
                 UserQuitIRC?.Invoke(this, new UserNameEventArgs(userName));

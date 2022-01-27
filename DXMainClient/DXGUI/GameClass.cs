@@ -2,6 +2,7 @@
 using ClientCore.CnCNet5;
 using DTAClient.Domain;
 using DTAClient.DXGUI.Generic;
+using Localization;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
@@ -190,12 +191,12 @@ namespace DTAClient.DXGUI
             if (Screen.PrimaryScreen.Bounds.Width >= windowWidth && Screen.PrimaryScreen.Bounds.Height >= windowHeight)
             {
                 if (!wm.InitGraphicsMode(windowWidth, windowHeight, false))
-                    throw new GraphicsModeInitializationException("Setting graphics mode failed! " + windowWidth + "x" + windowHeight);
+                    throw new GraphicsModeInitializationException("Setting graphics mode failed!".L10N("UI:Main:SettingGraphicModeFailed") + " " + windowWidth + "x" + windowHeight);
             }
             else
             {
                 if (!wm.InitGraphicsMode(1024, 600, false))
-                    throw new GraphicsModeInitializationException("Setting default graphics mode failed!");
+                    throw new GraphicsModeInitializationException("Setting default graphics mode failed!".L10N("UI:Main:SettingDefaultGraphicModeFailed"));
             }
 
             int renderResolutionX = Math.Max(windowWidth, ClientConfiguration.Instance.MinimumRenderWidth);

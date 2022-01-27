@@ -635,6 +635,10 @@
       <Project>{d517317d-8ea8-4225-af9e-5385d8a7f047}</Project>
       <Name>DTAConfig</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Localization\Localization.csproj">
+      <Project>{2cd114e3-c30f-4a95-9b4a-455c2c8f82e5}</Project>
+      <Name>Localization</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <Content Include="clienticon.ico" />

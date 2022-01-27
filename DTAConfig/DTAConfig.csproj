@@ -332,6 +332,10 @@
       <Project>{4c26ad04-ff2e-4465-9f40-deb9ddc2c1d6}</Project>
       <Name>ClientGUI</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Localization\Localization.csproj">
+      <Project>{2cd114e3-c30f-4a95-9b4a-455c2c8f82e5}</Project>
+      <Name>Localization</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
