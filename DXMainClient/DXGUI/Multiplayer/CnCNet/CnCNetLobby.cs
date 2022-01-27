@@ -92,7 +92,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         private GameCollection gameCollection;
 
         private Color cAdminNameColor;
-        
+
         private Texture2D unknownGameIcon;
         private Texture2D adminGameIcon;
 
@@ -142,7 +142,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         {
             isJoiningGame = false;
         }
-        
+
         public override void Initialize()
         {
             invitationIndex = new InvitationIndex();
@@ -176,12 +176,12 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 UIDesignConstants.BUTTON_WIDTH_133, UIDesignConstants.BUTTON_HEIGHT);
             btnLogout.Text = "Log Out";
             btnLogout.LeftClick += BtnLogout_LeftClick;
-            
+
             var gameListRectangle = new Rectangle(
                 btnNewGame.X, 41,
                 btnJoinGame.Right - btnNewGame.X, btnNewGame.Y - 47
             );
-            
+
             panelGameFilters = new GameFiltersPanel(WindowManager);
             panelGameFilters.ClientRectangle = gameListRectangle;
             panelGameFilters.Disable();
@@ -348,13 +348,13 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             AddChild(tbGameSearch);
             AddChild(btnGameSortAlpha);
             AddChild(btnGameFilterOptions);
-            
-            
+
+
             panelGameFilters.VisibleChanged += GameFiltersPanel_VisibleChanged;
 
             CnCNetPlayerCountTask.CnCNetGameCountUpdated += OnCnCNetGameCountUpdated;
             UpdateOnlineCount(CnCNetPlayerCountTask.PlayerCount);
-            
+
             pmWindow.SetJoinUserAction(JoinUser);
 
             base.Initialize();
@@ -367,7 +367,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         private void BtnGameSortAlpha_LeftClick(object sender, EventArgs e)
         {
             UserINISettings.Instance.SortState.Value = (int)btnGameSortAlpha.GetState();
-            
+
             RefreshGameSortAlphaBtn();
             SortAndRefreshHostedGames();
             UserINISettings.Instance.SaveSettings();
@@ -401,7 +401,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         {
             if (panelGameFilters.Visible)
                 return;
-            
+
             RefreshGameFiltersBtn();
             SortAndRefreshHostedGames();
         }
@@ -417,7 +417,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             // friends list takes priority over other filters below
             if (UserINISettings.Instance.ShowFriendGamesOnly)
                 return hg.Players.Any(p => cncnetUserData.IsFriend(p));
-            
+
             if (UserINISettings.Instance.HideLockedGames.Value && hg.Locked)
                 return false;
 
@@ -438,7 +438,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 hg.Map.ToUpper().Contains(tbGameSearch.Text.ToUpper()) ||
                 hg.Players.Any(pl => pl.ToUpper().Equals(tbGameSearch.Text.ToUpper()));
         }
-            
+
 
         private void OnCnCNetGameCountUpdated(object sender, PlayerCountEventArgs e) => UpdateOnlineCount(e.PlayerCount);
 
@@ -578,14 +578,12 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             if (game == null)
             {
-                connectionManager.MainChannel.AddMessage(new ChatMessage(
-                    Color.White, "Cannot join channel " + e.ChannelName + ", you're banned!"));
+                var chatChannel = connectionManager.FindChannel(e.ChannelName);
+                chatChannel?.AddMessage(new ChatMessage(Color.White, $"Cannot join chat channel {chatChannel.UIName}, you're banned!"));
+                return;
             }
-            else
-            {
-                connectionManager.MainChannel.AddMessage(new ChatMessage(
-                    Color.White, "Cannot join game " + game.RoomName + ", you've been banned by the game host!"));
-            }
+
+            connectionManager.MainChannel.AddMessage(new ChatMessage(Color.White, $"Cannot join game {game.RoomName}, you've been banned by the game host!"));
 
             isJoiningGame = false;
             if (gameOfLastJoinAttempt != null)
@@ -768,7 +766,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             return GetJoinGameErrorBase();
         }
-        
+
         /// <summary>
         /// Returns an error message if game is not join-able, otherwise null.
         /// </summary>
@@ -808,7 +806,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             return JoinGame((HostedCnCNetGame) lbGameList.HostedGames[gameIndex], password, connectionManager.MainChannel);
         }
-        
+
         /// <summary>
         /// Attempt to join a game.
         /// </summary>
@@ -824,13 +822,13 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 messageView.AddMessage(new ChatMessage(Color.White, error));
                 return false;
             }
-            
+
             if (isInGameRoom)
             {
                 topBar.SwitchToPrimary();
                 return false;
             }
-            
+
             // if (hg.GameVersion != ProgramConstants.GAME_VERSION)
             // TODO Show warning
 
@@ -1439,7 +1437,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             string msg = e.Message.Substring(5); // Cut out GAME part
             string[] splitMessage = msg.Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
 
-            if (splitMessage.Length != 11) 
+            if (splitMessage.Length != 11)
             {
                 Logger.Log("Ignoring CTCP game message because of an invalid amount of parameters.");
                 return;
