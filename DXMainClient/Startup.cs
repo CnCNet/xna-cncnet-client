@@ -91,7 +91,7 @@ namespace DTAClient
             if (CUpdater.CustomComponents != null)
             {
                 Logger.Log("Removing partial custom component downloads.");
-                foreach (CustomComponent component in CUpdater.CustomComponents)
+                foreach (var component in CUpdater.CustomComponents)
                 {
                     try
                     {
@@ -133,7 +133,7 @@ namespace DTAClient
             {
                 foreach (string fsEntry in Directory.EnumerateFileSystemEntries(directoryPath))
                 {
-                    FileAttributes attr = File.GetAttributes(fsEntry);
+                    var attr = File.GetAttributes(fsEntry);
                     if ((attr & FileAttributes.Directory) == FileAttributes.Directory)
                         PruneFiles(fsEntry, pruneThresholdTime);
                     else
@@ -220,37 +220,53 @@ namespace DTAClient
         }
 
         /// <summary>
-        /// Writes processor and graphics card info to the log file.
+        /// Writes processor, graphics card and memory info to the log file.
         /// </summary>
         private void CheckSystemSpecifications()
         {
+            string cpu = string.Empty;
+            string videoController = string.Empty;
+            string memory = string.Empty;
+
+            ManagementObjectSearcher searcher;
+
             try
             {
-                string cpu = string.Empty;
-                string videoController = string.Empty;
-                string memory = string.Empty;
-
-                ManagementObjectSearcher searcher =
-                    new ManagementObjectSearcher("SELECT * FROM Win32_Processor");
+                searcher = new ManagementObjectSearcher("SELECT * FROM Win32_Processor");
 
                 foreach (var proc in searcher.Get())
                 {
                     cpu = cpu + proc["Name"].ToString().Trim() + " (" + proc["NumberOfCores"] + " cores) ";
                 }
 
+            }
+            catch
+            {
+                cpu = "CPU info not found";
+            }
+
+            try
+            {
                 searcher = new ManagementObjectSearcher("SELECT * FROM Win32_VideoController");
 
                 foreach (ManagementObject mo in searcher.Get())
                 {
-                    PropertyData currentBitsPerPixel = mo.Properties["CurrentBitsPerPixel"];
-                    PropertyData description = mo.Properties["Description"];
+                    var currentBitsPerPixel = mo.Properties["CurrentBitsPerPixel"];
+                    var description = mo.Properties["Description"];
                     if (currentBitsPerPixel != null && description != null)
                     {
                         if (currentBitsPerPixel.Value != null)
                             videoController = videoController + "Video controller: " + description.Value.ToString().Trim() + " ";
                     }
                 }
+            }
+            catch
+            {
+                cpu = "Video controller info not found";
+            }
 
+            try
+            {
                 searcher = new ManagementObjectSearcher("Select * From Win32_PhysicalMemory");
                 ulong total = 0;
 
@@ -261,14 +277,13 @@ namespace DTAClient
 
                 if (total != 0)
                     memory = "Total physical memory: " + (total >= 1073741824 ? total / 1073741824 + "GB" : total / 1048576 + "MB");
-
-                Logger.Log(string.Format("Hardware info: {0} | {1} | {2}", cpu.Trim(), videoController.Trim(), memory));
-
             }
-            catch (Exception ex)
+            catch
             {
-                Logger.Log("Checking system specifications failed. Message: " + ex.Message);
+                cpu = "Memory info not found";
             }
+
+            Logger.Log(string.Format("Hardware info: {0} | {1} | {2}", cpu.Trim(), videoController.Trim(), memory));
         }
 
 
@@ -289,7 +304,7 @@ namespace DTAClient
                 }
 
                 ManagementObjectSearcher mos = new ManagementObjectSearcher("SELECT * FROM Win32_BaseBoard");
-                ManagementObjectCollection moc = mos.Get();
+                var moc = mos.Get();
                 string mbid = "";
                 foreach (ManagementObject mo in moc)
                 {
