@@ -14,6 +14,7 @@ using System.Linq;
 using DTAClient.Online;
 using ClientCore.INIProcessing;
 using System.Threading.Tasks;
+using System.Globalization;
 
 namespace DTAClient
 {
@@ -47,6 +48,7 @@ namespace DTAClient
 
             Logger.Log("Operating system: " + Environment.OSVersion.VersionString);
             Logger.Log("Selected OS profile: " + MainClientConstants.OSId.ToString());
+            Logger.Log("Current culture: " + CultureInfo.CurrentCulture?.ToString());
 
             // The query in CheckSystemSpecifications takes lots of time,
             // so we'll do it in a separate thread to make startup faster

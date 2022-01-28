@@ -101,6 +101,7 @@ namespace DTAClient
             Exception ex = (Exception)e.ExceptionObject;
 
             Logger.Log("KABOOOOOOM!!! Info:");
+            Logger.Log("Type: " + ex.GetType().Name);
             Logger.Log("Message: " + ex.Message);
             Logger.Log("Source: " + ex.Source);
             Logger.Log("TargetSite.Name: " + ex.TargetSite.Name);
@@ -108,6 +109,7 @@ namespace DTAClient
             if (ex.InnerException != null)
             {
                 Logger.Log("InnerException info:");
+                Logger.Log("Type: " + ex.InnerException.GetType().Name);
                 Logger.Log("Message: " + ex.InnerException.Message);
                 Logger.Log("Stacktrace: " + ex.InnerException.StackTrace);
             }
