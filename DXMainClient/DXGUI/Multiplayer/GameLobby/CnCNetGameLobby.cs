@@ -1028,15 +1028,14 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             }
 
             string mapName = parts[partIndex + 8];
-            GameMode currentGameMode = GameMode;
-            Map currentMap = Map;
+            GameModeMap currentGameModeMap = GameModeMap;
 
             lastGameMode = gameMode;
             lastMapSHA1 = mapSHA1;
             lastMapName = mapName;
 
-            GameModeMap = GameModeMaps.Find(gmm => gmm.GameMode.UIName == gameMode);
-            if (GameMode == null)
+            GameModeMap = GameModeMaps.Find(gmm => gmm.GameMode.UIName == gameMode && gmm.Map.SHA1 == mapSHA1);
+            if (GameModeMap == null)
             {
                 ChangeMap(null);
 
@@ -1045,21 +1044,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 else
                     ShowOfficialMapMissingMessage(mapSHA1);
             }
-            else
+            else if (GameModeMap != currentGameModeMap)
             {
-                GameModeMap = GameModeMaps.Find(gmm => gmm.Map.SHA1 == mapSHA1);
-
-                if (Map == null)
-                {
-                    ChangeMap(null);
-
-                    if (!isMapOfficial)
-                        RequestMap(mapSHA1);
-                    else
-                        ShowOfficialMapMissingMessage(mapSHA1);
-                }
-                else if (GameMode != currentGameMode || Map != currentMap)
-                    ChangeMap(GameModeMap);
+                ChangeMap(GameModeMap);
             }
 
             // By changing the game options after changing the map, we know which
