@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace Localization
 {
-    public class TranslationTable
+    public class TranslationTable : ICloneable
     {
         /// <summary>
         /// The internal ID for a language. Should be unique.
@@ -81,6 +81,20 @@ namespace Localization
                 Table.Add(label, value);
             }
         }
+
+        public TranslationTable(TranslationTable table)
+        {
+            LanguageTag = table.LanguageTag;
+            LanguageName = table.LanguageName;
+            Author = table.Author;
+            CultureInfo = table.CultureInfo;
+            foreach (var kv in table.Table)
+            {
+                Table.Add(kv.Key, kv.Value);
+            }
+        }
+        public TranslationTable Clone() => new TranslationTable(this);
+        object ICloneable.Clone() => Clone();
 
         public static TranslationTable LoadFromIniFile(string iniPath)
         {
