@@ -95,11 +95,12 @@ namespace DTAClient
                     var sw = new StreamWriter(fs, new System.Text.UTF8Encoding(false)) { AutoFlush = true };
                     Logger.Log("Generating translation stub feature is now enabled.");
 
-                    // Note, the TranslationTable.SaveIni() method is not used to avoid re-writing the file.
+                    // Note, the TranslationTable.SaveIni() method is not used to avoid re-writing the file
                     sw.WriteLine("[General]");
                     sw.WriteLine("LanguageTag=en-US");
                     sw.WriteLine("LanguageName=English (United States)");
                     sw.WriteLine("CultureInfo=en-US");
+                    sw.WriteLine("Author=");
                     sw.WriteLine("");
                     sw.WriteLine("[Translation]");
 

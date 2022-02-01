@@ -27,6 +27,10 @@ namespace Localization
         /// </summary>
         public Dictionary<string, string> Table { get; } = new Dictionary<string, string>();
         public CultureInfo CultureInfo { get; set; } = new CultureInfo("en-US");
+        /// <summary>
+        /// This a string showing the information about the authors. The program will not depend on this string.
+        /// </summary>
+        public string Author { get; set; } = string.Empty;
 
         // public bool IsRightToLeft { get; set; } // TODO
 
@@ -55,6 +59,7 @@ namespace Localization
             LanguageTag = general?.GetStringValue("LanguageTag", null);
             LanguageName = general?.GetStringValue("LanguageName", null);
             string CultureInfoName = general?.GetStringValue("CultureInfo", null);
+            Author = general?.GetStringValue("Author", string.Empty);
             IniSection translation = ini.GetSection("Translation");
 
             if (general == null || translation == null || LanguageTag == null
@@ -97,6 +102,7 @@ namespace Localization
             general.AddKey("LanguageTag", LanguageTag);
             general.AddKey("LanguageName", LanguageName);
             general.AddKey("CultureInfo", CultureInfo.Name);
+            general.AddKey("Author", Author);
 
             ini.AddSection("Translation");
             IniSection translation = ini.GetSection("Translation");
