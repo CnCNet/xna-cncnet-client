@@ -57,7 +57,8 @@ namespace Localization
             string CultureInfoName = general?.GetStringValue("CultureInfo", null);
             IniSection translation = ini.GetSection("Translation");
 
-            if (general == null || translation == null || LanguageTag == null || LanguageName == null || CultureInfoName == null)
+            if (general == null || translation == null || LanguageTag == null
+                || LanguageName == null || CultureInfoName == null)
             {
                 throw new Exception("Invalid translation table file.");
             }
