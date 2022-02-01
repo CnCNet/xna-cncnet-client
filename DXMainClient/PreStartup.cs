@@ -93,20 +93,18 @@ namespace DTAClient
                 {
                     string stubPath = "Client/Translation.stub.ini";
                     var stubTable = TranslationTable.Instance.Clone();
-
-                    Timer flushTimer = new Timer() { Interval = 10000 /* 10 second */ };
-                    flushTimer.Tick += (sender, e) =>
-                    {
-                        var ini = stubTable.SaveIni();
-                        ini.WriteIniFile(stubPath);
-                    };
-                    flushTimer.Start();
-
                     TranslationTable.Instance.MissingTranslationEvent += (sender, e) =>
                     {
                         stubTable.Table.Add(e.Label, e.DefaultValue);
                     };
 
+                    AppDomain.CurrentDomain.ProcessExit += (sender, e) => {
+                        Logger.Log("Writing the translation stub file.");
+                        var ini = stubTable.SaveIni();
+                        ini.WriteIniFile(stubPath);
+                    };
+
+                    Logger.Log("Generating translation stub feature is now enabled. The stub file will be written when the client exits.");
                 }
             }
             catch (Exception ex)
