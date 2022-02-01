@@ -22,7 +22,7 @@ namespace Localization
         public string LanguageName { get; set; } = "English (United States)";
         /// <summary>
         /// The translation table. The key stands for a label name, and the value stands for a string that is used in System.string.Format().
-        /// It is strongly advised that the label name is started with "GUI:" prefix.
+        /// It is advised that the label name is started with "UI:" prefix.
         /// The value can not contains IniNewLinePattern when loading or saving via ini format.
         /// </summary>
         public Dictionary<string, string> Table { get; } = new Dictionary<string, string>();
