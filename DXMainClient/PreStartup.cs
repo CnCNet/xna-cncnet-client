@@ -91,28 +91,20 @@ namespace DTAClient
             {
                 if (ClientConfiguration.Instance.GenerateTranslationStub)
                 {
-                    // Not use using statement as variable "fs" will be destroyed after the lambda function be destroyed
-                    var fs = File.Open("Client/Translation.stub.ini", FileMode.Create);
-                    var sw = new StreamWriter(fs, new System.Text.UTF8Encoding(false)) { AutoFlush = true };
-                    Logger.Log("Generating translation stub feature is now enabled.");
+                    string stubPath = "Client/Translation.stub.ini";
+                    var stubTable = TranslationTable.Instance.Clone();
 
-                    // Note, the TranslationTable.SaveIni() method is not used to avoid re-writing the file
-                    sw.WriteLine("[General]");
-                    sw.WriteLine("LanguageTag=en-US");
-                    sw.WriteLine("LanguageName=English (United States)");
-                    sw.WriteLine("CultureInfo=en-US");
-                    sw.WriteLine("Author=");
-                    sw.WriteLine("");
-                    sw.WriteLine("[Translation]");
-
-                    foreach (var kv in TranslationTable.Instance.Table)
+                    Timer flushTimer = new Timer() { Interval = 10000 /* 10 second */ };
+                    flushTimer.Tick += (sender, e) =>
                     {
-                        sw.WriteLine(kv.Key + "=" + TranslationTable.EscapeIniValue(kv.Value));
-                    }
+                        var ini = stubTable.SaveIni();
+                        ini.WriteIniFile(stubPath);
+                    };
+                    flushTimer.Start();
 
                     TranslationTable.Instance.MissingTranslationEvent += (sender, e) =>
                     {
-                        sw.WriteLine(e.Label + "=" + TranslationTable.EscapeIniValue(e.DefaultValue));
+                        stubTable.Table.Add(e.Label, e.DefaultValue);
                     };
 
                 }
