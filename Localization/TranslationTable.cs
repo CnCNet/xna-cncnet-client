@@ -137,9 +137,7 @@ namespace Localization
         public static string EscapeIniValue(string raw)
         {
             if (raw.Contains(IniNewLinePattern))
-            {
                 throw new Exception($"Pattern {IniNewLinePattern} is forbidden as this pattern is used to represent the new line.");
-            }
 
             string value = raw.Replace(Environment.NewLine, "\n");
             value = value.Replace("\n", IniNewLinePattern);
