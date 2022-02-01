@@ -3,6 +3,7 @@ using System.Linq;
 using ClientGUI;
 using DTAClient.Domain.Multiplayer;
 using DTAClient.Online.EventArguments;
+using Localization;
 using Microsoft.Xna.Framework;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
@@ -49,17 +50,17 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             var lblPresetName = new XNALabel(WindowManager);
             lblPresetName.Name = nameof(lblPresetName);
-            lblPresetName.Text = "Preset Name";
+            lblPresetName.Text = "Preset Name".L10N("UI:Main:PresetName");
             lblPresetName.ClientRectangle = new Rectangle(
                 margin, lblHeader.Bottom + margin,
                 150, 18
             );
 
             ddiCreatePresetItem = new XNADropDownItem();
-            ddiCreatePresetItem.Text = "[Create New]";
+            ddiCreatePresetItem.Text = "[Create New]".L10N("UI:Main:CreateNewPreset");
 
             ddiSelectPresetItem = new XNADropDownItem();
-            ddiSelectPresetItem.Text = "[Select Preset]";
+            ddiSelectPresetItem.Text = "[Select Preset]".L10N("UI:Main:SelectPreset");
             ddiSelectPresetItem.Selectable = false;
 
             ddPresetSelect = new XNAClientDropDown(WindowManager);
@@ -72,7 +73,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             lblNewPresetName = new XNALabel(WindowManager);
             lblNewPresetName.Name = nameof(lblNewPresetName);
-            lblNewPresetName.Text = "New Preset Name";
+            lblNewPresetName.Text = "New Preset Name".L10N("UI:Main:NewPresetName");
             lblNewPresetName.ClientRectangle = new Rectangle(
                 margin, ddPresetSelect.Bottom + margin,
                 150, 18
@@ -98,7 +99,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             btnDelete = new XNAClientButton(WindowManager);
             btnDelete.Name = nameof(btnDelete);
-            btnDelete.Text = "Delete";
+            btnDelete.Text = "Delete".L10N("UI:Main:ButtonDelete");
             btnDelete.LeftClick += BtnDelete_LeftClick;
             btnDelete.ClientRectangle = new Rectangle(
                 btnLoadSave.Right + margin,
@@ -108,7 +109,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             );
 
             var btnCancel = new XNAClientButton(WindowManager);
-            btnCancel.Text = "Cancel";
+            btnCancel.Text = "Cancel".L10N("UI:Main:ButtonCancel");
             btnCancel.ClientRectangle = new Rectangle(
                 btnDelete.Right + margin,
                 btnLoadSave.Y,
@@ -144,8 +145,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         public void Show(bool isLoad)
         {
             _isLoad = isLoad;
-            lblHeader.Text = $"{(_isLoad ? "Load" : "Save")} Preset";
-            btnLoadSave.Text = _isLoad ? "Load" : "Save";
+            lblHeader.Text = _isLoad ? "Load Preset".L10N("UI:Main:LoadPreset") : "Save Preset".L10N("UI:Main:SavePreset");
+            btnLoadSave.Text = _isLoad ? "Load".L10N("UI:Main:ButtonLoad") : "Save".L10N("UI:Main:ButtonSave");
 
             if (_isLoad)
                 ShowLoad();
@@ -266,7 +267,9 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         private void BtnDelete_LeftClick(object sender, EventArgs e)
         {
             var selectedItem = ddPresetSelect.Items[ddPresetSelect.SelectedIndex];
-            var messageBox = XNAMessageBox.ShowYesNoDialog(WindowManager, "Confirm Preset Delete", $"Are you sure you want to delete this preset?\n\n{selectedItem.Text}");
+            var messageBox = XNAMessageBox.ShowYesNoDialog(WindowManager,
+                "Confirm Preset Delete".L10N("UI:Main:ConfirmPresetDeleteTitle"),
+                "Are you sure you want to delete this preset?".L10N("UI:Main:ConfirmPresetDeleteText") + "\n\n" + selectedItem.Text);
             messageBox.YesClickedAction = box =>
             {
                 GameOptionPresets.Instance.DeletePreset(selectedItem.Text);

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Localization;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -77,7 +78,7 @@ namespace ClientCore
         public const string GAME_INVITATION_FAILED_CTCP_COMMAND = "INVITATION_FAILED";
 
         public static readonly List<string> TEAMS = new List<string> { "A", "B", "C", "D" };
-        public static readonly List<string> AI_PLAYER_NAMES = new List<string> { "Easy AI", "Medium AI", "Hard AI" };
-        
+        // Static fields might be initialized before the translation file is loaded. Change to readonly properties here.
+        public static List<string> AI_PLAYER_NAMES => new List<string> { "Easy AI".L10N("UI:Main:EasyAIName"), "Medium AI".L10N("UI:Main:MediumAIName"), "Hard AI".L10N("UI:Main:HardAIName") };
     }
 }
