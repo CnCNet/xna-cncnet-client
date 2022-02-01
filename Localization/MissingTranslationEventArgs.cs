@@ -11,6 +11,7 @@ namespace Localization
         public string LanguageTag { get; set; }
         public string Label { get; set; }
         public string DefaultValue { get; set; }
+
         public MissingTranslationEventArgs(string languageTag, string label, string defaultValue)
         {
             LanguageTag = languageTag;
