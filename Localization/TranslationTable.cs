@@ -145,8 +145,6 @@ namespace Localization
         }
 
         public static string UnescapeIniValue(string escaped)
-        {
-            return escaped.Replace(IniNewLinePattern, "\n");
-        }
+            => escaped.Replace(IniNewLinePattern, "\n");
     }
 }
