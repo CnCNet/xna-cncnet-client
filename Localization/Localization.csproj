@@ -45,7 +45,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ExtensionMethods.cs" />
-    <Compile Include="LanguageInstance.cs" />
     <Compile Include="MissingTranslationEventArgs.cs" />
     <Compile Include="TranslationTable.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

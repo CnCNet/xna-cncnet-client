@@ -43,6 +43,8 @@ namespace Localization
         // As the ini value can not contains NewLine character '\n', it will be replaced with '@@' pattern.
         public static readonly string IniNewLinePattern = "@@";
 
+        public static TranslationTable Instance { get; set; } = new TranslationTable();
+
         /// <summary>
         /// Create an empty translation table.
         /// </summary>

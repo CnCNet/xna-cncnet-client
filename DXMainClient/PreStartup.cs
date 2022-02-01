@@ -78,12 +78,13 @@ namespace DTAClient
             try
             {
                 var translation = TranslationTable.LoadFromIniFile(ClientConfiguration.Instance.TranslationIniName);
-                LanguageInstance.TranslationTable = translation;
+                TranslationTable.Instance = translation;
                 Logger.Log("Load translation: " + translation.LanguageName);
             }
             catch (Exception ex)
             {
                 Logger.Log("Failed to load the translation file. " + ex.Message);
+                TranslationTable.Instance = new TranslationTable();
             }
 
             try
@@ -104,12 +105,12 @@ namespace DTAClient
                     sw.WriteLine("");
                     sw.WriteLine("[Translation]");
 
-                    foreach (var kv in LanguageInstance.TranslationTable.Table)
+                    foreach (var kv in TranslationTable.Instance.Table)
                     {
                         sw.WriteLine(kv.Key + "=" + TranslationTable.EscapeIniValue(kv.Value));
                     }
 
-                    LanguageInstance.TranslationTable.MissingTranslationEvent += (sender, e) =>
+                    TranslationTable.Instance.MissingTranslationEvent += (sender, e) =>
                     {
                         sw.WriteLine(e.Label + "=" + TranslationTable.EscapeIniValue(e.DefaultValue));
                     };

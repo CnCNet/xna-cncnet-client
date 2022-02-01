@@ -14,6 +14,6 @@ namespace Localization
         /// <param name="label">The unique label name.</param>
         /// <returns>The translated string value.</returns>
         public static string L10N(this String defaultValue, string label)
-            => LanguageInstance.TranslationTable.GetTableValue(label, defaultValue);
+            => TranslationTable.Instance.GetTableValue(label, defaultValue);
     }
 }
