@@ -175,7 +175,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             btnLogout.Name = nameof(btnLogout);
             btnLogout.ClientRectangle = new Rectangle(Width - 145, btnNewGame.Y,
                 UIDesignConstants.BUTTON_WIDTH_133, UIDesignConstants.BUTTON_HEIGHT);
-            btnLogout.Text = "Log Out".L10N("UI:Main:Log Out");
+            btnLogout.Text = "Log Out".L10N("UI:Main:ButtonLogOut");
             btnLogout.LeftClick += BtnLogout_LeftClick;
 
             var gameListRectangle = new Rectangle(

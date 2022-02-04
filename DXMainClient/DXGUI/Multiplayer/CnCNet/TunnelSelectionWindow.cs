@@ -68,7 +68,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             btnCancel.Name = nameof(btnCancel);
             btnCancel.Width = UIDesignConstants.BUTTON_WIDTH_92;
             btnCancel.Height = UIDesignConstants.BUTTON_HEIGHT;
-            btnCancel.Text = "Cancel".L10N("UI:Main:Cancel");
+            btnCancel.Text = "Cancel".L10N("UI:Main:ButtonCancel");
             btnCancel.Y = btnApply.Y;
             AddChild(btnCancel);
             btnCancel.LeftClick += BtnCancel_LeftClick;

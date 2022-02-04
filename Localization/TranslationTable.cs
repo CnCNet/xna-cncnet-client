@@ -161,6 +161,9 @@ namespace Localization
             if (raw.Contains(IniNewLinePattern))
                 throw new Exception($"Pattern {IniNewLinePattern} is forbidden as this pattern is used to represent the new line.");
 
+            if (raw.Contains(";"))
+                throw new Exception("The semi-colon(;) is forbidden as this pattern is used to represent a comment line.");
+
             string value = raw.Replace(Environment.NewLine, "\n");
             value = value.Replace("\n", IniNewLinePattern);
             return value;
