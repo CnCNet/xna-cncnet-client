@@ -878,14 +878,14 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         protected virtual void NotVerifiedNotification(int playerIndex)
         {
             if (playerIndex > -1 && playerIndex < Players.Count)
-                AddNotice(string.Format("Unable to launch game; player {0} hasn't been verified.".L10N("UI:Main:NotVerifiedNotification"), Players[playerIndex].Name));
+                AddNotice(string.Format("Unable to launch game. Player {0} hasn't been verified.".L10N("UI:Main:NotVerifiedNotification"), Players[playerIndex].Name));
         }
 
         protected virtual void StillInGameNotification(int playerIndex)
         {
             if (playerIndex > -1 && playerIndex < Players.Count)
             {
-                AddNotice(String.Format("Unable to launch game; player {0} is still playing the game you started previously.".L10N("UI:Main:StillInGameNotification"),
+                AddNotice(String.Format("Unable to launch game. Player {0} is still playing the game you started previously.".L10N("UI:Main:StillInGameNotification"),
                     Players[playerIndex].Name));
             }
         }

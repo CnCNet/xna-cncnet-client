@@ -527,7 +527,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             if (Players.Count >= playerLimit)
             {
-                AddNotice("Player limit reached; the game room has been locked.".L10N("UI:Main:GameRoomNumberLimitReached"));
+                AddNotice("Player limit reached. The game room has been locked.".L10N("UI:Main:GameRoomNumberLimitReached"));
                 LockGame();
             }
         }
@@ -560,7 +560,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (e.ModeString == "+i")
             {
                 if (Players.Count >= playerLimit)
-                    AddNotice("Player limit reached; the game room has been locked.".L10N("UI:Main:GameRoomNumberLimitReached"));
+                    AddNotice("Player limit reached. The game room has been locked.".L10N("UI:Main:GameRoomNumberLimitReached"));
                 else
                     AddNotice("The game host has locked the game room.".L10N("UI:Main:RoomLockedByHost"));
             }
