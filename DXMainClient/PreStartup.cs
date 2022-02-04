@@ -166,16 +166,16 @@ namespace DTAClient
             }
             catch { }
 
-            MessageBox.Show(string.Format("{0} has crashed. Error message:".L10N("UI:DXMainClient:FatalErrorText1") + Environment.NewLine + Environment.NewLine +
+            MessageBox.Show(string.Format("{0} has crashed. Error message:".L10N("UI:Main:FatalErrorText1") + Environment.NewLine + Environment.NewLine +
                 ex.Message + Environment.NewLine + Environment.NewLine + (crashLogCopied ?
-                "A crash log has been saved to the following file:".L10N("UI:DXMainClient:FatalErrorText2") + " " + Environment.NewLine + Environment.NewLine +
+                "A crash log has been saved to the following file:".L10N("UI:Main:FatalErrorText2") + " " + Environment.NewLine + Environment.NewLine +
                 errorLogPath + Environment.NewLine + Environment.NewLine : "") +
                 (crashLogCopied ? "If the issue is repeatable, contact the {1} staff at {2} and provide the crash log file.".L10N("UI:DXMainClient:FatalErrorText3") :
-                "If the issue is repeatable, contact the {1} staff at {2}.".L10N("UI:DXMainClient:FatalErrorText4")),
+                "If the issue is repeatable, contact the {1} staff at {2}.".L10N("UI:Main:FatalErrorText4")),
                 MainClientConstants.GAME_NAME_LONG,
                 MainClientConstants.GAME_NAME_SHORT,
                 MainClientConstants.SUPPORT_URL_SHORT),
-                "KABOOOOOOOM".L10N("UI:DXMainClient:FatalErrorTitle"), MessageBoxButtons.OK);
+                "KABOOOOOOOM".L10N("UI:Main:FatalErrorTitle"), MessageBoxButtons.OK);
         }
 
         private static void CheckPermissions()
