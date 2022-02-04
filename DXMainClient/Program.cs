@@ -95,7 +95,7 @@ namespace DTAClient
                 {
                     case "-NOAUDIO":
                         // TODO fix
-                        throw new NotImplementedException("-NOAUDIO is currently not implemented, please run the client without it.".L10N("UI:DXMainClient:NoAudio"));
+                        throw new NotImplementedException("-NOAUDIO is currently not implemented, please run the client without it.".L10N("UI:Main:NoAudio"));
                     case "-MULTIPLEINSTANCE":
                         multipleInstanceMode = true;
                         break;

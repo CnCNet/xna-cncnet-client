@@ -92,7 +92,7 @@ namespace DTAClient.DXGUI.Multiplayer
 
             var btnResetDefaults = new XNAClientButton(WindowManager);
             btnResetDefaults.Name = nameof(btnResetDefaults);
-            btnResetDefaults.Text = "Reset Defaults".L10N("UI:Main:Reset Defaults");
+            btnResetDefaults.Text = "Reset Defaults".L10N("UI:Main:ResetDefaults");
             btnResetDefaults.ClientRectangle = new Rectangle(
                 gap, ddMaxPlayerCount.Y + UIDesignConstants.BUTTON_HEIGHT + gap,
                 UIDesignConstants.BUTTON_WIDTH_133, UIDesignConstants.BUTTON_HEIGHT
@@ -101,7 +101,7 @@ namespace DTAClient.DXGUI.Multiplayer
 
             var btnSave = new XNAClientButton(WindowManager);
             btnSave.Name = nameof(btnSave);
-            btnSave.Text = "Save".L10N("UI:Main:Save");
+            btnSave.Text = "Save".L10N("UI:Main:ButtonSave");
             btnSave.ClientRectangle = new Rectangle(
                 gap, btnResetDefaults.Y + UIDesignConstants.BUTTON_HEIGHT + gap,
                 UIDesignConstants.BUTTON_WIDTH_92, UIDesignConstants.BUTTON_HEIGHT
@@ -110,7 +110,7 @@ namespace DTAClient.DXGUI.Multiplayer
 
             var btnCancel = new XNAClientButton(WindowManager);
             btnCancel.Name = nameof(btnCancel);
-            btnCancel.Text = "Cancel".L10N("UI:Main:Cancel");
+            btnCancel.Text = "Cancel".L10N("UI:Main:ButtonCancel");
             btnCancel.ClientRectangle = new Rectangle(
                 Width - gap - UIDesignConstants.BUTTON_WIDTH_92, btnSave.Y,
                 UIDesignConstants.BUTTON_WIDTH_92, UIDesignConstants.BUTTON_HEIGHT
