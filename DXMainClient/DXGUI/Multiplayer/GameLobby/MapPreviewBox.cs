@@ -492,7 +492,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
                 if (pInfo.TeamId > 0)
                 {
-                    text = teamIds[pInfo.TeamId] + text;
+                    text = teamIds[pInfo.TeamId] + " " + text;
                 }
 
                 int index = i;
