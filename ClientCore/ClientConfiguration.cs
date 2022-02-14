@@ -170,6 +170,9 @@ namespace ClientCore
 
         public int MaximumRenderHeight => clientDefinitionsIni.GetIntValue(SETTINGS, "MaximumRenderHeight", 800);
 
+        public string[] PreferedRenderResolutions => clientDefinitionsIni.GetStringValue(SETTINGS, "PreferedRenderResolutions", "1280x800,1280x768").Split(',');
+        public string[] OptimalRenderResolutions => clientDefinitionsIni.GetStringValue(SETTINGS, "OptimalRenderResolutions", "1024x600,1024x720,1280x600,1280x720,1280x768,1280x800").Split(',');
+
         public string WindowTitle => clientDefinitionsIni.GetStringValue(SETTINGS, "WindowTitle", string.Empty);
 
         public string InstallationPathRegKey => clientDefinitionsIni.GetStringValue(SETTINGS, "RegistryInstallPath", "TiberianSun");

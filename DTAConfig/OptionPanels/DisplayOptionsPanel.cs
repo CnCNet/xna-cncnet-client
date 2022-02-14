@@ -9,7 +9,9 @@ using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Windows.Forms;
 
@@ -185,12 +187,11 @@ namespace DTAConfig.OptionPanels
             // Add "optimal" client resolutions for windowed mode
             // if they're not supported in fullscreen mode
 
-            AddResolutionIfFitting(1024, 600, resolutions);
-            AddResolutionIfFitting(1024, 720, resolutions);
-            AddResolutionIfFitting(1280, 600, resolutions);
-            AddResolutionIfFitting(1280, 720, resolutions);
-            AddResolutionIfFitting(1280, 768, resolutions);
-            AddResolutionIfFitting(1280, 800, resolutions);
+            var optimalResolutions = ClientConfiguration.Instance.OptimalRenderResolutions.Select(s => new ScreenResolution(s));
+            foreach (var resolution in optimalResolutions)
+            {
+                AddResolutionIfFitting(resolution.Width, resolution.Height, resolutions);
+            }
 
             resolutions.Sort();
 
@@ -205,9 +206,13 @@ namespace DTAConfig.OptionPanels
             // So we add the optimal resolutions to the list, sort it and then find
             // out the optimal resolution index - it's inefficient, but works
 
-            int optimalWindowedResIndex = resolutions.FindIndex(res => res.ToString() == "1280x800");
-            if (optimalWindowedResIndex == -1)
-                optimalWindowedResIndex = resolutions.FindIndex(res => res.ToString() == "1280x768");
+            var preferredResolutions = ClientConfiguration.Instance.PreferedRenderResolutions.Select(s => new ScreenResolution(s));
+            int optimalWindowedResIndex = -1;
+            foreach (var resolution in preferredResolutions)
+            {
+                optimalWindowedResIndex = resolutions.FindIndex(res => res == resolution);
+                if (optimalWindowedResIndex > -1) break;
+            }
 
             if (optimalWindowedResIndex > -1)
                 ddClientResolution.PreferredItemIndex = optimalWindowedResIndex;
@@ -550,10 +555,13 @@ namespace DTAConfig.OptionPanels
             {
                 ddClientResolution.AllowDropDown = true;
 
-                int optimalWindowedResIndex = ddClientResolution.Items.FindIndex(i => (string)i.Tag == "1280x800");
-
-                if (optimalWindowedResIndex == -1)
-                    optimalWindowedResIndex = ddClientResolution.Items.FindIndex(i => (string)i.Tag == "1280x768");
+                var preferredResolutions = ClientConfiguration.Instance.PreferedRenderResolutions.Select(s => new ScreenResolution(s));
+                int optimalWindowedResIndex = -1;
+                foreach (var resolution in preferredResolutions)
+                {
+                    optimalWindowedResIndex = ddClientResolution.Items.FindIndex(i => (string)i.Tag == resolution.ToString());
+                    if (optimalWindowedResIndex > -1) break;
+                }
 
                 if (optimalWindowedResIndex > -1)
                 {
@@ -840,6 +848,14 @@ namespace DTAConfig.OptionPanels
                 Height = height;
             }
 
+            public ScreenResolution(string resolution)
+            {
+                var resolutionAxes = resolution.Split('x');
+                if (resolutionAxes.Length != 2) throw new InvalidDataException(string.Format("Invalid resolution {0}".L10N("UI:DTAConfig:InvalidResolution"), resolution));
+                Width = int.Parse(resolutionAxes[0], CultureInfo.InvariantCulture);
+                Height = int.Parse(resolutionAxes[1], CultureInfo.InvariantCulture);
+            }
+
             /// <summary>
             /// The width of the resolution in pixels.
             /// </summary>
@@ -883,7 +899,20 @@ namespace DTAConfig.OptionPanels
 
             public override int GetHashCode()
             {
-                return Width - Height;
+                return new { Width, Height }.GetHashCode();
+            }
+
+            public static bool operator ==(ScreenResolution res1, ScreenResolution res2)
+            {
+                if (res1 is null || res2 is null)
+                    return Object.ReferenceEquals(res1, res2);
+                else
+                    return res1.Equals(res2);
+            }
+
+            public static bool operator !=(ScreenResolution res1, ScreenResolution res2)
+            {
+                return !(res1 == res2);
             }
         }
     }
