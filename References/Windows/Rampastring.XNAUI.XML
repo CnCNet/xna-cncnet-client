@@ -365,6 +365,80 @@
             The control is drawn on its own render target.
             </summary>
         </member>
+        <member name="T:Rampastring.XNAUI.XNAControls.XNAIndicator`1">
+            <summary>
+            An indicator with dynamic textures pool.
+            </summary>
+            <typeparam name="T">The type of the enum that specifies the possible indicator states.</typeparam>
+        </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNAIndicator`1.#ctor(Rampastring.XNAUI.WindowManager)">
+            <summary>
+            Creates a new indicator.
+            </summary>
+            <param name="windowManager">The window manager.</param>
+        </member>
+        <member name="P:Rampastring.XNAUI.XNAControls.XNAIndicator`1.Textures">
+            <summary>
+            Contains a pool of textures for indicator.
+            </summary>
+        </member>
+        <member name="P:Rampastring.XNAUI.XNAControls.XNAIndicator`1.CurrentTexture">
+            <summary>
+            Determines the currently displayed texture.
+            </summary>
+        </member>
+        <member name="P:Rampastring.XNAUI.XNAControls.XNAIndicator`1.FontIndex">
+            <summary>
+            The index of the text font.
+            </summary>
+        </member>
+        <member name="P:Rampastring.XNAUI.XNAControls.XNAIndicator`1.TextPadding">
+            <summary>
+            The space, in pixels, between the indicator and its text.
+            </summary>
+        </member>
+        <member name="P:Rampastring.XNAUI.XNAControls.XNAIndicator`1.IdleColor">
+            <summary>
+            The color of the indicator's text when it's not hovered on.
+            </summary>
+        </member>
+        <member name="P:Rampastring.XNAUI.XNAControls.XNAIndicator`1.HighlightColor">
+            <summary>
+            The color of the indicator's text when it's hovered on.
+            </summary>
+        </member>
+        <member name="P:Rampastring.XNAUI.XNAControls.XNAIndicator`1.Text">
+            <summary>
+            Gets or sets the text of the indicator.
+            </summary>
+        </member>
+        <member name="P:Rampastring.XNAUI.XNAControls.XNAIndicator`1.TextLocationY">
+            <summary>
+            The Y coordinate of the indicator text
+            relative to the location of the indicator.
+            </summary>
+        </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNAIndicator`1.SwitchTexture(`0)">
+            <summary>
+            Switches the texture of the indicator.
+            </summary>
+            <param name="key">The enum texture key.</param>
+        </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNAIndicator`1.SetTextPositionAndSize">
+            <summary>
+            Updates the size of the indicator and the vertical position of its text.
+            </summary>
+        </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNAIndicator`1.Update(Microsoft.Xna.Framework.GameTime)">
+            <summary>
+            Updates the indicator's alpha each frame.
+            </summary>
+        </member>
+        <member name="M:Rampastring.XNAUI.XNAControls.XNAIndicator`1.Draw(Microsoft.Xna.Framework.GameTime)">
+            <summary>
+            Draws the indicator.
+            </summary>
+        </member>
         <member name="T:Rampastring.XNAUI.XNAControls.XNALinkLabel">
             <summary>
             A label that is underlined and changes its color when hovered on.
@@ -1434,10 +1508,16 @@
             Draws a string relative to the control's location.
             </summary>
         </member>
-        <member name="M:Rampastring.XNAUI.XNAControls.XNAControl.DrawStringWithShadow(System.String,System.Int32,Microsoft.Xna.Framework.Vector2,Microsoft.Xna.Framework.Color,System.Single)">
+        <member name="M:Rampastring.XNAUI.XNAControls.XNAControl.DrawStringWithShadow(System.String,System.Int32,Microsoft.Xna.Framework.Vector2,Microsoft.Xna.Framework.Color,System.Single,System.Single)">
             <summary>
             Draws a string with a shadow, relative to the control's location.
             </summary>
+            <param name="text">The string to draw.</param>
+            <param name="fontIndex">The index of the font to use for drawing the string.</param>
+            <param name="location">The location of the text to draw, relative to the control's location.</param>
+            <param name="color">The color of the text.</param>
+            <param name="scale">The scale of the text.</param>
+            <param name="shadowDistance">How many distance units (typically pixels) the text shadow is offset from the text.</param>
         </member>
         <member name="M:Rampastring.XNAUI.XNAControls.XNAControl.DrawRectangle(Microsoft.Xna.Framework.Rectangle,Microsoft.Xna.Framework.Color,System.Int32)">
             <summary>
@@ -1563,6 +1643,41 @@
         <member name="T:Rampastring.XNAUI.XNAControls.LabelTextAnchorInfo">
             <summary>
             An enum for determining which part of a text is anchored to a specific point.
+            </summary>
+        </member>
+        <member name="F:Rampastring.XNAUI.XNAControls.LabelTextAnchorInfo.LEFT">
+            <summary>
+            The text is anchored to be to the left of the given point.
+            </summary>
+        </member>
+        <member name="F:Rampastring.XNAUI.XNAControls.LabelTextAnchorInfo.RIGHT">
+            <summary>
+            The text is anchored to be to the right of the given point.
+            </summary>
+        </member>
+        <member name="F:Rampastring.XNAUI.XNAControls.LabelTextAnchorInfo.HORIZONTAL_CENTER">
+            <summary>
+            The text is horizontally centered on the given point.
+            </summary>
+        </member>
+        <member name="F:Rampastring.XNAUI.XNAControls.LabelTextAnchorInfo.TOP">
+            <summary>
+            The text is anchored to be just above the given point.
+            </summary>
+        </member>
+        <member name="F:Rampastring.XNAUI.XNAControls.LabelTextAnchorInfo.BOTTOM">
+            <summary>
+            The text is anchored to be just below the given point.
+            </summary>
+        </member>
+        <member name="F:Rampastring.XNAUI.XNAControls.LabelTextAnchorInfo.VERTICAL_CENTER">
+            <summary>
+            The text is vertical centered on the given point.
+            </summary>
+        </member>
+        <member name="F:Rampastring.XNAUI.XNAControls.LabelTextAnchorInfo.CENTER">
+            <summary>
+            The text is both horizontally and vertically centered on the given point.
             </summary>
         </member>
         <member name="T:Rampastring.XNAUI.XNAControls.XNAListBox">
@@ -1873,6 +1988,23 @@
             <summary>
             The panel's transparency changing rate per 100 milliseconds.
             If the panel is transparent, it'll become non-transparent at this rate.
+            </summary>
+        </member>
+        <member name="F:Rampastring.XNAUI.XNAControls.PanelBackgroundImageDrawMode.TILED">
+            <summary>
+            The texture is tiled to fill the whole surface of the panel.
+            </summary>
+        </member>
+        <member name="F:Rampastring.XNAUI.XNAControls.PanelBackgroundImageDrawMode.STRETCHED">
+            <summary>
+            The texture is stretched to fill the whole surface of the panel.
+            </summary>
+        </member>
+        <member name="F:Rampastring.XNAUI.XNAControls.PanelBackgroundImageDrawMode.CENTERED">
+            <summary>
+            The texture is drawn once, centered on the panel.
+            If the texture is too large for the panel, parts
+            that would end up outside of the panel are cut off.
             </summary>
         </member>
         <member name="T:Rampastring.XNAUI.XNAControls.XNATabControl">
