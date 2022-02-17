@@ -1,0 +1,413 @@
+﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.IO;
+using System.Net;
+using System.Net.Cache;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
+using Rampastring.Tools;
+using ClientUpdater.Compression;
+
+namespace ClientUpdater
+{
+    /// <summary>
+    /// Custom component.
+    /// </summary>
+    public class CustomComponent
+    {
+        #region public_properties
+
+        /// <summary>
+        /// UI name of custom component.
+        /// </summary>
+        public string GUIName { get; internal set; }
+
+        /// <summary>
+        /// INI name of custom component.
+        /// </summary>
+        public string ININame { get; internal set; }
+
+        /// <summary>
+        /// Local file system path of custom component.
+        /// </summary>
+        public string LocalPath { get; internal set; }
+
+        /// <summary>
+        /// Download path of custom component.
+        /// </summary>
+        public string DownloadPath { get; internal set; }
+
+        /// <summary>
+        /// Is download path treated as an absolute URL?
+        /// </summary>
+        public bool IsDownloadPathAbsolute { get; internal set; }
+
+        /// <summary>
+        /// If set, no archive extension is used for download file path.
+        /// </summary>
+        public bool NoArchiveExtensionForDownloadPath { get; internal set; }
+
+        /// <summary>
+        /// Is this custom component currently being downloaded?
+        /// </summary>
+        public bool IsBeingDownloaded { get; internal set; }
+
+        /// <summary>
+        /// File identifier from local version file.
+        /// </summary>
+        public string LocalIdentifier { get; internal set; }
+
+        /// <summary>
+        /// File identifier from server version file.
+        /// </summary>
+        public string RemoteIdentifier { get; internal set; }
+
+        /// <summary>
+        /// File size from server version file.
+        /// </summary>
+        public long RemoteSize { get; internal set; }
+
+        /// <summary>
+        /// Archive file size from server version file.
+        /// </summary>
+        public long RemoteArchiveSize { get; internal set; }
+
+        /// <summary>
+        /// Is custom component an archived file?
+        /// </summary>
+        public bool Archived { get; internal set; }
+
+        /// <summary>
+        /// Has custom component been initialized?
+        /// </summary>
+        public bool Initialized { get; internal set; }
+
+        #endregion
+
+        #region private_fields
+
+        private readonly List<string> filesToCleanup = new List<string>();
+
+        private int currentDownloadPercentage;
+        private Exception currentDownloadException;
+
+        private CancellationTokenSource downloadTaskCancelTokenSource;
+        private CancellationToken downloadTaskCancelToken;
+
+        #endregion
+
+        /// <summary>
+        /// Creates new custom component.
+        /// </summary>
+        public CustomComponent()
+        {
+        }
+
+        /// <summary>
+        /// Creates new custom component from given information.
+        /// </summary>
+        public CustomComponent(string guiName, string iniName, string downloadPath, string localPath, bool isDownloadPathAbsolute = false, bool noArchiveExtensionForDownloadPath = false)
+        {
+            GUIName = guiName;
+            ININame = iniName;
+            LocalPath = localPath.Replace('\\', '/');
+            DownloadPath = downloadPath;
+            IsDownloadPathAbsolute = isDownloadPathAbsolute;
+            NoArchiveExtensionForDownloadPath = noArchiveExtensionForDownloadPath;
+        }
+
+        #region public_methods
+
+        /// <summary>
+        /// Starts download for this custom component.
+        /// </summary>
+        public void DownloadComponent()
+        {
+            if (downloadTaskCancelTokenSource == null)
+                downloadTaskCancelTokenSource = new CancellationTokenSource();
+
+            downloadTaskCancelToken = downloadTaskCancelTokenSource.Token;
+            Task downloadTask = Task.Factory.StartNew(() => DoDownloadComponent(), downloadTaskCancelToken);
+        }
+
+        /// <summary>
+        /// Stops downloading of this custom component.
+        /// </summary>
+        public void StopDownload()
+        {
+            if (downloadTaskCancelTokenSource != null && !downloadTaskCancelTokenSource.IsCancellationRequested)
+                downloadTaskCancelTokenSource.Cancel();
+        }
+
+        #endregion
+
+        #region private_methods
+
+        /// <summary>
+        /// Handles downloading of the custom component.
+        /// </summary>
+        private void DoDownloadComponent()
+        {
+            try
+            {
+                Logger.Log("CustomComponent: Initializing download of custom component: " + GUIName);
+                currentDownloadException = null;
+                IsBeingDownloaded = true;
+                currentDownloadPercentage = -1;
+                string uniqueIdForFile = "";
+                string uriString = Updater.CurrentUpdateServerURL + Updater.VERSION_FILE;
+                string finalFileName = Updater.GamePath + LocalPath;
+                string versionFileName = Updater.GamePath + Updater.VERSION_FILE + "_cc";
+                UpdaterFileInfo info = null;
+
+                Updater.CreatePath(Updater.GamePath + LocalPath);
+
+                WebClient client = new WebClient
+                {
+                    CachePolicy = new RequestCachePolicy(RequestCacheLevel.NoCacheNoStore),
+                    Encoding = Encoding.GetEncoding("Windows-1252")
+                };
+
+                client.Headers.Add(HttpRequestHeader.UserAgent, Updater.GetUserAgentString());
+
+                Logger.Log("CustomComponent: Downloading version info.");
+                client.DownloadFile(new Uri(uriString), versionFileName);
+                client.Dispose();
+                IniFile version = new IniFile(versionFileName);
+                string[] tmp = version.GetStringValue("AddOns", ININame, "").Split(',');
+                Updater.GetArchiveInfo(version, LocalPath, out string archiveID, out int archiveSize);
+                info = Updater.CreateFileInfo(Updater.GamePath + LocalPath, tmp[0], Conversions.IntFromString(tmp[1], 0), archiveID, archiveSize);
+
+                Logger.Log("CustomComponent: Version info parsed. Proceeding to download component.");
+                int num = 0;
+                Uri downloadUri = GetDownloadUri(DownloadPath, info);
+                string downloadFileName = GetArchivePath(finalFileName, info) + "_u";
+                Logger.Log("CustomComponent: Download URL for custom component " + GUIName + ": " + downloadUri.AbsoluteUri);
+                CheckDownloadCancelStatus();
+
+                while (true)
+                {
+                    filesToCleanup.Clear();
+                    filesToCleanup.Add(versionFileName);
+                    filesToCleanup.Add(downloadFileName);
+
+                    WebClient clientFile = new WebClient
+                    {
+                        CachePolicy = new RequestCachePolicy(RequestCacheLevel.NoCacheNoStore),
+                        Encoding = Encoding.GetEncoding("Windows-1252")
+                    };
+
+                    clientFile.Headers.Add(HttpRequestHeader.UserAgent, Updater.GetUserAgentString());
+                    clientFile.DownloadProgressChanged += DownloadClient_DownloadProgressChanged;
+                    clientFile.DownloadFileCompleted += DownloadClient_DownloadFileCompleted;
+                    num++;
+
+                    CheckDownloadCancelStatus();
+                    clientFile.DownloadFileAsync(downloadUri, downloadFileName);
+
+                    while (clientFile.IsBusy)
+                    {
+                        Thread.Sleep(50);
+                        if (downloadTaskCancelToken != null && downloadTaskCancelToken.IsCancellationRequested)
+                        {
+                            clientFile.CancelAsync();
+                            clientFile.Dispose();
+                            downloadTaskCancelToken.ThrowIfCancellationRequested();
+                        }
+                    }
+
+                    clientFile.Dispose();
+
+                    if (currentDownloadException != null)
+                        throw currentDownloadException;
+
+                    Logger.Log("CustomComponent: Download of custom component " + GUIName + " finished - verifying.");
+                    CheckDownloadCancelStatus();
+
+                    if (info.Archived)
+                    {
+                        filesToCleanup.Add(finalFileName + "_u");
+                        string archiveLocalPath = GetArchivePath(LocalPath, info);
+                        string archivePath = Updater.GamePath + archiveLocalPath + "_u";
+                        Logger.Log("CustomComponent: Custom component is an archive.");
+                        string archiveIdentifier = Updater.GetUniqueIdForFile(archiveLocalPath + "_u");
+
+                        if (archiveIdentifier != info.ArchiveIdentifier)
+                        {
+                            CheckDownloadCancelStatus();
+
+                            if (num > 2)
+                                throw new Exception("Too many retries for downloading component.");
+
+                            Logger.Log("CustomComponent: Downloaded archive " + archiveLocalPath + "_u has a non-matching identifier: " + archiveIdentifier + " against " + info.ArchiveIdentifier + ". Retrying.");
+                            Updater.DeleteFileAndWait(archivePath);
+                            continue;
+                        }
+                        else
+                        {
+                            CheckDownloadCancelStatus();
+                            Logger.Log("CustomComponent: Archive " + archiveLocalPath + "_u is intact. Unpacking...");
+                            CompressionHelper.DecompressFile(archivePath, finalFileName + "_u", downloadTaskCancelToken);
+                            File.Delete(archivePath);
+                        }
+                    }
+
+                    CheckDownloadCancelStatus();
+                    uniqueIdForFile = Updater.GetUniqueIdForFile(LocalPath + "_u");
+                    if (info.Identifier != uniqueIdForFile)
+                    {
+                        if (num > 2)
+                            throw new Exception("Too many retries for downloading component.");
+
+                        CheckDownloadCancelStatus();
+                        Logger.Log("CustomComponent: Incorrect custom component identifier for " + GUIName + ": " + uniqueIdForFile + " against " + info.Identifier + ". Retrying.");
+                        continue;
+                    }
+
+                    break;
+                }
+
+                CheckDownloadCancelStatus();
+                Logger.Log("Downloaded custom component " + GUIName + " verified succesfully.");
+                File.Copy(finalFileName + "_u", finalFileName, true);
+                LocalIdentifier = uniqueIdForFile;
+                IsBeingDownloaded = false;
+                CleanUpAfterDownload();
+                DoDownloadFinished(true);
+            }
+            catch (Exception e)
+            {
+                if (e is AggregateException)
+                {
+                    bool canceled = false;
+                    bool displayError = false;
+                    foreach (Exception ei in (e as AggregateException).InnerExceptions)
+                    {
+                        if (ei is TaskCanceledException || ei is OperationCanceledException)
+                            canceled = true;
+                        else
+                        {
+                            if (!displayError)
+                            {
+                                Logger.Log("CustomComponent: One or more errors occured while downloading custom component " + GUIName + ". The download has been aborted.");
+                                displayError = true;
+                            }
+
+                            Logger.Log("Message: " + ei.Message);
+                        }
+
+                        if (canceled)
+                            HandleAfterCancelDownload();
+                        else
+                        {
+                            IsBeingDownloaded = false;
+                            CleanUpAfterDownload();
+                            DoDownloadFinished(false);
+                        }
+                    }
+
+                    return;
+                }
+
+                if (e is TaskCanceledException || e is OperationCanceledException)
+                {
+                    HandleAfterCancelDownload();
+                    return;
+                }
+
+                Logger.Log("CustomComponent: An error occured while downloading custom component " + GUIName + ". The download has been aborted. Message: " + e.Message);
+                IsBeingDownloaded = false;
+                CleanUpAfterDownload();
+                DoDownloadFinished(false);
+            }
+            finally
+            {
+                downloadTaskCancelTokenSource.Dispose();
+                downloadTaskCancelTokenSource = null;
+            }
+        }
+
+        private void CheckDownloadCancelStatus()
+        {
+            if (downloadTaskCancelToken != null)
+                downloadTaskCancelToken.ThrowIfCancellationRequested();
+        }
+
+        private void HandleAfterCancelDownload()
+        {
+            Logger.Log("CustomComponent: Download of custom component " + GUIName + " canceled.");
+            IsBeingDownloaded = false;
+            DoDownloadFinished(false);
+            CleanUpAfterDownload();
+        }
+
+        private Uri GetDownloadUri(string downloadPath, UpdaterFileInfo info)
+        {
+            string fullPath;
+
+            if (!IsDownloadPathAbsolute)
+                fullPath = Updater.CurrentUpdateServerURL + downloadPath;
+            else
+                fullPath = downloadPath;
+
+            return new Uri(NoArchiveExtensionForDownloadPath ? fullPath : GetArchivePath(fullPath, info));
+        }
+
+        private string GetArchivePath(string path, UpdaterFileInfo info)
+        {
+            if (info.Archived)
+                return path + Updater.ARCHIVE_FILE_EXTENSION;
+            else
+                return path;
+        }
+
+        private void CleanUpAfterDownload()
+        {
+            try
+            {
+                foreach (string filename in filesToCleanup)
+                {
+                    if (File.Exists(filename))
+                        File.Delete(filename);
+                }
+            }
+            catch (Exception)
+            {
+            }
+        }
+
+        #endregion
+
+        #region events_and_delegates
+
+        public event DownloadFinishedEventHandler DownloadFinished;
+        public event DownloadProgressChangedEventHandler DownloadProgressChanged;
+
+        public delegate void DownloadFinishedEventHandler(CustomComponent cc, bool success);
+        public delegate void DownloadProgressChangedEventHandler(CustomComponent cc, int percentage);
+
+        private void DoDownloadFinished(bool success) => DownloadFinished?.Invoke(this, success);
+
+        private void DownloadClient_DownloadProgressChanged(object sender, DownloadProgressChangedEventArgs e)
+        {
+            if (e.ProgressPercentage != currentDownloadPercentage)
+            {
+                currentDownloadPercentage = e.ProgressPercentage;
+                DownloadProgressChanged?.Invoke(this, currentDownloadPercentage);
+            }
+        }
+
+        private void DownloadClient_DownloadFileCompleted(object sender, AsyncCompletedEventArgs e)
+        {
+            if (e.Cancelled)
+                CleanUpAfterDownload();
+
+            currentDownloadException = e.Error;
+        }
+
+        #endregion
+    }
+}
+

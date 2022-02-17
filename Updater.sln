@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.32014.148
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Updater", "ClientUpdater\ClientUpdater.csproj", "{DAA25AFD-C762-42FD-890E-62D673ED5737}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SecondStageUpdater", "SecondStageUpdater\SecondStageUpdater.csproj", "{54DB61AE-2E08-452A-A819-33C13727B55B}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{DAA25AFD-C762-42FD-890E-62D673ED5737}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DAA25AFD-C762-42FD-890E-62D673ED5737}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DAA25AFD-C762-42FD-890E-62D673ED5737}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DAA25AFD-C762-42FD-890E-62D673ED5737}.Release|Any CPU.Build.0 = Release|Any CPU
+		{54DB61AE-2E08-452A-A819-33C13727B55B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{54DB61AE-2E08-452A-A819-33C13727B55B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{54DB61AE-2E08-452A-A819-33C13727B55B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{54DB61AE-2E08-452A-A819-33C13727B55B}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {82BE9BF5-9F2B-4992-AFA9-D685F2A6C3AB}
+	EndGlobalSection
+EndGlobal
