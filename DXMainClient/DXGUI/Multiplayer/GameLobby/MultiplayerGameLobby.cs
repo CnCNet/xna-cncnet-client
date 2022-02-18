@@ -31,7 +31,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             : base(windowManager, iniName, mapLoader, true, discordHandler)
         {
             TopBar = topBar;
-            MapLoader = mapLoader;
 
             chatBoxCommands = new List<ChatBoxCommand>
             {
@@ -102,8 +101,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         private FileSystemWatcher fsw;
 
         private bool gameSaved = false;
-
-        protected MapLoader MapLoader;
 
         private bool lastMapChangeWasInvalid = false;
 
