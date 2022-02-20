@@ -202,6 +202,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private void MapImage_RightClick(object sender, EventArgs e)
         {
+            if (GameModeMap == null)
+                return;
+
             toggleFavoriteMapItem.Text = GameModeMap.IsFavorite ? "Remove Favorite" : "Add Favorite";
             mapContextMenu.Open(GetCursorPoint());
         }
