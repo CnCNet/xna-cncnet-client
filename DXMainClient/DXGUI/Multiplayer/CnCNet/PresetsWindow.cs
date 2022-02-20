@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using ClientGUI;
 using DTAClient.Domain.Multiplayer;
@@ -9,7 +10,7 @@ using Rampastring.XNAUI.XNAControls;
 
 namespace DTAClient.DXGUI.Multiplayer.CnCNet
 {
-    public class LoadOrSaveGameOptionPresetWindow : XNAWindow
+    public class PresetsWindow : XNAWindow
     {
         private bool _isLoad;
 
@@ -29,11 +30,13 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         private readonly XNATextBox tbNewPresetName;
 
-        public EventHandler<GameOptionPresetEventArgs> PresetLoaded;
+        public EventHandler<PresetWindowEventArgs> PresetLoaded;
 
-        public EventHandler<GameOptionPresetEventArgs> PresetSaved;
+        public EventHandler<PresetWindowEventArgs> PresetSaved;
 
-        public LoadOrSaveGameOptionPresetWindow(WindowManager windowManager) : base(windowManager)
+        public EventHandler<PresetWindowEventArgs> PresetDeleted;
+
+        public PresetsWindow(WindowManager windowManager) : base(windowManager)
         {
             ClientRectangle = new Rectangle(0, 0, 325, 185);
 
@@ -41,6 +44,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             lblHeader = new XNALabel(WindowManager);
             lblHeader.Name = nameof(lblHeader);
+            lblHeader.Text = "Presets";
             lblHeader.FontIndex = 1;
             lblHeader.ClientRectangle = new Rectangle(
                 margin, margin,
@@ -140,17 +144,19 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         /// <summary>
         /// Show the window.
         /// </summary>
+        /// <param name="headerLabel"></param>
+        /// <param name="presetNames"></param>
         /// <param name="isLoad">The "mode" for the window: load vs save.</param>
-        public void Show(bool isLoad)
+        public void Show(string headerLabel, List<string> presetNames, bool isLoad = false)
         {
             _isLoad = isLoad;
-            lblHeader.Text = $"{(_isLoad ? "Load" : "Save")} Preset";
+            lblHeader.Text = headerLabel;
             btnLoadSave.Text = _isLoad ? "Load" : "Save";
 
             if (_isLoad)
-                ShowLoad();
+                ShowLoad(presetNames);
             else
-                ShowSave();
+                ShowSave(presetNames);
 
             RefreshButtons();
             CenterOnParent();
@@ -207,14 +213,13 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         /// <summary>
         /// Populate the preset drop down from saved presets
         /// </summary>
-        private void LoadPresets()
+        private void LoadPresets(List<string> presetNames)
         {
             ddPresetSelect.Items.Clear();
             ddPresetSelect.Items.Add(_isLoad ? ddiSelectPresetItem : ddiCreatePresetItem);
             ddPresetSelect.SelectedIndex = 0;
 
-            ddPresetSelect.Items.AddRange(GameOptionPresets.Instance
-                .GetPresetNames()
+            ddPresetSelect.Items.AddRange(presetNames
                 .OrderBy(name => name)
                 .Select(name => new XNADropDownItem()
                 {
@@ -225,9 +230,9 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         /// <summary>
         /// Show the current window in the "load" mode context
         /// </summary>
-        private void ShowLoad()
+        private void ShowLoad(List<string> presetNames)
         {
-            LoadPresets();
+            LoadPresets(presetNames);
 
             // do not show fields to specify a preset name during "load" mode
             lblNewPresetName.Disable();
@@ -237,9 +242,9 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         /// <summary>
         /// Show the current window in the "save" mode context
         /// </summary>
-        private void ShowSave()
+        private void ShowSave(List<string> presetNames)
         {
-            LoadPresets();
+            LoadPresets(presetNames);
 
             // show fields to specify a preset name during "save" mode
             lblNewPresetName.Enable();
@@ -252,12 +257,12 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             var selectedItem = ddPresetSelect.Items[ddPresetSelect.SelectedIndex];
             if (_isLoad)
             {
-                PresetLoaded?.Invoke(this, new GameOptionPresetEventArgs(selectedItem.Text));
+                PresetLoaded?.Invoke(this, new PresetWindowEventArgs(selectedItem.Text));
             }
             else
             {
-                var presetName = IsCreatePresetSelected ? tbNewPresetName.Text : selectedItem.Text;
-                PresetSaved?.Invoke(this, new GameOptionPresetEventArgs(presetName));
+                string presetName = IsCreatePresetSelected ? tbNewPresetName.Text : selectedItem.Text;
+                PresetSaved?.Invoke(this, new PresetWindowEventArgs(presetName, IsCreatePresetSelected));
             }
 
             Disable();
@@ -269,7 +274,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             var messageBox = XNAMessageBox.ShowYesNoDialog(WindowManager, "Confirm Preset Delete", $"Are you sure you want to delete this preset?\n\n{selectedItem.Text}");
             messageBox.YesClickedAction = box =>
             {
-                GameOptionPresets.Instance.DeletePreset(selectedItem.Text);
+                PresetDeleted?.Invoke(this, new PresetWindowEventArgs(selectedItem.Text));
                 ddPresetSelect.Items.Remove(selectedItem);
                 ddPresetSelect.SelectedIndex = 0;
             };

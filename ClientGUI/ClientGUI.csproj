@@ -134,17 +134,21 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ClientGUICreator.cs" />
+    <Compile Include="XNAAdvancedContextMenu.cs" />
     <Compile Include="ToolTip.cs" />
     <Compile Include="UIDesignConstants.cs" />
+    <Compile Include="XNAAdvancedContextMenuItem.cs" />
     <Compile Include="XNAChatTextBox.cs" />
     <Compile Include="XNAClientButton.cs" />
     <Compile Include="DarkeningPanel.cs" />
     <Compile Include="XNAClientCheckBox.cs" />
+    <Compile Include="XNAClientContextSubMenuItem.cs" />
     <Compile Include="XNAClientDropDown.cs" />
     <Compile Include="XNAClientPreferredItemDropDown.cs" />
     <Compile Include="XNAClientStateButton.cs" />
     <Compile Include="XNAClientTabControl.cs" />
     <Compile Include="XNAClientToggleButton.cs" />
+    <Compile Include="XNAClientContextMenuDividerItem.cs" />
     <Compile Include="XNAExtraPanel.cs" />
     <Compile Include="XNALinkButton.cs" />
     <Compile Include="XNAMessageBox.cs" />

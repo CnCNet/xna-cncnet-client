@@ -28,7 +28,7 @@ namespace DTAClient.Domain.Multiplayer
         {
             if (!IsUseTeamStartMappings)
                 return null;
-            
+
             var distinctStartLocations = TeamStartMappings.Select(m => m.Start).Distinct();
             if (distinctStartLocations.Count() != TeamStartMappings.Count)
                 return MULTIPLE_MAPPINGS_ASSIGNED_TO_SAME_START; // multiple mappings are using the same spawn location

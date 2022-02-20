@@ -37,6 +37,7 @@ namespace DTAClient.Domain.Multiplayer
 
         private Dictionary<string, bool> checkBoxValues = new Dictionary<string, bool>();
         private Dictionary<string, int> dropDownValues = new Dictionary<string, int>();
+        public PlayerExtraOptions PlayerExtraOptions { get; set; }
 
         private void AddValues<T>(IniSection section, string keyName, Dictionary<string, T> dictionary, Converter<string, T> converter)
         {
@@ -77,6 +78,21 @@ namespace DTAClient.Domain.Multiplayer
 
             AddValues(section, "CheckBoxValues", checkBoxValues, s => s == "1");
             AddValues(section, "DropDownValues", dropDownValues, s => Conversions.IntFromString(s, 0));
+
+            ReadPlayerExtraOptions(section);
+        }
+
+        private void ReadPlayerExtraOptions(IniSection section)
+        {
+            PlayerExtraOptions = new PlayerExtraOptions()
+            {
+                IsForceRandomSides = section.GetBooleanValue("IsForceRandomSides", false),
+                IsForceRandomColors = section.GetBooleanValue("IsForceRandomColors", false),
+                IsForceRandomTeams = section.GetBooleanValue("IsForceRandomTeams", false),
+                IsForceRandomStarts = section.GetBooleanValue("IsForceRandomStarts", false),
+                IsUseTeamStartMappings = section.GetBooleanValue("IsUseTeamStartMappings", false),
+                TeamStartMappings = TeamStartMapping.FromListString(section.GetStringValue("TeamStartMapping", string.Empty))
+            };
         }
 
         public void Write(IniSection section)
@@ -85,6 +101,21 @@ namespace DTAClient.Domain.Multiplayer
                 checkBoxValues.Select(s => $"{ s.Key }:{ (s.Value ? "1" : "0") }")));
             section.SetStringValue("DropDownValues", string.Join(",",
                 dropDownValues.Select(s => $"{ s.Key }:{ s.Value.ToString() }")));
+
+            WritePlayerExtraOptions(section);
+        }
+
+        private void WritePlayerExtraOptions(IniSection section)
+        {
+            if (PlayerExtraOptions == null)
+                return;
+
+            section.SetBooleanValue("IsForceRandomSides", PlayerExtraOptions.IsForceRandomSides);
+            section.SetBooleanValue("IsForceRandomColors", PlayerExtraOptions.IsForceRandomColors);
+            section.SetBooleanValue("IsForceRandomTeams", PlayerExtraOptions.IsForceRandomTeams);
+            section.SetBooleanValue("IsForceRandomStarts", PlayerExtraOptions.IsForceRandomStarts);
+            section.SetBooleanValue("IsUseTeamStartMappings", PlayerExtraOptions.IsUseTeamStartMappings);
+            section.SetStringValue("TeamStartMapping", TeamStartMapping.ToListString(PlayerExtraOptions.TeamStartMappings));
         }
     }
 
@@ -119,7 +150,7 @@ namespace DTAClient.Domain.Multiplayer
 
             if (presets.TryGetValue(name, out GameOptionPreset value))
             {
-                
+
                 return value;
             }
 
