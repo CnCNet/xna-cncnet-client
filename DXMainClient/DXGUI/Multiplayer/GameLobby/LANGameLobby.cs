@@ -89,6 +89,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 AddNotice(string.Format("{0} has modified game files! They could be cheating!".L10N("UI:Main:PlayerModifiedFiles"), sender));
 
             PlayerInfo pInfo = Players.Find(p => p.Name == sender);
+            if (pInfo == null)
+                return;
 
             pInfo.Verified = true;
         }
