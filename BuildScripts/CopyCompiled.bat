@@ -59,7 +59,7 @@ copy DTAClient.exe %cr%clientogl.exe
 copy ClientCore.dll %oglBinaries%ClientCore.dll
 copy ClientGUI.dll %oglBinaries%ClientGUI.dll
 copy DTAConfig.dll %oglBinaries%DTAConfig.dll
-copy Localization.dll %winBinaries%Localization.dll
+copy Localization.dll %oglBinaries%Localization.dll
 copy MonoGame.Framework.dll %oglBinaries%MonoGame.Framework.dll
 copy ..\..\..\..\References\WindowsGL\x86\SDL2.dll %oglBinaries%x86\SDL2.dll
 copy ..\..\..\..\References\WindowsGL\x86\soft_oal.dll %oglBinaries%x86\soft_oal.dll
@@ -80,7 +80,7 @@ copy DTAClient.exe %cr%clientxna.exe
 copy ClientCore.dll %xnaBinaries%ClientCore.dll
 copy ClientGUI.dll %xnaBinaries%ClientGUI.dll
 copy DTAConfig.dll %xnaBinaries%DTAConfig.dll
-copy Localization.dll %winBinaries%Localization.dll
+copy Localization.dll %xnaBinaries%Localization.dll
 copy Rampastring.XNAUI.dll %xnaBinaries%Rampastring.XNAUI.dll
 
 echo(
