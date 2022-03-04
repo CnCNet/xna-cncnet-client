@@ -12,6 +12,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using ClientCore.Enums;
 using DTAClient.DXGUI.Multiplayer.CnCNet;
 using DTAClient.Online;
 using DTAClient.Online.EventArguments;
@@ -127,6 +128,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         protected XNALabel lblGameModeSelect;
         protected XNAContextMenu mapContextMenu;
         private XNAContextMenuItem toggleFavoriteItem;
+
+        protected XNAClientStateButton<SortDirection> btnMapSortAlphabetically;
 
         protected XNASuggestionTextBox tbMapSearch;
 
@@ -251,6 +254,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 ddGameModeMapFilter.AddItem(CreateGameFilterItem(gm.UIName, new GameModeMapFilter(GetGameModeMaps(gm))));
 
             lblGameModeSelect = FindChild<XNALabel>(nameof(lblGameModeSelect));
+            
+            InitBtnMapSort();
 
             tbMapSearch = FindChild<XNASuggestionTextBox>(nameof(tbMapSearch));
             tbMapSearch.InputReceived += TbMapSearch_InputReceived;
@@ -264,8 +269,30 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             InitializeGameOptionPresetUI();
         }
 
-        private void InitializeGameOptionPresetUI()
+        /// <summary>
+        /// Until the GUICreator can handle typed classes, this must remain manually done.
+        /// </summary>
+        private void InitBtnMapSort()
         {
+            btnMapSortAlphabetically = new XNAClientStateButton<SortDirection>(WindowManager, new Dictionary<SortDirection, Texture2D>()
+            {
+                { SortDirection.None, AssetLoader.LoadTexture("sortAlphaNone.png") },
+                { SortDirection.Asc, AssetLoader.LoadTexture("sortAlphaAsc.png") },
+                { SortDirection.Desc, AssetLoader.LoadTexture("sortAlphaDesc.png") },
+            });
+            btnMapSortAlphabetically.Name = nameof(btnMapSortAlphabetically);
+            btnMapSortAlphabetically.ClientRectangle = new Rectangle(
+                ddGameModeMapFilter.X + -ddGameModeMapFilter.Height - 4, ddGameModeMapFilter.Y,
+                ddGameModeMapFilter.Height, ddGameModeMapFilter.Height
+            );
+            btnMapSortAlphabetically.LeftClick += BtnMapSortAlphabetically_LeftClick;
+            btnMapSortAlphabetically.SetToolTipText("Sort Maps Alphabetically".L10N("UI:Main:MapSortAlphabeticallyToolTip"));
+            RefreshMapSortAlphabeticallyBtn();
+            AddChild(btnMapSortAlphabetically);
+        }
+
+        private void InitializeGameOptionPresetUI()
+            {
             BtnSaveLoadGameOptions = FindChild<XNAClientButton>(nameof(BtnSaveLoadGameOptions), true);
 
             if (BtnSaveLoadGameOptions != null)
@@ -297,7 +324,22 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
                 AddChild(loadSaveGameOptionsMenu);
                 AddChild(loadOrSaveGameOptionPresetWindow);
-            }
+        }
+        }
+
+        private void BtnMapSortAlphabetically_LeftClick(object sender, EventArgs e)
+        {
+            UserINISettings.Instance.MapSortState.Value = (int)btnMapSortAlphabetically.GetState();
+
+            RefreshMapSortAlphabeticallyBtn();
+            UserINISettings.Instance.SaveSettings();
+            ListMaps();
+        }
+
+        private void RefreshMapSortAlphabeticallyBtn()
+        {
+            if (Enum.IsDefined(typeof(SortDirection), UserINISettings.Instance.MapSortState.Value))
+                btnMapSortAlphabetically.SetState((SortDirection)UserINISettings.Instance.MapSortState.Value);
         }
 
         private static XNADropDownItem CreateGameFilterItem(string text, GameModeMapFilter filter)
@@ -321,10 +363,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             if (btnPlayerExtraOptionsOpen != null)
             {
-                var texture = GetPlayerExtraOptions().IsDefault() ? "comboBoxArrow.png" : "comboBoxArrow-highlight.png";
-                btnPlayerExtraOptionsOpen.IdleTexture = AssetLoader.LoadTexture(texture);
-                btnPlayerExtraOptionsOpen.HoverTexture = AssetLoader.LoadTexture(texture);
-            }
+            var texture = GetPlayerExtraOptions().IsDefault() ? "comboBoxArrow.png" : "comboBoxArrow-highlight.png";
+            btnPlayerExtraOptionsOpen.IdleTexture = AssetLoader.LoadTexture(texture);
+            btnPlayerExtraOptionsOpen.HoverTexture = AssetLoader.LoadTexture(texture);
+        }
         }
 
         protected void HandleGameOptionPresetSaveCommand(GameOptionPresetEventArgs e) => HandleGameOptionPresetSaveCommand(e.PresetName);
@@ -432,6 +474,22 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 string.Format("The game host has disabled {0}".L10N("UI:Main:HostDisableSection"), type) :
                 string.Format("The game host has enabled {0}".L10N("UI:Main:HostEnableSection"), type));
 
+        private List<GameModeMap> GetSortedGameModeMaps()
+        {
+            var gameModeMaps = gameModeMapFilter.GetGameModeMaps();
+            switch ((SortDirection)UserINISettings.Instance.MapSortState.Value)
+            {
+                case SortDirection.Asc:
+                    gameModeMaps = gameModeMaps.OrderBy(gmm => gmm.Map.Name).ToList();
+                    break;
+                case SortDirection.Desc:
+                    gameModeMaps = gameModeMaps.OrderByDescending(gmm => gmm.Map.Name).ToList();
+                    break;
+            }
+
+            return gameModeMaps;
+        }
+
         protected void ListMaps()
         {
             lbGameModeMapList.SelectedIndexChanged -= LbGameModeMapList_SelectedIndexChanged;
@@ -444,9 +502,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             int mapIndex = -1;
             int skippedMapsCount = 0;
 
-            var gameModeMaps = gameModeMapFilter.GetGameModeMaps();
             var isFavoriteMapsSelected = IsFavoriteMapsSelected();
-            var maps = gameModeMaps.OrderBy(gmm => gmm.Map.Name).ToList();
+            var maps = GetSortedGameModeMaps();
 
             for (int i = 0; i < maps.Count; i++)
             {
@@ -2016,7 +2073,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         protected string AILevelToName(int aiLevel)
         {
             return ProgramConstants.GetAILevelName(aiLevel);
-        }
+            }
 
         protected GameType GetGameType()
         {
