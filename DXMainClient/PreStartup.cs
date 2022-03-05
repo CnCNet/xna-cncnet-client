@@ -8,6 +8,7 @@ using ClientCore;
 using System.Security.AccessControl;
 using System.Security.Principal;
 using System.Collections.Generic;
+using Localization;
 
 namespace DTAClient
 {
@@ -73,6 +74,45 @@ namespace DTAClient
 
             UserINISettings.Initialize(ClientConfiguration.Instance.SettingsIniName);
 
+            // Try to load translations
+            try
+            {
+                var translation = TranslationTable.LoadFromIniFile(ClientConfiguration.Instance.TranslationIniName);
+                TranslationTable.Instance = translation;
+                Logger.Log("Load translation: " + translation.LanguageName);
+            }
+            catch (Exception ex)
+            {
+                Logger.Log("Failed to load the translation file. " + ex.Message);
+                TranslationTable.Instance = new TranslationTable();
+            }
+
+            try
+            {
+                if (ClientConfiguration.Instance.GenerateTranslationStub)
+                {
+                    string stubPath = "Client/Translation.stub.ini";
+                    var stubTable = TranslationTable.Instance.Clone();
+                    TranslationTable.Instance.MissingTranslationEvent += (sender, e) =>
+                    {
+                        stubTable.Table.Add(e.Label, e.DefaultValue);
+                    };
+
+                    AppDomain.CurrentDomain.ProcessExit += (sender, e) =>
+                    {
+                        Logger.Log("Writing the translation stub file.");
+                        var ini = stubTable.SaveIni();
+                        ini.WriteIniFile(stubPath);
+                    };
+
+                    Logger.Log("Generating translation stub feature is now enabled. The stub file will be written when the client exits.");
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Log("Failed to generate the translation stub. " + ex.Message);
+            }
+
             // Delete obsolete files from old target project versions
 
             File.Delete(ProgramConstants.GamePath + "mainclient.log");
@@ -126,15 +166,16 @@ namespace DTAClient
             }
             catch { }
 
-            MessageBox.Show(string.Format("{0} has crashed. Error message:" + Environment.NewLine + Environment.NewLine +
+            MessageBox.Show(string.Format("{0} has crashed. Error message:".L10N("UI:Main:FatalErrorText1") + Environment.NewLine + Environment.NewLine +
                 ex.Message + Environment.NewLine + Environment.NewLine + (crashLogCopied ?
-                "A crash log has been saved to the following file: " + Environment.NewLine + Environment.NewLine +
+                "A crash log has been saved to the following file:".L10N("UI:Main:FatalErrorText2") + " " + Environment.NewLine + Environment.NewLine +
                 errorLogPath + Environment.NewLine + Environment.NewLine : "") +
-                "If the issue is repeatable, contact the {1} staff at {2}" + (crashLogCopied ? "and provide the crash log file" : "") + ".",
+                (crashLogCopied ? "If the issue is repeatable, contact the {1} staff at {2} and provide the crash log file.".L10N("UI:Main:FatalErrorText3") :
+                "If the issue is repeatable, contact the {1} staff at {2}.".L10N("UI:Main:FatalErrorText4")),
                 MainClientConstants.GAME_NAME_LONG,
                 MainClientConstants.GAME_NAME_SHORT,
                 MainClientConstants.SUPPORT_URL_SHORT),
-                "KABOOOOOOOM", MessageBoxButtons.OK);
+                "KABOOOOOOOM".L10N("UI:Main:FatalErrorTitle"), MessageBoxButtons.OK);
         }
 
         private static void CheckPermissions()
@@ -142,11 +183,11 @@ namespace DTAClient
             if (UserHasDirectoryAccessRights(Environment.CurrentDirectory, FileSystemRights.Modify))
                 return;
 
-            DialogResult dr = MessageBox.Show(string.Format("You seem to be running {0} from a write-protected directory." + Environment.NewLine + Environment.NewLine +
+            DialogResult dr = MessageBox.Show(string.Format(("You seem to be running {0} from a write-protected directory." + Environment.NewLine + Environment.NewLine +
                 "For {1} to function properly when run from a write-protected directory, it needs administrative priveleges." + Environment.NewLine + Environment.NewLine +
                 "Would you like to restart the client with administrative rights?" + Environment.NewLine + Environment.NewLine +
-                "Please also make sure that your security software isn't blocking {1}.", MainClientConstants.GAME_NAME_LONG, MainClientConstants.GAME_NAME_SHORT),
-                "Administrative priveleges required", MessageBoxButtons.YesNo);
+                "Please also make sure that your security software isn't blocking {1}.").L10N("UI:Main:AdminRequiredText"), MainClientConstants.GAME_NAME_LONG, MainClientConstants.GAME_NAME_SHORT),
+                "Administrative priveleges required".L10N("UI:Main:AdminRequiredTitle"), MessageBoxButtons.YesNo);
 
             if (dr == DialogResult.No)
                 Environment.Exit(0);

@@ -1,12 +1,13 @@
 ﻿using Rampastring.XNAUI.XNAControls;
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using ClientCore;
 using Rampastring.XNAUI;
 using Microsoft.Xna.Framework.Graphics;
 using PlayerInfo = DTAClient.Domain.Multiplayer.PlayerInfo;
 using Microsoft.Xna.Framework;
 using DTAClient.Domain.Multiplayer;
-using ClientCore;
 
 namespace DTAClient.DXGUI.Multiplayer.GameLobby
 {
@@ -28,9 +29,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             usePlayerRemapColor = ClientConfiguration.Instance.MapPreviewStartingLocationUsePlayerRemapColor;
         }
 
-        Texture2D baseTexture;
-        Texture2D hoverTexture;
-        Texture2D usedTexture;
+        private Texture2D baseTexture;
+        private Texture2D hoverTexture;
+        private Texture2D usedTexture;
         public Texture2D WaypointTexture { get; set; }
         public List<PlayerInfo> Players = new List<PlayerInfo>();
 
@@ -45,28 +46,29 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         public Color HoverRemapColor { get; set; }
 
-        XNAContextMenu contextMenu { get; set; }
+        private XNAContextMenu contextMenu { get; set; }
 
-        Color nameBackgroundColor;
-        Color nameBorderColor;
+        private Color nameBackgroundColor;
+        private Color nameBorderColor;
 
-        string[] teamIds = new string[] { String.Empty, "[A]", "[B]", "[C]", "[D]" };
+        private readonly string[] teamIds = new[] { string.Empty }
+            .Concat(ProgramConstants.TEAMS.Select(team => $"[{team}]")).ToArray();
 
-        bool usePlayerRemapColor = false;
+        private bool usePlayerRemapColor = false;
 
-        bool isHoveredOn = false;
+        private bool isHoveredOn = false;
 
-        double backgroundAlpha = 0.0;
-        double backgroundAlphaRate = 0.1;
+        private double backgroundAlpha = 0.0;
+        private double backgroundAlphaRate = 0.1;
 
-        double angle;
+        private double angle;
 
-        int lineHeight;
+        private int lineHeight;
 
-        Vector2 textSize;
-        int textXPosition;
+        private Vector2 textSize;
+        private int textXPosition;
 
-        List<PlayerText> pText = new List<PlayerText>();
+        private List<PlayerText> pText = new List<PlayerText>();
 
         public override void Initialize()
         {

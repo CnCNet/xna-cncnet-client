@@ -1,6 +1,7 @@
 ﻿using ClientCore.CnCNet5;
 using DTAClient.DXGUI.Multiplayer.CnCNet;
 using DTAClient.Online;
+using Localization;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Rampastring.XNAUI;
@@ -32,7 +33,7 @@ namespace DTAClient.DXGUI.Multiplayer
         public PlayerListBox(WindowManager windowManager, GameCollection gameCollection) : base(windowManager)
         {
             this.gameCollection = gameCollection;
-            
+
             Users = new List<ChannelUser>();
 
             adminGameIcon = AssetLoader.TextureFromImage(ClientCore.Properties.Resources.cncneticon);
@@ -123,7 +124,7 @@ namespace DTAClient.DXGUI.Multiplayer
                 */
 
                 // Player Name
-                string name = user.IsAdmin ? user.IRCUser.Name + " (Admin)" : user.IRCUser.Name;
+                string name = user.IsAdmin ? user.IRCUser.Name + " " + "(Admin)".L10N("UI:Main:AdminSuffix") : user.IRCUser.Name;
                 x += lbItem.TextXPadding;
 
                 DrawStringWithShadow(name, FontIndex,
@@ -145,7 +146,7 @@ namespace DTAClient.DXGUI.Multiplayer
 
             if (user.IsAdmin)
             {
-                item.Text = user.IRCUser.Name + " (Admin)";
+                item.Text = user.IRCUser.Name + " " + "(Admin)".L10N("UI:Main:AdminSuffix");
                 item.TextColor = Color.Red;
                 item.Texture = adminGameIcon;
             }

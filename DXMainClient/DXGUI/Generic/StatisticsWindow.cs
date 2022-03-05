@@ -2,6 +2,7 @@
 using ClientCore.Statistics;
 using ClientGUI;
 using DTAClient.Domain.Multiplayer;
+using Localization;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Rampastring.Tools;
@@ -77,12 +78,12 @@ namespace DTAClient.DXGUI.Generic
         {
             sm = StatisticsManager.Instance;
 
-            string strLblEconomy = "ECONOMY";
-            string strLblAvgEconomy = "Average economy:";
+            string strLblEconomy = "ECONOMY".L10N("UI:Main:StatisticEconomy");
+            string strLblAvgEconomy = "Average economy:".L10N("UI:Main:StatisticEconomyAvg");
             if (ClientConfiguration.Instance.UseBuiltStatistic)
             {
-                strLblEconomy = "BUILT";
-                strLblAvgEconomy = "Avg. number of objects built:";
+                strLblEconomy = "BUILT".L10N("UI:Main:StatisticBuildCount");
+                strLblAvgEconomy = "Avg. number of objects built:".L10N("UI:Main:StatisticBuildCountAvg");
             }
 
             Name = "StatisticsWindow";
@@ -94,31 +95,31 @@ namespace DTAClient.DXGUI.Generic
             tabControl.ClientRectangle = new Rectangle(12, 10, 0, 0);
             tabControl.ClickSound = new EnhancedSoundEffect("button.wav");
             tabControl.FontIndex = 1;
-            tabControl.AddTab("Game Statistics", UIDesignConstants.BUTTON_WIDTH_133);
-            tabControl.AddTab("Total Statistics", UIDesignConstants.BUTTON_WIDTH_133);
+            tabControl.AddTab("Game Statistics".L10N("UI:Main:GameStatistic"), UIDesignConstants.BUTTON_WIDTH_133);
+            tabControl.AddTab("Total Statistics".L10N("UI:Main:TotalStatistic"), UIDesignConstants.BUTTON_WIDTH_133);
             tabControl.SelectedIndexChanged += TabControl_SelectedIndexChanged;
 
             XNALabel lblFilter = new XNALabel(WindowManager);
             lblFilter.Name = "lblFilter";
             lblFilter.FontIndex = 1;
-            lblFilter.Text = "FILTER:";
+            lblFilter.Text = "FILTER:".L10N("UI:Main:Filter");
             lblFilter.ClientRectangle = new Rectangle(527, 12, 0, 0);
 
             cmbGameClassFilter = new XNAClientDropDown(WindowManager);
             cmbGameClassFilter.ClientRectangle = new Rectangle(585, 11, 105, 21);
             cmbGameClassFilter.Name = "cmbGameClassFilter";
-            cmbGameClassFilter.AddItem("All games");
-            cmbGameClassFilter.AddItem("Online games");
-            cmbGameClassFilter.AddItem("Online PvP");
-            cmbGameClassFilter.AddItem("Online Co-Op");
-            cmbGameClassFilter.AddItem("Skirmish");
+            cmbGameClassFilter.AddItem("All games".L10N("UI:Main:FilterAll"));
+            cmbGameClassFilter.AddItem("Online games".L10N("UI:Main:FilterOnline"));
+            cmbGameClassFilter.AddItem("Online PvP".L10N("UI:Main:FilterPvP"));
+            cmbGameClassFilter.AddItem("Online Co-Op".L10N("UI:Main:FilterCoOp"));
+            cmbGameClassFilter.AddItem("Skirmish".L10N("UI:Main:FilterSkirmish"));
             cmbGameClassFilter.SelectedIndex = 0;
             cmbGameClassFilter.SelectedIndexChanged += CmbGameClassFilter_SelectedIndexChanged;
 
             XNALabel lblGameMode = new XNALabel(WindowManager);
             lblGameMode.Name = nameof(lblGameMode);
             lblGameMode.FontIndex = 1;
-            lblGameMode.Text = "GAME MODE:";
+            lblGameMode.Text = "GAME MODE:".L10N("UI:Main:GameMode");
             lblGameMode.ClientRectangle = new Rectangle(294, 12, 0, 0);
 
             cmbGameModeFilter = new XNAClientDropDown(WindowManager);
@@ -129,13 +130,13 @@ namespace DTAClient.DXGUI.Generic
             var btnReturnToMenu = new XNAClientButton(WindowManager);
             btnReturnToMenu.Name = nameof(btnReturnToMenu);
             btnReturnToMenu.ClientRectangle = new Rectangle(270, 486, UIDesignConstants.BUTTON_WIDTH_160, UIDesignConstants.BUTTON_HEIGHT);
-            btnReturnToMenu.Text = "Return to Main Menu";
+            btnReturnToMenu.Text = "Return to Main Menu".L10N("UI:Main:ReturnToMainMenu");
             btnReturnToMenu.LeftClick += BtnReturnToMenu_LeftClick;
 
             var btnClearStatistics = new XNAClientButton(WindowManager);
             btnClearStatistics.Name = nameof(btnClearStatistics);
             btnClearStatistics.ClientRectangle = new Rectangle(12, 486, UIDesignConstants.BUTTON_WIDTH_160, UIDesignConstants.BUTTON_HEIGHT);
-            btnClearStatistics.Text = "Clear Statistics";
+            btnClearStatistics.Text = "Clear Statistics".L10N("UI:Main:ClearStatistics");
             btnClearStatistics.LeftClick += BtnClearStatistics_LeftClick;
             btnClearStatistics.Visible = false;
 
@@ -143,7 +144,7 @@ namespace DTAClient.DXGUI.Generic
 
             AddChild(chkIncludeSpectatedGames);
             chkIncludeSpectatedGames.Name = nameof(chkIncludeSpectatedGames);
-            chkIncludeSpectatedGames.Text = "Include spectated games";
+            chkIncludeSpectatedGames.Text = "Include spectated games".L10N("UI:Main:IncludeSpectated");
             chkIncludeSpectatedGames.Checked = true;
             chkIncludeSpectatedGames.ClientRectangle = new Rectangle(
                 Width - chkIncludeSpectatedGames.Width - 12,
@@ -163,7 +164,7 @@ namespace DTAClient.DXGUI.Generic
 
             XNALabel lblGames = new XNALabel(WindowManager);
             lblGames.Name = nameof(lblGames);
-            lblGames.Text = "GAMES:";
+            lblGames.Text = "GAMES:".L10N("UI:Main:GameMatches");
             lblGames.FontIndex = 1;
             lblGames.ClientRectangle = new Rectangle(4, 2, 0, 0);
 
@@ -172,12 +173,12 @@ namespace DTAClient.DXGUI.Generic
             lbGameList.ClientRectangle = new Rectangle(2, 25, 676, 250);
             lbGameList.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 128), 1, 1);
             lbGameList.PanelBackgroundDrawMode = PanelBackgroundImageDrawMode.STRETCHED;
-            lbGameList.AddColumn("DATE / TIME", 130);
-            lbGameList.AddColumn("MAP", 200);
-            lbGameList.AddColumn("GAME MODE", 130);
-            lbGameList.AddColumn("FPS", 50);
-            lbGameList.AddColumn("DURATION", 76);
-            lbGameList.AddColumn("COMPLETED", 90);
+            lbGameList.AddColumn("DATE / TIME".L10N("UI:Main:GameMatchDateTimeColumnHeader"), 130);
+            lbGameList.AddColumn("MAP".L10N("UI:Main:GameMatchMapColumnHeader"), 200);
+            lbGameList.AddColumn("GAME MODE".L10N("UI:Main:GameMatchGameModeColumnHeader"), 130);
+            lbGameList.AddColumn("FPS".L10N("UI:Main:GameMatchFPSColumnHeader"), 50);
+            lbGameList.AddColumn("DURATION".L10N("UI:Main:GameMatchDurationColumnHeader"), 76);
+            lbGameList.AddColumn("COMPLETED".L10N("UI:Main:GameMatchCompletedColumnHeader"), 90);
             lbGameList.SelectedIndexChanged += LbGameList_SelectedIndexChanged;
             lbGameList.AllowKeyboardInput = true;
 
@@ -186,14 +187,14 @@ namespace DTAClient.DXGUI.Generic
             lbGameStatistics.ClientRectangle = new Rectangle(2, 280, 676, 143);
             lbGameStatistics.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 128), 1, 1);
             lbGameStatistics.PanelBackgroundDrawMode = PanelBackgroundImageDrawMode.STRETCHED;
-            lbGameStatistics.AddColumn("NAME", 130);
-            lbGameStatistics.AddColumn("KILLS", 78);
-            lbGameStatistics.AddColumn("LOSSES", 78);
+            lbGameStatistics.AddColumn("NAME".L10N("UI:Main:StatisticsName"), 130);
+            lbGameStatistics.AddColumn("KILLS".L10N("UI:Main:StatisticsKills"), 78);
+            lbGameStatistics.AddColumn("LOSSES".L10N("UI:Main:StatisticsLosses"), 78);
             lbGameStatistics.AddColumn(strLblEconomy, 80);
-            lbGameStatistics.AddColumn("SCORE", 100);
-            lbGameStatistics.AddColumn("WON", 50);
-            lbGameStatistics.AddColumn("SIDE", 100);
-            lbGameStatistics.AddColumn("TEAM", 60);
+            lbGameStatistics.AddColumn("SCORE".L10N("UI:Main:StatisticsScore"), 100);
+            lbGameStatistics.AddColumn("WON".L10N("UI:Main:StatisticsWon"), 50);
+            lbGameStatistics.AddColumn("SIDE".L10N("UI:Main:StatisticsSide"), 100);
+            lbGameStatistics.AddColumn("TEAM".L10N("UI:Main:StatisticsTeam"), 60);
 
             panelGameStatistics.AddChild(lblGames);
             panelGameStatistics.AddChild(lbGameList);
@@ -214,7 +215,7 @@ namespace DTAClient.DXGUI.Generic
 
             int locationY = TOTAL_STATS_FIRST_ITEM_Y;
 
-            AddTotalStatisticsLabel("lblGamesStarted", "Games started:", new Point(TOTAL_STATS_LOCATION_X1, locationY));
+            AddTotalStatisticsLabel("lblGamesStarted", "Games started:".L10N("UI:Main:StatisticsGamesStarted"), new Point(TOTAL_STATS_LOCATION_X1, locationY));
 
             lblGamesStartedValue = new XNALabel(WindowManager);
             lblGamesStartedValue.Name = "lblGamesStartedValue";
@@ -222,7 +223,7 @@ namespace DTAClient.DXGUI.Generic
             lblGamesStartedValue.RemapColor = UISettings.ActiveSettings.AltColor;
             locationY += TOTAL_STATS_Y_INCREASE;
 
-            AddTotalStatisticsLabel("lblGamesFinished", "Games finished:", new Point(TOTAL_STATS_LOCATION_X1, locationY));
+            AddTotalStatisticsLabel("lblGamesFinished", "Games finished:".L10N("UI:Main:StatisticsGamesFinished"), new Point(TOTAL_STATS_LOCATION_X1, locationY));
 
             lblGamesFinishedValue = new XNALabel(WindowManager);
             lblGamesFinishedValue.Name = "lblGamesFinishedValue";
@@ -230,7 +231,7 @@ namespace DTAClient.DXGUI.Generic
             lblGamesFinishedValue.RemapColor = UISettings.ActiveSettings.AltColor;
             locationY += TOTAL_STATS_Y_INCREASE;
 
-            AddTotalStatisticsLabel("lblWins", "Wins:", new Point(TOTAL_STATS_LOCATION_X1, locationY));
+            AddTotalStatisticsLabel("lblWins", "Wins:".L10N("UI:Main:StatisticsGamesWins"), new Point(TOTAL_STATS_LOCATION_X1, locationY));
 
             lblWinsValue = new XNALabel(WindowManager);
             lblWinsValue.Name = "lblWinsValue";
@@ -238,7 +239,7 @@ namespace DTAClient.DXGUI.Generic
             lblWinsValue.RemapColor = UISettings.ActiveSettings.AltColor;
             locationY += TOTAL_STATS_Y_INCREASE;
 
-            AddTotalStatisticsLabel("lblLosses", "Losses:", new Point(TOTAL_STATS_LOCATION_X1, locationY));
+            AddTotalStatisticsLabel("lblLosses", "Losses:".L10N("UI:Main:StatisticsGamesLosses"), new Point(TOTAL_STATS_LOCATION_X1, locationY));
 
             lblLossesValue = new XNALabel(WindowManager);
             lblLossesValue.Name = "lblLossesValue";
@@ -246,7 +247,7 @@ namespace DTAClient.DXGUI.Generic
             lblLossesValue.RemapColor = UISettings.ActiveSettings.AltColor;
             locationY += TOTAL_STATS_Y_INCREASE;
 
-            AddTotalStatisticsLabel("lblWinLossRatio", "Win / Loss ratio:", new Point(TOTAL_STATS_LOCATION_X1, locationY));
+            AddTotalStatisticsLabel("lblWinLossRatio", "Win / Loss ratio:".L10N("UI:Main:StatisticsGamesWinLossRatio"), new Point(TOTAL_STATS_LOCATION_X1, locationY));
 
             lblWinLossRatioValue = new XNALabel(WindowManager);
             lblWinLossRatioValue.Name = "lblWinLossRatioValue";
@@ -254,7 +255,7 @@ namespace DTAClient.DXGUI.Generic
             lblWinLossRatioValue.RemapColor = UISettings.ActiveSettings.AltColor;
             locationY += TOTAL_STATS_Y_INCREASE;
 
-            AddTotalStatisticsLabel("lblAverageGameLength", "Average game length:", new Point(TOTAL_STATS_LOCATION_X1, locationY));
+            AddTotalStatisticsLabel("lblAverageGameLength", "Average game length:".L10N("UI:Main:StatisticsGamesLengthAvg"), new Point(TOTAL_STATS_LOCATION_X1, locationY));
 
             lblAverageGameLengthValue = new XNALabel(WindowManager);
             lblAverageGameLengthValue.Name = "lblAverageGameLengthValue";
@@ -262,7 +263,7 @@ namespace DTAClient.DXGUI.Generic
             lblAverageGameLengthValue.RemapColor = UISettings.ActiveSettings.AltColor;
             locationY += TOTAL_STATS_Y_INCREASE;
 
-            AddTotalStatisticsLabel("lblTotalTimePlayed", "Total time played:", new Point(TOTAL_STATS_LOCATION_X1, locationY));
+            AddTotalStatisticsLabel("lblTotalTimePlayed", "Total time played:".L10N("UI:Main:StatisticsTotalTimePlayed"), new Point(TOTAL_STATS_LOCATION_X1, locationY));
 
             lblTotalTimePlayedValue = new XNALabel(WindowManager);
             lblTotalTimePlayedValue.Name = "lblTotalTimePlayedValue";
@@ -270,7 +271,7 @@ namespace DTAClient.DXGUI.Generic
             lblTotalTimePlayedValue.RemapColor = UISettings.ActiveSettings.AltColor;
             locationY += TOTAL_STATS_Y_INCREASE;
 
-            AddTotalStatisticsLabel("lblAverageEnemyCount", "Average number of enemies:", new Point(TOTAL_STATS_LOCATION_X1, locationY));
+            AddTotalStatisticsLabel("lblAverageEnemyCount", "Average number of enemies:".L10N("UI:Main:StatisticsEnemiesAvg"), new Point(TOTAL_STATS_LOCATION_X1, locationY));
 
             lblAverageEnemyCountValue = new XNALabel(WindowManager);
             lblAverageEnemyCountValue.Name = "lblAverageEnemyCountValue";
@@ -278,7 +279,7 @@ namespace DTAClient.DXGUI.Generic
             lblAverageEnemyCountValue.RemapColor = UISettings.ActiveSettings.AltColor;
             locationY += TOTAL_STATS_Y_INCREASE;
 
-            AddTotalStatisticsLabel("lblAverageAllyCount", "Average number of allies:", new Point(TOTAL_STATS_LOCATION_X1, locationY));
+            AddTotalStatisticsLabel("lblAverageAllyCount", "Average number of allies:".L10N("UI:Main:StatisticsAlliesAvg"), new Point(TOTAL_STATS_LOCATION_X1, locationY));
 
             lblAverageAllyCountValue = new XNALabel(WindowManager);
             lblAverageAllyCountValue.Name = "lblAverageAllyCountValue";
@@ -290,7 +291,7 @@ namespace DTAClient.DXGUI.Generic
 
             locationY = TOTAL_STATS_FIRST_ITEM_Y;
 
-            AddTotalStatisticsLabel("lblTotalKills", "Total kills:", new Point(TOTAL_STATS_LOCATION_X2, locationY));
+            AddTotalStatisticsLabel("lblTotalKills", "Total kills:".L10N("UI:Main:StatisticsTotalKills"), new Point(TOTAL_STATS_LOCATION_X2, locationY));
 
             lblTotalKillsValue = new XNALabel(WindowManager);
             lblTotalKillsValue.Name = "lblTotalKillsValue";
@@ -298,7 +299,7 @@ namespace DTAClient.DXGUI.Generic
             lblTotalKillsValue.RemapColor = UISettings.ActiveSettings.AltColor;
             locationY += TOTAL_STATS_Y_INCREASE;
 
-            AddTotalStatisticsLabel("lblKillsPerGame", "Kills / game:", new Point(TOTAL_STATS_LOCATION_X2, locationY));
+            AddTotalStatisticsLabel("lblKillsPerGame", "Kills / game:".L10N("UI:Main:StatisticsKillsPerGame"), new Point(TOTAL_STATS_LOCATION_X2, locationY));
 
             lblKillsPerGameValue = new XNALabel(WindowManager);
             lblKillsPerGameValue.Name = "lblKillsPerGameValue";
@@ -306,7 +307,7 @@ namespace DTAClient.DXGUI.Generic
             lblKillsPerGameValue.RemapColor = UISettings.ActiveSettings.AltColor;
             locationY += TOTAL_STATS_Y_INCREASE;
 
-            AddTotalStatisticsLabel("lblTotalLosses", "Total losses:", new Point(TOTAL_STATS_LOCATION_X2, locationY));
+            AddTotalStatisticsLabel("lblTotalLosses", "Total losses:".L10N("UI:Main:StatisticsTotalLosses"), new Point(TOTAL_STATS_LOCATION_X2, locationY));
 
             lblTotalLossesValue = new XNALabel(WindowManager);
             lblTotalLossesValue.Name = "lblTotalLossesValue";
@@ -314,7 +315,7 @@ namespace DTAClient.DXGUI.Generic
             lblTotalLossesValue.RemapColor = UISettings.ActiveSettings.AltColor;
             locationY += TOTAL_STATS_Y_INCREASE;
 
-            AddTotalStatisticsLabel("lblLossesPerGame", "Losses / game:", new Point(TOTAL_STATS_LOCATION_X2, locationY));
+            AddTotalStatisticsLabel("lblLossesPerGame", "Losses / game:".L10N("UI:Main:StatisticsLossesPerGame"), new Point(TOTAL_STATS_LOCATION_X2, locationY));
 
             lblLossesPerGameValue = new XNALabel(WindowManager);
             lblLossesPerGameValue.Name = "lblLossesPerGameValue";
@@ -322,7 +323,7 @@ namespace DTAClient.DXGUI.Generic
             lblLossesPerGameValue.RemapColor = UISettings.ActiveSettings.AltColor;
             locationY += TOTAL_STATS_Y_INCREASE;
 
-            AddTotalStatisticsLabel("lblKillLossRatio", "Kill / loss ratio:", new Point(TOTAL_STATS_LOCATION_X2, locationY));
+            AddTotalStatisticsLabel("lblKillLossRatio", "Kill / loss ratio:".L10N("UI:Main:StatisticsKillLossRatio"), new Point(TOTAL_STATS_LOCATION_X2, locationY));
 
             lblKillLossRatioValue = new XNALabel(WindowManager);
             lblKillLossRatioValue.Name = "lblKillLossRatioValue";
@@ -330,7 +331,7 @@ namespace DTAClient.DXGUI.Generic
             lblKillLossRatioValue.RemapColor = UISettings.ActiveSettings.AltColor;
             locationY += TOTAL_STATS_Y_INCREASE;
 
-            AddTotalStatisticsLabel("lblTotalScore", "Total score:", new Point(TOTAL_STATS_LOCATION_X2, locationY));
+            AddTotalStatisticsLabel("lblTotalScore", "Total score:".L10N("UI:Main:TotalScore"), new Point(TOTAL_STATS_LOCATION_X2, locationY));
 
             lblTotalScoreValue = new XNALabel(WindowManager);
             lblTotalScoreValue.Name = "lblTotalScoreValue";
@@ -346,7 +347,7 @@ namespace DTAClient.DXGUI.Generic
             lblAverageEconomyValue.RemapColor = UISettings.ActiveSettings.AltColor;
             locationY += TOTAL_STATS_Y_INCREASE;
 
-            AddTotalStatisticsLabel("lblFavouriteSide", "Favourite side:", new Point(TOTAL_STATS_LOCATION_X2, locationY));
+            AddTotalStatisticsLabel("lblFavouriteSide", "Favourite side:".L10N("UI:Main:FavouriteSide"), new Point(TOTAL_STATS_LOCATION_X2, locationY));
 
             lblFavouriteSideValue = new XNALabel(WindowManager);
             lblFavouriteSideValue.Name = "lblFavouriteSideValue";
@@ -354,7 +355,7 @@ namespace DTAClient.DXGUI.Generic
             lblFavouriteSideValue.RemapColor = UISettings.ActiveSettings.AltColor;
             locationY += TOTAL_STATS_Y_INCREASE;
 
-            AddTotalStatisticsLabel("lblAverageAILevel", "Average AI level:", new Point(TOTAL_STATS_LOCATION_X2, locationY));
+            AddTotalStatisticsLabel("lblAverageAILevel", "Average AI level:".L10N("UI:Main:AvgAILevel"), new Point(TOTAL_STATS_LOCATION_X2, locationY));
 
             lblAverageAILevelValue = new XNALabel(WindowManager);
             lblAverageAILevelValue.Name = "lblAverageAILevelValue";
@@ -506,7 +507,7 @@ namespace DTAClient.DXGUI.Generic
                     items.Add(new XNAListBoxItem("-", textColor));
                     items.Add(new XNAListBoxItem("-", textColor));
                     XNAListBoxItem spectatorItem = new XNAListBoxItem();
-                    spectatorItem.Text = "Spectator";
+                    spectatorItem.Text = "Spectator".L10N("UI:Main:Spectator");
                     spectatorItem.TextColor = textColor;
                     spectatorItem.Texture = sideTextures[sideTextures.Length - 1];
                     items.Add(spectatorItem);
@@ -535,7 +536,7 @@ namespace DTAClient.DXGUI.Generic
                     }
 
                     if (ps.Side == 0 || ps.Side > sides.Length)
-                        items.Add(new XNAListBoxItem("Unknown", textColor));
+                        items.Add(new XNAListBoxItem("Unknown".L10N("UI:Main:UnknownSide"), textColor));
                     else
                     {
                         XNAListBoxItem sideItem = new XNAListBoxItem();
@@ -564,31 +565,22 @@ namespace DTAClient.DXGUI.Generic
 
         private string TeamIndexToString(int teamIndex)
         {
-            switch (teamIndex)
-            {
-                case 1:
-                    return "A";
-                case 2:
-                    return "B";
-                case 3:
-                    return "C";
-                case 4:
-                    return "D";
-                default:
-                    return "-";
-            }
+            if (teamIndex < 0 || teamIndex >= ProgramConstants.TEAMS.Count)
+                return "-";
+
+            return ProgramConstants.TEAMS[teamIndex - 1];
         }
 
-#region Statistics reading / game listing code
+        #region Statistics reading / game listing code
 
-        void ReadStatistics()
+        private void ReadStatistics()
         {
             StatisticsManager sm = StatisticsManager.Instance;
 
             sm.ReadStatistics(ProgramConstants.GamePath);
         }
 
-        void ListGameModes()
+        private void ListGameModes()
         {
             int gameCount = sm.GetMatchCount();
 
@@ -596,7 +588,7 @@ namespace DTAClient.DXGUI.Generic
 
             cmbGameModeFilter.Items.Clear();
 
-            cmbGameModeFilter.AddItem("All");
+            cmbGameModeFilter.AddItem("All".L10N("UI:Main:All"));
 
             for (int i = 0; i < gameCount; i++)
             {
@@ -613,7 +605,7 @@ namespace DTAClient.DXGUI.Generic
             cmbGameModeFilter.SelectedIndex = 0;
         }
 
-        void ListGames()
+        private void ListGames()
         {
             lbGameList.SelectedIndex = -1;
             lbGameList.SetTopIndex(0);
@@ -957,11 +949,11 @@ namespace DTAClient.DXGUI.Generic
             lblFavouriteSideValue.Text = sides[GetHighestIndex(sideGameCounts)];
 
             if (numEasyAIs >= numMediumAIs && numEasyAIs >= numHardAIs)
-                lblAverageAILevelValue.Text = "Easy";
+                lblAverageAILevelValue.Text = "Easy".L10N("UI:Main:EasyAI");
             else if (numMediumAIs >= numEasyAIs && numMediumAIs >= numHardAIs)
-                lblAverageAILevelValue.Text = "Medium";
+                lblAverageAILevelValue.Text = "Medium".L10N("UI:Main:MediumAI");
             else
-                lblAverageAILevelValue.Text = "Hard";
+                lblAverageAILevelValue.Text = "Hard".L10N("UI:Main:HardAI");
         }
 
         private PlayerStatistics FindLocalPlayer(MatchStatistics ms)
@@ -1015,10 +1007,10 @@ namespace DTAClient.DXGUI.Generic
 
         private void BtnClearStatistics_LeftClick(object sender, EventArgs e)
         {
-            var msgBox = new XNAMessageBox(WindowManager, "Clear all statistics",
-                "All statistics data will be cleared from the database." +
+            var msgBox = new XNAMessageBox(WindowManager, "Clear all statistics".L10N("UI:Main:ClearStatisticsTitle"),
+                ("All statistics data will be cleared from the database." +
                 Environment.NewLine + Environment.NewLine +
-                "Are you sure you want to continue?", XNAMessageBoxButtons.YesNo);
+                "Are you sure you want to continue?").L10N("UI:Main:ClearStatisticsText"), XNAMessageBoxButtons.YesNo);
             msgBox.Show();
             msgBox.YesClickedAction = ClearStatisticsConfirmation_YesClicked;
         }

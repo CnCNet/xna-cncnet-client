@@ -26,6 +26,8 @@ namespace DTAClient.Domain.Multiplayer
         /// </summary>
         public List<GameMode> GameModes = new List<GameMode>();
 
+        public GameModeMapCollection GameModeMaps;
+
         /// <summary>
         /// An event that is fired when the maps have been loaded.
         /// </summary>
@@ -68,6 +70,7 @@ namespace DTAClient.Domain.Multiplayer
             LoadCustomMaps();
 
             GameModes.RemoveAll(g => g.Maps.Count < 1);
+            GameModeMaps = new GameModeMapCollection(GameModes);
 
             MapLoadingComplete?.Invoke(this, EventArgs.Empty);
         }
@@ -146,7 +149,7 @@ namespace DTAClient.Domain.Multiplayer
                 Logger.Log("Custom maps directory does not exist!");
                 return;
             }
-            
+
             string[] mapFiles = Directory.GetFiles(ProgramConstants.GamePath + CUSTOM_MAPS_DIRECTORY, "*.map");
             ConcurrentDictionary<string, Map> customMapCache = LoadCustomMapCache();
             var localMapSHAs = new List<string>();
@@ -185,7 +188,7 @@ namespace DTAClient.Domain.Multiplayer
                 AddMapToGameModes(map, false);
             }
         }
-        
+
         /// <summary>
         /// Save cache of custom maps.
         /// </summary>
@@ -198,7 +201,7 @@ namespace DTAClient.Domain.Multiplayer
                 Version = CurrentCustomMapCacheVersion
             };
             var jsonData = JsonConvert.SerializeObject(customMapCache);
-            
+
             File.WriteAllText(CUSTOM_MAPS_CACHE, jsonData);
         }
 
@@ -264,6 +267,8 @@ namespace DTAClient.Domain.Multiplayer
                 Logger.Log("LoadCustomMap: Map " + mapPath + " added succesfully.");
 
                 AddMapToGameModes(map, true);
+                var gameModes = GameModes.Where(gm => gm.Maps.Contains(map));
+                GameModeMaps.AddRange(gameModes.Select(gm => new GameModeMap(gm, map, false)));
 
                 resultMessage = $"Map {mapPath} loaded succesfully.";
 
@@ -274,6 +279,18 @@ namespace DTAClient.Domain.Multiplayer
             resultMessage = $"Loading map {mapPath} failed!";
 
             return null;
+        }
+
+        public void DeleteCustomMap(GameModeMap gameModeMap)
+        {
+            Logger.Log("Deleting map " + gameModeMap.Map.Name);
+            File.Delete(gameModeMap.Map.CompleteFilePath);
+            foreach (GameMode gameMode in GameModeMaps.GameModes)
+            {
+                gameMode.Maps.Remove(gameModeMap.Map);
+            }
+
+            GameModeMaps.Remove(gameModeMap);
         }
 
         /// <summary>

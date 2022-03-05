@@ -7,6 +7,7 @@ using System.Security.AccessControl;
 using System.Security.Principal;
 using System.Threading;
 using System.Collections.Generic;
+using Localization;
 
 namespace DTAClient
 {
@@ -66,6 +67,7 @@ namespace DTAClient
             "ClientGUI",
             "ClientCore",
             "DTAConfig",
+            "Localization",
             "MonoGame.Framework",
             "Rampastring.XNAUI",
             "Sdl",
@@ -93,7 +95,7 @@ namespace DTAClient
                 {
                     case "-NOAUDIO":
                         // TODO fix
-                        throw new NotImplementedException("-NOAUDIO is currently not implemented, please run the client without it.");
+                        throw new NotImplementedException("-NOAUDIO is currently not implemented, please run the client without it.".L10N("UI:Main:NoAudio"));
                     case "-MULTIPLEINSTANCE":
                         multipleInstanceMode = true;
                         break;

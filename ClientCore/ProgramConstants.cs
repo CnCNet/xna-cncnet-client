@@ -1,5 +1,8 @@
-﻿using System;
+﻿using Localization;
+using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 
@@ -76,19 +79,15 @@ namespace ClientCore
 
         public static string GetAILevelName(int aiLevel)
         {
-            switch (aiLevel)
-            {
-                case 3:
-                    return "Brutal AI";
-                case 2:
-                    return "Hard AI";
-                case 1:
-                    return "Medium AI";
-                case 0:
-                    return "Easy AI";
-                default:
-                    return string.Empty;
-            }
+            if (aiLevel > 0 && aiLevel < AI_PLAYER_NAMES.Count)
+                return AI_PLAYER_NAMES[aiLevel];
+
+            return "";
         }
+
+        public static readonly List<string> TEAMS = new List<string> { "A", "B", "C", "D" };
+
+        // Static fields might be initialized before the translation file is loaded. Change to readonly properties here.
+        public static List<string> AI_PLAYER_NAMES => new List<string> { "Easy AI".L10N("UI:Main:EasyAIName"), "Medium AI".L10N("UI:Main:MediumAIName"), "Hard AI".L10N("UI:Main:HardAIName"), "Brutal AI".L10N("UI:Main:BrutalAIName") };
     }
 }

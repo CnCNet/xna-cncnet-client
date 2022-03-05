@@ -9,6 +9,7 @@ using System.IO;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Linq;
+using Localization;
 
 namespace DTAClient.DXGUI
 {
@@ -54,7 +55,7 @@ namespace DTAClient.DXGUI
             window.ClientRectangle = new Rectangle(0, 0, 200, 100);
 
             XNALabel explanation = new XNALabel(WindowManager);
-            explanation.Text = "A game is in progress.";
+            explanation.Text = "A game is in progress.".L10N("UI:Main:GameInProgress");
 
             AddChild(window);
 

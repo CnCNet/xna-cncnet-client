@@ -1,6 +1,7 @@
 ﻿using System;
 using ClientCore;
 using ClientGUI;
+using Localization;
 using Microsoft.Xna.Framework;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
@@ -33,14 +34,14 @@ namespace DTAClient.DXGUI.Multiplayer
 
             var lblTitle = new XNALabel(WindowManager);
             lblTitle.Name = nameof(lblTitle);
-            lblTitle.Text = "Game Filters";
+            lblTitle.Text = "Game Filters".L10N("UI:Main:GameFilters");
             lblTitle.ClientRectangle = new Rectangle(
                 gap, gap, 120, UIDesignConstants.BUTTON_HEIGHT
             );
 
             chkBoxFriendsOnly = new XNAClientCheckBox(WindowManager);
             chkBoxFriendsOnly.Name = nameof(chkBoxFriendsOnly);
-            chkBoxFriendsOnly.Text = "Show Friend Games Only";
+            chkBoxFriendsOnly.Text = "Show Friend Games Only".L10N("UI:Main:FriendGameOnly");
             chkBoxFriendsOnly.ClientRectangle = new Rectangle(
                 gap, lblTitle.Y + UIDesignConstants.BUTTON_HEIGHT + gap,
                 0, 0
@@ -48,7 +49,7 @@ namespace DTAClient.DXGUI.Multiplayer
 
             chkBoxHideLockedGames = new XNAClientCheckBox(WindowManager);
             chkBoxHideLockedGames.Name = nameof(chkBoxHideLockedGames);
-            chkBoxHideLockedGames.Text = "Hide Locked Games";
+            chkBoxHideLockedGames.Text = "Hide Locked Games".L10N("UI:Main:HideLockedGame");
             chkBoxHideLockedGames.ClientRectangle = new Rectangle(
                 gap, chkBoxFriendsOnly.Y + UIDesignConstants.BUTTON_HEIGHT + gap,
                 0, 0
@@ -56,7 +57,7 @@ namespace DTAClient.DXGUI.Multiplayer
 
             chkBoxHidePasswordedGames = new XNAClientCheckBox(WindowManager);
             chkBoxHidePasswordedGames.Name = nameof(chkBoxHidePasswordedGames);
-            chkBoxHidePasswordedGames.Text = "Hide Passworded Games";
+            chkBoxHidePasswordedGames.Text = "Hide Passworded Games".L10N("UI:Main:HidePasswordGame");
             chkBoxHidePasswordedGames.ClientRectangle = new Rectangle(
                 gap, chkBoxHideLockedGames.Y + UIDesignConstants.BUTTON_HEIGHT + gap,
                 0, 0
@@ -64,7 +65,7 @@ namespace DTAClient.DXGUI.Multiplayer
 
             chkBoxHideIncompatibleGames = new XNAClientCheckBox(WindowManager);
             chkBoxHideIncompatibleGames.Name = nameof(chkBoxHideIncompatibleGames);
-            chkBoxHideIncompatibleGames.Text = "Hide Incompatible Games";
+            chkBoxHideIncompatibleGames.Text = "Hide Incompatible Games".L10N("UI:Main:HideIncompatibleGame");
             chkBoxHideIncompatibleGames.ClientRectangle = new Rectangle(
                 gap, chkBoxHidePasswordedGames.Y + UIDesignConstants.BUTTON_HEIGHT + gap,
                 0, 0
@@ -76,14 +77,14 @@ namespace DTAClient.DXGUI.Multiplayer
                 gap, chkBoxHideIncompatibleGames.Y + UIDesignConstants.BUTTON_HEIGHT + gap,
                 40, UIDesignConstants.BUTTON_HEIGHT
             );
-            for (var i = minPlayerCount; i <= maxPlayerCount; i++)
+            for (int i = minPlayerCount; i <= maxPlayerCount; i++)
             {
                 ddMaxPlayerCount.AddItem(i.ToString());
             }
 
             var lblMaxPlayerCount = new XNALabel(WindowManager);
             lblMaxPlayerCount.Name = nameof(lblMaxPlayerCount);
-            lblMaxPlayerCount.Text = "Max Player Count";
+            lblMaxPlayerCount.Text = "Max Player Count".L10N("UI:Main:MaxPlayerCount");
             lblMaxPlayerCount.ClientRectangle = new Rectangle(
                 ddMaxPlayerCount.X + ddMaxPlayerCount.Width + gap, ddMaxPlayerCount.Y,
                 0, UIDesignConstants.BUTTON_HEIGHT
@@ -91,7 +92,7 @@ namespace DTAClient.DXGUI.Multiplayer
 
             var btnResetDefaults = new XNAClientButton(WindowManager);
             btnResetDefaults.Name = nameof(btnResetDefaults);
-            btnResetDefaults.Text = "Reset Defaults";
+            btnResetDefaults.Text = "Reset Defaults".L10N("UI:Main:ResetDefaults");
             btnResetDefaults.ClientRectangle = new Rectangle(
                 gap, ddMaxPlayerCount.Y + UIDesignConstants.BUTTON_HEIGHT + gap,
                 UIDesignConstants.BUTTON_WIDTH_133, UIDesignConstants.BUTTON_HEIGHT
@@ -100,7 +101,7 @@ namespace DTAClient.DXGUI.Multiplayer
 
             var btnSave = new XNAClientButton(WindowManager);
             btnSave.Name = nameof(btnSave);
-            btnSave.Text = "Save";
+            btnSave.Text = "Save".L10N("UI:Main:ButtonSave");
             btnSave.ClientRectangle = new Rectangle(
                 gap, btnResetDefaults.Y + UIDesignConstants.BUTTON_HEIGHT + gap,
                 UIDesignConstants.BUTTON_WIDTH_92, UIDesignConstants.BUTTON_HEIGHT
@@ -109,7 +110,7 @@ namespace DTAClient.DXGUI.Multiplayer
 
             var btnCancel = new XNAClientButton(WindowManager);
             btnCancel.Name = nameof(btnCancel);
-            btnCancel.Text = "Cancel";
+            btnCancel.Text = "Cancel".L10N("UI:Main:ButtonCancel");
             btnCancel.ClientRectangle = new Rectangle(
                 Width - gap - UIDesignConstants.BUTTON_WIDTH_92, btnSave.Y,
                 UIDesignConstants.BUTTON_WIDTH_92, UIDesignConstants.BUTTON_HEIGHT

@@ -3,6 +3,7 @@ using System;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
 using Microsoft.Xna.Framework;
+using Localization;
 
 namespace DTAClient.DXGUI.Generic
 {
@@ -24,15 +25,15 @@ namespace DTAClient.DXGUI.Generic
             lblCheater.Name = "lblCheater";
             lblCheater.ClientRectangle = new Rectangle(0, 0, 0, 0);
             lblCheater.FontIndex = 1;
-            lblCheater.Text = "CHEATER!";
+            lblCheater.Text = "CHEATER!".L10N("UI:Main:Cheater");
 
             var lblDescription = new XNALabel(WindowManager);
             lblDescription.Name = "lblDescription";
             lblDescription.ClientRectangle = new Rectangle(12, 40, 0, 0);
-            lblDescription.Text = "Modified game files have been detected. They could affect" + Environment.NewLine + 
+            lblDescription.Text = ("Modified game files have been detected. They could affect" + Environment.NewLine + 
                 "the game experience." +
                 Environment.NewLine + Environment.NewLine +
-                "Do you really lack the skill for winning the mission without" + Environment.NewLine + "cheating?";
+                "Do you really lack the skill for winning the mission without" + Environment.NewLine + "cheating?").L10N("UI:Main:CheaterText");
 
             var imagePanel = new XNAPanel(WindowManager);
             imagePanel.Name = "imagePanel";
@@ -46,14 +47,14 @@ namespace DTAClient.DXGUI.Generic
             btnCancel.Name = "btnCancel";
             btnCancel.ClientRectangle = new Rectangle(Width - 104,
                 Height - 35, UIDesignConstants.BUTTON_WIDTH_92, UIDesignConstants.BUTTON_HEIGHT);
-            btnCancel.Text = "Cancel";
+            btnCancel.Text = "Cancel".L10N("UI:Main:ButtonCancel");
             btnCancel.LeftClick += BtnCancel_LeftClick;
 
             var btnYes = new XNAClientButton(WindowManager);
             btnYes.Name = "btnYes";
             btnYes.ClientRectangle = new Rectangle(12, btnCancel.Y,
                 btnCancel.Width, btnCancel.Height);
-            btnYes.Text = "Yes";
+            btnYes.Text = "Yes".L10N("UI:Main:ButtonYes");
             btnYes.LeftClick += BtnYes_LeftClick;
 
             AddChild(lblCheater);

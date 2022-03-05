@@ -430,6 +430,8 @@
     <Compile Include="Domain\Multiplayer\CnCNet\HostedCnCNetGame.cs" />
     <Compile Include="Domain\Multiplayer\CnCNet\MapEventArgs.cs" />
     <Compile Include="Domain\Multiplayer\CnCNet\MapSharer.cs" />
+    <Compile Include="Domain\Multiplayer\GameModeMap.cs" />
+    <Compile Include="Domain\Multiplayer\GameModeMapCollection.cs" />
     <Compile Include="Domain\Multiplayer\GameOptionPresets.cs" />
     <Compile Include="Domain\Multiplayer\LAN\ClientIntCommandHandler.cs" />
     <Compile Include="Domain\Multiplayer\LAN\LANLobbyUser.cs" />
@@ -440,12 +442,15 @@
     <Compile Include="Domain\Multiplayer\LAN\LANServerCommandHandler.cs" />
     <Compile Include="Domain\Multiplayer\LAN\ServerNoParamCommandHandler.cs" />
     <Compile Include="Domain\Multiplayer\LAN\ServerStringCommandHandler.cs" />
+    <Compile Include="Domain\Multiplayer\PlayerExtraOptions.cs" />
+    <Compile Include="Domain\Multiplayer\TeamStartMapping.cs" />
     <Compile Include="Domain\Multiplayer\MapPreviewExtractor.cs" />
     <Compile Include="Domain\Multiplayer\SavedGamePlayer.cs" />
     <Compile Include="Domain\Multiplayer\CnCNet\SHA1EventArgs.cs" />
     <Compile Include="Domain\Multiplayer\GenericHostedGame.cs" />
     <Compile Include="Domain\Multiplayer\LAN\LANColor.cs" />
     <Compile Include="Domain\Multiplayer\LAN\HostedLANGame.cs" />
+    <Compile Include="Domain\Multiplayer\TeamStartMappingPreset.cs" />
     <Compile Include="Domain\StatisticsSender.cs" />
     <Compile Include="DXGUI\Generic\CheaterWindow.cs" />
     <Compile Include="Domain\Multiplayer\Map.cs" />
@@ -493,6 +498,7 @@
     <Compile Include="DXGUI\Multiplayer\GameLobby\CommandHandlers\NotificationHandler.cs" />
     <Compile Include="DXGUI\Multiplayer\GameLobby\CoopBriefingBox.cs" />
     <Compile Include="DXGUI\Multiplayer\GameLobby\DropDownDataWriteMode.cs" />
+    <Compile Include="DXGUI\Multiplayer\GameLobby\GameModeMapFilter.cs" />
     <Compile Include="DXGUI\Multiplayer\GameLobby\GameLaunchButton.cs" />
     <Compile Include="DXGUI\Multiplayer\GameLobby\GameLobbyBase.cs" />
     <Compile Include="DXGUI\Multiplayer\GameLobby\GameLobbyCheckBox.cs" />
@@ -514,7 +520,10 @@
     <Compile Include="DXGUI\Multiplayer\CnCNet\PrivateMessageNotificationBox.cs" />
     <Compile Include="DXGUI\Multiplayer\CnCNet\PrivateMessagingPanel.cs" />
     <Compile Include="DXGUI\Multiplayer\CnCNet\PrivateMessagingWindow.cs" />
+    <Compile Include="DXGUI\Multiplayer\TeamStartMappingPanel.cs" />
+    <Compile Include="DXGUI\Multiplayer\PlayerExtraOptionsPanel.cs" />
     <Compile Include="DXGUI\Multiplayer\PlayerListBox.cs" />
+    <Compile Include="DXGUI\Multiplayer\TeamStartMappingsPanel.cs" />
     <Compile Include="Online\ChannelUser.cs" />
     <Compile Include="Online\CnCNetGameCheck.cs" />
     <Compile Include="Online\CnCNetUserData.cs" />
@@ -523,6 +532,7 @@
     <Compile Include="Online\EventArguments\GameOptionPresetEventArgs.cs" />
     <Compile Include="Online\EventArguments\JoinUserEventArgs.cs" />
     <Compile Include="Online\EventArguments\MultiplayerNameRightClickedEventArgs.cs" />
+    <Compile Include="Online\EventArguments\FavoriteMapEventArgs.cs" />
     <Compile Include="Online\EventArguments\PrivateCTCPEventArgs.cs" />
     <Compile Include="Online\EventArguments\PrivateMessageEventArgs.cs" />
     <Compile Include="Online\EventArguments\UnreadMessageCountEventArgs.cs" />
@@ -624,6 +634,10 @@
     <ProjectReference Include="..\DTAConfig\DTAConfig.csproj">
       <Project>{d517317d-8ea8-4225-af9e-5385d8a7f047}</Project>
       <Name>DTAConfig</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Localization\Localization.csproj">
+      <Project>{2cd114e3-c30f-4a95-9b4a-455c2c8f82e5}</Project>
+      <Name>Localization</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

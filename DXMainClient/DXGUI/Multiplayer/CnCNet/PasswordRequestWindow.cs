@@ -1,5 +1,6 @@
 ﻿using ClientGUI;
 using DTAClient.Domain.Multiplayer.CnCNet;
+using Localization;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 using Rampastring.XNAUI;
@@ -33,7 +34,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             var lblDescription = new XNALabel(WindowManager);
             lblDescription.Name = "lblDescription";
             lblDescription.ClientRectangle = new Rectangle(12, 12, 0, 0);
-            lblDescription.Text = "Please enter the password for the game and click OK.";
+            lblDescription.Text = "Please enter the password for the game and click OK.".L10N("UI:Main:EnterPasswordAndHitOK");
 
             ClientRectangle = new Rectangle(0, 0, lblDescription.Width + 24, 110);
 
@@ -46,14 +47,14 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             btnOK.Name = "btnOK";
             btnOK.ClientRectangle = new Rectangle(lblDescription.X,
                 ClientRectangle.Bottom - 35, UIDesignConstants.BUTTON_WIDTH_92, UIDesignConstants.BUTTON_HEIGHT);
-            btnOK.Text = "OK";
+            btnOK.Text = "OK".L10N("UI:Main:ButtonOK");
             btnOK.LeftClick += BtnOK_LeftClick;
 
             var btnCancel = new XNAClientButton(WindowManager);
             btnCancel.Name = "btnCancel";
             btnCancel.ClientRectangle = new Rectangle(Width - 104,
                 btnOK.Y, UIDesignConstants.BUTTON_WIDTH_92, UIDesignConstants.BUTTON_HEIGHT);
-            btnCancel.Text = "Cancel";
+            btnCancel.Text = "Cancel".L10N("UI:Main:ButtonCancel");
             btnCancel.LeftClick += BtnCancel_LeftClick;
 
             AddChild(lblDescription);
