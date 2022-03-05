@@ -33,7 +33,7 @@ Added null-check for GameMode
 We have established a couple of code style rules to keep things consistent. Please check your code style before committing the code.
 - We use spaces instead of tabs to indent code.
 - Curly braces are always to be placed on a new line. One of the reasons for this is to clearly separate the end of the code block head and body in case of multiline bodies:
-```cpp
+```cs
 if (SomeReallyLongCondition() ||
     ThatSplitsIntoMultipleLines())
 {
@@ -123,7 +123,7 @@ var list = new List<int>();
 // Not OK
 var something = 6;
 ```
-- Local variables, function/method args and private class fields are named in the `camelCase` (using a `p` prefix to denote pointer type for every pointer nesting level) and a descriptive name, like `ircUser` for a local `IrcUser` variable.
+- Local variables, function/method args and private class fields are named in `camelCase` and a descriptive name, like `ircUser` for a local `IrcUser` variable.
 - Classes, namespaces, and properties are always written in `PascalCase`.
 - Class fields that can be set via INI tags should be named exactly like ini tags with dots replaced with underscores.
 
