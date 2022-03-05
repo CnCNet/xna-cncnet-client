@@ -7,10 +7,10 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("DTA CnCNet Client UI Library")]
 [assembly: AssemblyDescription("DTA CnCNet Client UI Library")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("Rampastring")]
-[assembly: AssemblyProduct("Dawn of the Tiberium Age")]
-[assembly: AssemblyCopyright("Copyright © Rampastring 2014-2020")]
-[assembly: AssemblyTrademark("Dawn of the Tiberium Age")]
+[assembly: AssemblyCompany("CnCNet")]
+[assembly: AssemblyProduct("CnCNet Client")]
+[assembly: AssemblyCopyright("Copyright © CnCNet, Rampastring 2014-2022")]
+[assembly: AssemblyTrademark("CnCNet")]
 [assembly: AssemblyCulture("")]
 
 // Setting ComVisible to false makes the types in this assembly not visible 

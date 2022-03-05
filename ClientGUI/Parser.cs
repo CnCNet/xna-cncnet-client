@@ -1,7 +1,7 @@
 ﻿/*********************************************************************
 * Dawn of the Tiberium Age MonoGame/XNA CnCNet Client
 * Expression Parser
-* Copyright (C) Rampastring 2021
+* Copyright (C) Rampastring 2022
 * 
 * The CnCNet Client is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -47,9 +47,7 @@ namespace ClientGUI
             if (parserConstantsSection != null)
             {
                 foreach (var kvp in parserConstantsSection.Keys)
-                {
                     globalConstants.Add(kvp.Key, Conversions.IntFromString(kvp.Value, 0));
-                }
             }
 
             _instance = this;
@@ -196,7 +194,9 @@ namespace ClientGUI
                 return GetExprValue();
             }
             else
+            {
                 throw new INIConfigException("Unexpected character " + c + " when parsing input: " + Input);
+            }
         }
 
         private void SkipWhitespace()
@@ -311,12 +311,6 @@ namespace ClientGUI
             }
         }
 
-        private bool IsEndOfInput()
-        {
-            if (tokenPlace >= Input.Length)
-                return true;
-
-            return false;
-        }
+        private bool IsEndOfInput() => tokenPlace >= Input.Length;
     }
 }

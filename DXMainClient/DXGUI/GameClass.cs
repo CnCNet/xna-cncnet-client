@@ -212,16 +212,7 @@ namespace DTAClient.DXGUI
             double xRatio = (windowWidth) / (double)initialXRes;
             double yRatio = (windowHeight) / (double)initialYRes;
 
-            double ratio;
-
-            if (xRatio > yRatio)
-            {
-                ratio = yRatio;
-            }
-            else
-            {
-                ratio = xRatio;
-            }
+            double ratio = xRatio > yRatio ? yRatio : xRatio;
 
             if ((windowWidth == 1366 || windowWidth == 1360) && windowHeight == 768)
             {

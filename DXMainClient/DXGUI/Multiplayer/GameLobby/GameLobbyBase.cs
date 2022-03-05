@@ -289,10 +289,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 loadSaveGameOptionsMenu.Items.Add(loadConfigMenuItem);
                 loadSaveGameOptionsMenu.Items.Add(saveConfigMenuItem);
 
-                BtnSaveLoadGameOptions.LeftClick += (sender, args) =>
-                {
+                BtnSaveLoadGameOptions.LeftClick += (sender, args) => 
                     loadSaveGameOptionsMenu.Open(new Point(BtnSaveLoadGameOptions.X - 74, BtnSaveLoadGameOptions.Y));
-                };
 
                 AddChild(loadSaveGameOptionsMenu);
                 AddChild(loadOrSaveGameOptionPresetWindow);

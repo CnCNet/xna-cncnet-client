@@ -120,9 +120,7 @@ namespace ClientGUI
             ReadINIForControl(control);
 
             foreach (var child in control.Children)
-            {
                 ReadINIRecursive(child);
-            }
         }
 
         public override void ParseAttributeFromINI(IniFile iniFile, string key, string value)
@@ -180,9 +178,7 @@ namespace ClientGUI
                 else if (kvp.Key == "$LeftClickAction")
                 {
                     if (kvp.Value == "Disable")
-                    {
                         control.LeftClick += (s, e) => Disable();
-                    }
                 }
                 else
                 {

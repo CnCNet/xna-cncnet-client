@@ -7,9 +7,9 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("DTA Configuration DLL")]
 [assembly: AssemblyDescription("Dawn of the Tiberium Age Configuration DLL")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("Rampastring")]
+[assembly: AssemblyCompany("CnCNet")]
 [assembly: AssemblyProduct("Dawn of the Tiberium Age")]
-[assembly: AssemblyCopyright("Copyright © Rampastring & CnCNet 2021")]
+[assembly: AssemblyCopyright("Copyright © CnCNet, Rampastring 2022")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
