@@ -43,9 +43,9 @@ namespace ClientGUI
                 if (child.Name == controlName)
                     return (T)child;
 
-                XNAControl childOfChild = FindChild<T>(child.Children, controlName);
+                T childOfChild = FindChild<T>(child.Children, controlName);
                 if (childOfChild != null)
-                    return (T)childOfChild;
+                    return childOfChild;
             }
 
             return null;
