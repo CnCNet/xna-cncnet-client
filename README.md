@@ -50,7 +50,7 @@ This repository does not contain the client launcher (for example, `DTA.exe` in 
 Branches
 --------
 
-Currently there are only two major active branches. `master` is where development happens, and while things should be fairly stable, occasionally there can also be bugs. If you want stability and reliability, the `stable` branch is recommended.
+Currently there are only two major active branches. `develop` is where development happens, and while things should be fairly stable, occasionally there can also be bugs. If you want stability and reliability, the `master` branch is recommended.
 
 Screenshots
 -----------
