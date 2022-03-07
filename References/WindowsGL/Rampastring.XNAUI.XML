@@ -1600,7 +1600,6 @@
             Called on each frame while the mouse is on the control's
             client rectangle.
             </summary>
-            <param name="eventArgs">Mouse event arguments.</param>
         </member>
         <member name="M:Rampastring.XNAUI.XNAControls.XNAControl.OnMouseScrolled">
             <summary>

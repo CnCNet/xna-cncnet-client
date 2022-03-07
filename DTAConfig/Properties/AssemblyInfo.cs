@@ -7,9 +7,9 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("DTA Configuration DLL")]
 [assembly: AssemblyDescription("Dawn of the Tiberium Age Configuration DLL")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("Rampastring")]
+[assembly: AssemblyCompany("CnCNet")]
 [assembly: AssemblyProduct("Dawn of the Tiberium Age")]
-[assembly: AssemblyCopyright("Copyright © Rampastring 2019")]
+[assembly: AssemblyCopyright("Copyright © CnCNet, Rampastring 2022")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -31,5 +31,5 @@ using System.Runtime.InteropServices;
 // You can specify all the values or you can default the Build and Revision Numbers 
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("2.1.0.6")]
-[assembly: AssemblyFileVersion("2.1.0.6")]
+[assembly: AssemblyVersion("2.2.0.0")]
+[assembly: AssemblyFileVersion("2.2.0.0")]

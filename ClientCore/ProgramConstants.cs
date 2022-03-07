@@ -77,8 +77,17 @@ namespace ClientCore
         public const string GAME_INVITE_CTCP_COMMAND = "INVITE";
         public const string GAME_INVITATION_FAILED_CTCP_COMMAND = "INVITATION_FAILED";
 
+        public static string GetAILevelName(int aiLevel)
+        {
+            if (aiLevel > 0 && aiLevel < AI_PLAYER_NAMES.Count)
+                return AI_PLAYER_NAMES[aiLevel];
+
+            return "";
+        }
+
         public static readonly List<string> TEAMS = new List<string> { "A", "B", "C", "D" };
+
         // Static fields might be initialized before the translation file is loaded. Change to readonly properties here.
-        public static List<string> AI_PLAYER_NAMES => new List<string> { "Easy AI".L10N("UI:Main:EasyAIName"), "Medium AI".L10N("UI:Main:MediumAIName"), "Hard AI".L10N("UI:Main:HardAIName") };
+        public static List<string> AI_PLAYER_NAMES => new List<string> { "Easy AI".L10N("UI:Main:EasyAIName"), "Medium AI".L10N("UI:Main:MediumAIName"), "Hard AI".L10N("UI:Main:HardAIName"), "Brutal AI".L10N("UI:Main:BrutalAIName") };
     }
 }

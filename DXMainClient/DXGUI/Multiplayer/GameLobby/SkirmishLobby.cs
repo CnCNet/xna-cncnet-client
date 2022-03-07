@@ -48,8 +48,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             MapPreviewBox.LocalStartingLocationSelected += MapPreviewBox_LocalStartingLocationSelected;
             MapPreviewBox.StartingLocationApplied += MapPreviewBox_StartingLocationApplied;
 
-            InitializeWindow();
-
             WindowManager.CenterControlOnScreen(this);
 
             LoadSettings();
@@ -61,7 +59,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             ProgramConstants.PlayerNameChanged += ProgramConstants_PlayerNameChanged;
             ddPlayerSides[0].SelectedIndexChanged += PlayerSideChanged;
 
-            PlayerExtraOptionsPanel.SetIsHost(true);
+            PlayerExtraOptionsPanel?.SetIsHost(true);
         }
 
         protected override void ToggleFavoriteMap()

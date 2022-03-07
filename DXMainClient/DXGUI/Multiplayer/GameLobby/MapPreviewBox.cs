@@ -43,25 +43,69 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         public event EventHandler StartingLocationApplied;
 
-        public MapPreviewBox(WindowManager windowManager, 
-            List<PlayerInfo> players, List<PlayerInfo> aiPlayers,
-            List<MultiplayerColor> mpColors, string[] sides, IniFile gameOptionsIni)
-            : base(windowManager)
+        public MapPreviewBox(WindowManager windowManager) : base(windowManager)
+        {
+            PanelBackgroundDrawMode = PanelBackgroundImageDrawMode.STRETCHED;
+            FontIndex = 1;
+        }
+
+
+        public void SetFields(List<PlayerInfo> players, List<PlayerInfo> aiPlayers, List<MultiplayerColor> mpColors, string[] sides, IniFile gameOptionsIni)
         {
             this.players = players;
             this.aiPlayers = aiPlayers;
             this.mpColors = mpColors;
             this.sides = sides;
             this.gameOptionsIni = gameOptionsIni;
+
+            Color nameBackgroundColor = AssetLoader.GetRGBAColorFromString(
+                ClientConfiguration.Instance.MapPreviewNameBackgroundColor);
+
+            Color nameBorderColor = AssetLoader.GetRGBAColorFromString(
+                ClientConfiguration.Instance.MapPreviewNameBorderColor);
+
+            double angularVelocity = gameOptionsIni.GetDoubleValue("General", "StartingLocationAngularVelocity", 0.015);
+            double reservedAngularVelocity = gameOptionsIni.GetDoubleValue("General", "ReservedStartingLocationAngularVelocity", -0.0075);
+
+            Color hoverRemapColor = AssetLoader.GetRGBAColorFromString(ClientConfiguration.Instance.MapPreviewStartingLocationHoverRemapColor);
+
+            startingLocationIndicators = new PlayerLocationIndicator[MAX_STARTING_LOCATIONS];
+            // Init starting location indicators
+            for (int i = 0; i < MAX_STARTING_LOCATIONS; i++)
+            {
+                PlayerLocationIndicator indicator = new PlayerLocationIndicator(WindowManager, mpColors,
+                    nameBackgroundColor, nameBorderColor, contextMenu);
+                indicator.FontIndex = FontIndex;
+                indicator.Visible = false;
+                indicator.Enabled = false;
+                indicator.AngularVelocity = angularVelocity;
+                indicator.HoverRemapColor = hoverRemapColor;
+                indicator.ReversedAngularVelocity = reservedAngularVelocity;
+                indicator.WaypointTexture = AssetLoader.LoadTexture(string.Format("slocindicator{0}.png", i + 1));
+                indicator.Tag = i;
+                indicator.LeftClick += Indicator_LeftClick;
+                indicator.RightClick += Indicator_RightClick;
+
+                startingLocationIndicators[i] = indicator;
+
+                AddChild(indicator);
+            }
+
+            briefingBox = new CoopBriefingBox(WindowManager);
+            AddChild(briefingBox);
+            briefingBox.Disable();
+
+            ClientRectangleUpdated += (s, e) => UpdateMap();
         }
 
-        GameModeMap gameModeMap;
+
+        private GameModeMap _gameModeMap;
         public GameModeMap GameModeMap
         {
-            get => gameModeMap;
+            get => _gameModeMap;
             set
             {
-                gameModeMap = value;
+                _gameModeMap = value;
                 UpdateMap();
             }
         }
@@ -120,19 +164,17 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             EnableStartLocationSelection = true;
 
+            BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 128), 1, 1);
+
 #if !WINDOWSGL
             disposeTextures = !UserINISettings.Instance.PreloadMapPreviews;
 #endif
-            startingLocationIndicators = new PlayerLocationIndicator[MAX_STARTING_LOCATIONS];
-
-            Color nameBackgroundColor = AssetLoader.GetRGBAColorFromString(
-                ClientConfiguration.Instance.MapPreviewNameBackgroundColor);
-
-            Color nameBorderColor = AssetLoader.GetRGBAColorFromString(
-                ClientConfiguration.Instance.MapPreviewNameBorderColor);
 
             contextMenu = new XNAContextMenu(WindowManager);
             contextMenu.Tag = -1;
+            contextMenu.ClientRectangle = new Rectangle(0, 0, 150, 2);
+            AddChild(contextMenu);
+            contextMenu.Disable();
 
             toggleFavoriteMapItem = new XNAContextMenuItem()
             {
@@ -150,40 +192,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             btnToggleFavoriteMap.LeftClick += (sender, args) => ToggleFavorite?.Invoke(sender, args);
             btnToggleFavoriteMap.SetToolTipText("Toggle Favorite Map".L10N("UI:Main:ToggleFavoriteMap"));
 
-            double angularVelocity = gameOptionsIni.GetDoubleValue("General", "StartingLocationAngularVelocity", 0.015);
-            double reservedAngularVelocity = gameOptionsIni.GetDoubleValue("General", "ReservedStartingLocationAngularVelocity", -0.0075);
-
-            Color hoverRemapColor = AssetLoader.GetRGBAColorFromString(ClientConfiguration.Instance.MapPreviewStartingLocationHoverRemapColor);
-
-            // Init starting location indicators
-            for (int i = 0; i < MAX_STARTING_LOCATIONS; i++)
-            {
-                PlayerLocationIndicator indicator = new PlayerLocationIndicator(WindowManager, mpColors, 
-                    nameBackgroundColor, nameBorderColor, contextMenu);
-                indicator.FontIndex = FontIndex;
-                indicator.Visible = false;
-                indicator.Enabled = false;
-                indicator.AngularVelocity = angularVelocity;
-                indicator.HoverRemapColor = hoverRemapColor;
-                indicator.ReversedAngularVelocity = reservedAngularVelocity;
-                indicator.WaypointTexture = AssetLoader.LoadTexture(string.Format("slocindicator{0}.png", i + 1));
-                indicator.Tag = i;
-                indicator.LeftClick += Indicator_LeftClick;
-                indicator.RightClick += Indicator_RightClick;
-
-                startingLocationIndicators[i] = indicator;
-
-                AddChild(indicator);
-            }
-
-            contextMenu.ClientRectangle = new Rectangle(0, 0, 150, 2);
-            AddChild(contextMenu);
-            contextMenu.Disable();
-
-            briefingBox = new CoopBriefingBox(WindowManager);
-            AddChild(briefingBox);
-            briefingBox.Disable();
-            
             AddChild(mapContextMenu);
             mapContextMenu.Disable();
 
@@ -195,12 +203,12 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             ClientRectangleUpdated += (s, e) => UpdateMap();
 
-            RightClick += MapImage_RightClick;
+            RightClick += MapPreviewBox_RightClick;
 
             AddChild(btnToggleFavoriteMap);
         }
 
-        private void MapImage_RightClick(object sender, EventArgs e)
+        private void MapPreviewBox_RightClick(object sender, EventArgs e)
         {
             if (GameModeMap == null)
                 return;
