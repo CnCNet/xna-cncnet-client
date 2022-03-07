@@ -882,7 +882,7 @@ namespace DTAConfig.OptionPanels
 
             public override int GetHashCode()
             {
-                return Width - Height;
+                return new { Width, Height }.GetHashCode();
             }
         }
     }
