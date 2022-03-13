@@ -33,16 +33,20 @@ namespace ClientGUI
             masterControl.EnabledChanged += MasterControl_EnabledChanged;
             InputEnabled = false;
             DrawOrder = int.MaxValue;
-            GetParentWindow(masterControl.Parent).AddChild(this);
+            GetParentControl(masterControl.Parent).AddChild(this);
             Visible = false;
         }
 
-        private XNAWindow GetParentWindow(XNAControl parent)
+        private XNAControl GetParentControl(XNAControl parent)
         {
             if (parent is XNAWindow)
                 return parent as XNAWindow;
+            else if (parent is INItializableWindow)
+                return parent as INItializableWindow;
+            else if (parent.Parent != null)
+                return GetParentControl(parent.Parent);
             else
-                return GetParentWindow(parent.Parent);
+                return parent;
         }
 
         private void MasterControl_EnabledChanged(object sender, EventArgs e)

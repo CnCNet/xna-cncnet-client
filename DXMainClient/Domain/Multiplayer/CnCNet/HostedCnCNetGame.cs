@@ -1,4 +1,5 @@
 ﻿using System;
+using DTAClient.Online;
 
 namespace DTAClient.Domain.Multiplayer.CnCNet
 {
@@ -31,12 +32,11 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
         public string MatchID { get; set; }
         public CnCNetTunnel TunnelServer { get; set; }
 
-        public override int Ping
-        {
-            get
-            {
-                return TunnelServer.PingInMs;
-            }
-        }
+        public override int Ping => TunnelServer.PingInMs;
+
+        public override bool Equals(GenericHostedGame other) => 
+            other is HostedCnCNetGame hostedCnCNetGame ? 
+                string.Equals(hostedCnCNetGame.ChannelName, ChannelName, StringComparison.InvariantCultureIgnoreCase) :
+                base.Equals(other);
     }
 }

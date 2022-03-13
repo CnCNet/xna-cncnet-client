@@ -1,4 +1,5 @@
 ﻿.project
+.idea/
 
 # Visual Studion tiedostoja
 */[Ee]xported[Oo]bj/
@@ -25,3 +26,5 @@ Icon?
 
 # Dolphin
 .directory
+
+.idea/

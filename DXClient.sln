@@ -16,6 +16,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClientGUI", "ClientGUI\Clie
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DTAConfig", "DTAConfig\DTAConfig.csproj", "{D517317D-8EA8-4225-AF9E-5385D8A7F047}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Localization", "Localization\Localization.csproj", "{2CD114E3-C30F-4A95-9B4A-455C2C8F82E5}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		AresDebug|SharpDX = AresDebug|SharpDX
@@ -182,6 +184,42 @@ Global
 		{D517317D-8EA8-4225-AF9E-5385D8A7F047}.YRRelease|WindowsGL.Build.0 = YRRelease|WindowsGL
 		{D517317D-8EA8-4225-AF9E-5385D8A7F047}.YRRelease|XNAFramework.ActiveCfg = YRRelease|XNAFramework
 		{D517317D-8EA8-4225-AF9E-5385D8A7F047}.YRRelease|XNAFramework.Build.0 = YRRelease|XNAFramework
+		{2CD114E3-C30F-4A95-9B4A-455C2C8F82E5}.AresDebug|SharpDX.ActiveCfg = Debug|Any CPU
+		{2CD114E3-C30F-4A95-9B4A-455C2C8F82E5}.AresDebug|SharpDX.Build.0 = Debug|Any CPU
+		{2CD114E3-C30F-4A95-9B4A-455C2C8F82E5}.AresDebug|WindowsGL.ActiveCfg = Debug|Any CPU
+		{2CD114E3-C30F-4A95-9B4A-455C2C8F82E5}.AresDebug|WindowsGL.Build.0 = Debug|Any CPU
+		{2CD114E3-C30F-4A95-9B4A-455C2C8F82E5}.AresDebug|XNAFramework.ActiveCfg = Debug|Any CPU
+		{2CD114E3-C30F-4A95-9B4A-455C2C8F82E5}.AresDebug|XNAFramework.Build.0 = Debug|Any CPU
+		{2CD114E3-C30F-4A95-9B4A-455C2C8F82E5}.AresRelease|SharpDX.ActiveCfg = Release|Any CPU
+		{2CD114E3-C30F-4A95-9B4A-455C2C8F82E5}.AresRelease|SharpDX.Build.0 = Release|Any CPU
+		{2CD114E3-C30F-4A95-9B4A-455C2C8F82E5}.AresRelease|WindowsGL.ActiveCfg = Release|Any CPU
+		{2CD114E3-C30F-4A95-9B4A-455C2C8F82E5}.AresRelease|WindowsGL.Build.0 = Release|Any CPU
+		{2CD114E3-C30F-4A95-9B4A-455C2C8F82E5}.AresRelease|XNAFramework.ActiveCfg = Release|Any CPU
+		{2CD114E3-C30F-4A95-9B4A-455C2C8F82E5}.AresRelease|XNAFramework.Build.0 = Release|Any CPU
+		{2CD114E3-C30F-4A95-9B4A-455C2C8F82E5}.TSDebug|SharpDX.ActiveCfg = Debug|Any CPU
+		{2CD114E3-C30F-4A95-9B4A-455C2C8F82E5}.TSDebug|SharpDX.Build.0 = Debug|Any CPU
+		{2CD114E3-C30F-4A95-9B4A-455C2C8F82E5}.TSDebug|WindowsGL.ActiveCfg = Debug|Any CPU
+		{2CD114E3-C30F-4A95-9B4A-455C2C8F82E5}.TSDebug|WindowsGL.Build.0 = Debug|Any CPU
+		{2CD114E3-C30F-4A95-9B4A-455C2C8F82E5}.TSDebug|XNAFramework.ActiveCfg = Debug|Any CPU
+		{2CD114E3-C30F-4A95-9B4A-455C2C8F82E5}.TSDebug|XNAFramework.Build.0 = Debug|Any CPU
+		{2CD114E3-C30F-4A95-9B4A-455C2C8F82E5}.TSRelease|SharpDX.ActiveCfg = Release|Any CPU
+		{2CD114E3-C30F-4A95-9B4A-455C2C8F82E5}.TSRelease|SharpDX.Build.0 = Release|Any CPU
+		{2CD114E3-C30F-4A95-9B4A-455C2C8F82E5}.TSRelease|WindowsGL.ActiveCfg = Release|Any CPU
+		{2CD114E3-C30F-4A95-9B4A-455C2C8F82E5}.TSRelease|WindowsGL.Build.0 = Release|Any CPU
+		{2CD114E3-C30F-4A95-9B4A-455C2C8F82E5}.TSRelease|XNAFramework.ActiveCfg = Release|Any CPU
+		{2CD114E3-C30F-4A95-9B4A-455C2C8F82E5}.TSRelease|XNAFramework.Build.0 = Release|Any CPU
+		{2CD114E3-C30F-4A95-9B4A-455C2C8F82E5}.YRDebug|SharpDX.ActiveCfg = Debug|Any CPU
+		{2CD114E3-C30F-4A95-9B4A-455C2C8F82E5}.YRDebug|SharpDX.Build.0 = Debug|Any CPU
+		{2CD114E3-C30F-4A95-9B4A-455C2C8F82E5}.YRDebug|WindowsGL.ActiveCfg = Debug|Any CPU
+		{2CD114E3-C30F-4A95-9B4A-455C2C8F82E5}.YRDebug|WindowsGL.Build.0 = Debug|Any CPU
+		{2CD114E3-C30F-4A95-9B4A-455C2C8F82E5}.YRDebug|XNAFramework.ActiveCfg = Debug|Any CPU
+		{2CD114E3-C30F-4A95-9B4A-455C2C8F82E5}.YRDebug|XNAFramework.Build.0 = Debug|Any CPU
+		{2CD114E3-C30F-4A95-9B4A-455C2C8F82E5}.YRRelease|SharpDX.ActiveCfg = Release|Any CPU
+		{2CD114E3-C30F-4A95-9B4A-455C2C8F82E5}.YRRelease|SharpDX.Build.0 = Release|Any CPU
+		{2CD114E3-C30F-4A95-9B4A-455C2C8F82E5}.YRRelease|WindowsGL.ActiveCfg = Release|Any CPU
+		{2CD114E3-C30F-4A95-9B4A-455C2C8F82E5}.YRRelease|WindowsGL.Build.0 = Release|Any CPU
+		{2CD114E3-C30F-4A95-9B4A-455C2C8F82E5}.YRRelease|XNAFramework.ActiveCfg = Release|Any CPU
+		{2CD114E3-C30F-4A95-9B4A-455C2C8F82E5}.YRRelease|XNAFramework.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

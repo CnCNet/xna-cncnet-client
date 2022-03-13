@@ -321,6 +321,13 @@
             </summary>
             <param name="section">The section to add.</param>
         </member>
+        <member name="M:Rampastring.Tools.IniFile.RemoveSection(System.String)">
+            <summary>
+            Removes the given section from the INI file.
+            Uses case-insensitive string comparison when looking for the section.
+            </summary>
+            <param name="sectionName">The name of the section to remove.</param>
+        </member>
         <member name="M:Rampastring.Tools.IniFile.MoveSectionToFirst(System.String)">
             <summary>
             Moves a section's position to the first place in the INI file's section list.
@@ -605,9 +612,19 @@
             <summary>
             Sets the boolean value of a key in the INI section.
             If the key doesn't exist, it is created.
+            Uses the <see cref="F:Rampastring.Tools.BooleanStringStyle.TRUEFALSE"/> boolean string style.
             </summary>
             <param name="key">The name of the INI key.</param>
             <param name="value">The value of the INI key.</param>
+        </member>
+        <member name="M:Rampastring.Tools.IniSection.SetBooleanValue(System.String,System.Boolean,Rampastring.Tools.BooleanStringStyle)">
+            <summary>
+            Sets the boolean value of a key in the INI section.
+            If the key doesn't exist, it is created.
+            </summary>
+            <param name="key">The name of the INI key.</param>
+            <param name="value">The value of the INI key.</param>
+            <param name="booleanStringStyle">The boolean string style.</param>
         </member>
         <member name="M:Rampastring.Tools.IniSection.GetBooleanValue(System.String,System.Boolean)">
             <summary>

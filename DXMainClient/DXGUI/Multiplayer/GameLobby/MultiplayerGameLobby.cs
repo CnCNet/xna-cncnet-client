@@ -14,6 +14,7 @@ using ClientGUI;
 using System.Text;
 using DTAClient.Domain;
 using Microsoft.Xna.Framework.Graphics;
+using Localization;
 
 namespace DTAClient.DXGUI.Multiplayer.GameLobby
 {
@@ -25,31 +26,30 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         private const int MAX_DICE = 10;
         private const int MAX_DIE_SIDES = 100;
 
-        public MultiplayerGameLobby(WindowManager windowManager, string iniName, 
-            TopBar topBar, List<GameMode> GameModes, MapLoader mapLoader, DiscordHandler discordHandler)
-            : base(windowManager, iniName, GameModes, true, discordHandler)
+        public MultiplayerGameLobby(WindowManager windowManager, string iniName,
+            TopBar topBar, MapLoader mapLoader, DiscordHandler discordHandler)
+            : base(windowManager, iniName, mapLoader, true, discordHandler)
         {
             TopBar = topBar;
-            MapLoader = mapLoader;
 
             chatBoxCommands = new List<ChatBoxCommand>
             {
-                new ChatBoxCommand("HIDEMAPS", "Hide map list (game host only)", true,
+                new ChatBoxCommand("HIDEMAPS", "Hide map list (game host only)".L10N("UI:Main:ChatboxCommandHideMapsHelp"), true,
                     s => HideMapList()),
-                new ChatBoxCommand("SHOWMAPS", "Show map list (game host only)", true,
+                new ChatBoxCommand("SHOWMAPS", "Show map list (game host only)".L10N("UI:Main:ChatboxCommandShowMapsHelp"), true,
                     s => ShowMapList()),
-                new ChatBoxCommand("FRAMESENDRATE", "Change order lag / FrameSendRate (default 7) (game host only)", true,
+                new ChatBoxCommand("FRAMESENDRATE", "Change order lag / FrameSendRate (default 7) (game host only)".L10N("UI:Main:ChatboxCommandFrameSendRateHelp"), true,
                     s => SetFrameSendRate(s)),
-                new ChatBoxCommand("MAXAHEAD", "Change MaxAhead (default 0) (game host only)", true,
+                new ChatBoxCommand("MAXAHEAD", "Change MaxAhead (default 0) (game host only)".L10N("UI:Main:ChatboxCommandMaxAheadHelp"), true,
                     s => SetMaxAhead(s)),
-                new ChatBoxCommand("PROTOCOLVERSION", "Change ProtocolVersion (default 2) (game host only)", true,
+                new ChatBoxCommand("PROTOCOLVERSION", "Change ProtocolVersion (default 2) (game host only)".L10N("UI:Main:ChatboxCommandProtocolVersionHelp"), true,
                     s => SetProtocolVersion(s)),
-                new ChatBoxCommand("LOADMAP", "Load a custom map with given filename from /Maps/Custom/ folder.", true, LoadCustomMap),
-                new ChatBoxCommand("RANDOMSTARTS", "Enables completely random starting locations (Tiberian Sun based games only).", true,
+                new ChatBoxCommand("LOADMAP", "Load a custom map with given filename from /Maps/Custom/ folder.".L10N("UI:Main:ChatboxCommandLoadMapHelp"), true, LoadCustomMap),
+                new ChatBoxCommand("RANDOMSTARTS", "Enables completely random starting locations (Tiberian Sun based games only).".L10N("UI:Main:ChatboxCommandRandomStartsHelp"), true,
                     s => SetStartingLocationClearance(s)),
-                new ChatBoxCommand("ROLL", "Roll dice, for example /roll 3d6", false, RollDiceCommand),
-                new ChatBoxCommand("SAVEOPTIONS", "Save game option preset so it can be loaded later", false, HandleGameOptionPresetSaveCommand),
-                new ChatBoxCommand("LOADOPTIONS", "Load game option preset", true, HandleGameOptionPresetLoadCommand)
+                new ChatBoxCommand("ROLL", "Roll dice, for example /roll 3d6".L10N("UI:Main:ChatboxCommandRollHelp"), false, RollDiceCommand),
+                new ChatBoxCommand("SAVEOPTIONS", "Save game option preset so it can be loaded later".L10N("UI:Main:ChatboxCommandSaveOptionsHelp"), false, HandleGameOptionPresetSaveCommand),
+                new ChatBoxCommand("LOADOPTIONS", "Load game option preset".L10N("UI:Main:ChatboxCommandLoadOptionsHelp"), true, HandleGameOptionPresetLoadCommand)
             };
         }
 
@@ -107,7 +107,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private bool gameSaved = false;
 
-        protected MapLoader MapLoader;
+        private bool lastMapChangeWasInvalid = false;
 
         /// <summary>
         /// Allows derived classes to add their own chat box commands.
@@ -136,8 +136,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             StatusIndicators = new XNAPlayerSlotIndicator[MAX_PLAYER_COUNT];
 
-            int statusIndicatorX = GameOptionsIni.GetIntValue(Name, "PlayerStatusIndicatorX", 0);
-            int statusIndicatorY = GameOptionsIni.GetIntValue(Name, "PlayerStatusIndicatorY", 0);
+            int statusIndicatorX = ConfigIni.GetIntValue(Name, "PlayerStatusIndicatorX", 0);
+            int statusIndicatorY = ConfigIni.GetIntValue(Name, "PlayerStatusIndicatorY", 0);
 
             for (int i = 0; i < MAX_PLAYER_COUNT; i++)
             {
@@ -152,61 +152,18 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 ddPlayerSides[i].AddItem("Spectator", AssetLoader.LoadTexture("spectatoricon.png"));
             }
 
-            ddGameMode.ClientRectangle = new Rectangle(
-                MapPreviewBox.X - 12 - ddGameMode.Width,
-                MapPreviewBox.Y, ddGameMode.Width,
-                ddGameMode.Height);
+            lbChatMessages = FindChild<ChatListBox>(nameof(lbChatMessages));
 
-            lblGameModeSelect.ClientRectangle = new Rectangle(
-                btnLaunchGame.X, ddGameMode.Y + 1,
-                lblGameModeSelect.Width, lblGameModeSelect.Height);
-
-            lbMapList.ClientRectangle = new Rectangle(btnLaunchGame.X, 
-                MapPreviewBox.Y + 23,
-                MapPreviewBox.X - btnLaunchGame.X - 12,
-                MapPreviewBox.Height - 23);
-
-            lbChatMessages = new ChatListBox(WindowManager);
-            lbChatMessages.Name = "lbChatMessages";
-            lbChatMessages.ClientRectangle = new Rectangle(lbMapList.X, 
-                GameOptionsPanel.Y,
-               lbMapList.Width, GameOptionsPanel.Height - 24);
-            lbChatMessages.PanelBackgroundDrawMode = PanelBackgroundImageDrawMode.STRETCHED;
-            lbChatMessages.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 128), 1, 1);
-            lbChatMessages.LineHeight = 16;
-            lbChatMessages.DrawOrder = -1;
-            lbChatMessages.UpdateOrder = -1;
-
-            tbChatInput = new XNAChatTextBox(WindowManager);
-            tbChatInput.Name = "tbChatInput";
-            tbChatInput.Suggestion = "Type here to chat..";
-            tbChatInput.ClientRectangle = new Rectangle(lbChatMessages.X, 
-                lbChatMessages.Bottom + 3,
-                lbChatMessages.Width, 21);
+            tbChatInput = FindChild<XNAChatTextBox>(nameof(tbChatInput));
             tbChatInput.MaximumTextLength = 150;
             tbChatInput.EnterPressed += TbChatInput_EnterPressed;
-            tbChatInput.DrawOrder = 1;
-            tbChatInput.UpdateOrder = 1;
 
-            btnLockGame = new XNAClientButton(WindowManager);
-            btnLockGame.Name = "btnLockGame";
-            btnLockGame.ClientRectangle = new Rectangle(btnLaunchGame.Right + 12,
-                btnLaunchGame.Y, 133, 23);
-            btnLockGame.Text = "Lock Game";
+            btnLockGame = FindChild<XNAClientButton>(nameof(btnLockGame));
             btnLockGame.LeftClick += BtnLockGame_LeftClick;
 
-            chkAutoReady = new XNAClientCheckBox(WindowManager);
-            chkAutoReady.Name = "chkAutoReady";
-            chkAutoReady.ClientRectangle = new Rectangle(btnLaunchGame.Right + 12,
-                btnLaunchGame.Y + 2, 133, 23);
-            chkAutoReady.Text = "Auto-Ready";
+            chkAutoReady = FindChild<XNAClientCheckBox>(nameof(chkAutoReady));
             chkAutoReady.CheckedChanged += ChkAutoReady_CheckedChanged;
             chkAutoReady.Disable();
-
-            AddChild(lbChatMessages);
-            AddChild(tbChatInput);
-            AddChild(btnLockGame);
-            AddChild(chkAutoReady);
 
             MapPreviewBox.LocalStartingLocationSelected += MapPreviewBox_LocalStartingLocationSelected;
             MapPreviewBox.StartingLocationApplied += MapPreviewBox_StartingLocationApplied;
@@ -234,9 +191,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         /// </summary>
         protected void PostInitialize()
         {
-            InitializeWindow();
             CenterOnParent();
-            LoadDefaultMap();
+            LoadDefaultGameModeMap();
         }
 
         private void fsw_Created(object sender, FileSystemEventArgs e)
@@ -290,7 +246,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (IsHost)
             {
                 GenerateGameID();
-                DdGameMode_SelectedIndexChanged(null, EventArgs.Empty); // Refresh ranks
+                DdGameModeMapFilter_SelectedIndexChanged(null, EventArgs.Empty); // Refresh ranks
+            }
+            else if (chkAutoReady.Checked)
+            {
+                RequestReadyStatus();
             }
         }
 
@@ -354,7 +314,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     command = text.Substring(1, spaceIndex - 1);
                     parameters = text.Substring(spaceIndex + 1);
                 }
-                
+
                 tbChatInput.Text = string.Empty;
 
                 foreach (var chatBoxCommand in chatBoxCommands)
@@ -363,7 +323,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     {
                         if (!IsHost && chatBoxCommand.HostOnly)
                         {
-                            AddNotice(string.Format("/{0} is for game hosts only.", chatBoxCommand.Command));
+                            AddNotice(string.Format("/{0} is for game hosts only.".L10N("UI:Main:ChatboxCommandHostOnly"), chatBoxCommand.Command));
                             return;
                         }
 
@@ -372,14 +332,14 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     }
                 }
 
-                StringBuilder sb = new StringBuilder("To use a command, start your message with /<command>. Possible chat box commands: ");
+                StringBuilder sb = new StringBuilder("To use a command, start your message with /<command>. Possible chat box commands:".L10N("UI:Main:ChatboxCommandTipText") + " ");
                 foreach (var chatBoxCommand in chatBoxCommands)
                 {
                     sb.Append(Environment.NewLine);
                     sb.Append(Environment.NewLine);
                     sb.Append($"{chatBoxCommand.Command}: {chatBoxCommand.Description}");
                 }
-                XNAMessageBox.Show(WindowManager, "Chat Box Command Help", sb.ToString());
+                XNAMessageBox.Show(WindowManager, "Chat Box Command Help".L10N("UI:Main:ChatboxCommandTipTitle"), sb.ToString());
                 return;
             }
 
@@ -407,12 +367,12 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             if (!success)
             {
-                AddNotice("Command syntax: /FrameSendRate <number>");
+                AddNotice("Command syntax: /FrameSendRate <number>".L10N("UI:Main:ChatboxCommandFrameSendRateSyntax"));
                 return;
             }
 
             FrameSendRate = intValue;
-            AddNotice("FrameSendRate has been changed to " + intValue);
+            AddNotice(string.Format("FrameSendRate has been changed to {0}".L10N("UI:Main:FrameSendRateChanged"), intValue));
 
             OnGameOptionChanged();
             ClearReadyStatuses();
@@ -424,12 +384,12 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             if (!success)
             {
-                AddNotice("Command syntax: /MaxAhead <number>");
+                AddNotice("Command syntax: /MaxAhead <number>".L10N("UI:Main:ChatboxCommandMaxAheadSyntax"));
                 return;
             }
 
             MaxAhead = intValue;
-            AddNotice("MaxAhead has been changed to " + intValue);
+            AddNotice(string.Format("MaxAhead has been changed to {0}".L10N("UI:Main:MaxAheadChanged"), intValue));
 
             OnGameOptionChanged();
             ClearReadyStatuses();
@@ -441,18 +401,18 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             if (!success)
             {
-                AddNotice("Command syntax: /ProtocolVersion <number>.");
+                AddNotice("Command syntax: /ProtocolVersion <number>.".L10N("UI:Main:ChatboxCommandProtocolVersionSyntax"));
                 return;
             }
 
             if (!(intValue == 0 || intValue == 2))
             {
-                AddNotice("ProtocolVersion only allows values 0 and 2.");
+                AddNotice("ProtocolVersion only allows values 0 and 2.".L10N("UI:Main:ChatboxCommandProtocolVersionInvalid"));
                 return;
             }
 
             ProtocolVersion = intValue;
-            AddNotice("ProtocolVersion has been changed to " + intValue);
+            AddNotice(string.Format("ProtocolVersion has been changed to {0}".L10N("UI:Main:ProtocolVersionChanged"), intValue));
 
             OnGameOptionChanged();
             ClearReadyStatuses();
@@ -479,9 +439,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             {
                 RemoveStartingLocations = newValue;
                 if (RemoveStartingLocations)
-                    AddNotice("The game host has enabled completely random starting locations (only works for regular maps)..");
+                    AddNotice("The game host has enabled completely random starting locations (only works for regular maps).".L10N("UI:Main:HostEnabledRandomStartLocation"));
                 else
-                    AddNotice("The game host has disabled completely random starting locations.");
+                    AddNotice("The game host has disabled completely random starting locations.".L10N("UI:Main:HostDisabledRandomStartLocation"));
             }
         }
 
@@ -501,7 +461,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 {
                     if (!int.TryParse(parts[0], out dieCount) || !int.TryParse(parts[1], out dieSides))
                     {
-                        AddNotice("Invalid dice specified. Expected format: /roll <die count>d<die sides>");
+                        AddNotice("Invalid dice specified. Expected format: /roll <die count>d<die sides>".L10N("UI:Main:ChatboxCommandRollInvalidAndSyntax"));
                         return;
                     }
                 }
@@ -509,13 +469,13 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             if (dieCount > MAX_DICE || dieCount < 1)
             {
-                AddNotice("You can only between 1 to 10 dies at once.");
+                AddNotice("You can only between 1 to 10 dies at once.".L10N("UI:Main:ChatboxCommandRollInvalid2"));
                 return;
             }
-            
+
             if (dieSides > MAX_DIE_SIDES || dieSides < 2)
             {
-                AddNotice("You can only have between 2 and 100 sides in a die.");
+                AddNotice("You can only have between 2 and 100 sides in a die.".L10N("UI:Main:ChatboxCommandRollInvalid3"));
                 return;
             }
 
@@ -592,22 +552,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         /// <param name="results">The results of the roll.</param>
         protected void PrintDiceRollResult(string senderName, int dieSides, int[] results)
         {
-            AddNotice($"{senderName} rolled {results.Length}d{dieSides} and got {string.Join(", ", results)}");
-        }
-
-        private void HandleGameOptionPresetSaveCommand(string presetName)
-        {
-            string error = AddGameOptionPreset(presetName);
-            if (!string.IsNullOrEmpty(error))
-                AddNotice(error);
-        }
-
-        private void HandleGameOptionPresetLoadCommand(string presetName)
-        {
-            if (LoadGameOptionPreset(presetName))
-                AddNotice("Game option preset loaded succesfully.");
-            else
-                AddNotice($"Preset {presetName} not found!");
+            AddNotice(String.Format("{0} rolled {1}d{2} and got {3}".L10N("UI:Main:PrintDiceRollResult"),
+                senderName, results.Length, dieSides, string.Join(", ", results)
+            ));
         }
 
         protected abstract void SendChatMessage(string message);
@@ -623,15 +570,17 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             CopyPlayerDataToUI();
 
             UpdateMapPreviewBoxEnabledStatus();
+            PlayerExtraOptionsPanel.SetIsHost(isHost);
             //MapPreviewBox.EnableContextMenu = IsHost;
 
-            btnLaunchGame.Text = IsHost ? "Launch Game" : "I'm Ready";
+            btnLaunchGame.Text = IsHost ? BTN_LAUNCH_GAME : BTN_LAUNCH_READY;
 
             if (IsHost)
             {
                 ShowMapList();
+                BtnSaveLoadGameOptions?.Enable();
 
-                btnLockGame.Text = "Lock Game";
+                btnLockGame.Text = "Lock Game".L10N("UI:Main:ButtonLockGame");
                 btnLockGame.Enabled = true;
                 btnLockGame.Visible = true;
                 chkAutoReady.Disable();
@@ -653,10 +602,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             else
             {
                 HideMapList();
+                BtnSaveLoadGameOptions?.Disable();
 
                 btnLockGame.Enabled = false;
                 btnLockGame.Visible = false;
-                chkAutoReady.GetAttributes(ThemeIni);
+                ReadINIForControl(chkAutoReady);
 
                 foreach (GameLobbyDropDown dd in DropDowns)
                     dd.InputEnabled = false;
@@ -665,71 +615,70 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     checkBox.AllowChanges = false;
             }
 
-            LoadDefaultMap();
+            LoadDefaultGameModeMap();
 
             lbChatMessages.Clear();
             lbChatMessages.TopIndex = 0;
 
-            lbChatMessages.AddItem("Type / to view a list of available chat commands.", Color.Silver, true);
+            lbChatMessages.AddItem("Type / to view a list of available chat commands.".L10N("UI:Main:ChatCommandTip"), Color.Silver, true);
 
             if (SavedGameManager.GetSaveGameCount() > 0)
             {
-                lbChatMessages.AddItem("Multiplayer saved games from a previous match have been detected. " +
-                    "The saved games of the previous match will be deleted if you create new saves during this match.",
+                lbChatMessages.AddItem(("Multiplayer saved games from a previous match have been detected. " +
+                    "The saved games of the previous match will be deleted if you create new saves during this match.").L10N("UI:Main:SavedGameDetected"),
                     Color.Yellow, true);
             }
         }
 
         private void HideMapList()
         {
-            lbChatMessages.ClientRectangle = new Rectangle(lbMapList.X,
-                PlayerOptionsPanel.Y,
-                lbMapList.Width,
-                MapPreviewBox.Bottom - PlayerOptionsPanel.Y);
             lbChatMessages.Name = "lbChatMessages_Player";
-
-            tbChatInput.ClientRectangle = new Rectangle(lbChatMessages.X,
-                lbChatMessages.Bottom + 3,
-                lbChatMessages.Width, 21);
             tbChatInput.Name = "tbChatInput_Player";
+            MapPreviewBox.Name = "MapPreviewBox";
+            lblMapName.Name = "lblMapName";
+            lblMapAuthor.Name = "lblMapAuthor";
+            lblGameMode.Name = "lblGameMode";
+            lblMapSize.Name = "lblMapSize";
 
-            ddGameMode.Disable();
+            ddGameModeMapFilter.Disable();
             lblGameModeSelect.Disable();
-            lbMapList.Disable();
+            lbGameModeMapList.Disable();
             tbMapSearch.Disable();
             btnPickRandomMap.Disable();
 
-            lbChatMessages.GetAttributes(ThemeIni);
-            tbChatInput.GetAttributes(ThemeIni);
-            lbMapList.GetAttributes(ThemeIni);
+            ReadINIForControl(btnPickRandomMap);
+            ReadINIForControl(lbChatMessages);
+            ReadINIForControl(tbChatInput);
+            ReadINIForControl(lbGameModeMapList);
+            ReadINIForControl(lblMapName);
+            ReadINIForControl(lblMapAuthor);
+            ReadINIForControl(lblGameMode);
+            ReadINIForControl(lblMapSize);
         }
 
         private void ShowMapList()
         {
-            lbMapList.ClientRectangle = new Rectangle(btnLaunchGame.X,
-                MapPreviewBox.Y + 23,
-                MapPreviewBox.X - btnLaunchGame.X - 12,
-                MapPreviewBox.Height - 23);
-
-            lbChatMessages.ClientRectangle = new Rectangle(lbMapList.X,
-                GameOptionsPanel.Y,
-                lbMapList.Width, GameOptionsPanel.Height - 26);
             lbChatMessages.Name = "lbChatMessages_Host";
-
-            tbChatInput.ClientRectangle = new Rectangle(lbChatMessages.X,
-                lbChatMessages.Bottom + 3,
-                lbChatMessages.Width, 21);
             tbChatInput.Name = "tbChatInput_Host";
+            MapPreviewBox.Name = "MapPreviewBox";
+            lblMapName.Name = "lblMapName";
+            lblMapAuthor.Name = "lblMapAuthor";
+            lblGameMode.Name = "lblGameMode";
+            lblMapSize.Name = "lblMapSize";
 
-            ddGameMode.Enable();
+            ddGameModeMapFilter.Enable();
             lblGameModeSelect.Enable();
-            lbMapList.Enable();
+            lbGameModeMapList.Enable();
             tbMapSearch.Enable();
-            btnPickRandomMap.GetAttributes(ThemeIni);
 
-            lbChatMessages.GetAttributes(ThemeIni);
-            tbChatInput.GetAttributes(ThemeIni);
-            lbMapList.GetAttributes(ThemeIni);
+            ReadINIForControl(btnPickRandomMap);
+            ReadINIForControl(lbChatMessages);
+            ReadINIForControl(tbChatInput);
+            ReadINIForControl(lbGameModeMapList);
+            ReadINIForControl(lblMapName);
+            ReadINIForControl(lblMapAuthor);
+            ReadINIForControl(lblGameMode);
+            ReadINIForControl(lblMapSize);
         }
 
         private void MapPreviewBox_LocalStartingLocationSelected(object sender, LocalStartingLocationEventArgs e)
@@ -769,6 +718,13 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 return;
             }
 
+            var teamMappingsError = GetTeamMappingsError();
+            if (!string.IsNullOrEmpty(teamMappingsError))
+            {
+                AddNotice(teamMappingsError);
+                return;
+            }
+
             List<int> occupiedColorIds = new List<int>();
             foreach (PlayerInfo player in Players)
             {
@@ -795,7 +751,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                         continue;
 
                     if (Players.Concat(AIPlayers).ToList().Find(
-                        p => p.StartingLocation == pInfo.StartingLocation && 
+                        p => p.StartingLocation == pInfo.StartingLocation &&
                         p.Name != pInfo.Name) != null)
                     {
                         SharedStartingLocationNotification();
@@ -822,7 +778,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 int totalPlayerCount = Players.Count(p => p.SideId < ddPlayerSides[0].Items.Count - 1)
                     + AIPlayers.Count;
 
-                if (totalPlayerCount < Map.MinPlayers)
+                int minPlayers = GameMode.MinPlayersOverride > -1 ? GameMode.MinPlayersOverride : Map.MinPlayers;
+                if (totalPlayerCount < minPlayers)
                 {
                     InsufficientPlayersNotification();
                     return;
@@ -887,49 +844,54 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         }
 
         protected virtual void LockGameNotification() =>
-            AddNotice("You need to lock the game room before launching the game.");
+            AddNotice("You need to lock the game room before launching the game.".L10N("UI:Main:LockGameNotification"));
 
         protected virtual void SharedColorsNotification() =>
-            AddNotice("Multiple human players cannot share the same color.");
+            AddNotice("Multiple human players cannot share the same color.".L10N("UI:Main:SharedColorsNotification"));
 
         protected virtual void AISpectatorsNotification() =>
-            AddNotice("AI players don't enjoy spectating matches. They want some action!");
+            AddNotice("AI players don't enjoy spectating matches. They want some action!".L10N("UI:Main:AISpectatorsNotification"));
 
         protected virtual void SharedStartingLocationNotification() =>
-            AddNotice("Multiple players cannot share the same starting location on this map.");
+            AddNotice("Multiple players cannot share the same starting location on this map.".L10N("UI:Main:SharedStartingLocationNotification"));
 
         protected virtual void NotVerifiedNotification(int playerIndex)
         {
             if (playerIndex > -1 && playerIndex < Players.Count)
-                AddNotice(string.Format("Unable to launch game; player {0} hasn't been verified.", Players[playerIndex].Name));
+                AddNotice(string.Format("Unable to launch game. Player {0} hasn't been verified.".L10N("UI:Main:NotVerifiedNotification"), Players[playerIndex].Name));
         }
 
         protected virtual void StillInGameNotification(int playerIndex)
         {
             if (playerIndex > -1 && playerIndex < Players.Count)
             {
-                AddNotice("Unable to launch game; player " + Players[playerIndex].Name +
-                    " is still playing the game you started previously.");
+                AddNotice(String.Format("Unable to launch game. Player {0} is still playing the game you started previously.".L10N("UI:Main:StillInGameNotification"),
+                    Players[playerIndex].Name));
             }
         }
 
         protected virtual void GetReadyNotification()
         {
-            AddNotice("The host wants to start the game but cannot because not all players are ready!");
+            AddNotice("The host wants to start the game but cannot because not all players are ready!".L10N("UI:Main:GetReadyNotification"));
             if (!IsHost && !Players.Find(p => p.Name == ProgramConstants.PLAYERNAME).Ready)
                 sndGetReadySound.Play();
         }
 
         protected virtual void InsufficientPlayersNotification()
         {
-            if (Map != null)
-                AddNotice("Unable to launch game: this map cannot be played with fewer than " + Map.MinPlayers + " players.");
+            if (GameMode != null && GameMode.MinPlayersOverride > -1)
+                AddNotice(String.Format("Unable to launch game: {0} cannot be played with fewer than {1} players".L10N("UI:Main:InsufficientPlayersNotification1"),
+                    GameMode.UIName, GameMode.MinPlayersOverride));
+            else if (Map != null)
+                AddNotice(String.Format("Unable to launch game: this map cannot be played with fewer than {0} players.".L10N("UI:Main:InsufficientPlayersNotification2"),
+                    Map.MinPlayers));
         }
 
         protected virtual void TooManyPlayersNotification()
         {
             if (Map != null)
-                AddNotice("Unable to launch game: this map cannot be played with more than " + Map.MaxPlayers + " players.");
+                AddNotice(String.Format("Unable to launch game: this map cannot be played with more than {0} players.".L10N("UI:Main:TooManyPlayersNotification"),
+                    Map.MaxPlayers));
         }
 
         public virtual void Clear()
@@ -1056,9 +1018,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             XNAClientDropDown ddPlayerName = ddPlayerNames[pInfo.Index];
             ddPlayerName.Items[0].Texture = GetTextureForPing(pInfo.Ping);
             if (pInfo.Ping < 0)
-                ddPlayerName.ToolTip.Text = "Ping: ? ms";
+                ddPlayerName.ToolTip.Text = "Ping:".L10N("UI:Main:PlayerInfoPing") + " ? ms";
             else
-                ddPlayerName.ToolTip.Text = $"Ping: {pInfo.Ping} ms";
+                ddPlayerName.ToolTip.Text = "Ping:".L10N("UI:Main:PlayerInfoPing") + $" {pInfo.Ping} ms";
         }
 
         private Texture2D GetTextureForPing(int ping)
@@ -1080,6 +1042,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         protected abstract void BroadcastPlayerOptions();
 
+        protected abstract void BroadcastPlayerExtraOptions();
+
         protected abstract void RequestPlayerOptions(int side, int color, int start, int team);
 
         protected abstract void RequestReadyStatus();
@@ -1090,20 +1054,33 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             AddNotice(message, Color.Yellow);
         }
 
-        protected void AddNotice(string message) => AddNotice(message, Color.White);
-
-        protected abstract void AddNotice(string message, Color color);
-
         protected override bool AllowPlayerOptionsChange() => IsHost;
 
-        protected override void ChangeMap(GameMode gameMode, Map map)
+        protected override void ChangeMap(GameModeMap gameModeMap)
         {
-            base.ChangeMap(gameMode, map);
+            base.ChangeMap(gameModeMap);
 
-            ClearReadyStatuses();
+            bool resetAutoReady = gameModeMap?.GameMode == null || gameModeMap?.Map == null;
+
+            ClearReadyStatuses(resetAutoReady);
+
+            if ((lastMapChangeWasInvalid || resetAutoReady) && chkAutoReady.Checked)
+                RequestReadyStatus();
+
+            lastMapChangeWasInvalid = resetAutoReady;
 
             //if (IsHost)
             //    OnGameOptionChanged();
+        }
+
+        protected override void ToggleFavoriteMap()
+        {
+            base.ToggleFavoriteMap();
+
+            if (GameModeMap.IsFavorite || !IsHost)
+                return;
+
+            RefreshForFavoriteMapRemoved();
         }
 
         protected override void WriteSpawnIniAdditions(IniFile iniFile)
@@ -1115,12 +1092,12 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             iniFile.SetIntValue("Settings", "Protocol", ProtocolVersion);
         }
 
-        protected override int GetDefaultMapRankIndex(Map map)
+        protected override int GetDefaultMapRankIndex(GameModeMap gameModeMap)
         {
-            if (map.MaxPlayers > 3)
-                return StatisticsManager.Instance.GetCoopRankForDefaultMap(map.Name, map.MaxPlayers);
+            if (gameModeMap.Map.MaxPlayers > 3)
+                return StatisticsManager.Instance.GetCoopRankForDefaultMap(gameModeMap.Map.Name, gameModeMap.Map.MaxPlayers);
 
-            if (StatisticsManager.Instance.HasWonMapInPvP(map.Name, GameMode.UIName, map.MaxPlayers))
+            if (StatisticsManager.Instance.HasWonMapInPvP(gameModeMap.Map.Name, gameModeMap.GameMode.UIName, gameModeMap.Map.MaxPlayers))
                 return 2;
 
             return -1;
@@ -1136,7 +1113,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             if (Map != null && GameMode != null)
             {
-                bool disablestartlocs = (Map.ForceRandomStartLocations || GameMode.ForceRandomStartLocations);
+                bool disablestartlocs = (Map.ForceRandomStartLocations || GameMode.ForceRandomStartLocations || GetPlayerExtraOptions().IsForceRandomStarts);
                 MapPreviewBox.EnableContextMenu = disablestartlocs ? false : IsHost;
                 MapPreviewBox.EnableStartLocationSelection = !disablestartlocs;
             }

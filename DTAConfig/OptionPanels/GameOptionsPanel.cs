@@ -1,6 +1,7 @@
 ﻿using ClientCore;
 using ClientCore.CnCNet5;
 using ClientGUI;
+using Localization;
 using Microsoft.Xna.Framework;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
@@ -49,7 +50,7 @@ namespace DTAConfig.OptionPanels
             lblScrollRate.Name = "lblScrollRate";
             lblScrollRate.ClientRectangle = new Rectangle(12,
                 14, 0, 0);
-            lblScrollRate.Text = "Scroll Rate:";
+            lblScrollRate.Text = "Scroll Rate:".L10N("UI:DTAConfig:ScrollRate");
 
             lblScrollRateValue = new XNALabel(WindowManager);
             lblScrollRateValue.Name = "lblScrollRateValue";
@@ -76,22 +77,22 @@ namespace DTAConfig.OptionPanels
             chkScrollCoasting.ClientRectangle = new Rectangle(
                 lblScrollRate.X,
                 trbScrollRate.Bottom + 20, 0, 0);
-            chkScrollCoasting.Text = "Scroll Coasting";
+            chkScrollCoasting.Text = "Scroll Coasting".L10N("UI:DTAConfig:ScrollCoasting");
 
             chkTargetLines = new XNAClientCheckBox(WindowManager);
             chkTargetLines.Name = "chkTargetLines";
             chkTargetLines.ClientRectangle = new Rectangle(
                 lblScrollRate.X,
                 chkScrollCoasting.Bottom + 24, 0, 0);
-            chkTargetLines.Text = "Target Lines";
+            chkTargetLines.Text = "Target Lines".L10N("UI:DTAConfig:TargetLines");
 
             chkTooltips = new XNAClientCheckBox(WindowManager);
             chkTooltips.Name = "chkTooltips";
-            chkTooltips.Text = "Tooltips";
+            chkTooltips.Text = "Tooltips".L10N("UI:DTAConfig:Tooltips");
 
             var lblPlayerName = new XNALabel(WindowManager);
             lblPlayerName.Name = "lblPlayerName";
-            lblPlayerName.Text = "Player Name*:";
+            lblPlayerName.Text = "Player Name*:".L10N("UI:DTAConfig:PlayerName");
 
 #if YR
             chkShowHiddenObjects = new XNAClientCheckBox(WindowManager);
@@ -99,7 +100,7 @@ namespace DTAConfig.OptionPanels
             chkShowHiddenObjects.ClientRectangle = new Rectangle(
                 lblScrollRate.X,
                 chkTargetLines.Bottom + 24, 0, 0);
-            chkShowHiddenObjects.Text = "Show Hidden Objects";
+            chkShowHiddenObjects.Text = "Show Hidden Objects".L10N("UI:DTAConfig:YRShowHidden");
 
             chkTooltips.ClientRectangle = new Rectangle(
                 lblScrollRate.X,
@@ -122,7 +123,7 @@ namespace DTAConfig.OptionPanels
             chkBlackChatBackground.ClientRectangle = new Rectangle(
                 chkScrollCoasting.X,
                 chkTooltips.Bottom + 24, 0, 0);
-            chkBlackChatBackground.Text = "Use black background for in-game chat messages";
+            chkBlackChatBackground.Text = "Use black background for in-game chat messages".L10N("UI:DTAConfig:TSUseBlackBackgroundChat");
 
             AddChild(chkBlackChatBackground);
 #endif
@@ -133,7 +134,7 @@ namespace DTAConfig.OptionPanels
             chkAltToUndeploy.ClientRectangle = new Rectangle(
                 chkScrollCoasting.X,
                 chkBlackChatBackground.Bottom + 24, 0, 0);
-            chkAltToUndeploy.Text = "Undeploy units by holding Alt key instead of a regular move command";
+            chkAltToUndeploy.Text = "Undeploy units by holding Alt key instead of a regular move command".L10N("UI:DTAConfig:TsUndeployAltKey");
 
             AddChild(chkAltToUndeploy);
 
@@ -156,8 +157,8 @@ namespace DTAConfig.OptionPanels
             lblNotice.Name = "lblNotice";
             lblNotice.ClientRectangle = new Rectangle(lblPlayerName.X,
                 lblPlayerName.Bottom + 30, 0, 0);
-            lblNotice.Text = "* If you are currently connected to CnCNet, you need to log out and reconnect" +
-                Environment.NewLine + "for your new name to be applied.";
+            lblNotice.Text = ("* If you are currently connected to CnCNet, you need to log out and reconnect" +
+                Environment.NewLine + "for your new name to be applied.").L10N("UI:DTAConfig:ReconnectAfterRename");
 
             hotkeyConfigWindow = new HotkeyConfigurationWindow(WindowManager);
             DarkeningPanel.AddAndInitializeWithControl(WindowManager, hotkeyConfigWindow);
@@ -165,8 +166,8 @@ namespace DTAConfig.OptionPanels
 
             var btnConfigureHotkeys = new XNAClientButton(WindowManager);
             btnConfigureHotkeys.Name = "btnConfigureHotkeys";
-            btnConfigureHotkeys.ClientRectangle = new Rectangle(lblPlayerName.X, lblNotice.Bottom + 36, 160, 23);
-            btnConfigureHotkeys.Text = "Configure Hotkeys";
+            btnConfigureHotkeys.ClientRectangle = new Rectangle(lblPlayerName.X, lblNotice.Bottom + 36, UIDesignConstants.BUTTON_WIDTH_160, UIDesignConstants.BUTTON_HEIGHT);
+            btnConfigureHotkeys.Text = "Configure Hotkeys".L10N("UI:DTAConfig:ConfigureHotkeys");
             btnConfigureHotkeys.LeftClick += BtnConfigureHotkeys_LeftClick;
 
             AddChild(lblScrollRate);
@@ -231,7 +232,7 @@ namespace DTAConfig.OptionPanels
 
         public override bool Save()
         {
-            base.Save();
+            bool restartRequired = base.Save();
 
             IniSettings.ScrollRate.Value = ReverseScrollRate(trbScrollRate.Value);
 
@@ -255,7 +256,7 @@ namespace DTAConfig.OptionPanels
             if (playerName.Length > 0)
                 IniSettings.PlayerName.Value = playerName;
 
-            return false;
+            return restartRequired;
         }
 
         private int ReverseScrollRate(int scrollRate)

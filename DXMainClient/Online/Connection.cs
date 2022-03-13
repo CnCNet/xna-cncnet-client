@@ -1,4 +1,5 @@
 ﻿using ClientCore;
+using Localization;
 using Rampastring.Tools;
 using System;
 using System.Collections.Generic;
@@ -35,7 +36,6 @@ namespace DTAClient.Online
         /// </summary>
         private static readonly IList<Server> Servers = new List<Server>
         {
-            new Server("irc.gamesurge.net", "GameSurge", new int[1] { 6667 }),
             new Server("Burstfire.UK.EU.GameSurge.net", "GameSurge London, UK", new int[3] { 6667, 6668, 7000 }),
             new Server("ColoCrossing.IL.US.GameSurge.net", "GameSurge Chicago, IL", new int[5] { 6660, 6666, 6667, 6668, 6669 }),
             new Server("Gameservers.NJ.US.GameSurge.net", "GameSurge Newark, NJ", new int[7] { 6665, 6666, 6667, 6668, 6669, 7000, 8080 }),
@@ -51,6 +51,7 @@ namespace DTAClient.Online
             new Server("195.8.250.180", "GameSurge IP 195.8.250.180", new int[7] { 6660, 6666, 6667, 6668, 6669, 7000, 8080 }),
             new Server("91.217.189.76", "GameSurge IP 91.217.189.76", new int[7] { 6660, 6666, 6667, 6668, 6669, 7000, 8080 }),
             new Server("195.68.206.250", "GameSurge IP 195.68.206.250", new int[7] { 6660, 6666, 6667, 6668, 6669, 7000, 8080 }),
+            new Server("irc.gamesurge.net", "GameSurge", new int[1] { 6667 }),
         }.AsReadOnly();
 
         bool _isConnected = false;
@@ -141,7 +142,7 @@ namespace DTAClient.Online
         public void ConnectAsync()
         {
             if (_isConnected)
-                throw new InvalidOperationException("The client is already connected!");
+                throw new InvalidOperationException("The client is already connected!".L10N("UI:Main:ClientAlreadyConnected"));
 
             if (_attemptingConnection)
                 return; // Maybe we should throw in this case as well?
@@ -162,13 +163,13 @@ namespace DTAClient.Online
         /// </summary>
         private void ConnectToServer()
         {
-            IEnumerable<Server> availableServerSortedList = GetAvailableServerList();
+            IList<Server> sortedServerList = GetServerListSortedByLatency();
 
-            foreach (Server server in availableServerSortedList)
+            foreach (Server server in sortedServerList)
             {
                 try
                 {
-                    for (var i = 0; i < server.Ports.Length; i++)
+                    for (int i = 0; i < server.Ports.Length; i++)
                     {
                         connectionManager.OnAttemptedServerChanged(server.Name);
 
@@ -276,7 +277,7 @@ namespace DTAClient.Online
                     {
                         failedServerIPs.Add(currentConnectedServerIP);
                         Logger.Log("Disconnected from CnCNet.");
-                        connectionManager.OnConnectionLost("Server disconnected.");
+                        connectionManager.OnConnectionLost("Server disconnected.".L10N("UI:Main:ServerDisconnected"));
                         break;
                     }
 
@@ -328,99 +329,164 @@ namespace DTAClient.Online
         /// <summary>
         /// Get all IP addresses of Lobby servers by resolving the hostname and test the latency to the servers.
         /// The maximum latency is defined in <c>MAXIMUM_LATENCY</c>, see <see cref="Connection.MAXIMUM_LATENCY"/>.
+        /// Servers that did not respond to ICMP messages in time will be placed at the end of the list.
         /// </summary>
-        /// <returns>A list of available Lobby servers sorted by latency.</returns>
-        private IEnumerable<Server> GetAvailableServerList()
+        /// <returns>A list of Lobby servers sorted by latency.</returns>
+        private IList<Server> GetServerListSortedByLatency()
         {
-            List<string> triedIPAddressList = new List<string>();
-            Dictionary<Server, long> availableServerAndLatencyDict = new Dictionary<Server, long>();
+            // Resolve the hostnames.
+            ICollection<Task<IEnumerable<Tuple<IPAddress, string, int[]>>>>
+                dnsTasks = new List<Task<IEnumerable<Tuple<IPAddress, string, int[]>>>>(Servers.Count);
 
-            try
+            foreach (Server server in Servers)
             {
-                List<Task> dnsAndPingTasks = new List<Task>();
+                string serverHostnameOrIPAddress = server.Host;
+                string serverName = server.Name;
+                int[] serverPorts = server.Ports;
 
-                foreach (Server server in Servers)
+                Task<IEnumerable<Tuple<IPAddress, string, int[]>>> dnsTask = new Task<IEnumerable<Tuple<IPAddress, string, int[]>>>(() =>
                 {
-                    string serverHostnameOrIPAddress = server.Host;
-                    string serverName = server.Name;
-                    int[] serverPorts = server.Ports;
+                    Logger.Log($"Attempting to DNS resolve {serverName} ({serverHostnameOrIPAddress}).");
+                    ICollection<Tuple<IPAddress, string, int[]>> _serverInfos = new List<Tuple<IPAddress, string, int[]>>();
 
-                    Task dnsAndPingTask = new Task(() =>
+                    try
                     {
-                        Logger.Log($"Attempting to DNS resolve {serverName} ({serverHostnameOrIPAddress}).");
-
                         // If hostNameOrAddress is an IP address, this address is returned without querying the DNS server.
-                        List<IPAddress> serverIPAddresses = Dns.GetHostAddresses(serverHostnameOrIPAddress)
-                            .Where(item => item.AddressFamily == AddressFamily.InterNetwork).ToList();
+                        IEnumerable<IPAddress> serverIPAddresses = Dns.GetHostAddresses(serverHostnameOrIPAddress)
+                                                                      .Where(IPAddress => IPAddress.AddressFamily == AddressFamily.InterNetwork);
 
                         Logger.Log($"DNS resolved {serverName} ({serverHostnameOrIPAddress}): " +
                             $"{string.Join(", ", serverIPAddresses.Select(item => item.ToString()))}");
 
-                        List<Task> pingTasks = new List<Task>();
-
+                        // Store each IPAddress in a different tuple.
                         foreach (IPAddress serverIPAddress in serverIPAddresses)
                         {
-                            if (triedIPAddressList.Contains(serverIPAddress.ToString()))
-                            {
-                                Logger.Log($"Skipped a duplicate IP from {serverName} ({serverIPAddress}).");
-                                continue;
-                            }
-
-                            triedIPAddressList.Add(serverIPAddress.ToString());
-
-                            if (failedServerIPs.Contains(serverIPAddress.ToString()))
-                            {
-                                Logger.Log($"Skipped a failed server {serverName} ({serverIPAddress}).");
-                                continue;
-                            }
-
-                            Task pingTask = new Task(() =>
-                            {
-                                Logger.Log($"Attempting to ping {serverName} ({serverIPAddress}).");
-                                PingReply pingReply = new Ping().Send(serverIPAddress, MAXIMUM_LATENCY);
-
-                                if (pingReply.Status == IPStatus.Success)
-                                {
-                                    long pingInMs = pingReply.RoundtripTime;
-                                    Logger.Log($"The latency in milliseconds to the server {serverName} ({serverIPAddress}): {pingInMs}.");
-                                    availableServerAndLatencyDict.Add(new Server(serverIPAddress.ToString(), serverName, serverPorts), pingInMs);
-                                }
-                                else
-                                {
-                                    Logger.Log($"Failed to ping the server {serverName} ({serverIPAddress}): " +
-                                        $"{Enum.GetName(typeof(IPStatus), pingReply.Status)}.");
-                                }
-                            });
-
-                            pingTask.Start();
-                            pingTasks.Add(pingTask);
+                            _serverInfos.Add(new Tuple<IPAddress, string, int[]>(serverIPAddress, serverName, serverPorts));
                         }
+                    }
+                    catch (SocketException ex)
+                    {
+                        Logger.Log($"Caught an exception when DNS resolving {serverName} ({serverHostnameOrIPAddress}) Lobby server: {ex.Message}");
+                    }
 
-                        Task.WaitAll(pingTasks.ToArray());
-                    });
+                    return _serverInfos;
+                });
 
-                    dnsAndPingTask.Start();
-                    dnsAndPingTasks.Add(dnsAndPingTask);
-                }
-
-                Task.WaitAll(dnsAndPingTasks.ToArray());
+                dnsTask.Start();
+                dnsTasks.Add(dnsTask);
             }
-            catch (Exception ex)
+
+            Task.WaitAll(dnsTasks.ToArray());
+
+            // Group the tuples by IPAddress to merge duplicate servers.
+            IEnumerable<IGrouping<IPAddress, Tuple<string, int[]>>>
+                serverInfosGroupedByIPAddress = dnsTasks.SelectMany(dnsTask => dnsTask.Result)      // Tuple<IPAddress, serverName, serverPorts>
+                                                        .GroupBy(
+                                                            serverInfo => serverInfo.Item1,         // IPAddress
+                                                            serverInfo => new Tuple<string, int[]>(
+                                                                serverInfo.Item2,                   // serverName
+                                                                serverInfo.Item3                    // serverPorts
+                                                            )
+                                                        );
+
+            // Process each group:
+            //   1. Get IPAddress.
+            //   2. Concatenate serverNames.
+            //   3. Remove duplicate ports.
+            //   4. Construct and return a tuple that contains the IPAddress, concatenated serverNames and unique ports.
+            IEnumerable<Tuple<IPAddress, string, int[]>> serverInfos = serverInfosGroupedByIPAddress.Select(serverInfoGroup =>
             {
-                if (ex is AggregateException)
-                {
-                    foreach (Exception innerEx in ((AggregateException)ex).Flatten().InnerExceptions)
-                        Logger.Log("Unable to contact with the server. " + innerEx.Message);
-                }
-                else
-                {
-                    Logger.Log("Unable to contact with the server. " + ex.Message);
-                }
+                IPAddress ipAddress = serverInfoGroup.Key;
+                string serverNames = string.Join(", ", serverInfoGroup.Select(serverInfo => serverInfo.Item1));
+                int[] serverPorts = serverInfoGroup.SelectMany(serverInfo => serverInfo.Item2).Distinct().ToArray();
+
+                return new Tuple<IPAddress, string, int[]>(ipAddress, serverNames, serverPorts);
+            });
+
+            // Do logging.
+            foreach (Tuple<IPAddress, string, int[]> serverInfo in serverInfos)
+            {
+                string serverIPAddress = serverInfo.Item1.ToString();
+                string serverNames = string.Join(", ", serverInfo.Item2.ToString());
+                string serverPorts = string.Join(", ", serverInfo.Item3.Select(port => port.ToString()));
+
+                Logger.Log($"Got a Lobby server. IP: {serverIPAddress}; Name: {serverNames}; Ports: {serverPorts}.");
             }
 
-            Logger.Log($"The number of available Lobby servers is {availableServerAndLatencyDict.Count}.");
+            Logger.Log($"The number of Lobby servers is {serverInfos.Count()}.");
 
-            return availableServerAndLatencyDict.OrderBy(item => item.Value).Select(item => item.Key);
+            // Test the latency.
+            ICollection<Task<Tuple<Server, long>>> pingTasks = new List<Task<Tuple<Server, long>>>(serverInfos.Count());
+
+            foreach (Tuple<IPAddress, string, int[]> serverInfo in serverInfos)
+            {
+                IPAddress serverIPAddress = serverInfo.Item1;
+                string serverNames = serverInfo.Item2;
+                int[] serverPorts = serverInfo.Item3;
+
+                if (failedServerIPs.Contains(serverIPAddress.ToString()))
+                {
+                    Logger.Log($"Skipped a failed server {serverNames} ({serverIPAddress}).");
+                    continue;
+                }
+
+                Task<Tuple<Server, long>> pingTask = new Task<Tuple<Server, long>>(() =>
+                {
+                    Logger.Log($"Attempting to ping {serverNames} ({serverIPAddress}).");
+                    Server server = new Server(serverIPAddress.ToString(), serverNames, serverPorts);
+
+                    using (Ping ping = new Ping())
+                    {
+                        try
+                        {
+                            PingReply pingReply = ping.Send(serverIPAddress, MAXIMUM_LATENCY);
+
+                            if (pingReply.Status == IPStatus.Success)
+                            {
+                                long pingInMs = pingReply.RoundtripTime;
+                                Logger.Log($"The latency in milliseconds to the server {serverNames} ({serverIPAddress}): {pingInMs}.");
+
+                                return new Tuple<Server, long>(server, pingInMs);
+                            }
+                            else
+                            {
+                                Logger.Log($"Failed to ping the server {serverNames} ({serverIPAddress}): " +
+                                    $"{Enum.GetName(typeof(IPStatus), pingReply.Status)}.");
+
+                                return new Tuple<Server, long>(server, long.MaxValue);
+                            }
+                        }
+                        catch (PingException ex)
+                        {
+                            Logger.Log($"Caught an exception when pinging {serverNames} ({serverIPAddress}) Lobby server: {ex.Message}");
+
+                            return new Tuple<Server, long>(server, long.MaxValue);
+                        }
+                    }
+                });
+
+                pingTask.Start();
+                pingTasks.Add(pingTask);
+            }
+
+            Task.WaitAll(pingTasks.ToArray());
+
+            // Sort the servers by latency.
+            IOrderedEnumerable<Tuple<Server, long>>
+                sortedServerAndLatencyResults = pingTasks.Select(task => task.Result)              // Tuple<Server, Latency>
+                                                         .OrderBy(taskResult => taskResult.Item2); // Latency
+
+            // Do logging.
+            foreach (Tuple<Server, long> serverAndLatencyResult in sortedServerAndLatencyResults)
+            {
+                string serverIPAddress = serverAndLatencyResult.Item1.Host;
+                long serverLatencyValue = serverAndLatencyResult.Item2;
+                string serverLatencyString = serverLatencyValue <= MAXIMUM_LATENCY ? serverLatencyValue.ToString() : "DNF";
+
+                Logger.Log($"Lobby server IP: {serverIPAddress}, latency: {serverLatencyString}.");
+            }
+
+            return sortedServerAndLatencyResults.Select(taskResult => taskResult.Item1).ToList(); // Server
         }
 
         public void Disconnect()
@@ -558,6 +624,9 @@ namespace DTAClient.Online
                             string wUserName = parameters[5];
                             string extraInfo = parameters[7];
                             connectionManager.OnWhoReplyReceived(ident, host, wUserName, extraInfo);
+                            break;
+                        case 311: // Reply to WHOIS NAME query
+                            connectionManager.OnWhoReplyReceived(parameters[2], parameters[3], parameters[1], string.Empty);
                             break;
                         case 433: // Name already in use
                             message = serverMessagePart + parameters[1] + ": " + parameters[2];
@@ -873,9 +942,9 @@ namespace DTAClient.Online
             SendMessage("NICK " + ProgramConstants.PLAYERNAME);
         }
 
-        public void QueueMessage(QueuedMessageType type, int priority, string message)
+        public void QueueMessage(QueuedMessageType type, int priority, string message, bool replace = false)
         {
-            QueuedMessage qm = new QueuedMessage(message, type, priority);
+            QueuedMessage qm = new QueuedMessage(message, type, priority, replace);
             QueueMessage(qm);
         }
 
@@ -913,13 +982,36 @@ namespace DTAClient.Online
         }
 
         private int NextQueueID { get; set; } = 0;
+
+        /// <summary>
+        /// This will attempt to replace a previously queued message of the same type.
+        /// </summary>
+        /// <param name="qm">The new message to replace with</param>
+        /// <returns>Whether or not a replace occurred</returns>
+        private bool ReplaceMessage(QueuedMessage qm)
+        {
+            lock (messageQueueLocker)
+            {
+                var previousMessageIndex = MessageQueue.FindIndex(m => m.MessageType == qm.MessageType);
+                if (previousMessageIndex == -1)
+                    return false;
+                
+                MessageQueue[previousMessageIndex] = qm;
+                return true;
+            }
+        }
+
         /// <summary>
         /// Adds a message to the send queue.
         /// </summary>
         /// <param name="qm">The message to queue.</param>
+        /// <param name="replace">If true, attempt to replace a previous message of the same type</param>
         public void QueueMessage(QueuedMessage qm)
         {
             if (!_isConnected)
+                return;
+
+            if (qm.Replace && ReplaceMessage(qm))
                 return;
 
             qm.ID = NextQueueID++;

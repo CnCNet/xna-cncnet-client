@@ -1,12 +1,14 @@
-﻿using Rampastring.XNAUI.XNAControls;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using Rampastring.XNAUI;
-using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
-using DTAClient.Domain.Multiplayer;
 using System.Linq;
 using ClientCore;
+using ClientCore.Enums;
+using DTAClient.Domain.Multiplayer;
+using DTAClient.Domain.Multiplayer.CnCNet;
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
+using Rampastring.XNAUI;
+using Rampastring.XNAUI.XNAControls;
 
 namespace DTAClient.DXGUI.Multiplayer
 {
@@ -58,34 +60,47 @@ namespace DTAClient.DXGUI.Multiplayer
         /// <param name="index">The index of the game to remove.</param>
         public void RemoveGame(int index)
         {
-            if (SelectedIndex == index)
-                SelectedIndex = -1;
-            else if (SelectedIndex > index)
-                SelectedIndex--;
-
             HostedGames.RemoveAt(index);
 
             Refresh();
         }
 
         /// <summary>
+        /// Compares each listed XNAListBoxItem item in the GameListBox to the refernece XNAListBoxItem item for equality.
+        /// </summary>
+        /// <param name="referencedItem">The XNAListBoxItem to compare against</param>
+        /// <returns>bool</returns>
+        private static Predicate<XNAListBoxItem> GameListMatch(XNAListBoxItem referencedItem) => listedItem =>
+        {
+            var referencedGame = (GenericHostedGame)referencedItem?.Tag;
+            var listedGame = (GenericHostedGame)listedItem?.Tag;
+
+            if (referencedGame == null || listedGame == null)
+                return false;
+
+            return referencedGame.Equals(listedGame);
+        };
+        
+        /// <summary>
         /// Refreshes game information in the game list box.
         /// </summary>
         public void Refresh()
         {
+            var selectedItem = SelectedItem;
+            var hoveredItem = HoveredItem;
+            
             Items.Clear();
 
-            if (GameMatchesFilter != null)
-            {
-                foreach (var hg in HostedGames)
-                {
-                    if (GameMatchesFilter(hg))
-                        AddGameToList(hg);
-                }
-            }
-            else HostedGames.ForEach(AddGameToList);
+            GetSortedAndFilteredGames()
+                .ToList()
+                .ForEach(AddGameToList);
 
-            GameListBox_HoveredIndexChanged(this, EventArgs.Empty);
+            if (selectedItem != null)
+                SelectedIndex = Items.FindIndex(GameListMatch(selectedItem));
+            if (hoveredItem != null)
+                HoveredIndex = Items.FindIndex(GameListMatch(hoveredItem));
+
+            ShowGamePanelInfoForIndex(IsValidGameIndex(SelectedIndex) ? SelectedIndex : HoveredIndex);
         }
 
         /// <summary>
@@ -94,23 +109,38 @@ namespace DTAClient.DXGUI.Multiplayer
         /// <param name="game">The game to add.</param>
         public void AddGame(GenericHostedGame game)
         {
-            GenericHostedGame selectedGame = null;
-            if (SelectedIndex > -1 && SelectedIndex < HostedGames.Count)
-            {
-                selectedGame = HostedGames[SelectedIndex];
-            }
-
             HostedGames.Add(game);
 
-            HostedGames = HostedGames.OrderBy(hg => hg.Passworded).OrderBy(hg =>
-                hg.GameVersion != ProgramConstants.GAME_VERSION).OrderBy(hg =>
-                hg.Game.InternalName.ToUpper() == localGameIdentifier.ToUpper()).OrderBy(hg =>
-                hg.Locked).ToList();
-
             Refresh();
+        }
 
-            if (selectedGame != null)
-                SelectedIndex = HostedGames.FindIndex(hg => hg == selectedGame);
+        private IEnumerable<GenericHostedGame> GetSortedAndFilteredGames()
+        {
+            var sortedGames = GetSortedGames();
+
+            return GameMatchesFilter == null ? sortedGames : sortedGames.Where(hg => GameMatchesFilter(hg));
+        }
+
+        private IEnumerable<GenericHostedGame> GetSortedGames()
+        {
+            var sortedGames =
+                HostedGames
+                    .OrderBy(hg => hg.Locked)
+                    .ThenBy(hg => string.Equals(hg.Game.InternalName, localGameIdentifier, StringComparison.CurrentCultureIgnoreCase))
+                    .ThenBy(hg => hg.GameVersion != ProgramConstants.GAME_VERSION)
+                    .ThenBy(hg => hg.Passworded);
+            
+            switch ((SortDirection)UserINISettings.Instance.SortState.Value)
+            {
+                case SortDirection.Asc:
+                    sortedGames = sortedGames.ThenBy(hg => hg.RoomName);
+                    break;
+                case SortDirection.Desc:
+                    sortedGames = sortedGames.ThenByDescending(hg => hg.RoomName);
+                    break;
+            }
+
+            return sortedGames;
         }
 
         /// <summary>
@@ -118,21 +148,7 @@ namespace DTAClient.DXGUI.Multiplayer
         /// </summary>
         public void SortAndRefreshHostedGames()
         {
-            GenericHostedGame selectedGame = null;
-            if (SelectedIndex > -1 && SelectedIndex < HostedGames.Count)
-            {
-                selectedGame = HostedGames[SelectedIndex];
-            }
-
-            HostedGames = HostedGames.OrderBy(hg => hg.Passworded).OrderBy(hg =>
-                hg.GameVersion != ProgramConstants.GAME_VERSION).OrderBy(hg =>
-                hg.Game.InternalName.ToUpper() == localGameIdentifier.ToUpper()).OrderBy(hg =>
-                hg.Locked).ToList();
-
             Refresh();
-
-            if (selectedGame != null)
-                SelectedIndex = HostedGames.FindIndex(hg => hg == selectedGame);
         }
 
         public void ClearGames()
@@ -141,10 +157,10 @@ namespace DTAClient.DXGUI.Multiplayer
             HostedGames.Clear();
         }
 
-        protected override int GetRenderTargetWidth() => Width + panelGameInformation.Width;
-
         public override void Initialize()
         {
+            base.Initialize();
+
             txLockedGame = AssetLoader.LoadTexture("lockedgame.png");
             txIncompatibleGame = AssetLoader.LoadTexture("incompatible.png");
             txPasswordedGame = AssetLoader.LoadTexture("passwordedgame.png");
@@ -158,36 +174,49 @@ namespace DTAClient.DXGUI.Multiplayer
             panelGameInformation.Disable();
             panelGameInformation.InputEnabled = false;
             panelGameInformation.Alpha = 0f;
-            AddChild(panelGameInformation);
+            Parent.AddChild(panelGameInformation); // make this a child of our parent so it's not drawn on our rendertarget
 
+            SelectedIndexChanged += GameListBox_SelectedIndexChanged;
             HoveredIndexChanged += GameListBox_HoveredIndexChanged;
 
             hoverOnGameColor = AssetLoader.GetColorFromString(
                 ClientConfiguration.Instance.HoverOnGameColor);
 
-            base.Initialize();
-
             loadedGameTextWidth = (int)Renderer.GetTextDimensions(LOADED_GAME_TEXT, FontIndex).X;
         }
 
-        private void GameListBox_HoveredIndexChanged(object sender, EventArgs e)
+        private bool IsValidGameIndex(int index)
         {
-            if (HoveredIndex < 0 || HoveredIndex >= Items.Count)
+            return index >= 0 && index < Items.Count;
+        }
+
+        private void ShowGamePanelInfoForIndex(int index)
+        {
+            if (!IsValidGameIndex(index))
             {
                 panelGameInformation.AlphaRate = -0.5f;
                 return;
             }
 
             panelGameInformation.Enable();
-            panelGameInformation.X = Width;
-            panelGameInformation.Y = Math.Min((HoveredIndex - TopIndex) * LineHeight,
-                         Height - panelGameInformation.Height);
+            panelGameInformation.X = Right;
+            panelGameInformation.Y = Y;
 
             panelGameInformation.AlphaRate = 0.5f;
 
-            var hostedGame = (GenericHostedGame)Items[HoveredIndex].Tag;
-
+            var hostedGame = (GenericHostedGame)Items[index].Tag;
             panelGameInformation.SetInfo(hostedGame);
+        }
+
+        private void GameListBox_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            ShowGamePanelInfoForIndex(SelectedIndex);
+        }
+
+        private void GameListBox_HoveredIndexChanged(object sender, EventArgs e)
+        {
+            if (!IsValidGameIndex(SelectedIndex))
+                ShowGamePanelInfoForIndex(HoveredIndex);
         }
 
         private void AddGameToList(GenericHostedGame hg)
@@ -216,13 +245,6 @@ namespace DTAClient.DXGUI.Multiplayer
             AddItem(lbItem);
         }
 
-        public override void OnMouseLeave()
-        {
-            panelGameInformation.AlphaRate = -0.5f;
-
-            base.OnMouseLeave();
-        }
-
         public override void Update(GameTime gameTime)
         {
             timeSinceGameRefresh += gameTime.ElapsedGameTime;
@@ -235,11 +257,6 @@ namespace DTAClient.DXGUI.Multiplayer
                     {
                         HostedGames.RemoveAt(i);
                         i--;
-
-                        if (SelectedIndex == i)
-                            SelectedIndex = -1;
-                        else if (SelectedIndex > i)
-                            SelectedIndex--;
                     }
                 }
 

@@ -176,7 +176,7 @@
     <OutputPath>bin\XNAFramework\Debug\</OutputPath>
     <DefineConstants>TRACE;DEBUG;YR</DefineConstants>
     <DebugType>full</DebugType>
-	<TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <PlatformTarget>x86</PlatformTarget>
     <LangVersion>7.3</LangVersion>
     <ErrorReport>prompt</ErrorReport>
@@ -195,31 +195,31 @@
     <Otherwise>
       <ItemGroup>
         <Reference Include="Microsoft.Xna.Framework, Version=4.0.0.0, Culture=neutral, PublicKeyToken=842cf8be1de50553, processorArchitecture=x86">
-          <Private>False</Private>
+          <HintPath>..\References\XNA\Microsoft.Xna.Framework.dll</HintPath>
         </Reference>
         <Reference Include="Microsoft.Xna.Framework.Game, Version=4.0.0.0, Culture=neutral, PublicKeyToken=842cf8be1de50553, processorArchitecture=x86">
-          <Private>False</Private>
+          <HintPath>..\References\XNA\Microsoft.Xna.Framework.Game.dll</HintPath>
         </Reference>
         <Reference Include="Microsoft.Xna.Framework.Graphics, Version=4.0.0.0, Culture=neutral, PublicKeyToken=842cf8be1de50553, processorArchitecture=x86">
-          <Private>False</Private>
+          <HintPath>..\References\XNA\Microsoft.Xna.Framework.Graphics.dll</HintPath>
         </Reference>
         <Reference Include="Microsoft.Xna.Framework.GamerServices, Version=4.0.0.0, Culture=neutral, PublicKeyToken=842cf8be1de50553, processorArchitecture=x86">
-          <Private>False</Private>
+          <HintPath>..\References\XNA\Microsoft.Xna.Framework.GamerServices.dll</HintPath>
         </Reference>
         <Reference Include="Microsoft.Xna.Framework.Xact, Version=4.0.0.0, Culture=neutral, PublicKeyToken=842cf8be1de50553, processorArchitecture=x86">
-          <Private>False</Private>
+          <HintPath>..\References\XNA\Microsoft.Xna.Framework.Xact.dll</HintPath>
         </Reference>
         <Reference Include="Microsoft.Xna.Framework.Video, Version=4.0.0.0, Culture=neutral, PublicKeyToken=842cf8be1de50553, processorArchitecture=x86">
-          <Private>False</Private>
+          <HintPath>..\References\XNA\Microsoft.Xna.Framework.Video.dll</HintPath>
         </Reference>
         <Reference Include="Microsoft.Xna.Framework.Avatar, Version=4.0.0.0, Culture=neutral, PublicKeyToken=842cf8be1de50553, processorArchitecture=x86">
-          <Private>False</Private>
+          <HintPath>..\References\XNA\Microsoft.Xna.Framework.Avatar.dll</HintPath>
         </Reference>
         <Reference Include="Microsoft.Xna.Framework.Net, Version=4.0.0.0, Culture=neutral, PublicKeyToken=842cf8be1de50553, processorArchitecture=x86">
-          <Private>False</Private>
+          <HintPath>..\References\XNA\Microsoft.Xna.Framework.Net.dll</HintPath>
         </Reference>
         <Reference Include="Microsoft.Xna.Framework.Storage, Version=4.0.0.0, Culture=neutral, PublicKeyToken=842cf8be1de50553, processorArchitecture=x86">
-          <Private>False</Private>
+          <HintPath>..\References\XNA\Microsoft.Xna.Framework.Storage.dll</HintPath>
         </Reference>
       </ItemGroup>
     </Otherwise>
@@ -252,6 +252,10 @@
     <Compile Include="CnCNet5\GameCollection.cs" />
     <Compile Include="ClientConfiguration.cs" />
     <Compile Include="CnCNet5\NameValidator.cs" />
+    <Compile Include="Enums\AllowPrivateMessagesFromEnum.cs" />
+    <Compile Include="Enums\SortDirection.cs" />
+    <Compile Include="Extensions\EnumExtensions.cs" />
+    <Compile Include="Extensions\StringExtensions.cs" />
     <Compile Include="INIProcessing\IniPreprocessInfoStore.cs" />
     <Compile Include="INIProcessing\IniPreprocessor.cs" />
     <Compile Include="INIProcessing\PreprocessorBackgroundTask.cs" />
@@ -259,6 +263,8 @@
     <Compile Include="ProfanityFilter.cs" />
     <Compile Include="SavedGameManager.cs" />
     <Compile Include="Settings\IIniSetting.cs" />
+    <Compile Include="Settings\IntRangeSetting.cs" />
+    <Compile Include="Settings\StringListSetting.cs" />
     <Compile Include="Settings\UserINISettings.cs" />
     <Compile Include="Settings\BoolSetting.cs" />
     <Compile Include="Settings\DoubleSetting.cs" />
@@ -302,6 +308,12 @@
     <Content Include="Resources\tsicon.png" />
     <Content Include="Resources\unknownicon.png" />
     <Content Include="Resources\yricon.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Localization\Localization.csproj">
+      <Project>{2cd114e3-c30f-4a95-9b4a-455c2c8f82e5}</Project>
+      <Name>Localization</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

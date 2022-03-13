@@ -82,6 +82,8 @@ namespace ClientCore
 
         public string MapPreviewStartingLocationHoverRemapColor => DTACnCNetClient_ini.GetStringValue(GENERAL, "StartingLocationHoverColor", "255,255,255,128");
 
+        public bool MapPreviewStartingLocationUsePlayerRemapColor => DTACnCNetClient_ini.GetBooleanValue(GENERAL, "StartingLocationsUsePlayerRemapColor", false);
+
         public string AltUIBackgroundColor => DTACnCNetClient_ini.GetStringValue(GENERAL, "AltUIBackgroundColor", "196,196,196");
 
         public string WindowBorderColor => DTACnCNetClient_ini.GetStringValue(GENERAL, "WindowBorderColor", "128,128,128"); 
@@ -103,6 +105,8 @@ namespace ClientCore
         public string ListBoxFocusColor => DTACnCNetClient_ini.GetStringValue(GENERAL, "ListBoxFocusColor", "64,64,168");
 
         public string HoverOnGameColor => DTACnCNetClient_ini.GetStringValue(GENERAL, "HoverOnGameColor", "32,32,84");
+
+        public IniSection GetParserConstants() => DTACnCNetClient_ini.GetSection("ParserConstants");
 
         #endregion
 
@@ -172,6 +176,8 @@ namespace ClientCore
 
         public int MaximumRenderHeight => clientDefinitionsIni.GetIntValue(SETTINGS, "MaximumRenderHeight", 800);
 
+        public string[] RecommendedResolutions => clientDefinitionsIni.GetStringValue(SETTINGS, "RecommendedResolutions", "1280x720,2560x1440,3840x2160").Split(',');
+
         public string WindowTitle => clientDefinitionsIni.GetStringValue(SETTINGS, "WindowTitle", string.Empty);
 
         public string InstallationPathRegKey => clientDefinitionsIni.GetStringValue(SETTINGS, "RegistryInstallPath", "TiberianSun");
@@ -230,6 +236,10 @@ namespace ClientCore
         }
 
         public string SettingsIniName => clientDefinitionsIni.GetStringValue(SETTINGS, "SettingsFile", "Settings.ini");
+
+        public string TranslationIniName => clientDefinitionsIni.GetStringValue(SETTINGS, "TranslationFile", "Resources/Translation.ini");
+
+        public bool GenerateTranslationStub => clientDefinitionsIni.GetBooleanValue(SETTINGS, "GenerateTranslationStub", false);
 
         public string ExtraExeCommandLineParameters => clientDefinitionsIni.GetStringValue(SETTINGS, "ExtraCommandLineParams", string.Empty);
 
