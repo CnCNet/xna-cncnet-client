@@ -270,9 +270,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 fsw.EnableRaisingEvents = true;
 
             for (int pId = 0; pId < Players.Count; pId++)
-            {
                 Players[pId].IsInGame = true;
-            }
 
             base.StartGame();
         }
