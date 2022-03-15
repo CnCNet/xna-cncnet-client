@@ -14,7 +14,7 @@ namespace DTAClient.DXGUI.Multiplayer
     {
         private const int maxStartCount = 8;
         private const int defaultX = 24;
-        private const int defaultTeamStartMappingX = 200;
+        private const int defaultTeamStartMappingX = UIDesignConstants.EMPTY_SPACE_SIDES;
         private const int teamMappingPanelWidth = 50;
         private const int teamMappingPanelHeight = 22;
         private readonly string customPresetName = "Custom".L10N("UI:Main:CustomPresetName");
@@ -207,7 +207,7 @@ namespace DTAClient.DXGUI.Multiplayer
             chkBoxUseTeamStartMappings = new XNAClientCheckBox(WindowManager);
             chkBoxUseTeamStartMappings.Name = nameof(chkBoxUseTeamStartMappings);
             chkBoxUseTeamStartMappings.Text = "Enable Auto Allying:".L10N("UI:Main:EnableAutoAllying");
-            chkBoxUseTeamStartMappings.ClientRectangle = new Rectangle(defaultTeamStartMappingX, lblHeader.Y, 0, 0);
+            chkBoxUseTeamStartMappings.ClientRectangle = new Rectangle(chkBoxForceRandomSides.X, chkBoxForceRandomStarts.Bottom + 20, 0, 0);
             chkBoxUseTeamStartMappings.CheckedChanged += ChkBoxUseTeamStartMappings_Changed;
             AddChild(chkBoxUseTeamStartMappings);
 
@@ -233,7 +233,7 @@ namespace DTAClient.DXGUI.Multiplayer
             AddChild(ddTeamStartMappingPreset);
 
             teamStartMappingsPanel = new TeamStartMappingsPanel(WindowManager);
-            teamStartMappingsPanel.ClientRectangle = new Rectangle(200, ddTeamStartMappingPreset.Bottom + 8, Width, Height - ddTeamStartMappingPreset.Bottom + 4);
+            teamStartMappingsPanel.ClientRectangle = new Rectangle(lblPreset.X, ddTeamStartMappingPreset.Bottom + 8, Width, Height - ddTeamStartMappingPreset.Bottom + 4);
             AddChild(teamStartMappingsPanel);
 
             AddLocationAssignments();

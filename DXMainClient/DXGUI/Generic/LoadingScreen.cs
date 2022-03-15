@@ -90,6 +90,7 @@ namespace DTAClient.DXGUI.Generic
             ClientGUICreator.Instance.AddControl(typeof(GameLaunchButton));
             ClientGUICreator.Instance.AddControl(typeof(ChatListBox));
             ClientGUICreator.Instance.AddControl(typeof(XNAChatTextBox));
+            ClientGUICreator.Instance.AddControl(typeof(PlayerExtraOptionsPanel));
 
             var gameCollection = new GameCollection();
             gameCollection.Initialize(GraphicsDevice);

@@ -52,8 +52,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         public GameLobbyBase(
             WindowManager windowManager,
             string iniName,
-            MapLoader mapLoader, 
-            bool isMultiplayer, 
+            MapLoader mapLoader,
+            bool isMultiplayer,
             DiscordHandler discordHandler
         ) : base(windowManager)
         {
@@ -291,7 +291,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 loadSaveGameOptionsMenu.Items.Add(loadConfigMenuItem);
                 loadSaveGameOptionsMenu.Items.Add(saveConfigMenuItem);
 
-                BtnSaveLoadGameOptions.LeftClick += (sender, args) => 
+                BtnSaveLoadGameOptions.LeftClick += (sender, args) =>
                     loadSaveGameOptionsMenu.Open(new Point(BtnSaveLoadGameOptions.X - 74, BtnSaveLoadGameOptions.Y));
 
                 AddChild(loadSaveGameOptionsMenu);
@@ -315,13 +315,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private Func<List<GameModeMap>> GetGameModeMaps(GameMode gm) => () =>
             GameModeMaps.Where(gmm => gmm.GameMode == gm).ToList();
-
-        private void InitializePlayerExtraOptionsPanel()
-        {
-            PlayerExtraOptionsPanel = new PlayerExtraOptionsPanel(WindowManager);
-            PlayerExtraOptionsPanel.ClientRectangle = new Rectangle(PlayerOptionsPanel.X, PlayerOptionsPanel.Y, PlayerOptionsPanel.Width, PlayerOptionsPanel.Height);
-            PlayerExtraOptionsPanel.OptionsChanged += PlayerExtraOptions_OptionsChanged;
-        }
 
         private void RefreshBthPlayerExtraOptionsOpenTexture()
         {
@@ -402,7 +395,13 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 ChangeMap(GameModeMap);
         }
 
-        protected void BtnPlayerExtraOptions_LeftClick(object sender, EventArgs e) => PlayerExtraOptionsPanel.Enable();
+        protected void BtnPlayerExtraOptions_LeftClick(object sender, EventArgs e)
+        {
+            if (PlayerExtraOptionsPanel.Enabled)
+                PlayerExtraOptionsPanel.Disable();
+            else
+                PlayerExtraOptionsPanel.Enable();
+        }
 
         protected void ApplyPlayerExtraOptions(string sender, string message)
         {
@@ -784,11 +783,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             btnPlayerExtraOptionsOpen = FindChild<XNAClientButton>(nameof(btnPlayerExtraOptionsOpen), true);
             if (btnPlayerExtraOptionsOpen != null)
             {
+                PlayerExtraOptionsPanel = FindChild<PlayerExtraOptionsPanel>(nameof(PlayerExtraOptionsPanel));
+                PlayerExtraOptionsPanel.Disable();
+                PlayerExtraOptionsPanel.OptionsChanged += PlayerExtraOptions_OptionsChanged;
                 btnPlayerExtraOptionsOpen.LeftClick += BtnPlayerExtraOptions_LeftClick;
-                PlayerOptionsPanel.AddChild(btnPlayerExtraOptionsOpen);
-                ReadINIForControl(btnPlayerExtraOptionsOpen);
             }
-
 
             CheckDisallowedSides();
         }
