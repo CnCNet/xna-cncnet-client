@@ -209,6 +209,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             MapPreviewBox = FindChild<MapPreviewBox>("MapPreviewBox");
             MapPreviewBox.SetFields(Players, AIPlayers, MPColors, GameOptionsIni.GetStringValue("General", "Sides", String.Empty).Split(','), GameOptionsIni);
+            MapPreviewBox.ToggleFavorite += MapPreviewBox_ToggleFavorite;
 
             lblMapName = FindChild<XNALabel>(nameof(lblMapName));
             lblMapAuthor = FindChild<XNALabel>(nameof(lblMapAuthor));
