@@ -293,7 +293,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 loadSaveGameOptionsMenu.Items.Add(saveConfigMenuItem);
 
                 BtnSaveLoadGameOptions.LeftClick += (sender, args) =>
-                    loadSaveGameOptionsMenu.Open(new Point(BtnSaveLoadGameOptions.X - 74, BtnSaveLoadGameOptions.Y));
+                    loadSaveGameOptionsMenu.Open(GetCursorPoint());
 
                 AddChild(loadSaveGameOptionsMenu);
                 AddChild(loadOrSaveGameOptionPresetWindow);
@@ -1000,7 +1000,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     foreach (XNADropDown dd in ddPlayerSides)
                         dd.Items[i + RandomSelectorCount].Selectable = false;
 
-                    // Change the sides of players that use the disabled 
+                    // Change the sides of players that use the disabled
                     // side to the default side
                     foreach (PlayerInfo pInfo in playerInfos)
                     {
@@ -1487,7 +1487,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             // As an additional restriction, players can only start from waypoints 0 to 7.
             // That means that if the map already has too many starting waypoints,
-            // we need to move existing (but un-occupied) starting waypoints to point 
+            // we need to move existing (but un-occupied) starting waypoints to point
             // to the stacked locations so we can spawn the players there.
 
 
@@ -1500,7 +1500,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 {
                     startingLocationUsed[houseInfo.RealStartingWaypoint] = true;
 
-                    // If assigned starting waypoint is unknown while the real 
+                    // If assigned starting waypoint is unknown while the real
                     // starting location is known, it means that
                     // the location is shared with another player
                     if (houseInfo.StartingWaypoint == -1)
@@ -1527,7 +1527,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             // For each player, check if they're sharing the starting location
             // with someone else
-            // If they are, find an unused waypoint and assign their 
+            // If they are, find an unused waypoint and assign their
             // starting location to match that
             for (int pId = 0; pId < houseInfos.Length; pId++)
             {
@@ -2119,7 +2119,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
                 if (lowestEnemyAILevel < highestAllyAILevel)
                 {
-                    // Check that the player's AI allies aren't stronger 
+                    // Check that the player's AI allies aren't stronger
                     return RANK_NONE;
                 }
 
@@ -2153,7 +2153,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             if (lowestEnemyAILevel < highestAllyAILevel)
             {
-                // Check that the player's AI allies aren't stronger 
+                // Check that the player's AI allies aren't stronger
                 return RANK_NONE;
             }
 
