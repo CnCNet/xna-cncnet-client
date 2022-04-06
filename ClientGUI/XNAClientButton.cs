@@ -40,7 +40,7 @@ namespace ClientGUI
 
         public override void ParseAttributeFromINI(IniFile iniFile, string key, string value)
         {
-            if (key == "MatchTextureSize" && Conversions.BooleanFromString(key, false))
+            if (key == "MatchTextureSize" && Conversions.BooleanFromString(value, false))
             {
                 Width = IdleTexture.Width;
                 Height = IdleTexture.Height;
