@@ -183,12 +183,19 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 Logger.Log("MultiplayerGameLobby: Saved games are not available!");
         }
 
+        private void ReorderGameOptions()
+        {
+            CheckBoxes = CheckBoxes.OrderBy(cb => cb.GameOptionMessageIndex).ToList();
+            DropDowns = DropDowns.OrderBy(dd => dd.GameOptionMessageIndex).ToList();
+        }
+
         /// <summary>
         /// Performs initialization that is necessary after derived 
         /// classes have performed their own initialization.
         /// </summary>
         protected void PostInitialize()
         {
+            ReorderGameOptions();
             CenterOnParent();
             LoadDefaultGameModeMap();
         }

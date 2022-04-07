@@ -60,6 +60,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         public bool AllowChanges { get; set; } = true;
 
         public CheckBoxMapScoringMode MapScoringMode { get; private set; } = CheckBoxMapScoringMode.Irrelevant;
+        
+        public int GameOptionMessageIndex { get; set; }
 
         private string spawnIniOption;
 
@@ -134,6 +136,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     return;
                 case "MapScoringMode":
                     MapScoringMode = (CheckBoxMapScoringMode)Enum.Parse(typeof(CheckBoxMapScoringMode), value);
+                    return;
+                case "GameOptionMessageIndex":
+                    GameOptionMessageIndex = Conversions.IntFromString(value, 0);
                     return;
             }
 

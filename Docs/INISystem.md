@@ -114,6 +114,21 @@ _(inherits XNACheckbox)_
 
 `ToolTip` = {string} tooltip for checkbox. '@' can be used for newlines
 
+#### GameLobbyCheckBox
+_(inherits XNAClientCheckbox)_
+These checkboxes are specific to the game options in a game lobby.
+
+`SpawnIniOption`  
+`EnabledSpawnIniValue`  
+`DisabledSpawnIniValue`  
+`CustomIniPath`  
+`Reversed`  
+`CheckedMP`  
+`Checked`
+`DisallowedSideIndices`  
+`MapScoringMode`  
+`GameOptionMessageIndex` = `{integer}` The order in which this option is sent in an IRC message to other players in the lobby. This can be used for backwards compatibility if reordering game options in the UI.  
+
 #### XNADropDown
 _(inherits XNAControl)_
 
@@ -131,6 +146,17 @@ _(inherits XNAControl)_
 
 #### XNAClientDropDown
 _(inherits XNADropDown)_
+
+#### GameLobbyDropDown
+_(inherits XNAClientDropDown)_
+These drop downs are specific to the game options in a game lobby.
+
+`Items`  
+`DataWriteMode`  
+`SpawnIniOption`  
+`DefaultIndex`  
+`OptionName`  
+`GameOptionMessageIndex` = `{integer}` The order in which this option is sent in an IRC message to other players in the lobby. This can be used for backwards compatibility if reordering game options in the UI.
 
 `ToolTip` = {string} tooltip for checkbox. '@' can be used for newlines  
 

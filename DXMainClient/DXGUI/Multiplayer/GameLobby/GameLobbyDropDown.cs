@@ -20,6 +20,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         public int HostSelectedIndex { get; set; }
 
         public int UserSelectedIndex { get; set; }
+        
+        public int GameOptionMessageIndex { get; set; }
 
         private DropDownDataWriteMode dataWriteMode = DropDownDataWriteMode.BOOLEAN;
 
@@ -90,6 +92,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     return;
                 case "OptionName":
                     OptionName = value;
+                    return;
+                case "GameOptionMessageIndex":
+                    GameOptionMessageIndex = Conversions.IntFromString(value, 0);
                     return;
             }
 
