@@ -1,59 +1,103 @@
-﻿using ClientCore.CnCNet5;
-using DTAClient.DXGUI.Multiplayer.CnCNet;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using ClientCore.CnCNet5;
+using ClientCore.Properties;
 using DTAClient.Online;
 using Localization;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace DTAClient.DXGUI.Multiplayer
 {
     /// <summary>
-    /// A list box for listing the players in the CnCNet lobby.
+    /// A list box for listing players.
     /// </summary>
     public class PlayerListBox : XNAListBox
     {
         private const int MARGIN = 2;
 
-        public List<ChannelUser> Users;
+        private readonly Texture2D adminGameIcon;
+        private readonly Texture2D unknownGameIcon;
+        private readonly Texture2D badgeGameIcon;
+        private readonly Texture2D friendIcon;
+        private readonly Texture2D ignoreIcon;
 
-        private Texture2D adminGameIcon;
-        private Texture2D unknownGameIcon;
-        private Texture2D badgeGameIcon;
-        private Texture2D friendIcon;
-        private Texture2D ignoreIcon;
+        private readonly CnCNetUserData cncnetUserData;
+        private readonly CnCNetManager cncnetManager;
+        private readonly GameCollection gameCollection;
 
-        private GameCollection gameCollection;
+        public PlayerListBoxOptions _options { get; set; }
 
-        public PlayerListBox(WindowManager windowManager, GameCollection gameCollection) : base(windowManager)
+        public PlayerListBox(
+            WindowManager windowManager,
+            CnCNetUserData cncnetUserData,
+            CnCNetManager cncnetManager,
+            GameCollection gameCollection
+        ) : base(windowManager)
         {
+            this.cncnetUserData = cncnetUserData;
+            this.cncnetManager = cncnetManager;
             this.gameCollection = gameCollection;
 
-            Users = new List<ChannelUser>();
-
-            adminGameIcon = AssetLoader.TextureFromImage(ClientCore.Properties.Resources.cncneticon);
-            unknownGameIcon = AssetLoader.TextureFromImage(ClientCore.Properties.Resources.unknownicon);
+            adminGameIcon = AssetLoader.TextureFromImage(Resources.cncneticon);
+            unknownGameIcon = AssetLoader.TextureFromImage(Resources.unknownicon);
             friendIcon = AssetLoader.LoadTexture("friendicon.png");
             ignoreIcon = AssetLoader.LoadTexture("ignoreicon.png");
             badgeGameIcon = AssetLoader.LoadTexture("Badges/badge.png");
         }
 
-        public void AddUser(ChannelUser user)
+        public override void Initialize()
+        {
+            BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 128), 1, 1);
+            PanelBackgroundDrawMode = PanelBackgroundImageDrawMode.STRETCHED;
+            LineHeight = 16;
+            
+            base.Initialize();
+        }
+
+        public IRCUser GetSelectedUser() => SelectedItem?.Tag as IRCUser;
+
+        public void UpdatePlayers(PlayerListBoxOptions options = null)
+        {
+            _options = options ?? _options;
+            if (_options?.Users == null)
+                return;
+
+            string selectedUserName = SelectedItem?.Text ?? string.Empty;
+
+            Clear();
+
+            _options.Users.ForEach(user =>
+            {
+                user.IsFriend = cncnetUserData.IsFriend(user.Name);
+                user.IsIgnored = cncnetUserData.IsIgnored(user.Ident);
+            });
+
+            var sortedUsers = _options.Users
+                .OrderByDescending(u => cncnetManager.IsOnline(u))
+                .ThenByDescending(u => cncnetManager.IsAdmin(u))
+                .ThenByDescending(u => u.IsFriend)
+                .ThenBy(u => u.Name);
+
+            foreach (IRCUser user in sortedUsers)
+                AddUser(user);
+
+            if (selectedUserName != string.Empty)
+            {
+                SelectedIndex = Items.FindIndex(
+                    i => i.Text == selectedUserName);
+            }
+        }
+
+
+        private void AddUser(IRCUser user)
         {
             XNAListBoxItem item = new XNAListBoxItem();
             UpdateItemInfo(user, item);
             AddItem(item);
-        }
-
-        public void UpdateUserInfo(ChannelUser user)
-        {
-            XNAListBoxItem item = Items.Find(x => x.Tag == user);
-            UpdateItemInfo(user, item);
         }
 
         public override void Draw(GameTime gameTime)
@@ -65,7 +109,8 @@ namespace DTAClient.DXGUI.Multiplayer
             for (int i = TopIndex; i < Items.Count; i++)
             {
                 XNAListBoxItem lbItem = Items[i];
-                var user = (ChannelUser)lbItem.Tag;
+                var user = (IRCUser)lbItem.Tag;
+                bool isAdmin = cncnetManager.IsAdmin(user);
 
                 if (height > Height)
                     break;
@@ -86,30 +131,31 @@ namespace DTAClient.DXGUI.Multiplayer
                     }
 
                     FillRectangle(new Rectangle(1, height,
-                        drawnWidth, lbItem.TextLines.Count * LineHeight),
+                            drawnWidth, lbItem.TextLines.Count * LineHeight),
                         FocusColor);
                 }
 
-                DrawTexture(user.IsAdmin ? adminGameIcon : lbItem.Texture, new Rectangle(x, height,
+                if (isAdmin || lbItem.Texture != null)
+                    DrawTexture(isAdmin ? adminGameIcon : lbItem.Texture, new Rectangle(x, height,
                         adminGameIcon.Width, adminGameIcon.Height), Color.White);
 
                 x += adminGameIcon.Width + MARGIN;
 
                 // Friend Icon
-                if (user.IRCUser.IsFriend)
+                if (user.IsFriend && !(_options?.HideFriendIcon ?? false))
                 {
                     DrawTexture(friendIcon,
                         new Rectangle(x, height,
-                        friendIcon.Width, friendIcon.Height), Color.White);
+                            friendIcon.Width, friendIcon.Height), Color.White);
 
                     x += friendIcon.Width + MARGIN;
                 }
                 // Ignore Icon
-                else if (user.IRCUser.IsIgnored && !user.IsAdmin)
+                else if (user.IsIgnored && !isAdmin)
                 {
                     DrawTexture(ignoreIcon,
                         new Rectangle(x, height,
-                        ignoreIcon.Width, ignoreIcon.Height), Color.White);
+                            ignoreIcon.Width, ignoreIcon.Height), Color.White);
 
                     x += ignoreIcon.Width + MARGIN;
                 }
@@ -123,13 +169,11 @@ namespace DTAClient.DXGUI.Multiplayer
                 x += badgeGameIcon.Width + margin;
                 */
 
-                // Player Name
-                string name = user.IsAdmin ? user.IRCUser.Name + " " + "(Admin)".L10N("UI:Main:AdminSuffix") : user.IRCUser.Name;
                 x += lbItem.TextXPadding;
 
-                DrawStringWithShadow(name, FontIndex,
+                DrawStringWithShadow(lbItem.Text, FontIndex,
                     new Vector2(x, height),
-                    user.IsAdmin ? Color.Red : lbItem.TextColor);
+                    isAdmin ? Color.Red : lbItem.TextColor);
 
                 height += LineHeight;
             }
@@ -140,25 +184,22 @@ namespace DTAClient.DXGUI.Multiplayer
             DrawChildren(gameTime);
         }
 
-        private void UpdateItemInfo(ChannelUser user, XNAListBoxItem item)
+        private void UpdateItemInfo(IRCUser user, XNAListBoxItem item)
         {
             item.Tag = user;
+            item.Text = user.Name;
 
-            if (user.IsAdmin)
+            if (cncnetManager.IsAdmin(user))
             {
-                item.Text = user.IRCUser.Name + " " + "(Admin)".L10N("UI:Main:AdminSuffix");
+                item.Text = user.Name + " " + "(Admin)".L10N("UI:Main:AdminSuffix");
                 item.TextColor = Color.Red;
                 item.Texture = adminGameIcon;
+                return;
             }
-            else
-            {
-                item.Text = user.IRCUser.Name;
 
-                if (user.IRCUser.GameID < 0 || user.IRCUser.GameID >= gameCollection.GameList.Count)
-                    item.Texture = unknownGameIcon;
-                else
-                    item.Texture = gameCollection.GameList[user.IRCUser.GameID].Texture;
-            }
+            item.TextColor = (_options?.HighlightOnline ?? false) && !cncnetManager.IsOnline(user) ? UISettings.ActiveSettings.DisabledItemColor : UISettings.ActiveSettings.AltColor;
+
+            item.Texture = user.GameID < 0 || user.GameID >= gameCollection.GameList.Count ? unknownGameIcon : gameCollection.GameList[user.GameID].Texture;
         }
     }
 }

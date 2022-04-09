@@ -196,14 +196,9 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             lbGameList.AllowMultiLineItems = false;
             lbGameList.ClientRectangleUpdated += GameList_ClientRectangleUpdated;
 
-            lbPlayerList = new PlayerListBox(WindowManager, gameCollection);
+            lbPlayerList = new PlayerListBox(WindowManager, cncnetUserData, connectionManager, gameCollection);
             lbPlayerList.Name = nameof(lbPlayerList);
-            lbPlayerList.ClientRectangle = new Rectangle(Width - 202,
-                20, 190,
-                btnLogout.Y - 26);
-            lbPlayerList.PanelBackgroundDrawMode = PanelBackgroundImageDrawMode.STRETCHED;
-            lbPlayerList.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 128), 1, 1);
-            lbPlayerList.LineHeight = 16;
+            lbPlayerList.ClientRectangle = new Rectangle(Width - 202, 20, 190, btnLogout.Y - 26);
             lbPlayerList.DoubleLeftClick += LbPlayerList_DoubleLeftClick;
             lbPlayerList.RightClick += LbPlayerList_RightClick;
 
@@ -649,9 +644,11 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 return;
             }
 
-            var user = (ChannelUser)lbPlayerList.SelectedItem.Tag;
+            var ircUser = lbPlayerList.GetSelectedUser();
+            if (ircUser == null)
+                return;
 
-            globalContextMenu.Show(user, GetCursorPoint());
+            globalContextMenu.Show(ircUser, GetCursorPoint());
         }
 
         private void LbChatMessages_RightClick(object sender, EventArgs e)
@@ -677,9 +674,11 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             if (lbPlayerList.SelectedItem == null)
                 return;
 
-            var channelUser = (ChannelUser)lbPlayerList.SelectedItem.Tag;
+            var ircUser = lbPlayerList.GetSelectedUser();
+            if (ircUser == null)
+                return;
 
-            pmWindow.InitPM(channelUser.IRCUser.Name);
+            pmWindow.InitPM(ircUser.Name);
         }
 
         /// <summary>
@@ -1329,39 +1328,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         }
 
         private void RefreshPlayerList(object sender, EventArgs e)
-        {
-            string selectedUserName = lbPlayerList.SelectedItem == null ?
-                string.Empty : lbPlayerList.SelectedItem.Text;
-
-            lbPlayerList.Clear();
-
-            var current = currentChatChannel.Users.GetFirst();
-            while (current != null)
-            {
-                var user = current.Value;
-                user.IRCUser.IsFriend = cncnetUserData.IsFriend(user.IRCUser.Name);
-                user.IRCUser.IsIgnored = cncnetUserData.IsIgnored(user.IRCUser.Ident);
-                lbPlayerList.AddUser(user);
-                current = current.Next;
-            }
-
-            if (selectedUserName != string.Empty)
-            {
-                lbPlayerList.SelectedIndex = lbPlayerList.Items.FindIndex(
-                    i => i.Text == selectedUserName);
-            }
-        }
-
-        /// <summary>
-        /// Refreshes a single user's info on the player list.
-        /// </summary>
-        /// <param name="user">User on the current chat channel.</param>
-        private void RefreshPlayerListUser(ChannelUser user)
-        {
-            user.IRCUser.IsFriend = cncnetUserData.IsFriend(user.IRCUser.Name);
-            user.IRCUser.IsIgnored = cncnetUserData.IsIgnored(user.IRCUser.Ident);
-            lbPlayerList.UpdateUserInfo(user);
-        }
+            => lbPlayerList.UpdatePlayers(new PlayerListBoxOptions(currentChatChannel.Users.ToList().Select(u => u.IRCUser).ToList()));
 
         private void CurrentChatChannel_UserGameIndexUpdated(object sender, ChannelUserEventArgs e)
         {

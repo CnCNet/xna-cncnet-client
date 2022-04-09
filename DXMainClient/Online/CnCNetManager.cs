@@ -22,7 +22,7 @@ namespace DTAClient.Online
         // When implementing IConnectionManager functions, pay special attention
         // to thread-safety.
         // The functions in IConnectionManager are usually called from the networking
-        // thread, so if they affect anything in the UI or affect data that the 
+        // thread, so if they affect anything in the UI or affect data that the
         // UI thread might be reading, use WindowManager.AddCallback to execute a function
         // on the UI thread instead of modifying the data or raising events directly.
 
@@ -83,7 +83,7 @@ namespace DTAClient.Online
         private bool connected = false;
 
         /// <summary>
-        /// Gets a value that determines whether the client is 
+        /// Gets a value that determines whether the client is
         /// currently connected to CnCNet.
         /// </summary>
         public bool IsConnected
@@ -120,12 +120,18 @@ namespace DTAClient.Online
             return Connection.IsIdSet();
         }
 
+        public ChannelUser GetChannelUser(IRCUser ircUser) => MainChannel?.Users?.ToList().FirstOrDefault(u => u.IRCUser == ircUser);
+
+        public bool IsAdmin(IRCUser ircUser) => GetChannelUser(ircUser)?.IsAdmin ?? false;
+
+        public bool IsOnline(IRCUser ircUser) => GetChannelUser(ircUser) != null;
+
         /// <summary>
         /// Factory method for creating a new channel.
         /// </summary>
         /// <param name="uiName">The user-interface name of the channel.</param>
         /// <param name="channelName">The name of the channel.</param>
-        /// <param name="persistent">Determines whether the channel's information 
+        /// <param name="persistent">Determines whether the channel's information
         /// should remain in memory even after a disconnect.</param>
         /// <param name="password">The password for the channel. Use null for none.</param>
         /// <returns>A channel.</returns>

@@ -52,7 +52,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         private XNAClientTabControl tabControl;
 
         private XNALabel lblPlayers;
-        private XNAListBox lbUserList;
+        private PlayerListBox lbUserList;
         private RecentPlayerTable mclbRecentPlayerList;
 
         private XNALabel lblMessages;
@@ -142,15 +142,11 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             lblPlayers.FontIndex = 1;
             lblPlayers.Text = DEFAULT_PLAYERS_TEXT;
 
-            lbUserList = new XNAListBox(WindowManager);
+            lbUserList = new PlayerListBox(WindowManager, cncnetUserData, connectionManager, gameCollection);
             lbUserList.Name = nameof(lbUserList);
-            lbUserList.ClientRectangle = new Rectangle(lblPlayers.X,
-                lblPlayers.Bottom + 6,
-                LB_USERS_WIDTH, Height - lblPlayers.Bottom - 18);
+            lbUserList.ClientRectangle = new Rectangle(lblPlayers.X, lblPlayers.Bottom + 6, LB_USERS_WIDTH, Height - lblPlayers.Bottom - 18);
             lbUserList.RightClick += LbUserList_RightClick;
             lbUserList.SelectedIndexChanged += LbUserList_SelectedIndexChanged;
-            lbUserList.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 128), 1, 1);
-            lbUserList.PanelBackgroundDrawMode = PanelBackgroundImageDrawMode.STRETCHED;
             lbUserList.DoubleLeftClick += UserList_LeftDoubleClick;
 
             lblMessages = new XNALabel(WindowManager);
@@ -208,9 +204,11 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             tabControl.SelectedTab = MESSAGES_INDEX;
 
             privateMessageHandler.PrivateMessageReceived += PrivateMessageHandler_PrivateMessageReceived;
+            cncnetUserData.UserFriendToggled += CncnetUserData_UserFriendToggled;
+            cncnetUserData.UserIgnoreToggled += CncnetUserData_UserIgnoreToggled;
             connectionManager.UserAdded += ConnectionManager_UserAdded;
             connectionManager.UserRemoved += ConnectionManager_UserRemoved;
-            connectionManager.UserGameIndexUpdated += ConnectionManager_UserGameIndexUpdated;
+            connectionManager.UserGameIndexUpdated += ConnectionManager_UserGameIndexChanged;
 
             sndMessageSound = new EnhancedSoundEffect("message.wav", 0.0, 0.0, ClientConfiguration.Instance.SoundMessageCooldown);
 
@@ -220,6 +218,36 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             GameProcessLogic.GameProcessExited += SharedUILogic_GameProcessExited;
         }
+
+        private void RefreshUserList()
+        {
+            PlayerListBoxOptions options = new PlayerListBoxOptions();
+            switch (tabControl.SelectedTab)
+            {
+                case MESSAGES_INDEX:
+
+                    options.Users = privateMessageUsers.Select(u => u.IrcUser).ToList();
+                    options.HighlightOnline = true;
+                    break;
+                case FRIEND_LIST_VIEW_INDEX:
+                    options.Users = cncnetUserData.FriendList.Select(friendName => connectionManager.UserList.Find(u => u.Name == friendName) ?? new IRCUser(friendName)).ToList();
+                    options.HighlightOnline = true;
+                    options.HideFriendIcon = true;
+                    break;
+                case ALL_PLAYERS_VIEW_INDEX:
+                    options.Users = connectionManager.UserList;
+                    break;
+                case RECENT_PLAYERS_VIEW_INDEX:
+                    return;
+            }
+
+            if (options.Users != null)
+                lbUserList.UpdatePlayers(options);
+        }
+
+        private void CncnetUserData_UserFriendToggled(object sender, EventArgs e) => RefreshUserList();
+
+        private void CncnetUserData_UserIgnoreToggled(object sender, EventArgs e) => RefreshUserList();
 
         private void ChatListBox_RightClick(object sender, EventArgs e)
         {
@@ -243,14 +271,6 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         private void RecentPlayersList_RightClick(object sender, RecentPlayerTableRightClickEventArgs e)
             => globalContextMenu.Show(e.IrcUser, GetCursorPoint());
 
-        private void ConnectionManager_UserGameIndexUpdated(object sender, UserEventArgs e)
-        {
-            var userItem = FindItemForName(e.User.Name);
-
-            if (userItem != null)
-                userItem.Texture = GetUserTexture(e.User);
-        }
-
         private void ConnectionManager_UserRemoved(object sender, UserNameIndexEventArgs e)
         {
             var pmUser = privateMessageUsers.Find(pmsgUser => pmsgUser.IrcUser.Name == e.UserName);
@@ -263,42 +283,21 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 pmUser.Messages.Add(leaveMessage);
             }
 
+            lbUserList.UpdatePlayers();
             if (tabControl.SelectedTab == ALL_PLAYERS_VIEW_INDEX)
-            {
-                if (e.UserIndex >= lbUserList.Items.Count || e.UserIndex < 0)
-                    return;
+                return;
 
-                if (e.UserIndex == lbUserList.SelectedIndex)
-                {
-                    lbUserList.SelectedIndex = -1;
-                }
-                else if (e.UserIndex < lbUserList.SelectedIndex)
-                {
-                    lbUserList.SelectedIndexChanged -= LbUserList_SelectedIndexChanged;
-                    lbUserList.SelectedIndex--;
-                    lbUserList.SelectedIndexChanged += LbUserList_SelectedIndexChanged;
-                }
+            XNAListBoxItem lbItem = FindItemForName(e.UserName);
 
-                lbUserList.Items.RemoveAt(e.UserIndex);
-            }
-            else
-            {
-                XNAListBoxItem lbItem = FindItemForName(e.UserName);
+            if (lbItem == null || lbItem != lbUserList.SelectedItem || leaveMessage == null)
+                return;
 
-                if (lbItem != null)
-                {
-                    lbItem.TextColor = UISettings.ActiveSettings.DisabledItemColor;
-                    lbItem.Texture = null;
-                    lbItem.Tag = null;
-
-                    if (lbItem == lbUserList.SelectedItem && leaveMessage != null)
-                    {
-                        tbMessageInput.Enabled = false;
-                        lbMessages.AddMessage(leaveMessage);
-                    }
-                }
-            }
+            tbMessageInput.Enabled = false;
+            lbMessages.AddMessage(leaveMessage);
         }
+
+        private void ConnectionManager_UserGameIndexChanged(object sender, UserEventArgs e)
+            => lbUserList.UpdatePlayers();
 
         private void ConnectionManager_UserAdded(object sender, UserEventArgs e)
         {
@@ -312,65 +311,21 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 pmUser.Messages.Add(joinMessage);
             }
 
+            lbUserList.UpdatePlayers();
             if (tabControl.SelectedTab == ALL_PLAYERS_VIEW_INDEX)
-            {
-                RefreshAllUsers();
-            }
-            else // if (tabControl.SelectedTab == 0 or 1)
-            {
-                XNAListBoxItem lbItem = FindItemForName(e.User.Name);
+                return;
 
-                if (lbItem != null)
-                {
-                    lbItem.Tag = e.User;
-                    lbItem.Texture = GetUserTexture(e.User);
+            XNAListBoxItem lbItem = FindItemForName(e.User.Name);
 
-                    if (lbItem == lbUserList.SelectedItem)
-                    {
-                        tbMessageInput.Enabled = true;
+            if (lbItem == null || lbItem != lbUserList.SelectedItem)
+                return;
 
-                        if (joinMessage != null)
-                            lbMessages.AddMessage(joinMessage);
-                    }
-                }
-            }
+            tbMessageInput.Enabled = true;
+
+            if (joinMessage != null)
+                lbMessages.AddMessage(joinMessage);
         }
 
-        private void RefreshAllUsers()
-        {
-            lbUserList.SelectedIndexChanged -= LbUserList_SelectedIndexChanged;
-
-            string selectedUserName = string.Empty;
-
-            var selectedItem = lbUserList.SelectedItem;
-            if (selectedItem != null)
-                selectedUserName = selectedItem.Text;
-
-            lbUserList.Clear();
-
-            foreach (var ircUser in connectionManager.UserList)
-            {
-                var item = new XNAListBoxItem(ircUser.Name);
-                item.Tag = ircUser;
-                item.Texture = GetUserTexture(ircUser);
-                lbUserList.AddItem(item);
-            }
-
-            lbUserList.SelectedIndex = FindItemIndexForName(selectedUserName);
-
-            if (lbUserList.SelectedIndex == -1)
-            {
-                // If we previously had an user selected and they now went offline,
-                // clear the messages and message input
-                tbMessageInput.Text = string.Empty;
-                tbMessageInput.Enabled = false;
-                lbMessages.Clear();
-                lbMessages.SelectedIndex = -1;
-                lbMessages.TopIndex = 0;
-            }
-
-            lbUserList.SelectedIndexChanged += LbUserList_SelectedIndexChanged;
-        }
 
         public void SetInviteChannelInfo(string channelName, string gameName, string channelPassword)
         {
@@ -439,10 +394,6 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
                     if (lbUserList.SelectedItem != null)
                         selecterUserName = lbUserList.SelectedItem.Text;
-
-                    lbUserList.Clear();
-                    privateMessageUsers.ForEach(pmsgUser => AddPlayerToList(pmsgUser.IrcUser,
-                        IsPlayerOnline(pmsgUser.IrcUser.Name)));
 
                     lbUserList.SelectedIndex = FindItemIndexForName(selecterUserName);
                 }
@@ -592,42 +543,13 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         private void MessagesTabSelected()
         {
             ShowRecentPlayers(false);
-            var _privateMessageUsers = privateMessageUsers.Select(pMsgUser =>
-                new
-                {
-                    ircUser = pMsgUser.IrcUser,
-                    isFriend = cncnetUserData.FriendList.Contains(pMsgUser.IrcUser.Name),
-                    isOnline = connectionManager.UserList.Any(u => u.Name == pMsgUser.IrcUser.Name)
-                });
-
-            var sortedPrivateMessageUsers = _privateMessageUsers
-                .OrderBy(pMsgUser => !pMsgUser.isOnline)
-                .ThenBy(pMsgUser => !pMsgUser.isFriend)
-                .ThenBy(pMsguser => pMsguser.ircUser.Name);
-
-            foreach (var pMsgUser in sortedPrivateMessageUsers)
-                AddPlayerToList(pMsgUser.ircUser, pMsgUser.isOnline);
+            RefreshUserList();
         }
 
         private void FriendsListTabSelected()
         {
             ShowRecentPlayers(false);
-            var friends = cncnetUserData.FriendList.Select(friendName =>
-            {
-                var ircUser = connectionManager.UserList.Find(u => u.Name == friendName);
-
-                return new
-                {
-                    ircUser = ircUser ?? new IRCUser(friendName),
-                    isOnline = ircUser != null
-                };
-            });
-
-            friends
-                .OrderBy(friend => !friend.isOnline)
-                .ThenBy(friend => friend.ircUser.Name)
-                .ToList()
-                .ForEach(friend => AddPlayerToList(friend.ircUser, friend.isOnline));
+            RefreshUserList();
         }
 
         private void RecentPlayersTabSelected()
@@ -643,9 +565,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         private void AllPlayersTabSelected()
         {
             ShowRecentPlayers(false);
-
-            foreach (var user in connectionManager.UserList)
-                AddPlayerToList(user, true);
+            RefreshUserList();
         }
 
         private void ShowRecentPlayers(bool show)
@@ -697,18 +617,18 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             }
         }
 
-        private void AddPlayerToList(IRCUser user, bool isOnline, string label = null)
-        {
-            XNAListBoxItem lbItem = new XNAListBoxItem();
-            lbItem.Text = label ?? user.Name;
-
-            lbItem.TextColor = isOnline ?
-                UISettings.ActiveSettings.AltColor : UISettings.ActiveSettings.DisabledItemColor;
-            lbItem.Tag = user;
-            lbItem.Texture = isOnline ? GetUserTexture(user) : null;
-
-            lbUserList.AddItem(lbItem);
-        }
+        // private void AddPlayerToList(IRCUser user, bool isOnline, string label = null)
+        // {
+        //     XNAListBoxItem lbItem = new XNAListBoxItem();
+        //     lbItem.Text = label ?? user.Name;
+        //
+        //     lbItem.TextColor = isOnline ?
+        //         UISettings.ActiveSettings.AltColor : UISettings.ActiveSettings.DisabledItemColor;
+        //     lbItem.Tag = user;
+        //     lbItem.Texture = isOnline ? GetUserTexture(user) : null;
+        //
+        //     lbUserList.AddItem(lbItem);
+        // }
 
         private Texture2D GetUserTexture(IRCUser user)
         {

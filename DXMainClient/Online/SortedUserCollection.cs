@@ -57,6 +57,8 @@ namespace DTAClient.Online
             }
         }
 
+        public List<T> ToList() => linkedList.ToList();
+
         public bool Remove(string username)
         {
             if (dictionary.TryGetValue(username.ToLower(), out var node))

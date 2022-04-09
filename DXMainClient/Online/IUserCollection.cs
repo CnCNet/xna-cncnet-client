@@ -14,5 +14,6 @@ namespace DTAClient.Online
         LinkedListNode<T> GetFirst();
         void Reinsert(string username);
         bool Remove(string username);
+        List<T> ToList();
     }
 }

@@ -59,5 +59,7 @@ namespace DTAClient.Online
         {
             return dictionary.Remove(username.ToLower());
         }
+
+        public List<T> ToList() => dictionary.Values.ToList();
     }
 }

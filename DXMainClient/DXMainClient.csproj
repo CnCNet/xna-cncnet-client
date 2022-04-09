@@ -520,6 +520,7 @@
     <Compile Include="DXGUI\Multiplayer\CnCNet\PrivateMessageNotificationBox.cs" />
     <Compile Include="DXGUI\Multiplayer\CnCNet\PrivateMessagingPanel.cs" />
     <Compile Include="DXGUI\Multiplayer\CnCNet\PrivateMessagingWindow.cs" />
+    <Compile Include="DXGUI\Multiplayer\PlayerListBoxOptions.cs" />
     <Compile Include="DXGUI\Multiplayer\TeamStartMappingPanel.cs" />
     <Compile Include="DXGUI\Multiplayer\PlayerExtraOptionsPanel.cs" />
     <Compile Include="DXGUI\Multiplayer\PlayerListBox.cs" />
