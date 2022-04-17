@@ -26,9 +26,7 @@ namespace DTAClient.DXGUI
         {
             graphics = new GraphicsDeviceManager(this);
             graphics.SynchronizeWithVerticalRetrace = false;
-#if !XNA
             graphics.HardwareModeSwitch = false;
-#endif
             content = new ContentManager(Services);
         }
 
@@ -53,7 +51,7 @@ namespace DTAClient.DXGUI
             AssetLoader.AssetSearchPaths.Add(ProgramConstants.GetBaseResourcePath());
             AssetLoader.AssetSearchPaths.Add(ProgramConstants.GamePath);
 
-#if !XNA && !WINDOWSGL
+#if WINDOWS
             // Try to create and load a texture to check for MonoGame 3.7.1 compatibility
             try
             {
@@ -251,13 +249,13 @@ namespace DTAClient.DXGUI
             }
 
             wm.SetBorderlessMode(borderlessWindowedClient);
-#if !XNA
+
             if (borderlessWindowedClient)
             {
                 graphics.IsFullScreen = true;
                 graphics.ApplyChanges();
             }
-#endif
+
             wm.CenterOnScreen();
             wm.SetRenderResolution(renderResolutionX, renderResolutionY);
         }

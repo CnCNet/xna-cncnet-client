@@ -28,13 +28,9 @@ namespace DTAClient
             COMMON_LIBRARY_PATH = string.Format("{0}{1}Binaries{1}", Application.StartupPath.Replace('\\', '/'), dsc);
 #endif
 
-#if XNA && DEBUG
-            SPECIFIC_LIBRARY_PATH = string.Format("{0}{1}Resources{1}Binaries{1}XNA{1}", Application.StartupPath.Replace('\\', '/'), dsc);
-#elif XNA
-            SPECIFIC_LIBRARY_PATH = string.Format("{0}{1}Binaries{1}XNA{1}", Application.StartupPath.Replace('\\', '/'), dsc);
-#elif WINDOWSGL && DEBUG
+#if !WINDOWS && DEBUG
             SPECIFIC_LIBRARY_PATH = string.Format("{0}{1}Resources{1}Binaries{1}OpenGL{1}", Application.StartupPath.Replace('\\', '/'), dsc);
-#elif WINDOWSGL
+#elif !WINDOWS
             SPECIFIC_LIBRARY_PATH = string.Format("{0}{1}Binaries{1}OpenGL{1}", Application.StartupPath.Replace('\\', '/'), dsc);
 #elif DEBUG
             SPECIFIC_LIBRARY_PATH = string.Format("{0}{1}Resources{1}Binaries{1}Windows{1}", Application.StartupPath.Replace('\\', '/'), dsc);
@@ -117,11 +113,8 @@ namespace DTAClient
             // We're a single instance application!
             // http://stackoverflow.com/questions/229565/what-is-a-good-pattern-for-using-a-global-mutex-in-c/229567
 
-            string appGuid = ((GuidAttribute)Assembly.GetExecutingAssembly().GetCustomAttributes(
-                typeof(GuidAttribute), false).GetValue(0)).Value.ToString();
-
             // Global prefix means that the mutex is global to the machine
-            string mutexId = string.Format("Global/{{{0}}}", appGuid);
+            string mutexId = string.Format("Global/{{{0}}}", Guid.Parse("1CC9F8E7-9F69-4BBC-B045-E734204027A9"));
 
 
             var allowEveryoneRule = new MutexAccessRule(new SecurityIdentifier(WellKnownSidType.WorldSid, null),
@@ -169,7 +162,7 @@ namespace DTAClient
                 return Assembly.Load(data);
             }
 
-#if WINDOWSGL
+#if !WINDOWS
             // MonoGame's OpenGL version checks its Assembly.Location for
             // loading SDL2.dll. Loading an assembly with Assembly.Load(byte[] rawAssembly)
             // does not set the Location of the assembly, making MonoGame crash when loading SDL2.dll.

@@ -166,7 +166,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 128), 1, 1);
 
-#if !WINDOWSGL
+#if WINDOWS
             disposeTextures = !UserINISettings.Instance.PreloadMapPreviews;
 #endif
 

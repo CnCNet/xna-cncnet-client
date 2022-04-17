@@ -897,10 +897,8 @@ namespace DTAClient.DXGUI.Generic
         {
             Logger.Log("Exiting.");
             WindowManager.CloseGame();
-#if !XNA
             Thread.Sleep(1000);
             Environment.Exit(0);
-#endif
         }
 
         public void SwitchOn()

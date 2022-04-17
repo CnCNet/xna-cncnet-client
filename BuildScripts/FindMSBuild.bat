@@ -38,4 +38,10 @@ if exist "%ProgramFiles(x86)%\Microsoft Visual Studio\2019\BuildTools\MSBuild\Cu
   SET "msbuild=%ProgramFiles(x86)%\Microsoft Visual Studio\2019\BuildTools\MSBuild\Current\Bin\MSBuild.exe"
 )
 
+if exist "%ProgramFiles%\Microsoft Visual Studio\2022\Preview\MSBuild\Current\Bin\MSBuild.exe" (
+  SET "msbuild=%ProgramFiles%\Microsoft Visual Studio\2022\Preview\MSBuild\Current\Bin\MSBuild.exe"
+)
+
+C:\Program Files\Microsoft Visual Studio\2022\Preview\MSBuild\Current\Bin
+
 ENDLOCAL&set msbuild=%msbuild%

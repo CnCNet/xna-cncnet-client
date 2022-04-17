@@ -153,11 +153,6 @@ namespace ClientGUI
         }
 
         private Point SumPoints(Point p1, Point p2)
-            // This is also needed for XNA compatibility
-#if XNA
-            => new Point(p1.X + p2.X, p1.Y + p2.Y);
-#else
             => p1 + p2;
-#endif
     }
 }
