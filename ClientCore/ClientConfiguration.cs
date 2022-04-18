@@ -314,6 +314,9 @@ namespace ClientCore
                 if (OperatingSystem.IsWindowsVersionAtLeast(6))
                     return OSVersion.WINVISTA;
 
+                if (OperatingSystem.IsWindowsVersionAtLeast(5, 1))
+                    return OSVersion.WINXP;
+
                 return OSVersion.UNKNOWN;
             }
 
