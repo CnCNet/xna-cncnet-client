@@ -342,7 +342,7 @@ namespace DTAClient.Domain.Multiplayer
 
                 GetTeamStartMappingPresets(section);
 
-#if WINDOWS
+#if !NOTWINDOWS
                 if (UserINISettings.Instance.PreloadMapPreviews)
                     PreviewTexture = LoadPreviewTexture();
 #endif

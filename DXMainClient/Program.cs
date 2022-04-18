@@ -25,9 +25,9 @@ namespace DTAClient
             COMMON_LIBRARY_PATH = string.Format("{0}{1}Binaries{1}", Application.StartupPath.Replace('\\', '/'), dsc);
 #endif
 
-#if !WINDOWS && DEBUG
+#if NOTWINDOWS && DEBUG
             SPECIFIC_LIBRARY_PATH = string.Format("{0}{1}Resources{1}Binaries{1}OpenGL{1}", Application.StartupPath.Replace('\\', '/'), dsc);
-#elif !WINDOWS
+#elif NOTWINDOWS
             SPECIFIC_LIBRARY_PATH = string.Format("{0}{1}Binaries{1}OpenGL{1}", Application.StartupPath.Replace('\\', '/'), dsc);
 #elif DEBUG
             SPECIFIC_LIBRARY_PATH = string.Format("{0}{1}Resources{1}Binaries{1}Windows{1}", Application.StartupPath.Replace('\\', '/'), dsc);
@@ -153,7 +153,7 @@ namespace DTAClient
                 return Assembly.Load(data);
             }
 
-#if !WINDOWS
+#if NOTWINDOWS
             // MonoGame's OpenGL version checks its Assembly.Location for
             // loading SDL2.dll. Loading an assembly with Assembly.Load(byte[] rawAssembly)
             // does not set the Location of the assembly, making MonoGame crash when loading SDL2.dll.

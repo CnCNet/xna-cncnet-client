@@ -207,7 +207,7 @@ namespace DTAClient
         /// <param name="accessRights">The file system rights.</param>
         private static bool UserHasDirectoryAccessRights(string path, FileSystemRights accessRights)
         {
-#if !WINDOWS
+#if NOTWINDOWS
             // Mono doesn't implement everything necessary for the below to work,
             // so we'll just return to make the client able to run on non-Windows
             // platforms
@@ -215,9 +215,7 @@ namespace DTAClient
             return true;
 #endif
 
-#pragma warning disable 0162
             var currentUser = WindowsIdentity.GetCurrent();
-#pragma warning restore 0162
             var principal = new WindowsPrincipal(currentUser);
 
             // If the user is not running the client with administrator privileges in Program Files, they need to be prompted to do so.

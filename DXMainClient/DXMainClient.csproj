@@ -23,8 +23,8 @@
     <Platforms>AnyCPU;x64</Platforms>
     <Configurations>AresDebug;AresRelease;TSDebug;TSRelease;YRDebug;YRRelease</Configurations>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Platform)' != 'AnyCPU'">
-    <DefineConstants>WINDOWS</DefineConstants>
+  <PropertyGroup Condition="'$(Platform)' == 'AnyCPU'">
+    <DefineConstants>NOTWINDOWS</DefineConstants>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)' == 'AresDebug' Or '$(Configuration)' == 'TSDebug' Or '$(Configuration)' == 'YRDebug'">
     <DefineConstants>$(DefineConstants);DEBUG</DefineConstants>
@@ -40,6 +40,10 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+    <PackageReference Include="StyleCop.Analyzers" Version="1.2.0-beta.406">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
     <PackageReference Include="System.Management" Version="6.0.0" />
   </ItemGroup>
   <ItemGroup>

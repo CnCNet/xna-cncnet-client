@@ -51,7 +51,7 @@ namespace DTAClient.DXGUI
             AssetLoader.AssetSearchPaths.Add(ProgramConstants.GetBaseResourcePath());
             AssetLoader.AssetSearchPaths.Add(ProgramConstants.GamePath);
 
-#if WINDOWS
+#if !NOTWINDOWS
             // Try to create and load a texture to check for MonoGame 3.7.1 compatibility
             try
             {
