@@ -245,7 +245,7 @@ namespace DTAClient.DXGUI.Multiplayer
 
         private void BtnHelp_LeftClick(object sender, EventArgs args)
         {
-            XNAMessageBox.Show(WindowManager, "Team/Start Mappings".L10N("UI:Main:AutoAllyingTitle"),
+            XNAMessageBox.Show(WindowManager, "Auto Allying".L10N("UI:Main:AutoAllyingTitle"),
                 ("Auto allying allows the host to assign starting locations to teams, not players.\n" +
                 "When players are assigned to spawn locations, they will be auto assigned to teams based on these mappings.\n" +
                 "This is best used with random teams and random starts. However, only random teams is required.\n" +
