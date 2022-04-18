@@ -1,7 +1,4 @@
 ﻿using ClientCore;
-using System;
-using System.IO;
-using System.Windows.Forms;
 
 namespace DTAClient.Domain
 {

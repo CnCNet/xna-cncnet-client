@@ -1,11 +1,10 @@
-﻿using ClientCore;
+﻿using Localization;
+using ClientCore;
 using ClientGUI;
-using Localization;
 using Microsoft.Xna.Framework;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
 using System;
-using System.Collections.Generic;
 
 namespace DTAConfig.OptionPanels
 {

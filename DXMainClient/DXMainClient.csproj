@@ -1,6 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net48</TargetFramework>
+    <TargetFramework>net6.0-windows10.0.22000.0</TargetFramework>
+    <TargetPlatformMinVersion>7.0</TargetPlatformMinVersion>
     <OutputType>WinExe</OutputType>
     <UseWindowsForms>true</UseWindowsForms>
     <Title>CnCNet Client</Title>
@@ -39,6 +40,7 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+    <PackageReference Include="System.Management" Version="6.0.0" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\DTAConfig\DTAConfig.csproj" />
@@ -59,8 +61,6 @@
     <Reference Include="OpenMcdf">
       <HintPath>..\References\OpenMcdf.dll</HintPath>
     </Reference>
-    <Reference Include="System.DirectoryServices" />
-    <Reference Include="System.Management" />
   </ItemGroup>
   <Target Name="CopyResources" AfterTargets="Build" Condition="'$(Configuration)' == 'AresDebug' Or '$(Configuration)' == 'TSDebug' Or '$(Configuration)' == 'YRDebug'">
     <ItemGroup>

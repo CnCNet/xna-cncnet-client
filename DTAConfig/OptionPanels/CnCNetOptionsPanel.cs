@@ -1,4 +1,5 @@
-﻿using ClientCore;
+﻿using Localization;
+using ClientCore;
 using ClientCore.CnCNet5;
 using ClientGUI;
 using Microsoft.Xna.Framework;
@@ -7,7 +8,6 @@ using Rampastring.XNAUI.XNAControls;
 using System;
 using System.Collections.Generic;
 using ClientCore.Enums;
-using Localization;
 
 namespace DTAConfig.OptionPanels
 {

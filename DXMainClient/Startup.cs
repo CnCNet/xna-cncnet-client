@@ -1,7 +1,6 @@
 ﻿using System;
 using System.IO;
 using System.Threading;
-using System.Management;
 using Microsoft.Win32;
 using DTAClient.Domain;
 using ClientCore;
@@ -15,6 +14,7 @@ using DTAClient.Online;
 using ClientCore.INIProcessing;
 using System.Threading.Tasks;
 using System.Globalization;
+using System.Management;
 
 namespace DTAClient
 {

@@ -7,7 +7,6 @@ using Rampastring.Tools;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
 using System;
-using System.Collections.Generic;
 using System.IO;
 
 namespace DTAClient.DXGUI.Multiplayer.CnCNet

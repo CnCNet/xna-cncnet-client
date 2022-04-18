@@ -2,9 +2,6 @@
 using System.Windows.Forms;
 using System.IO;
 using System.Reflection;
-using System.Runtime.InteropServices;
-using System.Security.AccessControl;
-using System.Security.Principal;
 using System.Threading;
 using System.Collections.Generic;
 using Localization;
@@ -116,13 +113,7 @@ namespace DTAClient
             // Global prefix means that the mutex is global to the machine
             string mutexId = string.Format("Global/{{{0}}}", Guid.Parse("1CC9F8E7-9F69-4BBC-B045-E734204027A9"));
 
-
-            var allowEveryoneRule = new MutexAccessRule(new SecurityIdentifier(WellKnownSidType.WorldSid, null),
-                MutexRights.FullControl, AccessControlType.Allow);
-            var securitySettings = new MutexSecurity();
-            securitySettings.AddAccessRule(allowEveryoneRule);
-
-            using (var mutex = new Mutex(false, mutexId, out bool createdNew, securitySettings))
+            using (var mutex = new Mutex(false, mutexId, out _))
             {
                 var hasHandle = false;
                 try

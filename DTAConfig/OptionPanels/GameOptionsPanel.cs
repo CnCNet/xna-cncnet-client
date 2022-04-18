@@ -1,7 +1,7 @@
-﻿using ClientCore;
+﻿using Localization;
+using ClientCore;
 using ClientCore.CnCNet5;
 using ClientGUI;
-using Localization;
 using Microsoft.Xna.Framework;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;

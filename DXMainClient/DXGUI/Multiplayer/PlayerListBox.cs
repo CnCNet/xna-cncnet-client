@@ -1,15 +1,11 @@
 ﻿using ClientCore.CnCNet5;
-using DTAClient.DXGUI.Multiplayer.CnCNet;
 using DTAClient.Online;
 using Localization;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace DTAClient.DXGUI.Multiplayer
 {

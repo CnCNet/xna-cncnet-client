@@ -1,5 +1,4 @@
-﻿using ClientCore;
-using ClientGUI;
+﻿using ClientGUI;
 using Localization;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;

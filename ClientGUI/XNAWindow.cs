@@ -1,10 +1,8 @@
 ﻿using ClientCore;
-using Rampastring.XNAUI.XNAControls;
 using Rampastring.Tools;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using Rampastring.XNAUI;
 
 namespace ClientGUI

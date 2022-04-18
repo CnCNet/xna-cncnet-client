@@ -13,7 +13,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using DTAClient.DXGUI.Multiplayer.CnCNet;
-using DTAClient.Online;
 using DTAClient.Online.EventArguments;
 using Localization;
 

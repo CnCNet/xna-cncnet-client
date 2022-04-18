@@ -6,9 +6,6 @@ using ClientCore;
 using Rampastring.XNAUI;
 using ClientGUI;
 using System.IO;
-using System.Threading.Tasks;
-using System.Collections.Generic;
-using System.Linq;
 using Localization;
 
 namespace DTAClient.DXGUI

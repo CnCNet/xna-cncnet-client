@@ -1,6 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net48</TargetFramework>
+    <TargetFramework>net6.0-windows10.0.22000.0</TargetFramework>
+    <TargetPlatformMinVersion>7.0</TargetPlatformMinVersion>
     <UseWindowsForms>true</UseWindowsForms>
     <Title>CnCNet Client</Title>
     <Description>CnCNet Client UI Library</Description>

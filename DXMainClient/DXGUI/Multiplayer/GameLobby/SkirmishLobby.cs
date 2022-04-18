@@ -10,7 +10,6 @@ using ClientGUI;
 using Rampastring.Tools;
 using System.IO;
 using DTAClient.Domain;
-using DTAClient.Online;
 using Microsoft.Xna.Framework;
 using Localization;
 

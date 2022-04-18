@@ -2,9 +2,7 @@
 using DTAClient.Domain.Multiplayer.CnCNet;
 using Localization;
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Input;
 using Rampastring.XNAUI;
-using Rampastring.XNAUI.Input;
 using Rampastring.XNAUI.XNAControls;
 using System;
 

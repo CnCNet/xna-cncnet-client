@@ -1,11 +1,6 @@
-﻿using ClientCore;
-using Rampastring.Tools;
-using System;
+﻿using Rampastring.Tools;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ClientCore.INIProcessing
 {

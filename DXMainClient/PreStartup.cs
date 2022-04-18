@@ -131,7 +131,7 @@ namespace DTAClient
                 Environment.Exit(0);
             }
 
-            Application.EnableVisualStyles();
+            ApplicationConfiguration.Initialize();
 
             new Startup().Execute();
         }
