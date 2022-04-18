@@ -1,32 +1,29 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net48</TargetFramework>
+    <Title>CnCNet Client</Title>
+    <Description>CnCNet Localization Library</Description>
+    <Company>CnCNet</Company>
+    <Product>CnCNet Client</Product>
+    <Copyright>Copyright © CnCNet, Sad Pencil 2011-2022</Copyright>
+    <Trademark>CnCNet</Trademark>
+    <Version>1.0.0.0</Version>
+    <FileVersion>1.0.0.0</FileVersion>
+    <InformationalVersion>1.0.0.0</InformationalVersion>
+    <AssemblyName>Localization</AssemblyName>
+    <RootNamespace>Localization</RootNamespace>
+    <ComVisible>false</ComVisible>
+    <CLSCompliant>false</CLSCompliant>
+    <AnalysisLevel>preview-all</AnalysisLevel>
+    <LangVersion>preview</LangVersion>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
     <Platforms>AnyCPU;x64</Platforms>
     <Configurations>AresDebug;AresRelease;TSDebug;TSRelease;YRDebug;YRRelease</Configurations>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)' == 'AresDebug' Or '$(Configuration)' == 'TSDebug' Or '$(Configuration)' == 'YRDebug'">
     <DefineConstants>$(DefineConstants);DEBUG</DefineConstants>
   </PropertyGroup>
-  <!--<ItemGroup>
-    <PackageReference Include="MonoGame.Framework.WindowsDX" Version="3.8.0.1641" />
-  </ItemGroup>-->
   <ItemGroup>
     <ProjectReference Include="..\..\Rampastring.Tools\Rampastring.Tools.csproj" />
   </ItemGroup>
 </Project>
-
-<!--[assembly: AssemblyTitle("Localization DLL")]
-[assembly: AssemblyDescription("Localization Library for Translation")]
-[assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("Sad Pencil")]
-[assembly: AssemblyProduct("Localization DLL")]
-[assembly: AssemblyCopyright("Copyright © Sad Pencil 2022")]
-[assembly: AssemblyTrademark("")]
-[assembly: AssemblyCulture("")]
-
-[assembly: ComVisible(false)]
-
-[assembly: Guid("2cd114e3-c30f-4a95-9b4a-455c2c8f82e5")]
-
-[assembly: AssemblyVersion("1.0.0.0")]
-[assembly: AssemblyFileVersion("1.0.0.0")]-->
