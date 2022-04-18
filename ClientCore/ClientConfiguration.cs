@@ -145,7 +145,7 @@ namespace ClientCore
         #region Game options
 
         public string Sides => gameOptions_ini.GetStringValue(GENERAL, nameof(Sides), "GDI,Nod,Allies,Soviet");
-        
+
         public string InternalSideIndices => gameOptions_ini.GetStringValue(GENERAL, nameof(InternalSideIndices), string.Empty);
 
         public string SpectatorInternalSideIndex => gameOptions_ini.GetStringValue(GENERAL, nameof(SpectatorInternalSideIndex), string.Empty);
@@ -157,7 +157,7 @@ namespace ClientCore
         public string DiscordAppId => clientDefinitionsIni.GetStringValue(SETTINGS, "DiscordAppId", string.Empty);
 
         public int SendSleep => clientDefinitionsIni.GetIntValue(SETTINGS, "SendSleep", 2500);
-          
+
         public int LoadingScreenCount => clientDefinitionsIni.GetIntValue(SETTINGS, "LoadingScreenCount", 2);
 
         public int ThemeCount => clientDefinitionsIni.GetSectionKeys("Themes").Count;
@@ -204,7 +204,7 @@ namespace ClientCore
 
         public int MaxNameLength => clientDefinitionsIni.GetIntValue(SETTINGS, "MaxNameLength", 16);
 
-        public int MapCellSizeX => clientDefinitionsIni.GetIntValue(SETTINGS, "MapCellSizeX", 48); 
+        public int MapCellSizeX => clientDefinitionsIni.GetIntValue(SETTINGS, "MapCellSizeX", 48);
 
         public int MapCellSizeY => clientDefinitionsIni.GetIntValue(SETTINGS, "MapCellSizeY", 24);
 
@@ -303,22 +303,18 @@ namespace ClientCore
 
         public OSVersion GetOperatingSystemVersion()
         {
-            Version osVersion = Environment.OSVersion.Version;
-
             if (Environment.OSVersion.Platform == PlatformID.Win32NT)
             {
-                if (osVersion.Major < 5)
-                    return OSVersion.UNKNOWN;
-
-                if (osVersion.Major == 5)
-                    return OSVersion.WINXP;
-
-                if (osVersion.Minor > 1)
+                if (OperatingSystem.IsWindowsVersionAtLeast(6, 3))
                     return OSVersion.WIN810;
-                else if (osVersion.Minor == 0)
+
+                if (OperatingSystem.IsWindowsVersionAtLeast(6, 1))
+                    return OSVersion.WIN7;
+
+                if (OperatingSystem.IsWindowsVersionAtLeast(6))
                     return OSVersion.WINVISTA;
 
-                return OSVersion.WIN7;
+                return OSVersion.UNKNOWN;
             }
 
             int p = (int)Environment.OSVersion.Platform;
