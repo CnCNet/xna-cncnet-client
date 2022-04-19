@@ -451,6 +451,7 @@
     <Compile Include="Domain\Multiplayer\LAN\LANColor.cs" />
     <Compile Include="Domain\Multiplayer\LAN\HostedLANGame.cs" />
     <Compile Include="Domain\Multiplayer\TeamStartMappingPreset.cs" />
+    <Compile Include="Domain\Multiplayer\TeamStartMappingUserPresets.cs" />
     <Compile Include="Domain\StatisticsSender.cs" />
     <Compile Include="DXGUI\Generic\CheaterWindow.cs" />
     <Compile Include="Domain\Multiplayer\Map.cs" />
@@ -480,6 +481,7 @@
     <Compile Include="DXGUI\Multiplayer\CnCNet\GlobalContextMenuData.cs" />
     <Compile Include="DXGUI\Multiplayer\CnCNet\RecentPlayerTable.cs" />
     <Compile Include="DXGUI\Multiplayer\CnCNet\RecentPlayerTableRightClickEventArgs.cs" />
+    <Compile Include="DXGUI\Multiplayer\CnCNet\TeamStartMappingPresetsWindow.cs" />
     <Compile Include="DXGUI\Multiplayer\CnCNet\TunnelListBox.cs" />
     <Compile Include="DXGUI\Multiplayer\CnCNet\TunnelSelectionWindow.cs" />
     <Compile Include="DXGUI\Multiplayer\GameFiltersPanel.cs" />
@@ -527,6 +529,7 @@
     <Compile Include="Online\ChannelUser.cs" />
     <Compile Include="Online\CnCNetGameCheck.cs" />
     <Compile Include="Online\CnCNetUserData.cs" />
+    <Compile Include="Online\EventArguments\TeamStartMappingPresetEventArgs.cs" />
     <Compile Include="Online\EventArguments\ChannelCTCPEventArgs.cs" />
     <Compile Include="Online\EventArguments\CnCNetPrivateMessageEventArgs.cs" />
     <Compile Include="Online\EventArguments\GameOptionPresetEventArgs.cs" />
