@@ -474,9 +474,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 string.Format("The game host has disabled {0}".L10N("UI:Main:HostDisableSection"), type) :
                 string.Format("The game host has enabled {0}".L10N("UI:Main:HostEnableSection"), type));
 
-        private List<GameModeMap> GetSortedGameModeMaps()
+        private List<GameModeMap> GetSortedGameModeMaps(bool getAll)
         {
-            var gameModeMaps = gameModeMapFilter.GetGameModeMaps();
+            var gameModeMaps = getAll ? GameModeMaps : gameModeMapFilter.GetGameModeMaps();
             switch ((SortDirection)UserINISettings.Instance.MapSortState.Value)
             {
                 case SortDirection.Asc:
@@ -501,13 +501,13 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             int mapIndex = -1;
             int skippedMapsCount = 0;
+            bool isSearching = tbMapSearch.Text != tbMapSearch.Suggestion;
+            bool showGameModeName = isSearching || IsFavoriteMapsSelected();
+            var gameModeMaps = GetSortedGameModeMaps(isSearching);
 
-            var isFavoriteMapsSelected = IsFavoriteMapsSelected();
-            var maps = GetSortedGameModeMaps();
-
-            for (int i = 0; i < maps.Count; i++)
+            for (int i = 0; i < gameModeMaps.Count; i++)
             {
-                var gameModeMap = maps[i];
+                var gameModeMap = gameModeMaps[i];
                 if (tbMapSearch.Text != tbMapSearch.Suggestion)
                 {
                     if (!gameModeMap.Map.Name.ToUpper().Contains(tbMapSearch.Text.ToUpper()))
@@ -529,8 +529,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     rankItem.Texture = RankTextures[GetDefaultMapRankIndex(gameModeMap) + 1];
 
                 XNAListBoxItem mapNameItem = new XNAListBoxItem();
-                var mapNameText = gameModeMap.Map.Name;
-                if (isFavoriteMapsSelected)
+                string mapNameText = gameModeMap.Map.Name;
+                if (showGameModeName)
                     mapNameText += $" - {gameModeMap.GameMode.UIName}";
 
                 mapNameItem.Text = Renderer.GetSafeString(mapNameText, lbGameModeMapList.FontIndex);
