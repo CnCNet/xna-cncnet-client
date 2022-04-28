@@ -10,7 +10,7 @@ using Rampastring.XNAUI.XNAControls;
 
 namespace DTAClient.DXGUI.Multiplayer
 {
-    public class PlayerExtraOptionsPanel : XNAPanel
+    public class PlayerExtraOptionsPanel : XNAWindow
     {
         private const int maxStartCount = 8;
         private const int defaultX = 24;
@@ -162,9 +162,10 @@ namespace DTAClient.DXGUI.Multiplayer
             Visible = false;
 
             var btnClose = new XNAClientButton(WindowManager);
+            btnClose.Name = nameof(btnClose);
             btnClose.ClientRectangle = new Rectangle(0, 0, 0, 0);
-            btnClose.IdleTexture = AssetLoader.LoadTexture("openedComboBoxArrow.png");
-            btnClose.HoverTexture = AssetLoader.LoadTexture("openedComboBoxArrow.png");
+            btnClose.IdleTexture = AssetLoader.LoadTexture("optionsButtonClose.png");
+            btnClose.HoverTexture = AssetLoader.LoadTexture("optionsButtonClose_c.png");
             btnClose.LeftClick += (sender, args) => Disable();
             AddChild(btnClose);
 
@@ -214,7 +215,7 @@ namespace DTAClient.DXGUI.Multiplayer
             var btnHelp = new XNAClientButton(WindowManager);
             btnHelp.Name = nameof(btnHelp);
             btnHelp.IdleTexture = AssetLoader.LoadTexture("questionMark.png");
-            btnHelp.HoverTexture = AssetLoader.LoadTexture("questionMark.png");
+            btnHelp.HoverTexture = AssetLoader.LoadTexture("questionMark_c.png");
             btnHelp.LeftClick += BtnHelp_LeftClick;
             btnHelp.ClientRectangle = new Rectangle(chkBoxUseTeamStartMappings.Right + 4, chkBoxUseTeamStartMappings.Y - 1, 0, 0);
             AddChild(btnHelp);
@@ -233,6 +234,7 @@ namespace DTAClient.DXGUI.Multiplayer
             AddChild(ddTeamStartMappingPreset);
 
             teamStartMappingsPanel = new TeamStartMappingsPanel(WindowManager);
+            teamStartMappingsPanel.Name = nameof(teamStartMappingsPanel);
             teamStartMappingsPanel.ClientRectangle = new Rectangle(lblPreset.X, ddTeamStartMappingPreset.Bottom + 8, Width, Height - ddTeamStartMappingPreset.Bottom + 4);
             AddChild(teamStartMappingsPanel);
 

@@ -489,9 +489,14 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             Map map = MapLoader.LoadCustomMap($"Maps/Custom/{mapName}", out string resultMessage);
             if (map != null)
+            {
                 AddNotice(resultMessage);
+                ListMaps();
+            }
             else
+            {
                 AddNotice(resultMessage, Color.Red);
+            }
         }
 
         /// <summary>

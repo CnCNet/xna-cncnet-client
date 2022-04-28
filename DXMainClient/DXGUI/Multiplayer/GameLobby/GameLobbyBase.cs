@@ -222,6 +222,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             lbGameModeMapList = FindChild<XNAMultiColumnListBox>("lbMapList"); // lbMapList for backwards compatibility
             lbGameModeMapList.SelectedIndexChanged += LbGameModeMapList_SelectedIndexChanged;
             lbGameModeMapList.RightClick += LbGameModeMapList_RightClick;
+            lbGameModeMapList.AllowKeyboardInput = true; //!isMultiplayer
 
             mapContextMenu = new XNAContextMenu(WindowManager);
             mapContextMenu.Name = nameof(mapContextMenu);
@@ -363,10 +364,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             if (btnPlayerExtraOptionsOpen != null)
             {
-            var texture = GetPlayerExtraOptions().IsDefault() ? "comboBoxArrow.png" : "comboBoxArrow-highlight.png";
-            btnPlayerExtraOptionsOpen.IdleTexture = AssetLoader.LoadTexture(texture);
-            btnPlayerExtraOptionsOpen.HoverTexture = AssetLoader.LoadTexture(texture);
-        }
+                var texture = GetPlayerExtraOptions().IsDefault() ? "optionsButton.png" : "optionsButtonActive.png";
+                var hoverTexture = GetPlayerExtraOptions().IsDefault() ? "optionsButton_c.png" : "optionsButtonActive_c.png";
+                btnPlayerExtraOptionsOpen.IdleTexture = AssetLoader.LoadTexture(texture);
+                btnPlayerExtraOptionsOpen.HoverTexture = AssetLoader.LoadTexture(hoverTexture);
+            }
         }
 
         protected void HandleGameOptionPresetSaveCommand(GameOptionPresetEventArgs e) => HandleGameOptionPresetSaveCommand(e.PresetName);
