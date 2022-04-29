@@ -636,6 +636,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             lbGameModeMapList.Disable();
             tbMapSearch.Disable();
             btnPickRandomMap.Disable();
+            btnMapSortAlphabetically.Disable();
 
             ReadINIForControl(btnPickRandomMap);
             ReadINIForControl(lbChatMessages);
@@ -661,6 +662,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             lblGameModeSelect.Enable();
             lbGameModeMapList.Enable();
             tbMapSearch.Enable();
+            btnMapSortAlphabetically.Enable();
 
             ReadINIForControl(btnPickRandomMap);
             ReadINIForControl(lbChatMessages);
