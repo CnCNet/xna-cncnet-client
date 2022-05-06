@@ -1,4 +1,5 @@
 ﻿using ClientCore;
+using Localization;
 using Microsoft.Xna.Framework;
 using Rampastring.Tools;
 using Rampastring.XNAUI;
@@ -74,7 +75,7 @@ namespace ClientGUI
                 return null; // IniNameOverride must be null, no need to continue
 
             iniFileName = Name;
-            
+
             // get theme specific path
             configIniPath = Path.Combine(ProgramConstants.GetResourcePath(), $"{iniFileName}.ini");
             if (File.Exists(configIniPath))
@@ -204,6 +205,11 @@ namespace ClientGUI
                 {
                     if (kvp.Value == "Disable")
                         control.LeftClick += (s, e) => Disable();
+                }
+                else if (kvp.Key == "$Text")
+                {
+                    control.Text = section.GetStringValue(nameof(control.Text), string.Empty)
+                        .L10N($"UI:ExtraControl:{kvp.Value}");
                 }
                 else
                 {
