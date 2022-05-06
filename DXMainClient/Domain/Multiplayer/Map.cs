@@ -10,6 +10,7 @@ using System.IO;
 using System.Linq;
 using Newtonsoft.Json;
 using Utilities = Rampastring.Tools.Utilities;
+using Localization;
 
 namespace DTAClient.Domain.Multiplayer
 {
@@ -249,7 +250,8 @@ namespace DTAClient.Domain.Multiplayer
 
                 var section = iniFile.GetSection(BaseFilePath);
 
-                Name = section.GetStringValue("Description", "Unnamed map");
+                Name = section.GetStringValue("Description", "Unnamed map")
+                    .L10N($"UI:Map:{section.GetStringValue("UIName", string.Empty)}");
                 Author = section.GetStringValue("Author", "Unknown author");
                 GameModes = section.GetStringValue("GameModes", "Default").Split(',');
 
@@ -478,7 +480,7 @@ namespace DTAClient.Domain.Multiplayer
                     Logger.Log("Custom map " + customMapFilePath + " has no game modes!");
                     return false;
                 }
-                
+
                 for (int i = 0; i < GameModes.Length; i++)
                 {
                     string gameMode = GameModes[i].Trim();
@@ -542,7 +544,7 @@ namespace DTAClient.Domain.Multiplayer
 
                     waypoints.Add(waypoint);
                 }
-                
+
                 GetTeamStartMappingPresets(basicSection);
 
                 ParseForcedOptions(iniFile, "ForcedOptions");
@@ -589,7 +591,7 @@ namespace DTAClient.Domain.Multiplayer
 
             foreach (string key in spawnIniKeys)
             {
-                ForcedSpawnIniOptions.Add(new KeyValuePair<string, string>(key, 
+                ForcedSpawnIniOptions.Add(new KeyValuePair<string, string>(key,
                     forcedOptionsIni.GetStringValue(spawnIniOptionsSection, key, String.Empty)));
             }
         }
@@ -631,7 +633,7 @@ namespace DTAClient.Domain.Multiplayer
             return mapIni;
         }
 
-        public void ApplySpawnIniCode(IniFile spawnIni, int totalPlayerCount, 
+        public void ApplySpawnIniCode(IniFile spawnIni, int totalPlayerCount,
             int aiPlayerCount, int coopDifficultyLevel)
         {
             foreach (KeyValuePair<string, string> key in ForcedSpawnIniOptions)

@@ -1,4 +1,5 @@
 ﻿using ClientCore;
+using Localization;
 using Rampastring.Tools;
 using System;
 using System.Collections.Generic;
@@ -77,7 +78,7 @@ namespace DTAClient.Domain.Multiplayer
             IniFile forcedOptionsIni = new IniFile(ProgramConstants.GamePath + ClientConfiguration.Instance.MPMapsIniPath);
 
             CoopDifficultyLevel = forcedOptionsIni.GetIntValue(Name, "CoopDifficultyLevel", 0);
-            UIName = forcedOptionsIni.GetStringValue(Name, "UIName", Name);
+            UIName = forcedOptionsIni.GetStringValue(Name, "UIName", Name).L10N($"UI:GameMode:{UIName}");
             MultiplayerOnly = forcedOptionsIni.GetBooleanValue(Name, "MultiplayerOnly", false);
             HumanPlayersOnly = forcedOptionsIni.GetBooleanValue(Name, "HumanPlayersOnly", false);
             ForceRandomStartLocations = forcedOptionsIni.GetBooleanValue(Name, "ForceRandomStartLocations", false);
