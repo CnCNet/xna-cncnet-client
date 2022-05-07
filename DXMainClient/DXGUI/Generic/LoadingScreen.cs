@@ -12,6 +12,7 @@ using DTAConfig;
 using Microsoft.Xna.Framework;
 using Rampastring.XNAUI;
 using System.Threading.Tasks;
+using Rampastring.Tools;
 using Updater;
 using SkirmishLobby = DTAClient.DXGUI.Multiplayer.GameLobby.SkirmishLobby;
 
@@ -66,7 +67,14 @@ namespace DTAClient.DXGUI.Generic
 
         private void InitUpdater()
         {
+            CUpdater.OnLocalFileVersionsChecked += LogGameClientVersion;
             CUpdater.CheckLocalFileVersions();
+        }
+
+        private void LogGameClientVersion()
+        {
+            Logger.Log($"Game Client Version: {ClientConfiguration.Instance.LocalGame} {CUpdater.GameVersion}");
+            CUpdater.OnLocalFileVersionsChecked -= LogGameClientVersion;
         }
 
         private void LoadMaps()
