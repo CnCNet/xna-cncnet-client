@@ -21,6 +21,8 @@ namespace DTAClient.Domain.Multiplayer
         private const string GameModeAliasesSection = "GameModeAliases";
         private const int CurrentCustomMapCacheVersion = 1;
 
+        private static MapLoader Instance;
+
         /// <summary>
         /// List of game modes.
         /// </summary>
@@ -45,6 +47,12 @@ namespace DTAClient.Domain.Multiplayer
         /// List of gamemodes allowed to be used on custom maps in order for them to display in map list.
         /// </summary>
         private string[] AllowedGameModes = ClientConfiguration.Instance.AllowedCustomGameModes.Split(',');
+
+        private MapLoader()
+        {
+        }
+
+        public static MapLoader GetInstance() => Instance ?? (Instance = new MapLoader());
 
         /// <summary>
         /// Loads multiplayer map info asynchonously.
@@ -330,5 +338,8 @@ namespace DTAClient.Domain.Multiplayer
                 }
             }
         }
+
+        public Map GetMapForSHA(string sha1)
+            => GameModeMaps.Select(gmm => gmm.Map).FirstOrDefault(m => m.SHA1 == sha1);
     }
 }

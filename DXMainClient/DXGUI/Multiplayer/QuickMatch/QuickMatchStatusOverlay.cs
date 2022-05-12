@@ -1,0 +1,214 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Timers;
+using ClientCore.Enums;
+using ClientGUI;
+using DTAClient.Domain.Multiplayer.CnCNet.QuickMatch;
+using DTAClient.Domain.Multiplayer.CnCNet.QuickMatch.Models;
+using DTAClient.Domain.Multiplayer.CnCNet.QuickMatch.Models.Events;
+using Microsoft.Xna.Framework;
+using Rampastring.XNAUI;
+using Rampastring.XNAUI.XNAControls;
+
+namespace DTAClient.DXGUI.Multiplayer.QuickMatch
+{
+    public class QuickMatchStatusOverlay : INItializableWindow
+    {
+        private int DefaultInternalWidth;
+
+        private const int BUTTON_WIDTH = 92;
+        private const int BUTTON_GAP = 10;
+        private const int BUTTON_HEIGHT = 21;
+
+        private XNAPanel statusOverlayBox { get; set; }
+
+        private XNALabel statusMessage { get; set; }
+
+        private XNAPanel pnlButtons { get; set; }
+
+        private Type lastQmLoadingEventType { get; set; }
+
+        private string currentMessage { get; set; }
+
+        private int matchupFoundConfirmTimeLeft { get; set; }
+
+        private Timer matchupFoundConfirmTimer { get; set; }
+        private const int matchupFoundTimerInterval = 100;
+
+        private XNAClientProgressBar progressBar;
+
+        private readonly QmService qmService;
+        private readonly QmSettings qmSettings;
+
+        public QuickMatchStatusOverlay(WindowManager windowManager) : base(windowManager)
+        {
+            qmService = QmService.GetInstance();
+            qmService.QmEvent += HandleQmEvent;
+            qmSettings = QmSettingsService.GetInstance().GetSettings();
+
+            matchupFoundConfirmTimer = new Timer(matchupFoundTimerInterval);
+            matchupFoundConfirmTimer.AutoReset = true;
+            matchupFoundConfirmTimer.Elapsed += (_, _) => ReduceMatchupFoundConfirmTimeLeft();
+        }
+
+        public override void Initialize()
+        {
+            base.Initialize();
+
+            statusOverlayBox = FindChild<XNAPanel>(nameof(statusOverlayBox));
+            DefaultInternalWidth = statusOverlayBox.ClientRectangle.Width;
+
+            statusMessage = FindChild<XNALabel>(nameof(statusMessage));
+
+            pnlButtons = FindChild<XNAPanel>(nameof(pnlButtons));
+
+            progressBar = FindChild<XNAClientProgressBar>(nameof(progressBar));
+        }
+
+        private void HandleQmEvent(object sender, QmEvent qmEvent)
+        {
+            switch (qmEvent)
+            {
+                case QmLoggingInEvent:
+                    HandleLoggingInEvent();
+                    break;
+                case QmLoginEvent:
+                    HandleLoginEvent();
+                    break;
+                case QmLoadingLaddersAndUserAccountsEvent:
+                    HandleLoadingLaddersAndUserAccountsEvent();
+                    break;
+                case QmLaddersAndUserAccountsEvent:
+                    HandleLaddersAndUserAccountsEvent();
+                    break;
+                case QmLoadingLadderMapsEvent:
+                    HandleLoadingLadderMapsEvent();
+                    break;
+                case QmLadderMapsEvent:
+                    HandleLadderMapsEvent();
+                    break;
+                case QmRequestingMatchEvent e:
+                    HandleRequestingMatchEvent(e);
+                    break;
+                case QmCancelingRequestMatchEvent:
+                    HandleCancelingMatchRequest();
+                    break;
+                case QmErrorMessageEvent:
+                    Disable();
+                    return;
+                case QmRequestResponseEvent e:
+                    HandleRequestResponseEvent(e);
+                    return;
+            }
+
+            if (qmEvent is IQmOverlayStatusEvent)
+                lastQmLoadingEventType = qmEvent.GetType();
+        }
+
+        private void HandleLoggingInEvent() => SetStatus(QmStrings.LoggingInStatus);
+
+        private void HandleLoginEvent() => CloseIfLastEventType(typeof(QmLoggingInEvent));
+
+        private void HandleLoadingLaddersAndUserAccountsEvent() => SetStatus(QmStrings.LoadingLaddersAndAccountsStatus);
+
+        private void HandleLaddersAndUserAccountsEvent() => CloseIfLastEventType(typeof(QmLoadingLaddersAndUserAccountsEvent));
+
+        private void HandleLoadingLadderMapsEvent() => SetStatus(QmStrings.LoadingLadderMapsStatus);
+
+        private void HandleLadderMapsEvent() => CloseIfLastEventType(typeof(QmLoadingLadderMapsEvent));
+
+        private void HandleRequestingMatchEvent(QmRequestingMatchEvent e) => SetStatus(QmStrings.RequestingMatchStatus, e.CancelAction);
+
+        private void HandleRequestResponseEvent(QmRequestResponseEvent e)
+        {
+            QmRequestResponse response = e.Response;
+            switch (true)
+            {
+                case true when response is QmRequestWaitResponse:
+                    return; // need to keep the overlay open while waiting
+                case true when response is QmRequestSpawnResponse spawnResponse:
+                    HandleSpawnResponseEvent(spawnResponse);
+                    return;
+                default:
+                    CloseIfLastEventType(typeof(QmRequestingMatchEvent), typeof(QmCancelingRequestMatchEvent));
+                    return;
+            }
+        }
+
+        private void HandleSpawnResponseEvent(QmRequestSpawnResponse spawnResponse)
+        {
+            const int ratio = 1000 / matchupFoundTimerInterval;
+            int max = qmSettings.MatchFoundWaitSeconds * matchupFoundTimerInterval / ratio;
+            progressBar.Maximum = max;
+            progressBar.Value = max;
+            var actions = new List<Tuple<string, Action>> { new(QmStrings.MatchupFoundConfirmYes, () => qmService.AcceptMatchAsync()), new(QmStrings.MatchupFoundConfirmNo, Disable) };
+            SetStatus(QmStrings.MatchupFoundConfirmMsg, actions, ProgressBarModeEnum.Determinate);
+            matchupFoundConfirmTimer.Start();
+        }
+
+        private void HandleCancelingMatchRequest() => SetStatus(QmStrings.CancelingMatchRequestStatus);
+
+        private void CloseIfLastEventType(params Type[] lastEventType)
+        {
+            if (lastEventType.Any(t => t == lastQmLoadingEventType))
+                Disable();
+        }
+
+        private void ReduceMatchupFoundConfirmTimeLeft()
+        {
+            progressBar.Value -= 1;
+
+            if (progressBar.Value != 0)
+                return;
+
+            matchupFoundConfirmTimer.Stop();
+            Disable();
+        }
+
+        private void SetStatus(string message, Tuple<string, Action> button)
+            => SetStatus(message, new List<Tuple<string, Action>> { button });
+
+        private void SetStatus(string message, IEnumerable<Tuple<string, Action>> buttons = null, ProgressBarModeEnum progressBarMode = ProgressBarModeEnum.Indeterminate)
+        {
+            currentMessage = message;
+            statusMessage.Text = message;
+            progressBar.ProgressBarMode = progressBarMode;
+
+            ResizeForText();
+            AddButtons(buttons);
+            Enable();
+        }
+
+        private void ResizeForText()
+        {
+            Vector2 textDimensions = Renderer.GetTextDimensions(statusMessage.Text, statusMessage.FontIndex);
+
+            statusOverlayBox.Width = (int)Math.Max(DefaultInternalWidth, textDimensions.X + 60);
+            statusOverlayBox.X = (Width / 2) - (statusOverlayBox.Width / 2);
+        }
+
+        private void AddButtons(IEnumerable<Tuple<string, Action>> buttons = null)
+        {
+            foreach (XNAControl xnaControl in pnlButtons.Children.ToList())
+                pnlButtons.RemoveChild(xnaControl);
+
+            if (buttons == null)
+                return;
+
+            var buttonDefinitions = buttons.ToList();
+            int fullWidth = (BUTTON_WIDTH * buttonDefinitions.Count) + (BUTTON_GAP * (buttonDefinitions.Count - 1));
+            int startX = (statusOverlayBox.Width / 2) - (fullWidth / 2);
+
+            for (int i = 0; i < buttonDefinitions.Count; i++)
+            {
+                Tuple<string, Action> buttonDefinition = buttonDefinitions[i];
+                var button = new XNAClientButton(WindowManager);
+                button.Text = buttonDefinition.Item1;
+                button.LeftClick += (_, _) => buttonDefinition.Item2();
+                button.ClientRectangle = new Rectangle(startX + (i * BUTTON_WIDTH) + (i * (buttonDefinitions.Count - 1) * BUTTON_GAP), 0, BUTTON_WIDTH, BUTTON_HEIGHT);
+                pnlButtons.AddChild(button);
+            }
+        }
+    }
+}

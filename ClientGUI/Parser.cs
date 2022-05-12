@@ -24,6 +24,7 @@ using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
 using System;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 
 namespace ClientGUI
 {
@@ -69,6 +70,9 @@ namespace ClientGUI
             if (controlName == primaryControl.Name)
                 return primaryControl;
 
+            if (controlName == primaryControl.Parent.Name)
+                return primaryControl.Parent;
+
             var control = Find(primaryControl.Children, controlName);
             if (control == null)
                 throw new KeyNotFoundException($"Control '{controlName}' not found while parsing input '{Input}'");
@@ -104,7 +108,7 @@ namespace ClientGUI
         public int GetExprValue(string input, XNAControl parsingControl)
         {
             this.parsingControl = parsingControl;
-            Input = input;
+            Input = Regex.Replace(input, @"\s", "");
             tokenPlace = 0;
             return GetExprValue();
         }
@@ -115,8 +119,6 @@ namespace ClientGUI
 
             while (true)
             {
-                SkipWhitespace();
-
                 if (IsEndOfInput())
                     return value;
 

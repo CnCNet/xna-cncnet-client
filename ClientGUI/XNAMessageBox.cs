@@ -262,7 +262,10 @@ namespace ClientGUI
         /// <param name="caption">The caption of the message box.</param>
         /// <param name="description">The description in the message box.</param>
         /// <returns>The XNAMessageBox instance that is created.</returns>
-        public static XNAMessageBox ShowYesNoDialog(WindowManager windowManager, string caption, string description)
+        public static XNAMessageBox ShowYesNoDialog(WindowManager windowManager, string caption, string description) 
+            => ShowYesNoDialog(windowManager, caption, description, null);
+
+        public static XNAMessageBox ShowYesNoDialog(WindowManager windowManager, string caption, string description, Action<XNAMessageBox> yesAction)
         {
             var panel = new DarkeningPanel(windowManager);
             windowManager.AddAndInitializeControl(panel);
@@ -274,6 +277,8 @@ namespace ClientGUI
 
             panel.AddChild(msgBox);
             msgBox.YesClickedAction = MsgBox_YesClicked;
+            if (yesAction != null)
+                msgBox.YesClickedAction += yesAction;
             msgBox.NoClickedAction = MsgBox_NoClicked;
 
             return msgBox;

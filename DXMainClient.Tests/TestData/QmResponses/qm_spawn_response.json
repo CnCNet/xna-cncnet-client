@@ -1,0 +1,50 @@
+{
+  "type": "spawn",
+  "gameID": 1001,
+  "spawn": {
+    "SpawnLocations": {
+      "Multi2": -1,
+      "Multi1": -1
+    },
+    "Settings": {
+      "UIMapName": "Dawn of Peril",
+      "MapHash": "3e1a6efe2370f1b26419ece66672b52bf98dc131",
+      "Seed": 101,
+      "GameID": 101,
+      "WOLGameID": 101,
+      "Host": "No",
+      "IsSpectator": "No",
+      "Name": "TestMe",
+      "Port": 1000,
+      "Side": 0,
+      "Color": 1,
+      "GameSpeed": "0",
+      "Credits": "10000",
+      "UnitCount": "0",
+      "Superweapons": "Yes",
+      "Tournament": "1",
+      "ShortGame": "Yes",
+      "Bases": "Yes",
+      "MCVRedeploy": "Yes",
+      "MultipleFactory": "Yes",
+      "Crates": "No",
+      "GameMode": "Battle",
+      "FrameSendRate": "4",
+      "DisableSWvsYuri": "Yes"
+    },
+    "Other1": {
+      "Name": "TestOther1",
+      "Side": 0,
+      "Color": 0,
+      "Ip": "12.34.56.78",
+      "Port": 1000,
+      "IPv6": "",
+      "PortV6": 0,
+      "LanIP": "",
+      "LanPort": 1000
+    }
+  },
+  "client": {
+    "show_map_preview": 1
+  }
+}
