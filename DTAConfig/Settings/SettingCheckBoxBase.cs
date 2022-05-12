@@ -129,19 +129,27 @@ namespace DTAConfig.Settings
                 ParentCheckBox.CheckedChanged -= ParentCheckBox_CheckedChanged;
 
             _parentCheckBox = parentCheckBox;
+            UpdateAllowChecking();
 
             if (ParentCheckBox != null)
                 ParentCheckBox.CheckedChanged += ParentCheckBox_CheckedChanged;
         }
 
-        private void ParentCheckBox_CheckedChanged(object sender, EventArgs e)
+        private void ParentCheckBox_CheckedChanged(object sender, EventArgs e) => UpdateAllowChecking();
+
+        private void UpdateAllowChecking()
         {
-            if ((sender as XNAClientCheckBox).Checked == ParentCheckBoxRequiredValue)
-                AllowChecking = true;
-            else
+            if (ParentCheckBox != null)
             {
-                AllowChecking = false;
-                Checked = false;
+                if (ParentCheckBox.Checked == ParentCheckBoxRequiredValue)
+                {
+                    AllowChecking = true;
+                }
+                else
+                {
+                    AllowChecking = false;
+                    Checked = false;
+                }
             }
         }
 
