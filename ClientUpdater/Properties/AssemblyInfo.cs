@@ -7,9 +7,9 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("CnCNet Client Updater  Library")]
 [assembly: AssemblyDescription("CnCNet Client Updater Library")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("Starkku")]
+[assembly: AssemblyCompany("CnCNet")]
 [assembly: AssemblyProduct("CnCNet Client Updater  Library")]
-[assembly: AssemblyCopyright("Copyright © Starkku 2022")]
+[assembly: AssemblyCopyright("Copyright © CnCNet 2022")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
