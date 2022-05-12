@@ -51,26 +51,51 @@ namespace ClientGUI
             return null;
         }
 
+        /// <summary>
+        /// Attempts to locate the ini config file for the current control.
+        /// Only return a config path if it exists.
+        /// </summary>
+        /// <returns>The ini config file path</returns>
+        protected string GetConfigPath()
+        {
+            string iniFileName = string.IsNullOrWhiteSpace(IniNameOverride) ? Name : IniNameOverride;
+
+            // get theme specific path
+            string configIniPath = Path.Combine(ProgramConstants.GetResourcePath(), $"{iniFileName}.ini");
+            if (File.Exists(configIniPath))
+                return configIniPath;
+
+            // get base path
+            configIniPath = Path.Combine(ProgramConstants.GetBaseResourcePath(), $"{iniFileName}.ini");
+            if (File.Exists(configIniPath))
+                return configIniPath;
+
+            if (iniFileName == Name)
+                return null; // IniNameOverride must be null, no need to continue
+
+            iniFileName = Name;
+            
+            // get theme specific path
+            configIniPath = Path.Combine(ProgramConstants.GetResourcePath(), $"{iniFileName}.ini");
+            if (File.Exists(configIniPath))
+                return configIniPath;
+
+            // get base path
+            configIniPath = Path.Combine(ProgramConstants.GetBaseResourcePath(), $"{iniFileName}.ini");
+            return File.Exists(configIniPath) ? configIniPath : null;
+        }
+
         public override void Initialize()
         {
             if (_initialized)
                 throw new InvalidOperationException("INItializableWindow cannot be initialized twice.");
 
-            string iniFileName = string.IsNullOrWhiteSpace(IniNameOverride) ? Name : IniNameOverride;
+            string configIniPath = GetConfigPath();
 
-            var dsc = Path.DirectorySeparatorChar;
-            string configIniPath = ProgramConstants.GetResourcePath() + iniFileName + ".ini";
-
-            if (!File.Exists(configIniPath))
+            if (string.IsNullOrEmpty(configIniPath))
             {
-                configIniPath = ProgramConstants.GetBaseResourcePath() + iniFileName + ".ini";
-
-                if (!File.Exists(configIniPath))
-                {
-                    base.Initialize();
-                    return;
-                    // throw new FileNotFoundException("Config INI not found: " + configIniPath);
-                }
+                base.Initialize();
+                return;
             }
 
             ConfigIni = new CCIniFile(configIniPath);
@@ -248,5 +273,4 @@ namespace ClientGUI
             return childControl;
         }
     }
-
 }

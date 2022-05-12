@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using DTAClient.Online;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
+using Localization;
 
 namespace DTAClient.DXGUI.Multiplayer.CnCNet
 {
@@ -23,9 +24,9 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             
             base.Initialize();
 
-            AddColumn("Player");
-            AddColumn("Game");
-            AddColumn("Date/Time");
+            AddColumn("Player".L10N("UI:Main:RecentPlayerPlayer"));
+            AddColumn("Game".L10N("UI:Main:RecentPlayerGame"));
+            AddColumn("Date/Time".L10N("UI:Main:RecentPlayerDateTime"));
         }
 
         public void AddRecentPlayer(RecentPlayer recentPlayer)

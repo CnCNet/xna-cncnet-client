@@ -188,7 +188,7 @@ namespace DTAClient.Online
         {
             if (users.Remove(userName))
             {
-                if (notifyOnUserListChange && users.Find(userName) != null)
+                if (notifyOnUserListChange)
                 {
                     AddMessage(new ChatMessage(
                         string.Format("{0} has quit from CnCNet.".L10N("UI:Main:PlayerQuitCncNet"), userName)));

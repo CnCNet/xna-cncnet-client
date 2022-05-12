@@ -10,11 +10,11 @@ using Rampastring.XNAUI.XNAControls;
 
 namespace DTAClient.DXGUI.Multiplayer
 {
-    public class PlayerExtraOptionsPanel : XNAPanel
+    public class PlayerExtraOptionsPanel : XNAWindow
     {
         private const int maxStartCount = 8;
         private const int defaultX = 24;
-        private const int defaultTeamStartMappingX = 200;
+        private const int defaultTeamStartMappingX = UIDesignConstants.EMPTY_SPACE_SIDES;
         private const int teamMappingPanelWidth = 50;
         private const int teamMappingPanelHeight = 22;
         private readonly string customPresetName = "Custom".L10N("UI:Main:CustomPresetName");
@@ -162,9 +162,10 @@ namespace DTAClient.DXGUI.Multiplayer
             Visible = false;
 
             var btnClose = new XNAClientButton(WindowManager);
+            btnClose.Name = nameof(btnClose);
             btnClose.ClientRectangle = new Rectangle(0, 0, 0, 0);
-            btnClose.IdleTexture = AssetLoader.LoadTexture("openedComboBoxArrow.png");
-            btnClose.HoverTexture = AssetLoader.LoadTexture("openedComboBoxArrow.png");
+            btnClose.IdleTexture = AssetLoader.LoadTexture("optionsButtonClose.png");
+            btnClose.HoverTexture = AssetLoader.LoadTexture("optionsButtonClose_c.png");
             btnClose.LeftClick += (sender, args) => Disable();
             AddChild(btnClose);
 
@@ -207,14 +208,14 @@ namespace DTAClient.DXGUI.Multiplayer
             chkBoxUseTeamStartMappings = new XNAClientCheckBox(WindowManager);
             chkBoxUseTeamStartMappings.Name = nameof(chkBoxUseTeamStartMappings);
             chkBoxUseTeamStartMappings.Text = "Enable Auto Allying:".L10N("UI:Main:EnableAutoAllying");
-            chkBoxUseTeamStartMappings.ClientRectangle = new Rectangle(defaultTeamStartMappingX, lblHeader.Y, 0, 0);
+            chkBoxUseTeamStartMappings.ClientRectangle = new Rectangle(chkBoxForceRandomSides.X, chkBoxForceRandomStarts.Bottom + 20, 0, 0);
             chkBoxUseTeamStartMappings.CheckedChanged += ChkBoxUseTeamStartMappings_Changed;
             AddChild(chkBoxUseTeamStartMappings);
 
             var btnHelp = new XNAClientButton(WindowManager);
             btnHelp.Name = nameof(btnHelp);
             btnHelp.IdleTexture = AssetLoader.LoadTexture("questionMark.png");
-            btnHelp.HoverTexture = AssetLoader.LoadTexture("questionMark.png");
+            btnHelp.HoverTexture = AssetLoader.LoadTexture("questionMark_c.png");
             btnHelp.LeftClick += BtnHelp_LeftClick;
             btnHelp.ClientRectangle = new Rectangle(chkBoxUseTeamStartMappings.Right + 4, chkBoxUseTeamStartMappings.Y - 1, 0, 0);
             AddChild(btnHelp);
@@ -233,7 +234,8 @@ namespace DTAClient.DXGUI.Multiplayer
             AddChild(ddTeamStartMappingPreset);
 
             teamStartMappingsPanel = new TeamStartMappingsPanel(WindowManager);
-            teamStartMappingsPanel.ClientRectangle = new Rectangle(200, ddTeamStartMappingPreset.Bottom + 8, Width, Height - ddTeamStartMappingPreset.Bottom + 4);
+            teamStartMappingsPanel.Name = nameof(teamStartMappingsPanel);
+            teamStartMappingsPanel.ClientRectangle = new Rectangle(lblPreset.X, ddTeamStartMappingPreset.Bottom + 8, Width, Height - ddTeamStartMappingPreset.Bottom + 4);
             AddChild(teamStartMappingsPanel);
 
             AddLocationAssignments();
@@ -245,7 +247,7 @@ namespace DTAClient.DXGUI.Multiplayer
 
         private void BtnHelp_LeftClick(object sender, EventArgs args)
         {
-            XNAMessageBox.Show(WindowManager, "Team/Start Mappings".L10N("UI:Main:AutoAllyingTitle"),
+            XNAMessageBox.Show(WindowManager, "Auto Allying".L10N("UI:Main:AutoAllyingTitle"),
                 ("Auto allying allows the host to assign starting locations to teams, not players.\n" +
                 "When players are assigned to spawn locations, they will be auto assigned to teams based on these mappings.\n" +
                 "This is best used with random teams and random starts. However, only random teams is required.\n" +

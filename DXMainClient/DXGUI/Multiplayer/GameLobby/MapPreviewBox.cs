@@ -213,7 +213,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (GameModeMap == null)
                 return;
 
-            toggleFavoriteMapItem.Text = GameModeMap.IsFavorite ? "Remove Favorite" : "Add Favorite";
+            toggleFavoriteMapItem.Text = GameModeMap.IsFavorite ? "Remove Favorite".L10N("UI:Main:RemoveFavorite") : "Add Favorite".L10N("UI:Main:AddFavorite");
             mapContextMenu.Open(GetCursorPoint());
         }
 

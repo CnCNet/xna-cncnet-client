@@ -149,7 +149,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 PlayerOptionsPanel.AddChild(indicatorPlayerReady);
 
                 StatusIndicators[i] = indicatorPlayerReady;
-                ddPlayerSides[i].AddItem("Spectator", AssetLoader.LoadTexture("spectatoricon.png"));
+                ddPlayerSides[i].AddItem("Spectator".L10N("UI:Main:SpectatorSide"), AssetLoader.LoadTexture("spectatoricon.png"));
             }
 
             lbChatMessages = FindChild<ChatListBox>(nameof(lbChatMessages));
@@ -497,9 +497,14 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             Map map = MapLoader.LoadCustomMap($"Maps/Custom/{mapName}", out string resultMessage);
             if (map != null)
+            {
                 AddNotice(resultMessage);
+                ListMaps();
+            }
             else
+            {
                 AddNotice(resultMessage, Color.Red);
+            }
         }
 
         /// <summary>
@@ -645,6 +650,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             lbGameModeMapList.Disable();
             tbMapSearch.Disable();
             btnPickRandomMap.Disable();
+            btnMapSortAlphabetically.Disable();
 
             ReadINIForControl(btnPickRandomMap);
             ReadINIForControl(lbChatMessages);
@@ -670,6 +676,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             lblGameModeSelect.Enable();
             lbGameModeMapList.Enable();
             tbMapSearch.Enable();
+            btnMapSortAlphabetically.Enable();
 
             ReadINIForControl(btnPickRandomMap);
             ReadINIForControl(lbChatMessages);
