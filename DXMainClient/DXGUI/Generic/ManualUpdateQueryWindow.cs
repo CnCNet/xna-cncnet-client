@@ -32,8 +32,8 @@ namespace DTAClient.DXGUI.Generic
             lblDescription = new XNALabel(WindowManager);
             lblDescription.Name = "lblDescription";
             lblDescription.ClientRectangle = new Rectangle(12, 9, 0, 0);
-            lblDescription.Text = "Version {0} is available." + Environment.NewLine + Environment.NewLine +
-                "Manual download and installation is" + Environment.NewLine + "required.".L10N("UI:Main:ManualDownloadAvailable");
+            lblDescription.Text = ("Version {0} is available." + Environment.NewLine + Environment.NewLine +
+                "Manual download and installation is" + Environment.NewLine + "required.").L10N("UI:Main:ManualDownloadAvailable");
 
             var btnDownload = new XNAClientButton(WindowManager);
             btnDownload.Name = "btnDownload";
@@ -59,14 +59,10 @@ namespace DTAClient.DXGUI.Generic
         }
 
         private void BtnDownload_LeftClick(object sender, EventArgs e)
-        {
-            Process.Start(downloadUrl);
-        }
+            => Process.Start(downloadUrl);
 
         private void BtnClose_LeftClick(object sender, EventArgs e)
-        {
-            Closed?.Invoke(this, e);
-        }
+            => Closed?.Invoke(this, e);
 
         public void SetInfo(string version, string downloadUrl)
         {

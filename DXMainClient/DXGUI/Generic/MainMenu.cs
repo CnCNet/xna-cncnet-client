@@ -538,9 +538,12 @@ namespace DTAClient.DXGUI.Generic
                     lblUpdateStatus.DrawUnderline = false;
                 }
                 else if (UserINISettings.Instance.CheckForUpdates)
+                {
                     CheckForUpdates();
-                else
+                }
+                {
                     lblUpdateStatus.Text = "Click to check for updates.".L10N("UI:Main:ClickToCheckUpdate");
+                }
             }
 
             CheckRequiredFiles();
@@ -629,21 +632,23 @@ namespace DTAClient.DXGUI.Generic
         {
             if (Updater.UpdateMirrors.Count < 1)
                 return;
+
             Updater.CheckForUpdates();
             lblUpdateStatus.Enabled = false;
-            lblUpdateStatus.Text = "Checking for updates...".L10N("UI:Main:CheckingForUpdate");
+            lblUpdateStatus.Text = "Checking for" +
+                "updates...".L10N("UI:Main:CheckingForUpdate");
+
             try
             {
                 StatisticsSender.Instance.SendUpdate();
             }
             catch { }
+
             lastUpdateCheckTime = DateTime.Now;
         }
 
         private void Updater_FileIdentifiersUpdated()
-        {
-            WindowManager.AddCallback(new Action(HandleFileIdentifierUpdate), null);
-        }
+            => WindowManager.AddCallback(new Action(HandleFileIdentifierUpdate), null);
 
         /// <summary>
         /// Used for displaying the result of an update check in the UI.
@@ -667,6 +672,7 @@ namespace DTAClient.DXGUI.Generic
                 lblUpdateStatus.Enabled = true;
                 lblUpdateStatus.DrawUnderline = false;
                 innerPanel.ManualUpdateQueryWindow.SetInfo(Updater.ServerGameVersion, Updater.ManualDownloadURL);
+
                 if (!string.IsNullOrEmpty(Updater.ManualDownloadURL))
                     innerPanel.Show(innerPanel.ManualUpdateQueryWindow);
             }
@@ -746,19 +752,18 @@ namespace DTAClient.DXGUI.Generic
         }
 
         private void ManualUpdateQueryWindow_Closed(object sender, EventArgs e)
-        {
-            innerPanel.Hide();
-        }
+            => innerPanel.Hide();
 
         #endregion
 
-        private void BtnOptions_LeftClick(object sender, EventArgs e) => optionsWindow.Open();
+        private void BtnOptions_LeftClick(object sender, EventArgs e)
+            => optionsWindow.Open();
 
-        private void BtnNewCampaign_LeftClick(object sender, EventArgs e) =>
-            innerPanel.Show(innerPanel.CampaignSelector);
+        private void BtnNewCampaign_LeftClick(object sender, EventArgs e)
+            => innerPanel.Show(innerPanel.CampaignSelector);
 
-        private void BtnLoadGame_LeftClick(object sender, EventArgs e) =>
-            innerPanel.Show(innerPanel.GameLoadingWindow);
+        private void BtnLoadGame_LeftClick(object sender, EventArgs e)
+            => innerPanel.Show(innerPanel.GameLoadingWindow);
 
         private void BtnLan_LeftClick(object sender, EventArgs e)
         {

@@ -78,20 +78,13 @@ namespace DTAConfig.OptionPanels
         }
 
         private void Updater_FileIdentifiersUpdated()
-        {
-            UpdateInstallationButtons();
-        }
+            => UpdateInstallationButtons();
 
         public override void Load()
         {
             base.Load();
 
             UpdateInstallationButtons();
-        }
-
-        public override bool Save()
-        {
-            return base.Save();
         }
 
         private void UpdateInstallationButtons()
@@ -119,13 +112,13 @@ namespace DTAConfig.OptionPanels
                     buttonEnabled = true;
 
                     if (c.LocalIdentifier != c.RemoteIdentifier)
-                        buttonText = "Update".L10N("UI:DTAConfig:Update") + " (" + GetSizeString(c.RemoteSize) + ")";
+                        buttonText = "Update".L10N("UI:DTAConfig:Update") + $" ({ GetSizeString(c.RemoteSize) })";
                 }
                 else
                 {
                     if (!string.IsNullOrEmpty(c.RemoteIdentifier))
                     {
-                        buttonText = "Install".L10N("UI:DTAConfig:Install") + " (" + GetSizeString(c.RemoteSize) + ")";
+                        buttonText = "Install".L10N("UI:DTAConfig:Install") + $" ({ GetSizeString(c.RemoteSize) })";
                         buttonEnabled = true;
                     }
                 }
@@ -151,7 +144,7 @@ namespace DTAConfig.OptionPanels
                 if (cc.LocalIdentifier == cc.RemoteIdentifier)
                 {
                     File.Delete(ProgramConstants.GamePath + cc.LocalPath);
-                    btn.Text = "Install (" + GetSizeString(cc.RemoteSize) + ")";
+                    btn.Text = "Install".L10N("UI:DTAConfig:Install") + $" ({ GetSizeString(cc.RemoteSize) })";
                     return;
                 }
 
@@ -163,18 +156,14 @@ namespace DTAConfig.OptionPanels
             }
             else
             {   
-                string archiveSizeMsg = "";
-                if (cc.Archived && cc.RemoteArchiveSize != cc.RemoteSize)
-                    archiveSizeMsg = " (size of the download is " + GetSizeString(cc.RemoteArchiveSize) + ")";     
-                  
                 var msgBox = new XNAMessageBox(WindowManager, "Confirmation Required".L10N("UI:DTAConfig:UpdateConfirmRequiredTitle"),
                     string.Format(("To enable {0} the Client will download the necessary files to your game directory." +
-                    Environment.NewLine + Environment.NewLine + "This will take an additional {1} of disk space{2}, and the download may last" +
+                    Environment.NewLine + Environment.NewLine + "This will take an additional {1} of disk space (size of the download is {2}), and the download may last" +
                     Environment.NewLine +
                     "from a few minutes to multiple hours depending on your Internet connection speed." +
                     Environment.NewLine + Environment.NewLine +
                     "You will not be able to play during the download. Do you want to continue?").L10N("UI:DTAConfig:UpdateConfirmRequiredText"),
-                    cc.GUIName, GetSizeString(cc.RemoteSize), archiveSizeMsg
+                    cc.GUIName, GetSizeString(cc.RemoteSize), GetSizeString(cc.Archived ? cc.RemoteArchiveSize : cc.RemoteSize)
                     ), XNAMessageBoxButtons.YesNo);
                     
                 msgBox.Tag = btn;
@@ -224,9 +213,9 @@ namespace DTAConfig.OptionPanels
             var btn = installationButtons.Find(b => object.ReferenceEquals(b.Tag, cc));
 
             if (cc.Archived && percentage == 100)
-                btn.Text = "Unpacking..".L10N("UI:DTAConfig:Unpacking");
+                btn.Text = "Unpacking...".L10N("UI:DTAConfig:Unpacking");
             else
-                btn.Text = "Downloading..".L10N("UI:DTAConfig:Downloading") + " " + percentage + "%";
+                btn.Text = "Downloading...".L10N("UI:DTAConfig:Downloading") + " " + percentage + "%";
         }
 
         /// <summary>
@@ -258,10 +247,10 @@ namespace DTAConfig.OptionPanels
                         cc.GUIName));
                 }
 
-                btn.Text = "Install".L10N("UI:DTAConfig:Install") + " (" + GetSizeString(cc.RemoteSize) + ")";
+                btn.Text = "Install".L10N("UI:DTAConfig:Install") + $" ({ GetSizeString(cc.RemoteSize) })";
 
                 if (File.Exists(ProgramConstants.GamePath + cc.LocalPath))
-                    btn.Text = "Update".L10N("UI:DTAConfig:Update") + " (" + GetSizeString(cc.RemoteSize) + ")";
+                    btn.Text = "Update".L10N("UI:DTAConfig:Update") + $" ({ GetSizeString(cc.RemoteSize) })";
             }
             else
             {
@@ -273,7 +262,7 @@ namespace DTAConfig.OptionPanels
 
         public void CancelAllDownloads()
         {
-            Logger.Log("Cancelling all downloads.");
+            Logger.Log("Cancelling all custom component downloads.");
 
             downloadCancelled = true;
 

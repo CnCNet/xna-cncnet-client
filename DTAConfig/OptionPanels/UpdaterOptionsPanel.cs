@@ -86,7 +86,7 @@ namespace DTAConfig.OptionPanels
                     "made to this installation. Use at your own risk!" +
                     Environment.NewLine + Environment.NewLine +
                     "If you proceed, the options window will close and the" + Environment.NewLine +
-                    "client will proceed to checking for updates." + 
+                    "client will proceed to checking for updates." +
                     Environment.NewLine + Environment.NewLine +
                     "Do you really want to force update?" + Environment.NewLine).L10N("UI:DTAConfig:ForceUpdateConfirmText"), XNAMessageBoxButtons.YesNo);
             msgBox.Show();
@@ -138,8 +138,11 @@ namespace DTAConfig.OptionPanels
             lbUpdateServerList.Clear();
 
             foreach (var updaterMirror in Updater.UpdateMirrors)
-                lbUpdateServerList.AddItem(updaterMirror.Name + (!string.IsNullOrEmpty(updaterMirror.Location) ? 
-                    " (" + updaterMirror.Location + ")" : ""));
+            {
+                lbUpdateServerList.AddItem(updaterMirror.Name +
+                    (!string.IsNullOrEmpty(updaterMirror.Location) ?
+                    $" ({ updaterMirror.Location })" : string.Empty));
+            }
 
             chkAutoCheck.Checked = IniSettings.CheckForUpdates;
         }
