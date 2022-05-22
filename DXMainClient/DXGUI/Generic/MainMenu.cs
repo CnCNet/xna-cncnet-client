@@ -541,6 +541,7 @@ namespace DTAClient.DXGUI.Generic
                 {
                     CheckForUpdates();
                 }
+                else
                 {
                     lblUpdateStatus.Text = "Click to check for updates.".L10N("UI:Main:ClickToCheckUpdate");
                 }
