@@ -290,6 +290,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             btnMapSortAlphabetically.SetToolTipText("Sort Maps Alphabetically".L10N("UI:Main:MapSortAlphabeticallyToolTip"));
             RefreshMapSortAlphabeticallyBtn();
             AddChild(btnMapSortAlphabetically);
+
+            // Allow repositioning / disabling in INI.
+            ReadINIForControl(btnMapSortAlphabetically);
         }
 
         private void InitializeGameOptionPresetUI()
@@ -479,14 +482,19 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         private List<GameModeMap> GetSortedGameModeMaps()
         {
             var gameModeMaps = gameModeMapFilter.GetGameModeMaps();
-            switch ((SortDirection)UserINISettings.Instance.MapSortState.Value)
+
+            // Only apply sort if the map list sort button is available.
+            if (btnMapSortAlphabetically.Enabled && btnMapSortAlphabetically.Visible)
             {
-                case SortDirection.Asc:
-                    gameModeMaps = gameModeMaps.OrderBy(gmm => gmm.Map.Name).ToList();
-                    break;
-                case SortDirection.Desc:
-                    gameModeMaps = gameModeMaps.OrderByDescending(gmm => gmm.Map.Name).ToList();
-                    break;
+                switch ((SortDirection)UserINISettings.Instance.MapSortState.Value)
+                {
+                    case SortDirection.Asc:
+                        gameModeMaps = gameModeMaps.OrderBy(gmm => gmm.Map.Name).ToList();
+                        break;
+                    case SortDirection.Desc:
+                        gameModeMaps = gameModeMaps.OrderByDescending(gmm => gmm.Map.Name).ToList();
+                        break;
+                }
             }
 
             return gameModeMaps;
