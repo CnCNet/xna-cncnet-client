@@ -1162,8 +1162,6 @@ namespace ClientUpdater
                         ExecuteAfterUpdateScript();
                         Logger.Log("Updater: Cleaning up.");
 
-                        DeleteFileAndWait(GamePath + VERSION_FILE);
-
                         if (Directory.Exists(GamePath + "Updater"))
                         {
                             File.Move(GamePath + VERSION_FILE + "_u", GamePath + "Updater/" + VERSION_FILE);
@@ -1181,10 +1179,10 @@ namespace ClientUpdater
                         }
                         if (Directory.Exists(GamePath + "Updater"))
                         {
-                            if (File.Exists(GamePath + "Updater/" + SECOND_STAGE_UPDATER))
+                            if (File.Exists(GamePath + "Updater/Resources/" + SECOND_STAGE_UPDATER))
                             {
                                 DeleteFileAndWait(ResourcePath + SECOND_STAGE_UPDATER);
-                                File.Move(GamePath + "Updater/" + SECOND_STAGE_UPDATER,
+                                File.Move(GamePath + "Updater/Resources/" + SECOND_STAGE_UPDATER,
                                     ResourcePath + SECOND_STAGE_UPDATER);
                             }
 

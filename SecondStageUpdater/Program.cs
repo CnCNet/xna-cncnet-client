@@ -59,13 +59,18 @@ namespace SecondStageUpdater
                     Write("Updating files.", ConsoleColor.Green);
 
                     string[] paths = Directory.GetFiles(basePath + "Updater", "*", SearchOption.AllDirectories);
+                    string executablePath = new Uri(System.Reflection.Assembly.GetExecutingAssembly().CodeBase).LocalPath;
+                    executablePath = executablePath.Substring(basePath.Length).Replace("\\", "/");
 
                     for (int index = 0; index < paths.Length; ++index)
                     {
-                        string filename = Path.GetFileName(paths[index]);
+                        string filename = paths[index].Substring(basePath.Length + 8).Replace("\\", "/");
 
-                        if (filename == "SecondStageUpdater.exe")
-                            Write("Skipping SecondStageUpdater.exe");
+                        Write(executablePath);
+                        Write(filename);
+
+                        if (executablePath.Equals(filename) || filename.Equals("Resources/SecondStageUpdater.exe"))
+                            Write($"Skipping { Path.GetFileName(filename) }");
                         else if (filename == "version")
                             Write("Skipping version");
                         else
@@ -89,7 +94,7 @@ namespace SecondStageUpdater
                     if (File.Exists(basePath + "Updater/version"))
                     {
                         Write(basePath + "Updater/version -> " + basePath + "version");
-                        File.Copy(basePath + "Updater/version", basePath + "version");
+                        File.Copy(basePath + "Updater/version", basePath + "version", true);
                     }
 
                     Write("Files succesfully updated. Starting launcher..", ConsoleColor.Green);
