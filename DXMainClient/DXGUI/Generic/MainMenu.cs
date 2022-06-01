@@ -636,7 +636,7 @@ namespace DTAClient.DXGUI.Generic
 
             Updater.CheckForUpdates();
             lblUpdateStatus.Enabled = false;
-            lblUpdateStatus.Text = "Checking for" +
+            lblUpdateStatus.Text = "Checking for " +
                 "updates...".L10N("UI:Main:CheckingForUpdate");
 
             try
