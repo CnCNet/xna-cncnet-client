@@ -342,10 +342,6 @@ namespace DTAClient.Domain.Multiplayer
 
                 GetTeamStartMappingPresets(section);
 
-#if !NOTWINDOWS
-                if (UserINISettings.Instance.PreloadMapPreviews)
-                    PreviewTexture = LoadPreviewTexture();
-#endif
                 // Parse forced options
 
                 string forcedOptionsSections = iniFile.GetStringValue(BaseFilePath, "ForcedOptions", string.Empty);

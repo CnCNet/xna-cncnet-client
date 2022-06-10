@@ -186,8 +186,6 @@ namespace ClientCore
 
         public string MapEditorExePath => clientDefinitionsIni.GetStringValue(SETTINGS, "MapEditorExePath", "FinalSun/FinalSun.exe");
 
-        public string UnixMapEditorExePath => clientDefinitionsIni.GetStringValue(SETTINGS, "UnixMapEditorExePath", Instance.MapEditorExePath);
-
         public bool ModMode => clientDefinitionsIni.GetBooleanValue(SETTINGS, "ModMode", false);
 
         public string LongGameName => clientDefinitionsIni.GetStringValue(SETTINGS, "LongGameName", "Tiberian Sun");
@@ -284,12 +282,6 @@ namespace ClientCore
         public bool UseClientRandomStartLocations => clientDefinitionsIni.GetBooleanValue(SETTINGS, "UseClientRandomStartLocations", false);
 
         /// <summary>
-        /// Returns the name of the game executable file that is used on
-        /// Linux and macOS.
-        /// </summary>
-        public string UnixGameExecutableName => clientDefinitionsIni.GetStringValue(SETTINGS, "UnixGameExecutableName", "wine-dta.sh");
-
-        /// <summary>
         /// List of files that are not distributed but required to play.
         /// </summary>
         public string[] RequiredFiles => clientDefinitionsIni.GetStringValue(SETTINGS, "RequiredFiles", String.Empty).Split(',');
@@ -311,20 +303,10 @@ namespace ClientCore
                 if (OperatingSystem.IsWindowsVersionAtLeast(6, 1))
                     return OSVersion.WIN7;
 
-                if (OperatingSystem.IsWindowsVersionAtLeast(6))
-                    return OSVersion.WINVISTA;
-
-                if (OperatingSystem.IsWindowsVersionAtLeast(5, 1))
-                    return OSVersion.WINXP;
-
                 return OSVersion.UNKNOWN;
             }
 
             int p = (int)Environment.OSVersion.Platform;
-
-            // http://mono.wikia.com/wiki/Detecting_the_execution_platform
-            if (p == 4 || p == 6 || p == 128)
-                return OSVersion.UNIX;
 
             return OSVersion.UNKNOWN;
         }

@@ -51,53 +51,6 @@ namespace DTAClient.DXGUI
             AssetLoader.AssetSearchPaths.Add(ProgramConstants.GetBaseResourcePath());
             AssetLoader.AssetSearchPaths.Add(ProgramConstants.GamePath);
 
-#if !NOTWINDOWS
-            // Try to create and load a texture to check for MonoGame 3.7.1 compatibility
-            try
-            {
-                Texture2D texture = new Texture2D(GraphicsDevice, 100, 100, false, SurfaceFormat.Color);
-                Color[] colorArray = new Color[100 * 100];
-                texture.SetData(colorArray);
-
-                UISettings.ActiveSettings.CheckBoxClearTexture = AssetLoader.LoadTextureUncached("checkBoxClear.png");
-            }
-            catch (Exception ex)
-            {
-                if (ex.Message.Contains("DeviceRemoved"))
-                {
-                    Logger.Log("Creating texture on startup failed! Creating .dxfail file and re-launching client launcher.");
-
-                    if (!Directory.Exists(ProgramConstants.GamePath + "Client"))
-                        Directory.CreateDirectory(ProgramConstants.GamePath + "Client");
-
-                    // Create .dxfail file that the launcher can check for this error
-                    // and handle it by redirecting the user to the XNA version instead
-
-                    File.WriteAllBytes(ProgramConstants.GamePath + "Client" + Path.DirectorySeparatorChar + ".dxfail",
-                        new byte[] { 1 });
-
-                    string launcherExe = ClientConfiguration.Instance.LauncherExe;
-                    if (string.IsNullOrEmpty(launcherExe))
-                    {
-                        // LauncherExe is unspecified, just throw the exception forward
-                        // because we can't handle it
-
-                        Logger.Log("No LauncherExe= specified in ClientDefinitions.ini! " +
-                            "Forwarding exception to regular exception handler.");
-
-                        throw ex;
-                    }
-                    else
-                    {
-                        Logger.Log("Starting " + launcherExe + " and exiting.");
-
-                        Process.Start(ProgramConstants.GamePath + launcherExe);
-                        Environment.Exit(0);
-                    }
-                }
-            }
-#endif
-
             InitializeUISettings();
 
             WindowManager wm = new WindowManager(this, graphics);
@@ -114,11 +67,6 @@ namespace DTAClient.DXGUI
                 AssetLoader.LoadTexture("cursor.png"),
                 AssetLoader.LoadTexture("waitCursor.png")
             };
-
-            if (File.Exists(primaryNativeCursorPath))
-                wm.Cursor.LoadNativeCursor(primaryNativeCursorPath);
-            else if (File.Exists(alternativeNativeCursorPath))
-                wm.Cursor.LoadNativeCursor(alternativeNativeCursorPath);
 
             Components.Add(wm);
 

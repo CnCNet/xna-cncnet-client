@@ -14,7 +14,7 @@ namespace ClientCore
 #if DEBUG
         public static readonly string GamePath = Application.StartupPath.Replace('\\', '/') + "/";
 #else
-        public static readonly string GamePath = Directory.GetParent(Application.StartupPath.TrimEnd(new char[] { '\\' })).FullName.Replace('\\', '/') + "/";
+        public static readonly string GamePath = System.IO.Directory.GetParent(Application.StartupPath.TrimEnd(new char[] { '\\' })).FullName.Replace('\\', '/') + "/";
 #endif
 
         public static string ClientUserFilesPath => GamePath + "Client/";

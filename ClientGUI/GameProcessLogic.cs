@@ -51,18 +51,13 @@ namespace ClientGUI
             string gameExecutableName;
             string additionalExecutableName = string.Empty;
 
-            if (osVersion == OSVersion.UNIX)
-                gameExecutableName = ClientConfiguration.Instance.UnixGameExecutableName;
+            string launcherExecutableName = ClientConfiguration.Instance.GameLauncherExecutableName;
+            if (string.IsNullOrEmpty(launcherExecutableName))
+                gameExecutableName = ClientConfiguration.Instance.GetGameExecutableName();
             else
             {
-                string launcherExecutableName = ClientConfiguration.Instance.GameLauncherExecutableName;
-                if (string.IsNullOrEmpty(launcherExecutableName))
-                    gameExecutableName = ClientConfiguration.Instance.GetGameExecutableName();
-                else
-                {
-                    gameExecutableName = launcherExecutableName;
-                    additionalExecutableName = "\"" + ClientConfiguration.Instance.GetGameExecutableName() + "\" ";
-                }
+                gameExecutableName = launcherExecutableName;
+                additionalExecutableName = "\"" + ClientConfiguration.Instance.GetGameExecutableName() + "\" ";
             }
 
             string extraCommandLine = ClientConfiguration.Instance.ExtraExeCommandLineParameters;

@@ -55,9 +55,7 @@ namespace DTAClient.Online
         {
             try
             {
-                string gameExecutableName = ClientConfiguration.Instance.GetOperatingSystemVersion() == OSVersion.UNIX ?
-                    ClientConfiguration.Instance.UnixGameExecutableName :
-                    ClientConfiguration.Instance.GetGameExecutableName();
+                string gameExecutableName = ClientConfiguration.Instance.GetGameExecutableName();
 
                 gameExecutableName = gameExecutableName.Replace(".exe", "");
 

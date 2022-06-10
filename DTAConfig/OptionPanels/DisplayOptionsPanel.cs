@@ -395,11 +395,11 @@ namespace DTAConfig.OptionPanels
             // Set compatibility fix declined flag in registry
             try
             {
-                RegistryKey regKey = Registry.CurrentUser.OpenSubKey("SOFTWARE\\Tiberian Sun Client");
+                Microsoft.Win32.RegistryKey regKey = Microsoft.Win32.Registry.CurrentUser.OpenSubKey("SOFTWARE\\Tiberian Sun Client");
 
                 try
                 {
-                    regKey = Registry.CurrentUser.OpenSubKey("SOFTWARE", true);
+                    regKey = Microsoft.Win32.Registry.CurrentUser.OpenSubKey("SOFTWARE", true);
                     regKey = regKey.CreateSubKey("Tiberian Sun Client");
                     regKey.SetValue("TSCompatFixDeclined", "Yes");
                 }
@@ -422,7 +422,7 @@ namespace DTAConfig.OptionPanels
             {
                 try
                 {
-                    Process sdbinst = Process.Start("sdbinst.exe", "-q -n \"TS Compatibility Fix\"");
+                    System.Diagnostics.Process sdbinst = System.Diagnostics.Process.Start("sdbinst.exe", "-q -n \"TS Compatibility Fix\"");
 
                     sdbinst.WaitForExit();
 
@@ -430,7 +430,7 @@ namespace DTAConfig.OptionPanels
                     XNAMessageBox.Show(WindowManager, "Compatibility Fix Uninstalled".L10N("UI:DTAConfig:TSFixUninstallTitle"),
                         "The DTA/TI/TS Compatibility Fix has been succesfully uninstalled.".L10N("UI:DTAConfig:TSFixUninstallText"));
 
-                    RegistryKey regKey = Registry.CurrentUser.OpenSubKey("SOFTWARE", true);
+                    Microsoft.Win32.RegistryKey regKey = Microsoft.Win32.Registry.CurrentUser.OpenSubKey("SOFTWARE", true);
                     regKey = regKey.CreateSubKey("Tiberian Sun Client");
                     regKey.SetValue("TSCompatFixInstalled", "No");
 
@@ -450,7 +450,7 @@ namespace DTAConfig.OptionPanels
 
             try
             {
-                Process sdbinst = Process.Start("sdbinst.exe", "-q \"" + ProgramConstants.GamePath + "Resources/compatfix.sdb\"");
+                System.Diagnostics.Process sdbinst = System.Diagnostics.Process.Start("sdbinst.exe", "-q \"" + ProgramConstants.GamePath + "Resources/compatfix.sdb\"");
 
                 sdbinst.WaitForExit();
 
@@ -458,7 +458,7 @@ namespace DTAConfig.OptionPanels
                 XNAMessageBox.Show(WindowManager, "Compatibility Fix Installed".L10N("UI:DTAConfig:TSFixInstallSuccessTitle"),
                     "The DTA/TI/TS Compatibility Fix has been succesfully installed.".L10N("UI:DTAConfig:TSFixInstallSuccessText"));
 
-                RegistryKey regKey = Registry.CurrentUser.OpenSubKey("SOFTWARE", true);
+                Microsoft.Win32.RegistryKey regKey = Microsoft.Win32.Registry.CurrentUser.OpenSubKey("SOFTWARE", true);
                 regKey = regKey.CreateSubKey("Tiberian Sun Client");
                 regKey.SetValue("TSCompatFixInstalled", "Yes");
 
@@ -480,11 +480,11 @@ namespace DTAConfig.OptionPanels
             {
                 try
                 {
-                    Process sdbinst = Process.Start("sdbinst.exe", "-q -n \"Final Sun Compatibility Fix\"");
+                    System.Diagnostics.Process sdbinst = System.Diagnostics.Process.Start("sdbinst.exe", "-q -n \"Final Sun Compatibility Fix\"");
 
                     sdbinst.WaitForExit();
 
-                    RegistryKey regKey = Registry.CurrentUser.OpenSubKey("SOFTWARE", true);
+                    Microsoft.Win32.RegistryKey regKey = Microsoft.Win32.Registry.CurrentUser.OpenSubKey("SOFTWARE", true);
                     regKey = regKey.CreateSubKey("Tiberian Sun Client");
                     regKey.SetValue("FSCompatFixInstalled", "No");
 
@@ -509,11 +509,11 @@ namespace DTAConfig.OptionPanels
 
             try
             {
-                Process sdbinst = Process.Start("sdbinst.exe", "-q \"" + ProgramConstants.GamePath + "Resources/FSCompatFix.sdb\"");
+                System.Diagnostics.Process sdbinst = System.Diagnostics.Process.Start("sdbinst.exe", "-q \"" + ProgramConstants.GamePath + "Resources/FSCompatFix.sdb\"");
 
                 sdbinst.WaitForExit();
 
-                RegistryKey regKey = Registry.CurrentUser.OpenSubKey("SOFTWARE", true);
+                Microsoft.Win32.RegistryKey regKey = Microsoft.Win32.Registry.CurrentUser.OpenSubKey("SOFTWARE", true);
                 regKey = regKey.CreateSubKey("Tiberian Sun Client");
                 regKey.SetValue("FSCompatFixInstalled", "Yes");
 
@@ -659,7 +659,7 @@ namespace DTAConfig.OptionPanels
 #else
             chkBackBufferInVRAM.Checked = !UserINISettings.Instance.BackBufferInVRAM;
 
-            RegistryKey regKey = Registry.CurrentUser.OpenSubKey("SOFTWARE\\Tiberian Sun Client");
+            Microsoft.Win32.RegistryKey regKey = Microsoft.Win32.Registry.CurrentUser.OpenSubKey("SOFTWARE\\Tiberian Sun Client");
 
             if (regKey == null)
                 return;

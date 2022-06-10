@@ -7,6 +7,9 @@ using Rampastring.XNAUI;
 using ClientGUI;
 using System.IO;
 using Localization;
+#if ARES
+using System.Linq;
+#endif
 
 namespace DTAClient.DXGUI
 {
@@ -27,7 +30,7 @@ namespace DTAClient.DXGUI
         private bool nativeCursorUsed = false;
 
 #if ARES
-        private List<string> debugSnapshotDirectories;
+        private System.Collections.Generic.List<string> debugSnapshotDirectories;
         private DateTime debugLogLastWriteTime;
 #else
         private bool deletingLogFilesFailed = false;
@@ -152,7 +155,7 @@ namespace DTAClient.DXGUI
             DateTime dtn = DateTime.Now;
 
 #if ARES
-            Task.Factory.StartNew(ProcessScreenshots);
+            System.Threading.Tasks.Task.Factory.StartNew(ProcessScreenshots);
 
             // TODO: Ares debug log handling should be addressed in Ares DLL itself.
             // For now the following are handled here:
@@ -309,9 +312,9 @@ namespace DTAClient.DXGUI
         /// Returns list of all debug snapshot directories in Ares debug logs directory.
         /// </summary>
         /// <returns>List of all debug snapshot directories in Ares debug logs directory. Empty list if none are found or an error was encountered.</returns>
-        private List<string> GetAllDebugSnapshotDirectories()
+        private System.Collections.Generic.List<string> GetAllDebugSnapshotDirectories()
         {
-            List<string> directories = new List<string>();
+            var directories = new System.Collections.Generic.List<string>();
 
             try
             {
