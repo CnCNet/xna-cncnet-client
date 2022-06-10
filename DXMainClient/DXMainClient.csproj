@@ -22,6 +22,7 @@
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
     <Platforms>x64;ARM64;x86</Platforms>
     <Configurations>AresDebug;AresRelease;TSDebug;TSRelease;YRDebug;YRRelease</Configurations>
+    <RuntimeIdentifiers>win-x64;win-arm64;win-x86</RuntimeIdentifiers>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)' == 'AresDebug' Or '$(Configuration)' == 'TSDebug' Or '$(Configuration)' == 'YRDebug'">
     <DefineConstants>$(DefineConstants);DEBUG</DefineConstants>
@@ -36,7 +37,6 @@
     <DefineConstants>$(DefineConstants);TS</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Rampastring.XNAUI" Version="2.1.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
     <PackageReference Include="StyleCop.Analyzers" Version="1.2.0-beta.435">
       <PrivateAssets>all</PrivateAssets>
