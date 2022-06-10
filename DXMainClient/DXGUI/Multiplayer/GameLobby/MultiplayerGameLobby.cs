@@ -147,7 +147,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 chkPlayerReady.DisabledCheckedTexture = chkPlayerReady.CheckedTexture;
 
                 ReadyBoxes[i] = chkPlayerReady;
-                ddPlayerSides[i].AddItem("Spectator", AssetLoader.LoadTexture("spectatoricon.png"));
+                ddPlayerSides[i].AddItem("Spectator".L10N("UI:Main:SpectatorSide"), AssetLoader.LoadTexture("spectatoricon.png"));
             }
 
             lbChatMessages = FindChild<ChatListBox>(nameof(lbChatMessages));
@@ -489,9 +489,14 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             Map map = MapLoader.LoadCustomMap($"Maps/Custom/{mapName}", out string resultMessage);
             if (map != null)
+            {
                 AddNotice(resultMessage);
+                ListMaps();
+            }
             else
+            {
                 AddNotice(resultMessage, Color.Red);
+            }
         }
 
         /// <summary>
@@ -631,12 +636,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             lblGameMode.Name = "lblGameMode";
             lblMapSize.Name = "lblMapSize";
 
-            ddGameModeMapFilter.Disable();
-            lblGameModeSelect.Disable();
-            lbGameModeMapList.Disable();
-            tbMapSearch.Disable();
-            btnPickRandomMap.Disable();
-
             ReadINIForControl(btnPickRandomMap);
             ReadINIForControl(lbChatMessages);
             ReadINIForControl(tbChatInput);
@@ -645,6 +644,14 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             ReadINIForControl(lblMapAuthor);
             ReadINIForControl(lblGameMode);
             ReadINIForControl(lblMapSize);
+            ReadINIForControl(btnMapSortAlphabetically);
+
+            ddGameModeMapFilter.Disable();
+            lblGameModeSelect.Disable();
+            lbGameModeMapList.Disable();
+            tbMapSearch.Disable();
+            btnPickRandomMap.Disable();
+            btnMapSortAlphabetically.Disable();
         }
 
         private void ShowMapList()
@@ -661,6 +668,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             lblGameModeSelect.Enable();
             lbGameModeMapList.Enable();
             tbMapSearch.Enable();
+            btnPickRandomMap.Enable();
+            btnMapSortAlphabetically.Enable();
 
             ReadINIForControl(btnPickRandomMap);
             ReadINIForControl(lbChatMessages);
@@ -670,6 +679,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             ReadINIForControl(lblMapAuthor);
             ReadINIForControl(lblGameMode);
             ReadINIForControl(lblMapSize);
+            ReadINIForControl(btnMapSortAlphabetically);
         }
 
         private void MapPreviewBox_LocalStartingLocationSelected(object sender, LocalStartingLocationEventArgs e)

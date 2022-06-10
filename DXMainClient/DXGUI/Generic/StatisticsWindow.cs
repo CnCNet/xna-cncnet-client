@@ -565,7 +565,7 @@ namespace DTAClient.DXGUI.Generic
 
         private string TeamIndexToString(int teamIndex)
         {
-            if (teamIndex < 0 || teamIndex >= ProgramConstants.TEAMS.Count)
+            if (teamIndex < 1 || teamIndex >= ProgramConstants.TEAMS.Count)
                 return "-";
 
             return ProgramConstants.TEAMS[teamIndex - 1];
