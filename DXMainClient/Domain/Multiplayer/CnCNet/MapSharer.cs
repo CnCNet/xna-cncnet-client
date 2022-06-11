@@ -6,9 +6,10 @@ using System.Net;
 using System.Collections.Specialized;
 using System.Globalization;
 using System.Threading;
-using Ionic.Zip;
 using Rampastring.Tools;
 using ClientCore;
+using System.IO.Compression;
+using System.Linq;
 
 namespace DTAClient.Domain.Multiplayer.CnCNet
 {
@@ -273,28 +274,18 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
 
         private static void CreateZipFile(string file, string zipName)
         {
-            using (ZipFile zip = new ZipFile())
-            {
-                zip.AddFile(file);
-                zip.Save(zipName);
-            }
+            ZipFile.CreateFromDirectory(ProgramConstants.GamePath + file, zipName);
         }
 
         private static string ExtractZipFile(string zipFile, string destDir)
         {
-            using (ZipFile zip1 = ZipFile.Read(zipFile))
-            {
-                // here, we extract every entry, but we could extract conditionally
-                // based on entry name, size, date, checkbox status, etc.  
-                foreach (ZipEntry e in zip1)
-                {
-                    e.Extract(destDir, ExtractExistingFileAction.OverwriteSilently);
-                    string fileUnzipFullName = e.FileName;
+            using ZipArchive zipArchive = ZipFile.OpenRead(zipFile);
 
-                    return fileUnzipFullName;
-                }
-            }
-            return null;
+            // here, we extract every entry, but we could extract conditionally
+            // based on entry name, size, date, checkbox status, etc.  
+            zipArchive.ExtractToDirectory(destDir);
+
+            return zipArchive.Entries.FirstOrDefault()?.Name;
         }
 
         public static void DownloadMap(string sha1, string myGame, string mapName)

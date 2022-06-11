@@ -13,6 +13,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DTAConfig", "DTAConfig\DTAC
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Localization", "Localization\Localization.csproj", "{2CD114E3-C30F-4A95-9B4A-455C2C8F82E5}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{0F60E4A3-55C8-4C3F-BFC0-27C597433E8A}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		AresDXDebug|ARM64 = AresDXDebug|ARM64

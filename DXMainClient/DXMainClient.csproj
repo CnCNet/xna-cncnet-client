@@ -80,12 +80,15 @@
   <ItemGroup Condition="'$(TargetFramework)' == 'net48'">
     <Reference Include="System.DirectoryServices" />
     <Reference Include="System.Management" />
+    <Reference Include="System.IO.Compression" />
   </ItemGroup>
   <ItemGroup Condition="'$(TargetFramework)' != 'net48'">
     <PackageReference Include="System.Management" Version="6.0.0" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="lzo.net" Version="0.0.6" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+    <PackageReference Include="OpenMcdf" Version="2.2.1.9" />
     <PackageReference Include="StyleCop.Analyzers" Version="1.2.0-beta.435">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -100,15 +103,6 @@
     </Reference>
     <Reference Include="DTAUpdater">
       <HintPath>..\References\DTAUpdater.dll</HintPath>
-    </Reference>
-    <Reference Include="Ionic.Zip">
-      <HintPath>..\References\Ionic.Zip.dll</HintPath>
-    </Reference>
-    <Reference Include="lzo.net">
-      <HintPath>..\References\lzo.net.dll</HintPath>
-    </Reference>
-    <Reference Include="OpenMcdf">
-      <HintPath>..\References\OpenMcdf.dll</HintPath>
     </Reference>
   </ItemGroup>
   <Target Name="CopyResources" AfterTargets="Build" Condition="'$(Configuration)' == 'AresDebug' Or '$(Configuration)' == 'TSDebug' Or '$(Configuration)' == 'YRDebug'">
