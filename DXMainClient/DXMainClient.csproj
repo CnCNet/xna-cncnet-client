@@ -96,13 +96,11 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\DTAConfig\DTAConfig.csproj" />
+    <ProjectReference Include="..\DTAUpdater\DTAUpdater.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="DiscordRPC">
       <HintPath>..\References\DiscordRPC.dll</HintPath>
-    </Reference>
-    <Reference Include="DTAUpdater">
-      <HintPath>..\References\DTAUpdater.dll</HintPath>
     </Reference>
   </ItemGroup>
   <Target Name="CopyResources" AfterTargets="Build" Condition="'$(Configuration)' == 'AresDXDebug' Or '$(Configuration)' == 'AresGLDebug' Or '$(Configuration)' == 'AresXNADebug' Or '$(Configuration)' == 'TSDXDebug' Or '$(Configuration)' == 'TSGLDebug' Or '$(Configuration)' == 'TSXNADebug' Or '$(Configuration)' == 'YRDXDebug' Or '$(Configuration)' == 'YRGLDebug' Or '$(Configuration)' == 'YRXNADebug'">

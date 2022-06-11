@@ -77,10 +77,6 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\ClientGUI\ClientGUI.csproj" />
-  </ItemGroup>
-  <ItemGroup>
-    <Reference Include="DTAUpdater">
-      <HintPath>..\References\DTAUpdater.dll</HintPath>
-    </Reference>
+    <ProjectReference Include="..\DTAUpdater\DTAUpdater.csproj" />
   </ItemGroup>
 </Project>
