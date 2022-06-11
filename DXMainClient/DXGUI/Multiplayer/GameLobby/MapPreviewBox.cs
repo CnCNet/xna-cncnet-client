@@ -165,6 +165,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 128), 1, 1);
 
+#if !WINDOWSGL
+
+            disposeTextures = !UserINISettings.Instance.PreloadMapPreviews;
+#endif
             contextMenu = new XNAContextMenu(WindowManager);
             contextMenu.Tag = -1;
             contextMenu.ClientRectangle = new Rectangle(0, 0, 150, 2);

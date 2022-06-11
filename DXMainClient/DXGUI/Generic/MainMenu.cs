@@ -897,8 +897,10 @@ namespace DTAClient.DXGUI.Generic
         {
             Logger.Log("Exiting.");
             WindowManager.CloseGame();
+#if !XNA
             Thread.Sleep(1000);
             Environment.Exit(0);
+#endif
         }
 
         public void SwitchOn()
@@ -958,9 +960,18 @@ namespace DTAClient.DXGUI.Generic
 
         private void LaunchMapEditor()
         {
+            OSVersion osVersion = ClientConfiguration.Instance.GetOperatingSystemVersion();
             Process mapEditorProcess = new Process();
 
-            mapEditorProcess.StartInfo.FileName = ProgramConstants.GamePath + ClientConfiguration.Instance.MapEditorExePath;
+            if (osVersion != OSVersion.UNIX)
+            {
+                mapEditorProcess.StartInfo.FileName = ProgramConstants.GamePath + ClientConfiguration.Instance.MapEditorExePath;
+            }
+            else
+            {
+                mapEditorProcess.StartInfo.FileName = ProgramConstants.GamePath + ClientConfiguration.Instance.UnixMapEditorExePath;
+                mapEditorProcess.StartInfo.UseShellExecute = false;
+            }
 
             mapEditorProcess.Start();
         }

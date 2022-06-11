@@ -186,6 +186,8 @@ namespace ClientCore
 
         public string MapEditorExePath => clientDefinitionsIni.GetStringValue(SETTINGS, "MapEditorExePath", "FinalSun/FinalSun.exe");
 
+        public string UnixMapEditorExePath => clientDefinitionsIni.GetStringValue(SETTINGS, "UnixMapEditorExePath", Instance.MapEditorExePath);
+
         public bool ModMode => clientDefinitionsIni.GetBooleanValue(SETTINGS, "ModMode", false);
 
         public string LongGameName => clientDefinitionsIni.GetStringValue(SETTINGS, "LongGameName", "Tiberian Sun");
@@ -282,6 +284,12 @@ namespace ClientCore
         public bool UseClientRandomStartLocations => clientDefinitionsIni.GetBooleanValue(SETTINGS, "UseClientRandomStartLocations", false);
 
         /// <summary>
+        /// Returns the name of the game executable file that is used on
+        /// Linux and macOS.
+        /// </summary>
+        public string UnixGameExecutableName => clientDefinitionsIni.GetStringValue(SETTINGS, "UnixGameExecutableName", "wine-dta.sh");
+
+        /// <summary>
         /// List of files that are not distributed but required to play.
         /// </summary>
         public string[] RequiredFiles => clientDefinitionsIni.GetStringValue(SETTINGS, "RequiredFiles", String.Empty).Split(',');
@@ -297,6 +305,20 @@ namespace ClientCore
         {
             if (Environment.OSVersion.Platform == PlatformID.Win32NT)
             {
+#if NET48
+                Version osVersion = Environment.OSVersion.Version;
+
+                if (osVersion.Major < 5)
+                    return OSVersion.UNKNOWN;
+
+                if (osVersion.Minor > 1)
+                    return OSVersion.WIN810;
+
+                if (osVersion.Minor == 0)
+                    return OSVersion.WINVISTA;
+
+                return OSVersion.WIN7;
+#else
                 if (OperatingSystem.IsWindowsVersionAtLeast(6, 3))
                     return OSVersion.WIN810;
 
@@ -304,9 +326,14 @@ namespace ClientCore
                     return OSVersion.WIN7;
 
                 return OSVersion.UNKNOWN;
+#endif
             }
 
             int p = (int)Environment.OSVersion.Platform;
+
+            // http://mono.wikia.com/wiki/Detecting_the_execution_platform
+            if (p == 4 || p == 6 || p == 128)
+                return OSVersion.UNIX;
 
             return OSVersion.UNKNOWN;
         }

@@ -341,6 +341,11 @@ namespace DTAClient.Domain.Multiplayer
                 }
 
                 GetTeamStartMappingPresets(section);
+#if !WINDOWSGL
+
+                if (UserINISettings.Instance.PreloadMapPreviews)
+                    PreviewTexture = LoadPreviewTexture();
+#endif
 
                 // Parse forced options
 

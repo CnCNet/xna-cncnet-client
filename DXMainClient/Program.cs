@@ -19,7 +19,15 @@ namespace DTAClient
              * To avoid DLL hell, we load the binaries from different directories
              * depending on the build platform. /*/
 
-#if DEBUG
+#if XNA && DEBUG
+            SPECIFIC_LIBRARY_PATH = string.Format("{0}{1}Resources{1}Binaries{1}XNA{1}", Application.StartupPath.Replace('\\', '/'), dsc);
+#elif XNA
+            SPECIFIC_LIBRARY_PATH = string.Format("{0}{1}Binaries{1}XNA{1}", Application.StartupPath.Replace('\\', '/'), dsc);
+#elif WINDOWSGL && DEBUG
+            SPECIFIC_LIBRARY_PATH = string.Format("{0}{1}Resources{1}Binaries{1}OpenGL{1}", Application.StartupPath.Replace('\\', '/'), dsc);
+#elif WINDOWSGL
+            SPECIFIC_LIBRARY_PATH = string.Format("{0}{1}Binaries{1}OpenGL{1}", Application.StartupPath.Replace('\\', '/'), dsc);
+#elif DEBUG
             COMMON_LIBRARY_PATH = string.Format("{0}{1}Resources{1}Binaries{1}", Application.StartupPath.Replace('\\', '/'), dsc);
 #else
             COMMON_LIBRARY_PATH = string.Format("{0}{1}Binaries{1}", Application.StartupPath.Replace('\\', '/'), dsc);
@@ -109,7 +117,18 @@ namespace DTAClient
             // Global prefix means that the mutex is global to the machine
             string mutexId = string.Format("Global/{{{0}}}", Guid.Parse("1CC9F8E7-9F69-4BBC-B045-E734204027A9"));
 
+#if NET48
+            var allowEveryoneRule = new System.Security.AccessControl.MutexAccessRule(
+                new System.Security.Principal.SecurityIdentifier(System.Security.Principal.WellKnownSidType.WorldSid, null),
+                System.Security.AccessControl.MutexRights.FullControl,
+                System.Security.AccessControl.AccessControlType.Allow);
+            var securitySettings = new System.Security.AccessControl.MutexSecurity();
+            securitySettings.AddAccessRule(allowEveryoneRule);
+
+            using (var mutex = new Mutex(false, mutexId, out bool createdNew, securitySettings))
+#else
             using (var mutex = new Mutex(false, mutexId, out _))
+#endif
             {
                 var hasHandle = false;
                 try
@@ -149,7 +168,7 @@ namespace DTAClient
                 return Assembly.Load(data);
             }
 
-#if NOTWINDOWS
+#if WINDOWSGL
             // MonoGame's OpenGL version checks its Assembly.Location for
             // loading SDL2.dll. Loading an assembly with Assembly.Load(byte[] rawAssembly)
             // does not set the Location of the assembly, making MonoGame crash when loading SDL2.dll.
