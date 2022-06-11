@@ -53,13 +53,6 @@ jobs:
         dotnet publish DXMainClient\DXMainClient.csproj -c AresXNARelease -f net48
         dotnet publish DXMainClient\DXMainClient.csproj -c AresXNARelease --no-self-contained -f net6.0-windows10.0.22000.0 -r win-x86
 
-    - name: Zip
-      run: |
-        7z a -r ${{ format('RS.Schannel.Manager-v{0}-net6.0-windows-x64.zip', env.GitVersion_SemVer) }} ./DXMainClient/bin/Release/net6.0-windows10.0.22000.0/win-x64/publish/*.*
-        7z a -r ${{ format('RS.Schannel.Manager-v{0}-net7.0-windows-x64.zip', env.GitVersion_SemVer) }} ./DXMainClient/bin/Release/net7.0-windows10.0.22000.0/win-x64/publish/*.*
-        7z a -r ${{ format('RS.Schannel.Manager-v{0}-net6.0-windows-ARM64.zip', env.GitVersion_SemVer) }} ./DXMainClient/bin/Release/net6.0-windows10.0.22000.0/win-arm64/publish/*.*
-        7z a -r ${{ format('RS.Schannel.Manager-v{0}-net7.0-windows-ARM64.zip', env.GitVersion_SemVer) }} ./DXMainClient/bin/Release/net7.0-windows10.0.22000.0/win-arm64/publish/*.*
-   
     - uses: actions/upload-artifact@main
       name: Upload Artifacts
       with:
