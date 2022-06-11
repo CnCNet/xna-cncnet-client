@@ -44,7 +44,18 @@ namespace DTAClient.DXGUI.Generic
             lblTermsAndConditions.X = lblMoreInformation.Right + UIDesignConstants.CONTROL_HORIZONTAL_MARGIN;
             lblTermsAndConditions.Y = lblMoreInformation.Y;
             lblTermsAndConditions.Text = "https://cncnet.org/terms-and-conditions";
-            lblTermsAndConditions.LeftClick += (s, e) => Process.Start(lblTermsAndConditions.Text);
+            lblTermsAndConditions.LeftClick += (s, e) =>
+            {
+#if NET48
+                Process.Start(lblTermsAndConditions.Text);
+#else
+                 _ = Process.Start(new ProcessStartInfo
+                {
+                    FileName = lblTermsAndConditions.Text,
+                    UseShellExecute = true
+                });
+#endif
+            };
             AddChild(lblTermsAndConditions);
 
             var lblPrivacyPolicy = new XNALinkLabel(WindowManager);
@@ -52,7 +63,18 @@ namespace DTAClient.DXGUI.Generic
             lblPrivacyPolicy.X = lblTermsAndConditions.Right + UIDesignConstants.CONTROL_HORIZONTAL_MARGIN;
             lblPrivacyPolicy.Y = lblMoreInformation.Y;
             lblPrivacyPolicy.Text = "https://cncnet.org/privacy-policy";
-            lblPrivacyPolicy.LeftClick += (s, e) => Process.Start(lblPrivacyPolicy.Text);
+            lblPrivacyPolicy.LeftClick += (s, e) =>
+            {
+#if NET48
+                Process.Start(lblPrivacyPolicy.Text);
+#else
+                 _ = Process.Start(new ProcessStartInfo
+                {
+                    FileName = lblPrivacyPolicy.Text,
+                    UseShellExecute = true
+                });
+#endif
+            };
             AddChild(lblPrivacyPolicy);
 
             var lblExplanation = new XNALabel(WindowManager);
