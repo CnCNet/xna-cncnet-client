@@ -1,19 +1,19 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFrameworks>net48;net6.0-windows10.0.22000.0</TargetFrameworks>
     <TargetPlatformMinVersion>7.0</TargetPlatformMinVersion>
     <UseWindowsForms>true</UseWindowsForms>
-    <Title>CnCNet Client</Title>
-    <Description>CnCNet Config Library</Description>
+    <Title>CnCNet Updater</Title>
+    <Description>CnCNet Localization Library</Description>
     <Company>CnCNet</Company>
     <Product>CnCNet Client</Product>
-    <Copyright>Copyright © CnCNet, Rampastring 2011-2022</Copyright>
+    <Copyright>Copyright © CnCNet, Sad Pencil 2011-2022</Copyright>
     <Trademark>CnCNet</Trademark>
-    <Version>2.2.0.0</Version>
-    <FileVersion>2.2.0.0</FileVersion>
-    <InformationalVersion>2.2.0.0</InformationalVersion>
-    <AssemblyName>DTAConfig</AssemblyName>
-    <RootNamespace>DTAConfig</RootNamespace>
+    <Version>1.0.0.6</Version>
+    <FileVersion>1.0.0.6</FileVersion>
+    <InformationalVersion>1.0.0.6</InformationalVersion>
+    <AssemblyName>Updater</AssemblyName>
+    <RootNamespace>Updater</RootNamespace>
     <ComVisible>false</ComVisible>
     <CLSCompliant>false</CLSCompliant>
     <AnalysisLevel>preview-all</AnalysisLevel>
@@ -25,23 +25,14 @@
   <PropertyGroup Condition="'$(Configuration)' == 'AresDXDebug' Or '$(Configuration)' == 'AresGLDebug' Or '$(Configuration)' == 'AresXNADebug' Or '$(Configuration)' == 'TSDXDebug' Or '$(Configuration)' == 'TSGLDebug' Or '$(Configuration)' == 'TSXNADebug' Or '$(Configuration)' == 'YRDXDebug' Or '$(Configuration)' == 'YRGLDebug' Or '$(Configuration)' == 'YRXNADebug'">
     <DefineConstants>$(DefineConstants);DEBUG</DefineConstants>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)' == 'YRDXDebug' Or '$(Configuration)' == 'YRGLDebug' Or '$(Configuration)' == 'YRXNADebug' Or '$(Configuration)' == 'YRDXRelease' Or '$(Configuration)' == 'YRGLRelease' Or '$(Configuration)' == 'YRXNARelease'">
-    <DefineConstants>$(DefineConstants);YR</DefineConstants>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)' == 'TSDXDebug' Or '$(Configuration)' == 'TSGLDebug' Or '$(Configuration)' == 'TSXNADebug' Or '$(Configuration)' == 'TSDXRelease' Or '$(Configuration)' == 'TSGLRelease' Or '$(Configuration)' == 'TSXNARelease'">
-    <DefineConstants>$(DefineConstants);TS</DefineConstants>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)' == 'AresDXDebug' Or '$(Configuration)' == 'AresGLDebug' Or '$(Configuration)' == 'AresXNADebug' Or '$(Configuration)' == 'AresDXRelease' Or '$(Configuration)' == 'AresGLRelease' Or '$(Configuration)' == 'AresXNARelease'">
-    <DefineConstants>$(DefineConstants);ARES</DefineConstants>
-  </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="Rampastring.Tools" Version="1.1.0" />
     <PackageReference Include="StyleCop.Analyzers" Version="1.2.0-beta.435">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\ClientGUI\ClientGUI.csproj" />
-    <ProjectReference Include="..\DTAUpdater\DTAUpdater.csproj" />
+    <ProjectReference Include="..\ClientCore\ClientCore.csproj" />
   </ItemGroup>
 </Project>

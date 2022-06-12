@@ -64,13 +64,11 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\DTAConfig\DTAConfig.csproj" />
+    <ProjectReference Include="..\DTAUpdater\DTAUpdater.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="DiscordRPC">
       <HintPath>..\References\DiscordRPC.dll</HintPath>
-    </Reference>
-    <Reference Include="DTAUpdater">
-      <HintPath>..\References\DTAUpdater.dll</HintPath>
     </Reference>
   </ItemGroup>
   <Target Name="CopyResources" AfterTargets="Build" Condition="$(DefineConstants.Contains('DEBUG'))">
