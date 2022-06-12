@@ -654,7 +654,7 @@ namespace DTAConfig.OptionPanels
                 ddi => ddi.Text == UserINISettings.Instance.ClientTheme);
             ddClientTheme.SelectedIndex = selectedThemeIndex > -1 ? selectedThemeIndex : 0;
 
-#if YR
+#if YR || ARES
             chkBackBufferInVRAM.Checked = UserINISettings.Instance.BackBufferInVRAM;
 #else
             chkBackBufferInVRAM.Checked = !UserINISettings.Instance.BackBufferInVRAM;
@@ -745,7 +745,7 @@ namespace DTAConfig.OptionPanels
 
             IniSettings.ClientTheme.Value = ddClientTheme.SelectedItem.Text;
 
-#if YR
+#if YR || ARES
             IniSettings.BackBufferInVRAM.Value = chkBackBufferInVRAM.Checked;
 #else
             IniSettings.BackBufferInVRAM.Value = !chkBackBufferInVRAM.Checked;

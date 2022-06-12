@@ -36,47 +36,15 @@
   <PropertyGroup Condition="'$(Configuration)' == 'TSDXDebug' Or '$(Configuration)' == 'TSGLDebug' Or '$(Configuration)' == 'TSXNADebug' Or '$(Configuration)' == 'TSDXRelease' Or '$(Configuration)' == 'TSGLRelease' Or '$(Configuration)' == 'TSXNARelease'">
     <DefineConstants>$(DefineConstants);TS</DefineConstants>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)' == 'AresDXDebug' Or '$(Configuration)' == 'AresDXRelease' Or '$(Configuration)' == 'TSDXDebug' Or '$(Configuration)' == 'TSDXRelease' Or '$(Configuration)' == 'YRDXDebug' Or '$(Configuration)' == 'YRDXRelease'">
+    <DefineConstants>$(DefineConstants);WINDOWSDX</DefineConstants>
+  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)' == 'AresGLDebug' Or '$(Configuration)' == 'AresGLRelease' Or '$(Configuration)' == 'TSGLDebug' Or '$(Configuration)' == 'TSGLRelease' Or '$(Configuration)' == 'YRGLDebug' Or '$(Configuration)' == 'YRGLRelease'">
     <DefineConstants>$(DefineConstants);WINDOWSGL</DefineConstants>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)' == 'AreXNADebug' Or '$(Configuration)' == 'AresXNARelease' Or '$(Configuration)' == 'TSXNADebug' Or '$(Configuration)' == 'TSXNARelease' Or '$(Configuration)' == 'YRXNADebug' Or '$(Configuration)' == 'YRXNARelease'">
     <DefineConstants>$(DefineConstants);XNA</DefineConstants>
   </PropertyGroup>
-  <ItemGroup Condition="'$(Configuration)' == 'AresXNADebug' Or '$(Configuration)' == 'AresXNARelease' Or '$(Configuration)' == 'TSXNADebug' Or '$(Configuration)' == 'TSXNARelease' Or '$(Configuration)' == 'YRXNADebug' Or '$(Configuration)' == 'YRXNARelease'">
-    <PackageReference Include="Rampastring.XNAUI.XNA" Version="2.1.0" GeneratePathProperty="true" />
-  </ItemGroup>
-  <ItemGroup Condition="'$(Configuration)' == 'AresXNADebug' Or '$(Configuration)' == 'AresXNARelease' Or '$(Configuration)' == 'TSXNADebug' Or '$(Configuration)' == 'TSXNARelease' Or '$(Configuration)' == 'YRXNADebug' Or '$(Configuration)' == 'YRXNARelease'">
-    <Reference Include="Microsoft.Xna.Framework">
-      <HintPath>$(PkgRampastring_XNAUI_XNA)\lib\Microsoft.Xna.Framework.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.Xna.Framework.Avatar">
-      <HintPath>$(PkgRampastring_XNAUI_XNA)\lib\Microsoft.Xna.Framework.Avatar.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.Xna.Framework.Game">
-      <HintPath>$(PkgRampastring_XNAUI_XNA)\lib\Microsoft.Xna.Framework.Game.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.Xna.Framework.GamerServices">
-      <HintPath>$(PkgRampastring_XNAUI_XNA)\lib\Microsoft.Xna.Framework.GamerServices.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.Xna.Framework.Graphics">
-      <HintPath>$(PkgRampastring_XNAUI_XNA)\lib\Microsoft.Xna.Framework.Graphics.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.Xna.Framework.Input.Touch">
-      <HintPath>$(PkgRampastring_XNAUI_XNA)\lib\Microsoft.Xna.Framework.Input.Touch.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.Xna.Framework.Net">
-      <HintPath>$(PkgRampastring_XNAUI_XNA)\lib\Microsoft.Xna.Framework.Net.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.Xna.Framework.Storage">
-      <HintPath>$(PkgRampastring_XNAUI_XNA)\lib\Microsoft.Xna.Framework.Storage.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.Xna.Framework.Video">
-      <HintPath>$(PkgRampastring_XNAUI_XNA)\lib\Microsoft.Xna.Framework.Video.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.Xna.Framework.Xact">
-      <HintPath>$(PkgRampastring_XNAUI_XNA)\lib\Microsoft.Xna.Framework.Xact.dll</HintPath>
-    </Reference>
-  </ItemGroup>
   <ItemGroup Condition="'$(TargetFramework)' == 'net48'">
     <Reference Include="System.DirectoryServices" />
     <Reference Include="System.Management" />
@@ -105,7 +73,7 @@
       <HintPath>..\References\DTAUpdater.dll</HintPath>
     </Reference>
   </ItemGroup>
-  <Target Name="CopyResources" AfterTargets="Build" Condition="'$(Configuration)' == 'AresDXDebug' Or '$(Configuration)' == 'AresGLDebug' Or '$(Configuration)' == 'AresXNADebug' Or '$(Configuration)' == 'TSDXDebug' Or '$(Configuration)' == 'TSGLDebug' Or '$(Configuration)' == 'TSXNADebug' Or '$(Configuration)' == 'YRDXDebug' Or '$(Configuration)' == 'YRGLDebug' Or '$(Configuration)' == 'YRXNADebug'">
+  <Target Name="CopyResources" AfterTargets="Build" Condition="$(DefineConstants.Contains('DEBUG'))">
     <ItemGroup>
       <ExampleClientResources Include="$(SolutionDir)\DXMainClient\Resources\DTA\**\*.*" />
       <ExampleClientMaps Include="$(SolutionDir)\DXMainClient\Resources\Maps\**\*.*" />

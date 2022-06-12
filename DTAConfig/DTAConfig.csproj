@@ -32,43 +32,8 @@
     <DefineConstants>$(DefineConstants);TS</DefineConstants>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)' == 'AresDXDebug' Or '$(Configuration)' == 'AresGLDebug' Or '$(Configuration)' == 'AresXNADebug' Or '$(Configuration)' == 'AresDXRelease' Or '$(Configuration)' == 'AresGLRelease' Or '$(Configuration)' == 'AresXNARelease'">
-    <DefineConstants>$(DefineConstants);ARES;YR</DefineConstants>
+    <DefineConstants>$(DefineConstants);ARES</DefineConstants>
   </PropertyGroup>
-  <ItemGroup Condition="'$(Configuration)' == 'AresXNADebug' Or '$(Configuration)' == 'AresXNARelease' Or '$(Configuration)' == 'TSXNADebug' Or '$(Configuration)' == 'TSXNARelease' Or '$(Configuration)' == 'YRXNADebug' Or '$(Configuration)' == 'YRXNARelease'">
-    <PackageReference Include="Rampastring.XNAUI.XNA" Version="2.1.0" GeneratePathProperty="true" />
-  </ItemGroup>
-  <ItemGroup Condition="'$(Configuration)' == 'AresXNADebug' Or '$(Configuration)' == 'AresXNARelease' Or '$(Configuration)' == 'TSXNADebug' Or '$(Configuration)' == 'TSXNARelease' Or '$(Configuration)' == 'YRXNADebug' Or '$(Configuration)' == 'YRXNARelease'">
-    <Reference Include="Microsoft.Xna.Framework">
-      <HintPath>$(PkgRampastring_XNAUI_XNA)\lib\Microsoft.Xna.Framework.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.Xna.Framework.Avatar">
-      <HintPath>$(PkgRampastring_XNAUI_XNA)\lib\Microsoft.Xna.Framework.Avatar.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.Xna.Framework.Game">
-      <HintPath>$(PkgRampastring_XNAUI_XNA)\lib\Microsoft.Xna.Framework.Game.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.Xna.Framework.GamerServices">
-      <HintPath>$(PkgRampastring_XNAUI_XNA)\lib\Microsoft.Xna.Framework.GamerServices.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.Xna.Framework.Graphics">
-      <HintPath>$(PkgRampastring_XNAUI_XNA)\lib\Microsoft.Xna.Framework.Graphics.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.Xna.Framework.Input.Touch">
-      <HintPath>$(PkgRampastring_XNAUI_XNA)\lib\Microsoft.Xna.Framework.Input.Touch.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.Xna.Framework.Net">
-      <HintPath>$(PkgRampastring_XNAUI_XNA)\lib\Microsoft.Xna.Framework.Net.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.Xna.Framework.Storage">
-      <HintPath>$(PkgRampastring_XNAUI_XNA)\lib\Microsoft.Xna.Framework.Storage.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.Xna.Framework.Video">
-      <HintPath>$(PkgRampastring_XNAUI_XNA)\lib\Microsoft.Xna.Framework.Video.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.Xna.Framework.Xact">
-      <HintPath>$(PkgRampastring_XNAUI_XNA)\lib\Microsoft.Xna.Framework.Xact.dll</HintPath>
-    </Reference>
-  </ItemGroup>
   <ItemGroup>
     <PackageReference Include="StyleCop.Analyzers" Version="1.2.0-beta.435">
       <PrivateAssets>all</PrivateAssets>
