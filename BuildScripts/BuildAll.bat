@@ -1,3 +1,3 @@
-call BuildYR
-call BuildTS
-call BuildAres
+call BuildYR || exit /b
+call BuildTS || exit /b
+call BuildAres || exit /b
