@@ -495,8 +495,7 @@ namespace ClientUpdater
                 Logger.Log("Updater: Checking version on the server.");
                 WebClient webClient = new WebClient
                 {
-                    CachePolicy = new RequestCachePolicy(RequestCacheLevel.NoCacheNoStore),
-                    Encoding = Encoding.GetEncoding("Windows-1252")
+                    CachePolicy = new RequestCachePolicy(RequestCacheLevel.NoCacheNoStore)
                 };
                 webClient.Headers.Add(HttpRequestHeader.UserAgent, GetUserAgentString());
                 while (currentUpdateMirrorIndex < updateMirrors.Count)
@@ -633,8 +632,7 @@ namespace ClientUpdater
             {
                 WebClient webClient = new WebClient
                 {
-                    CachePolicy = new RequestCachePolicy(RequestCacheLevel.NoCacheNoStore),
-                    Encoding = Encoding.GetEncoding("Windows-1252")
+                    CachePolicy = new RequestCachePolicy(RequestCacheLevel.NoCacheNoStore)
                 };
                 webClient.Headers.Add(HttpRequestHeader.UserAgent, GetUserAgentString());
                 webClient.DownloadProgressChanged += WebClient_DownloadProgressChanged;
@@ -657,8 +655,7 @@ namespace ClientUpdater
             {
                 WebClient webClient = new WebClient
                 {
-                    CachePolicy = new RequestCachePolicy(RequestCacheLevel.NoCacheNoStore),
-                    Encoding = Encoding.GetEncoding("Windows-1252")
+                    CachePolicy = new RequestCachePolicy(RequestCacheLevel.NoCacheNoStore)
                 };
                 webClient.Headers.Add(HttpRequestHeader.UserAgent, GetUserAgentString());
                 webClient.DownloadProgressChanged += WebClient_DownloadProgressChanged;
@@ -937,8 +934,7 @@ namespace ClientUpdater
                 }
                 WebClient webClient = new WebClient
                 {
-                    CachePolicy = new RequestCachePolicy(RequestCacheLevel.NoCacheNoStore),
-                    Encoding = Encoding.GetEncoding("Windows-1252")
+                    CachePolicy = new RequestCachePolicy(RequestCacheLevel.NoCacheNoStore)
                 };
                 webClient.Headers.Add(HttpRequestHeader.UserAgent, GetUserAgentString());
                 webClient.DownloadProgressChanged += WebClient_DownloadProgressChanged;

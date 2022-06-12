@@ -109,8 +109,7 @@ namespace ClientUpdater
                 Updater.CreatePath(Updater.GamePath + LocalPath);
                 WebClient webClient = new WebClient
                 {
-                    CachePolicy = new RequestCachePolicy(RequestCacheLevel.NoCacheNoStore),
-                    Encoding = Encoding.GetEncoding("Windows-1252")
+                    CachePolicy = new RequestCachePolicy(RequestCacheLevel.NoCacheNoStore)
                 };
                 webClient.Headers.Add(HttpRequestHeader.UserAgent, Updater.GetUserAgentString());
                 Logger.Log("CustomComponent: Downloading version info.");
@@ -133,8 +132,7 @@ namespace ClientUpdater
                     filesToCleanup.Add(text4);
                     WebClient webClient2 = new WebClient
                     {
-                        CachePolicy = new RequestCachePolicy(RequestCacheLevel.NoCacheNoStore),
-                        Encoding = Encoding.GetEncoding("Windows-1252")
+                        CachePolicy = new RequestCachePolicy(RequestCacheLevel.NoCacheNoStore)
                     };
                     webClient2.Headers.Add(HttpRequestHeader.UserAgent, Updater.GetUserAgentString());
                     webClient2.DownloadProgressChanged += DownloadClient_DownloadProgressChanged;
