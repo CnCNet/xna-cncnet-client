@@ -42,6 +42,6 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\ClientGUI\ClientGUI.csproj" />
-    <ProjectReference Include="..\DTAUpdater\DTAUpdater.csproj" />
+    <ProjectReference Include="..\ClientUpdater\ClientUpdater.csproj" />
   </ItemGroup>
 </Project>

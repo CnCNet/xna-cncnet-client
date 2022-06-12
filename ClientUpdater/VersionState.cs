@@ -1,4 +1,4 @@
-﻿namespace Updater
+﻿namespace ClientUpdater
 {
     public enum VersionState
     {

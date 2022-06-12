@@ -64,7 +64,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\DTAConfig\DTAConfig.csproj" />
-    <ProjectReference Include="..\DTAUpdater\DTAUpdater.csproj" />
+    <ProjectReference Include="..\ClientUpdater\ClientUpdater.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="DiscordRPC">

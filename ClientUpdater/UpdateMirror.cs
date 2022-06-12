@@ -1,8 +1,8 @@
-﻿namespace Updater
+﻿namespace ClientUpdater
 {
     public class UpdateMirror
     {
-        public string Url { get; set; }
+        public string URL { get; set; }
 
         public string Name { get; set; }
 
@@ -14,7 +14,7 @@
 
         public UpdateMirror(string url, string name, string location)
         {
-            Url = url;
+            URL = url;
             Name = name;
             Location = location;
         }

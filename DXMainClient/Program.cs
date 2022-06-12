@@ -52,7 +52,7 @@ namespace DTAClient
         {
             "Rampastring.Tools",
             "Ionic.Zip",
-            "DTAUpdater",
+            "ClientUpdater",
             "Newtonsoft.Json",
             "DiscordRPC",
             "lzo.net",
