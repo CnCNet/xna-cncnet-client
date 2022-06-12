@@ -373,12 +373,12 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
+    <Reference Include="ClientUpdater">
+      <HintPath>..\References\ClientUpdater.dll</HintPath>
+    </Reference>
     <Reference Include="DiscordRPC, Version=1.0.115.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\References\DiscordRPC.dll</HintPath>
-    </Reference>
-    <Reference Include="DTAUpdater">
-      <HintPath>..\References\DTAUpdater.dll</HintPath>
     </Reference>
     <Reference Include="Ionic.Zip, Version=1.9.1.8, Culture=neutral, PublicKeyToken=edbe51ad942a3f5c, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -463,6 +463,7 @@
     <Compile Include="Domain\MainClientConstants.cs" />
     <Compile Include="Domain\UserAgentHandler.cs" />
     <Compile Include="DXGUI\Generic\CampaignSelector.cs" />
+    <Compile Include="DXGUI\Generic\ManualUpdateQueryWindow.cs" />
     <Compile Include="DXGUI\Generic\PrivacyNotification.cs" />
     <Compile Include="DXGUI\Generic\TopBar.cs" />
     <Compile Include="DXGUI\IMessageView.cs" />

@@ -13,7 +13,7 @@ using Microsoft.Xna.Framework;
 using Rampastring.XNAUI;
 using System.Threading.Tasks;
 using Rampastring.Tools;
-using Updater;
+using ClientUpdater;
 using SkirmishLobby = DTAClient.DXGUI.Multiplayer.GameLobby.SkirmishLobby;
 
 namespace DTAClient.DXGUI.Generic
@@ -67,14 +67,14 @@ namespace DTAClient.DXGUI.Generic
 
         private void InitUpdater()
         {
-            CUpdater.OnLocalFileVersionsChecked += LogGameClientVersion;
-            CUpdater.CheckLocalFileVersions();
+            Updater.OnLocalFileVersionsChecked += LogGameClientVersion;
+            Updater.CheckLocalFileVersions();
         }
 
         private void LogGameClientVersion()
         {
-            Logger.Log($"Game Client Version: {ClientConfiguration.Instance.LocalGame} {CUpdater.GameVersion}");
-            CUpdater.OnLocalFileVersionsChecked -= LogGameClientVersion;
+            Logger.Log($"Game Client Version: {ClientConfiguration.Instance.LocalGame} {Updater.GameVersion}");
+            Updater.OnLocalFileVersionsChecked -= LogGameClientVersion;
         }
 
         private void LoadMaps()
@@ -86,7 +86,7 @@ namespace DTAClient.DXGUI.Generic
         private void Finish()
         {
             ProgramConstants.GAME_VERSION = ClientConfiguration.Instance.ModMode ? 
-                "N/A" : CUpdater.GameVersion;
+                "N/A" : Updater.GameVersion;
 
             DiscordHandler discordHandler = null;
             if (!string.IsNullOrEmpty(ClientConfiguration.Instance.DiscordAppId))
