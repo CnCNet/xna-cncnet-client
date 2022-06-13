@@ -35,6 +35,8 @@
     <DefineConstants>$(DefineConstants);ARES</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="Rampastring.Tools" Version="1.1.0" />
+    <PackageReference Include="ClientUpdater" Version="1.0.0.1" />
     <PackageReference Include="StyleCop.Analyzers" Version="1.2.0-beta.435">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -42,6 +44,5 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\ClientGUI\ClientGUI.csproj" />
-    <ProjectReference Include="..\ClientUpdater\ClientUpdater.csproj" />
   </ItemGroup>
 </Project>
