@@ -70,15 +70,11 @@ namespace DTAClient.DXGUI.Generic
 
         private void BtnExCredits_LeftClick(object sender, EventArgs e)
         {
-#if NET48
-            Process.Start(MainClientConstants.CREDITS_URL);
-#else
-             _ = Process.Start(new ProcessStartInfo
+            using var _ = Process.Start(new ProcessStartInfo
             {
                 FileName = MainClientConstants.CREDITS_URL,
                 UseShellExecute = true
             });
-#endif
         }
 
         private void BtnExCancel_LeftClick(object sender, EventArgs e)

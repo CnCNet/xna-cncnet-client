@@ -47,15 +47,12 @@ namespace ClientGUI
 
         public override void OnLeftClick()
         {
-#if NET48
-            Process.Start(URL);
-#else
-             _ = Process.Start(new ProcessStartInfo
+            using var _ = Process.Start(new ProcessStartInfo
             {
                 FileName = URL,
                 UseShellExecute = true
             });
-#endif
+
             base.OnLeftClick();
         }
     }

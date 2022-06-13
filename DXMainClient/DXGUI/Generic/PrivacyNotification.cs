@@ -46,15 +46,11 @@ namespace DTAClient.DXGUI.Generic
             lblTermsAndConditions.Text = "https://cncnet.org/terms-and-conditions";
             lblTermsAndConditions.LeftClick += (s, e) =>
             {
-#if NET48
-                Process.Start(lblTermsAndConditions.Text);
-#else
-                 _ = Process.Start(new ProcessStartInfo
+                using var _ = Process.Start(new ProcessStartInfo
                 {
                     FileName = lblTermsAndConditions.Text,
                     UseShellExecute = true
                 });
-#endif
             };
             AddChild(lblTermsAndConditions);
 
@@ -65,15 +61,11 @@ namespace DTAClient.DXGUI.Generic
             lblPrivacyPolicy.Text = "https://cncnet.org/privacy-policy";
             lblPrivacyPolicy.LeftClick += (s, e) =>
             {
-#if NET48
-                Process.Start(lblPrivacyPolicy.Text);
-#else
-                 _ = Process.Start(new ProcessStartInfo
+                using var _ = Process.Start(new ProcessStartInfo
                 {
                     FileName = lblPrivacyPolicy.Text,
                     UseShellExecute = true
                 });
-#endif
             };
             AddChild(lblPrivacyPolicy);
 

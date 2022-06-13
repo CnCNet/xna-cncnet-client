@@ -614,15 +614,11 @@ namespace DTAClient.DXGUI.Generic
 
         private void LblVersion_LeftClick(object sender, EventArgs e)
         {
-#if NET48
-            Process.Start(ClientConfiguration.Instance.ChangelogURL);
-#else
-             _ = Process.Start(new ProcessStartInfo
+            using var _ = Process.Start(new ProcessStartInfo
             {
                 FileName = ClientConfiguration.Instance.ChangelogURL,
                 UseShellExecute = true
             });
-#endif
         }
 
         private void ForceUpdate()
@@ -804,15 +800,11 @@ namespace DTAClient.DXGUI.Generic
 
         private void BtnCredits_LeftClick(object sender, EventArgs e)
         {
-#if NET48
-            Process.Start(MainClientConstants.CREDITS_URL);
-#else
-             _ = Process.Start(new ProcessStartInfo
+            using var _ = Process.Start(new ProcessStartInfo
             {
                 FileName = MainClientConstants.CREDITS_URL,
                 UseShellExecute = true
             });
-#endif
         }
 
         private void BtnExtras_LeftClick(object sender, EventArgs e) =>

@@ -77,15 +77,11 @@ namespace DTAClient.DXGUI.Generic
 
         private void LblChangelogLink_LeftClick(object sender, EventArgs e)
         {
-#if NET48
-            Process.Start(changelogUrl);
-#else
-             _ = Process.Start(new ProcessStartInfo
+            using var _ = Process.Start(new ProcessStartInfo
             {
                 FileName = changelogUrl,
                 UseShellExecute = true
             });
-#endif
         }
 
         private void BtnYes_LeftClick(object sender, EventArgs e)

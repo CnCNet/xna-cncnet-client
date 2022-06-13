@@ -28,15 +28,11 @@ namespace DTAClient.DXGUI.Multiplayer
             if (link == null)
                 return;
 
-#if NET48
-            Process.Start(link);
-#else
-             _ = Process.Start(new ProcessStartInfo
+            using var _ = Process.Start(new ProcessStartInfo
             {
                 FileName = link,
                 UseShellExecute = true
             });
-#endif
         }
 
         public void AddMessage(string message)
