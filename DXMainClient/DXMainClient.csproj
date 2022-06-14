@@ -42,7 +42,7 @@
   <PropertyGroup Condition="'$(Configuration)' == 'AresGLDebug' Or '$(Configuration)' == 'AresGLRelease' Or '$(Configuration)' == 'TSGLDebug' Or '$(Configuration)' == 'TSGLRelease' Or '$(Configuration)' == 'YRGLDebug' Or '$(Configuration)' == 'YRGLRelease'">
     <DefineConstants>$(DefineConstants);WINDOWSGL</DefineConstants>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)' == 'AreXNADebug' Or '$(Configuration)' == 'AresXNARelease' Or '$(Configuration)' == 'TSXNADebug' Or '$(Configuration)' == 'TSXNARelease' Or '$(Configuration)' == 'YRXNADebug' Or '$(Configuration)' == 'YRXNARelease'">
+  <PropertyGroup Condition="'$(Configuration)' == 'AresXNADebug' Or '$(Configuration)' == 'AresXNARelease' Or '$(Configuration)' == 'TSXNADebug' Or '$(Configuration)' == 'TSXNARelease' Or '$(Configuration)' == 'YRXNADebug' Or '$(Configuration)' == 'YRXNARelease'">
     <DefineConstants>$(DefineConstants);XNA</DefineConstants>
   </PropertyGroup>
   <ItemGroup Condition="'$(TargetFramework)' == 'net48'">
@@ -54,7 +54,11 @@
     <PackageReference Include="System.Management" Version="6.0.0" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="ClientUpdater" Version="1.0.0.1" />
+    <Compile Remove="Resources\**" />
+    <EmbeddedResource Remove="Resources\**" />
+    <None Remove="Resources\**" />
+  </ItemGroup>
+  <ItemGroup>
     <PackageReference Include="lzo.net" Version="0.0.6" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
     <PackageReference Include="OpenMcdf" Version="2.2.1.9" />

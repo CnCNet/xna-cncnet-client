@@ -38,7 +38,7 @@
   <PropertyGroup Condition="'$(Configuration)' == 'AresGLDebug' Or '$(Configuration)' == 'AresGLRelease' Or '$(Configuration)' == 'TSGLDebug' Or '$(Configuration)' == 'TSGLRelease' Or '$(Configuration)' == 'YRGLDebug' Or '$(Configuration)' == 'YRGLRelease'">
     <DefineConstants>$(DefineConstants);WINDOWSGL</DefineConstants>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)' == 'AreXNADebug' Or '$(Configuration)' == 'AresXNARelease' Or '$(Configuration)' == 'TSXNADebug' Or '$(Configuration)' == 'TSXNARelease' Or '$(Configuration)' == 'YRXNADebug' Or '$(Configuration)' == 'YRXNARelease'">
+  <PropertyGroup Condition="'$(Configuration)' == 'AresXNADebug' Or '$(Configuration)' == 'AresXNARelease' Or '$(Configuration)' == 'TSXNADebug' Or '$(Configuration)' == 'TSXNARelease' Or '$(Configuration)' == 'YRXNADebug' Or '$(Configuration)' == 'YRXNARelease'">
     <DefineConstants>$(DefineConstants);XNA</DefineConstants>
   </PropertyGroup>
   <!--Switching between Configurations within VS IDE requires reloading the project file-->

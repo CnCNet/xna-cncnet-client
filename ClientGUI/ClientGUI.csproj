@@ -25,7 +25,7 @@
   <PropertyGroup Condition="'$(Configuration)' == 'AresDXDebug' Or '$(Configuration)' == 'AresGLDebug' Or '$(Configuration)' == 'AresXNADebug' Or '$(Configuration)' == 'TSDXDebug' Or '$(Configuration)' == 'TSGLDebug' Or '$(Configuration)' == 'TSXNADebug' Or '$(Configuration)' == 'YRDXDebug' Or '$(Configuration)' == 'YRGLDebug' Or '$(Configuration)' == 'YRXNADebug'">
     <DefineConstants>$(DefineConstants);DEBUG</DefineConstants>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)' == 'AreXNADebug' Or '$(Configuration)' == 'AresXNARelease' Or '$(Configuration)' == 'TSXNADebug' Or '$(Configuration)' == 'TSXNARelease' Or '$(Configuration)' == 'YRXNADebug' Or '$(Configuration)' == 'YRXNARelease'">
+  <PropertyGroup Condition="'$(Configuration)' == 'AresXNADebug' Or '$(Configuration)' == 'AresXNARelease' Or '$(Configuration)' == 'TSXNADebug' Or '$(Configuration)' == 'TSXNARelease' Or '$(Configuration)' == 'YRXNADebug' Or '$(Configuration)' == 'YRXNARelease'">
     <DefineConstants>$(DefineConstants);XNA</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
