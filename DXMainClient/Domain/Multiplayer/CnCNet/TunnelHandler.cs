@@ -9,6 +9,7 @@ using System.IO;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using System.Linq;
 
 namespace DTAClient.Domain.Multiplayer.CnCNet
 {
@@ -189,7 +190,8 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
 
             string[] serverList = convertedData.Split(new string[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries);
 
-            foreach (string serverInfo in serverList)
+            // skip first header item ("address;country;countrycode;name;password;clients;maxclients;official;latitude;longitude;version;distance")
+            foreach (string serverInfo in serverList.Skip(1))
             {
                 try
                 {
