@@ -95,7 +95,12 @@ namespace Localization
 
         public static TranslationTable LoadFromIniFile(string iniPath)
         {
-            using (var stream = File.Open(iniPath, FileMode.Open))
+            var iniFileInfo = new FileInfo(iniPath);
+
+            if (!iniFileInfo.Exists)
+                return null;
+
+            using (var stream = iniFileInfo.OpenRead())
             {
                 IniFile iniFile = new IniFile(stream);
                 return new TranslationTable(iniFile);

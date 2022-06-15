@@ -78,6 +78,14 @@ namespace DTAClient
             try
             {
                 var translation = TranslationTable.LoadFromIniFile(ClientConfiguration.Instance.TranslationIniName);
+
+                if (translation is null)
+                {
+                    Logger.Log("Failed to load the translation file. File does not exist.");
+
+                    translation = new TranslationTable();
+                }
+
                 TranslationTable.Instance = translation;
                 Logger.Log("Load translation: " + translation.LanguageName);
             }

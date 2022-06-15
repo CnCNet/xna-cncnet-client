@@ -52,7 +52,17 @@ namespace DTAClient.Online
         {
             try
             {
-                FriendList = File.ReadAllLines(ProgramConstants.GamePath + FRIEND_LIST_PATH).ToList();
+                var friendListFile = new FileInfo(ProgramConstants.GamePath + FRIEND_LIST_PATH);
+
+                if (friendListFile.Exists)
+                { 
+                    FriendList = File.ReadAllLines(friendListFile.FullName).ToList();
+                }
+                else
+                {
+                    Logger.Log("Loading friend list failed! File does not exist.");
+                    FriendList = new List<string>();
+                }
             }
             catch
             {
@@ -65,7 +75,17 @@ namespace DTAClient.Online
         {
             try
             {
-                IgnoreList = File.ReadAllLines(ProgramConstants.GamePath + IGNORE_LIST_PATH).ToList();
+                var ignoreListFile = new FileInfo(ProgramConstants.GamePath + IGNORE_LIST_PATH);
+
+                if (ignoreListFile.Exists)
+                {
+                    IgnoreList = File.ReadAllLines(ignoreListFile.FullName).ToList();
+                }
+                else
+                {
+                    Logger.Log("Loading ignore list failed! File does not exist.");
+                    IgnoreList = new List<string>();
+                }
             }
             catch
             {
@@ -78,7 +98,17 @@ namespace DTAClient.Online
         {
             try
             {
-                RecentList = JsonConvert.DeserializeObject<List<RecentPlayer>>(File.ReadAllText(ProgramConstants.GamePath + RECENT_LIST_PATH)) ?? new List<RecentPlayer>();
+                var recentListFile = new FileInfo(ProgramConstants.GamePath + RECENT_LIST_PATH);
+
+                if (recentListFile.Exists)
+                {
+                    RecentList = JsonConvert.DeserializeObject<List<RecentPlayer>>(File.ReadAllText(recentListFile.FullName)) ?? new List<RecentPlayer>();
+                }
+                else
+                {
+                    Logger.Log("Loading recent player list failed! File does not exist.");
+                    RecentList = new List<RecentPlayer>();
+                }
             }
             catch
             {
