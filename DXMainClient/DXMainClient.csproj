@@ -23,6 +23,7 @@
     <Platforms>x64;ARM64;x86</Platforms>
     <Configurations>AresDXDebug;AresGLDebug;AresXNADebug;AresDXRelease;AresGLRelease;AresXNARelease;TSDXDebug;TSGLDebug;TSXNADebug;TSDXRelease;TSGLRelease;TSXNARelease;YRDXDebug;YRGLDebug;YRXNADebug;YRDXRelease;YRGLRelease;YRXNARelease</Configurations>
     <RuntimeIdentifiers>win-x64;win-arm64;win-x86</RuntimeIdentifiers>
+    <ApplicationIcon>clienticon.ico</ApplicationIcon>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)' == 'AresDXDebug' Or '$(Configuration)' == 'AresGLDebug' Or '$(Configuration)' == 'AresXNADebug' Or '$(Configuration)' == 'TSDXDebug' Or '$(Configuration)' == 'TSGLDebug' Or '$(Configuration)' == 'TSXNADebug' Or '$(Configuration)' == 'YRDXDebug' Or '$(Configuration)' == 'YRGLDebug' Or '$(Configuration)' == 'YRXNADebug'">
     <DefineConstants>$(DefineConstants);DEBUG</DefineConstants>
@@ -57,6 +58,9 @@
     <Compile Remove="Resources\**" />
     <EmbeddedResource Remove="Resources\**" />
     <None Remove="Resources\**" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="clienticon.ico" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="lzo.net" Version="0.0.6" />
