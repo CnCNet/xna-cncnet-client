@@ -1,10 +1,12 @@
 ﻿using System;
-using System.Windows.Forms;
+using System.Collections.Generic;
 using System.IO;
+#if NETFRAMEWORK
+using System.Linq;
+#endif
 using System.Reflection;
 using System.Threading;
-using System.Collections.Generic;
-using Localization;
+using System.Windows.Forms;
 
 namespace DTAClient
 {
@@ -12,66 +14,57 @@ namespace DTAClient
     {
         static Program()
         {
-            char dsc = Path.DirectorySeparatorChar;
-
-            /*/ We have different binaries depending on build platform, but for simplicity
+            /* We have different binaries depending on build platform, but for simplicity
              * the target projects (DTA, TI, MO, YR) supply them all in a single download.
              * To avoid DLL hell, we load the binaries from different directories
-             * depending on the build platform. /*/
+             * depending on the build platform.
+             *
+             * For .NET 6 Release mode we split up the DXMainClient dll from the AppHost executable.
+             * The AppHost is located in the root, as is the case for the .NET 4.8 executables.
+             * The actual DXMainClient dll is 2 directories up in Application.StartupPath\Binaries\<WindowsGL,OpenGL,XNA> */
+
+#if DEBUG || NETFRAMEWORK
+            string startupPath = Application.StartupPath;
+#elif !NETFRAMEWORK
+            string startupPath = Path.GetFullPath(Path.Combine(Application.StartupPath, "..\\..\\"));
+#endif
 
 #if DEBUG
-            COMMON_LIBRARY_PATH = string.Format("{0}{1}Resources{1}Binaries{1}", Application.StartupPath.Replace('\\', '/'), dsc);
+            COMMON_LIBRARY_PATH = startupPath;
 #else
-            COMMON_LIBRARY_PATH = string.Format("{0}{1}Binaries{1}", Application.StartupPath.Replace('\\', '/'), dsc);
+            COMMON_LIBRARY_PATH = Path.Combine(startupPath, "Binaries");
 #endif
 
 #if XNA && DEBUG
-            SPECIFIC_LIBRARY_PATH = string.Format("{0}{1}Resources{1}Binaries{1}XNA{1}", Application.StartupPath.Replace('\\', '/'), dsc);
+            SPECIFIC_LIBRARY_PATH = startupPath;
 #elif XNA
-            SPECIFIC_LIBRARY_PATH = string.Format("{0}{1}Binaries{1}XNA{1}", Application.StartupPath.Replace('\\', '/'), dsc);
+            SPECIFIC_LIBRARY_PATH = Path.Combine(startupPath, "Binaries", "XNA");
 #elif WINDOWSGL && DEBUG
-            SPECIFIC_LIBRARY_PATH = string.Format("{0}{1}Resources{1}Binaries{1}OpenGL{1}", Application.StartupPath.Replace('\\', '/'), dsc);
+            SPECIFIC_LIBRARY_PATH = startupPath;
 #elif WINDOWSGL
-            SPECIFIC_LIBRARY_PATH = string.Format("{0}{1}Binaries{1}OpenGL{1}", Application.StartupPath.Replace('\\', '/'), dsc);
+            SPECIFIC_LIBRARY_PATH = Path.Combine(startupPath, "Binaries", "OpenGL");
 #elif DEBUG
-            SPECIFIC_LIBRARY_PATH = string.Format("{0}{1}Resources{1}Binaries{1}Windows{1}", Application.StartupPath.Replace('\\', '/'), dsc);
+            SPECIFIC_LIBRARY_PATH = startupPath;
 #else
-            SPECIFIC_LIBRARY_PATH = string.Format("{0}{1}Binaries{1}Windows{1}", Application.StartupPath.Replace('\\', '/'), dsc);
+            SPECIFIC_LIBRARY_PATH = Path.Combine(startupPath, "Binaries", "Windows");
 #endif
 
             // Set up DLL load paths as early as possible
+#if NETFRAMEWORK
             AppDomain.CurrentDomain.AssemblyResolve += CurrentDomain_AssemblyResolve;
-#if !DEBUG
-            Environment.CurrentDirectory = Directory.GetParent(Application.StartupPath.Replace('\\', '/')).FullName;
 #else
-            Environment.CurrentDirectory = Application.StartupPath.Replace('\\', '/');
+            System.Runtime.Loader.AssemblyLoadContext.Default.Resolving += DefaultAssemblyLoadContextOnResolving;
+#endif
+
+#if !DEBUG
+            Environment.CurrentDirectory = Directory.GetParent(startupPath.Replace('\\', '/')).FullName;
+#else
+            Environment.CurrentDirectory = startupPath.Replace('\\', '/');
 #endif
         }
 
-        static List<string> COMMON_LIBRARIES = new List<string>()
-        {
-            "Rampastring.Tools",
-            "Ionic.Zip",
-            "ClientUpdater",
-            "Newtonsoft.Json",
-            "DiscordRPC",
-            "lzo.net",
-            "OpenMcdf",
-        };
-
-        static List<string> SPECIFIC_LIBRARIES = new List<string>()
-        {
-            "ClientGUI",
-            "ClientCore",
-            "DTAConfig",
-            "Localization",
-            "MonoGame.Framework",
-            "Rampastring.XNAUI",
-            "Sdl",
-            "soft_oal",
-        };
-
         private static string COMMON_LIBRARY_PATH;
+
         private static string SPECIFIC_LIBRARY_PATH;
 
         /// <summary>
@@ -86,13 +79,13 @@ namespace DTAClient
 
             for (int arg = 0; arg < args.Length; arg++)
             {
-                string argument = args[arg].ToUpper();
+                string argument = args[arg].ToUpperInvariant();
 
                 switch (argument)
                 {
                     case "-NOAUDIO":
                         // TODO fix
-                        throw new NotImplementedException("-NOAUDIO is currently not implemented, please run the client without it.".L10N("UI:Main:NoAudio"));
+                        throw new NotImplementedException("-NOAUDIO is currently not implemented, please run the client without it.");
                     case "-MULTIPLEINSTANCE":
                         multipleInstanceMode = true;
                         break;
@@ -117,7 +110,7 @@ namespace DTAClient
             // Global prefix means that the mutex is global to the machine
             string mutexId = string.Format("Global/{{{0}}}", Guid.Parse("1CC9F8E7-9F69-4BBC-B045-E734204027A9"));
 
-#if NET48
+#if NETFRAMEWORK
             var allowEveryoneRule = new System.Security.AccessControl.MutexAccessRule(
                 new System.Security.Principal.SecurityIdentifier(System.Security.Principal.WellKnownSidType.WorldSid, null),
                 System.Security.AccessControl.MutexRights.FullControl,
@@ -125,92 +118,76 @@ namespace DTAClient
             var securitySettings = new System.Security.AccessControl.MutexSecurity();
             securitySettings.AddAccessRule(allowEveryoneRule);
 
-            using (var mutex = new Mutex(false, mutexId, out bool createdNew, securitySettings))
+            using var mutex = new Mutex(false, mutexId, out bool _, securitySettings);
 #else
-            using (var mutex = new Mutex(false, mutexId, out _))
+            using var mutex = new Mutex(false, mutexId, out _);
 #endif
+            var hasHandle = false;
+            try
             {
-                var hasHandle = false;
                 try
                 {
-                    try
-                    {
-                        hasHandle = mutex.WaitOne(8000, false);
-                        if (hasHandle == false)
-                            throw new TimeoutException("Timeout waiting for exclusive access");
-                    }
-                    catch (AbandonedMutexException)
-                    {
-                        hasHandle = true;
-                    }
-                    catch (TimeoutException)
-                    {
-                        return;
-                    }
-
-                    // Proceed to client startup
-                    PreStartup.Initialize(parameters);
+                    hasHandle = mutex.WaitOne(8000, false);
+                    if (hasHandle == false)
+                        throw new TimeoutException("Timeout waiting for exclusive access");
                 }
-                finally
+                catch (AbandonedMutexException)
                 {
-                    if (hasHandle)
-                        mutex.ReleaseMutex();
+                    hasHandle = true;
                 }
+                catch (TimeoutException)
+                {
+                    return;
+                }
+
+                // Proceed to client startup
+                PreStartup.Initialize(parameters);
+            }
+            finally
+            {
+                if (hasHandle)
+                    mutex.ReleaseMutex();
             }
         }
 
+#if NETFRAMEWORK
         static Assembly CurrentDomain_AssemblyResolve(object sender, ResolveEventArgs args)
         {
-            if (args.Name.StartsWith("SharpDX"))
-            {
-                string[] parts = args.Name.Split(',');
-                byte[] data = File.ReadAllBytes(SPECIFIC_LIBRARY_PATH + parts[0] + ".dll");
-                return Assembly.Load(data);
-            }
+            string unresolvedAssemblyName = args.Name.Split(',').First();
 
-#if WINDOWSGL
-            // MonoGame's OpenGL version checks its Assembly.Location for
-            // loading SDL2.dll. Loading an assembly with Assembly.Load(byte[] rawAssembly)
-            // does not set the Location of the assembly, making MonoGame crash when loading SDL2.dll.
-            // Assembly.LoadFrom sets the location, so we use it for loading 
-            // the OpenGL version of MonoGame.
-            // For some reason this doesn't always work for loading resources of other assemblies, however,
-            // so we only load MonoGame.Framework with this method.
-            if (args.Name.StartsWith("MonoGame.Framework"))
-                return Assembly.LoadFrom(string.Format("{0}{1}.dll", SPECIFIC_LIBRARY_PATH, "MonoGame.Framework"));
-#endif
+            if (unresolvedAssemblyName.EndsWith(".resources", StringComparison.OrdinalIgnoreCase))
+                return null;
 
-            string name = SPECIFIC_LIBRARIES.Find(dll => args.Name.StartsWith(dll));
+            var commonFileInfo = new FileInfo(FormattableString.Invariant($"{Path.Combine(COMMON_LIBRARY_PATH, unresolvedAssemblyName)}.dll"));
 
-            if (name != null)
-            {
-                byte[] data;
-#if DEBUG
-                try
-                {
-                   data = File.ReadAllBytes(string.Format("{0}{1}.dll", SPECIFIC_LIBRARY_PATH, name));
-                }
-                catch
-                {
-                    data = File.ReadAllBytes(string.Format("{0}{1}{2}.dll", Application.StartupPath.Replace('\\', '/'), Path.DirectorySeparatorChar, name));
-                }
-#else
-                data = File.ReadAllBytes(string.Format("{0}{1}.dll", SPECIFIC_LIBRARY_PATH, name));
-#endif
-                return Assembly.Load(data);
-            }
+            if (commonFileInfo.Exists)
+                return Assembly.Load(AssemblyName.GetAssemblyName(commonFileInfo.FullName));
 
-            // Common libraries are shared among the different build platforms
+            var specificFileInfo = new FileInfo(FormattableString.Invariant($"{Path.Combine(SPECIFIC_LIBRARY_PATH, unresolvedAssemblyName)}.dll"));
 
-            name = COMMON_LIBRARIES.Find(dll => args.Name.StartsWith(dll));
-
-            if (name != null)
-            {
-                byte[] data = File.ReadAllBytes(string.Format("{0}{1}.dll", COMMON_LIBRARY_PATH, name));
-                return Assembly.Load(data);
-            }
+            if (specificFileInfo.Exists)
+                return Assembly.Load(AssemblyName.GetAssemblyName(specificFileInfo.FullName));
 
             return null;
         }
+#else
+        private static Assembly DefaultAssemblyLoadContextOnResolving(System.Runtime.Loader.AssemblyLoadContext assemblyLoadContext, AssemblyName assemblyName)
+        {
+            if (assemblyName.Name.EndsWith(".resources", StringComparison.OrdinalIgnoreCase))
+                return null;
+
+            var commonFileInfo = new FileInfo(FormattableString.Invariant($"{Path.Combine(COMMON_LIBRARY_PATH, assemblyName.Name)}.dll"));
+
+            if (commonFileInfo.Exists)
+                return assemblyLoadContext.LoadFromAssemblyPath(commonFileInfo.FullName);
+
+            var specificFileInfo = new FileInfo(FormattableString.Invariant($"{Path.Combine(SPECIFIC_LIBRARY_PATH, assemblyName.Name)}.dll"));
+
+            if (specificFileInfo.Exists)
+                return assemblyLoadContext.LoadFromAssemblyPath(specificFileInfo.FullName);
+
+            return null;
+        }
+#endif
     }
 }

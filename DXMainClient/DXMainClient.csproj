@@ -20,7 +20,7 @@
     <AnalysisLevel>preview-all</AnalysisLevel>
     <LangVersion>preview</LangVersion>
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
-    <Platforms>x64;ARM64;x86</Platforms>
+    <Platforms>AnyCPU;x64;ARM64;x86</Platforms>
     <Configurations>AresDXDebug;AresGLDebug;AresXNADebug;AresDXRelease;AresGLRelease;AresXNARelease;TSDXDebug;TSGLDebug;TSXNADebug;TSDXRelease;TSGLRelease;TSXNARelease;YRDXDebug;YRGLDebug;YRXNADebug;YRDXRelease;YRGLRelease;YRXNARelease</Configurations>
     <RuntimeIdentifiers>win-x64;win-arm64;win-x86</RuntimeIdentifiers>
     <ApplicationIcon>clienticon.ico</ApplicationIcon>
@@ -46,12 +46,12 @@
   <PropertyGroup Condition="'$(Configuration)' == 'AresXNADebug' Or '$(Configuration)' == 'AresXNARelease' Or '$(Configuration)' == 'TSXNADebug' Or '$(Configuration)' == 'TSXNARelease' Or '$(Configuration)' == 'YRXNADebug' Or '$(Configuration)' == 'YRXNARelease'">
     <DefineConstants>$(DefineConstants);XNA</DefineConstants>
   </PropertyGroup>
-  <ItemGroup Condition="'$(TargetFramework)' == 'net48'">
+  <ItemGroup Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework'">
     <Reference Include="System.DirectoryServices" />
     <Reference Include="System.Management" />
     <Reference Include="System.IO.Compression" />
   </ItemGroup>
-  <ItemGroup Condition="'$(TargetFramework)' != 'net48'">
+  <ItemGroup Condition="'$(TargetFrameworkIdentifier)' != '.NETFramework'">
     <PackageReference Include="System.Management" Version="6.0.0" />
   </ItemGroup>
   <ItemGroup>
@@ -96,5 +96,15 @@
     <Copy Condition="! Exists('$(OutputPath)\Resources\ClientDefinitions.ini') " SourceFiles="@(ExampleClientSettings)" DestinationFolder="$(OutputPath)" />
     <Copy Condition="! Exists('$(OutputPath)\Resources\ClientDefinitions.ini') " SourceFiles="@(ExampleClientLinuxRun)" DestinationFolder="$(OutputPath)" />
     <Copy Condition="! Exists('$(OutputPath)\Resources\ClientDefinitions.ini') " SourceFiles="@(ExampleClientDefinitions)" DestinationFolder="$(OutputPath)\Resources" />
+  </Target>
+  <Target Name="PublishDesktopGLNative" AfterTargets="Publish" Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework'">
+    <ItemGroup>
+      <_lib_x64 Include="$(OutputPath)\x64\*.*" />
+      <_lib_x86 Include="$(OutputPath)\x86\*.*" />
+      <_lib_osx Include="$(OutputPath)\*..dylib" />
+    </ItemGroup>
+    <Copy SourceFiles="@(_lib_x64)" DestinationFolder="$(PublishDir)\x64" />
+    <Copy SourceFiles="@(_lib_x86)" DestinationFolder="$(PublishDir)\x86" />
+    <Copy SourceFiles="@(_lib_osx)" DestinationFolder="$(PublishDir)" />
   </Target>
 </Project>

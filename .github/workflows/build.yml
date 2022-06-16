@@ -18,75 +18,13 @@ jobs:
       with:
         dotnet-version: '6.x.x'
 
-    - name: Publish
-      run: |
-        dotnet publish DXMainClient\DXMainClient.csproj -c YRDXRelease -f net48 -p:PlatformTarget=AnyCPU
-        dotnet publish DXMainClient\DXMainClient.csproj -c YRDXRelease --no-self-contained -f net6.0-windows10.0.22000.0 -r win-x86
-        dotnet publish DXMainClient\DXMainClient.csproj -c YRDXRelease --no-self-contained -f net6.0-windows10.0.22000.0 -r win-x64
-        dotnet publish DXMainClient\DXMainClient.csproj -c YRDXRelease --no-self-contained -f net6.0-windows10.0.22000.0 -r win-arm64
-        dotnet publish DXMainClient\DXMainClient.csproj -c YRGLRelease -f net48 -p:PlatformTarget=AnyCPU
-        dotnet publish DXMainClient\DXMainClient.csproj -c YRGLRelease --no-self-contained -f net6.0-windows10.0.22000.0 -r win-x86
-        dotnet publish DXMainClient\DXMainClient.csproj -c YRGLRelease --no-self-contained -f net6.0-windows10.0.22000.0 -r win-x64
-        dotnet publish DXMainClient\DXMainClient.csproj -c YRGLRelease --no-self-contained -f net6.0-windows10.0.22000.0 -r win-arm64
-        dotnet publish DXMainClient\DXMainClient.csproj -c YRXNARelease -f net48 -p:PlatformTarget=x86
-        dotnet publish DXMainClient\DXMainClient.csproj -c YRXNARelease --no-self-contained -f net6.0-windows10.0.22000.0 -r win-x86
-
-        dotnet publish DXMainClient\DXMainClient.csproj -c TSDXRelease -f net48 -p:PlatformTarget=AnyCPU
-        dotnet publish DXMainClient\DXMainClient.csproj -c TSDXRelease --no-self-contained -f net6.0-windows10.0.22000.0 -r win-x86
-        dotnet publish DXMainClient\DXMainClient.csproj -c TSDXRelease --no-self-contained -f net6.0-windows10.0.22000.0 -r win-x64
-        dotnet publish DXMainClient\DXMainClient.csproj -c TSDXRelease --no-self-contained -f net6.0-windows10.0.22000.0 -r win-arm64
-        dotnet publish DXMainClient\DXMainClient.csproj -c TSGLRelease -f net48 -p:PlatformTarget=AnyCPU
-        dotnet publish DXMainClient\DXMainClient.csproj -c TSGLRelease --no-self-contained -f net6.0-windows10.0.22000.0 -r win-x86
-        dotnet publish DXMainClient\DXMainClient.csproj -c TSGLRelease --no-self-contained -f net6.0-windows10.0.22000.0 -r win-x64
-        dotnet publish DXMainClient\DXMainClient.csproj -c TSGLRelease --no-self-contained -f net6.0-windows10.0.22000.0 -r win-arm64
-        dotnet publish DXMainClient\DXMainClient.csproj -c TSXNARelease -f net48 -p:PlatformTarget=x86
-        dotnet publish DXMainClient\DXMainClient.csproj -c TSXNARelease --no-self-contained -f net6.0-windows10.0.22000.0 -r win-x86
-
-        dotnet publish DXMainClient\DXMainClient.csproj -c AresDXRelease -f net48 -p:PlatformTarget=AnyCPU
-        dotnet publish DXMainClient\DXMainClient.csproj -c AresDXRelease --no-self-contained -f net6.0-windows10.0.22000.0 -r win-x86
-        dotnet publish DXMainClient\DXMainClient.csproj -c AresDXRelease --no-self-contained -f net6.0-windows10.0.22000.0 -r win-x64
-        dotnet publish DXMainClient\DXMainClient.csproj -c AresDXRelease --no-self-contained -f net6.0-windows10.0.22000.0 -r win-arm64
-        dotnet publish DXMainClient\DXMainClient.csproj -c AresGLRelease -f net48 -p:PlatformTarget=AnyCPU
-        dotnet publish DXMainClient\DXMainClient.csproj -c AresGLRelease --no-self-contained -f net6.0-windows10.0.22000.0 -r win-x86
-        dotnet publish DXMainClient\DXMainClient.csproj -c AresGLRelease --no-self-contained -f net6.0-windows10.0.22000.0 -r win-x64
-        dotnet publish DXMainClient\DXMainClient.csproj -c AresGLRelease --no-self-contained -f net6.0-windows10.0.22000.0 -r win-arm64
-        dotnet publish DXMainClient\DXMainClient.csproj -c AresXNARelease -f net48 -p:PlatformTarget=x86
-        dotnet publish DXMainClient\DXMainClient.csproj -c AresXNARelease --no-self-contained -f net6.0-windows10.0.22000.0 -r win-x86
+    - name: Build All
+      run: BuildAll.bat
+      shell: cmd
+      working-directory: ./BuildScripts
 
     - uses: actions/upload-artifact@main
       name: Upload Artifacts
       with:
         name: artifacts
-        path: |
-          ./DXMainClient\bin\YRDXRelease\net48\publish
-          ./DXMainClient\bin\YRDXRelease\net6.0-windows10.0.22000.0\win-x86\publish
-          ./DXMainClient\bin\YRDXRelease\net6.0-windows10.0.22000.0\win-x64\publish
-          ./DXMainClient\bin\YRDXRelease\net6.0-windows10.0.22000.0\win-arm64\publish
-          ./DXMainClient\bin\YRGLRelease\net48\publish
-          ./DXMainClient\bin\YRGLRelease\net6.0-windows10.0.22000.0\win-x86\publish
-          ./DXMainClient\bin\YRGLRelease\net6.0-windows10.0.22000.0\win-x64\publish
-          ./DXMainClient\bin\YRGLRelease\net6.0-windows10.0.22000.0\win-arm64\publish
-          ./DXMainClient\bin\YRXNARelease\net48\publish
-          ./DXMainClient\bin\YRXNARelease\net6.0-windows10.0.22000.0\win-x86\publish
-          
-          ./DXMainClient\bin\TSDXRelease\net48\publish
-          ./DXMainClient\bin\TSDXRelease\net6.0-windows10.0.22000.0\win-x86\publish
-          ./DXMainClient\bin\TSDXRelease\net6.0-windows10.0.22000.0\win-x64\publish
-          ./DXMainClient\bin\TSDXRelease\net6.0-windows10.0.22000.0\win-arm64\publish
-          ./DXMainClient\bin\TSGLRelease\net48\publish
-          ./DXMainClient\bin\TSGLRelease\net6.0-windows10.0.22000.0\win-x86\publish
-          ./DXMainClient\bin\TSGLRelease\net6.0-windows10.0.22000.0\win-x64\publish
-          ./DXMainClient\bin\TSGLRelease\net6.0-windows10.0.22000.0\win-arm64\publish
-          ./DXMainClient\bin\TSXNARelease\net48\publish
-          ./DXMainClient\bin\TSXNARelease\net6.0-windows10.0.22000.0\win-x86\publish
-          
-          ./DXMainClient\bin\AresDXRelease\net48\publish
-          ./DXMainClient\bin\AresDXRelease\net6.0-windows10.0.22000.0\win-x86\publish
-          ./DXMainClient\bin\AresDXRelease\net6.0-windows10.0.22000.0\win-x64\publish
-          ./DXMainClient\bin\AresDXRelease\net6.0-windows10.0.22000.0\win-arm64\publish
-          ./DXMainClient\bin\AresGLRelease\net48\publish
-          ./DXMainClient\bin\AresGLRelease\net6.0-windows10.0.22000.0\win-x86\publish
-          ./DXMainClient\bin\AresGLRelease\net6.0-windows10.0.22000.0\win-x64\publish
-          ./DXMainClient\bin\AresGLRelease\net6.0-windows10.0.22000.0\win-arm64\publish
-          ./DXMainClient\bin\AresXNARelease\net48\publish
-          ./DXMainClient\bin\AresXNARelease\net6.0-windows10.0.22000.0\win-x86\publish
+        path: ./Compiled

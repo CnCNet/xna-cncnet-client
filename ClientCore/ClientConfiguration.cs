@@ -307,7 +307,7 @@ namespace ClientCore
         {
             if (Environment.OSVersion.Platform == PlatformID.Win32NT)
             {
-#if NET48
+#if NETFRAMEWORK
                 Version osVersion = Environment.OSVersion.Version;
 
                 if (osVersion.Major < 5)

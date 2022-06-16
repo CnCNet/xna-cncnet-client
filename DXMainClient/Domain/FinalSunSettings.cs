@@ -17,7 +17,7 @@ namespace DTAClient.Domain
             {
                 string finalSunIniPath = ClientConfiguration.Instance.FinalSunIniPath;
                 var finalSunIniFile = new FileInfo(Path.Combine(ProgramConstants.GamePath, finalSunIniPath));
-#if NET48
+#if NETFRAMEWORK
                 var encoding1252 = Encoding.GetEncoding(1252);
 #else
                 var encoding1252 = CodePagesEncodingProvider.Instance.GetEncoding(1252);

@@ -11,10 +11,15 @@ namespace ClientCore
     /// </summary>
     public static class ProgramConstants
     {
+        /* For .NET 6 Release mode we split up the DXMainClient dll from the AppHost executable.
+         * The AppHost is located in the root, as is the case for the .NET 4.8 executables.
+         * The actual DXMainClient dll is 2 directories up in Application.StartupPath\Binaries\<WindowsGL,OpenGL,XNA> */
 #if DEBUG
         public static readonly string GamePath = Application.StartupPath.Replace('\\', '/') + "/";
-#else
+#elif NETFRAMEWORK
         public static readonly string GamePath = System.IO.Directory.GetParent(Application.StartupPath.TrimEnd(new char[] { '\\' })).FullName.Replace('\\', '/') + "/";
+#else
+        public static readonly string GamePath = System.IO.Directory.GetParent(System.IO.Path.GetFullPath(System.IO.Path.Combine(Application.StartupPath, "..\\..\\")).TrimEnd(new char[] { '\\' })).FullName.Replace('\\', '/') + "/";
 #endif
 
         public static string ClientUserFilesPath => GamePath + "Client/";

@@ -139,7 +139,7 @@ namespace DTAClient
                 Environment.Exit(0);
             }
 
-#if NET48
+#if NETFRAMEWORK
             Application.EnableVisualStyles();
 #else
             ApplicationConfiguration.Initialize();
