@@ -108,16 +108,12 @@ namespace DTAConfig.Settings
         private XNAClientCheckBox FindParentCheckBox()
         {
             if (string.IsNullOrEmpty(ParentCheckBoxName))
-            {
                 return null;
-            }
 
             foreach (var control in Parent.Children)
             {
                 if (control is XNAClientCheckBox && control.Name == ParentCheckBoxName)
-                {
                     return control as XNAClientCheckBox;
-                }
             }
 
             return null;
