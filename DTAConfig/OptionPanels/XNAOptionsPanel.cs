@@ -1,6 +1,6 @@
 ﻿using ClientCore;
 using ClientGUI;
-using DTAConfig.CustomSettings;
+using DTAConfig.Settings;
 using Microsoft.Xna.Framework;
 using Rampastring.Tools;
 using Rampastring.XNAUI;
@@ -25,7 +25,7 @@ namespace DTAConfig.OptionPanels
 
         private static readonly OptionsGUICreator optionsGUICreator = new OptionsGUICreator();
 
-        private List<ICustomSetting> customSettings = new List<ICustomSetting>();
+        private readonly List<IUserSetting> userSettings = new List<IUserSetting>();
 
         public override void Initialize()
         {
@@ -49,15 +49,12 @@ namespace DTAConfig.OptionPanels
             ReadChildControlAttributes(iniFile);
         }
 
-        protected override void ParseExtraControls(IniFile iniFile, string sectionName)
+        public override void AddChild(XNAControl child)
         {
-            base.ParseExtraControls(iniFile, sectionName);
+            base.AddChild(child);
 
-            foreach (var control in Children)
-            {
-                if (control is ICustomSetting setting)
-                    customSettings.Add(setting);
-            }
+            if (child is IUserSetting setting)
+                userSettings.Add(setting);
         }
 
         protected UserINISettings IniSettings { get; private set; }
@@ -70,7 +67,7 @@ namespace DTAConfig.OptionPanels
         public virtual bool Save()
         {
             bool restartRequired = false;
-            foreach (var setting in customSettings)
+            foreach (var setting in userSettings)
                 restartRequired = setting.Save() || restartRequired;
             
             return restartRequired;
@@ -85,8 +82,11 @@ namespace DTAConfig.OptionPanels
         public virtual bool RefreshPanel()
         {
             bool valuesChanged = false;
-            foreach (var setting in customSettings)
-                valuesChanged = setting.RefreshSetting() || valuesChanged;
+            foreach (var setting in userSettings)
+            {
+                if (setting is IFileSetting fileSetting)
+                    valuesChanged = fileSetting.RefreshSetting() || valuesChanged;
+            }
 
             return valuesChanged;
         }
@@ -96,7 +96,7 @@ namespace DTAConfig.OptionPanels
         /// </summary>
         public virtual void Load()
         {
-            foreach (var setting in customSettings)
+            foreach (var setting in userSettings)
                 setting.Load();
         }
 

@@ -1,26 +1,28 @@
 using ClientCore;
-using ClientGUI;
 using Rampastring.Tools;
 using Rampastring.XNAUI;
-using Rampastring.XNAUI.XNAControls;
 using System.Collections.Generic;
 using System.IO;
 
-namespace DTAConfig.CustomSettings
+namespace DTAConfig.Settings
 {
     /// <summary>
     /// A dropdown that switches between multiple sets of files.
     /// </summary>
-    public class CustomSettingFileDropDown : XNAClientDropDown, ICustomSetting
+    public class FileSettingDropDown : SettingDropDownBase, IFileSetting
     {
-        public CustomSettingFileDropDown(WindowManager windowManager) : base(windowManager) { }
+        public FileSettingDropDown(WindowManager windowManager) : base(windowManager) { }
 
-        private List<List<FileSourceDestinationInfo>> itemFilesList = new List<List<FileSourceDestinationInfo>>();
+        public FileSettingDropDown(WindowManager windowManager, int defaultValue, string settingSection, string settingKey,
+            bool checkAvailability = false, bool resetUnavailableValue = false, bool restartRequired = false)
+            : base(windowManager, defaultValue, settingSection, settingKey, restartRequired)
+        {
+            CheckAvailability = checkAvailability;
+            ResetUnavailableValue = resetUnavailableValue;
+        }
 
-        private int defaultValue;
-        private int originalState;
+        private readonly List<List<FileSourceDestinationInfo>> itemFilesList = new List<List<FileSourceDestinationInfo>>();
 
-        public bool RestartRequired { get; private set; }
         public bool CheckAvailability { get; private set; }
         public bool ResetUnavailableValue { get; private set; }
 
@@ -40,36 +42,15 @@ namespace DTAConfig.CustomSettings
         {
             switch (key)
             {
-                case "Items":
-                    string[] items = value.Split(',');
-                    for (int i = 0; i < items.Length; i++)
-                    {
-                        XNADropDownItem item = new XNADropDownItem();
-                        item.Text = items[i];
-                        AddItem(item);
-                    }
-                    return;
-                case "DefaultValue":
-                    defaultValue = Conversions.IntFromString(value, 0);
-                    return;
                 case "CheckAvailability":
                     CheckAvailability = Conversions.BooleanFromString(value, false);
                     return;
                 case "ResetUnavailableValue":
                     ResetUnavailableValue = Conversions.BooleanFromString(value, false);
                     return;
-                case "RestartRequired":
-                    RestartRequired = Conversions.BooleanFromString(value, false);
-                    return;
             }
 
             base.ParseAttributeFromINI(iniFile, key, value);
-        }
-
-        public void Load()
-        {
-            SelectedIndex = UserINISettings.Instance.GetCustomSettingValue(Name, defaultValue);
-            originalState = SelectedIndex;
         }
 
         public bool RefreshSetting()
@@ -92,16 +73,31 @@ namespace DTAConfig.CustomSettings
                 }
 
                 if (ResetUnavailableValue && !Items[SelectedIndex].Selectable)
-                    SelectedIndex = defaultValue;
+                    SelectedIndex = DefaultValue;
             }
 
             return SelectedIndex != currentValue;
         }
 
-        public bool Save()
+        public void AddFile(int itemIndex, string source, string destination, FileOperationOptions options)
         {
-            UserINISettings.Instance.SetCustomSettingValue(Name, SelectedIndex);
+            if (itemIndex < 0 || itemIndex >= Items.Count)
+                return;
 
+            if (itemFilesList.Count < itemIndex + 1)
+                itemFilesList.Add(new List<FileSourceDestinationInfo>());
+
+            itemFilesList[itemIndex].Add(new FileSourceDestinationInfo(source, destination, options));
+        }
+
+        public override void Load()
+        {
+            SelectedIndex = UserINISettings.Instance.GetValue(SettingSection, SettingKey, DefaultValue);
+            originalState = SelectedIndex;
+        }
+
+        public override bool Save()
+        {
             if (Items[SelectedIndex].Selectable)
             {
                 for (int i = 0; i < itemFilesList.Count; i++)
@@ -114,11 +110,12 @@ namespace DTAConfig.CustomSettings
             }
             else // selected item is unavailable, don't do anything
             {
-                Logger.Log($"{nameof(CustomSettingFileDropDown)}: " +
+                Logger.Log($"{nameof(FileSettingDropDown)}: " +
                     $"The selected item ({Items[SelectedIndex].Text}) is unavailable in {Name}");
                 return false;
             }
 
+            UserINISettings.Instance.SetValue(SettingSection, SettingKey, SelectedIndex);
             return RestartRequired && (SelectedIndex != originalState);
         }
     }
