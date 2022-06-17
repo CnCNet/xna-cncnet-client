@@ -1,5 +1,7 @@
 @echo off
+set configuration=%2
 if [%1]==[] echo Missing game parameter (YR, TS or Ares) && exit /b
+if [%2]==[] set configuration=Release
 
 for /f "delims=" %%a in ('echo Creating %1 .NET6.0 Folders') do ( echo %%a & title %%a )
 if exist ..\Compiled\%1\net60\ ( rd /s /q ..\Compiled\%1\net60 || echo ERROR && exit /b )
@@ -7,12 +9,12 @@ mkdir ..\Compiled\%1\net60\Resources\Binaries\Windows || echo ERROR && exit /b
 mkdir ..\Compiled\%1\net60\Resources\Binaries\OpenGL || echo ERROR && exit /b
 mkdir ..\Compiled\%1\net60\Resources\Binaries\XNA || echo ERROR && exit /b
 
-for /f "delims=" %%a in ('echo Publishing %1 .NET6.0 DirectX') do ( echo %%a & title %%a )
-dotnet publish ..\DXMainClient\DXMainClient.csproj --no-self-contained -c %1DXRelease -o ..\Compiled\%1\net60\DX -f net6.0-windows10.0.22000.0 || echo ERROR && exit /b
-for /f "delims=" %%a in ('echo Publishing %1 .NET6.0 OpenGL') do ( echo %%a & title %%a )
-dotnet publish ..\DXMainClient\DXMainClient.csproj --no-self-contained -c %1GLRelease -o ..\Compiled\%1\net60\GL -f net6.0-windows10.0.22000.0 || echo ERROR && exit /b
-for /f "delims=" %%a in ('echo Publishing %1 .NET6.0 XNA') do ( echo %%a & title %%a )
-dotnet publish ..\DXMainClient\DXMainClient.csproj --no-self-contained -c %1XNARelease -o ..\Compiled\%1\net60\XNA -f net6.0-windows10.0.22000.0 -r win-x86 || echo ERROR && exit /b
+for /f "delims=" %%a in ('echo Publish %1DX%configuration% .NET6.0') do ( echo %%a & title %%a )
+dotnet publish ..\DXMainClient\DXMainClient.csproj --no-self-contained -c %1DX%configuration% -o ..\Compiled\%1\net60\DX -f net6.0-windows10.0.22000.0 || echo ERROR && exit /b
+for /f "delims=" %%a in ('echo Publish %1GL%configuration% .NET6.0') do ( echo %%a & title %%a )
+dotnet publish ..\DXMainClient\DXMainClient.csproj --no-self-contained -c %1GL%configuration% -o ..\Compiled\%1\net60\GL -f net6.0-windows10.0.22000.0 || echo ERROR && exit /b
+for /f "delims=" %%a in ('echo Publish %1XNA%configuration% .NET6.0') do ( echo %%a & title %%a )
+dotnet publish ..\DXMainClient\DXMainClient.csproj --no-self-contained -c %1XNA%configuration% -o ..\Compiled\%1\net60\XNA -f net6.0-windows10.0.22000.0 -r win-x86 || echo ERROR && exit /b
 
 for /f "delims=" %%a in ('echo Structuring %1 .NET6.0 Main Files') do ( echo %%a & title %%a )
 xcopy ..\Compiled\%1\net60\DX\*.* ..\Compiled\%1\net60\Resources\Binaries /e || echo ERROR && exit /b

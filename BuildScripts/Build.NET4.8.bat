@@ -1,5 +1,7 @@
 @echo off
+set configuration=%2
 if [%1]==[] echo Missing game parameter (YR, TS or Ares) && exit /b
+if [%2]==[] set configuration=Release
 
 for /f "delims=" %%a in ('echo Creating %1 .NET4.8 Folders') do ( echo %%a & title %%a )
 if exist ..\Compiled\%1\net48\ ( rd /s /q ..\Compiled\%1\net48 || echo ERROR && exit /b )
@@ -8,12 +10,12 @@ mkdir ..\Compiled\%1\net48\Resources\Binaries\OpenGL\x64 || echo ERROR && exit /
 mkdir ..\Compiled\%1\net48\Resources\Binaries\OpenGL\x86 || echo ERROR && exit /b
 mkdir ..\Compiled\%1\net48\Resources\Binaries\XNA || echo ERROR && exit /b
 
-for /f "delims=" %%a in ('echo Publishing %1 .NET4.8 DirectX') do ( echo %%a & title %%a )
-dotnet publish ..\DXMainClient\DXMainClient.csproj -c %1DXRelease -o ..\Compiled\%1\net48\DX -f net48 || echo ERROR && exit /b
-for /f "delims=" %%a in ('echo Publishing %1 .NET4.8 OpenGL') do ( echo %%a & title %%a )
-dotnet publish ..\DXMainClient\DXMainClient.csproj -c %1GLRelease -o ..\Compiled\%1\net48\GL -f net48 || echo ERROR && exit /b
-for /f "delims=" %%a in ('echo Publishing %1 .NET4.8 XNA') do ( echo %%a & title %%a )
-dotnet publish ..\DXMainClient\DXMainClient.csproj -c %1XNARelease -o ..\Compiled\%1\net48\XNA -f net48 -p:PlatformTarget=x86 || echo ERROR && exit /b
+for /f "delims=" %%a in ('echo Publish %1DX%configuration% .NET4.8') do ( echo %%a & title %%a )
+dotnet publish ..\DXMainClient\DXMainClient.csproj -c %1DX%configuration% -o ..\Compiled\%1\net48\DX -f net48 || echo ERROR && exit /b
+for /f "delims=" %%a in ('echo Publish %1GL%configuration% .NET4.8') do ( echo %%a & title %%a )
+dotnet publish ..\DXMainClient\DXMainClient.csproj -c %1GL%configuration% -o ..\Compiled\%1\net48\GL -f net48 || echo ERROR && exit /b
+for /f "delims=" %%a in ('echo Publish %1XNA%configuration% .NET4.8') do ( echo %%a & title %%a )
+dotnet publish ..\DXMainClient\DXMainClient.csproj -c %1XNA%configuration% -o ..\Compiled\%1\net48\XNA -f net48 -p:PlatformTarget=x86 || echo ERROR && exit /b
 
 for /f "delims=" %%a in ('echo Structuring %1 .NET4.8 Main Files') do ( echo %%a & title %%a )
 xcopy ..\Compiled\%1\net48\DX\*.* ..\Compiled\%1\net48\Resources\Binaries /e || echo ERROR && exit /b
