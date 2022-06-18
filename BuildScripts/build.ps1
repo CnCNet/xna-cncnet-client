@@ -94,7 +94,7 @@ function Build-Project {
 
   end {
     Get-ChildItem $Script:CompiledPath\$Game\$Private:TargetFrameworkWithoutTFM\Binaries\$Private:SpecialName\DXMainClient.* | ForEach-Object {
-      Copy-Item $_.FullName "$Script:CompiledPath\$Game\$Private:TargetFrameworkWithoutTFM\client$Private:ClientSuffix$($_.Extension)"
+      Copy-ClientBinaries $_ "$Script:CompiledPath\$Game\$Private:TargetFrameworkWithoutTFM" $Private:ClientSuffix
     }
     Copy-CommonLibraries "$Script:CompiledPath\$Game\$Private:TargetFrameworkWithoutTFM\Binaries\$Private:SpecialName\" ($Engine -eq [Engines]::DX)
   }
@@ -111,9 +111,11 @@ function Build-Ares {
   process {
     Build-Project -Configuration $Configuration -Game Ares -Engine DX -TargetFramework net6.0-windows10.0.22000.0
     Build-Project -Configuration $Configuration -Game Ares -Engine GL -TargetFramework net6.0-windows10.0.22000.0
+    Build-Project -Configuration $Configuration -Game Ares -Engine XNA -TargetFramework net6.0-windows10.0.22000.0
 
     Build-Project -Configuration $Configuration -Game Ares -Engine DX -TargetFramework net48
     Build-Project -Configuration $Configuration -Game Ares -Engine GL -TargetFramework net48
+    Build-Project -Configuration $Configuration -Game Ares -Engine XNA -TargetFramework net48
   }
 }
 
@@ -128,9 +130,11 @@ function Build-TS {
   process {
     Build-Project -Configuration $Configuration -Game TS -Engine DX -TargetFramework net6.0-windows10.0.22000.0
     Build-Project -Configuration $Configuration -Game TS -Engine GL -TargetFramework net6.0-windows10.0.22000.0
+    Build-Project -Configuration $Configuration -Game TS -Engine XNA -TargetFramework net6.0-windows10.0.22000.0
 
     Build-Project -Configuration $Configuration -Game TS -Engine DX -TargetFramework net48
     Build-Project -Configuration $Configuration -Game TS -Engine GL -TargetFramework net48
+    Build-Project -Configuration $Configuration -Game TS -Engine XNA -TargetFramework net48
   }
 }
 
@@ -145,9 +149,11 @@ function Build-YR {
   process {
     Build-Project -Configuration $Configuration -Game YR -Engine DX -TargetFramework net6.0-windows10.0.22000.0
     Build-Project -Configuration $Configuration -Game YR -Engine GL -TargetFramework net6.0-windows10.0.22000.0
+    Build-Project -Configuration $Configuration -Game YR -Engine XNA -TargetFramework net6.0-windows10.0.22000.0
 
     Build-Project -Configuration $Configuration -Game YR -Engine DX -TargetFramework net48
     Build-Project -Configuration $Configuration -Game YR -Engine GL -TargetFramework net48
+    Build-Project -Configuration $Configuration -Game YR -Engine XNA -TargetFramework net48
   }
 }
 
@@ -160,6 +166,7 @@ function Build-All {
   )
 
   process {
+    Clear-Compiled
     Build-Ares $Configuration
     Build-TS $Configuration
     Build-YR $Configuration
@@ -194,4 +201,39 @@ function Copy-CommonLibraries {
     }
   }
 
+}
+
+function Copy-ClientBinaries {
+  [CmdletBinding()]
+  param (
+    [Parameter(Mandatory)]
+    [System.IO.FileInfo]
+    $File,
+    [Parameter(Mandatory)]
+    [string]
+    $Target,
+    [Parameter(Mandatory)]
+    [string]
+    $ClientSuffix
+  )
+
+  begin {
+    $Private:FirstDotIndex = $File.Name.IndexOf('.')
+    $Private:Extension = $File.Name.Substring($Private:FirstDotIndex)
+  }
+
+  process {
+    Copy-Item $File.FullName "$Target\client$ClientSuffix$Extension"
+  }
+}
+function Clear-Compiled {
+  [CmdletBinding()]
+  param (
+  )
+
+  process {
+    if (Test-Path $Script:CompiledPath) {
+      Remove-Item $Script:CompiledPath -Recurse -Force
+    }
+  }
 }

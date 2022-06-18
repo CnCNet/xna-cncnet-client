@@ -9,6 +9,8 @@
     <!-- <Configurations>Debug;Release</Configurations> -->
     <OutputPath>$(BaseOutputPath)bin\$(Configuration)\$(Engine)\</OutputPath>
     <IntermediateOutputPath>$(BaseIntermediateOutputPath)obj\$(Configuration)\$(Engine)\</IntermediateOutputPath>
+
+    <PlatformTarget Condition="'$(Engine)' == 'XNA'">x86</PlatformTarget>
   </PropertyGroup>
 
   <PropertyGroup>
