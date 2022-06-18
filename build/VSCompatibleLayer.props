@@ -1,0 +1,16 @@
+<Project>
+  <PropertyGroup>
+    <Platforms>AresDX;AresGL;AresXNA;TSDX;TSGL;TSXNA;YRDX;YRGL;YRXNA</Platforms>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <Engine Condition="'$(Platform.Contains(DX))' == 'True'">DX</Engine>
+    <Engine Condition="'$(Platform.Contains(GL))' == 'True'">GL</Engine>
+    <Engine Condition="'$(Platform.Contains(XNA))' == 'True'">XNA</Engine>
+
+    <Game Condition="'$(Platform.Contains(Ares))' == 'True'">Ares</Game>
+    <Game Condition="'$(Platform.Contains(TS))' == 'True'">TS</Game>
+    <Game Condition="'$(Platform.Contains(YR))' == 'True'">YR</Game>
+  </PropertyGroup>
+
+</Project>

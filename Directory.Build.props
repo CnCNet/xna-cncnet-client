@@ -12,10 +12,13 @@
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
   </PropertyGroup>
 
+  <Import Project="$(MSBuildThisFileDirectory)build\VSCompatibleLayer.props" Condition="'$(BuildingInsideVisualStudio)' == 'True'" />
+
   <Import Project="$(MSBuildThisFileDirectory)build\Framework.props" />
 
   <Target Name="ShowBuildInfo" BeforeTargets="CoreCompile">
-    <Message Importance="high" Text="Engine: $(Engine); Game: $(Game); TargetFramework: $(TargetFramework)"/>
+    <Message Importance="high" Text="Engine: $(Engine); Game: $(Game);" />
+    <Message Importance="high" Text="Platform: $(Platform); TargetFramework: $(TargetFramework);" />
   </Target>
 
   <ItemGroup>
