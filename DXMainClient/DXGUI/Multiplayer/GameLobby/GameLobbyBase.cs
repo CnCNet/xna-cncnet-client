@@ -363,14 +363,15 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         private Func<List<GameModeMap>> GetGameModeMaps(GameMode gm) => () =>
             GameModeMaps.Where(gmm => gmm.GameMode == gm).ToList();
 
-        private void RefreshBthPlayerExtraOptionsOpenTexture()
+        private void RefreshBtnPlayerExtraOptionsOpenTexture()
         {
             if (btnPlayerExtraOptionsOpen != null)
             {
-                var texture = GetPlayerExtraOptions().IsDefault() ? "optionsButton.png" : "optionsButtonActive.png";
-                var hoverTexture = GetPlayerExtraOptions().IsDefault() ? "optionsButton_c.png" : "optionsButtonActive_c.png";
-                btnPlayerExtraOptionsOpen.IdleTexture = AssetLoader.LoadTexture(texture);
-                btnPlayerExtraOptionsOpen.HoverTexture = AssetLoader.LoadTexture(hoverTexture);
+                var textureName = GetPlayerExtraOptions().IsDefault() ? "optionsButton.png" : "optionsButtonActive.png";
+                var hoverTextureName = GetPlayerExtraOptions().IsDefault() ? "optionsButton_c.png" : "optionsButtonActive_c.png";
+                var hoverTexture = AssetLoader.AssetExists(hoverTextureName) ? AssetLoader.LoadTexture(hoverTextureName) : null;
+                btnPlayerExtraOptionsOpen.IdleTexture = AssetLoader.LoadTexture(textureName);
+                btnPlayerExtraOptionsOpen.HoverTexture = hoverTexture;
             }
         }
 
@@ -889,7 +890,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 EnablePlayerOptionDropDown(ddPlayerStarts[i], i, !playerExtraOptions.IsForceRandomStarts);
 
             UpdateMapPreviewBoxEnabledStatus();
-            RefreshBthPlayerExtraOptionsOpenTexture();
+            RefreshBtnPlayerExtraOptionsOpenTexture();
         }
 
         private void EnablePlayerOptionDropDown(XNAClientDropDown clientDropDown, int playerIndex, bool enable)
