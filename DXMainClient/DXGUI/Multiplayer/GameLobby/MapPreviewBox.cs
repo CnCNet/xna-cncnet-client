@@ -207,13 +207,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             btnToggleFavoriteMap = new XNAClientButton(WindowManager);
             btnToggleFavoriteMap.IdleTexture = AssetLoader.LoadTexture("favInactive.png");
-            btnToggleFavoriteMap.HoverTexture = AssetLoader.LoadTexture("favInactive.png");
             btnToggleFavoriteMap.LeftClick += (sender, args) => ToggleFavorite?.Invoke(sender, args);
             btnToggleFavoriteMap.SetToolTipText("Toggle Favorite Map".L10N("UI:Main:ToggleFavoriteMap"));
 
             btnToggleExtraTextures = new XNAClientButton(WindowManager);
             btnToggleExtraTextures.IdleTexture = AssetLoader.LoadTexture("pvTexturesActive.png");
-            btnToggleExtraTextures.HoverTexture = AssetLoader.LoadTexture("pvTexturesActive.png");
             btnToggleExtraTextures.LeftClick += (sender, args) => ToggleExtraTextures();
             btnToggleExtraTextures.SetToolTipText("Toggle Extra Icons".L10N("UI:Main:ToggleExtraIcons"));
             btnToggleExtraTextures.Disable();
@@ -513,17 +511,22 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         public void RefreshFavoriteBtn()
         {
-            var asset = UserINISettings.Instance.IsFavoriteMap(GameModeMap?.Map.Name, GameModeMap?.GameMode.Name) ? "favActive.png" : "favInactive.png";
-            btnToggleFavoriteMap.IdleTexture = AssetLoader.LoadTexture(asset);
-            btnToggleFavoriteMap.HoverTexture = AssetLoader.LoadTexture(asset);
+            bool isFav = UserINISettings.Instance.IsFavoriteMap(GameModeMap?.Map.Name, GameModeMap?.GameMode.Name);
+            var textureName = isFav ? "favActive.png" : "favInactive.png";
+            var hoverTextureName = isFav ? "favActive_c.png" : "favInactive_c.png";
+            var hoverTexture = AssetLoader.AssetExists(hoverTextureName) ? AssetLoader.LoadTexture(hoverTextureName) : null;
+            btnToggleFavoriteMap.IdleTexture = AssetLoader.LoadTexture(textureName);
+            btnToggleFavoriteMap.HoverTexture = hoverTexture;
         }
 
 
         public void RefreshExtraTexturesBtn()
         {
-            var asset = UserINISettings.Instance.DisplayToggleableExtraTextures ? "pvTexturesActive.png" : "pvTexturesInactive.png";
-            btnToggleExtraTextures.IdleTexture = AssetLoader.LoadTexture(asset);
-            btnToggleExtraTextures.HoverTexture = AssetLoader.LoadTexture(asset);
+            var textureName = UserINISettings.Instance.DisplayToggleableExtraTextures ? "pvTexturesActive.png" : "pvTexturesInactive.png";
+            var hoverTextureName = UserINISettings.Instance.DisplayToggleableExtraTextures ? "pvTexturesActive_c.png" : "pvTexturesInactive_c.png";
+            var hoverTexture = AssetLoader.AssetExists(hoverTextureName) ? AssetLoader.LoadTexture(hoverTextureName) : null;
+            btnToggleExtraTextures.IdleTexture = AssetLoader.LoadTexture(textureName);
+            btnToggleExtraTextures.HoverTexture = hoverTexture;
         }
 
         private Point PreviewTexturePointToControlAreaPoint(Point previewTexturePoint, double scaleRatio)
