@@ -1,5 +1,5 @@
 ﻿using ClientGUI;
-using DTAConfig.CustomSettings;
+using DTAConfig.Settings;
 
 namespace DTAConfig
 {
@@ -11,9 +11,10 @@ namespace DTAConfig
     {
         public OptionsGUICreator()
         {
+            AddControl(typeof(SettingCheckBox));
+            AddControl(typeof(SettingDropDown));
             AddControl(typeof(FileSettingCheckBox));
-            AddControl(typeof(CustomSettingFileCheckBox));
-            AddControl(typeof(CustomSettingFileDropDown));
+            AddControl(typeof(FileSettingDropDown));
         }
     }
 }
