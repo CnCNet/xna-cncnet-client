@@ -1,8 +1,5 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFrameworks>net48;net6.0-windows10.0.22000.0</TargetFrameworks>
-    <TargetPlatformMinVersion>7.0</TargetPlatformMinVersion>
-    <UseWindowsForms>true</UseWindowsForms>
     <Title>CnCNet Client</Title>
     <Description>CnCNet Config Library</Description>
     <Company>CnCNet</Company>
@@ -14,32 +11,10 @@
     <InformationalVersion>2.2.0.0</InformationalVersion>
     <AssemblyName>DTAConfig</AssemblyName>
     <RootNamespace>DTAConfig</RootNamespace>
-    <ComVisible>false</ComVisible>
-    <CLSCompliant>false</CLSCompliant>
-    <AnalysisLevel>preview-all</AnalysisLevel>
-    <LangVersion>preview</LangVersion>
-    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
-    <Platforms>AnyCPU;x64;ARM64;x86</Platforms>
-    <Configurations>AresDXDebug;AresGLDebug;AresXNADebug;AresDXRelease;AresGLRelease;AresXNARelease;TSDXDebug;TSGLDebug;TSXNADebug;TSDXRelease;TSGLRelease;TSXNARelease;YRDXDebug;YRGLDebug;YRXNADebug;YRDXRelease;YRGLRelease;YRXNARelease</Configurations>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)' == 'AresDXDebug' Or '$(Configuration)' == 'AresGLDebug' Or '$(Configuration)' == 'AresXNADebug' Or '$(Configuration)' == 'TSDXDebug' Or '$(Configuration)' == 'TSGLDebug' Or '$(Configuration)' == 'TSXNADebug' Or '$(Configuration)' == 'YRDXDebug' Or '$(Configuration)' == 'YRGLDebug' Or '$(Configuration)' == 'YRXNADebug'">
-    <DefineConstants>$(DefineConstants);DEBUG</DefineConstants>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)' == 'YRDXDebug' Or '$(Configuration)' == 'YRGLDebug' Or '$(Configuration)' == 'YRXNADebug' Or '$(Configuration)' == 'YRDXRelease' Or '$(Configuration)' == 'YRGLRelease' Or '$(Configuration)' == 'YRXNARelease'">
-    <DefineConstants>$(DefineConstants);YR</DefineConstants>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)' == 'TSDXDebug' Or '$(Configuration)' == 'TSGLDebug' Or '$(Configuration)' == 'TSXNADebug' Or '$(Configuration)' == 'TSDXRelease' Or '$(Configuration)' == 'TSGLRelease' Or '$(Configuration)' == 'TSXNARelease'">
-    <DefineConstants>$(DefineConstants);TS</DefineConstants>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)' == 'AresDXDebug' Or '$(Configuration)' == 'AresGLDebug' Or '$(Configuration)' == 'AresXNADebug' Or '$(Configuration)' == 'AresDXRelease' Or '$(Configuration)' == 'AresGLRelease' Or '$(Configuration)' == 'AresXNARelease'">
-    <DefineConstants>$(DefineConstants);ARES</DefineConstants>
-  </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="ClientUpdater" Version="1.0.0.1" />
-    <PackageReference Include="StyleCop.Analyzers" Version="1.2.0-beta.435">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\ClientGUI\ClientGUI.csproj" />

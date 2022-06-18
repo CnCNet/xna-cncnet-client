@@ -1,0 +1,28 @@
+<Project>
+
+  <PropertyGroup>
+    <TargetFrameworks>net48;net6.0-windows10.0.22000.0</TargetFrameworks>
+    <TargetPlatformMinVersion>7.0</TargetPlatformMinVersion>
+    <UseWindowsForms>true</UseWindowsForms>
+    <ComVisible>false</ComVisible>
+    <CLSCompliant>false</CLSCompliant>
+    <Platforms>AnyCPU;x64;ARM64;x86</Platforms>
+    <AnalysisLevel>preview-all</AnalysisLevel>
+    <LangVersion>preview</LangVersion>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+  </PropertyGroup>
+
+  <Import Project="$(MSBuildThisFileDirectory)build\Framework.props" />
+
+  <Target Name="ShowBuildInfo" BeforeTargets="CoreCompile">
+    <Message Importance="high" Text="Engine: $(Engine); Game: $(Game); TargetFramework: $(TargetFramework)"/>
+  </Target>
+
+  <ItemGroup>
+    <PackageReference Include="StyleCop.Analyzers" Version="1.2.0-beta.435">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+</Project>

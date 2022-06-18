@@ -1,7 +1,5 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFrameworks>net48;net6.0-windows10.0.22000.0</TargetFrameworks>
-    <TargetPlatformMinVersion>7.0</TargetPlatformMinVersion>
     <Title>CnCNet Client</Title>
     <Description>CnCNet Localization Library</Description>
     <Company>CnCNet</Company>
@@ -13,22 +11,8 @@
     <InformationalVersion>1.0.0.0</InformationalVersion>
     <AssemblyName>Localization</AssemblyName>
     <RootNamespace>Localization</RootNamespace>
-    <ComVisible>false</ComVisible>
-    <CLSCompliant>false</CLSCompliant>
-    <AnalysisLevel>preview-all</AnalysisLevel>
-    <LangVersion>preview</LangVersion>
-    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
-    <Platforms>AnyCPU;x64;ARM64;x86</Platforms>
-    <Configurations>AresDXDebug;AresGLDebug;AresXNADebug;AresDXRelease;AresGLRelease;AresXNARelease;TSDXDebug;TSGLDebug;TSXNADebug;TSDXRelease;TSGLRelease;TSXNARelease;YRDXDebug;YRGLDebug;YRXNADebug;YRDXRelease;YRGLRelease;YRXNARelease</Configurations>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)' == 'AresDXDebug' Or '$(Configuration)' == 'AresGLDebug' Or '$(Configuration)' == 'AresXNADebug' Or '$(Configuration)' == 'TSDXDebug' Or '$(Configuration)' == 'TSGLDebug' Or '$(Configuration)' == 'TSXNADebug' Or '$(Configuration)' == 'YRDXDebug' Or '$(Configuration)' == 'YRGLDebug' Or '$(Configuration)' == 'YRXNADebug'">
-    <DefineConstants>$(DefineConstants);DEBUG</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Rampastring.Tools" Version="1.1.0" />
-    <PackageReference Include="StyleCop.Analyzers" Version="1.2.0-beta.435">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
   </ItemGroup>
 </Project>

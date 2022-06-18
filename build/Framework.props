@@ -1,0 +1,36 @@
+<Project>
+
+  <PropertyGroup>
+    <Engines>DX;GL;XNA</Engines>
+    <Games>Ares;TS;YR</Games>
+    <Engine Condition="'$(Engine)' == ''">DX</Engine>
+    <Game Condition="'$(Game)' == ''">Ares</Game>
+    <!-- Make it default -->
+    <!-- <Configurations>Debug;Release</Configurations> -->
+    <OutputPath>$(BaseOutputPath)bin\$(Configuration)\$(Engine)\</OutputPath>
+    <IntermediateOutputPath>$(BaseIntermediateOutputPath)obj\$(Configuration)\$(Engine)\</IntermediateOutputPath>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <DefineConstants Condition="'$(Configuration)' == 'Debug'">$(DefineConstants);DEBUG</DefineConstants>
+
+    <!-- Engines -->
+    <DefineConstants Condition="'$(Engine)' == 'DX'">$(DefineConstants);WINDOWSDX</DefineConstants>
+    <DefineConstants Condition="'$(Engine)' == 'OGL'">$(DefineConstants);WINDOWSGL</DefineConstants>
+    <DefineConstants Condition="'$(Engine)' == 'XNA'">$(DefineConstants);XNA</DefineConstants>
+
+    <!-- Games-->
+    <DefineConstants Condition="'$(Game)' == 'Ares'">$(DefineConstants);ARES</DefineConstants>
+    <DefineConstants Condition="'$(Game)' == 'TS'">$(DefineConstants);TS</DefineConstants>
+    <DefineConstants Condition="'$(Game)' == 'YR'">$(DefineConstants);YR</DefineConstants>
+  </PropertyGroup>
+
+  <Target Name="CheckEngineAndGame" BeforeTargets="CoreCompile">
+    <Error Text="Engine are not set! Please retry with /p:Engine={Engine}. Supported Engines is $(Engines)." Condition=" '$(Engine)' == '' " />
+    <Error Text="Engine '$(Engine)' are not support. Supported Engines is $(Engines)." Condition=" '!$(Engines.Contains($(Engine)))' " />
+
+    <Error Text="Game are not set! Please retry with /p:Game={Game}. Supported Games is $(Games)." Condition=" '$(Game)' == '' " />
+    <Error Text="Game '$(Game)' are not support. Supported Games is $(Games)." Condition=" '!$(Games.Contains($(Game)))' " />
+  </Target>
+
+</Project>

@@ -1,8 +1,5 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFrameworks>net48;net6.0-windows10.0.22000.0</TargetFrameworks>
-    <TargetPlatformMinVersion>7.0</TargetPlatformMinVersion>
-    <UseWindowsForms>true</UseWindowsForms>
     <Title>CnCNet Client</Title>
     <Description>CnCNet Client Core Library</Description>
     <Company>CnCNet</Company>
@@ -14,58 +11,16 @@
     <InformationalVersion>2.0.0.3</InformationalVersion>
     <AssemblyName>ClientCore</AssemblyName>
     <RootNamespace>ClientCore</RootNamespace>
-    <ComVisible>false</ComVisible>
-    <CLSCompliant>false</CLSCompliant>
-    <AnalysisLevel>preview-all</AnalysisLevel>
-    <LangVersion>preview</LangVersion>
-    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
-    <Platforms>AnyCPU;x64;ARM64;x86</Platforms>
     <GenerateResourceUsePreserializedResources>true</GenerateResourceUsePreserializedResources>
-    <Configurations>AresDXDebug;AresGLDebug;AresXNADebug;AresDXRelease;AresGLRelease;AresXNARelease;TSDXDebug;TSGLDebug;TSXNADebug;TSDXRelease;TSGLRelease;TSXNARelease;YRDXDebug;YRGLDebug;YRXNADebug;YRDXRelease;YRGLRelease;YRXNARelease</Configurations>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)' == 'AresDXDebug' Or '$(Configuration)' == 'AresGLDebug' Or '$(Configuration)' == 'AresXNADebug' Or '$(Configuration)' == 'TSDXDebug' Or '$(Configuration)' == 'TSGLDebug' Or '$(Configuration)' == 'TSXNADebug' Or '$(Configuration)' == 'YRDXDebug' Or '$(Configuration)' == 'YRGLDebug' Or '$(Configuration)' == 'YRXNADebug'">
-    <DefineConstants>$(DefineConstants);DEBUG</DefineConstants>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)' == 'YRDXDebug' Or '$(Configuration)' == 'YRGLDebug' Or '$(Configuration)' == 'YRXNADebug' Or '$(Configuration)' == 'YRDXRelease' Or '$(Configuration)' == 'YRGLRelease' Or '$(Configuration)' == 'YRXNARelease'">
-    <DefineConstants>$(DefineConstants);YR</DefineConstants>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)' == 'AresDXDebug' Or '$(Configuration)' == 'AresGLDebug' Or '$(Configuration)' == 'AresXNADebug' Or '$(Configuration)' == 'AresDXRelease' Or '$(Configuration)' == 'AresGLRelease' Or '$(Configuration)' == 'AresXNARelease'">
-    <DefineConstants>$(DefineConstants);ARES</DefineConstants>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)' == 'AresDXDebug' Or '$(Configuration)' == 'AresDXRelease' Or '$(Configuration)' == 'TSDXDebug' Or '$(Configuration)' == 'TSDXRelease' Or '$(Configuration)' == 'YRDXDebug' Or '$(Configuration)' == 'YRDXRelease'">
-    <DefineConstants>$(DefineConstants);WINDOWSDX</DefineConstants>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)' == 'AresGLDebug' Or '$(Configuration)' == 'AresGLRelease' Or '$(Configuration)' == 'TSGLDebug' Or '$(Configuration)' == 'TSGLRelease' Or '$(Configuration)' == 'YRGLDebug' Or '$(Configuration)' == 'YRGLRelease'">
-    <DefineConstants>$(DefineConstants);WINDOWSGL</DefineConstants>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)' == 'AresXNADebug' Or '$(Configuration)' == 'AresXNARelease' Or '$(Configuration)' == 'TSXNADebug' Or '$(Configuration)' == 'TSXNARelease' Or '$(Configuration)' == 'YRXNADebug' Or '$(Configuration)' == 'YRXNARelease'">
-    <DefineConstants>$(DefineConstants);XNA</DefineConstants>
-  </PropertyGroup>
+
   <!--Switching between Configurations within VS IDE requires reloading the project file-->
-  <ItemGroup Condition="$(DefineConstants.Contains('WINDOWSDX')) And !$(DefineConstants.Contains('DEBUG'))">
-    <PackageReference Include="Rampastring.XNAUI.DX" Version="2.1.0" />
-  </ItemGroup>
-  <ItemGroup Condition="$(DefineConstants.Contains('WINDOWSDX')) And $(DefineConstants.Contains('DEBUG'))">
-    <PackageReference Include="Rampastring.XNAUI.DX.Debug" Version="2.1.0" />
-  </ItemGroup>
-  <ItemGroup Condition="$(DefineConstants.Contains('WINDOWSGL')) And !$(DefineConstants.Contains('DEBUG'))">
-    <PackageReference Include="Rampastring.XNAUI.GL" Version="2.1.0" />
-  </ItemGroup>
-  <ItemGroup Condition="$(DefineConstants.Contains('WINDOWSGL')) And $(DefineConstants.Contains('DEBUG'))">
-    <PackageReference Include="Rampastring.XNAUI.GL.Debug" Version="2.1.0" />
-  </ItemGroup>
-  <ItemGroup Condition="$(DefineConstants.Contains('XNA')) And !$(DefineConstants.Contains('DEBUG'))">
-    <PackageReference Include="Rampastring.XNAUI.XNA" Version="2.1.0" />
-  </ItemGroup>
-  <ItemGroup Condition="$(DefineConstants.Contains('XNA')) And $(DefineConstants.Contains('DEBUG'))">
-    <PackageReference Include="Rampastring.XNAUI.XNA.Debug" Version="2.1.0" />
+  <ItemGroup>
+    <PackageReference Include="Rampastring.XNAUI.$(Engine)" Version="2.1.0" Condition="'$(Configuration)' != 'Debug'" />
+    <PackageReference Include="Rampastring.XNAUI.$(Engine).Debug" Version="2.1.0" Condition="'$(Configuration)' == 'Debug'"/>
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="System.Resources.Extensions" Version="6.0.0" />
-    <PackageReference Include="StyleCop.Analyzers" Version="1.2.0-beta.435">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Localization\Localization.csproj" />
