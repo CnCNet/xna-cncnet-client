@@ -501,7 +501,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 buttonX = btnToggleExtraTextures.X;
             }
             else
+            {
                 btnToggleExtraTextures.Disable();
+            }
 
             btnToggleFavoriteMap.ClientRectangle = new Rectangle(buttonX - 22, 4, 18, 18);
 
