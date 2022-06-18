@@ -69,6 +69,7 @@ namespace ClientCore
             ClientResolutionY = new IntSetting(iniFile, VIDEO, "ClientResolutionY", Screen.PrimaryScreen.Bounds.Height);
             BorderlessWindowedClient = new BoolSetting(iniFile, VIDEO, "BorderlessWindowedClient", true);
             ClientFPS = new IntSetting(iniFile, VIDEO, "ClientFPS", 60);
+            DisplayToggleableExtraTextures = new BoolSetting(iniFile, VIDEO, "DisplayToggleableExtraTextures", true);
 
             ScoreVolume = new DoubleSetting(iniFile, AUDIO, "ScoreVolume", 0.7);
             SoundVolume = new DoubleSetting(iniFile, AUDIO, "SoundVolume", 0.7);
@@ -146,6 +147,7 @@ namespace ClientCore
         public IntSetting ClientResolutionY { get; private set; }
         public BoolSetting BorderlessWindowedClient { get; private set; }
         public IntSetting ClientFPS { get; private set; }
+        public BoolSetting DisplayToggleableExtraTextures { get; private set; }
 
         /*********/
         /* AUDIO */

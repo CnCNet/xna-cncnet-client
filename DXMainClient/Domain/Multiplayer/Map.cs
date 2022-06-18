@@ -18,12 +18,14 @@ namespace DTAClient.Domain.Multiplayer
         public string TextureName;
         public Point Point;
         public int Level;
+        public bool Toggleable;
 
-        public ExtraMapPreviewTexture(string textureName, Point point, int level)
+        public ExtraMapPreviewTexture(string textureName, Point point, int level, bool toggleable)
         {
             TextureName = textureName;
             Point = point;
             Level = level;
+            Toggleable = toggleable;
         }
     }
 
@@ -280,9 +282,9 @@ namespace DTAClient.Domain.Multiplayer
                 while (true)
                 {
                     // Format example:
-                    // ExtraTexture0=oilderrick.png,200,150,1
-                    // Last value is map cell level and is optional, defaults to 0 if unspecified.
-
+                    // ExtraTexture0=oilderrick.png,200,150,1,false
+                    // Third value is optional map cell level, defaults to 0 if unspecified.
+                    // Fourth value is optional boolean value that determines if the texture can be toggled on / off.
                     string value = section.GetStringValue("ExtraTexture" + i, null);
 
                     if (string.IsNullOrWhiteSpace(value))
@@ -290,7 +292,7 @@ namespace DTAClient.Domain.Multiplayer
 
                     string[] parts = value.Split(',');
 
-                    if (parts.Length < 3 || parts.Length > 4)
+                    if (parts.Length < 3 || parts.Length > 5)
                     {
                         Logger.Log($"Invalid format for ExtraTexture{i} in map " + BaseFilePath);
                         continue;
@@ -300,11 +302,15 @@ namespace DTAClient.Domain.Multiplayer
                     success &= int.TryParse(parts[2], NumberStyles.Integer, CultureInfo.InvariantCulture, out int y);
 
                     int level = 0;
+                    bool toggleable = false;
 
                     if (parts.Length > 3)
                         int.TryParse(parts[3], NumberStyles.Integer, CultureInfo.InvariantCulture, out level);
 
-                    extraTextures.Add(new ExtraMapPreviewTexture(parts[0], new Point(x, y), level));
+                    if (parts.Length > 4)
+                        toggleable = Conversions.BooleanFromString(parts[4], false);
+
+                    extraTextures.Add(new ExtraMapPreviewTexture(parts[0], new Point(x, y), level, toggleable));
 
                     i++;
                 }
