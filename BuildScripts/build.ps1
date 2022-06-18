@@ -195,7 +195,13 @@ function Copy-CommonLibraries {
     else {
       Get-ChildItem $path | ForEach-Object {
         if ($CommonLibraries.Contains([System.IO.Path]::GetFileNameWithoutExtension($_))) {
-          Move-Item $_ $path\..
+          $_1 = $_
+          try {
+            Move-Item $_ $path\..
+          }
+          catch {
+            Write-Warning "Failed to move $_1 to $path. ($_)"
+          }
         }
       }
     }
