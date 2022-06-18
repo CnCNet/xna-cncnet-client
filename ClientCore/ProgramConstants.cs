@@ -3,9 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Windows.Forms;
-#if !DEBUG
-using System.IO;
-#endif
+using Rampastring.Tools;
 
 namespace ClientCore
 {
@@ -16,16 +14,16 @@ namespace ClientCore
     {
         /* For .NET 6 Release mode we split up the DXMainClient dll from the AppHost executable.
          * The AppHost is located in the root, as is the case for the .NET 4.8 executables.
-         * The actual DXMainClient dll is 2 directories up in Application.StartupPath\Binaries\<WindowsGL,OpenGL,XNA> */
+         * The actual DXMainClient dll is 2 directories up in Application.StartupPath\Binaries\<WindowsGL,OpenGL,XNA>\ */
 #if DEBUG
-        public static readonly string GamePath = Application.StartupPath.Replace('\\', '/') + "/";
+        public static readonly string GamePath = SafePath.CombineDirectoryPath(SafePath.GetDirectory(Application.StartupPath).FullName);
 #elif NETFRAMEWORK
-        public static readonly string GamePath = Directory.GetParent(Application.StartupPath.TrimEnd(new char[] { '\\' })).FullName.Replace('\\', '/') + "/";
+        public static readonly string GamePath = SafePath.CombineDirectoryPath(SafePath.GetDirectory(Application.StartupPath).Parent.FullName);
 #else
-        public static readonly string GamePath = Directory.GetParent(Path.GetFullPath(Path.Combine(Application.StartupPath, "..\\..\\")).TrimEnd(new char[] { '\\' })).FullName.Replace('\\', '/') + "/";
+        public static readonly string GamePath = SafePath.CombineDirectoryPath(SafePath.GetDirectory(Application.StartupPath).Parent.Parent.Parent.FullName);
 #endif
 
-        public static string ClientUserFilesPath => GamePath + "Client/";
+        public static string ClientUserFilesPath => SafePath.CombineDirectoryPath(GamePath, "Client");
 
         public static event EventHandler PlayerNameChanged;
 
@@ -63,7 +61,7 @@ namespace ClientCore
             }
         }
 
-        public static string BASE_RESOURCE_PATH = "Resources/";
+        public static string BASE_RESOURCE_PATH = "Resources";
         public static string RESOURCES_DIR = BASE_RESOURCE_PATH;
 
         public static int LOG_LEVEL = 1;
@@ -72,12 +70,12 @@ namespace ClientCore
 
         public static string GetResourcePath()
         {
-            return GamePath + RESOURCES_DIR;
+            return SafePath.CombineDirectoryPath(GamePath, RESOURCES_DIR);
         }
 
         public static string GetBaseResourcePath()
         {
-            return GamePath + BASE_RESOURCE_PATH;
+            return SafePath.CombineDirectoryPath(GamePath, BASE_RESOURCE_PATH);
         }
 
         public const string GAME_INVITE_CTCP_COMMAND = "INVITE";

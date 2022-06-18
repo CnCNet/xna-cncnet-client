@@ -153,7 +153,7 @@ namespace ClientCore.CnCNet5
 
         private List<CnCNetGame> GetCustomGames(List<CnCNetGame> existingGames)
         {
-            IniFile iniFile = new IniFile(ProgramConstants.GetBaseResourcePath() + "GameCollectionConfig.ini");
+            IniFile iniFile = new IniFile(SafePath.CombineFilePath(ProgramConstants.GetBaseResourcePath(), "GameCollectionConfig.ini"));
 
             List<CnCNetGame> customGames = new List<CnCNetGame>();
 

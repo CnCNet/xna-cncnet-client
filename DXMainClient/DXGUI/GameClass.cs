@@ -45,8 +45,8 @@ namespace DTAClient.DXGUI
 
             base.Initialize();
 
-            string primaryNativeCursorPath = ProgramConstants.GetResourcePath() + "cursor.cur";
-            string alternativeNativeCursorPath = ProgramConstants.GetBaseResourcePath() + "cursor.cur";
+            FileInfo primaryNativeCursorPath = SafePath.GetFile(ProgramConstants.GetResourcePath(), "cursor.cur");
+            FileInfo alternativeNativeCursorPath = SafePath.GetFile(ProgramConstants.GetBaseResourcePath(), "cursor.cur");
 
             AssetLoader.Initialize(GraphicsDevice, content);
             AssetLoader.AssetSearchPaths.Add(ProgramConstants.GetResourcePath());
@@ -69,14 +69,15 @@ namespace DTAClient.DXGUI
                 {
                     Logger.Log("Creating texture on startup failed! Creating .dxfail file and re-launching client launcher.");
 
-                    if (!Directory.Exists(ProgramConstants.GamePath + "Client"))
-                        Directory.CreateDirectory(ProgramConstants.GamePath + "Client");
+                    DirectoryInfo clientDirectory = SafePath.GetDirectory(ProgramConstants.GamePath, "Client");
+
+                    if (!clientDirectory.Exists)
+                        clientDirectory.Create();
 
                     // Create .dxfail file that the launcher can check for this error
                     // and handle it by redirecting the user to the XNA version instead
 
-                    File.WriteAllBytes(ProgramConstants.GamePath + "Client" + Path.DirectorySeparatorChar + ".dxfail",
-                        new byte[] { 1 });
+                    File.WriteAllBytes(SafePath.CombineFilePath(clientDirectory.FullName, ".dxfail"), new byte[] { 1 });
 
                     string launcherExe = ClientConfiguration.Instance.LauncherExe;
                     if (string.IsNullOrEmpty(launcherExe))
@@ -93,7 +94,7 @@ namespace DTAClient.DXGUI
                     {
                         Logger.Log("Starting " + launcherExe + " and exiting.");
 
-                        Process.Start(ProgramConstants.GamePath + launcherExe);
+                        Process.Start(SafePath.CombineFilePath(ProgramConstants.GamePath, launcherExe));
                         Environment.Exit(0);
                     }
                 }
@@ -107,7 +108,7 @@ namespace DTAClient.DXGUI
 
             SetGraphicsMode(wm);
 
-            wm.SetIcon(ProgramConstants.GetBaseResourcePath() + "clienticon.ico");
+            wm.SetIcon(SafePath.CombineFilePath(ProgramConstants.GetBaseResourcePath(), "clienticon.ico"));
 
             wm.SetControlBox(true);
 
@@ -117,15 +118,15 @@ namespace DTAClient.DXGUI
                 AssetLoader.LoadTexture("waitCursor.png")
             };
 
-            if (File.Exists(primaryNativeCursorPath))
-                wm.Cursor.LoadNativeCursor(primaryNativeCursorPath);
-            else if (File.Exists(alternativeNativeCursorPath))
-                wm.Cursor.LoadNativeCursor(alternativeNativeCursorPath);
+            if (primaryNativeCursorPath.Exists)
+                wm.Cursor.LoadNativeCursor(primaryNativeCursorPath.FullName);
+            else if (alternativeNativeCursorPath.Exists)
+                wm.Cursor.LoadNativeCursor(alternativeNativeCursorPath.FullName);
 
             Components.Add(wm);
 
             string playerName = UserINISettings.Instance.PlayerName.Value.Trim();
-            
+
             if (UserINISettings.Instance.AutoRemoveUnderscoresFromName)
             {
                 while (playerName.EndsWith("_"))
@@ -164,10 +165,10 @@ namespace DTAClient.DXGUI
             settings.BackgroundColor = AssetLoader.GetColorFromString(ClientConfiguration.Instance.AltUIBackgroundColor);
             settings.FocusColor = AssetLoader.GetColorFromString(ClientConfiguration.Instance.ListBoxFocusColor);
             settings.DisabledItemColor = AssetLoader.GetColorFromString(ClientConfiguration.Instance.DisabledButtonColor);
-            
+
             settings.DefaultAlphaRate = ClientConfiguration.Instance.DefaultAlphaRate;
             settings.CheckBoxAlphaRate = ClientConfiguration.Instance.CheckBoxAlphaRate;
-            
+
             settings.CheckBoxClearTexture = AssetLoader.LoadTexture("checkBoxClear.png");
             settings.CheckBoxCheckedTexture = AssetLoader.LoadTexture("checkBoxChecked.png");
             settings.CheckBoxDisabledClearTexture = AssetLoader.LoadTexture("checkBoxClearD.png");

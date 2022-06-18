@@ -37,7 +37,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
     {
         private const int MAX_STARTING_LOCATIONS = 8;
 
-        public delegate void LocalStartingLocationSelectedEventHandler(object sender, 
+        public delegate void LocalStartingLocationSelectedEventHandler(object sender,
             LocalStartingLocationEventArgs e);
 
         public event EventHandler<LocalStartingLocationEventArgs> LocalStartingLocationSelected;
@@ -346,7 +346,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             int index = 0;
             foreach (PlayerInfo pInfo in players.Concat(aiPlayers))
             {
-                contextMenu.Items[index].Selectable = pInfo.StartingLocation != (int)indicator.Tag + 1 && 
+                contextMenu.Items[index].Selectable = pInfo.StartingLocation != (int)indicator.Tag + 1 &&
                     pInfo.SideId < sides.Length + RandomSelectorCount;
                 index++;
             }
@@ -368,7 +368,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 }
 
                 return;
-            }       
+            }
 
             foreach (PlayerInfo pInfo in players.Union(aiPlayers))
             {
@@ -623,8 +623,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             if (Keyboard.IsKeyHeldDown(Keys.LeftControl))
             {
-                if (File.Exists(ProgramConstants.GamePath + GameModeMap.Map.PreviewPath))
-                    Process.Start(ProgramConstants.GamePath + GameModeMap.Map.PreviewPath);
+                FileInfo previewFileInfo = SafePath.GetFile(ProgramConstants.GamePath, GameModeMap.Map.PreviewPath);
+
+                if (previewFileInfo.Exists)
+                    Process.Start(previewFileInfo.FullName);
             }
 
             base.OnLeftClick();

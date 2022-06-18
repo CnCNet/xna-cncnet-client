@@ -117,7 +117,7 @@ namespace DTAClient.Domain.Multiplayer
         /// Returns the complete path to the map file.
         /// Includes the game directory in the path.
         /// </summary>
-        public string CompleteFilePath => ProgramConstants.GamePath + BaseFilePath + ".map";
+        public string CompleteFilePath => SafePath.CombineFilePath(ProgramConstants.GamePath, FormattableString.Invariant($"{BaseFilePath}.map"));
 
         /// <summary>
         /// The file name of the preview image.
@@ -258,8 +258,7 @@ namespace DTAClient.Domain.Multiplayer
                 MinPlayers = section.GetIntValue("MinPlayers", 0);
                 MaxPlayers = section.GetIntValue("MaxPlayers", 0);
                 EnforceMaxPlayers = section.GetBooleanValue("EnforceMaxPlayers", false);
-                PreviewPath = Path.GetDirectoryName(BaseFilePath) + "/" +
-                    section.GetStringValue("PreviewImage", Path.GetFileNameWithoutExtension(BaseFilePath) + ".png");
+                PreviewPath = SafePath.CombineFilePath(SafePath.GetFile(BaseFilePath).DirectoryName, FormattableString.Invariant($"{section.GetStringValue("PreviewImage", Path.GetFileNameWithoutExtension(BaseFilePath))}.png"));
                 Briefing = section.GetStringValue("Briefing", string.Empty).Replace("@", Environment.NewLine);
                 CalculateSHA();
                 IsCoop = section.GetBooleanValue("IsCoopMission", false);
@@ -485,7 +484,7 @@ namespace DTAClient.Domain.Multiplayer
                     Logger.Log("Custom map " + customMapFilePath + " has no game modes!");
                     return false;
                 }
-                
+
                 for (int i = 0; i < GameModes.Length; i++)
                 {
                     string gameMode = GameModes[i].Trim();
@@ -549,7 +548,7 @@ namespace DTAClient.Domain.Multiplayer
 
                     waypoints.Add(waypoint);
                 }
-                
+
                 GetTeamStartMappingPresets(basicSection);
 
                 ParseForcedOptions(iniFile, "ForcedOptions");
@@ -596,7 +595,7 @@ namespace DTAClient.Domain.Multiplayer
 
             foreach (string key in spawnIniKeys)
             {
-                ForcedSpawnIniOptions.Add(new KeyValuePair<string, string>(key, 
+                ForcedSpawnIniOptions.Add(new KeyValuePair<string, string>(key,
                     forcedOptionsIni.GetStringValue(spawnIniOptionsSection, key, String.Empty)));
             }
         }
@@ -606,7 +605,7 @@ namespace DTAClient.Domain.Multiplayer
         /// </summary>
         public Texture2D LoadPreviewTexture()
         {
-            if (File.Exists(ProgramConstants.GamePath + PreviewPath))
+            if (SafePath.GetFile(ProgramConstants.GamePath, PreviewPath).Exists)
                 return AssetLoader.LoadTextureUncached(PreviewPath);
 
             if (!Official)
@@ -631,14 +630,14 @@ namespace DTAClient.Domain.Multiplayer
 
             if (!string.IsNullOrEmpty(ExtraININame))
             {
-                var extraIni = new IniFile(ProgramConstants.GamePath + "INI/Map Code/" + ExtraININame);
+                var extraIni = new IniFile(SafePath.CombineFilePath(ProgramConstants.GamePath, "INI", "Map Code", ExtraININame));
                 IniFile.ConsolidateIniFiles(mapIni, extraIni);
             }
 
             return mapIni;
         }
 
-        public void ApplySpawnIniCode(IniFile spawnIni, int totalPlayerCount, 
+        public void ApplySpawnIniCode(IniFile spawnIni, int totalPlayerCount,
             int aiPlayerCount, int coopDifficultyLevel)
         {
             foreach (KeyValuePair<string, string> key in ForcedSpawnIniOptions)

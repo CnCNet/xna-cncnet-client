@@ -9,6 +9,7 @@ using System.Security.AccessControl;
 using System.Security.Principal;
 using System.Collections.Generic;
 using Localization;
+using System.Linq;
 
 namespace DTAClient
 {
@@ -42,19 +43,25 @@ namespace DTAClient
         /// <param name="parameters">The client's startup parameters.</param>
         public static void Initialize(StartupParams parameters)
         {
-            AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(HandleExcept);
+            Application.SetUnhandledExceptionMode(UnhandledExceptionMode.ThrowException);
+            AppDomain.CurrentDomain.UnhandledException += (sender, args) => HandleException(sender, (Exception)args.ExceptionObject);
+            Application.ThreadException += (sender, args) => HandleException(sender, args.Exception);
 
-            Environment.CurrentDirectory = ProgramConstants.GamePath;
+            DirectoryInfo gameDirectory = SafePath.GetDirectory(ProgramConstants.GamePath);
+
+            Environment.CurrentDirectory = gameDirectory.FullName;
 
             CheckPermissions();
 
-            Logger.Initialize(ProgramConstants.ClientUserFilesPath, "client.log");
+            DirectoryInfo clientUserFilesDirectory = SafePath.GetDirectory(ProgramConstants.ClientUserFilesPath);
+
+            Logger.Initialize(clientUserFilesDirectory.FullName, "client.log");
             Logger.WriteLogFile = true;
 
-            if (!Directory.Exists(ProgramConstants.ClientUserFilesPath))
-                Directory.CreateDirectory(ProgramConstants.ClientUserFilesPath);
+            if (!clientUserFilesDirectory.Exists)
+                clientUserFilesDirectory.Create();
 
-            File.Delete(ProgramConstants.ClientUserFilesPath + "client.log");
+            clientUserFilesDirectory.EnumerateFiles("client.log").SingleOrDefault()?.Delete();
 
             MainClientConstants.Initialize();
 
@@ -83,7 +90,7 @@ namespace DTAClient
             try
             {
                 TranslationTable translation;
-                var iniFileInfo = new FileInfo(ClientConfiguration.Instance.TranslationIniName);
+                var iniFileInfo = SafePath.GetFile(ProgramConstants.GamePath, ClientConfiguration.Instance.TranslationIniName);
 
                 if (iniFileInfo.Exists)
                 {
@@ -109,7 +116,7 @@ namespace DTAClient
             {
                 if (ClientConfiguration.Instance.GenerateTranslationStub)
                 {
-                    string stubPath = "Client/Translation.stub.ini";
+                    string stubPath = SafePath.CombineFilePath(ProgramConstants.GamePath, "Client", "Translation.stub.ini");
                     var stubTable = TranslationTable.Instance.Clone();
                     TranslationTable.Instance.MissingTranslationEvent += (sender, e) =>
                     {
@@ -133,11 +140,12 @@ namespace DTAClient
 
             // Delete obsolete files from old target project versions
 
-            File.Delete(ProgramConstants.GamePath + "mainclient.log");
-            File.Delete(ProgramConstants.GamePath + "launchupdt.dat");
+            gameDirectory.EnumerateFiles("mainclient.log").SingleOrDefault()?.Delete();
+            gameDirectory.EnumerateFiles("aunchupdt.dat").SingleOrDefault()?.Delete();
+
             try
             {
-                File.Delete(ProgramConstants.GamePath + "wsock32.dll");
+                gameDirectory.EnumerateFiles("wsock32.dll").SingleOrDefault()?.Delete();
             }
             catch (Exception ex)
             {
@@ -159,32 +167,38 @@ namespace DTAClient
             new Startup().Execute();
         }
 
-        static void HandleExcept(object sender, UnhandledExceptionEventArgs e)
+        static void LogException(Exception ex, bool innerException = false)
         {
-            Exception ex = (Exception)e.ExceptionObject;
+            if (!innerException)
+                Logger.Log("KABOOOOOOM!!! Info:");
+            else
+                Logger.Log("InnerException info:");
 
-            Logger.Log("KABOOOOOOM!!! Info:");
+            Logger.Log("Type: " + ex.GetType());
             Logger.Log("Message: " + ex.Message);
             Logger.Log("Source: " + ex.Source);
             Logger.Log("TargetSite.Name: " + ex.TargetSite.Name);
             Logger.Log("Stacktrace: " + ex.StackTrace);
-            if (ex.InnerException != null)
-            {
-                Logger.Log("InnerException info:");
-                Logger.Log("Message: " + ex.InnerException.Message);
-                Logger.Log("Stacktrace: " + ex.InnerException.StackTrace);
-            }
 
-            string errorLogPath = Environment.CurrentDirectory.Replace("\\", "/") + "/Client/ClientCrashLogs/ClientCrashLog" +
-                DateTime.Now.ToString("_yyyy_MM_dd_HH_mm") + ".txt";
+            if (ex.InnerException is not null)
+                LogException(ex.InnerException, true);
+        }
+
+        static void HandleException(object sender, Exception ex)
+        {
+            LogException(ex);
+
+            string errorLogPath = SafePath.CombineFilePath(Environment.CurrentDirectory, "Client", "ClientCrashLogs", FormattableString.Invariant($"ClientCrashLog{DateTime.Now.ToString("_yyyy_MM_dd_HH_mm")}.txt"));
             bool crashLogCopied = false;
 
             try
             {
-                if (!Directory.Exists(Environment.CurrentDirectory + "/Client/ClientCrashLogs"))
-                    Directory.CreateDirectory(Environment.CurrentDirectory + "/Client/ClientCrashLogs");
+                DirectoryInfo crashLogsDirectoryInfo = SafePath.GetDirectory(Environment.CurrentDirectory, "Client", "ClientCrashLogs");
 
-                File.Copy(Environment.CurrentDirectory + "/Client/client.log", errorLogPath, true);
+                if (!crashLogsDirectoryInfo.Exists)
+                    crashLogsDirectoryInfo.Create();
+
+                File.Copy(SafePath.CombineFilePath(Environment.CurrentDirectory, "Client", "client.log"), errorLogPath, true);
                 crashLogCopied = true;
             }
             catch { }
@@ -216,7 +230,7 @@ namespace DTAClient
                 Environment.Exit(0);
 
             ProcessStartInfo psInfo = new ProcessStartInfo();
-            psInfo.FileName = Application.ExecutablePath.Replace('\\', '/');
+            psInfo.FileName = SafePath.CombineDirectoryPath(Application.ExecutablePath);
             psInfo.Verb = "runas";
             Process.Start(psInfo);
             Environment.Exit(0);

@@ -24,12 +24,14 @@ namespace DTAClient
              *
              * For .NET 6 Release mode we split up the DXMainClient dll from the AppHost executable.
              * The AppHost is located in the root, as is the case for the .NET 4.8 executables.
-             * The actual DXMainClient dll is 2 directories up in Application.StartupPath\Binaries\<WindowsGL,OpenGL,XNA> */
+             * The actual DXMainClient dll is 2 directories up in Application.StartupPath\Binaries\<WindowsGL,OpenGL,XNA>\
+             *
+             * We cannot use references to other projects or external assemblies during startup because the assembly loading events will not be able to trigger yet. */
 
 #if DEBUG || NETFRAMEWORK
             string startupPath = Application.StartupPath;
 #elif !NETFRAMEWORK
-            string startupPath = Path.GetFullPath(Path.Combine(Application.StartupPath, "..\\..\\"));
+            string startupPath = new DirectoryInfo(Application.StartupPath).Parent.Parent.FullName;
 #endif
 
 #if DEBUG
@@ -60,9 +62,9 @@ namespace DTAClient
 #endif
 
 #if !DEBUG
-            Environment.CurrentDirectory = Directory.GetParent(startupPath.Replace('\\', '/')).FullName;
+            Environment.CurrentDirectory = new DirectoryInfo(startupPath).Parent.FullName;
 #else
-            Environment.CurrentDirectory = startupPath.Replace('\\', '/');
+            Environment.CurrentDirectory = startupPath;
 #endif
         }
 
@@ -161,12 +163,12 @@ namespace DTAClient
             if (unresolvedAssemblyName.EndsWith(".resources", StringComparison.OrdinalIgnoreCase))
                 return null;
 
-            var commonFileInfo = new FileInfo(FormattableString.Invariant($"{Path.Combine(COMMON_LIBRARY_PATH, unresolvedAssemblyName)}.dll"));
+            var commonFileInfo = new FileInfo(Path.Combine(COMMON_LIBRARY_PATH, FormattableString.Invariant($"{unresolvedAssemblyName}.dll")));
 
             if (commonFileInfo.Exists)
                 return Assembly.Load(AssemblyName.GetAssemblyName(commonFileInfo.FullName));
 
-            var specificFileInfo = new FileInfo(FormattableString.Invariant($"{Path.Combine(SPECIFIC_LIBRARY_PATH, unresolvedAssemblyName)}.dll"));
+            var specificFileInfo = new FileInfo(Path.Combine(SPECIFIC_LIBRARY_PATH, FormattableString.Invariant($"{unresolvedAssemblyName}.dll")));
 
             if (specificFileInfo.Exists)
                 return Assembly.Load(AssemblyName.GetAssemblyName(specificFileInfo.FullName));
@@ -179,12 +181,12 @@ namespace DTAClient
             if (assemblyName.Name.EndsWith(".resources", StringComparison.OrdinalIgnoreCase))
                 return null;
 
-            var commonFileInfo = new FileInfo(FormattableString.Invariant($"{Path.Combine(COMMON_LIBRARY_PATH, assemblyName.Name)}.dll"));
+            var commonFileInfo = new FileInfo(Path.Combine(COMMON_LIBRARY_PATH, FormattableString.Invariant($"{assemblyName.Name}.dll")));
 
             if (commonFileInfo.Exists)
                 return assemblyLoadContext.LoadFromAssemblyPath(commonFileInfo.FullName);
 
-            var specificFileInfo = new FileInfo(FormattableString.Invariant($"{Path.Combine(SPECIFIC_LIBRARY_PATH, assemblyName.Name)}.dll"));
+            var specificFileInfo = new FileInfo(Path.Combine(SPECIFIC_LIBRARY_PATH, FormattableString.Invariant($"{assemblyName.Name}.dll")));
 
             if (specificFileInfo.Exists)
                 return assemblyLoadContext.LoadFromAssemblyPath(specificFileInfo.FullName);

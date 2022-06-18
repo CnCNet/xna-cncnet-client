@@ -8,7 +8,6 @@ using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Windows.Forms;
 #if TS
 using Microsoft.Win32;
@@ -334,7 +333,7 @@ namespace DTAConfig.OptionPanels
         {
             renderers = new List<DirectDrawWrapper>();
 
-            var renderersIni = new IniFile(ProgramConstants.GetBaseResourcePath() + RENDERERS_INI);
+            var renderersIni = new IniFile(SafePath.CombineFilePath(ProgramConstants.GetBaseResourcePath(), RENDERERS_INI));
 
             var keys = renderersIni.GetSectionKeys("Renderers");
             if (keys == null)
@@ -624,7 +623,7 @@ namespace DTAConfig.OptionPanels
                 // enabled through their own config INI file
                 // (for example DxWnd and CnC-DDRAW)
 
-                IniFile rendererSettingsIni = new IniFile(ProgramConstants.GamePath + renderer.ConfigFileName);
+                IniFile rendererSettingsIni = new IniFile(SafePath.CombineFilePath(ProgramConstants.GamePath, renderer.ConfigFileName));
 
                 chkWindowedMode.Checked = rendererSettingsIni.GetBooleanValue(renderer.WindowedModeSection,
                     renderer.WindowedModeKey, false);
@@ -756,7 +755,7 @@ namespace DTAConfig.OptionPanels
 #endif
 
             if (selectedRenderer != originalRenderer ||
-                !File.Exists(ProgramConstants.GamePath + selectedRenderer.ConfigFileName))
+                !SafePath.GetFile(ProgramConstants.GamePath, selectedRenderer.ConfigFileName).Exists)
             {
                 foreach (var renderer in renderers)
                 {
@@ -772,8 +771,7 @@ namespace DTAConfig.OptionPanels
 
             if (selectedRenderer.UsesCustomWindowedOption())
             {
-                IniFile rendererSettingsIni = new IniFile(
-                    ProgramConstants.GamePath + selectedRenderer.ConfigFileName);
+                IniFile rendererSettingsIni = new IniFile(SafePath.CombineFilePath(ProgramConstants.GamePath, selectedRenderer.ConfigFileName));
 
                 rendererSettingsIni.SetBooleanValue(selectedRenderer.WindowedModeSection,
                     selectedRenderer.WindowedModeKey, chkWindowedMode.Checked);
@@ -794,14 +792,14 @@ namespace DTAConfig.OptionPanels
             IniSettings.Renderer.Value = selectedRenderer.InternalName;
 
 #if TS
-            File.Delete(ProgramConstants.GamePath + "Language.dll");
+            SafePath.DeleteFileIfExists(ProgramConstants.GamePath, "Language.dll");
 
             if (ingameRes[0] >= 1024 && ingameRes[1] >= 720)
-                File.Copy(ProgramConstants.GamePath + "Resources/language_1024x720.dll", ProgramConstants.GamePath + "Language.dll");
+                System.IO.File.Copy(SafePath.CombineFilePath(ProgramConstants.GamePath, "Resources", "language_1024x720.dll"), SafePath.CombineFilePath(ProgramConstants.GamePath, "Language.dll"));
             else if (ingameRes[0] >= 800 && ingameRes[1] >= 600)
-                File.Copy(ProgramConstants.GamePath + "Resources/language_800x600.dll", ProgramConstants.GamePath + "Language.dll");
+                System.IO.File.Copy(SafePath.CombineFilePath(ProgramConstants.GamePath, "Resources", "language_800x600.dll"), SafePath.CombineFilePath(ProgramConstants.GamePath, "Language.dll"));
             else
-                File.Copy(ProgramConstants.GamePath + "Resources/language_640x480.dll", ProgramConstants.GamePath + "Language.dll");
+                System.IO.File.Copy(SafePath.CombineFilePath(ProgramConstants.GamePath, "Resources", "language_640x480.dll"), SafePath.CombineFilePath(ProgramConstants.GamePath, "Language.dll"));
 #endif
 
             return restartRequired;

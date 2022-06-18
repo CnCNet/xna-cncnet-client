@@ -28,7 +28,7 @@ namespace DTAClient.Domain
                     iniFile.FileName = finalSunIniFile.FullName;
                     iniFile.Encoding = EncodingExt.ANSI;
                     iniFile.Parse();
-                    
+
                     iniFile.SetStringValue("FinalSun", "Language", "English");
                     iniFile.SetStringValue("FinalSun", "FileSearchLikeTS", "yes");
                     iniFile.SetStringValue("TS", "Exe", ProgramConstants.GamePath.Replace('/', '\\'));

@@ -40,7 +40,7 @@ namespace ClientCore
             if (_instance != null)
                 throw new InvalidOperationException("UserINISettings has already been initialized!");
 
-            var iniFile = new IniFile(ProgramConstants.GamePath + iniFileName);
+            var iniFile = new IniFile(SafePath.CombineFilePath(ProgramConstants.GamePath, iniFileName));
 
             _instance = new UserINISettings(iniFile);
         }
@@ -192,7 +192,7 @@ namespace ClientCore
         public BoolSetting NotifyOnUserListChange { get; private set; }
 
         public BoolSetting DisablePrivateMessagePopups { get; private set; }
-        
+
         public IntSetting AllowPrivateMessagesFromState { get; private set; }
 
         public BoolSetting EnableMapSharing { get; private set; }
@@ -200,21 +200,21 @@ namespace ClientCore
         public BoolSetting AlwaysDisplayTunnelList { get; private set; }
 
         public IntSetting MapSortState { get; private set; }
-        
+
         /*********************/
         /* GAME LIST FILTERS */
         /*********************/
 
         public IntSetting SortState { get; private set; }
-        
+
         public BoolSetting ShowFriendGamesOnly { get; private set; }
-        
+
         public BoolSetting HideLockedGames { get; private set; }
-        
+
         public BoolSetting HidePasswordedGames { get; private set; }
-        
+
         public BoolSetting HideIncompatibleGames { get; private set; }
-        
+
         public IntRangeSetting MaxPlayerCount { get; private set; }
 
         /********/
@@ -240,7 +240,7 @@ namespace ClientCore
         public BoolSetting MinimizeWindowsOnGameStart { get; private set; }
 
         public BoolSetting AutoRemoveUnderscoresFromName { get; private set; }
-        
+
         public StringListSetting FavoriteMaps { get; private set; }
         
         public void SetValue(string section, string key, string value)
@@ -277,7 +277,7 @@ namespace ClientCore
                 FavoriteMaps.Remove(favoriteMapKey);
             else
                 FavoriteMaps.Add(favoriteMapKey);
-            
+
             Instance.SaveSettings();
 
             return !isFavorite;
@@ -291,7 +291,7 @@ namespace ClientCore
         public bool IsFavoriteMap(string nameName, string gameModeName) => FavoriteMaps.Value.Contains(FavoriteMapKey(nameName, gameModeName));
 
         private string FavoriteMapKey(string nameName, string gameModeName) => $"{nameName}:{gameModeName}";
-        
+
         public void ReloadSettings()
         {
             SettingsIni.Reload();

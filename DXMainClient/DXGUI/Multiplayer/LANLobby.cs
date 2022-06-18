@@ -345,7 +345,7 @@ namespace DTAClient.DXGUI.Multiplayer
             {
                 Logger.Log("Creating LAN socket failed! Message: " + ex.Message);
                 lbChatMessages.AddMessage(new ChatMessage(Color.Red,
-                    "Creating LAN socket failed! Message:".L10N("UI:Main:SocketFailure1")+ " " + ex.Message));
+                    "Creating LAN socket failed! Message:".L10N("UI:Main:SocketFailure1") + " " + ex.Message));
                 lbChatMessages.AddMessage(new ChatMessage(Color.Red,
                     "Please check your firewall settings.".L10N("UI:Main:SocketFailure2")));
                 lbChatMessages.AddMessage(new ChatMessage(Color.Red,
@@ -566,8 +566,7 @@ namespace DTAClient.DXGUI.Multiplayer
 
                 if (hg.IsLoadedGame)
                 {
-                    var spawnSGIni = new IniFile(ProgramConstants.GamePath +
-                        ProgramConstants.SAVED_GAME_SPAWN_INI);
+                    var spawnSGIni = new IniFile(SafePath.CombineFilePath(ProgramConstants.GamePath, ProgramConstants.SAVED_GAME_SPAWN_INI));
 
                     int loadedGameId = spawnSGIni.GetIntValue("Settings", "GameID", -1);
 

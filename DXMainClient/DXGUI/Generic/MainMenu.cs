@@ -398,7 +398,7 @@ namespace DTAClient.DXGUI.Generic
         private void CheckRequiredFiles()
         {
             List<string> absentFiles = ClientConfiguration.Instance.RequiredFiles.ToList()
-                .FindAll(f => !string.IsNullOrWhiteSpace(f) && !File.Exists(ProgramConstants.GamePath + f));
+                .FindAll(f => !string.IsNullOrWhiteSpace(f) && !SafePath.GetFile(ProgramConstants.GamePath, f).Exists);
 
             if (absentFiles.Count > 0)
                 XNAMessageBox.Show(WindowManager, "Missing Files".L10N("UI:Main:MissingFilesTitle"),
@@ -419,7 +419,7 @@ namespace DTAClient.DXGUI.Generic
         private void CheckForbiddenFiles()
         {
             List<string> presentFiles = ClientConfiguration.Instance.ForbiddenFiles.ToList()
-                .FindAll(f => !string.IsNullOrWhiteSpace(f) && File.Exists(ProgramConstants.GamePath + f));
+                .FindAll(f => !string.IsNullOrWhiteSpace(f) && SafePath.GetFile(ProgramConstants.GamePath, f).Exists);
 
             if (presentFiles.Count > 0)
                 XNAMessageBox.Show(WindowManager, "Interfering Files Detected".L10N("UI:Main:InterferingFilesDetectedTitle"),
@@ -1006,11 +1006,11 @@ namespace DTAClient.DXGUI.Generic
 
             if (osVersion != OSVersion.UNIX)
             {
-                mapEditorProcess.StartInfo.FileName = ProgramConstants.GamePath + ClientConfiguration.Instance.MapEditorExePath;
+                mapEditorProcess.StartInfo.FileName = SafePath.CombineFilePath(ProgramConstants.GamePath, ClientConfiguration.Instance.MapEditorExePath);
             }
             else
             {
-                mapEditorProcess.StartInfo.FileName = ProgramConstants.GamePath + ClientConfiguration.Instance.UnixMapEditorExePath;
+                mapEditorProcess.StartInfo.FileName = SafePath.CombineFilePath(ProgramConstants.GamePath, ClientConfiguration.Instance.UnixMapEditorExePath);
                 mapEditorProcess.StartInfo.UseShellExecute = false;
             }
 

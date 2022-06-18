@@ -17,14 +17,14 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         /// <param name="gameMode">Currently selected gamemode, if set.</param>
         public static void ApplyMapCode(IniFile mapIni, string customIniPath, GameMode gameMode)
         {
-            IniFile associatedIni = new IniFile(ProgramConstants.GamePath + customIniPath);
+            IniFile associatedIni = new IniFile(SafePath.CombineFilePath(ProgramConstants.GamePath, customIniPath));
             string extraIniName = null;
             if (gameMode != null)
                 extraIniName = associatedIni.GetStringValue("GameModeIncludes", gameMode.Name, null);
             associatedIni.EraseSectionKeys("GameModeIncludes");
             ApplyMapCode(mapIni, associatedIni);
             if (!String.IsNullOrEmpty(extraIniName))
-                ApplyMapCode(mapIni, new IniFile(ProgramConstants.GamePath + extraIniName));
+                ApplyMapCode(mapIni, new IniFile(SafePath.CombineFilePath(ProgramConstants.GamePath, extraIniName)));
         }
 
         /// <summary>

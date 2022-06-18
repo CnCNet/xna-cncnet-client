@@ -81,8 +81,10 @@ namespace DTAClient.DXGUI
 #if ARES
             try
             {
-                if (File.Exists(ProgramConstants.GamePath + "debug/debug.log"))
-                    debugLogLastWriteTime = File.GetLastWriteTimeUtc(ProgramConstants.GamePath + "debug/debug.log");
+                FileInfo debugLogFileInfo = SafePath.GetFile(ProgramConstants.GamePath, "debug", "debug.log");
+
+                if (debugLogFileInfo.Exists)
+                    debugLogLastWriteTime = debugLogFileInfo.LastWriteTime;
             }
             catch { }
 #endif
@@ -96,10 +98,10 @@ namespace DTAClient.DXGUI
 #else
             try
             {
-                File.Delete(ProgramConstants.GamePath + "EXCEPT.TXT");
+                SafePath.DeleteFileIfExists(ProgramConstants.GamePath, "EXCEPT.TXT");
 
                 for (int i = 0; i < 8; i++)
-                    File.Delete(ProgramConstants.GamePath + "SYNC" + i + ".TXT");
+                    SafePath.DeleteFileIfExists(ProgramConstants.GamePath, "SYNC" + i + ".TXT");
 
                 deletingLogFilesFailed = false;
             }
@@ -170,15 +172,14 @@ namespace DTAClient.DXGUI
             string snapshotDirectory = GetNewestDebugSnapshotDirectory();
             bool snapshotCreated = snapshotDirectory != null;
 
-            snapshotDirectory = snapshotDirectory ?? ProgramConstants.GamePath + "debug/snapshot-" +
-                dtn.ToString("yyyyMMdd-HHmmss");
+            snapshotDirectory = snapshotDirectory ?? SafePath.CombineDirectoryPath(ProgramConstants.GamePath, "debug", FormattableString.Invariant($"snapshot-{dtn.ToString("yyyyMMdd-HHmmss")}"));
 
             bool debugLogModified = false;
-            string debugLogPath = ProgramConstants.GamePath + "debug/debug.log";
+            FileInfo debugLogFileInfo = SafePath.GetFile(ProgramConstants.GamePath, "debug", "debug.log");
             DateTime lastWriteTime = new DateTime();
 
-            if (File.Exists(debugLogPath))
-                lastWriteTime = File.GetLastWriteTimeUtc(debugLogPath);
+            if (debugLogFileInfo.Exists)
+                lastWriteTime = debugLogFileInfo.LastAccessTime;
 
             if (!lastWriteTime.Equals(debugLogLastWriteTime))
             {
@@ -188,8 +189,10 @@ namespace DTAClient.DXGUI
 
             if (CopySyncErrorLogs(snapshotDirectory, null) || snapshotCreated)
             {
-                if (File.Exists(debugLogPath) && !File.Exists(snapshotDirectory + "/debug.log") && debugLogModified)
-                    File.Copy(debugLogPath, snapshotDirectory + "/debug.log");
+                FileInfo snapShotDebugLogFileInfo = SafePath.GetFile(snapshotDirectory, "debug.log");
+
+                if (debugLogFileInfo.Exists && !snapShotDebugLogFileInfo.Exists && debugLogModified)
+                    File.Copy(debugLogFileInfo.FullName, snapShotDebugLogFileInfo.FullName);
 
                 CopyErrorLog(snapshotDirectory, "syringe.log", null);
             }
@@ -197,8 +200,8 @@ namespace DTAClient.DXGUI
             if (deletingLogFilesFailed)
                 return;
 
-            CopyErrorLog(ProgramConstants.ClientUserFilesPath + "GameCrashLogs", "EXCEPT.TXT", dtn);
-            CopySyncErrorLogs(ProgramConstants.ClientUserFilesPath + "SyncErrorLogs", dtn);
+            CopyErrorLog(SafePath.CombineDirectoryPath(ProgramConstants.ClientUserFilesPath, "GameCrashLogs"), "EXCEPT.TXT", dtn);
+            CopySyncErrorLogs(SafePath.CombineDirectoryPath(ProgramConstants.ClientUserFilesPath, "SyncErrorLogs"), dtn);
 #endif
         }
 
@@ -215,10 +218,14 @@ namespace DTAClient.DXGUI
 
             try
             {
-                if (File.Exists(ProgramConstants.GamePath + filename))
+                FileInfo errorLogFileInfo = SafePath.GetFile(ProgramConstants.GamePath, filename);
+
+                if (errorLogFileInfo.Exists)
                 {
-                    if (!Directory.Exists(directory))
-                        Directory.CreateDirectory(directory);
+                    DirectoryInfo errorLogDirectoryInfo = SafePath.GetDirectory(directory);
+
+                    if (!errorLogDirectoryInfo.Exists)
+                        errorLogDirectoryInfo.Create();
 
                     Logger.Log("The game crashed! Copying " + filename + " file.");
 
@@ -227,7 +234,7 @@ namespace DTAClient.DXGUI
                     string filenameCopy = Path.GetFileNameWithoutExtension(filename) +
                         timeStamp + Path.GetExtension(filename);
 
-                    File.Copy(ProgramConstants.GamePath + filename, directory + "/" + filenameCopy);
+                    File.Copy(errorLogFileInfo.FullName, SafePath.CombineFilePath(directory, filenameCopy));
                     copied = true;
                 }
             }
@@ -253,11 +260,14 @@ namespace DTAClient.DXGUI
                 for (int i = 0; i < 8; i++)
                 {
                     string filename = "SYNC" + i + ".TXT";
+                    FileInfo syncErrorLogFileInfo = SafePath.GetFile(ProgramConstants.GamePath, filename);
 
-                    if (File.Exists(ProgramConstants.GamePath + filename))
+                    if (syncErrorLogFileInfo.Exists)
                     {
-                        if (!Directory.Exists(directory))
-                            Directory.CreateDirectory(directory);
+                        DirectoryInfo syncErrorLogDirectoryInfo = SafePath.GetDirectory(directory);
+
+                        if (!syncErrorLogDirectoryInfo.Exists)
+                            syncErrorLogDirectoryInfo.Create();
 
                         Logger.Log("There was a sync error! Copying file " + filename);
 
@@ -266,9 +276,9 @@ namespace DTAClient.DXGUI
                         string filenameCopy = Path.GetFileNameWithoutExtension(filename) +
                             timeStamp + Path.GetExtension(filename);
 
-                        File.Copy(ProgramConstants.GamePath + filename, directory + "/" + filenameCopy);
+                        File.Copy(syncErrorLogFileInfo.FullName, SafePath.CombineFilePath(directory, filenameCopy));
                         copied = true;
-                        File.Delete(ProgramConstants.GamePath + filename);
+                        syncErrorLogFileInfo.Delete();
                     }
                 }
             }
@@ -321,7 +331,7 @@ namespace DTAClient.DXGUI
 
             try
             {
-                directories.AddRange(Directory.GetDirectories(ProgramConstants.GamePath + "debug", "snapshot-*"));
+                directories.AddRange(Directory.GetDirectories(SafePath.CombineDirectoryPath(ProgramConstants.GamePath, "debug"), "snapshot-*"));
             }
             catch { }
 
@@ -333,14 +343,14 @@ namespace DTAClient.DXGUI
         /// </summary>
         private void ProcessScreenshots()
         {
-            string[] filenames = Directory.GetFiles(ProgramConstants.GamePath, "SCRN*.bmp");
-            string screenshotsDirectory = ProgramConstants.GamePath + "Screenshots";
+            System.Collections.Generic.IEnumerable<FileInfo> files = SafePath.GetDirectory(ProgramConstants.GamePath).EnumerateFiles("SCRN*.bmp");
+            DirectoryInfo screenshotsDirectory = SafePath.GetDirectory(ProgramConstants.GamePath, "Screenshots");
 
-            if (!Directory.Exists(screenshotsDirectory))
+            if (!screenshotsDirectory.Exists)
             {
                 try
                 {
-                    Directory.CreateDirectory(screenshotsDirectory);
+                    screenshotsDirectory.Create();
                 }
                 catch (Exception ex)
                 {
@@ -349,23 +359,22 @@ namespace DTAClient.DXGUI
                 }
             }
 
-            foreach (string filename in filenames)
+            foreach (FileInfo file in files)
             {
                 try
                 {
-                    var bitmap = new System.Drawing.Bitmap(filename);
-                    bitmap.Save(screenshotsDirectory + Path.DirectorySeparatorChar + Path.GetFileNameWithoutExtension(filename) +
-                        ".png", ImageFormat.Png);
+                    var bitmap = new System.Drawing.Bitmap(file.FullName);
+                    bitmap.Save(SafePath.CombineFilePath(screenshotsDirectory.FullName, FormattableString.Invariant($"{Path.GetFileNameWithoutExtension(file.FullName)}.png")), ImageFormat.Png);
                     bitmap.Dispose();
                 }
                 catch (Exception ex)
                 {
-                    Logger.Log("ProcessScreenshots: Error occured when trying to save " + Path.GetFileNameWithoutExtension(filename) + ".png. Message: " + ex.Message);
+                    Logger.Log("ProcessScreenshots: Error occured when trying to save " + Path.GetFileNameWithoutExtension(file.FullName) + ".png. Message: " + ex.Message);
                     continue;
                 }
 
-                Logger.Log("ProcessScreenshots: " + Path.GetFileNameWithoutExtension(filename) + ".png has been saved to Screenshots directory.");
-                File.Delete(filename);
+                Logger.Log("ProcessScreenshots: " + Path.GetFileNameWithoutExtension(file.FullName) + ".png has been saved to Screenshots directory.");
+                file.Delete();
             }
         }
 #endif
