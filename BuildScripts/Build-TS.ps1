@@ -4,8 +4,8 @@
 [CmdletBinding()]
 param (
   [Parameter()]
-  [Configurations]
-  $Configuration = [Configurations]::Release
+  [string]
+  $Configuration = 'Release'
 )
 
 # Imports
