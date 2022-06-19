@@ -22,8 +22,7 @@
   </PropertyGroup>
 
   <Target Name="ShowBuildInfo" BeforeTargets="CoreCompile">
-    <Message Importance="high" Text="Engine: $(Engine); Game: $(Game);" />
-    <Message Importance="high" Text="Platform: $(Platform); TargetFramework: $(TargetFramework);" />
+    <Message Importance="high" Text="Engine: $(Engine); Game: $(Game); Platform: $(Platform); TargetFramework: $(TargetFramework);" />
   </Target>
 
   <ItemGroup>
@@ -32,5 +31,7 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
   </ItemGroup>
+
+  <Import Project="$(MSBuildThisFileDirectory)build\AppHostPatcher.targets" />
 
 </Project>
