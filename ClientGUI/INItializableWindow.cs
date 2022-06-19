@@ -209,7 +209,7 @@ namespace ClientGUI
                 else if (kvp.Key == "$Text")
                 {
                     control.Text = section.GetStringValue(nameof(control.Text), string.Empty)
-                        .L10N($"UI:ExtraControl:{kvp.Value}");
+                        .L10N($"UI:Control:{kvp.Value}");
                 }
                 else
                 {
