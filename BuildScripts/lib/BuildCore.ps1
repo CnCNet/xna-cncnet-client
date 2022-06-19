@@ -60,7 +60,7 @@ function Build-Project {
   }
 
   end {
-    Get-ChildItem $ClientCompiledTarget\$Game\$Private:TargetFrameworkWithoutTFM\Binaries\$Private:SpecialName\DXMainClient.* | ForEach-Object {
+    Get-ChildItem $ClientCompiledTarget\$Game\$Private:TargetFrameworkWithoutTFM\Binaries\$Private:SpecialName\client$Private:ClientSuffix.* | ForEach-Object {
       Move-ClientBinaries $_ "$ClientCompiledTarget\$Game\$Private:TargetFrameworkWithoutTFM" $Private:ClientSuffix
     }
     if (!$SkipMoveCommonLibraries) {

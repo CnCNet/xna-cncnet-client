@@ -16,6 +16,12 @@
     <ApplicationIcon>clienticon.ico</ApplicationIcon>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <AssemblyName Condition="'$(Engine)' == 'DX'">clientdx</AssemblyName>
+    <AssemblyName Condition="'$(Engine)' == 'GL'">clientogl</AssemblyName>
+    <AssemblyName Condition="'$(Engine)' == 'XNA'">clientxna</AssemblyName>
+  </PropertyGroup>
+
   <ItemGroup Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework'">
     <Reference Include="System.DirectoryServices" />
     <Reference Include="System.Management" />
