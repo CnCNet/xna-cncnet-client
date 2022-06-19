@@ -36,7 +36,7 @@ function Build-Project {
     $Private:ClientSuffix = Get-Suffix $Engine
 
     $Private:DotnetArgs = @(
-      "build"
+      "publish"
       $ClientProjectPath
       "--framework:$TargetFramework"
       "--output:$ClientCompiledTarget\$Game\$Private:TargetFrameworkWithoutTFM\Binaries\$Private:SpecialName\"
