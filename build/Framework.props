@@ -28,11 +28,11 @@
   </PropertyGroup>
 
   <Target Name="CheckEngineAndGame" BeforeTargets="CoreCompile">
-    <Error Text="Engine are not set! Please retry with /p:Engine={Engine}. Supported Engines is $(Engines)." Condition=" '$(Engine)' == '' " />
-    <Error Text="Engine '$(Engine)' are not support. Supported Engines is $(Engines)." Condition=" '!$(Engines.Contains($(Engine)))' " />
+    <Error Text="Engine is not set! Please retry with /p:Engine={Engine}. Supported Engines are $(Engines)." Condition=" '$(Engine)' == '' " />
+    <Error Text="Engine '$(Engine)' is not supported. Supported Engines are $(Engines)." Condition=" '!$(Engines.Contains($(Engine)))' " />
 
-    <Error Text="Game are not set! Please retry with /p:Game={Game}. Supported Games is $(Games)." Condition=" '$(Game)' == '' " />
-    <Error Text="Game '$(Game)' are not support. Supported Games is $(Games)." Condition=" '!$(Games.Contains($(Game)))' " />
+    <Error Text="Game is not set! Please retry with /p:Game={Game}. Supported Games are $(Games)." Condition=" '$(Game)' == '' " />
+    <Error Text="Game '$(Game)' is not supported. Supported Games are $(Games)." Condition=" '!$(Games.Contains($(Game)))' " />
   </Target>
 
 </Project>
