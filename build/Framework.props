@@ -18,7 +18,7 @@
 
     <!-- Engines -->
     <DefineConstants Condition="'$(Engine)' == 'DX'">$(DefineConstants);WINDOWSDX</DefineConstants>
-    <DefineConstants Condition="'$(Engine)' == 'OGL'">$(DefineConstants);WINDOWSGL</DefineConstants>
+    <DefineConstants Condition="'$(Engine)' == 'GL'">$(DefineConstants);WINDOWSGL</DefineConstants>
     <DefineConstants Condition="'$(Engine)' == 'XNA'">$(DefineConstants);XNA</DefineConstants>
 
     <!-- Games-->
