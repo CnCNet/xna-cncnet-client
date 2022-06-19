@@ -1,16 +1,28 @@
 <Project>
   <PropertyGroup>
-    <Platforms>AresDX;AresGL;AresXNA;TSDX;TSGL;TSXNA;YRDX;YRGL;YRXNA</Platforms>
+    <Configurations>
+      AresDXDebug;AresGLDebug;AresXNADebug;
+      AresDXRelease;AresGLRelease;AresXNARelease;
+      TSDXDebug;TSGLDebug;TSXNADebug;
+      TSDXRelease;TSGLRelease;TSXNARelease;
+      YRDXDebug;YRGLDebug;YRXNADebug;
+      YRDXRelease;YRGLRelease;YRXNARelease
+    </Configurations>
   </PropertyGroup>
 
   <PropertyGroup>
-    <Engine Condition="'$(Platform.Contains(DX))' == 'True'">DX</Engine>
-    <Engine Condition="'$(Platform.Contains(GL))' == 'True'">GL</Engine>
-    <Engine Condition="'$(Platform.Contains(XNA))' == 'True'">XNA</Engine>
+    <DefineConstants Condition="'$(Configuration.Contains(Debug))' == 'True'">$(DefineConstants);DEBUG</DefineConstants>
 
-    <Game Condition="'$(Platform.Contains(Ares))' == 'True'">Ares</Game>
-    <Game Condition="'$(Platform.Contains(TS))' == 'True'">TS</Game>
-    <Game Condition="'$(Platform.Contains(YR))' == 'True'">YR</Game>
+    <Engine Condition="'$(Configuration.Contains(DX))' == 'True'">DX</Engine>
+    <Engine Condition="'$(Configuration.Contains(GL))' == 'True'">GL</Engine>
+    <Engine Condition="'$(Configuration.Contains(XNA))' == 'True'">XNA</Engine>
+
+    <Game Condition="'$(Configuration.Contains(Ares))' == 'True'">Ares</Game>
+    <Game Condition="'$(Configuration.Contains(TS))' == 'True'">TS</Game>
+    <Game Condition="'$(Configuration.Contains(YR))' == 'True'">YR</Game>
+
+    <_OutputConfiguration Condition="'$(Configuration.Contains(Debug))' == 'True'">Debug</_OutputConfiguration>
+    <_OutputConfiguration Condition="'$(Configuration.Contains(Release))' == 'True'">Release</_OutputConfiguration>
   </PropertyGroup>
 
 </Project>

@@ -16,6 +16,11 @@
 
   <Import Project="$(MSBuildThisFileDirectory)build\Framework.props" />
 
+  <PropertyGroup Condition="'$(BuildingInsideVisualStudio)' == 'True'">
+    <OutputPath Condition="'$(_OutputConfiguration)' != ''">$(BaseOutputPath)bin\$(_OutputConfiguration)\$(Engine)\</OutputPath>
+    <IntermediateOutputPath Condition="'$(_OutputConfiguration)' != ''">$(BaseIntermediateOutputPath)obj\$(_OutputConfiguration)\$(Engine)\</IntermediateOutputPath>
+  </PropertyGroup>
+
   <Target Name="ShowBuildInfo" BeforeTargets="CoreCompile">
     <Message Importance="high" Text="Engine: $(Engine); Game: $(Game);" />
     <Message Importance="high" Text="Platform: $(Platform); TargetFramework: $(TargetFramework);" />
