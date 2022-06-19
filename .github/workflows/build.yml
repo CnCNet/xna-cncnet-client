@@ -19,7 +19,7 @@ jobs:
         dotnet-version: '6.x.x'
 
     - name: Build All
-      run: ./BuildScripts/buildAll.ps1
+      run: ./BuildScripts/build-All.ps1
       shell: pwsh
 
     - uses: actions/upload-artifact@main
