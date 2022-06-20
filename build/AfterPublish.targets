@@ -11,8 +11,8 @@
   </Target>
 
   <Target Name="RemoveSDL" AfterTargets="Publish" Condition="'$(OutputType)' != 'Library' AND '$(TargetFramework.Substring(3, 1))' == '4'">
-    <Delete Files="$(PublishDir)SDL2.dll" />
-    <Delete Files="$(PublishDir)soft_oal.dll" />
+    <Delete Condition="'$(Engine)' == 'GL'" Files="$(PublishDir)SDL2.dll" />
+    <Delete Condition="'$(Engine)' == 'GL'" Files="$(PublishDir)soft_oal.dll" />
   </Target>
 
 </Project>
