@@ -32,6 +32,6 @@
     </PackageReference>
   </ItemGroup>
 
-  <Import Project="$(MSBuildThisFileDirectory)build\AppHostPatcher.targets" />
+  <Import Project="$(MSBuildThisFileDirectory)build\AfterPublish.targets" />
 
 </Project>
