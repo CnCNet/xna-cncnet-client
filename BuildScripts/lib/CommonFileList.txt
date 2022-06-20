@@ -1,0 +1,11 @@
+ClientUpdater.dll
+DiscordRPC.dll
+DiscordRPC.pdb
+DiscordRPC.xml
+lzo.net.dll
+Microsoft.Windows.SDK.NET.dll
+Newtonsoft.Json.dll
+OpenMcdf.dll
+Rampastring.Tools.dll
+System.Management.dll
+WinRT.Runtime.dll

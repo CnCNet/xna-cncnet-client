@@ -13,15 +13,18 @@ function Move-CommonLibraries {
     $Path
   )
 
+  begin {
+    $Private:ClientCommonLibraries = Get-Content $PSScriptRoot\CommonFileList.txt
+  }
+
   process {
     Get-ChildItem $Path | ForEach-Object {
-      if ($Script:ClientCommonLibraries.Contains([Path]::GetFileNameWithoutExtension($_))) {
+      if ($Private:ClientCommonLibraries.Contains($_.Name)) {
         $Private:TargetPath = Join-Path $Path .. $_.Name
         if (!(Test-Path $Private:TargetPath)) {
           Move-Item -Path $_ -Destination $Private:TargetPath -Force
-        }
-        else {
-          Write-Host "Skipping $_" -ForegroundColor Yellow
+        }else{
+          Remove-Item -Path $_ -Force
         }
       }
     }
@@ -38,16 +41,13 @@ function Move-ClientBinaries {
     $File,
     [Parameter(Mandatory)]
     [string]
-    $Target,
-    [Parameter(Mandatory)]
-    [string]
-    $ClientSuffix
+    $Target
   )
 
   process {
-    $Private:TargetPath = Join-Path $Target "client$ClientSuffix$(Get-FileExtension $File)"
+    # $Private:TargetPath = Join-Path $Target "client$ClientSuffix$(Get-FileExtension $File)"
     if (Test-Path $File.FullName) {
-      Move-Item $File.FullName $Private:TargetPath -Force
+      Move-Item $File.FullName $Target -Force
     }
     else {
       Write-Error "File not found: $File"
