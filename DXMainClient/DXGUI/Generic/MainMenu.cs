@@ -642,13 +642,6 @@ namespace DTAClient.DXGUI.Generic
             lblUpdateStatus.Enabled = false;
             lblUpdateStatus.Text = "Checking for " +
                 "updates...".L10N("UI:Main:CheckingForUpdate");
-
-            try
-            {
-                StatisticsSender.Instance.SendUpdate();
-            }
-            catch { }
-
             lastUpdateCheckTime = DateTime.Now;
         }
 
