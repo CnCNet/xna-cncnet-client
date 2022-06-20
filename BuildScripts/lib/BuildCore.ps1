@@ -34,12 +34,14 @@ function Build-Project {
     $Private:TargetFrameworkWithoutTFM = Get-TargetFrameworkWithoutTFM $TargetFramework
     $Private:SpecialName = Get-PlatformName $Engine
     $Private:ClientSuffix = Get-Suffix $Engine
+    $Private:RootDirectory = "$ClientCompiledTarget\$Game\$Private:TargetFrameworkWithoutTFM\Resources"
+    $Private:BuildTargetDirectory = "$Private:RootDirectory\Binaries\$Private:SpecialName"
 
     $Private:DotnetArgs = @(
       "publish"
       $ClientProjectPath
       "--framework:$TargetFramework"
-      "--output:$ClientCompiledTarget\$Game\$Private:TargetFrameworkWithoutTFM\Binaries\$Private:SpecialName\"
+      "--output:$Private:BuildTargetDirectory\"
       "--no-self-contained"
       "--configuration:$Configuration"
       "-p:Engine=$Engine"
@@ -60,11 +62,22 @@ function Build-Project {
   }
 
   end {
-    Get-ChildItem $ClientCompiledTarget\$Game\$Private:TargetFrameworkWithoutTFM\Binaries\$Private:SpecialName\client$Private:ClientSuffix.* | ForEach-Object {
-      Move-ClientBinaries $_ "$ClientCompiledTarget\$Game\$Private:TargetFrameworkWithoutTFM" $Private:ClientSuffix
+    $Private:tmp = "$Private:BuildTargetDirectory\client$Private:ClientSuffix."
+    if ($Private:TargetFrameworkWithoutTFM.Contains('.')) {
+      # netcoreapp3.0, netcoreapp3.1, net5.0 net6.0, net7.0
+      # move exe only
+      $Private:tmp += 'exe'
+    }
+    else {
+      # net40, net45, net46, net47, net48
+      # move exe, pdb, app.config
+      $Private:tmp += '*'
+    }
+    Get-ChildItem $Private:tmp | ForEach-Object {
+      Move-ClientBinaries $_ $Private:RootDirectory
     }
     if (!$SkipMoveCommonLibraries) {
-      Move-CommonLibraries "$ClientCompiledTarget\$Game\$Private:TargetFrameworkWithoutTFM\Binaries\$Private:SpecialName\"
+      Move-CommonLibraries "$Private:BuildTargetDirectory"
     }
   }
 }

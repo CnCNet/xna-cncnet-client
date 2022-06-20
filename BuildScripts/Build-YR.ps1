@@ -5,11 +5,15 @@
 param (
   [Parameter()]
   [string]
-  $Configuration = 'Release'
+  $Configuration = 'Release',
+  [Parameter()]
+  [Switch]
+  [bool]
+  $SkipMoveCommonLibraries
 )
 
 # Imports
 . $PSScriptRoot\lib\Enums.ps1
 . $PSScriptRoot\lib\BuildTools.ps1
 
-Build-YR $Configuration
+Build-YR $Configuration -SkipMoveCommonLibraries:$SkipMoveCommonLibraries
