@@ -28,7 +28,7 @@ echo Common
 
 cd ..\..\DXMainClient\bin\SharpDX\Release\
 
-copy DTAUpdater.dll %commonBinaries%DTAUpdater.dll
+copy ClientUpdater.dll %commonBinaries%ClientUpdater.dll
 copy Ionic.Zip.dll %commonBinaries%Ionic.Zip.dll
 copy Rampastring.Tools.dll %commonBinaries%Rampastring.Tools.dll
 copy Newtonsoft.Json.dll %commonBinaries%Newtonsoft.Json.dll
