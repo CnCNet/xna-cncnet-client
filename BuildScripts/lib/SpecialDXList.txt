@@ -10,8 +10,6 @@ ClientGUI.dll
 ClientGUI.pdb
 DTAConfig.dll
 DTAConfig.pdb
-Localization.dll
-Localization.pdb
 Microsoft.CodeAnalysis.CSharp.dll
 Microsoft.CodeAnalysis.dll
 Microsoft.CodeAnalysis.VisualBasic.dll

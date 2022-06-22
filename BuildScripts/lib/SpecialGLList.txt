@@ -10,8 +10,6 @@ clientogl.pdb
 clientogl.runtimeconfig.json
 DTAConfig.dll
 DTAConfig.pdb
-Localization.dll
-Localization.pdb
 MonoGame.Framework.dll
 Rampastring.XNAUI.GL.dll
 

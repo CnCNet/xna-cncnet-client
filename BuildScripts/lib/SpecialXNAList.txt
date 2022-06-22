@@ -10,8 +10,6 @@ clientxna.pdb
 clientxna.runtimeconfig.json
 DTAConfig.dll
 DTAConfig.pdb
-Localization.dll
-Localization.pdb
 Microsoft.Xna.Framework.Avatar.dll
 Microsoft.Xna.Framework.dll
 Microsoft.Xna.Framework.Game.dll
