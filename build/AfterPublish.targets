@@ -10,7 +10,7 @@
     <Exec ConsoleToMsBuild="True" Command="&quot;$(MSBuildThisFileDirectory)..\AdditionalFiles\AppHostPatcher\AppHostPatcher.exe&quot; &quot;$(PublishDir)$(AssemblyName).exe&quot; &quot;$(AssemblyName).dll&quot; &quot;Binaries\$(__DirectoryName)\$(AssemblyName).dll&quot;" />
   </Target>
 
-  <Target Name="RemoveSDL" AfterTargets="Publish" Condition="$(TargetFrameworkIdentifier)' == '.NETFramework'">
+  <Target Name="RemoveSDL" AfterTargets="Publish" Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework'">
     <Delete Condition="'$(Engine)' == 'GL'" Files="$(PublishDir)SDL2.dll" />
     <Delete Condition="'$(Engine)' == 'GL'" Files="$(PublishDir)soft_oal.dll" />
   </Target>
