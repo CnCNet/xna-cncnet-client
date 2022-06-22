@@ -17,10 +17,11 @@
   <!--Switching between Configurations within VS IDE requires reloading the project file-->
   <ItemGroup>
     <PackageReference Include="Rampastring.XNAUI.$(Engine)" Version="2.1.0" Condition="'$(Configuration)' != 'Debug'" />
-    <PackageReference Include="Rampastring.XNAUI.$(Engine).Debug" Version="2.1.0" Condition="'$(Configuration)' == 'Debug'"/>
+    <PackageReference Include="Rampastring.XNAUI.$(Engine).Debug" Version="2.1.0" Condition="'$(Configuration)' == 'Debug'" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="System.Resources.Extensions" Version="6.0.0" />
+    <PackageReference Include="System.Text.Encoding.CodePages" Version="6.0.0" Condition="'$(TargetFrameworkIdentifier)' != '.NETFramework'" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Localization\Localization.csproj" />

@@ -51,32 +51,8 @@
       <HintPath>..\References\DiscordRPC.dll</HintPath>
     </Reference>
   </ItemGroup>
-  <Target Name="CopyResources" AfterTargets="Build" Condition="$(DefineConstants.Contains('DEBUG'))">
-    <ItemGroup>
-      <ExampleClientResources Include="$(SolutionDir)\DXMainClient\Resources\DTA\**\*.*" />
-      <ExampleClientMaps Include="$(SolutionDir)\DXMainClient\Resources\Maps\**\*.*" />
-      <ExampleClientIni Include="$(SolutionDir)\DXMainClient\Resources\INI\**\*.*" />
-      <ExampleClientMix Include="$(SolutionDir)\DXMainClient\Resources\MIX\**\*.*" />
-      <ExampleClientSettings Include="$(SolutionDir)\DXMainClient\Resources\Settings.ini" />
-      <ExampleClientLinuxRun Include="$(SolutionDir)\DXMainClient\Resources\run.sh" />
-      <ExampleClientDefinitions Include="$(SolutionDir)\DXMainClient\Resources\ClientDefinitions.ini" />
-    </ItemGroup>
-    <Copy Condition="! Exists('$(OutputPath)\Resources\ClientDefinitions.ini') " SourceFiles="@(ExampleClientResources)" DestinationFolder="$(OutputPath)\Resources\%(RecursiveDir)" />
-    <Copy Condition="! Exists('$(OutputPath)\Resources\ClientDefinitions.ini') " SourceFiles="@(ExampleClientMaps)" DestinationFolder="$(OutputPath)\Maps\%(RecursiveDir)" />
-    <Copy Condition="! Exists('$(OutputPath)\Resources\ClientDefinitions.ini') " SourceFiles="@(ExampleClientIni)" DestinationFolder="$(OutputPath)\INI\%(RecursiveDir)" />
-    <Copy Condition="! Exists('$(OutputPath)\Resources\ClientDefinitions.ini') " SourceFiles="@(ExampleClientMix)" DestinationFolder="$(OutputPath)\MIX\%(RecursiveDir)" />
-    <Copy Condition="! Exists('$(OutputPath)\Resources\ClientDefinitions.ini') " SourceFiles="@(ExampleClientSettings)" DestinationFolder="$(OutputPath)" />
-    <Copy Condition="! Exists('$(OutputPath)\Resources\ClientDefinitions.ini') " SourceFiles="@(ExampleClientLinuxRun)" DestinationFolder="$(OutputPath)" />
-    <Copy Condition="! Exists('$(OutputPath)\Resources\ClientDefinitions.ini') " SourceFiles="@(ExampleClientDefinitions)" DestinationFolder="$(OutputPath)\Resources" />
-  </Target>
-  <Target Name="PublishDesktopGLNative" AfterTargets="Publish" Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework'">
-    <ItemGroup>
-      <_lib_x64 Include="$(OutputPath)\x64\*.*" />
-      <_lib_x86 Include="$(OutputPath)\x86\*.*" />
-      <_lib_osx Include="$(OutputPath)\*..dylib" />
-    </ItemGroup>
-    <Copy SourceFiles="@(_lib_x64)" DestinationFolder="$(PublishDir)\x64" />
-    <Copy SourceFiles="@(_lib_x86)" DestinationFolder="$(PublishDir)\x86" />
-    <Copy SourceFiles="@(_lib_osx)" DestinationFolder="$(PublishDir)" />
-  </Target>
+
+  <Import Project="$(MSBuildThisFileDirectory)..\build\AfterPublish.targets" />
+  <Import Project="$(MSBuildThisFileDirectory)..\build\CopyResources.targets" />
+
 </Project>

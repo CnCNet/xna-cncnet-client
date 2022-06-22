@@ -32,6 +32,4 @@
     </PackageReference>
   </ItemGroup>
 
-  <Import Project="$(MSBuildThisFileDirectory)build\AfterPublish.targets" />
-
 </Project>

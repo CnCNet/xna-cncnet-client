@@ -6,11 +6,11 @@
     <__DirectoryName Condition="'$(Engine)' == 'XNA'">XNA</__DirectoryName>
   </PropertyGroup>
 
-  <Target Name="PatchAppHost" AfterTargets="Publish" Condition="'$(OutputType)' != 'Library' AND '$(TargetFramework.Substring(3, 1))' != '4'">
+  <Target Name="PatchAppHost" AfterTargets="Publish" Condition="'$(TargetFrameworkIdentifier)' != '.NETFramework'">
     <Exec ConsoleToMsBuild="True" Command="&quot;$(MSBuildThisFileDirectory)..\AdditionalFiles\AppHostPatcher\AppHostPatcher.exe&quot; &quot;$(PublishDir)$(AssemblyName).exe&quot; &quot;$(AssemblyName).dll&quot; &quot;Binaries\$(__DirectoryName)\$(AssemblyName).dll&quot;" />
   </Target>
 
-  <Target Name="RemoveSDL" AfterTargets="Publish" Condition="'$(OutputType)' != 'Library' AND '$(TargetFramework.Substring(3, 1))' == '4'">
+  <Target Name="RemoveSDL" AfterTargets="Publish" Condition="$(TargetFrameworkIdentifier)' == '.NETFramework'">
     <Delete Condition="'$(Engine)' == 'GL'" Files="$(PublishDir)SDL2.dll" />
     <Delete Condition="'$(Engine)' == 'GL'" Files="$(PublishDir)soft_oal.dll" />
   </Target>

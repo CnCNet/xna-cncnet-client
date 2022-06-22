@@ -2,6 +2,7 @@
 using Rampastring.Tools;
 using ClientCore;
 using System.Text;
+using ClientCore.PlatformShim;
 
 namespace DTAClient.Domain
 {
@@ -17,11 +18,6 @@ namespace DTAClient.Domain
             {
                 string finalSunIniPath = ClientConfiguration.Instance.FinalSunIniPath;
                 var finalSunIniFile = new FileInfo(Path.Combine(ProgramConstants.GamePath, finalSunIniPath));
-#if NETFRAMEWORK
-                var encoding1252 = Encoding.GetEncoding(1252);
-#else
-                var encoding1252 = CodePagesEncodingProvider.Instance.GetEncoding(1252);
-#endif
 
                 Logger.Log("Checking for the existence of FinalSun.ini.");
                 if (finalSunIniFile.Exists)
@@ -30,7 +26,7 @@ namespace DTAClient.Domain
 
                     IniFile iniFile = new IniFile();
                     iniFile.FileName = finalSunIniFile.FullName;
-                    iniFile.Encoding = encoding1252;
+                    iniFile.Encoding = EncodingExt.ANSI;
                     iniFile.Parse();
                     
                     iniFile.SetStringValue("FinalSun", "Language", "English");
@@ -46,7 +42,7 @@ namespace DTAClient.Domain
                 if (!finalSunIniFile.Directory.Exists)
                     finalSunIniFile.Directory.Create();
 
-                using var sw = new StreamWriter(finalSunIniFile.FullName, false, encoding1252);
+                using var sw = new StreamWriter(finalSunIniFile.FullName, false, EncodingExt.ANSI);
 
                 sw.WriteLine("[FinalSun]");
                 sw.WriteLine("Language=English");
