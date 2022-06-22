@@ -87,7 +87,7 @@ namespace DTAClient.DXGUI
                         Logger.Log("No LauncherExe= specified in ClientDefinitions.ini! " +
                             "Forwarding exception to regular exception handler.");
 
-                        throw ex;
+                        throw;
                     }
                     else
                     {
