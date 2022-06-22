@@ -9,11 +9,11 @@ param (
   [Parameter()]
   [Switch]
   [bool]
-  $SkipMoveCommonLibraries
+  $SkipMoveLibraries
 )
 
 # Imports
 . $PSScriptRoot\lib\Enums.ps1
 . $PSScriptRoot\lib\BuildTools.ps1
 
-Build-Ares $Configuration -SkipMoveCommonLibraries:$SkipMoveCommonLibraries
+Build-Ares $Configuration -SkipMoveLibraries:$SkipMoveLibraries

@@ -15,20 +15,19 @@ function Build-Ares {
     $Configuration,
     [Parameter()]
     [Switch]
-    [bool]
-    $SkipMoveCommonLibraries
+    $SkipMoveLibraries
   )
 
   process {
     Clear-Compiled $Script:ClientCompiledTarget\Ares
 
-    Build-Project -Configuration $Configuration -Game Ares -Engine DX -TargetFramework net6.0-windows10.0.22000.0 -SkipMoveCommonLibraries:$SkipMoveCommonLibraries
-    Build-Project -Configuration $Configuration -Game Ares -Engine GL -TargetFramework net6.0-windows10.0.22000.0 -SkipMoveCommonLibraries:$SkipMoveCommonLibraries
-    Build-Project -Configuration $Configuration -Game Ares -Engine XNA -TargetFramework net6.0-windows10.0.22000.0 -SkipMoveCommonLibraries:$SkipMoveCommonLibraries
+    Build-Project -Configuration $Configuration -Game Ares -Engine DX -TargetFramework net6.0-windows10.0.22000.0 -SkipMoveLibraries:$SkipMoveLibraries
+    Build-Project -Configuration $Configuration -Game Ares -Engine GL -TargetFramework net6.0-windows10.0.22000.0 -SkipMoveLibraries:$SkipMoveLibraries
+    Build-Project -Configuration $Configuration -Game Ares -Engine XNA -TargetFramework net6.0-windows10.0.22000.0 -SkipMoveLibraries:$SkipMoveLibraries
 
-    Build-Project -Configuration $Configuration -Game Ares -Engine DX -TargetFramework net48 -SkipMoveCommonLibraries:$SkipMoveCommonLibraries
-    Build-Project -Configuration $Configuration -Game Ares -Engine GL -TargetFramework net48 -SkipMoveCommonLibraries:$SkipMoveCommonLibraries
-    Build-Project -Configuration $Configuration -Game Ares -Engine XNA -TargetFramework net48 -SkipMoveCommonLibraries:$SkipMoveCommonLibraries
+    Build-Project -Configuration $Configuration -Game Ares -Engine DX -TargetFramework net48 -SkipMoveLibraries:$SkipMoveLibraries
+    Build-Project -Configuration $Configuration -Game Ares -Engine GL -TargetFramework net48 -SkipMoveLibraries:$SkipMoveLibraries
+    Build-Project -Configuration $Configuration -Game Ares -Engine XNA -TargetFramework net48 -SkipMoveLibraries:$SkipMoveLibraries
   }
 }
 
@@ -40,20 +39,19 @@ function Build-TS {
     $Configuration,
     [Parameter()]
     [Switch]
-    [bool]
-    $SkipMoveCommonLibraries
+    $SkipMoveLibraries
   )
 
   process {
     Clear-Compiled $Script:ClientCompiledTarget\TS
 
-    Build-Project -Configuration $Configuration -Game TS -Engine DX -TargetFramework net6.0-windows10.0.22000.0 -SkipMoveCommonLibraries:$SkipMoveCommonLibraries
-    Build-Project -Configuration $Configuration -Game TS -Engine GL -TargetFramework net6.0-windows10.0.22000.0 -SkipMoveCommonLibraries:$SkipMoveCommonLibraries
-    Build-Project -Configuration $Configuration -Game TS -Engine XNA -TargetFramework net6.0-windows10.0.22000.0 -SkipMoveCommonLibraries:$SkipMoveCommonLibraries
+    Build-Project -Configuration $Configuration -Game TS -Engine DX -TargetFramework net6.0-windows10.0.22000.0 -SkipMoveLibraries:$SkipMoveLibraries
+    Build-Project -Configuration $Configuration -Game TS -Engine GL -TargetFramework net6.0-windows10.0.22000.0 -SkipMoveLibraries:$SkipMoveLibraries
+    Build-Project -Configuration $Configuration -Game TS -Engine XNA -TargetFramework net6.0-windows10.0.22000.0 -SkipMoveLibraries:$SkipMoveLibraries
 
-    Build-Project -Configuration $Configuration -Game TS -Engine DX -TargetFramework net48 -SkipMoveCommonLibraries:$SkipMoveCommonLibraries
-    Build-Project -Configuration $Configuration -Game TS -Engine GL -TargetFramework net48 -SkipMoveCommonLibraries:$SkipMoveCommonLibraries
-    Build-Project -Configuration $Configuration -Game TS -Engine XNA -TargetFramework net48 -SkipMoveCommonLibraries:$SkipMoveCommonLibraries
+    Build-Project -Configuration $Configuration -Game TS -Engine DX -TargetFramework net48 -SkipMoveLibraries:$SkipMoveLibraries
+    Build-Project -Configuration $Configuration -Game TS -Engine GL -TargetFramework net48 -SkipMoveLibraries:$SkipMoveLibraries
+    Build-Project -Configuration $Configuration -Game TS -Engine XNA -TargetFramework net48 -SkipMoveLibraries:$SkipMoveLibraries
   }
 }
 
@@ -65,20 +63,19 @@ function Build-YR {
     $Configuration,
     [Parameter()]
     [Switch]
-    [bool]
-    $SkipMoveCommonLibraries
+    $SkipMoveLibraries
   )
 
   process {
     Clear-Compiled $Script:ClientCompiledTarget\YR
 
-    Build-Project -Configuration $Configuration -Game YR -Engine DX -TargetFramework net6.0-windows10.0.22000.0 -SkipMoveCommonLibraries:$SkipMoveCommonLibraries
-    Build-Project -Configuration $Configuration -Game YR -Engine GL -TargetFramework net6.0-windows10.0.22000.0 -SkipMoveCommonLibraries:$SkipMoveCommonLibraries
-    Build-Project -Configuration $Configuration -Game YR -Engine XNA -TargetFramework net6.0-windows10.0.22000.0 -SkipMoveCommonLibraries:$SkipMoveCommonLibraries
+    Build-Project -Configuration $Configuration -Game YR -Engine DX -TargetFramework net6.0-windows10.0.22000.0 -SkipMoveLibraries:$SkipMoveLibraries
+    Build-Project -Configuration $Configuration -Game YR -Engine GL -TargetFramework net6.0-windows10.0.22000.0 -SkipMoveLibraries:$SkipMoveLibraries
+    Build-Project -Configuration $Configuration -Game YR -Engine XNA -TargetFramework net6.0-windows10.0.22000.0 -SkipMoveLibraries:$SkipMoveLibraries
 
-    Build-Project -Configuration $Configuration -Game YR -Engine DX -TargetFramework net48 -SkipMoveCommonLibraries:$SkipMoveCommonLibraries
-    Build-Project -Configuration $Configuration -Game YR -Engine GL -TargetFramework net48 -SkipMoveCommonLibraries:$SkipMoveCommonLibraries
-    Build-Project -Configuration $Configuration -Game YR -Engine XNA -TargetFramework net48 -SkipMoveCommonLibraries:$SkipMoveCommonLibraries
+    Build-Project -Configuration $Configuration -Game YR -Engine DX -TargetFramework net48 -SkipMoveLibraries:$SkipMoveLibraries
+    Build-Project -Configuration $Configuration -Game YR -Engine GL -TargetFramework net48 -SkipMoveLibraries:$SkipMoveLibraries
+    Build-Project -Configuration $Configuration -Game YR -Engine XNA -TargetFramework net48 -SkipMoveLibraries:$SkipMoveLibraries
   }
 }
 
@@ -90,13 +87,12 @@ function Build-All {
     $Configuration,
     [Parameter()]
     [Switch]
-    [bool]
-    $SkipMoveCommonLibraries
+    $SkipMoveLibraries
   )
 
   process {
-    Build-Ares $Configuration -SkipMoveCommonLibraries:$SkipMoveCommonLibraries
-    Build-TS $Configuration -SkipMoveCommonLibraries:$SkipMoveCommonLibraries
-    Build-YR $Configuration -SkipMoveCommonLibraries:$SkipMoveCommonLibraries
+    Build-Ares $Configuration -SkipMoveLibraries:$SkipMoveLibraries
+    Build-TS $Configuration -SkipMoveLibraries:$SkipMoveLibraries
+    Build-YR $Configuration -SkipMoveLibraries:$SkipMoveLibraries
   }
 }
