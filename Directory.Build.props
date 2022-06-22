@@ -16,9 +16,10 @@
 
   <Import Project="$(MSBuildThisFileDirectory)build\Framework.props" />
 
+  <!-- Visual Sutdio -->
   <PropertyGroup Condition="'$(BuildingInsideVisualStudio)' == 'True'">
-    <OutputPath Condition="'$(_OutputConfiguration)' != ''">$(BaseOutputPath)bin\$(_OutputConfiguration)\$(Engine)\</OutputPath>
-    <IntermediateOutputPath Condition="'$(_OutputConfiguration)' != ''">$(BaseIntermediateOutputPath)obj\$(_OutputConfiguration)\$(Engine)\</IntermediateOutputPath>
+    <OutputPath Condition="'$(_OutputConfiguration)' != ''">$(BaseOutputPath)bin\$(_OutputConfiguration)\$(Game)\$(Engine)\</OutputPath>
+    <IntermediateOutputPath Condition="'$(_OutputConfiguration)' != ''">$(BaseIntermediateOutputPath)obj\$(_OutputConfiguration)\$(Game)\$(Engine)\</IntermediateOutputPath>
   </PropertyGroup>
 
   <Target Name="ShowBuildInfo" BeforeTargets="CoreCompile">
