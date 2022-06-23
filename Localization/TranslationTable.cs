@@ -93,9 +93,9 @@ namespace Localization
         public TranslationTable Clone() => new TranslationTable(this);
         object ICloneable.Clone() => Clone();
 
-        public static TranslationTable LoadFromIniFile(FileInfo iniFileInfo)
+        public static TranslationTable LoadFromIniFile(string iniPath)
         {
-            using (var stream = iniFileInfo.OpenRead())
+            using (var stream = File.Open(iniPath, FileMode.Open))
             {
                 IniFile iniFile = new IniFile(stream);
                 return new TranslationTable(iniFile);
