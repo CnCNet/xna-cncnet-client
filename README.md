@@ -42,6 +42,10 @@ Windows 7 SP1 or higher is required. The .NET 6.0 MonoGame (DirectX11) build is 
 
 The MonoGame WindowsGL / DesktopGL build is primarily meant for experimental Linux and Mac support.
 
+All builds require either the [.NET 6.0 Desktop Runtime](https://dotnet.microsoft.com/en-us/download/dotnet/6.0/runtime) or the [.NET 4.8 Runtime](https://dotnet.microsoft.com/en-us/download/dotnet-framework/net48).
+
+The XNA build additionally requires the [Microsoft XNA Framework Redistributable 4.0 Refresh](https://www.microsoft.com/en-us/download/details.aspx?id=27598)
+
 Client launcher
 ---------------
 
