@@ -1,22 +1,22 @@
-﻿using ClientCore;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using ClientCore;
+using ClientCore.Enums;
 using ClientCore.Statistics;
 using ClientGUI;
 using DTAClient.Domain;
 using DTAClient.Domain.Multiplayer;
+using DTAClient.DXGUI.Multiplayer.CnCNet;
+using DTAClient.Online;
+using DTAClient.Online.EventArguments;
+using Localization;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Rampastring.Tools;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using ClientCore.Enums;
-using DTAClient.DXGUI.Multiplayer.CnCNet;
-using DTAClient.Online;
-using DTAClient.Online.EventArguments;
-using Localization;
 
 namespace DTAClient.DXGUI.Multiplayer.GameLobby
 {
@@ -255,7 +255,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 ddGameModeMapFilter.AddItem(CreateGameFilterItem(gm.UIName, new GameModeMapFilter(GetGameModeMaps(gm))));
 
             lblGameModeSelect = FindChild<XNALabel>(nameof(lblGameModeSelect));
-            
+
             InitBtnMapSort();
 
             tbMapSearch = FindChild<XNASuggestionTextBox>(nameof(tbMapSearch));
@@ -293,7 +293,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         }
 
         private void InitializeGameOptionPresetUI()
-            {
+        {
             BtnSaveLoadGameOptions = FindChild<XNAClientButton>(nameof(BtnSaveLoadGameOptions), true);
 
             if (BtnSaveLoadGameOptions != null)
@@ -325,7 +325,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
                 AddChild(loadSaveGameOptionsMenu);
                 AddChild(loadOrSaveGameOptionPresetWindow);
-        }
+            }
         }
 
         private void BtnMapSortAlphabetically_LeftClick(object sender, EventArgs e)
@@ -641,7 +641,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             {
                 Logger.Log($"Deleting map {Map.BaseFilePath} failed! Message: {ex.Message}");
                 XNAMessageBox.Show(WindowManager, "Deleting Map Failed".L10N("UI:Main:DeleteMapFailedTitle"),
-                    "Deleting map failed! Reason:".L10N("UI:Main:DeleteMapFailedText")+ " " + ex.Message);
+                    "Deleting map failed! Reason:".L10N("UI:Main:DeleteMapFailedText") + " " + ex.Message);
             }
         }
 
@@ -763,9 +763,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     ddPlayerName.Y, sideWidth, DROP_DOWN_HEIGHT);
                 ddPlayerSide.AddItem("Random", LoadTextureOrNull("randomicon.png"));
                 foreach (string randomSelector in selectorNames)
-                    ddPlayerSide.AddItem(randomSelector, LoadTextureOrNull(randomSelector + "icon.png"));
+                    ddPlayerSide.AddItem(randomSelector.L10N($"UI:Side:{randomSelector}"), LoadTextureOrNull(randomSelector + "icon.png"));
                 foreach (string sideName in sides)
-                    ddPlayerSide.AddItem(sideName, LoadTextureOrNull(sideName + "icon.png"));
+                    ddPlayerSide.AddItem(sideName.L10N($"UI:Side:{sideName}"), LoadTextureOrNull(sideName + "icon.png"));
                 ddPlayerSide.AllowDropDown = false;
                 ddPlayerSide.SelectedIndexChanged += CopyPlayerDataFromUI;
                 ddPlayerSide.Tag = true;
@@ -2075,7 +2075,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         protected string AILevelToName(int aiLevel)
         {
             return ProgramConstants.GetAILevelName(aiLevel);
-            }
+        }
 
         protected GameType GetGameType()
         {
