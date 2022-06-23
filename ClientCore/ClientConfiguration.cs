@@ -313,15 +313,16 @@ namespace ClientCore
                 if (osVersion.Major < 5)
                     return OSVersion.UNKNOWN;
 
-                if (osVersion.Major == 5)
+                if (osVersion.Major < 6)
                     return OSVersion.WINXP;
 
-                if (osVersion.Minor > 1)
-                    return OSVersion.WIN810;
-                else if (osVersion.Minor == 0)
+                if (osVersion.Major == 6 && osVersion.Minor < 1)
                     return OSVersion.WINVISTA;
 
-                return OSVersion.WIN7;
+                if (osVersion.Major == 6 && osVersion.Minor < 2)
+                    return OSVersion.WIN7;
+
+                return OSVersion.WIN810;
 #else
                 if (OperatingSystem.IsWindowsVersionAtLeast(6, 3))
                     return OSVersion.WIN810;

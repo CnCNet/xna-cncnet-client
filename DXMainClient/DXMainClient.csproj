@@ -20,6 +20,7 @@
     <AssemblyName Condition="'$(Engine)' == 'DX'">clientdx</AssemblyName>
     <AssemblyName Condition="'$(Engine)' == 'GL'">clientogl</AssemblyName>
     <AssemblyName Condition="'$(Engine)' == 'XNA'">clientxna</AssemblyName>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
   </PropertyGroup>
 
   <ItemGroup Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework'">
