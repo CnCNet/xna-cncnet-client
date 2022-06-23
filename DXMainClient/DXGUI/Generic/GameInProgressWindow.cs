@@ -9,6 +9,9 @@ using System.IO;
 using Localization;
 #if ARES
 using System.Linq;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using System.Drawing.Imaging;
 #endif
 
 namespace DTAClient.DXGUI
@@ -30,7 +33,7 @@ namespace DTAClient.DXGUI
         private bool nativeCursorUsed = false;
 
 #if ARES
-        private System.Collections.Generic.List<string> debugSnapshotDirectories;
+        private List<string> debugSnapshotDirectories;
         private DateTime debugLogLastWriteTime;
 #else
         private bool deletingLogFilesFailed = false;
@@ -155,7 +158,7 @@ namespace DTAClient.DXGUI
             DateTime dtn = DateTime.Now;
 
 #if ARES
-            System.Threading.Tasks.Task.Factory.StartNew(ProcessScreenshots);
+            Task.Factory.StartNew(ProcessScreenshots);
 
             // TODO: Ares debug log handling should be addressed in Ares DLL itself.
             // For now the following are handled here:
@@ -314,7 +317,7 @@ namespace DTAClient.DXGUI
         /// <returns>List of all debug snapshot directories in Ares debug logs directory. Empty list if none are found or an error was encountered.</returns>
         private System.Collections.Generic.List<string> GetAllDebugSnapshotDirectories()
         {
-            var directories = new System.Collections.Generic.List<string>();
+            var directories = new List<string>();
 
             try
             {
@@ -350,9 +353,9 @@ namespace DTAClient.DXGUI
             {
                 try
                 {
-                    System.Drawing.Bitmap bitmap = new System.Drawing.Bitmap(filename);
+                    var bitmap = new System.Drawing.Bitmap(filename);
                     bitmap.Save(screenshotsDirectory + Path.DirectorySeparatorChar + Path.GetFileNameWithoutExtension(filename) +
-                        ".png", System.Drawing.Imaging.ImageFormat.Png);
+                        ".png", ImageFormat.Png);
                     bitmap.Dispose();
                 }
                 catch (Exception ex)

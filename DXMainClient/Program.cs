@@ -3,7 +3,10 @@ using System.Collections.Generic;
 using System.IO;
 #if NETFRAMEWORK
 using System.Linq;
+#else
+using System.Runtime.Loader;
 #endif
+
 using System.Reflection;
 using System.Threading;
 using System.Windows.Forms;
@@ -53,7 +56,7 @@ namespace DTAClient
 #if NETFRAMEWORK
             AppDomain.CurrentDomain.AssemblyResolve += CurrentDomain_AssemblyResolve;
 #else
-            System.Runtime.Loader.AssemblyLoadContext.Default.Resolving += DefaultAssemblyLoadContextOnResolving;
+            AssemblyLoadContext.Default.Resolving += DefaultAssemblyLoadContextOnResolving;
 #endif
 
 #if !DEBUG
@@ -171,7 +174,7 @@ namespace DTAClient
             return null;
         }
 #else
-        private static Assembly DefaultAssemblyLoadContextOnResolving(System.Runtime.Loader.AssemblyLoadContext assemblyLoadContext, AssemblyName assemblyName)
+        private static Assembly DefaultAssemblyLoadContextOnResolving(AssemblyLoadContext assemblyLoadContext, AssemblyName assemblyName)
         {
             if (assemblyName.Name.EndsWith(".resources", StringComparison.OrdinalIgnoreCase))
                 return null;

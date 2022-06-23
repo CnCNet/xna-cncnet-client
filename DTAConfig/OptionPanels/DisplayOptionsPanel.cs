@@ -10,6 +10,10 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Windows.Forms;
+#if TS
+using Microsoft.Win32;
+using System.Diagnostics;
+#endif
 
 namespace DTAConfig.OptionPanels
 {
@@ -395,11 +399,11 @@ namespace DTAConfig.OptionPanels
             // Set compatibility fix declined flag in registry
             try
             {
-                Microsoft.Win32.RegistryKey regKey = Microsoft.Win32.Registry.CurrentUser.OpenSubKey("SOFTWARE\\Tiberian Sun Client");
+                RegistryKey regKey = Registry.CurrentUser.OpenSubKey("SOFTWARE\\Tiberian Sun Client");
 
                 try
                 {
-                    regKey = Microsoft.Win32.Registry.CurrentUser.OpenSubKey("SOFTWARE", true);
+                    regKey = Registry.CurrentUser.OpenSubKey("SOFTWARE", true);
                     regKey = regKey.CreateSubKey("Tiberian Sun Client");
                     regKey.SetValue("TSCompatFixDeclined", "Yes");
                 }
@@ -422,7 +426,7 @@ namespace DTAConfig.OptionPanels
             {
                 try
                 {
-                    System.Diagnostics.Process sdbinst = System.Diagnostics.Process.Start("sdbinst.exe", "-q -n \"TS Compatibility Fix\"");
+                    Process sdbinst = Process.Start("sdbinst.exe", "-q -n \"TS Compatibility Fix\"");
 
                     sdbinst.WaitForExit();
 
@@ -430,7 +434,7 @@ namespace DTAConfig.OptionPanels
                     XNAMessageBox.Show(WindowManager, "Compatibility Fix Uninstalled".L10N("UI:DTAConfig:TSFixUninstallTitle"),
                         "The DTA/TI/TS Compatibility Fix has been succesfully uninstalled.".L10N("UI:DTAConfig:TSFixUninstallText"));
 
-                    Microsoft.Win32.RegistryKey regKey = Microsoft.Win32.Registry.CurrentUser.OpenSubKey("SOFTWARE", true);
+                    RegistryKey regKey = Registry.CurrentUser.OpenSubKey("SOFTWARE", true);
                     regKey = regKey.CreateSubKey("Tiberian Sun Client");
                     regKey.SetValue("TSCompatFixInstalled", "No");
 
@@ -450,7 +454,7 @@ namespace DTAConfig.OptionPanels
 
             try
             {
-                System.Diagnostics.Process sdbinst = System.Diagnostics.Process.Start("sdbinst.exe", "-q \"" + ProgramConstants.GamePath + "Resources/compatfix.sdb\"");
+                Process sdbinst = Process.Start("sdbinst.exe", "-q \"" + ProgramConstants.GamePath + "Resources/compatfix.sdb\"");
 
                 sdbinst.WaitForExit();
 
@@ -458,7 +462,7 @@ namespace DTAConfig.OptionPanels
                 XNAMessageBox.Show(WindowManager, "Compatibility Fix Installed".L10N("UI:DTAConfig:TSFixInstallSuccessTitle"),
                     "The DTA/TI/TS Compatibility Fix has been succesfully installed.".L10N("UI:DTAConfig:TSFixInstallSuccessText"));
 
-                Microsoft.Win32.RegistryKey regKey = Microsoft.Win32.Registry.CurrentUser.OpenSubKey("SOFTWARE", true);
+                RegistryKey regKey = Registry.CurrentUser.OpenSubKey("SOFTWARE", true);
                 regKey = regKey.CreateSubKey("Tiberian Sun Client");
                 regKey.SetValue("TSCompatFixInstalled", "Yes");
 
@@ -480,11 +484,11 @@ namespace DTAConfig.OptionPanels
             {
                 try
                 {
-                    System.Diagnostics.Process sdbinst = System.Diagnostics.Process.Start("sdbinst.exe", "-q -n \"Final Sun Compatibility Fix\"");
+                    Process sdbinst = Process.Start("sdbinst.exe", "-q -n \"Final Sun Compatibility Fix\"");
 
                     sdbinst.WaitForExit();
 
-                    Microsoft.Win32.RegistryKey regKey = Microsoft.Win32.Registry.CurrentUser.OpenSubKey("SOFTWARE", true);
+                    RegistryKey regKey = Registry.CurrentUser.OpenSubKey("SOFTWARE", true);
                     regKey = regKey.CreateSubKey("Tiberian Sun Client");
                     regKey.SetValue("FSCompatFixInstalled", "No");
 
@@ -509,11 +513,11 @@ namespace DTAConfig.OptionPanels
 
             try
             {
-                System.Diagnostics.Process sdbinst = System.Diagnostics.Process.Start("sdbinst.exe", "-q \"" + ProgramConstants.GamePath + "Resources/FSCompatFix.sdb\"");
+                Process sdbinst = Process.Start("sdbinst.exe", "-q \"" + ProgramConstants.GamePath + "Resources/FSCompatFix.sdb\"");
 
                 sdbinst.WaitForExit();
 
-                Microsoft.Win32.RegistryKey regKey = Microsoft.Win32.Registry.CurrentUser.OpenSubKey("SOFTWARE", true);
+                RegistryKey regKey = Registry.CurrentUser.OpenSubKey("SOFTWARE", true);
                 regKey = regKey.CreateSubKey("Tiberian Sun Client");
                 regKey.SetValue("FSCompatFixInstalled", "Yes");
 
@@ -654,12 +658,10 @@ namespace DTAConfig.OptionPanels
                 ddi => ddi.Text == UserINISettings.Instance.ClientTheme);
             ddClientTheme.SelectedIndex = selectedThemeIndex > -1 ? selectedThemeIndex : 0;
 
-#if YR || ARES
-            chkBackBufferInVRAM.Checked = UserINISettings.Instance.BackBufferInVRAM;
-#else
+#if TS
             chkBackBufferInVRAM.Checked = !UserINISettings.Instance.BackBufferInVRAM;
 
-            Microsoft.Win32.RegistryKey regKey = Microsoft.Win32.Registry.CurrentUser.OpenSubKey("SOFTWARE\\Tiberian Sun Client");
+            RegistryKey regKey = Registry.CurrentUser.OpenSubKey("SOFTWARE\\Tiberian Sun Client");
 
             if (regKey == null)
                 return;
@@ -695,6 +697,8 @@ namespace DTAConfig.OptionPanels
             //{
             //    FinalSunCompatFixDeclined = true;
             //}
+#else
+            chkBackBufferInVRAM.Checked = UserINISettings.Instance.BackBufferInVRAM;
 #endif
         }
 
@@ -745,10 +749,10 @@ namespace DTAConfig.OptionPanels
 
             IniSettings.ClientTheme.Value = ddClientTheme.SelectedItem.Text;
 
-#if YR || ARES
-            IniSettings.BackBufferInVRAM.Value = chkBackBufferInVRAM.Checked;
-#else
+#if TS
             IniSettings.BackBufferInVRAM.Value = !chkBackBufferInVRAM.Checked;
+#else
+            IniSettings.BackBufferInVRAM.Value = chkBackBufferInVRAM.Checked;
 #endif
 
             if (selectedRenderer != originalRenderer ||

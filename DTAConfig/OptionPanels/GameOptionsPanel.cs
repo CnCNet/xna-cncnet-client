@@ -31,11 +31,11 @@ namespace DTAConfig.OptionPanels
         private XNAClientCheckBox chkTargetLines;
         private XNAClientCheckBox chkScrollCoasting;
         private XNAClientCheckBox chkTooltips;
-#if YR || ARES
-        private XNAClientCheckBox chkShowHiddenObjects;
-#elif TS
+#if TS
         private XNAClientCheckBox chkAltToUndeploy;
         private XNAClientCheckBox chkBlackChatBackground;
+#else
+        private XNAClientCheckBox chkShowHiddenObjects;
 #endif
 
         private XNAControl topBar;
@@ -98,7 +98,11 @@ namespace DTAConfig.OptionPanels
             lblPlayerName.Name = "lblPlayerName";
             lblPlayerName.Text = "Player Name*:".L10N("UI:DTAConfig:PlayerName");
 
-#if YR || ARES
+#if TS
+            chkTooltips.ClientRectangle = new Rectangle(
+                lblScrollRate.X,
+                chkTargetLines.Bottom + 24, 0, 0);
+#else
             chkShowHiddenObjects = new SettingCheckBox(WindowManager, true, UserINISettings.OPTIONS, "ShowHidden");
             chkShowHiddenObjects.Name = "chkShowHiddenObjects";
             chkShowHiddenObjects.ClientRectangle = new Rectangle(
@@ -115,10 +119,6 @@ namespace DTAConfig.OptionPanels
                 chkTooltips.Bottom + 30, 0, 0);
 
             AddChild(chkShowHiddenObjects);
-#else
-            chkTooltips.ClientRectangle = new Rectangle(
-                lblScrollRate.X,
-                chkTargetLines.Bottom + 24, 0, 0);
 #endif
 
 #if TS

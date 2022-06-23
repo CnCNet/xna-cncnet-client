@@ -49,12 +49,12 @@ namespace ClientCore
         {
             SettingsIni = iniFile;
 
-#if YR || ARES
-            const string WINDOWED_MODE_KEY = "Video.Windowed";
-            BackBufferInVRAM = new BoolSetting(iniFile, VIDEO, "VideoBackBuffer", false);
-#else
+#if TS
             const string WINDOWED_MODE_KEY = "Video.Windowed";
             BackBufferInVRAM = new BoolSetting(iniFile, VIDEO, "UseGraphicsPatch", true);
+#else
+            const string WINDOWED_MODE_KEY = "Video.Windowed";
+            BackBufferInVRAM = new BoolSetting(iniFile, VIDEO, "VideoBackBuffer", false);
 #endif
 
             IngameScreenWidth = new IntSetting(iniFile, VIDEO, "ScreenWidth", 1024);
