@@ -63,7 +63,12 @@ namespace DTAClient
 
             // Log information about given startup params
             if (parameters.NoAudio)
+            {
                 Logger.Log("Startup parameter: No audio");
+
+                // TODO fix
+                throw new NotImplementedException("-NOAUDIO is currently not implemented, please run the client without it.".L10N("UI:Main:NoAudio"));
+            }
 
             if (parameters.MultipleInstanceMode)
                 Logger.Log("Startup parameter: Allow multiple client instances");
