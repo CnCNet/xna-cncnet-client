@@ -31,7 +31,7 @@ function Build-Project {
 
   begin {
     Write-Host
-    Write-Host "Building $Game for $Engine ($Configuration)..." -ForegroundColor Blue
+    Write-Host "Building $Game $Engine $Configuration $TargetFramework..." -ForegroundColor Blue
     Write-Host
 
     $Private:TargetFrameworkWithoutTFM = Get-TargetFrameworkWithoutTFM $TargetFramework
@@ -72,7 +72,7 @@ function Build-Project {
   process {
     dotnet $Private:DotnetArgs
     if ($LASTEXITCODE -ne 0) {
-      throw "Failed to build project"
+      throw "Build failed for $Game $Engine $Configuration $TargetFramework"
     }
   }
 
@@ -101,7 +101,7 @@ function Build-Project {
     }
 
     Write-Host
-    Write-Host "Success to Building $Game for $Engine ($Configuration)..." -ForegroundColor Green
+    Write-Host "Build succeeded for $Game $Engine $Configuration $TargetFramework..." -ForegroundColor Green
     Write-Host
   }
 }
