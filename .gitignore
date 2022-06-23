@@ -398,4 +398,19 @@ FodyWeavers.xsd
 *.sln.iml
 
 # CnCNet
-/Compiled
+Compiled/
+Compiled*/
+
+# Käyttiksen (Mac ja win) tekemiä tiedostoja joita jättää pois
+._*
+.DS_Store*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Icon?
+[Tt]humbs.db
+
+# Dolphin
+.directory
+
+.idea/
