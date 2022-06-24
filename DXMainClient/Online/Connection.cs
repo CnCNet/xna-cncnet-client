@@ -23,6 +23,8 @@ namespace DTAClient.Online
         private const int RECONNECT_WAIT_DELAY = 4000;
         private const int ID_LENGTH = 9;
         private const int MAXIMUM_LATENCY = 400;
+        private const int WSAETIMEDOUT = 10060;
+        private const int WSAEINTR = 10004;
 
         public Connection(IConnectionManager connectionManager)
         {
@@ -184,27 +186,25 @@ namespace DTAClient.Online
                             Logger.Log("Connecting to " + server.Host + " port " + server.Ports[i] + " timed out!");
                             continue; // Start all over again, using the next port
                         }
-                        else if (client.Connected)
-                        {
-                            Logger.Log("Succesfully connected to " + server.Host + " on port " + server.Ports[i]);
-                            client.EndConnect(result);
 
-                            _isConnected = true;
-                            _attemptingConnection = false;
+                        Logger.Log("Succesfully connected to " + server.Host + " on port " + server.Ports[i]);
+                        client.EndConnect(result);
 
-                            connectionManager.OnConnected();
+                        _isConnected = true;
+                        _attemptingConnection = false;
 
-                            Thread sendQueueHandler = new Thread(RunSendQueue);
-                            sendQueueHandler.Start();
+                        connectionManager.OnConnected();
 
-                            tcpClient = client;
-                            serverStream = tcpClient.GetStream();
-                            serverStream.ReadTimeout = 1000;
+                        Thread sendQueueHandler = new Thread(RunSendQueue);
+                        sendQueueHandler.Start();
 
-                            currentConnectedServerIP = server.Host;
-                            HandleComm(client);
-                            return;
-                        }
+                        tcpClient = client;
+                        serverStream = tcpClient.GetStream();
+                        serverStream.ReadTimeout = 1000;
+
+                        currentConnectedServerIP = server.Host;
+                        HandleComm();
+                        return;
                     }
                 }
                 catch (Exception ex)
@@ -220,23 +220,19 @@ namespace DTAClient.Online
             connectionManager.OnConnectAttemptFailed();
         }
 
-        private void HandleComm(object client)
+        private void HandleComm()
         {
             int errorTimes = 0;
-
             byte[] message = new byte[1024];
-            int bytesRead;
 
             Register();
 
-            Timer timer = new Timer(new TimerCallback(AutoPing), null, 30000, 120000);
+            Timer timer = new Timer(AutoPing, null, 30000, 120000);
 
             connectionCut = true;
 
             while (true)
             {
-                bytesRead = 0;
-
                 if (connectionManager.GetDisconnectStatus())
                 {
                     connectionManager.OnDisconnected();
@@ -244,44 +240,37 @@ namespace DTAClient.Online
                     break;
                 }
 
+                if (!serverStream.DataAvailable)
+                {
+                    Thread.Sleep(10);
+                    continue;
+                }
+
+                int bytesRead;
+
                 try
                 {
                     bytesRead = serverStream.Read(message, 0, 1024);
                 }
-                catch (Exception ex)
+                catch (IOException ex) when (IsKnownSocketException(ex))
                 {
                     errorTimes++;
-
-                    if (errorTimes > 30) // TODO Figure out if this hacky check is actually necessary
-                    {
-                        Logger.Log("Disconnected from CnCNet due to a socket error. Message: " + ex.Message);
-                        failedServerIPs.Add(currentConnectedServerIP);
-                        connectionManager.OnConnectionLost(ex.Message);
-                        break;
-                    }
-                    else if (connectionManager.GetDisconnectStatus())
-                    {
-                        connectionManager.OnDisconnected();
-                        connectionCut = false; // This disconnect is intentional
-                        break;
-                    }
-
+                    continue;
+                }
+                catch (Exception ex)
+                {
+                    Logger.Log("Disconnected from CnCNet due to a socket error. Message: " + ex.Message);
+                    errorTimes++;
                     continue;
                 }
 
-                if (bytesRead == 0)
+                if (errorTimes > MAX_RECONNECT_COUNT)
                 {
-                    errorTimes++;
-
-                    if (errorTimes > 30) // TODO Figure out if this hacky check is actually necessary
-                    {
-                        failedServerIPs.Add(currentConnectedServerIP);
-                        Logger.Log("Disconnected from CnCNet.");
-                        connectionManager.OnConnectionLost("Server disconnected.".L10N("UI:Main:ServerDisconnected"));
-                        break;
-                    }
-
-                    continue;
+                    string errorMessage = FormattableString.Invariant($"Disconnected from CnCNet after {errorTimes} failed retries.");
+                    Logger.Log(errorMessage);
+                    failedServerIPs.Add(currentConnectedServerIP);
+                    connectionManager.OnConnectionLost(errorMessage);
+                    break;
                 }
 
                 errorTimes = 0;
@@ -324,6 +313,13 @@ namespace DTAClient.Online
                 Logger.Log("Attempting to reconnect to CnCNet.");
                 connectionManager.OnReconnectAttempt();
             }
+        }
+
+        private static bool IsKnownSocketException(IOException ex)
+        {
+            int? errorCode = (ex.InnerException as SocketException)?.ErrorCode;
+
+            return errorCode is WSAETIMEDOUT or WSAEINTR;
         }
 
         /// <summary>
@@ -995,7 +991,7 @@ namespace DTAClient.Online
                 var previousMessageIndex = MessageQueue.FindIndex(m => m.MessageType == qm.MessageType);
                 if (previousMessageIndex == -1)
                     return false;
-                
+
                 MessageQueue[previousMessageIndex] = qm;
                 return true;
             }
