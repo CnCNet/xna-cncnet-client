@@ -14,7 +14,7 @@ Microsoft.CodeAnalysis.CSharp.dll
 Microsoft.CodeAnalysis.dll
 Microsoft.CodeAnalysis.VisualBasic.dll
 MonoGame.Framework.dll
-Rampastring.XNAUI.DX.dll
+Rampastring.XNAUI.WindowsDX.dll
 SharpDX.Direct2D1.dll
 SharpDX.Direct3D11.dll
 SharpDX.Direct3D9.dll

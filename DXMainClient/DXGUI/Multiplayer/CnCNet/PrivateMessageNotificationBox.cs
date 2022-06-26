@@ -5,6 +5,12 @@ using Microsoft.Xna.Framework.Graphics;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
 using System;
+using System.IO;
+using System.Reflection;
+using ClientCore.CnCNet5;
+using SixLabors.ImageSharp;
+using Color = Microsoft.Xna.Framework.Color;
+using Rectangle = Microsoft.Xna.Framework.Rectangle;
 
 namespace DTAClient.DXGUI.Multiplayer.CnCNet
 {
@@ -70,7 +76,11 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             gameIconPanel.Name = "gameIconPanel";
             gameIconPanel.ClientRectangle = new Rectangle(12, 30, 16, 16);
             gameIconPanel.DrawBorders = false;
-            gameIconPanel.BackgroundTexture = AssetLoader.TextureFromImage(ClientCore.Properties.Resources.dtaicon);
+
+            var assembly = Assembly.GetAssembly(typeof(GameCollection));
+            using Stream dtaiconStream = assembly.GetManifestResourceStream("ClientCore.Resources.dtaicon.png");
+
+            gameIconPanel.BackgroundTexture = AssetLoader.TextureFromImage(Image.Load(dtaiconStream));
 
             lblSender = new XNALabel(WindowManager);
             lblSender.Name = "lblSender";
@@ -139,11 +149,15 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                         Width, Height);
                 }
 
+#if WINFORMS
                 if (WindowManager.HasFocus)
                 {
-                    downTime += gameTime.ElapsedGameTime;
-                    isDown = downTime < downTimeWaitTime;
+#endif
+                downTime += gameTime.ElapsedGameTime;
+                isDown = downTime < downTimeWaitTime;
+#if WINFORMS
                 }
+#endif
             }
             else
             {

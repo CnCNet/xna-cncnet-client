@@ -1,5 +1,4 @@
-﻿using Microsoft.Xna.Framework;
-using Rampastring.XNAUI.XNAControls;
+﻿using Rampastring.XNAUI.XNAControls;
 using Rampastring.Tools;
 using System;
 using ClientCore;
@@ -7,11 +6,13 @@ using Rampastring.XNAUI;
 using ClientGUI;
 using System.IO;
 using Localization;
+using Color = Microsoft.Xna.Framework.Color;
+using Rectangle = Microsoft.Xna.Framework.Rectangle;
 #if ARES
 using System.Linq;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using System.Drawing.Imaging;
+using SixLabors.ImageSharp;
 #endif
 
 namespace DTAClient.DXGUI
@@ -119,9 +120,11 @@ namespace DTAClient.DXGUI
             Game.IsMouseVisible = false;
             ProgramConstants.IsInGame = true;
             Game.TargetElapsedTime = TimeSpan.FromMilliseconds(1000.0 / POWER_SAVING_FPS);
+#if WINFORMS
+
             if (UserINISettings.Instance.MinimizeWindowsOnGameStart)
                 WindowManager.MinimizeWindow();
-
+#endif
         }
 
         private void SharedUILogic_GameProcessExited()
@@ -139,9 +142,12 @@ namespace DTAClient.DXGUI
                 WindowManager.Cursor.Visible = true;
             ProgramConstants.IsInGame = false;
             Game.TargetElapsedTime = TimeSpan.FromMilliseconds(1000.0 / UserINISettings.Instance.ClientFPS);
+
+#if WINFORMS
             if (UserINISettings.Instance.MinimizeWindowsOnGameStart)
                 WindowManager.MaximizeWindow();
 
+#endif
             UserINISettings.Instance.ReloadSettings();
 
             if (UserINISettings.Instance.BorderlessWindowedClient)
@@ -325,7 +331,7 @@ namespace DTAClient.DXGUI
         /// Returns list of all debug snapshot directories in Ares debug logs directory.
         /// </summary>
         /// <returns>List of all debug snapshot directories in Ares debug logs directory. Empty list if none are found or an error was encountered.</returns>
-        private System.Collections.Generic.List<string> GetAllDebugSnapshotDirectories()
+        private List<string> GetAllDebugSnapshotDirectories()
         {
             var directories = new List<string>();
 
@@ -343,7 +349,7 @@ namespace DTAClient.DXGUI
         /// </summary>
         private void ProcessScreenshots()
         {
-            System.Collections.Generic.IEnumerable<FileInfo> files = SafePath.GetDirectory(ProgramConstants.GamePath).EnumerateFiles("SCRN*.bmp");
+            IEnumerable<FileInfo> files = SafePath.GetDirectory(ProgramConstants.GamePath).EnumerateFiles("SCRN*.bmp");
             DirectoryInfo screenshotsDirectory = SafePath.GetDirectory(ProgramConstants.GamePath, "Screenshots");
 
             if (!screenshotsDirectory.Exists)
@@ -363,9 +369,12 @@ namespace DTAClient.DXGUI
             {
                 try
                 {
-                    var bitmap = new System.Drawing.Bitmap(file.FullName);
-                    bitmap.Save(SafePath.CombineFilePath(screenshotsDirectory.FullName, FormattableString.Invariant($"{Path.GetFileNameWithoutExtension(file.FullName)}.png")), ImageFormat.Png);
-                    bitmap.Dispose();
+                    using FileStream stream = file.OpenRead();
+                    using var image = Image.Load(stream);
+                    FileInfo newFile = SafePath.GetFile(screenshotsDirectory.FullName, FormattableString.Invariant($"{Path.GetFileNameWithoutExtension(file.FullName)}.png"));
+                    using FileStream newFileStream = newFile.OpenWrite();
+
+                    image.SaveAsPng(newFileStream);
                 }
                 catch (Exception ex)
                 {

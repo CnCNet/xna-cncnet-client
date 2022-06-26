@@ -1,5 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
+    <TargetFrameworks>net48;net6.0</TargetFrameworks>
     <Title>CnCNet Client</Title>
     <Description>CnCNet Localization Library</Description>
     <Company>CnCNet</Company>

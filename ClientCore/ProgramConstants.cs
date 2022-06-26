@@ -1,8 +1,12 @@
 ﻿using Localization;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 using System.Text;
-using System.Windows.Forms;
+#if NETFRAMEWORK
+using System.Reflection;
+#endif
 using Rampastring.Tools;
 
 namespace ClientCore
@@ -12,15 +16,18 @@ namespace ClientCore
     /// </summary>
     public static class ProgramConstants
     {
-        /* For .NET 6 Release mode we split up the DXMainClient dll from the AppHost executable.
-         * The AppHost is located in the root, as is the case for the .NET 4.8 executables.
-         * The actual DXMainClient dll is 2 directories up in Application.StartupPath\Binaries\<WindowsGL,OpenGL,XNA>\ */
-#if DEBUG
-        public static readonly string GamePath = SafePath.CombineDirectoryPath(SafePath.GetDirectory(Application.StartupPath).FullName);
-#elif NETFRAMEWORK
-        public static readonly string GamePath = SafePath.CombineDirectoryPath(SafePath.GetDirectory(Application.StartupPath).Parent.FullName);
+#if NETFRAMEWORK
+        public static readonly string StartupExecutable = Assembly.GetEntryAssembly().Location;
 #else
-        public static readonly string GamePath = SafePath.CombineDirectoryPath(SafePath.GetDirectory(Application.StartupPath).Parent.Parent.Parent.FullName);
+        public static readonly string StartupExecutable = Environment.ProcessPath;
+#endif
+
+        public static readonly string StartupPath = SafePath.CombineDirectoryPath(new FileInfo(StartupExecutable).DirectoryName);
+
+#if DEBUG
+        public static readonly string GamePath = StartupPath;
+#else
+        public static readonly string GamePath = SafePath.CombineDirectoryPath(SafePath.GetDirectory(StartupPath).Parent.FullName);
 #endif
 
         public static string ClientUserFilesPath => SafePath.CombineDirectoryPath(GamePath, "Client");
@@ -45,7 +52,8 @@ namespace ClientCore
         public const int GAME_ID_MAX_LENGTH = 4;
 
         public static readonly Encoding LAN_ENCODING = Encoding.UTF8;
-
+        public static readonly bool ISMONO = isMono ??= Type.GetType("Mono.Runtime") != null;
+        private static readonly bool? isMono;
         public static string GAME_VERSION = "Undefined";
         private static string PlayerName = "No name";
 
@@ -93,5 +101,18 @@ namespace ClientCore
 
         // Static fields might be initialized before the translation file is loaded. Change to readonly properties here.
         public static List<string> AI_PLAYER_NAMES => new List<string> { "Easy AI".L10N("UI:Main:EasyAIName"), "Medium AI".L10N("UI:Main:MediumAIName"), "Hard AI".L10N("UI:Main:HardAIName") };
+
+        public static string LogFileName { get; set; }
+
+        public static Action<string, string> UserErrorAction { get; set; } = (title, error) =>
+        {
+            Logger.Log(FormattableString.Invariant($"{(title is null ? null : title + Environment.NewLine + Environment.NewLine)}{error}"));
+
+            using var _ = Process.Start(new ProcessStartInfo
+            {
+                FileName = LogFileName,
+                UseShellExecute = true
+            });
+        };
     }
 }

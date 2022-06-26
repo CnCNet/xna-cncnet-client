@@ -180,7 +180,9 @@ namespace DTAConfig.OptionPanels
             AddChild(chkMainMenuMusic);
             AddChild(chkStopMusicOnMenu);
 
+#if ISWINDOWS
             WindowManager.SoundPlayer.SetVolume(trbClientVolume.Value / 10.0f);
+#endif
         }
 
         private void ChkMainMenuMusic_CheckedChanged(object sender, EventArgs e)
@@ -207,7 +209,9 @@ namespace DTAConfig.OptionPanels
         private void TrbClientVolume_ValueChanged(object sender, EventArgs e)
         {
             lblClientVolumeValue.Text = trbClientVolume.Value.ToString();
+#if ISWINDOWS
             WindowManager.SoundPlayer.SetVolume(trbClientVolume.Value / 10.0f);
+#endif
         }
 
         public override void Load()
@@ -233,7 +237,7 @@ namespace DTAConfig.OptionPanels
             IniSettings.ScoreVolume.Value = trbScoreVolume.Value / 10.0;
             IniSettings.SoundVolume.Value = trbSoundVolume.Value / 10.0;
             IniSettings.VoiceVolume.Value = trbVoiceVolume.Value / 10.0;
-            
+
             IniSettings.IsScoreShuffle.Value = chkScoreShuffle.Checked;
 
             IniSettings.ClientVolume.Value = trbClientVolume.Value / 10.0;

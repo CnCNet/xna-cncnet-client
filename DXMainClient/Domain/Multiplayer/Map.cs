@@ -1,5 +1,4 @@
 ﻿using ClientCore;
-using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Rampastring.Tools;
 using Rampastring.XNAUI;
@@ -9,6 +8,9 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using Newtonsoft.Json;
+using SixLabors.ImageSharp;
+using Color = Microsoft.Xna.Framework.Color;
+using Point = Microsoft.Xna.Framework.Point;
 using Utilities = Rampastring.Tools.Utilities;
 
 namespace DTAClient.Domain.Multiplayer
@@ -346,7 +348,7 @@ namespace DTAClient.Domain.Multiplayer
                 }
 
                 GetTeamStartMappingPresets(section);
-#if !WINDOWSGL
+#if !GL
 
                 if (UserINISettings.Instance.PreloadMapPreviews)
                     PreviewTexture = LoadPreviewTexture();
@@ -611,7 +613,7 @@ namespace DTAClient.Domain.Multiplayer
             if (!Official)
             {
                 // Extract preview from the map itself
-                System.Drawing.Bitmap preview = MapPreviewExtractor.ExtractMapPreview(GetCustomMapIniFile());
+                using Image preview = MapPreviewExtractor.ExtractMapPreview(GetCustomMapIniFile());
 
                 if (preview != null)
                 {

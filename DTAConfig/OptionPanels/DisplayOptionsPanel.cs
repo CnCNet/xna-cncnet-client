@@ -8,7 +8,9 @@ using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
 using System;
 using System.Collections.Generic;
+#if WINFORMS
 using System.Windows.Forms;
+#endif
 #if TS
 using Microsoft.Win32;
 using System.Diagnostics;
@@ -178,6 +180,7 @@ namespace DTAConfig.OptionPanels
             ddClientResolution.AllowDropDown = false;
             ddClientResolution.PreferredItemLabel = "(recommended)".L10N("UI:DTAConfig:Recommended");
 
+#if WINFORMS
             var screenBounds = Screen.PrimaryScreen.Bounds;
 
             resolutions = GetResolutions(800, 600,
@@ -215,6 +218,7 @@ namespace DTAConfig.OptionPanels
                 if (index > -1)
                     ddClientResolution.PreferredItemIndexes.Add(index);
             }
+#endif
 
             chkBorderlessClient = new XNAClientCheckBox(WindowManager);
             chkBorderlessClient.Name = "chkBorderlessClient";
@@ -309,6 +313,7 @@ namespace DTAConfig.OptionPanels
             AddChild(ddIngameResolution);
         }
 
+#if WINFORMS
         /// <summary>
         /// Adds a screen resolution to a list of resolutions if it fits on the screen.
         /// Checks if the resolution already exists before adding it.
@@ -329,6 +334,7 @@ namespace DTAConfig.OptionPanels
             }
         }
 
+#endif
         private void GetRenderers()
         {
             renderers = new List<DirectDrawWrapper>();
@@ -543,12 +549,14 @@ namespace DTAConfig.OptionPanels
             if (chkBorderlessClient.Checked)
             {
                 ddClientResolution.AllowDropDown = false;
+#if WINFORMS
                 string nativeRes = Screen.PrimaryScreen.Bounds.Width +
                     "x" + Screen.PrimaryScreen.Bounds.Height;
 
                 int nativeResIndex = ddClientResolution.Items.FindIndex(i => (string)i.Tag == nativeRes);
                 if (nativeResIndex > -1)
                     ddClientResolution.SelectedIndex = nativeResIndex;
+#endif
             }
             else
             {

@@ -1643,7 +1643,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             GameProcessLogic.GameProcessExited += GameProcessExited_Callback;
 
-            GameProcessLogic.StartGameProcess();
+            GameProcessLogic.StartGameProcess(WindowManager);
             UpdateDiscordPresence(true);
         }
 

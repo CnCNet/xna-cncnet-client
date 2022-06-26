@@ -139,7 +139,7 @@ namespace DTAClient.DXGUI.Generic
             Enabled = false;
             GameProcessLogic.GameProcessExited += GameProcessExited_Callback;
 
-            GameProcessLogic.StartGameProcess();
+            GameProcessLogic.StartGameProcess(WindowManager);
         }
 
         private void BtnDelete_LeftClick(object sender, EventArgs e)

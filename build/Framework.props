@@ -1,25 +1,21 @@
 <Project>
 
   <PropertyGroup>
-    <Engines>DX;GL;XNA</Engines>
+    <Engines>WindowsDX;WindowsGL;UniversalGL;WindowsXNA</Engines>
     <Games>Ares;TS;YR</Games>
-    <Engine Condition="'$(Engine)' == ''">DX</Engine>
-    <Game Condition="'$(Game)' == ''">Ares</Game>
-    <!-- Make it default -->
-    <!-- <Configurations>Debug;Release</Configurations> -->
     <OutputPath>$(BaseOutputPath)bin\$(Configuration)\$(Game)\$(Engine)\</OutputPath>
     <IntermediateOutputPath>$(BaseIntermediateOutputPath)obj\$(Configuration)\$(Game)\$(Engine)\</IntermediateOutputPath>
-
-    <PlatformTarget Condition="'$(Engine)' == 'XNA'">x86</PlatformTarget>
   </PropertyGroup>
 
   <PropertyGroup>
-    <DefineConstants Condition="'$(Configuration)' == 'Debug'">$(DefineConstants);DEBUG</DefineConstants>
+    <DefineConstants Condition="'$(Configuration.Contains(Debug))'">$(DefineConstants);DEBUG</DefineConstants>
 
     <!-- Engines -->
-    <DefineConstants Condition="'$(Engine)' == 'DX'">$(DefineConstants);WINDOWSDX</DefineConstants>
-    <DefineConstants Condition="'$(Engine)' == 'GL'">$(DefineConstants);WINDOWSGL</DefineConstants>
-    <DefineConstants Condition="'$(Engine)' == 'XNA'">$(DefineConstants);XNA</DefineConstants>
+    <DefineConstants Condition="'$(Engine)' == 'WindowsDX'">$(DefineConstants);DX;WINFORMS;ISWINDOWS</DefineConstants>
+    <DefineConstants Condition="'$(Engine)' == 'WindowsGL'">$(DefineConstants);GL;WINFORMS;ISWINDOWS</DefineConstants>
+    <DefineConstants Condition="'$(Engine)' == 'UniversalGL'">$(DefineConstants);GL</DefineConstants>
+    <DefineConstants Condition="'$(Engine)' == 'UniversalGL' And $(TargetFramework.Contains('-windows'))">$(DefineConstants);ISWINDOWS</DefineConstants>
+    <DefineConstants Condition="'$(Engine)' == 'WindowsXNA'">$(DefineConstants);XNA;WINFORMS;ISWINDOWS</DefineConstants>
 
     <!-- Games-->
     <DefineConstants Condition="'$(Game)' == 'Ares'">$(DefineConstants);ARES</DefineConstants>

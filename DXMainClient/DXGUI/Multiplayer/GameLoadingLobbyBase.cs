@@ -271,8 +271,10 @@ namespace DTAClient.DXGUI.Multiplayer
 
             if (!IsHost && !Players.Find(p => p.Name == ProgramConstants.PLAYERNAME).Ready)
                 sndGetReadySound.Play();
+#if WINFORMS
 
             WindowManager.FlashWindow();
+#endif
         }
 
         protected virtual void NotAllPresentNotification() =>
@@ -334,7 +336,7 @@ namespace DTAClient.DXGUI.Multiplayer
             gameLoadTime = DateTime.Now;
 
             GameProcessLogic.GameProcessExited += SharedUILogic_GameProcessExited;
-            GameProcessLogic.StartGameProcess();
+            GameProcessLogic.StartGameProcess(WindowManager);
 
             fsw.EnableRaisingEvents = true;
             UpdateDiscordPresence(true);

@@ -1,14 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Drawing;
-using System.Drawing.Imaging;
 using System.IO;
 using System.IO.Compression;
-using System.Runtime.InteropServices;
 using System.Text;
 using ClientCore;
 using Rampastring.Tools;
 using lzo.net;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Formats.Bmp;
+using SixLabors.ImageSharp.PixelFormats;
 
 namespace DTAClient.Domain.Multiplayer
 {
@@ -22,7 +22,7 @@ namespace DTAClient.Domain.Multiplayer
         /// </summary>
         /// <param name="mapIni">Map file.</param>
         /// <returns>Bitmap of map preview image, or null if preview could not be extracted.</returns>
-        public static Bitmap ExtractMapPreview(IniFile mapIni)
+        public static Image ExtractMapPreview(IniFile mapIni)
         {
             List<string> sectionKeys = mapIni.GetSectionKeys("PreviewPack");
 
@@ -78,7 +78,7 @@ namespace DTAClient.Domain.Multiplayer
                 return null;
             }
 
-            Bitmap bitmap = CreatePreviewBitmapFromImageData(previewWidth, previewHeight, dataDest, out errorMessage);
+            Image bitmap = CreatePreviewBitmapFromImageData(previewWidth, previewHeight, dataDest, out errorMessage);
 
             if (errorMessage != null)
             {
@@ -147,7 +147,7 @@ namespace DTAClient.Domain.Multiplayer
         /// <param name="imageData">Raw image pixel data in 24-bit RGB format.</param>
         /// <param name="errorMessage">Will be set to error message if something went wrong, otherwise null.</param>
         /// <returns>Bitmap based on the provided dimensions and raw image data, or null if length of image data does not match the provided dimensions or if something went wrong.</returns>
-        private static Bitmap CreatePreviewBitmapFromImageData(int width, int height, byte[] imageData, out string errorMessage)
+        private static Image CreatePreviewBitmapFromImageData(int width, int height, byte[] imageData, out string errorMessage)
         {
             if (imageData.Length != width * height * 3)
             {
@@ -157,37 +157,50 @@ namespace DTAClient.Domain.Multiplayer
 
             try
             {
-                Bitmap bitmap = new Bitmap(width, height, PixelFormat.Format24bppRgb);
-                BitmapData bitmapData = bitmap.LockBits(new Rectangle(0, 0, bitmap.Width, bitmap.Height), ImageLockMode.WriteOnly, PixelFormat.Format24bppRgb);
-                IntPtr scan0 = bitmapData.Scan0;
-                int strideWidth = Math.Abs(bitmapData.Stride);
-                int numSkipBytes = strideWidth - bitmapData.Width * 3;
-                byte[] bitmapPixelData = new byte[strideWidth * bitmapData.Height];
-                int writtenBytes = 0;
-                int readBytes = 0;
+                using var image = Image.LoadPixelData<Bgr24>(imageData, width, height);
 
-                for (int h = 0; h < bitmapData.Height; h++)
-                {
-                    for (int w = 0; w < bitmapData.Width; w++)
-                    {
-                        // GDI+ bitmap raw pixel data is in BGR format, red & blue values need to be flipped around for each pixel.
-                        bitmapPixelData[writtenBytes] = imageData[readBytes + 2];
-                        bitmapPixelData[writtenBytes + 1] = imageData[readBytes + 1];
-                        bitmapPixelData[writtenBytes + 2] = imageData[readBytes];
-                        writtenBytes += 3;
-                        readBytes += 3;
-                    }
+                //using var image = Image.Load(imageData, out IImageFormat format);
+                using var stream = new MemoryStream();
 
-                    // GDI+ bitmap stride / scan width has to be a multiple of 4, so the end of each stride / scanline can contain extra bytes
-                    // in the bitmap raw pixel data that are not present in the image data and should be skipped when copying.
-                    writtenBytes += numSkipBytes;
-                }
+                image.SaveAsBmp(stream);
 
-                Marshal.Copy(bitmapPixelData, 0, scan0, bitmapPixelData.Length);
-                bitmap.UnlockBits(bitmapData);
                 errorMessage = null;
-                return bitmap;
 
+                return null;
+
+                return Image.Load(stream, new BmpDecoder());
+
+                // TODO
+
+                //Bitmap bitmap = new Bitmap(width, height, PixelFormat.Format24bppRgb);
+                //BitmapData bitmapData = bitmap.LockBits(new Rectangle(0, 0, bitmap.Width, bitmap.Height), ImageLockMode.WriteOnly, PixelFormat.Format24bppRgb);
+                //IntPtr scan0 = bitmapData.Scan0;
+                //int strideWidth = Math.Abs(bitmapData.Stride);
+                //int numSkipBytes = strideWidth - bitmapData.Width * 3;
+                //byte[] bitmapPixelData = new byte[strideWidth * bitmapData.Height];
+                //int writtenBytes = 0;
+                //int readBytes = 0;
+
+                //for (int h = 0; h < bitmapData.Height; h++)
+                //{
+                //    for (int w = 0; w < bitmapData.Width; w++)
+                //    {
+                //        // GDI+ bitmap raw pixel data is in BGR format, red & blue values need to be flipped around for each pixel.
+                //        bitmapPixelData[writtenBytes] = imageData[readBytes + 2];
+                //        bitmapPixelData[writtenBytes + 1] = imageData[readBytes + 1];
+                //        bitmapPixelData[writtenBytes + 2] = imageData[readBytes];
+                //        writtenBytes += 3;
+                //        readBytes += 3;
+                //    }
+
+                //    // GDI+ bitmap stride / scan width has to be a multiple of 4, so the end of each stride / scanline can contain extra bytes
+                //    // in the bitmap raw pixel data that are not present in the image data and should be skipped when copying.
+                //    writtenBytes += numSkipBytes;
+                //}
+
+                //Marshal.Copy(bitmapPixelData, 0, scan0, bitmapPixelData.Length);
+                //bitmap.UnlockBits(bitmapData);
+                //return bitmap;
             }
             catch (Exception e)
             {

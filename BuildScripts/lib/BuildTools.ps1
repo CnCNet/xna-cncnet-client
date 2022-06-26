@@ -7,6 +7,7 @@
 . $PSScriptRoot\BuildCore.ps1
 . $PSScriptRoot\ClearTools.ps1
 
+# See https://docs.microsoft.com/en-us/dotnet/core/rid-catalog for adding specific RuntimeIdentifiers
 function Build-Ares {
   [CmdletBinding()]
   param (
@@ -21,13 +22,18 @@ function Build-Ares {
   process {
     Clear-Compiled $Script:ClientCompiledTarget\Ares
 
-    Build-Project -Configuration $Configuration -Game Ares -Engine DX -TargetFramework net6.0-windows10.0.22000.0 -SkipMoveLibraries:$SkipMoveLibraries
-    Build-Project -Configuration $Configuration -Game Ares -Engine GL -TargetFramework net6.0-windows10.0.22000.0 -SkipMoveLibraries:$SkipMoveLibraries
-    Build-Project -Configuration $Configuration -Game Ares -Engine XNA -TargetFramework net6.0-windows10.0.22000.0 -SkipMoveLibraries:$SkipMoveLibraries
+    Build-Project -Configuration $Configuration -Game Ares -Engine UniversalGL -TargetFramework net6.0 -RuntimeIdentifier any -SkipMoveLibraries:$SkipMoveLibraries
 
-    Build-Project -Configuration $Configuration -Game Ares -Engine DX -TargetFramework net48 -SkipMoveLibraries:$SkipMoveLibraries
-    Build-Project -Configuration $Configuration -Game Ares -Engine GL -TargetFramework net48 -SkipMoveLibraries:$SkipMoveLibraries
-    Build-Project -Configuration $Configuration -Game Ares -Engine XNA -TargetFramework net48 -SkipMoveLibraries:$SkipMoveLibraries
+    If ($IsWindows)
+    {
+      Build-Project -Configuration $Configuration -Game Ares -Engine WindowsDX -TargetFramework net6.0-windows10.0.22000.0 -SkipMoveLibraries:$SkipMoveLibraries
+      Build-Project -Configuration $Configuration -Game Ares -Engine WindowsGL -TargetFramework net6.0-windows10.0.22000.0 -SkipMoveLibraries:$SkipMoveLibraries
+      Build-Project -Configuration $Configuration -Game Ares -Engine WindowsXNA -TargetFramework net6.0-windows10.0.22000.0 -PlatformTarget x86 -SkipMoveLibraries:$SkipMoveLibraries
+
+      Build-Project -Configuration $Configuration -Game Ares -Engine WindowsDX -TargetFramework net48 -SkipMoveLibraries:$SkipMoveLibraries
+      Build-Project -Configuration $Configuration -Game Ares -Engine WindowsGL -TargetFramework net48 -SkipMoveLibraries:$SkipMoveLibraries
+      Build-Project -Configuration $Configuration -Game Ares -Engine WindowsXNA -TargetFramework net48 -PlatformTarget x86 -SkipMoveLibraries:$SkipMoveLibraries
+    }
   }
 }
 
@@ -45,13 +51,18 @@ function Build-TS {
   process {
     Clear-Compiled $Script:ClientCompiledTarget\TS
 
-    Build-Project -Configuration $Configuration -Game TS -Engine DX -TargetFramework net6.0-windows10.0.22000.0 -SkipMoveLibraries:$SkipMoveLibraries
-    Build-Project -Configuration $Configuration -Game TS -Engine GL -TargetFramework net6.0-windows10.0.22000.0 -SkipMoveLibraries:$SkipMoveLibraries
-    Build-Project -Configuration $Configuration -Game TS -Engine XNA -TargetFramework net6.0-windows10.0.22000.0 -SkipMoveLibraries:$SkipMoveLibraries
+    Build-Project -Configuration $Configuration -Game TS -Engine UniversalGL -TargetFramework net6.0 -RuntimeIdentifier any -SkipMoveLibraries:$SkipMoveLibraries
 
-    Build-Project -Configuration $Configuration -Game TS -Engine DX -TargetFramework net48 -SkipMoveLibraries:$SkipMoveLibraries
-    Build-Project -Configuration $Configuration -Game TS -Engine GL -TargetFramework net48 -SkipMoveLibraries:$SkipMoveLibraries
-    Build-Project -Configuration $Configuration -Game TS -Engine XNA -TargetFramework net48 -SkipMoveLibraries:$SkipMoveLibraries
+    If ($IsWindows)
+    {
+      Build-Project -Configuration $Configuration -Game TS -Engine WindowsDX -TargetFramework net6.0-windows10.0.22000.0 -SkipMoveLibraries:$SkipMoveLibraries
+      Build-Project -Configuration $Configuration -Game TS -Engine WindowsGL -TargetFramework net6.0-windows10.0.22000.0 -SkipMoveLibraries:$SkipMoveLibraries
+      Build-Project -Configuration $Configuration -Game TS -Engine WindowsXNA -TargetFramework net6.0-windows10.0.22000.0 -PlatformTarget x86 -SkipMoveLibraries:$SkipMoveLibraries
+
+      Build-Project -Configuration $Configuration -Game TS -Engine WindowsDX -TargetFramework net48 -SkipMoveLibraries:$SkipMoveLibraries
+      Build-Project -Configuration $Configuration -Game TS -Engine WindowsGL -TargetFramework net48 -SkipMoveLibraries:$SkipMoveLibraries
+      Build-Project -Configuration $Configuration -Game TS -Engine WindowsXNA -TargetFramework net48 -PlatformTarget x86 -SkipMoveLibraries:$SkipMoveLibraries
+    }
   }
 }
 
@@ -68,14 +79,19 @@ function Build-YR {
 
   process {
     Clear-Compiled $Script:ClientCompiledTarget\YR
+       
+    Build-Project -Configuration $Configuration -Game YR -Engine UniversalGL -TargetFramework net6.0 -RuntimeIdentifier any -SkipMoveLibraries:$SkipMoveLibraries
 
-    Build-Project -Configuration $Configuration -Game YR -Engine DX -TargetFramework net6.0-windows10.0.22000.0 -SkipMoveLibraries:$SkipMoveLibraries
-    Build-Project -Configuration $Configuration -Game YR -Engine GL -TargetFramework net6.0-windows10.0.22000.0 -SkipMoveLibraries:$SkipMoveLibraries
-    Build-Project -Configuration $Configuration -Game YR -Engine XNA -TargetFramework net6.0-windows10.0.22000.0 -SkipMoveLibraries:$SkipMoveLibraries
+    If ($IsWindows)
+    {
+      Build-Project -Configuration $Configuration -Game YR -Engine WindowsDX -TargetFramework net6.0-windows10.0.22000.0 -SkipMoveLibraries:$SkipMoveLibraries
+      Build-Project -Configuration $Configuration -Game YR -Engine WindowsGL -TargetFramework net6.0-windows10.0.22000.0 -SkipMoveLibraries:$SkipMoveLibraries
+      Build-Project -Configuration $Configuration -Game YR -Engine WindowsXNA -TargetFramework net6.0-windows10.0.22000.0 -PlatformTarget x86 -SkipMoveLibraries:$SkipMoveLibraries
 
-    Build-Project -Configuration $Configuration -Game YR -Engine DX -TargetFramework net48 -SkipMoveLibraries:$SkipMoveLibraries
-    Build-Project -Configuration $Configuration -Game YR -Engine GL -TargetFramework net48 -SkipMoveLibraries:$SkipMoveLibraries
-    Build-Project -Configuration $Configuration -Game YR -Engine XNA -TargetFramework net48 -SkipMoveLibraries:$SkipMoveLibraries
+      Build-Project -Configuration $Configuration -Game YR -Engine WindowsDX -TargetFramework net48 -SkipMoveLibraries:$SkipMoveLibraries
+      Build-Project -Configuration $Configuration -Game YR -Engine WindowsGL -TargetFramework net48 -SkipMoveLibraries:$SkipMoveLibraries
+      Build-Project -Configuration $Configuration -Game YR -Engine WindowsXNA -TargetFramework net48 -PlatformTarget x86 -SkipMoveLibraries:$SkipMoveLibraries
+    }
   }
 }
 

@@ -1,21 +1,22 @@
 <Project>
   <PropertyGroup>
     <Configurations>
-      AresDXDebug;AresGLDebug;AresXNADebug;
-      AresDXRelease;AresGLRelease;AresXNARelease;
-      TSDXDebug;TSGLDebug;TSXNADebug;
-      TSDXRelease;TSGLRelease;TSXNARelease;
-      YRDXDebug;YRGLDebug;YRXNADebug;
-      YRDXRelease;YRGLRelease;YRXNARelease
+      AresWindowsDXDebug;AresUniversalGLDebug;AresWindowsGLDebug;AresWindowsXNADebug;
+      AresWindowsDXRelease;AresUniversalGLRelease;AresWindowsGLRelease;AresWindowsXNARelease;
+      TSWindowsDXDebug;TSUniversalGLDebug;TSWindowsGLDebug;TSWindowsXNADebug;
+      TSWindowsDXRelease;TSUniversalGLRelease;TSWindowsGLRelease;TSWindowsXNARelease;
+      YRWindowsDXDebug;YRUniversalGLDebug;YRWindowsGLDebug;YRWindowsXNADebug;
+      YRWindowsDXRelease;YRUniversalGLRelease;YRWindowsGLRelease;YRWindowsXNARelease
     </Configurations>
   </PropertyGroup>
 
   <PropertyGroup>
     <DefineConstants Condition="'$(Configuration.Contains(Debug))' == 'True'">$(DefineConstants);DEBUG</DefineConstants>
 
-    <Engine Condition="'$(Configuration.Contains(DX))' == 'True'">DX</Engine>
-    <Engine Condition="'$(Configuration.Contains(GL))' == 'True'">GL</Engine>
-    <Engine Condition="'$(Configuration.Contains(XNA))' == 'True'">XNA</Engine>
+    <Engine Condition="'$(Configuration.Contains(WindowsDX))' == 'True'">WindowsDX</Engine>
+    <Engine Condition="'$(Configuration.Contains(UniversalGL))' == 'True'">UniversalGL</Engine>
+    <Engine Condition="'$(Configuration.Contains(WindowsGL))' == 'True'">WindowsGL</Engine>
+    <Engine Condition="'$(Configuration.Contains(WindowsXNA))' == 'True'">WindowsXNA</Engine>
 
     <Game Condition="'$(Configuration.Contains(Ares))' == 'True'">Ares</Game>
     <Game Condition="'$(Configuration.Contains(TS))' == 'True'">TS</Game>

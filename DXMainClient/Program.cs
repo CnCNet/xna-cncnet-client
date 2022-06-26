@@ -6,10 +6,9 @@ using System.Linq;
 #else
 using System.Runtime.Loader;
 #endif
-
-using System.Reflection;
 using System.Threading;
-using System.Windows.Forms;
+using System.Reflection;
+/* !! We cannot use references to other projects or non-framework assemblies in this class, assembly loading events not hooked up yet !! */
 
 namespace DTAClient
 {
@@ -20,38 +19,29 @@ namespace DTAClient
             /* We have different binaries depending on build platform, but for simplicity
              * the target projects (DTA, TI, MO, YR) supply them all in a single download.
              * To avoid DLL hell, we load the binaries from different directories
-             * depending on the build platform.
-             *
-             * For .NET 6 Release mode we split up the DXMainClient dll from the AppHost executable.
-             * The AppHost is located in the root, as is the case for the .NET 4.8 executables.
-             * The actual DXMainClient dll is 2 directories up in Application.StartupPath\Binaries\<WindowsGL,OpenGL,XNA>\
-             *
-             * We cannot use references to other projects or external assemblies during startup because the assembly loading events will not be able to trigger yet. */
-
-#if DEBUG || NETFRAMEWORK
-            string startupPath = Application.StartupPath;
-#elif !NETFRAMEWORK
-            string startupPath = new DirectoryInfo(Application.StartupPath).Parent.Parent.FullName;
+             * depending on the build platform. */
+#if NETFRAMEWORK
+            string startupPath = new FileInfo(Assembly.GetEntryAssembly().Location).DirectoryName + Path.DirectorySeparatorChar;
+#else
+            string startupPath = new FileInfo(Environment.ProcessPath).Directory.FullName + Path.DirectorySeparatorChar;
 #endif
 
 #if DEBUG
             COMMON_LIBRARY_PATH = startupPath;
 #else
-            COMMON_LIBRARY_PATH = Path.Combine(startupPath, "Binaries");
+            COMMON_LIBRARY_PATH = Path.Combine(startupPath, "Binaries") + Path.DirectorySeparatorChar;
 #endif
 
-#if XNA && DEBUG
+#if DEBUG
             SPECIFIC_LIBRARY_PATH = startupPath;
 #elif XNA
-            SPECIFIC_LIBRARY_PATH = Path.Combine(startupPath, "Binaries", "XNA");
-#elif WINDOWSGL && DEBUG
-            SPECIFIC_LIBRARY_PATH = startupPath;
-#elif WINDOWSGL
-            SPECIFIC_LIBRARY_PATH = Path.Combine(startupPath, "Binaries", "OpenGL");
-#elif DEBUG
-            SPECIFIC_LIBRARY_PATH = startupPath;
+            SPECIFIC_LIBRARY_PATH = Path.Combine(startupPath, "Binaries", "XNA") + Path.DirectorySeparatorChar;
+#elif GL
+            SPECIFIC_LIBRARY_PATH = Path.Combine(startupPath, "Binaries", "OpenGL") + Path.DirectorySeparatorChar;
+#elif DX
+            SPECIFIC_LIBRARY_PATH = Path.Combine(startupPath, "Binaries", "Windows") + Path.DirectorySeparatorChar;
 #else
-            SPECIFIC_LIBRARY_PATH = Path.Combine(startupPath, "Binaries", "Windows");
+            Yuri has won
 #endif
 
             // Set up DLL load paths as early as possible
@@ -62,7 +52,7 @@ namespace DTAClient
 #endif
 
 #if !DEBUG
-            Environment.CurrentDirectory = new DirectoryInfo(startupPath).Parent.FullName;
+            Environment.CurrentDirectory = new DirectoryInfo(startupPath).Parent.FullName + Path.DirectorySeparatorChar;
 #else
             Environment.CurrentDirectory = startupPath;
 #endif
@@ -75,7 +65,9 @@ namespace DTAClient
         /// <summary>
         /// The main entry point for the application.
         /// </summary>
+#if WINFORMS
         [STAThread]
+#endif
         static void Main(string[] args)
         {
             bool noAudio = false;
@@ -113,7 +105,7 @@ namespace DTAClient
             // http://stackoverflow.com/questions/229565/what-is-a-good-pattern-for-using-a-global-mutex-in-c/229567
 
             // Global prefix means that the mutex is global to the machine
-            string mutexId = string.Format("Global/{{{0}}}", Guid.Parse("1CC9F8E7-9F69-4BBC-B045-E734204027A9"));
+            string mutexId = string.Format("Global{0}", Guid.Parse("1CC9F8E7-9F69-4BBC-B045-E734204027A9"));
 
 #if NETFRAMEWORK
             var allowEveryoneRule = new System.Security.AccessControl.MutexAccessRule(

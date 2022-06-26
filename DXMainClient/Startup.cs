@@ -15,7 +15,7 @@ using ClientCore.INIProcessing;
 using System.Threading.Tasks;
 using System.Globalization;
 using System.Management;
-using System.Windows.Forms;
+using System.Runtime.InteropServices;
 
 namespace DTAClient
 {
@@ -47,7 +47,7 @@ namespace DTAClient
 
             SafePath.DeleteFileIfExists(ProgramConstants.GamePath, "version_u");
 
-            Updater.Initialize(ProgramConstants.GamePath, ProgramConstants.GetBaseResourcePath(), ClientConfiguration.Instance.SettingsIniName, ClientConfiguration.Instance.LocalGame, SafePath.GetFile(Application.ExecutablePath).Name);
+            Updater.Initialize(ProgramConstants.GamePath, ProgramConstants.GetBaseResourcePath(), ClientConfiguration.Instance.SettingsIniName, ClientConfiguration.Instance.LocalGame, SafePath.GetFile(ProgramConstants.StartupExecutable).Name);
 
             Logger.Log("Operating system: " + Environment.OSVersion.VersionString);
             Logger.Log("Selected OS profile: " + MainClientConstants.OSId.ToString());
@@ -300,6 +300,12 @@ namespace DTAClient
         /// </summary>
         private static void GenerateOnlineId()
         {
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                Connection.SetId(new Random().Next(int.MaxValue - 1).ToString());
+                return;
+            }
+
             try
             {
                 ManagementObjectCollection mbsList = null;

@@ -6,6 +6,11 @@ using Microsoft.Xna.Framework.Graphics;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
 using System.Collections.Generic;
+using System.IO;
+using System.Reflection;
+using SixLabors.ImageSharp;
+using Color = Microsoft.Xna.Framework.Color;
+using Rectangle = Microsoft.Xna.Framework.Rectangle;
 
 namespace DTAClient.DXGUI.Multiplayer
 {
@@ -32,8 +37,12 @@ namespace DTAClient.DXGUI.Multiplayer
 
             Users = new List<ChannelUser>();
 
-            adminGameIcon = AssetLoader.TextureFromImage(ClientCore.Properties.Resources.cncneticon);
-            unknownGameIcon = AssetLoader.TextureFromImage(ClientCore.Properties.Resources.unknownicon);
+            var assembly = Assembly.GetAssembly(typeof(GameCollection));
+            using Stream cncneticonStream = assembly.GetManifestResourceStream("ClientCore.Resources.cncneticon.png");
+            using Stream unknowniconStream = assembly.GetManifestResourceStream("ClientCore.Resources.unknownicon.png");
+
+            adminGameIcon = AssetLoader.TextureFromImage(Image.Load(cncneticonStream));
+            unknownGameIcon = AssetLoader.TextureFromImage(Image.Load(unknowniconStream));
             friendIcon = AssetLoader.LoadTexture("friendicon.png");
             ignoreIcon = AssetLoader.LoadTexture("ignoreicon.png");
             badgeGameIcon = AssetLoader.LoadTexture("Badges/badge.png");

@@ -15,11 +15,16 @@ using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
+using System.Reflection;
 using System.Text;
 using System.Threading;
+using SixLabors.ImageSharp;
+using Color = Microsoft.Xna.Framework.Color;
+using Rectangle = Microsoft.Xna.Framework.Rectangle;
 
 namespace DTAClient.DXGUI.Multiplayer
 {
@@ -215,7 +220,10 @@ namespace DTAClient.DXGUI.Multiplayer
             gameCreationWindow.NewGame += GameCreationWindow_NewGame;
             gameCreationWindow.LoadGame += GameCreationWindow_LoadGame;
 
-            unknownGameIcon = AssetLoader.TextureFromImage(ClientCore.Properties.Resources.unknownicon);
+            var assembly = Assembly.GetAssembly(typeof(GameCollection));
+            using Stream unknowniconStream = assembly.GetManifestResourceStream("ClientCore.Resources.unknownicon.png");
+
+            unknownGameIcon = AssetLoader.TextureFromImage(Image.Load(unknowniconStream));
 
             sndGameCreated = new EnhancedSoundEffect("gamecreated.wav");
 

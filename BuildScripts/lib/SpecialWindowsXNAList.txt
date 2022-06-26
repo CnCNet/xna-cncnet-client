@@ -20,4 +20,4 @@ Microsoft.Xna.Framework.Net.dll
 Microsoft.Xna.Framework.Storage.dll
 Microsoft.Xna.Framework.Video.dll
 Microsoft.Xna.Framework.Xact.dll
-Rampastring.XNAUI.XNA.dll
+Rampastring.XNAUI.WindowsXNA.dll

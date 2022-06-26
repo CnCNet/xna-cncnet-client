@@ -12,7 +12,10 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Security.Principal;
+using ClientGUI;
+#if WINFORMS
 using System.Windows.Forms;
+#endif
 
 namespace DTAClient.DXGUI
 {
@@ -45,15 +48,12 @@ namespace DTAClient.DXGUI
 
             base.Initialize();
 
-            FileInfo primaryNativeCursorPath = SafePath.GetFile(ProgramConstants.GetResourcePath(), "cursor.cur");
-            FileInfo alternativeNativeCursorPath = SafePath.GetFile(ProgramConstants.GetBaseResourcePath(), "cursor.cur");
-
             AssetLoader.Initialize(GraphicsDevice, content);
             AssetLoader.AssetSearchPaths.Add(ProgramConstants.GetResourcePath());
             AssetLoader.AssetSearchPaths.Add(ProgramConstants.GetBaseResourcePath());
             AssetLoader.AssetSearchPaths.Add(ProgramConstants.GamePath);
 
-#if WINDOWSDX
+#if DX
             // Try to create and load a texture to check for MonoGame 3.7.1 compatibility
             try
             {
@@ -106,11 +106,17 @@ namespace DTAClient.DXGUI
             WindowManager wm = new WindowManager(this, graphics);
             wm.Initialize(content, ProgramConstants.GetBaseResourcePath());
 
+            ProgramConstants.UserErrorAction = (title, error) =>
+            {
+                new XNAMessageBox(wm, title, error, XNAMessageBoxButtons.OK).Show();
+            };
+
             SetGraphicsMode(wm);
+#if WINFORMS
 
             wm.SetIcon(SafePath.CombineFilePath(ProgramConstants.GetBaseResourcePath(), "clienticon.ico"));
-
             wm.SetControlBox(true);
+#endif
 
             wm.Cursor.Textures = new Texture2D[]
             {
@@ -118,11 +124,19 @@ namespace DTAClient.DXGUI
                 AssetLoader.LoadTexture("waitCursor.png")
             };
 
-            if (primaryNativeCursorPath.Exists)
-                wm.Cursor.LoadNativeCursor(primaryNativeCursorPath.FullName);
-            else if (alternativeNativeCursorPath.Exists)
-                wm.Cursor.LoadNativeCursor(alternativeNativeCursorPath.FullName);
+#if WINFORMS
+            if (!ProgramConstants.ISMONO)
+            {
+                FileInfo primaryNativeCursorPath = SafePath.GetFile(ProgramConstants.GetResourcePath(), "cursor.cur");
+                FileInfo alternativeNativeCursorPath = SafePath.GetFile(ProgramConstants.GetBaseResourcePath(), "cursor.cur");
 
+                if (primaryNativeCursorPath.Exists)
+                    wm.Cursor.LoadNativeCursor(primaryNativeCursorPath.FullName);
+                else if (alternativeNativeCursorPath.Exists)
+                    wm.Cursor.LoadNativeCursor(alternativeNativeCursorPath.FullName);
+            }
+
+#endif
             Components.Add(wm);
 
             string playerName = UserINISettings.Instance.PlayerName.Value.Trim();
@@ -191,6 +205,7 @@ namespace DTAClient.DXGUI
 
             bool borderlessWindowedClient = UserINISettings.Instance.BorderlessWindowedClient;
 
+#if WINFORMS
             if (Screen.PrimaryScreen.Bounds.Width >= windowWidth && Screen.PrimaryScreen.Bounds.Height >= windowHeight)
             {
                 if (!wm.InitGraphicsMode(windowWidth, windowHeight, false))
@@ -198,9 +213,12 @@ namespace DTAClient.DXGUI
             }
             else
             {
+#endif
                 if (!wm.InitGraphicsMode(1024, 600, false))
                     throw new GraphicsModeInitializationException("Setting default graphics mode failed!".L10N("UI:Main:SettingDefaultGraphicModeFailed"));
+#if WINFORMS
             }
+#endif
 
             int renderResolutionX = 0;
             int renderResolutionY = 0;
@@ -261,7 +279,9 @@ namespace DTAClient.DXGUI
             }
 
 #endif
+#if WINFORMS
             wm.CenterOnScreen();
+#endif
             wm.SetRenderResolution(renderResolutionX, renderResolutionY);
         }
     }

@@ -11,32 +11,43 @@
     <InformationalVersion>2.0.0.3</InformationalVersion>
     <AssemblyName>ClientCore</AssemblyName>
     <RootNamespace>ClientCore</RootNamespace>
-    <GenerateResourceUsePreserializedResources>true</GenerateResourceUsePreserializedResources>
   </PropertyGroup>
-
-  <!--Switching between Configurations within VS IDE requires reloading the project file-->
+  <Import Project="$(MSBuildThisFileDirectory)..\build\WinForms.props" />
   <ItemGroup>
-    <PackageReference Include="Rampastring.XNAUI.$(Engine)" Version="2.1.0" Condition="'$(Configuration)' != 'Debug'" />
-    <PackageReference Include="Rampastring.XNAUI.$(Engine).Debug" Version="2.1.0" Condition="'$(Configuration)' == 'Debug'" />
+    <None Remove="Resources\cncneticon.png" />
+    <None Remove="Resources\cncricon.png" />
+    <None Remove="Resources\dtaicon.png" />
+    <None Remove="Resources\moicon.png" />
+    <None Remove="Resources\raicon.png" />
+    <None Remove="Resources\rricon.png" />
+    <None Remove="Resources\tdicon.png" />
+    <None Remove="Resources\tiicon.png" />
+    <None Remove="Resources\tsicon.png" />
+    <None Remove="Resources\unknownicon.png" />
+    <None Remove="Resources\yricon.png" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="System.Resources.Extensions" Version="6.0.0" />
+    <EmbeddedResource Include="Resources\cncneticon.png" />
+    <EmbeddedResource Include="Resources\cncricon.png" />
+    <EmbeddedResource Include="Resources\dtaicon.png" />
+    <EmbeddedResource Include="Resources\moicon.png" />
+    <EmbeddedResource Include="Resources\raicon.png" />
+    <EmbeddedResource Include="Resources\rricon.png" />
+    <EmbeddedResource Include="Resources\tdicon.png" />
+    <EmbeddedResource Include="Resources\tiicon.png" />
+    <EmbeddedResource Include="Resources\tsicon.png" />
+    <EmbeddedResource Include="Resources\unknownicon.png" />
+    <EmbeddedResource Include="Resources\yricon.png" />
+  </ItemGroup>
+  <!--Switching between Configurations within VS IDE requires reloading the project file-->
+  <ItemGroup>
+    <PackageReference Include="Rampastring.XNAUI.$(Engine)" Version="2.1.0" Condition="'!$(Configuration.Contains(Debug))'" />
+    <PackageReference Include="Rampastring.XNAUI.$(Engine).Debug" Version="2.1.0" Condition="'$(Configuration.Contains(Debug))'" />
+  </ItemGroup>
+  <ItemGroup>
     <PackageReference Include="System.Text.Encoding.CodePages" Version="6.0.0" Condition="'$(TargetFrameworkIdentifier)' != '.NETFramework'" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Localization\Localization.csproj" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Update="Properties\Resources.Designer.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>Resources.resx</DependentUpon>
-    </Compile>
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Update="Properties\Resources.resx">
-      <Generator>PublicResXFileCodeGenerator</Generator>
-      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
   </ItemGroup>
 </Project>

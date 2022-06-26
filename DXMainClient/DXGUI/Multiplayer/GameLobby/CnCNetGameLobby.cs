@@ -494,8 +494,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 AIPlayers.RemoveAt(AIPlayers.Count - 1);
 
             sndJoinSound.Play();
+#if WINFORMS
 
             WindowManager.FlashWindow();
+#endif
 
             if (!IsHost)
             {
@@ -669,7 +671,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
                 return;
             }
-            
+
             PlayerInfo pInfo = Players.Find(p => p.Name == ProgramConstants.PLAYERNAME);
             int readyState = 0;
 
@@ -677,7 +679,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 readyState = 2;
             else if (!pInfo.Ready)
                 readyState = 1;
-            
+
             channel.SendCTCPMessage($"R {readyState}", QueuedMessageType.GAME_PLAYERS_READY_STATUS_MESSAGE, 5);
         }
 
@@ -1154,7 +1156,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             }
             else
             {
-                AddNotice("The game host has selected a map that doesn't exist on your installation.".L10N("UI:Main:MapNotExist") +" "+
+                AddNotice("The game host has selected a map that doesn't exist on your installation.".L10N("UI:Main:MapNotExist") + " " +
                     ("Because you've disabled map sharing, it cannot be transferred. The game host needs " +
                     "to change the map or you will be unable to participate in the match.").L10N("UI:Main:MapSharingDisabledNotice"));
                 channel.SendCTCPMessage(MAP_SHARING_DISABLED_MESSAGE, QueuedMessageType.SYSTEM_MESSAGE, 9);
@@ -1315,8 +1317,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         protected override void GetReadyNotification()
         {
             base.GetReadyNotification();
-
+#if WINFORMS
             WindowManager.FlashWindow();
+#endif
             TopBar.SwitchToPrimary();
 
             if (IsHost)

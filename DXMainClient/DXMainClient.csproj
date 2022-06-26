@@ -1,6 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <OutputType>WinExe</OutputType>
+    <OutputType Condition="!$(Configuration.Contains('UniversalGL')) Or '$(Engine)' != 'UniversalGL'">WinExe</OutputType>
+    <OutputType Condition="$(Configuration.Contains('UniversalGL')) Or '$(Engine)' == 'UniversalGL'">Exe</OutputType>
     <Title>CnCNet Client</Title>
     <Description>CnCNet Main Client Library</Description>
     <Company>CnCNet</Company>
@@ -12,14 +13,13 @@
     <InformationalVersion>2.8.0.0</InformationalVersion>
     <AssemblyName>DXMainClient</AssemblyName>
     <RootNamespace>DTAClient</RootNamespace>
-    <RuntimeIdentifiers>win-x64;win-arm64;win-x86</RuntimeIdentifiers>
     <ApplicationIcon>clienticon.ico</ApplicationIcon>
   </PropertyGroup>
-
+  
   <PropertyGroup>
-    <AssemblyName Condition="'$(Engine)' == 'DX'">clientdx</AssemblyName>
-    <AssemblyName Condition="'$(Engine)' == 'GL'">clientogl</AssemblyName>
-    <AssemblyName Condition="'$(Engine)' == 'XNA'">clientxna</AssemblyName>
+    <AssemblyName Condition="'$(Engine)' == 'WindowsDX'">clientdx</AssemblyName>
+    <AssemblyName Condition="'$(Engine)' == 'UniversalGL' Or '$(Engine)' == 'WindowsGL'">clientogl</AssemblyName>
+    <AssemblyName Condition="'$(Engine)' == 'WindowsXNA'">clientxna</AssemblyName>
     <ApplicationManifest>app.manifest</ApplicationManifest>
   </PropertyGroup>
 
@@ -30,6 +30,7 @@
   </ItemGroup>
   <ItemGroup Condition="'$(TargetFrameworkIdentifier)' != '.NETFramework'">
     <PackageReference Include="System.Management" Version="6.0.0" />
+    <PackageReference Include="System.DirectoryServices" Version="6.0.0" />
   </ItemGroup>
   <ItemGroup>
     <Compile Remove="Resources\**" />
@@ -53,6 +54,7 @@
     </Reference>
   </ItemGroup>
 
+  <Import Project="$(MSBuildThisFileDirectory)..\build\WinForms.props" />
   <Import Project="$(MSBuildThisFileDirectory)..\build\AfterPublish.targets" />
   <Import Project="$(MSBuildThisFileDirectory)..\build\CopyResources.targets" />
 

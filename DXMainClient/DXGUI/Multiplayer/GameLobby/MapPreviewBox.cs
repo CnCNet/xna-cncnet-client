@@ -169,8 +169,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             EnableStartLocationSelection = true;
 
             BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 128), 1, 1);
-
-#if !WINDOWSGL
+#if !GL
 
             disposeTextures = !UserINISettings.Instance.PreloadMapPreviews;
 #endif

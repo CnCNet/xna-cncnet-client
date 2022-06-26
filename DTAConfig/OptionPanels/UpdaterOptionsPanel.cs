@@ -5,7 +5,6 @@ using Microsoft.Xna.Framework;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
 using System;
-using System.IO;
 using ClientUpdater;
 
 namespace DTAConfig.OptionPanels

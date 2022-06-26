@@ -2,7 +2,9 @@
 using Rampastring.Tools;
 using System;
 using System.Collections.Generic;
+#if WINFORMS
 using System.Windows.Forms;
+#endif
 using ClientCore.Enums;
 
 namespace ClientCore
@@ -65,8 +67,13 @@ namespace ClientCore
             WindowedMode = new BoolSetting(iniFile, VIDEO, WINDOWED_MODE_KEY, false);
             BorderlessWindowedMode = new BoolSetting(iniFile, VIDEO, "NoWindowFrame", false);
 
+#if WINFORMS
             ClientResolutionX = new IntSetting(iniFile, VIDEO, "ClientResolutionX", Screen.PrimaryScreen.Bounds.Width);
             ClientResolutionY = new IntSetting(iniFile, VIDEO, "ClientResolutionY", Screen.PrimaryScreen.Bounds.Height);
+#else
+            ClientResolutionX = new IntSetting(iniFile, VIDEO, "ClientResolutionX", 1920);
+            ClientResolutionY = new IntSetting(iniFile, VIDEO, "ClientResolutionY", 1080);
+#endif
             BorderlessWindowedClient = new BoolSetting(iniFile, VIDEO, "BorderlessWindowedClient", true);
             ClientFPS = new IntSetting(iniFile, VIDEO, "ClientFPS", 60);
             DisplayToggleableExtraTextures = new BoolSetting(iniFile, VIDEO, "DisplayToggleableExtraTextures", true);
@@ -242,7 +249,7 @@ namespace ClientCore
         public BoolSetting AutoRemoveUnderscoresFromName { get; private set; }
 
         public StringListSetting FavoriteMaps { get; private set; }
-        
+
         public void SetValue(string section, string key, string value)
                => SettingsIni.SetStringValue(section, key, value);
 

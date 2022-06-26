@@ -141,14 +141,18 @@ namespace DTAConfig
                 return;
             }
 
+#if ISWINDOWS
             WindowManager.SoundPlayer.SetVolume(Convert.ToSingle(UserINISettings.Instance.ClientVolume));
+#endif
             Disable();
         }
 
         private void ExitDownloadCancelConfirmation_YesClicked(XNAMessageBox messageBox)
         {
             componentsPanel.CancelAllDownloads();
+#if ISWINDOWS
             WindowManager.SoundPlayer.SetVolume(Convert.ToSingle(UserINISettings.Instance.ClientVolume));
+#endif
             Disable();
         }
 

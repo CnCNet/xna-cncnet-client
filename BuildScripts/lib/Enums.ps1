@@ -8,9 +8,10 @@ enum Games {
 }
 
 enum Engines {
-  DX
-  GL
-  XNA
+  WindowsDX
+  WindowsGL
+  UniversalGL
+  WindowsXNA
 }
 
 enum Configurations {
