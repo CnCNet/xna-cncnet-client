@@ -23,6 +23,18 @@ namespace ClientGUI
         public static bool UseQres { get; set; }
         public static bool SingleCoreAffinity { get; set; }
 
+        private const string PhobosDevBuildPrefix = "Build #";
+
+        private const string PhobosName = "Phobos.dll";
+
+        private const string PhobosExtraCommandLineParameterPrefix = "-b=";
+
+        private static string PhobosPath = ProgramConstants.GamePath + PhobosName;
+
+        private static string PhobosDevVersion;
+
+        private static string PhobosExtraCommandLineParameter = "";
+
         /// <summary>
         /// Starts the main game process.
         /// </summary>
@@ -65,7 +77,20 @@ namespace ClientGUI
                 }
             }
 
-            string extraCommandLine = ClientConfiguration.Instance.ExtraExeCommandLineParameters;
+            if (File.Exists(PhobosPath))
+            {
+                FileVersionInfo phobosinfo = FileVersionInfo.GetVersionInfo(PhobosPath);
+                Logger.Log("Phobos is detected, version: " + phobosinfo.FileVersion + ".");
+                if (phobosinfo.FileVersion.Contains(PhobosDevBuildPrefix))
+                {
+                    PhobosDevVersion = phobosinfo.FileVersion.Replace(PhobosDevBuildPrefix, "");
+                    Logger.Log("Phobos is dev version, adding extra command line parameter for the main executive.");
+                    PhobosExtraCommandLineParameter = " " + PhobosExtraCommandLineParameterPrefix + PhobosDevVersion;
+                }
+
+            }
+
+            string extraCommandLine = ClientConfiguration.Instance.ExtraExeCommandLineParameters + PhobosExtraCommandLineParameter;
 
             File.Delete(ProgramConstants.GamePath + "DTA.LOG");
             File.Delete(ProgramConstants.GamePath + "TI.LOG");
