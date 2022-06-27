@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
@@ -7,6 +8,8 @@ using ClientCore;
 using Rampastring.Tools;
 using lzo.net;
 using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Advanced;
+using SixLabors.ImageSharp.Memory;
 using SixLabors.ImageSharp.PixelFormats;
 
 namespace DTAClient.Domain.Multiplayer
@@ -148,7 +151,10 @@ namespace DTAClient.Domain.Multiplayer
         /// <returns>Bitmap based on the provided dimensions and raw image data, or null if length of image data does not match the provided dimensions or if something went wrong.</returns>
         private static Image CreatePreviewBitmapFromImageData(int width, int height, byte[] imageData, out string errorMessage)
         {
-            if (imageData.Length != width * height * 3)
+            const int pixelFormatBitCount = 24;
+            const int pixelFormatByteCount = pixelFormatBitCount / 8;
+
+            if (imageData.Length != width * height * pixelFormatByteCount)
             {
                 errorMessage = "Provided preview image dimensions do not match preview image data length.";
                 return null;
@@ -156,12 +162,56 @@ namespace DTAClient.Domain.Multiplayer
 
             try
             {
-                using var rgb24 = Image.LoadPixelData<Rgb24>(imageData, width, height);
-                Image<Bgr24> bgr24 = rgb24.CloneAs<Bgr24>();
+                int strideWidth = (((width * pixelFormatBitCount) + 31) & ~31) >> 3;
+                int numSkipBytes = strideWidth - (width * pixelFormatByteCount);
+                byte[] bitmapPixelData = new byte[strideWidth * height];
+                int writtenBytes = 0;
+                int readBytes = 0;
+
+                for (int h = 0; h < height; h++)
+                {
+                    for (int w = 0; w < width; w++)
+                    {
+                        // GDI+ bitmap raw pixel data is in BGR format, red & blue values need to be flipped around for each pixel.
+                        bitmapPixelData[writtenBytes] = imageData[readBytes + 2];
+                        bitmapPixelData[writtenBytes + 1] = imageData[readBytes + 1];
+                        bitmapPixelData[writtenBytes + 2] = imageData[readBytes];
+                        writtenBytes += pixelFormatByteCount;
+                        readBytes += pixelFormatByteCount;
+                    }
+
+                    // GDI+ bitmap stride / scan width has to be a multiple of 4, so the end of each stride / scanline can contain extra bytes
+                    // in the bitmap raw pixel data that are not present in the image data and should be skipped when copying.
+                    writtenBytes += numSkipBytes;
+                }
+
+                // https://github.com/SixLabors/ImageSharp/blob/main/tests/ImageSharp.Tests/TestUtilities/ReferenceCodecs/SystemDrawingBridge.cs
+                var image = new Image<Bgr24>(width, height);
+                Configuration configuration = image.GetConfiguration();
+                Buffer2D<Bgr24> imageBuffer = image.Frames.RootFrame.PixelBuffer;
+                using IMemoryOwner<Bgr24> workBuffer = Configuration.Default.MemoryAllocator.Allocate<Bgr24>(width);
+
+                unsafe
+                {
+                    fixed (byte* sourcePtrBase = &bitmapPixelData[0])
+                    {
+                        fixed (Bgr24* destPtr = &workBuffer.Memory.Span[0])
+                        {
+                            for (int rowCount = 0; rowCount < height; rowCount++)
+                            {
+                                Span<Bgr24> row = imageBuffer.DangerousGetRowSpan(rowCount);
+                                byte* sourcePtr = sourcePtrBase + (strideWidth * rowCount);
+
+                                Buffer.MemoryCopy(sourcePtr, destPtr, strideWidth, strideWidth);
+                                PixelOperations<Bgr24>.Instance.FromBgr24(configuration, workBuffer.Memory.Span.Slice(0, width), row);
+                            }
+                        }
+                    }
+                }
 
                 errorMessage = null;
 
-                return bgr24;
+                return image;
             }
             catch (Exception e)
             {
