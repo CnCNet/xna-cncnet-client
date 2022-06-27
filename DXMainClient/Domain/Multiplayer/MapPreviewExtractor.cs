@@ -7,7 +7,6 @@ using ClientCore;
 using Rampastring.Tools;
 using lzo.net;
 using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Formats.Bmp;
 using SixLabors.ImageSharp.PixelFormats;
 
 namespace DTAClient.Domain.Multiplayer
@@ -157,50 +156,12 @@ namespace DTAClient.Domain.Multiplayer
 
             try
             {
-                using var image = Image.LoadPixelData<Bgr24>(imageData, width, height);
-
-                //using var image = Image.Load(imageData, out IImageFormat format);
-                using var stream = new MemoryStream();
-
-                image.SaveAsBmp(stream);
+                using var rgb24 = Image.LoadPixelData<Rgb24>(imageData, width, height);
+                Image<Bgr24> bgr24 = rgb24.CloneAs<Bgr24>();
 
                 errorMessage = null;
 
-                return null;
-
-                return Image.Load(stream, new BmpDecoder());
-
-                // TODO
-
-                //Bitmap bitmap = new Bitmap(width, height, PixelFormat.Format24bppRgb);
-                //BitmapData bitmapData = bitmap.LockBits(new Rectangle(0, 0, bitmap.Width, bitmap.Height), ImageLockMode.WriteOnly, PixelFormat.Format24bppRgb);
-                //IntPtr scan0 = bitmapData.Scan0;
-                //int strideWidth = Math.Abs(bitmapData.Stride);
-                //int numSkipBytes = strideWidth - bitmapData.Width * 3;
-                //byte[] bitmapPixelData = new byte[strideWidth * bitmapData.Height];
-                //int writtenBytes = 0;
-                //int readBytes = 0;
-
-                //for (int h = 0; h < bitmapData.Height; h++)
-                //{
-                //    for (int w = 0; w < bitmapData.Width; w++)
-                //    {
-                //        // GDI+ bitmap raw pixel data is in BGR format, red & blue values need to be flipped around for each pixel.
-                //        bitmapPixelData[writtenBytes] = imageData[readBytes + 2];
-                //        bitmapPixelData[writtenBytes + 1] = imageData[readBytes + 1];
-                //        bitmapPixelData[writtenBytes + 2] = imageData[readBytes];
-                //        writtenBytes += 3;
-                //        readBytes += 3;
-                //    }
-
-                //    // GDI+ bitmap stride / scan width has to be a multiple of 4, so the end of each stride / scanline can contain extra bytes
-                //    // in the bitmap raw pixel data that are not present in the image data and should be skipped when copying.
-                //    writtenBytes += numSkipBytes;
-                //}
-
-                //Marshal.Copy(bitmapPixelData, 0, scan0, bitmapPixelData.Length);
-                //bitmap.UnlockBits(bitmapData);
-                //return bitmap;
+                return bgr24;
             }
             catch (Exception e)
             {
