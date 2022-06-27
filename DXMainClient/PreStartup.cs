@@ -8,7 +8,9 @@ using DTAClient.Domain;
 using Rampastring.Tools;
 using ClientCore;
 using System.Security.AccessControl;
+#if ISWINDOWS
 using System.Security.Principal;
+#endif
 using System.Collections.Generic;
 using Localization;
 using System.Linq;

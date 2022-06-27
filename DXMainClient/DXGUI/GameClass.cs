@@ -9,12 +9,15 @@ using Microsoft.Xna.Framework.Graphics;
 using Rampastring.Tools;
 using Rampastring.XNAUI;
 using System;
-using System.Diagnostics;
-using System.IO;
 using System.Security.Principal;
 using ClientGUI;
+#if DX
+using System.Diagnostics;
+using System.IO;
+#endif
 #if WINFORMS
 using System.Windows.Forms;
+using System.IO;
 #endif
 
 namespace DTAClient.DXGUI
@@ -204,21 +207,19 @@ namespace DTAClient.DXGUI
             int windowHeight = UserINISettings.Instance.ClientResolutionY;
 
             bool borderlessWindowedClient = UserINISettings.Instance.BorderlessWindowedClient;
+            int currentWidth = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width;
+            int currentHeight = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height;
 
-#if WINFORMS
-            if (Screen.PrimaryScreen.Bounds.Width >= windowWidth && Screen.PrimaryScreen.Bounds.Height >= windowHeight)
+            if (currentWidth >= windowWidth && currentHeight >= windowHeight)
             {
                 if (!wm.InitGraphicsMode(windowWidth, windowHeight, false))
                     throw new GraphicsModeInitializationException("Setting graphics mode failed!".L10N("UI:Main:SettingGraphicModeFailed") + " " + windowWidth + "x" + windowHeight);
             }
             else
             {
-#endif
                 if (!wm.InitGraphicsMode(1024, 600, false))
                     throw new GraphicsModeInitializationException("Setting default graphics mode failed!".L10N("UI:Main:SettingDefaultGraphicModeFailed"));
-#if WINFORMS
             }
-#endif
 
             int renderResolutionX = 0;
             int renderResolutionY = 0;
@@ -279,9 +280,9 @@ namespace DTAClient.DXGUI
             }
 
 #endif
-#if WINFORMS
+
             wm.CenterOnScreen();
-#endif
+
             wm.SetRenderResolution(renderResolutionX, renderResolutionY);
         }
     }

@@ -2,9 +2,6 @@
 using Rampastring.Tools;
 using System;
 using System.Collections.Generic;
-#if WINFORMS
-using System.Windows.Forms;
-#endif
 using ClientCore.Enums;
 
 namespace ClientCore
@@ -66,14 +63,6 @@ namespace ClientCore
             Renderer = new StringSetting(iniFile, COMPATIBILITY, "Renderer", string.Empty);
             WindowedMode = new BoolSetting(iniFile, VIDEO, WINDOWED_MODE_KEY, false);
             BorderlessWindowedMode = new BoolSetting(iniFile, VIDEO, "NoWindowFrame", false);
-
-#if WINFORMS
-            ClientResolutionX = new IntSetting(iniFile, VIDEO, "ClientResolutionX", Screen.PrimaryScreen.Bounds.Width);
-            ClientResolutionY = new IntSetting(iniFile, VIDEO, "ClientResolutionY", Screen.PrimaryScreen.Bounds.Height);
-#else
-            ClientResolutionX = new IntSetting(iniFile, VIDEO, "ClientResolutionX", 1920);
-            ClientResolutionY = new IntSetting(iniFile, VIDEO, "ClientResolutionY", 1080);
-#endif
             BorderlessWindowedClient = new BoolSetting(iniFile, VIDEO, "BorderlessWindowedClient", true);
             ClientFPS = new IntSetting(iniFile, VIDEO, "ClientFPS", 60);
             DisplayToggleableExtraTextures = new BoolSetting(iniFile, VIDEO, "DisplayToggleableExtraTextures", true);
@@ -150,8 +139,8 @@ namespace ClientCore
         public BoolSetting WindowedMode { get; private set; }
         public BoolSetting BorderlessWindowedMode { get; private set; }
         public BoolSetting BackBufferInVRAM { get; private set; }
-        public IntSetting ClientResolutionX { get; private set; }
-        public IntSetting ClientResolutionY { get; private set; }
+        public IntSetting ClientResolutionX { get; set; }
+        public IntSetting ClientResolutionY { get; set; }
         public BoolSetting BorderlessWindowedClient { get; private set; }
         public IntSetting ClientFPS { get; private set; }
         public BoolSetting DisplayToggleableExtraTextures { get; private set; }

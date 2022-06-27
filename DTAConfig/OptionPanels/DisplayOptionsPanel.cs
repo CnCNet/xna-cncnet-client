@@ -180,11 +180,10 @@ namespace DTAConfig.OptionPanels
             ddClientResolution.AllowDropDown = false;
             ddClientResolution.PreferredItemLabel = "(recommended)".L10N("UI:DTAConfig:Recommended");
 
-#if WINFORMS
-            var screenBounds = Screen.PrimaryScreen.Bounds;
+            int width = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width;
+            int height = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height;
 
-            resolutions = GetResolutions(800, 600,
-                screenBounds.Width, screenBounds.Height);
+            resolutions = GetResolutions(800, 600, width, height);
 
             // Add "optimal" client resolutions for windowed mode
             // if they're not supported in fullscreen mode
@@ -218,7 +217,6 @@ namespace DTAConfig.OptionPanels
                 if (index > -1)
                     ddClientResolution.PreferredItemIndexes.Add(index);
             }
-#endif
 
             chkBorderlessClient = new XNAClientCheckBox(WindowManager);
             chkBorderlessClient.Name = "chkBorderlessClient";
@@ -313,7 +311,6 @@ namespace DTAConfig.OptionPanels
             AddChild(ddIngameResolution);
         }
 
-#if WINFORMS
         /// <summary>
         /// Adds a screen resolution to a list of resolutions if it fits on the screen.
         /// Checks if the resolution already exists before adding it.
@@ -326,15 +323,15 @@ namespace DTAConfig.OptionPanels
             if (resolutions.Find(res => res.Width == width && res.Height == height) != null)
                 return;
 
-            var screenBounds = Screen.PrimaryScreen.Bounds;
+            int currentWidth = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width;
+            int currentHeight = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height;
 
-            if (screenBounds.Width >= width && screenBounds.Height >= height)
+            if (currentWidth >= width && currentHeight >= height)
             {
                 resolutions.Add(new ScreenResolution(width, height));
             }
         }
 
-#endif
         private void GetRenderers()
         {
             renderers = new List<DirectDrawWrapper>();

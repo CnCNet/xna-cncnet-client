@@ -16,6 +16,8 @@ using System.Threading.Tasks;
 using System.Globalization;
 using System.Management;
 using System.Runtime.InteropServices;
+using ClientCore.Settings;
+using Microsoft.Xna.Framework.Graphics;
 
 namespace DTAClient
 {
@@ -123,6 +125,13 @@ namespace DTAClient
             PreprocessorBackgroundTask.Instance.Run();
 
             GameClass gameClass = new GameClass();
+
+            int currentWidth = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width;
+            int currentHeight = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height;
+
+            UserINISettings.Instance.ClientResolutionX = new IntSetting(UserINISettings.Instance.SettingsIni, UserINISettings.VIDEO, "ClientResolutionX", currentWidth);
+            UserINISettings.Instance.ClientResolutionY = new IntSetting(UserINISettings.Instance.SettingsIni, UserINISettings.VIDEO, "ClientResolutionY", currentHeight);
+
             gameClass.Run();
         }
 
