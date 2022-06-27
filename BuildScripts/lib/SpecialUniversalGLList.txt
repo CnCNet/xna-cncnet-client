@@ -15,3 +15,8 @@ Rampastring.XNAUI.UniversalGL.dll
 
 libopenal.so.1
 libSDL2-2.0.so.0
+
+SDL2.dll
+soft_oal.dll
+libopenal.1.dylib
+libSDL2-2.0.0.dylib

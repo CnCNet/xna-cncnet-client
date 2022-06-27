@@ -8,12 +8,12 @@ param (
   $Path
 )
 
-New-Item -Path $PSScriptRoot\CommonLibList.txt -ItemType File -Force
+New-Item -Path (Join-Path $PSScriptRoot "CommonLibList.txt") -ItemType File -Force
 
-Get-ChildItem $Path\Windows\ | ForEach-Object {
-  $Private:DXFile = "$Path\Windows\$($_.Name)"
-  $Private:GLFile = "$Path\OpenGL\$($_.Name)"
-  $Private:XNAFile = "$Path\XNA\$($_.Name)"
+Get-ChildItem (Join-Path $Path "Windows") | ForEach-Object {
+  $Private:DXFile = (Join-Path $Path "Windows" $($_.Name))
+  $Private:GLFile = (Join-Path $Path "OpenGL" $($_.Name))
+  $Private:XNAFile = (Join-Path $Path "XNA" $($_.Name))
   if (
     ($_.Name -ne 'runtimes') `
       -and (Test-Path $Private:GLFile) `
@@ -26,7 +26,7 @@ Get-ChildItem $Path\Windows\ | ForEach-Object {
       ($Private:DXHash -eq $Private:GLHash) `
         -and ($Private:DXHash -eq $Private:XNAHash)
     ) {
-      $_.Name | Out-File $PSScriptRoot\CommonLibList.txt -Append -Encoding utf8
+      $_.Name | Out-File (Join-Path $PSScriptRoot "CommonLibList.txt") -Append -Encoding utf8
     }
   }
 }

@@ -3,8 +3,8 @@
 
 using namespace System.IO
 
-. $PSScriptRoot\Enums.ps1
-. $PSScriptRoot\FileTools.ps1
+. (Join-Path $PSScriptRoot "Enums.ps1")
+. (Join-Path $PSScriptRoot "FileTools.ps1")
 
 function Move-Libraries {
   [CmdletBinding()]
@@ -31,7 +31,7 @@ function Move-Libraries {
         throw 'Must have Engine when use -Special'
       }
 
-      $Private:ClientSpecialLibraries = Get-Content $PSScriptRoot\Special$($Engine)List.txt
+      $Private:ClientSpecialLibraries = Get-Content (Join-Path $PSScriptRoot "Special$($Engine)List.txt")
     }
 
 
@@ -52,7 +52,7 @@ function Move-Libraries {
     }
 
     $tmp | ForEach-Object {
-      $Private:TargetPath = Join-Path $Destination $_.Name
+      $Private:TargetPath = (Join-Path $Destination $_.Name)
       if (!(Test-Path $Private:TargetPath)) {
         # If File Not Exists
         Write-Debug "Move $_ to $Private:TargetPath"

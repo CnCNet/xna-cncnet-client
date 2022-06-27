@@ -20,10 +20,17 @@ namespace DTAClient
              * the target projects (DTA, TI, MO, YR) supply them all in a single download.
              * To avoid DLL hell, we load the binaries from different directories
              * depending on the build platform. */
+
+            string startupPath;
 #if NETFRAMEWORK
-            string startupPath = new FileInfo(Assembly.GetEntryAssembly().Location).DirectoryName + Path.DirectorySeparatorChar;
+            startupPath = new FileInfo(Assembly.GetEntryAssembly().Location).DirectoryName + Path.DirectorySeparatorChar;
+#elif GL && !WINFORMS
+            if (new FileInfo(Environment.ProcessPath).Name.StartsWith("dotnet", StringComparison.OrdinalIgnoreCase))
+                startupPath = new FileInfo(Assembly.GetEntryAssembly().Location).Directory.Parent.Parent.FullName + Path.DirectorySeparatorChar; // cross platform build launched with dotnet.exe
+            else
+                startupPath = new FileInfo(Environment.ProcessPath).Directory.FullName + Path.DirectorySeparatorChar;
 #else
-            string startupPath = new FileInfo(Environment.ProcessPath).Directory.FullName + Path.DirectorySeparatorChar;
+            startupPath = new FileInfo(Environment.ProcessPath).Directory.FullName + Path.DirectorySeparatorChar;
 #endif
 
 #if DEBUG

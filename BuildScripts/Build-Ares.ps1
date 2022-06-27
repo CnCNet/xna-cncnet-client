@@ -13,7 +13,7 @@ param (
 )
 
 # Imports
-. $PSScriptRoot\lib\Enums.ps1
-. $PSScriptRoot\lib\BuildTools.ps1
+. (Join-Path $PSScriptRoot "lib" "Enums.ps1")
+. (Join-Path $PSScriptRoot "lib" "BuildTools.ps1")
 
 Build-Ares $Configuration -SkipMoveLibraries:$SkipMoveLibraries

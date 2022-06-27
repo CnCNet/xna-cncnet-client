@@ -2,12 +2,20 @@
 #Requires -Version 5.0
 
 # Imports
-. $PSScriptRoot\Constants.ps1
-. $PSScriptRoot\Enums.ps1
-. $PSScriptRoot\BuildCore.ps1
-. $PSScriptRoot\ClearTools.ps1
+. (Join-Path $PSScriptRoot "Constants.ps1")
+. (Join-Path $PSScriptRoot "Enums.ps1")
+. (Join-Path $PSScriptRoot "BuildCore.ps1")
+. (Join-Path $PSScriptRoot "ClearTools.ps1")
 
-# See https://docs.microsoft.com/en-us/dotnet/core/rid-catalog for adding specific RuntimeIdentifiers
+# See https://docs.microsoft.com/en-us/dotnet/core/rid-catalog for adding specific RuntimeIdentifiers. Examples:
+#Build-Project -Configuration $Configuration -Game YR -Engine UniversalGL -TargetFramework net6.0 -RuntimeIdentifier linux-x64 -SkipMoveLibraries:$SkipMoveLibraries
+#Build-Project -Configuration $Configuration -Game YR -Engine UniversalGL -TargetFramework net6.0 -RuntimeIdentifier win10-x64 -SkipMoveLibraries:$SkipMoveLibraries
+#Build-Project -Configuration $Configuration -Game YR -Engine UniversalGL -TargetFramework net6.0 -RuntimeIdentifier osx.12-x64 -SkipMoveLibraries:$SkipMoveLibraries
+#Build-Project -Configuration $Configuration -Game YR -Engine UniversalGL -TargetFramework net6.0 -RuntimeIdentifier ubuntu.22.04-x64 -SkipMoveLibraries:$SkipMoveLibraries
+#Build-Project -Configuration $Configuration -Game YR -Engine UniversalGL -TargetFramework net6.0 -RuntimeIdentifier ios.15-arm64 -SkipMoveLibraries:$SkipMoveLibraries
+#Build-Project -Configuration $Configuration -Game YR -Engine UniversalGL -TargetFramework net6.0 -RuntimeIdentifier android-arm64 -SkipMoveLibraries:$SkipMoveLibraries
+#Build-Project -Configuration $Configuration -Game YR -Engine UniversalGL -TargetFramework net6.0 -RuntimeIdentifier alpine.3.9-arm -SkipMoveLibraries:$SkipMoveLibraries
+#Build-Project -Configuration $Configuration -Game YR -Engine UniversalGL -TargetFramework net6.0 -RuntimeIdentifier tizen.4.0.0-arm64 -SkipMoveLibraries:$SkipMoveLibraries
 function Build-Ares {
   [CmdletBinding()]
   param (
@@ -20,7 +28,7 @@ function Build-Ares {
   )
 
   process {
-    Clear-Compiled $Script:ClientCompiledTarget\Ares
+    Clear-Compiled (Join-Path $Script:ClientCompiledTarget "Ares")
 
     Build-Project -Configuration $Configuration -Game Ares -Engine UniversalGL -TargetFramework net6.0 -RuntimeIdentifier any -SkipMoveLibraries:$SkipMoveLibraries
 
@@ -49,7 +57,7 @@ function Build-TS {
   )
 
   process {
-    Clear-Compiled $Script:ClientCompiledTarget\TS
+    Clear-Compiled (Join-Path $Script:ClientCompiledTarget "TS")
 
     Build-Project -Configuration $Configuration -Game TS -Engine UniversalGL -TargetFramework net6.0 -RuntimeIdentifier any -SkipMoveLibraries:$SkipMoveLibraries
 
@@ -78,8 +86,8 @@ function Build-YR {
   )
 
   process {
-    Clear-Compiled $Script:ClientCompiledTarget\YR
-       
+    Clear-Compiled (Join-Path $Script:ClientCompiledTarget "YR")
+
     Build-Project -Configuration $Configuration -Game YR -Engine UniversalGL -TargetFramework net6.0 -RuntimeIdentifier any -SkipMoveLibraries:$SkipMoveLibraries
 
     If ($IsWindows)
