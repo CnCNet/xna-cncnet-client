@@ -8,6 +8,7 @@ using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
 using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 #if WINFORMS
 using System.Windows.Forms;
 #endif
@@ -269,7 +270,9 @@ namespace DTAConfig.OptionPanels
                 lblGameCompatibilityFix.Y - 4, UIDesignConstants.BUTTON_WIDTH_133, UIDesignConstants.BUTTON_HEIGHT);
             btnGameCompatibilityFix.FontIndex = 1;
             btnGameCompatibilityFix.Text = "Enable".L10N("UI:DTAConfig:Enable");
-            btnGameCompatibilityFix.LeftClick += BtnGameCompatibilityFix_LeftClick;
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                btnGameCompatibilityFix.LeftClick += BtnGameCompatibilityFix_LeftClick;
 
             lblMapEditorCompatibilityFix = new XNALabel(WindowManager);
             lblMapEditorCompatibilityFix.Name = "lblMapEditorCompatibilityFix";
@@ -287,7 +290,9 @@ namespace DTAConfig.OptionPanels
                 btnGameCompatibilityFix.Height);
             btnMapEditorCompatibilityFix.FontIndex = 1;
             btnMapEditorCompatibilityFix.Text = "Enable".L10N("UI:DTAConfig:TSButtonEnable");
-            btnMapEditorCompatibilityFix.LeftClick += BtnMapEditorCompatibilityFix_LeftClick;
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                btnMapEditorCompatibilityFix.LeftClick += BtnMapEditorCompatibilityFix_LeftClick;
 
             AddChild(lblGameCompatibilityFix);
             AddChild(btnGameCompatibilityFix);
@@ -380,6 +385,9 @@ namespace DTAConfig.OptionPanels
         public void PostInit()
         {
             Load();
+
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                return;
 
             if (!GameCompatFixInstalled && !GameCompatFixDeclined)
             {
@@ -506,7 +514,7 @@ namespace DTAConfig.OptionPanels
                 {
                     Logger.Log("Uninstalling FinalSun Compatibility Fix failed. Error message: " + ex.Message);
                     XNAMessageBox.Show(WindowManager, "Uninstalling Compatibility Fix Failed".L10N("UI:DTAConfig:TSFinalSunFixUninstallFailedTitle"),
-                        "Uninstalling FinalSun Compatibility Fix failed. Error message:".L10N("UI:DTAConfig:TSFinalSunFixUninstallFailedText") +" "+ ex.Message);
+                        "Uninstalling FinalSun Compatibility Fix failed. Error message:".L10N("UI:DTAConfig:TSFinalSunFixUninstallFailedText") + " " + ex.Message);
                 }
 
                 return;
@@ -664,6 +672,9 @@ namespace DTAConfig.OptionPanels
 
 #if TS
             chkBackBufferInVRAM.Checked = !UserINISettings.Instance.BackBufferInVRAM;
+
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                return;
 
             RegistryKey regKey = Registry.CurrentUser.OpenSubKey("SOFTWARE\\Tiberian Sun Client");
 

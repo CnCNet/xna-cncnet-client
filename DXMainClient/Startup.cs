@@ -117,7 +117,8 @@ namespace DTAClient
 
             FinalSunSettings.WriteFinalSunIni();
 
-            WriteInstallPathToRegistry();
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                WriteInstallPathToRegistry();
 
             ClientConfiguration.Instance.RefreshSettings();
 
