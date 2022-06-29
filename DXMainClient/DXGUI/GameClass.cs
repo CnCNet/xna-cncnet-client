@@ -9,7 +9,6 @@ using Microsoft.Xna.Framework.Graphics;
 using Rampastring.Tools;
 using Rampastring.XNAUI;
 using System;
-using System.Security.Principal;
 using ClientGUI;
 #if DX
 using System.Diagnostics;
@@ -152,7 +151,7 @@ namespace DTAClient.DXGUI
 
             if (string.IsNullOrEmpty(playerName))
             {
-                playerName = WindowsIdentity.GetCurrent().Name;
+                playerName = Environment.UserName;
 
                 playerName = playerName.Substring(playerName.IndexOf("\\") + 1);
             }
