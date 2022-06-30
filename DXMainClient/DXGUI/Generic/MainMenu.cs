@@ -369,7 +369,6 @@ namespace DTAClient.DXGUI.Generic
         {
             if (isMediaPlayerAvailable)
             {
-#if ISWINDOWS
                 if (MediaPlayer.State == MediaState.Playing)
                 {
                     if (!UserINISettings.Instance.PlayMainMenuMusic)
@@ -380,7 +379,6 @@ namespace DTAClient.DXGUI.Generic
                 {
                     PlayMusic();
                 }
-#endif
             }
 
             if (!connectionManager.IsConnected)
@@ -861,7 +859,6 @@ namespace DTAClient.DXGUI.Generic
         /// </summary>
         private void PlayMusic()
         {
-#if ISWINDOWS
             if (!isMediaPlayerAvailable)
                 return; // SharpDX fails at music playback on Vista
 
@@ -880,7 +877,6 @@ namespace DTAClient.DXGUI.Generic
                     Logger.Log("Playing main menu music failed! " + ex.Message);
                 }
             }
-#endif
         }
 
         /// <summary>
@@ -890,7 +886,6 @@ namespace DTAClient.DXGUI.Generic
         /// <param name="gameTime">Provides a snapshot of timing values.</param>
         private void FadeMusic(GameTime gameTime)
         {
-#if ISWINDOWS
             if (!isMediaPlayerAvailable || !isMusicFading || themeSong == null)
                 return;
 
@@ -904,7 +899,6 @@ namespace DTAClient.DXGUI.Generic
                 MediaPlayer.Stop();
                 isMusicFading = false;
             }
-#endif
         }
 
         /// <summary>
@@ -918,7 +912,6 @@ namespace DTAClient.DXGUI.Generic
                 return;
             }
 
-#if ISWINDOWS
             float step = MEDIA_PLAYER_VOLUME_EXIT_FADE_STEP * (float)UserINISettings.Instance.ClientVolume;
 
             if (MediaPlayer.Volume > step)
@@ -931,7 +924,6 @@ namespace DTAClient.DXGUI.Generic
                 MediaPlayer.Stop();
                 ExitClient();
             }
-#endif
         }
 
         private void ExitClient()
@@ -966,7 +958,6 @@ namespace DTAClient.DXGUI.Generic
 
         private void MusicOff()
         {
-#if ISWINDOWS
             try
             {
                 if (isMediaPlayerAvailable &&
@@ -979,7 +970,6 @@ namespace DTAClient.DXGUI.Generic
             {
                 Logger.Log("Turning music off failed! Message: " + ex.Message);
             }
-#endif
         }
 
         /// <summary>
@@ -992,7 +982,6 @@ namespace DTAClient.DXGUI.Generic
             if (MainClientConstants.OSId == OSVersion.WINVISTA)
                 return false;
 
-#if ISWINDOWS
             try
             {
                 MediaState state = MediaPlayer.State;
@@ -1003,9 +992,6 @@ namespace DTAClient.DXGUI.Generic
                 Logger.Log("Error encountered when checking media player availability. Error message: " + e.Message);
                 return false;
             }
-#else
-            return false;
-#endif
         }
 
         private void LaunchMapEditor()
