@@ -3,7 +3,6 @@ using Localization;
 using Rampastring.Tools;
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -267,10 +266,10 @@ namespace DTAClient.Online
 
                 if (errorTimes > MAX_RECONNECT_COUNT)
                 {
-                    string errorMessage = string.Format(CultureInfo.InvariantCulture, "Disconnected from CnCNet after {0} failed retries.", errorTimes);
+                    const string errorMessage = "Disconnected from CnCNet after reaching the maximum number of connection retries.";
                     Logger.Log(errorMessage);
                     failedServerIPs.Add(currentConnectedServerIP);
-                    connectionManager.OnConnectionLost(errorMessage);
+                    connectionManager.OnConnectionLost(errorMessage.L10N("UI:Main:ClientDisconnectedAfterRetries"));
                     break;
                 }
 
