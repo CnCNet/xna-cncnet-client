@@ -1,5 +1,5 @@
 #!/usr/bin/env pwsh
-#Requires -Version 5.0
+#Requires -Version 7.2
 
 enum Games {
   Ares
@@ -8,9 +8,10 @@ enum Games {
 }
 
 enum Engines {
-  DX
-  GL
-  XNA
+  WindowsDX
+  WindowsGL
+  UniversalGL
+  WindowsXNA
 }
 
 enum Configurations {

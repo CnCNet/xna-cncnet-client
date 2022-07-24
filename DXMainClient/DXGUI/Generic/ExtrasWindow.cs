@@ -4,6 +4,7 @@ using DTAClient.Domain;
 using Localization;
 using Microsoft.Xna.Framework;
 using Rampastring.XNAUI;
+using Rampastring.Tools;
 using System;
 using System.Diagnostics;
 
@@ -64,7 +65,7 @@ namespace DTAClient.DXGUI.Generic
 
         private void BtnExMapEditor_LeftClick(object sender, EventArgs e)
         {
-            Process.Start(ProgramConstants.GamePath + ClientConfiguration.Instance.MapEditorExePath);
+            Process.Start(SafePath.CombineFilePath(ProgramConstants.GamePath, ClientConfiguration.Instance.MapEditorExePath));
             Enabled = false;
         }
 

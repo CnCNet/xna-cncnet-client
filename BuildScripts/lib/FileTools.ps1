@@ -1,5 +1,5 @@
 #!/usr/bin/env pwsh
-#Requires -Version 5.0
+#Requires -Version 7.2
 
 using namespace System.IO
 

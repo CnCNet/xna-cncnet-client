@@ -1,18 +1,20 @@
 #!/usr/bin/env pwsh
-#Requires -Version 5.0
+#Requires -Version 7.2
 
-. $PSScriptRoot\Enums.ps1
+. (Join-Path $PSScriptRoot "Enums.ps1")
 
 $Script:SuffixMap = @{
-  [Engines]::DX  = "dx"
-  [Engines]::GL  = "ogl"
-  [Engines]::XNA = "xna"
+  [Engines]::WindowsDX = "dx"
+  [Engines]::WindowsGL = "ogl"
+  [Engines]::UniversalGL = "ogl"
+  [Engines]::WindowsXNA = "xna"
 }
 
 $Script:PlatformNameMap = @{
-  [Engines]::DX  = "Windows"
-  [Engines]::GL  = "OpenGL"
-  [Engines]::XNA = "XNA"
+  [Engines]::WindowsDX = "Windows"
+  [Engines]::WindowsGL = "OpenGL"
+  [Engines]::UniversalGL = "OpenGL"
+  [Engines]::WindowsXNA = "XNA"
 }
 
 function Get-Suffix {

@@ -122,19 +122,19 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
         {
             ServicePointManager.Expect100Continue = false;
 
-            string zipFile = ProgramConstants.GamePath + "Maps/Custom/" + map.SHA1 + ".zip";
+            FileInfo zipFile = SafePath.GetFile(ProgramConstants.GamePath, "Maps", "Custom", FormattableString.Invariant($"{map.SHA1}.zip"));
 
-            if (File.Exists(zipFile)) File.Delete(zipFile);
+            if (zipFile.Exists) zipFile.Delete();
 
             string mapFileName = map.SHA1 + ".map";
 
-            File.Copy(map.CompleteFilePath, ProgramConstants.GamePath + mapFileName);
+            File.Copy(SafePath.CombineFilePath(map.CompleteFilePath), SafePath.CombineFilePath(ProgramConstants.GamePath, mapFileName));
 
-            CreateZipFile(mapFileName, zipFile);
+            CreateZipFile(mapFileName, zipFile.FullName);
 
             try
             {
-                File.Delete(ProgramConstants.GamePath + mapFileName);
+                SafePath.DeleteFileIfExists(ProgramConstants.GamePath, mapFileName);
             }
             catch { }
 
@@ -143,7 +143,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
 
             try
             {
-                using (FileStream stream = File.Open(zipFile, FileMode.Open))
+                using (FileStream stream = zipFile.Open(FileMode.Open))
                 {
                     List<FileToUpload> files = new List<FileToUpload>();
                     //{
@@ -159,7 +159,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                     FileToUpload file = new FileToUpload()
                     {
                         Name = "file",
-                        Filename = Path.GetFileName(zipFile),
+                        Filename = zipFile.Name,
                         ContentType = "mapZip",
                         Stream = stream
                     };
@@ -208,62 +208,62 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
         {
             //try
             //{
-                WebRequest request = WebRequest.Create(address);
-                request.Method = "POST";
-                string boundary = "---------------------------" + DateTime.Now.Ticks.ToString("x", NumberFormatInfo.InvariantInfo);
-                request.ContentType = "multipart/form-data; boundary=" + boundary;
-                boundary = "--" + boundary;
+            WebRequest request = WebRequest.Create(address);
+            request.Method = "POST";
+            string boundary = "---------------------------" + DateTime.Now.Ticks.ToString("x", NumberFormatInfo.InvariantInfo);
+            request.ContentType = "multipart/form-data; boundary=" + boundary;
+            boundary = "--" + boundary;
 
-                using (Stream requestStream = request.GetRequestStream())
+            using (Stream requestStream = request.GetRequestStream())
+            {
+                // Write the values
+                foreach (string name in values.Keys)
                 {
-                    // Write the values
-                    foreach (string name in values.Keys)
-                    {
-                        byte[] buffer = Encoding.ASCII.GetBytes(boundary + Environment.NewLine);
-                        requestStream.Write(buffer, 0, buffer.Length);
+                    byte[] buffer = Encoding.ASCII.GetBytes(boundary + Environment.NewLine);
+                    requestStream.Write(buffer, 0, buffer.Length);
 
-                        buffer = Encoding.ASCII.GetBytes(string.Format("Content-Disposition: form-data; name=\"{0}\"{1}{1}", name, Environment.NewLine));
-                        requestStream.Write(buffer, 0, buffer.Length);
+                    buffer = Encoding.ASCII.GetBytes(string.Format("Content-Disposition: form-data; name=\"{0}\"{1}{1}", name, Environment.NewLine));
+                    requestStream.Write(buffer, 0, buffer.Length);
 
-                        buffer = Encoding.UTF8.GetBytes(values[name] + Environment.NewLine);
-                        requestStream.Write(buffer, 0, buffer.Length);
-                    }
-
-                    // Write the files
-                    foreach (FileToUpload file in files)
-                    {
-                        var buffer = Encoding.ASCII.GetBytes(boundary + Environment.NewLine);
-                        requestStream.Write(buffer, 0, buffer.Length);
-
-                        buffer = Encoding.UTF8.GetBytes(string.Format("Content-Disposition: form-data; name=\"{0}\"; filename=\"{1}\"{2}", file.Name, file.Filename, Environment.NewLine));
-                        requestStream.Write(buffer, 0, buffer.Length);
-
-                        buffer = Encoding.ASCII.GetBytes(string.Format("Content-Type: {0}{1}{1}", file.ContentType, Environment.NewLine));
-                        requestStream.Write(buffer, 0, buffer.Length);
-
-                        CopyStream(file.Stream, requestStream);
-                        //     file.Stream.CopyTo(requestStream);
-                        buffer = Encoding.ASCII.GetBytes(Environment.NewLine);
-                        requestStream.Write(buffer, 0, buffer.Length);
-                    }
-
-                    byte[] boundaryBuffer = Encoding.ASCII.GetBytes(boundary + "--");
-                    requestStream.Write(boundaryBuffer, 0, boundaryBuffer.Length);
+                    buffer = Encoding.UTF8.GetBytes(values[name] + Environment.NewLine);
+                    requestStream.Write(buffer, 0, buffer.Length);
                 }
 
-                using (WebResponse response = request.GetResponse())
+                // Write the files
+                foreach (FileToUpload file in files)
                 {
-                    using (Stream responseStream = response.GetResponseStream())
-                    {
-                        using (MemoryStream stream = new MemoryStream())
-                        {
+                    var buffer = Encoding.ASCII.GetBytes(boundary + Environment.NewLine);
+                    requestStream.Write(buffer, 0, buffer.Length);
 
-                            CopyStream(responseStream, stream);
-                            //                responseStream.CopyTo(stream);
-                            return stream.ToArray();
-                        }
+                    buffer = Encoding.UTF8.GetBytes(string.Format("Content-Disposition: form-data; name=\"{0}\"; filename=\"{1}\"{2}", file.Name, file.Filename, Environment.NewLine));
+                    requestStream.Write(buffer, 0, buffer.Length);
+
+                    buffer = Encoding.ASCII.GetBytes(string.Format("Content-Type: {0}{1}{1}", file.ContentType, Environment.NewLine));
+                    requestStream.Write(buffer, 0, buffer.Length);
+
+                    CopyStream(file.Stream, requestStream);
+                    //     file.Stream.CopyTo(requestStream);
+                    buffer = Encoding.ASCII.GetBytes(Environment.NewLine);
+                    requestStream.Write(buffer, 0, buffer.Length);
+                }
+
+                byte[] boundaryBuffer = Encoding.ASCII.GetBytes(boundary + "--");
+                requestStream.Write(boundaryBuffer, 0, boundaryBuffer.Length);
+            }
+
+            using (WebResponse response = request.GetResponse())
+            {
+                using (Stream responseStream = response.GetResponseStream())
+                {
+                    using (MemoryStream stream = new MemoryStream())
+                    {
+
+                        CopyStream(responseStream, stream);
+                        //                responseStream.CopyTo(stream);
+                        return stream.ToArray();
                     }
                 }
+            }
             //}
             //catch (Exception ex)
             //{
@@ -274,7 +274,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
 
         private static void CreateZipFile(string file, string zipName)
         {
-            ZipFile.CreateFromDirectory(ProgramConstants.GamePath + file, zipName);
+            ZipFile.CreateFromDirectory(SafePath.CombineFilePath(ProgramConstants.GamePath, file), zipName);
         }
 
         private static string ExtractZipFile(string zipFile, string destDir)
@@ -371,15 +371,15 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
 
         private static string DownloadMain(string sha1, string myGame, string mapName, out bool success)
         {
-            string customMapsDirectory = ProgramConstants.GamePath + "Maps/Custom/";
+            string customMapsDirectory = SafePath.CombineDirectoryPath(ProgramConstants.GamePath, "Maps", "Custom");
 
             string mapFileName = GetMapFileName(sha1, mapName);
 
-            string destinationFilePath = customMapsDirectory + mapFileName + ".zip";
+            FileInfo destinationFile = SafePath.GetFile(customMapsDirectory, FormattableString.Invariant($"{mapFileName}.zip"));
 
             try
             {
-                if (File.Exists(destinationFilePath)) File.Delete(destinationFilePath);
+                if (destinationFile.Exists) destinationFile.Delete();
             }
             catch
             {
@@ -392,7 +392,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                 try
                 {
                     Logger.Log("MapSharer: Downloading URL: " + "http://mapdb.cncnet.org/" + myGame + "/" + sha1 + ".zip");
-                    webClient.DownloadFile("http://mapdb.cncnet.org/" + myGame + "/" + sha1 + ".zip", destinationFilePath);
+                    webClient.DownloadFile("http://mapdb.cncnet.org/" + myGame + "/" + sha1 + ".zip", destinationFile.FullName);
                 }
                 catch (Exception ex)
                 {
@@ -411,16 +411,18 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                 }
             }
 
-            if (!File.Exists(destinationFilePath))
+            destinationFile.Refresh();
+
+            if (!destinationFile.Exists)
             {
                 success = false;
                 return null;
             }
 
-            string extractedFile = ExtractZipFile(destinationFilePath, customMapsDirectory);
+            string extractedFile = ExtractZipFile(destinationFile.FullName, customMapsDirectory);
 
-            string newFilename = customMapsDirectory + mapFileName + ".map";
-            File.Move(customMapsDirectory + extractedFile, newFilename);
+            string newFilename = SafePath.CombineFilePath(customMapsDirectory, FormattableString.Invariant($"{mapFileName}.map"));
+            File.Move(SafePath.CombineFilePath(customMapsDirectory, extractedFile), newFilename);
 
             if (String.IsNullOrEmpty(extractedFile))
             {
@@ -430,7 +432,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
 
             try
             {
-                if (File.Exists(destinationFilePath)) File.Delete(destinationFilePath);
+                if (destinationFile.Exists) destinationFile.Delete();
             }
             catch
             {

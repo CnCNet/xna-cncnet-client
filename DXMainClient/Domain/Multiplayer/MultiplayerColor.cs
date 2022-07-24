@@ -43,7 +43,7 @@ namespace DTAClient.Domain.Multiplayer
             if (colorList != null)
                 return new List<MultiplayerColor>(colorList);
 
-            IniFile gameOptionsIni = new IniFile(ProgramConstants.GetBaseResourcePath() + "GameOptions.ini");
+            IniFile gameOptionsIni = new IniFile(SafePath.CombineFilePath(ProgramConstants.GetBaseResourcePath(), "GameOptions.ini"));
 
             List<MultiplayerColor> mpColors = new List<MultiplayerColor>();
 

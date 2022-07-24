@@ -1,5 +1,5 @@
 #!/usr/bin/env pwsh
-#Requires -Version 5.0
+#Requires -Version 7.2
 
 function Get-TargetFrameworkWithoutTFM {
   [CmdletBinding()]

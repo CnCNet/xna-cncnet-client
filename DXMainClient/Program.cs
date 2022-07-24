@@ -6,10 +6,9 @@ using System.Linq;
 #else
 using System.Runtime.Loader;
 #endif
-
-using System.Reflection;
 using System.Threading;
-using System.Windows.Forms;
+using System.Reflection;
+/* !! We cannot use references to other projects or non-framework assemblies in this class, assembly loading events not hooked up yet !! */
 
 namespace DTAClient
 {
@@ -20,36 +19,36 @@ namespace DTAClient
             /* We have different binaries depending on build platform, but for simplicity
              * the target projects (DTA, TI, MO, YR) supply them all in a single download.
              * To avoid DLL hell, we load the binaries from different directories
-             * depending on the build platform.
-             *
-             * For .NET 6 Release mode we split up the DXMainClient dll from the AppHost executable.
-             * The AppHost is located in the root, as is the case for the .NET 4.8 executables.
-             * The actual DXMainClient dll is 2 directories up in Application.StartupPath\Binaries\<WindowsGL,OpenGL,XNA> */
+             * depending on the build platform. */
 
-#if DEBUG || NETFRAMEWORK
-            string startupPath = Application.StartupPath;
-#elif !NETFRAMEWORK
-            string startupPath = Path.GetFullPath(Path.Combine(Application.StartupPath, "..\\..\\"));
+            string startupPath;
+#if NETFRAMEWORK
+            startupPath = new FileInfo(Assembly.GetEntryAssembly().Location).DirectoryName + Path.DirectorySeparatorChar;
+#elif GL && !WINFORMS
+            if (new FileInfo(Environment.ProcessPath).Name.StartsWith("dotnet", StringComparison.OrdinalIgnoreCase))
+                startupPath = new FileInfo(Assembly.GetEntryAssembly().Location).Directory.Parent.Parent.FullName + Path.DirectorySeparatorChar; // cross platform build launched with dotnet.exe
+            else
+                startupPath = new FileInfo(Environment.ProcessPath).Directory.FullName + Path.DirectorySeparatorChar;
+#else
+            startupPath = new FileInfo(Environment.ProcessPath).Directory.FullName + Path.DirectorySeparatorChar;
 #endif
 
 #if DEBUG
             COMMON_LIBRARY_PATH = startupPath;
 #else
-            COMMON_LIBRARY_PATH = Path.Combine(startupPath, "Binaries");
+            COMMON_LIBRARY_PATH = Path.Combine(startupPath, "Binaries") + Path.DirectorySeparatorChar;
 #endif
 
-#if XNA && DEBUG
+#if DEBUG
             SPECIFIC_LIBRARY_PATH = startupPath;
 #elif XNA
-            SPECIFIC_LIBRARY_PATH = Path.Combine(startupPath, "Binaries", "XNA");
-#elif WINDOWSGL && DEBUG
-            SPECIFIC_LIBRARY_PATH = startupPath;
-#elif WINDOWSGL
-            SPECIFIC_LIBRARY_PATH = Path.Combine(startupPath, "Binaries", "OpenGL");
-#elif DEBUG
-            SPECIFIC_LIBRARY_PATH = startupPath;
+            SPECIFIC_LIBRARY_PATH = Path.Combine(startupPath, "Binaries", "XNA") + Path.DirectorySeparatorChar;
+#elif GL
+            SPECIFIC_LIBRARY_PATH = Path.Combine(startupPath, "Binaries", "OpenGL") + Path.DirectorySeparatorChar;
+#elif DX
+            SPECIFIC_LIBRARY_PATH = Path.Combine(startupPath, "Binaries", "Windows") + Path.DirectorySeparatorChar;
 #else
-            SPECIFIC_LIBRARY_PATH = Path.Combine(startupPath, "Binaries", "Windows");
+            Yuri has won
 #endif
 
             // Set up DLL load paths as early as possible
@@ -60,9 +59,9 @@ namespace DTAClient
 #endif
 
 #if !DEBUG
-            Environment.CurrentDirectory = Directory.GetParent(startupPath.Replace('\\', '/')).FullName;
+            Environment.CurrentDirectory = new DirectoryInfo(startupPath).Parent.FullName + Path.DirectorySeparatorChar;
 #else
-            Environment.CurrentDirectory = startupPath.Replace('\\', '/');
+            Environment.CurrentDirectory = startupPath;
 #endif
         }
 
@@ -73,7 +72,9 @@ namespace DTAClient
         /// <summary>
         /// The main entry point for the application.
         /// </summary>
+#if WINFORMS
         [STAThread]
+#endif
         static void Main(string[] args)
         {
             bool noAudio = false;
@@ -111,7 +112,7 @@ namespace DTAClient
             // http://stackoverflow.com/questions/229565/what-is-a-good-pattern-for-using-a-global-mutex-in-c/229567
 
             // Global prefix means that the mutex is global to the machine
-            string mutexId = string.Format("Global/{{{0}}}", Guid.Parse("1CC9F8E7-9F69-4BBC-B045-E734204027A9"));
+            string mutexId = string.Format("Global{0}", Guid.Parse("1CC9F8E7-9F69-4BBC-B045-E734204027A9"));
 
 #if NETFRAMEWORK
             var allowEveryoneRule = new System.Security.AccessControl.MutexAccessRule(
@@ -161,12 +162,12 @@ namespace DTAClient
             if (unresolvedAssemblyName.EndsWith(".resources", StringComparison.OrdinalIgnoreCase))
                 return null;
 
-            var commonFileInfo = new FileInfo(FormattableString.Invariant($"{Path.Combine(COMMON_LIBRARY_PATH, unresolvedAssemblyName)}.dll"));
+            var commonFileInfo = new FileInfo(Path.Combine(COMMON_LIBRARY_PATH, FormattableString.Invariant($"{unresolvedAssemblyName}.dll")));
 
             if (commonFileInfo.Exists)
                 return Assembly.Load(AssemblyName.GetAssemblyName(commonFileInfo.FullName));
 
-            var specificFileInfo = new FileInfo(FormattableString.Invariant($"{Path.Combine(SPECIFIC_LIBRARY_PATH, unresolvedAssemblyName)}.dll"));
+            var specificFileInfo = new FileInfo(Path.Combine(SPECIFIC_LIBRARY_PATH, FormattableString.Invariant($"{unresolvedAssemblyName}.dll")));
 
             if (specificFileInfo.Exists)
                 return Assembly.Load(AssemblyName.GetAssemblyName(specificFileInfo.FullName));
@@ -179,12 +180,12 @@ namespace DTAClient
             if (assemblyName.Name.EndsWith(".resources", StringComparison.OrdinalIgnoreCase))
                 return null;
 
-            var commonFileInfo = new FileInfo(FormattableString.Invariant($"{Path.Combine(COMMON_LIBRARY_PATH, assemblyName.Name)}.dll"));
+            var commonFileInfo = new FileInfo(Path.Combine(COMMON_LIBRARY_PATH, FormattableString.Invariant($"{assemblyName.Name}.dll")));
 
             if (commonFileInfo.Exists)
                 return assemblyLoadContext.LoadFromAssemblyPath(commonFileInfo.FullName);
 
-            var specificFileInfo = new FileInfo(FormattableString.Invariant($"{Path.Combine(SPECIFIC_LIBRARY_PATH, assemblyName.Name)}.dll"));
+            var specificFileInfo = new FileInfo(Path.Combine(SPECIFIC_LIBRARY_PATH, FormattableString.Invariant($"{assemblyName.Name}.dll")));
 
             if (specificFileInfo.Exists)
                 return assemblyLoadContext.LoadFromAssemblyPath(specificFileInfo.FullName);

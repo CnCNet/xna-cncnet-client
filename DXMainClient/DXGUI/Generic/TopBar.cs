@@ -36,7 +36,7 @@ namespace DTAClient.DXGUI.Generic
         private readonly string DEFAULT_PM_BTN_LABEL = "Private Messages (F4)".L10N("UI:Main:PMButtonF4");
 
         public TopBar(
-            WindowManager windowManager, 
+            WindowManager windowManager,
             CnCNetManager connectionManager,
             PrivateMessageHandler privateMessageHandler
         ) : base(windowManager)
@@ -109,7 +109,7 @@ namespace DTAClient.DXGUI.Generic
 
         private void OptionsWindow_EnabledChanged(object sender, EventArgs e)
         {
-            if (!lanMode) 
+            if (!lanMode)
                 SetSwitchButtonsClickable(!optionsWindow.Enabled);
 
             SetOptionsButtonClickable(!optionsWindow.Enabled);
@@ -120,7 +120,7 @@ namespace DTAClient.DXGUI.Generic
 
         public void Clean()
         {
-            if (cncnetPlayerCountCancellationSource != null) 
+            if (cncnetPlayerCountCancellationSource != null)
                 cncnetPlayerCountCancellationSource.Cancel();
         }
 
@@ -228,7 +228,7 @@ namespace DTAClient.DXGUI.Generic
             privateMessageHandler.UnreadMessageCountUpdated += PrivateMessageHandler_UnreadMessageCountUpdated;
         }
 
-        private void PrivateMessageHandler_UnreadMessageCountUpdated(object sender, UnreadMessageCountEventArgs args) 
+        private void PrivateMessageHandler_UnreadMessageCountUpdated(object sender, UnreadMessageCountEventArgs args)
             => UpdatePrivateMessagesBtnLabel(args.UnreadMessageCount);
 
         private void UpdatePrivateMessagesBtnLabel(int unreadMessageCount)
@@ -343,7 +343,11 @@ namespace DTAClient.DXGUI.Generic
 
         private void Keyboard_OnKeyPressed(object sender, KeyPressEventArgs e)
         {
+#if WINFORMS
             if (!Enabled || !WindowManager.HasFocus || ProgramConstants.IsInGame)
+#else
+            if (!Enabled || ProgramConstants.IsInGame)
+#endif
                 return;
 
             switch (e.PressedKey)

@@ -101,7 +101,7 @@ namespace DTAClient.DXGUI.Generic
             ClientGUICreator.Instance.AddControl(typeof(PlayerExtraOptionsPanel));
 
             var gameCollection = new GameCollection();
-            gameCollection.Initialize(GraphicsDevice);
+            gameCollection.Initialize();
 
             var lanLobby = new LANLobby(WindowManager, gameCollection, mapLoader.GameModes, mapLoader, discordHandler);
 

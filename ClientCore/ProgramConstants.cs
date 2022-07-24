@@ -1,11 +1,11 @@
 ﻿using Localization;
 using System;
 using System.Collections.Generic;
-using System.Text;
-using System.Windows.Forms;
-#if !DEBUG
+using System.Diagnostics;
 using System.IO;
-#endif
+using System.Text;
+using System.Reflection;
+using Rampastring.Tools;
 
 namespace ClientCore
 {
@@ -14,18 +14,25 @@ namespace ClientCore
     /// </summary>
     public static class ProgramConstants
     {
-        /* For .NET 6 Release mode we split up the DXMainClient dll from the AppHost executable.
-         * The AppHost is located in the root, as is the case for the .NET 4.8 executables.
-         * The actual DXMainClient dll is 2 directories up in Application.StartupPath\Binaries\<WindowsGL,OpenGL,XNA> */
-#if DEBUG
-        public static readonly string GamePath = Application.StartupPath.Replace('\\', '/') + "/";
-#elif NETFRAMEWORK
-        public static readonly string GamePath = Directory.GetParent(Application.StartupPath.TrimEnd(new char[] { '\\' })).FullName.Replace('\\', '/') + "/";
+#if NETFRAMEWORK
+        public static readonly string StartupExecutable = Assembly.GetEntryAssembly().Location;
+
+        public static readonly string StartupPath = SafePath.CombineDirectoryPath(new FileInfo(StartupExecutable).DirectoryName);
 #else
-        public static readonly string GamePath = Directory.GetParent(Path.GetFullPath(Path.Combine(Application.StartupPath, "..\\..\\")).TrimEnd(new char[] { '\\' })).FullName.Replace('\\', '/') + "/";
+        public static readonly bool IsCrossPlatform = new FileInfo(Environment.ProcessPath).Name.StartsWith("dotnet", StringComparison.OrdinalIgnoreCase);
+
+        public static readonly string StartupExecutable = IsCrossPlatform ? Assembly.GetEntryAssembly().Location : Environment.ProcessPath;
+
+        public static readonly string StartupPath = IsCrossPlatform ? SafePath.CombineDirectoryPath(new FileInfo(StartupExecutable).Directory.Parent.Parent.FullName + Path.DirectorySeparatorChar) : new FileInfo(StartupExecutable).Directory.FullName + Path.DirectorySeparatorChar;
 #endif
 
-        public static string ClientUserFilesPath => GamePath + "Client/";
+#if DEBUG
+        public static readonly string GamePath = StartupPath;
+#else
+        public static readonly string GamePath = SafePath.CombineDirectoryPath(SafePath.GetDirectory(StartupPath).Parent.FullName);
+#endif
+
+        public static string ClientUserFilesPath => SafePath.CombineDirectoryPath(GamePath, "Client");
 
         public static event EventHandler PlayerNameChanged;
 
@@ -47,7 +54,8 @@ namespace ClientCore
         public const int GAME_ID_MAX_LENGTH = 4;
 
         public static readonly Encoding LAN_ENCODING = Encoding.UTF8;
-
+        public static readonly bool ISMONO = isMono ??= Type.GetType("Mono.Runtime") != null;
+        private static readonly bool? isMono;
         public static string GAME_VERSION = "Undefined";
         private static string PlayerName = "No name";
 
@@ -63,7 +71,7 @@ namespace ClientCore
             }
         }
 
-        public static string BASE_RESOURCE_PATH = "Resources/";
+        public static string BASE_RESOURCE_PATH = "Resources";
         public static string RESOURCES_DIR = BASE_RESOURCE_PATH;
 
         public static int LOG_LEVEL = 1;
@@ -72,12 +80,12 @@ namespace ClientCore
 
         public static string GetResourcePath()
         {
-            return GamePath + RESOURCES_DIR;
+            return SafePath.CombineDirectoryPath(GamePath, RESOURCES_DIR);
         }
 
         public static string GetBaseResourcePath()
         {
-            return GamePath + BASE_RESOURCE_PATH;
+            return SafePath.CombineDirectoryPath(GamePath, BASE_RESOURCE_PATH);
         }
 
         public const string GAME_INVITE_CTCP_COMMAND = "INVITE";
@@ -95,5 +103,18 @@ namespace ClientCore
 
         // Static fields might be initialized before the translation file is loaded. Change to readonly properties here.
         public static List<string> AI_PLAYER_NAMES => new List<string> { "Easy AI".L10N("UI:Main:EasyAIName"), "Medium AI".L10N("UI:Main:MediumAIName"), "Hard AI".L10N("UI:Main:HardAIName") };
+
+        public static string LogFileName { get; set; }
+
+        public static Action<string, string> UserErrorAction { get; set; } = (title, error) =>
+        {
+            Logger.Log(FormattableString.Invariant($"{(title is null ? null : title + Environment.NewLine + Environment.NewLine)}{error}"));
+
+            using var _ = Process.Start(new ProcessStartInfo
+            {
+                FileName = LogFileName,
+                UseShellExecute = true
+            });
+        };
     }
 }

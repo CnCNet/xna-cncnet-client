@@ -1,5 +1,5 @@
 #!/usr/bin/env pwsh
-#Requires -Version 5.0
+#Requires -Version 7.2
 
 [CmdletBinding()]
 param (
@@ -13,7 +13,7 @@ param (
 )
 
 # Imports
-. $PSScriptRoot\lib\Enums.ps1
-. $PSScriptRoot\lib\BuildTools.ps1
+. (Join-Path $PSScriptRoot "lib" "Enums.ps1")
+. (Join-Path $PSScriptRoot "lib" "BuildTools.ps1")
 
 Build-YR $Configuration -SkipMoveLibraries:$SkipMoveLibraries

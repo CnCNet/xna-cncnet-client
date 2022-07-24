@@ -233,7 +233,7 @@ namespace DTAConfig.OptionPanels
             IniSettings.ScoreVolume.Value = trbScoreVolume.Value / 10.0;
             IniSettings.SoundVolume.Value = trbSoundVolume.Value / 10.0;
             IniSettings.VoiceVolume.Value = trbVoiceVolume.Value / 10.0;
-            
+
             IniSettings.IsScoreShuffle.Value = chkScoreShuffle.Checked;
 
             IniSettings.ClientVolume.Value = trbClientVolume.Value / 10.0;

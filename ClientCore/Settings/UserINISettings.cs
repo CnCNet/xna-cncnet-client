@@ -2,7 +2,6 @@
 using Rampastring.Tools;
 using System;
 using System.Collections.Generic;
-using System.Windows.Forms;
 using ClientCore.Enums;
 
 namespace ClientCore
@@ -40,7 +39,7 @@ namespace ClientCore
             if (_instance != null)
                 throw new InvalidOperationException("UserINISettings has already been initialized!");
 
-            var iniFile = new IniFile(ProgramConstants.GamePath + iniFileName);
+            var iniFile = new IniFile(SafePath.CombineFilePath(ProgramConstants.GamePath, iniFileName));
 
             _instance = new UserINISettings(iniFile);
         }
@@ -64,9 +63,6 @@ namespace ClientCore
             Renderer = new StringSetting(iniFile, COMPATIBILITY, "Renderer", string.Empty);
             WindowedMode = new BoolSetting(iniFile, VIDEO, WINDOWED_MODE_KEY, false);
             BorderlessWindowedMode = new BoolSetting(iniFile, VIDEO, "NoWindowFrame", false);
-
-            ClientResolutionX = new IntSetting(iniFile, VIDEO, "ClientResolutionX", Screen.PrimaryScreen.Bounds.Width);
-            ClientResolutionY = new IntSetting(iniFile, VIDEO, "ClientResolutionY", Screen.PrimaryScreen.Bounds.Height);
             BorderlessWindowedClient = new BoolSetting(iniFile, VIDEO, "BorderlessWindowedClient", true);
             ClientFPS = new IntSetting(iniFile, VIDEO, "ClientFPS", 60);
             DisplayToggleableExtraTextures = new BoolSetting(iniFile, VIDEO, "DisplayToggleableExtraTextures", true);
@@ -143,8 +139,8 @@ namespace ClientCore
         public BoolSetting WindowedMode { get; private set; }
         public BoolSetting BorderlessWindowedMode { get; private set; }
         public BoolSetting BackBufferInVRAM { get; private set; }
-        public IntSetting ClientResolutionX { get; private set; }
-        public IntSetting ClientResolutionY { get; private set; }
+        public IntSetting ClientResolutionX { get; set; }
+        public IntSetting ClientResolutionY { get; set; }
         public BoolSetting BorderlessWindowedClient { get; private set; }
         public IntSetting ClientFPS { get; private set; }
         public BoolSetting DisplayToggleableExtraTextures { get; private set; }
@@ -192,7 +188,7 @@ namespace ClientCore
         public BoolSetting NotifyOnUserListChange { get; private set; }
 
         public BoolSetting DisablePrivateMessagePopups { get; private set; }
-        
+
         public IntSetting AllowPrivateMessagesFromState { get; private set; }
 
         public BoolSetting EnableMapSharing { get; private set; }
@@ -200,21 +196,21 @@ namespace ClientCore
         public BoolSetting AlwaysDisplayTunnelList { get; private set; }
 
         public IntSetting MapSortState { get; private set; }
-        
+
         /*********************/
         /* GAME LIST FILTERS */
         /*********************/
 
         public IntSetting SortState { get; private set; }
-        
+
         public BoolSetting ShowFriendGamesOnly { get; private set; }
-        
+
         public BoolSetting HideLockedGames { get; private set; }
-        
+
         public BoolSetting HidePasswordedGames { get; private set; }
-        
+
         public BoolSetting HideIncompatibleGames { get; private set; }
-        
+
         public IntRangeSetting MaxPlayerCount { get; private set; }
 
         /********/
@@ -240,9 +236,9 @@ namespace ClientCore
         public BoolSetting MinimizeWindowsOnGameStart { get; private set; }
 
         public BoolSetting AutoRemoveUnderscoresFromName { get; private set; }
-        
+
         public StringListSetting FavoriteMaps { get; private set; }
-        
+
         public void SetValue(string section, string key, string value)
                => SettingsIni.SetStringValue(section, key, value);
 
@@ -277,7 +273,7 @@ namespace ClientCore
                 FavoriteMaps.Remove(favoriteMapKey);
             else
                 FavoriteMaps.Add(favoriteMapKey);
-            
+
             Instance.SaveSettings();
 
             return !isFavorite;
@@ -291,7 +287,7 @@ namespace ClientCore
         public bool IsFavoriteMap(string nameName, string gameModeName) => FavoriteMaps.Value.Contains(FavoriteMapKey(nameName, gameModeName));
 
         private string FavoriteMapKey(string nameName, string gameModeName) => $"{nameName}:{gameModeName}";
-        
+
         public void ReloadSettings()
         {
             SettingsIni.Reload();

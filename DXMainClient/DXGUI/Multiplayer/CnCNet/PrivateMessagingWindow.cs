@@ -3,16 +3,20 @@ using ClientCore.CnCNet5;
 using ClientGUI;
 using DTAClient.Online;
 using DTAClient.Online.EventArguments;
-using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Rampastring.Tools;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Reflection;
 using ClientCore.Enums;
 using Localization;
+using SixLabors.ImageSharp;
+using Color = Microsoft.Xna.Framework.Color;
+using Rectangle = Microsoft.Xna.Framework.Rectangle;
 
 namespace DTAClient.DXGUI.Multiplayer.CnCNet
 {
@@ -105,8 +109,12 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             ClientRectangle = new Rectangle(0, 0, 600, 600);
             BackgroundTexture = AssetLoader.LoadTextureUncached("privatemessagebg.png");
 
-            unknownGameIcon = AssetLoader.TextureFromImage(ClientCore.Properties.Resources.unknownicon);
-            adminGameIcon = AssetLoader.TextureFromImage(ClientCore.Properties.Resources.cncneticon);
+            var assembly = Assembly.GetAssembly(typeof(GameCollection));
+            using Stream unknowniconStream = assembly.GetManifestResourceStream("ClientCore.Resources.unknownicon.png");
+            using Stream cncneticonStream = assembly.GetManifestResourceStream("ClientCore.Resources.cncneticon.png");
+
+            unknownGameIcon = AssetLoader.TextureFromImage(Image.Load(unknowniconStream));
+            adminGameIcon = AssetLoader.TextureFromImage(Image.Load(cncneticonStream));
 
             personalMessageColor = AssetLoader.GetColorFromString(ClientConfiguration.Instance.SentPMColor);
             otherUserMessageColor = AssetLoader.GetColorFromString(ClientConfiguration.Instance.ReceivedPMColor);

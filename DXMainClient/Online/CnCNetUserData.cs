@@ -22,7 +22,7 @@ namespace DTAClient.Online
         /// directly you have to also invoke UserFriendToggled event handler for every
         /// user name added or removed.
         /// </summary>
-        public List<string> FriendList { get; private set;  } = new List<string>();
+        public List<string> FriendList { get; private set; } = new List<string>();
 
         /// <summary>
         /// A list which contains idents of ignored users. If you manipulate this list
@@ -52,10 +52,10 @@ namespace DTAClient.Online
         {
             try
             {
-                var friendListFile = new FileInfo(ProgramConstants.GamePath + FRIEND_LIST_PATH);
+                var friendListFile = SafePath.GetFile(ProgramConstants.GamePath, FRIEND_LIST_PATH);
 
                 if (friendListFile.Exists)
-                { 
+                {
                     FriendList = File.ReadAllLines(friendListFile.FullName).ToList();
                 }
                 else
@@ -75,7 +75,7 @@ namespace DTAClient.Online
         {
             try
             {
-                var ignoreListFile = new FileInfo(ProgramConstants.GamePath + IGNORE_LIST_PATH);
+                var ignoreListFile = SafePath.GetFile(ProgramConstants.GamePath, IGNORE_LIST_PATH);
 
                 if (ignoreListFile.Exists)
                 {
@@ -98,7 +98,7 @@ namespace DTAClient.Online
         {
             try
             {
-                var recentListFile = new FileInfo(ProgramConstants.GamePath + RECENT_LIST_PATH);
+                var recentListFile = SafePath.GetFile(ProgramConstants.GamePath, RECENT_LIST_PATH);
 
                 if (recentListFile.Exists)
                 {
@@ -125,9 +125,10 @@ namespace DTAClient.Online
 
             try
             {
-                File.Delete(ProgramConstants.GamePath + FRIEND_LIST_PATH);
-                File.WriteAllLines(ProgramConstants.GamePath + FRIEND_LIST_PATH,
-                    FriendList.ToArray());
+                FileInfo friendListFileInfo = SafePath.GetFile(ProgramConstants.GamePath, FRIEND_LIST_PATH);
+
+                friendListFileInfo.Delete();
+                File.WriteAllLines(friendListFileInfo.FullName, FriendList.ToArray());
             }
             catch (Exception ex)
             {
@@ -141,9 +142,10 @@ namespace DTAClient.Online
 
             try
             {
-                File.Delete(ProgramConstants.GamePath + IGNORE_LIST_PATH);
-                File.WriteAllLines(ProgramConstants.GamePath + IGNORE_LIST_PATH,
-                    IgnoreList.ToArray());
+                FileInfo ignoreListFileInfo = SafePath.GetFile(ProgramConstants.GamePath, IGNORE_LIST_PATH);
+
+                ignoreListFileInfo.Delete();
+                File.WriteAllLines(ignoreListFileInfo.FullName, IgnoreList.ToArray());
             }
             catch (Exception ex)
             {
@@ -157,8 +159,10 @@ namespace DTAClient.Online
 
             try
             {
-                File.Delete(ProgramConstants.GamePath + RECENT_LIST_PATH);
-                File.WriteAllText(ProgramConstants.GamePath + RECENT_LIST_PATH, JsonConvert.SerializeObject(RecentList));
+                FileInfo recentListFileInfo = SafePath.GetFile(ProgramConstants.GamePath, RECENT_LIST_PATH);
+
+                recentListFileInfo.Delete();
+                File.WriteAllText(recentListFileInfo.FullName, JsonConvert.SerializeObject(RecentList));
             }
             catch (Exception ex)
             {

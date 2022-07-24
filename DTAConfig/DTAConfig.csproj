@@ -12,9 +12,9 @@
     <AssemblyName>DTAConfig</AssemblyName>
     <RootNamespace>DTAConfig</RootNamespace>
   </PropertyGroup>
-
+  <Import Project="$(MSBuildThisFileDirectory)..\build\WinForms.props" />
   <ItemGroup>
-    <PackageReference Include="ClientUpdater" Version="1.0.0.1" />
+    <PackageReference Include="ClientUpdater" Version="1.1.0" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\ClientGUI\ClientGUI.csproj" />

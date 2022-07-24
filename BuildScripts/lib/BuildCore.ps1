@@ -1,13 +1,13 @@
 #!/usr/bin/env pwsh
-#Requires -Version 5.0
+#Requires -Version 7.2
 
 # Imports
-. $PSScriptRoot\Constants.ps1
-. $PSScriptRoot\Enums.ps1
-. $PSScriptRoot\FileTools.ps1
-. $PSScriptRoot\MoveTools.ps1
-. $PSScriptRoot\TFMTools.ps1
-. $PSScriptRoot\EngineMap.ps1
+. (Join-Path $PSScriptRoot "Constants.ps1")
+. (Join-Path $PSScriptRoot "Enums.ps1")
+. (Join-Path $PSScriptRoot "FileTools.ps1")
+. (Join-Path $PSScriptRoot "MoveTools.ps1")
+. (Join-Path $PSScriptRoot "TFMTools.ps1")
+. (Join-Path $PSScriptRoot "EngineMap.ps1")
 
 function Build-Project {
   [CmdletBinding()]
@@ -25,41 +25,49 @@ function Build-Project {
     [string]
     $TargetFramework,
     [Parameter()]
+    [string]
+    $RuntimeIdentifier,
+    [Parameter()]
+    [string]
+    $PlatformTarget,
+    [Parameter()]
     [Switch]
     $SkipMoveLibraries
   )
 
   begin {
     Write-Host
-    Write-Host "Building $Game $Engine $Configuration $TargetFramework..." -ForegroundColor Blue
+    Write-Host "Building $Game $Engine $Configuration $TargetFramework $PlatformTarget $RuntimeIdentifier..." -ForegroundColor Blue
     Write-Host
 
     $Private:TargetFrameworkWithoutTFM = Get-TargetFrameworkWithoutTFM $TargetFramework
     $Private:SpecialName = Get-PlatformName $Engine
     $Private:ClientSuffix = Get-Suffix $Engine
 
-    $Private:RootDirectory = "$ClientCompiledTarget\$Game\$Private:TargetFrameworkWithoutTFM"
-    $Private:ResourcesDirectory = "$Private:RootDirectory\Resources"
-    $Private:CommonLibsDirectory = "$Private:ResourcesDirectory\Binaries"
-    $Private:SpecialLibsDirectory = "$Private:CommonLibsDirectory\$Private:SpecialName"
+    $Private:RootDirectory = (Join-Path $ClientCompiledTarget $Game $TargetFramework (&{If($RuntimeIdentifier -ne "") {$RuntimeIdentifier} Else {$Null}}))
+    $Private:ResourcesDirectory = (Join-Path $Private:RootDirectory "Resources")
+    $Private:CommonLibsDirectory = (Join-Path $Private:ResourcesDirectory "Binaries")
+    $Private:SpecialLibsDirectory = (Join-Path $Private:CommonLibsDirectory $Private:SpecialName)
 
-    $Private:BuildTargetDirectory = $SkipMoveLibraries ? $Private:SpecialLibsDirectory : "$Private:SpecialLibsDirectory\Source"
+    $Private:BuildTargetDirectory = $SkipMoveLibraries ? $Private:SpecialLibsDirectory : (Join-Path $Private:SpecialLibsDirectory "Source")
 
     $Private:DotnetArgs = @(
       "publish"
       $ClientProjectPath
       "--framework:$TargetFramework"
-      "--output:$Private:BuildTargetDirectory\"
+      "--output:$Private:BuildTargetDirectory" + [IO.Path]::DirectorySeparatorChar
       "--no-self-contained"
       "--configuration:$Configuration"
       "-p:Engine=$Engine"
       "-p:Game=$Game"
+      (&{If($PlatformTarget -ne "") {"-p:PlatformTarget=$PlatformTarget"} Else {$Null}})
+      (&{If($RuntimeIdentifier -ne "" -and $RuntimeIdentifier -ne "any") {"--runtime:$RuntimeIdentifier"} Else {$Null}})
     )
 
     Write-Debug ""
     Write-Debug "Invoke Build-Project"
     Write-Debug ""
-    Write-Debug "Game: $Game; Engine: $Engine; Configuration: $Configuration; TargetFramework: $TargetFramework"
+    Write-Debug "Game: $Game; Engine: $Engine; Configuration: $Configuration; TargetFramework: $TargetFramework; PlatformTarget: $PlatformTarget RuntimeIdentifier: $RuntimeIdentifier"
     Write-Debug "SkipMoveLibraries: $SkipMoveLibraries; TargetFrameworkWithoutTFM: $Private:TargetFrameworkWithoutTFM; SpecialName: $Private:SpecialName; ClientSuffix: $Private:ClientSuffix"
     Write-Debug "RootDirectory: $Private:RootDirectory"
     Write-Debug "ResourcesDirectory: $Private:ResourcesDirectory"
@@ -72,24 +80,33 @@ function Build-Project {
   process {
     dotnet $Private:DotnetArgs
     if ($LASTEXITCODE -ne 0) {
-      throw "Build failed for $Game $Engine $Configuration $TargetFramework"
+      throw "Build failed for $Game $Engine $Configuration $TargetFramework $PlatformTarget $RuntimeIdentifier"
     }
   }
 
   end {
-    $Private:tmp = "$Private:BuildTargetDirectory\client$Private:ClientSuffix."
-    if ($Private:TargetFrameworkWithoutTFM.Contains('.')) {
-      # netcoreapp3.0, netcoreapp3.1, net5.0 net6.0, net7.0
-      # move exe only
-      $Private:tmp += 'exe'
+    $Private:tmp = (Join-Path $Private:BuildTargetDirectory "client$Private:ClientSuffix")
+    if ($Engine -eq 'UniversalGL' -and $RuntimeIdentifier -eq "any") {
+      # cross platform net6.0, net7.0
+      # no startup executable (run with 'dotnet')
+      $Private:tmp += '.nomatches'
+    }elseif (Test-Path "$Private:tmp.") {
+      # linux based
+      $Private:tmp += '.'
     }
-    else {
-      # net40, net45, net46, net47, net48
-      # move exe, pdb, app.config
-      $Private:tmp += '*'
+    elseif (Test-Path "$Private:tmp.exe") {
+      # WinForms net6.0-windows, net7.0-windows or UniversalGL Windows specific net7.0 win10-x64, ...
+      $Private:tmp += '.exe'
     }
-    Get-ChildItem $Private:tmp | ForEach-Object {
-      Move-ClientBinaries $_ $Private:ResourcesDirectory
+    elseif (Test-Path "$Private:tmp.dll") {
+      # net48, net6.0 android-arm64, ...
+      $Private:tmp += '.*'
+    }
+    if (Test-Path $Private:tmp)
+    {
+      Get-ChildItem $Private:tmp | ForEach-Object {
+        Move-ClientBinaries $_ $Private:ResourcesDirectory
+      }
     }
     if (!$SkipMoveLibraries) {
       # Move All of the special libraries to special folder.
@@ -101,7 +118,7 @@ function Build-Project {
     }
 
     Write-Host
-    Write-Host "Build succeeded for $Game $Engine $Configuration $TargetFramework..." -ForegroundColor Green
+    Write-Host "Build succeeded for $Game $Engine $Configuration $TargetFramework $PlatformTarget $RuntimeIdentifier..." -ForegroundColor Green
     Write-Host
   }
 }

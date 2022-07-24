@@ -8,8 +8,10 @@ using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
 using System;
 using System.Collections.Generic;
-using System.IO;
+using System.Runtime.InteropServices;
+#if WINFORMS
 using System.Windows.Forms;
+#endif
 #if TS
 using Microsoft.Win32;
 using System.Diagnostics;
@@ -179,10 +181,10 @@ namespace DTAConfig.OptionPanels
             ddClientResolution.AllowDropDown = false;
             ddClientResolution.PreferredItemLabel = "(recommended)".L10N("UI:DTAConfig:Recommended");
 
-            var screenBounds = Screen.PrimaryScreen.Bounds;
+            int width = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width;
+            int height = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height;
 
-            resolutions = GetResolutions(800, 600,
-                screenBounds.Width, screenBounds.Height);
+            resolutions = GetResolutions(800, 600, width, height);
 
             // Add "optimal" client resolutions for windowed mode
             // if they're not supported in fullscreen mode
@@ -268,7 +270,9 @@ namespace DTAConfig.OptionPanels
                 lblGameCompatibilityFix.Y - 4, UIDesignConstants.BUTTON_WIDTH_133, UIDesignConstants.BUTTON_HEIGHT);
             btnGameCompatibilityFix.FontIndex = 1;
             btnGameCompatibilityFix.Text = "Enable".L10N("UI:DTAConfig:Enable");
-            btnGameCompatibilityFix.LeftClick += BtnGameCompatibilityFix_LeftClick;
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                btnGameCompatibilityFix.LeftClick += BtnGameCompatibilityFix_LeftClick;
 
             lblMapEditorCompatibilityFix = new XNALabel(WindowManager);
             lblMapEditorCompatibilityFix.Name = "lblMapEditorCompatibilityFix";
@@ -286,7 +290,9 @@ namespace DTAConfig.OptionPanels
                 btnGameCompatibilityFix.Height);
             btnMapEditorCompatibilityFix.FontIndex = 1;
             btnMapEditorCompatibilityFix.Text = "Enable".L10N("UI:DTAConfig:TSButtonEnable");
-            btnMapEditorCompatibilityFix.LeftClick += BtnMapEditorCompatibilityFix_LeftClick;
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                btnMapEditorCompatibilityFix.LeftClick += BtnMapEditorCompatibilityFix_LeftClick;
 
             AddChild(lblGameCompatibilityFix);
             AddChild(btnGameCompatibilityFix);
@@ -322,9 +328,10 @@ namespace DTAConfig.OptionPanels
             if (resolutions.Find(res => res.Width == width && res.Height == height) != null)
                 return;
 
-            var screenBounds = Screen.PrimaryScreen.Bounds;
+            int currentWidth = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width;
+            int currentHeight = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height;
 
-            if (screenBounds.Width >= width && screenBounds.Height >= height)
+            if (currentWidth >= width && currentHeight >= height)
             {
                 resolutions.Add(new ScreenResolution(width, height));
             }
@@ -334,7 +341,7 @@ namespace DTAConfig.OptionPanels
         {
             renderers = new List<DirectDrawWrapper>();
 
-            var renderersIni = new IniFile(ProgramConstants.GetBaseResourcePath() + RENDERERS_INI);
+            var renderersIni = new IniFile(SafePath.CombineFilePath(ProgramConstants.GetBaseResourcePath(), RENDERERS_INI));
 
             var keys = renderersIni.GetSectionKeys("Renderers");
             if (keys == null)
@@ -378,6 +385,9 @@ namespace DTAConfig.OptionPanels
         public void PostInit()
         {
             Load();
+
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                return;
 
             if (!GameCompatFixInstalled && !GameCompatFixDeclined)
             {
@@ -504,7 +514,7 @@ namespace DTAConfig.OptionPanels
                 {
                     Logger.Log("Uninstalling FinalSun Compatibility Fix failed. Error message: " + ex.Message);
                     XNAMessageBox.Show(WindowManager, "Uninstalling Compatibility Fix Failed".L10N("UI:DTAConfig:TSFinalSunFixUninstallFailedTitle"),
-                        "Uninstalling FinalSun Compatibility Fix failed. Error message:".L10N("UI:DTAConfig:TSFinalSunFixUninstallFailedText") +" "+ ex.Message);
+                        "Uninstalling FinalSun Compatibility Fix failed. Error message:".L10N("UI:DTAConfig:TSFinalSunFixUninstallFailedText") + " " + ex.Message);
                 }
 
                 return;
@@ -544,12 +554,14 @@ namespace DTAConfig.OptionPanels
             if (chkBorderlessClient.Checked)
             {
                 ddClientResolution.AllowDropDown = false;
+#if WINFORMS
                 string nativeRes = Screen.PrimaryScreen.Bounds.Width +
                     "x" + Screen.PrimaryScreen.Bounds.Height;
 
                 int nativeResIndex = ddClientResolution.Items.FindIndex(i => (string)i.Tag == nativeRes);
                 if (nativeResIndex > -1)
                     ddClientResolution.SelectedIndex = nativeResIndex;
+#endif
             }
             else
             {
@@ -624,7 +636,7 @@ namespace DTAConfig.OptionPanels
                 // enabled through their own config INI file
                 // (for example DxWnd and CnC-DDRAW)
 
-                IniFile rendererSettingsIni = new IniFile(ProgramConstants.GamePath + renderer.ConfigFileName);
+                IniFile rendererSettingsIni = new IniFile(SafePath.CombineFilePath(ProgramConstants.GamePath, renderer.ConfigFileName));
 
                 chkWindowedMode.Checked = rendererSettingsIni.GetBooleanValue(renderer.WindowedModeSection,
                     renderer.WindowedModeKey, false);
@@ -660,6 +672,9 @@ namespace DTAConfig.OptionPanels
 
 #if TS
             chkBackBufferInVRAM.Checked = !UserINISettings.Instance.BackBufferInVRAM;
+
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                return;
 
             RegistryKey regKey = Registry.CurrentUser.OpenSubKey("SOFTWARE\\Tiberian Sun Client");
 
@@ -756,7 +771,7 @@ namespace DTAConfig.OptionPanels
 #endif
 
             if (selectedRenderer != originalRenderer ||
-                !File.Exists(ProgramConstants.GamePath + selectedRenderer.ConfigFileName))
+                !SafePath.GetFile(ProgramConstants.GamePath, selectedRenderer.ConfigFileName).Exists)
             {
                 foreach (var renderer in renderers)
                 {
@@ -772,8 +787,7 @@ namespace DTAConfig.OptionPanels
 
             if (selectedRenderer.UsesCustomWindowedOption())
             {
-                IniFile rendererSettingsIni = new IniFile(
-                    ProgramConstants.GamePath + selectedRenderer.ConfigFileName);
+                IniFile rendererSettingsIni = new IniFile(SafePath.CombineFilePath(ProgramConstants.GamePath, selectedRenderer.ConfigFileName));
 
                 rendererSettingsIni.SetBooleanValue(selectedRenderer.WindowedModeSection,
                     selectedRenderer.WindowedModeKey, chkWindowedMode.Checked);
@@ -794,14 +808,14 @@ namespace DTAConfig.OptionPanels
             IniSettings.Renderer.Value = selectedRenderer.InternalName;
 
 #if TS
-            File.Delete(ProgramConstants.GamePath + "Language.dll");
+            SafePath.DeleteFileIfExists(ProgramConstants.GamePath, "Language.dll");
 
             if (ingameRes[0] >= 1024 && ingameRes[1] >= 720)
-                File.Copy(ProgramConstants.GamePath + "Resources/language_1024x720.dll", ProgramConstants.GamePath + "Language.dll");
+                System.IO.File.Copy(SafePath.CombineFilePath(ProgramConstants.GamePath, "Resources", "language_1024x720.dll"), SafePath.CombineFilePath(ProgramConstants.GamePath, "Language.dll"));
             else if (ingameRes[0] >= 800 && ingameRes[1] >= 600)
-                File.Copy(ProgramConstants.GamePath + "Resources/language_800x600.dll", ProgramConstants.GamePath + "Language.dll");
+                System.IO.File.Copy(SafePath.CombineFilePath(ProgramConstants.GamePath, "Resources", "language_800x600.dll"), SafePath.CombineFilePath(ProgramConstants.GamePath, "Language.dll"));
             else
-                File.Copy(ProgramConstants.GamePath + "Resources/language_640x480.dll", ProgramConstants.GamePath + "Language.dll");
+                System.IO.File.Copy(SafePath.CombineFilePath(ProgramConstants.GamePath, "Resources", "language_640x480.dll"), SafePath.CombineFilePath(ProgramConstants.GamePath, "Language.dll"));
 #endif
 
             return restartRequired;

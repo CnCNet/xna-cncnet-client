@@ -1,7 +1,7 @@
 #!/usr/bin/env pwsh
-#Requires -Version 5.0
+#Requires -Version 7.2
 
-$Private:tmp = Join-Path $PSScriptRoot .. .. Compiled
+$Private:tmp = (Join-Path $PSScriptRoot .. .. Compiled)
 if (!(Test-Path $Private:tmp)){
   New-Item -ItemType Directory -Force -Path $Private:tmp
 }
