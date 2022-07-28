@@ -91,12 +91,12 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             MapSharer.MapUploadComplete += MapSharer_MapUploadComplete;
 
             AddChatBoxCommand(new ChatBoxCommand("TUNNELINFO",
-                "View tunnel server information".L10N("UI:Main:CommandTunnelInfo"), false, PrintTunnelServerInformation));
+                "View tunnel server information".L10N("UI:Main:TunnelInfo"), false, PrintTunnelServerInformation));
             AddChatBoxCommand(new ChatBoxCommand("CHANGETUNNEL",
-                "Change the used CnCNet tunnel server (game host only)".L10N("UI:Main:CommandChangeTunnel"),
+                "Change the used CnCNet tunnel server (game host only)".L10N("UI:Main:ChangeTunnel"),
                 true, (s) => ShowTunnelSelectionWindow("Select tunnel server:".L10N("UI:Main:SelectTunnelServer"))));
             AddChatBoxCommand(new ChatBoxCommand("DOWNLOADMAP",
-                "Download a map from CNCNet's map server using a map ID and an optional filename.\nExample: \"/downloadmap MAPID [2] My Battle Map\"".L10N("UI:Command:DownloadMapCommandDescription"),
+                "Download a map from CNCNet's map server using a map ID and an optional filename.\nExample: \"/downloadmap MAPID [2] My Battle Map\"".L10N("UI:Main:DownloadMapCommandDescription"),
                 false, DownloadMapByIdCommand));
         }
 
@@ -675,7 +675,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
                 return;
             }
-            
+
             PlayerInfo pInfo = Players.Find(p => p.Name == ProgramConstants.PLAYERNAME);
             int readyState = 0;
 
@@ -683,7 +683,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 readyState = 2;
             else if (!pInfo.Ready)
                 readyState = 1;
-            
+
             channel.SendCTCPMessage($"R {readyState}", QueuedMessageType.GAME_PLAYERS_READY_STATUS_MESSAGE, 5);
         }
 
@@ -863,7 +863,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
                     // If we can't find the player from the channel user list,
                     // ignore the player
-                    // They've either left the channel or got kicked before the 
+                    // They've either left the channel or got kicked before the
                     // player options message reached us
                     if (channel.Users.Find(pName) == null)
                     {
@@ -1215,7 +1215,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         }
 
         /// <summary>
-        /// Handles the "START" (game start) command sent by the game host.  
+        /// Handles the "START" (game start) command sent by the game host.
         /// </summary>
         private void NonHostLaunchGame(string sender, string message)
         {
@@ -1577,7 +1577,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             {
                 // Notify the user that their chat command map download failed.
                 // Do not notify other users with a CTCP message as this is irrelevant to them.
-                AddNotice("Downloading map via chat command has failed. Check the map ID and try again.".L10N("UI:Command:DownloadMapCommandFailedGeneric"));
+                AddNotice("Downloading map via chat command has failed. Check the map ID and try again.".L10N("UI:Main:DownloadMapCommandFailedGeneric"));
                 mapSharingConfirmationPanel.SetFailedStatus();
                 return;
             }
@@ -1610,7 +1610,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 // Somehow the user has managed to download an already existing sha1 hash.
                 // This special case prevents user confusion from the file successfully downloading but showing an error anyway.
                 AddNotice(returnMessage, Color.Yellow);
-                AddNotice("Map was downloaded, but a duplicate is already loaded from a different filename. This may cause strange behavior.".L10N("UI:Command:DownloadMapCommandDuplicateMapFileLoaded"),
+                AddNotice("Map was downloaded, but a duplicate is already loaded from a different filename. This may cause strange behavior.".L10N("UI:Main:DownloadMapCommandDuplicateMapFileLoaded"),
                     Color.Yellow);
             }
             else
@@ -1808,7 +1808,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (loadedMap != null)
             {
                 message = String.Format(
-                    "The map for ID \"{0}\" is already loaded from \"{1}.map\", delete the existing file before trying again.".L10N("UI:Command:DownloadMapCommandSha1AlreadyExists"),
+                    "The map for ID \"{0}\" is already loaded from \"{1}.map\", delete the existing file before trying again.".L10N("UI:Main:DownloadMapCommandSha1AlreadyExists"),
                     sha1,
                     loadedMap.Map.BaseFilePath);
                 AddNotice(message, Color.Yellow);
@@ -1824,7 +1824,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             chatCommandDownloadedMaps.Add(sha1);
 
-            message = String.Format("Attempting to download map via chat command: sha1={0}, mapName={1}".L10N("UI:Command:DownloadMapCommandStartingDownload"), sha1, mapName);
+            message = String.Format("Attempting to download map via chat command: sha1={0}, mapName={1}".L10N("UI:Main:DownloadMapCommandStartingDownload"), sha1, mapName);
             Logger.Log(message);
             AddNotice(message);
 
