@@ -386,9 +386,14 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
 
             string destinationFilePath = customMapsDirectory + mapFileName + ".zip";
 
+            // This string is up here so we can check that there isn't already a .map file for this download.
+            // This prevents the client from crashing when trying to rename the unzipped file to a duplicate filename.
+            string newFilename = customMapsDirectory + mapFileName + ".map";
+
             try
             {
                 if (File.Exists(destinationFilePath)) File.Delete(destinationFilePath);
+                if (File.Exists(newFilename)) File.Delete(newFilename);
             }
             catch
             {
@@ -428,14 +433,15 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
 
             string extractedFile = ExtractZipFile(destinationFilePath, customMapsDirectory);
 
-            string newFilename = customMapsDirectory + mapFileName + ".map";
-            File.Move(customMapsDirectory + extractedFile, newFilename);
-
             if (String.IsNullOrEmpty(extractedFile))
             {
                 success = false;
                 return null;
             }
+
+            // We can safely assume that there will not be a duplicate file due to deleting it
+            // earlier if one already existed.
+            File.Move(customMapsDirectory + extractedFile, newFilename);
 
             try
             {

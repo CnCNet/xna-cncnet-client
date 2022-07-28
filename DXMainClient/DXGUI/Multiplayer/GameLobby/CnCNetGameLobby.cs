@@ -95,6 +95,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             AddChatBoxCommand(new ChatBoxCommand("CHANGETUNNEL",
                 "Change the used CnCNet tunnel server (game host only)".L10N("UI:Main:CommandChangeTunnel"),
                 true, (s) => ShowTunnelSelectionWindow("Select tunnel server:".L10N("UI:Main:SelectTunnelServer"))));
+            AddChatBoxCommand(new ChatBoxCommand("DOWNLOADMAP",
+                "Download a map from CNCNet's map server using a map ID and an optional filename.\nExample: \"/downloadmap MAPID [2] My Battle Map\"".L10N("UI:Command:DownloadMapCommandDescription"),
+                false, DownloadMapByIdCommand));
         }
 
         public event EventHandler GameLeft;
@@ -129,6 +132,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         private string gameFilesHash;
 
         private List<string> hostUploadedMaps = new List<string>();
+        private List<string> chatCommandDownloadedMaps = new List<string>();
 
         private MapSharingConfirmationPanel mapSharingConfirmationPanel;
 
@@ -1569,6 +1573,14 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 channel.SendCTCPMessage(MAP_SHARING_FAIL_MESSAGE + " " + e.SHA1, QueuedMessageType.SYSTEM_MESSAGE, 9);
                 return;
             }
+            else if (chatCommandDownloadedMaps.Contains(e.SHA1))
+            {
+                // Notify the user that their chat command map download failed.
+                // Do not notify other users with a CTCP message as this is irrelevant to them.
+                AddNotice("Downloading map via chat command has failed. Check the map ID and try again.".L10N("UI:Command:DownloadMapCommandFailedGeneric"));
+                mapSharingConfirmationPanel.SetFailedStatus();
+                return;
+            }
 
             AddNotice("Requesting the game host to upload the map to the CnCNet map database.".L10N("UI:Main:RequestHostUploadMapToDB"));
 
@@ -1592,6 +1604,14 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     GameModeMap = GameModeMaps.Find(gmm => gmm.Map.SHA1 == lastMapSHA1);
                     ChangeMap(GameModeMap);
                 }
+            }
+            else if (chatCommandDownloadedMaps.Contains(e.SHA1))
+            {
+                // Somehow the user has managed to download an already existing sha1 hash.
+                // This special case prevents user confusion from the file successfully downloading but showing an error anyway.
+                AddNotice(returnMessage, Color.Yellow);
+                AddNotice("Map was downloaded, but a duplicate is already loaded from a different filename. This may cause strange behavior.".L10N("UI:Command:DownloadMapCommandDuplicateMapFileLoaded"),
+                    Color.Yellow);
             }
             else
             {
@@ -1736,6 +1756,79 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             AddNotice(string.Format("The selected map doesn't exist on {0}'s installation, and they " +
                 "have map sharing disabled in settings. The game host needs to change to a non-custom map or " +
                 "they will be unable to participate in this match.".L10N("UI:Main:PlayerMissingMaDisabledSharing"), sender));
+        }
+
+        /// <summary>
+        /// Download a map from CNCNet using a map hash ID.
+        ///
+        /// Users and testers can get map hash IDs from this URL template:
+        ///
+        /// - http://mapdb.cncnet.org/search.php?game=GAME_ID&search=MAP_NAME_SEARCH_STRING
+        ///
+        /// </summary>
+        /// <param name="parameters">
+        /// This is a string beginning with the sha1 hash map ID, and (optionally) the name to use as a local filename for the map file.
+        /// Every character after the first space will be treated as part of the map name.
+        ///
+        /// "?" characters are removed from the sha1 due to weird copy and paste behavior from the map search endpoint.
+        /// </param>
+        private void DownloadMapByIdCommand(string parameters)
+        {
+            string sha1;
+            string mapName;
+            string message;
+
+            // Make sure no spaces at the beginning or end of the string will mess up arg parsing.
+            parameters = parameters.Trim();
+            // Check if the parameter's contain spaces.
+            // The presence of spaces indicates a user-specified map name.
+            int firstSpaceIndex = parameters.IndexOf(' ');
+
+            if (firstSpaceIndex == -1)
+            {
+                // The user did not supply a map name.
+                sha1 = parameters;
+                mapName = "user_chat_command_download";
+            }
+            else
+            {
+                // User supplied a map name.
+                sha1 = parameters.Substring(0, firstSpaceIndex);
+                mapName = parameters.Substring(firstSpaceIndex + 1);
+                mapName = mapName.Trim();
+            }
+
+            // Remove erroneous "?". These sneak in when someone double-clicks a map ID and copies it from the cncnet search endpoint.
+            // There is some weird whitespace that gets copied to chat as a "?" at the end of the hash. It's hard to spot, so just hold the user's hand.
+            sha1 = sha1.Replace("?", "");
+
+            // See if the user already has this map, with any filename, before attempting to download it.
+            GameModeMap loadedMap = GameModeMaps.Find(gmm => gmm.Map.SHA1 == sha1);
+
+            if (loadedMap != null)
+            {
+                message = String.Format(
+                    "The map for ID \"{0}\" is already loaded from \"{1}.map\", delete the existing file before trying again.".L10N("UI:Command:DownloadMapCommandSha1AlreadyExists"),
+                    sha1,
+                    loadedMap.Map.BaseFilePath);
+                AddNotice(message, Color.Yellow);
+                Logger.Log(message);
+                return;
+            }
+
+            // Replace any characters that are not safe for filenames.
+            char replaceUnsafeCharactersWith = '-';
+            // Use a hashset instead of an array for quick lookups in `invalidChars.Contains()`.
+            HashSet<char> invalidChars = new HashSet<char>(Path.GetInvalidFileNameChars());
+            string safeMapName = new String(mapName.Select(c => invalidChars.Contains(c) ? replaceUnsafeCharactersWith : c).ToArray());
+
+            chatCommandDownloadedMaps.Add(sha1);
+
+            message = String.Format("Attempting to download map via chat command: sha1={0}, mapName={1}".L10N("UI:Command:DownloadMapCommandStartingDownload"), sha1, mapName);
+            Logger.Log(message);
+            AddNotice(message);
+
+            MapSharer.DownloadMap(sha1, localGame, safeMapName);
         }
 
         #endregion
