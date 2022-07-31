@@ -864,7 +864,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
                     // If we can't find the player from the channel user list,
                     // ignore the player
-                    // They've either left the channel or got kicked before the 
+                    // They've either left the channel or got kicked before the
                     // player options message reached us
                     if (channel.Users.Find(pName) == null)
                     {
@@ -1216,7 +1216,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         }
 
         /// <summary>
-        /// Handles the "START" (game start) command sent by the game host.  
+        /// Handles the "START" (game start) command sent by the game host.
         /// </summary>
         private void NonHostLaunchGame(string sender, string message)
         {
