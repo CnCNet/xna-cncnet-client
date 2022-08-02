@@ -11,7 +11,7 @@ jobs:
     runs-on: windows-2022
 
     steps:
-    - uses: actions/checkout@v2.4.2
+    - uses: actions/checkout@v3.0.2
 
     - name: Setup .NET Core SDK
       uses: actions/setup-dotnet@v2.1.0
