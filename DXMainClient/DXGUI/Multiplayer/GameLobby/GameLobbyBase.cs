@@ -58,7 +58,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         ) : base(windowManager)
         {
             _iniSectionName = iniName;
+
             MapLoader = mapLoader;
+            MapLoader.GameModeMapsUpdated += MapLoader_GameModeMapsUpdated;
+
             this.isMultiplayer = isMultiplayer;
             this.discordHandler = discordHandler;
         }
@@ -2318,5 +2321,63 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         }
 
         protected abstract bool AllowPlayerOptionsChange();
+
+        /// <summary>
+        /// Handle the GameModeMapsUpdated event from the MapLoader.
+        ///
+        /// Updates the gamemode dropdown for new maps being added while the client is running
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void MapLoader_GameModeMapsUpdated(object sender, MapLoaderEventArgs e)
+        {
+            RefreshGameModeDropdown();
+        }
+
+        /// <summary>
+        /// Update the gamemode dropdown.
+        ///
+        /// Allows us to show gamemodes for maps that were loaded after the client was started.
+        /// This function will do in-place modifications to `ddGameModeMapFilter.Items`.
+        /// </summary>
+        public void RefreshGameModeDropdown()
+        {
+            // Use a hashset to store the existing gamemodes in the dropdown for instant lookups.
+            // This is the set of existing dropdown items. Add anything from GameModeMaps, that isn't in this set, to the dropdown.
+            HashSet<string> existingDdGameModes = new HashSet<string>(ddGameModeMapFilter.Items.Select(ddItem => ddItem.Text));
+            // This is the updated list of game modes. Anything not in this set, that is in existingDdGameModes, should be removed from the dropdown.
+            HashSet<string> gameModeUpdated = new HashSet<string>(GameModeMaps.GameModes.Select(gm => gm.UIName));
+            // Don't accidentally remove favorite maps item.
+            gameModeUpdated.Add(FavoriteMapsLabel);
+
+            XNADropDownItem currentItem = ddGameModeMapFilter.SelectedItem;
+
+            Logger.Log($"Updating game modes dropdown display: lobbyType={this.GetType().Name}");
+
+            // Add any new game modes.
+            foreach (GameMode gm in GameModeMaps.GameModes)
+            {
+                //skip the game mode if it is already in the dropdown.
+                if (existingDdGameModes.Contains(gm.UIName))
+                    continue;
+
+                // If the gamemode was not present, then add it.
+                ddGameModeMapFilter.AddItem(CreateGameFilterItem(gm.UIName, new GameModeMapFilter(GetGameModeMaps(gm))));
+            }
+
+            // Now remove game modes that should no longer be displayed.
+            ddGameModeMapFilter.Items.RemoveAll(ddItem => !gameModeUpdated.Contains(ddItem.Text));
+
+            // Make sure we keep the same game mode selected after adding or removing game modes.
+            // If the game mode is no longer available then switch to 0, aka, favorite maps.
+            int newIndex = 0;
+            for (int i = 0; i < ddGameModeMapFilter.Items.Count; i++)
+            {
+                if (ddGameModeMapFilter.Items[i].Text == currentItem.Text)
+                    newIndex = i;
+            }
+
+            ddGameModeMapFilter.SelectedIndex = newIndex;
+        }
     }
 }

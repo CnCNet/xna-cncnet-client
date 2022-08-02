@@ -44,7 +44,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     s => SetMaxAhead(s)),
                 new ChatBoxCommand("PROTOCOLVERSION", "Change ProtocolVersion (default 2) (game host only)".L10N("UI:Main:ChatboxCommandProtocolVersionHelp"), true,
                     s => SetProtocolVersion(s)),
-                new ChatBoxCommand("LOADMAP", "Load a custom map with given filename from /Maps/Custom/ folder.".L10N("UI:Main:ChatboxCommandLoadMapHelp"), true, LoadCustomMap),
+                new ChatBoxCommand("LOADMAP", $"Load a custom map with given filename from {MapLoader.CustomMapsDirectory} folder.".L10N("UI:Main:ChatboxCommandLoadMapHelp"), true, LoadCustomMap),
                 new ChatBoxCommand("RANDOMSTARTS", "Enables completely random starting locations (Tiberian Sun based games only).".L10N("UI:Main:ChatboxCommandRandomStartsHelp"), true,
                     s => SetStartingLocationClearance(s)),
                 new ChatBoxCommand("ROLL", "Roll dice, for example /roll 3d6".L10N("UI:Main:ChatboxCommandRollHelp"), false, RollDiceCommand),
@@ -487,7 +487,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         /// <param name="mapName">Name of the map given as a parameter, without file extension.</param>
         private void LoadCustomMap(string mapName)
         {
-            Map map = MapLoader.LoadCustomMap($"Maps/Custom/{mapName}", out string resultMessage);
+            Map map = MapLoader.LoadCustomMap($"{MapLoader.CustomMapsDirectory}{mapName}", out string resultMessage);
             if (map != null)
             {
                 AddNotice(resultMessage);

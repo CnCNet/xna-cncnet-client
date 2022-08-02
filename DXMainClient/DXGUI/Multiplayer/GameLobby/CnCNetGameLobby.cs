@@ -1595,14 +1595,14 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             string mapFileName = MapSharer.GetMapFileName(e.SHA1, e.MapName);
             Logger.Log("Map " + mapFileName + " downloaded, parsing.");
-            string mapPath = "Maps/Custom/" + mapFileName;
+            string mapPath = MapLoader.CustomMapsDirectory + mapFileName;
             Map map = MapLoader.LoadCustomMap(mapPath, out string returnMessage);
             if (map != null)
             {
                 AddNotice(returnMessage);
                 if (lastMapSHA1 == e.SHA1)
                 {
-                    GameModeMap = GameModeMaps.Find(gmm => gmm.Map.SHA1 == lastMapSHA1);
+                    GameModeMap = MapLoader.GetLoadedMapBySha1(lastMapSHA1);
                     ChangeMap(GameModeMap);
                 }
             }
@@ -1804,7 +1804,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             sha1 = sha1.Replace("?", "");
 
             // See if the user already has this map, with any filename, before attempting to download it.
-            GameModeMap loadedMap = GameModeMaps.Find(gmm => gmm.Map.SHA1 == sha1);
+            GameModeMap loadedMap = MapLoader.GetLoadedMapBySha1(sha1);
 
             if (loadedMap != null)
             {

@@ -81,6 +81,7 @@ namespace DTAClient.DXGUI.Generic
         {
             mapLoader = new MapLoader();
             mapLoader.LoadMaps();
+            mapLoader.StartCustomMapFileWatcher();
         }
 
         private void Finish()

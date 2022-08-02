@@ -22,6 +22,12 @@ namespace DTAClient.Domain.Multiplayer
         private const int CurrentCustomMapCacheVersion = 1;
 
         /// <summary>
+        /// The relative path to the folder where custom maps are stored.
+        /// This is the public version of CUSTOM_MAPS_DIRECTORY ending in a slash for convenience.
+        /// </summary>
+        public const string CustomMapsDirectory = CUSTOM_MAPS_DIRECTORY + "/";
+
+        /// <summary>
         /// List of game modes.
         /// </summary>
         public List<GameMode> GameModes = new List<GameMode>();
@@ -32,6 +38,11 @@ namespace DTAClient.Domain.Multiplayer
         /// An event that is fired when the maps have been loaded.
         /// </summary>
         public event EventHandler MapLoadingComplete;
+
+        /// <summary>
+        /// An event that will be fired when a new map is loaded while the client is already running.
+        /// </summary>
+        public static event EventHandler<MapLoaderEventArgs> GameModeMapsUpdated;
 
         /// <summary>
         /// A list of game mode aliases.
@@ -46,6 +57,28 @@ namespace DTAClient.Domain.Multiplayer
         /// </summary>
         private string[] AllowedGameModes = ClientConfiguration.Instance.AllowedCustomGameModes.Split(',');
 
+        private FileSystemWatcher customMapFileWatcher;
+
+        /// <summary>
+        /// Check to see if a map matching the sha1 ID is already loaded.
+        /// </summary>
+        /// <param name="sha1">The map ID to search the loaded maps for.</param>
+        /// <returns></returns>
+        public bool IsMapAlreadyLoaded(string sha1)
+        {
+            return GetLoadedMapBySha1(sha1) != null;
+        }
+
+        /// <summary>
+        /// Search the loaded maps for the sha1, return the map if a match is found.
+        /// </summary>
+        /// <param name="sha1">The map ID to search the loaded maps for.</param>
+        /// <returns>The map matching the sha1 if one was found.</returns>
+        public GameModeMap GetLoadedMapBySha1(string sha1)
+        {
+            return GameModeMaps.Find(gmm => gmm.Map.SHA1 == sha1);
+        }
+
         /// <summary>
         /// Loads multiplayer map info asynchonously.
         /// </summary>
@@ -53,6 +86,121 @@ namespace DTAClient.Domain.Multiplayer
         {
             Thread thread = new Thread(LoadMaps);
             thread.Start();
+        }
+
+        /// <summary>
+        /// Start the file watcher for the custom map directory.
+        ///
+        /// This will refresh the game modes and map lists when a change is detected. 
+        /// </summary>
+        public void StartCustomMapFileWatcher()
+        {
+            customMapFileWatcher = new FileSystemWatcher($"{ProgramConstants.GamePath}{CustomMapsDirectory}");
+
+            customMapFileWatcher.Filter = $"*{MAP_FILE_EXTENSION}";
+            customMapFileWatcher.NotifyFilter = NotifyFilters.Attributes
+                                 | NotifyFilters.CreationTime
+                                 | NotifyFilters.DirectoryName
+                                 | NotifyFilters.FileName
+                                 | NotifyFilters.LastAccess
+                                 | NotifyFilters.LastWrite
+                                 | NotifyFilters.Security
+                                 | NotifyFilters.Size;
+
+            customMapFileWatcher.Created += HandleCustomMapFolder_Created;
+            customMapFileWatcher.Deleted += HandleCustomMapFolder_Deleted;
+            customMapFileWatcher.Renamed += HandleCustomMapFolder_Renamed;
+            customMapFileWatcher.Error += HandleCustomMapFolder_Error;
+
+            customMapFileWatcher.IncludeSubdirectories = false;
+            customMapFileWatcher.EnableRaisingEvents = true;
+        }
+
+        /// <summary>
+        /// Handle a file being moved / copied / created in the custom map directory.
+        ///
+        /// Adds the map to the GameModeMaps and updates the UI.
+        /// </summary>
+        /// <param name="sender">Sent by the file system watcher</param>
+        /// <param name="e">Sent by the file system watcher</param>
+        public void HandleCustomMapFolder_Created(object sender, FileSystemEventArgs e)
+        {
+            // Get the map filename without the extension.
+            // The extension gets added in LoadCustomMap so we need to excise it to avoid "file.map.map".
+            string name = e.Name.EndsWith(MAP_FILE_EXTENSION) ? e.Name.Remove(e.Name.Length - MAP_FILE_EXTENSION.Length) : e.Name;
+            string relativeMapPath = $"{CustomMapsDirectory}{name}";
+            Map map = LoadCustomMap(relativeMapPath, out string result);
+
+            if (map == null)
+            {
+                Logger.Log($"Failed to load map file that was create / moved: mapPath={name}, reason={result}");
+            }
+        }
+
+        /// <summary>
+        /// Handle a .map file being removed from the custom map directory.
+        ///
+        /// This function will attempt to remove the map from the client if it was deleted from the folder
+        /// </summary>
+        /// <param name="sender">Sent by the file system watcher</param>
+        /// <param name="e">Sent by the file system watcher.</param>
+        public void HandleCustomMapFolder_Deleted(object sender, FileSystemEventArgs e)
+        {
+            Logger.Log($"Map was deleted: map={e.Name}");
+            // The way we're detecting the loaded map is hacky, but we don't
+            // have the sha1 to work with.
+            foreach (GameMode gameMode in GameModes)
+            {
+                gameMode.Maps.RemoveAll(map => map.CompleteFilePath.EndsWith(e.Name));
+            }
+
+            RemoveEmptyGameModesAndUpdateGameModeMaps();
+            GameModeMapsUpdated?.Invoke(null, new MapLoaderEventArgs(null));
+        }
+
+        /// <summary>
+        /// Handle a file being renamed in the custom map folder.
+        ///
+        /// If a file is renamed from "something.map" to "somethingelse.map" then there is a high likelyhood
+        /// that nothing will change in the client because the map data was already loaded.
+        ///
+        /// This is mainly here because Final Alert 2 will often export as ".yrm" which requires a rename.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        public void HandleCustomMapFolder_Renamed(object sender, RenamedEventArgs e)
+        {
+            string name = e.Name.EndsWith(MAP_FILE_EXTENSION) ? e.Name.Remove(e.Name.Length - MAP_FILE_EXTENSION.Length) : e.Name;
+            string relativeMapPath = $"{CustomMapsDirectory}{name}";
+
+            // Check if the user is renaming a non ".map" file.
+            // This is just for logging to help debug.
+            if (!e.OldName.EndsWith(MAP_FILE_EXTENSION))
+            {
+                Logger.Log($"Renaming file changed the file extension. User is likely renaming a '.yrm' from Final Alert 2: old={e.OldName}, new={e.Name}");
+            }
+
+            Map map = LoadCustomMap(relativeMapPath, out string result);
+
+            if (map == null)
+            {
+                Logger.Log($"Failed to load renamed map file. Map is likely already loaded: original={e.OldName}, new={e.Name}, reason={result}");
+            }
+        }
+
+        /// <summary>
+        /// Handle errors in the filewatcher.
+        ///
+        /// Not much to do other than log a stack trace.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        public void HandleCustomMapFolder_Error(object sender, ErrorEventArgs e)
+        {
+            Exception exc = e.GetException();
+            Logger.Log($"The custom map folder file watcher crashed: error={exc.Message}");
+            Logger.Log("Stack Trace:");
+            Logger.Log(exc.StackTrace);
         }
 
         /// <summary>
@@ -71,10 +219,18 @@ namespace DTAClient.Domain.Multiplayer
             LoadMultiMaps(mpMapsIni);
             LoadCustomMaps();
 
-            GameModes.RemoveAll(g => g.Maps.Count < 1);
-            GameModeMaps = new GameModeMapCollection(GameModes);
+            RemoveEmptyGameModesAndUpdateGameModeMaps();
 
             MapLoadingComplete?.Invoke(this, EventArgs.Empty);
+        }
+
+        /// <summary>
+        /// Remove any game modes that do not have any maps loaded and update `GameModeMaps` for the new `GameModes`.
+        /// </summary>
+        private void RemoveEmptyGameModesAndUpdateGameModeMaps()
+        {
+            GameModes.RemoveAll(g => g.Maps.Count < 1);
+            GameModeMaps = new GameModeMapCollection(GameModes);
         }
 
         private void LoadMultiMaps(IniFile mpMapsIni)
@@ -241,12 +397,15 @@ namespace DTAClient.Domain.Multiplayer
 
         /// <summary>
         /// Attempts to load a custom map.
+        ///
+        /// This should only be used after maps are loaded at startup. 
         /// </summary>
-        /// <param name="mapPath">The path to the map file relative to the game directory.</param>
+        /// <param name="mapPath">The path to the map file relative to the game directory. Don't include the file-extension.</param>
         /// <param name="resultMessage">When method returns, contains a message reporting whether or not loading the map failed and how.</param>
         /// <returns>The map if loading it was succesful, otherwise false.</returns>
         public Map LoadCustomMap(string mapPath, out string resultMessage)
         {
+            // Create the full path to the map file.
             string customMapFilePath = SafePath.CombineFilePath(ProgramConstants.GamePath, FormattableString.Invariant($"{mapPath}{MAP_FILE_EXTENSION}"));
             FileInfo customMapFile = SafePath.GetFile(customMapFilePath);
 
@@ -262,34 +421,37 @@ namespace DTAClient.Domain.Multiplayer
 
             Map map = new Map(mapPath, customMapFilePath);
 
-            if (map.SetInfoFromCustomMap())
+            // Make sure we can get the map info from the .map file.
+            if (!map.SetInfoFromCustomMap())
             {
-                foreach (GameMode gm in GameModes)
-                {
-                    if (gm.Maps.Find(m => m.SHA1 == map.SHA1) != null)
-                    {
-                        Logger.Log("LoadCustomMap: Custom map " + customMapFile.FullName + " is already loaded!");
-                        resultMessage = $"Map {customMapFile.FullName} is already loaded.";
+                Logger.Log("LoadCustomMap: Loading map " + customMapFile.FullName + " failed!");
+                resultMessage = $"Loading map {customMapFile.FullName} failed!";
 
-                        return null;
-                    }
-                }
-
-                Logger.Log("LoadCustomMap: Map " + customMapFile.FullName + " added succesfully.");
-
-                AddMapToGameModes(map, true);
-                var gameModes = GameModes.Where(gm => gm.Maps.Contains(map));
-                GameModeMaps.AddRange(gameModes.Select(gm => new GameModeMap(gm, map, false)));
-
-                resultMessage = $"Map {customMapFile.FullName} loaded succesfully.";
-
-                return map;
+                return null;
             }
 
-            Logger.Log("LoadCustomMap: Loading map " + customMapFile.FullName + " failed!");
-            resultMessage = $"Loading map {customMapFile.FullName} failed!";
+            // Make sure we don't accidentally load the same map twice.
+            // This checks the sha1, so duplicate maps in two .map files with different filenames can still be detected.
+            if (IsMapAlreadyLoaded(map.SHA1))
+            {
+                Logger.Log("LoadCustomMap: Custom map " + customMapFile.FullName + " is already loaded!");
+                resultMessage = $"Map {customMapFile.FullName} is already loaded.";
 
-            return null;
+                return null;
+            }
+
+
+            AddMapToGameModes(map, true);
+            var gameModes = GameModes.Where(gm => gm.Maps.Contains(map));
+            GameModeMaps.AddRange(gameModes.Select(gm => new GameModeMap(gm, map, false)));
+
+            // Notify the UI to update the gamemodes dropdown.
+            GameModeMapsUpdated?.Invoke(null, new MapLoaderEventArgs(map));
+
+            resultMessage = $"Map {customMapFile.FullName} loaded succesfully.";
+            Logger.Log("LoadCustomMap: Map " + customMapFile.FullName + " added succesfully.");
+
+            return map;
         }
 
         public void DeleteCustomMap(GameModeMap gameModeMap)
