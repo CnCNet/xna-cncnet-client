@@ -22,7 +22,7 @@ using ClientCore.Extensions;
 
 namespace DTAClient.DXGUI.Multiplayer.GameLobby
 {
-    public class CnCNetGameLobby : MultiplayerGameLobby
+    internal sealed class CnCNetGameLobby : MultiplayerGameLobby
     {
         private const int INGAME_PORT = 1234;
 
@@ -250,7 +250,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                         playerString = Players[i].Name;
                     else
                         playerString += ", " + Players[i].Name;
-                }  
+                }
             }
 
             AddNotice($"Some players ({playerString}) failed to connect within the time limit. " +
@@ -697,6 +697,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 if (isP2P)
                     throw new NotImplementedException("Peer-to-peer is not implemented yet.");
 
+                AddNotice("Contacting tunnel server...".L10N("UI:Main:ConnectingTunnel"));
+
                 if (tunnelHandler.CurrentTunnel.Version == Constants.TUNNEL_VERSION_2)
                 {
                     StartGame_V2Tunnel();
@@ -725,8 +727,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private void StartGame_V2Tunnel()
         {
-            AddNotice("Contacting tunnel server...".L10N("Client:Main:ConnectingTunnel"));
-
             List<int> playerPorts = tunnelHandler.CurrentTunnel.GetPlayerPortInfo(Players.Count);
 
             if (playerPorts.Count < Players.Count)
@@ -810,9 +810,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private void ContactTunnel()
         {
-            AddNotice("Contacting tunnel server..");
             isPlayerConnectedToTunnel = new bool[Players.Count];
-            gameTunnelHandler.SetUp(tunnelHandler.CurrentTunnel, 
+            gameTunnelHandler.SetUp(tunnelHandler.CurrentTunnel,
                 tunnelPlayerIds[Players.FindIndex(p => p.Name == ProgramConstants.PLAYERNAME)]);
             gameTunnelHandler.ConnectToTunnel();
             // Abort starting the game if not everyone 

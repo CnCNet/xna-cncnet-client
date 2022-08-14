@@ -1,33 +1,23 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace DTAClient.Domain.Multiplayer.CnCNet
 {
-    class GameTunnelHandler
+    internal sealed class GameTunnelHandler
     {
-        public GameTunnelHandler()
-        {
-        }
-
         public event EventHandler Connected;
         public event EventHandler ConnectionFailed;
 
-        private CnCNetTunnel tunnel;
         private uint senderId;
 
         private V3TunnelConnection tunnelConnection;
-        private Dictionary<uint, TunneledPlayerConnection> playerConnections = 
-            new Dictionary<uint, TunneledPlayerConnection>();
+        private Dictionary<uint, TunneledPlayerConnection> playerConnections = new();
 
-        private readonly object locker = new object();
+        private readonly object locker = new();
 
         public void SetUp(CnCNetTunnel tunnel, uint ourSenderId)
         {
-            this.tunnel = tunnel;
-            this.senderId = ourSenderId;
+            senderId = ourSenderId;
 
             tunnelConnection = new V3TunnelConnection(tunnel, senderId);
             tunnelConnection.Connected += TunnelConnection_Connected;

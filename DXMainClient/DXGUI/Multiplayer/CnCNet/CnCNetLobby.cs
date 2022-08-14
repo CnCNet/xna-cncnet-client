@@ -30,7 +30,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
     using UserChannelPair = Tuple<string, string>;
     using InvitationIndex = Dictionary<Tuple<string, string>, WeakReference>;
 
-    internal class CnCNetLobby : XNAWindow, ISwitchable
+    internal sealed class CnCNetLobby : XNAWindow, ISwitchable
     {
         public event EventHandler UpdateCheck;
 
