@@ -86,7 +86,6 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
 
         public IPAddress IPAddress { get; private set; }
 
-        public string Address { get; private set; }
         public int Port { get; private set; }
         public string Country { get; private set; }
         public string CountryCode { get; private set; }
