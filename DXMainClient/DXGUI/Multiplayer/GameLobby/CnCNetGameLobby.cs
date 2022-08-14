@@ -692,11 +692,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 if (isP2P)
                     throw new NotImplementedException("Peer-to-peer is not implemented yet.");
 
-                if (tunnel.Version == Constants.TUNNEL_VERSION_2)
+                if (tunnelHandler.CurrentTunnel.Version == Constants.TUNNEL_VERSION_2)
                 {
                     StartGame_V2Tunnel();
                 }
-                else if (tunnel.Version == Constants.TUNNEL_VERSION_3)
+                else if (tunnelHandler.CurrentTunnel.Version == Constants.TUNNEL_VERSION_3)
                 {
                     StartGame_V3Tunnel();
                 }
@@ -808,7 +808,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             AddNotice("Contacting tunnel server..");
             isPlayerConnectedToTunnel = new bool[Players.Count];
-            gameTunnelHandler.SetUp(tunnel, 
+            gameTunnelHandler.SetUp(tunnelHandler.CurrentTunnel, 
                 tunnelPlayerIds[Players.FindIndex(p => p.Name == ProgramConstants.PLAYERNAME)]);
             gameTunnelHandler.ConnectToTunnel();
             // Abort starting the game if not everyone 
@@ -897,7 +897,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (isP2P)
                 return player.IPAddress;
 
-            if (tunnel.Version == Constants.TUNNEL_VERSION_3)
+            if (tunnelHandler.CurrentTunnel.Version == Constants.TUNNEL_VERSION_3)
                 return "127.0.0.1";
 
             return base.GetIPAddressForPlayer(player);
@@ -1476,7 +1476,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         /// </summary>
         private void NonHostLaunchGame(string sender, string message)
         {
-            if (tunnel.Version != Constants.TUNNEL_VERSION_2)
+            if (tunnelHandler.CurrentTunnel.Version != Constants.TUNNEL_VERSION_2)
                 return;
 
             if (sender != hostName)
@@ -1546,7 +1546,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             base.WriteSpawnIniAdditions(iniFile);
 
-            if (!isP2P && tunnel.Version == Constants.TUNNEL_VERSION_2)
+            if (!isP2P && tunnelHandler.CurrentTunnel.Version == Constants.TUNNEL_VERSION_2)
             {
                 iniFile.SetStringValue("Tunnel", "Ip", tunnelHandler.CurrentTunnel.Address);
                 iniFile.SetIntValue("Tunnel", "Port", tunnelHandler.CurrentTunnel.Port);

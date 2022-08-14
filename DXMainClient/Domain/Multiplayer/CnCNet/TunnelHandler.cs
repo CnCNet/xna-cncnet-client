@@ -33,12 +33,10 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
 
         private const string CNCNET_TUNNEL_LIST_URL = "http://cncnet.org/master-list";
 
-        public TunnelHandler(WindowManager wm, CnCNetManager connectionManager, string cacheFilePath) : base(wm.Game)
+        public TunnelHandler(WindowManager wm, CnCNetManager connectionManager) : base(wm.Game)
         {
             this.wm = wm;
             this.connectionManager = connectionManager;
-
-            TunnelCacheFilePath = cacheFilePath;
 
             wm.Game.Components.Add(this);
 
