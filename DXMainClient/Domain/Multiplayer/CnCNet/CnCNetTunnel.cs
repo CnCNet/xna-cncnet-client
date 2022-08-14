@@ -3,22 +3,18 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Net;
-using System.Net.NetworkInformation;
 using System.Net.Sockets;
-using System.Threading;
 
 namespace DTAClient.Domain.Multiplayer.CnCNet
 {
     /// <summary>
     /// A CnCNet tunnel server.
     /// </summary>
-    public class CnCNetTunnel
+    internal sealed class CnCNetTunnel
     {
-        private const int VERSION_3_PING_PACKET_SEND_SIZE = 800;
-        private const int VERSION_3_PING_PACKET_RECEIVE_SIZE = 12;
+        private const int PING_PACKET_SEND_SIZE = 50;
+        private const int PING_PACKET_RECEIVE_SIZE = 12;
         private const int PING_TIMEOUT = 1000;
-
-        public CnCNetTunnel() { }
 
         /// <summary>
         /// Parses a formatted string that contains the tunnel server's 
@@ -36,27 +32,26 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                 string[] parts = str.Split(';');
 
                 string address = parts[0];
-                string[] detailedAddress = address.Split(new char[] { ':' });
-                
+                string[] detailedAddress = address.Split(':');
+                int version = int.Parse(parts[10]);
+
                 tunnel.Address = detailedAddress[0];
                 tunnel.Port = int.Parse(detailedAddress[1]);
                 tunnel.Country = parts[1];
                 tunnel.CountryCode = parts[2];
-                tunnel.Name = parts[3];
+                tunnel.Name = parts[3] + " V" + version;
                 tunnel.RequiresPassword = parts[4] != "0";
-                tunnel.Clients = int.Parse(parts[5]);
-                tunnel.MaxClients = int.Parse(parts[6]);
-                int status = int.Parse(parts[7]);
+                tunnel.Clients = int.Parse(parts[5], CultureInfo.InvariantCulture);
+                tunnel.MaxClients = int.Parse(parts[6], CultureInfo.InvariantCulture);
+                int status = int.Parse(parts[7], CultureInfo.InvariantCulture);
                 tunnel.Official = status == 2;
                 if (!tunnel.Official)
                     tunnel.Recommended = status == 1;
 
-                CultureInfo cultureInfo = CultureInfo.InvariantCulture;
-
-                tunnel.Latitude = double.Parse(parts[8], cultureInfo);
-                tunnel.Longitude = double.Parse(parts[9], cultureInfo);
-                tunnel.Version = int.Parse(parts[10]);
-                tunnel.Distance = double.Parse(parts[11], cultureInfo);
+                tunnel.Latitude = double.Parse(parts[8], CultureInfo.InvariantCulture);
+                tunnel.Longitude = double.Parse(parts[9], CultureInfo.InvariantCulture);
+                tunnel.Version = version;
+                tunnel.Distance = double.Parse(parts[11], CultureInfo.InvariantCulture);
 
                 return tunnel;
             }
@@ -148,109 +143,32 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
 
         public void UpdatePing()
         {
-            using (Ping p = new Ping())
-            {
-                try
-                {
-                    PingReply reply = p.Send(IPAddress.Parse(Address), PING_TIMEOUT);
-                    if (reply.Status == IPStatus.Success)
-                        PingInMs = Convert.ToInt32(reply.RoundtripTime);
-                }
-                catch (PingException ex)
-                {
-                    Logger.Log($"Caught an exception when pinging {Name} tunnel server: {ex.Message}");
-                }
-            }
-        }
+            using Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
 
-        public void PingAsync()
-        {
-            Thread thread = new Thread(new ThreadStart(Ping));
-            thread.Start();
-        }
+            socket.SendTimeout = PING_TIMEOUT;
+            socket.ReceiveTimeout = PING_TIMEOUT;
 
-        public void Ping()
-        {
-            PingV2();  // temporary hack until all v3 tunnels support pinging
-            return;
-
-            if (Version == Constants.TUNNEL_VERSION_2)
-            {
-                PingV2();
-            }
-            else if (Version == Constants.TUNNEL_VERSION_3)
-            {
-                PingV3();
-            }
-        }
-
-        private void PingV2()
-        {
-            int pingInMs = -1;
-            Ping p = new Ping();
             try
             {
-                PingReply reply = p.Send(IPAddress.Parse(Address), PING_TIMEOUT);
-                if (reply.Status == IPStatus.Success)
-                {
-                    if (reply.RoundtripTime > 0)
-                        pingInMs = Convert.ToInt32(reply.RoundtripTime);
-                }
+                byte[] buffer = new byte[PING_PACKET_SEND_SIZE];
+                EndPoint ep = new IPEndPoint(IPAddress, Port);
+                long ticks = DateTime.Now.Ticks;
+                socket.SendTo(buffer, ep);
+
+                buffer = new byte[PING_PACKET_RECEIVE_SIZE];
+                socket.ReceiveFrom(buffer, ref ep);
+
+                ticks = DateTime.Now.Ticks - ticks;
+                PingInMs = new TimeSpan(ticks).Milliseconds;
             }
-            catch { }
-
-            if (pingInMs > -1)
-                PingInMs = pingInMs;
-
-            Pinged?.Invoke(this, EventArgs.Empty);
-        }
-
-        private void PingV3()
-        {
-            using (Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp))
+            catch (SocketException ex)
             {
-                socket.SendTimeout = PING_TIMEOUT;
-                socket.ReceiveTimeout = PING_TIMEOUT;
+                Logger.Log($"Failed to ping tunnel {Name} ({Address}:{Port}). Message: {ex.Message}");
 
-                try
-                {
-                    byte[] buffer = new byte[VERSION_3_PING_PACKET_SEND_SIZE];
-                    EndPoint ep = new IPEndPoint(IPAddress, Port);
-                    long ticks = DateTime.Now.Ticks;
-                    socket.SendTo(buffer, ep);
-
-                    buffer = new byte[VERSION_3_PING_PACKET_RECEIVE_SIZE];
-                    socket.ReceiveFrom(buffer, ref ep);
-
-                    ticks = DateTime.Now.Ticks - ticks;
-                    PingInMs = new TimeSpan(ticks).Milliseconds;
-                }
-                catch (SocketException ex)
-                {
-                    Logger.Log($"Failed to ping V3 tunnel {Name} ({Address}:{Port}). Message: {ex.Message}");
-
-                    PingInMs = -1;
-                }
+                PingInMs = -1;
             }
 
             Pinged?.Invoke(this, EventArgs.Empty);
-        }
-
-        /// <summary>
-        /// Returns a bool that tells if the tunnel server has passed
-        /// initial connection checks and is available for online games.
-        /// </summary>
-        public bool IsAvailable()
-        {
-            return true; // temporary hack until all v3 tunnels support pinging
-
-            if (Version == Constants.TUNNEL_VERSION_2)
-                return true;
-
-            if (Version == Constants.TUNNEL_VERSION_3)
-                return PingInMs > -1;
-
-            return false;
         }
     }
 }

@@ -13,7 +13,7 @@ using System.Linq;
 
 namespace DTAClient.Domain.Multiplayer.CnCNet
 {
-    public class TunnelHandler : GameComponent
+    internal sealed class TunnelHandler : GameComponent
     {
         /// <summary>
         /// Determines the time between pinging the current tunnel (if it's set).
@@ -29,14 +29,9 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
         /// </summary>
         private const uint CYCLES_PER_TUNNEL_LIST_REFRESH = 6;
 
-        private const int SUPPORTED_TUNNEL_VERSION = 2;
-
-        private const string CNCNET_TUNNEL_LIST_URL = "http://cncnet.org/master-list";
-
         public TunnelHandler(WindowManager wm, CnCNetManager connectionManager) : base(wm.Game)
         {
             this.wm = wm;
-            this.connectionManager = connectionManager;
 
             wm.Game.Components.Add(this);
 
@@ -47,18 +42,17 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
             connectionManager.ConnectionLost += ConnectionManager_ConnectionLost;
         }
 
-        public List<CnCNetTunnel> Tunnels { get; private set; } = new List<CnCNetTunnel>();
-        public CnCNetTunnel CurrentTunnel { get; set; } = null;
+        public List<CnCNetTunnel> Tunnels { get; private set; } = new();
+        public CnCNetTunnel CurrentTunnel { get; set; }
 
         public event EventHandler TunnelsRefreshed;
         public event EventHandler CurrentTunnelPinged;
         public event Action<int> TunnelPinged;
 
-        private WindowManager wm;
-        private CnCNetManager connectionManager;
+        private readonly WindowManager wm;
 
         private TimeSpan timeSinceTunnelRefresh = TimeSpan.MaxValue;
-        private uint skipCount = 0;
+        private uint skipCount;
 
         private void DoTunnelPinged(int index)
         {
@@ -163,7 +157,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
 
             try
             {
-                data = client.DownloadData(CNCNET_TUNNEL_LIST_URL);
+                data = client.DownloadData(MainClientConstants.CNCNET_TUNNEL_LIST_URL);
             }
             catch (WebException ex)
             {
@@ -171,7 +165,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                 Logger.Log("Retrying.");
                 try
                 {
-                    data = client.DownloadData(CNCNET_TUNNEL_LIST_URL);
+                    data = client.DownloadData(MainClientConstants.CNCNET_TUNNEL_LIST_URL);
                 }
                 catch (WebException)
                 {
@@ -180,17 +174,15 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                         Logger.Log("Tunnel cache file doesn't exist!");
                         return returnValue;
                     }
-                    else
-                    {
-                        Logger.Log("Fetching tunnel server list failed. Using cached tunnel data.");
-                        data = File.ReadAllBytes(tunnelCacheFile.FullName);
-                    }
+
+                    Logger.Log("Fetching tunnel server list failed. Using cached tunnel data.");
+                    data = File.ReadAllBytes(tunnelCacheFile.FullName);
                 }
             }
 
             string convertedData = Encoding.Default.GetString(data);
 
-            string[] serverList = convertedData.Split(new string[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries);
+            string[] serverList = convertedData.Split(new[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries);
 
             // skip first header item ("address;country;countrycode;name;password;clients;maxclients;official;latitude;longitude;version;distance")
             foreach (string serverInfo in serverList.Skip(1))

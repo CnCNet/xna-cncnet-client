@@ -1,11 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net;
 using System.Net.Sockets;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace DTAClient.Domain.Multiplayer.CnCNet
 {
@@ -13,7 +9,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
     /// Captures packets sent by an UDP client (the game) to a specific address
     /// and allows forwarding messages back to it.
     /// </summary>
-    public class TunneledPlayerConnection
+    internal sealed class TunneledPlayerConnection
     {
         private const int Timeout = 60000;
 
@@ -38,9 +34,9 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
         private Socket socket;
         private EndPoint endPoint;
 
-        private readonly object locker = new object();        
+        private readonly object locker = new object();
 
-        
+
         public void Stop()
         {
             Aborted = true;
@@ -55,12 +51,12 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
             endPoint = new IPEndPoint(IPAddress.Loopback, 0);
             socket.Bind(endPoint);
 
-            PortNumber = ((IPEndPoint)(socket.LocalEndPoint)).Port;
+            PortNumber = ((IPEndPoint)socket.LocalEndPoint).Port;
         }
 
         public void Start()
         {
-            Thread thread = new Thread(new ThreadStart(Run));
+            Thread thread = new Thread(Run);
             thread.Start();
         }
 

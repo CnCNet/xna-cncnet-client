@@ -6,22 +6,11 @@ using System.Threading;
 
 namespace DTAClient.Domain.Multiplayer.CnCNet
 {
-    public enum ConnectionState
-    {
-        NotConnected = 0,
-        WaitingForPassword = 1,
-        WaitingForVerification = 2,
-        Connected = 3
-    }
-
     /// <summary>
     /// Handles connections to version 3 CnCNet tunnel servers.
     /// </summary>
-    class V3TunnelConnection
+    internal sealed class V3TunnelConnection
     {
-        private const int PASSWORD_REQUEST_SIZE = 512;
-        private const int PASSWORD_MESSAGE_SIZE = 12;
-
         public V3TunnelConnection(CnCNetTunnel tunnel, uint senderId)
         {
             this.tunnel = tunnel;
@@ -37,9 +26,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
 
         public uint SenderId { get; set; }
 
-        public ConnectionState State { get; private set; }
-
-        private bool aborted = false;
+        private bool aborted;
         public bool Aborted
         {
             get { lock (locker) return aborted; }
@@ -50,11 +37,11 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
         private Socket tunnelSocket;
         private EndPoint tunnelEndPoint;
 
-        private readonly object locker = new object();
+        private readonly object locker = new();
 
         public void ConnectAsync()
         {
-            Thread thread = new Thread(new ThreadStart(DoConnect));
+            Thread thread = new Thread(DoConnect);
             thread.Start();
         }
 
@@ -65,44 +52,11 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
 
             tunnelSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
             tunnelSocket.SendTimeout = Constants.TUNNEL_CONNECTION_TIMEOUT;
-            tunnelSocket.ReceiveTimeout = Constants.TUNNEL_CONNECTION_TIMEOUT;
-
-            try
-            {
-                byte[] buffer = new byte[PASSWORD_REQUEST_SIZE];
-                WriteSenderIdToBuffer(buffer);
-                tunnelEndPoint = new IPEndPoint(tunnel.IPAddress, tunnel.Port);
-                tunnelSocket.SendTo(buffer, tunnelEndPoint);
-                State = ConnectionState.WaitingForPassword;
-                Logger.Log("Sent ID, waiting for password.");
-
-                buffer = new byte[PASSWORD_MESSAGE_SIZE];
-                tunnelSocket.ReceiveFrom(buffer, ref tunnelEndPoint);
-
-                byte[] password = new byte[4];
-                Array.Copy(buffer, 8, password, 0, password.Length);
-                Logger.Log("Password received, sending it back for verification.");
-
-                // Echo back the password
-                // <sender ID><4 bytes of anything><password>
-                buffer = new byte[PASSWORD_MESSAGE_SIZE];
-                WriteSenderIdToBuffer(buffer);
-                Array.Copy(password, 0, buffer, 8, password.Length);
-                tunnelSocket.SendTo(buffer, tunnelEndPoint);
-                State = ConnectionState.Connected;
-
-                Logger.Log("Connection to tunnel server established. Entering receive loop.");
-                Connected?.Invoke(this, EventArgs.Empty);
-            }
-            catch (SocketException ex)
-            {
-                Logger.Log($"Failed to establish connection to tunnel server. Message: " + ex.Message);
-                tunnelSocket.Close();
-                ConnectionFailed?.Invoke(this, EventArgs.Empty);
-                return;
-            }
-
             tunnelSocket.ReceiveTimeout = Constants.TUNNEL_RECEIVE_TIMEOUT;
+
+            Logger.Log("Connection to tunnel server established. Entering receive loop.");
+            Connected?.Invoke(this, EventArgs.Empty);
+
             ReceiveLoop();
         }
 
@@ -160,7 +114,6 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
             {
                 tunnelSocket.Close();
                 tunnelSocket = null;
-                State = ConnectionState.NotConnected;
             }
 
             Logger.Log("Connection to tunnel server closed.");
