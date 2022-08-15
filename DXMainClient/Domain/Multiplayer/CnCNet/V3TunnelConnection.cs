@@ -1,8 +1,13 @@
 ﻿using Rampastring.Tools;
 using System;
+#if !NETFRAMEWORK
+using System.Buffers;
+#endif
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
+using System.Threading.Tasks;
+using Exception = System.Exception;
 
 namespace DTAClient.Domain.Multiplayer.CnCNet
 {
@@ -11,9 +16,10 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
     /// </summary>
     internal sealed class V3TunnelConnection
     {
-        public V3TunnelConnection(CnCNetTunnel tunnel, uint senderId)
+        public V3TunnelConnection(CnCNetTunnel tunnel, GameTunnelHandler gameTunnelHandler, uint senderId)
         {
             this.tunnel = tunnel;
+            this.gameTunnelHandler = gameTunnelHandler;
             SenderId = senderId;
         }
 
@@ -21,68 +27,101 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
         public event EventHandler ConnectionFailed;
         public event EventHandler ConnectionCut;
 
-        public delegate void MessageDelegate(byte[] data, uint senderId);
-        public event MessageDelegate MessageReceived;
-
         public uint SenderId { get; set; }
 
         private bool aborted;
         public bool Aborted
         {
-            get { lock (locker) return aborted; }
-            private set { lock (locker) aborted = value; }
+            get
+            {
+                locker.Wait();
+
+                try
+                {
+                    return aborted;
+                }
+                finally
+                {
+                    locker.Release();
+                }
+            }
+            private set
+            {
+                locker.Wait();
+
+                try
+                {
+                    aborted = value;
+                }
+                finally
+                {
+                    locker.Release();
+                }
+            }
         }
 
-        private CnCNetTunnel tunnel;
+        private readonly CnCNetTunnel tunnel;
+        private readonly GameTunnelHandler gameTunnelHandler;
         private Socket tunnelSocket;
         private EndPoint tunnelEndPoint;
 
-        private readonly object locker = new();
+        private readonly SemaphoreSlim locker = new(1, 1);
 
-        public void ConnectAsync()
+        public async Task ConnectAsync()
         {
-            Thread thread = new Thread(DoConnect);
-            thread.Start();
-        }
-
-        private void DoConnect()
-        {
-            Logger.Log($"Attempting to establish connection to V3 tunnel server " +
-                $"{tunnel.Name} ({tunnel.Address}:{tunnel.Port})");
-
-            tunnelSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-            tunnelSocket.SendTimeout = Constants.TUNNEL_CONNECTION_TIMEOUT;
-            tunnelSocket.ReceiveTimeout = Constants.TUNNEL_CONNECTION_TIMEOUT;
-
             try
             {
-                byte[] buffer = new byte[50];
-                WriteSenderIdToBuffer(buffer);
+                Logger.Log($"Attempting to establish connection to V3 tunnel server " +
+                    $"{tunnel.Name} ({tunnel.Address}:{tunnel.Port})");
+
                 tunnelEndPoint = new IPEndPoint(tunnel.IPAddress, tunnel.Port);
-                tunnelSocket.SendTo(buffer, tunnelEndPoint);
+                tunnelSocket = new Socket(SocketType.Dgram, ProtocolType.Udp);
+                tunnelSocket.SendTimeout = Constants.TUNNEL_CONNECTION_TIMEOUT;
+                tunnelSocket.ReceiveTimeout = Constants.TUNNEL_CONNECTION_TIMEOUT;
 
-                Logger.Log($"Tunnel_V3 Connection to tunnel server established. Entering receive loop using clientId {SenderId} for tunnel address {tunnelSocket.LocalEndPoint}."); Connected?.Invoke(this, EventArgs.Empty);
+                try
+                {
+#if NETFRAMEWORK
+                    byte[] buffer1 = new byte[50];
+                    WriteSenderIdToBuffer(buffer1);
+                    var buffer = new ArraySegment<byte>(buffer1);
+#else
+                    using IMemoryOwner<byte> memoryOwner = MemoryPool<byte>.Shared.Rent(50);
+                    Memory<byte> buffer = memoryOwner.Memory[..50];
+                    if (!BitConverter.TryWriteBytes(buffer.Span[..4], SenderId)) throw new Exception();
+#endif
+
+                    await tunnelSocket.SendToAsync(buffer, SocketFlags.None, tunnelEndPoint);
+
+                    Logger.Log($"Tunnel_V3 Connection to tunnel server established. Entering receive loop using clientId {SenderId} for tunnel address {tunnelSocket.LocalEndPoint}."); Connected?.Invoke(this, EventArgs.Empty);
+                }
+                catch (SocketException ex)
+                {
+                    Logger.Log($"Failed to establish connection to tunnel server. Message: " + ex.Message);
+                    tunnelSocket.Close();
+                    ConnectionFailed?.Invoke(this, EventArgs.Empty);
+                    return;
+                }
+
+                tunnelSocket.ReceiveTimeout = Constants.TUNNEL_RECEIVE_TIMEOUT;
+
+                Logger.Log("Connection to tunnel server established. Entering receive loop.");
+                Connected?.Invoke(this, EventArgs.Empty);
+
+                await ReceiveLoopAsync();
             }
-            catch (SocketException ex)
+            catch (Exception ex)
             {
-                Logger.Log($"Failed to establish connection to tunnel server. Message: " + ex.Message);
-                tunnelSocket.Close();
-                ConnectionFailed?.Invoke(this, EventArgs.Empty);
-                return;
+                PreStartup.LogException(ex);
             }
-
-            tunnelSocket.ReceiveTimeout = Constants.TUNNEL_RECEIVE_TIMEOUT;
-
-            Logger.Log("Connection to tunnel server established. Entering receive loop.");
-            Connected?.Invoke(this, EventArgs.Empty);
-
-            ReceiveLoop();
         }
+#if NETFRAMEWORK
 
         private void WriteSenderIdToBuffer(byte[] buffer) =>
             Array.Copy(BitConverter.GetBytes(SenderId), buffer, sizeof(uint));
+#endif
 
-        private void ReceiveLoop()
+        private async Task ReceiveLoopAsync()
         {
             try
             {
@@ -99,23 +138,35 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                     Logger.Log($"Tunnel_V3 Listening for server using {tunnelSocket.LocalEndPoint} to {tunnelSocket.RemoteEndPoint} tunnelEndPoint {tunnelEndPoint}.");
 #endif
 
-                    byte[] buffer = new byte[1024];
-                    int size = tunnelSocket.ReceiveFrom(buffer, ref tunnelEndPoint);
-                    if (size < 8)
+#if NETFRAMEWORK
+                    byte[] buffer1 = new byte[1024];
+                    var buffer = new ArraySegment<byte>(buffer1);
+#else
+                    using IMemoryOwner<byte> memoryOwner = MemoryPool<byte>.Shared.Rent(1024);
+                    Memory<byte> buffer = memoryOwner.Memory[..1024];
+#endif
+
+                    SocketReceiveFromResult socketReceiveFromResult = await tunnelSocket.ReceiveFromAsync(buffer, SocketFlags.None, tunnelEndPoint);
+
+                    if (socketReceiveFromResult.ReceivedBytes < 8)
                     {
                         Logger.Log("Invalid data packet from tunnel server");
                         continue;
                     }
 
-                    byte[] data = new byte[size - 8];
-                    Array.Copy(buffer, 8, data, 0, data.Length);
-                    uint senderId = BitConverter.ToUInt32(buffer, 0);
+#if NETFRAMEWORK
+                    byte[] data = new byte[socketReceiveFromResult.ReceivedBytes - 8];
+                    Array.Copy(buffer1, 8, data, 0, data.Length);
+                    uint senderId = BitConverter.ToUInt32(buffer1, 0);
+#else
+                    Memory<byte> data = buffer[8..socketReceiveFromResult.ReceivedBytes];
+                    uint senderId = BitConverter.ToUInt32(buffer[..4].Span);
+#endif
 #if DEBUG
 
                     Logger.Log($"Tunnel_V3 Received data from server on {tunnelSocket.LocalEndPoint} from {tunnelSocket.RemoteEndPoint} tunnelEndPoint {tunnelEndPoint} from clientId {senderId}.");
 #endif
-
-                    MessageReceived?.Invoke(data, senderId);
+                    await gameTunnelHandler.TunnelConnection_MessageReceivedAsync(data, senderId);
                 }
             }
             catch (SocketException ex)
@@ -145,14 +196,26 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
             Logger.Log("Connection to tunnel server closed.");
         }
 
-        public void SendData(byte[] data, uint receiverId)
+#if NETFRAMEWORK
+        public async Task SendDataAsync(byte[] data, uint receiverId)
         {
             byte[] packet = new byte[data.Length + 8]; // 8 = sizeof(uint) * 2
             WriteSenderIdToBuffer(packet);
             Array.Copy(BitConverter.GetBytes(receiverId), 0, packet, 4, sizeof(uint));
             Array.Copy(data, 0, packet, 8, data.Length);
+#else
+        public async Task SendDataAsync(ReadOnlyMemory<byte> data, uint receiverId)
+        {
+            using IMemoryOwner<byte> memoryOwner = MemoryPool<byte>.Shared.Rent(data.Length + 8);
+            Memory<byte> packet = memoryOwner.Memory[..(data.Length + 8)];
+            if (!BitConverter.TryWriteBytes(packet.Span[..4], SenderId)) throw new Exception();
+            if (!BitConverter.TryWriteBytes(packet.Span[5..8], receiverId)) throw new Exception();
+            data.CopyTo(packet[8..]);
+#endif
 
-            lock (locker)
+            await locker.WaitAsync().ConfigureAwait(false);
+
+            try
             {
                 if (!aborted)
                 {
@@ -160,12 +223,20 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                     Logger.Log($"Tunnel_V3 sending data using {tunnelSocket.LocalEndPoint} to server {tunnelSocket.RemoteEndPoint} tunnelEndPoint {tunnelEndPoint} SenderId {SenderId} receiverId {receiverId}.");
 
 #endif
-                    tunnelSocket.SendTo(packet, tunnelEndPoint);
+#if NETFRAMEWORK
+                    await tunnelSocket.SendToAsync(new ArraySegment<byte>(packet), SocketFlags.None, tunnelEndPoint);
+#else
+                    await tunnelSocket.SendToAsync(packet, SocketFlags.None, tunnelEndPoint);
+#endif
                 }
                 else
                 {
                     Logger.Log($"Tunnel_V3 abort sending data using {tunnelSocket.LocalEndPoint} to server {tunnelSocket.RemoteEndPoint} tunnelEndPoint {tunnelEndPoint} SenderId {SenderId} receiverId {receiverId}.");
                 }
+            }
+            finally
+            {
+                locker.Release();
             }
         }
     }

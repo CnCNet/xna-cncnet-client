@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Buffers;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
+using System.Threading.Tasks;
 using Rampastring.Tools;
 
 namespace DTAClient.Domain.Multiplayer.CnCNet
@@ -14,28 +16,52 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
     {
         private const int Timeout = 60000;
 
-        public TunneledPlayerConnection(uint playerId)
+        private GameTunnelHandler gameTunnelHandler;
+
+        public TunneledPlayerConnection(uint playerId, GameTunnelHandler gameTunnelHandler)
         {
             PlayerID = playerId;
+            this.gameTunnelHandler = gameTunnelHandler;
         }
-
-        public delegate void PacketReceivedEventHandler(TunneledPlayerConnection sender, byte[] data);
-        public event PacketReceivedEventHandler PacketReceived;
 
         public int PortNumber { get; private set; }
         public uint PlayerID { get; }
 
-        private bool _aborted;
-        private bool Aborted
+        private bool aborted;
+        public bool Aborted
         {
-            get { lock (locker) return _aborted; }
-            set { lock (locker) _aborted = value; }
+            get
+            {
+                locker.Wait();
+
+                try
+                {
+                    return aborted;
+                }
+                finally
+                {
+                    locker.Release();
+                }
+            }
+            private set
+            {
+                locker.Wait();
+
+                try
+                {
+                    aborted = value;
+                }
+                finally
+                {
+                    locker.Release();
+                }
+            }
         }
 
         private Socket socket;
         private EndPoint endPoint;
 
-        private readonly object locker = new();
+        private readonly SemaphoreSlim locker = new(1, 1);
 
         public void Stop()
         {
@@ -55,68 +81,107 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
             Logger.Log($"Tunnel_V3 Created local game connection for clientId {PlayerID} {socket.LocalEndPoint} ({PortNumber}).");
         }
 
-        public void Start()
+        public async Task StartAsync()
         {
-            Thread thread = new Thread(Run);
-            thread.Start();
+            try
+            {
+#if NETFRAMEWORK
+                byte[] buffer1 = new byte[1024];
+                var buffer = new ArraySegment<byte>(buffer1);
+#else
+                using IMemoryOwner<byte> memoryOwner = MemoryPool<byte>.Shared.Rent(1024);
+                Memory<byte> buffer = memoryOwner.Memory[..1024];
+#endif
+
+                socket.ReceiveTimeout = Timeout;
+
+                try
+                {
+                    while (true)
+                    {
+                        if (Aborted)
+                        {
+                            Logger.Log($"Tunnel_V3 abort listening for game data for {PlayerID} on {socket.LocalEndPoint} from {socket.RemoteEndPoint}.");
+                            break;
+                        }
+
+#if DEBUG
+                        Logger.Log($"Tunnel_V3 listening for game data for {PlayerID} on {socket.LocalEndPoint} from {socket.RemoteEndPoint}.");
+#endif
+
+                        SocketReceiveFromResult socketReceiveFromResult = await socket.ReceiveFromAsync(buffer, SocketFlags.None, endPoint);
+
+#if DEBUG
+                        Logger.Log($"Tunnel_V3 received game data for {PlayerID} on {socket.LocalEndPoint} from {socket.RemoteEndPoint}.");
+#endif
+
+#if NETFRAMEWORK
+                        byte[] data = new byte[socketReceiveFromResult.ReceivedBytes];
+                        Array.Copy(buffer1, data, socketReceiveFromResult.ReceivedBytes);
+                        Array.Clear(buffer1, 0, socketReceiveFromResult.ReceivedBytes);
+#else
+
+                        Memory<byte> data = buffer[..socketReceiveFromResult.ReceivedBytes];
+#endif
+
+                        await gameTunnelHandler.PlayerConnection_PacketReceivedAsync(this, data);
+                    }
+                }
+                catch (SocketException)
+                {
+                    // Timeout
+                }
+
+                await locker.WaitAsync();
+
+                try
+                {
+                    aborted = true;
+                    socket.Close();
+                }
+                finally
+                {
+                    locker.Release();
+                }
+            }
+            catch (Exception ex)
+            {
+                PreStartup.LogException(ex);
+            }
         }
 
-        private void Run()
+#if NETFRAMEWORK
+        public async Task SendPacketAsync(byte[] packet)
         {
-            socket.ReceiveTimeout = Timeout;
-            byte[] buffer = new byte[1024];
+            var buffer = new ArraySegment<byte>(packet);
+
+#else
+        public async Task SendPacketAsync(ReadOnlyMemory<byte> packet)
+        {
+#endif
+            await locker.WaitAsync();
 
             try
             {
-                while (true)
-                {
-                    if (Aborted)
-                    {
-                        Logger.Log($"Tunnel_V3 abort listening for game data for {PlayerID} on {socket.LocalEndPoint} from {socket.RemoteEndPoint}.");
-                        break;
-                    }
-
-#if DEBUG
-                    Logger.Log($"Tunnel_V3 listening for game data for {PlayerID} on {socket.LocalEndPoint} from {socket.RemoteEndPoint}.");
-#endif
-                    int received = socket.ReceiveFrom(buffer, ref endPoint);
-#if DEBUG
-                    Logger.Log($"Tunnel_V3 received game data for {PlayerID} on {socket.LocalEndPoint} from {socket.RemoteEndPoint}.");
-#endif
-
-                    byte[] data = new byte[received];
-                    Array.Copy(buffer, data, received);
-                    Array.Clear(buffer, 0, received);
-                    PacketReceived?.Invoke(this, data);
-                }
-            }
-            catch (SocketException)
-            {
-                // Timeout
-            }
-
-            lock (locker)
-            {
-                _aborted = true;
-                socket.Close();
-            }
-        }
-
-        public void SendPacket(byte[] packet)
-        {
-            lock (locker)
-            {
-                if (!_aborted)
+                if (!aborted)
                 {
 #if DEBUG
                     Logger.Log($"Tunnel_V3 sending game data for {PlayerID} from {socket.LocalEndPoint} to {socket.RemoteEndPoint}.");
 #endif
-                    socket.SendTo(packet, endPoint);
+#if NETFRAMEWORK
+                    await socket.SendToAsync(buffer, SocketFlags.None, endPoint);
+#else
+                    await socket.SendToAsync(packet, SocketFlags.None, endPoint);
+#endif
                 }
                 else
                 {
                     Logger.Log($"Tunnel_V3 abort sending game data for {PlayerID} from {socket.LocalEndPoint} to {socket.RemoteEndPoint}.");
                 }
+            }
+            finally
+            {
+                locker.Release();
             }
         }
     }
