@@ -2,6 +2,7 @@
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
+using Rampastring.Tools;
 
 namespace DTAClient.Domain.Multiplayer.CnCNet
 {
@@ -34,8 +35,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
         private Socket socket;
         private EndPoint endPoint;
 
-        private readonly object locker = new object();
-
+        private readonly object locker = new();
 
         public void Stop()
         {
@@ -52,6 +52,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
             socket.Bind(endPoint);
 
             PortNumber = ((IPEndPoint)socket.LocalEndPoint).Port;
+            Logger.Log($"Tunnel_V3 Created local game connection for clientId {PlayerID} {socket.LocalEndPoint} ({PortNumber}).");
         }
 
         public void Start()
@@ -70,9 +71,18 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                 while (true)
                 {
                     if (Aborted)
+                    {
+                        Logger.Log($"Tunnel_V3 abort listening for game data for {PlayerID} on {socket.LocalEndPoint} from {socket.RemoteEndPoint}.");
                         break;
+                    }
 
+#if DEBUG
+                    Logger.Log($"Tunnel_V3 listening for game data for {PlayerID} on {socket.LocalEndPoint} from {socket.RemoteEndPoint}.");
+#endif
                     int received = socket.ReceiveFrom(buffer, ref endPoint);
+#if DEBUG
+                    Logger.Log($"Tunnel_V3 received game data for {PlayerID} on {socket.LocalEndPoint} from {socket.RemoteEndPoint}.");
+#endif
 
                     byte[] data = new byte[received];
                     Array.Copy(buffer, data, received);
@@ -97,7 +107,16 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
             lock (locker)
             {
                 if (!_aborted)
+                {
+#if DEBUG
+                    Logger.Log($"Tunnel_V3 sending game data for {PlayerID} from {socket.LocalEndPoint} to {socket.RemoteEndPoint}.");
+#endif
                     socket.SendTo(packet, endPoint);
+                }
+                else
+                {
+                    Logger.Log($"Tunnel_V3 abort sending game data for {PlayerID} from {socket.LocalEndPoint} to {socket.RemoteEndPoint}.");
+                }
             }
         }
     }

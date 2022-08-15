@@ -782,6 +782,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private void HandleGameStartV3TunnelMessage(string sender, string message)
         {
+            Logger.Log($"Tunnel_V3 received STARTV3 from {sender}: {message}.");
+
             if (sender != hostName)
                 return;
 
@@ -851,6 +853,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private void HandleTunnelConnected(string playerName)
         {
+            Logger.Log($"Tunnel_V3 received TNLOK {playerName}.");
+
             if (!isStartingGame)
                 return;
 
@@ -875,10 +879,12 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 List<PlayerInfo> players = new List<PlayerInfo>(Players);
                 int myIndex = Players.FindIndex(p => p.Name == ProgramConstants.PLAYERNAME);
                 Players[myIndex].Port = GetFreePort(Players.Select(q => q.Port));
+                Logger.Log($"Tunnel_V3 set own player connection to {Players[myIndex].IPAddress}:{Players[myIndex].Port}.");
                 players.RemoveAt(myIndex);
                 int[] ports = gameTunnelHandler.CreatePlayerConnections(ids);
                 for (int i = 0; i < ports.Length; i++)
                 {
+                    Logger.Log($"Tunnel_V3 set player {players[i].Name} connection to {players[i].IPAddress}:{players[i].Port}.");
                     players[i].Port = ports[i];
                 }
                 gameStartTimer.Pause();

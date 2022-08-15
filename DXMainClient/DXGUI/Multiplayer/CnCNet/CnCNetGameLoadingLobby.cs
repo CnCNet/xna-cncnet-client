@@ -637,6 +637,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         protected override void WriteSpawnIniAdditions(IniFile spawnIni)
         {
+            Logger.Log($"Tunnel_V3 Writing tunnel to spawner {tunnelHandler.CurrentTunnel.Address}:{tunnelHandler.CurrentTunnel.Port}.");
             spawnIni.SetStringValue("Tunnel", "Ip", tunnelHandler.CurrentTunnel.Address);
             spawnIni.SetIntValue("Tunnel", "Port", tunnelHandler.CurrentTunnel.Port);
 
