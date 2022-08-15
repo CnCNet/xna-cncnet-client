@@ -16,6 +16,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
+using System.Net.NetworkInformation;
 using System.Text;
 using DTAClient.Domain.Multiplayer.CnCNet;
 using Localization;
@@ -24,8 +26,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 {
     internal sealed class CnCNetGameLobby : MultiplayerGameLobby
     {
-        private const int INGAME_PORT = 1234;
-
         private const int HUMAN_PLAYER_OPTIONS_LENGTH = 3;
         private const int AI_PLAYER_OPTIONS_LENGTH = 2;
 
@@ -870,7 +870,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 ids.Remove(tunnelPlayerIds[Players.FindIndex(p => p.Name == ProgramConstants.PLAYERNAME)]);
                 List<PlayerInfo> players = new List<PlayerInfo>(Players);
                 int myIndex = Players.FindIndex(p => p.Name == ProgramConstants.PLAYERNAME);
-                Players[myIndex].Port = INGAME_PORT;
+                Players[myIndex].Port = GetFreePort(Players.Select(q => q.Port));
                 players.RemoveAt(myIndex);
                 int[] ports = gameTunnelHandler.CreatePlayerConnections(ids);
                 for (int i = 0; i < ports.Length; i++)
@@ -881,6 +881,20 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 btnLaunchGame.InputEnabled = true;
                 StartGame();
             }
+        }
+
+        private static int GetFreePort(IEnumerable<int> playerPorts)
+        {
+            IPEndPoint[] endPoints = IPGlobalProperties.GetIPGlobalProperties().GetActiveUdpListeners();
+            int[] usedPorts = endPoints.Select(q => q.Port).Concat(playerPorts).ToArray();
+            int selectedPort = 0;
+
+            while (selectedPort == 0 || usedPorts.Contains(selectedPort))
+            {
+                selectedPort = new Random().Next(1, 65535);
+            }
+
+            return selectedPort;
         }
 
         private void AbortGameStart()
