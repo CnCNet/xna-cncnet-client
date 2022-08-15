@@ -1,9 +1,16 @@
 ﻿using Rampastring.Tools;
 using System;
+#if !NETFRAMEWORK
+using System.Buffers;
+#endif
 using System.Collections.Generic;
 using System.Globalization;
 using System.Net;
 using System.Net.Sockets;
+#if !NETFRAMEWORK
+using System.Threading;
+#endif
+using System.Threading.Tasks;
 
 namespace DTAClient.Domain.Multiplayer.CnCNet
 {
@@ -30,13 +37,16 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
             {
                 var tunnel = new CnCNetTunnel();
                 string[] parts = str.Split(';');
-
                 string address = parts[0];
-                string[] detailedAddress = address.Split(':');
                 int version = int.Parse(parts[10]);
 
-                tunnel.Address = detailedAddress[0];
-                tunnel.Port = int.Parse(detailedAddress[1]);
+#if NETFRAMEWORK
+                tunnel.Address = address.Substring(0, address.LastIndexOf(':'));
+                tunnel.Port = int.Parse(address.Substring(address.LastIndexOf(':') + 1));
+#else
+                tunnel.Address = address[..address.LastIndexOf(':')];
+                tunnel.Port = int.Parse(address[(address.LastIndexOf(':') + 1)..]);
+#endif
                 tunnel.Country = parts[1];
                 tunnel.CountryCode = parts[2];
                 tunnel.Name = parts[3] + " V" + version;
@@ -96,8 +106,6 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
         public double Distance { get; private set; }
         public int PingInMs { get; set; } = -1;
 
-        public event EventHandler Pinged;
-
         /// <summary>
         /// Gets a list of player ports to use from a specific tunnel server.
         /// </summary>
@@ -141,22 +149,34 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
             return new List<int>();
         }
 
-        public void UpdatePing()
+        public async Task UpdatePingAsync()
         {
-            using Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+            using var socket = new Socket(SocketType.Dgram, ProtocolType.Udp);
 
             socket.SendTimeout = PING_TIMEOUT;
             socket.ReceiveTimeout = PING_TIMEOUT;
 
             try
             {
-                byte[] buffer = new byte[PING_PACKET_SEND_SIZE];
                 EndPoint ep = new IPEndPoint(IPAddress, Port);
                 long ticks = DateTime.Now.Ticks;
-                socket.SendTo(buffer, ep);
+#if NETFRAMEWORK
+                byte[] buffer1 = new byte[PING_PACKET_SEND_SIZE];
+                var buffer = new ArraySegment<byte>(buffer1);
+#else
+                using IMemoryOwner<byte> memoryOwner = MemoryPool<byte>.Shared.Rent(PING_PACKET_SEND_SIZE);
+                Memory<byte> buffer = memoryOwner.Memory[..PING_PACKET_SEND_SIZE];
+#endif
 
-                buffer = new byte[PING_PACKET_RECEIVE_SIZE];
-                socket.ReceiveFrom(buffer, ref ep);
+                await socket.SendToAsync(buffer, SocketFlags.None, ep);
+
+#if NETFRAMEWORK
+                buffer = new ArraySegment<byte>(buffer1, 0, PING_PACKET_RECEIVE_SIZE);
+#else
+                buffer = buffer[..PING_PACKET_RECEIVE_SIZE];
+#endif
+
+                await socket.ReceiveFromAsync(buffer, SocketFlags.None, ep);
 
                 ticks = DateTime.Now.Ticks - ticks;
                 PingInMs = new TimeSpan(ticks).Milliseconds;
@@ -167,8 +187,6 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
 
                 PingInMs = -1;
             }
-
-            Pinged?.Invoke(this, EventArgs.Empty);
         }
     }
 }

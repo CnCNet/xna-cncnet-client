@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace DTAClient.Domain.Multiplayer.CnCNet
 {
@@ -8,22 +10,17 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
         public event EventHandler Connected;
         public event EventHandler ConnectionFailed;
 
-        private uint senderId;
-
         private V3TunnelConnection tunnelConnection;
         private Dictionary<uint, TunneledPlayerConnection> playerConnections = new();
 
-        private readonly object locker = new();
+        private readonly SemaphoreSlim locker = new(1, 1);
 
         public void SetUp(CnCNetTunnel tunnel, uint ourSenderId)
         {
-            senderId = ourSenderId;
-
-            tunnelConnection = new V3TunnelConnection(tunnel, senderId);
+            tunnelConnection = new V3TunnelConnection(tunnel, this, ourSenderId);
             tunnelConnection.Connected += TunnelConnection_Connected;
             tunnelConnection.ConnectionFailed += TunnelConnection_ConnectionFailed;
             tunnelConnection.ConnectionCut += TunnelConnection_ConnectionCut;
-            tunnelConnection.MessageReceived += TunnelConnection_MessageReceived;
         }
 
         public void ConnectToTunnel()
@@ -41,12 +38,11 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
 
             for (int i = 0; i < playerIds.Count; i++)
             {
-                var playerConnection = new TunneledPlayerConnection(playerIds[i]);
+                var playerConnection = new TunneledPlayerConnection(playerIds[i], this);
                 playerConnection.CreateSocket();
                 ports[i] = playerConnection.PortNumber;
                 playerConnections.Add(playerIds[i], playerConnection);
-                playerConnection.PacketReceived += PlayerConnection_PacketReceived;
-                playerConnection.Start();
+                playerConnection.StartAsync();
             }
 
             return ports;
@@ -54,12 +50,13 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
 
         public void Clear()
         {
-            lock (locker)
+            locker.Wait();
+
+            try
             {
                 foreach (var connection in playerConnections)
                 {
                     connection.Value.Stop();
-                    connection.Value.PacketReceived -= PlayerConnection_PacketReceived;
                 }
 
                 playerConnections.Clear();
@@ -71,26 +68,49 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                 tunnelConnection.Connected -= TunnelConnection_Connected;
                 tunnelConnection.ConnectionFailed -= TunnelConnection_ConnectionFailed;
                 tunnelConnection.ConnectionCut -= TunnelConnection_ConnectionCut;
-                tunnelConnection.MessageReceived -= TunnelConnection_MessageReceived;
                 tunnelConnection = null;
             }
-        }
-
-        private void PlayerConnection_PacketReceived(TunneledPlayerConnection sender, byte[] data)
-        {
-            lock (locker)
+            finally
             {
-                if (tunnelConnection != null)
-                    tunnelConnection.SendData(data, sender.PlayerID);
+                locker.Release();
             }
         }
 
-        private void TunnelConnection_MessageReceived(byte[] data, uint senderId)
+#if NETFRAMEWORK
+        public async Task PlayerConnection_PacketReceivedAsync(TunneledPlayerConnection sender, byte[] data)
+#else
+        public async Task PlayerConnection_PacketReceivedAsync(TunneledPlayerConnection sender, ReadOnlyMemory<byte> data)
+#endif
         {
-            lock (locker)
+            await locker.WaitAsync();
+
+            try
+            {
+                if (tunnelConnection != null)
+                    await tunnelConnection.SendDataAsync(data, sender.PlayerID);
+            }
+            finally
+            {
+                locker.Release();
+            }
+        }
+
+#if NETFRAMEWORK
+        public async Task TunnelConnection_MessageReceivedAsync(byte[] data, uint senderId)
+#else
+        public async Task TunnelConnection_MessageReceivedAsync(ReadOnlyMemory<byte> data, uint senderId)
+#endif
+        {
+            await locker.WaitAsync();
+
+            try
             {
                 if (playerConnections.TryGetValue(senderId, out TunneledPlayerConnection connection))
-                    connection.SendPacket(data);
+                    await connection.SendPacketAsync(data);
+            }
+            finally
+            {
+                locker.Release();
             }
         }
 
