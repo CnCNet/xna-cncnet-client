@@ -60,6 +60,8 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                 WriteSenderIdToBuffer(buffer);
                 tunnelEndPoint = new IPEndPoint(tunnel.IPAddress, tunnel.Port);
                 tunnelSocket.SendTo(buffer, tunnelEndPoint);
+
+                Logger.Log($"Tunnel_V3 Connection to tunnel server established. Entering receive loop using clientId {SenderId} for tunnel address {tunnelSocket.LocalEndPoint}."); Connected?.Invoke(this, EventArgs.Empty);
             }
             catch (SocketException ex)
             {
@@ -92,6 +94,10 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                         Logger.Log("Exiting receive loop.");
                         return;
                     }
+#if DEBUG
+
+                    Logger.Log($"Tunnel_V3 Listening for server using {tunnelSocket.LocalEndPoint} to {tunnelSocket.RemoteEndPoint} tunnelEndPoint {tunnelEndPoint}.");
+#endif
 
                     byte[] buffer = new byte[1024];
                     int size = tunnelSocket.ReceiveFrom(buffer, ref tunnelEndPoint);
@@ -104,6 +110,10 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                     byte[] data = new byte[size - 8];
                     Array.Copy(buffer, 8, data, 0, data.Length);
                     uint senderId = BitConverter.ToUInt32(buffer, 0);
+#if DEBUG
+
+                    Logger.Log($"Tunnel_V3 Received data from server on {tunnelSocket.LocalEndPoint} from {tunnelSocket.RemoteEndPoint} tunnelEndPoint {tunnelEndPoint} from clientId {senderId}.");
+#endif
 
                     MessageReceived?.Invoke(data, senderId);
                 }
@@ -145,7 +155,17 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
             lock (locker)
             {
                 if (!aborted)
+                {
+#if DEBUG
+                    Logger.Log($"Tunnel_V3 sending data using {tunnelSocket.LocalEndPoint} to server {tunnelSocket.RemoteEndPoint} tunnelEndPoint {tunnelEndPoint} SenderId {SenderId} receiverId {receiverId}.");
+
+#endif
                     tunnelSocket.SendTo(packet, tunnelEndPoint);
+                }
+                else
+                {
+                    Logger.Log($"Tunnel_V3 abort sending data using {tunnelSocket.LocalEndPoint} to server {tunnelSocket.RemoteEndPoint} tunnelEndPoint {tunnelEndPoint} SenderId {SenderId} receiverId {receiverId}.");
+                }
             }
         }
     }

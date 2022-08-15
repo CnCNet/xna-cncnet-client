@@ -304,6 +304,7 @@ namespace DTAClient.DXGUI.Multiplayer
                 return;
 
             spawnIni.SetIntValue("Settings", "Port", localPlayer.Port);
+            Logger.Log($"Tunnel_V3 Writing local player {localPlayer.Name} address to spawner {localPlayer.IPAddress}:{localPlayer.Port}.");
 
             for (int i = 1; i < Players.Count; i++)
             {
@@ -319,6 +320,7 @@ namespace DTAClient.DXGUI.Multiplayer
 
                 spawnIni.SetStringValue("Other" + i, "Ip", otherPlayer.IPAddress);
                 spawnIni.SetIntValue("Other" + i, "Port", otherPlayer.Port);
+                Logger.Log($"Tunnel_V3 Writing other player {otherPlayer.Name} address to spawner {otherPlayer.IPAddress}:{otherPlayer.Port}.");
             }
 
             WriteSpawnIniAdditions(spawnIni);
@@ -472,8 +474,6 @@ namespace DTAClient.DXGUI.Multiplayer
                 playerLabel.Text = pInfo.Ready ? sgPlayer.Name : sgPlayer.Name + " " + "(Not Ready)".L10N("UI:Main:NotReadySuffix");
             }
         }
-
-        protected virtual string GetIPAddressForPlayer(PlayerInfo pInfo) => "0.0.0.0";
 
         private void DdSavedGame_SelectedIndexChanged(object sender, EventArgs e)
         {
