@@ -52,6 +52,23 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
 
             tunnelSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
             tunnelSocket.SendTimeout = Constants.TUNNEL_CONNECTION_TIMEOUT;
+            tunnelSocket.ReceiveTimeout = Constants.TUNNEL_CONNECTION_TIMEOUT;
+
+            try
+            {
+                byte[] buffer = new byte[50];
+                WriteSenderIdToBuffer(buffer);
+                tunnelEndPoint = new IPEndPoint(tunnel.IPAddress, tunnel.Port);
+                tunnelSocket.SendTo(buffer, tunnelEndPoint);
+            }
+            catch (SocketException ex)
+            {
+                Logger.Log($"Failed to establish connection to tunnel server. Message: " + ex.Message);
+                tunnelSocket.Close();
+                ConnectionFailed?.Invoke(this, EventArgs.Empty);
+                return;
+            }
+
             tunnelSocket.ReceiveTimeout = Constants.TUNNEL_RECEIVE_TIMEOUT;
 
             Logger.Log("Connection to tunnel server established. Entering receive loop.");
@@ -78,7 +95,6 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
 
                     byte[] buffer = new byte[1024];
                     int size = tunnelSocket.ReceiveFrom(buffer, ref tunnelEndPoint);
-
                     if (size < 8)
                     {
                         Logger.Log("Invalid data packet from tunnel server");
