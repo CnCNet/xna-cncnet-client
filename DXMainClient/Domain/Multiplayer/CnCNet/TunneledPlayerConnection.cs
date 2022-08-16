@@ -1,5 +1,7 @@
 ﻿using System;
+#if !NETFRAMEWORK
 using System.Buffers;
+#endif
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
@@ -60,6 +62,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
 
         private Socket socket;
         private EndPoint endPoint;
+        private EndPoint remoteEndPoint;
 
         private readonly SemaphoreSlim locker = new(1, 1);
 
@@ -78,13 +81,13 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
             socket.Bind(endPoint);
 
             PortNumber = ((IPEndPoint)socket.LocalEndPoint).Port;
-            Logger.Log($"Tunnel_V3 Created local game connection for clientId {PlayerID} {socket.LocalEndPoint} ({PortNumber}).");
         }
 
-        public async Task StartAsync()
+        public async Task StartAsync(int gamePort)
         {
             try
             {
+                remoteEndPoint = new IPEndPoint(IPAddress.Loopback, gamePort);
 #if NETFRAMEWORK
                 byte[] buffer1 = new byte[1024];
                 var buffer = new ArraySegment<byte>(buffer1);
@@ -100,20 +103,9 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                     while (true)
                     {
                         if (Aborted)
-                        {
-                            Logger.Log($"Tunnel_V3 abort listening for game data for {PlayerID} on {socket.LocalEndPoint} from {socket.RemoteEndPoint}.");
                             break;
-                        }
 
-#if DEBUG
-                        Logger.Log($"Tunnel_V3 listening for game data for {PlayerID} on {socket.LocalEndPoint} from {socket.RemoteEndPoint}.");
-#endif
-
-                        SocketReceiveFromResult socketReceiveFromResult = await socket.ReceiveFromAsync(buffer, SocketFlags.None, endPoint);
-
-#if DEBUG
-                        Logger.Log($"Tunnel_V3 received game data for {PlayerID} on {socket.LocalEndPoint} from {socket.RemoteEndPoint}.");
-#endif
+                        SocketReceiveFromResult socketReceiveFromResult = await socket.ReceiveFromAsync(buffer, SocketFlags.None, remoteEndPoint);
 
 #if NETFRAMEWORK
                         byte[] data = new byte[socketReceiveFromResult.ReceivedBytes];
@@ -165,18 +157,11 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
             {
                 if (!aborted)
                 {
-#if DEBUG
-                    Logger.Log($"Tunnel_V3 sending game data for {PlayerID} from {socket.LocalEndPoint} to {socket.RemoteEndPoint}.");
-#endif
 #if NETFRAMEWORK
-                    await socket.SendToAsync(buffer, SocketFlags.None, endPoint);
+                    await socket.SendToAsync(buffer, SocketFlags.None, remoteEndPoint);
 #else
-                    await socket.SendToAsync(packet, SocketFlags.None, endPoint);
+                    await socket.SendToAsync(packet, SocketFlags.None, remoteEndPoint);
 #endif
-                }
-                else
-                {
-                    Logger.Log($"Tunnel_V3 abort sending game data for {PlayerID} from {socket.LocalEndPoint} to {socket.RemoteEndPoint}.");
                 }
             }
             finally

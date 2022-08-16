@@ -159,7 +159,6 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
             try
             {
                 EndPoint ep = new IPEndPoint(IPAddress, Port);
-                long ticks = DateTime.Now.Ticks;
 #if NETFRAMEWORK
                 byte[] buffer1 = new byte[PING_PACKET_SEND_SIZE];
                 var buffer = new ArraySegment<byte>(buffer1);
@@ -168,6 +167,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                 Memory<byte> buffer = memoryOwner.Memory[..PING_PACKET_SEND_SIZE];
 #endif
 
+                long ticks = DateTime.Now.Ticks;
                 await socket.SendToAsync(buffer, SocketFlags.None, ep);
 
 #if NETFRAMEWORK

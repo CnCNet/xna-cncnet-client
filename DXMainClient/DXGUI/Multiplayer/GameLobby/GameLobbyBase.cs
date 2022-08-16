@@ -1373,7 +1373,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 string sectionName = "Other" + otherId;
                 string playerAddress = GetIPAddressForPlayer(pInfo);
 
-                Logger.Log($"Tunnel_V3 Writing player {pInfo.Name} address to spawner {playerAddress}:{pInfo.Port}.");
                 spawnIni.SetStringValue(sectionName, "Name", pInfo.Name);
                 spawnIni.SetIntValue(sectionName, "Side", pHouseInfo.InternalSideIndex);
                 spawnIni.SetBooleanValue(sectionName, "IsSpectator", pHouseInfo.IsSpectator);

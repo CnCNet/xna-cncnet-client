@@ -16,8 +16,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Net;
-using System.Net.NetworkInformation;
 using System.Text;
 using DTAClient.Domain.Multiplayer.CnCNet;
 using ClientCore.Extensions;
@@ -782,8 +780,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private void HandleGameStartV3TunnelMessage(string sender, string message)
         {
-            Logger.Log($"Tunnel_V3 received STARTV3 from {sender}: {message}.");
-
             if (sender != hostName)
                 return;
 
@@ -853,8 +849,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private void HandleTunnelConnected(string playerName)
         {
-            Logger.Log($"Tunnel_V3 received TNLOK {playerName}.");
-
             if (!isStartingGame)
                 return;
 
@@ -879,34 +873,17 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 List<PlayerInfo> players = new List<PlayerInfo>(Players);
                 int myIndex = Players.FindIndex(p => p.Name == ProgramConstants.PLAYERNAME);
                 players.RemoveAt(myIndex);
-                int[] ports = gameTunnelHandler.CreatePlayerConnections(ids);
-                for (int i = 0; i < ports.Length; i++)
+                Tuple<int[], int> ports = gameTunnelHandler.CreatePlayerConnections(ids);
+                for (int i = 0; i < ports.Item1.Length; i++)
                 {
-                    Logger.Log($"Tunnel_V3 set player {players[i].Name} connection to {players[i].IPAddress}:{players[i].Port}.");
-                    players[i].Port = ports[i];
+                    players[i].Port = ports.Item1[i];
                 }
 
-                Players.Single(p => p.Name == ProgramConstants.PLAYERNAME).Port = GetFreePort(ports);
-                Logger.Log($"Tunnel_V3 set own player connection to {Players[myIndex].IPAddress}:{Players[myIndex].Port}.");
-
+                Players.Single(p => p.Name == ProgramConstants.PLAYERNAME).Port = ports.Item2;
                 gameStartTimer.Pause();
                 btnLaunchGame.InputEnabled = true;
                 StartGame();
             }
-        }
-
-        private static int GetFreePort(IEnumerable<int> playerPorts)
-        {
-            IPEndPoint[] endPoints = IPGlobalProperties.GetIPGlobalProperties().GetActiveUdpListeners();
-            int[] usedPorts = endPoints.Select(q => q.Port).Concat(playerPorts).ToArray();
-            int selectedPort = 0;
-
-            while (selectedPort == 0 || usedPorts.Contains(selectedPort))
-            {
-                selectedPort = new Random().Next(1, 65535);
-            }
-
-            return selectedPort;
         }
 
         private void AbortGameStart()

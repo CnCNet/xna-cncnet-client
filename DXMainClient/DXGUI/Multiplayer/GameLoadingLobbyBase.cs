@@ -284,7 +284,7 @@ namespace DTAClient.DXGUI.Multiplayer
 
         protected void LoadGame()
         {
-            FileInfo spawnFileInfo = SafePath.GetFile(ProgramConstants.GamePath, "spawn.ini");
+            FileInfo spawnFileInfo = SafePath.GetFile(ProgramConstants.GamePath, ProgramConstants.SPAWNER_SETTINGS);
 
             spawnFileInfo.Delete();
 
@@ -304,7 +304,6 @@ namespace DTAClient.DXGUI.Multiplayer
                 return;
 
             spawnIni.SetIntValue("Settings", "Port", localPlayer.Port);
-            Logger.Log($"Tunnel_V3 Writing local player {localPlayer.Name} address to spawner {localPlayer.IPAddress}:{localPlayer.Port}.");
 
             for (int i = 1; i < Players.Count; i++)
             {
@@ -320,7 +319,6 @@ namespace DTAClient.DXGUI.Multiplayer
 
                 spawnIni.SetStringValue("Other" + i, "Ip", otherPlayer.IPAddress);
                 spawnIni.SetIntValue("Other" + i, "Port", otherPlayer.Port);
-                Logger.Log($"Tunnel_V3 Writing other player {otherPlayer.Name} address to spawner {otherPlayer.IPAddress}:{otherPlayer.Port}.");
             }
 
             WriteSpawnIniAdditions(spawnIni);
