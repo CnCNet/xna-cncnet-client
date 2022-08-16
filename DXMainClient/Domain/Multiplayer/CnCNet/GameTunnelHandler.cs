@@ -1,5 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Net;
+using System.Net.NetworkInformation;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -31,7 +34,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
             tunnelConnection.ConnectAsync();
         }
 
-        public int[] CreatePlayerConnections(List<uint> playerIds)
+        public Tuple<int[], int> CreatePlayerConnections(List<uint> playerIds)
         {
             int[] ports = new int[playerIds.Count];
             playerConnections = new Dictionary<uint, TunneledPlayerConnection>();
@@ -42,10 +45,30 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                 playerConnection.CreateSocket();
                 ports[i] = playerConnection.PortNumber;
                 playerConnections.Add(playerIds[i], playerConnection);
-                playerConnection.StartAsync();
             }
 
-            return ports;
+            int gamePort = GetFreePort(ports);
+
+            foreach (KeyValuePair<uint, TunneledPlayerConnection> playerConnection in playerConnections)
+            {
+                playerConnection.Value.StartAsync(gamePort);
+            }
+
+            return new Tuple<int[], int>(ports, gamePort);
+        }
+
+        private static int GetFreePort(int[] playerPorts)
+        {
+            IPEndPoint[] endPoints = IPGlobalProperties.GetIPGlobalProperties().GetActiveUdpListeners();
+            int[] usedPorts = endPoints.Select(q => q.Port).ToArray().Concat(playerPorts).ToArray();
+            int selectedPort = 0;
+
+            while (selectedPort == 0 || usedPorts.Contains(selectedPort))
+            {
+                selectedPort = new Random().Next(1, 65535);
+            }
+
+            return selectedPort;
         }
 
         public void Clear()

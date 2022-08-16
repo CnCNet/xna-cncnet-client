@@ -7,7 +7,6 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
-using Exception = System.Exception;
 
 namespace DTAClient.Domain.Multiplayer.CnCNet
 {
@@ -93,7 +92,8 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
 
                     await tunnelSocket.SendToAsync(buffer, SocketFlags.None, tunnelEndPoint);
 
-                    Logger.Log($"Tunnel_V3 Connection to tunnel server established. Entering receive loop using clientId {SenderId} for tunnel address {tunnelSocket.LocalEndPoint}."); Connected?.Invoke(this, EventArgs.Empty);
+                    Logger.Log($"Connection to tunnel server established.");
+                    Connected?.Invoke(this, EventArgs.Empty);
                 }
                 catch (SocketException ex)
                 {
@@ -104,9 +104,6 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                 }
 
                 tunnelSocket.ReceiveTimeout = Constants.TUNNEL_RECEIVE_TIMEOUT;
-
-                Logger.Log("Connection to tunnel server established. Entering receive loop.");
-                Connected?.Invoke(this, EventArgs.Empty);
 
                 await ReceiveLoopAsync();
             }
@@ -133,10 +130,6 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                         Logger.Log("Exiting receive loop.");
                         return;
                     }
-#if DEBUG
-
-                    Logger.Log($"Tunnel_V3 Listening for server using {tunnelSocket.LocalEndPoint} to {tunnelSocket.RemoteEndPoint} tunnelEndPoint {tunnelEndPoint}.");
-#endif
 
 #if NETFRAMEWORK
                     byte[] buffer1 = new byte[1024];
@@ -162,10 +155,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                     Memory<byte> data = buffer[8..socketReceiveFromResult.ReceivedBytes];
                     uint senderId = BitConverter.ToUInt32(buffer[..4].Span);
 #endif
-#if DEBUG
 
-                    Logger.Log($"Tunnel_V3 Received data from server on {tunnelSocket.LocalEndPoint} from {tunnelSocket.RemoteEndPoint} tunnelEndPoint {tunnelEndPoint} from clientId {senderId}.");
-#endif
                     await gameTunnelHandler.TunnelConnection_MessageReceivedAsync(data, senderId);
                 }
             }
@@ -209,7 +199,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
             using IMemoryOwner<byte> memoryOwner = MemoryPool<byte>.Shared.Rent(data.Length + 8);
             Memory<byte> packet = memoryOwner.Memory[..(data.Length + 8)];
             if (!BitConverter.TryWriteBytes(packet.Span[..4], SenderId)) throw new Exception();
-            if (!BitConverter.TryWriteBytes(packet.Span[5..8], receiverId)) throw new Exception();
+            if (!BitConverter.TryWriteBytes(packet.Span[4..8], receiverId)) throw new Exception();
             data.CopyTo(packet[8..]);
 #endif
 
@@ -219,19 +209,11 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
             {
                 if (!aborted)
                 {
-#if DEBUG
-                    Logger.Log($"Tunnel_V3 sending data using {tunnelSocket.LocalEndPoint} to server {tunnelSocket.RemoteEndPoint} tunnelEndPoint {tunnelEndPoint} SenderId {SenderId} receiverId {receiverId}.");
-
-#endif
 #if NETFRAMEWORK
                     await tunnelSocket.SendToAsync(new ArraySegment<byte>(packet), SocketFlags.None, tunnelEndPoint);
 #else
                     await tunnelSocket.SendToAsync(packet, SocketFlags.None, tunnelEndPoint);
 #endif
-                }
-                else
-                {
-                    Logger.Log($"Tunnel_V3 abort sending data using {tunnelSocket.LocalEndPoint} to server {tunnelSocket.RemoteEndPoint} tunnelEndPoint {tunnelEndPoint} SenderId {SenderId} receiverId {receiverId}.");
                 }
             }
             finally
