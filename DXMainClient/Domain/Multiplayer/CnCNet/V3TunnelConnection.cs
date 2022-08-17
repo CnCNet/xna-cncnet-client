@@ -26,7 +26,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
         public event EventHandler ConnectionFailed;
         public event EventHandler ConnectionCut;
 
-        public uint SenderId { get; set; }
+        public uint SenderId { get; }
 
         private bool aborted;
         public bool Aborted
@@ -189,10 +189,11 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
 #if NETFRAMEWORK
         public async Task SendDataAsync(byte[] data, uint receiverId)
         {
-            byte[] packet = new byte[data.Length + 8]; // 8 = sizeof(uint) * 2
-            WriteSenderIdToBuffer(packet);
-            Array.Copy(BitConverter.GetBytes(receiverId), 0, packet, 4, sizeof(uint));
-            Array.Copy(data, 0, packet, 8, data.Length);
+            byte[] buffer = new byte[data.Length + 8]; // 8 = sizeof(uint) * 2
+            WriteSenderIdToBuffer(buffer);
+            Array.Copy(BitConverter.GetBytes(receiverId), 0, buffer, 4, sizeof(uint));
+            Array.Copy(data, 0, buffer, 8, data.Length);
+            var packet = new ArraySegment<byte>(buffer);
 #else
         public async Task SendDataAsync(ReadOnlyMemory<byte> data, uint receiverId)
         {
@@ -208,13 +209,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
             try
             {
                 if (!aborted)
-                {
-#if NETFRAMEWORK
-                    await tunnelSocket.SendToAsync(new ArraySegment<byte>(packet), SocketFlags.None, tunnelEndPoint);
-#else
                     await tunnelSocket.SendToAsync(packet, SocketFlags.None, tunnelEndPoint);
-#endif
-                }
             }
             finally
             {

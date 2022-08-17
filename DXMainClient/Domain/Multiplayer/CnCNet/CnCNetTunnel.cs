@@ -81,7 +81,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
         public string Address
         {
             get => _ipAddress;
-            set
+            private set
             {
                 _ipAddress = value;
                 if (IPAddress.TryParse(_ipAddress, out IPAddress address))

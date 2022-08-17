@@ -6,7 +6,6 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
-using Rampastring.Tools;
 
 namespace DTAClient.Domain.Multiplayer.CnCNet
 {
@@ -18,7 +17,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
     {
         private const int Timeout = 60000;
 
-        private GameTunnelHandler gameTunnelHandler;
+        private readonly GameTunnelHandler gameTunnelHandler;
 
         public TunneledPlayerConnection(uint playerId, GameTunnelHandler gameTunnelHandler)
         {
@@ -143,9 +142,9 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
         }
 
 #if NETFRAMEWORK
-        public async Task SendPacketAsync(byte[] packet)
+        public async Task SendPacketAsync(byte[] buffer)
         {
-            var buffer = new ArraySegment<byte>(packet);
+            var packet = new ArraySegment<byte>(buffer);
 
 #else
         public async Task SendPacketAsync(ReadOnlyMemory<byte> packet)
@@ -156,13 +155,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
             try
             {
                 if (!aborted)
-                {
-#if NETFRAMEWORK
-                    await socket.SendToAsync(buffer, SocketFlags.None, remoteEndPoint);
-#else
                     await socket.SendToAsync(packet, SocketFlags.None, remoteEndPoint);
-#endif
-                }
             }
             finally
             {

@@ -1318,13 +1318,12 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     continue;
 
                 string sectionName = "Other" + otherId;
-                string playerAddress = GetIPAddressForPlayer(pInfo);
 
                 spawnIni.SetStringValue(sectionName, "Name", pInfo.Name);
                 spawnIni.SetIntValue(sectionName, "Side", pHouseInfo.InternalSideIndex);
                 spawnIni.SetBooleanValue(sectionName, "IsSpectator", pHouseInfo.IsSpectator);
                 spawnIni.SetIntValue(sectionName, "Color", pHouseInfo.ColorIndex);
-                spawnIni.SetStringValue(sectionName, "Ip", playerAddress);
+                spawnIni.SetStringValue(sectionName, "Ip", GetIPAddressForPlayer(pInfo));
                 spawnIni.SetIntValue(sectionName, "Port", pInfo.Port);
 
                 otherId++;
