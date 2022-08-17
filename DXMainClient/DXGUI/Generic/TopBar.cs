@@ -343,11 +343,7 @@ namespace DTAClient.DXGUI.Generic
 
         private void Keyboard_OnKeyPressed(object sender, KeyPressEventArgs e)
         {
-#if WINFORMS
             if (!Enabled || !WindowManager.HasFocus || ProgramConstants.IsInGame)
-#else
-            if (!Enabled || ProgramConstants.IsInGame)
-#endif
                 return;
 
             switch (e.PressedKey)

@@ -65,12 +65,13 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             AddChild(lblHeader);
 
             using Stream dtaiconStream = Assembly.GetAssembly(typeof(GameCollection)).GetManifestResourceStream("ClientCore.Resources.dtaicon.png");
+            using var dtaicon = Image.Load(dtaiconStream);
 
             gameIconPanel = new XNAPanel(WindowManager);
             gameIconPanel.Name = nameof(gameIconPanel);
             gameIconPanel.ClientRectangle = new Rectangle(12, lblHeader.Bottom + 6, 16, 16);
             gameIconPanel.DrawBorders = false;
-            gameIconPanel.BackgroundTexture = AssetLoader.TextureFromImage(Image.Load(dtaiconStream));
+            gameIconPanel.BackgroundTexture = AssetLoader.TextureFromImage(dtaicon);
             AddChild(gameIconPanel);
 
             lblSender = new XNALabel(WindowManager);
@@ -158,20 +159,16 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                         Width, Height);
                 }
 
-#if WINFORMS
                 if (WindowManager.HasFocus)
                 {
-#endif
-                downTime += gameTime.ElapsedGameTime;
+                    downTime += gameTime.ElapsedGameTime;
 
-                // only change our "down" state if we have a valid timeout
-                if (downTimeWaitTime != TimeSpan.Zero)
-                {
-                    isDown = downTime < downTimeWaitTime;
+                    // only change our "down" state if we have a valid timeout
+                    if (downTimeWaitTime != TimeSpan.Zero)
+                    {
+                        isDown = downTime < downTimeWaitTime;
+                    }
                 }
-#if WINFORMS
-                }
-#endif
             }
             else
             {

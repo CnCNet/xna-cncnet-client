@@ -79,8 +79,9 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             var assembly = Assembly.GetAssembly(typeof(GameCollection));
             using Stream dtaiconStream = assembly.GetManifestResourceStream("ClientCore.Resources.dtaicon.png");
+            using var dtaicon = Image.Load(dtaiconStream);
 
-            gameIconPanel.BackgroundTexture = AssetLoader.TextureFromImage(Image.Load(dtaiconStream));
+            gameIconPanel.BackgroundTexture = AssetLoader.TextureFromImage(dtaicon);
 
             lblSender = new XNALabel(WindowManager);
             lblSender.Name = "lblSender";
@@ -149,15 +150,11 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                         Width, Height);
                 }
 
-#if WINFORMS
                 if (WindowManager.HasFocus)
                 {
-#endif
-                downTime += gameTime.ElapsedGameTime;
-                isDown = downTime < downTimeWaitTime;
-#if WINFORMS
+                    downTime += gameTime.ElapsedGameTime;
+                    isDown = downTime < downTimeWaitTime;
                 }
-#endif
             }
             else
             {
