@@ -274,7 +274,9 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
 
         private static void CreateZipFile(string file, string zipName)
         {
-            ZipFile.CreateFromDirectory(SafePath.CombineFilePath(ProgramConstants.GamePath, file), zipName);
+            using var zipFileStream = new FileStream(zipName, FileMode.CreateNew, FileAccess.Write);
+            using var archive = new ZipArchive(zipFileStream, ZipArchiveMode.Create);
+            archive.CreateEntryFromFile(SafePath.CombineFilePath(ProgramConstants.GamePath, file), file);
         }
 
         private static string ExtractZipFile(string zipFile, string destDir)
