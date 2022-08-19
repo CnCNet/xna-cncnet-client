@@ -80,7 +80,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
         /// </summary>
         public void CreateSocket()
         {
-            socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+            socket = new Socket(SocketType.Dgram, ProtocolType.Udp);
             endPoint = new IPEndPoint(IPAddress.Loopback, 0);
 
             // Disable ICMP port not reachable exceptions, happens when the game is still loading and has not yet opened the socket.
