@@ -23,8 +23,6 @@ namespace DTAClient.Online
         private const int RECONNECT_WAIT_DELAY = 4000;
         private const int ID_LENGTH = 9;
         private const int MAXIMUM_LATENCY = 400;
-        private const int WSAETIMEDOUT = 10060;
-        private const int WSAEINTR = 10004;
 
         public Connection(IConnectionManager connectionManager)
         {
@@ -252,25 +250,21 @@ namespace DTAClient.Online
                 {
                     bytesRead = serverStream.Read(message, 0, 1024);
                 }
-                catch (IOException ex) when (IsKnownSocketException(ex))
-                {
-                    errorTimes++;
-                    continue;
-                }
                 catch (Exception ex)
                 {
                     Logger.Log("Disconnected from CnCNet due to a socket error. Message: " + ex.Message);
                     errorTimes++;
-                    continue;
-                }
 
-                if (errorTimes > MAX_RECONNECT_COUNT)
-                {
-                    const string errorMessage = "Disconnected from CnCNet after reaching the maximum number of connection retries.";
-                    Logger.Log(errorMessage);
-                    failedServerIPs.Add(currentConnectedServerIP);
-                    connectionManager.OnConnectionLost(errorMessage.L10N("UI:Main:ClientDisconnectedAfterRetries"));
-                    break;
+                    if (errorTimes > MAX_RECONNECT_COUNT)
+                    {
+                        const string errorMessage = "Disconnected from CnCNet after reaching the maximum number of connection retries.";
+                        Logger.Log(errorMessage);
+                        failedServerIPs.Add(currentConnectedServerIP);
+                        connectionManager.OnConnectionLost(errorMessage.L10N("UI:Main:ClientDisconnectedAfterRetries"));
+                        break;
+                    }
+
+                    continue;
                 }
 
                 errorTimes = 0;
@@ -313,13 +307,6 @@ namespace DTAClient.Online
                 Logger.Log("Attempting to reconnect to CnCNet.");
                 connectionManager.OnReconnectAttempt();
             }
-        }
-
-        private static bool IsKnownSocketException(IOException ex)
-        {
-            int? errorCode = (ex.InnerException as SocketException)?.ErrorCode;
-
-            return errorCode is WSAETIMEDOUT or WSAEINTR;
         }
 
         /// <summary>
