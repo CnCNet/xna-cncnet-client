@@ -1,6 +1,8 @@
 ﻿using System;
 #if !NETFRAMEWORK
 using System.Buffers;
+#else
+using ClientCore;
 #endif
 using System.Net;
 using System.Net.Sockets;
@@ -16,6 +18,9 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
     internal sealed class TunneledPlayerConnection
     {
         private const int Timeout = 60000;
+        private const uint IOC_IN = 0x80000000;
+        private const uint IOC_VENDOR = 0x18000000;
+        private const uint SIO_UDP_CONNRESET = IOC_IN | IOC_VENDOR | 12;
 
         private readonly GameTunnelHandler gameTunnelHandler;
 
@@ -77,6 +82,15 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
         {
             socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
             endPoint = new IPEndPoint(IPAddress.Loopback, 0);
+
+            // Disable ICMP port not reachable exceptions, happens when the game is still loading and has not yet opened the socket.
+#if !NETFRAMEWORK
+            if (OperatingSystem.IsWindows())
+#else
+            if (!ProgramConstants.ISMONO)
+#endif
+                socket.IOControl(unchecked((int)SIO_UDP_CONNRESET), new byte[] { 0 }, null);
+
             socket.Bind(endPoint);
 
             PortNumber = ((IPEndPoint)socket.LocalEndPoint).Port;
