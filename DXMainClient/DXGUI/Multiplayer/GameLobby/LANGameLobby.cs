@@ -555,6 +555,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 await BroadcastMessageAsync(PLAYER_QUIT_COMMAND);
                 Players.ForEach(p => CleanUpPlayer((LANPlayerInfo)p));
                 Players.Clear();
+                cancellationTokenSource.Cancel();
                 listener.Close();
             }
             else

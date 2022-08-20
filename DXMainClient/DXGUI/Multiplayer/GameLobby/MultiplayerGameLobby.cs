@@ -127,8 +127,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             base.Initialize();
 
             // DisableSpectatorReadyChecking = GameOptionsIni.GetBooleanValue("General", "DisableSpectatorReadyChecking", false);
-
-            PingTextures = new Texture2D[5]
+            PingTextures = new[]
             {
                 AssetLoader.LoadTexture("ping0.png"),
                 AssetLoader.LoadTexture("ping1.png"),
