@@ -11,6 +11,7 @@ using Rampastring.XNAUI.XNAControls;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading.Tasks;
 
 namespace DTAClient.DXGUI.Multiplayer
 {
@@ -65,12 +66,10 @@ namespace DTAClient.DXGUI.Multiplayer
 
         private List<MultiplayerColor> MPColors = new List<MultiplayerColor>();
 
-        private string loadedGameID;
-
-        private bool isSettingUp = false;
+        private bool isSettingUp;
         private FileSystemWatcher fsw;
 
-        private int uniqueGameId = 0;
+        private int uniqueGameId;
         private DateTime gameLoadTime;
 
         public override void Initialize()
@@ -146,7 +145,7 @@ namespace DTAClient.DXGUI.Multiplayer
             ddSavedGame.ClientRectangle = new Rectangle(lblSavedGameTime.X,
                 panelPlayers.Bottom - 21,
                 Width - lblSavedGameTime.X - 12, 21);
-            ddSavedGame.SelectedIndexChanged += DdSavedGame_SelectedIndexChanged;
+            ddSavedGame.SelectedIndexChanged += (_, _) => DdSavedGame_SelectedIndexChangedAsync();
 
             lbChatMessages = new ChatListBox(WindowManager);
             lbChatMessages.Name = nameof(lbChatMessages);
@@ -161,14 +160,14 @@ namespace DTAClient.DXGUI.Multiplayer
             tbChatInput.ClientRectangle = new Rectangle(lbChatMessages.X,
                 lbChatMessages.Bottom + 3, lbChatMessages.Width, 19);
             tbChatInput.MaximumTextLength = 200;
-            tbChatInput.EnterPressed += TbChatInput_EnterPressed;
+            tbChatInput.EnterPressed += (_, _) => TbChatInput_EnterPressedAsync();
 
             btnLoadGame = new XNAClientButton(WindowManager);
             btnLoadGame.Name = nameof(btnLoadGame);
             btnLoadGame.ClientRectangle = new Rectangle(lbChatMessages.X,
                 tbChatInput.Bottom + 6, UIDesignConstants.BUTTON_WIDTH_133, UIDesignConstants.BUTTON_HEIGHT);
             btnLoadGame.Text = "Load Game".L10N("Client:Main:LoadGame");
-            btnLoadGame.LeftClick += BtnLoadGame_LeftClick;
+            btnLoadGame.LeftClick += (_, _) => BtnLoadGame_LeftClickAsync();
 
             btnLeaveGame = new XNAClientButton(WindowManager);
             btnLeaveGame.Name = nameof(btnLeaveGame);
@@ -219,16 +218,25 @@ namespace DTAClient.DXGUI.Multiplayer
         /// </summary>
         protected void ResetDiscordPresence() => discordHandler.UpdatePresence();
 
-        private void BtnLeaveGame_LeftClick(object sender, EventArgs e) => LeaveGame();
+        private void BtnLeaveGame_LeftClick(object sender, EventArgs e) => LeaveGameAsync();
 
-        protected virtual void LeaveGame()
+        protected virtual Task LeaveGameAsync()
         {
-            GameLeft?.Invoke(this, EventArgs.Empty);
-            ResetDiscordPresence();
+            try
+            {
+                GameLeft?.Invoke(this, EventArgs.Empty);
+                ResetDiscordPresence();
+            }
+            catch (Exception ex)
+            {
+                PreStartup.HandleException(ex);
+            }
+
+            return Task.CompletedTask;
         }
 
         private void fsw_Created(object sender, FileSystemEventArgs e) =>
-            AddCallback(new Action<FileSystemEventArgs>(HandleFSWEvent), e);
+            AddCallback(() => HandleFSWEvent(e));
 
         private void HandleFSWEvent(FileSystemEventArgs e)
         {
@@ -240,32 +248,39 @@ namespace DTAClient.DXGUI.Multiplayer
             }
         }
 
-        private void BtnLoadGame_LeftClick(object sender, EventArgs e)
+        private async Task BtnLoadGame_LeftClickAsync()
         {
-            if (!IsHost)
+            try
             {
-                RequestReadyStatus();
-                return;
+                if (!IsHost)
+                {
+                    await RequestReadyStatusAsync();
+                    return;
+                }
+
+                if (Players.Find(p => !p.Ready) != null)
+                {
+                    await GetReadyNotificationAsync();
+                    return;
+                }
+
+                if (Players.Count != SGPlayers.Count)
+                {
+                    await NotAllPresentNotificationAsync();
+                    return;
+                }
+            }
+            catch (Exception ex)
+            {
+                PreStartup.HandleException(ex);
             }
 
-            if (Players.Find(p => !p.Ready) != null)
-            {
-                GetReadyNotification();
-                return;
-            }
-
-            if (Players.Count != SGPlayers.Count)
-            {
-                NotAllPresentNotification();
-                return;
-            }
-
-            HostStartGame();
+            await HostStartGameAsync();
         }
 
-        protected abstract void RequestReadyStatus();
+        protected abstract Task RequestReadyStatusAsync();
 
-        protected virtual void GetReadyNotification()
+        protected virtual Task GetReadyNotificationAsync()
         {
             AddNotice("The game host wants to load the game but cannot because not all players are ready!".L10N("Client:Main:GetReadyPlease"));
 
@@ -275,12 +290,16 @@ namespace DTAClient.DXGUI.Multiplayer
 
             WindowManager.FlashWindow();
 #endif
+            return Task.CompletedTask;
         }
 
-        protected virtual void NotAllPresentNotification() =>
+        protected virtual Task NotAllPresentNotificationAsync()
+        {
             AddNotice("You cannot load the game before all players are present.".L10N("Client:Main:NotAllPresent"));
+            return Task.CompletedTask;
+        }
 
-        protected abstract void HostStartGame();
+        protected abstract Task HostStartGameAsync();
 
         protected void LoadGame()
         {
@@ -342,31 +361,38 @@ namespace DTAClient.DXGUI.Multiplayer
             UpdateDiscordPresence(true);
         }
 
-        private void SharedUILogic_GameProcessExited() =>
-            AddCallback(new Action(HandleGameProcessExited), null);
+        private void SharedUILogic_GameProcessExited() => AddCallback(HandleGameProcessExitedAsync);
 
-        protected virtual void HandleGameProcessExited()
+        protected virtual Task HandleGameProcessExitedAsync()
         {
-            fsw.EnableRaisingEvents = false;
-
-            GameProcessLogic.GameProcessExited -= SharedUILogic_GameProcessExited;
-
-            var matchStatistics = StatisticsManager.Instance.GetMatchWithGameID(uniqueGameId);
-
-            if (matchStatistics != null)
+            try
             {
-                int oldLength = matchStatistics.LengthInSeconds;
-                int newLength = matchStatistics.LengthInSeconds +
-                    (int)(DateTime.Now - gameLoadTime).TotalSeconds;
+                fsw.EnableRaisingEvents = false;
 
-                matchStatistics.ParseStatistics(ProgramConstants.GamePath,
-                    ClientConfiguration.Instance.LocalGame, true);
+                GameProcessLogic.GameProcessExited -= SharedUILogic_GameProcessExited;
 
-                matchStatistics.LengthInSeconds = newLength;
+                var matchStatistics = StatisticsManager.Instance.GetMatchWithGameID(uniqueGameId);
 
-                StatisticsManager.Instance.SaveDatabase();
+                if (matchStatistics != null)
+                {
+                    int newLength = matchStatistics.LengthInSeconds +
+                        (int)(DateTime.Now - gameLoadTime).TotalSeconds;
+
+                    matchStatistics.ParseStatistics(ProgramConstants.GamePath,
+                        ClientConfiguration.Instance.LocalGame, true);
+
+                    matchStatistics.LengthInSeconds = newLength;
+
+                    StatisticsManager.Instance.SaveDatabase();
+                }
+                UpdateDiscordPresence(true);
             }
-            UpdateDiscordPresence(true);
+            catch (Exception ex)
+            {
+                PreStartup.HandleException(ex);
+            }
+
+            return Task.CompletedTask;
         }
 
         protected virtual void WriteSpawnIniAdditions(IniFile spawnIni)
@@ -399,7 +425,6 @@ namespace DTAClient.DXGUI.Multiplayer
 
             IniFile spawnSGIni = new IniFile(SafePath.CombineFilePath(ProgramConstants.GamePath, "Saved Games", "spawnSG.ini"));
 
-            loadedGameID = spawnSGIni.GetStringValue("Settings", "GameID", "0");
             lblMapNameValue.Tag = spawnSGIni.GetStringValue("Settings", "UIMapName", string.Empty);
             lblMapNameValue.Text = ((string)lblGameModeValue.Tag).L10N($"INI:Maps:{spawnSGIni.GetStringValue("Settings", "MapID", string.Empty)}:Description");
             lblGameModeValue.Tag = spawnSGIni.GetStringValue("Settings", "UIGameMode", string.Empty);
@@ -475,37 +500,51 @@ namespace DTAClient.DXGUI.Multiplayer
             }
         }
 
-        private void DdSavedGame_SelectedIndexChanged(object sender, EventArgs e)
+        private async Task DdSavedGame_SelectedIndexChangedAsync()
         {
-            if (!IsHost)
-                return;
+            try
+            {
+                if (!IsHost)
+                    return;
 
-            for (int i = 1; i < Players.Count; i++)
-                Players[i].Ready = false;
+                for (int i = 1; i < Players.Count; i++)
+                    Players[i].Ready = false;
 
-            CopyPlayerDataToUI();
+                CopyPlayerDataToUI();
 
-            if (!isSettingUp)
-                BroadcastOptions();
-            UpdateDiscordPresence();
+                if (!isSettingUp)
+                    await BroadcastOptionsAsync();
+                UpdateDiscordPresence();
+            }
+            catch (Exception ex)
+            {
+                PreStartup.HandleException(ex);
+            }
         }
 
-        private void TbChatInput_EnterPressed(object sender, EventArgs e)
+        private async Task TbChatInput_EnterPressedAsync()
         {
-            if (string.IsNullOrEmpty(tbChatInput.Text))
-                return;
+            try
+            {
+                if (string.IsNullOrEmpty(tbChatInput.Text))
+                    return;
 
-            SendChatMessage(tbChatInput.Text);
-            tbChatInput.Text = string.Empty;
+                await SendChatMessageAsync(tbChatInput.Text);
+                tbChatInput.Text = string.Empty;
+            }
+            catch (Exception ex)
+            {
+                PreStartup.HandleException(ex);
+            }
         }
 
         /// <summary>
         /// Override in a derived class to broadcast player ready statuses and the selected
         /// saved game to players.
         /// </summary>
-        protected abstract void BroadcastOptions();
+        protected abstract Task BroadcastOptionsAsync();
 
-        protected abstract void SendChatMessage(string message);
+        protected abstract Task SendChatMessageAsync(string message);
 
         public override void Draw(GameTime gameTime)
         {

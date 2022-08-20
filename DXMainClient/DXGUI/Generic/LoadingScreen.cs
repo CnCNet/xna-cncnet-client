@@ -30,8 +30,6 @@ namespace DTAClient.DXGUI.Generic
             this.mapLoader = mapLoader;
         }
 
-        private static readonly object locker = new object();
-
         private MapLoader mapLoader;
 
         private PrivateMessagingPanel privateMessagingPanel;

@@ -102,11 +102,11 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
             {
                 remoteEndPoint = new IPEndPoint(IPAddress.Loopback, gamePort);
 #if NETFRAMEWORK
-                byte[] buffer1 = new byte[1024];
+                byte[] buffer1 = new byte[128];
                 var buffer = new ArraySegment<byte>(buffer1);
 #else
-                using IMemoryOwner<byte> memoryOwner = MemoryPool<byte>.Shared.Rent(1024);
-                Memory<byte> buffer = memoryOwner.Memory[..1024];
+                using IMemoryOwner<byte> memoryOwner = MemoryPool<byte>.Shared.Rent(128);
+                Memory<byte> buffer = memoryOwner.Memory[..128];
 #endif
 
                 socket.ReceiveTimeout = Timeout;
@@ -151,7 +151,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
             }
             catch (Exception ex)
             {
-                PreStartup.LogException(ex);
+                PreStartup.HandleException(ex);
             }
         }
 

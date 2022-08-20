@@ -56,9 +56,9 @@ namespace DTAClient
 
 #if WINFORMS
             Application.SetUnhandledExceptionMode(UnhandledExceptionMode.ThrowException);
-            Application.ThreadException += (sender, args) => HandleException(sender, args.Exception);
+            Application.ThreadException += (_, args) => HandleException(args.Exception);
 #endif
-            AppDomain.CurrentDomain.UnhandledException += (sender, args) => HandleException(sender, (Exception)args.ExceptionObject);
+            AppDomain.CurrentDomain.UnhandledException += (_, args) => HandleException((Exception)args.ExceptionObject);
 
             DirectoryInfo gameDirectory = SafePath.GetDirectory(ProgramConstants.GamePath);
 
@@ -132,7 +132,7 @@ namespace DTAClient
             }
             catch (Exception ex)
             {
-                Logger.Log("Failed to load the translation file. " + ex.Message);
+                LogException(ex, "Failed to load the translation file.");
                 Translation.Instance = new Translation(UserINISettings.Instance.Translation);
             }
 
@@ -163,7 +163,7 @@ namespace DTAClient
             }
             catch (Exception ex)
             {
-                Logger.Log("Failed to generate the translation stub: " + ex.Message);
+                LogException(ex, "Failed to generate the translation stub.");
             }
 
             // Delete obsolete files from old target project versions
@@ -194,10 +194,20 @@ namespace DTAClient
             new Startup().Execute();
         }
 
-        public static void LogException(Exception ex, bool innerException = false)
+        /// <summary>
+        /// Logs all details of an exception to the logfile without further action.
+        /// </summary>
+        /// <param name="ex">The <see cref="Exception"/> to log.</param>
+        /// /// <param name="message">Optional message to accompany the error.</param>
+        public static void LogException(Exception ex, string message = null)
+        {
+            LogExceptionRecursive(ex, message);
+        }
+
+        private static void LogExceptionRecursive(Exception ex, string message = null, bool innerException = false)
         {
             if (!innerException)
-                Logger.Log("KABOOOOOOM!!! Info:");
+                Logger.Log(message);
             else
                 Logger.Log("InnerException info:");
 
@@ -207,13 +217,26 @@ namespace DTAClient
             Logger.Log("TargetSite.Name: " + ex.TargetSite.Name);
             Logger.Log("Stacktrace: " + ex.StackTrace);
 
-            if (ex.InnerException is not null)
-                LogException(ex.InnerException, true);
+            if (ex is AggregateException aggregateException)
+            {
+                foreach (Exception aggregateExceptionInnerException in aggregateException.InnerExceptions)
+                {
+                    LogExceptionRecursive(aggregateExceptionInnerException, null, true);
+                }
+            }
+            else if (ex.InnerException is not null)
+            {
+                LogExceptionRecursive(ex.InnerException, null, true);
+            }
         }
 
-        static void HandleException(object sender, Exception ex)
+        /// <summary>
+        /// Logs all details of an exception to the logfile, notifies the user, and exits the application.
+        /// </summary>
+        /// <param name="ex">The <see cref="Exception"/> to log.</param>
+        public static void HandleException(Exception ex)
         {
-            LogException(ex);
+            LogExceptionRecursive(ex, "KABOOOOOOM!!! Info:");
 
             string errorLogPath = SafePath.CombineFilePath(ProgramConstants.ClientUserFilesPath, "ClientCrashLogs", FormattableString.Invariant($"ClientCrashLog{DateTime.Now.ToString("_yyyy_MM_dd_HH_mm")}.txt"));
             bool crashLogCopied = false;

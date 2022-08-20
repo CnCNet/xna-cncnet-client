@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Threading.Tasks;
 using ClientCore;
 using ClientCore.Extensions;
 using ClientGUI;
@@ -72,12 +73,12 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             toggleIgnoreItem = new XNAContextMenuItem()
             {
                 Text = BLOCK,
-                SelectAction = () => GetIrcUserIdent(cncnetUserData.ToggleIgnoreUser)
+                SelectAction = () => GetIrcUserIdentAsync(cncnetUserData.ToggleIgnoreUser)
             };
             invitePlayerItem = new XNAContextMenuItem()
             {
                 Text = INVITE,
-                SelectAction = Invite
+                SelectAction = () => InviteAsync()
             };
             joinPlayerItem = new XNAContextMenuItem()
             {
@@ -104,24 +105,31 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             AddItem(openLinkItem);
         }
 
-        private void Invite()
+        private async Task InviteAsync()
         {
-            // note it's assumed that if the channel name is specified, the game name must be also
-            if (string.IsNullOrEmpty(contextMenuData.inviteChannelName) || ProgramConstants.IsInGame)
+            try
             {
-                return;
+                // note it's assumed that if the channel name is specified, the game name must be also
+                if (string.IsNullOrEmpty(contextMenuData.inviteChannelName) || ProgramConstants.IsInGame)
+                {
+                    return;
+                }
+
+                string messageBody = ProgramConstants.GAME_INVITE_CTCP_COMMAND + " " + contextMenuData.inviteChannelName + ";" + contextMenuData.inviteGameName;
+
+                if (!string.IsNullOrEmpty(contextMenuData.inviteChannelPassword))
+                {
+                    messageBody += ";" + contextMenuData.inviteChannelPassword;
+                }
+
+                await connectionManager.SendCustomMessageAsync(new QueuedMessage(
+                    "PRIVMSG " + GetIrcUser().Name + " :\u0001" + messageBody + "\u0001", QueuedMessageType.CHAT_MESSAGE, 0
+                ));
             }
-
-            string messageBody = ProgramConstants.GAME_INVITE_CTCP_COMMAND + " " + contextMenuData.inviteChannelName + ";" + contextMenuData.inviteGameName;
-
-            if (!string.IsNullOrEmpty(contextMenuData.inviteChannelPassword))
+            catch (Exception ex)
             {
-                messageBody += ";" + contextMenuData.inviteChannelPassword;
+                PreStartup.HandleException(ex);
             }
-
-            connectionManager.SendCustomMessage(new QueuedMessage(
-                "PRIVMSG " + GetIrcUser().Name + " :\u0001" + messageBody + "\u0001", QueuedMessageType.CHAT_MESSAGE, 0
-            ));
         }
 
         private void UpdateButtons()
@@ -185,25 +193,32 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             }
         }
 
-        private void GetIrcUserIdent(Action<string> callback)
+        private async Task GetIrcUserIdentAsync(Action<string> callback)
         {
-            var ircUser = GetIrcUser();
-
-            if (!string.IsNullOrEmpty(ircUser.Ident))
+            try
             {
-                callback.Invoke(ircUser.Ident);
-                return;
-            }
+                var ircUser = GetIrcUser();
 
-            void WhoIsReply(object sender, WhoEventArgs whoEventargs)
+                if (!string.IsNullOrEmpty(ircUser.Ident))
+                {
+                    callback.Invoke(ircUser.Ident);
+                    return;
+                }
+
+                void WhoIsReply(object sender, WhoEventArgs whoEventargs)
+                {
+                    ircUser.Ident = whoEventargs.Ident;
+                    callback.Invoke(whoEventargs.Ident);
+                    connectionManager.WhoReplyReceived -= WhoIsReply;
+                }
+
+                connectionManager.WhoReplyReceived += WhoIsReply;
+                await connectionManager.SendWhoIsMessageAsync(ircUser.Name);
+            }
+            catch (Exception ex)
             {
-                ircUser.Ident = whoEventargs.Ident;
-                callback.Invoke(whoEventargs.Ident);
-                connectionManager.WhoReplyReceived -= WhoIsReply;
+                PreStartup.HandleException(ex);
             }
-
-            connectionManager.WhoReplyReceived += WhoIsReply;
-            connectionManager.SendWhoIsMessage(ircUser.Name);
         }
 
         private IRCUser GetIrcUser()

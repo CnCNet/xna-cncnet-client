@@ -30,11 +30,6 @@ namespace DTAClient.Domain.Multiplayer
         public GameModeMapCollection GameModeMaps;
 
         /// <summary>
-        /// An event that is fired when the maps have been loaded.
-        /// </summary>
-        public event EventHandler MapLoadingComplete;
-
-        /// <summary>
         /// A list of game mode aliases.
         /// Every game mode entry that exists in this dictionary will get
         /// replaced by the game mode entries of the value string array
@@ -56,11 +51,6 @@ namespace DTAClient.Domain.Multiplayer
         private string[] AllowedGameModes = ClientConfiguration.Instance.AllowedCustomGameModes.Split(',');
 
         /// <summary>
-        /// Loads multiplayer map info asynchonously.
-        /// </summary>
-        public Task LoadMapsAsync() => Task.Run(LoadMaps);
-
-        /// <summary>
         /// Load maps based on INI info as well as those in the custom maps directory.
         /// </summary>
         public void LoadMaps()
@@ -78,8 +68,6 @@ namespace DTAClient.Domain.Multiplayer
 
             GameModes.RemoveAll(g => g.Maps.Count < 1);
             GameModeMaps = new GameModeMapCollection(GameModes);
-
-            MapLoadingComplete?.Invoke(this, EventArgs.Empty);
         }
 
         private void LoadMultiMaps(IniFile mpMapsIni)

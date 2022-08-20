@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace DTAClient.Online
 {
@@ -24,8 +25,6 @@ namespace DTAClient.Online
         // thread, so if they affect anything in the UI or affect data that the 
         // UI thread might be reading, use WindowManager.AddCallback to execute a function
         // on the UI thread instead of modifying the data or raising events directly.
-
-        public delegate void UserListDelegate(string channelName, string[] userNames);
 
         public event EventHandler<ServerMessageEventArgs> WelcomeMessageReceived;
         public event EventHandler<UserAwayEventArgs> AwayMessageReceived;
@@ -79,7 +78,7 @@ namespace DTAClient.Online
 
         public Channel MainChannel { get; private set; }
 
-        private bool connected = false;
+        private bool connected;
 
         /// <summary>
         /// Gets a value that determines whether the client is 
@@ -111,13 +110,6 @@ namespace DTAClient.Online
         private IRCColor[] ircChatColors;
 
         private WindowManager wm;
-
-        private bool disconnect = false;
-
-        public bool IsCnCNetInitialized()
-        {
-            return Connection.IsIdSet();
-        }
 
         /// <summary>
         /// Factory method for creating a new channel.
@@ -155,27 +147,19 @@ namespace DTAClient.Online
             return ircChatColors;
         }
 
-        public void LeaveFromChannel(Channel channel)
-        {
-            connection.QueueMessage(QueuedMessageType.SYSTEM_MESSAGE, 10, "PART " + channel.ChannelName);
-
-            if (!channel.Persistent)
-                channels.Remove(channel);
-        }
-
         public void SetMainChannel(Channel channel)
         {
             MainChannel = channel;
         }
 
-        public void SendCustomMessage(QueuedMessage qm)
+        public Task SendCustomMessageAsync(QueuedMessage qm)
         {
-            connection.QueueMessage(qm);
+            return connection.QueueMessageAsync(qm);
         }
 
-        public void SendWhoIsMessage(string nick)
+        public Task SendWhoIsMessageAsync(string nick)
         {
-            SendCustomMessage(new QueuedMessage($"WHOIS {nick}", QueuedMessageType.WHOIS_MESSAGE, 0));
+            return SendCustomMessageAsync(new QueuedMessage($"WHOIS {nick}", QueuedMessageType.WHOIS_MESSAGE, 0));
         }
 
         public void OnAttemptedServerChanged(string serverName)
@@ -183,7 +167,7 @@ namespace DTAClient.Online
             // AddCallback is necessary for thread-safety; OnAttemptedServerChanged
             // is called by the networking thread, and AddCallback schedules DoAttemptedServerChanged
             // to be executed on the main (UI) thread.
-            wm.AddCallback(new Action<string>(DoAttemptedServerChanged), serverName);
+            wm.AddCallback(DoAttemptedServerChanged, serverName);
         }
 
         private void DoAttemptedServerChanged(string serverName)
@@ -195,7 +179,7 @@ namespace DTAClient.Online
 
         public void OnAwayMessageReceived(string userName, string reason)
         {
-            wm.AddCallback(new Action<string, string>(DoAwayMessageReceived), userName, reason);
+            wm.AddCallback(DoAwayMessageReceived, userName, reason);
         }
 
         private void DoAwayMessageReceived(string userName, string reason)
@@ -205,7 +189,7 @@ namespace DTAClient.Online
 
         public void OnChannelFull(string channelName)
         {
-            wm.AddCallback(new Action<string>(DoChannelFull), channelName);
+            wm.AddCallback(DoChannelFull, channelName);
         }
 
         private void DoChannelFull(string channelName)
@@ -218,7 +202,7 @@ namespace DTAClient.Online
 
         public void OnTargetChangeTooFast(string channelName, string message)
         {
-            wm.AddCallback(new Action<string, string>(DoTargetChangeTooFast), channelName, message);
+            wm.AddCallback(DoTargetChangeTooFast, channelName, message);
         }
 
         private void DoTargetChangeTooFast(string channelName, string message)
@@ -231,7 +215,7 @@ namespace DTAClient.Online
 
         public void OnChannelInviteOnly(string channelName)
         {
-            wm.AddCallback(new Action<string>(DoChannelInviteOnly), channelName);
+            wm.AddCallback(DoChannelInviteOnly, channelName);
         }
 
         private void DoChannelInviteOnly(string channelName)
@@ -244,8 +228,7 @@ namespace DTAClient.Online
 
         public void OnChannelModesChanged(string userName, string channelName, string modeString, List<string> modeParameters)
         {
-            wm.AddCallback(new Action<string, string, string, List<string>>(DoChannelModesChanged),
-                userName, channelName, modeString, modeParameters);
+            wm.AddCallback(DoChannelModesChanged, userName, channelName, modeString, modeParameters);
         }
 
         private void DoChannelModesChanged(string userName, string channelName, string modeString, List<string> modeParameters)
@@ -291,7 +274,7 @@ namespace DTAClient.Online
 
         public void OnChannelTopicReceived(string channelName, string topic)
         {
-            wm.AddCallback(new Action<string, string>(DoChannelTopicReceived), channelName, topic);
+            wm.AddCallback(DoChannelTopicReceived, channelName, topic);
         }
 
         private void DoChannelTopicReceived(string channelName, string topic)
@@ -306,13 +289,12 @@ namespace DTAClient.Online
 
         public void OnChannelTopicChanged(string userName, string channelName, string topic)
         {
-            wm.AddCallback(new Action<string, string>(DoChannelTopicReceived), channelName, topic);
+            wm.AddCallback(DoChannelTopicReceived, channelName, topic);
         }
 
         public void OnChatMessageReceived(string receiver, string senderName, string ident, string message)
         {
-            wm.AddCallback(new Action<string, string, string, string>(DoChatMessageReceived),
-                receiver, senderName, ident, message);
+            wm.AddCallback(DoChatMessageReceived, receiver, senderName, ident, message);
         }
 
         private void DoChatMessageReceived(string receiver, string senderName, string ident, string message)
@@ -375,8 +357,7 @@ namespace DTAClient.Online
 
         public void OnCTCPParsed(string channelName, string userName, string message)
         {
-            wm.AddCallback(new Action<string, string, string>(DoCTCPParsed),
-                channelName, userName, message);
+            wm.AddCallback(DoCTCPParsed, channelName, userName, message);
         }
 
         private void DoCTCPParsed(string channelName, string userName, string message)
@@ -402,7 +383,7 @@ namespace DTAClient.Online
 
         public void OnConnectAttemptFailed()
         {
-            wm.AddCallback(new Action(DoConnectAttemptFailed), null);
+            wm.AddCallback(DoConnectAttemptFailed, null);
         }
 
         private void DoConnectAttemptFailed()
@@ -414,7 +395,7 @@ namespace DTAClient.Online
 
         public void OnConnected()
         {
-            wm.AddCallback(new Action(DoConnected), null);
+            wm.AddCallback(DoConnected, null);
         }
 
         private void DoConnected()
@@ -427,10 +408,9 @@ namespace DTAClient.Online
         /// <summary>
         /// Called when the connection has got cut un-intentionally.
         /// </summary>
-        /// <param name="reason"></param>
         public void OnConnectionLost(string reason)
         {
-            wm.AddCallback(new Action<string>(DoConnectionLost), reason);
+            wm.AddCallback(DoConnectionLost, reason);
         }
 
         private void DoConnectionLost(string reason)
@@ -459,10 +439,9 @@ namespace DTAClient.Online
         /// <summary>
         /// Disconnects from CnCNet.
         /// </summary>
-        public void Disconnect()
+        public async Task DisconnectAsync()
         {
-            connection.Disconnect();
-            disconnect = true;
+            await connection.DisconnectAsync();
         }
 
         /// <summary>
@@ -470,7 +449,6 @@ namespace DTAClient.Online
         /// </summary>
         public void Connect()
         {
-            disconnect = false;
             MainChannel.AddMessage(new ChatMessage("Connecting to CnCNet...".L10N("Client:Main:ConnectingToCncNet")));
             connection.ConnectAsync();
         }
@@ -480,7 +458,7 @@ namespace DTAClient.Online
         /// </summary>
         public void OnDisconnected()
         {
-            wm.AddCallback(new Action(DoDisconnected), null);
+            wm.AddCallback(DoDisconnected, null);
         }
 
         private void DoDisconnected()
@@ -513,7 +491,7 @@ namespace DTAClient.Online
 
         public void OnGenericServerMessageReceived(string message)
         {
-            wm.AddCallback(new Action<string>(DoGenericServerMessageReceived), message);
+            wm.AddCallback(DoGenericServerMessageReceived, message);
         }
 
         private void DoGenericServerMessageReceived(string message)
@@ -523,7 +501,7 @@ namespace DTAClient.Online
 
         public void OnIncorrectChannelPassword(string channelName)
         {
-            wm.AddCallback(new Action<string>(DoIncorrectChannelPassword), channelName);
+            wm.AddCallback(DoIncorrectChannelPassword, channelName);
         }
 
         private void DoIncorrectChannelPassword(string channelName)
@@ -540,8 +518,7 @@ namespace DTAClient.Online
 
         public void OnPrivateMessageReceived(string sender, string message)
         {
-            wm.AddCallback(new Action<string, string>(DoPrivateMessageReceived),
-                sender, message);
+            wm.AddCallback(DoPrivateMessageReceived, sender, message);
         }
 
         private void DoPrivateMessageReceived(string sender, string message)
@@ -553,7 +530,7 @@ namespace DTAClient.Online
 
         public void OnReconnectAttempt()
         {
-            wm.AddCallback(new Action(DoReconnectAttempt), null);
+            wm.AddCallback(DoReconnectAttempt, null);
         }
 
         private void DoReconnectAttempt()
@@ -567,62 +544,66 @@ namespace DTAClient.Online
 
         public void OnUserJoinedChannel(string channelName, string host, string userName, string ident)
         {
-            wm.AddCallback(new Action<string, string, string, string>(DoUserJoinedChannel),
-                channelName, host, userName, ident);
+            wm.AddCallback(DoUserJoinedChannelAsync, channelName, host, userName, ident);
         }
 
-        private void DoUserJoinedChannel(string channelName, string host, string userName, string userAddress)
+        private async Task DoUserJoinedChannelAsync(string channelName, string host, string userName, string userAddress)
         {
-            Channel channel = FindChannel(channelName);
-
-            if (channel == null)
-                return;
-
-            bool isAdmin = false;
-            string name = userName;
-
-            if (userName.StartsWith("@"))
+            try
             {
-                isAdmin = true;
-                name = userName.Remove(0, 1);
-            }
+                Channel channel = FindChannel(channelName);
 
-            IRCUser ircUser = null;
+                if (channel == null)
+                    return;
 
-            // Check if we already know this user from another channel
-            // Avoid LINQ here for performance reasons
-            foreach (var user in UserList)
-            {
-                if (user.Name == name)
+                bool isAdmin = false;
+                string name = userName;
+
+                if (userName.StartsWith("@"))
                 {
-                    ircUser = (IRCUser)user.Clone();
-                    break;
-                }
-            }
-
-            // If we don't know the user, create a new one
-            if (ircUser == null)
-            {
-                string identifier = userAddress.Split('@')[0];
-                string[] parts = identifier.Split('.');
-                ircUser = new IRCUser(name, identifier, host);
-
-                if (parts.Length > 1)
-                {
-                    ircUser.GameID = gameCollection.GameList.FindIndex(g => g.InternalName.ToUpper() == parts[0].Replace("~", string.Empty));
+                    isAdmin = true;
+                    name = userName.Remove(0, 1);
                 }
 
-                AddUserToGlobalUserList(ircUser);
+                IRCUser ircUser = null;
+
+                // Check if we already know this user from another channel
+                // Avoid LINQ here for performance reasons
+                foreach (var user in UserList)
+                {
+                    if (user.Name == name)
+                    {
+                        ircUser = (IRCUser)user.Clone();
+                        break;
+                    }
+                }
+
+                // If we don't know the user, create a new one
+                if (ircUser == null)
+                {
+                    string identifier = userAddress.Split('@')[0];
+                    string[] parts = identifier.Split('.');
+                    ircUser = new IRCUser(name, identifier, host);
+
+                    if (parts.Length > 1)
+                    {
+                        ircUser.GameID = gameCollection.GameList.FindIndex(g => g.InternalName.ToUpper() == parts[0].Replace("~", string.Empty));
+                    }
+
+                    AddUserToGlobalUserList(ircUser);
+                }
+
+                var channelUser = new ChannelUser(ircUser);
+                channelUser.IsAdmin = isAdmin;
+                channelUser.IsFriend = cncNetUserData.IsFriend(channelUser.IRCUser.Name);
+
+                ircUser.Channels.Add(channelName);
+                await channel.OnUserJoinedAsync(channelUser);
             }
-
-            var channelUser = new ChannelUser(ircUser);
-            channelUser.IsAdmin = isAdmin;
-            channelUser.IsFriend = cncNetUserData.IsFriend(channelUser.IRCUser.Name);
-
-            ircUser.Channels.Add(channelName);
-            channel.OnUserJoined(channelUser);
-
-            //UserJoinedChannel?.Invoke(this, new ChannelUserEventArgs(channelName, userName));
+            catch (Exception ex)
+            {
+                PreStartup.HandleException(ex);
+            }
         }
 
         private void AddUserToGlobalUserList(IRCUser user)
@@ -634,8 +615,7 @@ namespace DTAClient.Online
 
         public void OnUserKicked(string channelName, string userName)
         {
-            wm.AddCallback(new Action<string, string>(DoUserKicked),
-                channelName, userName);
+            wm.AddCallback(DoUserKicked, channelName, userName);
         }
 
         private void DoUserKicked(string channelName, string userName)
@@ -666,8 +646,7 @@ namespace DTAClient.Online
 
         public void OnUserLeftChannel(string channelName, string userName)
         {
-            wm.AddCallback(new Action<string, string>(DoUserLeftChannel),
-                channelName, userName);
+            wm.AddCallback(DoUserLeftChannel, channelName, userName);
         }
 
         private void DoUserLeftChannel(string channelName, string userName)
@@ -722,8 +701,7 @@ namespace DTAClient.Online
 
         public void OnUserListReceived(string channelName, string[] userList)
         {
-            wm.AddCallback(new UserListDelegate(DoUserListReceived),
-                channelName, userList);
+            wm.AddCallback(DoUserListReceived, channelName, userList);
         }
 
         private void DoUserListReceived(string channelName, string[] userList)
@@ -774,7 +752,7 @@ namespace DTAClient.Online
 
         public void OnUserQuitIRC(string userName)
         {
-            wm.AddCallback(new Action<string>(DoUserQuitIRC), userName);
+            wm.AddCallback(DoUserQuitIRC, userName);
         }
 
         private void DoUserQuitIRC(string userName)
@@ -792,7 +770,7 @@ namespace DTAClient.Online
 
         public void OnWelcomeMessageReceived(string message)
         {
-            wm.AddCallback(new Action<string>(DoWelcomeMessageReceived), message);
+            wm.AddCallback(DoWelcomeMessageReceived, message);
         }
 
 
@@ -823,8 +801,7 @@ namespace DTAClient.Online
 
         public void OnWhoReplyReceived(string ident, string hostName, string userName, string extraInfo)
         {
-            wm.AddCallback(new Action<string, string, string, string>(DoWhoReplyReceived),
-                ident, hostName, userName, extraInfo);
+            wm.AddCallback(DoWhoReplyReceived, ident, hostName, userName, extraInfo);
         }
 
         private void DoWhoReplyReceived(string ident, string hostName, string userName, string extraInfo)
@@ -859,14 +836,9 @@ namespace DTAClient.Online
             }
         }
 
-        public bool GetDisconnectStatus()
-        {
-            return disconnect;
-        }
-
         public void OnNameAlreadyInUse()
         {
-            wm.AddCallback(new Action(DoNameAlreadyInUse), null);
+            wm.AddCallback(DoNameAlreadyInUseAsync, null);
         }
 
         /// <summary>
@@ -874,43 +846,50 @@ namespace DTAClient.Online
         /// IRC user. Adds additional underscores to the name or replaces existing
         /// characters with underscores.
         /// </summary>
-        private void DoNameAlreadyInUse()
+        private async Task DoNameAlreadyInUseAsync()
         {
-            var charList = ProgramConstants.PLAYERNAME.ToList();
-            int maxNameLength = ClientConfiguration.Instance.MaxNameLength;
-
-            if (charList.Count < maxNameLength)
-                charList.Add('_');
-            else
+            try
             {
-                int lastNonUnderscoreIndex = charList.FindLastIndex(c => c != '_');
+                var charList = ProgramConstants.PLAYERNAME.ToList();
+                int maxNameLength = ClientConfiguration.Instance.MaxNameLength;
 
-                if (lastNonUnderscoreIndex == -1)
+                if (charList.Count < maxNameLength)
+                    charList.Add('_');
+                else
                 {
-                    MainChannel.AddMessage(new ChatMessage(Color.White,
-                        "Your nickname is invalid or already in use. Please change your nickname in the login screen.".L10N("Client:Main:PickAnotherNickName")));
-                    UserINISettings.Instance.SkipConnectDialog.Value = false;
-                    Disconnect();
-                    return;
+                    int lastNonUnderscoreIndex = charList.FindLastIndex(c => c != '_');
+
+                    if (lastNonUnderscoreIndex == -1)
+                    {
+                        MainChannel.AddMessage(new ChatMessage(Color.White,
+                            "Your nickname is invalid or already in use. Please change your nickname in the login screen.".L10N("Client:Main:PickAnotherNickName")));
+                        UserINISettings.Instance.SkipConnectDialog.Value = false;
+                        await DisconnectAsync();
+                        return;
+                    }
+
+                    charList[lastNonUnderscoreIndex] = '_';
                 }
 
-                charList[lastNonUnderscoreIndex] = '_';
+                var sb = new StringBuilder();
+                foreach (char c in charList)
+                    sb.Append(c);
+
+                MainChannel.AddMessage(new ChatMessage(Color.White,
+                    string.Format("Your name is already in use. Retrying with {0}...".L10N("Client:Main:NameInUseRetry"), sb)));
+
+                ProgramConstants.PLAYERNAME = sb.ToString();
+                await connection.ChangeNicknameAsync();
             }
-
-            var sb = new StringBuilder();
-            foreach (char c in charList)
-                sb.Append(c);
-
-            MainChannel.AddMessage(new ChatMessage(Color.White,
-                string.Format("Your name is already in use. Retrying with {0}...".L10N("Client:Main:NameInUseRetry"), sb.ToString())));
-
-            ProgramConstants.PLAYERNAME = sb.ToString();
-            connection.ChangeNickname();
+            catch (Exception ex)
+            {
+                PreStartup.HandleException(ex);
+            }
         }
 
         public void OnBannedFromChannel(string channelName)
         {
-            wm.AddCallback(new Action<string>(DoBannedFromChannel), channelName);
+            wm.AddCallback(DoBannedFromChannel, channelName);
         }
 
         private void DoBannedFromChannel(string channelName)
@@ -919,7 +898,7 @@ namespace DTAClient.Online
         }
 
         public void OnUserNicknameChange(string oldNickname, string newNickname)
-            => wm.AddCallback(new Action<string, string>(DoUserNicknameChange), oldNickname, newNickname);
+            => wm.AddCallback(DoUserNicknameChange, oldNickname, newNickname);
 
         private void DoUserNicknameChange(string oldNickname, string newNickname)
         {
@@ -956,17 +935,7 @@ namespace DTAClient.Online
             User = ircUser;
         }
 
-        public IRCUser User { get; private set; }
-    }
-
-    public class IndexEventArgs : EventArgs
-    {
-        public IndexEventArgs(int index)
-        {
-            Index = index;
-        }
-
-        public int Index { get; private set; }
+        public IRCUser User { get; }
     }
 
     public class UserNameChangedEventArgs : EventArgs
