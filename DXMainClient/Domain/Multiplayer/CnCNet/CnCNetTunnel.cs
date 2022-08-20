@@ -6,6 +6,7 @@ using System.Buffers;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Net;
+using System.Net.Http;
 using System.Net.Sockets;
 #if !NETFRAMEWORK
 using System.Threading;
@@ -65,15 +66,10 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
 
                 return tunnel;
             }
-            catch (Exception ex)
+            catch (Exception ex) when (ex is FormatException or OverflowException or IndexOutOfRangeException)
             {
-                if (ex is FormatException || ex is OverflowException || ex is IndexOutOfRangeException)
-                {
-                    Logger.Log("Parsing tunnel information failed: " + ex.Message + Environment.NewLine + "Parsed string: " + str);
-                    return null;
-                }
-
-                throw;
+                PreStartup.LogException(ex, "Parsing tunnel information failed: " + ex.Message + Environment.NewLine + "Parsed string: " + str);
+                return null;
             }
         }
 
@@ -110,7 +106,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
         /// Gets a list of player ports to use from a specific tunnel server.
         /// </summary>
         /// <returns>A list of player ports to use.</returns>
-        public List<int> GetPlayerPortInfo(int playerCount)
+        public async Task<List<int>> GetPlayerPortInfoAsync(int playerCount)
         {
             if (Version != Constants.TUNNEL_VERSION_2)
                 throw new InvalidOperationException("GetPlayerPortInfo only works with version 2 tunnels.");
@@ -122,28 +118,38 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                 string addressString = $"http://{Address}:{Port}/request?clients={playerCount}";
                 Logger.Log($"Downloading from {addressString}");
 
-                using (var client = new ExtendedWebClient(Constants.TUNNEL_CONNECTION_TIMEOUT))
+                var httpClientHandler = new HttpClientHandler
                 {
-                    string data = client.DownloadString(addressString);
+#if NETFRAMEWORK
+                    AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate
+#else
+                    AutomaticDecompression = DecompressionMethods.All
+#endif
+                };
+                using var client = new HttpClient(httpClientHandler, true)
+                {
+                    Timeout = TimeSpan.FromMilliseconds(Constants.TUNNEL_CONNECTION_TIMEOUT)
+                };
 
-                    data = data.Replace("[", string.Empty);
-                    data = data.Replace("]", string.Empty);
+                string data = await client.GetStringAsync(addressString);
 
-                    string[] portIDs = data.Split(',');
-                    List<int> playerPorts = new List<int>();
+                data = data.Replace("[", string.Empty);
+                data = data.Replace("]", string.Empty);
 
-                    foreach (string _port in portIDs)
-                    {
-                        playerPorts.Add(Convert.ToInt32(_port));
-                        Logger.Log($"Added port {_port}");
-                    }
+                string[] portIDs = data.Split(',');
+                List<int> playerPorts = new List<int>();
 
-                    return playerPorts;
+                foreach (string _port in portIDs)
+                {
+                    playerPorts.Add(Convert.ToInt32(_port));
+                    Logger.Log($"Added port {_port}");
                 }
+
+                return playerPorts;
             }
             catch (Exception ex)
             {
-                Logger.Log("Unable to connect to the specified tunnel server. Returned error message: " + ex.Message);
+                PreStartup.LogException(ex, "Unable to connect to the specified tunnel server. Returned error message: " + ex.Message);
             }
 
             return new List<int>();
@@ -183,7 +189,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
             }
             catch (SocketException ex)
             {
-                Logger.Log($"Failed to ping tunnel {Name} ({Address}:{Port}). Message: {ex.Message}");
+                PreStartup.LogException(ex, $"Failed to ping tunnel {Name} ({Address}:{Port}). Message: {ex.Message}");
 
                 PingInMs = -1;
             }

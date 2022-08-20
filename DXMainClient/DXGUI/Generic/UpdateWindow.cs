@@ -155,13 +155,13 @@ namespace DTAClient.DXGUI.Generic
             if (Updater.VersionState == VersionState.UNKNOWN)
             {
                 XNAMessageBox.Show(WindowManager, "Force Update Failure".L10N("UI:Main:ForceUpdateFailureTitle"), "Checking for updates failed.".L10N("UI:Main:ForceUpdateFailureText"));
-                AddCallback(new Action(CloseWindow), null);
+                AddCallback(CloseWindow);
                 return;
             }
             else if (Updater.VersionState == VersionState.OUTDATED && Updater.ManualUpdateRequired)
             {
                 UpdateCancelled?.Invoke(this, EventArgs.Empty);
-                AddCallback(new Action(CloseWindow), null);
+                AddCallback(CloseWindow);
                 return;
             }
 
@@ -172,8 +172,7 @@ namespace DTAClient.DXGUI.Generic
 
         private void Updater_LocalFileCheckProgressChanged(int checkedFileCount, int totalFileCount)
         {
-            AddCallback(new Action<int>(UpdateFileProgress),
-                (checkedFileCount * 100 / totalFileCount));
+            AddCallback(() => UpdateFileProgress(checkedFileCount * 100 / totalFileCount));
         }
 
         private void UpdateFileProgress(int value)
@@ -239,7 +238,7 @@ namespace DTAClient.DXGUI.Generic
 
         private void Updater_OnFileDownloadCompleted(string archiveName)
         {
-            AddCallback(new FileDownloadCompletedDelegate(HandleFileDownloadCompleted), archiveName);
+            AddCallback(() => HandleFileDownloadCompleted(archiveName));
         }
 
         private void HandleFileDownloadCompleted(string archiveName)
@@ -249,7 +248,7 @@ namespace DTAClient.DXGUI.Generic
 
         private void Updater_OnUpdateCompleted()
         {
-            AddCallback(new Action(HandleUpdateCompleted), null);
+            AddCallback(HandleUpdateCompleted);
         }
 
         private void HandleUpdateCompleted()
@@ -262,7 +261,7 @@ namespace DTAClient.DXGUI.Generic
 
         private void Updater_OnUpdateFailed(Exception ex)
         {
-            AddCallback(new Action<string>(HandleUpdateFailed), ex.Message);
+            AddCallback(() => HandleUpdateFailed(ex.Message));
         }
 
         private void HandleUpdateFailed(string updateFailureErrorMessage)

@@ -2,6 +2,9 @@
 using Localization;
 using Rampastring.Tools;
 using System;
+#if !NETFRAMEWORK
+using System.Buffers;
+#endif
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -29,74 +32,59 @@ namespace DTAClient.Online
             this.connectionManager = connectionManager;
         }
 
-        IConnectionManager connectionManager;
+        private readonly IConnectionManager connectionManager;
 
         /// <summary>
         /// The list of CnCNet / GameSurge IRC servers to connect to.
         /// </summary>
         private static readonly IList<Server> Servers = new List<Server>
         {
-            new Server("Burstfire.UK.EU.GameSurge.net", "GameSurge London, UK", new int[3] { 6667, 6668, 7000 }),
-            new Server("ColoCrossing.IL.US.GameSurge.net", "GameSurge Chicago, IL", new int[5] { 6660, 6666, 6667, 6668, 6669 }),
-            new Server("Gameservers.NJ.US.GameSurge.net", "GameSurge Newark, NJ", new int[7] { 6665, 6666, 6667, 6668, 6669, 7000, 8080 }),
-            new Server("Krypt.CA.US.GameSurge.net", "GameSurge Santa Ana, CA", new int[4] { 6666, 6667, 6668, 6669 }),
-            new Server("NuclearFallout.WA.US.GameSurge.net", "GameSurge Seattle, WA", new int[2] { 6667, 5960 }),
-            new Server("Portlane.SE.EU.GameSurge.net", "GameSurge Stockholm, Sweden", new int[5] { 6660, 6666, 6667, 6668, 6669 }),
-            new Server("Prothid.NY.US.GameSurge.Net", "GameSurge NYC, NY", new int[7] { 5960, 6660, 6666, 6667, 6668, 6669, 6697 }),
-            new Server("TAL.DE.EU.GameSurge.net", "GameSurge Wuppertal, Germany", new int[5] { 6660, 6666, 6667, 6668, 6669 }),
-            new Server("208.167.237.120", "GameSurge IP 208.167.237.120", new int[7] {  6660, 6666, 6667, 6668, 6669, 7000, 8080 }),
-            new Server("192.223.27.109", "GameSurge IP 192.223.27.109", new int[7] {  6660, 6666, 6667, 6668, 6669, 7000, 8080 }),
-            new Server("108.174.48.100", "GameSurge IP 108.174.48.100", new int[7] { 6660, 6666, 6667, 6668, 6669, 7000, 8080 }),
-            new Server("208.146.35.105", "GameSurge IP 208.146.35.105", new int[7] { 6660, 6666, 6667, 6668, 6669, 7000, 8080 }),
-            new Server("195.8.250.180", "GameSurge IP 195.8.250.180", new int[7] { 6660, 6666, 6667, 6668, 6669, 7000, 8080 }),
-            new Server("91.217.189.76", "GameSurge IP 91.217.189.76", new int[7] { 6660, 6666, 6667, 6668, 6669, 7000, 8080 }),
-            new Server("195.68.206.250", "GameSurge IP 195.68.206.250", new int[7] { 6660, 6666, 6667, 6668, 6669, 7000, 8080 }),
-            new Server("irc.gamesurge.net", "GameSurge", new int[1] { 6667 }),
+            new("Burstfire.UK.EU.GameSurge.net", "GameSurge London, UK", new[] { 6667, 6668, 7000 }),
+            new("ColoCrossing.IL.US.GameSurge.net", "GameSurge Chicago, IL", new[] { 6660, 6666, 6667, 6668, 6669 }),
+            new("Gameservers.NJ.US.GameSurge.net", "GameSurge Newark, NJ", new[] { 6665, 6666, 6667, 6668, 6669, 7000, 8080 }),
+            new("Krypt.CA.US.GameSurge.net", "GameSurge Santa Ana, CA",new[] { 6666, 6667, 6668, 6669 }),
+            new("NuclearFallout.WA.US.GameSurge.net", "GameSurge Seattle, WA", new[] { 6667, 5960 }),
+            new("Portlane.SE.EU.GameSurge.net", "GameSurge Stockholm, Sweden", new[] { 6660, 6666, 6667, 6668, 6669 }),
+            new("Prothid.NY.US.GameSurge.Net", "GameSurge NYC, NY", new[] { 5960, 6660, 6666, 6667, 6668, 6669, 6697 }),
+            new("TAL.DE.EU.GameSurge.net", "GameSurge Wuppertal, Germany", new[] { 6660, 6666, 6667, 6668, 6669 }),
+            new("208.167.237.120", "GameSurge IP 208.167.237.120", new[] {  6660, 6666, 6667, 6668, 6669, 7000, 8080 }),
+            new("192.223.27.109", "GameSurge IP 192.223.27.109", new[] {  6660, 6666, 6667, 6668, 6669, 7000, 8080 }),
+            new("108.174.48.100", "GameSurge IP 108.174.48.100", new[] { 6660, 6666, 6667, 6668, 6669, 7000, 8080 }),
+            new("208.146.35.105", "GameSurge IP 208.146.35.105", new[] { 6660, 6666, 6667, 6668, 6669, 7000, 8080 }),
+            new("195.8.250.180", "GameSurge IP 195.8.250.180", new[] { 6660, 6666, 6667, 6668, 6669, 7000, 8080 }),
+            new("91.217.189.76", "GameSurge IP 91.217.189.76", new[] { 6660, 6666, 6667, 6668, 6669, 7000, 8080 }),
+            new("195.68.206.250", "GameSurge IP 195.68.206.250", new[] { 6660, 6666, 6667, 6668, 6669, 7000, 8080 }),
+            new("irc.gamesurge.net", "GameSurge", new[] { 6667 }),
         }.AsReadOnly();
 
-        bool _isConnected = false;
+        bool _isConnected;
         public bool IsConnected
         {
             get { return _isConnected; }
         }
 
-        bool _attemptingConnection = false;
+        bool _attemptingConnection;
         public bool AttemptingConnection
         {
             get { return _attemptingConnection; }
         }
 
-        Random _rng = new Random();
+        Random _rng = new();
         public Random Rng
         {
             get { return _rng; }
         }
 
-        private List<QueuedMessage> MessageQueue = new List<QueuedMessage>();
+        private List<QueuedMessage> MessageQueue = new();
         private TimeSpan MessageQueueDelay;
 
-        private NetworkStream serverStream;
-        private TcpClient tcpClient;
+        private Socket socket;
 
-        volatile int reconnectCount = 0;
+        volatile int reconnectCount;
 
-        private volatile bool connectionCut = false;
-        private volatile bool welcomeMessageReceived = false;
-        private volatile bool sendQueueExited = false;
-        bool _disconnect = false;
-        private bool disconnect
-        {
-            get
-            {
-                lock (locker)
-                    return _disconnect;
-            }
-            set
-            {
-                lock (locker)
-                    _disconnect = value;
-            }
-        }
+        private volatile bool connectionCut;
+        private volatile bool welcomeMessageReceived;
+        private volatile bool sendQueueExited;
 
         private string overMessage;
 
@@ -108,15 +96,14 @@ namespace DTAClient.Online
         /// prevent a server that first accepts a connection and then drops it
         /// right afterwards from preventing online play.
         /// </summary>
-        private readonly List<string> failedServerIPs = new List<string>();
+        private readonly List<string> failedServerIPs = new();
         private volatile string currentConnectedServerIP;
 
-        private static readonly object locker = new object();
-        private static readonly object messageQueueLocker = new object();
+        private static readonly SemaphoreSlim messageQueueLocker = new(1, 1);
 
-        private static bool idSet = false;
         private static string systemId;
-        private static readonly object idLocker = new object();
+        private static readonly object idLocker = new();
+        private CancellationTokenSource cancellationTokenSource;
 
         public static void SetId(string id)
         {
@@ -124,15 +111,6 @@ namespace DTAClient.Online
             {
                 int maxLength = ID_LENGTH - (ClientConfiguration.Instance.LocalGame.Length + 1);
                 systemId = Utilities.CalculateSHA1ForString(id).Substring(0, maxLength);
-                idSet = true;
-            }
-        }
-
-        public static bool IsIdSet()
-        {
-            lock (idLocker)
-            {
-                return idSet;
             }
         }
 
@@ -150,109 +128,147 @@ namespace DTAClient.Online
             welcomeMessageReceived = false;
             connectionCut = false;
             _attemptingConnection = true;
-            disconnect = false;
 
             MessageQueueDelay = TimeSpan.FromMilliseconds(ClientConfiguration.Instance.SendSleep);
 
-            Thread connection = new Thread(ConnectToServer);
-            connection.Start();
+            cancellationTokenSource?.Dispose();
+            cancellationTokenSource = new CancellationTokenSource();
+
+            ConnectToServerAsync(cancellationTokenSource.Token);
         }
 
         /// <summary>
         /// Attempts to connect to CnCNet.
         /// </summary>
-        private void ConnectToServer()
+        private async Task ConnectToServerAsync(CancellationToken cancellationToken)
         {
-            IList<Server> sortedServerList = GetServerListSortedByLatency();
-
-            foreach (Server server in sortedServerList)
+            try
             {
-                try
+                IList<Server> sortedServerList = await GetServerListSortedByLatencyAsync();
+
+                foreach (Server server in sortedServerList)
                 {
-                    for (int i = 0; i < server.Ports.Length; i++)
+                    try
                     {
-                        connectionManager.OnAttemptedServerChanged(server.Name);
-
-                        TcpClient client = new TcpClient(AddressFamily.InterNetwork);
-                        var result = client.BeginConnect(server.Host, server.Ports[i], null, null);
-                        result.AsyncWaitHandle.WaitOne(TimeSpan.FromSeconds(3), false);
-
-                        Logger.Log("Attempting connection to " + server.Host + ":" + server.Ports[i]);
-
-                        if (!client.Connected)
+                        foreach (int port in server.Ports)
                         {
-                            Logger.Log("Connecting to " + server.Host + " port " + server.Ports[i] + " timed out!");
-                            continue; // Start all over again, using the next port
+                            connectionManager.OnAttemptedServerChanged(server.Name);
+
+                            var client = new Socket(SocketType.Stream, ProtocolType.Tcp)
+                            {
+                                ReceiveTimeout = 1000
+                            };
+
+                            Logger.Log("Attempting connection to " + server.Host + ":" + port);
+
+#if NETFRAMEWORK
+                            IAsyncResult result = client.BeginConnect(server.Host, port, null, null);
+                            result.AsyncWaitHandle.WaitOne(TimeSpan.FromSeconds(3), false);
+#else
+                            try
+                            {
+                                await client.ConnectAsync(new IPEndPoint(IPAddress.Parse(server.Host), port),
+                                    new CancellationTokenSource(TimeSpan.FromSeconds(3)).Token);
+                            }
+                            catch (OperationCanceledException)
+                            { }
+#endif
+
+                            if (!client.Connected)
+                            {
+                                Logger.Log("Connecting to " + server.Host + " port " + port + " timed out!");
+                                continue; // Start all over again, using the next port
+                            }
+
+                            Logger.Log("Succesfully connected to " + server.Host + " on port " + port);
+#if NETFRAMEWORK
+                            client.EndConnect(result);
+#endif
+
+                            _isConnected = true;
+                            _attemptingConnection = false;
+
+                            connectionManager.OnConnected();
+
+                            RunSendQueueAsync(cancellationToken);
+
+                            socket?.Dispose();
+                            socket = client;
+
+                            currentConnectedServerIP = server.Host;
+                            await HandleCommAsync(cancellationToken);
+                            return;
                         }
-
-                        Logger.Log("Succesfully connected to " + server.Host + " on port " + server.Ports[i]);
-                        client.EndConnect(result);
-
-                        _isConnected = true;
-                        _attemptingConnection = false;
-
-                        connectionManager.OnConnected();
-
-                        Thread sendQueueHandler = new Thread(RunSendQueue);
-                        sendQueueHandler.Start();
-
-                        tcpClient = client;
-                        serverStream = tcpClient.GetStream();
-                        serverStream.ReadTimeout = 1000;
-
-                        currentConnectedServerIP = server.Host;
-                        HandleComm();
-                        return;
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        throw;
+                    }
+                    catch (Exception ex)
+                    {
+                        PreStartup.LogException(ex, "Unable to connect to the server.");
                     }
                 }
-                catch (Exception ex)
-                {
-                    Logger.Log("Unable to connect to the server. " + ex.Message);
-                }
-            }
 
-            Logger.Log("Connecting to CnCNet failed!");
-            // Clear the failed server list in case connecting to all servers has failed
-            failedServerIPs.Clear();
-            _attemptingConnection = false;
-            connectionManager.OnConnectAttemptFailed();
+                Logger.Log("Connecting to CnCNet failed!");
+                // Clear the failed server list in case connecting to all servers has failed
+                failedServerIPs.Clear();
+                _attemptingConnection = false;
+                connectionManager.OnConnectAttemptFailed();
+            }
+            catch (OperationCanceledException)
+            {
+            }
+            catch (Exception ex)
+            {
+                PreStartup.HandleException(ex);
+            }
         }
 
-        private void HandleComm()
+        private async Task HandleCommAsync(CancellationToken cancellationToken)
         {
             int errorTimes = 0;
-            byte[] message = new byte[1024];
+#if NETFRAMEWORK
+            byte[] message1 = new byte[1024];
+            var message = new ArraySegment<byte>(message1);
+#else
+            using IMemoryOwner<byte> memoryOwner = MemoryPool<byte>.Shared.Rent(1024);
+            Memory<byte> message = memoryOwner.Memory[..1024];
+#endif
 
-            Register();
+            await RegisterAsync();
 
-            Timer timer = new Timer(AutoPing, null, 30000, 120000);
+            var timer = new System.Timers.Timer(120000)
+            {
+                Enabled = true
+            };
+
+            timer.Elapsed += (_, _) => AutoPingAsync();
 
             connectionCut = true;
 
-            while (true)
+            while (!cancellationToken.IsCancellationRequested)
             {
-                if (connectionManager.GetDisconnectStatus())
+                int bytesRead;
+
+                try
+                {
+#if NETFRAMEWORK
+                    bytesRead = await socket.ReceiveAsync(message, SocketFlags.None);
+                }
+#else
+                    bytesRead = await socket.ReceiveAsync(message, SocketFlags.None, cancellationToken);
+                }
+                catch (OperationCanceledException)
                 {
                     connectionManager.OnDisconnected();
                     connectionCut = false; // This disconnect is intentional
                     break;
                 }
-
-                if (!serverStream.DataAvailable)
-                {
-                    Thread.Sleep(10);
-                    continue;
-                }
-
-                int bytesRead;
-
-                try
-                {
-                    bytesRead = serverStream.Read(message, 0, 1024);
-                }
+#endif
                 catch (Exception ex)
                 {
-                    Logger.Log("Disconnected from CnCNet due to a socket error. Message: " + ex.Message);
+                    PreStartup.LogException(ex, "Disconnected from CnCNet due to a socket error.");
                     errorTimes++;
 
                     if (errorTimes > MAX_RECONNECT_COUNT)
@@ -269,24 +285,36 @@ namespace DTAClient.Online
 
                 errorTimes = 0;
 
-                // A message has been succesfully received
-                string msg = encoding.GetString(message, 0, bytesRead);
+                // A message has been successfully received
+#if NETFRAMEWORK
+                string msg = encoding.GetString(message1, 0, bytesRead);
+#else
+                string msg = encoding.GetString(message.Span[..bytesRead]);
+#endif
+
                 Logger.Log("Message received: " + msg);
 
-                HandleMessage(msg);
-                timer.Change(30000, 30000);
+                await HandleMessageAsync(msg);
+                timer.Interval = 30000;
             }
 
-            timer.Change(Timeout.Infinite, Timeout.Infinite);
+#if NETFRAMEWORK
+            if (cancellationToken.IsCancellationRequested)
+            {
+                connectionManager.OnDisconnected();
+                connectionCut = false; // This disconnect is intentional
+            }
+
+#endif
+            timer.Enabled = false;
             timer.Dispose();
 
             _isConnected = false;
-            disconnect = false;
 
             if (connectionCut)
             {
                 while (!sendQueueExited)
-                    Thread.Sleep(100);
+                    await Task.Delay(100);
 
                 reconnectCount++;
 
@@ -296,7 +324,7 @@ namespace DTAClient.Online
                     return;
                 }
 
-                Thread.Sleep(RECONNECT_WAIT_DELAY);
+                await Task.Delay(RECONNECT_WAIT_DELAY);
 
                 if (IsConnected || AttemptingConnection)
                 {
@@ -315,179 +343,137 @@ namespace DTAClient.Online
         /// Servers that did not respond to ICMP messages in time will be placed at the end of the list.
         /// </summary>
         /// <returns>A list of Lobby servers sorted by latency.</returns>
-        private IList<Server> GetServerListSortedByLatency()
+        private async Task<IList<Server>> GetServerListSortedByLatencyAsync()
         {
             // Resolve the hostnames.
-            ICollection<Task<IEnumerable<Tuple<IPAddress, string, int[]>>>>
-                dnsTasks = new List<Task<IEnumerable<Tuple<IPAddress, string, int[]>>>>(Servers.Count);
-
-            foreach (Server server in Servers)
-            {
-                string serverHostnameOrIPAddress = server.Host;
-                string serverName = server.Name;
-                int[] serverPorts = server.Ports;
-
-                Task<IEnumerable<Tuple<IPAddress, string, int[]>>> dnsTask = new Task<IEnumerable<Tuple<IPAddress, string, int[]>>>(() =>
-                {
-                    Logger.Log($"Attempting to DNS resolve {serverName} ({serverHostnameOrIPAddress}).");
-                    ICollection<Tuple<IPAddress, string, int[]>> _serverInfos = new List<Tuple<IPAddress, string, int[]>>();
-
-                    try
-                    {
-                        // If hostNameOrAddress is an IP address, this address is returned without querying the DNS server.
-                        IEnumerable<IPAddress> serverIPAddresses = Dns.GetHostAddresses(serverHostnameOrIPAddress)
-                                                                      .Where(IPAddress => IPAddress.AddressFamily == AddressFamily.InterNetwork);
-
-                        Logger.Log($"DNS resolved {serverName} ({serverHostnameOrIPAddress}): " +
-                            $"{string.Join(", ", serverIPAddresses.Select(item => item.ToString()))}");
-
-                        // Store each IPAddress in a different tuple.
-                        foreach (IPAddress serverIPAddress in serverIPAddresses)
-                        {
-                            _serverInfos.Add(new Tuple<IPAddress, string, int[]>(serverIPAddress, serverName, serverPorts));
-                        }
-                    }
-                    catch (SocketException ex)
-                    {
-                        Logger.Log($"Caught an exception when DNS resolving {serverName} ({serverHostnameOrIPAddress}) Lobby server: {ex.Message}");
-                    }
-
-                    return _serverInfos;
-                });
-
-                dnsTask.Start();
-                dnsTasks.Add(dnsTask);
-            }
-
-            Task.WaitAll(dnsTasks.ToArray());
+            IEnumerable<(IPAddress IpAddress, string Name, int[] Ports)>[] servers = await Task.WhenAll(Servers.Select(ResolveServerAsync));
 
             // Group the tuples by IPAddress to merge duplicate servers.
-            IEnumerable<IGrouping<IPAddress, Tuple<string, int[]>>>
-                serverInfosGroupedByIPAddress = dnsTasks.SelectMany(dnsTask => dnsTask.Result)      // Tuple<IPAddress, serverName, serverPorts>
-                                                        .GroupBy(
-                                                            serverInfo => serverInfo.Item1,         // IPAddress
-                                                            serverInfo => new Tuple<string, int[]>(
-                                                                serverInfo.Item2,                   // serverName
-                                                                serverInfo.Item3                    // serverPorts
-                                                            )
-                                                        );
+            IEnumerable<IGrouping<IPAddress, (string Name, int[] Ports)>> serverInfosGroupedByIPAddress = servers
+                .SelectMany(server => server)
+                .GroupBy(serverInfo => serverInfo.IpAddress, serverInfo => (serverInfo.Name, serverInfo.Ports));
 
             // Process each group:
             //   1. Get IPAddress.
             //   2. Concatenate serverNames.
             //   3. Remove duplicate ports.
             //   4. Construct and return a tuple that contains the IPAddress, concatenated serverNames and unique ports.
-            IEnumerable<Tuple<IPAddress, string, int[]>> serverInfos = serverInfosGroupedByIPAddress.Select(serverInfoGroup =>
+            (IPAddress IpAddress, string Name, int[] Ports)[] serverInfos = serverInfosGroupedByIPAddress.Select(serverInfoGroup =>
             {
                 IPAddress ipAddress = serverInfoGroup.Key;
-                string serverNames = string.Join(", ", serverInfoGroup.Select(serverInfo => serverInfo.Item1));
-                int[] serverPorts = serverInfoGroup.SelectMany(serverInfo => serverInfo.Item2).Distinct().ToArray();
+                string serverNames = string.Join(", ", serverInfoGroup.Select(serverInfo => serverInfo.Name));
+                int[] serverPorts = serverInfoGroup.SelectMany(serverInfo => serverInfo.Ports).Distinct().ToArray();
 
-                return new Tuple<IPAddress, string, int[]>(ipAddress, serverNames, serverPorts);
-            });
+                return (ipAddress, serverNames, serverPorts);
+            }).ToArray();
 
             // Do logging.
-            foreach (Tuple<IPAddress, string, int[]> serverInfo in serverInfos)
+            foreach ((IPAddress ipAddress, string name, int[] ports) in serverInfos)
             {
-                string serverIPAddress = serverInfo.Item1.ToString();
-                string serverNames = string.Join(", ", serverInfo.Item2.ToString());
-                string serverPorts = string.Join(", ", serverInfo.Item3.Select(port => port.ToString()));
+                string serverIPAddress = ipAddress.ToString();
+                string serverNames = string.Join(", ", name);
+                string serverPorts = string.Join(", ", ports.Select(port => port.ToString()));
 
                 Logger.Log($"Got a Lobby server. IP: {serverIPAddress}; Name: {serverNames}; Ports: {serverPorts}.");
             }
 
-            Logger.Log($"The number of Lobby servers is {serverInfos.Count()}.");
+            Logger.Log($"The number of Lobby servers is {serverInfos.Length}.");
 
             // Test the latency.
-            ICollection<Task<Tuple<Server, long>>> pingTasks = new List<Task<Tuple<Server, long>>>(serverInfos.Count());
-
-            foreach (Tuple<IPAddress, string, int[]> serverInfo in serverInfos)
+            foreach ((IPAddress ipAddress, string name, int[] _) in serverInfos.Where(q => failedServerIPs.Contains(q.IpAddress.ToString())))
             {
-                IPAddress serverIPAddress = serverInfo.Item1;
-                string serverNames = serverInfo.Item2;
-                int[] serverPorts = serverInfo.Item3;
-
-                if (failedServerIPs.Contains(serverIPAddress.ToString()))
-                {
-                    Logger.Log($"Skipped a failed server {serverNames} ({serverIPAddress}).");
-                    continue;
-                }
-
-                Task<Tuple<Server, long>> pingTask = new Task<Tuple<Server, long>>(() =>
-                {
-                    Logger.Log($"Attempting to ping {serverNames} ({serverIPAddress}).");
-                    Server server = new Server(serverIPAddress.ToString(), serverNames, serverPorts);
-
-                    using (Ping ping = new Ping())
-                    {
-                        try
-                        {
-                            PingReply pingReply = ping.Send(serverIPAddress, MAXIMUM_LATENCY);
-
-                            if (pingReply.Status == IPStatus.Success)
-                            {
-                                long pingInMs = pingReply.RoundtripTime;
-                                Logger.Log($"The latency in milliseconds to the server {serverNames} ({serverIPAddress}): {pingInMs}.");
-
-                                return new Tuple<Server, long>(server, pingInMs);
-                            }
-                            else
-                            {
-                                Logger.Log($"Failed to ping the server {serverNames} ({serverIPAddress}): " +
-                                    $"{Enum.GetName(typeof(IPStatus), pingReply.Status)}.");
-
-                                return new Tuple<Server, long>(server, long.MaxValue);
-                            }
-                        }
-                        catch (PingException ex)
-                        {
-                            Logger.Log($"Caught an exception when pinging {serverNames} ({serverIPAddress}) Lobby server: {ex.Message}");
-
-                            return new Tuple<Server, long>(server, long.MaxValue);
-                        }
-                    }
-                });
-
-                pingTask.Start();
-                pingTasks.Add(pingTask);
+                Logger.Log($"Skipped a failed server {name} ({ipAddress}).");
             }
 
-            Task.WaitAll(pingTasks.ToArray());
+            (Server Server, long Result)[] serverAndLatencyResults =
+                await Task.WhenAll(serverInfos.Where(q => !failedServerIPs.Contains(q.IpAddress.ToString())).Select(PingServerAsync));
 
             // Sort the servers by latency.
-            IOrderedEnumerable<Tuple<Server, long>>
-                sortedServerAndLatencyResults = pingTasks.Select(task => task.Result)              // Tuple<Server, Latency>
-                                                         .OrderBy(taskResult => taskResult.Item2); // Latency
+            (Server Server, long Result)[] sortedServerAndLatencyResults = serverAndLatencyResults
+                .Select(server => server)
+                .OrderBy(taskResult => taskResult.Result)
+                .ToArray();
 
             // Do logging.
-            foreach (Tuple<Server, long> serverAndLatencyResult in sortedServerAndLatencyResults)
+            foreach ((Server server, long serverLatencyValue) in sortedServerAndLatencyResults)
             {
-                string serverIPAddress = serverAndLatencyResult.Item1.Host;
-                long serverLatencyValue = serverAndLatencyResult.Item2;
+                string serverIPAddress = server.Host;
                 string serverLatencyString = serverLatencyValue <= MAXIMUM_LATENCY ? serverLatencyValue.ToString() : "DNF";
 
                 Logger.Log($"Lobby server IP: {serverIPAddress}, latency: {serverLatencyString}.");
             }
 
-            {
-                int candidateCount = sortedServerAndLatencyResults.Count();
-                int closerCount = sortedServerAndLatencyResults.Count(
-                    serverAndLatencyResult => serverAndLatencyResult.Item2 <= MAXIMUM_LATENCY);
+            int candidateCount = sortedServerAndLatencyResults.Length;
+            int closerCount = sortedServerAndLatencyResults.Count(
+                serverAndLatencyResult => serverAndLatencyResult.Item2 <= MAXIMUM_LATENCY);
 
-                Logger.Log($"Lobby servers: {candidateCount} available, {closerCount} fast.");
-                connectionManager.OnServerLatencyTested(candidateCount, closerCount);
-            }
+            Logger.Log($"Lobby servers: {candidateCount} available, {closerCount} fast.");
+            connectionManager.OnServerLatencyTested(candidateCount, closerCount);
 
-            return sortedServerAndLatencyResults.Select(taskResult => taskResult.Item1).ToList(); // Server
+            return sortedServerAndLatencyResults.Select(taskResult => taskResult.Server).ToList();
         }
 
-        public void Disconnect()
+        private static async Task<(Server Server, long Result)> PingServerAsync((IPAddress IpAddress, string Name, int[] Ports) serverInfo)
         {
-            disconnect = true;
-            SendMessage("QUIT");
+            Logger.Log($"Attempting to ping {serverInfo.Name} ({serverInfo.IpAddress}).");
+            var server = new Server(serverInfo.IpAddress.ToString(), serverInfo.Name, serverInfo.Ports);
+            using var ping = new Ping();
 
-            tcpClient.Close();
-            serverStream.Close();
+            try
+            {
+                PingReply pingReply = await ping.SendPingAsync(serverInfo.IpAddress, MAXIMUM_LATENCY);
+
+                if (pingReply.Status == IPStatus.Success)
+                {
+                    long pingInMs = pingReply.RoundtripTime;
+                    Logger.Log($"The latency in milliseconds to the server {serverInfo.Name} ({serverInfo.IpAddress}): {pingInMs}.");
+
+                    return (server, pingInMs);
+                }
+
+                Logger.Log($"Failed to ping the server {serverInfo.Name} ({serverInfo.IpAddress}): " +
+                    $"{Enum.GetName(typeof(IPStatus), pingReply.Status)}.");
+
+                return (server, long.MaxValue);
+            }
+            catch (PingException ex)
+            {
+                PreStartup.LogException(ex, $"Caught an exception when pinging {serverInfo.Name} ({serverInfo.IpAddress}) Lobby server.");
+
+                return (server, long.MaxValue);
+            }
+        }
+
+        private static async Task<IEnumerable<(IPAddress IpAddress, string Name, int[] Ports)>> ResolveServerAsync(Server server)
+        {
+            Logger.Log($"Attempting to DNS resolve {server.Name} ({server.Host}).");
+
+            try
+            {
+                // If hostNameOrAddress is an IP address, this address is returned without querying the DNS server.
+                IPAddress[] serverIPAddresses = (await Dns.GetHostAddressesAsync(server.Host))
+                    .Where(IPAddress => IPAddress.AddressFamily is AddressFamily.InterNetworkV6 or AddressFamily.InterNetwork)
+                    .ToArray();
+
+                Logger.Log($"DNS resolved {server.Name} ({server.Host}): " +
+                    $"{string.Join(", ", serverIPAddresses.Select(item => item.ToString()))}");
+
+                // Store each IPAddress in a different tuple.
+                return serverIPAddresses.Select(serverIPAddress => (serverIPAddress, server.Name, server.Ports));
+            }
+            catch (SocketException ex)
+            {
+                PreStartup.LogException(ex, $"Caught an exception when DNS resolving {server.Name} ({server.Host}) Lobby server.");
+            }
+
+            return Array.Empty<(IPAddress IpAddress, string Name, int[] Ports)>();
+        }
+
+        public async Task DisconnectAsync()
+        {
+            await SendMessageAsync("QUIT");
+            cancellationTokenSource.Cancel();
+            socket.Close();
         }
 
         #region Handling commands
@@ -497,7 +483,7 @@ namespace DTAClient.Online
         /// message, and handles it accordingly.
         /// </summary>
         /// <param name="message">The message.</param>
-        private void HandleMessage(string message)
+        private async Task HandleMessageAsync(string message)
         {
             string msg = overMessage + message;
             overMessage = "";
@@ -513,14 +499,14 @@ namespace DTAClient.Online
                 else if (msg.Length != commandEndIndex + 1)
                 {
                     string command = msg.Substring(0, commandEndIndex - 1);
-                    PerformCommand(command);
+                    await PerformCommandAsync(command);
 
                     msg = msg.Remove(0, commandEndIndex + 1);
                 }
                 else
                 {
                     string command = msg.Substring(0, msg.Length - 1);
-                    PerformCommand(command);
+                    await PerformCommandAsync(command);
                     break;
                 }
             }
@@ -529,22 +515,17 @@ namespace DTAClient.Online
         /// <summary>
         /// Handles a specific command received from the IRC server.
         /// </summary>
-        private void PerformCommand(string message)
+        private async Task PerformCommandAsync(string message)
         {
-            string prefix = String.Empty;
-            string command = String.Empty;
-            message = message.Replace("\r", String.Empty);
-            List<string> parameters = new List<string>();
-            ParseIrcMessage(message, out prefix, out command, out parameters);
-            string paramString = String.Empty;
+            message = message.Replace("\r", string.Empty);
+            ParseIrcMessage(message, out string prefix, out string command, out List<string> parameters);
+            string paramString = string.Empty;
             foreach (string param in parameters) { paramString = paramString + param + ","; }
             Logger.Log("RMP: " + prefix + " " + command + " " + paramString);
 
             try
             {
-                bool success = false;
-                int commandNumber = -1;
-                success = Int32.TryParse(command, out commandNumber);
+                bool success = int.TryParse(command, out int commandNumber);
 
                 if (success)
                 {
@@ -626,7 +607,7 @@ namespace DTAClient.Online
                             connectionManager.OnNameAlreadyInUse();
                             break;
                         case 451: // Not registered
-                            Register();
+                            await RegisterAsync();
                             connectionManager.OnGenericServerMessageReceived(message);
                             break;
                         case 471: // Returned when attempting to join a channel that is full (basically, player limit met)
@@ -671,7 +652,7 @@ namespace DTAClient.Online
                                 break;
                             }
                         }
-                        string noticeParamString = String.Empty;
+                        string noticeParamString = string.Empty;
                         foreach (string param in parameters)
                             noticeParamString = noticeParamString + param + " ";
                         connectionManager.OnGenericServerMessageReceived(prefix + " " + noticeParamString);
@@ -705,7 +686,7 @@ namespace DTAClient.Online
                         for (int pid = 0; pid < parameters.Count - 1; pid++)
                             recipients[pid] = parameters[pid];
                         string privmsg = parameters[parameters.Count - 1];
-                        if (parameters[1].StartsWith('\u0001'.ToString() + "ACTION"))
+                        if (parameters[1].StartsWith('\u0001' + "ACTION"))
                             privmsg = privmsg.Substring(1).Remove(privmsg.Length - 2);
                         foreach (string recipient in recipients)
                         {
@@ -713,10 +694,6 @@ namespace DTAClient.Online
                                 connectionManager.OnChatMessageReceived(recipient, pmsgUserName, pmsgIdent, privmsg);
                             else if (recipient == ProgramConstants.PLAYERNAME)
                                 connectionManager.OnPrivateMessageReceived(pmsgUserName, privmsg);
-                            //else if (pmsgUserName == ProgramConstants.PLAYERNAME)
-                            //{
-                            //    DoPrivateMessageSent(privmsg, recipient);
-                            //}
                         }
                         break;
                     case "MODE":
@@ -738,12 +715,12 @@ namespace DTAClient.Online
                     case "PING":
                         if (parameters.Count > 0)
                         {
-                            QueueMessage(new QueuedMessage("PONG " + parameters[0], QueuedMessageType.SYSTEM_MESSAGE, 5000));
+                            await QueueMessageAsync(new QueuedMessage("PONG " + parameters[0], QueuedMessageType.SYSTEM_MESSAGE, 5000));
                             Logger.Log("PONG " + parameters[0]);
                         }
                         else
                         {
-                            QueueMessage(new QueuedMessage("PONG", QueuedMessageType.SYSTEM_MESSAGE, 5000));
+                            await QueueMessageAsync(new QueuedMessage("PONG", QueuedMessageType.SYSTEM_MESSAGE, 5000));
                             Logger.Log("PONG");
                         }
                         break;
@@ -766,9 +743,9 @@ namespace DTAClient.Online
                         break;
                 }
             }
-            catch
+            catch (Exception ex)
             {
-                Logger.Log("Warning: Failed to parse command " + message);
+                PreStartup.LogException(ex, "Warning: Failed to parse command " + message);
             }
         }
 
@@ -793,7 +770,7 @@ namespace DTAClient.Online
         private void ParseIrcMessage(string message, out string prefix, out string command, out List<string> parameters)
         {
             int prefixEnd = -1;
-            prefix = command = String.Empty;
+            prefix = command = string.Empty;
             parameters = new List<string>();
 
             // Grab the prefix if it is present. If a message begins
@@ -821,7 +798,7 @@ namespace DTAClient.Online
 
             if (commandAndParameters.Length == 0)
             {
-                command = String.Empty;
+                command = string.Empty;
                 Logger.Log("Nonexistant command!");
                 return;
             }
@@ -849,70 +826,102 @@ namespace DTAClient.Online
 
         #region Sending commands
 
-        private void RunSendQueue()
+        private async Task RunSendQueueAsync(CancellationToken cancellationToken)
         {
-            while (_isConnected)
+            try
             {
-                string message = String.Empty;
-
-                lock (messageQueueLocker)
+                try
                 {
-                    for (int i = 0; i < MessageQueue.Count; i++)
+                    while (!cancellationToken.IsCancellationRequested)
                     {
-                        QueuedMessage qm = MessageQueue[i];
-                        if (qm.Delay > 0)
+                        string message = string.Empty;
+
+                        await messageQueueLocker.WaitAsync(cancellationToken);
+
+                        try
                         {
-                            if (qm.SendAt < DateTime.Now)
+                            for (int i = 0; i < MessageQueue.Count; i++)
                             {
-                                message = qm.Command;
+                                QueuedMessage qm = MessageQueue[i];
+                                if (qm.Delay > 0)
+                                {
+                                    if (qm.SendAt < DateTime.Now)
+                                    {
+                                        message = qm.Command;
 
-                                Logger.Log("Delayed message sent: " + qm.ID);
+                                        Logger.Log("Delayed message sent: " + qm.ID);
 
-                                MessageQueue.RemoveAt(i);
-                                break;
+                                        MessageQueue.RemoveAt(i);
+                                        break;
+                                    }
+                                }
+                                else
+                                {
+                                    message = qm.Command;
+                                    MessageQueue.RemoveAt(i);
+                                    break;
+                                }
                             }
                         }
-                        else
+                        finally
                         {
-                            message = qm.Command;
-                            MessageQueue.RemoveAt(i);
-                            break;
+                            messageQueueLocker.Release();
                         }
+
+                        if (string.IsNullOrEmpty(message))
+                        {
+                            await Task.Delay(10, cancellationToken);
+                            continue;
+                        }
+
+                        await SendMessageAsync(message);
+                        await Task.Delay(MessageQueueDelay, cancellationToken);
                     }
                 }
-
-                if (String.IsNullOrEmpty(message))
+                catch (OperationCanceledException)
                 {
-                    Thread.Sleep(10);
-                    continue;
                 }
+                finally
+                {
+                    await messageQueueLocker.WaitAsync(CancellationToken.None);
 
-                SendMessage(message);
+                    try
+                    {
+                        MessageQueue.Clear();
+                    }
+                    finally
+                    {
+                        messageQueueLocker.Release();
+                    }
 
-                Thread.Sleep(MessageQueueDelay);
+                    sendQueueExited = true;
+                }
             }
-
-            lock (messageQueueLocker)
+            catch (Exception ex)
             {
-                MessageQueue.Clear();
+                PreStartup.HandleException(ex);
             }
-
-            sendQueueExited = true;
         }
 
         /// <summary>
         /// Sends a PING message to the server to indicate that we're still connected.
         /// </summary>
-        /// <param name="data">Just a dummy parameter so that this matches the delegate System.Threading.TimerCallback.</param>
-        private void AutoPing(object data)
+        private async Task AutoPingAsync()
         {
-            SendMessage("PING LAG" + new Random().Next(100000, 999999));
+            try
+            {
+                await SendMessageAsync("PING LAG" + new Random().Next(100000, 999999));
+            }
+            catch (Exception ex)
+            {
+                PreStartup.HandleException(ex);
+            }
         }
 
         /// <summary>
         /// Registers the user.
         /// </summary>
-        private void Register()
+        private async Task RegisterAsync()
         {
             if (welcomeMessageReceived)
                 return;
@@ -923,27 +932,27 @@ namespace DTAClient.Online
 
             string realname = ProgramConstants.GAME_VERSION + " " + defaultGame + " CnCNet";
 
-            SendMessage(string.Format("USER {0} 0 * :{1}", defaultGame + "." +
+            await SendMessageAsync(string.Format("USER {0} 0 * :{1}", defaultGame + "." +
                 systemId, realname));
 
-            SendMessage("NICK " + ProgramConstants.PLAYERNAME);
+            await SendMessageAsync("NICK " + ProgramConstants.PLAYERNAME);
         }
 
-        public void ChangeNickname()
+        public Task ChangeNicknameAsync()
         {
-            SendMessage("NICK " + ProgramConstants.PLAYERNAME);
+            return SendMessageAsync("NICK " + ProgramConstants.PLAYERNAME);
         }
 
-        public void QueueMessage(QueuedMessageType type, int priority, string message, bool replace = false)
+        public Task QueueMessageAsync(QueuedMessageType type, int priority, string message, bool replace = false)
         {
             QueuedMessage qm = new QueuedMessage(message, type, priority, replace);
-            QueueMessage(qm);
+            return QueueMessageAsync(qm);
         }
 
-        public void QueueMessage(QueuedMessageType type, int priority, int delay, string message)
+        public async Task QueueMessageAsync(QueuedMessageType type, int priority, int delay, string message)
         {
             QueuedMessage qm = new QueuedMessage(message, type, priority, delay);
-            QueueMessage(qm);
+            await QueueMessageAsync(qm);
             Logger.Log("Setting delay to " + delay + "ms for " + qm.ID);
         }
 
@@ -951,29 +960,38 @@ namespace DTAClient.Online
         /// Send a message to the CnCNet server.
         /// </summary>
         /// <param name="message">The message to send.</param>
-        private void SendMessage(string message)
+        private async Task SendMessageAsync(string message)
         {
-            if (serverStream == null)
+            if (!socket?.Connected ?? false)
                 return;
 
             Logger.Log("SRM: " + message);
 
-            byte[] buffer = encoding.GetBytes(message + "\r\n");
-            if (serverStream.CanWrite)
+#if NETFRAMEWORK
+            byte[] buffer1 = encoding.GetBytes(message + "\r\n");
+            var buffer = new ArraySegment<byte>(buffer1);
+
+            try
             {
-                try
-                {
-                    serverStream.Write(buffer, 0, buffer.Length);
-                    serverStream.Flush();
-                }
-                catch (IOException ex)
-                {
-                    Logger.Log("Sending message to the server failed! Reason: " + ex.Message);
-                }
+                await socket.SendAsync(buffer, SocketFlags.None);
+#else
+            using IMemoryOwner<byte> memoryOwner = MemoryPool<byte>.Shared.Rent(message.Length * 2);
+            Memory<byte> buffer = memoryOwner.Memory[..(message.Length * 2)];
+            int bytes = encoding.GetBytes((message + "\r\n").AsSpan(), buffer.Span);
+            buffer = buffer[..bytes];
+
+            try
+            {
+                await socket.SendAsync(buffer, SocketFlags.None, CancellationToken.None);
+#endif
+            }
+            catch (IOException ex)
+            {
+                PreStartup.LogException(ex, "Sending message to the server failed!");
             }
         }
 
-        private int NextQueueID { get; set; } = 0;
+        private int NextQueueID { get; set; }
 
         /// <summary>
         /// This will attempt to replace a previously queued message of the same type.
@@ -982,7 +1000,9 @@ namespace DTAClient.Online
         /// <returns>Whether or not a replace occurred</returns>
         private bool ReplaceMessage(QueuedMessage qm)
         {
-            lock (messageQueueLocker)
+            messageQueueLocker.Wait();
+
+            try
             {
                 var previousMessageIndex = MessageQueue.FindIndex(m => m.MessageType == qm.MessageType);
                 if (previousMessageIndex == -1)
@@ -991,14 +1011,17 @@ namespace DTAClient.Online
                 MessageQueue[previousMessageIndex] = qm;
                 return true;
             }
+            finally
+            {
+                messageQueueLocker.Release();
+            }
         }
 
         /// <summary>
         /// Adds a message to the send queue.
         /// </summary>
         /// <param name="qm">The message to queue.</param>
-        /// <param name="replace">If true, attempt to replace a previous message of the same type</param>
-        public void QueueMessage(QueuedMessage qm)
+        public async Task QueueMessageAsync(QueuedMessage qm)
         {
             if (!_isConnected)
                 return;
@@ -1008,7 +1031,9 @@ namespace DTAClient.Online
 
             qm.ID = NextQueueID++;
 
-            lock (messageQueueLocker)
+            await messageQueueLocker.WaitAsync();
+
+            try
             {
                 switch (qm.MessageType)
                 {
@@ -1025,7 +1050,7 @@ namespace DTAClient.Online
                         AddSpecialQueuedMessage(qm);
                         break;
                     case QueuedMessageType.INSTANT_MESSAGE:
-                        SendMessage(qm.Command);
+                        await SendMessageAsync(qm.Command);
                         break;
                     default:
                         int placeInQueue = MessageQueue.FindIndex(m => m.Priority < qm.Priority);
@@ -1037,6 +1062,11 @@ namespace DTAClient.Online
                             MessageQueue.Insert(placeInQueue, qm);
                         break;
                 }
+
+            }
+            finally
+            {
+                messageQueueLocker.Release();
             }
         }
 

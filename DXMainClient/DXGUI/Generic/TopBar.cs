@@ -9,6 +9,7 @@ using DTAClient.Online;
 using ClientGUI;
 using ClientCore;
 using System.Threading;
+using System.Threading.Tasks;
 using DTAClient.Domain.Multiplayer.CnCNet;
 using DTAClient.Online.EventArguments;
 using DTAConfig;
@@ -172,7 +173,7 @@ namespace DTAClient.DXGUI.Generic
             btnLogout.FontIndex = 1;
             btnLogout.Text = "Log Out".L10N("UI:Main:LogOut");
             btnLogout.AllowClick = false;
-            btnLogout.LeftClick += BtnLogout_LeftClick;
+            btnLogout.LeftClick += (_, _) => BtnLogout_LeftClickAsync();
 
             btnOptions = new XNAClientButton(WindowManager);
             btnOptions.Name = "btnOptions";
@@ -288,11 +289,18 @@ namespace DTAClient.DXGUI.Generic
             downTime = TimeSpan.FromSeconds(DOWN_TIME_WAIT_SECONDS - EVENT_DOWN_TIME_WAIT_SECONDS);
         }
 
-        private void BtnLogout_LeftClick(object sender, EventArgs e)
+        private async Task BtnLogout_LeftClickAsync()
         {
-            connectionManager.Disconnect();
-            LogoutEvent?.Invoke(this, null);
-            SwitchToPrimary();
+            try
+            {
+                await connectionManager.DisconnectAsync();
+                LogoutEvent?.Invoke(this, null);
+                SwitchToPrimary();
+            }
+            catch (Exception ex)
+            {
+                PreStartup.HandleException(ex);
+            }
         }
 
         private void ConnectionManager_Connected(object sender, EventArgs e)

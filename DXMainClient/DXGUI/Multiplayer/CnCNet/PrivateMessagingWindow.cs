@@ -12,6 +12,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Threading.Tasks;
 using ClientCore.Enums;
 using Localization;
 using SixLabors.ImageSharp;
@@ -180,7 +181,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             tbMessageInput.Name = nameof(tbMessageInput);
             tbMessageInput.ClientRectangle = new Rectangle(lbMessages.X,
                 lbMessages.Bottom + 6, lbMessages.Width, 19);
-            tbMessageInput.EnterPressed += TbMessageInput_EnterPressed;
+            tbMessageInput.EnterPressed += (_, _) => TbMessageInput_EnterPressedAsync();
             tbMessageInput.MaximumTextLength = 200;
             tbMessageInput.Enabled = false;
 
@@ -515,52 +516,59 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         private int FindItemIndexForName(string userName) => lbUserList.Items.FindIndex(MatchItemForName(userName));
 
-        private void TbMessageInput_EnterPressed(object sender, EventArgs e)
+        private async Task TbMessageInput_EnterPressedAsync()
         {
-            if (string.IsNullOrEmpty(tbMessageInput.Text))
-                return;
-
-            if (lbUserList.SelectedItem == null)
-                return;
-
-            string userName = lbUserList.SelectedItem.Text;
-
-            connectionManager.SendCustomMessage(new QueuedMessage("PRIVMSG " + userName + " :" + tbMessageInput.Text,
-                QueuedMessageType.CHAT_MESSAGE, 0));
-
-            PrivateMessageUser pmUser = privateMessageUsers.Find(u => u.IrcUser.Name == userName);
-            if (pmUser == null)
+            try
             {
-                IRCUser iu = connectionManager.UserList.Find(u => u.Name == userName);
-
-                if (iu == null)
-                {
-                    Logger.Log("Null IRCUser in private messaging?");
+                if (string.IsNullOrEmpty(tbMessageInput.Text))
                     return;
+
+                if (lbUserList.SelectedItem == null)
+                    return;
+
+                string userName = lbUserList.SelectedItem.Text;
+
+                await connectionManager.SendCustomMessageAsync(new QueuedMessage("PRIVMSG " + userName + " :" + tbMessageInput.Text,
+                    QueuedMessageType.CHAT_MESSAGE, 0));
+
+                PrivateMessageUser pmUser = privateMessageUsers.Find(u => u.IrcUser.Name == userName);
+                if (pmUser == null)
+                {
+                    IRCUser iu = connectionManager.UserList.Find(u => u.Name == userName);
+
+                    if (iu == null)
+                    {
+                        Logger.Log("Null IRCUser in private messaging?");
+                        return;
+                    }
+
+                    pmUser = new PrivateMessageUser(iu);
+                    privateMessageUsers.Add(pmUser);
                 }
 
-                pmUser = new PrivateMessageUser(iu);
-                privateMessageUsers.Add(pmUser);
+                ChatMessage sentMessage = new ChatMessage(ProgramConstants.PLAYERNAME,
+                    personalMessageColor, DateTime.Now, tbMessageInput.Text);
+
+                pmUser.Messages.Add(sentMessage);
+
+                lbMessages.AddMessage(sentMessage);
+                if (sndMessageSound != null)
+                    sndMessageSound.Play();
+
+                lastConversationPartner = userName;
+
+                if (tabControl.SelectedTab != MESSAGES_INDEX)
+                {
+                    tabControl.SelectedTab = MESSAGES_INDEX;
+                    lbUserList.SelectedIndex = FindItemIndexForName(userName);
+                }
+
+                tbMessageInput.Text = string.Empty;
             }
-
-            ChatMessage sentMessage = new ChatMessage(ProgramConstants.PLAYERNAME,
-                personalMessageColor, DateTime.Now, tbMessageInput.Text);
-
-            pmUser.Messages.Add(sentMessage);
-
-            lbMessages.AddMessage(sentMessage);
-            if (sndMessageSound != null)
-                sndMessageSound.Play();
-
-            lastConversationPartner = userName;
-
-            if (tabControl.SelectedTab != MESSAGES_INDEX)
+            catch (Exception ex)
             {
-                tabControl.SelectedTab = MESSAGES_INDEX;
-                lbUserList.SelectedIndex = FindItemIndexForName(userName);
+                PreStartup.HandleException(ex);
             }
-
-            tbMessageInput.Text = string.Empty;
         }
 
         private void LbUserList_SelectedIndexChanged(object sender, EventArgs e)

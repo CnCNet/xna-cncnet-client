@@ -71,22 +71,6 @@ namespace DTAClient.Online
 
         void OnConnected();
 
-        bool GetDisconnectStatus();
-
         void OnServerLatencyTested(int candidateCount, int closerCount);
-
-        //public EventHandler<ServerMessageEventArgs> WelcomeMessageReceived;
-        //public EventHandler<ServerMessageEventArgs> GenericServerMessageReceived;
-        //public EventHandler<UserAwayEventArgs> AwayMessageReceived;
-        //public EventHandler<ChannelTopicEventArgs> ChannelTopicReceived;
-        //public EventHandler<UserListEventArgs> UserListReceived;
-        //public EventHandler<WhoEventArgs> WhoReplyReceived;
-        //public EventHandler<ChannelEventArgs> ChannelFull;
-        //public EventHandler<ChannelEventArgs> IncorrectChannelPassword;
-
-        //public event EventHandler<AttemptedServerEventArgs> AttemptedServerChanged;
-        //public event EventHandler ConnectAttemptFailed;
-        //public event EventHandler<ConnectionLostEventArgs> ConnectionLost;
-        //public event EventHandler ReconnectAttempt;
     }
 }

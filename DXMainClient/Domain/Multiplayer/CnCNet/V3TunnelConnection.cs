@@ -97,7 +97,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                 }
                 catch (SocketException ex)
                 {
-                    Logger.Log($"Failed to establish connection to tunnel server. Message: " + ex.Message);
+                    PreStartup.LogException(ex, "Failed to establish connection to tunnel server.");
                     tunnelSocket.Close();
                     ConnectionFailed?.Invoke(this, EventArgs.Empty);
                     return;
@@ -109,7 +109,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
             }
             catch (Exception ex)
             {
-                PreStartup.LogException(ex);
+                PreStartup.HandleException(ex);
             }
         }
 #if NETFRAMEWORK
@@ -122,6 +122,10 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
         {
             try
             {
+#if !NETFRAMEWORK
+                using IMemoryOwner<byte> memoryOwner = MemoryPool<byte>.Shared.Rent(4096);
+#endif
+
                 while (true)
                 {
                     if (Aborted)
@@ -135,7 +139,6 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                     byte[] buffer1 = new byte[1024];
                     var buffer = new ArraySegment<byte>(buffer1);
 #else
-                    using IMemoryOwner<byte> memoryOwner = MemoryPool<byte>.Shared.Rent(1024);
                     Memory<byte> buffer = memoryOwner.Memory[..1024];
 #endif
 
@@ -161,7 +164,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
             }
             catch (SocketException ex)
             {
-                Logger.Log("Socket exception in V3 tunnel receive loop: " + ex.Message);
+                PreStartup.LogException(ex, "Socket exception in V3 tunnel receive loop.");
                 DoClose();
                 ConnectionCut?.Invoke(this, EventArgs.Empty);
             }
@@ -204,7 +207,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
             data.CopyTo(packet[8..]);
 #endif
 
-            await locker.WaitAsync().ConfigureAwait(false);
+            await locker.WaitAsync();
 
             try
             {

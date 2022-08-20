@@ -10,11 +10,15 @@ using Microsoft.Xna.Framework;
 using Rampastring.Tools;
 using Rampastring.XNAUI;
 using System;
+#if !NETFRAMEWORK
+using System.Buffers;
+#endif
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace DTAClient.DXGUI.Multiplayer
 {
@@ -46,9 +50,9 @@ namespace DTAClient.DXGUI.Multiplayer
 
             hostCommandHandlers = new LANServerCommandHandler[]
             {
-                new ServerStringCommandHandler(CHAT_COMMAND, Server_HandleChatMessage),
+                new ServerStringCommandHandler(CHAT_COMMAND, (sender, data) => Server_HandleChatMessageAsync(sender, data)),
                 new ServerStringCommandHandler(FILE_HASH_COMMAND, Server_HandleFileHashMessage),
-                new ServerNoParamCommandHandler(READY_STATUS_COMMAND, Server_HandleReadyRequest),
+                new ServerNoParamCommandHandler(READY_STATUS_COMMAND, sender => Server_HandleReadyRequestAsync(sender))
             };
 
             playerCommandHandlers = new LANClientCommandHandler[]
@@ -58,29 +62,27 @@ namespace DTAClient.DXGUI.Multiplayer
                 new ClientNoParamCommandHandler(GAME_LAUNCH_COMMAND, Client_HandleStartCommand)
             };
 
-            WindowManager.GameClosing += WindowManager_GameClosing;
+            WindowManager.GameClosing += (_, _) => WindowManager_GameClosingAsync();
         }
 
-        private void WindowManager_GameClosing(object sender, EventArgs e)
+        private async Task WindowManager_GameClosingAsync()
         {
-            if (client != null && client.Connected)
-                Clear();
+            if (client is { Connected: true })
+                await ClearAsync();
         }
 
-        public event EventHandler<LobbyNotificationEventArgs> LobbyNotification;
         public event EventHandler<GameBroadcastEventArgs> GameBroadcast;
 
-        private TcpListener listener;
-        private TcpClient client;
+        private Socket listener;
+        private Socket client;
 
-        private IPEndPoint hostEndPoint;
-        private LANColor[] chatColors;
+        private readonly LANColor[] chatColors;
         private readonly MapLoader mapLoader;
         private int chatColorIndex;
-        private Encoding encoding;
+        private readonly Encoding encoding;
 
-        private LANServerCommandHandler[] hostCommandHandlers;
-        private LANClientCommandHandler[] playerCommandHandlers;
+        private readonly LANServerCommandHandler[] hostCommandHandlers;
+        private readonly LANClientCommandHandler[] playerCommandHandlers;
 
         private TimeSpan timeSinceGameBroadcast = TimeSpan.Zero;
 
@@ -88,7 +90,7 @@ namespace DTAClient.DXGUI.Multiplayer
 
         private string overMessage = string.Empty;
 
-        private string localGame;
+        private readonly string localGame;
 
         private string localFileHash;
 
@@ -96,34 +98,45 @@ namespace DTAClient.DXGUI.Multiplayer
 
         private int loadedGameId;
 
-        private bool started = false;
+        private bool started;
 
-        public void SetUp(bool isHost,
-            IPEndPoint hostEndPoint, TcpClient client,
-            int loadedGameId)
+        private CancellationTokenSource cancellationTokenSource;
+
+        public async Task SetUpAsync(bool isHost, Socket client, int loadedGameId)
         {
             Refresh(isHost);
-
-            this.hostEndPoint = hostEndPoint;
 
             this.loadedGameId = loadedGameId;
 
             started = false;
 
+            cancellationTokenSource?.Dispose();
+            cancellationTokenSource = new CancellationTokenSource();
+
             if (isHost)
             {
-                Thread thread = new Thread(ListenForClients);
-                thread.Start();
+                ListenForClientsAsync(cancellationTokenSource.Token);
 
-                this.client = new TcpClient();
-                this.client.Connect("127.0.0.1", ProgramConstants.LAN_GAME_LOBBY_PORT);
+                this.client = new Socket(SocketType.Stream, ProtocolType.Tcp);
+                await this.client.ConnectAsync(IPAddress.Loopback, ProgramConstants.LAN_GAME_LOBBY_PORT);
 
-                byte[] buffer = encoding.GetBytes(PLAYER_JOIN_COMMAND +
-                    ProgramConstants.LAN_DATA_SEPARATOR + ProgramConstants.PLAYERNAME +
-                    ProgramConstants.LAN_DATA_SEPARATOR + loadedGameId);
+                string message = PLAYER_JOIN_COMMAND +
+                     ProgramConstants.LAN_DATA_SEPARATOR + ProgramConstants.PLAYERNAME +
+                     ProgramConstants.LAN_DATA_SEPARATOR + loadedGameId;
 
-                this.client.GetStream().Write(buffer, 0, buffer.Length);
-                this.client.GetStream().Flush();
+#if NETFRAMEWORK
+                byte[] buffer1 = encoding.GetBytes(message);
+                var buffer = new ArraySegment<byte>(buffer1);
+
+                await this.client.SendAsync(buffer, SocketFlags.None);
+#else
+                using IMemoryOwner<byte> memoryOwner = MemoryPool<byte>.Shared.Rent(message.Length * 2);
+                Memory<byte> buffer = memoryOwner.Memory[..(message.Length * 2)];
+                int bytes = encoding.GetBytes(message.AsSpan(), buffer.Span);
+                buffer = buffer[..bytes];
+
+                await this.client.SendAsync(buffer, SocketFlags.None, CancellationToken.None);
+#endif
 
                 var fhc = new FileHashCalculator();
                 fhc.CalculateHashes(gameModes);
@@ -131,10 +144,11 @@ namespace DTAClient.DXGUI.Multiplayer
             }
             else
             {
+                this.client?.Dispose();
                 this.client = client;
             }
 
-            new Thread(HandleServerCommunication).Start();
+            HandleServerCommunicationAsync(cancellationTokenSource.Token);
 
             if (IsHost)
                 CopyPlayerDataToUI();
@@ -142,146 +156,208 @@ namespace DTAClient.DXGUI.Multiplayer
             WindowManager.SelectedControl = tbChatInput;
         }
 
-        public void PostJoin()
+        public async Task PostJoinAsync()
         {
             var fhc = new FileHashCalculator();
             fhc.CalculateHashes(gameModes);
-            SendMessageToHost(FILE_HASH_COMMAND + " " + fhc.GetCompleteHash());
+            await SendMessageToHostAsync(FILE_HASH_COMMAND + " " + fhc.GetCompleteHash(), cancellationTokenSource.Token);
             UpdateDiscordPresence(true);
         }
 
         #region Server code
 
-        private void ListenForClients()
+        private async Task ListenForClientsAsync(CancellationToken cancellationToken)
         {
-            listener = new TcpListener(IPAddress.Any, ProgramConstants.LAN_GAME_LOBBY_PORT);
-            listener.Start();
-
-            while (true)
+            try
             {
-                TcpClient client;
+                listener = new Socket(SocketType.Stream, ProtocolType.Tcp);
+                listener.Bind(new IPEndPoint(IPAddress.Any, ProgramConstants.LAN_GAME_LOBBY_PORT));
+#if NETFRAMEWORK
+                listener.Listen(int.MaxValue);
+#else
+                listener.Listen();
+#endif
 
-                try
+                while (!cancellationToken.IsCancellationRequested)
                 {
-                    client = listener.AcceptTcpClient();
+                    Socket newPlayerSocket;
+
+#if NETFRAMEWORK
+                    try
+                    {
+                        newPlayerSocket = await listener.AcceptAsync();
+                    }
+#else
+                    try
+                    {
+                        newPlayerSocket = await listener.AcceptAsync(cancellationToken);
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        break;
+                    }
+#endif
+                    catch (Exception ex)
+                    {
+                        PreStartup.LogException(ex, "Listener error.");
+                        break;
+                    }
+
+                    Logger.Log("New client connected from " + ((IPEndPoint)newPlayerSocket.RemoteEndPoint).Address);
+
+                    LANPlayerInfo lpInfo = new LANPlayerInfo(encoding);
+                    lpInfo.SetClient(newPlayerSocket);
+
+                    HandleClientConnectionAsync(lpInfo, cancellationToken);
                 }
-                catch (Exception ex)
-                {
-                    Logger.Log("Listener error: " + ex.Message);
-                    break;
-                }
-
-                Logger.Log("New client connected from " + ((IPEndPoint)client.Client.RemoteEndPoint).Address.ToString());
-
-                LANPlayerInfo lpInfo = new LANPlayerInfo(encoding);
-                lpInfo.SetClient(client);
-
-                Thread thread = new Thread(new ParameterizedThreadStart(HandleClientConnection));
-                thread.Start(lpInfo);
+            }
+            catch (Exception ex)
+            {
+                PreStartup.HandleException(ex);
             }
         }
 
-        private void HandleClientConnection(object clientInfo)
+        private async Task HandleClientConnectionAsync(LANPlayerInfo lpInfo, CancellationToken cancellationToken)
         {
-            var lpInfo = (LANPlayerInfo)clientInfo;
-
-            byte[] message = new byte[1024];
-
-            while (true)
+            try
             {
-                int bytesRead = 0;
+#if !NETFRAMEWORK
+                using IMemoryOwner<byte> memoryOwner = MemoryPool<byte>.Shared.Rent(1024);
 
-                try
+#endif
+                while (!cancellationToken.IsCancellationRequested)
                 {
-                    bytesRead = lpInfo.TcpClient.GetStream().Read(message, 0, message.Length);
-                }
-                catch (Exception ex)
-                {
-                    Logger.Log("Socket error with client " + lpInfo.IPAddress + "; removing. Message: " + ex.Message);
+                    int bytesRead;
+#if NETFRAMEWORK
+                    byte[] buffer1;
+#else
+                    Memory<byte> message;
+#endif
+
+                    try
+                    {
+#if NETFRAMEWORK
+                        buffer1 = new byte[1024];
+                        var message = new ArraySegment<byte>(buffer1);
+                        bytesRead = await client.ReceiveAsync(message, SocketFlags.None);
+                    }
+#else
+                        message = memoryOwner.Memory[..1024];
+                        bytesRead = await client.ReceiveAsync(message, SocketFlags.None, cancellationToken);
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        break;
+                    }
+#endif
+                    catch (Exception ex)
+                    {
+                        PreStartup.LogException(ex, "Socket error with client " + lpInfo.IPAddress + "; removing.");
+                        break;
+                    }
+
+                    if (bytesRead == 0)
+                    {
+                        Logger.Log("Connect attempt from " + lpInfo.IPAddress + " failed! (0 bytes read)");
+
+                        break;
+                    }
+
+#if NETFRAMEWORK
+                    string msg = encoding.GetString(buffer1, 0, bytesRead);
+#else
+                    string msg = encoding.GetString(message.Span[..bytesRead]);
+#endif
+                    string[] command = msg.Split(ProgramConstants.LAN_MESSAGE_SEPARATOR);
+                    string[] parts = command[0].Split(ProgramConstants.LAN_DATA_SEPARATOR);
+
+                    if (parts.Length != 3)
+                        break;
+
+                    string name = parts[1].Trim();
+                    int loadedGameId = Conversions.IntFromString(parts[2], -1);
+
+                    if (parts[0] == "JOIN" && !string.IsNullOrEmpty(name)
+                        && loadedGameId == this.loadedGameId)
+                    {
+                        lpInfo.Name = name;
+
+                        AddCallback(() => AddPlayerAsync(lpInfo, cancellationToken));
+                        return;
+                    }
+
                     break;
                 }
 
-                if (bytesRead == 0)
+                if (lpInfo.TcpClient.Connected)
+                    lpInfo.TcpClient.Close();
+            }
+            catch (Exception ex)
+            {
+                PreStartup.HandleException(ex);
+            }
+        }
+
+        private async Task AddPlayerAsync(LANPlayerInfo lpInfo, CancellationToken cancellationToken)
+        {
+            try
+            {
+                if (Players.Find(p => p.Name == lpInfo.Name) != null ||
+                    Players.Count >= SGPlayers.Count ||
+                    SGPlayers.Find(p => p.Name == lpInfo.Name) == null)
                 {
-                    Logger.Log("Connect attempt from " + lpInfo.IPAddress + " failed! (0 bytes read)");
-
-                    break;
-                }
-
-                string msg = encoding.GetString(message, 0, bytesRead);
-
-                string[] command = msg.Split(ProgramConstants.LAN_MESSAGE_SEPARATOR);
-                string[] parts = command[0].Split(ProgramConstants.LAN_DATA_SEPARATOR);
-
-                if (parts.Length != 3)
-                    break;
-
-                string name = parts[1].Trim();
-                int loadedGameId = Conversions.IntFromString(parts[2], -1);
-
-                if (parts[0] == "JOIN" && !string.IsNullOrEmpty(name)
-                    && loadedGameId == this.loadedGameId)
-                {
-                    lpInfo.Name = name;
-
-                    AddCallback(new Action<LANPlayerInfo>(AddPlayer), lpInfo);
+                    lpInfo.TcpClient.Close();
                     return;
                 }
 
-                break;
+                if (Players.Count == 0)
+                    lpInfo.Ready = true;
+
+                Players.Add(lpInfo);
+
+                lpInfo.MessageReceived += LpInfo_MessageReceived;
+                lpInfo.ConnectionLost += (sender, _) => LpInfo_ConnectionLostAsync(sender);
+
+                sndJoinSound.Play();
+
+                AddNotice(string.Format("{0} connected from {1}".L10N("UI:Main:PlayerFromIP"), lpInfo.Name, lpInfo.IPAddress));
+                lpInfo.StartReceiveLoop(cancellationToken);
+
+                CopyPlayerDataToUI();
+                await BroadcastOptionsAsync();
+                UpdateDiscordPresence();
             }
-
-            if (lpInfo.TcpClient.Connected)
-                lpInfo.TcpClient.Close();
-        }
-
-        private void AddPlayer(LANPlayerInfo lpInfo)
-        {
-            if (Players.Find(p => p.Name == lpInfo.Name) != null ||
-                Players.Count >= SGPlayers.Count ||
-                SGPlayers.Find(p => p.Name == lpInfo.Name) == null)
+            catch (Exception ex)
             {
-                lpInfo.TcpClient.Close();
-                return;
+                PreStartup.HandleException(ex);
             }
-
-            if (Players.Count == 0)
-                lpInfo.Ready = true;
-
-            Players.Add(lpInfo);
-
-            lpInfo.MessageReceived += LpInfo_MessageReceived;
-            lpInfo.ConnectionLost += LpInfo_ConnectionLost;
-
-            sndJoinSound.Play();
-
-            AddNotice(string.Format("{0} connected from {1}".L10N("UI:Main:PlayerFromIP"), lpInfo.Name, lpInfo.IPAddress));
-            lpInfo.StartReceiveLoop();
-
-            CopyPlayerDataToUI();
-            BroadcastOptions();
-            UpdateDiscordPresence();
         }
 
-        private void LpInfo_ConnectionLost(object sender, EventArgs e)
+        private async Task LpInfo_ConnectionLostAsync(object sender)
         {
-            var lpInfo = (LANPlayerInfo)sender;
-            CleanUpPlayer(lpInfo);
-            Players.Remove(lpInfo);
+            try
+            {
+                var lpInfo = (LANPlayerInfo)sender;
+                CleanUpPlayer(lpInfo);
+                Players.Remove(lpInfo);
 
-            AddNotice(string.Format("{0} has left the game.".L10N("UI:Main:PlayerLeftGame"), lpInfo.Name));
+                AddNotice(string.Format("{0} has left the game.".L10N("UI:Main:PlayerLeftGame"), lpInfo.Name));
 
-            sndLeaveSound.Play();
+                sndLeaveSound.Play();
 
-            CopyPlayerDataToUI();
-            BroadcastOptions();
-            UpdateDiscordPresence();
+                CopyPlayerDataToUI();
+                await BroadcastOptionsAsync();
+                UpdateDiscordPresence();
+            }
+            catch (Exception ex)
+            {
+                PreStartup.HandleException(ex);
+            }
         }
 
         private void LpInfo_MessageReceived(object sender, NetworkMessageEventArgs e)
         {
-            AddCallback(new Action<string, LANPlayerInfo>(HandleClientMessage),
-                e.Message, (LANPlayerInfo)sender);
+            AddCallback(() => HandleClientMessage(e.Message, (LANPlayerInfo)sender));
         }
 
         private void HandleClientMessage(string data, LANPlayerInfo lpInfo)
@@ -294,7 +370,7 @@ namespace DTAClient.DXGUI.Multiplayer
                     return;
             }
 
-            Logger.Log("Unknown LAN command from " + lpInfo.ToString() + " : " + data);
+            Logger.Log("Unknown LAN command from " + lpInfo + " : " + data);
         }
 
         private void CleanUpPlayer(LANPlayerInfo lpInfo)
@@ -305,37 +381,54 @@ namespace DTAClient.DXGUI.Multiplayer
 
         #endregion
 
-        private void HandleServerCommunication()
+        private async Task HandleServerCommunicationAsync(CancellationToken cancellationToken)
         {
-            byte[] message = new byte[1024];
-
-            var msg = string.Empty;
-
-            int bytesRead = 0;
-
             if (!client.Connected)
                 return;
 
-            var stream = client.GetStream();
+#if !NETFRAMEWORK
+            using IMemoryOwner<byte> memoryOwner = MemoryPool<byte>.Shared.Rent(1024);
 
-            while (true)
+#endif
+            while (!cancellationToken.IsCancellationRequested)
             {
-                bytesRead = 0;
+                int bytesRead;
+#if NETFRAMEWORK
+                byte[] buffer1;
+#else
+                Memory<byte> message;
+#endif
 
                 try
                 {
-                    bytesRead = stream.Read(message, 0, message.Length);
+#if NETFRAMEWORK
+                    buffer1 = new byte[1024];
+                    var message = new ArraySegment<byte>(buffer1);
+                    bytesRead = await client.ReceiveAsync(message, SocketFlags.None);
                 }
+#else
+                    message = memoryOwner.Memory[..1024];
+                    bytesRead = await client.ReceiveAsync(message, SocketFlags.None, cancellationToken);
+                }
+                catch (OperationCanceledException)
+                {
+                    break;
+                }
+#endif
                 catch (Exception ex)
                 {
                     Logger.Log("Reading data from the server failed! Message: " + ex.Message);
-                    LeaveGame();
+                    await LeaveGameAsync();
                     break;
                 }
 
                 if (bytesRead > 0)
                 {
-                    msg = encoding.GetString(message, 0, bytesRead);
+#if NETFRAMEWORK
+                    string msg = encoding.GetString(buffer1, 0, bytesRead);
+#else
+                    string msg = encoding.GetString(message.Span[..bytesRead]);
+#endif
 
                     msg = overMessage + msg;
                     List<string> commands = new List<string>();
@@ -349,23 +442,21 @@ namespace DTAClient.DXGUI.Multiplayer
                             overMessage = msg;
                             break;
                         }
-                        else
-                        {
-                            commands.Add(msg.Substring(0, index));
-                            msg = msg.Substring(index + 1);
-                        }
+
+                        commands.Add(msg.Substring(0, index));
+                        msg = msg.Substring(index + 1);
                     }
 
                     foreach (string cmd in commands)
                     {
-                        AddCallback(new Action<string>(HandleMessageFromServer), cmd);
+                        AddCallback(() => HandleMessageFromServer(cmd));
                     }
 
                     continue;
                 }
 
                 Logger.Log("Reading data from the server failed (0 bytes received)!");
-                LeaveGame();
+                await LeaveGameAsync();
                 break;
             }
         }
@@ -383,30 +474,39 @@ namespace DTAClient.DXGUI.Multiplayer
             Logger.Log("Unknown LAN command from the server: " + message);
         }
 
-        protected override void LeaveGame()
+        protected override async Task LeaveGameAsync()
         {
-            Clear();
-            Disable();
+            try
+            {
+                await ClearAsync();
+                Disable();
 
-            base.LeaveGame();
+                await base.LeaveGameAsync();
+            }
+            catch (Exception ex)
+            {
+                PreStartup.HandleException(ex);
+            }
         }
 
-        private void Clear()
+        private async Task ClearAsync()
         {
             if (IsHost)
             {
-                BroadcastMessage(PLAYER_QUIT_COMMAND);
+                await BroadcastMessageAsync(PLAYER_QUIT_COMMAND, CancellationToken.None);
                 Players.ForEach(p => CleanUpPlayer((LANPlayerInfo)p));
                 Players.Clear();
-                listener.Stop();
+                listener.Close();
             }
             else
             {
-                SendMessageToHost(PLAYER_QUIT_COMMAND);
+                await SendMessageToHostAsync(PLAYER_QUIT_COMMAND, CancellationToken.None);
             }
 
-            if (this.client.Connected)
-                this.client.Close();
+            cancellationTokenSource.Cancel();
+
+            if (client.Connected)
+                client.Close();
         }
 
         protected override void AddNotice(string message, Color color)
@@ -414,7 +514,7 @@ namespace DTAClient.DXGUI.Multiplayer
             lbChatMessages.AddMessage(null, message, color);
         }
 
-        protected override void BroadcastOptions()
+        protected override async Task BroadcastOptionsAsync()
         {
             if (Players.Count > 0)
                 Players[0].Ready = true;
@@ -431,30 +531,26 @@ namespace DTAClient.DXGUI.Multiplayer
                 sb.Append(pInfo.IPAddress);
             }
 
-            BroadcastMessage(sb.ToString());
+            await BroadcastMessageAsync(sb.ToString(), cancellationTokenSource.Token);
         }
 
-        protected override void HostStartGame()
-        {
-            BroadcastMessage(GAME_LAUNCH_COMMAND);
-        }
+        protected override Task HostStartGameAsync()
+            => BroadcastMessageAsync(GAME_LAUNCH_COMMAND, cancellationTokenSource.Token);
 
-        protected override void RequestReadyStatus()
-        {
-            SendMessageToHost(READY_STATUS_COMMAND);
-        }
+        protected override Task RequestReadyStatusAsync()
+            => SendMessageToHostAsync(READY_STATUS_COMMAND, cancellationTokenSource.Token);
 
-        protected override void SendChatMessage(string message)
+        protected override async Task SendChatMessageAsync(string message)
         {
-            SendMessageToHost(CHAT_COMMAND + " " + chatColorIndex +
-                ProgramConstants.LAN_DATA_SEPARATOR + message);
+            await SendMessageToHostAsync(CHAT_COMMAND + " " + chatColorIndex +
+                ProgramConstants.LAN_DATA_SEPARATOR + message, cancellationTokenSource.Token);
 
             sndMessageSound.Play();
         }
 
         #region Server's command handlers
 
-        private void Server_HandleChatMessage(LANPlayerInfo sender, string data)
+        private async Task Server_HandleChatMessageAsync(LANPlayerInfo sender, string data)
         {
             string[] parts = data.Split(ProgramConstants.LAN_DATA_SEPARATOR);
 
@@ -466,9 +562,9 @@ namespace DTAClient.DXGUI.Multiplayer
             if (colorIndex < 0 || colorIndex >= chatColors.Length)
                 return;
 
-            BroadcastMessage(CHAT_COMMAND + " " + sender +
+            await BroadcastMessageAsync(CHAT_COMMAND + " " + sender +
                 ProgramConstants.LAN_DATA_SEPARATOR + colorIndex +
-                ProgramConstants.LAN_DATA_SEPARATOR + data);
+                ProgramConstants.LAN_DATA_SEPARATOR + data, cancellationTokenSource.Token);
         }
 
         private void Server_HandleFileHashMessage(LANPlayerInfo sender, string hash)
@@ -478,13 +574,20 @@ namespace DTAClient.DXGUI.Multiplayer
             sender.Verified = true;
         }
 
-        private void Server_HandleReadyRequest(LANPlayerInfo sender)
+        private async Task Server_HandleReadyRequestAsync(LANPlayerInfo sender)
         {
-            if (!sender.Ready)
+            try
             {
-                sender.Ready = true;
-                CopyPlayerDataToUI();
-                BroadcastOptions();
+                if (!sender.Ready)
+                {
+                    sender.Ready = true;
+                    CopyPlayerDataToUI();
+                    await BroadcastOptionsAsync();
+                }
+            }
+            catch (Exception ex)
+            {
+                PreStartup.HandleException(ex);
             }
         }
 
@@ -549,7 +652,7 @@ namespace DTAClient.DXGUI.Multiplayer
             }
 
             if (Players.Count > 0) // Set IP of host
-                Players[0].IPAddress = ((IPEndPoint)client.Client.RemoteEndPoint).Address.ToString();
+                Players[0].IPAddress = ((IPEndPoint)client.RemoteEndPoint).Address.ToString();
 
             CopyPlayerDataToUI();
         }
@@ -567,7 +670,7 @@ namespace DTAClient.DXGUI.Multiplayer
         /// Broadcasts a command to all players in the game as the game host.
         /// </summary>
         /// <param name="message">The command to send.</param>
-        private void BroadcastMessage(string message)
+        private async Task BroadcastMessageAsync(string message, CancellationToken cancellationToken)
         {
             if (!IsHost)
                 return;
@@ -575,40 +678,47 @@ namespace DTAClient.DXGUI.Multiplayer
             foreach (PlayerInfo pInfo in Players)
             {
                 var lpInfo = (LANPlayerInfo)pInfo;
-                lpInfo.SendMessage(message);
+                await lpInfo.SendMessageAsync(message, cancellationToken);
             }
         }
 
-        private void SendMessageToHost(string message)
+        private async Task SendMessageToHostAsync(string message, CancellationToken cancellationToken)
         {
             if (!client.Connected)
                 return;
 
-            byte[] buffer = encoding.GetBytes(
-                message + ProgramConstants.LAN_MESSAGE_SEPARATOR);
+            message += ProgramConstants.LAN_MESSAGE_SEPARATOR;
 
-            NetworkStream ns = client.GetStream();
+#if NETFRAMEWORK
+            byte[] buffer1 = encoding.GetBytes(message);
+            var buffer = new ArraySegment<byte>(buffer1);
 
             try
             {
-                ns.Write(buffer, 0, buffer.Length);
-                ns.Flush();
+                await client.SendAsync(buffer, SocketFlags.None);
             }
-            catch
-            {
-                Logger.Log("Sending message to game host failed!");
-            }
-        }
+#else
+            using IMemoryOwner<byte> memoryOwner = MemoryPool<byte>.Shared.Rent(message.Length * 2);
+            Memory<byte> buffer = memoryOwner.Memory[..(message.Length * 2)];
+            int bytes = encoding.GetBytes(message.AsSpan(), buffer.Span);
+            buffer = buffer[..bytes];
 
-        public void SetChatColorIndex(int colorIndex)
-        {
-            chatColorIndex = colorIndex;
+            try
+            {
+                await client.SendAsync(buffer, SocketFlags.None, cancellationToken);
+            }
+            catch (OperationCanceledException)
+            {
+            }
+#endif
+            catch (Exception ex)
+            {
+                PreStartup.LogException(ex, "Sending message to game host failed!");
+            }
         }
 
         public override string GetSwitchName()
-        {
-            return "Load Game".L10N("UI:Main:LoadGameSwitchName");
-        }
+            => "Load Game".L10N("UI:Main:LoadGameSwitchName");
 
         public override void Update(GameTime gameTime)
         {
@@ -617,13 +727,13 @@ namespace DTAClient.DXGUI.Multiplayer
                 for (int i = 1; i < Players.Count; i++)
                 {
                     LANPlayerInfo lpInfo = (LANPlayerInfo)Players[i];
-                    if (!lpInfo.Update(gameTime))
+                    if (!Task.Run(() => lpInfo.UpdateAsync(gameTime)).Result)
                     {
                         CleanUpPlayer(lpInfo);
                         Players.RemoveAt(i);
                         AddNotice(string.Format("{0} - connection timed out".L10N("UI:Main:PlayerTimeout"), lpInfo.Name));
                         CopyPlayerDataToUI();
-                        BroadcastOptions();
+                        Task.Run(BroadcastOptionsAsync).Wait();
                         UpdateDiscordPresence();
                         i--;
                     }
@@ -642,11 +752,7 @@ namespace DTAClient.DXGUI.Multiplayer
                 timeSinceLastReceivedCommand += gameTime.ElapsedGameTime;
 
                 if (timeSinceLastReceivedCommand > TimeSpan.FromSeconds(DROPOUT_TIMEOUT))
-                {
-                    LobbyNotification?.Invoke(this,
-                        new LobbyNotificationEventArgs("Connection to the game host timed out.".L10N("UI:Main:HostConnectTimeOut")));
-                    LeaveGame();
-                }
+                    Task.Run(LeaveGameAsync).Wait();
             }
 
             base.Update(gameTime);
@@ -672,11 +778,18 @@ namespace DTAClient.DXGUI.Multiplayer
             GameBroadcast?.Invoke(this, new GameBroadcastEventArgs(sb.ToString()));
         }
 
-        protected override void HandleGameProcessExited()
+        protected override async Task HandleGameProcessExitedAsync()
         {
-            base.HandleGameProcessExited();
+            try
+            {
+                await base.HandleGameProcessExitedAsync();
 
-            LeaveGame();
+                await LeaveGameAsync();
+            }
+            catch (Exception ex)
+            {
+                PreStartup.HandleException(ex);
+            }
         }
 
         protected override void UpdateDiscordPresence(bool resetTimer = false)

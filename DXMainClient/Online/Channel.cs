@@ -2,6 +2,7 @@
 using DTAClient.Online.EventArguments;
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using DTAClient.DXGUI;
 using Localization;
 
@@ -112,7 +113,7 @@ namespace DTAClient.Online
             UserAdded?.Invoke(this, new ChannelUserEventArgs(user));
         }
 
-        public void OnUserJoined(ChannelUser user)
+        public async Task OnUserJoinedAsync(ChannelUser user)
         {
             AddUser(user);
 
@@ -124,7 +125,7 @@ namespace DTAClient.Online
 
 #if !YR
             if (Persistent && IsChatChannel && user.IRCUser.Name == ProgramConstants.PLAYERNAME)
-                RequestUserInfo();
+                await RequestUserInfoAsync();
 #endif
         }
 
@@ -254,13 +255,13 @@ namespace DTAClient.Online
             MessageAdded?.Invoke(this, new IRCMessageEventArgs(message));
         }
 
-        public void SendChatMessage(string message, IRCColor color)
+        public Task SendChatMessageAsync(string message, IRCColor color)
         {
             AddMessage(new ChatMessage(ProgramConstants.PLAYERNAME, color.XnaColor, DateTime.Now, message));
 
-            string colorString = ((char)03).ToString() + color.IrcColorId.ToString("D2");
+            string colorString = (char)03 + color.IrcColorId.ToString("D2");
 
-            connection.QueueMessage(QueuedMessageType.CHAT_MESSAGE, 0,
+            return connection.QueueMessageAsync(QueuedMessageType.CHAT_MESSAGE, 0,
                 "PRIVMSG " + ChannelName + " :" + colorString + message);
         }
 
@@ -271,12 +272,12 @@ namespace DTAClient.Online
         ///     This can be used to help prevent flooding for multiple options that are changed quickly. It allows for a single message
         ///     for multiple changes.
         /// </param>
-        public void SendCTCPMessage(string message, QueuedMessageType qmType, int priority, bool replace = false)
+        public Task SendCTCPMessageAsync(string message, QueuedMessageType qmType, int priority, bool replace = false)
         {
             char CTCPChar1 = (char)58;
             char CTCPChar2 = (char)01;
 
-            connection.QueueMessage(qmType, priority,
+            return connection.QueueMessageAsync(qmType, priority,
                 "NOTICE " + ChannelName + " " + CTCPChar1 + CTCPChar2 + message + CTCPChar2, replace);
         }
 
@@ -285,9 +286,9 @@ namespace DTAClient.Online
         /// </summary>
         /// <param name="userName">The name of the user that should be kicked.</param>
         /// <param name="priority">The priority of the message in the send queue.</param>
-        public void SendKickMessage(string userName, int priority)
+        public Task SendKickMessageAsync(string userName, int priority)
         {
-            connection.QueueMessage(QueuedMessageType.INSTANT_MESSAGE, priority, "KICK " + ChannelName + " " + userName);
+            return connection.QueueMessageAsync(QueuedMessageType.INSTANT_MESSAGE, priority, "KICK " + ChannelName + " " + userName);
         }
 
         /// <summary>
@@ -295,13 +296,13 @@ namespace DTAClient.Online
         /// </summary>
         /// <param name="host">The host that should be banned.</param>
         /// <param name="priority">The priority of the message in the send queue.</param>
-        public void SendBanMessage(string host, int priority)
+        public Task SendBanMessageAsync(string host, int priority)
         {
-            connection.QueueMessage(QueuedMessageType.INSTANT_MESSAGE, priority,
+            return connection.QueueMessageAsync(QueuedMessageType.INSTANT_MESSAGE, priority,
                 string.Format("MODE {0} +b *!*@{1}", ChannelName, host));
         }
 
-        public void Join()
+        public Task JoinAsync()
         {
             // Wait a random amount of time before joining to prevent join/part floods
             if (Persistent)
@@ -309,35 +310,35 @@ namespace DTAClient.Online
                 int rn = connection.Rng.Next(1, 10000);
 
                 if (string.IsNullOrEmpty(Password))
-                    connection.QueueMessage(QueuedMessageType.SYSTEM_MESSAGE, 9, rn, "JOIN " + ChannelName);
+                    return connection.QueueMessageAsync(QueuedMessageType.SYSTEM_MESSAGE, 9, rn, "JOIN " + ChannelName);
                 else
-                    connection.QueueMessage(QueuedMessageType.SYSTEM_MESSAGE, 9, rn, "JOIN " + ChannelName + " " + Password);
+                    return connection.QueueMessageAsync(QueuedMessageType.SYSTEM_MESSAGE, 9, rn, "JOIN " + ChannelName + " " + Password);
             }
             else
             {
                 if (string.IsNullOrEmpty(Password))
-                    connection.QueueMessage(QueuedMessageType.SYSTEM_MESSAGE, 9, "JOIN " + ChannelName);
+                    return connection.QueueMessageAsync(QueuedMessageType.SYSTEM_MESSAGE, 9, "JOIN " + ChannelName);
                 else
-                    connection.QueueMessage(QueuedMessageType.SYSTEM_MESSAGE, 9, "JOIN " + ChannelName + " " + Password);
+                    return connection.QueueMessageAsync(QueuedMessageType.SYSTEM_MESSAGE, 9, "JOIN " + ChannelName + " " + Password);
             }
         }
 
-        public void RequestUserInfo()
+        public Task RequestUserInfoAsync()
         {
-            connection.QueueMessage(QueuedMessageType.SYSTEM_MESSAGE, 9, "WHO " + ChannelName);
+            return connection.QueueMessageAsync(QueuedMessageType.SYSTEM_MESSAGE, 9, "WHO " + ChannelName);
         }
 
-        public void Leave()
+        public async Task LeaveAsync()
         {
             // Wait a random amount of time before joining to prevent join/part floods
             if (Persistent)
             {
                 int rn = connection.Rng.Next(1, 10000);
-                connection.QueueMessage(QueuedMessageType.SYSTEM_MESSAGE, 9, rn, "PART " + ChannelName);
+                await connection.QueueMessageAsync(QueuedMessageType.SYSTEM_MESSAGE, 9, rn, "PART " + ChannelName);
             }
             else
             {
-                connection.QueueMessage(QueuedMessageType.SYSTEM_MESSAGE, 9, "PART " + ChannelName);
+                await connection.QueueMessageAsync(QueuedMessageType.SYSTEM_MESSAGE, 9, "PART " + ChannelName);
             }
             ClearUsers();
         }

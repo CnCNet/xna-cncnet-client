@@ -1,8 +1,9 @@
 ﻿using ClientCore;
 using System;
-using System.IO;
 using System.Net;
+using System.Net.Http;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace DTAClient.Domain.Multiplayer.CnCNet
 {
@@ -11,8 +12,6 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
     /// </summary>
     public static class CnCNetPlayerCountTask
     {
-        public static int PlayerCount { get; private set; }
-
         private static int REFRESH_INTERVAL = 60000; // 1 minute
 
         internal static event EventHandler<PlayerCountEventArgs> CnCNetGameCountUpdated;
@@ -22,44 +21,45 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
         public static void InitializeService(CancellationTokenSource cts)
         {
             cncnetLiveStatusIdentifier = ClientConfiguration.Instance.CnCNetLiveStatusIdentifier;
-            PlayerCount = GetCnCNetPlayerCount();
 
-            CnCNetGameCountUpdated?.Invoke(null, new PlayerCountEventArgs(PlayerCount));
-            ThreadPool.QueueUserWorkItem(new WaitCallback(RunService), cts);
+            RunServiceAsync(cts.Token);
         }
 
-        private static void RunService(object tokenObj)
+        private static async Task RunServiceAsync(CancellationToken cancellationToken)
         {
-            var waitHandle = ((CancellationTokenSource)tokenObj).Token.WaitHandle;
-
-            while (true)
+            while (!cancellationToken.IsCancellationRequested)
             {
-                if (waitHandle.WaitOne(REFRESH_INTERVAL))
+                CnCNetGameCountUpdated?.Invoke(null, new PlayerCountEventArgs(await GetCnCNetPlayerCountAsync()));
+
+                try
                 {
-                    // Cancellation signaled
-                    return;
+                    await Task.Delay(REFRESH_INTERVAL, cancellationToken);
                 }
-                else
+                catch (OperationCanceledException)
                 {
-                    CnCNetGameCountUpdated?.Invoke(null, new PlayerCountEventArgs(GetCnCNetPlayerCount()));
+                    break;
                 }
             }
         }
 
-        private static int GetCnCNetPlayerCount()
+        private static async Task<int> GetCnCNetPlayerCountAsync()
         {
             try
             {
-                WebClient client = new WebClient();
-
-                Stream data = client.OpenRead("http://api.cncnet.org/status");
-                
-                string info = string.Empty;
-
-                using (StreamReader reader = new StreamReader(data))
+                var httpClientHandler = new HttpClientHandler
                 {
-                    info = reader.ReadToEnd();
-                }
+#if NETFRAMEWORK
+                    AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate
+#else
+                    AutomaticDecompression = DecompressionMethods.All
+#endif
+                };
+                using var client = new HttpClient(httpClientHandler, true)
+                {
+                    Timeout = TimeSpan.FromMilliseconds(Constants.TUNNEL_CONNECTION_TIMEOUT)
+                };
+
+                string info = await client.GetStringAsync("http://api.cncnet.org/status");
 
                 info = info.Replace("{", String.Empty);
                 info = info.Replace("}", String.Empty);
@@ -79,8 +79,9 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
 
                 return numGames;
             }
-            catch
+            catch (Exception ex)
             {
+                PreStartup.LogException(ex);
                 return -1;
             }
         }

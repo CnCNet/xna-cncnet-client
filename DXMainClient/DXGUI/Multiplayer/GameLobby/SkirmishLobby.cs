@@ -9,6 +9,7 @@ using DTAClient.Domain.Multiplayer;
 using ClientGUI;
 using Rampastring.Tools;
 using System.IO;
+using System.Threading.Tasks;
 using DTAClient.Domain;
 using Microsoft.Xna.Framework;
 using Localization;
@@ -164,29 +165,45 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             return null;
         }
 
-        protected override void BtnLaunchGame_LeftClick(object sender, EventArgs e)
+        protected override async Task BtnLaunchGame_LeftClickAsync(object sender, EventArgs e)
         {
-            string error = CheckGameValidity();
-
-            if (error == null)
+            try
             {
-                SaveSettings();
-                StartGame();
-                return;
-            }
+                string error = CheckGameValidity();
 
-            XNAMessageBox.Show(WindowManager, "Cannot launch game".L10N("UI:Main:LaunchGameErrorTitle"), error);
+                if (error == null)
+                {
+                    SaveSettings();
+                    await StartGameAsync();
+                    return;
+                }
+
+                XNAMessageBox.Show(WindowManager, "Cannot launch game".L10N("UI:Main:LaunchGameErrorTitle"), error);
+            }
+            catch (Exception ex)
+            {
+                PreStartup.HandleException(ex);
+            }
         }
 
-        protected override void BtnLeaveGame_LeftClick(object sender, EventArgs e)
+        protected override Task BtnLeaveGame_LeftClickAsync(object sender, EventArgs e)
         {
-            this.Enabled = false;
-            this.Visible = false;
+            try
+            {
+                Enabled = false;
+                Visible = false;
 
-            Exited?.Invoke(this, EventArgs.Empty);
+                Exited?.Invoke(this, EventArgs.Empty);
 
-            topBar.RemovePrimarySwitchable(this);
-            ResetDiscordPresence();
+                topBar.RemovePrimarySwitchable(this);
+                ResetDiscordPresence();
+
+            }
+            catch (Exception ex)
+            {
+                PreStartup.HandleException(ex);
+            }
+            return Task.CompletedTask;
         }
 
         private void PlayerSideChanged(object sender, EventArgs e)
@@ -224,13 +241,20 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             return StatisticsManager.Instance.GetSkirmishRankForDefaultMap(gameModeMap.Map.Name, gameModeMap.Map.MaxPlayers);
         }
 
-        protected override void GameProcessExited()
+        protected override async Task GameProcessExitedAsync()
         {
-            base.GameProcessExited();
+            try
+            {
+                await base.GameProcessExitedAsync();
 
-            DdGameModeMapFilter_SelectedIndexChanged(null, EventArgs.Empty); // Refresh ranks
+                await DdGameModeMapFilter_SelectedIndexChangedAsync(); // Refresh ranks
 
-            RandomSeed = new Random().Next();
+                RandomSeed = new Random().Next();
+            }
+            catch (Exception ex)
+            {
+                PreStartup.HandleException(ex);
+            }
         }
 
         public void Open()

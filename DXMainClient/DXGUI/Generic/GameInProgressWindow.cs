@@ -129,7 +129,7 @@ namespace DTAClient.DXGUI
 
         private void SharedUILogic_GameProcessExited()
         {
-            AddCallback(new Action(HandleGameProcessExited), null);
+            AddCallback(HandleGameProcessExited);
         }
 
         private void HandleGameProcessExited()
