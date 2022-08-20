@@ -127,7 +127,7 @@ namespace DTAClient.DXGUI.Multiplayer
             btnMainMenu.ClientRectangle = new Rectangle(Width - 145,
                 btnNewGame.Y, UIDesignConstants.BUTTON_WIDTH_133, UIDesignConstants.BUTTON_HEIGHT);
             btnMainMenu.Text = "Main Menu".L10N("UI:Main:MainMenu");
-            btnMainMenu.LeftClick += (_, _) => BtnMainMenu_LeftClickAsync(cancellationTokenSource?.Token ?? default);
+            btnMainMenu.LeftClick += (_, _) => BtnMainMenu_LeftClickAsync();
 
             lbGameList = new GameListBox(WindowManager, localGame, null);
             lbGameList.Name = "lbGameList";
@@ -274,15 +274,19 @@ namespace DTAClient.DXGUI.Multiplayer
 
                 if (socket.IsBound)
                 {
+#if NETFRAMEWORK
                     try
                     {
-                        await SendMessageAsync("QUIT", cancellationToken);
-                        cancellationTokenSource.Cancel();
-                        socket.Close();
+#endif
+                    await SendMessageAsync("QUIT", cancellationToken);
+                    cancellationTokenSource.Cancel();
+                    socket.Close();
+#if NETFRAMEWORK
                     }
                     catch (ObjectDisposedException)
                     {
                     }
+#endif
                 }
             }
             catch (Exception ex)
@@ -434,7 +438,7 @@ namespace DTAClient.DXGUI.Multiplayer
                     Memory<byte> buffer = memoryOwner.Memory[..4096];
                     SocketReceiveFromResult socketReceiveFromResult = await socket.ReceiveFromAsync(buffer, SocketFlags.None, ep, cancellationToken);
 #endif
-                    var iep = (IPEndPoint)ep;
+                    var iep = (IPEndPoint)socketReceiveFromResult.RemoteEndPoint;
 #if NETFRAMEWORK
                     string data = encoding.GetString(buffer1, 0, socketReceiveFromResult.ReceivedBytes);
 #else
@@ -627,7 +631,11 @@ namespace DTAClient.DXGUI.Multiplayer
                 try
                 {
                     using var client = new Socket(SocketType.Stream, ProtocolType.Tcp);
-                    client.Bind(new IPEndPoint(hg.EndPoint.Address, ProgramConstants.LAN_GAME_LOBBY_PORT));
+#if NETFRAMEWORK
+                    await client.ConnectAsync(new IPEndPoint(hg.EndPoint.Address, ProgramConstants.LAN_GAME_LOBBY_PORT));
+#else
+                    await client.ConnectAsync(new IPEndPoint(hg.EndPoint.Address, ProgramConstants.LAN_GAME_LOBBY_PORT), CancellationToken.None);
+#endif
 
                     if (hg.IsLoadedGame)
                     {
@@ -693,13 +701,14 @@ namespace DTAClient.DXGUI.Multiplayer
             }
         }
 
-        private async Task BtnMainMenu_LeftClickAsync(CancellationToken cancellationToken)
+        private async Task BtnMainMenu_LeftClickAsync()
         {
             try
             {
                 Visible = false;
                 Enabled = false;
-                await SendMessageAsync("QUIT", cancellationToken);
+                await SendMessageAsync("QUIT", CancellationToken.None);
+                cancellationTokenSource.Cancel();
                 socket.Close();
                 Exited?.Invoke(this, EventArgs.Empty);
             }

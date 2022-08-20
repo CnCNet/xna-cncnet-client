@@ -196,7 +196,7 @@ namespace DTAClient
             Logger.Log("Type: " + ex.GetType());
             Logger.Log("Message: " + ex.Message);
             Logger.Log("Source: " + ex.Source);
-            Logger.Log("TargetSite.Name: " + ex.TargetSite.Name);
+            Logger.Log("TargetSite.Name: " + ex.TargetSite?.Name);
             Logger.Log("Stacktrace: " + ex.StackTrace);
 
             if (ex is AggregateException aggregateException)
