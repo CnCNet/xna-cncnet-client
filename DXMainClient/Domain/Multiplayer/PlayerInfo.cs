@@ -34,7 +34,7 @@ namespace DTAClient.Domain.Multiplayer
         public bool IsAI { get; set; }
 
         public bool IsInGame { get; set; }
-        public virtual string IPAddress { get; set; } = "0.0.0.0";
+        public virtual string IPAddress { get; set; } = System.Net.IPAddress.Any.ToString();
         public int Port { get; set; }
         public bool Verified { get; set; }
 

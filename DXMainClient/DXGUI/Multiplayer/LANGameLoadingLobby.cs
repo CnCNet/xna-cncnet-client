@@ -160,7 +160,7 @@ namespace DTAClient.DXGUI.Multiplayer
         {
             var fhc = new FileHashCalculator();
             fhc.CalculateHashes(gameModes);
-            await SendMessageToHostAsync(FILE_HASH_COMMAND + " " + fhc.GetCompleteHash(), cancellationTokenSource.Token);
+            await SendMessageToHostAsync(FILE_HASH_COMMAND + " " + fhc.GetCompleteHash(), cancellationTokenSource?.Token ?? default);
             UpdateDiscordPresence(true);
         }
 
@@ -531,19 +531,19 @@ namespace DTAClient.DXGUI.Multiplayer
                 sb.Append(pInfo.IPAddress);
             }
 
-            await BroadcastMessageAsync(sb.ToString(), cancellationTokenSource.Token);
+            await BroadcastMessageAsync(sb.ToString(), cancellationTokenSource?.Token ?? default);
         }
 
         protected override Task HostStartGameAsync()
-            => BroadcastMessageAsync(GAME_LAUNCH_COMMAND, cancellationTokenSource.Token);
+            => BroadcastMessageAsync(GAME_LAUNCH_COMMAND, cancellationTokenSource?.Token ?? default);
 
         protected override Task RequestReadyStatusAsync()
-            => SendMessageToHostAsync(READY_STATUS_COMMAND, cancellationTokenSource.Token);
+            => SendMessageToHostAsync(READY_STATUS_COMMAND, cancellationTokenSource?.Token ?? default);
 
         protected override async Task SendChatMessageAsync(string message)
         {
             await SendMessageToHostAsync(CHAT_COMMAND + " " + chatColorIndex +
-                ProgramConstants.LAN_DATA_SEPARATOR + message, cancellationTokenSource.Token);
+                ProgramConstants.LAN_DATA_SEPARATOR + message, cancellationTokenSource?.Token ?? default);
 
             sndMessageSound.Play();
         }
@@ -564,7 +564,7 @@ namespace DTAClient.DXGUI.Multiplayer
 
             await BroadcastMessageAsync(CHAT_COMMAND + " " + sender +
                 ProgramConstants.LAN_DATA_SEPARATOR + colorIndex +
-                ProgramConstants.LAN_DATA_SEPARATOR + data, cancellationTokenSource.Token);
+                ProgramConstants.LAN_DATA_SEPARATOR + data, cancellationTokenSource?.Token ?? default);
         }
 
         private void Server_HandleFileHashMessage(LANPlayerInfo sender, string hash)
