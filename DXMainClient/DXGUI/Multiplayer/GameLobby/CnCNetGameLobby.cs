@@ -16,6 +16,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using DTAClient.Domain.Multiplayer.CnCNet;
@@ -981,10 +982,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         protected override string GetIPAddressForPlayer(PlayerInfo player)
         {
             if (isP2P)
-                return player.IPAddress;
+                return IPAddress.Parse(player.IPAddress).MapToIPv4().ToString();
 
             if (tunnelHandler.CurrentTunnel.Version == Constants.TUNNEL_VERSION_3)
-                return "127.0.0.1";
+                return IPAddress.Loopback.MapToIPv4().ToString();
 
             return base.GetIPAddressForPlayer(player);
         }

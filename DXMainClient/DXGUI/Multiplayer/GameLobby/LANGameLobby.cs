@@ -185,7 +185,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             }
             else
             {
-                this.client?.Dispose();
                 this.client = client;
             }
 
@@ -201,7 +200,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             var fhc = new FileHashCalculator();
             fhc.CalculateHashes(GameModeMaps.GameModes);
-            await SendMessageToHostAsync(FILE_HASH_COMMAND + " " + fhc.GetCompleteHash(), cancellationTokenSource.Token);
+            await SendMessageToHostAsync(FILE_HASH_COMMAND + " " + fhc.GetCompleteHash(), cancellationTokenSource?.Token ?? default);
             ResetAutoReadyCheckbox();
         }
 
@@ -560,11 +559,14 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             }
             else
             {
-                await SendMessageToHostAsync(PLAYER_QUIT_COMMAND, cancellationTokenSource.Token);
+                await SendMessageToHostAsync(PLAYER_QUIT_COMMAND, cancellationTokenSource?.Token ?? default);
             }
 
             if (client.Connected)
+            {
+                cancellationTokenSource.Cancel();
                 client.Close();
+            }
 
             ResetDiscordPresence();
         }
@@ -630,7 +632,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         protected override string GetIPAddressForPlayer(PlayerInfo player)
         {
             var lpInfo = (LANPlayerInfo)player;
-            return lpInfo.IPAddress;
+            return IPAddress.Parse(lpInfo.IPAddress).MapToIPv4().ToString();
         }
 
         protected override Task RequestPlayerOptionsAsync(int side, int color, int start, int team)
@@ -641,12 +643,12 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             sb.Append(color);
             sb.Append(start);
             sb.Append(team);
-            return SendMessageToHostAsync(sb.ToString(), cancellationTokenSource.Token);
+            return SendMessageToHostAsync(sb.ToString(), cancellationTokenSource?.Token ?? default);
         }
 
         protected override Task RequestReadyStatusAsync()
         {
-            return SendMessageToHostAsync(PLAYER_READY_REQUEST + " " + Convert.ToInt32(chkAutoReady.Checked), cancellationTokenSource.Token);
+            return SendMessageToHostAsync(PLAYER_READY_REQUEST + " " + Convert.ToInt32(chkAutoReady.Checked), cancellationTokenSource?.Token ?? default);
         }
 
         protected override Task SendChatMessageAsync(string message)
@@ -655,7 +657,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             sb.Separator = ProgramConstants.LAN_DATA_SEPARATOR;
             sb.Append(chatColorIndex);
             sb.Append(message);
-            return SendMessageToHostAsync(sb.ToString(), cancellationTokenSource.Token);
+            return SendMessageToHostAsync(sb.ToString(), cancellationTokenSource?.Token ?? default);
         }
 
         protected override async Task OnGameOptionChangedAsync()
@@ -722,7 +724,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 foreach (PlayerInfo pInfo in Players.Where(p => !otherPlayersOnly || p.Name != ProgramConstants.PLAYERNAME))
                 {
                     var lpInfo = (LANPlayerInfo)pInfo;
-                    await lpInfo.SendMessageAsync(message, cancellationTokenSource.Token);
+                    await lpInfo.SendMessageAsync(message, cancellationTokenSource?.Token ?? default);
                 }
             }
             catch (Exception ex)
@@ -809,7 +811,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             {
                 await base.GameProcessExitedAsync();
 
-                await SendMessageToHostAsync(RETURN_COMMAND, cancellationTokenSource.Token);
+                await SendMessageToHostAsync(RETURN_COMMAND, cancellationTokenSource?.Token ?? default);
 
                 if (IsHost)
                 {
@@ -1074,8 +1076,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 if (team < 0 || team > 4)
                     return;
 
-                if (ipAddress == "127.0.0.1")
-                    ipAddress = hostEndPoint.Address.ToString();
+                if (IPAddress.IsLoopback(IPAddress.Parse(ipAddress)))
+                    ipAddress = hostEndPoint.Address.MapToIPv4().ToString();
 
                 bool isAi = aiLevel > -1;
                 if (aiLevel > 2)

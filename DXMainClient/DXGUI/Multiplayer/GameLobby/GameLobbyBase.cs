@@ -12,6 +12,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 using ClientCore.Enums;
 using DTAClient.DXGUI.Multiplayer.CnCNet;
@@ -1492,7 +1493,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             return false;
         }
 
-        protected virtual string GetIPAddressForPlayer(PlayerInfo player) => "0.0.0.0";
+        protected virtual string GetIPAddressForPlayer(PlayerInfo player) => IPAddress.Any.MapToIPv4().ToString();
 
         /// <summary>
         /// Override this in a derived class to write game lobby specific code to

@@ -429,7 +429,7 @@ namespace DTAClient.DXGUI.Multiplayer
 
                 while (!cancellationToken.IsCancellationRequested)
                 {
-                    EndPoint ep = new IPEndPoint(IPAddress.Any, ProgramConstants.LAN_LOBBY_PORT);
+                    EndPoint ep = new IPEndPoint(IPAddress.Any, ProgramConstants.LAN_GAME_LOBBY_PORT);
 #if NETFRAMEWORK
                     byte[] buffer1 = new byte[4096];
                     var buffer = new ArraySegment<byte>(buffer1);
@@ -630,7 +630,7 @@ namespace DTAClient.DXGUI.Multiplayer
 
                 try
                 {
-                    using var client = new Socket(SocketType.Stream, ProtocolType.Tcp);
+                    var client = new Socket(SocketType.Stream, ProtocolType.Tcp);
 #if NETFRAMEWORK
                     await client.ConnectAsync(new IPEndPoint(hg.EndPoint.Address, ProgramConstants.LAN_GAME_LOBBY_PORT));
 #else

@@ -59,7 +59,7 @@ namespace DTAClient.Domain.Multiplayer.LAN
 
             if (TimeSinceLastSentMessage > TimeSpan.FromSeconds(SEND_PING_TIMEOUT)
                 || TimeSinceLastReceivedMessage > TimeSpan.FromSeconds(SEND_PING_TIMEOUT))
-                await SendMessageAsync("PING", cancellationTokenSource.Token);
+                await SendMessageAsync("PING", cancellationTokenSource?.Token ?? default);
 
             if (TimeSinceLastReceivedMessage > TimeSpan.FromSeconds(DROP_TIMEOUT))
                 return false;
