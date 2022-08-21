@@ -57,13 +57,13 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
         private void DoTunnelPinged(int index)
         {
             if (TunnelPinged != null)
-                wm.AddCallback(TunnelPinged, index);
+                wm.AddCallback(() => TunnelPinged(index));
         }
 
         private void DoCurrentTunnelPinged()
         {
             if (CurrentTunnelPinged != null)
-                wm.AddCallback(CurrentTunnelPinged, this, EventArgs.Empty);
+                wm.AddCallback(() => CurrentTunnelPinged(this, EventArgs.Empty));
         }
 
         private void ConnectionManager_Connected(object sender, EventArgs e) => Enabled = true;
@@ -77,7 +77,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
             try
             {
                 List<CnCNetTunnel> tunnels = await DoRefreshTunnelsAsync();
-                wm.AddCallback(new Action<List<CnCNetTunnel>>(HandleRefreshedTunnels), tunnels);
+                wm.AddCallback(() => HandleRefreshedTunnels(tunnels));
             }
             catch (Exception ex)
             {

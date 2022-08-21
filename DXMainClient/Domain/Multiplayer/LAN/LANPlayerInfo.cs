@@ -54,17 +54,26 @@ namespace DTAClient.Domain.Multiplayer.LAN
         /// <returns>True if the player is still considered connected, otherwise false.</returns>
         public async Task<bool> UpdateAsync(GameTime gameTime)
         {
-            TimeSinceLastReceivedMessage += gameTime.ElapsedGameTime;
-            TimeSinceLastSentMessage += gameTime.ElapsedGameTime;
+            try
+            {
+                TimeSinceLastReceivedMessage += gameTime.ElapsedGameTime;
+                TimeSinceLastSentMessage += gameTime.ElapsedGameTime;
 
-            if (TimeSinceLastSentMessage > TimeSpan.FromSeconds(SEND_PING_TIMEOUT)
-                || TimeSinceLastReceivedMessage > TimeSpan.FromSeconds(SEND_PING_TIMEOUT))
-                await SendMessageAsync("PING", cancellationTokenSource?.Token ?? default);
+                if (TimeSinceLastSentMessage > TimeSpan.FromSeconds(SEND_PING_TIMEOUT)
+                    || TimeSinceLastReceivedMessage > TimeSpan.FromSeconds(SEND_PING_TIMEOUT))
+                    await SendMessageAsync("PING", cancellationTokenSource?.Token ?? default);
 
-            if (TimeSinceLastReceivedMessage > TimeSpan.FromSeconds(DROP_TIMEOUT))
-                return false;
+                if (TimeSinceLastReceivedMessage > TimeSpan.FromSeconds(DROP_TIMEOUT))
+                    return false;
 
-            return true;
+                return true;
+            }
+            catch (Exception ex)
+            {
+                PreStartup.HandleException(ex);
+            }
+
+            return false;
         }
 
         public override string IPAddress
@@ -94,7 +103,7 @@ namespace DTAClient.Domain.Multiplayer.LAN
 #if NETFRAMEWORK
             byte[] buffer1 = encoding.GetBytes(message);
             var buffer = new ArraySegment<byte>(buffer1);
-            
+
             try
             {
                 await TcpClient.SendAsync(buffer, SocketFlags.None);
@@ -127,7 +136,7 @@ namespace DTAClient.Domain.Multiplayer.LAN
         /// <summary>
         /// Starts receiving messages from the player asynchronously.
         /// </summary>
-        public void StartReceiveLoop(CancellationToken cancellationToken)
+        public async Task StartReceiveLoopAsync(CancellationToken cancellationToken)
             => ReceiveMessagesAsync(cancellationToken);
 
         /// <summary>

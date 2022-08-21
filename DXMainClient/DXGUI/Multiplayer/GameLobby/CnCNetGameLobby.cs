@@ -95,8 +95,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 new NotificationHandler("CLRS", HandleNotification, () => SharedColorsNotificationAsync()),
                 new NotificationHandler("SLOC", HandleNotification, () => SharedStartingLocationNotificationAsync()),
                 new NotificationHandler("LCKGME", HandleNotification, () => LockGameNotificationAsync()),
-                new IntNotificationHandler("NVRFY", HandleIntNotification, (playerIndex) => NotVerifiedNotificationAsync(playerIndex)),
-                new IntNotificationHandler("INGM", HandleIntNotification, (playerIndex) => StillInGameNotificationAsync(playerIndex)),
+                new IntNotificationHandler("NVRFY", HandleIntNotification, playerIndex => NotVerifiedNotificationAsync(playerIndex)),
+                new IntNotificationHandler("INGM", HandleIntNotification, playerIndex => StillInGameNotificationAsync(playerIndex)),
                 new StringCommandHandler(MAP_SHARING_UPLOAD_REQUEST, HandleMapUploadRequest),
                 new StringCommandHandler(MAP_SHARING_FAIL_MESSAGE, HandleMapTransferFailMessage),
                 new StringCommandHandler(MAP_SHARING_DOWNLOAD_REQUEST, HandleMapDownloadRequest),
@@ -187,6 +187,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         private EventHandler channel_UserListReceivedFunc;
         private EventHandler<ConnectionLostEventArgs> connectionManager_ConnectionLostFunc;
         private EventHandler connectionManager_DisconnectedFunc;
+        private EventHandler tunnelHandler_CurrentTunnelFunc;
 
         public override void Initialize()
         {
@@ -204,7 +205,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             gameBroadcastTimer.AutoReset = true;
             gameBroadcastTimer.Interval = TimeSpan.FromSeconds(GAME_BROADCAST_INTERVAL);
             gameBroadcastTimer.Enabled = false;
-            gameBroadcastTimer.TimeElapsed += GameBroadcastTimer_TimeElapsed;
+            gameBroadcastTimer.TimeElapsed += (_, _) => GameBroadcastTimer_TimeElapsedAsync();
 
             gameStartTimer = new XNATimerControl(WindowManager);
             gameStartTimer.AutoReset = false;
@@ -237,8 +238,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             channel_UserLeftFunc = (_, e) => Channel_UserLeftAsync(e);
             channel_UserKickedFunc = (_, e) => Channel_UserKickedAsync(e);
             channel_UserListReceivedFunc = (_, _) => Channel_UserListReceivedAsync();
-            connectionManager_ConnectionLostFunc = (sender, e) => ConnectionManager_ConnectionLostAsync(sender, e);
-            connectionManager_DisconnectedFunc = (sender, e) => ConnectionManager_DisconnectedAsync(sender, e);
+            connectionManager_ConnectionLostFunc = (_, _) => ConnectionManager_ConnectionLostAsync();
+            connectionManager_DisconnectedFunc = (_, _) => ConnectionManager_DisconnectedAsync();
+            tunnelHandler_CurrentTunnelFunc = (_, _) => TunnelHandler_CurrentTunnelPingedAsync();
 
             PostInitialize();
         }
@@ -275,7 +277,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private void BtnChangeTunnel_LeftClick(object sender, EventArgs e) => ShowTunnelSelectionWindow("Select tunnel server:".L10N("UI:Main:SelectTunnelServer"));
 
-        private void GameBroadcastTimer_TimeElapsed(object sender, EventArgs e) => BroadcastGameAsync();
+        private Task GameBroadcastTimer_TimeElapsedAsync() => BroadcastGameAsync();
 
         public async Task SetUpAsync(Channel channel, bool isHost, int playerLimit,
             CnCNetTunnel tunnel, string hostName, bool isCustomPassword, bool isP2P)
@@ -309,7 +311,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             }
 
             tunnelHandler.CurrentTunnel = tunnel;
-            tunnelHandler.CurrentTunnelPinged += TunnelHandler_CurrentTunnelPinged;
+            tunnelHandler.CurrentTunnelPinged += tunnelHandler_CurrentTunnelFunc;
 
             connectionManager.ConnectionLost += connectionManager_ConnectionLostFunc;
             connectionManager.Disconnected += connectionManager_DisconnectedFunc;
@@ -317,7 +319,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             Refresh(isHost);
         }
 
-        private void TunnelHandler_CurrentTunnelPinged(object sender, EventArgs e) => UpdatePingAsync();
+        private Task TunnelHandler_CurrentTunnelPingedAsync() => UpdatePingAsync();
 
         public async Task OnJoinedAsync()
         {
@@ -458,7 +460,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             tbChatInput.Text = string.Empty;
 
             tunnelHandler.CurrentTunnel = null;
-            tunnelHandler.CurrentTunnelPinged -= TunnelHandler_CurrentTunnelPinged;
+            tunnelHandler.CurrentTunnelPinged -= tunnelHandler_CurrentTunnelFunc;
 
             GameLeft?.Invoke(this, EventArgs.Empty);
 
@@ -485,9 +487,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             }
         }
 
-        private Task ConnectionManager_DisconnectedAsync(object sender, EventArgs e) => HandleConnectionLossAsync();
+        private Task ConnectionManager_DisconnectedAsync() => HandleConnectionLossAsync();
 
-        private Task ConnectionManager_ConnectionLostAsync(object sender, ConnectionLostEventArgs e) => HandleConnectionLossAsync();
+        private Task ConnectionManager_ConnectionLostAsync() => HandleConnectionLossAsync();
 
         private async Task HandleConnectionLossAsync()
         {
@@ -516,7 +518,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             }
         }
 
-        protected override Task BtnLeaveGame_LeftClickAsync(object sender, EventArgs e) => LeaveGameLobbyAsync();
+        protected override Task BtnLeaveGame_LeftClickAsync() => LeaveGameLobbyAsync();
 
         protected override void UpdateDiscordPresence(bool resetTimer = false)
         {
@@ -547,7 +549,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 {
                     connectionManager.MainChannel.AddMessage(new ChatMessage(
                         ERROR_MESSAGE_COLOR, "The game host abandoned the game.".L10N("UI:Main:HostAbandoned")));
-                    await BtnLeaveGame_LeftClickAsync(this, EventArgs.Empty);
+                    await BtnLeaveGame_LeftClickAsync();
                 }
                 else
                 {
@@ -570,7 +572,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 {
                     connectionManager.MainChannel.AddMessage(new ChatMessage(
                         ERROR_MESSAGE_COLOR, "The game host abandoned the game.".L10N("UI:Main:HostAbandoned")));
-                    await BtnLeaveGame_LeftClickAsync(this, EventArgs.Empty);
+                    await BtnLeaveGame_LeftClickAsync();
                 }
                 else
                 {
@@ -585,24 +587,31 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private async Task Channel_UserKickedAsync(UserNameEventArgs e)
         {
-            if (e.UserName == ProgramConstants.PLAYERNAME)
+            try
             {
-                connectionManager.MainChannel.AddMessage(new ChatMessage(
-                    ERROR_MESSAGE_COLOR, "You were kicked from the game!".L10N("UI:Main:YouWereKicked")));
-                await ClearAsync();
-                this.Visible = false;
-                this.Enabled = false;
-                return;
+                if (e.UserName == ProgramConstants.PLAYERNAME)
+                {
+                    connectionManager.MainChannel.AddMessage(new ChatMessage(
+                        ERROR_MESSAGE_COLOR, "You were kicked from the game!".L10N("UI:Main:YouWereKicked")));
+                    await ClearAsync();
+                    Visible = false;
+                    Enabled = false;
+                    return;
+                }
+
+                int index = Players.FindIndex(p => p.Name == e.UserName);
+
+                if (index > -1)
+                {
+                    Players.RemoveAt(index);
+                    CopyPlayerDataToUI();
+                    UpdateDiscordPresence();
+                    ClearReadyStatuses();
+                }
             }
-
-            int index = Players.FindIndex(p => p.Name == e.UserName);
-
-            if (index > -1)
+            catch (Exception ex)
             {
-                Players.RemoveAt(index);
-                CopyPlayerDataToUI();
-                UpdateDiscordPresence();
-                ClearReadyStatuses();
+                PreStartup.HandleException(ex);
             }
         }
 
@@ -616,7 +625,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     {
                         connectionManager.MainChannel.AddMessage(new ChatMessage(
                             ERROR_MESSAGE_COLOR, "The game host has abandoned the game.".L10N("UI:Main:HostHasAbandoned")));
-                        await BtnLeaveGame_LeftClickAsync(this, EventArgs.Empty);
+                        await BtnLeaveGame_LeftClickAsync();
                     }
                 }
                 UpdateDiscordPresence();
@@ -934,40 +943,47 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private async Task HandleTunnelConnectedAsync(string playerName)
         {
-            if (!isStartingGame)
-                return;
-
-            int index = Players.FindIndex(p => p.Name == playerName);
-            if (index == -1)
+            try
             {
-                Logger.Log("HandleTunnelConnected: Couldn't find player " + playerName + "!");
-                AbortGameStart();
-                return;
-            }
+                if (!isStartingGame)
+                    return;
 
-            isPlayerConnectedToTunnel[index] = true;
-
-            if (isPlayerConnectedToTunnel.All(b => b))
-            {
-                Logger.Log("All players are connected to the tunnel, starting game!");
-                AddNotice("All players have connected to the tunnel...");
-
-                // Remove our own ID from the list
-                List<uint> ids = new List<uint>(tunnelPlayerIds);
-                ids.Remove(tunnelPlayerIds[Players.FindIndex(p => p.Name == ProgramConstants.PLAYERNAME)]);
-                List<PlayerInfo> players = new List<PlayerInfo>(Players);
-                int myIndex = Players.FindIndex(p => p.Name == ProgramConstants.PLAYERNAME);
-                players.RemoveAt(myIndex);
-                Tuple<int[], int> ports = gameTunnelHandler.CreatePlayerConnections(ids);
-                for (int i = 0; i < ports.Item1.Length; i++)
+                int index = Players.FindIndex(p => p.Name == playerName);
+                if (index == -1)
                 {
-                    players[i].Port = ports.Item1[i];
+                    Logger.Log("HandleTunnelConnected: Couldn't find player " + playerName + "!");
+                    AbortGameStart();
+                    return;
                 }
 
-                Players.Single(p => p.Name == ProgramConstants.PLAYERNAME).Port = ports.Item2;
-                gameStartTimer.Pause();
-                btnLaunchGame.InputEnabled = true;
-                await StartGameAsync();
+                isPlayerConnectedToTunnel[index] = true;
+
+                if (isPlayerConnectedToTunnel.All(b => b))
+                {
+                    Logger.Log("All players are connected to the tunnel, starting game!");
+                    AddNotice("All players have connected to the tunnel...");
+
+                    // Remove our own ID from the list
+                    List<uint> ids = new List<uint>(tunnelPlayerIds);
+                    ids.Remove(tunnelPlayerIds[Players.FindIndex(p => p.Name == ProgramConstants.PLAYERNAME)]);
+                    List<PlayerInfo> players = new List<PlayerInfo>(Players);
+                    int myIndex = Players.FindIndex(p => p.Name == ProgramConstants.PLAYERNAME);
+                    players.RemoveAt(myIndex);
+                    Tuple<int[], int> ports = gameTunnelHandler.CreatePlayerConnections(ids);
+                    for (int i = 0; i < ports.Item1.Length; i++)
+                    {
+                        players[i].Port = ports.Item1[i];
+                    }
+
+                    Players.Single(p => p.Name == ProgramConstants.PLAYERNAME).Port = ports.Item2;
+                    gameStartTimer.Pause();
+                    btnLaunchGame.InputEnabled = true;
+                    await StartGameAsync();
+                }
+            }
+            catch (Exception ex)
+            {
+                PreStartup.HandleException(ex);
             }
         }
 
@@ -1174,11 +1190,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             return channel.SendCTCPMessageAsync(sb.ToString(), QueuedMessageType.GAME_PLAYERS_MESSAGE, 11);
         }
 
-        protected override async Task PlayerExtraOptions_OptionsChangedAsync(object sender, EventArgs e)
+        protected override async Task PlayerExtraOptions_OptionsChangedAsync()
         {
             try
             {
-                await base.PlayerExtraOptions_OptionsChangedAsync(sender, e);
+                await base.PlayerExtraOptions_OptionsChangedAsync();
                 await BroadcastPlayerExtraOptionsAsync();
             }
             catch (Exception ex)

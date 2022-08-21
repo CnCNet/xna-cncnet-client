@@ -415,7 +415,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         }
 
         private void SharedUILogic_GameProcessExited() =>
-            WindowManager.AddCallback(new Action(HandleGameProcessExited), null);
+            WindowManager.AddCallback(HandleGameProcessExited);
 
         private void HandleGameProcessExited()
         {

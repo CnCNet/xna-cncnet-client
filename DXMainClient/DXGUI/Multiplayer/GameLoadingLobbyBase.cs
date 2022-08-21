@@ -174,7 +174,7 @@ namespace DTAClient.DXGUI.Multiplayer
             btnLeaveGame.ClientRectangle = new Rectangle(Width - 145,
                 btnLoadGame.Y, UIDesignConstants.BUTTON_WIDTH_133, UIDesignConstants.BUTTON_HEIGHT);
             btnLeaveGame.Text = "Leave Game".L10N("UI:Main:LeaveGame");
-            btnLeaveGame.LeftClick += BtnLeaveGame_LeftClick;
+            btnLeaveGame.LeftClick += (_, _) => BtnLeaveGame_LeftClickAsync();
 
             AddChild(lblMapName);
             AddChild(lblMapNameValue);
@@ -216,9 +216,9 @@ namespace DTAClient.DXGUI.Multiplayer
         /// <summary>
         /// Resets Discord Rich Presence to default state.
         /// </summary>
-        protected void ResetDiscordPresence() => discordHandler.UpdatePresence();
+        private void ResetDiscordPresence() => discordHandler.UpdatePresence();
 
-        private void BtnLeaveGame_LeftClick(object sender, EventArgs e) => LeaveGameAsync();
+        private async Task BtnLeaveGame_LeftClickAsync() => LeaveGameAsync();
 
         protected virtual Task LeaveGameAsync()
         {

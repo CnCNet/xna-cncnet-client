@@ -614,16 +614,32 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             }
         }
 
-        private Task SharedUILogic_GameProcessStartedAsync()
+        private async Task SharedUILogic_GameProcessStartedAsync()
         {
-            return connectionManager.SendCustomMessageAsync(new QueuedMessage("AWAY " + (char)58 + "In-game",
-                QueuedMessageType.SYSTEM_MESSAGE, 0));
+            try
+            {
+                await connectionManager.SendCustomMessageAsync(new QueuedMessage("AWAY " + (char)58 + "In-game",
+                    QueuedMessageType.SYSTEM_MESSAGE, 0));
+
+            }
+            catch (Exception ex)
+            {
+                PreStartup.HandleException(ex);
+            }
         }
 
-        private Task SharedUILogic_GameProcessExitedAsync()
+        private async Task SharedUILogic_GameProcessExitedAsync()
         {
-            return connectionManager.SendCustomMessageAsync(new QueuedMessage("AWAY",
-                 QueuedMessageType.SYSTEM_MESSAGE, 0));
+            try
+            {
+                await connectionManager.SendCustomMessageAsync(new QueuedMessage("AWAY",
+                     QueuedMessageType.SYSTEM_MESSAGE, 0));
+
+            }
+            catch (Exception ex)
+            {
+                PreStartup.HandleException(ex);
+            }
         }
 
         private async Task Instance_SettingsSavedAsync()
@@ -994,14 +1010,21 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         private async Task GameChannel_UserAddedAsync(object sender, Online.ChannelUserEventArgs e)
         {
-            Channel gameChannel = (Channel)sender;
-
-            if (e.User.IRCUser.Name == ProgramConstants.PLAYERNAME)
+            try
             {
-                ClearGameChannelEvents(gameChannel);
-                await gameLobby.OnJoinedAsync();
-                isInGameRoom = true;
-                SetLogOutButtonText();
+                Channel gameChannel = (Channel)sender;
+
+                if (e.User.IRCUser.Name == ProgramConstants.PLAYERNAME)
+                {
+                    ClearGameChannelEvents(gameChannel);
+                    await gameLobby.OnJoinedAsync();
+                    isInGameRoom = true;
+                    SetLogOutButtonText();
+                }
+            }
+            catch (Exception ex)
+            {
+                PreStartup.HandleException(ex);
             }
         }
 
@@ -1104,25 +1127,39 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         private async Task GameChannel_InvalidPasswordEntered_LoadedGameAsync(object sender)
         {
-            var channel = (Channel)sender;
-            channel.UserAdded -= gameLoadingChannel_UserAddedFunc;
-            channel.InvalidPasswordEntered -= gameChannel_InvalidPasswordEntered_LoadedGameFunc;
-            await gameLoadingLobby.ClearAsync();
-            isJoiningGame = false;
+            try
+            {
+                var channel = (Channel)sender;
+                channel.UserAdded -= gameLoadingChannel_UserAddedFunc;
+                channel.InvalidPasswordEntered -= gameChannel_InvalidPasswordEntered_LoadedGameFunc;
+                await gameLoadingLobby.ClearAsync();
+                isJoiningGame = false;
+            }
+            catch (Exception ex)
+            {
+                PreStartup.HandleException(ex);
+            }
         }
 
         private async Task GameLoadingChannel_UserAddedAsync(object sender, ChannelUserEventArgs e)
         {
-            Channel gameLoadingChannel = (Channel)sender;
-
-            if (e.User.IRCUser.Name == ProgramConstants.PLAYERNAME)
+            try
             {
-                gameLoadingChannel.UserAdded -= gameLoadingChannel_UserAddedFunc;
-                gameLoadingChannel.InvalidPasswordEntered -= gameChannel_InvalidPasswordEntered_LoadedGameFunc;
+                Channel gameLoadingChannel = (Channel)sender;
 
-                await gameLoadingLobby.OnJoinedAsync();
-                isInGameRoom = true;
-                isJoiningGame = false;
+                if (e.User.IRCUser.Name == ProgramConstants.PLAYERNAME)
+                {
+                    gameLoadingChannel.UserAdded -= gameLoadingChannel_UserAddedFunc;
+                    gameLoadingChannel.InvalidPasswordEntered -= gameChannel_InvalidPasswordEntered_LoadedGameFunc;
+
+                    await gameLoadingLobby.OnJoinedAsync();
+                    isInGameRoom = true;
+                    isJoiningGame = false;
+                }
+            }
+            catch (Exception ex)
+            {
+                PreStartup.HandleException(ex);
             }
         }
 

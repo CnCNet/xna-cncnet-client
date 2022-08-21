@@ -355,7 +355,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 lpInfo.ConnectionLost += lpInfo_ConnectionLostFunc;
 
                 AddNotice(string.Format("{0} connected from {1}".L10N("UI:Main:PlayerFromIP"), lpInfo.Name, lpInfo.IPAddress));
-                lpInfo.StartReceiveLoop(cancellationToken);
+                lpInfo.StartReceiveLoopAsync(cancellationToken);
 
                 CopyPlayerDataToUI();
                 await BroadcastPlayerOptionsAsync();
@@ -456,7 +456,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 catch (Exception ex)
                 {
                     Logger.Log("Reading data from the server failed! Message: " + ex.Message);
-                    await BtnLeaveGame_LeftClickAsync(this, EventArgs.Empty);
+                    await BtnLeaveGame_LeftClickAsync();
                     break;
                 }
 
@@ -494,7 +494,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 }
 
                 Logger.Log("Reading data from the server failed (0 bytes received)!");
-                await BtnLeaveGame_LeftClickAsync(this, EventArgs.Empty);
+                await BtnLeaveGame_LeftClickAsync();
                 break;
             }
         }
@@ -512,7 +512,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             Logger.Log("Unknown LAN command from the server: " + message);
         }
 
-        protected override async Task BtnLeaveGame_LeftClickAsync(object sender, EventArgs e)
+        protected override async Task BtnLeaveGame_LeftClickAsync()
         {
             try
             {
@@ -733,11 +733,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             }
         }
 
-        protected override async Task PlayerExtraOptions_OptionsChangedAsync(object sender, EventArgs e)
+        protected override async Task PlayerExtraOptions_OptionsChangedAsync()
         {
             try
             {
-                await base.PlayerExtraOptions_OptionsChangedAsync(sender, e);
+                await base.PlayerExtraOptions_OptionsChangedAsync();
                 await BroadcastPlayerExtraOptionsAsync();
             }
             catch (Exception ex)
@@ -878,7 +878,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 timeSinceLastReceivedCommand += gameTime.ElapsedGameTime;
 
                 if (timeSinceLastReceivedCommand > TimeSpan.FromSeconds(DROPOUT_TIMEOUT))
-                    Task.Run(() => BtnLeaveGame_LeftClickAsync(this, EventArgs.Empty)).Wait();
+                    Task.Run(BtnLeaveGame_LeftClickAsync).Wait();
             }
 
             base.Update(gameTime);

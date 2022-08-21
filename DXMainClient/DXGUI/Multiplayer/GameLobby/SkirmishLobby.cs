@@ -165,7 +165,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             return null;
         }
 
-        protected override async Task BtnLaunchGame_LeftClickAsync(object sender, EventArgs e)
+        protected override async Task BtnLaunchGame_LeftClickAsync()
         {
             try
             {
@@ -186,7 +186,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             }
         }
 
-        protected override Task BtnLeaveGame_LeftClickAsync(object sender, EventArgs e)
+        protected override Task BtnLeaveGame_LeftClickAsync()
         {
             try
             {

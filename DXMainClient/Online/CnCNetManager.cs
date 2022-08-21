@@ -167,7 +167,7 @@ namespace DTAClient.Online
             // AddCallback is necessary for thread-safety; OnAttemptedServerChanged
             // is called by the networking thread, and AddCallback schedules DoAttemptedServerChanged
             // to be executed on the main (UI) thread.
-            wm.AddCallback(DoAttemptedServerChanged, serverName);
+            wm.AddCallback(() => DoAttemptedServerChanged(serverName));
         }
 
         private void DoAttemptedServerChanged(string serverName)
@@ -179,7 +179,7 @@ namespace DTAClient.Online
 
         public void OnAwayMessageReceived(string userName, string reason)
         {
-            wm.AddCallback(DoAwayMessageReceived, userName, reason);
+            wm.AddCallback(() => DoAwayMessageReceived(userName, reason));
         }
 
         private void DoAwayMessageReceived(string userName, string reason)
@@ -189,7 +189,7 @@ namespace DTAClient.Online
 
         public void OnChannelFull(string channelName)
         {
-            wm.AddCallback(DoChannelFull, channelName);
+            wm.AddCallback(() => DoChannelFull(channelName));
         }
 
         private void DoChannelFull(string channelName)
@@ -202,7 +202,7 @@ namespace DTAClient.Online
 
         public void OnTargetChangeTooFast(string channelName, string message)
         {
-            wm.AddCallback(DoTargetChangeTooFast, channelName, message);
+            wm.AddCallback(() => DoTargetChangeTooFast(channelName, message));
         }
 
         private void DoTargetChangeTooFast(string channelName, string message)
@@ -215,7 +215,7 @@ namespace DTAClient.Online
 
         public void OnChannelInviteOnly(string channelName)
         {
-            wm.AddCallback(DoChannelInviteOnly, channelName);
+            wm.AddCallback(() => DoChannelInviteOnly(channelName));
         }
 
         private void DoChannelInviteOnly(string channelName)
@@ -228,7 +228,7 @@ namespace DTAClient.Online
 
         public void OnChannelModesChanged(string userName, string channelName, string modeString, List<string> modeParameters)
         {
-            wm.AddCallback(DoChannelModesChanged, userName, channelName, modeString, modeParameters);
+            wm.AddCallback(() => DoChannelModesChanged(userName, channelName, modeString, modeParameters));
         }
 
         private void DoChannelModesChanged(string userName, string channelName, string modeString, List<string> modeParameters)
@@ -274,7 +274,7 @@ namespace DTAClient.Online
 
         public void OnChannelTopicReceived(string channelName, string topic)
         {
-            wm.AddCallback(DoChannelTopicReceived, channelName, topic);
+            wm.AddCallback(() => DoChannelTopicReceived(channelName, topic));
         }
 
         private void DoChannelTopicReceived(string channelName, string topic)
@@ -289,12 +289,12 @@ namespace DTAClient.Online
 
         public void OnChannelTopicChanged(string userName, string channelName, string topic)
         {
-            wm.AddCallback(DoChannelTopicReceived, channelName, topic);
+            wm.AddCallback(() => DoChannelTopicReceived(channelName, topic));
         }
 
         public void OnChatMessageReceived(string receiver, string senderName, string ident, string message)
         {
-            wm.AddCallback(DoChatMessageReceived, receiver, senderName, ident, message);
+            wm.AddCallback(() => DoChatMessageReceived(receiver, senderName, ident, message));
         }
 
         private void DoChatMessageReceived(string receiver, string senderName, string ident, string message)
@@ -357,7 +357,7 @@ namespace DTAClient.Online
 
         public void OnCTCPParsed(string channelName, string userName, string message)
         {
-            wm.AddCallback(DoCTCPParsed, channelName, userName, message);
+            wm.AddCallback(() => DoCTCPParsed(channelName, userName, message));
         }
 
         private void DoCTCPParsed(string channelName, string userName, string message)
@@ -383,7 +383,7 @@ namespace DTAClient.Online
 
         public void OnConnectAttemptFailed()
         {
-            wm.AddCallback(DoConnectAttemptFailed, null);
+            wm.AddCallback(DoConnectAttemptFailed);
         }
 
         private void DoConnectAttemptFailed()
@@ -395,7 +395,7 @@ namespace DTAClient.Online
 
         public void OnConnected()
         {
-            wm.AddCallback(DoConnected, null);
+            wm.AddCallback(DoConnected);
         }
 
         private void DoConnected()
@@ -410,7 +410,7 @@ namespace DTAClient.Online
         /// </summary>
         public void OnConnectionLost(string reason)
         {
-            wm.AddCallback(DoConnectionLost, reason);
+            wm.AddCallback(() => DoConnectionLost(reason));
         }
 
         private void DoConnectionLost(string reason)
@@ -458,7 +458,7 @@ namespace DTAClient.Online
         /// </summary>
         public void OnDisconnected()
         {
-            wm.AddCallback(DoDisconnected, null);
+            wm.AddCallback(DoDisconnected);
         }
 
         private void DoDisconnected()
@@ -491,7 +491,7 @@ namespace DTAClient.Online
 
         public void OnGenericServerMessageReceived(string message)
         {
-            wm.AddCallback(DoGenericServerMessageReceived, message);
+            wm.AddCallback(() => DoGenericServerMessageReceived(message));
         }
 
         private void DoGenericServerMessageReceived(string message)
@@ -501,7 +501,7 @@ namespace DTAClient.Online
 
         public void OnIncorrectChannelPassword(string channelName)
         {
-            wm.AddCallback(DoIncorrectChannelPassword, channelName);
+            wm.AddCallback(() => DoIncorrectChannelPassword(channelName));
         }
 
         private void DoIncorrectChannelPassword(string channelName)
@@ -518,7 +518,7 @@ namespace DTAClient.Online
 
         public void OnPrivateMessageReceived(string sender, string message)
         {
-            wm.AddCallback(DoPrivateMessageReceived, sender, message);
+            wm.AddCallback(() => DoPrivateMessageReceived(sender, message));
         }
 
         private void DoPrivateMessageReceived(string sender, string message)
@@ -530,7 +530,7 @@ namespace DTAClient.Online
 
         public void OnReconnectAttempt()
         {
-            wm.AddCallback(DoReconnectAttempt, null);
+            wm.AddCallback(DoReconnectAttempt);
         }
 
         private void DoReconnectAttempt()
@@ -544,7 +544,7 @@ namespace DTAClient.Online
 
         public void OnUserJoinedChannel(string channelName, string host, string userName, string ident)
         {
-            wm.AddCallback(DoUserJoinedChannelAsync, channelName, host, userName, ident);
+            wm.AddCallback(() => DoUserJoinedChannelAsync(channelName, host, userName, ident));
         }
 
         private async Task DoUserJoinedChannelAsync(string channelName, string host, string userName, string userAddress)
@@ -615,7 +615,7 @@ namespace DTAClient.Online
 
         public void OnUserKicked(string channelName, string userName)
         {
-            wm.AddCallback(DoUserKicked, channelName, userName);
+            wm.AddCallback(() => DoUserKicked(channelName, userName));
         }
 
         private void DoUserKicked(string channelName, string userName)
@@ -646,7 +646,7 @@ namespace DTAClient.Online
 
         public void OnUserLeftChannel(string channelName, string userName)
         {
-            wm.AddCallback(DoUserLeftChannel, channelName, userName);
+            wm.AddCallback(() => DoUserLeftChannel(channelName, userName));
         }
 
         private void DoUserLeftChannel(string channelName, string userName)
@@ -701,7 +701,7 @@ namespace DTAClient.Online
 
         public void OnUserListReceived(string channelName, string[] userList)
         {
-            wm.AddCallback(DoUserListReceived, channelName, userList);
+            wm.AddCallback(() => DoUserListReceived(channelName, userList));
         }
 
         private void DoUserListReceived(string channelName, string[] userList)
@@ -752,7 +752,7 @@ namespace DTAClient.Online
 
         public void OnUserQuitIRC(string userName)
         {
-            wm.AddCallback(DoUserQuitIRC, userName);
+            wm.AddCallback(() => DoUserQuitIRC(userName));
         }
 
         private void DoUserQuitIRC(string userName)
@@ -770,9 +770,8 @@ namespace DTAClient.Online
 
         public void OnWelcomeMessageReceived(string message)
         {
-            wm.AddCallback(DoWelcomeMessageReceived, message);
+            wm.AddCallback(() => DoWelcomeMessageReceived(message));
         }
-
 
         /// <summary>
         /// Finds a channel with the specified internal name, case-insensitively.
@@ -801,7 +800,7 @@ namespace DTAClient.Online
 
         public void OnWhoReplyReceived(string ident, string hostName, string userName, string extraInfo)
         {
-            wm.AddCallback(DoWhoReplyReceived, ident, hostName, userName, extraInfo);
+            wm.AddCallback(() => DoWhoReplyReceived(ident, hostName, userName, extraInfo));
         }
 
         private void DoWhoReplyReceived(string ident, string hostName, string userName, string extraInfo)
@@ -838,7 +837,7 @@ namespace DTAClient.Online
 
         public void OnNameAlreadyInUse()
         {
-            wm.AddCallback(DoNameAlreadyInUseAsync, null);
+            wm.AddCallback(DoNameAlreadyInUseAsync);
         }
 
         /// <summary>
@@ -889,7 +888,7 @@ namespace DTAClient.Online
 
         public void OnBannedFromChannel(string channelName)
         {
-            wm.AddCallback(DoBannedFromChannel, channelName);
+            wm.AddCallback(() => DoBannedFromChannel(channelName));
         }
 
         private void DoBannedFromChannel(string channelName)
@@ -898,7 +897,7 @@ namespace DTAClient.Online
         }
 
         public void OnUserNicknameChange(string oldNickname, string newNickname)
-            => wm.AddCallback(DoUserNicknameChange, oldNickname, newNickname);
+            => wm.AddCallback(() => DoUserNicknameChange(oldNickname, newNickname));
 
         private void DoUserNicknameChange(string oldNickname, string newNickname)
         {

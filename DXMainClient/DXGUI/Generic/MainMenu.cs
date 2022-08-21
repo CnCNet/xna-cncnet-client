@@ -301,7 +301,7 @@ namespace DTAClient.DXGUI.Generic
             cncnetPlayerCountCancellationSource = new CancellationTokenSource();
             CnCNetPlayerCountTask.InitializeService(cncnetPlayerCountCancellationSource);
 
-            WindowManager.GameClosing += WindowManager_GameClosing;
+            WindowManager.GameClosing += (_, _) => WindowManager_GameClosingAsync();
 
             skirmishLobby.Exited += SkirmishLobby_Exited;
             lanLobby.Exited += LanLobby_Exited;
@@ -382,7 +382,7 @@ namespace DTAClient.DXGUI.Generic
         }
 
         private void Updater_Restart(object sender, EventArgs e) =>
-            WindowManager.AddCallback(new Action(ExitClient), null);
+            WindowManager.AddCallback(ExitClient);
 
         /// <summary>
         /// Applies configuration changes (music playback and volume)
@@ -496,7 +496,7 @@ namespace DTAClient.DXGUI.Generic
 
         private void SharedUILogic_GameProcessStarted() => MusicOff();
 
-        private void WindowManager_GameClosing(object sender, EventArgs e) => CleanAsync();
+        private Task WindowManager_GameClosingAsync() => CleanAsync();
 
         private void SkirmishLobby_Exited(object sender, EventArgs e)
         {
@@ -725,7 +725,7 @@ namespace DTAClient.DXGUI.Generic
         }
 
         private void Updater_FileIdentifiersUpdated()
-            => WindowManager.AddCallback(new Action(HandleFileIdentifierUpdate), null);
+            => WindowManager.AddCallback(HandleFileIdentifierUpdate);
 
         /// <summary>
         /// Used for displaying the result of an update check in the UI.

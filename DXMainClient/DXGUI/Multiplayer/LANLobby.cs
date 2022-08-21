@@ -278,9 +278,9 @@ namespace DTAClient.DXGUI.Multiplayer
                     try
                     {
 #endif
-                    await SendMessageAsync("QUIT", cancellationToken);
-                    cancellationTokenSource.Cancel();
-                    socket.Close();
+                        await SendMessageAsync("QUIT", cancellationToken);
+                        cancellationTokenSource.Cancel();
+                        socket.Close();
 #if NETFRAMEWORK
                     }
                     catch (ObjectDisposedException)
@@ -550,12 +550,19 @@ namespace DTAClient.DXGUI.Multiplayer
 
         private async Task SendAliveAsync(CancellationToken cancellationToken)
         {
-            StringBuilder sb = new StringBuilder("ALIVE ");
-            sb.Append(localGameIndex);
-            sb.Append(ProgramConstants.LAN_DATA_SEPARATOR);
-            sb.Append(ProgramConstants.PLAYERNAME);
-            await SendMessageAsync(sb.ToString(), cancellationToken);
-            timeSinceAliveMessage = TimeSpan.Zero;
+            try
+            {
+                StringBuilder sb = new StringBuilder("ALIVE ");
+                sb.Append(localGameIndex);
+                sb.Append(ProgramConstants.LAN_DATA_SEPARATOR);
+                sb.Append(ProgramConstants.PLAYERNAME);
+                await SendMessageAsync(sb.ToString(), cancellationToken);
+                timeSinceAliveMessage = TimeSpan.Zero;
+            }
+            catch (Exception ex)
+            {
+                PreStartup.HandleException(ex);
+            }
         }
 
         private async Task TbChatInput_EnterPressedAsync(CancellationToken cancellationToken)

@@ -67,8 +67,15 @@ namespace DTAClient.DXGUI.Multiplayer
 
         private async Task WindowManager_GameClosingAsync()
         {
-            if (client is { Connected: true })
-                await ClearAsync();
+            try
+            {
+                if (client is { Connected: true })
+                    await ClearAsync();
+            }
+            catch (Exception ex)
+            {
+                PreStartup.HandleException(ex);
+            }
         }
 
         public event EventHandler<GameBroadcastEventArgs> GameBroadcast;
@@ -321,7 +328,7 @@ namespace DTAClient.DXGUI.Multiplayer
                 sndJoinSound.Play();
 
                 AddNotice(string.Format("{0} connected from {1}".L10N("UI:Main:PlayerFromIP"), lpInfo.Name, lpInfo.IPAddress));
-                lpInfo.StartReceiveLoop(cancellationToken);
+                lpInfo.StartReceiveLoopAsync(cancellationToken);
 
                 CopyPlayerDataToUI();
                 await BroadcastOptionsAsync();
@@ -537,8 +544,17 @@ namespace DTAClient.DXGUI.Multiplayer
         protected override Task HostStartGameAsync()
             => BroadcastMessageAsync(GAME_LAUNCH_COMMAND, cancellationTokenSource?.Token ?? default);
 
-        protected override Task RequestReadyStatusAsync()
-            => SendMessageToHostAsync(READY_STATUS_COMMAND, cancellationTokenSource?.Token ?? default);
+        protected override async Task RequestReadyStatusAsync()
+        {
+            try
+            {
+                await SendMessageToHostAsync(READY_STATUS_COMMAND, cancellationTokenSource?.Token ?? default);
+            }
+            catch (Exception ex)
+            {
+                PreStartup.HandleException(ex);
+            }
+        }
 
         protected override async Task SendChatMessageAsync(string message)
         {
@@ -552,19 +568,26 @@ namespace DTAClient.DXGUI.Multiplayer
 
         private async Task Server_HandleChatMessageAsync(LANPlayerInfo sender, string data)
         {
-            string[] parts = data.Split(ProgramConstants.LAN_DATA_SEPARATOR);
+            try
+            {
+                string[] parts = data.Split(ProgramConstants.LAN_DATA_SEPARATOR);
 
-            if (parts.Length < 2)
-                return;
+                if (parts.Length < 2)
+                    return;
 
-            int colorIndex = Conversions.IntFromString(parts[0], -1);
+                int colorIndex = Conversions.IntFromString(parts[0], -1);
 
-            if (colorIndex < 0 || colorIndex >= chatColors.Length)
-                return;
+                if (colorIndex < 0 || colorIndex >= chatColors.Length)
+                    return;
 
-            await BroadcastMessageAsync(CHAT_COMMAND + " " + sender +
-                ProgramConstants.LAN_DATA_SEPARATOR + colorIndex +
-                ProgramConstants.LAN_DATA_SEPARATOR + data, cancellationTokenSource?.Token ?? default);
+                await BroadcastMessageAsync(CHAT_COMMAND + " " + sender +
+                    ProgramConstants.LAN_DATA_SEPARATOR + colorIndex +
+                    ProgramConstants.LAN_DATA_SEPARATOR + data, cancellationTokenSource?.Token ?? default);
+            }
+            catch (Exception ex)
+            {
+                PreStartup.HandleException(ex);
+            }
         }
 
         private void Server_HandleFileHashMessage(LANPlayerInfo sender, string hash)
@@ -672,13 +695,20 @@ namespace DTAClient.DXGUI.Multiplayer
         /// <param name="message">The command to send.</param>
         private async Task BroadcastMessageAsync(string message, CancellationToken cancellationToken)
         {
-            if (!IsHost)
-                return;
-
-            foreach (PlayerInfo pInfo in Players)
+            try
             {
-                var lpInfo = (LANPlayerInfo)pInfo;
-                await lpInfo.SendMessageAsync(message, cancellationToken);
+                if (!IsHost)
+                    return;
+
+                foreach (PlayerInfo pInfo in Players)
+                {
+                    var lpInfo = (LANPlayerInfo)pInfo;
+                    await lpInfo.SendMessageAsync(message, cancellationToken);
+                }
+            }
+            catch (Exception ex)
+            {
+                PreStartup.HandleException(ex);
             }
         }
 

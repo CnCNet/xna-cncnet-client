@@ -326,7 +326,7 @@ namespace DTAClient.DXGUI.Generic
 
         private void GameProcessExited_Callback()
         {
-            WindowManager.AddCallback(new Action(GameProcessExited), null);
+            WindowManager.AddCallback(GameProcessExited);
         }
 
         protected virtual void GameProcessExited()
