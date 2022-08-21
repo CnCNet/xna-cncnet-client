@@ -97,14 +97,14 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         /// with the given address.
         /// </summary>
         /// <param name="description">The window description.</param>
-        /// <param name="tunnelAddress">The address of the tunnel server to select.</param>
-        public void Open(string description, string tunnelAddress = null)
+        /// <param name="cnCNetTunnel">The tunnel server to select.</param>
+        public void Open(string description, CnCNetTunnel cnCNetTunnel)
         {
             lblDescription.Text = description;
-            originalTunnelAddress = tunnelAddress;
+            originalTunnelAddress = cnCNetTunnel.Address;
 
-            if (!string.IsNullOrWhiteSpace(tunnelAddress))
-                lbTunnelList.SelectTunnel(tunnelAddress);
+            if (cnCNetTunnel is not null)
+                lbTunnelList.SelectTunnel(cnCNetTunnel);
             else
                 lbTunnelList.SelectedIndex = -1;
 

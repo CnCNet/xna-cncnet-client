@@ -384,10 +384,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         }
 
         private void ShowTunnelSelectionWindow(string description)
-        {
-            tunnelSelectionWindow.Open(description,
-                tunnelHandler.CurrentTunnel?.Address);
-        }
+            => tunnelSelectionWindow.Open(description, tunnelHandler.CurrentTunnel);
 
         private void TunnelSelectionWindow_TunnelSelected(object sender, TunnelEventArgs e)
         {
