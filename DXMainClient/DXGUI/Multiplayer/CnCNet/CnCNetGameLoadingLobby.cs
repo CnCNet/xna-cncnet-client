@@ -118,8 +118,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             base.Initialize();
 
-            connectionManager.ConnectionLost += ConnectionManager_ConnectionLost;
-            connectionManager.Disconnected += ConnectionManager_Disconnected;
+            connectionManager.ConnectionLost += (_, _) => ConnectionManager_ConnectionLostAsync();
+            connectionManager.Disconnected += (_, _) => ConnectionManager_DisconnectedAsync();
 
             tunnelSelectionWindow = new TunnelSelectionWindow(WindowManager, tunnelHandler);
             tunnelSelectionWindow.Initialize();
@@ -142,18 +142,18 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             gameBroadcastTimer.AutoReset = true;
             gameBroadcastTimer.Interval = TimeSpan.FromSeconds(GAME_BROADCAST_INTERVAL);
             gameBroadcastTimer.Enabled = true;
-            gameBroadcastTimer.TimeElapsed += GameBroadcastTimer_TimeElapsed;
+            gameBroadcastTimer.TimeElapsed += (_, _) => GameBroadcastTimer_TimeElapsedAsync();
 
             WindowManager.AddAndInitializeControl(gameBroadcastTimer);
         }
 
         private void BtnChangeTunnel_LeftClick(object sender, EventArgs e) => ShowTunnelSelectionWindow("Select tunnel server:");
 
-        private void GameBroadcastTimer_TimeElapsed(object sender, EventArgs e) => BroadcastGameAsync();
+        private Task GameBroadcastTimer_TimeElapsedAsync() => BroadcastGameAsync();
 
-        private void ConnectionManager_Disconnected(object sender, EventArgs e) => ClearAsync();
+        private Task ConnectionManager_DisconnectedAsync() => ClearAsync();
 
-        private void ConnectionManager_ConnectionLost(object sender, ConnectionLostEventArgs e) => ClearAsync();
+        private Task ConnectionManager_ConnectionLostAsync() => ClearAsync();
 
         /// <summary>
         /// Sets up events and information before joining the channel.
@@ -286,28 +286,49 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         private async Task Channel_UserAddedAsync(ChannelUserEventArgs e)
         {
-            PlayerInfo pInfo = new PlayerInfo();
-            pInfo.Name = e.User.IRCUser.Name;
+            try
+            {
+                PlayerInfo pInfo = new PlayerInfo();
+                pInfo.Name = e.User.IRCUser.Name;
 
-            Players.Add(pInfo);
+                Players.Add(pInfo);
 
-            sndJoinSound.Play();
+                sndJoinSound.Play();
 
-            await BroadcastOptionsAsync();
-            CopyPlayerDataToUI();
-            UpdateDiscordPresence();
+                await BroadcastOptionsAsync();
+                CopyPlayerDataToUI();
+                UpdateDiscordPresence();
+            }
+            catch (Exception ex)
+            {
+                PreStartup.HandleException(ex);
+            }
         }
 
         private async Task Channel_UserLeftAsync(UserNameEventArgs e)
         {
-            await RemovePlayerAsync(e.UserName);
-            UpdateDiscordPresence();
+            try
+            {
+                await RemovePlayerAsync(e.UserName);
+                UpdateDiscordPresence();
+            }
+            catch (Exception ex)
+            {
+                PreStartup.HandleException(ex);
+            }
         }
 
         private async Task Channel_UserQuitIRCAsync(UserNameEventArgs e)
         {
-            await RemovePlayerAsync(e.UserName);
-            UpdateDiscordPresence();
+            try
+            {
+                await RemovePlayerAsync(e.UserName);
+                UpdateDiscordPresence();
+            }
+            catch (Exception ex)
+            {
+                PreStartup.HandleException(ex);
+            }
         }
 
         private async Task RemovePlayerAsync(string playerName)
