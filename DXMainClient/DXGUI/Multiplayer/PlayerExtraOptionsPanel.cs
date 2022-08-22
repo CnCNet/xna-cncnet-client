@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using ClientGUI;
 using DTAClient.Domain.Multiplayer;
+using DTAClient.DXGUI.Multiplayer.CnCNet;
+using DTAClient.Online.EventArguments;
 using Localization;
 using Microsoft.Xna.Framework;
 using Rampastring.XNAUI;
@@ -17,7 +19,6 @@ namespace DTAClient.DXGUI.Multiplayer
         private const int defaultTeamStartMappingX = UIDesignConstants.EMPTY_SPACE_SIDES;
         private const int teamMappingPanelWidth = 50;
         private const int teamMappingPanelHeight = 22;
-        private readonly string customPresetName = "Custom".L10N("UI:Main:CustomPresetName");
 
         private XNAClientCheckBox chkBoxForceRandomSides;
         private XNAClientCheckBox chkBoxForceRandomTeams;
@@ -25,7 +26,9 @@ namespace DTAClient.DXGUI.Multiplayer
         private XNAClientCheckBox chkBoxForceRandomStarts;
         private XNAClientCheckBox chkBoxUseTeamStartMappings;
         private XNAClientDropDown ddTeamStartMappingPreset;
+        private XNAClientButton btnEditCustomPreset;
         private TeamStartMappingsPanel teamStartMappingsPanel;
+        private TeamStartMappingPresetsWindow teamStartMappingPresetsWindow;
         private bool _isHost;
         private bool ignoreMappingChanges;
 
@@ -116,41 +119,78 @@ namespace DTAClient.DXGUI.Multiplayer
                     continue;
 
                 teamStartMappingPanel.EnableControls(_isHost && chkBoxUseTeamStartMappings.Checked && i < _map?.MaxPlayers);
-                RefreshTeamStartMappingPresets(_map?.TeamStartMappingPresets);
+                RefreshTeamStartMappingPresets(_map);
             }
+
+            RefreshSaveTeamStartPresetEditBtn();
         }
 
-        private void RefreshTeamStartMappingPresets(List<TeamStartMappingPreset> teamStartMappingPresets)
+        private void RefreshSaveTeamStartPresetEditBtn()
+        {
+            btnEditCustomPreset.Enabled = CanEditTeamStartMappingPreset();
+            string editBtnTexture = btnEditCustomPreset.Enabled ? "settingsBtnActive.png" : "settingsBtnInactive.png";
+            btnEditCustomPreset.IdleTexture = AssetLoader.LoadTexture(editBtnTexture);
+            btnEditCustomPreset.HoverTexture = AssetLoader.LoadTexture(editBtnTexture);
+        }
+
+        private void RefreshTeamStartMappingPresets(Map map)
         {
             ddTeamStartMappingPreset.Items.Clear();
             ddTeamStartMappingPreset.AddItem(new XNADropDownItem
             {
-                Text = customPresetName,
-                Tag = new List<TeamStartMapping>()
+                Text = "Custom".L10N("UI:Main:CustomPresetName"),
+                Tag = new TeamStartMappingPreset()
+                {
+                    IsCustom = true
+                }
             });
             ddTeamStartMappingPreset.SelectedIndex = 0;
 
-            if (!(teamStartMappingPresets?.Any() ?? false)) return;
+            if (map == null)
+                return;
 
-            teamStartMappingPresets.ForEach(preset => ddTeamStartMappingPreset.AddItem(new XNADropDownItem
+            var mapPresets = map.TeamStartMappingPresets ?? new List<TeamStartMappingPreset>();
+
+            mapPresets.ForEach(preset => ddTeamStartMappingPreset.AddItem(new XNADropDownItem
             {
-                Text = preset.Name,
-                Tag = preset.TeamStartMappings
+                Text = preset.DisplayName,
+                Tag = preset
             }));
-            ddTeamStartMappingPreset.SelectedIndex = 1;
+            
+            if (!mapPresets.Any())
+            {
+                ddTeamStartMappingPreset.SelectedIndex = 0;
+                return;
+            }
+
+            var defaultPresetItem = ddTeamStartMappingPreset.Items
+                .FirstOrDefault(i => (i.Tag as TeamStartMappingPreset)?.IsDefaultForMap ?? false);
+
+            ddTeamStartMappingPreset.SelectedIndex = defaultPresetItem == null ? 0 : ddTeamStartMappingPreset.Items.IndexOf(defaultPresetItem);
         }
 
         private void DdTeamMappingPreset_SelectedIndexChanged(object sender, EventArgs e)
         {
-            var selectedItem = ddTeamStartMappingPreset.SelectedItem;
-            if (selectedItem?.Text == customPresetName)
+            var selectedPreset = GetSelectedTeamStartMappingPreset();
+            RefreshSaveTeamStartPresetEditBtn();
+            if (selectedPreset?.IsCustom ?? true)
                 return;
 
-            var teamStartMappings = selectedItem?.Tag as List<TeamStartMapping>;
-
             ignoreMappingChanges = true;
-            teamStartMappingsPanel.SetTeamStartMappings(teamStartMappings);
+            teamStartMappingsPanel.SetTeamStartMappings(selectedPreset.TeamStartMappings);
             ignoreMappingChanges = false;
+        }
+
+        private TeamStartMappingPreset GetSelectedTeamStartMappingPreset()
+            => ddTeamStartMappingPreset.SelectedItem?.Tag as TeamStartMappingPreset;
+
+        private bool CanEditTeamStartMappingPreset()
+        {
+            if (_map == null || !_isHost || !chkBoxUseTeamStartMappings.Checked)
+                return false;
+
+            var preset = GetSelectedTeamStartMappingPreset();
+            return preset != null;
         }
 
         private void RefreshPresetDropdown() => ddTeamStartMappingPreset.AllowDropDown = _isHost && chkBoxUseTeamStartMappings.Checked;
@@ -228,15 +268,30 @@ namespace DTAClient.DXGUI.Multiplayer
 
             ddTeamStartMappingPreset = new XNAClientDropDown(WindowManager);
             ddTeamStartMappingPreset.Name = nameof(ddTeamStartMappingPreset);
-            ddTeamStartMappingPreset.ClientRectangle = new Rectangle(lblPreset.X + 50, lblPreset.Y - 2, 160, 0);
+            ddTeamStartMappingPreset.ClientRectangle = new Rectangle(lblPreset.X + 40, lblPreset.Y - 2, 146, 0);
             ddTeamStartMappingPreset.SelectedIndexChanged += DdTeamMappingPreset_SelectedIndexChanged;
             ddTeamStartMappingPreset.AllowDropDown = true;
             AddChild(ddTeamStartMappingPreset);
+
+            btnEditCustomPreset = new XNAClientButton(WindowManager);
+            btnEditCustomPreset.Name = nameof(btnEditCustomPreset);
+            btnEditCustomPreset.ClientRectangle = new Rectangle(ddTeamStartMappingPreset.Right + 2, ddTeamStartMappingPreset.Y, 22, 22);
+            btnEditCustomPreset.SetToolTipText("Edit".L10N("UI:Main:BtnEditAutoAllyPresetTooltip"));
+            btnEditCustomPreset.IdleTexture = AssetLoader.LoadTexture("editActive.png");
+            btnEditCustomPreset.HoverTexture = AssetLoader.LoadTexture("editActive.png");
+            btnEditCustomPreset.LeftClick += EditPresetButton_LeftClick;
+            AddChild(btnEditCustomPreset);
 
             teamStartMappingsPanel = new TeamStartMappingsPanel(WindowManager);
             teamStartMappingsPanel.Name = nameof(teamStartMappingsPanel);
             teamStartMappingsPanel.ClientRectangle = new Rectangle(lblPreset.X, ddTeamStartMappingPreset.Bottom + 8, Width, Height - ddTeamStartMappingPreset.Bottom + 4);
             AddChild(teamStartMappingsPanel);
+
+            teamStartMappingPresetsWindow = new TeamStartMappingPresetsWindow(WindowManager);
+            teamStartMappingPresetsWindow.Name = nameof(teamStartMappingPresetsWindow);
+            teamStartMappingPresetsWindow.PresetSaved += (sender, s) => HandleAutoAllyPresetSaveCommand(s);
+            teamStartMappingPresetsWindow.PresetDeleted += (sender, s) => HandleAutoAllyPresetDeleteCommand(s);
+            AddChild(teamStartMappingPresetsWindow);
 
             AddLocationAssignments();
 
@@ -245,15 +300,65 @@ namespace DTAClient.DXGUI.Multiplayer
             RefreshTeamStartMappingsPanel();
         }
 
+        private void HandleAutoAllyPresetSaveCommand(TeamStartMappingPresetEventArgs teamStartMappingPresetEventArgs)
+        {
+            if (teamStartMappingPresetEventArgs.Preset == null)
+                return;
+
+            var teamStartMappings = GetTeamStartMappings();
+            if (!teamStartMappings.Any())
+            {
+                XNAMessageBox.Show(WindowManager, "Cannot Save Presets", "Cannot save auto ally presets without any locations assigned.");
+                return;
+            }
+
+            var teamStartMappingPreset = teamStartMappingPresetEventArgs.Preset;
+            teamStartMappingPreset.TeamStartMappings = teamStartMappings;
+
+            TeamStartMappingUserPresets.Instance.AddOrUpdate(_map, teamStartMappingPreset);
+
+            RefreshTeamStartMappingPresets(_map);
+            ddTeamStartMappingPreset.SelectedIndex = ddTeamStartMappingPreset.Items.FindIndex(i => i.Tag == teamStartMappingPreset);
+        }
+
+        private void HandleAutoAllyPresetDeleteCommand(TeamStartMappingPresetEventArgs teamStartMappingPresetEventArgs)
+        {
+            if (teamStartMappingPresetEventArgs.Preset == null)
+                return;
+
+            TeamStartMappingUserPresets.Instance.DeletePreset(_map, teamStartMappingPresetEventArgs.Preset);
+
+            if (GetSelectedTeamStartMappingPreset() != teamStartMappingPresetEventArgs.Preset)
+                ddTeamStartMappingPreset.SelectedIndex = 0;
+
+            RefreshTeamStartMappingsPanel();
+        }
+
+        private void EditPresetButton_LeftClick(object sender, EventArgs args)
+        {
+            if (_map == null)
+                return;
+
+            teamStartMappingPresetsWindow.Show(_map, GetSelectedTeamStartMappingPreset());
+        }
+
         private void BtnHelp_LeftClick(object sender, EventArgs args)
         {
             XNAMessageBox.Show(WindowManager, "Auto Allying".L10N("UI:Main:AutoAllyingTitle"),
                 ("Auto allying allows the host to assign starting locations to teams, not players.\n" +
-                "When players are assigned to spawn locations, they will be auto assigned to teams based on these mappings.\n" +
-                "This is best used with random teams and random starts. However, only random teams is required.\n" +
-                "Manually specified starts will take precedence.\n\n").L10N("UI:Main:AutoAllyingText1") +
-                $"{TeamStartMapping.NO_TEAM} : " + "Block this location from being assigned to a player.".L10N("UI:Main:AutoAllyingTextNoTeam") + "\n" +
-                $"{TeamStartMapping.RANDOM_TEAM} : "+"Allow a player here, but don't assign a team.".L10N("UI:Main:AutoAllyingTextRandomTeam")
+                 "When players are assigned to spawn locations, they will be auto assigned to teams based on these mappings.\n" +
+                 "This is best used with random teams and random starts. However, only random teams is required.\n" +
+                 "Manually specified starts will take precedence.\n\n").L10N("UI:Main:AutoAllyingText1") +
+                $"{TeamStartMapping.NO_TEAM} : " +
+                "Block this location from being assigned to a player.".L10N("UI:Main:AutoAllyingTextNoTeam") + "\n" +
+                $"{TeamStartMapping.RANDOM_TEAM} : " +
+                "Allow a player here, but don't assign a team.".L10N("UI:Main:AutoAllyingTextRandomTeam") + "\n\n" +
+                "Custom Auto Ally Presets:".L10N("UI:Main:AutoAllyingTextCustomPresetLabel") + "\n\n" +
+                ("The settings button can be used to create, edit, or delete custom auto ally presets for maps that do not have them predefined.\n" +
+                 "Presets can be marked as the 'default' for each map. When the map is changed, this preset will be auto selected when\n" +
+                 "auto ally is enabled.\n\n" +
+                 "Custom auto ally presets are map specific.\n" +
+                 $"{TeamStartMappingPreset.UserDefinedPrefx} : User Preset").L10N("UI:Main:AutoAllyingTextCustomPresetText")
             );
         }
 
@@ -264,12 +369,12 @@ namespace DTAClient.DXGUI.Multiplayer
 
             _map = map;
 
+            teamStartMappingPresetsWindow.Disable();
             RefreshTeamStartMappingPanels();
         }
 
         public List<TeamStartMapping> GetTeamStartMappings()
-            => chkBoxUseTeamStartMappings.Checked ?
-                teamStartMappingsPanel.GetTeamStartMappings() : new List<TeamStartMapping>();
+            => chkBoxUseTeamStartMappings.Checked ? teamStartMappingsPanel.GetTeamStartMappings() : new List<TeamStartMapping>();
 
         public void EnableControls(bool enable)
         {

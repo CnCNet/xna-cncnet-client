@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using Newtonsoft.Json;
 using Utilities = Rampastring.Tools.Utilities;
 
@@ -48,6 +49,9 @@ namespace DTAClient.Domain.Multiplayer
         /// </summary>
         [JsonProperty]
         public string Name { get; private set; }
+
+        [JsonIgnore]
+        public string IniSafeName => Regex.Replace(Name, "[^a-zA-Z0-9]", string.Empty);
 
         /// <summary>
         /// The maximum amount of players supported by the map.

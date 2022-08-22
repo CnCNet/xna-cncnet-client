@@ -108,6 +108,7 @@ namespace DTAClient.Domain.Multiplayer
             foreach (Map map in maps)
             {
                 AddMapToGameModes(map, false);
+                AddUserDefinedTeamStartMappingPresets(map);
             }
         }
 
@@ -186,6 +187,7 @@ namespace DTAClient.Domain.Multiplayer
             foreach (Map map in customMapCache.Values)
             {
                 AddMapToGameModes(map, false);
+                AddUserDefinedTeamStartMappingPresets(map);
             }
         }
 
@@ -267,6 +269,7 @@ namespace DTAClient.Domain.Multiplayer
                 Logger.Log("LoadCustomMap: Map " + mapPath + " added succesfully.");
 
                 AddMapToGameModes(map, true);
+                AddUserDefinedTeamStartMappingPresets(map);
                 var gameModes = GameModes.Where(gm => gm.Maps.Contains(map));
                 GameModeMaps.AddRange(gameModes.Select(gm => new GameModeMap(gm, map, false)));
 
@@ -322,6 +325,20 @@ namespace DTAClient.Domain.Multiplayer
                         Logger.Log("AddMapToGameModes: Added map " + map.Name + " to game mode " + gm.Name);
                 }
             }
+        }
+
+        private static void AddUserDefinedTeamStartMappingPresets(Map map)
+        {
+            var teamStartMappingPresets = TeamStartMappingUserPresets.Instance.GetPresets(map);
+            foreach (TeamStartMappingPreset teamStartMappingPreset in teamStartMappingPresets)
+                map.TeamStartMappingPresets.Add(teamStartMappingPreset);
+
+            string defaultPresetName = TeamStartMappingUserPresets.Instance.GetDefaultPresetName(map);
+            if (string.IsNullOrEmpty(defaultPresetName))
+                return;
+
+            foreach (TeamStartMappingPreset mapTeamStartMappingPreset in map.TeamStartMappingPresets)
+                mapTeamStartMappingPreset.IsDefaultForMap = string.Equals(defaultPresetName, mapTeamStartMappingPreset.Name);
         }
     }
 }
