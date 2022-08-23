@@ -861,7 +861,6 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         /// <param name="hg">The game to join.</param>
         /// <param name="password">The password to join with.</param>
         /// <param name="messageView">The message view/list to write error messages to.</param>
-        /// <returns></returns>
         private async Task<bool> JoinGameAsync(HostedCnCNetGame hg, string password, IMessageView messageView)
         {
             string error = GetJoinGameError(hg);
@@ -1008,7 +1007,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             }
         }
 
-        private async Task GameChannel_UserAddedAsync(object sender, Online.ChannelUserEventArgs e)
+        private async Task GameChannel_UserAddedAsync(object sender, ChannelUserEventArgs e)
         {
             try
             {
@@ -1070,8 +1069,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 bool isCustomPassword = true;
                 if (string.IsNullOrEmpty(password))
                 {
-                    password = Rampastring.Tools.Utilities.CalculateSHA1ForString(
-                        channelName + e.GameRoomName).Substring(0, 10);
+                    password = Utilities.CalculateSHA1ForString(channelName + e.GameRoomName).Substring(0, 10);
                     isCustomPassword = false;
                 }
 
@@ -1079,7 +1077,6 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 connectionManager.AddChannel(gameChannel);
                 await gameLobby.SetUpAsync(gameChannel, true, e.MaxPlayers, e.Tunnel, ProgramConstants.PLAYERNAME, isCustomPassword, false);
                 gameChannel.UserAdded += gameChannel_UserAddedFunc;
-                //gameChannel.MessageAdded += GameChannel_MessageAdded;
                 await connectionManager.SendCustomMessageAsync(new QueuedMessage("JOIN " + channelName + " " + password,
                     QueuedMessageType.INSTANT_MESSAGE, 0));
                 connectionManager.MainChannel.AddMessage(new ChatMessage(Color.White,
@@ -1603,7 +1600,6 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 bool isLoadedGame = Conversions.BooleanFromString(splitMessage[5].Substring(3, 1), false);
                 bool isLadder = Conversions.BooleanFromString(splitMessage[5].Substring(4, 1), false);
                 string[] players = splitMessage[6].Split(new char[1] { ',' }, StringSplitOptions.RemoveEmptyEntries);
-                List<string> playerNames = players.ToList();
                 string mapName = splitMessage[7];
                 string gameMode = splitMessage[8];
 

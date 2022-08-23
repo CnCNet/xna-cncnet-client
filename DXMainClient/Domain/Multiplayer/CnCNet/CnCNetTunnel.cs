@@ -8,9 +8,6 @@ using System.Globalization;
 using System.Net;
 using System.Net.Http;
 using System.Net.Sockets;
-#if !NETFRAMEWORK
-using System.Threading;
-#endif
 using System.Threading.Tasks;
 
 namespace DTAClient.Domain.Multiplayer.CnCNet
@@ -33,20 +30,19 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
         public static CnCNetTunnel Parse(string str)
         {
             // For the format, check http://cncnet.org/master-list
-
             try
             {
                 var tunnel = new CnCNetTunnel();
                 string[] parts = str.Split(';');
                 string address = parts[0];
-                int version = int.Parse(parts[10]);
+                int version = int.Parse(parts[10], CultureInfo.InvariantCulture);
 
 #if NETFRAMEWORK
                 tunnel.Address = address.Substring(0, address.LastIndexOf(':'));
-                tunnel.Port = int.Parse(address.Substring(address.LastIndexOf(':') + 1));
+                tunnel.Port = int.Parse(address.Substring(address.LastIndexOf(':') + 1), CultureInfo.InvariantCulture);
 #else
                 tunnel.Address = address[..address.LastIndexOf(':')];
-                tunnel.Port = int.Parse(address[(address.LastIndexOf(':') + 1)..]);
+                tunnel.Port = int.Parse(address[(address.LastIndexOf(':') + 1)..], CultureInfo.InvariantCulture);
 #endif
                 tunnel.Country = parts[1];
                 tunnel.CountryCode = parts[2];
@@ -68,7 +64,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
             }
             catch (Exception ex) when (ex is FormatException or OverflowException or IndexOutOfRangeException)
             {
-                PreStartup.LogException(ex, "Parsing tunnel information failed: " + ex.Message + Environment.NewLine + "Parsed string: " + str);
+                PreStartup.LogException(ex, "Parsing tunnel information failed. Parsed string: " + str);
                 return null;
             }
         }
@@ -100,7 +96,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
         public double Longitude { get; private set; }
         public int Version { get; private set; }
         public double Distance { get; private set; }
-        public int PingInMs { get; set; } = -1;
+        public int PingInMs { get; private set; } = -1;
 
         /// <summary>
         /// Gets a list of player ports to use from a specific tunnel server.
@@ -109,7 +105,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
         public async Task<List<int>> GetPlayerPortInfoAsync(int playerCount)
         {
             if (Version != Constants.TUNNEL_VERSION_2)
-                throw new InvalidOperationException("GetPlayerPortInfo only works with version 2 tunnels.");
+                throw new InvalidOperationException($"GetPlayerPortInfo only works with version {Constants.TUNNEL_VERSION_2} tunnels.");
 
             try
             {
@@ -149,7 +145,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
             }
             catch (Exception ex)
             {
-                PreStartup.LogException(ex, "Unable to connect to the specified tunnel server. Returned error message: " + ex.Message);
+                PreStartup.LogException(ex, "Unable to connect to the specified tunnel server.");
             }
 
             return new List<int>();
@@ -189,7 +185,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
             }
             catch (SocketException ex)
             {
-                PreStartup.LogException(ex, $"Failed to ping tunnel {Name} ({Address}:{Port}). Message: {ex.Message}");
+                PreStartup.LogException(ex, $"Failed to ping tunnel {Name} ({Address}:{Port}).");
 
                 PingInMs = -1;
             }

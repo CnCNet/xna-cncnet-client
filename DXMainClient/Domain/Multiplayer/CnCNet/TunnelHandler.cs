@@ -153,7 +153,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
         /// Downloads and parses the list of CnCNet tunnels.
         /// </summary>
         /// <returns>A list of tunnel servers.</returns>
-        private async Task<List<CnCNetTunnel>> DoRefreshTunnelsAsync()
+        private static async Task<List<CnCNetTunnel>> DoRefreshTunnelsAsync()
         {
             FileInfo tunnelCacheFile = SafePath.GetFile(ProgramConstants.ClientUserFilesPath, "tunnel_cache");
 
@@ -211,7 +211,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
             {
                 try
                 {
-                    CnCNetTunnel tunnel = CnCNetTunnel.Parse(serverInfo);
+                    var tunnel = CnCNetTunnel.Parse(serverInfo);
 
                     if (tunnel == null)
                         continue;
@@ -231,28 +231,28 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                 }
             }
 
-            if (returnValue.Count > 0)
+            if (!returnValue.Any())
+                return returnValue;
+
+            try
             {
-                try
-                {
-                    if (tunnelCacheFile.Exists)
-                        tunnelCacheFile.Delete();
+                if (tunnelCacheFile.Exists)
+                    tunnelCacheFile.Delete();
 
-                    DirectoryInfo clientDirectoryInfo = SafePath.GetDirectory(ProgramConstants.ClientUserFilesPath);
+                DirectoryInfo clientDirectoryInfo = SafePath.GetDirectory(ProgramConstants.ClientUserFilesPath);
 
-                    if (!clientDirectoryInfo.Exists)
-                        clientDirectoryInfo.Create();
+                if (!clientDirectoryInfo.Exists)
+                    clientDirectoryInfo.Create();
 
 #if NETFRAMEWORK
-                    File.WriteAllText(tunnelCacheFile.FullName, data);
+                File.WriteAllText(tunnelCacheFile.FullName, data);
 #else
-                    await File.WriteAllTextAsync(tunnelCacheFile.FullName, data);
+                await File.WriteAllTextAsync(tunnelCacheFile.FullName, data);
 #endif
-                }
-                catch (Exception ex)
-                {
-                    PreStartup.LogException(ex, "Refreshing tunnel cache file failed!");
-                }
+            }
+            catch (Exception ex)
+            {
+                PreStartup.LogException(ex, "Refreshing tunnel cache file failed!");
             }
 
             return returnValue;
