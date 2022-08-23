@@ -41,7 +41,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         private readonly TunnelHandler tunnelHandler;
 
-        private int bestTunnelIndex = 0;
+        private int bestTunnelIndex;
         private int lowestTunnelRating = int.MaxValue;
 
         private bool isManuallySelectedTunnel;

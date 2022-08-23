@@ -80,23 +80,22 @@ namespace DTAClient.Domain.Multiplayer
         /// <returns>A PlayerInfo instance, or null if the string format was invalid.</returns>
         public static PlayerInfo FromString(string str)
         {
-            var values = str.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+            string[] values = str.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
 
             if (values.Length != 8)
                 return null;
 
-            var pInfo = new PlayerInfo();
-
-            pInfo.Name = values[0];
-            pInfo.SideId = Conversions.IntFromString(values[1], 0);
-            pInfo.StartingLocation = Conversions.IntFromString(values[2], 0);
-            pInfo.ColorId = Conversions.IntFromString(values[3], 0);
-            pInfo.TeamId = Conversions.IntFromString(values[4], 0);
-            pInfo.AILevel = Conversions.IntFromString(values[5], 0);
-            pInfo.IsAI = Conversions.BooleanFromString(values[6], true);
-            pInfo.Index = Conversions.IntFromString(values[7], 0);
-
-            return pInfo;
+            return new PlayerInfo
+            {
+                Name = values[0],
+                SideId = Conversions.IntFromString(values[1], 0),
+                StartingLocation = Conversions.IntFromString(values[2], 0),
+                ColorId = Conversions.IntFromString(values[3], 0),
+                TeamId = Conversions.IntFromString(values[4], 0),
+                AILevel = Conversions.IntFromString(values[5], 0),
+                IsAI = Conversions.BooleanFromString(values[6], true),
+                Index = Conversions.IntFromString(values[7], 0)
+            };
         }
     }
 }
