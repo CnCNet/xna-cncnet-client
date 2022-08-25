@@ -4,7 +4,7 @@
     <CLSCompliant>false</CLSCompliant>
     <Platforms>AnyCPU;x64;ARM64;x86</Platforms>
     <AnalysisLevel>preview-all</AnalysisLevel>
-    <LangVersion>preview</LangVersion>
+    <LangVersion Condition="'$(TargetFramework)' == 'net48'">latest</LangVersion>
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
   </PropertyGroup>
 

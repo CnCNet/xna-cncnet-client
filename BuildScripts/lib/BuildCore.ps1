@@ -80,7 +80,7 @@ function Build-Project {
   process {
     dotnet $Private:DotnetArgs
     if ($LASTEXITCODE -ne 0) {
-      throw "Build failed for $Game $Engine $Configuration $TargetFramework $PlatformTarget $RuntimeIdentifier"
+      throw "Build failed"
     }
   }
 
