@@ -166,7 +166,7 @@ namespace DTAClient.DXGUI
             DateTime dtn = DateTime.Now;
 
 #if ARES
-            Task.Factory.StartNew(ProcessScreenshots);
+            Task.Run(ProcessScreenshots);
 
             // TODO: Ares debug log handling should be addressed in Ares DLL itself.
             // For now the following are handled here:
