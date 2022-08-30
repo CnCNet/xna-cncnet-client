@@ -4,6 +4,7 @@ using System.Diagnostics;
 using DTAClient.Online;
 using Microsoft.Xna.Framework;
 using System;
+using ClientCore.Extensions;
 
 namespace DTAClient.DXGUI.Multiplayer
 {
@@ -11,7 +12,7 @@ namespace DTAClient.DXGUI.Multiplayer
     /// A list box for CnCNet chat. Supports opening links with a double-click,
     /// and easy adding of IRC messages to the list box.
     /// </summary>
-    public class ChatListBox : XNAListBox
+    public class ChatListBox : XNAListBox, IMessageView
     {
         public ChatListBox(WindowManager windowManager) : base(windowManager)
         {
@@ -23,19 +24,9 @@ namespace DTAClient.DXGUI.Multiplayer
             if (SelectedIndex < 0 || SelectedIndex >= Items.Count)
                 return;
 
-            string itemText = Items[SelectedIndex].Text;
-
-            int index = itemText.IndexOf("http://");
-            if (index == -1)
-                index = itemText.IndexOf("ftp://");
-            if (index == -1)
-                index = itemText.IndexOf("https://");
-
-            if (index == -1)
-                return; // No link found
-
-            string link = itemText.Substring(index);
-            link = link.Split(' ')[0]; // Nuke any words coming after the link
+            var link = Items[SelectedIndex].Text?.GetLink();
+            if (link == null)
+                return;
 
             Process.Start(link);
         }
@@ -52,17 +43,26 @@ namespace DTAClient.DXGUI.Multiplayer
 
         public void AddMessage(ChatMessage message)
         {
+            var listBoxItem = new XNAListBoxItem
+            {
+                TextColor = message.Color,
+                Selectable = true,
+                Tag = message
+            };
+            
             if (message.SenderName == null)
-                AddItem(Renderer.GetSafeString(string.Format("[{0}] {1}",
+            {
+                listBoxItem.Text = Renderer.GetSafeString(string.Format("[{0}] {1}",
                     message.DateTime.ToShortTimeString(),
-                    message.Message), FontIndex),
-                    message.Color, true);
+                    message.Message), FontIndex);
+            }
             else
             {
-                AddItem(Renderer.GetSafeString(string.Format("[{0}] {1}: {2}",
-                    message.DateTime.ToShortTimeString(), message.SenderName, message.Message), FontIndex),
-                    message.Color, true);
+                listBoxItem.Text = Renderer.GetSafeString(string.Format("[{0}] {1}: {2}",
+                    message.DateTime.ToShortTimeString(), message.SenderName, message.Message), FontIndex);
             }
+            
+            AddItem(listBoxItem);
 
             if (LastIndex >= Items.Count - 2)
             {

@@ -1,5 +1,6 @@
 ﻿using ClientCore;
 using ClientGUI;
+using DTAConfig.Settings;
 using Microsoft.Xna.Framework;
 using Rampastring.Tools;
 using Rampastring.XNAUI;
@@ -24,7 +25,7 @@ namespace DTAConfig.OptionPanels
 
         private static readonly OptionsGUICreator optionsGUICreator = new OptionsGUICreator();
 
-        private List<FileSettingCheckBox> fileSettingCheckBoxes = new List<FileSettingCheckBox>();
+        private readonly List<IUserSetting> userSettings = new List<IUserSetting>();
 
         public override void Initialize()
         {
@@ -43,36 +44,51 @@ namespace DTAConfig.OptionPanels
         /// <param name="iniFile">The INI file.</param>
         public void ParseUserOptions(IniFile iniFile)
         {
+            GetAttributes(iniFile);
             ParseExtraControls(iniFile, Name + "ExtraControls");
             ReadChildControlAttributes(iniFile);
         }
 
-        protected override void ParseExtraControls(IniFile iniFile, string sectionName)
+        public override void AddChild(XNAControl child)
         {
-            base.ParseExtraControls(iniFile, sectionName);
+            base.AddChild(child);
 
-            foreach (var control in Children)
-            {
-                if (!(control is FileSettingCheckBox controlAsFileSettingCheckBox))
-                    continue;
-
-                fileSettingCheckBoxes.Add(controlAsFileSettingCheckBox);
-            }
+            if (child is IUserSetting setting)
+                userSettings.Add(setting);
         }
 
         protected UserINISettings IniSettings { get; private set; }
 
         /// <summary>
         /// Saves the options of this panel.
-        /// Returns a bool that determines whether the 
-        /// client needs to restart for changes to apply.
+        /// <returns>A bool that determines whether the 
+        /// client needs to restart for changes to apply.</returns>
         /// </summary>
         public virtual bool Save()
         {
-            foreach (var checkBox in fileSettingCheckBoxes)
-                checkBox.Save();
+            bool restartRequired = false;
+            foreach (var setting in userSettings)
+                restartRequired = setting.Save() || restartRequired;
+            
+            return restartRequired;
+        }
 
-            return false;
+        /// <summary>
+        /// Refreshes the panel's settings to account for possible
+        /// changes that could affect the functionality.
+        /// </summary>
+        /// <returns>A bool that determines whether the 
+        /// setting's value was changed.</returns>
+        public virtual bool RefreshPanel()
+        {
+            bool valuesChanged = false;
+            foreach (var setting in userSettings)
+            {
+                if (setting is IFileSetting fileSetting)
+                    valuesChanged = fileSetting.RefreshSetting() || valuesChanged;
+            }
+
+            return valuesChanged;
         }
 
         /// <summary>
@@ -80,8 +96,8 @@ namespace DTAConfig.OptionPanels
         /// </summary>
         public virtual void Load()
         {
-            foreach (var checkBox in fileSettingCheckBoxes)
-                checkBox.Load();
+            foreach (var setting in userSettings)
+                setting.Load();
         }
 
         /// <summary>

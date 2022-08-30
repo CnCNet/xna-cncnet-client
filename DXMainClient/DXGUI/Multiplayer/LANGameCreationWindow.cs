@@ -6,6 +6,7 @@ using Microsoft.Xna.Framework;
 using ClientCore;
 using System.IO;
 using Rampastring.Tools;
+using Localization;
 
 namespace DTAClient.DXGUI.Multiplayer
 {
@@ -37,7 +38,7 @@ namespace DTAClient.DXGUI.Multiplayer
             lblDescription = new XNALabel(WindowManager);
             lblDescription.Name = "lblDescription";
             lblDescription.FontIndex = 1;
-            lblDescription.Text = "SELECT SESSION TYPE";
+            lblDescription.Text = "SELECT SESSION TYPE".L10N("UI:Main:SelectMissionType");
 
             AddChild(lblDescription);
 
@@ -50,22 +51,22 @@ namespace DTAClient.DXGUI.Multiplayer
 
             btnNewGame = new XNAButton(WindowManager);
             btnNewGame.Name = "btnNewGame";
-            btnNewGame.ClientRectangle = new Rectangle(12, 42, 133, 23);
+            btnNewGame.ClientRectangle = new Rectangle(12, 42, UIDesignConstants.BUTTON_WIDTH_133, UIDesignConstants.BUTTON_HEIGHT);
             btnNewGame.IdleTexture = AssetLoader.LoadTexture("133pxbtn.png");
             btnNewGame.HoverTexture = AssetLoader.LoadTexture("133pxbtn_c.png");
             btnNewGame.FontIndex = 1;
-            btnNewGame.Text = "New Game";
+            btnNewGame.Text = "New Game".L10N("UI:Main:NewGame");
             btnNewGame.HoverSoundEffect = new EnhancedSoundEffect("button.wav");
             btnNewGame.LeftClick += BtnNewGame_LeftClick;
 
             btnLoadGame = new XNAButton(WindowManager);
             btnLoadGame.Name = "btnLoadGame";
             btnLoadGame.ClientRectangle = new Rectangle(btnNewGame.Right + 12,
-                btnNewGame.Y, 133, 23);
+                btnNewGame.Y, UIDesignConstants.BUTTON_WIDTH_133, UIDesignConstants.BUTTON_HEIGHT);
             btnLoadGame.IdleTexture = btnNewGame.IdleTexture;
             btnLoadGame.HoverTexture = btnNewGame.HoverTexture;
             btnLoadGame.FontIndex = 1;
-            btnLoadGame.Text = "Load Game";
+            btnLoadGame.Text = "Load Game".L10N("UI:Main:LoadGame");
             btnLoadGame.HoverSoundEffect = btnNewGame.HoverSoundEffect;
             btnLoadGame.LeftClick += BtnLoadGame_LeftClick;
 
@@ -76,7 +77,7 @@ namespace DTAClient.DXGUI.Multiplayer
             btnCancel.IdleTexture = btnNewGame.IdleTexture;
             btnCancel.HoverTexture = btnNewGame.HoverTexture;
             btnCancel.FontIndex = 1;
-            btnCancel.Text = "Cancel";
+            btnCancel.Text = "Cancel".L10N("UI:Main:ButtonCancel");
             btnCancel.HoverSoundEffect = btnNewGame.HoverSoundEffect;
             btnCancel.LeftClick += BtnCancel_LeftClick;
 

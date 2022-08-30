@@ -5,13 +5,16 @@ using System.Management;
 using Microsoft.Win32;
 using DTAClient.Domain;
 using ClientCore;
-using Updater;
 using Rampastring.Tools;
 using DTAClient.DXGUI;
+using ClientUpdater;
 using System.Security.Principal;
 using System.DirectoryServices;
 using System.Linq;
 using DTAClient.Online;
+using ClientCore.INIProcessing;
+using System.Threading.Tasks;
+using System.Globalization;
 
 namespace DTAClient
 {
@@ -32,7 +35,7 @@ namespace DTAClient
                 themePath = ClientConfiguration.Instance.GetThemeInfoFromIndex(0)[1];
             }
 
-            ProgramConstants.RESOURCES_DIR = "Resources\\" + themePath;
+            ProgramConstants.RESOURCES_DIR = "Resources/" + themePath;
 
             if (!Directory.Exists(ProgramConstants.RESOURCES_DIR))
                 throw new DirectoryNotFoundException("Theme directory not found!" + Environment.NewLine + ProgramConstants.RESOURCES_DIR);
@@ -41,10 +44,11 @@ namespace DTAClient
 
             File.Delete(ProgramConstants.GamePath + "version_u");
 
-            CUpdater.Initialize(ClientConfiguration.Instance.LocalGame);
+            Updater.Initialize(ProgramConstants.GamePath, ProgramConstants.GetBaseResourcePath(), ClientConfiguration.Instance.SettingsIniName, ClientConfiguration.Instance.LocalGame);
 
             Logger.Log("Operating system: " + Environment.OSVersion.VersionString);
             Logger.Log("Selected OS profile: " + MainClientConstants.OSId.ToString());
+            Logger.Log("Current culture: " + CultureInfo.CurrentCulture?.ToString());
 
             // The query in CheckSystemSpecifications takes lots of time,
             // so we'll do it in a separate thread to make startup faster
@@ -53,6 +57,11 @@ namespace DTAClient
 
             Thread idThread = new Thread(GenerateOnlineId);
             idThread.Start();
+
+#if ARES
+            Task.Factory.StartNew(() => PruneFiles(ProgramConstants.GamePath + "debug", DateTime.Now.AddDays(-7)));
+#endif
+            Task.Factory.StartNew(MigrateOldLogFiles);
 
             if (Directory.Exists(ProgramConstants.GamePath + "Updater"))
             {
@@ -81,10 +90,10 @@ namespace DTAClient
                 }
             }
 
-            if (CUpdater.CustomComponents != null)
+            if (Updater.CustomComponents != null)
             {
                 Logger.Log("Removing partial custom component downloads.");
-                foreach (CustomComponent component in CUpdater.CustomComponents)
+                foreach (var component in Updater.CustomComponents)
                 {
                     try
                     {
@@ -103,42 +112,163 @@ namespace DTAClient
 
             ClientConfiguration.Instance.RefreshSettings();
 
+            // Start INI file preprocessor
+            PreprocessorBackgroundTask.Instance.Run();
+
             GameClass gameClass = new GameClass();
             gameClass.Run();
         }
 
+#if ARES
         /// <summary>
-        /// Writes processor and graphics card info to the log file.
+        /// Recursively deletes all files from the specified directory that were created at <paramref name="pruneThresholdTime"/> or before.
+        /// If directory is empty after deleting files, the directory itself will also be deleted.
         /// </summary>
-        private void CheckSystemSpecifications()
+        /// <param name="directoryPath">Directory to prune files from.</param>
+        /// <param name="pruneThresholdTime">Time at or before which files must have been created for them to be pruned.</param>
+        private void PruneFiles(string directoryPath, DateTime pruneThresholdTime)
+        {
+            if (!Directory.Exists(directoryPath))
+                return;
+
+            try
+            {
+                foreach (string fsEntry in Directory.EnumerateFileSystemEntries(directoryPath))
+                {
+                    var attr = File.GetAttributes(fsEntry);
+                    if ((attr & FileAttributes.Directory) == FileAttributes.Directory)
+                        PruneFiles(fsEntry, pruneThresholdTime);
+                    else
+                    {
+                        try
+                        {
+                            FileInfo fileInfo = new FileInfo(fsEntry);
+                            if (fileInfo.CreationTime <= pruneThresholdTime)
+                                fileInfo.Delete();
+                        }
+                        catch (Exception e)
+                        {
+                            Logger.Log("PruneFiles: Could not delete file " + fsEntry.Replace(ProgramConstants.GamePath, "") +
+                                ". Error message: " + e.Message);
+                            continue;
+                        }
+                    }
+                }
+
+                if (!Directory.EnumerateFileSystemEntries(directoryPath).Any())
+                    Directory.Delete(directoryPath);
+            }
+            catch (Exception ex)
+            {
+                Logger.Log("PruneFiles: An error occured while pruning files from " +
+                    directoryPath.Replace(ProgramConstants.GamePath, "") + ". Message: " + ex.Message);
+            }
+        }
+#endif
+
+        /// <summary>
+        /// Move log files from obsolete directories to currently used ones and adjust filenames to match currently used timestamp scheme.
+        /// </summary>
+        private void MigrateOldLogFiles()
+        {
+            MigrateLogFiles(ProgramConstants.ClientUserFilesPath + "ErrorLogs", ProgramConstants.ClientUserFilesPath + "ClientCrashLogs", "ClientCrashLog*.txt");
+            MigrateLogFiles(ProgramConstants.ClientUserFilesPath + "ErrorLogs", ProgramConstants.ClientUserFilesPath + "GameCrashLogs", "EXCEPT*.txt");
+            MigrateLogFiles(ProgramConstants.ClientUserFilesPath + "ErrorLogs", ProgramConstants.ClientUserFilesPath + "SyncErrorLogs", "SYNC*.txt");
+        }
+
+        /// <summary>
+        /// Move log files matching given search pattern from specified directory to another one and adjust filename timestamps.
+        /// </summary>
+        /// <param name="currentDirectory">Current log files directory.</param>
+        /// <param name="newDirectory">New log files directory.</param>
+        /// <param name="searchPattern">Search string the log file names must match against to be copied. Can contain wildcard characters (* and ?) but doesn't support regular expressions.</param>
+        private static void MigrateLogFiles(string currentDirectory, string newDirectory, string searchPattern)
         {
             try
             {
-                string cpu = string.Empty;
-                string videoController = string.Empty;
-                string memory = string.Empty;
+                if (!Directory.Exists(currentDirectory))
+                    return;
 
-                ManagementObjectSearcher searcher =
-                    new ManagementObjectSearcher("SELECT * FROM Win32_Processor");
+                if (!Directory.Exists(newDirectory))
+                    Directory.CreateDirectory(newDirectory);
+
+                foreach (string filename in Directory.EnumerateFiles(currentDirectory, searchPattern))
+                {
+                    string filenameTS = Path.GetFileNameWithoutExtension(filename.Replace(currentDirectory, ""));
+                    string[] ts = filenameTS.Split(new string[] { "_" }, StringSplitOptions.RemoveEmptyEntries);
+
+                    string timestamp = string.Empty;
+                    string baseFilename = Path.GetFileNameWithoutExtension(ts[0]);
+
+                    if (ts.Length >= 6)
+                    {
+                        timestamp = string.Format("_{0}_{1}_{2}_{3}_{4}",
+                            ts[3], ts[2].PadLeft(2, '0'), ts[1].PadLeft(2, '0'), ts[4].PadLeft(2, '0'), ts[5].PadLeft(2, '0'));
+                    }
+
+                    string newFilename = newDirectory + "/" + baseFilename + timestamp + Path.GetExtension(filename);
+                    File.Move(filename, newFilename);
+                }
+
+                if (!Directory.EnumerateFiles(currentDirectory).Any())
+                    Directory.Delete(currentDirectory);
+            }
+            catch (Exception ex)
+            {
+                Logger.Log("MigrateLogFiles: An error occured while moving log files from " +
+                    currentDirectory.Replace(ProgramConstants.GamePath, "") + " to " +
+                    newDirectory.Replace(ProgramConstants.GamePath, "") + ". Message: " + ex.Message);
+            }
+        }
+
+        /// <summary>
+        /// Writes processor, graphics card and memory info to the log file.
+        /// </summary>
+        private void CheckSystemSpecifications()
+        {
+            string cpu = string.Empty;
+            string videoController = string.Empty;
+            string memory = string.Empty;
+
+            ManagementObjectSearcher searcher;
+
+            try
+            {
+                searcher = new ManagementObjectSearcher("SELECT * FROM Win32_Processor");
 
                 foreach (var proc in searcher.Get())
                 {
                     cpu = cpu + proc["Name"].ToString().Trim() + " (" + proc["NumberOfCores"] + " cores) ";
                 }
 
+            }
+            catch
+            {
+                cpu = "CPU info not found";
+            }
+
+            try
+            {
                 searcher = new ManagementObjectSearcher("SELECT * FROM Win32_VideoController");
 
                 foreach (ManagementObject mo in searcher.Get())
                 {
-                    PropertyData currentBitsPerPixel = mo.Properties["CurrentBitsPerPixel"];
-                    PropertyData description = mo.Properties["Description"];
+                    var currentBitsPerPixel = mo.Properties["CurrentBitsPerPixel"];
+                    var description = mo.Properties["Description"];
                     if (currentBitsPerPixel != null && description != null)
                     {
                         if (currentBitsPerPixel.Value != null)
                             videoController = videoController + "Video controller: " + description.Value.ToString().Trim() + " ";
                     }
                 }
+            }
+            catch
+            {
+                cpu = "Video controller info not found";
+            }
 
+            try
+            {
                 searcher = new ManagementObjectSearcher("Select * From Win32_PhysicalMemory");
                 ulong total = 0;
 
@@ -149,14 +279,13 @@ namespace DTAClient
 
                 if (total != 0)
                     memory = "Total physical memory: " + (total >= 1073741824 ? total / 1073741824 + "GB" : total / 1048576 + "MB");
-
-                Logger.Log(string.Format("Hardware info: {0} | {1} | {2}", cpu.Trim(), videoController.Trim(), memory));
-
             }
-            catch (Exception ex)
+            catch
             {
-                Logger.Log("Checking system specifications failed. Message: " + ex.Message);
+                cpu = "Memory info not found";
             }
+
+            Logger.Log(string.Format("Hardware info: {0} | {1} | {2}", cpu.Trim(), videoController.Trim(), memory));
         }
 
 
@@ -177,7 +306,7 @@ namespace DTAClient
                 }
 
                 ManagementObjectSearcher mos = new ManagementObjectSearcher("SELECT * FROM Win32_BaseBoard");
-                ManagementObjectCollection moc = mos.Get();
+                var moc = mos.Get();
                 string mbid = "";
                 foreach (ManagementObject mo in moc)
                 {
@@ -195,19 +324,23 @@ namespace DTAClient
 
                 RegistryKey key;
                 key = Registry.CurrentUser.CreateSubKey("SOFTWARE\\" + ClientConfiguration.Instance.InstallationPathRegKey);
-                string str;
-                Object o = key.GetValue("Ident");
-                if (o == null)
+                string str = rn.Next(Int32.MaxValue - 1).ToString();
+
+                try
                 {
-                    str = rn.Next(Int32.MaxValue - 1).ToString();
-                    key.SetValue("Ident", str);
+                    Object o = key.GetValue("Ident");
+                    if (o == null)
+                    {
+                        key.SetValue("Ident", str);
+                    }
+                    else
+                        str = o.ToString();
                 }
-                else
-                    str = o.ToString();
+                catch { }
 
                 key.Close();
                 Connection.SetId(str);
-           }
+            }
         }
 
         /// <summary>

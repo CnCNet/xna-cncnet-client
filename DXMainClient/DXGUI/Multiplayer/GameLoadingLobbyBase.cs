@@ -3,6 +3,7 @@ using ClientCore.Statistics;
 using ClientGUI;
 using DTAClient.Domain;
 using DTAClient.Domain.Multiplayer;
+using Localization;
 using Microsoft.Xna.Framework;
 using Rampastring.Tools;
 using Rampastring.XNAUI;
@@ -44,14 +45,14 @@ namespace DTAClient.DXGUI.Multiplayer
         protected ChatListBox lbChatMessages;
         protected XNATextBox tbChatInput;
 
-        protected EnhancedSoundEffect sndGetReady;
+        protected EnhancedSoundEffect sndGetReadySound;
         protected EnhancedSoundEffect sndJoinSound;
         protected EnhancedSoundEffect sndLeaveSound;
         protected EnhancedSoundEffect sndMessageSound;
 
-        private XNALabel lblDescription;
-        private XNAPanel panelPlayers;
-        private XNALabel[] lblPlayerNames;
+        protected XNALabel lblDescription;
+        protected XNAPanel panelPlayers;
+        protected XNALabel[] lblPlayerNames;
 
         private XNALabel lblMapName;
         protected XNALabel lblMapNameValue;
@@ -59,8 +60,8 @@ namespace DTAClient.DXGUI.Multiplayer
         protected XNALabel lblGameModeValue;
         private XNALabel lblSavedGameTime;
 
-        private XNAClientButton btnLoadGame;
-        private XNAClientButton btnLeaveGame;
+        protected XNAClientButton btnLoadGame;
+        protected XNAClientButton btnLeaveGame;
 
         private List<MultiplayerColor> MPColors = new List<MultiplayerColor>();
 
@@ -79,9 +80,9 @@ namespace DTAClient.DXGUI.Multiplayer
             BackgroundTexture = AssetLoader.LoadTexture("loadmpsavebg.png");
 
             lblDescription = new XNALabel(WindowManager);
-            lblDescription.Name = "lblDescription";
+            lblDescription.Name = nameof(lblDescription);
             lblDescription.ClientRectangle = new Rectangle(12, 12, 0, 0);
-            lblDescription.Text = "Wait for all players to join and get ready, then click Load Game to load the saved multiplayer game.";
+            lblDescription.Text = "Wait for all players to join and get ready, then click Load Game to load the saved multiplayer game.".L10N("UI:Main:LobbyInitialTip");
 
             panelPlayers = new XNAPanel(WindowManager);
             panelPlayers.ClientRectangle = new Rectangle(12, 32, 373, 125);
@@ -92,68 +93,63 @@ namespace DTAClient.DXGUI.Multiplayer
             AddChild(panelPlayers);
 
             lblPlayerNames = new XNALabel[8];
-            for (int i = 0; i < 4; i++)
+            for (int i = 0; i < 8; i++)
             {
                 XNALabel lblPlayerName = new XNALabel(WindowManager);
-                lblPlayerName.Name = "lblPlayerName" + i;
-                lblPlayerName.ClientRectangle = new Rectangle(9, 9 + 30 * i, 0, 0);
-                lblPlayerName.Text = "Player " + i;
-                panelPlayers.AddChild(lblPlayerName);
-                lblPlayerNames[i] = lblPlayerName;
-            }
+                lblPlayerName.Name = nameof(lblPlayerName) + i;
 
-            for (int i = 4; i < 8; i++)
-            {
-                XNALabel lblPlayerName = new XNALabel(WindowManager);
-                lblPlayerName.Name = "lblPlayerName" + i;
-                lblPlayerName.ClientRectangle = new Rectangle(190, 9 + 30 * (i - 4), 0, 0);
-                lblPlayerName.Text = "Player " + i;
+                if (i < 4)
+                    lblPlayerName.ClientRectangle = new Rectangle(9, 9 + 30 * i, 0, 0);
+                else
+                    lblPlayerName.ClientRectangle = new Rectangle(190, 9 + 30 * (i - 4), 0, 0);
+
+                lblPlayerName.Text = string.Format("Player {0}".L10N("UI:Main:PlayerX"), i) + " ";
                 panelPlayers.AddChild(lblPlayerName);
                 lblPlayerNames[i] = lblPlayerName;
             }
 
             lblMapName = new XNALabel(WindowManager);
-            lblMapName.Name = "lblMapName";
+            lblMapName.Name = nameof(lblMapName);
             lblMapName.FontIndex = 1;
             lblMapName.ClientRectangle = new Rectangle(panelPlayers.Right + 12,
                 panelPlayers.Y, 0, 0);
-            lblMapName.Text = "MAP:";
+            lblMapName.Text = "MAP:".L10N("UI:Main:MapLabel");
 
             lblMapNameValue = new XNALabel(WindowManager);
-            lblMapNameValue.Name = "lblMapNameValue";
+            lblMapNameValue.Name = nameof(lblMapNameValue);
             lblMapNameValue.ClientRectangle = new Rectangle(lblMapName.X,
                 lblMapName.Y + 18, 0, 0);
-            lblMapNameValue.Text = "Map name";
+            lblMapNameValue.Text = "Map name".L10N("UI:Main:MapName");
 
             lblGameMode = new XNALabel(WindowManager);
-            lblGameMode.Name = "lblGameMode";
+            lblGameMode.Name = nameof(lblGameMode);
             lblGameMode.ClientRectangle = new Rectangle(lblMapName.X,
                 panelPlayers.Y + 40, 0, 0);
             lblGameMode.FontIndex = 1;
-            lblGameMode.Text = "GAME MODE:";
+            lblGameMode.Text = "GAME MODE:".L10N("UI:Main:GameMode");
 
             lblGameModeValue = new XNALabel(WindowManager);
-            lblGameModeValue.Name = "lblGameModeValue";
+            lblGameModeValue.Name = nameof(lblGameModeValue);
             lblGameModeValue.ClientRectangle = new Rectangle(lblGameMode.X,
                 lblGameMode.Y + 18, 0, 0);
-            lblGameModeValue.Text = "Game mode";
+            lblGameModeValue.Text = "Game mode".L10N("UI:Main:GameModeValueText");
 
             lblSavedGameTime = new XNALabel(WindowManager);
-            lblSavedGameTime.Name = "lblSavedGameTime";
+            lblSavedGameTime.Name = nameof(lblSavedGameTime);
             lblSavedGameTime.ClientRectangle = new Rectangle(lblMapName.X,
                 panelPlayers.Bottom - 40, 0, 0);
             lblSavedGameTime.FontIndex = 1;
-            lblSavedGameTime.Text = "SAVED GAME:";
+            lblSavedGameTime.Text = "SAVED GAME:".L10N("UI:Main:SavedGame");
 
             ddSavedGame = new XNAClientDropDown(WindowManager);
-            ddSavedGame.Name = "ddSavedGame";
+            ddSavedGame.Name = nameof(ddSavedGame);
             ddSavedGame.ClientRectangle = new Rectangle(lblSavedGameTime.X,
                 panelPlayers.Bottom - 21,
                 Width - lblSavedGameTime.X - 12, 21);
             ddSavedGame.SelectedIndexChanged += DdSavedGame_SelectedIndexChanged;
 
             lbChatMessages = new ChatListBox(WindowManager);
-            lbChatMessages.Name = "lbChatMessages";
+            lbChatMessages.Name = nameof(lbChatMessages);
             lbChatMessages.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 128), 1, 1);
             lbChatMessages.PanelBackgroundDrawMode = PanelBackgroundImageDrawMode.STRETCHED;
             lbChatMessages.ClientRectangle = new Rectangle(12, panelPlayers.Bottom + 12,
@@ -161,24 +157,24 @@ namespace DTAClient.DXGUI.Multiplayer
                 Height - panelPlayers.Bottom - 12 - 29 - 34);
 
             tbChatInput = new XNATextBox(WindowManager);
-            tbChatInput.Name = "tbChatInput";
+            tbChatInput.Name = nameof(tbChatInput);
             tbChatInput.ClientRectangle = new Rectangle(lbChatMessages.X,
                 lbChatMessages.Bottom + 3, lbChatMessages.Width, 19);
             tbChatInput.MaximumTextLength = 200;
             tbChatInput.EnterPressed += TbChatInput_EnterPressed;
 
             btnLoadGame = new XNAClientButton(WindowManager);
-            btnLoadGame.Name = "btnLoadGame";
+            btnLoadGame.Name = nameof(btnLoadGame);
             btnLoadGame.ClientRectangle = new Rectangle(lbChatMessages.X,
-                tbChatInput.Bottom + 6, 133, 23);
-            btnLoadGame.Text = "Load Game";
+                tbChatInput.Bottom + 6, UIDesignConstants.BUTTON_WIDTH_133, UIDesignConstants.BUTTON_HEIGHT);
+            btnLoadGame.Text = "Load Game".L10N("UI:Main:LoadGame");
             btnLoadGame.LeftClick += BtnLoadGame_LeftClick;
 
             btnLeaveGame = new XNAClientButton(WindowManager);
-            btnLeaveGame.Name = "btnLeaveGame";
+            btnLeaveGame.Name = nameof(btnLeaveGame);
             btnLeaveGame.ClientRectangle = new Rectangle(Width - 145,
-                btnLoadGame.Y, 133, 23);
-            btnLeaveGame.Text = "Leave Game";
+                btnLoadGame.Y, UIDesignConstants.BUTTON_WIDTH_133, UIDesignConstants.BUTTON_HEIGHT);
+            btnLeaveGame.Text = "Leave Game".L10N("UI:Main:LeaveGame");
             btnLeaveGame.LeftClick += BtnLeaveGame_LeftClick;
 
             AddChild(lblMapName);
@@ -194,10 +190,10 @@ namespace DTAClient.DXGUI.Multiplayer
 
             base.Initialize();
 
-            sndGetReady = new EnhancedSoundEffect("getready.wav");
-            sndJoinSound = new EnhancedSoundEffect("joingame.wav");
-            sndLeaveSound = new EnhancedSoundEffect("leavegame.wav");
-            sndMessageSound = new EnhancedSoundEffect("message.wav");
+            sndJoinSound = new EnhancedSoundEffect("joingame.wav", 0.0, 0.0, ClientConfiguration.Instance.SoundGameLobbyJoinCooldown);
+            sndLeaveSound = new EnhancedSoundEffect("leavegame.wav", 0.0, 0.0, ClientConfiguration.Instance.SoundGameLobbyLeaveCooldown);
+            sndMessageSound = new EnhancedSoundEffect("message.wav", 0.0, 0.0, ClientConfiguration.Instance.SoundMessageCooldown);
+            sndGetReadySound = new EnhancedSoundEffect("getready.wav", 0.0, 0.0, ClientConfiguration.Instance.SoundGameLobbyGetReadyCooldown);
 
             MPColors = MultiplayerColor.LoadColors();
 
@@ -221,15 +217,9 @@ namespace DTAClient.DXGUI.Multiplayer
         /// <summary>
         /// Resets Discord Rich Presence to default state.
         /// </summary>
-        protected void ResetDiscordPresence()
-        {
-            discordHandler?.UpdatePresence();
-        }
+        protected void ResetDiscordPresence() => discordHandler?.UpdatePresence();
 
-        private void BtnLeaveGame_LeftClick(object sender, EventArgs e)
-        {
-            LeaveGame();
-        }
+        private void BtnLeaveGame_LeftClick(object sender, EventArgs e) => LeaveGame();
 
         protected virtual void LeaveGame()
         {
@@ -237,10 +227,8 @@ namespace DTAClient.DXGUI.Multiplayer
             ResetDiscordPresence();
         }
 
-        private void fsw_Created(object sender, FileSystemEventArgs e)
-        {
+        private void fsw_Created(object sender, FileSystemEventArgs e) =>
             AddCallback(new Action<FileSystemEventArgs>(HandleFSWEvent), e);
-        }
 
         private void HandleFSWEvent(FileSystemEventArgs e)
         {
@@ -279,16 +267,16 @@ namespace DTAClient.DXGUI.Multiplayer
 
         protected virtual void GetReadyNotification()
         {
-            AddNotice("The game host wants to load the game but cannot because not all players are ready!");
-            SoundPlayer.Play(sndGetReady);
+            AddNotice("The game host wants to load the game but cannot because not all players are ready!".L10N("UI:Main:GetReadyPlease"));
+
+            if (!IsHost && !Players.Find(p => p.Name == ProgramConstants.PLAYERNAME).Ready)
+                sndGetReadySound.Play();
 
             WindowManager.FlashWindow();
         }
 
-        protected virtual void NotAllPresentNotification()
-        {
-            AddNotice("You cannot load the game before all players are present.");
-        }
+        protected virtual void NotAllPresentNotification() =>
+            AddNotice("You cannot load the game before all players are present.".L10N("UI:Main:NotAllPresent"));
 
         protected abstract void HostStartGame();
 
@@ -296,7 +284,7 @@ namespace DTAClient.DXGUI.Multiplayer
         {
             File.Delete(ProgramConstants.GamePath + "spawn.ini");
 
-            File.Copy(ProgramConstants.GamePath + "Saved Games\\spawnSG.ini", ProgramConstants.GamePath + "spawn.ini");
+            File.Copy(ProgramConstants.GamePath + "Saved Games/spawnSG.ini", ProgramConstants.GamePath + "spawn.ini");
 
             IniFile spawnIni = new IniFile(ProgramConstants.GamePath + "spawn.ini");
 
@@ -349,10 +337,8 @@ namespace DTAClient.DXGUI.Multiplayer
             UpdateDiscordPresence(true);
         }
 
-        private void SharedUILogic_GameProcessExited()
-        {
+        private void SharedUILogic_GameProcessExited() =>
             AddCallback(new Action(HandleGameProcessExited), null);
-        }
 
         protected virtual void HandleGameProcessExited()
         {
@@ -383,10 +369,7 @@ namespace DTAClient.DXGUI.Multiplayer
             // Do nothing by default
         }
 
-        protected void AddNotice(string notice)
-        {
-            AddNotice(notice, Color.White);
-        }
+        protected void AddNotice(string notice) => AddNotice(notice, Color.White);
 
         protected abstract void AddNotice(string message, Color color);
 
@@ -407,9 +390,9 @@ namespace DTAClient.DXGUI.Multiplayer
             lbChatMessages.TopIndex = 0;
 
             ddSavedGame.AllowDropDown = isHost;
-            btnLoadGame.Text = isHost ? "Load Game" : "I'm Ready";
+            btnLoadGame.Text = isHost ? "Load Game".L10N("UI:Main:ButtonLoadGame") : "I'm Ready".L10N("UI:Main:ButtonGetReady");
 
-            IniFile spawnSGIni = new IniFile(ProgramConstants.GamePath + "Saved Games\\spawnSG.ini");
+            IniFile spawnSGIni = new IniFile(ProgramConstants.GamePath + "Saved Games/spawnSG.ini");
 
             loadedGameID = spawnSGIni.GetStringValue("Settings", "GameID", "0");
             lblMapNameValue.Text = spawnSGIni.GetStringValue("Settings", "UIMapName", string.Empty);
@@ -431,7 +414,7 @@ namespace DTAClient.DXGUI.Multiplayer
                 string sectionName = "Other" + i;
 
                 SavedGamePlayer sgPlayer = new SavedGamePlayer();
-                sgPlayer.Name = spawnSGIni.GetStringValue(sectionName, "Name", "Unknown player");
+                sgPlayer.Name = spawnSGIni.GetStringValue(sectionName, "Name", "Unknown player".L10N("UI:Main:UnknownPlayer"));
                 sgPlayer.ColorIndex = MPColors.FindIndex(
                     c => c.GameColorIndex == spawnSGIni.GetIntValue(sectionName, "Color", 0));
 
@@ -475,20 +458,17 @@ namespace DTAClient.DXGUI.Multiplayer
                 if (pInfo == null)
                 {
                     playerLabel.RemapColor = Color.Gray;
-                    playerLabel.Text = sgPlayer.Name + " (Not present)";
+                    playerLabel.Text = sgPlayer.Name + " " + "(Not present)".L10N("UI:Main:NotPresentSuffix");
                     continue;
                 }
 
                 playerLabel.RemapColor = sgPlayer.ColorIndex > -1 ? MPColors[sgPlayer.ColorIndex].XnaColor
                     : Color.White;
-                playerLabel.Text = pInfo.Ready ? sgPlayer.Name : sgPlayer.Name + " (Not Ready)";
+                playerLabel.Text = pInfo.Ready ? sgPlayer.Name : sgPlayer.Name + " " + "(Not Ready)".L10N("UI:Main:NotReadySuffix");
             }
         }
 
-        protected virtual string GetIPAddressForPlayer(PlayerInfo pInfo)
-        {
-            return "0.0.0.0";
-        }
+        protected virtual string GetIPAddressForPlayer(PlayerInfo pInfo) => "0.0.0.0";
 
         private void DdSavedGame_SelectedIndexChanged(object sender, EventArgs e)
         {
@@ -530,17 +510,9 @@ namespace DTAClient.DXGUI.Multiplayer
             base.Draw(gameTime);
         }
 
-        public void SwitchOn()
-        {
-            Visible = true;
-            Enabled = true;
-        }
+        public void SwitchOn() => Enable();
 
-        public void SwitchOff()
-        {
-            Visible = false;
-            Enabled = false;
-        }
+        public void SwitchOff() => Disable();
 
         public abstract string GetSwitchName();
     }

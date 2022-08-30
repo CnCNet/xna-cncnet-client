@@ -64,5 +64,7 @@ namespace DTAClient.Online
         public DateTime DateTime { get; private set; }
         public string Message { get; private set; }
         public bool SenderIsAdmin { get; private set; }
+
+        public bool IsUser => SenderIdent != null;
     }
 }

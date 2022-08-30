@@ -8,7 +8,8 @@ using ClientGUI;
 using Rampastring.XNAUI.XNAControls;
 using Rampastring.XNAUI;
 using Rampastring.Tools;
-using Updater;
+using ClientUpdater;
+using Localization;
 
 namespace DTAClient.DXGUI.Generic
 {
@@ -16,6 +17,15 @@ namespace DTAClient.DXGUI.Generic
     {
         private const int DEFAULT_WIDTH = 650;
         private const int DEFAULT_HEIGHT = 600;
+
+        private static string[] DifficultyNames = new string[] { "Easy", "Medium", "Hard" };
+
+        private static string[] DifficultyIniPaths = new string[]
+        {
+            "INI/Map Code/Difficulty Easy.ini",
+            "INI/Map Code/Difficulty Medium.ini",
+            "INI/Map Code/Difficulty Hard.ini"
+        };
 
         public CampaignSelector(WindowManager windowManager, DiscordHandler discordHandler) : base(windowManager)
         {
@@ -34,15 +44,15 @@ namespace DTAClient.DXGUI.Generic
 
         private string[] filesToCheck = new string[]
         {
-            "INI\\AI.ini",
-            "INI\\AIE.ini",
-            "INI\\Art.ini",
-            "INI\\ArtE.ini",
-            "INI\\Enhance.ini",
-            "INI\\Rules.ini",
-            "INI\\Map Code\\Difficulty Hard.ini",
-            "INI\\Map Code\\Difficulty Medium.ini",
-            "INI\\Map Code\\Difficulty Easy.ini"
+            "INI/AI.ini",
+            "INI/AIE.ini",
+            "INI/Art.ini",
+            "INI/ArtE.ini",
+            "INI/Enhance.ini",
+            "INI/Rules.ini",
+            "INI/Map Code/Difficulty Hard.ini",
+            "INI/Map Code/Difficulty Medium.ini",
+            "INI/Map Code/Difficulty Easy.ini"
         };
 
         private Mission missionToLaunch;
@@ -59,7 +69,7 @@ namespace DTAClient.DXGUI.Generic
             lblSelectCampaign.Name = "lblSelectCampaign";
             lblSelectCampaign.FontIndex = 1;
             lblSelectCampaign.ClientRectangle = new Rectangle(12, 12, 0, 0);
-            lblSelectCampaign.Text = "MISSIONS:";
+            lblSelectCampaign.Text = "MISSIONS:".L10N("UI:Main:Missions");
 
             lbCampaignList = new XNAListBox(WindowManager);
             lbCampaignList.Name = "lbCampaignList";
@@ -75,7 +85,7 @@ namespace DTAClient.DXGUI.Generic
             lblMissionDescriptionHeader.ClientRectangle = new Rectangle(
                 lbCampaignList.Right + 12, 
                 lblSelectCampaign.Y, 0, 0);
-            lblMissionDescriptionHeader.Text = "MISSION DESCRIPTION:";
+            lblMissionDescriptionHeader.Text = "MISSION DESCRIPTION:".L10N("UI:Main:MissionDescription");
 
             tbMissionDescription = new XNATextBlock(WindowManager);
             tbMissionDescription.Name = "tbMissionDescription";
@@ -91,7 +101,7 @@ namespace DTAClient.DXGUI.Generic
 
             var lblDifficultyLevel = new XNALabel(WindowManager);
             lblDifficultyLevel.Name = "lblDifficultyLevel";
-            lblDifficultyLevel.Text = "DIFFICULTY LEVEL";
+            lblDifficultyLevel.Text = "DIFFICULTY LEVEL".L10N("UI:Main:DifficultyLevel");
             lblDifficultyLevel.FontIndex = 1;
             Vector2 textSize = Renderer.GetTextDimensions(lblDifficultyLevel.Text, lblDifficultyLevel.FontIndex);
             lblDifficultyLevel.ClientRectangle = new Rectangle(
@@ -113,14 +123,14 @@ namespace DTAClient.DXGUI.Generic
             var lblEasy = new XNALabel(WindowManager);
             lblEasy.Name = "lblEasy";
             lblEasy.FontIndex = 1;
-            lblEasy.Text = "EASY";
+            lblEasy.Text = "EASY".L10N("UI:Main:DifficultyEasy");
             lblEasy.ClientRectangle = new Rectangle(trbDifficultySelector.X,
                 trbDifficultySelector.Bottom + 6, 1, 1);
 
             var lblNormal = new XNALabel(WindowManager);
             lblNormal.Name = "lblNormal";
             lblNormal.FontIndex = 1;
-            lblNormal.Text = "NORMAL";
+            lblNormal.Text = "NORMAL".L10N("UI:Main:DifficultyNormal");
             textSize = Renderer.GetTextDimensions(lblNormal.Text, lblNormal.FontIndex);
             lblNormal.ClientRectangle = new Rectangle(
                 tbMissionDescription.X + (tbMissionDescription.Width - (int)textSize.X) / 2,
@@ -129,23 +139,23 @@ namespace DTAClient.DXGUI.Generic
             var lblHard = new XNALabel(WindowManager);
             lblHard.Name = "lblHard";
             lblHard.FontIndex = 1;
-            lblHard.Text = "HARD";
+            lblHard.Text = "HARD".L10N("UI:Main:DifficultyHard");
             lblHard.ClientRectangle = new Rectangle(
                 tbMissionDescription.Right - lblHard.Width,
                 lblEasy.Y, 1, 1);
 
             btnLaunch = new XNAClientButton(WindowManager);
             btnLaunch.Name = "btnLaunch";
-            btnLaunch.ClientRectangle = new Rectangle(12, Height - 35, 133, 23);
-            btnLaunch.Text = "Launch";
+            btnLaunch.ClientRectangle = new Rectangle(12, Height - 35, UIDesignConstants.BUTTON_WIDTH_133, UIDesignConstants.BUTTON_HEIGHT);
+            btnLaunch.Text = "Launch".L10N("UI:Main:ButtonLaunch");
             btnLaunch.AllowClick = false;
             btnLaunch.LeftClick += BtnLaunch_LeftClick;
 
             var btnCancel = new XNAClientButton(WindowManager);
             btnCancel.Name = "btnCancel";
             btnCancel.ClientRectangle = new Rectangle(Width - 145,
-                btnLaunch.Y, 133, 23);
-            btnCancel.Text = "Cancel";
+                btnLaunch.Y, UIDesignConstants.BUTTON_WIDTH_133, UIDesignConstants.BUTTON_HEIGHT);
+            btnCancel.Text = "Cancel".L10N("UI:Main:ButtonCancel");
             btnCancel.LeftClick += BtnCancel_LeftClick;
 
             AddChild(lblSelectCampaign);
@@ -168,8 +178,8 @@ namespace DTAClient.DXGUI.Generic
 
             trbDifficultySelector.Value = UserINISettings.Instance.Difficulty;
 
-            ParseBattleIni("INI\\Battle.ini");
-            ParseBattleIni("INI\\" + ClientConfiguration.Instance.BattleFSFileName);
+            ParseBattleIni("INI/Battle.ini");
+            ParseBattleIni("INI/" + ClientConfiguration.Instance.BattleFSFileName);
 
             cheaterWindow = new CheaterWindow(WindowManager);
             DarkeningPanel dp = new DarkeningPanel(WindowManager);
@@ -222,7 +232,7 @@ namespace DTAClient.DXGUI.Generic
             Mission mission = Missions[selectedMissionId];
 
             if (!ClientConfiguration.Instance.ModMode && 
-                (!CUpdater.IsFileNonexistantOrOriginal(mission.Scenario) || AreFilesModified()))
+                (!Updater.IsFileNonexistantOrOriginal(mission.Scenario) || AreFilesModified()))
             {
                 // Confront the user by showing the cheater screen
                 missionToLaunch = mission;
@@ -237,7 +247,7 @@ namespace DTAClient.DXGUI.Generic
         {
             foreach (string filePath in filesToCheck)
             {
-                if (!CUpdater.IsFileNonexistantOrOriginal(filePath))
+                if (!Updater.IsFileNonexistantOrOriginal(filePath))
                     return true;
             }
 
@@ -277,37 +287,20 @@ namespace DTAClient.DXGUI.Generic
 
             swriter.WriteLine("GameSpeed=" + UserINISettings.Instance.GameSpeed);
             swriter.WriteLine("Firestorm=" + mission.RequiredAddon);
-            swriter.WriteLine("CustomLoadScreen=" + LoadingScreenController.GetLoadScreenName(mission.Side));
+            swriter.WriteLine("CustomLoadScreen=" + LoadingScreenController.GetLoadScreenName(mission.Side.ToString()));
             swriter.WriteLine("IsSinglePlayer=Yes");
             swriter.WriteLine("SidebarHack=" + ClientConfiguration.Instance.SidebarHack);
             swriter.WriteLine("Side=" + mission.Side);
             swriter.WriteLine("BuildOffAlly=" + mission.BuildOffAlly);
 
-            IniFile difficultyIni;
-            string difficultyName;
-
             UserINISettings.Instance.Difficulty.Value = trbDifficultySelector.Value;
-            if (trbDifficultySelector.Value == 0) // Easy
-            {
-                swriter.WriteLine("DifficultyModeHuman=0");
-                swriter.WriteLine("DifficultyModeComputer=2");
-                difficultyIni = new IniFile(ProgramConstants.GamePath + "INI\\Map Code\\Difficulty Easy.ini");
-                difficultyName = "Easy";
-            }
-            else if (trbDifficultySelector.Value == 1) // Normal
-            {
-                swriter.WriteLine("DifficultyModeHuman=1");
-                swriter.WriteLine("DifficultyModeComputer=1");
-                difficultyIni = new IniFile(ProgramConstants.GamePath + "INI\\Map Code\\Difficulty Medium.ini");
-                difficultyName = "Medium";
-            }
-            else //if (tbDifficultyLevel.Value == 2) // Hard
-            {
-                swriter.WriteLine("DifficultyModeHuman=2");
-                swriter.WriteLine("DifficultyModeComputer=0");
-                difficultyIni = new IniFile(ProgramConstants.GamePath + "INI\\Map Code\\Difficulty Hard.ini");
-                difficultyName = "Hard";
-            }
+
+            swriter.WriteLine("DifficultyModeHuman=" + (mission.PlayerAlwaysOnNormalDifficulty ? "1" : trbDifficultySelector.Value.ToString()));
+            swriter.WriteLine("DifficultyModeComputer=" + GetComputerDifficulty());
+
+            IniFile difficultyIni = new IniFile(ProgramConstants.GamePath + DifficultyIniPaths[trbDifficultySelector.Value]);
+            string difficultyName = DifficultyNames[trbDifficultySelector.Value];
+
             swriter.WriteLine();
             swriter.WriteLine();
             swriter.WriteLine();
@@ -330,6 +323,9 @@ namespace DTAClient.DXGUI.Generic
 
             GameProcessLogic.StartGameProcess();
         }
+
+        private int GetComputerDifficulty() =>
+            Math.Abs(trbDifficultySelector.Value - 2);
 
         private void GameProcessExited_Callback()
         {

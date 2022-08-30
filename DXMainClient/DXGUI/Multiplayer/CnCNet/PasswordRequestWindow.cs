@@ -1,5 +1,6 @@
 ﻿using ClientGUI;
 using DTAClient.Domain.Multiplayer.CnCNet;
+using Localization;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 using Rampastring.XNAUI;
@@ -9,10 +10,11 @@ using System;
 
 namespace DTAClient.DXGUI.Multiplayer.CnCNet
 {
-    public class PasswordRequestWindow : XNAWindow
+    internal class PasswordRequestWindow : XNAWindow
     {
-        public PasswordRequestWindow(WindowManager windowManager) : base(windowManager)
+        public PasswordRequestWindow(WindowManager windowManager, PrivateMessagingWindow privateMessagingWindow) : base(windowManager)
         {
+            this.privateMessagingWindow = privateMessagingWindow;
         }
 
         public event EventHandler<PasswordEventArgs> PasswordEntered;
@@ -20,6 +22,9 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         private XNATextBox tbPassword;
 
         private HostedCnCNetGame hostedGame;
+
+        private PrivateMessagingWindow privateMessagingWindow;
+        private bool pmWindowWasEnabled { get; set; }
 
         public override void Initialize()
         {
@@ -29,7 +34,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             var lblDescription = new XNALabel(WindowManager);
             lblDescription.Name = "lblDescription";
             lblDescription.ClientRectangle = new Rectangle(12, 12, 0, 0);
-            lblDescription.Text = "Please enter the password for the game and click OK.";
+            lblDescription.Text = "Please enter the password for the game and click OK.".L10N("UI:Main:EnterPasswordAndHitOK");
 
             ClientRectangle = new Rectangle(0, 0, lblDescription.Width + 24, 110);
 
@@ -41,15 +46,15 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             var btnOK = new XNAClientButton(WindowManager);
             btnOK.Name = "btnOK";
             btnOK.ClientRectangle = new Rectangle(lblDescription.X,
-                ClientRectangle.Bottom - 35, 92, 23);
-            btnOK.Text = "OK";
+                ClientRectangle.Bottom - 35, UIDesignConstants.BUTTON_WIDTH_92, UIDesignConstants.BUTTON_HEIGHT);
+            btnOK.Text = "OK".L10N("UI:Main:ButtonOK");
             btnOK.LeftClick += BtnOK_LeftClick;
 
             var btnCancel = new XNAClientButton(WindowManager);
             btnCancel.Name = "btnCancel";
             btnCancel.ClientRectangle = new Rectangle(Width - 104,
-                btnOK.Y, 92, 23);
-            btnCancel.Text = "Cancel";
+                btnOK.Y, UIDesignConstants.BUTTON_WIDTH_92, UIDesignConstants.BUTTON_HEIGHT);
+            btnCancel.Text = "Cancel".L10N("UI:Main:ButtonCancel");
             btnCancel.LeftClick += BtnCancel_LeftClick;
 
             AddChild(lblDescription);
@@ -62,19 +67,27 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             CenterOnParent();
 
             EnabledChanged += PasswordRequestWindow_EnabledChanged;
-            Keyboard.OnKeyPressed += Keyboard_OnKeyPressed;
+            tbPassword.EnterPressed += TextBoxPassword_EnterPressed;
         }
 
-        private void Keyboard_OnKeyPressed(object sender, KeyPressEventArgs e)
+        private void TextBoxPassword_EnterPressed(object sender, EventArgs eventArgs)
         {
-            if (Enabled && e.PressedKey == Keys.Enter)
-                BtnOK_LeftClick(this, EventArgs.Empty);
+            BtnOK_LeftClick(this, eventArgs);
         }
 
         private void PasswordRequestWindow_EnabledChanged(object sender, EventArgs e)
         {
             if (Enabled)
+            {
                 WindowManager.SelectedControl = tbPassword;
+                if (!privateMessagingWindow.Enabled) return;
+                pmWindowWasEnabled = true;
+                privateMessagingWindow.Disable();
+            } 
+            else if(pmWindowWasEnabled)
+            {
+                privateMessagingWindow.Enable();
+            }
         }
 
         private void BtnCancel_LeftClick(object sender, EventArgs e)
@@ -87,6 +100,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             if (string.IsNullOrEmpty(tbPassword.Text))
                 return;
 
+            pmWindowWasEnabled = false;
             Disable();
 
             PasswordEntered?.Invoke(this, new PasswordEventArgs(tbPassword.Text, hostedGame));

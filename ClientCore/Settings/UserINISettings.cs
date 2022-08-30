@@ -1,13 +1,28 @@
 ﻿using ClientCore.Settings;
 using Rampastring.Tools;
 using System;
+using System.Collections.Generic;
 using System.Windows.Forms;
+using ClientCore.Enums;
 
 namespace ClientCore
 {
     public class UserINISettings
     {
         private static UserINISettings _instance;
+
+        public const string VIDEO = "Video";
+        public const string MULTIPLAYER = "MultiPlayer";
+        public const string OPTIONS = "Options";
+        public const string AUDIO = "Audio";
+        public const string COMPATIBILITY = "Compatibility";
+        public const string GAME_FILTERS = "GameFilters";
+
+        private const bool DEFAULT_SHOW_FRIENDS_ONLY_GAMES = false;
+        private const bool DEFAULT_HIDE_LOCKED_GAMES = false;
+        private const bool DEFAULT_HIDE_PASSWORDED_GAMES = false;
+        private const bool DEFAULT_HIDE_INCOMPATIBLE_GAMES = false;
+        private const int DEFAULT_MAX_PLAYER_COUNT = 8;
 
         public static UserINISettings Instance
         {
@@ -34,11 +49,7 @@ namespace ClientCore
         {
             SettingsIni = iniFile;
 
-            const string VIDEO = "Video";
-            const string MULTIPLAYER = "MultiPlayer";
-            const string OPTIONS = "Options";
-            const string AUDIO = "Audio";
-#if YR || MO
+#if YR || ARES
             const string WINDOWED_MODE_KEY = "Video.Windowed";
             BackBufferInVRAM = new BoolSetting(iniFile, VIDEO, "VideoBackBuffer", false);
 #else
@@ -50,13 +61,15 @@ namespace ClientCore
             IngameScreenHeight = new IntSetting(iniFile, VIDEO, "ScreenHeight", 768);
             ClientTheme = new StringSetting(iniFile, MULTIPLAYER, "Theme", string.Empty);
             DetailLevel = new IntSetting(iniFile, OPTIONS, "DetailLevel", 2);
-            Renderer = new StringSetting(iniFile, "Compatibility", "Renderer", string.Empty);
+            Renderer = new StringSetting(iniFile, COMPATIBILITY, "Renderer", string.Empty);
             WindowedMode = new BoolSetting(iniFile, VIDEO, WINDOWED_MODE_KEY, false);
             BorderlessWindowedMode = new BoolSetting(iniFile, VIDEO, "NoWindowFrame", false);
 
             ClientResolutionX = new IntSetting(iniFile, VIDEO, "ClientResolutionX", Screen.PrimaryScreen.Bounds.Width);
             ClientResolutionY = new IntSetting(iniFile, VIDEO, "ClientResolutionY", Screen.PrimaryScreen.Bounds.Height);
             BorderlessWindowedClient = new BoolSetting(iniFile, VIDEO, "BorderlessWindowedClient", true);
+            ClientFPS = new IntSetting(iniFile, VIDEO, "ClientFPS", 60);
+            DisplayToggleableExtraTextures = new BoolSetting(iniFile, VIDEO, "DisplayToggleableExtraTextures", true);
 
             ScoreVolume = new DoubleSetting(iniFile, AUDIO, "ScoreVolume", 0.7);
             SoundVolume = new DoubleSetting(iniFile, AUDIO, "SoundVolume", 0.7);
@@ -68,12 +81,6 @@ namespace ClientCore
             MessageSound = new BoolSetting(iniFile, AUDIO, "ChatMessageSound", true);
 
             ScrollRate = new IntSetting(iniFile, OPTIONS, "ScrollRate", 3);
-            TargetLines = new BoolSetting(iniFile, OPTIONS, "UnitActionLines", true);
-            ScrollCoasting = new IntSetting(iniFile, OPTIONS, "ScrollMethod", 0);
-            Tooltips = new BoolSetting(iniFile, OPTIONS, "ToolTips", true);
-            ShowHiddenObjects = new BoolSetting(iniFile, OPTIONS, "ShowHidden", true);
-            MoveToUndeploy = new BoolSetting(iniFile, OPTIONS, "MoveToUndeploy", true);
-            TextBackgroundColor = new IntSetting(iniFile, OPTIONS, "TextBackgroundColor", 0);
             DragDistance = new IntSetting(iniFile, OPTIONS, "DragDistance", 4);
             DoubleTapInterval = new IntSetting(iniFile, OPTIONS, "DoubleTapInterval", 30);
             Win8CompatMode = new StringSetting(iniFile, OPTIONS, "Win8Compat", "No");
@@ -88,9 +95,14 @@ namespace ClientCore
             SkipConnectDialog = new BoolSetting(iniFile, MULTIPLAYER, "SkipConnectDialog", false);
             PersistentMode = new BoolSetting(iniFile, MULTIPLAYER, "PersistentMode", false);
             AutomaticCnCNetLogin = new BoolSetting(iniFile, MULTIPLAYER, "AutomaticCnCNetLogin", false);
+            DiscordIntegration = new BoolSetting(iniFile, MULTIPLAYER, "DiscordIntegration", true);
+            AllowGameInvitesFromFriendsOnly = new BoolSetting(iniFile, MULTIPLAYER, "AllowGameInvitesFromFriendsOnly", false);
             NotifyOnUserListChange = new BoolSetting(iniFile, MULTIPLAYER, "NotifyOnUserListChange", true);
+            DisablePrivateMessagePopups = new BoolSetting(iniFile, MULTIPLAYER, "DisablePrivateMessagePopups", false);
+            AllowPrivateMessagesFromState = new IntSetting(iniFile, MULTIPLAYER, "AllowPrivateMessagesFromState", (int)AllowPrivateMessagesFromEnum.All);
             EnableMapSharing = new BoolSetting(iniFile, MULTIPLAYER, "EnableMapSharing", true);
             AlwaysDisplayTunnelList = new BoolSetting(iniFile, MULTIPLAYER, "AlwaysDisplayTunnelList", false);
+            MapSortState = new IntSetting(iniFile, MULTIPLAYER, "MapSortState", (int)SortDirection.None);
 
             CheckForUpdates = new BoolSetting(iniFile, OPTIONS, "CheckforUpdates", true);
 
@@ -104,6 +116,15 @@ namespace ClientCore
             ForceLowestDetailLevel = new BoolSetting(iniFile, VIDEO, "ForceLowestDetailLevel", false);
             MinimizeWindowsOnGameStart = new BoolSetting(iniFile, OPTIONS, "MinimizeWindowsOnGameStart", true);
             AutoRemoveUnderscoresFromName = new BoolSetting(iniFile, OPTIONS, "AutoRemoveUnderscoresFromName", true);
+
+            SortState = new IntSetting(iniFile, GAME_FILTERS, "SortState", (int)SortDirection.None);
+            ShowFriendGamesOnly = new BoolSetting(iniFile, GAME_FILTERS, "ShowFriendGamesOnly", DEFAULT_SHOW_FRIENDS_ONLY_GAMES);
+            HideLockedGames = new BoolSetting(iniFile, GAME_FILTERS, "HideLockedGames", DEFAULT_HIDE_LOCKED_GAMES);
+            HidePasswordedGames = new BoolSetting(iniFile, GAME_FILTERS, "HidePasswordedGames", DEFAULT_HIDE_PASSWORDED_GAMES);
+            HideIncompatibleGames = new BoolSetting(iniFile, GAME_FILTERS, "HideIncompatibleGames", DEFAULT_HIDE_INCOMPATIBLE_GAMES);
+            MaxPlayerCount = new IntRangeSetting(iniFile, GAME_FILTERS, "MaxPlayerCount", DEFAULT_MAX_PLAYER_COUNT, 2, 8);
+
+            FavoriteMaps = new StringListSetting(iniFile, OPTIONS, "FavoriteMaps", new List<string>());
         }
 
         public IniFile SettingsIni { get; private set; }
@@ -125,6 +146,8 @@ namespace ClientCore
         public IntSetting ClientResolutionX { get; private set; }
         public IntSetting ClientResolutionY { get; private set; }
         public BoolSetting BorderlessWindowedClient { get; private set; }
+        public IntSetting ClientFPS { get; private set; }
+        public BoolSetting DisplayToggleableExtraTextures { get; private set; }
 
         /*********/
         /* AUDIO */
@@ -144,12 +167,6 @@ namespace ClientCore
         /********/
 
         public IntSetting ScrollRate { get; private set; }
-        public BoolSetting TargetLines { get; private set; }
-        public IntSetting ScrollCoasting { get; private set; }
-        public BoolSetting Tooltips { get; private set; }
-        public BoolSetting ShowHiddenObjects { get; private set; }
-        public BoolSetting MoveToUndeploy { get; private set; }
-        public IntSetting TextBackgroundColor { get; private set; }
         public IntSetting DragDistance { get; private set; }
         public IntSetting DoubleTapInterval { get; private set; }
         public StringSetting Win8CompatMode { get; private set; }
@@ -169,12 +186,36 @@ namespace ClientCore
         public BoolSetting SkipConnectDialog { get; private set; }
         public BoolSetting PersistentMode { get; private set; }
         public BoolSetting AutomaticCnCNetLogin { get; private set; }
+        public BoolSetting DiscordIntegration { get; private set; }
+        public BoolSetting AllowGameInvitesFromFriendsOnly { get; private set; }
 
         public BoolSetting NotifyOnUserListChange { get; private set; }
+
+        public BoolSetting DisablePrivateMessagePopups { get; private set; }
+        
+        public IntSetting AllowPrivateMessagesFromState { get; private set; }
 
         public BoolSetting EnableMapSharing { get; private set; }
 
         public BoolSetting AlwaysDisplayTunnelList { get; private set; }
+
+        public IntSetting MapSortState { get; private set; }
+        
+        /*********************/
+        /* GAME LIST FILTERS */
+        /*********************/
+
+        public IntSetting SortState { get; private set; }
+        
+        public BoolSetting ShowFriendGamesOnly { get; private set; }
+        
+        public BoolSetting HideLockedGames { get; private set; }
+        
+        public BoolSetting HidePasswordedGames { get; private set; }
+        
+        public BoolSetting HideIncompatibleGames { get; private set; }
+        
+        public IntRangeSetting MaxPlayerCount { get; private set; }
 
         /********/
         /* MISC */
@@ -199,12 +240,58 @@ namespace ClientCore
         public BoolSetting MinimizeWindowsOnGameStart { get; private set; }
 
         public BoolSetting AutoRemoveUnderscoresFromName { get; private set; }
+        
+        public StringListSetting FavoriteMaps { get; private set; }
+        
+        public void SetValue(string section, string key, string value)
+               => SettingsIni.SetStringValue(section, key, value);
+
+        public void SetValue(string section, string key, bool value)
+            => SettingsIni.SetBooleanValue(section, key, value);
+
+        public void SetValue(string section, string key, int value)
+            => SettingsIni.SetIntValue(section, key, value);
+
+        public string GetValue(string section, string key, string defaultValue)
+            => SettingsIni.GetStringValue(section, key, defaultValue);
+
+        public bool GetValue(string section, string key, bool defaultValue)
+            => SettingsIni.GetBooleanValue(section, key, defaultValue);
+
+        public int GetValue(string section, string key, int defaultValue)
+            => SettingsIni.GetIntValue(section, key, defaultValue);
 
         public bool IsGameFollowed(string gameName)
         {
             return SettingsIni.GetBooleanValue("Channels", gameName, false);
         }
 
+        public bool ToggleFavoriteMap(string mapName, string gameModeName, bool isFavorite)
+        {
+            if (string.IsNullOrEmpty(mapName))
+                return isFavorite;
+
+            var favoriteMapKey = FavoriteMapKey(mapName, gameModeName);
+            isFavorite = IsFavoriteMap(mapName, gameModeName);
+            if (isFavorite)
+                FavoriteMaps.Remove(favoriteMapKey);
+            else
+                FavoriteMaps.Add(favoriteMapKey);
+            
+            Instance.SaveSettings();
+
+            return !isFavorite;
+        }
+
+        /// <summary>
+        /// Checks if a specified map name and game mode name belongs to the favorite map list.
+        /// </summary>
+        /// <param name="nameName">The name of the map.</param>
+        /// <param name="gameModeName">The name of the game mode</param>
+        public bool IsFavoriteMap(string nameName, string gameModeName) => FavoriteMaps.Value.Contains(FavoriteMapKey(nameName, gameModeName));
+
+        private string FavoriteMapKey(string nameName, string gameModeName) => $"{nameName}:{gameModeName}";
+        
         public void ReloadSettings()
         {
             SettingsIni.Reload();
@@ -222,10 +309,29 @@ namespace ClientCore
             Logger.Log("Writing settings INI.");
 
             ApplyDefaults();
+            // CleanUpLegacySettings();
 
             SettingsIni.WriteIniFile();
 
             SettingsSaved?.Invoke(this, EventArgs.Empty);
+        }
+
+        public bool IsGameFiltersApplied()
+        {
+            return ShowFriendGamesOnly.Value != DEFAULT_SHOW_FRIENDS_ONLY_GAMES ||
+                   HideLockedGames.Value != DEFAULT_HIDE_LOCKED_GAMES ||
+                   HidePasswordedGames.Value != DEFAULT_HIDE_PASSWORDED_GAMES ||
+                   HideIncompatibleGames.Value != DEFAULT_HIDE_INCOMPATIBLE_GAMES ||
+                   MaxPlayerCount.Value != DEFAULT_MAX_PLAYER_COUNT;
+        }
+
+        public void ResetGameFilters()
+        {
+            ShowFriendGamesOnly.Value = DEFAULT_SHOW_FRIENDS_ONLY_GAMES;
+            HideLockedGames.Value = DEFAULT_HIDE_LOCKED_GAMES;
+            HideIncompatibleGames.Value = DEFAULT_HIDE_INCOMPATIBLE_GAMES;
+            HidePasswordedGames.Value = DEFAULT_HIDE_PASSWORDED_GAMES;
+            MaxPlayerCount.Value = DEFAULT_MAX_PLAYER_COUNT;
         }
     }
 }

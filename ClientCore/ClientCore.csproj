@@ -17,15 +17,15 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>bin\Windows\Debug\</OutputPath>
-    <DefineConstants>TRACE;DEBUG;DTA</DefineConstants>
+    <OutputPath>bin\SharpDX\Debug\</OutputPath>
+    <DefineConstants>TRACE;DEBUG</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|SharpDX' ">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>bin\Windows\Release\</OutputPath>
+    <OutputPath>bin\SharpDX\Release\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -35,7 +35,7 @@
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>bin\WindowsGL\Debug</OutputPath>
-    <DefineConstants>TRACE;DEBUG;WINDOWSGL LINUX</DefineConstants>
+    <DefineConstants>TRACE;DEBUG;WINDOWSGL</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
@@ -56,6 +56,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <PlatformTarget>x86</PlatformTarget>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|XNAFramework' ">
     <DebugType>pdbonly</DebugType>
@@ -65,36 +66,38 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <PlatformTarget>x86</PlatformTarget>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'MORelease|SharpDX' ">
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'AresRelease|SharpDX' ">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>bin\Windows\Release\</OutputPath>
-    <DefineConstants>TRACE;MO YR</DefineConstants>
+    <OutputPath>bin\SharpDX\Release\</OutputPath>
+    <DefineConstants>TRACE;ARES YR</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'MORelease|XNAFramework' ">
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'AresRelease|XNAFramework' ">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\XNAFramework\Release</OutputPath>
-    <DefineConstants>TRACE;MO YR</DefineConstants>
+    <DefineConstants>TRACE;ARES YR</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <PlatformTarget>x86</PlatformTarget>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'MORelease|WindowsGL' ">
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'AresRelease|WindowsGL' ">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\WindowsGL\Release</OutputPath>
-    <DefineConstants>TRACE;MO YR</DefineConstants>
+    <DefineConstants>TRACE;ARES YR</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'YRRelease|SharpDX' ">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>bin\Windows\Release\</OutputPath>
+    <OutputPath>bin\SharpDX\Release\</OutputPath>
     <DefineConstants>TRACE;YR</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -107,6 +110,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <PlatformTarget>x86</PlatformTarget>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'YRRelease|WindowsGL' ">
     <DebugType>pdbonly</DebugType>
@@ -115,6 +119,68 @@
     <DefineConstants>TRACE;YR</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'AresDebug|SharpDX'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\SharpDX\Debug\</OutputPath>
+    <DefineConstants>TRACE;DEBUG;ARES YR</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'AresDebug|WindowsGL'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\WindowsGL\Debug\</OutputPath>
+    <DefineConstants>TRACE;DEBUG;ARES YR</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'AresDebug|XNAFramework'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\XNAFramework\Debug\</OutputPath>
+    <DefineConstants>TRACE;DEBUG;ARES YR</DefineConstants>
+    <DebugType>full</DebugType>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <PlatformTarget>x86</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'YRDebug|SharpDX'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\SharpDX\Debug\</OutputPath>
+    <DefineConstants>TRACE;DEBUG;YR</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'YRDebug|WindowsGL'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\WindowsGL\Debug\</OutputPath>
+    <DefineConstants>TRACE;DEBUG;YR</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'YRDebug|XNAFramework'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\XNAFramework\Debug\</OutputPath>
+    <DefineConstants>TRACE;DEBUG;YR</DefineConstants>
+    <DebugType>full</DebugType>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <PlatformTarget>x86</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <Choose>
     <When Condition="'$(Platform)' != 'XNAFramework'">
@@ -129,31 +195,31 @@
     <Otherwise>
       <ItemGroup>
         <Reference Include="Microsoft.Xna.Framework, Version=4.0.0.0, Culture=neutral, PublicKeyToken=842cf8be1de50553, processorArchitecture=x86">
-          <Private>False</Private>
+          <HintPath>..\References\XNA\Microsoft.Xna.Framework.dll</HintPath>
         </Reference>
         <Reference Include="Microsoft.Xna.Framework.Game, Version=4.0.0.0, Culture=neutral, PublicKeyToken=842cf8be1de50553, processorArchitecture=x86">
-          <Private>False</Private>
+          <HintPath>..\References\XNA\Microsoft.Xna.Framework.Game.dll</HintPath>
         </Reference>
         <Reference Include="Microsoft.Xna.Framework.Graphics, Version=4.0.0.0, Culture=neutral, PublicKeyToken=842cf8be1de50553, processorArchitecture=x86">
-          <Private>False</Private>
+          <HintPath>..\References\XNA\Microsoft.Xna.Framework.Graphics.dll</HintPath>
         </Reference>
         <Reference Include="Microsoft.Xna.Framework.GamerServices, Version=4.0.0.0, Culture=neutral, PublicKeyToken=842cf8be1de50553, processorArchitecture=x86">
-          <Private>False</Private>
+          <HintPath>..\References\XNA\Microsoft.Xna.Framework.GamerServices.dll</HintPath>
         </Reference>
         <Reference Include="Microsoft.Xna.Framework.Xact, Version=4.0.0.0, Culture=neutral, PublicKeyToken=842cf8be1de50553, processorArchitecture=x86">
-          <Private>False</Private>
+          <HintPath>..\References\XNA\Microsoft.Xna.Framework.Xact.dll</HintPath>
         </Reference>
         <Reference Include="Microsoft.Xna.Framework.Video, Version=4.0.0.0, Culture=neutral, PublicKeyToken=842cf8be1de50553, processorArchitecture=x86">
-          <Private>False</Private>
+          <HintPath>..\References\XNA\Microsoft.Xna.Framework.Video.dll</HintPath>
         </Reference>
         <Reference Include="Microsoft.Xna.Framework.Avatar, Version=4.0.0.0, Culture=neutral, PublicKeyToken=842cf8be1de50553, processorArchitecture=x86">
-          <Private>False</Private>
+          <HintPath>..\References\XNA\Microsoft.Xna.Framework.Avatar.dll</HintPath>
         </Reference>
         <Reference Include="Microsoft.Xna.Framework.Net, Version=4.0.0.0, Culture=neutral, PublicKeyToken=842cf8be1de50553, processorArchitecture=x86">
-          <Private>False</Private>
+          <HintPath>..\References\XNA\Microsoft.Xna.Framework.Net.dll</HintPath>
         </Reference>
         <Reference Include="Microsoft.Xna.Framework.Storage, Version=4.0.0.0, Culture=neutral, PublicKeyToken=842cf8be1de50553, processorArchitecture=x86">
-          <Private>False</Private>
+          <HintPath>..\References\XNA\Microsoft.Xna.Framework.Storage.dll</HintPath>
         </Reference>
       </ItemGroup>
     </Otherwise>
@@ -161,9 +227,6 @@
   <ItemGroup>
     <Reference Include="Ionic.Zip">
       <HintPath>..\References\Ionic.Zip.dll</HintPath>
-    </Reference>
-    <Reference Include="MapThumbnailExtractor">
-      <HintPath>..\References\MapThumbnailExtractor.dll</HintPath>
     </Reference>
     <Reference Include="Rampastring.Tools, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -189,10 +252,19 @@
     <Compile Include="CnCNet5\GameCollection.cs" />
     <Compile Include="ClientConfiguration.cs" />
     <Compile Include="CnCNet5\NameValidator.cs" />
+    <Compile Include="Enums\AllowPrivateMessagesFromEnum.cs" />
+    <Compile Include="Enums\SortDirection.cs" />
+    <Compile Include="Extensions\EnumExtensions.cs" />
+    <Compile Include="Extensions\StringExtensions.cs" />
+    <Compile Include="INIProcessing\IniPreprocessInfoStore.cs" />
+    <Compile Include="INIProcessing\IniPreprocessor.cs" />
+    <Compile Include="INIProcessing\PreprocessorBackgroundTask.cs" />
     <Compile Include="OSVersion.cs" />
     <Compile Include="ProfanityFilter.cs" />
     <Compile Include="SavedGameManager.cs" />
     <Compile Include="Settings\IIniSetting.cs" />
+    <Compile Include="Settings\IntRangeSetting.cs" />
+    <Compile Include="Settings\StringListSetting.cs" />
     <Compile Include="Settings\UserINISettings.cs" />
     <Compile Include="Settings\BoolSetting.cs" />
     <Compile Include="Settings\DoubleSetting.cs" />
@@ -226,9 +298,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\cncneticon.png" />
+    <Content Include="Resources\cncricon.png" />
     <Content Include="Resources\dtaicon.png" />
     <None Include="Resources\moicon.png" />
-    <Content Include="Resources\ppicon.png" />
     <Content Include="Resources\raicon.png" />
     <Content Include="Resources\rricon.png" />
     <Content Include="Resources\tdicon.png" />
@@ -236,6 +308,12 @@
     <Content Include="Resources\tsicon.png" />
     <Content Include="Resources\unknownicon.png" />
     <Content Include="Resources\yricon.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Localization\Localization.csproj">
+      <Project>{2cd114e3-c30f-4a95-9b4a-455c2c8f82e5}</Project>
+      <Name>Localization</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

@@ -12,9 +12,25 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using ClientGUI;
+using Localization;
 
 namespace DTAClient.DXGUI.Multiplayer.GameLobby
 {
+    struct ExtraMapPreviewTexture
+    {
+        public Texture2D Texture;
+        public Point Point;
+        public bool Toggleable;
+
+        public ExtraMapPreviewTexture(Texture2D texture, Point point, bool toggleable)
+        {
+            Texture = texture;
+            Point = point;
+            Toggleable = toggleable;
+        }
+    }
+
     /// <summary>
     /// The picture box for displaying the map preview.
     /// </summary>
@@ -29,77 +45,20 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         public event EventHandler StartingLocationApplied;
 
-        public MapPreviewBox(WindowManager windowManager, 
-            List<PlayerInfo> players, List<PlayerInfo> aiPlayers,
-            List<MultiplayerColor> mpColors, string[] sides, IniFile gameOptionsIni)
-            : base(windowManager)
+        public MapPreviewBox(WindowManager windowManager) : base(windowManager)
+        {
+            PanelBackgroundDrawMode = PanelBackgroundImageDrawMode.STRETCHED;
+            FontIndex = 1;
+        }
+
+
+        public void SetFields(List<PlayerInfo> players, List<PlayerInfo> aiPlayers, List<MultiplayerColor> mpColors, string[] sides, IniFile gameOptionsIni)
         {
             this.players = players;
             this.aiPlayers = aiPlayers;
             this.mpColors = mpColors;
             this.sides = sides;
             this.gameOptionsIni = gameOptionsIni;
-        }
-
-        Map _map;
-        public Map Map
-        {
-            get { return _map; }
-            set
-            {
-                _map = value;
-                UpdateMap();
-            }
-        }
-
-        public int FontIndex { get; set; }
-
-        /// <summary>
-        /// Controls whether the context menu is enabled for this map preview box.
-        /// Skirmish games and online games where the local player is the host should
-        /// set have this set to true.
-        /// </summary>
-        public bool EnableContextMenu { get; set; }
-        public bool EnableStartLocationSelection { get; set; }
-
-        private string[] teamIds = new string[] { String.Empty, "[A] ", "[B] ", "[C] ", "[D] " };
-
-        private string[] sides;
-
-        public int RandomSelectorCount { get; set; }
-
-        private PlayerLocationIndicator[] startingLocationIndicators;
-
-        private List<MultiplayerColor> mpColors;
-        private List<PlayerInfo> players;
-        private List<PlayerInfo> aiPlayers;
-
-        private XNAContextMenu contextMenu;
-
-        private CoopBriefingBox briefingBox;
-
-        private Rectangle textureRectangle;
-
-        private Texture2D texture;
-
-        private bool disposeTextures = true;
-
-        private bool useNearestNeighbour = false;
-
-        private IniFile gameOptionsIni;
-
-        private EnhancedSoundEffect sndClickSound;
-
-        private EnhancedSoundEffect sndDropdownSound;
-
-        public override void Initialize()
-        {
-            EnableStartLocationSelection = true;
-
-#if !WINDOWSGL
-            disposeTextures = !UserINISettings.Instance.PreloadMapPreviews;
-#endif
-            startingLocationIndicators = new PlayerLocationIndicator[MAX_STARTING_LOCATIONS];
 
             Color nameBackgroundColor = AssetLoader.GetRGBAColorFromString(
                 ClientConfiguration.Instance.MapPreviewNameBackgroundColor);
@@ -107,18 +66,16 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             Color nameBorderColor = AssetLoader.GetRGBAColorFromString(
                 ClientConfiguration.Instance.MapPreviewNameBorderColor);
 
-            contextMenu = new XNAContextMenu(WindowManager);
-            contextMenu.Tag = -1;
-
             double angularVelocity = gameOptionsIni.GetDoubleValue("General", "StartingLocationAngularVelocity", 0.015);
             double reservedAngularVelocity = gameOptionsIni.GetDoubleValue("General", "ReservedStartingLocationAngularVelocity", -0.0075);
 
             Color hoverRemapColor = AssetLoader.GetRGBAColorFromString(ClientConfiguration.Instance.MapPreviewStartingLocationHoverRemapColor);
 
+            startingLocationIndicators = new PlayerLocationIndicator[MAX_STARTING_LOCATIONS];
             // Init starting location indicators
             for (int i = 0; i < MAX_STARTING_LOCATIONS; i++)
             {
-                PlayerLocationIndicator indicator = new PlayerLocationIndicator(WindowManager, mpColors, 
+                PlayerLocationIndicator indicator = new PlayerLocationIndicator(WindowManager, mpColors,
                     nameBackgroundColor, nameBorderColor, contextMenu);
                 indicator.FontIndex = FontIndex;
                 indicator.Visible = false;
@@ -136,13 +93,131 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 AddChild(indicator);
             }
 
+            briefingBox = new CoopBriefingBox(WindowManager);
+            AddChild(briefingBox);
+            briefingBox.Disable();
+
+            ClientRectangleUpdated += (s, e) => UpdateMap();
+        }
+
+
+        private GameModeMap _gameModeMap;
+        public GameModeMap GameModeMap
+        {
+            get => _gameModeMap;
+            set
+            {
+                _gameModeMap = value;
+                UpdateMap();
+            }
+        }
+
+        public int FontIndex { get; set; }
+
+        /// <summary>
+        /// Controls whether the context menu is enabled for this map preview box.
+        /// Skirmish games and online games where the local player is the host should
+        /// set have this set to true.
+        /// </summary>
+        public bool EnableContextMenu { get; set; }
+        public bool EnableStartLocationSelection { get; set; }
+
+        private readonly string[] teamIds = new[] { string.Empty }
+            .Concat(ProgramConstants.TEAMS.Select(team => $"[{team}]")).ToArray();
+
+        private string[] sides;
+
+        public int RandomSelectorCount { get; set; }
+
+        private PlayerLocationIndicator[] startingLocationIndicators;
+
+        private List<MultiplayerColor> mpColors;
+        private List<PlayerInfo> players;
+        private List<PlayerInfo> aiPlayers;
+
+        private XNAContextMenu mainContextMenu;
+        private XNAContextMenu contextMenu;
+        private Point lastContextMenuPoint;
+
+        private XNAContextMenu mapContextMenu;
+        private XNAContextMenuItem toggleFavoriteMapItem;
+        private XNAContextMenuItem toggleExtraTexturesItem;
+        private XNAClientButton btnToggleFavoriteMap;
+        private XNAClientButton btnToggleExtraTextures;
+
+        private CoopBriefingBox briefingBox;
+
+        private Rectangle textureRectangle;
+
+        private Texture2D previewTexture;
+
+        private bool disposeTextures = true;
+
+        private bool useNearestNeighbour = false;
+
+        private IniFile gameOptionsIni;
+
+        private EnhancedSoundEffect sndClickSound;
+
+        private EnhancedSoundEffect sndDropdownSound;
+
+        private List<ExtraMapPreviewTexture> extraTextures = new List<ExtraMapPreviewTexture>(0);
+
+        public EventHandler ToggleFavorite;
+
+        public override void Initialize()
+        {
+            EnableStartLocationSelection = true;
+
+            BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 128), 1, 1);
+
+#if !WINDOWSGL
+            disposeTextures = !UserINISettings.Instance.PreloadMapPreviews;
+#endif
+
+            mainContextMenu = new XNAContextMenu(WindowManager);
+            mainContextMenu.Name = nameof(mainContextMenu);
+            mainContextMenu.ClientRectangle = new Rectangle(0, 0, 150, 2);
+            mainContextMenu.Disable();
+            AddChild(mainContextMenu);
+
+            contextMenu = new XNAContextMenu(WindowManager);
+            contextMenu.Tag = -1;
             contextMenu.ClientRectangle = new Rectangle(0, 0, 150, 2);
             AddChild(contextMenu);
             contextMenu.Disable();
 
-            briefingBox = new CoopBriefingBox(WindowManager);
-            AddChild(briefingBox);
-            briefingBox.Disable();
+            toggleFavoriteMapItem = new XNAContextMenuItem()
+            {
+                Text = "Add Favorite".L10N("UI:Main:AddFavorite"),
+                SelectAction = ToggleFavoriteMap,
+                SelectableChecker = () => GameModeMap != null
+            };
+            toggleExtraTexturesItem = new XNAContextMenuItem()
+            {
+                Text = "Hide Extra Icons".L10N("UI:Main:HideExtraIcons"),
+                SelectAction = ToggleExtraTextures,
+                SelectableChecker = () => GameModeMap != null,
+                VisibilityChecker = () => extraTextures.Any(x => x.Toggleable)
+            };
+            mapContextMenu = new XNAContextMenu(WindowManager);
+            mapContextMenu.ClientRectangle = new Rectangle(0, 0, 120, 2);
+            mapContextMenu.AddItem(toggleFavoriteMapItem);
+            mapContextMenu.AddItem(toggleExtraTexturesItem);
+
+            btnToggleFavoriteMap = new XNAClientButton(WindowManager);
+            btnToggleFavoriteMap.IdleTexture = AssetLoader.LoadTexture("favInactive.png");
+            btnToggleFavoriteMap.LeftClick += (sender, args) => ToggleFavorite?.Invoke(sender, args);
+            btnToggleFavoriteMap.SetToolTipText("Toggle Favorite Map".L10N("UI:Main:ToggleFavoriteMap"));
+
+            btnToggleExtraTextures = new XNAClientButton(WindowManager);
+            btnToggleExtraTextures.IdleTexture = AssetLoader.LoadTexture("pvTexturesActive.png");
+            btnToggleExtraTextures.LeftClick += (sender, args) => ToggleExtraTextures();
+            btnToggleExtraTextures.SetToolTipText("Toggle Extra Icons".L10N("UI:Main:ToggleExtraIcons"));
+            btnToggleExtraTextures.Disable();
+
+            AddChild(mapContextMenu);
+            mapContextMenu.Disable();
 
             sndClickSound = new EnhancedSoundEffect("button.wav");
 
@@ -151,13 +226,43 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             base.Initialize();
 
             ClientRectangleUpdated += (s, e) => UpdateMap();
+
+            RightClick += MapPreviewBox_RightClick;
+
+            AddChild(btnToggleFavoriteMap);
+            AddChild(btnToggleExtraTextures);
+        }
+
+        private void MapPreviewBox_RightClick(object sender, EventArgs e)
+        {
+            if (GameModeMap == null)
+                return;
+
+            toggleFavoriteMapItem.Text = GameModeMap.IsFavorite ? "Remove Favorite".L10N("UI:Main:RemoveFavorite") : "Add Favorite".L10N("UI:Main:AddFavorite");
+            toggleExtraTexturesItem.Text = UserINISettings.Instance.DisplayToggleableExtraTextures ?
+                "Hide Extra Icons".L10N("UI:Main:HideExtraIcons") : "Show Extra Icons".L10N("UI:Main:ShowExtraIcons");
+
+            mapContextMenu.Open(GetCursorPoint());
+        }
+
+        private void ToggleFavoriteMap()
+        {
+            ToggleFavorite?.Invoke(null, null);
+        }
+
+        private void ToggleExtraTextures()
+        {
+            UserINISettings.Instance.DisplayToggleableExtraTextures.Value =
+                !UserINISettings.Instance.DisplayToggleableExtraTextures;
+
+            RefreshExtraTexturesBtn();
         }
 
         private void ContextMenu_OptionSelected(int index)
         {
             SoundPlayer.Play(sndDropdownSound);
 
-            if (Map.EnforceMaxPlayers)
+            if (GameModeMap.Map.EnforceMaxPlayers)
             {
                 foreach (PlayerInfo pInfo in players.Concat(aiPlayers))
                 {
@@ -198,7 +303,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             if (!EnableContextMenu)
             {
-                if (Map.EnforceMaxPlayers)
+                if (GameModeMap.Map.EnforceMaxPlayers)
                 {
                     foreach (PlayerInfo pInfo in players.Concat(aiPlayers))
                     {
@@ -245,8 +350,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     pInfo.SideId < sides.Length + RandomSelectorCount;
                 index++;
             }
-
-            contextMenu.Open(new Point(x, y));
+            lastContextMenuPoint = new Point(x, y);
+            contextMenu.Open(lastContextMenuPoint);
         }
 
         private void Indicator_RightClick(object sender, EventArgs e)
@@ -281,12 +386,14 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         /// </summary>
         private void UpdateMap()
         {
-            if (disposeTextures && texture != null && !texture.IsDisposed)
-                texture.Dispose();
+            if (disposeTextures && previewTexture != null && !previewTexture.IsDisposed)
+                previewTexture.Dispose();
 
-            if (Map == null)
+            extraTextures.Clear();
+
+            if (GameModeMap == null)
             {
-                texture = null;
+                previewTexture = null;
                 briefingBox.Disable();
 
                 contextMenu.Disable();
@@ -297,20 +404,20 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 return;
             }
 
-            if (Map.PreviewTexture == null)
+            if (GameModeMap.Map.PreviewTexture == null)
             {
-                texture = Map.LoadPreviewTexture();
+                previewTexture = GameModeMap.Map.LoadPreviewTexture();
                 disposeTextures = true;
             }
             else
             {
-                texture = Map.PreviewTexture;
+                previewTexture = GameModeMap.Map.PreviewTexture;
                 disposeTextures = false;
             }
 
-            if (!string.IsNullOrEmpty(Map.Briefing))
+            if (!string.IsNullOrEmpty(GameModeMap.Map.Briefing))
             {
-                briefingBox.SetText(Map.Briefing);
+                briefingBox.SetText(GameModeMap.Map.Briefing);
                 briefingBox.Enable();
                 if (IsActive)
                     briefingBox.SetAlpha(0f);
@@ -318,8 +425,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             else
                 briefingBox.Disable();
 
-            double xRatio = (Width - 2) / (double)texture.Width;
-            double yRatio = (Height - 2) / (double)texture.Height;
+            double xRatio = (Width - 2) / (double)previewTexture.Width;
+            double yRatio = (Height - 2) / (double)previewTexture.Height;
 
             double ratio;
 
@@ -332,14 +439,14 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             {
                 ratio = yRatio;
                 textureHeight = Height - 2;
-                textureWidth = (int)(texture.Width * ratio);
+                textureWidth = (int)(previewTexture.Width * ratio);
                 texturePositionX = (int)(Width - 2 - textureWidth) / 2;
             }
             else
             {
                 ratio = xRatio;
                 textureWidth = Width - 2;
-                textureHeight = (int)(texture.Height * ratio);
+                textureHeight = (int)(previewTexture.Height * ratio);
                 texturePositionY = (Height - 2 - textureHeight) / 2 + 1;
             }
 
@@ -348,9 +455,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             textureRectangle = new Rectangle(texturePositionX, texturePositionY,
                 textureWidth, textureHeight);
 
-            List<Point> startingLocations = Map.GetStartingLocationPreviewCoords(new Point(texture.Width, texture.Height));
+            List<Point> startingLocations = GameModeMap.Map.GetStartingLocationPreviewCoords(new Point(previewTexture.Width, previewTexture.Height));
 
-            for (int i = 0; i < startingLocations.Count && i < Map.MaxPlayers; i++)
+            for (int i = 0; i < startingLocations.Count && i < GameModeMap.Map.MaxPlayers; i++)
             {
                 PlayerLocationIndicator indicator = startingLocationIndicators[i];
 
@@ -367,6 +474,65 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             {
                 startingLocationIndicators[i].Disable();
             }
+
+
+            foreach (var mapExtraTexture in GameModeMap.Map.GetExtraMapPreviewTextures())
+            {
+                // LoadTexture makes use of a texture cache 
+                // so we don't need to cache the textures manually
+                Texture2D extraTexture = AssetLoader.LoadTexture(mapExtraTexture.TextureName);
+                Point location = PreviewTexturePointToControlAreaPoint(
+                    GameModeMap.Map.MapPointToMapPreviewPoint(mapExtraTexture.Point,
+                    new Point(previewTexture.Width - (extraTexture.Width / 2),
+                              previewTexture.Height - (extraTexture.Height / 2)), mapExtraTexture.Level),
+                              ratio);
+
+                extraTextures.Add(new ExtraMapPreviewTexture(extraTexture, location, mapExtraTexture.Toggleable));
+            }
+
+            int buttonX = Width;
+
+            if (extraTextures.Any(x => x.Toggleable))
+            {
+                btnToggleExtraTextures.ClientRectangle = new Rectangle(buttonX - 22, 4, 18, 18);
+                btnToggleExtraTextures.Enable();
+                buttonX = btnToggleExtraTextures.X;
+            }
+            else
+            {
+                btnToggleExtraTextures.Disable();
+            }
+
+            btnToggleFavoriteMap.ClientRectangle = new Rectangle(buttonX - 22, 4, 18, 18);
+
+            RefreshExtraTexturesBtn();
+            RefreshFavoriteBtn();
+        }
+
+        public void RefreshFavoriteBtn()
+        {
+            bool isFav = UserINISettings.Instance.IsFavoriteMap(GameModeMap?.Map.Name, GameModeMap?.GameMode.Name);
+            var textureName = isFav ? "favActive.png" : "favInactive.png";
+            var hoverTextureName = isFav ? "favActive_c.png" : "favInactive_c.png";
+            var hoverTexture = AssetLoader.AssetExists(hoverTextureName) ? AssetLoader.LoadTexture(hoverTextureName) : null;
+            btnToggleFavoriteMap.IdleTexture = AssetLoader.LoadTexture(textureName);
+            btnToggleFavoriteMap.HoverTexture = hoverTexture;
+        }
+
+
+        public void RefreshExtraTexturesBtn()
+        {
+            var textureName = UserINISettings.Instance.DisplayToggleableExtraTextures ? "pvTexturesActive.png" : "pvTexturesInactive.png";
+            var hoverTextureName = UserINISettings.Instance.DisplayToggleableExtraTextures ? "pvTexturesActive_c.png" : "pvTexturesInactive_c.png";
+            var hoverTexture = AssetLoader.AssetExists(hoverTextureName) ? AssetLoader.LoadTexture(hoverTextureName) : null;
+            btnToggleExtraTextures.IdleTexture = AssetLoader.LoadTexture(textureName);
+            btnToggleExtraTextures.HoverTexture = hoverTexture;
+        }
+
+        private Point PreviewTexturePointToControlAreaPoint(Point previewTexturePoint, double scaleRatio)
+        {
+            return new Point(textureRectangle.X + (int)(previewTexturePoint.X * scaleRatio),
+                textureRectangle.Y + (int)(previewTexturePoint.Y * scaleRatio));
         }
 
         public void UpdateStartingLocationTexts()
@@ -402,7 +568,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
                 if (pInfo.TeamId > 0)
                 {
-                    text = teamIds[pInfo.TeamId] + text;
+                    text = teamIds[pInfo.TeamId] + " " + text;
                 }
 
                 int index = i;
@@ -416,6 +582,12 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
                 id++;
             }
+
+            if (EnableContextMenu && contextMenu.Enabled && contextMenu.Visible)
+            {
+                contextMenu.Disable();
+                contextMenu.Open(lastContextMenuPoint);
+            }
         }
 
         public override void OnMouseEnter()
@@ -423,7 +595,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             foreach (PlayerLocationIndicator indicator in startingLocationIndicators)
                 indicator.BackgroundShown = true;
 
-            if (Map != null && !string.IsNullOrEmpty(Map.Briefing))
+            if (GameModeMap != null && !string.IsNullOrEmpty(GameModeMap.Map.Briefing))
             {
                 briefingBox.SetFadeVisibility(false);
             }
@@ -438,9 +610,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             foreach (PlayerLocationIndicator indicator in startingLocationIndicators)
                 indicator.BackgroundShown = false;
 
-            if (Map != null && !string.IsNullOrEmpty(Map.Briefing))
+            if (GameModeMap != null && !string.IsNullOrEmpty(GameModeMap.Map.Briefing))
             {
-                briefingBox.SetText(Map.Briefing);
+                briefingBox.SetText(GameModeMap.Map.Briefing);
                 briefingBox.SetFadeVisibility(true);
             }
 
@@ -451,8 +623,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             if (Keyboard.IsKeyHeldDown(Keys.LeftControl))
             {
-                if (File.Exists(ProgramConstants.GamePath + Map.PreviewPath))
-                    Process.Start(ProgramConstants.GamePath + Map.PreviewPath);
+                if (File.Exists(ProgramConstants.GamePath + GameModeMap.Map.PreviewPath))
+                    Process.Start(ProgramConstants.GamePath + GameModeMap.Map.PreviewPath);
             }
 
             base.OnLeftClick();
@@ -462,32 +634,46 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             DrawPanel();
 
-            if (texture != null)
+            if (previewTexture != null)
             {
                 Point renderPoint = GetRenderPoint();
 
                 if (useNearestNeighbour)
                 {
                     Renderer.PushSettings(new SpriteBatchSettings(SpriteSortMode.Deferred, null, SamplerState.PointClamp));
-                    DrawPreviewTexture();
+                    DrawPreviewTexture(renderPoint);
                     Renderer.PopSettings();
                 }
                 else
                 {
-                    DrawPreviewTexture();
+                    DrawPreviewTexture(renderPoint);
+                }
+
+                if (DrawBorders)
+                    DrawPanelBorders();
+
+                foreach (var extraTexture in extraTextures)
+                {
+                    if (!extraTexture.Toggleable || UserINISettings.Instance.DisplayToggleableExtraTextures)
+                    {
+                        Renderer.DrawTexture(extraTexture.Texture,
+                            new Rectangle(renderPoint.X + extraTexture.Point.X,
+                            renderPoint.Y + extraTexture.Point.Y,
+                            extraTexture.Texture.Width, extraTexture.Texture.Height), Color.White);
+                    }
                 }
             }
-
-            if (DrawBorders)
+            else if (DrawBorders)
+            {
                 DrawPanelBorders();
+            }
 
             DrawChildren(gameTime);
         }
 
-        private void DrawPreviewTexture()
+        private void DrawPreviewTexture(Point renderPoint)
         {
-            Point renderPoint = GetRenderPoint();
-            Renderer.DrawTexture(texture,
+            Renderer.DrawTexture(previewTexture,
                 new Rectangle(renderPoint.X + textureRectangle.X,
                 renderPoint.Y + textureRectangle.Y,
                 textureRectangle.Width, textureRectangle.Height),

@@ -1,11 +1,12 @@
 ﻿using ClientGUI;
 using DTAClient.Domain;
+using Localization;
 using Microsoft.Xna.Framework;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
 using System;
 using System.Runtime.InteropServices;
-using Updater;
+using ClientUpdater;
 
 namespace DTAClient.DXGUI.Generic
 {
@@ -24,6 +25,7 @@ namespace DTAClient.DXGUI.Generic
         public event UpdateFailureEventHandler UpdateFailed;
 
         delegate void UpdateProgressChangedDelegate(string fileName, int filePercentage, int totalPercentage);
+        delegate void FileDownloadCompletedDelegate(string archiveName);
 
         private const double DOT_TIME = 0.66;
         private const int MAX_DOTS = 5;
@@ -68,7 +70,7 @@ namespace DTAClient.DXGUI.Generic
             lblDescription.Name = "lblDescription";
 
             var lblCurrentFileProgressPercentage = new XNALabel(WindowManager);
-            lblCurrentFileProgressPercentage.Text = "Progress percentage of current file:";
+            lblCurrentFileProgressPercentage.Text = "Progress percentage of current file:".L10N("UI:Main:CurrentFileProgressPercentage");
             lblCurrentFileProgressPercentage.ClientRectangle = new Rectangle(12, 90, 0, 0);
             lblCurrentFileProgressPercentage.Name = "lblCurrentFileProgressPercentage";
 
@@ -90,7 +92,7 @@ namespace DTAClient.DXGUI.Generic
             lblCurrentFile.ClientRectangle = new Rectangle(12, 142, 0, 0);
 
             var lblTotalProgressPercentage = new XNALabel(WindowManager);
-            lblTotalProgressPercentage.Text = "Total progress percentage:";
+            lblTotalProgressPercentage.Text = "Total progress percentage:".L10N("UI:Main:TotalProgressPercentage");
             lblTotalProgressPercentage.ClientRectangle = new Rectangle(12, 170, 0, 0);
             lblTotalProgressPercentage.Name = "lblTotalProgressPercentage";
 
@@ -107,12 +109,12 @@ namespace DTAClient.DXGUI.Generic
 
             lblUpdaterStatus = new XNALabel(WindowManager);
             lblUpdaterStatus.Name = "lblUpdaterStatus";
-            lblUpdaterStatus.Text = "Preparing";
+            lblUpdaterStatus.Text = "Preparing".L10N("UI:Main:StatusPreparing");
             lblUpdaterStatus.ClientRectangle = new Rectangle(12, 240, 0, 0);
 
             var btnCancel = new XNAClientButton(WindowManager);
-            btnCancel.ClientRectangle = new Rectangle(301, 240, 133, 23);
-            btnCancel.Text = "Cancel";
+            btnCancel.ClientRectangle = new Rectangle(301, 240, UIDesignConstants.BUTTON_WIDTH_133, UIDesignConstants.BUTTON_HEIGHT);
+            btnCancel.Text = "Cancel".L10N("UI:Main:ButtonCancel");
             btnCancel.LeftClick += BtnCancel_LeftClick;
 
             AddChild(lblDescription);
@@ -130,34 +132,41 @@ namespace DTAClient.DXGUI.Generic
 
             CenterOnParent();
 
-            CUpdater.FileIdentifiersUpdated += CUpdater_FileIdentifiersUpdated;
-            CUpdater.OnUpdateCompleted += Updater_OnUpdateCompleted;
-            CUpdater.OnUpdateFailed += Updater_OnUpdateFailed;
-            CUpdater.UpdateProgressChanged += Updater_UpdateProgressChanged;
-            CUpdater.LocalFileCheckProgressChanged += CUpdater_LocalFileCheckProgressChanged;
+            Updater.FileIdentifiersUpdated += Updater_FileIdentifiersUpdated;
+            Updater.OnUpdateCompleted += Updater_OnUpdateCompleted;
+            Updater.OnUpdateFailed += Updater_OnUpdateFailed;
+            Updater.UpdateProgressChanged += Updater_UpdateProgressChanged;
+            Updater.LocalFileCheckProgressChanged += Updater_LocalFileCheckProgressChanged;
+            Updater.OnFileDownloadCompleted += Updater_OnFileDownloadCompleted;
 
             if (IsTaskbarSupported())
                 tbp = new TaskbarProgress();
         }
 
-        private void CUpdater_FileIdentifiersUpdated()
+        private void Updater_FileIdentifiersUpdated()
         {
             if (!isStartingForceUpdate)
                 return;
 
-            if (CUpdater.DTAVersionState == VersionState.UNKNOWN)
+            if (Updater.VersionState == VersionState.UNKNOWN)
             {
-                XNAMessageBox.Show(WindowManager, "Force Update Failure", "Checking for updates failed.");
-                CloseWindow();
+                XNAMessageBox.Show(WindowManager, "Force Update Failure".L10N("UI:Main:ForceUpdateFailureTitle"), "Checking for updates failed.".L10N("UI:Main:ForceUpdateFailureText"));
+                AddCallback(new Action(CloseWindow), null);
+                return;
+            }
+            else if (Updater.VersionState == VersionState.OUTDATED && Updater.ManualUpdateRequired)
+            {
+                UpdateCancelled?.Invoke(this, EventArgs.Empty);
+                AddCallback(new Action(CloseWindow), null);
                 return;
             }
 
-            SetData(CUpdater.ServerGameVersion);
-            CUpdater.StartAsyncUpdate();
+            SetData(Updater.ServerGameVersion);
+            Updater.StartUpdate();
             isStartingForceUpdate = false;
         }
 
-        private void CUpdater_LocalFileCheckProgressChanged(int checkedFileCount, int totalFileCount)
+        private void Updater_LocalFileCheckProgressChanged(int checkedFileCount, int totalFileCount)
         {
             AddCallback(new Action<int>(UpdateFileProgress),
                 (checkedFileCount * 100 / totalFileCount));
@@ -199,8 +208,8 @@ namespace DTAClient.DXGUI.Generic
 
             lblCurrentFileProgressPercentageValue.Text = prgCurrentFile.Value.ToString() + "%";
             lblTotalProgressPercentageValue.Text = prgTotal.Value.ToString() + "%";
-            lblCurrentFile.Text = "Current file: " + currFileName;
-            lblUpdaterStatus.Text = "Downloading files";
+            lblCurrentFile.Text = "Current file:".L10N("UI:Main:CurrentFile") + " " + currFileName;
+            lblUpdaterStatus.Text = "Downloading files".L10N("UI:Main:DownloadingFiles");
 
             /*/ TODO Improve the updater
              * When the updater thread in DTAUpdater.dll has completed the update, it will
@@ -224,6 +233,16 @@ namespace DTAClient.DXGUI.Generic
             {
 
             }
+        }
+
+        private void Updater_OnFileDownloadCompleted(string archiveName)
+        {
+            AddCallback(new FileDownloadCompletedDelegate(HandleFileDownloadCompleted), archiveName);
+        }
+
+        private void HandleFileDownloadCompleted(string archiveName)
+        {
+            lblUpdaterStatus.Text = "Unpacking archive".L10N("UI:Main:UnpackingArchive");
         }
 
         private void Updater_OnUpdateCompleted()
@@ -255,7 +274,7 @@ namespace DTAClient.DXGUI.Generic
         private void BtnCancel_LeftClick(object sender, EventArgs e)
         {
             if (!isStartingForceUpdate)
-                CUpdater.TerminateUpdate = true;
+                Updater.StopUpdate();
 
             CloseWindow();
         }
@@ -272,18 +291,18 @@ namespace DTAClient.DXGUI.Generic
 
         public void SetData(string newGameVersion)
         {
-            lblDescription.Text = String.Format("Please wait while {0} is updated to version {1}." + Environment.NewLine +
+            lblDescription.Text = string.Format(("Please wait while {0} is updated to version {1}." + Environment.NewLine +
                 "This window will automatically close once the update is complete." + Environment.NewLine + Environment.NewLine +
-                "The client may also restart after the update has been downloaded.", MainClientConstants.GAME_NAME_SHORT, newGameVersion);
-            lblUpdaterStatus.Text = "Preparing";
+                "The client may also restart after the update has been downloaded.").L10N("UI:Main:UpdateVersionPleaseWait"), MainClientConstants.GAME_NAME_SHORT, newGameVersion);
+            lblUpdaterStatus.Text = "Preparing".L10N("UI:Main:StatusPreparing");
         }
 
         public void ForceUpdate()
         {
             isStartingForceUpdate = true;
-            lblDescription.Text = $"Force updating {MainClientConstants.GAME_NAME_SHORT} to latest version...";
-            lblUpdaterStatus.Text = "Connecting";
-            CUpdater.CheckForUpdates();
+            lblDescription.Text = string.Format("Force updating {0} to latest version...".L10N("UI:Main:ForceUpdateToLatest"), MainClientConstants.GAME_NAME_SHORT);
+            lblUpdaterStatus.Text = "Connecting".L10N("UI:Main:UpdateStatusConnecting");
+            Updater.CheckForUpdates();
         }
 
         private bool IsTaskbarSupported()
@@ -334,7 +353,7 @@ namespace DTAClient.DXGUI.Generic
         }
 
         string reason = String.Empty;
-        
+
         /// <summary>
         /// The returned error message from the update failure.
         /// </summary>

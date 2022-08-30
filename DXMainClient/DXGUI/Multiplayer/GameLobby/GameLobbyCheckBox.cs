@@ -4,7 +4,9 @@ using Rampastring.XNAUI;
 using ClientCore;
 using ClientGUI;
 using System.Collections.Generic;
+using System.Linq;
 using DTAClient.Domain.Multiplayer;
+using Rampastring.XNAUI.XNAControls;
 
 namespace DTAClient.DXGUI.Multiplayer.GameLobby
 {
@@ -50,10 +52,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         public bool UserChecked { get; set; }
 
         /// <summary>
-        /// The side index that this check box disallows when checked.
+        /// The side indices that this check box disallows when checked.
         /// Defaults to -1, which means none.
         /// </summary>
-        public int DisallowedSideIndex { get; set; } = -1;
+        public List<int> DisallowedSideIndices = new List<int>();
 
         public bool AllowChanges { get; set; } = true;
 
@@ -69,6 +71,30 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private string enabledSpawnIniValue = "True";
         private string disabledSpawnIniValue = "False";
+
+
+        public override void Initialize()
+        {
+            // Find the game lobby that this control belongs to and register ourselves as a game option.
+
+            XNAControl parent = Parent;
+            while (true)
+            {
+                if (parent == null)
+                    break;
+
+                // oh no, we have a circular class reference here!
+                if (parent is GameLobbyBase gameLobby)
+                {
+                    gameLobby.CheckBoxes.Add(this);
+                    break;
+                }
+
+                parent = parent.Parent;
+            }
+
+            base.Initialize();
+        }
 
         public override void ParseAttributeFromINI(IniFile iniFile, string key, string value)
         {
@@ -101,7 +127,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     UserChecked = checkedValue;
                     return;
                 case "DisallowedSideIndex":
-                    DisallowedSideIndex = Conversions.IntFromString(value, DisallowedSideIndex);
+                case "DisallowedSideIndices":
+                    List<int> sides = value.Split(',').ToList()
+                        .Select(s => Conversions.IntFromString(s, -1)).Distinct().ToList();
+                    DisallowedSideIndices.AddRange(sides.Where(s => !DisallowedSideIndices.Contains(s)));
                     return;
                 case "MapScoringMode":
                     MapScoringMode = (CheckBoxMapScoringMode)Enum.Parse(typeof(CheckBoxMapScoringMode), value);
@@ -149,11 +178,17 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         /// <param name="disallowedArray">An array that determines which sides are disabled.</param>
         public void ApplyDisallowedSideIndex(bool[] disallowedArray)
         {
-            if (DisallowedSideIndex < 0)
+            if (DisallowedSideIndices == null || DisallowedSideIndices.Count == 0)
                 return;
 
             if (Checked != reversed)
-                disallowedArray[DisallowedSideIndex] = true;
+            {
+                for (int i = 0; i < DisallowedSideIndices.Count; i++)
+                {
+                    int sideNotAllowed = DisallowedSideIndices[i];
+                    disallowedArray[sideNotAllowed] = true;
+                }
+            }
         }
 
         public override void OnLeftClick()

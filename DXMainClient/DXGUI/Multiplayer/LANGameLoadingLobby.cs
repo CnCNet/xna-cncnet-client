@@ -5,6 +5,7 @@ using DTAClient.Domain.Multiplayer;
 using DTAClient.Domain.Multiplayer.LAN;
 using DTAClient.DXGUI.Multiplayer.GameLobby;
 using DTAClient.Online;
+using Localization;
 using Microsoft.Xna.Framework;
 using Rampastring.Tools;
 using Rampastring.XNAUI;
@@ -113,7 +114,7 @@ namespace DTAClient.DXGUI.Multiplayer
                 this.client.Connect("127.0.0.1", ProgramConstants.LAN_GAME_LOBBY_PORT);
 
                 byte[] buffer = encoding.GetBytes(PLAYER_JOIN_COMMAND +
-                    ProgramConstants.LAN_DATA_SEPARATOR + ProgramConstants.PLAYERNAME + 
+                    ProgramConstants.LAN_DATA_SEPARATOR + ProgramConstants.PLAYERNAME +
                     ProgramConstants.LAN_DATA_SEPARATOR + loadedGameId);
 
                 this.client.GetStream().Write(buffer, 0, buffer.Length);
@@ -232,7 +233,7 @@ namespace DTAClient.DXGUI.Multiplayer
         private void AddPlayer(LANPlayerInfo lpInfo)
         {
             if (Players.Find(p => p.Name == lpInfo.Name) != null ||
-                Players.Count >= SGPlayers.Count || 
+                Players.Count >= SGPlayers.Count ||
                 SGPlayers.Find(p => p.Name == lpInfo.Name) == null)
             {
                 lpInfo.TcpClient.Close();
@@ -249,7 +250,7 @@ namespace DTAClient.DXGUI.Multiplayer
 
             sndJoinSound.Play();
 
-            AddNotice(lpInfo.Name + " connected from " + lpInfo.IPAddress);
+            AddNotice(string.Format("{0} connected from {1}".L10N("UI:Main:PlayerFromIP"), lpInfo.Name, lpInfo.IPAddress));
             lpInfo.StartReceiveLoop();
 
             CopyPlayerDataToUI();
@@ -263,7 +264,7 @@ namespace DTAClient.DXGUI.Multiplayer
             CleanUpPlayer(lpInfo);
             Players.Remove(lpInfo);
 
-            AddNotice(lpInfo.Name + " has left the game.");
+            AddNotice(string.Format("{0} has left the game.".L10N("UI:Main:PlayerLeftGame"), lpInfo.Name));
 
             sndLeaveSound.Play();
 
@@ -440,7 +441,7 @@ namespace DTAClient.DXGUI.Multiplayer
 
         protected override void SendChatMessage(string message)
         {
-            SendMessageToHost(CHAT_COMMAND + " " + chatColorIndex + 
+            SendMessageToHost(CHAT_COMMAND + " " + chatColorIndex +
                 ProgramConstants.LAN_DATA_SEPARATOR + message);
 
             sndMessageSound.Play();
@@ -460,15 +461,15 @@ namespace DTAClient.DXGUI.Multiplayer
             if (colorIndex < 0 || colorIndex >= chatColors.Length)
                 return;
 
-            BroadcastMessage(CHAT_COMMAND + " " + sender + 
-                ProgramConstants.LAN_DATA_SEPARATOR + colorIndex + 
+            BroadcastMessage(CHAT_COMMAND + " " + sender +
+                ProgramConstants.LAN_DATA_SEPARATOR + colorIndex +
                 ProgramConstants.LAN_DATA_SEPARATOR + data);
         }
 
         private void Server_HandleFileHashMessage(LANPlayerInfo sender, string hash)
         {
             if (hash != localFileHash)
-                AddNotice(sender.Name + " - modified files detected! They could be cheating!", Color.Red);
+                AddNotice(string.Format("{0} - modified files detected! They could be cheating!".L10N("UI:Main:PlayerCheating"), sender.Name), Color.Red);
             sender.Verified = true;
         }
 
@@ -601,7 +602,7 @@ namespace DTAClient.DXGUI.Multiplayer
 
         public override string GetSwitchName()
         {
-            return "Load Game";
+            return "Load Game".L10N("UI:Main:LoadGameSwitchName");
         }
 
         public override void Update(GameTime gameTime)
@@ -615,7 +616,7 @@ namespace DTAClient.DXGUI.Multiplayer
                     {
                         CleanUpPlayer(lpInfo);
                         Players.RemoveAt(i);
-                        AddNotice(lpInfo.Name + " - connection timed out");
+                        AddNotice(string.Format("{0} - connection timed out".L10N("UI:Main:PlayerTimeout"), lpInfo.Name));
                         CopyPlayerDataToUI();
                         BroadcastOptions();
                         UpdateDiscordPresence();
@@ -638,7 +639,7 @@ namespace DTAClient.DXGUI.Multiplayer
                 if (timeSinceLastReceivedCommand > TimeSpan.FromSeconds(DROPOUT_TIMEOUT))
                 {
                     LobbyNotification?.Invoke(this,
-                        new LobbyNotificationEventArgs("Connection to the game host timed out."));
+                        new LobbyNotificationEventArgs("Connection to the game host timed out.".L10N("UI:Main:HostConnectTimeOut")));
                     LeaveGame();
                 }
             }
@@ -681,7 +682,7 @@ namespace DTAClient.DXGUI.Multiplayer
             PlayerInfo player = Players.Find(p => p.Name == ProgramConstants.PLAYERNAME);
             if (player == null)
                 return;
-            string currentState = ProgramConstants.IsInGame ? "In Game" : "In Lobby";
+            string currentState = ProgramConstants.IsInGame ? "In Game" : "In Lobby"; // not UI strings
 
             discordHandler.UpdatePresence(
                 lblMapNameValue.Text, lblGameModeValue.Text, currentState, "LAN",

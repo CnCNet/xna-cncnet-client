@@ -1,17 +1,12 @@
-﻿using System;
-
-namespace DTAClient.Online.EventArguments
+﻿namespace DTAClient.Online.EventArguments
 {
-    public class PrivateMessageEventArgs : EventArgs
+    public class PrivateMessageEventArgs : CnCNetPrivateMessageEventArgs
     {
-        public PrivateMessageEventArgs(string sender, string message)
+        public readonly IRCUser ircUser;
+
+        public PrivateMessageEventArgs(string sender, string message, IRCUser ircUser) : base(sender, message)
         {
-            Sender = sender;
-            Message = message;
+            this.ircUser = ircUser;
         }
-
-        public string Sender { get; private set; }
-
-        public string Message { get; private set; }
     }
 }

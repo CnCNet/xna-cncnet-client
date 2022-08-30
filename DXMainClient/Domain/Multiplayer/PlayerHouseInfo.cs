@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using ClientCore;
 
@@ -7,6 +7,24 @@ namespace DTAClient.Domain.Multiplayer
     public class PlayerHouseInfo
     {
         public int SideIndex { get; set; }
+
+        /// <summary>
+        /// A side (or, more correctly, house or country depending on the game)
+        /// index that is used in rules file of the game.
+        /// </summary>
+        public int InternalSideIndex
+        {
+            get
+            {
+                if (IsSpectator && !string.IsNullOrEmpty(ClientConfiguration.Instance.SpectatorInternalSideIndex))
+                    return int.Parse(ClientConfiguration.Instance.SpectatorInternalSideIndex);
+                
+                if (!string.IsNullOrEmpty(ClientConfiguration.Instance.InternalSideIndices))
+                    return Array.ConvertAll(ClientConfiguration.Instance.InternalSideIndices.Split(','), int.Parse)[SideIndex];
+
+                return SideIndex;
+            }
+        }
         public int ColorIndex { get; set; }
         public int StartingWaypoint { get; set; }
 
@@ -19,11 +37,10 @@ namespace DTAClient.Domain.Multiplayer
         /// and randomizes it if necessary.
         /// </summary>
         /// <param name="pInfo">The PlayerInfo of the player.</param>
-        /// <param name="map">The selected map.</param>
         /// <param name="sideCount">The number of sides in the game.</param>
         /// <param name="random">Random number generator.</param>
         /// <param name="disallowedSideArray">A bool array that determines which side indexes are disallowed by game options.</param>
-        public void RandomizeSide(PlayerInfo pInfo, Map map, int sideCount, Random random,
+        public void RandomizeSide(PlayerInfo pInfo, int sideCount, Random random,
             bool[] disallowedSideArray, List<int[]> randomSelectors, int randomCount)
         {
             if (pInfo.SideId == 0 || pInfo.SideId == sideCount + randomCount)
@@ -32,16 +49,8 @@ namespace DTAClient.Domain.Multiplayer
 
                 int sideId;
 
-                while (true)
-                {
-                    sideId = random.Next(0, sideCount);
-
-                    if (disallowedSideArray[sideId])
-                        continue;
-
-                    if (map.CoopInfo == null || !map.CoopInfo.DisallowedPlayerSides.Contains(sideId))
-                        break;
-                }
+                do sideId = random.Next(0, sideCount);
+                while (disallowedSideArray[sideId]);
 
                 SideIndex = sideId;
             }
@@ -53,15 +62,10 @@ namespace DTAClient.Domain.Multiplayer
                     int[] randomsides = randomSelectors[pInfo.SideId - 1];
                     int count = randomsides.Length;
                     int sideId;
-                    while (true)
-                    {
-                        sideId = randomsides[random.Next(0, count)];
-                        if (disallowedSideArray[sideId])
-                            continue;
+                    
+                    do sideId = randomsides[random.Next(0, count)];
+                    while (disallowedSideArray[sideId]);
 
-                        if (map.CoopInfo == null || !map.CoopInfo.DisallowedPlayerSides.Contains(sideId))
-                            break;
-                    }
                     SideIndex = sideId;
                 }
                 else SideIndex = pInfo.SideId - randomCount; // The player has selected a side
@@ -103,52 +107,55 @@ namespace DTAClient.Domain.Multiplayer
         /// the starting location is removed from the list of available starting locations.
         /// </summary>
         /// <param name="pInfo">The PlayerInfo of the player.</param>
-        /// <param name="map">The selected map.</param>
         /// <param name="freeStartingLocations">List of free starting locations.</param>
         /// <param name="random">Random number generator.</param>
         /// <param name="takenStartingLocations">A list of starting locations that are already occupied.</param>
+        /// <param name="overrideGameRandomLocations"></param>
         /// <returns>True if the player's starting location index exceeds the map's number of starting waypoints,
         /// otherwise false.</returns>
-        public bool RandomizeStart(PlayerInfo pInfo, Map map,
-            List<int> freeStartingLocations, Random random,
-            List<int> takenStartingLocations)
+        public void RandomizeStart(
+            PlayerInfo pInfo, 
+            Random random,
+            List<int> freeStartingLocations, 
+            List<int> takenStartingLocations,
+            bool overrideGameRandomLocations
+        )
         {
+            overrideGameRandomLocations |= ClientConfiguration.Instance.UseClientRandomStartLocations;
             if (IsSpectator)
             {
                 StartingWaypoint = 90;
-                return false;
+                return;
             }
 
             if (pInfo.StartingLocation == 0)
             {
                 // Randomize starting location
 
-                if (!ClientConfiguration.Instance.UseClientRandomStartLocations)
+                if (!overrideGameRandomLocations)
                 {
-
                     // The game uses its own randomization logic that places
                     // randomized players on the opposite side of the map
                     // Players seem to prefer this behaviour, so use -1 to
                     // leave randomizing the starting location to the game itself
                     RealStartingWaypoint = -1;
                     StartingWaypoint = -1;
-                    return false;
+                    return;
                 }
-                else
+
+                // Let the client pick starting positions.
+                if (freeStartingLocations.Count == 0) // No free starting locs available
                 {
-                    // Let the client pick starting positions.
-                    if (freeStartingLocations.Count == 0) // No free starting locs available
-                    {
-                        RealStartingWaypoint = -1;
-                        StartingWaypoint = -1;
-                        return true;
-                    }
-                    int waypointIndex = random.Next(0, freeStartingLocations.Count);
-                    RealStartingWaypoint = freeStartingLocations[waypointIndex];
-                    StartingWaypoint = RealStartingWaypoint;
-                    freeStartingLocations.Remove(StartingWaypoint);
-                    return false;
+                    RealStartingWaypoint = -1;
+                    StartingWaypoint = -1;
+                    return;
                 }
+
+                int waypointIndex = random.Next(0, freeStartingLocations.Count);
+                RealStartingWaypoint = freeStartingLocations[waypointIndex];
+                StartingWaypoint = RealStartingWaypoint;
+                freeStartingLocations.Remove(StartingWaypoint);
+                return;
             }
 
             // Use the player's selected starting location
@@ -157,13 +164,12 @@ namespace DTAClient.Domain.Multiplayer
             if (takenStartingLocations.Contains(RealStartingWaypoint))
             {
                 StartingWaypoint = -1; // Unknown starting location, stacked with another player
-                return true;
+                return;
             }
 
             takenStartingLocations.Add(RealStartingWaypoint);
 
             StartingWaypoint = RealStartingWaypoint;
-            return false;
         }
     }
 }

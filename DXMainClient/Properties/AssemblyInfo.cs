@@ -1,20 +1,20 @@
-﻿using System.Reflection;
+using System.Reflection;
 using System.Runtime.InteropServices;
 
-// General Information about an assembly is controlled through the following 
+// General Information about an assembly is controlled through the following
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("DTA Client")]
-[assembly: AssemblyDescription("Dawn of the Tiberium Age Client")]
+[assembly: AssemblyTitle("DTA CnCNet Client")]
+[assembly: AssemblyDescription("Dawn of the Tiberium Age CnCNet Client")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("Rampastring")]
-[assembly: AssemblyProduct("Dawn of the Tiberium Age")]
-[assembly: AssemblyCopyright("Copyright © Rampastring 2011-2020")]
+[assembly: AssemblyCompany("CnCNet")]
+[assembly: AssemblyProduct("CnCNet")]
+[assembly: AssemblyCopyright("Copyright © CnCNet, Rampastring 2011-2022")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
-// Setting ComVisible to false makes the types in this assembly not visible 
-// to COM components.  If you need to access a type in this assembly from 
+// Setting ComVisible to false makes the types in this assembly not visible
+// to COM components.  If you need to access a type in this assembly from
 // COM, set the ComVisible attribute to true on that type.
 [assembly: ComVisible(false)]
 
@@ -24,12 +24,13 @@ using System.Runtime.InteropServices;
 // Version information for an assembly consists of the following four values:
 //
 //      Major Version
-//      Minor Version 
+//      Minor Version
 //      Build Number
 //      Revision
 //
-// You can specify all the values or you can default the Build and Revision Numbers 
+// You can specify all the values or you can default the Build and Revision Numbers
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("2.6.2.5")]
-[assembly: AssemblyFileVersion("2.6.2.5")]
+[assembly: AssemblyVersion("2.8.0.0")]
+[assembly: AssemblyFileVersion("2.8.0.0")]
+

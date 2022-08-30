@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using Localization;
 
 namespace ClientCore.CnCNet5
 {
@@ -15,17 +16,16 @@ namespace ClientCore.CnCNet5
             var profanityFilter = new ProfanityFilter();
 
             if (string.IsNullOrEmpty(name))
-                return "Please enter a name.";
+                return "Please enter a name.".L10N("UI:ClientCore:EnterAName");
 
             if (profanityFilter.IsOffensive(name))
-                return "Please enter a name that is less offensive.";
+                return "Please enter a name that is less offensive.".L10N("UI:ClientCore:NameOffensive");
 
-            int number = -1;
-            if (int.TryParse(name.Substring(0, 1), out number))
-                return "The first character in the player name cannot be a number.";
+            if (int.TryParse(name.Substring(0, 1), out _))
+                return "The first character in the player name cannot be a number.".L10N("UI:ClientCore:NameFirstIsNumber");
 
             if (name[0] == '-')
-                return "The first character in the player name cannot be a dash ( - ).";
+                return "The first character in the player name cannot be a dash ( - ).".L10N("UI:ClientCore:NameFirstIsDash");
 
             // Check that there are no invalid chars
             char[] allowedCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_[]|\\{}^`".ToCharArray();
@@ -35,15 +35,33 @@ namespace ClientCore.CnCNet5
             {
                 if (!allowedCharacters.Contains(nickChar))
                 {
-                    return "Your player name has invalid characters in it." + Environment.NewLine +
-                    "Allowed characters are anything from A to Z and numbers.";
+                    return "Your player name has invalid characters in it.".L10N("UI:ClientCore:NameInvalidChar1") + Environment.NewLine +
+                    "Allowed characters are anything from A to Z and numbers.".L10N("UI:ClientCore:NameInvalidChar2");
                 }
             }
 
             if (name.Length > ClientConfiguration.Instance.MaxNameLength)
-                return "Your nickname is too long.";
+                return "Your nickname is too long.".L10N("UI:ClientCore:NameTooLong");
 
             return null;
+        }
+
+        /// <summary>
+        /// Returns player nickname constrained to maximum allowed length and with invalid characters for offline nicknames removed.
+        /// Does not check for offensive words or invalid characters for CnCNet.
+        /// </summary>
+        /// <param name="name">Player nickname.</param>
+        /// <returns>Player nickname with invalid offline nickname characters removed and constrained to maximum name length.</returns>
+        public static string GetValidOfflineName(string name)
+        {
+            char[] disallowedCharacters = ",;".ToCharArray();
+
+            string validName = new string(name.Trim().Where(c => !disallowedCharacters.Contains(c)).ToArray());
+
+            if (validName.Length > ClientConfiguration.Instance.MaxNameLength)
+                return validName.Substring(0, ClientConfiguration.Instance.MaxNameLength);
+            
+            return validName;
         }
     }
 }

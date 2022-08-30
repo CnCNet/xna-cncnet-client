@@ -121,7 +121,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
         {
             ServicePointManager.Expect100Continue = false;
 
-            string zipFile = ProgramConstants.GamePath + "Maps\\Custom\\" + map.SHA1 + ".zip";
+            string zipFile = ProgramConstants.GamePath + "Maps/Custom/" + map.SHA1 + ".zip";
 
             if (File.Exists(zipFile)) File.Delete(zipFile);
 
@@ -297,7 +297,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
             return null;
         }
 
-        public static void DownloadMap(string sha1, string myGame)
+        public static void DownloadMap(string sha1, string myGame, string mapName)
         {
             lock (locker)
             {
@@ -311,9 +311,10 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
 
                 if (MapDownloadQueue.Count == 1)
                 {
-                    object[] details = new object[2];
+                    object[] details = new object[3];
                     details[0] = sha1;
                     details[1] = myGame.ToLower();
+                    details[2] = mapName;
 
                     ParameterizedThreadStart pts = new ParameterizedThreadStart(Download);
                     Thread thread = new Thread(pts);
@@ -327,34 +328,35 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
             object[] sha1AndGame = (object[])details;
             string sha1 = (string)sha1AndGame[0];
             string myGameId = (string)sha1AndGame[1];
+            string mapName = (string)sha1AndGame[2];
 
-            Logger.Log("MapSharer: Preparing to download map " + sha1);
+            Logger.Log("MapSharer: Preparing to download map " + sha1 + " with name: " + mapName);
 
             bool success;
 
             try
             {
                 Logger.Log("MapSharer: MapDownloadStarted");
-                MapDownloadStarted?.Invoke(null, new SHA1EventArgs(sha1));
+                MapDownloadStarted?.Invoke(null, new SHA1EventArgs(sha1, mapName));
             }
             catch (Exception ex)
             {
                 Logger.Log("MapSharer: ERROR " + ex.Message);
             }
 
-            string mapPath = DownloadMain(sha1, myGameId, out success);
+            string mapPath = DownloadMain(sha1, myGameId, mapName, out success);
 
             lock (locker)
             {
                 if (success)
                 {
                     Logger.Log("MapSharer: Download of map " + sha1 + " completed succesfully.");
-                    MapDownloadComplete?.Invoke(null, new SHA1EventArgs(sha1));
+                    MapDownloadComplete?.Invoke(null, new SHA1EventArgs(sha1, mapName));
                 }
                 else
                 {
                     Logger.Log("MapSharer: Download of map " + sha1 + "failed! Reason: " + mapPath);
-                    MapDownloadFailed?.Invoke(null, new SHA1EventArgs(sha1));
+                    MapDownloadFailed?.Invoke(null, new SHA1EventArgs(sha1, mapName));
                 }
 
                 MapDownloadQueue.Remove(sha1);
@@ -363,24 +365,35 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                 {
                     Logger.Log("MapSharer: Continuing custom map downloads.");
 
-                    object[] array = new object[2];
+                    object[] array = new object[3];
                     array[0] = MapDownloadQueue[0];
                     array[1] = myGameId;
+                    array[2] = mapName;
 
                     Download(array);
                 }
             }
         }
 
-        private static string DownloadMain(string sha1, string myGame, out bool success)
-        {
-            string customMapsDirectory = ProgramConstants.GamePath + "Maps\\Custom\\";
+        public static string GetMapFileName(string sha1, string mapName)
+            => mapName + "_" + sha1;
 
-            string destinationFilePath = customMapsDirectory + sha1 + ".zip";
+        private static string DownloadMain(string sha1, string myGame, string mapName, out bool success)
+        {
+            string customMapsDirectory = ProgramConstants.GamePath + "Maps/Custom/";
+
+            string mapFileName = GetMapFileName(sha1, mapName);
+
+            string destinationFilePath = customMapsDirectory + mapFileName + ".zip";
+
+            // This string is up here so we can check that there isn't already a .map file for this download.
+            // This prevents the client from crashing when trying to rename the unzipped file to a duplicate filename.
+            string newFilename = customMapsDirectory + mapFileName + ".map";
 
             try
             {
                 if (File.Exists(destinationFilePath)) File.Delete(destinationFilePath);
+                if (File.Exists(newFilename)) File.Delete(newFilename);
             }
             catch
             {
@@ -425,6 +438,10 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                 success = false;
                 return null;
             }
+
+            // We can safely assume that there will not be a duplicate file due to deleting it
+            // earlier if one already existed.
+            File.Move(customMapsDirectory + extractedFile, newFilename);
 
             try
             {
