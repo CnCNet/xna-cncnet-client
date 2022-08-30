@@ -154,11 +154,11 @@ namespace ClientCore
 
         #region Client definitions
 
-        public string InactiveHostMessagePrompt => clientDefinitionsIni.GetStringValue(SETTINGS, "InactiveHostMessagePrompt", "You haven't been active in a while, are you still here? We will close your game if you're not.");
+        public string InactiveHostMessagePrompt => clientDefinitionsIni.GetStringValue(SETTINGS, "InactiveHostMessagePrompt", "You haven't been active in a while, are you still here? Your game will automatically close soon.");
 
-        public int InactiveHostMessagePromptSeconds => clientDefinitionsIni.GetIntValue(SETTINGS, "InactiveHostPromptSeconds", 180);
+        public int InactiveHostMessagePromptSeconds => clientDefinitionsIni.GetIntValue(SETTINGS, "InactiveHostPromptSeconds", 30);
 
-        public int InactiveHostKickSeconds => clientDefinitionsIni.GetIntValue(SETTINGS, "InactiveHostKickSeconds", 240);
+        public int InactiveHostKickSeconds => clientDefinitionsIni.GetIntValue(SETTINGS, "InactiveHostKickSeconds", 60);
 
         public string DiscordAppId => clientDefinitionsIni.GetStringValue(SETTINGS, "DiscordAppId", string.Empty);
 

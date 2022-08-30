@@ -28,6 +28,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         private const int HUMAN_PLAYER_OPTIONS_LENGTH = 3;
         private const int AI_PLAYER_OPTIONS_LENGTH = 2;
 
+        private const double GAME_HOST_INTERVAL = 1.0;
         private const double GAME_BROADCAST_INTERVAL = 30.0;
         private const double GAME_BROADCAST_ACCELERATION = 10.0;
         private const double INITIAL_GAME_BROADCAST_DELAY = 10.0;
@@ -122,6 +123,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         private IRCColor chatColor;
 
         private XNATimerControl gameBroadcastTimer;
+        private XNATimerControl gameHostActivityTimer;
 
         private int playerLimit;
 
@@ -136,7 +138,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private MapSharingConfirmationPanel mapSharingConfirmationPanel;
 
-        private IActivityHandler activityHandler;
+        private GameHostInactiveCheck gameHostInactiveCheck;
+
 
         /// <summary>
         /// The SHA1 of the latest selected map.
@@ -170,6 +173,16 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             gameBroadcastTimer.Enabled = false;
             gameBroadcastTimer.TimeElapsed += GameBroadcastTimer_TimeElapsed;
 
+            gameHostInactiveCheck = new GameHostInactiveCheck();
+            gameHostInactiveCheck.PromptInactiveMessage += GameHostInactiveCheck_PromptInactiveMessage;
+            gameHostInactiveCheck.PromptRemoval += GameHostInactiveCheck_PromptRemoval;
+
+            gameHostActivityTimer = new XNATimerControl(WindowManager);
+            gameHostActivityTimer.AutoReset = true;
+            gameHostActivityTimer.Interval = TimeSpan.FromSeconds(GAME_HOST_INTERVAL);
+            gameHostActivityTimer.Enabled = false;
+            gameHostActivityTimer.TimeElapsed += GameHostActivityTimer_TimeElapsed;
+
             tunnelSelectionWindow = new TunnelSelectionWindow(WindowManager, tunnelHandler);
             tunnelSelectionWindow.Initialize();
             tunnelSelectionWindow.DrawOrder = 1;
@@ -184,6 +197,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             mapSharingConfirmationPanel.MapDownloadConfirmed += MapSharingConfirmationPanel_MapDownloadConfirmed;
 
             WindowManager.AddAndInitializeControl(gameBroadcastTimer);
+            WindowManager.AddAndInitializeControl(gameHostActivityTimer);
 
             globalContextMenu = new GlobalContextMenu(WindowManager, connectionManager, cncnetUserData, pmWindow);
             AddChild(globalContextMenu);
@@ -205,6 +219,13 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         private void BtnChangeTunnel_LeftClick(object sender, EventArgs e) => ShowTunnelSelectionWindow("Select tunnel server:".L10N("UI:Main:SelectTunnelServer"));
 
         private void GameBroadcastTimer_TimeElapsed(object sender, EventArgs e) => BroadcastGame();
+
+        private void GameHostActivityTimer_TimeElapsed(object sender, EventArgs e)
+        {
+            Logger.Log("GameHostInactiveTimer");
+            gameHostInactiveCheck.CheckHostIsActive();
+        }
+
 
         public void SetUp(Channel channel, bool isHost, int playerLimit,
             CnCNetTunnel tunnel, string hostName, bool isCustomPassword)
@@ -228,7 +249,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 RandomSeed = new Random().Next();
                 RefreshMapSelectionUI();
                 btnChangeTunnel.Enable();
-                InitializeActivityHandler();
+                gameHostActivityTimer.Enabled = true;
+                gameHostActivityTimer.SetTime(TimeSpan.FromSeconds(GAME_HOST_INTERVAL));
+                gameHostActivityTimer.Start();
             }
             else
             {
@@ -246,43 +269,28 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             Refresh(isHost);
         }
 
-        private void InitializeActivityHandler()
-        {
-            if (activityHandler == null)
-            {
-                activityHandler = new ActivityHandler();
-                activityHandler.PromptInactiveMessage += OnPromptInactiveMessage;
-                activityHandler.PromptRemoval += OnPromptRemovalFromGame;
-                activityHandler.Start();
-            }
-        }
-
-        private void DisposeOfActivityHandler()
-        {
-            activityHandler.PromptInactiveMessage -= OnPromptInactiveMessage;
-            activityHandler.PromptRemoval -= OnPromptRemovalFromGame;
-            activityHandler.Dispose();
-            activityHandler = null;
-        }
-
         public override void OnMouseMove()
         {
             base.OnMouseMove();
 
-            if (activityHandler != null)
+            if (gameHostActivityTimer.IsActive)
             {
-                activityHandler.Reset();
+                gameHostInactiveCheck.HostIsActive();
             }
         }
 
-        private void OnPromptRemovalFromGame(object sender, EventArgs e)
+        private void GameHostInactiveCheck_PromptRemoval(object sender, EventArgs e) => LeaveGame();
+
+        private void GameHostInactiveCheck_PromptInactiveMessage(object sender, EventArgs e)
         {
-            LeaveGame();
+            var inactiveMessageBox = new XNAMessageBox(WindowManager, "Are you here?", ClientConfiguration.Instance.InactiveHostMessagePrompt, XNAMessageBoxButtons.OK);
+            inactiveMessageBox.OKClickedAction = InactiveMessageBox_OKClicked;
+            inactiveMessageBox.Show();
         }
 
-        private void OnPromptInactiveMessage(object sender, EventArgs e)
+        private void InactiveMessageBox_OKClicked(XNAMessageBox messageBox)
         {
-            XNAMessageBox.Show(WindowManager, "Are you here?", ClientConfiguration.Instance.InactiveHostMessagePrompt);
+            gameHostInactiveCheck.HostIsActive();
         }
 
         private void TunnelHandler_CurrentTunnelPinged(object sender, EventArgs e) => UpdatePing();
@@ -399,6 +407,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             connectionManager.Disconnected -= ConnectionManager_Disconnected;
 
             gameBroadcastTimer.Enabled = false;
+            gameHostActivityTimer.Enabled = false;
+
             closed = false;
 
             tbChatInput.Text = string.Empty;
@@ -427,7 +437,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             Clear();
             channel.Leave();
-            DisposeOfActivityHandler();
         }
 
         private void ConnectionManager_Disconnected(object sender, EventArgs e) => HandleConnectionLoss();
@@ -1256,8 +1265,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 ClearReadyStatuses();
                 CopyPlayerDataToUI();
                 BroadcastPlayerOptions();
-                InitializeActivityHandler();
                 BroadcastPlayerExtraOptions();
+
+                gameHostActivityTimer.Resume();
 
                 if (Players.Count < playerLimit)
                     UnlockGame(true);
@@ -1327,7 +1337,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 HandleCheatDetectedMessage(ProgramConstants.PLAYERNAME);
             }
 
-            DisposeOfActivityHandler();
+            gameHostActivityTimer.Pause();
+
             base.StartGame();
         }
 

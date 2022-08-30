@@ -492,6 +492,7 @@
     <Compile Include="DXGUI\GameClass.cs" />
     <Compile Include="DXGUI\Multiplayer\GameLoadingLobbyBase.cs" />
     <Compile Include="DXGUI\Multiplayer\GameLobby\ChatBoxCommand.cs" />
+    <Compile Include="DXGUI\Multiplayer\GameLobby\GameHostInactiveCheck.cs" />
     <Compile Include="DXGUI\Multiplayer\GameLobby\CnCNetGameLobby.cs" />
     <Compile Include="DXGUI\Multiplayer\GameLobby\CommandHandlers\CommandHandlerBase.cs" />
     <Compile Include="DXGUI\Multiplayer\GameLobby\CommandHandlers\IntNotificationHandler.cs" />
@@ -643,9 +644,6 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="clienticon.ico" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="DXGUI\Generic\ActivityHandler.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
