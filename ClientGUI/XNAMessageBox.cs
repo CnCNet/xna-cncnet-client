@@ -28,12 +28,6 @@ namespace ClientGUI
             this.messageBoxButtons = messageBoxButtons;
         }
 
-        public XNAMessageBox(WindowManager windowManager, string v, string inactiveHostMessagePrompt) : base(windowManager)
-        {
-            this.v = v;
-            this.inactiveHostMessagePrompt = inactiveHostMessagePrompt;
-        }
-
         /// <summary>
         /// The method that is called when the user clicks OK on the message box.
         /// </summary>
@@ -58,8 +52,6 @@ namespace ClientGUI
         private string caption;
         private string description;
         private XNAMessageBoxButtons messageBoxButtons;
-        private string v;
-        private string inactiveHostMessagePrompt;
 
         public override void Initialize()
         {
@@ -246,8 +238,8 @@ namespace ClientGUI
             windowManager.AddAndInitializeControl(panel);
 
             var msgBox = new XNAMessageBox(windowManager,
-                Renderer.GetSafeString(caption, 1), 
-                Renderer.GetSafeString(description, 0), 
+                Renderer.GetSafeString(caption, 1),
+                Renderer.GetSafeString(description, 0),
                 XNAMessageBoxButtons.OK);
 
             panel.AddChild(msgBox);
