@@ -499,6 +499,7 @@
     <Compile Include="DXGUI\Multiplayer\GameLobby\CommandHandlers\NotificationHandler.cs" />
     <Compile Include="DXGUI\Multiplayer\GameLobby\CoopBriefingBox.cs" />
     <Compile Include="DXGUI\Multiplayer\GameLobby\DropDownDataWriteMode.cs" />
+    <Compile Include="DXGUI\Multiplayer\GameLobby\GameHostInactiveCheck.cs" />
     <Compile Include="DXGUI\Multiplayer\GameLobby\GameModeMapFilter.cs" />
     <Compile Include="DXGUI\Multiplayer\GameLobby\GameLaunchButton.cs" />
     <Compile Include="DXGUI\Multiplayer\GameLobby\GameLobbyBase.cs" />

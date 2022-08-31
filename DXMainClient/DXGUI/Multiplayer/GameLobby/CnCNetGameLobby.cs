@@ -136,6 +136,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private MapSharingConfirmationPanel mapSharingConfirmationPanel;
 
+        private XNATimerControl gameHostActivityTimer;
+        private GameHostInactiveCheck gameHostInactiveCheck;
+
         /// <summary>
         /// The SHA1 of the latest selected map.
         /// Used for map sharing.
@@ -168,6 +171,16 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             gameBroadcastTimer.Enabled = false;
             gameBroadcastTimer.TimeElapsed += GameBroadcastTimer_TimeElapsed;
 
+            gameHostInactiveCheck = new GameHostInactiveCheck();
+            gameHostInactiveCheck.CloseInactiveGame += GameHostInactiveCheck_CloseInactiveGame;
+            gameHostInactiveCheck.SendInactiveGameWarningMessage += GameHostInactiveCheck_SendInactiveGameWarningMessage;
+
+            gameHostActivityTimer = new XNATimerControl(WindowManager);
+            gameHostActivityTimer.AutoReset = true;
+            gameHostActivityTimer.Interval = TimeSpan.FromSeconds(1.0);
+            gameHostActivityTimer.Enabled = false;
+            gameHostActivityTimer.TimeElapsed += GameHostActivityTimer_TimeElapsed;
+
             tunnelSelectionWindow = new TunnelSelectionWindow(WindowManager, tunnelHandler);
             tunnelSelectionWindow.Initialize();
             tunnelSelectionWindow.DrawOrder = 1;
@@ -182,6 +195,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             mapSharingConfirmationPanel.MapDownloadConfirmed += MapSharingConfirmationPanel_MapDownloadConfirmed;
 
             WindowManager.AddAndInitializeControl(gameBroadcastTimer);
+            WindowManager.AddAndInitializeControl(gameHostActivityTimer);
 
             globalContextMenu = new GlobalContextMenu(WindowManager, connectionManager, cncnetUserData, pmWindow);
             AddChild(globalContextMenu);
@@ -226,6 +240,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 RandomSeed = new Random().Next();
                 RefreshMapSelectionUI();
                 btnChangeTunnel.Enable();
+                gameHostActivityTimer.Enabled = true;
+                gameHostActivityTimer.Start();
             }
             else
             {
@@ -244,6 +260,34 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         }
 
         private void TunnelHandler_CurrentTunnelPinged(object sender, EventArgs e) => UpdatePing();
+
+        private void GameHostActivityTimer_TimeElapsed(object sender, EventArgs e) => gameHostInactiveCheck.CheckHostIsActive();
+
+        private void GameHostInactiveCheck_SendInactiveGameWarningMessage(object sender, EventArgs e)
+        {
+            XNAMessageBox hostInactiveWarningMessageBox = new XNAMessageBox(
+                WindowManager,
+                ClientConfiguration.Instance.InactiveHostWarningTitle,
+                ClientConfiguration.Instance.InactiveHostWarningMessage,
+                XNAMessageBoxButtons.OK
+            );
+            hostInactiveWarningMessageBox.OKClickedAction = InactiveMessageBox_OKClicked;
+            hostInactiveWarningMessageBox.Show();
+        }
+
+        private void GameHostInactiveCheck_CloseInactiveGame(object sender, EventArgs e) => LeaveGameLobby();
+
+        private void InactiveMessageBox_OKClicked(XNAMessageBox messageBox) => gameHostInactiveCheck.HostIsAlive();
+
+        public override void OnMouseMove()
+        {
+            base.OnMouseMove();
+
+            if (gameHostActivityTimer.IsActive)
+            {
+                gameHostInactiveCheck.HostIsAlive();
+            }
+        }
 
         public void OnJoined()
         {
@@ -1209,6 +1253,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 BroadcastPlayerOptions();
                 BroadcastPlayerExtraOptions();
 
+                gameHostActivityTimer.Resume();
+
                 if (Players.Count < playerLimit)
                     UnlockGame(true);
             }
@@ -1276,6 +1322,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 channel.SendCTCPMessage(CHEAT_DETECTED_MESSAGE, QueuedMessageType.INSTANT_MESSAGE, 0);
                 HandleCheatDetectedMessage(ProgramConstants.PLAYERNAME);
             }
+
+            gameHostActivityTimer.Pause();
 
             base.StartGame();
         }

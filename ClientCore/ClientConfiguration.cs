@@ -259,6 +259,14 @@ namespace ClientCore
 
         public string AllowedCustomGameModes => clientDefinitionsIni.GetStringValue(SETTINGS, "AllowedCustomGameModes", "Standard,Custom Map");
 
+        public string InactiveHostWarningTitle => clientDefinitionsIni.GetStringValue(SETTINGS, "InactiveHostWarningTitle", "Are you still here?");
+
+        public string InactiveHostWarningMessage => clientDefinitionsIni.GetStringValue(SETTINGS, "InactiveHostWarningMessage", "Your game may be closed due to inactivity.");
+
+        public int InactiveHostWarningMessageSeconds => clientDefinitionsIni.GetIntValue(SETTINGS, "InactiveHostWarningMessageSeconds", 15);
+
+        public int InactiveHostKickSeconds => clientDefinitionsIni.GetIntValue(SETTINGS, "InactiveHostKickSeconds", 15);
+
         public string GetGameExecutableName()
         {
             string[] exeNames = clientDefinitionsIni.GetStringValue(SETTINGS, "GameExecutableNames", "Game.exe").Split(',');
