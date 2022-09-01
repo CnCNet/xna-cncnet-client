@@ -224,8 +224,15 @@ namespace DTAClient.DXGUI.Generic
             connectionManager.WelcomeMessageReceived += ConnectionManager_WelcomeMessageReceived;
             connectionManager.AttemptedServerChanged += ConnectionManager_AttemptedServerChanged;
             connectionManager.ConnectAttemptFailed += ConnectionManager_ConnectAttemptFailed;
+            connectionManager.ErrorDroneBL += ConnectionManager_ErrorDroneBL;
 
             privateMessageHandler.UnreadMessageCountUpdated += PrivateMessageHandler_UnreadMessageCountUpdated;
+        }
+
+        private void ConnectionManager_ErrorDroneBL(object sender, string message)
+        {
+            XNAMessageBox messageBox = new XNAMessageBox(WindowManager, "Error connecting", message, XNAMessageBoxButtons.OK);
+            messageBox.Show();
         }
 
         private void PrivateMessageHandler_UnreadMessageCountUpdated(object sender, UnreadMessageCountEventArgs args) 
