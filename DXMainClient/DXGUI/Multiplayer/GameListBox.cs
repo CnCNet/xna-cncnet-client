@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using ClientCore;
 using ClientCore.Enums;
+using DTAClient.DXGUI.Generic;
 using DTAClient.Domain.Multiplayer;
 using DTAClient.Domain.Multiplayer.CnCNet;
 using Microsoft.Xna.Framework;
@@ -41,10 +42,6 @@ namespace DTAClient.DXGUI.Multiplayer
         /// A predicate for setting a filter expression for displayed games.
         /// </summary>
         private Predicate<GenericHostedGame> GameMatchesFilter { get; }
-
-        private Texture2D txLockedGame;
-        private Texture2D txIncompatibleGame;
-        private Texture2D txPasswordedGame;
 
         private string localGameIdentifier;
 
@@ -161,10 +158,6 @@ namespace DTAClient.DXGUI.Multiplayer
         {
             base.Initialize();
 
-            txLockedGame = AssetLoader.LoadTexture("lockedgame.png");
-            txIncompatibleGame = AssetLoader.LoadTexture("incompatible.png");
-            txPasswordedGame = AssetLoader.LoadTexture("passwordedgame.png");
-
             panelGameInformation = new GameInformationPanel(WindowManager);
             panelGameInformation.Name = "panelGameInformation";
             panelGameInformation.BackgroundTexture = AssetLoader.LoadTexture("cncnetlobbypanelbg.png");
@@ -223,8 +216,8 @@ namespace DTAClient.DXGUI.Multiplayer
         {
             int lgTextWidth = hg.IsLoadedGame ? loadedGameTextWidth : 0;
             int maxTextWidth = Width - hg.Game.Texture.Width - 
-                (hg.Incompatible ? txIncompatibleGame.Width : 0) -
-                (hg.Locked ? txLockedGame.Width : 0) - (hg.Passworded ? txPasswordedGame.Width : 0) - 
+                (hg.Incompatible ? AssetTextures.IncompatibleGame.Width : 0) -
+                (hg.Locked ? AssetTextures.LockedGame.Width : 0) - (hg.Passworded ? AssetTextures.PasswordedGame.Width : 0) - 
                 (ICON_MARGIN * 3) - GetScrollBarWidth() - lgTextWidth;
 
             var lbItem = new XNAListBoxItem();
@@ -309,25 +302,25 @@ namespace DTAClient.DXGUI.Multiplayer
 
                 if (hostedGame.Locked)
                 {
-                    DrawTexture(txLockedGame,
+                    DrawTexture(AssetTextures.LockedGame,
                         new Rectangle(x, height,
-                        txLockedGame.Width, txLockedGame.Height), Color.White);
-                    x += txLockedGame.Width + ICON_MARGIN;
+                            AssetTextures.LockedGame.Width, AssetTextures.LockedGame.Height), Color.White);
+                    x += AssetTextures.LockedGame.Width + ICON_MARGIN;
                 }
 
                 if (hostedGame.Incompatible)
                 {
-                    DrawTexture(txIncompatibleGame,
+                    DrawTexture(AssetTextures.IncompatibleGame,
                         new Rectangle(x, height,
-                        txIncompatibleGame.Width, txIncompatibleGame.Height), Color.White);
-                    x += txIncompatibleGame.Width + ICON_MARGIN;
+                            AssetTextures.IncompatibleGame.Width, AssetTextures.IncompatibleGame.Height), Color.White);
+                    x += AssetTextures.IncompatibleGame.Width + ICON_MARGIN;
                 }
 
                 if (hostedGame.Passworded)
                 {
-                    DrawTexture(txPasswordedGame,
-                        new Rectangle(Width - txPasswordedGame.Width - TextBorderDistance - (scrollBarDrawn ? ScrollBar.Width : 0),
-                        height, txPasswordedGame.Width, txPasswordedGame.Height),
+                    DrawTexture(AssetTextures.PasswordedGame,
+                        new Rectangle(Width - AssetTextures.PasswordedGame.Width - TextBorderDistance - (scrollBarDrawn ? ScrollBar.Width : 0),
+                        height, AssetTextures.PasswordedGame.Width, AssetTextures.PasswordedGame.Height),
                         Color.White);
                 }
 
