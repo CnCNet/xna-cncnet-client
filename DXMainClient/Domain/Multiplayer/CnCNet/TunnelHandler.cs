@@ -168,7 +168,10 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
             };
             using var client = new HttpClient(httpClientHandler, true)
             {
-                Timeout = TimeSpan.FromSeconds(100)
+                Timeout = TimeSpan.FromSeconds(100),
+#if !NETFRAMEWORK
+                DefaultVersionPolicy = HttpVersionPolicy.RequestVersionOrHigher
+#endif
             };
 
             string data;
