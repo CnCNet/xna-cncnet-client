@@ -36,7 +36,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
 
         private static readonly object locker = new();
 
-        private const string MAPDB_URL = "http://mapdb.cncnet.org/upload";
+        private const string MAPDB_URL = "https://mapdb.cncnet.org/upload";
 
         /// <summary>
         /// Adds a map into the CnCNet map upload queue.
@@ -113,7 +113,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                     };
                 var values = new NameValueCollection
                     {
-                        { "game", gameName.ToLower() },
+                        { "game", gameName.ToLower() }
                     };
                 string response = await UploadFilesAsync(address, files, values);
 
@@ -171,7 +171,10 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
 
             return new HttpClient(httpClientHandler, true)
             {
-                Timeout = TimeSpan.FromMilliseconds(10000)
+                Timeout = TimeSpan.FromMilliseconds(10000),
+#if !NETFRAMEWORK
+                DefaultVersionPolicy = HttpVersionPolicy.RequestVersionOrHigher
+#endif
             };
         }
 
@@ -260,7 +263,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
 
             try
             {
-                string address = "http://mapdb.cncnet.org/" + myGame + "/" + sha1 + ".zip";
+                string address = "https://mapdb.cncnet.org/" + myGame + "/" + sha1 + ".zip";
                 Logger.Log("MapSharer: Downloading URL: " + address);
                 stream = await client.GetStreamAsync(address);
             }

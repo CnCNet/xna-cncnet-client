@@ -29,7 +29,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
         /// <returns>A CnCNetTunnel instance parsed from the given string.</returns>
         public static CnCNetTunnel Parse(string str)
         {
-            // For the format, check http://cncnet.org/master-list
+            // For the format, check https://cncnet.org/master-list
             try
             {
                 var tunnel = new CnCNetTunnel();
@@ -124,7 +124,10 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                 };
                 using var client = new HttpClient(httpClientHandler, true)
                 {
-                    Timeout = TimeSpan.FromMilliseconds(Constants.TUNNEL_CONNECTION_TIMEOUT)
+                    Timeout = TimeSpan.FromMilliseconds(Constants.TUNNEL_CONNECTION_TIMEOUT),
+#if !NETFRAMEWORK
+                    DefaultVersionPolicy = HttpVersionPolicy.RequestVersionOrHigher
+#endif
                 };
 
                 string data = await client.GetStringAsync(addressString);

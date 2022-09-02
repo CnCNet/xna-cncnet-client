@@ -56,10 +56,13 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                 };
                 using var client = new HttpClient(httpClientHandler, true)
                 {
-                    Timeout = TimeSpan.FromMilliseconds(Constants.TUNNEL_CONNECTION_TIMEOUT)
+                    Timeout = TimeSpan.FromMilliseconds(Constants.TUNNEL_CONNECTION_TIMEOUT),
+#if !NETFRAMEWORK
+                    DefaultVersionPolicy = HttpVersionPolicy.RequestVersionOrHigher
+#endif
                 };
 
-                string info = await client.GetStringAsync("http://api.cncnet.org/status");
+                string info = await client.GetStringAsync("https://api.cncnet.org/status");
 
                 info = info.Replace("{", String.Empty);
                 info = info.Replace("}", String.Empty);
