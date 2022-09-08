@@ -13,6 +13,10 @@ using DTAClient.Domain.Multiplayer.CnCNet;
 using DTAClient.Online.EventArguments;
 using DTAConfig;
 using Localization;
+using Rampastring.Tools;
+using ClientCore.Extensions;
+using DTAClient.Domain;
+using System.Diagnostics;
 
 namespace DTAClient.DXGUI.Generic
 {
@@ -34,6 +38,8 @@ namespace DTAClient.DXGUI.Generic
         const int APPEAR_CURSOR_THRESHOLD_Y = 8;
 
         private readonly string DEFAULT_PM_BTN_LABEL = "Private Messages (F4)".L10N("UI:Main:PMButtonF4");
+        private string droneBLErrorLookupURL = ClientConfiguration.Instance.DroneBLErrorLookupURL;
+
 
         public TopBar(
             WindowManager windowManager, 
@@ -231,8 +237,28 @@ namespace DTAClient.DXGUI.Generic
 
         private void ConnectionManager_ErrorDroneBL(object sender, string message)
         {
-            XNAMessageBox messageBox = new XNAMessageBox(WindowManager, "Error connecting", message, XNAMessageBoxButtons.OK);
+            string messageTitle = "Error connecting".L10N("UI:Error:DroneBLMessageTitle");
+            string messageBody = "Your IP address has been listed at DroneBL. Click Yes to open the DroneBL website for more information on how to resolve this.".L10N("UI:Error:DroneBLMessageBody");
+            string errorUrlFromMessage = StringExtensions.GetLink(message);
+
+            if (errorUrlFromMessage != null)
+                droneBLErrorLookupURL = errorUrlFromMessage;
+
+            XNAMessageBox messageBox = new XNAMessageBox(
+                WindowManager,
+                messageTitle,
+                messageBody,
+                XNAMessageBoxButtons.YesNo
+            )
+            {
+                YesClickedAction = OnOpenDroneBLURLClicked
+            };
             messageBox.Show();
+        }
+
+        private void OnOpenDroneBLURLClicked(XNAMessageBox messageBox)
+        {
+            Process.Start(droneBLErrorLookupURL);
         }
 
         private void PrivateMessageHandler_UnreadMessageCountUpdated(object sender, UnreadMessageCountEventArgs args) 

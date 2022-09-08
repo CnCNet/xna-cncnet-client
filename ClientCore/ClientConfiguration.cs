@@ -200,6 +200,8 @@ namespace ClientCore
 
         public string CreditsURL => clientDefinitionsIni.GetStringValue(SETTINGS, "CreditsURL", "http://www.moddb.com/mods/the-dawn-of-the-tiberium-age/tutorials/credits#Rampastring");
 
+        public string DroneBLErrorLookupURL => clientDefinitionsIni.GetStringValue(SETTINGS, "DroneBLErrorLookupURL", "https://dronebl.org/lookup");
+
         public string ManualDownloadURL => clientDefinitionsIni.GetStringValue(SETTINGS, "ManualDownloadURL", string.Empty);
         
         public string FinalSunIniPath => clientDefinitionsIni.GetStringValue(SETTINGS, "FSIniPath", "FinalSun/FinalSun.ini");
