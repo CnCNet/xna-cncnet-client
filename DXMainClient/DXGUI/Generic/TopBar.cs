@@ -235,11 +235,11 @@ namespace DTAClient.DXGUI.Generic
             privateMessageHandler.UnreadMessageCountUpdated += PrivateMessageHandler_UnreadMessageCountUpdated;
         }
 
-        private void ConnectionManager_ErrorDroneBL(object sender, string message)
+        private void ConnectionManager_ErrorDroneBL(object sender, DroneBLErrorEventArgs e)
         {
             string messageTitle = "Error connecting".L10N("UI:Error:DroneBLMessageTitle");
             string messageBody = "Your IP address has been listed at DroneBL. Click Yes to open the DroneBL website for more information on how to resolve this.".L10N("UI:Error:DroneBLMessageBody");
-            string errorUrlFromMessage = StringExtensions.GetLink(message);
+            string errorUrlFromMessage = StringExtensions.GetLink(e.Message);
 
             if (errorUrlFromMessage != null)
                 droneBLErrorLookupURL = errorUrlFromMessage;

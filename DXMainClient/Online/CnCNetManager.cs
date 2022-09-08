@@ -41,7 +41,7 @@ namespace DTAClient.Online
         public event EventHandler ReconnectAttempt;
         public event EventHandler Disconnected;
         public event EventHandler Connected;
-        public event EventHandler<string> ErrorDroneBL;
+        public event EventHandler<DroneBLErrorEventArgs> ErrorDroneBL;
 
         public event EventHandler<UserEventArgs> UserAdded;
         public event EventHandler<UserEventArgs> UserGameIndexUpdated;
@@ -522,7 +522,7 @@ namespace DTAClient.Online
         {
             if (message.Contains("DroneBL"))
             {
-                ErrorDroneBL.Invoke(this, message);
+                ErrorDroneBL.Invoke(this, new DroneBLErrorEventArgs(message));
             }
 
             MainChannel.AddMessage(new ChatMessage(message));
