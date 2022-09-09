@@ -93,3 +93,16 @@ The cross-platform UniversalGL build (net6.0\any) will not contain an executable
 Which is to be executed with:
 
 `dotnet clientogl.dll`
+
+Building with Visual Studio
+---------------------------
+
+You can select the desired configuration directly from the solution configurations:
+
+![Screenshot 2022-09-09 235432](https://user-images.githubusercontent.com/25006126/189451063-28418a7b-47f4-47b3-9d8b-512c598284ac.png)
+
+Note that the XNA configurations require x86 to be selected:
+
+![Screenshot 2022-09-09 235556](https://user-images.githubusercontent.com/25006126/189451170-d90f665e-19d1-4e6b-a9df-a4994eb143a9.png)
+
+After changing the solution configuration you should exit Visual Studio and reload the solution in order for all the dynamic dependencies to be loaded correctly.
