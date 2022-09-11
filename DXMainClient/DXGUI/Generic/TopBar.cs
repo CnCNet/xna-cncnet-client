@@ -441,7 +441,7 @@ namespace DTAClient.DXGUI.Generic
 
             DateTime dtn = DateTime.Now;
 
-            lblTime.Text = Renderer.GetSafeString(dtn.ToLongTimeString(), lblTime.FontIndex);
+            lblTime.Text = Renderer.GetSafeString(dtn.ToString("HH:mm:ss"), lblTime.FontIndex);
             string dateText = Renderer.GetSafeString(dtn.ToShortDateString(), lblDate.FontIndex);
             if (lblDate.Text != dateText)
                 lblDate.Text = dateText;
