@@ -21,28 +21,28 @@ namespace ClientCore.CnCNet5
             GameList = new List<CnCNetGame>();
 
             var assembly = Assembly.GetAssembly(typeof(GameCollection));
-            using Stream dtaiconStream = assembly.GetManifestResourceStream("ClientCore.Resources.dtaicon.png");
-            using Stream tiiconStream = assembly.GetManifestResourceStream("ClientCore.Resources.tiicon.png");
-            using Stream tsiconStream = assembly.GetManifestResourceStream("ClientCore.Resources.tsicon.png");
-            using Stream moiconStream = assembly.GetManifestResourceStream("ClientCore.Resources.moicon.png");
-            using Stream yriconStream = assembly.GetManifestResourceStream("ClientCore.Resources.yricon.png");
-            using Stream rriconStream = assembly.GetManifestResourceStream("ClientCore.Resources.rricon.png");
-            using Stream cncriconStream = assembly.GetManifestResourceStream("ClientCore.Resources.cncricon.png");
-            using Stream cncneticonStream = assembly.GetManifestResourceStream("ClientCore.Resources.cncneticon.png");
-            using Stream tdiconStream = assembly.GetManifestResourceStream("ClientCore.Resources.tdicon.png");
-            using Stream raiconStream = assembly.GetManifestResourceStream("ClientCore.Resources.raicon.png");
-            using Stream unknowniconStream = assembly.GetManifestResourceStream("ClientCore.Resources.unknownicon.png");
-            using var dtaicon = Image.Load(dtaiconStream);
-            using var tiicon = Image.Load(tiiconStream);
-            using var tsicon = Image.Load(tsiconStream);
-            using var moicon = Image.Load(moiconStream);
-            using var yricon = Image.Load(yriconStream);
-            using var rricon = Image.Load(rriconStream);
-            using var cncricon = Image.Load(cncriconStream);
-            using var cncneticon = Image.Load(cncneticonStream);
-            using var tdicon = Image.Load(tdiconStream);
-            using var raicon = Image.Load(raiconStream);
-            using var unknownicon = Image.Load(unknowniconStream);
+            using Stream dtaIconStream = assembly.GetManifestResourceStream("ClientCore.Resources.dtaicon.png");
+            using Stream tiIconStream = assembly.GetManifestResourceStream("ClientCore.Resources.tiicon.png");
+            using Stream tsIconStream = assembly.GetManifestResourceStream("ClientCore.Resources.tsicon.png");
+            using Stream moIconStream = assembly.GetManifestResourceStream("ClientCore.Resources.moicon.png");
+            using Stream yrIconStream = assembly.GetManifestResourceStream("ClientCore.Resources.yricon.png");
+            using Stream rrIconStream = assembly.GetManifestResourceStream("ClientCore.Resources.rricon.png");
+            using Stream cncrIconStream = assembly.GetManifestResourceStream("ClientCore.Resources.cncricon.png");
+            using Stream cncnetIconStream = assembly.GetManifestResourceStream("ClientCore.Resources.cncneticon.png");
+            using Stream tdIconStream = assembly.GetManifestResourceStream("ClientCore.Resources.tdicon.png");
+            using Stream raIconStream = assembly.GetManifestResourceStream("ClientCore.Resources.raicon.png");
+            using Stream unknownIconStream = assembly.GetManifestResourceStream("ClientCore.Resources.unknownicon.png");
+            using var dtaIcon = Image.Load(dtaIconStream);
+            using var tiIcon = Image.Load(tiIconStream);
+            using var tsIcon = Image.Load(tsIconStream);
+            using var moIcon = Image.Load(moIconStream);
+            using var yrIcon = Image.Load(yrIconStream);
+            using var rrIcon = Image.Load(rrIconStream);
+            using var cncrIcon = Image.Load(cncrIconStream);
+            using var cncnetIcon = Image.Load(cncnetIconStream);
+            using var tdIcon = Image.Load(tdIconStream);
+            using var raIcon = Image.Load(raIconStream);
+            using var unknownIcon = Image.Load(unknownIconStream);
 
             // Default supported games.
             CnCNetGame[] defaultGames = {
@@ -54,7 +54,7 @@ namespace ClientCore.CnCNet5
                     InternalName = "dta",
                     RegistryInstallPath = "HKCU\\Software\\TheDawnOfTheTiberiumAge",
                     UIName = "Dawn of the Tiberium Age",
-                    Texture = AssetLoader.TextureFromImage(dtaicon)
+                    Texture = AssetLoader.TextureFromImage(dtaIcon)
                 },
 
                 new()
@@ -65,7 +65,7 @@ namespace ClientCore.CnCNet5
                     InternalName = "ti",
                     RegistryInstallPath = "HKCU\\Software\\TwistedInsurrection",
                     UIName = "Twisted Insurrection",
-                    Texture = AssetLoader.TextureFromImage(tiicon)
+                    Texture = AssetLoader.TextureFromImage(tiIcon)
                 },
 
                 new()
@@ -76,7 +76,7 @@ namespace ClientCore.CnCNet5
                     InternalName = "ts",
                     RegistryInstallPath = "HKLM\\Software\\Westwood\\Tiberian Sun",
                     UIName = "Tiberian Sun",
-                    Texture = AssetLoader.TextureFromImage(tsicon)
+                    Texture = AssetLoader.TextureFromImage(tsIcon)
                 },
 
                 new()
@@ -87,7 +87,7 @@ namespace ClientCore.CnCNet5
                     InternalName = "mo",
                     RegistryInstallPath = "HKCU\\Software\\MentalOmega",
                     UIName = "Mental Omega",
-                    Texture = AssetLoader.TextureFromImage(moicon)
+                    Texture = AssetLoader.TextureFromImage(moIcon)
                 },
 
                 new()
@@ -98,7 +98,7 @@ namespace ClientCore.CnCNet5
                     InternalName = "yr",
                     RegistryInstallPath = "HKLM\\Software\\Westwood\\Yuri's Revenge",
                     UIName = "Yuri's Revenge",
-                    Texture = AssetLoader.TextureFromImage(yricon)
+                    Texture = AssetLoader.TextureFromImage(yrIcon)
                 },
 
                 new()
@@ -109,7 +109,7 @@ namespace ClientCore.CnCNet5
                     InternalName = "rr",
                     RegistryInstallPath = "HKML\\Software\\RedResurrection",
                     UIName = "YR Red-Resurrection",
-                    Texture = AssetLoader.TextureFromImage(rricon)
+                    Texture = AssetLoader.TextureFromImage(rrIcon)
                 },
 
                 new()
@@ -120,7 +120,7 @@ namespace ClientCore.CnCNet5
                     InternalName = "cncr",
                     RegistryInstallPath = "HKCU\\Software\\CnCReloaded",
                     UIName = "C&C: Reloaded",
-                    Texture = AssetLoader.TextureFromImage(cncricon)
+                    Texture = AssetLoader.TextureFromImage(cncrIcon)
                 }
             };
 
@@ -132,7 +132,7 @@ namespace ClientCore.CnCNet5
                     InternalName = "cncnet",
                     UIName = "General CnCNet Chat",
                     AlwaysEnabled = true,
-                    Texture = AssetLoader.TextureFromImage(cncneticon)
+                    Texture = AssetLoader.TextureFromImage(cncnetIcon)
                 },
 
                 new()
@@ -141,7 +141,7 @@ namespace ClientCore.CnCNet5
                     InternalName = "td",
                     UIName = "Tiberian Dawn",
                     Supported = false,
-                    Texture = AssetLoader.TextureFromImage(tdicon)
+                    Texture = AssetLoader.TextureFromImage(tdIcon)
                 },
 
                 new()
@@ -150,7 +150,7 @@ namespace ClientCore.CnCNet5
                     InternalName = "ra",
                     UIName = "Red Alert",
                     Supported = false,
-                    Texture = AssetLoader.TextureFromImage(raicon)
+                    Texture = AssetLoader.TextureFromImage(raIcon)
                 },
 
                 new()
@@ -159,7 +159,7 @@ namespace ClientCore.CnCNet5
                     InternalName = "d2",
                     UIName = "Dune 2000",
                     Supported = false,
-                    Texture = AssetLoader.TextureFromImage(unknownicon)
+                    Texture = AssetLoader.TextureFromImage(unknownIcon)
                 }
             };
 
@@ -206,8 +206,8 @@ namespace ClientCore.CnCNet5
                     throw new GameCollectionConfigurationException("Game with InternalName " + ID.ToUpperInvariant() + " already exists in the game collection.");
 
                 string iconFilename = iniFile.GetStringValue(kvp.Value, "IconFilename", ID + "icon.png");
-                using Stream unknowniconStream = Assembly.GetAssembly(typeof(GameCollection)).GetManifestResourceStream("ClientCore.Resources.unknownicon.png");
-                using var unknownicon = Image.Load(unknowniconStream);
+                using Stream unknownIconStream = Assembly.GetAssembly(typeof(GameCollection)).GetManifestResourceStream("ClientCore.Resources.unknownicon.png");
+                using var unknownIcon = Image.Load(unknownIconStream);
                 customGames.Add(new CnCNetGame
                 {
                     InternalName = ID,
@@ -218,7 +218,7 @@ namespace ClientCore.CnCNet5
                     RegistryInstallPath = iniFile.GetStringValue(kvp.Value, "RegistryInstallPath", "HKCU\\Software\\"
                             + ID.ToUpperInvariant()),
                     Texture = AssetLoader.AssetExists(iconFilename) ? AssetLoader.LoadTexture(iconFilename) :
-                            AssetLoader.TextureFromImage(unknownicon)
+                            AssetLoader.TextureFromImage(unknownIcon)
                 });
                 customGameIDs.Add(ID);
             }

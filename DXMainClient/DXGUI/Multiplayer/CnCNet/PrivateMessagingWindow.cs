@@ -110,11 +110,11 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             BackgroundTexture = AssetLoader.LoadTextureUncached("privatemessagebg.png");
 
             var assembly = Assembly.GetAssembly(typeof(GameCollection));
-            using Stream unknowniconStream = assembly.GetManifestResourceStream("ClientCore.Resources.unknownicon.png");
-            using Stream cncneticonStream = assembly.GetManifestResourceStream("ClientCore.Resources.cncneticon.png");
+            using Stream unknownIconStream = assembly.GetManifestResourceStream("ClientCore.Resources.unknownicon.png");
+            using Stream cncnetIconStream = assembly.GetManifestResourceStream("ClientCore.Resources.cncneticon.png");
 
-            unknownGameIcon = AssetLoader.TextureFromImage(Image.Load(unknowniconStream));
-            adminGameIcon = AssetLoader.TextureFromImage(Image.Load(cncneticonStream));
+            unknownGameIcon = AssetLoader.TextureFromImage(Image.Load(unknownIconStream));
+            adminGameIcon = AssetLoader.TextureFromImage(Image.Load(cncnetIconStream));
 
             personalMessageColor = AssetLoader.GetColorFromString(ClientConfiguration.Instance.SentPMColor);
             otherUserMessageColor = AssetLoader.GetColorFromString(ClientConfiguration.Instance.ReceivedPMColor);

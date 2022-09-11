@@ -78,10 +78,10 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             gameIconPanel.DrawBorders = false;
 
             var assembly = Assembly.GetAssembly(typeof(GameCollection));
-            using Stream dtaiconStream = assembly.GetManifestResourceStream("ClientCore.Resources.dtaicon.png");
-            using var dtaicon = Image.Load(dtaiconStream);
+            using Stream dtaIconStream = assembly.GetManifestResourceStream("ClientCore.Resources.dtaicon.png");
+            using var dtaIcon = Image.Load(dtaIconStream);
 
-            gameIconPanel.BackgroundTexture = AssetLoader.TextureFromImage(dtaicon);
+            gameIconPanel.BackgroundTexture = AssetLoader.TextureFromImage(dtaIcon);
 
             lblSender = new XNALabel(WindowManager);
             lblSender.Name = "lblSender";

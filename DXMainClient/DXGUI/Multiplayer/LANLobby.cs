@@ -221,9 +221,9 @@ namespace DTAClient.DXGUI.Multiplayer
             gameCreationWindow.LoadGame += GameCreationWindow_LoadGame;
 
             var assembly = Assembly.GetAssembly(typeof(GameCollection));
-            using Stream unknowniconStream = assembly.GetManifestResourceStream("ClientCore.Resources.unknownicon.png");
+            using Stream unknownIconStream = assembly.GetManifestResourceStream("ClientCore.Resources.unknownicon.png");
 
-            unknownGameIcon = AssetLoader.TextureFromImage(Image.Load(unknowniconStream));
+            unknownGameIcon = AssetLoader.TextureFromImage(Image.Load(unknownIconStream));
 
             sndGameCreated = new EnhancedSoundEffect("gamecreated.wav");
 

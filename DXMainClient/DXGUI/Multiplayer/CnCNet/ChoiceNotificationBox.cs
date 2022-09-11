@@ -64,14 +64,14 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             lblHeader.Text = "MAKE A CHOICE".L10N("UI:Main:MakeAChoice");
             AddChild(lblHeader);
 
-            using Stream dtaiconStream = Assembly.GetAssembly(typeof(GameCollection)).GetManifestResourceStream("ClientCore.Resources.dtaicon.png");
-            using var dtaicon = Image.Load(dtaiconStream);
+            using Stream dtaIconStream = Assembly.GetAssembly(typeof(GameCollection)).GetManifestResourceStream("ClientCore.Resources.dtaicon.png");
+            using var dtaIcon = Image.Load(dtaIconStream);
 
             gameIconPanel = new XNAPanel(WindowManager);
             gameIconPanel.Name = nameof(gameIconPanel);
             gameIconPanel.ClientRectangle = new Rectangle(12, lblHeader.Bottom + 6, 16, 16);
             gameIconPanel.DrawBorders = false;
-            gameIconPanel.BackgroundTexture = AssetLoader.TextureFromImage(dtaicon);
+            gameIconPanel.BackgroundTexture = AssetLoader.TextureFromImage(dtaIcon);
             AddChild(gameIconPanel);
 
             lblSender = new XNALabel(WindowManager);

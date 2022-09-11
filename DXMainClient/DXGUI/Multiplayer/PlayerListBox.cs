@@ -38,11 +38,11 @@ namespace DTAClient.DXGUI.Multiplayer
             Users = new List<ChannelUser>();
 
             var assembly = Assembly.GetAssembly(typeof(GameCollection));
-            using Stream cncneticonStream = assembly.GetManifestResourceStream("ClientCore.Resources.cncneticon.png");
-            using Stream unknowniconStream = assembly.GetManifestResourceStream("ClientCore.Resources.unknownicon.png");
+            using Stream cncnetIconStream = assembly.GetManifestResourceStream("ClientCore.Resources.cncneticon.png");
+            using Stream unknownIconStream = assembly.GetManifestResourceStream("ClientCore.Resources.unknownicon.png");
 
-            adminGameIcon = AssetLoader.TextureFromImage(Image.Load(cncneticonStream));
-            unknownGameIcon = AssetLoader.TextureFromImage(Image.Load(unknowniconStream));
+            adminGameIcon = AssetLoader.TextureFromImage(Image.Load(cncnetIconStream));
+            unknownGameIcon = AssetLoader.TextureFromImage(Image.Load(unknownIconStream));
             friendIcon = AssetLoader.LoadTexture("friendicon.png");
             ignoreIcon = AssetLoader.LoadTexture("ignoreicon.png");
             badgeGameIcon = AssetLoader.LoadTexture("Badges/badge.png");
