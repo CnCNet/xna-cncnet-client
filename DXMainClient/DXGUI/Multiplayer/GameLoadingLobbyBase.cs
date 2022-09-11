@@ -327,11 +327,11 @@ namespace DTAClient.DXGUI.Multiplayer
             FileInfo spawnMapFileInfo = SafePath.GetFile(ProgramConstants.GamePath, "spawnmap.ini");
 
             spawnMapFileInfo.Delete();
-            using StreamWriter sw = new StreamWriter(spawnMapFileInfo.FullName);
-            sw.WriteLine("[Map]");
-            sw.WriteLine("Size=0,0,50,50");
-            sw.WriteLine("LocalSize=0,0,50,50");
-            sw.WriteLine();
+            using StreamWriter spawnMapStreamWriter = new StreamWriter(spawnMapFileInfo.FullName);
+            spawnMapStreamWriter.WriteLine("[Map]");
+            spawnMapStreamWriter.WriteLine("Size=0,0,50,50");
+            spawnMapStreamWriter.WriteLine("LocalSize=0,0,50,50");
+            spawnMapStreamWriter.WriteLine();
 
             gameLoadTime = DateTime.Now;
 

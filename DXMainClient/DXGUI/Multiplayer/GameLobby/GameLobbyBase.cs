@@ -1240,8 +1240,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             FileInfo spawnerSettingsFile = SafePath.GetFile(ProgramConstants.GamePath, ProgramConstants.SPAWNER_SETTINGS);
 
-            if (spawnerSettingsFile.Exists)
-                spawnerSettingsFile.Delete();
+            spawnerSettingsFile.Delete();
 
             if (Map.IsCoop)
             {
@@ -1494,8 +1493,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             FileInfo spawnMapIniFile = SafePath.GetFile(ProgramConstants.GamePath, ProgramConstants.SPAWNMAP_INI);
 
-            if (spawnMapIniFile.Exists)
-                spawnMapIniFile.Delete();
+            spawnMapIniFile.Delete();
 
             Logger.Log("Writing map.");
 

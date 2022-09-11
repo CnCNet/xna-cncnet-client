@@ -9,6 +9,9 @@ using Rampastring.XNAUI.XNAControls;
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
+#if !NETFRAMEWORK
+using System.Runtime.Versioning;
+#endif
 #if WINFORMS
 using System.Windows.Forms;
 #endif
@@ -273,6 +276,8 @@ namespace DTAConfig.OptionPanels
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 btnGameCompatibilityFix.LeftClick += BtnGameCompatibilityFix_LeftClick;
+            else
+                btnGameCompatibilityFix.AllowClick = false;
 
             lblMapEditorCompatibilityFix = new XNALabel(WindowManager);
             lblMapEditorCompatibilityFix.Name = "lblMapEditorCompatibilityFix";
@@ -293,13 +298,14 @@ namespace DTAConfig.OptionPanels
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 btnMapEditorCompatibilityFix.LeftClick += BtnMapEditorCompatibilityFix_LeftClick;
+            else
+                btnMapEditorCompatibilityFix.AllowClick = false;
 
             AddChild(lblGameCompatibilityFix);
             AddChild(btnGameCompatibilityFix);
             AddChild(lblMapEditorCompatibilityFix);
             AddChild(btnMapEditorCompatibilityFix);
 #endif
-
             AddChild(chkWindowedMode);
             AddChild(chkBorderlessWindowedMode);
             AddChild(chkBackBufferInVRAM);
@@ -362,7 +368,6 @@ namespace DTAConfig.OptionPanels
             if (defaultRenderer == null)
                 throw new ClientConfigurationException("Invalid or missing default renderer for operating system: " + osVersion);
 
-
             string renderer = UserINISettings.Instance.Renderer;
 
             selectedRenderer = renderers.Find(r => r.InternalName == renderer);
@@ -376,7 +381,6 @@ namespace DTAConfig.OptionPanels
             GameProcessLogic.UseQres = selectedRenderer.UseQres;
             GameProcessLogic.SingleCoreAffinity = selectedRenderer.SingleCoreAffinity;
         }
-
 #if TS
 
         /// <summary>
@@ -404,6 +408,9 @@ namespace DTAConfig.OptionPanels
             }
         }
 
+#if !NETFRAMEWORK
+        [SupportedOSPlatform("windows")]
+#endif
         private void MessageBox_NoClicked(XNAMessageBox messageBox)
         {
             // Set compatibility fix declined flag in registry
@@ -425,11 +432,17 @@ namespace DTAConfig.OptionPanels
             catch { }
         }
 
+#if !NETFRAMEWORK
+        [SupportedOSPlatform("windows")]
+#endif
         private void MessageBox_YesClicked(XNAMessageBox messageBox)
         {
             BtnGameCompatibilityFix_LeftClick(messageBox, EventArgs.Empty);
         }
 
+#if !NETFRAMEWORK
+        [SupportedOSPlatform("windows")]
+#endif
         private void BtnGameCompatibilityFix_LeftClick(object sender, EventArgs e)
         {
             if (GameCompatFixInstalled)
@@ -488,6 +501,9 @@ namespace DTAConfig.OptionPanels
             }
         }
 
+#if !NETFRAMEWORK
+        [SupportedOSPlatform("windows")]
+#endif
         private void BtnMapEditorCompatibilityFix_LeftClick(object sender, EventArgs e)
         {
             if (FinalSunCompatFixInstalled)
@@ -520,7 +536,6 @@ namespace DTAConfig.OptionPanels
                 return;
             }
 
-
             try
             {
                 Process sdbinst = Process.Start("sdbinst.exe", "-q \"" + ProgramConstants.GamePath + "Resources/FSCompatFix.sdb\"");
@@ -546,7 +561,6 @@ namespace DTAConfig.OptionPanels
                     "Installing FinalSun Compatibility Fix failed. Error message:".L10N("UI:DTAConfig:TSFinalSunCompatibilityFixInstalledFailedText") + " " + ex.Message);
             }
         }
-
 #endif
 
         private void ChkBorderlessMenu_CheckedChanged(object sender, EventArgs e)

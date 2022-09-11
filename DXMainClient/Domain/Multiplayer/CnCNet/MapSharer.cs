@@ -206,8 +206,6 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
 
         private static byte[] UploadFiles(string address, List<FileToUpload> files, NameValueCollection values)
         {
-            //try
-            //{
             WebRequest request = WebRequest.Create(address);
             request.Method = "POST";
             string boundary = "---------------------------" + DateTime.Now.Ticks.ToString("x", NumberFormatInfo.InvariantInfo);
@@ -242,7 +240,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                     requestStream.Write(buffer, 0, buffer.Length);
 
                     CopyStream(file.Stream, requestStream);
-                    //     file.Stream.CopyTo(requestStream);
+
                     buffer = Encoding.ASCII.GetBytes(Environment.NewLine);
                     requestStream.Write(buffer, 0, buffer.Length);
                 }
@@ -259,17 +257,11 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                     {
 
                         CopyStream(responseStream, stream);
-                        //                responseStream.CopyTo(stream);
+
                         return stream.ToArray();
                     }
                 }
             }
-            //}
-            //catch (Exception ex)
-            //{
-            //    Logger.Log("MapSharer: Upload request failed with message: " + ex.Message);
-            //    return new byte[1];
-            //}
         }
 
         private static void CreateZipFile(string file, string zipName)
@@ -383,14 +375,8 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
             // This prevents the client from crashing when trying to rename the unzipped file to a duplicate filename.
             FileInfo newFile = SafePath.GetFile(customMapsDirectory, FormattableString.Invariant($"{mapFileName}.map"));
 
-            try
-            {
-                if (destinationFile.Exists) destinationFile.Delete();
-                if (newFile.Exists) newFile.Delete();
-            }
-            catch
-            {
-            }
+            destinationFile.Delete();
+            newFile.Delete();
 
             using (TWebClient webClient = new TWebClient())
             {
@@ -438,14 +424,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
             // earlier if one already existed.
             File.Move(SafePath.CombineFilePath(customMapsDirectory, extractedFile), newFile.FullName);
 
-
-            try
-            {
-                if (destinationFile.Exists) destinationFile.Delete();
-            }
-            catch
-            {
-            }
+            destinationFile.Delete();
 
             success = true;
             return extractedFile;

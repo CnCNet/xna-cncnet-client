@@ -16,6 +16,9 @@ using System.Threading.Tasks;
 using System.Globalization;
 using System.Management;
 using System.Runtime.InteropServices;
+#if !NETFRAMEWORK
+using System.Runtime.Versioning;
+#endif
 using ClientCore.Settings;
 using Microsoft.Xna.Framework.Graphics;
 
@@ -55,10 +58,13 @@ namespace DTAClient
             Logger.Log("Selected OS profile: " + MainClientConstants.OSId.ToString());
             Logger.Log("Current culture: " + CultureInfo.CurrentCulture?.ToString());
 
-            // The query in CheckSystemSpecifications takes lots of time,
-            // so we'll do it in a separate thread to make startup faster
-            Thread thread = new Thread(CheckSystemSpecifications);
-            thread.Start();
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                // The query in CheckSystemSpecifications takes lots of time,
+                // so we'll do it in a separate thread to make startup faster
+                Thread thread = new Thread(CheckSystemSpecifications);
+                thread.Start();
+            }
 
             Thread idThread = new Thread(GenerateOnlineId);
             idThread.Start();
@@ -240,7 +246,10 @@ namespace DTAClient
         /// <summary>
         /// Writes processor, graphics card and memory info to the log file.
         /// </summary>
-        private void CheckSystemSpecifications()
+#if !NETFRAMEWORK
+        [SupportedOSPlatform("windows")]
+#endif
+        private static void CheckSystemSpecifications()
         {
             string cpu = string.Empty;
             string videoController = string.Empty;
@@ -304,7 +313,6 @@ namespace DTAClient
             Logger.Log(string.Format("Hardware info: {0} | {1} | {2}", cpu.Trim(), videoController.Trim(), memory));
         }
 
-
         /// <summary>
         /// Generate an ID for online play.
         /// </summary>
@@ -367,7 +375,10 @@ namespace DTAClient
         /// <summary>
         /// Writes the game installation path to the Windows registry.
         /// </summary>
-        private void WriteInstallPathToRegistry()
+#if !NETFRAMEWORK
+        [SupportedOSPlatform("windows")]
+#endif
+        private static void WriteInstallPathToRegistry()
         {
             if (!UserINISettings.Instance.WritePathToRegistry)
             {

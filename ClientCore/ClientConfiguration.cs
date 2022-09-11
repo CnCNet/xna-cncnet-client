@@ -315,6 +315,7 @@ namespace ClientCore
             if (Environment.OSVersion.Platform == PlatformID.Win32NT)
             {
 #if NETFRAMEWORK
+                // OperatingSystem.IsWindowsVersionAtLeast() is the preferred API but is not supported on earlier .NET versions
                 Version osVersion = Environment.OSVersion.Version;
 
                 if (osVersion.Major < 5)

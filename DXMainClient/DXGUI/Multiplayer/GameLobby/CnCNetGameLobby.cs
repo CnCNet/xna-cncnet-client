@@ -500,7 +500,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             sndJoinSound.Play();
 #if WINFORMS
-
             WindowManager.FlashWindow();
 #endif
 

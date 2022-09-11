@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 using ClientCore;
 using Rampastring.Tools;
 using ClientCore.INIProcessing;
@@ -72,7 +73,7 @@ namespace ClientGUI
 
             GameProcessStarting?.Invoke();
 
-            if (UserINISettings.Instance.WindowedMode && UseQres)
+            if (UserINISettings.Instance.WindowedMode && UseQres && RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 Logger.Log("Windowed mode is enabled - using QRes.");
                 Process QResProcess = new Process();
@@ -131,8 +132,11 @@ namespace ClientGUI
                     return;
                 }
 
-                if (Environment.ProcessorCount > 1 && SingleCoreAffinity)
+                if ((RuntimeInformation.IsOSPlatform(OSPlatform.Windows) || RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                    && Environment.ProcessorCount > 1 && SingleCoreAffinity)
+                { 
                     DtaProcess.ProcessorAffinity = (IntPtr)2;
+                }
             }
 
             GameProcessStarted?.Invoke();

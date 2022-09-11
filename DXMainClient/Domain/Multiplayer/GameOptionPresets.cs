@@ -116,10 +116,7 @@ namespace DTAClient.Domain.Multiplayer
             LoadIniIfNotInitialized();
 
             if (presets.TryGetValue(name, out GameOptionPreset value))
-            {
-
                 return value;
-            }
 
             return null;
         }

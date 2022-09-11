@@ -23,7 +23,9 @@ namespace ClientCore
 
         public static readonly string StartupExecutable = IsCrossPlatform ? Assembly.GetEntryAssembly().Location : Environment.ProcessPath;
 
-        public static readonly string StartupPath = IsCrossPlatform ? SafePath.CombineDirectoryPath(new FileInfo(StartupExecutable).Directory.Parent.Parent.FullName + Path.DirectorySeparatorChar) : new FileInfo(StartupExecutable).Directory.FullName + Path.DirectorySeparatorChar;
+        public static readonly string StartupPath = IsCrossPlatform
+            ? SafePath.CombineDirectoryPath(new FileInfo(StartupExecutable).Directory.Parent.Parent.FullName + Path.DirectorySeparatorChar)
+            : new FileInfo(StartupExecutable).Directory.FullName + Path.DirectorySeparatorChar;
 #endif
 
 #if DEBUG
@@ -106,6 +108,9 @@ namespace ClientCore
 
         public static string LogFileName { get; set; }
 
+        /// <summary>
+        /// Gets or sets the action to perform to notify the user of an error.
+        /// </summary>
         public static Action<string, string> UserErrorAction { get; set; } = (title, error) =>
         {
             Logger.Log(FormattableString.Invariant($"{(title is null ? null : title + Environment.NewLine + Environment.NewLine)}{error}"));

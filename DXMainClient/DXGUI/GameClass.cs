@@ -270,8 +270,8 @@ namespace DTAClient.DXGUI
             }
 
             wm.SetBorderlessMode(borderlessWindowedClient);
-
 #if !XNA
+
             if (borderlessWindowedClient)
             {
                 graphics.IsFullScreen = true;
@@ -279,9 +279,7 @@ namespace DTAClient.DXGUI
             }
 
 #endif
-
             wm.CenterOnScreen();
-
             wm.SetRenderResolution(renderResolutionX, renderResolutionY);
         }
     }

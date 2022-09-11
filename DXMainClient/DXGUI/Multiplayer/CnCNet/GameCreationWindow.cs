@@ -192,15 +192,11 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         {
             string gameName = tbGameName.Text.Replace(";", string.Empty);
 
-            if (string.IsNullOrEmpty(gameName))
+            if (string.IsNullOrEmpty(gameName) || !lbTunnelList.IsValidIndexSelected())
                 return;
 
-            if (!lbTunnelList.IsValidIndexSelected())
-            {
-                return;
-            }
-
-            IniFile spawnSGIni = new IniFile(SafePath.CombineFilePath(ProgramConstants.GamePath, ProgramConstants.SAVED_GAME_SPAWN_INI));
+            IniFile spawnSGIni =
+                new IniFile(SafePath.CombineFilePath(ProgramConstants.GamePath, ProgramConstants.SAVED_GAME_SPAWN_INI));
 
             string password = Utilities.CalculateSHA1ForString(
                 spawnSGIni.GetStringValue("Settings", "GameID", string.Empty)).Substring(0, 10);

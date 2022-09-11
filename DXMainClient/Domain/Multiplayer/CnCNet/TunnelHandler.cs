@@ -225,6 +225,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
 
                     if (!clientDirectoryInfo.Exists)
                         clientDirectoryInfo.Create();
+
                     File.WriteAllBytes(tunnelCacheFile.FullName, data);
                 }
                 catch (Exception ex)

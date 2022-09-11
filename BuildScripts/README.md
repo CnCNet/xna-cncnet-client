@@ -52,19 +52,16 @@ The file AfterPublish.targets will execute additional steps for the following bu
 * .NET6 WinForms Windows specific build
 * .NET6 UniversalGL platform specific build (not part of Build-All)
 
-Building a .NET 6 application results in an assembly, not in an executable, e.g. clientdx.dll.
-On platform specific builds it also generates an apphost executable, so users have something to execute directly i.e. clientdx.exe.
-All the .exe does is launch e.g.: "dotnet clientdx.dll".
-The apphost creation is not configurable and always points to a dll with the same filename in the current directory.
-Since we split them up into \clientdx.exe and \Resources\Binaries\Windows\clientdx.dll this breaks.
-The AppHostPatcher modifies the .exe to point to the correct .dll path.
+Building a .NET 6 application results in an assembly, not in an executable, e.g. `clientdx.dll`. On platform specific builds it also generates an apphost executable, so users have something to execute directly i.e. `clientdx.exe`. All the .exe does is launch e.g.: `dotnet clientdx.dll`.
 
-The AppHostPatcher application is located under \AdditionalFiles\AppHostPatcher.
+The apphost creation is not configurable and always points to a dll with the same filename in the current directory. Since we split them up into `\clientdx.exe` and `\Resources\Binaries\Windows\clientdx.dll` this breaks. The AppHostPatcher modifies the .exe to point to the correct .dll path.
+
+The AppHostPatcher application is located under `\AdditionalFiles\AppHostPatcher`.
 
 Custom builds
 -------------
 
-It is possible to compile for a specfic platform in order to gain performance (PublishReadyToRun, PublishReadyToRunComposite) etc.
+It is possible to compile for a specfic platform in order to gain performance (`PublishReadyToRun`, `PublishReadyToRunComposite`) etc.
 
 Manually compile linux x64 YR optimized binaries from command line:
 
@@ -89,7 +86,7 @@ The build output per Game will look like below.
 
 ![unknown](https://user-images.githubusercontent.com/25006126/189449430-07bfb4b5-bc5f-4cea-870e-90d1870b8fe8.png)
 
-The cross-platform UniversalGL build (net6.0\any) will not contain an executable, only a clientogl.dll in \net6.0\any\Resources\Binaries\OpenGL.
+The cross-platform UniversalGL build (net6.0\any) will not contain an executable, only a `clientogl.dll` in `\net6.0\any\Resources\Binaries\OpenGL`.
 Which is to be executed with:
 
 `dotnet clientogl.dll`

@@ -65,7 +65,21 @@ namespace DTAClient.DXGUI.Generic
 
         private void BtnExMapEditor_LeftClick(object sender, EventArgs e)
         {
-            Process.Start(SafePath.CombineFilePath(ProgramConstants.GamePath, ClientConfiguration.Instance.MapEditorExePath));
+            OSVersion osVersion = ClientConfiguration.Instance.GetOperatingSystemVersion();
+            Process mapEditorProcess = new Process();
+
+            if (osVersion != OSVersion.UNIX)
+            {
+                mapEditorProcess.StartInfo.FileName = SafePath.CombineFilePath(ProgramConstants.GamePath, ClientConfiguration.Instance.MapEditorExePath);
+            }
+            else
+            {
+                mapEditorProcess.StartInfo.FileName = SafePath.CombineFilePath(ProgramConstants.GamePath, ClientConfiguration.Instance.UnixMapEditorExePath);
+                mapEditorProcess.StartInfo.UseShellExecute = false;
+            }
+
+            mapEditorProcess.Start();
+
             Enabled = false;
         }
 

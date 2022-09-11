@@ -48,11 +48,10 @@ namespace ClientCore
         {
             SettingsIni = iniFile;
 
-#if TS
             const string WINDOWED_MODE_KEY = "Video.Windowed";
+#if TS
             BackBufferInVRAM = new BoolSetting(iniFile, VIDEO, "UseGraphicsPatch", true);
 #else
-            const string WINDOWED_MODE_KEY = "Video.Windowed";
             BackBufferInVRAM = new BoolSetting(iniFile, VIDEO, "VideoBackBuffer", false);
 #endif
 

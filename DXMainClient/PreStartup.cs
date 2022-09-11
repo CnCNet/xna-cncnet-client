@@ -8,13 +8,15 @@ using DTAClient.Domain;
 using Rampastring.Tools;
 using ClientCore;
 using System.Security.AccessControl;
-#if ISWINDOWS
 using System.Security.Principal;
-#endif
 using System.Collections.Generic;
 using Localization;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.InteropServices;
+#if !NETFRAMEWORK
+using System.Runtime.Versioning;
+#endif
 
 namespace DTAClient
 {
@@ -58,7 +60,8 @@ namespace DTAClient
 
             Environment.CurrentDirectory = gameDirectory.FullName;
 
-            CheckPermissions();
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                CheckPermissions();
 
             DirectoryInfo clientUserFilesDirectory = SafePath.GetDirectory(ProgramConstants.ClientUserFilesPath);
             ProgramConstants.LogFileName = SafePath.CombineFilePath(clientUserFilesDirectory.FullName, "client.log");
@@ -228,6 +231,9 @@ namespace DTAClient
             ProgramConstants.UserErrorAction("KABOOOOOOOM".L10N("UI:Main:FatalErrorTitle"), error);
         }
 
+#if !NETFRAMEWORK
+        [SupportedOSPlatform("windows")]
+#endif
         private static void CheckPermissions()
         {
             if (UserHasDirectoryAccessRights(Environment.CurrentDirectory, FileSystemRights.Modify))
@@ -253,15 +259,13 @@ namespace DTAClient
         /// </summary>
         /// <param name="path">The path to the directory.</param>
         /// <param name="accessRights">The file system rights.</param>
+#if !NETFRAMEWORK
+        [SupportedOSPlatform("windows")]
+#endif
         private static bool UserHasDirectoryAccessRights(string path, FileSystemRights accessRights)
         {
             // Mono doesn't implement everything necessary for the below to work,
-            // so we'll just return to make the client able to run on non-Windows
-            // platforms
-            // On Windows you rarely have a reason for using the OpenGL build anyway
-#if !ISWINDOWS
-            return true;
-#else
+            // so we'll just return to make the client able to run
             if (ProgramConstants.ISMONO)
                 return true;
 
@@ -311,7 +315,6 @@ namespace DTAClient
                 return false;
             }
             return isInRoleWithAccess;
-#endif
         }
     }
 }
