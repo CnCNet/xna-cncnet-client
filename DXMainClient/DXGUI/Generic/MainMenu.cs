@@ -614,11 +614,7 @@ namespace DTAClient.DXGUI.Generic
 
         private void LblVersion_LeftClick(object sender, EventArgs e)
         {
-            using var _ = Process.Start(new ProcessStartInfo
-            {
-                FileName = ClientConfiguration.Instance.ChangelogURL,
-                UseShellExecute = true
-            });
+            ProcessLauncher.StartShellProcess(ClientConfiguration.Instance.ChangelogURL);
         }
 
         private void ForceUpdate()
@@ -793,11 +789,7 @@ namespace DTAClient.DXGUI.Generic
 
         private void BtnCredits_LeftClick(object sender, EventArgs e)
         {
-            using var _ = Process.Start(new ProcessStartInfo
-            {
-                FileName = MainClientConstants.CREDITS_URL,
-                UseShellExecute = true
-            });
+            ProcessLauncher.StartShellProcess(MainClientConstants.CREDITS_URL);
         }
 
         private void BtnExtras_LeftClick(object sender, EventArgs e) =>

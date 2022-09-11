@@ -1,7 +1,6 @@
 ﻿using Localization;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Text;
 using System.Reflection;
@@ -115,11 +114,7 @@ namespace ClientCore
         {
             Logger.Log(FormattableString.Invariant($"{(title is null ? null : title + Environment.NewLine + Environment.NewLine)}{error}"));
 
-            using var _ = Process.Start(new ProcessStartInfo
-            {
-                FileName = LogFileName,
-                UseShellExecute = true
-            });
+            ProcessLauncher.StartShellProcess(LogFileName);
         };
     }
 }

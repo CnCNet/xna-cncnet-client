@@ -8,7 +8,6 @@ using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using ClientGUI;
@@ -625,7 +624,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 FileInfo previewFileInfo = SafePath.GetFile(ProgramConstants.GamePath, GameModeMap.Map.PreviewPath);
 
                 if (previewFileInfo.Exists)
-                    Process.Start(previewFileInfo.FullName);
+                    ProcessLauncher.StartShellProcess(previewFileInfo.FullName);
             }
 
             base.OnLeftClick();

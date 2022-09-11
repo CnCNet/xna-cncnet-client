@@ -5,7 +5,6 @@ using Microsoft.Xna.Framework;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
 using System;
-using System.Diagnostics;
 
 namespace DTAClient.DXGUI.Generic
 {
@@ -77,11 +76,7 @@ namespace DTAClient.DXGUI.Generic
 
         private void LblChangelogLink_LeftClick(object sender, EventArgs e)
         {
-            using var _ = Process.Start(new ProcessStartInfo
-            {
-                FileName = changelogUrl,
-                UseShellExecute = true
-            });
+            ProcessLauncher.StartShellProcess(changelogUrl);
         }
 
         private void BtnYes_LeftClick(object sender, EventArgs e)

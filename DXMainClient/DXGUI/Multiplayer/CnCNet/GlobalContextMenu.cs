@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
 using System.Linq;
 using ClientCore;
 using ClientCore.Extensions;
@@ -170,11 +169,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 if (link == null)
                     return;
 
-                using var _ = Process.Start(new ProcessStartInfo
-                {
-                    FileName = link,
-                    UseShellExecute = true
-                });
+                ProcessLauncher.StartShellProcess(link);
             };
         }
 
