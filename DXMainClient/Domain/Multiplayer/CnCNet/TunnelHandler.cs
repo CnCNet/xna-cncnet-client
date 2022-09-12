@@ -209,7 +209,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
 
             string[] serverList = data.Split(new[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries);
 
-            // skip first header item ("address;country;countrycode;name;password;clients;maxclients;official;latitude;longitude;version;distance")
+            // skip the header
             foreach (string serverInfo in serverList.Skip(1))
             {
                 try

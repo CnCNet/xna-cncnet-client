@@ -34,15 +34,33 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
             {
                 var tunnel = new CnCNetTunnel();
                 string[] parts = str.Split(';');
-                string address = parts[0];
+                string addressAndPort = parts[0];
+                string secondaryAddress = parts.Length > 12 ? parts[12] : null;
                 int version = int.Parse(parts[10], CultureInfo.InvariantCulture);
+#if NETFRAMEWORK
+                string primaryAddress = addressAndPort.Substring(0, addressAndPort.LastIndexOf(':'));
+#else
+                string primaryAddress = addressAndPort[..addressAndPort.LastIndexOf(':')];
+#endif
+                var primaryIpAddress = IPAddress.Parse(primaryAddress);
+                IPAddress secondaryIpAddress = string.IsNullOrWhiteSpace(secondaryAddress) ? null : IPAddress.Parse(secondaryAddress);
+
+                if (Socket.OSSupportsIPv6 && primaryIpAddress.AddressFamily is AddressFamily.InterNetworkV6)
+                    tunnel.Address = primaryIpAddress.ToString();
+                else if (Socket.OSSupportsIPv6 && secondaryIpAddress?.AddressFamily is AddressFamily.InterNetworkV6)
+                    tunnel.Address = secondaryIpAddress.ToString();
+                else if (Socket.OSSupportsIPv4 && primaryIpAddress.AddressFamily is AddressFamily.InterNetwork)
+                    tunnel.Address = primaryIpAddress.ToString();
+                else if (Socket.OSSupportsIPv4 && secondaryIpAddress?.AddressFamily is AddressFamily.InterNetwork)
+                    tunnel.Address = secondaryIpAddress.ToString();
+                else
+                    throw new($"No supported IP address found ({nameof(Socket.OSSupportsIPv6)}={Socket.OSSupportsIPv6}," +
+                              $" {nameof(Socket.OSSupportsIPv4)}={Socket.OSSupportsIPv4}) for {str}.");
 
 #if NETFRAMEWORK
-                tunnel.Address = address.Substring(0, address.LastIndexOf(':'));
-                tunnel.Port = int.Parse(address.Substring(address.LastIndexOf(':') + 1), CultureInfo.InvariantCulture);
+                tunnel.Port = int.Parse(addressAndPort.Substring(addressAndPort.LastIndexOf(':') + 1), CultureInfo.InvariantCulture);
 #else
-                tunnel.Address = address[..address.LastIndexOf(':')];
-                tunnel.Port = int.Parse(address[(address.LastIndexOf(':') + 1)..], CultureInfo.InvariantCulture);
+                tunnel.Port = int.Parse(addressAndPort[(addressAndPort.LastIndexOf(':') + 1)..], CultureInfo.InvariantCulture);
 #endif
                 tunnel.Country = parts[1];
                 tunnel.CountryCode = parts[2];
