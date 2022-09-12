@@ -3,6 +3,7 @@ using Microsoft.Xna.Framework;
 using Rampastring.Tools;
 using System;
 using System.Collections.Generic;
+using Localization;
 
 namespace DTAClient.Domain.Multiplayer
 {
@@ -16,6 +17,10 @@ namespace DTAClient.Domain.Multiplayer
         public Color XnaColor { get; private set; }
 
         private static List<MultiplayerColor> colorList;
+
+        private static string randomColorLabel;
+
+        private static string RandomColorDefaultLabel => "Random".L10N("UI:Main:RandomColor");
 
         /// <summary>
         /// Creates a new multiplayer color from data in a string array.
@@ -68,8 +73,15 @@ namespace DTAClient.Domain.Multiplayer
                 }
             }
 
+            var randomColorSection = gameOptionsIni.GetSection("MPColorsRandomLabel");
+            if (randomColorSection != null)
+                randomColorLabel = randomColorSection.GetStringValue("Text", null);
+
             colorList = mpColors;
             return new List<MultiplayerColor>(colorList);
         }
+
+        public static string GetRandomColorLabel()
+            => string.IsNullOrEmpty(randomColorLabel) ? RandomColorDefaultLabel : randomColorLabel;
     }
 }

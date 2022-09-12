@@ -255,7 +255,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 ddGameModeMapFilter.AddItem(CreateGameFilterItem(gm.UIName, new GameModeMapFilter(GetGameModeMaps(gm))));
 
             lblGameModeSelect = FindChild<XNALabel>(nameof(lblGameModeSelect));
-            
+
             InitBtnMapSort();
 
             tbMapSearch = FindChild<XNASuggestionTextBox>(nameof(tbMapSearch));
@@ -784,9 +784,14 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 ddPlayerColor.ClientRectangle = new Rectangle(
                     ddPlayerSide.Right + playerOptionHorizontalMargin,
                     ddPlayerName.Y, colorWidth, DROP_DOWN_HEIGHT);
-                ddPlayerColor.AddItem("Random".L10N("UI:Main:RandomColor"), AssetLoader.GetColorFromString(randomColor));
+                ddPlayerColor.AddItem(MultiplayerColor.GetRandomColorLabel(), AssetLoader.GetColorFromString(randomColor));
                 foreach (MultiplayerColor mpColor in MPColors)
-                    ddPlayerColor.AddItem(mpColor.Name, mpColor.XnaColor);
+                {
+                    if(mpColor.Name.StartsWith("$"))
+                        ddPlayerColor.AddItem(string.Empty, AssetLoader.CreateTexture(mpColor.XnaColor, ddPlayerColor.Width - 2, ddPlayerColor.ItemHeight + 2));
+                    else
+                        ddPlayerColor.AddItem(mpColor.Name, mpColor.XnaColor);
+                }
                 ddPlayerColor.AllowDropDown = false;
                 ddPlayerColor.SelectedIndexChanged += CopyPlayerDataFromUI;
                 ddPlayerColor.Tag = false;
