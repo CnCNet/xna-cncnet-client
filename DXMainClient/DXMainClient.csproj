@@ -44,7 +44,7 @@
   <ItemGroup>
     <PackageReference Include="lzo.net" Version="0.0.6" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
-    <PackageReference Include="OpenMcdf" Version="2.2.1.9" />
+    <PackageReference Include="OpenMcdf" Version="2.2.1.12" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\DTAConfig\DTAConfig.csproj" />

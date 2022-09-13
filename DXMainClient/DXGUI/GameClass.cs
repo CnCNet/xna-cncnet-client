@@ -97,7 +97,7 @@ namespace DTAClient.DXGUI
                         Logger.Log("Starting " + launcherExe + " and exiting.");
 
                         Process.Start(SafePath.CombineFilePath(ProgramConstants.GamePath, launcherExe));
-                        Environment.Exit(0);
+                        Environment.Exit(1);
                     }
                 }
             }
@@ -108,7 +108,7 @@ namespace DTAClient.DXGUI
             WindowManager wm = new WindowManager(this, graphics);
             wm.Initialize(content, ProgramConstants.GetBaseResourcePath());
 
-            ProgramConstants.UserErrorAction = (title, error) =>
+            ProgramConstants.DisplayErrorAction = (title, error) =>
             {
                 new XNAMessageBox(wm, title, error, XNAMessageBoxButtons.OK).Show();
             };

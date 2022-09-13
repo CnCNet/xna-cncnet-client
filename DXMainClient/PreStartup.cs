@@ -167,7 +167,8 @@ namespace DTAClient
                     + Environment.NewLine + Environment.NewLine +
                     "Message: " + ex.Message;
 
-                ProgramConstants.UserErrorAction(null, error);
+                ProgramConstants.DisplayErrorAction(null, error);
+                Environment.Exit(1);
             }
 
 #if WINFORMS
@@ -228,7 +229,7 @@ namespace DTAClient
                 MainClientConstants.GAME_NAME_SHORT,
                 MainClientConstants.SUPPORT_URL_SHORT);
 
-            ProgramConstants.UserErrorAction("KABOOOOOOOM".L10N("UI:Main:FatalErrorTitle"), error);
+            ProgramConstants.DisplayErrorAction("KABOOOOOOOM".L10N("UI:Main:FatalErrorTitle"), error);
         }
 
 #if !NETFRAMEWORK
@@ -244,13 +245,13 @@ namespace DTAClient
                 "Would you like to restart the client with administrative rights?" + Environment.NewLine + Environment.NewLine +
                 "Please also make sure that your security software isn't blocking {1}.").L10N("UI:Main:AdminRequiredText"), MainClientConstants.GAME_NAME_LONG, MainClientConstants.GAME_NAME_SHORT);
 
-            ProgramConstants.UserErrorAction("Administrative priveleges required".L10N("UI:Main:AdminRequiredTitle"), error);
+            ProgramConstants.DisplayErrorAction("Administrative priveleges required".L10N("UI:Main:AdminRequiredTitle"), error);
 
             ProcessStartInfo psInfo = new ProcessStartInfo();
             psInfo.FileName = SafePath.CombineDirectoryPath(ProgramConstants.StartupExecutable);
             psInfo.Verb = "runas";
             Process.Start(psInfo);
-            Environment.Exit(0);
+            Environment.Exit(1);
         }
 
         /// <summary>

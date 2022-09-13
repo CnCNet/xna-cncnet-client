@@ -55,8 +55,12 @@ namespace ClientCore
         public const int GAME_ID_MAX_LENGTH = 4;
 
         public static readonly Encoding LAN_ENCODING = Encoding.UTF8;
-        public static readonly bool ISMONO = isMono ??= Type.GetType("Mono.Runtime") != null;
-        private static readonly bool? isMono;
+        private static bool? isMono;
+
+        /// <summary>
+        /// Gets a value whether or not the application is running under Mono. Uses lazy loading and caching.
+        /// </summary>
+        public static bool ISMONO => isMono ??= Type.GetType("Mono.Runtime") != null;
         public static string GAME_VERSION = "Undefined";
         private static string PlayerName = "No name";
 
@@ -110,7 +114,7 @@ namespace ClientCore
         /// <summary>
         /// Gets or sets the action to perform to notify the user of an error.
         /// </summary>
-        public static Action<string, string> UserErrorAction { get; set; } = (title, error) =>
+        public static Action<string, string> DisplayErrorAction { get; set; } = (title, error) =>
         {
             Logger.Log(FormattableString.Invariant($"{(title is null ? null : title + Environment.NewLine + Environment.NewLine)}{error}"));
 

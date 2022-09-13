@@ -131,37 +131,19 @@ namespace DTAClient.Online
                 list.Add(value);
         }
 
-        private void LoadFriendList()
-        {
-            FriendList = LoadTextList(FRIEND_LIST_PATH);
-        }
+        private void LoadFriendList() => FriendList = LoadTextList(FRIEND_LIST_PATH);
 
-        private void LoadIgnoreList()
-        {
-            IgnoreList = LoadTextList(IGNORE_LIST_PATH);
-        }
+        private void LoadIgnoreList() => IgnoreList = LoadTextList(IGNORE_LIST_PATH);
 
-        private void LoadRecentPlayerList()
-        {
-            RecentList = LoadJsonList<RecentPlayer>(RECENT_LIST_PATH);
-        }
+        private void LoadRecentPlayerList() => RecentList = LoadJsonList<RecentPlayer>(RECENT_LIST_PATH);
 
         private void WindowManager_GameClosing(object sender, EventArgs e) => Save();
 
-        private void SaveFriends()
-        {
-            SaveTextList(FRIEND_LIST_PATH, FriendList);
-        }
+        private void SaveFriends() => SaveTextList(FRIEND_LIST_PATH, FriendList);
 
-        private void SaveIgnoreList()
-        {
-            SaveTextList(IGNORE_LIST_PATH, IgnoreList);
-        }
+        private void SaveIgnoreList() => SaveTextList(IGNORE_LIST_PATH, IgnoreList);
 
-        private void SaveRecentList()
-        {
-            SaveJsonList(RECENT_LIST_PATH, RecentList);
-        }
+        private void SaveRecentList() => SaveJsonList(RECENT_LIST_PATH, RecentList);
 
         private void Save()
         {

@@ -1,7 +1,6 @@
 ﻿using System.IO;
 using Rampastring.Tools;
 using ClientCore;
-using System.Text;
 using ClientCore.PlatformShim;
 
 namespace DTAClient.Domain
@@ -13,7 +12,9 @@ namespace DTAClient.Domain
         /// </summary>
         public static void WriteFinalSunIni()
         {
-            // the encoding of the FinalSun/FinalAlert ini file should be ANSI instead of UTF-8. Otherwise, the map editor will not work in a non-ASCII path. ANSI doesn't mean a specific codepage, it means the default non-Unicode codepage which can be changed from Control Panel.
+            // The encoding of the FinalSun/FinalAlert ini file should be legacy ANSI, not Windows-1252 and also not any specific encoding.
+            // Otherwise, the map editor will not work in a non-ASCII path. ANSI doesn't mean a specific codepage,
+            // it means the default non-Unicode codepage which can be changed from Control Panel.
             try
             {
                 string finalSunIniPath = ClientConfiguration.Instance.FinalSunIniPath;
