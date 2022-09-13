@@ -24,7 +24,7 @@ using System.Threading.Tasks;
 
 namespace DTAClient.DXGUI.Multiplayer.GameLobby
 {
-    public class LANGameLobby : MultiplayerGameLobby
+    internal sealed class LANGameLobby : MultiplayerGameLobby
     {
         private const int GAME_OPTION_SPECIAL_FLAG_COUNT = 5;
 

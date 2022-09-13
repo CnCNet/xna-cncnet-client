@@ -7,7 +7,7 @@ using ClientCore.Extensions;
 
 namespace DTAClient.DXGUI.Multiplayer.CnCNet
 {
-    public class RecentPlayerTable : XNAMultiColumnListBox
+    internal sealed class RecentPlayerTable : XNAMultiColumnListBox
     {
         private readonly CnCNetManager connectionManager;
 
