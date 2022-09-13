@@ -697,7 +697,7 @@ namespace DTAClient.Online
                         }
                         break;
                     case "MODE":
-                        string modeUserName = prefix.Substring(0, prefix.IndexOf('!'));
+                        string modeUserName = prefix.Contains('!') ? prefix.Substring(0, prefix.IndexOf('!')) : prefix;
                         string modeChannelName = parameters[0];
                         string modeString = parameters[1];
                         List<string> modeParameters =
