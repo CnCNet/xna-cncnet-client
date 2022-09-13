@@ -8,7 +8,7 @@ using Localization;
 
 namespace DTAClient.Online
 {
-    public class Channel : IMessageView
+    internal sealed class Channel : IMessageView
     {
         const int MESSAGE_LIMIT = 1024;
 
@@ -115,6 +115,7 @@ namespace DTAClient.Online
 
         public async Task OnUserJoinedAsync(ChannelUser user)
         {
+            await Task.CompletedTask;
             AddUser(user);
 
             if (notifyOnUserListChange)

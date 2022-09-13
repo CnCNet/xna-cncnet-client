@@ -16,7 +16,7 @@ using Localization;
 
 namespace DTAClient.DXGUI.Multiplayer.GameLobby
 {
-    public class SkirmishLobby : GameLobbyBase, ISwitchable
+    internal sealed class SkirmishLobby : GameLobbyBase, ISwitchable
     {
         private const string SETTINGS_PATH = "Client/SkirmishSettings.ini";
 

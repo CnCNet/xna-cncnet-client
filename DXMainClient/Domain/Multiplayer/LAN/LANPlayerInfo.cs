@@ -136,7 +136,7 @@ namespace DTAClient.Domain.Multiplayer.LAN
         /// <summary>
         /// Starts receiving messages from the player asynchronously.
         /// </summary>
-        public async Task StartReceiveLoopAsync(CancellationToken cancellationToken)
+        public Task StartReceiveLoopAsync(CancellationToken cancellationToken)
             => ReceiveMessagesAsync(cancellationToken);
 
         /// <summary>

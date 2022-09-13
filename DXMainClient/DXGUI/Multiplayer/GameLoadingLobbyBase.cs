@@ -218,7 +218,7 @@ namespace DTAClient.DXGUI.Multiplayer
         /// </summary>
         private void ResetDiscordPresence() => discordHandler.UpdatePresence();
 
-        private async Task BtnLeaveGame_LeftClickAsync() => LeaveGameAsync();
+        private Task BtnLeaveGame_LeftClickAsync() => LeaveGameAsync();
 
         protected virtual Task LeaveGameAsync()
         {

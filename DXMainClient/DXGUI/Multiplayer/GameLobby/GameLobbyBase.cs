@@ -407,7 +407,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         protected abstract void AddNotice(string message, Color color);
 
-        private async Task BtnPickRandomMap_LeftClickAsync() => PickRandomMapAsync();
+        private Task BtnPickRandomMap_LeftClickAsync() => PickRandomMapAsync();
 
         private void TbMapSearch_InputReceived(object sender, EventArgs e) => ListMaps();
 

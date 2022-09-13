@@ -20,7 +20,7 @@ namespace DTAClient.Online
     /// <summary>
     /// The CnCNet connection handler.
     /// </summary>
-    public class Connection
+    internal sealed class Connection
     {
         private const int MAX_RECONNECT_COUNT = 8;
         private const int RECONNECT_WAIT_DELAY = 4000;
@@ -40,21 +40,14 @@ namespace DTAClient.Online
         private static readonly IList<Server> Servers = new List<Server>
         {
             new("Burstfire.UK.EU.GameSurge.net", "GameSurge London, UK", new[] { 6667, 6668, 7000 }),
-            new("ColoCrossing.IL.US.GameSurge.net", "GameSurge Chicago, IL", new[] { 6660, 6666, 6667, 6668, 6669 }),
+            new("VortexServers.IL.US.GameSurge.net", "GameSurge Chicago, IL", new[] { 6660, 6666, 6667, 6668, 6669 }),
             new("Gameservers.NJ.US.GameSurge.net", "GameSurge Newark, NJ", new[] { 6665, 6666, 6667, 6668, 6669, 7000, 8080 }),
             new("Krypt.CA.US.GameSurge.net", "GameSurge Santa Ana, CA",new[] { 6666, 6667, 6668, 6669 }),
             new("NuclearFallout.WA.US.GameSurge.net", "GameSurge Seattle, WA", new[] { 6667, 5960 }),
-            new("Portlane.SE.EU.GameSurge.net", "GameSurge Stockholm, Sweden", new[] { 6660, 6666, 6667, 6668, 6669 }),
-            new("Prothid.NY.US.GameSurge.Net", "GameSurge NYC, NY", new[] { 5960, 6660, 6666, 6667, 6668, 6669, 6697 }),
+            new("Stockholm.SE.EU.GameSurge.net", "GameSurge Stockholm, Sweden", new[] { 6660, 6666, 6667, 6668, 6669 }),
+            new("Prothid.NY.US.GameSurge.Net", "GameSurge NYC, NY", new[] { 5960, 6660, 6666, 6667, 6668, 6669 }),
             new("TAL.DE.EU.GameSurge.net", "GameSurge Wuppertal, Germany", new[] { 6660, 6666, 6667, 6668, 6669 }),
-            new("208.167.237.120", "GameSurge IP 208.167.237.120", new[] {  6660, 6666, 6667, 6668, 6669, 7000, 8080 }),
-            new("192.223.27.109", "GameSurge IP 192.223.27.109", new[] {  6660, 6666, 6667, 6668, 6669, 7000, 8080 }),
-            new("108.174.48.100", "GameSurge IP 108.174.48.100", new[] { 6660, 6666, 6667, 6668, 6669, 7000, 8080 }),
-            new("208.146.35.105", "GameSurge IP 208.146.35.105", new[] { 6660, 6666, 6667, 6668, 6669, 7000, 8080 }),
-            new("195.8.250.180", "GameSurge IP 195.8.250.180", new[] { 6660, 6666, 6667, 6668, 6669, 7000, 8080 }),
-            new("91.217.189.76", "GameSurge IP 91.217.189.76", new[] { 6660, 6666, 6667, 6668, 6669, 7000, 8080 }),
-            new("195.68.206.250", "GameSurge IP 195.68.206.250", new[] { 6660, 6666, 6667, 6668, 6669, 7000, 8080 }),
-            new("irc.gamesurge.net", "GameSurge", new[] { 6667 }),
+            new("irc.gamesurge.net", "GameSurge", new[] { 6667 })
         }.AsReadOnly();
 
         bool _isConnected;
@@ -357,7 +350,8 @@ namespace DTAClient.Online
             (IPAddress IpAddress, string Name, int[] Ports)[] serverInfos = serverInfosGroupedByIPAddress.Select(serverInfoGroup =>
             {
                 IPAddress ipAddress = serverInfoGroup.Key;
-                string serverNames = string.Join(", ", serverInfoGroup.Select(serverInfo => serverInfo.Name));
+                string serverNames = string.Join(", ", serverInfoGroup.Where(serverInfo => !"GameSurge".Equals(serverInfo.Name))
+                    .Select(serverInfo => serverInfo.Name));
                 int[] serverPorts = serverInfoGroup.SelectMany(serverInfo => serverInfo.Ports).Distinct().ToArray();
 
                 return (ipAddress, serverNames, serverPorts);
@@ -381,22 +375,34 @@ namespace DTAClient.Online
                 Logger.Log($"Skipped a failed server {name} ({ipAddress}).");
             }
 
-            (Server Server, long Result)[] serverAndLatencyResults =
+            (Server Server, IPAddress IpAddress, long Result)[] serverAndLatencyResults =
                 await Task.WhenAll(serverInfos.Where(q => !failedServerIPs.Contains(q.IpAddress.ToString())).Select(PingServerAsync));
 
-            // Sort the servers by latency.
-            (Server Server, long Result)[] sortedServerAndLatencyResults = serverAndLatencyResults
+            // Sort the servers by AddressFamily & latency.
+            (Server Server, IPAddress IpAddress, long Result)[] sortedServerAndLatencyResults = serverAndLatencyResults
+                .Where(server => server.IpAddress.AddressFamily is AddressFamily.InterNetworkV6 && server.Result is not long.MaxValue)
                 .Select(server => server)
                 .OrderBy(taskResult => taskResult.Result)
+                .Concat(serverAndLatencyResults
+                    .Where(server => server.IpAddress.AddressFamily is AddressFamily.InterNetwork && server.Result is not long.MaxValue)
+                    .Select(server => server)
+                    .OrderBy(taskResult => taskResult.Result))
+                .Concat(serverAndLatencyResults
+                    .Where(server => server.IpAddress.AddressFamily is AddressFamily.InterNetworkV6 && server.Result is long.MaxValue)
+                    .Select(server => server)
+                    .OrderBy(taskResult => taskResult.Result))
+                .Concat(serverAndLatencyResults
+                    .Where(server => server.IpAddress.AddressFamily is AddressFamily.InterNetwork && server.Result is long.MaxValue)
+                    .Select(server => server)
+                    .OrderBy(taskResult => taskResult.Result))
                 .ToArray();
 
             // Do logging.
-            foreach ((Server server, long serverLatencyValue) in sortedServerAndLatencyResults)
+            foreach ((Server _, IPAddress ipAddress, long serverLatencyValue) in sortedServerAndLatencyResults)
             {
-                string serverIPAddress = server.Host;
                 string serverLatencyString = serverLatencyValue <= MAXIMUM_LATENCY ? serverLatencyValue.ToString() : "DNF";
 
-                Logger.Log($"Lobby server IP: {serverIPAddress}, latency: {serverLatencyString}.");
+                Logger.Log($"Lobby server IP: {ipAddress}, latency: {serverLatencyString}.");
             }
 
             int candidateCount = sortedServerAndLatencyResults.Length;
@@ -409,7 +415,7 @@ namespace DTAClient.Online
             return sortedServerAndLatencyResults.Select(taskResult => taskResult.Server).ToList();
         }
 
-        private static async Task<(Server Server, long Result)> PingServerAsync((IPAddress IpAddress, string Name, int[] Ports) serverInfo)
+        private static async Task<(Server Server, IPAddress IpAddress, long Result)> PingServerAsync((IPAddress IpAddress, string Name, int[] Ports) serverInfo)
         {
             Logger.Log($"Attempting to ping {serverInfo.Name} ({serverInfo.IpAddress}).");
             var server = new Server(serverInfo.IpAddress.ToString(), serverInfo.Name, serverInfo.Ports);
@@ -424,19 +430,19 @@ namespace DTAClient.Online
                     long pingInMs = pingReply.RoundtripTime;
                     Logger.Log($"The latency in milliseconds to the server {serverInfo.Name} ({serverInfo.IpAddress}): {pingInMs}.");
 
-                    return (server, pingInMs);
+                    return (server, serverInfo.IpAddress, pingInMs);
                 }
 
                 Logger.Log($"Failed to ping the server {serverInfo.Name} ({serverInfo.IpAddress}): " +
                     $"{Enum.GetName(typeof(IPStatus), pingReply.Status)}.");
 
-                return (server, long.MaxValue);
+                return (server, serverInfo.IpAddress, long.MaxValue);
             }
             catch (PingException ex)
             {
                 PreStartup.LogException(ex, $"Caught an exception when pinging {serverInfo.Name} ({serverInfo.IpAddress}) Lobby server.");
 
-                return (server, long.MaxValue);
+                return (server, serverInfo.IpAddress, long.MaxValue);
             }
         }
 

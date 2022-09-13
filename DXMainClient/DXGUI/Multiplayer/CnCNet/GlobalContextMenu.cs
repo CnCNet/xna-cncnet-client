@@ -14,7 +14,7 @@ using TextCopy;
 
 namespace DTAClient.DXGUI.Multiplayer.CnCNet
 {
-    public class GlobalContextMenu : XNAContextMenu
+    internal sealed class GlobalContextMenu : XNAContextMenu
     {
         private readonly string PRIVATE_MESSAGE = "Private Message".L10N("UI:Main:PrivateMessage");
         private readonly string ADD_FRIEND = "Add Friend".L10N("UI:Main:AddFriend");
@@ -36,8 +36,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         private XNAContextMenuItem copyLinkItem;
         private XNAContextMenuItem openLinkItem;
 
-        protected readonly CnCNetManager connectionManager;
-        protected GlobalContextMenuData contextMenuData;
+        private readonly CnCNetManager connectionManager;
+        private GlobalContextMenuData contextMenuData;
 
         public EventHandler<JoinUserEventArgs> JoinEvent;
 
