@@ -261,8 +261,6 @@ namespace DTAClient.Online
                 }
                 catch (OperationCanceledException)
                 {
-                    connectionManager.OnDisconnected();
-                    connectionCut = false; // This disconnect is intentional
                     break;
                 }
 #endif
@@ -298,14 +296,12 @@ namespace DTAClient.Online
                 timer.Interval = 30000;
             }
 
-#if NETFRAMEWORK
             if (cancellationToken.IsCancellationRequested)
             {
                 connectionManager.OnDisconnected();
                 connectionCut = false; // This disconnect is intentional
             }
 
-#endif
             timer.Enabled = false;
             timer.Dispose();
 
@@ -314,7 +310,7 @@ namespace DTAClient.Online
             if (connectionCut)
             {
                 while (!sendQueueExited)
-                    await Task.Delay(100);
+                    await Task.Delay(100, cancellationToken);
 
                 reconnectCount++;
 
@@ -324,7 +320,7 @@ namespace DTAClient.Online
                     return;
                 }
 
-                await Task.Delay(RECONNECT_WAIT_DELAY);
+                await Task.Delay(RECONNECT_WAIT_DELAY, cancellationToken);
 
                 if (IsConnected || AttemptingConnection)
                 {
