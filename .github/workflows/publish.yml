@@ -25,7 +25,7 @@ jobs:
     - name: Pack
       run: dotnet pack ClientUpdater\ClientUpdater.csproj --configuration Release -p:AssemblyVersion=$env:GitVersion_AssemblySemVer -p:FileVersion=$env:GitVersion_AssemblySemFileVer -p:InformationalVersion=$env:GitVersion_InformationalVersion -p:PackageVersion=$env:GitVersion_NuGetVersionV2
     - name: Push
-      run: dotnet nuget push ClientUpdater\bin\Release\*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json
+      run: dotnet nuget push ClientUpdater\bin\Release\*.nupkg --api-key ${{ secrets.GITHUB_TOKEN }} --source https://nuget.pkg.github.com/CnCNet/index.json
     - name: Prerelease
       if: ${{ env.GitVersion_PreReleaseTag != '' }}
       run: gh release create ${{ format('v{0}', env.GitVersion_SemVer) }} --generate-notes --target ${{ github.sha }} --prerelease
