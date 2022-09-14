@@ -9,6 +9,6 @@ Migrating from older versions
 
 - Second-stage updater no longer has hardcoded list of launcher executables to check for when restarting the client. It will now only check `ClientDefinitions.ini` for `LauncherExe` key, and it it fails to read and launch this the client will not automatically restart after updating.
 
-- Updater DLL filename has been changed from `DTAUpdater.dll` to `ClientUpdater.dll` and second-stage updater from `clientupdt.dat` to `SecondStageUpdater.exe` and has been moved from base folder to `Resources`.
+- Updater DLL filename has been changed from `DTAUpdater.dll` to `CnCNet.ClientUpdater.dll` and second-stage updater from `clientupdt.dat` to `SecondStageUpdater.exe` and has been moved from base folder to `Resources`.
 
 - The use of .cur mouse cursor files is not supported on the cross-platform 'UniversalGL' build. To ensure the intended cursor is shown instead of a missing texture (pink square) all themes need to contain a `cursor.png` file. Existing .cur files will still be used by the Windows-only builds.
