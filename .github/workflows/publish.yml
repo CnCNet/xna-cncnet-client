@@ -29,11 +29,11 @@ jobs:
       run: dotnet nuget push ClientUpdater\bin\Release\*.nupkg --api-key ${{ secrets.GITHUB_TOKEN }} --source https://nuget.pkg.github.com/CnCNet/index.json
     - name: Prerelease
       if: ${{ env.GitVersion_PreReleaseTag != '' }}
-      run: gh release create ${{ format('v{0}', env.GitVersion_SemVer) }} --generate-notes --target ${{ github.sha }} --prerelease
+      run: gh release create ${{ format('v{0}', env.GitVersion_SemVer) }} (get-item ClientUpdater\bin\Release\*.*nupkg) --generate-notes --target ${{ github.sha }} --prerelease
       env:
         GH_TOKEN: ${{ github.token }}
     - name: Release
       if: ${{ env.GitVersion_PreReleaseTag == '' }}
-      run: gh release create ${{ format('v{0}', env.GitVersion_SemVer) }} --generate-notes --target ${{ github.sha }}
+      run: gh release create ${{ format('v{0}', env.GitVersion_SemVer) }} (get-item ClientUpdater\bin\Release\*.*nupkg) --generate-notes --target ${{ github.sha }}
       env:
         GH_TOKEN: ${{ github.token }}
