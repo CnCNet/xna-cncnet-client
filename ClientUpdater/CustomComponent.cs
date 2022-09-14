@@ -129,7 +129,7 @@ namespace ClientUpdater
         {
             GUIName = guiName;
             ININame = iniName;
-            LocalPath = localPath.Replace('\\', '/');
+            LocalPath = localPath;
             DownloadPath = downloadPath;
             IsDownloadPathAbsolute = isDownloadPathAbsolute;
             NoArchiveExtensionForDownloadPath = noArchiveExtensionForDownloadPath;
@@ -175,16 +175,16 @@ namespace ClientUpdater
                 currentDownloadPercentage = -1;
                 string uniqueIdForFile = "";
                 string uriString = Updater.CurrentUpdateServerURL + Updater.VERSION_FILE;
-                string finalFileName = Updater.GamePath + LocalPath;
-                string versionFileName = Updater.GamePath + Updater.VERSION_FILE + "_cc";
+                string finalFileName = SafePath.CombineFilePath(Updater.GamePath, LocalPath);
+                string finalFileNameTemp = FormattableString.Invariant($"{finalFileName}_u");
+                string versionFileName = SafePath.CombineFilePath(Updater.GamePath, FormattableString.Invariant($"{Updater.VERSION_FILE}_cc"));
                 UpdaterFileInfo info = null;
 
-                Updater.CreatePath(Updater.GamePath + LocalPath);
+                Updater.CreatePath(finalFileName);
 
                 WebClient client = new WebClient
                 {
-                    CachePolicy = new RequestCachePolicy(RequestCacheLevel.NoCacheNoStore),
-                    Encoding = Encoding.GetEncoding("Windows-1252")
+                    CachePolicy = new RequestCachePolicy(RequestCacheLevel.NoCacheNoStore)
                 };
 
                 client.Headers.Add(HttpRequestHeader.UserAgent, Updater.GetUserAgentString());
@@ -195,12 +195,12 @@ namespace ClientUpdater
                 IniFile version = new IniFile(versionFileName);
                 string[] tmp = version.GetStringValue("AddOns", ININame, "").Split(',');
                 Updater.GetArchiveInfo(version, LocalPath, out string archiveID, out int archiveSize);
-                info = Updater.CreateFileInfo(Updater.GamePath + LocalPath, tmp[0], Conversions.IntFromString(tmp[1], 0), archiveID, archiveSize);
+                info = Updater.CreateFileInfo(finalFileName, tmp[0], Conversions.IntFromString(tmp[1], 0), archiveID, archiveSize);
 
                 Logger.Log("CustomComponent: Version info parsed. Proceeding to download component.");
                 int num = 0;
                 Uri downloadUri = GetDownloadUri(DownloadPath, info);
-                string downloadFileName = GetArchivePath(finalFileName, info) + "_u";
+                string downloadFileName = FormattableString.Invariant($"{GetArchivePath(finalFileName, info)}_u");
                 Logger.Log("CustomComponent: Download URL for custom component " + GUIName + ": " + downloadUri.AbsoluteUri);
                 CheckDownloadCancelStatus();
 
@@ -212,8 +212,7 @@ namespace ClientUpdater
 
                     WebClient clientFile = new WebClient
                     {
-                        CachePolicy = new RequestCachePolicy(RequestCacheLevel.NoCacheNoStore),
-                        Encoding = Encoding.GetEncoding("Windows-1252")
+                        CachePolicy = new RequestCachePolicy(RequestCacheLevel.NoCacheNoStore)
                     };
 
                     clientFile.Headers.Add(HttpRequestHeader.UserAgent, Updater.GetUserAgentString());
@@ -245,11 +244,12 @@ namespace ClientUpdater
 
                     if (info.Archived)
                     {
-                        filesToCleanup.Add(finalFileName + "_u");
+                        filesToCleanup.Add(finalFileNameTemp);
                         string archiveLocalPath = GetArchivePath(LocalPath, info);
-                        string archivePath = Updater.GamePath + archiveLocalPath + "_u";
+                        string archiveLocalPathTemp = FormattableString.Invariant($"{archiveLocalPath}_u");
+                        FileInfo archivePathFileInfo = SafePath.GetFile(Updater.GamePath, archiveLocalPathTemp);
                         Logger.Log("CustomComponent: Custom component is an archive.");
-                        string archiveIdentifier = Updater.GetUniqueIdForFile(archiveLocalPath + "_u");
+                        string archiveIdentifier = Updater.GetUniqueIdForFile(archiveLocalPathTemp);
 
                         if (archiveIdentifier != info.ArchiveIdentifier)
                         {
@@ -259,20 +259,20 @@ namespace ClientUpdater
                                 throw new Exception("Too many retries for downloading component.");
 
                             Logger.Log("CustomComponent: Downloaded archive " + archiveLocalPath + "_u has a non-matching identifier: " + archiveIdentifier + " against " + info.ArchiveIdentifier + ". Retrying.");
-                            Updater.DeleteFileAndWait(archivePath);
+                            Updater.DeleteFileAndWait(archivePathFileInfo.FullName);
                             continue;
                         }
                         else
                         {
                             CheckDownloadCancelStatus();
                             Logger.Log("CustomComponent: Archive " + archiveLocalPath + "_u is intact. Unpacking...");
-                            CompressionHelper.DecompressFile(archivePath, finalFileName + "_u", downloadTaskCancelToken);
-                            File.Delete(archivePath);
+                            CompressionHelper.DecompressFile(archivePathFileInfo.FullName, finalFileNameTemp, downloadTaskCancelToken);
+                            archivePathFileInfo.Delete();
                         }
                     }
 
                     CheckDownloadCancelStatus();
-                    uniqueIdForFile = Updater.GetUniqueIdForFile(LocalPath + "_u");
+                    uniqueIdForFile = Updater.GetUniqueIdForFile(FormattableString.Invariant($"{LocalPath}_u"));
                     if (info.Identifier != uniqueIdForFile)
                     {
                         if (num > 2)
@@ -287,8 +287,8 @@ namespace ClientUpdater
                 }
 
                 CheckDownloadCancelStatus();
-                Logger.Log("Downloaded custom component " + GUIName + " verified succesfully.");
-                File.Copy(finalFileName + "_u", finalFileName, true);
+                Logger.Log("Downloaded custom component " + GUIName + " verified successfully.");
+                File.Copy(finalFileNameTemp, finalFileName, true);
                 LocalIdentifier = uniqueIdForFile;
                 IsBeingDownloaded = false;
                 CleanUpAfterDownload();
@@ -308,7 +308,7 @@ namespace ClientUpdater
                         {
                             if (!displayError)
                             {
-                                Logger.Log("CustomComponent: One or more errors occured while downloading custom component " + GUIName + ". The download has been aborted.");
+                                Logger.Log("CustomComponent: One or more errors occurred while downloading custom component " + GUIName + ". The download has been aborted.");
                                 displayError = true;
                             }
 
@@ -334,7 +334,7 @@ namespace ClientUpdater
                     return;
                 }
 
-                Logger.Log("CustomComponent: An error occured while downloading custom component " + GUIName + ". The download has been aborted. Message: " + e.Message);
+                Logger.Log("CustomComponent: An error occurred while downloading custom component " + GUIName + ". The download has been aborted. Message: " + e.Message);
                 IsBeingDownloaded = false;
                 CleanUpAfterDownload();
                 DoDownloadFinished(false);

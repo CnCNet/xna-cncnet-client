@@ -76,7 +76,7 @@ namespace SecondStageUpdater
                     Write("Updating files.", ConsoleColor.Green);
 
                     string[] paths = Directory.GetFiles(basePath + "Updater", "*", SearchOption.AllDirectories);
-                    string executablePath = new Uri(System.Reflection.Assembly.GetExecutingAssembly().CodeBase).LocalPath;
+                    string executablePath = new Uri(System.Reflection.Assembly.GetExecutingAssembly().Location).LocalPath;
                     executablePath = executablePath.Substring(basePath.Length).Replace("\\", "/");
 
                     for (int index = 0; index < paths.Length; ++index)

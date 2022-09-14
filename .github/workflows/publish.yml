@@ -1,0 +1,38 @@
+name: Publish
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  publish:
+    if: github.repository == 'CnCNet/cncnet-client-updater'
+    runs-on: windows-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@main
+      with:
+        fetch-depth: 0
+    - name: Setup .NET Core SDK
+      uses: actions/setup-dotnet@main
+      with:
+        dotnet-version: '6.x.x'
+    - name: Install GitVersion
+      uses: gittools/actions/gitversion/setup@main
+      with:
+        versionSpec: '5.x'
+    - name: Determine Version
+      uses: gittools/actions/gitversion/execute@main
+    - name: Pack
+      run: dotnet pack ClientUpdater\ClientUpdater.csproj --configuration Release -p:AssemblyVersion=$env:GitVersion_AssemblySemVer -p:FileVersion=$env:GitVersion_AssemblySemFileVer -p:InformationalVersion=$env:GitVersion_InformationalVersion -p:PackageVersion=$env:GitVersion_NuGetVersionV2
+    - name: Push
+      run: dotnet nuget push ClientUpdater\bin\Release\*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json
+    - name: Prerelease
+      if: ${{ env.GitVersion_PreReleaseTag != '' }}
+      run: gh release create ${{ format('v{0}', env.GitVersion_SemVer) }} --generate-notes --target ${{ github.sha }} --prerelease
+      env:
+        GH_TOKEN: ${{ github.token }}
+    - name: Release
+      if: ${{ env.GitVersion_PreReleaseTag == '' }}
+      run: gh release create ${{ format('v{0}', env.GitVersion_SemVer) }} --generate-notes --target ${{ github.sha }}
+      env:
+        GH_TOKEN: ${{ github.token }}

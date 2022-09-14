@@ -24,7 +24,6 @@ using System.Net.Cache;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
-using System.Windows.Forms;
 using System.Reflection;
 using System.ComponentModel;
 using System.Collections.ObjectModel;
@@ -38,7 +37,6 @@ namespace ClientUpdater
     {
         #region constants
 
-        public static readonly string CURRENT_CLIENT_EXECUTABLE = Path.GetFileName(Application.ExecutablePath);
         public const string SECOND_STAGE_UPDATER = "SecondStageUpdater.exe";
         public static string VERSION_FILE = "version";
         public const string ARCHIVE_FILE_EXTENSION = ".lzma";
@@ -61,6 +59,11 @@ namespace ClientUpdater
         /// Currently set local game ID for the updater.
         /// </summary>
         public static string LocalGame { get; private set; } = "None";
+
+        /// <summary>
+        /// Currently set calling executable file name for the updater.
+        /// </summary>
+        public static string CallingExecutableFileName { get; private set; } = string.Empty;
 
         /// <summary>
         /// Gets read-only collection of all custom components.
@@ -157,7 +160,8 @@ namespace ClientUpdater
         /// <param name="resourcePath">Path of the resource folder of client / game.</param>
         /// <param name="settingsIniName">Client settings INI filename.</param>
         /// <param name="localGame">Local game ID of the current game.</param>
-        public static void Initialize(string gamePath, string resourcePath, string settingsIniName, string localGame)
+        /// <param name="callingExecutableFileName">File name of the calling executable.</param>
+        public static void Initialize(string gamePath, string resourcePath, string settingsIniName, string localGame, string callingExecutableFileName)
         {
             Logger.Log("Updater: Initializing updater.");
 
@@ -165,11 +169,12 @@ namespace ClientUpdater
             ResourcePath = resourcePath;
             settingsINI = new IniFile(GamePath + settingsIniName);
             LocalGame = localGame;
+            CallingExecutableFileName = callingExecutableFileName;
 
             ReadUpdaterConfig();
 
             Logger.Log("Updater: Update mirror count: " + updateMirrors.Count);
-            Logger.Log("Updater: Running from: " + CURRENT_CLIENT_EXECUTABLE);
+            Logger.Log("Updater: Running from: " + CallingExecutableFileName);
             List<UpdateMirror> list = new List<UpdateMirror>();
             List<string> sectionKeys = settingsINI.GetSectionKeys("DownloadMirrors");
 
@@ -216,7 +221,7 @@ namespace ClientUpdater
 
             LocalFileInfos.Clear();
 
-            IniFile file = new IniFile(GamePath + VERSION_FILE);
+            IniFile file = new IniFile(SafePath.CombineFilePath(GamePath, VERSION_FILE));
             GameVersion = file.GetStringValue("DTA", "Version", "N/A");
             UpdaterVersion = file.GetStringValue("DTA", "UpdaterVersion", "N/A");
             List<string> sectionKeys = file.GetSectionKeys("FileVersions");
@@ -234,7 +239,7 @@ namespace ClientUpdater
                     {
                         UpdaterFileInfo item = new UpdaterFileInfo
                         {
-                            Filename = str.Replace('\\', '/'),
+                            Filename = SafePath.CombineFilePath(str),
                             Identifier = strArray[0],
                             Size = Conversions.IntFromString(strArray[1], 0),
                             ArchiveIdentifier = archiveAvailable ? strArrayArch[0] : string.Empty,
@@ -280,7 +285,7 @@ namespace ClientUpdater
         /// <returns></returns>
         public static bool IsFileNonexistantOrOriginal(string filePath)
         {
-            UpdaterFileInfo info = LocalFileInfos.Find(f => f.Filename.ToLower() == filePath.ToLower());
+            UpdaterFileInfo info = LocalFileInfos.Find(f => f.Filename.Equals(filePath, StringComparison.OrdinalIgnoreCase));
 
             if (info == null)
                 return true;
@@ -355,7 +360,7 @@ namespace ClientUpdater
         /// <param name="archiveSize">Set to archive file size.</param>
         internal static void GetArchiveInfo(IniFile versionFile, string filename, out string archiveID, out int archiveSize)
         {
-            string[] values = versionFile.GetStringValue("ArchivedFiles", filename, "").Split(',');
+            string[] values = versionFile.GetStringValue("ArchivedFiles", SafePath.CombineFilePath(filename), "").Split(',');
             bool archiveAvailable = values != null && values.Length >= 2;
             archiveID = archiveAvailable ? values[0] : "";
             archiveSize = archiveAvailable ? Conversions.IntFromString(values[1], 0) : 0;
@@ -374,7 +379,7 @@ namespace ClientUpdater
         {
             return new UpdaterFileInfo
             {
-                Filename = filename.Replace('\\', '/'),
+                Filename = SafePath.CombineFilePath(filename),
                 Identifier = identifier,
                 Size = size,
                 ArchiveIdentifier = archiveIdentifier,
@@ -403,7 +408,8 @@ namespace ClientUpdater
         /// <param name="timeout">Maximum time to wait in milliseconds.</param>
         internal static void DeleteFileAndWait(string filepath, int timeout = 10000)
         {
-            using (var fw = new FileSystemWatcher(Path.GetDirectoryName(filepath), Path.GetFileName(filepath)))
+            FileInfo fileInfo = SafePath.GetFile(filepath);
+            using (var fw = new FileSystemWatcher(fileInfo.DirectoryName, fileInfo.Name))
             using (var mre = new ManualResetEventSlim())
             {
                 fw.EnableRaisingEvents = true;
@@ -411,7 +417,7 @@ namespace ClientUpdater
                 {
                     mre.Set();
                 };
-                File.Delete(filepath);
+                fileInfo.Delete();
                 mre.Wait(timeout);
             }
         }
@@ -422,24 +428,23 @@ namespace ClientUpdater
         /// <param name="filePath">File path.</param>
         internal static void CreatePath(string filePath)
         {
-            string path = Path.GetDirectoryName(filePath);
+            FileInfo fileInfo = SafePath.GetFile(filePath);
 
-            if (!Directory.Exists(path))
-                Directory.CreateDirectory(path);
+            if (!fileInfo.Directory.Exists)
+                fileInfo.Directory.Create();
         }
 
         internal static string GetUniqueIdForFile(string filePath)
         {
             MD5 md = MD5.Create();
             md.Initialize();
-            FileStream fs = new FileStream(GamePath + filePath, FileMode.Open, FileAccess.Read);
+            using FileStream fs = SafePath.GetFile(GamePath, filePath).OpenRead();
             md.ComputeHash(fs);
             StringBuilder builder = new StringBuilder();
             foreach (byte num2 in md.Hash)
             {
                 builder.Append(num2.ToString());
             }
-            fs.Close();
             md.Clear();
             return builder.ToString();
         }
@@ -456,16 +461,16 @@ namespace ClientUpdater
             List<UpdateMirror> mirrors = new List<UpdateMirror>();
             List<CustomComponent> customComponents = new List<CustomComponent>();
 
-            string configFilename = ResourcePath + "UpdaterConfig.ini";
+            FileInfo configFile = SafePath.GetFile(ResourcePath, "UpdaterConfig.ini");
 
-            if (!File.Exists(configFilename))
+            if (!configFile.Exists)
             {
                 Logger.Log("Updater config file not found - attempting to read legacy updateconfig.ini.");
                 ReadLegacyUpdaterConfig(mirrors);
             }
             else
             {
-                IniFile updaterConfig = new IniFile(configFilename);
+                IniFile updaterConfig = new IniFile(configFile.FullName);
                 ignoreMasks = updaterConfig.GetStringValue("Settings", "IgnoreMasks", string.Join(",", ignoreMasks)).Split(',');
 
                 List<string> keys = updaterConfig.GetSectionKeys("DownloadMirrors");
@@ -542,14 +547,16 @@ namespace ClientUpdater
         /// <param name="updateMirrors">List of update mirrors to add update mirrors to.</param>
         private static void ReadLegacyUpdaterConfig(List<UpdateMirror> updateMirrors)
         {
-            if (!File.Exists(GamePath + "updateconfig.ini"))
+            FileInfo updateConfigFile = SafePath.GetFile(GamePath, "updateconfig.ini");
+
+            if (!updateConfigFile.Exists)
                 return;
 
             string[] lines;
 
             try
             {
-                lines = File.ReadAllLines(GamePath + "updateconfig.ini");
+                lines = File.ReadAllLines(updateConfigFile.FullName);
             }
             catch (Exception e)
             {
@@ -597,20 +604,21 @@ namespace ClientUpdater
                 {
                     Logger.Log("Updater: Checking version on the server.");
 
-                    WebClient client = new WebClient
+                    using WebClient client = new WebClient
                     {
-                        CachePolicy = new RequestCachePolicy(RequestCacheLevel.NoCacheNoStore),
-                        Encoding = Encoding.GetEncoding("Windows-1252")
+                        CachePolicy = new RequestCachePolicy(RequestCacheLevel.NoCacheNoStore)
                     };
 
                     client.Headers.Add(HttpRequestHeader.UserAgent, GetUserAgentString());
+
+                    FileInfo downloadFile = SafePath.GetFile(GamePath, FormattableString.Invariant($"{VERSION_FILE}_u"));
 
                     while (currentUpdateMirrorIndex < updateMirrors.Count)
                     {
                         try
                         {
                             Logger.Log("Updater: Trying to connect to update mirror " + updateMirrors[currentUpdateMirrorIndex].URL);
-                            client.DownloadFile(updateMirrors[currentUpdateMirrorIndex].URL + VERSION_FILE, GamePath + VERSION_FILE + "_u");
+                            client.DownloadFile(updateMirrors[currentUpdateMirrorIndex].URL + VERSION_FILE, downloadFile.FullName);
                             break;
                         }
                         catch (Exception e)
@@ -629,9 +637,8 @@ namespace ClientUpdater
                         }
                     }
 
-                    client.Dispose();
                     Logger.Log("Updater: Downloaded version information.");
-                    IniFile version = new IniFile(GamePath + VERSION_FILE + "_u");
+                    IniFile version = new IniFile(downloadFile.FullName);
                     string versionString = version.GetStringValue("DTA", "Version", "");
                     string updaterVersionString = version.GetStringValue("DTA", "UpdaterVersion", "N/A");
                     string manualDownloadURLString = version.GetStringValue("DTA", "ManualDownloadURL", "");
@@ -686,7 +693,7 @@ namespace ClientUpdater
                                 component.RemoteIdentifier = item.Identifier;
                                 component.Archived = item.Archived;
 
-                                if (File.Exists(GamePath + component.LocalPath))
+                                if (SafePath.GetFile(GamePath, component.LocalPath).Exists)
                                     component.LocalIdentifier = GetUniqueIdForFile(component.LocalPath);
 
                                 component.Initialized = true;
@@ -705,7 +712,7 @@ namespace ClientUpdater
                     if (versionString == GameVersion)
                     {
                         VersionState = VersionState.UPTODATE;
-                        File.Delete(GamePath + VERSION_FILE + "_u");
+                        downloadFile.Delete();
                         DoFileIdentifiersUpdatedEvent();
 
                         if (AreCustomComponentsOutdated())
@@ -719,7 +726,7 @@ namespace ClientUpdater
                             VersionState = VersionState.OUTDATED;
                             ManualUpdateRequired = true;
                             ManualDownloadURL = manualDownloadURLString;
-                            File.Delete(GamePath + VERSION_FILE + "_u");
+                            downloadFile.Delete();
                             DoFileIdentifiersUpdatedEvent();
                         }
                         else
@@ -744,7 +751,7 @@ namespace ClientUpdater
             Logger.Log("Updater: Checking if custom components are outdated.");
             foreach (CustomComponent component in customComponents)
             {
-                if (File.Exists(GamePath + component.LocalPath) && (component.RemoteIdentifier != component.LocalIdentifier))
+                if (SafePath.GetFile(GamePath, component.LocalPath).Exists && (component.RemoteIdentifier != component.LocalIdentifier))
                 {
                     return true;
                 }
@@ -760,16 +767,14 @@ namespace ClientUpdater
             Logger.Log("Updater: Downloading updateexec.");
             try
             {
-                WebClient client = new WebClient
+                using WebClient client = new WebClient
                 {
-                    CachePolicy = new RequestCachePolicy(RequestCacheLevel.NoCacheNoStore),
-                    Encoding = Encoding.GetEncoding("Windows-1252")
+                    CachePolicy = new RequestCachePolicy(RequestCacheLevel.NoCacheNoStore)
                 };
                 client.Headers.Add(HttpRequestHeader.UserAgent, GetUserAgentString());
                 client.DownloadProgressChanged += new DownloadProgressChangedEventHandler(WebClient_DownloadProgressChanged);
-                client.DownloadFile(updateMirrors[currentUpdateMirrorIndex].URL + "updateexec", GamePath + "updateexec");
+                client.DownloadFile(updateMirrors[currentUpdateMirrorIndex].URL + "updateexec", SafePath.CombineFilePath(GamePath, "updateexec"));
                 client.CancelAsync();
-                client.Dispose();
             }
             catch (Exception exception)
             {
@@ -789,15 +794,13 @@ namespace ClientUpdater
             Logger.Log("Updater: Downloading preupdateexec.");
             try
             {
-                WebClient client = new WebClient
+                using WebClient client = new WebClient
                 {
-                    CachePolicy = new RequestCachePolicy(RequestCacheLevel.NoCacheNoStore),
-                    Encoding = Encoding.GetEncoding("Windows-1252")
+                    CachePolicy = new RequestCachePolicy(RequestCacheLevel.NoCacheNoStore)
                 };
                 client.Headers.Add(HttpRequestHeader.UserAgent, GetUserAgentString());
                 client.DownloadProgressChanged += new DownloadProgressChangedEventHandler(WebClient_DownloadProgressChanged);
-                client.DownloadFile(updateMirrors[currentUpdateMirrorIndex].URL + "preupdateexec", GamePath + "preupdateexec");
-                client.Dispose();
+                client.DownloadFile(updateMirrors[currentUpdateMirrorIndex].URL + "preupdateexec", SafePath.CombineFilePath(GamePath, "preupdateexec"));
             }
             catch (Exception exception)
             {
@@ -816,7 +819,8 @@ namespace ClientUpdater
         private static void ExecuteScript(string fileName)
         {
             Logger.Log("Updater: Executing " + fileName + ".");
-            IniFile script = new IniFile(GamePath + fileName);
+            FileInfo scriptFileInfo = SafePath.GetFile(GamePath, fileName);
+            IniFile script = new IniFile(scriptFileInfo.FullName);
 
             // Delete files.
             foreach (string key in GetKeys(script, "Delete"))
@@ -824,7 +828,7 @@ namespace ClientUpdater
                 Logger.Log("Updater: " + fileName + ": Deleting file " + key);
                 try
                 {
-                    File.Delete(GamePath + key);
+                    SafePath.DeleteFileIfExists(GamePath, key);
                 }
                 catch
                 {
@@ -840,7 +844,7 @@ namespace ClientUpdater
                 try
                 {
                     Logger.Log("Updater: " + fileName + ": Renaming file '" + key + "' to '" + newFilename + "'");
-                    File.Move(GamePath + key, GamePath + newFilename);
+                    File.Move(SafePath.CombineFilePath(GamePath, key), SafePath.CombineFilePath(GamePath, newFilename));
                 }
                 catch
                 {
@@ -856,7 +860,7 @@ namespace ClientUpdater
                 try
                 {
                     Logger.Log("Updater: " + fileName + ": Renaming directory '" + key + "' to '" + newDirectoryName + "'");
-                    Directory.Move(GamePath + key, GamePath + newDirectoryName);
+                    Directory.Move(SafePath.CombineDirectoryPath(GamePath, key), SafePath.CombineDirectoryPath(GamePath, newDirectoryName));
                 }
                 catch
                 {
@@ -873,31 +877,31 @@ namespace ClientUpdater
                 try
                 {
                     Logger.Log("Updater: " + fileName + ": Merging directory '" + directoryName + "' with '" + directoryNameToMergeInto + "'");
-                    if (!Directory.Exists(GamePath + directoryNameToMergeInto))
+                    DirectoryInfo directoryToMergeInto = SafePath.GetDirectory(GamePath, directoryNameToMergeInto);
+                    DirectoryInfo gameDirectory = SafePath.GetDirectory(GamePath, directoryName);
+                    if (!directoryToMergeInto.Exists)
                     {
                         Logger.Log("Updater: " + fileName + ": Destination directory '" + directoryNameToMergeInto + "' does not exist, renaming.");
-                        Directory.Move(GamePath + directoryName, GamePath + directoryNameToMergeInto);
+                        Directory.Move(gameDirectory.FullName, directoryToMergeInto.FullName);
                     }
                     else
                     {
                         Logger.Log("Updater: " + fileName + ": Destination directory '" + directoryNameToMergeInto + "' exists, performing selective merging.");
-                        string[] files = Directory.GetFiles(GamePath + directoryName);
-                        for (int i = 0; i < files.Length; i++)
+                        FileInfo[] files = gameDirectory.GetFiles();
+                        foreach (FileInfo file in files)
                         {
-                            string filenameToMerge = Path.GetFileName(files[i]);
-                            string path = Path.Combine(GamePath, directoryName, filenameToMerge);
-                            string filenameToMergeInto = Path.Combine(GamePath, directoryNameToMergeInto, filenameToMerge);
-                            if (File.Exists(filenameToMergeInto))
+                            FileInfo fileToMergeInto = SafePath.GetFile(directoryToMergeInto.FullName, file.Name);
+                            if (fileToMergeInto.Exists)
                             {
-                                Logger.Log("Updater: " + fileName + ": Destination file '" + directoryNameToMergeInto + "/" + filenameToMerge +
-                                    "' exists, removing original source file " + directoryName + "/" + filenameToMerge);
-                                File.Delete(path);
+                                Logger.Log("Updater: " + fileName + ": Destination file '" + directoryNameToMergeInto + "/" + file.Name +
+                                    "' exists, removing original source file " + directoryName + "/" + file.Name);
+                                fileToMergeInto.Delete();
                             }
                             else
                             {
-                                Logger.Log("Updater: " + fileName + ": Destination file '" + directoryNameToMergeInto + "/" + filenameToMerge +
-                                    "' does not exist, moving original source file " + directoryName + "/" + filenameToMerge);
-                                File.Move(path, filenameToMergeInto);
+                                Logger.Log("Updater: " + fileName + ": Destination file '" + directoryNameToMergeInto + "/" + file.Name +
+                                    "' does not exist, moving original source file " + directoryName + "/" + file.Name);
+                                File.Move(file.FullName, fileToMergeInto.FullName);
                             }
                         }
                     }
@@ -915,7 +919,7 @@ namespace ClientUpdater
                     try
                     {
                         Logger.Log("Updater: " + fileName + ": Deleting directory '" + key + "'");
-                        Directory.Delete(GamePath + key, true);
+                        SafePath.GetDirectory(GamePath, key).Delete(true);
                     }
                     catch
                     {
@@ -929,11 +933,13 @@ namespace ClientUpdater
                 try
                 {
                     Logger.Log("Updater: " + fileName + ": Deleting directory '" + key + "' if it's empty.");
-                    if (Directory.Exists(key))
+                    if (SafePath.GetDirectory(key).Exists)
                     {
-                        if (Directory.GetFiles(GamePath + key).Length == 0)
+                        DirectoryInfo directoryInfo = SafePath.GetDirectory(GamePath, key);
+
+                        if (!directoryInfo.EnumerateFiles().Any())
                         {
-                            Directory.Delete(GamePath + key);
+                            directoryInfo.Delete();
                         }
                         else
                         {
@@ -955,10 +961,11 @@ namespace ClientUpdater
             {
                 try
                 {
-                    if (!Directory.Exists(GamePath + key))
+                    DirectoryInfo directoryInfo = SafePath.GetDirectory(GamePath, key);
+                    if (!directoryInfo.Exists)
                     {
                         Logger.Log("Updater: " + fileName + ": Creating directory '" + key + "'");
-                        Directory.CreateDirectory(GamePath + key);
+                        directoryInfo.Create();
                     }
                     else
                     {
@@ -970,7 +977,7 @@ namespace ClientUpdater
                 }
             }
 
-            File.Delete(GamePath + fileName);
+            scriptFileInfo.Delete();
         }
 
         /// <summary>
@@ -986,6 +993,7 @@ namespace ClientUpdater
             {
                 string identifier = ServerFileInfos[i].Identifier;
                 bool flag = false;
+                FileInfo serverFileInfo = SafePath.GetFile(GamePath, ServerFileInfos[i].Filename);
 
                 for (int k = 0; k < LocalFileInfos.Count; k++)
                 {
@@ -995,7 +1003,7 @@ namespace ClientUpdater
                     {
                         flag = true;
 
-                        if (!File.Exists(GamePath + ServerFileInfos[i].Filename))
+                        if (!serverFileInfo.Exists)
                         {
                             Logger.Log("Updater: File " + ServerFileInfos[i].Filename + " not found. Adding it to the download queue.");
                             FileInfosToDownload.Add(ServerFileInfos[i]);
@@ -1011,7 +1019,7 @@ namespace ClientUpdater
                 {
                     Logger.Log("Updater: File " + ServerFileInfos[i].Filename + " doesn't exist on local version information - checking if it exists in the directory.");
 
-                    if (File.Exists(GamePath + ServerFileInfos[i].Filename))
+                    if (serverFileInfo.Exists)
                     {
                         if (TryGetUniqueId(ServerFileInfos[i].Filename) != identifier)
                         {
@@ -1054,7 +1062,7 @@ namespace ClientUpdater
                 UpdaterFileInfo info = LocalFileInfos[i];
                 if (!ContainsAnyMask(info.Filename))
                 {
-                    if (File.Exists(GamePath + info.Filename))
+                    if (SafePath.GetFile(GamePath, info.Filename).Exists)
                     {
                         string uniqueIdForFile = GetUniqueIdForFile(info.Filename);
                         if (uniqueIdForFile != info.Identifier)
@@ -1107,10 +1115,9 @@ namespace ClientUpdater
                 }
                 else
                 {
-                    WebClient client = new WebClient
+                    using WebClient client = new WebClient
                     {
-                        CachePolicy = new RequestCachePolicy(RequestCacheLevel.NoCacheNoStore),
-                        Encoding = Encoding.GetEncoding("Windows-1252")
+                        CachePolicy = new RequestCachePolicy(RequestCacheLevel.NoCacheNoStore)
                     };
                     client.Headers.Add(HttpRequestHeader.UserAgent, GetUserAgentString());
                     client.DownloadProgressChanged += WebClient_DownloadProgressChanged;
@@ -1164,8 +1171,6 @@ namespace ClientUpdater
                         }
                     }
 
-                    client.Dispose();
-
                     if (terminateUpdate)
                     {
                         Logger.Log("Updater: Terminating update because of user request.");
@@ -1179,28 +1184,38 @@ namespace ClientUpdater
                         ExecuteAfterUpdateScript();
                         Logger.Log("Updater: Cleaning up.");
 
-                        if (Directory.Exists(GamePath + "Updater"))
+                        DirectoryInfo updaterDirectoryInfo = SafePath.GetDirectory(GamePath, "Updater");
+                        FileInfo versionFileTemp = SafePath.GetFile(GamePath, FormattableString.Invariant($"{VERSION_FILE}_u"));
+
+                        if (updaterDirectoryInfo.Exists)
                         {
-                            File.Move(GamePath + VERSION_FILE + "_u", GamePath + "Updater/" + VERSION_FILE);
+                            File.Move(versionFileTemp.FullName, SafePath.CombineFilePath(GamePath, "Updater", VERSION_FILE));
                         }
                         else
                         {
-                            File.Move(GamePath + VERSION_FILE + "_u", GamePath + VERSION_FILE);
+                            File.Move(versionFileTemp.FullName, SafePath.CombineFilePath(GamePath, VERSION_FILE));
                         }
 
-                        if (File.Exists(GamePath + "Theme_c.ini"))
+                        FileInfo themeFileInfo = SafePath.GetFile(GamePath, "Theme_c.ini");
+
+                        if (themeFileInfo.Exists)
                         {
                             Logger.Log("Updater: Theme_c.ini exists -- copying it.");
-                            File.Copy(GamePath + "Theme_c.ini", GamePath + "INI/Theme.ini", true);
+                            File.Copy(themeFileInfo.FullName, SafePath.CombineFilePath(GamePath, "INI", "Theme.ini"), true);
                             Logger.Log("Updater: Theme.ini copied succesfully.");
                         }
-                        if (Directory.Exists(GamePath + "Updater"))
+
+                        updaterDirectoryInfo.Refresh();
+
+                        if (updaterDirectoryInfo.Exists)
                         {
-                            if (File.Exists(GamePath + "Updater/Resources/" + SECOND_STAGE_UPDATER))
+                            FileInfo secondStageUpdater = SafePath.GetFile(GamePath, "Updater", "Resources", SECOND_STAGE_UPDATER);
+                            FileInfo secondStageUpdaterResource = SafePath.GetFile(ResourcePath, SECOND_STAGE_UPDATER);
+
+                            if (secondStageUpdater.Exists)
                             {
-                                DeleteFileAndWait(ResourcePath + SECOND_STAGE_UPDATER);
-                                File.Move(GamePath + "Updater/Resources/" + SECOND_STAGE_UPDATER,
-                                    ResourcePath + SECOND_STAGE_UPDATER);
+                                DeleteFileAndWait(secondStageUpdaterResource.FullName);
+                                File.Move(secondStageUpdater.FullName, secondStageUpdaterResource.FullName);
                             }
 
                             Logger.Log("Updater: Launching second-stage updater executable " + SECOND_STAGE_UPDATER + ".");
@@ -1210,8 +1225,8 @@ namespace ClientUpdater
                                 StartInfo =
                                 {
                                     UseShellExecute = false,
-                                    FileName = ResourcePath + SECOND_STAGE_UPDATER,
-                                    Arguments = CURRENT_CLIENT_EXECUTABLE + " \"" + GamePath + "\""
+                                    FileName = secondStageUpdaterResource.FullName,
+                                    Arguments =  CallingExecutableFileName + " \"" + GamePath + "\""
                                 }
                             }.Start();
 
@@ -1254,27 +1269,29 @@ namespace ClientUpdater
             UpdateDownloadProgress(0);
             currentDownloadException = null;
             string filename = fileInfo.Filename;
-            string prefix = "Updater/";
+            string prefixPath = "Updater";
+            FileInfo decompressedFile = SafePath.GetFile(GamePath, prefixPath, filename);
 
             try
             {
-                int size = fileInfo.Size;
                 string uriString = "";
                 int currentUpdateMirrorId = Updater.currentUpdateMirrorIndex;
-                string extra = fileInfo.Archived ? ARCHIVE_FILE_EXTENSION : "";
-                uriString = (updateMirrors[currentUpdateMirrorId].URL + filename + extra).Replace(@"\", "/");
-                CreatePath(GamePath + filename);
-                CreatePath(GamePath + prefix + filename + extra);
+                string extraExtension = fileInfo.Archived ? ARCHIVE_FILE_EXTENSION : "";
+                string fileRelativePath = SafePath.CombineFilePath(prefixPath, FormattableString.Invariant($"{filename}{extraExtension}"));
+                uriString = (updateMirrors[currentUpdateMirrorId].URL + filename + extraExtension).Replace(@"\", "/");
+                FileInfo downloadFile = SafePath.GetFile(GamePath, fileRelativePath);
+                CreatePath(SafePath.CombineFilePath(GamePath, filename));
+                CreatePath(downloadFile.FullName);
 
-                if (File.Exists(GamePath + prefix + filename + extra) &&
-                    (fileInfo.Archived ? fileInfo.Identifier : fileInfo.ArchiveIdentifier) == GetUniqueIdForFile(prefix + filename + extra))
+                if (downloadFile.Exists &&
+                    (fileInfo.Archived ? fileInfo.Identifier : fileInfo.ArchiveIdentifier) == GetUniqueIdForFile(fileRelativePath))
                 {
                     Logger.Log("Updater: File " + filename + " has already been downloaded, skipping downloading.");
                 }
                 else
                 {
-                    Logger.Log("Updater: Downloading file " + filename + extra);
-                    client.DownloadFileAsync(new Uri(uriString), GamePath + prefix + filename + extra);
+                    Logger.Log("Updater: Downloading file " + filename + extraExtension);
+                    client.DownloadFileAsync(new Uri(uriString), downloadFile.FullName);
 
                     while (client.IsBusy)
                         Thread.Sleep(10);
@@ -1282,24 +1299,24 @@ namespace ClientUpdater
                     if (currentDownloadException != null)
                         throw currentDownloadException;
 
-                    OnFileDownloadCompleted?.Invoke(fileInfo.Archived ? filename + extra : null);
-                    Logger.Log("Updater: Download of file " + filename + extra + " finished - verifying.");
+                    OnFileDownloadCompleted?.Invoke(fileInfo.Archived ? filename + extraExtension : null);
+                    Logger.Log("Updater: Download of file " + filename + extraExtension + " finished - verifying.");
 
                     if (fileInfo.Archived)
                     {
                         Logger.Log("Updater: File is an archive.");
-                        string archiveIdentifier = CheckFileIdentifiers(filename, prefix + filename + extra, fileInfo.ArchiveIdentifier);
+                        string archiveIdentifier = CheckFileIdentifiers(filename, fileRelativePath, fileInfo.ArchiveIdentifier);
 
                         if (string.IsNullOrEmpty(archiveIdentifier))
                         {
-                            Logger.Log("Updater: Archive " + filename + extra + " is intact. Unpacking...");
-                            CompressionHelper.DecompressFile(GamePath + prefix + filename + extra, GamePath + prefix + filename);
-                            File.Delete(GamePath + prefix + filename + extra);
+                            Logger.Log("Updater: Archive " + filename + extraExtension + " is intact. Unpacking...");
+                            CompressionHelper.DecompressFile(downloadFile.FullName, decompressedFile.FullName);
+                            downloadFile.Delete();
                         }
                         else
                         {
-                            Logger.Log("Updater: Downloaded archive " + filename + extra + " has a non-matching identifier: " + archiveIdentifier + " against " + fileInfo.ArchiveIdentifier);
-                            DeleteFileAndWait(GamePath + prefix + filename + extra);
+                            Logger.Log("Updater: Downloaded archive " + filename + extraExtension + " has a non-matching identifier: " + archiveIdentifier + " against " + fileInfo.ArchiveIdentifier);
+                            DeleteFileAndWait(downloadFile.FullName);
 
                             return false;
                         }
@@ -1308,7 +1325,7 @@ namespace ClientUpdater
                     client.CancelAsync();
                 }
 
-                string fileIdentifier = CheckFileIdentifiers(filename, prefix + filename, fileInfo.Identifier);
+                string fileIdentifier = CheckFileIdentifiers(filename, SafePath.CombineFilePath(prefixPath, filename), fileInfo.Identifier);
                 if (string.IsNullOrEmpty(fileIdentifier))
                 {
                     Logger.Log("Updater: File " + filename + " is intact.");
@@ -1317,14 +1334,14 @@ namespace ClientUpdater
                 }
 
                 Logger.Log("Updater: Downloaded file " + filename + " has a non-matching identifier: " + fileIdentifier + " against " + fileInfo.Identifier);
-                DeleteFileAndWait(GamePath + prefix + filename);
+                DeleteFileAndWait(decompressedFile.FullName);
 
                 return false;
             }
             catch (Exception exception)
             {
-                Logger.Log("Updater: An error occured while downloading file " + filename + ": " + exception.Message);
-                DeleteFileAndWait(GamePath + prefix + filename);
+                Logger.Log("Updater: An error occurred while downloading file " + filename + ": " + exception.Message);
+                DeleteFileAndWait(decompressedFile.FullName);
                 client.CancelAsync();
 
                 return false;
