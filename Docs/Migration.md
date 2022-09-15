@@ -12,3 +12,5 @@ Migrating from older versions
 - Updater DLL filename has been changed from `DTAUpdater.dll` to `CnCNet.ClientUpdater.dll` and second-stage updater from `clientupdt.dat` to `SecondStageUpdater.exe` and has been moved from base folder to `Resources`.
 
 - The use of .cur mouse cursor files is not supported on the cross-platform 'UniversalGL' build. To ensure the intended cursor is shown instead of a missing texture (pink square) all themes need to contain a `cursor.png` file. Existing .cur files will still be used by the Windows-only builds.
+
+- The MonoGame MCGB editor will convert the MainMenuTheme to `MainMenuTheme.wma` when publishing for MonoGame WindowsDX. MonoGame DesktopGL only supports the ogg format. To ensure the MainMenuTheme is available on both the WindowsDX & DesktopGL client versions you need to manually convert and add the missing ogg format file to each theme. Each theme should then contain both `MainMenuTheme.wma` and `MainMenuTheme.ogg` files. The client will then switch out the correct MainMenuTheme format at runtime.

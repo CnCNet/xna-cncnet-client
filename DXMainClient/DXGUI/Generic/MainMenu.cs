@@ -526,6 +526,8 @@ namespace DTAClient.DXGUI.Generic
         /// </summary>
         public void PostInit()
         {
+            SwitchMainMenuMusicFormat();
+
             themeSong = AssetLoader.LoadSong(ClientConfiguration.Instance.MainMenuMusicName);
 
             PlayMusic();
@@ -550,6 +552,29 @@ namespace DTAClient.DXGUI.Generic
             CheckRequiredFiles();
             CheckForbiddenFiles();
             CheckIfFirstRun();
+        }
+
+        private void SwitchMainMenuMusicFormat()
+        {
+#if GL || DX
+            FileInfo wmaMainMenuMusicFile = SafePath.GetFile(ProgramConstants.GamePath, ProgramConstants.BASE_RESOURCE_PATH,
+                FormattableString.Invariant($"{ClientConfiguration.Instance.MainMenuMusicName}.wma"));
+            FileInfo wmaBackupMainMenuMusicFile = SafePath.GetFile(ProgramConstants.GamePath, ProgramConstants.BASE_RESOURCE_PATH,
+                FormattableString.Invariant($"{ClientConfiguration.Instance.MainMenuMusicName}.bak"));
+
+            if (!wmaBackupMainMenuMusicFile.Exists)
+                wmaMainMenuMusicFile.CopyTo(wmaBackupMainMenuMusicFile.FullName);
+
+#endif
+#if DX
+            wmaBackupMainMenuMusicFile.CopyTo(wmaMainMenuMusicFile.FullName, true);
+#elif GL
+            FileInfo oggMainMenuMusicFile = SafePath.GetFile(ProgramConstants.GamePath, ProgramConstants.BASE_RESOURCE_PATH,
+                FormattableString.Invariant($"{ClientConfiguration.Instance.MainMenuMusicName}.ogg"));
+
+            if (oggMainMenuMusicFile.Exists)
+                oggMainMenuMusicFile.CopyTo(wmaMainMenuMusicFile.FullName, true);
+#endif
         }
 
         #region Updating / versioning system
