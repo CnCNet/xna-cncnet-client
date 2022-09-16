@@ -64,15 +64,16 @@ namespace DTAClient
                 CheckPermissions();
 
             DirectoryInfo clientUserFilesDirectory = SafePath.GetDirectory(ProgramConstants.ClientUserFilesPath);
-            ProgramConstants.LogFileName = SafePath.CombineFilePath(clientUserFilesDirectory.FullName, "client.log");
+            FileInfo clientLogFile = SafePath.GetFile(clientUserFilesDirectory.FullName, "client.log");
+            ProgramConstants.LogFileName = clientLogFile.FullName;
 
-            Logger.Initialize(clientUserFilesDirectory.FullName, ProgramConstants.LogFileName);
+            Logger.Initialize(clientUserFilesDirectory.FullName, clientLogFile.Name);
             Logger.WriteLogFile = true;
 
             if (!clientUserFilesDirectory.Exists)
                 clientUserFilesDirectory.Create();
 
-            clientUserFilesDirectory.EnumerateFiles("client.log").SingleOrDefault()?.Delete();
+            clientLogFile.Delete();
 
             MainClientConstants.Initialize();
 

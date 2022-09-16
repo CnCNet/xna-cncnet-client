@@ -63,7 +63,7 @@ namespace ClientCore
 
         #region Client settings
 
-        public string MainMenuMusicName => DTACnCNetClient_ini.GetStringValue(GENERAL, "MainMenuTheme", "mainmenu");
+        public string MainMenuMusicName => SafePath.CombineFilePath(DTACnCNetClient_ini.GetStringValue(GENERAL, "MainMenuTheme", "mainmenu"));
 
         public float DefaultAlphaRate => DTACnCNetClient_ini.GetSingleValue(GENERAL, "AlphaRate", 0.005f);
 
@@ -191,7 +191,7 @@ namespace ClientCore
 
         public string BattleFSFileName => clientDefinitionsIni.GetStringValue(SETTINGS, "BattleFSFileName", "BattleFS.ini");
 
-        public string MapEditorExePath => clientDefinitionsIni.GetStringValue(SETTINGS, "MapEditorExePath", "FinalSun/FinalSun.exe");
+        public string MapEditorExePath => SafePath.CombineFilePath(clientDefinitionsIni.GetStringValue(SETTINGS, "MapEditorExePath", SafePath.CombineFilePath("FinalSun", "FinalSun.exe")));
 
         public string UnixMapEditorExePath => clientDefinitionsIni.GetStringValue(SETTINGS, "UnixMapEditorExePath", Instance.MapEditorExePath);
 
@@ -209,7 +209,7 @@ namespace ClientCore
 
         public string ManualDownloadURL => clientDefinitionsIni.GetStringValue(SETTINGS, "ManualDownloadURL", string.Empty);
 
-        public string FinalSunIniPath => clientDefinitionsIni.GetStringValue(SETTINGS, "FSIniPath", "FinalSun/FinalSun.ini");
+        public string FinalSunIniPath => SafePath.CombineFilePath(clientDefinitionsIni.GetStringValue(SETTINGS, "FSIniPath", SafePath.CombineFilePath("FinalSun", "FinalSun.ini")));
 
         public int MaxNameLength => clientDefinitionsIni.GetIntValue(SETTINGS, "MaxNameLength", 16);
 
@@ -244,13 +244,13 @@ namespace ClientCore
 
         public string SettingsIniName => clientDefinitionsIni.GetStringValue(SETTINGS, "SettingsFile", "Settings.ini");
 
-        public string TranslationIniName => clientDefinitionsIni.GetStringValue(SETTINGS, "TranslationFile", "Resources/Translation.ini");
+        public string TranslationIniName => SafePath.CombineFilePath(clientDefinitionsIni.GetStringValue(SETTINGS, "TranslationFile", SafePath.CombineFilePath("Resources", "Translation.ini")));
 
         public bool GenerateTranslationStub => clientDefinitionsIni.GetBooleanValue(SETTINGS, "GenerateTranslationStub", false);
 
         public string ExtraExeCommandLineParameters => clientDefinitionsIni.GetStringValue(SETTINGS, "ExtraCommandLineParams", string.Empty);
 
-        public string MPMapsIniPath => clientDefinitionsIni.GetStringValue(SETTINGS, "MPMapsPath", "INI/MPMaps.ini");
+        public string MPMapsIniPath => SafePath.CombineFilePath(clientDefinitionsIni.GetStringValue(SETTINGS, "MPMapsPath", SafePath.CombineFilePath("INI", "MPMaps.ini")));
 
         public string KeyboardINI => clientDefinitionsIni.GetStringValue(SETTINGS, "KeyboardINI", "Keyboard.ini");
 
@@ -342,10 +342,7 @@ namespace ClientCore
 #endif
             }
 
-            int p = (int)Environment.OSVersion.Platform;
-
-            // http://mono.wikia.com/wiki/Detecting_the_execution_platform
-            if (p == 4 || p == 6 || p == 128)
+            if (ProgramConstants.ISMONO)
                 return OSVersion.UNIX;
 
             return OSVersion.UNKNOWN;
