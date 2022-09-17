@@ -119,7 +119,7 @@ namespace DTAClient.Domain.Multiplayer
         /// Returns the complete path to the map file.
         /// Includes the game directory in the path.
         /// </summary>
-        public string CompleteFilePath => SafePath.CombineFilePath(ProgramConstants.GamePath, FormattableString.Invariant($"{BaseFilePath}.map"));
+        public string CompleteFilePath => SafePath.CombineFilePath(ProgramConstants.GamePath, FormattableString.Invariant($"{BaseFilePath}{MapLoader.MAP_FILE_EXTENSION}"));
 
         /// <summary>
         /// The file name of the preview image.

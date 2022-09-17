@@ -126,7 +126,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
 
             if (zipFile.Exists) zipFile.Delete();
 
-            string mapFileName = map.SHA1 + ".map";
+            string mapFileName = map.SHA1 + MapLoader.MAP_FILE_EXTENSION;
 
             File.Copy(SafePath.CombineFilePath(map.CompleteFilePath), SafePath.CombineFilePath(ProgramConstants.GamePath, mapFileName));
 
@@ -373,7 +373,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
 
             // This string is up here so we can check that there isn't already a .map file for this download.
             // This prevents the client from crashing when trying to rename the unzipped file to a duplicate filename.
-            FileInfo newFile = SafePath.GetFile(customMapsDirectory, FormattableString.Invariant($"{mapFileName}.map"));
+            FileInfo newFile = SafePath.GetFile(customMapsDirectory, FormattableString.Invariant($"{mapFileName}{MapLoader.MAP_FILE_EXTENSION}"));
 
             destinationFile.Delete();
             newFile.Delete();
