@@ -1349,7 +1349,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
                     string keyName = "Multi" + multiId;
 
-                    spawnIni.SetIntValue("HouseHandicaps", keyName, AIPlayers[aiId].AILevel);
+                    spawnIni.SetIntValue("HouseHandicaps", keyName, AIPlayers[aiId].HouseHandicapAILevel);
                     spawnIni.SetIntValue("HouseCountries", keyName, houseInfos[Players.Count + aiId].InternalSideIndex);
                     spawnIni.SetIntValue("HouseColors", keyName, houseInfos[Players.Count + aiId].ColorIndex);
                 }
@@ -1481,7 +1481,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 matchStatistics.AddPlayer("Computer", false, true, false,
                     pHouseInfo.SideIndex + 1, aiInfo.TeamId,
                     MPColors.FindIndex(c => c.GameColorIndex == pHouseInfo.ColorIndex),
-                    aiInfo.ReversedAILevel);
+                    aiInfo.AILevel);
             }
         }
 
@@ -1720,7 +1720,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 PlayerInfo aiPlayer = new PlayerInfo
                 {
                     Name = dd.Items[dd.SelectedIndex].Text,
-                    AILevel = 2 - (dd.SelectedIndex - 1),
+                    AILevel = dd.SelectedIndex - 1,
                     SideId = Math.Max(ddPlayerSides[cmbId].SelectedIndex, 0),
                     ColorId = Math.Max(ddPlayerColors[cmbId].SelectedIndex, 0),
                     StartingLocation = Math.Max(ddPlayerStarts[cmbId].SelectedIndex, 0),
@@ -1830,7 +1830,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 ddPlayerName.Items[1].Text = ProgramConstants.AI_PLAYER_NAMES[0];
                 ddPlayerName.Items[2].Text = ProgramConstants.AI_PLAYER_NAMES[1];
                 ddPlayerName.Items[3].Text = ProgramConstants.AI_PLAYER_NAMES[2];
-                ddPlayerName.SelectedIndex = 3 - aiInfo.AILevel;
+                ddPlayerName.SelectedIndex = 1 + aiInfo.AILevel;
                 ddPlayerName.AllowDropDown = allowOptionsChange;
 
                 ddPlayerSides[index].SelectedIndex = aiInfo.SideId;
@@ -2132,13 +2132,13 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
                 if (aiPlayer.TeamId > 0 && aiPlayer.TeamId == localPlayer.TeamId)
                 {
-                    if (aiPlayer.ReversedAILevel > highestAllyAILevel)
-                        highestAllyAILevel = aiPlayer.ReversedAILevel;
+                    if (aiPlayer.AILevel > highestAllyAILevel)
+                        highestAllyAILevel = aiPlayer.AILevel;
                 }
                 else
                 {
-                    if (aiPlayer.ReversedAILevel < lowestEnemyAILevel)
-                        lowestEnemyAILevel = aiPlayer.ReversedAILevel;
+                    if (aiPlayer.AILevel < lowestEnemyAILevel)
+                        lowestEnemyAILevel = aiPlayer.AILevel;
                 }
             }
 
