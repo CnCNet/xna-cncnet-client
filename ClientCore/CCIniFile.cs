@@ -50,17 +50,17 @@ namespace ClientCore
             if (string.IsNullOrEmpty(basedOn))
                 return;
 
-            string path;
+            FileInfo baseIniFile;
             if (basedOn.Contains("$THEME_DIR$"))
-                path = basedOn.Replace("$THEME_DIR$", ProgramConstants.GetResourcePath());
+                baseIniFile = SafePath.GetFile(basedOn.Replace("$THEME_DIR$", ProgramConstants.GetResourcePath()));
             else
-                path = SafePath.CombineFilePath(SafePath.GetFileDirectoryName(FileName), basedOn);
+                baseIniFile = SafePath.GetFile(SafePath.GetFileDirectoryName(FileName), basedOn);
 
             // Consolidate with the INI file that this INI file is based on
-            if (!File.Exists(path))
-                Logger.Log(FileName + ": Base INI file not found! " + path);
+            if (!baseIniFile.Exists)
+                Logger.Log(FileName + ": Base INI file not found! " + baseIniFile.FullName);
 
-            CCIniFile baseIni = new CCIniFile(path);
+            CCIniFile baseIni = new CCIniFile(baseIniFile.FullName);
             ConsolidateIniFiles(baseIni, this);
             Sections = baseIni.Sections;
         }

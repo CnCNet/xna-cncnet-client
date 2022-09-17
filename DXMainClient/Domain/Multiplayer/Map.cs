@@ -379,6 +379,7 @@ namespace DTAClient.Domain.Multiplayer
             catch (Exception ex)
             {
                 Logger.Log("Setting info for " + BaseFilePath + " failed! Reason: " + ex.Message);
+                PreStartup.LogException(ex);
                 return false;
             }
         }
