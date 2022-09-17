@@ -3,15 +3,17 @@
 
 Param([Parameter(Mandatory=$false)] [string] $Configuration = "Release")
 
-dotnet publish ..\DXMainClient\DXMainClient.csproj -c $Configuration -p:GAME=Ares -p:ENGINE=UniversalGL -f net6.0 -o ..\Compiled\Ares\net6.0\any\Resources\Binaries\OpenGL
+$path = Split-Path $MyInvocation.MyCommand.Path -Parent
+
+dotnet publish $path\..\DXMainClient\DXMainClient.csproj -c $Configuration -p:GAME=Ares -p:ENGINE=UniversalGL -f net6.0 -o ..\Compiled\Ares\net6.0\any\Resources\Binaries\OpenGL
 if ($LASTEXITCODE) { throw }
 
 If ($IsWindows)
 {
-    dotnet publish ..\DXMainClient\DXMainClient.csproj -c $Configuration -p:GAME=Ares -p:ENGINE=WindowsXNA -f net6.0-windows10.0.22000.0 -a x86 -o ..\Compiled\Ares\net6.0-windows10.0.22000.0\Resources\Binaries\XNA
+    dotnet publish $path\..\DXMainClient\DXMainClient.csproj -c $Configuration -p:GAME=Ares -p:ENGINE=WindowsXNA -f net6.0-windows10.0.22000.0 -a x86 -o ..\Compiled\Ares\net6.0-windows10.0.22000.0\Resources\Binaries\XNA
     if ($LASTEXITCODE) { throw }
-    dotnet publish ..\DXMainClient\DXMainClient.csproj -c $Configuration -p:GAME=Ares -p:ENGINE=WindowsDX -f net6.0-windows10.0.22000.0 -o ..\Compiled\Ares\net6.0-windows10.0.22000.0\Resources\Binaries\Windows
+    dotnet publish $path\..\DXMainClient\DXMainClient.csproj -c $Configuration -p:GAME=Ares -p:ENGINE=WindowsDX -f net6.0-windows10.0.22000.0 -o ..\Compiled\Ares\net6.0-windows10.0.22000.0\Resources\Binaries\Windows
     if ($LASTEXITCODE) { throw }
-    dotnet publish ..\DXMainClient\DXMainClient.csproj -c $Configuration -p:GAME=Ares -p:ENGINE=WindowsGL -f net6.0-windows10.0.22000.0 -o ..\Compiled\Ares\net6.0-windows10.0.22000.0\Resources\Binaries\OpenGL
+    dotnet publish $path\..\DXMainClient\DXMainClient.csproj -c $Configuration -p:GAME=Ares -p:ENGINE=WindowsGL -f net6.0-windows10.0.22000.0 -o ..\Compiled\Ares\net6.0-windows10.0.22000.0\Resources\Binaries\OpenGL
     if ($LASTEXITCODE) { throw }
 }

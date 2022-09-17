@@ -3,6 +3,8 @@
 
 Param([Parameter(Mandatory=$false)] [string] $Configuration = "Release")
 
-.\Build-Ares-net6.0.ps1 $Configuration
-.\Build-TS-net6.0.ps1 $Configuration
-.\Build-YR-net6.0.ps1 $Configuration
+$path = Split-Path $MyInvocation.MyCommand.Path -Parent
+
+& $path\Build-Ares-net6.0.ps1 $Configuration
+& $path\Build-TS-net6.0.ps1 $Configuration
+& $path\Build-YR-net6.0.ps1 $Configuration

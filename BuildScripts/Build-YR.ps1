@@ -3,9 +3,11 @@
 
 Param([Parameter(Mandatory=$false)] [string] $Configuration = "Release")
 
-.\Build-YR-net6.0.ps1 $Configuration
+$path = Split-Path $MyInvocation.MyCommand.Path -Parent
+
+& $path\Build-YR-net6.0.ps1 $Configuration
 
 If ($IsWindows)
 {
-    .\Build-YR-net48.ps1 $Configuration
+    & $path\Build-YR-net48.ps1 $Configuration
 }
