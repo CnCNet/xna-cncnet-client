@@ -3,9 +3,6 @@
 
 Param([Parameter(Mandatory=$false)] [string] $Configuration = "Release")
 
-.\Build-TS-net6.0.ps1 $Configuration
-
-If ($IsWindows)
-{
-    .\Build-TS-net48.ps1 $Configuration
-}
+.\Build-Ares-net48.ps1 $Configuration
+.\Build-TS-net48.ps1 $Configuration
+.\Build-YR-net48.ps1 $Configuration

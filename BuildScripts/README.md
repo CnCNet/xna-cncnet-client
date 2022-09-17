@@ -54,9 +54,7 @@ The file AfterPublish.targets will execute additional steps for the following bu
 
 Building a .NET 6 application results in an assembly, not in an executable, e.g. `clientdx.dll`. On platform specific builds it also generates an apphost executable, so users have something to execute directly i.e. `clientdx.exe`. All the .exe does is launch e.g.: `dotnet clientdx.dll`.
 
-The apphost creation is not configurable and always points to a dll with the same filename in the current directory. Since we split them up into `\clientdx.exe` and `\Resources\Binaries\Windows\clientdx.dll` this breaks. The AppHostPatcher modifies the .exe to point to the correct .dll path.
-
-The AppHostPatcher application is located under `\AdditionalFiles\AppHostPatcher`.
+By default the apphost always points to a dll with the same filename in the current directory. Since we split them up into `\clientdx.exe` and `\Resources\Binaries\Windows\clientdx.dll` this breaks. PatchAppHost modifies the .exe to point to the correct .dll path.
 
 Custom builds
 -------------
@@ -65,24 +63,12 @@ It is possible to compile for a specfic platform in order to gain performance (`
 
 Manually compile linux x64 YR optimized binaries from command line:
 
->dotnet publish ..\DXMainClient\DXMainClient.csproj -c Release -f net6.0 -p:Engine=UniversalGL -p:Game=YR -o ..\Compiled\YR\net6.0\linux-x64 -r linux-x64 -p:PublishReadyToRun=true -p:PublishReadyToRunComposite=true
-
-Or by updating the script BuildTools.ps1, which performs all needed operations such as structuring the files and folders:
-
->Build-Project -Configuration $Configuration -Game YR -Engine UniversalGL -TargetFramework net6.0 -RuntimeIdentifier linux-x64 -SkipMoveLibraries:$SkipMoveLibraries
-
->Build-Project -Configuration $Configuration -Game YR -Engine UniversalGL -TargetFramework net6.0 -RuntimeIdentifier win10-x64 -SkipMoveLibraries:$SkipMoveLibraries
-
->Build-Project -Configuration $Configuration -Game YR -Engine UniversalGL -TargetFramework net6.0 -RuntimeIdentifier osx.12-x64 -SkipMoveLibraries:$SkipMoveLibraries
-
->Build-Project -Configuration $Configuration -Game YR -Engine UniversalGL -TargetFramework net6.0 -RuntimeIdentifier ubuntu.22.04-x64 -SkipMoveLibraries:$SkipMoveLibraries
-
->Build-Project -Configuration $Configuration -Game YR -Engine UniversalGL -TargetFramework net6.0 -RuntimeIdentifier alpine.3.9-arm -SkipMoveLibraries:$SkipMoveLibraries
+>dotnet publish ..\DXMainClient\DXMainClient.csproj -c Release -p:Game=YR -p:Engine=UniversalGL -f net6.0 -o ..\Compiled\YR\net6.0\linux-x64\Resources\Binaries\OpenGL -r linux-x64 -p:PublishReadyToRun=true -p:PublishReadyToRunComposite=true
 
 Build output
 ------------
 
-The build output per Game will look like below.
+The build output when using the `dotnet publish` command is created in `\Compiled` and will look like below for each Game.
 
 ![unknown](https://user-images.githubusercontent.com/25006126/189449430-07bfb4b5-bc5f-4cea-870e-90d1870b8fe8.png)
 

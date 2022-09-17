@@ -177,7 +177,6 @@ namespace DTAClient
             Application.EnableVisualStyles();
 #else
             ApplicationConfiguration.Initialize();
-            Application.SetHighDpiMode(HighDpiMode.PerMonitorV2);
 #endif
 #endif
 
