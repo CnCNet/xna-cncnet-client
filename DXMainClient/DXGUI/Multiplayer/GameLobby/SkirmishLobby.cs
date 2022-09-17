@@ -487,7 +487,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             Players.Add(new PlayerInfo(ProgramConstants.PLAYERNAME, 0, 0, 0, 0));
             PlayerInfo aiPlayer = new PlayerInfo(ProgramConstants.AI_PLAYER_NAMES[0], 0, 0, 0, 0);
             aiPlayer.IsAI = true;
-            aiPlayer.AILevel = 2;
+            aiPlayer.AILevel = 0;
             AIPlayers.Add(aiPlayer);
 
             LoadDefaultGameModeMap();

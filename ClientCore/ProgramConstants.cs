@@ -39,8 +39,8 @@ namespace ClientCore
 
         public const string QRES_EXECUTABLE = "qres.dat";
 
-        public const string CNCNET_PROTOCOL_REVISION = "R9";
-        public const string LAN_PROTOCOL_REVISION = "RL6";
+        public const string CNCNET_PROTOCOL_REVISION = "R10";
+        public const string LAN_PROTOCOL_REVISION = "RL7";
         public const int LAN_PORT = 1234;
         public const int LAN_INGAME_PORT = 1234;
         public const int LAN_LOBBY_PORT = 1232;
@@ -98,7 +98,7 @@ namespace ClientCore
 
         public static string GetAILevelName(int aiLevel)
         {
-            if (aiLevel > 0 && aiLevel < AI_PLAYER_NAMES.Count)
+            if (aiLevel > -1 && aiLevel < AI_PLAYER_NAMES.Count)
                 return AI_PLAYER_NAMES[aiLevel];
 
             return "";
