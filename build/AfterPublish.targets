@@ -1,18 +1,14 @@
 <Project>
   <Import Project="$(MSBuildThisFileDirectory)CreateAppHost.targets" />
 
-  <Target Name="RemoveSDL" AfterTargets="Publish" Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework' And '$(Engine)' == 'UniversalGL' Or '$(Engine)' == 'WindowsGL'">
+  <Target Name="RemoveSDL" AfterTargets="PublishDesktopGLNative" Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework' And '$(Engine)' == 'WindowsGL'">
     <Message Importance="high" Text="Removing not needed SDL files"/>
+    <Delete Files="$(PublishDir)x64/libopenal.so.1" />
+    <Delete Files="$(PublishDir)x64/libSDL2-2.0.so.0" />
+    <Delete Files="$(PublishDir)libopenal.1.dylib" />
+    <Delete Files="$(PublishDir)libSDL2-2.0.0.dylib" />
     <Delete Files="$(PublishDir)SDL2.dll" />
     <Delete Files="$(PublishDir)soft_oal.dll" />
-  </Target>
-
-  <Target Name="CopySDL" AfterTargets="Publish" Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework' And '$(Engine)' == 'WindowsGL'">
-    <Message Importance="high" Text="Copying missing SDL files"/>
-    <Copy SourceFiles="$(OutDir)x64/SDL2.dll" DestinationFolder="$(PublishDir)x64" />
-    <Copy SourceFiles="$(OutDir)x64/soft_oal.dll" DestinationFolder="$(PublishDir)x64" />
-    <Copy SourceFiles="$(OutDir)x86/SDL2.dll" DestinationFolder="$(PublishDir)x86" />
-    <Copy SourceFiles="$(OutDir)x86/soft_oal.dll" DestinationFolder="$(PublishDir)x86" />
   </Target>
 
   <Target Name="RemoveCodeAnalysis" AfterTargets="Publish" Condition="'$(TargetFramework.Contains(-windows))' And '$(Engine)' == 'WindowsDX'">
