@@ -19,28 +19,33 @@ However, there is no limitation in the client that would prevent incorporating i
 Requirements
 ------------
 
-The client has 3 builds: Windows (DirectX11), OpenGL and XNA.
-* The Windows and OpenGL builds rely on .NET Framework 4.5 and MonoGame.
-* The XNA build relies on .NET Framework 4.0 and Microsoft's XNA Framework 4.0 Refresh.
-  * [Installing XNA for Visual Studio 2019](http://flatredball.com/visual-studio-2019-xna-setup/)
-  * [Installing XNA for Visual Studio 2017](http://flatredball.com/visual-studio-2017-xna-setup/)
+The client has 2 variants: .NET 4.8 and .NET 6.0.
 
-Building the solution for any platform requires Visual Studio 2017 or newer. A modern version of Visual Studio Code, MonoDevelop or Visual Studio for Mac could also work (as well as separate MSBuild without any sort of IDE), but are not officially supported.
+Each variant has 4 builds: Windows DirectX11, Windows OpenGL, Windows XNA and Universal OpenGL.
+* The DirectX11 and OpenGL builds rely on MonoGame.
+* The XNA build relies on Microsoft's XNA Framework 4.0 Refresh.
+
+Building the solution for any platform requires Visual Studio 2022 and/or the .NET SDK 6.0 or newer. A modern version of Visual Studio Code, MonoDevelop or Visual Studio for Mac could also work, but are not officially supported.
+When using the included build scripts PowerShell 7.2 or newer is required.
 
 Compiling, debugging and usage
 ------------------------------
 
-* Compiling itself is simple: assuming you have the prerequisites installed, you can just open the solution with Visual Studio and compile it right away; the repository includes MonoGame and other necessary DLLs for quick compiling.
+* Compiling itself is simple: assuming you have the .NET 6.0 SDK installed, you can just open the solution with Visual Studio and compile it right away.
 * When built as a debug build, the client executable expects to reside in the same directory with the target project's main game executable. Resources should exist in a "Resources" sub-directory in the same directory. The repository contains sample resources and post-build commands for copying them so that you can immediately run the client in debug mode by just hitting the Debug button in Visual Studio.
 * When built in release mode, the client executable expects to reside in the "Resources" sub-directory itself. In target projects, the client executables are named `clientdx.exe`, `clientogl.exe` and `clientxna.exe` respectively for each platform.
-* The `BuildScripts` directory has automated build scripts that build the client for all 3 platforms and copy the output files to a folder named `Compiled` in the project root. You can then copy the contents of this `Compiled` directory into the `Resources` sub-directory of any target project. Note that by default the build scripts also build the XNA version of the client, which requires XNA Framework 4.0 Refresh to be installed. If you don't want to install XNA, then you need to modify `BuildGame.bat` to leave the XNAFramework build out.
+* When built on an OS other than Windows, only the .NET 6.0 Universal OpenGL build is available.
+* The `BuildScripts` directory has automated build scripts that build the client for all platforms and copy the output files to a folder named `Compiled` in the project root. You can then copy the contents of this `Compiled` directory into the `Resources` sub-directory of any target project.
 
 End-user usage
 --------------
 
-For end-users running Vista or newer Windows, the MonoGame (DirectX11) build is preferred. The MonoGame build cannot be run on Windows XP, so the XNA build is intended for XP users and for those users whose GPUs do not properly support DX11.
+* Windows: Windows 7 SP1 or higher is required. The .NET 6.0 DirectX11 build is preferred. The XNA builds are intended for those whose GPU does not properly support DX11.
+* Other OS: Use the .NET 6.0 Universal OpenGL build.
 
-The MonoGame WindowsGL / DesktopGL build is primarily meant for experimental Linux and Mac support.
+All builds require either the [.NET 6.0 Desktop Runtime](https://dotnet.microsoft.com/en-us/download/dotnet/6.0/runtime) or the [.NET 4.8 Runtime](https://dotnet.microsoft.com/en-us/download/dotnet-framework/net48).
+
+The XNA build additionally requires the [Microsoft XNA Framework Redistributable 4.0 Refresh](https://www.microsoft.com/en-us/download/details.aspx?id=27598)
 
 Client launcher
 ---------------

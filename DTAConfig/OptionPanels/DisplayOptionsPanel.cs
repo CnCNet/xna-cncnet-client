@@ -1,7 +1,6 @@
+using Localization;
 using ClientCore;
 using ClientGUI;
-using Localization;
-using Microsoft.Win32;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Rampastring.Tools;
@@ -9,9 +8,17 @@ using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
+using System.Runtime.InteropServices;
+#if !NETFRAMEWORK
+using System.Runtime.Versioning;
+#endif
+#if WINFORMS
 using System.Windows.Forms;
+#endif
+#if TS
+using Microsoft.Win32;
+using System.Diagnostics;
+#endif
 
 namespace DTAConfig.OptionPanels
 {
@@ -177,10 +184,10 @@ namespace DTAConfig.OptionPanels
             ddClientResolution.AllowDropDown = false;
             ddClientResolution.PreferredItemLabel = "(recommended)".L10N("UI:DTAConfig:Recommended");
 
-            var screenBounds = Screen.PrimaryScreen.Bounds;
+            int width = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width;
+            int height = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height;
 
-            resolutions = GetResolutions(800, 600,
-                screenBounds.Width, screenBounds.Height);
+            resolutions = GetResolutions(800, 600, width, height);
 
             // Add "optimal" client resolutions for windowed mode
             // if they're not supported in fullscreen mode
@@ -266,7 +273,11 @@ namespace DTAConfig.OptionPanels
                 lblGameCompatibilityFix.Y - 4, UIDesignConstants.BUTTON_WIDTH_133, UIDesignConstants.BUTTON_HEIGHT);
             btnGameCompatibilityFix.FontIndex = 1;
             btnGameCompatibilityFix.Text = "Enable".L10N("UI:DTAConfig:Enable");
-            btnGameCompatibilityFix.LeftClick += BtnGameCompatibilityFix_LeftClick;
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                btnGameCompatibilityFix.LeftClick += BtnGameCompatibilityFix_LeftClick;
+            else
+                btnGameCompatibilityFix.AllowClick = false;
 
             lblMapEditorCompatibilityFix = new XNALabel(WindowManager);
             lblMapEditorCompatibilityFix.Name = "lblMapEditorCompatibilityFix";
@@ -284,14 +295,17 @@ namespace DTAConfig.OptionPanels
                 btnGameCompatibilityFix.Height);
             btnMapEditorCompatibilityFix.FontIndex = 1;
             btnMapEditorCompatibilityFix.Text = "Enable".L10N("UI:DTAConfig:TSButtonEnable");
-            btnMapEditorCompatibilityFix.LeftClick += BtnMapEditorCompatibilityFix_LeftClick;
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                btnMapEditorCompatibilityFix.LeftClick += BtnMapEditorCompatibilityFix_LeftClick;
+            else
+                btnMapEditorCompatibilityFix.AllowClick = false;
 
             AddChild(lblGameCompatibilityFix);
             AddChild(btnGameCompatibilityFix);
             AddChild(lblMapEditorCompatibilityFix);
             AddChild(btnMapEditorCompatibilityFix);
 #endif
-
             AddChild(chkWindowedMode);
             AddChild(chkBorderlessWindowedMode);
             AddChild(chkBackBufferInVRAM);
@@ -320,9 +334,10 @@ namespace DTAConfig.OptionPanels
             if (resolutions.Find(res => res.Width == width && res.Height == height) != null)
                 return;
 
-            var screenBounds = Screen.PrimaryScreen.Bounds;
+            int currentWidth = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width;
+            int currentHeight = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height;
 
-            if (screenBounds.Width >= width && screenBounds.Height >= height)
+            if (currentWidth >= width && currentHeight >= height)
             {
                 resolutions.Add(new ScreenResolution(width, height));
             }
@@ -332,7 +347,7 @@ namespace DTAConfig.OptionPanels
         {
             renderers = new List<DirectDrawWrapper>();
 
-            var renderersIni = new IniFile(ProgramConstants.GetBaseResourcePath() + RENDERERS_INI);
+            var renderersIni = new IniFile(SafePath.CombineFilePath(ProgramConstants.GetBaseResourcePath(), RENDERERS_INI));
 
             var keys = renderersIni.GetSectionKeys("Renderers");
             if (keys == null)
@@ -353,7 +368,6 @@ namespace DTAConfig.OptionPanels
             if (defaultRenderer == null)
                 throw new ClientConfigurationException("Invalid or missing default renderer for operating system: " + osVersion);
 
-
             string renderer = UserINISettings.Instance.Renderer;
 
             selectedRenderer = renderers.Find(r => r.InternalName == renderer);
@@ -367,7 +381,6 @@ namespace DTAConfig.OptionPanels
             GameProcessLogic.UseQres = selectedRenderer.UseQres;
             GameProcessLogic.SingleCoreAffinity = selectedRenderer.SingleCoreAffinity;
         }
-
 #if TS
 
         /// <summary>
@@ -376,6 +389,9 @@ namespace DTAConfig.OptionPanels
         public void PostInit()
         {
             Load();
+
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                return;
 
             if (!GameCompatFixInstalled && !GameCompatFixDeclined)
             {
@@ -392,6 +408,9 @@ namespace DTAConfig.OptionPanels
             }
         }
 
+#if !NETFRAMEWORK
+        [SupportedOSPlatform("windows")]
+#endif
         private void MessageBox_NoClicked(XNAMessageBox messageBox)
         {
             // Set compatibility fix declined flag in registry
@@ -413,11 +432,17 @@ namespace DTAConfig.OptionPanels
             catch { }
         }
 
+#if !NETFRAMEWORK
+        [SupportedOSPlatform("windows")]
+#endif
         private void MessageBox_YesClicked(XNAMessageBox messageBox)
         {
             BtnGameCompatibilityFix_LeftClick(messageBox, EventArgs.Empty);
         }
 
+#if !NETFRAMEWORK
+        [SupportedOSPlatform("windows")]
+#endif
         private void BtnGameCompatibilityFix_LeftClick(object sender, EventArgs e)
         {
             if (GameCompatFixInstalled)
@@ -476,6 +501,9 @@ namespace DTAConfig.OptionPanels
             }
         }
 
+#if !NETFRAMEWORK
+        [SupportedOSPlatform("windows")]
+#endif
         private void BtnMapEditorCompatibilityFix_LeftClick(object sender, EventArgs e)
         {
             if (FinalSunCompatFixInstalled)
@@ -502,12 +530,11 @@ namespace DTAConfig.OptionPanels
                 {
                     Logger.Log("Uninstalling FinalSun Compatibility Fix failed. Error message: " + ex.Message);
                     XNAMessageBox.Show(WindowManager, "Uninstalling Compatibility Fix Failed".L10N("UI:DTAConfig:TSFinalSunFixUninstallFailedTitle"),
-                        "Uninstalling FinalSun Compatibility Fix failed. Error message:".L10N("UI:DTAConfig:TSFinalSunFixUninstallFailedText") +" "+ ex.Message);
+                        "Uninstalling FinalSun Compatibility Fix failed. Error message:".L10N("UI:DTAConfig:TSFinalSunFixUninstallFailedText") + " " + ex.Message);
                 }
 
                 return;
             }
-
 
             try
             {
@@ -534,7 +561,6 @@ namespace DTAConfig.OptionPanels
                     "Installing FinalSun Compatibility Fix failed. Error message:".L10N("UI:DTAConfig:TSFinalSunCompatibilityFixInstalledFailedText") + " " + ex.Message);
             }
         }
-
 #endif
 
         private void ChkBorderlessMenu_CheckedChanged(object sender, EventArgs e)
@@ -542,12 +568,14 @@ namespace DTAConfig.OptionPanels
             if (chkBorderlessClient.Checked)
             {
                 ddClientResolution.AllowDropDown = false;
+#if WINFORMS
                 string nativeRes = Screen.PrimaryScreen.Bounds.Width +
                     "x" + Screen.PrimaryScreen.Bounds.Height;
 
                 int nativeResIndex = ddClientResolution.Items.FindIndex(i => (string)i.Tag == nativeRes);
                 if (nativeResIndex > -1)
                     ddClientResolution.SelectedIndex = nativeResIndex;
+#endif
             }
             else
             {
@@ -622,7 +650,7 @@ namespace DTAConfig.OptionPanels
                 // enabled through their own config INI file
                 // (for example DxWnd and CnC-DDRAW)
 
-                IniFile rendererSettingsIni = new IniFile(ProgramConstants.GamePath + renderer.ConfigFileName);
+                IniFile rendererSettingsIni = new IniFile(SafePath.CombineFilePath(ProgramConstants.GamePath, renderer.ConfigFileName));
 
                 chkWindowedMode.Checked = rendererSettingsIni.GetBooleanValue(renderer.WindowedModeSection,
                     renderer.WindowedModeKey, false);
@@ -656,10 +684,11 @@ namespace DTAConfig.OptionPanels
                 ddi => ddi.Text == UserINISettings.Instance.ClientTheme);
             ddClientTheme.SelectedIndex = selectedThemeIndex > -1 ? selectedThemeIndex : 0;
 
-#if YR
-            chkBackBufferInVRAM.Checked = UserINISettings.Instance.BackBufferInVRAM;
-#else
+#if TS
             chkBackBufferInVRAM.Checked = !UserINISettings.Instance.BackBufferInVRAM;
+
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                return;
 
             RegistryKey regKey = Registry.CurrentUser.OpenSubKey("SOFTWARE\\Tiberian Sun Client");
 
@@ -697,6 +726,8 @@ namespace DTAConfig.OptionPanels
             //{
             //    FinalSunCompatFixDeclined = true;
             //}
+#else
+            chkBackBufferInVRAM.Checked = UserINISettings.Instance.BackBufferInVRAM;
 #endif
         }
 
@@ -747,14 +778,14 @@ namespace DTAConfig.OptionPanels
 
             IniSettings.ClientTheme.Value = ddClientTheme.SelectedItem.Text;
 
-#if YR
-            IniSettings.BackBufferInVRAM.Value = chkBackBufferInVRAM.Checked;
-#else
+#if TS
             IniSettings.BackBufferInVRAM.Value = !chkBackBufferInVRAM.Checked;
+#else
+            IniSettings.BackBufferInVRAM.Value = chkBackBufferInVRAM.Checked;
 #endif
 
             if (selectedRenderer != originalRenderer ||
-                !File.Exists(ProgramConstants.GamePath + selectedRenderer.ConfigFileName))
+                !SafePath.GetFile(ProgramConstants.GamePath, selectedRenderer.ConfigFileName).Exists)
             {
                 foreach (var renderer in renderers)
                 {
@@ -770,8 +801,7 @@ namespace DTAConfig.OptionPanels
 
             if (selectedRenderer.UsesCustomWindowedOption())
             {
-                IniFile rendererSettingsIni = new IniFile(
-                    ProgramConstants.GamePath + selectedRenderer.ConfigFileName);
+                IniFile rendererSettingsIni = new IniFile(SafePath.CombineFilePath(ProgramConstants.GamePath, selectedRenderer.ConfigFileName));
 
                 rendererSettingsIni.SetBooleanValue(selectedRenderer.WindowedModeSection,
                     selectedRenderer.WindowedModeKey, chkWindowedMode.Checked);
@@ -792,14 +822,14 @@ namespace DTAConfig.OptionPanels
             IniSettings.Renderer.Value = selectedRenderer.InternalName;
 
 #if TS
-            File.Delete(ProgramConstants.GamePath + "Language.dll");
+            SafePath.DeleteFileIfExists(ProgramConstants.GamePath, "Language.dll");
 
             if (ingameRes[0] >= 1024 && ingameRes[1] >= 720)
-                File.Copy(ProgramConstants.GamePath + "Resources/language_1024x720.dll", ProgramConstants.GamePath + "Language.dll");
+                System.IO.File.Copy(SafePath.CombineFilePath(ProgramConstants.GamePath, "Resources", "language_1024x720.dll"), SafePath.CombineFilePath(ProgramConstants.GamePath, "Language.dll"));
             else if (ingameRes[0] >= 800 && ingameRes[1] >= 600)
-                File.Copy(ProgramConstants.GamePath + "Resources/language_800x600.dll", ProgramConstants.GamePath + "Language.dll");
+                System.IO.File.Copy(SafePath.CombineFilePath(ProgramConstants.GamePath, "Resources", "language_800x600.dll"), SafePath.CombineFilePath(ProgramConstants.GamePath, "Language.dll"));
             else
-                File.Copy(ProgramConstants.GamePath + "Resources/language_640x480.dll", ProgramConstants.GamePath + "Language.dll");
+                System.IO.File.Copy(SafePath.CombineFilePath(ProgramConstants.GamePath, "Resources", "language_640x480.dll"), SafePath.CombineFilePath(ProgramConstants.GamePath, "Language.dll"));
 #endif
 
             return restartRequired;

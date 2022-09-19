@@ -210,6 +210,7 @@ namespace DTAClient.DXGUI.Generic
             lblTotalProgressPercentageValue.Text = prgTotal.Value.ToString() + "%";
             lblCurrentFile.Text = "Current file:".L10N("UI:Main:CurrentFile") + " " + currFileName;
             lblUpdaterStatus.Text = "Downloading files".L10N("UI:Main:DownloadingFiles");
+#if WINFORMS
 
             /*/ TODO Improve the updater
              * When the updater thread in DTAUpdater.dll has completed the update, it will
@@ -218,7 +219,7 @@ namespace DTAClient.DXGUI.Generic
              * Because of that, this function is sometimes executed when
              * the game window has already been hidden / removed, and the code below
              * will then crash the client, causing the user to see a KABOOM message
-             * along with the succesful update, which is likely quite confusing for the user.
+             * along with the successful update, which is likely quite confusing for the user.
              * The try-catch is a dirty temporary workaround.
              * /*/
             try
@@ -231,8 +232,8 @@ namespace DTAClient.DXGUI.Generic
             }
             catch
             {
-
             }
+#endif
         }
 
         private void Updater_OnFileDownloadCompleted(string archiveName)
@@ -252,9 +253,11 @@ namespace DTAClient.DXGUI.Generic
 
         private void HandleUpdateCompleted()
         {
+#if WINFORMS
             if (IsTaskbarSupported())
                 tbp.SetState(WindowManager.GetWindowHandle(), TaskbarProgress.TaskbarStates.NoProgress);
 
+#endif
             UpdateCompleted?.Invoke(this, EventArgs.Empty);
         }
 
@@ -265,9 +268,11 @@ namespace DTAClient.DXGUI.Generic
 
         private void HandleUpdateFailed(string updateFailureErrorMessage)
         {
+#if WINFORMS
             if (IsTaskbarSupported())
                 tbp.SetState(WindowManager.GetWindowHandle(), TaskbarProgress.TaskbarStates.NoProgress);
 
+#endif
             UpdateFailed?.Invoke(this, new UpdateFailureEventArgs(updateFailureErrorMessage));
         }
 
@@ -283,9 +288,11 @@ namespace DTAClient.DXGUI.Generic
         {
             isStartingForceUpdate = false;
 
+#if WINFORMS
             if (IsTaskbarSupported())
                 tbp.SetState(WindowManager.GetWindowHandle(), TaskbarProgress.TaskbarStates.NoProgress);
 
+#endif
             UpdateCancelled?.Invoke(this, EventArgs.Empty);
         }
 

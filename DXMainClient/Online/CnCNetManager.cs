@@ -1,6 +1,5 @@
 ﻿using ClientCore;
 using ClientCore.CnCNet5;
-using DTAClient.Domain.Multiplayer.CnCNet;
 using DTAClient.Online.EventArguments;
 using Localization;
 using Microsoft.Xna.Framework;

@@ -575,8 +575,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         protected override void GetReadyNotification()
         {
             base.GetReadyNotification();
-
+#if WINFORMS
             WindowManager.FlashWindow();
+#endif
 
             if (IsHost)
                 BroadcastMessage(GET_READY_COMMAND);
@@ -987,7 +988,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             if (gameModeMap == null)
             {
-                AddNotice("The game host has selected a map that doesn't exist on your installation.".L10N("UI:Main:MapNotExist")+
+                AddNotice("The game host has selected a map that doesn't exist on your installation.".L10N("UI:Main:MapNotExist") +
                     "The host needs to change the map or you won't be able to play.".L10N("UI:Main:HostNeedChangeMapForYou"));
                 ChangeMap(null);
                 return;

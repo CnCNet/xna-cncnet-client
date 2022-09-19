@@ -1,9 +1,7 @@
 ﻿using ClientCore;
 using DTAClient.Online.EventArguments;
-using Microsoft.Xna.Framework;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using DTAClient.DXGUI;
 using Localization;
 

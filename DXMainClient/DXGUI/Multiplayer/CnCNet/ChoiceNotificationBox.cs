@@ -1,11 +1,16 @@
-﻿using ClientCore;
-using ClientGUI;
+﻿using ClientGUI;
 using Localization;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
 using System;
+using System.IO;
+using System.Reflection;
+using ClientCore.CnCNet5;
+using SixLabors.ImageSharp;
+using Color = Microsoft.Xna.Framework.Color;
+using Rectangle = Microsoft.Xna.Framework.Rectangle;
 
 namespace DTAClient.DXGUI.Multiplayer.CnCNet
 {
@@ -59,11 +64,14 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             lblHeader.Text = "MAKE A CHOICE".L10N("UI:Main:MakeAChoice");
             AddChild(lblHeader);
 
+            using Stream dtaIconStream = Assembly.GetAssembly(typeof(GameCollection)).GetManifestResourceStream("ClientCore.Resources.dtaicon.png");
+            using var dtaIcon = Image.Load(dtaIconStream);
+
             gameIconPanel = new XNAPanel(WindowManager);
             gameIconPanel.Name = nameof(gameIconPanel);
             gameIconPanel.ClientRectangle = new Rectangle(12, lblHeader.Bottom + 6, 16, 16);
             gameIconPanel.DrawBorders = false;
-            gameIconPanel.BackgroundTexture = AssetLoader.TextureFromImage(ClientCore.Properties.Resources.dtaicon);
+            gameIconPanel.BackgroundTexture = AssetLoader.TextureFromImage(dtaIcon);
             AddChild(gameIconPanel);
 
             lblSender = new XNALabel(WindowManager);
@@ -99,7 +107,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         // a timeout of zero means the notification will never be automatically dismissed
         public void Show(
-            string headerText, 
+            string headerText,
             Texture2D gameIcon,
             string sender,
             string choiceText,
