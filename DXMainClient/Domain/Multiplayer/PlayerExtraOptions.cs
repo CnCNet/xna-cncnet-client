@@ -23,7 +23,7 @@ namespace DTAClient.Domain.Multiplayer
         public bool IsForceRandomTeams { get; set; }
         public bool IsForceRandomStarts { get; set; }
         public bool IsUseTeamStartMappings { get; set; }
-        public List<TeamStartMapping> TeamStartMappings { get; set; }
+        public List<TeamStartMapping> TeamStartMappings { get; set; } = new List<TeamStartMapping>();
 
         public string GetTeamMappingsError()
         {
