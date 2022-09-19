@@ -398,7 +398,7 @@ namespace DTAClient.DXGUI.Generic
         private void CheckRequiredFiles()
         {
             List<string> absentFiles = ClientConfiguration.Instance.RequiredFiles.ToList()
-                .FindAll(f => !string.IsNullOrWhiteSpace(f) && !File.Exists(ProgramConstants.GamePath + f));
+                .FindAll(f => !string.IsNullOrWhiteSpace(f) && !SafePath.GetFile(ProgramConstants.GamePath, f).Exists);
 
             if (absentFiles.Count > 0)
                 XNAMessageBox.Show(WindowManager, "Missing Files".L10N("UI:Main:MissingFilesTitle"),
@@ -419,7 +419,7 @@ namespace DTAClient.DXGUI.Generic
         private void CheckForbiddenFiles()
         {
             List<string> presentFiles = ClientConfiguration.Instance.ForbiddenFiles.ToList()
-                .FindAll(f => !string.IsNullOrWhiteSpace(f) && File.Exists(ProgramConstants.GamePath + f));
+                .FindAll(f => !string.IsNullOrWhiteSpace(f) && SafePath.GetFile(ProgramConstants.GamePath, f).Exists);
 
             if (presentFiles.Count > 0)
                 XNAMessageBox.Show(WindowManager, "Interfering Files Detected".L10N("UI:Main:InterferingFilesDetectedTitle"),
@@ -526,6 +526,8 @@ namespace DTAClient.DXGUI.Generic
         /// </summary>
         public void PostInit()
         {
+            SwitchMainMenuMusicFormat();
+
             themeSong = AssetLoader.LoadSong(ClientConfiguration.Instance.MainMenuMusicName);
 
             PlayMusic();
@@ -552,6 +554,29 @@ namespace DTAClient.DXGUI.Generic
             CheckIfFirstRun();
         }
 
+        private void SwitchMainMenuMusicFormat()
+        {
+#if GL || DX
+            FileInfo wmaMainMenuMusicFile = SafePath.GetFile(ProgramConstants.GamePath, ProgramConstants.BASE_RESOURCE_PATH,
+                FormattableString.Invariant($"{ClientConfiguration.Instance.MainMenuMusicName}.wma"));
+            FileInfo wmaBackupMainMenuMusicFile = SafePath.GetFile(ProgramConstants.GamePath, ProgramConstants.BASE_RESOURCE_PATH,
+                FormattableString.Invariant($"{ClientConfiguration.Instance.MainMenuMusicName}.bak"));
+
+            if (!wmaBackupMainMenuMusicFile.Exists)
+                wmaMainMenuMusicFile.CopyTo(wmaBackupMainMenuMusicFile.FullName);
+
+#endif
+#if DX
+            wmaBackupMainMenuMusicFile.CopyTo(wmaMainMenuMusicFile.FullName, true);
+#elif GL
+            FileInfo oggMainMenuMusicFile = SafePath.GetFile(ProgramConstants.GamePath, ProgramConstants.BASE_RESOURCE_PATH,
+                FormattableString.Invariant($"{ClientConfiguration.Instance.MainMenuMusicName}.ogg"));
+
+            if (oggMainMenuMusicFile.Exists)
+                oggMainMenuMusicFile.CopyTo(wmaMainMenuMusicFile.FullName, true);
+#endif
+        }
+
         #region Updating / versioning system
 
         private void UpdateWindow_UpdateFailed(object sender, UpdateFailureEventArgs e)
@@ -569,7 +594,7 @@ namespace DTAClient.DXGUI.Generic
                 "If you are connected to the Internet and your firewall isn't blocking" + Environment.NewLine +
                 "{1}, and the issue is reproducible, contact us at " + Environment.NewLine +
                 "{2} for support.").L10N("UI:Main:UpdateFailedText"),
-                e.Reason, Path.GetFileName(System.Windows.Forms.Application.ExecutablePath), MainClientConstants.SUPPORT_URL_SHORT), XNAMessageBoxButtons.OK);
+                e.Reason, Path.GetFileName(ProgramConstants.StartupExecutable), MainClientConstants.SUPPORT_URL_SHORT), XNAMessageBoxButtons.OK);
             msgBox.OKClickedAction = MsgBox_OKClicked;
             msgBox.Show();
         }
@@ -614,7 +639,7 @@ namespace DTAClient.DXGUI.Generic
 
         private void LblVersion_LeftClick(object sender, EventArgs e)
         {
-            Process.Start(ClientConfiguration.Instance.ChangelogURL);
+            ProcessLauncher.StartShellProcess(ClientConfiguration.Instance.ChangelogURL);
         }
 
         private void ForceUpdate()
@@ -638,13 +663,6 @@ namespace DTAClient.DXGUI.Generic
             lblUpdateStatus.Enabled = false;
             lblUpdateStatus.Text = "Checking for " +
                 "updates...".L10N("UI:Main:CheckingForUpdate");
-
-            try
-            {
-                StatisticsSender.Instance.SendUpdate();
-            }
-            catch { }
-
             lastUpdateCheckTime = DateTime.Now;
         }
 
@@ -794,15 +812,19 @@ namespace DTAClient.DXGUI.Generic
         private void BtnStatistics_LeftClick(object sender, EventArgs e) =>
             innerPanel.Show(innerPanel.StatisticsWindow);
 
-        private void BtnCredits_LeftClick(object sender, EventArgs e) =>
-            Process.Start(MainClientConstants.CREDITS_URL);
+        private void BtnCredits_LeftClick(object sender, EventArgs e)
+        {
+            ProcessLauncher.StartShellProcess(MainClientConstants.CREDITS_URL);
+        }
 
         private void BtnExtras_LeftClick(object sender, EventArgs e) =>
             innerPanel.Show(innerPanel.ExtrasWindow);
 
         private void BtnExit_LeftClick(object sender, EventArgs e)
         {
+#if WINFORMS
             WindowManager.HideWindow();
+#endif
             FadeMusicExit();
         }
 
@@ -996,11 +1018,11 @@ namespace DTAClient.DXGUI.Generic
 
             if (osVersion != OSVersion.UNIX)
             {
-                mapEditorProcess.StartInfo.FileName = ProgramConstants.GamePath + ClientConfiguration.Instance.MapEditorExePath;
+                mapEditorProcess.StartInfo.FileName = SafePath.CombineFilePath(ProgramConstants.GamePath, ClientConfiguration.Instance.MapEditorExePath);
             }
             else
             {
-                mapEditorProcess.StartInfo.FileName = ProgramConstants.GamePath + ClientConfiguration.Instance.UnixMapEditorExePath;
+                mapEditorProcess.StartInfo.FileName = SafePath.CombineFilePath(ProgramConstants.GamePath, ClientConfiguration.Instance.UnixMapEditorExePath);
                 mapEditorProcess.StartInfo.UseShellExecute = false;
             }
 

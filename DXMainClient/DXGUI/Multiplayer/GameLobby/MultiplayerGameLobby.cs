@@ -174,7 +174,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             if (SavedGameManager.AreSavedGamesAvailable())
             {
-                fsw = new FileSystemWatcher(ProgramConstants.GamePath + "Saved Games", "*.NET");
+                fsw = new FileSystemWatcher(SafePath.CombineDirectoryPath(ProgramConstants.GamePath, "Saved Games"), "*.NET");
                 fsw.Created += fsw_Created;
                 fsw.Changed += fsw_Created;
                 fsw.EnableRaisingEvents = false;
@@ -566,7 +566,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             Locked = false;
 
             UpdateMapPreviewBoxEnabledStatus();
-            PlayerExtraOptionsPanel.SetIsHost(isHost);
+            PlayerExtraOptionsPanel?.SetIsHost(isHost);
             //MapPreviewBox.EnableContextMenu = IsHost;
 
             btnLaunchGame.Text = IsHost ? BTN_LAUNCH_GAME : BTN_LAUNCH_READY;

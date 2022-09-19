@@ -75,15 +75,15 @@ namespace DTAClient.Online
         {
             fh = new FileHashes
             {
-                GameOptionsHash = Utilities.CalculateSHA1ForFile(ProgramConstants.GamePath + ProgramConstants.BASE_RESOURCE_PATH + "GameOptions.ini"),
-                ClientDXHash = Utilities.CalculateSHA1ForFile(ProgramConstants.GetBaseResourcePath() + "clientdx.exe"),
-                ClientXNAHash = Utilities.CalculateSHA1ForFile(ProgramConstants.GetBaseResourcePath() + "clientxna.exe"),
-                ClientOGLHash = Utilities.CalculateSHA1ForFile(ProgramConstants.GetBaseResourcePath() + "clientogl.exe"),
+                GameOptionsHash = Utilities.CalculateSHA1ForFile(SafePath.CombineFilePath(ProgramConstants.GamePath, ProgramConstants.BASE_RESOURCE_PATH, "GameOptions.ini")),
+                ClientDXHash = Utilities.CalculateSHA1ForFile(SafePath.CombineFilePath(ProgramConstants.GetBaseResourcePath(), "clientdx.exe")),
+                ClientXNAHash = Utilities.CalculateSHA1ForFile(SafePath.CombineFilePath(ProgramConstants.GetBaseResourcePath(), "clientxna.exe")),
+                ClientOGLHash = Utilities.CalculateSHA1ForFile(SafePath.CombineFilePath(ProgramConstants.GetBaseResourcePath(), "clientogl.exe")),
                 GameExeHash = calculateGameExeHash ?
-                Utilities.CalculateSHA1ForFile(ProgramConstants.GamePath + ClientConfiguration.Instance.GetGameExecutableName()) : string.Empty,
-                LauncherExeHash = Utilities.CalculateSHA1ForFile(ProgramConstants.GamePath + ClientConfiguration.Instance.GameLauncherExecutableName),
-                MPMapsHash = Utilities.CalculateSHA1ForFile(ProgramConstants.GamePath + ClientConfiguration.Instance.MPMapsIniPath),
-                FHCConfigHash = Utilities.CalculateSHA1ForFile(ProgramConstants.BASE_RESOURCE_PATH + CONFIGNAME),
+                Utilities.CalculateSHA1ForFile(SafePath.CombineFilePath(ProgramConstants.GamePath, ClientConfiguration.Instance.GetGameExecutableName())) : string.Empty,
+                LauncherExeHash = Utilities.CalculateSHA1ForFile(SafePath.CombineFilePath(ProgramConstants.GamePath, ClientConfiguration.Instance.GameLauncherExecutableName)),
+                MPMapsHash = Utilities.CalculateSHA1ForFile(SafePath.CombineFilePath(ProgramConstants.GamePath, ClientConfiguration.Instance.MPMapsIniPath)),
+                FHCConfigHash = Utilities.CalculateSHA1ForFile(SafePath.CombineFilePath(ProgramConstants.BASE_RESOURCE_PATH, CONFIGNAME)),
                 INIHashes = string.Empty
             };
 
@@ -104,29 +104,28 @@ namespace DTAClient.Online
             {
                 fh.INIHashes = AddToStringIfFileExists(fh.INIHashes, filePath);
                 Logger.Log("Hash for " + filePath + ": " +
-                    Utilities.CalculateSHA1ForFile(ProgramConstants.GamePath + filePath));
+                    Utilities.CalculateSHA1ForFile(SafePath.CombineFilePath(ProgramConstants.GamePath, filePath)));
             }
 
-            string[] iniPaths = new string[]
+            DirectoryInfo[] iniPaths =
             {
 #if !YR
-                ProgramConstants.GamePath + "INI/Map Code",
+               SafePath.GetDirectory(ProgramConstants.GamePath, "INI", "Map Code"),
 #endif
-                ProgramConstants.GamePath + "INI/Game Options"
+               SafePath.GetDirectory(ProgramConstants.GamePath, "INI", "Game Options")
             };
 
-            foreach (string path in iniPaths)
+            foreach (DirectoryInfo path in iniPaths)
             {
-                if (!string.IsNullOrEmpty(path) && Directory.Exists(path))
+                if (path.Exists)
                 {
-                    List<string> files = Directory.GetFiles(path, "*", SearchOption.AllDirectories).
-                        Select(s => s.Replace(ProgramConstants.GamePath, "").Replace("\\", "/")).ToList();
+                    List<string> files = path.EnumerateFiles("*", SearchOption.AllDirectories).Select(s => s.Name).ToList();
 
                     files.Sort(StringComparer.Ordinal);
 
                     foreach (string filename in files)
                     {
-                        string sha1 = Utilities.CalculateSHA1ForFile(ProgramConstants.GamePath + filename);
+                        string sha1 = Utilities.CalculateSHA1ForFile(SafePath.CombineFilePath(ProgramConstants.GamePath, filename));
                         fh.INIHashes += sha1;
                         Logger.Log("Hash for " + filename + ": " + sha1);
                     }
@@ -139,7 +138,7 @@ namespace DTAClient.Online
         string AddToStringIfFileExists(string str, string path)
         {
             if (File.Exists(path))
-                return str + Utilities.CalculateSHA1ForFile(ProgramConstants.GamePath + path);
+                return str + Utilities.CalculateSHA1ForFile(SafePath.CombineFilePath(ProgramConstants.GamePath, path));
 
             return str;
         }
@@ -163,7 +162,7 @@ namespace DTAClient.Online
 
         private void ParseConfigFile()
         {
-            IniFile config = new IniFile(ProgramConstants.GetBaseResourcePath() + CONFIGNAME);
+            IniFile config = new IniFile(SafePath.CombineFilePath(ProgramConstants.GetBaseResourcePath(), CONFIGNAME));
             calculateGameExeHash = config.GetBooleanValue("Settings", "CalculateGameExeHash", true);
 
             List<string> keys = config.GetSectionKeys("FilenameList");

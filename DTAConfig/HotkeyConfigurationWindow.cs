@@ -1,6 +1,6 @@
-﻿using ClientCore;
+﻿using Localization;
+using ClientCore;
 using ClientGUI;
-using Localization;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 using Rampastring.Tools;
@@ -8,7 +8,6 @@ using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
 using System;
 using System.Collections.Generic;
-using System.IO;
 
 namespace DTAConfig
 {
@@ -73,7 +72,7 @@ namespace DTAConfig
 
             ddCategory = new XNAClientDropDown(WindowManager);
             ddCategory.Name = "ddCategory";
-            ddCategory.ClientRectangle = new Rectangle(lblCategory.Right + 12, 
+            ddCategory.ClientRectangle = new Rectangle(lblCategory.Right + 12,
                 lblCategory.Y - 1, 250, ddCategory.Height);
 
             HashSet<string> categories = new HashSet<string>();
@@ -89,7 +88,7 @@ namespace DTAConfig
 
             lbHotkeys = new XNAMultiColumnListBox(WindowManager);
             lbHotkeys.Name = "lbHotkeys";
-            lbHotkeys.ClientRectangle = new Rectangle(12, ddCategory.Bottom + 12, 
+            lbHotkeys.ClientRectangle = new Rectangle(12, ddCategory.Bottom + 12,
                 ddCategory.Right - 12, Height - ddCategory.Bottom - 59);
             lbHotkeys.PanelBackgroundDrawMode = PanelBackgroundImageDrawMode.STRETCHED;
             lbHotkeys.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 128), 1, 1);
@@ -230,7 +229,7 @@ namespace DTAConfig
         /// </summary>
         private void ReadGameCommands()
         {
-            var gameCommandsIni = new IniFile(ProgramConstants.GetBaseResourcePath() + KEYBOARD_COMMANDS_INI);
+            var gameCommandsIni = new IniFile(SafePath.CombineFilePath(ProgramConstants.GetBaseResourcePath(), KEYBOARD_COMMANDS_INI));
 
             List<string> sections = gameCommandsIni.GetSections();
 
@@ -294,9 +293,9 @@ namespace DTAConfig
 
         private void LoadKeyboardINI()
         {
-            keyboardINI = new IniFile(ProgramConstants.GamePath + ClientConfiguration.Instance.KeyboardINI);
+            keyboardINI = new IniFile(SafePath.CombineFilePath(ProgramConstants.GamePath, ClientConfiguration.Instance.KeyboardINI));
 
-            if (File.Exists(ProgramConstants.GamePath + ClientConfiguration.Instance.KeyboardINI))
+            if (SafePath.GetFile(ProgramConstants.GamePath, ClientConfiguration.Instance.KeyboardINI).Exists)
             {
                 foreach (var command in gameCommands)
                 {
@@ -326,7 +325,7 @@ namespace DTAConfig
             hotkeyInfoPanel.Enable();
             var command = (GameCommand)lbHotkeys.GetItem(0, lbHotkeys.SelectedIndex).Tag;
             lblCommandCaption.Text = command.UIName;
-            lblDescription.Text = Renderer.FixText(command.Description, lblDescription.FontIndex, 
+            lblDescription.Text = Renderer.FixText(command.Description, lblDescription.FontIndex,
                 hotkeyInfoPanel.Width - lblDescription.X).Text;
             lblCurrentHotkeyValue.Text = command.Hotkey.ToStringWithNone();
 
@@ -490,7 +489,7 @@ namespace DTAConfig
                 keyboardIni.SetStringValue("Hotkey", command.ININame, command.Hotkey.GetTSEncoded().ToString());
             }
 
-            keyboardIni.WriteIniFile(ProgramConstants.GamePath + ClientConfiguration.Instance.KeyboardINI);
+            keyboardIni.WriteIniFile(SafePath.CombineFilePath(ProgramConstants.GamePath, ClientConfiguration.Instance.KeyboardINI));
         }
 
         /// <summary>

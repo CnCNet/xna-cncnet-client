@@ -1,13 +1,14 @@
 ﻿using System;
-using System.Windows.Forms;
-using System.IO;
-using System.Reflection;
-using System.Runtime.InteropServices;
-using System.Security.AccessControl;
-using System.Security.Principal;
-using System.Threading;
 using System.Collections.Generic;
-using Localization;
+using System.IO;
+#if NETFRAMEWORK
+using System.Linq;
+#else
+using System.Runtime.Loader;
+#endif
+using System.Threading;
+using System.Reflection;
+/* !! We cannot use references to other projects or non-framework assemblies in this class, assembly loading events not hooked up yet !! */
 
 namespace DTAClient
 {
@@ -15,72 +16,65 @@ namespace DTAClient
     {
         static Program()
         {
-            char dsc = Path.DirectorySeparatorChar;
-
-            /*/ We have different binaries depending on build platform, but for simplicity
+            /* We have different binaries depending on build platform, but for simplicity
              * the target projects (DTA, TI, MO, YR) supply them all in a single download.
              * To avoid DLL hell, we load the binaries from different directories
-             * depending on the build platform. /*/
+             * depending on the build platform. */
 
-#if DEBUG
-            COMMON_LIBRARY_PATH = string.Format("{0}{1}Resources{1}Binaries{1}", Application.StartupPath.Replace('\\', '/'), dsc);
+            string startupPath;
+#if NETFRAMEWORK
+            startupPath = new FileInfo(Assembly.GetEntryAssembly().Location).DirectoryName + Path.DirectorySeparatorChar;
+#elif GL && !WINFORMS
+            if (new FileInfo(Environment.ProcessPath).Name.StartsWith("dotnet", StringComparison.OrdinalIgnoreCase))
+                startupPath = new FileInfo(Assembly.GetEntryAssembly().Location).Directory.Parent.Parent.FullName + Path.DirectorySeparatorChar; // cross platform build launched with dotnet.exe
+            else
+                startupPath = new FileInfo(Environment.ProcessPath).Directory.FullName + Path.DirectorySeparatorChar;
 #else
-            COMMON_LIBRARY_PATH = string.Format("{0}{1}Binaries{1}", Application.StartupPath.Replace('\\', '/'), dsc);
+            startupPath = new FileInfo(Environment.ProcessPath).Directory.FullName + Path.DirectorySeparatorChar;
 #endif
 
-#if XNA && DEBUG
-            SPECIFIC_LIBRARY_PATH = string.Format("{0}{1}Resources{1}Binaries{1}XNA{1}", Application.StartupPath.Replace('\\', '/'), dsc);
-#elif XNA
-            SPECIFIC_LIBRARY_PATH = string.Format("{0}{1}Binaries{1}XNA{1}", Application.StartupPath.Replace('\\', '/'), dsc);
-#elif WINDOWSGL && DEBUG
-            SPECIFIC_LIBRARY_PATH = string.Format("{0}{1}Resources{1}Binaries{1}OpenGL{1}", Application.StartupPath.Replace('\\', '/'), dsc);
-#elif WINDOWSGL
-            SPECIFIC_LIBRARY_PATH = string.Format("{0}{1}Binaries{1}OpenGL{1}", Application.StartupPath.Replace('\\', '/'), dsc);
-#elif DEBUG
-            SPECIFIC_LIBRARY_PATH = string.Format("{0}{1}Resources{1}Binaries{1}Windows{1}", Application.StartupPath.Replace('\\', '/'), dsc);
+#if DEBUG
+            COMMON_LIBRARY_PATH = startupPath;
 #else
-            SPECIFIC_LIBRARY_PATH = string.Format("{0}{1}Binaries{1}Windows{1}", Application.StartupPath.Replace('\\', '/'), dsc);
+            COMMON_LIBRARY_PATH = Path.Combine(startupPath, "Binaries") + Path.DirectorySeparatorChar;
+#endif
+
+#if DEBUG
+            SPECIFIC_LIBRARY_PATH = startupPath;
+#elif XNA
+            SPECIFIC_LIBRARY_PATH = Path.Combine(startupPath, "Binaries", "XNA") + Path.DirectorySeparatorChar;
+#elif GL
+            SPECIFIC_LIBRARY_PATH = Path.Combine(startupPath, "Binaries", "OpenGL") + Path.DirectorySeparatorChar;
+#elif DX
+            SPECIFIC_LIBRARY_PATH = Path.Combine(startupPath, "Binaries", "Windows") + Path.DirectorySeparatorChar;
+#else
+            Yuri has won
 #endif
 
             // Set up DLL load paths as early as possible
+#if NETFRAMEWORK
             AppDomain.CurrentDomain.AssemblyResolve += CurrentDomain_AssemblyResolve;
-#if !DEBUG
-            Environment.CurrentDirectory = Directory.GetParent(Application.StartupPath.Replace('\\', '/')).FullName;
 #else
-            Environment.CurrentDirectory = Application.StartupPath.Replace('\\', '/');
+            AssemblyLoadContext.Default.Resolving += DefaultAssemblyLoadContextOnResolving;
+#endif
+
+#if !DEBUG
+            Environment.CurrentDirectory = new DirectoryInfo(startupPath).Parent.FullName + Path.DirectorySeparatorChar;
+#else
+            Environment.CurrentDirectory = startupPath;
 #endif
         }
 
-        static List<string> COMMON_LIBRARIES = new List<string>()
-        {
-            "Rampastring.Tools",
-            "Ionic.Zip",
-            "ClientUpdater",
-            "Newtonsoft.Json",
-            "DiscordRPC",
-            "lzo.net",
-            "OpenMcdf",
-        };
-
-        static List<string> SPECIFIC_LIBRARIES = new List<string>()
-        {
-            "ClientGUI",
-            "ClientCore",
-            "DTAConfig",
-            "Localization",
-            "MonoGame.Framework",
-            "Rampastring.XNAUI",
-            "Sdl",
-            "soft_oal",
-        };
-
         private static string COMMON_LIBRARY_PATH;
+
         private static string SPECIFIC_LIBRARY_PATH;
 
         /// <summary>
         /// The main entry point for the application.
         /// </summary>
+#if WINFORMS
         [STAThread]
+#endif
         static void Main(string[] args)
         {
             bool noAudio = false;
@@ -89,13 +83,13 @@ namespace DTAClient
 
             for (int arg = 0; arg < args.Length; arg++)
             {
-                string argument = args[arg].ToUpper();
+                string argument = args[arg].ToUpperInvariant();
 
                 switch (argument)
                 {
                     case "-NOAUDIO":
-                        // TODO fix
-                        throw new NotImplementedException("-NOAUDIO is currently not implemented, please run the client without it.".L10N("UI:Main:NoAudio"));
+                        noAudio = true;
+                        break;
                     case "-MULTIPLEINSTANCE":
                         multipleInstanceMode = true;
                         break;
@@ -117,101 +111,87 @@ namespace DTAClient
             // We're a single instance application!
             // http://stackoverflow.com/questions/229565/what-is-a-good-pattern-for-using-a-global-mutex-in-c/229567
 
-            string appGuid = ((GuidAttribute)Assembly.GetExecutingAssembly().GetCustomAttributes(
-                typeof(GuidAttribute), false).GetValue(0)).Value.ToString();
-
             // Global prefix means that the mutex is global to the machine
-            string mutexId = string.Format("Global/{{{0}}}", appGuid);
+            string mutexId = string.Format("Global{0}", Guid.Parse("1CC9F8E7-9F69-4BBC-B045-E734204027A9"));
 
-
-            var allowEveryoneRule = new MutexAccessRule(new SecurityIdentifier(WellKnownSidType.WorldSid, null),
-                MutexRights.FullControl, AccessControlType.Allow);
-            var securitySettings = new MutexSecurity();
+#if NETFRAMEWORK
+            var allowEveryoneRule = new System.Security.AccessControl.MutexAccessRule(
+                new System.Security.Principal.SecurityIdentifier(System.Security.Principal.WellKnownSidType.WorldSid, null),
+                System.Security.AccessControl.MutexRights.FullControl,
+                System.Security.AccessControl.AccessControlType.Allow);
+            var securitySettings = new System.Security.AccessControl.MutexSecurity();
             securitySettings.AddAccessRule(allowEveryoneRule);
 
-            using (var mutex = new Mutex(false, mutexId, out bool createdNew, securitySettings))
+            using var mutex = new Mutex(false, mutexId, out bool _, securitySettings);
+#else
+            using var mutex = new Mutex(false, mutexId, out _);
+#endif
+            var hasHandle = false;
+            try
             {
-                var hasHandle = false;
                 try
                 {
-                    try
-                    {
-                        hasHandle = mutex.WaitOne(8000, false);
-                        if (hasHandle == false)
-                            throw new TimeoutException("Timeout waiting for exclusive access");
-                    }
-                    catch (AbandonedMutexException)
-                    {
-                        hasHandle = true;
-                    }
-                    catch (TimeoutException)
-                    {
-                        return;
-                    }
-
-                    // Proceed to client startup
-                    PreStartup.Initialize(parameters);
+                    hasHandle = mutex.WaitOne(8000, false);
+                    if (hasHandle == false)
+                        throw new TimeoutException("Timeout waiting for exclusive access");
                 }
-                finally
+                catch (AbandonedMutexException)
                 {
-                    if (hasHandle)
-                        mutex.ReleaseMutex();
+                    hasHandle = true;
                 }
+                catch (TimeoutException)
+                {
+                    return;
+                }
+
+                // Proceed to client startup
+                PreStartup.Initialize(parameters);
+            }
+            finally
+            {
+                if (hasHandle)
+                    mutex.ReleaseMutex();
             }
         }
 
+#if NETFRAMEWORK
         static Assembly CurrentDomain_AssemblyResolve(object sender, ResolveEventArgs args)
         {
-            if (args.Name.StartsWith("SharpDX"))
-            {
-                string[] parts = args.Name.Split(',');
-                byte[] data = File.ReadAllBytes(SPECIFIC_LIBRARY_PATH + parts[0] + ".dll");
-                return Assembly.Load(data);
-            }
+            string unresolvedAssemblyName = args.Name.Split(',').First();
 
-#if WINDOWSGL
-            // MonoGame's OpenGL version checks its Assembly.Location for
-            // loading SDL2.dll. Loading an assembly with Assembly.Load(byte[] rawAssembly)
-            // does not set the Location of the assembly, making MonoGame crash when loading SDL2.dll.
-            // Assembly.LoadFrom sets the location, so we use it for loading 
-            // the OpenGL version of MonoGame.
-            // For some reason this doesn't always work for loading resources of other assemblies, however,
-            // so we only load MonoGame.Framework with this method.
-            if (args.Name.StartsWith("MonoGame.Framework"))
-                return Assembly.LoadFrom(string.Format("{0}{1}.dll", SPECIFIC_LIBRARY_PATH, "MonoGame.Framework"));
-#endif
+            if (unresolvedAssemblyName.EndsWith(".resources", StringComparison.OrdinalIgnoreCase))
+                return null;
 
-            string name = SPECIFIC_LIBRARIES.Find(dll => args.Name.StartsWith(dll));
+            var commonFileInfo = new FileInfo(Path.Combine(COMMON_LIBRARY_PATH, FormattableString.Invariant($"{unresolvedAssemblyName}.dll")));
 
-            if (name != null)
-            {
-                byte[] data;
-#if DEBUG
-                try
-                {
-                   data = File.ReadAllBytes(string.Format("{0}{1}.dll", SPECIFIC_LIBRARY_PATH, name));
-                }
-                catch
-                {
-                    data = File.ReadAllBytes(string.Format("{0}{1}{2}.dll", Application.StartupPath.Replace('\\', '/'), Path.DirectorySeparatorChar, name));
-                }
-#else
-                data = File.ReadAllBytes(string.Format("{0}{1}.dll", SPECIFIC_LIBRARY_PATH, name));
-#endif
-                return Assembly.Load(data);
-            }
+            if (commonFileInfo.Exists)
+                return Assembly.Load(AssemblyName.GetAssemblyName(commonFileInfo.FullName));
 
-            // Common libraries are shared among the different build platforms
+            var specificFileInfo = new FileInfo(Path.Combine(SPECIFIC_LIBRARY_PATH, FormattableString.Invariant($"{unresolvedAssemblyName}.dll")));
 
-            name = COMMON_LIBRARIES.Find(dll => args.Name.StartsWith(dll));
-
-            if (name != null)
-            {
-                byte[] data = File.ReadAllBytes(string.Format("{0}{1}.dll", COMMON_LIBRARY_PATH, name));
-                return Assembly.Load(data);
-            }
+            if (specificFileInfo.Exists)
+                return Assembly.Load(AssemblyName.GetAssemblyName(specificFileInfo.FullName));
 
             return null;
         }
+#else
+        private static Assembly DefaultAssemblyLoadContextOnResolving(AssemblyLoadContext assemblyLoadContext, AssemblyName assemblyName)
+        {
+            if (assemblyName.Name.EndsWith(".resources", StringComparison.OrdinalIgnoreCase))
+                return null;
+
+            var commonFileInfo = new FileInfo(Path.Combine(COMMON_LIBRARY_PATH, FormattableString.Invariant($"{assemblyName.Name}.dll")));
+
+            if (commonFileInfo.Exists)
+                return assemblyLoadContext.LoadFromAssemblyPath(commonFileInfo.FullName);
+
+            var specificFileInfo = new FileInfo(Path.Combine(SPECIFIC_LIBRARY_PATH, FormattableString.Invariant($"{assemblyName.Name}.dll")));
+
+            if (specificFileInfo.Exists)
+                return assemblyLoadContext.LoadFromAssemblyPath(specificFileInfo.FullName);
+
+            return null;
+        }
+#endif
     }
 }

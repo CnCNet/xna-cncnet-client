@@ -1,8 +1,8 @@
-﻿using ClientCore;
+﻿using Localization;
+using ClientCore;
 using ClientCore.CnCNet5;
 using ClientGUI;
 using DTAConfig.OptionPanels;
-using Localization;
 using Microsoft.Xna.Framework;
 using Rampastring.Tools;
 using Rampastring.XNAUI;

@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using ClientCore;
 using ClientGUI;
 using DTAClient.Domain.Multiplayer;
 using Microsoft.Xna.Framework;

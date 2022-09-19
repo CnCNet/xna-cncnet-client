@@ -4,6 +4,7 @@ using DTAClient.Domain;
 using Localization;
 using Microsoft.Xna.Framework;
 using Rampastring.XNAUI;
+using Rampastring.Tools;
 using System;
 using System.Diagnostics;
 
@@ -64,13 +65,27 @@ namespace DTAClient.DXGUI.Generic
 
         private void BtnExMapEditor_LeftClick(object sender, EventArgs e)
         {
-            Process.Start(ProgramConstants.GamePath + ClientConfiguration.Instance.MapEditorExePath);
+            OSVersion osVersion = ClientConfiguration.Instance.GetOperatingSystemVersion();
+            Process mapEditorProcess = new Process();
+
+            if (osVersion != OSVersion.UNIX)
+            {
+                mapEditorProcess.StartInfo.FileName = SafePath.CombineFilePath(ProgramConstants.GamePath, ClientConfiguration.Instance.MapEditorExePath);
+            }
+            else
+            {
+                mapEditorProcess.StartInfo.FileName = SafePath.CombineFilePath(ProgramConstants.GamePath, ClientConfiguration.Instance.UnixMapEditorExePath);
+                mapEditorProcess.StartInfo.UseShellExecute = false;
+            }
+
+            mapEditorProcess.Start();
+
             Enabled = false;
         }
 
         private void BtnExCredits_LeftClick(object sender, EventArgs e)
         {
-            Process.Start(MainClientConstants.CREDITS_URL);
+            ProcessLauncher.StartShellProcess(MainClientConstants.CREDITS_URL);
         }
 
         private void BtnExCancel_LeftClick(object sender, EventArgs e)

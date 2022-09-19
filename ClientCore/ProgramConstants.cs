@@ -2,9 +2,9 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Text;
-using System.Windows.Forms;
+using System.Reflection;
+using Rampastring.Tools;
 
 namespace ClientCore
 {
@@ -13,20 +13,34 @@ namespace ClientCore
     /// </summary>
     public static class ProgramConstants
     {
-#if DEBUG
-        public static readonly string GamePath = Application.StartupPath.Replace('\\', '/') + "/";
+#if NETFRAMEWORK
+        public static readonly string StartupExecutable = Assembly.GetEntryAssembly().Location;
+
+        public static readonly string StartupPath = SafePath.CombineDirectoryPath(new FileInfo(StartupExecutable).DirectoryName);
 #else
-        public static readonly string GamePath = Directory.GetParent(Application.StartupPath.TrimEnd(new char[] { '\\' })).FullName.Replace('\\', '/') + "/";
+        public static readonly bool IsCrossPlatform = new FileInfo(Environment.ProcessPath).Name.StartsWith("dotnet", StringComparison.OrdinalIgnoreCase);
+
+        public static readonly string StartupExecutable = IsCrossPlatform ? Assembly.GetEntryAssembly().Location : Environment.ProcessPath;
+
+        public static readonly string StartupPath = IsCrossPlatform
+            ? SafePath.CombineDirectoryPath(new FileInfo(StartupExecutable).Directory.Parent.Parent.FullName + Path.DirectorySeparatorChar)
+            : new FileInfo(StartupExecutable).Directory.FullName + Path.DirectorySeparatorChar;
 #endif
 
-        public static string ClientUserFilesPath => GamePath + "Client/";
+#if DEBUG
+        public static readonly string GamePath = StartupPath;
+#else
+        public static readonly string GamePath = SafePath.CombineDirectoryPath(SafePath.GetDirectory(StartupPath).Parent.FullName);
+#endif
+
+        public static string ClientUserFilesPath => SafePath.CombineDirectoryPath(GamePath, "Client");
 
         public static event EventHandler PlayerNameChanged;
 
         public const string QRES_EXECUTABLE = "qres.dat";
 
-        public const string CNCNET_PROTOCOL_REVISION = "R9";
-        public const string LAN_PROTOCOL_REVISION = "RL6";
+        public const string CNCNET_PROTOCOL_REVISION = "R10";
+        public const string LAN_PROTOCOL_REVISION = "RL7";
         public const int LAN_PORT = 1234;
         public const int LAN_INGAME_PORT = 1234;
         public const int LAN_LOBBY_PORT = 1232;
@@ -41,7 +55,12 @@ namespace ClientCore
         public const int GAME_ID_MAX_LENGTH = 4;
 
         public static readonly Encoding LAN_ENCODING = Encoding.UTF8;
+        private static bool? isMono;
 
+        /// <summary>
+        /// Gets a value whether or not the application is running under Mono. Uses lazy loading and caching.
+        /// </summary>
+        public static bool ISMONO => isMono ??= Type.GetType("Mono.Runtime") != null;
         public static string GAME_VERSION = "Undefined";
         private static string PlayerName = "No name";
 
@@ -57,7 +76,7 @@ namespace ClientCore
             }
         }
 
-        public static string BASE_RESOURCE_PATH = "Resources/";
+        public static string BASE_RESOURCE_PATH = "Resources";
         public static string RESOURCES_DIR = BASE_RESOURCE_PATH;
 
         public static int LOG_LEVEL = 1;
@@ -66,12 +85,12 @@ namespace ClientCore
 
         public static string GetResourcePath()
         {
-            return GamePath + RESOURCES_DIR;
+            return SafePath.CombineDirectoryPath(GamePath, RESOURCES_DIR);
         }
 
         public static string GetBaseResourcePath()
         {
-            return GamePath + BASE_RESOURCE_PATH;
+            return SafePath.CombineDirectoryPath(GamePath, BASE_RESOURCE_PATH);
         }
 
         public const string GAME_INVITE_CTCP_COMMAND = "INVITE";
@@ -79,7 +98,7 @@ namespace ClientCore
 
         public static string GetAILevelName(int aiLevel)
         {
-            if (aiLevel > 0 && aiLevel < AI_PLAYER_NAMES.Count)
+            if (aiLevel > -1 && aiLevel < AI_PLAYER_NAMES.Count)
                 return AI_PLAYER_NAMES[aiLevel];
 
             return "";
@@ -89,5 +108,17 @@ namespace ClientCore
 
         // Static fields might be initialized before the translation file is loaded. Change to readonly properties here.
         public static List<string> AI_PLAYER_NAMES => new List<string> { "Easy AI".L10N("UI:Main:EasyAIName"), "Medium AI".L10N("UI:Main:MediumAIName"), "Hard AI".L10N("UI:Main:HardAIName") };
+
+        public static string LogFileName { get; set; }
+
+        /// <summary>
+        /// Gets or sets the action to perform to notify the user of an error.
+        /// </summary>
+        public static Action<string, string> DisplayErrorAction { get; set; } = (title, error) =>
+        {
+            Logger.Log(FormattableString.Invariant($"{(title is null ? null : title + Environment.NewLine + Environment.NewLine)}{error}"));
+
+            ProcessLauncher.StartShellProcess(LogFileName);
+        };
     }
 }

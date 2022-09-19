@@ -3,8 +3,6 @@ using Rampastring.Tools;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace DTAClient.Domain.Multiplayer
 {
@@ -48,7 +46,7 @@ namespace DTAClient.Domain.Multiplayer
                 string[] splitValue = value.Split(':');
                 if (splitValue.Length != 2)
                 {
-                    Logger.Log($"Failed to parse game option preset value ({ ProfileName }, { keyName })");
+                    Logger.Log($"Failed to parse game option preset value ({ProfileName}, {keyName})");
                     continue;
                 }
 
@@ -82,9 +80,9 @@ namespace DTAClient.Domain.Multiplayer
         public void Write(IniSection section)
         {
             section.SetStringValue("CheckBoxValues", string.Join(",",
-                checkBoxValues.Select(s => $"{ s.Key }:{ (s.Value ? "1" : "0") }")));
+                checkBoxValues.Select(s => $"{s.Key}:{(s.Value ? "1" : "0")}")));
             section.SetStringValue("DropDownValues", string.Join(",",
-                dropDownValues.Select(s => $"{ s.Key }:{ s.Value.ToString() }")));
+                dropDownValues.Select(s => $"{s.Key}:{s.Value.ToString()}")));
         }
     }
 
@@ -118,10 +116,7 @@ namespace DTAClient.Domain.Multiplayer
             LoadIniIfNotInitialized();
 
             if (presets.TryGetValue(name, out GameOptionPreset value))
-            {
-                
                 return value;
-            }
 
             return null;
         }
@@ -131,7 +126,7 @@ namespace DTAClient.Domain.Multiplayer
             LoadIniIfNotInitialized();
 
             return presets.Keys
-                .Where(key  => !string.IsNullOrWhiteSpace(key))
+                .Where(key => !string.IsNullOrWhiteSpace(key))
                 .ToList();
         }
 
@@ -162,7 +157,7 @@ namespace DTAClient.Domain.Multiplayer
 
         private void LoadIni()
         {
-            gameOptionPresetsIni = new IniFile(ProgramConstants.ClientUserFilesPath + IniFileName);
+            gameOptionPresetsIni = new IniFile(SafePath.CombineFilePath(ProgramConstants.ClientUserFilesPath, IniFileName));
             presets = new Dictionary<string, GameOptionPreset>();
 
             IniSection presetsDefinitions = gameOptionPresetsIni.GetSection(PresetDefinitionsSectionName);
@@ -199,7 +194,7 @@ namespace DTAClient.Domain.Multiplayer
                 i++;
             }
 
-            gameOptionPresetsIni.WriteIniFile(ProgramConstants.ClientUserFilesPath + IniFileName);
+            gameOptionPresetsIni.WriteIniFile(SafePath.CombineFilePath(ProgramConstants.ClientUserFilesPath, IniFileName));
         }
     }
 }

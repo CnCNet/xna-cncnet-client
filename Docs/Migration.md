@@ -11,6 +11,12 @@ Migrating from older versions
 
 - Updater DLL filename has been changed from `DTAUpdater.dll` to `ClientUpdater.dll` and second-stage updater from `clientupdt.dat` to `SecondStageUpdater.exe` and has been moved from base folder to `Resources`.
 
+- To support launching the game on Linux the file defined as `UnixGameExecutableName` (defaults to `wine-dta.sh`) in `ClientDefinitions.ini` must be set up correctly. E.g. for launching a game with wine the file could contain `wine gamemd-spawn.exe $*` where `gamemd-spawn.exe` is replaced with the game executable. Note that users might need to execute `chmod u+x wine-dta.sh` once to allow it to be launched.
+
+- The use of `*.cur` mouse cursor files is not supported on the cross-platform `UniversalGL` build. To ensure the intended cursor is shown instead of a missing texture (pink square) all themes need to contain a `cursor.png` file. Existing `*.cur` files will still be used by the Windows-only builds.
+
+- The MonoGame MCGB editor will convert the MainMenuTheme to `MainMenuTheme.wma` when publishing for MonoGame WindowsDX. MonoGame DesktopGL only supports the `*.ogg` format. To ensure the MainMenuTheme is available on both the WindowsDX & DesktopGL client versions you need to manually convert and add the missing ogg format file to each theme. Each theme should then contain both `MainMenuTheme.wma` and `MainMenuTheme.ogg` files. The client will then switch out the correct MainMenuTheme format at runtime.
+
 - Updated XNAUI [fixes a bug](https://github.com/Rampastring/Rampastring.XNAUI/commit/6857704734241895f9cbb2c79fbd0286c350c313) that causes the border might not be drawn. However, your mod might depends on this bug and therefore the unwanted border appears in window after upgrading. In this case, please manually specify `DrawBorders=false` for your window. For example, add the following lines to `GenericWindow.ini` to turn off borders in *some* windows like the message box. But you still need to specify this property for more windows in the ini file depending on your need.
   
   ```ini

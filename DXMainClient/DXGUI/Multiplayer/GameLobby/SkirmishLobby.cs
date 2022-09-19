@@ -10,7 +10,6 @@ using ClientGUI;
 using Rampastring.Tools;
 using System.IO;
 using DTAClient.Domain;
-using DTAClient.Online;
 using Microsoft.Xna.Framework;
 using Localization;
 
@@ -262,10 +261,12 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             try
             {
-                // Delete the file so we don't keep potential extra AI players that already exist in the file
-                File.Delete(ProgramConstants.GamePath + SETTINGS_PATH);
+                FileInfo settingsFileInfo = SafePath.GetFile(ProgramConstants.GamePath, SETTINGS_PATH);
 
-                var skirmishSettingsIni = new IniFile(ProgramConstants.GamePath + SETTINGS_PATH);
+                // Delete the file so we don't keep potential extra AI players that already exist in the file
+                settingsFileInfo.Delete();
+
+                var skirmishSettingsIni = new IniFile(settingsFileInfo.FullName);
 
                 skirmishSettingsIni.SetStringValue("Player", "Info", Players[0].ToString());
 
@@ -303,13 +304,13 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         /// </summary>
         private void LoadSettings()
         {
-            if (!File.Exists(ProgramConstants.GamePath + SETTINGS_PATH))
+            if (!SafePath.GetFile(ProgramConstants.GamePath, SETTINGS_PATH).Exists)
             {
                 InitDefaultSettings();
                 return;
             }
 
-            var skirmishSettingsIni = new IniFile(ProgramConstants.GamePath + SETTINGS_PATH);
+            var skirmishSettingsIni = new IniFile(SafePath.CombineFilePath(ProgramConstants.GamePath, SETTINGS_PATH));
 
             string gameModeMapFilterName = skirmishSettingsIni.GetStringValue("Settings", "GameModeMapFilter", string.Empty);
             if (string.IsNullOrEmpty(gameModeMapFilterName))
@@ -486,7 +487,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             Players.Add(new PlayerInfo(ProgramConstants.PLAYERNAME, 0, 0, 0, 0));
             PlayerInfo aiPlayer = new PlayerInfo(ProgramConstants.AI_PLAYER_NAMES[0], 0, 0, 0, 0);
             aiPlayer.IsAI = true;
-            aiPlayer.AILevel = 2;
+            aiPlayer.AILevel = 0;
             AIPlayers.Add(aiPlayer);
 
             LoadDefaultGameModeMap();

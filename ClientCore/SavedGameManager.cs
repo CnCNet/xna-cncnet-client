@@ -16,14 +16,14 @@ namespace ClientCore
 
         public static int GetSaveGameCount()
         {
-            string saveGameDirectory = GetSaveGameDirectoryPath() + "/";
+            string saveGameDirectory = GetSaveGameDirectoryPath();
 
             if (!AreSavedGamesAvailable())
                 return 0;
 
             for (int i = 0; i < 1000; i++)
             {
-                if (!File.Exists(saveGameDirectory + string.Format("SVGM_{0}.NET", i.ToString("D3"))))
+                if (!SafePath.GetFile(saveGameDirectory, string.Format("SVGM_{0}.NET", i.ToString("D3"))).Exists)
                 {
                     return i;
                 }
@@ -38,13 +38,13 @@ namespace ClientCore
 
             List<string> timestamps = new List<string>();
 
-            string saveGameDirectory = GetSaveGameDirectoryPath() + "/";
+            string saveGameDirectory = GetSaveGameDirectoryPath();
 
             for (int i = 0; i < saveGameCount; i++)
             {
-                string sgPath = saveGameDirectory + string.Format("SVGM_{0}.NET", i.ToString("D3"));
+                FileInfo sgFile = SafePath.GetFile(saveGameDirectory, string.Format("SVGM_{0}.NET", i.ToString("D3")));
 
-                DateTime dt = File.GetLastWriteTime(sgPath);
+                DateTime dt = sgFile.LastWriteTime;
 
                 timestamps.Add(dt.ToString());
             }
@@ -62,7 +62,7 @@ namespace ClientCore
 
         private static string GetSaveGameDirectoryPath()
         {
-            return ProgramConstants.GamePath + SAVED_GAMES_DIRECTORY;
+            return SafePath.CombineDirectoryPath(ProgramConstants.GamePath, SAVED_GAMES_DIRECTORY);
         }
 
         /// <summary>
@@ -78,8 +78,8 @@ namespace ClientCore
             try
             {
                 Logger.Log("Writing spawn.ini for saved game.");
-                File.Delete(ProgramConstants.GamePath + SAVED_GAMES_DIRECTORY + "/spawnSG.ini");
-                File.Copy(ProgramConstants.GamePath + "spawn.ini", ProgramConstants.GamePath + SAVED_GAMES_DIRECTORY + "/spawnSG.ini");
+                SafePath.DeleteFileIfExists(ProgramConstants.GamePath, SAVED_GAMES_DIRECTORY, "spawnSG.ini");
+                File.Copy(SafePath.CombineFilePath(ProgramConstants.GamePath, "spawn.ini"), SafePath.CombineFilePath(ProgramConstants.GamePath, SAVED_GAMES_DIRECTORY, "spawnSG.ini"));
             }
             catch (Exception ex)
             {
@@ -100,9 +100,9 @@ namespace ClientCore
                 return;
             }
 
-            string saveGameDirectory = GetSaveGameDirectoryPath() + "/";
+            string saveGameDirectory = GetSaveGameDirectoryPath();
 
-            if (!File.Exists(saveGameDirectory + "SAVEGAME.NET"))
+            if (!SafePath.GetFile(saveGameDirectory, "SAVEGAME.NET").Exists)
             {
                 Logger.Log("SAVEGAME.NET doesn't exist!");
                 return;
@@ -114,7 +114,7 @@ namespace ClientCore
 
             for (int i = 0; i < 1000; i++)
             {
-                if (!File.Exists(saveGameDirectory + string.Format("SVGM_{0}.NET", i.ToString("D3"))))
+                if (!SafePath.GetFile(saveGameDirectory, string.Format("SVGM_{0}.NET", i.ToString("D3"))).Exists)
                 {
                     saveGameId = i;
                     break;
@@ -123,11 +123,11 @@ namespace ClientCore
 
             if (saveGameId == 999)
             {
-                if (File.Exists(saveGameDirectory + "SVGM_999.NET"))
+                if (SafePath.GetFile(saveGameDirectory, "SVGM_999.NET").Exists)
                     Logger.Log("1000 saved games exceeded! Overwriting previous MP save.");
             }
 
-            string sgPath = saveGameDirectory + string.Format("SVGM_{0}.NET", saveGameId.ToString("D3"));
+            string sgPath = SafePath.CombineFilePath(saveGameDirectory, string.Format("SVGM_{0}.NET", saveGameId.ToString("D3")));
 
             int tryCount = 0;
 
@@ -135,7 +135,7 @@ namespace ClientCore
             {
                 try
                 {
-                    File.Move(saveGameDirectory + "SAVEGAME.NET", sgPath);
+                    File.Move(SafePath.CombineFilePath(saveGameDirectory, "SAVEGAME.NET"), sgPath);
                     break;
                 }
                 catch (Exception ex)
@@ -167,8 +167,7 @@ namespace ClientCore
             {
                 for (int i = 0; i < 1000; i++)
                 {
-                    File.Delete(GetSaveGameDirectoryPath() + 
-                        "/" + string.Format("SVGM_{0}.NET", i.ToString("D3")));
+                    SafePath.DeleteFileIfExists(GetSaveGameDirectoryPath(), string.Format("SVGM_{0}.NET", i.ToString("D3")));
                 }
             }
             catch (Exception ex)

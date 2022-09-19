@@ -1,11 +1,7 @@
-﻿using ClientCore;
-using Rampastring.Tools;
+﻿using Rampastring.Tools;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ClientCore.INIProcessing
 {
@@ -45,12 +41,12 @@ namespace ClientCore.INIProcessing
         /// </summary>
         public void Load()
         {
-            string filePath = ProgramConstants.ClientUserFilesPath + "ProcessedIniInfo.ini";
+            FileInfo processedIniInfoFile = SafePath.GetFile(ProgramConstants.ClientUserFilesPath, "ProcessedIniInfo.ini");
 
-            if (!File.Exists(filePath))
+            if (!processedIniInfoFile.Exists)
                 return;
 
-            var iniFile = new IniFile(filePath);
+            var iniFile = new IniFile(processedIniInfoFile.FullName);
             var keys = iniFile.GetSectionKeys(ProcessedINIsSection);
             foreach (string key in keys)
             {
@@ -64,7 +60,7 @@ namespace ClientCore.INIProcessing
                 }
 
                 // If an INI file no longer exists, it's useless to keep its record
-                if (!File.Exists(ProgramConstants.GamePath + "INI/" + values[0]))
+                if (!SafePath.GetFile(ProgramConstants.GamePath, "INI", values[0]).Exists)
                     continue;
 
                 PreprocessedIniInfos.Add(new PreprocessedIniInfo(values));
@@ -85,11 +81,11 @@ namespace ClientCore.INIProcessing
             if (info == null)
                 return false;
 
-            string processedFileHash = Utilities.CalculateSHA1ForFile($"{ProgramConstants.GamePath}INI/{fileName}");
+            string processedFileHash = Utilities.CalculateSHA1ForFile(SafePath.CombineFilePath(ProgramConstants.GamePath, "INI", fileName));
             if (processedFileHash != info.ProcessedFileHash)
                 return false;
 
-            string originalFileHash = Utilities.CalculateSHA1ForFile($"{ProgramConstants.GamePath}INI/Base/{fileName}");
+            string originalFileHash = Utilities.CalculateSHA1ForFile(SafePath.CombineFilePath(ProgramConstants.GamePath, "INI", "Base", fileName));
             if (originalFileHash != info.OriginalFileHash)
                 return false;
 
@@ -112,11 +108,12 @@ namespace ClientCore.INIProcessing
 
         public void Write()
         {
-            string filePath = ProgramConstants.ClientUserFilesPath + "ProcessedIniInfo.ini";
+            FileInfo processedIniInfoFile = SafePath.GetFile(ProgramConstants.ClientUserFilesPath, "ProcessedIniInfo.ini");
 
-            File.Delete(filePath);
+            if (processedIniInfoFile.Exists)
+                processedIniInfoFile.Delete();
 
-            IniFile iniFile = new IniFile(filePath);
+            IniFile iniFile = new IniFile(processedIniInfoFile.FullName);
             for (int i = 0; i < PreprocessedIniInfos.Count; i++)
             {
                 PreprocessedIniInfo info = PreprocessedIniInfos[i];

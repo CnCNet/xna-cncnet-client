@@ -4,7 +4,6 @@ using Localization;
 using Microsoft.Xna.Framework;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
-using System.Diagnostics;
 
 namespace DTAClient.DXGUI.Generic
 {
@@ -44,7 +43,7 @@ namespace DTAClient.DXGUI.Generic
             lblTermsAndConditions.X = lblMoreInformation.Right + UIDesignConstants.CONTROL_HORIZONTAL_MARGIN;
             lblTermsAndConditions.Y = lblMoreInformation.Y;
             lblTermsAndConditions.Text = "https://cncnet.org/terms-and-conditions";
-            lblTermsAndConditions.LeftClick += (s, e) => Process.Start(lblTermsAndConditions.Text);
+            lblTermsAndConditions.LeftClick += (s, e) => ProcessLauncher.StartShellProcess(lblTermsAndConditions.Text);
             AddChild(lblTermsAndConditions);
 
             var lblPrivacyPolicy = new XNALinkLabel(WindowManager);
@@ -52,7 +51,7 @@ namespace DTAClient.DXGUI.Generic
             lblPrivacyPolicy.X = lblTermsAndConditions.Right + UIDesignConstants.CONTROL_HORIZONTAL_MARGIN;
             lblPrivacyPolicy.Y = lblMoreInformation.Y;
             lblPrivacyPolicy.Text = "https://cncnet.org/privacy-policy";
-            lblPrivacyPolicy.LeftClick += (s, e) => Process.Start(lblPrivacyPolicy.Text);
+            lblPrivacyPolicy.LeftClick += (s, e) => ProcessLauncher.StartShellProcess(lblPrivacyPolicy.Text);
             AddChild(lblPrivacyPolicy);
 
             var lblExplanation = new XNALabel(WindowManager);
