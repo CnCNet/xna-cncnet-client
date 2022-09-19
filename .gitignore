@@ -414,3 +414,6 @@ Icon?
 .directory
 
 .idea/
+
+# Game specific build prop files
+Directory.Build.Game.*.props

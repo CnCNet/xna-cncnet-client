@@ -11,6 +11,9 @@
   <Import Project="$(MSBuildThisFileDirectory)build\VSCompatibleLayer.props" Condition="'$(BuildingInsideVisualStudio)' == 'True'" />
   <Import Project="$(MSBuildThisFileDirectory)build\Framework.props" />
 
+  <!-- Allow a game specific build prop file to be imported, if available -->
+  <Import Project="$(MSBuildThisFileDirectory)Directory.Build.Game.$(Game).props" Condition="Exists('$(MSBuildThisFileDirectory)Directory.Build.Game.$(Game).props')"/>
+
   <!-- Visual Studio -->
   <PropertyGroup Condition="'$(BuildingInsideVisualStudio)' == 'True'">
     <OutputPath Condition="'$(_OutputConfiguration)' != ''">$(BaseOutputPath)bin\$(_OutputConfiguration)\$(Game)\$(Engine)\</OutputPath>
