@@ -1,13 +1,12 @@
 #!/usr/bin/env pwsh
 #Requires -Version 7.2
 
-Param([Parameter(Mandatory=$false)] [string] $Configuration = "Release")
+param($Configuration = "Release")
 
-$path = Split-Path $MyInvocation.MyCommand.Path -Parent
+. $PSScriptRoot\Common.ps1
 
-& $path\Build-TS-net6.0.ps1 $Configuration
+. $PSScriptRoot\Build-TS-net6.0.ps1 $Configuration
 
-If ($IsWindows)
-{
-    & $path\Build-TS-net48.ps1 $Configuration
+if ($IsWindows) {
+  . $PSScriptRoot\Build-TS-net48.ps1 $Configuration
 }

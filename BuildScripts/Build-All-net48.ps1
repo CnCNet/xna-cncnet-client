@@ -1,10 +1,10 @@
 #!/usr/bin/env pwsh
 #Requires -Version 7.2
 
-Param([Parameter(Mandatory=$false)] [string] $Configuration = "Release")
+param($Configuration = "Release")
 
-$path = Split-Path $MyInvocation.MyCommand.Path -Parent
+. $PSScriptRoot\Common.ps1
 
-& $path\Build-Ares-net48.ps1 $Configuration
-& $path\Build-TS-net48.ps1 $Configuration
-& $path\Build-YR-net48.ps1 $Configuration
+@('Ares', 'TS', 'YR') | ForEach-Object {
+  . "$PSScriptRoot\Build-$_-net48.ps1" $Configuration
+}
