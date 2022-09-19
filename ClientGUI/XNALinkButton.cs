@@ -1,7 +1,7 @@
 ﻿using System;
 using Rampastring.XNAUI;
 using Rampastring.Tools;
-using System.Diagnostics;
+using ClientCore;
 
 namespace ClientGUI
 {
@@ -47,7 +47,8 @@ namespace ClientGUI
 
         public override void OnLeftClick()
         {
-            Process.Start(URL);
+            ProcessLauncher.StartShellProcess(URL);
+
             base.OnLeftClick();
         }
     }

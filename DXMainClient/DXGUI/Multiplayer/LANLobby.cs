@@ -5,23 +5,26 @@ using DTAClient.Domain;
 using DTAClient.Domain.LAN;
 using DTAClient.Domain.Multiplayer;
 using DTAClient.Domain.Multiplayer.LAN;
-using DTAClient.DXGUI.Generic;
 using DTAClient.DXGUI.Multiplayer.GameLobby;
 using DTAClient.Online;
 using Localization;
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Graphics;
 using Rampastring.Tools;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
+using System.Reflection;
 using System.Text;
 using System.Threading;
+using SixLabors.ImageSharp;
+using Color = Microsoft.Xna.Framework.Color;
+using Rectangle = Microsoft.Xna.Framework.Rectangle;
 
 namespace DTAClient.DXGUI.Multiplayer
 {
@@ -217,7 +220,10 @@ namespace DTAClient.DXGUI.Multiplayer
             gameCreationWindow.NewGame += GameCreationWindow_NewGame;
             gameCreationWindow.LoadGame += GameCreationWindow_LoadGame;
 
-            unknownGameIcon = AssetLoader.TextureFromImage(ClientCore.Properties.Resources.unknownicon);
+            var assembly = Assembly.GetAssembly(typeof(GameCollection));
+            using Stream unknownIconStream = assembly.GetManifestResourceStream("ClientCore.Resources.unknownicon.png");
+
+            unknownGameIcon = AssetLoader.TextureFromImage(Image.Load(unknownIconStream));
 
             sndGameCreated = new EnhancedSoundEffect("gamecreated.wav");
 
@@ -347,7 +353,7 @@ namespace DTAClient.DXGUI.Multiplayer
             {
                 Logger.Log("Creating LAN socket failed! Message: " + ex.Message);
                 lbChatMessages.AddMessage(new ChatMessage(Color.Red,
-                    "Creating LAN socket failed! Message:".L10N("UI:Main:SocketFailure1")+ " " + ex.Message));
+                    "Creating LAN socket failed! Message:".L10N("UI:Main:SocketFailure1") + " " + ex.Message));
                 lbChatMessages.AddMessage(new ChatMessage(Color.Red,
                     "Please check your firewall settings.".L10N("UI:Main:SocketFailure2")));
                 lbChatMessages.AddMessage(new ChatMessage(Color.Red,
@@ -568,8 +574,7 @@ namespace DTAClient.DXGUI.Multiplayer
 
                 if (hg.IsLoadedGame)
                 {
-                    var spawnSGIni = new IniFile(ProgramConstants.GamePath +
-                        ProgramConstants.SAVED_GAME_SPAWN_INI);
+                    var spawnSGIni = new IniFile(SafePath.CombineFilePath(ProgramConstants.GamePath, ProgramConstants.SAVED_GAME_SPAWN_INI));
 
                     int loadedGameId = spawnSGIni.GetIntValue("Settings", "GameID", -1);
 

@@ -1,11 +1,10 @@
-﻿using ClientCore;
+﻿using Localization;
+using ClientCore;
 using ClientGUI;
-using Localization;
 using Microsoft.Xna.Framework;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
 using System;
-using System.Collections.Generic;
 
 namespace DTAConfig.OptionPanels
 {
@@ -234,7 +233,7 @@ namespace DTAConfig.OptionPanels
             IniSettings.ScoreVolume.Value = trbScoreVolume.Value / 10.0;
             IniSettings.SoundVolume.Value = trbSoundVolume.Value / 10.0;
             IniSettings.VoiceVolume.Value = trbVoiceVolume.Value / 10.0;
-            
+
             IniSettings.IsScoreShuffle.Value = chkScoreShuffle.Checked;
 
             IniSettings.ClientVolume.Value = trbClientVolume.Value / 10.0;

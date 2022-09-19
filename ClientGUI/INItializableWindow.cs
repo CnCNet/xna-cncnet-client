@@ -61,28 +61,28 @@ namespace ClientGUI
             string iniFileName = string.IsNullOrWhiteSpace(IniNameOverride) ? Name : IniNameOverride;
 
             // get theme specific path
-            string configIniPath = Path.Combine(ProgramConstants.GetResourcePath(), $"{iniFileName}.ini");
-            if (File.Exists(configIniPath))
-                return configIniPath;
+            FileInfo configIniPath = SafePath.GetFile(ProgramConstants.GetResourcePath(), FormattableString.Invariant($"{iniFileName}.ini"));
+            if (configIniPath.Exists)
+                return configIniPath.FullName;
 
             // get base path
-            configIniPath = Path.Combine(ProgramConstants.GetBaseResourcePath(), $"{iniFileName}.ini");
-            if (File.Exists(configIniPath))
-                return configIniPath;
+            configIniPath = SafePath.GetFile(ProgramConstants.GetBaseResourcePath(), FormattableString.Invariant($"{iniFileName}.ini"));
+            if (configIniPath.Exists)
+                return configIniPath.FullName;
 
             if (iniFileName == Name)
                 return null; // IniNameOverride must be null, no need to continue
 
             iniFileName = Name;
-            
+
             // get theme specific path
-            configIniPath = Path.Combine(ProgramConstants.GetResourcePath(), $"{iniFileName}.ini");
-            if (File.Exists(configIniPath))
-                return configIniPath;
+            configIniPath = SafePath.GetFile(ProgramConstants.GetResourcePath(), FormattableString.Invariant($"{iniFileName}.ini"));
+            if (configIniPath.Exists)
+                return configIniPath.FullName;
 
             // get base path
-            configIniPath = Path.Combine(ProgramConstants.GetBaseResourcePath(), $"{iniFileName}.ini");
-            return File.Exists(configIniPath) ? configIniPath : null;
+            configIniPath = SafePath.GetFile(ProgramConstants.GetBaseResourcePath(), FormattableString.Invariant($"{iniFileName}.ini"));
+            return configIniPath.Exists ? configIniPath.FullName : null;
         }
 
         public override void Initialize()

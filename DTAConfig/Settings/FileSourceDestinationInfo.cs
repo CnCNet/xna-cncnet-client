@@ -11,15 +11,14 @@ namespace DTAConfig.Settings
         private readonly string destinationPath;
         private readonly string sourcePath;
 
-        public string SourcePath => ProgramConstants.GamePath + sourcePath;
+        public string SourcePath => SafePath.CombineDirectoryPath(ProgramConstants.GamePath, sourcePath);
 
-        public string DestinationPath => ProgramConstants.GamePath + destinationPath;
-
+        public string DestinationPath => SafePath.CombineDirectoryPath(ProgramConstants.GamePath, destinationPath);
         /// <summary>
         /// A path where the files edited by user are saved if
         /// <see cref="FileOperationOptions"/> is set to <see cref="FileOperationOptions.KeepChanges"/>.
         /// </summary>
-        public string CachedPath => ProgramConstants.ClientUserFilesPath + "SettingsCache/" + sourcePath;
+        public string CachedPath => SafePath.CombineDirectoryPath(ProgramConstants.ClientUserFilesPath, "SettingsCache", sourcePath);
 
         public FileOperationOptions FileOperationOptions { get; }
 
@@ -135,7 +134,7 @@ namespace DTAConfig.Settings
                 case FileOperationOptions.KeepChanges:
                     if (File.Exists(DestinationPath))
                     {
-                        Directory.CreateDirectory(Path.GetDirectoryName(CachedPath));
+                        SafePath.GetDirectory(CachedPath).Create();
                         File.Copy(DestinationPath, CachedPath, true);
                         File.Delete(DestinationPath);
                     }

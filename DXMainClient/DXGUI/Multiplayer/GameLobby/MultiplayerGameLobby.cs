@@ -174,7 +174,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             if (SavedGameManager.AreSavedGamesAvailable())
             {
-                fsw = new FileSystemWatcher(ProgramConstants.GamePath + "Saved Games", "*.NET");
+                fsw = new FileSystemWatcher(SafePath.CombineDirectoryPath(ProgramConstants.GamePath, "Saved Games"), "*.NET");
                 fsw.Created += fsw_Created;
                 fsw.Changed += fsw_Created;
                 fsw.EnableRaisingEvents = false;

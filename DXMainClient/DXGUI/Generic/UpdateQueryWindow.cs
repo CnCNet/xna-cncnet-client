@@ -1,12 +1,10 @@
 ﻿using ClientCore;
 using ClientGUI;
-using DTAClient.Domain;
 using Localization;
 using Microsoft.Xna.Framework;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
 using System;
-using System.Diagnostics;
 
 namespace DTAClient.DXGUI.Generic
 {
@@ -78,7 +76,7 @@ namespace DTAClient.DXGUI.Generic
 
         private void LblChangelogLink_LeftClick(object sender, EventArgs e)
         {
-            Process.Start(changelogUrl);
+            ProcessLauncher.StartShellProcess(changelogUrl);
         }
 
         private void BtnYes_LeftClick(object sender, EventArgs e)

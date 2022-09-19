@@ -9,6 +9,7 @@ using System.IO;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using System.Linq;
 
 namespace DTAClient.Domain.Multiplayer.CnCNet
 {
@@ -148,7 +149,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
         /// <returns>A list of tunnel servers.</returns>
         private List<CnCNetTunnel> RefreshTunnels()
         {
-            string tunnelCacheFile = ProgramConstants.GamePath + "Client/tunnel_cache";
+            FileInfo tunnelCacheFile = SafePath.GetFile(ProgramConstants.GamePath, "Client", "tunnel_cache");
 
             List<CnCNetTunnel> returnValue = new List<CnCNetTunnel>();
 
@@ -172,7 +173,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                 }
                 catch
                 {
-                    if (!File.Exists(tunnelCacheFile))
+                    if (!tunnelCacheFile.Exists)
                     {
                         Logger.Log("Tunnel cache file doesn't exist!");
                         return returnValue;
@@ -180,7 +181,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                     else
                     {
                         Logger.Log("Fetching tunnel server list failed. Using cached tunnel data.");
-                        data = File.ReadAllBytes(tunnelCacheFile);
+                        data = File.ReadAllBytes(tunnelCacheFile.FullName);
                     }
                 }
             }
@@ -189,7 +190,8 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
 
             string[] serverList = convertedData.Split(new string[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries);
 
-            foreach (string serverInfo in serverList)
+            // skip first header item ("address;country;countrycode;name;password;clients;maxclients;official;latitude;longitude;version;distance")
+            foreach (string serverInfo in serverList.Skip(1))
             {
                 try
                 {
@@ -216,11 +218,15 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
             {
                 try
                 {
-                    if (File.Exists(tunnelCacheFile))
-                        File.Delete(tunnelCacheFile);
-                    if (!Directory.Exists(ProgramConstants.GamePath + "Client"))
-                        Directory.CreateDirectory(ProgramConstants.GamePath + "Client");
-                    File.WriteAllBytes(tunnelCacheFile, data);
+                    if (tunnelCacheFile.Exists)
+                        tunnelCacheFile.Delete();
+
+                    DirectoryInfo clientDirectoryInfo = SafePath.GetDirectory(ProgramConstants.GamePath, "Client");
+
+                    if (!clientDirectoryInfo.Exists)
+                        clientDirectoryInfo.Create();
+
+                    File.WriteAllBytes(tunnelCacheFile.FullName, data);
                 }
                 catch (Exception ex)
                 {

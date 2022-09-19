@@ -7,7 +7,6 @@ using Rampastring.Tools;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
 using System;
-using System.Collections.Generic;
 using System.IO;
 
 namespace DTAClient.DXGUI.Multiplayer.CnCNet
@@ -193,16 +192,11 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         {
             string gameName = tbGameName.Text.Replace(";", string.Empty);
 
-            if (string.IsNullOrEmpty(gameName))
+            if (string.IsNullOrEmpty(gameName) || !lbTunnelList.IsValidIndexSelected())
                 return;
 
-            if (!lbTunnelList.IsValidIndexSelected())
-            {
-                return;
-            }
-
-            IniFile spawnSGIni = new IniFile(ProgramConstants.GamePath +
-                ProgramConstants.SAVED_GAME_SPAWN_INI);
+            IniFile spawnSGIni =
+                new IniFile(SafePath.CombineFilePath(ProgramConstants.GamePath, ProgramConstants.SAVED_GAME_SPAWN_INI));
 
             string password = Utilities.CalculateSHA1ForString(
                 spawnSGIni.GetStringValue("Settings", "GameID", string.Empty)).Substring(0, 10);
@@ -272,11 +266,12 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         private bool AllowLoadingGame()
         {
-            if (!File.Exists(ProgramConstants.GamePath + ProgramConstants.SAVED_GAME_SPAWN_INI))
+            FileInfo savedGameSpawnIniFile = SafePath.GetFile(ProgramConstants.GamePath, ProgramConstants.SAVED_GAME_SPAWN_INI);
+
+            if (!savedGameSpawnIniFile.Exists)
                 return false;
 
-            IniFile iniFile = new IniFile(ProgramConstants.GamePath +
-                ProgramConstants.SAVED_GAME_SPAWN_INI);
+            IniFile iniFile = new IniFile(savedGameSpawnIniFile.FullName);
 
             if (iniFile.GetStringValue("Settings", "Name", string.Empty) != ProgramConstants.PLAYERNAME)
                 return false;

@@ -74,7 +74,7 @@ namespace DTAClient.Domain.Multiplayer
 
         public void Initialize()
         {
-            IniFile forcedOptionsIni = new IniFile(ProgramConstants.GamePath + ClientConfiguration.Instance.MPMapsIniPath);
+            IniFile forcedOptionsIni = new IniFile(SafePath.CombineFilePath(ProgramConstants.GamePath, ClientConfiguration.Instance.MPMapsIniPath));
 
             CoopDifficultyLevel = forcedOptionsIni.GetIntValue(Name, "CoopDifficultyLevel", 0);
             UIName = forcedOptionsIni.GetStringValue(Name, "UIName", Name);
@@ -135,7 +135,7 @@ namespace DTAClient.Domain.Multiplayer
 
             foreach (string key in spawnIniKeys)
             {
-                ForcedSpawnIniOptions.Add(new KeyValuePair<string, string>(key, 
+                ForcedSpawnIniOptions.Add(new KeyValuePair<string, string>(key,
                     forcedOptionsIni.GetStringValue(section, key, string.Empty)));
             }
         }
@@ -148,7 +148,7 @@ namespace DTAClient.Domain.Multiplayer
 
         public IniFile GetMapRulesIniFile()
         {
-            return new IniFile(ProgramConstants.GamePath + BASE_INI_PATH + mapCodeININame);
+            return new IniFile(SafePath.CombineFilePath(ProgramConstants.GamePath, BASE_INI_PATH, mapCodeININame));
         }
 
         protected bool Equals(GameMode other) => string.Equals(Name, other?.Name, StringComparison.InvariantCultureIgnoreCase);
