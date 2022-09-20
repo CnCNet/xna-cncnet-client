@@ -1,14 +1,26 @@
 <Project>
   <Import Project="$(MSBuildThisFileDirectory)CreateAppHost.targets" />
 
-  <Target Name="RemoveSDL" AfterTargets="PublishDesktopGLNative" Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework' And '$(Engine)' == 'WindowsGL'">
-    <Message Importance="high" Text="Removing not needed SDL files"/>
-    <Delete Files="$(PublishDir)x64/libopenal.so.1" />
-    <Delete Files="$(PublishDir)x64/libSDL2-2.0.so.0" />
-    <Delete Files="$(PublishDir)libopenal.1.dylib" />
-    <Delete Files="$(PublishDir)libSDL2-2.0.0.dylib" />
+  <Target Name="PublishNet48DesktopGLNative" AfterTargets="Publish" Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework' And '$(Engine)' == 'WindowsGL'">
+    <Message Importance="high" Text="Copying net48 DesktopGLNative files"/>
+    <ItemGroup>
+      <_lib_x64 Include="$(OutputPath)\x64\*.*" />
+      <_lib_x86 Include="$(OutputPath)\x86\*.*" />
+    </ItemGroup>
+    <Copy SourceFiles="@(_lib_x64)" DestinationFolder="$(PublishDir)\x64" />
+    <Copy SourceFiles="@(_lib_x86)" DestinationFolder="$(PublishDir)\x86" />
+  </Target>
+
+  <Target Name="RemoveNet48DesktopGLNative" AfterTargets="PublishNet48DesktopGLNative">
+    <Message Importance="high" Text="Removing not needed net48 DesktopGLNative files"/>
     <Delete Files="$(PublishDir)SDL2.dll" />
     <Delete Files="$(PublishDir)soft_oal.dll" />
+  </Target>
+
+  <Target Name="PublishNet60WinDesktopGLNative" AfterTargets="Publish" Condition="'$(TargetFramework)' == 'net6.0' And '$(Engine)' == 'UniversalGL' And $(RuntimeIdentifier.Contains('win-'))">
+    <Message Importance="high" Text="Copying net6.0 DesktopGLNative files"/>
+    <Copy SourceFiles="$(OutputPath)SDL2.dll" DestinationFolder="$(PublishDir)" />
+    <Copy SourceFiles="$(OutputPath)soft_oal.dll" DestinationFolder="$(PublishDir)" />
   </Target>
 
   <Target Name="RemoveCodeAnalysis" AfterTargets="Publish" Condition="'$(TargetFramework.Contains(-windows))' And '$(Engine)' == 'WindowsDX'">
@@ -18,7 +30,7 @@
     <Delete Files="$(PublishDir)Microsoft.CodeAnalysis.VisualBasic.dll" />
   </Target>
 
-  <Target Name="MoveCommonBinaries" AfterTargets="Publish" Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework'">
+  <Target Name="MoveCommonNet48Binaries" AfterTargets="Publish" Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework'">
     <Message Importance="high" Text="Moving net48 common binaries"/>
     <Move SourceFiles="$(PublishDir)ClientUpdater.dll" DestinationFolder="$(PublishDir)../" />
     <Move SourceFiles="$(PublishDir)DiscordRPC.dll" DestinationFolder="$(PublishDir)../" />
@@ -52,14 +64,12 @@
     <Move SourceFiles="$(PublishDir)Localization.pdb" DestinationFolder="$(PublishDir)../" />
     <Move SourceFiles="$(PublishDir)lzo.net.dll" DestinationFolder="$(PublishDir)../" />
     <Move SourceFiles="$(PublishDir)Microsoft.Extensions.DependencyInjection.Abstractions.dll" DestinationFolder="$(PublishDir)../" />
-    <Move SourceFiles="$(PublishDir)Microsoft.Windows.SDK.NET.dll" DestinationFolder="$(PublishDir)../" />
     <Move SourceFiles="$(PublishDir)Newtonsoft.Json.dll" DestinationFolder="$(PublishDir)../" />
     <Move SourceFiles="$(PublishDir)OpenMcdf.dll" DestinationFolder="$(PublishDir)../" />
     <Move SourceFiles="$(PublishDir)Rampastring.Tools.dll" DestinationFolder="$(PublishDir)../" />
     <Move SourceFiles="$(PublishDir)SixLabors.ImageSharp.dll" DestinationFolder="$(PublishDir)../" />
     <Move SourceFiles="$(PublishDir)System.Management.dll" DestinationFolder="$(PublishDir)../" />
     <Move SourceFiles="$(PublishDir)TextCopy.dll" DestinationFolder="$(PublishDir)../" />
-    <Move SourceFiles="$(PublishDir)WinRT.Runtime.dll" DestinationFolder="$(PublishDir)../" />
   </Target>
 
   <Target Name="MoveCommonNet6CrossPlatformBinaries" AfterTargets="Publish" Condition="'$(Engine)' == 'UniversalGL'">
@@ -108,13 +118,9 @@
 
   <Target Name="MoveNet6PlatformSpecificExecutables" AfterTargets="Publish" Condition="'$(TargetFrameworkIdentifier)' != '.NETFramework' And !$(TargetFramework.Contains(-windows)) And '$(RuntimeIdentifier)' != ''">
     <Message Importance="high" Text="Moving net6.0 platform specific executables"/>
-    <Move Condition="Exists('$(PublishDir)$(AssemblyName).exe')" SourceFiles="$(PublishDir)$(AssemblyName).exe" DestinationFolder="$(PublishDir)../../" /> <!-- Built on windows -->
-    <Move Condition="Exists('$(PublishDir)$(AssemblyName)')" SourceFiles="$(PublishDir)$(AssemblyName)" DestinationFolder="$(PublishDir)../../" /> <!-- Built on linux -->
-  </Target>
-
-  <Target Name="RemoveNet6CrossPlatformExecutable" AfterTargets="Publish" Condition="'$(Engine)' == 'UniversalGL' And '$(RuntimeIdentifier)' == ''">
-    <Message Importance="high" Text="Removing net6.0 platform specific executable"/>
-    <Delete Condition="Exists('$(PublishDir)$(AssemblyName).exe')" Files="$(PublishDir)$(AssemblyName).exe" /> <!-- Built on windows -->
-    <Delete Condition="Exists('$(PublishDir)$(AssemblyName)')" Files="$(PublishDir)$(AssemblyName)" /> <!-- Built on linux -->
+    <!-- Built on windows -->
+    <Move Condition="Exists('$(PublishDir)$(AssemblyName).exe')" SourceFiles="$(PublishDir)$(AssemblyName).exe" DestinationFolder="$(PublishDir)../../" />
+    <!-- Built on linux -->
+    <Move Condition="Exists('$(PublishDir)$(AssemblyName)')" SourceFiles="$(PublishDir)$(AssemblyName)" DestinationFolder="$(PublishDir)../../" />
   </Target>
 </Project>

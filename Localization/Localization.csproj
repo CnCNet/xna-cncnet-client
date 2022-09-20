@@ -14,6 +14,6 @@
     <RootNamespace>Localization</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Rampastring.Tools" Version="2.0.1" />
+    <PackageReference Include="Rampastring.Tools" Version="2.0.2" />
   </ItemGroup>
 </Project>
