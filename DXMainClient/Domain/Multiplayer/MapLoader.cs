@@ -91,7 +91,8 @@ namespace DTAClient.Domain.Multiplayer
 
             foreach (string key in keys)
             {
-                string mapFilePath = SafePath.CombineFilePath(mpMapsIni.GetStringValue(MultiMapsSection, key, string.Empty));
+                string mapFilePathValue = mpMapsIni.GetStringValue(MultiMapsSection, key, string.Empty);
+                string mapFilePath = SafePath.CombineFilePath(mapFilePathValue);
                 FileInfo mapFile = SafePath.GetFile(ProgramConstants.GamePath, FormattableString.Invariant($"{mapFilePath}{MAP_FILE_EXTENSION}"));
 
                 if (!mapFile.Exists)
@@ -100,7 +101,7 @@ namespace DTAClient.Domain.Multiplayer
                     continue;
                 }
 
-                Map map = new Map(mapFilePath);
+                Map map = new Map(mapFilePathValue);
 
                 if (!map.SetInfoFromMpMapsINI(mpMapsIni))
                     continue;
@@ -155,7 +156,7 @@ namespace DTAClient.Domain.Multiplayer
                 return;
             }
 
-            IEnumerable<FileInfo> mapFiles = customMapsDirectory.EnumerateFiles($"*{MapLoader.MAP_FILE_EXTENSION}");
+            IEnumerable<FileInfo> mapFiles = customMapsDirectory.EnumerateFiles($"*{MAP_FILE_EXTENSION}");
             ConcurrentDictionary<string, Map> customMapCache = LoadCustomMapCache();
             var localMapSHAs = new List<string>();
 
@@ -169,7 +170,9 @@ namespace DTAClient.Domain.Multiplayer
                     string baseFilePath = mapFile.FullName.Substring(ProgramConstants.GamePath.Length);
                     baseFilePath = baseFilePath.Substring(0, baseFilePath.Length - 4);
 
-                    Map map = new Map(baseFilePath, mapFile.FullName);
+                    Map map = new Map(baseFilePath
+                        .Replace(Path.DirectorySeparatorChar, '/')
+                        .Replace(Path.AltDirectorySeparatorChar, '/'), mapFile.FullName);
                     map.CalculateSHA();
                     localMapSHAs.Add(map.SHA1);
                     if (!customMapCache.ContainsKey(map.SHA1) && map.SetInfoFromCustomMap())
