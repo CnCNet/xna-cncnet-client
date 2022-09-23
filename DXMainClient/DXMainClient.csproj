@@ -29,6 +29,7 @@
     <UseAppHost Condition="$(TargetFramework.Contains('-'))">true</UseAppHost>
     <!-- .NET6 UniversalGL platform specific -->
     <UseAppHost Condition="'$(TargetFrameworkIdentifier)' != '.NETFramework' And '$(Engine)' == 'UniversalGL' And'$(RuntimeIdentifier)' != ''">true</UseAppHost>
+    <UseAppHost Condition="'$(BuildingInsideVisualStudio)' == 'true'">False</UseAppHost>
   </PropertyGroup>
   <ItemGroup Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework'">
     <Reference Include="System.DirectoryServices" />
