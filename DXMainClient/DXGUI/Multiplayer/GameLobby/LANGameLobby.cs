@@ -183,7 +183,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             try
             {
                 client = new Socket(SocketType.Stream, ProtocolType.Tcp);
+#if NETFRAMEWORK
+                await client.ConnectAsync(IPAddress.Loopback, ProgramConstants.LAN_GAME_LOBBY_PORT);
+#else
                 await client.ConnectAsync(IPAddress.Loopback, ProgramConstants.LAN_GAME_LOBBY_PORT, cancellationToken);
+#endif
 
                 string message = PLAYER_JOIN_COMMAND +
                     ProgramConstants.LAN_DATA_SEPARATOR + ProgramConstants.PLAYERNAME;
