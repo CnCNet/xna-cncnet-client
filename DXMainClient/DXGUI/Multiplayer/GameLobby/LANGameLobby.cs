@@ -886,6 +886,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private void BroadcastGame()
         {
+            if (GameMode == null || Map == null)
+                return;
+
             var sb = new ExtendedStringBuilder("GAME ", true);
             sb.Separator = ProgramConstants.LAN_DATA_SEPARATOR;
             sb.Append(ProgramConstants.LAN_PROTOCOL_REVISION);
