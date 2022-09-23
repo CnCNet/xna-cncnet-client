@@ -157,25 +157,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             {
                 RandomSeed = new Random().Next();
                 ListenForClientsAsync(cancellationTokenSource.Token);
-
-                this.client = new Socket(SocketType.Stream, ProtocolType.Tcp);
-                await this.client.ConnectAsync(IPAddress.Loopback, ProgramConstants.LAN_GAME_LOBBY_PORT);
-
-                string message = PLAYER_JOIN_COMMAND +
-                    ProgramConstants.LAN_DATA_SEPARATOR + ProgramConstants.PLAYERNAME;
-#if NETFRAMEWORK
-                byte[] buffer1 = encoding.GetBytes(message);
-                var buffer = new ArraySegment<byte>(buffer1);
-
-                await this.client.SendAsync(buffer, SocketFlags.None);
-#else
-                using IMemoryOwner<byte> memoryOwner = MemoryPool<byte>.Shared.Rent(message.Length * 2);
-                Memory<byte> buffer = memoryOwner.Memory[..(message.Length * 2)];
-                int bytes = encoding.GetBytes(message.AsSpan(), buffer.Span);
-                buffer = buffer[..bytes];
-
-                await this.client.SendAsync(buffer, SocketFlags.None, CancellationToken.None);
-#endif
+                SendHostPlayerJoinedMessageAsync(cancellationTokenSource.Token);
 
                 var fhc = new FileHashCalculator();
                 fhc.CalculateHashes(GameModeMaps.GameModes);
@@ -194,6 +176,38 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 CopyPlayerDataToUI();
 
             WindowManager.SelectedControl = tbChatInput;
+        }
+
+        private async Task SendHostPlayerJoinedMessageAsync(CancellationToken cancellationToken)
+        {
+            try
+            {
+                client = new Socket(SocketType.Stream, ProtocolType.Tcp);
+                await client.ConnectAsync(IPAddress.Loopback, ProgramConstants.LAN_GAME_LOBBY_PORT, cancellationToken);
+
+                string message = PLAYER_JOIN_COMMAND +
+                    ProgramConstants.LAN_DATA_SEPARATOR + ProgramConstants.PLAYERNAME;
+#if NETFRAMEWORK
+                byte[] buffer1 = encoding.GetBytes(message);
+                var buffer = new ArraySegment<byte>(buffer1);
+
+                await client.SendAsync(buffer, SocketFlags.None);
+#else
+                using IMemoryOwner<byte> memoryOwner = MemoryPool<byte>.Shared.Rent(message.Length * 2);
+                Memory<byte> buffer = memoryOwner.Memory[..(message.Length * 2)];
+                int bytes = encoding.GetBytes(message.AsSpan(), buffer.Span);
+                buffer = buffer[..bytes];
+
+                await client.SendAsync(buffer, SocketFlags.None, cancellationToken);
+#endif
+            }
+            catch (OperationCanceledException)
+            {
+            }
+            catch (Exception ex)
+            {
+                PreStartup.HandleException(ex);
+            }
         }
 
         public async Task PostJoinAsync()
