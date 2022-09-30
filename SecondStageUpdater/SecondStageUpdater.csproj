@@ -1,9 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFrameworks>net48;net6.0-windows10.0.22000.0</TargetFrameworks>
-    <SupportedOSPlatformVersion>10.0.22000.0</SupportedOSPlatformVersion>
-    <TargetPlatformMinVersion>7.0</TargetPlatformMinVersion>
-    <UseWindowsForms>true</UseWindowsForms>
+    <TargetFrameworks>net48;net6.0;net6.0-windows</TargetFrameworks>
+    <UseWindowsForms Condition="'$(TargetFramework)' != 'net6.0'">true</UseWindowsForms>
+    <UseWindowsForms Condition="'$(TargetFramework)' == 'net6.0'">false</UseWindowsForms>
+    <ApplicationHighDpiMode Condition="$(TargetFramework.Contains('-windows'))">PerMonitorV2</ApplicationHighDpiMode>
+    <OutputType>Exe</OutputType>
     <Title></Title>
     <Description>CnCNet Client Second-Stage Updater</Description>
     <Company>CnCNet</Company>
@@ -24,7 +25,13 @@
     <ComVisible>false</ComVisible>
     <CLSCompliant>false</CLSCompliant>
   </PropertyGroup>
+  <ItemGroup Condition="'$(TargetFramework)' == 'net6.0'">
+    <Compile Remove="MainForm.cs" />
+    <Compile Remove="MainForm.Designer.cs" />
+    <EmbeddedResource Remove="MainForm.resx" />
+  </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="Rampastring.Tools" Version="2.0.2" />
     <PackageReference Include="StyleCop.Analyzers" Version="1.2.0-beta.435">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>

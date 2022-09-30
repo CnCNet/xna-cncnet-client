@@ -167,7 +167,7 @@ namespace ClientUpdater
 
             GamePath = gamePath;
             ResourcePath = resourcePath;
-            settingsINI = new IniFile(GamePath + settingsIniName);
+            settingsINI = new IniFile(SafePath.CombineFilePath(GamePath, settingsIniName));
             LocalGame = localGame;
             CallingExecutableFileName = callingExecutableFileName;
 
@@ -360,7 +360,7 @@ namespace ClientUpdater
         /// <param name="archiveSize">Set to archive file size.</param>
         internal static void GetArchiveInfo(IniFile versionFile, string filename, out string archiveID, out int archiveSize)
         {
-            string[] values = versionFile.GetStringValue("ArchivedFiles", SafePath.CombineFilePath(filename), "").Split(',');
+            string[] values = versionFile.GetStringValue("ArchivedFiles", filename, "").Split(',');
             bool archiveAvailable = values != null && values.Length >= 2;
             archiveID = archiveAvailable ? values[0] : "";
             archiveSize = archiveAvailable ? Conversions.IntFromString(values[1], 0) : 0;
@@ -533,7 +533,7 @@ namespace ClientUpdater
                     }
                 }
             }
-            
+
             updateMirrors = mirrors;
             Updater.customComponents = customComponents;
 
@@ -826,28 +826,35 @@ namespace ClientUpdater
             foreach (string key in GetKeys(script, "Delete"))
             {
                 Logger.Log("Updater: " + fileName + ": Deleting file " + key);
+
                 try
                 {
                     SafePath.DeleteFileIfExists(GamePath, key);
                 }
-                catch
+                catch (Exception ex)
                 {
+                    Logger.Log("Updater: " + fileName + ": Deleting file " + key + "failed: " + ex.Message);
                 }
             }
 
             // Rename files.
             foreach (string key in GetKeys(script, "Rename"))
             {
-                string newFilename = script.GetStringValue("Rename", key, "");
+                string newFilename = SafePath.CombineFilePath(script.GetStringValue("Rename", key, ""));
                 if (string.IsNullOrWhiteSpace(newFilename))
                     continue;
                 try
                 {
                     Logger.Log("Updater: " + fileName + ": Renaming file '" + key + "' to '" + newFilename + "'");
-                    File.Move(SafePath.CombineFilePath(GamePath, key), SafePath.CombineFilePath(GamePath, newFilename));
+
+                    FileInfo file = SafePath.GetFile(GamePath, key);
+
+                    if (file.Exists)
+                        file.MoveTo(SafePath.CombineFilePath(GamePath, newFilename));
                 }
-                catch
+                catch (Exception ex)
                 {
+                    Logger.Log("Updater: " + fileName + ": Renaming file '" + key + "' to '" + newFilename + "' failed: " + ex.Message);
                 }
             }
 
@@ -860,10 +867,15 @@ namespace ClientUpdater
                 try
                 {
                     Logger.Log("Updater: " + fileName + ": Renaming directory '" + key + "' to '" + newDirectoryName + "'");
-                    Directory.Move(SafePath.CombineDirectoryPath(GamePath, key), SafePath.CombineDirectoryPath(GamePath, newDirectoryName));
+
+                    DirectoryInfo directory = SafePath.GetDirectory(GamePath, key);
+
+                    if (directory.Exists)
+                        directory.MoveTo(SafePath.CombineDirectoryPath(GamePath, newDirectoryName));
                 }
-                catch
+                catch (Exception ex)
                 {
+                    Logger.Log("Updater: " + fileName + ": Renaming directory '" + key + "' to '" + newDirectoryName + "' failed: " + ex.Message);
                 }
             }
 
@@ -879,10 +891,14 @@ namespace ClientUpdater
                     Logger.Log("Updater: " + fileName + ": Merging directory '" + directoryName + "' with '" + directoryNameToMergeInto + "'");
                     DirectoryInfo directoryToMergeInto = SafePath.GetDirectory(GamePath, directoryNameToMergeInto);
                     DirectoryInfo gameDirectory = SafePath.GetDirectory(GamePath, directoryName);
+
+                    if (!gameDirectory.Exists)
+                        continue;
+
                     if (!directoryToMergeInto.Exists)
                     {
                         Logger.Log("Updater: " + fileName + ": Destination directory '" + directoryNameToMergeInto + "' does not exist, renaming.");
-                        Directory.Move(gameDirectory.FullName, directoryToMergeInto.FullName);
+                        gameDirectory.MoveTo(directoryToMergeInto.FullName);
                     }
                     else
                     {
@@ -901,13 +917,14 @@ namespace ClientUpdater
                             {
                                 Logger.Log("Updater: " + fileName + ": Destination file '" + directoryNameToMergeInto + "/" + file.Name +
                                     "' does not exist, moving original source file " + directoryName + "/" + file.Name);
-                                File.Move(file.FullName, fileToMergeInto.FullName);
+                                file.MoveTo(fileToMergeInto.FullName);
                             }
                         }
                     }
                 }
-                catch
+                catch (Exception ex)
                 {
+                    Logger.Log("Updater: " + fileName + ": Merging directory '" + directoryName + "' with '" + directoryNameToMergeInto + "' failed: " + ex.Message);
                 }
             }
 
@@ -919,10 +936,12 @@ namespace ClientUpdater
                     try
                     {
                         Logger.Log("Updater: " + fileName + ": Deleting directory '" + key + "'");
-                        SafePath.GetDirectory(GamePath, key).Delete(true);
+
+                        SafePath.DeleteDirectoryIfExists(true, GamePath, key);
                     }
-                    catch
+                    catch (Exception ex)
                     {
+                        Logger.Log("Updater: " + fileName + ": Deleting directory '" + key + "' failed: " + ex.Message);
                     }
                 }
             }
@@ -933,10 +952,11 @@ namespace ClientUpdater
                 try
                 {
                     Logger.Log("Updater: " + fileName + ": Deleting directory '" + key + "' if it's empty.");
-                    if (SafePath.GetDirectory(key).Exists)
-                    {
-                        DirectoryInfo directoryInfo = SafePath.GetDirectory(GamePath, key);
 
+                    DirectoryInfo directoryInfo = SafePath.GetDirectory(GamePath, key);
+
+                    if (directoryInfo.Exists)
+                    {
                         if (!directoryInfo.EnumerateFiles().Any())
                         {
                             directoryInfo.Delete();
@@ -951,8 +971,9 @@ namespace ClientUpdater
                         Logger.Log("Updater: " + fileName + ": Specified directory does not exist.");
                     }
                 }
-                catch
+                catch (Exception ex)
                 {
+                    Logger.Log("Updater: " + fileName + ": Deleting directory '" + key + "' if it's empty failed: " + ex.Message);
                 }
             }
 
@@ -972,8 +993,9 @@ namespace ClientUpdater
                         Logger.Log("Updater: " + fileName + ": Directory '" + key + "' already exists.");
                     }
                 }
-                catch
+                catch (Exception ex)
                 {
+                    Logger.Log("Updater: " + fileName + ": Creating directory '" + key + "' failed: " + ex.Message);
                 }
             }
 
@@ -1189,11 +1211,11 @@ namespace ClientUpdater
 
                         if (updaterDirectoryInfo.Exists)
                         {
-                            File.Move(versionFileTemp.FullName, SafePath.CombineFilePath(GamePath, "Updater", VERSION_FILE));
+                            versionFileTemp.MoveTo(SafePath.CombineFilePath(GamePath, "Updater", VERSION_FILE));
                         }
                         else
                         {
-                            File.Move(versionFileTemp.FullName, SafePath.CombineFilePath(GamePath, VERSION_FILE));
+                            versionFileTemp.MoveTo(SafePath.CombineFilePath(GamePath, VERSION_FILE));
                         }
 
                         FileInfo themeFileInfo = SafePath.GetFile(GamePath, "Theme_c.ini");
@@ -1201,7 +1223,7 @@ namespace ClientUpdater
                         if (themeFileInfo.Exists)
                         {
                             Logger.Log("Updater: Theme_c.ini exists -- copying it.");
-                            File.Copy(themeFileInfo.FullName, SafePath.CombineFilePath(GamePath, "INI", "Theme.ini"), true);
+                            themeFileInfo.CopyTo(SafePath.CombineFilePath(GamePath, "INI", "Theme.ini"), true);
                             Logger.Log("Updater: Theme.ini copied succesfully.");
                         }
 
@@ -1215,20 +1237,17 @@ namespace ClientUpdater
                             if (secondStageUpdater.Exists)
                             {
                                 DeleteFileAndWait(secondStageUpdaterResource.FullName);
-                                File.Move(secondStageUpdater.FullName, secondStageUpdaterResource.FullName);
+                                secondStageUpdater.MoveTo(secondStageUpdaterResource.FullName);
                             }
 
                             Logger.Log("Updater: Launching second-stage updater executable " + SECOND_STAGE_UPDATER + ".");
 
-                            new Process
+                            using var _ = Process.Start(new ProcessStartInfo
                             {
-                                StartInfo =
-                                {
-                                    UseShellExecute = false,
-                                    FileName = secondStageUpdaterResource.FullName,
-                                    Arguments =  CallingExecutableFileName + " \"" + GamePath + "\""
-                                }
-                            }.Start();
+                                UseShellExecute = false,
+                                FileName = secondStageUpdaterResource.FullName,
+                                Arguments = CallingExecutableFileName + " \"" + GamePath + "\""
+                            });
 
                             Restart?.Invoke(null, EventArgs.Empty);
                         }
@@ -1480,4 +1499,3 @@ namespace ClientUpdater
         #endregion
     }
 }
-
