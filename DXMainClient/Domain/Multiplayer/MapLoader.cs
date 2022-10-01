@@ -23,7 +23,7 @@ namespace DTAClient.Domain.Multiplayer
 
         /// <summary>
         /// The relative path to the folder where custom maps are stored.
-        /// This is the public version of CUSTOM_MAPS_DIRECTORY ending in a slash for convenience.
+        /// This is the public version of CUSTOM_MAPS_DIRECTORY with a "/" added for convenience.
         /// </summary>
         public const string CustomMapsDirectory = CUSTOM_MAPS_DIRECTORY + "/";
 
@@ -60,7 +60,7 @@ namespace DTAClient.Domain.Multiplayer
         private FileSystemWatcher customMapFileWatcher;
 
         /// <summary>
-        /// Check to see if a map matching the sha1 ID is already loaded.
+        /// Check to see if a map matching the SHA-1 ID is already loaded.
         /// </summary>
         /// <param name="sha1">The map ID to search the loaded maps for.</param>
         /// <returns></returns>
@@ -70,10 +70,10 @@ namespace DTAClient.Domain.Multiplayer
         }
 
         /// <summary>
-        /// Search the loaded maps for the sha1, return the map if a match is found.
+        /// Search the loaded maps for the SHA-1, return the map if a match is found.
         /// </summary>
         /// <param name="sha1">The map ID to search the loaded maps for.</param>
-        /// <returns>The map matching the sha1 if one was found.</returns>
+        /// <returns>The map matching the SHA-1 if one was found.</returns>
         public GameModeMap GetLoadedMapBySha1(string sha1)
         {
             return GameModeMaps.Find(gmm => gmm.Map.SHA1 == sha1);
@@ -95,17 +95,9 @@ namespace DTAClient.Domain.Multiplayer
         /// </summary>
         public void StartCustomMapFileWatcher()
         {
-            customMapFileWatcher = new FileSystemWatcher($"{ProgramConstants.GamePath}{CustomMapsDirectory}");
+            customMapFileWatcher = new FileSystemWatcher(SafePath.CombineDirectoryPath(ProgramConstants.GamePath, CustomMapsDirectory));
 
             customMapFileWatcher.Filter = $"*{MAP_FILE_EXTENSION}";
-            customMapFileWatcher.NotifyFilter = NotifyFilters.Attributes
-                                 | NotifyFilters.CreationTime
-                                 | NotifyFilters.DirectoryName
-                                 | NotifyFilters.FileName
-                                 | NotifyFilters.LastAccess
-                                 | NotifyFilters.LastWrite
-                                 | NotifyFilters.Security
-                                 | NotifyFilters.Size;
 
             customMapFileWatcher.Created += HandleCustomMapFolder_Created;
             customMapFileWatcher.Deleted += HandleCustomMapFolder_Deleted;
@@ -127,8 +119,11 @@ namespace DTAClient.Domain.Multiplayer
         {
             // Get the map filename without the extension.
             // The extension gets added in LoadCustomMap so we need to excise it to avoid "file.map.map".
-            string name = e.Name.EndsWith(MAP_FILE_EXTENSION) ? e.Name.Remove(e.Name.Length - MAP_FILE_EXTENSION.Length) : e.Name;
-            string relativeMapPath = $"{CustomMapsDirectory}{name}";
+            string name = Path.GetFileNameWithoutExtension(e.Name);
+
+            if (name.StartsWith())
+
+            string relativeMapPath = SafePath.CombineFilePath(CustomMapsDirectory, name);
             Map map = LoadCustomMap(relativeMapPath, out string result);
 
             if (map == null)
@@ -147,11 +142,13 @@ namespace DTAClient.Domain.Multiplayer
         public void HandleCustomMapFolder_Deleted(object sender, FileSystemEventArgs e)
         {
             Logger.Log($"Map was deleted: map={e.Name}");
+            // Use the filename without the extension so we can remove maps that had their extension changed.
+            string name = Path.GetFileNameWithoutExtension(e.Name);
             // The way we're detecting the loaded map is hacky, but we don't
-            // have the sha1 to work with.
+            // have the SHA-1 to work with.
             foreach (GameMode gameMode in GameModes)
             {
-                gameMode.Maps.RemoveAll(map => map.CompleteFilePath.EndsWith(e.Name));
+                gameMode.Maps.RemoveAll(map => Path.GetFileNameWithoutExtension(map.CompleteFilePath).EndsWith(name));
             }
 
             RemoveEmptyGameModesAndUpdateGameModeMaps();
@@ -170,14 +167,28 @@ namespace DTAClient.Domain.Multiplayer
         /// <param name="e"></param>
         public void HandleCustomMapFolder_Renamed(object sender, RenamedEventArgs e)
         {
-            string name = e.Name.EndsWith(MAP_FILE_EXTENSION) ? e.Name.Remove(e.Name.Length - MAP_FILE_EXTENSION.Length) : e.Name;
-            string relativeMapPath = $"{CustomMapsDirectory}{name}";
+            string name = Path.GetFileNameWithoutExtension(e.Name);
+            string relativeMapPath = SafePath.CombineFilePath(CustomMapsDirectory, name);
+            bool oldPathIsMap = Path.GetExtension(e.OldName) == MAP_FILE_EXTENSION;
+            bool newPathIsMap = Path.GetExtension(e.Name) == MAP_FILE_EXTENSION;
 
             // Check if the user is renaming a non ".map" file.
             // This is just for logging to help debug.
-            if (!e.OldName.EndsWith(MAP_FILE_EXTENSION))
+            if (!oldPathIsMap && newPathIsMap)
             {
                 Logger.Log($"Renaming file changed the file extension. User is likely renaming a '.yrm' from Final Alert 2: old={e.OldName}, new={e.Name}");
+            }
+            else if (oldPathIsMap && !newPathIsMap)
+            {
+                // A bit hacky, but this is a rare case.
+                Logger.Log($"Renaming file changed the file extension to no longer be '.map' for some reason, removing from map list: old={e.OldName}, new={e.Name}");
+                HandleCustomMapFolder_Deleted(sender, e);
+            }
+
+            if (!newPathIsMap)
+            {
+                Logger.Log($"Renaming file. New extension is not '{MAP_FILE_EXTENSION}', moving on: file={e.Name}");
+                return;
             }
 
             Map map = LoadCustomMap(relativeMapPath, out string result);
@@ -431,7 +442,7 @@ namespace DTAClient.Domain.Multiplayer
             }
 
             // Make sure we don't accidentally load the same map twice.
-            // This checks the sha1, so duplicate maps in two .map files with different filenames can still be detected.
+            // This checks the SHA-1, so duplicate maps in two .map files with different filenames can still be detected.
             if (IsMapAlreadyLoaded(map.SHA1))
             {
                 Logger.Log("LoadCustomMap: Custom map " + customMapFile.FullName + " is already loaded!");

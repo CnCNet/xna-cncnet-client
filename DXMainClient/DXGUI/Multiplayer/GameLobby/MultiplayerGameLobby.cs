@@ -487,7 +487,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         /// <param name="mapName">Name of the map given as a parameter, without file extension.</param>
         private void LoadCustomMap(string mapName)
         {
-            Map map = MapLoader.LoadCustomMap($"{MapLoader.CustomMapsDirectory}{mapName}", out string resultMessage);
+            Map map = MapLoader.LoadCustomMap(SafePath.CombineFilePath(MapLoader.CustomMapsDirectory, mapName), out string resultMessage);
             if (map != null)
             {
                 AddNotice(resultMessage);
