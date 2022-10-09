@@ -19,15 +19,4 @@
     <Copy Condition="! Exists('$(OutputPath)\Resources\ClientDefinitions.ini') " SourceFiles="@(ExampleClientDefinitions)" DestinationFolder="$(OutputPath)\Resources" />
   </Target>
 
-  <Target Name="PublishDesktopGLNative" AfterTargets="Publish" Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework'">
-    <ItemGroup>
-      <_lib_x64 Include="$(OutputPath)\x64\*.*" />
-      <_lib_x86 Include="$(OutputPath)\x86\*.*" />
-      <_lib_osx Include="$(OutputPath)\*..dylib" />
-    </ItemGroup>
-    <Copy SourceFiles="@(_lib_x64)" DestinationFolder="$(PublishDir)\x64" />
-    <Copy SourceFiles="@(_lib_x86)" DestinationFolder="$(PublishDir)\x86" />
-    <Copy SourceFiles="@(_lib_osx)" DestinationFolder="$(PublishDir)" />
-  </Target>
-
 </Project>

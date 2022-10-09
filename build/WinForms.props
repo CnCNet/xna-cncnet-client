@@ -1,8 +1,7 @@
 <Project>
   <PropertyGroup>
-    <TargetFrameworks Condition="!$(Configuration.Contains('UniversalGL')) Or '$(Engine)' != 'UniversalGL'">net48;net6.0-windows10.0.22000.0</TargetFrameworks>
-    <TargetFrameworks Condition="$(Configuration.Contains('UniversalGL')) Or '$(Engine)' == 'UniversalGL'">net48;net6.0</TargetFrameworks>
-    <SupportedOSPlatformVersion Condition="$(TargetFramework.Contains('-windows'))">7.0</SupportedOSPlatformVersion>
+    <TargetFrameworks Condition="!$(Configuration.Contains('UniversalGL')) Or '$(Engine)' != 'UniversalGL'">net48;net6.0-windows</TargetFrameworks>
+    <TargetFrameworks Condition="$(Configuration.Contains('UniversalGL')) Or '$(Engine)' == 'UniversalGL'">net6.0</TargetFrameworks>
     <UseWindowsForms Condition="!$(Configuration.Contains('UniversalGL')) Or '$(Engine)' != 'UniversalGL'">true</UseWindowsForms>
     <UseWindowsForms Condition="$(Configuration.Contains('UniversalGL')) Or '$(Engine)' == 'UniversalGL'">false</UseWindowsForms>
   </PropertyGroup>

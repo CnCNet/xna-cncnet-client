@@ -33,17 +33,17 @@ UniversalGL:
 * net6.0
 
 WindowsDX, WindowsGL & WindowsXNA:
-* net6.0-windows10.0.22000.0
+* net6.0-windows
 * net48
 
 Overview of the Engine configurations differences:
 
-| | OS Support | Platform | Technology |
+| | OS Support | Default Platform | Technology |
 | - | ---------- | -------- | ---------- |
-| UniversalGL | Any | AnyCPU | MonoGame DesktopGL |
-| WindowsDX | Windows | AnyCPU | MonoGame WindowsDX + WinForms |
-| WindowsGL | Windows | AnyCPU | MonoGame DesktopGL + WinForms |
-| WindowsXNA | Windows | x86 | Microsoft XNA + WinForms |
+| UniversalGL | Any | AnyCPU (64-bit preferred) | MonoGame DesktopGL |
+| WindowsDX | Windows | AnyCPU (64-bit preferred) | MonoGame WindowsDX + WinForms |
+| WindowsGL | Windows | AnyCPU (64-bit preferred) | MonoGame DesktopGL + WinForms |
+| WindowsXNA | Windows | AnyCPU (32-bit preferred) | Microsoft XNA + WinForms |
 
 AfterPublish PatchAppHost step
 ------------------------------
@@ -54,7 +54,7 @@ The file AfterPublish.targets will execute additional steps for the following bu
 
 Building a .NET 6 application results in an assembly, not in an executable, e.g. `clientdx.dll`. On platform specific builds it also generates an apphost executable, so users have something to execute directly i.e. `clientdx.exe`. All the .exe does is launch e.g.: `dotnet clientdx.dll`.
 
-By default the apphost always points to a dll with the same filename in the current directory. Since we split them up into `\clientdx.exe` and `\Resources\Binaries\Windows\clientdx.dll` this breaks. PatchAppHost modifies the .exe to point to the correct .dll path.
+By default the apphost always points to a dll with the same filename in the current directory. Since we split them up into `\clientdx.exe` and `\Resources\Binaries\Windows\clientdx.dll` this breaks. `CreateAppHost.targets` modifies the .exe to point to the correct .dll path.
 
 Custom builds
 -------------
@@ -84,7 +84,7 @@ You can select the desired configuration directly from the solution configuratio
 
 ![Screenshot 2022-09-09 235432](https://user-images.githubusercontent.com/25006126/189451063-28418a7b-47f4-47b3-9d8b-512c598284ac.png)
 
-Note that the XNA configurations require x86 to be selected:
+Note that the XNA configurations can only be build with either `x86` or `AnyCPU` (32-bit preferred) to use `Large address aware`.
 
 ![Screenshot 2022-09-09 235556](https://user-images.githubusercontent.com/25006126/189451170-d90f665e-19d1-4e6b-a9df-a4994eb143a9.png)
 
