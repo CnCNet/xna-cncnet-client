@@ -17,11 +17,6 @@ function Build-Project($Configuration, $Game, $Engine, $Framework) {
     $Output = Join-Path $Output any
   }
   $Output = Join-Path $Output Resources Binaries ($EngineMap[$Engine])
-  if ($Engine -EQ 'WindowsXNA') {
-    dotnet publish $ProjectPath --configuration=$Configuration -property:GAME=$Game -property:ENGINE=$Engine --arch=x86 --framework=$Framework --output=$Output
-  }
-  else {
-    dotnet publish $ProjectPath --configuration=$Configuration -property:GAME=$Game -property:ENGINE=$Engine --framework=$Framework --output=$Output
-  }
+  dotnet publish $ProjectPath --configuration=$Configuration -property:GAME=$Game -property:ENGINE=$Engine --framework=$Framework --output=$Output
   if ($LASTEXITCODE) { throw }
 }

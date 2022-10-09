@@ -5,15 +5,8 @@
     <__DirectoryName Condition="'$(Engine)' == 'WindowsXNA'">XNA</__DirectoryName>
   </PropertyGroup>
 
-  <PropertyGroup>
-    <__RunAppHostPatcher>False</__RunAppHostPatcher>
-    <__RunAppHostPatcher Condition="$(TargetFramework.Contains('-'))">True</__RunAppHostPatcher> <!-- .NET6 WinForms Windows specific -->
-    <__RunAppHostPatcher Condition="'$(TargetFrameworkIdentifier)' != '.NETFramework' And '$(Engine)' == 'UniversalGL' And'$(RuntimeIdentifier)' != ''">True</__RunAppHostPatcher> <!-- .NET6 UniversalGL platform specific -->
-    <__RunAppHostPatcher Condition="'$(BuildingInsideVisualStudio)' == 'true'">False</__RunAppHostPatcher>
-  </PropertyGroup>
-
-  <Target Name="PatchAppHost" AfterTargets="_CreateAppHost" Condition="'$(__RunAppHostPatcher)'">
-    <Message Importance="high" Text="AppHostPatcher @(IntermediateAssembly->'%(FullPath)')"/>
+  <Target Name="CreateCustomAppHost" AfterTargets="_CreateAppHost" Condition="'$(UseAppHost)'">
+    <Message Importance="high" Text="Creating custom AppHost @(IntermediateAssembly->'%(FullPath)')"/>
     <CreateAppHost
         AppHostSourcePath="$(AppHostSourcePath)"
         AppHostDestinationPath="$(AppHostIntermediatePath)"

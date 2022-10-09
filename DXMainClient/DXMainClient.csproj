@@ -15,16 +15,22 @@
     <RootNamespace>DTAClient</RootNamespace>
     <ApplicationIcon>clienticon.ico</ApplicationIcon>
     <ApplicationHighDpiMode Condition="'$(TargetFrameworkIdentifier)' != '.NETFramework' And !$(Configuration.Contains('UniversalGL'))">PerMonitorV2</ApplicationHighDpiMode>
-  </PropertyGroup>
-  
-  <PropertyGroup>
     <AssemblyName Condition="'$(Engine)' == 'WindowsDX'">clientdx</AssemblyName>
     <AssemblyName Condition="'$(Engine)' == 'UniversalGL' Or '$(Engine)' == 'WindowsGL'">clientogl</AssemblyName>
     <AssemblyName Condition="'$(Engine)' == 'WindowsXNA'">clientxna</AssemblyName>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Prefer32Bit Condition="'$(Engine)' == 'WindowsXNA'">true</Prefer32Bit>
+    <AppHostRuntimeIdentifier Condition="'$(Engine)' == 'WindowsXNA'">win-x86</AppHostRuntimeIdentifier>
   </PropertyGroup>
-
+  <PropertyGroup>
+    <UseAppHost>false</UseAppHost>
+    <!-- .NET6 WinForms Windows specific -->
+    <UseAppHost Condition="$(TargetFramework.Contains('-'))">true</UseAppHost>
+    <!-- .NET6 UniversalGL platform specific -->
+    <UseAppHost Condition="'$(TargetFrameworkIdentifier)' != '.NETFramework' And '$(Engine)' == 'UniversalGL' And'$(RuntimeIdentifier)' != ''">true</UseAppHost>
+    <UseAppHost Condition="'$(BuildingInsideVisualStudio)' == 'true'">False</UseAppHost>
+  </PropertyGroup>
   <ItemGroup Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework'">
     <Reference Include="System.DirectoryServices" />
     <Reference Include="System.Management" />
@@ -59,5 +65,4 @@
   <Import Project="$(MSBuildThisFileDirectory)..\build\WinForms.props" />
   <Import Project="$(MSBuildThisFileDirectory)..\build\AfterPublish.targets" />
   <Import Project="$(MSBuildThisFileDirectory)..\build\CopyResources.targets" />
-
 </Project>

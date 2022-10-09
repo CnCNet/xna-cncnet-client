@@ -640,7 +640,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
                 if (useNearestNeighbour)
                 {
-                    Renderer.PushSettings(new SpriteBatchSettings(SpriteSortMode.Deferred, null, SamplerState.PointClamp));
+                    Renderer.PushSettings(new SpriteBatchSettings(SpriteSortMode.Deferred, null, SamplerState.PointClamp, null, null, null));
                     DrawPreviewTexture(renderPoint);
                     Renderer.PopSettings();
                 }

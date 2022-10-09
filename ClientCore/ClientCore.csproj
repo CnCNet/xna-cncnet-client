@@ -39,10 +39,9 @@
     <EmbeddedResource Include="Resources\unknownicon.png" />
     <EmbeddedResource Include="Resources\yricon.png" />
   </ItemGroup>
-  <!--Switching between Configurations within VS IDE requires reloading the project file-->
   <ItemGroup>
-    <PackageReference Include="Rampastring.XNAUI.$(Engine)" Version="2.2.1" Condition="'!$(Configuration.Contains(Debug))'" />
-    <PackageReference Include="Rampastring.XNAUI.$(Engine).Debug" Version="2.2.1" Condition="'$(Configuration.Contains(Debug))'" />
+    <PackageReference Include="Rampastring.XNAUI.$(Engine)" Version="2.2.4" Condition="'!$(Configuration.Contains(Debug))'" />
+    <PackageReference Include="Rampastring.XNAUI.$(Engine).Debug" Version="2.2.4" Condition="'$(Configuration.Contains(Debug))'" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="System.Text.Encoding.CodePages" Version="6.0.0" Condition="'$(TargetFrameworkIdentifier)' != '.NETFramework'" />
