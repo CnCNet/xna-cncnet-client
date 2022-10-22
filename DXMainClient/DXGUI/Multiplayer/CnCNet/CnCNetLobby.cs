@@ -1010,7 +1010,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             connectionManager.SendCustomMessage(new QueuedMessage("JOIN " + channelName + " " + password,
                 QueuedMessageType.INSTANT_MESSAGE, 0));
             connectionManager.MainChannel.AddMessage(new ChatMessage(Color.White,
-               string.Format("Creating a game named {0} ...".L10N("UI:Main:CreateGameNamed"), e.GameRoomName)));
+                string.Format("Creating a game named {0} ...".L10N("UI:Main:CreateGameNamed"), e.GameRoomName)));
 
             gameCreationPanel.Hide();
 
@@ -1032,7 +1032,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             connectionManager.SendCustomMessage(new QueuedMessage("JOIN " + channelName + " " + e.Password,
                 QueuedMessageType.INSTANT_MESSAGE, 0));
             connectionManager.MainChannel.AddMessage(new ChatMessage(Color.White,
-               string.Format("Creating a game named {0} ...".L10N("UI:Main:CreateGameNamed"), e.GameRoomName)));
+                string.Format("Creating a game named {0} ...".L10N("UI:Main:CreateGameNamed"), e.GameRoomName)));
 
             gameCreationPanel.Hide();
 

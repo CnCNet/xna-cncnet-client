@@ -239,7 +239,7 @@ namespace ClientCore
         public StringListSetting FavoriteMaps { get; private set; }
 
         public void SetValue(string section, string key, string value)
-               => SettingsIni.SetStringValue(section, key, value);
+            => SettingsIni.SetStringValue(section, key, value);
 
         public void SetValue(string section, string key, bool value)
             => SettingsIni.SetBooleanValue(section, key, value);
@@ -313,11 +313,11 @@ namespace ClientCore
 
         public bool IsGameFiltersApplied()
         {
-            return ShowFriendGamesOnly.Value != DEFAULT_SHOW_FRIENDS_ONLY_GAMES ||
-                   HideLockedGames.Value != DEFAULT_HIDE_LOCKED_GAMES ||
-                   HidePasswordedGames.Value != DEFAULT_HIDE_PASSWORDED_GAMES ||
-                   HideIncompatibleGames.Value != DEFAULT_HIDE_INCOMPATIBLE_GAMES ||
-                   MaxPlayerCount.Value != DEFAULT_MAX_PLAYER_COUNT;
+            return (ShowFriendGamesOnly.Value != DEFAULT_SHOW_FRIENDS_ONLY_GAMES) ||
+                    HideLockedGames.Value != DEFAULT_HIDE_LOCKED_GAMES ||
+                    HidePasswordedGames.Value != DEFAULT_HIDE_PASSWORDED_GAMES ||
+                    HideIncompatibleGames.Value != DEFAULT_HIDE_INCOMPATIBLE_GAMES ||
+                    MaxPlayerCount.Value != DEFAULT_MAX_PLAYER_COUNT;
         }
 
         public void ResetGameFilters()

@@ -110,9 +110,9 @@ namespace DTAClient.Online
             DirectoryInfo[] iniPaths =
             {
 #if !YR
-               SafePath.GetDirectory(ProgramConstants.GamePath, "INI", "Map Code"),
+                SafePath.GetDirectory(ProgramConstants.GamePath, "INI", "Map Code"),
 #endif
-               SafePath.GetDirectory(ProgramConstants.GamePath, "INI", "Game Options")
+                SafePath.GetDirectory(ProgramConstants.GamePath, "INI", "Game Options")
             };
 
             foreach (DirectoryInfo path in iniPaths)

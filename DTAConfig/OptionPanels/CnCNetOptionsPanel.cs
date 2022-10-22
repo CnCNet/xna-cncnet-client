@@ -66,7 +66,7 @@ namespace DTAConfig.OptionPanels
                 chkPingUnofficialTunnels.Bottom + 12, 0, 0);
             chkWriteInstallPathToRegistry.Text = ("Write game installation path to Windows" + Environment.NewLine +
                 "Registry (makes it possible to join" + Environment.NewLine +
-                 "other games' game rooms on CnCNet)").L10N("UI:DTAConfig:WriteGameRegistry");
+                "other games' game rooms on CnCNet)").L10N("UI:DTAConfig:WriteGameRegistry");
 
             AddChild(chkWriteInstallPathToRegistry);
 

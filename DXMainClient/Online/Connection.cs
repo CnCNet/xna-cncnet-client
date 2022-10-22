@@ -336,7 +336,7 @@ namespace DTAClient.Online
                     {
                         // If hostNameOrAddress is an IP address, this address is returned without querying the DNS server.
                         IEnumerable<IPAddress> serverIPAddresses = Dns.GetHostAddresses(serverHostnameOrIPAddress)
-                                                                      .Where(IPAddress => IPAddress.AddressFamily == AddressFamily.InterNetwork);
+                                                                    .Where(IPAddress => IPAddress.AddressFamily == AddressFamily.InterNetwork);
 
                         Logger.Log($"DNS resolved {serverName} ({serverHostnameOrIPAddress}): " +
                             $"{string.Join(", ", serverIPAddresses.Select(item => item.ToString()))}");
@@ -457,7 +457,7 @@ namespace DTAClient.Online
             // Sort the servers by latency.
             IOrderedEnumerable<Tuple<Server, long>>
                 sortedServerAndLatencyResults = pingTasks.Select(task => task.Result)              // Tuple<Server, Latency>
-                                                         .OrderBy(taskResult => taskResult.Item2); // Latency
+                                                        .OrderBy(taskResult => taskResult.Item2);  // Latency
 
             // Do logging.
             foreach (Tuple<Server, long> serverAndLatencyResult in sortedServerAndLatencyResults)

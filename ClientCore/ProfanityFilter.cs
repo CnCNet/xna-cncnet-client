@@ -62,7 +62,7 @@ namespace ClientCore
             {
                 string regularExpression = ToRegexPattern(censoredWord);
                 censoredText = Regex.Replace(censoredText, regularExpression, StarCensoredMatch,
-                  RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+                    RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
             }
             return censoredText;
         }

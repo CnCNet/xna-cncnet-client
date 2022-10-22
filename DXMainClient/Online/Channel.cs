@@ -174,8 +174,13 @@ namespace DTAClient.Online
             {
                 if (notifyOnUserListChange)
                 {
-                    AddMessage(new ChatMessage(
-                         string.Format("{0} has left from {1}.".L10N("UI:Main:PlayerLeftFromChannel"), userName, UIName)));
+                    AddMessage(
+                        new ChatMessage(
+                            string.Format("{0} has left from {1}.".L10N("UI:Main:PlayerLeftFromChannel"),
+                            userName,
+                            UIName)
+                        )
+                    );
                 }
 
                 UserLeft?.Invoke(this, new UserNameEventArgs(userName));

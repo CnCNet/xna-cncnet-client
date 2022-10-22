@@ -183,7 +183,7 @@ namespace DTAClient
             catch (Exception ex)
             {
                 Logger.Log("PruneFiles: An error occurred while pruning files from " +
-                   directory.Name + ". Message: " + ex.Message);
+                    directory.Name + ". Message: " + ex.Message);
             }
         }
 #endif

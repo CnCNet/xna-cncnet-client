@@ -83,11 +83,11 @@ namespace DTAClient.Domain.Multiplayer
         public bool IsDefault()
         {
             var defaultPLayerExtraOptions = new PlayerExtraOptions();
-            return IsForceRandomColors == defaultPLayerExtraOptions.IsForceRandomColors &&
-                   IsForceRandomStarts == defaultPLayerExtraOptions.IsForceRandomStarts &&
-                   IsForceRandomTeams == defaultPLayerExtraOptions.IsForceRandomTeams &&
-                   IsForceRandomSides == defaultPLayerExtraOptions.IsForceRandomSides &&
-                   IsUseTeamStartMappings == defaultPLayerExtraOptions.IsUseTeamStartMappings;
+            return (IsForceRandomColors == defaultPLayerExtraOptions.IsForceRandomColors) &&
+                    IsForceRandomStarts == defaultPLayerExtraOptions.IsForceRandomStarts &&
+                    IsForceRandomTeams == defaultPLayerExtraOptions.IsForceRandomTeams &&
+                    IsForceRandomSides == defaultPLayerExtraOptions.IsForceRandomSides &&
+                    IsUseTeamStartMappings == defaultPLayerExtraOptions.IsUseTeamStartMappings;
         }
     }
 }

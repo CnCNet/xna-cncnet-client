@@ -671,7 +671,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         private void PickRandomMap()
         {
             int totalPlayerCount = Players.Count(p => p.SideId < ddPlayerSides[0].Items.Count - 1)
-                   + AIPlayers.Count;
+                + AIPlayers.Count;
             List<Map> maps = GetMapList(totalPlayerCount);
             if (maps.Count < 1)
                 return;
@@ -1757,8 +1757,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         private bool CanRightClickMultiplayer(XNADropDownItem selectedPlayer)
         {
             return selectedPlayer != null &&
-                   selectedPlayer.Text != ProgramConstants.PLAYERNAME &&
-                   !ProgramConstants.AI_PLAYER_NAMES.Contains(selectedPlayer.Text);
+                selectedPlayer.Text != ProgramConstants.PLAYERNAME &&
+                !ProgramConstants.AI_PLAYER_NAMES.Contains(selectedPlayer.Text);
         }
 
         private void MultiplayerName_RightClick(object sender, EventArgs e)
@@ -1995,7 +1995,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             // Check if AI players allowed
             bool AIAllowed = !(Map.MultiplayerOnly || GameMode.MultiplayerOnly) ||
-                             !(Map.HumanPlayersOnly || GameMode.HumanPlayersOnly);
+                            !(Map.HumanPlayersOnly || GameMode.HumanPlayersOnly);
             foreach (var ddName in ddPlayerNames)
             {
                 if (ddName.Items.Count > 3)

@@ -480,10 +480,16 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 // so we don't need to cache the textures manually
                 Texture2D extraTexture = AssetLoader.LoadTexture(mapExtraTexture.TextureName);
                 Point location = PreviewTexturePointToControlAreaPoint(
-                    GameModeMap.Map.MapPointToMapPreviewPoint(mapExtraTexture.Point,
-                    new Point(previewTexture.Width - (extraTexture.Width / 2),
-                              previewTexture.Height - (extraTexture.Height / 2)), mapExtraTexture.Level),
-                              ratio);
+                    GameModeMap.Map.MapPointToMapPreviewPoint(
+                        mapExtraTexture.Point,
+                        new Point(
+                            previewTexture.Width - (extraTexture.Width / 2),
+                            previewTexture.Height - (extraTexture.Height / 2)
+                        ),
+                        mapExtraTexture.Level
+                    ),
+                    ratio
+                );
 
                 extraTextures.Add(new ExtraMapPreviewTexture(extraTexture, location, mapExtraTexture.Toggleable));
             }

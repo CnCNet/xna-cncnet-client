@@ -157,9 +157,9 @@ namespace DTAConfig
             if (Updater.IsComponentDownloadInProgress())
             {
                 XNAMessageBox msgBox = new XNAMessageBox(WindowManager, "Downloads in progress".L10N("UI:DTAConfig:DownloadingTitle"),
-                      ("Optional component downloads are in progress. The downloads will be cancelled if you exit the Options menu." +
-                      Environment.NewLine + Environment.NewLine +
-                      "Are you sure you want to continue?").L10N("UI:DTAConfig:DownloadingText"), XNAMessageBoxButtons.YesNo);
+                    ("Optional component downloads are in progress. The downloads will be cancelled if you exit the Options menu." +
+                    Environment.NewLine + Environment.NewLine +
+                    "Are you sure you want to continue?").L10N("UI:DTAConfig:DownloadingText"), XNAMessageBoxButtons.YesNo);
                 msgBox.Show();
                 msgBox.YesClickedAction = SaveDownloadCancelConfirmation_YesClicked;
 

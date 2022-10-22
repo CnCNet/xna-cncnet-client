@@ -607,7 +607,7 @@ namespace DTAConfig.OptionPanels
         private void LoadRenderer()
         {
             int index = ddRenderer.Items.FindIndex(
-                           r => ((DirectDrawWrapper)r.Tag).InternalName == selectedRenderer.InternalName);
+                            r => ((DirectDrawWrapper)r.Tag).InternalName == selectedRenderer.InternalName);
 
             if (index < 0 && selectedRenderer.Hidden)
             {
