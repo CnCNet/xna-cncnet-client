@@ -22,10 +22,10 @@ namespace DTAClient.Online
         {
             if (u1.IsAdmin != u2.IsAdmin)
                 return u1.IsAdmin ? -1 : 1;
-            
+
             if (u1.IsFriend != u2.IsFriend)
                 return u1.IsFriend ? -1 : 1;
-            
+
             return string.Compare(u1.IRCUser.Name, u2.IRCUser.Name, StringComparison.InvariantCultureIgnoreCase);
 
         }

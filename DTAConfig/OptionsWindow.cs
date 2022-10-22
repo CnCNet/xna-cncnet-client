@@ -217,7 +217,7 @@ namespace DTAConfig
         /// changes that could affect theirs functionality.
         /// Shows the popup to inform the user if needed.
         /// </summary>
-        /// <returns>A bool that determines whether the 
+        /// <returns>A bool that determines whether the
         /// settings values were changed.</returns>
         private bool RefreshOptionPanels()
         {

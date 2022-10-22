@@ -47,8 +47,8 @@ namespace DTAClient.DXGUI.Multiplayer
         public void SetTeamStartMapping(TeamStartMapping teamStartMapping)
         {
             var teamIndex = teamStartMapping?.TeamIndex ?? _defaultTeamIndex;
-            
-            ddTeams.SelectedIndex = teamIndex >= 0 && teamIndex < ddTeams.Items.Count ? 
+
+            ddTeams.SelectedIndex = teamIndex >= 0 && teamIndex < ddTeams.Items.Count ?
                 teamIndex : -1;
         }
 

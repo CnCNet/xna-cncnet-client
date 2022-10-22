@@ -15,7 +15,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         {
         }
 
-        private readonly string MapSharingRequestText = 
+        private readonly string MapSharingRequestText =
             ("The game host has selected a map that" + Environment.NewLine +
             "doens't exist on your local installation.").L10N("UI:Main:MapSharingRequestText");
 

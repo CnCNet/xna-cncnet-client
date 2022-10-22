@@ -637,7 +637,7 @@ namespace DTAConfig.OptionPanels
             ddIngameResolution.SelectedIndex = index > -1 ? index : 0;
 
             // Wonder what this "Win8CompatMode" actually does..
-            // Disabling it used to be TS-DDRAW only, but it was never enabled after 
+            // Disabling it used to be TS-DDRAW only, but it was never enabled after
             // you had tried TS-DDRAW once, so most players probably have it always
             // disabled anyway
             IniSettings.Win8CompatMode.Value = "No";

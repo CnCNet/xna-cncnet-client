@@ -153,7 +153,7 @@ namespace DTAClient.DXGUI.Multiplayer
             userIniSettings.HidePasswordedGames.Value = chkBoxHidePasswordedGames.Checked;
             userIniSettings.HideIncompatibleGames.Value = chkBoxHideIncompatibleGames.Checked;
             userIniSettings.MaxPlayerCount.Value = int.Parse(ddMaxPlayerCount.SelectedItem.Text);
-            
+
             UserINISettings.Instance.SaveSettings();
         }
 

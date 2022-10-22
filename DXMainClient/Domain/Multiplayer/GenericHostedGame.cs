@@ -35,8 +35,8 @@ namespace DTAClient.Domain.Multiplayer
         }
 
         public DateTime LastRefreshTime { get; set; }
-        
-        public virtual bool Equals(GenericHostedGame other) => 
+
+        public virtual bool Equals(GenericHostedGame other) =>
             string.Equals(RoomName, other?.RoomName, StringComparison.InvariantCultureIgnoreCase);
     }
 }

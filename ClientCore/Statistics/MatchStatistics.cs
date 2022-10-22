@@ -49,7 +49,7 @@ namespace ClientCore.Statistics
         public void AddPlayer(string name, bool isLocal, bool isAI, bool isSpectator,
             int side, int team, int color, int aiLevel)
         {
-            PlayerStatistics ps = new PlayerStatistics(name, isLocal, isAI, isSpectator, 
+            PlayerStatistics ps = new PlayerStatistics(name, isLocal, isAI, isSpectator,
                 side, team, color, aiLevel);
             Players.Add(ps);
         }

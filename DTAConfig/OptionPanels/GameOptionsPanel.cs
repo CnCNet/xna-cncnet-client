@@ -206,7 +206,7 @@ namespace DTAConfig.OptionPanels
         public override void Load()
         {
             base.Load();
-            
+
             int scrollRate = ReverseScrollRate(IniSettings.ScrollRate);
 
             if (scrollRate >= trbScrollRate.MinValue && scrollRate <= trbScrollRate.MaxValue)

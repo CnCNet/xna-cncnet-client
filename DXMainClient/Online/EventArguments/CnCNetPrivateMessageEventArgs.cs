@@ -10,7 +10,7 @@ namespace DTAClient.Online.EventArguments
             Message = message;
             DateTime = DateTime.Now;
         }
-        
+
         public DateTime DateTime { get; set; }
 
         public string Sender { get; private set; }

@@ -49,7 +49,7 @@ namespace DTAClient.DXGUI.Multiplayer
                 Selectable = true,
                 Tag = message
             };
-            
+
             if (message.SenderName == null)
             {
                 listBoxItem.Text = Renderer.GetSafeString(string.Format("[{0}] {1}",
@@ -61,7 +61,7 @@ namespace DTAClient.DXGUI.Multiplayer
                 listBoxItem.Text = Renderer.GetSafeString(string.Format("[{0}] {1}: {2}",
                     message.DateTime.ToShortTimeString(), message.SenderName, message.Message), FontIndex);
             }
-            
+
             AddItem(listBoxItem);
 
             if (LastIndex >= Items.Count - 2)

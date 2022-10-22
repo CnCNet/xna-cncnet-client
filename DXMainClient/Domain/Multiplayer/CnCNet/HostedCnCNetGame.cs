@@ -8,7 +8,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
 
         public HostedCnCNetGame(string channelName, string revision, string gamever, int maxPlayers,
             string roomName, bool passworded,
-            bool tunneled, 
+            bool tunneled,
             string[] players, string adminName, string mapName, string gameMode)
         {
             ChannelName = channelName;
@@ -33,8 +33,8 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
 
         public override int Ping => TunnelServer.PingInMs;
 
-        public override bool Equals(GenericHostedGame other) => 
-            other is HostedCnCNetGame hostedCnCNetGame ? 
+        public override bool Equals(GenericHostedGame other) =>
+            other is HostedCnCNetGame hostedCnCNetGame ?
                 string.Equals(hostedCnCNetGame.ChannelName, ChannelName, StringComparison.InvariantCultureIgnoreCase) :
                 base.Equals(other);
     }

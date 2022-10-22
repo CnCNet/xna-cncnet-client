@@ -379,7 +379,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         /// <summary>
         /// Updates the map preview texture's position inside
-        /// this control's display rectangle and the 
+        /// this control's display rectangle and the
         /// starting location indicators' positions.
         /// </summary>
         private void UpdateMap()
@@ -476,7 +476,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             foreach (var mapExtraTexture in GameModeMap.Map.GetExtraMapPreviewTextures())
             {
-                // LoadTexture makes use of a texture cache 
+                // LoadTexture makes use of a texture cache
                 // so we don't need to cache the textures manually
                 Texture2D extraTexture = AssetLoader.LoadTexture(mapExtraTexture.TextureName);
                 Point location = PreviewTexturePointToControlAreaPoint(

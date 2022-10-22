@@ -88,7 +88,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         protected int FrameSendRate { get; set; } = 7;
 
         /// <summary>
-        /// Controls the MaxAhead parameter. The default value of 0 means that 
+        /// Controls the MaxAhead parameter. The default value of 0 means that
         /// the value is not written to spawn.ini, which allows the spawner the
         /// calculate and assign the MaxAhead value.
         /// </summary>
@@ -184,7 +184,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         }
 
         /// <summary>
-        /// Performs initialization that is necessary after derived 
+        /// Performs initialization that is necessary after derived
         /// classes have performed their own initialization.
         /// </summary>
         protected void PostInitialize()

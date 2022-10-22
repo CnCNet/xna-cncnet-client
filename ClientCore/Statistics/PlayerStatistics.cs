@@ -7,7 +7,7 @@ namespace ClientCore.Statistics
     {
         public PlayerStatistics() { }
 
-        public PlayerStatistics(string name, bool isLocal, bool isAi, bool isSpectator, 
+        public PlayerStatistics(string name, bool isLocal, bool isAi, bool isSpectator,
             int side, int team, int color, int aiLevel)
         {
             Name = name;

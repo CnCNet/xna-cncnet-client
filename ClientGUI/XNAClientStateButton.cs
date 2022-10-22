@@ -33,7 +33,7 @@ namespace ClientGUI
 
             _toolTip = new ToolTip(WindowManager, this);
             SetToolTipText(_toolTipText);
-            
+
             if (Width == 0)
                 Width = IdleTexture.Width;
         }

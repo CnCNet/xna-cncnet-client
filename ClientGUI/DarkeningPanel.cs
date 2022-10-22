@@ -24,7 +24,7 @@ namespace ClientGUI
             Name = "DarkeningPanel";
 
             SetPositionAndSize();
-            
+
             PanelBackgroundDrawMode = PanelBackgroundImageDrawMode.STRETCHED;
             BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 128), 1, 1);
             DrawBorders = false;

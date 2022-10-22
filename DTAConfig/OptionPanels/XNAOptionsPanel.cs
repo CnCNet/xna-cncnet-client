@@ -16,7 +16,7 @@ namespace DTAConfig.OptionPanels
     /// </summary>
     internal abstract class XNAOptionsPanel : XNAWindowBase
     {
-        public XNAOptionsPanel(WindowManager windowManager, 
+        public XNAOptionsPanel(WindowManager windowManager,
             UserINISettings iniSettings) : base(windowManager)
         {
             IniSettings = iniSettings;
@@ -61,7 +61,7 @@ namespace DTAConfig.OptionPanels
 
         /// <summary>
         /// Saves the options of this panel.
-        /// <returns>A bool that determines whether the 
+        /// <returns>A bool that determines whether the
         /// client needs to restart for changes to apply.</returns>
         /// </summary>
         public virtual bool Save()
@@ -69,7 +69,7 @@ namespace DTAConfig.OptionPanels
             bool restartRequired = false;
             foreach (var setting in userSettings)
                 restartRequired = setting.Save() || restartRequired;
-            
+
             return restartRequired;
         }
 
@@ -77,7 +77,7 @@ namespace DTAConfig.OptionPanels
         /// Refreshes the panel's settings to account for possible
         /// changes that could affect the functionality.
         /// </summary>
-        /// <returns>A bool that determines whether the 
+        /// <returns>A bool that determines whether the
         /// setting's value was changed.</returns>
         public virtual bool RefreshPanel()
         {

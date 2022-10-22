@@ -36,13 +36,13 @@ namespace DTAConfig
 
         /// <summary>
         /// If not null or empty, windowed mode will be written to this INI key
-        /// in the section defined in <see cref="DirectDrawWrapper.WindowedModeSection"/> 
+        /// in the section defined in <see cref="DirectDrawWrapper.WindowedModeSection"/>
         /// instead of the regular settings INI file.
         /// </summary>
         public string WindowedModeKey { get; private set; }
 
         /// <summary>
-        /// If not null or empty, the setting that controls whether the game is 
+        /// If not null or empty, the setting that controls whether the game is
         /// run in borderless windowed mode will be written to this INI key in
         /// the section defined by
         /// <see cref="DirectDrawWrapper.WindowedModeSection"/> instead of the

@@ -81,7 +81,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 if (!privateMessagingWindow.Enabled) return;
                 pmWindowWasEnabled = true;
                 privateMessagingWindow.Disable();
-            } 
+            }
             else if(pmWindowWasEnabled)
             {
                 privateMessagingWindow.Enable();

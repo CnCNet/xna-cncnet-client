@@ -41,9 +41,9 @@ namespace DTAClient
     static class PreStartup
     {
         /// <summary>
-        /// Initializes various basic systems like the client's logger, 
+        /// Initializes various basic systems like the client's logger,
         /// constants, and the general exception handler.
-        /// Reads the user's settings from an INI file, 
+        /// Reads the user's settings from an INI file,
         /// checks for necessary permissions and starts the client if
         /// everything goes as it should.
         /// </summary>

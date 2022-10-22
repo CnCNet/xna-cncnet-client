@@ -27,7 +27,7 @@ namespace DTAClient.Online
         public void DoForAllUsers(Action<T> action)
         {
             var values = dictionary.Values;
-            
+
             foreach (T value in values)
             {
                 action(value);

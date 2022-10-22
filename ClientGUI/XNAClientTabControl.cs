@@ -15,7 +15,7 @@ namespace ClientGUI
             {
                 ClickSound = new EnhancedSoundEffect("button.wav");
             }
-                
+
 
             base.Initialize();
         }

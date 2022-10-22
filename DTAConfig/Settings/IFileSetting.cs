@@ -17,7 +17,7 @@
         /// Refreshes the setting to account for possible
         /// changes that could affect it's functionality.
         /// </summary>
-        /// <returns>A bool that determines whether the 
+        /// <returns>A bool that determines whether the
         /// setting's value was changed.</returns>
         bool RefreshSetting();
     }

@@ -134,7 +134,7 @@ namespace ClientGUI
 
                 if ((RuntimeInformation.IsOSPlatform(OSPlatform.Windows) || RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
                     && Environment.ProcessorCount > 1 && SingleCoreAffinity)
-                { 
+                {
                     DtaProcess.ProcessorAffinity = (IntPtr)2;
                 }
             }

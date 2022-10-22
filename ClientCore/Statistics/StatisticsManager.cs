@@ -460,7 +460,7 @@ namespace ClientCore.Statistics
 
             if (lowestEnemyAILevel < highestAllyAILevel)
             {
-                // Check that the player's AI allies weren't stronger 
+                // Check that the player's AI allies weren't stronger
                 return -1;
             }
 
@@ -603,7 +603,7 @@ namespace ClientCore.Statistics
 
                 if (lowestEnemyAILevel < highestAllyAILevel)
                 {
-                    // Check that the player's AI allies weren't stronger 
+                    // Check that the player's AI allies weren't stronger
                     continue;
                 }
 

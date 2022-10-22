@@ -138,8 +138,8 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
             }
             catch { }
 
-            // Upload the file to the URI. 
-            // The 'UploadFile(uriString,fileName)' method implicitly uses HTTP POST method. 
+            // Upload the file to the URI.
+            // The 'UploadFile(uriString,fileName)' method implicitly uses HTTP POST method.
 
             try
             {
@@ -276,7 +276,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
             using ZipArchive zipArchive = ZipFile.OpenRead(zipFile);
 
             // here, we extract every entry, but we could extract conditionally
-            // based on entry name, size, date, checkbox status, etc.  
+            // based on entry name, size, date, checkbox status, etc.
             zipArchive.ExtractToDirectory(destDir);
 
             return zipArchive.Entries.FirstOrDefault()?.Name;

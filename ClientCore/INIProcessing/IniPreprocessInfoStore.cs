@@ -68,7 +68,7 @@ namespace ClientCore.INIProcessing
         }
 
         /// <summary>
-        /// Checks if a (potentially processed) INI file is up-to-date 
+        /// Checks if a (potentially processed) INI file is up-to-date
         /// or whether it needs to be (re)processed.
         /// </summary>
         /// <param name="fileName">The name of the INI file in its directory.

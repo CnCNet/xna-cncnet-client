@@ -85,7 +85,7 @@ namespace DTAClient.DXGUI.Generic
 
         private void Finish()
         {
-            ProgramConstants.GAME_VERSION = ClientConfiguration.Instance.ModMode ? 
+            ProgramConstants.GAME_VERSION = ClientConfiguration.Instance.ModMode ?
                 "N/A" : Updater.GameVersion;
 
             DiscordHandler discordHandler = null;
@@ -109,7 +109,7 @@ namespace DTAClient.DXGUI.Generic
             var cncnetManager = new CnCNetManager(WindowManager, gameCollection, cncnetUserData);
             var tunnelHandler = new TunnelHandler(WindowManager, cncnetManager);
             var privateMessageHandler = new PrivateMessageHandler(cncnetManager, cncnetUserData);
-            
+
             var topBar = new TopBar(WindowManager, cncnetManager, privateMessageHandler);
 
             var optionsWindow = new OptionsWindow(WindowManager, gameCollection, topBar);
@@ -120,9 +120,9 @@ namespace DTAClient.DXGUI.Generic
 
             var cncnetGameLobby = new CnCNetGameLobby(WindowManager,
                 "MultiplayerGameLobby", topBar, cncnetManager, tunnelHandler, gameCollection, cncnetUserData, mapLoader, discordHandler, pmWindow);
-            var cncnetGameLoadingLobby = new CnCNetGameLoadingLobby(WindowManager, 
+            var cncnetGameLoadingLobby = new CnCNetGameLoadingLobby(WindowManager,
                 topBar, cncnetManager, tunnelHandler, mapLoader.GameModes, gameCollection, discordHandler);
-            var cncnetLobby = new CnCNetLobby(WindowManager, cncnetManager, 
+            var cncnetLobby = new CnCNetLobby(WindowManager, cncnetManager,
                 cncnetGameLobby, cncnetGameLoadingLobby, topBar, pmWindow, tunnelHandler,
                 gameCollection, cncnetUserData, optionsWindow);
             var gipw = new GameInProgressWindow(WindowManager);

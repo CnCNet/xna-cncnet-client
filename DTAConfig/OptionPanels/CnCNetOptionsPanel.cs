@@ -51,7 +51,7 @@ namespace DTAConfig.OptionPanels
         private void InitOptions()
         {
             // LEFT COLUMN
-            
+
             chkPingUnofficialTunnels = new XNAClientCheckBox(WindowManager);
             chkPingUnofficialTunnels.Name = nameof(chkPingUnofficialTunnels);
             chkPingUnofficialTunnels.ClientRectangle = new Rectangle(12, 12, 0, 0);
@@ -99,7 +99,7 @@ namespace DTAConfig.OptionPanels
             AddChild(chkDisablePrivateMessagePopup);
 
             InitAllowPrivateMessagesFromDropdown();
-            
+
             // RIGHT COLUMN
 
             chkSkipLoginWindow = new XNAClientCheckBox(WindowManager);
@@ -138,7 +138,7 @@ namespace DTAConfig.OptionPanels
                 chkSkipLoginWindow.X,
                 chkConnectOnStartup.Bottom + 12, 0, 0);
             chkDiscordIntegration.Text = "Show detailed game info in Discord status".L10N("UI:DTAConfig:DiscordStatus");
-            
+
             if (String.IsNullOrEmpty(ClientConfiguration.Instance.DiscordAppId))
             {
                 chkDiscordIntegration.AllowChecking = false;
@@ -206,9 +206,9 @@ namespace DTAConfig.OptionPanels
             gameListPanel.DrawBorders = false;
             gameListPanel.Name = nameof(gameListPanel);
             gameListPanel.ClientRectangle = new Rectangle(0, Bottom - gameListPanelHeight, Width, gameListPanelHeight);
-            
+
             AddChild(gameListPanel);
-            
+
             var lblFollowedGames = new XNALabel(WindowManager);
             lblFollowedGames.Name = nameof(lblFollowedGames);
             lblFollowedGames.ClientRectangle = new Rectangle(12, 12, 0, 0);

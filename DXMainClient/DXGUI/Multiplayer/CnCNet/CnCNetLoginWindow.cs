@@ -42,7 +42,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             lblConnectToCnCNet.CenterOnParent();
             lblConnectToCnCNet.ClientRectangle = new Rectangle(
                 lblConnectToCnCNet.X, 12,
-                lblConnectToCnCNet.Width, 
+                lblConnectToCnCNet.Width,
                 lblConnectToCnCNet.Height);
 
             tbPlayerName = new XNATextBox(WindowManager);

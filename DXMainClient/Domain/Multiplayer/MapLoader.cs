@@ -35,7 +35,7 @@ namespace DTAClient.Domain.Multiplayer
 
         /// <summary>
         /// A list of game mode aliases.
-        /// Every game mode entry that exists in this dictionary will get 
+        /// Every game mode entry that exists in this dictionary will get
         /// replaced by the game mode entries of the value string array
         /// when map is added to game mode map lists.
         /// </summary>

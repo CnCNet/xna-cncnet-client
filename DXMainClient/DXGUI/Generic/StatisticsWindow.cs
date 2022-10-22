@@ -149,7 +149,7 @@ namespace DTAClient.DXGUI.Generic
             chkIncludeSpectatedGames.ClientRectangle = new Rectangle(
                 Width - chkIncludeSpectatedGames.Width - 12,
                 cmbGameModeFilter.Bottom + 3,
-                chkIncludeSpectatedGames.Width, 
+                chkIncludeSpectatedGames.Width,
                 chkIncludeSpectatedGames.Height);
             chkIncludeSpectatedGames.CheckedChanged += ChkIncludeSpectatedGames_CheckedChanged;
 
@@ -514,7 +514,7 @@ namespace DTAClient.DXGUI.Generic
                     items.Add(new XNAListBoxItem("-", textColor));
                 }
                 else
-                { 
+                {
                     if (!ms.SawCompletion)
                     {
                         // The game wasn't completed - we don't know the stats

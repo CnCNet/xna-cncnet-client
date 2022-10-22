@@ -67,7 +67,7 @@ namespace ClientGUI
         private XNAControl masterControl;
 
         private TimeSpan cursorTime = TimeSpan.Zero;
-        
+
 
         private void MasterControl_MouseEnter(object sender, EventArgs e)
         {
@@ -89,7 +89,7 @@ namespace ClientGUI
         {
             if (!Visible && !string.IsNullOrEmpty(Text))
             {
-                // Move the tooltip if the cursor has moved while staying 
+                // Move the tooltip if the cursor has moved while staying
                 // on the control area and we're invisible
                 DisplayAtLocation(SumPoints(WindowManager.Cursor.Location,
                     new Point(ClientConfiguration.Instance.ToolTipOffsetX, ClientConfiguration.Instance.ToolTipOffsetY)));

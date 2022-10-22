@@ -7,7 +7,7 @@ namespace DTAClient.Domain.Multiplayer
     {
         [JsonProperty("version")]
         public int Version { get; set; }
-        
+
         [JsonProperty("maps")]
         public ConcurrentDictionary<string, Map> Maps { get; set; }
     }

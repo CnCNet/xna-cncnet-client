@@ -27,7 +27,7 @@
         /// <summary>
         /// Applies operations based on current setting state.
         /// </summary>
-        /// <returns>A bool that determines whether the 
+        /// <returns>A bool that determines whether the
         /// client needs to restart for changes to apply.</returns>
         bool Save();
     }

@@ -60,7 +60,7 @@ namespace ClientCore.CnCNet5
 
             if (validName.Length > ClientConfiguration.Instance.MaxNameLength)
                 return validName.Substring(0, ClientConfiguration.Instance.MaxNameLength);
-            
+
             return validName;
         }
     }

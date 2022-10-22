@@ -73,7 +73,7 @@ namespace DTAClient.Domain.Multiplayer
         }
 
         /// <summary>
-        /// Creates a PlayerInfo instance from a string in a format that matches the 
+        /// Creates a PlayerInfo instance from a string in a format that matches the
         /// string given by the ToString() method.
         /// </summary>
         /// <param name="str">The string.</param>

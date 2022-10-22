@@ -257,7 +257,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
                 Renderer.DrawTexture(WaypointTexture,
                     new Vector2(displayRectangle.Center.X + 0.5f, displayRectangle.Center.Y),
-                    0f, 
+                    0f,
                     new Vector2(WaypointTexture.Width / 2, WaypointTexture.Height / 2),
                     new Vector2(1f, 1f),
                     Color.White);

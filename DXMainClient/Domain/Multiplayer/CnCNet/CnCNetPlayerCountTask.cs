@@ -53,7 +53,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                 WebClient client = new WebClient();
 
                 Stream data = client.OpenRead("http://api.cncnet.org/status");
-                
+
                 string info = string.Empty;
 
                 using (StreamReader reader = new StreamReader(data))

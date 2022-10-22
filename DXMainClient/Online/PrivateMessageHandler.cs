@@ -12,9 +12,9 @@ namespace DTAClient.Online
     {
         private readonly CnCNetUserData _cncnetUserData;
         private readonly CnCNetManager _connectionManager;
-        
+
         private int UnreadMessageCount;
-        
+
         public event EventHandler<PrivateMessageEventArgs> PrivateMessageReceived;
         public event EventHandler<UnreadMessageCountEventArgs> UnreadMessageCountUpdated;
 
@@ -46,7 +46,7 @@ namespace DTAClient.Online
             PrivateMessageReceived?.Invoke(this, privateMessageEventArgs);
         }
 
-        private void DoUnreadMessageCountUpdated() 
+        private void DoUnreadMessageCountUpdated()
             => UnreadMessageCountUpdated?.Invoke(this, new UnreadMessageCountEventArgs(UnreadMessageCount));
 
         private void SetUnreadMessageCount(int unreadMessageCount)
@@ -59,14 +59,14 @@ namespace DTAClient.Online
         /// This can be called by specific GUI components to trigger than any unread counts should be reset,
         /// because the PrivateMessageWindow was made visible.
         /// </summary>
-        public void ResetUnreadMessageCount() 
+        public void ResetUnreadMessageCount()
             => SetUnreadMessageCount(0);
 
         /// <summary>
         /// This can be called by specific GUI components to trigger than any unread counts should be incremented,
         /// because the PrivateMessageWindow may not currently be visible.
         /// </summary>
-        public void IncrementUnreadMessageCount() 
+        public void IncrementUnreadMessageCount()
             => SetUnreadMessageCount(UnreadMessageCount + 1);
     }
 }

@@ -69,12 +69,12 @@ namespace DTAClient.DXGUI.Generic
             btnOK.X = WindowManager.RenderResolutionX - btnOK.Width - UIDesignConstants.CONTROL_HORIZONTAL_MARGIN;
             btnOK.Text = "Got it".L10N("UI:Main:TOSButtonOK");
             AddChild(btnOK);
-            btnOK.LeftClick += (s, e) => 
+            btnOK.LeftClick += (s, e) =>
             {
                 UserINISettings.Instance.PrivacyPolicyAccepted.Value = true;
                 UserINISettings.Instance.SaveSettings();
                 // AlphaRate = -0.2f;
-                Disable(); 
+                Disable();
             };
 
             Height = btnOK.Bottom + UIDesignConstants.EMPTY_SPACE_BOTTOM;
