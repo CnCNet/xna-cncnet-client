@@ -4,6 +4,11 @@
 * text=auto
 *.ps1 eol=lf
 
+*.cs eol=crlf
+*.vb eol=crlf
+*.sln eol=crlf
+*.csproj eol=crlf
+
 ###############################################################################
 # Set default behavior for command prompt diff.
 #
