@@ -1,6 +1,30 @@
 # Remove the line below if you want to inherit .editorconfig settings from higher directories
 root = true
 
+[.gitattributes]
+charset = utf-8
+end_of_line = unset
+indent_style = unset
+indent_size = unset
+insert_final_newline = unset
+trim_trailing_whitespace = true
+
+[*.sln]
+charset = utf-8
+end_of_line = crlf
+indent_style = tab
+indent_size = 2
+insert_final_newline = unset
+trim_trailing_whitespace = true
+
+[*.csproj]
+charset = utf-8
+end_of_line = crlf
+indent_style = space
+indent_size = 2
+insert_final_newline = false
+trim_trailing_whitespace = true
+
 # C# files
 [*.cs]
 
@@ -13,7 +37,8 @@ tab_width = 4
 
 # New line preferences
 end_of_line = crlf
-insert_final_newline = false
+trim_trailing_whitespace = unset
+insert_final_newline = unset
 
 #### .NET Coding Conventions ####
 
