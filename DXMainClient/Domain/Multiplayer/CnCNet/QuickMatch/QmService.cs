@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 using System.Timers;
+using ClientCore;
 using ClientCore.Exceptions;
 using DTAClient.Domain.Multiplayer.CnCNet.QuickMatch.Models;
 using DTAClient.Domain.Multiplayer.CnCNet.QuickMatch.Models.Events;
@@ -172,6 +175,9 @@ public class QmService : IDisposable
             QmEvent?.Invoke(this, new QmLadderStatsEvent(ladderStats));
         });
 
+    /// <summary>
+    /// This is called when the user clicks the button to begin searching for a match.
+    /// </summary>
     public void RequestMatchAsync() =>
         ExecuteRequest(new QmRequestingMatchEvent(CancelRequestMatchAsync), async () =>
         {
@@ -179,17 +185,73 @@ public class QmService : IDisposable
             HandleQuickMatchResponse(response);
         });
 
+    /// <summary>
+    /// This is called when the user clicks the "I'm Ready" button in the match found dialog.
+    /// </summary>
     public void AcceptMatchAsync()
     {
     }
 
-    private void RetryRequestMatchAsync() =>
-        RequestMatchAsync();
+    public void WriteSpawnIni(QmRequestSpawnResponse spawnResponse)
+    {
+        IniFile spawnIni = CreateSpawnIniFile();
+
+        // SETTINGS section
+        var settings = new IniSection("Settings");
+        settings.SetStringValue("Scenario", "spawnmap.ini");
+        settings.SetStringValue("QuickMatch", "Yes");
+
+        foreach (PropertyInfo prop in spawnResponse.Spawn.Settings.GetType().GetProperties())
+            settings.SetStringValue(prop.Name, prop.GetValue(spawnResponse.Spawn.Settings).ToString());
+        // End SETTINGS sections
+
+        // OTHER# sections
+        for (int i = 0; i < spawnResponse.Spawn.Others.Count; i++)
+        {
+            // Headers for OTHER# sections are 1-based index
+            var otherSection = new IniSection($"Other{i + 1}");
+            QmRequestSpawnResponseSpawnOther other = spawnResponse.Spawn.Others[i];
+
+            foreach (PropertyInfo otherProp in other.GetType().GetProperties())
+                otherSection.SetStringValue(otherProp.Name, otherProp.GetValue(other).ToString());
+
+            spawnIni.AddSection(otherSection);
+        }
+        // End OTHER# sections
+
+        // SPAWNLOCATIONS section
+        var spawnLocationsSection = new IniSection("SpawnLocation");
+        foreach (KeyValuePair<string, int> spawnLocation in spawnResponse.Spawn.SpawnLocations)
+            spawnLocationsSection.SetStringValue(spawnLocation.Key, spawnLocation.Value.ToString());
+
+        spawnIni.AddSection(spawnLocationsSection);
+        // End SPAWNLOCATIONS section
+
+        // TUNNEL section
+        var tunnel = new IniSection("Tunnel");
+        // TODO IP and port information
+        // tunnel.SetStringValue("Ip", spawnResponse.Spawn.Settings.);
+        // tunnel.SetIntValue("Port", tunnelHandler.CurrentTunnel.Port);
+        spawnIni.AddSection(tunnel);
+        // End TUNNEL section
+    }
+
+    public IniFile CreateSpawnIniFile()
+    {
+        FileInfo spawnerSettingsFile = SafePath.GetFile(ProgramConstants.GamePath, ProgramConstants.SPAWNER_SETTINGS);
+
+        spawnerSettingsFile.Delete();
+
+        return new IniFile(spawnerSettingsFile.FullName);
+    }
 
     public void Dispose()
     {
         apiService.Dispose();
     }
+
+    private void RetryRequestMatchAsync() =>
+        RequestMatchAsync();
 
     private void HandleQuickMatchResponse(QmRequestResponse qmRequestResponse)
     {

@@ -21,5 +21,5 @@ public class QmRequestSpawnResponseSpawn
     /// into the list you see below.
     /// </summary>
     [JsonIgnore]
-    public IEnumerable<QmRequestSpawnResponseSpawnOther> Others { get; set; }
+    public List<QmRequestSpawnResponseSpawnOther> Others { get; set; }
 }
