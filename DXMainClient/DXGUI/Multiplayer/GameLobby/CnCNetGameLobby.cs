@@ -95,7 +95,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 "Change the used CnCNet tunnel server (game host only)".L10N("UI:Main:ChangeTunnel"),
                 true, (s) => ShowTunnelSelectionWindow("Select tunnel server:".L10N("UI:Main:SelectTunnelServer"))));
             AddChatBoxCommand(new ChatBoxCommand("DOWNLOADMAP",
-                "Download a map from CNCNet's map server using a map ID and an optional filename.\nExample: \"/downloadmap MAPID [2] My Battle Map\"".L10N("UI:Main:DownloadMapCommandDescription"),
+                "Download a map from CNCNet's map server using a map ID and an optional filename.\nYou can find maps at https://mapdb.cncnet.org/search/\nExample: \"/downloadmap MAPID [2] My Battle Map\"".L10N("UI:Main:DownloadMapCommandDescription"),
                 false, DownloadMapByIdCommand));
         }
 
@@ -1596,30 +1596,21 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             string mapFileName = MapSharer.GetMapFileName(e.SHA1, e.MapName);
             Logger.Log("Map " + mapFileName + " downloaded, parsing.");
             string mapPath = MapLoader.CustomMapsDirectory + mapFileName;
-            Map map = MapLoader.LoadCustomMap(mapPath, out string returnMessage);
-            if (map != null)
+            GameModeMap gameModeMap = MapLoader.GetLoadedMapBySha1(e.SHA1);
+
+            if (gameModeMap == null)
             {
-                AddNotice(returnMessage);
-                if (lastMapSHA1 == e.SHA1)
-                {
-                    GameModeMap = MapLoader.GetLoadedMapBySha1(lastMapSHA1);
-                    ChangeMap(GameModeMap);
-                }
-            }
-            else if (chatCommandDownloadedMaps.Contains(e.SHA1))
-            {
-                // Somehow the user has managed to download an already existing sha1 hash.
-                // This special case prevents user confusion from the file successfully downloading but showing an error anyway.
-                AddNotice(returnMessage, Color.Yellow);
-                AddNotice("Map was downloaded, but a duplicate is already loaded from a different filename. This may cause strange behavior.".L10N("UI:Main:DownloadMapCommandDuplicateMapFileLoaded"),
-                    Color.Yellow);
-            }
-            else
-            {
-                AddNotice(returnMessage, Color.Red);
+                AddNotice($"Failed to download map {e.SHA1}", Color.Red);
                 AddNotice("Transfer of the custom map failed. The host needs to change the map or you will be unable to participate in this match.".L10N("UI:Main:MapTransferFailed"));
                 mapSharingConfirmationPanel.SetFailedStatus();
                 channel.SendCTCPMessage(MAP_SHARING_FAIL_MESSAGE + " " + e.SHA1, QueuedMessageType.SYSTEM_MESSAGE, 9);
+            }
+
+            AddNotice($"Map {gameModeMap.Map.Name} loaded succesfully.");
+            if (lastMapSHA1 == e.SHA1)
+            {
+                GameModeMap = MapLoader.GetLoadedMapBySha1(lastMapSHA1);
+                ChangeMap(GameModeMap);
             }
         }
 
@@ -1789,7 +1780,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             {
                 // The user did not supply a map name.
                 sha1 = parameters;
-                mapName = "user_chat_command_download";
+                mapName = MapLoader.MAP_CHAT_COMMAND_FILENAME_PREFIX;
             }
             else
             {

@@ -14,6 +14,7 @@ namespace DTAClient.Domain.Multiplayer
     public class MapLoader
     {
         public const string MAP_FILE_EXTENSION = ".map";
+        public const string MAP_CHAT_COMMAND_FILENAME_PREFIX = "user_chat_command_download";
         private const string CUSTOM_MAPS_DIRECTORY = "Maps/Custom";
         private static readonly string CUSTOM_MAPS_CACHE = SafePath.CombineFilePath(ProgramConstants.ClientUserFilesPath, "custom_map_cache");
         private const string MultiMapsSection = "MultiMaps";
@@ -63,21 +64,14 @@ namespace DTAClient.Domain.Multiplayer
         /// Check to see if a map matching the SHA-1 ID is already loaded.
         /// </summary>
         /// <param name="sha1">The map ID to search the loaded maps for.</param>
-        /// <returns></returns>
-        public bool IsMapAlreadyLoaded(string sha1)
-        {
-            return GetLoadedMapBySha1(sha1) != null;
-        }
+        public bool IsMapAlreadyLoaded(string sha1) => GetLoadedMapBySha1(sha1) != null;
 
         /// <summary>
         /// Search the loaded maps for the SHA-1, return the map if a match is found.
         /// </summary>
         /// <param name="sha1">The map ID to search the loaded maps for.</param>
         /// <returns>The map matching the SHA-1 if one was found.</returns>
-        public GameModeMap GetLoadedMapBySha1(string sha1)
-        {
-            return GameModeMaps.Find(gmm => gmm.Map.SHA1 == sha1);
-        }
+        public GameModeMap GetLoadedMapBySha1(string sha1) => GameModeMaps.Find(gmm => gmm.Map.SHA1 == sha1);
 
         /// <summary>
         /// Loads multiplayer map info asynchonously.
@@ -115,31 +109,29 @@ namespace DTAClient.Domain.Multiplayer
         /// </summary>
         /// <param name="sender">Sent by the file system watcher</param>
         /// <param name="e">Sent by the file system watcher</param>
-        public void HandleCustomMapFolder_Created(object sender, FileSystemEventArgs e)
+        private void HandleCustomMapFolder_Created(object sender, FileSystemEventArgs e)
         {
             // Get the map filename without the extension.
             // The extension gets added in LoadCustomMap so we need to excise it to avoid "file.map.map".
             string name = Path.GetFileNameWithoutExtension(e.Name);
 
-            if (name.StartsWith())
-
             string relativeMapPath = SafePath.CombineFilePath(CustomMapsDirectory, name);
+            Logger.Log($"HandleCustomMapFolder_Created: Calling LoadCustomMap: mapPath={relativeMapPath}");
             Map map = LoadCustomMap(relativeMapPath, out string result);
+            Logger.Log($"HandleCustomMapFolder_Created: Ended LoadCustomMap: mapPath={relativeMapPath}");
 
             if (map == null)
-            {
                 Logger.Log($"Failed to load map file that was create / moved: mapPath={name}, reason={result}");
-            }
         }
 
         /// <summary>
         /// Handle a .map file being removed from the custom map directory.
         ///
-        /// This function will attempt to remove the map from the client if it was deleted from the folder
+        /// This function will attempt to remove the map from the client if it was deleted from the folder.
         /// </summary>
-        /// <param name="sender">Sent by the file system watcher</param>
+        /// <param name="sender">Sent by the file system watcher.</param>
         /// <param name="e">Sent by the file system watcher.</param>
-        public void HandleCustomMapFolder_Deleted(object sender, FileSystemEventArgs e)
+        private void HandleCustomMapFolder_Deleted(object sender, FileSystemEventArgs e)
         {
             Logger.Log($"Map was deleted: map={e.Name}");
             // Use the filename without the extension so we can remove maps that had their extension changed.
@@ -165,7 +157,7 @@ namespace DTAClient.Domain.Multiplayer
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        public void HandleCustomMapFolder_Renamed(object sender, RenamedEventArgs e)
+        private void HandleCustomMapFolder_Renamed(object sender, RenamedEventArgs e)
         {
             string name = Path.GetFileNameWithoutExtension(e.Name);
             string relativeMapPath = SafePath.CombineFilePath(CustomMapsDirectory, name);
@@ -176,37 +168,36 @@ namespace DTAClient.Domain.Multiplayer
             // This is just for logging to help debug.
             if (!oldPathIsMap && newPathIsMap)
             {
-                Logger.Log($"Renaming file changed the file extension. User is likely renaming a '.yrm' from Final Alert 2: old={e.OldName}, new={e.Name}");
+                Logger.Log($"HandleCustomMapFolder_Renamed: Changed the file extension. User is likely renaming a '.yrm' from Final Alert 2: old={e.OldName}, new={e.Name}");
             }
             else if (oldPathIsMap && !newPathIsMap)
             {
                 // A bit hacky, but this is a rare case.
-                Logger.Log($"Renaming file changed the file extension to no longer be '.map' for some reason, removing from map list: old={e.OldName}, new={e.Name}");
+                Logger.Log($"HandleCustomMapFolder_Renamed: Changed the file extension to no longer be '.map' for some reason, removing from map list: old={e.OldName}, new={e.Name}");
                 HandleCustomMapFolder_Deleted(sender, e);
+                return;
             }
-
-            if (!newPathIsMap)
+            else if (!newPathIsMap)
             {
-                Logger.Log($"Renaming file. New extension is not '{MAP_FILE_EXTENSION}', moving on: file={e.Name}");
+                Logger.Log($"HandleCustomMapFolder_Renamed: New extension is not '{MAP_FILE_EXTENSION}', moving on: file={e.Name}");
                 return;
             }
 
             Map map = LoadCustomMap(relativeMapPath, out string result);
 
-            if (map == null)
+            if (map != null)
             {
-                Logger.Log($"Failed to load renamed map file. Map is likely already loaded: original={e.OldName}, new={e.Name}, reason={result}");
+                Logger.Log($"HandleCustomMapFolder_Renamed: Loaded renamed file as map: file={e.Name}, mapName={map.Name}");
+                return;
             }
+
+            Logger.Log($"Failed to load renamed map file. Map is likely already loaded, filepath: original={e.OldName}, new={e.Name}, reason={result}");
         }
 
         /// <summary>
         /// Handle errors in the filewatcher.
-        ///
-        /// Not much to do other than log a stack trace.
         /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        public void HandleCustomMapFolder_Error(object sender, ErrorEventArgs e)
+        private void HandleCustomMapFolder_Error(object sender, ErrorEventArgs e)
         {
             Exception exc = e.GetException();
             Logger.Log($"The custom map folder file watcher crashed: error={exc.Message}");
@@ -445,7 +436,7 @@ namespace DTAClient.Domain.Multiplayer
             // This checks the SHA-1, so duplicate maps in two .map files with different filenames can still be detected.
             if (IsMapAlreadyLoaded(map.SHA1))
             {
-                Logger.Log("LoadCustomMap: Custom map " + customMapFile.FullName + " is already loaded!");
+                Logger.Log($"LoadCustomMap: Custom map {customMapFile.FullName} is already loaded! SHA1={map.SHA1}");
                 resultMessage = $"Map {customMapFile.FullName} is already loaded.";
 
                 return null;

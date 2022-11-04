@@ -2325,14 +2325,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         /// <summary>
         /// Handle the GameModeMapsUpdated event from the MapLoader.
         ///
-        /// Updates the gamemode dropdown for new maps being added while the client is running
+        /// Updates the gamemode dropdown for new maps being added while the client is running.
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void MapLoader_GameModeMapsUpdated(object sender, MapLoaderEventArgs e)
-        {
-            RefreshGameModeDropdown();
-        }
+        private void MapLoader_GameModeMapsUpdated(object sender, MapLoaderEventArgs e) => RefreshGameModeDropdown();
 
         /// <summary>
         /// Update the gamemode dropdown.
@@ -2357,7 +2354,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             // Add any new game modes.
             foreach (GameMode gm in GameModeMaps.GameModes)
             {
-                //skip the game mode if it is already in the dropdown.
+                // Skip the game mode if it is already in the dropdown.
                 if (existingDdGameModes.Contains(gm.UIName))
                     continue;
 

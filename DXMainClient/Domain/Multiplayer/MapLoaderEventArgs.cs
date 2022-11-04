@@ -13,6 +13,5 @@ namespace DTAClient.Domain.Multiplayer
         }
 
         public Map Map { get; private set; }
-
     }
 }
