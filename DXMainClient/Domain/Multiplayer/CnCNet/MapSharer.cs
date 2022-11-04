@@ -365,18 +365,27 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
 
         private static string DownloadMain(string sha1, string myGame, string mapName, out bool success)
         {
-            string customMapsDirectory = SafePath.CombineDirectoryPath(ProgramConstants.GamePath, "Maps", "Custom");
+            string customMapsPath = SafePath.CombineDirectoryPath(ProgramConstants.GamePath, "Maps", "Custom");
+            string tempDownloadPath = SafePath.CombineDirectoryPath(ProgramConstants.GamePath, "Maps", "temp");
 
             string mapFileName = GetMapFileName(sha1, mapName);
 
-            FileInfo destinationFile = SafePath.GetFile(customMapsDirectory, FormattableString.Invariant($"{mapFileName}.zip"));
+            // Store the unzipped mapfile in a temp directory while we unzip and rename it to avoid a race condition with the map file watcher
+            DirectoryInfo tempDownloadDirectory = Directory.CreateDirectory(tempDownloadPath);
+            FileInfo zipDestinationFile = SafePath.GetFile(tempDownloadDirectory.FullName, FormattableString.Invariant($"{mapFileName}.zip"));
+            FileInfo tempMapFile = SafePath.GetFile(tempDownloadDirectory.FullName, FormattableString.Invariant($"{mapFileName}{MapLoader.MAP_FILE_EXTENSION}"));
 
-            // This string is up here so we can check that there isn't already a .map file for this download.
-            // This prevents the client from crashing when trying to rename the unzipped file to a duplicate filename.
-            FileInfo newFile = SafePath.GetFile(customMapsDirectory, FormattableString.Invariant($"{mapFileName}{MapLoader.MAP_FILE_EXTENSION}"));
+            if (zipDestinationFile.Exists)
+            {
+                Logger.Log($"DownloadMain: zipDestinationFile already exists, deleting: zipDestinationFile={zipDestinationFile.FullName}");
+                zipDestinationFile.Delete();
+            }
 
-            destinationFile.Delete();
-            newFile.Delete();
+            if (tempMapFile.Exists)
+            {
+                Logger.Log($"DownloadMain: tempMapFile already exists, deleting: tempMapFile={zipDestinationFile.FullName}");
+                tempMapFile.Delete();
+            }
 
             using (TWebClient webClient = new TWebClient())
             {
@@ -385,7 +394,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                 try
                 {
                     Logger.Log("MapSharer: Downloading URL: " + "http://mapdb.cncnet.org/" + myGame + "/" + sha1 + ".zip");
-                    webClient.DownloadFile("http://mapdb.cncnet.org/" + myGame + "/" + sha1 + ".zip", destinationFile.FullName);
+                    webClient.DownloadFile("http://mapdb.cncnet.org/" + myGame + "/" + sha1 + ".zip", zipDestinationFile.FullName);
                 }
                 catch (Exception ex)
                 {
@@ -404,15 +413,15 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                 }
             }
 
-            destinationFile.Refresh();
+            zipDestinationFile.Refresh();
 
-            if (!destinationFile.Exists)
+            if (!zipDestinationFile.Exists)
             {
                 success = false;
                 return null;
             }
 
-            string extractedFile = ExtractZipFile(destinationFile.FullName, customMapsDirectory);
+            string extractedFile = ExtractZipFile(zipDestinationFile.FullName, tempDownloadDirectory.FullName);
 
             if (String.IsNullOrEmpty(extractedFile))
             {
@@ -420,11 +429,19 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                 return null;
             }
 
-            // We can safely assume that there will not be a duplicate file due to deleting it
-            // earlier if one already existed.
-            File.Move(SafePath.CombineFilePath(customMapsDirectory, extractedFile), newFile.FullName);
+            FileInfo newMapFile = SafePath.GetFile(customMapsPath, FormattableString.Invariant($"{mapFileName}{MapLoader.MAP_FILE_EXTENSION}"));
 
-            destinationFile.Delete();
+            // We need to delete potentially conflicting map files because .Move won't overwrite.
+            if (newMapFile.Exists)
+            {
+                Logger.Log($"DownloadMain: newMapFile already exists, deleting: newMapFile={newMapFile.FullName}");
+                newMapFile.Delete();
+            }
+
+            File.Move(SafePath.CombineFilePath(tempDownloadDirectory.FullName, extractedFile), newMapFile.FullName);
+
+            zipDestinationFile.Delete();
+            Directory.Delete(tempDownloadDirectory.FullName, true);
 
             success = true;
             return extractedFile;
