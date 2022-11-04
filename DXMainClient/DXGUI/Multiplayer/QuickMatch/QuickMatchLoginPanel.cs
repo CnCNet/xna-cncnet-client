@@ -34,7 +34,7 @@ namespace DTAClient.DXGUI.Multiplayer.QuickMatch
 
             XNAClientButton btnLogin;
             btnLogin = FindChild<XNAClientButton>(nameof(btnLogin));
-            btnLogin.LeftClick += BtnLogin_LeftClick;
+            btnLogin.LeftClick += (_, _) => Login();
 
             XNAClientButton btnCancel;
             btnCancel = FindChild<XNAClientButton>(nameof(btnCancel));
@@ -42,8 +42,10 @@ namespace DTAClient.DXGUI.Multiplayer.QuickMatch
 
             tbEmail = FindChild<XNATextBox>(nameof(tbEmail));
             tbEmail.Text = qmService.GetCachedEmail() ?? string.Empty;
+            tbEmail.EnterPressed += (_, _) => Login();
 
             tbPassword = FindChild<XNAPasswordBox>(nameof(tbPassword));
+            tbPassword.EnterPressed += (_, _) => Login();
 
             EnabledChanged += InitLogin;
         }
@@ -72,7 +74,7 @@ namespace DTAClient.DXGUI.Multiplayer.QuickMatch
             loginInitialized = true;
         }
 
-        private void BtnLogin_LeftClick(object sender, EventArgs eventArgs)
+        private void Login()
         {
             if (!ValidateForm())
                 return;
@@ -84,13 +86,13 @@ namespace DTAClient.DXGUI.Multiplayer.QuickMatch
         {
             if (string.IsNullOrEmpty(tbEmail.Text))
             {
-                XNAMessageBox.Show(WindowManager, "No Email specified", LoginErrorTitle);
+                XNAMessageBox.Show(WindowManager, LoginErrorTitle, "No Email specified");
                 return false;
             }
 
             if (string.IsNullOrEmpty(tbPassword.Text))
             {
-                XNAMessageBox.Show(WindowManager, "No Password specified", LoginErrorTitle);
+                XNAMessageBox.Show(WindowManager, LoginErrorTitle, "No Password specified");
                 return false;
             }
 
