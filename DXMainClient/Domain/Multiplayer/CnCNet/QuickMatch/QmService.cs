@@ -319,6 +319,7 @@ public class QmService : IDisposable
             }
             catch (Exception e)
             {
+                Logger.Log(e.StackTrace);
                 QmEvent?.Invoke(this, new QmErrorMessageEvent((e as ClientException)?.Message ?? QmStrings.UnknownError));
             }
         });
