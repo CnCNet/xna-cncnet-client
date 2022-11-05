@@ -84,7 +84,11 @@ namespace DTAClient.DXGUI.Multiplayer.QuickMatch
         private void EnabledChangedEvent(object sender, EventArgs e)
         {
             if (!Enabled)
+            {
+                loginPanel.Disable();
+                lobbyPanel.Disable();
                 return;
+            }
 
             loginPanel.Enable();
         }

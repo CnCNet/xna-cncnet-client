@@ -87,7 +87,7 @@ public class QmService : IDisposable
         QmEvent?.Invoke(this, new QmLogoutEvent());
     }
 
-    public bool IsLoggedIn()
+    public bool HasToken()
     {
         if (qmUserSettings.AuthData == null)
             return false;

@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Threading.Tasks;
-using ClientCore.Exceptions;
 using ClientGUI;
 using DTAClient.Domain.Multiplayer.CnCNet.QuickMatch;
 using DTAClient.Domain.Multiplayer.CnCNet.QuickMatch.Models.Events;
@@ -12,12 +10,13 @@ namespace DTAClient.DXGUI.Multiplayer.QuickMatch
     public class QuickMatchLoginPanel : INItializableWindow
     {
         public event EventHandler Exit;
+
         private const string LoginErrorTitle = "Login Error";
+
         private readonly QmService qmService;
 
         private XNATextBox tbEmail;
         private XNAPasswordBox tbPassword;
-        private bool loginInitialized;
 
         public event EventHandler LoginEvent;
 
@@ -65,13 +64,11 @@ namespace DTAClient.DXGUI.Multiplayer.QuickMatch
 
         public void InitLogin(object sender, EventArgs eventArgs)
         {
-            if (!Enabled || loginInitialized)
+            if (!Enabled)
                 return;
 
-            if (qmService.IsLoggedIn())
+            if (qmService.HasToken())
                 qmService.RefreshAsync();
-
-            loginInitialized = true;
         }
 
         private void Login()
