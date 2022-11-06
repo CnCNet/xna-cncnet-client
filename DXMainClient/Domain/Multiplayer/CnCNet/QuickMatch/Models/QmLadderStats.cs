@@ -21,6 +21,6 @@ namespace DTAClient.Domain.Multiplayer.CnCNet.QuickMatch.Models
         public int ActiveMatchCount { get; set; }
 
         [JsonProperty("time")]
-        public DateTime DateTime { get; set; }
+        public QmLadderStatsTime Time { get; set; }
     }
 }
