@@ -42,7 +42,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet.QuickMatch.Models
         public string AdminDescription { get; set; }
 
         [JsonProperty("map_pool_id")]
-        public int MapPoolId { get; set; }
+        public int? MapPoolId { get; set; }
 
         [JsonProperty("rejectable")]
         private int rejectable { get; set; }

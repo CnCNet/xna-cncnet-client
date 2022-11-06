@@ -27,7 +27,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet.QuickMatch.Models
         public int GameObjectSchemaId { get; set; }
 
         [JsonProperty("map_pool_id")]
-        public int MapPoolId { get; set; }
+        public int? MapPoolId { get; set; }
 
         [JsonProperty("private")]
         private int _private { get; set; }
