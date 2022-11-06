@@ -43,13 +43,13 @@ namespace DTAClient.Domain.Multiplayer.CnCNet.QuickMatch.Models
         public int Tier2Rating { get; set; }
 
         [JsonProperty("rating_per_second")]
-        public double RatingPerSecond { get; set; }
+        public decimal RatingPerSecond { get; set; }
 
         [JsonProperty("max_points_difference")]
         public int MaxPointsDifference { get; set; }
 
         [JsonProperty("points_per_second")]
-        public int PointsPerSecond { get; set; }
+        public decimal PointsPerSecond { get; set; }
 
         [JsonProperty("use_elo_points")]
         private int useEloPoints { get; set; }
