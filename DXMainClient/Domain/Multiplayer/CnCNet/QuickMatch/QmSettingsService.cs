@@ -26,6 +26,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet.QuickMatch
         private const string GetLadderMapsUrlKey = "GetLadderMapsUrl";
 
         private const string MatchFoundSoundFileKey = "MatchFoundSoundFile";
+        private const string AllowedLaddersKey = "AllowedLadders";
 
         private QmSettings qmSettings;
 
@@ -65,6 +66,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet.QuickMatch
             settings.GetLaddersUrl = basicSection.GetStringValue(GetLaddersUrlKey, QmSettings.DefaultGetLaddersUrl);
             settings.GetLadderMapsUrlFormat = basicSection.GetStringValue(GetLadderMapsUrlKey, QmSettings.DefaultGetLadderMapsUrl);
             settings.MatchFoundWaitSeconds = basicSection.GetIntValue(GetLadderMapsUrlKey, QmSettings.DefaultMatchFoundWaitSeconds);
+            settings.AllowedLadders = basicSection.GetStringValue(AllowedLaddersKey, string.Empty).Split(',').ToList();
         }
 
         private static void LoadSoundSettings(IniFile iniFile, QmSettings settings)

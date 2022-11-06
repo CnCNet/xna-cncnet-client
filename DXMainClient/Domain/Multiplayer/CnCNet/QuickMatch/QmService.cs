@@ -21,7 +21,10 @@ public class QmService : IDisposable
 {
     private readonly QmUserSettingsService userSettingsService;
     private readonly QmApiService apiService;
+    private readonly QmSettingsService settingsService;
+
     private readonly QmUserSettings qmUserSettings;
+    private readonly QmSettings qmSettings;
     private readonly QmData qmData;
 
     private static QmService _instance;
@@ -32,7 +35,10 @@ public class QmService : IDisposable
     {
         userSettingsService = QmUserSettingsService.GetInstance();
         apiService = QmApiService.GetInstance();
+        settingsService = QmSettingsService.GetInstance();
+
         qmUserSettings = userSettingsService.GetSettings();
+        qmSettings = settingsService.GetSettings();
         qmData = new QmData();
 
         retryRequestmatchTimer = new Timer();
@@ -144,7 +150,9 @@ public class QmService : IDisposable
 
             await Task.WhenAll(loadLaddersTask, loadUserAccountsTask);
             qmData.Ladders = loadLaddersTask.Result.ToList();
-            qmData.UserAccounts = loadUserAccountsTask.Result.ToList();
+            qmData.UserAccounts = loadUserAccountsTask.Result
+                .Where(ua => qmSettings.AllowedLadders.Contains(ua.Ladder.Game))
+                .ToList();
 
             if (!qmData.Ladders.Any())
             {

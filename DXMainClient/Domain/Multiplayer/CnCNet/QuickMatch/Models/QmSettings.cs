@@ -36,6 +36,8 @@ namespace DTAClient.Domain.Multiplayer.CnCNet.QuickMatch.Models
 
         public string MatchFoundSoundFile { get; set; }
 
+        public List<string> AllowedLadders { get; set; } = new();
+
         public int MatchFoundWaitSeconds { get; set; } = DefaultMatchFoundWaitSeconds;
 
         public IDictionary<string, Texture2D> HeaderLogos = new Dictionary<string, Texture2D>();
