@@ -152,6 +152,9 @@ public class QmService : IDisposable
             qmData.Ladders = loadLaddersTask.Result.ToList();
             qmData.UserAccounts = loadUserAccountsTask.Result
                 .Where(ua => qmSettings.AllowedLadders.Contains(ua.Ladder.Game))
+                .GroupBy(ua => ua.Id) // remove possible duplicates
+                .Select(g => g.First())
+                .OrderBy(ua => ua.Ladder.Name)
                 .ToList();
 
             if (!qmData.Ladders.Any())
