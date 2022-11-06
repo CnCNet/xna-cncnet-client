@@ -97,7 +97,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet.QuickMatch.Models
             }
             catch (Exception e)
             {
-                Logger.Log(e.StackTrace);
+                Logger.Log(e.ToString());
                 return null;
             }
         }

@@ -103,7 +103,7 @@ public class QmService : IDisposable
         }
         catch (Exception e)
         {
-            Logger.Log(e.StackTrace);
+            Logger.Log(e.ToString());
             return false;
         }
 
@@ -319,7 +319,7 @@ public class QmService : IDisposable
             }
             catch (Exception e)
             {
-                Logger.Log(e.StackTrace);
+                Logger.Log(e.ToString());
                 QmEvent?.Invoke(this, new QmErrorMessageEvent((e as ClientException)?.Message ?? QmStrings.UnknownError));
             }
         });
