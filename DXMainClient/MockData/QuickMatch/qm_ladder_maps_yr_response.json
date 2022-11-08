@@ -1,0 +1,76 @@
+[
+  {
+    "id": 2573,
+    "ladder_id": 0,
+    "map_id": 680,
+    "description": "Cavern's Of Siberia",
+    "bit_idx": 2,
+    "valid": 1,
+    "spawn_order": "0,0",
+    "created_at": "2022-10-31 23:07:40",
+    "updated_at": "2022-10-31 23:07:40",
+    "team1_spawn_order": "         ",
+    "team2_spawn_order": "",
+    "allowed_sides": [
+      0,
+      1,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      2,
+      9,
+      -1
+    ],
+    "admin_description": "Cavern's Of Siberia",
+    "map_pool_id": 56,
+    "rejectable": 1,
+    "default_reject": 0,
+    "hash": "2f11a7459c9951fbfd6b5bbd73cccd7cf9b0bf5c",
+    "map": {
+      "id": 680,
+      "hash": "2f11a7459c9951fbfd6b5bbd73cccd7cf9b0bf5c",
+      "name": "4_caverns_v410",
+      "ladder_id": 1
+    }
+  },
+  {
+    "id": 2574,
+    "ladder_id": 1,
+    "map_id": 21,
+    "description": "Coldest Peak",
+    "bit_idx": 3,
+    "valid": 1,
+    "spawn_order": "0,0",
+    "created_at": "2022-10-31 23:07:40",
+    "updated_at": "2022-10-31 23:07:40",
+    "team1_spawn_order": "     ",
+    "team2_spawn_order": "",
+    "allowed_sides": [
+      0,
+      1,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      2,
+      9,
+      -1
+    ],
+    "admin_description": "Coldest Peak",
+    "map_pool_id": 56,
+    "rejectable": 1,
+    "default_reject": 0,
+    "hash": "ffe59ccf68fd743ee8849c615af84180396c8e67",
+    "map": {
+      "id": 21,
+      "hash": "ffe59ccf68fd743ee8849c615af84180396c8e67",
+      "name": "coldest.map",
+      "ladder_id": 1
+    }
+  }
+]

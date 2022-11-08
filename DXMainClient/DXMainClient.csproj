@@ -47,6 +47,78 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="clienticon.ico" />
+    <Content Include="MockData\QuickMatch\qm_find_match_fatal_response.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="MockData\QuickMatch\qm_find_match_gamefinished_request.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="MockData\QuickMatch\qm_find_match_gamefinished_response.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="MockData\QuickMatch\qm_find_match_game_spawned_request.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="MockData\QuickMatch\qm_find_match_game_spawned_response.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="MockData\QuickMatch\qm_find_match_im_ready_request.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="MockData\QuickMatch\qm_find_match_im_ready_response.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="MockData\QuickMatch\qm_find_match_please_wait_response.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="MockData\QuickMatch\qm_find_match_reached_request.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="MockData\QuickMatch\qm_find_match_reached_response.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="MockData\QuickMatch\qm_find_match_request.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="MockData\QuickMatch\qm_find_match_spawn_response.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="MockData\QuickMatch\qm_ladders_response.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="MockData\QuickMatch\qm_ladder_maps_ra2_response.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="MockData\QuickMatch\qm_ladder_maps_yr_response.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="MockData\QuickMatch\qm_ladder_stats_response.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="MockData\QuickMatch\qm_login_response.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="MockData\QuickMatch\qm_user_accounts_response.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <None Remove="Domain\Multiplayer\CnCNet\QuickMatch\MockData\qm_find_match_fatal_response.json" />
+    <None Remove="Domain\Multiplayer\CnCNet\QuickMatch\MockData\qm_find_match_game_spawned_request.json" />
+    <None Remove="Domain\Multiplayer\CnCNet\QuickMatch\MockData\qm_find_match_game_spawned_response.json" />
+    <None Remove="Domain\Multiplayer\CnCNet\QuickMatch\MockData\qm_find_match_gamefinished_request.json" />
+    <None Remove="Domain\Multiplayer\CnCNet\QuickMatch\MockData\qm_find_match_gamefinished_response.json" />
+    <None Remove="Domain\Multiplayer\CnCNet\QuickMatch\MockData\qm_find_match_im_ready_request.json" />
+    <None Remove="Domain\Multiplayer\CnCNet\QuickMatch\MockData\qm_find_match_im_ready_response.json" />
+    <None Remove="Domain\Multiplayer\CnCNet\QuickMatch\MockData\qm_find_match_please_wait_response.json" />
+    <None Remove="Domain\Multiplayer\CnCNet\QuickMatch\MockData\qm_find_match_reached_request.json" />
+    <None Remove="Domain\Multiplayer\CnCNet\QuickMatch\MockData\qm_find_match_reached_response.json" />
+    <None Remove="Domain\Multiplayer\CnCNet\QuickMatch\MockData\qm_find_match_request.json" />
+    <None Remove="Domain\Multiplayer\CnCNet\QuickMatch\MockData\qm_find_match_spawn_response.json" />
+    <None Remove="Domain\Multiplayer\CnCNet\QuickMatch\MockData\qm_ladder_maps_response.json" />
+    <None Remove="Domain\Multiplayer\CnCNet\QuickMatch\MockData\qm_ladder_stats_response.json" />
+    <None Remove="Domain\Multiplayer\CnCNet\QuickMatch\MockData\qm_ladders_response.json" />
+    <None Remove="Domain\Multiplayer\CnCNet\QuickMatch\MockData\qm_login_response.json" />
+    <None Remove="Domain\Multiplayer\CnCNet\QuickMatch\MockData\qm_user_accounts_response.json" />
+    <None Remove="MockData\qm_ladder_maps_yr_response.json" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="JWT" Version="9.0.3" />

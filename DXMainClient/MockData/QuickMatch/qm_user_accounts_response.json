@@ -1,0 +1,38 @@
+[
+  {
+    "id": 1,
+    "username": "testuserme",
+    "ladder_id": 1,
+    "card_id": 0,
+    "ladder": {
+      "id": 1,
+      "name": "Ladder 1",
+      "abbreviation": "yr",
+      "game": "yr",
+      "created_at": "2022-11-01 00:00:00",
+      "updated_at": "2022-11-01 00:00:00",
+      "clans_allowed": 0,
+      "game_object_schema_id": 1,
+      "map_pool_id": 1,
+      "private": 0
+    }
+  },
+  {
+    "id": 2,
+    "username": "testuserme",
+    "ladder_id": 2,
+    "card_id": 0,
+    "ladder": {
+      "id": 2,
+      "name": "Ladder 2",
+      "abbreviation": "ra2",
+      "game": "ra2",
+      "created_at": "2022-11-01 00:00:00",
+      "updated_at": "2022-11-01 00:00:00",
+      "clans_allowed": 0,
+      "game_object_schema_id": 2,
+      "map_pool_id": 2,
+      "private": 0
+    }
+  }
+]

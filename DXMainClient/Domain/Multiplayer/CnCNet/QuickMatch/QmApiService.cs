@@ -13,18 +13,19 @@ namespace DTAClient.Domain.Multiplayer.CnCNet.QuickMatch;
 
 public class QmApiService : IDisposable
 {
+    private static bool useMockService = true;
     private HttpClient _httpClient;
     private readonly QmSettings qmSettings;
     private string _token;
 
     private static QmApiService instance;
 
-    private QmApiService()
+    protected QmApiService()
     {
         qmSettings = QmSettingsService.GetInstance().GetSettings();
     }
 
-    public static QmApiService GetInstance() => instance ??= new QmApiService();
+    public static QmApiService GetInstance() => instance ??= useMockService ? new QmMockApiService() : new QmApiService();
 
     public void SetToken(string token)
     {
@@ -35,7 +36,7 @@ public class QmApiService : IDisposable
             httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {_token}");
     }
 
-    public async Task<IEnumerable<QmLadderMap>> LoadLadderMapsForAbbrAsync(string ladderAbbreviation)
+    public virtual async Task<IEnumerable<QmLadderMap>> LoadLadderMapsForAbbrAsync(string ladderAbbreviation)
     {
         HttpClient httpClient = GetHttpClient();
         string url = string.Format(qmSettings.GetLadderMapsUrlFormat, ladderAbbreviation);
@@ -46,7 +47,7 @@ public class QmApiService : IDisposable
         return JsonConvert.DeserializeObject<IEnumerable<QmLadderMap>>(await response.Content.ReadAsStringAsync());
     }
 
-    public async Task<QmLadderStats> LoadLadderStatsForAbbrAsync(string ladderAbbreviation)
+    public virtual async Task<QmLadderStats> LoadLadderStatsForAbbrAsync(string ladderAbbreviation)
     {
         HttpClient httpClient = GetHttpClient();
         string url = string.Format(qmSettings.GetLadderStatsUrlFormat, ladderAbbreviation);
@@ -57,7 +58,7 @@ public class QmApiService : IDisposable
         return JsonConvert.DeserializeObject<QmLadderStats>(await response.Content.ReadAsStringAsync());
     }
 
-    public async Task<IEnumerable<QmUserAccount>> LoadUserAccountsAsync()
+    public virtual async Task<IEnumerable<QmUserAccount>> LoadUserAccountsAsync()
     {
         HttpClient httpClient = GetHttpClient();
         HttpResponseMessage response = await httpClient.GetAsync(qmSettings.GetUserAccountsUrl);
@@ -67,7 +68,7 @@ public class QmApiService : IDisposable
         return JsonConvert.DeserializeObject<IEnumerable<QmUserAccount>>(await response.Content.ReadAsStringAsync());
     }
 
-    public async Task<IEnumerable<QmLadder>> LoadLaddersAsync()
+    public virtual async Task<IEnumerable<QmLadder>> LoadLaddersAsync()
     {
         HttpClient httpClient = GetHttpClient();
         HttpResponseMessage response = await httpClient.GetAsync(qmSettings.GetLaddersUrl);
@@ -77,7 +78,7 @@ public class QmApiService : IDisposable
         return JsonConvert.DeserializeObject<IEnumerable<QmLadder>>(await response.Content.ReadAsStringAsync());
     }
 
-    public async Task<QmAuthData> LoginAsync(string email, string password)
+    public virtual async Task<QmAuthData> LoginAsync(string email, string password)
     {
         HttpClient httpClient = GetHttpClient();
         var postBodyContent = new StringContent(JsonConvert.SerializeObject(new QMLoginRequest() { Email = email, Password = password }), Encoding.Default, "application/json");
@@ -86,7 +87,7 @@ public class QmApiService : IDisposable
         return await HandleLoginResponse(response, QmStrings.LoggingInUnknownErrorFormat);
     }
 
-    public async Task<QmAuthData> RefreshAsync()
+    public virtual async Task<QmAuthData> RefreshAsync()
     {
         HttpClient httpClient = GetHttpClient();
         HttpResponseMessage response = await httpClient.GetAsync(qmSettings.RefreshUrl);
@@ -127,7 +128,7 @@ public class QmApiService : IDisposable
         throw new ClientRequestException(message, response.StatusCode);
     }
 
-    public bool IsServerAvailable()
+    public virtual bool IsServerAvailable()
     {
         HttpClient httpClient = GetHttpClient();
         HttpResponseMessage response = httpClient.GetAsync(qmSettings.ServerStatusUrl).Result;
@@ -137,7 +138,7 @@ public class QmApiService : IDisposable
     private HttpClient GetHttpClient() =>
         _httpClient ??= new HttpClient { BaseAddress = new Uri(qmSettings.BaseUrl), Timeout = TimeSpan.FromSeconds(10) };
 
-    public async Task<QmRequestResponse> QuickMatchRequestAsync(string ladder, string playerName, QmRequest qmRequest)
+    public virtual async Task<QmRequestResponse> QuickMatchRequestAsync(string ladder, string playerName, QmRequest qmRequest)
     {
         HttpClient httpClient = GetHttpClient();
         string url = string.Format(qmSettings.QuickMatchUrlFormat, ladder, playerName);
