@@ -59,6 +59,7 @@ namespace DTAClient.DXGUI.Multiplayer.QuickMatch
 
             mapList = FindChild<QuickMatchMapList>(nameof(mapList));
             mapList.MapSelectedEvent += HandleMapSelectedEventEvent;
+            mapList.MapSideSelectedEvent += HandleMapSideSelectedEvent;
 
             footerPanel = FindChild<QuickMatchLobbyFooterPanel>(nameof(footerPanel));
             footerPanel.ExitEvent += (sender, args) => Exit?.Invoke(sender, args);
@@ -178,7 +179,7 @@ namespace DTAClient.DXGUI.Multiplayer.QuickMatch
             if (side.IsRandom)
                 side = GetRandomSide();
 
-            return new QmMatchRequest { Ladder = userAccount.Ladder.Abbreviation, PlayerName = userAccount.Username, Side = side.LocalId };
+            return new QmMatchRequest { Side = side.LocalId };
         }
 
         private QmSide GetRandomSide()
@@ -341,6 +342,11 @@ namespace DTAClient.DXGUI.Multiplayer.QuickMatch
 
             mapPreviewBox.BackgroundTexture = map?.LoadPreviewTexture();
             EnableRightPanel(mapPreviewBox);
+        }
+
+        private void HandleMapSideSelectedEvent(object sender, IEnumerable<int> mapSides)
+        {
+            qmService.SetMapSides(mapSides);
         }
 
         private void HandleLogoutEvent()

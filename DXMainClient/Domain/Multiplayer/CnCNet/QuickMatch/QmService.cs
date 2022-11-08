@@ -9,6 +9,7 @@ using ClientCore;
 using ClientCore.Exceptions;
 using DTAClient.Domain.Multiplayer.CnCNet.QuickMatch.Models;
 using DTAClient.Domain.Multiplayer.CnCNet.QuickMatch.Models.Events;
+using DTAClient.Online;
 using JWT;
 using JWT.Algorithms;
 using JWT.Exceptions;
@@ -19,6 +20,8 @@ namespace DTAClient.Domain.Multiplayer.CnCNet.QuickMatch;
 
 public class QmService : IDisposable
 {
+    public const string QmVersion = "2.0";
+
     private readonly QmUserSettingsService userSettingsService;
     private readonly QmApiService apiService;
     private readonly QmSettingsService settingsService;
@@ -29,7 +32,8 @@ public class QmService : IDisposable
 
     private static QmService _instance;
     private readonly Timer retryRequestmatchTimer;
-    private QmMatchRequest qmMatchRequest;
+    private QmUserAccount userAccount;
+    private IEnumerable<int> mapSides;
 
     private QmService()
     {
@@ -44,8 +48,6 @@ public class QmService : IDisposable
         retryRequestmatchTimer = new Timer();
         retryRequestmatchTimer.AutoReset = false;
         retryRequestmatchTimer.Elapsed += (_, _) => RetryRequestMatchAsync();
-
-        qmMatchRequest = new QmMatchRequest();
     }
 
     public event EventHandler<QmEvent> QmEvent;
@@ -121,25 +123,22 @@ public class QmService : IDisposable
     public void SetUserAccount(QmUserAccount userAccount)
     {
         string laddAbbr = userAccount?.Ladder?.Abbreviation;
+        this.userAccount = userAccount;
         qmUserSettings.Ladder = laddAbbr;
-        qmMatchRequest.Ladder = laddAbbr;
-        qmMatchRequest.PlayerName = userAccount?.Username;
         userSettingsService.SaveSettings();
         QmEvent?.Invoke(this, new QmUserAccountSelectedEvent(userAccount));
     }
 
     public void SetMasterSide(QmSide side)
     {
-        qmUserSettings.SideId = side?.LocalId;
-        qmMatchRequest.Side = side?.LocalId ?? -1;
+        qmUserSettings.SideId = side?.LocalId ?? -1;
         userSettingsService.SaveSettings();
         QmEvent?.Invoke(this, new QmMasterSideSelected(side));
     }
 
-    public void SetMapSides(string[] mapSides)
+    public void SetMapSides(IEnumerable<int> mapSides)
     {
-        // TODO call this from the lobby panel
-        qmMatchRequest.MapSides = mapSides;
+        this.mapSides = mapSides;
     }
 
     public void LoadLaddersAndUserAccountsAsync() =>
@@ -192,15 +191,35 @@ public class QmService : IDisposable
     public void RequestMatchAsync() =>
         ExecuteRequest(new QmRequestingMatchEvent(CancelRequestMatchAsync), async () =>
         {
-            QmRequestResponse response = await apiService.QuickMatchRequestAsync(qmMatchRequest);
+            QmRequestResponse response = await apiService.QuickMatchRequestAsync(userAccount.Ladder.Abbreviation, userAccount.Username, GetMatchRequest());
             HandleQuickMatchResponse(response);
         });
 
     /// <summary>
     /// This is called when the user clicks the "I'm Ready" button in the match found dialog.
     /// </summary>
-    public void AcceptMatchAsync()
+    public void AcceptMatchAsync(QmRequestSpawnResponseSpawn spawn)
     {
+        ExecuteRequest(new QmReadyRequestMatchEvent(), async () =>
+        {
+            var readyRequest = new QmReadyRequest(spawn.Settings.Seed);
+            QmRequestResponse response = await apiService.QuickMatchRequestAsync(userAccount.Ladder.Abbreviation, userAccount.Username, readyRequest);
+            HandleQuickMatchResponse(response);
+        });
+    }
+
+    /// <summary>
+    /// This is called when the user clicks the "Cancel" button in the match found dialog.
+    /// </summary>
+    public void RejectMatchAsync(QmRequestSpawnResponseSpawn spawn)
+    {
+        ExecuteRequest(new QmNotReadyRequestMatchEvent(), async () =>
+        {
+            var notReadyRequest = new QmNotReadyRequest(spawn.Settings.Seed);
+            QmRequestResponse response = await apiService.QuickMatchRequestAsync(userAccount.Ladder.Abbreviation, userAccount.Username, notReadyRequest);
+            HandleQuickMatchResponse(response);
+        });
+        CancelRequestMatchAsync();
     }
 
     public void WriteSpawnIni(QmRequestSpawnResponse spawnResponse)
@@ -261,6 +280,32 @@ public class QmService : IDisposable
         apiService.Dispose();
     }
 
+    private QmMatchRequest GetMatchRequest()
+    {
+        if (userAccount == null)
+            throw new ClientException("No user account selected");
+
+        if (userAccount.Ladder == null)
+            throw new ClientException("No user account ladder selected");
+
+        if (!qmUserSettings.SideId.HasValue)
+            throw new ClientException("No side selected");
+
+        var fileHashCalculator = new FileHashCalculator();
+
+        return new QmMatchRequest()
+        {
+            IPv6Address = string.Empty,
+            IPAddress = "98.111.198.94",
+            IPPort = 51144,
+            LanIP = "192.168.86.200",
+            LanPort = 51144,
+            Side = qmUserSettings.SideId.Value,
+            MapSides = mapSides,
+            ExeHash = fileHashCalculator.GetCompleteHash()
+        };
+    }
+
     private void RetryRequestMatchAsync() =>
         RequestMatchAsync();
 
@@ -307,8 +352,7 @@ public class QmService : IDisposable
         ExecuteRequest(new QmCancelingRequestMatchEvent(), async () =>
         {
             retryRequestmatchTimer.Stop();
-            qmMatchRequest.Type = QmRequestTypes.Quit;
-            QmRequestResponse response = await apiService.QuickMatchRequestAsync(new QmQuitRequest());
+            QmRequestResponse response = await apiService.QuickMatchRequestAsync(userAccount.Ladder.Abbreviation, userAccount.Username, new QmQuitRequest());
             QmEvent?.Invoke(this, new QmRequestResponseEvent(response));
         });
 

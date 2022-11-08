@@ -1,12 +1,9 @@
-﻿using Newtonsoft.Json;
+﻿namespace DTAClient.Domain.Multiplayer.CnCNet.QuickMatch.Models;
 
-namespace DTAClient.Domain.Multiplayer.CnCNet.QuickMatch.Models
+public class QmQuitRequest : QmRequest
 {
-    public class QmQuitRequest : QmRequest
+    public QmQuitRequest()
     {
-        public QmQuitRequest()
-        {
-            Type = QmRequestTypes.Quit;
-        }
+        Type = QmRequestTypes.Quit;
     }
 }

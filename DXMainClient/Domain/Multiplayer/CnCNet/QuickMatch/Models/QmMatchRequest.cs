@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using System.Collections.Generic;
+using Newtonsoft.Json;
 
 namespace DTAClient.Domain.Multiplayer.CnCNet.QuickMatch.Models
 {
@@ -8,19 +9,19 @@ namespace DTAClient.Domain.Multiplayer.CnCNet.QuickMatch.Models
         public string LanIP { get; set; }
 
         [JsonProperty("lan_port")]
-        public string LanPort { get; set; }
+        public int LanPort { get; set; }
 
         [JsonProperty("ipv6_address")]
         public string IPv6Address { get; set; }
 
         [JsonProperty("ipv6_port")]
-        public string IPv6Port { get; set; }
+        public int IPv6Port { get; set; }
 
         [JsonProperty("ip_address")]
         public string IPAddress { get; set; }
 
         [JsonProperty("ip_port")]
-        public string IPPort { get; set; }
+        public int IPPort { get; set; }
 
         [JsonProperty("side")]
         public int Side { get; set; }
@@ -28,17 +29,14 @@ namespace DTAClient.Domain.Multiplayer.CnCNet.QuickMatch.Models
         [JsonProperty("map_bitfield")]
         public string MapBitfield { get; set; }
 
-        [JsonProperty("version")]
-        public string Version { get; set; } = "2.0";
-
         [JsonProperty("platform")]
         public string Platform { get; set; }
 
         [JsonProperty("map_sides")]
-        public string[] MapSides { get; set; }
+        public IEnumerable<int> MapSides { get; set; }
 
         [JsonProperty("ai_dat")]
-        public string CheatSeen { get; set; }
+        public bool CheatSeen { get; set; }
 
         [JsonProperty("exe_hash")]
         public string ExeHash { get; set; }
@@ -52,6 +50,10 @@ namespace DTAClient.Domain.Multiplayer.CnCNet.QuickMatch.Models
         public QmMatchRequest()
         {
             Type = QmRequestTypes.MatchMeUp;
+            MapBitfield = int.MaxValue.ToString();
+            Platform = "win32";
+            Session = string.Empty;
+            DDrawHash = "8a00ba609f7d030c67339e1f555199bdb4054b67";
         }
     }
 }

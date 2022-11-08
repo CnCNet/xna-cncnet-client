@@ -1,22 +1,10 @@
-﻿using Newtonsoft.Json;
+﻿namespace DTAClient.Domain.Multiplayer.CnCNet.QuickMatch.Models;
 
-namespace DTAClient.Domain.Multiplayer.CnCNet.QuickMatch.Models
+public class QmReadyRequest : QmUpdateRequest
 {
-    public abstract class QmReadyRequest
+
+    public QmReadyRequest(int seed) : base (seed)
     {
-        [JsonProperty("type")]
-        public string Type { get; set; }
-
-        [JsonProperty("status")]
-        public string Status { get; private set; }
-
-        [JsonProperty("seed")]
-        public int Seed { get; set; }
-
-        public QmReadyRequest()
-        {
-            Type = "update";
-            Status = "ready";
-        }
+        Status = "Ready";
     }
 }

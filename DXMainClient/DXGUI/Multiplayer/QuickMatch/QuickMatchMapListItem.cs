@@ -102,6 +102,8 @@ namespace DTAClient.DXGUI.Multiplayer.QuickMatch
 
         public void SetParentList(QuickMatchMapList parentList) => ParentList = parentList;
 
+        public int GetSelectedSide() => ddSide.SelectedIndex;
+
         public override void Draw(GameTime gameTime)
         {
             ddSide.OpenUp = OpenedDownWindowBottom > ParentList.scrollBar.GetWindowRectangle().Bottom;

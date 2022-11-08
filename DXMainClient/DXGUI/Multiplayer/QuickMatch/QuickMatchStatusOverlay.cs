@@ -33,8 +33,8 @@ namespace DTAClient.DXGUI.Multiplayer.QuickMatch
 
         private int matchupFoundConfirmTimeLeft { get; set; }
 
-        private Timer matchupFoundConfirmTimer { get; set; }
-        private const int matchupFoundTimerInterval = 100;
+        private QmMatchFoundTimer matchupFoundConfirmTimer { get; set; }
+        
 
         private XNAClientProgressBar progressBar;
 
@@ -47,9 +47,8 @@ namespace DTAClient.DXGUI.Multiplayer.QuickMatch
             qmService.QmEvent += HandleQmEvent;
             qmSettings = QmSettingsService.GetInstance().GetSettings();
 
-            matchupFoundConfirmTimer = new Timer(matchupFoundTimerInterval);
-            matchupFoundConfirmTimer.AutoReset = true;
-            matchupFoundConfirmTimer.Elapsed += (_, _) => ReduceMatchupFoundConfirmTimeLeft();
+            matchupFoundConfirmTimer = new QmMatchFoundTimer();
+            matchupFoundConfirmTimer.SetElapsedAction(ReduceMatchupFoundConfirmTimeLeft);
         }
 
         public override void Initialize()
@@ -138,14 +137,24 @@ namespace DTAClient.DXGUI.Multiplayer.QuickMatch
 
         private void HandleSpawnResponseEvent(QmRequestSpawnResponse spawnResponse)
         {
-            const int ratio = 1000 / matchupFoundTimerInterval;
-            int max = qmSettings.MatchFoundWaitSeconds * matchupFoundTimerInterval / ratio;
+            int interval = matchupFoundConfirmTimer.GetInterval();
+            int ratio = 1000 / interval;
+            int max = qmSettings.MatchFoundWaitSeconds * interval / ratio;
             progressBar.Maximum = max;
             progressBar.Value = max;
-            var actions = new List<Tuple<string, Action>> { new(QmStrings.MatchupFoundConfirmYes, () => qmService.AcceptMatchAsync()), new(QmStrings.MatchupFoundConfirmNo, Disable) };
+            var actions = new List<Tuple<string, Action>>
+            {
+                new(QmStrings.MatchupFoundConfirmYes, () => AcceptMatchAsync(spawnResponse.Spawn)),
+                new(QmStrings.MatchupFoundConfirmNo, () => RejectMatchAsync(spawnResponse.Spawn))
+            };
             SetStatus(QmStrings.MatchupFoundConfirmMsg, actions, ProgressBarModeEnum.Determinate);
+            matchupFoundConfirmTimer.SetSpawn(spawnResponse.Spawn);
             matchupFoundConfirmTimer.Start();
         }
+
+        private void AcceptMatchAsync(QmRequestSpawnResponseSpawn spawn) => qmService.AcceptMatchAsync(spawn);
+
+        private void RejectMatchAsync(QmRequestSpawnResponseSpawn spawn) => qmService.RejectMatchAsync(spawn);
 
         private void HandleCancelingMatchRequest() => SetStatus(QmStrings.CancelingMatchRequestStatus);
 
@@ -164,6 +173,7 @@ namespace DTAClient.DXGUI.Multiplayer.QuickMatch
 
             matchupFoundConfirmTimer.Stop();
             Disable();
+            RejectMatchAsync(matchupFoundConfirmTimer.Spawn);
         }
 
         private void SetStatus(string message, Tuple<string, Action> button)

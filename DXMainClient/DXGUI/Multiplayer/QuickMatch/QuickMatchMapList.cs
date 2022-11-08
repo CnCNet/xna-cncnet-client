@@ -15,22 +15,31 @@ namespace DTAClient.DXGUI.Multiplayer.QuickMatch
     {
         private const int MouseScrollRate = 6;
         public const int ItemHeight = 22;
+
         public event EventHandler<QmLadderMap> MapSelectedEvent;
+
+        public event EventHandler<IEnumerable<int>> MapSideSelectedEvent;
 
         private XNALabel lblVeto;
         private XNALabel lblSides;
         private XNALabel lblMaps;
         private XNAScrollablePanel mapListPanel;
         private readonly QmService qmService;
+
         public XNAScrollBar scrollBar { get; private set; }
 
         private QmSide masterQmSide { get; set; }
 
         public int VetoX => lblVeto?.X ?? 0;
+
         public int VetoWidth => lblVeto?.Width ?? 0;
+
         public int SidesX => lblSides?.X ?? 0;
+
         public int SidesWidth => lblSides?.Width ?? 0;
+
         public int MapsX => lblMaps?.X ?? 0;
+
         public int MapsWidth => lblMaps?.Width ?? 0;
 
         public QuickMatchMapList(WindowManager windowManager) : base(windowManager)
@@ -105,16 +114,14 @@ namespace DTAClient.DXGUI.Multiplayer.QuickMatch
         private void AddItem(QuickMatchMapListItem listItem)
         {
             listItem.LeftClickMap += MapItem_LeftClick;
-            listItem.SideSelected += (_, _) => MapSideSelected(listItem);
+            listItem.SideSelected += (_, _) => MapSideSelected();
             listItem.SetParentList(this);
             listItem.SetMasterSide(masterQmSide);
             mapListPanel.AddChild(listItem);
         }
 
-        private void MapSideSelected(QuickMatchMapListItem listItem)
-        {
-            
-        }
+        private void MapSideSelected() 
+            => MapSideSelectedEvent?.Invoke(this, MapItemChildren.Select(c => c.GetSelectedSide()));
 
         private int GetNewScrollBarViewTop()
         {
