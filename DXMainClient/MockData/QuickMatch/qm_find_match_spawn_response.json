@@ -1,50 +1,50 @@
 {
-    "type": "spawn",
-    "gameID": 456,
-    "spawn": {
-        "SpawnLocations": {
-            "Multi2": -1,
-            "Multi1": -1
-        },
-        "Settings": {
-            "UIMapName": "Test Map",
-            "MapHash": "35f8f92ebbb94b62918326da5837fedd",
-            "Seed": 123,
-            "GameID": 456,
-            "WOLGameID": 456,
-            "Host": "No",
-            "IsSpectator": "No",
-            "Name": "TestUserMe",
-            "Port": 51143,
-            "Side": 0,
-            "Color": 1,
-            "GameSpeed": "0",
-            "Credits": "10000",
-            "UnitCount": "0",
-            "Superweapons": "Yes",
-            "Tournament": "1",
-            "ShortGame": "Yes",
-            "Bases": "Yes",
-            "MCVRedeploy": "Yes",
-            "MultipleFactory": "Yes",
-            "Crates": "No",
-            "GameMode": "Battle",
-            "FrameSendRate": "4",
-            "DisableSWvsYuri": "Yes"
-        },
-        "Other1": {
-            "Name": "TestUser2",
-            "Side": 0,
-            "Color": 0,
-            "Ip": "127.0.0.1",
-            "Port": 51143,
-            "IPv6": "",
-            "PortV6": 0,
-            "LanIP": "",
-            "LanPort": 51143
-        }
+  "type": "spawn",
+  "gameID": 603498,
+  "spawn": {
+    "SpawnLocations": {
+      "Multi1": -1,
+      "Multi2": -1
     },
-    "client": {
-        "show_map_preview": 1
+    "Settings": {
+      "UIMapName": "Copacabana",
+      "MapHash": "d3797ec3d3e29cfa2ac81f9e08c9e7ebab142952",
+      "Seed": -1976956982,
+      "GameID": -1976956982,
+      "WOLGameID": -1976956982,
+      "Host": "No",
+      "IsSpectator": "No",
+      "Name": "devo1929",
+      "Port": 51143,
+      "Side": 0,
+      "Color": 0,
+      "GameSpeed": "0",
+      "Credits": "10000",
+      "UnitCount": "0",
+      "Superweapons": "Yes",
+      "Tournament": "1",
+      "ShortGame": "Yes",
+      "Bases": "Yes",
+      "MCVRedeploy": "Yes",
+      "MultipleFactory": "Yes",
+      "Crates": "No",
+      "GameMode": "Battle",
+      "FrameSendRate": "4",
+      "DisableSWvsYuri": "Yes"
+    },
+    "Other1": {
+      "Name": "neogrant",
+      "Side": 0,
+      "Color": 1,
+      "Ip": "98.111.198.94",
+      "Port": 1024,
+      "IPv6": "",
+      "PortV6": 0,
+      "LanIP": "",
+      "LanPort": 51143
     }
+  },
+  "client": {
+    "show_map_preview": 1
+  }
 }

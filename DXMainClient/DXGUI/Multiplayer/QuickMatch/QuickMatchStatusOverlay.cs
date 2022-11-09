@@ -5,8 +5,11 @@ using System.Timers;
 using ClientCore.Enums;
 using ClientGUI;
 using DTAClient.Domain.Multiplayer.CnCNet.QuickMatch;
+using DTAClient.Domain.Multiplayer.CnCNet.QuickMatch.Events;
 using DTAClient.Domain.Multiplayer.CnCNet.QuickMatch.Models;
-using DTAClient.Domain.Multiplayer.CnCNet.QuickMatch.Models.Events;
+using DTAClient.Domain.Multiplayer.CnCNet.QuickMatch.Responses;
+using DTAClient.Domain.Multiplayer.CnCNet.QuickMatch.Services;
+using DTAClient.Domain.Multiplayer.CnCNet.QuickMatch.Utilities;
 using Microsoft.Xna.Framework;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
@@ -96,7 +99,7 @@ namespace DTAClient.DXGUI.Multiplayer.QuickMatch
                 case QmErrorMessageEvent:
                     Disable();
                     return;
-                case QmRequestResponseEvent e:
+                case QmResponseEvent e:
                     HandleRequestResponseEvent(e);
                     return;
             }
@@ -119,14 +122,14 @@ namespace DTAClient.DXGUI.Multiplayer.QuickMatch
 
         private void HandleRequestingMatchEvent(QmRequestingMatchEvent e) => SetStatus(QmStrings.RequestingMatchStatus, e.CancelAction);
 
-        private void HandleRequestResponseEvent(QmRequestResponseEvent e)
+        private void HandleRequestResponseEvent(QmResponseEvent e)
         {
-            QmRequestResponse response = e.Response;
+            QmResponse response = e.Response;
             switch (true)
             {
-                case true when response is QmRequestWaitResponse:
+                case true when response is QmWaitResponse:
                     return; // need to keep the overlay open while waiting
-                case true when response is QmRequestSpawnResponse spawnResponse:
+                case true when response is QmSpawnResponse spawnResponse:
                     HandleSpawnResponseEvent(spawnResponse);
                     return;
                 default:
@@ -135,7 +138,7 @@ namespace DTAClient.DXGUI.Multiplayer.QuickMatch
             }
         }
 
-        private void HandleSpawnResponseEvent(QmRequestSpawnResponse spawnResponse)
+        private void HandleSpawnResponseEvent(QmSpawnResponse spawnResponse)
         {
             int interval = matchupFoundConfirmTimer.GetInterval();
             int ratio = 1000 / interval;
@@ -152,9 +155,9 @@ namespace DTAClient.DXGUI.Multiplayer.QuickMatch
             matchupFoundConfirmTimer.Start();
         }
 
-        private void AcceptMatchAsync(QmRequestSpawnResponseSpawn spawn) => qmService.AcceptMatchAsync(spawn);
+        private void AcceptMatchAsync(QmSpawn spawn) => qmService.AcceptMatchAsync(spawn);
 
-        private void RejectMatchAsync(QmRequestSpawnResponseSpawn spawn) => qmService.RejectMatchAsync(spawn);
+        private void RejectMatchAsync(QmSpawn spawn) => qmService.RejectMatchAsync(spawn);
 
         private void HandleCancelingMatchRequest() => SetStatus(QmStrings.CancelingMatchRequestStatus);
 

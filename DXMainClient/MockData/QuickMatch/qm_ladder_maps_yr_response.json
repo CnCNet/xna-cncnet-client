@@ -37,16 +37,16 @@
     }
   },
   {
-    "id": 2574,
-    "ladder_id": 1,
-    "map_id": 21,
-    "description": "Coldest Peak",
-    "bit_idx": 3,
+    "id": 2575,
+    "ladder_id": 0,
+    "map_id": 1408,
+    "description": "Copacabana",
+    "bit_idx": 4,
     "valid": 1,
     "spawn_order": "0,0",
     "created_at": "2022-10-31 23:07:40",
     "updated_at": "2022-10-31 23:07:40",
-    "team1_spawn_order": "     ",
+    "team1_spawn_order": "                                      ",
     "team2_spawn_order": "",
     "allowed_sides": [
       0,
@@ -61,15 +61,15 @@
       9,
       -1
     ],
-    "admin_description": "Coldest Peak",
+    "admin_description": "Copacabana",
     "map_pool_id": 56,
     "rejectable": 1,
     "default_reject": 0,
-    "hash": "ffe59ccf68fd743ee8849c615af84180396c8e67",
+    "hash": "d3797ec3d3e29cfa2ac81f9e08c9e7ebab142952",
     "map": {
-      "id": 21,
-      "hash": "ffe59ccf68fd743ee8849c615af84180396c8e67",
-      "name": "coldest.map",
+      "id": 1408,
+      "hash": "d3797ec3d3e29cfa2ac81f9e08c9e7ebab142952",
+      "name": "copacabana_d3797ec3d3e29cfa2ac81f9e08c9e7ebab142952",
       "ladder_id": 1
     }
   }

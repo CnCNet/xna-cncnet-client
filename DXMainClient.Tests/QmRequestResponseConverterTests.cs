@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using DTAClient.Domain.Multiplayer.CnCNet.QuickMatch.Models;
+using DTAClient.Domain.Multiplayer.CnCNet.QuickMatch.Responses;
 using Newtonsoft.Json;
 using NUnit.Framework;
 
@@ -16,7 +17,7 @@ namespace DXMainClient.Tests
 
             QmRequestResponse response = JsonConvert.DeserializeObject<QmRequestResponse>(json);
 
-            Assert.IsInstanceOf<QmRequestSpawnResponse>(response);
+            Assert.IsInstanceOf<QmSpawnResponse>(response);
         }
 
         [Test]
@@ -38,7 +39,7 @@ namespace DXMainClient.Tests
 
             QmRequestResponse response = JsonConvert.DeserializeObject<QmRequestResponse>(json);
 
-            Assert.IsInstanceOf<QmRequestWaitResponse>(response);
+            Assert.IsInstanceOf<QmWaitResponse>(response);
         }
 
         private static string GetSpawnJson() => GetJson("qm_spawn_response");

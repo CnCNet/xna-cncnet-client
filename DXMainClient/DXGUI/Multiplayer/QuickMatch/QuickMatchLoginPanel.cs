@@ -1,7 +1,8 @@
 ﻿using System;
 using ClientGUI;
 using DTAClient.Domain.Multiplayer.CnCNet.QuickMatch;
-using DTAClient.Domain.Multiplayer.CnCNet.QuickMatch.Models.Events;
+using DTAClient.Domain.Multiplayer.CnCNet.QuickMatch.Events;
+using DTAClient.Domain.Multiplayer.CnCNet.QuickMatch.Services;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
 

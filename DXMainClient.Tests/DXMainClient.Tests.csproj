@@ -33,6 +33,9 @@
         <WarningLevel>4</WarningLevel>
     </PropertyGroup>
     <ItemGroup>
+        <Reference Include="clientdx">
+          <HintPath>..\DXMainClient\bin\YRWindowsDXDebug\YR\WindowsDX\net48\clientdx.exe</HintPath>
+        </Reference>
         <Reference Include="System" />
         <Reference Include="System.Core" />
         <Reference Include="System.Data" />

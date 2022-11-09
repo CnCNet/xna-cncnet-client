@@ -1,19 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using ClientCore.Exceptions;
 using ClientGUI;
 using DTAClient.Domain.Multiplayer;
-using DTAClient.Domain.Multiplayer.CnCNet.QuickMatch;
+using DTAClient.Domain.Multiplayer.CnCNet.QuickMatch.Events;
 using DTAClient.Domain.Multiplayer.CnCNet.QuickMatch.Models;
-using DTAClient.Domain.Multiplayer.CnCNet.QuickMatch.Models.Events;
-using Localization;
-using Rampastring.Tools;
+using DTAClient.Domain.Multiplayer.CnCNet.QuickMatch.Requests;
+using DTAClient.Domain.Multiplayer.CnCNet.QuickMatch.Responses;
+using DTAClient.Domain.Multiplayer.CnCNet.QuickMatch.Services;
+using DTAClient.Domain.Multiplayer.CnCNet.QuickMatch.Utilities;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
-using Timer = System.Timers.Timer;
 
 namespace DTAClient.DXGUI.Multiplayer.QuickMatch
 {
@@ -155,7 +152,7 @@ namespace DTAClient.DXGUI.Multiplayer.QuickMatch
             qmService.RequestMatchAsync();
         }
 
-        private void HandleQuickMatchSpawnResponse(QmRequestResponse qmRequestResponse)
+        private void HandleQuickMatchSpawnResponse(QmResponse qmResponse)
         {
             XNAMessageBox.Show(WindowManager, QmStrings.GenericErrorTitle, "qm spawn");
         }

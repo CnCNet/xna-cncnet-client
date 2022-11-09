@@ -1,11 +1,10 @@
 ﻿using System.Collections.Generic;
 
-namespace DTAClient.Domain.Multiplayer.CnCNet.QuickMatch.Models
+namespace DTAClient.Domain.Multiplayer.CnCNet.QuickMatch.Models;
+
+public class QmData
 {
-    public class QmData
-    {
-        public List<QmLadder> Ladders { get; set; }
+    public List<QmLadder> Ladders { get; set; }
         
-        public List<QmUserAccount> UserAccounts { get; set; }
-    }
+    public List<QmUserAccount> UserAccounts { get; set; }
 }
