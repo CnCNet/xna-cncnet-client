@@ -934,6 +934,19 @@ namespace DTAClient.Online
 
             channels.ForEach(ch => ch.OnUserNameChanged(realOldNickname, newNickname));
         }
+
+        public void OnServerLatencyTested(int candidateCount, int closerCount)
+        {
+            wm.AddCallback(new Action<int, int>(DoServerLatencyTested), candidateCount, closerCount);
+        }
+
+        private void DoServerLatencyTested(int candidateCount, int closerCount)
+        {
+            MainChannel.AddMessage(new ChatMessage(
+                string.Format(
+                    "Lobby servers: {0} available, {1} fast.".L10N("UI:Main:LobbyServerLatencyTestResult"),
+                    candidateCount, closerCount)));
+        }
     }
 
     public class UserEventArgs : EventArgs

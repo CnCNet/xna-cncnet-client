@@ -469,6 +469,15 @@ namespace DTAClient.Online
                 Logger.Log($"Lobby server IP: {serverIPAddress}, latency: {serverLatencyString}.");
             }
 
+            {
+                int candidateCount = sortedServerAndLatencyResults.Count();
+                int closerCount = sortedServerAndLatencyResults.Count(
+                    serverAndLatencyResult => serverAndLatencyResult.Item2 <= MAXIMUM_LATENCY);
+
+                Logger.Log($"Lobby servers: {candidateCount} available, {closerCount} fast.");
+                connectionManager.OnServerLatencyTested(candidateCount, closerCount);
+            }
+
             return sortedServerAndLatencyResults.Select(taskResult => taskResult.Item1).ToList(); // Server
         }
 
