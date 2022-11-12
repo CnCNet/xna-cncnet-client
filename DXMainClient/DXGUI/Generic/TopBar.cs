@@ -161,7 +161,7 @@ namespace DTAClient.DXGUI.Generic
             lblTime = new XNALabel(WindowManager);
             lblTime.Name = "lblTime";
             lblTime.FontIndex = 1;
-            lblTime.Text = "99:99:99";
+            lblTime.Text = Renderer.GetSafeString(new DateTime(1, 1, 1, 23, 59, 59).ToLongTimeString(), lblTime.FontIndex);
             lblTime.ClientRectangle = new Rectangle(Width -
                 (int)Renderer.GetTextDimensions(lblTime.Text, lblTime.FontIndex).X - 12, 4,
                 lblTime.Width, lblTime.Height);
