@@ -33,9 +33,6 @@
         <WarningLevel>4</WarningLevel>
     </PropertyGroup>
     <ItemGroup>
-        <Reference Include="clientdx">
-          <HintPath>..\DXMainClient\bin\YRWindowsDXDebug\YR\WindowsDX\net48\clientdx.exe</HintPath>
-        </Reference>
         <Reference Include="System" />
         <Reference Include="System.Core" />
         <Reference Include="System.Data" />
@@ -43,25 +40,28 @@
     </ItemGroup>
     <ItemGroup>
         <Compile Include="Properties\AssemblyInfo.cs" />
-        <Compile Include="QmRequestResponseConverterTests.cs" />
+        <Compile Include="QuickMatch\QmRequestResponseConverterTests.cs" />
     </ItemGroup>
     <ItemGroup>
       <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
       <PackageReference Include="NUnit" Version="3.13.3" />
     </ItemGroup>
     <ItemGroup>
-      <Content Include="TestData\QmResponses\qm_please_wait_response.json">
-        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      </Content>
-      <Content Include="TestData\QmResponses\qm_spawn_response.json">
-        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      </Content>
-    </ItemGroup>
-    <ItemGroup>
       <ProjectReference Include="..\DXMainClient\DXMainClient.csproj">
         <Project>{97458c1e-2e6c-4c5c-93c7-16a6712802e9}</Project>
         <Name>DXMainClient</Name>
       </ProjectReference>
+    </ItemGroup>
+    <ItemGroup>
+      <Folder Include="TestData\QuickMatch" />
+    </ItemGroup>
+    <ItemGroup>
+      <Content Include="TestData\QuickMatch\QmResponses\qm_please_wait_response.json">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </Content>
+      <Content Include="TestData\QuickMatch\QmResponses\qm_spawn_response.json">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </Content>
     </ItemGroup>
     <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
     <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

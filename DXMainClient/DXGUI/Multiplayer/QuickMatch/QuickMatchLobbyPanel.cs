@@ -152,10 +152,10 @@ namespace DTAClient.DXGUI.Multiplayer.QuickMatch
             qmService.RequestMatchAsync();
         }
 
-        private void HandleQuickMatchSpawnResponse(QmResponse qmResponse)
-        {
-            XNAMessageBox.Show(WindowManager, QmStrings.GenericErrorTitle, "qm spawn");
-        }
+        // private void HandleQuickMatchSpawnResponse(QmResponse qmResponse)
+        // {
+        //     XNAMessageBox.Show(WindowManager, QmStrings.GenericErrorTitle, "qm spawn");
+        // }
 
         private QmMatchRequest CreateMatchRequest()
         {

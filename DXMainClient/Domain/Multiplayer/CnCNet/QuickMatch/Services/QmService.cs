@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Reflection;
 using System.Threading.Tasks;
 using System.Timers;
@@ -65,8 +66,6 @@ public class QmService : IDisposable
 
     public string GetCachedLadder() => qmUserSettings.Ladder;
 
-    public bool IsServerAvailable() => apiService.IsServerAvailable();
-
     /// <summary>
     /// Login process to cncnet.
     /// </summary>
@@ -75,8 +74,8 @@ public class QmService : IDisposable
     public void LoginAsync(string email, string password) =>
         ExecuteLoginRequest(async () =>
         {
-            QmAuthData authData = await apiService.LoginAsync(email, password);
-            FinishLogin(authData, email);
+            QmResponse<QmAuthData> response = await apiService.LoginAsync(email, password);
+            FinishLogin(response, email);
         });
 
     /// <summary>
@@ -85,8 +84,8 @@ public class QmService : IDisposable
     public void RefreshAsync() =>
         ExecuteLoginRequest(async () =>
         {
-            QmAuthData authData = await apiService.RefreshAsync();
-            FinishLogin(authData);
+            QmResponse<QmAuthData> response = await apiService.RefreshAsync();
+            FinishLogin(response);
         });
 
     /// <summary>
@@ -145,14 +144,29 @@ public class QmService : IDisposable
     }
 
     public void LoadLaddersAndUserAccountsAsync() =>
-        ExecuteRequest(new QmLoadingLaddersAndUserAccountsEvent(), async () =>
+        ExecuteLoadingRequest(new QmLoadingLaddersAndUserAccountsEvent(), async () =>
         {
-            Task<IEnumerable<QmLadder>> loadLaddersTask = apiService.LoadLaddersAsync();
-            Task<IEnumerable<QmUserAccount>> loadUserAccountsTask = apiService.LoadUserAccountsAsync();
+            Task<QmResponse<IEnumerable<QmLadder>>> loadLaddersTask = apiService.LoadLaddersAsync();
+            Task<QmResponse<IEnumerable<QmUserAccount>>> loadUserAccountsTask = apiService.LoadUserAccountsAsync();
 
             await Task.WhenAll(loadLaddersTask, loadUserAccountsTask);
-            qmData.Ladders = loadLaddersTask.Result.ToList();
-            qmData.UserAccounts = loadUserAccountsTask.Result
+
+            QmResponse<IEnumerable<QmLadder>> loadLaddersResponse = loadLaddersTask.Result;
+            if (!loadLaddersResponse.IsSuccessStatusCode)
+            {
+                QmEvent?.Invoke(this, new QmErrorMessageEvent(string.Format(QmStrings.LoadingUserAccountsErrorFormat, loadLaddersResponse.ReasonPhrase)));
+                return;
+            }
+
+            QmResponse<IEnumerable<QmUserAccount>> loadUserAccountsReponse = loadUserAccountsTask.Result;
+            if (!loadUserAccountsReponse.IsSuccessStatusCode)
+            {
+                QmEvent?.Invoke(this, new QmErrorMessageEvent(string.Format(QmStrings.LoadingUserAccountsErrorFormat, loadUserAccountsReponse.ReasonPhrase)));
+                return;
+            }
+
+            qmData.Ladders = loadLaddersTask.Result.Data.ToList();
+            qmData.UserAccounts = loadUserAccountsTask.Result.Data
                 .Where(ua => qmSettings.AllowedLadders.Contains(ua.Ladder.Game))
                 .GroupBy(ua => ua.Id) // remove possible duplicates
                 .Select(g => g.First())
@@ -175,26 +189,39 @@ public class QmService : IDisposable
         });
 
     public void LoadLadderMapsForAbbrAsync(string ladderAbbr) =>
-        ExecuteRequest(new QmLoadingLadderMapsEvent(), async () =>
+        ExecuteLoadingRequest(new QmLoadingLadderMapsEvent(), async () =>
         {
-            IEnumerable<QmLadderMap> ladderMaps = await apiService.LoadLadderMapsForAbbrAsync(ladderAbbr);
-            QmEvent?.Invoke(this, new QmLadderMapsEvent(ladderMaps));
+            QmResponse<IEnumerable<QmLadderMap>> ladderMapsResponse = await apiService.LoadLadderMapsForAbbrAsync(ladderAbbr);
+            if (!ladderMapsResponse.IsSuccessStatusCode)
+            {
+                QmEvent?.Invoke(this, new QmErrorMessageEvent(string.Format(QmStrings.LoadingLadderMapsErrorFormat, ladderMapsResponse.ReasonPhrase)));
+                return;
+            }
+
+            QmEvent?.Invoke(this, new QmLadderMapsEvent(ladderMapsResponse.Data));
         });
 
     public void LoadLadderStatsForAbbrAsync(string ladderAbbr) =>
-        ExecuteRequest(new QmLoadingLadderStatsEvent(), async () =>
+        ExecuteLoadingRequest(new QmLoadingLadderStatsEvent(), async () =>
         {
-            QmLadderStats ladderStats = await apiService.LoadLadderStatsForAbbrAsync(ladderAbbr);
-            QmEvent?.Invoke(this, new QmLadderStatsEvent(ladderStats));
+            QmResponse<QmLadderStats> ladderStatsResponse = await apiService.LoadLadderStatsForAbbrAsync(ladderAbbr);
+
+            if (!ladderStatsResponse.IsSuccessStatusCode)
+            {
+                QmEvent?.Invoke(this, new QmErrorMessageEvent(string.Format(QmStrings.LoadingLadderStatsErrorFormat, ladderStatsResponse.ReasonPhrase)));
+                return;
+            }
+
+            QmEvent?.Invoke(this, new QmLadderStatsEvent(ladderStatsResponse.Data));
         });
 
     /// <summary>
     /// This is called when the user clicks the button to begin searching for a match.
     /// </summary>
     public void RequestMatchAsync() =>
-        ExecuteRequest(new QmRequestingMatchEvent(CancelRequestMatchAsync), async () =>
+        ExecuteLoadingRequest(new QmRequestingMatchEvent(CancelRequestMatchAsync), async () =>
         {
-            QmResponse response = await apiService.QuickMatchRequestAsync(userAccount.Ladder.Abbreviation, userAccount.Username, GetMatchRequest());
+            QmResponse<QmResponseMessage> response = await apiService.QuickMatchRequestAsync(userAccount.Ladder.Abbreviation, userAccount.Username, GetMatchRequest());
             HandleQuickMatchResponse(response);
         });
 
@@ -203,10 +230,10 @@ public class QmService : IDisposable
     /// </summary>
     public void AcceptMatchAsync(QmSpawn spawn)
     {
-        ExecuteRequest(new QmReadyRequestMatchEvent(), async () =>
+        ExecuteLoadingRequest(new QmReadyRequestMatchEvent(), async () =>
         {
             var readyRequest = new QmReadyRequest(spawn.Settings.Seed);
-            QmResponse response = await apiService.QuickMatchRequestAsync(userAccount.Ladder.Abbreviation, userAccount.Username, readyRequest);
+            QmResponse<QmResponseMessage> response = await apiService.QuickMatchRequestAsync(userAccount.Ladder.Abbreviation, userAccount.Username, readyRequest);
             HandleQuickMatchResponse(response);
         });
     }
@@ -216,10 +243,10 @@ public class QmService : IDisposable
     /// </summary>
     public void RejectMatchAsync(QmSpawn spawn)
     {
-        ExecuteRequest(new QmNotReadyRequestMatchEvent(), async () =>
+        ExecuteLoadingRequest(new QmNotReadyRequestMatchEvent(), async () =>
         {
             var notReadyRequest = new QmNotReadyRequest(spawn.Settings.Seed);
-            QmResponse response = await apiService.QuickMatchRequestAsync(userAccount.Ladder.Abbreviation, userAccount.Username, notReadyRequest);
+            QmResponse<QmResponseMessage> response = await apiService.QuickMatchRequestAsync(userAccount.Ladder.Abbreviation, userAccount.Username, notReadyRequest);
             HandleQuickMatchResponse(response);
         });
         CancelRequestMatchAsync();
@@ -312,17 +339,17 @@ public class QmService : IDisposable
     private void RetryRequestMatchAsync() =>
         RequestMatchAsync();
 
-    private void HandleQuickMatchResponse(QmResponse qmResponse)
+    private void HandleQuickMatchResponse(QmResponse<QmResponseMessage> qmResponse)
     {
         switch (true)
         {
-            case true when qmResponse is QmWaitResponse waitResponse:
+            case true when qmResponse.Data is QmWaitResponse waitResponse:
                 retryRequestmatchTimer.Interval = waitResponse.CheckBack * 1000;
                 retryRequestmatchTimer.Start();
                 break;
         }
 
-        QmEvent?.Invoke(this, new QmResponseEvent(qmResponse));
+        QmEvent?.Invoke(this, new QmResponseEvent(qmResponse.Data));
     }
 
     /// <summary>
@@ -352,23 +379,23 @@ public class QmService : IDisposable
     }
 
     private void CancelRequestMatchAsync() =>
-        ExecuteRequest(new QmCancelingRequestMatchEvent(), async () =>
+        ExecuteLoadingRequest(new QmCancelingRequestMatchEvent(), async () =>
         {
             retryRequestmatchTimer.Stop();
-            QmResponse response = await apiService.QuickMatchRequestAsync(userAccount.Ladder.Abbreviation, userAccount.Username, new QmQuitRequest());
-            QmEvent?.Invoke(this, new QmResponseEvent(response));
+            QmResponse<QmResponseMessage> response = await apiService.QuickMatchRequestAsync(userAccount.Ladder.Abbreviation, userAccount.Username, new QmQuitRequest());
+            QmEvent?.Invoke(this, new QmResponseEvent(response.Data));
         });
 
     private void ExecuteLoginRequest(Func<Task> func) =>
-        ExecuteRequest(new QmLoggingInEvent(), async () =>
+        ExecuteLoadingRequest(new QmLoggingInEvent(), async () =>
         {
             await func();
             QmEvent?.Invoke(this, new QmLoginEvent());
         });
 
-    private void ExecuteRequest(QmEvent qmEvent, Func<Task> requestAction)
+    private void ExecuteLoadingRequest(QmEvent qmLoadingEvent, Func<Task> requestAction)
     {
-        QmEvent?.Invoke(this, qmEvent);
+        QmEvent?.Invoke(this, qmLoadingEvent);
         Task.Run(async () =>
         {
             try
@@ -383,12 +410,38 @@ public class QmService : IDisposable
         });
     }
 
-    private void FinishLogin(QmAuthData authData, string email = null)
+    private void FinishLogin(QmResponse<QmAuthData> response, string email = null)
     {
-        qmUserSettings.AuthData = authData;
+        if (!response.IsSuccessStatusCode)
+        {
+            HandleFailedLogin(response);
+            return;
+        }
+
+        qmUserSettings.AuthData = response.Data;
         qmUserSettings.Email = email ?? qmUserSettings.Email;
         userSettingsService.SaveSettings();
 
-        apiService.SetToken(authData.Token);
+        apiService.SetToken(response.Data.Token);
+    }
+
+    private void HandleFailedLogin(QmResponse<QmAuthData> response)
+    {
+        string message;
+        switch (response.StatusCode)
+        {
+            case HttpStatusCode.BadGateway:
+                message = QmStrings.ServerUnreachableError;
+                break;
+            case HttpStatusCode.Unauthorized:
+                message = QmStrings.InvalidUsernamePasswordError;
+                break;
+            default:
+                var responseBody = response.ReadContentAsStringAsync().Result;
+                message = string.Format(QmStrings.LoggingInUnknownErrorFormat, response.ReasonPhrase, responseBody);
+                break;
+        }
+
+        QmEvent?.Invoke(this, new QmErrorMessageEvent(message ?? QmStrings.UnknownError));
     }
 }

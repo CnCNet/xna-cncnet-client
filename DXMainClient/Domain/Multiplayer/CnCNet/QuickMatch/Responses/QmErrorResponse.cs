@@ -1,5 +1,7 @@
-﻿namespace DTAClient.Domain.Multiplayer.CnCNet.QuickMatch.Responses;
+﻿using DTAClient.Domain.Multiplayer.CnCNet.QuickMatch.Models;
 
-public class QmErrorResponse : QmResponse
+namespace DTAClient.Domain.Multiplayer.CnCNet.QuickMatch.Responses;
+
+public class QmErrorResponse : QmResponseMessage
 {
 }

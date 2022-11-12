@@ -1,39 +1,57 @@
 ﻿using System;
+using System.Net;
+using System.Net.Http;
+using System.Threading.Tasks;
 using DTAClient.Domain.Multiplayer.CnCNet.QuickMatch.Converters;
 using DTAClient.Domain.Multiplayer.CnCNet.QuickMatch.Requests;
-using DTAClient.Domain.Multiplayer.CnCNet.QuickMatch.Utilities;
 using Newtonsoft.Json;
+using Rampastring.Tools;
 
 namespace DTAClient.Domain.Multiplayer.CnCNet.QuickMatch.Responses;
 
 [JsonConverter(typeof(QmRequestResponseConverter))]
-public abstract class QmResponse
+public class QmResponse<T>
 {
-    public const string TypeKey = "type";
+    public QmRequest Request { get; }
 
-    [JsonProperty("description")]
-    public string Description { get; set; }
-
-    [JsonProperty("message")]
-    public string Message { get; set; }
-
-    [JsonIgnore]
-    public bool IsSuccessful => this is not QmErrorResponse;
-
-    [JsonIgnore]
-    public QmRequest Request { get; set; }
-
-    public static Type GetSubType(string type)
+    public T Data
     {
-        return type switch
-        {
-            QmResponseTypes.Wait => typeof(QmWaitResponse),
-            QmResponseTypes.Spawn => typeof(QmSpawnResponse),
-            QmResponseTypes.Error => typeof(QmErrorResponse),
-            QmResponseTypes.Fatal => typeof(QmFatalResponse),
-            QmResponseTypes.Update => typeof(QmUpdateResponse),
-            QmResponseTypes.Quit => typeof(QmQuitResponse),
-            _ => null
-        };
+        get => _Data ?? GetData();
+        set => _Data = value;
     }
+
+    private T _Data;
+
+    private HttpResponseMessage Response { get; }
+
+    public QmResponse(QmRequest request = null, HttpResponseMessage response = null)
+    {
+        Request = request;
+        Response = response;
+    }
+
+    public bool IsSuccessStatusCode => Response?.IsSuccessStatusCode ?? false;
+
+    public string ReasonPhrase => Response?.ReasonPhrase;
+
+    public HttpStatusCode StatusCode => Response?.StatusCode ?? HttpStatusCode.InternalServerError;
+
+    public Task<string> ReadContentAsStringAsync() => Response?.Content.ReadAsStringAsync();
+
+    private T GetData()
+    {
+        try
+        {
+            return JsonConvert.DeserializeObject<T>(ReadContentAsStringAsync().Result);
+        }
+        catch (Exception e)
+        {
+            Logger.Log(e.ToString());
+            return default;
+        }
+    }
+}
+
+public class QmResponse : QmResponse<object>
+{
 }

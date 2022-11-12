@@ -124,7 +124,7 @@ namespace DTAClient.DXGUI.Multiplayer.QuickMatch
 
         private void HandleRequestResponseEvent(QmResponseEvent e)
         {
-            QmResponse response = e.Response;
+            QmResponseMessage response = e.Response;
             switch (true)
             {
                 case true when response is QmWaitResponse:

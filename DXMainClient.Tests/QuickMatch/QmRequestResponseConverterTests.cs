@@ -1,11 +1,10 @@
 ﻿using System;
 using System.IO;
-using DTAClient.Domain.Multiplayer.CnCNet.QuickMatch.Models;
 using DTAClient.Domain.Multiplayer.CnCNet.QuickMatch.Responses;
 using Newtonsoft.Json;
 using NUnit.Framework;
 
-namespace DXMainClient.Tests
+namespace DXMainClient.Tests.QuickMatch
 {
     [TestFixture]
     public class QmRequestResponseConverterTests
@@ -15,7 +14,7 @@ namespace DXMainClient.Tests
         {
             string json = GetSpawnJson();
 
-            QmRequestResponse response = JsonConvert.DeserializeObject<QmRequestResponse>(json);
+            QmSpawnResponse response = JsonConvert.DeserializeObject<QmSpawnResponse>(json);
 
             Assert.IsInstanceOf<QmSpawnResponse>(response);
         }
@@ -25,7 +24,7 @@ namespace DXMainClient.Tests
         {
             string jsonIn = GetSpawnJson();
 
-            QmRequestResponse response = JsonConvert.DeserializeObject<QmRequestResponse>(jsonIn);
+            QmSpawnResponse response = JsonConvert.DeserializeObject<QmSpawnResponse>(jsonIn);
 
             string jsonOut = JsonConvert.SerializeObject(response);
 
@@ -37,7 +36,7 @@ namespace DXMainClient.Tests
         {
             string json = GetPleaseWaitJson();
 
-            QmRequestResponse response = JsonConvert.DeserializeObject<QmRequestResponse>(json);
+            QmWaitResponse response = JsonConvert.DeserializeObject<QmWaitResponse>(json);
 
             Assert.IsInstanceOf<QmWaitResponse>(response);
         }
@@ -46,6 +45,6 @@ namespace DXMainClient.Tests
 
         private static string GetPleaseWaitJson() => GetJson("qm_please_wait_response");
 
-        private static string GetJson(string filename) => File.ReadAllText($"TestData/QmResponses/{filename}.json");
+        private static string GetJson(string filename) => File.ReadAllText($"TestData/QuickMatch/QmResponses/{filename}.json");
     }
 }

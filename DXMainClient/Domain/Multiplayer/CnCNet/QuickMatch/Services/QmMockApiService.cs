@@ -11,30 +11,28 @@ namespace DTAClient.Domain.Multiplayer.CnCNet.QuickMatch.Services;
 
 public class QmMockApiService : QmApiService
 {
-    public override async Task<IEnumerable<QmLadderMap>> LoadLadderMapsForAbbrAsync(string ladderAbbreviation) => LoadMockData<IEnumerable<QmLadderMap>>($"qm_ladder_maps_{ladderAbbreviation}_response.json");
+    public override async Task<QmResponse<IEnumerable<QmLadderMap>>> LoadLadderMapsForAbbrAsync(string ladderAbbreviation) => LoadMockData<QmResponse<IEnumerable<QmLadderMap>>>($"qm_ladder_maps_{ladderAbbreviation}_response.json");
 
-    public override async Task<QmLadderStats> LoadLadderStatsForAbbrAsync(string ladderAbbreviation) => LoadMockData<QmLadderStats>("qm_ladder_stats_response.json");
+    public override async Task<QmResponse<QmLadderStats>> LoadLadderStatsForAbbrAsync(string ladderAbbreviation) => LoadMockData<QmResponse<QmLadderStats>>("qm_ladder_stats_response.json");
 
-    public override async Task<IEnumerable<QmUserAccount>> LoadUserAccountsAsync() => LoadMockData<IEnumerable<QmUserAccount>>("qm_user_accounts_response.json");
+    public override async Task<QmResponse<IEnumerable<QmUserAccount>>> LoadUserAccountsAsync() => LoadMockData<QmResponse<IEnumerable<QmUserAccount>>>("qm_user_accounts_response.json");
 
-    public override async Task<IEnumerable<QmLadder>> LoadLaddersAsync() => LoadMockData<IEnumerable<QmLadder>>("qm_ladders_response.json");
+    public override async Task<QmResponse<IEnumerable<QmLadder>>> LoadLaddersAsync() => LoadMockData<QmResponse<IEnumerable<QmLadder>>>("qm_ladders_response.json");
 
-    public override async Task<QmAuthData> LoginAsync(string email, string password) => LoadMockData<QmAuthData>("qm_login_response.json");
+    public override async Task<QmResponse<QmAuthData>> LoginAsync(string email, string password) => LoadMockData<QmResponse<QmAuthData>>("qm_login_response.json");
 
-    public override async Task<QmAuthData> RefreshAsync() => LoadMockData<QmAuthData>("qm_login_response.json");
+    public override async Task<QmResponse<QmAuthData>> RefreshAsync() => LoadMockData<QmResponse<QmAuthData>>("qm_login_response.json");
 
-    public override async Task<QmResponse> QuickMatchRequestAsync(string ladder, string playerName, QmRequest qmRequest)
+    public override async Task<QmResponse<QmResponseMessage>> QuickMatchRequestAsync(string ladder, string playerName, QmRequest qmRequest)
     {
         return true switch
         {
-            true when qmRequest.Type == QmRequestTypes.Quit => LoadMockData<QmResponse>("qm_find_match_quit_response.json"),
-            true when qmRequest.Type == QmRequestTypes.MatchMeUp => LoadMockData<QmResponse>("qm_find_match_spawn_response.json"),
+            true when qmRequest.Type == QmRequestTypes.Quit => LoadMockData<QmResponse<QmResponseMessage>>("qm_find_match_quit_response.json"),
+            true when qmRequest.Type == QmRequestTypes.MatchMeUp => LoadMockData<QmResponse<QmResponseMessage>>("qm_find_match_spawn_response.json"),
             // true when qmRequest.Type ==QmRequestTypes.Update && updateRequest?.Status == QmUpdateRequestStatuses.Ready => LoadMockData<QmRequestResponse>("qm_find_match_please_wait_response.json"),
-            _ => new QmUpdateResponse() { Message = "default response" }
+            _ => new QmResponse<QmResponseMessage> { Data = new QmUpdateResponse { Message = "default response" } }
         };
     }
-
-    public override bool IsServerAvailable() => true;
 
     private static T LoadMockData<T>(string mockDataFileName)
     {
