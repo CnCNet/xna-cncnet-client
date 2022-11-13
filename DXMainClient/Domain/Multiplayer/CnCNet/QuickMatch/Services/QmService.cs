@@ -13,6 +13,7 @@ using DTAClient.Domain.Multiplayer.CnCNet.QuickMatch.Models;
 using DTAClient.Domain.Multiplayer.CnCNet.QuickMatch.Requests;
 using DTAClient.Domain.Multiplayer.CnCNet.QuickMatch.Responses;
 using DTAClient.Domain.Multiplayer.CnCNet.QuickMatch.Utilities;
+using DTAClient.Domain.Multiplayer.CnCNet.Services;
 using DTAClient.Online;
 using JWT;
 using JWT.Algorithms;
@@ -27,7 +28,7 @@ public class QmService : IDisposable
     public const string QmVersion = "2.0";
 
     private readonly QmUserSettingsService userSettingsService;
-    private readonly QmApiService apiService;
+    private readonly ApiService apiService;
     private readonly QmSettingsService settingsService;
 
     private readonly QmUserSettings qmUserSettings;
@@ -42,7 +43,7 @@ public class QmService : IDisposable
     private QmService()
     {
         userSettingsService = QmUserSettingsService.GetInstance();
-        apiService = QmApiService.GetInstance();
+        apiService = ApiService.GetInstance();
         settingsService = QmSettingsService.GetInstance();
 
         qmUserSettings = userSettingsService.GetSettings();
@@ -75,7 +76,7 @@ public class QmService : IDisposable
         ExecuteLoginRequest(async () =>
         {
             QmResponse<QmAuthData> response = await apiService.LoginAsync(email, password);
-            FinishLogin(response, email);
+            return FinishLogin(response, email);
         });
 
     /// <summary>
@@ -85,7 +86,7 @@ public class QmService : IDisposable
         ExecuteLoginRequest(async () =>
         {
             QmResponse<QmAuthData> response = await apiService.RefreshAsync();
-            FinishLogin(response);
+            return FinishLogin(response);
         });
 
     /// <summary>
@@ -349,7 +350,7 @@ public class QmService : IDisposable
                 break;
         }
 
-        QmEvent?.Invoke(this, new QmResponseEvent(qmResponse.Data));
+        QmEvent?.Invoke(this, new QmResponseEvent(qmResponse));
     }
 
     /// <summary>
@@ -383,14 +384,14 @@ public class QmService : IDisposable
         {
             retryRequestmatchTimer.Stop();
             QmResponse<QmResponseMessage> response = await apiService.QuickMatchRequestAsync(userAccount.Ladder.Abbreviation, userAccount.Username, new QmQuitRequest());
-            QmEvent?.Invoke(this, new QmResponseEvent(response.Data));
+            QmEvent?.Invoke(this, new QmResponseEvent(response));
         });
 
-    private void ExecuteLoginRequest(Func<Task> func) =>
+    private void ExecuteLoginRequest(Func<Task<bool>> loginFunction) =>
         ExecuteLoadingRequest(new QmLoggingInEvent(), async () =>
         {
-            await func();
-            QmEvent?.Invoke(this, new QmLoginEvent());
+            if (await loginFunction())
+                QmEvent?.Invoke(this, new QmLoginEvent());
         });
 
     private void ExecuteLoadingRequest(QmEvent qmLoadingEvent, Func<Task> requestAction)
@@ -410,12 +411,12 @@ public class QmService : IDisposable
         });
     }
 
-    private void FinishLogin(QmResponse<QmAuthData> response, string email = null)
+    private bool FinishLogin(QmResponse<QmAuthData> response, string email = null)
     {
         if (!response.IsSuccessStatusCode)
         {
             HandleFailedLogin(response);
-            return;
+            return false;
         }
 
         qmUserSettings.AuthData = response.Data;
@@ -423,6 +424,7 @@ public class QmService : IDisposable
         userSettingsService.SaveSettings();
 
         apiService.SetToken(response.Data.Token);
+        return true;
     }
 
     private void HandleFailedLogin(QmResponse<QmAuthData> response)

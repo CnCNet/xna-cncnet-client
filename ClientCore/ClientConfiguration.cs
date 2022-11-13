@@ -254,7 +254,9 @@ namespace ClientCore
 
         public string MPMapsIniPath => SafePath.CombineFilePath(clientDefinitionsIni.GetStringValue(SETTINGS, "MPMapsPath", SafePath.CombineFilePath("INI", "MPMaps.ini")));
 
-        public string QuickMatchPath => clientDefinitionsIni.GetStringValue(SETTINGS, "QuickMatchPath", "INI/QuickMatch.ini");
+        public string ApiIniPath => clientDefinitionsIni.GetStringValue(SETTINGS, "QuickMatchPath", "INI/API.ini");
+
+        public string QuickMatchIniPath => clientDefinitionsIni.GetStringValue(SETTINGS, "QuickMatchPath", "INI/QuickMatch.ini");
 
         public string KeyboardINI => clientDefinitionsIni.GetStringValue(SETTINGS, "KeyboardINI", "Keyboard.ini");
 

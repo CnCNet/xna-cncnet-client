@@ -1,17 +1,11 @@
 ﻿using System;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Timers;
-using ClientCore.Exceptions;
 using ClientGUI;
-using DTAClient.Domain.Multiplayer.CnCNet.QuickMatch;
 using DTAClient.Domain.Multiplayer.CnCNet.QuickMatch.Events;
 using DTAClient.Domain.Multiplayer.CnCNet.QuickMatch.Models;
 using DTAClient.Domain.Multiplayer.CnCNet.QuickMatch.Services;
 using Microsoft.Xna.Framework;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
-using Timer = System.Timers.Timer;
 
 namespace DTAClient.DXGUI.Multiplayer.QuickMatch
 {

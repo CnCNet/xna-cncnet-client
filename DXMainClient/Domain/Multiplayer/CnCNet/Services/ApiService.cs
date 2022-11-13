@@ -5,24 +5,25 @@ using System.Threading.Tasks;
 using DTAClient.Domain.Multiplayer.CnCNet.QuickMatch.Models;
 using DTAClient.Domain.Multiplayer.CnCNet.QuickMatch.Requests;
 using DTAClient.Domain.Multiplayer.CnCNet.QuickMatch.Responses;
+using DTAClient.Domain.Multiplayer.CnCNet.QuickMatch.Services;
 using DTAClient.Domain.Multiplayer.CnCNet.QuickMatch.Utilities;
 
-namespace DTAClient.Domain.Multiplayer.CnCNet.QuickMatch.Services;
+namespace DTAClient.Domain.Multiplayer.CnCNet.Services;
 
-public class QmApiService : IDisposable
+public class ApiService : IDisposable
 {
     private static bool useMockService = false;
-    private static QmApiService instance;
-    private readonly QmSettings qmSettings;
+    private static ApiService instance;
+    public readonly ApiSettings ApiSettings;
     private QmHttpClient _httpClient;
     private string token;
 
-    protected QmApiService()
+    protected ApiService()
     {
-        qmSettings = QmSettingsService.GetInstance().GetSettings();
+        ApiSettings = ApiSettingsService.GetInstance().GetSettings();
     }
 
-    public static QmApiService GetInstance() => instance ??= useMockService ? new QmMockApiService() : new QmApiService();
+    public static ApiService GetInstance() => instance ??= useMockService ? new MockApiService() : new ApiService();
 
     public void SetToken(string token)
     {
@@ -34,34 +35,34 @@ public class QmApiService : IDisposable
     }
 
     public virtual async Task<QmResponse<IEnumerable<QmLadderMap>>> LoadLadderMapsForAbbrAsync(string ladderAbbreviation)
-        => await GetAsync<IEnumerable<QmLadderMap>>(string.Format(qmSettings.GetLadderMapsUrlFormat, ladderAbbreviation));
+        => await GetAsync<IEnumerable<QmLadderMap>>(string.Format(ApiSettings.GetLadderMapsUrlFormat, ladderAbbreviation));
 
     public virtual async Task<QmResponse<QmLadderStats>> LoadLadderStatsForAbbrAsync(string ladderAbbreviation)
-        => await GetAsync<QmLadderStats>(string.Format(qmSettings.GetLadderStatsUrlFormat, ladderAbbreviation));
+        => await GetAsync<QmLadderStats>(string.Format(ApiSettings.GetLadderStatsUrlFormat, ladderAbbreviation));
 
     public virtual async Task<QmResponse<IEnumerable<QmUserAccount>>> LoadUserAccountsAsync()
-        => await GetAsync<IEnumerable<QmUserAccount>>(qmSettings.GetUserAccountsUrl);
+        => await GetAsync<IEnumerable<QmUserAccount>>(ApiSettings.GetUserAccountsUrl);
 
     public virtual async Task<QmResponse<IEnumerable<QmLadder>>> LoadLaddersAsync()
-        => await GetAsync<IEnumerable<QmLadder>>(qmSettings.GetLaddersUrl);
+        => await GetAsync<IEnumerable<QmLadder>>(ApiSettings.GetLaddersUrl);
 
     public virtual async Task<QmResponse<QmAuthData>> LoginAsync(string email, string password)
-        => await PostAsync<QmAuthData>(qmSettings.LoginUrl, new QMLoginRequest { Email = email, Password = password });
+        => await PostAsync<QmAuthData>(ApiSettings.LoginUrl, new QMLoginRequest { Email = email, Password = password });
 
     public virtual async Task<QmResponse<QmAuthData>> RefreshAsync()
-        => await GetAsync<QmAuthData>(qmSettings.RefreshUrl);
+        => await GetAsync<QmAuthData>(ApiSettings.RefreshUrl);
 
     public virtual async Task<QmResponse<bool>> IsServerAvailable()
-        => await GetAsync(new QmRequest { Url = qmSettings.ServerStatusUrl }, true, false);
+        => await GetAsync(new QmRequest { Url = ApiSettings.ServerStatusUrl }, true, false);
 
     public virtual async Task<QmResponse<QmResponseMessage>> QuickMatchRequestAsync(string ladder, string playerName, QmRequest qmRequest)
     {
-        qmRequest.Url = string.Format(qmSettings.QuickMatchUrlFormat, ladder, playerName);
+        qmRequest.Url = string.Format(ApiSettings.QuickMatchUrlFormat, ladder, playerName);
         return await PostAsync<QmResponseMessage>(qmRequest, qmRequest);
     }
 
     private QmHttpClient GetHttpClient() =>
-        _httpClient ??= new QmHttpClient { BaseAddress = new Uri(qmSettings.BaseUrl), Timeout = TimeSpan.FromSeconds(10) };
+        _httpClient ??= new QmHttpClient { BaseAddress = new Uri(ApiSettings.BaseUrl), Timeout = TimeSpan.FromSeconds(10) };
 
     private async Task<QmResponse<T>> GetAsync<T>(string url)
         => await GetAsync<T>(new QmRequest { Url = url });

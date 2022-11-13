@@ -124,12 +124,12 @@ namespace DTAClient.DXGUI.Multiplayer.QuickMatch
 
         private void HandleRequestResponseEvent(QmResponseEvent e)
         {
-            QmResponseMessage response = e.Response;
+            QmResponseMessage responseMessage = e.Response.Data;
             switch (true)
             {
-                case true when response is QmWaitResponse:
+                case true when responseMessage is QmWaitResponse:
                     return; // need to keep the overlay open while waiting
-                case true when response is QmSpawnResponse spawnResponse:
+                case true when responseMessage is QmSpawnResponse spawnResponse:
                     HandleSpawnResponseEvent(spawnResponse);
                     return;
                 default:
