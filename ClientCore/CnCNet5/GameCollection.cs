@@ -16,6 +16,11 @@ namespace ClientCore.CnCNet5
     {
         public List<CnCNetGame> GameList { get; private set; }
 
+        public GameCollection()
+        {
+            Initialize();
+        }
+
         public void Initialize()
         {
             GameList = new List<CnCNetGame>();

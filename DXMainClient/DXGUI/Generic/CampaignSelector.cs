@@ -315,7 +315,7 @@ namespace DTAClient.DXGUI.Generic
 
             ((MainMenuDarkeningPanel)Parent).Hide();
 
-            discordHandler?.UpdatePresence(mission.GUIName, difficultyName, mission.IconPath, true);
+            discordHandler.UpdatePresence(mission.GUIName, difficultyName, mission.IconPath, true);
             GameProcessLogic.GameProcessExited += GameProcessExited_Callback;
 
             GameProcessLogic.StartGameProcess(WindowManager);
@@ -333,7 +333,7 @@ namespace DTAClient.DXGUI.Generic
         {
             GameProcessLogic.GameProcessExited -= GameProcessExited_Callback;
             // Logger.Log("GameProcessExited: Updating Discord Presence.");
-            discordHandler?.UpdatePresence();
+            discordHandler.UpdatePresence();
         }
 
         private void ReadMissionList()

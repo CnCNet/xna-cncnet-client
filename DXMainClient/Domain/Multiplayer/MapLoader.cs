@@ -49,11 +49,7 @@ namespace DTAClient.Domain.Multiplayer
         /// <summary>
         /// Loads multiplayer map info asynchonously.
         /// </summary>
-        public void LoadMapsAsync()
-        {
-            Thread thread = new Thread(LoadMaps);
-            thread.Start();
-        }
+        public Task LoadMapsAsync() => Task.Run(LoadMaps);
 
         /// <summary>
         /// Load maps based on INI info as well as those in the custom maps directory.

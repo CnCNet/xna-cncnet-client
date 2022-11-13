@@ -134,7 +134,7 @@ namespace DTAClient.DXGUI.Generic
             spawnMapStreamWriter.WriteLine("LocalSize=0,0,50,50");
             spawnMapStreamWriter.WriteLine();
 
-            discordHandler?.UpdatePresence(sg.GUIName, true);
+            discordHandler.UpdatePresence(sg.GUIName, true);
 
             Enabled = false;
             GameProcessLogic.GameProcessExited += GameProcessExited_Callback;
@@ -176,7 +176,7 @@ namespace DTAClient.DXGUI.Generic
         protected virtual void GameProcessExited()
         {
             GameProcessLogic.GameProcessExited -= GameProcessExited_Callback;
-            discordHandler?.UpdatePresence();
+            discordHandler.UpdatePresence();
         }
 
         public void ListSaves()

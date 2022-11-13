@@ -31,12 +31,16 @@ namespace DTAClient.DXGUI.Multiplayer
         private const string PLAYER_JOIN_COMMAND = "JOIN";
         private const string FILE_HASH_COMMAND = "FHASH";
 
-        public LANGameLoadingLobby(WindowManager windowManager,
-            List<GameMode> gameModes, LANColor[] chatColors, DiscordHandler discordHandler) : base(windowManager, discordHandler)
+        public LANGameLoadingLobby(
+            WindowManager windowManager,
+            LANColor[] chatColors,
+            MapLoader mapLoader,
+            DiscordHandler discordHandler
+            ) : base(windowManager, discordHandler)
         {
             encoding = ProgramConstants.LAN_ENCODING;
-            this.gameModes = gameModes;
             this.chatColors = chatColors;
+            this.mapLoader = mapLoader;
 
             localGame = ClientConfiguration.Instance.LocalGame;
 
@@ -71,6 +75,7 @@ namespace DTAClient.DXGUI.Multiplayer
 
         private IPEndPoint hostEndPoint;
         private LANColor[] chatColors;
+        private readonly MapLoader mapLoader;
         private int chatColorIndex;
         private Encoding encoding;
 
@@ -87,7 +92,7 @@ namespace DTAClient.DXGUI.Multiplayer
 
         private string localFileHash;
 
-        private List<GameMode> gameModes;
+        private List<GameMode> gameModes => mapLoader.GameModes;
 
         private int loadedGameId;
 
