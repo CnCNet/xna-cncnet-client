@@ -217,7 +217,7 @@ namespace DTAClient.DXGUI.Multiplayer
         /// <summary>
         /// Resets Discord Rich Presence to default state.
         /// </summary>
-        protected void ResetDiscordPresence() => discordHandler?.UpdatePresence();
+        protected void ResetDiscordPresence() => discordHandler.UpdatePresence();
 
         private void BtnLeaveGame_LeftClick(object sender, EventArgs e) => LeaveGame();
 

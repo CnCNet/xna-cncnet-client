@@ -41,11 +41,16 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         private const string DICE_ROLL_MESSAGE = "DR";
         private const string CHANGE_TUNNEL_SERVER_MESSAGE = "CHTNL";
 
-        public CnCNetGameLobby(WindowManager windowManager, string iniName,
-            TopBar topBar, CnCNetManager connectionManager,
-            TunnelHandler tunnelHandler, GameCollection gameCollection, CnCNetUserData cncnetUserData, MapLoader mapLoader, DiscordHandler discordHandler,
-            PrivateMessagingWindow pmWindow) :
-            base(windowManager, iniName, topBar, mapLoader, discordHandler)
+        public CnCNetGameLobby(
+            WindowManager windowManager, 
+            TopBar topBar, 
+            CnCNetManager connectionManager,
+            TunnelHandler tunnelHandler, 
+            GameCollection gameCollection, 
+            CnCNetUserData cncnetUserData, 
+            MapLoader mapLoader, 
+            DiscordHandler discordHandler
+        ) : base(windowManager, "MultiplayerGameLobby", topBar, mapLoader, discordHandler)
         {
             this.connectionManager = connectionManager;
             localGame = ClientConfiguration.Instance.LocalGame;
