@@ -263,7 +263,7 @@ namespace ClientGUI
             if (string.IsNullOrEmpty(childName))
                 throw new INIConfigException("Empty name in child control definition for " + parent.Name);
 
-            var childControl = ClientGUICreator.Instance.CreateControl(WindowManager, parts[1]);
+            XNAControl childControl = ClientGUICreator.GetXnaControl(parts[1]);
 
             if (Array.Exists(childName.ToCharArray(), c => !char.IsLetterOrDigit(c) && c != '_'))
                 throw new INIConfigException("Names of INItializableWindow child controls must consist of letters, digits and underscores only. Offending name: " + parts[0]);

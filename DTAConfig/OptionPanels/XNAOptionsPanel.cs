@@ -20,10 +20,7 @@ namespace DTAConfig.OptionPanels
             UserINISettings iniSettings) : base(windowManager)
         {
             IniSettings = iniSettings;
-            CustomGUICreator = optionsGUICreator;
         }
-
-        private static readonly OptionsGUICreator optionsGUICreator = new OptionsGUICreator();
 
         private readonly List<IUserSetting> userSettings = new List<IUserSetting>();
 
@@ -69,7 +66,7 @@ namespace DTAConfig.OptionPanels
             bool restartRequired = false;
             foreach (var setting in userSettings)
                 restartRequired = setting.Save() || restartRequired;
-            
+
             return restartRequired;
         }
 
