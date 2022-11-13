@@ -36,19 +36,35 @@ namespace DTAClient.DXGUI.Generic
         /// <summary>
         /// Creates a new instance of the main menu.
         /// </summary>
-        public MainMenu(WindowManager windowManager, SkirmishLobby skirmishLobby,
-            LANLobby lanLobby, TopBar topBar, OptionsWindow optionsWindow,
+        public MainMenu(
+            WindowManager windowManager, 
+            SkirmishLobby skirmishLobby,
+            LANLobby lanLobby, 
+            TopBar topBar, 
+            OptionsWindow optionsWindow,
             CnCNetLobby cncnetLobby,
-            CnCNetManager connectionManager, DiscordHandler discordHandler) : base(windowManager)
+            CnCNetManager connectionManager, 
+            DiscordHandler discordHandler,
+            CnCNetGameLoadingLobby cnCNetGameLoadingLobby,
+            CnCNetGameLobby cnCNetGameLobby,
+            PrivateMessagingPanel privateMessagingPanel,
+            PrivateMessagingWindow privateMessagingWindow,
+            GameInProgressWindow gameInProgressWindow
+        ) : base(windowManager)
         {
-            this.skirmishLobby = skirmishLobby;
             this.lanLobby = lanLobby;
             this.topBar = topBar;
             this.connectionManager = connectionManager;
             this.optionsWindow = optionsWindow;
             this.cncnetLobby = cncnetLobby;
             this.discordHandler = discordHandler;
-            cncnetLobby.UpdateCheck += CncnetLobby_UpdateCheck;
+            this.skirmishLobby = skirmishLobby;
+            this.cnCNetGameLoadingLobby = cnCNetGameLoadingLobby;
+            this.cnCNetGameLobby = cnCNetGameLobby;
+            this.privateMessagingPanel = privateMessagingPanel;
+            this.privateMessagingWindow = privateMessagingWindow;
+            this.gameInProgressWindow = gameInProgressWindow;
+            this.cncnetLobby.UpdateCheck += CncnetLobby_UpdateCheck;
             isMediaPlayerAvailable = IsMediaPlayerAvailable();
         }
 
@@ -71,6 +87,11 @@ namespace DTAClient.DXGUI.Generic
         private DiscordHandler discordHandler;
 
         private TopBar topBar;
+        private readonly CnCNetGameLoadingLobby cnCNetGameLoadingLobby;
+        private readonly CnCNetGameLobby cnCNetGameLobby;
+        private readonly PrivateMessagingPanel privateMessagingPanel;
+        private readonly PrivateMessagingWindow privateMessagingWindow;
+        private readonly GameInProgressWindow gameInProgressWindow;
 
         private XNAMessageBox firstRunMessageBox;
 
@@ -118,6 +139,7 @@ namespace DTAClient.DXGUI.Generic
         /// </summary>
         public override void Initialize()
         {
+            topBar.SetSecondarySwitch(cncnetLobby);
             GameProcessLogic.GameProcessExited += SharedUILogic_GameProcessExited;
 
             Name = nameof(MainMenu);
@@ -267,7 +289,7 @@ namespace DTAClient.DXGUI.Generic
             innerPanel.UpdateWindow.UpdateCancelled += UpdateWindow_UpdateCancelled;
             innerPanel.UpdateWindow.UpdateFailed += UpdateWindow_UpdateFailed;
 
-            this.ClientRectangle = new Rectangle((WindowManager.RenderResolutionX - Width) / 2,
+            ClientRectangle = new Rectangle((WindowManager.RenderResolutionX - Width) / 2,
                 (WindowManager.RenderResolutionY - Height) / 2,
                 Width, Height);
             innerPanel.ClientRectangle = new Rectangle(0, 0,
@@ -526,6 +548,30 @@ namespace DTAClient.DXGUI.Generic
         /// </summary>
         public void PostInit()
         {
+            DarkeningPanel.AddAndInitializeWithControl(WindowManager, skirmishLobby);
+            DarkeningPanel.AddAndInitializeWithControl(WindowManager, cnCNetGameLoadingLobby);
+            DarkeningPanel.AddAndInitializeWithControl(WindowManager, cnCNetGameLobby);
+            DarkeningPanel.AddAndInitializeWithControl(WindowManager, cncnetLobby);
+            DarkeningPanel.AddAndInitializeWithControl(WindowManager, lanLobby);
+            optionsWindow.SetTopBar(topBar);
+            DarkeningPanel.AddAndInitializeWithControl(WindowManager, optionsWindow);
+            WindowManager.AddAndInitializeControl(privateMessagingPanel);
+            privateMessagingPanel.AddChild(privateMessagingWindow);
+            topBar.SetTertiarySwitch(privateMessagingWindow);
+            topBar.SetOptionsWindow(optionsWindow);
+            WindowManager.AddAndInitializeControl(gameInProgressWindow);
+
+            skirmishLobby.Disable();
+            cncnetLobby.Disable();
+            cnCNetGameLobby.Disable();
+            cnCNetGameLoadingLobby.Disable();
+            lanLobby.Disable();
+            privateMessagingWindow.Disable();
+            optionsWindow.Disable();
+
+            WindowManager.AddAndInitializeControl(topBar);
+            topBar.AddPrimarySwitchable(this);
+
             SwitchMainMenuMusicFormat();
 
             themeSong = AssetLoader.LoadSong(ClientConfiguration.Instance.MainMenuMusicName);

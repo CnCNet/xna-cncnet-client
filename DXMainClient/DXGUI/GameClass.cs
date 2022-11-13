@@ -10,6 +10,16 @@ using Rampastring.Tools;
 using Rampastring.XNAUI;
 using System;
 using ClientGUI;
+using DTAClient.Domain.Multiplayer;
+using DTAClient.Domain.Multiplayer.CnCNet;
+using DTAClient.DXGUI.Multiplayer;
+using DTAClient.DXGUI.Multiplayer.CnCNet;
+using DTAClient.DXGUI.Multiplayer.GameLobby;
+using DTAClient.Online;
+using DTAConfig;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using MainMenu = DTAClient.DXGUI.Generic.MainMenu;
 #if DX
 using System.Diagnostics;
 using System.IO;
@@ -161,10 +171,52 @@ namespace DTAClient.DXGUI
             ProgramConstants.PLAYERNAME = playerName;
             UserINISettings.Instance.PlayerName.Value = playerName;
 
-            LoadingScreen ls = new LoadingScreen(wm);
+            IServiceProvider serviceProvider = BuildServiceProvider(wm);
+            LoadingScreen ls = serviceProvider.GetService<LoadingScreen>();
             wm.AddAndInitializeControl(ls);
             ls.ClientRectangle = new Rectangle((wm.RenderResolutionX - ls.Width) / 2,
                 (wm.RenderResolutionY - ls.Height) / 2, ls.Width, ls.Height);
+        }
+
+        private IServiceProvider BuildServiceProvider(WindowManager windowManager)
+        {
+            // Create host - this allows for things like DependencyInjection
+            IHost host = Host.CreateDefaultBuilder()
+                .ConfigureServices((_, services) =>
+                    services
+                        .AddSingleton<ServiceProvider>()
+                        .AddSingleton(windowManager)
+                        .AddSingleton(GraphicsDevice)
+                        .AddSingleton<LoadingScreen>()
+                        .AddSingleton<GameCollection>()
+                        .AddSingleton<CnCNetUserData>()
+                        .AddSingleton<CnCNetManager>()
+                        .AddSingleton<TunnelHandler>()
+                        .AddSingleton<TopBar>()
+                        .AddSingleton<OptionsWindow>()
+                        .AddSingleton<PrivateMessagingWindow>()
+                        .AddSingleton<PrivateMessagingPanel>()
+                        .AddSingleton<PrivateMessageHandler>()
+                        .AddSingleton<LANLobby>()
+                        .AddSingleton<CnCNetGameLobby>()
+                        .AddSingleton<CnCNetGameLoadingLobby>()
+                        .AddSingleton<CnCNetLobby>()
+                        .AddSingleton<GameInProgressWindow>()
+                        .AddSingleton<SkirmishLobby>()
+                        .AddSingleton<MainMenu>()
+                        .AddSingleton<MapLoader>()
+                        .AddSingleton(_ =>
+                            UserINISettings.Instance.DiscordIntegration &&
+                                !string.IsNullOrEmpty(ClientConfiguration.Instance.DiscordAppId) ? 
+                                    // register DiscordHandler, if enabled by settings
+                                    new DiscordHandler() : null
+                        )
+                )
+                .Build();
+
+            host.RunAsync();
+
+            return host.Services.GetService<IServiceProvider>();
         }
 
         private void InitializeUISettings()

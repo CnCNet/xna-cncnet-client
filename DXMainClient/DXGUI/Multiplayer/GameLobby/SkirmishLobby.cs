@@ -210,7 +210,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             string side = sideDropDown.SelectedItem.Text;
             string currentState = ProgramConstants.IsInGame ? "In Game" : "Setting Up";
 
-            discordHandler.UpdatePresence(
+            discordHandler?.UpdatePresence(
                 Map.Name, GameMode.Name, currentState, side, resetTimer);
         }
 

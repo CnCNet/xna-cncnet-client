@@ -38,15 +38,21 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         private const string PLAYER_READY_CTCP_COMMAND = "READY";
         private const string CHANGE_TUNNEL_SERVER_MESSAGE = "CHTNL";
 
-        public CnCNetGameLoadingLobby(WindowManager windowManager, TopBar topBar,
-            CnCNetManager connectionManager, TunnelHandler tunnelHandler,
-            List<GameMode> gameModes, GameCollection gameCollection, DiscordHandler discordHandler) : base(windowManager, discordHandler)
+        public CnCNetGameLoadingLobby(
+            WindowManager windowManager,
+            TopBar topBar,
+            CnCNetManager connectionManager,
+            TunnelHandler tunnelHandler,
+            MapLoader mapLoader,
+            GameCollection gameCollection,
+            DiscordHandler discordHandler
+        ) : base(windowManager, discordHandler)
         {
             this.connectionManager = connectionManager;
             this.tunnelHandler = tunnelHandler;
-            this.gameModes = gameModes;
             this.topBar = topBar;
             this.gameCollection = gameCollection;
+            this.mapLoader = mapLoader;
 
             ctcpCommandHandlers = new CommandHandlerBase[]
             {
@@ -70,6 +76,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         private List<GameMode> gameModes;
 
         private TunnelHandler tunnelHandler;
+        private readonly MapLoader mapLoader;
         private TunnelSelectionWindow tunnelSelectionWindow;
         private XNAClientButton btnChangeTunnel;
 
@@ -711,7 +718,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 return;
             string currentState = ProgramConstants.IsInGame ? "In Game" : "In Lobby"; // not UI strings
 
-            discordHandler.UpdatePresence(
+            discordHandler?.UpdatePresence(
                 lblMapNameValue.Text, lblGameModeValue.Text, "Multiplayer",
                 currentState, Players.Count, SGPlayers.Count,
                 channel.UIName, IsHost, resetTimer);
