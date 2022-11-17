@@ -27,27 +27,26 @@ public class QmService : IDisposable
 {
     public const string QmVersion = "2.0";
 
-    private readonly QmUserSettingsService userSettingsService;
+    private readonly QmUserSettingsService qmUserSettingsService;
     private readonly ApiService apiService;
-    private readonly QmSettingsService settingsService;
+    private readonly QmSettingsService qmSettingsService;
 
     private readonly QmUserSettings qmUserSettings;
     private readonly QmSettings qmSettings;
     private readonly QmData qmData;
 
-    private static QmService _instance;
     private readonly Timer retryRequestmatchTimer;
     private QmUserAccount userAccount;
     private IEnumerable<int> mapSides;
 
-    private QmService()
+    public QmService(QmSettingsService qmSettingsService, QmUserSettingsService qmUserSettingsService, ApiService apiService)
     {
-        userSettingsService = QmUserSettingsService.GetInstance();
-        apiService = ApiService.GetInstance();
-        settingsService = QmSettingsService.GetInstance();
+        this.qmUserSettingsService = qmUserSettingsService;
+        this.apiService = apiService;
+        this.qmSettingsService = qmSettingsService;
 
-        qmUserSettings = userSettingsService.GetSettings();
-        qmSettings = settingsService.GetSettings();
+        qmUserSettings = this.qmUserSettingsService.GetSettings();
+        qmSettings = this.qmSettingsService.GetSettings();
         qmData = new QmData();
 
         retryRequestmatchTimer = new Timer();
@@ -56,8 +55,6 @@ public class QmService : IDisposable
     }
 
     public event EventHandler<QmEvent> QmEvent;
-
-    public static QmService GetInstance() => _instance ??= new QmService();
 
     public IEnumerable<QmUserAccount> GetUserAccounts() => qmData?.UserAccounts;
 
@@ -128,14 +125,14 @@ public class QmService : IDisposable
         string laddAbbr = userAccount?.Ladder?.Abbreviation;
         this.userAccount = userAccount;
         qmUserSettings.Ladder = laddAbbr;
-        userSettingsService.SaveSettings();
+        qmUserSettingsService.SaveSettings();
         QmEvent?.Invoke(this, new QmUserAccountSelectedEvent(userAccount));
     }
 
     public void SetMasterSide(QmSide side)
     {
         qmUserSettings.SideId = side?.LocalId ?? -1;
-        userSettingsService.SaveSettings();
+        qmUserSettingsService.SaveSettings();
         QmEvent?.Invoke(this, new QmMasterSideSelected(side));
     }
 
@@ -374,8 +371,8 @@ public class QmService : IDisposable
 
     private void ClearAuthData()
     {
-        userSettingsService.ClearAuthData();
-        userSettingsService.SaveSettings();
+        qmUserSettingsService.ClearAuthData();
+        qmUserSettingsService.SaveSettings();
         apiService.SetToken(null);
     }
 
@@ -421,7 +418,7 @@ public class QmService : IDisposable
 
         qmUserSettings.AuthData = response.Data;
         qmUserSettings.Email = email ?? qmUserSettings.Email;
-        userSettingsService.SaveSettings();
+        qmUserSettingsService.SaveSettings();
 
         apiService.SetToken(response.Data.Token);
         return true;

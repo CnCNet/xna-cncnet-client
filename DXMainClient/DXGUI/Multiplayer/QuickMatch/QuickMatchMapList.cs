@@ -43,9 +43,9 @@ namespace DTAClient.DXGUI.Multiplayer.QuickMatch
 
         public int MapsWidth => lblMaps?.Width ?? 0;
 
-        public QuickMatchMapList(WindowManager windowManager) : base(windowManager)
+        public QuickMatchMapList(WindowManager windowManager, QmService qmService) : base(windowManager)
         {
-            qmService = QmService.GetInstance();
+            this.qmService = qmService;
         }
 
         public override void Initialize()

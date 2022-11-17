@@ -12,18 +12,14 @@ namespace DTAClient.Domain.Multiplayer.CnCNet.Services;
 
 public class ApiService : IDisposable
 {
-    private static bool useMockService = false;
-    private static ApiService instance;
     public readonly ApiSettings ApiSettings;
     private QmHttpClient _httpClient;
     private string token;
 
-    protected ApiService()
+    public ApiService()
     {
         ApiSettings = ApiSettingsService.GetInstance().GetSettings();
     }
-
-    public static ApiService GetInstance() => instance ??= useMockService ? new MockApiService() : new ApiService();
 
     public void SetToken(string token)
     {

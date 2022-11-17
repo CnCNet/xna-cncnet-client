@@ -21,10 +21,10 @@ namespace DTAClient.DXGUI.Multiplayer.QuickMatch
 
         public event EventHandler LoginEvent;
 
-        public QuickMatchLoginPanel(WindowManager windowManager) : base(windowManager)
+        public QuickMatchLoginPanel(WindowManager windowManager, QmService qmService) : base(windowManager)
         {
-            qmService = QmService.GetInstance();
-            qmService.QmEvent += HandleQmEvent;
+            this.qmService = qmService;
+            this.qmService.QmEvent += HandleQmEvent;
             IniNameOverride = nameof(QuickMatchLoginPanel);
         }
 

@@ -37,14 +37,14 @@ namespace DTAClient.DXGUI.Multiplayer.QuickMatch
         private readonly EnhancedSoundEffect matchFoundSoundEffect;
         private readonly QmSettings qmSettings;
 
-        public QuickMatchLobbyPanel(WindowManager windowManager) : base(windowManager)
+        public QuickMatchLobbyPanel(WindowManager windowManager, MapLoader mapLoader, QmService qmService, QmSettingsService qmSettingsService) : base(windowManager)
         {
-            qmService = QmService.GetInstance();
-            qmService.QmEvent += HandleQmEvent;
+            this.qmService = qmService;
+            this.qmService.QmEvent += HandleQmEvent;
 
-            mapLoader = MapLoader.GetInstance();
+            this.mapLoader = mapLoader;
 
-            qmSettings = QmSettingsService.GetInstance().GetSettings();
+            qmSettings = qmSettingsService.GetSettings();
             matchFoundSoundEffect = new EnhancedSoundEffect(qmSettings.MatchFoundSoundFile);
 
             IniNameOverride = nameof(QuickMatchLobbyPanel);

@@ -6,14 +6,6 @@ public class QmUserSettingsService
 {
     private QmUserSettings qmUserSettings;
 
-    private static QmUserSettingsService instance;
-
-    private QmUserSettingsService()
-    {
-    }
-
-    public static QmUserSettingsService GetInstance() => instance ??= new QmUserSettingsService();
-
     public QmUserSettings GetSettings() => qmUserSettings ??= QmUserSettings.Load();
 
     public void SaveSettings() => qmUserSettings.Save();

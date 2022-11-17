@@ -11,7 +11,6 @@ namespace DTAClient.Domain.Multiplayer.CnCNet.QuickMatch.Services;
 public class QmSettingsService
 {
     private static readonly string SettingsFile = ClientConfiguration.Instance.QuickMatchIniPath;
-    private static QmSettingsService _instance;
 
     private const string BasicSectionKey = "Basic";
     private const string SoundsSectionKey = "Sounds";
@@ -21,12 +20,6 @@ public class QmSettingsService
     private const string AllowedLaddersKey = "AllowedLadders";
 
     private QmSettings qmSettings;
-
-    private QmSettingsService()
-    {
-    }
-
-    public static QmSettingsService GetInstance() => _instance ??= new QmSettingsService();
 
     public QmSettings GetSettings() => qmSettings ??= LoadSettings();
 

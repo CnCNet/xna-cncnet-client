@@ -20,11 +20,11 @@ namespace DTAClient.DXGUI.Multiplayer.QuickMatch
 
         private XNAPanel headerGameLogo;
 
-        public QuickMatchWindow(WindowManager windowManager) : base(windowManager)
+        public QuickMatchWindow(WindowManager windowManager, QmService qmService, QmSettingsService qmSettingsService) : base(windowManager)
         {
-            qmService = QmService.GetInstance();
-            qmService.QmEvent += HandleQmEvent;
-            qmSettingsService = QmSettingsService.GetInstance();
+            this.qmService = qmService;
+            this.qmService.QmEvent += HandleQmEvent;
+            this.qmSettingsService = qmSettingsService;
         }
 
         public override void Initialize()

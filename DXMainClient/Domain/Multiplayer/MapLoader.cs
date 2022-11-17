@@ -2,7 +2,6 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
-using System.Threading;
 using System.Linq;
 using System.Threading.Tasks;
 using ClientCore;
@@ -20,8 +19,6 @@ namespace DTAClient.Domain.Multiplayer
         private const string GameModesSection = "GameModes";
         private const string GameModeAliasesSection = "GameModeAliases";
         private const int CurrentCustomMapCacheVersion = 1;
-
-        private static MapLoader Instance;
 
         /// <summary>
         /// List of game modes.
@@ -47,12 +44,6 @@ namespace DTAClient.Domain.Multiplayer
         /// List of gamemodes allowed to be used on custom maps in order for them to display in map list.
         /// </summary>
         private string[] AllowedGameModes = ClientConfiguration.Instance.AllowedCustomGameModes.Split(',');
-
-        private MapLoader()
-        {
-        }
-
-        public static MapLoader GetInstance() => Instance ?? (Instance = new MapLoader());
 
         /// <summary>
         /// Loads multiplayer map info asynchonously.

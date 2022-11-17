@@ -12,9 +12,12 @@ using System;
 using ClientGUI;
 using DTAClient.Domain.Multiplayer;
 using DTAClient.Domain.Multiplayer.CnCNet;
+using DTAClient.Domain.Multiplayer.CnCNet.QuickMatch.Services;
+using DTAClient.Domain.Multiplayer.CnCNet.Services;
 using DTAClient.DXGUI.Multiplayer;
 using DTAClient.DXGUI.Multiplayer.CnCNet;
 using DTAClient.DXGUI.Multiplayer.GameLobby;
+using DTAClient.DXGUI.Multiplayer.QuickMatch;
 using DTAClient.Online;
 using DTAConfig;
 using DTAConfig.Settings;
@@ -197,7 +200,11 @@ namespace DTAClient.DXGUI
                             .AddSingleton<TunnelHandler>()
                             .AddSingleton<DiscordHandler>()
                             .AddSingleton<PrivateMessageHandler>()
-                            .AddSingleton<MapLoader>();
+                            .AddSingleton<MapLoader>()
+                            .AddSingleton<ApiService>()
+                            .AddSingleton<QmService>()
+                            .AddSingleton<QmSettingsService>()
+                            .AddSingleton<QmUserSettingsService>();
 
                         // singleton xna controls - same instance on each request
                         services
@@ -215,7 +222,13 @@ namespace DTAClient.DXGUI
                             .AddSingletonXnaControl<MainMenu>()
                             .AddSingletonXnaControl<MapPreviewBox>()
                             .AddSingletonXnaControl<GameLaunchButton>()
-                            .AddSingletonXnaControl<PlayerExtraOptionsPanel>();
+                            .AddSingletonXnaControl<PlayerExtraOptionsPanel>()
+                            .AddSingletonXnaControl<QuickMatchWindow>()
+                            .AddSingletonXnaControl<QuickMatchLobbyPanel>()
+                            .AddSingletonXnaControl<QuickMatchLoginPanel>()
+                            .AddSingletonXnaControl<QuickMatchMapList>()
+                            .AddSingletonXnaControl<QuickMatchStatusOverlay>()
+                            .AddSingletonXnaControl<QuickMatchLobbyFooterPanel>();
 
                         // transient xna controls - new instance on each request
                         services
@@ -234,8 +247,12 @@ namespace DTAClient.DXGUI
                             .AddTransientXnaControl<XNAMultiColumnListBox>()
                             .AddTransientXnaControl<XNAPanel>()
                             .AddTransientXnaControl<XNAProgressBar>()
+                            .AddTransientXnaControl<XNAClientProgressBar>()
                             .AddTransientXnaControl<XNASuggestionTextBox>()
                             .AddTransientXnaControl<XNATextBox>()
+                            .AddTransientXnaControl<XNAPasswordBox>()
+                            .AddTransientXnaControl<XNAScrollBar>()
+                            .AddTransientXnaControl<XNAScrollablePanel>()
                             .AddTransientXnaControl<XNATrackbar>()
                             .AddTransientXnaControl<XNAChatTextBox>()
                             .AddTransientXnaControl<ChatListBox>()

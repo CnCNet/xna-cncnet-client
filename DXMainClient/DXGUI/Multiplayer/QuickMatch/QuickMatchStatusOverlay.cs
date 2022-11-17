@@ -44,11 +44,11 @@ namespace DTAClient.DXGUI.Multiplayer.QuickMatch
         private readonly QmService qmService;
         private readonly QmSettings qmSettings;
 
-        public QuickMatchStatusOverlay(WindowManager windowManager) : base(windowManager)
+        public QuickMatchStatusOverlay(WindowManager windowManager, QmService qmService, QmSettingsService qmSettingsService) : base(windowManager)
         {
-            qmService = QmService.GetInstance();
-            qmService.QmEvent += HandleQmEvent;
-            qmSettings = QmSettingsService.GetInstance().GetSettings();
+            this.qmService = qmService;
+            this.qmService.QmEvent += HandleQmEvent;
+            qmSettings = qmSettingsService.GetSettings();
 
             matchupFoundConfirmTimer = new QmMatchFoundTimer();
             matchupFoundConfirmTimer.SetElapsedAction(ReduceMatchupFoundConfirmTimeLeft);
