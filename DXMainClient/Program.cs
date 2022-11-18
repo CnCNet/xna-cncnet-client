@@ -1,11 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-#if NETFRAMEWORK
-using System.Linq;
-#else
 using System.Runtime.Loader;
-#endif
 using System.Threading;
 using System.Reflection;
 /* !! We cannot use references to other projects or non-framework assemblies in this class, assembly loading events not hooked up yet !! */
@@ -21,17 +17,7 @@ namespace DTAClient
              * To avoid DLL hell, we load the binaries from different directories
              * depending on the build platform. */
 
-            string startupPath;
-#if NETFRAMEWORK
-            startupPath = new FileInfo(Assembly.GetEntryAssembly().Location).DirectoryName + Path.DirectorySeparatorChar;
-#elif GL && !WINFORMS
-            if (new FileInfo(Environment.ProcessPath).Name.StartsWith("dotnet", StringComparison.OrdinalIgnoreCase))
-                startupPath = new FileInfo(Assembly.GetEntryAssembly().Location).Directory.Parent.Parent.FullName + Path.DirectorySeparatorChar; // cross platform build launched with dotnet.exe
-            else
-                startupPath = new FileInfo(Environment.ProcessPath).Directory.FullName + Path.DirectorySeparatorChar;
-#else
-            startupPath = new FileInfo(Environment.ProcessPath).Directory.FullName + Path.DirectorySeparatorChar;
-#endif
+            string startupPath = new FileInfo(Assembly.GetEntryAssembly().Location).Directory.Parent.Parent.FullName + Path.DirectorySeparatorChar;
 
 #if DEBUG
             COMMON_LIBRARY_PATH = startupPath;
@@ -52,11 +38,7 @@ namespace DTAClient
 #endif
 
             // Set up DLL load paths as early as possible
-#if NETFRAMEWORK
-            AppDomain.CurrentDomain.AssemblyResolve += CurrentDomain_AssemblyResolve;
-#else
             AssemblyLoadContext.Default.Resolving += DefaultAssemblyLoadContextOnResolving;
-#endif
 
 #if !DEBUG
             Environment.CurrentDirectory = new DirectoryInfo(startupPath).Parent.FullName + Path.DirectorySeparatorChar;
@@ -114,18 +96,7 @@ namespace DTAClient
             // Global prefix means that the mutex is global to the machine
             string mutexId = string.Format("Global{0}", Guid.Parse("1CC9F8E7-9F69-4BBC-B045-E734204027A9"));
 
-#if NETFRAMEWORK
-            var allowEveryoneRule = new System.Security.AccessControl.MutexAccessRule(
-                new System.Security.Principal.SecurityIdentifier(System.Security.Principal.WellKnownSidType.WorldSid, null),
-                System.Security.AccessControl.MutexRights.FullControl,
-                System.Security.AccessControl.AccessControlType.Allow);
-            var securitySettings = new System.Security.AccessControl.MutexSecurity();
-            securitySettings.AddAccessRule(allowEveryoneRule);
-
-            using var mutex = new Mutex(false, mutexId, out bool _, securitySettings);
-#else
             using var mutex = new Mutex(false, mutexId, out _);
-#endif
             var hasHandle = false;
             try
             {
@@ -154,27 +125,6 @@ namespace DTAClient
             }
         }
 
-#if NETFRAMEWORK
-        static Assembly CurrentDomain_AssemblyResolve(object sender, ResolveEventArgs args)
-        {
-            string unresolvedAssemblyName = args.Name.Split(',').First();
-
-            if (unresolvedAssemblyName.EndsWith(".resources", StringComparison.OrdinalIgnoreCase))
-                return null;
-
-            var commonFileInfo = new FileInfo(Path.Combine(COMMON_LIBRARY_PATH, FormattableString.Invariant($"{unresolvedAssemblyName}.dll")));
-
-            if (commonFileInfo.Exists)
-                return Assembly.Load(AssemblyName.GetAssemblyName(commonFileInfo.FullName));
-
-            var specificFileInfo = new FileInfo(Path.Combine(SPECIFIC_LIBRARY_PATH, FormattableString.Invariant($"{unresolvedAssemblyName}.dll")));
-
-            if (specificFileInfo.Exists)
-                return Assembly.Load(AssemblyName.GetAssemblyName(specificFileInfo.FullName));
-
-            return null;
-        }
-#else
         private static Assembly DefaultAssemblyLoadContextOnResolving(AssemblyLoadContext assemblyLoadContext, AssemblyName assemblyName)
         {
             if (assemblyName.Name.EndsWith(".resources", StringComparison.OrdinalIgnoreCase))
@@ -192,6 +142,5 @@ namespace DTAClient
 
             return null;
         }
-#endif
     }
 }

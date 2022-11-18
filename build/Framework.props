@@ -14,7 +14,7 @@
     <DefineConstants Condition="'$(Engine)' == 'WindowsDX'">$(DefineConstants);DX;WINFORMS;ISWINDOWS</DefineConstants>
     <DefineConstants Condition="'$(Engine)' == 'WindowsGL'">$(DefineConstants);GL;WINFORMS;ISWINDOWS</DefineConstants>
     <DefineConstants Condition="'$(Engine)' == 'UniversalGL'">$(DefineConstants);GL</DefineConstants>
-    <DefineConstants Condition="'$(Engine)' == 'UniversalGL' And $(TargetFramework.Contains('-windows'))">$(DefineConstants);ISWINDOWS</DefineConstants>
+    <DefineConstants Condition="'$(Engine)' == 'UniversalGL' And $([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">$(DefineConstants);ISWINDOWS</DefineConstants>
     <DefineConstants Condition="'$(Engine)' == 'WindowsXNA'">$(DefineConstants);XNA;WINFORMS;ISWINDOWS</DefineConstants>
 
     <!-- Games-->

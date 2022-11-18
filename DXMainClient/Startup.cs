@@ -16,9 +16,7 @@ using System.Threading.Tasks;
 using System.Globalization;
 using System.Management;
 using System.Runtime.InteropServices;
-#if !NETFRAMEWORK
 using System.Runtime.Versioning;
-#endif
 using ClientCore.Settings;
 using Microsoft.Xna.Framework.Graphics;
 
@@ -246,9 +244,7 @@ namespace DTAClient
         /// <summary>
         /// Writes processor, graphics card and memory info to the log file.
         /// </summary>
-#if !NETFRAMEWORK
         [SupportedOSPlatform("windows")]
-#endif
         private static void CheckSystemSpecifications()
         {
             string cpu = string.Empty;
@@ -375,9 +371,7 @@ namespace DTAClient
         /// <summary>
         /// Writes the game installation path to the Windows registry.
         /// </summary>
-#if !NETFRAMEWORK
         [SupportedOSPlatform("windows")]
-#endif
         private static void WriteInstallPathToRegistry()
         {
             if (!UserINISettings.Instance.WritePathToRegistry)

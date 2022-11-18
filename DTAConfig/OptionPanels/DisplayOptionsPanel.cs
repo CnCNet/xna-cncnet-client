@@ -9,9 +9,7 @@ using Rampastring.XNAUI.XNAControls;
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
-#if !NETFRAMEWORK
 using System.Runtime.Versioning;
-#endif
 #if WINFORMS
 using System.Windows.Forms;
 #endif
@@ -409,9 +407,7 @@ namespace DTAConfig.OptionPanels
             }
         }
 
-#if !NETFRAMEWORK
         [SupportedOSPlatform("windows")]
-#endif
         private void MessageBox_NoClicked(XNAMessageBox messageBox)
         {
             // Set compatibility fix declined flag in registry
@@ -433,17 +429,13 @@ namespace DTAConfig.OptionPanels
             catch { }
         }
 
-#if !NETFRAMEWORK
         [SupportedOSPlatform("windows")]
-#endif
         private void MessageBox_YesClicked(XNAMessageBox messageBox)
         {
             BtnGameCompatibilityFix_LeftClick(messageBox, EventArgs.Empty);
         }
 
-#if !NETFRAMEWORK
         [SupportedOSPlatform("windows")]
-#endif
         private void BtnGameCompatibilityFix_LeftClick(object sender, EventArgs e)
         {
             if (GameCompatFixInstalled)
@@ -502,9 +494,7 @@ namespace DTAConfig.OptionPanels
             }
         }
 
-#if !NETFRAMEWORK
         [SupportedOSPlatform("windows")]
-#endif
         private void BtnMapEditorCompatibilityFix_LeftClick(object sender, EventArgs e)
         {
             if (FinalSunCompatFixInstalled)

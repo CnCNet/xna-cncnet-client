@@ -5,5 +5,6 @@ param($Configuration = "Release")
 
 . $PSScriptRoot\Common.ps1
 
-. $PSScriptRoot\Build-All-net6.0.ps1 $Configuration
-. $PSScriptRoot\Build-All-net48.ps1 $Configuration
+@('Ares', 'TS', 'YR') | ForEach-Object {
+  . "$PSScriptRoot\Build-$_.ps1" $Configuration
+}

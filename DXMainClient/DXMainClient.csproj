@@ -14,32 +14,15 @@
     <AssemblyName>DXMainClient</AssemblyName>
     <RootNamespace>DTAClient</RootNamespace>
     <ApplicationIcon>clienticon.ico</ApplicationIcon>
-    <ApplicationHighDpiMode Condition="'$(TargetFrameworkIdentifier)' != '.NETFramework' And !$(Configuration.Contains('UniversalGL'))">PerMonitorV2</ApplicationHighDpiMode>
+    <ApplicationHighDpiMode Condition="!$(Configuration.Contains('UniversalGL'))">PerMonitorV2</ApplicationHighDpiMode>
     <AssemblyName Condition="'$(Engine)' == 'WindowsDX'">clientdx</AssemblyName>
     <AssemblyName Condition="'$(Engine)' == 'UniversalGL' Or '$(Engine)' == 'WindowsGL'">clientogl</AssemblyName>
     <AssemblyName Condition="'$(Engine)' == 'WindowsXNA'">clientxna</AssemblyName>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <Prefer32Bit Condition="'$(Engine)' == 'WindowsXNA'">true</Prefer32Bit>
     <AppHostRuntimeIdentifier Condition="'$(Engine)' == 'WindowsXNA'">win-x86</AppHostRuntimeIdentifier>
-  </PropertyGroup>
-  <PropertyGroup>
     <UseAppHost>false</UseAppHost>
-    <!-- .NET6 WinForms Windows specific -->
-    <UseAppHost Condition="$(TargetFramework.Contains('-'))">true</UseAppHost>
-    <!-- .NET6 UniversalGL platform specific -->
-    <UseAppHost Condition="'$(TargetFrameworkIdentifier)' != '.NETFramework' And '$(Engine)' == 'UniversalGL' And'$(RuntimeIdentifier)' != ''">true</UseAppHost>
-    <UseAppHost Condition="'$(BuildingInsideVisualStudio)' == 'true'">False</UseAppHost>
   </PropertyGroup>
-  <ItemGroup Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework'">
-    <Reference Include="System.DirectoryServices" />
-    <Reference Include="System.Management" />
-    <Reference Include="System.IO.Compression" />
-  </ItemGroup>
-  <ItemGroup Condition="'$(TargetFrameworkIdentifier)' != '.NETFramework'">
-    <PackageReference Include="System.Management" Version="6.0.0" />
-    <PackageReference Include="System.DirectoryServices" Version="6.0.0" />
-  </ItemGroup>
   <ItemGroup>
     <Compile Remove="Resources\**" />
     <EmbeddedResource Remove="Resources\**" />
@@ -53,6 +36,8 @@
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="7.0.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
     <PackageReference Include="OpenMcdf" Version="2.2.1.12" />
+    <PackageReference Include="System.Management" Version="7.0.0" />
+    <PackageReference Include="System.DirectoryServices" Version="7.0.0" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\DTAConfig\DTAConfig.csproj" />

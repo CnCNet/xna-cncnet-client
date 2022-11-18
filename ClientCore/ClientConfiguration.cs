@@ -1,6 +1,7 @@
 using System;
 using Rampastring.Tools;
 using System.IO;
+using System.Runtime.InteropServices;
 
 namespace ClientCore
 {
@@ -316,28 +317,10 @@ namespace ClientCore
 
         #endregion
 
-        public OSVersion GetOperatingSystemVersion()
+        public static OSVersion GetOperatingSystemVersion()
         {
-            if (Environment.OSVersion.Platform == PlatformID.Win32NT)
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-#if NETFRAMEWORK
-                // OperatingSystem.IsWindowsVersionAtLeast() is the preferred API but is not supported on earlier .NET versions
-                Version osVersion = Environment.OSVersion.Version;
-
-                if (osVersion.Major < 5)
-                    return OSVersion.UNKNOWN;
-
-                if (osVersion.Major < 6)
-                    return OSVersion.WINXP;
-
-                if (osVersion.Major == 6 && osVersion.Minor < 1)
-                    return OSVersion.WINVISTA;
-
-                if (osVersion.Major == 6 && osVersion.Minor < 2)
-                    return OSVersion.WIN7;
-
-                return OSVersion.WIN810;
-#else
                 if (OperatingSystem.IsWindowsVersionAtLeast(6, 3))
                     return OSVersion.WIN810;
 
@@ -345,7 +328,6 @@ namespace ClientCore
                     return OSVersion.WIN7;
 
                 return OSVersion.UNKNOWN;
-#endif
             }
 
             if (ProgramConstants.ISMONO)

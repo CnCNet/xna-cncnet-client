@@ -13,19 +13,9 @@ namespace ClientCore
     /// </summary>
     public static class ProgramConstants
     {
-#if NETFRAMEWORK
         public static readonly string StartupExecutable = Assembly.GetEntryAssembly().Location;
 
-        public static readonly string StartupPath = SafePath.CombineDirectoryPath(new FileInfo(StartupExecutable).DirectoryName);
-#else
-        public static readonly bool IsCrossPlatform = new FileInfo(Environment.ProcessPath).Name.StartsWith("dotnet", StringComparison.OrdinalIgnoreCase);
-
-        public static readonly string StartupExecutable = IsCrossPlatform ? Assembly.GetEntryAssembly().Location : Environment.ProcessPath;
-
-        public static readonly string StartupPath = IsCrossPlatform
-            ? SafePath.CombineDirectoryPath(new FileInfo(StartupExecutable).Directory.Parent.Parent.FullName + Path.DirectorySeparatorChar)
-            : new FileInfo(StartupExecutable).Directory.FullName + Path.DirectorySeparatorChar;
-#endif
+        public static readonly string StartupPath = SafePath.CombineDirectoryPath(new FileInfo(StartupExecutable).Directory.Parent.Parent.FullName + Path.DirectorySeparatorChar);
 
 #if DEBUG
         public static readonly string GamePath = StartupPath;

@@ -14,9 +14,7 @@ using Localization;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
-#if !NETFRAMEWORK
 using System.Runtime.Versioning;
-#endif
 
 namespace DTAClient
 {
@@ -173,11 +171,7 @@ namespace DTAClient
             }
 
 #if WINFORMS
-#if NETFRAMEWORK
-            Application.EnableVisualStyles();
-#else
             ApplicationConfiguration.Initialize();
-#endif
 #endif
 
             new Startup().Execute();
@@ -232,9 +226,7 @@ namespace DTAClient
             ProgramConstants.DisplayErrorAction("KABOOOOOOOM".L10N("UI:Main:FatalErrorTitle"), error);
         }
 
-#if !NETFRAMEWORK
         [SupportedOSPlatform("windows")]
-#endif
         private static void CheckPermissions()
         {
             if (UserHasDirectoryAccessRights(Environment.CurrentDirectory, FileSystemRights.Modify))
@@ -260,9 +252,7 @@ namespace DTAClient
         /// </summary>
         /// <param name="path">The path to the directory.</param>
         /// <param name="accessRights">The file system rights.</param>
-#if !NETFRAMEWORK
         [SupportedOSPlatform("windows")]
-#endif
         private static bool UserHasDirectoryAccessRights(string path, FileSystemRights accessRights)
         {
             // Mono doesn't implement everything necessary for the below to work,

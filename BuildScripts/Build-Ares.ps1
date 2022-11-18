@@ -5,8 +5,9 @@ param($Configuration = "Release")
 
 . $PSScriptRoot\Common.ps1
 
-. $PSScriptRoot\Build-Ares-net6.0.ps1 $Configuration
-
+Build-Project $Configuration Ares UniversalGL net7.0
 if ($IsWindows) {
-  . $PSScriptRoot\Build-Ares-net48.ps1 $Configuration
+  @('WindowsDX', 'WindowsGL', 'WindowsXNA') | ForEach-Object {
+    Build-Project $Configuration Ares $_ net7.0-windows
+  }
 }

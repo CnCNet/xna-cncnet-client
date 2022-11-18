@@ -30,11 +30,10 @@ TargetFramework configurations
 For each Engine configuration one or more TargetFrameworks will be build:
 
 UniversalGL:
-* net6.0
+* net7.0
 
 WindowsDX, WindowsGL & WindowsXNA:
-* net6.0-windows
-* net48
+* net7.0-windows
 
 Overview of the Engine configurations differences:
 
@@ -45,17 +44,6 @@ Overview of the Engine configurations differences:
 | WindowsGL | Windows | AnyCPU (64-bit preferred) | MonoGame DesktopGL + WinForms |
 | WindowsXNA | Windows | AnyCPU (32-bit preferred) | Microsoft XNA + WinForms |
 
-AfterPublish PatchAppHost step
-------------------------------
-
-The file AfterPublish.targets will execute additional steps for the following build types:
-* .NET6 WinForms Windows specific build
-* .NET6 UniversalGL platform specific build (not part of Build-All)
-
-Building a .NET 6 application results in an assembly, not in an executable, e.g. `clientdx.dll`. On platform specific builds it also generates an apphost executable, so users have something to execute directly i.e. `clientdx.exe`. All the .exe does is launch e.g.: `dotnet clientdx.dll`.
-
-By default the apphost always points to a dll with the same filename in the current directory. Since we split them up into `\clientdx.exe` and `\Resources\Binaries\Windows\clientdx.dll` this breaks. `CreateAppHost.targets` modifies the .exe to point to the correct .dll path.
-
 Custom builds
 -------------
 
@@ -63,7 +51,7 @@ It is possible to compile for a specfic platform in order to gain performance (`
 
 Manually compile linux x64 YR optimized binaries from command line:
 
->dotnet publish ..\DXMainClient\DXMainClient.csproj -c Release -p:Game=YR -p:Engine=UniversalGL -f net6.0 -o ..\Compiled\YR\net6.0\linux-x64\Resources\Binaries\OpenGL -r linux-x64 -p:PublishReadyToRun=true -p:PublishReadyToRunComposite=true
+>dotnet publish ..\DXMainClient\DXMainClient.csproj -c Release -p:Game=YR -p:Engine=UniversalGL -f net7.0 -o ..\Compiled\YR\net7.0\linux-x64\Resources\Binaries\OpenGL -r linux-x64 -p:PublishReadyToRun=true -p:PublishReadyToRunComposite=true
 
 Build output
 ------------
@@ -72,8 +60,7 @@ The build output when using the `dotnet publish` command is created in `\Compile
 
 ![unknown](https://user-images.githubusercontent.com/25006126/189449430-07bfb4b5-bc5f-4cea-870e-90d1870b8fe8.png)
 
-The cross-platform UniversalGL build (net6.0\any) will not contain an executable, only a `clientogl.dll` in `\net6.0\any\Resources\Binaries\OpenGL`.
-Which is to be executed with:
+Launching the client is done by running e.g.:
 
 `dotnet clientogl.dll`
 
