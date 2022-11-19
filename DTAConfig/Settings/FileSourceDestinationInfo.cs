@@ -11,9 +11,9 @@ namespace DTAConfig.Settings
         private readonly string destinationPath;
         private readonly string sourcePath;
 
-        public string SourcePath => SafePath.CombineDirectoryPath(ProgramConstants.GamePath, sourcePath);
+        public string SourcePath => SafePath.CombineFilePath(ProgramConstants.GamePath, sourcePath);
 
-        public string DestinationPath => SafePath.CombineDirectoryPath(ProgramConstants.GamePath, destinationPath);
+        public string DestinationPath => SafePath.CombineFilePath(ProgramConstants.GamePath, destinationPath);
         /// <summary>
         /// A path where the files edited by user are saved if
         /// <see cref="FileOperationOptions"/> is set to <see cref="FileOperationOptions.KeepChanges"/>.
