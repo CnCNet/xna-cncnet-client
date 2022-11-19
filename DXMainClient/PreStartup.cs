@@ -58,12 +58,12 @@ namespace DTAClient
 
             Environment.CurrentDirectory = gameDirectory.FullName;
 
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                CheckPermissions();
-
             DirectoryInfo clientUserFilesDirectory = SafePath.GetDirectory(ProgramConstants.ClientUserFilesPath);
             FileInfo clientLogFile = SafePath.GetFile(clientUserFilesDirectory.FullName, "client.log");
             ProgramConstants.LogFileName = clientLogFile.FullName;
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                CheckPermissions();
 
             Logger.Initialize(clientUserFilesDirectory.FullName, clientLogFile.Name);
             Logger.WriteLogFile = true;
@@ -237,12 +237,14 @@ namespace DTAClient
                 "Would you like to restart the client with administrative rights?" + Environment.NewLine + Environment.NewLine +
                 "Please also make sure that your security software isn't blocking {1}.").L10N("UI:Main:AdminRequiredText"), MainClientConstants.GAME_NAME_LONG, MainClientConstants.GAME_NAME_SHORT);
 
-            ProgramConstants.DisplayErrorAction("Administrative priveleges required".L10N("UI:Main:AdminRequiredTitle"), error);
+            ProgramConstants.DisplayErrorAction("Administrative privileges required".L10N("UI:Main:AdminRequiredTitle"), error);
 
             ProcessStartInfo psInfo = new ProcessStartInfo();
-            psInfo.FileName = SafePath.CombineDirectoryPath(ProgramConstants.StartupExecutable);
+            psInfo.FileName = "dotnet";
+            psInfo.Arguments = SafePath.CombineFilePath(ProgramConstants.StartupExecutable);
             psInfo.Verb = "runas";
-            Process.Start(psInfo);
+            using var _ = Process.Start(psInfo);
+
             Environment.Exit(1);
         }
 

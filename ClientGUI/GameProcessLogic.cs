@@ -78,7 +78,7 @@ namespace ClientGUI
                 Logger.Log("Windowed mode is enabled - using QRes.");
                 Process QResProcess = new Process();
                 QResProcess.StartInfo.FileName = ProgramConstants.QRES_EXECUTABLE;
-                QResProcess.StartInfo.UseShellExecute = false;
+
                 if (!string.IsNullOrEmpty(extraCommandLine))
                     QResProcess.StartInfo.Arguments = "c=16 /R " + "\"" + SafePath.CombineFilePath(ProgramConstants.GamePath, gameExecutableName) + "\" " + additionalExecutableName + "-SPAWN " + extraCommandLine;
                 else
@@ -108,7 +108,7 @@ namespace ClientGUI
             {
                 Process DtaProcess = new Process();
                 DtaProcess.StartInfo.FileName = gameExecutableName;
-                DtaProcess.StartInfo.UseShellExecute = false;
+
                 if (!string.IsNullOrEmpty(extraCommandLine))
                     DtaProcess.StartInfo.Arguments = " " + additionalExecutableName + "-SPAWN " + extraCommandLine;
                 else

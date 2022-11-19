@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Diagnostics;
+using ClientCore;
 using ClientGUI;
 using Localization;
 using Microsoft.Xna.Framework;
@@ -59,7 +59,7 @@ namespace DTAClient.DXGUI.Generic
         }
 
         private void BtnDownload_LeftClick(object sender, EventArgs e)
-            => Process.Start(downloadUrl);
+            => ProcessLauncher.StartShellProcess(downloadUrl);
 
         private void BtnClose_LeftClick(object sender, EventArgs e)
             => Closed?.Invoke(this, e);
