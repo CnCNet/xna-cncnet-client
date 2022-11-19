@@ -35,13 +35,42 @@ namespace DTAClient.DXGUI.Generic
 
         private Task updaterInitTask = null;
         private Task mapLoadTask = null;
+        
+        private string GetBackgroundName(int id)
+        {
+            if (id == 0)
+                return "loadingscreen.png";
+            else
+                return "loadingscreen" + id.ToString(System.Globalization.CultureInfo.InvariantCulture) + ".png";
+        }
 
         public override void Initialize()
         {
             ClientRectangle = new Rectangle(0, 0, 800, 600);
             Name = "LoadingScreen";
 
-            BackgroundTexture = AssetLoader.LoadTexture("loadingscreen.png");
+
+            string backgroundName = GetBackgroundName(0);
+
+            // Randomly select a background picture if there are more than one pictures.
+            int backgroundMaximum = 0;
+            for (int i = 1; ; i++)
+            {
+                string currentName = GetBackgroundName(i);
+                if (!AssetLoader.AssetExists(currentName))
+                {
+                    backgroundMaximum = i - 1;
+                    break;
+                }
+            }
+            if (backgroundMaximum > 0)
+            {
+                System.Random rand = new System.Random();
+                int roll = rand.Next(backgroundMaximum + 1);
+                backgroundName = GetBackgroundName(roll);
+            }
+
+            BackgroundTexture = AssetLoader.LoadTexture(backgroundName);
 
             base.Initialize();
 
