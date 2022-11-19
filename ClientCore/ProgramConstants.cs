@@ -45,12 +45,7 @@ namespace ClientCore
         public const int GAME_ID_MAX_LENGTH = 4;
 
         public static readonly Encoding LAN_ENCODING = Encoding.UTF8;
-        private static bool? isMono;
 
-        /// <summary>
-        /// Gets a value whether or not the application is running under Mono. Uses lazy loading and caching.
-        /// </summary>
-        public static bool ISMONO => isMono ??= Type.GetType("Mono.Runtime") != null;
         public static string GAME_VERSION = "Undefined";
         private static string PlayerName = "No name";
 

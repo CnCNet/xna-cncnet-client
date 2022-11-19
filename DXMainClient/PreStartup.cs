@@ -255,11 +255,6 @@ namespace DTAClient
         [SupportedOSPlatform("windows")]
         private static bool UserHasDirectoryAccessRights(string path, FileSystemRights accessRights)
         {
-            // Mono doesn't implement everything necessary for the below to work,
-            // so we'll just return to make the client able to run
-            if (ProgramConstants.ISMONO)
-                return true;
-
             var currentUser = WindowsIdentity.GetCurrent();
             var principal = new WindowsPrincipal(currentUser);
 

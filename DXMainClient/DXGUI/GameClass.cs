@@ -139,16 +139,13 @@ namespace DTAClient.DXGUI
             };
 
 #if WINFORMS
-            if (!ProgramConstants.ISMONO)
-            {
-                FileInfo primaryNativeCursorPath = SafePath.GetFile(ProgramConstants.GetResourcePath(), "cursor.cur");
-                FileInfo alternativeNativeCursorPath = SafePath.GetFile(ProgramConstants.GetBaseResourcePath(), "cursor.cur");
+            FileInfo primaryNativeCursorPath = SafePath.GetFile(ProgramConstants.GetResourcePath(), "cursor.cur");
+            FileInfo alternativeNativeCursorPath = SafePath.GetFile(ProgramConstants.GetBaseResourcePath(), "cursor.cur");
 
-                if (primaryNativeCursorPath.Exists)
-                    wm.Cursor.LoadNativeCursor(primaryNativeCursorPath.FullName);
-                else if (alternativeNativeCursorPath.Exists)
-                    wm.Cursor.LoadNativeCursor(alternativeNativeCursorPath.FullName);
-            }
+            if (primaryNativeCursorPath.Exists)
+                wm.Cursor.LoadNativeCursor(primaryNativeCursorPath.FullName);
+            else if (alternativeNativeCursorPath.Exists)
+                wm.Cursor.LoadNativeCursor(alternativeNativeCursorPath.FullName);
 
 #endif
             Components.Add(wm);

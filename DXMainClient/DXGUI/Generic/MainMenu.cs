@@ -1046,9 +1046,6 @@ namespace DTAClient.DXGUI.Generic
         /// <returns>True if media player is available, false otherwise.</returns>
         private bool IsMediaPlayerAvailable()
         {
-            if (MainClientConstants.OSId == OSVersion.WINVISTA)
-                return false;
-
             try
             {
                 MediaState state = MediaPlayer.State;

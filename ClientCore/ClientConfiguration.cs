@@ -317,23 +317,17 @@ namespace ClientCore
 
         #endregion
 
-        public static OSVersion GetOperatingSystemVersion()
+        public OSVersion GetOperatingSystemVersion()
         {
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 if (OperatingSystem.IsWindowsVersionAtLeast(6, 3))
                     return OSVersion.WIN810;
 
-                if (OperatingSystem.IsWindowsVersionAtLeast(6, 1))
-                    return OSVersion.WIN7;
-
-                return OSVersion.UNKNOWN;
+                return OSVersion.WIN7;
             }
 
-            if (ProgramConstants.ISMONO)
-                return OSVersion.UNIX;
-
-            return OSVersion.UNKNOWN;
+            return OSVersion.UNIX;
         }
     }
 
