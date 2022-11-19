@@ -18,5 +18,7 @@ function Build-Project($Configuration, $Game, $Engine, $Framework) {
   }
   $Output = Join-Path $Output Resources Binaries ($EngineMap[$Engine])
   dotnet publish $ProjectPath --configuration=$Configuration -property:GAME=$Game -property:ENGINE=$Engine --framework=$Framework --output=$Output
-  if ($LASTEXITCODE) { throw }
+  if ($LASTEXITCODE) {
+    throw "Build failed for $Game $Engine $Framework $Configuration"
+  }
 }
