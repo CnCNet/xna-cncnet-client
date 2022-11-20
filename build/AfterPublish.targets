@@ -6,14 +6,14 @@
   </Target>
 
   <Target Name="RemoveCodeAnalysis" AfterTargets="Publish" Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows' And '$(Engine)' == 'WindowsDX'">
-    <Message Importance="high" Text="Removing not needed CodeAnalysis files"/>
+    <Message Importance="high" Text="Removing unnecessary CodeAnalysis files"/>
     <Delete Files="$(PublishDir)Microsoft.CodeAnalysis.CSharp.dll" />
     <Delete Files="$(PublishDir)Microsoft.CodeAnalysis.dll" />
     <Delete Files="$(PublishDir)Microsoft.CodeAnalysis.VisualBasic.dll" />
   </Target>
 
   <Target Name="RemoveWindowsDXNonWindowsBinaries" AfterTargets="Publish" Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows' And '$(Engine)' == 'WindowsDX'">
-    <Message Importance="high" Text="Removing not needed WindowsDX files"/>
+    <Message Importance="high" Text="Removing unnecessary WindowsDX files"/>
     <RemoveDir Directories="$(PublishDir)runtimes/debian-x64" />
     <RemoveDir Directories="$(PublishDir)runtimes/fedora-x64" />
     <RemoveDir Directories="$(PublishDir)runtimes/opensuse-x64" />
@@ -22,7 +22,7 @@
   </Target>
 
   <Target Name="RemoveWindowsGLNonWindowsBinaries" AfterTargets="Publish" Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows' And '$(Engine)' == 'WindowsGL'">
-    <Message Importance="high" Text="Removing not needed WindowsGL files"/>
+    <Message Importance="high" Text="Removing unnecessary WindowsGL files"/>
     <RemoveDir Directories="$(PublishDir)runtimes/osx" />
     <RemoveDir Directories="$(PublishDir)runtimes/linux-x64" />
   </Target>

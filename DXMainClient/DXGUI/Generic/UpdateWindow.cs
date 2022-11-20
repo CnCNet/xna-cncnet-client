@@ -5,7 +5,9 @@ using Microsoft.Xna.Framework;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
 using System;
+#if WINFORMS
 using System.Runtime.InteropServices;
+#endif
 using ClientUpdater;
 
 namespace DTAClient.DXGUI.Generic
@@ -43,7 +45,6 @@ namespace DTAClient.DXGUI.Generic
 
         private XNAProgressBar prgCurrentFile;
         private XNAProgressBar prgTotal;
-
 #if WINFORMS
         private TaskbarProgress tbp;
 #endif
@@ -255,7 +256,6 @@ namespace DTAClient.DXGUI.Generic
         {
 #if WINFORMS
             tbp.SetState(WindowManager.GetWindowHandle(), TaskbarProgress.TaskbarStates.NoProgress);
-
 #endif
             UpdateCompleted?.Invoke(this, EventArgs.Empty);
         }
@@ -269,7 +269,6 @@ namespace DTAClient.DXGUI.Generic
         {
 #if WINFORMS
             tbp.SetState(WindowManager.GetWindowHandle(), TaskbarProgress.TaskbarStates.NoProgress);
-
 #endif
             UpdateFailed?.Invoke(this, new UpdateFailureEventArgs(updateFailureErrorMessage));
         }
@@ -288,7 +287,6 @@ namespace DTAClient.DXGUI.Generic
 
 #if WINFORMS
             tbp.SetState(WindowManager.GetWindowHandle(), TaskbarProgress.TaskbarStates.NoProgress);
-
 #endif
             UpdateCancelled?.Invoke(this, EventArgs.Empty);
         }

@@ -8,9 +8,9 @@ Targets
 The primary targets of the client project are
 
 
-* [Dawn of the Tiberium Age](http://www.moddb.com/mods/the-dawn-of-the-tiberium-age)
-* [Twisted Insurrection](http://www.moddb.com/mods/twisted-insurrection)
-* [Mental Omega](http://www.moddb.com/mods/mental-omega)
+* [Dawn of the Tiberium Age](https://www.moddb.com/mods/the-dawn-of-the-tiberium-age)
+* [Twisted Insurrection](https://www.moddb.com/mods/twisted-insurrection)
+* [Mental Omega](https://www.moddb.com/mods/mental-omega)
 * [CnCNet Yuri's Revenge](https://cncnet.org/yuris-revenge)
 
 

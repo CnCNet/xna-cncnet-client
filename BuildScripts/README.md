@@ -39,19 +39,10 @@ Overview of the Engine configurations differences:
 
 | | OS Support | Default Platform | Technology |
 | - | ---------- | -------- | ---------- |
-| UniversalGL | Any | AnyCPU (64-bit preferred) | MonoGame DesktopGL |
-| WindowsDX | Windows | AnyCPU (64-bit preferred) | MonoGame WindowsDX + WinForms |
-| WindowsGL | Windows | AnyCPU (64-bit preferred) | MonoGame DesktopGL + WinForms |
-| WindowsXNA | Windows | AnyCPU (32-bit preferred) | Microsoft XNA + WinForms |
-
-Custom builds
--------------
-
-It is possible to compile for a specfic platform in order to gain performance (`PublishReadyToRun`, `PublishReadyToRunComposite`) etc.
-
-Manually compile linux x64 YR optimized binaries from command line:
-
->dotnet publish ..\DXMainClient\DXMainClient.csproj -c Release -p:Game=YR -p:Engine=UniversalGL -f net7.0 -o ..\Compiled\YR\net7.0\linux-x64\Resources\Binaries\OpenGL -r linux-x64 -p:PublishReadyToRun=true -p:PublishReadyToRunComposite=true
+| UniversalGL | Any | AnyCPU | MonoGame DesktopGL |
+| WindowsDX | Windows | AnyCPU | MonoGame WindowsDX + WinForms |
+| WindowsGL | Windows | AnyCPU | MonoGame DesktopGL + WinForms |
+| WindowsXNA | Windows | x86 | Microsoft XNA + WinForms |
 
 Build output
 ------------
@@ -71,7 +62,7 @@ You can select the desired configuration directly from the solution configuratio
 
 ![Screenshot 2022-09-09 235432](https://user-images.githubusercontent.com/25006126/189451063-28418a7b-47f4-47b3-9d8b-512c598284ac.png)
 
-Note that the XNA configurations can only be build with either `x86` or `AnyCPU` (32-bit preferred) to use `Large address aware`.
+Note that the XNA configurations can only be build with `x86`.
 
 ![Screenshot 2022-09-09 235556](https://user-images.githubusercontent.com/25006126/189451170-d90f665e-19d1-4e6b-a9df-a4994eb143a9.png)
 

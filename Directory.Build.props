@@ -24,7 +24,7 @@
   </PropertyGroup>
 
   <Target Name="ShowBuildInfo" BeforeTargets="CoreCompile">
-    <Message Importance="high" Text="Engine: $(Engine); Game: $(Game); Platform: $(Platform); TargetFramework: $(TargetFramework); AppHostRuntimeIdentifier: $(AppHostRuntimeIdentifier); Configuration: $(Configuration)" />
+    <Message Importance="high" Text="Engine: $(Engine); Game: $(Game); Platform: $(Platform); TargetFramework: $(TargetFramework); Configuration: $(Configuration)" />
   </Target>
 
   <ItemGroup>
