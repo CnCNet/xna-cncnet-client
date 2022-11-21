@@ -67,8 +67,14 @@ namespace DTAClient.DXGUI
             AssetLoader.AssetSearchPaths.Add(ProgramConstants.GetBaseResourcePath());
             AssetLoader.AssetSearchPaths.Add(ProgramConstants.GamePath);
 
+#if DX || (GL && WINFORMS)
+            // Try to create and load a texture to check for MonoGame compatibility
 #if DX
-            // Try to create and load a texture to check for MonoGame WindowsDX compatibility
+            const string startupFailureFile = ".dxfail";
+#elif GL && WINFORMS
+            const string startupFailureFile = ".oglfail";
+#endif
+
             try
             {
                 Texture2D texture = new Texture2D(GraphicsDevice, 100, 100, false, SurfaceFormat.Color);
@@ -81,17 +87,17 @@ namespace DTAClient.DXGUI
             {
                 if (ex.Message.Contains("DeviceRemoved"))
                 {
-                    Logger.Log("Creating texture on startup failed! Creating .dxfail file and re-launching client launcher.");
+                    Logger.Log($"Creating texture on startup failed! Creating {startupFailureFile} file and re-launching client launcher.");
 
                     DirectoryInfo clientDirectory = SafePath.GetDirectory(ProgramConstants.GamePath, "Client");
 
                     if (!clientDirectory.Exists)
                         clientDirectory.Create();
 
-                    // Create .dxfail file that the launcher can check for this error
+                    // Create startup failure file that the launcher can check for this error
                     // and handle it by redirecting the user to another version instead
 
-                    File.WriteAllBytes(SafePath.CombineFilePath(clientDirectory.FullName, ".dxfail"), new byte[] { 1 });
+                    File.WriteAllBytes(SafePath.CombineFilePath(clientDirectory.FullName, startupFailureFile), new byte[] { 1 });
 
                     string launcherExe = ClientConfiguration.Instance.LauncherExe;
                     if (string.IsNullOrEmpty(launcherExe))
