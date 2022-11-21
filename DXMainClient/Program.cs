@@ -29,8 +29,10 @@ namespace DTAClient
             SPECIFIC_LIBRARY_PATH = startupPath;
 #elif XNA
             SPECIFIC_LIBRARY_PATH = Path.Combine(startupPath, "Binaries", "XNA") + Path.DirectorySeparatorChar;
-#elif GL
+#elif GL && ISWINDOWS
             SPECIFIC_LIBRARY_PATH = Path.Combine(startupPath, "Binaries", "OpenGL") + Path.DirectorySeparatorChar;
+#elif GL && !ISWINDOWS
+            SPECIFIC_LIBRARY_PATH = Path.Combine(startupPath, "Binaries", "UniversalGL") + Path.DirectorySeparatorChar;
 #elif DX
             SPECIFIC_LIBRARY_PATH = Path.Combine(startupPath, "Binaries", "Windows") + Path.DirectorySeparatorChar;
 #else
@@ -48,7 +50,6 @@ namespace DTAClient
         }
 
         private static string COMMON_LIBRARY_PATH;
-
         private static string SPECIFIC_LIBRARY_PATH;
 
         /// <summary>
@@ -81,7 +82,7 @@ namespace DTAClient
                 }
             }
 
-            StartupParams parameters = new StartupParams(noAudio, multipleInstanceMode, unknownStartupParams);
+            var parameters = new StartupParams(noAudio, multipleInstanceMode, unknownStartupParams);
 
             if (multipleInstanceMode)
             {
@@ -92,12 +93,11 @@ namespace DTAClient
 
             // We're a single instance application!
             // http://stackoverflow.com/questions/229565/what-is-a-good-pattern-for-using-a-global-mutex-in-c/229567
-
             // Global prefix means that the mutex is global to the machine
-            string mutexId = string.Format("Global{0}", Guid.Parse("1CC9F8E7-9F69-4BBC-B045-E734204027A9"));
-
+            string mutexId = FormattableString.Invariant($"Global{Guid.Parse("1CC9F8E7-9F69-4BBC-B045-E734204027A9")}");
             using var mutex = new Mutex(false, mutexId, out _);
-            var hasHandle = false;
+            bool hasHandle = false;
+
             try
             {
                 try

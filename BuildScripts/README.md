@@ -47,9 +47,7 @@ Overview of the Engine configurations differences:
 Build output
 ------------
 
-The build output when using the `dotnet publish` command is created in `\Compiled` and will look like below for each Game.
-
-![unknown](https://user-images.githubusercontent.com/25006126/189449430-07bfb4b5-bc5f-4cea-870e-90d1870b8fe8.png)
+The build output when using the `dotnet publish` command is created in `\Compiled`.
 
 Launching the client is done by running e.g.:
 

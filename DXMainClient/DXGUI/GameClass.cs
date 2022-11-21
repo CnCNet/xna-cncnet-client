@@ -68,7 +68,7 @@ namespace DTAClient.DXGUI
             AssetLoader.AssetSearchPaths.Add(ProgramConstants.GamePath);
 
 #if DX
-            // Try to create and load a texture to check for MonoGame 3.7.1 compatibility
+            // Try to create and load a texture to check for MonoGame WindowsDX compatibility
             try
             {
                 Texture2D texture = new Texture2D(GraphicsDevice, 100, 100, false, SurfaceFormat.Color);
@@ -89,7 +89,7 @@ namespace DTAClient.DXGUI
                         clientDirectory.Create();
 
                     // Create .dxfail file that the launcher can check for this error
-                    // and handle it by redirecting the user to the XNA version instead
+                    // and handle it by redirecting the user to another version instead
 
                     File.WriteAllBytes(SafePath.CombineFilePath(clientDirectory.FullName, ".dxfail"), new byte[] { 1 });
 

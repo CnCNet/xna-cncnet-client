@@ -52,7 +52,7 @@ namespace DTAClient
 
             Updater.Initialize(ProgramConstants.GamePath, ProgramConstants.GetBaseResourcePath(), ClientConfiguration.Instance.SettingsIniName, ClientConfiguration.Instance.LocalGame, SafePath.GetFile(ProgramConstants.StartupExecutable).Name);
 
-            Logger.Log("Operating system: " + Environment.OSVersion.VersionString);
+            Logger.Log("Operating system: " + Environment.OSVersion.VersionString + " 64-bit=" + Environment.Is64BitOperatingSystem);
             Logger.Log("Selected OS profile: " + MainClientConstants.OSId);
             Logger.Log("Current culture: " + CultureInfo.CurrentCulture);
 

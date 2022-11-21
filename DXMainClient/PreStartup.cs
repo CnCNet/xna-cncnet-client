@@ -239,12 +239,13 @@ namespace DTAClient
 
             ProgramConstants.DisplayErrorAction("Administrative privileges required".L10N("UI:Main:AdminRequiredTitle"), error);
 
-            ProcessStartInfo psInfo = new ProcessStartInfo();
-            psInfo.FileName = "dotnet";
-            psInfo.Arguments = SafePath.CombineFilePath(ProgramConstants.StartupExecutable);
-            psInfo.Verb = "runas";
-            using var _ = Process.Start(psInfo);
-
+            using var _ = Process.Start(new ProcessStartInfo
+            {
+                FileName = "dotnet",
+                Arguments = SafePath.CombineFilePath(ProgramConstants.StartupExecutable),
+                Verb = "runas",
+                CreateNoWindow = true
+            });
             Environment.Exit(1);
         }
 

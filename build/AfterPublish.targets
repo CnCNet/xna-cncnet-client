@@ -23,49 +23,26 @@
 
   <Target Name="RemoveWindowsGLNonWindowsBinaries" AfterTargets="Publish" Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows' And '$(Engine)' == 'WindowsGL'">
     <Message Importance="high" Text="Removing unnecessary WindowsGL files"/>
-    <RemoveDir Directories="$(PublishDir)runtimes/osx" />
     <RemoveDir Directories="$(PublishDir)runtimes/linux-x64" />
+    <RemoveDir Directories="$(PublishDir)runtimes/osx" />
   </Target>
 
-  <Target Name="MoveCommonWindowsBinaries" AfterTargets="Publish" Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">
-    <Message Importance="high" Text="Moving windows common binaries"/>
+  <Target Name="MoveCommonBinaries" AfterTargets="Publish">
+    <Message Importance="high" Text="Moving common binaries"/>
     <Move SourceFiles="$(PublishDir)ClientUpdater.dll" DestinationFolder="$(PublishDir)../" />
     <Move SourceFiles="$(PublishDir)DiscordRPC.dll" DestinationFolder="$(PublishDir)../" />
     <Move SourceFiles="$(PublishDir)DiscordRPC.pdb" DestinationFolder="$(PublishDir)../" />
-    <Move SourceFiles="$(PublishDir)DiscordRPC.xml" DestinationFolder="$(PublishDir)../" />
+    <Delete Files="$(PublishDir)DiscordRPC.xml" />
     <Move SourceFiles="$(PublishDir)Localization.dll" DestinationFolder="$(PublishDir)../" />
     <Move SourceFiles="$(PublishDir)Localization.pdb" DestinationFolder="$(PublishDir)../" />
     <Move SourceFiles="$(PublishDir)lzo.net.dll" DestinationFolder="$(PublishDir)../" />
     <Move SourceFiles="$(PublishDir)Microsoft.Extensions.DependencyInjection.Abstractions.dll" DestinationFolder="$(PublishDir)../" />
+    <Move SourceFiles="$(PublishDir)Newtonsoft.Json.Bson.dll" DestinationFolder="$(PublishDir)../" />
     <Move SourceFiles="$(PublishDir)Newtonsoft.Json.dll" DestinationFolder="$(PublishDir)../" />
     <Move SourceFiles="$(PublishDir)OpenMcdf.dll" DestinationFolder="$(PublishDir)../" />
     <Move SourceFiles="$(PublishDir)Rampastring.Tools.dll" DestinationFolder="$(PublishDir)../" />
     <Move SourceFiles="$(PublishDir)SixLabors.ImageSharp.dll" DestinationFolder="$(PublishDir)../" />
-    <Move SourceFiles="$(PublishDir)System.Management.dll" DestinationFolder="$(PublishDir)../" />
-    <Move SourceFiles="$(PublishDir)TextCopy.dll" DestinationFolder="$(PublishDir)../" />
-  </Target>
-
-  <Target Name="MoveCommonCrossPlatformBinaries" AfterTargets="Publish" Condition="'$(Engine)' == 'UniversalGL'">
-    <Message Importance="high" Text="Moving cross-platform common binaries"/>
-    <Move SourceFiles="$(PublishDir)ClientUpdater.dll" DestinationFolder="$(PublishDir)../" />
-    <Move SourceFiles="$(PublishDir)DiscordRPC.dll" DestinationFolder="$(PublishDir)../" />
-    <Move SourceFiles="$(PublishDir)DiscordRPC.pdb" DestinationFolder="$(PublishDir)../" />
-    <Move SourceFiles="$(PublishDir)DiscordRPC.xml" DestinationFolder="$(PublishDir)../" />
-    <Move SourceFiles="$(PublishDir)Localization.dll" DestinationFolder="$(PublishDir)../" />
-    <Move SourceFiles="$(PublishDir)Localization.pdb" DestinationFolder="$(PublishDir)../" />
-    <Move SourceFiles="$(PublishDir)lzo.net.dll" DestinationFolder="$(PublishDir)../" />
-    <Move SourceFiles="$(PublishDir)Microsoft.Extensions.DependencyInjection.Abstractions.dll" DestinationFolder="$(PublishDir)../" />
-    <Move SourceFiles="$(PublishDir)Microsoft.Win32.SystemEvents.dll" DestinationFolder="$(PublishDir)../" />
-    <Move SourceFiles="$(PublishDir)Newtonsoft.Json.dll" DestinationFolder="$(PublishDir)../" />
-    <Move SourceFiles="$(PublishDir)OpenMcdf.dll" DestinationFolder="$(PublishDir)../" />
-    <Move SourceFiles="$(PublishDir)Rampastring.Tools.dll" DestinationFolder="$(PublishDir)../" />
-    <Move SourceFiles="$(PublishDir)SixLabors.ImageSharp.dll" DestinationFolder="$(PublishDir)../" />
-    <Move SourceFiles="$(PublishDir)System.CodeDom.dll" DestinationFolder="$(PublishDir)../" />
-    <Move SourceFiles="$(PublishDir)System.DirectoryServices.dll" DestinationFolder="$(PublishDir)../" />
-    <Move SourceFiles="$(PublishDir)System.Drawing.Common.dll" DestinationFolder="$(PublishDir)../" />
-    <Move SourceFiles="$(PublishDir)System.Management.dll" DestinationFolder="$(PublishDir)../" />
-    <Move SourceFiles="$(PublishDir)System.Security.Permissions.dll" DestinationFolder="$(PublishDir)../" />
-    <Move SourceFiles="$(PublishDir)System.Windows.Extensions.dll" DestinationFolder="$(PublishDir)../" />
+    <Move SourceFiles="$(PublishDir)System.Net.Http.Formatting.dll" DestinationFolder="$(PublishDir)../" />
     <Move SourceFiles="$(PublishDir)TextCopy.dll" DestinationFolder="$(PublishDir)../" />
   </Target>
 </Project>

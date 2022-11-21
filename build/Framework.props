@@ -1,5 +1,4 @@
 <Project>
-
   <PropertyGroup>
     <Engines>WindowsDX;WindowsGL;UniversalGL;WindowsXNA</Engines>
     <Games>Ares;TS;YR</Games>
@@ -30,5 +29,4 @@
     <Error Text="Game is not set! Please retry with /p:Game={Game}. Supported Games are $(Games)." Condition=" '$(Game)' == '' " />
     <Error Text="Game '$(Game)' is not supported. Supported Games are $(Games)." Condition=" '!$(Games.Contains($(Game)))' " />
   </Target>
-
 </Project>

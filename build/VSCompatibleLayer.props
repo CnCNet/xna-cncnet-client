@@ -25,5 +25,4 @@
     <_OutputConfiguration Condition="'$(Configuration.Contains(Debug))' == 'True'">Debug</_OutputConfiguration>
     <_OutputConfiguration Condition="'$(Configuration.Contains(Release))' == 'True'">Release</_OutputConfiguration>
   </PropertyGroup>
-
 </Project>
