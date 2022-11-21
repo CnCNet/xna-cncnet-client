@@ -22,7 +22,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Rampastring.XNAUI.XNAControls;
 using MainMenu = DTAClient.DXGUI.Generic.MainMenu;
-#if DX
+#if DX || (GL && WINFORMS)
 using System.Diagnostics;
 using System.IO;
 #endif
