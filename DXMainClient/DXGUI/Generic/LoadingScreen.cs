@@ -16,7 +16,7 @@ using Rampastring.XNAUI;
 
 namespace DTAClient.DXGUI.Generic
 {
-    public class LoadingScreen : XNAWindow
+    internal class LoadingScreen : XNAWindow
     {
         public LoadingScreen(
             CnCNetManager cncnetManager,
@@ -55,12 +55,9 @@ namespace DTAClient.DXGUI.Generic
             bool initUpdater = !ClientConfiguration.Instance.ModMode;
 
             if (initUpdater)
-            {
-                updaterInitTask = new Task(InitUpdater);
-                updaterInitTask.Start();
-            }
+                updaterInitTask = Task.Run(InitUpdater);
 
-            mapLoadTask = mapLoader.LoadMapsAsync();
+            mapLoadTask = Task.Run(() => mapLoader.LoadMaps());
 
             if (Cursor.Visible)
             {
@@ -71,8 +68,15 @@ namespace DTAClient.DXGUI.Generic
 
         private void InitUpdater()
         {
-            Updater.OnLocalFileVersionsChecked += LogGameClientVersion;
-            Updater.CheckLocalFileVersions();
+            try
+            {
+                Updater.OnLocalFileVersionsChecked += LogGameClientVersion;
+                Updater.CheckLocalFileVersions();
+            }
+            catch (Exception ex)
+            {
+                PreStartup.HandleException(ex);
+            }
         }
 
         private void LogGameClientVersion()
@@ -83,7 +87,7 @@ namespace DTAClient.DXGUI.Generic
 
         private void Finish()
         {
-            ProgramConstants.GAME_VERSION = ClientConfiguration.Instance.ModMode ? 
+            ProgramConstants.GAME_VERSION = ClientConfiguration.Instance.ModMode ?
                 "N/A" : Updater.GameVersion;
 
             MainMenu mainMenu = serviceProvider.GetService<MainMenu>();
