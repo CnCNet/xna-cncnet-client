@@ -46,19 +46,26 @@ namespace DTAClient.Domain.Multiplayer
         /// </summary>
         public void LoadMaps()
         {
-            string mpMapsPath = SafePath.CombineFilePath(ProgramConstants.GamePath, ClientConfiguration.Instance.MPMapsIniPath);
+            try
+            {
+                string mpMapsPath = SafePath.CombineFilePath(ProgramConstants.GamePath, ClientConfiguration.Instance.MPMapsIniPath);
 
-            Logger.Log($"Loading maps from {mpMapsPath}.");
+                Logger.Log($"Loading maps from {mpMapsPath}.");
 
-            IniFile mpMapsIni = new IniFile(mpMapsPath);
+                IniFile mpMapsIni = new IniFile(mpMapsPath);
 
-            LoadGameModes(mpMapsIni);
-            LoadGameModeAliases(mpMapsIni);
-            LoadMultiMaps(mpMapsIni);
-            LoadCustomMaps();
+                LoadGameModes(mpMapsIni);
+                LoadGameModeAliases(mpMapsIni);
+                LoadMultiMaps(mpMapsIni);
+                LoadCustomMaps();
 
-            GameModes.RemoveAll(g => g.Maps.Count < 1);
-            GameModeMaps = new GameModeMapCollection(GameModes);
+                GameModes.RemoveAll(g => g.Maps.Count < 1);
+                GameModeMaps = new GameModeMapCollection(GameModes);
+            }
+            catch (Exception ex)
+            {
+                PreStartup.HandleException(ex);
+            }
         }
 
         private void LoadMultiMaps(IniFile mpMapsIni)
