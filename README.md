@@ -23,7 +23,7 @@ The client has 4 builds: Windows DirectX11, Windows OpenGL, Windows XNA and Univ
 * The DirectX11 and OpenGL builds rely on MonoGame.
 * The XNA build relies on Microsoft's XNA Framework 4.0 Refresh.
 
-Building the solution for any platform requires Visual Studio 2022 and/or the .NET SDK 7.0. A modern version of Visual Studio Code, MonoDevelop or Visual Studio for Mac could also work, but are not officially supported.
+Building the solution for any platform requires Visual Studio 2022 17.3 or newer and/or the .NET SDK 7.0. A modern version of Visual Studio Code, MonoDevelop or Visual Studio for Mac could also work, but are not officially supported.
 When using the included build scripts PowerShell 7.2 or newer is required.
 
 Compiling and debugging
