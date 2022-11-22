@@ -1,15 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
+#if !DEBUG
 using System.IO;
-using System.Runtime.Loader;
-using System.Threading;
 using System.Reflection;
+using System.Runtime.Loader;
+#endif
+using System.Threading;
 /* !! We cannot use references to other projects or non-framework assemblies in this class, assembly loading events not hooked up yet !! */
 
 namespace DTAClient
 {
     static class Program
     {
+#if !DEBUG
         static Program()
         {
             /* We have different binaries depending on build platform, but for simplicity
@@ -19,15 +22,9 @@ namespace DTAClient
 
             string startupPath = new FileInfo(Assembly.GetEntryAssembly().Location).Directory.Parent.Parent.FullName + Path.DirectorySeparatorChar;
 
-#if DEBUG
-            COMMON_LIBRARY_PATH = startupPath;
-#else
             COMMON_LIBRARY_PATH = Path.Combine(startupPath, "Binaries") + Path.DirectorySeparatorChar;
-#endif
 
-#if DEBUG
-            SPECIFIC_LIBRARY_PATH = startupPath;
-#elif XNA
+#if XNA
             SPECIFIC_LIBRARY_PATH = Path.Combine(startupPath, "Binaries", "XNA") + Path.DirectorySeparatorChar;
 #elif GL && ISWINDOWS
             SPECIFIC_LIBRARY_PATH = Path.Combine(startupPath, "Binaries", "OpenGL") + Path.DirectorySeparatorChar;
@@ -41,17 +38,12 @@ namespace DTAClient
 
             // Set up DLL load paths as early as possible
             AssemblyLoadContext.Default.Resolving += DefaultAssemblyLoadContextOnResolving;
-
-#if !DEBUG
-            Environment.CurrentDirectory = new DirectoryInfo(startupPath).Parent.FullName + Path.DirectorySeparatorChar;
-#else
-            Environment.CurrentDirectory = startupPath;
-#endif
         }
 
         private static string COMMON_LIBRARY_PATH;
         private static string SPECIFIC_LIBRARY_PATH;
 
+#endif
         /// <summary>
         /// The main entry point for the application.
         /// </summary>
@@ -124,6 +116,7 @@ namespace DTAClient
                     mutex.ReleaseMutex();
             }
         }
+#if !DEBUG
 
         private static Assembly DefaultAssemblyLoadContextOnResolving(AssemblyLoadContext assemblyLoadContext, AssemblyName assemblyName)
         {
@@ -142,5 +135,6 @@ namespace DTAClient
 
             return null;
         }
+#endif
     }
 }

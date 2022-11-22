@@ -126,7 +126,7 @@ namespace DTAClient
             {
                 if (ClientConfiguration.Instance.GenerateTranslationStub)
                 {
-                    string stubPath = SafePath.CombineFilePath(ProgramConstants.GamePath, "Client", "Translation.stub.ini");
+                    string stubPath = SafePath.CombineFilePath(ProgramConstants.ClientUserFilesPath, "Translation.stub.ini");
                     var stubTable = TranslationTable.Instance.Clone();
                     TranslationTable.Instance.MissingTranslationEvent += (sender, e) =>
                     {
@@ -198,17 +198,17 @@ namespace DTAClient
         {
             LogException(ex);
 
-            string errorLogPath = SafePath.CombineFilePath(Environment.CurrentDirectory, "Client", "ClientCrashLogs", FormattableString.Invariant($"ClientCrashLog{DateTime.Now.ToString("_yyyy_MM_dd_HH_mm")}.txt"));
+            string errorLogPath = SafePath.CombineFilePath(ProgramConstants.ClientUserFilesPath, "ClientCrashLogs", FormattableString.Invariant($"ClientCrashLog{DateTime.Now.ToString("_yyyy_MM_dd_HH_mm")}.txt"));
             bool crashLogCopied = false;
 
             try
             {
-                DirectoryInfo crashLogsDirectoryInfo = SafePath.GetDirectory(Environment.CurrentDirectory, "Client", "ClientCrashLogs");
+                DirectoryInfo crashLogsDirectoryInfo = SafePath.GetDirectory(ProgramConstants.ClientUserFilesPath, "ClientCrashLogs");
 
                 if (!crashLogsDirectoryInfo.Exists)
                     crashLogsDirectoryInfo.Create();
 
-                File.Copy(SafePath.CombineFilePath(Environment.CurrentDirectory, "Client", "client.log"), errorLogPath, true);
+                File.Copy(SafePath.CombineFilePath(ProgramConstants.ClientUserFilesPath, "client.log"), errorLogPath, true);
                 crashLogCopied = true;
             }
             catch { }
@@ -229,7 +229,7 @@ namespace DTAClient
         [SupportedOSPlatform("windows")]
         private static void CheckPermissions()
         {
-            if (UserHasDirectoryAccessRights(Environment.CurrentDirectory, FileSystemRights.Modify))
+            if (UserHasDirectoryAccessRights(ProgramConstants.GamePath, FileSystemRights.Modify))
                 return;
 
             string error = string.Format(("You seem to be running {0} from a write-protected directory." + Environment.NewLine + Environment.NewLine +
@@ -266,7 +266,7 @@ namespace DTAClient
             {
                 string progfiles = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
                 string progfilesx86 = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86);
-                if (Environment.CurrentDirectory.Contains(progfiles) || Environment.CurrentDirectory.Contains(progfilesx86))
+                if (ProgramConstants.GamePath.Contains(progfiles) || ProgramConstants.GamePath.Contains(progfilesx86))
                     return false;
             }
 

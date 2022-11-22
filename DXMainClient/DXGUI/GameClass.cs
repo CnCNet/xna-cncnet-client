@@ -89,7 +89,7 @@ namespace DTAClient.DXGUI
                 {
                     Logger.Log($"Creating texture on startup failed! Creating {startupFailureFile} file and re-launching client launcher.");
 
-                    DirectoryInfo clientDirectory = SafePath.GetDirectory(ProgramConstants.GamePath, "Client");
+                    DirectoryInfo clientDirectory = SafePath.GetDirectory(ProgramConstants.ClientUserFilesPath);
 
                     if (!clientDirectory.Exists)
                         clientDirectory.Create();
