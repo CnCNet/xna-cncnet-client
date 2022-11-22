@@ -46,8 +46,8 @@ End-user requirements
 ---------------------
 
 Windows requirements:
-* The .NET Desktop Runtime for your specific platform [.NET 7.0 Desktop Runtime](https://dotnet.microsoft.com/en-us/download/dotnet/7.0/runtime).
-* Additionally the .NET Desktop Runtime for the `x86` platform used by the client launcher and the XNA build [.NET 7.0 Desktop Runtime x86](https://dotnet.microsoft.com/en-us/download/dotnet/thank-you/runtime-desktop-7.0.0-windows-x86-installer).
+* The [.NET 7.0 Desktop Runtime](https://dotnet.microsoft.com/en-us/download/dotnet/7.0/runtime) for your specific platform.
+* Additionally the [.NET 7.0 Desktop Runtime x86](https://dotnet.microsoft.com/en-us/download/dotnet/thank-you/runtime-desktop-7.0.0-windows-x86-installer) used by the client launcher and the XNA build.
 
 The XNA build additionally requires:
 * [Microsoft XNA Framework Redistributable 4.0 Refresh](https://www.microsoft.com/en-us/download/details.aspx?id=27598).
@@ -60,7 +60,7 @@ Windows 7 SP1 additionally requires:
 
 
 Other OS requirements:
-* The .NET Runtime for your specific platform [.NET 7.0 Runtime](https://dotnet.microsoft.com/en-us/download/dotnet/7.0/runtime).
+* The [.NET 7.0 Runtime](https://dotnet.microsoft.com/en-us/download/dotnet/7.0/runtime) for your specific platform.
 
 Client launcher
 ---------------
