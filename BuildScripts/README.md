@@ -39,10 +39,10 @@ Overview of the Engine configurations differences:
 
 | | OS Support | Default Platform | Technology |
 | - | ---------- | -------- | ---------- |
-| UniversalGL | Any | AnyCPU | MonoGame DesktopGL |
-| WindowsDX | Windows | AnyCPU | MonoGame WindowsDX + WinForms |
-| WindowsGL | Windows | AnyCPU | MonoGame DesktopGL + WinForms |
-| WindowsXNA | Windows | x86 | Microsoft XNA + WinForms |
+| UniversalGL | Any | AnyCPU (64-bit preferred) | MonoGame DesktopGL |
+| WindowsDX | Windows | AnyCPU (64-bit preferred) | MonoGame WindowsDX + WinForms |
+| WindowsGL | Windows | AnyCPU (64-bit preferred) | MonoGame DesktopGL + WinForms |
+| WindowsXNA | Windows | AnyCPU (32-bit preferred) | Microsoft XNA + WinForms |
 
 Build output
 ------------
@@ -60,7 +60,7 @@ You can select the desired configuration directly from the solution configuratio
 
 ![Screenshot 2022-09-09 235432](https://user-images.githubusercontent.com/25006126/189451063-28418a7b-47f4-47b3-9d8b-512c598284ac.png)
 
-Note that the XNA configurations can only be build with `x86`.
+Note that the XNA configurations can only be build/debugged with either `x86` or `AnyCPU` (32-bit preferred) to use `Large address aware`.
 
 ![Screenshot 2022-09-09 235556](https://user-images.githubusercontent.com/25006126/189451170-d90f665e-19d1-4e6b-a9df-a4994eb143a9.png)
 

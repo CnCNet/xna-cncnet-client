@@ -1,5 +1,5 @@
 <Project>
-  <PropertyGroup Condition="'$(PlatformTarget)' == 'x86'">
-    <RunCommand>$(MSBuildProgramFiles32)\dotnet\dotnet</RunCommand> <!-- Support XNA 32bit debugging in VS -->
+  <PropertyGroup Condition="'$(PlatformTarget)' == 'x86' Or '$(Engine)' == 'WindowsXNA'">
+    <RunCommand>$(MSBuildProgramFiles32)\dotnet\dotnet</RunCommand> <!-- Support WindowsXNA / 32bit debugging in VS -->
   </PropertyGroup>
 </Project>

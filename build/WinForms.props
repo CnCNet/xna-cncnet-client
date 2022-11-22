@@ -1,8 +1,7 @@
 <Project>
   <PropertyGroup>
-    <TargetFramework Condition="!$(Configuration.Contains('UniversalGL')) Or '$(Engine)' != 'UniversalGL'">net7.0-windows</TargetFramework>
-    <TargetFramework Condition="$(Configuration.Contains('UniversalGL')) Or '$(Engine)' == 'UniversalGL'">net7.0</TargetFramework>
-    <UseWindowsForms Condition="!$(Configuration.Contains('UniversalGL')) Or '$(Engine)' != 'UniversalGL'">true</UseWindowsForms>
-    <UseWindowsForms Condition="$(Configuration.Contains('UniversalGL')) Or '$(Engine)' == 'UniversalGL'">false</UseWindowsForms>
+    <TargetFramework Condition="'$(Engine)' != 'UniversalGL'">net7.0-windows</TargetFramework>
+    <TargetFramework Condition="'$(Engine)' == 'UniversalGL'">net7.0</TargetFramework>
+    <UseWindowsForms Condition="'$(Engine)' != 'UniversalGL'">true</UseWindowsForms>
   </PropertyGroup>
 </Project>
