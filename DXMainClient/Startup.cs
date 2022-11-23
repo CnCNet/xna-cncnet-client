@@ -68,8 +68,7 @@ namespace DTAClient
                 thread.Start();
             }
 
-            Thread idThread = new Thread(GenerateOnlineId);
-            idThread.Start();
+            GenerateOnlineIdAsync();
 
 #if ARES
             Task.Factory.StartNew(() => PruneFiles(SafePath.GetDirectory(ProgramConstants.GamePath, "debug"), DateTime.Now.AddDays(-7)));
@@ -316,60 +315,75 @@ namespace DTAClient
         /// <summary>
         /// Generate an ID for online play.
         /// </summary>
-        private static void GenerateOnlineId()
+        private static async Task GenerateOnlineIdAsync()
         {
-            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+#if !WINFORMS
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                Connection.SetId(new Random().Next(int.MaxValue - 1).ToString());
-                return;
-            }
-
-            try
-            {
-                ManagementObjectCollection mbsList = null;
-                ManagementObjectSearcher mbs = new ManagementObjectSearcher("Select * From Win32_processor");
-                mbsList = mbs.Get();
-                string cpuid = "";
-                foreach (ManagementObject mo in mbsList)
-                {
-                    cpuid = mo["ProcessorID"].ToString();
-                }
-
-                ManagementObjectSearcher mos = new ManagementObjectSearcher("SELECT * FROM Win32_BaseBoard");
-                var moc = mos.Get();
-                string mbid = "";
-                foreach (ManagementObject mo in moc)
-                {
-                    mbid = (string)mo["SerialNumber"];
-                }
-
-                string sid = new SecurityIdentifier((byte[])new DirectoryEntry(string.Format("WinNT://{0},Computer", Environment.MachineName)).Children.Cast<DirectoryEntry>().First().InvokeGet("objectSID"), 0).AccountDomainSid.Value;
-
-                Connection.SetId(cpuid + mbid + sid);
-                using RegistryKey key = Registry.CurrentUser.CreateSubKey("SOFTWARE\\" + ClientConfiguration.Instance.InstallationPathRegKey);
-                key.SetValue("Ident", cpuid + mbid + sid);
-            }
-            catch (Exception)
-            {
-                Random rn = new Random();
-
-                using RegistryKey key = Registry.CurrentUser.CreateSubKey("SOFTWARE\\" + ClientConfiguration.Instance.InstallationPathRegKey);
-                string str = rn.Next(Int32.MaxValue - 1).ToString();
-
+#endif
                 try
                 {
-                    Object o = key.GetValue("Ident");
-                    if (o == null)
+                    await Task.CompletedTask;
+                    ManagementObjectCollection mbsList = null;
+                    ManagementObjectSearcher mbs = new ManagementObjectSearcher("Select * From Win32_processor");
+                    mbsList = mbs.Get();
+                    string cpuid = "";
+                    foreach (ManagementObject mo in mbsList)
                     {
-                        key.SetValue("Ident", str);
+                        cpuid = mo["ProcessorID"].ToString();
                     }
-                    else
-                        str = o.ToString();
-                }
-                catch { }
 
-                Connection.SetId(str);
+                    ManagementObjectSearcher mos = new ManagementObjectSearcher("SELECT * FROM Win32_BaseBoard");
+                    var moc = mos.Get();
+                    string mbid = "";
+                    foreach (ManagementObject mo in moc)
+                    {
+                        mbid = (string)mo["SerialNumber"];
+                    }
+
+                    string sid = new SecurityIdentifier((byte[])new DirectoryEntry(string.Format("WinNT://{0},Computer", Environment.MachineName)).Children.Cast<DirectoryEntry>().First().InvokeGet("objectSID"), 0).AccountDomainSid.Value;
+
+                    Connection.SetId(cpuid + mbid + sid);
+                    using RegistryKey key = Registry.CurrentUser.CreateSubKey("SOFTWARE\\" + ClientConfiguration.Instance.InstallationPathRegKey);
+                    key.SetValue("Ident", cpuid + mbid + sid);
+                }
+                catch (Exception)
+                {
+                    Random rn = new Random();
+
+                    using RegistryKey key = Registry.CurrentUser.CreateSubKey("SOFTWARE\\" + ClientConfiguration.Instance.InstallationPathRegKey);
+                    string str = rn.Next(Int32.MaxValue - 1).ToString();
+
+                    try
+                    {
+                        Object o = key.GetValue("Ident");
+                        if (o == null)
+                        {
+                            key.SetValue("Ident", str);
+                        }
+                        else
+                            str = o.ToString();
+                    }
+                    catch { }
+
+                    Connection.SetId(str);
+                }
+#if !WINFORMS
             }
+            else
+            {
+                try
+                {
+                    string machineId = await File.ReadAllTextAsync("/var/lib/dbus/machine-id");
+
+                    Connection.SetId(machineId);
+                }
+                catch (Exception)
+                {
+                    Connection.SetId(new Random().Next(int.MaxValue - 1).ToString());
+                }
+            }
+#endif
         }
 
         /// <summary>
