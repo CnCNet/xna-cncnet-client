@@ -18,6 +18,7 @@ using System.Windows.Forms;
 #if TS
 using Microsoft.Win32;
 using System.Diagnostics;
+using System.IO;
 #endif
 
 namespace DTAConfig.OptionPanels
@@ -822,14 +823,19 @@ namespace DTAConfig.OptionPanels
             IniSettings.Renderer.Value = selectedRenderer.InternalName;
 
 #if TS
-            SafePath.DeleteFileIfExists(ProgramConstants.GamePath, "Language.dll");
+            if (ClientConfiguration.Instance.CopyResolutionDependentLanguageDLL)
+            {
+                string languageDllDestinationPath = SafePath.CombineFilePath(ProgramConstants.GamePath, "Language.dll");
 
-            if (ingameRes[0] >= 1024 && ingameRes[1] >= 720)
-                System.IO.File.Copy(SafePath.CombineFilePath(ProgramConstants.GamePath, "Resources", "language_1024x720.dll"), SafePath.CombineFilePath(ProgramConstants.GamePath, "Language.dll"));
-            else if (ingameRes[0] >= 800 && ingameRes[1] >= 600)
-                System.IO.File.Copy(SafePath.CombineFilePath(ProgramConstants.GamePath, "Resources", "language_800x600.dll"), SafePath.CombineFilePath(ProgramConstants.GamePath, "Language.dll"));
-            else
-                System.IO.File.Copy(SafePath.CombineFilePath(ProgramConstants.GamePath, "Resources", "language_640x480.dll"), SafePath.CombineFilePath(ProgramConstants.GamePath, "Language.dll"));
+                SafePath.DeleteFileIfExists(languageDllDestinationPath);
+
+                if (ingameRes[0] >= 1024 && ingameRes[1] >= 720)
+                    System.IO.File.Copy(SafePath.CombineFilePath(ProgramConstants.GamePath, "Resources", "language_1024x720.dll"), languageDllDestinationPath);
+                else if (ingameRes[0] >= 800 && ingameRes[1] >= 600)
+                    System.IO.File.Copy(SafePath.CombineFilePath(ProgramConstants.GamePath, "Resources", "language_800x600.dll"), languageDllDestinationPath);
+                else
+                    System.IO.File.Copy(SafePath.CombineFilePath(ProgramConstants.GamePath, "Resources", "language_640x480.dll"), languageDllDestinationPath);
+            }
 #endif
 
             return restartRequired;
