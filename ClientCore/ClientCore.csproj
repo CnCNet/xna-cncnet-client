@@ -16,6 +16,7 @@
   <ItemGroup>
     <None Remove="Resources\cncneticon.png" />
     <None Remove="Resources\cncricon.png" />
+    <None Remove="Resources\d2kicon.png" />
     <None Remove="Resources\dtaicon.png" />
     <None Remove="Resources\moicon.png" />
     <None Remove="Resources\raicon.png" />
@@ -29,6 +30,7 @@
   <ItemGroup>
     <EmbeddedResource Include="Resources\cncneticon.png" />
     <EmbeddedResource Include="Resources\cncricon.png" />
+    <EmbeddedResource Include="Resources\d2kicon.png" />
     <EmbeddedResource Include="Resources\dtaicon.png" />
     <EmbeddedResource Include="Resources\moicon.png" />
     <EmbeddedResource Include="Resources\raicon.png" />
