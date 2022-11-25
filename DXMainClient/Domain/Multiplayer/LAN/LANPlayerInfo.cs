@@ -1,9 +1,7 @@
 ﻿using ClientCore;
 using Microsoft.Xna.Framework;
 using System;
-#if !NETFRAMEWORK
 using System.Buffers;
-#endif
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
@@ -100,18 +98,12 @@ namespace DTAClient.Domain.Multiplayer.LAN
         {
             message += ProgramConstants.LAN_MESSAGE_SEPARATOR;
 
-#if NETFRAMEWORK
-            byte[] buffer1 = encoding.GetBytes(message);
-            var buffer = new ArraySegment<byte>(buffer1);
-
-            try
-            {
-                await TcpClient.SendAsync(buffer, SocketFlags.None);
-            }
-#else
-            using IMemoryOwner<byte> memoryOwner = MemoryPool<byte>.Shared.Rent(message.Length * 2);
-            Memory<byte> buffer = memoryOwner.Memory[..(message.Length * 2)];
+            const int charSize = sizeof(char);
+            int bufferSize = message.Length * charSize;
+            using IMemoryOwner<byte> memoryOwner = MemoryPool<byte>.Shared.Rent(bufferSize);
+            Memory<byte> buffer = memoryOwner.Memory[..bufferSize];
             int bytes = encoding.GetBytes(message.AsSpan(), buffer.Span);
+
             buffer = buffer[..bytes];
 
             try
@@ -121,7 +113,6 @@ namespace DTAClient.Domain.Multiplayer.LAN
             catch (OperationCanceledException)
             {
             }
-#endif
             catch (Exception ex)
             {
                 PreStartup.LogException(ex, "Sending message to " + ToString() + " failed!");
@@ -147,21 +138,11 @@ namespace DTAClient.Domain.Multiplayer.LAN
         {
             try
             {
-#if !NETFRAMEWORK
                 using IMemoryOwner<byte> memoryOwner = MemoryPool<byte>.Shared.Rent(1024);
 
-#endif
                 while (!cancellationToken.IsCancellationRequested)
                 {
                     int bytesRead;
-#if NETFRAMEWORK
-                    byte[] buffer1 = new byte[1024];
-                    var message = new ArraySegment<byte>(buffer1);
-                    try
-                    {
-                        bytesRead = await TcpClient.ReceiveAsync(message, SocketFlags.None);
-                    }
-#else
                     Memory<byte> message = memoryOwner.Memory[..1024];
 
                     try
@@ -173,7 +154,6 @@ namespace DTAClient.Domain.Multiplayer.LAN
                         ConnectionLost?.Invoke(this, EventArgs.Empty);
                         break;
                     }
-#endif
                     catch (Exception ex)
                     {
                         PreStartup.LogException(ex, "Socket error with client " + Name + "; removing.");
@@ -183,13 +163,10 @@ namespace DTAClient.Domain.Multiplayer.LAN
 
                     if (bytesRead > 0)
                     {
-#if NETFRAMEWORK
-                        string msg = encoding.GetString(buffer1, 0, bytesRead);
-#else
                         string msg = encoding.GetString(message.Span[..bytesRead]);
-#endif
 
                         msg = overMessage + msg;
+
                         List<string> commands = new List<string>();
 
                         while (true)

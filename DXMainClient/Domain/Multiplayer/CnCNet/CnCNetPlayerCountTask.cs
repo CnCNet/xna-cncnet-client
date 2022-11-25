@@ -48,18 +48,12 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
             {
                 var httpClientHandler = new HttpClientHandler
                 {
-#if NETFRAMEWORK
-                    AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate
-#else
                     AutomaticDecompression = DecompressionMethods.All
-#endif
                 };
                 using var client = new HttpClient(httpClientHandler, true)
                 {
                     Timeout = TimeSpan.FromMilliseconds(Constants.TUNNEL_CONNECTION_TIMEOUT),
-#if !NETFRAMEWORK
                     DefaultVersionPolicy = HttpVersionPolicy.RequestVersionOrHigher
-#endif
                 };
 
                 string info = await client.GetStringAsync("https://api.cncnet.org/status");

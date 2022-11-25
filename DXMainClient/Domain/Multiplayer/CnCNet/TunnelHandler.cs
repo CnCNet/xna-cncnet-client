@@ -156,22 +156,15 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
         private static async Task<List<CnCNetTunnel>> DoRefreshTunnelsAsync()
         {
             FileInfo tunnelCacheFile = SafePath.GetFile(ProgramConstants.ClientUserFilesPath, "tunnel_cache");
-
             List<CnCNetTunnel> returnValue = new List<CnCNetTunnel>();
             var httpClientHandler = new HttpClientHandler
             {
-#if NETFRAMEWORK
-                AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate
-#else
                 AutomaticDecompression = DecompressionMethods.All
-#endif
             };
             using var client = new HttpClient(httpClientHandler, true)
             {
                 Timeout = TimeSpan.FromSeconds(100),
-#if !NETFRAMEWORK
                 DefaultVersionPolicy = HttpVersionPolicy.RequestVersionOrHigher
-#endif
             };
 
             string data;
@@ -199,11 +192,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                     }
 
                     Logger.Log("Fetching tunnel server list failed. Using cached tunnel data.");
-#if NETFRAMEWORK
-                    data = File.ReadAllText(tunnelCacheFile.FullName);
-#else
                     data = await File.ReadAllTextAsync(tunnelCacheFile.FullName);
-#endif
                 }
             }
 
@@ -247,11 +236,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                 if (!clientDirectoryInfo.Exists)
                     clientDirectoryInfo.Create();
 
-#if NETFRAMEWORK
-                File.WriteAllText(tunnelCacheFile.FullName, data);
-#else
                 await File.WriteAllTextAsync(tunnelCacheFile.FullName, data);
-#endif
             }
             catch (Exception ex)
             {

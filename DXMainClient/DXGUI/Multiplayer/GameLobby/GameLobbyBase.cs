@@ -1345,7 +1345,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         /// </summary>
         private PlayerHouseInfo[] WriteSpawnIni()
         {
-            Logger.Log("Writing spawn.ini");
+            Logger.Log($"Writing {ProgramConstants.SPAWNER_SETTINGS}");
 
             FileInfo spawnerSettingsFile = SafePath.GetFile(ProgramConstants.GamePath, ProgramConstants.SPAWNER_SETTINGS);
 

@@ -1,8 +1,6 @@
 ﻿using Rampastring.Tools;
 using System;
-#if !NETFRAMEWORK
 using System.Buffers;
-#endif
 using System.Collections.Generic;
 using System.Globalization;
 using System.Net;
@@ -37,11 +35,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                 string addressAndPort = parts[0];
                 string secondaryAddress = parts.Length > 12 ? parts[12] : null;
                 int version = int.Parse(parts[10], CultureInfo.InvariantCulture);
-#if NETFRAMEWORK
-                string primaryAddress = addressAndPort.Substring(0, addressAndPort.LastIndexOf(':'));
-#else
                 string primaryAddress = addressAndPort[..addressAndPort.LastIndexOf(':')];
-#endif
                 var primaryIpAddress = IPAddress.Parse(primaryAddress);
                 IPAddress secondaryIpAddress = string.IsNullOrWhiteSpace(secondaryAddress) ? null : IPAddress.Parse(secondaryAddress);
 
@@ -57,11 +51,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                     throw new($"No supported IP address found ({nameof(Socket.OSSupportsIPv6)}={Socket.OSSupportsIPv6}," +
                               $" {nameof(Socket.OSSupportsIPv4)}={Socket.OSSupportsIPv4}) for {str}.");
 
-#if NETFRAMEWORK
-                tunnel.Port = int.Parse(addressAndPort.Substring(addressAndPort.LastIndexOf(':') + 1), CultureInfo.InvariantCulture);
-#else
                 tunnel.Port = int.Parse(addressAndPort[(addressAndPort.LastIndexOf(':') + 1)..], CultureInfo.InvariantCulture);
-#endif
                 tunnel.Country = parts[1];
                 tunnel.CountryCode = parts[2];
                 tunnel.Name = parts[3] + " V" + version;
@@ -134,18 +124,12 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
 
                 var httpClientHandler = new HttpClientHandler
                 {
-#if NETFRAMEWORK
-                    AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate
-#else
                     AutomaticDecompression = DecompressionMethods.All
-#endif
                 };
                 using var client = new HttpClient(httpClientHandler, true)
                 {
                     Timeout = TimeSpan.FromMilliseconds(Constants.TUNNEL_CONNECTION_TIMEOUT),
-#if !NETFRAMEWORK
                     DefaultVersionPolicy = HttpVersionPolicy.RequestVersionOrHigher
-#endif
                 };
 
                 string data = await client.GetStringAsync(addressString);
@@ -182,22 +166,13 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
             try
             {
                 EndPoint ep = new IPEndPoint(IPAddress, Port);
-#if NETFRAMEWORK
-                byte[] buffer1 = new byte[PING_PACKET_SEND_SIZE];
-                var buffer = new ArraySegment<byte>(buffer1);
-#else
                 using IMemoryOwner<byte> memoryOwner = MemoryPool<byte>.Shared.Rent(PING_PACKET_SEND_SIZE);
                 Memory<byte> buffer = memoryOwner.Memory[..PING_PACKET_SEND_SIZE];
-#endif
-
                 long ticks = DateTime.Now.Ticks;
+
                 await socket.SendToAsync(buffer, SocketFlags.None, ep);
 
-#if NETFRAMEWORK
-                buffer = new ArraySegment<byte>(buffer1, 0, PING_PACKET_RECEIVE_SIZE);
-#else
                 buffer = buffer[..PING_PACKET_RECEIVE_SIZE];
-#endif
 
                 await socket.ReceiveFromAsync(buffer, SocketFlags.None, ep);
 
