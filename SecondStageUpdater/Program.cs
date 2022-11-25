@@ -108,7 +108,8 @@ namespace SecondStageUpdater
                             {
                                 try
                                 {
-                                    FileInfo copiedFile = SafePath.GetFile(baseDirectory.FullName, fileInfo.Name);
+                                    var sourceFileRelativePath = fileInfo.FullName.Replace(updaterDirectory.FullName, string.Empty);
+                                    FileInfo copiedFile = SafePath.GetFile(baseDirectory.FullName, sourceFileRelativePath);
 
                                     Write("Updating " + fileInfo.FullName);
                                     Write(fileInfo.FullName + " -> " + copiedFile.FullName);
