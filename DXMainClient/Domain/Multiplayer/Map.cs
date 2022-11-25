@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 using SixLabors.ImageSharp;
 using Color = Microsoft.Xna.Framework.Color;
 using Point = Microsoft.Xna.Framework.Point;
@@ -49,19 +49,19 @@ namespace DTAClient.Domain.Multiplayer
         /// <summary>
         /// The name of the map.
         /// </summary>
-        [JsonProperty]
+        [JsonInclude]
         public string Name { get; private set; }
 
         /// <summary>
         /// The maximum amount of players supported by the map.
         /// </summary>
-        [JsonProperty]
+        [JsonInclude]
         public int MaxPlayers { get; private set; }
 
         /// <summary>
         /// The minimum amount of players supported by the map.
         /// </summary>
-        [JsonProperty]
+        [JsonInclude]
         public int MinPlayers { get; private set; }
 
         /// <summary>
@@ -69,14 +69,14 @@ namespace DTAClient.Domain.Multiplayer
         /// If false (which is the default), MaxPlayers is only used for randomizing
         /// players to starting waypoints.
         /// </summary>
-        [JsonProperty]
+        [JsonInclude]
         public bool EnforceMaxPlayers { get; private set; }
 
         /// <summary>
         /// Controls if the map is meant for a co-operation game mode
         /// (enables briefing logic and forcing options, among others).
         /// </summary>
-        [JsonProperty]
+        [JsonInclude]
         public bool IsCoop { get; private set; }
 
         /// <summary>
@@ -89,19 +89,19 @@ namespace DTAClient.Domain.Multiplayer
         /// <summary>
         /// Contains co-op information.
         /// </summary>
-        [JsonProperty]
+        [JsonInclude]
         public CoopMapInfo CoopInfo { get; private set; }
 
         /// <summary>
         /// The briefing of the map.
         /// </summary>
-        [JsonProperty]
+        [JsonInclude]
         public string Briefing { get; private set; }
 
         /// <summary>
         /// The author of the map.
         /// </summary>
-        [JsonProperty]
+        [JsonInclude]
         public string Author { get; private set; }
 
         /// <summary>
@@ -113,117 +113,120 @@ namespace DTAClient.Domain.Multiplayer
         /// <summary>
         /// The path to the map file.
         /// </summary>
-        [JsonProperty]
+        [JsonInclude]
         public string BaseFilePath { get; private set; }
 
         /// <summary>
         /// Returns the complete path to the map file.
         /// Includes the game directory in the path.
         /// </summary>
+        [JsonInclude]
         public string CompleteFilePath => SafePath.CombineFilePath(ProgramConstants.GamePath, FormattableString.Invariant($"{BaseFilePath}{MapLoader.MAP_FILE_EXTENSION}"));
 
         /// <summary>
         /// The file name of the preview image.
         /// </summary>
-        [JsonProperty]
+        [JsonInclude]
         public string PreviewPath { get; private set; }
 
         /// <summary>
         /// If set, this map cannot be played on Skirmish.
         /// </summary>
-        [JsonProperty]
+        [JsonInclude]
         public bool MultiplayerOnly { get; private set; }
 
         /// <summary>
         /// If set, this map cannot be played with AI players.
         /// </summary>
-        [JsonProperty]
+        [JsonInclude]
         public bool HumanPlayersOnly { get; private set; }
 
         /// <summary>
         /// If set, players are forced to random starting locations on this map.
         /// </summary>
-        [JsonProperty]
+        [JsonInclude]
         public bool ForceRandomStartLocations { get; private set; }
 
         /// <summary>
         /// If set, players are forced to different teams on this map.
         /// </summary>
-        [JsonProperty]
+        [JsonInclude]
         public bool ForceNoTeams { get; private set; }
 
         /// <summary>
         /// The name of an extra INI file in INI\Map Code\ that should be
         /// embedded into this map's INI code when a game is started.
         /// </summary>
-        [JsonProperty]
+        [JsonInclude]
         public string ExtraININame { get; private set; }
 
         /// <summary>
         /// The game modes that the map is listed for.
         /// </summary>
-        [JsonProperty]
+        [JsonInclude]
         public string[] GameModes;
 
         /// <summary>
         /// The forced UnitCount for the map. -1 means none.
         /// </summary>
-        [JsonProperty]
-        private int UnitCount = -1;
+        [JsonInclude]
+        public int UnitCount = -1;
 
         /// <summary>
         /// The forced starting credits for the map. -1 means none.
         /// </summary>
-        [JsonProperty]
-        private int Credits = -1;
+        [JsonInclude]
+        public int Credits = -1;
 
-        [JsonProperty]
-        private int NeutralHouseColor = -1;
+        [JsonInclude]
+        public int NeutralHouseColor = -1;
 
-        [JsonProperty]
-        private int SpecialHouseColor = -1;
+        [JsonInclude]
+        public int SpecialHouseColor = -1;
 
-        [JsonProperty]
-        private int Bases = -1;
+        [JsonInclude]
+        public int Bases = -1;
 
-        [JsonProperty]
-        private string[] localSize;
+        [JsonInclude]
+        public string[] localSize;
 
-        [JsonProperty]
-        private string[] actualSize;
+        [JsonInclude]
+        public string[] actualSize;
 
-        [JsonProperty]
-        private int x;
+        [JsonInclude]
+        public int x;
 
-        [JsonProperty]
-        private int y;
+        [JsonInclude]
+        public int y;
 
-        [JsonProperty]
-        private int width;
+        [JsonInclude]
+        public int width;
 
-        [JsonProperty]
-        private int height;
+        [JsonInclude]
+        public int height;
 
+        [JsonIgnore]
         private IniFile customMapIni;
 
-        [JsonProperty]
-        private string customMapFilePath;
+        [JsonInclude]
+        public string customMapFilePath;
 
-        [JsonProperty]
-        private List<string> waypoints = new List<string>();
+        [JsonInclude]
+        public List<string> waypoints = new List<string>();
 
         /// <summary>
         /// The pixel coordinates of the map's player starting locations.
         /// </summary>
-        [JsonProperty]
-        private List<Point> startingLocations;
+        [JsonInclude]
+        public List<Point> startingLocations;
 
-        [JsonProperty]
+        [JsonInclude]
         public List<TeamStartMappingPreset> TeamStartMappingPresets = new List<TeamStartMappingPreset>();
 
         [JsonIgnore]
         public List<TeamStartMapping> TeamStartMappings => TeamStartMappingPresets?.FirstOrDefault()?.TeamStartMappings;
 
+        [JsonIgnore]
         public Texture2D PreviewTexture { get; set; }
 
         public void CalculateSHA()
@@ -234,14 +237,21 @@ namespace DTAClient.Domain.Multiplayer
         /// <summary>
         /// If false, the preview shouldn't be extracted for this (custom) map.
         /// </summary>
+        [JsonInclude]
         public bool ExtractCustomPreview { get; set; } = true;
 
+        [JsonInclude]
         public List<KeyValuePair<string, bool>> ForcedCheckBoxValues = new List<KeyValuePair<string, bool>>(0);
+
+        [JsonInclude]
         public List<KeyValuePair<string, int>> ForcedDropDownValues = new List<KeyValuePair<string, int>>(0);
 
+        [JsonIgnore]
         private List<ExtraMapPreviewTexture> extraTextures = new List<ExtraMapPreviewTexture>(0);
+
         public List<ExtraMapPreviewTexture> GetExtraMapPreviewTextures() => extraTextures;
 
+        [JsonIgnore]
         private List<KeyValuePair<string, string>> ForcedSpawnIniOptions = new List<KeyValuePair<string, string>>(0);
 
         /// <summary>

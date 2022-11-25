@@ -321,6 +321,7 @@ namespace DTAClient
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
 #endif
+#pragma warning disable format
                 try
                 {
                     await Task.CompletedTask;
@@ -368,6 +369,7 @@ namespace DTAClient
 
                     Connection.SetId(str);
                 }
+#pragma warning restore format
 #if !WINFORMS
             }
             else

@@ -31,8 +31,6 @@
     <Message Importance="high" Text="Moving common binaries"/>
     <Move SourceFiles="$(PublishDir)ClientUpdater.dll" DestinationFolder="$(PublishDir)../" />
     <Move SourceFiles="$(PublishDir)DiscordRPC.dll" DestinationFolder="$(PublishDir)../" />
-    <Move SourceFiles="$(PublishDir)DiscordRPC.pdb" DestinationFolder="$(PublishDir)../" />
-    <Delete Files="$(PublishDir)DiscordRPC.xml" />
     <Move SourceFiles="$(PublishDir)Localization.dll" DestinationFolder="$(PublishDir)../" />
     <Move SourceFiles="$(PublishDir)Localization.pdb" DestinationFolder="$(PublishDir)../" />
     <Move SourceFiles="$(PublishDir)lzo.net.dll" DestinationFolder="$(PublishDir)../" />

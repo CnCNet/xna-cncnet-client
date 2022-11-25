@@ -1,14 +1,16 @@
 ﻿using System.Collections.Generic;
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
 namespace DTAClient.Domain.Multiplayer
 {
     public class TeamStartMappingPreset
     {
-        [JsonProperty("n")]
+        [JsonInclude]
+        [JsonPropertyName("n")]
         public string Name { get; set; }
-        
-        [JsonProperty("m")]
+
+        [JsonInclude]
+        [JsonPropertyName("m")]
         public List<TeamStartMapping> TeamStartMappings { get; set; }
     }
 }
