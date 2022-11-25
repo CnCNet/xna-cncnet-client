@@ -28,7 +28,7 @@ public class QmHttpClient : HttpClient
         try
         {
             QmResponse<T> response = await GetAsync<T>(qmRequest);
-            response.Data = response.IsSuccessStatusCode ? successDataValue : failedDataValue;
+            response.Data = response.IsSuccess ? successDataValue : failedDataValue;
 
             return response;
         }

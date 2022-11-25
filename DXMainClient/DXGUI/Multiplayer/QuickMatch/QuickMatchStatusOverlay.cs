@@ -155,9 +155,19 @@ namespace DTAClient.DXGUI.Multiplayer.QuickMatch
             matchupFoundConfirmTimer.Start();
         }
 
-        private void AcceptMatchAsync(QmSpawn spawn) => qmService.AcceptMatchAsync(spawn);
+        private void AcceptMatchAsync(QmSpawn spawn)
+        {
+            Disable();
+            matchupFoundConfirmTimer.Stop();
+            qmService.AcceptMatchAsync(spawn);
+        }
 
-        private void RejectMatchAsync(QmSpawn spawn) => qmService.RejectMatchAsync(spawn);
+        private void RejectMatchAsync(QmSpawn spawn)
+        {
+            Disable();
+            matchupFoundConfirmTimer.Stop();
+            qmService.RejectMatchAsync(spawn);
+        }
 
         private void HandleCancelingMatchRequest() => SetStatus(QmStrings.CancelingMatchRequestStatus);
 

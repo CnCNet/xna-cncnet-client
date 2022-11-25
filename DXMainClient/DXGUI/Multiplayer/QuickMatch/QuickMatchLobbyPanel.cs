@@ -90,29 +90,33 @@ namespace DTAClient.DXGUI.Multiplayer.QuickMatch
 
         private void HandleQmEvent(object sender, QmEvent qmEvent)
         {
-            switch (qmEvent)
+            switch (true)
             {
-                case QmLadderMapsEvent e:
+                case true when qmEvent is QmLadderMapsEvent e:
                     HandleLadderMapsEvent(e.LadderMaps);
                     return;
-                case QmLadderStatsEvent e:
+                case true when qmEvent is QmLadderStatsEvent e:
                     HandleLadderStatsEvent(e.LadderStats);
                     return;
-                case QmLoadingLadderStatsEvent:
+                case true when qmEvent is QmLoadingLadderStatsEvent:
                     HandleLoadingLadderStatsEvent();
                     return;
-                case QmLaddersAndUserAccountsEvent e:
+                case true when qmEvent is QmLaddersAndUserAccountsEvent e:
                     HandleLoadLadderAndUserAccountsEvent(e);
                     return;
-                case QmUserAccountSelectedEvent e:
+                case true when qmEvent is QmUserAccountSelectedEvent e:
                     HandleUserAccountSelected(e.UserAccount);
                     return;
-                case QmLoginEvent:
+                case true when qmEvent is QmLoginEvent:
                     Enable();
                     return;
-                case QmLogoutEvent:
+                case true when qmEvent is QmLogoutEvent:
                     HandleLogoutEvent();
                     return;
+                case true when qmEvent is QmResponseEvent e && e.Response.IsSuccess && e.Response.Request is QmReadyRequest:
+                    GameProcessLogic.GameProcessExited += () => { };
+                    GameProcessLogic.StartGameProcess(WindowManager);
+                    break;
             }
         }
 

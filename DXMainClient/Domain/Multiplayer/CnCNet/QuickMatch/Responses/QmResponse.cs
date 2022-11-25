@@ -9,7 +9,6 @@ using Rampastring.Tools;
 
 namespace DTAClient.Domain.Multiplayer.CnCNet.QuickMatch.Responses;
 
-[JsonConverter(typeof(QmRequestResponseConverter))]
 public class QmResponse<T>
 {
     public QmRequest Request { get; }
@@ -30,7 +29,7 @@ public class QmResponse<T>
         Response = response;
     }
 
-    public bool IsSuccessStatusCode => Response?.IsSuccessStatusCode ?? false;
+    public bool IsSuccess => Response?.IsSuccessStatusCode ?? false;
 
     public string ReasonPhrase => Response?.ReasonPhrase;
 

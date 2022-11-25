@@ -71,7 +71,7 @@ namespace ClientGUI
             SafePath.DeleteFileIfExists(ProgramConstants.GamePath, "TI.LOG");
             SafePath.DeleteFileIfExists(ProgramConstants.GamePath, "TS.LOG");
 
-            GameProcessStarting?.Invoke();
+            // GameProcessStarting?.Invoke();
 
             if (UserINISettings.Instance.WindowedMode && UseQres && RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
@@ -139,7 +139,7 @@ namespace ClientGUI
                 }
             }
 
-            GameProcessStarted?.Invoke();
+            // GameProcessStarted?.Invoke();
 
             Logger.Log("Waiting for qres.dat or " + gameExecutableName + " to exit.");
         }

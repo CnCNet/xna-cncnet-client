@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using System.Timers;
 using ClientCore;
 using ClientCore.Exceptions;
+using ClientGUI;
 using DTAClient.Domain.Multiplayer.CnCNet.QuickMatch.Events;
 using DTAClient.Domain.Multiplayer.CnCNet.QuickMatch.Models;
 using DTAClient.Domain.Multiplayer.CnCNet.QuickMatch.Requests;
@@ -150,14 +151,14 @@ public class QmService : IDisposable
             await Task.WhenAll(loadLaddersTask, loadUserAccountsTask);
 
             QmResponse<IEnumerable<QmLadder>> loadLaddersResponse = loadLaddersTask.Result;
-            if (!loadLaddersResponse.IsSuccessStatusCode)
+            if (!loadLaddersResponse.IsSuccess)
             {
                 QmEvent?.Invoke(this, new QmErrorMessageEvent(string.Format(QmStrings.LoadingUserAccountsErrorFormat, loadLaddersResponse.ReasonPhrase)));
                 return;
             }
 
             QmResponse<IEnumerable<QmUserAccount>> loadUserAccountsReponse = loadUserAccountsTask.Result;
-            if (!loadUserAccountsReponse.IsSuccessStatusCode)
+            if (!loadUserAccountsReponse.IsSuccess)
             {
                 QmEvent?.Invoke(this, new QmErrorMessageEvent(string.Format(QmStrings.LoadingUserAccountsErrorFormat, loadUserAccountsReponse.ReasonPhrase)));
                 return;
@@ -190,7 +191,7 @@ public class QmService : IDisposable
         ExecuteLoadingRequest(new QmLoadingLadderMapsEvent(), async () =>
         {
             QmResponse<IEnumerable<QmLadderMap>> ladderMapsResponse = await apiService.LoadLadderMapsForAbbrAsync(ladderAbbr);
-            if (!ladderMapsResponse.IsSuccessStatusCode)
+            if (!ladderMapsResponse.IsSuccess)
             {
                 QmEvent?.Invoke(this, new QmErrorMessageEvent(string.Format(QmStrings.LoadingLadderMapsErrorFormat, ladderMapsResponse.ReasonPhrase)));
                 return;
@@ -204,7 +205,7 @@ public class QmService : IDisposable
         {
             QmResponse<QmLadderStats> ladderStatsResponse = await apiService.LoadLadderStatsForAbbrAsync(ladderAbbr);
 
-            if (!ladderStatsResponse.IsSuccessStatusCode)
+            if (!ladderStatsResponse.IsSuccess)
             {
                 QmEvent?.Invoke(this, new QmErrorMessageEvent(string.Format(QmStrings.LoadingLadderStatsErrorFormat, ladderStatsResponse.ReasonPhrase)));
                 return;
@@ -230,6 +231,8 @@ public class QmService : IDisposable
     {
         ExecuteLoadingRequest(new QmReadyRequestMatchEvent(), async () =>
         {
+            WriteSpawnIni(spawn);
+            retryRequestmatchTimer.Stop();
             var readyRequest = new QmReadyRequest(spawn.Settings.Seed);
             QmResponse<QmResponseMessage> response = await apiService.QuickMatchRequestAsync(userAccount.Ladder.Abbreviation, userAccount.Username, readyRequest);
             HandleQuickMatchResponse(response);
@@ -243,6 +246,7 @@ public class QmService : IDisposable
     {
         ExecuteLoadingRequest(new QmNotReadyRequestMatchEvent(), async () =>
         {
+            retryRequestmatchTimer.Stop();
             var notReadyRequest = new QmNotReadyRequest(spawn.Settings.Seed);
             QmResponse<QmResponseMessage> response = await apiService.QuickMatchRequestAsync(userAccount.Ladder.Abbreviation, userAccount.Username, notReadyRequest);
             HandleQuickMatchResponse(response);
@@ -250,48 +254,60 @@ public class QmService : IDisposable
         CancelRequestMatchAsync();
     }
 
-    public void WriteSpawnIni(QmSpawnResponse spawnResponse)
+    public void WriteSpawnIni(QmSpawn spawn)
     {
         IniFile spawnIni = CreateSpawnIniFile();
 
-        // SETTINGS section
+        AddSpawnSettingsSection(spawn, spawnIni);
+        AddSpawnOtherSections(spawn, spawnIni);
+        AddSpawnLocationsSection(spawn, spawnIni);
+        AddSpawnTunnelSection(spawn, spawnIni);
+
+        spawnIni.WriteIniFile();
+    }
+
+    private static void AddSpawnSettingsSection(QmSpawn spawn, IniFile spawnIni)
+    {
         var settings = new IniSection("Settings");
         settings.SetStringValue("Scenario", "spawnmap.ini");
         settings.SetStringValue("QuickMatch", "Yes");
 
-        foreach (PropertyInfo prop in spawnResponse.Spawn.Settings.GetType().GetProperties())
-            settings.SetStringValue(prop.Name, prop.GetValue(spawnResponse.Spawn.Settings).ToString());
-        // End SETTINGS sections
+        foreach (PropertyInfo prop in spawn.Settings.GetType().GetProperties())
+            settings.SetStringValue(prop.Name, prop.GetValue(spawn.Settings).ToString());
 
-        // OTHER# sections
-        for (int i = 0; i < spawnResponse.Spawn.Others.Count; i++)
+        spawnIni.AddSection(settings);
+    }
+    
+    private static void AddSpawnOtherSections(QmSpawn spawn, IniFile spawnIni)
+    {
+        for (int i = 0; i < spawn.Others.Count; i++)
         {
             // Headers for OTHER# sections are 1-based index
             var otherSection = new IniSection($"Other{i + 1}");
-            QmSpawnOther other = spawnResponse.Spawn.Others[i];
+            QmSpawnOther other = spawn.Others[i];
 
             foreach (PropertyInfo otherProp in other.GetType().GetProperties())
                 otherSection.SetStringValue(otherProp.Name, otherProp.GetValue(other).ToString());
 
             spawnIni.AddSection(otherSection);
         }
-        // End OTHER# sections
+    }
 
-        // SPAWNLOCATIONS section
-        var spawnLocationsSection = new IniSection("SpawnLocation");
-        foreach (KeyValuePair<string, int> spawnLocation in spawnResponse.Spawn.SpawnLocations)
+    private static void AddSpawnLocationsSection(QmSpawn spawn, IniFile spawnIni)
+    {
+        var spawnLocationsSection = new IniSection("SpawnLocations");
+        foreach (KeyValuePair<string, int> spawnLocation in spawn.SpawnLocations)
             spawnLocationsSection.SetStringValue(spawnLocation.Key, spawnLocation.Value.ToString());
 
         spawnIni.AddSection(spawnLocationsSection);
-        // End SPAWNLOCATIONS section
+    }
 
-        // TUNNEL section
+    private static void AddSpawnTunnelSection(QmSpawn spawn, IniFile spawnIni)
+    {
         var tunnel = new IniSection("Tunnel");
-        // TODO IP and port information
-        // tunnel.SetStringValue("Ip", spawnResponse.Spawn.Settings.);
-        // tunnel.SetIntValue("Port", tunnelHandler.CurrentTunnel.Port);
+        tunnel.SetStringValue("Ip", "52.232.96.199");
+        tunnel.SetIntValue("Port", 50001);
         spawnIni.AddSection(tunnel);
-        // End TUNNEL section
     }
 
     public IniFile CreateSpawnIniFile()
@@ -410,7 +426,7 @@ public class QmService : IDisposable
 
     private bool FinishLogin(QmResponse<QmAuthData> response, string email = null)
     {
-        if (!response.IsSuccessStatusCode)
+        if (!response.IsSuccess)
         {
             HandleFailedLogin(response);
             return false;

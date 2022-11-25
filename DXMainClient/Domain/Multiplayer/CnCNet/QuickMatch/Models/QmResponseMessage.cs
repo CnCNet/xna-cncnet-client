@@ -1,10 +1,12 @@
 ﻿using System;
+using DTAClient.Domain.Multiplayer.CnCNet.QuickMatch.Converters;
 using DTAClient.Domain.Multiplayer.CnCNet.QuickMatch.Responses;
 using DTAClient.Domain.Multiplayer.CnCNet.QuickMatch.Utilities;
 using Newtonsoft.Json;
 
 namespace DTAClient.Domain.Multiplayer.CnCNet.QuickMatch.Models;
 
+[JsonConverter(typeof(QmRequestResponseConverter))]
 public class QmResponseMessage
 {
     public const string TypeKey = "type";
