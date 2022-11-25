@@ -1,9 +1,5 @@
 ﻿using System;
-#if !NETFRAMEWORK
 using System.Buffers;
-#else
-using ClientCore;
-#endif
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
@@ -84,11 +80,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
             endPoint = new IPEndPoint(IPAddress.Loopback, 0);
 
             // Disable ICMP port not reachable exceptions, happens when the game is still loading and has not yet opened the socket.
-#if !NETFRAMEWORK
             if (OperatingSystem.IsWindows())
-#else
-            if (!ProgramConstants.ISMONO)
-#endif
                 socket.IOControl(unchecked((int)SIO_UDP_CONNRESET), new byte[] { 0 }, null);
 
             socket.Bind(endPoint);
@@ -101,13 +93,9 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
             try
             {
                 remoteEndPoint = new IPEndPoint(IPAddress.Loopback, gamePort);
-#if NETFRAMEWORK
-                byte[] buffer1 = new byte[128];
-                var buffer = new ArraySegment<byte>(buffer1);
-#else
+
                 using IMemoryOwner<byte> memoryOwner = MemoryPool<byte>.Shared.Rent(128);
                 Memory<byte> buffer = memoryOwner.Memory[..128];
-#endif
 
                 socket.ReceiveTimeout = Timeout;
 
@@ -119,15 +107,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                             break;
 
                         SocketReceiveFromResult socketReceiveFromResult = await socket.ReceiveFromAsync(buffer, SocketFlags.None, remoteEndPoint);
-
-#if NETFRAMEWORK
-                        byte[] data = new byte[socketReceiveFromResult.ReceivedBytes];
-                        Array.Copy(buffer1, data, socketReceiveFromResult.ReceivedBytes);
-                        Array.Clear(buffer1, 0, socketReceiveFromResult.ReceivedBytes);
-#else
-
                         Memory<byte> data = buffer[..socketReceiveFromResult.ReceivedBytes];
-#endif
 
                         await gameTunnelHandler.PlayerConnection_PacketReceivedAsync(this, data);
                     }
@@ -155,15 +135,8 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
             }
         }
 
-#if NETFRAMEWORK
-        public async Task SendPacketAsync(byte[] buffer)
-        {
-            var packet = new ArraySegment<byte>(buffer);
-
-#else
         public async Task SendPacketAsync(ReadOnlyMemory<byte> packet)
         {
-#endif
             await locker.WaitAsync();
 
             try

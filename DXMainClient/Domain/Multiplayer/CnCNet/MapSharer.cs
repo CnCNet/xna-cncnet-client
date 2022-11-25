@@ -162,19 +162,13 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
         {
             var httpClientHandler = new HttpClientHandler
             {
-#if NETFRAMEWORK
-                AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate
-#else
                 AutomaticDecompression = DecompressionMethods.All
-#endif
             };
 
             return new HttpClient(httpClientHandler, true)
             {
                 Timeout = TimeSpan.FromMilliseconds(10000),
-#if !NETFRAMEWORK
                 DefaultVersionPolicy = HttpVersionPolicy.RequestVersionOrHigher
-#endif
             };
         }
 
@@ -279,24 +273,6 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
             return (null, true);
         }
 
-#if NETFRAMEWORK
-        private sealed class FileToUpload
-        {
-            public FileToUpload(string name, string filename, string contentType, Stream stream)
-            {
-                Name = name;
-                Filename = filename;
-                ContentType = contentType;
-                Stream = stream;
-            }
-
-            public string Name { get; set; }
-            public string Filename { get; set; }
-            public string ContentType { get; set; }
-            public Stream Stream { get; set; }
-        }
-#else
         private readonly record struct FileToUpload(string Name, string Filename, string ContentType, Stream Stream);
-#endif
     }
 }

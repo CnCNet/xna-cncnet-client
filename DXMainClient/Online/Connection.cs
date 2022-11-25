@@ -2,9 +2,7 @@
 using Localization;
 using Rampastring.Tools;
 using System;
-#if !NETFRAMEWORK
 using System.Buffers;
-#endif
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -154,10 +152,6 @@ namespace DTAClient.Online
 
                             Logger.Log("Attempting connection to " + server.Host + ":" + port);
 
-#if NETFRAMEWORK
-                            IAsyncResult result = client.BeginConnect(server.Host, port, null, null);
-                            result.AsyncWaitHandle.WaitOne(TimeSpan.FromSeconds(3), false);
-#else
                             try
                             {
                                 await client.ConnectAsync(new IPEndPoint(IPAddress.Parse(server.Host), port),
@@ -165,7 +159,6 @@ namespace DTAClient.Online
                             }
                             catch (OperationCanceledException)
                             { }
-#endif
 
                             if (!client.Connected)
                             {
@@ -174,9 +167,6 @@ namespace DTAClient.Online
                             }
 
                             Logger.Log("Succesfully connected to " + server.Host + " on port " + port);
-#if NETFRAMEWORK
-                            client.EndConnect(result);
-#endif
 
                             _isConnected = true;
                             _attemptingConnection = false;
@@ -221,13 +211,8 @@ namespace DTAClient.Online
         private async Task HandleCommAsync(CancellationToken cancellationToken)
         {
             int errorTimes = 0;
-#if NETFRAMEWORK
-            byte[] message1 = new byte[1024];
-            var message = new ArraySegment<byte>(message1);
-#else
             using IMemoryOwner<byte> memoryOwner = MemoryPool<byte>.Shared.Rent(1024);
             Memory<byte> message = memoryOwner.Memory[..1024];
-#endif
 
             await RegisterAsync();
 
@@ -246,17 +231,12 @@ namespace DTAClient.Online
 
                 try
                 {
-#if NETFRAMEWORK
-                    bytesRead = await socket.ReceiveAsync(message, SocketFlags.None);
-                }
-#else
                     bytesRead = await socket.ReceiveAsync(message, SocketFlags.None, cancellationToken);
                 }
                 catch (OperationCanceledException)
                 {
                     break;
                 }
-#endif
                 catch (Exception ex)
                 {
                     PreStartup.LogException(ex, "Disconnected from CnCNet due to a socket error.");
@@ -277,11 +257,7 @@ namespace DTAClient.Online
                 errorTimes = 0;
 
                 // A message has been successfully received
-#if NETFRAMEWORK
-                string msg = encoding.GetString(message1, 0, bytesRead);
-#else
                 string msg = encoding.GetString(message.Span[..bytesRead]);
-#endif
 
                 Logger.Log("Message received: " + msg);
 
@@ -969,23 +945,17 @@ namespace DTAClient.Online
 
             Logger.Log("SRM: " + message);
 
-#if NETFRAMEWORK
-            byte[] buffer1 = encoding.GetBytes(message + "\r\n");
-            var buffer = new ArraySegment<byte>(buffer1);
-
-            try
-            {
-                await socket.SendAsync(buffer, SocketFlags.None);
-#else
-            using IMemoryOwner<byte> memoryOwner = MemoryPool<byte>.Shared.Rent(message.Length * 2);
-            Memory<byte> buffer = memoryOwner.Memory[..(message.Length * 2)];
+            const int charSize = sizeof(char);
+            int bufferSize = message.Length * charSize;
+            using IMemoryOwner<byte> memoryOwner = MemoryPool<byte>.Shared.Rent(bufferSize);
+            Memory<byte> buffer = memoryOwner.Memory[..bufferSize];
             int bytes = encoding.GetBytes((message + "\r\n").AsSpan(), buffer.Span);
+
             buffer = buffer[..bytes];
 
             try
             {
                 await socket.SendAsync(buffer, SocketFlags.None, CancellationToken.None);
-#endif
             }
             catch (IOException ex)
             {
@@ -1064,7 +1034,6 @@ namespace DTAClient.Online
                             MessageQueue.Insert(placeInQueue, qm);
                         break;
                 }
-
             }
             finally
             {

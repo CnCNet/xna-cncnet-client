@@ -343,7 +343,7 @@ namespace DTAClient.DXGUI.Multiplayer
             WriteSpawnIniAdditions(spawnIni);
             spawnIni.WriteIniFile();
 
-            FileInfo spawnMapFileInfo = SafePath.GetFile(ProgramConstants.GamePath, "spawnmap.ini");
+            FileInfo spawnMapFileInfo = SafePath.GetFile(ProgramConstants.GamePath, ProgramConstants.SPAWNMAP_INI);
 
             spawnMapFileInfo.Delete();
             using StreamWriter spawnMapStreamWriter = new StreamWriter(spawnMapFileInfo.FullName);

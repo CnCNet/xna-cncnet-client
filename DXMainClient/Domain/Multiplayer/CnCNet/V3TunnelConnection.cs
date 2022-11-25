@@ -1,8 +1,6 @@
 ﻿using Rampastring.Tools;
 using System;
-#if !NETFRAMEWORK
 using System.Buffers;
-#endif
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
@@ -80,15 +78,11 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
 
                 try
                 {
-#if NETFRAMEWORK
-                    byte[] buffer1 = new byte[50];
-                    WriteSenderIdToBuffer(buffer1);
-                    var buffer = new ArraySegment<byte>(buffer1);
-#else
                     using IMemoryOwner<byte> memoryOwner = MemoryPool<byte>.Shared.Rent(50);
                     Memory<byte> buffer = memoryOwner.Memory[..50];
-                    if (!BitConverter.TryWriteBytes(buffer.Span[..4], SenderId)) throw new Exception();
-#endif
+
+                    if (!BitConverter.TryWriteBytes(buffer.Span[..4], SenderId))
+                        throw new Exception();
 
                     await tunnelSocket.SendToAsync(buffer, SocketFlags.None, tunnelEndPoint);
 
@@ -112,19 +106,12 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                 PreStartup.HandleException(ex);
             }
         }
-#if NETFRAMEWORK
-
-        private void WriteSenderIdToBuffer(byte[] buffer) =>
-            Array.Copy(BitConverter.GetBytes(SenderId), buffer, sizeof(uint));
-#endif
 
         private async Task ReceiveLoopAsync()
         {
             try
             {
-#if !NETFRAMEWORK
                 using IMemoryOwner<byte> memoryOwner = MemoryPool<byte>.Shared.Rent(4096);
-#endif
 
                 while (true)
                 {
@@ -135,13 +122,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                         return;
                     }
 
-#if NETFRAMEWORK
-                    byte[] buffer1 = new byte[1024];
-                    var buffer = new ArraySegment<byte>(buffer1);
-#else
                     Memory<byte> buffer = memoryOwner.Memory[..1024];
-#endif
-
                     SocketReceiveFromResult socketReceiveFromResult = await tunnelSocket.ReceiveFromAsync(buffer, SocketFlags.None, tunnelEndPoint);
 
                     if (socketReceiveFromResult.ReceivedBytes < 8)
@@ -150,14 +131,8 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                         continue;
                     }
 
-#if NETFRAMEWORK
-                    byte[] data = new byte[socketReceiveFromResult.ReceivedBytes - 8];
-                    Array.Copy(buffer1, 8, data, 0, data.Length);
-                    uint senderId = BitConverter.ToUInt32(buffer1, 0);
-#else
                     Memory<byte> data = buffer[8..socketReceiveFromResult.ReceivedBytes];
                     uint senderId = BitConverter.ToUInt32(buffer[..4].Span);
-#endif
 
                     await gameTunnelHandler.TunnelConnection_MessageReceivedAsync(data, senderId);
                 }
@@ -189,23 +164,20 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
             Logger.Log("Connection to tunnel server closed.");
         }
 
-#if NETFRAMEWORK
-        public async Task SendDataAsync(byte[] data, uint receiverId)
-        {
-            byte[] buffer = new byte[data.Length + 8]; // 8 = sizeof(uint) * 2
-            WriteSenderIdToBuffer(buffer);
-            Array.Copy(BitConverter.GetBytes(receiverId), 0, buffer, 4, sizeof(uint));
-            Array.Copy(data, 0, buffer, 8, data.Length);
-            var packet = new ArraySegment<byte>(buffer);
-#else
         public async Task SendDataAsync(ReadOnlyMemory<byte> data, uint receiverId)
         {
-            using IMemoryOwner<byte> memoryOwner = MemoryPool<byte>.Shared.Rent(data.Length + 8);
-            Memory<byte> packet = memoryOwner.Memory[..(data.Length + 8)];
-            if (!BitConverter.TryWriteBytes(packet.Span[..4], SenderId)) throw new Exception();
-            if (!BitConverter.TryWriteBytes(packet.Span[4..8], receiverId)) throw new Exception();
+            const int idsSize = sizeof(uint) * 2;
+            int bufferSize = data.Length + idsSize;
+            using IMemoryOwner<byte> memoryOwner = MemoryPool<byte>.Shared.Rent(bufferSize);
+            Memory<byte> packet = memoryOwner.Memory[..bufferSize];
+
+            if (!BitConverter.TryWriteBytes(packet.Span[..4], SenderId))
+                throw new Exception();
+
+            if (!BitConverter.TryWriteBytes(packet.Span[4..8], receiverId))
+                throw new Exception();
+
             data.CopyTo(packet[8..]);
-#endif
 
             await locker.WaitAsync();
 

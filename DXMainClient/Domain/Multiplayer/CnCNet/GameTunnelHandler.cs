@@ -99,11 +99,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
             }
         }
 
-#if NETFRAMEWORK
-        public async Task PlayerConnection_PacketReceivedAsync(TunneledPlayerConnection sender, byte[] data)
-#else
         public async Task PlayerConnection_PacketReceivedAsync(TunneledPlayerConnection sender, ReadOnlyMemory<byte> data)
-#endif
         {
             await locker.WaitAsync();
 
@@ -118,11 +114,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
             }
         }
 
-#if NETFRAMEWORK
-        public async Task TunnelConnection_MessageReceivedAsync(byte[] data, uint senderId)
-#else
         public async Task TunnelConnection_MessageReceivedAsync(ReadOnlyMemory<byte> data, uint senderId)
-#endif
         {
             await locker.WaitAsync();
 

@@ -14,9 +14,7 @@ using Rampastring.Tools;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
 using System;
-#if !NETFRAMEWORK
 using System.Buffers;
-#endif
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -274,19 +272,9 @@ namespace DTAClient.DXGUI.Multiplayer
 
                 if (socket.IsBound)
                 {
-#if NETFRAMEWORK
-                    try
-                    {
-#endif
                     await SendMessageAsync("QUIT", cancellationToken);
                     cancellationTokenSource.Cancel();
                     socket.Close();
-#if NETFRAMEWORK
-                    }
-                    catch (ObjectDisposedException)
-                    {
-                    }
-#endif
                 }
             }
             catch (Exception ex)
@@ -395,16 +383,12 @@ namespace DTAClient.DXGUI.Multiplayer
                 if (!initSuccess)
                     return;
 
-#if NETFRAMEWORK
-                byte[] buffer1 = encoding.GetBytes(message);
-                var buffer = new ArraySegment<byte>(buffer1);
-
-                await socket.SendToAsync(buffer, SocketFlags.None, endPoint);
-            }
-#else
-                using IMemoryOwner<byte> memoryOwner = MemoryPool<byte>.Shared.Rent(message.Length * 2);
-                Memory<byte> buffer = memoryOwner.Memory[..(message.Length * 2)];
+                const int charSize = sizeof(char);
+                int bufferSize = message.Length * charSize;
+                using IMemoryOwner<byte> memoryOwner = MemoryPool<byte>.Shared.Rent(bufferSize);
+                Memory<byte> buffer = memoryOwner.Memory[..bufferSize];
                 int bytes = encoding.GetBytes(message.AsSpan(), buffer.Span);
+
                 buffer = buffer[..bytes];
 
                 await socket.SendToAsync(buffer, SocketFlags.None, endPoint, cancellationToken);
@@ -412,7 +396,6 @@ namespace DTAClient.DXGUI.Multiplayer
             catch (OperationCanceledException)
             {
             }
-#endif
             catch (Exception ex)
             {
                 PreStartup.HandleException(ex);
@@ -423,27 +406,15 @@ namespace DTAClient.DXGUI.Multiplayer
         {
             try
             {
-#if !NETFRAMEWORK
                 using IMemoryOwner<byte> memoryOwner = MemoryPool<byte>.Shared.Rent(4096);
-#endif
 
                 while (!cancellationToken.IsCancellationRequested)
                 {
                     EndPoint ep = new IPEndPoint(IPAddress.Any, ProgramConstants.LAN_GAME_LOBBY_PORT);
-#if NETFRAMEWORK
-                    byte[] buffer1 = new byte[4096];
-                    var buffer = new ArraySegment<byte>(buffer1);
-                    SocketReceiveFromResult socketReceiveFromResult = await socket.ReceiveFromAsync(buffer, SocketFlags.None, ep);
-#else
                     Memory<byte> buffer = memoryOwner.Memory[..4096];
                     SocketReceiveFromResult socketReceiveFromResult = await socket.ReceiveFromAsync(buffer, SocketFlags.None, ep, cancellationToken);
-#endif
                     var iep = (IPEndPoint)socketReceiveFromResult.RemoteEndPoint;
-#if NETFRAMEWORK
-                    string data = encoding.GetString(buffer1, 0, socketReceiveFromResult.ReceivedBytes);
-#else
                     string data = encoding.GetString(buffer.Span[..socketReceiveFromResult.ReceivedBytes]);
-#endif
 
                     if (data == string.Empty)
                         continue;
@@ -638,11 +609,9 @@ namespace DTAClient.DXGUI.Multiplayer
                 try
                 {
                     var client = new Socket(SocketType.Stream, ProtocolType.Tcp);
-#if NETFRAMEWORK
-                    await client.ConnectAsync(new IPEndPoint(hg.EndPoint.Address, ProgramConstants.LAN_GAME_LOBBY_PORT));
-#else
                     await client.ConnectAsync(new IPEndPoint(hg.EndPoint.Address, ProgramConstants.LAN_GAME_LOBBY_PORT), CancellationToken.None);
-#endif
+
+                    const int charSize = sizeof(char);
 
                     if (hg.IsLoadedGame)
                     {
@@ -655,20 +624,13 @@ namespace DTAClient.DXGUI.Multiplayer
                         string message = "JOIN" + ProgramConstants.LAN_DATA_SEPARATOR +
                             ProgramConstants.PLAYERNAME + ProgramConstants.LAN_DATA_SEPARATOR +
                             loadedGameId + ProgramConstants.LAN_MESSAGE_SEPARATOR;
-#if NETFRAMEWORK
-                        byte[] buffer1 = encoding.GetBytes(message);
-                        var buffer = new ArraySegment<byte>(buffer1);
-
-                        await client.SendAsync(buffer, SocketFlags.None);
-#else
-                        using IMemoryOwner<byte> memoryOwner = MemoryPool<byte>.Shared.Rent(message.Length * 2);
-                        Memory<byte> buffer = memoryOwner.Memory[..(message.Length * 2)];
+                        int bufferSize = message.Length * charSize;
+                        using IMemoryOwner<byte> memoryOwner = MemoryPool<byte>.Shared.Rent(bufferSize);
+                        Memory<byte> buffer = memoryOwner.Memory[..bufferSize];
                         int bytes = encoding.GetBytes(message.AsSpan(), buffer.Span);
                         buffer = buffer[..bytes];
 
                         await client.SendAsync(buffer, SocketFlags.None, CancellationToken.None);
-#endif
-
                         await lanGameLoadingLobby.PostJoinAsync();
                     }
                     else
@@ -678,20 +640,13 @@ namespace DTAClient.DXGUI.Multiplayer
 
                         string message = "JOIN" + ProgramConstants.LAN_DATA_SEPARATOR +
                             ProgramConstants.PLAYERNAME + ProgramConstants.LAN_MESSAGE_SEPARATOR;
-#if NETFRAMEWORK
-                        byte[] buffer1 = encoding.GetBytes(message);
-                        var buffer = new ArraySegment<byte>(buffer1);
-
-                        await client.SendAsync(buffer, SocketFlags.None);
-#else
-                        using IMemoryOwner<byte> memoryOwner = MemoryPool<byte>.Shared.Rent(message.Length * 2);
-                        Memory<byte> buffer = memoryOwner.Memory[..(message.Length * 2)];
+                        int bufferSize = message.Length * charSize;
+                        using IMemoryOwner<byte> memoryOwner = MemoryPool<byte>.Shared.Rent(bufferSize);
+                        Memory<byte> buffer = memoryOwner.Memory[..bufferSize];
                         int bytes = encoding.GetBytes(message.AsSpan(), buffer.Span);
                         buffer = buffer[..bytes];
 
                         await client.SendAsync(buffer, SocketFlags.None, CancellationToken.None);
-#endif
-
                         await lanGameLobby.PostJoinAsync();
                     }
                 }
