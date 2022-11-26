@@ -9,6 +9,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using ClientCore;
+using ClientCore.Extensions;
 using Rampastring.Tools;
 
 namespace DTAClient.Domain.Multiplayer.CnCNet
@@ -126,7 +127,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
             }
             catch (Exception ex)
             {
-                PreStartup.LogException(ex);
+                ProgramConstants.LogException(ex);
                 return (ex.Message, false);
             }
         }
@@ -218,7 +219,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
             }
             catch (Exception ex)
             {
-                PreStartup.LogException(ex, "MapSharer ERROR");
+                ProgramConstants.LogException(ex, "MapSharer ERROR");
             }
 
             (string error, bool success) = await DownloadMainAsync(sha1, myGameId, mapName);
@@ -265,7 +266,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
             }
             catch (Exception ex)
             {
-                PreStartup.LogException(ex);
+                ProgramConstants.LogException(ex);
 
                 return (ex.Message, false);
             }

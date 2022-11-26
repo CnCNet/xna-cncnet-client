@@ -193,7 +193,7 @@ namespace DTAConfig
             }
             catch (Exception ex)
             {
-                Logger.Log("Saving settings failed! Error message: " + ex.Message);
+                ProgramConstants.LogException(ex, "Saving settings failed!");
                 XNAMessageBox.Show(WindowManager, "Saving Settings Failed".L10N("UI:DTAConfig:SaveSettingFailTitle"),
                     "Saving settings failed! Error message:".L10N("UI:DTAConfig:SaveSettingFailText") + " " + ex.Message);
             }

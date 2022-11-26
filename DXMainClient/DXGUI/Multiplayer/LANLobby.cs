@@ -24,6 +24,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using ClientCore.Extensions;
 using SixLabors.ImageSharp;
 using Color = Microsoft.Xna.Framework.Color;
 using Rectangle = Microsoft.Xna.Framework.Rectangle;
@@ -324,7 +325,7 @@ namespace DTAClient.DXGUI.Multiplayer
             }
             catch (SocketException ex)
             {
-                PreStartup.LogException(ex, "Creating LAN socket failed!");
+                ProgramConstants.LogException(ex, "Creating LAN socket failed!");
                 lbChatMessages.AddMessage(new ChatMessage(Color.Red,
                     "Creating LAN socket failed! Message:".L10N("UI:Main:SocketFailure1") + " " + ex.Message));
                 lbChatMessages.AddMessage(new ChatMessage(Color.Red,
@@ -389,7 +390,7 @@ namespace DTAClient.DXGUI.Multiplayer
             }
             catch (Exception ex)
             {
-                PreStartup.LogException(ex, "LAN socket listener exception.");
+                ProgramConstants.LogException(ex, "LAN socket listener exception.");
             }
         }
 
@@ -598,7 +599,7 @@ namespace DTAClient.DXGUI.Multiplayer
             }
             catch (Exception ex)
             {
-                PreStartup.LogException(ex, "Connecting to the game failed!");
+                ProgramConstants.LogException(ex, "Connecting to the game failed!");
                 lbChatMessages.AddMessage(null,
                     "Connecting to the game failed! Message:".L10N("UI:Main:ConnectGameFailed") + " " + ex.Message, Color.White);
             }

@@ -5,6 +5,7 @@ using Microsoft.Xna.Framework;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
 using System;
+using ClientCore;
 #if WINFORMS
 using System.Runtime.InteropServices;
 #endif
@@ -227,8 +228,9 @@ namespace DTAClient.DXGUI.Generic
                 tbp.SetState(WindowManager.GetWindowHandle(), TaskbarProgress.TaskbarStates.Normal);
                 tbp.SetValue(WindowManager.GetWindowHandle(), prgTotal.Value, prgTotal.Maximum);
             }
-            catch
+            catch (Exception ex)
             {
+                ProgramConstants.LogException(ex);
             }
 #endif
         }
@@ -291,14 +293,14 @@ namespace DTAClient.DXGUI.Generic
         {
             lblDescription.Text = string.Format(("Please wait while {0} is updated to version {1}." + Environment.NewLine +
                 "This window will automatically close once the update is complete." + Environment.NewLine + Environment.NewLine +
-                "The client may also restart after the update has been downloaded.").L10N("UI:Main:UpdateVersionPleaseWait"), MainClientConstants.GAME_NAME_SHORT, newGameVersion);
+                "The client may also restart after the update has been downloaded.").L10N("UI:Main:UpdateVersionPleaseWait"), ProgramConstants.GAME_NAME_SHORT, newGameVersion);
             lblUpdaterStatus.Text = "Preparing".L10N("UI:Main:StatusPreparing");
         }
 
         public void ForceUpdate()
         {
             isStartingForceUpdate = true;
-            lblDescription.Text = string.Format("Force updating {0} to latest version...".L10N("UI:Main:ForceUpdateToLatest"), MainClientConstants.GAME_NAME_SHORT);
+            lblDescription.Text = string.Format("Force updating {0} to latest version...".L10N("UI:Main:ForceUpdateToLatest"), ProgramConstants.GAME_NAME_SHORT);
             lblUpdaterStatus.Text = "Connecting".L10N("UI:Main:UpdateStatusConnecting");
             Updater.CheckForUpdates();
         }

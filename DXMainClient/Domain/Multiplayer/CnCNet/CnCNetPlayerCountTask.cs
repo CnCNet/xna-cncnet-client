@@ -4,6 +4,7 @@ using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using ClientCore.Extensions;
 
 namespace DTAClient.Domain.Multiplayer.CnCNet
 {
@@ -80,7 +81,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
             }
             catch (Exception ex)
             {
-                PreStartup.LogException(ex);
+                ProgramConstants.LogException(ex);
                 return -1;
             }
         }

@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Threading.Tasks;
 
-namespace DTAClient;
+namespace ClientCore.Extensions;
 
-internal static class TaskExtensions
+public static class TaskExtensions
 {
     /// <summary>
     /// Asynchronously awaits a <see cref="Task"/> and guarantees all exceptions are caught and handled when the <see cref="Task"/> is not directly awaited.
@@ -18,8 +18,28 @@ internal static class TaskExtensions
         }
         catch (Exception ex)
         {
-            PreStartup.HandleException(ex);
+            ProgramConstants.HandleException(ex);
         }
+    }
+
+    /// <summary>
+    /// Asynchronously awaits a <see cref="Task"/> and guarantees all exceptions are caught and handled when the <see cref="Task"/> is not directly awaited.
+    /// </summary>
+    /// <typeparam name="T">The type of <paramref name="task"/>'s return value.</typeparam>
+    /// <param name="task">The <see cref="Task"/> who's exceptions will be handled.</param>
+    /// <returns>Returns a <see cref="Task"/> that awaited and handled the original <paramref name="task"/>.</returns>
+    public static async Task<T> HandleTaskAsync<T>(this Task<T> task)
+    {
+        try
+        {
+            return await task;
+        }
+        catch (Exception ex)
+        {
+            ProgramConstants.HandleException(ex);
+        }
+
+        return default;
     }
 
     /// <summary>

@@ -59,7 +59,7 @@ namespace DTAClient.DXGUI
 
             string windowTitle = ClientConfiguration.Instance.WindowTitle;
             Window.Title = string.IsNullOrEmpty(windowTitle) ?
-                string.Format("{0} Client", MainClientConstants.GAME_NAME_SHORT) : windowTitle;
+                string.Format("{0} Client", ProgramConstants.GAME_NAME_SHORT) : windowTitle;
 
             base.Initialize();
 
@@ -84,41 +84,34 @@ namespace DTAClient.DXGUI
 
                 _ = AssetLoader.LoadTextureUncached("checkBoxClear.png");
             }
-            catch (Exception ex)
+            catch (Exception ex) when (ex.Message.Contains("DeviceRemoved"))
             {
-                if (ex.Message.Contains("DeviceRemoved"))
+                ProgramConstants.LogException(ex, $"Creating texture on startup failed! Creating {startupFailureFile} file and re-launching client launcher.");
+
+                DirectoryInfo clientDirectory = SafePath.GetDirectory(ProgramConstants.ClientUserFilesPath);
+
+                if (!clientDirectory.Exists)
+                    clientDirectory.Create();
+
+                // Create startup failure file that the launcher can check for this error
+                // and handle it by redirecting the user to another version instead
+                File.WriteAllBytes(SafePath.CombineFilePath(clientDirectory.FullName, startupFailureFile), new byte[] { 1 });
+
+                string launcherExe = ClientConfiguration.Instance.LauncherExe;
+                if (string.IsNullOrEmpty(launcherExe))
                 {
-                    Logger.Log($"Creating texture on startup failed! Creating {startupFailureFile} file and re-launching client launcher.");
+                    // LauncherExe is unspecified, just throw the exception forward
+                    // because we can't handle it
+                    Logger.Log("No LauncherExe= specified in ClientDefinitions.ini! " +
+                        "Forwarding exception to regular exception handler.");
 
-                    DirectoryInfo clientDirectory = SafePath.GetDirectory(ProgramConstants.ClientUserFilesPath);
-
-                    if (!clientDirectory.Exists)
-                        clientDirectory.Create();
-
-                    // Create startup failure file that the launcher can check for this error
-                    // and handle it by redirecting the user to another version instead
-
-                    File.WriteAllBytes(SafePath.CombineFilePath(clientDirectory.FullName, startupFailureFile), new byte[] { 1 });
-
-                    string launcherExe = ClientConfiguration.Instance.LauncherExe;
-                    if (string.IsNullOrEmpty(launcherExe))
-                    {
-                        // LauncherExe is unspecified, just throw the exception forward
-                        // because we can't handle it
-
-                        Logger.Log("No LauncherExe= specified in ClientDefinitions.ini! " +
-                            "Forwarding exception to regular exception handler.");
-
-                        throw;
-                    }
-                    else
-                    {
-                        Logger.Log("Starting " + launcherExe + " and exiting.");
-
-                        Process.Start(SafePath.CombineFilePath(ProgramConstants.GamePath, launcherExe));
-                        Environment.Exit(1);
-                    }
+                    throw;
                 }
+
+                Logger.Log("Starting " + launcherExe + " and exiting.");
+
+                Process.Start(SafePath.CombineFilePath(ProgramConstants.GamePath, launcherExe));
+                Environment.Exit(1);
             }
 
 #endif

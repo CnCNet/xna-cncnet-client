@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using ClientCore;
 using ClientCore.CnCNet5;
+using ClientCore.Extensions;
 using ClientGUI;
 using ClientUpdater;
 using DTAClient.Domain.Multiplayer;

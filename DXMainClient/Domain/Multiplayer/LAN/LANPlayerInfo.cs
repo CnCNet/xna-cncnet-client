@@ -106,7 +106,7 @@ namespace DTAClient.Domain.Multiplayer.LAN
             }
             catch (Exception ex)
             {
-                PreStartup.LogException(ex, "Sending message to " + ToString() + " failed!");
+                ProgramConstants.LogException(ex, "Sending message to " + ToString() + " failed!");
             }
 
             TimeSinceLastSentMessage = TimeSpan.Zero;
@@ -138,7 +138,7 @@ namespace DTAClient.Domain.Multiplayer.LAN
                 }
                 catch (Exception ex)
                 {
-                    PreStartup.LogException(ex, "Socket error with client " + Name + "; removing.");
+                    ProgramConstants.LogException(ex, "Socket error with client " + Name + "; removing.");
                     ConnectionLost?.Invoke(this, EventArgs.Empty);
                     break;
                 }

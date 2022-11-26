@@ -50,9 +50,9 @@ namespace DTAClient
         {
 #if WINFORMS
             Application.SetUnhandledExceptionMode(UnhandledExceptionMode.ThrowException);
-            Application.ThreadException += (_, args) => HandleException(args.Exception);
+            Application.ThreadException += (_, args) => ProgramConstants.HandleException(args.Exception);
 #endif
-            AppDomain.CurrentDomain.UnhandledException += (_, args) => HandleException((Exception)args.ExceptionObject);
+            AppDomain.CurrentDomain.UnhandledException += (_, args) => ProgramConstants.HandleException((Exception)args.ExceptionObject);
 
             DirectoryInfo gameDirectory = SafePath.GetDirectory(ProgramConstants.GamePath);
 
@@ -73,9 +73,24 @@ namespace DTAClient
 
             clientLogFile.Delete();
 
-            MainClientConstants.Initialize();
+            ProgramConstants.OSId = ClientConfiguration.Instance.GetOperatingSystemVersion();
+            ProgramConstants.GAME_NAME_SHORT = ClientConfiguration.Instance.LocalGame;
+            ProgramConstants.GAME_NAME_LONG = ClientConfiguration.Instance.LongGameName;
+            ProgramConstants.SUPPORT_URL_SHORT = ClientConfiguration.Instance.ShortSupportURL;
+            ProgramConstants.CREDITS_URL = ClientConfiguration.Instance.CreditsURL;
+            ProgramConstants.MAP_CELL_SIZE_X = ClientConfiguration.Instance.MapCellSizeX;
+            ProgramConstants.MAP_CELL_SIZE_Y = ClientConfiguration.Instance.MapCellSizeY;
 
-            Logger.Log("***Logfile for " + MainClientConstants.GAME_NAME_LONG + " client***");
+            if (string.IsNullOrEmpty(ProgramConstants.GAME_NAME_SHORT))
+                throw new ClientConfigurationException("LocalGame is set to an empty value.");
+
+            if (ProgramConstants.GAME_NAME_SHORT.Length > ProgramConstants.GAME_ID_MAX_LENGTH)
+            {
+                throw new ClientConfigurationException("LocalGame is set to a value that exceeds length limit of " +
+                    ProgramConstants.GAME_ID_MAX_LENGTH + " characters.");
+            }
+
+            Logger.Log("***Logfile for " + ProgramConstants.GAME_NAME_LONG + " client***");
             Logger.Log("Client version: " + Assembly.GetAssembly(typeof(PreStartup)).GetName().Version);
 
             // Log information about given startup params
@@ -118,7 +133,7 @@ namespace DTAClient
             }
             catch (Exception ex)
             {
-                LogException(ex, "Failed to load the translation file.");
+                ProgramConstants.LogException(ex, "Failed to load the translation file.");
                 TranslationTable.Instance = new TranslationTable();
             }
 
@@ -145,7 +160,7 @@ namespace DTAClient
             }
             catch (Exception ex)
             {
-                LogException(ex, "Failed to generate the translation stub.");
+                ProgramConstants.LogException(ex, "Failed to generate the translation stub.");
             }
 
             // Delete obsolete files from old target project versions
@@ -159,7 +174,7 @@ namespace DTAClient
             }
             catch (Exception ex)
             {
-                LogException(ex);
+                ProgramConstants.LogException(ex);
 
                 string error = "Deleting wsock32.dll failed! Please close any " +
                     "applications that could be using the file, and then start the client again."
@@ -176,78 +191,6 @@ namespace DTAClient
             new Startup().Execute();
         }
 
-        /// <summary>
-        /// Logs all details of an exception to the logfile without further action.
-        /// </summary>
-        /// <param name="ex">The <see cref="Exception"/> to log.</param>
-        /// /// <param name="message">Optional message to accompany the error.</param>
-        public static void LogException(Exception ex, string message = null)
-        {
-            LogExceptionRecursive(ex, message);
-        }
-
-        private static void LogExceptionRecursive(Exception ex, string message = null, bool innerException = false)
-        {
-            if (!innerException)
-                Logger.Log(message);
-            else
-                Logger.Log("InnerException info:");
-
-            Logger.Log("Type: " + ex.GetType());
-            Logger.Log("Message: " + ex.Message);
-            Logger.Log("Source: " + ex.Source);
-            Logger.Log("TargetSite.Name: " + ex.TargetSite?.Name);
-            Logger.Log("Stacktrace: " + ex.StackTrace);
-
-            if (ex is AggregateException aggregateException)
-            {
-                foreach (Exception aggregateExceptionInnerException in aggregateException.InnerExceptions)
-                {
-                    LogExceptionRecursive(aggregateExceptionInnerException, null, true);
-                }
-            }
-            else if (ex.InnerException is not null)
-            {
-                LogExceptionRecursive(ex.InnerException, null, true);
-            }
-        }
-
-        /// <summary>
-        /// Logs all details of an exception to the logfile, notifies the user, and exits the application.
-        /// </summary>
-        /// <param name="ex">The <see cref="Exception"/> to log.</param>
-        internal static void HandleException(Exception ex)
-        {
-            LogExceptionRecursive(ex, "KABOOOOOOM!!! Info:");
-
-            string errorLogPath = SafePath.CombineFilePath(ProgramConstants.ClientUserFilesPath, "ClientCrashLogs", FormattableString.Invariant($"ClientCrashLog{DateTime.Now.ToString("_yyyy_MM_dd_HH_mm")}.txt"));
-            bool crashLogCopied = false;
-
-            try
-            {
-                DirectoryInfo crashLogsDirectoryInfo = SafePath.GetDirectory(ProgramConstants.ClientUserFilesPath, "ClientCrashLogs");
-
-                if (!crashLogsDirectoryInfo.Exists)
-                    crashLogsDirectoryInfo.Create();
-
-                File.Copy(SafePath.CombineFilePath(ProgramConstants.ClientUserFilesPath, "client.log"), errorLogPath, true);
-                crashLogCopied = true;
-            }
-            catch { }
-
-            string error = string.Format("{0} has crashed. Error message:".L10N("UI:Main:FatalErrorText1") + Environment.NewLine + Environment.NewLine +
-                ex.Message + Environment.NewLine + Environment.NewLine + (crashLogCopied ?
-                "A crash log has been saved to the following file:".L10N("UI:Main:FatalErrorText2") + " " + Environment.NewLine + Environment.NewLine +
-                errorLogPath + Environment.NewLine + Environment.NewLine : "") +
-                (crashLogCopied ? "If the issue is repeatable, contact the {1} staff at {2} and provide the crash log file.".L10N("UI:Main:FatalErrorText3") :
-                "If the issue is repeatable, contact the {1} staff at {2}.".L10N("UI:Main:FatalErrorText4")),
-                MainClientConstants.GAME_NAME_LONG,
-                MainClientConstants.GAME_NAME_SHORT,
-                MainClientConstants.SUPPORT_URL_SHORT);
-
-            ProgramConstants.DisplayErrorAction("KABOOOOOOOM".L10N("UI:Main:FatalErrorTitle"), error, true);
-        }
-
         [SupportedOSPlatform("windows")]
         private static void CheckPermissions()
         {
@@ -257,7 +200,7 @@ namespace DTAClient
             string error = string.Format(("You seem to be running {0} from a write-protected directory." + Environment.NewLine + Environment.NewLine +
                 "For {1} to function properly when run from a write-protected directory, it needs administrative priveleges." + Environment.NewLine + Environment.NewLine +
                 "Would you like to restart the client with administrative rights?" + Environment.NewLine + Environment.NewLine +
-                "Please also make sure that your security software isn't blocking {1}.").L10N("UI:Main:AdminRequiredText"), MainClientConstants.GAME_NAME_LONG, MainClientConstants.GAME_NAME_SHORT);
+                "Please also make sure that your security software isn't blocking {1}.").L10N("UI:Main:AdminRequiredText"), ProgramConstants.GAME_NAME_LONG, ProgramConstants.GAME_NAME_SHORT);
 
             ProgramConstants.DisplayErrorAction("Administrative privileges required".L10N("UI:Main:AdminRequiredTitle"), error, false);
 
@@ -325,6 +268,7 @@ namespace DTAClient
             {
                 return false;
             }
+
             return isInRoleWithAccess;
         }
     }

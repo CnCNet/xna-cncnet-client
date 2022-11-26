@@ -24,6 +24,12 @@ namespace ClientCore
 #endif
 
         public static string ClientUserFilesPath => SafePath.CombineDirectoryPath(GamePath, "Client");
+        public static string CREDITS_URL = string.Empty;
+        public static bool USE_ISOMETRIC_CELLS = true;
+        public static int TDRA_WAYPOINT_COEFFICIENT = 128;
+        public static int MAP_CELL_SIZE_X = 48;
+        public static int MAP_CELL_SIZE_Y = 24;
+        public static OSVersion OSId = OSVersion.UNKNOWN;
 
         public static event EventHandler PlayerNameChanged;
 
@@ -41,12 +47,15 @@ namespace ClientCore
         public const string SPAWNER_SETTINGS = "spawn.ini";
         public const string SAVED_GAME_SPAWN_INI = SAVED_GAMES_DIRECTORY + "/spawnSG.ini";
         public const string SAVED_GAMES_DIRECTORY = "Saved Games";
-
+        public const string CNCNET_TUNNEL_LIST_URL = "https://cncnet.org/master-list";
         public const int GAME_ID_MAX_LENGTH = 4;
 
         public static readonly Encoding LAN_ENCODING = Encoding.UTF8;
 
         public static string GAME_VERSION = "Undefined";
+        public static string GAME_NAME_LONG = "CnCNet Client";
+        public static string GAME_NAME_SHORT = "CnCNet";
+        public static string SUPPORT_URL_SHORT = "www.cncnet.org";
         private static string PlayerName = "No name";
 
         public static string PLAYERNAME
@@ -107,5 +116,79 @@ namespace ClientCore
             if (exit)
                 Environment.Exit(1);
         };
+
+        /// <summary>
+        /// Logs all details of an exception to the logfile without further action.
+        /// </summary>
+        /// <param name="ex">The <see cref="Exception"/> to log.</param>
+        /// /// <param name="message">Optional message to accompany the error.</param>
+        public static void LogException(Exception ex, string message = null)
+        {
+            LogExceptionRecursive(ex, message);
+        }
+
+        private static void LogExceptionRecursive(Exception ex, string message = null, bool innerException = false)
+        {
+            if (!innerException)
+                Logger.Log(message);
+            else
+                Logger.Log("InnerException info:");
+
+            Logger.Log("Type: " + ex.GetType());
+            Logger.Log("Message: " + ex.Message);
+            Logger.Log("Source: " + ex.Source);
+            Logger.Log("TargetSite.Name: " + ex.TargetSite?.Name);
+            Logger.Log("Stacktrace: " + ex.StackTrace);
+
+            if (ex is AggregateException aggregateException)
+            {
+                foreach (Exception aggregateExceptionInnerException in aggregateException.InnerExceptions)
+                {
+                    LogExceptionRecursive(aggregateExceptionInnerException, null, true);
+                }
+            }
+            else if (ex.InnerException is not null)
+            {
+                LogExceptionRecursive(ex.InnerException, null, true);
+            }
+        }
+
+        /// <summary>
+        /// Logs all details of an exception to the logfile, notifies the user, and exits the application.
+        /// </summary>
+        /// <param name="ex">The <see cref="Exception"/> to log.</param>
+        public static void HandleException(Exception ex)
+        {
+            LogExceptionRecursive(ex, "KABOOOOOOM!!! Info:");
+
+            string errorLogPath = SafePath.CombineFilePath(ClientUserFilesPath, "ClientCrashLogs", FormattableString.Invariant($"ClientCrashLog{DateTime.Now.ToString("_yyyy_MM_dd_HH_mm")}.txt"));
+            bool crashLogCopied = false;
+
+            try
+            {
+                DirectoryInfo crashLogsDirectoryInfo = SafePath.GetDirectory(ClientUserFilesPath, "ClientCrashLogs");
+
+                if (!crashLogsDirectoryInfo.Exists)
+                    crashLogsDirectoryInfo.Create();
+
+                File.Copy(SafePath.CombineFilePath(ClientUserFilesPath, "client.log"), errorLogPath, true);
+                crashLogCopied = true;
+            }
+            catch
+            {
+            }
+
+            string error = string.Format("{0} has crashed. Error message:".L10N("UI:Main:FatalErrorText1") + Environment.NewLine + Environment.NewLine +
+                ex.Message + Environment.NewLine + Environment.NewLine + (crashLogCopied ?
+                "A crash log has been saved to the following file:".L10N("UI:Main:FatalErrorText2") + " " + Environment.NewLine + Environment.NewLine +
+                errorLogPath + Environment.NewLine + Environment.NewLine : "") +
+                (crashLogCopied ? "If the issue is repeatable, contact the {1} staff at {2} and provide the crash log file.".L10N("UI:Main:FatalErrorText3") :
+                "If the issue is repeatable, contact the {1} staff at {2}.".L10N("UI:Main:FatalErrorText4")),
+                GAME_NAME_LONG,
+                GAME_NAME_SHORT,
+                SUPPORT_URL_SHORT);
+
+            DisplayErrorAction("KABOOOOOOOM".L10N("UI:Main:FatalErrorTitle"), error, true);
+        }
     }
 }

@@ -12,6 +12,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using ClientCore.Extensions;
 
 namespace DTAClient.Online
 {
@@ -189,7 +190,7 @@ namespace DTAClient.Online
                     }
                     catch (Exception ex)
                     {
-                        PreStartup.LogException(ex, "Unable to connect to the server.");
+                        ProgramConstants.LogException(ex, "Unable to connect to the server.");
                     }
                 }
 
@@ -235,7 +236,7 @@ namespace DTAClient.Online
                 }
                 catch (Exception ex)
                 {
-                    PreStartup.LogException(ex, "Disconnected from CnCNet due to a socket error.");
+                    ProgramConstants.LogException(ex, "Disconnected from CnCNet due to a socket error.");
                     errorTimes++;
 
                     if (errorTimes > MAX_RECONNECT_COUNT)
@@ -412,7 +413,7 @@ namespace DTAClient.Online
             }
             catch (PingException ex)
             {
-                PreStartup.LogException(ex, $"Caught an exception when pinging {serverInfo.Name} ({serverInfo.IpAddress}) Lobby server.");
+                ProgramConstants.LogException(ex, $"Caught an exception when pinging {serverInfo.Name} ({serverInfo.IpAddress}) Lobby server.");
 
                 return (server, serverInfo.IpAddress, long.MaxValue);
             }
@@ -437,7 +438,7 @@ namespace DTAClient.Online
             }
             catch (SocketException ex)
             {
-                PreStartup.LogException(ex, $"Caught an exception when DNS resolving {server.Name} ({server.Host}) Lobby server.");
+                ProgramConstants.LogException(ex, $"Caught an exception when DNS resolving {server.Name} ({server.Host}) Lobby server.");
             }
 
             return Array.Empty<(IPAddress IpAddress, string Name, int[] Ports)>();
@@ -719,7 +720,7 @@ namespace DTAClient.Online
             }
             catch (Exception ex)
             {
-                PreStartup.LogException(ex, "Warning: Failed to parse command " + message);
+                ProgramConstants.LogException(ex, "Warning: Failed to parse command " + message);
             }
         }
 
@@ -939,7 +940,7 @@ namespace DTAClient.Online
             }
             catch (IOException ex)
             {
-                PreStartup.LogException(ex, "Sending message to the server failed!");
+                ProgramConstants.LogException(ex, "Sending message to the server failed!");
             }
         }
 

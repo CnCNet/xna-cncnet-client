@@ -5,6 +5,7 @@ using System.Net;
 using System.Net.NetworkInformation;
 using System.Threading;
 using System.Threading.Tasks;
+using ClientCore.Extensions;
 
 namespace DTAClient.Domain.Multiplayer.CnCNet
 {

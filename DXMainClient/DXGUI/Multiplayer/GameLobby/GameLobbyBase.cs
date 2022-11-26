@@ -15,6 +15,7 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using ClientCore.Enums;
+using ClientCore.Extensions;
 using DTAClient.DXGUI.Multiplayer.CnCNet;
 using DTAClient.Online.EventArguments;
 using Localization;
@@ -648,7 +649,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             }
             catch (IOException ex)
             {
-                Logger.Log($"Deleting map {Map.BaseFilePath} failed! Message: {ex.Message}");
+                ProgramConstants.LogException(ex, $"Deleting map {Map.BaseFilePath} failed!");
                 XNAMessageBox.Show(WindowManager, "Deleting Map Failed".L10N("UI:Main:DeleteMapFailedTitle"),
                     "Deleting map failed! Reason:".L10N("UI:Main:DeleteMapFailedText") + " " + ex.Message);
             }
@@ -943,7 +944,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     randomSides = Array.ConvertAll(tmp, int.Parse).Distinct().ToList();
                     randomSides.RemoveAll(x => (x >= SideCount || x < 0));
                 }
-                catch (FormatException) { }
+                catch (FormatException ex)
+                {
+                    ProgramConstants.LogException(ex);
+                }
 
                 if (randomSides.Count > 1)
                 {

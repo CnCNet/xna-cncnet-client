@@ -20,6 +20,7 @@ using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using ClientCore.Enums;
+using ClientCore.Extensions;
 using Localization;
 using SixLabors.ImageSharp;
 using Color = Microsoft.Xna.Framework.Color;
@@ -1512,11 +1513,12 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
                     lbGameList.AddGame(game);
                 }
+
                 SortAndRefreshHostedGames();
             }
             catch (Exception ex)
             {
-                Logger.Log("Game parsing error: " + ex.Message);
+                ProgramConstants.LogException(ex, "Game parsing error");
             }
         }
 
