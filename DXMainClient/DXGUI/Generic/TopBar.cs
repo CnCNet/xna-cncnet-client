@@ -173,7 +173,7 @@ namespace DTAClient.DXGUI.Generic
             btnLogout.FontIndex = 1;
             btnLogout.Text = "Log Out".L10N("UI:Main:LogOut");
             btnLogout.AllowClick = false;
-            btnLogout.LeftClick += (_, _) => BtnLogout_LeftClickAsync();
+            btnLogout.LeftClick += (_, _) => BtnLogout_LeftClickAsync().HandleTask();
 
             btnOptions = new XNAClientButton(WindowManager);
             btnOptions.Name = "btnOptions";
@@ -291,16 +291,9 @@ namespace DTAClient.DXGUI.Generic
 
         private async Task BtnLogout_LeftClickAsync()
         {
-            try
-            {
-                await connectionManager.DisconnectAsync();
-                LogoutEvent?.Invoke(this, null);
-                SwitchToPrimary();
-            }
-            catch (Exception ex)
-            {
-                PreStartup.HandleException(ex);
-            }
+            await connectionManager.DisconnectAsync();
+            LogoutEvent?.Invoke(this, null);
+            SwitchToPrimary();
         }
 
         private void ConnectionManager_Connected(object sender, EventArgs e)

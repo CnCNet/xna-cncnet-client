@@ -104,28 +104,27 @@ namespace DTAClient.DXGUI.Multiplayer
                 WindowManager.RenderResolutionY - 64);
 
             localGame = ClientConfiguration.Instance.LocalGame;
-            localGameIndex = gameCollection.GameList.FindIndex(
-                g => g.InternalName.ToUpper() == localGame.ToUpper());
+            localGameIndex = gameCollection.GameList.FindIndex(g => g.InternalName.Equals(localGame, StringComparison.InvariantCultureIgnoreCase));
 
             btnNewGame = new XNAClientButton(WindowManager);
             btnNewGame.Name = "btnNewGame";
             btnNewGame.ClientRectangle = new Rectangle(12, Height - 35, UIDesignConstants.BUTTON_WIDTH_133, UIDesignConstants.BUTTON_HEIGHT);
             btnNewGame.Text = "Create Game".L10N("UI:Main:CreateGame");
-            btnNewGame.LeftClick += (_, _) => BtnNewGame_LeftClickAsync();
+            btnNewGame.LeftClick += (_, _) => BtnNewGame_LeftClickAsync().HandleTask();
 
             btnJoinGame = new XNAClientButton(WindowManager);
             btnJoinGame.Name = "btnJoinGame";
             btnJoinGame.ClientRectangle = new Rectangle(btnNewGame.Right + 12,
                 btnNewGame.Y, UIDesignConstants.BUTTON_WIDTH_133, UIDesignConstants.BUTTON_HEIGHT);
             btnJoinGame.Text = "Join Game".L10N("UI:Main:JoinGame");
-            btnJoinGame.LeftClick += (_, _) => BtnJoinGame_LeftClickAsync();
+            btnJoinGame.LeftClick += (_, _) => JoinGameAsync().HandleTask();
 
             btnMainMenu = new XNAClientButton(WindowManager);
             btnMainMenu.Name = "btnMainMenu";
             btnMainMenu.ClientRectangle = new Rectangle(Width - 145,
                 btnNewGame.Y, UIDesignConstants.BUTTON_WIDTH_133, UIDesignConstants.BUTTON_HEIGHT);
             btnMainMenu.Text = "Main Menu".L10N("UI:Main:MainMenu");
-            btnMainMenu.LeftClick += (_, _) => BtnMainMenu_LeftClickAsync();
+            btnMainMenu.LeftClick += (_, _) => BtnMainMenu_LeftClickAsync().HandleTask();
 
             lbGameList = new GameListBox(WindowManager, localGame, null);
             lbGameList.Name = "lbGameList";
@@ -135,7 +134,7 @@ namespace DTAClient.DXGUI.Multiplayer
             lbGameList.GameLifetime = 15.0; // Smaller lifetime in LAN
             lbGameList.PanelBackgroundDrawMode = PanelBackgroundImageDrawMode.STRETCHED;
             lbGameList.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 128), 1, 1);
-            lbGameList.DoubleLeftClick += (_, _) => LbGameList_DoubleLeftClickAsync();
+            lbGameList.DoubleLeftClick += (_, _) => JoinGameAsync().HandleTask();
             lbGameList.AllowMultiLineItems = false;
 
             lbPlayerList = new XNAListBox(WindowManager);
@@ -164,7 +163,7 @@ namespace DTAClient.DXGUI.Multiplayer
                 btnNewGame.Height);
             tbChatInput.Suggestion = "Type here to chat...".L10N("UI:Main:ChatHere");
             tbChatInput.MaximumTextLength = 200;
-            tbChatInput.EnterPressed += (_, _) => TbChatInput_EnterPressedAsync(cancellationTokenSource?.Token ?? default);
+            tbChatInput.EnterPressed += (_, _) => TbChatInput_EnterPressedAsync(cancellationTokenSource?.Token ?? default).HandleTask();
 
             lblColor = new XNALabel(WindowManager);
             lblColor.Name = "lblColor";
@@ -218,8 +217,8 @@ namespace DTAClient.DXGUI.Multiplayer
             gameCreationPanel.AddChild(gameCreationWindow);
             gameCreationWindow.Disable();
 
-            gameCreationWindow.NewGame += (_, _) => GameCreationWindow_NewGameAsync();
-            gameCreationWindow.LoadGame += (_, e) => GameCreationWindow_LoadGameAsync(e);
+            gameCreationWindow.NewGame += (_, _) => GameCreationWindow_NewGameAsync().HandleTask();
+            gameCreationWindow.LoadGame += (_, e) => GameCreationWindow_LoadGameAsync(e).HandleTask();
 
             var assembly = Assembly.GetAssembly(typeof(GameCollection));
             using Stream unknownIconStream = assembly.GetManifestResourceStream("ClientCore.Resources.unknownicon.png");
@@ -251,74 +250,41 @@ namespace DTAClient.DXGUI.Multiplayer
             SetChatColor();
             ddColor.SelectedIndexChanged += DdColor_SelectedIndexChanged;
 
-            lanGameLobby.GameLeft += LanGameLobby_GameLeft;
-            lanGameLobby.GameBroadcast += (_, e) => LanGameLobby_GameBroadcastAsync(e, cancellationTokenSource?.Token ?? default);
+            lanGameLobby.GameLeft += (_, _) => Enable();
+            lanGameLobby.GameBroadcast += (_, e) => SendMessageAsync(e.Message, cancellationTokenSource?.Token ?? default).HandleTask();
 
-            lanGameLoadingLobby.GameBroadcast += (_, e) => LanGameLoadingLobby_GameBroadcastAsync(e, cancellationTokenSource?.Token ?? default);
-            lanGameLoadingLobby.GameLeft += LanGameLoadingLobby_GameLeft;
+            lanGameLoadingLobby.GameBroadcast += (_, e) => SendMessageAsync(e.Message, cancellationTokenSource?.Token ?? default).HandleTask();
+            lanGameLoadingLobby.GameLeft += (_, _) => Enable();
 
-            WindowManager.GameClosing += (_, _) => WindowManager_GameClosingAsync(cancellationTokenSource?.Token ?? default);
+            WindowManager.GameClosing += (_, _) => WindowManager_GameClosingAsync(cancellationTokenSource?.Token ?? default).HandleTask();
         }
-
-        private void LanGameLoadingLobby_GameLeft(object sender, EventArgs e)
-            => Enable();
 
         private async Task WindowManager_GameClosingAsync(CancellationToken cancellationToken)
         {
-            try
-            {
-                if (socket == null)
-                    return;
+            if (socket == null)
+                return;
 
-                if (socket.IsBound)
-                {
-                    await SendMessageAsync("QUIT", cancellationToken);
-                    cancellationTokenSource.Cancel();
-                    socket.Close();
-                }
-            }
-            catch (Exception ex)
+            if (socket.IsBound)
             {
-                PreStartup.HandleException(ex);
+                await SendMessageAsync("QUIT", cancellationToken);
+                cancellationTokenSource.Cancel();
+                socket.Close();
             }
         }
 
-        private Task LanGameLobby_GameBroadcastAsync(GameBroadcastEventArgs e, CancellationToken cancellationToken)
-            => SendMessageAsync(e.Message, cancellationToken);
-
-        private void LanGameLobby_GameLeft(object sender, EventArgs e)
-            => Enable();
-
-        private Task LanGameLoadingLobby_GameBroadcastAsync(GameBroadcastEventArgs e, CancellationToken cancellationToken)
-            => SendMessageAsync(e.Message, cancellationToken);
-
         private async Task GameCreationWindow_LoadGameAsync(GameLoadEventArgs e)
         {
-            try
-            {
-                await lanGameLoadingLobby.SetUpAsync(true, null, e.LoadedGameID);
+            await lanGameLoadingLobby.SetUpAsync(true, null, e.LoadedGameID);
 
-                lanGameLoadingLobby.Enable();
-            }
-            catch (Exception ex)
-            {
-                PreStartup.HandleException(ex);
-            }
+            lanGameLoadingLobby.Enable();
         }
 
         private async Task GameCreationWindow_NewGameAsync()
         {
-            try
-            {
-                await lanGameLobby.SetUpAsync(true,
-                    new IPEndPoint(IPAddress.Loopback, ProgramConstants.LAN_GAME_LOBBY_PORT), null);
+            await lanGameLobby.SetUpAsync(true,
+                new IPEndPoint(IPAddress.Loopback, ProgramConstants.LAN_GAME_LOBBY_PORT), null);
 
-                lanGameLobby.Enable();
-            }
-            catch (Exception ex)
-            {
-                PreStartup.HandleException(ex);
-            }
+            lanGameLobby.Enable();
         }
 
         private void SetChatColor()
@@ -396,10 +362,6 @@ namespace DTAClient.DXGUI.Multiplayer
             catch (OperationCanceledException)
             {
             }
-            catch (Exception ex)
-            {
-                PreStartup.HandleException(ex);
-            }
         }
 
         private async Task ListenAsync(CancellationToken cancellationToken)
@@ -440,7 +402,7 @@ namespace DTAClient.DXGUI.Multiplayer
 
             string command = commandAndParams[0];
 
-            string[] parameters = data.Substring(command.Length + 1).Split(
+            string[] parameters = data[(command.Length + 1)..].Split(
                 new[] { ProgramConstants.LAN_DATA_SEPARATOR },
                 StringSplitOptions.RemoveEmptyEntries);
 
@@ -521,181 +483,143 @@ namespace DTAClient.DXGUI.Multiplayer
 
         private async Task SendAliveAsync(CancellationToken cancellationToken)
         {
-            try
-            {
-                StringBuilder sb = new StringBuilder("ALIVE ");
-                sb.Append(localGameIndex);
-                sb.Append(ProgramConstants.LAN_DATA_SEPARATOR);
-                sb.Append(ProgramConstants.PLAYERNAME);
-                await SendMessageAsync(sb.ToString(), cancellationToken);
-                timeSinceAliveMessage = TimeSpan.Zero;
-            }
-            catch (Exception ex)
-            {
-                PreStartup.HandleException(ex);
-            }
+            StringBuilder sb = new StringBuilder("ALIVE ");
+            sb.Append(localGameIndex);
+            sb.Append(ProgramConstants.LAN_DATA_SEPARATOR);
+            sb.Append(ProgramConstants.PLAYERNAME);
+            await SendMessageAsync(sb.ToString(), cancellationToken);
+            timeSinceAliveMessage = TimeSpan.Zero;
         }
 
         private async Task TbChatInput_EnterPressedAsync(CancellationToken cancellationToken)
         {
-            try
-            {
-                if (string.IsNullOrEmpty(tbChatInput.Text))
-                    return;
+            if (string.IsNullOrEmpty(tbChatInput.Text))
+                return;
 
-                string chatMessage = tbChatInput.Text.Replace((char)01, '?');
+            string chatMessage = tbChatInput.Text.Replace((char)01, '?');
 
-                StringBuilder sb = new StringBuilder("CHAT ");
-                sb.Append(ddColor.SelectedIndex);
-                sb.Append(ProgramConstants.LAN_DATA_SEPARATOR);
-                sb.Append(chatMessage);
+            StringBuilder sb = new StringBuilder("CHAT ");
+            sb.Append(ddColor.SelectedIndex);
+            sb.Append(ProgramConstants.LAN_DATA_SEPARATOR);
+            sb.Append(chatMessage);
 
-                await SendMessageAsync(sb.ToString(), cancellationToken);
+            await SendMessageAsync(sb.ToString(), cancellationToken);
 
-                tbChatInput.Text = string.Empty;
-            }
-            catch (Exception ex)
-            {
-                PreStartup.HandleException(ex);
-            }
+            tbChatInput.Text = string.Empty;
         }
 
-        private async Task LbGameList_DoubleLeftClickAsync()
+        private async Task JoinGameAsync()
         {
+            if (lbGameList.SelectedIndex < 0 || lbGameList.SelectedIndex >= lbGameList.Items.Count)
+                return;
+
+            HostedLANGame hg = (HostedLANGame)lbGameList.Items[lbGameList.SelectedIndex].Tag;
+
+            if (hg.Game.InternalName.ToUpper() != localGame.ToUpper())
+            {
+                lbChatMessages.AddMessage(
+                    string.Format("The selected game is for {0}!".L10N("UI:Main:GameIsOfPurpose"), gameCollection.GetGameNameFromInternalName(hg.Game.InternalName)));
+                return;
+            }
+
+            if (hg.Locked)
+            {
+                lbChatMessages.AddMessage("The selected game is locked!".L10N("UI:Main:GameLocked"));
+                return;
+            }
+
+            if (hg.IsLoadedGame)
+            {
+                if (!hg.Players.Contains(ProgramConstants.PLAYERNAME))
+                {
+                    lbChatMessages.AddMessage("You do not exist in the saved game!".L10N("UI:Main:NotInSavedGame"));
+                    return;
+                }
+            }
+            else
+            {
+                if (hg.Players.Contains(ProgramConstants.PLAYERNAME))
+                {
+                    lbChatMessages.AddMessage("Your name is already taken in the game.".L10N("UI:Main:NameOccupied"));
+                    return;
+                }
+            }
+
+            if (hg.GameVersion != ProgramConstants.GAME_VERSION)
+            {
+                // TODO Show warning
+            }
+
+            lbChatMessages.AddMessage(string.Format("Attempting to join game {0} ...".L10N("UI:Main:AttemptJoin"), hg.RoomName));
+
             try
             {
-                if (lbGameList.SelectedIndex < 0 || lbGameList.SelectedIndex >= lbGameList.Items.Count)
-                    return;
+                var client = new Socket(SocketType.Stream, ProtocolType.Tcp);
+                await client.ConnectAsync(new IPEndPoint(hg.EndPoint.Address, ProgramConstants.LAN_GAME_LOBBY_PORT), CancellationToken.None);
 
-                HostedLANGame hg = (HostedLANGame)lbGameList.Items[lbGameList.SelectedIndex].Tag;
-
-                if (hg.Game.InternalName.ToUpper() != localGame.ToUpper())
-                {
-                    lbChatMessages.AddMessage(
-                        string.Format("The selected game is for {0}!".L10N("UI:Main:GameIsOfPurpose"), gameCollection.GetGameNameFromInternalName(hg.Game.InternalName)));
-                    return;
-                }
-
-                if (hg.Locked)
-                {
-                    lbChatMessages.AddMessage("The selected game is locked!".L10N("UI:Main:GameLocked"));
-                    return;
-                }
+                const int charSize = sizeof(char);
 
                 if (hg.IsLoadedGame)
                 {
-                    if (!hg.Players.Contains(ProgramConstants.PLAYERNAME))
-                    {
-                        lbChatMessages.AddMessage("You do not exist in the saved game!".L10N("UI:Main:NotInSavedGame"));
-                        return;
-                    }
+                    var spawnSGIni = new IniFile(SafePath.CombineFilePath(ProgramConstants.GamePath, ProgramConstants.SAVED_GAME_SPAWN_INI));
+                    int loadedGameId = spawnSGIni.GetIntValue("Settings", "GameID", -1);
+
+                    await lanGameLoadingLobby.SetUpAsync(false, client, loadedGameId);
+                    lanGameLoadingLobby.Enable();
+
+                    string message = "JOIN" + ProgramConstants.LAN_DATA_SEPARATOR +
+                        ProgramConstants.PLAYERNAME + ProgramConstants.LAN_DATA_SEPARATOR +
+                        loadedGameId + ProgramConstants.LAN_MESSAGE_SEPARATOR;
+                    int bufferSize = message.Length * charSize;
+                    using IMemoryOwner<byte> memoryOwner = MemoryPool<byte>.Shared.Rent(bufferSize);
+                    Memory<byte> buffer = memoryOwner.Memory[..bufferSize];
+                    int bytes = encoding.GetBytes(message.AsSpan(), buffer.Span);
+                    buffer = buffer[..bytes];
+
+                    await client.SendAsync(buffer, SocketFlags.None, CancellationToken.None);
+                    await lanGameLoadingLobby.PostJoinAsync();
                 }
                 else
                 {
-                    if (hg.Players.Contains(ProgramConstants.PLAYERNAME))
-                    {
-                        lbChatMessages.AddMessage("Your name is already taken in the game.".L10N("UI:Main:NameOccupied"));
-                        return;
-                    }
-                }
+                    await lanGameLobby.SetUpAsync(false, hg.EndPoint, client);
+                    lanGameLobby.Enable();
 
-                if (hg.GameVersion != ProgramConstants.GAME_VERSION)
-                {
-                    // TODO Show warning
-                }
+                    string message = "JOIN" + ProgramConstants.LAN_DATA_SEPARATOR +
+                        ProgramConstants.PLAYERNAME + ProgramConstants.LAN_MESSAGE_SEPARATOR;
+                    int bufferSize = message.Length * charSize;
+                    using IMemoryOwner<byte> memoryOwner = MemoryPool<byte>.Shared.Rent(bufferSize);
+                    Memory<byte> buffer = memoryOwner.Memory[..bufferSize];
+                    int bytes = encoding.GetBytes(message.AsSpan(), buffer.Span);
+                    buffer = buffer[..bytes];
 
-                lbChatMessages.AddMessage(string.Format("Attempting to join game {0} ...".L10N("UI:Main:AttemptJoin"), hg.RoomName));
-
-                try
-                {
-                    var client = new Socket(SocketType.Stream, ProtocolType.Tcp);
-                    await client.ConnectAsync(new IPEndPoint(hg.EndPoint.Address, ProgramConstants.LAN_GAME_LOBBY_PORT), CancellationToken.None);
-
-                    const int charSize = sizeof(char);
-
-                    if (hg.IsLoadedGame)
-                    {
-                        var spawnSGIni = new IniFile(SafePath.CombineFilePath(ProgramConstants.GamePath, ProgramConstants.SAVED_GAME_SPAWN_INI));
-                        int loadedGameId = spawnSGIni.GetIntValue("Settings", "GameID", -1);
-
-                        await lanGameLoadingLobby.SetUpAsync(false, client, loadedGameId);
-                        lanGameLoadingLobby.Enable();
-
-                        string message = "JOIN" + ProgramConstants.LAN_DATA_SEPARATOR +
-                            ProgramConstants.PLAYERNAME + ProgramConstants.LAN_DATA_SEPARATOR +
-                            loadedGameId + ProgramConstants.LAN_MESSAGE_SEPARATOR;
-                        int bufferSize = message.Length * charSize;
-                        using IMemoryOwner<byte> memoryOwner = MemoryPool<byte>.Shared.Rent(bufferSize);
-                        Memory<byte> buffer = memoryOwner.Memory[..bufferSize];
-                        int bytes = encoding.GetBytes(message.AsSpan(), buffer.Span);
-                        buffer = buffer[..bytes];
-
-                        await client.SendAsync(buffer, SocketFlags.None, CancellationToken.None);
-                        await lanGameLoadingLobby.PostJoinAsync();
-                    }
-                    else
-                    {
-                        await lanGameLobby.SetUpAsync(false, hg.EndPoint, client);
-                        lanGameLobby.Enable();
-
-                        string message = "JOIN" + ProgramConstants.LAN_DATA_SEPARATOR +
-                            ProgramConstants.PLAYERNAME + ProgramConstants.LAN_MESSAGE_SEPARATOR;
-                        int bufferSize = message.Length * charSize;
-                        using IMemoryOwner<byte> memoryOwner = MemoryPool<byte>.Shared.Rent(bufferSize);
-                        Memory<byte> buffer = memoryOwner.Memory[..bufferSize];
-                        int bytes = encoding.GetBytes(message.AsSpan(), buffer.Span);
-                        buffer = buffer[..bytes];
-
-                        await client.SendAsync(buffer, SocketFlags.None, CancellationToken.None);
-                        await lanGameLobby.PostJoinAsync();
-                    }
-                }
-                catch (Exception ex)
-                {
-                    PreStartup.LogException(ex, "Connecting to the game failed!");
-                    lbChatMessages.AddMessage(null,
-                        "Connecting to the game failed! Message:".L10N("UI:Main:ConnectGameFailed") + " " + ex.Message, Color.White);
+                    await client.SendAsync(buffer, SocketFlags.None, CancellationToken.None);
+                    await lanGameLobby.PostJoinAsync();
                 }
             }
             catch (Exception ex)
             {
-                PreStartup.HandleException(ex);
+                PreStartup.LogException(ex, "Connecting to the game failed!");
+                lbChatMessages.AddMessage(null,
+                    "Connecting to the game failed! Message:".L10N("UI:Main:ConnectGameFailed") + " " + ex.Message, Color.White);
             }
         }
 
         private async Task BtnMainMenu_LeftClickAsync()
         {
-            try
-            {
-                Visible = false;
-                Enabled = false;
-                await SendMessageAsync("QUIT", CancellationToken.None);
-                cancellationTokenSource.Cancel();
-                socket.Close();
-                Exited?.Invoke(this, EventArgs.Empty);
-            }
-            catch (Exception ex)
-            {
-                PreStartup.HandleException(ex);
-            }
+            Visible = false;
+            Enabled = false;
+            await SendMessageAsync("QUIT", CancellationToken.None);
+            cancellationTokenSource.Cancel();
+            socket.Close();
+            Exited?.Invoke(this, EventArgs.Empty);
         }
-
-        private Task BtnJoinGame_LeftClickAsync()
-            => LbGameList_DoubleLeftClickAsync();
 
         private async Task BtnNewGame_LeftClickAsync()
         {
-            try
-            {
-                if (!ClientConfiguration.Instance.DisableMultiplayerGameLoading)
-                    gameCreationWindow.Open();
-                else
-                    await GameCreationWindow_NewGameAsync();
-            }
-            catch (Exception ex)
-            {
-                PreStartup.HandleException(ex);
-            }
+            if (!ClientConfiguration.Instance.DisableMultiplayerGameLoading)
+                gameCreationWindow.Open();
+            else
+                await GameCreationWindow_NewGameAsync();
         }
 
         public override void Update(GameTime gameTime)
@@ -714,7 +638,7 @@ namespace DTAClient.DXGUI.Multiplayer
 
             timeSinceAliveMessage += gameTime.ElapsedGameTime;
             if (timeSinceAliveMessage > TimeSpan.FromSeconds(ALIVE_MESSAGE_INTERVAL))
-                Task.Run(() => SendAliveAsync(cancellationTokenSource?.Token ?? default)).Wait();
+                Task.Run(() => SendAliveAsync(cancellationTokenSource?.Token ?? default).HandleTaskAsync()).Wait();
 
             base.Update(gameTime);
         }

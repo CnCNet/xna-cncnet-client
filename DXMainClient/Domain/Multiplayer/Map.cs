@@ -525,7 +525,7 @@ namespace DTAClient.Domain.Multiplayer
                 for (int i = 0; i < GameModes.Length; i++)
                 {
                     string gameMode = GameModes[i].Trim();
-                    GameModes[i] = gameMode.Substring(0, 1).ToUpperInvariant() + gameMode.Substring(1);
+                    GameModes[i] = gameMode[..1].ToUpperInvariant() + gameMode[1..];
                 }
 
                 MinPlayers = 0;
@@ -546,7 +546,7 @@ namespace DTAClient.Domain.Multiplayer
                 HumanPlayersOnly = basicSection.GetBooleanValue("HumanPlayersOnly", false);
                 ForceRandomStartLocations = basicSection.GetBooleanValue("ForceRandomStartLocations", false);
                 ForceNoTeams = basicSection.GetBooleanValue("ForceNoTeams", false);
-                PreviewPath = Path.ChangeExtension(customMapFilePath.Substring(ProgramConstants.GamePath.Length), ".png");
+                PreviewPath = Path.ChangeExtension(customMapFilePath[ProgramConstants.GamePath.Length..], ".png");
                 MultiplayerOnly = basicSection.GetBooleanValue("ClientMultiplayerOnly", false);
 
                 string bases = basicSection.GetStringValue("Bases", string.Empty);
@@ -846,8 +846,8 @@ namespace DTAClient.Domain.Multiplayer
 
             int xCoordIndex = parts[0].Length - 3;
 
-            int isoTileY = Convert.ToInt32(parts[0].Substring(0, xCoordIndex), CultureInfo.InvariantCulture);
-            int isoTileX = Convert.ToInt32(parts[0].Substring(xCoordIndex), CultureInfo.InvariantCulture);
+            int isoTileY = Convert.ToInt32(parts[0][..xCoordIndex], CultureInfo.InvariantCulture);
+            int isoTileX = Convert.ToInt32(parts[0][xCoordIndex..], CultureInfo.InvariantCulture);
 
             int level = 0;
 

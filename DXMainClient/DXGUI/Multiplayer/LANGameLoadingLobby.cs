@@ -20,7 +20,7 @@ using System.Threading.Tasks;
 
 namespace DTAClient.DXGUI.Multiplayer
 {
-    class LANGameLoadingLobby : GameLoadingLobbyBase
+    internal sealed class LANGameLoadingLobby : GameLoadingLobbyBase
     {
         private const double DROPOUT_TIMEOUT = 20.0;
         private const double GAME_BROADCAST_INTERVAL = 10.0;
@@ -37,8 +37,8 @@ namespace DTAClient.DXGUI.Multiplayer
             WindowManager windowManager,
             LANColor[] chatColors,
             MapLoader mapLoader,
-            DiscordHandler discordHandler
-            ) : base(windowManager, discordHandler)
+            DiscordHandler discordHandler)
+            : base(windowManager, discordHandler)
         {
             encoding = ProgramConstants.LAN_ENCODING;
             this.chatColors = chatColors;
@@ -48,9 +48,9 @@ namespace DTAClient.DXGUI.Multiplayer
 
             hostCommandHandlers = new LANServerCommandHandler[]
             {
-                new ServerStringCommandHandler(CHAT_COMMAND, (sender, data) => Server_HandleChatMessageAsync(sender, data)),
+                new ServerStringCommandHandler(CHAT_COMMAND, (sender, data) => Server_HandleChatMessageAsync(sender, data).HandleTask()),
                 new ServerStringCommandHandler(FILE_HASH_COMMAND, Server_HandleFileHashMessage),
-                new ServerNoParamCommandHandler(READY_STATUS_COMMAND, sender => Server_HandleReadyRequestAsync(sender))
+                new ServerNoParamCommandHandler(READY_STATUS_COMMAND, sender => Server_HandleReadyRequestAsync(sender).HandleTask())
             };
 
             playerCommandHandlers = new LANClientCommandHandler[]
@@ -60,20 +60,13 @@ namespace DTAClient.DXGUI.Multiplayer
                 new ClientNoParamCommandHandler(GAME_LAUNCH_COMMAND, Client_HandleStartCommand)
             };
 
-            WindowManager.GameClosing += (_, _) => WindowManager_GameClosingAsync();
+            WindowManager.GameClosing += (_, _) => WindowManager_GameClosingAsync().HandleTask();
         }
 
         private async Task WindowManager_GameClosingAsync()
         {
-            try
-            {
-                if (client is { Connected: true })
-                    await ClearAsync();
-            }
-            catch (Exception ex)
-            {
-                PreStartup.HandleException(ex);
-            }
+            if (client is { Connected: true })
+                await ClearAsync();
         }
 
         public event EventHandler<GameBroadcastEventArgs> GameBroadcast;
@@ -120,7 +113,7 @@ namespace DTAClient.DXGUI.Multiplayer
 
             if (isHost)
             {
-                ListenForClientsAsync(cancellationTokenSource.Token);
+                ListenForClientsAsync(cancellationTokenSource.Token).HandleTask();
 
                 this.client = new Socket(SocketType.Stream, ProtocolType.Tcp);
                 await this.client.ConnectAsync(IPAddress.Loopback, ProgramConstants.LAN_GAME_LOBBY_PORT);
@@ -169,163 +162,135 @@ namespace DTAClient.DXGUI.Multiplayer
 
         private async Task ListenForClientsAsync(CancellationToken cancellationToken)
         {
-            try
-            {
-                listener = new Socket(SocketType.Stream, ProtocolType.Tcp);
-                listener.Bind(new IPEndPoint(IPAddress.Any, ProgramConstants.LAN_GAME_LOBBY_PORT));
-                listener.Listen();
+            listener = new Socket(SocketType.Stream, ProtocolType.Tcp);
+            listener.Bind(new IPEndPoint(IPAddress.Any, ProgramConstants.LAN_GAME_LOBBY_PORT));
+            listener.Listen();
 
-                while (!cancellationToken.IsCancellationRequested)
+            while (!cancellationToken.IsCancellationRequested)
+            {
+                Socket newPlayerSocket;
+
+                try
                 {
-                    Socket newPlayerSocket;
-
-                    try
-                    {
-                        newPlayerSocket = await listener.AcceptAsync(cancellationToken);
-                    }
-                    catch (OperationCanceledException)
-                    {
-                        break;
-                    }
-                    catch (Exception ex)
-                    {
-                        PreStartup.LogException(ex, "Listener error.");
-                        break;
-                    }
-
-                    Logger.Log("New client connected from " + ((IPEndPoint)newPlayerSocket.RemoteEndPoint).Address);
-
-                    LANPlayerInfo lpInfo = new LANPlayerInfo(encoding);
-                    lpInfo.SetClient(newPlayerSocket);
-
-                    HandleClientConnectionAsync(lpInfo, cancellationToken);
+                    newPlayerSocket = await listener.AcceptAsync(cancellationToken);
                 }
-            }
-            catch (Exception ex)
-            {
-                PreStartup.HandleException(ex);
+                catch (OperationCanceledException)
+                {
+                    break;
+                }
+                catch (Exception ex)
+                {
+                    PreStartup.LogException(ex, "Listener error.");
+                    break;
+                }
+
+                Logger.Log("New client connected from " + ((IPEndPoint)newPlayerSocket.RemoteEndPoint).Address);
+
+                LANPlayerInfo lpInfo = new LANPlayerInfo(encoding);
+                lpInfo.SetClient(newPlayerSocket);
+
+                HandleClientConnectionAsync(lpInfo, cancellationToken).HandleTask();
             }
         }
 
         private async Task HandleClientConnectionAsync(LANPlayerInfo lpInfo, CancellationToken cancellationToken)
         {
-            try
+            using IMemoryOwner<byte> memoryOwner = MemoryPool<byte>.Shared.Rent(1024);
+
+            while (!cancellationToken.IsCancellationRequested)
             {
-                using IMemoryOwner<byte> memoryOwner = MemoryPool<byte>.Shared.Rent(1024);
+                int bytesRead;
+                Memory<byte> message;
 
-                while (!cancellationToken.IsCancellationRequested)
+                try
                 {
-                    int bytesRead;
-                    Memory<byte> message;
+                    message = memoryOwner.Memory[..1024];
+                    bytesRead = await client.ReceiveAsync(message, SocketFlags.None, cancellationToken);
+                }
+                catch (OperationCanceledException)
+                {
+                    break;
+                }
+                catch (Exception ex)
+                {
+                    PreStartup.LogException(ex, "Socket error with client " + lpInfo.IPAddress + "; removing.");
+                    break;
+                }
 
-                    try
-                    {
-                        message = memoryOwner.Memory[..1024];
-                        bytesRead = await client.ReceiveAsync(message, SocketFlags.None, cancellationToken);
-                    }
-                    catch (OperationCanceledException)
-                    {
-                        break;
-                    }
-                    catch (Exception ex)
-                    {
-                        PreStartup.LogException(ex, "Socket error with client " + lpInfo.IPAddress + "; removing.");
-                        break;
-                    }
-
-                    if (bytesRead == 0)
-                    {
-                        Logger.Log("Connect attempt from " + lpInfo.IPAddress + " failed! (0 bytes read)");
-
-                        break;
-                    }
-
-                    string msg = encoding.GetString(message.Span[..bytesRead]);
-                    string[] command = msg.Split(ProgramConstants.LAN_MESSAGE_SEPARATOR);
-                    string[] parts = command[0].Split(ProgramConstants.LAN_DATA_SEPARATOR);
-
-                    if (parts.Length != 3)
-                        break;
-
-                    string name = parts[1].Trim();
-                    int loadedGameId = Conversions.IntFromString(parts[2], -1);
-
-                    if (parts[0] == "JOIN" && !string.IsNullOrEmpty(name)
-                        && loadedGameId == this.loadedGameId)
-                    {
-                        lpInfo.Name = name;
-
-                        AddCallback(() => AddPlayerAsync(lpInfo, cancellationToken));
-                        return;
-                    }
+                if (bytesRead == 0)
+                {
+                    Logger.Log("Connect attempt from " + lpInfo.IPAddress + " failed! (0 bytes read)");
 
                     break;
                 }
 
-                if (lpInfo.TcpClient.Connected)
-                    lpInfo.TcpClient.Close();
+                string msg = encoding.GetString(message.Span[..bytesRead]);
+                string[] command = msg.Split(ProgramConstants.LAN_MESSAGE_SEPARATOR);
+                string[] parts = command[0].Split(ProgramConstants.LAN_DATA_SEPARATOR);
+
+                if (parts.Length != 3)
+                    break;
+
+                string name = parts[1].Trim();
+                int loadedGameId = Conversions.IntFromString(parts[2], -1);
+
+                if (parts[0] == "JOIN" && !string.IsNullOrEmpty(name)
+                    && loadedGameId == this.loadedGameId)
+                {
+                    lpInfo.Name = name;
+
+                    AddCallback(() => AddPlayerAsync(lpInfo, cancellationToken).HandleTask());
+                    return;
+                }
+
+                break;
             }
-            catch (Exception ex)
-            {
-                PreStartup.HandleException(ex);
-            }
+
+            if (lpInfo.TcpClient.Connected)
+                lpInfo.TcpClient.Close();
         }
 
         private async Task AddPlayerAsync(LANPlayerInfo lpInfo, CancellationToken cancellationToken)
         {
-            try
+            if (Players.Find(p => p.Name == lpInfo.Name) != null ||
+                Players.Count >= SGPlayers.Count ||
+                SGPlayers.Find(p => p.Name == lpInfo.Name) == null)
             {
-                if (Players.Find(p => p.Name == lpInfo.Name) != null ||
-                    Players.Count >= SGPlayers.Count ||
-                    SGPlayers.Find(p => p.Name == lpInfo.Name) == null)
-                {
-                    lpInfo.TcpClient.Close();
-                    return;
-                }
-
-                if (Players.Count == 0)
-                    lpInfo.Ready = true;
-
-                Players.Add(lpInfo);
-
-                lpInfo.MessageReceived += LpInfo_MessageReceived;
-                lpInfo.ConnectionLost += (sender, _) => LpInfo_ConnectionLostAsync(sender);
-
-                sndJoinSound.Play();
-
-                AddNotice(string.Format("{0} connected from {1}".L10N("UI:Main:PlayerFromIP"), lpInfo.Name, lpInfo.IPAddress));
-                lpInfo.StartReceiveLoopAsync(cancellationToken);
-
-                CopyPlayerDataToUI();
-                await BroadcastOptionsAsync();
-                UpdateDiscordPresence();
+                lpInfo.TcpClient.Close();
+                return;
             }
-            catch (Exception ex)
-            {
-                PreStartup.HandleException(ex);
-            }
+
+            if (Players.Count == 0)
+                lpInfo.Ready = true;
+
+            Players.Add(lpInfo);
+
+            lpInfo.MessageReceived += LpInfo_MessageReceived;
+            lpInfo.ConnectionLost += (sender, _) => LpInfo_ConnectionLostAsync(sender).HandleTask();
+
+            sndJoinSound.Play();
+
+            AddNotice(string.Format("{0} connected from {1}".L10N("UI:Main:PlayerFromIP"), lpInfo.Name, lpInfo.IPAddress));
+            lpInfo.StartReceiveLoopAsync(cancellationToken).HandleTask();
+
+            CopyPlayerDataToUI();
+            await BroadcastOptionsAsync();
+            UpdateDiscordPresence();
         }
 
         private async Task LpInfo_ConnectionLostAsync(object sender)
         {
-            try
-            {
-                var lpInfo = (LANPlayerInfo)sender;
-                CleanUpPlayer(lpInfo);
-                Players.Remove(lpInfo);
+            var lpInfo = (LANPlayerInfo)sender;
+            CleanUpPlayer(lpInfo);
+            Players.Remove(lpInfo);
 
-                AddNotice(string.Format("{0} has left the game.".L10N("UI:Main:PlayerLeftGame"), lpInfo.Name));
+            AddNotice(string.Format("{0} has left the game.".L10N("UI:Main:PlayerLeftGame"), lpInfo.Name));
 
-                sndLeaveSound.Play();
+            sndLeaveSound.Play();
 
-                CopyPlayerDataToUI();
-                await BroadcastOptionsAsync();
-                UpdateDiscordPresence();
-            }
-            catch (Exception ex)
-            {
-                PreStartup.HandleException(ex);
-            }
+            CopyPlayerDataToUI();
+            await BroadcastOptionsAsync();
+            UpdateDiscordPresence();
         }
 
         private void LpInfo_MessageReceived(object sender, NetworkMessageEventArgs e)
@@ -400,8 +365,8 @@ namespace DTAClient.DXGUI.Multiplayer
                             break;
                         }
 
-                        commands.Add(msg.Substring(0, index));
-                        msg = msg.Substring(index + 1);
+                        commands.Add(msg[..index]);
+                        msg = msg[(index + 1)..];
                     }
 
                     foreach (string cmd in commands)
@@ -433,17 +398,9 @@ namespace DTAClient.DXGUI.Multiplayer
 
         protected override async Task LeaveGameAsync()
         {
-            try
-            {
-                await ClearAsync();
-                Disable();
-
-                await base.LeaveGameAsync();
-            }
-            catch (Exception ex)
-            {
-                PreStartup.HandleException(ex);
-            }
+            await ClearAsync();
+            Disable();
+            await base.LeaveGameAsync();
         }
 
         private async Task ClearAsync()
@@ -494,17 +451,8 @@ namespace DTAClient.DXGUI.Multiplayer
         protected override Task HostStartGameAsync()
             => BroadcastMessageAsync(GAME_LAUNCH_COMMAND, cancellationTokenSource?.Token ?? default);
 
-        protected override async Task RequestReadyStatusAsync()
-        {
-            try
-            {
-                await SendMessageToHostAsync(READY_STATUS_COMMAND, cancellationTokenSource?.Token ?? default);
-            }
-            catch (Exception ex)
-            {
-                PreStartup.HandleException(ex);
-            }
-        }
+        protected override Task RequestReadyStatusAsync()
+            => SendMessageToHostAsync(READY_STATUS_COMMAND, cancellationTokenSource?.Token ?? default);
 
         protected override async Task SendChatMessageAsync(string message)
         {
@@ -518,26 +466,19 @@ namespace DTAClient.DXGUI.Multiplayer
 
         private async Task Server_HandleChatMessageAsync(LANPlayerInfo sender, string data)
         {
-            try
-            {
-                string[] parts = data.Split(ProgramConstants.LAN_DATA_SEPARATOR);
+            string[] parts = data.Split(ProgramConstants.LAN_DATA_SEPARATOR);
 
-                if (parts.Length < 2)
-                    return;
+            if (parts.Length < 2)
+                return;
 
-                int colorIndex = Conversions.IntFromString(parts[0], -1);
+            int colorIndex = Conversions.IntFromString(parts[0], -1);
 
-                if (colorIndex < 0 || colorIndex >= chatColors.Length)
-                    return;
+            if (colorIndex < 0 || colorIndex >= chatColors.Length)
+                return;
 
-                await BroadcastMessageAsync(CHAT_COMMAND + " " + sender +
-                    ProgramConstants.LAN_DATA_SEPARATOR + colorIndex +
-                    ProgramConstants.LAN_DATA_SEPARATOR + data, cancellationTokenSource?.Token ?? default);
-            }
-            catch (Exception ex)
-            {
-                PreStartup.HandleException(ex);
-            }
+            await BroadcastMessageAsync(CHAT_COMMAND + " " + sender +
+                ProgramConstants.LAN_DATA_SEPARATOR + colorIndex +
+                ProgramConstants.LAN_DATA_SEPARATOR + data, cancellationTokenSource?.Token ?? default);
         }
 
         private void Server_HandleFileHashMessage(LANPlayerInfo sender, string hash)
@@ -549,19 +490,12 @@ namespace DTAClient.DXGUI.Multiplayer
 
         private async Task Server_HandleReadyRequestAsync(LANPlayerInfo sender)
         {
-            try
-            {
-                if (!sender.Ready)
-                {
-                    sender.Ready = true;
-                    CopyPlayerDataToUI();
-                    await BroadcastOptionsAsync();
-                }
-            }
-            catch (Exception ex)
-            {
-                PreStartup.HandleException(ex);
-            }
+            if (sender.Ready)
+                return;
+
+            sender.Ready = true;
+            CopyPlayerDataToUI();
+            await BroadcastOptionsAsync();
         }
 
         #endregion
@@ -645,20 +579,13 @@ namespace DTAClient.DXGUI.Multiplayer
         /// <param name="message">The command to send.</param>
         private async Task BroadcastMessageAsync(string message, CancellationToken cancellationToken)
         {
-            try
-            {
-                if (!IsHost)
-                    return;
+            if (!IsHost)
+                return;
 
-                foreach (PlayerInfo pInfo in Players)
-                {
-                    var lpInfo = (LANPlayerInfo)pInfo;
-                    await lpInfo.SendMessageAsync(message, cancellationToken);
-                }
-            }
-            catch (Exception ex)
+            foreach (PlayerInfo pInfo in Players)
             {
-                PreStartup.HandleException(ex);
+                var lpInfo = (LANPlayerInfo)pInfo;
+                await lpInfo.SendMessageAsync(message, cancellationToken);
             }
         }
 
@@ -725,7 +652,7 @@ namespace DTAClient.DXGUI.Multiplayer
                 timeSinceLastReceivedCommand += gameTime.ElapsedGameTime;
 
                 if (timeSinceLastReceivedCommand > TimeSpan.FromSeconds(DROPOUT_TIMEOUT))
-                    Task.Run(LeaveGameAsync).Wait();
+                    Task.Run(() => LeaveGameAsync().HandleTaskAsync()).Wait();
             }
 
             base.Update(gameTime);
@@ -753,16 +680,8 @@ namespace DTAClient.DXGUI.Multiplayer
 
         protected override async Task HandleGameProcessExitedAsync()
         {
-            try
-            {
-                await base.HandleGameProcessExitedAsync();
-
-                await LeaveGameAsync();
-            }
-            catch (Exception ex)
-            {
-                PreStartup.HandleException(ex);
-            }
+            await base.HandleGameProcessExitedAsync();
+            await LeaveGameAsync();
         }
 
         protected override void UpdateDiscordPresence(bool resetTimer = false)

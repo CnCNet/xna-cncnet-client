@@ -31,7 +31,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
             if (tunnelConnection == null)
                 throw new InvalidOperationException("GameTunnelHandler: Call SetUp before calling ConnectToTunnel.");
 
-            tunnelConnection.ConnectAsync();
+            tunnelConnection.ConnectAsync().HandleTask();
         }
 
         public Tuple<int[], int> CreatePlayerConnections(List<uint> playerIds)
@@ -51,7 +51,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
 
             foreach (KeyValuePair<uint, TunneledPlayerConnection> playerConnection in playerConnections)
             {
-                playerConnection.Value.StartAsync(gamePort);
+                playerConnection.Value.StartAsync(gamePort).HandleTask();
             }
 
             return new Tuple<int[], int>(ports, gamePort);

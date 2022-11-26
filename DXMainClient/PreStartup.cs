@@ -216,7 +216,7 @@ namespace DTAClient
         /// Logs all details of an exception to the logfile, notifies the user, and exits the application.
         /// </summary>
         /// <param name="ex">The <see cref="Exception"/> to log.</param>
-        public static void HandleException(Exception ex)
+        internal static void HandleException(Exception ex)
         {
             LogExceptionRecursive(ex, "KABOOOOOOM!!! Info:");
 

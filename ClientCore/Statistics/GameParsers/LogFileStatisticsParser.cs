@@ -53,7 +53,7 @@ namespace ClientCore.Statistics.GameParsers
                     {
                         // Player found, game saw completion
                         sawCompletion = true;
-                        string playerName = line.Substring(0, line.Length - 7);
+                        string playerName = line[..^7];
                         currentPlayer = Statistics.GetEmptyPlayerByName(playerName);
 
                         if (isLoadedGame && currentPlayer == null)
@@ -77,7 +77,7 @@ namespace ClientCore.Statistics.GameParsers
                     {
                         // Player found, game saw completion
                         sawCompletion = true;
-                        string playerName = line.Substring(0, line.Length - 8);
+                        string playerName = line[..^8];
                         currentPlayer = Statistics.GetEmptyPlayerByName(playerName);
 
                         if (isLoadedGame && currentPlayer == null)
@@ -103,23 +103,23 @@ namespace ClientCore.Statistics.GameParsers
                     else if (line.Contains("Game loop finished. Average FPS"))
                     {
                         // Game loop finished. Average FPS = <integer>
-                        string fpsString = line.Substring(34);
+                        string fpsString = line[34..];
                         Statistics.AverageFPS = Int32.Parse(fpsString);
                     }
 
                     if (currentPlayer == null || line.Length < 1)
                         continue;
 
-                    line = line.Substring(1);
+                    line = line[1..];
 
                     if (line.StartsWith("Lost = "))
-                        currentPlayer.Losses = Int32.Parse(line.Substring(7));
+                        currentPlayer.Losses = Int32.Parse(line[7..]);
                     else if (line.StartsWith("Kills = "))
-                        currentPlayer.Kills = Int32.Parse(line.Substring(8));
+                        currentPlayer.Kills = Int32.Parse(line[8..]);
                     else if (line.StartsWith("Score = "))
-                        currentPlayer.Score = Int32.Parse(line.Substring(8));
+                        currentPlayer.Score = Int32.Parse(line[8..]);
                     else if (line.StartsWith(economyString + " = "))
-                        currentPlayer.Economy = Int32.Parse(line.Substring(economyString.Length + 2));
+                        currentPlayer.Economy = Int32.Parse(line[(economyString.Length + 2)..]);
                 }
 
                 // Check empty players for take-over by AIs

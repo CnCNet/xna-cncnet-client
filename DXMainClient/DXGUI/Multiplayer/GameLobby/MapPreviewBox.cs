@@ -36,9 +36,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
     {
         private const int MAX_STARTING_LOCATIONS = 8;
 
-        public delegate void LocalStartingLocationSelectedEventHandler(object sender,
-            LocalStartingLocationEventArgs e);
-
         public event EventHandler<LocalStartingLocationEventArgs> LocalStartingLocationSelected;
 
         public event EventHandler StartingLocationApplied;
@@ -48,7 +45,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             PanelBackgroundDrawMode = PanelBackgroundImageDrawMode.STRETCHED;
             FontIndex = 1;
         }
-
 
         public void SetFields(List<PlayerInfo> players, List<PlayerInfo> aiPlayers, List<MultiplayerColor> mpColors, string[] sides, IniFile gameOptionsIni)
         {

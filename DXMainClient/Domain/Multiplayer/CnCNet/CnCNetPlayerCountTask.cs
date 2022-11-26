@@ -71,7 +71,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                 {
                     if (value.Contains(cncnetLiveStatusIdentifier))
                     {
-                        numGames = Convert.ToInt32(value.Substring(cncnetLiveStatusIdentifier.Length + 1));
+                        numGames = Convert.ToInt32(value[(cncnetLiveStatusIdentifier.Length + 1)..]);
                         return numGames;
                     }
                 }
