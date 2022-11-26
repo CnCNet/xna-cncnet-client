@@ -99,11 +99,13 @@ namespace ClientCore
         /// <summary>
         /// Gets or sets the action to perform to notify the user of an error.
         /// </summary>
-        public static Action<string, string> DisplayErrorAction { get; set; } = (title, error) =>
+        public static Action<string, string, bool> DisplayErrorAction { get; set; } = (title, error, exit) =>
         {
             Logger.Log(FormattableString.Invariant($"{(title is null ? null : title + Environment.NewLine + Environment.NewLine)}{error}"));
-
             ProcessLauncher.StartShellProcess(LogFileName);
+
+            if (exit)
+                Environment.Exit(1);
         };
     }
 }

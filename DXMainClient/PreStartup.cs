@@ -166,8 +166,7 @@ namespace DTAClient
                     + Environment.NewLine + Environment.NewLine +
                     "Message: " + ex.Message;
 
-                ProgramConstants.DisplayErrorAction(null, error);
-                Environment.Exit(1);
+                ProgramConstants.DisplayErrorAction(null, error, true);
             }
 
 #if WINFORMS
@@ -223,7 +222,7 @@ namespace DTAClient
                 MainClientConstants.GAME_NAME_SHORT,
                 MainClientConstants.SUPPORT_URL_SHORT);
 
-            ProgramConstants.DisplayErrorAction("KABOOOOOOOM".L10N("UI:Main:FatalErrorTitle"), error);
+            ProgramConstants.DisplayErrorAction("KABOOOOOOOM".L10N("UI:Main:FatalErrorTitle"), error, true);
         }
 
         [SupportedOSPlatform("windows")]
@@ -237,7 +236,7 @@ namespace DTAClient
                 "Would you like to restart the client with administrative rights?" + Environment.NewLine + Environment.NewLine +
                 "Please also make sure that your security software isn't blocking {1}.").L10N("UI:Main:AdminRequiredText"), MainClientConstants.GAME_NAME_LONG, MainClientConstants.GAME_NAME_SHORT);
 
-            ProgramConstants.DisplayErrorAction("Administrative privileges required".L10N("UI:Main:AdminRequiredTitle"), error);
+            ProgramConstants.DisplayErrorAction("Administrative privileges required".L10N("UI:Main:AdminRequiredTitle"), error, false);
 
             using var _ = Process.Start(new ProcessStartInfo
             {

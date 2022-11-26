@@ -126,9 +126,16 @@ namespace DTAClient.DXGUI
             WindowManager wm = new WindowManager(this, graphics);
             wm.Initialize(content, ProgramConstants.GetBaseResourcePath());
 
-            ProgramConstants.DisplayErrorAction = (title, error) =>
+            ProgramConstants.DisplayErrorAction = (title, error, exit) =>
             {
-                new XNAMessageBox(wm, title, error, XNAMessageBoxButtons.OK).Show();
+                new XNAMessageBox(wm, title, error, XNAMessageBoxButtons.OK)
+                {
+                    OKClickedAction = _ =>
+                    {
+                        if (exit)
+                            Environment.Exit(1);
+                    }
+                }.Show();
             };
 
             SetGraphicsMode(wm);
