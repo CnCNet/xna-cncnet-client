@@ -18,8 +18,6 @@ namespace DTAClient.DXGUI.Generic
     /// </summary>
     public class GameLoadingWindow : XNAWindow
     {
-        private const string SAVED_GAMES_DIRECTORY = "Saved Games";
-
         public GameLoadingWindow(WindowManager windowManager, DiscordHandler discordHandler) : base(windowManager)
         {
             this.discordHandler = discordHandler;
@@ -162,7 +160,7 @@ namespace DTAClient.DXGUI.Generic
             SavedGame sg = savedGames[lbSaveGameList.SelectedIndex];
 
             Logger.Log("Deleting saved game " + sg.FileName);
-            SafePath.DeleteFileIfExists(ProgramConstants.GamePath, SAVED_GAMES_DIRECTORY, sg.FileName);
+            SafePath.DeleteFileIfExists(ProgramConstants.GamePath, ProgramConstants.SAVED_GAMES_DIRECTORY, sg.FileName);
             ListSaves();
         }
 
@@ -183,7 +181,7 @@ namespace DTAClient.DXGUI.Generic
             lbSaveGameList.ClearItems();
             lbSaveGameList.SelectedIndex = -1;
 
-            DirectoryInfo savedGamesDirectoryInfo = SafePath.GetDirectory(ProgramConstants.GamePath, SAVED_GAMES_DIRECTORY);
+            DirectoryInfo savedGamesDirectoryInfo = SafePath.GetDirectory(ProgramConstants.GamePath, ProgramConstants.SAVED_GAMES_DIRECTORY);
 
             if (!savedGamesDirectoryInfo.Exists)
             {

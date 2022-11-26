@@ -79,7 +79,7 @@ namespace DTAClient
 
             if (ClientConfiguration.Instance.CreateSavedGamesDirectory)
             {
-                DirectoryInfo savedGamesFolder = SafePath.GetDirectory(ProgramConstants.GamePath, "Saved Games");
+                DirectoryInfo savedGamesFolder = SafePath.GetDirectory(ProgramConstants.GamePath, ProgramConstants.SAVED_GAMES_DIRECTORY);
 
                 if (!savedGamesFolder.Exists)
                 {

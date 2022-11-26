@@ -10,8 +10,6 @@ namespace ClientCore
     /// </summary>
     public static class SavedGameManager
     {
-        private const string SAVED_GAMES_DIRECTORY = "Saved Games";
-
         private static bool saveRenameInProgress = false;
 
         public static int GetSaveGameCount()
@@ -62,7 +60,7 @@ namespace ClientCore
 
         private static string GetSaveGameDirectoryPath()
         {
-            return SafePath.CombineDirectoryPath(ProgramConstants.GamePath, SAVED_GAMES_DIRECTORY);
+            return SafePath.CombineDirectoryPath(ProgramConstants.GamePath, ProgramConstants.SAVED_GAMES_DIRECTORY);
         }
 
         /// <summary>
@@ -78,8 +76,8 @@ namespace ClientCore
             try
             {
                 Logger.Log("Writing spawn.ini for saved game.");
-                SafePath.DeleteFileIfExists(ProgramConstants.GamePath, SAVED_GAMES_DIRECTORY, "spawnSG.ini");
-                File.Copy(SafePath.CombineFilePath(ProgramConstants.GamePath, ProgramConstants.SPAWNER_SETTINGS), SafePath.CombineFilePath(ProgramConstants.GamePath, SAVED_GAMES_DIRECTORY, "spawnSG.ini"));
+                SafePath.DeleteFileIfExists(ProgramConstants.GamePath, ProgramConstants.SAVED_GAME_SPAWN_INI);
+                File.Copy(SafePath.CombineFilePath(ProgramConstants.GamePath, ProgramConstants.SPAWNER_SETTINGS), SafePath.CombineFilePath(ProgramConstants.GamePath, ProgramConstants.SAVED_GAME_SPAWN_INI));
             }
             catch (Exception ex)
             {

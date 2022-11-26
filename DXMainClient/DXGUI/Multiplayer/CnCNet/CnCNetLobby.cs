@@ -864,7 +864,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 }
                 else
                 {
-                    IniFile spawnSGIni = new IniFile(SafePath.CombineFilePath(ProgramConstants.GamePath, "Saved Games", "spawnSG.ini"));
+                    IniFile spawnSGIni = new IniFile(SafePath.CombineFilePath(ProgramConstants.GamePath, ProgramConstants.SAVED_GAME_SPAWN_INI));
                     password = Utilities.CalculateSHA1ForString(
                         spawnSGIni.GetStringValue("Settings", "GameID", string.Empty))[..10];
                 }

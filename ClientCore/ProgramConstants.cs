@@ -42,7 +42,8 @@ namespace ClientCore
 
         public const string SPAWNMAP_INI = "spawnmap.ini";
         public const string SPAWNER_SETTINGS = "spawn.ini";
-        public const string SAVED_GAME_SPAWN_INI = "Saved Games/spawnSG.ini";
+        public const string SAVED_GAME_SPAWN_INI = SAVED_GAMES_DIRECTORY + "/spawnSG.ini";
+        public const string SAVED_GAMES_DIRECTORY = "Saved Games";
 
         /// <summary>
         /// The locale code that corresponds to the language the hardcoded client strings are in.
