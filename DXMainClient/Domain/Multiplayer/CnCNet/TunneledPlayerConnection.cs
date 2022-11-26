@@ -90,48 +90,41 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
 
         public async Task StartAsync(int gamePort)
         {
+            remoteEndPoint = new IPEndPoint(IPAddress.Loopback, gamePort);
+
+            using IMemoryOwner<byte> memoryOwner = MemoryPool<byte>.Shared.Rent(128);
+            Memory<byte> buffer = memoryOwner.Memory[..128];
+
+            socket.ReceiveTimeout = Timeout;
+
             try
             {
-                remoteEndPoint = new IPEndPoint(IPAddress.Loopback, gamePort);
-
-                using IMemoryOwner<byte> memoryOwner = MemoryPool<byte>.Shared.Rent(128);
-                Memory<byte> buffer = memoryOwner.Memory[..128];
-
-                socket.ReceiveTimeout = Timeout;
-
-                try
+                while (true)
                 {
-                    while (true)
-                    {
-                        if (Aborted)
-                            break;
+                    if (Aborted)
+                        break;
 
-                        SocketReceiveFromResult socketReceiveFromResult = await socket.ReceiveFromAsync(buffer, SocketFlags.None, remoteEndPoint);
-                        Memory<byte> data = buffer[..socketReceiveFromResult.ReceivedBytes];
+                    SocketReceiveFromResult socketReceiveFromResult = await socket.ReceiveFromAsync(buffer, SocketFlags.None, remoteEndPoint);
+                    Memory<byte> data = buffer[..socketReceiveFromResult.ReceivedBytes];
 
-                        await gameTunnelHandler.PlayerConnection_PacketReceivedAsync(this, data);
-                    }
-                }
-                catch (SocketException)
-                {
-                    // Timeout
-                }
-
-                await locker.WaitAsync();
-
-                try
-                {
-                    aborted = true;
-                    socket.Close();
-                }
-                finally
-                {
-                    locker.Release();
+                    await gameTunnelHandler.PlayerConnection_PacketReceivedAsync(this, data);
                 }
             }
-            catch (Exception ex)
+            catch (SocketException)
             {
-                PreStartup.HandleException(ex);
+                // Timeout
+            }
+
+            await locker.WaitAsync();
+
+            try
+            {
+                aborted = true;
+                socket.Close();
+            }
+            finally
+            {
+                locker.Release();
             }
         }
 

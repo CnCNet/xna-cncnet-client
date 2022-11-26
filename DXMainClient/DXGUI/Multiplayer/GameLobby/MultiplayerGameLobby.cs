@@ -27,8 +27,12 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         private const int MAX_DICE = 10;
         private const int MAX_DIE_SIDES = 100;
 
-        public MultiplayerGameLobby(WindowManager windowManager, string iniName,
-            TopBar topBar, MapLoader mapLoader, DiscordHandler discordHandler)
+        public MultiplayerGameLobby(
+            WindowManager windowManager,
+            string iniName,
+            TopBar topBar,
+            MapLoader mapLoader,
+            DiscordHandler discordHandler)
             : base(windowManager, iniName, mapLoader, true, discordHandler)
         {
             TopBar = topBar;
@@ -40,20 +44,20 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 new("SHOWMAPS", "Show map list (game host only)".L10N("Client:Main:ChatboxCommandShowMapsHelp"), true,
                     s => ShowMapList()),
                 new("FRAMESENDRATE", "Change order lag / FrameSendRate (default 7) (game host only)".L10N("Client:Main:ChatboxCommandFrameSendRateHelp"), true,
-                    s => SetFrameSendRateAsync(s)),
+                    s => SetFrameSendRateAsync(s).HandleTask()),
                 new("MAXAHEAD", "Change MaxAhead (default 0) (game host only)".L10N("Client:Main:ChatboxCommandMaxAheadHelp"), true,
-                    s => SetMaxAheadAsync(s)),
+                    s => SetMaxAheadAsync(s).HandleTask()),
                 new("PROTOCOLVERSION", "Change ProtocolVersion (default 2) (game host only)".L10N("Client:Main:ChatboxCommandProtocolVersionHelp"), true,
-                    s => SetProtocolVersionAsync(s)),
+                    s => SetProtocolVersionAsync(s).HandleTask()),
                 new("LOADMAP", "Load a custom map with given filename from /Maps/Custom/ folder.".L10N("Client:Main:ChatboxCommandLoadMapHelp"), true, LoadCustomMap),
                 new("RANDOMSTARTS", "Enables completely random starting locations (Tiberian Sun based games only).".L10N("Client:Main:ChatboxCommandRandomStartsHelp"), true,
-                    s => SetStartingLocationClearanceAsync(s)),
-                new("ROLL", "Roll dice, for example /roll 3d6".L10N("Client:Main:ChatboxCommandRollHelp"), false, dieType => RollDiceCommandAsync(dieType)),
+                    s => SetStartingLocationClearanceAsync(s).HandleTask()),
+                new("ROLL", "Roll dice, for example /roll 3d6".L10N("Client:Main:ChatboxCommandRollHelp"), false, dieType => RollDiceCommandAsync(dieType).HandleTask()),
                 new("SAVEOPTIONS", "Save game option preset so it can be loaded later".L10N("Client:Main:ChatboxCommandSaveOptionsHelp"), false, HandleGameOptionPresetSaveCommand),
-                new("LOADOPTIONS", "Load game option preset".L10N("Client:Main:ChatboxCommandLoadOptionsHelp"), true, presetName => HandleGameOptionPresetLoadCommandAsync(presetName))
+                new("LOADOPTIONS", "Load game option preset".L10N("Client:Main:ChatboxCommandLoadOptionsHelp"), true, presetName => HandleGameOptionPresetLoadCommandAsync(presetName).HandleTask())
             };
 
-            chkAutoReady_CheckedChangedFunc = (_, _) => ChkAutoReady_CheckedChangedAsync();
+            chkAutoReady_CheckedChangedFunc = (_, _) => ChkAutoReady_CheckedChangedAsync().HandleTask();
         }
 
         protected XNAPlayerSlotIndicator[] StatusIndicators;
@@ -162,17 +166,17 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             tbChatInput = FindChild<XNAChatTextBox>(nameof(tbChatInput));
             tbChatInput.MaximumTextLength = 150;
-            tbChatInput.EnterPressed += (_, _) => TbChatInput_EnterPressedAsync();
+            tbChatInput.EnterPressed += (_, _) => TbChatInput_EnterPressedAsync().HandleTask();
 
             btnLockGame = FindChild<XNAClientButton>(nameof(btnLockGame));
-            btnLockGame.LeftClick += (_, _) => BtnLockGame_LeftClickAsync();
+            btnLockGame.LeftClick += (_, _) => HandleLockGameButtonClickAsync().HandleTask();
 
             chkAutoReady = FindChild<XNAClientCheckBox>(nameof(chkAutoReady));
             chkAutoReady.CheckedChanged += chkAutoReady_CheckedChangedFunc;
             chkAutoReady.Disable();
 
             MapPreviewBox.LocalStartingLocationSelected += MapPreviewBox_LocalStartingLocationSelected;
-            MapPreviewBox.StartingLocationApplied += (_, _) => MapPreviewBox_StartingLocationAppliedAsync();
+            MapPreviewBox.StartingLocationApplied += (_, _) => MapPreviewBox_StartingLocationAppliedAsync().HandleTask();
 
             sndJoinSound = new EnhancedSoundEffect("joingame.wav", 0.0, 0.0, ClientConfiguration.Instance.SoundGameLobbyJoinCooldown);
             sndLeaveSound = new EnhancedSoundEffect("leavegame.wav", 0.0, 0.0, ClientConfiguration.Instance.SoundGameLobbyLeaveCooldown);
@@ -270,33 +274,25 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         protected override async Task GameProcessExitedAsync()
         {
-            try
+            gameSaved = false;
+
+            if (fsw != null)
+                fsw.EnableRaisingEvents = false;
+
+            PlayerInfo pInfo = Players.Find(p => p.Name == ProgramConstants.PLAYERNAME);
+
+            pInfo.IsInGame = false;
+
+            await base.GameProcessExitedAsync();
+
+            if (IsHost)
             {
-                gameSaved = false;
-
-                if (fsw != null)
-                    fsw.EnableRaisingEvents = false;
-
-                PlayerInfo pInfo = Players.Find(p => p.Name == ProgramConstants.PLAYERNAME);
-
-                pInfo.IsInGame = false;
-
-                await base.GameProcessExitedAsync();
-
-                if (IsHost)
-                {
-                    GenerateGameID();
-                    await DdGameModeMapFilter_SelectedIndexChangedAsync(); // Refresh ranks
-                }
-                else if (chkAutoReady.Checked)
-                {
-                    await RequestReadyStatusAsync();
-                }
-
+                GenerateGameID();
+                await DdGameModeMapFilter_SelectedIndexChangedAsync(); // Refresh ranks
             }
-            catch (Exception ex)
+            else if (chkAutoReady.Checked)
             {
-                PreStartup.HandleException(ex);
+                await RequestReadyStatusAsync();
             }
         }
 
@@ -320,18 +316,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             }
         }
 
-        private async Task BtnLockGame_LeftClickAsync()
-        {
-            try
-            {
-                await HandleLockGameButtonClickAsync();
-            }
-            catch (Exception ex)
-            {
-                PreStartup.HandleException(ex);
-            }
-        }
-
         protected virtual async Task HandleLockGameButtonClickAsync()
         {
             if (Locked)
@@ -346,78 +330,64 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private async Task TbChatInput_EnterPressedAsync()
         {
-            try
+            if (string.IsNullOrEmpty(tbChatInput.Text))
+                return;
+
+            if (tbChatInput.Text.StartsWith("/"))
             {
-                if (string.IsNullOrEmpty(tbChatInput.Text))
-                    return;
+                string text = tbChatInput.Text;
+                string command;
+                string parameters;
 
-                if (tbChatInput.Text.StartsWith("/"))
+                int spaceIndex = text.IndexOf(' ');
+
+                if (spaceIndex == -1)
                 {
-                    string text = tbChatInput.Text;
-                    string command;
-                    string parameters;
-
-                    int spaceIndex = text.IndexOf(' ');
-
-                    if (spaceIndex == -1)
-                    {
-                        command = text.Substring(1).ToUpper();
-                        parameters = string.Empty;
-                    }
-                    else
-                    {
-                        command = text.Substring(1, spaceIndex - 1);
-                        parameters = text.Substring(spaceIndex + 1);
-                    }
-
-                    tbChatInput.Text = string.Empty;
-
-                    foreach (var chatBoxCommand in chatBoxCommands)
-                    {
-                        if (command.ToUpper() == chatBoxCommand.Command)
-                        {
-                            if (!IsHost && chatBoxCommand.HostOnly)
-                            {
-                                AddNotice(string.Format("/{0} is for game hosts only.".L10N("Client:Main:ChatboxCommandHostOnly"), chatBoxCommand.Command));
-                                return;
-                            }
-
-                            chatBoxCommand.Action(parameters);
-                            return;
-                        }
-                    }
-
-                    StringBuilder sb = new StringBuilder("To use a command, start your message with /<command>. Possible chat box commands:".L10N("Client:Main:ChatboxCommandTipText") + " ");
-                    foreach (var chatBoxCommand in chatBoxCommands)
-                    {
-                        sb.Append(Environment.NewLine);
-                        sb.Append(Environment.NewLine);
-                        sb.Append($"{chatBoxCommand.Command}: {chatBoxCommand.Description}");
-                    }
-                    XNAMessageBox.Show(WindowManager, "Chat Box Command Help".L10N("Client:Main:ChatboxCommandTipTitle"), sb.ToString());
-                    return;
+                    command = text[1..].ToUpper();
+                    parameters = string.Empty;
+                }
+                else
+                {
+                    command = text.Substring(1, spaceIndex - 1);
+                    parameters = text[(spaceIndex + 1)..];
                 }
 
-                await SendChatMessageAsync(tbChatInput.Text);
                 tbChatInput.Text = string.Empty;
+
+                foreach (var chatBoxCommand in chatBoxCommands)
+                {
+                    if (command.ToUpper() == chatBoxCommand.Command)
+                    {
+                        if (!IsHost && chatBoxCommand.HostOnly)
+                        {
+                            AddNotice(string.Format("/{0} is for game hosts only.".L10N("Client:Main:ChatboxCommandHostOnly"), chatBoxCommand.Command));
+                            return;
+                        }
+
+                        chatBoxCommand.Action(parameters);
+                        return;
+                    }
+                }
+
+                StringBuilder sb = new StringBuilder("To use a command, start your message with /<command>. Possible chat box commands:".L10N("Client:Main:ChatboxCommandTipText") + " ");
+                foreach (var chatBoxCommand in chatBoxCommands)
+                {
+                    sb.Append(Environment.NewLine);
+                    sb.Append(Environment.NewLine);
+                    sb.Append($"{chatBoxCommand.Command}: {chatBoxCommand.Description}");
+                }
+                XNAMessageBox.Show(WindowManager, "Chat Box Command Help".L10N("Client:Main:ChatboxCommandTipTitle"), sb.ToString());
+                return;
             }
-            catch (Exception ex)
-            {
-                PreStartup.HandleException(ex);
-            }
+
+            await SendChatMessageAsync(tbChatInput.Text);
+            tbChatInput.Text = string.Empty;
         }
 
         private async Task ChkAutoReady_CheckedChangedAsync()
         {
-            try
-            {
-                UpdateLaunchGameButtonStatus();
-                await RequestReadyStatusAsync();
-            }
-            catch (Exception ex)
-            {
-                PreStartup.HandleException(ex);
-            }
+            UpdateLaunchGameButtonStatus();
+            await RequestReadyStatusAsync();
         }
 
         protected void ResetAutoReadyCheckbox()
@@ -430,98 +400,70 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private async Task SetFrameSendRateAsync(string value)
         {
-            try
+            bool success = int.TryParse(value, out int intValue);
+
+            if (!success)
             {
-                bool success = int.TryParse(value, out int intValue);
-
-                if (!success)
-                {
-                    AddNotice("Command syntax: /FrameSendRate <number>".L10N("Client:Main:ChatboxCommandFrameSendRateSyntax"));
-                    return;
-                }
-
-                FrameSendRate = intValue;
-                AddNotice(string.Format("FrameSendRate has been changed to {0}".L10N("Client:Main:FrameSendRateChanged"), intValue));
-
-                await OnGameOptionChangedAsync();
-                ClearReadyStatuses();
-                ClearReadyStatuses();
+                AddNotice("Command syntax: /FrameSendRate <number>".L10N("Client:Main:ChatboxCommandFrameSendRateSyntax"));
+                return;
             }
-            catch (Exception ex)
-            {
-                PreStartup.HandleException(ex);
-            }
+
+            FrameSendRate = intValue;
+            AddNotice(string.Format("FrameSendRate has been changed to {0}".L10N("Client:Main:FrameSendRateChanged"), intValue));
+
+            await OnGameOptionChangedAsync();
+            ClearReadyStatuses();
+            ClearReadyStatuses();
         }
 
         private async Task SetMaxAheadAsync(string value)
         {
-            try
+            bool success = int.TryParse(value, out int intValue);
+
+            if (!success)
             {
-                bool success = int.TryParse(value, out int intValue);
-
-                if (!success)
-                {
-                    AddNotice("Command syntax: /MaxAhead <number>".L10N("Client:Main:ChatboxCommandMaxAheadSyntax"));
-                    return;
-                }
-
-                MaxAhead = intValue;
-                AddNotice(string.Format("MaxAhead has been changed to {0}".L10N("Client:Main:MaxAheadChanged"), intValue));
-
-                await OnGameOptionChangedAsync();
-                ClearReadyStatuses();
+                AddNotice("Command syntax: /MaxAhead <number>".L10N("Client:Main:ChatboxCommandMaxAheadSyntax"));
+                return;
             }
-            catch (Exception ex)
-            {
-                PreStartup.HandleException(ex);
-            }
+
+            MaxAhead = intValue;
+            AddNotice(string.Format("MaxAhead has been changed to {0}".L10N("Client:Main:MaxAheadChanged"), intValue));
+
+            await OnGameOptionChangedAsync();
+            ClearReadyStatuses();
         }
 
         private async Task SetProtocolVersionAsync(string value)
         {
-            try
+            bool success = int.TryParse(value, out int intValue);
+
+            if (!success)
             {
-                bool success = int.TryParse(value, out int intValue);
-
-                if (!success)
-                {
-                    AddNotice("Command syntax: /ProtocolVersion <number>.".L10N("Client:Main:ChatboxCommandProtocolVersionSyntax"));
-                    return;
-                }
-
-                if (!(intValue == 0 || intValue == 2))
-                {
-                    AddNotice("ProtocolVersion only allows values 0 and 2.".L10N("Client:Main:ChatboxCommandProtocolVersionInvalid"));
-                    return;
-                }
-
-                ProtocolVersion = intValue;
-                AddNotice(string.Format("ProtocolVersion has been changed to {0}".L10N("Client:Main:ProtocolVersionChanged"), intValue));
-
-                await OnGameOptionChangedAsync();
-                ClearReadyStatuses();
+                AddNotice("Command syntax: /ProtocolVersion <number>.".L10N("Client:Main:ChatboxCommandProtocolVersionSyntax"));
+                return;
             }
-            catch (Exception ex)
+
+            if (!(intValue == 0 || intValue == 2))
             {
-                PreStartup.HandleException(ex);
+                AddNotice("ProtocolVersion only allows values 0 and 2.".L10N("Client:Main:ChatboxCommandProtocolVersionInvalid"));
+                return;
             }
+
+            ProtocolVersion = intValue;
+            AddNotice(string.Format("ProtocolVersion has been changed to {0}".L10N("Client:Main:ProtocolVersionChanged"), intValue));
+
+            await OnGameOptionChangedAsync();
+            ClearReadyStatuses();
         }
 
         private async Task SetStartingLocationClearanceAsync(string value)
         {
-            try
-            {
-                bool removeStartingLocations = Conversions.BooleanFromString(value, RemoveStartingLocations);
+            bool removeStartingLocations = Conversions.BooleanFromString(value, RemoveStartingLocations);
 
-                SetRandomStartingLocations(removeStartingLocations);
+            SetRandomStartingLocations(removeStartingLocations);
 
-                await OnGameOptionChangedAsync();
-                ClearReadyStatuses();
-            }
-            catch (Exception ex)
-            {
-                PreStartup.HandleException(ex);
-            }
+            await OnGameOptionChangedAsync();
+            ClearReadyStatuses();
         }
 
         /// <summary>
@@ -547,49 +489,42 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         /// <param name="dieType">The parameters given for the command by the user.</param>
         private async Task RollDiceCommandAsync(string dieType)
         {
-            try
-            {
-                int dieSides = 6;
-                int dieCount = 1;
+            int dieSides = 6;
+            int dieCount = 1;
 
-                if (!string.IsNullOrEmpty(dieType))
+            if (!string.IsNullOrEmpty(dieType))
+            {
+                string[] parts = dieType.Split('d');
+                if (parts.Length == 2)
                 {
-                    string[] parts = dieType.Split('d');
-                    if (parts.Length == 2)
+                    if (!int.TryParse(parts[0], out dieCount) || !int.TryParse(parts[1], out dieSides))
                     {
-                        if (!int.TryParse(parts[0], out dieCount) || !int.TryParse(parts[1], out dieSides))
-                        {
-                            AddNotice("Invalid dice specified. Expected format: /roll <die count>d<die sides>".L10N("Client:Main:ChatboxCommandRollInvalidAndSyntax"));
-                            return;
-                        }
+                        AddNotice("Invalid dice specified. Expected format: /roll <die count>d<die sides>".L10N("Client:Main:ChatboxCommandRollInvalidAndSyntax"));
+                        return;
                     }
                 }
-
-                if (dieCount > MAX_DICE || dieCount < 1)
-                {
-                    AddNotice("You can only between 1 to 10 dies at once.".L10N("Client:Main:ChatboxCommandRollInvalid2"));
-                    return;
-                }
-
-                if (dieSides > MAX_DIE_SIDES || dieSides < 2)
-                {
-                    AddNotice("You can only have between 2 and 100 sides in a die.".L10N("Client:Main:ChatboxCommandRollInvalid3"));
-                    return;
-                }
-
-                int[] results = new int[dieCount];
-                Random random = new Random();
-                for (int i = 0; i < dieCount; i++)
-                {
-                    results[i] = random.Next(1, dieSides + 1);
-                }
-
-                await BroadcastDiceRollAsync(dieSides, results);
             }
-            catch (Exception ex)
+
+            if (dieCount > MAX_DICE || dieCount < 1)
             {
-                PreStartup.HandleException(ex);
+                AddNotice("You can only between 1 to 10 dies at once.".L10N("Client:Main:ChatboxCommandRollInvalid2"));
+                return;
             }
+
+            if (dieSides > MAX_DIE_SIDES || dieSides < 2)
+            {
+                AddNotice("You can only have between 2 and 100 sides in a die.".L10N("Client:Main:ChatboxCommandRollInvalid3"));
+                return;
+            }
+
+            int[] results = new int[dieCount];
+            Random random = new Random();
+            for (int i = 0; i < dieCount; i++)
+            {
+                results[i] = random.Next(1, dieSides + 1);
+            }
+
+            await BroadcastDiceRollAsync(dieSides, results);
         }
 
         /// <summary>
@@ -806,17 +741,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private async Task MapPreviewBox_StartingLocationAppliedAsync()
         {
-            try
-            {
-                ClearReadyStatuses();
-                CopyPlayerDataToUI();
-                await BroadcastPlayerOptionsAsync();
-
-            }
-            catch (Exception ex)
-            {
-                PreStartup.HandleException(ex);
-            }
+            ClearReadyStatuses();
+            CopyPlayerDataToUI();
+            await BroadcastPlayerOptionsAsync();
         }
 
         /// <summary>
@@ -827,234 +754,183 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         /// </summary>
         protected override async Task BtnLaunchGame_LeftClickAsync()
         {
-            try
+            if (!IsHost)
             {
-                if (!IsHost)
+                await RequestReadyStatusAsync();
+                return;
+            }
+
+            if (!Locked)
+            {
+                await LockGameNotificationAsync();
+                return;
+            }
+
+            var teamMappingsError = GetTeamMappingsError();
+            if (!string.IsNullOrEmpty(teamMappingsError))
+            {
+                AddNotice(teamMappingsError);
+                return;
+            }
+
+            List<int> occupiedColorIds = new List<int>();
+            foreach (PlayerInfo player in Players)
+            {
+                if (occupiedColorIds.Contains(player.ColorId) && player.ColorId > 0)
                 {
-                    await RequestReadyStatusAsync();
+                    await SharedColorsNotificationAsync();
                     return;
                 }
 
-                if (!Locked)
+                occupiedColorIds.Add(player.ColorId);
+            }
+
+            if (AIPlayers.Any(pInfo => pInfo.SideId == ddPlayerSides[0].Items.Count - 1))
+            {
+                await AISpectatorsNotificationAsync();
+                return;
+            }
+
+            if (Map.EnforceMaxPlayers)
+            {
+                foreach (PlayerInfo pInfo in Players)
                 {
-                    await LockGameNotificationAsync();
-                    return;
-                }
-
-                var teamMappingsError = GetTeamMappingsError();
-                if (!string.IsNullOrEmpty(teamMappingsError))
-                {
-                    AddNotice(teamMappingsError);
-                    return;
-                }
-
-                List<int> occupiedColorIds = new List<int>();
-                foreach (PlayerInfo player in Players)
-                {
-                    if (occupiedColorIds.Contains(player.ColorId) && player.ColorId > 0)
-                    {
-                        await SharedColorsNotificationAsync();
-                        return;
-                    }
-
-                    occupiedColorIds.Add(player.ColorId);
-                }
-
-                if (AIPlayers.Any(pInfo => pInfo.SideId == ddPlayerSides[0].Items.Count - 1))
-                {
-                    await AISpectatorsNotificationAsync();
-                    return;
-                }
-
-                if (Map.EnforceMaxPlayers)
-                {
-                    foreach (PlayerInfo pInfo in Players)
-                    {
-                        if (pInfo.StartingLocation == 0)
-                            continue;
-
-                        if (Players.Concat(AIPlayers).ToList().Find(
-                            p => p.StartingLocation == pInfo.StartingLocation &&
-                            p.Name != pInfo.Name) != null)
-                        {
-                            await SharedStartingLocationNotificationAsync();
-                            return;
-                        }
-                    }
-
-                    for (int aiId = 0; aiId < AIPlayers.Count; aiId++)
-                    {
-                        int startingLocation = AIPlayers[aiId].StartingLocation;
-
-                        if (startingLocation == 0)
-                            continue;
-
-                        int index = AIPlayers.FindIndex(aip => aip.StartingLocation == startingLocation);
-
-                        if (index > -1 && index != aiId)
-                        {
-                            await SharedStartingLocationNotificationAsync();
-                            return;
-                        }
-                    }
-
-                    int totalPlayerCount = Players.Count(p => p.SideId < ddPlayerSides[0].Items.Count - 1)
-                        + AIPlayers.Count;
-
-                    int minPlayers = GameMode.MinPlayersOverride > -1 ? GameMode.MinPlayersOverride : Map.MinPlayers;
-                    if (totalPlayerCount < minPlayers)
-                    {
-                        await InsufficientPlayersNotificationAsync();
-                        return;
-                    }
-
-                    if (Map.EnforceMaxPlayers && totalPlayerCount > Map.MaxPlayers)
-                    {
-                        await TooManyPlayersNotificationAsync();
-                        return;
-                    }
-                }
-
-                int iId = 0;
-                foreach (PlayerInfo player in Players)
-                {
-                    iId++;
-
-                    if (player.Name == ProgramConstants.PLAYERNAME)
+                    if (pInfo.StartingLocation == 0)
                         continue;
 
-                    if (!player.Verified)
+                    if (Players.Concat(AIPlayers).ToList().Find(
+                        p => p.StartingLocation == pInfo.StartingLocation &&
+                        p.Name != pInfo.Name) != null)
                     {
-                        await NotVerifiedNotificationAsync(iId - 1);
+                        await SharedStartingLocationNotificationAsync();
                         return;
                     }
+                }
 
+                for (int aiId = 0; aiId < AIPlayers.Count; aiId++)
+                {
+                    int startingLocation = AIPlayers[aiId].StartingLocation;
 
-                    if (player.IsInGame)
+                    if (startingLocation == 0)
+                        continue;
+
+                    int index = AIPlayers.FindIndex(aip => aip.StartingLocation == startingLocation);
+
+                    if (index > -1 && index != aiId)
                     {
-                        await StillInGameNotificationAsync(iId - 1);
+                        await SharedStartingLocationNotificationAsync();
                         return;
                     }
-                    /*
-                    if (DisableSpectatorReadyChecking)
-                    {
-                        // Only account ready status if player is not a spectator
-                        if (!player.Ready && !IsPlayerSpectator(player))
-                        {
-                            await GetReadyNotificationAsync();
-                            return;
-                        }
-                    }
-                    else
-                    {
-                        if (!player.Ready)
-                        {
-                            await GetReadyNotificationAsync();
-                            return;
-                        }
-                    }
-                    */
+                }
 
+                int totalPlayerCount = Players.Count(p => p.SideId < ddPlayerSides[0].Items.Count - 1)
+                    + AIPlayers.Count;
+
+                int minPlayers = GameMode.MinPlayersOverride > -1 ? GameMode.MinPlayersOverride : Map.MinPlayers;
+                if (totalPlayerCount < minPlayers)
+                {
+                    await InsufficientPlayersNotificationAsync();
+                    return;
+                }
+
+                if (Map.EnforceMaxPlayers && totalPlayerCount > Map.MaxPlayers)
+                {
+                    await TooManyPlayersNotificationAsync();
+                    return;
+                }
+            }
+
+            int iId = 0;
+            foreach (PlayerInfo player in Players)
+            {
+                iId++;
+
+                if (player.Name == ProgramConstants.PLAYERNAME)
+                    continue;
+
+                if (!player.Verified)
+                {
+                    await NotVerifiedNotificationAsync(iId - 1);
+                    return;
+                }
+
+                if (player.IsInGame)
+                {
+                    await StillInGameNotificationAsync(iId - 1);
+                    return;
+                }
+                /*
+                if (DisableSpectatorReadyChecking)
+                {
+                    // Only account ready status if player is not a spectator
+                    if (!player.Ready && !IsPlayerSpectator(player))
+                    {
+                        await GetReadyNotificationAsync();
+                        return;
+                    }
+                }
+                else
+                {
                     if (!player.Ready)
                     {
                         await GetReadyNotificationAsync();
                         return;
                     }
                 }
+                */
 
-                await HostLaunchGameAsync();
+                if (!player.Ready)
+                {
+                    await GetReadyNotificationAsync();
+                    return;
+                }
+            }
 
-            }
-            catch (Exception ex)
-            {
-                PreStartup.HandleException(ex);
-            }
+            await HostLaunchGameAsync();
         }
 
         protected virtual Task LockGameNotificationAsync()
         {
-            try
-            {
-                AddNotice("You need to lock the game room before launching the game.".L10N("Client:Main:LockGameNotification"));
-            }
-            catch (Exception ex)
-            {
-                PreStartup.HandleException(ex);
-            }
+            AddNotice("You need to lock the game room before launching the game.".L10N("Client:Main:LockGameNotification"));
 
             return Task.CompletedTask;
         }
 
         protected virtual Task SharedColorsNotificationAsync()
         {
-            try
-            {
-                AddNotice("Multiple human players cannot share the same color.".L10N("Client:Main:SharedColorsNotification"));
-            }
-            catch (Exception ex)
-            {
-                PreStartup.HandleException(ex);
-            }
+            AddNotice("Multiple human players cannot share the same color.".L10N("Client:Main:SharedColorsNotification"));
 
             return Task.CompletedTask;
         }
 
         protected virtual Task AISpectatorsNotificationAsync()
         {
-            try
-            {
-                AddNotice("AI players don't enjoy spectating matches. They want some action!".L10N("Client:Main:AISpectatorsNotification"));
-            }
-            catch (Exception ex)
-            {
-                PreStartup.HandleException(ex);
-            }
+            AddNotice("AI players don't enjoy spectating matches. They want some action!".L10N("Client:Main:AISpectatorsNotification"));
 
             return Task.CompletedTask;
         }
 
         protected virtual Task SharedStartingLocationNotificationAsync()
         {
-            try
-            {
-                AddNotice("Multiple players cannot share the same starting location on this map.".L10N("Client:Main:SharedStartingLocationNotification"));
-            }
-            catch (Exception ex)
-            {
-                PreStartup.HandleException(ex);
-            }
+            AddNotice("Multiple players cannot share the same starting location on this map.".L10N("Client:Main:SharedStartingLocationNotification"));
 
             return Task.CompletedTask;
         }
 
         protected virtual Task NotVerifiedNotificationAsync(int playerIndex)
         {
-            try
-            {
-                if (playerIndex > -1 && playerIndex < Players.Count)
-                    AddNotice(string.Format("Unable to launch game. Player {0} hasn't been verified.".L10N("Client:Main:NotVerifiedNotification"), Players[playerIndex].Name));
-            }
-            catch (Exception ex)
-            {
-                PreStartup.HandleException(ex);
-            }
+            if (playerIndex > -1 && playerIndex < Players.Count)
+                AddNotice(string.Format("Unable to launch game. Player {0} hasn't been verified.".L10N("Client:Main:NotVerifiedNotification"), Players[playerIndex].Name));
 
             return Task.CompletedTask;
         }
 
         protected virtual Task StillInGameNotificationAsync(int playerIndex)
         {
-            try
+            if (playerIndex > -1 && playerIndex < Players.Count)
             {
-                if (playerIndex > -1 && playerIndex < Players.Count)
-                {
-                    AddNotice(string.Format("Unable to launch game. Player {0} is still playing the game you started previously.".L10N("Client:Main:StillInGameNotification"),
-                        Players[playerIndex].Name));
-                }
-            }
-            catch (Exception ex)
-            {
-                PreStartup.HandleException(ex);
+                AddNotice(string.Format("Unable to launch game. Player {0} is still playing the game you started previously.".L10N("Client:Main:StillInGameNotification"),
+                    Players[playerIndex].Name));
             }
 
             return Task.CompletedTask;
@@ -1062,51 +938,30 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         protected virtual Task GetReadyNotificationAsync()
         {
-            try
-            {
-                AddNotice("The host wants to start the game but cannot because not all players are ready!".L10N("Client:Main:GetReadyNotification"));
-                if (!IsHost && !Players.Find(p => p.Name == ProgramConstants.PLAYERNAME).Ready)
-                    sndGetReadySound.Play();
-            }
-            catch (Exception ex)
-            {
-                PreStartup.HandleException(ex);
-            }
+            AddNotice("The host wants to start the game but cannot because not all players are ready!".L10N("Client:Main:GetReadyNotification"));
+            if (!IsHost && !Players.Find(p => p.Name == ProgramConstants.PLAYERNAME).Ready)
+                sndGetReadySound.Play();
 
             return Task.CompletedTask;
         }
 
         protected virtual Task InsufficientPlayersNotificationAsync()
         {
-            try
-            {
-                if (GameMode != null && GameMode.MinPlayersOverride > -1)
-                    AddNotice(String.Format("Unable to launch game: {0} cannot be played with fewer than {1} players".L10N("Client:Main:InsufficientPlayersNotification1"),
-                        GameMode.UIName, GameMode.MinPlayersOverride));
-                else if (Map != null)
-                    AddNotice(String.Format("Unable to launch game: this map cannot be played with fewer than {0} players.".L10N("Client:Main:InsufficientPlayersNotification2"),
-                        Map.MinPlayers));
-            }
-            catch (Exception ex)
-            {
-                PreStartup.HandleException(ex);
-            }
+            if (GameMode != null && GameMode.MinPlayersOverride > -1)
+                AddNotice(String.Format("Unable to launch game: {0} cannot be played with fewer than {1} players".L10N("Client:Main:InsufficientPlayersNotification1"),
+                    GameMode.UIName, GameMode.MinPlayersOverride));
+            else if (Map != null)
+                AddNotice(String.Format("Unable to launch game: this map cannot be played with fewer than {0} players.".L10N("Client:Main:InsufficientPlayersNotification2"),
+                    Map.MinPlayers));
 
             return Task.CompletedTask;
         }
 
         protected virtual Task TooManyPlayersNotificationAsync()
         {
-            try
-            {
-                if (Map != null)
-                    AddNotice(String.Format("Unable to launch game: this map cannot be played with more than {0} players.".L10N("Client:Main:TooManyPlayersNotification"),
-                        Map.MaxPlayers));
-            }
-            catch (Exception ex)
-            {
-                PreStartup.HandleException(ex);
-            }
+            if (Map != null)
+                AddNotice(String.Format("Unable to launch game: this map cannot be played with more than {0} players.".L10N("Client:Main:TooManyPlayersNotification"),
+                    Map.MaxPlayers));
 
             return Task.CompletedTask;
         }
@@ -1133,34 +988,27 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         protected override async Task CopyPlayerDataFromUIAsync(object sender)
         {
-            try
+            if (PlayerUpdatingInProgress)
+                return;
+
+            if (IsHost)
             {
-                if (PlayerUpdatingInProgress)
-                    return;
-
-                if (IsHost)
-                {
-                    await base.CopyPlayerDataFromUIAsync(sender);
-                    await BroadcastPlayerOptionsAsync();
-                    return;
-                }
-
-                int mTopIndex = Players.FindIndex(p => p.Name == ProgramConstants.PLAYERNAME);
-
-                if (mTopIndex == -1)
-                    return;
-
-                int requestedSide = ddPlayerSides[mTopIndex].SelectedIndex;
-                int requestedColor = ddPlayerColors[mTopIndex].SelectedIndex;
-                int requestedStart = ddPlayerStarts[mTopIndex].SelectedIndex;
-                int requestedTeam = ddPlayerTeams[mTopIndex].SelectedIndex;
-
-                await RequestPlayerOptionsAsync(requestedSide, requestedColor, requestedStart, requestedTeam);
+                await base.CopyPlayerDataFromUIAsync(sender);
+                await BroadcastPlayerOptionsAsync();
+                return;
             }
-            catch (Exception ex)
-            {
-                PreStartup.HandleException(ex);
-            }
+
+            int mTopIndex = Players.FindIndex(p => p.Name == ProgramConstants.PLAYERNAME);
+
+            if (mTopIndex == -1)
+                return;
+
+            int requestedSide = ddPlayerSides[mTopIndex].SelectedIndex;
+            int requestedColor = ddPlayerColors[mTopIndex].SelectedIndex;
+            int requestedStart = ddPlayerStarts[mTopIndex].SelectedIndex;
+            int requestedTeam = ddPlayerTeams[mTopIndex].SelectedIndex;
+
+            await RequestPlayerOptionsAsync(requestedSide, requestedColor, requestedStart, requestedTeam);
         }
 
         protected override void CopyPlayerDataToUI()
@@ -1287,7 +1135,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             await base.ChangeMapAsync(gameModeMap);
 
-            bool resetAutoReady = gameModeMap?.GameMode == null || gameModeMap?.Map == null;
+            bool resetAutoReady = gameModeMap?.GameMode == null || gameModeMap.Map == null;
 
             ClearReadyStatuses(resetAutoReady);
 

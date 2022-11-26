@@ -145,7 +145,7 @@ namespace DTAClient.DXGUI.Multiplayer
             ddSavedGame.ClientRectangle = new Rectangle(lblSavedGameTime.X,
                 panelPlayers.Bottom - 21,
                 Width - lblSavedGameTime.X - 12, 21);
-            ddSavedGame.SelectedIndexChanged += (_, _) => DdSavedGame_SelectedIndexChangedAsync();
+            ddSavedGame.SelectedIndexChanged += (_, _) => DdSavedGame_SelectedIndexChangedAsync().HandleTask();
 
             lbChatMessages = new ChatListBox(WindowManager);
             lbChatMessages.Name = nameof(lbChatMessages);
@@ -160,21 +160,21 @@ namespace DTAClient.DXGUI.Multiplayer
             tbChatInput.ClientRectangle = new Rectangle(lbChatMessages.X,
                 lbChatMessages.Bottom + 3, lbChatMessages.Width, 19);
             tbChatInput.MaximumTextLength = 200;
-            tbChatInput.EnterPressed += (_, _) => TbChatInput_EnterPressedAsync();
+            tbChatInput.EnterPressed += (_, _) => TbChatInput_EnterPressedAsync().HandleTask();
 
             btnLoadGame = new XNAClientButton(WindowManager);
             btnLoadGame.Name = nameof(btnLoadGame);
             btnLoadGame.ClientRectangle = new Rectangle(lbChatMessages.X,
                 tbChatInput.Bottom + 6, UIDesignConstants.BUTTON_WIDTH_133, UIDesignConstants.BUTTON_HEIGHT);
             btnLoadGame.Text = "Load Game".L10N("Client:Main:LoadGame");
-            btnLoadGame.LeftClick += (_, _) => BtnLoadGame_LeftClickAsync();
+            btnLoadGame.LeftClick += (_, _) => BtnLoadGame_LeftClickAsync().HandleTask();
 
             btnLeaveGame = new XNAClientButton(WindowManager);
             btnLeaveGame.Name = nameof(btnLeaveGame);
             btnLeaveGame.ClientRectangle = new Rectangle(Width - 145,
                 btnLoadGame.Y, UIDesignConstants.BUTTON_WIDTH_133, UIDesignConstants.BUTTON_HEIGHT);
             btnLeaveGame.Text = "Leave Game".L10N("Client:Main:LeaveGame");
-            btnLeaveGame.LeftClick += (_, _) => BtnLeaveGame_LeftClickAsync();
+            btnLeaveGame.LeftClick += (_, _) => LeaveGameAsync().HandleTask();
 
             AddChild(lblMapName);
             AddChild(lblMapNameValue);
@@ -218,19 +218,10 @@ namespace DTAClient.DXGUI.Multiplayer
         /// </summary>
         private void ResetDiscordPresence() => discordHandler.UpdatePresence();
 
-        private Task BtnLeaveGame_LeftClickAsync() => LeaveGameAsync();
-
         protected virtual Task LeaveGameAsync()
         {
-            try
-            {
-                GameLeft?.Invoke(this, EventArgs.Empty);
-                ResetDiscordPresence();
-            }
-            catch (Exception ex)
-            {
-                PreStartup.HandleException(ex);
-            }
+            GameLeft?.Invoke(this, EventArgs.Empty);
+            ResetDiscordPresence();
 
             return Task.CompletedTask;
         }
@@ -250,29 +241,22 @@ namespace DTAClient.DXGUI.Multiplayer
 
         private async Task BtnLoadGame_LeftClickAsync()
         {
-            try
+            if (!IsHost)
             {
-                if (!IsHost)
-                {
-                    await RequestReadyStatusAsync();
-                    return;
-                }
-
-                if (Players.Find(p => !p.Ready) != null)
-                {
-                    await GetReadyNotificationAsync();
-                    return;
-                }
-
-                if (Players.Count != SGPlayers.Count)
-                {
-                    await NotAllPresentNotificationAsync();
-                    return;
-                }
+                await RequestReadyStatusAsync();
+                return;
             }
-            catch (Exception ex)
+
+            if (Players.Find(p => !p.Ready) != null)
             {
-                PreStartup.HandleException(ex);
+                await GetReadyNotificationAsync();
+                return;
+            }
+
+            if (Players.Count != SGPlayers.Count)
+            {
+                await NotAllPresentNotificationAsync();
+                return;
             }
 
             await HostStartGameAsync();
@@ -361,36 +345,30 @@ namespace DTAClient.DXGUI.Multiplayer
             UpdateDiscordPresence(true);
         }
 
-        private void SharedUILogic_GameProcessExited() => AddCallback(HandleGameProcessExitedAsync);
+        private void SharedUILogic_GameProcessExited() => AddCallback(() => HandleGameProcessExitedAsync().HandleTask());
 
         protected virtual Task HandleGameProcessExitedAsync()
         {
-            try
+            fsw.EnableRaisingEvents = false;
+
+            GameProcessLogic.GameProcessExited -= SharedUILogic_GameProcessExited;
+
+            var matchStatistics = StatisticsManager.Instance.GetMatchWithGameID(uniqueGameId);
+
+            if (matchStatistics != null)
             {
-                fsw.EnableRaisingEvents = false;
+                int newLength = matchStatistics.LengthInSeconds +
+                    (int)(DateTime.Now - gameLoadTime).TotalSeconds;
 
-                GameProcessLogic.GameProcessExited -= SharedUILogic_GameProcessExited;
+                matchStatistics.ParseStatistics(ProgramConstants.GamePath,
+                    ClientConfiguration.Instance.LocalGame, true);
 
-                var matchStatistics = StatisticsManager.Instance.GetMatchWithGameID(uniqueGameId);
+                matchStatistics.LengthInSeconds = newLength;
 
-                if (matchStatistics != null)
-                {
-                    int newLength = matchStatistics.LengthInSeconds +
-                        (int)(DateTime.Now - gameLoadTime).TotalSeconds;
-
-                    matchStatistics.ParseStatistics(ProgramConstants.GamePath,
-                        ClientConfiguration.Instance.LocalGame, true);
-
-                    matchStatistics.LengthInSeconds = newLength;
-
-                    StatisticsManager.Instance.SaveDatabase();
-                }
-                UpdateDiscordPresence(true);
+                StatisticsManager.Instance.SaveDatabase();
             }
-            catch (Exception ex)
-            {
-                PreStartup.HandleException(ex);
-            }
+
+            UpdateDiscordPresence(true);
 
             return Task.CompletedTask;
         }
@@ -502,40 +480,26 @@ namespace DTAClient.DXGUI.Multiplayer
 
         private async Task DdSavedGame_SelectedIndexChangedAsync()
         {
-            try
-            {
-                if (!IsHost)
-                    return;
+            if (!IsHost)
+                return;
 
-                for (int i = 1; i < Players.Count; i++)
-                    Players[i].Ready = false;
+            for (int i = 1; i < Players.Count; i++)
+                Players[i].Ready = false;
 
-                CopyPlayerDataToUI();
+            CopyPlayerDataToUI();
 
-                if (!isSettingUp)
-                    await BroadcastOptionsAsync();
-                UpdateDiscordPresence();
-            }
-            catch (Exception ex)
-            {
-                PreStartup.HandleException(ex);
-            }
+            if (!isSettingUp)
+                await BroadcastOptionsAsync();
+            UpdateDiscordPresence();
         }
 
         private async Task TbChatInput_EnterPressedAsync()
         {
-            try
-            {
-                if (string.IsNullOrEmpty(tbChatInput.Text))
-                    return;
+            if (string.IsNullOrEmpty(tbChatInput.Text))
+                return;
 
-                await SendChatMessageAsync(tbChatInput.Text);
-                tbChatInput.Text = string.Empty;
-            }
-            catch (Exception ex)
-            {
-                PreStartup.HandleException(ex);
-            }
+            await SendChatMessageAsync(tbChatInput.Text);
+            tbChatInput.Text = string.Empty;
         }
 
         /// <summary>

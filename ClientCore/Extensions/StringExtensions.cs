@@ -19,7 +19,7 @@ public static class StringExtensions
         if (index == -1)
             return null; // No link found
 
-        string link = text.Substring(index);
+        string link = text[index..];
         return link.Split(' ')[0]; // Nuke any words coming after the link
     }
 

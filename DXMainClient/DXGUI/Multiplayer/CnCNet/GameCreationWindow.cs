@@ -199,7 +199,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 new IniFile(SafePath.CombineFilePath(ProgramConstants.GamePath, ProgramConstants.SAVED_GAME_SPAWN_INI));
 
             string password = Utilities.CalculateSHA1ForString(
-                spawnSGIni.GetStringValue("Settings", "GameID", string.Empty)).Substring(0, 10);
+                spawnSGIni.GetStringValue("Settings", "GameID", string.Empty))[..10];
 
             GameCreationEventArgs ea = new GameCreationEventArgs(gameName,
                 spawnSGIni.GetIntValue("Settings", "PlayerCount", 2), password,

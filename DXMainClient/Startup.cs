@@ -56,7 +56,7 @@ namespace DTAClient
                 Task.Run(CheckSystemSpecifications);
             }
 
-            GenerateOnlineIdAsync();
+            GenerateOnlineIdAsync().HandleTask();
 
 #if ARES
             Task.Run(() => PruneFiles(SafePath.GetDirectory(ProgramConstants.GamePath, "debug"), DateTime.Now.AddDays(-7)));

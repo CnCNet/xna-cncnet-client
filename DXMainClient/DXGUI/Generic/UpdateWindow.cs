@@ -26,15 +26,12 @@ namespace DTAClient.DXGUI.Generic
         public delegate void UpdateFailureEventHandler(object sender, UpdateFailureEventArgs e);
         public event UpdateFailureEventHandler UpdateFailed;
 
-        delegate void UpdateProgressChangedDelegate(string fileName, int filePercentage, int totalPercentage);
-        delegate void FileDownloadCompletedDelegate(string archiveName);
-
         private const double DOT_TIME = 0.66;
         private const int MAX_DOTS = 5;
 
-        public UpdateWindow(WindowManager windowManager) : base(windowManager)
+        public UpdateWindow(WindowManager windowManager)
+            : base(windowManager)
         {
-
         }
 
         private XNALabel lblDescription;

@@ -173,14 +173,14 @@ namespace DTAClient.DXGUI
             if (UserINISettings.Instance.AutoRemoveUnderscoresFromName)
             {
                 while (playerName.EndsWith("_"))
-                    playerName = playerName.Substring(0, playerName.Length - 1);
+                    playerName = playerName[..^1];
             }
 
             if (string.IsNullOrEmpty(playerName))
             {
                 playerName = Environment.UserName;
 
-                playerName = playerName.Substring(playerName.IndexOf("\\") + 1);
+                playerName = playerName[(playerName.IndexOf("\\") + 1)..];
             }
 
             playerName = Renderer.GetSafeString(NameValidator.GetValidOfflineName(playerName), 0);

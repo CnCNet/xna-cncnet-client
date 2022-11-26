@@ -52,26 +52,17 @@ namespace DTAClient.Domain.Multiplayer.LAN
         /// <returns>True if the player is still considered connected, otherwise false.</returns>
         public async Task<bool> UpdateAsync(GameTime gameTime)
         {
-            try
-            {
-                TimeSinceLastReceivedMessage += gameTime.ElapsedGameTime;
-                TimeSinceLastSentMessage += gameTime.ElapsedGameTime;
+            TimeSinceLastReceivedMessage += gameTime.ElapsedGameTime;
+            TimeSinceLastSentMessage += gameTime.ElapsedGameTime;
 
-                if (TimeSinceLastSentMessage > TimeSpan.FromSeconds(SEND_PING_TIMEOUT)
-                    || TimeSinceLastReceivedMessage > TimeSpan.FromSeconds(SEND_PING_TIMEOUT))
-                    await SendMessageAsync("PING", cancellationTokenSource?.Token ?? default);
+            if (TimeSinceLastSentMessage > TimeSpan.FromSeconds(SEND_PING_TIMEOUT)
+                || TimeSinceLastReceivedMessage > TimeSpan.FromSeconds(SEND_PING_TIMEOUT))
+                await SendMessageAsync("PING", cancellationTokenSource?.Token ?? default);
 
-                if (TimeSinceLastReceivedMessage > TimeSpan.FromSeconds(DROP_TIMEOUT))
-                    return false;
+            if (TimeSinceLastReceivedMessage > TimeSpan.FromSeconds(DROP_TIMEOUT))
+                return false;
 
-                return true;
-            }
-            catch (Exception ex)
-            {
-                PreStartup.HandleException(ex);
-            }
-
-            return false;
+            return true;
         }
 
         public override string IPAddress
@@ -127,77 +118,63 @@ namespace DTAClient.Domain.Multiplayer.LAN
         /// <summary>
         /// Starts receiving messages from the player asynchronously.
         /// </summary>
-        public Task StartReceiveLoopAsync(CancellationToken cancellationToken)
-            => ReceiveMessagesAsync(cancellationToken);
-
-        /// <summary>
-        /// Receives messages sent by the client,
-        /// and hands them over to another class via an event.
-        /// </summary>
-        private async Task ReceiveMessagesAsync(CancellationToken cancellationToken)
+        public async Task StartReceiveLoopAsync(CancellationToken cancellationToken)
         {
-            try
+            using IMemoryOwner<byte> memoryOwner = MemoryPool<byte>.Shared.Rent(1024);
+
+            while (!cancellationToken.IsCancellationRequested)
             {
-                using IMemoryOwner<byte> memoryOwner = MemoryPool<byte>.Shared.Rent(1024);
+                int bytesRead;
+                Memory<byte> message = memoryOwner.Memory[..1024];
 
-                while (!cancellationToken.IsCancellationRequested)
+                try
                 {
-                    int bytesRead;
-                    Memory<byte> message = memoryOwner.Memory[..1024];
-
-                    try
-                    {
-                        bytesRead = await TcpClient.ReceiveAsync(message, SocketFlags.None, cancellationToken);
-                    }
-                    catch (OperationCanceledException)
-                    {
-                        ConnectionLost?.Invoke(this, EventArgs.Empty);
-                        break;
-                    }
-                    catch (Exception ex)
-                    {
-                        PreStartup.LogException(ex, "Socket error with client " + Name + "; removing.");
-                        ConnectionLost?.Invoke(this, EventArgs.Empty);
-                        break;
-                    }
-
-                    if (bytesRead > 0)
-                    {
-                        string msg = encoding.GetString(message.Span[..bytesRead]);
-
-                        msg = overMessage + msg;
-
-                        List<string> commands = new List<string>();
-
-                        while (true)
-                        {
-                            int index = msg.IndexOf(ProgramConstants.LAN_MESSAGE_SEPARATOR);
-
-                            if (index == -1)
-                            {
-                                overMessage = msg;
-                                break;
-                            }
-
-                            commands.Add(msg.Substring(0, index));
-                            msg = msg.Substring(index + 1);
-                        }
-
-                        foreach (string cmd in commands)
-                        {
-                            MessageReceived?.Invoke(this, new NetworkMessageEventArgs(cmd));
-                        }
-
-                        continue;
-                    }
-
+                    bytesRead = await TcpClient.ReceiveAsync(message, SocketFlags.None, cancellationToken);
+                }
+                catch (OperationCanceledException)
+                {
                     ConnectionLost?.Invoke(this, EventArgs.Empty);
                     break;
                 }
-            }
-            catch (Exception ex)
-            {
-                PreStartup.HandleException(ex);
+                catch (Exception ex)
+                {
+                    PreStartup.LogException(ex, "Socket error with client " + Name + "; removing.");
+                    ConnectionLost?.Invoke(this, EventArgs.Empty);
+                    break;
+                }
+
+                if (bytesRead > 0)
+                {
+                    string msg = encoding.GetString(message.Span[..bytesRead]);
+
+                    msg = overMessage + msg;
+
+                    List<string> commands = new List<string>();
+
+                    while (true)
+                    {
+                        int index = msg.IndexOf(ProgramConstants.LAN_MESSAGE_SEPARATOR);
+
+                        if (index == -1)
+                        {
+                            overMessage = msg;
+                            break;
+                        }
+
+                        commands.Add(msg[..index]);
+                        msg = msg[(index + 1)..];
+                    }
+
+                    foreach (string cmd in commands)
+                    {
+                        MessageReceived?.Invoke(this, new NetworkMessageEventArgs(cmd));
+                    }
+
+                    continue;
+                }
+
+                ConnectionLost?.Invoke(this, EventArgs.Empty);
+                break;
             }
         }
     }

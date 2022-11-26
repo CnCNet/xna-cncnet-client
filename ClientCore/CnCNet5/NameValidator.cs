@@ -21,7 +21,7 @@ namespace ClientCore.CnCNet5
             if (profanityFilter.IsOffensive(name))
                 return "Please enter a name that is less offensive.".L10N("Client:ClientCore:NameOffensive");
 
-            if (int.TryParse(name.Substring(0, 1), out _))
+            if (int.TryParse(name[..1], out _))
                 return "The first character in the player name cannot be a number.".L10N("Client:ClientCore:NameFirstIsNumber");
 
             if (name[0] == '-')
@@ -59,7 +59,7 @@ namespace ClientCore.CnCNet5
             string validName = new string(name.Trim().Where(c => !disallowedCharacters.Contains(c)).ToArray());
 
             if (validName.Length > ClientConfiguration.Instance.MaxNameLength)
-                return validName.Substring(0, ClientConfiguration.Instance.MaxNameLength);
+                return validName[..ClientConfiguration.Instance.MaxNameLength];
             
             return validName;
         }

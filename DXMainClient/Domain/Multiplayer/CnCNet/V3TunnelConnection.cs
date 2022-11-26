@@ -66,45 +66,38 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
 
         public async Task ConnectAsync()
         {
+            Logger.Log($"Attempting to establish connection to V3 tunnel server " +
+                $"{tunnel.Name} ({tunnel.Address}:{tunnel.Port})");
+
+            tunnelEndPoint = new IPEndPoint(tunnel.IPAddress, tunnel.Port);
+            tunnelSocket = new Socket(SocketType.Dgram, ProtocolType.Udp);
+            tunnelSocket.SendTimeout = Constants.TUNNEL_CONNECTION_TIMEOUT;
+            tunnelSocket.ReceiveTimeout = Constants.TUNNEL_CONNECTION_TIMEOUT;
+
             try
             {
-                Logger.Log($"Attempting to establish connection to V3 tunnel server " +
-                    $"{tunnel.Name} ({tunnel.Address}:{tunnel.Port})");
+                using IMemoryOwner<byte> memoryOwner = MemoryPool<byte>.Shared.Rent(50);
+                Memory<byte> buffer = memoryOwner.Memory[..50];
 
-                tunnelEndPoint = new IPEndPoint(tunnel.IPAddress, tunnel.Port);
-                tunnelSocket = new Socket(SocketType.Dgram, ProtocolType.Udp);
-                tunnelSocket.SendTimeout = Constants.TUNNEL_CONNECTION_TIMEOUT;
-                tunnelSocket.ReceiveTimeout = Constants.TUNNEL_CONNECTION_TIMEOUT;
+                if (!BitConverter.TryWriteBytes(buffer.Span[..4], SenderId))
+                    throw new Exception();
 
-                try
-                {
-                    using IMemoryOwner<byte> memoryOwner = MemoryPool<byte>.Shared.Rent(50);
-                    Memory<byte> buffer = memoryOwner.Memory[..50];
+                await tunnelSocket.SendToAsync(buffer, SocketFlags.None, tunnelEndPoint);
 
-                    if (!BitConverter.TryWriteBytes(buffer.Span[..4], SenderId))
-                        throw new Exception();
-
-                    await tunnelSocket.SendToAsync(buffer, SocketFlags.None, tunnelEndPoint);
-
-                    Logger.Log($"Connection to tunnel server established.");
-                    Connected?.Invoke(this, EventArgs.Empty);
-                }
-                catch (SocketException ex)
-                {
-                    PreStartup.LogException(ex, "Failed to establish connection to tunnel server.");
-                    tunnelSocket.Close();
-                    ConnectionFailed?.Invoke(this, EventArgs.Empty);
-                    return;
-                }
-
-                tunnelSocket.ReceiveTimeout = Constants.TUNNEL_RECEIVE_TIMEOUT;
-
-                await ReceiveLoopAsync();
+                Logger.Log($"Connection to tunnel server established.");
+                Connected?.Invoke(this, EventArgs.Empty);
             }
-            catch (Exception ex)
+            catch (SocketException ex)
             {
-                PreStartup.HandleException(ex);
+                PreStartup.LogException(ex, "Failed to establish connection to tunnel server.");
+                tunnelSocket.Close();
+                ConnectionFailed?.Invoke(this, EventArgs.Empty);
+                return;
             }
+
+            tunnelSocket.ReceiveTimeout = Constants.TUNNEL_RECEIVE_TIMEOUT;
+
+            await ReceiveLoopAsync();
         }
 
         private async Task ReceiveLoopAsync()

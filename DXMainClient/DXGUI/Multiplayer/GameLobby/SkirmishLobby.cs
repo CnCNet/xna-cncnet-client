@@ -168,42 +168,28 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         protected override async Task BtnLaunchGame_LeftClickAsync()
         {
-            try
-            {
-                string error = CheckGameValidity();
+            string error = CheckGameValidity();
 
-                if (error == null)
-                {
-                    SaveSettings();
-                    await StartGameAsync();
-                    return;
-                }
-
-                XNAMessageBox.Show(WindowManager, "Cannot launch game".L10N("Client:Main:LaunchGameErrorTitle"), error);
-            }
-            catch (Exception ex)
+            if (error == null)
             {
-                PreStartup.HandleException(ex);
+                SaveSettings();
+                await StartGameAsync();
+                return;
             }
+
+            XNAMessageBox.Show(WindowManager, "Cannot launch game".L10N("Client:Main:LaunchGameErrorTitle"), error);
         }
 
         protected override Task BtnLeaveGame_LeftClickAsync()
         {
-            try
-            {
-                Enabled = false;
-                Visible = false;
+            Enabled = false;
+            Visible = false;
 
-                Exited?.Invoke(this, EventArgs.Empty);
+            Exited?.Invoke(this, EventArgs.Empty);
 
-                topBar.RemovePrimarySwitchable(this);
-                ResetDiscordPresence();
+            topBar.RemovePrimarySwitchable(this);
+            ResetDiscordPresence();
 
-            }
-            catch (Exception ex)
-            {
-                PreStartup.HandleException(ex);
-            }
             return Task.CompletedTask;
         }
 
@@ -244,18 +230,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         protected override async Task GameProcessExitedAsync()
         {
-            try
-            {
-                await base.GameProcessExitedAsync();
+            await base.GameProcessExitedAsync();
+            await DdGameModeMapFilter_SelectedIndexChangedAsync(); // Refresh ranks
 
-                await DdGameModeMapFilter_SelectedIndexChangedAsync(); // Refresh ranks
-
-                RandomSeed = new Random().Next();
-            }
-            catch (Exception ex)
-            {
-                PreStartup.HandleException(ex);
-            }
+            RandomSeed = new Random().Next();
         }
 
         public void Open()

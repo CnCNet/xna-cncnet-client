@@ -186,7 +186,7 @@ namespace DTAClient.DXGUI.Generic
             btnLan.IdleTexture = AssetLoader.LoadTexture("MainMenu/lan.png");
             btnLan.HoverTexture = AssetLoader.LoadTexture("MainMenu/lan_c.png");
             btnLan.HoverSoundEffect = new EnhancedSoundEffect("MainMenu/button.wav");
-            btnLan.LeftClick += (_, _) => BtnLan_LeftClickAsync();
+            btnLan.LeftClick += (_, _) => BtnLan_LeftClickAsync().HandleTask();
 
             btnOptions = new XNAClientButton(WindowManager);
             btnOptions.Name = nameof(btnOptions);
@@ -305,7 +305,7 @@ namespace DTAClient.DXGUI.Generic
             cncnetPlayerCountCancellationSource = new CancellationTokenSource();
             CnCNetPlayerCountTask.InitializeService(cncnetPlayerCountCancellationSource);
 
-            WindowManager.GameClosing += (_, _) => WindowManager_GameClosingAsync();
+            WindowManager.GameClosing += (_, _) => CleanAsync().HandleTask();
 
             skirmishLobby.Exited += SkirmishLobby_Exited;
             lanLobby.Exited += LanLobby_Exited;
@@ -501,8 +501,6 @@ namespace DTAClient.DXGUI.Generic
 
         private void SharedUILogic_GameProcessStarted() => MusicOff();
 
-        private Task WindowManager_GameClosingAsync() => CleanAsync();
-
         private void SkirmishLobby_Exited(object sender, EventArgs e)
         {
             if (UserINISettings.Instance.StopMusicOnMenu)
@@ -536,22 +534,15 @@ namespace DTAClient.DXGUI.Generic
         /// </summary>
         private async Task CleanAsync()
         {
-            try
-            {
-                Updater.FileIdentifiersUpdated -= Updater_FileIdentifiersUpdated;
+            Updater.FileIdentifiersUpdated -= Updater_FileIdentifiersUpdated;
 
-                if (cncnetPlayerCountCancellationSource != null) cncnetPlayerCountCancellationSource.Cancel();
-                topBar.Clean();
-                if (UpdateInProgress)
-                    Updater.StopUpdate();
+            if (cncnetPlayerCountCancellationSource != null) cncnetPlayerCountCancellationSource.Cancel();
+            topBar.Clean();
+            if (UpdateInProgress)
+                Updater.StopUpdate();
 
-                if (connectionManager.IsConnected)
-                    await connectionManager.DisconnectAsync();
-            }
-            catch (Exception ex)
-            {
-                PreStartup.HandleException(ex);
-            }
+            if (connectionManager.IsConnected)
+                await connectionManager.DisconnectAsync();
         }
 
         /// <summary>
@@ -844,22 +835,15 @@ namespace DTAClient.DXGUI.Generic
 
         private async Task BtnLan_LeftClickAsync()
         {
-            try
-            {
-                await lanLobby.OpenAsync();
+            await lanLobby.OpenAsync();
 
-                if (UserINISettings.Instance.StopMusicOnMenu)
-                    MusicOff();
+            if (UserINISettings.Instance.StopMusicOnMenu)
+                MusicOff();
 
-                if (connectionManager.IsConnected)
-                    await connectionManager.DisconnectAsync();
+            if (connectionManager.IsConnected)
+                await connectionManager.DisconnectAsync();
 
-                topBar.SetLanMode(true);
-            }
-            catch (Exception ex)
-            {
-                PreStartup.HandleException(ex);
-            }
+            topBar.SetLanMode(true);
         }
 
         private void BtnCnCNet_LeftClick(object sender, EventArgs e) => topBar.SwitchToSecondary();

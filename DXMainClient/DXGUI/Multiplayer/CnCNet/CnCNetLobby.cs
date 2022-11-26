@@ -53,7 +53,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             ctcpCommandHandlers = new CommandHandlerBase[]
             {
-                new StringCommandHandler(ProgramConstants.GAME_INVITE_CTCP_COMMAND, (sender, argumentsString) => HandleGameInviteCommandAsync(sender, argumentsString)),
+                new StringCommandHandler(ProgramConstants.GAME_INVITE_CTCP_COMMAND, (sender, argumentsString) => HandleGameInviteCommandAsync(sender, argumentsString).HandleTask()),
                 new NoParamCommandHandler(ProgramConstants.GAME_INVITATION_FAILED_CTCP_COMMAND, HandleGameInvitationFailedNotification)
             };
 
@@ -175,19 +175,18 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 btnNewGame.Y, UIDesignConstants.BUTTON_WIDTH_133, UIDesignConstants.BUTTON_HEIGHT);
             btnJoinGame.Text = "Join Game".L10N("Client:Main:JoinGame");
             btnJoinGame.AllowClick = false;
-            btnJoinGame.LeftClick += BtnJoinGame_LeftClick;
+            btnJoinGame.LeftClick += (_, _) => JoinSelectedGameAsync().HandleTask();
 
             btnLogout = new XNAClientButton(WindowManager);
             btnLogout.Name = nameof(btnLogout);
             btnLogout.ClientRectangle = new Rectangle(Width - 145, btnNewGame.Y,
                 UIDesignConstants.BUTTON_WIDTH_133, UIDesignConstants.BUTTON_HEIGHT);
             btnLogout.Text = "Log Out".L10N("Client:Main:ButtonLogOut");
-            btnLogout.LeftClick += (_, _) => BtnLogout_LeftClickAsync();
+            btnLogout.LeftClick += (_, _) => BtnLogout_LeftClickAsync().HandleTask();
 
             var gameListRectangle = new Rectangle(
                 btnNewGame.X, 41,
-                btnJoinGame.Right - btnNewGame.X, btnNewGame.Y - 47
-            );
+                btnJoinGame.Right - btnNewGame.X, btnNewGame.Y - 47);
 
             panelGameFilters = new GameFiltersPanel(WindowManager);
             panelGameFilters.Name = nameof(panelGameFilters);
@@ -199,7 +198,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             lbGameList.ClientRectangle = gameListRectangle;
             lbGameList.PanelBackgroundDrawMode = PanelBackgroundImageDrawMode.STRETCHED;
             lbGameList.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 128), 1, 1);
-            lbGameList.DoubleLeftClick += LbGameList_DoubleLeftClick;
+            lbGameList.DoubleLeftClick += (_, _) => JoinSelectedGameAsync().HandleTask();
             lbGameList.AllowMultiLineItems = false;
             lbGameList.ClientRectangleUpdated += GameList_ClientRectangleUpdated;
 
@@ -215,7 +214,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             lbPlayerList.RightClick += LbPlayerList_RightClick;
 
             globalContextMenu = new GlobalContextMenu(WindowManager, connectionManager, cncnetUserData, pmWindow);
-            globalContextMenu.JoinEvent += (_, args) => JoinUserAsync(args.IrcUser, connectionManager.MainChannel);
+            globalContextMenu.JoinEvent += (_, args) => JoinUserAsync(args.IrcUser, connectionManager.MainChannel).HandleTask();
 
             lbChatMessages = new ChatListBox(WindowManager);
             lbChatMessages.Name = nameof(lbChatMessages);
@@ -235,7 +234,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             tbChatInput.Suggestion = "Type here to chat...".L10N("Client:Main:ChatHere");
             tbChatInput.Enabled = false;
             tbChatInput.MaximumTextLength = 200;
-            tbChatInput.EnterPressed += (_, _) => TbChatInput_EnterPressedAsync();
+            tbChatInput.EnterPressed += (_, _) => TbChatInput_EnterPressedAsync().HandleTask();
 
             lblColor = new XNALabel(WindowManager);
             lblColor.Name = nameof(lblColor);
@@ -274,7 +273,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             ddCurrentChannel.ClientRectangle = new Rectangle(
                 lbChatMessages.Right - 200,
                 ddColor.Y, 200, 21);
-            ddCurrentChannel.SelectedIndexChanged += (_, _) => DdCurrentChannel_SelectedIndexChangedAsync();
+            ddCurrentChannel.SelectedIndexChanged += (_, _) => DdCurrentChannel_SelectedIndexChangedAsync().HandleTask();
             ddCurrentChannel.AllowDropDown = false;
 
             lblCurrentChannel = new XNALabel(WindowManager);
@@ -300,8 +299,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             tbGameSearch = new XNASuggestionTextBox(WindowManager);
             tbGameSearch.Name = nameof(tbGameSearch);
-            tbGameSearch.ClientRectangle = new Rectangle(lbGameList.X,
-                12, lbGameList.Width - 62, 21);
+            tbGameSearch.ClientRectangle = new Rectangle(lbGameList.X, 12, lbGameList.Width - 62, 21);
             tbGameSearch.Suggestion = "Filter by name, map, game mode, player...".L10N("Client:Main:FilterByBlahBlah");
             tbGameSearch.MaximumTextLength = 64;
             tbGameSearch.InputReceived += TbGameSearch_InputReceived;
@@ -357,15 +355,15 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             CnCNetPlayerCountTask.CnCNetGameCountUpdated += OnCnCNetGameCountUpdated;
 
-            gameChannel_UserAddedFunc = (sender, e) => GameChannel_UserAddedAsync(sender, e);
-            gameChannel_InvalidPasswordEntered_LoadedGameFunc = (sender, _) => GameChannel_InvalidPasswordEntered_LoadedGameAsync(sender);
-            gameLoadingChannel_UserAddedFunc = (sender, e) => GameLoadingChannel_UserAddedAsync(sender, e);
-            gameChannel_InvalidPasswordEntered_NewGameFunc = (sender, _) => GameChannel_InvalidPasswordEntered_NewGameAsync(sender);
-            gameChannel_InviteOnlyErrorOnJoinFunc = (sender, _) => GameChannel_InviteOnlyErrorOnJoinAsync(sender);
-            gameChannel_ChannelFullFunc = (sender, _) => GameChannel_ChannelFullAsync(sender);
-            gameChannel_TargetChangeTooFastFunc = (sender, e) => GameChannel_TargetChangeTooFastAsync(sender, e);
+            gameChannel_UserAddedFunc = (sender, e) => GameChannel_UserAddedAsync(sender, e).HandleTask();
+            gameChannel_InvalidPasswordEntered_LoadedGameFunc = (sender, _) => GameChannel_InvalidPasswordEntered_LoadedGameAsync(sender).HandleTask();
+            gameLoadingChannel_UserAddedFunc = (sender, e) => GameLoadingChannel_UserAddedAsync(sender, e).HandleTask();
+            gameChannel_InvalidPasswordEntered_NewGameFunc = (sender, _) => GameChannel_InvalidPasswordEntered_NewGameAsync(sender).HandleTask();
+            gameChannel_InviteOnlyErrorOnJoinFunc = (sender, _) => OnGameLocked(sender).HandleTask();
+            gameChannel_ChannelFullFunc = (sender, _) => OnGameLocked(sender).HandleTask();
+            gameChannel_TargetChangeTooFastFunc = (sender, e) => GameChannel_TargetChangeTooFastAsync(sender, e).HandleTask();
 
-            pmWindow.SetJoinUserAction((user, messageView) => JoinUserAsync(user, messageView));
+            pmWindow.SetJoinUserAction((user, messageView) => JoinUserAsync(user, messageView).HandleTask());
 
             base.Initialize();
 
@@ -536,7 +534,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             unknownGameIcon = AssetLoader.TextureFromImage(Image.Load(unknownIconStream));
 
-            connectionManager.WelcomeMessageReceived += (_, _) => ConnectionManager_WelcomeMessageReceivedAsync();
+            connectionManager.WelcomeMessageReceived += (_, _) => ConnectionManager_WelcomeMessageReceivedAsync().HandleTask();
             connectionManager.Disconnected += ConnectionManager_Disconnected;
             connectionManager.PrivateCTCPReceived += ConnectionManager_PrivateCTCPReceived;
 
@@ -550,8 +548,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             gameCreationPanel.AddChild(gcw);
             gameCreationPanel.Tag = gcw;
             gcw.Cancelled += Gcw_Cancelled;
-            gcw.GameCreated += (_, e) => Gcw_GameCreatedAsync(e);
-            gcw.LoadedGameCreated += (_, e) => Gcw_LoadedGameCreatedAsync(e);
+            gcw.GameCreated += (_, e) => Gcw_GameCreatedAsync(e).HandleTask();
+            gcw.LoadedGameCreated += (_, e) => Gcw_LoadedGameCreatedAsync(e).HandleTask();
 
             gameCreationPanel.Hide();
 
@@ -559,7 +557,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                     string.Format("*** DTA CnCNet Client version {0} ***".L10N("Client:Main:CnCNetClientVersionMessage"), Assembly.GetAssembly(typeof(CnCNetLobby)).GetName().Version),
                     lbChatMessages.FontIndex)));
 
-            connectionManager.BannedFromChannel += (_, e) => ConnectionManager_BannedFromChannelAsync(e);
+            connectionManager.BannedFromChannel += (_, e) => ConnectionManager_BannedFromChannelAsync(e).HandleTask();
 
             loginWindow = new CnCNetLoginWindow(WindowManager);
             loginWindow.Connect += LoginWindow_Connect;
@@ -573,7 +571,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             loginWindow.Disable();
 
             passwordRequestWindow = new PasswordRequestWindow(WindowManager, pmWindow);
-            passwordRequestWindow.PasswordEntered += PasswordRequestWindow_PasswordEntered;
+            passwordRequestWindow.PasswordEntered += (_, hostedGame) => JoinGameAsync(hostedGame.HostedGame, hostedGame.Password).HandleTask();
 
             var passwordRequestWindowPanel = new DarkeningPanel(WindowManager);
             passwordRequestWindowPanel.Alpha = 0.0f;
@@ -584,10 +582,9 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             gameLobby.GameLeft += GameLobby_GameLeft;
             gameLoadingLobby.GameLeft += GameLoadingLobby_GameLeft;
 
-            UserINISettings.Instance.SettingsSaved += (_, _) => Instance_SettingsSavedAsync();
-
-            GameProcessLogic.GameProcessStarted += () => SharedUILogic_GameProcessStartedAsync();
-            GameProcessLogic.GameProcessExited += () => SharedUILogic_GameProcessExitedAsync();
+            UserINISettings.Instance.SettingsSaved += (_, _) => Instance_SettingsSavedAsync().HandleTask();
+            GameProcessLogic.GameProcessStarted += () => SharedUILogic_GameProcessStartedAsync().HandleTask();
+            GameProcessLogic.GameProcessExited += () => SharedUILogic_GameProcessExitedAsync().HandleTask();
         }
 
         /// <summary>
@@ -596,96 +593,63 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         /// </summary>
         private async Task ConnectionManager_BannedFromChannelAsync(ChannelEventArgs e)
         {
-            try
+            var game = lbGameList.HostedGames.Find(hg => ((HostedCnCNetGame)hg).ChannelName == e.ChannelName);
+
+            if (game == null)
             {
-                var game = lbGameList.HostedGames.Find(hg => ((HostedCnCNetGame)hg).ChannelName == e.ChannelName);
-
-                if (game == null)
-                {
-                    var chatChannel = connectionManager.FindChannel(e.ChannelName);
-                    chatChannel?.AddMessage(new ChatMessage(Color.White, string.Format(
-                        "Cannot join chat channel {0}, you're banned!".L10N("Client:Main:PlayerBannedByChannel"), chatChannel.UIName)));
-                    return;
-                }
-
-                connectionManager.MainChannel.AddMessage(new ChatMessage(Color.White, string.Format(
-                    "Cannot join game {0}, you've been banned by the game host!".L10N("Client:Main:PlayerBannedByHost"), game.RoomName)));
-
-                isJoiningGame = false;
-                if (gameOfLastJoinAttempt != null)
-                {
-                    if (gameOfLastJoinAttempt.IsLoadedGame)
-                        await gameLoadingLobby.ClearAsync();
-                    else
-                        await gameLobby.ClearAsync();
-                }
+                var chatChannel = connectionManager.FindChannel(e.ChannelName);
+                chatChannel?.AddMessage(new ChatMessage(Color.White, string.Format(
+                    "Cannot join chat channel {0}, you're banned!".L10N("Client:Main:PlayerBannedByChannel"), chatChannel.UIName)));
+                return;
             }
-            catch (Exception ex)
+
+            connectionManager.MainChannel.AddMessage(new ChatMessage(Color.White, string.Format(
+                "Cannot join game {0}, you've been banned by the game host!".L10N("Client:Main:PlayerBannedByHost"), game.RoomName)));
+
+            isJoiningGame = false;
+            if (gameOfLastJoinAttempt != null)
             {
-                PreStartup.HandleException(ex);
+                if (gameOfLastJoinAttempt.IsLoadedGame)
+                    await gameLoadingLobby.ClearAsync();
+                else
+                    await gameLobby.ClearAsync();
             }
         }
 
-        private async Task SharedUILogic_GameProcessStartedAsync()
-        {
-            try
-            {
-                await connectionManager.SendCustomMessageAsync(new QueuedMessage("AWAY " + (char)58 + "In-game",
-                    QueuedMessageType.SYSTEM_MESSAGE, 0));
+        private Task SharedUILogic_GameProcessStartedAsync()
+            => connectionManager.SendCustomMessageAsync(new QueuedMessage(
+                "AWAY " + (char)58 + "In-game",
+                QueuedMessageType.SYSTEM_MESSAGE,
+                0));
 
-            }
-            catch (Exception ex)
-            {
-                PreStartup.HandleException(ex);
-            }
-        }
-
-        private async Task SharedUILogic_GameProcessExitedAsync()
-        {
-            try
-            {
-                await connectionManager.SendCustomMessageAsync(new QueuedMessage("AWAY",
-                     QueuedMessageType.SYSTEM_MESSAGE, 0));
-
-            }
-            catch (Exception ex)
-            {
-                PreStartup.HandleException(ex);
-            }
-        }
+        private Task SharedUILogic_GameProcessExitedAsync()
+            => connectionManager.SendCustomMessageAsync(new QueuedMessage("AWAY", QueuedMessageType.SYSTEM_MESSAGE, 0));
 
         private async Task Instance_SettingsSavedAsync()
         {
-            try
-            {
-                if (!connectionManager.IsConnected)
-                    return;
+            if (!connectionManager.IsConnected)
+                return;
 
-                foreach (CnCNetGame game in gameCollection.GameList)
+            foreach (CnCNetGame game in gameCollection.GameList)
+            {
+                if (!game.Supported)
+                    continue;
+
+                if (game.InternalName.ToUpper() == localGameID)
+                    continue;
+
+                if (followedGames.Contains(game.InternalName) &&
+                    !UserINISettings.Instance.IsGameFollowed(game.InternalName.ToUpper()))
                 {
-                    if (!game.Supported)
-                        continue;
-
-                    if (game.InternalName.ToUpper() == localGameID)
-                        continue;
-
-                    if (followedGames.Contains(game.InternalName) &&
-                        !UserINISettings.Instance.IsGameFollowed(game.InternalName.ToUpper()))
-                    {
-                        await connectionManager.FindChannel(game.GameBroadcastChannel).LeaveAsync();
-                        followedGames.Remove(game.InternalName);
-                    }
-                    else if (!followedGames.Contains(game.InternalName) &&
-                        UserINISettings.Instance.IsGameFollowed(game.InternalName.ToUpper()))
-                    {
-                        await connectionManager.FindChannel(game.GameBroadcastChannel).JoinAsync();
-                        followedGames.Add(game.InternalName);
-                    }
+                    await connectionManager.FindChannel(game.GameBroadcastChannel).LeaveAsync();
+                    followedGames.Remove(game.InternalName);
                 }
-            }
-            catch (Exception ex)
-            {
-                PreStartup.HandleException(ex);
+                else if (!followedGames.Contains(game.InternalName) &&
+                    UserINISettings.Instance.IsGameFollowed(game.InternalName.ToUpper()))
+                {
+                    await connectionManager.FindChannel(game.GameBroadcastChannel).JoinAsync();
+                    followedGames.Add(game.InternalName);
+                }
             }
         }
 
@@ -790,12 +754,6 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             btnLogout.Text = "Log Out".L10N("Client:Main:LogOut");
         }
 
-        private void BtnJoinGame_LeftClick(object sender, EventArgs e) => JoinSelectedGameAsync();
-
-        private void LbGameList_DoubleLeftClick(object sender, EventArgs e) => JoinSelectedGameAsync();
-
-        private void PasswordRequestWindow_PasswordEntered(object sender, PasswordEventArgs e) => _JoinGameAsync(e.HostedGame, e.Password);
-
         private string GetJoinGameErrorBase()
         {
             if (isJoiningGame)
@@ -844,18 +802,11 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         private async Task JoinSelectedGameAsync()
         {
-            try
-            {
-                var listedGame = (HostedCnCNetGame)lbGameList.SelectedItem?.Tag;
-                if (listedGame == null)
-                    return;
-                var hostedGameIndex = lbGameList.HostedGames.IndexOf(listedGame);
-                await JoinGameByIndexAsync(hostedGameIndex, string.Empty);
-            }
-            catch (Exception ex)
-            {
-                PreStartup.HandleException(ex);
-            }
+            var listedGame = (HostedCnCNetGame)lbGameList.SelectedItem?.Tag;
+            if (listedGame == null)
+                return;
+            var hostedGameIndex = lbGameList.HostedGames.IndexOf(listedGame);
+            await JoinGameByIndexAsync(hostedGameIndex, string.Empty);
         }
 
         private async Task<bool> JoinGameByIndexAsync(int gameIndex, string password)
@@ -909,95 +860,70 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 if (!hg.IsLoadedGame)
                 {
                     password = Utilities.CalculateSHA1ForString
-                        (hg.ChannelName + hg.RoomName).Substring(0, 10);
+                        (hg.ChannelName + hg.RoomName)[..10];
                 }
                 else
                 {
                     IniFile spawnSGIni = new IniFile(SafePath.CombineFilePath(ProgramConstants.GamePath, "Saved Games", "spawnSG.ini"));
                     password = Utilities.CalculateSHA1ForString(
-                        spawnSGIni.GetStringValue("Settings", "GameID", string.Empty)).Substring(0, 10);
+                        spawnSGIni.GetStringValue("Settings", "GameID", string.Empty))[..10];
                 }
             }
 
-            await _JoinGameAsync(hg, password);
+            await JoinGameAsync(hg, password);
 
             return true;
         }
 
-        private async Task _JoinGameAsync(HostedCnCNetGame hg, string password)
+        private async Task JoinGameAsync(HostedCnCNetGame hg, string password)
         {
-            try
+            connectionManager.MainChannel.AddMessage(new ChatMessage(Color.White,
+                string.Format("Attempting to join game {0} ...".L10N("Client:Main:AttemptJoin"), hg.RoomName)));
+            isJoiningGame = true;
+            gameOfLastJoinAttempt = hg;
+
+            Channel gameChannel = connectionManager.CreateChannel(hg.RoomName, hg.ChannelName, false, true, password);
+            connectionManager.AddChannel(gameChannel);
+
+            if (hg.IsLoadedGame)
             {
-                connectionManager.MainChannel.AddMessage(new ChatMessage(Color.White,
-                    string.Format("Attempting to join game {0} ...".L10N("Client:Main:AttemptJoin"), hg.RoomName)));
-                isJoiningGame = true;
-                gameOfLastJoinAttempt = hg;
-
-                Channel gameChannel = connectionManager.CreateChannel(hg.RoomName, hg.ChannelName, false, true, password);
-                connectionManager.AddChannel(gameChannel);
-
-                if (hg.IsLoadedGame)
-                {
-                    gameLoadingLobby.SetUp(false, hg.TunnelServer, gameChannel, hg.HostName);
-                    gameChannel.UserAdded += gameLoadingChannel_UserAddedFunc;
-                    gameChannel.InvalidPasswordEntered += gameChannel_InvalidPasswordEntered_LoadedGameFunc;
-                }
-                else
-                {
-                    await gameLobby.SetUpAsync(gameChannel, false, hg.MaxPlayers, hg.TunnelServer, hg.HostName, hg.Passworded, false);
-                    gameChannel.UserAdded += gameChannel_UserAddedFunc;
-                    gameChannel.InvalidPasswordEntered += gameChannel_InvalidPasswordEntered_NewGameFunc;
-                    gameChannel.InviteOnlyErrorOnJoin += gameChannel_InviteOnlyErrorOnJoinFunc;
-                    gameChannel.ChannelFull += gameChannel_ChannelFullFunc;
-                    gameChannel.TargetChangeTooFast += gameChannel_TargetChangeTooFastFunc;
-                }
-
-                await connectionManager.SendCustomMessageAsync(new QueuedMessage("JOIN " + hg.ChannelName + " " + password,
-                    QueuedMessageType.INSTANT_MESSAGE, 0));
+                gameLoadingLobby.SetUp(false, hg.TunnelServer, gameChannel, hg.HostName);
+                gameChannel.UserAdded += gameLoadingChannel_UserAddedFunc;
+                gameChannel.InvalidPasswordEntered += gameChannel_InvalidPasswordEntered_LoadedGameFunc;
             }
-            catch (Exception ex)
+            else
             {
-                PreStartup.HandleException(ex);
+                await gameLobby.SetUpAsync(gameChannel, false, hg.MaxPlayers, hg.TunnelServer, hg.HostName, hg.Passworded, false);
+                gameChannel.UserAdded += gameChannel_UserAddedFunc;
+                gameChannel.InvalidPasswordEntered += gameChannel_InvalidPasswordEntered_NewGameFunc;
+                gameChannel.InviteOnlyErrorOnJoin += gameChannel_InviteOnlyErrorOnJoinFunc;
+                gameChannel.ChannelFull += gameChannel_ChannelFullFunc;
+                gameChannel.TargetChangeTooFast += gameChannel_TargetChangeTooFastFunc;
             }
+
+            await connectionManager.SendCustomMessageAsync(new QueuedMessage("JOIN " + hg.ChannelName + " " + password,
+                QueuedMessageType.INSTANT_MESSAGE, 0));
         }
 
         private async Task GameChannel_TargetChangeTooFastAsync(object sender, MessageEventArgs e)
         {
-            try
-            {
-                connectionManager.MainChannel.AddMessage(new ChatMessage(Color.White, e.Message));
-                await ClearGameJoinAttemptAsync((Channel)sender);
-            }
-            catch (Exception ex)
-            {
-                PreStartup.HandleException(ex);
-            }
+            connectionManager.MainChannel.AddMessage(new ChatMessage(Color.White, e.Message));
+            await ClearGameJoinAttemptAsync((Channel)sender);
         }
 
-        private Task GameChannel_ChannelFullAsync(object sender) =>
-            // We'd do the exact same things here, so we can just call the method below
-            GameChannel_InviteOnlyErrorOnJoinAsync(sender);
-
-        private async Task GameChannel_InviteOnlyErrorOnJoinAsync(object sender)
+        private async Task OnGameLocked(object sender)
         {
-            try
-            {
-                connectionManager.MainChannel.AddMessage(new ChatMessage(Color.White, "The selected game is locked!".L10N("Client:Main:GameLocked")));
-                var channel = (Channel)sender;
+            connectionManager.MainChannel.AddMessage(new ChatMessage(Color.White, "The selected game is locked!".L10N("Client:Main:GameLocked")));
+            var channel = (Channel)sender;
 
-                var game = FindGameByChannelName(channel.ChannelName);
-                if (game != null)
-                {
-                    game.Locked = true;
-                    SortAndRefreshHostedGames();
-                }
-
-                await ClearGameJoinAttemptAsync((Channel)sender);
-            }
-            catch (Exception ex)
+            var game = FindGameByChannelName(channel.ChannelName);
+            if (game != null)
             {
-                PreStartup.HandleException(ex);
+                game.Locked = true;
+                SortAndRefreshHostedGames();
             }
+
+            await ClearGameJoinAttemptAsync((Channel)sender);
         }
 
         private HostedCnCNetGame FindGameByChannelName(string channelName)
@@ -1011,34 +937,20 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         private async Task GameChannel_InvalidPasswordEntered_NewGameAsync(object sender)
         {
-            try
-            {
-                connectionManager.MainChannel.AddMessage(new ChatMessage(Color.White, "Incorrect password!".L10N("Client:Main:PasswordWrong")));
-                await ClearGameJoinAttemptAsync((Channel)sender);
-            }
-            catch (Exception ex)
-            {
-                PreStartup.HandleException(ex);
-            }
+            connectionManager.MainChannel.AddMessage(new ChatMessage(Color.White, "Incorrect password!".L10N("Client:Main:PasswordWrong")));
+            await ClearGameJoinAttemptAsync((Channel)sender);
         }
 
         private async Task GameChannel_UserAddedAsync(object sender, ChannelUserEventArgs e)
         {
-            try
-            {
-                Channel gameChannel = (Channel)sender;
+            Channel gameChannel = (Channel)sender;
 
-                if (e.User.IRCUser.Name == ProgramConstants.PLAYERNAME)
-                {
-                    ClearGameChannelEvents(gameChannel);
-                    await gameLobby.OnJoinedAsync();
-                    isInGameRoom = true;
-                    SetLogOutButtonText();
-                }
-            }
-            catch (Exception ex)
+            if (e.User.IRCUser.Name == ProgramConstants.PLAYERNAME)
             {
-                PreStartup.HandleException(ex);
+                ClearGameChannelEvents(gameChannel);
+                await gameLobby.OnJoinedAsync();
+                isInGameRoom = true;
+                SetLogOutButtonText();
             }
         }
 
@@ -1074,104 +986,76 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         private async Task Gcw_GameCreatedAsync(GameCreationEventArgs e)
         {
-            try
+            if (gameLobby.Enabled || gameLoadingLobby.Enabled)
+                return;
+
+            string channelName = RandomizeChannelName();
+            string password = e.Password;
+            bool isCustomPassword = true;
+            if (string.IsNullOrEmpty(password))
             {
-                if (gameLobby.Enabled || gameLoadingLobby.Enabled)
-                    return;
-
-                string channelName = RandomizeChannelName();
-                string password = e.Password;
-                bool isCustomPassword = true;
-                if (string.IsNullOrEmpty(password))
-                {
-                    password = Utilities.CalculateSHA1ForString(channelName + e.GameRoomName).Substring(0, 10);
-                    isCustomPassword = false;
-                }
-
-                Channel gameChannel = connectionManager.CreateChannel(e.GameRoomName, channelName, false, true, password);
-                connectionManager.AddChannel(gameChannel);
-                await gameLobby.SetUpAsync(gameChannel, true, e.MaxPlayers, e.Tunnel, ProgramConstants.PLAYERNAME, isCustomPassword, false);
-                gameChannel.UserAdded += gameChannel_UserAddedFunc;
-                await connectionManager.SendCustomMessageAsync(new QueuedMessage("JOIN " + channelName + " " + password,
-                    QueuedMessageType.INSTANT_MESSAGE, 0));
-                connectionManager.MainChannel.AddMessage(new ChatMessage(Color.White,
-                   string.Format("Creating a game named {0} ...".L10N("Client:Main:CreateGameNamed"), e.GameRoomName)));
-
-                gameCreationPanel.Hide();
-
-                // update the friends window so it can enable the Invite option
-                pmWindow.SetInviteChannelInfo(channelName, e.GameRoomName, string.IsNullOrEmpty(e.Password) ? string.Empty : e.Password);
+                password = Utilities.CalculateSHA1ForString(channelName + e.GameRoomName)[..10];
+                isCustomPassword = false;
             }
-            catch (Exception ex)
-            {
-                PreStartup.HandleException(ex);
-            }
+
+            Channel gameChannel = connectionManager.CreateChannel(e.GameRoomName, channelName, false, true, password);
+            connectionManager.AddChannel(gameChannel);
+            await gameLobby.SetUpAsync(gameChannel, true, e.MaxPlayers, e.Tunnel, ProgramConstants.PLAYERNAME, isCustomPassword, false);
+            gameChannel.UserAdded += gameChannel_UserAddedFunc;
+            await connectionManager.SendCustomMessageAsync(new QueuedMessage("JOIN " + channelName + " " + password,
+                QueuedMessageType.INSTANT_MESSAGE, 0));
+            connectionManager.MainChannel.AddMessage(new ChatMessage(Color.White,
+               string.Format("Creating a game named {0} ...".L10N("Client:Main:CreateGameNamed"), e.GameRoomName)));
+
+            gameCreationPanel.Hide();
+
+            // update the friends window so it can enable the Invite option
+            pmWindow.SetInviteChannelInfo(channelName, e.GameRoomName, string.IsNullOrEmpty(e.Password) ? string.Empty : e.Password);
         }
 
         private async Task Gcw_LoadedGameCreatedAsync(GameCreationEventArgs e)
         {
-            try
-            {
-                if (gameLobby.Enabled || gameLoadingLobby.Enabled)
-                    return;
+            if (gameLobby.Enabled || gameLoadingLobby.Enabled)
+                return;
 
-                string channelName = RandomizeChannelName();
+            string channelName = RandomizeChannelName();
 
-                Channel gameLoadingChannel = connectionManager.CreateChannel(e.GameRoomName, channelName, false, true, e.Password);
-                connectionManager.AddChannel(gameLoadingChannel);
-                gameLoadingLobby.SetUp(true, e.Tunnel, gameLoadingChannel, ProgramConstants.PLAYERNAME);
-                gameLoadingChannel.UserAdded += gameLoadingChannel_UserAddedFunc;
-                await connectionManager.SendCustomMessageAsync(new QueuedMessage("JOIN " + channelName + " " + e.Password,
-                    QueuedMessageType.INSTANT_MESSAGE, 0));
-                connectionManager.MainChannel.AddMessage(new ChatMessage(Color.White,
-                   string.Format("Creating a game named {0} ...".L10N("Client:Main:CreateGameNamed"), e.GameRoomName)));
+            Channel gameLoadingChannel = connectionManager.CreateChannel(e.GameRoomName, channelName, false, true, e.Password);
+            connectionManager.AddChannel(gameLoadingChannel);
+            gameLoadingLobby.SetUp(true, e.Tunnel, gameLoadingChannel, ProgramConstants.PLAYERNAME);
+            gameLoadingChannel.UserAdded += gameLoadingChannel_UserAddedFunc;
+            await connectionManager.SendCustomMessageAsync(new QueuedMessage("JOIN " + channelName + " " + e.Password,
+                QueuedMessageType.INSTANT_MESSAGE, 0));
+            connectionManager.MainChannel.AddMessage(new ChatMessage(Color.White,
+               string.Format("Creating a game named {0} ...".L10N("Client:Main:CreateGameNamed"), e.GameRoomName)));
 
-                gameCreationPanel.Hide();
+            gameCreationPanel.Hide();
 
-                // update the friends window so it can enable the Invite option
-                pmWindow.SetInviteChannelInfo(channelName, e.GameRoomName, string.IsNullOrEmpty(e.Password) ? string.Empty : e.Password);
-            }
-            catch (Exception ex)
-            {
-                PreStartup.HandleException(ex);
-            }
+            // update the friends window so it can enable the Invite option
+            pmWindow.SetInviteChannelInfo(channelName, e.GameRoomName, string.IsNullOrEmpty(e.Password) ? string.Empty : e.Password);
         }
 
         private async Task GameChannel_InvalidPasswordEntered_LoadedGameAsync(object sender)
         {
-            try
-            {
-                var channel = (Channel)sender;
-                channel.UserAdded -= gameLoadingChannel_UserAddedFunc;
-                channel.InvalidPasswordEntered -= gameChannel_InvalidPasswordEntered_LoadedGameFunc;
-                await gameLoadingLobby.ClearAsync();
-                isJoiningGame = false;
-            }
-            catch (Exception ex)
-            {
-                PreStartup.HandleException(ex);
-            }
+            var channel = (Channel)sender;
+            channel.UserAdded -= gameLoadingChannel_UserAddedFunc;
+            channel.InvalidPasswordEntered -= gameChannel_InvalidPasswordEntered_LoadedGameFunc;
+            await gameLoadingLobby.ClearAsync();
+            isJoiningGame = false;
         }
 
         private async Task GameLoadingChannel_UserAddedAsync(object sender, ChannelUserEventArgs e)
         {
-            try
-            {
-                Channel gameLoadingChannel = (Channel)sender;
+            Channel gameLoadingChannel = (Channel)sender;
 
-                if (e.User.IRCUser.Name == ProgramConstants.PLAYERNAME)
-                {
-                    gameLoadingChannel.UserAdded -= gameLoadingChannel_UserAddedFunc;
-                    gameLoadingChannel.InvalidPasswordEntered -= gameChannel_InvalidPasswordEntered_LoadedGameFunc;
-
-                    await gameLoadingLobby.OnJoinedAsync();
-                    isInGameRoom = true;
-                    isJoiningGame = false;
-                }
-            }
-            catch (Exception ex)
+            if (e.User.IRCUser.Name == ProgramConstants.PLAYERNAME)
             {
-                PreStartup.HandleException(ex);
+                gameLoadingChannel.UserAdded -= gameLoadingChannel_UserAddedFunc;
+                gameLoadingChannel.InvalidPasswordEntered -= gameChannel_InvalidPasswordEntered_LoadedGameFunc;
+
+                await gameLoadingLobby.OnJoinedAsync();
+                isInGameRoom = true;
+                isJoiningGame = false;
             }
         }
 
@@ -1194,21 +1078,14 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         private async Task TbChatInput_EnterPressedAsync()
         {
-            try
-            {
-                if (string.IsNullOrEmpty(tbChatInput.Text))
-                    return;
+            if (string.IsNullOrEmpty(tbChatInput.Text))
+                return;
 
-                IRCColor selectedColor = (IRCColor)ddColor.SelectedItem.Tag;
+            IRCColor selectedColor = (IRCColor)ddColor.SelectedItem.Tag;
 
-                await currentChatChannel.SendChatMessageAsync(tbChatInput.Text, selectedColor);
+            await currentChatChannel.SendChatMessageAsync(tbChatInput.Text, selectedColor);
 
-                tbChatInput.Text = string.Empty;
-            }
-            catch (Exception ex)
-            {
-                PreStartup.HandleException(ex);
-            }
+            tbChatInput.Text = string.Empty;
         }
 
         private void SetChatColor()
@@ -1253,45 +1130,38 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         private async Task ConnectionManager_WelcomeMessageReceivedAsync()
         {
-            try
+            btnNewGame.AllowClick = true;
+            btnJoinGame.AllowClick = true;
+            ddCurrentChannel.AllowDropDown = true;
+            tbChatInput.Enabled = true;
+
+            Channel cncnetChannel = connectionManager.FindChannel("#cncnet");
+            await cncnetChannel.JoinAsync();
+
+            string localGameChatChannelName = gameCollection.GetGameChatChannelNameFromIdentifier(localGameID);
+            await connectionManager.FindChannel(localGameChatChannelName).JoinAsync();
+
+            string localGameBroadcastChannel = gameCollection.GetGameBroadcastingChannelNameFromIdentifier(localGameID);
+            await connectionManager.FindChannel(localGameBroadcastChannel).JoinAsync();
+
+            foreach (CnCNetGame game in gameCollection.GameList)
             {
-                btnNewGame.AllowClick = true;
-                btnJoinGame.AllowClick = true;
-                ddCurrentChannel.AllowDropDown = true;
-                tbChatInput.Enabled = true;
+                if (!game.Supported)
+                    continue;
 
-                Channel cncnetChannel = connectionManager.FindChannel("#cncnet");
-                await cncnetChannel.JoinAsync();
-
-                string localGameChatChannelName = gameCollection.GetGameChatChannelNameFromIdentifier(localGameID);
-                await connectionManager.FindChannel(localGameChatChannelName).JoinAsync();
-
-                string localGameBroadcastChannel = gameCollection.GetGameBroadcastingChannelNameFromIdentifier(localGameID);
-                await connectionManager.FindChannel(localGameBroadcastChannel).JoinAsync();
-
-                foreach (CnCNetGame game in gameCollection.GameList)
+                if (game.InternalName.ToUpper() != localGameID)
                 {
-                    if (!game.Supported)
-                        continue;
-
-                    if (game.InternalName.ToUpper() != localGameID)
+                    if (UserINISettings.Instance.IsGameFollowed(game.InternalName.ToUpper()))
                     {
-                        if (UserINISettings.Instance.IsGameFollowed(game.InternalName.ToUpper()))
-                        {
-                            await connectionManager.FindChannel(game.GameBroadcastChannel).JoinAsync();
-                            followedGames.Add(game.InternalName);
-                        }
+                        await connectionManager.FindChannel(game.GameBroadcastChannel).JoinAsync();
+                        followedGames.Add(game.InternalName);
                     }
                 }
+            }
 
-                gameCheckCancellation = new CancellationTokenSource();
-                CnCNetGameCheck gameCheck = new CnCNetGameCheck();
-                gameCheck.InitializeService(gameCheckCancellation);
-            }
-            catch (Exception ex)
-            {
-                PreStartup.HandleException(ex);
-            }
+            gameCheckCancellation = new CancellationTokenSource();
+            CnCNetGameCheck gameCheck = new CnCNetGameCheck();
+            gameCheck.InitializeService(gameCheckCancellation);
         }
 
         private void ConnectionManager_PrivateCTCPReceived(object sender, PrivateCTCPEventArgs e)
@@ -1307,107 +1177,91 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         private async Task HandleGameInviteCommandAsync(string sender, string argumentsString)
         {
-            try
+            // arguments are semicolon-delimited
+            var arguments = argumentsString.Split(';');
+
+            // we expect to be given a channel name, a (human-friendly) game name and optionally a password
+            if (arguments.Length < 2 || arguments.Length > 3)
+                return;
+
+            string channelName = arguments[0];
+            string gameName = arguments[1];
+            string password = (arguments.Length == 3) ? arguments[2] : string.Empty;
+
+            if (!CanReceiveInvitationMessagesFrom(sender))
+                return;
+
+            var gameIndex = lbGameList.HostedGames.FindIndex(hg => ((HostedCnCNetGame)hg).ChannelName == channelName);
+
+            // also enforce user preference on whether to accept invitations from non-friends
+            // this is kept separate from CanReceiveInvitationMessagesFrom() as we still
+            // want to let the host know that we couldn't receive the invitation
+            if (!string.IsNullOrEmpty(GetJoinGameErrorByIndex(gameIndex)) ||
+                (UserINISettings.Instance.AllowGameInvitesFromFriendsOnly &&
+                !cncnetUserData.IsFriend(sender)))
             {
-                // arguments are semicolon-delimited
-                var arguments = argumentsString.Split(';');
+                // let the host know that we can't accept
+                // note this is not reached for the rejection case
+                await connectionManager.SendCustomMessageAsync(new QueuedMessage("PRIVMSG " + sender + " :\u0001" +
+                    ProgramConstants.GAME_INVITATION_FAILED_CTCP_COMMAND + "\u0001",
+                    QueuedMessageType.CHAT_MESSAGE, 0));
 
-                // we expect to be given a channel name, a (human-friendly) game name and optionally a password
-                if (arguments.Length < 2 || arguments.Length > 3)
-                    return;
-
-                string channelName = arguments[0];
-                string gameName = arguments[1];
-                string password = (arguments.Length == 3) ? arguments[2] : string.Empty;
-
-                if (!CanReceiveInvitationMessagesFrom(sender))
-                    return;
-
-                var gameIndex = lbGameList.HostedGames.FindIndex(hg => ((HostedCnCNetGame)hg).ChannelName == channelName);
-
-                // also enforce user preference on whether to accept invitations from non-friends
-                // this is kept separate from CanReceiveInvitationMessagesFrom() as we still
-                // want to let the host know that we couldn't receive the invitation
-                if (!string.IsNullOrEmpty(GetJoinGameErrorByIndex(gameIndex)) ||
-                    (UserINISettings.Instance.AllowGameInvitesFromFriendsOnly &&
-                    !cncnetUserData.IsFriend(sender)))
-                {
-                    // let the host know that we can't accept
-                    // note this is not reached for the rejection case
-                    await connectionManager.SendCustomMessageAsync(new QueuedMessage("PRIVMSG " + sender + " :\u0001" +
-                        ProgramConstants.GAME_INVITATION_FAILED_CTCP_COMMAND + "\u0001",
-                        QueuedMessageType.CHAT_MESSAGE, 0));
-
-                    return;
-                }
-
-                // if there's already an outstanding invitation from this user/channel combination,
-                // we don't want to display another
-                // we won't bother telling the host though, since their old invitation is still
-                // available to us
-                var invitationIdentity = new UserChannelPair(sender, channelName);
-
-                if (invitationIndex.ContainsKey(invitationIdentity))
-                {
-                    return;
-                }
-
-                var gameInviteChoiceBox = new ChoiceNotificationBox(WindowManager);
-
-                WindowManager.AddAndInitializeControl(gameInviteChoiceBox);
-
-                // show the invitation at top left; it will remain until it is acted upon or the target game is closed
-                gameInviteChoiceBox.Show(
-                    "GAME INVITATION".L10N("Client:Main:GameInviteTitle"),
-                    GetUserTexture(sender),
-                    sender,
-                    string.Format("Join {0}?".L10N("Client:Main:GameInviteText"), gameName),
-                    "Yes".L10N("Client:Main:ButtonYes"), "No".L10N("Client:Main:ButtonNo"), 0);
-
-                // add the invitation to the index so we can remove it if the target game is closed
-                // also lets us silently ignore new invitations from the same person while this one is still outstanding
-                invitationIndex[invitationIdentity] =
-                    new WeakReference(gameInviteChoiceBox);
-
-                gameInviteChoiceBox.AffirmativeClickedAction = async _ =>
-                {
-                    try
-                    {
-                        // if we're currently in a game lobby, first leave that channel
-                        if (isInGameRoom)
-                        {
-                            await gameLobby.LeaveGameLobbyAsync();
-                        }
-
-                        // JoinGameByIndex does bounds checking so we're safe to pass -1 if the game doesn't exist
-                        if (!await JoinGameByIndexAsync(lbGameList.HostedGames.FindIndex(hg => ((HostedCnCNetGame)hg).ChannelName == channelName), password))
-                        {
-                            XNAMessageBox.Show(WindowManager,
-                                "Failed to join".L10N("Client:Main:JoinFailedTitle"),
-                                string.Format("Unable to join {0}'s game. The game may be locked or closed.".L10N("Client:Main:JoinFailedText"), sender));
-                        }
-
-                        // clean up the index as this invitation no longer exists
-                        invitationIndex.Remove(invitationIdentity);
-                    }
-                    catch (Exception ex)
-                    {
-                        PreStartup.HandleException(ex);
-                    }
-                };
-
-                gameInviteChoiceBox.NegativeClickedAction = delegate (ChoiceNotificationBox choiceBox)
-                {
-                    // clean up the index as this invitation no longer exists
-                    invitationIndex.Remove(invitationIdentity);
-                };
-
-                sndGameInviteReceived.Play();
+                return;
             }
-            catch (Exception ex)
+
+            // if there's already an outstanding invitation from this user/channel combination,
+            // we don't want to display another
+            // we won't bother telling the host though, since their old invitation is still
+            // available to us
+            var invitationIdentity = new UserChannelPair(sender, channelName);
+
+            if (invitationIndex.ContainsKey(invitationIdentity))
             {
-                PreStartup.HandleException(ex);
+                return;
             }
+
+            var gameInviteChoiceBox = new ChoiceNotificationBox(WindowManager);
+
+            WindowManager.AddAndInitializeControl(gameInviteChoiceBox);
+
+            // show the invitation at top left; it will remain until it is acted upon or the target game is closed
+            gameInviteChoiceBox.Show(
+                "GAME INVITATION".L10N("Client:Main:GameInviteTitle"),
+                GetUserTexture(sender),
+                sender,
+                string.Format("Join {0}?".L10N("Client:Main:GameInviteText"), gameName),
+                "Yes".L10N("Client:Main:ButtonYes"), "No".L10N("Client:Main:ButtonNo"), 0);
+
+            // add the invitation to the index so we can remove it if the target game is closed
+            // also lets us silently ignore new invitations from the same person while this one is still outstanding
+            invitationIndex[invitationIdentity] = new WeakReference(gameInviteChoiceBox);
+
+            gameInviteChoiceBox.AffirmativeClickedAction = _ => AffirmativeClickedActionAsync(channelName, password, sender, invitationIdentity).HandleTask();
+
+            // clean up the index as this invitation no longer exists
+            gameInviteChoiceBox.NegativeClickedAction = _ => invitationIndex.Remove(invitationIdentity);
+
+            sndGameInviteReceived.Play();
+        }
+
+        private async Task AffirmativeClickedActionAsync(string channelName, string password, string sender, UserChannelPair invitationIdentity)
+        {
+            // if we're currently in a game lobby, first leave that channel
+            if (isInGameRoom)
+            {
+                await gameLobby.LeaveGameLobbyAsync();
+            }
+
+            // JoinGameByIndex does bounds checking so we're safe to pass -1 if the game doesn't exist
+            if (!await JoinGameByIndexAsync(lbGameList.HostedGames.FindIndex(hg => ((HostedCnCNetGame)hg).ChannelName == channelName), password))
+            {
+                XNAMessageBox.Show(WindowManager,
+                    "Failed to join".L10N("Client:Main:JoinFailedTitle"),
+                    string.Format("Unable to join {0}'s game. The game may be locked or closed.".L10N("Client:Main:JoinFailedText"), sender));
+            }
+
+            // clean up the index as this invitation no longer exists
+            invitationIndex.Remove(invitationIdentity);
         }
 
         private void HandleGameInvitationFailedNotification(string sender)
@@ -1426,58 +1280,51 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         private async Task DdCurrentChannel_SelectedIndexChangedAsync()
         {
-            try
+            if (currentChatChannel != null)
             {
-                if (currentChatChannel != null)
-                {
-                    currentChatChannel.UserAdded -= RefreshPlayerList;
-                    currentChatChannel.UserLeft -= RefreshPlayerList;
-                    currentChatChannel.UserQuitIRC -= RefreshPlayerList;
-                    currentChatChannel.UserKicked -= RefreshPlayerList;
-                    currentChatChannel.UserListReceived -= RefreshPlayerList;
-                    currentChatChannel.MessageAdded -= CurrentChatChannel_MessageAdded;
-                    currentChatChannel.UserGameIndexUpdated -= CurrentChatChannel_UserGameIndexUpdated;
-
-                    if (currentChatChannel.ChannelName != "#cncnet" &&
-                        currentChatChannel.ChannelName != gameCollection.GetGameChatChannelNameFromIdentifier(localGameID))
-                    {
-                        // Remove the assigned channels from the users so we don't have ghost users on the PM user list
-                        currentChatChannel.Users.DoForAllUsers(user =>
-                        {
-                            connectionManager.RemoveChannelFromUser(user.IRCUser.Name, currentChatChannel.ChannelName);
-                        });
-
-                        await currentChatChannel.LeaveAsync();
-                    }
-                }
-
-                currentChatChannel = (Channel)ddCurrentChannel.SelectedItem.Tag;
-                currentChatChannel.UserAdded += RefreshPlayerList;
-                currentChatChannel.UserLeft += RefreshPlayerList;
-                currentChatChannel.UserQuitIRC += RefreshPlayerList;
-                currentChatChannel.UserKicked += RefreshPlayerList;
-                currentChatChannel.UserListReceived += RefreshPlayerList;
-                currentChatChannel.MessageAdded += CurrentChatChannel_MessageAdded;
-                currentChatChannel.UserGameIndexUpdated += CurrentChatChannel_UserGameIndexUpdated;
-                connectionManager.SetMainChannel(currentChatChannel);
-
-                lbPlayerList.TopIndex = 0;
-
-                lbChatMessages.TopIndex = 0;
-                lbChatMessages.Clear();
-                currentChatChannel.Messages.ForEach(msg => AddMessageToChat(msg));
-
-                RefreshPlayerList(this, EventArgs.Empty);
+                currentChatChannel.UserAdded -= RefreshPlayerList;
+                currentChatChannel.UserLeft -= RefreshPlayerList;
+                currentChatChannel.UserQuitIRC -= RefreshPlayerList;
+                currentChatChannel.UserKicked -= RefreshPlayerList;
+                currentChatChannel.UserListReceived -= RefreshPlayerList;
+                currentChatChannel.MessageAdded -= CurrentChatChannel_MessageAdded;
+                currentChatChannel.UserGameIndexUpdated -= CurrentChatChannel_UserGameIndexUpdated;
 
                 if (currentChatChannel.ChannelName != "#cncnet" &&
                     currentChatChannel.ChannelName != gameCollection.GetGameChatChannelNameFromIdentifier(localGameID))
                 {
-                    await currentChatChannel.JoinAsync();
+                    // Remove the assigned channels from the users so we don't have ghost users on the PM user list
+                    currentChatChannel.Users.DoForAllUsers(user =>
+                    {
+                        connectionManager.RemoveChannelFromUser(user.IRCUser.Name, currentChatChannel.ChannelName);
+                    });
+
+                    await currentChatChannel.LeaveAsync();
                 }
             }
-            catch (Exception ex)
+
+            currentChatChannel = (Channel)ddCurrentChannel.SelectedItem.Tag;
+            currentChatChannel.UserAdded += RefreshPlayerList;
+            currentChatChannel.UserLeft += RefreshPlayerList;
+            currentChatChannel.UserQuitIRC += RefreshPlayerList;
+            currentChatChannel.UserKicked += RefreshPlayerList;
+            currentChatChannel.UserListReceived += RefreshPlayerList;
+            currentChatChannel.MessageAdded += CurrentChatChannel_MessageAdded;
+            currentChatChannel.UserGameIndexUpdated += CurrentChatChannel_UserGameIndexUpdated;
+            connectionManager.SetMainChannel(currentChatChannel);
+
+            lbPlayerList.TopIndex = 0;
+
+            lbChatMessages.TopIndex = 0;
+            lbChatMessages.Clear();
+            currentChatChannel.Messages.ForEach(msg => AddMessageToChat(msg));
+
+            RefreshPlayerList(this, EventArgs.Empty);
+
+            if (currentChatChannel.ChannelName != "#cncnet" &&
+                currentChatChannel.ChannelName != gameCollection.GetGameChatChannelNameFromIdentifier(localGameID))
             {
-                PreStartup.HandleException(ex);
+                await currentChatChannel.JoinAsync();
             }
         }
 
@@ -1578,7 +1425,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 e.Message.StartsWith("UPDATE ") &&
                 e.Message.Length > 7)
             {
-                string version = e.Message.Substring(7);
+                string version = e.Message[7..];
                 if (version != ProgramConstants.GAME_VERSION)
                 {
                     var updateMessageBox = XNAMessageBox.ShowYesNoDialog(WindowManager, "Update available".L10N("Client:Main:UpdateAvailableTitle"),
@@ -1591,7 +1438,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             if (!e.Message.StartsWith("GAME "))
                 return;
 
-            string msg = e.Message.Substring(5); // Cut out GAME part
+            string msg = e.Message[5..]; // Cut out GAME part
             string[] splitMessage = msg.Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
 
             if (splitMessage.Length != 11)
@@ -1609,7 +1456,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 int maxPlayers = Conversions.IntFromString(splitMessage[2], 0);
                 string gameRoomChannelName = splitMessage[3];
                 string gameRoomDisplayName = splitMessage[4];
-                bool locked = Conversions.BooleanFromString(splitMessage[5].Substring(0, 1), true);
+                bool locked = Conversions.BooleanFromString(splitMessage[5][..1], true);
                 bool isCustomPassword = Conversions.BooleanFromString(splitMessage[5].Substring(1, 1), false);
                 bool isClosed = Conversions.BooleanFromString(splitMessage[5].Substring(2, 1), true);
                 bool isLoadedGame = Conversions.BooleanFromString(splitMessage[5].Substring(3, 1), false);
@@ -1695,26 +1542,19 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         private async Task BtnLogout_LeftClickAsync()
         {
-            try
+            if (isInGameRoom)
             {
-                if (isInGameRoom)
-                {
-                    topBar.SwitchToPrimary();
-                    return;
-                }
-
-                if (connectionManager.IsConnected &&
-                    !UserINISettings.Instance.PersistentMode)
-                {
-                    await connectionManager.DisconnectAsync();
-                }
-
                 topBar.SwitchToPrimary();
+                return;
             }
-            catch (Exception ex)
+
+            if (connectionManager.IsConnected &&
+                !UserINISettings.Instance.PersistentMode)
             {
-                PreStartup.HandleException(ex);
+                await connectionManager.DisconnectAsync();
             }
+
+            topBar.SwitchToPrimary();
         }
 
         public void SwitchOn()
@@ -1819,27 +1659,20 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         /// <param name="messageView">The message view/list to write error messages to.</param>
         private async Task JoinUserAsync(IRCUser user, IMessageView messageView)
         {
-            try
+            if (user == null)
             {
-                if (user == null)
-                {
-                    // can happen if a user is selected while offline
-                    messageView.AddMessage(new ChatMessage(Color.White, "User is not currently available!".L10N("Client:Main:UserNotAvailable")));
-                    return;
-                }
-                var game = GetHostedGameForUser(user);
-                if (game == null)
-                {
-                    messageView.AddMessage(new ChatMessage(Color.White, string.Format("{0} is not in a game!".L10N("Client:Main:UserNotInGame"), user.Name)));
-                    return;
-                }
+                // can happen if a user is selected while offline
+                messageView.AddMessage(new ChatMessage(Color.White, "User is not currently available!".L10N("Client:Main:UserNotAvailable")));
+                return;
+            }
+            var game = GetHostedGameForUser(user);
+            if (game == null)
+            {
+                messageView.AddMessage(new ChatMessage(Color.White, string.Format("{0} is not in a game!".L10N("Client:Main:UserNotInGame"), user.Name)));
+                return;
+            }
 
-                await JoinGameAsync(game, string.Empty, messageView);
-            }
-            catch (Exception ex)
-            {
-                PreStartup.HandleException(ex);
-            }
+            await JoinGameAsync(game, string.Empty, messageView);
         }
     }
 }

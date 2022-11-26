@@ -101,7 +101,7 @@ namespace DTAClient.Online
             lock (idLocker)
             {
                 int maxLength = ID_LENGTH - (ClientConfiguration.Instance.LocalGame.Length + 1);
-                systemId = Utilities.CalculateSHA1ForString(id).Substring(0, maxLength);
+                systemId = Utilities.CalculateSHA1ForString(id)[..maxLength];
             }
         }
 
@@ -125,7 +125,7 @@ namespace DTAClient.Online
             cancellationTokenSource?.Dispose();
             cancellationTokenSource = new CancellationTokenSource();
 
-            ConnectToServerAsync(cancellationTokenSource.Token);
+            ConnectToServerAsync(cancellationTokenSource.Token).HandleTask();
         }
 
         /// <summary>
@@ -173,7 +173,7 @@ namespace DTAClient.Online
 
                             connectionManager.OnConnected();
 
-                            RunSendQueueAsync(cancellationToken);
+                            RunSendQueueAsync(cancellationToken).HandleTask();
 
                             socket?.Dispose();
                             socket = client;
@@ -202,10 +202,6 @@ namespace DTAClient.Online
             catch (OperationCanceledException)
             {
             }
-            catch (Exception ex)
-            {
-                PreStartup.HandleException(ex);
-            }
         }
 
         private async Task HandleCommAsync(CancellationToken cancellationToken)
@@ -221,7 +217,7 @@ namespace DTAClient.Online
                 Enabled = true
             };
 
-            timer.Elapsed += (_, _) => AutoPingAsync();
+            timer.Elapsed += (_, _) => AutoPingAsync().HandleTask();
 
             connectionCut = true;
 
@@ -476,14 +472,14 @@ namespace DTAClient.Online
                 }
                 else if (msg.Length != commandEndIndex + 1)
                 {
-                    string command = msg.Substring(0, commandEndIndex - 1);
+                    string command = msg[..(commandEndIndex - 1)];
                     await PerformCommandAsync(command);
 
                     msg = msg.Remove(0, commandEndIndex + 1);
                 }
                 else
                 {
-                    string command = msg.Substring(0, msg.Length - 1);
+                    string command = msg[..^1];
                     await PerformCommandAsync(command);
                     break;
                 }
@@ -617,14 +613,14 @@ namespace DTAClient.Online
                                 string channelName = parameters[0];
                                 string ctcpMessage = parameters[1];
                                 ctcpMessage = ctcpMessage.Remove(0, 1).Remove(ctcpMessage.Length - 2);
-                                string ctcpSender = prefix.Substring(0, noticeExclamIndex);
+                                string ctcpSender = prefix[..noticeExclamIndex];
                                 connectionManager.OnCTCPParsed(channelName, ctcpSender, ctcpMessage);
 
                                 return;
                             }
                             else
                             {
-                                string noticeUserName = prefix.Substring(0, noticeExclamIndex);
+                                string noticeUserName = prefix[..noticeExclamIndex];
                                 string notice = parameters[parameters.Count - 1];
                                 connectionManager.OnNoticeMessageParsed(notice, noticeUserName);
                                 break;
@@ -639,18 +635,18 @@ namespace DTAClient.Online
                         string channel = parameters[0];
                         int atIndex = prefix.IndexOf('@');
                         int exclamIndex = prefix.IndexOf('!');
-                        string userName = prefix.Substring(0, exclamIndex);
+                        string userName = prefix[..exclamIndex];
                         string ident = prefix.Substring(exclamIndex + 1, atIndex - (exclamIndex + 1));
-                        string host = prefix.Substring(atIndex + 1);
+                        string host = prefix[(atIndex + 1)..];
                         connectionManager.OnUserJoinedChannel(channel, host, userName, ident);
                         break;
                     case "PART":
                         string pChannel = parameters[0];
-                        string pUserName = prefix.Substring(0, prefix.IndexOf('!'));
+                        string pUserName = prefix[..prefix.IndexOf('!')];
                         connectionManager.OnUserLeftChannel(pChannel, pUserName);
                         break;
                     case "QUIT":
-                        string qUserName = prefix.Substring(0, prefix.IndexOf('!'));
+                        string qUserName = prefix[..prefix.IndexOf('!')];
                         connectionManager.OnUserQuitIRC(qUserName);
                         break;
                     case "PRIVMSG":
@@ -658,14 +654,14 @@ namespace DTAClient.Online
                         {
                             goto case "NOTICE";
                         }
-                        string pmsgUserName = prefix.Substring(0, prefix.IndexOf('!'));
+                        string pmsgUserName = prefix[..prefix.IndexOf('!')];
                         string pmsgIdent = GetIdentFromPrefix(prefix);
                         string[] recipients = new string[parameters.Count - 1];
                         for (int pid = 0; pid < parameters.Count - 1; pid++)
                             recipients[pid] = parameters[pid];
                         string privmsg = parameters[parameters.Count - 1];
                         if (parameters[1].StartsWith('\u0001' + "ACTION"))
-                            privmsg = privmsg.Substring(1).Remove(privmsg.Length - 2);
+                            privmsg = privmsg[1..].Remove(privmsg.Length - 2);
                         foreach (string recipient in recipients)
                         {
                             if (recipient.StartsWith("#"))
@@ -675,7 +671,7 @@ namespace DTAClient.Online
                         }
                         break;
                     case "MODE":
-                        string modeUserName = prefix.Contains('!') ? prefix.Substring(0, prefix.IndexOf('!')) : prefix;
+                        string modeUserName = prefix.Contains('!') ? prefix[..prefix.IndexOf('!')] : prefix;
                         string modeChannelName = parameters[0];
                         string modeString = parameters[1];
                         List<string> modeParameters =
@@ -706,14 +702,14 @@ namespace DTAClient.Online
                         if (parameters.Count < 2)
                             break;
 
-                        connectionManager.OnChannelTopicChanged(prefix.Substring(0, prefix.IndexOf('!')),
+                        connectionManager.OnChannelTopicChanged(prefix[..prefix.IndexOf('!')],
                             parameters[0], parameters[1]);
                         break;
                     case "NICK":
                         int nickExclamIndex = prefix.IndexOf('!');
                         if (nickExclamIndex > -1 || parameters.Count < 1)
                         {
-                            string oldNick = prefix.Substring(0, nickExclamIndex);
+                            string oldNick = prefix[..nickExclamIndex];
                             string newNick = parameters[0];
                             Logger.Log("Nick change - " + oldNick + " -> " + newNick);
                             connectionManager.OnUserNicknameChange(oldNick, newNick);
@@ -766,7 +762,7 @@ namespace DTAClient.Online
             int trailingStart = message.IndexOf(" :");
             string trailing = null;
             if (trailingStart >= 0)
-                trailing = message.Substring(trailingStart + 2);
+                trailing = message[(trailingStart + 2)..];
             else
                 trailingStart = message.Length;
 
@@ -808,93 +804,77 @@ namespace DTAClient.Online
         {
             try
             {
-                try
+                while (!cancellationToken.IsCancellationRequested)
                 {
-                    while (!cancellationToken.IsCancellationRequested)
+                    string message = string.Empty;
+
+                    await messageQueueLocker.WaitAsync(cancellationToken);
+
+                    try
                     {
-                        string message = string.Empty;
-
-                        await messageQueueLocker.WaitAsync(cancellationToken);
-
-                        try
+                        for (int i = 0; i < MessageQueue.Count; i++)
                         {
-                            for (int i = 0; i < MessageQueue.Count; i++)
+                            QueuedMessage qm = MessageQueue[i];
+                            if (qm.Delay > 0)
                             {
-                                QueuedMessage qm = MessageQueue[i];
-                                if (qm.Delay > 0)
-                                {
-                                    if (qm.SendAt < DateTime.Now)
-                                    {
-                                        message = qm.Command;
-
-                                        Logger.Log("Delayed message sent: " + qm.ID);
-
-                                        MessageQueue.RemoveAt(i);
-                                        break;
-                                    }
-                                }
-                                else
+                                if (qm.SendAt < DateTime.Now)
                                 {
                                     message = qm.Command;
+
+                                    Logger.Log("Delayed message sent: " + qm.ID);
+
                                     MessageQueue.RemoveAt(i);
                                     break;
                                 }
                             }
+                            else
+                            {
+                                message = qm.Command;
+                                MessageQueue.RemoveAt(i);
+                                break;
+                            }
                         }
-                        finally
-                        {
-                            messageQueueLocker.Release();
-                        }
-
-                        if (string.IsNullOrEmpty(message))
-                        {
-                            await Task.Delay(10, cancellationToken);
-                            continue;
-                        }
-
-                        await SendMessageAsync(message);
-                        await Task.Delay(MessageQueueDelay, cancellationToken);
-                    }
-                }
-                catch (OperationCanceledException)
-                {
-                }
-                finally
-                {
-                    await messageQueueLocker.WaitAsync(CancellationToken.None);
-
-                    try
-                    {
-                        MessageQueue.Clear();
                     }
                     finally
                     {
                         messageQueueLocker.Release();
                     }
 
-                    sendQueueExited = true;
+                    if (string.IsNullOrEmpty(message))
+                    {
+                        await Task.Delay(10, cancellationToken);
+                        continue;
+                    }
+
+                    await SendMessageAsync(message);
+                    await Task.Delay(MessageQueueDelay, cancellationToken);
                 }
             }
-            catch (Exception ex)
+            catch (OperationCanceledException)
             {
-                PreStartup.HandleException(ex);
+            }
+            finally
+            {
+                await messageQueueLocker.WaitAsync(CancellationToken.None);
+
+                try
+                {
+                    MessageQueue.Clear();
+                }
+                finally
+                {
+                    messageQueueLocker.Release();
+                }
+
+                sendQueueExited = true;
             }
         }
 
         /// <summary>
         /// Sends a PING message to the server to indicate that we're still connected.
         /// </summary>
-        private async Task AutoPingAsync()
-        {
-            try
-            {
-                await SendMessageAsync("PING LAG" + new Random().Next(100000, 999999));
-            }
-            catch (Exception ex)
-            {
-                PreStartup.HandleException(ex);
-            }
-        }
+        private Task AutoPingAsync()
+            => SendMessageAsync("PING LAG" + new Random().Next(100000, 999999));
 
         /// <summary>
         /// Registers the user.

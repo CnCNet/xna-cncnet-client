@@ -544,66 +544,59 @@ namespace DTAClient.Online
 
         public void OnUserJoinedChannel(string channelName, string host, string userName, string ident)
         {
-            wm.AddCallback(() => DoUserJoinedChannelAsync(channelName, host, userName, ident));
+            wm.AddCallback(() => DoUserJoinedChannelAsync(channelName, host, userName, ident).HandleTask());
         }
 
         private async Task DoUserJoinedChannelAsync(string channelName, string host, string userName, string userAddress)
         {
-            try
+            Channel channel = FindChannel(channelName);
+
+            if (channel == null)
+                return;
+
+            bool isAdmin = false;
+            string name = userName;
+
+            if (userName.StartsWith("@"))
             {
-                Channel channel = FindChannel(channelName);
-
-                if (channel == null)
-                    return;
-
-                bool isAdmin = false;
-                string name = userName;
-
-                if (userName.StartsWith("@"))
-                {
-                    isAdmin = true;
-                    name = userName.Remove(0, 1);
-                }
-
-                IRCUser ircUser = null;
-
-                // Check if we already know this user from another channel
-                // Avoid LINQ here for performance reasons
-                foreach (var user in UserList)
-                {
-                    if (user.Name == name)
-                    {
-                        ircUser = (IRCUser)user.Clone();
-                        break;
-                    }
-                }
-
-                // If we don't know the user, create a new one
-                if (ircUser == null)
-                {
-                    string identifier = userAddress.Split('@')[0];
-                    string[] parts = identifier.Split('.');
-                    ircUser = new IRCUser(name, identifier, host);
-
-                    if (parts.Length > 1)
-                    {
-                        ircUser.GameID = gameCollection.GameList.FindIndex(g => g.InternalName.ToUpper() == parts[0].Replace("~", string.Empty));
-                    }
-
-                    AddUserToGlobalUserList(ircUser);
-                }
-
-                var channelUser = new ChannelUser(ircUser);
-                channelUser.IsAdmin = isAdmin;
-                channelUser.IsFriend = cncNetUserData.IsFriend(channelUser.IRCUser.Name);
-
-                ircUser.Channels.Add(channelName);
-                await channel.OnUserJoinedAsync(channelUser);
+                isAdmin = true;
+                name = userName.Remove(0, 1);
             }
-            catch (Exception ex)
+
+            IRCUser ircUser = null;
+
+            // Check if we already know this user from another channel
+            // Avoid LINQ here for performance reasons
+            foreach (var user in UserList)
             {
-                PreStartup.HandleException(ex);
+                if (user.Name == name)
+                {
+                    ircUser = (IRCUser)user.Clone();
+                    break;
+                }
             }
+
+            // If we don't know the user, create a new one
+            if (ircUser == null)
+            {
+                string identifier = userAddress.Split('@')[0];
+                string[] parts = identifier.Split('.');
+                ircUser = new IRCUser(name, identifier, host);
+
+                if (parts.Length > 1)
+                {
+                    ircUser.GameID = gameCollection.GameList.FindIndex(g => g.InternalName.ToUpper() == parts[0].Replace("~", string.Empty));
+                }
+
+                AddUserToGlobalUserList(ircUser);
+            }
+
+            var channelUser = new ChannelUser(ircUser);
+            channelUser.IsAdmin = isAdmin;
+            channelUser.IsFriend = cncNetUserData.IsFriend(channelUser.IRCUser.Name);
+
+            ircUser.Channels.Add(channelName);
+            await channel.OnUserJoinedAsync(channelUser);
         }
 
         private void AddUserToGlobalUserList(IRCUser user)
@@ -721,10 +714,10 @@ namespace DTAClient.Online
                 if (userName.StartsWith("@"))
                 {
                     isAdmin = true;
-                    name = userName.Substring(1);
+                    name = userName[1..];
                 }
                 else if (userName.StartsWith("+"))
-                    name = userName.Substring(1);
+                    name = userName[1..];
 
                 // Check if we already know the IRC user from another channel
                 IRCUser ircUser = UserList.Find(u => u.Name == name);
@@ -837,7 +830,7 @@ namespace DTAClient.Online
 
         public void OnNameAlreadyInUse()
         {
-            wm.AddCallback(DoNameAlreadyInUseAsync);
+            wm.AddCallback(() => DoNameAlreadyInUseAsync().HandleTask());
         }
 
         /// <summary>
@@ -847,43 +840,36 @@ namespace DTAClient.Online
         /// </summary>
         private async Task DoNameAlreadyInUseAsync()
         {
-            try
+            var charList = ProgramConstants.PLAYERNAME.ToList();
+            int maxNameLength = ClientConfiguration.Instance.MaxNameLength;
+
+            if (charList.Count < maxNameLength)
+                charList.Add('_');
+            else
             {
-                var charList = ProgramConstants.PLAYERNAME.ToList();
-                int maxNameLength = ClientConfiguration.Instance.MaxNameLength;
+                int lastNonUnderscoreIndex = charList.FindLastIndex(c => c != '_');
 
-                if (charList.Count < maxNameLength)
-                    charList.Add('_');
-                else
+                if (lastNonUnderscoreIndex == -1)
                 {
-                    int lastNonUnderscoreIndex = charList.FindLastIndex(c => c != '_');
-
-                    if (lastNonUnderscoreIndex == -1)
-                    {
-                        MainChannel.AddMessage(new ChatMessage(Color.White,
-                            "Your nickname is invalid or already in use. Please change your nickname in the login screen.".L10N("Client:Main:PickAnotherNickName")));
-                        UserINISettings.Instance.SkipConnectDialog.Value = false;
-                        await DisconnectAsync();
-                        return;
-                    }
-
-                    charList[lastNonUnderscoreIndex] = '_';
+                    MainChannel.AddMessage(new ChatMessage(Color.White,
+                        "Your nickname is invalid or already in use. Please change your nickname in the login screen.".L10N("Client:Main:PickAnotherNickName")));
+                    UserINISettings.Instance.SkipConnectDialog.Value = false;
+                    await DisconnectAsync();
+                    return;
                 }
 
-                var sb = new StringBuilder();
-                foreach (char c in charList)
-                    sb.Append(c);
-
-                MainChannel.AddMessage(new ChatMessage(Color.White,
-                    string.Format("Your name is already in use. Retrying with {0}...".L10N("Client:Main:NameInUseRetry"), sb)));
-
-                ProgramConstants.PLAYERNAME = sb.ToString();
-                await connection.ChangeNicknameAsync();
+                charList[lastNonUnderscoreIndex] = '_';
             }
-            catch (Exception ex)
-            {
-                PreStartup.HandleException(ex);
-            }
+
+            var sb = new StringBuilder();
+            foreach (char c in charList)
+                sb.Append(c);
+
+            MainChannel.AddMessage(new ChatMessage(Color.White,
+                string.Format("Your name is already in use. Retrying with {0}...".L10N("Client:Main:NameInUseRetry"), sb)));
+
+            ProgramConstants.PLAYERNAME = sb.ToString();
+            await connection.ChangeNicknameAsync();
         }
 
         public void OnBannedFromChannel(string channelName)

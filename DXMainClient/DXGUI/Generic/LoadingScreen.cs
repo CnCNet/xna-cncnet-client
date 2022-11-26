@@ -55,9 +55,9 @@ namespace DTAClient.DXGUI.Generic
             bool initUpdater = !ClientConfiguration.Instance.ModMode;
 
             if (initUpdater)
-                updaterInitTask = Task.Run(InitUpdater);
+                updaterInitTask = Task.Run(InitUpdater).HandleTaskAsync();
 
-            mapLoadTask = Task.Run(() => mapLoader.LoadMaps());
+            mapLoadTask = mapLoader.LoadMapsAsync().HandleTaskAsync();
 
             if (Cursor.Visible)
             {
@@ -68,15 +68,8 @@ namespace DTAClient.DXGUI.Generic
 
         private void InitUpdater()
         {
-            try
-            {
-                Updater.OnLocalFileVersionsChecked += LogGameClientVersion;
-                Updater.CheckLocalFileVersions();
-            }
-            catch (Exception ex)
-            {
-                PreStartup.HandleException(ex);
-            }
+            Updater.OnLocalFileVersionsChecked += LogGameClientVersion;
+            Updater.CheckLocalFileVersions();
         }
 
         private void LogGameClientVersion()

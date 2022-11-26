@@ -53,28 +53,21 @@ namespace DTAClient.Domain.Multiplayer
         /// <summary>
         /// Load maps based on INI info as well as those in the custom maps directory.
         /// </summary>
-        public void LoadMaps()
+        public async Task LoadMapsAsync()
         {
-            try
-            {
-                string mpMapsPath = SafePath.CombineFilePath(ProgramConstants.GamePath, ClientConfiguration.Instance.MPMapsIniPath);
+            string mpMapsPath = SafePath.CombineFilePath(ProgramConstants.GamePath, ClientConfiguration.Instance.MPMapsIniPath);
 
-                Logger.Log($"Loading maps from {mpMapsPath}.");
+            Logger.Log($"Loading maps from {mpMapsPath}.");
 
-                IniFile mpMapsIni = new IniFile(mpMapsPath);
+            IniFile mpMapsIni = new IniFile(mpMapsPath);
 
-                LoadGameModes(mpMapsIni);
-                LoadGameModeAliases(mpMapsIni);
-                LoadMultiMaps(mpMapsIni);
-                LoadCustomMaps();
+            LoadGameModes(mpMapsIni);
+            LoadGameModeAliases(mpMapsIni);
+            LoadMultiMaps(mpMapsIni);
+            await LoadCustomMapsAsync();
 
-                GameModes.RemoveAll(g => g.Maps.Count < 1);
-                GameModeMaps = new GameModeMapCollection(GameModes);
-            }
-            catch (Exception ex)
-            {
-                PreStartup.HandleException(ex);
-            }
+            GameModes.RemoveAll(g => g.Maps.Count < 1);
+            GameModeMaps = new GameModeMapCollection(GameModes);
         }
 
         private void LoadMultiMaps(IniFile mpMapsIni)
@@ -147,7 +140,7 @@ namespace DTAClient.Domain.Multiplayer
             }
         }
 
-        private void LoadCustomMaps()
+        private async Task LoadCustomMapsAsync()
         {
             DirectoryInfo customMapsDirectory = SafePath.GetDirectory(ProgramConstants.GamePath, CUSTOM_MAPS_DIRECTORY);
 
@@ -158,7 +151,7 @@ namespace DTAClient.Domain.Multiplayer
             }
 
             IEnumerable<FileInfo> mapFiles = customMapsDirectory.EnumerateFiles($"*{MAP_FILE_EXTENSION}");
-            ConcurrentDictionary<string, Map> customMapCache = LoadCustomMapCache();
+            ConcurrentDictionary<string, Map> customMapCache = await LoadCustomMapCacheAsync();
             var localMapSHAs = new List<string>();
 
             var tasks = new List<Task>();
@@ -167,8 +160,8 @@ namespace DTAClient.Domain.Multiplayer
             {
                 tasks.Add(Task.Run(() =>
                 {
-                    string baseFilePath = mapFile.FullName.Substring(ProgramConstants.GamePath.Length);
-                    baseFilePath = baseFilePath.Substring(0, baseFilePath.Length - 4);
+                    string baseFilePath = mapFile.FullName[ProgramConstants.GamePath.Length..];
+                    baseFilePath = baseFilePath[..^4];
 
                     var map = new Map(baseFilePath
                         .Replace(Path.DirectorySeparatorChar, '/')
@@ -180,7 +173,7 @@ namespace DTAClient.Domain.Multiplayer
                 }));
             }
 
-            Task.WaitAll(tasks.ToArray());
+            await Task.WhenAll(tasks.ToArray());
 
             // remove cached maps that no longer exist locally
             foreach (var missingSHA in customMapCache.Keys.Where(cachedSHA => !localMapSHAs.Contains(cachedSHA)))
@@ -217,14 +210,12 @@ namespace DTAClient.Domain.Multiplayer
         /// Load previously cached custom maps
         /// </summary>
         /// <returns></returns>
-        private ConcurrentDictionary<string, Map> LoadCustomMapCache()
+        private async Task<ConcurrentDictionary<string, Map>> LoadCustomMapCacheAsync()
         {
             try
             {
-                var jsonData = File.ReadAllText(CUSTOM_MAPS_CACHE);
-
-                var customMapCache = JsonSerializer.Deserialize<CustomMapCache>(jsonData, jsonSerializerOptions);
-
+                await using var jsonData = File.OpenRead(CUSTOM_MAPS_CACHE);
+                var customMapCache = await JsonSerializer.DeserializeAsync<CustomMapCache>(jsonData, jsonSerializerOptions);
                 var customMaps = customMapCache?.Version == CurrentCustomMapCacheVersion && customMapCache.Maps != null
                     ? customMapCache.Maps : new ConcurrentDictionary<string, Map>();
 
