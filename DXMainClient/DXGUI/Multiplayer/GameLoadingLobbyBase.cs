@@ -200,7 +200,7 @@ namespace DTAClient.DXGUI.Multiplayer
 
             if (SavedGameManager.AreSavedGamesAvailable())
             {
-                fsw = new FileSystemWatcher(SafePath.CombineDirectoryPath(ProgramConstants.GamePath, "Saved Games"), "*.NET");
+                fsw = new FileSystemWatcher(SafePath.CombineDirectoryPath(ProgramConstants.GamePath, ProgramConstants.SAVED_GAMES_DIRECTORY), "*.NET");
                 fsw.EnableRaisingEvents = false;
                 fsw.Created += fsw_Created;
                 fsw.Changed += fsw_Created;
@@ -291,7 +291,7 @@ namespace DTAClient.DXGUI.Multiplayer
 
             spawnFileInfo.Delete();
 
-            File.Copy(SafePath.CombineFilePath(ProgramConstants.GamePath, "Saved Games", "spawnSG.ini"), spawnFileInfo.FullName);
+            File.Copy(SafePath.CombineFilePath(ProgramConstants.GamePath, ProgramConstants.SAVED_GAME_SPAWN_INI), spawnFileInfo.FullName);
 
             IniFile spawnIni = new IniFile(spawnFileInfo.FullName);
 
@@ -401,7 +401,7 @@ namespace DTAClient.DXGUI.Multiplayer
             ddSavedGame.AllowDropDown = isHost;
             btnLoadGame.Text = isHost ? "Load Game".L10N("UI:Main:ButtonLoadGame") : "I'm Ready".L10N("UI:Main:ButtonGetReady");
 
-            IniFile spawnSGIni = new IniFile(SafePath.CombineFilePath(ProgramConstants.GamePath, "Saved Games", "spawnSG.ini"));
+            IniFile spawnSGIni = new IniFile(SafePath.CombineFilePath(ProgramConstants.GamePath, ProgramConstants.SAVED_GAME_SPAWN_INI));
 
             lblMapNameValue.Text = spawnSGIni.GetStringValue("Settings", "UIMapName", string.Empty);
             lblGameModeValue.Text = spawnSGIni.GetStringValue("Settings", "UIGameMode", string.Empty);
