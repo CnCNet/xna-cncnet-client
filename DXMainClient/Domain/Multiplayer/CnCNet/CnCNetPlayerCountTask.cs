@@ -22,7 +22,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
         {
             cncnetLiveStatusIdentifier = ClientConfiguration.Instance.CnCNetLiveStatusIdentifier;
 
-            RunServiceAsync(cts.Token);
+            RunServiceAsync(cts.Token).HandleTask();
         }
 
         private static async Task RunServiceAsync(CancellationToken cancellationToken)

@@ -337,7 +337,7 @@ namespace DTAClient.DXGUI.Multiplayer
             }
 
             Logger.Log("Starting listener.");
-            ListenAsync(cancellationTokenSource.Token);
+            ListenAsync(cancellationTokenSource.Token).HandleTask();
 
             await SendAliveAsync(cancellationTokenSource.Token);
         }

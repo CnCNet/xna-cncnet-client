@@ -251,7 +251,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 LANPlayerInfo lpInfo = new LANPlayerInfo(encoding);
                 lpInfo.SetClient(client);
 
-                HandleClientConnectionAsync(lpInfo, cancellationToken);
+                HandleClientConnectionAsync(lpInfo, cancellationToken).HandleTask();
             }
         }
 

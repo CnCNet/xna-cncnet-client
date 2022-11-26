@@ -56,7 +56,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                 MapUploadQueue.Add(map);
 
                 if (MapUploadQueue.Count == 1)
-                    UploadAsync(map, myGame.ToLower());
+                    UploadAsync(map, myGame.ToLower()).HandleTask();
             }
         }
 
@@ -96,7 +96,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
 
                     Logger.Log("MapSharer: There are additional maps in the queue.");
 
-                    UploadAsync(nextMap, myGameId);
+                    UploadAsync(nextMap, myGameId).HandleTask();
                 }
             }
         }
@@ -203,7 +203,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                 MapDownloadQueue.Add(sha1);
 
                 if (MapDownloadQueue.Count == 1)
-                    DownloadAsync(sha1, myGame.ToLower(), mapName);
+                    DownloadAsync(sha1, myGame.ToLower(), mapName).HandleTask();
             }
         }
 
@@ -241,7 +241,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                 if (MapDownloadQueue.Any())
                 {
                     Logger.Log("MapSharer: Continuing custom map downloads.");
-                    DownloadAsync(MapDownloadQueue[0], myGameId, mapName);
+                    DownloadAsync(MapDownloadQueue[0], myGameId, mapName).HandleTask();
                 }
             }
         }

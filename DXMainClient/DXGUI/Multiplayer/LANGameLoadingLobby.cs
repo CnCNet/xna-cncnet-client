@@ -142,7 +142,7 @@ namespace DTAClient.DXGUI.Multiplayer
                 this.client = client;
             }
 
-            HandleServerCommunicationAsync(cancellationTokenSource.Token);
+            HandleServerCommunicationAsync(cancellationTokenSource.Token).HandleTask();
 
             if (IsHost)
                 CopyPlayerDataToUI();
