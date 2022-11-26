@@ -9,7 +9,7 @@ namespace DTAClient.Domain
         public static string GAME_NAME_LONG = "CnCNet Client";
         public static string GAME_NAME_SHORT = "CnCNet";
 
-        public static string CREDITS_URL = "http://rampastring.cncnet.org/TS/Credits.txt";
+        public static string CREDITS_URL = string.Empty;
 
         public static string SUPPORT_URL_SHORT = "www.cncnet.org";
 

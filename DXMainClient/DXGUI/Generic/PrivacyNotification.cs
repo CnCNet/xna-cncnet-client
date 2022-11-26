@@ -1,4 +1,5 @@
-﻿using ClientCore;
+﻿using System;
+using ClientCore;
 using ClientGUI;
 using ClientCore.Extensions;
 using Microsoft.Xna.Framework;
@@ -42,7 +43,7 @@ namespace DTAClient.DXGUI.Generic
             lblTermsAndConditions.Name = nameof(lblTermsAndConditions);
             lblTermsAndConditions.X = lblMoreInformation.Right + UIDesignConstants.CONTROL_HORIZONTAL_MARGIN;
             lblTermsAndConditions.Y = lblMoreInformation.Y;
-            lblTermsAndConditions.Text = "https://cncnet.org/terms-and-conditions";
+            lblTermsAndConditions.Text = $"{Uri.UriSchemeHttps}://cncnet.org/terms-and-conditions";
             lblTermsAndConditions.LeftClick += (s, e) => ProcessLauncher.StartShellProcess(lblTermsAndConditions.Text);
             AddChild(lblTermsAndConditions);
 
@@ -50,7 +51,7 @@ namespace DTAClient.DXGUI.Generic
             lblPrivacyPolicy.Name = nameof(lblPrivacyPolicy);
             lblPrivacyPolicy.X = lblTermsAndConditions.Right + UIDesignConstants.CONTROL_HORIZONTAL_MARGIN;
             lblPrivacyPolicy.Y = lblMoreInformation.Y;
-            lblPrivacyPolicy.Text = "https://cncnet.org/privacy-policy";
+            lblPrivacyPolicy.Text = $"{Uri.UriSchemeHttps}://cncnet.org/privacy-policy";
             lblPrivacyPolicy.LeftClick += (s, e) => ProcessLauncher.StartShellProcess(lblPrivacyPolicy.Text);
             AddChild(lblPrivacyPolicy);
 

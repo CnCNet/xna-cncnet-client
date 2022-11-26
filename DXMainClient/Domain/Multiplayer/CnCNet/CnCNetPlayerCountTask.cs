@@ -46,17 +46,19 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
         {
             try
             {
-                var httpClientHandler = new HttpClientHandler
-                {
-                    AutomaticDecompression = DecompressionMethods.All
-                };
-                using var client = new HttpClient(httpClientHandler, true)
+                using var client = new HttpClient(
+                    new SocketsHttpHandler
+                    {
+                        PooledConnectionLifetime = TimeSpan.FromMinutes(15),
+                        AutomaticDecompression = DecompressionMethods.All
+                    },
+                    true)
                 {
                     Timeout = TimeSpan.FromMilliseconds(Constants.TUNNEL_CONNECTION_TIMEOUT),
                     DefaultVersionPolicy = HttpVersionPolicy.RequestVersionOrHigher
                 };
 
-                string info = await client.GetStringAsync("https://api.cncnet.org/status");
+                string info = await client.GetStringAsync($"{Uri.UriSchemeHttps}://api.cncnet.org/status");
 
                 info = info.Replace("{", String.Empty);
                 info = info.Replace("}", String.Empty);

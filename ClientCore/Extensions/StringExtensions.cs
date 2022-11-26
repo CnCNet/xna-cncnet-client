@@ -10,11 +10,11 @@ public static class StringExtensions
         if (string.IsNullOrWhiteSpace(text))
             return null;
 
-        int index = text.IndexOf("http://", StringComparison.Ordinal);
-        if (index == -1)
-            index = text.IndexOf("ftp://", StringComparison.Ordinal);
-        if (index == -1)
-            index = text.IndexOf("https://", StringComparison.Ordinal);
+            int index = text.IndexOf($"{Uri.UriSchemeHttp}://", StringComparison.Ordinal);
+            if (index == -1)
+                index = text.IndexOf($"{Uri.UriSchemeFtp}://", StringComparison.Ordinal);
+            if (index == -1)
+                index = text.IndexOf($"{Uri.UriSchemeHttps}://", StringComparison.Ordinal);
 
         if (index == -1)
             return null; // No link found

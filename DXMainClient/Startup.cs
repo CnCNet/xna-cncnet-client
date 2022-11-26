@@ -1,6 +1,5 @@
 ﻿using System;
 using System.IO;
-using System.Threading;
 using Microsoft.Win32;
 using DTAClient.Domain;
 using ClientCore;
@@ -25,7 +24,7 @@ namespace DTAClient
     /// <summary>
     /// A class that handles initialization of the Client.
     /// </summary>
-    public class Startup
+    internal sealed class Startup
     {
         /// <summary>
         /// The main method for startup and initialization.
@@ -40,11 +39,8 @@ namespace DTAClient
                 throw new DirectoryNotFoundException("Theme directory not found!" + Environment.NewLine + ProgramConstants.RESOURCES_DIR);
 
             Logger.Log("Initializing updater.");
-
             SafePath.DeleteFileIfExists(ProgramConstants.GamePath, "version_u");
-
             Updater.Initialize(ProgramConstants.GamePath, ProgramConstants.GetBaseResourcePath(), ClientConfiguration.Instance.SettingsIniName, ClientConfiguration.Instance.LocalGame, SafePath.GetFile(ProgramConstants.StartupExecutable).Name);
-
             Logger.Log("OSDescription: " + RuntimeInformation.OSDescription);
             Logger.Log("OSArchitecture: " + RuntimeInformation.OSArchitecture);
             Logger.Log("ProcessArchitecture: " + RuntimeInformation.ProcessArchitecture);
@@ -57,8 +53,7 @@ namespace DTAClient
             {
                 // The query in CheckSystemSpecifications takes lots of time,
                 // so we'll do it in a separate thread to make startup faster
-                Thread thread = new Thread(CheckSystemSpecifications);
-                thread.Start();
+                Task.Run(CheckSystemSpecifications);
             }
 
             GenerateOnlineIdAsync();
