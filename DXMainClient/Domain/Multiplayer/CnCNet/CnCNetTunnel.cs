@@ -113,25 +113,26 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
         public async Task<List<int>> GetPlayerPortInfoAsync(int playerCount)
         {
             if (Version != Constants.TUNNEL_VERSION_2)
-                throw new InvalidOperationException($"GetPlayerPortInfo only works with version {Constants.TUNNEL_VERSION_2} tunnels.");
+                throw new InvalidOperationException($"{nameof(GetPlayerPortInfoAsync)} only works with version {Constants.TUNNEL_VERSION_2} tunnels.");
 
             try
             {
                 Logger.Log($"Contacting tunnel at {Address}:{Port}");
 
-                string addressString = $"http://{Address}:{Port}/request?clients={playerCount}";
+                string addressString = $"{Uri.UriSchemeHttp}://{Address}:{Port}/request?clients={playerCount}";
                 Logger.Log($"Downloading from {addressString}");
 
-                var httpClientHandler = new HttpClientHandler
-                {
-                    AutomaticDecompression = DecompressionMethods.All
-                };
-                using var client = new HttpClient(httpClientHandler, true)
+                using var client = new HttpClient(
+                    new SocketsHttpHandler
+                    {
+                        PooledConnectionLifetime = TimeSpan.FromMinutes(15),
+                        AutomaticDecompression = DecompressionMethods.All
+                    },
+                    true)
                 {
                     Timeout = TimeSpan.FromMilliseconds(Constants.TUNNEL_CONNECTION_TIMEOUT),
                     DefaultVersionPolicy = HttpVersionPolicy.RequestVersionOrHigher
                 };
-
                 string data = await client.GetStringAsync(addressString);
 
                 data = data.Replace("[", string.Empty);

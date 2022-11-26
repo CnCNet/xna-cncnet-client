@@ -156,12 +156,14 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
         private static async Task<List<CnCNetTunnel>> DoRefreshTunnelsAsync()
         {
             FileInfo tunnelCacheFile = SafePath.GetFile(ProgramConstants.ClientUserFilesPath, "tunnel_cache");
-            List<CnCNetTunnel> returnValue = new List<CnCNetTunnel>();
-            var httpClientHandler = new HttpClientHandler
-            {
-                AutomaticDecompression = DecompressionMethods.All
-            };
-            using var client = new HttpClient(httpClientHandler, true)
+            var returnValue = new List<CnCNetTunnel>();
+            using var client = new HttpClient(
+                new SocketsHttpHandler
+                {
+                    PooledConnectionLifetime = TimeSpan.FromMinutes(15),
+                    AutomaticDecompression = DecompressionMethods.All
+                },
+                true)
             {
                 Timeout = TimeSpan.FromSeconds(100),
                 DefaultVersionPolicy = HttpVersionPolicy.RequestVersionOrHigher

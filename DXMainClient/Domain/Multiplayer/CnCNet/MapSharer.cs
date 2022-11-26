@@ -36,7 +36,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
 
         private static readonly object locker = new();
 
-        private const string MAPDB_URL = "https://mapdb.cncnet.org/upload";
+        private const string MAPDB_URL = "https://mapdb.cncnet.org/";
 
         /// <summary>
         /// Adds a map into the CnCNet map upload queue.
@@ -66,7 +66,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
 
             Logger.Log("MapSharer: Starting upload of " + map.BaseFilePath);
 
-            (string message, bool success) = await MapUploadAsync(MAPDB_URL, map, myGameId);
+            (string message, bool success) = await MapUploadAsync(map, myGameId);
 
             if (success)
             {
@@ -101,7 +101,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
             }
         }
 
-        private static async Task<(string Message, bool Success)> MapUploadAsync(string address, Map map, string gameName)
+        private static async Task<(string Message, bool Success)> MapUploadAsync(Map map, string gameName)
         {
             using MemoryStream zipStream = CreateZipFile(map.CompleteFilePath);
 
@@ -115,7 +115,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                     {
                         { "game", gameName.ToLower() }
                     };
-                string response = await UploadFilesAsync(address, files, values);
+                string response = await UploadFilesAsync(files, values);
 
                 if (!response.Contains("Upload succeeded!"))
                     return (response, false);
@@ -131,7 +131,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
             }
         }
 
-        private static async Task<string> UploadFilesAsync(string address, List<FileToUpload> files, NameValueCollection values)
+        private static async Task<string> UploadFilesAsync(List<FileToUpload> files, NameValueCollection values)
         {
             using HttpClient client = GetHttpClient();
 
@@ -153,21 +153,23 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                 multipartFormDataContent.Add(streamContent, file.Name, file.Filename);
             }
 
-            HttpResponseMessage httpResponseMessage = await client.PostAsync(address, multipartFormDataContent);
+            HttpResponseMessage httpResponseMessage = await client.PostAsync("upload", multipartFormDataContent);
 
             return await httpResponseMessage.EnsureSuccessStatusCode().Content.ReadAsStringAsync();
         }
 
         private static HttpClient GetHttpClient()
         {
-            var httpClientHandler = new HttpClientHandler
-            {
-                AutomaticDecompression = DecompressionMethods.All
-            };
-
-            return new HttpClient(httpClientHandler, true)
+            return new HttpClient(
+                new SocketsHttpHandler
+                {
+                    PooledConnectionLifetime = TimeSpan.FromMinutes(15),
+                    AutomaticDecompression = DecompressionMethods.All
+                },
+                true)
             {
                 Timeout = TimeSpan.FromMilliseconds(10000),
+                BaseAddress = new Uri(MAPDB_URL),
                 DefaultVersionPolicy = HttpVersionPolicy.RequestVersionOrHigher
             };
         }
@@ -245,7 +247,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
         }
 
         public static string GetMapFileName(string sha1, string mapName)
-            => mapName + "_" + sha1;
+            => FormattableString.Invariant($"{mapName}_{sha1}");
 
         private static async Task<(string Error, bool Success)> DownloadMainAsync(string sha1, string myGame, string mapName)
         {
@@ -257,8 +259,8 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
 
             try
             {
-                string address = "https://mapdb.cncnet.org/" + myGame + "/" + sha1 + ".zip";
-                Logger.Log("MapSharer: Downloading URL: " + address);
+                string address = FormattableString.Invariant($"{myGame}/{sha1}.zip");
+                Logger.Log($"MapSharer: Downloading URL: {MAPDB_URL}{address})");
                 stream = await client.GetStreamAsync(address);
             }
             catch (Exception ex)
