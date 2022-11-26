@@ -17,6 +17,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using ClientCore.Extensions;
 
 namespace DTAClient.DXGUI.Multiplayer
 {
@@ -180,7 +181,7 @@ namespace DTAClient.DXGUI.Multiplayer
                 }
                 catch (Exception ex)
                 {
-                    PreStartup.LogException(ex, "Listener error.");
+                    ProgramConstants.LogException(ex, "Listener error.");
                     break;
                 }
 
@@ -213,7 +214,7 @@ namespace DTAClient.DXGUI.Multiplayer
                 }
                 catch (Exception ex)
                 {
-                    PreStartup.LogException(ex, "Socket error with client " + lpInfo.IPAddress + "; removing.");
+                    ProgramConstants.LogException(ex, "Socket error with client " + lpInfo.IPAddress + "; removing.");
                     break;
                 }
 
@@ -342,7 +343,7 @@ namespace DTAClient.DXGUI.Multiplayer
                 }
                 catch (Exception ex)
                 {
-                    Logger.Log("Reading data from the server failed! Message: " + ex.Message);
+                    ProgramConstants.LogException(ex, "Reading data from the server failed!");
                     await LeaveGameAsync();
                     break;
                 }
@@ -613,7 +614,7 @@ namespace DTAClient.DXGUI.Multiplayer
             }
             catch (Exception ex)
             {
-                PreStartup.LogException(ex, "Sending message to game host failed!");
+                ProgramConstants.LogException(ex, "Sending message to game host failed!");
             }
         }
 
@@ -627,13 +628,13 @@ namespace DTAClient.DXGUI.Multiplayer
                 for (int i = 1; i < Players.Count; i++)
                 {
                     LANPlayerInfo lpInfo = (LANPlayerInfo)Players[i];
-                    if (!Task.Run(() => lpInfo.UpdateAsync(gameTime)).Result)
+                    if (!Task.Run(() => lpInfo.UpdateAsync(gameTime).HandleTaskAsync()).Result)
                     {
                         CleanUpPlayer(lpInfo);
                         Players.RemoveAt(i);
                         AddNotice(string.Format("{0} - connection timed out".L10N("Client:Main:PlayerTimeout"), lpInfo.Name));
                         CopyPlayerDataToUI();
-                        Task.Run(BroadcastOptionsAsync).Wait();
+                        Task.Run(() => BroadcastOptionsAsync().HandleTaskAsync()).Wait();
                         UpdateDiscordPresence();
                         i--;
                     }

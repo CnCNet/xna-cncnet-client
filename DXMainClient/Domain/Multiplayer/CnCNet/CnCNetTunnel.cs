@@ -7,6 +7,7 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Sockets;
 using System.Threading.Tasks;
+using ClientCore;
 
 namespace DTAClient.Domain.Multiplayer.CnCNet
 {
@@ -27,7 +28,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
         /// <returns>A CnCNetTunnel instance parsed from the given string.</returns>
         public static CnCNetTunnel Parse(string str)
         {
-            // For the format, check https://core-api.cncnet.org/tunnels/master-list
+            // For the format, check https://cncnet.org/master-list
             try
             {
                 var tunnel = new CnCNetTunnel();
@@ -72,7 +73,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
             }
             catch (Exception ex) when (ex is FormatException or OverflowException or IndexOutOfRangeException)
             {
-                PreStartup.LogException(ex, "Parsing tunnel information failed. Parsed string: " + str);
+                ProgramConstants.LogException(ex, "Parsing tunnel information failed. Parsed string: " + str);
                 return null;
             }
         }
@@ -151,7 +152,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
             }
             catch (Exception ex)
             {
-                PreStartup.LogException(ex, "Unable to connect to the specified tunnel server.");
+                ProgramConstants.LogException(ex, "Unable to connect to the specified tunnel server.");
             }
 
             return new List<int>();
@@ -182,7 +183,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
             }
             catch (SocketException ex)
             {
-                PreStartup.LogException(ex, $"Failed to ping tunnel {Name} ({Address}:{Port}).");
+                ProgramConstants.LogException(ex, $"Failed to ping tunnel {Name} ({Address}:{Port}).");
 
                 PingInMs = -1;
             }

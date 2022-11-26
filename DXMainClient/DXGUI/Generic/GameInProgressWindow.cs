@@ -9,6 +9,7 @@ using ClientCore.Extensions;
 using Color = Microsoft.Xna.Framework.Color;
 using Rectangle = Microsoft.Xna.Framework.Rectangle;
 #if ARES
+using ClientCore.Extensions;
 using System.Linq;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -87,15 +88,18 @@ namespace DTAClient.DXGUI
                 if (debugLogFileInfo.Exists)
                     debugLogLastWriteTime = debugLogFileInfo.LastWriteTime;
             }
-            catch { }
+            catch (Exception ex)
+            {
+                ProgramConstants.LogException(ex);
+            }
 #endif
         }
 
         private void SharedUILogic_GameProcessStarted()
         {
-
 #if ARES
             debugSnapshotDirectories = GetAllDebugSnapshotDirectories();
+
 #else
             try
             {
@@ -108,7 +112,7 @@ namespace DTAClient.DXGUI
             }
             catch (Exception ex)
             {
-                Logger.Log("Exception when deleting error log files! Message: " + ex.Message);
+                ProgramConstants.LogException(ex, "Exception when deleting error log files!");
                 deletingLogFilesFailed = true;
             }
 #endif
@@ -166,7 +170,7 @@ namespace DTAClient.DXGUI
             DateTime dtn = DateTime.Now;
 
 #if ARES
-            Task.Run(ProcessScreenshots);
+            Task.Run(ProcessScreenshots).HandleTask();
 
             // TODO: Ares debug log handling should be addressed in Ares DLL itself.
             // For now the following are handled here:
@@ -246,8 +250,9 @@ namespace DTAClient.DXGUI
             }
             catch (Exception ex)
             {
-                Logger.Log("An error occured while checking for " + filename + " file. Message: " + ex.Message);
+                ProgramConstants.LogException(ex, "An error occurred while checking for " + filename + " file.");
             }
+
             return copied;
         }
 
@@ -290,8 +295,9 @@ namespace DTAClient.DXGUI
             }
             catch (Exception ex)
             {
-                Logger.Log("An error occured while checking for SYNCX.TXT files. Message: " + ex.Message);
+                ProgramConstants.LogException(ex, "An error occured while checking for SYNCX.TXT files.");
             }
+
             return copied;
         }
 
@@ -319,7 +325,10 @@ namespace DTAClient.DXGUI
                         {
                             Directory.Delete(directory);
                         }
-                        catch { }
+                        catch (Exception ex)
+                        {
+                            ProgramConstants.LogException(ex);
+                        }
                     }
                 }
             }
@@ -339,7 +348,10 @@ namespace DTAClient.DXGUI
             {
                 directories.AddRange(Directory.GetDirectories(SafePath.CombineDirectoryPath(ProgramConstants.GamePath, "debug"), "snapshot-*"));
             }
-            catch { }
+            catch (Exception ex)
+            {
+                ProgramConstants.LogException(ex);
+            }
 
             return directories;
         }
@@ -360,7 +372,7 @@ namespace DTAClient.DXGUI
                 }
                 catch (Exception ex)
                 {
-                    Logger.Log("ProcessScreenshots: An error occured trying to create Screenshots directory. Message: " + ex.Message);
+                    ProgramConstants.LogException(ex, "ProcessScreenshots: An error occured trying to create Screenshots directory.");
                     return;
                 }
             }
@@ -378,7 +390,7 @@ namespace DTAClient.DXGUI
                 }
                 catch (Exception ex)
                 {
-                    Logger.Log("ProcessScreenshots: Error occured when trying to save " + Path.GetFileNameWithoutExtension(file.FullName) + ".png. Message: " + ex.Message);
+                    ProgramConstants.LogException(ex, "ProcessScreenshots: Error occured when trying to save " + Path.GetFileNameWithoutExtension(file.FullName) + ".png.");
                     continue;
                 }
 

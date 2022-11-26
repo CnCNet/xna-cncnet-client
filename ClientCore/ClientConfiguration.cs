@@ -400,7 +400,8 @@ namespace ClientCore
     /// </summary>
     public class ClientConfigurationException : Exception
     {
-        public ClientConfigurationException(string message) : base(message)
+        public ClientConfigurationException(string message, Exception ex = null)
+            : base(message, ex)
         {
         }
     }

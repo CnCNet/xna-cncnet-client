@@ -66,9 +66,9 @@ namespace DTAClient.Domain.Multiplayer
             {
                 dataSource = Convert.FromBase64String(sb.ToString());
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                Logger.Log("MapPreviewExtractor: " + baseFilename + " - [PreviewPack] is malformed, unable to extract preview.");
+                ProgramConstants.LogException(ex, "MapPreviewExtractor: " + baseFilename + " - [PreviewPack] is malformed, unable to extract preview.");
                 return null;
             }
 
@@ -134,9 +134,10 @@ namespace DTAClient.Domain.Multiplayer
                 errorMessage = null;
                 return dataDest;
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                errorMessage = "Error encountered decompressing preview data. Message: " + e.Message;
+                ProgramConstants.LogException(ex, "Error encountered decompressing preview data.");
+                errorMessage = "Error encountered decompressing preview data. Message: " + ex.Message;
                 return null;
             }
         }
@@ -213,9 +214,10 @@ namespace DTAClient.Domain.Multiplayer
 
                 return image;
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                errorMessage = "Error encountered creating preview bitmap. Message: " + e.Message;
+                ProgramConstants.LogException(ex, "Error encountered creating preview bitmap.");
+                errorMessage = "Error encountered creating preview bitmap. Message: " + ex.Message;
                 return null;
             }
         }

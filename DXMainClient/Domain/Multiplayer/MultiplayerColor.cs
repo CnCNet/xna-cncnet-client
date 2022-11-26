@@ -62,9 +62,9 @@ namespace DTAClient.Domain.Multiplayer
                     MultiplayerColor mpColor = MultiplayerColor.CreateFromStringArray(key.L10N($"INI:Colors:{key}"), values);
                     mpColors.Add(mpColor);
                 }
-                catch
+                catch (Exception ex)
                 {
-                    throw new ClientConfigurationException("Invalid MPColor specified in GameOptions.ini: " + key);
+                    throw new ClientConfigurationException("Invalid MPColor specified in GameOptions.ini: " + key, ex);
                 }
             }
 

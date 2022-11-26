@@ -19,6 +19,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using ClientCore.Extensions;
 
 namespace DTAClient.DXGUI.Multiplayer.GameLobby
 {
@@ -228,7 +229,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 }
                 catch (Exception ex)
                 {
-                    PreStartup.LogException(ex, "Listener error.");
+                    ProgramConstants.LogException(ex, "Listener error.");
                     break;
                 }
 
@@ -275,7 +276,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 }
                 catch (Exception ex)
                 {
-                    PreStartup.LogException(ex, "Socket error with client " + lpInfo.IPAddress + "; removing.");
+                    ProgramConstants.LogException(ex, "Socket error with client " + lpInfo.IPAddress + "; removing.");
                     break;
                 }
 
@@ -401,7 +402,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 }
                 catch (Exception ex)
                 {
-                    Logger.Log("Reading data from the server failed! Message: " + ex.Message);
+                    ProgramConstants.LogException(ex, "Reading data from the server failed!");
                     await BtnLeaveGame_LeftClickAsync();
                     break;
                 }
@@ -682,7 +683,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             }
             catch (Exception ex)
             {
-                PreStartup.LogException(ex, "Sending message to game host failed!");
+                ProgramConstants.LogException(ex, "Sending message to game host failed!");
             }
         }
 
@@ -749,14 +750,14 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 for (int i = 1; i < Players.Count; i++)
                 {
                     LANPlayerInfo lpInfo = (LANPlayerInfo)Players[i];
-                    if (!Task.Run(() => lpInfo.UpdateAsync(gameTime)).Result)
+                    if (!Task.Run(() => lpInfo.UpdateAsync(gameTime).HandleTaskAsync()).Result)
                     {
                         CleanUpPlayer(lpInfo);
                         Players.RemoveAt(i);
                         AddNotice(string.Format("{0} - connection timed out".L10N("Client:Main:PlayerTimeout"), lpInfo.Name));
                         CopyPlayerDataToUI();
-                        Task.Run(BroadcastPlayerOptionsAsync).Wait();
-                        Task.Run(BroadcastPlayerExtraOptionsAsync).Wait();
+                        Task.Run(() => BroadcastPlayerOptionsAsync().HandleTaskAsync()).Wait();
+                        Task.Run(() => BroadcastPlayerExtraOptionsAsync().HandleTaskAsync()).Wait();
                         UpdateDiscordPresence();
                         i--;
                     }
@@ -775,7 +776,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 timeSinceLastReceivedCommand += gameTime.ElapsedGameTime;
 
                 if (timeSinceLastReceivedCommand > TimeSpan.FromSeconds(DROPOUT_TIMEOUT))
-                    Task.Run(() => BtnLeaveGame_LeftClickAsync().HandleTask()).Wait();
+                    Task.Run(() => BtnLeaveGame_LeftClickAsync().HandleTaskAsync()).Wait();
             }
 
             base.Update(gameTime);

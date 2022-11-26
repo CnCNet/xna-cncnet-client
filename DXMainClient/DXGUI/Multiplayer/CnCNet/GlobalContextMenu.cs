@@ -179,8 +179,9 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             {
                 ClipboardService.SetText(link);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                ProgramConstants.LogException(ex, "Unable to copy link.");
                 XNAMessageBox.Show(WindowManager, "Error".L10N("Client:Main:Error"), "Unable to copy link".L10N("Client:Main:ClipboardCopyLinkFailed"));
             }
         }

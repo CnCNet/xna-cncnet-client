@@ -60,9 +60,9 @@ namespace DTAClient.Online
                 Logger.Log($"Loading {path} failed! File does not exist.");
                 return new();
             }
-            catch
+            catch (Exception ex)
             {
-                Logger.Log($"Loading {path} list failed!");
+                ProgramConstants.LogException(ex, $"Loading {path} list failed!");
                 return new();
             }
         }
@@ -79,9 +79,9 @@ namespace DTAClient.Online
                 Logger.Log($"Loading {path} failed! File does not exist.");
                 return new();
             }
-            catch
+            catch (Exception ex)
             {
-                Logger.Log($"Loading {path} list failed!");
+                ProgramConstants.LogException(ex, $"Loading {path} list failed!");
                 return new();
             }
         }
@@ -99,7 +99,7 @@ namespace DTAClient.Online
             }
             catch (Exception ex)
             {
-                Logger.Log($"Saving {path} failed! Error message: " + ex.Message);
+                ProgramConstants.LogException(ex, $"Saving {path} failed!");
             }
         }
 
@@ -116,7 +116,7 @@ namespace DTAClient.Online
             }
             catch (Exception ex)
             {
-                Logger.Log($"Saving {path} failed! Error message: " + ex.Message);
+                ProgramConstants.LogException(ex, $"Saving {path} failed!");
             }
         }
 

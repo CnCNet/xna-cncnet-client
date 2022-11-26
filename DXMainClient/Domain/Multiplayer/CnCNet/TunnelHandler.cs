@@ -10,6 +10,7 @@ using System.Net;
 using System.Threading.Tasks;
 using System.Linq;
 using System.Net.Http;
+using ClientCore.Extensions;
 
 namespace DTAClient.Domain.Multiplayer.CnCNet
 {
@@ -157,18 +158,18 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
 
             try
             {
-                data = await client.GetStringAsync(MainClientConstants.CNCNET_TUNNEL_LIST_URL);
+                data = await client.GetStringAsync(ProgramConstants.CNCNET_TUNNEL_LIST_URL);
             }
             catch (HttpRequestException ex)
             {
-                PreStartup.LogException(ex, "Error when downloading tunnel server info. Retrying.");
+                ProgramConstants.LogException(ex, "Error when downloading tunnel server info. Retrying.");
                 try
                 {
-                    data = await client.GetStringAsync(MainClientConstants.CNCNET_TUNNEL_LIST_URL);
+                    data = await client.GetStringAsync(ProgramConstants.CNCNET_TUNNEL_LIST_URL);
                 }
                 catch (HttpRequestException ex1)
                 {
-                    PreStartup.LogException(ex1);
+                    ProgramConstants.LogException(ex1);
                     if (!tunnelCacheFile.Exists)
                     {
                         Logger.Log("Tunnel cache file doesn't exist!");
@@ -203,7 +204,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                 }
                 catch (Exception ex)
                 {
-                    PreStartup.LogException(ex, "Caught an exception when parsing a tunnel server.");
+                    ProgramConstants.LogException(ex, "Caught an exception when parsing a tunnel server.");
                 }
             }
 
@@ -224,7 +225,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
             }
             catch (Exception ex)
             {
-                PreStartup.LogException(ex, "Refreshing tunnel cache file failed!");
+                ProgramConstants.LogException(ex, "Refreshing tunnel cache file failed!");
             }
 
             return returnValue;

@@ -16,6 +16,7 @@ using System.Globalization;
 using System.Management;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
+using ClientCore.Extensions;
 using ClientCore.Settings;
 using Microsoft.Xna.Framework.Graphics;
 
@@ -46,22 +47,22 @@ namespace DTAClient
             Logger.Log("ProcessArchitecture: " + RuntimeInformation.ProcessArchitecture);
             Logger.Log("FrameworkDescription: " + RuntimeInformation.FrameworkDescription);
             Logger.Log("RuntimeIdentifier: " + RuntimeInformation.RuntimeIdentifier);
-            Logger.Log("Selected OS profile: " + MainClientConstants.OSId);
+            Logger.Log("Selected OS profile: " + ProgramConstants.OSId);
             Logger.Log("Current culture: " + CultureInfo.CurrentCulture);
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 // The query in CheckSystemSpecifications takes lots of time,
                 // so we'll do it in a separate thread to make startup faster
-                Task.Run(CheckSystemSpecifications);
+                Task.Run(CheckSystemSpecifications).HandleTask();
             }
 
             GenerateOnlineIdAsync().HandleTask();
 
 #if ARES
-            Task.Run(() => PruneFiles(SafePath.GetDirectory(ProgramConstants.GamePath, "debug"), DateTime.Now.AddDays(-7)));
+            Task.Run(() => PruneFiles(SafePath.GetDirectory(ProgramConstants.GamePath, "debug"), DateTime.Now.AddDays(-7))).HandleTask();
 #endif
-            Task.Run(MigrateOldLogFiles);
+            Task.Run(MigrateOldLogFiles).HandleTask();
 
             DirectoryInfo updaterFolder = SafePath.GetDirectory(ProgramConstants.GamePath, "Updater");
 
@@ -72,8 +73,9 @@ namespace DTAClient
                 {
                     updaterFolder.Delete(true);
                 }
-                catch
+                catch (Exception ex)
                 {
+                    ProgramConstants.LogException(ex);
                 }
             }
 
@@ -88,8 +90,9 @@ namespace DTAClient
                     {
                         savedGamesFolder.Create();
                     }
-                    catch
+                    catch (Exception ex)
                     {
+                        ProgramConstants.LogException(ex);
                     }
                 }
             }
@@ -103,9 +106,9 @@ namespace DTAClient
                     {
                         SafePath.DeleteFileIfExists(ProgramConstants.GamePath, FormattableString.Invariant($"{component.LocalPath}_u"));
                     }
-                    catch
+                    catch (Exception ex)
                     {
-
+                        ProgramConstants.LogException(ex);
                     }
                 }
             }
@@ -157,11 +160,9 @@ namespace DTAClient
                             if (fileInfo.CreationTime <= pruneThresholdTime)
                                 fileInfo.Delete();
                         }
-                        catch (Exception e)
+                        catch (Exception ex)
                         {
-                            Logger.Log("PruneFiles: Could not delete file " + fsEntry.Name +
-                                ". Error message: " + e.Message);
-                            continue;
+                            ProgramConstants.LogException(ex, "PruneFiles: Could not delete file " + fsEntry.Name + ".");
                         }
                     }
                 }
@@ -171,8 +172,7 @@ namespace DTAClient
             }
             catch (Exception ex)
             {
-                Logger.Log("PruneFiles: An error occurred while pruning files from " +
-                   directory.Name + ". Message: " + ex.Message);
+                ProgramConstants.LogException(ex, "PruneFiles: An error occurred while pruning files from " + directory.Name + ".");
             }
         }
 #endif
@@ -226,9 +226,9 @@ namespace DTAClient
             }
             catch (Exception ex)
             {
-                Logger.Log("MigrateLogFiles: An error occured while moving log files from " +
+                ProgramConstants.LogException(ex, "MigrateLogFiles: An error occurred while moving log files from " +
                     currentDirectory.Name + " to " +
-                    newDirectory.Name + ". Message: " + ex.Message);
+                    newDirectory.Name + ".");
             }
         }
 
@@ -252,10 +252,11 @@ namespace DTAClient
                 {
                     cpu = cpu + proc["Name"].ToString().Trim() + " (" + proc["NumberOfCores"] + " cores) ";
                 }
-
             }
-            catch
+            catch (Exception ex)
             {
+                ProgramConstants.LogException(ex);
+
                 cpu = "CPU info not found";
             }
 
@@ -274,8 +275,10 @@ namespace DTAClient
                     }
                 }
             }
-            catch
+            catch (Exception ex)
             {
+                ProgramConstants.LogException(ex);
+
                 cpu = "Video controller info not found";
             }
 
@@ -292,8 +295,10 @@ namespace DTAClient
                 if (total != 0)
                     memory = "Total physical memory: " + (total >= 1073741824 ? total / 1073741824 + "GB" : total / 1048576 + "MB");
             }
-            catch
+            catch (Exception ex)
             {
+                ProgramConstants.LogException(ex);
+
                 cpu = "Memory info not found";
             }
 
@@ -334,8 +339,9 @@ namespace DTAClient
                     using RegistryKey key = Registry.CurrentUser.CreateSubKey("SOFTWARE\\" + ClientConfiguration.Instance.InstallationPathRegKey);
                     key.SetValue("Ident", cpuid + mbid + sid);
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
+                    ProgramConstants.LogException(ex);
                     Random rn = new Random();
 
                     using RegistryKey key = Registry.CurrentUser.CreateSubKey("SOFTWARE\\" + ClientConfiguration.Instance.InstallationPathRegKey);
@@ -349,7 +355,10 @@ namespace DTAClient
                         else
                             str = o.ToString();
                     }
-                    catch { }
+                    catch (Exception ex1)
+                    {
+                        ProgramConstants.LogException(ex1);
+                    }
 
                     Connection.SetId(str);
                 }
@@ -364,8 +373,9 @@ namespace DTAClient
 
                     Connection.SetId(machineId);
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
+                    ProgramConstants.LogException(ex);
                     Connection.SetId(new Random().Next(int.MaxValue - 1).ToString());
                 }
             }
@@ -391,9 +401,9 @@ namespace DTAClient
                 using RegistryKey key = Registry.CurrentUser.CreateSubKey("SOFTWARE\\" + ClientConfiguration.Instance.InstallationPathRegKey);
                 key.SetValue("InstallPath", ProgramConstants.GamePath);
             }
-            catch
+            catch (Exception ex)
             {
-                Logger.Log("Failed to write installation path to the Windows registry");
+                ProgramConstants.LogException(ex, "Failed to write installation path to the Windows registry");
             }
         }
     }

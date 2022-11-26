@@ -5,6 +5,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
+using ClientCore;
 
 namespace DTAClient.Domain.Multiplayer.CnCNet
 {
@@ -89,7 +90,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
             }
             catch (SocketException ex)
             {
-                PreStartup.LogException(ex, "Failed to establish connection to tunnel server.");
+                ProgramConstants.LogException(ex, "Failed to establish connection to tunnel server.");
                 tunnelSocket.Close();
                 ConnectionFailed?.Invoke(this, EventArgs.Empty);
                 return;
@@ -132,7 +133,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
             }
             catch (SocketException ex)
             {
-                PreStartup.LogException(ex, "Socket exception in V3 tunnel receive loop.");
+                ProgramConstants.LogException(ex, "Socket exception in V3 tunnel receive loop.");
                 DoClose();
                 ConnectionCut?.Invoke(this, EventArgs.Empty);
             }

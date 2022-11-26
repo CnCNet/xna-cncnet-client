@@ -11,6 +11,7 @@ using System.Linq;
 using System.Text.Json.Serialization;
 using SixLabors.ImageSharp;
 using Color = Microsoft.Xna.Framework.Color;
+using Exception = System.Exception;
 using Point = Microsoft.Xna.Framework.Point;
 using Utilities = Rampastring.Tools.Utilities;
 using static System.Collections.Specialized.BitVector32;
@@ -428,8 +429,7 @@ namespace DTAClient.Domain.Multiplayer
             }
             catch (Exception ex)
             {
-                Logger.Log("Setting info for " + BaseFilePath + " failed! Reason: " + ex.Message);
-                PreStartup.LogException(ex);
+                ProgramConstants.LogException(ex, "Setting info for " + BaseFilePath + " failed!");
                 return false;
             }
         }
@@ -455,9 +455,9 @@ namespace DTAClient.Domain.Multiplayer
                         TeamStartMappings = TeamStartMapping.FromListString(teamStartMappingPreset)
                     });
                 }
-                catch (Exception e)
+                catch (Exception ex)
                 {
-                    Logger.Log($"Unable to parse team start mappings. Map: \"{Name}\", Error: {e.Message}");
+                    ProgramConstants.LogException(ex, $"Unable to parse team start mappings. Map: \"{Name}\".");
                     TeamStartMappingPresets = new List<TeamStartMappingPreset>();
                 }
             }
@@ -628,9 +628,9 @@ namespace DTAClient.Domain.Multiplayer
 
                 return true;
             }
-            catch
+            catch (Exception ex)
             {
-                Logger.Log("Loading custom map " + customMapFilePath + " failed!");
+                ProgramConstants.LogException(ex, "Loading custom map " + customMapFilePath + " failed!");
                 return false;
             }
         }
@@ -891,15 +891,15 @@ namespace DTAClient.Domain.Multiplayer
             int rx = isoTileX - isoTileY + Convert.ToInt32(actualSizeValues[2], CultureInfo.InvariantCulture) - 1;
             int ry = isoTileX + isoTileY - Convert.ToInt32(actualSizeValues[2], CultureInfo.InvariantCulture) - 1;
 
-            int pixelPosX = rx * MainClientConstants.MAP_CELL_SIZE_X / 2;
-            int pixelPosY = ry * MainClientConstants.MAP_CELL_SIZE_Y / 2 - level * MainClientConstants.MAP_CELL_SIZE_Y / 2;
+            int pixelPosX = rx * ProgramConstants.MAP_CELL_SIZE_X / 2;
+            int pixelPosY = ry * ProgramConstants.MAP_CELL_SIZE_Y / 2 - level * ProgramConstants.MAP_CELL_SIZE_Y / 2;
 
-            pixelPosX = pixelPosX - (Convert.ToInt32(localSizeValues[0], CultureInfo.InvariantCulture) * MainClientConstants.MAP_CELL_SIZE_X);
-            pixelPosY = pixelPosY - (Convert.ToInt32(localSizeValues[1], CultureInfo.InvariantCulture) * MainClientConstants.MAP_CELL_SIZE_Y);
+            pixelPosX = pixelPosX - (Convert.ToInt32(localSizeValues[0], CultureInfo.InvariantCulture) * ProgramConstants.MAP_CELL_SIZE_X);
+            pixelPosY = pixelPosY - (Convert.ToInt32(localSizeValues[1], CultureInfo.InvariantCulture) * ProgramConstants.MAP_CELL_SIZE_Y);
 
             // Calculate map size
-            int mapSizeX = Convert.ToInt32(localSizeValues[2], CultureInfo.InvariantCulture) * MainClientConstants.MAP_CELL_SIZE_X;
-            int mapSizeY = Convert.ToInt32(localSizeValues[3], CultureInfo.InvariantCulture) * MainClientConstants.MAP_CELL_SIZE_Y;
+            int mapSizeX = Convert.ToInt32(localSizeValues[2], CultureInfo.InvariantCulture) * ProgramConstants.MAP_CELL_SIZE_X;
+            int mapSizeY = Convert.ToInt32(localSizeValues[3], CultureInfo.InvariantCulture) * ProgramConstants.MAP_CELL_SIZE_Y;
 
             double ratioX = Convert.ToDouble(pixelPosX) / mapSizeX;
             double ratioY = Convert.ToDouble(pixelPosY) / mapSizeY;

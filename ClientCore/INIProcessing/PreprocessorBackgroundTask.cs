@@ -2,6 +2,7 @@
 using System.IO;
 using System.Threading.Tasks;
 using System.Collections.Generic;
+using ClientCore.Extensions;
 
 namespace ClientCore.INIProcessing
 {
@@ -33,7 +34,7 @@ namespace ClientCore.INIProcessing
 
         public void Run()
         {
-            task = Task.Run(CheckFiles);
+            task = Task.Run(CheckFiles).HandleTaskAsync();
         }
 
         private static void CheckFiles()

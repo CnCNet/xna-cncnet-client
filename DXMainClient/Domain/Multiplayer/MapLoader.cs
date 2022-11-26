@@ -224,8 +224,9 @@ namespace DTAClient.Domain.Multiplayer
 
                 return customMaps;
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                ProgramConstants.LogException(ex);
                 return new ConcurrentDictionary<string, Map>();
             }
         }

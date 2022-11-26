@@ -1,4 +1,5 @@
-﻿using ClientCore;
+﻿using System;
+using ClientCore;
 using System.Diagnostics;
 using System.Threading;
 
@@ -36,7 +37,8 @@ namespace DTAClient.Online
             Process[] processlist = Process.GetProcesses();
             foreach (Process process in processlist)
             {
-                try {
+                try
+                {
                     if (process.ProcessName.Contains("cheatengine") ||
                         process.MainWindowTitle.ToLower().Contains("cheat engine") ||
                         process.MainWindowHandle.ToString().ToLower().Contains("cheat engine")
@@ -45,7 +47,10 @@ namespace DTAClient.Online
                         KillGameInstance();
                     }
                 }
-                catch { }
+                catch (Exception ex)
+                {
+                    ProgramConstants.LogException(ex);
+                }
 
                 process.Dispose();
             }
@@ -64,19 +69,24 @@ namespace DTAClient.Online
                 Process[] processlist = Process.GetProcesses();
                 foreach (Process process in processlist)
                 {
-                    try {
+                    try
+                    {
                         if (process.ProcessName.Contains(gameExecutableName))
                         {
                             process.Kill();
                         }
                     }
-                    catch { }
+                    catch (Exception ex)
+                    {
+                        ProgramConstants.LogException(ex);
+                    }
 
                     process.Dispose();
                 }
             }
-            catch
+            catch (Exception ex)
             {
+                ProgramConstants.LogException(ex);
             }
         }
     }

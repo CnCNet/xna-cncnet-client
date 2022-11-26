@@ -94,7 +94,7 @@ namespace ClientGUI
                 }
                 catch (Exception ex)
                 {
-                    Logger.Log("Error launching QRes: " + ex.Message);
+                    ProgramConstants.LogException(ex, "Error launching QRes");
                     XNAMessageBox.Show(windowManager, "Error launching game", "Error launching " + ProgramConstants.QRES_EXECUTABLE + ". Please check that your anti-virus isn't blocking the CnCNet Client. " +
                         "You can also try running the client as an administrator." + Environment.NewLine + Environment.NewLine + "You are unable to participate in this match." +
                         Environment.NewLine + Environment.NewLine + "Returned error: " + ex.Message);
@@ -133,7 +133,7 @@ namespace ClientGUI
                 }
                 catch (Exception ex)
                 {
-                    Logger.Log("Error launching " + gameFileInfo.Name + ": " + ex.Message);
+                    ProgramConstants.LogException(ex, "Error launching " + gameFileInfo.Name);
                     XNAMessageBox.Show(windowManager, "Error launching game", "Error launching " + gameFileInfo.Name + ". Please check that your anti-virus isn't blocking the CnCNet Client. " +
                         "You can also try running the client as an administrator." + Environment.NewLine + Environment.NewLine + "You are unable to participate in this match." +
                         Environment.NewLine + Environment.NewLine + "Returned error: " + ex.Message);

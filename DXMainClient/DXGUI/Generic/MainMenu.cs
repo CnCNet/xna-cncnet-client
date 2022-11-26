@@ -21,6 +21,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using ClientCore.Extensions;
 using ClientUpdater;
 using DTAClient.Domain.Multiplayer;
 
@@ -378,10 +379,7 @@ namespace DTAClient.DXGUI.Generic
             }
             catch (Exception ex)
             {
-                Logger.Log("Refreshing settings failed! Exception message: " + ex.Message);
-                // We don't want to show the dialog when starting a game
-                //XNAMessageBox.Show(WindowManager, "Saving settings failed",
-                //    "Saving settings failed! Error message: " + ex.Message);
+                ProgramConstants.LogException(ex, "Refreshing settings failed!");
             }
         }
 
@@ -644,7 +642,7 @@ namespace DTAClient.DXGUI.Generic
             innerPanel.Show(null); // Darkening
             XNAMessageBox msgBox = new XNAMessageBox(WindowManager, "Update failed".L10N("Client:Main:UpdateFailedTitle"),
                 string.Format(("An error occured while updating. Returned error was: {0}\n\nIf you are connected to the Internet and your firewall isn't blocking\n{1}, and the issue is reproducible, contact us at\n{2} for support.").L10N("Client:Main:UpdateFailedText"),
-                e.Reason, Path.GetFileName(ProgramConstants.StartupExecutable), MainClientConstants.SUPPORT_URL_SHORT), XNAMessageBoxButtons.OK);
+                e.Reason, Path.GetFileName(ProgramConstants.StartupExecutable), ProgramConstants.SUPPORT_URL_SHORT), XNAMessageBoxButtons.OK);
             msgBox.OKClickedAction = MsgBox_OKClicked;
             msgBox.Show();
         }
@@ -667,7 +665,7 @@ namespace DTAClient.DXGUI.Generic
         {
             innerPanel.Hide();
             lblUpdateStatus.Text = string.Format("{0} was succesfully updated to v.{1}".L10N("Client:Main:UpdateSuccess"),
-                MainClientConstants.GAME_NAME_SHORT, Updater.GameVersion);
+                ProgramConstants.GAME_NAME_SHORT, Updater.GameVersion);
             lblVersion.Text = Updater.GameVersion;
             UpdateInProgress = false;
             lblUpdateStatus.Enabled = true;
@@ -731,7 +729,7 @@ namespace DTAClient.DXGUI.Generic
 
             if (Updater.VersionState == VersionState.UPTODATE)
             {
-                lblUpdateStatus.Text = string.Format("{0} is up to date.".L10N("Client:Main:GameUpToDate"), MainClientConstants.GAME_NAME_SHORT);
+                lblUpdateStatus.Text = string.Format("{0} is up to date.".L10N("Client:Main:GameUpToDate"), ProgramConstants.GAME_NAME_SHORT);
                 lblUpdateStatus.Enabled = true;
                 lblUpdateStatus.DrawUnderline = false;
             }
@@ -863,7 +861,7 @@ namespace DTAClient.DXGUI.Generic
 
         private void BtnCredits_LeftClick(object sender, EventArgs e)
         {
-            ProcessLauncher.StartShellProcess(MainClientConstants.CREDITS_URL);
+            ProcessLauncher.StartShellProcess(ProgramConstants.CREDITS_URL);
         }
 
         private void BtnExtras_LeftClick(object sender, EventArgs e) =>
@@ -940,7 +938,7 @@ namespace DTAClient.DXGUI.Generic
                 }
                 catch (InvalidOperationException ex)
                 {
-                    Logger.Log("Playing main menu music failed! " + ex.Message);
+                    ProgramConstants.LogException(ex, "Playing main menu music failed!");
                 }
             }
         }
@@ -1035,7 +1033,7 @@ namespace DTAClient.DXGUI.Generic
             }
             catch (Exception ex)
             {
-                Logger.Log("Turning music off failed! Message: " + ex.Message);
+                ProgramConstants.LogException(ex, "Turning music off failed!");
             }
         }
 
@@ -1051,9 +1049,9 @@ namespace DTAClient.DXGUI.Generic
                 MediaState state = MediaPlayer.State;
                 return true;
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                Logger.Log("Error encountered when checking media player availability. Error message: " + e.Message);
+                ProgramConstants.LogException(ex, "Error encountered when checking media player availability.");
                 return false;
             }
         }

@@ -1527,11 +1527,12 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
                     lbGameList.AddGame(game);
                 }
+
                 SortAndRefreshHostedGames();
             }
             catch (Exception ex)
             {
-                Logger.Log("Game parsing error: " + ex.Message);
+                ProgramConstants.LogException(ex, "Game parsing error");
             }
         }
 

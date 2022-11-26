@@ -10,6 +10,7 @@ using ClientGUI;
 using ClientCore;
 using System.Threading;
 using System.Threading.Tasks;
+using ClientCore.Extensions;
 using DTAClient.Domain.Multiplayer.CnCNet;
 using DTAClient.Online.EventArguments;
 using DTAConfig;

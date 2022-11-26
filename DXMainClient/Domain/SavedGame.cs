@@ -56,8 +56,7 @@ namespace DTAClient.Domain
             }
             catch (Exception ex)
             {
-                Logger.Log("An error occured while parsing saved game " + FileName + ":" +
-                    ex.Message);
+                ProgramConstants.LogException(ex, "An error occurred while parsing saved game " + FileName);
                 return false;
             }
         }

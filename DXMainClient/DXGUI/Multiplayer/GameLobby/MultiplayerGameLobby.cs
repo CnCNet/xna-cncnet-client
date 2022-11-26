@@ -13,6 +13,7 @@ using DTAClient.Domain.Multiplayer;
 using ClientGUI;
 using System.Text;
 using System.Threading.Tasks;
+using ClientCore.Extensions;
 using DTAClient.Domain;
 using Microsoft.Xna.Framework.Graphics;
 using ClientCore.Extensions;
