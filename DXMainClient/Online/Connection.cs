@@ -13,6 +13,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using ClientCore.Extensions;
+using DTAClient.Domain.Multiplayer.CnCNet;
 
 namespace DTAClient.Online
 {
@@ -446,7 +447,7 @@ namespace DTAClient.Online
 
         public async Task DisconnectAsync()
         {
-            await SendMessageAsync("QUIT");
+            await SendMessageAsync(IRCCommands.QUIT);
             cancellationTokenSource.Cancel();
             socket.Close();
         }
@@ -604,11 +605,11 @@ namespace DTAClient.Online
 
                 switch (command)
                 {
-                    case "NOTICE":
+                    case IRCCommands.NOTICE:
                         int noticeExclamIndex = prefix.IndexOf('!');
                         if (noticeExclamIndex > -1)
                         {
-                            if (parameters.Count > 1 && parameters[1][0] == 1)//Conversions.IntFromString(parameters[1].Substring(0, 1), -1) == 1)
+                            if (parameters.Count > 1 && parameters[1][0] == 1)
                             {
                                 // CTCP
                                 string channelName = parameters[0];
@@ -619,20 +620,18 @@ namespace DTAClient.Online
 
                                 return;
                             }
-                            else
-                            {
-                                string noticeUserName = prefix[..noticeExclamIndex];
-                                string notice = parameters[parameters.Count - 1];
-                                connectionManager.OnNoticeMessageParsed(notice, noticeUserName);
-                                break;
-                            }
+
+                            string noticeUserName = prefix[..noticeExclamIndex];
+                            string notice = parameters[parameters.Count - 1];
+                            connectionManager.OnNoticeMessageParsed(notice, noticeUserName);
+                            break;
                         }
                         string noticeParamString = string.Empty;
                         foreach (string param in parameters)
                             noticeParamString = noticeParamString + param + " ";
                         connectionManager.OnGenericServerMessageReceived(prefix + " " + noticeParamString);
                         break;
-                    case "JOIN":
+                    case IRCCommands.JOIN:
                         string channel = parameters[0];
                         int atIndex = prefix.IndexOf('@');
                         int exclamIndex = prefix.IndexOf('!');
@@ -641,19 +640,19 @@ namespace DTAClient.Online
                         string host = prefix[(atIndex + 1)..];
                         connectionManager.OnUserJoinedChannel(channel, host, userName, ident);
                         break;
-                    case "PART":
+                    case IRCCommands.PART:
                         string pChannel = parameters[0];
                         string pUserName = prefix[..prefix.IndexOf('!')];
                         connectionManager.OnUserLeftChannel(pChannel, pUserName);
                         break;
-                    case "QUIT":
+                    case IRCCommands.QUIT:
                         string qUserName = prefix[..prefix.IndexOf('!')];
                         connectionManager.OnUserQuitIRC(qUserName);
                         break;
-                    case "PRIVMSG":
-                        if (parameters.Count > 1 && Convert.ToInt32(parameters[1][0]) == 1 && !parameters[1].Contains("ACTION"))
+                    case IRCCommands.PRIVMSG:
+                        if (parameters.Count > 1 && Convert.ToInt32(parameters[1][0]) == 1 && !parameters[1].Contains(IRCCommands.PRIVMSG_ACTION))
                         {
-                            goto case "NOTICE";
+                            goto case IRCCommands.NOTICE;
                         }
                         string pmsgUserName = prefix[..prefix.IndexOf('!')];
                         string pmsgIdent = GetIdentFromPrefix(prefix);
@@ -661,7 +660,7 @@ namespace DTAClient.Online
                         for (int pid = 0; pid < parameters.Count - 1; pid++)
                             recipients[pid] = parameters[pid];
                         string privmsg = parameters[parameters.Count - 1];
-                        if (parameters[1].StartsWith('\u0001' + "ACTION"))
+                        if (parameters[1].StartsWith('\u0001' + IRCCommands.PRIVMSG_ACTION))
                             privmsg = privmsg[1..].Remove(privmsg.Length - 2);
                         foreach (string recipient in recipients)
                         {
@@ -671,7 +670,7 @@ namespace DTAClient.Online
                                 connectionManager.OnPrivateMessageReceived(pmsgUserName, privmsg);
                         }
                         break;
-                    case "MODE":
+                    case IRCCommands.MODE:
                         string modeUserName = prefix.Contains('!') ? prefix[..prefix.IndexOf('!')] : prefix;
                         string modeChannelName = parameters[0];
                         string modeString = parameters[1];
@@ -679,34 +678,34 @@ namespace DTAClient.Online
                             parameters.Count > 2 ? parameters.GetRange(2, parameters.Count - 2) : new List<string>();
                         connectionManager.OnChannelModesChanged(modeUserName, modeChannelName, modeString, modeParameters);
                         break;
-                    case "KICK":
+                    case IRCCommands.KICK:
                         string kickChannelName = parameters[0];
                         string kickUserName = parameters[1];
                         connectionManager.OnUserKicked(kickChannelName, kickUserName);
                         break;
-                    case "ERROR":
+                    case IRCCommands.ERROR:
                         connectionManager.OnErrorReceived(message);
                         break;
-                    case "PING":
+                    case IRCCommands.PING:
                         if (parameters.Count > 0)
                         {
-                            await QueueMessageAsync(new QueuedMessage("PONG " + parameters[0], QueuedMessageType.SYSTEM_MESSAGE, 5000));
-                            Logger.Log("PONG " + parameters[0]);
+                            await QueueMessageAsync(new QueuedMessage(IRCCommands.PONG + " " + parameters[0], QueuedMessageType.SYSTEM_MESSAGE, 5000));
+                            Logger.Log(IRCCommands.PONG + " " + parameters[0]);
                         }
                         else
                         {
-                            await QueueMessageAsync(new QueuedMessage("PONG", QueuedMessageType.SYSTEM_MESSAGE, 5000));
-                            Logger.Log("PONG");
+                            await QueueMessageAsync(new QueuedMessage(IRCCommands.PONG, QueuedMessageType.SYSTEM_MESSAGE, 5000));
+                            Logger.Log(IRCCommands.PONG);
                         }
                         break;
-                    case "TOPIC":
+                    case IRCCommands.TOPIC:
                         if (parameters.Count < 2)
                             break;
 
                         connectionManager.OnChannelTopicChanged(prefix[..prefix.IndexOf('!')],
                             parameters[0], parameters[1]);
                         break;
-                    case "NICK":
+                    case IRCCommands.NICK:
                         int nickExclamIndex = prefix.IndexOf('!');
                         if (nickExclamIndex > -1 || parameters.Count < 1)
                         {
@@ -875,7 +874,7 @@ namespace DTAClient.Online
         /// Sends a PING message to the server to indicate that we're still connected.
         /// </summary>
         private Task AutoPingAsync()
-            => SendMessageAsync("PING LAG" + new Random().Next(100000, 999999));
+            => SendMessageAsync(IRCCommands.PING_LAG + new Random().Next(100000, 999999));
 
         /// <summary>
         /// Registers the user.
@@ -891,15 +890,15 @@ namespace DTAClient.Online
 
             string realname = ProgramConstants.GAME_VERSION + " " + defaultGame + " CnCNet";
 
-            await SendMessageAsync(string.Format("USER {0} 0 * :{1}", defaultGame + "." +
+            await SendMessageAsync(string.Format(IRCCommands.USER + " {0} 0 * :{1}", defaultGame + "." +
                 systemId, realname));
 
-            await SendMessageAsync("NICK " + ProgramConstants.PLAYERNAME);
+            await SendMessageAsync(IRCCommands.NICK + " " + ProgramConstants.PLAYERNAME);
         }
 
         public Task ChangeNicknameAsync()
         {
-            return SendMessageAsync("NICK " + ProgramConstants.PLAYERNAME);
+            return SendMessageAsync(IRCCommands.NICK + " " + ProgramConstants.PLAYERNAME);
         }
 
         public Task QueueMessageAsync(QueuedMessageType type, int priority, string message, bool replace = false)

@@ -11,6 +11,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ClientCore.Extensions;
+using DTAClient.Domain.Multiplayer.CnCNet;
 
 namespace DTAClient.Online
 {
@@ -160,7 +161,7 @@ namespace DTAClient.Online
 
         public Task SendWhoIsMessageAsync(string nick)
         {
-            return SendCustomMessageAsync(new QueuedMessage($"WHOIS {nick}", QueuedMessageType.WHOIS_MESSAGE, 0));
+            return SendCustomMessageAsync(new QueuedMessage($"{IRCCommands.WHOIS} {nick}", QueuedMessageType.WHOIS_MESSAGE, 0));
         }
 
         public void OnAttemptedServerChanged(string serverName)
@@ -308,7 +309,7 @@ namespace DTAClient.Online
             Color foreColor;
 
             // Handle ACTION
-            if (message.Contains("ACTION"))
+            if (message.Contains(IRCCommands.PRIVMSG_ACTION))
             {
                 message = message.Remove(0, 7);
                 message = "====> " + senderName + " " + message;

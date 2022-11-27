@@ -267,7 +267,7 @@ namespace DTAClient.DXGUI.Multiplayer
 
             if (socket.IsBound)
             {
-                await SendMessageAsync("QUIT", cancellationToken);
+                await SendMessageAsync(LANCommands.PLAYER_QUIT_COMMAND, cancellationToken);
                 cancellationTokenSource.Cancel();
                 socket.Close();
             }
@@ -411,7 +411,7 @@ namespace DTAClient.DXGUI.Multiplayer
 
             switch (command)
             {
-                case "ALIVE":
+                case LANCommands.ALIVE:
                     if (parameters.Length < 2)
                         return;
 
@@ -433,7 +433,7 @@ namespace DTAClient.DXGUI.Multiplayer
                     user.TimeWithoutRefresh = TimeSpan.Zero;
 
                     break;
-                case "CHAT":
+                case LANCommands.CHAT:
                     if (user == null)
                         return;
 
@@ -449,7 +449,7 @@ namespace DTAClient.DXGUI.Multiplayer
                         chatColors[colorIndex].XNAColor, DateTime.Now, parameters[1]));
 
                     break;
-                case "QUIT":
+                case LANCommands.QUIT:
                     if (user == null)
                         return;
 
@@ -458,7 +458,7 @@ namespace DTAClient.DXGUI.Multiplayer
                     players.RemoveAt(index);
                     lbPlayerList.Items.RemoveAt(index);
                     break;
-                case "GAME":
+                case LANCommands.GAME:
                     if (user == null)
                         return;
 
@@ -484,7 +484,7 @@ namespace DTAClient.DXGUI.Multiplayer
 
         private async Task SendAliveAsync(CancellationToken cancellationToken)
         {
-            StringBuilder sb = new StringBuilder("ALIVE ");
+            StringBuilder sb = new StringBuilder(LANCommands.ALIVE + " ");
             sb.Append(localGameIndex);
             sb.Append(ProgramConstants.LAN_DATA_SEPARATOR);
             sb.Append(ProgramConstants.PLAYERNAME);
@@ -499,7 +499,7 @@ namespace DTAClient.DXGUI.Multiplayer
 
             string chatMessage = tbChatInput.Text.Replace((char)01, '?');
 
-            StringBuilder sb = new StringBuilder("CHAT ");
+            StringBuilder sb = new StringBuilder(LANCommands.CHAT + " ");
             sb.Append(ddColor.SelectedIndex);
             sb.Append(ProgramConstants.LAN_DATA_SEPARATOR);
             sb.Append(chatMessage);
@@ -568,7 +568,7 @@ namespace DTAClient.DXGUI.Multiplayer
                     await lanGameLoadingLobby.SetUpAsync(false, client, loadedGameId);
                     lanGameLoadingLobby.Enable();
 
-                    string message = "JOIN" + ProgramConstants.LAN_DATA_SEPARATOR +
+                    string message = LANCommands.PLAYER_JOIN + ProgramConstants.LAN_DATA_SEPARATOR +
                         ProgramConstants.PLAYERNAME + ProgramConstants.LAN_DATA_SEPARATOR +
                         loadedGameId + ProgramConstants.LAN_MESSAGE_SEPARATOR;
                     int bufferSize = message.Length * charSize;
@@ -585,7 +585,7 @@ namespace DTAClient.DXGUI.Multiplayer
                     await lanGameLobby.SetUpAsync(false, hg.EndPoint, client);
                     lanGameLobby.Enable();
 
-                    string message = "JOIN" + ProgramConstants.LAN_DATA_SEPARATOR +
+                    string message = LANCommands.PLAYER_JOIN + ProgramConstants.LAN_DATA_SEPARATOR +
                         ProgramConstants.PLAYERNAME + ProgramConstants.LAN_MESSAGE_SEPARATOR;
                     int bufferSize = message.Length * charSize;
                     using IMemoryOwner<byte> memoryOwner = MemoryPool<byte>.Shared.Rent(bufferSize);
@@ -609,7 +609,7 @@ namespace DTAClient.DXGUI.Multiplayer
         {
             Visible = false;
             Enabled = false;
-            await SendMessageAsync("QUIT", CancellationToken.None);
+            await SendMessageAsync(LANCommands.PLAYER_QUIT_COMMAND, CancellationToken.None);
             cancellationTokenSource.Cancel();
             socket.Close();
             Exited?.Invoke(this, EventArgs.Empty);

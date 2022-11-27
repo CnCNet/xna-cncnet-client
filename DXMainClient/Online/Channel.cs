@@ -3,6 +3,7 @@ using DTAClient.Online.EventArguments;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using DTAClient.Domain.Multiplayer.CnCNet;
 using DTAClient.DXGUI;
 using Localization;
 
@@ -263,7 +264,7 @@ namespace DTAClient.Online
             string colorString = (char)03 + color.IrcColorId.ToString("D2");
 
             return connection.QueueMessageAsync(QueuedMessageType.CHAT_MESSAGE, 0,
-                "PRIVMSG " + ChannelName + " :" + colorString + message);
+                IRCCommands.PRIVMSG + " " + ChannelName + " :" + colorString + message);
         }
 
         /// <param name="message"></param>
@@ -289,7 +290,7 @@ namespace DTAClient.Online
         /// <param name="priority">The priority of the message in the send queue.</param>
         public Task SendKickMessageAsync(string userName, int priority)
         {
-            return connection.QueueMessageAsync(QueuedMessageType.INSTANT_MESSAGE, priority, "KICK " + ChannelName + " " + userName);
+            return connection.QueueMessageAsync(QueuedMessageType.INSTANT_MESSAGE, priority, IRCCommands.KICK + " " + ChannelName + " " + userName);
         }
 
         /// <summary>
@@ -300,7 +301,7 @@ namespace DTAClient.Online
         public Task SendBanMessageAsync(string host, int priority)
         {
             return connection.QueueMessageAsync(QueuedMessageType.INSTANT_MESSAGE, priority,
-                string.Format("MODE {0} +b *!*@{1}", ChannelName, host));
+                string.Format(IRCCommands.MODE + " {0} +b *!*@{1}", ChannelName, host));
         }
 
         public Task JoinAsync()
@@ -311,22 +312,15 @@ namespace DTAClient.Online
                 int rn = connection.Rng.Next(1, 10000);
 
                 if (string.IsNullOrEmpty(Password))
-                    return connection.QueueMessageAsync(QueuedMessageType.SYSTEM_MESSAGE, 9, rn, "JOIN " + ChannelName);
-                else
-                    return connection.QueueMessageAsync(QueuedMessageType.SYSTEM_MESSAGE, 9, rn, "JOIN " + ChannelName + " " + Password);
-            }
-            else
-            {
-                if (string.IsNullOrEmpty(Password))
-                    return connection.QueueMessageAsync(QueuedMessageType.SYSTEM_MESSAGE, 9, "JOIN " + ChannelName);
-                else
-                    return connection.QueueMessageAsync(QueuedMessageType.SYSTEM_MESSAGE, 9, "JOIN " + ChannelName + " " + Password);
-            }
-        }
+                    return connection.QueueMessageAsync(QueuedMessageType.SYSTEM_MESSAGE, 9, rn, IRCCommands.JOIN + " " + ChannelName);
 
-        public Task RequestUserInfoAsync()
-        {
-            return connection.QueueMessageAsync(QueuedMessageType.SYSTEM_MESSAGE, 9, "WHO " + ChannelName);
+                return connection.QueueMessageAsync(QueuedMessageType.SYSTEM_MESSAGE, 9, rn, IRCCommands.JOIN + " " + ChannelName + " " + Password);
+            }
+
+            if (string.IsNullOrEmpty(Password))
+                return connection.QueueMessageAsync(QueuedMessageType.SYSTEM_MESSAGE, 9, IRCCommands.JOIN + " " + ChannelName);
+
+            return connection.QueueMessageAsync(QueuedMessageType.SYSTEM_MESSAGE, 9, IRCCommands.JOIN + " " + ChannelName + " " + Password);
         }
 
         public async Task LeaveAsync()
@@ -335,12 +329,13 @@ namespace DTAClient.Online
             if (Persistent)
             {
                 int rn = connection.Rng.Next(1, 10000);
-                await connection.QueueMessageAsync(QueuedMessageType.SYSTEM_MESSAGE, 9, rn, "PART " + ChannelName);
+                await connection.QueueMessageAsync(QueuedMessageType.SYSTEM_MESSAGE, 9, rn, IRCCommands.PART + " " + ChannelName);
             }
             else
             {
-                await connection.QueueMessageAsync(QueuedMessageType.SYSTEM_MESSAGE, 9, "PART " + ChannelName);
+                await connection.QueueMessageAsync(QueuedMessageType.SYSTEM_MESSAGE, 9, IRCCommands.PART + " " + ChannelName);
             }
+
             ClearUsers();
         }
 

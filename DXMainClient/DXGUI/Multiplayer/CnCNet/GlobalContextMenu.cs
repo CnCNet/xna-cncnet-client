@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using ClientCore;
 using ClientCore.Extensions;
 using ClientGUI;
+using DTAClient.Domain.Multiplayer.CnCNet;
 using DTAClient.Online;
 using DTAClient.Online.EventArguments;
 using Localization;
@@ -113,7 +114,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 return;
             }
 
-            string messageBody = ProgramConstants.GAME_INVITE_CTCP_COMMAND + " " + contextMenuData.inviteChannelName + ";" + contextMenuData.inviteGameName;
+            string messageBody = CnCNetCommands.GAME_INVITE + " " + contextMenuData.inviteChannelName + ";" + contextMenuData.inviteGameName;
 
             if (!string.IsNullOrEmpty(contextMenuData.inviteChannelPassword))
             {
@@ -121,7 +122,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             }
 
             await connectionManager.SendCustomMessageAsync(new QueuedMessage(
-                "PRIVMSG " + GetIrcUser().Name + " :\u0001" + messageBody + "\u0001", QueuedMessageType.CHAT_MESSAGE, 0));
+                IRCCommands.PRIVMSG + " " + GetIrcUser().Name + " :\u0001" + messageBody + "\u0001", QueuedMessageType.CHAT_MESSAGE, 0));
         }
 
         private void UpdateButtons()
