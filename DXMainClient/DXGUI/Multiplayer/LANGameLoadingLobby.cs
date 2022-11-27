@@ -26,14 +26,6 @@ namespace DTAClient.DXGUI.Multiplayer
         private const double DROPOUT_TIMEOUT = 20.0;
         private const double GAME_BROADCAST_INTERVAL = 10.0;
 
-        private const string OPTIONS_COMMAND = "OPTS";
-        private const string GAME_LAUNCH_COMMAND = "START";
-        private const string READY_STATUS_COMMAND = "READY";
-        private const string CHAT_COMMAND = "CHAT";
-        private const string PLAYER_QUIT_COMMAND = "QUIT";
-        private const string PLAYER_JOIN_COMMAND = "JOIN";
-        private const string FILE_HASH_COMMAND = "FHASH";
-
         public LANGameLoadingLobby(
             WindowManager windowManager,
             LANColor[] chatColors,
@@ -49,16 +41,16 @@ namespace DTAClient.DXGUI.Multiplayer
 
             hostCommandHandlers = new LANServerCommandHandler[]
             {
-                new ServerStringCommandHandler(CHAT_COMMAND, (sender, data) => Server_HandleChatMessageAsync(sender, data).HandleTask()),
-                new ServerStringCommandHandler(FILE_HASH_COMMAND, Server_HandleFileHashMessage),
-                new ServerNoParamCommandHandler(READY_STATUS_COMMAND, sender => Server_HandleReadyRequestAsync(sender).HandleTask())
+                new ServerStringCommandHandler(LANCommands.CHAT_GAME_LOADING_COMMAND, (sender, data) => Server_HandleChatMessageAsync(sender, data).HandleTask()),
+                new ServerStringCommandHandler(LANCommands.FILE_HASH, Server_HandleFileHashMessage),
+                new ServerNoParamCommandHandler(LANCommands.READY_STATUS, sender => Server_HandleReadyRequestAsync(sender).HandleTask())
             };
 
             playerCommandHandlers = new LANClientCommandHandler[]
             {
-                new ClientStringCommandHandler(CHAT_COMMAND, Client_HandleChatMessage),
-                new ClientStringCommandHandler(OPTIONS_COMMAND, Client_HandleOptionsMessage),
-                new ClientNoParamCommandHandler(GAME_LAUNCH_COMMAND, Client_HandleStartCommand)
+                new ClientStringCommandHandler(LANCommands.CHAT_GAME_LOADING_COMMAND, Client_HandleChatMessage),
+                new ClientStringCommandHandler(LANCommands.OPTIONS, Client_HandleOptionsMessage),
+                new ClientNoParamCommandHandler(LANCommands.GAME_START, Client_HandleStartCommand)
             };
 
             WindowManager.GameClosing += (_, _) => WindowManager_GameClosingAsync().HandleTask();
@@ -119,7 +111,7 @@ namespace DTAClient.DXGUI.Multiplayer
                 this.client = new Socket(SocketType.Stream, ProtocolType.Tcp);
                 await this.client.ConnectAsync(IPAddress.Loopback, ProgramConstants.LAN_GAME_LOBBY_PORT);
 
-                string message = PLAYER_JOIN_COMMAND +
+                string message = LANCommands.PLAYER_JOIN +
                      ProgramConstants.LAN_DATA_SEPARATOR + ProgramConstants.PLAYERNAME +
                      ProgramConstants.LAN_DATA_SEPARATOR + loadedGameId;
 
@@ -155,7 +147,7 @@ namespace DTAClient.DXGUI.Multiplayer
         {
             var fhc = new FileHashCalculator();
             fhc.CalculateHashes(gameModes);
-            await SendMessageToHostAsync(FILE_HASH_COMMAND + " " + fhc.GetCompleteHash(), cancellationTokenSource?.Token ?? default);
+            await SendMessageToHostAsync(LANCommands.FILE_HASH + " " + fhc.GetCompleteHash(), cancellationTokenSource?.Token ?? default);
             UpdateDiscordPresence(true);
         }
 
@@ -235,7 +227,7 @@ namespace DTAClient.DXGUI.Multiplayer
                 string name = parts[1].Trim();
                 int loadedGameId = Conversions.IntFromString(parts[2], -1);
 
-                if (parts[0] == "JOIN" && !string.IsNullOrEmpty(name)
+                if (parts[0] == LANCommands.PLAYER_JOIN && !string.IsNullOrEmpty(name)
                     && loadedGameId == this.loadedGameId)
                 {
                     lpInfo.Name = name;
@@ -408,14 +400,14 @@ namespace DTAClient.DXGUI.Multiplayer
         {
             if (IsHost)
             {
-                await BroadcastMessageAsync(PLAYER_QUIT_COMMAND, CancellationToken.None);
+                await BroadcastMessageAsync(LANCommands.PLAYER_QUIT_COMMAND, CancellationToken.None);
                 Players.ForEach(p => CleanUpPlayer((LANPlayerInfo)p));
                 Players.Clear();
                 listener.Close();
             }
             else
             {
-                await SendMessageToHostAsync(PLAYER_QUIT_COMMAND, CancellationToken.None);
+                await SendMessageToHostAsync(LANCommands.PLAYER_QUIT_COMMAND, CancellationToken.None);
             }
 
             cancellationTokenSource.Cancel();
@@ -434,7 +426,7 @@ namespace DTAClient.DXGUI.Multiplayer
             if (Players.Count > 0)
                 Players[0].Ready = true;
 
-            var sb = new ExtendedStringBuilder(OPTIONS_COMMAND + " ", true);
+            var sb = new ExtendedStringBuilder(LANCommands.OPTIONS + " ", true);
             sb.Separator = ProgramConstants.LAN_DATA_SEPARATOR;
 
             sb.Append(ddSavedGame.SelectedIndex);
@@ -450,14 +442,14 @@ namespace DTAClient.DXGUI.Multiplayer
         }
 
         protected override Task HostStartGameAsync()
-            => BroadcastMessageAsync(GAME_LAUNCH_COMMAND, cancellationTokenSource?.Token ?? default);
+            => BroadcastMessageAsync(LANCommands.GAME_START, cancellationTokenSource?.Token ?? default);
 
         protected override Task RequestReadyStatusAsync()
-            => SendMessageToHostAsync(READY_STATUS_COMMAND, cancellationTokenSource?.Token ?? default);
+            => SendMessageToHostAsync(LANCommands.READY_STATUS, cancellationTokenSource?.Token ?? default);
 
         protected override async Task SendChatMessageAsync(string message)
         {
-            await SendMessageToHostAsync(CHAT_COMMAND + " " + chatColorIndex +
+            await SendMessageToHostAsync(LANCommands.CHAT_GAME_LOADING_COMMAND + " " + chatColorIndex +
                 ProgramConstants.LAN_DATA_SEPARATOR + message, cancellationTokenSource?.Token ?? default);
 
             sndMessageSound.Play();
@@ -477,7 +469,7 @@ namespace DTAClient.DXGUI.Multiplayer
             if (colorIndex < 0 || colorIndex >= chatColors.Length)
                 return;
 
-            await BroadcastMessageAsync(CHAT_COMMAND + " " + sender +
+            await BroadcastMessageAsync(LANCommands.CHAT_GAME_LOADING_COMMAND + " " + sender +
                 ProgramConstants.LAN_DATA_SEPARATOR + colorIndex +
                 ProgramConstants.LAN_DATA_SEPARATOR + data, cancellationTokenSource?.Token ?? default);
         }
@@ -661,7 +653,7 @@ namespace DTAClient.DXGUI.Multiplayer
 
         private void BroadcastGame()
         {
-            var sb = new ExtendedStringBuilder("GAME ", true);
+            var sb = new ExtendedStringBuilder(LANCommands.GAME + " ", true);
             sb.Separator = ProgramConstants.LAN_DATA_SEPARATOR;
             sb.Append(ProgramConstants.LAN_PROTOCOL_REVISION);
             sb.Append(ProgramConstants.GAME_VERSION);

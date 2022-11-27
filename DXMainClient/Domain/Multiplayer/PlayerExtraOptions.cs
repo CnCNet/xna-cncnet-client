@@ -3,6 +3,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using DTAClient.Domain.Multiplayer.CnCNet;
+using DTAClient.Domain.Multiplayer.LAN;
 
 namespace DTAClient.Domain.Multiplayer
 {
@@ -10,13 +12,9 @@ namespace DTAClient.Domain.Multiplayer
     {
         private static string INVALID_OPTIONS_MESSAGE => "Invalid player extra options message".L10N("Client:Main:InvalidPlayerExtraOptionsMessage");
         private static string MAPPING_ERROR_PREFIX => "Auto Allying:".L10N("Client:Main:AutoAllyingPrefix");
-        protected static string NOT_ALL_MAPPINGS_ASSIGNED => MAPPING_ERROR_PREFIX + " " + "You must have all mappings assigned.".L10N("Client:Main:NotAllMappingsAssigned");
         protected static string MULTIPLE_MAPPINGS_ASSIGNED_TO_SAME_START => MAPPING_ERROR_PREFIX + " " + "Multiple mappings assigned to the same start location.".L10N("Client:Main:MultipleMappingsAssigned");
         protected static string ONLY_ONE_TEAM => MAPPING_ERROR_PREFIX + " " + "You must have more than one team assigned.".L10N("Client:Main:OnlyOneTeam");
         private const char MESSAGE_SEPARATOR = ';';
-
-        public const string CNCNET_MESSAGE_KEY = "PEO";
-        public const string LAN_MESSAGE_KEY = "PEOPTS";
 
         public bool IsForceRandomSides { get; set; }
         public bool IsForceRandomColors { get; set; }
@@ -41,9 +39,9 @@ namespace DTAClient.Domain.Multiplayer
             return null;
         }
 
-        public string ToCncnetMessage() => $"{CNCNET_MESSAGE_KEY} {ToString()}";
+        public string ToCncnetMessage() => $"{CnCNetCommands.PLAYER_EXTRA_OPTIONS} {ToString()}";
 
-        public string ToLanMessage() => $"{LAN_MESSAGE_KEY} {ToString()}";
+        public string ToLanMessage() => $"{LANCommands.PLAYER_EXTRA_OPTIONS} {ToString()}";
 
         public override string ToString()
         {

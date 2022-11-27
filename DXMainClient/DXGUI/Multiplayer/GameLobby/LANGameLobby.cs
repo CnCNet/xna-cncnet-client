@@ -30,20 +30,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         private const double DROPOUT_TIMEOUT = 20.0;
         private const double GAME_BROADCAST_INTERVAL = 10.0;
 
-        private const string CHAT_COMMAND = "GLCHAT";
-        private const string RETURN_COMMAND = "RETURN";
-        private const string GET_READY_COMMAND = "GETREADY";
-        private const string PLAYER_OPTIONS_REQUEST_COMMAND = "POREQ";
-        private const string PLAYER_OPTIONS_BROADCAST_COMMAND = "POPTS";
-        private const string PLAYER_JOIN_COMMAND = "JOIN";
-        private const string PLAYER_QUIT_COMMAND = "QUIT";
-        private const string GAME_OPTIONS_COMMAND = "OPTS";
-        private const string PLAYER_READY_REQUEST = "READY";
-        private const string LAUNCH_GAME_COMMAND = "LAUNCH";
-        private const string FILE_HASH_COMMAND = "FHASH";
-        private const string DICE_ROLL_COMMAND = "DR";
-        private const string PING = "PING";
-
         public LANGameLobby(
             WindowManager windowManager,
             string iniName,
@@ -57,27 +43,27 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             encoding = Encoding.UTF8;
             hostCommandHandlers = new CommandHandlerBase[]
             {
-                new StringCommandHandler(CHAT_COMMAND, (sender, data) => GameHost_HandleChatCommandAsync(sender, data).HandleTask()),
-                new NoParamCommandHandler(RETURN_COMMAND, sender => GameHost_HandleReturnCommandAsync(sender).HandleTask()),
-                new StringCommandHandler(PLAYER_OPTIONS_REQUEST_COMMAND, (sender, data) => HandlePlayerOptionsRequestAsync(sender, data).HandleTask()),
-                new NoParamCommandHandler(PLAYER_QUIT_COMMAND, sender => HandlePlayerQuitAsync(sender).HandleTask()),
-                new StringCommandHandler(PLAYER_READY_REQUEST, (sender, autoReady) => GameHost_HandleReadyRequestAsync(sender, autoReady).HandleTask()),
-                new StringCommandHandler(FILE_HASH_COMMAND, HandleFileHashCommand),
-                new StringCommandHandler(DICE_ROLL_COMMAND, (sender, result) => Host_HandleDiceRollAsync(sender, result).HandleTask()),
-                new NoParamCommandHandler(PING, _ => { })
+                new StringCommandHandler(LANCommands.CHAT_LOBBY_COMMAND, (sender, data) => GameHost_HandleChatCommandAsync(sender, data).HandleTask()),
+                new NoParamCommandHandler(LANCommands.RETURN, sender => GameHost_HandleReturnCommandAsync(sender).HandleTask()),
+                new StringCommandHandler(LANCommands.PLAYER_OPTIONS_REQUEST, (sender, data) => HandlePlayerOptionsRequestAsync(sender, data).HandleTask()),
+                new NoParamCommandHandler(LANCommands.PLAYER_QUIT_COMMAND, sender => HandlePlayerQuitAsync(sender).HandleTask()),
+                new StringCommandHandler(LANCommands.PLAYER_READY_REQUEST, (sender, autoReady) => GameHost_HandleReadyRequestAsync(sender, autoReady).HandleTask()),
+                new StringCommandHandler(LANCommands.FILE_HASH, HandleFileHashCommand),
+                new StringCommandHandler(LANCommands.DICE_ROLL, (sender, result) => Host_HandleDiceRollAsync(sender, result).HandleTask()),
+                new NoParamCommandHandler(LANCommands.PING, _ => { })
             };
 
             playerCommandHandlers = new LANClientCommandHandler[]
             {
-                new ClientStringCommandHandler(CHAT_COMMAND, Player_HandleChatCommand),
-                new ClientNoParamCommandHandler(GET_READY_COMMAND, () => HandleGetReadyCommandAsync().HandleTask()),
-                new ClientStringCommandHandler(RETURN_COMMAND, Player_HandleReturnCommand),
-                new ClientStringCommandHandler(PLAYER_OPTIONS_BROADCAST_COMMAND, HandlePlayerOptionsBroadcast),
-                new ClientStringCommandHandler(PlayerExtraOptions.LAN_MESSAGE_KEY, HandlePlayerExtraOptionsBroadcast),
-                new ClientStringCommandHandler(LAUNCH_GAME_COMMAND, gameId => HandleGameLaunchCommandAsync(gameId).HandleTask()),
-                new ClientStringCommandHandler(GAME_OPTIONS_COMMAND, data => HandleGameOptionsMessageAsync(data).HandleTask()),
-                new ClientStringCommandHandler(DICE_ROLL_COMMAND, Client_HandleDiceRoll),
-                new ClientNoParamCommandHandler(PING, () => HandlePingAsync().HandleTask())
+                new ClientStringCommandHandler(LANCommands.CHAT_LOBBY_COMMAND, Player_HandleChatCommand),
+                new ClientNoParamCommandHandler(LANCommands.GET_READY, () => HandleGetReadyCommandAsync().HandleTask()),
+                new ClientStringCommandHandler(LANCommands.RETURN, Player_HandleReturnCommand),
+                new ClientStringCommandHandler(LANCommands.PLAYER_OPTIONS_BROADCAST, HandlePlayerOptionsBroadcast),
+                new ClientStringCommandHandler(LANCommands.PLAYER_EXTRA_OPTIONS, HandlePlayerExtraOptionsBroadcast),
+                new ClientStringCommandHandler(LANCommands.LAUNCH_GAME, gameId => HandleGameLaunchCommandAsync(gameId).HandleTask()),
+                new ClientStringCommandHandler(LANCommands.GAME_OPTIONS, data => HandleGameOptionsMessageAsync(data).HandleTask()),
+                new ClientStringCommandHandler(LANCommands.DICE_ROLL, Client_HandleDiceRoll),
+                new ClientNoParamCommandHandler(LANCommands.PING, () => HandlePingAsync().HandleTask())
             };
 
             localGame = ClientConfiguration.Instance.LocalGame;
@@ -182,7 +168,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
                 await client.ConnectAsync(IPAddress.Loopback, ProgramConstants.LAN_GAME_LOBBY_PORT, cancellationToken);
 
-                string message = PLAYER_JOIN_COMMAND + ProgramConstants.LAN_DATA_SEPARATOR + ProgramConstants.PLAYERNAME;
+                string message = LANCommands.PLAYER_JOIN + ProgramConstants.LAN_DATA_SEPARATOR + ProgramConstants.PLAYERNAME;
                 const int charSize = sizeof(char);
                 int bufferSize = message.Length * charSize;
                 using IMemoryOwner<byte> memoryOwner = MemoryPool<byte>.Shared.Rent(bufferSize);
@@ -202,7 +188,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             var fhc = new FileHashCalculator();
             fhc.CalculateHashes(GameModeMaps.GameModes);
-            await SendMessageToHostAsync(FILE_HASH_COMMAND + " " + fhc.GetCompleteHash(), cancellationTokenSource?.Token ?? default);
+            await SendMessageToHostAsync(LANCommands.FILE_HASH + " " + fhc.GetCompleteHash(), cancellationTokenSource?.Token ?? default);
             ResetAutoReadyCheckbox();
         }
 
@@ -296,7 +282,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
                 string name = parts[1].Trim();
 
-                if (parts[0] == "JOIN" && !string.IsNullOrEmpty(name))
+                if (parts[0] == LANCommands.PLAYER_JOIN && !string.IsNullOrEmpty(name))
                 {
                     lpInfo.Name = name;
 
@@ -488,7 +474,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             if (IsHost)
             {
-                await BroadcastMessageAsync(PLAYER_QUIT_COMMAND);
+                await BroadcastMessageAsync(LANCommands.PLAYER_QUIT_COMMAND);
                 Players.ForEach(p => CleanUpPlayer((LANPlayerInfo)p));
                 Players.Clear();
                 cancellationTokenSource.Cancel();
@@ -496,7 +482,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             }
             else
             {
-                await SendMessageToHostAsync(PLAYER_QUIT_COMMAND, cancellationTokenSource?.Token ?? default);
+                await SendMessageToHostAsync(LANCommands.PLAYER_QUIT_COMMAND, cancellationTokenSource?.Token ?? default);
             }
 
             if (client.Connected)
@@ -524,7 +510,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (!IsHost)
                 return;
 
-            var sb = new ExtendedStringBuilder(PLAYER_OPTIONS_BROADCAST_COMMAND + " ", true);
+            var sb = new ExtendedStringBuilder(LANCommands.PLAYER_OPTIONS_BROADCAST + " ", true);
             sb.Separator = ProgramConstants.LAN_DATA_SEPARATOR;
             foreach (PlayerInfo pInfo in Players.Concat(AIPlayers))
             {
@@ -554,7 +540,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             await BroadcastMessageAsync(playerExtraOptions.ToLanMessage(), true);
         }
 
-        protected override Task HostLaunchGameAsync() => BroadcastMessageAsync(LAUNCH_GAME_COMMAND + " " + UniqueGameID);
+        protected override Task HostLaunchGameAsync() => BroadcastMessageAsync(LANCommands.LAUNCH_GAME + " " + UniqueGameID);
 
         protected override string GetIPAddressForPlayer(PlayerInfo player)
         {
@@ -564,7 +550,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         protected override Task RequestPlayerOptionsAsync(int side, int color, int start, int team)
         {
-            var sb = new ExtendedStringBuilder(PLAYER_OPTIONS_REQUEST_COMMAND + " ", true);
+            var sb = new ExtendedStringBuilder(LANCommands.PLAYER_OPTIONS_REQUEST + " ", true);
             sb.Separator = ProgramConstants.LAN_DATA_SEPARATOR;
             sb.Append(side);
             sb.Append(color);
@@ -575,12 +561,12 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         protected override Task RequestReadyStatusAsync()
         {
-            return SendMessageToHostAsync(PLAYER_READY_REQUEST + " " + Convert.ToInt32(chkAutoReady.Checked), cancellationTokenSource?.Token ?? default);
+            return SendMessageToHostAsync(LANCommands.PLAYER_READY_REQUEST + " " + Convert.ToInt32(chkAutoReady.Checked), cancellationTokenSource?.Token ?? default);
         }
 
         protected override Task SendChatMessageAsync(string message)
         {
-            var sb = new ExtendedStringBuilder(CHAT_COMMAND + " ", true);
+            var sb = new ExtendedStringBuilder(LANCommands.CHAT_LOBBY_COMMAND + " ", true);
             sb.Separator = ProgramConstants.LAN_DATA_SEPARATOR;
             sb.Append(chatColorIndex);
             sb.Append(message);
@@ -594,7 +580,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (!IsHost)
                 return;
 
-            var sb = new ExtendedStringBuilder(GAME_OPTIONS_COMMAND + " ", true);
+            var sb = new ExtendedStringBuilder(LANCommands.GAME_OPTIONS + " ", true);
             sb.Separator = ProgramConstants.LAN_DATA_SEPARATOR;
             foreach (GameLobbyCheckBox chkBox in CheckBoxes)
             {
@@ -623,7 +609,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 #endif
 
             if (IsHost)
-                await BroadcastMessageAsync(GET_READY_COMMAND);
+                await BroadcastMessageAsync(LANCommands.GET_READY);
         }
 
         protected override void ClearPingIndicators()
@@ -714,7 +700,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         protected override async Task GameProcessExitedAsync()
         {
             await base.GameProcessExitedAsync();
-            await SendMessageToHostAsync(RETURN_COMMAND, cancellationTokenSource?.Token ?? default);
+            await SendMessageToHostAsync(LANCommands.RETURN, cancellationTokenSource?.Token ?? default);
 
             if (IsHost)
             {
@@ -787,7 +773,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (GameMode == null || Map == null)
                 return;
 
-            var sb = new ExtendedStringBuilder("GAME ", true);
+            var sb = new ExtendedStringBuilder(LANCommands.GAME + " ", true);
             sb.Separator = ProgramConstants.LAN_DATA_SEPARATOR;
             sb.Append(ProgramConstants.LAN_PROTOCOL_REVISION);
             sb.Append(ProgramConstants.GAME_VERSION);
@@ -819,7 +805,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (colorIndex < 0 || colorIndex >= chatColors.Length)
                 return;
 
-            await BroadcastMessageAsync(CHAT_COMMAND + " " + sender + ProgramConstants.LAN_DATA_SEPARATOR + data);
+            await BroadcastMessageAsync(LANCommands.CHAT_LOBBY_COMMAND + " " + sender + ProgramConstants.LAN_DATA_SEPARATOR + data);
         }
 
         private void Player_HandleChatCommand(string data)
@@ -841,7 +827,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         }
 
         private Task GameHost_HandleReturnCommandAsync(string sender)
-            => BroadcastMessageAsync(RETURN_COMMAND + ProgramConstants.LAN_DATA_SEPARATOR + sender);
+            => BroadcastMessageAsync(LANCommands.RETURN + ProgramConstants.LAN_DATA_SEPARATOR + sender);
 
         private void Player_HandleReturnCommand(string sender)
         {
@@ -1124,16 +1110,16 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
 
         private Task HandlePingAsync()
-            => SendMessageToHostAsync(PING, cancellationTokenSource?.Token ?? default);
+            => SendMessageToHostAsync(LANCommands.PING, cancellationTokenSource?.Token ?? default);
 
         protected override async Task BroadcastDiceRollAsync(int dieSides, int[] results)
         {
             string resultString = string.Join(",", results);
-            await SendMessageToHostAsync($"DR {dieSides},{resultString}", cancellationTokenSource?.Token ?? default);
+            await SendMessageToHostAsync($"{LANCommands.DICE_ROLL} {dieSides},{resultString}", cancellationTokenSource?.Token ?? default);
         }
 
         private Task Host_HandleDiceRollAsync(string sender, string result)
-            => BroadcastMessageAsync($"{DICE_ROLL_COMMAND} {sender}{ProgramConstants.LAN_DATA_SEPARATOR}{result}");
+            => BroadcastMessageAsync($"{LANCommands.DICE_ROLL} {sender}{ProgramConstants.LAN_DATA_SEPARATOR}{result}");
 
         private void Client_HandleDiceRoll(string data)
         {

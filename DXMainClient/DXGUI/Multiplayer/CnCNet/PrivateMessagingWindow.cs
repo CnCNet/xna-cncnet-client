@@ -15,6 +15,7 @@ using System.Reflection;
 using System.Threading.Tasks;
 using ClientCore.Enums;
 using ClientCore.Extensions;
+using DTAClient.Domain.Multiplayer.CnCNet;
 using SixLabors.ImageSharp;
 using Color = Microsoft.Xna.Framework.Color;
 using Rectangle = Microsoft.Xna.Framework.Rectangle;
@@ -526,7 +527,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             string userName = lbUserList.SelectedItem.Text;
 
-            await connectionManager.SendCustomMessageAsync(new QueuedMessage("PRIVMSG " + userName + " :" + tbMessageInput.Text,
+            await connectionManager.SendCustomMessageAsync(new QueuedMessage(IRCCommands.PRIVMSG + " " + userName + " :" + tbMessageInput.Text,
                 QueuedMessageType.CHAT_MESSAGE, 0));
 
             PrivateMessageUser pmUser = privateMessageUsers.Find(u => u.IrcUser.Name == userName);

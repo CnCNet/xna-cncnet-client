@@ -53,8 +53,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             ctcpCommandHandlers = new CommandHandlerBase[]
             {
-                new StringCommandHandler(ProgramConstants.GAME_INVITE_CTCP_COMMAND, (sender, argumentsString) => HandleGameInviteCommandAsync(sender, argumentsString).HandleTask()),
-                new NoParamCommandHandler(ProgramConstants.GAME_INVITATION_FAILED_CTCP_COMMAND, HandleGameInvitationFailedNotification)
+                new StringCommandHandler(CnCNetCommands.GAME_INVITE, (sender, argumentsString) => HandleGameInviteCommandAsync(sender, argumentsString).HandleTask()),
+                new NoParamCommandHandler(CnCNetCommands.GAME_INVITATION_FAILED, HandleGameInvitationFailedNotification)
             };
 
             topBar.LogoutEvent += LogoutEvent;
@@ -618,12 +618,12 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         private Task SharedUILogic_GameProcessStartedAsync()
             => connectionManager.SendCustomMessageAsync(new QueuedMessage(
-                "AWAY " + (char)58 + "In-game",
+                IRCCommands.AWAY + " " + (char)58 + "In-game",
                 QueuedMessageType.SYSTEM_MESSAGE,
                 0));
 
         private Task SharedUILogic_GameProcessExitedAsync()
-            => connectionManager.SendCustomMessageAsync(new QueuedMessage("AWAY", QueuedMessageType.SYSTEM_MESSAGE, 0));
+            => connectionManager.SendCustomMessageAsync(new QueuedMessage(IRCCommands.AWAY, QueuedMessageType.SYSTEM_MESSAGE, 0));
 
         private async Task Instance_SettingsSavedAsync()
         {
@@ -901,7 +901,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 gameChannel.TargetChangeTooFast += gameChannel_TargetChangeTooFastFunc;
             }
 
-            await connectionManager.SendCustomMessageAsync(new QueuedMessage("JOIN " + hg.ChannelName + " " + password,
+            await connectionManager.SendCustomMessageAsync(new QueuedMessage(IRCCommands.JOIN + " " + hg.ChannelName + " " + password,
                 QueuedMessageType.INSTANT_MESSAGE, 0));
         }
 
@@ -1002,7 +1002,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             connectionManager.AddChannel(gameChannel);
             await gameLobby.SetUpAsync(gameChannel, true, e.MaxPlayers, e.Tunnel, ProgramConstants.PLAYERNAME, isCustomPassword, false);
             gameChannel.UserAdded += gameChannel_UserAddedFunc;
-            await connectionManager.SendCustomMessageAsync(new QueuedMessage("JOIN " + channelName + " " + password,
+            await connectionManager.SendCustomMessageAsync(new QueuedMessage(IRCCommands.JOIN + " " + channelName + " " + password,
                 QueuedMessageType.INSTANT_MESSAGE, 0));
             connectionManager.MainChannel.AddMessage(new ChatMessage(Color.White,
                string.Format("Creating a game named {0} ...".L10N("Client:Main:CreateGameNamed"), e.GameRoomName)));
@@ -1024,7 +1024,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             connectionManager.AddChannel(gameLoadingChannel);
             gameLoadingLobby.SetUp(true, e.Tunnel, gameLoadingChannel, ProgramConstants.PLAYERNAME);
             gameLoadingChannel.UserAdded += gameLoadingChannel_UserAddedFunc;
-            await connectionManager.SendCustomMessageAsync(new QueuedMessage("JOIN " + channelName + " " + e.Password,
+            await connectionManager.SendCustomMessageAsync(new QueuedMessage(IRCCommands.JOIN + " " + channelName + " " + e.Password,
                 QueuedMessageType.INSTANT_MESSAGE, 0));
             connectionManager.MainChannel.AddMessage(new ChatMessage(Color.White,
                string.Format("Creating a game named {0} ...".L10N("Client:Main:CreateGameNamed"), e.GameRoomName)));
@@ -1202,8 +1202,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             {
                 // let the host know that we can't accept
                 // note this is not reached for the rejection case
-                await connectionManager.SendCustomMessageAsync(new QueuedMessage("PRIVMSG " + sender + " :\u0001" +
-                    ProgramConstants.GAME_INVITATION_FAILED_CTCP_COMMAND + "\u0001",
+                await connectionManager.SendCustomMessageAsync(new QueuedMessage(IRCCommands.PRIVMSG + " " + sender + " :\u0001" +
+                    CnCNetCommands.GAME_INVITATION_FAILED + "\u0001",
                     QueuedMessageType.CHAT_MESSAGE, 0));
 
                 return;
@@ -1435,7 +1435,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 }
             }
 
-            if (!e.Message.StartsWith("GAME "))
+            if (!e.Message.StartsWith(CnCNetCommands.GAME + " "))
                 return;
 
             string msg = e.Message[5..]; // Cut out GAME part
