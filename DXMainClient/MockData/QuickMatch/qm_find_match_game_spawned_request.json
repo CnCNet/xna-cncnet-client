@@ -1,0 +1,14 @@
+{
+    "peers": [
+        {
+            "address": "127.0.0.1",
+            "id": "1234567890",
+            "port": 51143,
+            "rtt": 59
+        }
+    ],
+    "seed": 123,
+    "status": "GameSpawned",
+    "type": "update",
+    "version": "2.0"
+}

@@ -1,0 +1,50 @@
+{
+  "type": "spawn",
+  "gameID": 603498,
+  "spawn": {
+    "SpawnLocations": {
+      "Multi1": -1,
+      "Multi2": -1
+    },
+    "Settings": {
+      "UIMapName": "Copacabana",
+      "MapHash": "d3797ec3d3e29cfa2ac81f9e08c9e7ebab142952",
+      "Seed": -1976956982,
+      "GameID": -1976956982,
+      "WOLGameID": -1976956982,
+      "Host": "No",
+      "IsSpectator": "No",
+      "Name": "devo1929",
+      "Port": 51143,
+      "Side": 0,
+      "Color": 0,
+      "GameSpeed": "0",
+      "Credits": "10000",
+      "UnitCount": "0",
+      "Superweapons": "Yes",
+      "Tournament": "1",
+      "ShortGame": "Yes",
+      "Bases": "Yes",
+      "MCVRedeploy": "Yes",
+      "MultipleFactory": "Yes",
+      "Crates": "No",
+      "GameMode": "Battle",
+      "FrameSendRate": "4",
+      "DisableSWvsYuri": "Yes"
+    },
+    "Other1": {
+      "Name": "neogrant",
+      "Side": 0,
+      "Color": 1,
+      "Ip": "98.111.198.94",
+      "Port": 1024,
+      "IPv6": "",
+      "PortV6": 0,
+      "LanIP": "",
+      "LanPort": 51143
+    }
+  },
+  "client": {
+    "show_map_preview": 1
+  }
+}

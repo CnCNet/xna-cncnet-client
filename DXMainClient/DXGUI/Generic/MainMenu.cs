@@ -21,6 +21,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using ClientUpdater;
+using DTAClient.DXGUI.Multiplayer.QuickMatch;
 
 namespace DTAClient.DXGUI.Generic
 {
@@ -49,7 +50,8 @@ namespace DTAClient.DXGUI.Generic
             CnCNetGameLobby cnCNetGameLobby,
             PrivateMessagingPanel privateMessagingPanel,
             PrivateMessagingWindow privateMessagingWindow,
-            GameInProgressWindow gameInProgressWindow
+            GameInProgressWindow gameInProgressWindow,
+            QuickMatchWindow quickMatchWindow
         ) : base(windowManager)
         {
             this.lanLobby = lanLobby;
@@ -64,6 +66,7 @@ namespace DTAClient.DXGUI.Generic
             this.privateMessagingPanel = privateMessagingPanel;
             this.privateMessagingWindow = privateMessagingWindow;
             this.gameInProgressWindow = gameInProgressWindow;
+            this.quickMatchWindow = quickMatchWindow;
             this.cncnetLobby.UpdateCheck += CncnetLobby_UpdateCheck;
             isMediaPlayerAvailable = IsMediaPlayerAvailable();
         }
@@ -92,6 +95,7 @@ namespace DTAClient.DXGUI.Generic
         private readonly PrivateMessagingPanel privateMessagingPanel;
         private readonly PrivateMessagingWindow privateMessagingWindow;
         private readonly GameInProgressWindow gameInProgressWindow;
+        private readonly QuickMatchWindow quickMatchWindow;
 
         private XNAMessageBox firstRunMessageBox;
 
@@ -133,6 +137,7 @@ namespace DTAClient.DXGUI.Generic
         private XNAClientButton btnStatistics;
         private XNAClientButton btnCredits;
         private XNAClientButton btnExtras;
+        private XNAClientButton btnQuickmatch;
 
         /// <summary>
         /// Initializes the main menu's controls.
@@ -175,6 +180,11 @@ namespace DTAClient.DXGUI.Generic
             btnCnCNet.HoverTexture = AssetLoader.LoadTexture("MainMenu/cncnet_c.png");
             btnCnCNet.HoverSoundEffect = new EnhancedSoundEffect("MainMenu/button.wav");
             btnCnCNet.LeftClick += BtnCnCNet_LeftClick;
+
+            btnQuickmatch = new XNAClientButton(WindowManager);
+            btnQuickmatch.Name = nameof(btnQuickmatch);
+            btnQuickmatch.LeftClick += BtnQuickmatch_LeftClick;
+            btnQuickmatch.Disable();
 
             btnLan = new XNAClientButton(WindowManager);
             btnLan.Name = nameof(btnLan);
@@ -247,6 +257,7 @@ namespace DTAClient.DXGUI.Generic
             AddChild(btnLoadGame);
             AddChild(btnSkirmish);
             AddChild(btnCnCNet);
+            AddChild(btnQuickmatch);
             AddChild(btnLan);
             AddChild(btnOptions);
             AddChild(btnMapEditor);
@@ -553,12 +564,14 @@ namespace DTAClient.DXGUI.Generic
             DarkeningPanel.AddAndInitializeWithControl(WindowManager, cnCNetGameLobby);
             DarkeningPanel.AddAndInitializeWithControl(WindowManager, cncnetLobby);
             DarkeningPanel.AddAndInitializeWithControl(WindowManager, lanLobby);
+            DarkeningPanel.AddAndInitializeWithControl(WindowManager, quickMatchWindow);
             optionsWindow.SetTopBar(topBar);
             DarkeningPanel.AddAndInitializeWithControl(WindowManager, optionsWindow);
             WindowManager.AddAndInitializeControl(privateMessagingPanel);
             privateMessagingPanel.AddChild(privateMessagingWindow);
             topBar.SetTertiarySwitch(privateMessagingWindow);
             topBar.SetOptionsWindow(optionsWindow);
+            topBar.SetQuickMatchWindow(quickMatchWindow);
             WindowManager.AddAndInitializeControl(gameInProgressWindow);
 
             skirmishLobby.Disable();
@@ -568,6 +581,7 @@ namespace DTAClient.DXGUI.Generic
             lanLobby.Disable();
             privateMessagingWindow.Disable();
             optionsWindow.Disable();
+            quickMatchWindow.Disable();
 
             WindowManager.AddAndInitializeControl(topBar);
             topBar.AddPrimarySwitchable(this);
@@ -848,6 +862,8 @@ namespace DTAClient.DXGUI.Generic
         }
 
         private void BtnCnCNet_LeftClick(object sender, EventArgs e) => topBar.SwitchToSecondary();
+
+        private void BtnQuickmatch_LeftClick(object sender, EventArgs e) => quickMatchWindow.Enable();
 
         private void BtnSkirmish_LeftClick(object sender, EventArgs e)
         {

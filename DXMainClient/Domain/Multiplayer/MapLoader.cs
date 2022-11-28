@@ -2,7 +2,6 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
-using System.Threading;
 using System.Linq;
 using System.Threading.Tasks;
 using ClientCore;
@@ -330,5 +329,8 @@ namespace DTAClient.Domain.Multiplayer
                 }
             }
         }
+
+        public Map GetMapForSHA(string sha1)
+            => GameModeMaps.Select(gmm => gmm.Map).FirstOrDefault(m => m.SHA1 == sha1);
     }
 }

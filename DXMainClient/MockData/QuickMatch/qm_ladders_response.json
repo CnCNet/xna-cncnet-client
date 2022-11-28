@@ -1,0 +1,273 @@
+[
+  {
+    "id": 1,
+    "name": "Ladder 1",
+    "abbreviation": "yr",
+    "game": "yr",
+    "created_at": "-0001-11-30 00:00:00",
+    "updated_at": "2022-11-01 00:16:36",
+    "clans_allowed": 0,
+    "game_object_schema_id": 1,
+    "map_pool_id": 56,
+    "private": 0,
+    "sides": [
+      {
+        "id": 1,
+        "ladder_id": 1,
+        "local_id": 0,
+        "name": "America",
+        "created_at": "2017-07-28 09:58:22",
+        "updated_at": "2017-07-28 09:58:22"
+      },
+      {
+        "id": 2,
+        "ladder_id": 1,
+        "local_id": 1,
+        "name": "Korea",
+        "created_at": "2017-07-28 09:58:22",
+        "updated_at": "2017-07-28 09:58:22"
+      },
+      {
+        "id": 3,
+        "ladder_id": 1,
+        "local_id": 3,
+        "name": "Germany",
+        "created_at": "2017-07-28 09:58:22",
+        "updated_at": "2017-07-28 09:58:22"
+      },
+      {
+        "id": 4,
+        "ladder_id": 1,
+        "local_id": 4,
+        "name": "Great Britain",
+        "created_at": "2017-07-28 09:58:22",
+        "updated_at": "2017-07-28 09:58:22"
+      },
+      {
+        "id": 5,
+        "ladder_id": 1,
+        "local_id": 5,
+        "name": "Libya",
+        "created_at": "2017-07-28 09:58:22",
+        "updated_at": "2017-07-28 09:58:22"
+      },
+      {
+        "id": 6,
+        "ladder_id": 1,
+        "local_id": 6,
+        "name": "Iraq",
+        "created_at": "2017-07-28 09:58:22",
+        "updated_at": "2017-07-28 09:58:22"
+      },
+      {
+        "id": 7,
+        "ladder_id": 1,
+        "local_id": 7,
+        "name": "Cuba",
+        "created_at": "2017-07-28 09:58:22",
+        "updated_at": "2017-07-28 09:58:22"
+      },
+      {
+        "id": 8,
+        "ladder_id": 1,
+        "local_id": 8,
+        "name": "Russia",
+        "created_at": "2017-07-28 09:58:22",
+        "updated_at": "2017-07-28 09:58:22"
+      },
+      {
+        "id": 13,
+        "ladder_id": 1,
+        "local_id": 2,
+        "name": "France",
+        "created_at": "2017-09-04 05:41:03",
+        "updated_at": "2017-09-04 05:41:03"
+      },
+      {
+        "id": 14,
+        "ladder_id": 1,
+        "local_id": 9,
+        "name": "Yuri",
+        "created_at": "2017-09-04 05:41:03",
+        "updated_at": "2017-09-04 05:41:03"
+      },
+      {
+        "id": 24,
+        "ladder_id": 1,
+        "local_id": -1,
+        "name": "Random",
+        "created_at": "-0001-11-30 00:00:00",
+        "updated_at": "-0001-11-30 00:00:00"
+      }
+    ],
+    "vetoes": 6,
+    "allowed_sides": [
+      -1,
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9
+    ],
+    "current": "11-2022",
+    "qm_ladder_rules": {
+      "id": 1,
+      "ladder_id": 1,
+      "player_count": 2,
+      "map_vetoes": 6,
+      "max_difference": 498,
+      "all_sides": "0,1,2,3,4,5,6,7,8,9",
+      "allowed_sides": "-1,0,1,2,3,4,5,6,7,8,9",
+      "created_at": "2017-07-28 04:50:56",
+      "updated_at": "2022-11-01 21:54:13",
+      "bail_time": 0,
+      "bail_fps": 0,
+      "tier2_rating": 0,
+      "rating_per_second": 0.75,
+      "max_points_difference": 400,
+      "points_per_second": 1,
+      "use_elo_points": 1,
+      "wol_k": 64,
+      "show_map_preview": 1,
+      "reduce_map_repeats": 3,
+      "ladder_rules_message": "1. No pushing or intentionally feeding players points.\n2. Using multiple accounts to bypass the 1 nick restriction is not allowed.\n3. Disconnecting games is not allowed.\n4. Using a VPN to hide your identity is not allowed.\n5. No cancelling matches consecutively to block players from QMing.\n6. No abusing bugs on your opponents to gain an upper hand.\n7. Games that end in stalemate may be washed if photo\/video is provided as proof of the stalemate.\n8. Games that need to be washed must be reported within 1 week. On the last 2 days of the month old games will not be washed.\n9. Opening menu and lowering the game speed during a game is not allowed.\n10. You are not allowed to impersonate other players\n11. You are not allowed to quit matches at start of match if you don't like the opponent\/faction or whatever, this goes against competitive fair play. This is a competitive environment you should respect the game, your opponents, and the ladder or else don't play.\n12. If you are lagging games below 50fps you are subject to a cooldown.\n13. If a game is lagging you may report the game to be washed if you quit before 1min into the game. Fps should be below 50fps for it to be washed.",
+      "ladder_discord": "https:\/\/discord.com\/invite\/aJRJFe5"
+    }
+  },
+  {
+    "id": 2,
+    "name": "Ladder 2",
+    "abbreviation": "ra2",
+    "game": "yr",
+    "created_at": "2022-04-22 02:26:06",
+    "updated_at": "2022-11-01 00:16:07",
+    "clans_allowed": 0,
+    "game_object_schema_id": 1,
+    "map_pool_id": 57,
+    "private": 0,
+    "sides": [
+      {
+        "id": 36,
+        "ladder_id": 2,
+        "local_id": 0,
+        "name": "America",
+        "created_at": "2022-04-22 02:26:07",
+        "updated_at": "2022-04-22 02:26:07"
+      },
+      {
+        "id": 37,
+        "ladder_id": 2,
+        "local_id": 1,
+        "name": "Korea",
+        "created_at": "2022-04-22 02:26:07",
+        "updated_at": "2022-04-22 02:26:07"
+      },
+      {
+        "id": 38,
+        "ladder_id": 2,
+        "local_id": 2,
+        "name": "France",
+        "created_at": "2022-04-22 02:26:07",
+        "updated_at": "2022-04-22 02:26:07"
+      },
+      {
+        "id": 39,
+        "ladder_id": 2,
+        "local_id": 3,
+        "name": "Germany",
+        "created_at": "2022-04-22 02:26:07",
+        "updated_at": "2022-04-22 02:26:07"
+      },
+      {
+        "id": 40,
+        "ladder_id": 2,
+        "local_id": 4,
+        "name": "Great Britain",
+        "created_at": "2022-04-22 02:26:07",
+        "updated_at": "2022-04-22 02:26:07"
+      },
+      {
+        "id": 41,
+        "ladder_id": 2,
+        "local_id": 5,
+        "name": "Libya",
+        "created_at": "2022-04-22 02:26:07",
+        "updated_at": "2022-04-22 02:26:07"
+      },
+      {
+        "id": 42,
+        "ladder_id": 2,
+        "local_id": 6,
+        "name": "Iraq",
+        "created_at": "2022-04-22 02:26:07",
+        "updated_at": "2022-04-22 02:26:07"
+      },
+      {
+        "id": 43,
+        "ladder_id": 2,
+        "local_id": 7,
+        "name": "Cuba",
+        "created_at": "2022-04-22 02:26:07",
+        "updated_at": "2022-04-22 02:26:07"
+      },
+      {
+        "id": 44,
+        "ladder_id": 2,
+        "local_id": 8,
+        "name": "Russia",
+        "created_at": "2022-04-22 02:26:07",
+        "updated_at": "2022-04-22 02:26:07"
+      },
+      {
+        "id": 67,
+        "ladder_id": 2,
+        "local_id": -1,
+        "name": "Random",
+        "created_at": "2022-06-14 02:13:59",
+        "updated_at": "2022-06-14 02:13:59"
+      }
+    ],
+    "vetoes": 8,
+    "allowed_sides": [
+      -1,
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ],
+    "current": "11-2022",
+    "qm_ladder_rules": {
+      "id": 4,
+      "ladder_id": 2,
+      "player_count": 2,
+      "map_vetoes": 8,
+      "max_difference": 400,
+      "all_sides": "0,1,2,3,4,5,6,7,8",
+      "allowed_sides": "-1,0,1,2,3,4,5,6,7,8",
+      "created_at": "2022-04-22 02:26:07",
+      "updated_at": "2022-11-05 23:03:52",
+      "bail_time": 0,
+      "bail_fps": 0,
+      "tier2_rating": 0,
+      "rating_per_second": 0.75,
+      "max_points_difference": 400,
+      "points_per_second": 2,
+      "use_elo_points": 1,
+      "wol_k": 64,
+      "show_map_preview": 1,
+      "reduce_map_repeats": 5,
+      "ladder_rules_message": "1. No pushing or intentionally feeding players points.\r\n2. Using multiple accounts to bypass the 1 nick restriction is not allowed.\r\n3. Disconnecting games is not allowed.\r\n4. Using a VPN to hide your identity is not allowed.\r\n5. No cancelling matches consecutively to block players from QMing.\r\n6. No abusing bugs on your opponents to gain an upper hand.\r\n7. Games that end in stalemate may be washed if photo\/video is provided as proof of the stalemate.\r\n8. Games that need to be washed must be reported within 1 week. On the last 2 days of the month old games will not be washed.\r\n9. Opening menu and lowering the game speed during a game is not allowed.\r\n10. You are not allowed to impersonate other players\r\n11. You are not allowed to quit matches at start of match if you don't like the opponent\/faction or whatever, this goes against competitive fair play. This is a competitive environment you should respect the game, your opponents, and the ladder or else don't play.\r\n12. If you are lagging games below 50fps you are subject to a cooldown.\r\n13. If a game is lagging you may report the game to be washed if you quit before 1min into the game. Fps should be below 50fps for it to be washed.",
+      "ladder_discord": "https:\/\/discord.com\/invite\/aJRJFe5"
+    }
+  }
+]

@@ -9,6 +9,8 @@ namespace ClientGUI
     {
         public ToolTip ToolTip { get; set; }
 
+        public bool DisabledMouseScroll { get; set; }
+
         public XNAClientDropDown(WindowManager windowManager) : base(windowManager)
         {
         }
@@ -45,6 +47,16 @@ namespace ClientGUI
             base.OnMouseLeftDown();
             UpdateToolTipBlock();
         }
+
+        public override void OnMouseScrolled()
+        {
+            if (DisabledMouseScroll)
+                return;
+
+            base.OnMouseScrolled();
+        }
+
+        public void Close() => CloseDropDown();
 
         protected override void CloseDropDown()
         {

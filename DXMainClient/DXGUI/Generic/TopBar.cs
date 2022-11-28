@@ -10,6 +10,7 @@ using ClientGUI;
 using ClientCore;
 using System.Threading;
 using DTAClient.Domain.Multiplayer.CnCNet;
+using DTAClient.DXGUI.Multiplayer.QuickMatch;
 using DTAClient.Online.EventArguments;
 using DTAConfig;
 using Localization;
@@ -53,6 +54,7 @@ namespace DTAClient.DXGUI.Generic
         private ISwitchable privateMessageSwitch;
 
         private OptionsWindow optionsWindow;
+        private QuickMatchWindow quickMatchWindow;
 
         private XNAClientButton btnMainButton;
         private XNAClientButton btnCnCNetLobby;
@@ -106,6 +108,8 @@ namespace DTAClient.DXGUI.Generic
             this.optionsWindow = optionsWindow;
             optionsWindow.EnabledChanged += OptionsWindow_EnabledChanged;
         }
+
+        public void SetQuickMatchWindow(QuickMatchWindow quickMatchWindow) => this.quickMatchWindow = quickMatchWindow;
 
         private void OptionsWindow_EnabledChanged(object sender, EventArgs e)
         {
@@ -324,6 +328,7 @@ namespace DTAClient.DXGUI.Generic
             LastSwitchType = SwitchType.PRIMARY;
             cncnetLobbySwitch.SwitchOff();
             privateMessageSwitch.SwitchOff();
+            quickMatchWindow.Disable();
             primarySwitches[primarySwitches.Count - 1].SwitchOn();
 
             // HACK warning

@@ -1,0 +1,76 @@
+[
+  {
+    "id": 2571,
+    "ladder_id": 0,
+    "map_id": 1412,
+    "description": "Across the Frost",
+    "bit_idx": 0,
+    "valid": 1,
+    "spawn_order": "0,0",
+    "created_at": "2022-10-31 23:07:40",
+    "updated_at": "2022-10-31 23:07:40",
+    "team1_spawn_order": "                                       ",
+    "team2_spawn_order": "",
+    "allowed_sides": [
+      0,
+      1,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      2,
+      9,
+      -1
+    ],
+    "admin_description": "Across the Frost",
+    "map_pool_id": 56,
+    "rejectable": 1,
+    "default_reject": 0,
+    "hash": "e13e94fc4b4d19e9be93682f5e31d8e416f762f5",
+    "map": {
+      "id": 1412,
+      "hash": "e13e94fc4b4d19e9be93682f5e31d8e416f762f5",
+      "name": "across_the_frost_e13e94fc4b4d19e9be93682f5e31d8e416f762f5",
+      "ladder_id": 1
+    }
+  },
+  {
+    "id": 2572,
+    "ladder_id": 0,
+    "map_id": 669,
+    "description": "Arabian Oasis",
+    "bit_idx": 1,
+    "valid": 1,
+    "spawn_order": "0,0",
+    "created_at": "2022-10-31 23:07:40",
+    "updated_at": "2022-10-31 23:07:40",
+    "team1_spawn_order": "                         ",
+    "team2_spawn_order": "",
+    "allowed_sides": [
+      0,
+      1,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      2,
+      9,
+      -1
+    ],
+    "admin_description": "Arabian Oasis",
+    "map_pool_id": 56,
+    "rejectable": 1,
+    "default_reject": 0,
+    "hash": "37ee5d7c1e4127538979857c45b1747af36e8f64",
+    "map": {
+      "id": 669,
+      "hash": "37ee5d7c1e4127538979857c45b1747af36e8f64",
+      "name": "Arabian Oasis v2.2",
+      "ladder_id": 1
+    }
+  }
+]
