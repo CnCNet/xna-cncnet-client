@@ -102,7 +102,7 @@ csharp_style_conditional_delegate_call = true:warning
 csharp_style_prefer_parameter_null_checking = true:warning
 
 # Modifier preferences
-csharp_prefer_static_local_function = true:warning
+csharp_prefer_static_local_function = true:suggestion
 csharp_preferred_modifier_order = public,private,protected,internal,static,extern,new,virtual,abstract,sealed,override,readonly,unsafe,volatile,async
 
 # Code-block preferences
@@ -129,8 +129,8 @@ csharp_style_unused_value_expression_statement_preference = discard_variable:war
 csharp_using_directive_placement = outside_namespace:warning
 
 # New line preferences
-csharp_style_allow_blank_line_after_colon_in_constructor_initializer_experimental = false:warning
-csharp_style_allow_blank_lines_between_consecutive_braces_experimental = false:warning
+csharp_style_allow_blank_line_after_colon_in_constructor_initializer_experimental = false:suggestion
+csharp_style_allow_blank_lines_between_consecutive_braces_experimental = false:suggestion
 csharp_style_allow_embedded_statements_on_same_line_experimental = false:warning
 
 #### C# Formatting Rules ####
@@ -324,6 +324,8 @@ dotnet_diagnostic.SA1503.severity = none
 dotnet_diagnostic.SA1413.severity = none
 dotnet_diagnostic.SA1210.severity = none
 dotnet_diagnostic.SA0001.severity = none
+csharp_style_prefer_top_level_statements = true:silent
+csharp_style_prefer_utf8_string_literals = true:suggestion
 
 [*.{cs,vb}]
 dotnet_style_operator_placement_when_wrapping = beginning_of_line
@@ -442,20 +444,20 @@ dotnet_diagnostic.CA2250.severity = warning
 dotnet_diagnostic.CA2251.severity = warning
 dotnet_diagnostic.CA2253.severity = warning
 dotnet_diagnostic.CA2254.severity = warning
-dotnet_style_readonly_field = true:warning
+dotnet_style_readonly_field = true:suggestion
 dotnet_style_predefined_type_for_locals_parameters_members = true:warning
 dotnet_style_predefined_type_for_member_access = true:warning
-dotnet_style_require_accessibility_modifiers = always:warning
-dotnet_style_allow_multiple_blank_lines_experimental = false:warning
-dotnet_style_allow_statement_immediately_after_block_experimental = false:warning
+dotnet_style_require_accessibility_modifiers = always:suggestion
+dotnet_style_allow_multiple_blank_lines_experimental = false:silent
+dotnet_style_allow_statement_immediately_after_block_experimental = false:suggestion
 dotnet_code_quality_unused_parameters = all:warning
-dotnet_style_parentheses_in_arithmetic_binary_operators = always_for_clarity:warning
+dotnet_style_parentheses_in_arithmetic_binary_operators = always_for_clarity:silent
 dotnet_style_parentheses_in_other_binary_operators = always_for_clarity:warning
 dotnet_style_parentheses_in_relational_binary_operators = always_for_clarity:warning
 dotnet_style_parentheses_in_other_operators = never_if_unnecessary:warning
 dotnet_style_qualification_for_field = false:warning
 dotnet_style_qualification_for_property = false:warning
-dotnet_style_qualification_for_method = false:warning
+dotnet_style_qualification_for_method = false:suggestion
 dotnet_style_qualification_for_event = false:warning
 dotnet_diagnostic.CA1036.severity = warning
 dotnet_diagnostic.CA1727.severity = warning
