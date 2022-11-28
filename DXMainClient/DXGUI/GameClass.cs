@@ -13,12 +13,12 @@ using ClientGUI;
 using DTAClient.Domain.Multiplayer;
 using DTAClient.Domain.Multiplayer.CnCNet;
 using DTAClient.Domain.Multiplayer.CnCNet.QuickMatch.Services;
-using DTAClient.Domain.Multiplayer.CnCNet.Services;
 using DTAClient.DXGUI.Multiplayer;
 using DTAClient.DXGUI.Multiplayer.CnCNet;
 using DTAClient.DXGUI.Multiplayer.GameLobby;
 using DTAClient.DXGUI.Multiplayer.QuickMatch;
 using DTAClient.Online;
+using DTAClient.Services;
 using DTAConfig;
 using DTAConfig.Settings;
 using Microsoft.Extensions.DependencyInjection;
@@ -202,6 +202,7 @@ namespace DTAClient.DXGUI
                             .AddSingleton<PrivateMessageHandler>()
                             .AddSingleton<MapLoader>()
                             .AddSingleton<ApiService>()
+                            .AddSingleton<SpawnService>()
                             .AddSingleton<QmService>()
                             .AddSingleton<QmSettingsService>()
                             .AddSingleton<QmUserSettingsService>();

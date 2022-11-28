@@ -1,10 +1,9 @@
 ﻿using System.IO;
 using ClientCore;
-using ClientCore.Exceptions;
-using DTAClient.Domain.Multiplayer.CnCNet.QuickMatch.Models;
+using DTAClient.Domain.Multiplayer.CnCNet;
 using Rampastring.Tools;
 
-namespace DTAClient.Domain.Multiplayer.CnCNet.Services;
+namespace DTAClient.Services;
 
 public class ApiSettingsService
 {

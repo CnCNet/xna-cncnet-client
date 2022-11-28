@@ -5,7 +5,7 @@ using DTAClient.Domain.Multiplayer.CnCNet.QuickMatch.Models;
 using DTAClient.Domain.Multiplayer.CnCNet.QuickMatch.Requests;
 using DTAClient.Domain.Multiplayer.CnCNet.QuickMatch.Responses;
 using DTAClient.Domain.Multiplayer.CnCNet.QuickMatch.Utilities;
-using DTAClient.Domain.Multiplayer.CnCNet.Services;
+using DTAClient.Services;
 using Newtonsoft.Json;
 
 namespace DTAClient.Domain.Multiplayer.CnCNet.QuickMatch.Services;

@@ -14,8 +14,8 @@ using DTAClient.Domain.Multiplayer.CnCNet.QuickMatch.Models;
 using DTAClient.Domain.Multiplayer.CnCNet.QuickMatch.Requests;
 using DTAClient.Domain.Multiplayer.CnCNet.QuickMatch.Responses;
 using DTAClient.Domain.Multiplayer.CnCNet.QuickMatch.Utilities;
-using DTAClient.Domain.Multiplayer.CnCNet.Services;
 using DTAClient.Online;
+using DTAClient.Services;
 using JWT;
 using JWT.Algorithms;
 using JWT.Exceptions;
@@ -30,6 +30,7 @@ public class QmService : IDisposable
 
     private readonly QmUserSettingsService qmUserSettingsService;
     private readonly ApiService apiService;
+    private readonly SpawnService spawnService;
     private readonly QmSettingsService qmSettingsService;
 
     private readonly QmUserSettings qmUserSettings;
@@ -40,10 +41,16 @@ public class QmService : IDisposable
     private QmUserAccount userAccount;
     private IEnumerable<int> mapSides;
 
-    public QmService(QmSettingsService qmSettingsService, QmUserSettingsService qmUserSettingsService, ApiService apiService)
+    public QmService(
+        QmSettingsService qmSettingsService,
+        QmUserSettingsService qmUserSettingsService,
+        ApiService apiService,
+        SpawnService spawnService
+    )
     {
         this.qmUserSettingsService = qmUserSettingsService;
         this.apiService = apiService;
+        this.spawnService = spawnService;
         this.qmSettingsService = qmSettingsService;
 
         qmUserSettings = this.qmUserSettingsService.GetSettings();
@@ -227,11 +234,12 @@ public class QmService : IDisposable
     /// <summary>
     /// This is called when the user clicks the "I'm Ready" button in the match found dialog.
     /// </summary>
+    /// <param name="spawn">Spawn settings from the API.</param>
     public void AcceptMatchAsync(QmSpawn spawn)
     {
         ExecuteLoadingRequest(new QmReadyRequestMatchEvent(), async () =>
         {
-            WriteSpawnIni(spawn);
+            spawnService.WriteSpawnInfo(spawn);
             retryRequestmatchTimer.Stop();
             var readyRequest = new QmReadyRequest(spawn.Settings.Seed);
             QmResponse<QmResponseMessage> response = await apiService.QuickMatchRequestAsync(userAccount.Ladder.Abbreviation, userAccount.Username, readyRequest);
@@ -242,6 +250,7 @@ public class QmService : IDisposable
     /// <summary>
     /// This is called when the user clicks the "Cancel" button in the match found dialog.
     /// </summary>
+    /// <param name="spawn">Spawn settings from the API.</param>
     public void RejectMatchAsync(QmSpawn spawn)
     {
         ExecuteLoadingRequest(new QmNotReadyRequestMatchEvent(), async () =>
@@ -252,71 +261,6 @@ public class QmService : IDisposable
             HandleQuickMatchResponse(response);
         });
         CancelRequestMatchAsync();
-    }
-
-    public void WriteSpawnIni(QmSpawn spawn)
-    {
-        IniFile spawnIni = CreateSpawnIniFile();
-
-        AddSpawnSettingsSection(spawn, spawnIni);
-        AddSpawnOtherSections(spawn, spawnIni);
-        AddSpawnLocationsSection(spawn, spawnIni);
-        AddSpawnTunnelSection(spawn, spawnIni);
-
-        spawnIni.WriteIniFile();
-    }
-
-    private static void AddSpawnSettingsSection(QmSpawn spawn, IniFile spawnIni)
-    {
-        var settings = new IniSection("Settings");
-        settings.SetStringValue("Scenario", "spawnmap.ini");
-        settings.SetStringValue("QuickMatch", "Yes");
-
-        foreach (PropertyInfo prop in spawn.Settings.GetType().GetProperties())
-            settings.SetStringValue(prop.Name, prop.GetValue(spawn.Settings).ToString());
-
-        spawnIni.AddSection(settings);
-    }
-    
-    private static void AddSpawnOtherSections(QmSpawn spawn, IniFile spawnIni)
-    {
-        for (int i = 0; i < spawn.Others.Count; i++)
-        {
-            // Headers for OTHER# sections are 1-based index
-            var otherSection = new IniSection($"Other{i + 1}");
-            QmSpawnOther other = spawn.Others[i];
-
-            foreach (PropertyInfo otherProp in other.GetType().GetProperties())
-                otherSection.SetStringValue(otherProp.Name, otherProp.GetValue(other).ToString());
-
-            spawnIni.AddSection(otherSection);
-        }
-    }
-
-    private static void AddSpawnLocationsSection(QmSpawn spawn, IniFile spawnIni)
-    {
-        var spawnLocationsSection = new IniSection("SpawnLocations");
-        foreach (KeyValuePair<string, int> spawnLocation in spawn.SpawnLocations)
-            spawnLocationsSection.SetStringValue(spawnLocation.Key, spawnLocation.Value.ToString());
-
-        spawnIni.AddSection(spawnLocationsSection);
-    }
-
-    private static void AddSpawnTunnelSection(QmSpawn spawn, IniFile spawnIni)
-    {
-        var tunnel = new IniSection("Tunnel");
-        tunnel.SetStringValue("Ip", "52.232.96.199");
-        tunnel.SetIntValue("Port", 50001);
-        spawnIni.AddSection(tunnel);
-    }
-
-    public IniFile CreateSpawnIniFile()
-    {
-        FileInfo spawnerSettingsFile = SafePath.GetFile(ProgramConstants.GamePath, ProgramConstants.SPAWNER_SETTINGS);
-
-        spawnerSettingsFile.Delete();
-
-        return new IniFile(spawnerSettingsFile.FullName);
     }
 
     public void Dispose()

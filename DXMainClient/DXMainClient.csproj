@@ -136,6 +136,9 @@
       <HintPath>..\References\DiscordRPC.dll</HintPath>
     </Reference>
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Domain\Multiplayer\CnCNet\Services" />
+  </ItemGroup>
 
   <Import Project="$(MSBuildThisFileDirectory)..\build\WinForms.props" />
   <Import Project="$(MSBuildThisFileDirectory)..\build\AfterPublish.targets" />

@@ -2,13 +2,13 @@
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading.Tasks;
+using DTAClient.Domain.Multiplayer.CnCNet;
 using DTAClient.Domain.Multiplayer.CnCNet.QuickMatch.Models;
 using DTAClient.Domain.Multiplayer.CnCNet.QuickMatch.Requests;
 using DTAClient.Domain.Multiplayer.CnCNet.QuickMatch.Responses;
-using DTAClient.Domain.Multiplayer.CnCNet.QuickMatch.Services;
 using DTAClient.Domain.Multiplayer.CnCNet.QuickMatch.Utilities;
 
-namespace DTAClient.Domain.Multiplayer.CnCNet.Services;
+namespace DTAClient.Services;
 
 public class ApiService : IDisposable
 {
