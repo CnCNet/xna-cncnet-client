@@ -323,6 +323,11 @@ namespace DTAClient.Online
             return connection.QueueMessageAsync(QueuedMessageType.SYSTEM_MESSAGE, 9, IRCCommands.JOIN + " " + ChannelName + " " + Password);
         }
 
+        public Task RequestUserInfoAsync()
+        {
+            return connection.QueueMessageAsync(QueuedMessageType.SYSTEM_MESSAGE, 9, "WHO " + ChannelName);
+        }
+
         public async Task LeaveAsync()
         {
             // Wait a random amount of time before joining to prevent join/part floods

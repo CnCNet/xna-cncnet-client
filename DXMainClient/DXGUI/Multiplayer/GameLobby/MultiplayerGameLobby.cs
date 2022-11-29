@@ -15,6 +15,7 @@ using System.Text;
 using System.Threading.Tasks;
 using ClientCore.Extensions;
 using DTAClient.Domain;
+using DTAClient.Domain.Multiplayer.CnCNet;
 using Microsoft.Xna.Framework.Graphics;
 using ClientCore.Extensions;
 
@@ -40,22 +41,22 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             chatBoxCommands = new List<ChatBoxCommand>
             {
-                new("HIDEMAPS", "Hide map list (game host only)".L10N("Client:Main:ChatboxCommandHideMapsHelp"), true,
+                new(CnCNetLobbyCommands.HIDEMAPS, "Hide map list (game host only)".L10N("Client:Main:ChatboxCommandHideMapsHelp"), true,
                     s => HideMapList()),
-                new("SHOWMAPS", "Show map list (game host only)".L10N("Client:Main:ChatboxCommandShowMapsHelp"), true,
+                new(CnCNetLobbyCommands.SHOWMAPS, "Show map list (game host only)".L10N("Client:Main:ChatboxCommandShowMapsHelp"), true,
                     s => ShowMapList()),
-                new("FRAMESENDRATE", "Change order lag / FrameSendRate (default 7) (game host only)".L10N("Client:Main:ChatboxCommandFrameSendRateHelp"), true,
+                new(CnCNetLobbyCommands.FRAMESENDRATE, "Change order lag / FrameSendRate (default 7) (game host only)".L10N("Client:Main:ChatboxCommandFrameSendRateHelp"), true,
                     s => SetFrameSendRateAsync(s).HandleTask()),
-                new("MAXAHEAD", "Change MaxAhead (default 0) (game host only)".L10N("Client:Main:ChatboxCommandMaxAheadHelp"), true,
+                new(CnCNetLobbyCommands.MAXAHEAD, "Change MaxAhead (default 0) (game host only)".L10N("Client:Main:ChatboxCommandMaxAheadHelp"), true,
                     s => SetMaxAheadAsync(s).HandleTask()),
-                new("PROTOCOLVERSION", "Change ProtocolVersion (default 2) (game host only)".L10N("Client:Main:ChatboxCommandProtocolVersionHelp"), true,
+                new(CnCNetLobbyCommands.PROTOCOLVERSION, "Change ProtocolVersion (default 2) (game host only)".L10N("Client:Main:ChatboxCommandProtocolVersionHelp"), true,
                     s => SetProtocolVersionAsync(s).HandleTask()),
-                new("LOADMAP", "Load a custom map with given filename from /Maps/Custom/ folder.".L10N("Client:Main:ChatboxCommandLoadMapHelp"), true, LoadCustomMap),
-                new("RANDOMSTARTS", "Enables completely random starting locations (Tiberian Sun based games only).".L10N("Client:Main:ChatboxCommandRandomStartsHelp"), true,
+                new(CnCNetLobbyCommands.LOADMAP, "Load a custom map with given filename from /Maps/Custom/ folder.".L10N("Client:Main:ChatboxCommandLoadMapHelp"), true, LoadCustomMap),
+                new(CnCNetLobbyCommands.RANDOMSTARTS, "Enables completely random starting locations (Tiberian Sun based games only).".L10N("Client:Main:ChatboxCommandRandomStartsHelp"), true,
                     s => SetStartingLocationClearanceAsync(s).HandleTask()),
-                new("ROLL", "Roll dice, for example /roll 3d6".L10N("Client:Main:ChatboxCommandRollHelp"), false, dieType => RollDiceCommandAsync(dieType).HandleTask()),
-                new("SAVEOPTIONS", "Save game option preset so it can be loaded later".L10N("Client:Main:ChatboxCommandSaveOptionsHelp"), false, HandleGameOptionPresetSaveCommand),
-                new("LOADOPTIONS", "Load game option preset".L10N("Client:Main:ChatboxCommandLoadOptionsHelp"), true, presetName => HandleGameOptionPresetLoadCommandAsync(presetName).HandleTask())
+                new(CnCNetLobbyCommands.ROLL, "Roll dice, for example /roll 3d6".L10N("Client:Main:ChatboxCommandRollHelp"), false, dieType => RollDiceCommandAsync(dieType).HandleTask()),
+                new(CnCNetLobbyCommands.SAVEOPTIONS, "Save game option preset so it can be loaded later".L10N("Client:Main:ChatboxCommandSaveOptionsHelp"), false, HandleGameOptionPresetSaveCommand),
+                new(CnCNetLobbyCommands.LOADOPTIONS, "Load game option preset".L10N("Client:Main:ChatboxCommandLoadOptionsHelp"), true, presetName => HandleGameOptionPresetLoadCommandAsync(presetName).HandleTask())
             };
 
             chkAutoReady_CheckedChangedFunc = (_, _) => ChkAutoReady_CheckedChangedAsync().HandleTask();
@@ -152,8 +153,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             {
                 var indicatorPlayerReady = new XNAPlayerSlotIndicator(WindowManager);
                 indicatorPlayerReady.Name = "playerStatusIndicator" + i;
-                indicatorPlayerReady.ClientRectangle = new Rectangle(statusIndicatorX, ddPlayerTeams[i].Y + statusIndicatorY,
-                    0, 0);
+                indicatorPlayerReady.ClientRectangle = new Rectangle(statusIndicatorX, ddPlayerTeams[i].Y + statusIndicatorY, 0, 0);
 
                 PlayerOptionsPanel.AddChild(indicatorPlayerReady);
 
@@ -615,7 +615,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             UpdateMapPreviewBoxEnabledStatus();
             PlayerExtraOptionsPanel?.SetIsHost(isHost);
-            //MapPreviewBox.EnableContextMenu = IsHost;
 
             btnLaunchGame.Text = IsHost ? BTN_LAUNCH_GAME : BTN_LAUNCH_READY;
 

@@ -619,13 +619,14 @@ namespace DTAClient.DXGUI.Generic
 
 #endif
 #if DX
-            wmaBackupMainMenuMusicFile.CopyTo(wmaMainMenuMusicFile.FullName, true);
+            if (!wmaMainMenuMusicFile.Exists)
+                wmaBackupMainMenuMusicFile.CopyTo(wmaMainMenuMusicFile.FullName);
 #elif GL
             FileInfo oggMainMenuMusicFile = SafePath.GetFile(ProgramConstants.GamePath, ProgramConstants.BASE_RESOURCE_PATH,
                 FormattableString.Invariant($"{ClientConfiguration.Instance.MainMenuMusicName}.ogg"));
 
-            if (oggMainMenuMusicFile.Exists)
-                oggMainMenuMusicFile.CopyTo(wmaMainMenuMusicFile.FullName, true);
+            if (oggMainMenuMusicFile.Exists && !wmaMainMenuMusicFile.Exists)
+                oggMainMenuMusicFile.CopyTo(wmaMainMenuMusicFile.FullName);
 #endif
         }
 

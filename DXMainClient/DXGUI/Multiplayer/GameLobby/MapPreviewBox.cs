@@ -32,7 +32,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
     /// <summary>
     /// The picture box for displaying the map preview.
     /// </summary>
-    public class MapPreviewBox : XNAPanel
+    internal sealed class MapPreviewBox : XNAPanel
     {
         private const int MAX_STARTING_LOCATIONS = 8;
 

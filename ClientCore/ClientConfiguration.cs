@@ -53,14 +53,7 @@ namespace ClientCore
         /// <returns>The object of the ClientConfiguration class.</returns>
         public static ClientConfiguration Instance
         {
-            get
-            {
-                if (_instance == null)
-                {
-                    _instance = new ClientConfiguration();
-                }
-                return _instance;
-            }
+            get { return _instance ??= new ClientConfiguration(); }
         }
 
         public void RefreshSettings()

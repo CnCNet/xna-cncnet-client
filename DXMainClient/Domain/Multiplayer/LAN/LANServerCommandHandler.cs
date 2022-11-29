@@ -1,6 +1,6 @@
 ﻿namespace DTAClient.Domain.Multiplayer.LAN
 {
-    public abstract class LANServerCommandHandler
+    internal abstract class LANServerCommandHandler
     {
         public LANServerCommandHandler(string commandName)
         {

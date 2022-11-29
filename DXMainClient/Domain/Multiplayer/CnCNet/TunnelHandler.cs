@@ -1,16 +1,16 @@
-﻿using ClientCore;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Net;
+using System.Net.Http;
+using System.Threading.Tasks;
+using ClientCore;
+using ClientCore.Extensions;
 using DTAClient.Online;
 using Microsoft.Xna.Framework;
 using Rampastring.Tools;
 using Rampastring.XNAUI;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Net;
-using System.Threading.Tasks;
-using System.Linq;
-using System.Net.Http;
-using ClientCore.Extensions;
 
 namespace DTAClient.Domain.Multiplayer.CnCNet
 {
@@ -23,14 +23,26 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
 
         /// <summary>
         /// A reciprocal to the value which determines how frequent the full tunnel
-        /// refresh would be done instead of just pinging the current tunnel (1/N of 
+        /// refresh would be done instead of just pinging the current tunnel (1/N of
         /// current tunnel ping refreshes would be substituted by a full list refresh).
-        /// Multiply by <see cref="CURRENT_TUNNEL_PING_INTERVAL"/> to get the interval 
+        /// Multiply by <see cref="CURRENT_TUNNEL_PING_INTERVAL"/> to get the interval
         /// between full list refreshes.
         /// </summary>
         private const uint CYCLES_PER_TUNNEL_LIST_REFRESH = 6;
 
-        public TunnelHandler(WindowManager wm, CnCNetManager connectionManager) : base(wm.Game)
+        private readonly WindowManager wm;
+
+        private TimeSpan timeSinceTunnelRefresh = TimeSpan.MaxValue;
+        private uint skipCount;
+
+        public event EventHandler TunnelsRefreshed;
+
+        public event EventHandler CurrentTunnelPinged;
+
+        public event Action<int> TunnelPinged;
+
+        public TunnelHandler(WindowManager wm, CnCNetManager connectionManager)
+            : base(wm.Game)
         {
             this.wm = wm;
 
@@ -44,16 +56,8 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
         }
 
         public List<CnCNetTunnel> Tunnels { get; private set; } = new();
+
         public CnCNetTunnel CurrentTunnel { get; set; }
-
-        public event EventHandler TunnelsRefreshed;
-        public event EventHandler CurrentTunnelPinged;
-        public event Action<int> TunnelPinged;
-
-        private readonly WindowManager wm;
-
-        private TimeSpan timeSinceTunnelRefresh = TimeSpan.MaxValue;
-        private uint skipCount;
 
         private void DoTunnelPinged(int index)
         {
@@ -94,7 +98,8 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
 
             if (CurrentTunnel != null)
             {
-                var updatedTunnel = Tunnels.Find(t => t.Address == CurrentTunnel.Address && t.Port == CurrentTunnel.Port);
+                CnCNetTunnel updatedTunnel = Tunnels.Find(t => t.Address == CurrentTunnel.Address && t.Port == CurrentTunnel.Port);
+
                 if (updatedTunnel != null)
                 {
                     // don't re-ping if the tunnel still exists in list, just update the tunnel instance and
@@ -196,8 +201,13 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                     if (tunnel.RequiresPassword)
                         continue;
 
-                    if (tunnel.Version != Constants.TUNNEL_VERSION_2 &&
-                        tunnel.Version != Constants.TUNNEL_VERSION_3)
+                    if (tunnel.Version is not Constants.TUNNEL_VERSION_2 and not Constants.TUNNEL_VERSION_3)
+                        continue;
+
+                    if (tunnel.Version is Constants.TUNNEL_VERSION_2 && !UserINISettings.Instance.UseLegacyTunnels)
+                        continue;
+
+                    if (tunnel.Version is Constants.TUNNEL_VERSION_3 && UserINISettings.Instance.UseLegacyTunnels)
                         continue;
 
                     returnValue.Add(tunnel);
@@ -249,7 +259,9 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                 skipCount++;
             }
             else
+            {
                 timeSinceTunnelRefresh += gameTime.ElapsedGameTime;
+            }
 
             base.Update(gameTime);
         }

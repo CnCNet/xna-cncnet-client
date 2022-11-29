@@ -27,7 +27,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
     /// A generic base for all game lobbies (Skirmish, LAN and CnCNet).
     /// Contains the common logic for parsing game options and handling player info.
     /// </summary>
-    public abstract class GameLobbyBase : INItializableWindow
+    internal abstract class GameLobbyBase : INItializableWindow
     {
         protected const int MAX_PLAYER_COUNT = 8;
         protected const int PLAYER_OPTION_VERTICAL_MARGIN = 12;
@@ -58,8 +58,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             string iniName,
             MapLoader mapLoader,
             bool isMultiplayer,
-            DiscordHandler discordHandler
-        ) : base(windowManager)
+            DiscordHandler discordHandler)
+            : base(windowManager)
         {
             _iniSectionName = iniName;
             MapLoader = mapLoader;
@@ -140,7 +140,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         protected List<PlayerInfo> Players = new List<PlayerInfo>();
         protected List<PlayerInfo> AIPlayers = new List<PlayerInfo>();
 
-        protected virtual PlayerInfo FindLocalPlayer() => Players.Find(p => p.Name == ProgramConstants.PLAYERNAME);
+        protected PlayerInfo FindLocalPlayer() => Players.Find(p => ProgramConstants.PLAYERNAME.Equals(p.Name, StringComparison.OrdinalIgnoreCase));
 
         protected bool PlayerUpdatingInProgress { get; set; }
 
@@ -945,7 +945,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             var pInfo = GetPlayerInfoForIndex(playerIndex);
             var allowOtherPlayerOptionsChange = AllowPlayerOptionsChange() && pInfo != null;
+
             clientDropDown.AllowDropDown = enable && (allowOtherPlayerOptionsChange || pInfo?.Name == ProgramConstants.PLAYERNAME);
+
             if (!clientDropDown.AllowDropDown)
                 clientDropDown.SelectedIndex = clientDropDown.SelectedIndex > 0 ? 0 : clientDropDown.SelectedIndex;
         }
@@ -1304,15 +1306,12 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             }
 
             var teamStartMappings = new List<TeamStartMapping>(0);
+
             if (PlayerExtraOptionsPanel != null)
-            {
                 teamStartMappings = PlayerExtraOptionsPanel.GetTeamStartMappings();
-            }
 
             PlayerHouseInfo[] houseInfos = Randomize(teamStartMappings);
-
             IniFile spawnIni = new IniFile(spawnerSettingsFile.FullName);
-
             IniSection settings = new IniSection("Settings");
 
             settings.SetStringValue("Name", ProgramConstants.PLAYERNAME);
@@ -1325,17 +1324,22 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 settings.SetStringValue("MapID", Map.BaseFilePath);
 
             settings.SetIntValue("PlayerCount", Players.Count);
-            int myIndex = Players.FindIndex(c => c.Name == ProgramConstants.PLAYERNAME);
+
+            int myIndex = Players.FindIndex(c => c == FindLocalPlayer());
+
             settings.SetIntValue("Side", houseInfos[myIndex].InternalSideIndex);
             settings.SetBooleanValue("IsSpectator", houseInfos[myIndex].IsSpectator);
             settings.SetIntValue("Color", houseInfos[myIndex].ColorIndex);
             settings.SetStringValue("CustomLoadScreen", LoadingScreenController.GetLoadScreenName(houseInfos[myIndex].InternalSideIndex.ToString()));
             settings.SetIntValue("AIPlayers", AIPlayers.Count);
             settings.SetIntValue("Seed", RandomSeed);
+
             if (GetPvPTeamCount() > 1)
                 settings.SetBooleanValue("CoachMode", true);
+
             if (GetGameType() == GameType.Coop)
                 settings.SetBooleanValue("AutoSurrender", false);
+
             spawnIni.AddSection(settings);
             WriteSpawnIniAdditions(spawnIni);
 
@@ -1346,24 +1350,20 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 dd.ApplySpawnIniCode(spawnIni);
 
             // Apply forced options from GameOptions.ini
-
             List<string> forcedKeys = GameOptionsIni.GetSectionKeys("ForcedSpawnIniOptions");
 
             if (forcedKeys != null)
             {
                 foreach (string key in forcedKeys)
                 {
-                    spawnIni.SetStringValue("Settings", key,
-                        GameOptionsIni.GetStringValue("ForcedSpawnIniOptions", key, String.Empty));
+                    spawnIni.SetStringValue("Settings", key, GameOptionsIni.GetStringValue("ForcedSpawnIniOptions", key, String.Empty));
                 }
             }
 
             GameMode.ApplySpawnIniCode(spawnIni); // Forced options from the game mode
-            Map.ApplySpawnIniCode(spawnIni, Players.Count + AIPlayers.Count,
-                AIPlayers.Count, GameMode.CoopDifficultyLevel); // Forced options from the map
+            Map.ApplySpawnIniCode(spawnIni, Players.Count + AIPlayers.Count, AIPlayers.Count, GameMode.CoopDifficultyLevel); // Forced options from the map
 
             // Player options
-
             int otherId = 1;
 
             for (int pId = 0; pId < Players.Count; pId++)
@@ -1371,7 +1371,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 PlayerInfo pInfo = Players[pId];
                 PlayerHouseInfo pHouseInfo = houseInfos[pId];
 
-                if (pInfo.Name == ProgramConstants.PLAYERNAME)
+                if (pInfo == FindLocalPlayer())
                     continue;
 
                 string sectionName = "Other" + otherId;
@@ -1404,7 +1404,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 for (int aiId = 0; aiId < AIPlayers.Count; aiId++)
                 {
                     int multiId = multiCmbIndexes.Count + aiId + 1;
-
                     string keyName = "Multi" + multiId;
 
                     spawnIni.SetIntValue("HouseHandicaps", keyName, AIPlayers[aiId].HouseHandicapAILevel);
@@ -1416,6 +1415,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             for (int multiId = 0; multiId < multiCmbIndexes.Count; multiId++)
             {
                 int pIndex = multiCmbIndexes[multiId];
+
                 if (houseInfos[pIndex].IsSpectator)
                     spawnIni.SetBooleanValue("IsSpectator", "Multi" + (multiId + 1), true);
             }
@@ -1432,8 +1432,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 if (startingWaypoint > -1)
                 {
                     int multiIndex = pId + 1;
-                    spawnIni.SetIntValue("SpawnLocations", "Multi" + multiIndex,
-                        startingWaypoint);
+
+                    spawnIni.SetIntValue("SpawnLocations", "Multi" + multiIndex, startingWaypoint);
                 }
             }
 
@@ -1444,8 +1444,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 if (startingWaypoint > -1)
                 {
                     int multiIndex = Players.Count + aiId + 1;
-                    spawnIni.SetIntValue("SpawnLocations", "Multi" + multiIndex,
-                        startingWaypoint);
+
+                    spawnIni.SetIntValue("SpawnLocations", "Multi" + multiIndex, startingWaypoint);
                 }
             }
 
@@ -1527,7 +1527,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             for (int pId = 0; pId < Players.Count; pId++)
             {
                 PlayerInfo pInfo = Players[pId];
-                matchStatistics.AddPlayer(pInfo.Name, pInfo.Name == ProgramConstants.PLAYERNAME,
+                matchStatistics.AddPlayer(pInfo.Name, pInfo == FindLocalPlayer(),
                     false, pInfo.SideId == SideCount + RandomSelectorCount, houseInfos[pId].SideIndex + 1, pInfo.TeamId,
                     MPColors.FindIndex(c => c.GameColorIndex == houseInfos[pId].ColorIndex), 10);
             }
@@ -1820,7 +1820,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if ((bool)senderDropDown.Tag)
                 ClearReadyStatuses();
 
-            var oldSideId = Players.Find(p => p.Name == ProgramConstants.PLAYERNAME)?.SideId;
+            var oldSideId = FindLocalPlayer()?.SideId;
 
             for (int pId = 0; pId < Players.Count; pId++)
             {
@@ -1878,7 +1878,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             CopyPlayerDataToUI();
             btnLaunchGame.SetRank(GetRank());
 
-            if (oldSideId != Players.Find(p => p.Name == ProgramConstants.PLAYERNAME)?.SideId)
+            if (oldSideId != FindLocalPlayer()?.SideId)
                 UpdateDiscordPresence();
         }
 
@@ -1942,7 +1942,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 ddPlayerName.SelectedIndex = 0;
                 ddPlayerName.AllowDropDown = false;
 
-                bool allowPlayerOptionsChange = allowOptionsChange || pInfo.Name == ProgramConstants.PLAYERNAME;
+                bool allowPlayerOptionsChange = allowOptionsChange || pInfo == FindLocalPlayer();
 
                 ddPlayerSides[pId].SelectedIndex = pInfo.SideId;
                 ddPlayerSides[pId].AllowDropDown = !playerExtraOptions.IsForceRandomSides && allowPlayerOptionsChange;
@@ -2261,7 +2261,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 }
             }
 
-            PlayerInfo localPlayer = Players.Find(p => p.Name == ProgramConstants.PLAYERNAME);
+            PlayerInfo localPlayer = FindLocalPlayer();
 
             if (localPlayer == null)
                 return RANK_NONE;

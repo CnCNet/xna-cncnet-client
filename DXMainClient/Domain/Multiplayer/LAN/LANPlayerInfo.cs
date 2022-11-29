@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace DTAClient.Domain.Multiplayer.LAN
 {
-    public class LANPlayerInfo : PlayerInfo
+    internal sealed class LANPlayerInfo : PlayerInfo
     {
         public LANPlayerInfo(Encoding encoding)
         {
