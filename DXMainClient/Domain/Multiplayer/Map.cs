@@ -805,8 +805,8 @@ namespace DTAClient.Domain.Multiplayer
 
         private static Point GetTDRACellPixelCoord(int cellX, int cellY, int x, int y, int width, int height, Point previewSizePoint)
         {
-            int rx = x - cellX;
-            int ry = y - cellY;
+            int rx = cellX - x;
+            int ry = cellY - y;
 
             int mapPixelPosX = rx * MainClientConstants.MAP_CELL_SIZE_X;
             int mapPixelPosY = ry * MainClientConstants.MAP_CELL_SIZE_Y;
