@@ -34,6 +34,7 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
     private const double INITIAL_GAME_BROADCAST_DELAY = 10.0;
     private const double MAX_TIME_FOR_GAME_LAUNCH = 20.0;
     private const int PRIORITY_START_GAME = 10;
+    private const int PINNED_DYNAMIC_TUNNELS = 10;
 
     private static readonly Color ERROR_MESSAGE_COLOR = Color.Yellow;
 
@@ -94,6 +95,7 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
     private EventHandler tunnelHandler_CurrentTunnelFunc;
     private List<(int Ping, string Hash)> pinnedTunnels;
     private string pinnedTunnelPingsMessage;
+    private bool dynamicTunnelsEnabled;
 
     public CnCNetGameLobby(
         WindowManager windowManager,
@@ -168,6 +170,11 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
             "Download a map from CNCNet's map server using a map ID and an optional filename.\nExample: \"/downloadmap MAPID [2] My Battle Map\"".L10N("Client:Main:DownloadMapCommandDescription"),
             false,
             DownloadMapByIdCommand));
+        AddChatBoxCommand(new(
+            CnCNetLobbyCommands.DYNAMICTUNNELS,
+            "Toggle dynamic CnCNet tunnel servers on/off (game host only)".L10N("UI:Main:ChangeDynamicTunnels"),
+            true,
+            _ => ToggleDynamicTunnelsAsync().HandleTask()));
     }
 
     public event EventHandler GameLeft;
@@ -281,6 +288,7 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
         this.hostName = hostName;
         this.playerLimit = playerLimit;
         this.isCustomPassword = isCustomPassword;
+        dynamicTunnelsEnabled = UserINISettings.Instance.UseDynamicTunnels;
         channel.MessageAdded += Channel_MessageAdded;
         channel.CTCPReceived += Channel_CTCPReceived;
         channel.UserKicked += channel_UserKickedFunc;
@@ -304,7 +312,7 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
             AIPlayers.Clear();
         }
 
-        if (!UserINISettings.Instance.UseDynamicTunnels)
+        if (!dynamicTunnelsEnabled)
         {
             tunnelHandler.CurrentTunnel = tunnel;
         }
@@ -333,11 +341,11 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
             .Where(q => !q.RequiresPassword && q.PingInMs > -1 && q.Clients < q.MaxClients - 8 && q.Version == Constants.TUNNEL_VERSION_3)
             .OrderBy(q => q.PingInMs)
             .ThenBy(q => q.Hash, StringComparer.OrdinalIgnoreCase)
+            .Take(PINNED_DYNAMIC_TUNNELS)
             .Select(q => (q.PingInMs, q.Hash))
             .ToList();
 
         IEnumerable<string> tunnelPings = pinnedTunnels
-            .Take(10)
             .Select(q => FormattableString.Invariant($"{q.Ping};{q.Hash}\t"));
 
         pinnedTunnelPingsMessage = string.Concat(tunnelPings);
@@ -368,7 +376,7 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
         {
             await channel.SendCTCPMessageAsync(CnCNetCommands.FILE_HASH + " " + gameFilesHash, QueuedMessageType.SYSTEM_MESSAGE, 10);
 
-            if (UserINISettings.Instance.UseDynamicTunnels)
+            if (dynamicTunnelsEnabled)
                 await BroadcastPlayerTunnelPingsAsync();
 
             if (UserINISettings.Instance.UseP2P)
@@ -393,7 +401,7 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
     {
         int ping;
 
-        if (UserINISettings.Instance.UseDynamicTunnels)
+        if (dynamicTunnelsEnabled)
             ping = pinnedTunnels.Min(q => q.Ping);
         else if (tunnelHandler.CurrentTunnel == null)
             return;
@@ -425,7 +433,11 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
 
     private void PrintTunnelServerInformation(string s)
     {
-        if (tunnelHandler.CurrentTunnel == null)
+        if (dynamicTunnelsEnabled)
+        {
+            AddNotice("Dynamic tunnels enabled".L10N("Client:Main:DynamicTunnelsEnabled"));
+        }
+        else if (tunnelHandler.CurrentTunnel is null)
         {
             AddNotice("Tunnel server unavailable!".L10N("Client:Main:TunnelUnavailable"));
         }
@@ -641,7 +653,7 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
         if (Players.Count + AIPlayers.Count > MAX_PLAYER_COUNT && AIPlayers.Count > 0)
             AIPlayers.RemoveAt(AIPlayers.Count - 1);
 
-        if (UserINISettings.Instance.UseDynamicTunnels && pInfo != FindLocalPlayer())
+        if (dynamicTunnelsEnabled && pInfo != FindLocalPlayer())
             await BroadcastPlayerTunnelPingsAsync();
 
         sndJoinSound.Play();
@@ -771,7 +783,7 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
                 await HostLaunchGameV2TunnelAsync();
             else if (tunnelHandler.CurrentTunnel?.Version == Constants.TUNNEL_VERSION_3)
                 await HostLaunchGameV3TunnelAsync();
-            else if (UserINISettings.Instance.UseDynamicTunnels)
+            else if (dynamicTunnelsEnabled)
                 await HostLaunchGameV3TunnelAsync();
             else
                 throw new InvalidOperationException("Unknown tunnel server version!");
@@ -884,29 +896,29 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
 
         dynamicV3GameTunnelHandlers.Clear();
 
-        if (!UserINISettings.Instance.UseDynamicTunnels)
+        if (!dynamicTunnelsEnabled)
         {
-            var dynamicV3GameTunnelHandler = new V3GameTunnelHandler();
+            var gameTunnelHandler = new V3GameTunnelHandler();
 
-            dynamicV3GameTunnelHandler.Connected += (_, _) => AddCallback(() => GameTunnelHandler_Connected_CallbackAsync().HandleTask());
-            dynamicV3GameTunnelHandler.ConnectionFailed += (_, _) => AddCallback(() => GameTunnelHandler_ConnectionFailed_CallbackAsync().HandleTask());
+            gameTunnelHandler.Connected += (_, _) => AddCallback(() => GameTunnelHandler_Connected_CallbackAsync().HandleTask());
+            gameTunnelHandler.ConnectionFailed += (_, _) => AddCallback(() => GameTunnelHandler_ConnectionFailed_CallbackAsync().HandleTask());
 
-            dynamicV3GameTunnelHandler.SetUp(tunnelHandler.CurrentTunnel, localId);
-            dynamicV3GameTunnelHandler.ConnectToTunnel();
-            dynamicV3GameTunnelHandlers.Add(new(Players.Where(q => q != FindLocalPlayer()).Select(q => q.Name).ToList(), dynamicV3GameTunnelHandler));
+            gameTunnelHandler.SetUp(tunnelHandler.CurrentTunnel, localId);
+            gameTunnelHandler.ConnectToTunnel();
+            dynamicV3GameTunnelHandlers.Add(new(Players.Where(q => q != FindLocalPlayer()).Select(q => q.Name).ToList(), gameTunnelHandler));
         }
         else
         {
             foreach (IGrouping<CnCNetTunnel, (string Name, CnCNetTunnel Tunnel)> tunnelGrouping in playerTunnels.GroupBy(q => q.Tunnel))
             {
-                var dynamicV3GameTunnelHandler = new V3GameTunnelHandler();
+                var gameTunnelHandler = new V3GameTunnelHandler();
 
-                dynamicV3GameTunnelHandler.Connected += (_, _) => AddCallback(() => GameTunnelHandler_Connected_CallbackAsync().HandleTask());
-                dynamicV3GameTunnelHandler.ConnectionFailed += (_, _) => AddCallback(() => GameTunnelHandler_ConnectionFailed_CallbackAsync().HandleTask());
+                gameTunnelHandler.Connected += (_, _) => AddCallback(() => GameTunnelHandler_Connected_CallbackAsync().HandleTask());
+                gameTunnelHandler.ConnectionFailed += (_, _) => AddCallback(() => GameTunnelHandler_ConnectionFailed_CallbackAsync().HandleTask());
 
-                dynamicV3GameTunnelHandler.SetUp(tunnelGrouping.Key, localId);
-                dynamicV3GameTunnelHandler.ConnectToTunnel();
-                dynamicV3GameTunnelHandlers.Add(new(tunnelGrouping.Select(q => q.Name).ToList(), dynamicV3GameTunnelHandler));
+                gameTunnelHandler.SetUp(tunnelGrouping.Key, localId);
+                gameTunnelHandler.ConnectToTunnel();
+                dynamicV3GameTunnelHandlers.Add(new(tunnelGrouping.Select(q => q.Name).ToList(), gameTunnelHandler));
             }
         }
 
@@ -917,7 +929,7 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
 
     private async Task GameTunnelHandler_Connected_CallbackAsync()
     {
-        if (UserINISettings.Instance.UseDynamicTunnels)
+        if (dynamicTunnelsEnabled)
         {
             if (dynamicV3GameTunnelHandlers.Any() && dynamicV3GameTunnelHandlers.All(q => q.Tunnel.IsConnected))
                 isPlayerConnectedToTunnel[Players.FindIndex(p => p == FindLocalPlayer())] = true;
@@ -1022,7 +1034,7 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
         if (UserINISettings.Instance.UseP2P)
             return IPAddress.Parse(player.IPAddress).MapToIPv4().ToString();
 
-        if (UserINISettings.Instance.UseDynamicTunnels || tunnelHandler.CurrentTunnel.Version == Constants.TUNNEL_VERSION_3)
+        if (dynamicTunnelsEnabled || tunnelHandler.CurrentTunnel.Version == Constants.TUNNEL_VERSION_3)
             return IPAddress.Loopback.MapToIPv4().ToString();
 
         return base.GetIPAddressForPlayer(player);
@@ -1336,6 +1348,7 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
             return;
 
         bool[] optionValues = new bool[CheckBoxes.Count];
+
         for (int i = 0; i < CheckBoxes.Count; i++)
             optionValues[i] = CheckBoxes[i].Checked;
 
@@ -1347,7 +1360,6 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
 
         int integerCount = byteList.Count / 4;
         byte[] byteArray = byteList.ToArray();
-
         var sb = new ExtendedStringBuilder(CnCNetCommands.GAME_OPTIONS + " ", true, ';');
 
         for (int i = 0; i < integerCount; i++)
@@ -1356,7 +1368,6 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
         // We don't gain much in most cases by packing the drop-down values
         // (because they're bytes to begin with, and usually non-zero),
         // so let's just transfer them as usual
-
         foreach (GameLobbyDropDown dd in DropDowns)
             sb.Append(dd.SelectedIndex);
 
@@ -1369,8 +1380,15 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
         sb.Append(RandomSeed);
         sb.Append(Convert.ToInt32(RemoveStartingLocations));
         sb.Append(Map.UntranslatedName);
+        sb.Append(Convert.ToInt32(dynamicTunnelsEnabled)); // todo get from UI
 
         await channel.SendCTCPMessageAsync(sb.ToString(), QueuedMessageType.GAME_SETTINGS_MESSAGE, 11);
+    }
+
+    private async Task ToggleDynamicTunnelsAsync()
+    {
+        await ChangeDynamicTunnelsSettingAsync(!dynamicTunnelsEnabled);
+        await OnGameOptionChangedAsync();
     }
 
     /// <summary>
@@ -1385,7 +1403,7 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
         int checkBoxIntegerCount = (CheckBoxes.Count / 32) + 1;
         int partIndex = checkBoxIntegerCount + DropDowns.Count;
 
-        if (parts.Length < partIndex + 6)
+        if (parts.Length < partIndex + 10)
         {
             AddNotice(("The game host has sent an invalid game options message! " +
                 "The game host's game version might be different from yours.").L10N("Client:Main:HostGameOptionInvalid"), Color.Red);
@@ -1541,6 +1559,32 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
         SetRandomStartingLocations(removeStartingLocations);
 
         RandomSeed = randomSeed;
+
+        bool newDynamicTunnelsSetting = Conversions.BooleanFromString(parts[partIndex + 9], true);
+
+        if (newDynamicTunnelsSetting != dynamicTunnelsEnabled)
+        {
+            if (newDynamicTunnelsSetting)
+                AddNotice(string.Format("The game host has enabled Dynamic Tunnels".L10N("UI:Main:HostEnableDynamicTunnels")));
+            else
+                AddNotice(string.Format("The game host has disabled Dynamic Tunnels".L10N("UI:Main:HostDisableDynamicTunnels")));
+
+            await ChangeDynamicTunnelsSettingAsync(newDynamicTunnelsSetting);
+        }
+    }
+
+    private async Task ChangeDynamicTunnelsSettingAsync(bool newDynamicTunnelsEnabledValue)
+    {
+        dynamicTunnelsEnabled = newDynamicTunnelsEnabledValue;
+
+        if (newDynamicTunnelsEnabledValue)
+        {
+            tunnelHandler.CurrentTunnel = tunnelHandler.Tunnels
+                .Where(q => q.PingInMs > -1 && !q.RequiresPassword && q.Clients < q.MaxClients - 8 && q.Version == Constants.TUNNEL_VERSION_3)
+                .MinBy(q => q.PingInMs);
+
+            await BroadcastPlayerTunnelPingsAsync();
+        }
     }
 
     private async Task RequestMapAsync()
@@ -1972,6 +2016,7 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
             return (int.Parse(split[0], CultureInfo.InvariantCulture), split[1]);
         });
         IEnumerable<(int CombinedPing, string Hash)> combinedTunnelResults = tunnelPings
+            .Where(q => pinnedTunnels.Select(r => r.Hash).Contains(q.Hash))
             .Select(q => (CombinedPing: q.Ping + pinnedTunnels.SingleOrDefault(r => q.Hash.Equals(r.Hash, StringComparison.OrdinalIgnoreCase)).Ping, q.Hash));
         (int _, string hash) = combinedTunnelResults
             .OrderBy(q => q.CombinedPing)
