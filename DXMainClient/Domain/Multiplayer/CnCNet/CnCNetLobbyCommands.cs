@@ -16,4 +16,5 @@ internal static class CnCNetLobbyCommands
     public const string ROLL = "ROLL";
     public const string SAVEOPTIONS = "SAVEOPTIONS";
     public const string LOADOPTIONS = "LOADOPTIONS";
+    public const string DYNAMICTUNNELS = "DYNAMICTUNNELS";
 }
