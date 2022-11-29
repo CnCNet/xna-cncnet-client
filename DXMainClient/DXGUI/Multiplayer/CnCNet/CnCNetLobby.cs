@@ -14,6 +14,7 @@ using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -879,7 +880,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             }
             else
             {
-                await gameLobby.SetUpAsync(gameChannel, false, hg.MaxPlayers, hg.TunnelServer, hg.HostName, hg.Passworded, false);
+                await gameLobby.SetUpAsync(gameChannel, false, hg.MaxPlayers, hg.TunnelServer, hg.HostName, hg.Passworded);
                 gameChannel.UserAdded += gameChannel_UserAddedFunc;
                 gameChannel.InvalidPasswordEntered += gameChannel_InvalidPasswordEntered_NewGameFunc;
                 gameChannel.InviteOnlyErrorOnJoin += gameChannel_InviteOnlyErrorOnJoinFunc;
@@ -986,7 +987,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             Channel gameChannel = connectionManager.CreateChannel(e.GameRoomName, channelName, false, true, password);
             connectionManager.AddChannel(gameChannel);
-            await gameLobby.SetUpAsync(gameChannel, true, e.MaxPlayers, e.Tunnel, ProgramConstants.PLAYERNAME, isCustomPassword, false);
+            await gameLobby.SetUpAsync(gameChannel, true, e.MaxPlayers, e.Tunnel, ProgramConstants.PLAYERNAME, isCustomPassword);
             gameChannel.UserAdded += gameChannel_UserAddedFunc;
             await connectionManager.SendCustomMessageAsync(new QueuedMessage(IRCCommands.JOIN + " " + channelName + " " + password,
                 QueuedMessageType.INSTANT_MESSAGE, 0));
@@ -1408,7 +1409,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 !updateDenied &&
                 channelUser.IsAdmin &&
                 !isInGameRoom &&
-                e.Message.StartsWith("UPDATE ") &&
+                e.Message.StartsWith(CnCNetCommands.UPDATE + " ") &&
                 e.Message.Length > 7)
             {
                 string version = e.Message[7..];
@@ -1436,8 +1437,10 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             try
             {
                 string revision = splitMessage[0];
+
                 if (revision != ProgramConstants.CNCNET_PROTOCOL_REVISION)
                     return;
+
                 string gameVersion = splitMessage[1];
                 int maxPlayers = Conversions.IntFromString(splitMessage[2], 0);
                 string gameRoomChannelName = splitMessage[3];
@@ -1447,29 +1450,48 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 bool isClosed = Conversions.BooleanFromString(splitMessage[5].Substring(2, 1), true);
                 bool isLoadedGame = Conversions.BooleanFromString(splitMessage[5].Substring(3, 1), false);
                 bool isLadder = Conversions.BooleanFromString(splitMessage[5].Substring(4, 1), false);
-                string[] players = splitMessage[6].Split(new char[1] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+                string[] players = splitMessage[6].Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
                 string mapName = splitMessage[7];
                 string gameMode = splitMessage[8];
-
-                string[] tunnelAddressAndPort = splitMessage[9].Split(':');
-                string tunnelAddress = tunnelAddressAndPort[0];
-                int tunnelPort = int.Parse(tunnelAddressAndPort[1]);
-
+                string tunnelHash = splitMessage[9];
                 string loadedGameId = splitMessage[10];
 
                 CnCNetGame cncnetGame = gameCollection.GameList.Find(g => g.GameBroadcastChannel == channel.ChannelName);
 
-                CnCNetTunnel tunnel = tunnelHandler.Tunnels.Find(t => t.Address == tunnelAddress && t.Port == tunnelPort);
-
-                if (tunnel == null)
-                    return;
-
                 if (cncnetGame == null)
                     return;
 
-                HostedCnCNetGame game = new HostedCnCNetGame(gameRoomChannelName, revision, gameVersion, maxPlayers,
-                    gameRoomDisplayName, isCustomPassword, true, players,
-                    e.UserName, mapName, gameMode);
+                CnCNetTunnel tunnel = null;
+
+#if DEBUG
+                if (tunnelHash.Contains(':'))
+                {
+                    string[] tunnelAddressAndPort = splitMessage[9].Split(':');
+                    string tunnelAddress = tunnelAddressAndPort[0];
+                    int tunnelPort = int.Parse(tunnelAddressAndPort[1], CultureInfo.InvariantCulture);
+
+                    tunnel = tunnelHandler.Tunnels.Find(t => t.Address == tunnelAddress && t.Port == tunnelPort);
+
+                    if (tunnel == null)
+                        return;
+                }
+                else
+                {
+#endif
+                    if (!ProgramConstants.CNCNET_DYNAMIC_TUNNELS.Equals(tunnelHash, StringComparison.OrdinalIgnoreCase))
+                    {
+                        tunnel = tunnelHandler.Tunnels.Find(t => t.Hash.Equals(tunnelHash, StringComparison.OrdinalIgnoreCase));
+
+                        if (tunnel == null)
+                            return;
+                    }
+#if DEBUG
+                }
+#endif
+
+                var game = new HostedCnCNetGame(gameRoomChannelName, revision, gameVersion, maxPlayers,
+                    gameRoomDisplayName, isCustomPassword, true, players, e.UserName, mapName, gameMode);
+
                 game.IsLoadedGame = isLoadedGame;
                 game.MatchID = loadedGameId;
                 game.LastRefreshTime = DateTime.Now;

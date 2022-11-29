@@ -42,4 +42,8 @@ internal static class CnCNetCommands
     public const string STILL_IN_GAME = "INGM";
     public const string CHEATER = "MM";
     public const string GAME = "GAME";
+    public const string PLAYER_TUNNEL_PINGS = "TNLPINGS";
+    public const string PLAYER_P2P_REQUEST = "P2PREQ";
+    public const string PLAYER_P2P_PINGS = "P2PPINGS";
+    public const string UPDATE = "UPDATE";
 }

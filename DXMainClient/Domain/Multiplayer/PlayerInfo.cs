@@ -1,14 +1,16 @@
-﻿using Rampastring.Tools;
-using System;
+﻿using System;
+using Rampastring.Tools;
 
 namespace DTAClient.Domain.Multiplayer
 {
     /// <summary>
     /// A player in the game lobby.
     /// </summary>
-    public class PlayerInfo
+    internal class PlayerInfo
     {
-        public PlayerInfo() { }
+        public PlayerInfo()
+        {
+        }
 
         public PlayerInfo(string name)
         {
@@ -25,17 +27,27 @@ namespace DTAClient.Domain.Multiplayer
         }
 
         public string Name { get; set; }
+
         public int SideId { get; set; }
+
         public int StartingLocation { get; set; }
+
         public int ColorId { get; set; }
+
         public int TeamId { get; set; }
+
         public bool Ready { get; set; }
+
         public bool AutoReady { get; set; }
+
         public bool IsAI { get; set; }
 
         public bool IsInGame { get; set; }
+
         public virtual string IPAddress { get; set; } = System.Net.IPAddress.Any.ToString();
+
         public int Port { get; set; }
+
         public bool Verified { get; set; }
 
         public int Index { get; set; }

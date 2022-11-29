@@ -6,7 +6,7 @@ namespace ClientCore.Extensions;
 public static class TaskExtensions
 {
     /// <summary>
-    /// Asynchronously awaits a <see cref="Task"/> and guarantees all exceptions are caught and handled when the <see cref="Task"/> is not directly awaited.
+    /// Runs a <see cref="Task"/> and guarantees all exceptions are caught and handled even when the <see cref="Task"/> is not directly awaited.
     /// </summary>
     /// <param name="task">The <see cref="Task"/> who's exceptions will be handled.</param>
     /// <returns>Returns a <see cref="Task"/> that awaited and handled the original <paramref name="task"/>.</returns>
@@ -23,7 +23,7 @@ public static class TaskExtensions
     }
 
     /// <summary>
-    /// Asynchronously awaits a <see cref="Task"/> and guarantees all exceptions are caught and handled when the <see cref="Task"/> is not directly awaited.
+    /// Runs a <see cref="Task"/> and guarantees all exceptions are caught and handled even when the <see cref="Task"/> is not directly awaited.
     /// </summary>
     /// <typeparam name="T">The type of <paramref name="task"/>'s return value.</typeparam>
     /// <param name="task">The <see cref="Task"/> who's exceptions will be handled.</param>
@@ -43,7 +43,8 @@ public static class TaskExtensions
     }
 
     /// <summary>
-    /// Synchronously awaits a <see cref="Task"/> and guarantees all exceptions are caught and handled when the <see cref="Task"/> is not directly awaited.
+    /// Runs a <see cref="Task"/> and guarantees all exceptions are caught and handled even when the <see cref="Task"/> is not directly awaited.
+    /// Use this for 'fire and forget' tasks.
     /// </summary>
     /// <param name="task">The <see cref="Task"/> who's exceptions will be handled.</param>
     public static void HandleTask(this Task task)

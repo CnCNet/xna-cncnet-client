@@ -2,10 +2,9 @@
 
 namespace DTAClient.Domain.Multiplayer.LAN
 {
-    public class ServerStringCommandHandler : LANServerCommandHandler
+    internal sealed class ServerStringCommandHandler : LANServerCommandHandler
     {
-        public ServerStringCommandHandler(string commandName,
-            Action<LANPlayerInfo, string> handler)
+        public ServerStringCommandHandler(string commandName, Action<LANPlayerInfo, string> handler)
             : base(commandName)
         {
             this.handler = handler;
@@ -15,8 +14,7 @@ namespace DTAClient.Domain.Multiplayer.LAN
 
         public override bool Handle(LANPlayerInfo pInfo, string message)
         {
-            if (!message.StartsWith(CommandName) ||
-                message.Length <= CommandName.Length + 1)
+            if (!message.StartsWith(CommandName) || message.Length <= CommandName.Length + 1)
                 return false;
 
             handler(pInfo, message);

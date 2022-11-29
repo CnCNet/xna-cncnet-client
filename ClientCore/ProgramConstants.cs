@@ -48,6 +48,7 @@ namespace ClientCore
         public const string SAVED_GAME_SPAWN_INI = SAVED_GAMES_DIRECTORY + "/spawnSG.ini";
         public const string SAVED_GAMES_DIRECTORY = "Saved Games";
         public const string CNCNET_TUNNEL_LIST_URL = "https://cncnet.org/master-list";
+        public const string CNCNET_DYNAMIC_TUNNELS = "DYNAMIC";
         public const int GAME_ID_MAX_LENGTH = 4;
 
         public static readonly Encoding LAN_ENCODING = Encoding.UTF8;
@@ -86,9 +87,6 @@ namespace ClientCore
         {
             return SafePath.CombineDirectoryPath(GamePath, BASE_RESOURCE_PATH);
         }
-
-        public const string GAME_INVITE_CTCP_COMMAND = "INVITE";
-        public const string GAME_INVITATION_FAILED_CTCP_COMMAND = "INVITATION_FAILED";
 
         public static string GetAILevelName(int aiLevel)
         {

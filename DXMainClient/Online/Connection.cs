@@ -42,7 +42,7 @@ namespace DTAClient.Online
             new("Burstfire.UK.EU.GameSurge.net", "GameSurge London, UK", new[] { 6667, 6668, 7000 }),
             new("VortexServers.IL.US.GameSurge.net", "GameSurge Chicago, IL", new[] { 6660, 6666, 6667, 6668, 6669 }),
             new("Gameservers.NJ.US.GameSurge.net", "GameSurge Newark, NJ", new[] { 6665, 6666, 6667, 6668, 6669, 7000, 8080 }),
-            new("Krypt.CA.US.GameSurge.net", "GameSurge Santa Ana, CA",new[] { 6666, 6667, 6668, 6669 }),
+            new("Krypt.CA.US.GameSurge.net", "GameSurge Santa Ana, CA", new[] { 6666, 6667, 6668, 6669 }),
             new("NuclearFallout.WA.US.GameSurge.net", "GameSurge Seattle, WA", new[] { 6667, 5960 }),
             new("Stockholm.SE.EU.GameSurge.net", "GameSurge Stockholm, Sweden", new[] { 6660, 6666, 6667, 6668, 6669 }),
             new("Prothid.NY.US.GameSurge.Net", "GameSurge NYC, NY", new[] { 5960, 6660, 6666, 6667, 6668, 6669 }),
@@ -156,11 +156,13 @@ namespace DTAClient.Online
 
                             try
                             {
-                                await client.ConnectAsync(new IPEndPoint(IPAddress.Parse(server.Host), port),
+                                await client.ConnectAsync(
+                                    new IPEndPoint(IPAddress.Parse(server.Host), port),
                                     new CancellationTokenSource(TimeSpan.FromSeconds(3)).Token);
                             }
                             catch (OperationCanceledException)
-                            { }
+                            {
+                            }
 
                             if (!client.Connected)
                             {
@@ -168,7 +170,7 @@ namespace DTAClient.Online
                                 continue; // Start all over again, using the next port
                             }
 
-                            Logger.Log("Succesfully connected to " + server.Host + " on port " + port);
+                            Logger.Log("Successfully connected to " + server.Host + " on port " + port);
 
                             _isConnected = true;
                             _attemptingConnection = false;
@@ -257,8 +259,9 @@ namespace DTAClient.Online
                 // A message has been successfully received
                 string msg = encoding.GetString(message.Span[..bytesRead]);
 
+#if !DEBUG
                 Logger.Log("Message received: " + msg);
-
+#endif
                 await HandleMessageAsync(msg);
                 timer.Interval = 30000;
             }
@@ -497,7 +500,9 @@ namespace DTAClient.Online
             ParseIrcMessage(message, out string prefix, out string command, out List<string> parameters);
             string paramString = string.Empty;
             foreach (string param in parameters) { paramString = paramString + param + ","; }
+#if !DEBUG
             Logger.Log("RMP: " + prefix + " " + command + " " + paramString);
+#endif
 
             try
             {
