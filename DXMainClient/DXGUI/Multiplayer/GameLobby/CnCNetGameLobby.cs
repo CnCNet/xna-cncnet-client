@@ -68,6 +68,7 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
     private bool isStartingGame;
     private string gameFilesHash;
     private MapSharingConfirmationPanel mapSharingConfirmationPanel;
+    private CnCNetTunnel initialTunnel;
 
     /// <summary>
     /// The SHA1 of the latest selected map.
@@ -142,7 +143,7 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
             new StringCommandHandler(CnCNetCommands.DICE_ROLL, HandleDiceRollResult),
             new NoParamCommandHandler(CnCNetCommands.CHEAT_DETECTED, HandleCheatDetectedMessage),
             new IntCommandHandler(CnCNetCommands.TUNNEL_PING, HandleTunnelPing),
-            new StringCommandHandler(CnCNetCommands.CHANGE_TUNNEL_SERVER, (sender, tunnelAddressAndPort) => HandleTunnelServerChangeMessageAsync(sender, tunnelAddressAndPort).HandleTask()),
+            new StringCommandHandler(CnCNetCommands.CHANGE_TUNNEL_SERVER, (sender, hash) => HandleTunnelServerChangeMessageAsync(sender, hash).HandleTask()),
             new StringCommandHandler(CnCNetCommands.PLAYER_TUNNEL_PINGS, HandleTunnelPingsMessage)
         };
 
@@ -308,9 +309,11 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
             AIPlayers.Clear();
         }
 
+        initialTunnel = tunnel;
+
         if (!dynamicTunnelsEnabled)
         {
-            tunnelHandler.CurrentTunnel = tunnel;
+            tunnelHandler.CurrentTunnel = initialTunnel;
         }
         else
         {
@@ -345,11 +348,6 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
             .Select(q => FormattableString.Invariant($"{q.Ping};{q.Hash}\t"));
 
         pinnedTunnelPingsMessage = string.Concat(tunnelPings);
-
-        foreach ((string sender, string tunnelPingsMessage) in tunnelPingsMessages)
-        {
-            HandleTunnelPingsMessage(sender, tunnelPingsMessage);
-        }
 
         if (IsHost)
         {
@@ -450,7 +448,7 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
     private async Task TunnelSelectionWindow_TunnelSelectedAsync(TunnelEventArgs e)
     {
         await channel.SendCTCPMessageAsync(
-            $"{CnCNetCommands.CHANGE_TUNNEL_SERVER} {e.Tunnel.Address}:{e.Tunnel.Port}",
+            $"{CnCNetCommands.CHANGE_TUNNEL_SERVER} {e.Tunnel.Hash}",
             QueuedMessageType.SYSTEM_MESSAGE,
             10);
         await HandleTunnelServerChangeAsync(e.Tunnel);
@@ -1386,6 +1384,9 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
     {
         await ChangeDynamicTunnelsSettingAsync(!dynamicTunnelsEnabled);
         await OnGameOptionChangedAsync();
+
+        if (!dynamicTunnelsEnabled)
+            await TunnelSelectionWindow_TunnelSelectedAsync(new TunnelEventArgs(initialTunnel));
     }
 
     /// <summary>
@@ -1560,19 +1561,17 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
         bool newDynamicTunnelsSetting = Conversions.BooleanFromString(parts[partIndex + 9], true);
 
         if (newDynamicTunnelsSetting != dynamicTunnelsEnabled)
-        {
-            if (newDynamicTunnelsSetting)
-                AddNotice(string.Format("The game host has enabled Dynamic Tunnels".L10N("UI:Main:HostEnableDynamicTunnels")));
-            else
-                AddNotice(string.Format("The game host has disabled Dynamic Tunnels".L10N("UI:Main:HostDisableDynamicTunnels")));
-
             await ChangeDynamicTunnelsSettingAsync(newDynamicTunnelsSetting);
-        }
     }
 
     private async Task ChangeDynamicTunnelsSettingAsync(bool newDynamicTunnelsEnabledValue)
     {
         dynamicTunnelsEnabled = newDynamicTunnelsEnabledValue;
+
+        if (newDynamicTunnelsEnabledValue)
+            AddNotice(string.Format("The game host has enabled Dynamic Tunnels".L10N("UI:Main:HostEnableDynamicTunnels")));
+        else
+            AddNotice(string.Format("The game host has disabled Dynamic Tunnels".L10N("UI:Main:HostDisableDynamicTunnels")));
 
         if (newDynamicTunnelsEnabledValue)
         {
@@ -1967,15 +1966,12 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
     private void HandleCheatDetectedMessage(string sender) =>
         AddNotice(string.Format("{0} has modified game files during the client session. They are likely attempting to cheat!".L10N("UI:Main:PlayerModifyFileCheat"), sender), Color.Red);
 
-    private async Task HandleTunnelServerChangeMessageAsync(string sender, string tunnelAddressAndPort)
+    private async Task HandleTunnelServerChangeMessageAsync(string sender, string hash)
     {
         if (sender != hostName)
             return;
 
-        string[] split = tunnelAddressAndPort.Split(':');
-        string tunnelAddress = split[0];
-        int tunnelPort = int.Parse(split[1], CultureInfo.InvariantCulture);
-        CnCNetTunnel tunnel = tunnelHandler.Tunnels.Find(t => t.Address == tunnelAddress && t.Port == tunnelPort);
+        CnCNetTunnel tunnel = tunnelHandler.Tunnels.Find(t => t.Hash.Equals(hash, StringComparison.OrdinalIgnoreCase));
 
         if (tunnel == null)
         {

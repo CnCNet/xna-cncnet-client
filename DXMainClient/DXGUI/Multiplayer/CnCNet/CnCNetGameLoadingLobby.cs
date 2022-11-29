@@ -363,7 +363,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         private async Task TunnelSelectionWindow_TunnelSelectedAsync(TunnelEventArgs e)
         {
             await channel.SendCTCPMessageAsync(
-                $"{CnCNetCommands.CHANGE_TUNNEL_SERVER} {e.Tunnel.Address}:{e.Tunnel.Port}",
+                $"{CnCNetCommands.CHANGE_TUNNEL_SERVER} {e.Tunnel.Hash}",
                 QueuedMessageType.SYSTEM_MESSAGE,
                 10);
             HandleTunnelServerChange(e.Tunnel);
@@ -541,16 +541,13 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 await BroadcastOptionsAsync();
         }
 
-        private void HandleTunnelServerChangeMessage(string sender, string tunnelAddressAndPort)
+        private void HandleTunnelServerChangeMessage(string sender, string hash)
         {
             if (sender != hostName)
                 return;
 
-            string[] split = tunnelAddressAndPort.Split(':');
-            string tunnelAddress = split[0];
-            int tunnelPort = int.Parse(split[1]);
+            CnCNetTunnel tunnel = tunnelHandler.Tunnels.Find(t => t.Hash.Equals(hash, StringComparison.OrdinalIgnoreCase));
 
-            CnCNetTunnel tunnel = tunnelHandler.Tunnels.Find(t => t.Address == tunnelAddress && t.Port == tunnelPort);
             if (tunnel == null)
             {
                 AddNotice(("The game host has selected an invalid tunnel server! " +
@@ -673,7 +670,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             sb.Append(";");
             sb.Append(lblGameModeValue.Text);
             sb.Append(";");
-            sb.Append(tunnelHandler.CurrentTunnel.Address + ":" + tunnelHandler.CurrentTunnel.Port);
+            sb.Append(tunnelHandler.CurrentTunnel?.Hash ?? ProgramConstants.CNCNET_DYNAMIC_TUNNELS);
             sb.Append(";");
             sb.Append(0); // LoadedGameId
 

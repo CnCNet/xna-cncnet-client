@@ -1463,31 +1463,13 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
                 CnCNetTunnel tunnel = null;
 
-#if DEBUG
-                if (tunnelHash.Contains(':'))
+                if (!ProgramConstants.CNCNET_DYNAMIC_TUNNELS.Equals(tunnelHash, StringComparison.OrdinalIgnoreCase))
                 {
-                    string[] tunnelAddressAndPort = splitMessage[9].Split(':');
-                    string tunnelAddress = tunnelAddressAndPort[0];
-                    int tunnelPort = int.Parse(tunnelAddressAndPort[1], CultureInfo.InvariantCulture);
-
-                    tunnel = tunnelHandler.Tunnels.Find(t => t.Address == tunnelAddress && t.Port == tunnelPort);
+                    tunnel = tunnelHandler.Tunnels.Find(t => t.Hash.Equals(tunnelHash, StringComparison.OrdinalIgnoreCase));
 
                     if (tunnel == null)
                         return;
                 }
-                else
-                {
-#endif
-                    if (!ProgramConstants.CNCNET_DYNAMIC_TUNNELS.Equals(tunnelHash, StringComparison.OrdinalIgnoreCase))
-                    {
-                        tunnel = tunnelHandler.Tunnels.Find(t => t.Hash.Equals(tunnelHash, StringComparison.OrdinalIgnoreCase));
-
-                        if (tunnel == null)
-                            return;
-                    }
-#if DEBUG
-                }
-#endif
 
                 var game = new HostedCnCNetGame(gameRoomChannelName, revision, gameVersion, maxPlayers,
                     gameRoomDisplayName, isCustomPassword, true, players, e.UserName, mapName, gameMode);

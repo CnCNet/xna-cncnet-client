@@ -98,7 +98,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
 
             if (CurrentTunnel != null)
             {
-                CnCNetTunnel updatedTunnel = Tunnels.Find(t => t.Address == CurrentTunnel.Address && t.Port == CurrentTunnel.Port);
+                CnCNetTunnel updatedTunnel = Tunnels.Find(t => t.Hash.Equals(CurrentTunnel.Hash, StringComparison.OrdinalIgnoreCase));
 
                 if (updatedTunnel != null)
                 {
@@ -131,7 +131,8 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
 
             if (checkTunnelList)
             {
-                int tunnelIndex = Tunnels.FindIndex(t => t.Address == CurrentTunnel.Address && t.Port == CurrentTunnel.Port);
+                int tunnelIndex = Tunnels.FindIndex(t => t.Hash.Equals(CurrentTunnel.Hash));
+
                 if (tunnelIndex > -1)
                     DoTunnelPinged(tunnelIndex);
             }
