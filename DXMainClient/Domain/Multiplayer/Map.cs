@@ -784,9 +784,17 @@ namespace DTAClient.Domain.Multiplayer
 
         public string GetSizeString()
         {
-            if (actualSize == null || actualSize.Length < 4)
-                return "Not available";
-            return actualSize[2] + "x" + actualSize[3];
+            if (MainClientConstants.USE_ISOMETRIC_CELLS)
+            {
+                if (actualSize == null || actualSize.Length < 4)
+                    return "Not available";
+
+                return actualSize[2] + "x" + actualSize[3];
+            }
+            else
+            {
+                return width + "x" + height;
+            }
         }
 
         private static Point GetTDRAWaypointCoords(string waypoint, int x, int y, int width, int height, Point previewSizePoint)
