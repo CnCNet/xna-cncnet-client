@@ -808,11 +808,8 @@ namespace DTAClient.Domain.Multiplayer
             int rx = cellX - x;
             int ry = cellY - y;
 
-            int mapPixelPosX = rx * MainClientConstants.MAP_CELL_SIZE_X;
-            int mapPixelPosY = ry * MainClientConstants.MAP_CELL_SIZE_Y;
-
-            double ratioX = mapPixelPosX / (width * MainClientConstants.MAP_CELL_SIZE_X);
-            double ratioY = mapPixelPosY / (height * MainClientConstants.MAP_CELL_SIZE_Y);
+            double ratioX = rx / (double)width;
+            double ratioY = ry / (double)height;
 
             int pixelX = (int)(ratioX * previewSizePoint.X);
             int pixelY = (int)(ratioY * previewSizePoint.Y);
