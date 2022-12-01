@@ -14,6 +14,10 @@
     <RootNamespace>Localization</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="GitVersion.MsBuild" Version="5.11.1">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
     <PackageReference Include="Rampastring.Tools" Version="2.0.4" />
   </ItemGroup>
 </Project>
