@@ -9,6 +9,9 @@ on:
 jobs:
   build-clients:
     runs-on: windows-2022
+    strategy:
+      matrix:
+        Game: [Ares,TS,YR]
 
     steps:
     - uses: actions/checkout@v3.1.0
@@ -18,12 +21,13 @@ jobs:
       with:
         dotnet-version: '7.x.x'
 
-    - name: Build All
-      run: ./BuildScripts/Build-All.ps1
+    - name: Build ${{matrix.Game}}
+      run: ./BuildScripts/Build-${{matrix.Game}}.ps1
       shell: pwsh
 
     - uses: actions/upload-artifact@v3.1.1
       name: Upload Artifacts
       with:
-        name: artifacts
-        path: ./Compiled
+        name: artifacts-${{matrix.Game}}
+        path: ./Compiled/${{matrix.Game}}
+
