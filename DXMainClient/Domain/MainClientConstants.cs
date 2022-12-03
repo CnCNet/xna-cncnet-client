@@ -13,6 +13,8 @@ namespace DTAClient.Domain
 
         public static string SUPPORT_URL_SHORT = "www.cncnet.org";
 
+        public static bool USE_ISOMETRIC_CELLS = true;
+        public static int TDRA_WAYPOINT_COEFFICIENT = 128;
         public static int MAP_CELL_SIZE_X = 48;
         public static int MAP_CELL_SIZE_Y = 24;
 
@@ -31,6 +33,8 @@ namespace DTAClient.Domain
 
             CREDITS_URL = clientConfiguration.CreditsURL;
 
+            USE_ISOMETRIC_CELLS = clientConfiguration.UseIsometricCells;
+            TDRA_WAYPOINT_COEFFICIENT = clientConfiguration.WaypointCoefficient;
             MAP_CELL_SIZE_X = clientConfiguration.MapCellSizeX;
             MAP_CELL_SIZE_Y = clientConfiguration.MapCellSizeY;
 
