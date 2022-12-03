@@ -311,11 +311,8 @@ namespace DTAClient
         /// </summary>
         private static async Task GenerateOnlineIdAsync()
         {
-#if !WINFORMS
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-#endif
-#pragma warning disable format
                 try
                 {
                     await Task.CompletedTask;
@@ -334,7 +331,7 @@ namespace DTAClient
                     foreach (ManagementObject mo in moc.Cast<ManagementObject>())
                         mbid = (string)mo["SerialNumber"];
 
-                    string sid = new SecurityIdentifier((byte[])new DirectoryEntry(string.Format("WinNT://{0},Computer", Environment.MachineName)).Children.Cast<DirectoryEntry>().First().InvokeGet("objectSID"), 0).AccountDomainSid.Value;
+                    string sid = new SecurityIdentifier((byte[])new DirectoryEntry(FormattableString.Invariant($"WinNT://{Environment.MachineName},Computer")).Children.Cast<DirectoryEntry>().First().InvokeGet("objectSID"), 0).AccountDomainSid.Value;
 
                     Connection.SetId(cpuid + mbid + sid);
                     using RegistryKey key = Registry.CurrentUser.CreateSubKey("SOFTWARE\\" + ClientConfiguration.Instance.InstallationPathRegKey);
@@ -343,14 +340,14 @@ namespace DTAClient
                 catch (Exception ex)
                 {
                     ProgramConstants.LogException(ex);
-                    Random rn = new Random();
-
+                    var rn = new Random();
                     using RegistryKey key = Registry.CurrentUser.CreateSubKey("SOFTWARE\\" + ClientConfiguration.Instance.InstallationPathRegKey);
-                    string str = rn.Next(int.MaxValue - 1).ToString();
+                    string str = rn.Next(int.MaxValue - 1).ToString(CultureInfo.InvariantCulture);
 
                     try
                     {
-                        Object o = key.GetValue("Ident");
+                        object o = key.GetValue("Ident");
+
                         if (o == null)
                             key.SetValue("Ident", str);
                         else
@@ -363,8 +360,6 @@ namespace DTAClient
 
                     Connection.SetId(str);
                 }
-#pragma warning restore format
-#if !WINFORMS
             }
             else
             {
@@ -377,10 +372,9 @@ namespace DTAClient
                 catch (Exception ex)
                 {
                     ProgramConstants.LogException(ex);
-                    Connection.SetId(new Random().Next(int.MaxValue - 1).ToString());
+                    Connection.SetId(new Random().Next(int.MaxValue - 1).ToString(CultureInfo.InvariantCulture));
                 }
             }
-#endif
         }
 
         /// <summary>

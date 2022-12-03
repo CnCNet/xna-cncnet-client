@@ -34,8 +34,6 @@ namespace DTAClient.Domain.Multiplayer.LAN
 
         private string overMessage = string.Empty;
 
-        private CancellationTokenSource cancellationTokenSource;
-
         public void SetClient(Socket client)
         {
             if (TcpClient != null)
@@ -57,7 +55,7 @@ namespace DTAClient.Domain.Multiplayer.LAN
 
             if (TimeSinceLastSentMessage > TimeSpan.FromSeconds(SEND_PING_TIMEOUT)
                 || TimeSinceLastReceivedMessage > TimeSpan.FromSeconds(SEND_PING_TIMEOUT))
-                await SendMessageAsync(LANCommands.PING, cancellationTokenSource?.Token ?? default);
+                await SendMessageAsync(LANCommands.PING, default);
 
             if (TimeSinceLastReceivedMessage > TimeSpan.FromSeconds(DROP_TIMEOUT))
                 return false;
@@ -65,12 +63,12 @@ namespace DTAClient.Domain.Multiplayer.LAN
             return true;
         }
 
-        public override string IPAddress
+        public override IPAddress IPAddress
         {
             get
             {
                 if (TcpClient != null)
-                    return ((IPEndPoint)TcpClient.RemoteEndPoint).Address.ToString();
+                    return ((IPEndPoint)TcpClient.RemoteEndPoint).Address.MapToIPv4();
 
                 return base.IPAddress;
             }

@@ -163,7 +163,7 @@ namespace DTAClient.Domain.Multiplayer
                 }));
             }
 
-            await Task.WhenAll(tasks.ToArray());
+            await ClientCore.Extensions.TaskExtensions.WhenAllSafe(tasks.ToArray());
 
             // remove cached maps that no longer exist locally
             foreach (var missingSHA in customMapCache.Keys.Where(cachedSHA => !localMapSHAs.Contains(cachedSHA)))

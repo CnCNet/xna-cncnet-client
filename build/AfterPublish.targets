@@ -34,6 +34,7 @@
     <Move SourceFiles="$(PublishDir)Localization.dll" DestinationFolder="$(PublishDir)../" />
     <Move SourceFiles="$(PublishDir)Localization.pdb" DestinationFolder="$(PublishDir)../" />
     <Move SourceFiles="$(PublishDir)lzo.net.dll" DestinationFolder="$(PublishDir)../" />
+    <Move SourceFiles="$(PublishDir)Microsoft.Bcl.AsyncInterfaces.dll" DestinationFolder="$(PublishDir)../" />
     <Move SourceFiles="$(PublishDir)Microsoft.Extensions.Configuration.Abstractions.dll" DestinationFolder="$(PublishDir)../" />
     <Move SourceFiles="$(PublishDir)Microsoft.Extensions.Configuration.Binder.dll" DestinationFolder="$(PublishDir)../" />
     <Move SourceFiles="$(PublishDir)Microsoft.Extensions.Configuration.CommandLine.dll" DestinationFolder="$(PublishDir)../" />
@@ -56,6 +57,7 @@
     <Move SourceFiles="$(PublishDir)Microsoft.Extensions.Logging.dll" DestinationFolder="$(PublishDir)../" />
     <Move SourceFiles="$(PublishDir)Microsoft.Extensions.Logging.EventLog.dll" DestinationFolder="$(PublishDir)../" />
     <Move SourceFiles="$(PublishDir)Microsoft.Extensions.Logging.EventSource.dll" DestinationFolder="$(PublishDir)../" />
+    <Move SourceFiles="$(PublishDir)Microsoft.Extensions.ObjectPool.dll" DestinationFolder="$(PublishDir)../" />
     <Move SourceFiles="$(PublishDir)Microsoft.Extensions.Options.ConfigurationExtensions.dll" DestinationFolder="$(PublishDir)../" />
     <Move SourceFiles="$(PublishDir)Microsoft.Extensions.Options.dll" DestinationFolder="$(PublishDir)../" />
     <Move SourceFiles="$(PublishDir)Microsoft.Extensions.Primitives.dll" DestinationFolder="$(PublishDir)../" />
@@ -65,6 +67,10 @@
     <Move SourceFiles="$(PublishDir)Rampastring.Tools.dll" DestinationFolder="$(PublishDir)../" />
     <Move SourceFiles="$(PublishDir)SixLabors.ImageSharp.dll" DestinationFolder="$(PublishDir)../" />
     <Move SourceFiles="$(PublishDir)System.Net.Http.Formatting.dll" DestinationFolder="$(PublishDir)../" />
+    <Move SourceFiles="$(PublishDir)System.Private.ServiceModel.dll" DestinationFolder="$(PublishDir)../" />
+    <Move SourceFiles="$(PublishDir)System.ServiceModel.dll" DestinationFolder="$(PublishDir)../" />
+    <Move SourceFiles="$(PublishDir)System.ServiceModel.Http.dll" DestinationFolder="$(PublishDir)../" />
+    <Move SourceFiles="$(PublishDir)System.ServiceModel.Primitives.dll" DestinationFolder="$(PublishDir)../" />
     <Move SourceFiles="$(PublishDir)TextCopy.dll" DestinationFolder="$(PublishDir)../" />
   </Target>
 </Project>

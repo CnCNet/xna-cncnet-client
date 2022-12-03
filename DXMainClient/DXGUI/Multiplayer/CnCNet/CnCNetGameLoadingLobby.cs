@@ -15,6 +15,7 @@ using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
 using System;
 using System.Collections.Generic;
+using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using ClientCore.Extensions;
@@ -595,7 +596,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 Players[pId].Port = playerPorts[pId];
                 sb.Append(Players[pId].Name);
                 sb.Append(";");
-                sb.Append("0.0.0.0:");
+                sb.Append($"{IPAddress.Any}:");
                 sb.Append(playerPorts[pId]);
                 sb.Append(";");
             }

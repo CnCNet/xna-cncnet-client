@@ -50,23 +50,11 @@ namespace DTAClient.Online
             new("irc.gamesurge.net", "GameSurge", new[] { 6667 })
         }.AsReadOnly();
 
-        bool _isConnected;
-        public bool IsConnected
-        {
-            get { return _isConnected; }
-        }
+        public bool IsConnected { get; private set; }
 
-        bool _attemptingConnection;
-        public bool AttemptingConnection
-        {
-            get { return _attemptingConnection; }
-        }
+        public bool AttemptingConnection { get; private set; }
 
-        Random _rng = new();
-        public Random Rng
-        {
-            get { return _rng; }
-        }
+        public Random Rng { get; } = new();
 
         private List<QueuedMessage> MessageQueue = new();
         private TimeSpan MessageQueueDelay;
@@ -96,7 +84,8 @@ namespace DTAClient.Online
 
         private static string systemId;
         private static readonly object idLocker = new();
-        private CancellationTokenSource cancellationTokenSource;
+        private CancellationTokenSource connectionCancellationTokenSource;
+        private CancellationTokenSource sendQueueCancellationTokenSource;
 
         public static void SetId(string id)
         {
@@ -112,22 +101,23 @@ namespace DTAClient.Online
         /// </summary>
         public void ConnectAsync()
         {
-            if (_isConnected)
+            if (IsConnected)
                 throw new InvalidOperationException("The client is already connected!".L10N("UI:Main:ClientAlreadyConnected"));
 
-            if (_attemptingConnection)
+            if (AttemptingConnection)
                 return; // Maybe we should throw in this case as well?
 
             welcomeMessageReceived = false;
             connectionCut = false;
-            _attemptingConnection = true;
+            AttemptingConnection = true;
 
             MessageQueueDelay = TimeSpan.FromMilliseconds(ClientConfiguration.Instance.SendSleep);
 
-            cancellationTokenSource?.Dispose();
-            cancellationTokenSource = new CancellationTokenSource();
+            connectionCancellationTokenSource?.Dispose();
 
-            ConnectToServerAsync(cancellationTokenSource.Token).HandleTask();
+            connectionCancellationTokenSource = new CancellationTokenSource();
+
+            ConnectToServerAsync(connectionCancellationTokenSource.Token).HandleTask();
         }
 
         /// <summary>
@@ -172,12 +162,15 @@ namespace DTAClient.Online
 
                             Logger.Log("Successfully connected to " + server.Host + " on port " + port);
 
-                            _isConnected = true;
-                            _attemptingConnection = false;
+                            IsConnected = true;
+                            AttemptingConnection = false;
 
                             connectionManager.OnConnected();
+                            sendQueueCancellationTokenSource?.Dispose();
 
-                            RunSendQueueAsync(cancellationToken).HandleTask();
+                            sendQueueCancellationTokenSource = new CancellationTokenSource();
+
+                            RunSendQueueAsync(sendQueueCancellationTokenSource.Token).HandleTask();
 
                             socket?.Dispose();
                             socket = client;
@@ -200,7 +193,7 @@ namespace DTAClient.Online
                 Logger.Log("Connecting to CnCNet failed!");
                 // Clear the failed server list in case connecting to all servers has failed
                 failedServerIPs.Clear();
-                _attemptingConnection = false;
+                AttemptingConnection = false;
                 connectionManager.OnConnectAttemptFailed();
             }
             catch (OperationCanceledException)
@@ -240,11 +233,13 @@ namespace DTAClient.Online
                 catch (Exception ex)
                 {
                     ProgramConstants.LogException(ex, "Disconnected from CnCNet due to a socket error.");
+
                     errorTimes++;
 
                     if (errorTimes > MAX_RECONNECT_COUNT)
                     {
                         const string errorMessage = "Disconnected from CnCNet after reaching the maximum number of connection retries.";
+
                         Logger.Log(errorMessage);
                         failedServerIPs.Add(currentConnectedServerIP);
                         connectionManager.OnConnectionLost(errorMessage.L10N("UI:Main:ClientDisconnectedAfterRetries"));
@@ -263,24 +258,31 @@ namespace DTAClient.Online
                 Logger.Log("Message received: " + msg);
 #endif
                 await HandleMessageAsync(msg);
+
                 timer.Interval = 30000;
             }
 
             if (cancellationToken.IsCancellationRequested)
             {
                 connectionManager.OnDisconnected();
+
                 connectionCut = false; // This disconnect is intentional
             }
 
             timer.Enabled = false;
+
             timer.Dispose();
 
-            _isConnected = false;
+            IsConnected = false;
 
             if (connectionCut)
             {
+                sendQueueCancellationTokenSource.Cancel();
+
                 while (!sendQueueExited)
+                {
                     await Task.Delay(100, cancellationToken);
+                }
 
                 reconnectCount++;
 
@@ -312,7 +314,7 @@ namespace DTAClient.Online
         private async Task<IList<Server>> GetServerListSortedByLatencyAsync()
         {
             // Resolve the hostnames.
-            IEnumerable<(IPAddress IpAddress, string Name, int[] Ports)>[] servers = await Task.WhenAll(Servers.Select(ResolveServerAsync));
+            IEnumerable<(IPAddress IpAddress, string Name, int[] Ports)>[] servers = await ClientCore.Extensions.TaskExtensions.WhenAllSafe(Servers.Select(ResolveServerAsync));
 
             // Group the tuples by IPAddress to merge duplicate servers.
             IEnumerable<IGrouping<IPAddress, (string Name, int[] Ports)>> serverInfosGroupedByIPAddress = servers
@@ -353,7 +355,7 @@ namespace DTAClient.Online
             }
 
             (Server Server, IPAddress IpAddress, long Result)[] serverAndLatencyResults =
-                await Task.WhenAll(serverInfos.Where(q => !failedServerIPs.Contains(q.IpAddress.ToString())).Select(PingServerAsync));
+                await ClientCore.Extensions.TaskExtensions.WhenAllSafe(serverInfos.Where(q => !failedServerIPs.Contains(q.IpAddress.ToString())).Select(PingServerAsync));
 
             // Sort the servers by AddressFamily & latency.
             (Server Server, IPAddress IpAddress, long Result)[] sortedServerAndLatencyResults = serverAndLatencyResults
@@ -451,7 +453,7 @@ namespace DTAClient.Online
         public async Task DisconnectAsync()
         {
             await SendMessageAsync(IRCCommands.QUIT);
-            cancellationTokenSource.Cancel();
+            connectionCancellationTokenSource.Cancel();
             socket.Close();
         }
 
@@ -980,7 +982,7 @@ namespace DTAClient.Online
         /// <param name="qm">The message to queue.</param>
         public async Task QueueMessageAsync(QueuedMessage qm)
         {
-            if (!_isConnected)
+            if (!IsConnected)
                 return;
 
             if (qm.Replace && ReplaceMessage(qm))

@@ -198,7 +198,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             listener = new Socket(SocketType.Stream, ProtocolType.Tcp);
 
-            listener.Bind(new IPEndPoint(IPAddress.Any, ProgramConstants.LAN_GAME_LOBBY_PORT));
+            listener.Bind(new IPEndPoint(IPAddress.IPv6Any, ProgramConstants.LAN_GAME_LOBBY_PORT));
             listener.Listen();
 
             while (!cancellationToken.IsCancellationRequested)
@@ -542,10 +542,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         protected override Task HostLaunchGameAsync() => BroadcastMessageAsync(LANCommands.LAUNCH_GAME + " " + UniqueGameID);
 
-        protected override string GetIPAddressForPlayer(PlayerInfo player)
+        protected override IPAddress GetIPAddressForPlayer(PlayerInfo player)
         {
             var lpInfo = (LANPlayerInfo)player;
-            return IPAddress.Parse(lpInfo.IPAddress).MapToIPv4().ToString();
+            return lpInfo.IPAddress.MapToIPv4();
         }
 
         protected override Task RequestPlayerOptionsAsync(int side, int color, int start, int team)
@@ -736,14 +736,14 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 for (int i = 1; i < Players.Count; i++)
                 {
                     LANPlayerInfo lpInfo = (LANPlayerInfo)Players[i];
-                    if (!Task.Run(() => lpInfo.UpdateAsync(gameTime).HandleTaskAsync()).Result)
+                    if (!Task.Run(() => lpInfo.UpdateAsync(gameTime).HandleTask()).Result)
                     {
                         CleanUpPlayer(lpInfo);
                         Players.RemoveAt(i);
                         AddNotice(string.Format("{0} - connection timed out".L10N("UI:Main:PlayerTimeout"), lpInfo.Name));
                         CopyPlayerDataToUI();
-                        Task.Run(() => BroadcastPlayerOptionsAsync().HandleTaskAsync()).Wait();
-                        Task.Run(() => BroadcastPlayerExtraOptionsAsync().HandleTaskAsync()).Wait();
+                        Task.Run(() => BroadcastPlayerOptionsAsync().HandleTask()).Wait();
+                        Task.Run(() => BroadcastPlayerExtraOptionsAsync().HandleTask()).Wait();
                         UpdateDiscordPresence();
                         i--;
                     }
@@ -762,7 +762,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 timeSinceLastReceivedCommand += gameTime.ElapsedGameTime;
 
                 if (timeSinceLastReceivedCommand > TimeSpan.FromSeconds(DROPOUT_TIMEOUT))
-                    Task.Run(() => BtnLeaveGame_LeftClickAsync().HandleTaskAsync()).Wait();
+                    Task.Run(() => BtnLeaveGame_LeftClickAsync().HandleTask()).Wait();
             }
 
             base.Update(gameTime);
@@ -927,7 +927,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 int start = Conversions.IntFromString(parts[baseIndex + 3], -1);
                 int team = Conversions.IntFromString(parts[baseIndex + 4], -1);
                 int readyStatus = Conversions.IntFromString(parts[baseIndex + 5], -1);
-                string ipAddress = parts[baseIndex + 6];
+                var ipAddress = IPAddress.Parse(parts[baseIndex + 6]);
                 int aiLevel = Conversions.IntFromString(parts[baseIndex + 7], -1);
 
                 if (side < 0 || side > SideCount + RandomSelectorCount)
@@ -942,8 +942,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 if (team < 0 || team > 4)
                     return;
 
-                if (IPAddress.IsLoopback(IPAddress.Parse(ipAddress)))
-                    ipAddress = hostEndPoint.Address.MapToIPv4().ToString();
+                if (IPAddress.IsLoopback(ipAddress))
+                    ipAddress = hostEndPoint.Address.MapToIPv4();
 
                 bool isAi = aiLevel > -1;
                 if (aiLevel > 2)

@@ -69,7 +69,7 @@ namespace DTAClient.DXGUI.Multiplayer
 
         private readonly LANColor[] chatColors;
         private readonly MapLoader mapLoader;
-        private int chatColorIndex;
+        private const int chatColorIndex = 0;
         private readonly Encoding encoding;
 
         private readonly LANServerCommandHandler[] hostCommandHandlers;
@@ -156,7 +156,7 @@ namespace DTAClient.DXGUI.Multiplayer
         private async Task ListenForClientsAsync(CancellationToken cancellationToken)
         {
             listener = new Socket(SocketType.Stream, ProtocolType.Tcp);
-            listener.Bind(new IPEndPoint(IPAddress.Any, ProgramConstants.LAN_GAME_LOBBY_PORT));
+            listener.Bind(new IPEndPoint(IPAddress.IPv6Any, ProgramConstants.LAN_GAME_LOBBY_PORT));
             listener.Listen();
 
             while (!cancellationToken.IsCancellationRequested)
@@ -524,7 +524,7 @@ namespace DTAClient.DXGUI.Multiplayer
             const int PLAYER_INFO_PARTS = 3;
             int pCount = (parts.Length - 1) / PLAYER_INFO_PARTS;
 
-            if (pCount * PLAYER_INFO_PARTS + 1 != parts.Length)
+            if ((pCount * PLAYER_INFO_PARTS) + 1 != parts.Length)
                 return;
 
             int savedGameIndex = Conversions.IntFromString(parts[0], -1);
@@ -539,20 +539,18 @@ namespace DTAClient.DXGUI.Multiplayer
 
             for (int i = 0; i < pCount; i++)
             {
-                int baseIndex = 1 + i * PLAYER_INFO_PARTS;
-                string pName = parts[baseIndex];
-                bool ready = Conversions.IntFromString(parts[baseIndex + 1], -1) > 0;
-                string ipAddress = parts[baseIndex + 2];
+                int baseIndex = 1 + (i * PLAYER_INFO_PARTS);
 
-                LANPlayerInfo pInfo = new LANPlayerInfo(encoding);
-                pInfo.Name = pName;
-                pInfo.Ready = ready;
-                pInfo.IPAddress = ipAddress;
-                Players.Add(pInfo);
+                Players.Add(new LANPlayerInfo(encoding)
+                {
+                    Name = parts[baseIndex],
+                    Ready = Conversions.IntFromString(parts[baseIndex + 1], -1) > 0,
+                    IPAddress = IPAddress.Parse(parts[baseIndex + 2])
+                });
             }
 
             if (Players.Count > 0) // Set IP of host
-                Players[0].IPAddress = ((IPEndPoint)client.RemoteEndPoint).Address.ToString();
+                Players[0].IPAddress = ((IPEndPoint)client.RemoteEndPoint).Address;
 
             CopyPlayerDataToUI();
         }
@@ -620,13 +618,13 @@ namespace DTAClient.DXGUI.Multiplayer
                 for (int i = 1; i < Players.Count; i++)
                 {
                     LANPlayerInfo lpInfo = (LANPlayerInfo)Players[i];
-                    if (!Task.Run(() => lpInfo.UpdateAsync(gameTime).HandleTaskAsync()).Result)
+                    if (!Task.Run(() => lpInfo.UpdateAsync(gameTime).HandleTask()).Result)
                     {
                         CleanUpPlayer(lpInfo);
                         Players.RemoveAt(i);
                         AddNotice(string.Format("{0} - connection timed out".L10N("UI:Main:PlayerTimeout"), lpInfo.Name));
                         CopyPlayerDataToUI();
-                        Task.Run(() => BroadcastOptionsAsync().HandleTaskAsync()).Wait();
+                        Task.Run(() => BroadcastOptionsAsync().HandleTask()).Wait();
                         UpdateDiscordPresence();
                         i--;
                     }
@@ -645,7 +643,7 @@ namespace DTAClient.DXGUI.Multiplayer
                 timeSinceLastReceivedCommand += gameTime.ElapsedGameTime;
 
                 if (timeSinceLastReceivedCommand > TimeSpan.FromSeconds(DROPOUT_TIMEOUT))
-                    Task.Run(() => LeaveGameAsync().HandleTaskAsync()).Wait();
+                    Task.Run(() => LeaveGameAsync().HandleTask()).Wait();
             }
 
             base.Update(gameTime);

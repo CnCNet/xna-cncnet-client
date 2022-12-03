@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Net;
 using Rampastring.Tools;
 
 namespace DTAClient.Domain.Multiplayer
@@ -44,7 +45,7 @@ namespace DTAClient.Domain.Multiplayer
 
         public bool IsInGame { get; set; }
 
-        public virtual string IPAddress { get; set; } = System.Net.IPAddress.Any.ToString();
+        public virtual IPAddress IPAddress { get; set; } = System.Net.IPAddress.Any;
 
         public int Port { get; set; }
 
