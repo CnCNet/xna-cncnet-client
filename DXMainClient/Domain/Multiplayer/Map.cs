@@ -375,7 +375,7 @@ namespace DTAClient.Domain.Multiplayer
                     CoopInfo.SetHouseInfos(section);
                 }
 
-                if (MainClientConstants.USE_ISOMETRIC_CELLS)
+                if (ProgramConstants.USE_ISOMETRIC_CELLS)
                 {
                     localSize = section.GetStringValue("LocalSize", "0,0,0,0").Split(',');
                     actualSize = section.GetStringValue("Size", "0,0,0,0").Split(',');
@@ -471,7 +471,7 @@ namespace DTAClient.Domain.Multiplayer
 
                 foreach (string waypoint in waypoints)
                 {
-                    if (MainClientConstants.USE_ISOMETRIC_CELLS)
+                    if (ProgramConstants.USE_ISOMETRIC_CELLS)
                         startingLocations.Add(GetIsometricWaypointCoords(waypoint, actualSize, localSize, previewSize));
                     else
                         startingLocations.Add(GetTDRAWaypointCoords(waypoint, x, y, width, height, previewSize));
@@ -483,7 +483,7 @@ namespace DTAClient.Domain.Multiplayer
 
         public Point MapPointToMapPreviewPoint(Point mapPoint, Point previewSize, int level)
         {
-            if (MainClientConstants.USE_ISOMETRIC_CELLS)
+            if (ProgramConstants.USE_ISOMETRIC_CELLS)
                 return GetIsoTilePixelCoord(mapPoint.X, mapPoint.Y, actualSize, localSize, previewSize, level);
 
             return GetTDRACellPixelCoord(mapPoint.X, mapPoint.Y, x, y, width, height, previewSize);
@@ -598,7 +598,7 @@ namespace DTAClient.Domain.Multiplayer
                 localSize = iniFile.GetStringValue("Map", "LocalSize", "0,0,0,0").Split(',');
                 actualSize = iniFile.GetStringValue("Map", "Size", "0,0,0,0").Split(',');
 
-                if (MainClientConstants.USE_ISOMETRIC_CELLS)
+                if (ProgramConstants.USE_ISOMETRIC_CELLS)
                 {
                     localSize = iniFile.GetStringValue("Map", "LocalSize", "0,0,0,0").Split(',');
                     actualSize = iniFile.GetStringValue("Map", "Size", "0,0,0,0").Split(',');
@@ -823,7 +823,7 @@ namespace DTAClient.Domain.Multiplayer
 
         public string GetSizeString()
         {
-            if (MainClientConstants.USE_ISOMETRIC_CELLS)
+            if (ProgramConstants.USE_ISOMETRIC_CELLS)
             {
                 if (actualSize == null || actualSize.Length < 4)
                     return "Not available";
@@ -844,8 +844,8 @@ namespace DTAClient.Domain.Multiplayer
                 return new Point(0, 0);
 
             // https://modenc.renegadeprojects.com/Waypoints
-            int waypointX = waypointCoordsInt % MainClientConstants.TDRA_WAYPOINT_COEFFICIENT;
-            int waypointY = waypointCoordsInt / MainClientConstants.TDRA_WAYPOINT_COEFFICIENT;
+            int waypointX = waypointCoordsInt % ProgramConstants.TDRA_WAYPOINT_COEFFICIENT;
+            int waypointY = waypointCoordsInt / ProgramConstants.TDRA_WAYPOINT_COEFFICIENT;
 
             return GetTDRACellPixelCoord(waypointX, waypointY, x, y, width, height, previewSizePoint);
         }
