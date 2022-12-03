@@ -1,5 +1,4 @@
 <Project>
-
   <PropertyGroup>
     <Engines>WindowsDX;WindowsGL;UniversalGL;WindowsXNA</Engines>
     <Games>Ares;TS;YR</Games>
@@ -14,7 +13,7 @@
     <DefineConstants Condition="'$(Engine)' == 'WindowsDX'">$(DefineConstants);DX;WINFORMS;ISWINDOWS</DefineConstants>
     <DefineConstants Condition="'$(Engine)' == 'WindowsGL'">$(DefineConstants);GL;WINFORMS;ISWINDOWS</DefineConstants>
     <DefineConstants Condition="'$(Engine)' == 'UniversalGL'">$(DefineConstants);GL</DefineConstants>
-    <DefineConstants Condition="'$(Engine)' == 'UniversalGL' And $(TargetFramework.Contains('-windows'))">$(DefineConstants);ISWINDOWS</DefineConstants>
+    <DefineConstants Condition="'$(Engine)' == 'UniversalGL' And $([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">$(DefineConstants);ISWINDOWS</DefineConstants>
     <DefineConstants Condition="'$(Engine)' == 'WindowsXNA'">$(DefineConstants);XNA;WINFORMS;ISWINDOWS</DefineConstants>
 
     <!-- Games-->
@@ -30,5 +29,4 @@
     <Error Text="Game is not set! Please retry with /p:Game={Game}. Supported Games are $(Games)." Condition=" '$(Game)' == '' " />
     <Error Text="Game '$(Game)' is not supported. Supported Games are $(Games)." Condition=" '!$(Games.Contains($(Game)))' " />
   </Target>
-
 </Project>

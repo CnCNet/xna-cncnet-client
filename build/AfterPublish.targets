@@ -1,126 +1,46 @@
 <Project>
-  <Import Project="$(MSBuildThisFileDirectory)CreateAppHost.targets" />
-
-  <Target Name="PublishNet48DesktopGLNative" AfterTargets="Publish" Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework' And '$(Engine)' == 'WindowsGL'">
-    <Message Importance="high" Text="Copying net48 DesktopGLNative files"/>
-    <ItemGroup>
-      <_lib_x64 Include="$(OutputPath)\x64\*.*" />
-      <_lib_x86 Include="$(OutputPath)\x86\*.*" />
-    </ItemGroup>
-    <Copy SourceFiles="@(_lib_x64)" DestinationFolder="$(PublishDir)\x64" />
-    <Copy SourceFiles="@(_lib_x86)" DestinationFolder="$(PublishDir)\x86" />
-  </Target>
-
-  <Target Name="RemoveNet48DesktopGLNative" AfterTargets="PublishNet48DesktopGLNative">
-    <Message Importance="high" Text="Removing not needed net48 DesktopGLNative files"/>
-    <Delete Files="$(PublishDir)SDL2.dll" />
-    <Delete Files="$(PublishDir)soft_oal.dll" />
-  </Target>
-
-  <Target Name="PublishNet60WinDesktopGLNative" AfterTargets="Publish" Condition="'$(TargetFramework)' == 'net6.0' And '$(Engine)' == 'UniversalGL' And $(RuntimeIdentifier.Contains('win-'))">
-    <Message Importance="high" Text="Copying net6.0 DesktopGLNative files"/>
+  <Target Name="PublishWinDesktopGLNative" AfterTargets="Publish" Condition="'$(Engine)' == 'UniversalGL' And $([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">
+    <Message Importance="high" Text="Copying DesktopGLNative files"/>
     <Copy SourceFiles="$(OutputPath)SDL2.dll" DestinationFolder="$(PublishDir)" />
     <Copy SourceFiles="$(OutputPath)soft_oal.dll" DestinationFolder="$(PublishDir)" />
   </Target>
 
-  <Target Name="RemoveCodeAnalysis" AfterTargets="Publish" Condition="'$(TargetFramework.Contains(-windows))' And '$(Engine)' == 'WindowsDX'">
-    <Message Importance="high" Text="Removing not needed CodeAnalysis files"/>
+  <Target Name="RemoveCodeAnalysis" AfterTargets="Publish" Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows' And '$(Engine)' == 'WindowsDX'">
+    <Message Importance="high" Text="Removing unnecessary CodeAnalysis files"/>
     <Delete Files="$(PublishDir)Microsoft.CodeAnalysis.CSharp.dll" />
     <Delete Files="$(PublishDir)Microsoft.CodeAnalysis.dll" />
     <Delete Files="$(PublishDir)Microsoft.CodeAnalysis.VisualBasic.dll" />
   </Target>
 
-  <Target Name="MoveCommonNet48Binaries" AfterTargets="Publish" Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework'">
-    <Message Importance="high" Text="Moving net48 common binaries"/>
-    <Move SourceFiles="$(PublishDir)ClientUpdater.dll" DestinationFolder="$(PublishDir)../" />
-    <Move SourceFiles="$(PublishDir)DiscordRPC.dll" DestinationFolder="$(PublishDir)../" />
-    <Move SourceFiles="$(PublishDir)DiscordRPC.pdb" DestinationFolder="$(PublishDir)../" />
-    <Move SourceFiles="$(PublishDir)DiscordRPC.xml" DestinationFolder="$(PublishDir)../" />
-    <Move SourceFiles="$(PublishDir)Localization.dll" DestinationFolder="$(PublishDir)../" />
-    <Move SourceFiles="$(PublishDir)Localization.pdb" DestinationFolder="$(PublishDir)../" />
-    <Move SourceFiles="$(PublishDir)lzo.net.dll" DestinationFolder="$(PublishDir)../" />
-    <Move SourceFiles="$(PublishDir)Microsoft.Bcl.AsyncInterfaces.dll" DestinationFolder="$(PublishDir)../" />
-    <Move SourceFiles="$(PublishDir)Microsoft.Extensions.DependencyInjection.Abstractions.dll" DestinationFolder="$(PublishDir)../" />
-    <Move SourceFiles="$(PublishDir)Newtonsoft.Json.dll" DestinationFolder="$(PublishDir)../" />
-    <Move SourceFiles="$(PublishDir)OpenMcdf.dll" DestinationFolder="$(PublishDir)../" />
-    <Move SourceFiles="$(PublishDir)Rampastring.Tools.dll" DestinationFolder="$(PublishDir)../" />
-    <Move SourceFiles="$(PublishDir)SixLabors.ImageSharp.dll" DestinationFolder="$(PublishDir)../" />
-    <Move SourceFiles="$(PublishDir)System.Buffers.dll" DestinationFolder="$(PublishDir)../" />
-    <Move SourceFiles="$(PublishDir)System.Memory.dll" DestinationFolder="$(PublishDir)../" />
-    <Move SourceFiles="$(PublishDir)System.Numerics.Vectors.dll" DestinationFolder="$(PublishDir)../" />
-    <Move SourceFiles="$(PublishDir)System.Runtime.CompilerServices.Unsafe.dll" DestinationFolder="$(PublishDir)../" />
-    <Move SourceFiles="$(PublishDir)System.Text.Encoding.CodePages.dll" DestinationFolder="$(PublishDir)../" />
-    <Move SourceFiles="$(PublishDir)System.Threading.Tasks.Extensions.dll" DestinationFolder="$(PublishDir)../" />
-    <Move SourceFiles="$(PublishDir)TextCopy.dll" DestinationFolder="$(PublishDir)../" />
+  <Target Name="RemoveWindowsDXNonWindowsBinaries" AfterTargets="Publish" Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows' And '$(Engine)' == 'WindowsDX'">
+    <Message Importance="high" Text="Removing unnecessary WindowsDX files"/>
+    <RemoveDir Directories="$(PublishDir)runtimes/debian-x64" />
+    <RemoveDir Directories="$(PublishDir)runtimes/fedora-x64" />
+    <RemoveDir Directories="$(PublishDir)runtimes/opensuse-x64" />
+    <RemoveDir Directories="$(PublishDir)runtimes/osx" />
+    <RemoveDir Directories="$(PublishDir)runtimes/rhel-x64" />
   </Target>
 
-  <Target Name="MoveCommonNet6WindowsBinaries" AfterTargets="Publish" Condition="$(TargetFramework.Contains(-windows))">
-    <Message Importance="high" Text="Moving net6.0-windows common binaries"/>
+  <Target Name="RemoveWindowsGLNonWindowsBinaries" AfterTargets="Publish" Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows' And '$(Engine)' == 'WindowsGL'">
+    <Message Importance="high" Text="Removing unnecessary WindowsGL files"/>
+    <RemoveDir Directories="$(PublishDir)runtimes/linux-x64" />
+    <RemoveDir Directories="$(PublishDir)runtimes/osx" />
+  </Target>
+
+  <Target Name="MoveCommonBinaries" AfterTargets="Publish">
+    <Message Importance="high" Text="Moving common binaries"/>
     <Move SourceFiles="$(PublishDir)ClientUpdater.dll" DestinationFolder="$(PublishDir)../" />
     <Move SourceFiles="$(PublishDir)DiscordRPC.dll" DestinationFolder="$(PublishDir)../" />
-    <Move SourceFiles="$(PublishDir)DiscordRPC.pdb" DestinationFolder="$(PublishDir)../" />
-    <Move SourceFiles="$(PublishDir)DiscordRPC.xml" DestinationFolder="$(PublishDir)../" />
     <Move SourceFiles="$(PublishDir)Localization.dll" DestinationFolder="$(PublishDir)../" />
     <Move SourceFiles="$(PublishDir)Localization.pdb" DestinationFolder="$(PublishDir)../" />
     <Move SourceFiles="$(PublishDir)lzo.net.dll" DestinationFolder="$(PublishDir)../" />
     <Move SourceFiles="$(PublishDir)Microsoft.Extensions.DependencyInjection.Abstractions.dll" DestinationFolder="$(PublishDir)../" />
+    <Move SourceFiles="$(PublishDir)Newtonsoft.Json.Bson.dll" DestinationFolder="$(PublishDir)../" />
     <Move SourceFiles="$(PublishDir)Newtonsoft.Json.dll" DestinationFolder="$(PublishDir)../" />
     <Move SourceFiles="$(PublishDir)OpenMcdf.dll" DestinationFolder="$(PublishDir)../" />
     <Move SourceFiles="$(PublishDir)Rampastring.Tools.dll" DestinationFolder="$(PublishDir)../" />
     <Move SourceFiles="$(PublishDir)SixLabors.ImageSharp.dll" DestinationFolder="$(PublishDir)../" />
-    <Move SourceFiles="$(PublishDir)System.Management.dll" DestinationFolder="$(PublishDir)../" />
+    <Move SourceFiles="$(PublishDir)System.Net.Http.Formatting.dll" DestinationFolder="$(PublishDir)../" />
     <Move SourceFiles="$(PublishDir)TextCopy.dll" DestinationFolder="$(PublishDir)../" />
-  </Target>
-
-  <Target Name="MoveCommonNet6CrossPlatformBinaries" AfterTargets="Publish" Condition="'$(Engine)' == 'UniversalGL'">
-    <Message Importance="high" Text="Moving net6.0 common binaries"/>
-    <Move SourceFiles="$(PublishDir)ClientUpdater.dll" DestinationFolder="$(PublishDir)../" />
-    <Move SourceFiles="$(PublishDir)DiscordRPC.dll" DestinationFolder="$(PublishDir)../" />
-    <Move SourceFiles="$(PublishDir)DiscordRPC.pdb" DestinationFolder="$(PublishDir)../" />
-    <Move SourceFiles="$(PublishDir)DiscordRPC.xml" DestinationFolder="$(PublishDir)../" />
-    <Move SourceFiles="$(PublishDir)Localization.dll" DestinationFolder="$(PublishDir)../" />
-    <Move SourceFiles="$(PublishDir)Localization.pdb" DestinationFolder="$(PublishDir)../" />
-    <Move SourceFiles="$(PublishDir)lzo.net.dll" DestinationFolder="$(PublishDir)../" />
-    <Move SourceFiles="$(PublishDir)Microsoft.Extensions.DependencyInjection.Abstractions.dll" DestinationFolder="$(PublishDir)../" />
-    <Move SourceFiles="$(PublishDir)Microsoft.Win32.SystemEvents.dll" DestinationFolder="$(PublishDir)../" />
-    <Move SourceFiles="$(PublishDir)Newtonsoft.Json.dll" DestinationFolder="$(PublishDir)../" />
-    <Move SourceFiles="$(PublishDir)OpenMcdf.dll" DestinationFolder="$(PublishDir)../" />
-    <Move SourceFiles="$(PublishDir)Rampastring.Tools.dll" DestinationFolder="$(PublishDir)../" />
-    <Move SourceFiles="$(PublishDir)SixLabors.ImageSharp.dll" DestinationFolder="$(PublishDir)../" />
-    <Move SourceFiles="$(PublishDir)System.CodeDom.dll" DestinationFolder="$(PublishDir)../" />
-    <Move SourceFiles="$(PublishDir)System.DirectoryServices.dll" DestinationFolder="$(PublishDir)../" />
-    <Move SourceFiles="$(PublishDir)System.Drawing.Common.dll" DestinationFolder="$(PublishDir)../" />
-    <Move SourceFiles="$(PublishDir)System.Management.dll" DestinationFolder="$(PublishDir)../" />
-    <Move SourceFiles="$(PublishDir)System.Security.Permissions.dll" DestinationFolder="$(PublishDir)../" />
-    <Move SourceFiles="$(PublishDir)System.Windows.Extensions.dll" DestinationFolder="$(PublishDir)../" />
-    <Move SourceFiles="$(PublishDir)TextCopy.dll" DestinationFolder="$(PublishDir)../" />
-  </Target>
-
-  <Target Name="MoveNet48Executables" AfterTargets="Publish" Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework'">
-    <Message Importance="high" Text="Moving net48 executables"/>
-    <Move Condition="'$(Engine)' == 'WindowsDX'" SourceFiles="$(PublishDir)clientdx.exe" DestinationFolder="$(PublishDir)../../" />
-    <Move Condition="'$(Engine)' == 'WindowsDX'" SourceFiles="$(PublishDir)clientdx.exe.config" DestinationFolder="$(PublishDir)../../" />
-    <Move Condition="'$(Engine)' == 'WindowsDX'" SourceFiles="$(PublishDir)clientdx.pdb" DestinationFolder="$(PublishDir)../../" />
-    <Move Condition="'$(Engine)' == 'WindowsGL'" SourceFiles="$(PublishDir)clientogl.exe" DestinationFolder="$(PublishDir)../../" />
-    <Move Condition="'$(Engine)' == 'WindowsGL'" SourceFiles="$(PublishDir)clientogl.exe.config" DestinationFolder="$(PublishDir)../../" />
-    <Move Condition="'$(Engine)' == 'WindowsGL'" SourceFiles="$(PublishDir)clientogl.pdb" DestinationFolder="$(PublishDir)../../" />
-    <Move Condition="'$(Engine)' == 'WindowsXNA'" SourceFiles="$(PublishDir)clientxna.exe" DestinationFolder="$(PublishDir)../../" />
-    <Move Condition="'$(Engine)' == 'WindowsXNA'" SourceFiles="$(PublishDir)clientxna.exe.config" DestinationFolder="$(PublishDir)../../" />
-    <Move Condition="'$(Engine)' == 'WindowsXNA'" SourceFiles="$(PublishDir)clientxna.pdb" DestinationFolder="$(PublishDir)../../" />
-  </Target>
-
-  <Target Name="MoveNet6WindowsWinFormsExecutables" AfterTargets="Publish" Condition="$(TargetFramework.Contains(-windows))">
-    <Message Importance="high" Text="Moving net6.0-windows executables"/>
-    <Move Condition="'$(Engine)' == 'WindowsDX'" SourceFiles="$(PublishDir)clientdx.exe" DestinationFolder="$(PublishDir)../../" />
-    <Move Condition="'$(Engine)' == 'WindowsGL'" SourceFiles="$(PublishDir)clientogl.exe" DestinationFolder="$(PublishDir)../../" />
-    <Move Condition="'$(Engine)' == 'WindowsXNA'" SourceFiles="$(PublishDir)clientxna.exe" DestinationFolder="$(PublishDir)../../" />
-  </Target>
-
-  <Target Name="MoveNet6PlatformSpecificExecutables" AfterTargets="Publish" Condition="'$(TargetFrameworkIdentifier)' != '.NETFramework' And !$(TargetFramework.Contains(-windows)) And '$(RuntimeIdentifier)' != ''">
-    <Message Importance="high" Text="Moving net6.0 platform specific executables"/>
-    <!-- Built on windows -->
-    <Move Condition="Exists('$(PublishDir)$(AssemblyName).exe')" SourceFiles="$(PublishDir)$(AssemblyName).exe" DestinationFolder="$(PublishDir)../../" />
-    <!-- Built on linux -->
-    <Move Condition="Exists('$(PublishDir)$(AssemblyName)')" SourceFiles="$(PublishDir)$(AssemblyName)" DestinationFolder="$(PublishDir)../../" />
   </Target>
 </Project>

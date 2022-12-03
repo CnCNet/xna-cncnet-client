@@ -149,7 +149,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
         /// <returns>A list of tunnel servers.</returns>
         private List<CnCNetTunnel> RefreshTunnels()
         {
-            FileInfo tunnelCacheFile = SafePath.GetFile(ProgramConstants.GamePath, "Client", "tunnel_cache");
+            FileInfo tunnelCacheFile = SafePath.GetFile(ProgramConstants.ClientUserFilesPath, "tunnel_cache");
 
             List<CnCNetTunnel> returnValue = new List<CnCNetTunnel>();
 
@@ -221,7 +221,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                     if (tunnelCacheFile.Exists)
                         tunnelCacheFile.Delete();
 
-                    DirectoryInfo clientDirectoryInfo = SafePath.GetDirectory(ProgramConstants.GamePath, "Client");
+                    DirectoryInfo clientDirectoryInfo = SafePath.GetDirectory(ProgramConstants.ClientUserFilesPath);
 
                     if (!clientDirectoryInfo.Exists)
                         clientDirectoryInfo.Create();

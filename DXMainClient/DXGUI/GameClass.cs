@@ -22,7 +22,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Rampastring.XNAUI.XNAControls;
 using MainMenu = DTAClient.DXGUI.Generic.MainMenu;
-#if DX
+#if DX || (GL && WINFORMS)
 using System.Diagnostics;
 using System.IO;
 #endif
@@ -67,8 +67,14 @@ namespace DTAClient.DXGUI
             AssetLoader.AssetSearchPaths.Add(ProgramConstants.GetBaseResourcePath());
             AssetLoader.AssetSearchPaths.Add(ProgramConstants.GamePath);
 
+#if DX || (GL && WINFORMS)
+            // Try to create and load a texture to check for MonoGame compatibility
 #if DX
-            // Try to create and load a texture to check for MonoGame 3.7.1 compatibility
+            const string startupFailureFile = ".dxfail";
+#elif GL && WINFORMS
+            const string startupFailureFile = ".oglfail";
+#endif
+
             try
             {
                 Texture2D texture = new Texture2D(GraphicsDevice, 100, 100, false, SurfaceFormat.Color);
@@ -81,17 +87,17 @@ namespace DTAClient.DXGUI
             {
                 if (ex.Message.Contains("DeviceRemoved"))
                 {
-                    Logger.Log("Creating texture on startup failed! Creating .dxfail file and re-launching client launcher.");
+                    Logger.Log($"Creating texture on startup failed! Creating {startupFailureFile} file and re-launching client launcher.");
 
-                    DirectoryInfo clientDirectory = SafePath.GetDirectory(ProgramConstants.GamePath, "Client");
+                    DirectoryInfo clientDirectory = SafePath.GetDirectory(ProgramConstants.ClientUserFilesPath);
 
                     if (!clientDirectory.Exists)
                         clientDirectory.Create();
 
-                    // Create .dxfail file that the launcher can check for this error
-                    // and handle it by redirecting the user to the XNA version instead
+                    // Create startup failure file that the launcher can check for this error
+                    // and handle it by redirecting the user to another version instead
 
-                    File.WriteAllBytes(SafePath.CombineFilePath(clientDirectory.FullName, ".dxfail"), new byte[] { 1 });
+                    File.WriteAllBytes(SafePath.CombineFilePath(clientDirectory.FullName, startupFailureFile), new byte[] { 1 });
 
                     string launcherExe = ClientConfiguration.Instance.LauncherExe;
                     if (string.IsNullOrEmpty(launcherExe))
@@ -120,9 +126,16 @@ namespace DTAClient.DXGUI
             WindowManager wm = new WindowManager(this, graphics);
             wm.Initialize(content, ProgramConstants.GetBaseResourcePath());
 
-            ProgramConstants.DisplayErrorAction = (title, error) =>
+            ProgramConstants.DisplayErrorAction = (title, error, exit) =>
             {
-                new XNAMessageBox(wm, title, error, XNAMessageBoxButtons.OK).Show();
+                new XNAMessageBox(wm, title, error, XNAMessageBoxButtons.OK)
+                {
+                    OKClickedAction = _ =>
+                    {
+                        if (exit)
+                            Environment.Exit(1);
+                    }
+                }.Show();
             };
 
             SetGraphicsMode(wm);
@@ -139,16 +152,13 @@ namespace DTAClient.DXGUI
             };
 
 #if WINFORMS
-            if (!ProgramConstants.ISMONO)
-            {
-                FileInfo primaryNativeCursorPath = SafePath.GetFile(ProgramConstants.GetResourcePath(), "cursor.cur");
-                FileInfo alternativeNativeCursorPath = SafePath.GetFile(ProgramConstants.GetBaseResourcePath(), "cursor.cur");
+            FileInfo primaryNativeCursorPath = SafePath.GetFile(ProgramConstants.GetResourcePath(), "cursor.cur");
+            FileInfo alternativeNativeCursorPath = SafePath.GetFile(ProgramConstants.GetBaseResourcePath(), "cursor.cur");
 
-                if (primaryNativeCursorPath.Exists)
-                    wm.Cursor.LoadNativeCursor(primaryNativeCursorPath.FullName);
-                else if (alternativeNativeCursorPath.Exists)
-                    wm.Cursor.LoadNativeCursor(alternativeNativeCursorPath.FullName);
-            }
+            if (primaryNativeCursorPath.Exists)
+                wm.Cursor.LoadNativeCursor(primaryNativeCursorPath.FullName);
+            else if (alternativeNativeCursorPath.Exists)
+                wm.Cursor.LoadNativeCursor(alternativeNativeCursorPath.FullName);
 
 #endif
             Components.Add(wm);

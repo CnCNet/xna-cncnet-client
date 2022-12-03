@@ -5,7 +5,9 @@ using Microsoft.Xna.Framework;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
 using System;
+#if WINFORMS
 using System.Runtime.InteropServices;
+#endif
 using ClientUpdater;
 
 namespace DTAClient.DXGUI.Generic
@@ -43,8 +45,9 @@ namespace DTAClient.DXGUI.Generic
 
         private XNAProgressBar prgCurrentFile;
         private XNAProgressBar prgTotal;
-
+#if WINFORMS
         private TaskbarProgress tbp;
+#endif
 
         private bool isStartingForceUpdate;
 
@@ -138,9 +141,10 @@ namespace DTAClient.DXGUI.Generic
             Updater.UpdateProgressChanged += Updater_UpdateProgressChanged;
             Updater.LocalFileCheckProgressChanged += Updater_LocalFileCheckProgressChanged;
             Updater.OnFileDownloadCompleted += Updater_OnFileDownloadCompleted;
+#if WINFORMS
 
-            if (IsTaskbarSupported())
-                tbp = new TaskbarProgress();
+            tbp = new TaskbarProgress();
+#endif
         }
 
         private void Updater_FileIdentifiersUpdated()
@@ -224,11 +228,8 @@ namespace DTAClient.DXGUI.Generic
              * /*/
             try
             {
-                if (IsTaskbarSupported())
-                {
-                    tbp.SetState(WindowManager.GetWindowHandle(), TaskbarProgress.TaskbarStates.Normal);
-                    tbp.SetValue(WindowManager.GetWindowHandle(), prgTotal.Value, prgTotal.Maximum);
-                }
+                tbp.SetState(WindowManager.GetWindowHandle(), TaskbarProgress.TaskbarStates.Normal);
+                tbp.SetValue(WindowManager.GetWindowHandle(), prgTotal.Value, prgTotal.Maximum);
             }
             catch
             {
@@ -254,9 +255,7 @@ namespace DTAClient.DXGUI.Generic
         private void HandleUpdateCompleted()
         {
 #if WINFORMS
-            if (IsTaskbarSupported())
-                tbp.SetState(WindowManager.GetWindowHandle(), TaskbarProgress.TaskbarStates.NoProgress);
-
+            tbp.SetState(WindowManager.GetWindowHandle(), TaskbarProgress.TaskbarStates.NoProgress);
 #endif
             UpdateCompleted?.Invoke(this, EventArgs.Empty);
         }
@@ -269,9 +268,7 @@ namespace DTAClient.DXGUI.Generic
         private void HandleUpdateFailed(string updateFailureErrorMessage)
         {
 #if WINFORMS
-            if (IsTaskbarSupported())
-                tbp.SetState(WindowManager.GetWindowHandle(), TaskbarProgress.TaskbarStates.NoProgress);
-
+            tbp.SetState(WindowManager.GetWindowHandle(), TaskbarProgress.TaskbarStates.NoProgress);
 #endif
             UpdateFailed?.Invoke(this, new UpdateFailureEventArgs(updateFailureErrorMessage));
         }
@@ -289,9 +286,7 @@ namespace DTAClient.DXGUI.Generic
             isStartingForceUpdate = false;
 
 #if WINFORMS
-            if (IsTaskbarSupported())
-                tbp.SetState(WindowManager.GetWindowHandle(), TaskbarProgress.TaskbarStates.NoProgress);
-
+            tbp.SetState(WindowManager.GetWindowHandle(), TaskbarProgress.TaskbarStates.NoProgress);
 #endif
             UpdateCancelled?.Invoke(this, EventArgs.Empty);
         }
@@ -310,11 +305,6 @@ namespace DTAClient.DXGUI.Generic
             lblDescription.Text = string.Format("Force updating {0} to latest version...".L10N("UI:Main:ForceUpdateToLatest"), MainClientConstants.GAME_NAME_SHORT);
             lblUpdaterStatus.Text = "Connecting".L10N("UI:Main:UpdateStatusConnecting");
             Updater.CheckForUpdates();
-        }
-
-        private bool IsTaskbarSupported()
-        {
-            return MainClientConstants.OSId == OSVersion.WIN7 || MainClientConstants.OSId == OSVersion.WIN810;
         }
 
         public override void Update(GameTime gameTime)
@@ -369,6 +359,7 @@ namespace DTAClient.DXGUI.Generic
             get { return reason; }
         }
     }
+#if WINFORMS
 
     /// <summary>
     /// For utilizing the taskbar progress bar introduced in Windows 7:
@@ -432,4 +423,5 @@ namespace DTAClient.DXGUI.Generic
             taskbarInstance.SetProgressValue(windowHandle, (ulong)progressValue, (ulong)progressMax);
         }
     }
+#endif
 }

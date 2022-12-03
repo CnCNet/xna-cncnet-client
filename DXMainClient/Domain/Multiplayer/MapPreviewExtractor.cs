@@ -203,7 +203,7 @@ namespace DTAClient.Domain.Multiplayer
                                 byte* sourcePtr = sourcePtrBase + (strideWidth * rowCount);
 
                                 Buffer.MemoryCopy(sourcePtr, destPtr, strideWidth, strideWidth);
-                                PixelOperations<Bgr24>.Instance.FromBgr24(configuration, workBuffer.Memory.Span.Slice(0, width), row);
+                                PixelOperations<Bgr24>.Instance.FromBgr24(configuration, workBuffer.Memory.Span[..width], row);
                             }
                         }
                     }

@@ -13,24 +13,14 @@ namespace ClientCore
     /// </summary>
     public static class ProgramConstants
     {
-#if NETFRAMEWORK
         public static readonly string StartupExecutable = Assembly.GetEntryAssembly().Location;
 
-        public static readonly string StartupPath = SafePath.CombineDirectoryPath(new FileInfo(StartupExecutable).DirectoryName);
-#else
-        public static readonly bool IsCrossPlatform = new FileInfo(Environment.ProcessPath).Name.StartsWith("dotnet", StringComparison.OrdinalIgnoreCase);
-
-        public static readonly string StartupExecutable = IsCrossPlatform ? Assembly.GetEntryAssembly().Location : Environment.ProcessPath;
-
-        public static readonly string StartupPath = IsCrossPlatform
-            ? SafePath.CombineDirectoryPath(new FileInfo(StartupExecutable).Directory.Parent.Parent.FullName + Path.DirectorySeparatorChar)
-            : new FileInfo(StartupExecutable).Directory.FullName + Path.DirectorySeparatorChar;
-#endif
+        public static readonly string StartupPath = SafePath.CombineDirectoryPath(new FileInfo(StartupExecutable).Directory.FullName);
 
 #if DEBUG
-        public static readonly string GamePath = StartupPath;
+        public static readonly string GamePath = SafePath.CombineDirectoryPath(SafePath.GetDirectory(StartupPath).Parent.Parent.FullName);
 #else
-        public static readonly string GamePath = SafePath.CombineDirectoryPath(SafePath.GetDirectory(StartupPath).Parent.FullName);
+        public static readonly string GamePath = SafePath.CombineDirectoryPath(SafePath.GetDirectory(StartupPath).Parent.Parent.Parent.FullName);
 #endif
 
         public static string ClientUserFilesPath => SafePath.CombineDirectoryPath(GamePath, "Client");
@@ -55,12 +45,7 @@ namespace ClientCore
         public const int GAME_ID_MAX_LENGTH = 4;
 
         public static readonly Encoding LAN_ENCODING = Encoding.UTF8;
-        private static bool? isMono;
 
-        /// <summary>
-        /// Gets a value whether or not the application is running under Mono. Uses lazy loading and caching.
-        /// </summary>
-        public static bool ISMONO => isMono ??= Type.GetType("Mono.Runtime") != null;
         public static string GAME_VERSION = "Undefined";
         private static string PlayerName = "No name";
 
@@ -114,11 +99,13 @@ namespace ClientCore
         /// <summary>
         /// Gets or sets the action to perform to notify the user of an error.
         /// </summary>
-        public static Action<string, string> DisplayErrorAction { get; set; } = (title, error) =>
+        public static Action<string, string, bool> DisplayErrorAction { get; set; } = (title, error, exit) =>
         {
             Logger.Log(FormattableString.Invariant($"{(title is null ? null : title + Environment.NewLine + Environment.NewLine)}{error}"));
-
             ProcessLauncher.StartShellProcess(LogFileName);
+
+            if (exit)
+                Environment.Exit(1);
         };
     }
 }

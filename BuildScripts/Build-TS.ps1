@@ -5,8 +5,9 @@ param($Configuration = "Release")
 
 . $PSScriptRoot\Common.ps1
 
-. $PSScriptRoot\Build-TS-net6.0.ps1 $Configuration
-
+Build-Project $Configuration TS UniversalGL net7.0
 if ($IsWindows) {
-  . $PSScriptRoot\Build-TS-net48.ps1 $Configuration
+  @('WindowsDX', 'WindowsGL', 'WindowsXNA') | ForEach-Object {
+    Build-Project $Configuration TS $_ net7.0-windows
+  }
 }
