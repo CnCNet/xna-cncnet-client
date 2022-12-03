@@ -6,7 +6,7 @@
   "compilationOptions": {},
   "targets": {
     ".NETCoreApp,Version=v7.0": {
-      "SecondStageUpdater/1.0.0.1": {
+      "SecondStageUpdater/1.0.0": {
         "dependencies": {
           "Rampastring.Tools": "2.0.4",
           "StyleCop.Analyzers": "1.2.0-beta.435"
@@ -32,7 +32,7 @@
     }
   },
   "libraries": {
-    "SecondStageUpdater/1.0.0.1": {
+    "SecondStageUpdater/1.0.0": {
       "type": "project",
       "serviceable": false,
       "sha512": ""
