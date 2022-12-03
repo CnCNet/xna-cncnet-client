@@ -386,7 +386,7 @@ namespace DTAClient.Online
 
             int candidateCount = sortedServerAndLatencyResults.Length;
             int closerCount = sortedServerAndLatencyResults.Count(
-                serverAndLatencyResult => serverAndLatencyResult.Item2 <= MAXIMUM_LATENCY);
+                serverAndLatencyResult => serverAndLatencyResult.Result <= MAXIMUM_LATENCY);
 
             Logger.Log($"Lobby servers: {candidateCount} available, {closerCount} fast.");
             connectionManager.OnServerLatencyTested(candidateCount, closerCount);
