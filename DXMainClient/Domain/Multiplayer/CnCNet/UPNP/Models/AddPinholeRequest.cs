@@ -9,4 +9,4 @@ internal readonly record struct AddPinholeRequest(
     [property: MessageBodyMember(Name = "InternalClient")] string InternalClient,
     [property: MessageBodyMember(Name = "InternalPort")] ushort InternalPort, // 0 = wildcard
     [property: MessageBodyMember(Name = "Protocol")] ushort Protocol,  // 17 = UDP
-    [property: MessageBodyMember(Name = "LeaseTime")] uint LeaseTime); // 1-86400
+    [property: MessageBodyMember(Name = "LeaseTime")] uint LeaseTime); // in seconds, 1-86400

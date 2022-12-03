@@ -1320,9 +1320,16 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
     {
         if (!p2pPorts.Any())
         {
+            List<ushort> p2pReservedPorts = new();
+
+            for (int i = 0; i < 7; i++)
+            {
+                p2pReservedPorts.Add(NetworkHelper.GetFreeUdpPort(Array.Empty<ushort>()));
+            }
+
             try
             {
-                (internetGatewayDevice, p2pPorts, p2pIpV6PortIds, publicIpV6Address, publicIpV4Address) = await UPnPHandler.SetupPortsAsync(internetGatewayDevice);
+                (internetGatewayDevice, p2pPorts, p2pIpV6PortIds, publicIpV6Address, publicIpV4Address) = await UPnPHandler.SetupPortsAsync(internetGatewayDevice, p2pReservedPorts);
             }
             catch (Exception ex)
             {

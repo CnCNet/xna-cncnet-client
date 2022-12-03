@@ -26,6 +26,9 @@ internal sealed record InternetGatewayDevice(IEnumerable<Uri> Locations, string 
     private const string UPnPWanDevice = "urn:schemas-upnp-org:device:WANDevice";
     private const string UPnPService = "urn:schemas-upnp-org:service";
     private const string UPnPWanIpConnection = "WANIPConnection";
+    private const uint IpLeaseTimeInSeconds = 4 * 60 * 60;
+    private const ushort IanaUdpProtocolNumber = 17;
+    private const string PortMappingDescription = "CnCNet";
 
     private static readonly HttpClient HttpClient;
 
@@ -59,7 +62,7 @@ internal sealed record InternetGatewayDevice(IEnumerable<Uri> Locations, string 
         {
             case 2:
                 string addAnyPortMappingAction = $"\"{service.ServiceType}#AddAnyPortMapping\"";
-                var addAnyPortMappingRequest = new AddAnyPortMappingRequest(string.Empty, port, "UDP", port, ipAddress.ToString(), 1, "CnCNet", 0);
+                var addAnyPortMappingRequest = new AddAnyPortMappingRequest(string.Empty, port, "UDP", port, ipAddress.ToString(), 1, PortMappingDescription, IpLeaseTimeInSeconds);
                 AddAnyPortMappingResponse addAnyPortMappingResponse = await ExecuteSoapAction<AddAnyPortMappingRequest, AddAnyPortMappingResponse>(
                     serviceUri, addAnyPortMappingAction, serviceType, addAnyPortMappingRequest, cancellationToken);
 
@@ -68,7 +71,7 @@ internal sealed record InternetGatewayDevice(IEnumerable<Uri> Locations, string 
                 break;
             case 1:
                 string addPortMappingAction = $"\"{service.ServiceType}#AddPortMapping\"";
-                var addPortMappingRequest = new AddPortMappingRequest(string.Empty, port, "UDP", port, ipAddress.ToString(), 1, "CnCNet", 0);
+                var addPortMappingRequest = new AddPortMappingRequest(string.Empty, port, "UDP", port, ipAddress.ToString(), 1, PortMappingDescription, IpLeaseTimeInSeconds);
 
                 await ExecuteSoapAction<AddPortMappingRequest, AddPortMappingResponse>(
                     serviceUri, addPortMappingAction, serviceType, addPortMappingRequest, cancellationToken);
@@ -200,7 +203,7 @@ internal sealed record InternetGatewayDevice(IEnumerable<Uri> Locations, string 
 
         (ServiceListItem service, string serviceUri, string serviceType) = GetSoapActionParameters("WANIPv6FirewallControl:1");
         string serviceAction = $"\"{service.ServiceType}#AddPinhole\"";
-        var request = new AddPinholeRequest(string.Empty, port, ipAddress.ToString(), port, 17, 86400);
+        var request = new AddPinholeRequest(string.Empty, port, ipAddress.ToString(), port, IanaUdpProtocolNumber, IpLeaseTimeInSeconds);
         AddPinholeResponse response = await ExecuteSoapAction<AddPinholeRequest, AddPinholeResponse>(
             serviceUri, serviceAction, serviceType, request, cancellationToken);
 
