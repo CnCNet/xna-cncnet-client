@@ -1380,7 +1380,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 spawnIni.SetIntValue(sectionName, "Side", pHouseInfo.InternalSideIndex);
                 spawnIni.SetBooleanValue(sectionName, "IsSpectator", pHouseInfo.IsSpectator);
                 spawnIni.SetIntValue(sectionName, "Color", pHouseInfo.ColorIndex);
-                spawnIni.SetStringValue(sectionName, "Ip", GetIPAddressForPlayer(pInfo));
+                spawnIni.SetStringValue(sectionName, "Ip", GetIPAddressForPlayer(pInfo).ToString());
                 spawnIni.SetIntValue(sectionName, "Port", pInfo.Port);
 
                 otherId++;
@@ -1493,7 +1493,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             return false;
         }
 
-        protected virtual string GetIPAddressForPlayer(PlayerInfo player) => IPAddress.Any.MapToIPv4().ToString();
+        /// <summary>
+        /// Returns the IPv4 address used to connect to the local game.
+        /// </summary>
+        protected virtual IPAddress GetIPAddressForPlayer(PlayerInfo player) => IPAddress.Any;
 
         /// <summary>
         /// Override this in a derived class to write game lobby specific code to

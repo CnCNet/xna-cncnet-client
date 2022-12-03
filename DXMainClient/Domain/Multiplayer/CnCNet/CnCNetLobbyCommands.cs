@@ -17,4 +17,5 @@ internal static class CnCNetLobbyCommands
     public const string SAVEOPTIONS = "SAVEOPTIONS";
     public const string LOADOPTIONS = "LOADOPTIONS";
     public const string DYNAMICTUNNELS = "DYNAMICTUNNELS";
+    public const string P2P = "P2P";
 }

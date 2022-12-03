@@ -34,7 +34,7 @@ namespace ClientCore.INIProcessing
 
         public void Run()
         {
-            task = Task.Run(CheckFiles).HandleTaskAsync();
+            task = Task.Run(CheckFiles).HandleTask();
         }
 
         private static void CheckFiles()

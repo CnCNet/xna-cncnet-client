@@ -321,7 +321,7 @@ namespace DTAClient.DXGUI.Multiplayer
                 if (otherPlayer == null)
                     continue;
 
-                spawnIni.SetStringValue("Other" + i, "Ip", otherPlayer.IPAddress);
+                spawnIni.SetStringValue("Other" + i, "Ip", otherPlayer.IPAddress.ToString());
                 spawnIni.SetIntValue("Other" + i, "Port", otherPlayer.Port);
             }
 
@@ -331,7 +331,7 @@ namespace DTAClient.DXGUI.Multiplayer
             FileInfo spawnMapFileInfo = SafePath.GetFile(ProgramConstants.GamePath, ProgramConstants.SPAWNMAP_INI);
 
             spawnMapFileInfo.Delete();
-            using StreamWriter spawnMapStreamWriter = new StreamWriter(spawnMapFileInfo.FullName);
+            using var spawnMapStreamWriter = new StreamWriter(spawnMapFileInfo.FullName);
             spawnMapStreamWriter.WriteLine("[Map]");
             spawnMapStreamWriter.WriteLine("Size=0,0,50,50");
             spawnMapStreamWriter.WriteLine("LocalSize=0,0,50,50");

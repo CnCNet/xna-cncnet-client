@@ -2,55 +2,53 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
-using System.Net.NetworkInformation;
+using System.Threading;
 using System.Threading.Tasks;
 using ClientCore.Extensions;
 
 namespace DTAClient.Domain.Multiplayer.CnCNet;
 
-internal sealed class V3GameTunnelHandler
+/// <summary>
+/// Manages connections between one or more <see cref="V3LocalPlayerConnection"/>s representing local game players and a <see cref="V3RemotePlayerConnection"/> representing a remote host.
+/// </summary>
+internal sealed class V3GameTunnelHandler : IDisposable
 {
-    private readonly Dictionary<uint, V3TunneledPlayerConnection> playerConnections = new();
+    private readonly Dictionary<uint, V3LocalPlayerConnection> playerConnections = new();
 
-    private V3TunnelConnection tunnelConnection;
+    private CancellationToken cancellationToken;
+    private V3RemotePlayerConnection remoteHostConnection;
+    private EventHandler<GameDataReceivedEventArgs> gameDataReceivedFunc;
 
-    public event EventHandler Connected;
+    public event EventHandler RaiseConnectedEvent;
 
-    public event EventHandler ConnectionFailed;
+    public event EventHandler RaiseConnectionFailedEvent;
 
     public bool IsConnected { get; private set; }
 
-    public static int GetFreePort(IEnumerable<int> playerPorts)
+    public void SetUp(IPEndPoint remoteIpEndPoint, ushort localPort, uint gameLocalPlayerId, CancellationToken cancellationToken)
     {
-        IPEndPoint[] endPoints = IPGlobalProperties.GetIPGlobalProperties().GetActiveUdpListeners();
-        int[] usedPorts = endPoints.Select(q => q.Port).ToArray().Concat(playerPorts).ToArray();
-        int selectedPort = 0;
+        this.cancellationToken = cancellationToken;
+        remoteHostConnection = new V3RemotePlayerConnection();
+        gameDataReceivedFunc = (_, e) => RemoteHostConnection_MessageReceivedAsync(e).HandleTask();
 
-        while (selectedPort == 0 || usedPorts.Contains(selectedPort))
-        {
-            selectedPort = new Random().Next(1, 65535);
-        }
+        remoteHostConnection.RaiseConnectedEvent += RemoteHostConnection_Connected;
+        remoteHostConnection.RaiseConnectionFailedEvent += RemoteHostConnection_ConnectionFailed;
+        remoteHostConnection.RaiseConnectionCutEvent += RemoteHostConnection_ConnectionCut;
+        remoteHostConnection.RaiseGameDataReceivedEvent += gameDataReceivedFunc;
 
-        return selectedPort;
+        remoteHostConnection.SetUp(remoteIpEndPoint, localPort, gameLocalPlayerId, cancellationToken);
     }
 
-    public void SetUp(CnCNetTunnel tunnel, uint localId)
+    public List<ushort> CreatePlayerConnections(List<uint> playerIds)
     {
-        tunnelConnection = new V3TunnelConnection(tunnel, this, localId);
-        tunnelConnection.Connected += TunnelConnection_Connected;
-        tunnelConnection.ConnectionFailed += TunnelConnection_ConnectionFailed;
-        tunnelConnection.ConnectionCut += TunnelConnection_ConnectionCut;
-    }
-
-    public List<int> CreatePlayerConnections(List<uint> playerIds)
-    {
-        int[] ports = new int[playerIds.Count];
+        ushort[] ports = new ushort[playerIds.Count];
 
         for (int i = 0; i < playerIds.Count; i++)
         {
-            var playerConnection = new V3TunneledPlayerConnection(playerIds[i], this);
+            var playerConnection = new V3LocalPlayerConnection();
 
-            playerConnection.CreateSocket();
+            playerConnection.RaiseGameDataReceivedEvent += (_, e) => PlayerConnection_PacketReceivedAsync(e).HandleTask();
+            playerConnection.Setup(playerIds[i], cancellationToken);
 
             ports[i] = playerConnection.PortNumber;
 
@@ -62,85 +60,89 @@ internal sealed class V3GameTunnelHandler
 
     public void StartPlayerConnections(int gamePort)
     {
-        foreach (KeyValuePair<uint, V3TunneledPlayerConnection> playerConnection in playerConnections)
+        foreach (KeyValuePair<uint, V3LocalPlayerConnection> playerConnection in playerConnections)
         {
-            playerConnection.Value.StartAsync(gamePort).HandleTask();
+            playerConnection.Value.StartConnectionAsync(gamePort).HandleTask();
         }
     }
 
     public void ConnectToTunnel()
     {
-        if (tunnelConnection == null)
-            throw new InvalidOperationException("GameTunnelHandler: Call SetUp before calling ConnectToTunnel.");
+        if (remoteHostConnection == null)
+            throw new InvalidOperationException($"Call SetUp before calling {nameof(ConnectToTunnel)}.");
 
-        tunnelConnection.ConnectAsync().HandleTask();
+        remoteHostConnection.StartConnectionAsync().HandleTask();
     }
 
-    public void Clear()
+    /// <summary>
+    /// Forwards local game data to the remote host.
+    /// </summary>
+    private ValueTask PlayerConnection_PacketReceivedAsync(GameDataReceivedEventArgs e)
+        => remoteHostConnection?.SendDataAsync(e.GameData, e.PlayerId) ?? ValueTask.CompletedTask;
+
+    /// <summary>
+    /// Forwards remote player data to the local game.
+    /// </summary>
+    private ValueTask RemoteHostConnection_MessageReceivedAsync(GameDataReceivedEventArgs e)
     {
-        ClearPlayerConnections();
+        V3LocalPlayerConnection localPlayerConnection = GetLocalPlayerConnection(e.PlayerId);
 
-        if (tunnelConnection == null)
-            return;
-
-        tunnelConnection.CloseConnection();
-
-        tunnelConnection.Connected -= TunnelConnection_Connected;
-        tunnelConnection.ConnectionFailed -= TunnelConnection_ConnectionFailed;
-        tunnelConnection.ConnectionCut -= TunnelConnection_ConnectionCut;
-
-        tunnelConnection = null;
+        return localPlayerConnection?.SendDataAsync(e.GameData) ?? ValueTask.CompletedTask;
     }
 
-    public async Task PlayerConnection_PacketReceivedAsync(V3TunneledPlayerConnection sender, ReadOnlyMemory<byte> data)
+    public void Dispose()
     {
-        if (tunnelConnection != null)
-            await tunnelConnection.SendDataAsync(data, sender.PlayerId);
-    }
-
-    public async Task TunnelConnection_MessageReceivedAsync(ReadOnlyMemory<byte> data, uint senderId)
-    {
-        V3TunneledPlayerConnection connection = GetPlayerConnection(senderId);
-
-        if (connection is not null)
-            await connection.SendPacketAsync(data);
-    }
-
-    private V3TunneledPlayerConnection GetPlayerConnection(uint senderId)
-    {
-        if (playerConnections.TryGetValue(senderId, out V3TunneledPlayerConnection connection))
-            return connection;
-
-        return null;
-    }
-
-    private void ClearPlayerConnections()
-    {
-        foreach (KeyValuePair<uint, V3TunneledPlayerConnection> connection in playerConnections)
+        foreach (KeyValuePair<uint, V3LocalPlayerConnection> remotePlayerGameConnection in playerConnections)
         {
-            connection.Value.Stop();
+            remotePlayerGameConnection.Value.Dispose();
         }
 
         playerConnections.Clear();
+
+        if (remoteHostConnection == null)
+            return;
+
+        remoteHostConnection.RaiseConnectedEvent -= RemoteHostConnection_Connected;
+        remoteHostConnection.RaiseConnectionFailedEvent -= RemoteHostConnection_ConnectionFailed;
+        remoteHostConnection.RaiseConnectionCutEvent -= RemoteHostConnection_ConnectionCut;
+        remoteHostConnection.RaiseGameDataReceivedEvent -= gameDataReceivedFunc;
+
+        remoteHostConnection.Dispose();
     }
 
-    private void TunnelConnection_Connected(object sender, EventArgs e)
+    private V3LocalPlayerConnection GetLocalPlayerConnection(uint senderId)
+        => playerConnections.TryGetValue(senderId, out V3LocalPlayerConnection connection) ? connection : null;
+
+    private void RemoteHostConnection_Connected(object sender, EventArgs e)
     {
         IsConnected = true;
 
-        Connected?.Invoke(this, EventArgs.Empty);
+        OnRaiseConnectedEvent(EventArgs.Empty);
     }
 
-    private void TunnelConnection_ConnectionFailed(object sender, EventArgs e)
+    private void RemoteHostConnection_ConnectionFailed(object sender, EventArgs e)
     {
         IsConnected = false;
 
-        ConnectionFailed?.Invoke(this, EventArgs.Empty);
-        Clear();
+        OnRaiseConnectionFailedEvent(EventArgs.Empty);
     }
 
-    private void TunnelConnection_ConnectionCut(object sender, EventArgs e)
+    private void OnRaiseConnectedEvent(EventArgs e)
     {
-        Clear();
+        EventHandler raiseEvent = RaiseConnectedEvent;
+
+        raiseEvent?.Invoke(this, e);
+    }
+
+    private void OnRaiseConnectionFailedEvent(EventArgs e)
+    {
+        EventHandler raiseEvent = RaiseConnectionFailedEvent;
+
+        raiseEvent?.Invoke(this, e);
+    }
+
+    private void RemoteHostConnection_ConnectionCut(object sender, EventArgs e)
+    {
+        Dispose();
     }
 }

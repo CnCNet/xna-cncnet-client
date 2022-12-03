@@ -6,9 +6,6 @@ using ClientCore.Extensions;
 using ClientGUI;
 using ClientUpdater;
 using DTAClient.Domain.Multiplayer;
-using DTAClient.DXGUI.Multiplayer;
-using DTAClient.DXGUI.Multiplayer.CnCNet;
-using DTAClient.DXGUI.Multiplayer.GameLobby;
 using DTAClient.Online;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Xna.Framework;
@@ -32,11 +29,7 @@ namespace DTAClient.DXGUI.Generic
         }
 
         private MapLoader mapLoader;
-
-        private PrivateMessagingPanel privateMessagingPanel;
-
         private bool visibleSpriteCursor;
-
         private Task updaterInitTask;
         private Task mapLoadTask;
         private readonly CnCNetManager cncnetManager;
@@ -56,9 +49,9 @@ namespace DTAClient.DXGUI.Generic
             bool initUpdater = !ClientConfiguration.Instance.ModMode;
 
             if (initUpdater)
-                updaterInitTask = Task.Run(InitUpdater).HandleTaskAsync();
+                updaterInitTask = Task.Run(InitUpdater).HandleTask();
 
-            mapLoadTask = mapLoader.LoadMapsAsync().HandleTaskAsync();
+            mapLoadTask = mapLoader.LoadMapsAsync().HandleTask();
 
             if (Cursor.Visible)
             {
