@@ -11,18 +11,18 @@ jobs:
     runs-on: windows-2022
 
     steps:
-    - uses: actions/checkout@v3.0.2
+    - uses: actions/checkout@v3.1.0
 
     - name: Setup .NET Core SDK
-      uses: actions/setup-dotnet@v2.1.0
+      uses: actions/setup-dotnet@v3.0.3
       with:
-        dotnet-version: '6.x.x'
+        dotnet-version: '7.x.x'
 
     - name: Build All
       run: ./BuildScripts/Build-All.ps1
       shell: pwsh
 
-    - uses: actions/upload-artifact@v3.1.0
+    - uses: actions/upload-artifact@v3.1.1
       name: Upload Artifacts
       with:
         name: artifacts

@@ -14,9 +14,7 @@ using Localization;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
-#if !NETFRAMEWORK
 using System.Runtime.Versioning;
-#endif
 
 namespace DTAClient
 {
@@ -60,12 +58,12 @@ namespace DTAClient
 
             Environment.CurrentDirectory = gameDirectory.FullName;
 
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                CheckPermissions();
-
             DirectoryInfo clientUserFilesDirectory = SafePath.GetDirectory(ProgramConstants.ClientUserFilesPath);
             FileInfo clientLogFile = SafePath.GetFile(clientUserFilesDirectory.FullName, "client.log");
             ProgramConstants.LogFileName = clientLogFile.FullName;
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                CheckPermissions();
 
             Logger.Initialize(clientUserFilesDirectory.FullName, clientLogFile.Name);
             Logger.WriteLogFile = true;
@@ -128,7 +126,7 @@ namespace DTAClient
             {
                 if (ClientConfiguration.Instance.GenerateTranslationStub)
                 {
-                    string stubPath = SafePath.CombineFilePath(ProgramConstants.GamePath, "Client", "Translation.stub.ini");
+                    string stubPath = SafePath.CombineFilePath(ProgramConstants.ClientUserFilesPath, "Translation.stub.ini");
                     var stubTable = TranslationTable.Instance.Clone();
                     TranslationTable.Instance.MissingTranslationEvent += (sender, e) =>
                     {
@@ -168,16 +166,11 @@ namespace DTAClient
                     + Environment.NewLine + Environment.NewLine +
                     "Message: " + ex.Message;
 
-                ProgramConstants.DisplayErrorAction(null, error);
-                Environment.Exit(1);
+                ProgramConstants.DisplayErrorAction(null, error, true);
             }
 
 #if WINFORMS
-#if NETFRAMEWORK
-            Application.EnableVisualStyles();
-#else
             ApplicationConfiguration.Initialize();
-#endif
 #endif
 
             new Startup().Execute();
@@ -204,17 +197,17 @@ namespace DTAClient
         {
             LogException(ex);
 
-            string errorLogPath = SafePath.CombineFilePath(Environment.CurrentDirectory, "Client", "ClientCrashLogs", FormattableString.Invariant($"ClientCrashLog{DateTime.Now.ToString("_yyyy_MM_dd_HH_mm")}.txt"));
+            string errorLogPath = SafePath.CombineFilePath(ProgramConstants.ClientUserFilesPath, "ClientCrashLogs", FormattableString.Invariant($"ClientCrashLog{DateTime.Now.ToString("_yyyy_MM_dd_HH_mm")}.txt"));
             bool crashLogCopied = false;
 
             try
             {
-                DirectoryInfo crashLogsDirectoryInfo = SafePath.GetDirectory(Environment.CurrentDirectory, "Client", "ClientCrashLogs");
+                DirectoryInfo crashLogsDirectoryInfo = SafePath.GetDirectory(ProgramConstants.ClientUserFilesPath, "ClientCrashLogs");
 
                 if (!crashLogsDirectoryInfo.Exists)
                     crashLogsDirectoryInfo.Create();
 
-                File.Copy(SafePath.CombineFilePath(Environment.CurrentDirectory, "Client", "client.log"), errorLogPath, true);
+                File.Copy(SafePath.CombineFilePath(ProgramConstants.ClientUserFilesPath, "client.log"), errorLogPath, true);
                 crashLogCopied = true;
             }
             catch { }
@@ -229,15 +222,13 @@ namespace DTAClient
                 MainClientConstants.GAME_NAME_SHORT,
                 MainClientConstants.SUPPORT_URL_SHORT);
 
-            ProgramConstants.DisplayErrorAction("KABOOOOOOOM".L10N("UI:Main:FatalErrorTitle"), error);
+            ProgramConstants.DisplayErrorAction("KABOOOOOOOM".L10N("UI:Main:FatalErrorTitle"), error, true);
         }
 
-#if !NETFRAMEWORK
         [SupportedOSPlatform("windows")]
-#endif
         private static void CheckPermissions()
         {
-            if (UserHasDirectoryAccessRights(Environment.CurrentDirectory, FileSystemRights.Modify))
+            if (UserHasDirectoryAccessRights(ProgramConstants.GamePath, FileSystemRights.Modify))
                 return;
 
             string error = string.Format(("You seem to be running {0} from a write-protected directory." + Environment.NewLine + Environment.NewLine +
@@ -245,12 +236,15 @@ namespace DTAClient
                 "Would you like to restart the client with administrative rights?" + Environment.NewLine + Environment.NewLine +
                 "Please also make sure that your security software isn't blocking {1}.").L10N("UI:Main:AdminRequiredText"), MainClientConstants.GAME_NAME_LONG, MainClientConstants.GAME_NAME_SHORT);
 
-            ProgramConstants.DisplayErrorAction("Administrative priveleges required".L10N("UI:Main:AdminRequiredTitle"), error);
+            ProgramConstants.DisplayErrorAction("Administrative privileges required".L10N("UI:Main:AdminRequiredTitle"), error, false);
 
-            ProcessStartInfo psInfo = new ProcessStartInfo();
-            psInfo.FileName = SafePath.CombineDirectoryPath(ProgramConstants.StartupExecutable);
-            psInfo.Verb = "runas";
-            Process.Start(psInfo);
+            using var _ = Process.Start(new ProcessStartInfo
+            {
+                FileName = "dotnet",
+                Arguments = SafePath.CombineFilePath(ProgramConstants.StartupExecutable),
+                Verb = "runas",
+                CreateNoWindow = true
+            });
             Environment.Exit(1);
         }
 
@@ -260,16 +254,9 @@ namespace DTAClient
         /// </summary>
         /// <param name="path">The path to the directory.</param>
         /// <param name="accessRights">The file system rights.</param>
-#if !NETFRAMEWORK
         [SupportedOSPlatform("windows")]
-#endif
         private static bool UserHasDirectoryAccessRights(string path, FileSystemRights accessRights)
         {
-            // Mono doesn't implement everything necessary for the below to work,
-            // so we'll just return to make the client able to run
-            if (ProgramConstants.ISMONO)
-                return true;
-
             var currentUser = WindowsIdentity.GetCurrent();
             var principal = new WindowsPrincipal(currentUser);
 
@@ -278,7 +265,7 @@ namespace DTAClient
             {
                 string progfiles = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
                 string progfilesx86 = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86);
-                if (Environment.CurrentDirectory.Contains(progfiles) || Environment.CurrentDirectory.Contains(progfilesx86))
+                if (ProgramConstants.GamePath.Contains(progfiles) || ProgramConstants.GamePath.Contains(progfilesx86))
                     return false;
             }
 

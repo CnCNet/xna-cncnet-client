@@ -2,11 +2,10 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
-using System.Threading;
 using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
 using ClientCore;
-using Newtonsoft.Json;
 using Rampastring.Tools;
 
 namespace DTAClient.Domain.Multiplayer
@@ -20,6 +19,7 @@ namespace DTAClient.Domain.Multiplayer
         private const string GameModesSection = "GameModes";
         private const string GameModeAliasesSection = "GameModeAliases";
         private const int CurrentCustomMapCacheVersion = 1;
+        private readonly JsonSerializerOptions jsonSerializerOptions = new JsonSerializerOptions { IncludeFields = true };
 
         /// <summary>
         /// List of game modes.
@@ -204,7 +204,7 @@ namespace DTAClient.Domain.Multiplayer
                 Maps = customMaps,
                 Version = CurrentCustomMapCacheVersion
             };
-            var jsonData = JsonConvert.SerializeObject(customMapCache);
+            var jsonData = JsonSerializer.Serialize(customMapCache, jsonSerializerOptions);
 
             File.WriteAllText(CUSTOM_MAPS_CACHE, jsonData);
         }
@@ -219,7 +219,7 @@ namespace DTAClient.Domain.Multiplayer
             {
                 var jsonData = File.ReadAllText(CUSTOM_MAPS_CACHE);
 
-                var customMapCache = JsonConvert.DeserializeObject<CustomMapCache>(jsonData);
+                var customMapCache = JsonSerializer.Deserialize<CustomMapCache>(jsonData, jsonSerializerOptions);
 
                 var customMaps = customMapCache?.Version == CurrentCustomMapCacheVersion && customMapCache.Maps != null
                     ? customMapCache.Maps : new ConcurrentDictionary<string, Map>();

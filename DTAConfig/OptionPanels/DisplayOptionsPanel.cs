@@ -8,10 +8,6 @@ using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
 using System;
 using System.Collections.Generic;
-using System.Runtime.InteropServices;
-#if !NETFRAMEWORK
-using System.Runtime.Versioning;
-#endif
 #if WINFORMS
 using System.Windows.Forms;
 #endif
@@ -19,6 +15,8 @@ using System.Windows.Forms;
 using Microsoft.Win32;
 using System.Diagnostics;
 using System.IO;
+using System.Runtime.InteropServices;
+using System.Runtime.Versioning;
 #endif
 
 namespace DTAConfig.OptionPanels
@@ -137,14 +135,6 @@ namespace DTAConfig.OptionPanels
                     });
                 }
             }
-
-            //ddRenderer.AddItem("Default");
-            //ddRenderer.AddItem("IE-DDRAW");
-            //ddRenderer.AddItem("TS-DDRAW");
-            //ddRenderer.AddItem("DDWrapper");
-            //ddRenderer.AddItem("DxWnd");
-            //if (ClientConfiguration.Instance.GetOperatingSystemVersion() == OSVersion.WINXP)
-            //    ddRenderer.AddItem("Software");
 
             chkWindowedMode = new XNAClientCheckBox(WindowManager);
             chkWindowedMode.Name = "chkWindowedMode";
@@ -409,9 +399,7 @@ namespace DTAConfig.OptionPanels
             }
         }
 
-#if !NETFRAMEWORK
         [SupportedOSPlatform("windows")]
-#endif
         private void MessageBox_NoClicked(XNAMessageBox messageBox)
         {
             // Set compatibility fix declined flag in registry
@@ -433,17 +421,13 @@ namespace DTAConfig.OptionPanels
             catch { }
         }
 
-#if !NETFRAMEWORK
         [SupportedOSPlatform("windows")]
-#endif
         private void MessageBox_YesClicked(XNAMessageBox messageBox)
         {
             BtnGameCompatibilityFix_LeftClick(messageBox, EventArgs.Empty);
         }
 
-#if !NETFRAMEWORK
         [SupportedOSPlatform("windows")]
-#endif
         private void BtnGameCompatibilityFix_LeftClick(object sender, EventArgs e)
         {
             if (GameCompatFixInstalled)
@@ -502,9 +486,7 @@ namespace DTAConfig.OptionPanels
             }
         }
 
-#if !NETFRAMEWORK
         [SupportedOSPlatform("windows")]
-#endif
         private void BtnMapEditorCompatibilityFix_LeftClick(object sender, EventArgs e)
         {
             if (FinalSunCompatFixInstalled)

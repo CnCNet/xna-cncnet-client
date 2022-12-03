@@ -1046,9 +1046,6 @@ namespace DTAClient.DXGUI.Generic
         /// <returns>True if media player is available, false otherwise.</returns>
         private bool IsMediaPlayerAvailable()
         {
-            if (MainClientConstants.OSId == OSVersion.WINVISTA)
-                return false;
-
             try
             {
                 MediaState state = MediaPlayer.State;
@@ -1064,17 +1061,12 @@ namespace DTAClient.DXGUI.Generic
         private void LaunchMapEditor()
         {
             OSVersion osVersion = ClientConfiguration.Instance.GetOperatingSystemVersion();
-            Process mapEditorProcess = new Process();
+            using var mapEditorProcess = new Process();
 
             if (osVersion != OSVersion.UNIX)
-            {
                 mapEditorProcess.StartInfo.FileName = SafePath.CombineFilePath(ProgramConstants.GamePath, ClientConfiguration.Instance.MapEditorExePath);
-            }
             else
-            {
                 mapEditorProcess.StartInfo.FileName = SafePath.CombineFilePath(ProgramConstants.GamePath, ClientConfiguration.Instance.UnixMapEditorExePath);
-                mapEditorProcess.StartInfo.UseShellExecute = false;
-            }
 
             mapEditorProcess.Start();
         }

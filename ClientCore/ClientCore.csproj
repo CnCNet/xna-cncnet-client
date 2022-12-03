@@ -42,11 +42,9 @@
     <EmbeddedResource Include="Resources\yricon.png" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Rampastring.XNAUI.$(Engine)" Version="2.2.4" Condition="'!$(Configuration.Contains(Debug))'" />
-    <PackageReference Include="Rampastring.XNAUI.$(Engine).Debug" Version="2.2.4" Condition="'$(Configuration.Contains(Debug))'" />
-  </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="System.Text.Encoding.CodePages" Version="6.0.0" Condition="'$(TargetFrameworkIdentifier)' != '.NETFramework'" />
+    <PackageReference Include="Rampastring.XNAUI.$(Engine)" Version="2.2.9" Condition="'!$(Configuration.Contains(Debug))'" />
+    <PackageReference Include="Rampastring.XNAUI.$(Engine).Debug" Version="2.2.9" Condition="'$(Configuration.Contains(Debug))'" />
+    <PackageReference Include="System.Text.Encoding.CodePages" Version="7.0.0" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Localization\Localization.csproj" />

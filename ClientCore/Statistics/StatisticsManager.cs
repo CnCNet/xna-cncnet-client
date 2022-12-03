@@ -51,7 +51,7 @@ namespace ClientCore.Statistics
             {
                 if (oldScoreFileInfo.Exists)
                 {
-                    File.Copy(oldScoreFileInfo.FullName, SafePath.CombineFilePath(gamePath, "Client", "dscore_old.dat"));
+                    File.Copy(oldScoreFileInfo.FullName, SafePath.CombineFilePath(ProgramConstants.ClientUserFilesPath, "dscore_old.dat"));
                     SafePath.DeleteFileIfExists(oldScoreFileInfo.FullName);
                 }
 

@@ -5,7 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Newtonsoft.Json;
+using System.Text.Json;
 
 namespace DTAClient.Online
 {
@@ -74,7 +74,7 @@ namespace DTAClient.Online
                 FileInfo listFile = SafePath.GetFile(ProgramConstants.GamePath, path);
 
                 if (listFile.Exists)
-                    return JsonConvert.DeserializeObject<List<T>>(File.ReadAllText(listFile.FullName)) ?? new List<T>();
+                    return JsonSerializer.Deserialize<List<T>>(File.ReadAllText(listFile.FullName)) ?? new List<T>();
 
                 Logger.Log($"Loading {path} failed! File does not exist.");
                 return new();
@@ -112,7 +112,7 @@ namespace DTAClient.Online
                 FileInfo listFileInfo = SafePath.GetFile(ProgramConstants.GamePath, path);
 
                 listFileInfo.Delete();
-                File.WriteAllText(listFileInfo.FullName, JsonConvert.SerializeObject(jsonList));
+                File.WriteAllText(listFileInfo.FullName, JsonSerializer.Serialize(jsonList));
             }
             catch (Exception ex)
             {
