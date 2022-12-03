@@ -329,18 +329,16 @@ namespace DTAClient
                     ManagementObjectSearcher mbs = new ManagementObjectSearcher("Select * From Win32_processor");
                     mbsList = mbs.Get();
                     string cpuid = "";
+
                     foreach (ManagementObject mo in mbsList)
-                    {
                         cpuid = mo["ProcessorID"].ToString();
-                    }
 
                     ManagementObjectSearcher mos = new ManagementObjectSearcher("SELECT * FROM Win32_BaseBoard");
                     var moc = mos.Get();
                     string mbid = "";
+
                     foreach (ManagementObject mo in moc)
-                    {
                         mbid = (string)mo["SerialNumber"];
-                    }
 
                     string sid = new SecurityIdentifier((byte[])new DirectoryEntry(string.Format("WinNT://{0},Computer", Environment.MachineName)).Children.Cast<DirectoryEntry>().First().InvokeGet("objectSID"), 0).AccountDomainSid.Value;
 
@@ -359,9 +357,7 @@ namespace DTAClient
                     {
                         Object o = key.GetValue("Ident");
                         if (o == null)
-                        {
                             key.SetValue("Ident", str);
-                        }
                         else
                             str = o.ToString();
                     }

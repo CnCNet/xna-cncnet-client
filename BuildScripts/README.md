@@ -60,7 +60,7 @@ You can select the desired configuration directly from the solution configuratio
 
 ![Screenshot 2022-09-09 235432](https://user-images.githubusercontent.com/25006126/189451063-28418a7b-47f4-47b3-9d8b-512c598284ac.png)
 
-Note that the XNA configurations can only be build/debugged with `x86`.
+Note that the XNA configurations can only be built/debugged with `x86`.
 
 ![Screenshot 2022-09-09 235556](https://user-images.githubusercontent.com/25006126/189451170-d90f665e-19d1-4e6b-a9df-a4994eb143a9.png)
 
