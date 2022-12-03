@@ -15,19 +15,17 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-namespace ClientUpdater
-{
-    /// <summary>
-    /// Updater version state.
-    /// </summary>
-    public enum VersionState
-    {
-        UPTODATE,
-        MISMATCHED,
-        UNKNOWN,
-        UPDATEINPROGRESS,
-        UPDATECHECKINPROGRESS,
-        OUTDATED
-    }
-}
+namespace ClientUpdater;
 
+/// <summary>
+/// Updater version state.
+/// </summary>
+public enum VersionState
+{
+    UPTODATE,
+    MISMATCHED,
+    UNKNOWN,
+    UPDATEINPROGRESS,
+    UPDATECHECKINPROGRESS,
+    OUTDATED
+}

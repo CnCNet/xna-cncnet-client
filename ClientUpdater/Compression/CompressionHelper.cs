@@ -15,67 +15,61 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+namespace ClientUpdater.Compression;
+
 using System;
 using System.IO;
 using System.Threading;
+using System.Threading.Tasks;
 using SevenZip.Compression.LZMA;
 
-namespace ClientUpdater.Compression
+/// <summary>
+/// LZMA compression helper.
+/// </summary>
+public static class CompressionHelper
 {
     /// <summary>
-    /// LZMA compression helper.
+    /// Compress file using LZMA.
     /// </summary>
-    public static class CompressionHelper
+    /// <param name="inputFilename">Input file path.</param>
+    /// <param name="outputFilename">Output file path.</param>
+    public static async Task CompressFileAsync(string inputFilename, string outputFilename, CancellationToken cancellationToken = default)
     {
-        /// <summary>
-        /// Compress file using LZMA.
-        /// </summary>
-        /// <param name="inputFilename">Input file path.</param>
-        /// <param name="outputFilename">Output file path.</param>
-        public static void CompressFile(string inputFilename, string outputFilename, CancellationToken cancellationToken = default(CancellationToken))
+        var encoder = new Encoder(cancellationToken);
+
+        await using (var inputStream = new FileStream(inputFilename, new FileStreamOptions { Access = FileAccess.Read, BufferSize = 0, Mode = FileMode.Open, Options = FileOptions.Asynchronous | FileOptions.SequentialScan | FileOptions.WriteThrough, Share = FileShare.None }))
         {
-            var encoder = new Encoder(cancellationToken);
-
-            using (FileStream inputStream = File.OpenRead(inputFilename))
+            await using (var outputStream = new FileStream(outputFilename, new FileStreamOptions { Access = FileAccess.Write, BufferSize = 0, Mode = FileMode.Create, Options = FileOptions.Asynchronous | FileOptions.SequentialScan | FileOptions.WriteThrough, Share = FileShare.None }))
             {
-                using (FileStream outputStream = File.Create(outputFilename))
-                {
-                    encoder.WriteCoderProperties(outputStream);
-                    outputStream.Write(BitConverter.GetBytes(inputStream.Length), 0, 8);
-
-                    encoder.Code(inputStream, outputStream,
-                        inputStream.Length, outputStream.Length, null);
-                }
+                encoder.WriteCoderProperties(outputStream);
+                await outputStream.WriteAsync(BitConverter.GetBytes(inputStream.Length).AsMemory(0, 8), cancellationToken);
+                encoder.Code(inputStream, outputStream, inputStream.Length, outputStream.Length, null);
             }
         }
+    }
 
-        /// <summary>
-        /// Decompress file using LZMA.
-        /// </summary>
-        /// <param name="inputFilename">Input file path.</param>
-        /// <param name="outputFilename">Output file path.</param>
-        public static void DecompressFile(string inputFilename, string outputFilename, CancellationToken cancellationToken = default(CancellationToken))
+    /// <summary>
+    /// Decompress file using LZMA.
+    /// </summary>
+    /// <param name="inputFilename">Input file path.</param>
+    /// <param name="outputFilename">Output file path.</param>
+    public static async Task DecompressFileAsync(string inputFilename, string outputFilename, CancellationToken cancellationToken = default)
+    {
+        var decoder = new Decoder(cancellationToken);
+
+        await using (var inputStream = new FileStream(inputFilename, new FileStreamOptions { Access = FileAccess.Read, BufferSize = 0, Mode = FileMode.Open, Options = FileOptions.Asynchronous | FileOptions.SequentialScan | FileOptions.WriteThrough, Share = FileShare.None }))
         {
-            var decoder = new Decoder(cancellationToken);
-
-            using (FileStream inputStream = File.OpenRead(inputFilename))
+            await using (var outputStream = new FileStream(outputFilename, new FileStreamOptions { Access = FileAccess.Write, BufferSize = 0, Mode = FileMode.Create, Options = FileOptions.Asynchronous | FileOptions.SequentialScan | FileOptions.WriteThrough, Share = FileShare.None }))
             {
-                using (FileStream outputStream = File.Create(outputFilename))
-                {
-                    byte[] properties = new byte[5];
-                    inputStream.Read(properties, 0, properties.Length);
+                byte[] properties = new byte[5];
+                byte[] fileLengthArray = new byte[sizeof(long)];
+                long fileLength = BitConverter.ToInt64(fileLengthArray, 0);
 
-                    byte[] fileLengthArray = new byte[sizeof(long)];
-                    inputStream.Read(fileLengthArray, 0, fileLengthArray.Length);
-                    long fileLength = BitConverter.ToInt64(fileLengthArray, 0);
-
-                    decoder.SetDecoderProperties(properties);
-
-                    decoder.Code(inputStream, outputStream,
-                        inputStream.Length, fileLength, null);
-                }
+                await inputStream.ReadAsync(properties, cancellationToken);
+                await inputStream.ReadAsync(fileLengthArray, cancellationToken);
+                decoder.SetDecoderProperties(properties);
+                decoder.Code(inputStream, outputStream, inputStream.Length, fileLength, null);
             }
         }
-
     }
 }
