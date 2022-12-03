@@ -30,7 +30,7 @@ internal static class UPnPHandler
         [AddressType.IpV6SiteLocal] = IPAddress.Parse("[FF05::C]")
     }.AsReadOnly();
 
-    public static async ValueTask<(InternetGatewayDevice InternetGatewayDevice, List<ushort> P2pPorts, List<ushort> P2pIpV6PortIds, IPAddress ipV6Address, IPAddress ipV4Address)> SetupPortsAsync(InternetGatewayDevice internetGatewayDevice)
+    public static async ValueTask<(InternetGatewayDevice InternetGatewayDevice, List<ushort> P2pPorts, List<ushort> P2pIpV6PortIds, IPAddress ipV6Address, IPAddress ipV4Address)> SetupPortsAsync(InternetGatewayDevice internetGatewayDevice, IEnumerable<ushort> p2pReservedPorts)
     {
         var p2pPorts = new List<ushort>();
         var p2pIpV6PortIds = new List<ushort>();
@@ -59,13 +59,6 @@ internal static class UPnPHandler
             natDetected = true;
 
         publicIpV4Address ??= routerPublicIpV4Address;
-
-        List<ushort> p2pReservedPorts = new();
-
-        for (int i = 0; i < 7; i++)
-        {
-            p2pReservedPorts.Add(NetworkHelper.GetFreeUdpPort(Array.Empty<ushort>()));
-        }
 
         var privateIpV4Addresses = NetworkHelper.GetPrivateIpAddresses().Where(q => q.AddressFamily is AddressFamily.InterNetwork).ToList();
         IPAddress privateIpV4Address = null;

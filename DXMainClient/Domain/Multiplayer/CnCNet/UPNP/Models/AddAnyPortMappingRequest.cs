@@ -11,4 +11,4 @@ internal readonly record struct AddAnyPortMappingRequest(
     [property: MessageBodyMember(Name = "NewInternalClient")] string InternalClient, // “x.x.x.x” or empty string
     [property: MessageBodyMember(Name = "NewEnabled")] byte Enabled, // bool
     [property: MessageBodyMember(Name = "NewPortMappingDescription")] string PortMappingDescription,
-    [property: MessageBodyMember(Name = "NewLeaseDuration")] uint LeaseDuration); // seconds
+    [property: MessageBodyMember(Name = "NewLeaseDuration")] uint LeaseDuration); // in seconds, 1-604800
