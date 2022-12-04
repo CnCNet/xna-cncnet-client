@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Diagnostics;
 using System.Linq;
-using System.Windows.Forms;
 using ClientCore;
 using ClientCore.Extensions;
 using ClientGUI;
@@ -11,6 +9,7 @@ using Localization;
 using Microsoft.Xna.Framework;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
+using TextCopy;
 
 namespace DTAClient.DXGUI.Multiplayer.CnCNet
 {
@@ -169,7 +168,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             {
                 if (link == null)
                     return;
-                Process.Start(link);
+
+                ProcessLauncher.StartShellProcess(link);
             };
         }
 
@@ -177,7 +177,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         {
             try
             {
-                Clipboard.SetText(link);
+                ClipboardService.SetText(link);
             }
             catch (Exception)
             {

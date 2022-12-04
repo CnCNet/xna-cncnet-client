@@ -1,0 +1,36 @@
+<Project>
+  <PropertyGroup>
+    <ComVisible>false</ComVisible>
+    <CLSCompliant>false</CLSCompliant>
+    <Platforms>AnyCPU;x64;ARM64;x86</Platforms>
+    <AnalysisMode Condition="$(Configuration.Contains(Debug))">All</AnalysisMode>
+    <EnforceCodeStyleInBuild Condition="$(Configuration.Contains(Debug))">true</EnforceCodeStyleInBuild>
+    <AnalysisMode Condition="!$(Configuration.Contains(Debug))">Recommended</AnalysisMode>
+    <AnalysisModeDocumentation Condition="!$(Configuration.Contains(Debug))">None</AnalysisModeDocumentation>
+    <AnalysisModeNaming Condition="!$(Configuration.Contains(Debug))">None</AnalysisModeNaming>
+    <AnalysisModeStyle Condition="!$(Configuration.Contains(Debug))">None</AnalysisModeStyle>
+  </PropertyGroup>
+
+  <Import Project="$(MSBuildThisFileDirectory)build\VSCompatibleLayer.props" Condition="'$(BuildingInsideVisualStudio)' == 'True'" />
+  <Import Project="$(MSBuildThisFileDirectory)build\Framework.props" />
+
+  <!-- Allow a game specific build prop file to be imported, if available -->
+  <Import Project="$(MSBuildThisFileDirectory)Directory.Build.Game.$(Game).props" Condition="Exists('$(MSBuildThisFileDirectory)Directory.Build.Game.$(Game).props')"/>
+
+  <!-- Visual Studio -->
+  <PropertyGroup Condition="'$(BuildingInsideVisualStudio)' == 'True'">
+    <OutputPath Condition="'$(_OutputConfiguration)' != ''">$(BaseOutputPath)bin\$(_OutputConfiguration)\$(Game)\$(Engine)\</OutputPath>
+    <IntermediateOutputPath Condition="'$(_OutputConfiguration)' != ''">$(BaseIntermediateOutputPath)obj\$(_OutputConfiguration)\$(Game)\$(Engine)\</IntermediateOutputPath>
+  </PropertyGroup>
+
+  <Target Name="ShowBuildInfo" BeforeTargets="CoreCompile">
+    <Message Importance="high" Text="Engine: $(Engine); Game: $(Game); Platform: $(Platform); TargetFramework: $(TargetFramework); Configuration: $(Configuration)" />
+  </Target>
+
+  <ItemGroup>
+    <PackageReference Condition="$(Configuration.Contains(Debug))" Include="StyleCop.Analyzers" Version="1.2.0-beta.435">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+</Project>

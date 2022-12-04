@@ -4,7 +4,6 @@ using System.Linq;
 using ClientCore;
 using ClientCore.Enums;
 using DTAClient.Domain.Multiplayer;
-using DTAClient.Domain.Multiplayer.CnCNet;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Rampastring.XNAUI;

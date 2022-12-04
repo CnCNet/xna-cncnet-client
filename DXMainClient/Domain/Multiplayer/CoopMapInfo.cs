@@ -1,19 +1,22 @@
 ﻿using Rampastring.Tools;
 using System;
 using System.Collections.Generic;
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
 namespace DTAClient.Domain.Multiplayer
 {
     public class CoopMapInfo
     {
-        [JsonProperty]
+        [JsonInclude]
         public List<CoopHouseInfo> EnemyHouses = new List<CoopHouseInfo>();
-        [JsonProperty]
+
+        [JsonInclude]
         public List<CoopHouseInfo> AllyHouses = new List<CoopHouseInfo>();
-        [JsonProperty]
+
+        [JsonInclude]
         public List<int> DisallowedPlayerSides = new List<int>();
-        [JsonProperty]
+
+        [JsonInclude]
         public List<int> DisallowedPlayerColors = new List<int>();
 
         public void SetHouseInfos(IniSection iniSection)

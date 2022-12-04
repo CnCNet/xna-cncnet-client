@@ -1,23 +1,22 @@
-﻿using ClientCore;
+﻿using Localization;
+using ClientCore;
 using ClientCore.CnCNet5;
 using ClientGUI;
 using DTAConfig.OptionPanels;
-using Localization;
 using Microsoft.Xna.Framework;
 using Rampastring.Tools;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
 using System;
-using Updater;
+using ClientUpdater;
 
 namespace DTAConfig
 {
     public class OptionsWindow : XNAWindow
     {
-        public OptionsWindow(WindowManager windowManager, GameCollection gameCollection, XNAControl topBar) : base(windowManager)
+        public OptionsWindow(WindowManager windowManager, GameCollection gameCollection) : base(windowManager)
         {
             this.gameCollection = gameCollection;
-            this.topBar = topBar;
         }
 
         public event EventHandler OnForceUpdate;
@@ -79,12 +78,12 @@ namespace DTAConfig
                 componentsPanel
             };
 
-            if (ClientConfiguration.Instance.ModMode || CUpdater.UPDATEMIRRORS == null || CUpdater.UPDATEMIRRORS.Count < 1)
+            if (ClientConfiguration.Instance.ModMode || Updater.UpdateMirrors == null || Updater.UpdateMirrors.Count < 1)
             {
                 tabControl.MakeUnselectable(4);
                 tabControl.MakeUnselectable(5);
             }
-            else if (CUpdater.CustomComponents == null || CUpdater.CustomComponents.Length < 1)
+            else if (Updater.CustomComponents == null || Updater.CustomComponents.Count < 1)
                 tabControl.MakeUnselectable(5);
 
             foreach (var panel in optionsPanels)
@@ -104,6 +103,8 @@ namespace DTAConfig
 
             CenterOnParent();
         }
+
+        public void SetTopBar(XNAControl topBar) => this.topBar = topBar;
 
         /// <summary>
         /// Parses extra options defined by the modder
@@ -129,7 +130,7 @@ namespace DTAConfig
 
         private void BtnBack_LeftClick(object sender, EventArgs e)
         {
-            if (CustomComponent.IsDownloadInProgress())
+            if (Updater.IsComponentDownloadInProgress())
             {
                 var msgBox = new XNAMessageBox(WindowManager, "Downloads in progress".L10N("UI:DTAConfig:DownloadingTitle"),
                     ("Optional component downloads are in progress. The downloads will be cancelled if you exit the Options menu." +
@@ -154,9 +155,9 @@ namespace DTAConfig
 
         private void BtnSave_LeftClick(object sender, EventArgs e)
         {
-            if (CustomComponent.IsDownloadInProgress())
+            if (Updater.IsComponentDownloadInProgress())
             {
-                var msgBox = new XNAMessageBox(WindowManager, "Downloads in progress".L10N("UI:DTAConfig:DownloadingTitle"),
+                XNAMessageBox msgBox = new XNAMessageBox(WindowManager, "Downloads in progress".L10N("UI:DTAConfig:DownloadingTitle"),
                       ("Optional component downloads are in progress. The downloads will be cancelled if you exit the Options menu." +
                       Environment.NewLine + Environment.NewLine +
                       "Are you sure you want to continue?").L10N("UI:DTAConfig:DownloadingText"), XNAMessageBoxButtons.YesNo);

@@ -4,10 +4,6 @@ using Localization;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace DTAClient.DXGUI.Multiplayer.CnCNet
 {

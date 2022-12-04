@@ -1,6 +1,5 @@
 ﻿using ClientCore;
 using ClientCore.CnCNet5;
-using DTAClient.Domain.Multiplayer.CnCNet;
 using DTAClient.Online.EventArguments;
 using Localization;
 using Microsoft.Xna.Framework;
@@ -934,6 +933,19 @@ namespace DTAClient.Online
             user.Name = newNickname;
 
             channels.ForEach(ch => ch.OnUserNameChanged(realOldNickname, newNickname));
+        }
+
+        public void OnServerLatencyTested(int candidateCount, int closerCount)
+        {
+            wm.AddCallback(new Action<int, int>(DoServerLatencyTested), candidateCount, closerCount);
+        }
+
+        private void DoServerLatencyTested(int candidateCount, int closerCount)
+        {
+            MainChannel.AddMessage(new ChatMessage(
+                string.Format(
+                    "Lobby servers: {0} available, {1} fast.".L10N("UI:Main:LobbyServerLatencyTestResult"),
+                    candidateCount, closerCount)));
         }
     }
 

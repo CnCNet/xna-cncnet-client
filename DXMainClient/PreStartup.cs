@@ -1,5 +1,7 @@
 ﻿using System;
+#if WINFORMS
 using System.Windows.Forms;
+#endif
 using System.Diagnostics;
 using System.IO;
 using DTAClient.Domain;
@@ -9,6 +11,10 @@ using System.Security.AccessControl;
 using System.Security.Principal;
 using System.Collections.Generic;
 using Localization;
+using System.Linq;
+using System.Reflection;
+using System.Runtime.InteropServices;
+using System.Runtime.Versioning;
 
 namespace DTAClient
 {
@@ -42,28 +48,44 @@ namespace DTAClient
         /// <param name="parameters">The client's startup parameters.</param>
         public static void Initialize(StartupParams parameters)
         {
-            AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(HandleExcept);
+#if WINFORMS
+            Application.SetUnhandledExceptionMode(UnhandledExceptionMode.ThrowException);
+            Application.ThreadException += (sender, args) => HandleException(sender, args.Exception);
+#endif
+            AppDomain.CurrentDomain.UnhandledException += (sender, args) => HandleException(sender, (Exception)args.ExceptionObject);
 
-            Environment.CurrentDirectory = ProgramConstants.GamePath;
+            DirectoryInfo gameDirectory = SafePath.GetDirectory(ProgramConstants.GamePath);
 
-            CheckPermissions();
+            Environment.CurrentDirectory = gameDirectory.FullName;
 
-            Logger.Initialize(ProgramConstants.ClientUserFilesPath, "client.log");
+            DirectoryInfo clientUserFilesDirectory = SafePath.GetDirectory(ProgramConstants.ClientUserFilesPath);
+            FileInfo clientLogFile = SafePath.GetFile(clientUserFilesDirectory.FullName, "client.log");
+            ProgramConstants.LogFileName = clientLogFile.FullName;
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                CheckPermissions();
+
+            Logger.Initialize(clientUserFilesDirectory.FullName, clientLogFile.Name);
             Logger.WriteLogFile = true;
 
-            if (!Directory.Exists(ProgramConstants.ClientUserFilesPath))
-                Directory.CreateDirectory(ProgramConstants.ClientUserFilesPath);
+            if (!clientUserFilesDirectory.Exists)
+                clientUserFilesDirectory.Create();
 
-            File.Delete(ProgramConstants.ClientUserFilesPath + "client.log");
+            clientLogFile.Delete();
 
             MainClientConstants.Initialize();
 
             Logger.Log("***Logfile for " + MainClientConstants.GAME_NAME_LONG + " client***");
-            Logger.Log("Client version: " + Application.ProductVersion);
+            Logger.Log("Client version: " + Assembly.GetAssembly(typeof(PreStartup)).GetName().Version);
 
             // Log information about given startup params
             if (parameters.NoAudio)
+            {
                 Logger.Log("Startup parameter: No audio");
+
+                // TODO fix
+                throw new NotImplementedException("-NOAUDIO is currently not implemented, please run the client without it.".L10N("UI:Main:NoAudio"));
+            }
 
             if (parameters.MultipleInstanceMode)
                 Logger.Log("Startup parameter: Allow multiple client instances");
@@ -77,7 +99,20 @@ namespace DTAClient
             // Try to load translations
             try
             {
-                var translation = TranslationTable.LoadFromIniFile(ClientConfiguration.Instance.TranslationIniName);
+                TranslationTable translation;
+                var iniFileInfo = SafePath.GetFile(ProgramConstants.GamePath, ClientConfiguration.Instance.TranslationIniName);
+
+                if (iniFileInfo.Exists)
+                {
+                    translation = TranslationTable.LoadFromIniFile(iniFileInfo.FullName);
+                }
+                else
+                {
+                    Logger.Log("Failed to load the translation file. File does not exist.");
+
+                    translation = new TranslationTable();
+                }
+
                 TranslationTable.Instance = translation;
                 Logger.Log("Load translation: " + translation.LanguageName);
             }
@@ -91,7 +126,7 @@ namespace DTAClient
             {
                 if (ClientConfiguration.Instance.GenerateTranslationStub)
                 {
-                    string stubPath = "Client/Translation.stub.ini";
+                    string stubPath = SafePath.CombineFilePath(ProgramConstants.ClientUserFilesPath, "Translation.stub.ini");
                     var stubTable = TranslationTable.Instance.Clone();
                     TranslationTable.Instance.MissingTranslationEvent += (sender, e) =>
                     {
@@ -115,58 +150,69 @@ namespace DTAClient
 
             // Delete obsolete files from old target project versions
 
-            File.Delete(ProgramConstants.GamePath + "mainclient.log");
-            File.Delete(ProgramConstants.GamePath + "launchupdt.dat");
+            gameDirectory.EnumerateFiles("mainclient.log").SingleOrDefault()?.Delete();
+            gameDirectory.EnumerateFiles("aunchupdt.dat").SingleOrDefault()?.Delete();
+
             try
             {
-                File.Delete(ProgramConstants.GamePath + "wsock32.dll");
+                gameDirectory.EnumerateFiles("wsock32.dll").SingleOrDefault()?.Delete();
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Deleting wsock32.dll failed! Please close any " +
+                LogException(ex);
+
+                string error = "Deleting wsock32.dll failed! Please close any " +
                     "applications that could be using the file, and then start the client again."
                     + Environment.NewLine + Environment.NewLine +
-                    "Message: " + ex.Message,
-                    "CnCNet Client");
-                Environment.Exit(0);
+                    "Message: " + ex.Message;
+
+                ProgramConstants.DisplayErrorAction(null, error, true);
             }
 
-            Application.EnableVisualStyles();
+#if WINFORMS
+            ApplicationConfiguration.Initialize();
+#endif
 
             new Startup().Execute();
         }
 
-        static void HandleExcept(object sender, UnhandledExceptionEventArgs e)
+        public static void LogException(Exception ex, bool innerException = false)
         {
-            Exception ex = (Exception)e.ExceptionObject;
+            if (!innerException)
+                Logger.Log("KABOOOOOOM!!! Info:");
+            else
+                Logger.Log("InnerException info:");
 
-            Logger.Log("KABOOOOOOM!!! Info:");
+            Logger.Log("Type: " + ex.GetType());
             Logger.Log("Message: " + ex.Message);
             Logger.Log("Source: " + ex.Source);
             Logger.Log("TargetSite.Name: " + ex.TargetSite.Name);
             Logger.Log("Stacktrace: " + ex.StackTrace);
-            if (ex.InnerException != null)
-            {
-                Logger.Log("InnerException info:");
-                Logger.Log("Message: " + ex.InnerException.Message);
-                Logger.Log("Stacktrace: " + ex.InnerException.StackTrace);
-            }
 
-            string errorLogPath = Environment.CurrentDirectory.Replace("\\", "/") + "/Client/ClientCrashLogs/ClientCrashLog" +
-                DateTime.Now.ToString("_yyyy_MM_dd_HH_mm") + ".txt";
+            if (ex.InnerException is not null)
+                LogException(ex.InnerException, true);
+        }
+
+        static void HandleException(object sender, Exception ex)
+        {
+            LogException(ex);
+
+            string errorLogPath = SafePath.CombineFilePath(ProgramConstants.ClientUserFilesPath, "ClientCrashLogs", FormattableString.Invariant($"ClientCrashLog{DateTime.Now.ToString("_yyyy_MM_dd_HH_mm")}.txt"));
             bool crashLogCopied = false;
 
             try
             {
-                if (!Directory.Exists(Environment.CurrentDirectory + "/Client/ClientCrashLogs"))
-                    Directory.CreateDirectory(Environment.CurrentDirectory + "/Client/ClientCrashLogs");
+                DirectoryInfo crashLogsDirectoryInfo = SafePath.GetDirectory(ProgramConstants.ClientUserFilesPath, "ClientCrashLogs");
 
-                File.Copy(Environment.CurrentDirectory + "/Client/client.log", errorLogPath, true);
+                if (!crashLogsDirectoryInfo.Exists)
+                    crashLogsDirectoryInfo.Create();
+
+                File.Copy(SafePath.CombineFilePath(ProgramConstants.ClientUserFilesPath, "client.log"), errorLogPath, true);
                 crashLogCopied = true;
             }
             catch { }
 
-            MessageBox.Show(string.Format("{0} has crashed. Error message:".L10N("UI:Main:FatalErrorText1") + Environment.NewLine + Environment.NewLine +
+            string error = string.Format("{0} has crashed. Error message:".L10N("UI:Main:FatalErrorText1") + Environment.NewLine + Environment.NewLine +
                 ex.Message + Environment.NewLine + Environment.NewLine + (crashLogCopied ?
                 "A crash log has been saved to the following file:".L10N("UI:Main:FatalErrorText2") + " " + Environment.NewLine + Environment.NewLine +
                 errorLogPath + Environment.NewLine + Environment.NewLine : "") +
@@ -174,29 +220,32 @@ namespace DTAClient
                 "If the issue is repeatable, contact the {1} staff at {2}.".L10N("UI:Main:FatalErrorText4")),
                 MainClientConstants.GAME_NAME_LONG,
                 MainClientConstants.GAME_NAME_SHORT,
-                MainClientConstants.SUPPORT_URL_SHORT),
-                "KABOOOOOOOM".L10N("UI:Main:FatalErrorTitle"), MessageBoxButtons.OK);
+                MainClientConstants.SUPPORT_URL_SHORT);
+
+            ProgramConstants.DisplayErrorAction("KABOOOOOOOM".L10N("UI:Main:FatalErrorTitle"), error, true);
         }
 
+        [SupportedOSPlatform("windows")]
         private static void CheckPermissions()
         {
-            if (UserHasDirectoryAccessRights(Environment.CurrentDirectory, FileSystemRights.Modify))
+            if (UserHasDirectoryAccessRights(ProgramConstants.GamePath, FileSystemRights.Modify))
                 return;
 
-            DialogResult dr = MessageBox.Show(string.Format(("You seem to be running {0} from a write-protected directory." + Environment.NewLine + Environment.NewLine +
+            string error = string.Format(("You seem to be running {0} from a write-protected directory." + Environment.NewLine + Environment.NewLine +
                 "For {1} to function properly when run from a write-protected directory, it needs administrative priveleges." + Environment.NewLine + Environment.NewLine +
                 "Would you like to restart the client with administrative rights?" + Environment.NewLine + Environment.NewLine +
-                "Please also make sure that your security software isn't blocking {1}.").L10N("UI:Main:AdminRequiredText"), MainClientConstants.GAME_NAME_LONG, MainClientConstants.GAME_NAME_SHORT),
-                "Administrative priveleges required".L10N("UI:Main:AdminRequiredTitle"), MessageBoxButtons.YesNo);
+                "Please also make sure that your security software isn't blocking {1}.").L10N("UI:Main:AdminRequiredText"), MainClientConstants.GAME_NAME_LONG, MainClientConstants.GAME_NAME_SHORT);
 
-            if (dr == DialogResult.No)
-                Environment.Exit(0);
+            ProgramConstants.DisplayErrorAction("Administrative privileges required".L10N("UI:Main:AdminRequiredTitle"), error, false);
 
-            ProcessStartInfo psInfo = new ProcessStartInfo();
-            psInfo.FileName = Application.ExecutablePath.Replace('\\', '/');
-            psInfo.Verb = "runas";
-            Process.Start(psInfo);
-            Environment.Exit(0);
+            using var _ = Process.Start(new ProcessStartInfo
+            {
+                FileName = "dotnet",
+                Arguments = SafePath.CombineFilePath(ProgramConstants.StartupExecutable),
+                Verb = "runas",
+                CreateNoWindow = true
+            });
+            Environment.Exit(1);
         }
 
         /// <summary>
@@ -205,19 +254,10 @@ namespace DTAClient
         /// </summary>
         /// <param name="path">The path to the directory.</param>
         /// <param name="accessRights">The file system rights.</param>
+        [SupportedOSPlatform("windows")]
         private static bool UserHasDirectoryAccessRights(string path, FileSystemRights accessRights)
         {
-#if WINDOWSGL
-            // Mono doesn't implement everything necessary for the below to work,
-            // so we'll just return to make the client able to run on non-Windows
-            // platforms
-            // On Windows you rarely have a reason for using the OpenGL build anyway
-            return true;
-#endif
-
-#pragma warning disable 0162
             var currentUser = WindowsIdentity.GetCurrent();
-#pragma warning restore 0162
             var principal = new WindowsPrincipal(currentUser);
 
             // If the user is not running the client with administrator privileges in Program Files, they need to be prompted to do so.
@@ -225,7 +265,7 @@ namespace DTAClient
             {
                 string progfiles = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
                 string progfilesx86 = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86);
-                if (Environment.CurrentDirectory.Contains(progfiles) || Environment.CurrentDirectory.Contains(progfilesx86))
+                if (ProgramConstants.GamePath.Contains(progfiles) || ProgramConstants.GamePath.Contains(progfilesx86))
                     return false;
             }
 

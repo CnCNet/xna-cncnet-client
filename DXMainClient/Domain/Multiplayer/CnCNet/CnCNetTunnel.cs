@@ -65,7 +65,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                     return null;
                 }
 
-                throw ex;
+                throw;
             }
         }
 
