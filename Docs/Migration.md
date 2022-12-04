@@ -18,12 +18,24 @@ Migrating from older versions
 - The MonoGame MCGB editor will convert the MainMenuTheme to `MainMenuTheme.wma` when publishing for MonoGame WindowsDX. MonoGame DesktopGL only supports the `*.ogg` format. To ensure the MainMenuTheme is available on both the WindowsDX & DesktopGL client versions you need to manually convert and add the missing ogg format file to each theme. Each theme should then contain both `MainMenuTheme.wma` and `MainMenuTheme.ogg` files. The client will then switch out the correct MainMenuTheme format at runtime.
 
 - Updated XNAUI [fixes a bug](https://github.com/Rampastring/Rampastring.XNAUI/commit/6857704734241895f9cbb2c79fbd0286c350c313) that causes the border might not be drawn. However, your mod might depends on this bug and therefore the unwanted border appears in window after upgrading. In this case, please manually specify `DrawBorders=false` for your window. For example, add the following lines to `GenericWindow.ini` to turn off borders in *some* windows like the message box. But you still need to specify this property for more windows in the ini file depending on your need.
-  
+
   ```ini
   [GenericWindow]
   DrawBorders=false
   ```
 
 - The [Tiberian Sun Client v6 Changes](https://github.com/CnCNet/xna-cncnet-client/pull/275) breaks compatibility. You need to reimplement the ini files for `SkirmishLobby`, `LANLobby`, and `CnCNetLobby` with the new `INItializableWindow` format. Also, add the `[$ExtraControls]` section in `GenericWindow.ini` file if you rely on `[ExtraControls]`. Define constants in `[ParserConstants]` section in `DTACnCNetClient.ini` file, which might be used from the `INItializableWindow` configuration.
+
+- The new [player status indicators feature](https://github.com/CnCNet/xna-cncnet-client/pull/251) replaces the old "player is ready" indicators in game lobby. This requires:
+  - renaming `PlayerReadyBox*` tags into `PlayerStatusIndicator*` (which now have default values of `0` and `0` instead of `7` and `4` for `X` and `Y` respectively);
+  - providing the following new textures (in `Resources` folder and/or theme subfolders, like in [this example](https://github.com/CnCNet/cncnet-yr-client-package/pull/61)):
+    - `statusEmpty.png`;
+    - `statusUnavailable.png`;
+    - `statusAI.png`;
+    - `statusClear.png`;
+    - `statusOk.png`;
+    - `statusInProgress.png`;
+    - `statusWarning.png`;
+    - `statusError.png`;
 
 - The [Tiberian Sun Client v6 Changes](https://github.com/CnCNet/xna-cncnet-client/pull/275) changes the license to GPLv3. This means that if your client is a private fork, you must either stop releasing the modified client or provide the modified source code to public with GPLv3 license.
