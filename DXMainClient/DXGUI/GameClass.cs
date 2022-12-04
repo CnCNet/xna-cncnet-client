@@ -1,5 +1,6 @@
 ﻿using ClientCore;
 using ClientCore.CnCNet5;
+using ClientGUI;
 using DTAClient.Domain;
 using DTAClient.DXGUI.Generic;
 using Localization;
@@ -279,11 +280,14 @@ namespace DTAClient.DXGUI
 
             settings.DefaultAlphaRate = ClientConfiguration.Instance.DefaultAlphaRate;
             settings.CheckBoxAlphaRate = ClientConfiguration.Instance.CheckBoxAlphaRate;
+            settings.IndicatorAlphaRate = ClientConfiguration.Instance.IndicatorAlphaRate;
 
             settings.CheckBoxClearTexture = AssetLoader.LoadTexture("checkBoxClear.png");
             settings.CheckBoxCheckedTexture = AssetLoader.LoadTexture("checkBoxChecked.png");
             settings.CheckBoxDisabledClearTexture = AssetLoader.LoadTexture("checkBoxClearD.png");
             settings.CheckBoxDisabledCheckedTexture = AssetLoader.LoadTexture("checkBoxCheckedD.png");
+
+            XNAPlayerSlotIndicator.LoadTextures();
 
             UISettings.ActiveSettings = settings;
         }

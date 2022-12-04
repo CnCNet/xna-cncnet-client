@@ -1428,7 +1428,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         /// </summary>
         /// <param name="pInfo">The player.</param>
         /// <returns>True if the player is a spectator, otherwise false.</returns>
-        private bool IsPlayerSpectator(PlayerInfo pInfo)
+        protected bool IsPlayerSpectator(PlayerInfo pInfo)
         {
             if (pInfo.SideId == GetSpectatorSideIndex())
                 return true;
