@@ -27,6 +27,8 @@
 # Continuous Deployment: Sometimes you just want the version to keep changing and deploy continuously.
 # In this case, Continuous Deployment is a good mode to operate GitVersion by.
 
+tag-prefix: 'v'
+
 branches:
   master:
     regex: ^master$
