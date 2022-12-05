@@ -7,7 +7,9 @@ using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using ClientCore.Enums;
+using ClientCore.Extensions;
 
 namespace DTAConfig.OptionPanels
 {
@@ -216,44 +218,66 @@ namespace DTAConfig.OptionPanels
 
             gameListPanel.AddChild(lblFollowedGames);
 
-            int chkCount = 0;
-            int chkCountPerColumn = 4;
-            int nextColumnXOffset = 0;
-            int columnXOffset = 0;
-            foreach (CnCNetGame game in gameCollection.GameList)
-            {
-                if (!game.Supported || string.IsNullOrEmpty(game.GameBroadcastChannel))
-                    continue;
+            // Max number of games per column
+            const int maxGamesPerColumn = 4;
+            // Spacing buffer between columns
+            const int columnBuffer = 20;
+            // Spacing buffer between rows
+            const int rowBuffer = 22;
+            // Render width of a game icon
+            const int gameIconWidth = 16;
+            // Spacing buffer between game icon and game check box
+            const int gameIconBuffer = 6;
 
-                if (chkCount == chkCountPerColumn)
+            // List of supported games
+            IEnumerable<CnCNetGame> supportedGames = gameCollection.GameList
+                .Where(game => game.Supported && !string.IsNullOrEmpty(game.GameBroadcastChannel));
+
+            // Convert to a matrix of XNAPanels that contain the game icons and check boxes
+            List<List<XNAPanel>> gamePanelMatrix = supportedGames
+                .Select(game =>
                 {
-                    chkCount = 0;
-                    columnXOffset += nextColumnXOffset + 6;
-                    nextColumnXOffset = 0;
+                    var gameIconPanel = new XNAPanel(WindowManager);
+                    gameIconPanel.Name = "panel" + game.InternalName;
+                    gameIconPanel.ClientRectangle = new Rectangle(0, 0, gameIconWidth, gameIconWidth);
+                    gameIconPanel.DrawBorders = false;
+                    gameIconPanel.BackgroundTexture = game.Texture;
+
+                    var gameChkBox = new XNAClientCheckBox(WindowManager);
+                    gameChkBox.Name = game.InternalName.ToUpper();
+                    gameChkBox.ClientRectangle = new Rectangle(gameIconPanel.Right + gameIconBuffer, 0, 0, 0);
+                    gameChkBox.Text = game.UIName;
+
+                    var gamePanel = new XNAPanel(WindowManager);
+                    gamePanel.DrawBorders = false;
+                    gamePanel.ClientRectangle = new Rectangle(lblFollowedGames.X, 0, gameIconPanel.Width + gameChkBox.Width + gameIconBuffer, gameIconPanel.Height);
+                    gamePanel.AddChild(gameIconPanel);
+                    gamePanel.AddChild(gameChkBox);
+                    followedGameChks.Add(gameChkBox);
+                    return gamePanel;
+                })
+                .ToMatrix(maxGamesPerColumn);
+
+
+            // Calculate max widths for each column
+            List<int> columnWidths = gamePanelMatrix
+                .Select(columnList => columnList.Max(gamePanel => gamePanel.Children.Last().Right + columnBuffer))
+                .ToList();
+
+            // Reposition each game panel and then add them to the overall list panel
+            int startY = lblFollowedGames.Bottom + 12;
+            for (int col = 0; col < gamePanelMatrix.Count; col++)
+            {
+                List<XNAPanel> gamePanelColumn = gamePanelMatrix[col];
+                for (int row = 0; row < gamePanelColumn.Count; row++)
+                {
+                    
+                    int columnOffset = columnWidths.Take(col).Sum();
+                    int rowOffset = startY + row * rowBuffer;
+                    XNAPanel gamePanel = gamePanelColumn[row];
+                    gamePanel.ClientRectangle = new Rectangle(gamePanel.X  + columnOffset, rowOffset, gamePanel.Width, gamePanel.Height);
+                    gameListPanel.AddChild(gamePanel);
                 }
-
-                var panel = new XNAPanel(WindowManager);
-                panel.Name = "panel" + game.InternalName;
-                panel.ClientRectangle = new Rectangle(lblFollowedGames.X + columnXOffset,
-                    lblFollowedGames.Bottom + 12 + chkCount * 22, 16, 16);
-                panel.DrawBorders = false;
-                panel.BackgroundTexture = game.Texture;
-
-                var chkBox = new XNAClientCheckBox(WindowManager);
-                chkBox.Name = game.InternalName.ToUpper();
-                chkBox.ClientRectangle = new Rectangle(
-                    panel.Right + 6,
-                    panel.Y, 0, 0);
-                chkBox.Text = game.UIName;
-
-                chkCount++;
-
-                gameListPanel.AddChild(panel);
-                gameListPanel.AddChild(chkBox);
-                followedGameChks.Add(chkBox);
-
-                if (chkBox.Right > nextColumnXOffset)
-                    nextColumnXOffset = chkBox.Right;
             }
         }
 
