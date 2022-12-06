@@ -94,8 +94,7 @@ public static class TaskExtensions
     /// Runs a <see cref="ValueTask"/> and guarantees all exceptions are caught and handled even when the <see cref="ValueTask"/> is not directly awaited.
     /// </summary>
     /// <param name="task">The <see cref="ValueTask"/> who's exceptions will be handled.</param>
-    /// <returns>Returns a <see cref="ValueTask"/> that awaited and handled the original <paramref name="task"/>.</returns>
-    public static async ValueTask HandleTask(this ValueTask task)
+    public static async void HandleTask(this ValueTask task)
     {
         try
         {
@@ -105,25 +104,5 @@ public static class TaskExtensions
         {
             ProgramConstants.HandleException(ex);
         }
-    }
-
-    /// <summary>
-    /// Runs a <see cref="ValueTask"/> and guarantees all exceptions are caught and handled even when the <see cref="ValueTask"/> is not directly awaited.
-    /// </summary>
-    /// <typeparam name="T">The type of <paramref name="task"/>'s return value.</typeparam>
-    /// <param name="task">The <see cref="ValueTask"/> who's exceptions will be handled.</param>
-    /// <returns>Returns a <see cref="ValueTask"/> that awaited and handled the original <paramref name="task"/>.</returns>
-    public static async ValueTask<T> HandleTask<T>(this ValueTask<T> task)
-    {
-        try
-        {
-            return await task;
-        }
-        catch (Exception ex)
-        {
-            ProgramConstants.HandleException(ex);
-        }
-
-        return default;
     }
 }
