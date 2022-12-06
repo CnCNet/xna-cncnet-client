@@ -61,7 +61,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
             }
         }
 
-        private static async Task UploadAsync(Map map, string myGameId)
+        private static async ValueTask UploadAsync(Map map, string myGameId)
         {
             MapUploadStarted?.Invoke(null, new MapEventArgs(map));
 
@@ -102,7 +102,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
             }
         }
 
-        private static async Task<(string Message, bool Success)> MapUploadAsync(Map map, string gameName)
+        private static async ValueTask<(string Message, bool Success)> MapUploadAsync(Map map, string gameName)
         {
             using MemoryStream zipStream = CreateZipFile(map.CompleteFilePath);
 
@@ -132,10 +132,9 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
             }
         }
 
-        private static async Task<string> UploadFilesAsync(List<FileToUpload> files, NameValueCollection values)
+        private static async ValueTask<string> UploadFilesAsync(List<FileToUpload> files, NameValueCollection values)
         {
             using HttpClient client = GetHttpClient();
-
             var multipartFormDataContent = new MultipartFormDataContent();
 
             // Write the values
@@ -208,7 +207,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
             }
         }
 
-        private static async Task DownloadAsync(string sha1, string myGameId, string mapName)
+        private static async ValueTask DownloadAsync(string sha1, string myGameId, string mapName)
         {
             Logger.Log("MapSharer: Preparing to download map " + sha1 + " with name: " + mapName);
 
@@ -250,7 +249,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
         public static string GetMapFileName(string sha1, string mapName)
             => FormattableString.Invariant($"{mapName}_{sha1}");
 
-        private static async Task<(string Error, bool Success)> DownloadMainAsync(string sha1, string myGame, string mapName)
+        private static async ValueTask<(string Error, bool Success)> DownloadMainAsync(string sha1, string myGame, string mapName)
         {
             string customMapsDirectory = SafePath.CombineDirectoryPath(ProgramConstants.GamePath, "Maps", "Custom");
             string mapFileName = GetMapFileName(sha1, mapName);

@@ -114,7 +114,7 @@ namespace DTAClient.Online
             UserAdded?.Invoke(this, new ChannelUserEventArgs(user));
         }
 
-        public async Task OnUserJoinedAsync(ChannelUser user)
+        public async ValueTask OnUserJoinedAsync(ChannelUser user)
         {
             await Task.CompletedTask;
             AddUser(user);
@@ -257,7 +257,7 @@ namespace DTAClient.Online
             MessageAdded?.Invoke(this, new IRCMessageEventArgs(message));
         }
 
-        public Task SendChatMessageAsync(string message, IRCColor color)
+        public ValueTask SendChatMessageAsync(string message, IRCColor color)
         {
             AddMessage(new ChatMessage(ProgramConstants.PLAYERNAME, color.XnaColor, DateTime.Now, message));
 
@@ -274,7 +274,7 @@ namespace DTAClient.Online
         ///     This can be used to help prevent flooding for multiple options that are changed quickly. It allows for a single message
         ///     for multiple changes.
         /// </param>
-        public Task SendCTCPMessageAsync(string message, QueuedMessageType qmType, int priority, bool replace = false)
+        public ValueTask SendCTCPMessageAsync(string message, QueuedMessageType qmType, int priority, bool replace = false)
         {
             char CTCPChar1 = (char)58;
             char CTCPChar2 = (char)01;
@@ -288,7 +288,7 @@ namespace DTAClient.Online
         /// </summary>
         /// <param name="userName">The name of the user that should be kicked.</param>
         /// <param name="priority">The priority of the message in the send queue.</param>
-        public Task SendKickMessageAsync(string userName, int priority)
+        public ValueTask SendKickMessageAsync(string userName, int priority)
         {
             return connection.QueueMessageAsync(QueuedMessageType.INSTANT_MESSAGE, priority, IRCCommands.KICK + " " + ChannelName + " " + userName);
         }
@@ -298,13 +298,15 @@ namespace DTAClient.Online
         /// </summary>
         /// <param name="host">The host that should be banned.</param>
         /// <param name="priority">The priority of the message in the send queue.</param>
-        public Task SendBanMessageAsync(string host, int priority)
+        public ValueTask SendBanMessageAsync(string host, int priority)
         {
-            return connection.QueueMessageAsync(QueuedMessageType.INSTANT_MESSAGE, priority,
-                string.Format(IRCCommands.MODE + " {0} +b *!*@{1}", ChannelName, host));
+            return connection.QueueMessageAsync(
+                QueuedMessageType.INSTANT_MESSAGE,
+                priority,
+                FormattableString.Invariant($"{IRCCommands.MODE} {ChannelName} +{IRCChannelModes.BAN} *!*@{host}"));
         }
 
-        public Task JoinAsync()
+        public ValueTask JoinAsync()
         {
             // Wait a random amount of time before joining to prevent join/part floods
             if (Persistent)
@@ -323,12 +325,12 @@ namespace DTAClient.Online
             return connection.QueueMessageAsync(QueuedMessageType.SYSTEM_MESSAGE, 9, IRCCommands.JOIN + " " + ChannelName + " " + Password);
         }
 
-        public Task RequestUserInfoAsync()
+        public ValueTask RequestUserInfoAsync()
         {
             return connection.QueueMessageAsync(QueuedMessageType.SYSTEM_MESSAGE, 9, "WHO " + ChannelName);
         }
 
-        public async Task LeaveAsync()
+        public async ValueTask LeaveAsync()
         {
             // Wait a random amount of time before joining to prevent join/part floods
             if (Persistent)

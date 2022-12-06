@@ -83,7 +83,7 @@ namespace DTAClient.Domain.Multiplayer.LAN
         /// Sends a message to the player over the network.
         /// </summary>
         /// <param name="message">The message to send.</param>
-        public async Task SendMessageAsync(string message, CancellationToken cancellationToken)
+        public async ValueTask SendMessageAsync(string message, CancellationToken cancellationToken)
         {
             message += ProgramConstants.LAN_MESSAGE_SEPARATOR;
 
@@ -114,9 +114,9 @@ namespace DTAClient.Domain.Multiplayer.LAN
             => Name + " (" + IPAddress + ")";
 
         /// <summary>
-        /// Starts receiving messages from the player asynchronously.
+        /// Starts receiving messages from the player.
         /// </summary>
-        public async Task StartReceiveLoopAsync(CancellationToken cancellationToken)
+        public async ValueTask StartReceiveLoopAsync(CancellationToken cancellationToken)
         {
             using IMemoryOwner<byte> memoryOwner = MemoryPool<byte>.Shared.Rent(1024);
 
@@ -147,7 +147,7 @@ namespace DTAClient.Domain.Multiplayer.LAN
 
                     msg = overMessage + msg;
 
-                    List<string> commands = new List<string>();
+                    var commands = new List<string>();
 
                     while (true)
                     {

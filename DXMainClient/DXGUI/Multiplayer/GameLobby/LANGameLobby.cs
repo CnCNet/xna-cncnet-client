@@ -71,7 +71,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             WindowManager.GameClosing += (_, _) => WindowManager_GameClosingAsync().HandleTask();
         }
 
-        private async Task WindowManager_GameClosingAsync()
+        private async ValueTask WindowManager_GameClosingAsync()
         {
             if (client is { Connected: true })
                 await ClearAsync();
@@ -126,7 +126,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             PostInitialize();
         }
 
-        public async Task SetUpAsync(bool isHost, IPEndPoint hostEndPoint, Socket client)
+        public async ValueTask SetUpAsync(bool isHost, IPEndPoint hostEndPoint, Socket client)
         {
             Refresh(isHost);
 
@@ -160,7 +160,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             WindowManager.SelectedControl = tbChatInput;
         }
 
-        private async Task SendHostPlayerJoinedMessageAsync(CancellationToken cancellationToken)
+        private async ValueTask SendHostPlayerJoinedMessageAsync(CancellationToken cancellationToken)
         {
             try
             {
@@ -184,7 +184,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             }
         }
 
-        public async Task PostJoinAsync()
+        public async ValueTask PostJoinAsync()
         {
             var fhc = new FileHashCalculator();
             fhc.CalculateHashes(GameModeMaps.GameModes);
@@ -194,7 +194,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         #region Server code
 
-        private async Task ListenForClientsAsync(CancellationToken cancellationToken)
+        private async ValueTask ListenForClientsAsync(CancellationToken cancellationToken)
         {
             listener = new Socket(SocketType.Stream, ProtocolType.Tcp);
 
@@ -224,6 +224,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 if (Players.Count >= MAX_PLAYER_COUNT)
                 {
                     Logger.Log("Dropping client because of player limit.");
+                    client.Shutdown(SocketShutdown.Both);
                     client.Close();
                     continue;
                 }
@@ -231,6 +232,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 if (Locked)
                 {
                     Logger.Log("Dropping client because the game room is locked.");
+                    client.Shutdown(SocketShutdown.Both);
                     client.Close();
                     continue;
                 }
@@ -242,7 +244,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             }
         }
 
-        private async Task HandleClientConnectionAsync(LANPlayerInfo lpInfo, CancellationToken cancellationToken)
+        private async ValueTask HandleClientConnectionAsync(LANPlayerInfo lpInfo, CancellationToken cancellationToken)
         {
             using IMemoryOwner<byte> memoryOwner = MemoryPool<byte>.Shared.Rent(1024);
 
@@ -293,11 +295,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 break;
             }
 
-            if (lpInfo.TcpClient.Connected)
-                lpInfo.TcpClient.Close();
+            lpInfo.TcpClient.Shutdown(SocketShutdown.Both);
+            lpInfo.TcpClient.Close();
         }
 
-        private async Task AddPlayerAsync(LANPlayerInfo lpInfo, CancellationToken cancellationToken)
+        private async ValueTask AddPlayerAsync(LANPlayerInfo lpInfo, CancellationToken cancellationToken)
         {
             if (Players.Find(p => p.Name == lpInfo.Name) != null ||
                 Players.Count >= MAX_PLAYER_COUNT || Locked)
@@ -321,7 +323,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             UpdateDiscordPresence();
         }
 
-        private async Task LpInfo_ConnectionLostAsync(object sender)
+        private async ValueTask LpInfo_ConnectionLostAsync(object sender)
         {
             var lpInfo = (LANPlayerInfo)sender;
             CleanUpPlayer(lpInfo);
@@ -360,12 +362,13 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             lpInfo.MessageReceived -= LpInfo_MessageReceived;
             lpInfo.ConnectionLost -= lpInfo_ConnectionLostFunc;
+            lpInfo.TcpClient.Shutdown(SocketShutdown.Both);
             lpInfo.TcpClient.Close();
         }
 
         #endregion
 
-        private async Task HandleServerCommunicationAsync(CancellationToken cancellationToken)
+        private async ValueTask HandleServerCommunicationAsync(CancellationToken cancellationToken)
         {
             if (!client.Connected)
                 return;
@@ -442,7 +445,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             Logger.Log("Unknown LAN command from the server: " + message);
         }
 
-        protected override async Task BtnLeaveGame_LeftClickAsync()
+        protected override async ValueTask BtnLeaveGame_LeftClickAsync()
         {
             await ClearAsync();
             GameLeft?.Invoke(this, EventArgs.Empty);
@@ -468,7 +471,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 "LAN Game", IsHost, false, Locked, resetTimer);
         }
 
-        public override async Task ClearAsync()
+        public override async ValueTask ClearAsync()
         {
             await base.ClearAsync();
 
@@ -477,7 +480,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 await BroadcastMessageAsync(LANCommands.PLAYER_QUIT_COMMAND);
                 Players.ForEach(p => CleanUpPlayer((LANPlayerInfo)p));
                 Players.Clear();
-                cancellationTokenSource.Cancel();
+
+                if (listener.Connected)
+                    listener.Shutdown(SocketShutdown.Both);
+
                 listener.Close();
             }
             else
@@ -485,12 +491,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 await SendMessageToHostAsync(LANCommands.PLAYER_QUIT_COMMAND, cancellationTokenSource?.Token ?? default);
             }
 
-            if (client.Connected)
-            {
-                cancellationTokenSource.Cancel();
-                client.Close();
-            }
-
+            cancellationTokenSource.Cancel();
+            client.Shutdown(SocketShutdown.Both);
+            client.Close();
             ResetDiscordPresence();
         }
 
@@ -505,7 +508,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         protected override void AddNotice(string message, Color color) =>
             lbChatMessages.AddMessage(null, message, color);
 
-        protected override async Task BroadcastPlayerOptionsAsync()
+        protected override async ValueTask BroadcastPlayerOptionsAsync()
         {
             if (!IsHost)
                 return;
@@ -533,14 +536,14 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             await BroadcastMessageAsync(sb.ToString());
         }
 
-        protected override async Task BroadcastPlayerExtraOptionsAsync()
+        protected override async ValueTask BroadcastPlayerExtraOptionsAsync()
         {
             var playerExtraOptions = GetPlayerExtraOptions();
 
             await BroadcastMessageAsync(playerExtraOptions.ToLanMessage(), true);
         }
 
-        protected override Task HostLaunchGameAsync() => BroadcastMessageAsync(LANCommands.LAUNCH_GAME + " " + UniqueGameID);
+        protected override ValueTask HostLaunchGameAsync() => BroadcastMessageAsync(LANCommands.LAUNCH_GAME + " " + UniqueGameID);
 
         protected override IPAddress GetIPAddressForPlayer(PlayerInfo player)
         {
@@ -548,7 +551,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             return lpInfo.IPAddress.MapToIPv4();
         }
 
-        protected override Task RequestPlayerOptionsAsync(int side, int color, int start, int team)
+        protected override ValueTask RequestPlayerOptionsAsync(int side, int color, int start, int team)
         {
             var sb = new ExtendedStringBuilder(LANCommands.PLAYER_OPTIONS_REQUEST + " ", true);
             sb.Separator = ProgramConstants.LAN_DATA_SEPARATOR;
@@ -559,12 +562,12 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             return SendMessageToHostAsync(sb.ToString(), cancellationTokenSource?.Token ?? default);
         }
 
-        protected override Task RequestReadyStatusAsync()
+        protected override ValueTask RequestReadyStatusAsync()
         {
             return SendMessageToHostAsync(LANCommands.PLAYER_READY_REQUEST + " " + Convert.ToInt32(chkAutoReady.Checked), cancellationTokenSource?.Token ?? default);
         }
 
-        protected override Task SendChatMessageAsync(string message)
+        protected override ValueTask SendChatMessageAsync(string message)
         {
             var sb = new ExtendedStringBuilder(LANCommands.CHAT_LOBBY_COMMAND + " ", true);
             sb.Separator = ProgramConstants.LAN_DATA_SEPARATOR;
@@ -573,7 +576,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             return SendMessageToHostAsync(sb.ToString(), cancellationTokenSource?.Token ?? default);
         }
 
-        protected override async Task OnGameOptionChangedAsync()
+        protected override async ValueTask OnGameOptionChangedAsync()
         {
             await base.OnGameOptionChangedAsync();
 
@@ -601,7 +604,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             await BroadcastMessageAsync(sb.ToString());
         }
 
-        protected override async Task GetReadyNotificationAsync()
+        protected override async ValueTask GetReadyNotificationAsync()
         {
             await base.GetReadyNotificationAsync();
 #if WINFORMS
@@ -627,7 +630,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         /// </summary>
         /// <param name="message">The command to send.</param>
         /// <param name="otherPlayersOnly">If true, only send this to other players. Otherwise, even the sender will receive their message.</param>
-        private async Task BroadcastMessageAsync(string message, bool otherPlayersOnly = false)
+        private async ValueTask BroadcastMessageAsync(string message, bool otherPlayersOnly = false)
         {
             if (!IsHost)
                 return;
@@ -639,13 +642,13 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             }
         }
 
-        protected override async Task PlayerExtraOptions_OptionsChangedAsync()
+        protected override async ValueTask PlayerExtraOptions_OptionsChangedAsync()
         {
             await base.PlayerExtraOptions_OptionsChangedAsync();
             await BroadcastPlayerExtraOptionsAsync();
         }
 
-        private async Task SendMessageToHostAsync(string message, CancellationToken cancellationToken)
+        private async ValueTask SendMessageToHostAsync(string message, CancellationToken cancellationToken)
         {
             if (!client.Connected)
                 return;
@@ -673,7 +676,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             }
         }
 
-        protected override Task UnlockGameAsync(bool manual)
+        protected override ValueTask UnlockGameAsync(bool manual)
         {
             Locked = false;
 
@@ -682,10 +685,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (manual)
                 AddNotice("You've unlocked the game room.".L10N("Client:Main:RoomUnockedByYou"));
 
-            return Task.CompletedTask;
+            return ValueTask.CompletedTask;
         }
 
-        protected override Task LockGameAsync()
+        protected override ValueTask LockGameAsync()
         {
             Locked = true;
 
@@ -694,10 +697,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (Locked)
                 AddNotice("You've locked the game room.".L10N("Client:Main:RoomLockedByYou"));
 
-            return Task.CompletedTask;
+            return ValueTask.CompletedTask;
         }
 
-        protected override async Task GameProcessExitedAsync()
+        protected override async ValueTask GameProcessExitedAsync()
         {
             await base.GameProcessExitedAsync();
             await SendMessageToHostAsync(LANCommands.RETURN, cancellationTokenSource?.Token ?? default);
@@ -793,7 +796,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         #region Command Handlers
 
-        private async Task GameHost_HandleChatCommandAsync(string sender, string data)
+        private async ValueTask GameHost_HandleChatCommandAsync(string sender, string data)
         {
             string[] parts = data.Split(ProgramConstants.LAN_DATA_SEPARATOR);
 
@@ -826,7 +829,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 chatColors[colorIndex].XNAColor, DateTime.Now, parts[2]));
         }
 
-        private Task GameHost_HandleReturnCommandAsync(string sender)
+        private ValueTask GameHost_HandleReturnCommandAsync(string sender)
             => BroadcastMessageAsync(LANCommands.RETURN + ProgramConstants.LAN_DATA_SEPARATOR + sender);
 
         private void Player_HandleReturnCommand(string sender)
@@ -834,13 +837,13 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             ReturnNotification(sender);
         }
 
-        private async Task HandleGetReadyCommandAsync()
+        private async ValueTask HandleGetReadyCommandAsync()
         {
             if (!IsHost)
                 await GetReadyNotificationAsync();
         }
 
-        private async Task HandlePlayerOptionsRequestAsync(string sender, string data)
+        private async ValueTask HandlePlayerOptionsRequestAsync(string sender, string data)
         {
             if (!IsHost)
                 return;
@@ -981,7 +984,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 UpdateDiscordPresence();
         }
 
-        private async Task HandlePlayerQuitAsync(string sender)
+        private async ValueTask HandlePlayerQuitAsync(string sender)
         {
             PlayerInfo pInfo = Players.Find(p => p.Name == sender);
 
@@ -996,7 +999,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             UpdateDiscordPresence();
         }
 
-        private async Task HandleGameOptionsMessageAsync(string data)
+        private async ValueTask HandleGameOptionsMessageAsync(string data)
         {
             if (IsHost)
                 return;
@@ -1083,7 +1086,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             }
         }
 
-        private async Task GameHost_HandleReadyRequestAsync(string sender, string autoReady)
+        private async ValueTask GameHost_HandleReadyRequestAsync(string sender, string autoReady)
         {
             PlayerInfo pInfo = Players.Find(p => p.Name == sender);
 
@@ -1096,7 +1099,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             await BroadcastPlayerOptionsAsync();
         }
 
-        private async Task HandleGameLaunchCommandAsync(string gameId)
+        private async ValueTask HandleGameLaunchCommandAsync(string gameId)
         {
             Players.ForEach(pInfo => pInfo.IsInGame = true);
             UniqueGameID = Conversions.IntFromString(gameId, -1);
@@ -1109,16 +1112,16 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         }
 
 
-        private Task HandlePingAsync()
+        private ValueTask HandlePingAsync()
             => SendMessageToHostAsync(LANCommands.PING, cancellationTokenSource?.Token ?? default);
 
-        protected override async Task BroadcastDiceRollAsync(int dieSides, int[] results)
+        protected override async ValueTask BroadcastDiceRollAsync(int dieSides, int[] results)
         {
             string resultString = string.Join(",", results);
             await SendMessageToHostAsync($"{LANCommands.DICE_ROLL} {dieSides},{resultString}", cancellationTokenSource?.Token ?? default);
         }
 
-        private Task Host_HandleDiceRollAsync(string sender, string result)
+        private ValueTask Host_HandleDiceRollAsync(string sender, string result)
             => BroadcastMessageAsync($"{LANCommands.DICE_ROLL} {sender}{ProgramConstants.LAN_DATA_SEPARATOR}{result}");
 
         private void Client_HandleDiceRoll(string data)

@@ -400,7 +400,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         protected void HandleGameOptionPresetLoadCommand(GameOptionPresetEventArgs e) => HandleGameOptionPresetLoadCommandAsync(e.PresetName).HandleTask();
 
-        protected async Task HandleGameOptionPresetLoadCommandAsync(string presetName)
+        protected async ValueTask HandleGameOptionPresetLoadCommandAsync(string presetName)
         {
             if (await LoadGameOptionPresetAsync(presetName))
                 AddNotice("Game option preset loaded succesfully.".L10N("Client:Main:PresetLoaded"));
@@ -414,7 +414,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private void TbMapSearch_InputReceived(object sender, EventArgs e) => ListMaps();
 
-        private async Task Dropdown_SelectedIndexChangedAsync(object sender)
+        private async ValueTask Dropdown_SelectedIndexChangedAsync(object sender)
         {
             if (disableGameOptionUpdateBroadcast)
                 return;
@@ -424,7 +424,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             await OnGameOptionChangedAsync();
         }
 
-        private async Task ChkBox_CheckedChangedAsync(object sender)
+        private async ValueTask ChkBox_CheckedChangedAsync(object sender)
         {
             if (disableGameOptionUpdateBroadcast)
                 return;
@@ -434,16 +434,16 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             await OnGameOptionChangedAsync();
         }
 
-        protected virtual Task OnGameOptionChangedAsync()
+        protected virtual ValueTask OnGameOptionChangedAsync()
         {
             CheckDisallowedSides();
 
             btnLaunchGame.SetRank(GetRank());
 
-            return Task.CompletedTask;
+            return ValueTask.CompletedTask;
         }
 
-        protected async Task DdGameModeMapFilter_SelectedIndexChangedAsync()
+        protected async ValueTask DdGameModeMapFilter_SelectedIndexChangedAsync()
         {
             gameModeMapFilter = ddGameModeMapFilter.SelectedItem.Tag as GameModeMapFilter;
 
@@ -643,7 +643,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 lbGameModeMapList.SelectedIndex = 0; // the map was removed while viewing favorites
         }
 
-        private async Task DeleteSelectedMapAsync()
+        private async ValueTask DeleteSelectedMapAsync()
         {
             try
             {
@@ -672,7 +672,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             }
         }
 
-        private async Task LbGameModeMapList_SelectedIndexChangedAsync()
+        private async ValueTask LbGameModeMapList_SelectedIndexChangedAsync()
         {
             if (lbGameModeMapList.SelectedIndex < 0 || lbGameModeMapList.SelectedIndex >= lbGameModeMapList.ItemCount)
             {
@@ -703,7 +703,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 mapListTooltip.Text = string.Empty;
         }
 
-        private async Task PickRandomMapAsync()
+        private async ValueTask PickRandomMapAsync()
         {
             int totalPlayerCount = Players.Count(p => p.SideId < ddPlayerSides[0].Items.Count - 1)
                    + AIPlayers.Count;
@@ -735,7 +735,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         /// Refreshes the map selection UI to match the currently selected map
         /// and game mode.
         /// </summary>
-        protected async Task RefreshMapSelectionUIAsync()
+        protected async ValueTask RefreshMapSelectionUIAsync()
         {
             if (GameMode == null)
                 return;
@@ -919,7 +919,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             return label;
         }
 
-        protected virtual Task PlayerExtraOptions_OptionsChangedAsync()
+        protected virtual ValueTask PlayerExtraOptions_OptionsChangedAsync()
         {
             var playerExtraOptions = GetPlayerExtraOptions();
 
@@ -938,7 +938,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             UpdateMapPreviewBoxEnabledStatus();
             RefreshBtnPlayerExtraOptionsOpenTexture();
 
-            return Task.CompletedTask;
+            return ValueTask.CompletedTask;
         }
 
         private void EnablePlayerOptionDropDown(XNAClientDropDown clientDropDown, int playerIndex, bool enable)
@@ -1007,9 +1007,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             }
         }
 
-        protected abstract Task BtnLaunchGame_LeftClickAsync();
+        protected abstract ValueTask BtnLaunchGame_LeftClickAsync();
 
-        protected abstract Task BtnLeaveGame_LeftClickAsync();
+        protected abstract ValueTask BtnLeaveGame_LeftClickAsync();
 
         /// <summary>
         /// Updates Discord Rich Presence with actual information.
@@ -1779,7 +1779,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         /// Writes spawn.ini, writes the map file, initializes statistics and
         /// starts the game process.
         /// </summary>
-        protected virtual Task StartGameAsync()
+        protected virtual ValueTask StartGameAsync()
         {
             PlayerHouseInfo[] houseInfos = WriteSpawnIni();
             InitializeMatchStatistics(houseInfos);
@@ -1790,12 +1790,12 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             GameProcessLogic.StartGameProcess(WindowManager);
             UpdateDiscordPresence(true);
 
-            return Task.CompletedTask;
+            return ValueTask.CompletedTask;
         }
 
         private void GameProcessExited_Callback() => AddCallback(() => GameProcessExitedAsync().HandleTask());
 
-        protected virtual Task GameProcessExitedAsync()
+        protected virtual ValueTask GameProcessExitedAsync()
         {
             GameProcessLogic.GameProcessExited -= GameProcessExited_Callback;
 
@@ -1807,14 +1807,14 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             CopyPlayerDataToUI();
             UpdateDiscordPresence(true);
 
-            return Task.CompletedTask;
+            return ValueTask.CompletedTask;
         }
 
         /// <summary>
         /// "Copies" player information from the UI to internal memory,
         /// applying users' player options changes.
         /// </summary>
-        protected virtual async Task CopyPlayerDataFromUIAsync(object sender)
+        protected virtual async ValueTask CopyPlayerDataFromUIAsync(object sender)
         {
             if (PlayerUpdatingInProgress)
                 return;
@@ -2040,27 +2040,27 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         /// Override this in a derived class to kick players.
         /// </summary>
         /// <param name="playerIndex">The index of the player that should be kicked.</param>
-        protected virtual Task KickPlayerAsync(int playerIndex)
+        protected virtual ValueTask KickPlayerAsync(int playerIndex)
         {
             // Do nothing by default
-            return Task.CompletedTask;
+            return ValueTask.CompletedTask;
         }
 
         /// <summary>
         /// Override this in a derived class to ban players.
         /// </summary>
         /// <param name="playerIndex">The index of the player that should be banned.</param>
-        protected virtual Task BanPlayerAsync(int playerIndex)
+        protected virtual ValueTask BanPlayerAsync(int playerIndex)
         {
             // Do nothing by default
-            return Task.CompletedTask;
+            return ValueTask.CompletedTask;
         }
 
         /// <summary>
         /// Changes the current map and game mode.
         /// </summary>
         /// <param name="gameModeMap">The new game mode map.</param>
-        protected virtual async Task ChangeMapAsync(GameModeMap gameModeMap)
+        protected virtual async ValueTask ChangeMapAsync(GameModeMap gameModeMap)
         {
             GameModeMap = gameModeMap;
 
@@ -2436,7 +2436,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             return null;
         }
 
-        public async Task<bool> LoadGameOptionPresetAsync(string name)
+        public async ValueTask<bool> LoadGameOptionPresetAsync(string name)
         {
             GameOptionPreset preset = GameOptionPresets.Instance.GetPreset(name);
             if (preset == null)

@@ -45,7 +45,7 @@ namespace DTAClient.Domain.Multiplayer
 
         public bool IsInGame { get; set; }
 
-        public virtual IPAddress IPAddress { get; set; } = System.Net.IPAddress.Any;
+        public virtual IPAddress IPAddress { get; set; } = IPAddress.Any;
 
         public int Port { get; set; }
 
@@ -86,7 +86,7 @@ namespace DTAClient.Domain.Multiplayer
         }
 
         /// <summary>
-        /// Creates a PlayerInfo instance from a string in a format that matches the 
+        /// Creates a PlayerInfo instance from a string in a format that matches the
         /// string given by the ToString() method.
         /// </summary>
         /// <param name="str">The string.</param>

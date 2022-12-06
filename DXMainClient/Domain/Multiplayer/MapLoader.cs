@@ -140,7 +140,7 @@ namespace DTAClient.Domain.Multiplayer
             }
         }
 
-        private async Task LoadCustomMapsAsync()
+        private async ValueTask LoadCustomMapsAsync()
         {
             DirectoryInfo customMapsDirectory = SafePath.GetDirectory(ProgramConstants.GamePath, CUSTOM_MAPS_DIRECTORY);
 
@@ -153,7 +153,6 @@ namespace DTAClient.Domain.Multiplayer
             IEnumerable<FileInfo> mapFiles = customMapsDirectory.EnumerateFiles($"*{MAP_FILE_EXTENSION}");
             ConcurrentDictionary<string, Map> customMapCache = await LoadCustomMapCacheAsync();
             var localMapSHAs = new List<string>();
-
             var tasks = new List<Task>();
 
             foreach (FileInfo mapFile in mapFiles)
@@ -210,7 +209,7 @@ namespace DTAClient.Domain.Multiplayer
         /// Load previously cached custom maps
         /// </summary>
         /// <returns></returns>
-        private async Task<ConcurrentDictionary<string, Map>> LoadCustomMapCacheAsync()
+        private async ValueTask<ConcurrentDictionary<string, Map>> LoadCustomMapCacheAsync()
         {
             try
             {

@@ -262,7 +262,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             }
         }
 
-        protected override Task StartGameAsync()
+        protected override ValueTask StartGameAsync()
         {
             if (fsw != null)
                 fsw.EnableRaisingEvents = true;
@@ -273,7 +273,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             return base.StartGameAsync();
         }
 
-        protected override async Task GameProcessExitedAsync()
+        protected override async ValueTask GameProcessExitedAsync()
         {
             gameSaved = false;
 
@@ -317,7 +317,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             }
         }
 
-        protected virtual async Task HandleLockGameButtonClickAsync()
+        protected virtual async ValueTask HandleLockGameButtonClickAsync()
         {
             if (Locked)
                 await UnlockGameAsync(true);
@@ -325,11 +325,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 await LockGameAsync();
         }
 
-        protected abstract Task LockGameAsync();
+        protected abstract ValueTask LockGameAsync();
 
-        protected abstract Task UnlockGameAsync(bool announce);
+        protected abstract ValueTask UnlockGameAsync(bool announce);
 
-        private async Task TbChatInput_EnterPressedAsync()
+        private async ValueTask TbChatInput_EnterPressedAsync()
         {
             if (string.IsNullOrEmpty(tbChatInput.Text))
                 return;
@@ -385,7 +385,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             tbChatInput.Text = string.Empty;
         }
 
-        private async Task ChkAutoReady_CheckedChangedAsync()
+        private async ValueTask ChkAutoReady_CheckedChangedAsync()
         {
             UpdateLaunchGameButtonStatus();
             await RequestReadyStatusAsync();
@@ -399,7 +399,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             UpdateLaunchGameButtonStatus();
         }
 
-        private async Task SetFrameSendRateAsync(string value)
+        private async ValueTask SetFrameSendRateAsync(string value)
         {
             bool success = int.TryParse(value, out int intValue);
 
@@ -417,7 +417,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             ClearReadyStatuses();
         }
 
-        private async Task SetMaxAheadAsync(string value)
+        private async ValueTask SetMaxAheadAsync(string value)
         {
             bool success = int.TryParse(value, out int intValue);
 
@@ -434,7 +434,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             ClearReadyStatuses();
         }
 
-        private async Task SetProtocolVersionAsync(string value)
+        private async ValueTask SetProtocolVersionAsync(string value)
         {
             bool success = int.TryParse(value, out int intValue);
 
@@ -457,7 +457,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             ClearReadyStatuses();
         }
 
-        private async Task SetStartingLocationClearanceAsync(string value)
+        private async ValueTask SetStartingLocationClearanceAsync(string value)
         {
             bool removeStartingLocations = Conversions.BooleanFromString(value, RemoveStartingLocations);
 
@@ -488,7 +488,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         /// Handles the dice rolling command.
         /// </summary>
         /// <param name="dieType">The parameters given for the command by the user.</param>
-        private async Task RollDiceCommandAsync(string dieType)
+        private async ValueTask RollDiceCommandAsync(string dieType)
         {
             int dieSides = 6;
             int dieCount = 1;
@@ -551,7 +551,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         /// </summary>
         /// <param name="dieSides">The number of sides in the dice.</param>
         /// <param name="results">The results of the dice roll.</param>
-        protected abstract Task BroadcastDiceRollAsync(int dieSides, int[] results);
+        protected abstract ValueTask BroadcastDiceRollAsync(int dieSides, int[] results);
 
         /// <summary>
         /// Parses and lists the results of rolling dice.
@@ -601,7 +601,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             ));
         }
 
-        protected abstract Task SendChatMessageAsync(string message);
+        protected abstract ValueTask SendChatMessageAsync(string message);
 
         /// <summary>
         /// Changes the game lobby's UI depending on whether the local player is the host.
@@ -739,7 +739,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             ddPlayerStarts[mTopIndex].SelectedIndex = e.StartingLocationIndex;
         }
 
-        private async Task MapPreviewBox_StartingLocationAppliedAsync()
+        private async ValueTask MapPreviewBox_StartingLocationAppliedAsync()
         {
             ClearReadyStatuses();
             CopyPlayerDataToUI();
@@ -752,7 +752,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         /// launches the game if it's allowed. If the local player isn't the game host,
         /// sends a ready request.
         /// </summary>
-        protected override async Task BtnLaunchGame_LeftClickAsync()
+        protected override async ValueTask BtnLaunchGame_LeftClickAsync()
         {
             if (!IsHost)
             {
@@ -889,43 +889,43 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             await HostLaunchGameAsync();
         }
 
-        protected virtual Task LockGameNotificationAsync()
+        protected virtual ValueTask LockGameNotificationAsync()
         {
             AddNotice("You need to lock the game room before launching the game.".L10N("Client:Main:LockGameNotification"));
 
-            return Task.CompletedTask;
+            return ValueTask.CompletedTask;
         }
 
-        protected virtual Task SharedColorsNotificationAsync()
+        protected virtual ValueTask SharedColorsNotificationAsync()
         {
             AddNotice("Multiple human players cannot share the same color.".L10N("Client:Main:SharedColorsNotification"));
 
-            return Task.CompletedTask;
+            return ValueTask.CompletedTask;
         }
 
-        protected virtual Task AISpectatorsNotificationAsync()
+        protected virtual ValueTask AISpectatorsNotificationAsync()
         {
             AddNotice("AI players don't enjoy spectating matches. They want some action!".L10N("Client:Main:AISpectatorsNotification"));
 
-            return Task.CompletedTask;
+            return ValueTask.CompletedTask;
         }
 
-        protected virtual Task SharedStartingLocationNotificationAsync()
+        protected virtual ValueTask SharedStartingLocationNotificationAsync()
         {
             AddNotice("Multiple players cannot share the same starting location on this map.".L10N("Client:Main:SharedStartingLocationNotification"));
 
-            return Task.CompletedTask;
+            return ValueTask.CompletedTask;
         }
 
-        protected virtual Task NotVerifiedNotificationAsync(int playerIndex)
+        protected virtual ValueTask NotVerifiedNotificationAsync(int playerIndex)
         {
             if (playerIndex > -1 && playerIndex < Players.Count)
                 AddNotice(string.Format("Unable to launch game. Player {0} hasn't been verified.".L10N("Client:Main:NotVerifiedNotification"), Players[playerIndex].Name));
 
-            return Task.CompletedTask;
+            return ValueTask.CompletedTask;
         }
 
-        protected virtual Task StillInGameNotificationAsync(int playerIndex)
+        protected virtual ValueTask StillInGameNotificationAsync(int playerIndex)
         {
             if (playerIndex > -1 && playerIndex < Players.Count)
             {
@@ -933,19 +933,19 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     Players[playerIndex].Name));
             }
 
-            return Task.CompletedTask;
+            return ValueTask.CompletedTask;
         }
 
-        protected virtual Task GetReadyNotificationAsync()
+        protected virtual ValueTask GetReadyNotificationAsync()
         {
             AddNotice("The host wants to start the game but cannot because not all players are ready!".L10N("Client:Main:GetReadyNotification"));
             if (!IsHost && !Players.Find(p => p.Name == ProgramConstants.PLAYERNAME).Ready)
                 sndGetReadySound.Play();
 
-            return Task.CompletedTask;
+            return ValueTask.CompletedTask;
         }
 
-        protected virtual Task InsufficientPlayersNotificationAsync()
+        protected virtual ValueTask InsufficientPlayersNotificationAsync()
         {
             if (GameMode != null && GameMode.MinPlayersOverride > -1)
                 AddNotice(String.Format("Unable to launch game: {0} cannot be played with fewer than {1} players".L10N("Client:Main:InsufficientPlayersNotification1"),
@@ -954,29 +954,29 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 AddNotice(String.Format("Unable to launch game: this map cannot be played with fewer than {0} players.".L10N("Client:Main:InsufficientPlayersNotification2"),
                     Map.MinPlayers));
 
-            return Task.CompletedTask;
+            return ValueTask.CompletedTask;
         }
 
-        protected virtual Task TooManyPlayersNotificationAsync()
+        protected virtual ValueTask TooManyPlayersNotificationAsync()
         {
             if (Map != null)
                 AddNotice(String.Format("Unable to launch game: this map cannot be played with more than {0} players.".L10N("Client:Main:TooManyPlayersNotification"),
                     Map.MaxPlayers));
 
-            return Task.CompletedTask;
+            return ValueTask.CompletedTask;
         }
 
-        public virtual Task ClearAsync()
+        public virtual ValueTask ClearAsync()
         {
             if (!IsHost)
                 AIPlayers.Clear();
 
             Players.Clear();
 
-            return Task.CompletedTask;
+            return ValueTask.CompletedTask;
         }
 
-        protected override async Task OnGameOptionChangedAsync()
+        protected override async ValueTask OnGameOptionChangedAsync()
         {
             await base.OnGameOptionChangedAsync();
 
@@ -984,9 +984,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             CopyPlayerDataToUI();
         }
 
-        protected abstract Task HostLaunchGameAsync();
+        protected abstract ValueTask HostLaunchGameAsync();
 
-        protected override async Task CopyPlayerDataFromUIAsync(object sender)
+        protected override async ValueTask CopyPlayerDataFromUIAsync(object sender)
         {
             if (PlayerUpdatingInProgress)
                 return;
@@ -1115,13 +1115,13 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             }
         }
 
-        protected abstract Task BroadcastPlayerOptionsAsync();
+        protected abstract ValueTask BroadcastPlayerOptionsAsync();
 
-        protected abstract Task BroadcastPlayerExtraOptionsAsync();
+        protected abstract ValueTask BroadcastPlayerExtraOptionsAsync();
 
-        protected abstract Task RequestPlayerOptionsAsync(int side, int color, int start, int team);
+        protected abstract ValueTask RequestPlayerOptionsAsync(int side, int color, int start, int team);
 
-        protected abstract Task RequestReadyStatusAsync();
+        protected abstract ValueTask RequestReadyStatusAsync();
 
         // this public as it is used by the main lobby to notify the user of invitation failure
         public void AddWarning(string message)
@@ -1131,7 +1131,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         protected override bool AllowPlayerOptionsChange() => IsHost;
 
-        protected override async Task ChangeMapAsync(GameModeMap gameModeMap)
+        protected override async ValueTask ChangeMapAsync(GameModeMap gameModeMap)
         {
             await base.ChangeMapAsync(gameModeMap);
 

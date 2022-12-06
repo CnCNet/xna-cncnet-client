@@ -51,7 +51,7 @@ internal sealed record InternetGatewayDevice(IEnumerable<Uri> Locations, string 
         };
     }
 
-    public async ValueTask<ushort> OpenIpV4PortAsync(IPAddress ipAddress, ushort port, CancellationToken cancellationToken = default)
+    public async ValueTask<ushort> OpenIpV4PortAsync(IPAddress ipAddress, ushort port, CancellationToken cancellationToken)
     {
         Logger.Log($"Opening IPV4 UDP port {port} on UPnP device {UPnPDescription.Device.FriendlyName}.");
 
@@ -117,7 +117,7 @@ internal sealed record InternetGatewayDevice(IEnumerable<Uri> Locations, string 
         Logger.Log($"Deleted IPV4 UDP port {port} on UPnP device {UPnPDescription.Device.FriendlyName}.");
     }
 
-    public async ValueTask<IPAddress> GetExternalIpV4AddressAsync(CancellationToken cancellationToken = default)
+    public async ValueTask<IPAddress> GetExternalIpV4AddressAsync(CancellationToken cancellationToken)
     {
         Logger.Log($"Requesting external IP address from UPnP device {UPnPDescription.Device.FriendlyName}.");
 
@@ -150,7 +150,7 @@ internal sealed record InternetGatewayDevice(IEnumerable<Uri> Locations, string 
         return ipAddress;
     }
 
-    public async ValueTask<bool> GetNatRsipStatusAsync(CancellationToken cancellationToken = default)
+    public async ValueTask<bool> GetNatRsipStatusAsync(CancellationToken cancellationToken)
     {
         Logger.Log($"Checking NAT status on UPnP device {UPnPDescription.Device.FriendlyName}.");
 
@@ -183,7 +183,7 @@ internal sealed record InternetGatewayDevice(IEnumerable<Uri> Locations, string 
         return natEnabled;
     }
 
-    public async ValueTask<(bool FirewallEnabled, bool InboundPinholeAllowed)> GetIpV6FirewallStatusAsync(CancellationToken cancellationToken = default)
+    public async ValueTask<(bool FirewallEnabled, bool InboundPinholeAllowed)> GetIpV6FirewallStatusAsync(CancellationToken cancellationToken)
     {
         Logger.Log($"Checking IPV6 firewall status on UPnP device {UPnPDescription.Device.FriendlyName}.");
 
@@ -197,7 +197,7 @@ internal sealed record InternetGatewayDevice(IEnumerable<Uri> Locations, string 
         return (response.FirewallEnabled, response.InboundPinholeAllowed);
     }
 
-    public async Task<ushort> OpenIpV6PortAsync(IPAddress ipAddress, ushort port, CancellationToken cancellationToken = default)
+    public async ValueTask<ushort> OpenIpV6PortAsync(IPAddress ipAddress, ushort port, CancellationToken cancellationToken)
     {
         Logger.Log($"Opening IPV6 UDP port {port} on UPnP device {UPnPDescription.Device.FriendlyName}.");
 

@@ -68,7 +68,6 @@ namespace DTAClient.DXGUI.Multiplayer
         private string localGame;
         private int localGameIndex;
         private GameCollection gameCollection;
-        private List<GameMode> gameModes => mapLoader.GameModes;
         private Socket socket;
         private IPEndPoint endPoint;
         private Encoding encoding;
@@ -243,27 +242,26 @@ namespace DTAClient.DXGUI.Multiplayer
             WindowManager.GameClosing += (_, _) => WindowManager_GameClosingAsync(cancellationTokenSource?.Token ?? default).HandleTask();
         }
 
-        private async Task WindowManager_GameClosingAsync(CancellationToken cancellationToken)
+        private async ValueTask WindowManager_GameClosingAsync(CancellationToken cancellationToken)
         {
             if (socket == null)
                 return;
 
             if (socket.IsBound)
-            {
                 await SendMessageAsync(LANCommands.PLAYER_QUIT_COMMAND, cancellationToken);
-                cancellationTokenSource.Cancel();
-                socket.Close();
-            }
+
+            cancellationTokenSource.Cancel();
+            socket.Close();
         }
 
-        private async Task GameCreationWindow_LoadGameAsync(GameLoadEventArgs e)
+        private async ValueTask GameCreationWindow_LoadGameAsync(GameLoadEventArgs e)
         {
             await lanGameLoadingLobby.SetUpAsync(true, null, e.LoadedGameID);
 
             lanGameLoadingLobby.Enable();
         }
 
-        private async Task GameCreationWindow_NewGameAsync()
+        private async ValueTask GameCreationWindow_NewGameAsync()
         {
             await lanGameLobby.SetUpAsync(true,
                 new IPEndPoint(IPAddress.Loopback, ProgramConstants.LAN_GAME_LOBBY_PORT), null);
@@ -284,7 +282,7 @@ namespace DTAClient.DXGUI.Multiplayer
             UserINISettings.Instance.SaveSettings();
         }
 
-        public async Task OpenAsync()
+        public async ValueTask OpenAsync()
         {
             players.Clear();
             lbPlayerList.Clear();
@@ -334,7 +332,7 @@ namespace DTAClient.DXGUI.Multiplayer
             await SendAliveAsync(cancellationTokenSource.Token);
         }
 
-        private async Task SendMessageAsync(string message, CancellationToken cancellationToken)
+        private async ValueTask SendMessageAsync(string message, CancellationToken cancellationToken)
         {
             try
             {
@@ -356,7 +354,7 @@ namespace DTAClient.DXGUI.Multiplayer
             }
         }
 
-        private async Task ListenAsync(CancellationToken cancellationToken)
+        private async ValueTask ListenAsync(CancellationToken cancellationToken)
         {
             try
             {
@@ -473,7 +471,7 @@ namespace DTAClient.DXGUI.Multiplayer
             }
         }
 
-        private async Task SendAliveAsync(CancellationToken cancellationToken)
+        private async ValueTask SendAliveAsync(CancellationToken cancellationToken)
         {
             StringBuilder sb = new StringBuilder(LANCommands.ALIVE + " ");
             sb.Append(localGameIndex);
@@ -483,7 +481,7 @@ namespace DTAClient.DXGUI.Multiplayer
             timeSinceAliveMessage = TimeSpan.Zero;
         }
 
-        private async Task TbChatInput_EnterPressedAsync(CancellationToken cancellationToken)
+        private async ValueTask TbChatInput_EnterPressedAsync(CancellationToken cancellationToken)
         {
             if (string.IsNullOrEmpty(tbChatInput.Text))
                 return;
@@ -500,7 +498,7 @@ namespace DTAClient.DXGUI.Multiplayer
             tbChatInput.Text = string.Empty;
         }
 
-        private async Task JoinGameAsync()
+        private async ValueTask JoinGameAsync()
         {
             if (lbGameList.SelectedIndex < 0 || lbGameList.SelectedIndex >= lbGameList.Items.Count)
                 return;
@@ -596,7 +594,7 @@ namespace DTAClient.DXGUI.Multiplayer
             }
         }
 
-        private async Task BtnMainMenu_LeftClickAsync()
+        private async ValueTask BtnMainMenu_LeftClickAsync()
         {
             Visible = false;
             Enabled = false;
@@ -606,7 +604,7 @@ namespace DTAClient.DXGUI.Multiplayer
             Exited?.Invoke(this, EventArgs.Empty);
         }
 
-        private async Task BtnNewGame_LeftClickAsync()
+        private async ValueTask BtnNewGame_LeftClickAsync()
         {
             if (!ClientConfiguration.Instance.DisableMultiplayerGameLoading)
                 gameCreationWindow.Open();

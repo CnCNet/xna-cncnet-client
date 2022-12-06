@@ -290,7 +290,7 @@ namespace DTAClient.DXGUI.Generic
             downTime = TimeSpan.FromSeconds(DOWN_TIME_WAIT_SECONDS - EVENT_DOWN_TIME_WAIT_SECONDS);
         }
 
-        private async Task BtnLogout_LeftClickAsync()
+        private async ValueTask BtnLogout_LeftClickAsync()
         {
             await connectionManager.DisconnectAsync();
             LogoutEvent?.Invoke(this, null);
