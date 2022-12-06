@@ -27,7 +27,7 @@ namespace ClientCore
             var baseResourceDirectory = SafePath.GetDirectory(ProgramConstants.GetBaseResourcePath());
 
             if (!baseResourceDirectory.Exists)
-                throw new FileNotFoundException($"Couldn't find {CLIENT_DEFS} at {baseResourceDirectory}. Please verify that you're running the client from the correct directory.");
+                throw new FileNotFoundException($"Couldn't find {CLIENT_DEFS} at {baseResourceDirectory} (directory doesn't exist). Please verify that you're running the client from the correct directory.");
 
             FileInfo clientDefinitionsFile = SafePath.GetFile(baseResourceDirectory.FullName, CLIENT_DEFS);
 
