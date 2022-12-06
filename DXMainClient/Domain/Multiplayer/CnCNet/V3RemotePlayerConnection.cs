@@ -14,6 +14,10 @@ namespace DTAClient.Domain.Multiplayer.CnCNet;
 /// </summary>
 internal sealed class V3RemotePlayerConnection : IDisposable
 {
+    private const int SendTimeout = 10000;
+    private const int GameStartReceiveTimeout = 60000;
+    private const int ReceiveTimeout = 60000;
+
     private uint gameLocalPlayerId;
     private CancellationToken cancellationToken;
     private Socket tunnelSocket;
@@ -28,12 +32,24 @@ internal sealed class V3RemotePlayerConnection : IDisposable
         this.localPort = localPort;
     }
 
+    /// <summary>
+    /// Occurs when the connection to the remote host succeeded.
+    /// </summary>
     public event EventHandler RaiseConnectedEvent;
 
+    /// <summary>
+    /// Occurs when the connection to the remote host could not be made.
+    /// </summary>
     public event EventHandler RaiseConnectionFailedEvent;
 
+    /// <summary>
+    /// Occurs when the connection to the remote host was lost.
+    /// </summary>
     public event EventHandler RaiseConnectionCutEvent;
 
+    /// <summary>
+    /// Occurs when game data from the remote host was received.
+    /// </summary>
     public event EventHandler<GameDataReceivedEventArgs> RaiseGameDataReceivedEvent;
 
     /// <summary>
@@ -47,29 +63,22 @@ internal sealed class V3RemotePlayerConnection : IDisposable
         Logger.Log($"Attempting to establish a connection using {localPort}).");
 #endif
 
-        tunnelSocket = new Socket(SocketType.Dgram, ProtocolType.Udp)
-        {
-            SendTimeout = Constants.TUNNEL_CONNECTION_TIMEOUT,
-            ReceiveTimeout = Constants.TUNNEL_CONNECTION_TIMEOUT
-        };
+        tunnelSocket = new Socket(SocketType.Dgram, ProtocolType.Udp);
 
         tunnelSocket.Bind(new IPEndPoint(IPAddress.IPv6Any, localPort));
 
+        using IMemoryOwner<byte> memoryOwner = MemoryPool<byte>.Shared.Rent(50);
+        Memory<byte> buffer = memoryOwner.Memory[..50];
+
+        if (!BitConverter.TryWriteBytes(buffer.Span[..4], gameLocalPlayerId))
+            throw new GameDataException();
+
+        using var timeoutCancellationTokenSource = new CancellationTokenSource(SendTimeout);
+        using var linkedCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(timeoutCancellationTokenSource.Token, cancellationToken);
+
         try
         {
-            using IMemoryOwner<byte> memoryOwner = MemoryPool<byte>.Shared.Rent(50);
-            Memory<byte> buffer = memoryOwner.Memory[..50];
-
-            if (!BitConverter.TryWriteBytes(buffer.Span[..4], gameLocalPlayerId))
-                throw new Exception();
-
-            await tunnelSocket.SendToAsync(buffer, SocketFlags.None, remoteEndPoint, cancellationToken);
-#if DEBUG
-            Logger.Log($"Connection from {tunnelSocket.LocalEndPoint} to {remoteEndPoint} established.");
-#else
-            Logger.Log($"Connection using {localPort} established.");
-#endif
-            OnRaiseConnectedEvent(EventArgs.Empty);
+            await tunnelSocket.SendToAsync(buffer, SocketFlags.None, remoteEndPoint, linkedCancellationTokenSource.Token);
         }
         catch (SocketException ex)
         {
@@ -79,15 +88,31 @@ internal sealed class V3RemotePlayerConnection : IDisposable
             ProgramConstants.LogException(ex, $"Failed to establish connection using {localPort}.");
 #endif
             OnRaiseConnectionFailedEvent(EventArgs.Empty);
+
+            return;
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
             return;
         }
         catch (OperationCanceledException)
         {
+#if DEBUG
+            Logger.Log($"Failed to establish connection (time out) from port {localPort} to {remoteEndPoint}.");
+#else
+            Logger.Log($"Failed to establish connection (time out) using {localPort}.");
+#endif
+            OnRaiseConnectionFailedEvent(EventArgs.Empty);
+
             return;
         }
 
-        tunnelSocket.ReceiveTimeout = Constants.TUNNEL_RECEIVE_TIMEOUT;
-
+#if DEBUG
+        Logger.Log($"Connection from {tunnelSocket.LocalEndPoint} to {remoteEndPoint} established.");
+#else
+        Logger.Log($"Connection using {localPort} established.");
+#endif
+        OnRaiseConnectedEvent(EventArgs.Empty);
         await ReceiveLoopAsync();
     }
 
@@ -108,81 +133,40 @@ internal sealed class V3RemotePlayerConnection : IDisposable
         Memory<byte> packet = memoryOwner.Memory[..bufferSize];
 
         if (!BitConverter.TryWriteBytes(packet.Span[..4], gameLocalPlayerId))
-            throw new Exception();
+            throw new GameDataException();
 
         if (!BitConverter.TryWriteBytes(packet.Span[4..8], receiverId))
-            throw new Exception();
+            throw new GameDataException();
 
         data.CopyTo(packet[8..]);
 
+        using var timeoutCancellationTokenSource = new CancellationTokenSource(SendTimeout);
+        using var linkedCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(timeoutCancellationTokenSource.Token, cancellationToken);
+
         try
         {
-            await tunnelSocket.SendToAsync(packet, SocketFlags.None, remoteEndPoint, cancellationToken);
-        }
-        catch (OperationCanceledException)
-        {
-        }
-    }
-
-    private async ValueTask ReceiveLoopAsync()
-    {
-        try
-        {
-            using IMemoryOwner<byte> memoryOwner = MemoryPool<byte>.Shared.Rent(4096);
-
-#if DEBUG
-            Logger.Log($"Start listening for {remoteEndPoint} on {tunnelSocket.LocalEndPoint}.");
-#else
-            Logger.Log($"Start listening on {localPort}.");
-#endif
-
-            while (!cancellationToken.IsCancellationRequested)
-            {
-                Memory<byte> buffer = memoryOwner.Memory[..1024];
-                SocketReceiveFromResult socketReceiveFromResult = await tunnelSocket.ReceiveFromAsync(buffer, SocketFlags.None, remoteEndPoint, cancellationToken);
-
-                if (socketReceiveFromResult.ReceivedBytes < 8)
-                {
-#if DEBUG
-                    Logger.Log($"Invalid data packet from {remoteEndPoint}");
-#else
-                    Logger.Log($"Invalid data packet on {localPort}");
-#endif
-                    continue;
-                }
-
-                Memory<byte> data = buffer[8..socketReceiveFromResult.ReceivedBytes];
-                uint senderId = BitConverter.ToUInt32(buffer[..4].Span);
-                uint receiverId = BitConverter.ToUInt32(buffer[4..8].Span);
-
-#if DEBUG
-                Logger.Log($"Received {senderId} -> {receiverId} from {remoteEndPoint} on {tunnelSocket.LocalEndPoint}.");
-
-#endif
-                if (receiverId != gameLocalPlayerId)
-                {
-#if DEBUG
-                    Logger.Log($"Invalid target (received: {receiverId}, expected: {gameLocalPlayerId}) from {remoteEndPoint}.");
-#else
-                    Logger.Log($"Invalid target (received: {receiverId}, expected: {gameLocalPlayerId}) on port {localPort}.");
-#endif
-                    continue;
-                }
-
-                OnRaiseGameDataReceivedEvent(new(senderId, data));
-            }
+            await tunnelSocket.SendToAsync(packet, SocketFlags.None, remoteEndPoint, linkedCancellationTokenSource.Token);
         }
         catch (SocketException ex)
         {
 #if DEBUG
-            ProgramConstants.LogException(ex, $"Socket exception in {remoteEndPoint} receive loop.");
+            ProgramConstants.LogException(ex, $"Socket exception sending data to {remoteEndPoint}.");
 #else
-            ProgramConstants.LogException(ex, $"Socket exception on port {localPort} receive loop.");
+            ProgramConstants.LogException(ex, $"Socket exception sending data from port {localPort}.");
 #endif
             OnRaiseConnectionCutEvent(EventArgs.Empty);
         }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+        }
         catch (OperationCanceledException)
         {
+#if DEBUG
+            Logger.Log($"Remote host connection {remoteEndPoint} timed out when sending data.");
+#else
+            Logger.Log($"Remote host connection from port {localPort} timed out when sending data.");
+#endif
+            OnRaiseConnectionCutEvent(EventArgs.Empty);
         }
     }
 
@@ -193,7 +177,90 @@ internal sealed class V3RemotePlayerConnection : IDisposable
 #else
         Logger.Log($"Connection to remote host on port {localPort} closed.");
 #endif
-        tunnelSocket?.Dispose();
+        tunnelSocket?.Close();
+    }
+
+    private async ValueTask ReceiveLoopAsync()
+    {
+        using IMemoryOwner<byte> memoryOwner = MemoryPool<byte>.Shared.Rent(4096);
+        int receiveTimeout = GameStartReceiveTimeout;
+
+#if DEBUG
+        Logger.Log($"Start listening for {remoteEndPoint} on {tunnelSocket.LocalEndPoint}.");
+#else
+        Logger.Log($"Start listening on {localPort}.");
+#endif
+
+        while (!cancellationToken.IsCancellationRequested)
+        {
+            Memory<byte> buffer = memoryOwner.Memory[..1024];
+            SocketReceiveFromResult socketReceiveFromResult;
+            using var timeoutCancellationTokenSource = new CancellationTokenSource(receiveTimeout);
+            using var linkedCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(timeoutCancellationTokenSource.Token, cancellationToken);
+
+            try
+            {
+                socketReceiveFromResult = await tunnelSocket.ReceiveFromAsync(buffer, SocketFlags.None, remoteEndPoint, linkedCancellationTokenSource.Token);
+            }
+            catch (SocketException ex)
+            {
+#if DEBUG
+                ProgramConstants.LogException(ex, $"Socket exception in {remoteEndPoint} receive loop.");
+#else
+                ProgramConstants.LogException(ex, $"Socket exception on port {localPort} receive loop.");
+#endif
+                OnRaiseConnectionCutEvent(EventArgs.Empty);
+
+                return;
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                return;
+            }
+            catch (OperationCanceledException)
+            {
+#if DEBUG
+                Logger.Log($"Remote host connection {remoteEndPoint} timed out when receiving data.");
+#else
+                Logger.Log($"Remote host connection on port {localPort} timed out when receiving data.");
+#endif
+                OnRaiseConnectionCutEvent(EventArgs.Empty);
+
+                return;
+            }
+
+            receiveTimeout = ReceiveTimeout;
+
+            if (socketReceiveFromResult.ReceivedBytes < 8)
+            {
+#if DEBUG
+                Logger.Log($"Invalid data packet from {socketReceiveFromResult.RemoteEndPoint}");
+#else
+                Logger.Log($"Invalid data packet on {localPort}");
+#endif
+                continue;
+            }
+
+            Memory<byte> data = buffer[8..socketReceiveFromResult.ReceivedBytes];
+            uint senderId = BitConverter.ToUInt32(buffer[..4].Span);
+            uint receiverId = BitConverter.ToUInt32(buffer[4..8].Span);
+
+#if DEBUG
+            Logger.Log($"Received {senderId} -> {receiverId} from {socketReceiveFromResult.RemoteEndPoint} on {tunnelSocket.LocalEndPoint}.");
+
+#endif
+            if (receiverId != gameLocalPlayerId)
+            {
+#if DEBUG
+                Logger.Log($"Invalid target (received: {receiverId}, expected: {gameLocalPlayerId}) from {socketReceiveFromResult.RemoteEndPoint}.");
+#else
+                Logger.Log($"Invalid target (received: {receiverId}, expected: {gameLocalPlayerId}) on port {localPort}.");
+#endif
+                continue;
+            }
+
+            OnRaiseGameDataReceivedEvent(new(senderId, data));
+        }
     }
 
     private void OnRaiseConnectedEvent(EventArgs e)

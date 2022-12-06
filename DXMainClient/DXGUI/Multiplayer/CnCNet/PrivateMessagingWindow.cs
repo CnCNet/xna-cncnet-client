@@ -518,7 +518,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         private int FindItemIndexForName(string userName) => lbUserList.Items.FindIndex(MatchItemForName(userName));
 
-        private async Task TbMessageInput_EnterPressedAsync()
+        private async ValueTask TbMessageInput_EnterPressedAsync()
         {
             if (string.IsNullOrEmpty(tbMessageInput.Text))
                 return;

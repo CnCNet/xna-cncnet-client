@@ -4,6 +4,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
+using ClientCore;
 using Rampastring.Tools;
 
 namespace DTAClient.Domain.Multiplayer.CnCNet;
@@ -13,19 +14,24 @@ namespace DTAClient.Domain.Multiplayer.CnCNet;
 /// </summary>
 internal sealed class V3LocalPlayerConnection : IDisposable
 {
-    private const int Timeout = 60000;
     private const uint IOC_IN = 0x80000000;
     private const uint IOC_VENDOR = 0x18000000;
     private const uint SIO_UDP_CONNRESET = IOC_IN | IOC_VENDOR | 12;
+    private const int SendTimeout = 10000;
+    private const int GameStartReceiveTimeout = 60000;
+    private const int ReceiveTimeout = 10000;
 
     private Socket localGameSocket;
     private EndPoint remotePlayerEndPoint;
     private CancellationToken cancellationToken;
     private uint playerId;
 
-    public ushort PortNumber { get; private set; }
-
-    public void Setup(uint playerId, CancellationToken cancellationToken)
+    /// <summary>
+    /// Creates a local game socket and returns the port.
+    /// </summary>
+    /// <param name="playerId">The id of the player for which to create the local game socket.</param>
+    /// <returns>The port of the created socket.</returns>
+    public ushort Setup(uint playerId, CancellationToken cancellationToken)
     {
         this.cancellationToken = cancellationToken;
         this.playerId = playerId;
@@ -37,47 +43,83 @@ internal sealed class V3LocalPlayerConnection : IDisposable
 
         localGameSocket.Bind(new IPEndPoint(IPAddress.Loopback, 0));
 
-        PortNumber = (ushort)((IPEndPoint)localGameSocket.LocalEndPoint).Port;
+        return (ushort)((IPEndPoint)localGameSocket.LocalEndPoint).Port;
     }
 
+    /// <summary>
+    /// Occurs when the connection to the local game was lost.
+    /// </summary>
+    public event EventHandler RaiseConnectionCutEvent;
+
+    /// <summary>
+    /// Occurs when game data from the local game was received.
+    /// </summary>
     public event EventHandler<GameDataReceivedEventArgs> RaiseGameDataReceivedEvent;
 
     /// <summary>
     /// Starts listening for local game player data and forwards it to the tunnel.
     /// </summary>
-    /// <param name="gamePort">The game UDP port to listen on.</param>
-    public async ValueTask StartConnectionAsync(int gamePort)
+    public async ValueTask StartConnectionAsync()
     {
-        remotePlayerEndPoint = new IPEndPoint(IPAddress.Loopback, gamePort);
+        remotePlayerEndPoint = new IPEndPoint(IPAddress.Loopback, 0);
 
         using IMemoryOwner<byte> memoryOwner = MemoryPool<byte>.Shared.Rent(128);
         Memory<byte> buffer = memoryOwner.Memory[..128];
-
-        localGameSocket.ReceiveTimeout = Timeout;
+        int receiveTimeout = GameStartReceiveTimeout;
 
 #if DEBUG
-        Logger.Log($"Start listening for local game {remotePlayerEndPoint} on {localGameSocket.LocalEndPoint}.");
+        Logger.Log($"Start listening for local game {remotePlayerEndPoint} on {localGameSocket.LocalEndPoint} for player {playerId}.");
 #else
-        Logger.Log($"Start listening for local game player {playerId}.");
+        Logger.Log($"Start listening for local game for player {playerId}.");
 #endif
-        try
+
+        while (!cancellationToken.IsCancellationRequested)
         {
-            while (!cancellationToken.IsCancellationRequested)
+            using var timeoutCancellationTokenSource = new CancellationTokenSource(receiveTimeout);
+            using var linkedCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(timeoutCancellationTokenSource.Token, cancellationToken);
+            Memory<byte> data;
+
+            try
             {
-                SocketReceiveFromResult socketReceiveFromResult = await localGameSocket.ReceiveFromAsync(buffer, SocketFlags.None, remotePlayerEndPoint, cancellationToken);
-                Memory<byte> data = buffer[..socketReceiveFromResult.ReceivedBytes];
+                SocketReceiveFromResult socketReceiveFromResult = await localGameSocket.ReceiveFromAsync(buffer, SocketFlags.None, remotePlayerEndPoint, linkedCancellationTokenSource.Token);
+
+                remotePlayerEndPoint = socketReceiveFromResult.RemoteEndPoint;
+                data = buffer[..socketReceiveFromResult.ReceivedBytes];
 
 #if DEBUG
-                Logger.Log($"Received data from local game {socketReceiveFromResult.RemoteEndPoint} on {localGameSocket.LocalEndPoint}.");
+                Logger.Log($"Received data from local game {socketReceiveFromResult.RemoteEndPoint} on {localGameSocket.LocalEndPoint} for player {playerId}.");
 #endif
-                OnRaiseGameDataReceivedEvent(new(playerId, data));
             }
-        }
-        catch (SocketException)
-        {
-        }
-        catch (OperationCanceledException)
-        {
+            catch (SocketException ex)
+            {
+#if DEBUG
+                ProgramConstants.LogException(ex, $"Socket exception in {remotePlayerEndPoint} receive loop for player {playerId}.");
+#else
+                ProgramConstants.LogException(ex, $"Socket exception in receive loop for player {playerId}.");
+#endif
+                OnRaiseConnectionCutEvent(EventArgs.Empty);
+
+                return;
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                return;
+            }
+            catch (OperationCanceledException)
+            {
+#if DEBUG
+                Logger.Log($"Local game connection {localGameSocket.LocalEndPoint} timed out for player {playerId} when receiving data.");
+#else
+                Logger.Log($"Local game connection timed out for player {playerId} when receiving data.");
+#endif
+                OnRaiseConnectionCutEvent(EventArgs.Empty);
+
+                return;
+            }
+
+            receiveTimeout = ReceiveTimeout;
+
+            OnRaiseGameDataReceivedEvent(new(playerId, data));
         }
     }
 
@@ -88,26 +130,57 @@ internal sealed class V3LocalPlayerConnection : IDisposable
     public async ValueTask SendDataAsync(ReadOnlyMemory<byte> data)
     {
 #if DEBUG
-        Logger.Log($"Sending data from {localGameSocket.LocalEndPoint} to local game {remotePlayerEndPoint}.");
+        Logger.Log($"Sending data from {localGameSocket.LocalEndPoint} to local game {remotePlayerEndPoint} for player {playerId}.");
 
 #endif
+        if (remotePlayerEndPoint is null)
+            return;
+
+        using var timeoutCancellationTokenSource = new CancellationTokenSource(SendTimeout);
+        using var linkedCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(timeoutCancellationTokenSource.Token, cancellationToken);
+
         try
         {
-            await localGameSocket.SendToAsync(data, SocketFlags.None, remotePlayerEndPoint, cancellationToken);
+            await localGameSocket.SendToAsync(data, SocketFlags.None, remotePlayerEndPoint, linkedCancellationTokenSource.Token);
+        }
+        catch (SocketException ex)
+        {
+#if DEBUG
+            ProgramConstants.LogException(ex, $"Socket exception sending data to {remotePlayerEndPoint} for player {playerId}.");
+#else
+            ProgramConstants.LogException(ex, $"Socket exception sending data for player {playerId}.");
+#endif
+            OnRaiseConnectionCutEvent(EventArgs.Empty);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
         }
         catch (OperationCanceledException)
         {
+#if DEBUG
+            Logger.Log($"Local game connection {localGameSocket.LocalEndPoint} timed out for player {playerId} when sending data.");
+#else
+            Logger.Log($"Local game connection timed out for player {playerId} when sending data.");
+#endif
+            OnRaiseConnectionCutEvent(EventArgs.Empty);
         }
     }
 
     public void Dispose()
     {
 #if DEBUG
-        Logger.Log($"Connection to local game {localGameSocket.RemoteEndPoint} closed.");
+        Logger.Log($"Connection to local game {remotePlayerEndPoint} closed for player {playerId}.");
 #else
-        Logger.Log($"Connection to local game for player {playerId} closed.");
+        Logger.Log($"Connection to local game closed for player {playerId}.");
 #endif
-        localGameSocket.Dispose();
+        localGameSocket.Close();
+    }
+
+    private void OnRaiseConnectionCutEvent(EventArgs e)
+    {
+        EventHandler raiseEvent = RaiseConnectionCutEvent;
+
+        raiseEvent?.Invoke(this, e);
     }
 
     private void OnRaiseGameDataReceivedEvent(GameDataReceivedEventArgs e)

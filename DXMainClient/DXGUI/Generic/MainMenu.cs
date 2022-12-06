@@ -523,9 +523,9 @@ namespace DTAClient.DXGUI.Generic
         }
 
         /// <summary>
-        /// Attemps to "clean" the client session in a nice way if the user closes the game.
+        /// Attempts to "clean" the client session in a nice way if the user closes the game.
         /// </summary>
-        private async Task CleanAsync()
+        private async ValueTask CleanAsync()
         {
             Updater.FileIdentifiersUpdated -= Updater_FileIdentifiersUpdated;
 
@@ -832,7 +832,7 @@ namespace DTAClient.DXGUI.Generic
         private void BtnLoadGame_LeftClick(object sender, EventArgs e)
             => innerPanel.Show(innerPanel.GameLoadingWindow);
 
-        private async Task BtnLan_LeftClickAsync()
+        private async ValueTask BtnLan_LeftClickAsync()
         {
             await lanLobby.OpenAsync();
 

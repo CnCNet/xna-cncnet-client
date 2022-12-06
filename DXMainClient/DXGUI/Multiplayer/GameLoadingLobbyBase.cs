@@ -219,12 +219,12 @@ namespace DTAClient.DXGUI.Multiplayer
         /// </summary>
         private void ResetDiscordPresence() => discordHandler.UpdatePresence();
 
-        protected virtual Task LeaveGameAsync()
+        protected virtual ValueTask LeaveGameAsync()
         {
             GameLeft?.Invoke(this, EventArgs.Empty);
             ResetDiscordPresence();
 
-            return Task.CompletedTask;
+            return ValueTask.CompletedTask;
         }
 
         private void fsw_Created(object sender, FileSystemEventArgs e) =>
@@ -240,7 +240,7 @@ namespace DTAClient.DXGUI.Multiplayer
             }
         }
 
-        private async Task BtnLoadGame_LeftClickAsync()
+        private async ValueTask BtnLoadGame_LeftClickAsync()
         {
             if (!IsHost)
             {
@@ -263,9 +263,9 @@ namespace DTAClient.DXGUI.Multiplayer
             await HostStartGameAsync();
         }
 
-        protected abstract Task RequestReadyStatusAsync();
+        protected abstract ValueTask RequestReadyStatusAsync();
 
-        protected virtual Task GetReadyNotificationAsync()
+        protected virtual ValueTask GetReadyNotificationAsync()
         {
             AddNotice("The game host wants to load the game but cannot because not all players are ready!".L10N("UI:Main:GetReadyPlease"));
 
@@ -275,16 +275,16 @@ namespace DTAClient.DXGUI.Multiplayer
 
             WindowManager.FlashWindow();
 #endif
-            return Task.CompletedTask;
+            return ValueTask.CompletedTask;
         }
 
-        protected virtual Task NotAllPresentNotificationAsync()
+        protected virtual ValueTask NotAllPresentNotificationAsync()
         {
             AddNotice("You cannot load the game before all players are present.".L10N("UI:Main:NotAllPresent"));
-            return Task.CompletedTask;
+            return ValueTask.CompletedTask;
         }
 
-        protected abstract Task HostStartGameAsync();
+        protected abstract ValueTask HostStartGameAsync();
 
         protected void LoadGame()
         {
@@ -348,7 +348,7 @@ namespace DTAClient.DXGUI.Multiplayer
 
         private void SharedUILogic_GameProcessExited() => AddCallback(() => HandleGameProcessExitedAsync().HandleTask());
 
-        protected virtual Task HandleGameProcessExitedAsync()
+        protected virtual ValueTask HandleGameProcessExitedAsync()
         {
             fsw.EnableRaisingEvents = false;
 
@@ -371,7 +371,7 @@ namespace DTAClient.DXGUI.Multiplayer
 
             UpdateDiscordPresence(true);
 
-            return Task.CompletedTask;
+            return ValueTask.CompletedTask;
         }
 
         protected virtual void WriteSpawnIniAdditions(IniFile spawnIni)
@@ -477,7 +477,7 @@ namespace DTAClient.DXGUI.Multiplayer
             }
         }
 
-        private async Task DdSavedGame_SelectedIndexChangedAsync()
+        private async ValueTask DdSavedGame_SelectedIndexChangedAsync()
         {
             if (!IsHost)
                 return;
@@ -492,7 +492,7 @@ namespace DTAClient.DXGUI.Multiplayer
             UpdateDiscordPresence();
         }
 
-        private async Task TbChatInput_EnterPressedAsync()
+        private async ValueTask TbChatInput_EnterPressedAsync()
         {
             if (string.IsNullOrEmpty(tbChatInput.Text))
                 return;
@@ -505,9 +505,9 @@ namespace DTAClient.DXGUI.Multiplayer
         /// Override in a derived class to broadcast player ready statuses and the selected
         /// saved game to players.
         /// </summary>
-        protected abstract Task BroadcastOptionsAsync();
+        protected abstract ValueTask BroadcastOptionsAsync();
 
-        protected abstract Task SendChatMessageAsync(string message);
+        protected abstract ValueTask SendChatMessageAsync(string message);
 
         public override void Draw(GameTime gameTime)
         {

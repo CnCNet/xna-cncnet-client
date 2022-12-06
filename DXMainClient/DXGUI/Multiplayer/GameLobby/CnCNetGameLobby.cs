@@ -40,6 +40,7 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
     private const int PRIORITY_START_GAME = 10;
     private const int PINNED_DYNAMIC_TUNNELS = 10;
     private const int P2P_PING_TIMEOUT = 1000;
+    private const ushort MAX_REMOTE_PLAYERS = 7;
 
     private static readonly Color ERROR_MESSAGE_COLOR = Color.Yellow;
 
@@ -55,7 +56,7 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
     private readonly List<string> chatCommandDownloadedMaps = new();
     private readonly List<(string RemotePlayerName, CnCNetTunnel Tunnel, int CombinedPing)> playerTunnels = new();
     private readonly List<(List<string> RemotePlayerNames, V3GameTunnelHandler Tunnel)> v3GameTunnelHandlers = new();
-    private readonly List<(string RemotePlayerName, ushort[] RemotePorts, List<(IPAddress RemoteIpAddress, long Ping)> LocalPingResults, List<(IPAddress RemoteIpAddress, long Ping)> RemotePingResults, bool Enabled)> p2pPlayers = new();
+    private readonly List<P2PPlayer> p2pPlayers = new();
 
     private TunnelSelectionWindow tunnelSelectionWindow;
     private XNAClientButton btnChangeTunnel;
@@ -292,7 +293,7 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
     private void BtnChangeTunnel_LeftClick(object sender, EventArgs e)
         => ShowTunnelSelectionWindow("Select tunnel server:".L10N("UI:Main:SelectTunnelServer"));
 
-    public async Task SetUpAsync(
+    public async ValueTask SetUpAsync(
         Channel channel,
         bool isHost,
         int playerLimit,
@@ -349,7 +350,7 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
         Refresh(isHost);
     }
 
-    public async Task OnJoinedAsync()
+    public async ValueTask OnJoinedAsync()
     {
         var fhc = new FileHashCalculator();
 
@@ -372,7 +373,7 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
         if (IsHost)
         {
             await connectionManager.SendCustomMessageAsync(new(
-                FormattableString.Invariant($"{IRCCommands.MODE} {channel.ChannelName} +klnNs {channel.Password} {playerLimit}"),
+                FormattableString.Invariant($"{IRCCommands.MODE} {channel.ChannelName} +{IRCChannelModes.DEFAULT} {channel.Password} {playerLimit}"),
                 QueuedMessageType.SYSTEM_MESSAGE,
                 50));
 
@@ -405,7 +406,7 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
         UpdateDiscordPresence(true);
     }
 
-    private async Task UpdatePingAsync()
+    private async ValueTask UpdatePingAsync()
     {
         int ping;
 
@@ -460,7 +461,7 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
     private void ShowTunnelSelectionWindow(string description)
         => tunnelSelectionWindow.Open(description, tunnelHandler.CurrentTunnel);
 
-    private async Task TunnelSelectionWindow_TunnelSelectedAsync(TunnelEventArgs e)
+    private async ValueTask TunnelSelectionWindow_TunnelSelectedAsync(TunnelEventArgs e)
     {
         await channel.SendCTCPMessageAsync(
             $"{CnCNetCommands.CHANGE_TUNNEL_SERVER} {e.Tunnel.Hash}",
@@ -475,7 +476,7 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
         tbChatInput.TextColor = chatColor.XnaColor;
     }
 
-    public override async Task ClearAsync()
+    public override async ValueTask ClearAsync()
     {
         await base.ClearAsync();
 
@@ -520,14 +521,12 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
         CloseP2PPortsAsync().HandleTask();
     }
 
-    private async Task CloseP2PPortsAsync()
+    private async ValueTask CloseP2PPortsAsync()
     {
         try
         {
             foreach (ushort p2pPort in p2pPorts)
-            {
                 await internetGatewayDevice.CloseIpV4PortAsync(p2pPort);
-            }
         }
         catch (Exception ex)
         {
@@ -541,9 +540,7 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
         try
         {
             foreach (ushort p2pIpV6PortId in p2pIpV6PortIds)
-            {
                 await internetGatewayDevice.CloseIpV6PortAsync(p2pIpV6PortId);
-            }
         }
         catch (Exception ex)
         {
@@ -555,7 +552,7 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
         }
     }
 
-    public async Task LeaveGameLobbyAsync()
+    public async ValueTask LeaveGameLobbyAsync()
     {
         if (IsHost)
         {
@@ -567,7 +564,7 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
         await channel.LeaveAsync();
     }
 
-    private async Task HandleConnectionLossAsync()
+    private async ValueTask HandleConnectionLossAsync()
     {
         await ClearAsync();
         Disable();
@@ -590,7 +587,7 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
         }
     }
 
-    protected override Task BtnLeaveGame_LeftClickAsync()
+    protected override ValueTask BtnLeaveGame_LeftClickAsync()
         => LeaveGameLobbyAsync();
 
     protected override void UpdateDiscordPresence(bool resetTimer = false)
@@ -624,7 +621,7 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
             resetTimer);
     }
 
-    private async Task ChannelUserLeftAsync(UserNameEventArgs e)
+    private async ValueTask ChannelUserLeftAsync(UserNameEventArgs e)
     {
         await RemovePlayerAsync(e.UserName);
 
@@ -640,7 +637,7 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
         }
     }
 
-    private async Task Channel_UserKickedAsync(UserNameEventArgs e)
+    private async ValueTask Channel_UserKickedAsync(UserNameEventArgs e)
     {
         if (e.UserName == ProgramConstants.PLAYERNAME)
         {
@@ -669,7 +666,7 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
         }
     }
 
-    private async Task Channel_UserListReceivedAsync()
+    private async ValueTask Channel_UserListReceivedAsync()
     {
         if (!IsHost)
         {
@@ -684,7 +681,7 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
         UpdateDiscordPresence();
     }
 
-    private async Task Channel_UserAddedAsync(ChannelUserEventArgs e)
+    private async ValueTask Channel_UserAddedAsync(ChannelUserEventArgs e)
     {
         var pInfo = new PlayerInfo(e.User.IRCUser.Name);
 
@@ -732,7 +729,7 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
         }
     }
 
-    private async Task RemovePlayerAsync(string playerName)
+    private async ValueTask RemovePlayerAsync(string playerName)
     {
         AbortGameStart();
 
@@ -813,7 +810,7 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
     /// <summary>
     /// Starts the game for the game host.
     /// </summary>
-    protected override async Task HostLaunchGameAsync()
+    protected override async ValueTask HostLaunchGameAsync()
     {
         if (Players.Count > 1)
         {
@@ -837,7 +834,7 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
         await StartGameAsync();
     }
 
-    private async Task HostLaunchGameV2Async()
+    private async ValueTask HostLaunchGameV2Async()
     {
         List<int> playerPorts = await tunnelHandler.CurrentTunnel.GetPlayerPortInfoAsync(Players.Count);
 
@@ -878,7 +875,7 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
         return sb.ToString();
     }
 
-    private async Task HostLaunchGameV3Async()
+    private async ValueTask HostLaunchGameV3Async()
     {
         btnLaunchGame.InputEnabled = false;
 
@@ -950,16 +947,16 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
         v3GameTunnelHandlers.Clear();
         gameStartCancellationTokenSource?.Dispose();
 
-        gameStartCancellationTokenSource = new CancellationTokenSource();
+        gameStartCancellationTokenSource = new();
 
         if (!dynamicTunnelsEnabled)
         {
             var gameTunnelHandler = new V3GameTunnelHandler();
 
-            gameTunnelHandler.RaiseConnectedEvent += (_, _) => AddCallback(() => GameTunnelHandler_Connected_CallbackAsync().HandleTask());
-            gameTunnelHandler.RaiseConnectionFailedEvent += (_, _) => AddCallback(() => GameTunnelHandler_ConnectionFailed_CallbackAsync().HandleTask());
+            gameTunnelHandler.RaiseRemoteHostConnectedEvent += (_, _) => AddCallback(() => GameTunnelHandler_Connected_CallbackAsync().HandleTask());
+            gameTunnelHandler.RaiseRemoteHostConnectionFailedEvent += (_, _) => AddCallback(() => GameTunnelHandler_ConnectionFailed_CallbackAsync().HandleTask());
 
-            gameTunnelHandler.SetUp(new IPEndPoint(tunnelHandler.CurrentTunnel.IPAddress, tunnelHandler.CurrentTunnel.Port), 0, gameLocalPlayerId, gameStartCancellationTokenSource.Token);
+            gameTunnelHandler.SetUp(new(tunnelHandler.CurrentTunnel.IPAddress, tunnelHandler.CurrentTunnel.Port), 0, gameLocalPlayerId, gameStartCancellationTokenSource.Token);
             gameTunnelHandler.ConnectToTunnel();
             v3GameTunnelHandlers.Add(new(Players.Where(q => q != FindLocalPlayer()).Select(q => q.Name).ToList(), gameTunnelHandler));
         }
@@ -972,21 +969,24 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
                 foreach (var (remotePlayerName, remotePorts, localPingResults, remotePingResults, _) in p2pPlayers.Where(q => q.RemotePingResults.Any() && q.Enabled))
                 {
                     IEnumerable<(IPAddress IpAddress, long CombinedPing)> combinedPingResults = localPingResults.Select(q => (q.RemoteIpAddress, q.Ping + remotePingResults.SingleOrDefault(r => r.RemoteIpAddress.Equals(q.RemoteIpAddress)).Ping));
-                    (IPAddress ipAddress, long combinedPing) = combinedPingResults.OrderByDescending(q => q.IpAddress.AddressFamily is AddressFamily.InterNetworkV6).MinBy(q => q.CombinedPing);
+                    (IPAddress ipAddress, long combinedPing) = combinedPingResults.OrderBy(q => q.CombinedPing).ThenByDescending(q => q.IpAddress.AddressFamily is AddressFamily.InterNetworkV6).First();
 
                     if (combinedPing < playerTunnels.Single(q => q.RemotePlayerName.Equals(remotePlayerName, StringComparison.OrdinalIgnoreCase)).CombinedPing)
                     {
-                        int index = Players.Where(q => q != FindLocalPlayer()).OrderBy(q => q.Name).ToList().FindIndex(q => q.Name.Equals(remotePlayerName, StringComparison.OrdinalIgnoreCase));
-                        ushort localPort = p2pPorts[6 - index];
-                        ushort remotePort = remotePorts[6 - index];
+                        var allPlayerNames = Players.Select(q => q.Name).OrderBy(q => q, StringComparer.OrdinalIgnoreCase).ToList();
+                        string localPlayerName = FindLocalPlayer().Name;
+                        var remotePlayerNames = allPlayerNames.Where(q => !q.Equals(localPlayerName, StringComparison.OrdinalIgnoreCase)).ToList();
+                        var tunnelClientPlayerNames = allPlayerNames.Where(q => !q.Equals(remotePlayerName, StringComparison.OrdinalIgnoreCase)).ToList();
+                        ushort localPort = p2pPorts[6 - remotePlayerNames.FindIndex(q => q.Equals(remotePlayerName, StringComparison.OrdinalIgnoreCase))];
+                        ushort remotePort = remotePorts[6 - tunnelClientPlayerNames.FindIndex(q => q.Equals(localPlayerName, StringComparison.OrdinalIgnoreCase))];
                         var p2pLocalTunnelHandler = new V3GameTunnelHandler();
 
-                        p2pLocalTunnelHandler.RaiseConnectedEvent += (_, _) => AddCallback(() => GameTunnelHandler_Connected_CallbackAsync().HandleTask());
-                        p2pLocalTunnelHandler.RaiseConnectionFailedEvent += (_, _) => AddCallback(() => GameTunnelHandler_ConnectionFailed_CallbackAsync().HandleTask());
+                        p2pLocalTunnelHandler.RaiseRemoteHostConnectedEvent += (_, _) => AddCallback(() => GameTunnelHandler_Connected_CallbackAsync().HandleTask());
+                        p2pLocalTunnelHandler.RaiseRemoteHostConnectionFailedEvent += (_, _) => AddCallback(() => GameTunnelHandler_ConnectionFailed_CallbackAsync().HandleTask());
 
-                        p2pLocalTunnelHandler.SetUp(new IPEndPoint(ipAddress, remotePort), localPort, gameLocalPlayerId, gameStartCancellationTokenSource.Token);
+                        p2pLocalTunnelHandler.SetUp(new(ipAddress, remotePort), localPort, gameLocalPlayerId, gameStartCancellationTokenSource.Token);
                         p2pLocalTunnelHandler.ConnectToTunnel();
-                        v3GameTunnelHandlers.Add(new(new List<string> { remotePlayerName }, p2pLocalTunnelHandler));
+                        v3GameTunnelHandlers.Add(new(new() { remotePlayerName }, p2pLocalTunnelHandler));
                         p2pPlayerTunnels.Add(remotePlayerName);
                     }
                 }
@@ -996,10 +996,10 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
             {
                 var gameTunnelHandler = new V3GameTunnelHandler();
 
-                gameTunnelHandler.RaiseConnectedEvent += (_, _) => AddCallback(() => GameTunnelHandler_Connected_CallbackAsync().HandleTask());
-                gameTunnelHandler.RaiseConnectionFailedEvent += (_, _) => AddCallback(() => GameTunnelHandler_ConnectionFailed_CallbackAsync().HandleTask());
+                gameTunnelHandler.RaiseRemoteHostConnectedEvent += (_, _) => AddCallback(() => GameTunnelHandler_Connected_CallbackAsync().HandleTask());
+                gameTunnelHandler.RaiseRemoteHostConnectionFailedEvent += (_, _) => AddCallback(() => GameTunnelHandler_ConnectionFailed_CallbackAsync().HandleTask());
 
-                gameTunnelHandler.SetUp(new IPEndPoint(tunnelGrouping.Key.IPAddress, tunnelGrouping.Key.Port), 0, gameLocalPlayerId, gameStartCancellationTokenSource.Token);
+                gameTunnelHandler.SetUp(new(tunnelGrouping.Key.IPAddress, tunnelGrouping.Key.Port), 0, gameLocalPlayerId, gameStartCancellationTokenSource.Token);
                 gameTunnelHandler.ConnectToTunnel();
                 v3GameTunnelHandlers.Add(new(tunnelGrouping.Select(q => q.Name).ToList(), gameTunnelHandler));
             }
@@ -1010,11 +1010,11 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
         gameStartTimer.Start();
     }
 
-    private async Task GameTunnelHandler_Connected_CallbackAsync()
+    private async ValueTask GameTunnelHandler_Connected_CallbackAsync()
     {
         if (dynamicTunnelsEnabled)
         {
-            if (v3GameTunnelHandlers.Any() && v3GameTunnelHandlers.TrueForAll(q => q.Tunnel.IsConnected))
+            if (v3GameTunnelHandlers.Any() && v3GameTunnelHandlers.TrueForAll(q => q.Tunnel.ConnectSucceeded))
                 SetLocalPlayerConnected();
         }
         else
@@ -1030,7 +1030,7 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
         isPlayerConnected[Players.FindIndex(p => p == FindLocalPlayer())] = true;
     }
 
-    private async Task GameTunnelHandler_ConnectionFailed_CallbackAsync()
+    private async ValueTask GameTunnelHandler_ConnectionFailed_CallbackAsync()
     {
         await channel.SendCTCPMessageAsync(CnCNetCommands.TUNNEL_CONNECTION_FAIL, QueuedMessageType.INSTANT_MESSAGE, 0);
         HandleTunnelFail(ProgramConstants.PLAYERNAME);
@@ -1044,7 +1044,7 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
         AbortGameStart();
     }
 
-    private async Task HandlePlayerConnectedToTunnelAsync(string playerName)
+    private async ValueTask HandlePlayerConnectedToTunnelAsync(string playerName)
     {
         if (!isStartingGame)
             return;
@@ -1064,37 +1064,31 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
             await LaunchGameV3Async();
     }
 
-    private async Task LaunchGameV3Async()
+    private async ValueTask LaunchGameV3Async()
     {
         Logger.Log("All players are connected, starting game!");
         AddNotice("All players have connected...".L10N("UI:Main:PlayersConnected"));
 
-        List<ushort> playerPorts = new();
+        List<ushort> usedPorts = new(p2pPorts);
 
-        foreach (V3GameTunnelHandler dynamicV3GameTunnelHandler in v3GameTunnelHandlers.Select(q => q.Tunnel))
+        foreach ((List<string> remotePlayerNames, V3GameTunnelHandler v3GameTunnelHandler) in v3GameTunnelHandlers)
         {
-            var currentTunnelPlayers = Players.Where(q => v3GameTunnelHandlers.Single(r => r.Tunnel == dynamicV3GameTunnelHandler).RemotePlayerNames.Contains(q.Name)).ToList();
+            var currentTunnelPlayers = Players.Where(q => remotePlayerNames.Contains(q.Name)).ToList();
             IEnumerable<int> indexes = currentTunnelPlayers.Select(q => q.Index);
             var playerIds = indexes.Select(q => gamePlayerIds[q]).ToList();
-            List<ushort> createdPlayerPorts = dynamicV3GameTunnelHandler.CreatePlayerConnections(playerIds);
+            List<ushort> createdLocalPlayerPorts = v3GameTunnelHandler.CreatePlayerConnections(playerIds).ToList();
             int i = 0;
 
             foreach (PlayerInfo currentTunnelPlayer in currentTunnelPlayers)
-            {
-                currentTunnelPlayer.Port = createdPlayerPorts.Skip(i++).Take(1).Single();
-            }
+                currentTunnelPlayer.Port = createdLocalPlayerPorts.Skip(i++).Take(1).Single();
 
-            playerPorts.AddRange(createdPlayerPorts);
+            usedPorts.AddRange(createdLocalPlayerPorts);
         }
-
-        playerPorts.AddRange(p2pPorts);
-
-        ushort gamePort = NetworkHelper.GetFreeUdpPort(playerPorts);
 
         foreach (V3GameTunnelHandler v3GameTunnelHandler in v3GameTunnelHandlers.Select(q => q.Tunnel))
-        {
-            v3GameTunnelHandler.StartPlayerConnections(gamePort);
-        }
+            v3GameTunnelHandler.StartPlayerConnections();
+
+        int gamePort = NetworkHelper.GetFreeUdpPorts(usedPorts, 1).Single();
 
         FindLocalPlayer().Port = gamePort;
 
@@ -1124,7 +1118,7 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
         return base.GetIPAddressForPlayer(player);
     }
 
-    protected override Task RequestPlayerOptionsAsync(int side, int color, int start, int team)
+    protected override ValueTask RequestPlayerOptionsAsync(int side, int color, int start, int team)
     {
         byte[] value =
         {
@@ -1141,7 +1135,7 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
             6);
     }
 
-    protected override async Task RequestReadyStatusAsync()
+    protected override async ValueTask RequestReadyStatusAsync()
     {
         if (Map == null || GameMode == null)
         {
@@ -1170,7 +1164,7 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
     /// <summary>
     /// Handles player option requests received from non-host players.
     /// </summary>
-    private async Task HandleOptionsRequestAsync(string playerName, int options)
+    private async ValueTask HandleOptionsRequestAsync(string playerName, int options)
     {
         if (!IsHost)
             return;
@@ -1234,7 +1228,7 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
     /// <summary>
     /// Handles "I'm ready" messages received from non-host players.
     /// </summary>
-    private async Task HandleReadyRequestAsync(string playerName, int readyStatus)
+    private async ValueTask HandleReadyRequestAsync(string playerName, int readyStatus)
     {
         if (!IsHost)
             return;
@@ -1254,7 +1248,7 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
     /// <summary>
     /// Broadcasts player options to non-host players.
     /// </summary>
-    protected override Task BroadcastPlayerOptionsAsync()
+    protected override ValueTask BroadcastPlayerOptionsAsync()
     {
         // Broadcast player options
         var sb = new StringBuilder(CnCNetCommands.PLAYER_OPTIONS + " ");
@@ -1297,13 +1291,13 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
         return channel.SendCTCPMessageAsync(sb.ToString(), QueuedMessageType.GAME_PLAYERS_MESSAGE, 11);
     }
 
-    protected override async Task PlayerExtraOptions_OptionsChangedAsync()
+    protected override async ValueTask PlayerExtraOptions_OptionsChangedAsync()
     {
         await base.PlayerExtraOptions_OptionsChangedAsync();
         await BroadcastPlayerExtraOptionsAsync();
     }
 
-    protected override async Task BroadcastPlayerExtraOptionsAsync()
+    protected override async ValueTask BroadcastPlayerExtraOptionsAsync()
     {
         if (!IsHost)
             return;
@@ -1313,19 +1307,14 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
         await channel.SendCTCPMessageAsync(playerExtraOptions.ToCncnetMessage(), QueuedMessageType.GAME_PLAYERS_EXTRA_MESSAGE, 11, true);
     }
 
-    private Task BroadcastPlayerTunnelPingsAsync()
+    private ValueTask BroadcastPlayerTunnelPingsAsync()
         => channel.SendCTCPMessageAsync(CnCNetCommands.PLAYER_TUNNEL_PINGS + " " + pinnedTunnelPingsMessage, QueuedMessageType.SYSTEM_MESSAGE, 10);
 
-    private async Task BroadcastPlayerP2PRequestAsync()
+    private async ValueTask BroadcastPlayerP2PRequestAsync()
     {
         if (!p2pPorts.Any())
         {
-            List<ushort> p2pReservedPorts = new();
-
-            for (int i = 0; i < 7; i++)
-            {
-                p2pReservedPorts.Add(NetworkHelper.GetFreeUdpPort(Array.Empty<ushort>()));
-            }
+            IEnumerable<ushort> p2pReservedPorts = NetworkHelper.GetFreeUdpPorts(Array.Empty<ushort>(), MAX_REMOTE_PLAYERS);
 
             try
             {
@@ -1334,7 +1323,7 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
             catch (Exception ex)
             {
                 ProgramConstants.LogException(ex, "Could not open UPnP P2P ports.");
-                AddNotice(string.Format(CultureInfo.CurrentCulture, "Could not open UPnP P2P ports".L10N("UI:Main:UPnPP2PFailed")));
+                AddNotice(string.Format(CultureInfo.CurrentCulture, "Could not open P2P ports. Check that UPnP port mapping is enabled for this device on your router/modem.".L10N("UI:Main:UPnPP2PFailed")), Color.Orange);
 
                 return;
             }
@@ -1344,7 +1333,7 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
             await SendPlayerP2PRequestAsync();
     }
 
-    private Task SendPlayerP2PRequestAsync()
+    private ValueTask SendPlayerP2PRequestAsync()
         => channel.SendCTCPMessageAsync(CnCNetCommands.PLAYER_P2P_REQUEST + $" {publicIpV4Address};{publicIpV6Address};{(!p2pPorts.Any() ? null : p2pPorts.Select(q => q.ToString(CultureInfo.InvariantCulture)).Aggregate((q, r) => $"{q}-{r}"))}", QueuedMessageType.SYSTEM_MESSAGE, 10);
 
     /// <summary>
@@ -1455,7 +1444,7 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
     /// Broadcasts game options to non-host players
     /// when the host has changed an option.
     /// </summary>
-    protected override async Task OnGameOptionChangedAsync()
+    protected override async ValueTask OnGameOptionChangedAsync()
     {
         await base.OnGameOptionChangedAsync();
 
@@ -1495,21 +1484,21 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
         sb.Append(RandomSeed);
         sb.Append(Convert.ToInt32(RemoveStartingLocations));
         sb.Append(Map.Name);
-        sb.Append(Convert.ToInt32(dynamicTunnelsEnabled)); // todo get from UI
+        sb.Append(Convert.ToInt32(dynamicTunnelsEnabled));
 
         await channel.SendCTCPMessageAsync(sb.ToString(), QueuedMessageType.GAME_SETTINGS_MESSAGE, 11);
     }
 
-    private async Task ToggleDynamicTunnelsAsync()
+    private async ValueTask ToggleDynamicTunnelsAsync()
     {
         await ChangeDynamicTunnelsSettingAsync(!dynamicTunnelsEnabled);
         await OnGameOptionChangedAsync();
 
         if (!dynamicTunnelsEnabled)
-            await TunnelSelectionWindow_TunnelSelectedAsync(new TunnelEventArgs(initialTunnel));
+            await TunnelSelectionWindow_TunnelSelectedAsync(new(initialTunnel));
     }
 
-    private async Task ToggleP2PAsync()
+    private async ValueTask ToggleP2PAsync()
     {
         p2pEnabled = !p2pEnabled;
 
@@ -1534,7 +1523,7 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
     /// <summary>
     /// Handles game option messages received from the game host.
     /// </summary>
-    private async Task ApplyGameOptionsAsync(string sender, string message)
+    private async ValueTask ApplyGameOptionsAsync(string sender, string message)
     {
         if (!sender.Equals(hostName, StringComparison.OrdinalIgnoreCase))
             return;
@@ -1706,7 +1695,7 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
             await ChangeDynamicTunnelsSettingAsync(newDynamicTunnelsSetting);
     }
 
-    private async Task ChangeDynamicTunnelsSettingAsync(bool newDynamicTunnelsEnabledValue)
+    private async ValueTask ChangeDynamicTunnelsSettingAsync(bool newDynamicTunnelsEnabledValue)
     {
         dynamicTunnelsEnabled = newDynamicTunnelsEnabledValue;
 
@@ -1725,7 +1714,7 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
         }
     }
 
-    private async Task RequestMapAsync()
+    private async ValueTask RequestMapAsync()
     {
         if (UserINISettings.Instance.EnableMapSharing)
         {
@@ -1741,7 +1730,7 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
         }
     }
 
-    private Task ShowOfficialMapMissingMessageAsync(string sha1)
+    private ValueTask ShowOfficialMapMissingMessageAsync(string sha1)
     {
         AddNotice(("The game host has selected an official map that doesn't exist on your installation. " +
             "This could mean that the game host has modified game files, or is running a different game version. " +
@@ -1757,7 +1746,7 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
         MapSharer.DownloadMap(lastMapHash, localGame, lastMapName);
     }
 
-    protected override Task ChangeMapAsync(GameModeMap gameModeMap)
+    protected override ValueTask ChangeMapAsync(GameModeMap gameModeMap)
     {
         mapSharingConfirmationPanel.Disable();
         return base.ChangeMapAsync(gameModeMap);
@@ -1767,7 +1756,7 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
     /// Signals other players that the local player has returned from the game,
     /// and unlocks the game as well as generates a new random seed as the game host.
     /// </summary>
-    protected override async Task GameProcessExitedAsync()
+    protected override async ValueTask GameProcessExitedAsync()
     {
         await base.GameProcessExitedAsync();
         await channel.SendCTCPMessageAsync(CnCNetCommands.RETURN, QueuedMessageType.SYSTEM_MESSAGE, 20);
@@ -1793,7 +1782,7 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
     /// <summary>
     /// Handles the "START" (game start) command sent by the game host.
     /// </summary>
-    private async Task ClientLaunchGameV2Async(string sender, string message)
+    private async ValueTask ClientLaunchGameV2Async(string sender, string message)
     {
         if (tunnelHandler.CurrentTunnel.Version != Constants.TUNNEL_VERSION_2)
             return;
@@ -1841,7 +1830,7 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
         await StartGameAsync();
     }
 
-    protected override async Task StartGameAsync()
+    protected override async ValueTask StartGameAsync()
     {
         AddNotice("Starting game...".L10N("UI:Main:StartingGame"));
 
@@ -1865,7 +1854,7 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
     {
         base.WriteSpawnIniAdditions(iniFile);
 
-        if (!p2pEnabled && !UserINISettings.Instance.UseDynamicTunnels && tunnelHandler.CurrentTunnel.Version == Constants.TUNNEL_VERSION_2)
+        if (tunnelHandler.CurrentTunnel?.Version == Constants.TUNNEL_VERSION_2)
         {
             iniFile.SetStringValue("Tunnel", "Ip", tunnelHandler.CurrentTunnel.Address);
             iniFile.SetIntValue("Tunnel", "Port", tunnelHandler.CurrentTunnel.Port);
@@ -1882,7 +1871,7 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
         iniFile.SetIntValue("Settings", "Port", localPlayer.Port);
     }
 
-    protected override Task SendChatMessageAsync(string message) => channel.SendChatMessageAsync(message, chatColor);
+    protected override ValueTask SendChatMessageAsync(string message) => channel.SendChatMessageAsync(message, chatColor);
 
     private void HandleNotification(string sender, Action handler)
     {
@@ -1900,7 +1889,7 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
         handler(parameter);
     }
 
-    protected override async Task GetReadyNotificationAsync()
+    protected override async ValueTask GetReadyNotificationAsync()
     {
         await base.GetReadyNotificationAsync();
 #if WINFORMS
@@ -1912,7 +1901,7 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
             await channel.SendCTCPMessageAsync(CnCNetCommands.GET_READY_LOBBY, QueuedMessageType.GAME_GET_READY_MESSAGE, 0);
     }
 
-    protected override async Task AISpectatorsNotificationAsync()
+    protected override async ValueTask AISpectatorsNotificationAsync()
     {
         await base.AISpectatorsNotificationAsync();
 
@@ -1920,7 +1909,7 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
             await channel.SendCTCPMessageAsync(CnCNetCommands.AI_SPECTATORS, QueuedMessageType.GAME_NOTIFICATION_MESSAGE, 0);
     }
 
-    protected override async Task InsufficientPlayersNotificationAsync()
+    protected override async ValueTask InsufficientPlayersNotificationAsync()
     {
         await base.InsufficientPlayersNotificationAsync();
 
@@ -1928,7 +1917,7 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
             await channel.SendCTCPMessageAsync(CnCNetCommands.INSUFFICIENT_PLAYERS, QueuedMessageType.GAME_NOTIFICATION_MESSAGE, 0);
     }
 
-    protected override async Task TooManyPlayersNotificationAsync()
+    protected override async ValueTask TooManyPlayersNotificationAsync()
     {
         await base.TooManyPlayersNotificationAsync();
 
@@ -1936,7 +1925,7 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
             await channel.SendCTCPMessageAsync(CnCNetCommands.TOO_MANY_PLAYERS, QueuedMessageType.GAME_NOTIFICATION_MESSAGE, 0);
     }
 
-    protected override async Task SharedColorsNotificationAsync()
+    protected override async ValueTask SharedColorsNotificationAsync()
     {
         await base.SharedColorsNotificationAsync();
 
@@ -1944,7 +1933,7 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
             await channel.SendCTCPMessageAsync(CnCNetCommands.SHARED_COLORS, QueuedMessageType.GAME_NOTIFICATION_MESSAGE, 0);
     }
 
-    protected override async Task SharedStartingLocationNotificationAsync()
+    protected override async ValueTask SharedStartingLocationNotificationAsync()
     {
         await base.SharedStartingLocationNotificationAsync();
 
@@ -1952,7 +1941,7 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
             await channel.SendCTCPMessageAsync(CnCNetCommands.SHARED_STARTING_LOCATIONS, QueuedMessageType.GAME_NOTIFICATION_MESSAGE, 0);
     }
 
-    protected override async Task LockGameNotificationAsync()
+    protected override async ValueTask LockGameNotificationAsync()
     {
         await base.LockGameNotificationAsync();
 
@@ -1960,7 +1949,7 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
             await channel.SendCTCPMessageAsync(CnCNetCommands.LOCK_GAME, QueuedMessageType.GAME_NOTIFICATION_MESSAGE, 0);
     }
 
-    protected override async Task NotVerifiedNotificationAsync(int playerIndex)
+    protected override async ValueTask NotVerifiedNotificationAsync(int playerIndex)
     {
         await base.NotVerifiedNotificationAsync(playerIndex);
 
@@ -1968,7 +1957,7 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
             await channel.SendCTCPMessageAsync(CnCNetCommands.NOT_VERIFIED + " " + playerIndex, QueuedMessageType.GAME_NOTIFICATION_MESSAGE, 0);
     }
 
-    protected override async Task StillInGameNotificationAsync(int playerIndex)
+    protected override async ValueTask StillInGameNotificationAsync(int playerIndex)
     {
         await base.StillInGameNotificationAsync(playerIndex);
 
@@ -2001,7 +1990,7 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
         }
     }
 
-    private async Task FileHashNotificationAsync(string sender, string filesHash)
+    private async ValueTask FileHashNotificationAsync(string sender, string filesHash)
     {
         if (!IsHost)
             return;
@@ -2028,7 +2017,7 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
         AddNotice(string.Format(CultureInfo.CurrentCulture, "Player {0} has different files compared to the game host. Either {0} or the game host could be cheating.".L10N("UI:Main:DifferentFileCheating"), cheaterName), Color.Red);
     }
 
-    protected override async Task BroadcastDiceRollAsync(int dieSides, int[] results)
+    protected override async ValueTask BroadcastDiceRollAsync(int dieSides, int[] results)
     {
         string resultString = string.Join(",", results);
 
@@ -2036,7 +2025,7 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
         PrintDiceRollResult(ProgramConstants.PLAYERNAME, dieSides, results);
     }
 
-    protected override async Task HandleLockGameButtonClickAsync()
+    protected override async ValueTask HandleLockGameButtonClickAsync()
     {
         if (!Locked)
         {
@@ -2057,20 +2046,20 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
         }
     }
 
-    protected override async Task LockGameAsync()
+    protected override async ValueTask LockGameAsync()
     {
         await connectionManager.SendCustomMessageAsync(
-            new(string.Format(IRCCommands.MODE + " {0} +i", channel.ChannelName), QueuedMessageType.INSTANT_MESSAGE, -1));
+            new(FormattableString.Invariant($"{IRCCommands.MODE} {channel.ChannelName} +{IRCChannelModes.INVITE_ONLY}"), QueuedMessageType.INSTANT_MESSAGE, -1));
 
         Locked = true;
         btnLockGame.Text = "Unlock Game".L10N("UI:Main:UnlockGame");
         AccelerateGameBroadcasting();
     }
 
-    protected override async Task UnlockGameAsync(bool announce)
+    protected override async ValueTask UnlockGameAsync(bool announce)
     {
         await connectionManager.SendCustomMessageAsync(
-            new(string.Format(IRCCommands.MODE + " {0} -i", channel.ChannelName), QueuedMessageType.INSTANT_MESSAGE, -1));
+            new(FormattableString.Invariant($"{IRCCommands.MODE} {channel.ChannelName} -{IRCChannelModes.INVITE_ONLY}"), QueuedMessageType.INSTANT_MESSAGE, -1));
 
         Locked = false;
 
@@ -2081,7 +2070,7 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
         AccelerateGameBroadcasting();
     }
 
-    protected override async Task KickPlayerAsync(int playerIndex)
+    protected override async ValueTask KickPlayerAsync(int playerIndex)
     {
         if (playerIndex >= Players.Count)
             return;
@@ -2092,7 +2081,7 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
         await channel.SendKickMessageAsync(pInfo.Name, 8);
     }
 
-    protected override async Task BanPlayerAsync(int playerIndex)
+    protected override async ValueTask BanPlayerAsync(int playerIndex)
     {
         if (playerIndex >= Players.Count)
             return;
@@ -2111,7 +2100,7 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
     private void HandleCheatDetectedMessage(string sender) =>
         AddNotice(string.Format(CultureInfo.CurrentCulture, "{0} has modified game files during the client session. They are likely attempting to cheat!".L10N("UI:Main:PlayerModifyFileCheat"), sender), Color.Red);
 
-    private async Task HandleTunnelServerChangeMessageAsync(string sender, string hash)
+    private async ValueTask HandleTunnelServerChangeMessageAsync(string sender, string hash)
     {
         if (!sender.Equals(hostName, StringComparison.OrdinalIgnoreCase))
             return;
@@ -2156,7 +2145,7 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
 
         if (hash is null)
         {
-            AddNotice(string.Format(CultureInfo.CurrentCulture, "No common tunnel server found for: {0}".L10N("UI:Main:NoCommonTunnel"), playerName));
+            AddNotice(string.Format(CultureInfo.CurrentCulture, "No common tunnel found for: {0}".L10N("UI:Main:NoCommonTunnel"), playerName));
         }
         else
         {
@@ -2170,13 +2159,13 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
             }
 
             playerTunnels.Add(new(playerName, tunnel, combinedPing));
-            AddNotice(string.Format(CultureInfo.CurrentCulture, "Dynamic tunnel server negotiated with {0}: {1} ({2}ms)".L10N("UI:Main:TunnelNegotiated"), playerName, tunnel.Name, tunnel.PingInMs));
+            AddNotice(string.Format(CultureInfo.CurrentCulture, "{0} dynamic tunnel: {1} ({2}ms)".L10N("UI:Main:TunnelNegotiated"), playerName, tunnel.Name, tunnel.PingInMs));
         }
     }
 
-    private async Task HandleP2PRequestMessageAsync(string playerName, string p2pRequestMessage)
+    private async ValueTask HandleP2PRequestMessageAsync(string playerName, string p2pRequestMessage)
     {
-        if (!p2pEnabled || !p2pPorts.Any())
+        if (!p2pEnabled)
             return;
 
         List<(IPAddress IpAddress, long Ping)> localPingResults = new();
@@ -2199,36 +2188,38 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
                 localPingResults.Add((parsedIpV6Address, pingResult.RoundtripTime));
         }
 
-        if (parsedIpV4Address is null && parsedIpV6Address is null)
+        bool remotePlayerP2PEnabled = false;
+        ushort[] remotePlayerPorts = Array.Empty<ushort>();
+        P2PPlayer remoteP2PPlayer;
+
+        if (parsedIpV4Address is not null || parsedIpV6Address is not null)
         {
-            AddNotice(string.Format(CultureInfo.CurrentCulture, "Player {0} disabled P2P".L10N("UI:Main:P2PDisabled"), playerName));
-
-            (string RemotePlayerName, ushort[] RemotePorts, List<(IPAddress RemoteIpAddress, long Ping)> LocalPingResults, List<(IPAddress RemoteIpAddress, long Ping)> RemotePingResults, bool Enabled) p2pPlayer;
-
-            if (p2pPlayers.Any(q => q.RemotePlayerName.Equals(playerName, StringComparison.OrdinalIgnoreCase)))
-            {
-                p2pPlayer = p2pPlayers.Single(q => q.RemotePlayerName.Equals(playerName, StringComparison.OrdinalIgnoreCase));
-
-                p2pPlayers.RemoveAt(p2pPlayers.FindIndex(q => q.RemotePlayerName.Equals(playerName, StringComparison.OrdinalIgnoreCase)));
-                p2pPlayers.Add((p2pPlayer.RemotePlayerName, p2pPlayer.RemotePorts, p2pPlayer.LocalPingResults, p2pPlayer.RemotePingResults, false));
-            }
-
-            return;
+            remotePlayerP2PEnabled = true;
+            remotePlayerPorts = splitLines[2].Split('-').Select(q => ushort.Parse(q, CultureInfo.InvariantCulture)).ToArray();
         }
-
-        ushort[] remotePlayerPorts = splitLines[2].Split('-').Select(q => ushort.Parse(q, CultureInfo.InvariantCulture)).ToArray();
-        List<(IPAddress RemoteIpAddress, long Ping)> remotePingResults = new();
 
         if (p2pPlayers.Any(q => q.RemotePlayerName.Equals(playerName, StringComparison.OrdinalIgnoreCase)))
         {
-            remotePingResults = p2pPlayers.Single(q => q.RemotePlayerName.Equals(playerName, StringComparison.OrdinalIgnoreCase)).RemotePingResults;
+            remoteP2PPlayer = p2pPlayers.Single(q => q.RemotePlayerName.Equals(playerName, StringComparison.OrdinalIgnoreCase));
 
             p2pPlayers.RemoveAt(p2pPlayers.FindIndex(q => q.RemotePlayerName.Equals(playerName, StringComparison.OrdinalIgnoreCase)));
         }
+        else
+        {
+            remoteP2PPlayer = new(playerName, Array.Empty<ushort>(), new(), new(), false);
+        }
 
-        p2pPlayers.Add((playerName, remotePlayerPorts, localPingResults, remotePingResults, true));
-        AddNotice(string.Format(CultureInfo.CurrentCulture, "Player {0} allows P2P: ({1}ms)".L10N("UI:Main:P2PAllowed"), playerName, localPingResults.Min(q => q.Ping)));
-        await channel.SendCTCPMessageAsync(CnCNetCommands.PLAYER_P2P_PINGS + $" {playerName}-{localPingResults.Select(q => $"{q.IpAddress};{q.Ping}\t").Aggregate((q, r) => $"{q}{r}")}", QueuedMessageType.SYSTEM_MESSAGE, 10);
+        p2pPlayers.Add(remoteP2PPlayer with { LocalPingResults = localPingResults, RemotePorts = remotePlayerPorts, Enabled = remotePlayerP2PEnabled });
+
+        if (remotePlayerP2PEnabled)
+        {
+            ShowP2PPlayerStatus(playerName);
+            await channel.SendCTCPMessageAsync(CnCNetCommands.PLAYER_P2P_PINGS + $" {playerName}-{localPingResults.Select(q => $"{q.IpAddress};{q.Ping}\t").Aggregate((q, r) => $"{q}{r}")}", QueuedMessageType.SYSTEM_MESSAGE, 10);
+        }
+        else
+        {
+            AddNotice(string.Format(CultureInfo.CurrentCulture, "Player {0} disabled P2P".L10N("UI:Main:P2PDisabled"), playerName));
+        }
     }
 
     private void HandleP2PPingsMessage(string playerName, string p2pPingsMessage)
@@ -2242,15 +2233,6 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
         if (!FindLocalPlayer().Name.Equals(pingPlayerName, StringComparison.OrdinalIgnoreCase))
             return;
 
-        var p2pPlayer = p2pPlayers.SingleOrDefault(q => q.RemotePlayerName.Equals(playerName, StringComparison.OrdinalIgnoreCase));
-
-        if (p2pPlayer.RemotePlayerName is null)
-        {
-            BroadcastPlayerP2PRequestAsync().HandleTask();
-
-            return;
-        }
-
         string[] pingResults = splitLines[1].Split('\t', StringSplitOptions.RemoveEmptyEntries);
         List<(IPAddress IpAddress, long Ping)> playerPings = new();
 
@@ -2262,19 +2244,38 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
                 playerPings.Add((ipV4Address, long.Parse(ipAddressPingResult[1], CultureInfo.InvariantCulture)));
         }
 
-        AddNotice(string.Format(CultureInfo.CurrentCulture, "Player {0} P2P enabled".L10N("UI:Main:P2PEnabled"), playerName));
+        P2PPlayer p2pPlayer;
 
-        p2pPlayer.RemotePingResults = playerPings;
+        if (p2pPlayers.Any(q => q.RemotePlayerName.Equals(playerName, StringComparison.OrdinalIgnoreCase)))
+        {
+            p2pPlayer = p2pPlayers.Single(q => q.RemotePlayerName.Equals(playerName, StringComparison.OrdinalIgnoreCase));
 
-        p2pPlayers.RemoveAt(p2pPlayers.FindIndex(q => q.RemotePlayerName.Equals(playerName, StringComparison.OrdinalIgnoreCase)));
-        p2pPlayers.Add(p2pPlayer);
+            p2pPlayers.RemoveAt(p2pPlayers.FindIndex(q => q.RemotePlayerName.Equals(playerName, StringComparison.OrdinalIgnoreCase)));
+        }
+        else
+        {
+            p2pPlayer = new(playerName, Array.Empty<ushort>(), new(), new(), false);
+        }
+
+        p2pPlayers.Add(p2pPlayer with { RemotePingResults = playerPings });
+
+        if (!p2pPlayer.RemotePingResults.Any())
+            ShowP2PPlayerStatus(playerName);
+    }
+
+    private void ShowP2PPlayerStatus(string playerName)
+    {
+        P2PPlayer p2pPlayer = p2pPlayers.Single(q => q.RemotePlayerName.Equals(playerName, StringComparison.OrdinalIgnoreCase));
+
+        if (p2pPlayer.RemotePingResults.Any() && p2pPlayer.LocalPingResults.Any())
+            AddNotice(string.Format(CultureInfo.CurrentCulture, "{0} supports P2P ({1}ms)".L10N("UI:Main:PlayerP2PSupported"), playerName, p2pPlayer.LocalPingResults.Min(q => q.Ping)));
     }
 
     /// <summary>
     /// Changes the tunnel server used for the game.
     /// </summary>
     /// <param name="tunnel">The new tunnel server to use.</param>
-    private Task HandleTunnelServerChangeAsync(CnCNetTunnel tunnel)
+    private ValueTask HandleTunnelServerChangeAsync(CnCNetTunnel tunnel)
     {
         tunnelHandler.CurrentTunnel = tunnel;
 
@@ -2282,7 +2283,7 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
         return UpdatePingAsync();
     }
 
-    private async Task MapSharer_HandleMapDownloadFailedAsync(SHA1EventArgs e)
+    private async ValueTask MapSharer_HandleMapDownloadFailedAsync(SHA1EventArgs e)
     {
         // If the host has already uploaded the map, we shouldn't request them to re-upload it
         if (hostUploadedMaps.Contains(e.SHA1))
@@ -2306,7 +2307,7 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
         await channel.SendCTCPMessageAsync(CnCNetCommands.MAP_SHARING_UPLOAD + " " + e.SHA1, QueuedMessageType.SYSTEM_MESSAGE, 9);
     }
 
-    private async Task MapSharer_HandleMapDownloadCompleteAsync(SHA1EventArgs e)
+    private async ValueTask MapSharer_HandleMapDownloadCompleteAsync(SHA1EventArgs e)
     {
         string mapFileName = MapSharer.GetMapFileName(e.SHA1, e.MapName);
         Logger.Log("Map " + mapFileName + " downloaded, parsing.");
@@ -2342,7 +2343,7 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
         }
     }
 
-    private async Task MapSharer_HandleMapUploadFailedAsync(MapEventArgs e)
+    private async ValueTask MapSharer_HandleMapUploadFailedAsync(MapEventArgs e)
     {
         Map map = e.Map;
 
@@ -2356,7 +2357,7 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
         }
     }
 
-    private async Task MapSharer_HandleMapUploadCompleteAsync(MapEventArgs e)
+    private async ValueTask MapSharer_HandleMapUploadCompleteAsync(MapEventArgs e)
     {
         hostUploadedMaps.Add(e.Map.SHA1);
         AddNotice(string.Format(CultureInfo.CurrentCulture, "Uploading map {0} to the CnCNet map database complete.".L10N("UI:Main:UpdateMapToDBSuccess"), e.Map.Name));
@@ -2559,7 +2560,7 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
     private void AccelerateGameBroadcasting() =>
         gameBroadcastTimer.Accelerate(TimeSpan.FromSeconds(GAME_BROADCAST_ACCELERATION));
 
-    private async Task BroadcastGameAsync()
+    private async ValueTask BroadcastGameAsync()
     {
         Channel broadcastChannel = connectionManager.FindChannel(gameCollection.GetGameBroadcastingChannelNameFromIdentifier(localGame));
 

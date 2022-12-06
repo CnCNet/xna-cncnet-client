@@ -154,12 +154,12 @@ namespace DTAClient.Online
             MainChannel = channel;
         }
 
-        public Task SendCustomMessageAsync(QueuedMessage qm)
+        public ValueTask SendCustomMessageAsync(QueuedMessage qm)
         {
             return connection.QueueMessageAsync(qm);
         }
 
-        public Task SendWhoIsMessageAsync(string nick)
+        public ValueTask SendWhoIsMessageAsync(string nick)
         {
             return SendCustomMessageAsync(new QueuedMessage($"{IRCCommands.WHOIS} {nick}", QueuedMessageType.WHOIS_MESSAGE, 0));
         }
@@ -441,10 +441,8 @@ namespace DTAClient.Online
         /// <summary>
         /// Disconnects from CnCNet.
         /// </summary>
-        public async Task DisconnectAsync()
-        {
-            await connection.DisconnectAsync();
-        }
+        public ValueTask DisconnectAsync()
+            => connection.DisconnectAsync();
 
         /// <summary>
         /// Connects to CnCNet.
@@ -549,7 +547,7 @@ namespace DTAClient.Online
             wm.AddCallback(() => DoUserJoinedChannelAsync(channelName, host, userName, ident).HandleTask());
         }
 
-        private async Task DoUserJoinedChannelAsync(string channelName, string host, string userName, string userAddress)
+        private async ValueTask DoUserJoinedChannelAsync(string channelName, string host, string userName, string userAddress)
         {
             Channel channel = FindChannel(channelName);
 
@@ -840,7 +838,7 @@ namespace DTAClient.Online
         /// IRC user. Adds additional underscores to the name or replaces existing
         /// characters with underscores.
         /// </summary>
-        private async Task DoNameAlreadyInUseAsync()
+        private async ValueTask DoNameAlreadyInUseAsync()
         {
             var charList = ProgramConstants.PLAYERNAME.ToList();
             int maxNameLength = ClientConfiguration.Instance.MaxNameLength;

@@ -106,7 +106,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             AddItem(openLinkItem);
         }
 
-        private async Task InviteAsync()
+        private async ValueTask InviteAsync()
         {
             // note it's assumed that if the channel name is specified, the game name must be also
             if (string.IsNullOrEmpty(contextMenuData.inviteChannelName) || ProgramConstants.IsInGame)
@@ -187,7 +187,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             }
         }
 
-        private async Task GetIrcUserIdentAsync(Action<string> callback)
+        private async ValueTask GetIrcUserIdentAsync(Action<string> callback)
         {
             var ircUser = GetIrcUser();
 

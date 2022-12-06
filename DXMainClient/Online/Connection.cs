@@ -26,6 +26,9 @@ namespace DTAClient.Online
         private const int RECONNECT_WAIT_DELAY = 4000;
         private const int ID_LENGTH = 9;
         private const int MAXIMUM_LATENCY = 400;
+        private const int SendTimeout = 1000;
+        private const int ConnectTimeout = 3000;
+        private const int PingInterval = 120000;
 
         public Connection(IConnectionManager connectionManager)
         {
@@ -50,26 +53,24 @@ namespace DTAClient.Online
             new("irc.gamesurge.net", "GameSurge", new[] { 6667 })
         }.AsReadOnly();
 
-        public bool IsConnected { get; private set; }
+        private bool IsConnected { get; set; }
 
         public bool AttemptingConnection { get; private set; }
 
         public Random Rng { get; } = new();
 
-        private List<QueuedMessage> MessageQueue = new();
-        private TimeSpan MessageQueueDelay;
+        private readonly List<QueuedMessage> messageQueue = new();
+        private TimeSpan messageQueueDelay;
 
         private Socket socket;
 
-        volatile int reconnectCount;
+        private volatile int reconnectCount;
 
         private volatile bool connectionCut;
         private volatile bool welcomeMessageReceived;
         private volatile bool sendQueueExited;
 
         private string overMessage;
-
-        private readonly Encoding encoding = Encoding.UTF8;
 
         /// <summary>
         /// A list of server IPs that have dropped our connection.
@@ -111,7 +112,7 @@ namespace DTAClient.Online
             connectionCut = false;
             AttemptingConnection = true;
 
-            MessageQueueDelay = TimeSpan.FromMilliseconds(ClientConfiguration.Instance.SendSleep);
+            messageQueueDelay = TimeSpan.FromMilliseconds(ClientConfiguration.Instance.SendSleep);
 
             connectionCancellationTokenSource?.Dispose();
 
@@ -123,7 +124,7 @@ namespace DTAClient.Online
         /// <summary>
         /// Attempts to connect to CnCNet.
         /// </summary>
-        private async Task ConnectToServerAsync(CancellationToken cancellationToken)
+        private async ValueTask ConnectToServerAsync(CancellationToken cancellationToken)
         {
             try
             {
@@ -137,10 +138,9 @@ namespace DTAClient.Online
                         {
                             connectionManager.OnAttemptedServerChanged(server.Name);
 
-                            var client = new Socket(SocketType.Stream, ProtocolType.Tcp)
-                            {
-                                ReceiveTimeout = 1000
-                            };
+                            var client = new Socket(SocketType.Stream, ProtocolType.Tcp);
+                            using var timeoutCancellationTokenSource = new CancellationTokenSource(ConnectTimeout);
+                            using var linkedCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(timeoutCancellationTokenSource.Token, cancellationToken);
 
                             Logger.Log("Attempting connection to " + server.Host + ":" + port);
 
@@ -148,13 +148,9 @@ namespace DTAClient.Online
                             {
                                 await client.ConnectAsync(
                                     new IPEndPoint(IPAddress.Parse(server.Host), port),
-                                    new CancellationTokenSource(TimeSpan.FromSeconds(3)).Token);
+                                    linkedCancellationTokenSource.Token);
                             }
-                            catch (OperationCanceledException)
-                            {
-                            }
-
-                            if (!client.Connected)
+                            catch (OperationCanceledException) when (timeoutCancellationTokenSource.Token.IsCancellationRequested)
                             {
                                 Logger.Log("Connecting to " + server.Host + " port " + port + " timed out!");
                                 continue; // Start all over again, using the next port
@@ -172,7 +168,10 @@ namespace DTAClient.Online
 
                             RunSendQueueAsync(sendQueueCancellationTokenSource.Token).HandleTask();
 
-                            socket?.Dispose();
+                            if (socket?.Connected ?? false)
+                                socket.Shutdown(SocketShutdown.Both);
+
+                            socket?.Close();
                             socket = client;
 
                             currentConnectedServerIP = server.Host;
@@ -201,7 +200,7 @@ namespace DTAClient.Online
             }
         }
 
-        private async Task HandleCommAsync(CancellationToken cancellationToken)
+        private async ValueTask HandleCommAsync(CancellationToken cancellationToken)
         {
             int errorTimes = 0;
             using IMemoryOwner<byte> memoryOwner = MemoryPool<byte>.Shared.Rent(1024);
@@ -209,7 +208,7 @@ namespace DTAClient.Online
 
             await RegisterAsync();
 
-            var timer = new System.Timers.Timer(120000)
+            var timer = new System.Timers.Timer(PingInterval)
             {
                 Enabled = true
             };
@@ -252,7 +251,7 @@ namespace DTAClient.Online
                 errorTimes = 0;
 
                 // A message has been successfully received
-                string msg = encoding.GetString(message.Span[..bytesRead]);
+                string msg = Encoding.UTF8.GetString(message.Span[..bytesRead]);
 
 #if !DEBUG
                 Logger.Log("Message received: " + msg);
@@ -311,7 +310,7 @@ namespace DTAClient.Online
         /// Servers that did not respond to ICMP messages in time will be placed at the end of the list.
         /// </summary>
         /// <returns>A list of Lobby servers sorted by latency.</returns>
-        private async Task<IList<Server>> GetServerListSortedByLatencyAsync()
+        private async ValueTask<IList<Server>> GetServerListSortedByLatencyAsync()
         {
             // Resolve the hostnames.
             IEnumerable<(IPAddress IpAddress, string Name, int[] Ports)>[] servers = await ClientCore.Extensions.TaskExtensions.WhenAllSafe(Servers.Select(ResolveServerAsync));
@@ -450,10 +449,11 @@ namespace DTAClient.Online
             return Array.Empty<(IPAddress IpAddress, string Name, int[] Ports)>();
         }
 
-        public async Task DisconnectAsync()
+        public async ValueTask DisconnectAsync()
         {
             await SendMessageAsync(IRCCommands.QUIT);
             connectionCancellationTokenSource.Cancel();
+            socket.Shutdown(SocketShutdown.Both);
             socket.Close();
         }
 
@@ -464,7 +464,7 @@ namespace DTAClient.Online
         /// message, and handles it accordingly.
         /// </summary>
         /// <param name="message">The message.</param>
-        private async Task HandleMessageAsync(string message)
+        private async ValueTask HandleMessageAsync(string message)
         {
             string msg = overMessage + message;
             overMessage = "";
@@ -496,7 +496,7 @@ namespace DTAClient.Online
         /// <summary>
         /// Handles a specific command received from the IRC server.
         /// </summary>
-        private async Task PerformCommandAsync(string message)
+        private async ValueTask PerformCommandAsync(string message)
         {
             message = message.Replace("\r", string.Empty);
             ParseIrcMessage(message, out string prefix, out string command, out List<string> parameters);
@@ -807,7 +807,7 @@ namespace DTAClient.Online
 
         #region Sending commands
 
-        private async Task RunSendQueueAsync(CancellationToken cancellationToken)
+        private async ValueTask RunSendQueueAsync(CancellationToken cancellationToken)
         {
             try
             {
@@ -819,9 +819,9 @@ namespace DTAClient.Online
 
                     try
                     {
-                        for (int i = 0; i < MessageQueue.Count; i++)
+                        for (int i = 0; i < messageQueue.Count; i++)
                         {
-                            QueuedMessage qm = MessageQueue[i];
+                            QueuedMessage qm = messageQueue[i];
                             if (qm.Delay > 0)
                             {
                                 if (qm.SendAt < DateTime.Now)
@@ -830,14 +830,14 @@ namespace DTAClient.Online
 
                                     Logger.Log("Delayed message sent: " + qm.ID);
 
-                                    MessageQueue.RemoveAt(i);
+                                    messageQueue.RemoveAt(i);
                                     break;
                                 }
                             }
                             else
                             {
                                 message = qm.Command;
-                                MessageQueue.RemoveAt(i);
+                                messageQueue.RemoveAt(i);
                                 break;
                             }
                         }
@@ -854,7 +854,7 @@ namespace DTAClient.Online
                     }
 
                     await SendMessageAsync(message);
-                    await Task.Delay(MessageQueueDelay, cancellationToken);
+                    await Task.Delay(messageQueueDelay, cancellationToken);
                 }
             }
             catch (OperationCanceledException)
@@ -866,7 +866,7 @@ namespace DTAClient.Online
 
                 try
                 {
-                    MessageQueue.Clear();
+                    messageQueue.Clear();
                 }
                 finally
                 {
@@ -880,41 +880,38 @@ namespace DTAClient.Online
         /// <summary>
         /// Sends a PING message to the server to indicate that we're still connected.
         /// </summary>
-        private Task AutoPingAsync()
+        private ValueTask AutoPingAsync()
             => SendMessageAsync(IRCCommands.PING_LAG + new Random().Next(100000, 999999));
 
         /// <summary>
         /// Registers the user.
         /// </summary>
-        private async Task RegisterAsync()
+        private async ValueTask RegisterAsync()
         {
             if (welcomeMessageReceived)
                 return;
 
             Logger.Log("Registering.");
 
-            var defaultGame = ClientConfiguration.Instance.LocalGame;
+            string defaultGame = ClientConfiguration.Instance.LocalGame;
+            string realName = ProgramConstants.GAME_VERSION + " " + defaultGame + " CnCNet";
 
-            string realname = ProgramConstants.GAME_VERSION + " " + defaultGame + " CnCNet";
-
-            await SendMessageAsync(string.Format(IRCCommands.USER + " {0} 0 * :{1}", defaultGame + "." +
-                systemId, realname));
-
+            await SendMessageAsync(FormattableString.Invariant($"{IRCCommands.USER} {defaultGame}.{systemId} 0 * :{realName}"));
             await SendMessageAsync(IRCCommands.NICK + " " + ProgramConstants.PLAYERNAME);
         }
 
-        public Task ChangeNicknameAsync()
+        public ValueTask ChangeNicknameAsync()
         {
             return SendMessageAsync(IRCCommands.NICK + " " + ProgramConstants.PLAYERNAME);
         }
 
-        public Task QueueMessageAsync(QueuedMessageType type, int priority, string message, bool replace = false)
+        public ValueTask QueueMessageAsync(QueuedMessageType type, int priority, string message, bool replace = false)
         {
             QueuedMessage qm = new QueuedMessage(message, type, priority, replace);
             return QueueMessageAsync(qm);
         }
 
-        public async Task QueueMessageAsync(QueuedMessageType type, int priority, int delay, string message)
+        public async ValueTask QueueMessageAsync(QueuedMessageType type, int priority, int delay, string message)
         {
             QueuedMessage qm = new QueuedMessage(message, type, priority, delay);
             await QueueMessageAsync(qm);
@@ -925,7 +922,7 @@ namespace DTAClient.Online
         /// Send a message to the CnCNet server.
         /// </summary>
         /// <param name="message">The message to send.</param>
-        private async Task SendMessageAsync(string message)
+        private async ValueTask SendMessageAsync(string message)
         {
             if (!socket?.Connected ?? false)
                 return;
@@ -936,13 +933,15 @@ namespace DTAClient.Online
             int bufferSize = message.Length * charSize;
             using IMemoryOwner<byte> memoryOwner = MemoryPool<byte>.Shared.Rent(bufferSize);
             Memory<byte> buffer = memoryOwner.Memory[..bufferSize];
-            int bytes = encoding.GetBytes((message + "\r\n").AsSpan(), buffer.Span);
+            int bytes = Encoding.UTF8.GetBytes((message + "\r\n").AsSpan(), buffer.Span);
 
             buffer = buffer[..bytes];
 
+            using var timeoutCancellationTokenSource = new CancellationTokenSource(SendTimeout);
+
             try
             {
-                await socket.SendAsync(buffer, SocketFlags.None, CancellationToken.None);
+                await socket.SendAsync(buffer, SocketFlags.None, timeoutCancellationTokenSource.Token);
             }
             catch (IOException ex)
             {
@@ -963,11 +962,11 @@ namespace DTAClient.Online
 
             try
             {
-                var previousMessageIndex = MessageQueue.FindIndex(m => m.MessageType == qm.MessageType);
+                var previousMessageIndex = messageQueue.FindIndex(m => m.MessageType == qm.MessageType);
                 if (previousMessageIndex == -1)
                     return false;
 
-                MessageQueue[previousMessageIndex] = qm;
+                messageQueue[previousMessageIndex] = qm;
                 return true;
             }
             finally
@@ -980,7 +979,7 @@ namespace DTAClient.Online
         /// Adds a message to the send queue.
         /// </summary>
         /// <param name="qm">The message to queue.</param>
-        public async Task QueueMessageAsync(QueuedMessage qm)
+        public async ValueTask QueueMessageAsync(QueuedMessage qm)
         {
             if (!IsConnected)
                 return;
@@ -1012,13 +1011,13 @@ namespace DTAClient.Online
                         await SendMessageAsync(qm.Command);
                         break;
                     default:
-                        int placeInQueue = MessageQueue.FindIndex(m => m.Priority < qm.Priority);
+                        int placeInQueue = messageQueue.FindIndex(m => m.Priority < qm.Priority);
                         if (ProgramConstants.LOG_LEVEL > 1)
                             Logger.Log("QM Undefined: " + qm.Command + " " + placeInQueue);
                         if (placeInQueue == -1)
-                            MessageQueue.Add(qm);
+                            messageQueue.Add(qm);
                         else
-                            MessageQueue.Insert(placeInQueue, qm);
+                            messageQueue.Insert(placeInQueue, qm);
                         break;
                 }
             }
@@ -1035,7 +1034,7 @@ namespace DTAClient.Online
         /// <param name="qm">The message to queue.</param>
         private void AddSpecialQueuedMessage(QueuedMessage qm)
         {
-            int broadcastingMessageIndex = MessageQueue.FindIndex(m => m.MessageType == qm.MessageType);
+            int broadcastingMessageIndex = messageQueue.FindIndex(m => m.MessageType == qm.MessageType);
 
             qm.ID = NextQueueID++;
 
@@ -1043,17 +1042,17 @@ namespace DTAClient.Online
             {
                 if (ProgramConstants.LOG_LEVEL > 1)
                     Logger.Log("QM Replace: " + qm.Command + " " + broadcastingMessageIndex);
-                MessageQueue[broadcastingMessageIndex] = qm;
+                messageQueue[broadcastingMessageIndex] = qm;
             }
             else
             {
-                int placeInQueue = MessageQueue.FindIndex(m => m.Priority < qm.Priority);
+                int placeInQueue = messageQueue.FindIndex(m => m.Priority < qm.Priority);
                 if (ProgramConstants.LOG_LEVEL > 1)
                     Logger.Log("QM: " + qm.Command + " " + placeInQueue);
                 if (placeInQueue == -1)
-                    MessageQueue.Add(qm);
+                    messageQueue.Add(qm);
                 else
-                    MessageQueue.Insert(placeInQueue, qm);
+                    messageQueue.Insert(placeInQueue, qm);
             }
         }
 

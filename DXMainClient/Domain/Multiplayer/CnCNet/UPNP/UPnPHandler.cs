@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -30,7 +31,8 @@ internal static class UPnPHandler
         [AddressType.IpV6SiteLocal] = IPAddress.Parse("[FF05::C]")
     }.AsReadOnly();
 
-    public static async ValueTask<(InternetGatewayDevice InternetGatewayDevice, List<ushort> P2pPorts, List<ushort> P2pIpV6PortIds, IPAddress ipV6Address, IPAddress ipV4Address)> SetupPortsAsync(InternetGatewayDevice internetGatewayDevice, IEnumerable<ushort> p2pReservedPorts)
+    public static async ValueTask<(InternetGatewayDevice InternetGatewayDevice, List<ushort> P2pPorts, List<ushort> P2pIpV6PortIds, IPAddress ipV6Address, IPAddress ipV4Address)> SetupPortsAsync(
+        InternetGatewayDevice internetGatewayDevice, IEnumerable<ushort> p2pReservedPorts, CancellationToken cancellationToken = default)
     {
         var p2pPorts = new List<ushort>();
         var p2pIpV6PortIds = new List<ushort>();
@@ -40,7 +42,7 @@ internal static class UPnPHandler
 
         if (internetGatewayDevice is null)
         {
-            var internetGatewayDevices = (await GetInternetGatewayDevicesAsync()).ToList();
+            var internetGatewayDevices = (await GetInternetGatewayDevicesAsync(cancellationToken)).ToList();
 
             internetGatewayDevice = GetInternetGatewayDevice(internetGatewayDevices, 2);
             internetGatewayDevice ??= GetInternetGatewayDevice(internetGatewayDevices, 1);
@@ -48,8 +50,8 @@ internal static class UPnPHandler
 
         if (internetGatewayDevice is not null)
         {
-            routerNatEnabled = await internetGatewayDevice.GetNatRsipStatusAsync();
-            routerPublicIpV4Address = await internetGatewayDevice.GetExternalIpV4AddressAsync();
+            routerNatEnabled = await internetGatewayDevice.GetNatRsipStatusAsync(cancellationToken);
+            routerPublicIpV4Address = await internetGatewayDevice.GetExternalIpV4AddressAsync(cancellationToken);
         }
 
         var publicIpAddresses = NetworkHelper.GetPublicIpAddresses().ToList();
@@ -71,7 +73,7 @@ internal static class UPnPHandler
             {
                 foreach (int p2PReservedPort in p2pReservedPorts)
                 {
-                    p2pPorts.Add(await internetGatewayDevice.OpenIpV4PortAsync(privateIpV4Address, (ushort)p2PReservedPort));
+                    p2pPorts.Add(await internetGatewayDevice.OpenIpV4PortAsync(privateIpV4Address, (ushort)p2PReservedPort, cancellationToken));
                 }
 
                 p2pReservedPorts = p2pPorts;
@@ -109,13 +111,13 @@ internal static class UPnPHandler
 
             if (publicIpV6Address is not null && internetGatewayDevice is not null)
             {
-                (bool firewallEnabled, bool inboundPinholeAllowed) = await internetGatewayDevice.GetIpV6FirewallStatusAsync();
+                (bool firewallEnabled, bool inboundPinholeAllowed) = await internetGatewayDevice.GetIpV6FirewallStatusAsync(cancellationToken);
 
                 if (firewallEnabled && inboundPinholeAllowed)
                 {
                     foreach (int p2pReservedPort in p2pReservedPorts)
                     {
-                        p2pIpV6PortIds.Add(await internetGatewayDevice.OpenIpV6PortAsync(publicIpV6Address, (ushort)p2pReservedPort));
+                        p2pIpV6PortIds.Add(await internetGatewayDevice.OpenIpV6PortAsync(publicIpV6Address, (ushort)p2pReservedPort, cancellationToken));
                     }
                 }
             }
@@ -128,7 +130,7 @@ internal static class UPnPHandler
         return (internetGatewayDevice, p2pPorts, p2pIpV6PortIds, publicIpV6Address, publicIpV4Address);
     }
 
-    private static async ValueTask<IEnumerable<InternetGatewayDevice>> GetInternetGatewayDevicesAsync(CancellationToken cancellationToken = default)
+    private static async ValueTask<IEnumerable<InternetGatewayDevice>> GetInternetGatewayDevicesAsync(CancellationToken cancellationToken)
     {
         IEnumerable<string> rawDeviceResponses = await GetRawDeviceResponses(cancellationToken);
         IEnumerable<Dictionary<string, string>> formattedDeviceResponses = GetFormattedDeviceResponses(rawDeviceResponses);
@@ -176,22 +178,36 @@ internal static class UPnPHandler
         if (addressType is AddressType.Unknown)
             return responses;
 
-        using var socket = new Socket(localAddress.AddressFamily, SocketType.Dgram, ProtocolType.Udp);
+        var socket = new Socket(localAddress.AddressFamily, SocketType.Dgram, ProtocolType.Udp);
 
-        socket.ExclusiveAddressUse = true;
-
-        socket.Bind(new IPEndPoint(localAddress, 0));
-
-        var multiCastIpEndPoint = new IPEndPoint(SsdpMultiCastAddresses[addressType], UPnPMultiCastPort);
-        string request = FormattableString.Invariant($"M-SEARCH * HTTP/1.1\r\nHOST: {multiCastIpEndPoint}\r\nST: {InternetGatewayDeviceDeviceType}\r\nMAN: \"ssdp:discover\"\r\nMX: 3\r\n\r\n");
-        var buffer = new ArraySegment<byte>(Encoding.UTF8.GetBytes(request));
-
-        for (int i = 0; i < SendCount; i++)
+        try
         {
-            _ = await socket.SendToAsync(buffer, SocketFlags.None, multiCastIpEndPoint);
-        }
+            socket.ExclusiveAddressUse = true;
 
-        await ReceiveAsync(socket, new(new byte[4096]), responses, ReceiveTimeout, cancellationToken);
+            socket.Bind(new IPEndPoint(localAddress, 0));
+
+            var multiCastIpEndPoint = new IPEndPoint(SsdpMultiCastAddresses[addressType], UPnPMultiCastPort);
+            string request = FormattableString.Invariant($"M-SEARCH * HTTP/1.1\r\nHOST: {multiCastIpEndPoint}\r\nST: {InternetGatewayDeviceDeviceType}\r\nMAN: \"ssdp:discover\"\r\nMX: 3\r\n\r\n");
+            const int charSize = sizeof(char);
+            int bufferSize = request.Length * charSize;
+            using IMemoryOwner<byte> memoryOwner = MemoryPool<byte>.Shared.Rent(bufferSize);
+            Memory<byte> buffer = memoryOwner.Memory[..bufferSize];
+            int bytes = Encoding.UTF8.GetBytes(request.AsSpan(), buffer.Span);
+
+            buffer = buffer[..bytes];
+
+            for (int i = 0; i < SendCount; i++)
+            {
+                await socket.SendToAsync(buffer, SocketFlags.None, multiCastIpEndPoint, cancellationToken);
+                await Task.Delay(100, cancellationToken);
+            }
+
+            await ReceiveAsync(socket, responses, cancellationToken);
+        }
+        finally
+        {
+            socket.Close();
+        }
 
         return responses;
     }
@@ -210,19 +226,21 @@ internal static class UPnPHandler
         return AddressType.Unknown;
     }
 
-    private static async ValueTask ReceiveAsync(Socket socket, ArraySegment<byte> buffer, ICollection<string> responses, int receiveTimeout, CancellationToken cancellationToken)
+    private static async ValueTask ReceiveAsync(Socket socket, ICollection<string> responses, CancellationToken cancellationToken)
     {
-        using var timeoutCancellationTokenSource = new CancellationTokenSource(receiveTimeout);
+        using IMemoryOwner<byte> memoryOwner = MemoryPool<byte>.Shared.Rent(4096);
+        using var timeoutCancellationTokenSource = new CancellationTokenSource(ReceiveTimeout);
         using var linkedCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(timeoutCancellationTokenSource.Token, cancellationToken);
 
         while (!linkedCancellationTokenSource.IsCancellationRequested)
         {
+            Memory<byte> buffer = memoryOwner.Memory[..4096];
+
             try
             {
                 int bytesReceived = await socket.ReceiveAsync(buffer, SocketFlags.None, linkedCancellationTokenSource.Token);
 
-                if (bytesReceived > 0)
-                    responses.Add(Encoding.UTF8.GetString(buffer.Take(bytesReceived).ToArray()));
+                responses.Add(Encoding.UTF8.GetString(buffer.Span[..bytesReceived]));
             }
             catch (OperationCanceledException)
             {
@@ -240,7 +258,6 @@ internal static class UPnPHandler
             }, true)
         {
             Timeout = TimeSpan.FromMilliseconds(ReceiveTimeout),
-            DefaultRequestVersion = HttpVersion.Version11,
             DefaultVersionPolicy = HttpVersionPolicy.RequestVersionOrHigher
         };
 

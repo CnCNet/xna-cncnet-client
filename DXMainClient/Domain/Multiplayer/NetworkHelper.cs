@@ -8,7 +8,7 @@ using System.Runtime.Versioning;
 
 namespace DTAClient.Domain.Multiplayer;
 
-internal sealed class NetworkHelper
+internal static class NetworkHelper
 {
     private static readonly IReadOnlyCollection<AddressFamily> SupportedAddressFamilies = new[]
     {
@@ -42,10 +42,10 @@ internal sealed class NetworkHelper
         .SelectMany(q => q.UnicastAddresses)
         .Where(q => SupportedAddressFamilies.Contains(q.Address.AddressFamily));
 
-    public static IPAddress GetIpV4BroadcastAddress(UnicastIPAddressInformation unicastIPAddressInformation)
+    public static IPAddress GetIpV4BroadcastAddress(UnicastIPAddressInformation unicastIpAddressInformation)
     {
-        uint ipAddress = BitConverter.ToUInt32(unicastIPAddressInformation.Address.GetAddressBytes(), 0);
-        uint ipMaskV4 = BitConverter.ToUInt32(unicastIPAddressInformation.IPv4Mask.GetAddressBytes(), 0);
+        uint ipAddress = BitConverter.ToUInt32(unicastIpAddressInformation.Address.GetAddressBytes(), 0);
+        uint ipMaskV4 = BitConverter.ToUInt32(unicastIpAddressInformation.IPv4Mask.GetAddressBytes(), 0);
         uint broadCastIpAddress = ipAddress | ~ipMaskV4;
 
         return new IPAddress(BitConverter.GetBytes(broadCastIpAddress));
@@ -55,19 +55,27 @@ internal sealed class NetworkHelper
     /// Returns a free UDP port number above 1023.
     /// </summary>
     /// <param name="excludedPorts">List of UDP port numbers which are additionally excluded.</param>
+    /// <param name="numberOfPorts">The number of free ports to return.</param>
     /// <returns>A free UDP port number on the current system.</returns>
-    public static ushort GetFreeUdpPort(IEnumerable<ushort> excludedPorts)
+    public static IEnumerable<ushort> GetFreeUdpPorts(IEnumerable<ushort> excludedPorts, ushort numberOfPorts)
     {
         IPEndPoint[] endPoints = IPGlobalProperties.GetIPGlobalProperties().GetActiveUdpListeners();
-        ushort[] activePorts = endPoints.Select(q => (ushort)q.Port).ToArray().Concat(excludedPorts).ToArray();
-        ushort selectedPort = 0;
+        List<ushort> activePorts = endPoints.Select(q => (ushort)q.Port).ToArray().Concat(excludedPorts).ToList();
+        ushort foundPortCount = 0;
 
-        while (selectedPort == 0 || activePorts.Contains(selectedPort))
+        while (foundPortCount != numberOfPorts)
         {
-            selectedPort = (ushort)new Random().Next(1024, IPEndPoint.MaxPort);
-        }
+            ushort foundPort = (ushort)new Random().Next(1024, IPEndPoint.MaxPort);
 
-        return selectedPort;
+            if (!activePorts.Contains(foundPort))
+            {
+                activePorts.Add(foundPort);
+
+                foundPortCount++;
+
+                yield return foundPort;
+            }
+        }
     }
 
     private static bool IsPrivateIpAddress(IPAddress ipAddress)

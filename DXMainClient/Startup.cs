@@ -309,7 +309,7 @@ namespace DTAClient
         /// <summary>
         /// Generate an ID for online play.
         /// </summary>
-        private static async Task GenerateOnlineIdAsync()
+        private static async ValueTask GenerateOnlineIdAsync()
         {
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {

@@ -165,7 +165,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         /// <summary>
         /// Clears event subscriptions and leaves the channel.
         /// </summary>
-        public async Task ClearAsync()
+        public async ValueTask ClearAsync()
         {
             gameBroadcastTimer.Enabled = false;
 
@@ -211,7 +211,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         /// <summary>
         /// Called when the local user has joined the game channel.
         /// </summary>
-        public async Task OnJoinedAsync()
+        public async ValueTask OnJoinedAsync()
         {
             FileHashCalculator fhc = new FileHashCalculator();
             fhc.CalculateHashes(gameModes);
@@ -219,8 +219,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             if (IsHost)
             {
                 await connectionManager.SendCustomMessageAsync(new QueuedMessage(
-                    string.Format(IRCCommands.MODE + " {0} +klnNs {1} {2}", channel.ChannelName,
-                    channel.Password, SGPlayers.Count),
+                    FormattableString.Invariant($"{IRCCommands.MODE} {channel.ChannelName} +{IRCChannelModes.DEFAULT} {channel.Password} {SGPlayers.Count}"),
                     QueuedMessageType.SYSTEM_MESSAGE, 50));
 
                 await connectionManager.SendCustomMessageAsync(new QueuedMessage(
@@ -252,7 +251,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             UpdateDiscordPresence(true);
         }
 
-        private async Task Channel_UserAddedAsync(ChannelUserEventArgs e)
+        private async ValueTask Channel_UserAddedAsync(ChannelUserEventArgs e)
         {
             PlayerInfo pInfo = new PlayerInfo();
             pInfo.Name = e.User.IRCUser.Name;
@@ -266,13 +265,13 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             UpdateDiscordPresence();
         }
 
-        private async Task OnPlayerLeftAsync(UserNameEventArgs e)
+        private async ValueTask OnPlayerLeftAsync(UserNameEventArgs e)
         {
             await RemovePlayerAsync(e.UserName);
             UpdateDiscordPresence();
         }
 
-        private async Task RemovePlayerAsync(string playerName)
+        private async ValueTask RemovePlayerAsync(string playerName)
         {
             int index = Players.FindIndex(p => p.Name == playerName);
 
@@ -304,7 +303,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         protected override void AddNotice(string message, Color color) => channel.AddMessage(new ChatMessage(color, message));
 
-        protected override async Task BroadcastOptionsAsync()
+        protected override async ValueTask BroadcastOptionsAsync()
         {
             if (!IsHost)
                 return;
@@ -327,17 +326,17 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             await channel.SendCTCPMessageAsync(message.ToString(), QueuedMessageType.GAME_SETTINGS_MESSAGE, 10);
         }
 
-        protected override Task SendChatMessageAsync(string message)
+        protected override ValueTask SendChatMessageAsync(string message)
         {
             sndMessageSound.Play();
 
             return channel.SendChatMessageAsync(message, chatColor);
         }
 
-        protected override Task RequestReadyStatusAsync() =>
+        protected override ValueTask RequestReadyStatusAsync() =>
             channel.SendCTCPMessageAsync(CnCNetCommands.PLAYER_READY + " 1", QueuedMessageType.GAME_PLAYERS_READY_STATUS_MESSAGE, 10);
 
-        protected override async Task GetReadyNotificationAsync()
+        protected override async ValueTask GetReadyNotificationAsync()
         {
             await base.GetReadyNotificationAsync();
 
@@ -347,7 +346,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 await channel.SendCTCPMessageAsync(CnCNetCommands.GET_READY, QueuedMessageType.GAME_GET_READY_MESSAGE, 0);
         }
 
-        protected override async Task NotAllPresentNotificationAsync()
+        protected override async ValueTask NotAllPresentNotificationAsync()
         {
             await base.NotAllPresentNotificationAsync();
 
@@ -361,7 +360,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         private void ShowTunnelSelectionWindow(string description)
             => tunnelSelectionWindow.Open(description, tunnelHandler.CurrentTunnel);
 
-        private async Task TunnelSelectionWindow_TunnelSelectedAsync(TunnelEventArgs e)
+        private async ValueTask TunnelSelectionWindow_TunnelSelectedAsync(TunnelEventArgs e)
         {
             await channel.SendCTCPMessageAsync(
                 $"{CnCNetCommands.CHANGE_TUNNEL_SERVER} {e.Tunnel.Hash}",
@@ -372,7 +371,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         #region CTCP Handlers
 
-        private async Task HandleGetReadyNotificationAsync(string sender)
+        private async ValueTask HandleGetReadyNotificationAsync(string sender)
         {
             if (sender != hostName)
                 return;
@@ -380,7 +379,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             await GetReadyNotificationAsync();
         }
 
-        private async Task HandleNotAllPresentNotificationAsync(string sender)
+        private async ValueTask HandleNotAllPresentNotificationAsync(string sender)
         {
             if (sender != hostName)
                 return;
@@ -388,7 +387,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             await NotAllPresentNotificationAsync();
         }
 
-        private async Task HandleFileHashCommandAsync(string sender, string fileHash)
+        private async ValueTask HandleFileHashCommandAsync(string sender, string fileHash)
         {
             if (!IsHost)
                 return;
@@ -406,7 +405,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             }
         }
 
-        private async Task HandleCheaterNotificationAsync(string sender, string cheaterName)
+        private async ValueTask HandleCheaterNotificationAsync(string sender, string cheaterName)
         {
             if (sender != hostName)
                 return;
@@ -428,7 +427,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         /// <summary>
         /// Handles an options broadcast sent by the game host.
         /// </summary>
-        private async Task HandleOptionsMessageAsync(string sender, string data)
+        private async ValueTask HandleOptionsMessageAsync(string sender, string data)
         {
             if (sender != hostName)
                 return;
@@ -527,7 +526,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             LoadGame();
         }
 
-        private async Task HandlePlayerReadyRequestAsync(string sender, int readyStatus)
+        private async ValueTask HandlePlayerReadyRequestAsync(string sender, int readyStatus)
         {
             PlayerInfo pInfo = Players.Find(p => p.Name == sender);
 
@@ -575,7 +574,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         #endregion
 
-        protected override async Task HostStartGameAsync()
+        protected override async ValueTask HostStartGameAsync()
         {
             AddNotice("Contacting tunnel server...".L10N("UI:Main:ConnectingTunnel"));
             List<int> playerPorts = await tunnelHandler.CurrentTunnel.GetPlayerPortInfoAsync(SGPlayers.Count);
@@ -618,13 +617,13 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             base.WriteSpawnIniAdditions(spawnIni);
         }
 
-        protected override async Task HandleGameProcessExitedAsync()
+        protected override async ValueTask HandleGameProcessExitedAsync()
         {
             await base.HandleGameProcessExitedAsync();
             await ClearAsync();
         }
 
-        protected override Task LeaveGameAsync() => ClearAsync();
+        protected override ValueTask LeaveGameAsync() => ClearAsync();
 
         public void ChangeChatColor(IRCColor chatColor)
         {
@@ -632,7 +631,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             tbChatInput.TextColor = chatColor.XnaColor;
         }
 
-        private async Task BroadcastGameAsync()
+        private async ValueTask BroadcastGameAsync()
         {
             Channel broadcastChannel = connectionManager.FindChannel(gameCollection.GetGameBroadcastingChannelNameFromIdentifier(localGame));
 

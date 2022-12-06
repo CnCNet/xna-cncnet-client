@@ -77,7 +77,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
 
         private void ConnectionManager_Disconnected(object sender, EventArgs e) => Enabled = false;
 
-        private async Task RefreshTunnelsAsync()
+        private async ValueTask RefreshTunnelsAsync()
         {
             List<CnCNetTunnel> tunnels = await DoRefreshTunnelsAsync();
             wm.AddCallback(() => HandleRefreshedTunnels(tunnels));
@@ -115,7 +115,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
             }
         }
 
-        private async Task PingListTunnelAsync(int index)
+        private async ValueTask PingListTunnelAsync(int index)
         {
             await Tunnels[index].UpdatePingAsync();
             DoTunnelPinged(index);
@@ -124,7 +124,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
         private void PingCurrentTunnel(bool checkTunnelList = false)
             => PingCurrentTunnelAsync(checkTunnelList).HandleTask();
 
-        private async Task PingCurrentTunnelAsync(bool checkTunnelList = false)
+        private async ValueTask PingCurrentTunnelAsync(bool checkTunnelList = false)
         {
             await CurrentTunnel.UpdatePingAsync();
             DoCurrentTunnelPinged();
@@ -142,7 +142,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
         /// Downloads and parses the list of CnCNet tunnels.
         /// </summary>
         /// <returns>A list of tunnel servers.</returns>
-        private static async Task<List<CnCNetTunnel>> DoRefreshTunnelsAsync()
+        private static async ValueTask<List<CnCNetTunnel>> DoRefreshTunnelsAsync()
         {
             FileInfo tunnelCacheFile = SafePath.GetFile(ProgramConstants.ClientUserFilesPath, "tunnel_cache");
             var returnValue = new List<CnCNetTunnel>();

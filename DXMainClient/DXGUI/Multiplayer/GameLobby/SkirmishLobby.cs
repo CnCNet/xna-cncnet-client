@@ -165,7 +165,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             return null;
         }
 
-        protected override async Task BtnLaunchGame_LeftClickAsync()
+        protected override async ValueTask BtnLaunchGame_LeftClickAsync()
         {
             string error = CheckGameValidity();
 
@@ -179,7 +179,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             XNAMessageBox.Show(WindowManager, "Cannot launch game".L10N("UI:Main:LaunchGameErrorTitle"), error);
         }
 
-        protected override Task BtnLeaveGame_LeftClickAsync()
+        protected override ValueTask BtnLeaveGame_LeftClickAsync()
         {
             Enabled = false;
             Visible = false;
@@ -189,7 +189,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             topBar.RemovePrimarySwitchable(this);
             ResetDiscordPresence();
 
-            return Task.CompletedTask;
+            return ValueTask.CompletedTask;
         }
 
         private void PlayerSideChanged(object sender, EventArgs e)
@@ -227,7 +227,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             return StatisticsManager.Instance.GetSkirmishRankForDefaultMap(gameModeMap.Map.Name, gameModeMap.Map.MaxPlayers);
         }
 
-        protected override async Task GameProcessExitedAsync()
+        protected override async ValueTask GameProcessExitedAsync()
         {
             await base.GameProcessExitedAsync();
             await DdGameModeMapFilter_SelectedIndexChangedAsync(); // Refresh ranks

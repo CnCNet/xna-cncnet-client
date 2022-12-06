@@ -17,7 +17,6 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
     internal sealed class CnCNetTunnel
     {
         private const int PING_PACKET_SEND_SIZE = 50;
-        private const int PING_PACKET_RECEIVE_SIZE = 12;
         private const int PING_TIMEOUT = 1000;
         private const int HASH_LENGTH = 10;
 
@@ -149,7 +148,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
         /// Gets a list of player ports to use from a specific tunnel server.
         /// </summary>
         /// <returns>A list of player ports to use.</returns>
-        public async Task<List<int>> GetPlayerPortInfoAsync(int playerCount)
+        public async ValueTask<List<int>> GetPlayerPortInfoAsync(int playerCount)
         {
             if (Version != Constants.TUNNEL_VERSION_2)
                 throw new InvalidOperationException($"{nameof(GetPlayerPortInfoAsync)} only works with version {Constants.TUNNEL_VERSION_2} tunnels.");
@@ -195,7 +194,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
             return new List<int>();
         }
 
-        public async Task UpdatePingAsync()
+        public async ValueTask UpdatePingAsync()
         {
             using var socket = new Socket(SocketType.Dgram, ProtocolType.Udp);
 
@@ -210,9 +209,6 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                 long ticks = DateTime.Now.Ticks;
 
                 await socket.SendToAsync(buffer, SocketFlags.None, ep);
-
-                buffer = buffer[..PING_PACKET_RECEIVE_SIZE];
-
                 await socket.ReceiveFromAsync(buffer, SocketFlags.None, ep);
 
                 ticks = DateTime.Now.Ticks - ticks;
