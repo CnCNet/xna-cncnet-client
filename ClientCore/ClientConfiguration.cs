@@ -27,12 +27,12 @@ namespace ClientCore
             var baseResourceDirectory = SafePath.GetDirectory(ProgramConstants.GetBaseResourcePath());
 
             if (!baseResourceDirectory.Exists)
-                throw new FileNotFoundException("Couldn't find " + CLIENT_DEFS + ". Please verify that you're running the client from the correct directory.");
+                throw new FileNotFoundException($"Couldn't find {CLIENT_DEFS} at {baseResourceDirectory}. Please verify that you're running the client from the correct directory.");
 
             FileInfo clientDefinitionsFile = SafePath.GetFile(baseResourceDirectory.FullName, CLIENT_DEFS);
 
             if (clientDefinitionsFile is null)
-                throw new FileNotFoundException("Couldn't find " + CLIENT_DEFS + ". Please verify that you're running the client from the correct directory.");
+                throw new FileNotFoundException($"Couldn't find {CLIENT_DEFS} at {baseResourceDirectory}. Please verify that you're running the client from the correct directory.");
 
             clientDefinitionsIni = new IniFile(clientDefinitionsFile.FullName);
 
