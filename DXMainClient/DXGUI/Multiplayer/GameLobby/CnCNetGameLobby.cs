@@ -16,7 +16,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using DTAClient.Domain.Multiplayer.CnCNet;
 using Localization;
@@ -42,11 +41,16 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         private const string DICE_ROLL_MESSAGE = "DR";
         private const string CHANGE_TUNNEL_SERVER_MESSAGE = "CHTNL";
 
-        public CnCNetGameLobby(WindowManager windowManager, string iniName,
-            TopBar topBar, CnCNetManager connectionManager,
-            TunnelHandler tunnelHandler, GameCollection gameCollection, CnCNetUserData cncnetUserData, MapLoader mapLoader, DiscordHandler discordHandler,
-            PrivateMessagingWindow pmWindow) :
-            base(windowManager, iniName, topBar, mapLoader, discordHandler)
+        public CnCNetGameLobby(
+            WindowManager windowManager, 
+            TopBar topBar, 
+            CnCNetManager connectionManager,
+            TunnelHandler tunnelHandler, 
+            GameCollection gameCollection, 
+            CnCNetUserData cncnetUserData, 
+            MapLoader mapLoader, 
+            DiscordHandler discordHandler
+        ) : base(windowManager, "MultiplayerGameLobby", topBar, mapLoader, discordHandler)
         {
             this.connectionManager = connectionManager;
             localGame = ClientConfiguration.Instance.LocalGame;
@@ -265,10 +269,13 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private void GameHostInactiveCheck_SendInactiveGameWarningMessage(object sender, EventArgs e)
         {
+            string messageTitle = "Are you still here?".L10N("UI:CnCNetGameLobby:GameHostInactiveMessageTitle");
+            string messageBody = "Your game may be closed due to inactivity.".L10N("UI:CnCNetGameLobby:GameHostInactiveMessageBody");
+
             XNAMessageBox hostInactiveWarningMessageBox = new XNAMessageBox(
                 WindowManager,
-                ClientConfiguration.Instance.InactiveHostWarningTitle,
-                ClientConfiguration.Instance.InactiveHostWarningMessage,
+                messageTitle,
+                messageBody,
                 XNAMessageBoxButtons.OK
             );
             hostInactiveWarningMessageBox.OKClickedAction = InactiveMessageBox_OKClicked;
@@ -337,6 +344,17 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             {
                 pInfo.Ping = tunnelHandler.CurrentTunnel.PingInMs;
                 UpdatePlayerPingIndicator(pInfo);
+            }
+        }
+
+        protected override void CopyPlayerDataToUI()
+        {
+            base.CopyPlayerDataToUI();
+
+            for (int i = AIPlayers.Count + Players.Count; i < MAX_PLAYER_COUNT; i++)
+            {
+                StatusIndicators[i].SwitchTexture(
+                    i < playerLimit ? PlayerSlotState.Empty : PlayerSlotState.Unavailable);
             }
         }
 
@@ -544,8 +562,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 AIPlayers.RemoveAt(AIPlayers.Count - 1);
 
             sndJoinSound.Play();
-
+#if WINFORMS
             WindowManager.FlashWindow();
+#endif
 
             if (!IsHost)
             {
@@ -607,9 +626,13 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     AddNotice("Player limit reached. The game room has been locked.".L10N("UI:Main:GameRoomNumberLimitReached"));
                 else
                     AddNotice("The game host has locked the game room.".L10N("UI:Main:RoomLockedByHost"));
+                Locked = true;
             }
             else if (e.ModeString == "-i")
+            {
                 AddNotice("The game room has been unlocked.".L10N("UI:Main:GameRoomUnlocked"));
+                Locked = false;
+            }
         }
 
         private void Channel_CTCPReceived(object sender, ChannelCTCPEventArgs e)
@@ -684,6 +707,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             }
 
             Players.ForEach(pInfo => pInfo.IsInGame = true);
+            CopyPlayerDataToUI();
 
             cncnetUserData.AddRecentPlayers(Players.Select(p => p.Name), channel.UIName);
 
@@ -1081,7 +1105,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             lastMapSHA1 = mapSHA1;
             lastMapName = mapName;
 
-            GameModeMap = GameModeMaps.Find(gmm => gmm.GameMode.UIName == gameMode && gmm.Map.SHA1 == mapSHA1);
+            GameModeMap = GameModeMaps.Find(gmm => gmm.GameMode.Name == gameMode && gmm.Map.SHA1 == mapSHA1);
             if (GameModeMap == null)
             {
                 ChangeMap(null);
@@ -1204,7 +1228,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             }
             else
             {
-                AddNotice("The game host has selected a map that doesn't exist on your installation.".L10N("UI:Main:MapNotExist") +" "+
+                AddNotice("The game host has selected a map that doesn't exist on your installation.".L10N("UI:Main:MapNotExist") + " " +
                     ("Because you've disabled map sharing, it cannot be transferred. The game host needs " +
                     "to change the map or you will be unable to participate in the match.").L10N("UI:Main:MapSharingDisabledNotice"));
                 channel.SendCTCPMessage(MAP_SHARING_DISABLED_MESSAGE, QueuedMessageType.SYSTEM_MESSAGE, 9);
@@ -1369,8 +1393,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         protected override void GetReadyNotification()
         {
             base.GetReadyNotification();
-
+#if WINFORMS
             WindowManager.FlashWindow();
+#endif
             TopBar.SwitchToPrimary();
 
             if (IsHost)
@@ -1451,6 +1476,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 pInfo.IsInGame = false;
 
             sndReturnSound.Play();
+            CopyPlayerDataToUI();
         }
 
         private void HandleTunnelPing(string sender, int ping)
@@ -1472,6 +1498,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             if (pInfo != null)
                 pInfo.Verified = true;
+            CopyPlayerDataToUI();
 
             if (filesHash != gameFilesHash)
             {

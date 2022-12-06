@@ -1,7 +1,6 @@
 ﻿using System;
 using Rampastring.Tools;
 using Rampastring.XNAUI;
-using ClientCore;
 using ClientGUI;
 using System.Collections.Generic;
 using System.Linq;

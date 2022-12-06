@@ -201,7 +201,7 @@ namespace DTAClient.DXGUI.Multiplayer
 
             if (SavedGameManager.AreSavedGamesAvailable())
             {
-                fsw = new FileSystemWatcher(ProgramConstants.GamePath + "Saved Games", "*.NET");
+                fsw = new FileSystemWatcher(SafePath.CombineDirectoryPath(ProgramConstants.GamePath, "Saved Games"), "*.NET");
                 fsw.EnableRaisingEvents = false;
                 fsw.Created += fsw_Created;
                 fsw.Changed += fsw_Created;
@@ -217,7 +217,7 @@ namespace DTAClient.DXGUI.Multiplayer
         /// <summary>
         /// Resets Discord Rich Presence to default state.
         /// </summary>
-        protected void ResetDiscordPresence() => discordHandler?.UpdatePresence();
+        protected void ResetDiscordPresence() => discordHandler.UpdatePresence();
 
         private void BtnLeaveGame_LeftClick(object sender, EventArgs e) => LeaveGame();
 
@@ -271,8 +271,10 @@ namespace DTAClient.DXGUI.Multiplayer
 
             if (!IsHost && !Players.Find(p => p.Name == ProgramConstants.PLAYERNAME).Ready)
                 sndGetReadySound.Play();
+#if WINFORMS
 
             WindowManager.FlashWindow();
+#endif
         }
 
         protected virtual void NotAllPresentNotification() =>
@@ -282,11 +284,13 @@ namespace DTAClient.DXGUI.Multiplayer
 
         protected void LoadGame()
         {
-            File.Delete(ProgramConstants.GamePath + "spawn.ini");
+            FileInfo spawnFileInfo = SafePath.GetFile(ProgramConstants.GamePath, "spawn.ini");
 
-            File.Copy(ProgramConstants.GamePath + "Saved Games/spawnSG.ini", ProgramConstants.GamePath + "spawn.ini");
+            spawnFileInfo.Delete();
 
-            IniFile spawnIni = new IniFile(ProgramConstants.GamePath + "spawn.ini");
+            File.Copy(SafePath.CombineFilePath(ProgramConstants.GamePath, "Saved Games", "spawnSG.ini"), spawnFileInfo.FullName);
+
+            IniFile spawnIni = new IniFile(spawnFileInfo.FullName);
 
             int sgIndex = (ddSavedGame.Items.Count - 1) - ddSavedGame.SelectedIndex;
 
@@ -320,18 +324,19 @@ namespace DTAClient.DXGUI.Multiplayer
             WriteSpawnIniAdditions(spawnIni);
             spawnIni.WriteIniFile();
 
-            File.Delete(ProgramConstants.GamePath + "spawnmap.ini");
-            StreamWriter sw = new StreamWriter(ProgramConstants.GamePath + "spawnmap.ini");
-            sw.WriteLine("[Map]");
-            sw.WriteLine("Size=0,0,50,50");
-            sw.WriteLine("LocalSize=0,0,50,50");
-            sw.WriteLine();
-            sw.Close();
+            FileInfo spawnMapFileInfo = SafePath.GetFile(ProgramConstants.GamePath, "spawnmap.ini");
+
+            spawnMapFileInfo.Delete();
+            using StreamWriter spawnMapStreamWriter = new StreamWriter(spawnMapFileInfo.FullName);
+            spawnMapStreamWriter.WriteLine("[Map]");
+            spawnMapStreamWriter.WriteLine("Size=0,0,50,50");
+            spawnMapStreamWriter.WriteLine("LocalSize=0,0,50,50");
+            spawnMapStreamWriter.WriteLine();
 
             gameLoadTime = DateTime.Now;
 
             GameProcessLogic.GameProcessExited += SharedUILogic_GameProcessExited;
-            GameProcessLogic.StartGameProcess();
+            GameProcessLogic.StartGameProcess(WindowManager);
 
             fsw.EnableRaisingEvents = true;
             UpdateDiscordPresence(true);
@@ -392,7 +397,7 @@ namespace DTAClient.DXGUI.Multiplayer
             ddSavedGame.AllowDropDown = isHost;
             btnLoadGame.Text = isHost ? "Load Game".L10N("UI:Main:ButtonLoadGame") : "I'm Ready".L10N("UI:Main:ButtonGetReady");
 
-            IniFile spawnSGIni = new IniFile(ProgramConstants.GamePath + "Saved Games/spawnSG.ini");
+            IniFile spawnSGIni = new IniFile(SafePath.CombineFilePath(ProgramConstants.GamePath, "Saved Games", "spawnSG.ini"));
 
             loadedGameID = spawnSGIni.GetStringValue("Settings", "GameID", "0");
             lblMapNameValue.Text = spawnSGIni.GetStringValue("Settings", "UIMapName", string.Empty);

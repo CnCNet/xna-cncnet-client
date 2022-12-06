@@ -184,27 +184,25 @@ namespace DTAClient.Online
                             Logger.Log("Connecting to " + server.Host + " port " + server.Ports[i] + " timed out!");
                             continue; // Start all over again, using the next port
                         }
-                        else if (client.Connected)
-                        {
-                            Logger.Log("Succesfully connected to " + server.Host + " on port " + server.Ports[i]);
-                            client.EndConnect(result);
 
-                            _isConnected = true;
-                            _attemptingConnection = false;
+                        Logger.Log("Succesfully connected to " + server.Host + " on port " + server.Ports[i]);
+                        client.EndConnect(result);
 
-                            connectionManager.OnConnected();
+                        _isConnected = true;
+                        _attemptingConnection = false;
 
-                            Thread sendQueueHandler = new Thread(RunSendQueue);
-                            sendQueueHandler.Start();
+                        connectionManager.OnConnected();
 
-                            tcpClient = client;
-                            serverStream = tcpClient.GetStream();
-                            serverStream.ReadTimeout = 1000;
+                        Thread sendQueueHandler = new Thread(RunSendQueue);
+                        sendQueueHandler.Start();
 
-                            currentConnectedServerIP = server.Host;
-                            HandleComm(client);
-                            return;
-                        }
+                        tcpClient = client;
+                        serverStream = tcpClient.GetStream();
+                        serverStream.ReadTimeout = 1000;
+
+                        currentConnectedServerIP = server.Host;
+                        HandleComm();
+                        return;
                     }
                 }
                 catch (Exception ex)
@@ -220,23 +218,19 @@ namespace DTAClient.Online
             connectionManager.OnConnectAttemptFailed();
         }
 
-        private void HandleComm(object client)
+        private void HandleComm()
         {
             int errorTimes = 0;
-
             byte[] message = new byte[1024];
-            int bytesRead;
 
             Register();
 
-            Timer timer = new Timer(new TimerCallback(AutoPing), null, 30000, 120000);
+            Timer timer = new Timer(AutoPing, null, 30000, 120000);
 
             connectionCut = true;
 
             while (true)
             {
-                bytesRead = 0;
-
                 if (connectionManager.GetDisconnectStatus())
                 {
                     connectionManager.OnDisconnected();
@@ -244,40 +238,29 @@ namespace DTAClient.Online
                     break;
                 }
 
+                if (!serverStream.DataAvailable)
+                {
+                    Thread.Sleep(10);
+                    continue;
+                }
+
+                int bytesRead;
+
                 try
                 {
                     bytesRead = serverStream.Read(message, 0, 1024);
                 }
                 catch (Exception ex)
                 {
+                    Logger.Log("Disconnected from CnCNet due to a socket error. Message: " + ex.Message);
                     errorTimes++;
 
-                    if (errorTimes > 30) // TODO Figure out if this hacky check is actually necessary
+                    if (errorTimes > MAX_RECONNECT_COUNT)
                     {
-                        Logger.Log("Disconnected from CnCNet due to a socket error. Message: " + ex.Message);
+                        const string errorMessage = "Disconnected from CnCNet after reaching the maximum number of connection retries.";
+                        Logger.Log(errorMessage);
                         failedServerIPs.Add(currentConnectedServerIP);
-                        connectionManager.OnConnectionLost(ex.Message);
-                        break;
-                    }
-                    else if (connectionManager.GetDisconnectStatus())
-                    {
-                        connectionManager.OnDisconnected();
-                        connectionCut = false; // This disconnect is intentional
-                        break;
-                    }
-
-                    continue;
-                }
-
-                if (bytesRead == 0)
-                {
-                    errorTimes++;
-
-                    if (errorTimes > 30) // TODO Figure out if this hacky check is actually necessary
-                    {
-                        failedServerIPs.Add(currentConnectedServerIP);
-                        Logger.Log("Disconnected from CnCNet.");
-                        connectionManager.OnConnectionLost("Server disconnected.".L10N("UI:Main:ServerDisconnected"));
+                        connectionManager.OnConnectionLost(errorMessage.L10N("UI:Main:ClientDisconnectedAfterRetries"));
                         break;
                     }
 
@@ -484,6 +467,15 @@ namespace DTAClient.Online
                 string serverLatencyString = serverLatencyValue <= MAXIMUM_LATENCY ? serverLatencyValue.ToString() : "DNF";
 
                 Logger.Log($"Lobby server IP: {serverIPAddress}, latency: {serverLatencyString}.");
+            }
+
+            {
+                int candidateCount = sortedServerAndLatencyResults.Count();
+                int closerCount = sortedServerAndLatencyResults.Count(
+                    serverAndLatencyResult => serverAndLatencyResult.Item2 <= MAXIMUM_LATENCY);
+
+                Logger.Log($"Lobby servers: {candidateCount} available, {closerCount} fast.");
+                connectionManager.OnServerLatencyTested(candidateCount, closerCount);
             }
 
             return sortedServerAndLatencyResults.Select(taskResult => taskResult.Item1).ToList(); // Server
@@ -995,7 +987,7 @@ namespace DTAClient.Online
                 var previousMessageIndex = MessageQueue.FindIndex(m => m.MessageType == qm.MessageType);
                 if (previousMessageIndex == -1)
                     return false;
-                
+
                 MessageQueue[previousMessageIndex] = qm;
                 return true;
             }

@@ -1,8 +1,8 @@
-﻿using ClientCore;
+﻿using Localization;
+using ClientCore;
 using ClientCore.CnCNet5;
 using ClientGUI;
 using DTAConfig.OptionPanels;
-using Localization;
 using Microsoft.Xna.Framework;
 using Rampastring.Tools;
 using Rampastring.XNAUI;
@@ -14,10 +14,9 @@ namespace DTAConfig
 {
     public class OptionsWindow : XNAWindow
     {
-        public OptionsWindow(WindowManager windowManager, GameCollection gameCollection, XNAControl topBar) : base(windowManager)
+        public OptionsWindow(WindowManager windowManager, GameCollection gameCollection) : base(windowManager)
         {
             this.gameCollection = gameCollection;
-            this.topBar = topBar;
         }
 
         public event EventHandler OnForceUpdate;
@@ -104,6 +103,8 @@ namespace DTAConfig
 
             CenterOnParent();
         }
+
+        public void SetTopBar(XNAControl topBar) => this.topBar = topBar;
 
         /// <summary>
         /// Parses extra options defined by the modder

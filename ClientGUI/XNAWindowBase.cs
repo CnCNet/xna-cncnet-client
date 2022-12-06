@@ -2,10 +2,7 @@
 using Rampastring.Tools;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
-using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 namespace ClientGUI
 {
@@ -15,19 +12,6 @@ namespace ClientGUI
         {
             PanelBackgroundDrawMode = PanelBackgroundImageDrawMode.TILED;
         }
-
-        /// <summary>
-        /// The default GUI creator that is used if no custom GUI creator is specified.
-        /// Static, because one instance of it is enough.
-        /// </summary>
-        private static readonly ClientGUICreator defaultGUICreator = new ClientGUICreator();
-
-        /// <summary>
-        /// The <see cref="Rampastring.XNAUI.GUICreator"/> to use for creating controls.
-        /// If not specified, a default implementation is used.
-        /// </summary>
-        protected GUICreator CustomGUICreator { get; set; }
-
 
         /// <summary>
         /// Reads extra control information from a specific section of an INI file.
@@ -41,8 +25,6 @@ namespace ClientGUI
             if (section == null)
                 return;
 
-            var guiCreator = CustomGUICreator ?? defaultGUICreator;
-
             foreach (var kvp in section.Keys)
             {
                 string[] parts = kvp.Value.Split(':');
@@ -51,7 +33,7 @@ namespace ClientGUI
 
                 if (!Children.Any(child => child.Name == parts[0]))
                 {
-                    var control = guiCreator.CreateControl(WindowManager, parts[1]);
+                    XNAControl control = ClientGUICreator.GetXnaControl(parts[1]);
                     control.Name = parts[0];
                     control.DrawOrder = -Children.Count;
                     AddChild(control);

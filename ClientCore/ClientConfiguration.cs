@@ -1,6 +1,7 @@
 using System;
 using Rampastring.Tools;
 using System.IO;
+using System.Runtime.InteropServices;
 
 namespace ClientCore
 {
@@ -23,14 +24,21 @@ namespace ClientCore
 
         protected ClientConfiguration()
         {
-            if (!File.Exists(ProgramConstants.GetBaseResourcePath() + CLIENT_DEFS))
+            var baseResourceDirectory = SafePath.GetDirectory(ProgramConstants.GetBaseResourcePath());
+
+            if (!baseResourceDirectory.Exists)
                 throw new FileNotFoundException("Couldn't find " + CLIENT_DEFS + ". Please verify that you're running the client from the correct directory.");
 
-            clientDefinitionsIni = new IniFile(ProgramConstants.GetBaseResourcePath() + CLIENT_DEFS);
+            FileInfo clientDefinitionsFile = SafePath.GetFile(baseResourceDirectory.FullName, CLIENT_DEFS);
 
-            DTACnCNetClient_ini = new IniFile(ProgramConstants.GetResourcePath() + CLIENT_SETTINGS);
+            if (clientDefinitionsFile is null)
+                throw new FileNotFoundException("Couldn't find " + CLIENT_DEFS + ". Please verify that you're running the client from the correct directory.");
 
-            gameOptions_ini = new IniFile(ProgramConstants.GetBaseResourcePath() + GAME_OPTIONS);
+            clientDefinitionsIni = new IniFile(clientDefinitionsFile.FullName);
+
+            DTACnCNetClient_ini = new IniFile(SafePath.CombineFilePath(ProgramConstants.GetResourcePath(), CLIENT_SETTINGS));
+
+            gameOptions_ini = new IniFile(SafePath.CombineFilePath(baseResourceDirectory.FullName, GAME_OPTIONS));
         }
 
         /// <summary>
@@ -51,16 +59,18 @@ namespace ClientCore
 
         public void RefreshSettings()
         {
-            DTACnCNetClient_ini = new IniFile(ProgramConstants.GetResourcePath() + CLIENT_SETTINGS);
+            DTACnCNetClient_ini = new IniFile(SafePath.CombineFilePath(ProgramConstants.GetResourcePath(), CLIENT_SETTINGS));
         }
 
         #region Client settings
 
-        public string MainMenuMusicName => DTACnCNetClient_ini.GetStringValue(GENERAL, "MainMenuTheme", "mainmenu");
+        public string MainMenuMusicName => SafePath.CombineFilePath(DTACnCNetClient_ini.GetStringValue(GENERAL, "MainMenuTheme", "mainmenu"));
 
         public float DefaultAlphaRate => DTACnCNetClient_ini.GetSingleValue(GENERAL, "AlphaRate", 0.005f);
 
         public float CheckBoxAlphaRate => DTACnCNetClient_ini.GetSingleValue(GENERAL, "CheckBoxAlphaRate", 0.05f);
+
+        public float IndicatorAlphaRate => DTACnCNetClient_ini.GetSingleValue(GENERAL, "IndicatorAlphaRate", 0.05f);
 
         #region Color settings
 
@@ -84,7 +94,7 @@ namespace ClientCore
 
         public string AltUIBackgroundColor => DTACnCNetClient_ini.GetStringValue(GENERAL, "AltUIBackgroundColor", "196,196,196");
 
-        public string WindowBorderColor => DTACnCNetClient_ini.GetStringValue(GENERAL, "WindowBorderColor", "128,128,128");
+        public string WindowBorderColor => DTACnCNetClient_ini.GetStringValue(GENERAL, "WindowBorderColor", "128,128,128"); 
 
         public string PanelBorderColor => DTACnCNetClient_ini.GetStringValue(GENERAL, "PanelBorderColor", "255,255,255");
 
@@ -145,7 +155,7 @@ namespace ClientCore
         #region Game options
 
         public string Sides => gameOptions_ini.GetStringValue(GENERAL, nameof(Sides), "GDI,Nod,Allies,Soviet");
-        
+
         public string InternalSideIndices => gameOptions_ini.GetStringValue(GENERAL, nameof(InternalSideIndices), string.Empty);
 
         public string SpectatorInternalSideIndex => gameOptions_ini.GetStringValue(GENERAL, nameof(SpectatorInternalSideIndex), string.Empty);
@@ -157,7 +167,7 @@ namespace ClientCore
         public string DiscordAppId => clientDefinitionsIni.GetStringValue(SETTINGS, "DiscordAppId", string.Empty);
 
         public int SendSleep => clientDefinitionsIni.GetIntValue(SETTINGS, "SendSleep", 2500);
-          
+
         public int LoadingScreenCount => clientDefinitionsIni.GetIntValue(SETTINGS, "LoadingScreenCount", 2);
 
         public int ThemeCount => clientDefinitionsIni.GetSectionKeys("Themes").Count;
@@ -184,7 +194,7 @@ namespace ClientCore
 
         public string BattleFSFileName => clientDefinitionsIni.GetStringValue(SETTINGS, "BattleFSFileName", "BattleFS.ini");
 
-        public string MapEditorExePath => clientDefinitionsIni.GetStringValue(SETTINGS, "MapEditorExePath", "FinalSun/FinalSun.exe");
+        public string MapEditorExePath => SafePath.CombineFilePath(clientDefinitionsIni.GetStringValue(SETTINGS, "MapEditorExePath", SafePath.CombineFilePath("FinalSun", "FinalSun.exe")));
 
         public string UnixMapEditorExePath => clientDefinitionsIni.GetStringValue(SETTINGS, "UnixMapEditorExePath", Instance.MapEditorExePath);
 
@@ -201,16 +211,22 @@ namespace ClientCore
         public string CreditsURL => clientDefinitionsIni.GetStringValue(SETTINGS, "CreditsURL", "http://www.moddb.com/mods/the-dawn-of-the-tiberium-age/tutorials/credits#Rampastring");
 
         public string ManualDownloadURL => clientDefinitionsIni.GetStringValue(SETTINGS, "ManualDownloadURL", string.Empty);
-        
-        public string FinalSunIniPath => clientDefinitionsIni.GetStringValue(SETTINGS, "FSIniPath", "FinalSun/FinalSun.ini");
+
+        public string FinalSunIniPath => SafePath.CombineFilePath(clientDefinitionsIni.GetStringValue(SETTINGS, "FSIniPath", SafePath.CombineFilePath("FinalSun", "FinalSun.ini")));
 
         public int MaxNameLength => clientDefinitionsIni.GetIntValue(SETTINGS, "MaxNameLength", 16);
 
-        public int MapCellSizeX => clientDefinitionsIni.GetIntValue(SETTINGS, "MapCellSizeX", 48); 
+        public bool UseIsometricCells => clientDefinitionsIni.GetBooleanValue(SETTINGS, "UseIsometricCells", true);
+
+        public int WaypointCoefficient => clientDefinitionsIni.GetIntValue(SETTINGS, "WaypointCoefficient", 128);
+
+        public int MapCellSizeX => clientDefinitionsIni.GetIntValue(SETTINGS, "MapCellSizeX", 48);
 
         public int MapCellSizeY => clientDefinitionsIni.GetIntValue(SETTINGS, "MapCellSizeY", 24);
 
         public bool UseBuiltStatistic => clientDefinitionsIni.GetBooleanValue(SETTINGS, "UseBuiltStatistic", false);
+
+        public bool CopyResolutionDependentLanguageDLL => clientDefinitionsIni.GetBooleanValue(SETTINGS, "CopyResolutionDependentLanguageDLL", true);
 
         public string StatisticsLogFileName => clientDefinitionsIni.GetStringValue(SETTINGS, "StatisticsLogFileName", "DTA.LOG");
 
@@ -237,13 +253,13 @@ namespace ClientCore
 
         public string SettingsIniName => clientDefinitionsIni.GetStringValue(SETTINGS, "SettingsFile", "Settings.ini");
 
-        public string TranslationIniName => clientDefinitionsIni.GetStringValue(SETTINGS, "TranslationFile", "Resources/Translation.ini");
+        public string TranslationIniName => SafePath.CombineFilePath(clientDefinitionsIni.GetStringValue(SETTINGS, "TranslationFile", SafePath.CombineFilePath("Resources", "Translation.ini")));
 
         public bool GenerateTranslationStub => clientDefinitionsIni.GetBooleanValue(SETTINGS, "GenerateTranslationStub", false);
 
         public string ExtraExeCommandLineParameters => clientDefinitionsIni.GetStringValue(SETTINGS, "ExtraCommandLineParams", string.Empty);
 
-        public string MPMapsIniPath => clientDefinitionsIni.GetStringValue(SETTINGS, "MPMapsPath", "INI/MPMaps.ini");
+        public string MPMapsIniPath => SafePath.CombineFilePath(clientDefinitionsIni.GetStringValue(SETTINGS, "MPMapsPath", SafePath.CombineFilePath("INI", "MPMaps.ini")));
 
         public string KeyboardINI => clientDefinitionsIni.GetStringValue(SETTINGS, "KeyboardINI", "Keyboard.ini");
 
@@ -258,10 +274,6 @@ namespace ClientCore
         public bool CopyMissionsToSpawnmapINI => clientDefinitionsIni.GetBooleanValue(SETTINGS, "CopyMissionsToSpawnmapINI", true);
 
         public string AllowedCustomGameModes => clientDefinitionsIni.GetStringValue(SETTINGS, "AllowedCustomGameModes", "Standard,Custom Map");
-
-        public string InactiveHostWarningTitle => clientDefinitionsIni.GetStringValue(SETTINGS, "InactiveHostWarningTitle", "Are you still here?");
-
-        public string InactiveHostWarningMessage => clientDefinitionsIni.GetStringValue(SETTINGS, "InactiveHostWarningMessage", "Your game may be closed due to inactivity.");
 
         public int InactiveHostWarningMessageSeconds => clientDefinitionsIni.GetIntValue(SETTINGS, "InactiveHostWarningMessageSeconds", 15);
 
@@ -313,31 +325,15 @@ namespace ClientCore
 
         public OSVersion GetOperatingSystemVersion()
         {
-            Version osVersion = Environment.OSVersion.Version;
-
-            if (Environment.OSVersion.Platform == PlatformID.Win32NT)
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                if (osVersion.Major < 5)
-                    return OSVersion.UNKNOWN;
-
-                if (osVersion.Major == 5)
-                    return OSVersion.WINXP;
-
-                if (osVersion.Minor > 1)
+                if (OperatingSystem.IsWindowsVersionAtLeast(6, 3))
                     return OSVersion.WIN810;
-                else if (osVersion.Minor == 0)
-                    return OSVersion.WINVISTA;
 
                 return OSVersion.WIN7;
             }
 
-            int p = (int)Environment.OSVersion.Platform;
-
-            // http://mono.wikia.com/wiki/Detecting_the_execution_platform
-            if (p == 4 || p == 6 || p == 128)
-                return OSVersion.UNIX;
-
-            return OSVersion.UNKNOWN;
+            return OSVersion.UNIX;
         }
     }
 
