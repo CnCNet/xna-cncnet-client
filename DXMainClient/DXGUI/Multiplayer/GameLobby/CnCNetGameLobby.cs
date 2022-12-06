@@ -78,6 +78,7 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
     private List<ushort> p2pPorts = new();
     private List<ushort> p2pIpV6PortIds = new();
     private CancellationTokenSource gameStartCancellationTokenSource;
+    private bool disposed;
 
     /// <summary>
     /// The SHA1 of the latest selected map.
@@ -192,9 +193,11 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
             _ => ToggleDynamicTunnelsAsync().HandleTask()));
         AddChatBoxCommand(new(
             CnCNetLobbyCommands.P2P,
-            "Toggle P2P connections on/off".L10N("Client:Main:ChangeP2P"),
+            "Toggle P2P connections on/off, your IP will be public to players in the lobby".L10N("Client:Main:ChangeP2P"),
             false,
             _ => ToggleP2PAsync().HandleTask()));
+
+        WindowManager.GameClosing += (_, _) => Dispose(true);
     }
 
     public event EventHandler GameLeft;
@@ -262,6 +265,19 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
         tunnelHandler_CurrentTunnelFunc = (_, _) => UpdatePingAsync().HandleTask();
 
         PostInitialize();
+    }
+
+    protected override void Dispose(bool disposing)
+    {
+        if (!disposed)
+        {
+            if (disposing)
+                ClearAsync().HandleTask();
+
+            disposed = true;
+        }
+
+        base.Dispose(disposing);
     }
 
     private void GameStartTimer_TimeElapsed(object sender, EventArgs e)
@@ -517,7 +533,7 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
         v3GameTunnelHandlers.Clear();
         playerTunnels.Clear();
         gamePlayerIds.Clear();
-        pinnedTunnels.Clear();
+        pinnedTunnels?.Clear();
         p2pPlayers.Clear();
         GameLeft?.Invoke(this, EventArgs.Empty);
         TopBar.RemovePrimarySwitchable(this);
