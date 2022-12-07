@@ -10,6 +10,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
+using ClientCore.Extensions;
 
 namespace DTAClient.DXGUI.Generic
 {
@@ -55,7 +57,7 @@ namespace DTAClient.DXGUI.Generic
             btnLaunch.ClientRectangle = new Rectangle(125, 345, 110, 23);
             btnLaunch.Text = "Load".L10N("UI:Main:ButtonLoad");
             btnLaunch.AllowClick = false;
-            btnLaunch.LeftClick += BtnLaunch_LeftClick;
+            btnLaunch.LeftClick += (_, _) => BtnLaunch_LeftClickAsync().HandleTask();
 
             btnDelete = new XNAClientButton(WindowManager);
             btnDelete.Name = nameof(btnDelete);
@@ -99,7 +101,7 @@ namespace DTAClient.DXGUI.Generic
             Enabled = false;
         }
 
-        private void BtnLaunch_LeftClick(object sender, EventArgs e)
+        private async ValueTask BtnLaunch_LeftClickAsync()
         {
             SavedGame sg = savedGames[lbSaveGameList.SelectedIndex];
             Logger.Log("Loading saved game " + sg.FileName);
@@ -137,7 +139,7 @@ namespace DTAClient.DXGUI.Generic
             Enabled = false;
             GameProcessLogic.GameProcessExited += GameProcessExited_Callback;
 
-            GameProcessLogic.StartGameProcess(WindowManager);
+            await GameProcessLogic.StartGameProcessAsync(WindowManager);
         }
 
         private void BtnDelete_LeftClick(object sender, EventArgs e)

@@ -50,7 +50,7 @@ namespace DTAClient.DXGUI.Multiplayer
             {
                 new ClientStringCommandHandler(LANCommands.CHAT_GAME_LOADING_COMMAND, Client_HandleChatMessage),
                 new ClientStringCommandHandler(LANCommands.OPTIONS, Client_HandleOptionsMessage),
-                new ClientNoParamCommandHandler(LANCommands.GAME_START, Client_HandleStartCommand)
+                new ClientNoParamCommandHandler(LANCommands.GAME_START, () => Client_HandleStartCommandAsync().HandleTask())
             };
 
             WindowManager.GameClosing += (_, _) => WindowManager_GameClosingAsync().HandleTask();
@@ -556,11 +556,11 @@ namespace DTAClient.DXGUI.Multiplayer
             CopyPlayerDataToUI();
         }
 
-        private void Client_HandleStartCommand()
+        private ValueTask Client_HandleStartCommandAsync()
         {
             started = true;
 
-            LoadGame();
+            return LoadGameAsync();
         }
 
         #endregion

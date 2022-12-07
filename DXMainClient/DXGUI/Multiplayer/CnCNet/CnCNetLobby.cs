@@ -1111,8 +1111,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                     ddCurrentChannel.SelectedIndex = gameIndex;
             }
 
-            if (gameCheckCancellation != null)
-                gameCheckCancellation.Cancel();
+            gameCheckCancellation?.Cancel();
+            gameCheckCancellation?.Dispose();
         }
 
         private async ValueTask ConnectionManager_WelcomeMessageReceivedAsync()
@@ -1147,8 +1147,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             }
 
             gameCheckCancellation = new CancellationTokenSource();
-            CnCNetGameCheck gameCheck = new CnCNetGameCheck();
-            gameCheck.InitializeService(gameCheckCancellation);
+            CnCNetGameCheck.RunServiceAsync(gameCheckCancellation.Token).HandleTask();
         }
 
         private void ConnectionManager_PrivateCTCPReceived(object sender, PrivateCTCPEventArgs e)

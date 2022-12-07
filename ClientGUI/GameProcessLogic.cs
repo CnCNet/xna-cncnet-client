@@ -4,7 +4,7 @@ using System.Runtime.InteropServices;
 using ClientCore;
 using Rampastring.Tools;
 using ClientCore.INIProcessing;
-using System.Threading;
+using System.Threading.Tasks;
 using Rampastring.XNAUI;
 
 namespace ClientGUI
@@ -26,7 +26,7 @@ namespace ClientGUI
         /// <summary>
         /// Starts the main game process.
         /// </summary>
-        public static void StartGameProcess(WindowManager windowManager)
+        public static async ValueTask StartGameProcessAsync(WindowManager windowManager)
         {
             Logger.Log("About to launch main game executable.");
 
@@ -35,7 +35,7 @@ namespace ClientGUI
             int waitTimes = 0;
             while (PreprocessorBackgroundTask.Instance.IsRunning)
             {
-                Thread.Sleep(1000);
+                await Task.Delay(1000);
                 waitTimes++;
                 if (waitTimes > 10)
                 {

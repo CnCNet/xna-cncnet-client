@@ -4,6 +4,8 @@ using System;
 using System.Collections.Generic;
 using DTAClient.Domain;
 using System.IO;
+using System.Threading.Tasks;
+using ClientCore.Extensions;
 using ClientGUI;
 using Rampastring.XNAUI.XNAControls;
 using Rampastring.XNAUI;
@@ -149,7 +151,7 @@ namespace DTAClient.DXGUI.Generic
             btnLaunch.ClientRectangle = new Rectangle(12, Height - 35, UIDesignConstants.BUTTON_WIDTH_133, UIDesignConstants.BUTTON_HEIGHT);
             btnLaunch.Text = "Launch".L10N("UI:Main:ButtonLaunch");
             btnLaunch.AllowClick = false;
-            btnLaunch.LeftClick += BtnLaunch_LeftClick;
+            btnLaunch.LeftClick += (_, _) => BtnLaunch_LeftClickAsync().HandleTask();
 
             var btnCancel = new XNAClientButton(WindowManager);
             btnCancel.Name = "btnCancel";
@@ -186,7 +188,7 @@ namespace DTAClient.DXGUI.Generic
             AddChild(dp);
             dp.CenterOnParent();
             cheaterWindow.CenterOnParent();
-            cheaterWindow.YesClicked += CheaterWindow_YesClicked;
+            cheaterWindow.YesClicked += (_, _) => LaunchMissionAsync(missionToLaunch).HandleTask();
             cheaterWindow.Disable();
         }
 
@@ -224,7 +226,7 @@ namespace DTAClient.DXGUI.Generic
             Enabled = false;
         }
 
-        private void BtnLaunch_LeftClick(object sender, EventArgs e)
+        private async ValueTask BtnLaunch_LeftClickAsync()
         {
             int selectedMissionId = lbCampaignList.SelectedIndex;
 
@@ -239,7 +241,7 @@ namespace DTAClient.DXGUI.Generic
                 return;
             }
 
-            LaunchMission(mission);
+            await LaunchMissionAsync(mission);
         }
 
         private bool AreFilesModified()
@@ -254,18 +256,9 @@ namespace DTAClient.DXGUI.Generic
         }
 
         /// <summary>
-        /// Called when the user wants to proceed to the mission despite having
-        /// being called a cheater.
-        /// </summary>
-        private void CheaterWindow_YesClicked(object sender, EventArgs e)
-        {
-            LaunchMission(missionToLaunch);
-        }
-
-        /// <summary>
         /// Starts a singleplayer mission.
         /// </summary>
-        private void LaunchMission(Mission mission)
+        private async ValueTask LaunchMissionAsync(Mission mission)
         {
             bool copyMapsToSpawnmapINI = ClientConfiguration.Instance.CopyMissionsToSpawnmapINI;
 
@@ -318,7 +311,7 @@ namespace DTAClient.DXGUI.Generic
             discordHandler.UpdatePresence(mission.GUIName, difficultyName, mission.IconPath, true);
             GameProcessLogic.GameProcessExited += GameProcessExited_Callback;
 
-            GameProcessLogic.StartGameProcess(WindowManager);
+            await GameProcessLogic.StartGameProcessAsync(WindowManager);
         }
 
         private int GetComputerDifficulty() =>

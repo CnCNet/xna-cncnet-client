@@ -286,7 +286,7 @@ namespace DTAClient.DXGUI.Multiplayer
 
         protected abstract ValueTask HostStartGameAsync();
 
-        protected void LoadGame()
+        protected async ValueTask LoadGameAsync()
         {
             FileInfo spawnFileInfo = SafePath.GetFile(ProgramConstants.GamePath, ProgramConstants.SPAWNER_SETTINGS);
 
@@ -340,7 +340,7 @@ namespace DTAClient.DXGUI.Multiplayer
             gameLoadTime = DateTime.Now;
 
             GameProcessLogic.GameProcessExited += SharedUILogic_GameProcessExited;
-            GameProcessLogic.StartGameProcess(WindowManager);
+            await GameProcessLogic.StartGameProcessAsync(WindowManager);
 
             fsw.EnableRaisingEvents = true;
             UpdateDiscordPresence(true);

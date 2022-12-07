@@ -225,7 +225,7 @@ namespace DTAClient.DXGUI.Generic
             btnExit.IdleTexture = AssetLoader.LoadTexture("MainMenu/exitgame.png");
             btnExit.HoverTexture = AssetLoader.LoadTexture("MainMenu/exitgame_c.png");
             btnExit.HoverSoundEffect = new EnhancedSoundEffect("MainMenu/button.wav");
-            btnExit.LeftClick += BtnExit_LeftClick;
+            btnExit.LeftClick += (_, _) => BtnExit_LeftClickAsync().HandleTask();
 
             XNALabel lblCnCNetStatus = new XNALabel(WindowManager);
             lblCnCNetStatus.Name = nameof(lblCnCNetStatus);
@@ -312,10 +312,8 @@ namespace DTAClient.DXGUI.Generic
 
             GameProcessLogic.GameProcessStarted += SharedUILogic_GameProcessStarted;
             GameProcessLogic.GameProcessStarting += SharedUILogic_GameProcessStarting;
-
             UserINISettings.Instance.SettingsSaved += SettingsSaved;
-
-            Updater.Restart += Updater_Restart;
+            Updater.Restart += (_, _) => WindowManager.AddCallback(() => ExitClientAsync().HandleTask());
 
             SetButtonHotkeys(true);
         }
@@ -378,9 +376,6 @@ namespace DTAClient.DXGUI.Generic
                 ProgramConstants.LogException(ex, "Refreshing settings failed!");
             }
         }
-
-        private void Updater_Restart(object sender, EventArgs e) =>
-            WindowManager.AddCallback(ExitClient);
 
         /// <summary>
         /// Applies configuration changes (music playback and volume)
@@ -868,12 +863,12 @@ namespace DTAClient.DXGUI.Generic
         private void BtnExtras_LeftClick(object sender, EventArgs e) =>
             innerPanel.Show(innerPanel.ExtrasWindow);
 
-        private void BtnExit_LeftClick(object sender, EventArgs e)
+        private ValueTask BtnExit_LeftClickAsync()
         {
 #if WINFORMS
             WindowManager.HideWindow();
 #endif
-            FadeMusicExit();
+            return FadeMusicExitAsync();
         }
 
         private void SharedUILogic_GameProcessExited() =>
@@ -969,11 +964,11 @@ namespace DTAClient.DXGUI.Generic
         /// <summary>
         /// Exits the client. Quickly fades the music if it's playing.
         /// </summary>
-        private void FadeMusicExit()
+        private async ValueTask FadeMusicExitAsync()
         {
             if (!isMediaPlayerAvailable || themeSong == null)
             {
-                ExitClient();
+                await ExitClientAsync();
                 return;
             }
 
@@ -982,21 +977,21 @@ namespace DTAClient.DXGUI.Generic
             if (MediaPlayer.Volume > step)
             {
                 MediaPlayer.Volume -= step;
-                AddCallback(FadeMusicExit);
+                AddCallback(() => FadeMusicExitAsync().HandleTask());
             }
             else
             {
                 MediaPlayer.Stop();
-                ExitClient();
+                await ExitClientAsync();
             }
         }
 
-        private void ExitClient()
+        private async ValueTask ExitClientAsync()
         {
             Logger.Log("Exiting.");
             WindowManager.CloseGame();
 #if !XNA
-            Thread.Sleep(1000);
+            await Task.Delay(1000);
             Environment.Exit(0);
 #endif
         }
