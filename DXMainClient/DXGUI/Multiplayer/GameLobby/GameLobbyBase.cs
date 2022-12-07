@@ -1779,7 +1779,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         /// Writes spawn.ini, writes the map file, initializes statistics and
         /// starts the game process.
         /// </summary>
-        protected virtual ValueTask StartGameAsync()
+        protected virtual async ValueTask StartGameAsync()
         {
             PlayerHouseInfo[] houseInfos = WriteSpawnIni();
             InitializeMatchStatistics(houseInfos);
@@ -1787,10 +1787,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             GameProcessLogic.GameProcessExited += GameProcessExited_Callback;
 
-            GameProcessLogic.StartGameProcess(WindowManager);
+            await GameProcessLogic.StartGameProcessAsync(WindowManager);
             UpdateDiscordPresence(true);
-
-            return ValueTask.CompletedTask;
         }
 
         private void GameProcessExited_Callback() => AddCallback(() => GameProcessExitedAsync().HandleTask());

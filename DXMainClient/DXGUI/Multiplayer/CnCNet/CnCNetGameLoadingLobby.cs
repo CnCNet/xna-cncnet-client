@@ -53,7 +53,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 new IntCommandHandler(CnCNetCommands.TUNNEL_PING, HandleTunnelPing),
                 new StringCommandHandler(CnCNetCommands.OPTIONS, (sender, data) => HandleOptionsMessageAsync(sender, data).HandleTask()),
                 new NoParamCommandHandler(CnCNetCommands.INVALID_SAVED_GAME_INDEX, HandleInvalidSaveIndexCommand),
-                new StringCommandHandler(CnCNetCommands.START_GAME, HandleStartGameCommand),
+                new StringCommandHandler(CnCNetCommands.START_GAME, (sender, data) => HandleStartGameCommandAsync(sender, data).HandleTask()),
                 new IntCommandHandler(CnCNetCommands.PLAYER_READY, (sender, readyStatus) => HandlePlayerReadyRequestAsync(sender, readyStatus).HandleTask()),
                 new StringCommandHandler(CnCNetCommands.CHANGE_TUNNEL_SERVER, HandleTunnelServerChangeMessage)
             };
@@ -489,7 +489,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             CopyPlayerDataToUI();
         }
 
-        private void HandleStartGameCommand(string sender, string data)
+        private async ValueTask HandleStartGameCommandAsync(string sender, string data)
         {
             if (sender != hostName)
                 return;
@@ -523,7 +523,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 pInfo.Port = port;
             }
 
-            LoadGame();
+            await LoadGameAsync();
         }
 
         private async ValueTask HandlePlayerReadyRequestAsync(string sender, int readyStatus)
@@ -606,7 +606,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             started = true;
 
-            LoadGame();
+            await LoadGameAsync();
         }
 
         protected override void WriteSpawnIniAdditions(IniFile spawnIni)
