@@ -205,11 +205,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         }
 
         private void fsw_Created(object sender, FileSystemEventArgs e)
-        {
-            AddCallback(() => FSWEvent(e));
-        }
+            => AddCallback(() => FSWEventAsync(e).HandleTask());
 
-        private void FSWEvent(FileSystemEventArgs e)
+        private async ValueTask FSWEventAsync(FileSystemEventArgs e)
         {
             Logger.Log("FSW Event: " + e.FullPath);
 
@@ -225,7 +223,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
                 gameSaved = true;
 
-                SavedGameManager.RenameSavedGame();
+                await SavedGameManager.RenameSavedGameAsync();
             }
         }
 
