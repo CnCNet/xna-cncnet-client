@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading.Tasks;
 using Rampastring.Tools;
 
 namespace ClientCore
@@ -10,7 +11,7 @@ namespace ClientCore
     /// </summary>
     public static class SavedGameManager
     {
-        private static bool saveRenameInProgress = false;
+        private static bool saveRenameInProgress;
 
         public static int GetSaveGameCount()
         {
@@ -88,7 +89,7 @@ namespace ClientCore
             return true;
         }
 
-        public static void RenameSavedGame()
+        public static async ValueTask RenameSavedGameAsync()
         {
             Logger.Log("Renaming saved game.");
 
@@ -149,7 +150,7 @@ namespace ClientCore
                     return;
                 }
 
-                System.Threading.Thread.Sleep(250);
+                await Task.Delay(250);
             }
 
             saveRenameInProgress = false;
@@ -157,7 +158,7 @@ namespace ClientCore
             Logger.Log("Saved game SAVEGAME.NET succesfully renamed to " + Path.GetFileName(sgPath));
         }
 
-        public static bool EraseSavedGames()
+        private static bool EraseSavedGames()
         {
             Logger.Log("Erasing previous MP saved games.");
 

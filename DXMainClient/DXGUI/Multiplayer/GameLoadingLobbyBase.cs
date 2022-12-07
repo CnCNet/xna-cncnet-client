@@ -228,16 +228,14 @@ namespace DTAClient.DXGUI.Multiplayer
         }
 
         private void fsw_Created(object sender, FileSystemEventArgs e) =>
-            AddCallback(() => HandleFSWEvent(e));
+            AddCallback(() => HandleFSWEventAsync(e).HandleTask());
 
-        private void HandleFSWEvent(FileSystemEventArgs e)
+        private static async ValueTask HandleFSWEventAsync(FileSystemEventArgs e)
         {
             Logger.Log("FSW Event: " + e.FullPath);
 
             if (Path.GetFileName(e.FullPath) == "SAVEGAME.NET")
-            {
-                SavedGameManager.RenameSavedGame();
-            }
+                await SavedGameManager.RenameSavedGameAsync();
         }
 
         private async ValueTask BtnLoadGame_LeftClickAsync()
