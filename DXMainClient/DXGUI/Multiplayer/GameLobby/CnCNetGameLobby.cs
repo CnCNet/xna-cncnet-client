@@ -5,7 +5,6 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.NetworkInformation;
-using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -984,8 +983,13 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
             {
                 foreach (var (remotePlayerName, remotePorts, localPingResults, remotePingResults, _) in p2pPlayers.Where(q => q.RemotePingResults.Any() && q.Enabled))
                 {
-                    IEnumerable<(IPAddress IpAddress, long CombinedPing)> combinedPingResults = localPingResults.Select(q => (q.RemoteIpAddress, q.Ping + remotePingResults.SingleOrDefault(r => r.RemoteIpAddress.Equals(q.RemoteIpAddress)).Ping));
-                    (IPAddress ipAddress, long combinedPing) = combinedPingResults.OrderBy(q => q.CombinedPing).ThenByDescending(q => q.IpAddress.AddressFamily is AddressFamily.InterNetworkV6).First();
+                    (IPAddress selectedRemoteIpAddress, long combinedPing) = localPingResults
+                        .Where(q => q.RemoteIpAddress is not null && remotePingResults
+                            .Where(r => r.RemoteIpAddress is not null)
+                            .Select(r => r.RemoteIpAddress.AddressFamily)
+                            .Contains(q.RemoteIpAddress.AddressFamily))
+                        .Select(q => (q.RemoteIpAddress, q.Ping + remotePingResults.Single(r => r.RemoteIpAddress.AddressFamily == q.RemoteIpAddress.AddressFamily).Ping))
+                        .MaxBy(q => q.RemoteIpAddress.AddressFamily);
 
                     if (combinedPing < playerTunnels.Single(q => q.RemotePlayerName.Equals(remotePlayerName, StringComparison.OrdinalIgnoreCase)).CombinedPing)
                     {
@@ -1000,7 +1004,7 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
                         p2pLocalTunnelHandler.RaiseRemoteHostConnectedEvent += (_, _) => AddCallback(() => GameTunnelHandler_Connected_CallbackAsync().HandleTask());
                         p2pLocalTunnelHandler.RaiseRemoteHostConnectionFailedEvent += (_, _) => AddCallback(() => GameTunnelHandler_ConnectionFailed_CallbackAsync().HandleTask());
 
-                        p2pLocalTunnelHandler.SetUp(new(ipAddress, remotePort), localPort, gameLocalPlayerId, gameStartCancellationTokenSource.Token);
+                        p2pLocalTunnelHandler.SetUp(new(selectedRemoteIpAddress, remotePort), localPort, gameLocalPlayerId, gameStartCancellationTokenSource.Token);
                         p2pLocalTunnelHandler.ConnectToTunnel();
                         v3GameTunnelHandlers.Add(new(new() { remotePlayerName }, p2pLocalTunnelHandler));
                         p2pPlayerTunnels.Add(remotePlayerName);
@@ -1330,11 +1334,11 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
     {
         if (!p2pPorts.Any())
         {
-            IEnumerable<ushort> p2pReservedPorts = NetworkHelper.GetFreeUdpPorts(Array.Empty<ushort>(), MAX_REMOTE_PLAYERS);
+            p2pPorts = NetworkHelper.GetFreeUdpPorts(Array.Empty<ushort>(), MAX_REMOTE_PLAYERS).ToList();
 
             try
             {
-                (internetGatewayDevice, p2pPorts, p2pIpV6PortIds, publicIpV6Address, publicIpV4Address) = await UPnPHandler.SetupPortsAsync(internetGatewayDevice, p2pReservedPorts);
+                (internetGatewayDevice, p2pPorts, p2pIpV6PortIds, publicIpV6Address, publicIpV4Address) = await UPnPHandler.SetupPortsAsync(internetGatewayDevice, p2pPorts);
             }
             catch (Exception ex)
             {
@@ -1345,7 +1349,7 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
             }
         }
 
-        if ((publicIpV4Address is not null || publicIpV6Address is not null) && p2pPorts.Any())
+        if (publicIpV4Address is not null || publicIpV6Address is not null)
             await SendPlayerP2PRequestAsync();
     }
 

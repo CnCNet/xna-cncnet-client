@@ -17,6 +17,8 @@ internal sealed class V3RemotePlayerConnection : IDisposable
     private const int SendTimeout = 10000;
     private const int GameStartReceiveTimeout = 60000;
     private const int ReceiveTimeout = 60000;
+    private const int MinimumPacketSize = 8;
+    private const int MaximumPacketSize = 1024;
 
     private uint gameLocalPlayerId;
     private CancellationToken cancellationToken;
@@ -67,8 +69,8 @@ internal sealed class V3RemotePlayerConnection : IDisposable
 
         tunnelSocket.Bind(new IPEndPoint(IPAddress.IPv6Any, localPort));
 
-        using IMemoryOwner<byte> memoryOwner = MemoryPool<byte>.Shared.Rent(50);
-        Memory<byte> buffer = memoryOwner.Memory[..50];
+        using IMemoryOwner<byte> memoryOwner = MemoryPool<byte>.Shared.Rent(MaximumPacketSize);
+        Memory<byte> buffer = memoryOwner.Memory[..MaximumPacketSize];
 
         if (!BitConverter.TryWriteBytes(buffer.Span[..4], gameLocalPlayerId))
             throw new GameDataException();
@@ -156,6 +158,9 @@ internal sealed class V3RemotePlayerConnection : IDisposable
 #endif
             OnRaiseConnectionCutEvent(EventArgs.Empty);
         }
+        catch (ObjectDisposedException)
+        {
+        }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
         }
@@ -182,7 +187,7 @@ internal sealed class V3RemotePlayerConnection : IDisposable
 
     private async ValueTask ReceiveLoopAsync()
     {
-        using IMemoryOwner<byte> memoryOwner = MemoryPool<byte>.Shared.Rent(4096);
+        using IMemoryOwner<byte> memoryOwner = MemoryPool<byte>.Shared.Rent(MaximumPacketSize);
         int receiveTimeout = GameStartReceiveTimeout;
 
 #if DEBUG
@@ -193,7 +198,7 @@ internal sealed class V3RemotePlayerConnection : IDisposable
 
         while (!cancellationToken.IsCancellationRequested)
         {
-            Memory<byte> buffer = memoryOwner.Memory[..1024];
+            Memory<byte> buffer = memoryOwner.Memory[..MaximumPacketSize];
             SocketReceiveFromResult socketReceiveFromResult;
             using var timeoutCancellationTokenSource = new CancellationTokenSource(receiveTimeout);
             using var linkedCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(timeoutCancellationTokenSource.Token, cancellationToken);
@@ -211,6 +216,10 @@ internal sealed class V3RemotePlayerConnection : IDisposable
 #endif
                 OnRaiseConnectionCutEvent(EventArgs.Empty);
 
+                return;
+            }
+            catch (ObjectDisposedException)
+            {
                 return;
             }
             catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
@@ -231,7 +240,7 @@ internal sealed class V3RemotePlayerConnection : IDisposable
 
             receiveTimeout = ReceiveTimeout;
 
-            if (socketReceiveFromResult.ReceivedBytes < 8)
+            if (socketReceiveFromResult.ReceivedBytes < MinimumPacketSize)
             {
 #if DEBUG
                 Logger.Log($"Invalid data packet from {socketReceiveFromResult.RemoteEndPoint}");
@@ -256,6 +265,7 @@ internal sealed class V3RemotePlayerConnection : IDisposable
 #else
                 Logger.Log($"Invalid target (received: {receiverId}, expected: {gameLocalPlayerId}) on port {localPort}.");
 #endif
+
                 continue;
             }
 

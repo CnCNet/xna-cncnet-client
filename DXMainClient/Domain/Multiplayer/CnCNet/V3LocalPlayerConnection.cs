@@ -20,6 +20,8 @@ internal sealed class V3LocalPlayerConnection : IDisposable
     private const int SendTimeout = 10000;
     private const int GameStartReceiveTimeout = 60000;
     private const int ReceiveTimeout = 10000;
+    private const int MinimumPacketSize = 8;
+    private const int MaximumPacketSize = 1024;
 
     private Socket localGameSocket;
     private EndPoint remotePlayerEndPoint;
@@ -63,8 +65,8 @@ internal sealed class V3LocalPlayerConnection : IDisposable
     {
         remotePlayerEndPoint = new IPEndPoint(IPAddress.Loopback, 0);
 
-        using IMemoryOwner<byte> memoryOwner = MemoryPool<byte>.Shared.Rent(128);
-        Memory<byte> buffer = memoryOwner.Memory[..128];
+        using IMemoryOwner<byte> memoryOwner = MemoryPool<byte>.Shared.Rent(MaximumPacketSize);
+        Memory<byte> buffer = memoryOwner.Memory[..MaximumPacketSize];
         int receiveTimeout = GameStartReceiveTimeout;
 
 #if DEBUG
@@ -101,6 +103,10 @@ internal sealed class V3LocalPlayerConnection : IDisposable
 
                 return;
             }
+            catch (ObjectDisposedException)
+            {
+                return;
+            }
             catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {
                 return;
@@ -133,7 +139,7 @@ internal sealed class V3LocalPlayerConnection : IDisposable
         Logger.Log($"Sending data from {localGameSocket.LocalEndPoint} to local game {remotePlayerEndPoint} for player {playerId}.");
 
 #endif
-        if (remotePlayerEndPoint is null)
+        if (remotePlayerEndPoint is null || data.Length < MinimumPacketSize)
             return;
 
         using var timeoutCancellationTokenSource = new CancellationTokenSource(SendTimeout);
@@ -151,6 +157,9 @@ internal sealed class V3LocalPlayerConnection : IDisposable
             ProgramConstants.LogException(ex, $"Socket exception sending data for player {playerId}.");
 #endif
             OnRaiseConnectionCutEvent(EventArgs.Empty);
+        }
+        catch (ObjectDisposedException)
+        {
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {

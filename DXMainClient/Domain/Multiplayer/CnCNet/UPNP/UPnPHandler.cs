@@ -14,6 +14,7 @@ using System.Runtime.Serialization;
 using System.Text;
 using System.Xml;
 using ClientCore;
+using Rampastring.Tools;
 
 namespace DTAClient.Domain.Multiplayer.CnCNet;
 
@@ -37,8 +38,10 @@ internal static class UPnPHandler
         var p2pPorts = new List<ushort>();
         var p2pIpV6PortIds = new List<ushort>();
         IPAddress routerPublicIpV4Address = null;
-        bool? routerNatEnabled = null;
+        bool routerNatEnabled = false;
         bool natDetected = false;
+
+        Logger.Log("Starting P2P Setup.");
 
         if (internetGatewayDevice is null)
         {
@@ -50,26 +53,38 @@ internal static class UPnPHandler
 
         if (internetGatewayDevice is not null)
         {
+            Logger.Log("Found NAT device.");
+
             routerNatEnabled = await internetGatewayDevice.GetNatRsipStatusAsync(cancellationToken);
             routerPublicIpV4Address = await internetGatewayDevice.GetExternalIpV4AddressAsync(cancellationToken);
+        }
+
+        if (routerPublicIpV4Address == null)
+        {
+            Logger.Log("Using IPV4 detection.");
+
+            routerPublicIpV4Address = await NetworkHelper.DetectPublicIpV4Address(cancellationToken);
         }
 
         var publicIpAddresses = NetworkHelper.GetPublicIpAddresses().ToList();
         IPAddress publicIpV4Address = publicIpAddresses.FirstOrDefault(q => q.AddressFamily is AddressFamily.InterNetwork);
 
-        if ((routerNatEnabled ?? false) || (publicIpV4Address is not null && routerPublicIpV4Address is not null && !publicIpV4Address.Equals(routerPublicIpV4Address)))
+        if (routerNatEnabled || (publicIpV4Address is not null && routerPublicIpV4Address is not null && !publicIpV4Address.Equals(routerPublicIpV4Address)))
             natDetected = true;
 
         publicIpV4Address ??= routerPublicIpV4Address;
 
+        if (publicIpV4Address is not null)
+            Logger.Log("Public IPV4 detected.");
+
         var privateIpV4Addresses = NetworkHelper.GetPrivateIpAddresses().Where(q => q.AddressFamily is AddressFamily.InterNetwork).ToList();
-        IPAddress privateIpV4Address = null;
+        IPAddress privateIpV4Address = privateIpV4Addresses.FirstOrDefault();
 
-        try
+        if (natDetected && privateIpV4Address is not null && publicIpV4Address is not null)
         {
-            privateIpV4Address = privateIpV4Addresses.FirstOrDefault();
+            Logger.Log("Using IPV4 port mapping.");
 
-            if (natDetected && privateIpV4Address is not null)
+            try
             {
                 foreach (int p2PReservedPort in p2pReservedPorts)
                 {
@@ -78,53 +93,60 @@ internal static class UPnPHandler
 
                 p2pReservedPorts = p2pPorts;
             }
-        }
-        catch (Exception ex)
-        {
-            ProgramConstants.LogException(ex, $"Could not open P2P IPV4 ports for {privateIpV4Address} -> {publicIpV4Address}.");
-        }
-
-        IPAddress publicIpV6Address = null;
-
-        try
-        {
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            catch (Exception ex)
             {
-                var publicIpV6Addresses = NetworkHelper.GetWindowsPublicIpAddresses().Where(q => q.IpAddress.AddressFamily is AddressFamily.InterNetworkV6).ToList();
-
-                (IPAddress IpAddress, PrefixOrigin PrefixOrigin, SuffixOrigin SuffixOrigin) foundPublicIpV6Address = publicIpV6Addresses
-                    .FirstOrDefault(q => q.PrefixOrigin is PrefixOrigin.RouterAdvertisement && q.SuffixOrigin is SuffixOrigin.LinkLayerAddress);
-
-                if (foundPublicIpV6Address.IpAddress is null)
-                {
-                    foundPublicIpV6Address = publicIpV6Addresses
-                        .FirstOrDefault(q => q.PrefixOrigin is PrefixOrigin.Dhcp && q.SuffixOrigin is SuffixOrigin.OriginDhcp);
-                }
-
-                publicIpV6Address = foundPublicIpV6Address.IpAddress;
+                ProgramConstants.LogException(ex, $"Could not open P2P IPV4 ports for {privateIpV4Address} -> {publicIpV4Address}.");
             }
-            else
+        }
+
+        IPAddress publicIpV6Address;
+
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            var publicIpV6Addresses = NetworkHelper.GetWindowsPublicIpAddresses().Where(q => q.IpAddress.AddressFamily is AddressFamily.InterNetworkV6).ToList();
+
+            (IPAddress IpAddress, PrefixOrigin PrefixOrigin, SuffixOrigin SuffixOrigin) foundPublicIpV6Address = publicIpV6Addresses
+                .FirstOrDefault(q => q.PrefixOrigin is PrefixOrigin.RouterAdvertisement && q.SuffixOrigin is SuffixOrigin.LinkLayerAddress);
+
+            if (foundPublicIpV6Address.IpAddress is null)
             {
-                publicIpV6Address = NetworkHelper.GetPublicIpAddresses()
-                    .FirstOrDefault(q => q.AddressFamily is AddressFamily.InterNetworkV6);
+                foundPublicIpV6Address = publicIpV6Addresses
+                    .FirstOrDefault(q => q.PrefixOrigin is PrefixOrigin.Dhcp && q.SuffixOrigin is SuffixOrigin.OriginDhcp);
             }
 
-            if (publicIpV6Address is not null && internetGatewayDevice is not null)
-            {
-                (bool firewallEnabled, bool inboundPinholeAllowed) = await internetGatewayDevice.GetIpV6FirewallStatusAsync(cancellationToken);
+            publicIpV6Address = foundPublicIpV6Address.IpAddress;
+        }
+        else
+        {
+            publicIpV6Address = NetworkHelper.GetPublicIpAddresses()
+                .FirstOrDefault(q => q.AddressFamily is AddressFamily.InterNetworkV6);
+        }
 
-                if (firewallEnabled && inboundPinholeAllowed)
+        if (publicIpV6Address is not null)
+        {
+            Logger.Log("Public IPV6 detected.");
+
+            if (internetGatewayDevice is not null)
+            {
+                try
                 {
-                    foreach (int p2pReservedPort in p2pReservedPorts)
+                    (bool firewallEnabled, bool inboundPinholeAllowed) = await internetGatewayDevice.GetIpV6FirewallStatusAsync(cancellationToken);
+
+                    if (firewallEnabled && inboundPinholeAllowed)
                     {
-                        p2pIpV6PortIds.Add(await internetGatewayDevice.OpenIpV6PortAsync(publicIpV6Address, (ushort)p2pReservedPort, cancellationToken));
+                        Logger.Log("Configuring IPV6 firewall.");
+
+                        foreach (ushort p2pReservedPort in p2pReservedPorts)
+                        {
+                            p2pIpV6PortIds.Add(await internetGatewayDevice.OpenIpV6PortAsync(publicIpV6Address, p2pReservedPort, cancellationToken));
+                        }
                     }
                 }
+                catch (Exception ex)
+                {
+                    ProgramConstants.LogException(ex, $"Could not open P2P IPV6 ports for {publicIpV6Address}.");
+                }
             }
-        }
-        catch (Exception ex)
-        {
-            ProgramConstants.LogException(ex, $"Could not open P2P IPV6 ports for {publicIpV6Address}.");
         }
 
         return (internetGatewayDevice, p2pPorts, p2pIpV6PortIds, publicIpV6Address, publicIpV4Address);
@@ -291,7 +313,7 @@ internal static class UPnPHandler
             {
                 try
                 {
-                    location = locations.SingleOrDefault(q => q.HostNameType is UriHostNameType.IPv4);
+                    location = locations.First(q => q.HostNameType is UriHostNameType.IPv4);
 
                     uPnPDescription = await GetUPnPDescription(location, cancellationToken);
                 }
