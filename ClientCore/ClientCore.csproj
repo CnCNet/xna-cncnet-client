@@ -46,8 +46,8 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Rampastring.XNAUI.$(Engine)" Version="2.2.9" Condition="'!$(Configuration.Contains(Debug))'" />
-    <PackageReference Include="Rampastring.XNAUI.$(Engine).Debug" Version="2.2.9" Condition="'$(Configuration.Contains(Debug))'" />
+    <PackageReference Include="Rampastring.XNAUI.$(Engine)" Version="2.2.10" Condition="'!$(Configuration.Contains(Debug))'" />
+    <PackageReference Include="Rampastring.XNAUI.$(Engine).Debug" Version="2.2.10" Condition="'$(Configuration.Contains(Debug))'" />
     <PackageReference Include="System.Text.Encoding.CodePages" Version="7.0.0" />
   </ItemGroup>
   <ItemGroup>
