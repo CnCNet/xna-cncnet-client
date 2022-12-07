@@ -156,7 +156,7 @@ namespace DTAClient.DXGUI.Multiplayer
         private async ValueTask ListenForClientsAsync(CancellationToken cancellationToken)
         {
             listener = new Socket(SocketType.Stream, ProtocolType.Tcp);
-            listener.Bind(new IPEndPoint(IPAddress.IPv6Any, ProgramConstants.LAN_GAME_LOBBY_PORT));
+            listener.Bind(new IPEndPoint(IPAddress.Any, ProgramConstants.LAN_GAME_LOBBY_PORT));
             listener.Listen();
 
             while (!cancellationToken.IsCancellationRequested)
@@ -188,7 +188,7 @@ namespace DTAClient.DXGUI.Multiplayer
 
         private async ValueTask HandleClientConnectionAsync(LANPlayerInfo lpInfo, CancellationToken cancellationToken)
         {
-            using IMemoryOwner<byte> memoryOwner = MemoryPool<byte>.Shared.Rent(1024);
+            using IMemoryOwner<byte> memoryOwner = MemoryPool<byte>.Shared.Rent(4096);
 
             while (!cancellationToken.IsCancellationRequested)
             {
@@ -197,7 +197,7 @@ namespace DTAClient.DXGUI.Multiplayer
 
                 try
                 {
-                    message = memoryOwner.Memory[..1024];
+                    message = memoryOwner.Memory[..4096];
                     bytesRead = await client.ReceiveAsync(message, SocketFlags.None, cancellationToken);
                 }
                 catch (OperationCanceledException)
@@ -308,7 +308,10 @@ namespace DTAClient.DXGUI.Multiplayer
         private void CleanUpPlayer(LANPlayerInfo lpInfo)
         {
             lpInfo.MessageReceived -= LpInfo_MessageReceived;
-            lpInfo.TcpClient.Shutdown(SocketShutdown.Both);
+
+            if (lpInfo.TcpClient.Connected)
+                lpInfo.TcpClient.Shutdown(SocketShutdown.Both);
+
             lpInfo.TcpClient.Close();
         }
 
@@ -319,7 +322,7 @@ namespace DTAClient.DXGUI.Multiplayer
             if (!client.Connected)
                 return;
 
-            using IMemoryOwner<byte> memoryOwner = MemoryPool<byte>.Shared.Rent(1024);
+            using IMemoryOwner<byte> memoryOwner = MemoryPool<byte>.Shared.Rent(4096);
 
             while (!cancellationToken.IsCancellationRequested)
             {
@@ -328,7 +331,7 @@ namespace DTAClient.DXGUI.Multiplayer
 
                 try
                 {
-                    message = memoryOwner.Memory[..1024];
+                    message = memoryOwner.Memory[..4096];
                     bytesRead = await client.ReceiveAsync(message, SocketFlags.None, cancellationToken);
                 }
                 catch (OperationCanceledException)

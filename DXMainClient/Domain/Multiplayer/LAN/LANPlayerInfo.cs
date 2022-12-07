@@ -97,7 +97,7 @@ namespace DTAClient.Domain.Multiplayer.LAN
 
             try
             {
-                await TcpClient.SendAsync(buffer, SocketFlags.None, cancellationToken);
+                await TcpClient.SendAsync(buffer, cancellationToken);
             }
             catch (OperationCanceledException)
             {
@@ -118,16 +118,16 @@ namespace DTAClient.Domain.Multiplayer.LAN
         /// </summary>
         public async ValueTask StartReceiveLoopAsync(CancellationToken cancellationToken)
         {
-            using IMemoryOwner<byte> memoryOwner = MemoryPool<byte>.Shared.Rent(1024);
+            using IMemoryOwner<byte> memoryOwner = MemoryPool<byte>.Shared.Rent(4096);
 
             while (!cancellationToken.IsCancellationRequested)
             {
                 int bytesRead;
-                Memory<byte> message = memoryOwner.Memory[..1024];
+                Memory<byte> message = memoryOwner.Memory[..4096];
 
                 try
                 {
-                    bytesRead = await TcpClient.ReceiveAsync(message, SocketFlags.None, cancellationToken);
+                    bytesRead = await TcpClient.ReceiveAsync(message, cancellationToken);
                 }
                 catch (OperationCanceledException)
                 {
@@ -147,8 +147,6 @@ namespace DTAClient.Domain.Multiplayer.LAN
 
                     msg = overMessage + msg;
 
-                    var commands = new List<string>();
-
                     while (true)
                     {
                         int index = msg.IndexOf(ProgramConstants.LAN_MESSAGE_SEPARATOR);
@@ -159,13 +157,8 @@ namespace DTAClient.Domain.Multiplayer.LAN
                             break;
                         }
 
-                        commands.Add(msg[..index]);
+                        MessageReceived?.Invoke(this, new NetworkMessageEventArgs(msg[..index]));
                         msg = msg[(index + 1)..];
-                    }
-
-                    foreach (string cmd in commands)
-                    {
-                        MessageReceived?.Invoke(this, new NetworkMessageEventArgs(cmd));
                     }
 
                     continue;

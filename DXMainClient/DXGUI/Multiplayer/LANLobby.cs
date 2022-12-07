@@ -334,19 +334,19 @@ namespace DTAClient.DXGUI.Multiplayer
 
         private async ValueTask SendMessageAsync(string message, CancellationToken cancellationToken)
         {
+            if (!initSuccess)
+                return;
+
+            const int charSize = sizeof(char);
+            int bufferSize = message.Length * charSize;
+            using IMemoryOwner<byte> memoryOwner = MemoryPool<byte>.Shared.Rent(bufferSize);
+            Memory<byte> buffer = memoryOwner.Memory[..bufferSize];
+            int bytes = encoding.GetBytes(message.AsSpan(), buffer.Span);
+
+            buffer = buffer[..bytes];
+
             try
             {
-                if (!initSuccess)
-                    return;
-
-                const int charSize = sizeof(char);
-                int bufferSize = message.Length * charSize;
-                using IMemoryOwner<byte> memoryOwner = MemoryPool<byte>.Shared.Rent(bufferSize);
-                Memory<byte> buffer = memoryOwner.Memory[..bufferSize];
-                int bytes = encoding.GetBytes(message.AsSpan(), buffer.Span);
-
-                buffer = buffer[..bytes];
-
                 await socket.SendToAsync(buffer, SocketFlags.None, endPoint, cancellationToken);
             }
             catch (OperationCanceledException)
@@ -505,7 +505,7 @@ namespace DTAClient.DXGUI.Multiplayer
 
             HostedLANGame hg = (HostedLANGame)lbGameList.Items[lbGameList.SelectedIndex].Tag;
 
-            if (hg.Game.InternalName.ToUpper() != localGame.ToUpper())
+            if (!hg.Game.InternalName.Equals(localGame, StringComparison.OrdinalIgnoreCase))
             {
                 lbChatMessages.AddMessage(
                     string.Format("The selected game is for {0}!".L10N("Client:Main:GameIsOfPurpose"), gameCollection.GetGameNameFromInternalName(hg.Game.InternalName)));

@@ -198,7 +198,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             listener = new Socket(SocketType.Stream, ProtocolType.Tcp);
 
-            listener.Bind(new IPEndPoint(IPAddress.IPv6Any, ProgramConstants.LAN_GAME_LOBBY_PORT));
+            listener.Bind(new IPEndPoint(IPAddress.Any, ProgramConstants.LAN_GAME_LOBBY_PORT));
             listener.Listen();
 
             while (!cancellationToken.IsCancellationRequested)
@@ -256,7 +256,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 try
                 {
                     message = memoryOwner.Memory[..1024];
-                    bytesRead = await lpInfo.TcpClient.ReceiveAsync(message, SocketFlags.None, cancellationToken);
+                    bytesRead = await lpInfo.TcpClient.ReceiveAsync(message, cancellationToken);
                 }
                 catch (OperationCanceledException)
                 {
@@ -383,7 +383,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 try
                 {
                     message = memoryOwner.Memory[..1024];
-                    bytesRead = await client.ReceiveAsync(message, SocketFlags.None, cancellationToken);
+                    bytesRead = await client.ReceiveAsync(message, cancellationToken);
                 }
                 catch (OperationCanceledException)
                 {
