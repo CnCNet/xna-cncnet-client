@@ -1780,7 +1780,7 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
     {
         await base.GameProcessExitedAsync();
         await channel.SendCTCPMessageAsync(CnCNetCommands.RETURN, QueuedMessageType.SYSTEM_MESSAGE, 20);
-        gameStartCancellationTokenSource.Cancel();
+        gameStartCancellationTokenSource?.Cancel();
         v3GameTunnelHandlers.ForEach(q => q.Tunnel.Dispose());
         v3GameTunnelHandlers.Clear();
         ReturnNotification(ProgramConstants.PLAYERNAME);

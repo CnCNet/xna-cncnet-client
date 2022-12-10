@@ -2,9 +2,9 @@
 
 namespace DTAClient.Domain.Multiplayer.CnCNet;
 
-internal sealed class GameDataReceivedEventArgs : EventArgs
+internal sealed class DataReceivedEventArgs : EventArgs
 {
-    public GameDataReceivedEventArgs(uint playerId, ReadOnlyMemory<byte> gameData)
+    public DataReceivedEventArgs(uint playerId, ReadOnlyMemory<byte> gameData)
     {
         PlayerId = playerId;
         GameData = gameData;

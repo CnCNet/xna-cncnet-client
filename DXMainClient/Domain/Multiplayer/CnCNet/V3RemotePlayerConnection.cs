@@ -15,8 +15,8 @@ namespace DTAClient.Domain.Multiplayer.CnCNet;
 internal sealed class V3RemotePlayerConnection : IDisposable
 {
     private const int SendTimeout = 10000;
-    private const int GameStartReceiveTimeout = 60000;
-    private const int ReceiveTimeout = 60000;
+    private const int GameStartReceiveTimeout = 1200000;
+    private const int ReceiveTimeout = 1200000;
     private const int MinimumPacketSize = 8;
     private const int MaximumPacketSize = 1024;
 
@@ -52,7 +52,7 @@ internal sealed class V3RemotePlayerConnection : IDisposable
     /// <summary>
     /// Occurs when game data from the remote host was received.
     /// </summary>
-    public event EventHandler<GameDataReceivedEventArgs> RaiseGameDataReceivedEvent;
+    public event EventHandler<DataReceivedEventArgs> RaiseDataReceivedEvent;
 
     /// <summary>
     /// Starts listening for remote player data and forwards it to the local game.
@@ -125,10 +125,6 @@ internal sealed class V3RemotePlayerConnection : IDisposable
     /// <param name="receiverId">The id of the player that receives the data.</param>
     public async ValueTask SendDataAsync(ReadOnlyMemory<byte> data, uint receiverId)
     {
-#if DEBUG
-        Logger.Log($"Sending data {gameLocalPlayerId} -> {receiverId} from {tunnelSocket.LocalEndPoint} to {remoteEndPoint}.");
-
-#endif
         const int idsSize = sizeof(uint) * 2;
         int bufferSize = data.Length + idsSize;
         using IMemoryOwner<byte> memoryOwner = MemoryPool<byte>.Shared.Rent(bufferSize);
@@ -147,6 +143,10 @@ internal sealed class V3RemotePlayerConnection : IDisposable
 
         try
         {
+#if DEBUG
+            Logger.Log($"Sending data {gameLocalPlayerId} -> {receiverId} from {tunnelSocket.LocalEndPoint} to {remoteEndPoint}.");
+
+#endif
             await tunnelSocket.SendToAsync(packet, SocketFlags.None, remoteEndPoint, linkedCancellationTokenSource.Token);
         }
         catch (SocketException ex)
@@ -269,7 +269,7 @@ internal sealed class V3RemotePlayerConnection : IDisposable
                 continue;
             }
 
-            OnRaiseGameDataReceivedEvent(new(senderId, data));
+            OnRaiseDataReceivedEvent(new(senderId, data));
         }
     }
 
@@ -294,9 +294,9 @@ internal sealed class V3RemotePlayerConnection : IDisposable
         raiseEvent?.Invoke(this, e);
     }
 
-    private void OnRaiseGameDataReceivedEvent(GameDataReceivedEventArgs e)
+    private void OnRaiseDataReceivedEvent(DataReceivedEventArgs e)
     {
-        EventHandler<GameDataReceivedEventArgs> raiseEvent = RaiseGameDataReceivedEvent;
+        EventHandler<DataReceivedEventArgs> raiseEvent = RaiseDataReceivedEvent;
 
         raiseEvent?.Invoke(this, e);
     }

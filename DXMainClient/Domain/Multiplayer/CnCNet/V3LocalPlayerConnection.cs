@@ -56,7 +56,7 @@ internal sealed class V3LocalPlayerConnection : IDisposable
     /// <summary>
     /// Occurs when game data from the local game was received.
     /// </summary>
-    public event EventHandler<GameDataReceivedEventArgs> RaiseGameDataReceivedEvent;
+    public event EventHandler<DataReceivedEventArgs> RaiseDataReceivedEvent;
 
     /// <summary>
     /// Starts listening for local game player data and forwards it to the tunnel.
@@ -125,7 +125,7 @@ internal sealed class V3LocalPlayerConnection : IDisposable
 
             receiveTimeout = ReceiveTimeout;
 
-            OnRaiseGameDataReceivedEvent(new(playerId, data));
+            OnRaiseDataReceivedEvent(new(playerId, data));
         }
     }
 
@@ -135,10 +135,6 @@ internal sealed class V3LocalPlayerConnection : IDisposable
     /// <param name="data">The data to send to the game.</param>
     public async ValueTask SendDataAsync(ReadOnlyMemory<byte> data)
     {
-#if DEBUG
-        Logger.Log($"Sending data from {localGameSocket.LocalEndPoint} to local game {remotePlayerEndPoint} for player {playerId}.");
-
-#endif
         if (remotePlayerEndPoint is null || data.Length < MinimumPacketSize)
             return;
 
@@ -147,6 +143,10 @@ internal sealed class V3LocalPlayerConnection : IDisposable
 
         try
         {
+#if DEBUG
+            Logger.Log($"Sending data from {localGameSocket.LocalEndPoint} to local game {remotePlayerEndPoint} for player {playerId}.");
+
+#endif
             await localGameSocket.SendToAsync(data, SocketFlags.None, remotePlayerEndPoint, linkedCancellationTokenSource.Token);
         }
         catch (SocketException ex)
@@ -192,9 +192,9 @@ internal sealed class V3LocalPlayerConnection : IDisposable
         raiseEvent?.Invoke(this, e);
     }
 
-    private void OnRaiseGameDataReceivedEvent(GameDataReceivedEventArgs e)
+    private void OnRaiseDataReceivedEvent(DataReceivedEventArgs e)
     {
-        EventHandler<GameDataReceivedEventArgs> raiseEvent = RaiseGameDataReceivedEvent;
+        EventHandler<DataReceivedEventArgs> raiseEvent = RaiseDataReceivedEvent;
 
         raiseEvent?.Invoke(this, e);
     }
