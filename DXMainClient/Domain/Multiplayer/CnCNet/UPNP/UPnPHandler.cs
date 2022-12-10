@@ -33,7 +33,7 @@ internal static class UPnPHandler
     }.AsReadOnly();
 
     public static async ValueTask<(InternetGatewayDevice InternetGatewayDevice, List<ushort> P2pPorts, List<ushort> P2pIpV6PortIds, IPAddress ipV6Address, IPAddress ipV4Address)> SetupPortsAsync(
-        InternetGatewayDevice internetGatewayDevice, IEnumerable<ushort> p2pReservedPorts, CancellationToken cancellationToken = default)
+        InternetGatewayDevice internetGatewayDevice, List<ushort> p2pReservedPorts, CancellationToken cancellationToken = default)
     {
         var p2pPorts = new List<ushort>();
         var p2pIpV6PortIds = new List<ushort>();
@@ -95,8 +95,12 @@ internal static class UPnPHandler
             }
             catch (Exception ex)
             {
-                ProgramConstants.LogException(ex, $"Could not open P2P IPV4 ports for {privateIpV4Address} -> {publicIpV4Address}.");
+                ProgramConstants.LogException(ex, $"Could not open P2P IPV4 router ports for {privateIpV4Address} -> {publicIpV4Address}.");
             }
+        }
+        else
+        {
+            p2pPorts = p2pReservedPorts;
         }
 
         IPAddress publicIpV6Address;
@@ -144,7 +148,7 @@ internal static class UPnPHandler
                 }
                 catch (Exception ex)
                 {
-                    ProgramConstants.LogException(ex, $"Could not open P2P IPV6 ports for {publicIpV6Address}.");
+                    ProgramConstants.LogException(ex, $"Could not open P2P IPV6 router ports for {publicIpV6Address}.");
                 }
             }
         }
