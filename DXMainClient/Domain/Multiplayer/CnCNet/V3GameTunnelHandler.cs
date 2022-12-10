@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
@@ -12,12 +13,12 @@ namespace DTAClient.Domain.Multiplayer.CnCNet;
 /// </summary>
 internal sealed class V3GameTunnelHandler : IDisposable
 {
-    private readonly Dictionary<uint, V3LocalPlayerConnection> localGamePlayerConnections = new();
+    private readonly Dictionary<uint, V3LocalPlayerConnection> localGameConnections = new();
     private readonly CancellationTokenSource connectionErrorCancellationTokenSource = new();
 
     private V3RemotePlayerConnection remoteHostConnection;
-    private EventHandler<GameDataReceivedEventArgs> remoteHostGameDataReceivedFunc;
-    private EventHandler<GameDataReceivedEventArgs> localGameGameDataReceivedFunc;
+    private EventHandler<DataReceivedEventArgs> remoteHostConnectionDataReceivedFunc;
+    private EventHandler<DataReceivedEventArgs> localGameConnectionDataReceivedFunc;
 
     /// <summary>
     /// Occurs when the connection to the remote host succeeded.
@@ -36,13 +37,13 @@ internal sealed class V3GameTunnelHandler : IDisposable
         using var linkedCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(connectionErrorCancellationTokenSource.Token, cancellationToken);
 
         remoteHostConnection = new V3RemotePlayerConnection();
-        remoteHostGameDataReceivedFunc = (_, e) => RemoteHostConnection_MessageReceivedAsync(e).HandleTask();
-        localGameGameDataReceivedFunc = (_, e) => PlayerConnection_PacketReceivedAsync(e).HandleTask();
+        remoteHostConnectionDataReceivedFunc = (_, e) => RemoteHostConnection_DataReceivedAsync(e).HandleTask();
+        localGameConnectionDataReceivedFunc = (_, e) => LocalGameConnection_DataReceivedAsync(e).HandleTask();
 
         remoteHostConnection.RaiseConnectedEvent += RemoteHostConnection_Connected;
         remoteHostConnection.RaiseConnectionFailedEvent += RemoteHostConnection_ConnectionFailed;
-        remoteHostConnection.RaiseConnectionCutEvent += Connection_ConnectionCut;
-        remoteHostConnection.RaiseGameDataReceivedEvent += remoteHostGameDataReceivedFunc;
+        remoteHostConnection.RaiseConnectionCutEvent += RemoteHostConnection_ConnectionCut;
+        remoteHostConnection.RaiseDataReceivedEvent += remoteHostConnectionDataReceivedFunc;
 
         remoteHostConnection.SetUp(remoteIpEndPoint, localPort, gameLocalPlayerId, cancellationToken);
     }
@@ -51,20 +52,20 @@ internal sealed class V3GameTunnelHandler : IDisposable
     {
         foreach (uint playerId in playerIds)
         {
-            var localGamePlayerConnection = new V3LocalPlayerConnection();
+            var localPlayerConnection = new V3LocalPlayerConnection();
 
-            localGamePlayerConnection.RaiseConnectionCutEvent += Connection_ConnectionCut;
-            localGamePlayerConnection.RaiseGameDataReceivedEvent += localGameGameDataReceivedFunc;
+            localPlayerConnection.RaiseConnectionCutEvent += LocalGameConnection_ConnectionCut;
+            localPlayerConnection.RaiseDataReceivedEvent += localGameConnectionDataReceivedFunc;
 
-            localGamePlayerConnections.Add(playerId, localGamePlayerConnection);
+            localGameConnections.Add(playerId, localPlayerConnection);
 
-            yield return localGamePlayerConnection.Setup(playerId, connectionErrorCancellationTokenSource.Token);
+            yield return localPlayerConnection.Setup(playerId, connectionErrorCancellationTokenSource.Token);
         }
     }
 
     public void StartPlayerConnections()
     {
-        foreach (KeyValuePair<uint, V3LocalPlayerConnection> playerConnection in localGamePlayerConnections)
+        foreach (KeyValuePair<uint, V3LocalPlayerConnection> playerConnection in localGameConnections)
             playerConnection.Value.StartConnectionAsync().HandleTask();
     }
 
@@ -83,41 +84,52 @@ internal sealed class V3GameTunnelHandler : IDisposable
 
         connectionErrorCancellationTokenSource.Dispose();
 
-        foreach (KeyValuePair<uint, V3LocalPlayerConnection> localGamePlayerConnection in localGamePlayerConnections)
+        foreach (KeyValuePair<uint, V3LocalPlayerConnection> localGamePlayerConnection in localGameConnections)
         {
-            localGamePlayerConnection.Value.RaiseConnectionCutEvent -= Connection_ConnectionCut;
-            localGamePlayerConnection.Value.RaiseGameDataReceivedEvent -= localGameGameDataReceivedFunc;
+            localGamePlayerConnection.Value.RaiseConnectionCutEvent -= LocalGameConnection_ConnectionCut;
+            localGamePlayerConnection.Value.RaiseDataReceivedEvent -= localGameConnectionDataReceivedFunc;
 
             localGamePlayerConnection.Value.Dispose();
         }
 
-        localGamePlayerConnections.Clear();
+        localGameConnections.Clear();
 
         if (remoteHostConnection == null)
             return;
 
         remoteHostConnection.RaiseConnectedEvent -= RemoteHostConnection_Connected;
         remoteHostConnection.RaiseConnectionFailedEvent -= RemoteHostConnection_ConnectionFailed;
-        remoteHostConnection.RaiseConnectionCutEvent -= Connection_ConnectionCut;
-        remoteHostConnection.RaiseGameDataReceivedEvent -= remoteHostGameDataReceivedFunc;
+        remoteHostConnection.RaiseConnectionCutEvent -= RemoteHostConnection_ConnectionCut;
+        remoteHostConnection.RaiseDataReceivedEvent -= remoteHostConnectionDataReceivedFunc;
 
         remoteHostConnection.Dispose();
+    }
+
+    private void LocalGameConnection_ConnectionCut(object sender, EventArgs e)
+    {
+        var localGamePlayerConnection = sender as V3LocalPlayerConnection;
+
+        localGameConnections.Remove(localGameConnections.Single(q => q.Value == localGamePlayerConnection).Key);
+
+        localGamePlayerConnection.RaiseConnectionCutEvent -= LocalGameConnection_ConnectionCut;
+        localGamePlayerConnection.RaiseDataReceivedEvent -= localGameConnectionDataReceivedFunc;
+        localGamePlayerConnection.Dispose();
     }
 
     /// <summary>
     /// Forwards local game data to the remote host.
     /// </summary>
-    private ValueTask PlayerConnection_PacketReceivedAsync(GameDataReceivedEventArgs e)
+    private ValueTask LocalGameConnection_DataReceivedAsync(DataReceivedEventArgs e)
         => remoteHostConnection?.SendDataAsync(e.GameData, e.PlayerId) ?? ValueTask.CompletedTask;
 
     /// <summary>
     /// Forwards remote player data to the local game.
     /// </summary>
-    private ValueTask RemoteHostConnection_MessageReceivedAsync(GameDataReceivedEventArgs e)
+    private ValueTask RemoteHostConnection_DataReceivedAsync(DataReceivedEventArgs e)
         => GetLocalPlayerConnection(e.PlayerId)?.SendDataAsync(e.GameData) ?? ValueTask.CompletedTask;
 
     private V3LocalPlayerConnection GetLocalPlayerConnection(uint senderId)
-        => localGamePlayerConnections.TryGetValue(senderId, out V3LocalPlayerConnection connection) ? connection : null;
+        => localGameConnections.TryGetValue(senderId, out V3LocalPlayerConnection connection) ? connection : null;
 
     private void RemoteHostConnection_Connected(object sender, EventArgs e)
     {
@@ -143,6 +155,6 @@ internal sealed class V3GameTunnelHandler : IDisposable
         raiseEvent?.Invoke(this, e);
     }
 
-    private void Connection_ConnectionCut(object sender, EventArgs e)
+    private void RemoteHostConnection_ConnectionCut(object sender, EventArgs e)
         => Dispose();
 }
