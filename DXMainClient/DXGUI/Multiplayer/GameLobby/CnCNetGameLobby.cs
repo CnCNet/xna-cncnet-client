@@ -4,7 +4,6 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net;
-using System.Net.NetworkInformation;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -673,12 +672,21 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
             CopyPlayerDataToUI();
             UpdateDiscordPresence();
             ClearReadyStatuses();
-
-            (string Name, CnCNetTunnel Tunnel, int CombinedPing) playerTunnel = playerTunnels.SingleOrDefault(q => q.RemotePlayerName.Equals(e.UserName, StringComparison.OrdinalIgnoreCase));
-
-            if (playerTunnel.Name is not null)
-                playerTunnels.Remove(playerTunnel);
+            RemoveV3Player(e.UserName);
         }
+    }
+
+    private void RemoveV3Player(string playerName)
+    {
+        (string Name, CnCNetTunnel Tunnel, int CombinedPing) playerTunnel = playerTunnels.SingleOrDefault(q => q.RemotePlayerName.Equals(playerName, StringComparison.OrdinalIgnoreCase));
+
+        if (playerTunnel.Name is not null)
+            playerTunnels.Remove(playerTunnel);
+
+        P2PPlayer p2pPlayer = p2pPlayers.SingleOrDefault(q => q.RemotePlayerName.Equals(playerName, StringComparison.OrdinalIgnoreCase));
+
+        if (p2pPlayer.RemotePlayerName is not null)
+            p2pPlayers.Remove(p2pPlayer);
     }
 
     private async ValueTask Channel_UserListReceivedAsync()
@@ -754,11 +762,7 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
         {
             Players.Remove(pInfo);
             CopyPlayerDataToUI();
-
-            (string Name, CnCNetTunnel Tunnel, int CombinedPing) playerTunnel = playerTunnels.SingleOrDefault(q => q.RemotePlayerName.Equals(playerName, StringComparison.OrdinalIgnoreCase));
-
-            if (playerTunnel.Name is not null)
-                playerTunnels.Remove(playerTunnel);
+            RemoveV3Player(playerName);
 
             // This might not be necessary
             if (IsHost)
@@ -2190,22 +2194,21 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
 
         List<(IPAddress IpAddress, long Ping)> localPingResults = new();
         string[] splitLines = p2pRequestMessage.Split(';');
-        using var ping = new Ping();
 
         if (IPAddress.TryParse(splitLines[0], out IPAddress parsedIpV4Address))
         {
-            PingReply pingResult = await ping.SendPingAsync(parsedIpV4Address, P2P_PING_TIMEOUT);
+            long? pingResult = await NetworkHelper.PingAsync(parsedIpV4Address);
 
-            if (pingResult.Status is IPStatus.Success)
-                localPingResults.Add((parsedIpV4Address, pingResult.RoundtripTime));
+            if (pingResult is not null)
+                localPingResults.Add((parsedIpV4Address, pingResult.Value));
         }
 
         if (IPAddress.TryParse(splitLines[1], out IPAddress parsedIpV6Address))
         {
-            PingReply pingResult = await ping.SendPingAsync(parsedIpV6Address, P2P_PING_TIMEOUT);
+            long? pingResult = await NetworkHelper.PingAsync(parsedIpV6Address);
 
-            if (pingResult.Status is IPStatus.Success)
-                localPingResults.Add((parsedIpV6Address, pingResult.RoundtripTime));
+            if (pingResult is not null)
+                localPingResults.Add((parsedIpV6Address, pingResult.Value));
         }
 
         bool remotePlayerP2PEnabled = false;
