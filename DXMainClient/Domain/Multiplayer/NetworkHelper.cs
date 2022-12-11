@@ -7,13 +7,14 @@ using System.Net.Sockets;
 using System.Runtime.Versioning;
 using System.Threading;
 using System.Threading.Tasks;
+using ClientCore;
 
 namespace DTAClient.Domain.Multiplayer;
 
 internal static class NetworkHelper
 {
     private const string PingHost = "cncnet.org";
-    private const int PingTimeout = 10000;
+    private const int PingTimeout = 1000;
 
     private static readonly IReadOnlyCollection<AddressFamily> SupportedAddressFamilies = new[]
     {
@@ -56,7 +57,7 @@ internal static class NetworkHelper
         return new IPAddress(BitConverter.GetBytes(broadCastIpAddress));
     }
 
-    public static async Task<IPAddress> DetectPublicIpV4Address(CancellationToken cancellationToken)
+    public static async ValueTask<IPAddress> DetectPublicIpV4Address(CancellationToken cancellationToken)
     {
         IPAddress[] ipAddresses = await Dns.GetHostAddressesAsync(PingHost, cancellationToken).ConfigureAwait(false);
         using var ping = new Ping();
@@ -82,6 +83,31 @@ internal static class NetworkHelper
                 if (!IsPrivateIpAddress(pingReply.Address))
                     return pingReply.Address;
             }
+        }
+
+        return null;
+    }
+
+    public static async ValueTask<long?> PingAsync(IPAddress ipAddress)
+    {
+        if ((ipAddress.AddressFamily is AddressFamily.InterNetworkV6 && !Socket.OSSupportsIPv6)
+            || (ipAddress.AddressFamily is AddressFamily.InterNetwork && !Socket.OSSupportsIPv4))
+        {
+            return null;
+        }
+
+        using var ping = new Ping();
+
+        try
+        {
+            PingReply pingResult = await ping.SendPingAsync(ipAddress, PingTimeout);
+
+            if (pingResult.Status is IPStatus.Success)
+                return pingResult.RoundtripTime;
+        }
+        catch (PingException ex)
+        {
+            ProgramConstants.LogException(ex);
         }
 
         return null;
