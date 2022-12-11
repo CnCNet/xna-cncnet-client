@@ -19,5 +19,7 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Rampastring.Tools" Version="2.0.4" />
+    <PackageReference Include="Rampastring.XNAUI.$(Engine)" Version="1.0.0" Condition="'!$(Configuration.Contains(Debug))'" />
+    <PackageReference Include="Rampastring.XNAUI.$(Engine).Debug" Version="1.0.0" Condition="'$(Configuration.Contains(Debug))'" />
   </ItemGroup>
 </Project>

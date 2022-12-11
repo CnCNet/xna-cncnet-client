@@ -1,4 +1,5 @@
-﻿using Rampastring.Tools;
+﻿using Localization;
+using Rampastring.Tools;
 using System;
 
 namespace DTAClient.Domain
@@ -14,16 +15,17 @@ namespace DTAClient.Domain
             CD = iniFile.GetIntValue(sectionName, nameof(CD), 0);
             Side = iniFile.GetIntValue(sectionName, nameof(Side), 0);
             Scenario = iniFile.GetStringValue(sectionName, nameof(Scenario), string.Empty);
-            GUIName = iniFile.GetStringValue(sectionName, "Description", "Undefined mission");
+            GUIName = iniFile.GetStringValue(sectionName, "Description", "Undefined mission")
+                .L10N($"UI:Mission:{sectionName}:Description");
             IconPath = iniFile.GetStringValue(sectionName, "SideName", string.Empty);
-            GUIDescription = iniFile.GetStringValue(sectionName, "LongDescription", string.Empty);
+            GUIDescription = iniFile.GetStringValue(sectionName, "LongDescription", string.Empty)
+                .L10N($"UI:Mission:{sectionName}:LongDescription")
+                .Replace("@", Environment.NewLine);
             FinalMovie = iniFile.GetStringValue(sectionName, nameof(FinalMovie), "none");
             RequiredAddon = iniFile.GetBooleanValue(sectionName, nameof(RequiredAddon), false);
             Enabled = iniFile.GetBooleanValue(sectionName, nameof(Enabled), true);
             BuildOffAlly = iniFile.GetBooleanValue(sectionName, nameof(BuildOffAlly), false);
             PlayerAlwaysOnNormalDifficulty = iniFile.GetBooleanValue(sectionName, nameof(PlayerAlwaysOnNormalDifficulty), false);
-
-            GUIDescription = GUIDescription.Replace("@", Environment.NewLine);
         }
 
         public int Index { get; }

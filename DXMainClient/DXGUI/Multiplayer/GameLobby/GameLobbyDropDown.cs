@@ -49,7 +49,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             base.Initialize();
         }
 
-        public override void ParseAttributeFromINI(IniFile iniFile, string key, string value)
+        protected override void ParseControlINIAttribute(IniFile iniFile, string key, string value)
         {
             switch (key)
             {
@@ -92,7 +92,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     return;
             }
 
-            base.ParseAttributeFromINI(iniFile, key, value);
+            base.ParseControlINIAttribute(iniFile, key, value);
         }
 
         /// <summary>

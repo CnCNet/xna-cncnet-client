@@ -740,10 +740,13 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             // InitPlayerOptionDropdowns(136, 91, 79, 49, 46, new Point(25, 24));
 
-            string[] sides = ClientConfiguration.Instance.Sides.Split(',');
+            string[] sides = ClientConfiguration.Instance.Sides
+                .Split(',').ToList()
+                .Select(s => s.L10N($"UI:Side:{s}")).ToArray();
+
             SideCount = sides.Length;
 
-            List<string> selectorNames = new List<string>();
+            List<string> selectorNames = new();
             GetRandomSelectors(selectorNames, RandomSelectors);
             RandomSelectorCount = RandomSelectors.Count + 1;
             MapPreviewBox.RandomSelectorCount = RandomSelectorCount;
@@ -769,7 +772,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 ddPlayerSide.ClientRectangle = new Rectangle(
                     ddPlayerName.Right + playerOptionHorizontalMargin,
                     ddPlayerName.Y, sideWidth, DROP_DOWN_HEIGHT);
-                ddPlayerSide.AddItem("Random".L10N("UI:Main:RandomSide"), LoadTextureOrNull("randomicon.png"));
+                ddPlayerSide.AddItem("Random".L10N("UI:Side:RandomSide"), LoadTextureOrNull("randomicon.png"));
                 foreach (string randomSelector in selectorNames)
                     ddPlayerSide.AddItem(randomSelector, LoadTextureOrNull(randomSelector + "icon.png"));
                 foreach (string sideName in sides)
@@ -923,10 +926,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             AssetLoader.AssetExists(name) ? AssetLoader.LoadTexture(name) : null;
 
         /// <summary>
-        /// Loads random side selectors from GameOptions.ini
+        /// Loads random side selectors from GameOptions.ini.
         /// </summary>
-        /// <param name="selectorNames">TODO comment</param>
-        /// <param name="selectorSides">TODO comment</param>
+        /// <param name="selectorNames">The UI names of random selectors.</param>
+        /// <param name="selectorSides">The side IDs to choose from for the selectors.</param>
         private void GetRandomSelectors(List<string> selectorNames, List<int[]> selectorSides)
         {
             List<string> keys = GameOptionsIni.GetSectionKeys("RandomSelectors");
@@ -947,7 +950,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
                 if (randomSides.Count > 1)
                 {
-                    selectorNames.Add(randomSelector);
+                    selectorNames.Add(randomSelector.L10N($"UI:Side:{randomSelector}"));
                     selectorSides.Add(randomSides.ToArray());
                 }
             }

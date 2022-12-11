@@ -1,5 +1,7 @@
 ﻿using ClientCore;
+using Localization;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Input;
 using Rampastring.Tools;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
@@ -148,12 +150,12 @@ namespace ClientGUI
                 ReadINIRecursive(child);
         }
 
-        public override void ParseAttributeFromINI(IniFile iniFile, string key, string value)
+        protected override void ParseControlINIAttribute(IniFile iniFile, string key, string value)
         {
             if (key == "HasCloseButton")
                 hasCloseButton = iniFile.GetBooleanValue(Name, key, hasCloseButton);
 
-            base.ParseAttributeFromINI(iniFile, key, value);
+            base.ParseControlINIAttribute(iniFile, key, value);
         }
 
         protected void ReadINIForControl(XNAControl control)
@@ -163,6 +165,10 @@ namespace ClientGUI
                 return;
 
             Parser.Instance.SetPrimaryControl(this);
+
+            // shorthand for localization function
+            static string Localize(XNAControl control, string attributeName, string defaultValue, bool notify = true)
+                => TranslationTable.Instance.LocalizeControlINIAttribute(control, attributeName, defaultValue, notify);
 
             foreach (var kvp in section.Keys)
             {
@@ -174,19 +180,23 @@ namespace ClientGUI
                 }
                 else if (kvp.Key == "$X")
                 {
-                    control.X = Parser.Instance.GetExprValue(kvp.Value, control);
+                    control.X = Parser.Instance.GetExprValue(
+                        Localize(control, kvp.Key, kvp.Value, notify: false), control);
                 }
                 else if (kvp.Key == "$Y")
                 {
-                    control.Y = Parser.Instance.GetExprValue(kvp.Value, control);
+                    control.Y = Parser.Instance.GetExprValue(
+                        Localize(control, kvp.Key, kvp.Value, notify: false), control);
                 }
                 else if (kvp.Key == "$Width")
                 {
-                    control.Width = Parser.Instance.GetExprValue(kvp.Value, control);
+                    control.Width = Parser.Instance.GetExprValue(
+                        Localize(control, kvp.Key, kvp.Value, notify: false), control);
                 }
                 else if (kvp.Key == "$Height")
                 {
-                    control.Height = Parser.Instance.GetExprValue(kvp.Value, control);
+                    control.Height = Parser.Instance.GetExprValue(
+                        Localize(control, kvp.Key, kvp.Value, notify: false), control);
                 }
                 else if (kvp.Key == "$TextAnchor" && control is XNALabel)
                 {
@@ -207,7 +217,7 @@ namespace ClientGUI
                 }
                 else
                 {
-                    control.ParseAttributeFromINI(ConfigIni, kvp.Key, kvp.Value);
+                    control.ParseINIAttribute(ConfigIni, kvp.Key, kvp.Value);
                 }
             }
         }

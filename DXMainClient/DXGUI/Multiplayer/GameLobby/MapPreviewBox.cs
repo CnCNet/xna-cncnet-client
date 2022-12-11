@@ -206,12 +206,12 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             btnToggleFavoriteMap = new XNAClientButton(WindowManager);
             btnToggleFavoriteMap.IdleTexture = AssetLoader.LoadTexture("favInactive.png");
             btnToggleFavoriteMap.LeftClick += (sender, args) => ToggleFavorite?.Invoke(sender, args);
-            btnToggleFavoriteMap.SetToolTipText("Toggle Favorite Map".L10N("UI:Main:ToggleFavoriteMap"));
+            btnToggleFavoriteMap.ToolTipText = "Toggle Favorite Map".L10N("UI:Main:ToggleFavoriteMap");
 
             btnToggleExtraTextures = new XNAClientButton(WindowManager);
             btnToggleExtraTextures.IdleTexture = AssetLoader.LoadTexture("pvTexturesActive.png");
             btnToggleExtraTextures.LeftClick += (sender, args) => ToggleExtraTextures();
-            btnToggleExtraTextures.SetToolTipText("Toggle Extra Icons".L10N("UI:Main:ToggleExtraIcons"));
+            btnToggleExtraTextures.ToolTipText = "Toggle Extra Icons".L10N("UI:Main:ToggleExtraIcons");
             btnToggleExtraTextures.Disable();
 
             AddChild(mapContextMenu);

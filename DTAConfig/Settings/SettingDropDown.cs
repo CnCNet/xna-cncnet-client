@@ -33,7 +33,7 @@ namespace DTAConfig.Settings
             }
         }
 
-        public override void ParseAttributeFromINI(IniFile iniFile, string key, string value)
+        protected override void ParseControlINIAttribute(IniFile iniFile, string key, string value)
         {
             switch (key)
             {
@@ -42,7 +42,7 @@ namespace DTAConfig.Settings
                     return;
             }
 
-            base.ParseAttributeFromINI(iniFile, key, value);
+            base.ParseControlINIAttribute(iniFile, key, value);
         }
 
         public override void Load()

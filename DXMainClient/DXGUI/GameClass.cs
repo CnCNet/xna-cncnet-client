@@ -127,6 +127,9 @@ namespace DTAClient.DXGUI
             WindowManager wm = new WindowManager(this, graphics);
             wm.Initialize(content, ProgramConstants.GetBaseResourcePath());
 
+            // TODO migrate translation provider to DI
+            wm.ControlINIAttributeParsers.Add(new LocalizationParser(TranslationTable.Instance));
+
             ProgramConstants.DisplayErrorAction = (title, error, exit) =>
             {
                 new XNAMessageBox(wm, title, error, XNAMessageBoxButtons.OK)

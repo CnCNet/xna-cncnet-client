@@ -23,11 +23,9 @@ namespace ClientGUI
     {
         public static new Dictionary<PlayerSlotState, Texture2D> Textures { get; set; }
 
-        public ToolTip ToolTip { get; set; }
+        public ToolTip ToolTip { get; private set; }
 
-        public XNAPlayerSlotIndicator(WindowManager windowManager) : base(windowManager, Textures)
-        {
-        }
+        public XNAPlayerSlotIndicator(WindowManager windowManager) : base(windowManager, Textures) { }
 
         public static void LoadTextures()
         {

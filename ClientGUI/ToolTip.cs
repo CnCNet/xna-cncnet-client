@@ -55,7 +55,7 @@ namespace ClientGUI
             set
             {
                 base.Text = value;
-                Vector2 textSize = Renderer.GetTextDimensions(base.Text, ClientConfiguration.Instance.ToolTipFontIndex);
+                Vector2 textSize = Renderer.GetTextDimensions(base.Text ?? string.Empty, ClientConfiguration.Instance.ToolTipFontIndex);
                 Width = (int)textSize.X + ClientConfiguration.Instance.ToolTipMargin * 2;
                 Height = (int)textSize.Y + ClientConfiguration.Instance.ToolTipMargin * 2;
             }

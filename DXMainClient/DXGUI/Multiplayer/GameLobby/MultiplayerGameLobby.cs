@@ -1004,7 +1004,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     IsPlayerSpectator(AIPlayers[aiId]) ? PlayerSlotState.Error : PlayerSlotState.AI);
 
                 if (IsPlayerSpectator(AIPlayers[aiId]))
-                    StatusIndicators[aiId + Players.Count].ToolTip.Text += Environment.NewLine + "AI players can't be spectators.";
+                    StatusIndicators[aiId + Players.Count].ToolTip.Text += Environment.NewLine + "AI players can't be spectators.".L10N("UI:ClientGUI:AICantSpec");
             }
 
             // Empty slot statuses
@@ -1028,9 +1028,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             XNAClientDropDown ddPlayerName = ddPlayerNames[pInfo.Index];
             ddPlayerName.Items[0].Texture = GetTextureForPing(pInfo.Ping);
             if (pInfo.Ping < 0)
-                ddPlayerName.ToolTip.Text = "Ping:".L10N("UI:Main:PlayerInfoPing") + " ? ms";
+                ddPlayerName.ToolTip.Text = "Ping:".L10N("UI:Main:PlayerInfoPing") + " ? " + "ms".L10N("UI:Main:MillisecondsShort");
             else
-                ddPlayerName.ToolTip.Text = "Ping:".L10N("UI:Main:PlayerInfoPing") + $" {pInfo.Ping} ms";
+                ddPlayerName.ToolTip.Text = "Ping:".L10N("UI:Main:PlayerInfoPing") + $" {pInfo.Ping} " + "ms".L10N("UI:Main:MillisecondsShort");
         }
 
         private Texture2D GetTextureForPing(int ping)

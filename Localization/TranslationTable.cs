@@ -3,6 +3,9 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using Rampastring.XNAUI.XNAControls;
+using static System.Net.Mime.MediaTypeNames;
+using Microsoft.Xna.Framework;
 
 namespace Localization
 {
@@ -40,6 +43,8 @@ namespace Localization
         // As the ini value can not contains NewLine character '\n', it will be replaced with '@@' pattern.
         public static readonly string IniNewLinePattern = "@@";
 
+        public static readonly string IniPrefix = "INI";
+        public static readonly string GlobalPrefix = "Default";
         public static TranslationTable Instance { get; set; } = new TranslationTable();
 
         /// <summary>
@@ -168,5 +173,33 @@ namespace Localization
 
         public static string UnescapeIniValue(string escaped)
             => escaped.Replace(IniNewLinePattern, "\n");
+
+        public string LocalizeControlINIAttribute(XNAControl control,
+            string attributeName, string defaultValue, bool notify = true)
+        {
+            // not sure if making this reference XNAUI is good
+            string label = $"{IniPrefix}:{control.Parent?.Name ?? GlobalPrefix}:{control.Name}:{attributeName}";
+            string globalLabel = $"{IniPrefix}:{GlobalPrefix}:{control.Name}:{attributeName}";
+
+            string result;
+            if (Table.ContainsKey(label))
+            {
+                result = Table[label];
+            }
+            // control has no parent, hence label == globalLabel, no need to check twice
+            else if (control.Parent is not null && Table.ContainsKey(globalLabel))
+            {
+                result = Table[globalLabel];
+            }
+            else
+            {
+                result = defaultValue;
+
+                if (notify)
+                    OnMissingTranslationEvent(this, new MissingTranslationEventArgs(LanguageTag, label, defaultValue));
+            }
+
+            return result;
+        }
     }
 }
