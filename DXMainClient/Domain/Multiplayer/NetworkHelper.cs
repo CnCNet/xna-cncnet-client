@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -57,7 +58,7 @@ internal static class NetworkHelper
         return new IPAddress(BitConverter.GetBytes(broadCastIpAddress));
     }
 
-    public static async ValueTask<IPAddress> DetectPublicIpV4Address(CancellationToken cancellationToken)
+    public static async ValueTask<IPAddress> TracePublicIpV4Address(CancellationToken cancellationToken)
     {
         IPAddress[] ipAddresses = await Dns.GetHostAddressesAsync(PingHost, cancellationToken).ConfigureAwait(false);
         using var ping = new Ping();
@@ -108,6 +109,66 @@ internal static class NetworkHelper
         catch (PingException ex)
         {
             ProgramConstants.LogException(ex);
+        }
+
+        return null;
+    }
+
+    public static async ValueTask<IPEndPoint> PerformStunAsync(IPAddress stunServerIpAddress, ushort localPort, CancellationToken cancellationToken)
+    {
+        const short stunId = 26262;
+        const int stunPort1 = 3478;
+        const int stunPort2 = 8054;
+        const int stunSize = 48;
+        int[] stunPorts = { stunPort1, stunPort2 };
+        using var socket = new Socket(SocketType.Dgram, ProtocolType.Udp);
+        short stunIdNetworkOrder = IPAddress.HostToNetworkOrder(stunId);
+        byte[] stunIdNetworkOrderBytes = BitConverter.GetBytes(stunIdNetworkOrder);
+        IPEndPoint stunServerIpEndPoint = null;
+        using IMemoryOwner<byte> receiveMemoryOwner = MemoryPool<byte>.Shared.Rent(stunSize);
+        Memory<byte> buffer = receiveMemoryOwner.Memory[..stunSize];
+        int addressBytes = stunServerIpAddress.GetAddressBytes().Length;
+        const int portBytes = sizeof(ushort);
+
+        stunIdNetworkOrderBytes.CopyTo(buffer.Span);
+
+        socket.Bind(new IPEndPoint(IPAddress.IPv6Any, localPort));
+
+        foreach (int stunPort in stunPorts)
+        {
+            try
+            {
+                using var timeoutCancellationTokenSource = new CancellationTokenSource(PingTimeout);
+                using var linkedCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(timeoutCancellationTokenSource.Token, cancellationToken);
+
+                stunServerIpEndPoint = new IPEndPoint(stunServerIpAddress, stunPort);
+
+                await socket.SendToAsync(buffer, stunServerIpEndPoint, linkedCancellationTokenSource.Token);
+
+                SocketReceiveFromResult socketReceiveFromResult = await socket.ReceiveFromAsync(buffer, SocketFlags.None, stunServerIpEndPoint, linkedCancellationTokenSource.Token);
+
+                buffer = buffer[..socketReceiveFromResult.ReceivedBytes];
+
+                // de-obfuscate
+                for (int i = 0; i < addressBytes + portBytes; i++)
+                    buffer.Span[i] ^= 0x20;
+
+                ReadOnlyMemory<byte> publicIpAddressBytes = buffer[..addressBytes];
+                var publicIpAddress = new IPAddress(publicIpAddressBytes.Span);
+                ReadOnlyMemory<byte> publicPortBytes = buffer[addressBytes..(addressBytes + portBytes)];
+                short publicPortNetworkOrder = BitConverter.ToInt16(publicPortBytes.Span);
+                short publicPortHostOrder = IPAddress.NetworkToHostOrder(publicPortNetworkOrder);
+                ushort publicPort = (ushort)publicPortHostOrder;
+
+                if (publicPort != localPort)
+                    throw new($"STUN ports mismatch, expected {localPort}, received {publicPort}.");
+
+                return new IPEndPoint(publicIpAddress, publicPort);
+            }
+            catch (Exception ex)
+            {
+                ProgramConstants.LogException(ex, $"STUN server {stunServerIpEndPoint} failed.");
+            }
         }
 
         return null;
