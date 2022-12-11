@@ -65,6 +65,11 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                               $" {nameof(Socket.OSSupportsIPv4)}={Socket.OSSupportsIPv4}) for {str}.");
                 }
 
+                tunnel.IPAddresses = new List<IPAddress> { primaryIpAddress };
+
+                if (secondaryIpAddress is not null)
+                    tunnel.IPAddresses.Add(secondaryIpAddress);
+
                 tunnel.Port = int.Parse(addressAndPort[(addressAndPort.LastIndexOf(':') + 1)..], CultureInfo.InvariantCulture);
                 tunnel.Country = parts[1];
                 tunnel.CountryCode = parts[2];
@@ -107,6 +112,8 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
         }
 
         public IPAddress IPAddress { get; private set; }
+
+        public List<IPAddress> IPAddresses { get; private set; }
 
         public int Port { get; private set; }
 

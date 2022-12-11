@@ -33,7 +33,7 @@ internal static class UPnPHandler
     }.AsReadOnly();
 
     public static async ValueTask<(InternetGatewayDevice InternetGatewayDevice, List<ushort> P2pPorts, List<ushort> P2pIpV6PortIds, IPAddress ipV6Address, IPAddress ipV4Address)> SetupPortsAsync(
-        InternetGatewayDevice internetGatewayDevice, List<ushort> p2pReservedPorts, CancellationToken cancellationToken = default)
+        InternetGatewayDevice internetGatewayDevice, List<ushort> p2pReservedPorts, List<IPAddress> stunServerIpAddresses, CancellationToken cancellationToken = default)
     {
         var p2pPorts = new List<ushort>();
         var p2pIpV6PortIds = new List<ushort>();
@@ -59,11 +59,33 @@ internal static class UPnPHandler
             routerPublicIpV4Address = await internetGatewayDevice.GetExternalIpV4AddressAsync(cancellationToken);
         }
 
+        if (stunServerIpAddresses.Any(q => q.AddressFamily is AddressFamily.InterNetwork))
+        {
+            if (routerPublicIpV4Address == null)
+            {
+                Logger.Log("Using IPV4 STUN.");
+
+                foreach (ushort p2pReservedPort in p2pReservedPorts)
+                {
+                    IPEndPoint publicIpV4Endpoint = await NetworkHelper.PerformStunAsync(stunServerIpAddresses.Single(q => q.AddressFamily is AddressFamily.InterNetwork), p2pReservedPort, cancellationToken);
+
+                    if (publicIpV4Endpoint is null)
+                        break;
+
+                    routerPublicIpV4Address ??= publicIpV4Endpoint.Address;
+                }
+            }
+        }
+        else
+        {
+            Logger.Log($"STUN server {stunServerIpAddresses.First()} has no IPV4 address.");
+        }
+
         if (routerPublicIpV4Address == null)
         {
-            Logger.Log("Using IPV4 detection.");
+            Logger.Log("Using IPV4 trace detection.");
 
-            routerPublicIpV4Address = await NetworkHelper.DetectPublicIpV4Address(cancellationToken);
+            routerPublicIpV4Address = await NetworkHelper.TracePublicIpV4Address(cancellationToken);
         }
 
         var publicIpAddresses = NetworkHelper.GetPublicIpAddresses().ToList();
@@ -103,27 +125,47 @@ internal static class UPnPHandler
             p2pPorts = p2pReservedPorts;
         }
 
-        IPAddress publicIpV6Address;
+        IPAddress publicIpV6Address = null;
 
-        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        if (stunServerIpAddresses.Any(q => q.AddressFamily is AddressFamily.InterNetworkV6))
         {
-            var publicIpV6Addresses = NetworkHelper.GetWindowsPublicIpAddresses().Where(q => q.IpAddress.AddressFamily is AddressFamily.InterNetworkV6).ToList();
-
-            (IPAddress IpAddress, PrefixOrigin PrefixOrigin, SuffixOrigin SuffixOrigin) foundPublicIpV6Address = publicIpV6Addresses
-                .FirstOrDefault(q => q.PrefixOrigin is PrefixOrigin.RouterAdvertisement && q.SuffixOrigin is SuffixOrigin.LinkLayerAddress);
-
-            if (foundPublicIpV6Address.IpAddress is null)
+            foreach (ushort p2pReservedPort in p2pReservedPorts)
             {
-                foundPublicIpV6Address = publicIpV6Addresses
-                    .FirstOrDefault(q => q.PrefixOrigin is PrefixOrigin.Dhcp && q.SuffixOrigin is SuffixOrigin.OriginDhcp);
-            }
+                IPEndPoint publicIpV6Endpoint = await NetworkHelper.PerformStunAsync(stunServerIpAddresses.Single(q => q.AddressFamily is AddressFamily.InterNetworkV6), p2pReservedPort, cancellationToken);
 
-            publicIpV6Address = foundPublicIpV6Address.IpAddress;
+                if (publicIpV6Endpoint is null)
+                    break;
+
+                publicIpV6Address ??= publicIpV6Endpoint.Address;
+            }
         }
         else
         {
-            publicIpV6Address = NetworkHelper.GetPublicIpAddresses()
-                .FirstOrDefault(q => q.AddressFamily is AddressFamily.InterNetworkV6);
+            Logger.Log($"STUN server {stunServerIpAddresses.First()} has no IPV6 address.");
+        }
+
+        if (publicIpV6Address is null)
+        {
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                var publicIpV6Addresses = NetworkHelper.GetWindowsPublicIpAddresses().Where(q => q.IpAddress.AddressFamily is AddressFamily.InterNetworkV6).ToList();
+
+                (IPAddress IpAddress, PrefixOrigin PrefixOrigin, SuffixOrigin SuffixOrigin) foundPublicIpV6Address = publicIpV6Addresses
+                    .FirstOrDefault(q => q.PrefixOrigin is PrefixOrigin.RouterAdvertisement && q.SuffixOrigin is SuffixOrigin.LinkLayerAddress);
+
+                if (foundPublicIpV6Address.IpAddress is null)
+                {
+                    foundPublicIpV6Address = publicIpV6Addresses
+                        .FirstOrDefault(q => q.PrefixOrigin is PrefixOrigin.Dhcp && q.SuffixOrigin is SuffixOrigin.OriginDhcp);
+                }
+
+                publicIpV6Address = foundPublicIpV6Address.IpAddress;
+            }
+            else
+            {
+                publicIpV6Address = NetworkHelper.GetPublicIpAddresses()
+                    .FirstOrDefault(q => q.AddressFamily is AddressFamily.InterNetworkV6);
+            }
         }
 
         if (publicIpV6Address is not null)

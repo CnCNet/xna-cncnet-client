@@ -424,8 +424,8 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
     {
         int ping;
 
-        if (dynamicTunnelsEnabled)
-            ping = pinnedTunnels?.Min(q => q.Ping) ?? -1;
+        if (dynamicTunnelsEnabled && (pinnedTunnels?.Any() ?? false))
+            ping = pinnedTunnels.Min(q => q.Ping);
         else if (tunnelHandler.CurrentTunnel == null)
             return;
         else
@@ -539,8 +539,11 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
     {
         try
         {
-            foreach (ushort p2pPort in p2pPorts)
-                await internetGatewayDevice.CloseIpV4PortAsync(p2pPort);
+            if (internetGatewayDevice is not null)
+            {
+                foreach (ushort p2pPort in p2pPorts)
+                    await internetGatewayDevice.CloseIpV4PortAsync(p2pPort);
+            }
         }
         catch (Exception ex)
         {
@@ -553,8 +556,11 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
 
         try
         {
-            foreach (ushort p2pIpV6PortId in p2pIpV6PortIds)
-                await internetGatewayDevice.CloseIpV6PortAsync(p2pIpV6PortId);
+            if (internetGatewayDevice is not null)
+            {
+                foreach (ushort p2pIpV6PortId in p2pIpV6PortIds)
+                    await internetGatewayDevice.CloseIpV6PortAsync(p2pIpV6PortId);
+            }
         }
         catch (Exception ex)
         {
@@ -1342,7 +1348,7 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
 
             try
             {
-                (internetGatewayDevice, p2pPorts, p2pIpV6PortIds, publicIpV6Address, publicIpV4Address) = await UPnPHandler.SetupPortsAsync(internetGatewayDevice, p2pPorts);
+                (internetGatewayDevice, p2pPorts, p2pIpV6PortIds, publicIpV6Address, publicIpV4Address) = await UPnPHandler.SetupPortsAsync(internetGatewayDevice, p2pPorts, tunnelHandler.CurrentTunnel?.IPAddresses ?? initialTunnel.IPAddresses);
             }
             catch (Exception ex)
             {
