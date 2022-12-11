@@ -42,7 +42,6 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                 }
                 catch (OperationCanceledException)
                 {
-                    break;
                 }
             }
         }

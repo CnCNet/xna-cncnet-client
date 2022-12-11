@@ -5,7 +5,8 @@ namespace DTAClient.Domain.Multiplayer;
 
 internal readonly record struct P2PPlayer(
     string RemotePlayerName,
-    ushort[] RemotePorts,
+    ushort[] RemoteIpV6Ports,
+    ushort[] RemoteIpV4Ports,
     List<(IPAddress RemoteIpAddress, long Ping)> LocalPingResults,
     List<(IPAddress RemoteIpAddress, long Ping)> RemotePingResults,
     bool Enabled);
