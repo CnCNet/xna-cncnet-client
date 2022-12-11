@@ -160,9 +160,6 @@ internal static class NetworkHelper
                 short publicPortHostOrder = IPAddress.NetworkToHostOrder(publicPortNetworkOrder);
                 ushort publicPort = (ushort)publicPortHostOrder;
 
-                if (publicPort != localPort)
-                    throw new($"STUN ports mismatch, expected {localPort}, received {publicPort}.");
-
                 return new IPEndPoint(publicIpAddress, publicPort);
             }
             catch (Exception ex)
@@ -172,6 +169,26 @@ internal static class NetworkHelper
         }
 
         return null;
+    }
+
+    public static async Task KeepStunAliveAsync(IPAddress stunServerIpAddress, List<ushort> localPorts, CancellationToken cancellationToken)
+    {
+        while (!cancellationToken.IsCancellationRequested)
+        {
+            try
+            {
+                foreach (ushort localPort in localPorts)
+                {
+                    await PerformStunAsync(stunServerIpAddress, localPort, cancellationToken);
+                    await Task.Delay(100, cancellationToken);
+                }
+
+                await Task.Delay(5000, cancellationToken);
+            }
+            catch (TaskCanceledException)
+            {
+            }
+        }
     }
 
     /// <summary>
