@@ -667,7 +667,7 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
 
     private async ValueTask Channel_UserKickedAsync(UserNameEventArgs e)
     {
-        if (e.UserName == ProgramConstants.PLAYERNAME)
+        if (e.UserName.Equals(ProgramConstants.PLAYERNAME, StringComparison.OrdinalIgnoreCase))
         {
             connectionManager.MainChannel.AddMessage(
                 new(ERROR_MESSAGE_COLOR, "You were kicked from the game!".L10N("Client:Main:YouWereKicked")));
@@ -678,29 +678,17 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
             return;
         }
 
-        int index = Players.FindIndex(p => p.Name.Equals(e.UserName, StringComparison.OrdinalIgnoreCase));
-
-        if (index > -1)
-        {
-            Players.RemoveAt(index);
-            CopyPlayerDataToUI();
-            UpdateDiscordPresence();
-            ClearReadyStatuses();
-            RemoveV3Player(e.UserName);
-        }
+        Players.Remove(Players.SingleOrDefault(p => p.Name.Equals(e.UserName, StringComparison.OrdinalIgnoreCase)));
+        CopyPlayerDataToUI();
+        UpdateDiscordPresence();
+        ClearReadyStatuses();
+        RemoveV3Player(e.UserName);
     }
 
     private void RemoveV3Player(string playerName)
     {
-        (string Name, CnCNetTunnel Tunnel, int CombinedPing) playerTunnel = playerTunnels.SingleOrDefault(q => q.RemotePlayerName.Equals(playerName, StringComparison.OrdinalIgnoreCase));
-
-        if (playerTunnel.Name is not null)
-            playerTunnels.Remove(playerTunnel);
-
-        P2PPlayer p2pPlayer = p2pPlayers.SingleOrDefault(q => q.RemotePlayerName.Equals(playerName, StringComparison.OrdinalIgnoreCase));
-
-        if (p2pPlayer.RemotePlayerName is not null)
-            p2pPlayers.Remove(p2pPlayer);
+        playerTunnels.Remove(playerTunnels.SingleOrDefault(q => q.RemotePlayerName.Equals(playerName, StringComparison.OrdinalIgnoreCase)));
+        p2pPlayers.Remove(p2pPlayers.SingleOrDefault(q => q.RemotePlayerName.Equals(playerName, StringComparison.OrdinalIgnoreCase)));
     }
 
     private async ValueTask Channel_UserListReceivedAsync()
@@ -769,19 +757,13 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
     private async ValueTask RemovePlayerAsync(string playerName)
     {
         AbortGameStart();
+        Players.Remove(Players.SingleOrDefault(p => p.Name.Equals(playerName, StringComparison.OrdinalIgnoreCase)));
+        CopyPlayerDataToUI();
+        RemoveV3Player(playerName);
 
-        PlayerInfo pInfo = Players.Find(p => p.Name.Equals(playerName, StringComparison.OrdinalIgnoreCase));
-
-        if (pInfo != null)
-        {
-            Players.Remove(pInfo);
-            CopyPlayerDataToUI();
-            RemoveV3Player(playerName);
-
-            // This might not be necessary
-            if (IsHost)
-                await BroadcastPlayerOptionsAsync();
-        }
+        // This might not be necessary
+        if (IsHost)
+            await BroadcastPlayerOptionsAsync();
 
         sndLeaveSound.Play();
 
@@ -2219,13 +2201,7 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
         {
             CnCNetTunnel tunnel = tunnelHandler.Tunnels.Single(q => q.Hash.Equals(hash, StringComparison.OrdinalIgnoreCase));
 
-            if (playerTunnels.Any(q => q.RemotePlayerName.Equals(playerName, StringComparison.OrdinalIgnoreCase)))
-            {
-                int index = playerTunnels.FindIndex(q => q.RemotePlayerName.Equals(playerName, StringComparison.OrdinalIgnoreCase));
-
-                playerTunnels.RemoveAt(index);
-            }
-
+            playerTunnels.Remove(playerTunnels.SingleOrDefault(q => q.RemotePlayerName.Equals(playerName, StringComparison.OrdinalIgnoreCase)));
             playerTunnels.Add(new(playerName, tunnel, combinedPing));
             AddNotice(string.Format(CultureInfo.CurrentCulture, "{0} dynamic tunnel: {1} ({2}ms)".L10N("Client:Main:TunnelNegotiated"), playerName, tunnel.Name, tunnel.PingInMs));
         }
@@ -2278,7 +2254,7 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
         {
             remoteP2PPlayer = p2pPlayers.Single(q => q.RemotePlayerName.Equals(playerName, StringComparison.OrdinalIgnoreCase));
 
-            p2pPlayers.RemoveAt(p2pPlayers.FindIndex(q => q.RemotePlayerName.Equals(playerName, StringComparison.OrdinalIgnoreCase)));
+            p2pPlayers.Remove(remoteP2PPlayer);
         }
         else
         {
@@ -2326,7 +2302,7 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
         {
             p2pPlayer = p2pPlayers.Single(q => q.RemotePlayerName.Equals(playerName, StringComparison.OrdinalIgnoreCase));
 
-            p2pPlayers.RemoveAt(p2pPlayers.FindIndex(q => q.RemotePlayerName.Equals(playerName, StringComparison.OrdinalIgnoreCase)));
+            p2pPlayers.Remove(p2pPlayer);
         }
         else
         {
