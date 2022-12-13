@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using System.Net;
 using System.Net.Http;
 using System.Net.NetworkInformation;
+using System.Net.Security;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using System.Runtime.Serialization;
@@ -25,6 +26,21 @@ internal static class UPnPHandler
     private const int UPnPMultiCastPort = 1900;
     private const int ReceiveTimeout = 2000;
     private const int SendCount = 3;
+
+    private static readonly HttpClient HttpClient = new(
+        new SocketsHttpHandler
+        {
+            AutomaticDecompression = DecompressionMethods.All,
+            SslOptions = new()
+            {
+                RemoteCertificateValidationCallback = (_, _, _, sslPolicyErrors) => (sslPolicyErrors & SslPolicyErrors.RemoteCertificateNotAvailable) == 0,
+            }
+        },
+        true)
+    {
+        Timeout = TimeSpan.FromMilliseconds(ReceiveTimeout),
+        DefaultVersionPolicy = HttpVersionPolicy.RequestVersionOrHigher
+    };
 
     private static IReadOnlyDictionary<AddressType, IPAddress> SsdpMultiCastAddresses => new Dictionary<AddressType, IPAddress>
     {
@@ -369,18 +385,7 @@ internal static class UPnPHandler
 
     private static async ValueTask<UPnPDescription> GetUPnPDescription(Uri uri, CancellationToken cancellationToken)
     {
-        using var client = new HttpClient(
-            new SocketsHttpHandler
-            {
-                PooledConnectionLifetime = TimeSpan.FromMinutes(15),
-                AutomaticDecompression = DecompressionMethods.All
-            }, true)
-        {
-            Timeout = TimeSpan.FromMilliseconds(ReceiveTimeout),
-            DefaultVersionPolicy = HttpVersionPolicy.RequestVersionOrHigher
-        };
-
-        await using Stream uPnPDescription = await client.GetStreamAsync(uri, cancellationToken);
+        await using Stream uPnPDescription = await HttpClient.GetStreamAsync(uri, cancellationToken);
         using var xmlTextReader = new XmlTextReader(uPnPDescription);
 
         return (UPnPDescription)new DataContractSerializer(typeof(UPnPDescription)).ReadObject(xmlTextReader);
