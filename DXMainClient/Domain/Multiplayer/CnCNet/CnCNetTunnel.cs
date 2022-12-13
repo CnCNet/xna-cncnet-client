@@ -3,7 +3,6 @@ using System.Buffers;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Net;
-using System.Net.Http;
 using System.Net.Sockets;
 using System.Threading.Tasks;
 using ClientCore;
@@ -166,18 +165,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
 
                 Logger.Log($"Contacting tunnel at {addressString}");
 
-                using var client = new HttpClient(
-                    new SocketsHttpHandler
-                    {
-                        PooledConnectionLifetime = TimeSpan.FromMinutes(15),
-                        AutomaticDecompression = DecompressionMethods.All
-                    },
-                    true)
-                {
-                    Timeout = TimeSpan.FromMilliseconds(Constants.TUNNEL_CONNECTION_TIMEOUT),
-                    DefaultVersionPolicy = HttpVersionPolicy.RequestVersionOrHigher
-                };
-                string data = await client.GetStringAsync(addressString);
+                string data = await Constants.CnCNetHttpClient.GetStringAsync(addressString);
 
                 data = data.Replace("[", string.Empty);
                 data = data.Replace("]", string.Empty);

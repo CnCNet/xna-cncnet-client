@@ -4,7 +4,6 @@ using System.Collections.Specialized;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
-using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
@@ -134,7 +133,6 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
 
         private static async ValueTask<string> UploadFilesAsync(List<FileToUpload> files, NameValueCollection values)
         {
-            using HttpClient client = GetHttpClient();
             var multipartFormDataContent = new MultipartFormDataContent();
 
             // Write the values
@@ -153,25 +151,9 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                 multipartFormDataContent.Add(streamContent, file.Name, file.Filename);
             }
 
-            HttpResponseMessage httpResponseMessage = await client.PostAsync("upload", multipartFormDataContent);
+            HttpResponseMessage httpResponseMessage = await Constants.CnCNetHttpClient.PostAsync($"{MAPDB_URL}upload", multipartFormDataContent);
 
             return await httpResponseMessage.EnsureSuccessStatusCode().Content.ReadAsStringAsync();
-        }
-
-        private static HttpClient GetHttpClient()
-        {
-            return new HttpClient(
-                new SocketsHttpHandler
-                {
-                    PooledConnectionLifetime = TimeSpan.FromMinutes(15),
-                    AutomaticDecompression = DecompressionMethods.All
-                },
-                true)
-            {
-                Timeout = TimeSpan.FromMilliseconds(10000),
-                BaseAddress = new Uri(MAPDB_URL),
-                DefaultVersionPolicy = HttpVersionPolicy.RequestVersionOrHigher
-            };
         }
 
         private static MemoryStream CreateZipFile(string file)
@@ -254,14 +236,13 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
             string customMapsDirectory = SafePath.CombineDirectoryPath(ProgramConstants.GamePath, "Maps", "Custom");
             string mapFileName = GetMapFileName(sha1, mapName);
             string newFile = SafePath.CombineFilePath(customMapsDirectory, FormattableString.Invariant($"{mapFileName}.map"));
-            using HttpClient client = GetHttpClient();
             Stream stream;
 
             try
             {
-                string address = FormattableString.Invariant($"{myGame}/{sha1}.zip");
+                string address = FormattableString.Invariant($"{MAPDB_URL}{myGame}/{sha1}.zip");
                 Logger.Log($"MapSharer: Downloading URL: {MAPDB_URL}{address})");
-                stream = await client.GetStreamAsync(address);
+                stream = await Constants.CnCNetHttpClient.GetStreamAsync(address);
             }
             catch (Exception ex)
             {

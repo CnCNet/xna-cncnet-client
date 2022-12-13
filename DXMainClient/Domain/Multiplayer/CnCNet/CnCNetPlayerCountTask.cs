@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Globalization;
-using System.Net;
-using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using ClientCore;
@@ -50,18 +48,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
         {
             try
             {
-                using var client = new HttpClient(
-                    new SocketsHttpHandler
-                    {
-                        PooledConnectionLifetime = TimeSpan.FromMinutes(15),
-                        AutomaticDecompression = DecompressionMethods.All
-                    },
-                    true)
-                {
-                    DefaultVersionPolicy = HttpVersionPolicy.RequestVersionOrHigher
-                };
-
-                string info = await client.GetStringAsync($"{Uri.UriSchemeHttps}://api.cncnet.org/status", cancellationToken);
+                string info = await Constants.CnCNetHttpClient.GetStringAsync($"{Uri.UriSchemeHttps}://api.cncnet.org/status", cancellationToken);
 
                 info = info.Replace("{", string.Empty);
                 info = info.Replace("}", string.Empty);

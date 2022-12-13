@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using ClientCore;
@@ -146,32 +145,20 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
         {
             FileInfo tunnelCacheFile = SafePath.GetFile(ProgramConstants.ClientUserFilesPath, "tunnel_cache");
             var returnValue = new List<CnCNetTunnel>();
-            using var client = new HttpClient(
-                new SocketsHttpHandler
-                {
-                    PooledConnectionLifetime = TimeSpan.FromMinutes(15),
-                    AutomaticDecompression = DecompressionMethods.All
-                },
-                true)
-            {
-                Timeout = TimeSpan.FromSeconds(100),
-                DefaultVersionPolicy = HttpVersionPolicy.RequestVersionOrHigher
-            };
-
             string data;
 
             Logger.Log("Fetching tunnel server info.");
 
             try
             {
-                data = await client.GetStringAsync(ProgramConstants.CNCNET_TUNNEL_LIST_URL);
+                data = await Constants.CnCNetHttpClient.GetStringAsync(ProgramConstants.CNCNET_TUNNEL_LIST_URL);
             }
             catch (HttpRequestException ex)
             {
                 ProgramConstants.LogException(ex, "Error when downloading tunnel server info. Retrying.");
                 try
                 {
-                    data = await client.GetStringAsync(ProgramConstants.CNCNET_TUNNEL_LIST_URL);
+                    data = await Constants.CnCNetHttpClient.GetStringAsync(ProgramConstants.CNCNET_TUNNEL_LIST_URL);
                 }
                 catch (HttpRequestException ex1)
                 {

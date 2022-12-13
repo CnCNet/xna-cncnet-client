@@ -30,26 +30,21 @@ internal sealed record InternetGatewayDevice(IEnumerable<Uri> Locations, string 
     private const ushort IanaUdpProtocolNumber = 17;
     private const string PortMappingDescription = "CnCNet";
 
-    private static readonly HttpClient HttpClient;
+    private static readonly HttpClient HttpClient = new(
+        new SocketsHttpHandler
+        {
+            AutomaticDecompression = DecompressionMethods.All,
+            SslOptions = new()
+            {
+                RemoteCertificateValidationCallback = (_, _, _, sslPolicyErrors) => (sslPolicyErrors & SslPolicyErrors.RemoteCertificateNotAvailable) == 0,
+            }
+        }, true)
+    {
+        Timeout = TimeSpan.FromMilliseconds(ReceiveTimeout),
+        DefaultVersionPolicy = HttpVersionPolicy.RequestVersionOrHigher
+    };
 
     public const string UPnPInternetGatewayDevice = "urn:schemas-upnp-org:device:InternetGatewayDevice";
-
-    static InternetGatewayDevice()
-    {
-        HttpClient = new HttpClient(
-            new SocketsHttpHandler
-            {
-                AutomaticDecompression = DecompressionMethods.All,
-                SslOptions = new()
-                {
-                    RemoteCertificateValidationCallback = (_, _, _, sslPolicyErrors) => (sslPolicyErrors & SslPolicyErrors.RemoteCertificateNotAvailable) == 0,
-                }
-            }, true)
-        {
-            Timeout = TimeSpan.FromMilliseconds(ReceiveTimeout),
-            DefaultVersionPolicy = HttpVersionPolicy.RequestVersionOrHigher
-        };
-    }
 
     public async ValueTask<ushort> OpenIpV4PortAsync(IPAddress ipAddress, ushort port, CancellationToken cancellationToken)
     {
