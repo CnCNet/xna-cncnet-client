@@ -509,7 +509,7 @@ namespace DTAClient.DXGUI.Generic
                     XNAListBoxItem spectatorItem = new XNAListBoxItem();
                     spectatorItem.Text = "Spectator".L10N("UI:Main:Spectator");
                     spectatorItem.TextColor = textColor;
-                    spectatorItem.Texture = sideTextures[sideTextures.Length - 1];
+                    spectatorItem.Texture = sideTextures[^1];
                     items.Add(spectatorItem);
                     items.Add(new XNAListBoxItem("-", textColor));
                 }

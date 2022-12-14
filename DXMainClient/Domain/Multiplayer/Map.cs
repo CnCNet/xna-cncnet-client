@@ -8,6 +8,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text.Json.Serialization;
+using System.Threading.Tasks;
 using SixLabors.ImageSharp;
 using Color = Microsoft.Xna.Framework.Color;
 using Exception = System.Exception;
@@ -260,8 +261,10 @@ namespace DTAClient.Domain.Multiplayer
         /// </summary>
         /// <param name="iniFile">The configuration file for the multiplayer maps.</param>
         /// <returns>True if loading the map succeeded, otherwise false.</returns>
-        public bool SetInfoFromMpMapsINI(IniFile iniFile)
+        public async ValueTask<bool> SetInfoFromMpMapsINIAsync(IniFile iniFile)
         {
+            await ValueTask.CompletedTask.ConfigureAwait(false);
+
             try
             {
                 string baseSectionName = iniFile.GetStringValue(BaseFilePath, "BaseSection", string.Empty);
@@ -379,7 +382,7 @@ namespace DTAClient.Domain.Multiplayer
 #if !GL
 
                 if (UserINISettings.Instance.PreloadMapPreviews)
-                    PreviewTexture = LoadPreviewTexture();
+                    PreviewTexture = await LoadPreviewTextureAsync().ConfigureAwait(false);
 #endif
 
                 // Parse forced options
@@ -652,7 +655,7 @@ namespace DTAClient.Domain.Multiplayer
         /// <summary>
         /// Loads and returns the map preview texture.
         /// </summary>
-        public Texture2D LoadPreviewTexture()
+        public async ValueTask<Texture2D> LoadPreviewTextureAsync()
         {
             if (SafePath.GetFile(ProgramConstants.GamePath, PreviewPath).Exists)
                 return AssetLoader.LoadTextureUncached(PreviewPath);
@@ -660,7 +663,7 @@ namespace DTAClient.Domain.Multiplayer
             if (!Official)
             {
                 // Extract preview from the map itself
-                using Image preview = MapPreviewExtractor.ExtractMapPreview(GetCustomMapIniFile());
+                using Image preview = await MapPreviewExtractor.ExtractMapPreviewAsync(GetCustomMapIniFile()).ConfigureAwait(false);
 
                 if (preview != null)
                 {

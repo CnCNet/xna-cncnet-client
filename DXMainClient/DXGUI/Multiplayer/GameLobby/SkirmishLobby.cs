@@ -139,7 +139,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                         Map.MaxPlayers);
                 }
 
-                IEnumerable<PlayerInfo> concatList = Players.Concat(AIPlayers);
+                List<PlayerInfo> concatList = Players.Concat(AIPlayers).ToList();
 
                 foreach (PlayerInfo pInfo in concatList)
                 {
@@ -172,7 +172,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (error == null)
             {
                 SaveSettings();
-                await StartGameAsync();
+                await StartGameAsync().ConfigureAwait(false);
                 return;
             }
 
@@ -229,8 +229,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         protected override async ValueTask GameProcessExitedAsync()
         {
-            await base.GameProcessExitedAsync();
-            await DdGameModeMapFilter_SelectedIndexChangedAsync(); // Refresh ranks
+            await base.GameProcessExitedAsync().ConfigureAwait(false);
+            await DdGameModeMapFilter_SelectedIndexChangedAsync().ConfigureAwait(false); // Refresh ranks
 
             RandomSeed = new Random().Next();
         }

@@ -66,7 +66,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
 
             Logger.Log("MapSharer: Starting upload of " + map.BaseFilePath);
 
-            (string message, bool success) = await MapUploadAsync(map, myGameId);
+            (string message, bool success) = await MapUploadAsync(map, myGameId).ConfigureAwait(false);
 
             if (success)
             {
@@ -115,7 +115,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                     {
                         { "game", gameName.ToLower() }
                     };
-                string response = await UploadFilesAsync(files, values);
+                string response = await UploadFilesAsync(files, values).ConfigureAwait(false);
 
                 if (!response.Contains("Upload succeeded!"))
                     return (response, false);
@@ -133,7 +133,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
 
         private static async ValueTask<string> UploadFilesAsync(List<FileToUpload> files, NameValueCollection values)
         {
-            var multipartFormDataContent = new MultipartFormDataContent();
+            using var multipartFormDataContent = new MultipartFormDataContent();
 
             // Write the values
             foreach (string name in values.Keys)
@@ -151,9 +151,9 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                 multipartFormDataContent.Add(streamContent, file.Name, file.Filename);
             }
 
-            HttpResponseMessage httpResponseMessage = await Constants.CnCNetHttpClient.PostAsync($"{MAPDB_URL}upload", multipartFormDataContent);
+            HttpResponseMessage httpResponseMessage = await Constants.CnCNetHttpClient.PostAsync($"{MAPDB_URL}upload", multipartFormDataContent).ConfigureAwait(false);
 
-            return await httpResponseMessage.EnsureSuccessStatusCode().Content.ReadAsStringAsync();
+            return await httpResponseMessage.EnsureSuccessStatusCode().Content.ReadAsStringAsync().ConfigureAwait(false);
         }
 
         private static MemoryStream CreateZipFile(string file)
@@ -203,7 +203,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                 ProgramConstants.LogException(ex, "MapSharer ERROR");
             }
 
-            (string error, bool success) = await DownloadMainAsync(sha1, myGameId, mapName);
+            (string error, bool success) = await DownloadMainAsync(sha1, myGameId, mapName).ConfigureAwait(false);
 
             lock (locker)
             {
@@ -242,7 +242,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
             {
                 string address = FormattableString.Invariant($"{MAPDB_URL}{myGame}/{sha1}.zip");
                 Logger.Log($"MapSharer: Downloading URL: {MAPDB_URL}{address})");
-                stream = await Constants.CnCNetHttpClient.GetStreamAsync(address);
+                stream = await Constants.CnCNetHttpClient.GetStreamAsync(address).ConfigureAwait(false);
             }
             catch (Exception ex)
             {

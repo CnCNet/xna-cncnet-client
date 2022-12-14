@@ -10,6 +10,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
+using ClientCore.Extensions;
 using ClientGUI;
 using Localization;
 
@@ -91,9 +93,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             AddChild(briefingBox);
             briefingBox.Disable();
 
-            ClientRectangleUpdated += (s, e) => UpdateMap();
+            ClientRectangleUpdated += (_, _) => UpdateMapAsync().HandleTask();
         }
-
 
         private GameModeMap _gameModeMap;
         public GameModeMap GameModeMap
@@ -102,7 +103,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             set
             {
                 _gameModeMap = value;
-                UpdateMap();
+                UpdateMapAsync().HandleTask();
             }
         }
 
@@ -219,7 +220,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             base.Initialize();
 
-            ClientRectangleUpdated += (s, e) => UpdateMap();
+            ClientRectangleUpdated += (_, _) => UpdateMapAsync().HandleTask();
 
             RightClick += MapPreviewBox_RightClick;
 
@@ -378,7 +379,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         /// this control's display rectangle and the 
         /// starting location indicators' positions.
         /// </summary>
-        private void UpdateMap()
+        private async ValueTask UpdateMapAsync()
         {
             if (disposeTextures && previewTexture != null && !previewTexture.IsDisposed)
                 previewTexture.Dispose();
@@ -400,7 +401,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             if (GameModeMap.Map.PreviewTexture == null)
             {
-                previewTexture = GameModeMap.Map.LoadPreviewTexture();
+                previewTexture = await GameModeMap.Map.LoadPreviewTextureAsync().ConfigureAwait(false);
                 disposeTextures = true;
             }
             else

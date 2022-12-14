@@ -35,7 +35,7 @@ namespace ClientGUI
             int waitTimes = 0;
             while (PreprocessorBackgroundTask.Instance.IsRunning)
             {
-                await Task.Delay(1000);
+                await Task.Delay(1000).ConfigureAwait(false);
                 waitTimes++;
                 if (waitTimes > 10)
                 {

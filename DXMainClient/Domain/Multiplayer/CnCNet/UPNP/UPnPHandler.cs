@@ -8,7 +8,6 @@ using System.Threading.Tasks;
 using System.Net;
 using System.Net.Http;
 using System.Net.NetworkInformation;
-using System.Net.Security;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using System.Runtime.Serialization;
@@ -17,6 +16,7 @@ using System.Xml;
 using ClientCore;
 using ClientCore.Extensions;
 using Rampastring.Tools;
+using DTAClient.Domain.Multiplayer.CnCNet.UPNP;
 
 namespace DTAClient.Domain.Multiplayer.CnCNet;
 
@@ -33,7 +33,10 @@ internal static class UPnPHandler
             AutomaticDecompression = DecompressionMethods.All,
             SslOptions = new()
             {
-                RemoteCertificateValidationCallback = (_, _, _, sslPolicyErrors) => (sslPolicyErrors & SslPolicyErrors.RemoteCertificateNotAvailable) == 0,
+                CertificateChainPolicy = new()
+                {
+                    DisableCertificateDownloads = true
+                }
             }
         },
         true)
@@ -42,21 +45,29 @@ internal static class UPnPHandler
         DefaultVersionPolicy = HttpVersionPolicy.RequestVersionOrHigher
     };
 
-    private static IReadOnlyDictionary<AddressType, IPAddress> SsdpMultiCastAddresses => new Dictionary<AddressType, IPAddress>
-    {
-        [AddressType.IpV4SiteLocal] = IPAddress.Parse("239.255.255.250"),
-        [AddressType.IpV6LinkLocal] = IPAddress.Parse("[FF02::C]"),
-        [AddressType.IpV6SiteLocal] = IPAddress.Parse("[FF05::C]")
-    }.AsReadOnly();
+    private static IReadOnlyDictionary<AddressType, IPAddress> SsdpMultiCastAddresses
+        => new Dictionary<AddressType, IPAddress>
+        {
+            [AddressType.IpV4SiteLocal] = IPAddress.Parse("239.255.255.250"),
+            [AddressType.IpV6LinkLocal] = IPAddress.Parse("[FF02::C]"),
+            [AddressType.IpV6SiteLocal] = IPAddress.Parse("[FF05::C]")
+        }.AsReadOnly();
 
-    public static async ValueTask<(InternetGatewayDevice InternetGatewayDevice, List<(ushort InternalPort, ushort ExternalPort)> IpV6P2PPorts, List<(ushort InternalPort, ushort ExternalPort)> IpV4P2PPorts, List<ushort> P2PIpV6PortIds, IPAddress ipV6Address, IPAddress ipV4Address)> SetupPortsAsync(
-        InternetGatewayDevice internetGatewayDevice, List<ushort> p2pReservedPorts, List<IPAddress> stunServerIpAddresses, CancellationToken cancellationToken)
+    public static async ValueTask<(
+        InternetGatewayDevice InternetGatewayDevice,
+        List<(ushort InternalPort, ushort ExternalPort)> IpV6P2PPorts,
+        List<(ushort InternalPort, ushort ExternalPort)> IpV4P2PPorts,
+        List<ushort> P2PIpV6PortIds, IPAddress IpV6Address, IPAddress IpV4Address)> SetupPortsAsync(
+        InternetGatewayDevice internetGatewayDevice,
+        List<ushort> p2pReservedPorts,
+        List<IPAddress> stunServerIpAddresses,
+        CancellationToken cancellationToken)
     {
         Logger.Log("Starting P2P Setup.");
 
         if (internetGatewayDevice is null)
         {
-            var internetGatewayDevices = (await GetInternetGatewayDevicesAsync(cancellationToken)).ToList();
+            var internetGatewayDevices = (await GetInternetGatewayDevicesAsync(cancellationToken).ConfigureAwait(false)).ToList();
 
             internetGatewayDevice = GetInternetGatewayDevice(internetGatewayDevices, 2);
             internetGatewayDevice ??= GetInternetGatewayDevice(internetGatewayDevices, 1);
@@ -69,8 +80,8 @@ internal static class UPnPHandler
         {
             Logger.Log("Found NAT device.");
 
-            routerNatEnabled = await internetGatewayDevice.GetNatRsipStatusAsync(cancellationToken);
-            detectedPublicIpV4Address = await internetGatewayDevice.GetExternalIpV4AddressAsync(cancellationToken);
+            routerNatEnabled = await internetGatewayDevice.GetNatRsipStatusAsync(cancellationToken).ConfigureAwait(false);
+            detectedPublicIpV4Address = await internetGatewayDevice.GetExternalIpV4AddressAsync(cancellationToken).ConfigureAwait(false);
         }
 
         var ipV4StunPortMapping = new List<(ushort InternalPort, ushort ExternalPort)>();
@@ -85,7 +96,8 @@ internal static class UPnPHandler
 
                 foreach (ushort p2pReservedPort in p2pReservedPorts)
                 {
-                    IPEndPoint publicIpV4Endpoint = await NetworkHelper.PerformStunAsync(stunServerIpAddress, p2pReservedPort, cancellationToken);
+                    IPEndPoint publicIpV4Endpoint = await NetworkHelper.PerformStunAsync(
+                        stunServerIpAddress, p2pReservedPort, cancellationToken).ConfigureAwait(false);
 
                     if (publicIpV4Endpoint is null)
                     {
@@ -102,9 +114,11 @@ internal static class UPnPHandler
 
             if (ipV4StunPortMapping.Any())
             {
+#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
                 NetworkHelper.KeepStunAliveAsync(
                     stunServerIpAddress,
                     ipV4StunPortMapping.Select(q => q.InternalPort).ToList(), cancellationToken).HandleTask();
+#pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
             }
         }
         else
@@ -116,7 +130,7 @@ internal static class UPnPHandler
         {
             Logger.Log("Using IPV4 trace detection.");
 
-            detectedPublicIpV4Address = await NetworkHelper.TracePublicIpV4Address(cancellationToken);
+            detectedPublicIpV4Address = await NetworkHelper.TracePublicIpV4Address(cancellationToken).ConfigureAwait(false);
         }
 
         var publicIpAddresses = NetworkHelper.GetPublicIpAddresses().ToList();
@@ -140,7 +154,8 @@ internal static class UPnPHandler
             {
                 foreach (int p2PReservedPort in p2pReservedPorts)
                 {
-                    ushort openedPort = await internetGatewayDevice.OpenIpV4PortAsync(privateIpV4Address, (ushort)p2PReservedPort, cancellationToken);
+                    ushort openedPort = await internetGatewayDevice.OpenIpV4PortAsync(
+                        privateIpV4Address, (ushort)p2PReservedPort, cancellationToken).ConfigureAwait(false);
 
                     ipV4P2PPorts.Add((openedPort, openedPort));
                 }
@@ -172,7 +187,8 @@ internal static class UPnPHandler
 
             foreach (ushort p2pReservedPort in p2pReservedPorts)
             {
-                IPEndPoint publicIpV6Endpoint = await NetworkHelper.PerformStunAsync(stunServerIpAddress, p2pReservedPort, cancellationToken);
+                IPEndPoint publicIpV6Endpoint = await NetworkHelper.PerformStunAsync(
+                    stunServerIpAddress, p2pReservedPort, cancellationToken).ConfigureAwait(false);
 
                 if (publicIpV6Endpoint is null)
                 {
@@ -188,9 +204,11 @@ internal static class UPnPHandler
 
             if (ipV6StunPortMapping.Any())
             {
+#pragma warning disable CS4014
                 NetworkHelper.KeepStunAliveAsync(
                     stunServerIpAddress,
                     ipV6StunPortMapping.Select(q => q.InternalPort).ToList(), cancellationToken).HandleTask();
+#pragma warning restore CS4014
             }
         }
         else
@@ -202,7 +220,8 @@ internal static class UPnPHandler
 
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
-            var publicIpV6Addresses = NetworkHelper.GetWindowsPublicIpAddresses().Where(q => q.IpAddress.AddressFamily is AddressFamily.InterNetworkV6).ToList();
+            var publicIpV6Addresses = NetworkHelper.GetWindowsPublicIpAddresses()
+                .Where(q => q.IpAddress.AddressFamily is AddressFamily.InterNetworkV6).ToList();
 
             (IPAddress IpAddress, PrefixOrigin PrefixOrigin, SuffixOrigin SuffixOrigin) foundPublicIpV6Address = publicIpV6Addresses
                 .FirstOrDefault(q => q.PrefixOrigin is PrefixOrigin.RouterAdvertisement && q.SuffixOrigin is SuffixOrigin.LinkLayerAddress);
@@ -232,7 +251,8 @@ internal static class UPnPHandler
             {
                 try
                 {
-                    (bool firewallEnabled, bool inboundPinholeAllowed) = await internetGatewayDevice.GetIpV6FirewallStatusAsync(cancellationToken);
+                    (bool firewallEnabled, bool inboundPinholeAllowed) = await internetGatewayDevice.GetIpV6FirewallStatusAsync(
+                        cancellationToken).ConfigureAwait(false);
 
                     if (firewallEnabled && inboundPinholeAllowed)
                     {
@@ -240,7 +260,8 @@ internal static class UPnPHandler
 
                         foreach (ushort p2pReservedPort in p2pReservedPorts)
                         {
-                            p2pIpV6PortIds.Add(await internetGatewayDevice.OpenIpV6PortAsync(publicIpV6Address, p2pReservedPort, cancellationToken));
+                            p2pIpV6PortIds.Add(await internetGatewayDevice.OpenIpV6PortAsync(
+                                publicIpV6Address, p2pReservedPort, cancellationToken).ConfigureAwait(false));
                         }
                     }
                 }
@@ -267,17 +288,20 @@ internal static class UPnPHandler
 
     private static async ValueTask<IEnumerable<InternetGatewayDevice>> GetInternetGatewayDevicesAsync(CancellationToken cancellationToken)
     {
-        IEnumerable<string> rawDeviceResponses = await GetRawDeviceResponses(cancellationToken);
+        IEnumerable<string> rawDeviceResponses = await GetRawDeviceResponses(cancellationToken).ConfigureAwait(false);
         IEnumerable<Dictionary<string, string>> formattedDeviceResponses = GetFormattedDeviceResponses(rawDeviceResponses);
-        IEnumerable<IGrouping<string, InternetGatewayDeviceResponse>> groupedInternetGatewayDeviceResponses = GetGroupedInternetGatewayDeviceResponses(formattedDeviceResponses);
+        IEnumerable<IGrouping<string, InternetGatewayDeviceResponse>> groupedInternetGatewayDeviceResponses =
+            GetGroupedInternetGatewayDeviceResponses(formattedDeviceResponses);
 
-        return await ClientCore.Extensions.TaskExtensions.WhenAllSafe(groupedInternetGatewayDeviceResponses.Select(q => GetInternetGatewayDeviceAsync(q, cancellationToken)));
+        return await ClientCore.Extensions.TaskExtensions.WhenAllSafe(
+            groupedInternetGatewayDeviceResponses.Select(q => GetInternetGatewayDeviceAsync(q, cancellationToken))).ConfigureAwait(false);
     }
 
     private static InternetGatewayDevice GetInternetGatewayDevice(List<InternetGatewayDevice> internetGatewayDevices, ushort uPnPVersion)
         => internetGatewayDevices.SingleOrDefault(q => $"{InternetGatewayDevice.UPnPInternetGatewayDevice}:{uPnPVersion}".Equals(q.UPnPDescription.Device.DeviceType, StringComparison.OrdinalIgnoreCase));
 
-    private static IEnumerable<IGrouping<string, InternetGatewayDeviceResponse>> GetGroupedInternetGatewayDeviceResponses(IEnumerable<Dictionary<string, string>> formattedDeviceResponses)
+    private static IEnumerable<IGrouping<string, InternetGatewayDeviceResponse>> GetGroupedInternetGatewayDeviceResponses(
+        IEnumerable<Dictionary<string, string>> formattedDeviceResponses)
     {
         return formattedDeviceResponses
             .Select(q => new InternetGatewayDeviceResponse(new(q["LOCATION"]), q["SERVER"], q["CACHE-CONTROL"], q["EXT"], q["ST"], q["USN"]))
@@ -333,11 +357,11 @@ internal static class UPnPHandler
 
             for (int i = 0; i < SendCount; i++)
             {
-                await socket.SendToAsync(buffer, SocketFlags.None, multiCastIpEndPoint, cancellationToken);
-                await Task.Delay(100, cancellationToken);
+                await socket.SendToAsync(buffer, SocketFlags.None, multiCastIpEndPoint, cancellationToken).ConfigureAwait(false);
+                await Task.Delay(100, cancellationToken).ConfigureAwait(false);
             }
 
-            await ReceiveAsync(socket, responses, cancellationToken);
+            await ReceiveAsync(socket, responses, cancellationToken).ConfigureAwait(false);
         }
         finally
         {
@@ -373,7 +397,7 @@ internal static class UPnPHandler
 
             try
             {
-                int bytesReceived = await socket.ReceiveAsync(buffer, SocketFlags.None, linkedCancellationTokenSource.Token);
+                int bytesReceived = await socket.ReceiveAsync(buffer, SocketFlags.None, linkedCancellationTokenSource.Token).ConfigureAwait(false);
 
                 responses.Add(Encoding.UTF8.GetString(buffer.Span[..bytesReceived]));
             }
@@ -385,21 +409,27 @@ internal static class UPnPHandler
 
     private static async ValueTask<UPnPDescription> GetUPnPDescription(Uri uri, CancellationToken cancellationToken)
     {
-        await using Stream uPnPDescription = await HttpClient.GetStreamAsync(uri, cancellationToken);
-        using var xmlTextReader = new XmlTextReader(uPnPDescription);
+        Stream uPnPDescription = await HttpClient.GetStreamAsync(uri, cancellationToken).ConfigureAwait(false);
 
-        return (UPnPDescription)new DataContractSerializer(typeof(UPnPDescription)).ReadObject(xmlTextReader);
+        await using (uPnPDescription.ConfigureAwait(false))
+        {
+            using var xmlTextReader = new XmlTextReader(uPnPDescription);
+
+            return (UPnPDescription)new DataContractSerializer(typeof(UPnPDescription)).ReadObject(xmlTextReader);
+        }
     }
 
     private static async ValueTask<IEnumerable<string>> GetRawDeviceResponses(CancellationToken cancellationToken)
     {
         IEnumerable<IPAddress> localAddresses = NetworkHelper.GetLocalAddresses();
-        IEnumerable<string>[] localAddressesDeviceResponses = await ClientCore.Extensions.TaskExtensions.WhenAllSafe(localAddresses.Select(q => SearchDevicesAsync(q, cancellationToken)));
+        IEnumerable<string>[] localAddressesDeviceResponses = await ClientCore.Extensions.TaskExtensions.WhenAllSafe(
+            localAddresses.Select(q => SearchDevicesAsync(q, cancellationToken))).ConfigureAwait(false);
 
         return localAddressesDeviceResponses.Where(q => q.Any()).SelectMany(q => q).Distinct();
     }
 
-    private static async Task<InternetGatewayDevice> GetInternetGatewayDeviceAsync(IGrouping<string, InternetGatewayDeviceResponse> internetGatewayDeviceResponses, CancellationToken cancellationToken)
+    private static async Task<InternetGatewayDevice> GetInternetGatewayDeviceAsync(
+        IGrouping<string, InternetGatewayDeviceResponse> internetGatewayDeviceResponses, CancellationToken cancellationToken)
     {
         Uri[] locations = internetGatewayDeviceResponses.Select(r => r.Location).ToArray();
         Uri location = GetPreferredLocation(locations);
@@ -407,7 +437,7 @@ internal static class UPnPHandler
 
         try
         {
-            uPnPDescription = await GetUPnPDescription(location, cancellationToken);
+            uPnPDescription = await GetUPnPDescription(location, cancellationToken).ConfigureAwait(false);
         }
         catch (OperationCanceledException)
         {
@@ -417,7 +447,7 @@ internal static class UPnPHandler
                 {
                     location = locations.First(q => q.HostNameType is UriHostNameType.IPv4);
 
-                    uPnPDescription = await GetUPnPDescription(location, cancellationToken);
+                    uPnPDescription = await GetUPnPDescription(location, cancellationToken).ConfigureAwait(false);
                 }
                 catch (OperationCanceledException)
                 {

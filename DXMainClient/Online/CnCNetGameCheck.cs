@@ -17,7 +17,7 @@ namespace DTAClient.Online
             {
                 try
                 {
-                    await Task.Delay(REFRESH_INTERVAL, cancellationToken);
+                    await Task.Delay(REFRESH_INTERVAL, cancellationToken).ConfigureAwait(false);
 
                     CheatEngineWatchEvent();
                 }

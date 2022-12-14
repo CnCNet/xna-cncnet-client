@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Text;
+using System.Threading.Tasks;
 using ClientCore;
 using Rampastring.Tools;
 using lzo.net;
@@ -24,7 +25,7 @@ namespace DTAClient.Domain.Multiplayer
         /// </summary>
         /// <param name="mapIni">Map file.</param>
         /// <returns>Bitmap of map preview image, or null if preview could not be extracted.</returns>
-        public static Image ExtractMapPreview(IniFile mapIni)
+        public static async ValueTask<Image> ExtractMapPreviewAsync(IniFile mapIni)
         {
             List<string> sectionKeys = mapIni.GetSectionKeys("PreviewPack");
 
@@ -72,7 +73,7 @@ namespace DTAClient.Domain.Multiplayer
                 return null;
             }
 
-            byte[] dataDest = DecompressPreviewData(dataSource, previewWidth * previewHeight * 3, out string errorMessage);
+            (byte[] dataDest, string errorMessage) = await DecompressPreviewDataAsync(dataSource, previewWidth * previewHeight * 3).ConfigureAwait(false);
 
             if (errorMessage != null)
             {
@@ -80,7 +81,7 @@ namespace DTAClient.Domain.Multiplayer
                 return null;
             }
 
-            Image bitmap = CreatePreviewBitmapFromImageData(previewWidth, previewHeight, dataDest, out errorMessage);
+            (Image bitmap, errorMessage) = await Task.Run(() => CreatePreviewBitmapFromImageData(previewWidth, previewHeight, dataDest)).ConfigureAwait(false);
 
             if (errorMessage != null)
             {
@@ -96,14 +97,14 @@ namespace DTAClient.Domain.Multiplayer
         /// </summary>
         /// <param name="dataSource">Array of compressed map preview image data.</param>
         /// <param name="decompressedDataSize">Size of decompressed preview image data.</param>
-        /// <param name="errorMessage">Will be set to error message if something went wrong, otherwise null.</param>
         /// <returns>Array of decompressed preview image data if successfully decompressed, otherwise null.</returns>
-        private static byte[] DecompressPreviewData(byte[] dataSource, int decompressedDataSize, out string errorMessage)
+        private static async ValueTask<(byte[] Data, string ErrorMessage)> DecompressPreviewDataAsync(byte[] dataSource, int decompressedDataSize)
         {
             try
             {
                 byte[] dataDest = new byte[decompressedDataSize];
-                int readBytes = 0, writtenBytes = 0;
+                int readBytes = 0;
+                int writtenBytes = 0;
 
                 while (true)
                 {
@@ -121,24 +122,27 @@ namespace DTAClient.Domain.Multiplayer
                     if (readBytes + sizeCompressed > dataSource.Length ||
                         writtenBytes + sizeUncompressed > dataDest.Length)
                     {
-                        errorMessage = "Preview data does not match preview size or the data is corrupted, unable to extract preview.";
-                        return null;
+                        return (null, "Preview data does not match preview size or the data is corrupted, unable to extract preview.");
                     }
 
-                    LzoStream stream = new LzoStream(new MemoryStream(dataSource, readBytes, sizeCompressed), CompressionMode.Decompress);
-                    stream.Read(dataDest, writtenBytes, sizeUncompressed);
+                    var stream = new LzoStream(new MemoryStream(dataSource, readBytes, sizeCompressed), CompressionMode.Decompress);
+
+                    await using (stream.ConfigureAwait(false))
+                    {
+                        await stream.ReadAsync(dataDest, writtenBytes, sizeUncompressed).ConfigureAwait(false);
+                    }
+
                     readBytes += sizeCompressed;
                     writtenBytes += sizeUncompressed;
                 }
 
-                errorMessage = null;
-                return dataDest;
+                return (dataDest, null);
             }
             catch (Exception ex)
             {
                 ProgramConstants.LogException(ex, "Error encountered decompressing preview data.");
-                errorMessage = "Error encountered decompressing preview data. Message: " + ex.Message;
-                return null;
+
+                return (null, "Error encountered decompressing preview data. Message: " + ex.Message);
             }
         }
 
@@ -148,17 +152,15 @@ namespace DTAClient.Domain.Multiplayer
         /// <param name="width">Width of the bitmap.</param>
         /// <param name="height">Height of the bitmap.</param>
         /// <param name="imageData">Raw image pixel data in 24-bit RGB format.</param>
-        /// <param name="errorMessage">Will be set to error message if something went wrong, otherwise null.</param>
         /// <returns>Bitmap based on the provided dimensions and raw image data, or null if length of image data does not match the provided dimensions or if something went wrong.</returns>
-        private static Image CreatePreviewBitmapFromImageData(int width, int height, byte[] imageData, out string errorMessage)
+        private static (Image Image, string ErrorMessage) CreatePreviewBitmapFromImageData(int width, int height, byte[] imageData)
         {
             const int pixelFormatBitCount = 24;
             const int pixelFormatByteCount = pixelFormatBitCount / 8;
 
             if (imageData.Length != width * height * pixelFormatByteCount)
             {
-                errorMessage = "Provided preview image dimensions do not match preview image data length.";
-                return null;
+                return (null, "Provided preview image dimensions do not match preview image data length.");
             }
 
             try
@@ -210,15 +212,13 @@ namespace DTAClient.Domain.Multiplayer
                     }
                 }
 
-                errorMessage = null;
-
-                return image;
+                return (image, null);
             }
             catch (Exception ex)
             {
                 ProgramConstants.LogException(ex, "Error encountered creating preview bitmap.");
-                errorMessage = "Error encountered creating preview bitmap. Message: " + ex.Message;
-                return null;
+
+                return (null, "Error encountered creating preview bitmap. Message: " + ex.Message);
             }
         }
     }

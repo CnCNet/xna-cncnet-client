@@ -223,7 +223,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
                 gameSaved = true;
 
-                await SavedGameManager.RenameSavedGameAsync();
+                await SavedGameManager.RenameSavedGameAsync().ConfigureAwait(false);
             }
         }
 
@@ -249,16 +249,16 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             pInfo.IsInGame = false;
 
-            await base.GameProcessExitedAsync();
+            await base.GameProcessExitedAsync().ConfigureAwait(false);
 
             if (IsHost)
             {
                 GenerateGameID();
-                await DdGameModeMapFilter_SelectedIndexChangedAsync(); // Refresh ranks
+                await DdGameModeMapFilter_SelectedIndexChangedAsync().ConfigureAwait(false); // Refresh ranks
             }
             else if (chkAutoReady.Checked)
             {
-                await RequestReadyStatusAsync();
+                await RequestReadyStatusAsync().ConfigureAwait(false);
             }
         }
 
@@ -285,9 +285,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         protected virtual async ValueTask HandleLockGameButtonClickAsync()
         {
             if (Locked)
-                await UnlockGameAsync(true);
+                await UnlockGameAsync(true).ConfigureAwait(false);
             else
-                await LockGameAsync();
+                await LockGameAsync().ConfigureAwait(false);
         }
 
         protected abstract ValueTask LockGameAsync();
@@ -346,14 +346,14 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 return;
             }
 
-            await SendChatMessageAsync(tbChatInput.Text);
+            await SendChatMessageAsync(tbChatInput.Text).ConfigureAwait(false);
             tbChatInput.Text = string.Empty;
         }
 
         private async ValueTask ChkAutoReady_CheckedChangedAsync()
         {
             btnLaunchGame.Enabled = !chkAutoReady.Checked;
-            await RequestReadyStatusAsync();
+            await RequestReadyStatusAsync().ConfigureAwait(false);
         }
 
         protected void ResetAutoReadyCheckbox()
@@ -377,7 +377,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             FrameSendRate = intValue;
             AddNotice(string.Format("FrameSendRate has been changed to {0}".L10N("UI:Main:FrameSendRateChanged"), intValue));
 
-            await OnGameOptionChangedAsync();
+            await OnGameOptionChangedAsync().ConfigureAwait(false);
             ClearReadyStatuses();
             ClearReadyStatuses();
         }
@@ -395,7 +395,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             MaxAhead = intValue;
             AddNotice(string.Format("MaxAhead has been changed to {0}".L10N("UI:Main:MaxAheadChanged"), intValue));
 
-            await OnGameOptionChangedAsync();
+            await OnGameOptionChangedAsync().ConfigureAwait(false);
             ClearReadyStatuses();
         }
 
@@ -418,7 +418,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             ProtocolVersion = intValue;
             AddNotice(string.Format("ProtocolVersion has been changed to {0}".L10N("UI:Main:ProtocolVersionChanged"), intValue));
 
-            await OnGameOptionChangedAsync();
+            await OnGameOptionChangedAsync().ConfigureAwait(false);
             ClearReadyStatuses();
         }
 
@@ -428,7 +428,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             SetRandomStartingLocations(removeStartingLocations);
 
-            await OnGameOptionChangedAsync();
+            await OnGameOptionChangedAsync().ConfigureAwait(false);
             ClearReadyStatuses();
         }
 
@@ -490,7 +490,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 results[i] = random.Next(1, dieSides + 1);
             }
 
-            await BroadcastDiceRollAsync(dieSides, results);
+            await BroadcastDiceRollAsync(dieSides, results).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -708,7 +708,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             ClearReadyStatuses();
             CopyPlayerDataToUI();
-            await BroadcastPlayerOptionsAsync();
+            await BroadcastPlayerOptionsAsync().ConfigureAwait(false);
         }
 
         /// <summary>
@@ -721,13 +721,13 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             if (!IsHost)
             {
-                await RequestReadyStatusAsync();
+                await RequestReadyStatusAsync().ConfigureAwait(false);
                 return;
             }
 
             if (!Locked)
             {
-                await LockGameNotificationAsync();
+                await LockGameNotificationAsync().ConfigureAwait(false);
                 return;
             }
 
@@ -743,7 +743,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             {
                 if (occupiedColorIds.Contains(player.ColorId) && player.ColorId > 0)
                 {
-                    await SharedColorsNotificationAsync();
+                    await SharedColorsNotificationAsync().ConfigureAwait(false);
                     return;
                 }
 
@@ -752,7 +752,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             if (AIPlayers.Any(pInfo => pInfo.SideId == ddPlayerSides[0].Items.Count - 1))
             {
-                await AISpectatorsNotificationAsync();
+                await AISpectatorsNotificationAsync().ConfigureAwait(false);
                 return;
             }
 
@@ -767,7 +767,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                         p => p.StartingLocation == pInfo.StartingLocation &&
                         p.Name != pInfo.Name) != null)
                     {
-                        await SharedStartingLocationNotificationAsync();
+                        await SharedStartingLocationNotificationAsync().ConfigureAwait(false);
                         return;
                     }
                 }
@@ -783,7 +783,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
                     if (index > -1 && index != aiId)
                     {
-                        await SharedStartingLocationNotificationAsync();
+                        await SharedStartingLocationNotificationAsync().ConfigureAwait(false);
                         return;
                     }
                 }
@@ -794,13 +794,13 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 int minPlayers = GameMode.MinPlayersOverride > -1 ? GameMode.MinPlayersOverride : Map.MinPlayers;
                 if (totalPlayerCount < minPlayers)
                 {
-                    await InsufficientPlayersNotificationAsync();
+                    await InsufficientPlayersNotificationAsync().ConfigureAwait(false);
                     return;
                 }
 
                 if (Map.EnforceMaxPlayers && totalPlayerCount > Map.MaxPlayers)
                 {
-                    await TooManyPlayersNotificationAsync();
+                    await TooManyPlayersNotificationAsync().ConfigureAwait(false);
                     return;
                 }
             }
@@ -815,43 +815,24 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
                 if (!player.Verified)
                 {
-                    await NotVerifiedNotificationAsync(iId - 1);
+                    await NotVerifiedNotificationAsync(iId - 1).ConfigureAwait(false);
                     return;
                 }
 
                 if (player.IsInGame)
                 {
-                    await StillInGameNotificationAsync(iId - 1);
+                    await StillInGameNotificationAsync(iId - 1).ConfigureAwait(false);
                     return;
                 }
-                /*
-                if (DisableSpectatorReadyChecking)
-                {
-                    // Only account ready status if player is not a spectator
-                    if (!player.Ready && !IsPlayerSpectator(player))
-                    {
-                        await GetReadyNotificationAsync();
-                        return;
-                    }
-                }
-                else
-                {
-                    if (!player.Ready)
-                    {
-                        await GetReadyNotificationAsync();
-                        return;
-                    }
-                }
-                */
 
                 if (!player.Ready)
                 {
-                    await GetReadyNotificationAsync();
+                    await GetReadyNotificationAsync().ConfigureAwait(false);
                     return;
                 }
             }
 
-            await HostLaunchGameAsync();
+            await HostLaunchGameAsync().ConfigureAwait(false);
         }
 
         protected virtual ValueTask LockGameNotificationAsync()
@@ -943,7 +924,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         protected override async ValueTask OnGameOptionChangedAsync()
         {
-            await base.OnGameOptionChangedAsync();
+            await base.OnGameOptionChangedAsync().ConfigureAwait(false);
 
             ClearReadyStatuses();
             CopyPlayerDataToUI();
@@ -958,8 +939,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             if (IsHost)
             {
-                await base.CopyPlayerDataFromUIAsync(sender);
-                await BroadcastPlayerOptionsAsync();
+                await base.CopyPlayerDataFromUIAsync(sender).ConfigureAwait(false);
+                await BroadcastPlayerOptionsAsync().ConfigureAwait(false);
                 return;
             }
 
@@ -973,7 +954,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             int requestedStart = ddPlayerStarts[mTopIndex].SelectedIndex;
             int requestedTeam = ddPlayerTeams[mTopIndex].SelectedIndex;
 
-            await RequestPlayerOptionsAsync(requestedSide, requestedColor, requestedStart, requestedTeam);
+            await RequestPlayerOptionsAsync(requestedSide, requestedColor, requestedStart, requestedTeam).ConfigureAwait(false);
         }
 
         protected override void CopyPlayerDataToUI()
@@ -994,11 +975,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             // Player statuses
             for (int pId = 0; pId < Players.Count; pId++)
             {
-                /* if (pId != 0 && !Players[pId].Verified) // If player is not verified (not counting the host)
-                {
-                    StatusIndicators[pId].SwitchTexture("error");
-                }
-                else */
                 if (Players[pId].IsInGame) // If player is ingame
                 {
                     StatusIndicators[pId].SwitchTexture(PlayerSlotState.InGame);
@@ -1009,20 +985,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 }
                 else
                 {
-                    // StatusIndicators[pId].SwitchTexture(
-                    //     (IsPlayerSpectator(Players[pId]) && DisableSpectatorReadyChecking) 
-                    //     ? "okDisabled" : "ok");
                     StatusIndicators[pId].SwitchTexture(Players[pId].Ready ? PlayerSlotState.Ready : PlayerSlotState.NotReady);
                 }
-                /*
-                else
-                {
-                    // StatusIndicators[pId].SwitchTexture(
-                    //     (IsPlayerSpectator(Players[pId]) && DisableSpectatorReadyChecking) 
-                    //     ? "offDisabled" : "off");
-
-                }
-                */
 
                 UpdatePlayerPingIndicator(Players[pId]);
             }
@@ -1098,14 +1062,14 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         protected override async ValueTask ChangeMapAsync(GameModeMap gameModeMap)
         {
-            await base.ChangeMapAsync(gameModeMap);
+            await base.ChangeMapAsync(gameModeMap).ConfigureAwait(false);
 
             bool resetAutoReady = gameModeMap?.GameMode == null || gameModeMap.Map == null;
 
             ClearReadyStatuses(resetAutoReady);
 
             if ((lastMapChangeWasInvalid || resetAutoReady) && chkAutoReady.Checked)
-                await RequestReadyStatusAsync();
+                await RequestReadyStatusAsync().ConfigureAwait(false);
 
             lastMapChangeWasInvalid = resetAutoReady;
         }

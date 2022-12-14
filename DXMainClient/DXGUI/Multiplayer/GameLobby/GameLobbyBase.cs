@@ -389,7 +389,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         protected async ValueTask HandleGameOptionPresetLoadCommandAsync(string presetName)
         {
-            if (await LoadGameOptionPresetAsync(presetName))
+            if (await LoadGameOptionPresetAsync(presetName).ConfigureAwait(false))
                 AddNotice("Game option preset loaded succesfully.".L10N("UI:Main:PresetLoaded"));
             else
                 AddNotice(string.Format("Preset {0} not found!".L10N("UI:Main:PresetNotFound"), presetName));
@@ -408,7 +408,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             var dd = (GameLobbyDropDown)sender;
             dd.HostSelectedIndex = dd.SelectedIndex;
-            await OnGameOptionChangedAsync();
+            await OnGameOptionChangedAsync().ConfigureAwait(false);
         }
 
         private async ValueTask ChkBox_CheckedChangedAsync(object sender)
@@ -418,7 +418,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             var checkBox = (GameLobbyCheckBox)sender;
             checkBox.HostChecked = checkBox.Checked;
-            await OnGameOptionChangedAsync();
+            await OnGameOptionChangedAsync().ConfigureAwait(false);
         }
 
         protected virtual ValueTask OnGameOptionChangedAsync()
@@ -442,7 +442,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (lbGameModeMapList.SelectedIndex == -1)
                 lbGameModeMapList.SelectedIndex = 0; // Select default GameModeMap
             else
-                await ChangeMapAsync(GameModeMap);
+                await ChangeMapAsync(GameModeMap).ConfigureAwait(false);
         }
 
         private void BtnPlayerExtraOptions_LeftClick(object sender, EventArgs e)
@@ -645,7 +645,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 }
 
                 ListMaps();
-                await ChangeMapAsync(GameModeMap);
+                await ChangeMapAsync(GameModeMap).ConfigureAwait(false);
             }
             catch (IOException ex)
             {
@@ -659,7 +659,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             if (lbGameModeMapList.SelectedIndex < 0 || lbGameModeMapList.SelectedIndex >= lbGameModeMapList.ItemCount)
             {
-                await ChangeMapAsync(GameModeMap);
+                await ChangeMapAsync(GameModeMap).ConfigureAwait(false);
                 return;
             }
 
@@ -667,7 +667,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             GameModeMap = (GameModeMap)item.Tag;
 
-            await ChangeMapAsync(GameModeMap);
+            await ChangeMapAsync(GameModeMap).ConfigureAwait(false);
         }
 
         private async ValueTask PickRandomMapAsync()
@@ -683,7 +683,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             Logger.Log("PickRandomMap: Rolled " + random + " out of " + maps.Count + ". Picked map: " + Map.Name);
 
-            await ChangeMapAsync(GameModeMap);
+            await ChangeMapAsync(GameModeMap).ConfigureAwait(false);
             tbMapSearch.Text = string.Empty;
             tbMapSearch.OnSelectedChanged();
             ListMaps();
@@ -713,7 +713,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 return;
 
             if (ddGameModeMapFilter.SelectedIndex == gameModeMapFilterIndex)
-                await DdGameModeMapFilter_SelectedIndexChangedAsync();
+                await DdGameModeMapFilter_SelectedIndexChangedAsync().ConfigureAwait(false);
 
             ddGameModeMapFilter.SelectedIndex = gameModeMapFilterIndex;
         }
@@ -1648,7 +1648,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             GameProcessLogic.GameProcessExited += GameProcessExited_Callback;
 
-            await GameProcessLogic.StartGameProcessAsync(WindowManager);
+            await GameProcessLogic.StartGameProcessAsync(WindowManager).ConfigureAwait(false);
             UpdateDiscordPresence(true);
         }
 
@@ -1706,10 +1706,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                         ddName.SelectedIndex = 0;
                         break;
                     case 2:
-                        await KickPlayerAsync(pId);
+                        await KickPlayerAsync(pId).ConfigureAwait(false);
                         break;
                     case 3:
-                        await BanPlayerAsync(pId);
+                        await BanPlayerAsync(pId).ConfigureAwait(false);
                         break;
                 }
             }
@@ -2049,7 +2049,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     pInfo.TeamId = 1;
             }
 
-            await OnGameOptionChangedAsync();
+            await OnGameOptionChangedAsync().ConfigureAwait(false);
 
             MapPreviewBox.GameModeMap = GameModeMap;
             CopyPlayerDataToUI();
@@ -2318,7 +2318,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             }
 
             disableGameOptionUpdateBroadcast = false;
-            await OnGameOptionChangedAsync();
+            await OnGameOptionChangedAsync().ConfigureAwait(false);
             return true;
         }
 

@@ -150,7 +150,7 @@ namespace ClientCore
                     return;
                 }
 
-                await Task.Delay(250);
+                await Task.Delay(250).ConfigureAwait(false);
             }
 
             saveRenameInProgress = false;

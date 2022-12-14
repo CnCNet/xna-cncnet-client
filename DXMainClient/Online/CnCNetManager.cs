@@ -348,7 +348,7 @@ namespace DTAClient.Online
                     foreColor = cDefaultChatColor;
             }
 
-            if (message.Length > 1 && message[message.Length - 1] == '\u001f')
+            if (message.Length > 1 && message[^1] == '\u001f')
                 message = message.Remove(message.Length - 1);
 
             ChannelUser user = channel.Users.Find(senderName);
@@ -596,7 +596,7 @@ namespace DTAClient.Online
             channelUser.IsFriend = cncNetUserData.IsFriend(channelUser.IRCUser.Name);
 
             ircUser.Channels.Add(channelName);
-            await channel.OnUserJoinedAsync(channelUser);
+            await channel.OnUserJoinedAsync(channelUser).ConfigureAwait(false);
         }
 
         private void AddUserToGlobalUserList(IRCUser user)
@@ -854,7 +854,7 @@ namespace DTAClient.Online
                     MainChannel.AddMessage(new ChatMessage(Color.White,
                         "Your nickname is invalid or already in use. Please change your nickname in the login screen.".L10N("UI:Main:PickAnotherNickName")));
                     UserINISettings.Instance.SkipConnectDialog.Value = false;
-                    await DisconnectAsync();
+                    await DisconnectAsync().ConfigureAwait(false);
                     return;
                 }
 
@@ -869,7 +869,7 @@ namespace DTAClient.Online
                 string.Format("Your name is already in use. Retrying with {0}...".L10N("UI:Main:NameInUseRetry"), sb)));
 
             ProgramConstants.PLAYERNAME = sb.ToString();
-            await connection.ChangeNicknameAsync();
+            await connection.ChangeNicknameAsync().ConfigureAwait(false);
         }
 
         public void OnBannedFromChannel(string channelName)
