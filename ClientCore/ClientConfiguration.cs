@@ -2,6 +2,7 @@ using System;
 using Rampastring.Tools;
 using System.IO;
 using System.Runtime.InteropServices;
+using System.Collections.Generic;
 
 namespace ClientCore
 {
@@ -253,7 +254,43 @@ namespace ClientCore
 
         public string SettingsIniName => clientDefinitionsIni.GetStringValue(SETTINGS, "SettingsFile", "Settings.ini");
 
-        public string TranslationIniName => SafePath.CombineFilePath(clientDefinitionsIni.GetStringValue(SETTINGS, "TranslationFile", SafePath.CombineFilePath("Resources", "Translation.ini")));
+        public string LocalizationIniName => clientDefinitionsIni.GetStringValue(SETTINGS, "LocalizationIniName", "Localization.ini");
+
+        public string LocalizationsFolderPath => SafePath.CombineDirectoryPath(
+            clientDefinitionsIni.GetStringValue(SETTINGS, "LocalizationsFolder",
+                SafePath.CombineDirectoryPath("Resources", "Localizations")));
+
+        /// <summary>
+        /// Lists valid available localizations from the <see cref="LocalizationsFolderPath"/> along with their UI names.
+        /// A localization is valid if it has a corresponding <see cref="LocalizationIniName"/> file in the <see cref="LocalizationsFolderPath"/>.
+        /// </summary>
+        public Dictionary<string, string> GetLocalizations()
+        {
+            var localizations = new Dictionary<string, string>
+            {
+                // Add default localization so that we always have it in the list even if the localization does not exist
+                [ProgramConstants.HARDCODED_LOCALIZATION_CODE] = ProgramConstants.HARDCODED_LOCALIZATION_NAME
+            };
+
+            if (!Directory.Exists(LocalizationsFolderPath))
+                return localizations;
+
+            foreach (var localizationFolder in Directory.GetDirectories(LocalizationsFolderPath))
+            {
+                string localizationIniPath = SafePath.CombineFilePath(localizationFolder, LocalizationIniName);
+                if (!File.Exists(localizationIniPath))
+                    continue;
+
+                string localizationCode = Path.GetFileName(localizationFolder);
+                var localizationIni = new IniFile(localizationIniPath);
+                string localizationName = localizationIni.GetStringValue("General", "LanguageName", null)
+                    ?? localizationCode;
+
+                localizations[localizationCode] = localizationName;
+            }
+
+            return localizations;
+        }
 
         public bool GenerateTranslationStub => clientDefinitionsIni.GetBooleanValue(SETTINGS, "GenerateTranslationStub", false);
 

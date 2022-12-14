@@ -3,6 +3,7 @@ using Rampastring.Tools;
 using System;
 using System.Collections.Generic;
 using ClientCore.Enums;
+using System.Globalization;
 
 namespace ClientCore
 {
@@ -58,6 +59,7 @@ namespace ClientCore
             IngameScreenWidth = new IntSetting(iniFile, VIDEO, "ScreenWidth", 1024);
             IngameScreenHeight = new IntSetting(iniFile, VIDEO, "ScreenHeight", 768);
             ClientTheme = new StringSetting(iniFile, MULTIPLAYER, "Theme", string.Empty);
+            LocaleName = new StringSetting(iniFile, OPTIONS, "LocaleName", GetDefaultLocalization());
             DetailLevel = new IntSetting(iniFile, OPTIONS, "DetailLevel", 2);
             Renderer = new StringSetting(iniFile, COMPATIBILITY, "Renderer", string.Empty);
             WindowedMode = new BoolSetting(iniFile, VIDEO, WINDOWED_MODE_KEY, false);
@@ -126,13 +128,20 @@ namespace ClientCore
 
         public event EventHandler SettingsSaved;
 
-        /*********/
-        /* VIDEO */
-        /*********/
+        /***********/
+        /* DISPLAY */
+        /***********/
 
         public IntSetting IngameScreenWidth { get; private set; }
         public IntSetting IngameScreenHeight { get; private set; }
         public StringSetting ClientTheme { get; private set; }
+        public string ThemeFolderPath => ClientConfiguration.Instance.GetThemePath(ClientTheme);
+        public StringSetting LocaleName { get; private set; }
+        public string LocaleFolderPath => SafePath.CombineDirectoryPath(
+            ClientConfiguration.Instance.LocalizationsFolderPath, LocaleName.Value);
+        public string LocaleThemeFolderPath => SafePath.CombineDirectoryPath(
+            ClientConfiguration.Instance.LocalizationsFolderPath, LocaleName.Value,
+            ClientConfiguration.Instance.GetThemePath(ClientTheme));
         public IntSetting DetailLevel { get; private set; }
         public StringSetting Renderer { get; private set; }
         public BoolSetting WindowedMode { get; private set; }
@@ -255,6 +264,27 @@ namespace ClientCore
 
         public int GetValue(string section, string key, int defaultValue)
             => SettingsIni.GetIntValue(section, key, defaultValue);
+
+        /// <summary>
+        /// Checks the current UI culture and finds the closest match from supported locales.
+        /// </summary>
+        /// <returns>Locale code.</returns>
+        public string GetDefaultLocalization()
+        {
+            Dictionary<string, string> localizations = ClientConfiguration.Instance.GetLocalizations();
+
+            for (var culture = CultureInfo.CurrentUICulture;
+                culture != CultureInfo.InvariantCulture;
+                culture = culture.Parent)
+            {
+                string locale = culture.Name;
+
+                if (localizations.ContainsKey(locale))
+                    return locale;
+            }
+
+            return ProgramConstants.HARDCODED_LOCALIZATION_CODE;
+        }
 
         public bool IsGameFollowed(string gameName)
         {

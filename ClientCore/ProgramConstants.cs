@@ -42,6 +42,16 @@ namespace ClientCore
         public const string SPAWNER_SETTINGS = "spawn.ini";
         public const string SAVED_GAME_SPAWN_INI = "Saved Games/spawnSG.ini";
 
+        /// <summary>
+        /// The language code that corresponds to the language the hardcoded client strings are in.
+        /// </summary>
+        public const string HARDCODED_LOCALIZATION_CODE = "en";
+
+        /// <summary>
+        /// How <see cref="HARDCODED_LOCALIZATION_CODE"/> should be named in the UI.
+        /// </summary>
+        public const string HARDCODED_LOCALIZATION_NAME = "English";
+
         public const int GAME_ID_MAX_LENGTH = 4;
 
         public static readonly Encoding LAN_ENCODING = Encoding.UTF8;

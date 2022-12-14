@@ -32,12 +32,8 @@ namespace DTAClient
         /// </summary>
         public void Execute()
         {
-            string themePath = ClientConfiguration.Instance.GetThemePath(UserINISettings.Instance.ClientTheme);
-
-            if (themePath == null)
-            {
-                themePath = ClientConfiguration.Instance.GetThemeInfoFromIndex(0)[1];
-            }
+            string themePath = UserINISettings.Instance.ThemeFolderPath
+                ?? ClientConfiguration.Instance.GetThemeInfoFromIndex(0)[1];
 
             ProgramConstants.RESOURCES_DIR = SafePath.CombineDirectoryPath(ProgramConstants.BASE_RESOURCE_PATH, themePath);
 

@@ -41,6 +41,7 @@ namespace DTAConfig.OptionPanels
         private XNAClientPreferredItemDropDown ddClientResolution;
         private XNAClientCheckBox chkBorderlessClient;
         private XNAClientDropDown ddClientTheme;
+        private XNAClientDropDown ddLocale;
 
         private List<DirectDrawWrapper> renderers;
 
@@ -242,6 +243,24 @@ namespace DTAConfig.OptionPanels
             for (int i = 0; i < themeCount; i++)
                 ddClientTheme.AddItem(ClientConfiguration.Instance.GetThemeInfoFromIndex(i)[0]);
 
+            var lblLocale = new XNALabel(WindowManager);
+            lblLocale.Name = nameof(lblLocale);
+            lblLocale.ClientRectangle = new Rectangle(
+                lblClientTheme.X,
+                ddClientTheme.Bottom + 16, 0, 0);
+            lblLocale.Text = "Language:".L10N("UI:DTAConfig:Locale");
+
+            ddLocale = new XNAClientDropDown(WindowManager);
+            ddLocale.Name = nameof(ddLocale);
+            ddLocale.ClientRectangle = new Rectangle(
+                ddClientTheme.X,
+                lblLocale.Y - 2,
+                ddClientTheme.Width,
+                ddClientTheme.Height);
+
+            foreach (var (locale, name) in ClientConfiguration.Instance.GetLocalizations())
+                ddLocale.AddItem(new XNADropDownItem() { Text = name, Tag = locale });
+
 #if TS
             lblCompatibilityFixes = new XNALabel(WindowManager);
             lblCompatibilityFixes.Name = "lblCompatibilityFixes";
@@ -303,6 +322,8 @@ namespace DTAConfig.OptionPanels
             AddChild(chkBorderlessClient);
             AddChild(lblClientTheme);
             AddChild(ddClientTheme);
+            AddChild(lblLocale);
+            AddChild(ddLocale);
             AddChild(lblClientResolution);
             AddChild(ddClientResolution);
             AddChild(lblRenderer);
@@ -667,6 +688,10 @@ namespace DTAConfig.OptionPanels
                 ddi => ddi.Text == UserINISettings.Instance.ClientTheme);
             ddClientTheme.SelectedIndex = selectedThemeIndex > -1 ? selectedThemeIndex : 0;
 
+            int selectedLocaleIndex = ddLocale.Items.FindIndex(
+                ddi => (string)ddi.Tag == UserINISettings.Instance.LocaleName);
+            ddLocale.SelectedIndex = selectedLocaleIndex > -1 ? selectedLocaleIndex : 0;
+
 #if TS
             chkBackBufferInVRAM.Checked = !UserINISettings.Instance.BackBufferInVRAM;
 
@@ -760,6 +785,11 @@ namespace DTAConfig.OptionPanels
                 restartRequired = true;
 
             IniSettings.ClientTheme.Value = ddClientTheme.SelectedItem.Text;
+
+            if (IniSettings.LocaleName != (string)ddLocale.SelectedItem.Tag)
+                restartRequired = true;
+
+            IniSettings.LocaleName.Value = (string)ddLocale.SelectedItem.Tag;
 
 #if TS
             IniSettings.BackBufferInVRAM.Value = !chkBackBufferInVRAM.Checked;

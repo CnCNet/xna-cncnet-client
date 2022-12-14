@@ -100,7 +100,7 @@ namespace DTAClient
             try
             {
                 TranslationTable translation;
-                var iniFileInfo = SafePath.GetFile(ProgramConstants.GamePath, ClientConfiguration.Instance.TranslationIniName);
+                var iniFileInfo = SafePath.GetFile(ProgramConstants.GamePath, ClientConfiguration.Instance.LocalizationIniName);
 
                 if (iniFileInfo.Exists)
                 {
