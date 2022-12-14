@@ -80,7 +80,7 @@ internal sealed class V3RemotePlayerConnection : IDisposable
 
         try
         {
-            await tunnelSocket.SendToAsync(buffer, SocketFlags.None, remoteEndPoint, linkedCancellationTokenSource.Token);
+            await tunnelSocket.SendToAsync(buffer, SocketFlags.None, remoteEndPoint, linkedCancellationTokenSource.Token).ConfigureAwait(false);
         }
         catch (SocketException ex)
         {
@@ -115,7 +115,7 @@ internal sealed class V3RemotePlayerConnection : IDisposable
         Logger.Log($"Connection using {localPort} established.");
 #endif
         OnRaiseConnectedEvent(EventArgs.Empty);
-        await ReceiveLoopAsync();
+        await ReceiveLoopAsync().ConfigureAwait(false);
     }
 
     /// <summary>
@@ -147,7 +147,7 @@ internal sealed class V3RemotePlayerConnection : IDisposable
             Logger.Log($"Sending data {gameLocalPlayerId} -> {receiverId} from {tunnelSocket.LocalEndPoint} to {remoteEndPoint}.");
 
 #endif
-            await tunnelSocket.SendToAsync(packet, SocketFlags.None, remoteEndPoint, linkedCancellationTokenSource.Token);
+            await tunnelSocket.SendToAsync(packet, SocketFlags.None, remoteEndPoint, linkedCancellationTokenSource.Token).ConfigureAwait(false);
         }
         catch (SocketException ex)
         {
@@ -205,7 +205,8 @@ internal sealed class V3RemotePlayerConnection : IDisposable
 
             try
             {
-                socketReceiveFromResult = await tunnelSocket.ReceiveFromAsync(buffer, SocketFlags.None, remoteEndPoint, linkedCancellationTokenSource.Token);
+                socketReceiveFromResult = await tunnelSocket.ReceiveFromAsync(
+                    buffer, SocketFlags.None, remoteEndPoint, linkedCancellationTokenSource.Token).ConfigureAwait(false);
             }
             catch (SocketException ex)
             {

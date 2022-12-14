@@ -35,8 +35,8 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                     using var timeoutCancellationTokenSource = new CancellationTokenSource(REFRESH_TIMEOUT);
                     using var linkedCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(timeoutCancellationTokenSource.Token, cancellationToken);
 
-                    CnCNetGameCountUpdated?.Invoke(null, new PlayerCountEventArgs(await GetCnCNetPlayerCountAsync(linkedCancellationTokenSource.Token)));
-                    await Task.Delay(REFRESH_INTERVAL, cancellationToken);
+                    CnCNetGameCountUpdated?.Invoke(null, new PlayerCountEventArgs(await GetCnCNetPlayerCountAsync(linkedCancellationTokenSource.Token).ConfigureAwait(false)));
+                    await Task.Delay(REFRESH_INTERVAL, cancellationToken).ConfigureAwait(false);
                 }
                 catch (OperationCanceledException)
                 {
@@ -48,7 +48,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
         {
             try
             {
-                string info = await Constants.CnCNetHttpClient.GetStringAsync($"{Uri.UriSchemeHttps}://api.cncnet.org/status", cancellationToken);
+                string info = await Constants.CnCNetHttpClient.GetStringAsync($"{Uri.UriSchemeHttps}://api.cncnet.org/status", cancellationToken).ConfigureAwait(false);
 
                 info = info.Replace("{", string.Empty);
                 info = info.Replace("}", string.Empty);

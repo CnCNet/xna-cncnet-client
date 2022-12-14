@@ -94,7 +94,7 @@ namespace DTAClient.DXGUI.Generic
         public void RemovePrimarySwitchable(ISwitchable switchable)
         {
             primarySwitches.Remove(switchable);
-            btnMainButton.Text = primarySwitches[primarySwitches.Count - 1].GetSwitchName() + " (F2)";
+            btnMainButton.Text = primarySwitches[^1].GetSwitchName() + " (F2)";
         }
 
         public void SetSecondarySwitch(ISwitchable switchable)
@@ -292,7 +292,7 @@ namespace DTAClient.DXGUI.Generic
 
         private async ValueTask BtnLogout_LeftClickAsync()
         {
-            await connectionManager.DisconnectAsync();
+            await connectionManager.DisconnectAsync().ConfigureAwait(false);
             LogoutEvent?.Invoke(this, null);
             SwitchToPrimary();
         }
@@ -304,7 +304,7 @@ namespace DTAClient.DXGUI.Generic
             => BtnMainButton_LeftClick(this, EventArgs.Empty);
 
         public ISwitchable GetTopMostPrimarySwitchable()
-            => primarySwitches[primarySwitches.Count - 1];
+            => primarySwitches[^1];
 
         public void SwitchToSecondary()
             => BtnCnCNetLobby_LeftClick(this, EventArgs.Empty);
@@ -312,7 +312,7 @@ namespace DTAClient.DXGUI.Generic
         private void BtnCnCNetLobby_LeftClick(object sender, EventArgs e)
         {
             LastSwitchType = SwitchType.SECONDARY;
-            primarySwitches[primarySwitches.Count - 1].SwitchOff();
+            primarySwitches[^1].SwitchOff();
             cncnetLobbySwitch.SwitchOn();
             privateMessageSwitch.SwitchOff();
 
@@ -326,11 +326,11 @@ namespace DTAClient.DXGUI.Generic
             LastSwitchType = SwitchType.PRIMARY;
             cncnetLobbySwitch.SwitchOff();
             privateMessageSwitch.SwitchOff();
-            primarySwitches[primarySwitches.Count - 1].SwitchOn();
+            primarySwitches[^1].SwitchOn();
 
             // HACK warning
             // TODO: add a way for DarkeningPanel to skip transitions
-            if (((XNAControl)primarySwitches[primarySwitches.Count - 1]).Parent is DarkeningPanel darkeningPanel)
+            if (((XNAControl)primarySwitches[^1]).Parent is DarkeningPanel darkeningPanel)
                 darkeningPanel.Alpha = 1.0f;
         }
 

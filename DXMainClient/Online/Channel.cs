@@ -116,7 +116,7 @@ namespace DTAClient.Online
 
         public async ValueTask OnUserJoinedAsync(ChannelUser user)
         {
-            await Task.CompletedTask;
+            await Task.CompletedTask.ConfigureAwait(false);
             AddUser(user);
 
             if (notifyOnUserListChange)
@@ -127,7 +127,7 @@ namespace DTAClient.Online
 
 #if !YR
             if (Persistent && IsChatChannel && user.IRCUser.Name == ProgramConstants.PLAYERNAME)
-                await RequestUserInfoAsync();
+                await RequestUserInfoAsync().ConfigureAwait(false);
 #endif
         }
 
@@ -336,11 +336,11 @@ namespace DTAClient.Online
             if (Persistent)
             {
                 int rn = connection.Rng.Next(1, 10000);
-                await connection.QueueMessageAsync(QueuedMessageType.SYSTEM_MESSAGE, 9, rn, IRCCommands.PART + " " + ChannelName);
+                await connection.QueueMessageAsync(QueuedMessageType.SYSTEM_MESSAGE, 9, rn, IRCCommands.PART + " " + ChannelName).ConfigureAwait(false);
             }
             else
             {
-                await connection.QueueMessageAsync(QueuedMessageType.SYSTEM_MESSAGE, 9, IRCCommands.PART + " " + ChannelName);
+                await connection.QueueMessageAsync(QueuedMessageType.SYSTEM_MESSAGE, 9, IRCCommands.PART + " " + ChannelName).ConfigureAwait(false);
             }
 
             ClearUsers();

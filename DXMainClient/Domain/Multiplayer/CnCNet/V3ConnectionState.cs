@@ -7,6 +7,7 @@ using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
 using ClientCore;
+using DTAClient.Domain.Multiplayer.CnCNet.UPNP;
 
 namespace DTAClient.Domain.Multiplayer.CnCNet;
 
@@ -91,7 +92,7 @@ internal sealed class V3ConnectionState : IAsyncDisposable
             StunCancellationTokenSource = new();
 
             (internetGatewayDevice, IpV6P2PPorts, IpV4P2PPorts, p2pIpV6PortIds, publicIpV6Address, publicIpV4Address) = await UPnPHandler.SetupPortsAsync(
-                internetGatewayDevice, p2pPorts, tunnelHandler.CurrentTunnel?.IPAddresses ?? InitialTunnel.IPAddresses, StunCancellationTokenSource.Token);
+                internetGatewayDevice, p2pPorts, tunnelHandler.CurrentTunnel?.IPAddresses ?? InitialTunnel.IPAddresses, StunCancellationTokenSource.Token).ConfigureAwait(false);
         }
 
         return publicIpV4Address is not null || publicIpV6Address is not null;
@@ -117,7 +118,7 @@ internal sealed class V3ConnectionState : IAsyncDisposable
         if (P2PEnabled)
             return true;
 
-        await CloseP2PPortsAsync();
+        await CloseP2PPortsAsync().ConfigureAwait(false);
 
         internetGatewayDevice = null;
         publicIpV4Address = null;
@@ -135,7 +136,7 @@ internal sealed class V3ConnectionState : IAsyncDisposable
 
         if (IPAddress.TryParse(ipV4splitLines[0], out IPAddress parsedIpV4Address))
         {
-            long? pingResult = await NetworkHelper.PingAsync(parsedIpV4Address);
+            long? pingResult = await NetworkHelper.PingAsync(parsedIpV4Address).ConfigureAwait(false);
 
             if (pingResult is not null)
                 localPingResults.Add((parsedIpV4Address, pingResult.Value));
@@ -143,7 +144,7 @@ internal sealed class V3ConnectionState : IAsyncDisposable
 
         if (IPAddress.TryParse(ipV6splitLines[0], out IPAddress parsedIpV6Address))
         {
-            long? pingResult = await NetworkHelper.PingAsync(parsedIpV6Address);
+            long? pingResult = await NetworkHelper.PingAsync(parsedIpV6Address).ConfigureAwait(false);
 
             if (pingResult is not null)
                 localPingResults.Add((parsedIpV6Address, pingResult.Value));
@@ -316,7 +317,7 @@ internal sealed class V3ConnectionState : IAsyncDisposable
         PlayerTunnels.Clear();
         P2PPlayers.Clear();
         PinnedTunnels?.Clear();
-        await CloseP2PPortsAsync();
+        await CloseP2PPortsAsync().ConfigureAwait(false);
     }
 
     private IEnumerable<CnCNetTunnel> GetEligibleTunnels()
@@ -329,7 +330,7 @@ internal sealed class V3ConnectionState : IAsyncDisposable
             if (internetGatewayDevice is not null)
             {
                 foreach (ushort p2pPort in IpV4P2PPorts.Select(q => q.InternalPort))
-                    await internetGatewayDevice.CloseIpV4PortAsync(p2pPort);
+                    await internetGatewayDevice.CloseIpV4PortAsync(p2pPort).ConfigureAwait(false);
             }
         }
         catch (Exception ex)
@@ -346,7 +347,7 @@ internal sealed class V3ConnectionState : IAsyncDisposable
             if (internetGatewayDevice is not null)
             {
                 foreach (ushort p2pIpV6PortId in p2pIpV6PortIds)
-                    await internetGatewayDevice.CloseIpV6PortAsync(p2pIpV6PortId);
+                    await internetGatewayDevice.CloseIpV6PortAsync(p2pIpV6PortId).ConfigureAwait(false);
             }
         }
         catch (Exception ex)

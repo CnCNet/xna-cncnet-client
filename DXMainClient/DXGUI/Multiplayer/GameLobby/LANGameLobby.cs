@@ -74,7 +74,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         private async ValueTask WindowManager_GameClosingAsync()
         {
             if (client is { Connected: true })
-                await ClearAsync();
+                await ClearAsync().ConfigureAwait(false);
 
             cancellationTokenSource?.Cancel();
         }
@@ -145,7 +145,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 fhc.CalculateHashes(GameModeMaps.GameModes);
                 localFileHash = fhc.GetCompleteHash();
 
-                await RefreshMapSelectionUIAsync();
+                await RefreshMapSelectionUIAsync().ConfigureAwait(false);
             }
             else
             {
@@ -158,6 +158,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 CopyPlayerDataToUI();
 
             WindowManager.SelectedControl = tbChatInput;
+            btnLaunchGame.Enabled = true;
         }
 
         private async ValueTask SendHostPlayerJoinedMessageAsync(CancellationToken cancellationToken)
@@ -166,7 +167,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             {
                 client = new Socket(SocketType.Stream, ProtocolType.Tcp);
 
-                await client.ConnectAsync(IPAddress.Loopback, ProgramConstants.LAN_GAME_LOBBY_PORT, cancellationToken);
+                await client.ConnectAsync(IPAddress.Loopback, ProgramConstants.LAN_GAME_LOBBY_PORT, cancellationToken).ConfigureAwait(false);
 
                 string message = LANCommands.PLAYER_JOIN + ProgramConstants.LAN_DATA_SEPARATOR + ProgramConstants.PLAYERNAME;
                 const int charSize = sizeof(char);
@@ -177,7 +178,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
                 buffer = buffer[..bytes];
 
-                await client.SendAsync(buffer, SocketFlags.None, cancellationToken);
+                await client.SendAsync(buffer, SocketFlags.None, cancellationToken).ConfigureAwait(false);
             }
             catch (OperationCanceledException)
             {
@@ -188,7 +189,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             var fhc = new FileHashCalculator();
             fhc.CalculateHashes(GameModeMaps.GameModes);
-            await SendMessageToHostAsync(LANCommands.FILE_HASH + " " + fhc.GetCompleteHash(), cancellationTokenSource?.Token ?? default);
+            await SendMessageToHostAsync(LANCommands.FILE_HASH + " " + fhc.GetCompleteHash(), cancellationTokenSource?.Token ?? default).ConfigureAwait(false);
             ResetAutoReadyCheckbox();
         }
 
@@ -207,7 +208,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
                 try
                 {
-                    client = await listener.AcceptAsync(cancellationToken);
+                    client = await listener.AcceptAsync(cancellationToken).ConfigureAwait(false);
                 }
                 catch (OperationCanceledException)
                 {
@@ -256,7 +257,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 try
                 {
                     message = memoryOwner.Memory[..1024];
-                    bytesRead = await lpInfo.TcpClient.ReceiveAsync(message, cancellationToken);
+                    bytesRead = await lpInfo.TcpClient.ReceiveAsync(message, cancellationToken).ConfigureAwait(false);
                 }
                 catch (OperationCanceledException)
                 {
@@ -317,9 +318,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             lpInfo.StartReceiveLoopAsync(cancellationToken).HandleTask();
 
             CopyPlayerDataToUI();
-            await BroadcastPlayerOptionsAsync();
-            await BroadcastPlayerExtraOptionsAsync();
-            await OnGameOptionChangedAsync();
+            await BroadcastPlayerOptionsAsync().ConfigureAwait(false);
+            await BroadcastPlayerExtraOptionsAsync().ConfigureAwait(false);
+            await OnGameOptionChangedAsync().ConfigureAwait(false);
             UpdateDiscordPresence();
         }
 
@@ -332,7 +333,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             AddNotice(string.Format("{0} has left the game.".L10N("Client:Main:PlayerLeftGame"), lpInfo.Name));
 
             CopyPlayerDataToUI();
-            await BroadcastPlayerOptionsAsync();
+            await BroadcastPlayerOptionsAsync().ConfigureAwait(false);
 
             if (lpInfo.Name == ProgramConstants.PLAYERNAME)
                 ResetDiscordPresence();
@@ -383,7 +384,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 try
                 {
                     message = memoryOwner.Memory[..1024];
-                    bytesRead = await client.ReceiveAsync(message, cancellationToken);
+                    bytesRead = await client.ReceiveAsync(message, cancellationToken).ConfigureAwait(false);
                 }
                 catch (OperationCanceledException)
                 {
@@ -392,7 +393,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 catch (Exception ex)
                 {
                     ProgramConstants.LogException(ex, "Reading data from the server failed!");
-                    await BtnLeaveGame_LeftClickAsync();
+                    await BtnLeaveGame_LeftClickAsync().ConfigureAwait(false);
                     break;
                 }
 
@@ -427,7 +428,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 }
 
                 Logger.Log("Reading data from the server failed (0 bytes received)!");
-                await BtnLeaveGame_LeftClickAsync();
+                await BtnLeaveGame_LeftClickAsync().ConfigureAwait(false);
                 break;
             }
         }
@@ -447,7 +448,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         protected override async ValueTask BtnLeaveGame_LeftClickAsync()
         {
-            await ClearAsync();
+            await ClearAsync().ConfigureAwait(false);
             GameLeft?.Invoke(this, EventArgs.Empty);
             Disable();
         }
@@ -473,11 +474,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         public override async ValueTask ClearAsync()
         {
-            await base.ClearAsync();
+            await base.ClearAsync().ConfigureAwait(false);
 
             if (IsHost)
             {
-                await BroadcastMessageAsync(LANCommands.PLAYER_QUIT_COMMAND);
+                await BroadcastMessageAsync(LANCommands.PLAYER_QUIT_COMMAND).ConfigureAwait(false);
                 Players.ForEach(p => CleanUpPlayer((LANPlayerInfo)p));
                 Players.Clear();
 
@@ -488,11 +489,14 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             }
             else
             {
-                await SendMessageToHostAsync(LANCommands.PLAYER_QUIT_COMMAND, cancellationTokenSource?.Token ?? default);
+                await SendMessageToHostAsync(LANCommands.PLAYER_QUIT_COMMAND, cancellationTokenSource?.Token ?? default).ConfigureAwait(false);
             }
 
             cancellationTokenSource.Cancel();
-            client.Shutdown(SocketShutdown.Both);
+
+            if (client.Connected)
+                client.Shutdown(SocketShutdown.Both);
+
             client.Close();
             ResetDiscordPresence();
         }
@@ -533,14 +537,14 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     sb.Append("-1");
             }
 
-            await BroadcastMessageAsync(sb.ToString());
+            await BroadcastMessageAsync(sb.ToString()).ConfigureAwait(false);
         }
 
         protected override async ValueTask BroadcastPlayerExtraOptionsAsync()
         {
             var playerExtraOptions = GetPlayerExtraOptions();
 
-            await BroadcastMessageAsync(playerExtraOptions.ToLanMessage(), true);
+            await BroadcastMessageAsync(playerExtraOptions.ToLanMessage(), true).ConfigureAwait(false);
         }
 
         protected override ValueTask HostLaunchGameAsync() => BroadcastMessageAsync(LANCommands.LAUNCH_GAME + " " + UniqueGameID);
@@ -578,7 +582,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         protected override async ValueTask OnGameOptionChangedAsync()
         {
-            await base.OnGameOptionChangedAsync();
+            await base.OnGameOptionChangedAsync().ConfigureAwait(false);
 
             if (!IsHost)
                 return;
@@ -601,18 +605,18 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             sb.Append(FrameSendRate);
             sb.Append(Convert.ToInt32(RemoveStartingLocations));
 
-            await BroadcastMessageAsync(sb.ToString());
+            await BroadcastMessageAsync(sb.ToString()).ConfigureAwait(false);
         }
 
         protected override async ValueTask GetReadyNotificationAsync()
         {
-            await base.GetReadyNotificationAsync();
+            await base.GetReadyNotificationAsync().ConfigureAwait(false);
 #if WINFORMS
             WindowManager.FlashWindow();
 #endif
 
             if (IsHost)
-                await BroadcastMessageAsync(LANCommands.GET_READY);
+                await BroadcastMessageAsync(LANCommands.GET_READY).ConfigureAwait(false);
         }
 
         protected override void ClearPingIndicators()
@@ -638,14 +642,14 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             foreach (PlayerInfo pInfo in Players.Where(p => !otherPlayersOnly || p.Name != ProgramConstants.PLAYERNAME))
             {
                 var lpInfo = (LANPlayerInfo)pInfo;
-                await lpInfo.SendMessageAsync(message, cancellationTokenSource?.Token ?? default);
+                await lpInfo.SendMessageAsync(message, cancellationTokenSource?.Token ?? default).ConfigureAwait(false);
             }
         }
 
         protected override async ValueTask PlayerExtraOptions_OptionsChangedAsync()
         {
-            await base.PlayerExtraOptions_OptionsChangedAsync();
-            await BroadcastPlayerExtraOptionsAsync();
+            await base.PlayerExtraOptions_OptionsChangedAsync().ConfigureAwait(false);
+            await BroadcastPlayerExtraOptionsAsync().ConfigureAwait(false);
         }
 
         private async ValueTask SendMessageToHostAsync(string message, CancellationToken cancellationToken)
@@ -665,7 +669,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
                 buffer = buffer[..bytes];
 
-                await client.SendAsync(buffer, SocketFlags.None, cancellationToken);
+                await client.SendAsync(buffer, SocketFlags.None, cancellationToken).ConfigureAwait(false);
             }
             catch (OperationCanceledException)
             {
@@ -702,20 +706,20 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         protected override async ValueTask GameProcessExitedAsync()
         {
-            await base.GameProcessExitedAsync();
-            await SendMessageToHostAsync(LANCommands.RETURN, cancellationTokenSource?.Token ?? default);
+            await base.GameProcessExitedAsync().ConfigureAwait(false);
+            await SendMessageToHostAsync(LANCommands.RETURN, cancellationTokenSource?.Token ?? default).ConfigureAwait(false);
 
             if (IsHost)
             {
                 RandomSeed = new Random().Next();
-                await OnGameOptionChangedAsync();
+                await OnGameOptionChangedAsync().ConfigureAwait(false);
                 ClearReadyStatuses();
                 CopyPlayerDataToUI();
-                await BroadcastPlayerOptionsAsync();
-                await BroadcastPlayerExtraOptionsAsync();
+                await BroadcastPlayerOptionsAsync().ConfigureAwait(false);
+                await BroadcastPlayerExtraOptionsAsync().ConfigureAwait(false);
 
                 if (Players.Count < MAX_PLAYER_COUNT)
-                    await UnlockGameAsync(true);
+                    await UnlockGameAsync(true).ConfigureAwait(false);
             }
         }
 
@@ -739,7 +743,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 for (int i = 1; i < Players.Count; i++)
                 {
                     LANPlayerInfo lpInfo = (LANPlayerInfo)Players[i];
-                    if (!Task.Run(() => lpInfo.UpdateAsync(gameTime).HandleTask()).Result)
+                    if (!Task.Run(() => lpInfo.UpdateAsync(gameTime).HandleTask(true)).Result)
                     {
                         CleanUpPlayer(lpInfo);
                         Players.RemoveAt(i);
@@ -808,7 +812,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (colorIndex < 0 || colorIndex >= chatColors.Length)
                 return;
 
-            await BroadcastMessageAsync(LANCommands.CHAT_LOBBY_COMMAND + " " + sender + ProgramConstants.LAN_DATA_SEPARATOR + data);
+            await BroadcastMessageAsync(LANCommands.CHAT_LOBBY_COMMAND + " " + sender + ProgramConstants.LAN_DATA_SEPARATOR + data).ConfigureAwait(false);
         }
 
         private void Player_HandleChatCommand(string data)
@@ -840,7 +844,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         private async ValueTask HandleGetReadyCommandAsync()
         {
             if (!IsHost)
-                await GetReadyNotificationAsync();
+                await GetReadyNotificationAsync().ConfigureAwait(false);
         }
 
         private async ValueTask HandlePlayerOptionsRequestAsync(string sender, string data)
@@ -897,7 +901,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             pInfo.TeamId = team;
 
             CopyPlayerDataToUI();
-            await BroadcastPlayerOptionsAsync();
+            await BroadcastPlayerOptionsAsync().ConfigureAwait(false);
         }
 
         private void HandlePlayerExtraOptionsBroadcast(string data) => ApplyPlayerExtraOptions(null, data);
@@ -995,7 +999,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             Players.Remove(pInfo);
             ClearReadyStatuses();
             CopyPlayerDataToUI();
-            await BroadcastPlayerOptionsAsync();
+            await BroadcastPlayerOptionsAsync().ConfigureAwait(false);
             UpdateDiscordPresence();
         }
 
@@ -1014,14 +1018,14 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 return;
             }
 
-            int randomSeed = Conversions.IntFromString(parts[parts.Length - GAME_OPTION_SPECIAL_FLAG_COUNT], -1);
+            int randomSeed = Conversions.IntFromString(parts[^GAME_OPTION_SPECIAL_FLAG_COUNT], -1);
             if (randomSeed == -1)
                 return;
 
             RandomSeed = randomSeed;
 
-            string mapSHA1 = parts[parts.Length - (GAME_OPTION_SPECIAL_FLAG_COUNT - 1)];
-            string gameMode = parts[parts.Length - (GAME_OPTION_SPECIAL_FLAG_COUNT - 2)];
+            string mapSHA1 = parts[^(GAME_OPTION_SPECIAL_FLAG_COUNT - 1)];
+            string gameMode = parts[^(GAME_OPTION_SPECIAL_FLAG_COUNT - 2)];
 
             GameModeMap gameModeMap = GameModeMaps.Find(gmm => gmm.GameMode.Name == gameMode && gmm.Map.SHA1 == mapSHA1);
 
@@ -1029,14 +1033,14 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             {
                 AddNotice("The game host has selected a map that doesn't exist on your installation.".L10N("Client:Main:MapNotExist") +
                     "The host needs to change the map or you won't be able to play.".L10N("Client:Main:HostNeedChangeMapForYou"));
-                await ChangeMapAsync(null);
+                await ChangeMapAsync(null).ConfigureAwait(false);
                 return;
             }
 
             if (GameModeMap != gameModeMap)
-                await ChangeMapAsync(gameModeMap);
+                await ChangeMapAsync(gameModeMap).ConfigureAwait(false);
 
-            int frameSendRate = Conversions.IntFromString(parts[parts.Length - (GAME_OPTION_SPECIAL_FLAG_COUNT - 3)], FrameSendRate);
+            int frameSendRate = Conversions.IntFromString(parts[^(GAME_OPTION_SPECIAL_FLAG_COUNT - 3)], FrameSendRate);
             if (frameSendRate != FrameSendRate)
             {
                 FrameSendRate = frameSendRate;
@@ -1044,7 +1048,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             }
 
             bool removeStartingLocations = Convert.ToBoolean(Conversions.IntFromString(
-                parts[parts.Length - (GAME_OPTION_SPECIAL_FLAG_COUNT - 4)], Convert.ToInt32(RemoveStartingLocations)));
+                parts[^(GAME_OPTION_SPECIAL_FLAG_COUNT - 4)], Convert.ToInt32(RemoveStartingLocations)));
             SetRandomStartingLocations(removeStartingLocations);
 
             for (int i = 0; i < CheckBoxes.Count; i++)
@@ -1096,7 +1100,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             pInfo.Ready = true;
             pInfo.AutoReady = Convert.ToBoolean(Conversions.IntFromString(autoReady, 0));
             CopyPlayerDataToUI();
-            await BroadcastPlayerOptionsAsync();
+            await BroadcastPlayerOptionsAsync().ConfigureAwait(false);
         }
 
         private async ValueTask HandleGameLaunchCommandAsync(string gameId)
@@ -1108,9 +1112,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 return;
 
             CopyPlayerDataToUI();
-            await StartGameAsync();
+            await StartGameAsync().ConfigureAwait(false);
         }
-
 
         private ValueTask HandlePingAsync()
             => SendMessageToHostAsync(LANCommands.PING, cancellationTokenSource?.Token ?? default);
@@ -1118,7 +1121,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         protected override async ValueTask BroadcastDiceRollAsync(int dieSides, int[] results)
         {
             string resultString = string.Join(",", results);
-            await SendMessageToHostAsync($"{LANCommands.DICE_ROLL} {dieSides},{resultString}", cancellationTokenSource?.Token ?? default);
+            await SendMessageToHostAsync($"{LANCommands.DICE_ROLL} {dieSides},{resultString}", cancellationTokenSource?.Token ?? default).ConfigureAwait(false);
         }
 
         private ValueTask Host_HandleDiceRollAsync(string sender, string result)

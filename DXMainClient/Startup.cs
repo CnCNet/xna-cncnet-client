@@ -242,11 +242,9 @@ namespace DTAClient
             string videoController = string.Empty;
             string memory = string.Empty;
 
-            ManagementObjectSearcher searcher;
-
             try
             {
-                searcher = new ManagementObjectSearcher("SELECT * FROM Win32_Processor");
+                using var searcher = new ManagementObjectSearcher("SELECT * FROM Win32_Processor");
 
                 foreach (var proc in searcher.Get())
                 {
@@ -262,7 +260,7 @@ namespace DTAClient
 
             try
             {
-                searcher = new ManagementObjectSearcher("SELECT * FROM Win32_VideoController");
+                using var searcher = new ManagementObjectSearcher("SELECT * FROM Win32_VideoController");
 
                 foreach (ManagementObject mo in searcher.Get().Cast<ManagementObject>())
                 {
@@ -284,7 +282,7 @@ namespace DTAClient
 
             try
             {
-                searcher = new ManagementObjectSearcher("Select * From Win32_PhysicalMemory");
+                using var searcher = new ManagementObjectSearcher("Select * From Win32_PhysicalMemory");
                 ulong total = 0;
 
                 foreach (ManagementObject ram in searcher.Get().Cast<ManagementObject>())
@@ -314,23 +312,23 @@ namespace DTAClient
             {
                 try
                 {
-                    await Task.CompletedTask;
                     ManagementObjectCollection mbsList = null;
-                    ManagementObjectSearcher mbs = new ManagementObjectSearcher("Select * From Win32_processor");
+                    using var mbs = new ManagementObjectSearcher("Select * From Win32_processor");
                     mbsList = mbs.Get();
                     string cpuid = "";
 
                     foreach (ManagementObject mo in mbsList.Cast<ManagementObject>())
                         cpuid = mo["ProcessorID"].ToString();
 
-                    ManagementObjectSearcher mos = new ManagementObjectSearcher("SELECT * FROM Win32_BaseBoard");
+                    using var mos = new ManagementObjectSearcher("SELECT * FROM Win32_BaseBoard");
                     var moc = mos.Get();
                     string mbid = "";
 
                     foreach (ManagementObject mo in moc.Cast<ManagementObject>())
                         mbid = (string)mo["SerialNumber"];
 
-                    string sid = new SecurityIdentifier((byte[])new DirectoryEntry(FormattableString.Invariant($"WinNT://{Environment.MachineName},Computer")).Children.Cast<DirectoryEntry>().First().InvokeGet("objectSID"), 0).AccountDomainSid.Value;
+                    using var computer = new DirectoryEntry(FormattableString.Invariant($"WinNT://{Environment.MachineName},Computer"));
+                    string sid = new SecurityIdentifier((byte[])computer.Children.Cast<DirectoryEntry>().First().InvokeGet("objectSID"), 0).AccountDomainSid.Value;
 
                     Connection.SetId(cpuid + mbid + sid);
                     using RegistryKey key = Registry.CurrentUser.CreateSubKey("SOFTWARE\\" + ClientConfiguration.Instance.InstallationPathRegKey);
@@ -364,7 +362,7 @@ namespace DTAClient
             {
                 try
                 {
-                    string machineId = await File.ReadAllTextAsync("/var/lib/dbus/machine-id");
+                    string machineId = await File.ReadAllTextAsync("/var/lib/dbus/machine-id").ConfigureAwait(false);
 
                     Connection.SetId(machineId);
                 }

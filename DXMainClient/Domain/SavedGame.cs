@@ -29,7 +29,7 @@ namespace DTAClient.Domain
         /// <returns></returns>
         private static string GetArchiveName(Stream file)
         {
-            var cf = new CompoundFile(file);
+            using var cf = new CompoundFile(file);
             var archiveNameBytes = cf.RootStorage.GetStream("Scenario Description").GetData();
             var archiveName = System.Text.Encoding.Unicode.GetString(archiveNameBytes);
             archiveName = archiveName.TrimEnd(new char[] { '\0' });

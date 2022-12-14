@@ -59,7 +59,7 @@ namespace DTAClient.DXGUI.Multiplayer
         private async ValueTask WindowManager_GameClosingAsync()
         {
             if (client is { Connected: true })
-                await ClearAsync();
+                await ClearAsync().ConfigureAwait(false);
         }
 
         public event EventHandler<GameBroadcastEventArgs> GameBroadcast;
@@ -109,7 +109,7 @@ namespace DTAClient.DXGUI.Multiplayer
                 ListenForClientsAsync(cancellationTokenSource.Token).HandleTask();
 
                 this.client = new Socket(SocketType.Stream, ProtocolType.Tcp);
-                await this.client.ConnectAsync(IPAddress.Loopback, ProgramConstants.LAN_GAME_LOBBY_PORT);
+                await this.client.ConnectAsync(IPAddress.Loopback, ProgramConstants.LAN_GAME_LOBBY_PORT).ConfigureAwait(false);
 
                 string message = LANCommands.PLAYER_JOIN +
                      ProgramConstants.LAN_DATA_SEPARATOR + ProgramConstants.PLAYERNAME +
@@ -123,7 +123,7 @@ namespace DTAClient.DXGUI.Multiplayer
 
                 buffer = buffer[..bytes];
 
-                await this.client.SendAsync(buffer, SocketFlags.None, CancellationToken.None);
+                await this.client.SendAsync(buffer, SocketFlags.None, CancellationToken.None).ConfigureAwait(false);
 
                 var fhc = new FileHashCalculator();
                 fhc.CalculateHashes(gameModes);
@@ -147,7 +147,7 @@ namespace DTAClient.DXGUI.Multiplayer
         {
             var fhc = new FileHashCalculator();
             fhc.CalculateHashes(gameModes);
-            await SendMessageToHostAsync(LANCommands.FILE_HASH + " " + fhc.GetCompleteHash(), cancellationTokenSource?.Token ?? default);
+            await SendMessageToHostAsync(LANCommands.FILE_HASH + " " + fhc.GetCompleteHash(), cancellationTokenSource?.Token ?? default).ConfigureAwait(false);
             UpdateDiscordPresence(true);
         }
 
@@ -165,7 +165,7 @@ namespace DTAClient.DXGUI.Multiplayer
 
                 try
                 {
-                    newPlayerSocket = await listener.AcceptAsync(cancellationToken);
+                    newPlayerSocket = await listener.AcceptAsync(cancellationToken).ConfigureAwait(false);
                 }
                 catch (OperationCanceledException)
                 {
@@ -198,7 +198,7 @@ namespace DTAClient.DXGUI.Multiplayer
                 try
                 {
                     message = memoryOwner.Memory[..4096];
-                    bytesRead = await client.ReceiveAsync(message, SocketFlags.None, cancellationToken);
+                    bytesRead = await client.ReceiveAsync(message, SocketFlags.None, cancellationToken).ConfigureAwait(false);
                 }
                 catch (OperationCanceledException)
                 {
@@ -268,7 +268,7 @@ namespace DTAClient.DXGUI.Multiplayer
             lpInfo.StartReceiveLoopAsync(cancellationToken).HandleTask();
 
             CopyPlayerDataToUI();
-            await BroadcastOptionsAsync();
+            await BroadcastOptionsAsync().ConfigureAwait(false);
             UpdateDiscordPresence();
         }
 
@@ -283,7 +283,7 @@ namespace DTAClient.DXGUI.Multiplayer
             sndLeaveSound.Play();
 
             CopyPlayerDataToUI();
-            await BroadcastOptionsAsync();
+            await BroadcastOptionsAsync().ConfigureAwait(false);
             UpdateDiscordPresence();
         }
 
@@ -332,7 +332,7 @@ namespace DTAClient.DXGUI.Multiplayer
                 try
                 {
                     message = memoryOwner.Memory[..4096];
-                    bytesRead = await client.ReceiveAsync(message, SocketFlags.None, cancellationToken);
+                    bytesRead = await client.ReceiveAsync(message, SocketFlags.None, cancellationToken).ConfigureAwait(false);
                 }
                 catch (OperationCanceledException)
                 {
@@ -341,7 +341,7 @@ namespace DTAClient.DXGUI.Multiplayer
                 catch (Exception ex)
                 {
                     ProgramConstants.LogException(ex, "Reading data from the server failed!");
-                    await LeaveGameAsync();
+                    await LeaveGameAsync().ConfigureAwait(false);
                     break;
                 }
 
@@ -376,7 +376,7 @@ namespace DTAClient.DXGUI.Multiplayer
                 }
 
                 Logger.Log("Reading data from the server failed (0 bytes received)!");
-                await LeaveGameAsync();
+                await LeaveGameAsync().ConfigureAwait(false);
                 break;
             }
         }
@@ -396,23 +396,23 @@ namespace DTAClient.DXGUI.Multiplayer
 
         protected override async ValueTask LeaveGameAsync()
         {
-            await ClearAsync();
+            await ClearAsync().ConfigureAwait(false);
             Disable();
-            await base.LeaveGameAsync();
+            await base.LeaveGameAsync().ConfigureAwait(false);
         }
 
         private async ValueTask ClearAsync()
         {
             if (IsHost)
             {
-                await BroadcastMessageAsync(LANCommands.PLAYER_QUIT_COMMAND, CancellationToken.None);
+                await BroadcastMessageAsync(LANCommands.PLAYER_QUIT_COMMAND, CancellationToken.None).ConfigureAwait(false);
                 Players.ForEach(p => CleanUpPlayer((LANPlayerInfo)p));
                 Players.Clear();
                 listener.Close();
             }
             else
             {
-                await SendMessageToHostAsync(LANCommands.PLAYER_QUIT_COMMAND, CancellationToken.None);
+                await SendMessageToHostAsync(LANCommands.PLAYER_QUIT_COMMAND, CancellationToken.None).ConfigureAwait(false);
             }
 
             cancellationTokenSource.Cancel();
@@ -442,7 +442,7 @@ namespace DTAClient.DXGUI.Multiplayer
                 sb.Append(pInfo.IPAddress);
             }
 
-            await BroadcastMessageAsync(sb.ToString(), cancellationTokenSource?.Token ?? default);
+            await BroadcastMessageAsync(sb.ToString(), cancellationTokenSource?.Token ?? default).ConfigureAwait(false);
         }
 
         protected override ValueTask HostStartGameAsync()
@@ -454,7 +454,7 @@ namespace DTAClient.DXGUI.Multiplayer
         protected override async ValueTask SendChatMessageAsync(string message)
         {
             await SendMessageToHostAsync(LANCommands.CHAT_GAME_LOADING_COMMAND + " " + chatColorIndex +
-                ProgramConstants.LAN_DATA_SEPARATOR + message, cancellationTokenSource?.Token ?? default);
+                ProgramConstants.LAN_DATA_SEPARATOR + message, cancellationTokenSource?.Token ?? default).ConfigureAwait(false);
 
             sndMessageSound.Play();
         }
@@ -475,7 +475,7 @@ namespace DTAClient.DXGUI.Multiplayer
 
             await BroadcastMessageAsync(LANCommands.CHAT_GAME_LOADING_COMMAND + " " + sender +
                 ProgramConstants.LAN_DATA_SEPARATOR + colorIndex +
-                ProgramConstants.LAN_DATA_SEPARATOR + data, cancellationTokenSource?.Token ?? default);
+                ProgramConstants.LAN_DATA_SEPARATOR + data, cancellationTokenSource?.Token ?? default).ConfigureAwait(false);
         }
 
         private void Server_HandleFileHashMessage(LANPlayerInfo sender, string hash)
@@ -492,7 +492,7 @@ namespace DTAClient.DXGUI.Multiplayer
 
             sender.Ready = true;
             CopyPlayerDataToUI();
-            await BroadcastOptionsAsync();
+            await BroadcastOptionsAsync().ConfigureAwait(false);
         }
 
         #endregion
@@ -580,7 +580,7 @@ namespace DTAClient.DXGUI.Multiplayer
             foreach (PlayerInfo pInfo in Players)
             {
                 var lpInfo = (LANPlayerInfo)pInfo;
-                await lpInfo.SendMessageAsync(message, cancellationToken);
+                await lpInfo.SendMessageAsync(message, cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -601,7 +601,7 @@ namespace DTAClient.DXGUI.Multiplayer
 
             try
             {
-                await client.SendAsync(buffer, SocketFlags.None, cancellationToken);
+                await client.SendAsync(buffer, SocketFlags.None, cancellationToken).ConfigureAwait(false);
             }
             catch (OperationCanceledException)
             {
@@ -622,7 +622,7 @@ namespace DTAClient.DXGUI.Multiplayer
                 for (int i = 1; i < Players.Count; i++)
                 {
                     LANPlayerInfo lpInfo = (LANPlayerInfo)Players[i];
-                    if (!Task.Run(() => lpInfo.UpdateAsync(gameTime).HandleTask()).Result)
+                    if (!Task.Run(() => lpInfo.UpdateAsync(gameTime).HandleTask(true)).Result)
                     {
                         CleanUpPlayer(lpInfo);
                         Players.RemoveAt(i);
@@ -675,8 +675,8 @@ namespace DTAClient.DXGUI.Multiplayer
 
         protected override async ValueTask HandleGameProcessExitedAsync()
         {
-            await base.HandleGameProcessExitedAsync();
-            await LeaveGameAsync();
+            await base.HandleGameProcessExitedAsync().ConfigureAwait(false);
+            await LeaveGameAsync().ConfigureAwait(false);
         }
 
         protected override void UpdateDiscordPresence(bool resetTimer = false)

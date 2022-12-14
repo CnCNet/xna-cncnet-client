@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Net.Security;
 using System.Net.Sockets;
 using System.ServiceModel;
 using System.ServiceModel.Description;
@@ -17,9 +16,17 @@ using System.ServiceModel.Channels;
 using ClientCore;
 using Rampastring.Tools;
 
-namespace DTAClient.Domain.Multiplayer.CnCNet;
+namespace DTAClient.Domain.Multiplayer.CnCNet.UPNP;
 
-internal sealed record InternetGatewayDevice(IEnumerable<Uri> Locations, string Server, string CacheControl, string Ext, string SearchTarget, string UniqueServiceName, UPnPDescription UPnPDescription, Uri PreferredLocation)
+internal sealed record InternetGatewayDevice(
+    IEnumerable<Uri> Locations,
+    string Server,
+    string CacheControl,
+    string Ext,
+    string SearchTarget,
+    string UniqueServiceName,
+    UPnPDescription UPnPDescription,
+    Uri PreferredLocation)
 {
     private const int ReceiveTimeout = 10000;
     private const string UPnPWanConnectionDevice = "urn:schemas-upnp-org:device:WANConnectionDevice";
@@ -36,7 +43,10 @@ internal sealed record InternetGatewayDevice(IEnumerable<Uri> Locations, string 
             AutomaticDecompression = DecompressionMethods.All,
             SslOptions = new()
             {
-                RemoteCertificateValidationCallback = (_, _, _, sslPolicyErrors) => (sslPolicyErrors & SslPolicyErrors.RemoteCertificateNotAvailable) == 0,
+                CertificateChainPolicy = new()
+                {
+                    DisableCertificateDownloads = true
+                }
             }
         }, true)
     {
@@ -59,7 +69,7 @@ internal sealed record InternetGatewayDevice(IEnumerable<Uri> Locations, string 
                 string addAnyPortMappingAction = $"\"{service.ServiceType}#AddAnyPortMapping\"";
                 var addAnyPortMappingRequest = new AddAnyPortMappingRequest(string.Empty, port, "UDP", port, ipAddress.ToString(), 1, PortMappingDescription, IpLeaseTimeInSeconds);
                 AddAnyPortMappingResponse addAnyPortMappingResponse = await ExecuteSoapAction<AddAnyPortMappingRequest, AddAnyPortMappingResponse>(
-                    serviceUri, addAnyPortMappingAction, serviceType, addAnyPortMappingRequest, cancellationToken);
+                    serviceUri, addAnyPortMappingAction, serviceType, addAnyPortMappingRequest, cancellationToken).ConfigureAwait(false);
 
                 port = addAnyPortMappingResponse.ReservedPort;
 
@@ -69,7 +79,7 @@ internal sealed record InternetGatewayDevice(IEnumerable<Uri> Locations, string 
                 var addPortMappingRequest = new AddPortMappingRequest(string.Empty, port, "UDP", port, ipAddress.ToString(), 1, PortMappingDescription, IpLeaseTimeInSeconds);
 
                 await ExecuteSoapAction<AddPortMappingRequest, AddPortMappingResponse>(
-                    serviceUri, addPortMappingAction, serviceType, addPortMappingRequest, cancellationToken);
+                    serviceUri, addPortMappingAction, serviceType, addPortMappingRequest, cancellationToken).ConfigureAwait(false);
 
                 break;
             default:
@@ -95,14 +105,14 @@ internal sealed record InternetGatewayDevice(IEnumerable<Uri> Locations, string 
                 var deletePortMappingRequestV2 = new DeletePortMappingRequestV2(string.Empty, port, "UDP");
 
                 await ExecuteSoapAction<DeletePortMappingRequestV2, DeletePortMappingResponseV2>(
-                    serviceUri, serviceAction, serviceType, deletePortMappingRequestV2, cancellationToken);
+                    serviceUri, serviceAction, serviceType, deletePortMappingRequestV2, cancellationToken).ConfigureAwait(false);
 
                 break;
             case 1:
                 var deletePortMappingRequestV1 = new DeletePortMappingRequestV1(string.Empty, port, "UDP");
 
                 await ExecuteSoapAction<DeletePortMappingRequestV1, DeletePortMappingResponseV1>(
-                    serviceUri, serviceAction, serviceType, deletePortMappingRequestV1, cancellationToken);
+                    serviceUri, serviceAction, serviceType, deletePortMappingRequestV1, cancellationToken).ConfigureAwait(false);
 
                 break;
             default:
@@ -125,14 +135,14 @@ internal sealed record InternetGatewayDevice(IEnumerable<Uri> Locations, string 
         {
             case 2:
                 GetExternalIPAddressResponseV2 getExternalIpAddressResponseV2 = await ExecuteSoapAction<GetExternalIPAddressRequestV2, GetExternalIPAddressResponseV2>(
-                    serviceUri, serviceAction, serviceType, default, cancellationToken);
+                    serviceUri, serviceAction, serviceType, default, cancellationToken).ConfigureAwait(false);
 
                 ipAddress = string.IsNullOrWhiteSpace(getExternalIpAddressResponseV2.ExternalIPAddress) ? null : IPAddress.Parse(getExternalIpAddressResponseV2.ExternalIPAddress);
 
                 break;
             case 1:
                 GetExternalIPAddressResponseV1 getExternalIpAddressResponseV1 = await ExecuteSoapAction<GetExternalIPAddressRequestV1, GetExternalIPAddressResponseV1>(
-                    serviceUri, serviceAction, serviceType, default, cancellationToken);
+                    serviceUri, serviceAction, serviceType, default, cancellationToken).ConfigureAwait(false);
 
                 ipAddress = string.IsNullOrWhiteSpace(getExternalIpAddressResponseV1.ExternalIPAddress) ? null : IPAddress.Parse(getExternalIpAddressResponseV1.ExternalIPAddress);
                 break;
@@ -158,14 +168,14 @@ internal sealed record InternetGatewayDevice(IEnumerable<Uri> Locations, string 
         {
             case 2:
                 GetNatRsipStatusResponseV2 getNatRsipStatusResponseV2 = await ExecuteSoapAction<GetNatRsipStatusRequestV2, GetNatRsipStatusResponseV2>(
-                    serviceUri, serviceAction, serviceType, default, cancellationToken);
+                    serviceUri, serviceAction, serviceType, default, cancellationToken).ConfigureAwait(false);
 
                 natEnabled = getNatRsipStatusResponseV2.NatEnabled;
 
                 break;
             case 1:
                 GetNatRsipStatusResponseV1 getNatRsipStatusResponseV1 = await ExecuteSoapAction<GetNatRsipStatusRequestV1, GetNatRsipStatusResponseV1>(
-                    serviceUri, serviceAction, serviceType, default, cancellationToken);
+                    serviceUri, serviceAction, serviceType, default, cancellationToken).ConfigureAwait(false);
 
                 natEnabled = getNatRsipStatusResponseV1.NatEnabled;
                 break;
@@ -185,7 +195,7 @@ internal sealed record InternetGatewayDevice(IEnumerable<Uri> Locations, string 
         (ServiceListItem service, string serviceUri, string serviceType) = GetSoapActionParameters("WANIPv6FirewallControl:1");
         string serviceAction = $"\"{service.ServiceType}#GetFirewallStatus\"";
         GetFirewallStatusResponse response = await ExecuteSoapAction<GetFirewallStatusRequest, GetFirewallStatusResponse>(
-            serviceUri, serviceAction, serviceType, default, cancellationToken);
+            serviceUri, serviceAction, serviceType, default, cancellationToken).ConfigureAwait(false);
 
         Logger.Log($"Received IPV6 firewall status {response.FirewallEnabled} and port mapping allowed {response.InboundPinholeAllowed} on UPnP device {UPnPDescription.Device.FriendlyName}.");
 
@@ -200,7 +210,7 @@ internal sealed record InternetGatewayDevice(IEnumerable<Uri> Locations, string 
         string serviceAction = $"\"{service.ServiceType}#AddPinhole\"";
         var request = new AddPinholeRequest(string.Empty, port, ipAddress.ToString(), port, IanaUdpProtocolNumber, IpLeaseTimeInSeconds);
         AddPinholeResponse response = await ExecuteSoapAction<AddPinholeRequest, AddPinholeResponse>(
-            serviceUri, serviceAction, serviceType, request, cancellationToken);
+            serviceUri, serviceAction, serviceType, request, cancellationToken).ConfigureAwait(false);
 
         Logger.Log($"Opened IPV6 UDP port {port} with ID {response.UniqueId} on UPnP device {UPnPDescription.Device.FriendlyName}.");
 
@@ -215,12 +225,13 @@ internal sealed record InternetGatewayDevice(IEnumerable<Uri> Locations, string 
         string serviceAction = $"\"{service.ServiceType}#DeletePinhole\"";
         var request = new DeletePinholeRequest(uniqueId);
         await ExecuteSoapAction<DeletePinholeRequest, DeletePinholeResponse>(
-             serviceUri, serviceAction, serviceType, request, cancellationToken);
+             serviceUri, serviceAction, serviceType, request, cancellationToken).ConfigureAwait(false);
 
         Logger.Log($"Opened IPV6 UDP port with ID {uniqueId} on UPnP device {UPnPDescription.Device.FriendlyName}.");
     }
 
-    private static async ValueTask<TResponse> ExecuteSoapAction<TRequest, TResponse>(string serviceUri, string soapAction, string defaultNamespace, TRequest request, CancellationToken cancellationToken)
+    private static async ValueTask<TResponse> ExecuteSoapAction<TRequest, TResponse>(
+        string serviceUri, string soapAction, string defaultNamespace, TRequest request, CancellationToken cancellationToken)
     {
         HttpClient.DefaultRequestHeaders.Remove("SOAPAction");
         HttpClient.DefaultRequestHeaders.Add("SOAPAction", soapAction);
@@ -232,46 +243,62 @@ internal sealed record InternetGatewayDevice(IEnumerable<Uri> Locations, string 
         };
         var requestTypedMessageConverter = TypedMessageConverter.Create(typeof(TRequest), soapAction, defaultNamespace, xmlSerializerFormatAttribute);
         using var requestMessage = requestTypedMessageConverter.ToMessage(request);
-        await using var requestStream = new MemoryStream();
-        await using var writer = XmlWriter.Create(
-            requestStream,
-            new()
+        var requestStream = new MemoryStream();
+        HttpResponseMessage httpResponseMessage;
+
+        await using (requestStream)
+        {
+            var writer = XmlWriter.Create(
+                requestStream,
+                new()
+                {
+                    OmitXmlDeclaration = true,
+                    Async = true,
+                    Encoding = new UTF8Encoding(false)
+                });
+
+            await using (writer.ConfigureAwait(false))
             {
-                OmitXmlDeclaration = true,
-                Async = true,
-                Encoding = new UTF8Encoding(false)
-            });
-        requestMessage.WriteMessage(writer);
-        await writer.FlushAsync();
+                requestMessage.WriteMessage(writer);
+                await writer.FlushAsync().ConfigureAwait(false);
+            }
 
-        requestStream.Position = 0L;
+            requestStream.Position = 0L;
 
-        using var content = new StreamContent(requestStream);
+            using var content = new StreamContent(requestStream);
 
-        content.Headers.ContentType = MediaTypeHeaderValue.Parse("text/xml");
+            content.Headers.ContentType = MediaTypeHeaderValue.Parse("text/xml");
 
-        using HttpResponseMessage httpResponseMessage = await HttpClient.PostAsync(serviceUri, content, cancellationToken);
-        await using Stream stream = await httpResponseMessage.Content.ReadAsStreamAsync(cancellationToken);
-
-        try
-        {
-            httpResponseMessage.EnsureSuccessStatusCode();
-        }
-        catch (HttpRequestException ex)
-        {
-            using var reader = new StreamReader(stream);
-            string error = await reader.ReadToEndAsync(CancellationToken.None);
-
-            ProgramConstants.LogException(ex, $"UPNP error {ex.StatusCode}:{error}.");
-
-            throw;
+            httpResponseMessage = await HttpClient.PostAsync(serviceUri, content, cancellationToken).ConfigureAwait(false);
         }
 
-        using var envelopeReader = XmlDictionaryReader.CreateTextReader(stream, new());
-        using var responseMessage = Message.CreateMessage(envelopeReader, int.MaxValue, MessageVersion.Soap11WSAddressingAugust2004);
-        var responseTypedMessageConverter = TypedMessageConverter.Create(typeof(TResponse), null, defaultNamespace, xmlSerializerFormatAttribute);
+        using (httpResponseMessage)
+        {
+            Stream stream = await httpResponseMessage.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
 
-        return (TResponse)responseTypedMessageConverter.FromMessage(responseMessage);
+            await using (stream.ConfigureAwait(false))
+            {
+                try
+                {
+                    httpResponseMessage.EnsureSuccessStatusCode();
+                }
+                catch (HttpRequestException ex)
+                {
+                    using var reader = new StreamReader(stream);
+                    string error = await reader.ReadToEndAsync(CancellationToken.None).ConfigureAwait(false);
+
+                    ProgramConstants.LogException(ex, $"UPNP error {ex.StatusCode}:{error}.");
+
+                    throw;
+                }
+
+                using var envelopeReader = XmlDictionaryReader.CreateTextReader(stream, new());
+                using var responseMessage = Message.CreateMessage(envelopeReader, int.MaxValue, MessageVersion.Soap11WSAddressingAugust2004);
+                var responseTypedMessageConverter = TypedMessageConverter.Create(typeof(TResponse), null, defaultNamespace, xmlSerializerFormatAttribute);
+
+                return (TResponse)responseTypedMessageConverter.FromMessage(responseMessage);
+            }
+        }
     }
 
     private (ServiceListItem WanIpConnectionService, string ServiceUri, string ServiceType) GetSoapActionParameters(string wanConnectionDeviceService, AddressFamily? addressFamily = null)
@@ -294,6 +321,6 @@ internal sealed record InternetGatewayDevice(IEnumerable<Uri> Locations, string 
     private int GetDeviceUPnPVersion()
     {
         return $"{UPnPInternetGatewayDevice}:2".Equals(UPnPDescription.Device.DeviceType, StringComparison.OrdinalIgnoreCase) ? 2
-            : ($"{UPnPInternetGatewayDevice}:1".Equals(UPnPDescription.Device.DeviceType, StringComparison.OrdinalIgnoreCase) ? 1 : 0);
+            : $"{UPnPInternetGatewayDevice}:1".Equals(UPnPDescription.Device.DeviceType, StringComparison.OrdinalIgnoreCase) ? 1 : 0;
     }
 }

@@ -528,7 +528,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             string userName = lbUserList.SelectedItem.Text;
 
             await connectionManager.SendCustomMessageAsync(new QueuedMessage(IRCCommands.PRIVMSG + " " + userName + " :" + tbMessageInput.Text,
-                QueuedMessageType.CHAT_MESSAGE, 0));
+                QueuedMessageType.CHAT_MESSAGE, 0)).ConfigureAwait(false);
 
             PrivateMessageUser pmUser = privateMessageUsers.Find(u => u.IrcUser.Name == userName);
             if (pmUser == null)

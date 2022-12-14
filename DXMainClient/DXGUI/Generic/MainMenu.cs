@@ -535,7 +535,7 @@ namespace DTAClient.DXGUI.Generic
                 Updater.StopUpdate();
 
             if (connectionManager.IsConnected)
-                await connectionManager.DisconnectAsync();
+                await connectionManager.DisconnectAsync().ConfigureAwait(false);
         }
 
         /// <summary>
@@ -829,13 +829,13 @@ namespace DTAClient.DXGUI.Generic
 
         private async ValueTask BtnLan_LeftClickAsync()
         {
-            await lanLobby.OpenAsync();
+            await lanLobby.OpenAsync().ConfigureAwait(false);
 
             if (UserINISettings.Instance.StopMusicOnMenu)
                 MusicOff();
 
             if (connectionManager.IsConnected)
-                await connectionManager.DisconnectAsync();
+                await connectionManager.DisconnectAsync().ConfigureAwait(false);
 
             topBar.SetLanMode(true);
         }
@@ -968,7 +968,7 @@ namespace DTAClient.DXGUI.Generic
         {
             if (!isMediaPlayerAvailable || themeSong == null)
             {
-                await ExitClientAsync();
+                await ExitClientAsync().ConfigureAwait(false);
                 return;
             }
 
@@ -982,7 +982,7 @@ namespace DTAClient.DXGUI.Generic
             else
             {
                 MediaPlayer.Stop();
-                await ExitClientAsync();
+                await ExitClientAsync().ConfigureAwait(false);
             }
         }
 
@@ -992,7 +992,7 @@ namespace DTAClient.DXGUI.Generic
             WindowManager.CloseGame();
             themeSong?.Dispose();
 #if !XNA
-            await Task.Delay(1000);
+            await Task.Delay(1000).ConfigureAwait(false);
             Environment.Exit(0);
 #endif
         }

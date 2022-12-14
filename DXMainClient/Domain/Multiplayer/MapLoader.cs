@@ -63,14 +63,14 @@ namespace DTAClient.Domain.Multiplayer
 
             LoadGameModes(mpMapsIni);
             LoadGameModeAliases(mpMapsIni);
-            LoadMultiMaps(mpMapsIni);
-            await LoadCustomMapsAsync();
+            await LoadMultiMapsAsync(mpMapsIni).ConfigureAwait(false);
+            await LoadCustomMapsAsync().ConfigureAwait(false);
 
             GameModes.RemoveAll(g => g.Maps.Count < 1);
             GameModeMaps = new GameModeMapCollection(GameModes);
         }
 
-        private void LoadMultiMaps(IniFile mpMapsIni)
+        private async ValueTask LoadMultiMapsAsync(IniFile mpMapsIni)
         {
             List<string> keys = mpMapsIni.GetSectionKeys(MultiMapsSection);
 
@@ -96,7 +96,7 @@ namespace DTAClient.Domain.Multiplayer
 
                 var map = new Map(mapFilePathValue, false);
 
-                if (!map.SetInfoFromMpMapsINI(mpMapsIni))
+                if (!await map.SetInfoFromMpMapsINIAsync(mpMapsIni).ConfigureAwait(false))
                     continue;
 
                 maps.Add(map);
@@ -151,7 +151,7 @@ namespace DTAClient.Domain.Multiplayer
             }
 
             IEnumerable<FileInfo> mapFiles = customMapsDirectory.EnumerateFiles($"*{MAP_FILE_EXTENSION}");
-            ConcurrentDictionary<string, Map> customMapCache = await LoadCustomMapCacheAsync();
+            ConcurrentDictionary<string, Map> customMapCache = await LoadCustomMapCacheAsync().ConfigureAwait(false);
             var localMapSHAs = new List<string>();
             var tasks = new List<Task>();
 
@@ -172,7 +172,7 @@ namespace DTAClient.Domain.Multiplayer
                 }));
             }
 
-            await ClientCore.Extensions.TaskExtensions.WhenAllSafe(tasks.ToArray());
+            await ClientCore.Extensions.TaskExtensions.WhenAllSafe(tasks.ToArray()).ConfigureAwait(false);
 
             // remove cached maps that no longer exist locally
             foreach (var missingSHA in customMapCache.Keys.Where(cachedSHA => !localMapSHAs.Contains(cachedSHA)))
@@ -213,12 +213,17 @@ namespace DTAClient.Domain.Multiplayer
         {
             try
             {
-                await using var jsonData = File.OpenRead(CUSTOM_MAPS_CACHE);
-                var customMapCache = await JsonSerializer.DeserializeAsync<CustomMapCache>(jsonData, jsonSerializerOptions);
-                var customMaps = customMapCache?.Version == CurrentCustomMapCacheVersion && customMapCache.Maps != null
-                    ? customMapCache.Maps : new ConcurrentDictionary<string, Map>();
+                FileStream jsonData = File.OpenRead(CUSTOM_MAPS_CACHE);
+                CustomMapCache customMapCache;
 
-                foreach (var customMap in customMaps.Values)
+                await using (jsonData.ConfigureAwait(false))
+                {
+                    customMapCache = await JsonSerializer.DeserializeAsync<CustomMapCache>(jsonData, jsonSerializerOptions).ConfigureAwait(false);
+                }
+
+                ConcurrentDictionary<string, Map> customMaps = !(customMapCache?.Version != CurrentCustomMapCacheVersion || customMapCache.Maps == null) ? customMapCache.Maps : new();
+
+                foreach (Map customMap in customMaps.Values)
                     customMap.AfterDeserialize();
 
                 return customMaps;

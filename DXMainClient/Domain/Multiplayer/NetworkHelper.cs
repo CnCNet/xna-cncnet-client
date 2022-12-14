@@ -16,6 +16,7 @@ internal static class NetworkHelper
 {
     private const string PingHost = "cncnet.org";
     private const int PingTimeout = 1000;
+    private const int MinimumUdpPort = 1024;
 
     private static readonly IReadOnlyCollection<AddressFamily> SupportedAddressFamilies = new[]
     {
@@ -101,7 +102,7 @@ internal static class NetworkHelper
 
         try
         {
-            PingReply pingResult = await ping.SendPingAsync(ipAddress, PingTimeout);
+            PingReply pingResult = await ping.SendPingAsync(ipAddress, PingTimeout).ConfigureAwait(false);
 
             if (pingResult.Status is IPStatus.Success)
                 return pingResult.RoundtripTime;
@@ -143,9 +144,10 @@ internal static class NetworkHelper
 
                 stunServerIpEndPoint = new IPEndPoint(stunServerIpAddress, stunPort);
 
-                await socket.SendToAsync(buffer, stunServerIpEndPoint, linkedCancellationTokenSource.Token);
+                await socket.SendToAsync(buffer, stunServerIpEndPoint, linkedCancellationTokenSource.Token).ConfigureAwait(false);
 
-                SocketReceiveFromResult socketReceiveFromResult = await socket.ReceiveFromAsync(buffer, SocketFlags.None, stunServerIpEndPoint, linkedCancellationTokenSource.Token);
+                SocketReceiveFromResult socketReceiveFromResult = await socket.ReceiveFromAsync(
+                    buffer, SocketFlags.None, stunServerIpEndPoint, linkedCancellationTokenSource.Token).ConfigureAwait(false);
 
                 buffer = buffer[..socketReceiveFromResult.ReceivedBytes];
 
@@ -179,11 +181,11 @@ internal static class NetworkHelper
             {
                 foreach (ushort localPort in localPorts)
                 {
-                    await PerformStunAsync(stunServerIpAddress, localPort, cancellationToken);
-                    await Task.Delay(100, cancellationToken);
+                    await PerformStunAsync(stunServerIpAddress, localPort, cancellationToken).ConfigureAwait(false);
+                    await Task.Delay(100, cancellationToken).ConfigureAwait(false);
                 }
 
-                await Task.Delay(5000, cancellationToken);
+                await Task.Delay(5000, cancellationToken).ConfigureAwait(false);
             }
             catch (TaskCanceledException)
             {
@@ -200,12 +202,12 @@ internal static class NetworkHelper
     public static IEnumerable<ushort> GetFreeUdpPorts(IEnumerable<ushort> excludedPorts, ushort numberOfPorts)
     {
         IPEndPoint[] endPoints = IPGlobalProperties.GetIPGlobalProperties().GetActiveUdpListeners();
-        List<ushort> activePorts = endPoints.Select(q => (ushort)q.Port).ToArray().Concat(excludedPorts).ToList();
+        var activePorts = endPoints.Select(q => (ushort)q.Port).ToArray().Concat(excludedPorts).ToList();
         ushort foundPortCount = 0;
 
         while (foundPortCount != numberOfPorts)
         {
-            ushort foundPort = (ushort)new Random().Next(1024, IPEndPoint.MaxPort);
+            ushort foundPort = (ushort)new Random().Next(MinimumUdpPort, IPEndPoint.MaxPort);
 
             if (!activePorts.Contains(foundPort))
             {

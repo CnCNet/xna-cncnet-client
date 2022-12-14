@@ -78,7 +78,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
 
         private async ValueTask RefreshTunnelsAsync()
         {
-            List<CnCNetTunnel> tunnels = await DoRefreshTunnelsAsync();
+            List<CnCNetTunnel> tunnels = await DoRefreshTunnelsAsync().ConfigureAwait(false);
             wm.AddCallback(() => HandleRefreshedTunnels(tunnels));
         }
 
@@ -116,7 +116,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
 
         private async ValueTask PingListTunnelAsync(int index)
         {
-            await Tunnels[index].UpdatePingAsync();
+            await Tunnels[index].UpdatePingAsync().ConfigureAwait(false);
             DoTunnelPinged(index);
         }
 
@@ -125,7 +125,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
 
         private async ValueTask PingCurrentTunnelAsync(bool checkTunnelList = false)
         {
-            await CurrentTunnel.UpdatePingAsync();
+            await CurrentTunnel.UpdatePingAsync().ConfigureAwait(false);
             DoCurrentTunnelPinged();
 
             if (checkTunnelList)
@@ -151,14 +151,14 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
 
             try
             {
-                data = await Constants.CnCNetHttpClient.GetStringAsync(ProgramConstants.CNCNET_TUNNEL_LIST_URL);
+                data = await Constants.CnCNetHttpClient.GetStringAsync(new Uri(ProgramConstants.CNCNET_TUNNEL_LIST_URL)).ConfigureAwait(false);
             }
             catch (HttpRequestException ex)
             {
                 ProgramConstants.LogException(ex, "Error when downloading tunnel server info. Retrying.");
                 try
                 {
-                    data = await Constants.CnCNetHttpClient.GetStringAsync(ProgramConstants.CNCNET_TUNNEL_LIST_URL);
+                    data = await Constants.CnCNetHttpClient.GetStringAsync(new Uri(ProgramConstants.CNCNET_TUNNEL_LIST_URL)).ConfigureAwait(false);
                 }
                 catch (HttpRequestException ex1)
                 {
@@ -170,7 +170,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                     }
 
                     Logger.Log("Fetching tunnel server list failed. Using cached tunnel data.");
-                    data = await File.ReadAllTextAsync(tunnelCacheFile.FullName);
+                    data = await File.ReadAllTextAsync(tunnelCacheFile.FullName).ConfigureAwait(false);
                 }
             }
 
@@ -219,7 +219,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                 if (!clientDirectoryInfo.Exists)
                     clientDirectoryInfo.Create();
 
-                await File.WriteAllTextAsync(tunnelCacheFile.FullName, data);
+                await File.WriteAllTextAsync(tunnelCacheFile.FullName, data).ConfigureAwait(false);
             }
             catch (Exception ex)
             {

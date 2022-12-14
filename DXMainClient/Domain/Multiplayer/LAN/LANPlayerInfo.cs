@@ -55,7 +55,7 @@ namespace DTAClient.Domain.Multiplayer.LAN
 
             if (TimeSinceLastSentMessage > TimeSpan.FromSeconds(SEND_PING_TIMEOUT)
                 || TimeSinceLastReceivedMessage > TimeSpan.FromSeconds(SEND_PING_TIMEOUT))
-                await SendMessageAsync(LANCommands.PING, default);
+                await SendMessageAsync(LANCommands.PING, default).ConfigureAwait(false);
 
             if (TimeSinceLastReceivedMessage > TimeSpan.FromSeconds(DROP_TIMEOUT))
                 return false;
@@ -97,9 +97,12 @@ namespace DTAClient.Domain.Multiplayer.LAN
 
             try
             {
-                await TcpClient.SendAsync(buffer, cancellationToken);
+                await TcpClient.SendAsync(buffer, cancellationToken).ConfigureAwait(false);
             }
             catch (OperationCanceledException)
+            {
+            }
+            catch (SocketException)
             {
             }
             catch (Exception ex)
@@ -127,9 +130,14 @@ namespace DTAClient.Domain.Multiplayer.LAN
 
                 try
                 {
-                    bytesRead = await TcpClient.ReceiveAsync(message, cancellationToken);
+                    bytesRead = await TcpClient.ReceiveAsync(message, cancellationToken).ConfigureAwait(false);
                 }
                 catch (OperationCanceledException)
+                {
+                    ConnectionLost?.Invoke(this, EventArgs.Empty);
+                    break;
+                }
+                catch (SocketException)
                 {
                     ConnectionLost?.Invoke(this, EventArgs.Empty);
                     break;

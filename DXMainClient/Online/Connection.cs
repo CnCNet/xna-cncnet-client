@@ -128,7 +128,7 @@ namespace DTAClient.Online
         {
             try
             {
-                IList<Server> sortedServerList = await GetServerListSortedByLatencyAsync();
+                IList<Server> sortedServerList = await GetServerListSortedByLatencyAsync().ConfigureAwait(false);
 
                 foreach (Server server in sortedServerList)
                 {
@@ -148,7 +148,7 @@ namespace DTAClient.Online
                             {
                                 await client.ConnectAsync(
                                     new IPEndPoint(IPAddress.Parse(server.Host), port),
-                                    linkedCancellationTokenSource.Token);
+                                    linkedCancellationTokenSource.Token).ConfigureAwait(false);
                             }
                             catch (OperationCanceledException) when (timeoutCancellationTokenSource.Token.IsCancellationRequested)
                             {
@@ -175,7 +175,7 @@ namespace DTAClient.Online
                             socket = client;
 
                             currentConnectedServerIP = server.Host;
-                            await HandleCommAsync(cancellationToken);
+                            await HandleCommAsync(cancellationToken).ConfigureAwait(false);
                             return;
                         }
                     }
@@ -206,7 +206,7 @@ namespace DTAClient.Online
             using IMemoryOwner<byte> memoryOwner = MemoryPool<byte>.Shared.Rent(1024);
             Memory<byte> message = memoryOwner.Memory[..1024];
 
-            await RegisterAsync();
+            await RegisterAsync().ConfigureAwait(false);
 
             var timer = new System.Timers.Timer(PingInterval)
             {
@@ -223,7 +223,7 @@ namespace DTAClient.Online
 
                 try
                 {
-                    bytesRead = await socket.ReceiveAsync(message, SocketFlags.None, cancellationToken);
+                    bytesRead = await socket.ReceiveAsync(message, SocketFlags.None, cancellationToken).ConfigureAwait(false);
                 }
                 catch (OperationCanceledException)
                 {
@@ -256,7 +256,7 @@ namespace DTAClient.Online
 #if !DEBUG
                 Logger.Log("Message received: " + msg);
 #endif
-                await HandleMessageAsync(msg);
+                await HandleMessageAsync(msg).ConfigureAwait(false);
 
                 timer.Interval = 30000;
             }
@@ -280,7 +280,7 @@ namespace DTAClient.Online
 
                 while (!sendQueueExited)
                 {
-                    await Task.Delay(100, cancellationToken);
+                    await Task.Delay(100, cancellationToken).ConfigureAwait(false);
                 }
 
                 reconnectCount++;
@@ -291,7 +291,7 @@ namespace DTAClient.Online
                     return;
                 }
 
-                await Task.Delay(RECONNECT_WAIT_DELAY, cancellationToken);
+                await Task.Delay(RECONNECT_WAIT_DELAY, cancellationToken).ConfigureAwait(false);
 
                 if (IsConnected || AttemptingConnection)
                 {
@@ -313,7 +313,8 @@ namespace DTAClient.Online
         private async ValueTask<IList<Server>> GetServerListSortedByLatencyAsync()
         {
             // Resolve the hostnames.
-            IEnumerable<(IPAddress IpAddress, string Name, int[] Ports)>[] servers = await ClientCore.Extensions.TaskExtensions.WhenAllSafe(Servers.Select(ResolveServerAsync));
+            IEnumerable<(IPAddress IpAddress, string Name, int[] Ports)>[] servers =
+                await ClientCore.Extensions.TaskExtensions.WhenAllSafe(Servers.Select(ResolveServerAsync)).ConfigureAwait(false);
 
             // Group the tuples by IPAddress to merge duplicate servers.
             IEnumerable<IGrouping<IPAddress, (string Name, int[] Ports)>> serverInfosGroupedByIPAddress = servers
@@ -354,7 +355,7 @@ namespace DTAClient.Online
             }
 
             (Server Server, IPAddress IpAddress, long Result)[] serverAndLatencyResults =
-                await ClientCore.Extensions.TaskExtensions.WhenAllSafe(serverInfos.Where(q => !failedServerIPs.Contains(q.IpAddress.ToString())).Select(PingServerAsync));
+                await ClientCore.Extensions.TaskExtensions.WhenAllSafe(serverInfos.Where(q => !failedServerIPs.Contains(q.IpAddress.ToString())).Select(PingServerAsync)).ConfigureAwait(false);
 
             // Sort the servers by AddressFamily & latency.
             (Server Server, IPAddress IpAddress, long Result)[] sortedServerAndLatencyResults = serverAndLatencyResults
@@ -401,7 +402,7 @@ namespace DTAClient.Online
 
             try
             {
-                PingReply pingReply = await ping.SendPingAsync(serverInfo.IpAddress, MAXIMUM_LATENCY);
+                PingReply pingReply = await ping.SendPingAsync(serverInfo.IpAddress, MAXIMUM_LATENCY).ConfigureAwait(false);
 
                 if (pingReply.Status == IPStatus.Success)
                 {
@@ -431,7 +432,7 @@ namespace DTAClient.Online
             try
             {
                 // If hostNameOrAddress is an IP address, this address is returned without querying the DNS server.
-                IPAddress[] serverIPAddresses = (await Dns.GetHostAddressesAsync(server.Host))
+                IPAddress[] serverIPAddresses = (await Dns.GetHostAddressesAsync(server.Host).ConfigureAwait(false))
                     .Where(IPAddress => IPAddress.AddressFamily is AddressFamily.InterNetworkV6 or AddressFamily.InterNetwork)
                     .ToArray();
 
@@ -451,7 +452,7 @@ namespace DTAClient.Online
 
         public async ValueTask DisconnectAsync()
         {
-            await SendMessageAsync(IRCCommands.QUIT);
+            await SendMessageAsync(IRCCommands.QUIT).ConfigureAwait(false);
             connectionCancellationTokenSource.Cancel();
             socket.Shutdown(SocketShutdown.Both);
             socket.Close();
@@ -480,14 +481,14 @@ namespace DTAClient.Online
                 else if (msg.Length != commandEndIndex + 1)
                 {
                     string command = msg[..(commandEndIndex - 1)];
-                    await PerformCommandAsync(command);
+                    await PerformCommandAsync(command).ConfigureAwait(false);
 
                     msg = msg.Remove(0, commandEndIndex + 1);
                 }
                 else
                 {
                     string command = msg[..^1];
-                    await PerformCommandAsync(command);
+                    await PerformCommandAsync(command).ConfigureAwait(false);
                     break;
                 }
             }
@@ -590,7 +591,7 @@ namespace DTAClient.Online
                             connectionManager.OnNameAlreadyInUse();
                             break;
                         case 451: // Not registered
-                            await RegisterAsync();
+                            await RegisterAsync().ConfigureAwait(false);
                             connectionManager.OnGenericServerMessageReceived(message);
                             break;
                         case 471: // Returned when attempting to join a channel that is full (basically, player limit met)
@@ -629,7 +630,7 @@ namespace DTAClient.Online
                             }
 
                             string noticeUserName = prefix[..noticeExclamIndex];
-                            string notice = parameters[parameters.Count - 1];
+                            string notice = parameters[^1];
                             connectionManager.OnNoticeMessageParsed(notice, noticeUserName);
                             break;
                         }
@@ -666,7 +667,7 @@ namespace DTAClient.Online
                         string[] recipients = new string[parameters.Count - 1];
                         for (int pid = 0; pid < parameters.Count - 1; pid++)
                             recipients[pid] = parameters[pid];
-                        string privmsg = parameters[parameters.Count - 1];
+                        string privmsg = parameters[^1];
                         if (parameters[1].StartsWith('\u0001' + IRCCommands.PRIVMSG_ACTION))
                             privmsg = privmsg[1..].Remove(privmsg.Length - 2);
                         foreach (string recipient in recipients)
@@ -696,12 +697,12 @@ namespace DTAClient.Online
                     case IRCCommands.PING:
                         if (parameters.Count > 0)
                         {
-                            await QueueMessageAsync(new QueuedMessage(IRCCommands.PONG + " " + parameters[0], QueuedMessageType.SYSTEM_MESSAGE, 5000));
+                            await QueueMessageAsync(new QueuedMessage(IRCCommands.PONG + " " + parameters[0], QueuedMessageType.SYSTEM_MESSAGE, 5000)).ConfigureAwait(false);
                             Logger.Log(IRCCommands.PONG + " " + parameters[0]);
                         }
                         else
                         {
-                            await QueueMessageAsync(new QueuedMessage(IRCCommands.PONG, QueuedMessageType.SYSTEM_MESSAGE, 5000));
+                            await QueueMessageAsync(new QueuedMessage(IRCCommands.PONG, QueuedMessageType.SYSTEM_MESSAGE, 5000)).ConfigureAwait(false);
                             Logger.Log(IRCCommands.PONG);
                         }
                         break;
@@ -815,7 +816,7 @@ namespace DTAClient.Online
                 {
                     string message = string.Empty;
 
-                    await messageQueueLocker.WaitAsync(cancellationToken);
+                    await messageQueueLocker.WaitAsync(cancellationToken).ConfigureAwait(false);
 
                     try
                     {
@@ -849,12 +850,12 @@ namespace DTAClient.Online
 
                     if (string.IsNullOrEmpty(message))
                     {
-                        await Task.Delay(10, cancellationToken);
+                        await Task.Delay(10, cancellationToken).ConfigureAwait(false);
                         continue;
                     }
 
-                    await SendMessageAsync(message);
-                    await Task.Delay(messageQueueDelay, cancellationToken);
+                    await SendMessageAsync(message).ConfigureAwait(false);
+                    await Task.Delay(messageQueueDelay, cancellationToken).ConfigureAwait(false);
                 }
             }
             catch (OperationCanceledException)
@@ -862,7 +863,7 @@ namespace DTAClient.Online
             }
             finally
             {
-                await messageQueueLocker.WaitAsync(CancellationToken.None);
+                await messageQueueLocker.WaitAsync(CancellationToken.None).ConfigureAwait(false);
 
                 try
                 {
@@ -896,8 +897,8 @@ namespace DTAClient.Online
             string defaultGame = ClientConfiguration.Instance.LocalGame;
             string realName = ProgramConstants.GAME_VERSION + " " + defaultGame + " CnCNet";
 
-            await SendMessageAsync(FormattableString.Invariant($"{IRCCommands.USER} {defaultGame}.{systemId} 0 * :{realName}"));
-            await SendMessageAsync(IRCCommands.NICK + " " + ProgramConstants.PLAYERNAME);
+            await SendMessageAsync(FormattableString.Invariant($"{IRCCommands.USER} {defaultGame}.{systemId} 0 * :{realName}")).ConfigureAwait(false);
+            await SendMessageAsync(IRCCommands.NICK + " " + ProgramConstants.PLAYERNAME).ConfigureAwait(false);
         }
 
         public ValueTask ChangeNicknameAsync()
@@ -914,7 +915,7 @@ namespace DTAClient.Online
         public async ValueTask QueueMessageAsync(QueuedMessageType type, int priority, int delay, string message)
         {
             QueuedMessage qm = new QueuedMessage(message, type, priority, delay);
-            await QueueMessageAsync(qm);
+            await QueueMessageAsync(qm).ConfigureAwait(false);
             Logger.Log("Setting delay to " + delay + "ms for " + qm.ID);
         }
 
@@ -941,7 +942,7 @@ namespace DTAClient.Online
 
             try
             {
-                await socket.SendAsync(buffer, SocketFlags.None, timeoutCancellationTokenSource.Token);
+                await socket.SendAsync(buffer, SocketFlags.None, timeoutCancellationTokenSource.Token).ConfigureAwait(false);
             }
             catch (IOException ex)
             {
@@ -989,7 +990,7 @@ namespace DTAClient.Online
 
             qm.ID = NextQueueID++;
 
-            await messageQueueLocker.WaitAsync();
+            await messageQueueLocker.WaitAsync().ConfigureAwait(false);
 
             try
             {
@@ -1008,7 +1009,7 @@ namespace DTAClient.Online
                         AddSpecialQueuedMessage(qm);
                         break;
                     case QueuedMessageType.INSTANT_MESSAGE:
-                        await SendMessageAsync(qm.Command);
+                        await SendMessageAsync(qm.Command).ConfigureAwait(false);
                         break;
                     default:
                         int placeInQueue = messageQueue.FindIndex(m => m.Priority < qm.Priority);

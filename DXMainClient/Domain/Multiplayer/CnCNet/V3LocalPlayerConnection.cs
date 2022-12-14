@@ -32,6 +32,7 @@ internal sealed class V3LocalPlayerConnection : IDisposable
     /// Creates a local game socket and returns the port.
     /// </summary>
     /// <param name="playerId">The id of the player for which to create the local game socket.</param>
+    /// <param name="cancellationToken">The <see cref="CancellationToken"/> to stop the connection.</param>
     /// <returns>The port of the created socket.</returns>
     public ushort Setup(uint playerId, CancellationToken cancellationToken)
     {
@@ -83,7 +84,8 @@ internal sealed class V3LocalPlayerConnection : IDisposable
 
             try
             {
-                SocketReceiveFromResult socketReceiveFromResult = await localGameSocket.ReceiveFromAsync(buffer, SocketFlags.None, remotePlayerEndPoint, linkedCancellationTokenSource.Token);
+                SocketReceiveFromResult socketReceiveFromResult = await localGameSocket.ReceiveFromAsync(
+                    buffer, SocketFlags.None, remotePlayerEndPoint, linkedCancellationTokenSource.Token).ConfigureAwait(false);
 
                 remotePlayerEndPoint = socketReceiveFromResult.RemoteEndPoint;
                 data = buffer[..socketReceiveFromResult.ReceivedBytes];
@@ -147,7 +149,7 @@ internal sealed class V3LocalPlayerConnection : IDisposable
             Logger.Log($"Sending data from {localGameSocket.LocalEndPoint} to local game {remotePlayerEndPoint} for player {playerId}.");
 
 #endif
-            await localGameSocket.SendToAsync(data, SocketFlags.None, remotePlayerEndPoint, linkedCancellationTokenSource.Token);
+            await localGameSocket.SendToAsync(data, SocketFlags.None, remotePlayerEndPoint, linkedCancellationTokenSource.Token).ConfigureAwait(false);
         }
         catch (SocketException ex)
         {

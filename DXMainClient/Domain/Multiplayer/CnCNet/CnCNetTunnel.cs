@@ -165,7 +165,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
 
                 Logger.Log($"Contacting tunnel at {addressString}");
 
-                string data = await Constants.CnCNetHttpClient.GetStringAsync(addressString);
+                string data = await Constants.CnCNetHttpClient.GetStringAsync(addressString).ConfigureAwait(false);
 
                 data = data.Replace("[", string.Empty);
                 data = data.Replace("]", string.Empty);
@@ -203,8 +203,8 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                 Memory<byte> buffer = memoryOwner.Memory[..PING_PACKET_SEND_SIZE];
                 long ticks = DateTime.Now.Ticks;
 
-                await socket.SendToAsync(buffer, SocketFlags.None, ep);
-                await socket.ReceiveFromAsync(buffer, SocketFlags.None, ep);
+                await socket.SendToAsync(buffer, SocketFlags.None, ep).ConfigureAwait(false);
+                await socket.ReceiveFromAsync(buffer, SocketFlags.None, ep).ConfigureAwait(false);
 
                 ticks = DateTime.Now.Ticks - ticks;
                 PingInMs = new TimeSpan(ticks).Milliseconds;

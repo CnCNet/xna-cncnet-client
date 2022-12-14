@@ -122,7 +122,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             }
 
             await connectionManager.SendCustomMessageAsync(new QueuedMessage(
-                IRCCommands.PRIVMSG + " " + GetIrcUser().Name + " :\u0001" + messageBody + "\u0001", QueuedMessageType.CHAT_MESSAGE, 0));
+                IRCCommands.PRIVMSG + " " + GetIrcUser().Name + " :\u0001" + messageBody + "\u0001", QueuedMessageType.CHAT_MESSAGE, 0)).ConfigureAwait(false);
         }
 
         private void UpdateButtons()
@@ -205,7 +205,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             }
 
             connectionManager.WhoReplyReceived += WhoIsReply;
-            await connectionManager.SendWhoIsMessageAsync(ircUser.Name);
+            await connectionManager.SendWhoIsMessageAsync(ircUser.Name).ConfigureAwait(false);
         }
 
         private IRCUser GetIrcUser()
