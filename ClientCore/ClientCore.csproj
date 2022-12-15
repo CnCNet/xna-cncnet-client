@@ -21,6 +21,7 @@
     <None Remove="Resources\moicon.png" />
     <None Remove="Resources\raicon.png" />
     <None Remove="Resources\rricon.png" />
+    <None Remove="Resources\ssicon.png" />
     <None Remove="Resources\tdicon.png" />
     <None Remove="Resources\tiicon.png" />
     <None Remove="Resources\tsicon.png" />
@@ -35,6 +36,7 @@
     <EmbeddedResource Include="Resources\moicon.png" />
     <EmbeddedResource Include="Resources\raicon.png" />
     <EmbeddedResource Include="Resources\rricon.png" />
+    <EmbeddedResource Include="Resources\ssicon.png" />
     <EmbeddedResource Include="Resources\tdicon.png" />
     <EmbeddedResource Include="Resources\tiicon.png" />
     <EmbeddedResource Include="Resources\tsicon.png" />
@@ -46,8 +48,8 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Rampastring.XNAUI.$(Engine)" Version="2.2.10" Condition="'!$(Configuration.Contains(Debug))'" />
-    <PackageReference Include="Rampastring.XNAUI.$(Engine).Debug" Version="2.2.10" Condition="'$(Configuration.Contains(Debug))'" />
+    <PackageReference Include="Rampastring.XNAUI.$(Engine)" Version="2.2.11" Condition="'!$(Configuration.Contains(Debug))'" />
+    <PackageReference Include="Rampastring.XNAUI.$(Engine).Debug" Version="2.2.11" Condition="'$(Configuration.Contains(Debug))'" />
     <PackageReference Include="System.Text.Encoding.CodePages" Version="7.0.0" />
   </ItemGroup>
   <ItemGroup>

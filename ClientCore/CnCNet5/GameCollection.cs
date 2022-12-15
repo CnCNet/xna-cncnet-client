@@ -37,6 +37,7 @@ namespace ClientCore.CnCNet5
             using Stream tdIconStream = assembly.GetManifestResourceStream("ClientCore.Resources.tdicon.png");
             using Stream raIconStream = assembly.GetManifestResourceStream("ClientCore.Resources.raicon.png");
             using Stream d2kIconStream = assembly.GetManifestResourceStream("ClientCore.Resources.d2kicon.png");
+            using Stream ssIconStream = assembly.GetManifestResourceStream("ClientCore.Resources.ssicon.png");
             using Stream unknownIconStream = assembly.GetManifestResourceStream("ClientCore.Resources.unknownicon.png");
             using var dtaIcon = Image.Load(dtaIconStream);
             using var tiIcon = Image.Load(tiIconStream);
@@ -49,6 +50,7 @@ namespace ClientCore.CnCNet5
             using var tdIcon = Image.Load(tdIconStream);
             using var raIcon = Image.Load(raIconStream);
             using var d2kIcon = Image.Load(d2kIconStream);
+            using var ssIcon = Image.Load(ssIconStream);
             using var unknownIcon = Image.Load(unknownIconStream);
 
             // Default supported games.
@@ -163,6 +165,17 @@ namespace ClientCore.CnCNet5
                     UIName = "Yuri's Revenge",
                     Texture = AssetLoader.TextureFromImage(yrIcon)
                 },
+
+                new()
+                {
+                    ChatChannel = "#cncnet-ss",
+                    ClientExecutableName = "SoleSurvivor.exe",
+                    GameBroadcastChannel = "#cncnet-ss-games",
+                    InternalName = "ss",
+                    RegistryInstallPath = "HKLM\\Software\\Westwood\\Sole Survivor",
+                    UIName = "Sole Survivor",
+                    Texture = AssetLoader.TextureFromImage(ssIcon)
+                }
             };
 
             // CnCNet chat.
