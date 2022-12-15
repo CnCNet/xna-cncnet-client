@@ -2,7 +2,7 @@
 using ClientCore.Statistics;
 using ClientGUI;
 using DTAClient.Domain.Multiplayer;
-using Localization;
+using ClientCore.Extensions;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Rampastring.Tools;

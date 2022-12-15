@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Linq;
-using Localization;
+using ClientCore.Extensions;
 
 namespace ClientCore.CnCNet5
 {

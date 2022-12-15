@@ -1,6 +1,6 @@
 ﻿using ClientGUI;
 using DTAClient.Domain;
-using Localization;
+using ClientCore.Extensions;
 using Microsoft.Xna.Framework;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;

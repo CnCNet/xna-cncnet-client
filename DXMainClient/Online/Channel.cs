@@ -3,7 +3,7 @@ using DTAClient.Online.EventArguments;
 using System;
 using System.Collections.Generic;
 using DTAClient.DXGUI;
-using Localization;
+using ClientCore.Extensions;
 
 namespace DTAClient.Online
 {

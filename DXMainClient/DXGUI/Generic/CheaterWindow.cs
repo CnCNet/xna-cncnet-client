@@ -3,7 +3,7 @@ using System;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
 using Microsoft.Xna.Framework;
-using Localization;
+using ClientCore.Extensions;
 
 namespace DTAClient.DXGUI.Generic
 {

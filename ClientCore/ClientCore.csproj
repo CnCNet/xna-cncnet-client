@@ -50,7 +50,4 @@
     <PackageReference Include="Rampastring.XNAUI.$(Engine).Debug" Version="1.0.0" Condition="'$(Configuration.Contains(Debug))'" />
     <PackageReference Include="System.Text.Encoding.CodePages" Version="7.0.0" />
   </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\Localization\Localization.csproj" />
-  </ItemGroup>
 </Project>

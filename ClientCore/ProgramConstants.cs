@@ -1,10 +1,11 @@
-﻿using Localization;
+﻿using ClientCore.Extensions;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Reflection;
 using Rampastring.Tools;
+using ClientCore.Extensions;
 
 namespace ClientCore
 {
@@ -45,12 +46,15 @@ namespace ClientCore
         /// <summary>
         /// The language code that corresponds to the language the hardcoded client strings are in.
         /// </summary>
-        public const string HARDCODED_LOCALIZATION_CODE = "en";
+        public const string HARDCODED_LOCALE_CODE = "en";
 
         /// <summary>
-        /// How <see cref="HARDCODED_LOCALIZATION_CODE"/> should be named in the UI.
+        /// Used to denote <see cref="Environment.NewLine"/> in the INI files.
         /// </summary>
-        public const string HARDCODED_LOCALIZATION_NAME = "English";
+        /// <remarks>
+        /// Historically Westwood used '@' for this purpose, so we keep it for compatibility.
+        /// </remarks>
+        public const string INI_NEWLINE_PATTERN = "@";
 
         public const int GAME_ID_MAX_LENGTH = 4;
 

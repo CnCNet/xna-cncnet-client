@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using DTAClient.Online;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
-using Localization;
+using ClientCore.Extensions;
 
 namespace DTAClient.DXGUI.Multiplayer.CnCNet
 {

@@ -1,7 +1,7 @@
 ﻿using ClientCore;
 using ClientCore.CnCNet5;
 using ClientGUI;
-using Localization;
+using ClientCore.Extensions;
 using DTAConfig.Settings;
 using Microsoft.Xna.Framework;
 using Rampastring.XNAUI;

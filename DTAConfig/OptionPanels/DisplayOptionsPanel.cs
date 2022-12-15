@@ -1,4 +1,4 @@
-using Localization;
+using ClientCore.Extensions;
 using ClientCore;
 using ClientGUI;
 using Microsoft.Xna.Framework;
@@ -258,7 +258,7 @@ namespace DTAConfig.OptionPanels
                 ddClientTheme.Width,
                 ddClientTheme.Height);
 
-            foreach (var (locale, name) in ClientConfiguration.Instance.GetLocalizations())
+            foreach (var (locale, name) in ClientConfiguration.Instance.GetLocales())
                 ddLocale.AddItem(new XNADropDownItem() { Text = name, Tag = locale });
 
 #if TS
@@ -689,7 +689,7 @@ namespace DTAConfig.OptionPanels
             ddClientTheme.SelectedIndex = selectedThemeIndex > -1 ? selectedThemeIndex : 0;
 
             int selectedLocaleIndex = ddLocale.Items.FindIndex(
-                ddi => (string)ddi.Tag == UserINISettings.Instance.LocaleName);
+                ddi => (string)ddi.Tag == UserINISettings.Instance.LocaleCode);
             ddLocale.SelectedIndex = selectedLocaleIndex > -1 ? selectedLocaleIndex : 0;
 
 #if TS
@@ -786,10 +786,10 @@ namespace DTAConfig.OptionPanels
 
             IniSettings.ClientTheme.Value = ddClientTheme.SelectedItem.Text;
 
-            if (IniSettings.LocaleName != (string)ddLocale.SelectedItem.Tag)
+            if (IniSettings.LocaleCode != (string)ddLocale.SelectedItem.Tag)
                 restartRequired = true;
 
-            IniSettings.LocaleName.Value = (string)ddLocale.SelectedItem.Tag;
+            IniSettings.LocaleCode.Value = (string)ddLocale.SelectedItem.Tag;
 
 #if TS
             IniSettings.BackBufferInVRAM.Value = !chkBackBufferInVRAM.Checked;

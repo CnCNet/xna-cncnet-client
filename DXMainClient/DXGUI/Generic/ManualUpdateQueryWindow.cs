@@ -1,7 +1,8 @@
 ﻿using System;
 using ClientCore;
+using ClientCore.Extensions;
 using ClientGUI;
-using Localization;
+using ClientCore.Extensions;
 using Microsoft.Xna.Framework;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
@@ -53,7 +54,7 @@ namespace DTAClient.DXGUI.Generic
 
             base.Initialize();
 
-            descriptionText = lblDescription.Text.Replace("@", Environment.NewLine);
+            descriptionText = lblDescription.Text.Replace(ProgramConstants.INI_NEWLINE_PATTERN, Environment.NewLine);
 
             CenterOnParent();
         }

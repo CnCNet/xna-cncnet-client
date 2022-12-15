@@ -13,7 +13,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using ClientCore.Enums;
-using Localization;
+using ClientCore.Extensions;
 using SixLabors.ImageSharp;
 using Color = Microsoft.Xna.Framework.Color;
 using Rectangle = Microsoft.Xna.Framework.Rectangle;

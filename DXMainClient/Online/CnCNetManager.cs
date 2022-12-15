@@ -1,7 +1,7 @@
 ﻿using ClientCore;
 using ClientCore.CnCNet5;
 using DTAClient.Online.EventArguments;
-using Localization;
+using ClientCore.Extensions;
 using Microsoft.Xna.Framework;
 using Rampastring.Tools;
 using Rampastring.XNAUI;

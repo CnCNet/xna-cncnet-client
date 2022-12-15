@@ -5,7 +5,7 @@ using ClientCore;
 using Rampastring.XNAUI;
 using ClientGUI;
 using System.IO;
-using Localization;
+using ClientCore.Extensions;
 using Color = Microsoft.Xna.Framework.Color;
 using Rectangle = Microsoft.Xna.Framework.Rectangle;
 #if ARES

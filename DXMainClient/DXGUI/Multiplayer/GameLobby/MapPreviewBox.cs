@@ -11,7 +11,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using ClientGUI;
-using Localization;
+using ClientCore.Extensions;
 
 namespace DTAClient.DXGUI.Multiplayer.GameLobby
 {

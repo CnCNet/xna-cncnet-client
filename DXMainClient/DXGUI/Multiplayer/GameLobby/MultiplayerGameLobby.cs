@@ -14,7 +14,7 @@ using ClientGUI;
 using System.Text;
 using DTAClient.Domain;
 using Microsoft.Xna.Framework.Graphics;
-using Localization;
+using ClientCore.Extensions;
 
 namespace DTAClient.DXGUI.Multiplayer.GameLobby
 {

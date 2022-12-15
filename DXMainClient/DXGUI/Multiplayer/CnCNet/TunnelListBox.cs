@@ -1,5 +1,5 @@
 ﻿using DTAClient.Domain.Multiplayer.CnCNet;
-using Localization;
+using ClientCore.Extensions;
 using Microsoft.Xna.Framework;
 using Rampastring.Tools;
 using Rampastring.XNAUI;

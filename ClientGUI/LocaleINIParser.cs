@@ -4,31 +4,28 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Localization;
+using ClientCore;
+using ClientCore.I18N;
 using Microsoft.Xna.Framework;
 using Rampastring.Tools;
 using Rampastring.XNAUI.XNAControls;
 
 namespace ClientGUI;
-public class LocalizationParser : IControlINIAttributeParser
+public class LocaleINIParser : IControlINIAttributeParser
 {
-    private readonly TranslationTable _translationTable;
-
-    public LocalizationParser(TranslationTable translationTable)
-    {
-        _translationTable = translationTable;
-    }
+    private static LocaleINIParser _instance;
+    public static LocaleINIParser Instance => _instance ??= new LocaleINIParser();
 
     // shorthand for localization function
     private string Localize(XNAControl control, string attributeName, string defaultValue, bool notify = true)
-        => _translationTable.LocalizeControlINIAttribute(control, attributeName, defaultValue, notify);
+        => Locale.Instance.Localize(control, attributeName, defaultValue, notify);
 
     public bool ParseINIAttribute(XNAControl control, IniFile iniFile, string key, string value)
     {
         switch (key)
         {
             case "Text":
-                control.Text = Localize(control, key, value).Replace("@", Environment.NewLine);
+                control.Text = Localize(control, key, value.Replace(ProgramConstants.INI_NEWLINE_PATTERN, Environment.NewLine));
                 return true;
             case "Size":
                 string[] size = Localize(control, key, value, notify: false).Split(',');
@@ -82,7 +79,7 @@ public class LocalizationParser : IControlINIAttributeParser
                 }
                 return true;
             case "ToolTip" when control is IHasToolTip controlWithToolTip:
-                controlWithToolTip.ToolTipText = Localize(control, key, value).Replace("@", Environment.NewLine);
+                controlWithToolTip.ToolTipText = Localize(control, key, value.Replace(ProgramConstants.INI_NEWLINE_PATTERN, Environment.NewLine));
                 return true;
         }
 

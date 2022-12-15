@@ -13,7 +13,8 @@ using Color = Microsoft.Xna.Framework.Color;
 using Point = Microsoft.Xna.Framework.Point;
 using Utilities = Rampastring.Tools.Utilities;
 using static System.Collections.Specialized.BitVector32;
-using Localization;
+using ClientCore.Extensions;
+using ClientCore.Extensions;
 
 namespace DTAClient.Domain.Multiplayer
 {
@@ -280,7 +281,7 @@ namespace DTAClient.Domain.Multiplayer
                 EnforceMaxPlayers = section.GetBooleanValue("EnforceMaxPlayers", false);
                 PreviewPath = SafePath.CombineFilePath(SafePath.GetFile(BaseFilePath).DirectoryName, FormattableString.Invariant($"{section.GetStringValue("PreviewImage", Path.GetFileNameWithoutExtension(BaseFilePath))}.png"));
                 Briefing = section.GetStringValue("Briefing", string.Empty)
-                    .L10N($"UI:Map:{BaseFilePath}:Briefing").Replace("@", Environment.NewLine);
+                    .L10N($"UI:Map:{BaseFilePath}:Briefing").Replace(ProgramConstants.INI_NEWLINE_PATTERN, Environment.NewLine);
                 CalculateSHA();
                 IsCoop = section.GetBooleanValue("IsCoopMission", false);
                 Credits = section.GetIntValue("Credits", -1);
@@ -538,7 +539,7 @@ namespace DTAClient.Domain.Multiplayer
                 EnforceMaxPlayers = basicSection.GetBooleanValue("EnforceMaxPlayers", true);
                 // PreviewPath = Path.GetDirectoryName(BaseFilePath) + "/" +
                 //    iniFile.GetStringValue(BaseFilePath, "PreviewImage", Path.GetFileNameWithoutExtension(BaseFilePath) + ".png");
-                Briefing = basicSection.GetStringValue("Briefing", string.Empty).Replace("@", Environment.NewLine);
+                Briefing = basicSection.GetStringValue("Briefing", string.Empty).Replace(ProgramConstants.INI_NEWLINE_PATTERN, Environment.NewLine);
                 CalculateSHA();
                 IsCoop = basicSection.GetBooleanValue("IsCoopMission", false);
                 Credits = basicSection.GetIntValue("Credits", -1);

@@ -3,7 +3,7 @@ using ClientCore.CnCNet5;
 using ClientGUI;
 using DTAClient.Domain;
 using DTAClient.DXGUI.Generic;
-using Localization;
+using ClientCore.Extensions;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
@@ -64,7 +64,9 @@ namespace DTAClient.DXGUI
             base.Initialize();
 
             AssetLoader.Initialize(GraphicsDevice, content);
+            AssetLoader.AssetSearchPaths.Add(UserINISettings.Instance.LocaleThemeFolderPath);
             AssetLoader.AssetSearchPaths.Add(ProgramConstants.GetResourcePath());
+            AssetLoader.AssetSearchPaths.Add(UserINISettings.Instance.LocaleFolderPath);
             AssetLoader.AssetSearchPaths.Add(ProgramConstants.GetBaseResourcePath());
             AssetLoader.AssetSearchPaths.Add(ProgramConstants.GamePath);
 
@@ -127,8 +129,7 @@ namespace DTAClient.DXGUI
             WindowManager wm = new WindowManager(this, graphics);
             wm.Initialize(content, ProgramConstants.GetBaseResourcePath());
 
-            // TODO migrate translation provider to DI
-            wm.ControlINIAttributeParsers.Add(new LocalizationParser(TranslationTable.Instance));
+            wm.ControlINIAttributeParsers.Add(new LocaleINIParser());
 
             ProgramConstants.DisplayErrorAction = (title, error, exit) =>
             {

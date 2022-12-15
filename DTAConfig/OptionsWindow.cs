@@ -1,4 +1,4 @@
-﻿using Localization;
+﻿using ClientCore.Extensions;
 using ClientCore;
 using ClientCore.CnCNet5;
 using ClientGUI;

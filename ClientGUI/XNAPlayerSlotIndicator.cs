@@ -3,7 +3,7 @@ using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
 using System;
 using System.Collections.Generic;
-using Localization;
+using ClientCore.Extensions;
 
 namespace ClientGUI
 {

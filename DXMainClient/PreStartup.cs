@@ -10,11 +10,12 @@ using ClientCore;
 using System.Security.AccessControl;
 using System.Security.Principal;
 using System.Collections.Generic;
-using Localization;
+using ClientCore.Extensions;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
+using ClientCore.I18N;
 
 namespace DTAClient
 {
@@ -96,56 +97,60 @@ namespace DTAClient
 
             UserINISettings.Initialize(ClientConfiguration.Instance.SettingsIniName);
 
-            // Try to load translations
+            // Try to load locale
             try
             {
-                TranslationTable translation;
-                var iniFileInfo = SafePath.GetFile(ProgramConstants.GamePath, ClientConfiguration.Instance.LocalizationIniName);
+                Locale locale;
+                FileInfo localeThemeFile = SafePath.GetFile(UserINISettings.Instance.LocaleThemeFolderPath, ClientConfiguration.Instance.LocaleIniName);
+                FileInfo localeFile = SafePath.GetFile(UserINISettings.Instance.LocaleFolderPath, ClientConfiguration.Instance.LocaleIniName);
 
-                if (iniFileInfo.Exists)
+                if (localeThemeFile.Exists)
                 {
-                    translation = TranslationTable.LoadFromIniFile(iniFileInfo.FullName);
+                    Logger.Log($"Loading theme-specific locale file at {localeThemeFile.FullName}");
+                    locale = Locale.LoadFromIniFile(localeThemeFile.FullName, UserINISettings.Instance.LocaleCode);
+                }
+                else if (localeFile.Exists)
+                {
+                    Logger.Log($"Theme-specific locale file at {localeThemeFile.FullName} not found!");
+                    Logger.Log($"Loading generic locale file at {localeFile.FullName}");
+                    locale = Locale.LoadFromIniFile(localeFile.FullName, UserINISettings.Instance.LocaleCode);
                 }
                 else
                 {
-                    Logger.Log("Failed to load the translation file. File does not exist.");
-
-                    translation = new TranslationTable();
+                    Logger.Log($"Failed to load a locale file. " +
+                        $"Neither {localeThemeFile.FullName} nor {localeFile.FullName} exist.");
+                    locale = new Locale(UserINISettings.Instance.LocaleCode);
                 }
 
-                TranslationTable.Instance = translation;
-                Logger.Log("Load translation: " + translation.LanguageName);
+                Locale.Instance = locale;
+                Logger.Log("Loaded locale: " + locale.Name);
             }
             catch (Exception ex)
             {
                 Logger.Log("Failed to load the translation file. " + ex.Message);
-                TranslationTable.Instance = new TranslationTable();
+                Locale.Instance = new Locale(UserINISettings.Instance.LocaleCode);
             }
 
             try
             {
-                if (ClientConfiguration.Instance.GenerateTranslationStub)
+                if (UserINISettings.Instance.GenerateLocaleStub)
                 {
-                    string stubPath = SafePath.CombineFilePath(ProgramConstants.ClientUserFilesPath, "Translation.stub.ini");
-                    var stubTable = TranslationTable.Instance.Clone();
-                    TranslationTable.Instance.MissingTranslationEvent += (sender, e) =>
-                    {
-                        stubTable.Table.Add(e.Label, e.DefaultValue);
-                    };
+                    string stubPath = SafePath.CombineFilePath(
+                        ProgramConstants.ClientUserFilesPath, ClientConfiguration.Instance.LocaleIniName);
 
                     AppDomain.CurrentDomain.ProcessExit += (sender, e) =>
                     {
-                        Logger.Log("Writing the translation stub file.");
-                        var ini = stubTable.SaveIni();
+                        Logger.Log("Writing the locale stub file.");
+                        var ini = Locale.Instance.DumpIni(UserINISettings.Instance.GenerateOnlyNewValuesInLocaleStub);
                         ini.WriteIniFile(stubPath);
                     };
 
-                    Logger.Log("Generating translation stub feature is now enabled. The stub file will be written when the client exits.");
+                    Logger.Log("Locale stub generation feature is now enabled. The stub file will be written when the client exits.");
                 }
             }
             catch (Exception ex)
             {
-                Logger.Log("Failed to generate the translation stub. " + ex.Message);
+                Logger.Log("Failed to generate the locale stub: " + ex.Message);
             }
 
             // Delete obsolete files from old target project versions

@@ -11,7 +11,7 @@ using Rampastring.Tools;
 using System.IO;
 using DTAClient.Domain;
 using Microsoft.Xna.Framework;
-using Localization;
+using ClientCore.Extensions;
 
 namespace DTAClient.DXGUI.Multiplayer.GameLobby
 {

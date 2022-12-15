@@ -20,7 +20,7 @@ using System.Reflection;
 using System.Threading;
 using ClientCore.Enums;
 using DTAConfig;
-using Localization;
+using ClientCore.Extensions;
 using SixLabors.ImageSharp;
 using Color = Microsoft.Xna.Framework.Color;
 using Rectangle = Microsoft.Xna.Framework.Rectangle;

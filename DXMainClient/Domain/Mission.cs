@@ -1,4 +1,6 @@
-﻿using Localization;
+﻿using ClientCore;
+using ClientCore.Extensions;
+using ClientCore.Extensions;
 using Rampastring.Tools;
 using System;
 
@@ -19,8 +21,8 @@ namespace DTAClient.Domain
                 .L10N($"UI:Mission:{sectionName}:Description");
             IconPath = iniFile.GetStringValue(sectionName, "SideName", string.Empty);
             GUIDescription = iniFile.GetStringValue(sectionName, "LongDescription", string.Empty)
-                .L10N($"UI:Mission:{sectionName}:LongDescription")
-                .Replace("@", Environment.NewLine);
+                .Replace(ProgramConstants.INI_NEWLINE_PATTERN, Environment.NewLine)
+                .L10N($"UI:Mission:{sectionName}:LongDescription");
             FinalMovie = iniFile.GetStringValue(sectionName, nameof(FinalMovie), "none");
             RequiredAddon = iniFile.GetBooleanValue(sectionName, nameof(RequiredAddon), false);
             Enabled = iniFile.GetBooleanValue(sectionName, nameof(Enabled), true);

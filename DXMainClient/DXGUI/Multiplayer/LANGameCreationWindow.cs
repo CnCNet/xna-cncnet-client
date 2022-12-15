@@ -6,7 +6,7 @@ using Microsoft.Xna.Framework;
 using ClientCore;
 using System.IO;
 using Rampastring.Tools;
-using Localization;
+using ClientCore.Extensions;
 
 namespace DTAClient.DXGUI.Multiplayer
 {

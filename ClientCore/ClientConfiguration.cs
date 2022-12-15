@@ -3,6 +3,7 @@ using Rampastring.Tools;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Collections.Generic;
+using ClientCore.I18N;
 
 namespace ClientCore
 {
@@ -254,42 +255,34 @@ namespace ClientCore
 
         public string SettingsIniName => clientDefinitionsIni.GetStringValue(SETTINGS, "SettingsFile", "Settings.ini");
 
-        public string LocalizationIniName => clientDefinitionsIni.GetStringValue(SETTINGS, "LocalizationIniName", "Localization.ini");
+        public string LocaleIniName => clientDefinitionsIni.GetStringValue(SETTINGS, nameof(LocaleIniName), "Locale.ini");
 
-        public string LocalizationsFolderPath => SafePath.CombineDirectoryPath(
-            clientDefinitionsIni.GetStringValue(SETTINGS, "LocalizationsFolder",
-                SafePath.CombineDirectoryPath("Resources", "Localizations")));
+        public string LocalesFolderPath => SafePath.CombineDirectoryPath(
+            clientDefinitionsIni.GetStringValue(SETTINGS, "LocalesFolder",
+                SafePath.CombineDirectoryPath("Resources", "Locales")));
 
         /// <summary>
-        /// Lists valid available localizations from the <see cref="LocalizationsFolderPath"/> along with their UI names.
-        /// A localization is valid if it has a corresponding <see cref="LocalizationIniName"/> file in the <see cref="LocalizationsFolderPath"/>.
+        /// Lists valid available locales from the <see cref="LocalesFolderPath"/> along with their UI names.
+        /// A localization is valid if it has a corresponding <see cref="LocaleIniName"/> file in the <see cref="LocalesFolderPath"/>.
         /// </summary>
-        public Dictionary<string, string> GetLocalizations()
+        public Dictionary<string, string> GetLocales()
         {
-            var localizations = new Dictionary<string, string>
+            var locales = new Dictionary<string, string>
             {
                 // Add default localization so that we always have it in the list even if the localization does not exist
-                [ProgramConstants.HARDCODED_LOCALIZATION_CODE] = ProgramConstants.HARDCODED_LOCALIZATION_NAME
+                [ProgramConstants.HARDCODED_LOCALE_CODE] = Locale.GetLocaleName(ProgramConstants.HARDCODED_LOCALE_CODE)
             };
 
-            if (!Directory.Exists(LocalizationsFolderPath))
-                return localizations;
+            if (!Directory.Exists(LocalesFolderPath))
+                return locales;
 
-            foreach (var localizationFolder in Directory.GetDirectories(LocalizationsFolderPath))
+            foreach (var localizationFolder in Directory.GetDirectories(LocalesFolderPath))
             {
-                string localizationIniPath = SafePath.CombineFilePath(localizationFolder, LocalizationIniName);
-                if (!File.Exists(localizationIniPath))
-                    continue;
-
                 string localizationCode = Path.GetFileName(localizationFolder);
-                var localizationIni = new IniFile(localizationIniPath);
-                string localizationName = localizationIni.GetStringValue("General", "LanguageName", null)
-                    ?? localizationCode;
-
-                localizations[localizationCode] = localizationName;
+                locales[localizationCode] = Locale.GetLocaleName(localizationCode);
             }
 
-            return localizations;
+            return locales;
         }
 
         public bool GenerateTranslationStub => clientDefinitionsIni.GetBooleanValue(SETTINGS, "GenerateTranslationStub", false);

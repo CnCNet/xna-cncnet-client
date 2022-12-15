@@ -1,5 +1,6 @@
 ﻿using ClientCore;
-using Localization;
+using ClientCore.I18N;
+using ClientCore.Extensions;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 using Rampastring.Tools;
@@ -168,7 +169,7 @@ namespace ClientGUI
 
             // shorthand for localization function
             static string Localize(XNAControl control, string attributeName, string defaultValue, bool notify = true)
-                => TranslationTable.Instance.LocalizeControlINIAttribute(control, attributeName, defaultValue, notify);
+                => Locale.Instance.Localize(control, attributeName, defaultValue, notify);
 
             foreach (var kvp in section.Keys)
             {

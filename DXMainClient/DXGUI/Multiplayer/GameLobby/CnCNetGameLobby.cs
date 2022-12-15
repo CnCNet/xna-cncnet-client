@@ -18,7 +18,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using DTAClient.Domain.Multiplayer.CnCNet;
-using Localization;
+using ClientCore.Extensions;
 
 namespace DTAClient.DXGUI.Multiplayer.GameLobby
 {

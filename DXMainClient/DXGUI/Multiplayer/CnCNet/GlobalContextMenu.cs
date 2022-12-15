@@ -5,7 +5,7 @@ using ClientCore.Extensions;
 using ClientGUI;
 using DTAClient.Online;
 using DTAClient.Online.EventArguments;
-using Localization;
+using ClientCore.Extensions;
 using Microsoft.Xna.Framework;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;

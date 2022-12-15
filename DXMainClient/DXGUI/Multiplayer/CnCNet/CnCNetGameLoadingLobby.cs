@@ -8,7 +8,7 @@ using DTAClient.DXGUI.Generic;
 using DTAClient.DXGUI.Multiplayer.GameLobby.CommandHandlers;
 using DTAClient.Online;
 using DTAClient.Online.EventArguments;
-using Localization;
+using ClientCore.Extensions;
 using Microsoft.Xna.Framework;
 using Rampastring.Tools;
 using Rampastring.XNAUI;

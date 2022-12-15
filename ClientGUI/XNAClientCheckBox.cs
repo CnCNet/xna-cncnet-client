@@ -2,6 +2,7 @@
 using Rampastring.XNAUI;
 using System;
 using Rampastring.Tools;
+using ClientCore;
 
 namespace ClientGUI
 {
@@ -37,7 +38,7 @@ namespace ClientGUI
         {
             if (key == "ToolTip")
             {
-                ToolTipText = value.Replace("@", Environment.NewLine);
+                ToolTipText = value.Replace(ProgramConstants.INI_NEWLINE_PATTERN, Environment.NewLine);
                 return;
             }
 

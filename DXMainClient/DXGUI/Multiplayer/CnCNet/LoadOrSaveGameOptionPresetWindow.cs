@@ -3,7 +3,7 @@ using System.Linq;
 using ClientGUI;
 using DTAClient.Domain.Multiplayer;
 using DTAClient.Online.EventArguments;
-using Localization;
+using ClientCore.Extensions;
 using Microsoft.Xna.Framework;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;

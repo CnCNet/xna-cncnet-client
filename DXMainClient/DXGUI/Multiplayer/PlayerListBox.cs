@@ -1,6 +1,6 @@
 ﻿using ClientCore.CnCNet5;
 using DTAClient.Online;
-using Localization;
+using ClientCore.Extensions;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Rampastring.XNAUI;

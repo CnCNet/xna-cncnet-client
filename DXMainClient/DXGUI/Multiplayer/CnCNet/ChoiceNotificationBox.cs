@@ -1,5 +1,5 @@
 ﻿using ClientGUI;
-using Localization;
+using ClientCore.Extensions;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Rampastring.XNAUI;

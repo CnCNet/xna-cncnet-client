@@ -5,7 +5,7 @@ using DTAClient.Domain.Multiplayer;
 using DTAClient.Domain.Multiplayer.LAN;
 using DTAClient.DXGUI.Multiplayer.GameLobby;
 using DTAClient.Online;
-using Localization;
+using ClientCore.Extensions;
 using Microsoft.Xna.Framework;
 using Rampastring.Tools;
 using Rampastring.XNAUI;
