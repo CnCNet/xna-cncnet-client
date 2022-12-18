@@ -30,6 +30,7 @@ internal sealed class ReplayHandler : IAsyncDisposable
         this.gameLocalPlayerId = gameLocalPlayerId;
         startTimestamp = DateTimeOffset.Now;
         replayDirectory = SafePath.GetDirectory(ProgramConstants.GamePath, ProgramConstants.REPLAYS_DIRECTORY, replayId.ToString(CultureInfo.InvariantCulture));
+        gameStarted = false;
 
         replayDirectory.Create();
         replayFileStreams.Add(gameLocalPlayerId, CreateReplayFileStream());
@@ -97,7 +98,7 @@ internal sealed class ReplayHandler : IAsyncDisposable
             }
         }
 
-        spawnFile.Delete();
+        SafePath.DeleteFileIfExists(spawnFile.FullName);
     }
 
     public async ValueTask DisposeAsync()
@@ -105,7 +106,11 @@ internal sealed class ReplayHandler : IAsyncDisposable
         foreach ((_, FileStream fileStream) in replayFileStreams)
             await fileStream.DisposeAsync().ConfigureAwait(false);
 
-        replayDirectory.Delete();
+        replayFileStreams.Clear();
+        replayDirectory?.Refresh();
+
+        if (replayDirectory?.Exists ?? false)
+            SafePath.DeleteDirectoryIfExists(true, replayDirectory.FullName);
     }
 
     public void RemoteHostConnection_DataReceivedAsync(object sender, DataReceivedEventArgs e)

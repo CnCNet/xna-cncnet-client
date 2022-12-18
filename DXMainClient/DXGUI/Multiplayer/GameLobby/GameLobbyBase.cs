@@ -1798,9 +1798,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             GameProcessLogic.GameProcessExited -= GameProcessExited_Callback;
 
             Logger.Log("GameProcessExited: Parsing statistics.");
-            matchStatistics.ParseStatisticsAsync(ProgramConstants.GamePath, false).HandleTask();
+            await matchStatistics.ParseStatisticsAsync(ProgramConstants.GamePath, false).ConfigureAwait(true);
             Logger.Log("GameProcessExited: Adding match to statistics.");
-            StatisticsManager.Instance.AddMatchAndSaveDatabaseAsync(true, matchStatistics).HandleTask();
+            await StatisticsManager.Instance.AddMatchAndSaveDatabaseAsync(true, matchStatistics).ConfigureAwait(true);
             ClearReadyStatuses();
             CopyPlayerDataToUI();
             UpdateDiscordPresence(true);

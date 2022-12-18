@@ -182,7 +182,7 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
             CnCNetLobbyCommands.RECORD,
             "Toggle recording game replay".L10N("Client:Main:ChangeRecord"),
             false,
-            _ => ToggleRecord()));
+            _ => ToggleRecordAsync().HandleTask()));
         AddChatBoxCommand(new(
             CnCNetLobbyCommands.REPLAY,
             "Start a game replay.\nExample: \"/replay REPLAYID".L10N("Client:Main:StartReplay"),
@@ -1399,11 +1399,11 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
         await SendPlayerP2PRequestAsync().ConfigureAwait(false);
     }
 
-    private void ToggleRecord()
+    private async ValueTask ToggleRecordAsync()
     {
-        v3ConnectionState.RecordingEnabled = !v3ConnectionState.RecordingEnabled;
+        bool recordingEnabled = await v3ConnectionState.ToggleRecordingAsync().ConfigureAwait(false);
 
-        if (v3ConnectionState.RecordingEnabled)
+        if (recordingEnabled)
             AddNotice(string.Format(CultureInfo.CurrentCulture, "Player {0} enabled game recording".L10N("Client:Main:RecordEnabled"), FindLocalPlayer().Name));
         else
             AddNotice(string.Format(CultureInfo.CurrentCulture, "Player {0} disabled game recording".L10N("Client:Main:RecordDisabled"), FindLocalPlayer().Name));
