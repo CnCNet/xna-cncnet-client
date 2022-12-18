@@ -7,6 +7,7 @@ using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
 using ClientCore;
+using DTAClient.Domain.Multiplayer.CnCNet.Replays;
 using DTAClient.Domain.Multiplayer.CnCNet.UPNP;
 
 namespace DTAClient.Domain.Multiplayer.CnCNet;
@@ -17,15 +18,17 @@ internal sealed class V3ConnectionState : IAsyncDisposable
     private const int PINNED_DYNAMIC_TUNNELS = 10;
 
     private readonly TunnelHandler tunnelHandler;
+    private readonly List<(string RemotePlayerName, CnCNetTunnel Tunnel, int CombinedPing)> playerTunnels = new();
 
     private IPAddress publicIpV4Address;
     private IPAddress publicIpV6Address;
     private List<ushort> p2pIpV6PortIds = new();
     private InternetGatewayDevice internetGatewayDevice;
-
-    public List<(ushort InternalPort, ushort ExternalPort)> IpV6P2PPorts { get; private set; } = new();
-
-    public List<(ushort InternalPort, ushort ExternalPort)> IpV4P2PPorts { get; private set; } = new();
+    private List<PlayerInfo> playerInfos;
+    private List<uint> gamePlayerIds;
+    private List<(ushort InternalPort, ushort ExternalPort)> ipV6P2PPorts = new();
+    private List<(ushort InternalPort, ushort ExternalPort)> ipV4P2PPorts = new();
+    private ReplayHandler replayHandler;
 
     public List<(int Ping, string Hash)> PinnedTunnels { get; private set; } = new();
 
@@ -35,11 +38,11 @@ internal sealed class V3ConnectionState : IAsyncDisposable
 
     public bool P2PEnabled { get; set; }
 
+    public bool RecordingEnabled { get; set; }
+
     public CnCNetTunnel InitialTunnel { get; private set; }
 
     public CancellationTokenSource StunCancellationTokenSource { get; private set; }
-
-    public List<(string RemotePlayerName, CnCNetTunnel Tunnel, int CombinedPing)> PlayerTunnels { get; } = new();
 
     public List<(List<string> RemotePlayerNames, V3GameTunnelHandler Tunnel)> V3GameTunnelHandlers { get; } = new();
 
@@ -53,16 +56,7 @@ internal sealed class V3ConnectionState : IAsyncDisposable
     public void Setup(CnCNetTunnel tunnel)
     {
         InitialTunnel = tunnel;
-
-        if (!DynamicTunnelsEnabled)
-        {
-            tunnelHandler.CurrentTunnel = InitialTunnel;
-        }
-        else
-        {
-            tunnelHandler.CurrentTunnel = GetEligibleTunnels()
-                .MinBy(q => q.PingInMs);
-        }
+        tunnelHandler.CurrentTunnel = !DynamicTunnelsEnabled ? InitialTunnel : GetEligibleTunnels().MinBy(q => q.PingInMs);
     }
 
     public void PinTunnels()
@@ -82,7 +76,7 @@ internal sealed class V3ConnectionState : IAsyncDisposable
 
     public async ValueTask<bool> HandlePlayerP2PRequestAsync()
     {
-        if (!IpV6P2PPorts.Any() && !IpV4P2PPorts.Any())
+        if (!ipV6P2PPorts.Any() && !ipV4P2PPorts.Any())
         {
             var p2pPorts = NetworkHelper.GetFreeUdpPorts(Array.Empty<ushort>(), MAX_REMOTE_PLAYERS).ToList();
 
@@ -91,7 +85,7 @@ internal sealed class V3ConnectionState : IAsyncDisposable
 
             StunCancellationTokenSource = new();
 
-            (internetGatewayDevice, IpV6P2PPorts, IpV4P2PPorts, p2pIpV6PortIds, publicIpV6Address, publicIpV4Address) = await UPnPHandler.SetupPortsAsync(
+            (internetGatewayDevice, ipV6P2PPorts, ipV4P2PPorts, p2pIpV6PortIds, publicIpV6Address, publicIpV4Address) = await UPnPHandler.SetupPortsAsync(
                 internetGatewayDevice, p2pPorts, tunnelHandler.CurrentTunnel?.IPAddresses ?? InitialTunnel.IPAddresses, StunCancellationTokenSource.Token).ConfigureAwait(false);
         }
 
@@ -100,13 +94,13 @@ internal sealed class V3ConnectionState : IAsyncDisposable
 
     public void RemoveV3Player(string playerName)
     {
-        PlayerTunnels.Remove(PlayerTunnels.SingleOrDefault(q => q.RemotePlayerName.Equals(playerName, StringComparison.OrdinalIgnoreCase)));
+        playerTunnels.Remove(playerTunnels.SingleOrDefault(q => q.RemotePlayerName.Equals(playerName, StringComparison.OrdinalIgnoreCase)));
         P2PPlayers.Remove(P2PPlayers.SingleOrDefault(q => q.RemotePlayerName.Equals(playerName, StringComparison.OrdinalIgnoreCase)));
     }
 
     public string GetP2PRequestCommand()
-        => $" {publicIpV4Address}\t{(!IpV4P2PPorts.Any() ? null : IpV4P2PPorts.Select(q => q.ExternalPort.ToString(CultureInfo.InvariantCulture)).Aggregate((q, r) => $"{q}-{r}"))}" +
-        $";{publicIpV6Address}\t{(!IpV6P2PPorts.Any() ? null : IpV6P2PPorts.Select(q => q.ExternalPort.ToString(CultureInfo.InvariantCulture)).Aggregate((q, r) => $"{q}-{r}"))}";
+        => $" {publicIpV4Address}\t{(!ipV4P2PPorts.Any() ? null : ipV4P2PPorts.Select(q => q.ExternalPort.ToString(CultureInfo.InvariantCulture)).Aggregate((q, r) => $"{q}-{r}"))}" +
+        $";{publicIpV6Address}\t{(!ipV6P2PPorts.Any() ? null : ipV6P2PPorts.Select(q => q.ExternalPort.ToString(CultureInfo.InvariantCulture)).Aggregate((q, r) => $"{q}-{r}"))}";
 
     public string GetP2PPingCommand(string playerName)
         => $" {playerName}-{P2PPlayers.Single(q => q.RemotePlayerName.Equals(playerName, StringComparison.OrdinalIgnoreCase)).LocalPingResults.Select(q => $"{q.RemoteIpAddress};{q.Ping}\t").Aggregate((q, r) => $"{q}{r}")}";
@@ -224,14 +218,24 @@ internal sealed class V3ConnectionState : IAsyncDisposable
     }
 
     public void StartV3ConnectionListeners(
+        int uniqueGameId,
         uint gameLocalPlayerId,
         string localPlayerName,
-        List<PlayerInfo> players,
+        List<PlayerInfo> playerInfos,
         Action remoteHostConnectedAction,
         Action remoteHostConnectionFailedAction,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken = default)
     {
+        this.playerInfos = playerInfos;
+
         V3GameTunnelHandlers.Clear();
+
+        if (RecordingEnabled)
+        {
+            replayHandler = new();
+
+            replayHandler.SetupRecording(uniqueGameId, gameLocalPlayerId);
+        }
 
         if (!DynamicTunnelsEnabled)
         {
@@ -239,10 +243,12 @@ internal sealed class V3ConnectionState : IAsyncDisposable
 
             gameTunnelHandler.RaiseRemoteHostConnectedEvent += (_, _) => remoteHostConnectedAction();
             gameTunnelHandler.RaiseRemoteHostConnectionFailedEvent += (_, _) => remoteHostConnectionFailedAction();
+            gameTunnelHandler.RaiseRemoteHostDataReceivedEvent += replayHandler.RemoteHostConnection_DataReceivedAsync;
+            gameTunnelHandler.RaiseLocalGameDataReceivedEvent += replayHandler.LocalGameConnection_DataReceivedAsync;
 
             gameTunnelHandler.SetUp(new(tunnelHandler.CurrentTunnel.IPAddress, tunnelHandler.CurrentTunnel.Port), 0, gameLocalPlayerId, cancellationToken);
             gameTunnelHandler.ConnectToTunnel();
-            V3GameTunnelHandlers.Add(new(players.Where(q => !q.Name.Equals(localPlayerName, StringComparison.OrdinalIgnoreCase)).Select(q => q.Name).ToList(), gameTunnelHandler));
+            V3GameTunnelHandlers.Add(new(playerInfos.Where(q => !q.Name.Equals(localPlayerName, StringComparison.OrdinalIgnoreCase)).Select(q => q.Name).ToList(), gameTunnelHandler));
         }
         else
         {
@@ -260,23 +266,23 @@ internal sealed class V3ConnectionState : IAsyncDisposable
                         .Select(q => (q.RemoteIpAddress, q.Ping + remotePingResults.Single(r => r.RemoteIpAddress.AddressFamily == q.RemoteIpAddress.AddressFamily).Ping))
                         .MaxBy(q => q.RemoteIpAddress.AddressFamily);
 
-                    if (combinedPing < PlayerTunnels.Single(q => q.RemotePlayerName.Equals(remotePlayerName, StringComparison.OrdinalIgnoreCase)).CombinedPing)
+                    if (combinedPing < playerTunnels.Single(q => q.RemotePlayerName.Equals(remotePlayerName, StringComparison.OrdinalIgnoreCase)).CombinedPing)
                     {
                         ushort[] localPorts;
                         ushort[] remotePorts;
 
                         if (selectedRemoteIpAddress.AddressFamily is AddressFamily.InterNetworkV6)
                         {
-                            localPorts = IpV6P2PPorts.Select(q => q.InternalPort).ToArray();
+                            localPorts = ipV6P2PPorts.Select(q => q.InternalPort).ToArray();
                             remotePorts = remoteIpV6Ports;
                         }
                         else
                         {
-                            localPorts = IpV4P2PPorts.Select(q => q.InternalPort).ToArray();
+                            localPorts = ipV4P2PPorts.Select(q => q.InternalPort).ToArray();
                             remotePorts = remoteIpV4Ports;
                         }
 
-                        var allPlayerNames = players.Select(q => q.Name).OrderBy(q => q, StringComparer.OrdinalIgnoreCase).ToList();
+                        var allPlayerNames = playerInfos.Select(q => q.Name).OrderBy(q => q, StringComparer.OrdinalIgnoreCase).ToList();
                         var remotePlayerNames = allPlayerNames.Where(q => !q.Equals(localPlayerName, StringComparison.OrdinalIgnoreCase)).ToList();
                         var tunnelClientPlayerNames = allPlayerNames.Where(q => !q.Equals(remotePlayerName, StringComparison.OrdinalIgnoreCase)).ToList();
                         ushort localPort = localPorts[6 - remotePlayerNames.FindIndex(q => q.Equals(remotePlayerName, StringComparison.OrdinalIgnoreCase))];
@@ -285,6 +291,8 @@ internal sealed class V3ConnectionState : IAsyncDisposable
 
                         p2pLocalTunnelHandler.RaiseRemoteHostConnectedEvent += (_, _) => remoteHostConnectedAction();
                         p2pLocalTunnelHandler.RaiseRemoteHostConnectionFailedEvent += (_, _) => remoteHostConnectionFailedAction();
+                        p2pLocalTunnelHandler.RaiseRemoteHostDataReceivedEvent += replayHandler.RemoteHostConnection_DataReceivedAsync;
+                        p2pLocalTunnelHandler.RaiseLocalGameDataReceivedEvent += replayHandler.LocalGameConnection_DataReceivedAsync;
 
                         p2pLocalTunnelHandler.SetUp(new(selectedRemoteIpAddress, remotePort), localPort, gameLocalPlayerId, cancellationToken);
                         p2pLocalTunnelHandler.ConnectToTunnel();
@@ -294,12 +302,14 @@ internal sealed class V3ConnectionState : IAsyncDisposable
                 }
             }
 
-            foreach (IGrouping<CnCNetTunnel, (string Name, CnCNetTunnel Tunnel, int CombinedPing)> tunnelGrouping in PlayerTunnels.Where(q => !p2pPlayerTunnels.Contains(q.RemotePlayerName, StringComparer.OrdinalIgnoreCase)).GroupBy(q => q.Tunnel))
+            foreach (IGrouping<CnCNetTunnel, (string Name, CnCNetTunnel Tunnel, int CombinedPing)> tunnelGrouping in playerTunnels.Where(q => !p2pPlayerTunnels.Contains(q.RemotePlayerName, StringComparer.OrdinalIgnoreCase)).GroupBy(q => q.Tunnel))
             {
                 var gameTunnelHandler = new V3GameTunnelHandler();
 
                 gameTunnelHandler.RaiseRemoteHostConnectedEvent += (_, _) => remoteHostConnectedAction();
                 gameTunnelHandler.RaiseRemoteHostConnectionFailedEvent += (_, _) => remoteHostConnectionFailedAction();
+                gameTunnelHandler.RaiseRemoteHostDataReceivedEvent += replayHandler.RemoteHostConnection_DataReceivedAsync;
+                gameTunnelHandler.RaiseLocalGameDataReceivedEvent += replayHandler.LocalGameConnection_DataReceivedAsync;
 
                 gameTunnelHandler.SetUp(new(tunnelGrouping.Key.IPAddress, tunnelGrouping.Key.Port), 0, gameLocalPlayerId, cancellationToken);
                 gameTunnelHandler.ConnectToTunnel();
@@ -308,20 +318,92 @@ internal sealed class V3ConnectionState : IAsyncDisposable
         }
     }
 
+    public List<ushort> StartPlayerConnections(List<uint> gamePlayerIds)
+    {
+        this.gamePlayerIds = gamePlayerIds;
+
+        List<ushort> usedPorts = new(ipV4P2PPorts.Select(q => q.InternalPort).Concat(ipV6P2PPorts.Select(q => q.InternalPort)).Distinct());
+
+        foreach ((List<string> remotePlayerNames, V3GameTunnelHandler v3GameTunnelHandler) in V3GameTunnelHandlers)
+        {
+            var currentTunnelPlayers = playerInfos.Where(q => remotePlayerNames.Contains(q.Name)).ToList();
+            IEnumerable<int> indexes = currentTunnelPlayers.Select(q => q.Index);
+            var playerIds = indexes.Select(q => gamePlayerIds[q]).ToList();
+            var createdLocalPlayerPorts = v3GameTunnelHandler.CreatePlayerConnections(playerIds).ToList();
+            int i = 0;
+
+            foreach (PlayerInfo currentTunnelPlayer in currentTunnelPlayers)
+                currentTunnelPlayer.Port = createdLocalPlayerPorts.Skip(i++).Take(1).Single();
+
+            usedPorts.AddRange(createdLocalPlayerPorts);
+        }
+
+        foreach (V3GameTunnelHandler v3GameTunnelHandler in V3GameTunnelHandlers.Select(q => q.Tunnel))
+            v3GameTunnelHandler.StartPlayerConnections();
+
+        return usedPorts;
+    }
+
+    public async ValueTask SaveReplayAsync()
+    {
+        if (!RecordingEnabled)
+            return;
+
+        await replayHandler.StopRecordingAsync(gamePlayerIds, playerInfos, V3GameTunnelHandlers.Select(q => q.Tunnel).ToList()).ConfigureAwait(false);
+    }
+
+    public async ValueTask ClearConnectionsAsync()
+    {
+        if (replayHandler is not null)
+            await replayHandler.DisposeAsync().ConfigureAwait(false);
+
+        foreach (V3GameTunnelHandler v3GameTunnelHandler in V3GameTunnelHandlers.Select(q => q.Tunnel))
+            v3GameTunnelHandler.Dispose();
+
+        V3GameTunnelHandlers.Clear();
+    }
+
     public async ValueTask DisposeAsync()
     {
         PinnedTunnelPingsMessage = null;
         StunCancellationTokenSource?.Cancel();
-        V3GameTunnelHandlers.ForEach(q => q.Tunnel.Dispose());
-        V3GameTunnelHandlers.Clear();
-        PlayerTunnels.Clear();
+        await ClearConnectionsAsync().ConfigureAwait(false);
+        playerTunnels.Clear();
         P2PPlayers.Clear();
         PinnedTunnels?.Clear();
         await CloseP2PPortsAsync().ConfigureAwait(false);
     }
 
-    private IEnumerable<CnCNetTunnel> GetEligibleTunnels()
+    public IEnumerable<CnCNetTunnel> GetEligibleTunnels()
         => tunnelHandler.Tunnels.Where(q => !q.RequiresPassword && q.PingInMs > -1 && q.Clients < q.MaxClients - 8 && q.Version is Constants.TUNNEL_VERSION_3);
+
+    public string HandleTunnelPingsMessage(string playerName, string tunnelPingsMessage)
+    {
+        string[] tunnelPingsLines = tunnelPingsMessage.Split('\t', StringSplitOptions.RemoveEmptyEntries);
+        IEnumerable<(int Ping, string Hash)> tunnelPings = tunnelPingsLines.Select(q =>
+        {
+            string[] split = q.Split(';');
+
+            return (int.Parse(split[0], CultureInfo.InvariantCulture), split[1]);
+        });
+        IEnumerable<(int CombinedPing, string Hash)> combinedTunnelResults = tunnelPings
+            .Where(q => PinnedTunnels.Select(r => r.Hash).Contains(q.Hash))
+            .Select(q => (CombinedPing: q.Ping + PinnedTunnels.SingleOrDefault(r => q.Hash.Equals(r.Hash, StringComparison.OrdinalIgnoreCase)).Ping, q.Hash));
+        (int combinedPing, string hash) = combinedTunnelResults
+            .OrderBy(q => q.CombinedPing)
+            .ThenBy(q => q.Hash, StringComparer.OrdinalIgnoreCase)
+            .FirstOrDefault();
+
+        if (hash is null)
+            return null;
+
+        CnCNetTunnel tunnel = tunnelHandler.Tunnels.Single(q => q.Hash.Equals(hash, StringComparison.OrdinalIgnoreCase));
+
+        playerTunnels.Remove(playerTunnels.SingleOrDefault(q => q.RemotePlayerName.Equals(playerName, StringComparison.OrdinalIgnoreCase)));
+        playerTunnels.Add(new(playerName, tunnel, combinedPing));
+
+        return hash;
+    }
 
     private async ValueTask CloseP2PPortsAsync()
     {
@@ -329,7 +411,7 @@ internal sealed class V3ConnectionState : IAsyncDisposable
         {
             if (internetGatewayDevice is not null)
             {
-                foreach (ushort p2pPort in IpV4P2PPorts.Select(q => q.InternalPort))
+                foreach (ushort p2pPort in ipV4P2PPorts.Select(q => q.InternalPort))
                     await internetGatewayDevice.CloseIpV4PortAsync(p2pPort).ConfigureAwait(false);
             }
         }
@@ -339,7 +421,7 @@ internal sealed class V3ConnectionState : IAsyncDisposable
         }
         finally
         {
-            IpV4P2PPorts.Clear();
+            ipV4P2PPorts.Clear();
         }
 
         try
@@ -356,7 +438,7 @@ internal sealed class V3ConnectionState : IAsyncDisposable
         }
         finally
         {
-            IpV6P2PPorts.Clear();
+            ipV6P2PPorts.Clear();
             p2pIpV6PortIds.Clear();
         }
     }

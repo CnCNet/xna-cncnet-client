@@ -10,6 +10,8 @@ internal sealed class DataReceivedEventArgs : EventArgs
         GameData = gameData;
     }
 
+    public DateTimeOffset Timestamp { get; } = DateTimeOffset.Now;
+
     public uint PlayerId { get; }
 
     public ReadOnlyMemory<byte> GameData { get; }

@@ -181,7 +181,7 @@ namespace DTAClient.Domain.Multiplayer
             }
 
             // save cache
-            CacheCustomMaps(customMapCache);
+            await CacheCustomMapsAsync(customMapCache).ConfigureAwait(false);
 
             foreach (Map map in customMapCache.Values)
             {
@@ -193,16 +193,20 @@ namespace DTAClient.Domain.Multiplayer
         /// Save cache of custom maps.
         /// </summary>
         /// <param name="customMaps">Custom maps to cache</param>
-        private void CacheCustomMaps(ConcurrentDictionary<string, Map> customMaps)
+        private async ValueTask CacheCustomMapsAsync(ConcurrentDictionary<string, Map> customMaps)
         {
             var customMapCache = new CustomMapCache
             {
                 Maps = customMaps,
                 Version = CurrentCustomMapCacheVersion
             };
-            var jsonData = JsonSerializer.Serialize(customMapCache, jsonSerializerOptions);
 
-            File.WriteAllText(CUSTOM_MAPS_CACHE, jsonData);
+            FileStream fileStream = File.OpenWrite(CUSTOM_MAPS_CACHE);
+
+            await using (fileStream.ConfigureAwait(false))
+            {
+                await JsonSerializer.SerializeAsync(fileStream, customMapCache, jsonSerializerOptions).ConfigureAwait(false);
+            }
         }
 
         /// <summary>

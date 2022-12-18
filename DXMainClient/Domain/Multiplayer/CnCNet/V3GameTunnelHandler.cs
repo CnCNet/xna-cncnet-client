@@ -30,15 +30,26 @@ internal sealed class V3GameTunnelHandler : IDisposable
     /// </summary>
     public event EventHandler RaiseRemoteHostConnectionFailedEvent;
 
+    /// <summary>
+    /// Occurs when data from a remote host is received.
+    /// </summary>
+    public event EventHandler<DataReceivedEventArgs> RaiseRemoteHostDataReceivedEvent;
+
+    /// <summary>
+    /// Occurs when data from the local game is received.
+    /// </summary>
+    public event EventHandler<DataReceivedEventArgs> RaiseLocalGameDataReceivedEvent;
+
     public bool ConnectSucceeded { get; private set; }
 
     public void SetUp(IPEndPoint remoteIpEndPoint, ushort localPort, uint gameLocalPlayerId, CancellationToken cancellationToken)
     {
-        using var linkedCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(connectionErrorCancellationTokenSource.Token, cancellationToken);
+        using var linkedCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(
+            connectionErrorCancellationTokenSource.Token, cancellationToken);
 
-        remoteHostConnection = new V3RemotePlayerConnection();
-        remoteHostConnectionDataReceivedFunc = (_, e) => RemoteHostConnection_DataReceivedAsync(e).HandleTask();
-        localGameConnectionDataReceivedFunc = (_, e) => LocalGameConnection_DataReceivedAsync(e).HandleTask();
+        remoteHostConnection = new();
+        remoteHostConnectionDataReceivedFunc = (sender, e) => RemoteHostConnection_DataReceivedAsync(sender, e).HandleTask();
+        localGameConnectionDataReceivedFunc = (sender, e) => LocalGameConnection_DataReceivedAsync(sender, e).HandleTask();
 
         remoteHostConnection.RaiseConnectedEvent += RemoteHostConnection_Connected;
         remoteHostConnection.RaiseConnectionFailedEvent += RemoteHostConnection_ConnectionFailed;
@@ -70,12 +81,7 @@ internal sealed class V3GameTunnelHandler : IDisposable
     }
 
     public void ConnectToTunnel()
-    {
-        if (remoteHostConnection == null)
-            throw new InvalidOperationException($"Call SetUp before calling {nameof(ConnectToTunnel)}.");
-
-        remoteHostConnection.StartConnectionAsync().HandleTask();
-    }
+        => remoteHostConnection.StartConnectionAsync().HandleTask();
 
     public void Dispose()
     {
@@ -119,14 +125,26 @@ internal sealed class V3GameTunnelHandler : IDisposable
     /// <summary>
     /// Forwards local game data to the remote host.
     /// </summary>
-    private ValueTask LocalGameConnection_DataReceivedAsync(DataReceivedEventArgs e)
-        => remoteHostConnection?.SendDataAsync(e.GameData, e.PlayerId) ?? ValueTask.CompletedTask;
+    private async ValueTask LocalGameConnection_DataReceivedAsync(object sender, DataReceivedEventArgs e)
+    {
+        OnRaiseLocalGameDataReceivedEvent(sender, e);
+
+        if (remoteHostConnection is not null)
+            await remoteHostConnection.SendDataAsync(e.GameData, e.PlayerId).ConfigureAwait(false);
+    }
 
     /// <summary>
     /// Forwards remote player data to the local game.
     /// </summary>
-    private ValueTask RemoteHostConnection_DataReceivedAsync(DataReceivedEventArgs e)
-        => GetLocalPlayerConnection(e.PlayerId)?.SendDataAsync(e.GameData) ?? ValueTask.CompletedTask;
+    private async ValueTask RemoteHostConnection_DataReceivedAsync(object sender, DataReceivedEventArgs e)
+    {
+        OnRaiseRemoteHostDataReceivedEvent(sender, e);
+
+        V3LocalPlayerConnection v3LocalPlayerConnection = GetLocalPlayerConnection(e.PlayerId);
+
+        if (v3LocalPlayerConnection is not null)
+            await v3LocalPlayerConnection.SendDataAsync(e.GameData).ConfigureAwait(false);
+    }
 
     private V3LocalPlayerConnection GetLocalPlayerConnection(uint senderId)
         => localGameConnections.TryGetValue(senderId, out V3LocalPlayerConnection connection) ? connection : null;
@@ -157,4 +175,18 @@ internal sealed class V3GameTunnelHandler : IDisposable
 
     private void RemoteHostConnection_ConnectionCut(object sender, EventArgs e)
         => Dispose();
+
+    private void OnRaiseRemoteHostDataReceivedEvent(object sender, DataReceivedEventArgs e)
+    {
+        EventHandler<DataReceivedEventArgs> raiseEvent = RaiseRemoteHostDataReceivedEvent;
+
+        raiseEvent?.Invoke(sender, e);
+    }
+
+    private void OnRaiseLocalGameDataReceivedEvent(object sender, DataReceivedEventArgs e)
+    {
+        EventHandler<DataReceivedEventArgs> raiseEvent = RaiseLocalGameDataReceivedEvent;
+
+        raiseEvent?.Invoke(sender, e);
+    }
 }

@@ -282,7 +282,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             pInfo.IsInGame = false;
 
-            await base.GameProcessExitedAsync().ConfigureAwait(false);
+            await base.GameProcessExitedAsync().ConfigureAwait(true);
 
             if (IsHost)
             {

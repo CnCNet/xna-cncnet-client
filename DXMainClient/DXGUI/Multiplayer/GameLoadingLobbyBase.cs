@@ -350,7 +350,7 @@ namespace DTAClient.DXGUI.Multiplayer
 
         private void SharedUILogic_GameProcessExited() => AddCallback(() => HandleGameProcessExitedAsync().HandleTask());
 
-        protected virtual ValueTask HandleGameProcessExitedAsync()
+        protected virtual async ValueTask HandleGameProcessExitedAsync()
         {
             fsw.EnableRaisingEvents = false;
 
@@ -363,17 +363,14 @@ namespace DTAClient.DXGUI.Multiplayer
                 int newLength = matchStatistics.LengthInSeconds +
                     (int)(DateTime.Now - gameLoadTime).TotalSeconds;
 
-                matchStatistics.ParseStatistics(ProgramConstants.GamePath,
-                    ClientConfiguration.Instance.LocalGame, true);
+                await matchStatistics.ParseStatisticsAsync(ProgramConstants.GamePath, true).ConfigureAwait(false);
 
                 matchStatistics.LengthInSeconds = newLength;
 
-                StatisticsManager.Instance.SaveDatabase();
+                await StatisticsManager.Instance.SaveDatabaseAsync().ConfigureAwait(false);
             }
 
             UpdateDiscordPresence(true);
-
-            return ValueTask.CompletedTask;
         }
 
         protected virtual void WriteSpawnIniAdditions(IniFile spawnIni)

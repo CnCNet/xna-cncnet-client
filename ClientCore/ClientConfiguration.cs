@@ -15,7 +15,6 @@ namespace ClientCore
         private const string GENERAL = "General";
         private const string AUDIO = "Audio";
         private const string SETTINGS = "Settings";
-        private const string LINKS = "Links";
         private const string TRANSLATIONS = "Translations";
 
         private const string CLIENT_SETTINGS = "DTACnCNetClient.ini";

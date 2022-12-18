@@ -254,7 +254,7 @@ internal sealed record InternetGatewayDevice(
                 {
                     OmitXmlDeclaration = true,
                     Async = true,
-                    Encoding = new UTF8Encoding(false)
+                    Encoding = new UTF8Encoding()
                 });
 
             await using (writer.ConfigureAwait(false))

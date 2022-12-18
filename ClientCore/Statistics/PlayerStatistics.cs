@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Threading.Tasks;
 
 namespace ClientCore.Statistics
 {
@@ -7,7 +8,7 @@ namespace ClientCore.Statistics
     {
         public PlayerStatistics() { }
 
-        public PlayerStatistics(string name, bool isLocal, bool isAi, bool isSpectator, 
+        public PlayerStatistics(string name, bool isLocal, bool isAi, bool isSpectator,
             int side, int team, int color, int aiLevel)
         {
             Name = name;
@@ -22,7 +23,7 @@ namespace ClientCore.Statistics
 
         public string Name { get; set; }
         public int Kills { get; set; }
-        public int Losses {get; set;}
+        public int Losses { get; set; }
         public int Economy { get; set; }
         public int Score { get; set; }
         public int Side { get; set; }
@@ -35,35 +36,35 @@ namespace ClientCore.Statistics
         public bool IsAI { get; set; }
         public int Color { get; set; } = 255;
 
-        public void Write(Stream stream)
+        public async ValueTask WriteAsync(Stream stream)
         {
-            stream.WriteInt(Economy);
+            await stream.WriteIntAsync(Economy).ConfigureAwait(false);
             // 1 byte for IsAI
-            stream.WriteBool(IsAI);
+            await stream.WriteBoolAsync(IsAI).ConfigureAwait(false);
             // 1 byte for IsLocalPlayer
-            stream.WriteBool(IsLocalPlayer);
+            await stream.WriteBoolAsync(IsLocalPlayer).ConfigureAwait(false);
             // 4 bytes for kills
-            stream.Write(BitConverter.GetBytes(Kills), 0, 4);
+            await stream.WriteAsync(BitConverter.GetBytes(Kills), 0, 4).ConfigureAwait(false);
             // 4 bytes for losses
-            stream.Write(BitConverter.GetBytes(Losses), 0, 4);
+            await stream.WriteAsync(BitConverter.GetBytes(Losses), 0, 4).ConfigureAwait(false);
             // Name takes 32 bytes
-            stream.WriteString(Name, 32);
+            await stream.WriteStringAsync(Name, 32).ConfigureAwait(false);
             // 1 byte for SawEnd
-            stream.WriteBool(SawEnd);
+            await stream.WriteBoolAsync(SawEnd).ConfigureAwait(false);
             // 4 bytes for Score
-            stream.WriteInt(Score);
+            await stream.WriteIntAsync(Score).ConfigureAwait(false);
             // 1 byte for Side
-            stream.WriteByte(Convert.ToByte(Side));
+            await stream.WriteAsync(new[] { Convert.ToByte(Side) }, 0, 1).ConfigureAwait(false);
             // 1 byte for Team
-            stream.WriteByte(Convert.ToByte(Team));
+            await stream.WriteAsync(new[] { Convert.ToByte(Team) }, 0, 1).ConfigureAwait(false);
             // 1 byte color Color
-            stream.WriteByte(Convert.ToByte(Color));
+            await stream.WriteAsync(new[] { Convert.ToByte(Color) }, 0, 1).ConfigureAwait(false);
             // 1 byte for WasSpectator
-            stream.WriteBool(WasSpectator);
+            await stream.WriteBoolAsync(WasSpectator).ConfigureAwait(false);
             // 1 byte for Won
-            stream.WriteBool(Won);
+            await stream.WriteBoolAsync(Won).ConfigureAwait(false);
             // 1 byte for AI level
-            stream.WriteByte(Convert.ToByte(AILevel));
+            await stream.WriteAsync(new[] { Convert.ToByte(AILevel) }, 0, 1).ConfigureAwait(false);
         }
     }
 }

@@ -17,19 +17,21 @@ internal sealed class V3RemotePlayerConnection : IDisposable
     private const int SendTimeout = 10000;
     private const int GameStartReceiveTimeout = 1200000;
     private const int ReceiveTimeout = 1200000;
-    private const int MinimumPacketSize = 8;
+    private const int PlayerIdSize = sizeof(uint);
+    private const int MinimumPacketSize = PlayerIdSize * 2;
     private const int MaximumPacketSize = 1024;
 
-    private uint gameLocalPlayerId;
     private CancellationToken cancellationToken;
     private Socket tunnelSocket;
     private IPEndPoint remoteEndPoint;
     private ushort localPort;
 
+    public uint GameLocalPlayerId { get; private set; }
+
     public void SetUp(IPEndPoint remoteEndPoint, ushort localPort, uint gameLocalPlayerId, CancellationToken cancellationToken)
     {
         this.cancellationToken = cancellationToken;
-        this.gameLocalPlayerId = gameLocalPlayerId;
+        GameLocalPlayerId = gameLocalPlayerId;
         this.remoteEndPoint = remoteEndPoint;
         this.localPort = localPort;
     }
@@ -72,7 +74,7 @@ internal sealed class V3RemotePlayerConnection : IDisposable
         using IMemoryOwner<byte> memoryOwner = MemoryPool<byte>.Shared.Rent(MaximumPacketSize);
         Memory<byte> buffer = memoryOwner.Memory[..MaximumPacketSize];
 
-        if (!BitConverter.TryWriteBytes(buffer.Span[..4], gameLocalPlayerId))
+        if (!BitConverter.TryWriteBytes(buffer.Span[..PlayerIdSize], GameLocalPlayerId))
             throw new GameDataException();
 
         using var timeoutCancellationTokenSource = new CancellationTokenSource(SendTimeout);
@@ -130,10 +132,10 @@ internal sealed class V3RemotePlayerConnection : IDisposable
         using IMemoryOwner<byte> memoryOwner = MemoryPool<byte>.Shared.Rent(bufferSize);
         Memory<byte> packet = memoryOwner.Memory[..bufferSize];
 
-        if (!BitConverter.TryWriteBytes(packet.Span[..4], gameLocalPlayerId))
+        if (!BitConverter.TryWriteBytes(packet.Span[..PlayerIdSize], GameLocalPlayerId))
             throw new GameDataException();
 
-        if (!BitConverter.TryWriteBytes(packet.Span[4..8], receiverId))
+        if (!BitConverter.TryWriteBytes(packet.Span[PlayerIdSize..(PlayerIdSize * 2)], receiverId))
             throw new GameDataException();
 
         data.CopyTo(packet[8..]);
@@ -144,7 +146,7 @@ internal sealed class V3RemotePlayerConnection : IDisposable
         try
         {
 #if DEBUG
-            Logger.Log($"Sending data {gameLocalPlayerId} -> {receiverId} from {tunnelSocket.LocalEndPoint} to {remoteEndPoint}.");
+            Logger.Log($"Sending data {GameLocalPlayerId} -> {receiverId} from {tunnelSocket.LocalEndPoint} to {remoteEndPoint}.");
 
 #endif
             await tunnelSocket.SendToAsync(packet, SocketFlags.None, remoteEndPoint, linkedCancellationTokenSource.Token).ConfigureAwait(false);
@@ -251,20 +253,20 @@ internal sealed class V3RemotePlayerConnection : IDisposable
                 continue;
             }
 
-            Memory<byte> data = buffer[8..socketReceiveFromResult.ReceivedBytes];
-            uint senderId = BitConverter.ToUInt32(buffer[..4].Span);
-            uint receiverId = BitConverter.ToUInt32(buffer[4..8].Span);
+            Memory<byte> data = buffer[(PlayerIdSize * 2)..socketReceiveFromResult.ReceivedBytes];
+            uint senderId = BitConverter.ToUInt32(buffer[..PlayerIdSize].Span);
+            uint receiverId = BitConverter.ToUInt32(buffer[PlayerIdSize..(PlayerIdSize * 2)].Span);
 
 #if DEBUG
             Logger.Log($"Received {senderId} -> {receiverId} from {socketReceiveFromResult.RemoteEndPoint} on {tunnelSocket.LocalEndPoint}.");
 
 #endif
-            if (receiverId != gameLocalPlayerId)
+            if (receiverId != GameLocalPlayerId)
             {
 #if DEBUG
-                Logger.Log($"Invalid target (received: {receiverId}, expected: {gameLocalPlayerId}) from {socketReceiveFromResult.RemoteEndPoint}.");
+                Logger.Log($"Invalid target (received: {receiverId}, expected: {GameLocalPlayerId}) from {socketReceiveFromResult.RemoteEndPoint}.");
 #else
-                Logger.Log($"Invalid target (received: {receiverId}, expected: {gameLocalPlayerId}) on port {localPort}.");
+                Logger.Log($"Invalid target (received: {receiverId}, expected: {GameLocalPlayerId}) on port {localPort}.");
 #endif
 
                 continue;

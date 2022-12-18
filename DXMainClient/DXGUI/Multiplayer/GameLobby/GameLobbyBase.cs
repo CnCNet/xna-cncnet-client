@@ -1793,19 +1793,17 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private void GameProcessExited_Callback() => AddCallback(() => GameProcessExitedAsync().HandleTask());
 
-        protected virtual ValueTask GameProcessExitedAsync()
+        protected virtual async ValueTask GameProcessExitedAsync()
         {
             GameProcessLogic.GameProcessExited -= GameProcessExited_Callback;
 
             Logger.Log("GameProcessExited: Parsing statistics.");
-            matchStatistics.ParseStatistics(ProgramConstants.GamePath, ClientConfiguration.Instance.LocalGame, false);
+            matchStatistics.ParseStatisticsAsync(ProgramConstants.GamePath, false).HandleTask();
             Logger.Log("GameProcessExited: Adding match to statistics.");
-            StatisticsManager.Instance.AddMatchAndSaveDatabase(true, matchStatistics);
+            StatisticsManager.Instance.AddMatchAndSaveDatabaseAsync(true, matchStatistics).HandleTask();
             ClearReadyStatuses();
             CopyPlayerDataToUI();
             UpdateDiscordPresence(true);
-
-            return ValueTask.CompletedTask;
         }
 
         /// <summary>
@@ -2190,7 +2188,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     pInfo.TeamId = 1;
             }
 
-            await OnGameOptionChangedAsync().ConfigureAwait(false);
+            await OnGameOptionChangedAsync().ConfigureAwait(true);
 
             MapPreviewBox.GameModeMap = GameModeMap;
             CopyPlayerDataToUI();

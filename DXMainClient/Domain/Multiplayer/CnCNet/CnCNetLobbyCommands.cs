@@ -18,4 +18,6 @@ internal static class CnCNetLobbyCommands
     public const string LOADOPTIONS = "LOADOPTIONS";
     public const string DYNAMICTUNNELS = "DYNAMICTUNNELS";
     public const string P2P = "P2P";
+    public const string RECORD = "RECORD";
+    public const string REPLAY = "REPLAY";
 }
