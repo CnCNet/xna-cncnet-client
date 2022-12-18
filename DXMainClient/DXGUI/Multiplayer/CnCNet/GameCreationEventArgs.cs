@@ -3,7 +3,7 @@ using System;
 
 namespace DTAClient.DXGUI.Multiplayer.CnCNet
 {
-    class GameCreationEventArgs : EventArgs
+    public class GameCreationEventArgs : EventArgs
     {
         public GameCreationEventArgs(string roomName, int maxPlayers, 
             string password, CnCNetTunnel tunnel)

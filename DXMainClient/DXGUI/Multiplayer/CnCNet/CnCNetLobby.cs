@@ -1,26 +1,27 @@
-﻿using ClientCore;
-using ClientCore.CnCNet5;
-using ClientGUI;
-using DTAClient.Domain.Multiplayer;
-using DTAClient.Domain.Multiplayer.CnCNet;
-using DTAClient.DXGUI.Generic;
-using DTAClient.DXGUI.Multiplayer.GameLobby;
-using DTAClient.Online;
-using DTAClient.Online.EventArguments;
-using DTAClient.DXGUI.Multiplayer.GameLobby.CommandHandlers;
-using Microsoft.Xna.Framework.Graphics;
-using Rampastring.Tools;
-using Rampastring.XNAUI;
-using Rampastring.XNAUI.XNAControls;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
+using ClientCore;
+using ClientCore.CnCNet5;
 using ClientCore.Enums;
+using ClientGUI;
+using DTAClient.Domain.Multiplayer;
+using DTAClient.Domain.Multiplayer.CnCNet;
+using DTAClient.DXGUI.Generic;
+using DTAClient.DXGUI.Multiplayer.GameLobby;
+using DTAClient.DXGUI.Multiplayer.GameLobby.CommandHandlers;
+using DTAClient.Online;
+using DTAClient.Online.EventArguments;
 using DTAConfig;
 using Localization;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Xna.Framework.Graphics;
+using Rampastring.Tools;
+using Rampastring.XNAUI;
+using Rampastring.XNAUI.XNAControls;
 using SixLabors.ImageSharp;
 using Color = Microsoft.Xna.Framework.Color;
 using Rectangle = Microsoft.Xna.Framework.Rectangle;
@@ -63,6 +64,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         private CnCNetManager connectionManager;
         private CnCNetUserData cncnetUserData;
         private readonly OptionsWindow optionsWindow;
+        private readonly ServiceProvider serviceProvider;
 
         private PlayerListBox lbPlayerList;
         private ChatListBox lbChatMessages;
@@ -489,10 +491,11 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                         connectionManager.AddChannel(gameBroadcastChannel);
                     }
 
-                    gameBroadcastChannel.CTCPReceived += GameBroadcastChannel_CTCPReceived;
                     gameBroadcastChannel.UserLeft += GameBroadcastChannel_UserLeftOrQuit;
                     gameBroadcastChannel.UserQuitIRC += GameBroadcastChannel_UserLeftOrQuit;
                     gameBroadcastChannel.UserKicked += GameBroadcastChannel_UserLeftOrQuit;
+                    gameBroadcastChannel.ClientUpdateMessageReceived += GameBroadcastChannel_ClientUpdateMessage;
+                    gameBroadcastChannel.ClientGameUpdatedMessageReceived += GameBroadcastChannel_GameUpdatedMessageReceived;
                 }
 
                 if (game.InternalName.ToUpper() == localGameID.ToUpper())
@@ -1415,132 +1418,109 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             }
         }
 
-        private void GameBroadcastChannel_CTCPReceived(object sender, ChannelCTCPEventArgs e)
+        /// <summary>
+        /// This is invoked when there is an update to the client available available.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void GameBroadcastChannel_ClientUpdateMessage(object sender, ChannelCTCPEventArgs e)
         {
             var channel = (Channel)sender;
-
-            var channelUser = channel.Users.Find(e.UserName);
-
-            if (channelUser == null)
+            if (localGame == null ||  channel.ChannelName != localGame.GameBroadcastChannel || updateDenied || !e.ChannelUser.IsAdmin || isInGameRoom)
                 return;
 
-            if (localGame != null &&
-                channel.ChannelName == localGame.GameBroadcastChannel &&
-                !updateDenied &&
-                channelUser.IsAdmin &&
-                !isInGameRoom &&
-                e.Message.StartsWith("UPDATE ") &&
-                e.Message.Length > 7)
+            var updateMessageBox = XNAMessageBox.ShowYesNoDialog(WindowManager, "Update available".L10N("UI:Main:UpdateAvailableTitle"),
+                "An update is available. Do you want to perform the update now?".L10N("UI:Main:UpdateAvailableText"));
+            updateMessageBox.NoClickedAction = UpdateMessageBox_NoClicked;
+            updateMessageBox.YesClickedAction = UpdateMessageBox_YesClicked;
+        }
+
+        /// <summary>
+        /// This is invoked with there is an update to a game in the game list of the CnCNetLobby
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void GameBroadcastChannel_GameUpdatedMessageReceived(object sender, ChannelGameEventArgs e)
+        {
+            if (e.IsClosed)
             {
-                string version = e.Message.Substring(7);
-                if (version != ProgramConstants.GAME_VERSION)
-                {
-                    var updateMessageBox = XNAMessageBox.ShowYesNoDialog(WindowManager, "Update available".L10N("UI:Main:UpdateAvailableTitle"),
-                        "An update is available. Do you want to perform the update now?".L10N("UI:Main:UpdateAvailableText"));
-                    updateMessageBox.NoClickedAction = UpdateMessageBox_NoClicked;
-                    updateMessageBox.YesClickedAction = UpdateMessageBox_YesClicked;
-                }
-            }
-
-            if (!e.Message.StartsWith("GAME "))
-                return;
-
-            string msg = e.Message.Substring(5); // Cut out GAME part
-            string[] splitMessage = msg.Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
-
-            if (splitMessage.Length != 11)
-            {
-                Logger.Log("Ignoring CTCP game message because of an invalid amount of parameters.");
+                GameBroadcastChannel_GameClosedMessageReceived(sender, e);
                 return;
             }
 
-            try
+            var channel = (Channel)sender;
+
+            CnCNetGame cncnetGame = gameCollection.GameList.Find(g => g.GameBroadcastChannel == channel.ChannelName);
+
+            CnCNetTunnel tunnel = tunnelHandler.Tunnels.Find(t => t.Address == e.TunnelAddress && t.Port == e.TunnelPort);
+
+            if (tunnel == null)
+                return;
+
+            if (cncnetGame == null)
+                return;
+
+            var game = new HostedCnCNetGame(
+                e.GameRoomChannelName,
+                e.Revision,
+                e.GameVersion,
+                e.MaxPlayers,
+                e.GameRoomDisplayName,
+                e.IsCustomPassword,
+                true,
+                e.PlayerNames,
+                e.UserName,
+                e.MapName,
+                e.GameMode
+            );
+            game.IsLoadedGame = e.IsLoadedGame;
+            game.MatchID = e.MatchID;
+            game.LastRefreshTime = e.LastRefreshTime;
+            game.IsLadder = e.IsLadder;
+            game.Game = cncnetGame;
+            game.Locked = e.Locked;
+            game.Incompatible = cncnetGame == localGame && game.GameVersion != ProgramConstants.GAME_VERSION;
+            game.TunnelServer = tunnel;
+
+            // Seek for the game in the internal game list based on the name of its host;
+            // if found, then refresh that game's information, otherwise add as new game
+            int gameIndex = lbGameList.HostedGames.FindIndex(hg => hg.HostName == e.UserName);
+
+            if (gameIndex > -1)
             {
-                string revision = splitMessage[0];
-                if (revision != ProgramConstants.CNCNET_PROTOCOL_REVISION)
-                    return;
-                string gameVersion = splitMessage[1];
-                int maxPlayers = Conversions.IntFromString(splitMessage[2], 0);
-                string gameRoomChannelName = splitMessage[3];
-                string gameRoomDisplayName = splitMessage[4];
-                bool locked = Conversions.BooleanFromString(splitMessage[5].Substring(0, 1), true);
-                bool isCustomPassword = Conversions.BooleanFromString(splitMessage[5].Substring(1, 1), false);
-                bool isClosed = Conversions.BooleanFromString(splitMessage[5].Substring(2, 1), true);
-                bool isLoadedGame = Conversions.BooleanFromString(splitMessage[5].Substring(3, 1), false);
-                bool isLadder = Conversions.BooleanFromString(splitMessage[5].Substring(4, 1), false);
-                string[] players = splitMessage[6].Split(new char[1] { ',' }, StringSplitOptions.RemoveEmptyEntries);
-                List<string> playerNames = players.ToList();
-                string mapName = splitMessage[7];
-                string gameMode = splitMessage[8];
-
-                string[] tunnelAddressAndPort = splitMessage[9].Split(':');
-                string tunnelAddress = tunnelAddressAndPort[0];
-                int tunnelPort = int.Parse(tunnelAddressAndPort[1]);
-
-                string loadedGameId = splitMessage[10];
-
-                CnCNetGame cncnetGame = gameCollection.GameList.Find(g => g.GameBroadcastChannel == channel.ChannelName);
-
-                CnCNetTunnel tunnel = tunnelHandler.Tunnels.Find(t => t.Address == tunnelAddress && t.Port == tunnelPort);
-
-                if (tunnel == null)
-                    return;
-
-                if (cncnetGame == null)
-                    return;
-
-                HostedCnCNetGame game = new HostedCnCNetGame(gameRoomChannelName, revision, gameVersion, maxPlayers,
-                    gameRoomDisplayName, isCustomPassword, true, players,
-                    e.UserName, mapName, gameMode);
-                game.IsLoadedGame = isLoadedGame;
-                game.MatchID = loadedGameId;
-                game.LastRefreshTime = DateTime.Now;
-                game.IsLadder = isLadder;
-                game.Game = cncnetGame;
-                game.Locked = locked || (game.IsLoadedGame && !game.Players.Contains(ProgramConstants.PLAYERNAME));
-                game.Incompatible = cncnetGame == localGame && game.GameVersion != ProgramConstants.GAME_VERSION;
-                game.TunnelServer = tunnel;
-
-                if (isClosed)
-                {
-                    int index = lbGameList.HostedGames.FindIndex(hg => hg.HostName == e.UserName);
-
-                    if (index > -1)
-                    {
-                        lbGameList.RemoveGame(index);
-
-                        // dismiss any outstanding invitations that are no longer valid
-                        DismissInvalidInvitations();
-                    }
-
-                    return;
-                }
-
-                // Seek for the game in the internal game list based on the name of its host;
-                // if found, then refresh that game's information, otherwise add as new game
-                int gameIndex = lbGameList.HostedGames.FindIndex(hg => hg.HostName == e.UserName);
-
-                if (gameIndex > -1)
-                {
-                    lbGameList.HostedGames[gameIndex] = game;
-                }
-                else
-                {
-                    if (UserINISettings.Instance.PlaySoundOnGameHosted &&
-                        cncnetGame.InternalName == localGameID.ToLower() &&
-                        !ProgramConstants.IsInGame && !game.Locked)
-                    {
-                        SoundPlayer.Play(sndGameCreated);
-                    }
-
-                    lbGameList.AddGame(game);
-                }
-                SortAndRefreshHostedGames();
+                lbGameList.HostedGames[gameIndex] = game;
             }
-            catch (Exception ex)
+            else
             {
-                Logger.Log("Game parsing error: " + ex.Message);
+                if (UserINISettings.Instance.PlaySoundOnGameHosted &&
+                    cncnetGame.InternalName == localGameID.ToLower() &&
+                    !ProgramConstants.IsInGame && !game.Locked)
+                {
+                    SoundPlayer.Play(sndGameCreated);
+                }
+
+                lbGameList.AddGame(game);
             }
+
+            SortAndRefreshHostedGames();
+        }
+
+        /// <summary>
+        /// This is called when a game has been closed in the game list
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        public void GameBroadcastChannel_GameClosedMessageReceived(object sender, ChannelGameEventArgs e)
+        {
+            int index = lbGameList.HostedGames.FindIndex(hg => hg.HostName == e.UserName);
+
+            if (index <= -1)
+                return;
+
+            lbGameList.RemoveGame(index);
+
+            // dismiss any outstanding invitations that are no longer valid
+            DismissInvalidInvitations();
         }
 
         private void UpdateMessageBox_YesClicked(XNAMessageBox messageBox) =>

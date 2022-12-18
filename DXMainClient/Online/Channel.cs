@@ -2,8 +2,13 @@
 using DTAClient.Online.EventArguments;
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using ClientCore.CnCNet5;
+using DTAClient.Domain.Multiplayer.CnCNet;
 using DTAClient.DXGUI;
 using Localization;
+using Microsoft.Extensions.Logging;
+using Rampastring.Tools;
 
 namespace DTAClient.Online
 {
@@ -23,6 +28,10 @@ namespace DTAClient.Online
         public event EventHandler<IRCMessageEventArgs> MessageAdded;
         public event EventHandler<ChannelModeEventArgs> ChannelModesChanged;
         public event EventHandler<ChannelCTCPEventArgs> CTCPReceived;
+        
+        public event EventHandler<ChannelCTCPEventArgs> ClientUpdateMessageReceived;
+        
+        public event EventHandler<ChannelGameEventArgs> ClientGameUpdatedMessageReceived;
         public event EventHandler InvalidPasswordEntered;
         public event EventHandler InviteOnlyErrorOnJoin;
 
@@ -221,8 +230,85 @@ namespace DTAClient.Online
 
         public void OnCTCPReceived(string userName, string message)
         {
-            CTCPReceived?.Invoke(this, new ChannelCTCPEventArgs(userName, message));
+            ChannelUser channelUser = FindUser(userName);
+            if (IsClientUpdateMessage(message) && channelUser != null)
+            {
+                ClientUpdateMessageReceived?.Invoke(this, new ChannelCTCPEventArgs(userName, message, channelUser));
+                return;
+            }
+
+            if (IsGameMessage(message) && channelUser != null)
+            {
+                ChannelGameEventArgs gameEventArgs = ParseGame(userName, message, channelUser);
+                if (gameEventArgs == null)
+                    return;
+
+                ClientGameUpdatedMessageReceived?.Invoke(this, gameEventArgs);
+                return;
+            }
+            
+            CTCPReceived?.Invoke(this, new ChannelCTCPEventArgs(userName, message, channelUser));
         }
+
+        private ChannelGameEventArgs ParseGame(string userName, string message, ChannelUser channelUser)
+        {
+            string msg = message.Substring(5); // Cut out GAME part
+            string[] splitMessage = msg.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
+
+            if (splitMessage.Length != 11)
+            {
+                Logger.Log("Ignoring CTCP game message because of an invalid amount of parameters.");
+                return null;
+            }
+            try
+            {
+                string revision = splitMessage[0];
+                if (revision != ProgramConstants.CNCNET_PROTOCOL_REVISION)
+                    return null;
+
+                if (Conversions.BooleanFromString(splitMessage[5].Substring(2, 1), true))
+                    return new ChannelGameEventArgs(userName, message, channelUser) { IsClosed = true };
+                
+                string[] players = splitMessage[6].Split(new char[1] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+                string[] tunnelAddressAndPort = splitMessage[9].Split(':');
+                var gameEventArgs = new ChannelGameEventArgs(userName, message, channelUser)
+                {
+                    Revision = revision,
+                    GameVersion = splitMessage[1],
+                    MaxPlayers = Conversions.IntFromString(splitMessage[2], 0),
+                    GameRoomChannelName = splitMessage[3],
+                    GameRoomDisplayName = splitMessage[4],
+                    IsCustomPassword = Conversions.BooleanFromString(splitMessage[5].Substring(1, 1), false),
+                    IsLoadedGame = Conversions.BooleanFromString(splitMessage[5].Substring(3, 1), false),
+                    IsLadder = Conversions.BooleanFromString(splitMessage[5].Substring(4, 1), false),
+                    MapName = splitMessage[7],
+                    GameMode = splitMessage[8],
+                    MatchID = splitMessage[10],
+                    TunnelAddress = tunnelAddressAndPort[0],
+                    TunnelPort = int.Parse(tunnelAddressAndPort[1]),
+                    PlayerNames = players,
+                    LastRefreshTime = DateTime.Now,
+                };
+                bool locked = Conversions.BooleanFromString(splitMessage[5].Substring(0, 1), true);
+                gameEventArgs.Locked = locked || (gameEventArgs.IsLoadedGame && !gameEventArgs.PlayerNames.Contains(ProgramConstants.PLAYERNAME));
+
+                return gameEventArgs;
+            }
+            catch (Exception ex)
+            {
+                Logger.Log("Game parsing error: " + ex.Message);
+                return null;
+            }
+        }
+
+        public ChannelUser FindUser(string username) => Users.Find(username);
+
+        private bool IsClientUpdateMessage(string message)
+            => message.StartsWith("UPDATE ") &&
+               message.Length > 7 &&
+               message.Substring(7) != ProgramConstants.GAME_VERSION;
+
+        private bool IsGameMessage(string message) => message.StartsWith("GAME ");
 
         public void OnInvalidJoinPassword()
         {
