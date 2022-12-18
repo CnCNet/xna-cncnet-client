@@ -1,30 +1,27 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading.Tasks;
 using Rampastring.Tools;
 
 namespace ClientCore.Statistics.GameParsers
 {
     public class LogFileStatisticsParser : GenericMatchParser
     {
-        public LogFileStatisticsParser(MatchStatistics ms, bool isLoadedGame) : base(ms)
+        public LogFileStatisticsParser(MatchStatistics ms, bool isLoadedGame)
+            : base(ms)
         {
             this.isLoadedGame = isLoadedGame;
         }
 
-        private string fileName = "DTA.log";
         private string economyString = "Economy"; // RA2/YR do not have economy stat, but a number of built objects.
-        private bool isLoadedGame;
+        private readonly bool isLoadedGame;
 
-        public void ParseStats(string gamepath, string fileName)
+        public async ValueTask ParseStatisticsAsync(string gamepath, string fileName)
         {
-            this.fileName = fileName;
-            if (ClientConfiguration.Instance.UseBuiltStatistic) economyString = "Built";
-            ParseStatistics(gamepath);
-        }
+            if (ClientConfiguration.Instance.UseBuiltStatistic)
+                economyString = "Built";
 
-        protected override void ParseStatistics(string gamepath)
-        {
             FileInfo statisticsFileInfo = SafePath.GetFile(gamepath, fileName);
 
             if (!statisticsFileInfo.Exists)
@@ -37,7 +34,7 @@ namespace ClientCore.Statistics.GameParsers
 
             try
             {
-                using StreamReader reader = new StreamReader(statisticsFileInfo.OpenRead());
+                using var reader = new StreamReader(statisticsFileInfo.OpenRead());
 
                 string line;
 
@@ -47,7 +44,7 @@ namespace ClientCore.Statistics.GameParsers
                 bool sawCompletion = false;
                 int numPlayersFound = 0;
 
-                while ((line = reader.ReadLine()) != null)
+                while ((line = await reader.ReadLineAsync().ConfigureAwait(false)) != null)
                 {
                     if (line.Contains(": Loser"))
                     {

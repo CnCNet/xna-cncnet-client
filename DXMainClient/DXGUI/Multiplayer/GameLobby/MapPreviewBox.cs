@@ -401,7 +401,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             if (GameModeMap.Map.PreviewTexture == null)
             {
-                previewTexture = await GameModeMap.Map.LoadPreviewTextureAsync().ConfigureAwait(false);
+                previewTexture = await GameModeMap.Map.LoadPreviewTextureAsync().ConfigureAwait(true);
                 disposeTextures = true;
             }
             else

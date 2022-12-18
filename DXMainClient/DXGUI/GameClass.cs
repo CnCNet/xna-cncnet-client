@@ -10,6 +10,7 @@ using Microsoft.Xna.Framework.Graphics;
 using Rampastring.Tools;
 using Rampastring.XNAUI;
 using System;
+using ClientCore.Extensions;
 using DTAClient.Domain.Multiplayer;
 using DTAClient.Domain.Multiplayer.CnCNet;
 using DTAClient.DXGUI.Multiplayer;
@@ -24,7 +25,6 @@ using Rampastring.XNAUI.XNAControls;
 using MainMenu = DTAClient.DXGUI.Generic.MainMenu;
 #if DX || (GL && WINFORMS)
 using System.Diagnostics;
-using System.IO;
 #endif
 #if WINFORMS
 using System.Windows.Forms;
@@ -94,7 +94,7 @@ namespace DTAClient.DXGUI
 
                 // Create startup failure file that the launcher can check for this error
                 // and handle it by redirecting the user to another version instead
-                File.WriteAllBytes(SafePath.CombineFilePath(clientDirectory.FullName, startupFailureFile), new byte[] { 1 });
+                File.WriteAllBytesAsync(SafePath.CombineFilePath(clientDirectory.FullName, startupFailureFile), new byte[] { 1 }).HandleTask();
 
                 string launcherExe = ClientConfiguration.Instance.LauncherExe;
                 if (string.IsNullOrEmpty(launcherExe))
@@ -109,7 +109,7 @@ namespace DTAClient.DXGUI
 
                 Logger.Log("Starting " + launcherExe + " and exiting.");
 
-                Process.Start(SafePath.CombineFilePath(ProgramConstants.GamePath, launcherExe));
+                using var _ = Process.Start(SafePath.CombineFilePath(ProgramConstants.GamePath, launcherExe));
                 Environment.Exit(1);
             }
 
@@ -177,8 +177,14 @@ namespace DTAClient.DXGUI
             UserINISettings.Instance.PlayerName.Value = playerName;
 
             IServiceProvider serviceProvider = BuildServiceProvider(wm);
+            CnCNetUserData cncNetUserData = serviceProvider.GetService<CnCNetUserData>();
+
+            cncNetUserData.InitializeAsync().HandleTask();
+
             LoadingScreen ls = serviceProvider.GetService<LoadingScreen>();
+
             wm.AddAndInitializeControl(ls);
+
             ls.ClientRectangle = new Rectangle((wm.RenderResolutionX - ls.Width) / 2,
                 (wm.RenderResolutionY - ls.Height) / 2, ls.Width, ls.Height);
         }

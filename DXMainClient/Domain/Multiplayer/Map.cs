@@ -663,7 +663,7 @@ namespace DTAClient.Domain.Multiplayer
             if (!Official)
             {
                 // Extract preview from the map itself
-                using Image preview = await MapPreviewExtractor.ExtractMapPreviewAsync(GetCustomMapIniFile()).ConfigureAwait(false);
+                using Image preview = await MapPreviewExtractor.ExtractMapPreviewAsync(GetCustomMapIniFile()).ConfigureAwait(true);
 
                 if (preview != null)
                 {

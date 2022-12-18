@@ -101,6 +101,7 @@ namespace ClientCore
             UseLegacyTunnels = new BoolSetting(iniFile, MULTIPLAYER, "UseLegacyTunnels", false);
             UseP2P = new BoolSetting(iniFile, MULTIPLAYER, "UseP2P", false);
             UseDynamicTunnels = new BoolSetting(iniFile, MULTIPLAYER, "UseDynamicTunnels", true);
+            EnableReplays = new BoolSetting(iniFile, MULTIPLAYER, "EnableReplays", false);
 
             CheckForUpdates = new BoolSetting(iniFile, OPTIONS, "CheckforUpdates", true);
 
@@ -276,6 +277,8 @@ namespace ClientCore
         public BoolSetting MinimizeWindowsOnGameStart { get; private set; }
 
         public BoolSetting AutoRemoveUnderscoresFromName { get; private set; }
+
+        public BoolSetting EnableReplays { get; private set; }
 
         public StringListSetting FavoriteMaps { get; private set; }
 

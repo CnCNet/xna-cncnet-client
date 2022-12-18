@@ -170,7 +170,7 @@ namespace DTAClient.DXGUI
             DateTime dtn = DateTime.Now;
 
 #if ARES
-            Task.Run(ProcessScreenshots).HandleTask();
+            ProcessScreenshotsAsync().HandleTask();
 
             // TODO: Ares debug log handling should be addressed in Ares DLL itself.
             // For now the following are handled here:
@@ -182,7 +182,7 @@ namespace DTAClient.DXGUI
             string snapshotDirectory = GetNewestDebugSnapshotDirectory();
             bool snapshotCreated = snapshotDirectory != null;
 
-            snapshotDirectory = snapshotDirectory ?? SafePath.CombineDirectoryPath(ProgramConstants.GamePath, "debug", FormattableString.Invariant($"snapshot-{dtn.ToString("yyyyMMdd-HHmmss")}"));
+            snapshotDirectory ??= SafePath.CombineDirectoryPath(ProgramConstants.GamePath, "debug", FormattableString.Invariant($"snapshot-{dtn.ToString("yyyyMMdd-HHmmss")}"));
 
             bool debugLogModified = false;
             FileInfo debugLogFileInfo = SafePath.GetFile(ProgramConstants.GamePath, "debug", "debug.log");
@@ -359,7 +359,7 @@ namespace DTAClient.DXGUI
         /// <summary>
         /// Converts BMP screenshots to PNG and copies them from game directory to Screenshots sub-directory.
         /// </summary>
-        private void ProcessScreenshots()
+        private static async ValueTask ProcessScreenshotsAsync()
         {
             IEnumerable<FileInfo> files = SafePath.GetDirectory(ProgramConstants.GamePath).EnumerateFiles("SCRN*.bmp");
             DirectoryInfo screenshotsDirectory = SafePath.GetDirectory(ProgramConstants.GamePath, "Screenshots");
@@ -381,12 +381,19 @@ namespace DTAClient.DXGUI
             {
                 try
                 {
-                    using FileStream stream = file.OpenRead();
-                    using var image = Image.Load(stream);
-                    FileInfo newFile = SafePath.GetFile(screenshotsDirectory.FullName, FormattableString.Invariant($"{Path.GetFileNameWithoutExtension(file.FullName)}.png"));
-                    using FileStream newFileStream = newFile.OpenWrite();
+                    FileStream stream = file.OpenRead();
 
-                    image.SaveAsPng(newFileStream);
+                    await using (stream.ConfigureAwait(false))
+                    {
+                        using Image image = await Image.LoadAsync(stream).ConfigureAwait(false);
+                        FileInfo newFile = SafePath.GetFile(screenshotsDirectory.FullName, FormattableString.Invariant($"{Path.GetFileNameWithoutExtension(file.FullName)}.png"));
+                        FileStream newFileStream = newFile.OpenWrite();
+
+                        await using (newFileStream.ConfigureAwait(false))
+                        {
+                            await image.SaveAsPngAsync(newFileStream).ConfigureAwait(false);
+                        }
+                    }
                 }
                 catch (Exception ex)
                 {
