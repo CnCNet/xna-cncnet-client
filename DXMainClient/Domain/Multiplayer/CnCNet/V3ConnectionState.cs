@@ -19,6 +19,7 @@ internal sealed class V3ConnectionState : IAsyncDisposable
 
     private readonly TunnelHandler tunnelHandler;
     private readonly List<(string RemotePlayerName, CnCNetTunnel Tunnel, int CombinedPing)> playerTunnels = new();
+    private readonly ReplayHandler replayHandler = new();
 
     private IPAddress publicIpV4Address;
     private IPAddress publicIpV6Address;
@@ -28,7 +29,6 @@ internal sealed class V3ConnectionState : IAsyncDisposable
     private List<uint> gamePlayerIds;
     private List<(ushort InternalPort, ushort ExternalPort)> ipV6P2PPorts = new();
     private List<(ushort InternalPort, ushort ExternalPort)> ipV4P2PPorts = new();
-    private ReplayHandler replayHandler;
 
     public List<(int Ping, string Hash)> PinnedTunnels { get; private set; } = new();
 
@@ -117,6 +117,18 @@ internal sealed class V3ConnectionState : IAsyncDisposable
         internetGatewayDevice = null;
         publicIpV4Address = null;
         publicIpV6Address = null;
+
+        return false;
+    }
+
+    public async ValueTask<bool> ToggleRecordingAsync()
+    {
+        RecordingEnabled = !RecordingEnabled;
+
+        if (RecordingEnabled)
+            return true;
+
+        await replayHandler.DisposeAsync().ConfigureAwait(false);
 
         return false;
     }
@@ -231,24 +243,18 @@ internal sealed class V3ConnectionState : IAsyncDisposable
         V3GameTunnelHandlers.Clear();
 
         if (RecordingEnabled)
-        {
-            replayHandler = new();
-
             replayHandler.SetupRecording(uniqueGameId, gameLocalPlayerId);
-        }
 
         if (!DynamicTunnelsEnabled)
         {
-            var gameTunnelHandler = new V3GameTunnelHandler();
-
-            gameTunnelHandler.RaiseRemoteHostConnectedEvent += (_, _) => remoteHostConnectedAction();
-            gameTunnelHandler.RaiseRemoteHostConnectionFailedEvent += (_, _) => remoteHostConnectionFailedAction();
-            gameTunnelHandler.RaiseRemoteHostDataReceivedEvent += replayHandler.RemoteHostConnection_DataReceivedAsync;
-            gameTunnelHandler.RaiseLocalGameDataReceivedEvent += replayHandler.LocalGameConnection_DataReceivedAsync;
-
-            gameTunnelHandler.SetUp(new(tunnelHandler.CurrentTunnel.IPAddress, tunnelHandler.CurrentTunnel.Port), 0, gameLocalPlayerId, cancellationToken);
-            gameTunnelHandler.ConnectToTunnel();
-            V3GameTunnelHandlers.Add(new(playerInfos.Where(q => !q.Name.Equals(localPlayerName, StringComparison.OrdinalIgnoreCase)).Select(q => q.Name).ToList(), gameTunnelHandler));
+            SetupGameTunnelHandler(
+                gameLocalPlayerId,
+                remoteHostConnectedAction,
+                remoteHostConnectionFailedAction,
+                playerInfos.Where(q => !q.Name.Equals(localPlayerName, StringComparison.OrdinalIgnoreCase)).Select(q => q.Name).ToList(),
+                new(tunnelHandler.CurrentTunnel.IPAddress, tunnelHandler.CurrentTunnel.Port),
+                0,
+                cancellationToken);
         }
         else
         {
@@ -287,16 +293,15 @@ internal sealed class V3ConnectionState : IAsyncDisposable
                         var tunnelClientPlayerNames = allPlayerNames.Where(q => !q.Equals(remotePlayerName, StringComparison.OrdinalIgnoreCase)).ToList();
                         ushort localPort = localPorts[6 - remotePlayerNames.FindIndex(q => q.Equals(remotePlayerName, StringComparison.OrdinalIgnoreCase))];
                         ushort remotePort = remotePorts[6 - tunnelClientPlayerNames.FindIndex(q => q.Equals(localPlayerName, StringComparison.OrdinalIgnoreCase))];
-                        var p2pLocalTunnelHandler = new V3GameTunnelHandler();
 
-                        p2pLocalTunnelHandler.RaiseRemoteHostConnectedEvent += (_, _) => remoteHostConnectedAction();
-                        p2pLocalTunnelHandler.RaiseRemoteHostConnectionFailedEvent += (_, _) => remoteHostConnectionFailedAction();
-                        p2pLocalTunnelHandler.RaiseRemoteHostDataReceivedEvent += replayHandler.RemoteHostConnection_DataReceivedAsync;
-                        p2pLocalTunnelHandler.RaiseLocalGameDataReceivedEvent += replayHandler.LocalGameConnection_DataReceivedAsync;
-
-                        p2pLocalTunnelHandler.SetUp(new(selectedRemoteIpAddress, remotePort), localPort, gameLocalPlayerId, cancellationToken);
-                        p2pLocalTunnelHandler.ConnectToTunnel();
-                        V3GameTunnelHandlers.Add(new(new() { remotePlayerName }, p2pLocalTunnelHandler));
+                        SetupGameTunnelHandler(
+                            gameLocalPlayerId,
+                            remoteHostConnectedAction,
+                            remoteHostConnectionFailedAction,
+                            new() { remotePlayerName },
+                            new(selectedRemoteIpAddress, remotePort),
+                            localPort,
+                            cancellationToken);
                         p2pPlayerTunnels.Add(remotePlayerName);
                     }
                 }
@@ -304,18 +309,41 @@ internal sealed class V3ConnectionState : IAsyncDisposable
 
             foreach (IGrouping<CnCNetTunnel, (string Name, CnCNetTunnel Tunnel, int CombinedPing)> tunnelGrouping in playerTunnels.Where(q => !p2pPlayerTunnels.Contains(q.RemotePlayerName, StringComparer.OrdinalIgnoreCase)).GroupBy(q => q.Tunnel))
             {
-                var gameTunnelHandler = new V3GameTunnelHandler();
-
-                gameTunnelHandler.RaiseRemoteHostConnectedEvent += (_, _) => remoteHostConnectedAction();
-                gameTunnelHandler.RaiseRemoteHostConnectionFailedEvent += (_, _) => remoteHostConnectionFailedAction();
-                gameTunnelHandler.RaiseRemoteHostDataReceivedEvent += replayHandler.RemoteHostConnection_DataReceivedAsync;
-                gameTunnelHandler.RaiseLocalGameDataReceivedEvent += replayHandler.LocalGameConnection_DataReceivedAsync;
-
-                gameTunnelHandler.SetUp(new(tunnelGrouping.Key.IPAddress, tunnelGrouping.Key.Port), 0, gameLocalPlayerId, cancellationToken);
-                gameTunnelHandler.ConnectToTunnel();
-                V3GameTunnelHandlers.Add(new(tunnelGrouping.Select(q => q.Name).ToList(), gameTunnelHandler));
+                SetupGameTunnelHandler(
+                    gameLocalPlayerId,
+                    remoteHostConnectedAction,
+                    remoteHostConnectionFailedAction,
+                    tunnelGrouping.Select(q => q.Name).ToList(),
+                    new(tunnelGrouping.Key.IPAddress, tunnelGrouping.Key.Port),
+                    0,
+                    cancellationToken);
             }
         }
+    }
+
+    private void SetupGameTunnelHandler(
+        uint gameLocalPlayerId,
+        Action remoteHostConnectedAction,
+        Action remoteHostConnectionFailedAction,
+        List<string> remotePlayerNames,
+        IPEndPoint remoteIpEndpoint,
+        ushort localPort,
+        CancellationToken cancellationToken)
+    {
+        var gameTunnelHandler = new V3GameTunnelHandler();
+
+        gameTunnelHandler.RaiseRemoteHostConnectedEvent += (_, _) => remoteHostConnectedAction();
+        gameTunnelHandler.RaiseRemoteHostConnectionFailedEvent += (_, _) => remoteHostConnectionFailedAction();
+
+        if (RecordingEnabled)
+        {
+            gameTunnelHandler.RaiseRemoteHostDataReceivedEvent += replayHandler.RemoteHostConnection_DataReceivedAsync;
+            gameTunnelHandler.RaiseLocalGameDataReceivedEvent += replayHandler.LocalGameConnection_DataReceivedAsync;
+        }
+
+        gameTunnelHandler.SetUp(remoteIpEndpoint, localPort, gameLocalPlayerId, cancellationToken);
+        gameTunnelHandler.ConnectToTunnel();
+        V3GameTunnelHandlers.Add(new(remotePlayerNames, gameTunnelHandler));
     }
 
     public List<ushort> StartPlayerConnections(List<uint> gamePlayerIds)
