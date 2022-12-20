@@ -8,6 +8,7 @@ using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
 using System;
 using System.Collections.Generic;
+using ClientCore.I18N;
 #if WINFORMS
 using System.Windows.Forms;
 #endif
@@ -17,7 +18,6 @@ using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
-using ClientCore.I18N;
 #endif
 
 namespace DTAConfig.OptionPanels
