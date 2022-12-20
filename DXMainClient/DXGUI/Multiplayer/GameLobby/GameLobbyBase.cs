@@ -1793,17 +1793,27 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private void GameProcessExited_Callback() => AddCallback(() => GameProcessExitedAsync().HandleTask());
 
-        protected virtual async ValueTask GameProcessExitedAsync()
+        protected virtual ValueTask GameProcessExitedAsync()
         {
             GameProcessLogic.GameProcessExited -= GameProcessExited_Callback;
 
-            Logger.Log("GameProcessExited: Parsing statistics.");
-            await matchStatistics.ParseStatisticsAsync(ProgramConstants.GamePath, false).ConfigureAwait(true);
-            Logger.Log("GameProcessExited: Adding match to statistics.");
-            await StatisticsManager.Instance.AddMatchAndSaveDatabaseAsync(true, matchStatistics).ConfigureAwait(true);
+            ParseStatisticsAsync().HandleTask();
             ClearReadyStatuses();
             CopyPlayerDataToUI();
             UpdateDiscordPresence(true);
+
+            return ValueTask.CompletedTask;
+        }
+
+        private async ValueTask ParseStatisticsAsync()
+        {
+            if (matchStatistics is not null)
+            {
+                Logger.Log("GameProcessExited: Parsing statistics.");
+                await matchStatistics.ParseStatisticsAsync(ProgramConstants.GamePath, false).ConfigureAwait(false);
+                Logger.Log("GameProcessExited: Adding match to statistics.");
+                await StatisticsManager.Instance.AddMatchAndSaveDatabaseAsync(true, matchStatistics).ConfigureAwait(false);
+            }
         }
 
         /// <summary>
