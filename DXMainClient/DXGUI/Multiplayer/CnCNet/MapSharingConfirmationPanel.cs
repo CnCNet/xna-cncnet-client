@@ -17,15 +17,15 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         private readonly string MapSharingRequestText = 
             ("The game host has selected a map that" + Environment.NewLine +
-            "doens't exist on your local installation.").L10N("UI:Main:MapSharingRequestText");
+            "doens't exist on your local installation.").L10N("Client:Main:MapSharingRequestText");
 
         private readonly string MapSharingDownloadText =
-            "Downloading map...".L10N("UI:Main:MapSharingDownloadText");
+            "Downloading map...".L10N("Client:Main:MapSharingDownloadText");
 
         private readonly string MapSharingFailedText =
             ("Downloading map failed. The game host" + Environment.NewLine +
             "needs to change the map or you will be" + Environment.NewLine +
-            "unable to participate in the match.").L10N("UI:Main:MapSharingFailedText");
+            "unable to participate in the match.").L10N("Client:Main:MapSharingFailedText");
 
         public event EventHandler MapDownloadConfirmed;
 
@@ -52,7 +52,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             btnDownload.Name = nameof(btnDownload);
             btnDownload.Width = UIDesignConstants.BUTTON_WIDTH_92;
             btnDownload.Y = lblDescription.Bottom + UIDesignConstants.EMPTY_SPACE_TOP * 2;
-            btnDownload.Text = "Download".L10N("UI:Main:ButtonDownload");
+            btnDownload.Text = "Download".L10N("Client:Main:ButtonDownload");
             btnDownload.LeftClick += (s, e) => MapDownloadConfirmed?.Invoke(this, EventArgs.Empty);
             AddChild(btnDownload);
             btnDownload.CenterOnParentHorizontally();

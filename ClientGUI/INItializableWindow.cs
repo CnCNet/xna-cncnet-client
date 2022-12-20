@@ -169,7 +169,7 @@ namespace ClientGUI
 
             // shorthand for localization function
             static string Localize(XNAControl control, string attributeName, string defaultValue, bool notify = true)
-                => Locale.Instance.Localize(control, attributeName, defaultValue, notify);
+                => Translation.Instance.LookUp(control, attributeName, defaultValue, notify);
 
             foreach (var kvp in section.Keys)
             {

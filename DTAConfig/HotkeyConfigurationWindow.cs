@@ -16,7 +16,7 @@ namespace DTAConfig
     /// </summary>
     public class HotkeyConfigurationWindow : XNAWindow
     {
-        private readonly string HOTKEY_TIP_TEXT = "Press a key...".L10N("UI:DTAConfig:PressAKey");
+        private readonly string HOTKEY_TIP_TEXT = "Press a key...".L10N("Client:DTAConfig:PressAKey");
         private const string HOTKEY_INI_SECTION = "Hotkey";
         private const string KEYBOARD_COMMANDS_INI = "KeyboardCommands.ini";
 
@@ -68,7 +68,7 @@ namespace DTAConfig
             var lblCategory = new XNALabel(WindowManager);
             lblCategory.Name = "lblCategory";
             lblCategory.ClientRectangle = new Rectangle(12, 12, 0, 0);
-            lblCategory.Text = "Category:".L10N("UI:DTAConfig:Category");
+            lblCategory.Text = "Category:".L10N("Client:DTAConfig:Category");
 
             ddCategory = new XNAClientDropDown(WindowManager);
             ddCategory.Name = "ddCategory";
@@ -92,8 +92,8 @@ namespace DTAConfig
                 ddCategory.Right - 12, Height - ddCategory.Bottom - 59);
             lbHotkeys.PanelBackgroundDrawMode = PanelBackgroundImageDrawMode.STRETCHED;
             lbHotkeys.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 128), 1, 1);
-            lbHotkeys.AddColumn("Command".L10N("UI:DTAConfig:Command"), 150);
-            lbHotkeys.AddColumn("Shortcut".L10N("UI:DTAConfig:Shortcut"), lbHotkeys.Width - 150);
+            lbHotkeys.AddColumn("Command".L10N("Client:DTAConfig:Command"), 150);
+            lbHotkeys.AddColumn("Shortcut".L10N("Client:DTAConfig:Shortcut"), lbHotkeys.Width - 150);
 
             hotkeyInfoPanel = new XNAPanel(WindowManager);
             hotkeyInfoPanel.Name = "HotkeyInfoPanel";
@@ -104,32 +104,32 @@ namespace DTAConfig
             lblCommandCaption.Name = "lblCommandCaption";
             lblCommandCaption.FontIndex = 1;
             lblCommandCaption.ClientRectangle = new Rectangle(12, 12, 0, 0);
-            lblCommandCaption.Text = "Command name".L10N("UI:DTAConfig:CommandName");
+            lblCommandCaption.Text = "Command name".L10N("Client:DTAConfig:CommandName");
 
             lblDescription = new XNALabel(WindowManager);
             lblDescription.Name = "lblDescription";
             lblDescription.ClientRectangle = new Rectangle(12, lblCommandCaption.Bottom + 12, 0, 0);
-            lblDescription.Text = "Command description".L10N("UI:DTAConfig:CommandDescription");
+            lblDescription.Text = "Command description".L10N("Client:DTAConfig:CommandDescription");
 
             var lblCurrentHotkey = new XNALabel(WindowManager);
             lblCurrentHotkey.Name = "lblCurrentHotkey";
             lblCurrentHotkey.ClientRectangle = new Rectangle(lblDescription.X,
                 lblDescription.Bottom + 48, 0, 0);
             lblCurrentHotkey.FontIndex = 1;
-            lblCurrentHotkey.Text = "Currently assigned hotkey:".L10N("UI:DTAConfig:CurrentHotKey");
+            lblCurrentHotkey.Text = "Currently assigned hotkey:".L10N("Client:DTAConfig:CurrentHotKey");
 
             lblCurrentHotkeyValue = new XNALabel(WindowManager);
             lblCurrentHotkeyValue.Name = "lblCurrentHotkeyValue";
             lblCurrentHotkeyValue.ClientRectangle = new Rectangle(lblDescription.X,
                 lblCurrentHotkey.Bottom + 6, 0, 0);
-            lblCurrentHotkeyValue.Text = "Current hotkey value".L10N("UI:DTAConfig:CurrentHotKeyValue");
+            lblCurrentHotkeyValue.Text = "Current hotkey value".L10N("Client:DTAConfig:CurrentHotKeyValue");
 
             var lblNewHotkey = new XNALabel(WindowManager);
             lblNewHotkey.Name = "lblNewHotkey";
             lblNewHotkey.ClientRectangle = new Rectangle(lblDescription.X,
                 lblCurrentHotkeyValue.Bottom + 48, 0, 0);
             lblNewHotkey.FontIndex = 1;
-            lblNewHotkey.Text = "New hotkey:".L10N("UI:DTAConfig:NewHotKey");
+            lblNewHotkey.Text = "New hotkey:".L10N("Client:DTAConfig:NewHotKey");
 
             lblNewHotkeyValue = new XNALabel(WindowManager);
             lblNewHotkeyValue.Name = "lblNewHotkeyValue";
@@ -141,25 +141,25 @@ namespace DTAConfig
             lblCurrentlyAssignedTo.Name = "lblCurrentlyAssignedTo";
             lblCurrentlyAssignedTo.ClientRectangle = new Rectangle(lblDescription.X,
                 lblNewHotkeyValue.Bottom + 12, 0, 0);
-            lblCurrentlyAssignedTo.Text = "Currently assigned to:".L10N("UI:DTAConfig:CurrentHotKeyAssign") + "\nKey";
+            lblCurrentlyAssignedTo.Text = "Currently assigned to:".L10N("Client:DTAConfig:CurrentHotKeyAssign") + "\nKey";
 
             var btnAssign = new XNAClientButton(WindowManager);
             btnAssign.Name = "btnAssign";
             btnAssign.ClientRectangle = new Rectangle(lblDescription.X,
                 lblCurrentlyAssignedTo.Bottom + 24, UIDesignConstants.BUTTON_WIDTH_121, UIDesignConstants.BUTTON_HEIGHT);
-            btnAssign.Text = "Assign Hotkey".L10N("UI:DTAConfig:AssignHotkey");
+            btnAssign.Text = "Assign Hotkey".L10N("Client:DTAConfig:AssignHotkey");
             btnAssign.LeftClick += BtnAssign_LeftClick;
 
             btnResetKey = new XNAClientButton(WindowManager);
             btnResetKey.Name = "btnResetKey";
             btnResetKey.ClientRectangle = new Rectangle(btnAssign.X, btnAssign.Bottom + 12, btnAssign.Width, 23);
-            btnResetKey.Text = "Reset to Default".L10N("UI:DTAConfig:ResetToDefault");
+            btnResetKey.Text = "Reset to Default".L10N("Client:DTAConfig:ResetToDefault");
             btnResetKey.LeftClick += BtnReset_LeftClick;
 
             var lblDefaultHotkey = new XNALabel(WindowManager);
             lblDefaultHotkey.Name = "lblOriginalHotkey";
             lblDefaultHotkey.ClientRectangle = new Rectangle(lblCurrentHotkey.X, btnResetKey.Bottom + 12, 0, 0);
-            lblDefaultHotkey.Text = "Default hotkey:".L10N("UI:DTAConfig:DefaultHotKey");
+            lblDefaultHotkey.Text = "Default hotkey:".L10N("Client:DTAConfig:DefaultHotKey");
 
             lblDefaultHotkeyValue = new XNALabel(WindowManager);
             lblDefaultHotkeyValue.Name = "lblDefaultHotkeyValue";
@@ -168,13 +168,13 @@ namespace DTAConfig
             var btnSave = new XNAClientButton(WindowManager);
             btnSave.Name = "btnSave";
             btnSave.ClientRectangle = new Rectangle(12, lbHotkeys.Bottom + 12, UIDesignConstants.BUTTON_WIDTH_92, UIDesignConstants.BUTTON_HEIGHT);
-            btnSave.Text = "Save".L10N("UI:DTAConfig:ButtonSave");
+            btnSave.Text = "Save".L10N("Client:DTAConfig:ButtonSave");
             btnSave.LeftClick += BtnSave_LeftClick;
 
             var btnResetAllKeys = new XNAClientButton(WindowManager);
             btnResetAllKeys.Name = "btnResetAllToDefaults";
             btnResetAllKeys.ClientRectangle = new Rectangle(0, btnSave.Y, UIDesignConstants.BUTTON_WIDTH_121, UIDesignConstants.BUTTON_HEIGHT);
-            btnResetAllKeys.Text = "Reset All Keys".L10N("UI:DTAConfig:ResetAllHotkey");
+            btnResetAllKeys.Text = "Reset All Keys".L10N("Client:DTAConfig:ResetAllHotkey");
             btnResetAllKeys.LeftClick += BtnResetToDefaults_LeftClick;
             AddChild(btnResetAllKeys);
             btnResetAllKeys.CenterOnParentHorizontally();
@@ -182,7 +182,7 @@ namespace DTAConfig
             var btnCancel = new XNAClientButton(WindowManager);
             btnCancel.Name = "btnExit";
             btnCancel.ClientRectangle = new Rectangle(Width - 104, btnSave.Y, UIDesignConstants.BUTTON_WIDTH_92, UIDesignConstants.BUTTON_HEIGHT);
-            btnCancel.Text = "Cancel".L10N("UI:DTAConfig:ButtonCancel");
+            btnCancel.Text = "Cancel".L10N("Client:DTAConfig:ButtonCancel");
             btnCancel.LeftClick += BtnCancel_LeftClick;
 
             AddChild(lbHotkeys);
@@ -406,7 +406,7 @@ namespace DTAConfig
             foreach (var command in gameCommands)
             {
                 if (pendingHotkey.Equals(command.Hotkey))
-                    lblCurrentlyAssignedTo.Text = "Currently assigned to:".L10N("UI:DTAConfig:CurrentAssignTo") + Environment.NewLine + command.UIName;
+                    lblCurrentlyAssignedTo.Text = "Currently assigned to:".L10N("Client:DTAConfig:CurrentAssignTo") + Environment.NewLine + command.UIName;
             }
         }
 

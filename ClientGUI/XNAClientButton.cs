@@ -3,6 +3,7 @@ using Rampastring.XNAUI;
 using Rampastring.Tools;
 using System;
 using ClientCore;
+using ClientCore.Extensions;
 
 namespace ClientGUI
 {
@@ -60,7 +61,7 @@ namespace ClientGUI
             }
             else if (key == "ToolTip")
             {
-                ToolTipText = value.Replace(ProgramConstants.INI_NEWLINE_PATTERN, Environment.NewLine);
+                ToolTipText = value.FromIniString();
                 return;
             }
 

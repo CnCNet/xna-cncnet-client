@@ -1,4 +1,4 @@
-﻿using ClientCore.Settings;
+using ClientCore.Settings;
 using Rampastring.Tools;
 using System;
 using System.Collections.Generic;
@@ -60,7 +60,7 @@ namespace ClientCore
             IngameScreenWidth = new IntSetting(iniFile, VIDEO, "ScreenWidth", 1024);
             IngameScreenHeight = new IntSetting(iniFile, VIDEO, "ScreenHeight", 768);
             ClientTheme = new StringSetting(iniFile, MULTIPLAYER, "Theme", string.Empty);
-            LocaleCode = new StringSetting(iniFile, OPTIONS, "LocaleName", Locale.GetDefaultLocaleCode());
+            Translation = new StringSetting(iniFile, OPTIONS, "Translation", I18N.Translation.GetDefaultTranslationLocaleCode());
             DetailLevel = new IntSetting(iniFile, OPTIONS, "DetailLevel", 2);
             Renderer = new StringSetting(iniFile, COMPATIBILITY, "Renderer", string.Empty);
             WindowedMode = new BoolSetting(iniFile, VIDEO, WINDOWED_MODE_KEY, false);
@@ -114,8 +114,8 @@ namespace ClientCore
             ForceLowestDetailLevel = new BoolSetting(iniFile, VIDEO, "ForceLowestDetailLevel", false);
             MinimizeWindowsOnGameStart = new BoolSetting(iniFile, OPTIONS, "MinimizeWindowsOnGameStart", true);
             AutoRemoveUnderscoresFromName = new BoolSetting(iniFile, OPTIONS, "AutoRemoveUnderscoresFromName", true);
-            GenerateLocaleStub = new BoolSetting(iniFile, OPTIONS, nameof(GenerateLocaleStub), false);
-            GenerateOnlyNewValuesInLocaleStub = new BoolSetting(iniFile, OPTIONS, nameof(GenerateOnlyNewValuesInLocaleStub), false);
+            GenerateTranslationStub = new BoolSetting(iniFile, OPTIONS, nameof(GenerateTranslationStub), false);
+            GenerateOnlyNewValuesInTranslationStub = new BoolSetting(iniFile, OPTIONS, nameof(GenerateOnlyNewValuesInTranslationStub), false);
 
             SortState = new IntSetting(iniFile, GAME_FILTERS, "SortState", (int)SortDirection.None);
             ShowFriendGamesOnly = new BoolSetting(iniFile, GAME_FILTERS, "ShowFriendGamesOnly", DEFAULT_SHOW_FRIENDS_ONLY_GAMES);
@@ -139,11 +139,11 @@ namespace ClientCore
         public IntSetting IngameScreenHeight { get; private set; }
         public StringSetting ClientTheme { get; private set; }
         public string ThemeFolderPath => ClientConfiguration.Instance.GetThemePath(ClientTheme);
-        public StringSetting LocaleCode { get; private set; }
-        public string LocaleFolderPath => SafePath.CombineDirectoryPath(
-            ClientConfiguration.Instance.LocalesFolderPath, LocaleCode);
-        public string LocaleThemeFolderPath => SafePath.CombineDirectoryPath(
-            ClientConfiguration.Instance.LocalesFolderPath, LocaleCode,
+        public StringSetting Translation { get; private set; }
+        public string TranslationFolderPath => SafePath.CombineDirectoryPath(
+            ClientConfiguration.Instance.TranslationsFolderPath, Translation);
+        public string TranslationThemeFolderPath => SafePath.CombineDirectoryPath(
+            ClientConfiguration.Instance.TranslationsFolderPath, Translation,
             ClientConfiguration.Instance.GetThemePath(ClientTheme));
         public IntSetting DetailLevel { get; private set; }
         public StringSetting Renderer { get; private set; }
@@ -248,9 +248,9 @@ namespace ClientCore
 
         public BoolSetting AutoRemoveUnderscoresFromName { get; private set; }
 
-        public BoolSetting GenerateLocaleStub { get; private set; }
+        public BoolSetting GenerateTranslationStub { get; private set; }
 
-        public BoolSetting GenerateOnlyNewValuesInLocaleStub { get; private set; }
+        public BoolSetting GenerateOnlyNewValuesInTranslationStub { get; private set; }
 
         public StringListSetting FavoriteMaps { get; private set; }
 

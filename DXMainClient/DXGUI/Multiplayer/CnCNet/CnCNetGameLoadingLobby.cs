@@ -129,7 +129,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             btnChangeTunnel.Name = nameof(btnChangeTunnel);
             btnChangeTunnel.ClientRectangle = new Rectangle(btnLeaveGame.Right - btnLeaveGame.Width - 145,
                 btnLeaveGame.Y, UIDesignConstants.BUTTON_WIDTH_133, UIDesignConstants.BUTTON_HEIGHT);
-            btnChangeTunnel.Text = "Change Tunnel".L10N("UI:Main:ChangeTunnel");
+            btnChangeTunnel.Text = "Change Tunnel".L10N("Client:Main:ChangeTunnel");
             btnChangeTunnel.LeftClick += BtnChangeTunnel_LeftClick;
             AddChild(btnChangeTunnel);
 
@@ -257,9 +257,9 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 channel.SendCTCPMessage(TUNNEL_PING_CTCP_COMMAND + " " + tunnelHandler.CurrentTunnel.PingInMs, QueuedMessageType.SYSTEM_MESSAGE, 10);
 
                 if (tunnelHandler.CurrentTunnel.PingInMs < 0)
-                    AddNotice(string.Format("{0} - unknown ping to tunnel server.".L10N("UI:Main:PlayerUnknownPing"), ProgramConstants.PLAYERNAME));
+                    AddNotice(string.Format("{0} - unknown ping to tunnel server.".L10N("Client:Main:PlayerUnknownPing"), ProgramConstants.PLAYERNAME));
                 else
-                    AddNotice(string.Format("{0} - ping to tunnel server: {1} ms".L10N("UI:Main:PlayerPing"), ProgramConstants.PLAYERNAME, tunnelHandler.CurrentTunnel.PingInMs));
+                    AddNotice(string.Format("{0} - ping to tunnel server: {1} ms".L10N("Client:Main:PlayerPing"), ProgramConstants.PLAYERNAME, tunnelHandler.CurrentTunnel.PingInMs));
             }
 
             topBar.AddPrimarySwitchable(this);
@@ -310,7 +310,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             if (!IsHost && playerName == hostName && !ProgramConstants.IsInGame)
             {
                 connectionManager.MainChannel.AddMessage(new ChatMessage(
-                    Color.Yellow, "The game host left the game!".L10N("UI:Main:HostLeft")));
+                    Color.Yellow, "The game host left the game!".L10N("Client:Main:HostLeft")));
 
                 Clear();
             }
@@ -434,7 +434,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             if (sender != hostName)
                 return;
 
-            AddNotice(string.Format("{0} - modified files detected! They could be cheating!".L10N("UI:Main:PlayerCheating"), cheaterName), Color.Red);
+            AddNotice(string.Format("{0} - modified files detected! They could be cheating!".L10N("Client:Main:PlayerCheating"), cheaterName), Color.Red);
 
             if (IsHost)
                 channel.SendCTCPMessage(INVALID_FILE_HASH_CTCP_COMMAND + " " + cheaterName, QueuedMessageType.SYSTEM_MESSAGE, 0);
@@ -443,9 +443,9 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         private void HandleTunnelPing(string sender, int pingInMs)
         {
             if (pingInMs < 0)
-                AddNotice(string.Format("{0} - unknown ping to tunnel server.".L10N("UI:Main:PlayerUnknownPing"), sender));
+                AddNotice(string.Format("{0} - unknown ping to tunnel server.".L10N("Client:Main:PlayerUnknownPing"), sender));
             else
-                AddNotice(string.Format("{0} - ping to tunnel server: {1} ms".L10N("UI:Main:PlayerPing"), sender, pingInMs));
+                AddNotice(string.Format("{0} - ping to tunnel server: {1} ms".L10N("Client:Main:PlayerPing"), sender, pingInMs));
         }
 
         /// <summary>
@@ -468,7 +468,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             if (sgIndex >= ddSavedGame.Items.Count)
             {
-                AddNotice("The game host has selected an invalid saved game index!".L10N("UI:Main:HostInvalidIndex") + " " + sgIndex);
+                AddNotice("The game host has selected an invalid saved game index!".L10N("Client:Main:HostInvalidIndex") + " " + sgIndex);
                 channel.SendCTCPMessage(INVALID_SAVED_GAME_INDEX_CTCP_COMMAND, QueuedMessageType.SYSTEM_MESSAGE, 10);
                 return;
             }
@@ -508,7 +508,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             pInfo.Ready = false;
 
-            AddNotice(string.Format("{0} does not have the selected saved game on their system! Try selecting an earlier saved game.".L10N("UI:Main:PlayerDontHaveSavedGame"), pInfo.Name));
+            AddNotice(string.Format("{0} does not have the selected saved game on their system! Try selecting an earlier saved game.".L10N("Client:Main:PlayerDontHaveSavedGame"), pInfo.Name));
 
             CopyPlayerDataToUI();
         }
@@ -579,7 +579,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             {
                 AddNotice(("The game host has selected an invalid tunnel server! " +
                     "The game host needs to change the server or you will be unable " +
-                    "to participate in the match.").L10N("UI:Main:HostInvalidTunnel"),
+                    "to participate in the match.").L10N("Client:Main:HostInvalidTunnel"),
                     Color.Yellow);
                 btnLoadGame.AllowClick = false;
                 return;
@@ -596,7 +596,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         private void HandleTunnelServerChange(CnCNetTunnel tunnel)
         {
             tunnelHandler.CurrentTunnel = tunnel;
-            AddNotice(string.Format("The game host has changed the tunnel server to: {0}".L10N("UI:Main:HostChangeTunnel"), tunnel.Name));
+            AddNotice(string.Format("The game host has changed the tunnel server to: {0}".L10N("Client:Main:HostChangeTunnel"), tunnel.Name));
             //UpdatePing();
         }
 
@@ -604,16 +604,16 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         protected override void HostStartGame()
         {
-            AddNotice("Contacting tunnel server...".L10N("UI:Main:ConnectingTunnel"));
+            AddNotice("Contacting tunnel server...".L10N("Client:Main:ConnectingTunnel"));
             List<int> playerPorts = tunnelHandler.CurrentTunnel.GetPlayerPortInfo(SGPlayers.Count);
 
             if (playerPorts.Count < Players.Count)
             {
                 ShowTunnelSelectionWindow(("An error occured while contacting " +
                         "the CnCNet tunnel server." + Environment.NewLine +
-                        "Try picking a different tunnel server:").L10N("UI:Main:ConnectTunnelError1"));
+                        "Try picking a different tunnel server:").L10N("Client:Main:ConnectTunnelError1"));
                 AddNotice(("An error occured while contacting the specified CnCNet " +
-                    "tunnel server. Please try using a different tunnel server ").L10N("UI:Main:ConnectTunnelError2"), Color.Yellow);
+                    "tunnel server. Please try using a different tunnel server ").L10N("Client:Main:ConnectTunnelError2"), Color.Yellow);
                 return;
             }
 
@@ -630,7 +630,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             sb.Remove(sb.Length - 1, 1);
             channel.SendCTCPMessage(sb.ToString(), QueuedMessageType.SYSTEM_MESSAGE, 9);
 
-            AddNotice("Starting game...".L10N("UI:Main:StartingGame"));
+            AddNotice("Starting game...".L10N("Client:Main:StartingGame"));
 
             started = true;
 
@@ -706,7 +706,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             broadcastChannel.SendCTCPMessage(sb.ToString(), QueuedMessageType.SYSTEM_MESSAGE, 20);
         }
 
-        public override string GetSwitchName() => "Load Game".L10N("UI:Main:LoadGame");
+        public override string GetSwitchName() => "Load Game".L10N("Client:Main:LoadGame");
 
         protected override void UpdateDiscordPresence(bool resetTimer = false)
         {

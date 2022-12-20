@@ -78,7 +78,7 @@ namespace DTAClient.Domain.Multiplayer
             IniFile forcedOptionsIni = new IniFile(SafePath.CombineFilePath(ProgramConstants.GamePath, ClientConfiguration.Instance.MPMapsIniPath));
 
             CoopDifficultyLevel = forcedOptionsIni.GetIntValue(Name, "CoopDifficultyLevel", 0);
-            UIName = forcedOptionsIni.GetStringValue(Name, "UIName", Name).L10N($"UI:GameMode:{Name}:UIName");
+            UIName = forcedOptionsIni.GetStringValue(Name, "UIName", Name).L10N($"INI:GameModes:{Name}:UIName");
             MultiplayerOnly = forcedOptionsIni.GetBooleanValue(Name, "MultiplayerOnly", false);
             HumanPlayersOnly = forcedOptionsIni.GetBooleanValue(Name, "HumanPlayersOnly", false);
             ForceRandomStartLocations = forcedOptionsIni.GetBooleanValue(Name, "ForceRandomStartLocations", false);

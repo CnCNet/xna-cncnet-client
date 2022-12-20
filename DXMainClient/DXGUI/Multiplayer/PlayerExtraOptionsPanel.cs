@@ -17,7 +17,7 @@ namespace DTAClient.DXGUI.Multiplayer
         private const int defaultTeamStartMappingX = UIDesignConstants.EMPTY_SPACE_SIDES;
         private const int teamMappingPanelWidth = 50;
         private const int teamMappingPanelHeight = 22;
-        private readonly string customPresetName = "Custom".L10N("UI:Main:CustomPresetName");
+        private readonly string customPresetName = "Custom".L10N("Client:Main:CustomPresetName");
 
         private XNAClientCheckBox chkBoxForceRandomSides;
         private XNAClientCheckBox chkBoxForceRandomTeams;
@@ -171,34 +171,34 @@ namespace DTAClient.DXGUI.Multiplayer
 
             var lblHeader = new XNALabel(WindowManager);
             lblHeader.Name = nameof(lblHeader);
-            lblHeader.Text = "Extra Player Options".L10N("UI:Main:ExtraPlayerOptions");
+            lblHeader.Text = "Extra Player Options".L10N("Client:Main:ExtraPlayerOptions");
             lblHeader.ClientRectangle = new Rectangle(defaultX, 4, 0, 18);
             AddChild(lblHeader);
 
             chkBoxForceRandomSides = new XNAClientCheckBox(WindowManager);
             chkBoxForceRandomSides.Name = nameof(chkBoxForceRandomSides);
-            chkBoxForceRandomSides.Text = "Force Random Sides".L10N("UI:Main:ForceRandomSides");
+            chkBoxForceRandomSides.Text = "Force Random Sides".L10N("Client:Main:ForceRandomSides");
             chkBoxForceRandomSides.ClientRectangle = new Rectangle(defaultX, lblHeader.Bottom + 4, 0, 0);
             chkBoxForceRandomSides.CheckedChanged += Options_Changed;
             AddChild(chkBoxForceRandomSides);
 
             chkBoxForceRandomColors = new XNAClientCheckBox(WindowManager);
             chkBoxForceRandomColors.Name = nameof(chkBoxForceRandomColors);
-            chkBoxForceRandomColors.Text = "Force Random Colors".L10N("UI:Main:ForceRandomColors");
+            chkBoxForceRandomColors.Text = "Force Random Colors".L10N("Client:Main:ForceRandomColors");
             chkBoxForceRandomColors.ClientRectangle = new Rectangle(defaultX, chkBoxForceRandomSides.Bottom + 4, 0, 0);
             chkBoxForceRandomColors.CheckedChanged += Options_Changed;
             AddChild(chkBoxForceRandomColors);
 
             chkBoxForceRandomTeams = new XNAClientCheckBox(WindowManager);
             chkBoxForceRandomTeams.Name = nameof(chkBoxForceRandomTeams);
-            chkBoxForceRandomTeams.Text = "Force Random Teams".L10N("UI:Main:ForceRandomTeams");
+            chkBoxForceRandomTeams.Text = "Force Random Teams".L10N("Client:Main:ForceRandomTeams");
             chkBoxForceRandomTeams.ClientRectangle = new Rectangle(defaultX, chkBoxForceRandomColors.Bottom + 4, 0, 0);
             chkBoxForceRandomTeams.CheckedChanged += Options_Changed;
             AddChild(chkBoxForceRandomTeams);
 
             chkBoxForceRandomStarts = new XNAClientCheckBox(WindowManager);
             chkBoxForceRandomStarts.Name = nameof(chkBoxForceRandomStarts);
-            chkBoxForceRandomStarts.Text = "Force Random Starts".L10N("UI:Main:ForceRandomStarts");
+            chkBoxForceRandomStarts.Text = "Force Random Starts".L10N("Client:Main:ForceRandomStarts");
             chkBoxForceRandomStarts.ClientRectangle = new Rectangle(defaultX, chkBoxForceRandomTeams.Bottom + 4, 0, 0);
             chkBoxForceRandomStarts.CheckedChanged += Options_Changed;
             AddChild(chkBoxForceRandomStarts);
@@ -207,7 +207,7 @@ namespace DTAClient.DXGUI.Multiplayer
 
             chkBoxUseTeamStartMappings = new XNAClientCheckBox(WindowManager);
             chkBoxUseTeamStartMappings.Name = nameof(chkBoxUseTeamStartMappings);
-            chkBoxUseTeamStartMappings.Text = "Enable Auto Allying:".L10N("UI:Main:EnableAutoAllying");
+            chkBoxUseTeamStartMappings.Text = "Enable Auto Allying:".L10N("Client:Main:EnableAutoAllying");
             chkBoxUseTeamStartMappings.ClientRectangle = new Rectangle(chkBoxForceRandomSides.X, chkBoxForceRandomStarts.Bottom + 20, 0, 0);
             chkBoxUseTeamStartMappings.CheckedChanged += ChkBoxUseTeamStartMappings_Changed;
             AddChild(chkBoxUseTeamStartMappings);
@@ -222,7 +222,7 @@ namespace DTAClient.DXGUI.Multiplayer
 
             var lblPreset = new XNALabel(WindowManager);
             lblPreset.Name = nameof(lblPreset);
-            lblPreset.Text = "Presets:".L10N("UI:Main:Presets");
+            lblPreset.Text = "Presets:".L10N("Client:Main:Presets");
             lblPreset.ClientRectangle = new Rectangle(chkBoxUseTeamStartMappings.X, chkBoxUseTeamStartMappings.Bottom + 8, 0, 0);
             AddChild(lblPreset);
 
@@ -247,13 +247,13 @@ namespace DTAClient.DXGUI.Multiplayer
 
         private void BtnHelp_LeftClick(object sender, EventArgs args)
         {
-            XNAMessageBox.Show(WindowManager, "Auto Allying".L10N("UI:Main:AutoAllyingTitle"),
+            XNAMessageBox.Show(WindowManager, "Auto Allying".L10N("Client:Main:AutoAllyingTitle"),
                 ("Auto allying allows the host to assign starting locations to teams, not players.\n" +
                 "When players are assigned to spawn locations, they will be auto assigned to teams based on these mappings.\n" +
                 "This is best used with random teams and random starts. However, only random teams is required.\n" +
-                "Manually specified starts will take precedence.\n\n").L10N("UI:Main:AutoAllyingText1") +
-                $"{TeamStartMapping.NO_TEAM} : " + "Block this location from being assigned to a player.".L10N("UI:Main:AutoAllyingTextNoTeam") + "\n" +
-                $"{TeamStartMapping.RANDOM_TEAM} : "+"Allow a player here, but don't assign a team.".L10N("UI:Main:AutoAllyingTextRandomTeam")
+                "Manually specified starts will take precedence.\n\n").L10N("Client:Main:AutoAllyingText1") +
+                $"{TeamStartMapping.NO_TEAM} : " + "Block this location from being assigned to a player.".L10N("Client:Main:AutoAllyingTextNoTeam") + "\n" +
+                $"{TeamStartMapping.RANDOM_TEAM} : "+"Allow a player here, but don't assign a team.".L10N("Client:Main:AutoAllyingTextRandomTeam")
             );
         }
 

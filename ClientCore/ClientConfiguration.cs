@@ -13,6 +13,7 @@ namespace ClientCore
         private const string AUDIO = "Audio";
         private const string SETTINGS = "Settings";
         private const string LINKS = "Links";
+        private const string TRANSLATIONS = "Translations";
 
         private const string CLIENT_SETTINGS = "DTACnCNetClient.ini";
         private const string GAME_OPTIONS = "GameOptions.ini";
@@ -255,37 +256,47 @@ namespace ClientCore
 
         public string SettingsIniName => clientDefinitionsIni.GetStringValue(SETTINGS, "SettingsFile", "Settings.ini");
 
-        public string LocaleIniName => clientDefinitionsIni.GetStringValue(SETTINGS, nameof(LocaleIniName), "Locale.ini");
+        public string TranslationIniName => clientDefinitionsIni.GetStringValue(TRANSLATIONS, nameof(TranslationIniName), "Translation.ini");
 
-        public string LocalesFolderPath => SafePath.CombineDirectoryPath(
-            clientDefinitionsIni.GetStringValue(SETTINGS, "LocalesFolder",
-                SafePath.CombineDirectoryPath("Resources", "Locales")));
+        public string TranslationsFolderPath => SafePath.CombineDirectoryPath(
+            clientDefinitionsIni.GetStringValue(TRANSLATIONS, "TranslationsFolder",
+                SafePath.CombineDirectoryPath("Resources", "Translations")));
+
+        private List<TranslationGameFile> _translationGameFiles;
+
+        public List<TranslationGameFile> TranslationGameFiles => _translationGameFiles ??= ParseTranslationGameFiles();
 
         /// <summary>
-        /// Lists valid available locales from the <see cref="LocalesFolderPath"/> along with their UI names.
-        /// A localization is valid if it has a corresponding <see cref="LocaleIniName"/> file in the <see cref="LocalesFolderPath"/>.
+        /// Looks up the list of files to try and copy into the game folder with a translation.
         /// </summary>
-        public Dictionary<string, string> GetLocales()
+        /// <param name="checkedOnly">Whether to list only integrity-checked files.</param>
+        /// <returns>Source/destination relative path pairs.</returns>
+        /// <exception cref="IniParseException">Thrown when the syntax of the list is invalid.</exception>
+        private List<TranslationGameFile> ParseTranslationGameFiles()
         {
-            var locales = new Dictionary<string, string>
-            {
-                // Add default localization so that we always have it in the list even if the localization does not exist
-                [ProgramConstants.HARDCODED_LOCALE_CODE] = Locale.GetLocaleName(ProgramConstants.HARDCODED_LOCALE_CODE)
-            };
+            List<TranslationGameFile> gameFiles = new();
 
-            if (!Directory.Exists(LocalesFolderPath))
-                return locales;
-
-            foreach (var localizationFolder in Directory.GetDirectories(LocalesFolderPath))
+            for (int i = 0; clientDefinitionsIni.KeyExists(TRANSLATIONS, $"GameFile{i}"); i++)
             {
-                string localizationCode = Path.GetFileName(localizationFolder);
-                locales[localizationCode] = Locale.GetLocaleName(localizationCode);
+                // the syntax is GameFileX=path/to/source.file,path/to/destination.file[,checked]
+                string value = clientDefinitionsIni.GetStringValue(TRANSLATIONS, $"GameFile{i}", string.Empty);
+                string[] parts = value.Split(',', StringSplitOptions.TrimEntries);
+
+                // fail explicitly if the syntax is wrong
+                if (parts.Length is < 2 or > 3
+                    || (parts.Length == 3 && parts[2].ToLowerInvariant() is not "checked"))
+                {
+                    throw new IniParseException($"Invalid syntax for value of GameFile{i}! " +
+                        $"Expected path/to/source.file,path/to/destination.file[,checked], read {value}.");
+                }
+
+                bool isChecked = parts.Length == 3 && parts[2].ToLowerInvariant() == "checked";
+
+                gameFiles.Add(new(Source: parts[0], Target: parts[1], isChecked));
             }
 
-            return locales;
+            return gameFiles;
         }
-
-        public bool GenerateTranslationStub => clientDefinitionsIni.GetBooleanValue(SETTINGS, "GenerateTranslationStub", false);
 
         public string ExtraExeCommandLineParameters => clientDefinitionsIni.GetStringValue(SETTINGS, "ExtraCommandLineParams", string.Empty);
 

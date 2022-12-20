@@ -18,11 +18,11 @@ namespace DTAClient.Domain
             Side = iniFile.GetIntValue(sectionName, nameof(Side), 0);
             Scenario = iniFile.GetStringValue(sectionName, nameof(Scenario), string.Empty);
             GUIName = iniFile.GetStringValue(sectionName, "Description", "Undefined mission")
-                .L10N($"UI:Mission:{sectionName}:Description");
+                .L10N($"INI:Missions:{sectionName}:Description");
             IconPath = iniFile.GetStringValue(sectionName, "SideName", string.Empty);
             GUIDescription = iniFile.GetStringValue(sectionName, "LongDescription", string.Empty)
-                .Replace(ProgramConstants.INI_NEWLINE_PATTERN, Environment.NewLine)
-                .L10N($"UI:Mission:{sectionName}:LongDescription");
+                .FromIniString()
+                .L10N($"INI:Missions:{sectionName}:LongDescription");
             FinalMovie = iniFile.GetStringValue(sectionName, nameof(FinalMovie), "none");
             RequiredAddon = iniFile.GetBooleanValue(sectionName, nameof(RequiredAddon), false);
             Enabled = iniFile.GetBooleanValue(sectionName, nameof(Enabled), true);

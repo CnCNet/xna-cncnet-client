@@ -29,8 +29,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         private const int LB_USERS_WIDTH = 150;
 
-        private readonly string DEFAULT_PLAYERS_TEXT = "PLAYERS:".L10N("UI:Main:Players");
-        private readonly string RECENT_PLAYERS_TEXT = "RECENT PLAYERS:".L10N("UI:Main:RecentPlayers");
+        private readonly string DEFAULT_PLAYERS_TEXT = "PLAYERS:".L10N("Client:Main:Players");
+        private readonly string RECENT_PLAYERS_TEXT = "RECENT PLAYERS:".L10N("Client:Main:RecentPlayers");
 
         private CnCNetUserData cncnetUserData;
         private readonly PrivateMessageHandler privateMessageHandler;
@@ -122,7 +122,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             lblPrivateMessaging = new XNALabel(WindowManager);
             lblPrivateMessaging.Name = nameof(lblPrivateMessaging);
             lblPrivateMessaging.FontIndex = 1;
-            lblPrivateMessaging.Text = "PRIVATE MESSAGING".L10N("UI:Main:PMLabel");
+            lblPrivateMessaging.Text = "PRIVATE MESSAGING".L10N("Client:Main:PMLabel");
 
             AddChild(lblPrivateMessaging);
             lblPrivateMessaging.CenterOnParent();
@@ -136,10 +136,10 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             tabControl.ClientRectangle = new Rectangle(34, 50, 0, 0);
             tabControl.ClickSound = new EnhancedSoundEffect("button.wav");
             tabControl.FontIndex = 1;
-            tabControl.AddTab("Messages".L10N("UI:Main:MessagesTab"), UIDesignConstants.BUTTON_WIDTH_133);
-            tabControl.AddTab("Friend List".L10N("UI:Main:FriendListTab"), UIDesignConstants.BUTTON_WIDTH_133);
-            tabControl.AddTab("All Players".L10N("UI:Main:AllPlayersTab"), UIDesignConstants.BUTTON_WIDTH_133);
-            tabControl.AddTab("Recent Players".L10N("UI:Main:RecentPlayersTab"), UIDesignConstants.BUTTON_WIDTH_133);
+            tabControl.AddTab("Messages".L10N("Client:Main:MessagesTab"), UIDesignConstants.BUTTON_WIDTH_133);
+            tabControl.AddTab("Friend List".L10N("Client:Main:FriendListTab"), UIDesignConstants.BUTTON_WIDTH_133);
+            tabControl.AddTab("All Players".L10N("Client:Main:AllPlayersTab"), UIDesignConstants.BUTTON_WIDTH_133);
+            tabControl.AddTab("Recent Players".L10N("Client:Main:RecentPlayersTab"), UIDesignConstants.BUTTON_WIDTH_133);
             tabControl.SelectedIndexChanged += TabControl_SelectedIndexChanged;
 
             lblPlayers = new XNALabel(WindowManager);
@@ -164,7 +164,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             lblMessages.ClientRectangle = new Rectangle(lbUserList.Right + 12,
                 lblPlayers.Y, 0, 0);
             lblMessages.FontIndex = 1;
-            lblMessages.Text = "MESSAGES:".L10N("UI:Main:Messages");
+            lblMessages.Text = "MESSAGES:".L10N("Client:Main:Messages");
 
             lbMessages = new ChatListBox(WindowManager);
             lbMessages.Name = nameof(lbMessages);
@@ -265,7 +265,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             if (pmUser != null)
             {
                 leaveMessage = new ChatMessage(Color.White,
-                    string.Format("{0} is now offline.".L10N("UI:Main:PlayerOffline"), e.UserName));
+                    string.Format("{0} is now offline.".L10N("Client:Main:PlayerOffline"), e.UserName));
                 pmUser.Messages.Add(leaveMessage);
             }
 
@@ -314,7 +314,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             if (pmUser != null)
             {
-                joinMessage = new ChatMessage(string.Format("{0} is now offline.".L10N("UI:Main:PlayerOffline"), e.User.Name));
+                joinMessage = new ChatMessage(string.Format("{0} is now offline.".L10N("Client:Main:PlayerOffline"), e.User.Name));
                 pmUser.Messages.Add(joinMessage);
             }
 
@@ -814,7 +814,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         public void SwitchOff() => Disable();
 
-        public string GetSwitchName() => "Private Messaging".L10N("UI:Main:PrivateMessaging");
+        public string GetSwitchName() => "Private Messaging".L10N("Client:Main:PrivateMessaging");
 
         /// <summary>
         /// A class for storing a private message in memory.
@@ -841,7 +841,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             }
 
             public void AddMessage(ChatMessage message)
-                => XNAMessageBox.Show(windowManager, "Message".L10N("UI:Main:MessageTitle"), message.Message);
+                => XNAMessageBox.Show(windowManager, "Message".L10N("Client:Main:MessageTitle"), message.Message);
         }
     }
 }

@@ -5,27 +5,28 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ClientCore;
+using ClientCore.Extensions;
 using ClientCore.I18N;
 using Microsoft.Xna.Framework;
 using Rampastring.Tools;
 using Rampastring.XNAUI.XNAControls;
 
 namespace ClientGUI;
-public class LocaleINIParser : IControlINIAttributeParser
+public class TranslationINIParser : IControlINIAttributeParser
 {
-    private static LocaleINIParser _instance;
-    public static LocaleINIParser Instance => _instance ??= new LocaleINIParser();
+    private static TranslationINIParser _instance;
+    public static TranslationINIParser Instance => _instance ??= new TranslationINIParser();
 
     // shorthand for localization function
     private string Localize(XNAControl control, string attributeName, string defaultValue, bool notify = true)
-        => Locale.Instance.Localize(control, attributeName, defaultValue, notify);
+        => Translation.Instance.LookUp(control, attributeName, defaultValue, notify);
 
     public bool ParseINIAttribute(XNAControl control, IniFile iniFile, string key, string value)
     {
         switch (key)
         {
             case "Text":
-                control.Text = Localize(control, key, value.Replace(ProgramConstants.INI_NEWLINE_PATTERN, Environment.NewLine));
+                control.Text = Localize(control, key, value.FromIniString());
                 return true;
             case "Size":
                 string[] size = Localize(control, key, value, notify: false).Split(',');
@@ -79,7 +80,7 @@ public class LocaleINIParser : IControlINIAttributeParser
                 }
                 return true;
             case "ToolTip" when control is IHasToolTip controlWithToolTip:
-                controlWithToolTip.ToolTipText = Localize(control, key, value.Replace(ProgramConstants.INI_NEWLINE_PATTERN, Environment.NewLine));
+                controlWithToolTip.ToolTipText = Localize(control, key, value.FromIniString());
                 return true;
         }
 

@@ -58,22 +58,22 @@ namespace DTAClient.Online
 
             ircChatColors = new IRCColor[]
             {
-                new IRCColor("Default color".L10N("UI:Main:ColorDefault"), false, cDefaultChatColor, 0),
-                new IRCColor("Default color #2".L10N("UI:Main:ColorDefault2"), false, cDefaultChatColor, 1),
-                new IRCColor("Light Blue".L10N("UI:Main:ColorLightBlue"), true, Color.LightBlue, 2),
-                new IRCColor("Green".L10N("UI:Main:ColorForestGreen"), true, Color.ForestGreen, 3),
-                new IRCColor("Dark Red".L10N("UI:Main:ColorDarkRed"), true, new Color(180, 0, 0, 255), 4),
-                new IRCColor("Red".L10N("UI:Main:ColorRed"), true, Color.Red, 5),
-                new IRCColor("Purple".L10N("UI:Main:ColorMediumOrchid"), true, Color.MediumOrchid, 6),
-                new IRCColor("Orange".L10N("UI:Main:ColorOrange"), true, Color.Orange, 7),
-                new IRCColor("Yellow".L10N("UI:Main:ColorYellow"), true, Color.Yellow, 8),
-                new IRCColor("Lime Green".L10N("UI:Main:ColorLime"), true, Color.Lime, 9),
-                new IRCColor("Turquoise".L10N("UI:Main:ColorTurquoise"), true, Color.Turquoise, 10),
-                new IRCColor("Sky Blue".L10N("UI:Main:ColorLightSkyBlue"), true, Color.LightSkyBlue, 11),
-                new IRCColor("Blue".L10N("UI:Main:ColorRoyalBlue"), true, Color.RoyalBlue, 12),
-                new IRCColor("Pink".L10N("UI:Main:ColorFuchsia"), true, Color.Fuchsia, 13),
-                new IRCColor("Gray".L10N("UI:Main:ColorLightGray"), true, Color.LightGray, 14),
-                new IRCColor("Gray #2".L10N("UI:Main:ColorGray2"), false, Color.Gray, 15)
+                new IRCColor("Default color".L10N("Client:Main:ColorDefault"), false, cDefaultChatColor, 0),
+                new IRCColor("Default color #2".L10N("Client:Main:ColorDefault2"), false, cDefaultChatColor, 1),
+                new IRCColor("Light Blue".L10N("Client:Main:ColorLightBlue"), true, Color.LightBlue, 2),
+                new IRCColor("Green".L10N("Client:Main:ColorForestGreen"), true, Color.ForestGreen, 3),
+                new IRCColor("Dark Red".L10N("Client:Main:ColorDarkRed"), true, new Color(180, 0, 0, 255), 4),
+                new IRCColor("Red".L10N("Client:Main:ColorRed"), true, Color.Red, 5),
+                new IRCColor("Purple".L10N("Client:Main:ColorMediumOrchid"), true, Color.MediumOrchid, 6),
+                new IRCColor("Orange".L10N("Client:Main:ColorOrange"), true, Color.Orange, 7),
+                new IRCColor("Yellow".L10N("Client:Main:ColorYellow"), true, Color.Yellow, 8),
+                new IRCColor("Lime Green".L10N("Client:Main:ColorLime"), true, Color.Lime, 9),
+                new IRCColor("Turquoise".L10N("Client:Main:ColorTurquoise"), true, Color.Turquoise, 10),
+                new IRCColor("Sky Blue".L10N("Client:Main:ColorLightSkyBlue"), true, Color.LightSkyBlue, 11),
+                new IRCColor("Blue".L10N("Client:Main:ColorRoyalBlue"), true, Color.RoyalBlue, 12),
+                new IRCColor("Pink".L10N("Client:Main:ColorFuchsia"), true, Color.Fuchsia, 13),
+                new IRCColor("Gray".L10N("Client:Main:ColorLightGray"), true, Color.LightGray, 14),
+                new IRCColor("Gray #2".L10N("Client:Main:ColorGray2"), false, Color.Gray, 15)
             };
         }
 
@@ -137,7 +137,7 @@ namespace DTAClient.Online
         public void AddChannel(Channel channel)
         {
             if (FindChannel(channel.ChannelName) != null)
-                throw new ArgumentException("The channel already exists!".L10N("UI:Main:ChannelExist"), "channel");
+                throw new ArgumentException("The channel already exists!".L10N("Client:Main:ChannelExist"), "channel");
 
             channels.Add(channel);
         }
@@ -145,7 +145,7 @@ namespace DTAClient.Online
         public void RemoveChannel(Channel channel)
         {
             if (channel.Persistent)
-                throw new ArgumentException("Persistent channels cannot be removed.".L10N("UI:Main:PersistentChannelRemove"), "channel");
+                throw new ArgumentException("Persistent channels cannot be removed.".L10N("Client:Main:PersistentChannelRemove"), "channel");
 
             channels.Remove(channel);
         }
@@ -189,7 +189,7 @@ namespace DTAClient.Online
         private void DoAttemptedServerChanged(string serverName)
         {
             MainChannel.AddMessage(new ChatMessage(
-                string.Format("Attempting connection to {0}".L10N("UI:Main:AttemptConnectToServer"), serverName)));
+                string.Format("Attempting connection to {0}".L10N("Client:Main:AttemptConnectToServer"), serverName)));
             AttemptedServerChanged?.Invoke(this, new AttemptedServerEventArgs(serverName));
         }
 
@@ -409,7 +409,7 @@ namespace DTAClient.Online
         {
             ConnectAttemptFailed?.Invoke(this, EventArgs.Empty);
 
-            MainChannel.AddMessage(new ChatMessage(Color.Red, "Connecting to CnCNet failed!".L10N("UI:Main:ConnectToCncNetFailed")));
+            MainChannel.AddMessage(new ChatMessage(Color.Red, "Connecting to CnCNet failed!".L10N("Client:Main:ConnectToCncNetFailed")));
         }
 
         public void OnConnected()
@@ -421,7 +421,7 @@ namespace DTAClient.Online
         {
             connected = true;
             Connected?.Invoke(this, EventArgs.Empty);
-            MainChannel.AddMessage(new ChatMessage("Connection to CnCNet established.".L10N("UI:Main:ConnectToCncNetSuccess")));
+            MainChannel.AddMessage(new ChatMessage("Connection to CnCNet established.".L10N("Client:Main:ConnectToCncNetSuccess")));
         }
 
         /// <summary>
@@ -452,7 +452,7 @@ namespace DTAClient.Online
 
             UserList.Clear();
 
-            MainChannel.AddMessage(new ChatMessage(Color.Red, "Connection to CnCNet has been lost.".L10N("UI:Main:ConnectToCncNetHasLost")));
+            MainChannel.AddMessage(new ChatMessage(Color.Red, "Connection to CnCNet has been lost.".L10N("Client:Main:ConnectToCncNetHasLost")));
             connected = false;
         }
 
@@ -471,7 +471,7 @@ namespace DTAClient.Online
         public void Connect()
         {
             disconnect = false;
-            MainChannel.AddMessage(new ChatMessage("Connecting to CnCNet...".L10N("UI:Main:ConnectingToCncNet")));
+            MainChannel.AddMessage(new ChatMessage("Connecting to CnCNet...".L10N("Client:Main:ConnectingToCncNet")));
             connection.ConnectAsync();
         }
 
@@ -498,7 +498,7 @@ namespace DTAClient.Online
                 }
             }
 
-            MainChannel.AddMessage(new ChatMessage("You have disconnected from CnCNet.".L10N("UI:Main:CncNetDisconnected")));
+            MainChannel.AddMessage(new ChatMessage("You have disconnected from CnCNet.".L10N("Client:Main:CncNetDisconnected")));
             connected = false;
 
             UserList.Clear();
@@ -560,7 +560,7 @@ namespace DTAClient.Online
         {
             ReconnectAttempt?.Invoke(this, EventArgs.Empty);
 
-            MainChannel.AddMessage(new ChatMessage("Attempting to reconnect to CnCNet...".L10N("UI:Main:ReconnectingCncNet")));
+            MainChannel.AddMessage(new ChatMessage("Attempting to reconnect to CnCNet...".L10N("Client:Main:ReconnectingCncNet")));
 
             connection.ConnectAsync();
         }
@@ -888,7 +888,7 @@ namespace DTAClient.Online
                 if (lastNonUnderscoreIndex == -1)
                 {
                     MainChannel.AddMessage(new ChatMessage(Color.White,
-                        "Your nickname is invalid or already in use. Please change your nickname in the login screen.".L10N("UI:Main:PickAnotherNickName")));
+                        "Your nickname is invalid or already in use. Please change your nickname in the login screen.".L10N("Client:Main:PickAnotherNickName")));
                     UserINISettings.Instance.SkipConnectDialog.Value = false;
                     Disconnect();
                     return;
@@ -902,7 +902,7 @@ namespace DTAClient.Online
                 sb.Append(c);
 
             MainChannel.AddMessage(new ChatMessage(Color.White,
-                string.Format("Your name is already in use. Retrying with {0}...".L10N("UI:Main:NameInUseRetry"), sb.ToString())));
+                string.Format("Your name is already in use. Retrying with {0}...".L10N("Client:Main:NameInUseRetry"), sb.ToString())));
 
             ProgramConstants.PLAYERNAME = sb.ToString();
             connection.ChangeNickname();
@@ -944,7 +944,7 @@ namespace DTAClient.Online
         {
             MainChannel.AddMessage(new ChatMessage(
                 string.Format(
-                    "Lobby servers: {0} available, {1} fast.".L10N("UI:Main:LobbyServerLatencyTestResult"),
+                    "Lobby servers: {0} available, {1} fast.".L10N("Client:Main:LobbyServerLatencyTestResult"),
                     candidateCount, closerCount)));
         }
     }

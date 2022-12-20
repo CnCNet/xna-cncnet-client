@@ -227,7 +227,7 @@ namespace DTAClient.DXGUI.Generic
 
             XNALabel lblCnCNetStatus = new XNALabel(WindowManager);
             lblCnCNetStatus.Name = nameof(lblCnCNetStatus);
-            lblCnCNetStatus.Text = "DTA players on CnCNet:".L10N("UI:Main:CnCNetOnlinePlayersCountText");
+            lblCnCNetStatus.Text = "DTA players on CnCNet:".L10N("Client:Main:CnCNetOnlinePlayersCountText");
             lblCnCNetStatus.ClientRectangle = new Rectangle(12, 9, 0, 0);
 
             lblCnCNetPlayerCount = new XNALabel(WindowManager);
@@ -423,19 +423,19 @@ namespace DTAClient.DXGUI.Generic
                 .FindAll(f => !string.IsNullOrWhiteSpace(f) && !SafePath.GetFile(ProgramConstants.GamePath, f).Exists);
 
             if (absentFiles.Count > 0)
-                XNAMessageBox.Show(WindowManager, "Missing Files".L10N("UI:Main:MissingFilesTitle"),
+                XNAMessageBox.Show(WindowManager, "Missing Files".L10N("Client:Main:MissingFilesTitle"),
 #if ARES
                     ("You are missing Yuri's Revenge files that are required" + Environment.NewLine +
                     "to play this mod! Yuri's Revenge mods are not standalone," + Environment.NewLine +
                     "so you need a copy of following Yuri's Revenge (v. 1.001)" + Environment.NewLine +
-                    "files placed in the mod folder to play the mod:").L10N("UI:Main:MissingFilesText1Ares") +
+                    "files placed in the mod folder to play the mod:").L10N("Client:Main:MissingFilesText1Ares") +
 #else
-                    "The following required files are missing:".L10N("UI:Main:MissingFilesText1NonAres") +
+                    "The following required files are missing:".L10N("Client:Main:MissingFilesText1NonAres") +
 #endif
                     Environment.NewLine + Environment.NewLine +
                     String.Join(Environment.NewLine, absentFiles) +
                     Environment.NewLine + Environment.NewLine +
-                    "You won't be able to play without those files.".L10N("UI:Main:MissingFilesText2"));
+                    "You won't be able to play without those files.".L10N("Client:Main:MissingFilesText2"));
         }
 
         private void CheckForbiddenFiles()
@@ -444,20 +444,20 @@ namespace DTAClient.DXGUI.Generic
                 .FindAll(f => !string.IsNullOrWhiteSpace(f) && SafePath.GetFile(ProgramConstants.GamePath, f).Exists);
 
             if (presentFiles.Count > 0)
-                XNAMessageBox.Show(WindowManager, "Interfering Files Detected".L10N("UI:Main:InterferingFilesDetectedTitle"),
+                XNAMessageBox.Show(WindowManager, "Interfering Files Detected".L10N("Client:Main:InterferingFilesDetectedTitle"),
 #if TS
                     ("You have installed the mod on top of a Tiberian Sun" + Environment.NewLine +
                     "copy! This mod is standalone, therefore you have to" + Environment.NewLine +
                     "install it in an empty folder. Otherwise the mod won't" + Environment.NewLine +
                     "function correctly." +
                     Environment.NewLine + Environment.NewLine +
-                    "Please reinstall the mod into an empty folder to play.").L10N("UI:Main:InterferingFilesDetectedTextTS")
+                    "Please reinstall the mod into an empty folder to play.").L10N("Client:Main:InterferingFilesDetectedTextTS")
 #else
-                    "The following interfering files are present:".L10N("UI:Main:InterferingFilesDetectedTextNonTS1") +
+                    "The following interfering files are present:".L10N("Client:Main:InterferingFilesDetectedTextNonTS1") +
                     Environment.NewLine + Environment.NewLine +
                     String.Join(Environment.NewLine, presentFiles) +
                     Environment.NewLine + Environment.NewLine +
-                    "The mod won't work correctly without those files removed.".L10N("UI:Main:InterferingFilesDetectedTextNonTS2")
+                    "The mod won't work correctly without those files removed.".L10N("Client:Main:InterferingFilesDetectedTextNonTS2")
 #endif
                     );
         }
@@ -474,10 +474,10 @@ namespace DTAClient.DXGUI.Generic
                 UserINISettings.Instance.IsFirstRun.Value = false;
                 UserINISettings.Instance.SaveSettings();
 
-                firstRunMessageBox = XNAMessageBox.ShowYesNoDialog(WindowManager, "Initial Installation".L10N("UI:Main:InitialInstallationTitle"),
+                firstRunMessageBox = XNAMessageBox.ShowYesNoDialog(WindowManager, "Initial Installation".L10N("Client:Main:InitialInstallationTitle"),
                     string.Format(("You have just installed {0}." + Environment.NewLine +
                     "It's highly recommended that you configure your settings before playing." +
-                    Environment.NewLine + "Do you want to configure them now?").L10N("UI:Main:InitialInstallationText"), ClientConfiguration.Instance.LocalGame));
+                    Environment.NewLine + "Do you want to configure them now?").L10N("Client:Main:InitialInstallationText"), ClientConfiguration.Instance.LocalGame));
                 firstRunMessageBox.YesClickedAction = FirstRunMessageBox_YesClicked;
                 firstRunMessageBox.NoClickedAction = FirstRunMessageBox_NoClicked;
             }
@@ -519,7 +519,7 @@ namespace DTAClient.DXGUI.Generic
             lock (locker)
             {
                 if (e.PlayerCount == -1)
-                    lblCnCNetPlayerCount.Text = "N/A".L10N("UI:Main:N/A");
+                    lblCnCNetPlayerCount.Text = "N/A".L10N("Client:Main:N/A");
                 else
                     lblCnCNetPlayerCount.Text = e.PlayerCount.ToString();
             }
@@ -582,7 +582,7 @@ namespace DTAClient.DXGUI.Generic
             {
                 if (Updater.UpdateMirrors.Count < 1)
                 {
-                    lblUpdateStatus.Text = "No update download mirrors available.".L10N("UI:Main:NoUpdateMirrorsAvailable");
+                    lblUpdateStatus.Text = "No update download mirrors available.".L10N("Client:Main:NoUpdateMirrorsAvailable");
                     lblUpdateStatus.DrawUnderline = false;
                 }
                 else if (UserINISettings.Instance.CheckForUpdates)
@@ -591,7 +591,7 @@ namespace DTAClient.DXGUI.Generic
                 }
                 else
                 {
-                    lblUpdateStatus.Text = "Click to check for updates.".L10N("UI:Main:ClickToCheckUpdate");
+                    lblUpdateStatus.Text = "Click to check for updates.".L10N("Client:Main:ClickToCheckUpdate");
                 }
             }
 
@@ -632,18 +632,18 @@ namespace DTAClient.DXGUI.Generic
         private void UpdateWindow_UpdateFailed(object sender, UpdateFailureEventArgs e)
         {
             innerPanel.Hide();
-            lblUpdateStatus.Text = "Updating failed! Click to retry.".L10N("UI:Main:UpdateFailedClickToRetry");
+            lblUpdateStatus.Text = "Updating failed! Click to retry.".L10N("Client:Main:UpdateFailedClickToRetry");
             lblUpdateStatus.DrawUnderline = true;
             lblUpdateStatus.Enabled = true;
             UpdateInProgress = false;
 
             innerPanel.Show(null); // Darkening
-            XNAMessageBox msgBox = new XNAMessageBox(WindowManager, "Update failed".L10N("UI:Main:UpdateFailedTitle"),
+            XNAMessageBox msgBox = new XNAMessageBox(WindowManager, "Update failed".L10N("Client:Main:UpdateFailedTitle"),
                 string.Format(("An error occured while updating. Returned error was: {0}" +
                 Environment.NewLine + Environment.NewLine +
                 "If you are connected to the Internet and your firewall isn't blocking" + Environment.NewLine +
                 "{1}, and the issue is reproducible, contact us at " + Environment.NewLine +
-                "{2} for support.").L10N("UI:Main:UpdateFailedText"),
+                "{2} for support.").L10N("Client:Main:UpdateFailedText"),
                 e.Reason, Path.GetFileName(ProgramConstants.StartupExecutable), MainClientConstants.SUPPORT_URL_SHORT), XNAMessageBoxButtons.OK);
             msgBox.OKClickedAction = MsgBox_OKClicked;
             msgBox.Show();
@@ -657,7 +657,7 @@ namespace DTAClient.DXGUI.Generic
         private void UpdateWindow_UpdateCancelled(object sender, EventArgs e)
         {
             innerPanel.Hide();
-            lblUpdateStatus.Text = "The update was cancelled. Click to retry.".L10N("UI:Main:UpdateCancelledClickToRetry");
+            lblUpdateStatus.Text = "The update was cancelled. Click to retry.".L10N("Client:Main:UpdateCancelledClickToRetry");
             lblUpdateStatus.DrawUnderline = true;
             lblUpdateStatus.Enabled = true;
             UpdateInProgress = false;
@@ -666,7 +666,7 @@ namespace DTAClient.DXGUI.Generic
         private void UpdateWindow_UpdateCompleted(object sender, EventArgs e)
         {
             innerPanel.Hide();
-            lblUpdateStatus.Text = string.Format("{0} was succesfully updated to v.{1}".L10N("UI:Main:UpdateSuccess"),
+            lblUpdateStatus.Text = string.Format("{0} was succesfully updated to v.{1}".L10N("Client:Main:UpdateSuccess"),
                 MainClientConstants.GAME_NAME_SHORT, Updater.GameVersion);
             lblVersion.Text = Updater.GameVersion;
             UpdateInProgress = false;
@@ -698,7 +698,7 @@ namespace DTAClient.DXGUI.Generic
             innerPanel.Hide();
             innerPanel.UpdateWindow.ForceUpdate();
             innerPanel.Show(innerPanel.UpdateWindow);
-            lblUpdateStatus.Text = "Force updating...".L10N("UI:Main:ForceUpdating");
+            lblUpdateStatus.Text = "Force updating...".L10N("Client:Main:ForceUpdating");
         }
 
         /// <summary>
@@ -712,7 +712,7 @@ namespace DTAClient.DXGUI.Generic
             Updater.CheckForUpdates();
             lblUpdateStatus.Enabled = false;
             lblUpdateStatus.Text = "Checking for " +
-                "updates...".L10N("UI:Main:CheckingForUpdate");
+                "updates...".L10N("Client:Main:CheckingForUpdate");
             lastUpdateCheckTime = DateTime.Now;
         }
 
@@ -731,13 +731,13 @@ namespace DTAClient.DXGUI.Generic
 
             if (Updater.VersionState == VersionState.UPTODATE)
             {
-                lblUpdateStatus.Text = string.Format("{0} is up to date.".L10N("UI:Main:GameUpToDate"), MainClientConstants.GAME_NAME_SHORT);
+                lblUpdateStatus.Text = string.Format("{0} is up to date.".L10N("Client:Main:GameUpToDate"), MainClientConstants.GAME_NAME_SHORT);
                 lblUpdateStatus.Enabled = true;
                 lblUpdateStatus.DrawUnderline = false;
             }
             else if (Updater.VersionState == VersionState.OUTDATED && Updater.ManualUpdateRequired)
             {
-                lblUpdateStatus.Text = "An update is available. Manual download & installation required.".L10N("UI:Main:UpdateAvailableManualDownloadRequired");
+                lblUpdateStatus.Text = "An update is available. Manual download & installation required.".L10N("Client:Main:UpdateAvailableManualDownloadRequired");
                 lblUpdateStatus.Enabled = true;
                 lblUpdateStatus.DrawUnderline = false;
                 innerPanel.ManualUpdateQueryWindow.SetInfo(Updater.ServerGameVersion, Updater.ManualDownloadURL);
@@ -747,13 +747,13 @@ namespace DTAClient.DXGUI.Generic
             }
             else if (Updater.VersionState == VersionState.OUTDATED)
             {
-                lblUpdateStatus.Text = "An update is available.".L10N("UI:Main:UpdateAvailable");
+                lblUpdateStatus.Text = "An update is available.".L10N("Client:Main:UpdateAvailable");
                 innerPanel.UpdateQueryWindow.SetInfo(Updater.ServerGameVersion, Updater.UpdateSizeInKb);
                 innerPanel.Show(innerPanel.UpdateQueryWindow);
             }
             else if (Updater.VersionState == VersionState.UNKNOWN)
             {
-                lblUpdateStatus.Text = "Checking for updates failed! Click to retry.".L10N("UI:Main:CheckUpdateFailedClickToRetry");
+                lblUpdateStatus.Text = "Checking for updates failed! Click to retry.".L10N("Client:Main:CheckUpdateFailedClickToRetry");
                 lblUpdateStatus.Enabled = true;
                 lblUpdateStatus.DrawUnderline = true;
             }
@@ -783,9 +783,9 @@ namespace DTAClient.DXGUI.Generic
             customComponentDialogQueued = false;
 
             XNAMessageBox ccMsgBox = XNAMessageBox.ShowYesNoDialog(WindowManager,
-                "Custom Component Updates Available".L10N("UI:Main:CustomUpdateAvailableTitle"),
+                "Custom Component Updates Available".L10N("Client:Main:CustomUpdateAvailableTitle"),
                 ("Updates for custom components are available. Do you want to open" + Environment.NewLine +
-                "the Options menu where you can update the custom components?").L10N("UI:Main:CustomUpdateAvailableText"));
+                "the Options menu where you can update the custom components?").L10N("Client:Main:CustomUpdateAvailableText"));
             ccMsgBox.YesClickedAction = CCMsgBox_YesClicked;
         }
 
@@ -802,7 +802,7 @@ namespace DTAClient.DXGUI.Generic
         {
             UpdateQueryWindow uqw = (UpdateQueryWindow)sender;
             innerPanel.Hide();
-            lblUpdateStatus.Text = "An update is available, click to install.".L10N("UI:Main:UpdateAvailableClickToInstall");
+            lblUpdateStatus.Text = "An update is available, click to install.".L10N("Client:Main:UpdateAvailableClickToInstall");
             lblUpdateStatus.Enabled = true;
             lblUpdateStatus.DrawUnderline = true;
         }
@@ -815,7 +815,7 @@ namespace DTAClient.DXGUI.Generic
             innerPanel.Hide();
             innerPanel.UpdateWindow.SetData(Updater.ServerGameVersion);
             innerPanel.Show(innerPanel.UpdateWindow);
-            lblUpdateStatus.Text = "Updating...".L10N("UI:Main:Updating");
+            lblUpdateStatus.Text = "Updating...".L10N("Client:Main:Updating");
             UpdateInProgress = true;
             Updater.StartUpdate();
         }
@@ -1071,6 +1071,6 @@ namespace DTAClient.DXGUI.Generic
             mapEditorProcess.Start();
         }
 
-        public string GetSwitchName() => "Main Menu".L10N("UI:Main:MainMenu");
+        public string GetSwitchName() => "Main Menu".L10N("Client:Main:MainMenu");
     }
 }

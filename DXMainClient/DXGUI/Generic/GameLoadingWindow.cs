@@ -45,8 +45,8 @@ namespace DTAClient.DXGUI.Generic
             lbSaveGameList = new XNAMultiColumnListBox(WindowManager);
             lbSaveGameList.Name = nameof(lbSaveGameList);
             lbSaveGameList.ClientRectangle = new Rectangle(13, 13, 574, 317);
-            lbSaveGameList.AddColumn("SAVED GAME NAME".L10N("UI:Main:SavedGameNameColumnHeader"), 400);
-            lbSaveGameList.AddColumn("DATE / TIME".L10N("UI:Main:SavedGameDateTimeColumnHeader"), 174);
+            lbSaveGameList.AddColumn("SAVED GAME NAME".L10N("Client:Main:SavedGameNameColumnHeader"), 400);
+            lbSaveGameList.AddColumn("DATE / TIME".L10N("Client:Main:SavedGameDateTimeColumnHeader"), 174);
             lbSaveGameList.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 128), 1, 1);
             lbSaveGameList.PanelBackgroundDrawMode = PanelBackgroundImageDrawMode.STRETCHED;
             lbSaveGameList.SelectedIndexChanged += ListBox_SelectedIndexChanged;
@@ -55,21 +55,21 @@ namespace DTAClient.DXGUI.Generic
             btnLaunch = new XNAClientButton(WindowManager);
             btnLaunch.Name = nameof(btnLaunch);
             btnLaunch.ClientRectangle = new Rectangle(125, 345, 110, 23);
-            btnLaunch.Text = "Load".L10N("UI:Main:ButtonLoad");
+            btnLaunch.Text = "Load".L10N("Client:Main:ButtonLoad");
             btnLaunch.AllowClick = false;
             btnLaunch.LeftClick += BtnLaunch_LeftClick;
 
             btnDelete = new XNAClientButton(WindowManager);
             btnDelete.Name = nameof(btnDelete);
             btnDelete.ClientRectangle = new Rectangle(btnLaunch.Right + 10, btnLaunch.Y, 110, 23);
-            btnDelete.Text = "Delete".L10N("UI:Main:ButtonDelete");
+            btnDelete.Text = "Delete".L10N("Client:Main:ButtonDelete");
             btnDelete.AllowClick = false;
             btnDelete.LeftClick += BtnDelete_LeftClick;
 
             btnCancel = new XNAClientButton(WindowManager);
             btnCancel.Name = nameof(btnCancel);
             btnCancel.ClientRectangle = new Rectangle(btnDelete.Right + 10, btnLaunch.Y, 110, 23);
-            btnCancel.Text = "Cancel".L10N("UI:Main:ButtonCancel");
+            btnCancel.Text = "Cancel".L10N("Client:Main:ButtonCancel");
             btnCancel.LeftClick += BtnCancel_LeftClick;
 
             AddChild(lbSaveGameList);
@@ -145,14 +145,14 @@ namespace DTAClient.DXGUI.Generic
         private void BtnDelete_LeftClick(object sender, EventArgs e)
         {
             SavedGame sg = savedGames[lbSaveGameList.SelectedIndex];
-            var msgBox = new XNAMessageBox(WindowManager, "Delete Confirmation".L10N("UI:Main:DeleteConfirmationTitle"),
+            var msgBox = new XNAMessageBox(WindowManager, "Delete Confirmation".L10N("Client:Main:DeleteConfirmationTitle"),
                 string.Format("The following saved game will be deleted permanently:" + Environment.NewLine +
                     Environment.NewLine +
                     "Filename: {0}" + Environment.NewLine +
                     "Saved game name: {1}" + Environment.NewLine +
                     "Date and time: {2}" + Environment.NewLine +
                     Environment.NewLine +
-                    "Are you sure you want to proceed?".L10N("UI:Main:DeleteConfirmationText"),
+                    "Are you sure you want to proceed?".L10N("Client:Main:DeleteConfirmationText"),
                     sg.FileName, Renderer.GetSafeString(sg.GUIName, lbSaveGameList.FontIndex), sg.LastModified.ToString()),
                 XNAMessageBoxButtons.YesNo);
             msgBox.Show();

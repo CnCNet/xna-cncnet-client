@@ -1,10 +1,11 @@
-﻿using ClientCore;
-using DTAClient.Domain.Multiplayer;
-using Rampastring.Tools;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using ClientCore;
+using ClientCore.I18N;
+using DTAClient.Domain.Multiplayer;
+using Rampastring.Tools;
 using Utilities = Rampastring.Tools.Utilities;
 
 namespace DTAClient.Online
@@ -130,6 +131,25 @@ namespace DTAClient.Online
                         string sha1 = Utilities.CalculateSHA1ForFile(SafePath.CombineFilePath(ProgramConstants.GamePath, filename));
                         fh.INIHashes += sha1;
                         Logger.Log("Hash for " + filename + ": " + sha1);
+                    }
+                }
+            }
+
+            // Add the hashes for each checked file from the available translations
+            DirectoryInfo translationsFolderPath = SafePath.GetDirectory(ClientConfiguration.Instance.TranslationsFolderPath);
+            List<TranslationGameFile> translationGameFiles = ClientConfiguration.Instance.TranslationGameFiles
+                .Where(tgf => tgf.Checked).ToList();
+
+            foreach (DirectoryInfo translationFolder in translationsFolderPath.EnumerateDirectories())
+            {
+                foreach (TranslationGameFile tgf in translationGameFiles)
+                {
+                    string filePath = SafePath.CombineFilePath(translationFolder.FullName, tgf.Source);
+                    if (File.Exists(filePath))
+                    {
+                        string sha1 = Utilities.CalculateSHA1ForFile(filePath);
+                        fh.INIHashes += sha1;
+                        Logger.Log("Hash for " + Path.GetRelativePath(ProgramConstants.GamePath, filePath) + ": " + sha1);
                     }
                 }
             }

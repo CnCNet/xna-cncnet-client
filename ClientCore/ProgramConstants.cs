@@ -44,7 +44,7 @@ namespace ClientCore
         public const string SAVED_GAME_SPAWN_INI = "Saved Games/spawnSG.ini";
 
         /// <summary>
-        /// The language code that corresponds to the language the hardcoded client strings are in.
+        /// The locale code that corresponds to the language the hardcoded client strings are in.
         /// </summary>
         public const string HARDCODED_LOCALE_CODE = "en";
 
@@ -106,7 +106,7 @@ namespace ClientCore
         public static readonly List<string> TEAMS = new List<string> { "A", "B", "C", "D" };
 
         // Static fields might be initialized before the translation file is loaded. Change to readonly properties here.
-        public static List<string> AI_PLAYER_NAMES => new List<string> { "Easy AI".L10N("UI:Main:EasyAIName"), "Medium AI".L10N("UI:Main:MediumAIName"), "Hard AI".L10N("UI:Main:HardAIName") };
+        public static List<string> AI_PLAYER_NAMES => new List<string> { "Easy AI".L10N("Client:Main:EasyAIName"), "Medium AI".L10N("Client:Main:MediumAIName"), "Hard AI".L10N("Client:Main:HardAIName") };
 
         public static string LogFileName { get; set; }
 
