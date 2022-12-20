@@ -3,8 +3,6 @@ using Rampastring.Tools;
 using System;
 using System.Collections.Generic;
 using ClientCore.Enums;
-using System.Globalization;
-using ClientCore.I18N;
 
 namespace ClientCore
 {
