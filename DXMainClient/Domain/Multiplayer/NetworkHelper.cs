@@ -9,6 +9,7 @@ using System.Runtime.Versioning;
 using System.Threading;
 using System.Threading.Tasks;
 using ClientCore;
+using Rampastring.Tools;
 
 namespace DTAClient.Domain.Multiplayer;
 
@@ -171,7 +172,7 @@ internal static class NetworkHelper
 
                 return new IPEndPoint(publicIpAddress, publicPort);
             }
-            catch (Exception ex) when (ex is not OperationCanceledException && !cancellationToken.IsCancellationRequested)
+            catch (Exception ex) when (ex is not OperationCanceledException || !cancellationToken.IsCancellationRequested)
             {
                 ProgramConstants.LogException(ex, $"STUN server {stunServerIpEndPoint} failed.");
             }
@@ -197,6 +198,7 @@ internal static class NetworkHelper
         }
         catch (OperationCanceledException)
         {
+            Logger.Log($"{stunServerIpAddress.AddressFamily} STUN keep alive stopped.");
         }
         catch (Exception ex)
         {

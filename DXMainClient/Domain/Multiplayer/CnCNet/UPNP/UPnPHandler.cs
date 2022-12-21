@@ -80,14 +80,19 @@ internal static class UPnPHandler
         var internetGatewayDevices = (await GetInternetGatewayDevicesAsync(cancellationToken).ConfigureAwait(false)).ToList();
         InternetGatewayDevice internetGatewayDevice = GetInternetGatewayDevice(internetGatewayDevices, 2);
 
-        return internetGatewayDevice ?? GetInternetGatewayDevice(internetGatewayDevices, 1);
+        internetGatewayDevice ??= GetInternetGatewayDevice(internetGatewayDevices, 1);
+
+        if (internetGatewayDevice is not null)
+            Logger.Log($"Found NAT device {internetGatewayDevice.UPnPDescription.Device.DeviceType} - {internetGatewayDevice.Server} ({internetGatewayDevice.UPnPDescription.Device.FriendlyName}).");
+
+        return internetGatewayDevice;
     }
 
     private static async ValueTask<(IPAddress IpAddress, List<(ushort InternalPort, ushort ExternalPort)> Ports, List<ushort> PortIds)> SetupIpV6PortsAsync(
         InternetGatewayDevice internetGatewayDevice, List<ushort> p2pReservedPorts, List<IPAddress> stunServerIpAddresses, CancellationToken cancellationToken)
     {
         (IPAddress stunPublicIpV6Address, List<(ushort InternalPort, ushort ExternalPort)> ipV6StunPortMapping) = await PerformStunAsync(
-            stunServerIpAddresses, null, p2pReservedPorts, AddressFamily.InterNetworkV6, cancellationToken).ConfigureAwait(false);
+            stunServerIpAddresses, p2pReservedPorts, AddressFamily.InterNetworkV6, cancellationToken).ConfigureAwait(false);
         IPAddress localPublicIpV6Address;
 
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
@@ -170,14 +175,12 @@ internal static class UPnPHandler
 
         if (internetGatewayDevice is not null)
         {
-            Logger.Log($"Found NAT device {internetGatewayDevice.UPnPDescription.Device.FriendlyName}.");
-
             routerNatEnabled = await internetGatewayDevice.GetNatRsipStatusAsync(cancellationToken).ConfigureAwait(false);
             routerPublicIpV4Address = await internetGatewayDevice.GetExternalIpV4AddressAsync(cancellationToken).ConfigureAwait(false);
         }
 
         (IPAddress stunPublicIpV4Address, List<(ushort InternalPort, ushort ExternalPort)> ipV4StunPortMapping) = await PerformStunAsync(
-            stunServerIpAddresses, routerPublicIpV4Address, p2pReservedPorts, AddressFamily.InterNetwork, cancellationToken).ConfigureAwait(false);
+            stunServerIpAddresses, p2pReservedPorts, AddressFamily.InterNetwork, cancellationToken).ConfigureAwait(false);
         IPAddress tracePublicIpV4Address = null;
 
         if (routerPublicIpV4Address is null && stunPublicIpV4Address is null)
@@ -244,8 +247,10 @@ internal static class UPnPHandler
     }
 
     private static async ValueTask<(IPAddress IPAddress, List<(ushort InternalPort, ushort ExternalPort)> PortMapping)> PerformStunAsync(
-        List<IPAddress> stunServerIpAddresses, IPAddress routerPublicIpV4Address, List<ushort> p2pReservedPorts, AddressFamily addressFamily, CancellationToken cancellationToken)
+        List<IPAddress> stunServerIpAddresses, List<ushort> p2pReservedPorts, AddressFamily addressFamily, CancellationToken cancellationToken)
     {
+        Logger.Log($"Using STUN to detect {addressFamily} address.");
+
         var stunPortMapping = new List<(ushort InternalPort, ushort ExternalPort)>();
         IPAddress stunPublicAddress = null;
 
@@ -253,30 +258,28 @@ internal static class UPnPHandler
         {
             IPAddress stunServerIpAddress = stunServerIpAddresses.Single(q => q.AddressFamily == addressFamily);
 
-            if (addressFamily is AddressFamily.InterNetwork && routerPublicIpV4Address == null)
+            foreach (ushort p2pReservedPort in p2pReservedPorts)
             {
-                Logger.Log($"Using STUN to detect {addressFamily} address.");
+                IPEndPoint stunPublicIpEndPoint = await NetworkHelper.PerformStunAsync(
+                    stunServerIpAddress, p2pReservedPort, cancellationToken).ConfigureAwait(false);
 
-                foreach (ushort p2pReservedPort in p2pReservedPorts)
-                {
-                    IPEndPoint stunPublicIpEndPoint = await NetworkHelper.PerformStunAsync(
-                        stunServerIpAddress, p2pReservedPort, cancellationToken).ConfigureAwait(false);
+                if (stunPublicIpEndPoint is null)
+                    break;
 
-                    if (stunPublicIpEndPoint is null)
-                    {
-                        Logger.Log($"{addressFamily} STUN failed.");
-                        break;
-                    }
+                stunPublicAddress = stunPublicIpEndPoint.Address;
 
-                    stunPublicAddress = stunPublicIpEndPoint.Address;
-
-                    if (p2pReservedPort != stunPublicIpEndPoint.Port)
-                        stunPortMapping.Add(new(p2pReservedPort, (ushort)stunPublicIpEndPoint.Port));
-                }
+                if (p2pReservedPort != stunPublicIpEndPoint.Port)
+                    stunPortMapping.Add(new(p2pReservedPort, (ushort)stunPublicIpEndPoint.Port));
             }
+
+            if (stunPublicAddress is not null)
+                Logger.Log($"{addressFamily} STUN detection succeeded.");
+            else
+                Logger.Log($"{addressFamily} STUN detection failed.");
 
             if (stunPortMapping.Any())
             {
+                Logger.Log($"{addressFamily} STUN detection detected mapped ports, running STUN keep alive.");
 #pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
                 NetworkHelper.KeepStunAliveAsync(
                     stunServerIpAddress,

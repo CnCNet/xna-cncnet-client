@@ -178,6 +178,7 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
             "Toggle P2P connections on/off, your IP will be public to players in the lobby".L10N("Client:Main:ChangeP2P"),
             false,
             _ => ToggleP2PAsync().HandleTask()));
+#if DEBUG
         AddChatBoxCommand(new(
             CnCNetLobbyCommands.RECORD,
             "Toggle recording game replay".L10N("Client:Main:ChangeRecord"),
@@ -188,6 +189,7 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
             "Start a game replay.\nExample: \"/replay REPLAYID".L10N("Client:Main:StartReplay"),
             true,
             StartReplay));
+#endif
     }
 
     public event EventHandler GameLeft;
