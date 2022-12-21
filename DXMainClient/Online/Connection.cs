@@ -944,9 +944,13 @@ namespace DTAClient.Online
             {
                 await socket.SendAsync(buffer, SocketFlags.None, timeoutCancellationTokenSource.Token).ConfigureAwait(false);
             }
-            catch (IOException ex)
+            catch (SocketException ex)
             {
                 ProgramConstants.LogException(ex, "Sending message to the server failed!");
+            }
+            catch (OperationCanceledException ex)
+            {
+                ProgramConstants.LogException(ex, "Sending message to the server timed out!");
             }
         }
 
