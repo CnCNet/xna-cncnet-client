@@ -65,185 +65,58 @@ internal static class UPnPHandler
     {
         Logger.Log("Starting P2P Setup.");
 
-        if (internetGatewayDevice is null)
-        {
-            var internetGatewayDevices = (await GetInternetGatewayDevicesAsync(cancellationToken).ConfigureAwait(false)).ToList();
+        internetGatewayDevice ??= await GetInternetGatewayDeviceAsync(cancellationToken).ConfigureAwait(false);
 
-            internetGatewayDevice = GetInternetGatewayDevice(internetGatewayDevices, 2);
-            internetGatewayDevice ??= GetInternetGatewayDevice(internetGatewayDevices, 1);
-        }
+        (IPAddress publicIpV4Address, List<(ushort InternalPort, ushort ExternalPort)> ipV4P2PPorts) =
+            await SetupIpV4PortsAsync(internetGatewayDevice, p2pReservedPorts, stunServerIpAddresses, cancellationToken).ConfigureAwait(false);
+        (IPAddress publicIpV6Address, List<(ushort InternalPort, ushort ExternalPort)> ipV6P2PPorts, List<ushort> ipV6P2PPortIds) =
+            await SetupIpV6PortsAsync(internetGatewayDevice, p2pReservedPorts, stunServerIpAddresses, cancellationToken).ConfigureAwait(false);
 
-        IPAddress detectedPublicIpV4Address = null;
-        bool routerNatEnabled = false;
+        return (internetGatewayDevice, ipV6P2PPorts, ipV4P2PPorts, ipV6P2PPortIds, publicIpV6Address, publicIpV4Address);
+    }
 
-        if (internetGatewayDevice is not null)
-        {
-            Logger.Log("Found NAT device.");
+    private static async Task<InternetGatewayDevice> GetInternetGatewayDeviceAsync(CancellationToken cancellationToken)
+    {
+        var internetGatewayDevices = (await GetInternetGatewayDevicesAsync(cancellationToken).ConfigureAwait(false)).ToList();
+        InternetGatewayDevice internetGatewayDevice = GetInternetGatewayDevice(internetGatewayDevices, 2);
 
-            routerNatEnabled = await internetGatewayDevice.GetNatRsipStatusAsync(cancellationToken).ConfigureAwait(false);
-            detectedPublicIpV4Address = await internetGatewayDevice.GetExternalIpV4AddressAsync(cancellationToken).ConfigureAwait(false);
-        }
+        return internetGatewayDevice ?? GetInternetGatewayDevice(internetGatewayDevices, 1);
+    }
 
-        var ipV4StunPortMapping = new List<(ushort InternalPort, ushort ExternalPort)>();
-
-        if (stunServerIpAddresses.Any(q => q.AddressFamily is AddressFamily.InterNetwork))
-        {
-            IPAddress stunServerIpAddress = stunServerIpAddresses.Single(q => q.AddressFamily is AddressFamily.InterNetwork);
-
-            if (detectedPublicIpV4Address == null)
-            {
-                Logger.Log("Using IPV4 STUN.");
-
-                foreach (ushort p2pReservedPort in p2pReservedPorts)
-                {
-                    IPEndPoint publicIpV4Endpoint = await NetworkHelper.PerformStunAsync(
-                        stunServerIpAddress, p2pReservedPort, cancellationToken).ConfigureAwait(false);
-
-                    if (publicIpV4Endpoint is null)
-                    {
-                        Logger.Log("IPV4 STUN failed.");
-                        break;
-                    }
-
-                    detectedPublicIpV4Address ??= publicIpV4Endpoint.Address;
-
-                    if (p2pReservedPort != publicIpV4Endpoint.Port)
-                        ipV4StunPortMapping.Add(new(p2pReservedPort, (ushort)publicIpV4Endpoint.Port));
-                }
-            }
-
-            if (ipV4StunPortMapping.Any())
-            {
-#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
-                NetworkHelper.KeepStunAliveAsync(
-                    stunServerIpAddress,
-                    ipV4StunPortMapping.Select(q => q.InternalPort).ToList(), cancellationToken).HandleTask();
-#pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
-            }
-        }
-        else
-        {
-            Logger.Log($"STUN server {stunServerIpAddresses.First()} has no IPV4 address.");
-        }
-
-        if (detectedPublicIpV4Address == null)
-        {
-            Logger.Log("Using IPV4 trace detection.");
-
-            detectedPublicIpV4Address = await NetworkHelper.TracePublicIpV4Address(cancellationToken).ConfigureAwait(false);
-        }
-
-        var publicIpAddresses = NetworkHelper.GetPublicIpAddresses().ToList();
-        IPAddress publicIpV4Address = publicIpAddresses.FirstOrDefault(q => q.AddressFamily is AddressFamily.InterNetwork);
-        bool natDetected = routerNatEnabled || (publicIpV4Address is not null && detectedPublicIpV4Address is not null && !publicIpV4Address.Equals(detectedPublicIpV4Address));
-
-        publicIpV4Address ??= detectedPublicIpV4Address;
-
-        if (publicIpV4Address is not null)
-            Logger.Log("Public IPV4 detected.");
-
-        var privateIpV4Addresses = NetworkHelper.GetPrivateIpAddresses().Where(q => q.AddressFamily is AddressFamily.InterNetwork).ToList();
-        IPAddress privateIpV4Address = privateIpV4Addresses.FirstOrDefault();
-        var ipV4P2PPorts = new List<(ushort InternalPort, ushort ExternalPort)>();
-
-        if (natDetected && routerNatEnabled && privateIpV4Address is not null && publicIpV4Address is not null)
-        {
-            Logger.Log("Using IPV4 port mapping.");
-
-            try
-            {
-                foreach (int p2PReservedPort in p2pReservedPorts)
-                {
-                    ushort openedPort = await internetGatewayDevice.OpenIpV4PortAsync(
-                        privateIpV4Address, (ushort)p2PReservedPort, cancellationToken).ConfigureAwait(false);
-
-                    ipV4P2PPorts.Add((openedPort, openedPort));
-                }
-
-                p2pReservedPorts = ipV4P2PPorts.Select(q => q.InternalPort).ToList();
-            }
-            catch (Exception ex)
-            {
-                ProgramConstants.LogException(ex, $"Could not open P2P IPV4 router ports for {privateIpV4Address} -> {publicIpV4Address}.");
-            }
-        }
-        else if (ipV4StunPortMapping.Any())
-        {
-            ipV4P2PPorts = ipV4StunPortMapping;
-        }
-        else
-        {
-            ipV4P2PPorts = p2pReservedPorts.Select(q => (q, q)).ToList();
-        }
-
-        IPAddress detectedPublicIpV6Address = null;
-        var ipV6StunPortMapping = new List<(ushort InternalPort, ushort ExternalPort)>();
-
-        if (stunServerIpAddresses.Any(q => q.AddressFamily is AddressFamily.InterNetworkV6))
-        {
-            Logger.Log("Using IPV6 STUN.");
-
-            IPAddress stunServerIpAddress = stunServerIpAddresses.Single(q => q.AddressFamily is AddressFamily.InterNetworkV6);
-
-            foreach (ushort p2pReservedPort in p2pReservedPorts)
-            {
-                IPEndPoint publicIpV6Endpoint = await NetworkHelper.PerformStunAsync(
-                    stunServerIpAddress, p2pReservedPort, cancellationToken).ConfigureAwait(false);
-
-                if (publicIpV6Endpoint is null)
-                {
-                    Logger.Log("IPV6 STUN failed.");
-                    break;
-                }
-
-                detectedPublicIpV6Address ??= publicIpV6Endpoint.Address;
-
-                if (p2pReservedPort != publicIpV6Endpoint.Port)
-                    ipV6StunPortMapping.Add(new(p2pReservedPort, (ushort)publicIpV6Endpoint.Port));
-            }
-
-            if (ipV6StunPortMapping.Any())
-            {
-#pragma warning disable CS4014
-                NetworkHelper.KeepStunAliveAsync(
-                    stunServerIpAddress,
-                    ipV6StunPortMapping.Select(q => q.InternalPort).ToList(), cancellationToken).HandleTask();
-#pragma warning restore CS4014
-            }
-        }
-        else
-        {
-            Logger.Log($"STUN server {stunServerIpAddresses.First()} has no IPV6 address.");
-        }
-
-        IPAddress publicIpV6Address;
+    private static async ValueTask<(IPAddress IpAddress, List<(ushort InternalPort, ushort ExternalPort)> Ports, List<ushort> PortIds)> SetupIpV6PortsAsync(
+        InternetGatewayDevice internetGatewayDevice, List<ushort> p2pReservedPorts, List<IPAddress> stunServerIpAddresses, CancellationToken cancellationToken)
+    {
+        (IPAddress stunPublicIpV6Address, List<(ushort InternalPort, ushort ExternalPort)> ipV6StunPortMapping) = await PerformStunAsync(
+            stunServerIpAddresses, null, p2pReservedPorts, AddressFamily.InterNetworkV6, cancellationToken).ConfigureAwait(false);
+        IPAddress localPublicIpV6Address;
 
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
-            var publicIpV6Addresses = NetworkHelper.GetWindowsPublicIpAddresses()
+            var localIpV6Addresses = NetworkHelper.GetWindowsPublicIpAddresses()
                 .Where(q => q.IpAddress.AddressFamily is AddressFamily.InterNetworkV6).ToList();
 
-            (IPAddress IpAddress, PrefixOrigin PrefixOrigin, SuffixOrigin SuffixOrigin) foundPublicIpV6Address = publicIpV6Addresses
+            (IPAddress IpAddress, PrefixOrigin PrefixOrigin, SuffixOrigin SuffixOrigin) foundLocalPublicIpV6Address = localIpV6Addresses
                 .FirstOrDefault(q => q.PrefixOrigin is PrefixOrigin.RouterAdvertisement && q.SuffixOrigin is SuffixOrigin.LinkLayerAddress);
 
-            if (foundPublicIpV6Address.IpAddress is null)
+            if (foundLocalPublicIpV6Address.IpAddress is null)
             {
-                foundPublicIpV6Address = publicIpV6Addresses
+                foundLocalPublicIpV6Address = localIpV6Addresses
                     .FirstOrDefault(q => q.PrefixOrigin is PrefixOrigin.Dhcp && q.SuffixOrigin is SuffixOrigin.OriginDhcp);
             }
 
-            publicIpV6Address = foundPublicIpV6Address.IpAddress;
+            localPublicIpV6Address = foundLocalPublicIpV6Address.IpAddress;
         }
         else
         {
-            publicIpV6Address = NetworkHelper.GetPublicIpAddresses()
+            localPublicIpV6Address = NetworkHelper.GetPublicIpAddresses()
                 .FirstOrDefault(q => q.AddressFamily is AddressFamily.InterNetworkV6);
         }
 
         var ipV6P2PPorts = new List<(ushort InternalPort, ushort ExternalPort)>();
-        var p2pIpV6PortIds = new List<ushort>();
+        var ipV6P2PPortIds = new List<ushort>();
+        IPAddress publicIpV6Address = null;
 
-        if (detectedPublicIpV6Address is not null || publicIpV6Address is not null)
+        if (stunPublicIpV6Address is not null || localPublicIpV6Address is not null)
         {
             Logger.Log("Public IPV6 detected.");
 
@@ -251,30 +124,33 @@ internal static class UPnPHandler
             {
                 try
                 {
-                    (bool firewallEnabled, bool inboundPinholeAllowed) = await internetGatewayDevice.GetIpV6FirewallStatusAsync(
+                    (bool? firewallEnabled, bool? inboundPinholeAllowed) = await internetGatewayDevice.GetIpV6FirewallStatusAsync(
                         cancellationToken).ConfigureAwait(false);
 
-                    if (firewallEnabled && inboundPinholeAllowed)
+                    if (firewallEnabled is not false && inboundPinholeAllowed is not false)
                     {
                         Logger.Log("Configuring IPV6 firewall.");
 
                         foreach (ushort p2pReservedPort in p2pReservedPorts)
                         {
-                            p2pIpV6PortIds.Add(await internetGatewayDevice.OpenIpV6PortAsync(
-                                publicIpV6Address, p2pReservedPort, cancellationToken).ConfigureAwait(false));
+                            ipV6P2PPortIds.Add(await internetGatewayDevice.OpenIpV6PortAsync(
+                                localPublicIpV6Address, p2pReservedPort, cancellationToken).ConfigureAwait(false));
                         }
                     }
                 }
                 catch (Exception ex)
                 {
-                    ProgramConstants.LogException(ex, $"Could not open P2P IPV6 router ports for {publicIpV6Address}.");
+#if DEBUG
+                    ProgramConstants.LogException(ex, $"Could not open P2P IPV6 router ports for {localPublicIpV6Address}.");
+#else
+                    ProgramConstants.LogException(ex, $"Could not open P2P IPV6 router ports.");
+#endif
                 }
             }
 
-            if (detectedPublicIpV6Address is not null && publicIpV6Address is not null && !detectedPublicIpV6Address.Equals(publicIpV6Address))
+            if (stunPublicIpV6Address is not null && localPublicIpV6Address is not null && !stunPublicIpV6Address.Equals(localPublicIpV6Address))
             {
-                publicIpV6Address = detectedPublicIpV6Address;
-
+                publicIpV6Address = stunPublicIpV6Address;
                 ipV6P2PPorts = ipV6StunPortMapping;
             }
             else
@@ -283,7 +159,137 @@ internal static class UPnPHandler
             }
         }
 
-        return (internetGatewayDevice, ipV6P2PPorts, ipV4P2PPorts, p2pIpV6PortIds, publicIpV6Address, publicIpV4Address);
+        return (publicIpV6Address, ipV6P2PPorts, ipV6P2PPortIds);
+    }
+
+    private static async ValueTask<(IPAddress IpAddress, List<(ushort InternalPort, ushort ExternalPort)> Ports)> SetupIpV4PortsAsync(
+        InternetGatewayDevice internetGatewayDevice, List<ushort> p2pReservedPorts, List<IPAddress> stunServerIpAddresses, CancellationToken cancellationToken)
+    {
+        bool? routerNatEnabled = null;
+        IPAddress routerPublicIpV4Address = null;
+
+        if (internetGatewayDevice is not null)
+        {
+            Logger.Log($"Found NAT device {internetGatewayDevice.UPnPDescription.Device.FriendlyName}.");
+
+            routerNatEnabled = await internetGatewayDevice.GetNatRsipStatusAsync(cancellationToken).ConfigureAwait(false);
+            routerPublicIpV4Address = await internetGatewayDevice.GetExternalIpV4AddressAsync(cancellationToken).ConfigureAwait(false);
+        }
+
+        (IPAddress stunPublicIpV4Address, List<(ushort InternalPort, ushort ExternalPort)> ipV4StunPortMapping) = await PerformStunAsync(
+            stunServerIpAddresses, routerPublicIpV4Address, p2pReservedPorts, AddressFamily.InterNetwork, cancellationToken).ConfigureAwait(false);
+        IPAddress tracePublicIpV4Address = null;
+
+        if (routerPublicIpV4Address is null && stunPublicIpV4Address is null)
+        {
+            Logger.Log("Using IPV4 trace detection.");
+
+            tracePublicIpV4Address = await NetworkHelper.TracePublicIpV4Address(cancellationToken).ConfigureAwait(false);
+        }
+
+        IPAddress localPublicIpV4Address = null;
+
+        if (routerPublicIpV4Address is null && stunPublicIpV4Address is null && tracePublicIpV4Address is null)
+        {
+            Logger.Log("Using IPV4 local public address.");
+
+            var localPublicIpAddresses = NetworkHelper.GetPublicIpAddresses().ToList();
+
+            localPublicIpV4Address = localPublicIpAddresses.FirstOrDefault(q => q.AddressFamily is AddressFamily.InterNetwork);
+        }
+
+        IPAddress publicIpV4Address = stunPublicIpV4Address ?? routerPublicIpV4Address ?? tracePublicIpV4Address ?? localPublicIpV4Address;
+        var ipV4P2PPorts = new List<(ushort InternalPort, ushort ExternalPort)>();
+
+        if (publicIpV4Address is not null)
+        {
+            Logger.Log("Public IPV4 detected.");
+
+            var privateIpV4Addresses = NetworkHelper.GetPrivateIpAddresses().Where(q => q.AddressFamily is AddressFamily.InterNetwork).ToList();
+            IPAddress privateIpV4Address = privateIpV4Addresses.FirstOrDefault();
+
+            if (internetGatewayDevice is not null && privateIpV4Address is not null && routerNatEnabled is not false)
+            {
+                Logger.Log("Using IPV4 port mapping.");
+
+                try
+                {
+                    foreach (int p2PReservedPort in p2pReservedPorts)
+                    {
+                        ushort openedPort = await internetGatewayDevice.OpenIpV4PortAsync(
+                            privateIpV4Address, (ushort)p2PReservedPort, cancellationToken).ConfigureAwait(false);
+
+                        ipV4P2PPorts.Add((openedPort, openedPort));
+                    }
+
+                    p2pReservedPorts = ipV4P2PPorts.Select(q => q.InternalPort).ToList();
+                }
+                catch (Exception ex)
+                {
+#if DEBUG
+                    ProgramConstants.LogException(ex, $"Could not open P2P IPV4 router ports for {privateIpV4Address} -> {publicIpV4Address}.");
+#else
+                    ProgramConstants.LogException(ex, $"Could not open P2P IPV4 router ports.");
+#endif
+                    ipV4P2PPorts = ipV4StunPortMapping.Any() ? ipV4StunPortMapping : p2pReservedPorts.Select(q => (q, q)).ToList();
+                }
+            }
+            else
+            {
+                ipV4P2PPorts = ipV4StunPortMapping.Any() ? ipV4StunPortMapping : p2pReservedPorts.Select(q => (q, q)).ToList();
+            }
+        }
+
+        return (publicIpV4Address, ipV4P2PPorts);
+    }
+
+    private static async ValueTask<(IPAddress IPAddress, List<(ushort InternalPort, ushort ExternalPort)> PortMapping)> PerformStunAsync(
+        List<IPAddress> stunServerIpAddresses, IPAddress routerPublicIpV4Address, List<ushort> p2pReservedPorts, AddressFamily addressFamily, CancellationToken cancellationToken)
+    {
+        var stunPortMapping = new List<(ushort InternalPort, ushort ExternalPort)>();
+        IPAddress stunPublicAddress = null;
+
+        if (stunServerIpAddresses.Any(q => q.AddressFamily == addressFamily))
+        {
+            IPAddress stunServerIpAddress = stunServerIpAddresses.Single(q => q.AddressFamily == addressFamily);
+
+            if (addressFamily is AddressFamily.InterNetwork && routerPublicIpV4Address == null)
+            {
+                Logger.Log($"Using STUN to detect {addressFamily} address.");
+
+                foreach (ushort p2pReservedPort in p2pReservedPorts)
+                {
+                    IPEndPoint stunPublicIpEndPoint = await NetworkHelper.PerformStunAsync(
+                        stunServerIpAddress, p2pReservedPort, cancellationToken).ConfigureAwait(false);
+
+                    if (stunPublicIpEndPoint is null)
+                    {
+                        Logger.Log($"{addressFamily} STUN failed.");
+                        break;
+                    }
+
+                    stunPublicAddress = stunPublicIpEndPoint.Address;
+
+                    if (p2pReservedPort != stunPublicIpEndPoint.Port)
+                        stunPortMapping.Add(new(p2pReservedPort, (ushort)stunPublicIpEndPoint.Port));
+                }
+            }
+
+            if (stunPortMapping.Any())
+            {
+#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
+                NetworkHelper.KeepStunAliveAsync(
+                    stunServerIpAddress,
+                    stunPortMapping.Select(q => q.InternalPort).ToList(), cancellationToken).HandleTask();
+#pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
+            }
+        }
+        else
+        {
+            Logger.Log($"STUN server {stunServerIpAddresses.First()} has no {addressFamily} address.");
+        }
+
+        return (stunPublicAddress, stunPortMapping);
     }
 
     private static async ValueTask<IEnumerable<InternetGatewayDevice>> GetInternetGatewayDevicesAsync(CancellationToken cancellationToken)
@@ -401,7 +407,7 @@ internal static class UPnPHandler
 
                 responses.Add(Encoding.UTF8.GetString(buffer.Span[..bytesReceived]));
             }
-            catch (OperationCanceledException)
+            catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
             {
             }
         }
@@ -439,7 +445,7 @@ internal static class UPnPHandler
         {
             uPnPDescription = await GetUPnPDescription(location, cancellationToken).ConfigureAwait(false);
         }
-        catch (OperationCanceledException)
+        catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
         {
             if (location.HostNameType is UriHostNameType.IPv6 && locations.Any(q => q.HostNameType is UriHostNameType.IPv4))
             {
@@ -449,7 +455,7 @@ internal static class UPnPHandler
 
                     uPnPDescription = await GetUPnPDescription(location, cancellationToken).ConfigureAwait(false);
                 }
-                catch (OperationCanceledException)
+                catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
                 {
                 }
             }
