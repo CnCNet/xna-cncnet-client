@@ -1,8 +1,8 @@
-﻿using ClientCore;
-using ClientCore.Extensions;
+﻿using System;
+using ClientCore;
 using ClientCore.Extensions;
 using Rampastring.Tools;
-using System;
+
 
 namespace DTAClient.Domain
 {

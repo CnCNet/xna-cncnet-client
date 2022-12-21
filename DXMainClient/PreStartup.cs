@@ -107,7 +107,7 @@ namespace DTAClient
                 if (translationFile.Exists)
                 {
                     Logger.Log($"Loading generic translation file at {translationFile.FullName}");
-                    translation = Translation.LoadFromIniFile(translationFile.FullName, UserINISettings.Instance.Translation);
+                    translation = new Translation(translationFile.FullName, UserINISettings.Instance.Translation);
                     if (translationThemeFile.Exists)
                     {
                         Logger.Log($"Loading theme-specific translation file at {translationThemeFile.FullName}");

@@ -1,4 +1,5 @@
 ﻿using ClientCore;
+using ClientCore.Extensions;
 using Microsoft.Xna.Framework.Graphics;
 using Rampastring.Tools;
 using Rampastring.XNAUI;
@@ -13,8 +14,6 @@ using Color = Microsoft.Xna.Framework.Color;
 using Point = Microsoft.Xna.Framework.Point;
 using Utilities = Rampastring.Tools.Utilities;
 using static System.Collections.Specialized.BitVector32;
-using ClientCore.Extensions;
-using ClientCore.Extensions;
 
 namespace DTAClient.Domain.Multiplayer
 {

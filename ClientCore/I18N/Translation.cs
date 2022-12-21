@@ -31,15 +31,14 @@ public class Translation : ICloneable
     public string Author { get; private set; } = string.Empty;
 
     /// <summary>
-    /// The key stands for a key name, and the value stands for a string that is used in System.string.Format().
-    /// The value can not contain IniNewLinePattern when loading or saving via ini format.
+    /// Stores the translation values (including default values for missing strings).
     /// </summary>
     private Dictionary<string, string> Values { get; } = new();
 
     // public bool IsRightToLeft { get; set; } // TODO
 
-    /// <summary>Contains all keys with missing translations.</summary>
-    private readonly HashSet<string> MissingKeys = new HashSet<string>();
+    /// <summary>Contains all keys within <see cref="Values"/> with missing translations.</summary>
+    private readonly HashSet<string> MissingKeys = new();
 
     /// <summary>Used to write missing translation table entries to a file.</summary>
     public const string MISSING_KEY_PREFIX = "; ";  // a hack but hey it works
@@ -56,26 +55,21 @@ public class Translation : ICloneable
     /// <summary>
     /// Initializes a new instance of the <see cref="Translation"/> class.
     /// </summary>
-    public Translation(string translationCode)
+    /// <param name="localeCode">A locale code for this translation.</param>
+    public Translation(string localeCode)
     {
-        if (string.IsNullOrWhiteSpace(translationCode))
-            throw new ArgumentException($"'{nameof(translationCode)}' cannot be null or whitespace.", nameof(translationCode));
-
-        LocaleCode = translationCode;
+        LocaleCode = localeCode;
     }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="Translation"/> class
-    /// that loads the translation from an ini file.
+    /// that loads the translation from an INI file.
     /// </summary>
-    /// <param name="ini">An ini file to be read.</param>
+    /// <param name="ini">An INI file to read from.</param>
     /// <param name="localeCode">A locale code for this translation.</param>
-    public Translation(IniFile ini, string localeCode)
+    public Translation(IniFile ini, string localeCode) : this(localeCode)
     {
-        LocaleCode = localeCode;
-
-        if (ini == null)
-            throw new ArgumentNullException(nameof(ini));
+        ArgumentNullException.ThrowIfNull(ini);
 
         IniSection metadataSection = ini.GetSection(METADATA_SECTION);
         Name = metadataSection?.GetStringValue(nameof(Name), string.Empty);
@@ -83,6 +77,15 @@ public class Translation : ICloneable
 
         AppendValuesFromIniFile(ini);
     }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="Translation"/> class
+    /// that loads the translation from an INI file.
+    /// </summary>
+    /// <param name="iniPath">A path to an INI file to read from.</param>
+    /// <param name="localeCode">A locale code for this translation.</param>
+    public Translation(string iniPath, string localeCode)
+        : this(new CCIniFile(iniPath), localeCode) { }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="Translation"/> class
@@ -102,20 +105,22 @@ public class Translation : ICloneable
     public Translation Clone() => new Translation(this);
     object ICloneable.Clone() => Clone();
 
+    /// <summary>
+    /// Reads <see cref="Values"/> from an INI file, overriding possibly existing ones.
+    /// </summary>
+    /// <param name="ini">A path to an INI file to read from.</param>
     public void AppendValuesFromIniFile(string iniPath)
         => AppendValuesFromIniFile(new CCIniFile(iniPath));
 
+    /// <summary>
+    /// Reads <see cref="Values"/> from an INI file, overriding possibly existing ones.
+    /// </summary>
+    /// <param name="ini">An INI file to read from.</param>
     public void AppendValuesFromIniFile(IniFile ini)
     {
         IniSection valuesSection = ini.GetSection(nameof(Values));
         foreach (var (key, value) in valuesSection.Keys)
             Values[key] = value.FromIniString();
-    }
-
-    public static Translation LoadFromIniFile(string iniPath, string localeCode)
-    {
-        CCIniFile iniFile = new(iniPath);
-        return new Translation(iniFile, localeCode);
     }
 
     /// <param name="localeCode">The locale code to look up the language name for.</param>
@@ -261,7 +266,7 @@ public class Translation : ICloneable
         else
         {
             if (notify)
-                HandleMissing(key, defaultValue);
+                _ = HandleMissing(key, defaultValue);
 
             return defaultValue;
         }
@@ -294,7 +299,7 @@ public class Translation : ICloneable
             result = defaultValue;
 
             if (notify)
-                HandleMissing(key, defaultValue);
+                _ = HandleMissing(key, defaultValue);
         }
 
         return result;

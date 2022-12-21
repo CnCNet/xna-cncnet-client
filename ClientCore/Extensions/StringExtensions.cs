@@ -33,6 +33,12 @@ public static class StringExtensions
     /// <returns>INI-safe string.</returns>
     public static string ToIniString(this string raw)
     {
+        if (raw.Contains(ESCAPED_INI_NEWLINE_PATTERN))
+            throw new ArgumentException($"The string contains an illegal character sequence! ({ESCAPED_INI_NEWLINE_PATTERN})");
+
+        if (raw.Contains(ESCAPED_SEMICOLON))
+            throw new ArgumentException($"The string contains an illegal character sequence! ({ESCAPED_SEMICOLON})");
+
         return raw
             .Replace(ProgramConstants.INI_NEWLINE_PATTERN, ESCAPED_INI_NEWLINE_PATTERN)
             .Replace(";", ESCAPED_SEMICOLON)
