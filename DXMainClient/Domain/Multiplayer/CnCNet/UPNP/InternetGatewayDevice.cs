@@ -126,80 +126,110 @@ internal sealed record InternetGatewayDevice(
     {
         Logger.Log($"Requesting external IP address from UPnP device {UPnPDescription.Device.FriendlyName}.");
 
-        int uPnPVersion = GetDeviceUPnPVersion();
-        (ServiceListItem service, string serviceUri, string serviceType) = GetSoapActionParameters($"{UPnPWanIpConnection}:{uPnPVersion}");
-        string serviceAction = $"\"{service.ServiceType}#GetExternalIPAddress\"";
-        IPAddress ipAddress;
-
-        switch (uPnPVersion)
+        try
         {
-            case 2:
-                GetExternalIPAddressResponseV2 getExternalIpAddressResponseV2 = await ExecuteSoapAction<GetExternalIPAddressRequestV2, GetExternalIPAddressResponseV2>(
-                    serviceUri, serviceAction, serviceType, default, cancellationToken).ConfigureAwait(false);
+            int uPnPVersion = GetDeviceUPnPVersion();
+            (ServiceListItem service, string serviceUri, string serviceType) = GetSoapActionParameters($"{UPnPWanIpConnection}:{uPnPVersion}");
+            string serviceAction = $"\"{service.ServiceType}#GetExternalIPAddress\"";
+            IPAddress ipAddress;
 
-                ipAddress = string.IsNullOrWhiteSpace(getExternalIpAddressResponseV2.ExternalIPAddress) ? null : IPAddress.Parse(getExternalIpAddressResponseV2.ExternalIPAddress);
+            switch (uPnPVersion)
+            {
+                case 2:
+                    GetExternalIPAddressResponseV2 getExternalIpAddressResponseV2 = await ExecuteSoapAction<GetExternalIPAddressRequestV2, GetExternalIPAddressResponseV2>(
+                        serviceUri, serviceAction, serviceType, default, cancellationToken).ConfigureAwait(false);
 
-                break;
-            case 1:
-                GetExternalIPAddressResponseV1 getExternalIpAddressResponseV1 = await ExecuteSoapAction<GetExternalIPAddressRequestV1, GetExternalIPAddressResponseV1>(
-                    serviceUri, serviceAction, serviceType, default, cancellationToken).ConfigureAwait(false);
+                    ipAddress = string.IsNullOrWhiteSpace(getExternalIpAddressResponseV2.ExternalIPAddress) ? null : IPAddress.Parse(getExternalIpAddressResponseV2.ExternalIPAddress);
 
-                ipAddress = string.IsNullOrWhiteSpace(getExternalIpAddressResponseV1.ExternalIPAddress) ? null : IPAddress.Parse(getExternalIpAddressResponseV1.ExternalIPAddress);
-                break;
-            default:
-                throw new ArgumentException($"UPNP version {uPnPVersion} is not supported.");
+                    break;
+                case 1:
+                    GetExternalIPAddressResponseV1 getExternalIpAddressResponseV1 = await ExecuteSoapAction<GetExternalIPAddressRequestV1, GetExternalIPAddressResponseV1>(
+                        serviceUri, serviceAction, serviceType, default, cancellationToken).ConfigureAwait(false);
+
+                    ipAddress = string.IsNullOrWhiteSpace(getExternalIpAddressResponseV1.ExternalIPAddress) ? null : IPAddress.Parse(getExternalIpAddressResponseV1.ExternalIPAddress);
+                    break;
+                default:
+                    throw new ArgumentException($"UPNP version {uPnPVersion} is not supported.");
+            }
+
+            Logger.Log($"Received external IP address {ipAddress} from UPnP device {UPnPDescription.Device.FriendlyName}.");
+
+            return ipAddress;
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            Logger.Log($"GetExternalIPAddress error/not supported on UPnP device {UPnPDescription.Device.FriendlyName}.");
+            ProgramConstants.LogException(ex);
         }
 
-        Logger.Log($"Received external IP address {ipAddress} from UPnP device {UPnPDescription.Device.FriendlyName}.");
-
-        return ipAddress;
+        return null;
     }
 
-    public async ValueTask<bool> GetNatRsipStatusAsync(CancellationToken cancellationToken)
+    public async ValueTask<bool?> GetNatRsipStatusAsync(CancellationToken cancellationToken)
     {
         Logger.Log($"Checking NAT status on UPnP device {UPnPDescription.Device.FriendlyName}.");
 
-        int uPnPVersion = GetDeviceUPnPVersion();
-        (ServiceListItem service, string serviceUri, string serviceType) = GetSoapActionParameters($"{UPnPWanIpConnection}:{uPnPVersion}");
-        string serviceAction = $"\"{service.ServiceType}#GetNatRsipStatus\"";
-        bool natEnabled;
-
-        switch (uPnPVersion)
+        try
         {
-            case 2:
-                GetNatRsipStatusResponseV2 getNatRsipStatusResponseV2 = await ExecuteSoapAction<GetNatRsipStatusRequestV2, GetNatRsipStatusResponseV2>(
-                    serviceUri, serviceAction, serviceType, default, cancellationToken).ConfigureAwait(false);
+            int uPnPVersion = GetDeviceUPnPVersion();
+            (ServiceListItem service, string serviceUri, string serviceType) = GetSoapActionParameters($"{UPnPWanIpConnection}:{uPnPVersion}");
+            string serviceAction = $"\"{service.ServiceType}#GetNatRsipStatus\"";
+            bool natEnabled;
 
-                natEnabled = getNatRsipStatusResponseV2.NatEnabled;
+            switch (uPnPVersion)
+            {
+                case 2:
+                    GetNatRsipStatusResponseV2 getNatRsipStatusResponseV2 = await ExecuteSoapAction<GetNatRsipStatusRequestV2, GetNatRsipStatusResponseV2>(
+                        serviceUri, serviceAction, serviceType, default, cancellationToken).ConfigureAwait(false);
 
-                break;
-            case 1:
-                GetNatRsipStatusResponseV1 getNatRsipStatusResponseV1 = await ExecuteSoapAction<GetNatRsipStatusRequestV1, GetNatRsipStatusResponseV1>(
-                    serviceUri, serviceAction, serviceType, default, cancellationToken).ConfigureAwait(false);
+                    natEnabled = getNatRsipStatusResponseV2.NatEnabled;
 
-                natEnabled = getNatRsipStatusResponseV1.NatEnabled;
-                break;
-            default:
-                throw new ArgumentException($"UPNP version {uPnPVersion} is not supported.");
+                    break;
+                case 1:
+                    GetNatRsipStatusResponseV1 getNatRsipStatusResponseV1 = await ExecuteSoapAction<GetNatRsipStatusRequestV1, GetNatRsipStatusResponseV1>(
+                        serviceUri, serviceAction, serviceType, default, cancellationToken).ConfigureAwait(false);
+
+                    natEnabled = getNatRsipStatusResponseV1.NatEnabled;
+                    break;
+                default:
+                    throw new ArgumentException($"UPNP version {uPnPVersion} is not supported.");
+            }
+
+            Logger.Log($"Received NAT status {natEnabled} on UPnP device {UPnPDescription.Device.FriendlyName}.");
+
+            return natEnabled;
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            Logger.Log($"GetNatRsipStatus error/not supported on UPnP device {UPnPDescription.Device.FriendlyName}.");
+            ProgramConstants.LogException(ex);
         }
 
-        Logger.Log($"Received NAT status {natEnabled} on UPnP device {UPnPDescription.Device.FriendlyName}.");
-
-        return natEnabled;
+        return null;
     }
 
-    public async ValueTask<(bool FirewallEnabled, bool InboundPinholeAllowed)> GetIpV6FirewallStatusAsync(CancellationToken cancellationToken)
+    public async ValueTask<(bool? FirewallEnabled, bool? InboundPinholeAllowed)> GetIpV6FirewallStatusAsync(CancellationToken cancellationToken)
     {
         Logger.Log($"Checking IPV6 firewall status on UPnP device {UPnPDescription.Device.FriendlyName}.");
 
-        (ServiceListItem service, string serviceUri, string serviceType) = GetSoapActionParameters("WANIPv6FirewallControl:1");
-        string serviceAction = $"\"{service.ServiceType}#GetFirewallStatus\"";
-        GetFirewallStatusResponse response = await ExecuteSoapAction<GetFirewallStatusRequest, GetFirewallStatusResponse>(
-            serviceUri, serviceAction, serviceType, default, cancellationToken).ConfigureAwait(false);
+        try
+        {
+            (ServiceListItem service, string serviceUri, string serviceType) = GetSoapActionParameters("WANIPv6FirewallControl:1");
+            string serviceAction = $"\"{service.ServiceType}#GetFirewallStatus\"";
+            GetFirewallStatusResponse response = await ExecuteSoapAction<GetFirewallStatusRequest, GetFirewallStatusResponse>(
+                serviceUri, serviceAction, serviceType, default, cancellationToken).ConfigureAwait(false);
 
-        Logger.Log($"Received IPV6 firewall status {response.FirewallEnabled} and port mapping allowed {response.InboundPinholeAllowed} on UPnP device {UPnPDescription.Device.FriendlyName}.");
+            Logger.Log($"Received IPV6 firewall status {response.FirewallEnabled} and port mapping allowed {response.InboundPinholeAllowed} on UPnP device {UPnPDescription.Device.FriendlyName}.");
 
-        return (response.FirewallEnabled, response.InboundPinholeAllowed);
+            return (response.FirewallEnabled, response.InboundPinholeAllowed);
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            Logger.Log($"GetFirewallStatus error/not supported on UPnP device {UPnPDescription.Device.FriendlyName}.");
+            ProgramConstants.LogException(ex);
+        }
+
+        return (null, null);
     }
 
     public async ValueTask<ushort> OpenIpV6PortAsync(IPAddress ipAddress, ushort port, CancellationToken cancellationToken)
