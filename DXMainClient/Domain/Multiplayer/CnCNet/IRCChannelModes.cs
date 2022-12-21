@@ -10,5 +10,8 @@ internal static class IRCChannelModes
     public const char NO_EXTERNAL_MESSAGES = 'n';
     public const char NO_NICKNAME_CHANGE = 'N';
     public const char SECRET_CHANNEL = 's';
-    public static string DEFAULT = $"{CHANNEL_KEY}{CHANNEL_LIMIT}{NO_EXTERNAL_MESSAGES}{NO_NICKNAME_CHANGE}{SECRET_CHANNEL}";
+    public const char NO_CTCP = 'C';
+    public const char TOPIC_LIMIT = 't';
+    public const char NO_NICK_CHANGE = 'N';
+    public static string DEFAULT = $"{CHANNEL_KEY}{CHANNEL_LIMIT}{NO_EXTERNAL_MESSAGES}{NO_NICKNAME_CHANGE}{SECRET_CHANNEL}-{NO_CTCP}{TOPIC_LIMIT}{NO_NICK_CHANGE}";
 }

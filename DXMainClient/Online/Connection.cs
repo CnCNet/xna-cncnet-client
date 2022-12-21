@@ -42,15 +42,7 @@ namespace DTAClient.Online
         /// </summary>
         private static readonly IList<Server> Servers = new List<Server>
         {
-            new("Burstfire.UK.EU.GameSurge.net", "GameSurge London, UK", new[] { 6667, 6668, 7000 }),
-            new("VortexServers.IL.US.GameSurge.net", "GameSurge Chicago, IL", new[] { 6660, 6666, 6667, 6668, 6669 }),
-            new("Gameservers.NJ.US.GameSurge.net", "GameSurge Newark, NJ", new[] { 6665, 6666, 6667, 6668, 6669, 7000, 8080 }),
-            new("Krypt.CA.US.GameSurge.net", "GameSurge Santa Ana, CA", new[] { 6666, 6667, 6668, 6669 }),
-            new("NuclearFallout.WA.US.GameSurge.net", "GameSurge Seattle, WA", new[] { 6667, 5960 }),
-            new("Stockholm.SE.EU.GameSurge.net", "GameSurge Stockholm, Sweden", new[] { 6660, 6666, 6667, 6668, 6669 }),
-            new("Prothid.NY.US.GameSurge.Net", "GameSurge NYC, NY", new[] { 5960, 6660, 6666, 6667, 6668, 6669 }),
-            new("TAL.DE.EU.GameSurge.net", "GameSurge Wuppertal, Germany", new[] { 6660, 6666, 6667, 6668, 6669 }),
-            new("irc.gamesurge.net", "GameSurge", new[] { 6667 })
+            new("irc.quakenet.org", "QuakeNet", new[] { 6667 })
         }.AsReadOnly();
 
         private bool IsConnected { get; set; }
