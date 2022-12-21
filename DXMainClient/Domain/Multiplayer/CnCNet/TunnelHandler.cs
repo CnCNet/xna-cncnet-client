@@ -59,16 +59,10 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
         public CnCNetTunnel CurrentTunnel { get; set; }
 
         private void DoTunnelPinged(int index)
-        {
-            if (TunnelPinged != null)
-                wm.AddCallback(() => TunnelPinged(index));
-        }
+            => wm.AddCallback(() => TunnelPinged?.Invoke(index));
 
         private void DoCurrentTunnelPinged()
-        {
-            if (CurrentTunnelPinged != null)
-                wm.AddCallback(() => CurrentTunnelPinged(this, EventArgs.Empty));
-        }
+            => wm.AddCallback(() => CurrentTunnelPinged?.Invoke(this, EventArgs.Empty));
 
         private void ConnectionManager_Connected(object sender, EventArgs e) => Enabled = true;
 
