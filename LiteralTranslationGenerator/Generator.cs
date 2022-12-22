@@ -13,10 +13,11 @@ namespace LiteralTranslationGenerator
     {
         public const string DescriptorId = "CNCNET0001";
         public const string DescriptorTitle = "L10N Failure";
+        public const string DescriptorCategory = "CNCNET";
 
         private void Warn(string text, GeneratorExecutionContext context, SyntaxNode node)
         {
-            context.ReportDiagnostic(Diagnostic.Create(new DiagnosticDescriptor(DescriptorId, DescriptorId, text, DescriptorId, DiagnosticSeverity.Warning, true), node.GetLocation()));
+            context.ReportDiagnostic(Diagnostic.Create(new DiagnosticDescriptor(DescriptorId, DescriptorTitle, text, DescriptorCategory, DiagnosticSeverity.Warning, true), node.GetLocation()));
         }
 
         public void Execute(GeneratorExecutionContext context)
@@ -58,7 +59,7 @@ namespace LiteralTranslationGenerator
                     var valueValue = semanticModel.GetConstantValue(valueSyntax.Expression).Value;
                     if (valueValue is null)
                     {
-                        Warn($"Failed to get the value of key {keyName} as a string. {valueSyntax.Expression}", context, l10nSyntax);
+                        Warn($"Failed to get the value of key {keyName} as a string.", context, l10nSyntax);
                         continue;
                     }
 
@@ -68,7 +69,7 @@ namespace LiteralTranslationGenerator
                     {
                         if (valueText != translations[keyName])
                         {
-                            Warn($"The value of key {keyName} appears more than once and the values are not the same. {valueText} {translations[keyName]}", context, l10nSyntax);
+                            Warn($"The value of key {keyName} appears more than once and the values are not the same.", context, l10nSyntax);
                         }
                         continue;
                     }
