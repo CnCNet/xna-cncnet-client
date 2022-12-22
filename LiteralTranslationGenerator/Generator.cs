@@ -36,6 +36,8 @@ namespace LiteralTranslationGenerator
 
         public void Execute(GeneratorExecutionContext context)
         {
+            context.CancellationToken.ThrowIfCancellationRequested();
+
             var compilation = context.Compilation;
             string assemblyName = compilation.AssemblyName;
             if (!AssemblyToNamespace.ContainsKey(assemblyName))
