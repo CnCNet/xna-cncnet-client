@@ -11,7 +11,7 @@ namespace LiteralTranslationGenerator
     [GeneratorAttribute]
     public class Generator : ISourceGenerator
     {
-        public const string DescriptorId = "CNCNET0001";
+        public const string DescriptorId = "CNCNET0001"; // The DescriptorId is used to suppress warnings. Do not change it.
         public const string DescriptorTitle = "L10N Failure";
         public const string DescriptorCategory = "CNCNET";
 

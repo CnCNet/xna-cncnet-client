@@ -59,7 +59,9 @@ namespace DTAClient.Domain.Multiplayer
 
                 try
                 {
+#pragma warning disable CNCNET0001
                     MultiplayerColor mpColor = MultiplayerColor.CreateFromStringArray(key.L10N($"INI:Colors:{key}"), values);
+#pragma warning restore CNCNET0001
 
                     mpColors.Add(mpColor);
                 }

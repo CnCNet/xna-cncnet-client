@@ -17,12 +17,14 @@ namespace DTAClient.Domain
             CD = iniFile.GetIntValue(sectionName, nameof(CD), 0);
             Side = iniFile.GetIntValue(sectionName, nameof(Side), 0);
             Scenario = iniFile.GetStringValue(sectionName, nameof(Scenario), string.Empty);
+#pragma warning disable CNCNET0001
             GUIName = iniFile.GetStringValue(sectionName, "Description", "Undefined mission")
                 .L10N($"INI:Missions:{sectionName}:Description");
             IconPath = iniFile.GetStringValue(sectionName, "SideName", string.Empty);
             GUIDescription = iniFile.GetStringValue(sectionName, "LongDescription", string.Empty)
                 .FromIniString()
                 .L10N($"INI:Missions:{sectionName}:LongDescription");
+#pragma warning restore CNCNET0001
             FinalMovie = iniFile.GetStringValue(sectionName, nameof(FinalMovie), "none");
             RequiredAddon = iniFile.GetBooleanValue(sectionName, nameof(RequiredAddon), false);
             Enabled = iniFile.GetBooleanValue(sectionName, nameof(Enabled), true);

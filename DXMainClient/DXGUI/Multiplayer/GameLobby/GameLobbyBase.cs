@@ -739,11 +739,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             int locationY = ConfigIni.GetIntValue(Name, "PlayerOptionLocationY", 24);
 
             // InitPlayerOptionDropdowns(136, 91, 79, 49, 46, new Point(25, 24));
-
+#pragma warning disable CNCNET0001
             string[] sides = ClientConfiguration.Instance.Sides
                 .Split(',').ToList()
                 .Select(s => s.L10N($"INI:Sides:{s}")).ToArray();
-
+#pragma warning restore CNCNET0001
             SideCount = sides.Length;
 
             List<string> selectorNames = new();
@@ -950,7 +950,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
                 if (randomSides.Count > 1)
                 {
+#pragma warning disable CNCNET0001
                     selectorNames.Add(randomSelector.L10N($"INI:Sides:{randomSelector}"));
+#pragma warning restore CNCNET0001
                     selectorSides.Add(randomSides.ToArray());
                 }
             }
