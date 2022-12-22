@@ -1,6 +1,6 @@
 ﻿using Microsoft.CodeAnalysis.CSharp;
 
-namespace LiteralTranslationGenerator
+namespace TranslationNotifierGenerator
 {
     public static class StringExtensions
     {

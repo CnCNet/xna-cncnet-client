@@ -146,7 +146,7 @@ namespace DTAClient
 
                     Logger.Log("Translation stub generation feature is now enabled. The stub file will be written when the client exits.");
 
-                    // Load all literal strings
+                    // Lookup all comptime available strings
                     ClientCore.Generated.TranslationNotifier.Register();
                     ClientGUI.Generated.TranslationNotifier.Register();
                     DTAConfig.Generated.TranslationNotifier.Register();

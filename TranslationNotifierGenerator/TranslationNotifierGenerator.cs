@@ -1,4 +1,6 @@
 ﻿using System;
+//// uncomment to debug the generator
+//using System.Diagnostics;
 using System.Linq;
 using System.Collections.Generic;
 using System.Text;
@@ -6,24 +8,26 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp;
 
-namespace LiteralTranslationGenerator
+namespace TranslationNotifierGenerator
 {
+    /// <summary>
+    /// Generates a <c>TranslationNotifier</c> class that allows to notify the translation system
+    /// about all hardcoded missing translation strings by calling <c>TranslationNotifier.Register()</c>.
+    /// </summary>
+    /// <remarks>
+    /// It is required to make <c>RootNamespace</c> project property visible to the compiler via <c>CompilerVisibleProperty</c>
+    /// (already handled in <c>Directory.Build.props</c>). This is required to generate the correct namespace for the generated class.
+    /// </remarks>
     [Generator]
-    public class Generator : ISourceGenerator
+    public class TranslationNotifierGenerator : ISourceGenerator
     {
         public const string DescriptorId = "CNCNET0001"; // The DescriptorId is used to suppress warnings. Do not change it.
         public const string DescriptorTitle = "L10N Failure";
         public const string DescriptorCategory = "CNCNET";
 
-        private readonly IReadOnlyDictionary<string, string> AssemblyToNamespace = new Dictionary<string, string>()
-        {
-            {"ClientCore","ClientCore"},
-            {"ClientGUI","ClientGUI"},
-            {"DTAConfig","DTAConfig"},
-            {"clientdx","DTAClient"},
-            {"clientogl","DTAClient"},
-            {"clientxna","DTAClient"},
-        };
+        // Change those if you change the method names
+        public const string LocalizeMethodContainingNamespace = "ClientCore.Extensions";
+        public const string LocalizeMethodName = "L10N";
 
         private void Warn(string text, GeneratorExecutionContext context, SyntaxNode node)
         {
@@ -36,14 +40,15 @@ namespace LiteralTranslationGenerator
 
         public void Execute(GeneratorExecutionContext context)
         {
+            //// uncomment to debug the generator
+            //Debug.WriteLine($"Executing {nameof(TranslationNotifierGenerator)}...");
+
             context.CancellationToken.ThrowIfCancellationRequested();
 
             var compilation = context.Compilation;
             string assemblyName = compilation.AssemblyName;
-            if (!AssemblyToNamespace.ContainsKey(assemblyName))
-                throw new Exception("Unrecognized assembly name.");
 
-            string namespaceName = AssemblyToNamespace[assemblyName];
+            _ = context.AnalyzerConfigOptions.GlobalOptions.TryGetValue($"build_property.RootNamespace", out string namespaceName);
             if (!namespaceName.Split(new char[] { '.' }).All(name => SyntaxFacts.IsValidIdentifier(name)))
                 throw new Exception("The assembly name is considered as the namespace name. Can not contain invalid characters.");
 
@@ -56,7 +61,7 @@ namespace LiteralTranslationGenerator
                 {
                     if (memberAccessSyntax == null
                         || !memberAccessSyntax.IsKind(SyntaxKind.SimpleMemberAccessExpression)
-                        || memberAccessSyntax.Name.ToString() != "L10N")
+                        || memberAccessSyntax.Name.ToString() != LocalizeMethodName)
                     {
                         continue;
                     }
@@ -109,21 +114,19 @@ namespace LiteralTranslationGenerator
 
             var sb = new StringBuilder();
             _ = sb.AppendLine(@"
-using System.Collections.Generic;
-using ClientCore.Extensions;
-");
+using System.Collections.Generic;");
+            _ = sb.AppendLine($"using {LocalizeMethodContainingNamespace};");
+
             _ = sb.AppendLine($"namespace {namespaceName}.Generated;");
             _ = sb.AppendLine(@"
 public class TranslationNotifier
 {
     public static void Register()
-    {
-");
+    {");
             foreach (var kv in translations)
-                _ = sb.AppendLine($"{kv.Value.ToLiteral()}.L10N({kv.Key.ToLiteral()});");
+                _ = sb.AppendLine($"        {kv.Value.ToLiteral()}.{LocalizeMethodName}({kv.Key.ToLiteral()});");
 
-            _ = sb.AppendLine(@"
-    }
+            _ = sb.AppendLine(@"    }
 }
 ");
 
@@ -132,7 +135,11 @@ public class TranslationNotifier
 
         public void Initialize(GeneratorInitializationContext context)
         {
-            // No initialization required for this one
+            //// uncomment to debug the generator
+            //if (!Debugger.IsAttached)
+            //    Debugger.Launch();
+
+            //Debug.WriteLine($"Initalized {nameof(TranslationNotifierGenerator)}...");
         }
     }
 }
