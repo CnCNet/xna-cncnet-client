@@ -15,17 +15,13 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         {
         }
 
-        private readonly string MapSharingRequestText = 
-            ("The game host has selected a map that" + Environment.NewLine +
-            "doens't exist on your local installation.").L10N("Client:Main:MapSharingRequestText");
+        private readonly string MapSharingRequestText = ("The game host has selected a map that\ndoens't exist on your local installation.").L10N("Client:Main:MapSharingRequestText");
 
         private readonly string MapSharingDownloadText =
             "Downloading map...".L10N("Client:Main:MapSharingDownloadText");
 
         private readonly string MapSharingFailedText =
-            ("Downloading map failed. The game host" + Environment.NewLine +
-            "needs to change the map or you will be" + Environment.NewLine +
-            "unable to participate in the match.").L10N("Client:Main:MapSharingFailedText");
+            ("Downloading map failed. The game host\nneeds to change the map or you will be\nunable to participate in the match.").L10N("Client:Main:MapSharingFailedText");
 
         public event EventHandler MapDownloadConfirmed;
 

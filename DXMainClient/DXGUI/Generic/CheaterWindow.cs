@@ -30,10 +30,9 @@ namespace DTAClient.DXGUI.Generic
             var lblDescription = new XNALabel(WindowManager);
             lblDescription.Name = "lblDescription";
             lblDescription.ClientRectangle = new Rectangle(12, 40, 0, 0);
-            lblDescription.Text = ("Modified game files have been detected. They could affect" + Environment.NewLine + 
-                "the game experience." +
-                Environment.NewLine + Environment.NewLine +
-                "Do you really lack the skill for winning the mission without" + Environment.NewLine + "cheating?").L10N("Client:Main:CheaterText");
+            lblDescription.Text = ("Modified game files have been detected. They could affect\n" +
+                "the game experience.\n\n" +
+                "Do you really lack the skill for winning the mission without\ncheating?").L10N("Client:Main:CheaterText");
 
             var imagePanel = new XNAPanel(WindowManager);
             imagePanel.Name = "imagePanel";

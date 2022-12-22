@@ -53,7 +53,7 @@ namespace DTAConfig.OptionPanels
         private void InitOptions()
         {
             // LEFT COLUMN
-            
+
             chkPingUnofficialTunnels = new XNAClientCheckBox(WindowManager);
             chkPingUnofficialTunnels.Name = nameof(chkPingUnofficialTunnels);
             chkPingUnofficialTunnels.ClientRectangle = new Rectangle(12, 12, 0, 0);
@@ -66,8 +66,8 @@ namespace DTAConfig.OptionPanels
             chkWriteInstallPathToRegistry.ClientRectangle = new Rectangle(
                 chkPingUnofficialTunnels.X,
                 chkPingUnofficialTunnels.Bottom + 12, 0, 0);
-            chkWriteInstallPathToRegistry.Text = ("Write game installation path to Windows" + Environment.NewLine +
-                "Registry (makes it possible to join" + Environment.NewLine +
+            chkWriteInstallPathToRegistry.Text = ("Write game installation path to Windows\n" +
+                "Registry (makes it possible to join\n" +
                  "other games' game rooms on CnCNet)").L10N("Client:DTAConfig:WriteGameRegistry");
 
             AddChild(chkWriteInstallPathToRegistry);
@@ -86,7 +86,7 @@ namespace DTAConfig.OptionPanels
             chkNotifyOnUserListChange.ClientRectangle = new Rectangle(
                 chkPingUnofficialTunnels.X,
                 chkPlaySoundOnGameHosted.Bottom + 12, 0, 0);
-            chkNotifyOnUserListChange.Text = ("Show player join / quit messages" + Environment.NewLine +
+            chkNotifyOnUserListChange.Text = ("Show player join / quit messages\n" +
                 "on CnCNet lobby").L10N("Client:DTAConfig:ShowPlayerJoinQuit");
 
             AddChild(chkNotifyOnUserListChange);
@@ -101,7 +101,7 @@ namespace DTAConfig.OptionPanels
             AddChild(chkDisablePrivateMessagePopup);
 
             InitAllowPrivateMessagesFromDropdown();
-            
+
             // RIGHT COLUMN
 
             chkSkipLoginWindow = new XNAClientCheckBox(WindowManager);
@@ -140,7 +140,7 @@ namespace DTAConfig.OptionPanels
                 chkSkipLoginWindow.X,
                 chkConnectOnStartup.Bottom + 12, 0, 0);
             chkDiscordIntegration.Text = "Show detailed game info in Discord status".L10N("Client:DTAConfig:DiscordStatus");
-            
+
             if (String.IsNullOrEmpty(ClientConfiguration.Instance.DiscordAppId))
             {
                 chkDiscordIntegration.AllowChecking = false;
@@ -183,19 +183,19 @@ namespace DTAConfig.OptionPanels
             ddAllowPrivateMessagesFrom.AddItem(new XNADropDownItem()
             {
                 Text = "All".L10N("Client:DTAConfig:PMAll"),
-                Tag =  AllowPrivateMessagesFromEnum.All
+                Tag = AllowPrivateMessagesFromEnum.All
             });
 
             ddAllowPrivateMessagesFrom.AddItem(new XNADropDownItem()
             {
                 Text = "Friends".L10N("Client:DTAConfig:PMFriends"),
-                Tag =  AllowPrivateMessagesFromEnum.Friends
+                Tag = AllowPrivateMessagesFromEnum.Friends
             });
 
             ddAllowPrivateMessagesFrom.AddItem(new XNADropDownItem()
             {
                 Text = "None".L10N("Client:DTAConfig:PMNone"),
-                Tag =  AllowPrivateMessagesFromEnum.None
+                Tag = AllowPrivateMessagesFromEnum.None
             });
 
             AddChild(ddAllowPrivateMessagesFrom);
@@ -208,9 +208,9 @@ namespace DTAConfig.OptionPanels
             gameListPanel.DrawBorders = false;
             gameListPanel.Name = nameof(gameListPanel);
             gameListPanel.ClientRectangle = new Rectangle(0, Bottom - gameListPanelHeight, Width, gameListPanelHeight);
-            
+
             AddChild(gameListPanel);
-            
+
             var lblFollowedGames = new XNALabel(WindowManager);
             lblFollowedGames.Name = nameof(lblFollowedGames);
             lblFollowedGames.ClientRectangle = new Rectangle(12, 12, 0, 0);
@@ -271,11 +271,11 @@ namespace DTAConfig.OptionPanels
                 List<XNAPanel> gamePanelColumn = gamePanelMatrix[col];
                 for (int row = 0; row < gamePanelColumn.Count; row++)
                 {
-                    
+
                     int columnOffset = columnWidths.Take(col).Sum();
                     int rowOffset = startY + row * rowBuffer;
                     XNAPanel gamePanel = gamePanelColumn[row];
-                    gamePanel.ClientRectangle = new Rectangle(gamePanel.X  + columnOffset, rowOffset, gamePanel.Width, gamePanel.Height);
+                    gamePanel.ClientRectangle = new Rectangle(gamePanel.X + columnOffset, rowOffset, gamePanel.Width, gamePanel.Height);
                     gameListPanel.AddChild(gamePanel);
                 }
             }

@@ -158,8 +158,7 @@ namespace DTAConfig.OptionPanels
             chkBackBufferInVRAM.ClientRectangle = new Rectangle(
                 lblDetailLevel.X,
                 chkBorderlessWindowedMode.Bottom + 28, 0, 0);
-            chkBackBufferInVRAM.Text = ("Back Buffer in Video Memory" + Environment.NewLine +
-                "(lower performance, but is" + Environment.NewLine + "necessary on some systems)").L10N("Client:DTAConfig:BackBuffer");
+            chkBackBufferInVRAM.Text = ("Back Buffer in Video Memory\n(lower performance, but is\nnecessary on some systems)").L10N("Client:DTAConfig:BackBuffer");
 
             var lblClientResolution = new XNALabel(WindowManager);
             lblClientResolution.Name = "lblClientResolution";

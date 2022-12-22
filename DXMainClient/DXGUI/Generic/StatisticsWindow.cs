@@ -1008,9 +1008,7 @@ namespace DTAClient.DXGUI.Generic
         private void BtnClearStatistics_LeftClick(object sender, EventArgs e)
         {
             var msgBox = new XNAMessageBox(WindowManager, "Clear all statistics".L10N("Client:Main:ClearStatisticsTitle"),
-                ("All statistics data will be cleared from the database." +
-                Environment.NewLine + Environment.NewLine +
-                "Are you sure you want to continue?").L10N("Client:Main:ClearStatisticsText"), XNAMessageBoxButtons.YesNo);
+                ("All statistics data will be cleared from the database.\n\nAre you sure you want to continue?").L10N("Client:Main:ClearStatisticsText"), XNAMessageBoxButtons.YesNo);
             msgBox.Show();
             msgBox.YesClickedAction = ClearStatisticsConfirmation_YesClicked;
         }

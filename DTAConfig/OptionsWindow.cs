@@ -133,8 +133,7 @@ namespace DTAConfig
             if (Updater.IsComponentDownloadInProgress())
             {
                 var msgBox = new XNAMessageBox(WindowManager, "Downloads in progress".L10N("Client:DTAConfig:DownloadingTitle"),
-                    ("Optional component downloads are in progress. The downloads will be cancelled if you exit the Options menu." +
-                    Environment.NewLine + Environment.NewLine +
+                    ("Optional component downloads are in progress. The downloads will be cancelled if you exit the Options menu.\n\n" +
                     "Are you sure you want to continue?").L10N("Client:DTAConfig:DownloadingText"), XNAMessageBoxButtons.YesNo);
                 msgBox.Show();
                 msgBox.YesClickedAction = ExitDownloadCancelConfirmation_YesClicked;
@@ -158,8 +157,7 @@ namespace DTAConfig
             if (Updater.IsComponentDownloadInProgress())
             {
                 XNAMessageBox msgBox = new XNAMessageBox(WindowManager, "Downloads in progress".L10N("Client:DTAConfig:DownloadingTitle"),
-                      ("Optional component downloads are in progress. The downloads will be cancelled if you exit the Options menu." +
-                      Environment.NewLine + Environment.NewLine +
+                      ("Optional component downloads are in progress. The downloads will be cancelled if you exit the Options menu.\n\n" +
                       "Are you sure you want to continue?").L10N("Client:DTAConfig:DownloadingText"), XNAMessageBoxButtons.YesNo);
                 msgBox.Show();
                 msgBox.YesClickedAction = SaveDownloadCancelConfirmation_YesClicked;
@@ -203,8 +201,7 @@ namespace DTAConfig
             if (restartRequired)
             {
                 var msgBox = new XNAMessageBox(WindowManager, "Restart Required".L10N("Client:DTAConfig:RestartClientTitle"),
-                    ("The client needs to be restarted for some of the changes to take effect." +
-                    Environment.NewLine + Environment.NewLine +
+                    ("The client needs to be restarted for some of the changes to take effect.\n\n" +
                     "Do you want to restart now?").L10N("Client:DTAConfig:RestartClientText"), XNAMessageBoxButtons.YesNo);
                 msgBox.Show();
                 msgBox.YesClickedAction = RestartMsgBox_YesClicked;
@@ -230,10 +227,9 @@ namespace DTAConfig
             if (optionValuesChanged)
             {
                 XNAMessageBox.Show(WindowManager, "Setting Value(s) Changed".L10N("Client:DTAConfig:SettingChangedTitle"),
-                    ("One or more setting values are" + Environment.NewLine +
-                    "no longer available and were changed." +
-                    Environment.NewLine + Environment.NewLine +
-                    "You may want to verify the new setting" + Environment.NewLine +
+                    ("One or more setting values are\n" +
+                    "no longer available and were changed.\n\n" +
+                    "You may want to verify the new setting\n" +
                     "values in client's options window.").L10N("Client:DTAConfig:SettingChangedText"));
 
                 return true;

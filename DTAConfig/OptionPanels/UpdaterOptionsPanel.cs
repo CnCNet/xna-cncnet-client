@@ -31,8 +31,7 @@ namespace DTAConfig.OptionPanels
             var lblDescription = new XNALabel(WindowManager);
             lblDescription.Name = "lblDescription";
             lblDescription.ClientRectangle = new Rectangle(12, 12, 0, 0);
-            lblDescription.Text = ("To change download server priority, select a server from the list and" +
-                Environment.NewLine + "use the Move Up / Down buttons to change its priority.").L10N("Client:DTAConfig:ServerPriorityTip");
+            lblDescription.Text = ("To change download server priority, select a server from the list and\nuse the Move Up / Down buttons to change its priority.").L10N("Client:DTAConfig:ServerPriorityTip");
 
             lbUpdateServerList = new XNAListBox(WindowManager);
             lbUpdateServerList.Name = "lblUpdateServerList";
@@ -79,15 +78,13 @@ namespace DTAConfig.OptionPanels
         private void BtnForceUpdate_LeftClick(object sender, EventArgs e)
         {
             var msgBox = new XNAMessageBox(WindowManager, "Force Update Confirmation".L10N("Client:DTAConfig:ForceUpdateConfirmTitle"),
-                    ("WARNING: Force update will result in files being re-verified" + Environment.NewLine +
-                    "and re-downloaded. While this may fix problems with game" + Environment.NewLine +
-                    "files, this also may delete some custom modifications" + Environment.NewLine +
-                    "made to this installation. Use at your own risk!" +
-                    Environment.NewLine + Environment.NewLine +
-                    "If you proceed, the options window will close and the" + Environment.NewLine +
-                    "client will proceed to checking for updates." +
-                    Environment.NewLine + Environment.NewLine +
-                    "Do you really want to force update?" + Environment.NewLine).L10N("Client:DTAConfig:ForceUpdateConfirmText"), XNAMessageBoxButtons.YesNo);
+                    ("WARNING: Force update will result in files being re-verified\n" +
+                    "and re-downloaded. While this may fix problems with game\n" +
+                    "files, this also may delete some custom modifications\n" +
+                    "made to this installation. Use at your own risk!\n\n" +
+                    "If you proceed, the options window will close and the\n" +
+                    "client will proceed to checking for updates.\n\n" +
+                    "Do you really want to force update?\n").L10N("Client:DTAConfig:ForceUpdateConfirmText"), XNAMessageBoxButtons.YesNo);
             msgBox.Show();
             msgBox.YesClickedAction = ForceUpdateMsgBox_YesClicked;
         }
@@ -140,7 +137,7 @@ namespace DTAConfig.OptionPanels
             {
                 lbUpdateServerList.AddItem(updaterMirror.Name +
                     (!string.IsNullOrEmpty(updaterMirror.Location) ?
-                    $" ({ updaterMirror.Location })" : string.Empty));
+                    $" ({updaterMirror.Location})" : string.Empty));
             }
 
             chkAutoCheck.Checked = IniSettings.CheckForUpdates;

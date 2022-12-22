@@ -475,9 +475,7 @@ namespace DTAClient.DXGUI.Generic
                 UserINISettings.Instance.SaveSettings();
 
                 firstRunMessageBox = XNAMessageBox.ShowYesNoDialog(WindowManager, "Initial Installation".L10N("Client:Main:InitialInstallationTitle"),
-                    string.Format(("You have just installed {0}." + Environment.NewLine +
-                    "It's highly recommended that you configure your settings before playing." +
-                    Environment.NewLine + "Do you want to configure them now?").L10N("Client:Main:InitialInstallationText"), ClientConfiguration.Instance.LocalGame));
+                    string.Format(("You have just installed {0}.\nIt's highly recommended that you configure your settings before playing.\nDo you want to configure them now?").L10N("Client:Main:InitialInstallationText"), ClientConfiguration.Instance.LocalGame));
                 firstRunMessageBox.YesClickedAction = FirstRunMessageBox_YesClicked;
                 firstRunMessageBox.NoClickedAction = FirstRunMessageBox_NoClicked;
             }
@@ -639,11 +637,7 @@ namespace DTAClient.DXGUI.Generic
 
             innerPanel.Show(null); // Darkening
             XNAMessageBox msgBox = new XNAMessageBox(WindowManager, "Update failed".L10N("Client:Main:UpdateFailedTitle"),
-                string.Format(("An error occured while updating. Returned error was: {0}" +
-                Environment.NewLine + Environment.NewLine +
-                "If you are connected to the Internet and your firewall isn't blocking" + Environment.NewLine +
-                "{1}, and the issue is reproducible, contact us at " + Environment.NewLine +
-                "{2} for support.").L10N("Client:Main:UpdateFailedText"),
+                string.Format(("An error occured while updating. Returned error was: {0}\n\nIf you are connected to the Internet and your firewall isn't blocking\n{1}, and the issue is reproducible, contact us at\n{2} for support.").L10N("Client:Main:UpdateFailedText"),
                 e.Reason, Path.GetFileName(ProgramConstants.StartupExecutable), MainClientConstants.SUPPORT_URL_SHORT), XNAMessageBoxButtons.OK);
             msgBox.OKClickedAction = MsgBox_OKClicked;
             msgBox.Show();
@@ -784,8 +778,7 @@ namespace DTAClient.DXGUI.Generic
 
             XNAMessageBox ccMsgBox = XNAMessageBox.ShowYesNoDialog(WindowManager,
                 "Custom Component Updates Available".L10N("Client:Main:CustomUpdateAvailableTitle"),
-                ("Updates for custom components are available. Do you want to open" + Environment.NewLine +
-                "the Options menu where you can update the custom components?").L10N("Client:Main:CustomUpdateAvailableText"));
+                ("Updates for custom components are available. Do you want to open\nthe Options menu where you can update the custom components?").L10N("Client:Main:CustomUpdateAvailableText"));
             ccMsgBox.YesClickedAction = CCMsgBox_YesClicked;
         }
 

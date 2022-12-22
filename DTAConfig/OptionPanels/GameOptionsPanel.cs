@@ -156,8 +156,7 @@ namespace DTAConfig.OptionPanels
             lblNotice.Name = "lblNotice";
             lblNotice.ClientRectangle = new Rectangle(lblPlayerName.X,
                 lblPlayerName.Bottom + 30, 0, 0);
-            lblNotice.Text = ("* If you are currently connected to CnCNet, you need to log out and reconnect" +
-                Environment.NewLine + "for your new name to be applied.").L10N("Client:DTAConfig:ReconnectAfterRename");
+            lblNotice.Text = ("* If you are currently connected to CnCNet, you need to log out and reconnect\nfor your new name to be applied.").L10N("Client:DTAConfig:ReconnectAfterRename");
 
             hotkeyConfigWindow = new HotkeyConfigurationWindow(WindowManager);
             DarkeningPanel.AddAndInitializeWithControl(WindowManager, hotkeyConfigWindow);

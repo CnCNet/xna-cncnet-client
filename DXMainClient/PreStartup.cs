@@ -235,9 +235,9 @@ namespace DTAClient
             if (UserHasDirectoryAccessRights(ProgramConstants.GamePath, FileSystemRights.Modify))
                 return;
 
-            string error = string.Format(("You seem to be running {0} from a write-protected directory." + Environment.NewLine + Environment.NewLine +
-                "For {1} to function properly when run from a write-protected directory, it needs administrative priveleges." + Environment.NewLine + Environment.NewLine +
-                "Would you like to restart the client with administrative rights?" + Environment.NewLine + Environment.NewLine +
+            string error = string.Format(("You seem to be running {0} from a write-protected directory.\n\n" +
+                "For {1} to function properly when run from a write-protected directory, it needs administrative priveleges.\n\n" +
+                "Would you like to restart the client with administrative rights?\n\n" +
                 "Please also make sure that your security software isn't blocking {1}.").L10N("Client:Main:AdminRequiredText"), MainClientConstants.GAME_NAME_LONG, MainClientConstants.GAME_NAME_SHORT);
 
             ProgramConstants.DisplayErrorAction("Administrative privileges required".L10N("Client:Main:AdminRequiredTitle"), error, false);
