@@ -4,11 +4,10 @@ using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp;
-using LiteralTranslationGenerator;
 
 namespace LiteralTranslationGenerator
 {
-    [GeneratorAttribute]
+    [Generator]
     public class Generator : ISourceGenerator
     {
         public const string DescriptorId = "CNCNET0001"; // The DescriptorId is used to suppress warnings. Do not change it.
@@ -17,12 +16,16 @@ namespace LiteralTranslationGenerator
 
         private void Warn(string text, GeneratorExecutionContext context, SyntaxNode node)
         {
-            context.ReportDiagnostic(Diagnostic.Create(new DiagnosticDescriptor(DescriptorId, DescriptorTitle, text, DescriptorCategory, DiagnosticSeverity.Warning, true), node.GetLocation()));
+            context.ReportDiagnostic(
+                Diagnostic.Create(
+                    new DiagnosticDescriptor(DescriptorId, DescriptorTitle, text,
+                        DescriptorCategory, DiagnosticSeverity.Warning, true),
+                    node.GetLocation()));
         }
 
         public void Execute(GeneratorExecutionContext context)
         {
-            var translations = new Dictionary<string, string>();
+            Dictionary<string, string> translations = new();
 
             var compilation = context.Compilation;
             foreach (var tree in compilation.SyntaxTrees)
@@ -31,11 +34,19 @@ namespace LiteralTranslationGenerator
                 var memberAccessSyntaxes = tree.GetRoot().DescendantNodes().OfType<MemberAccessExpressionSyntax>();
                 foreach (var memberAccessSyntax in memberAccessSyntaxes)
                 {
-                    if (memberAccessSyntax == null || !memberAccessSyntax.IsKind(SyntaxKind.SimpleMemberAccessExpression)) { continue; }
-                    if (memberAccessSyntax.Name.ToString() != "L10N") { continue; }
+                    if (memberAccessSyntax == null
+                        || !memberAccessSyntax.IsKind(SyntaxKind.SimpleMemberAccessExpression)
+                        || memberAccessSyntax.Name.ToString() != "L10N")
+                    {
+                        continue;
+                    }
 
                     var l10nSyntax = memberAccessSyntax.Parent as InvocationExpressionSyntax;
-                    if (l10nSyntax == null || l10nSyntax.ArgumentList.Arguments.Count == 0) { continue; }
+                    if (l10nSyntax is null
+                        || l10nSyntax.ArgumentList.Arguments.Count == 0)
+                    {
+                        continue;
+                    }
 
                     var keyNameSyntax = l10nSyntax.ArgumentList.Arguments[0];
                     if (!keyNameSyntax.Expression.IsKind(SyntaxKind.StringLiteralExpression))
@@ -46,7 +57,7 @@ namespace LiteralTranslationGenerator
 
                     // https://stackoverflow.com/questions/35670115/how-to-use-roslyn-to-get-compile-time-constant-value
                     var semanticModel = compilation.GetSemanticModel(keyNameSyntax.SyntaxTree);
-                    var keyValue = semanticModel.GetConstantValue(keyNameSyntax.Expression).Value;
+                    object keyValue = semanticModel.GetConstantValue(keyNameSyntax.Expression).Value;
                     string keyName = keyValue?.ToString();
 
                     if (!l10nSyntax.Expression.IsKind(SyntaxKind.SimpleMemberAccessExpression))
@@ -56,7 +67,7 @@ namespace LiteralTranslationGenerator
                     }
 
                     var valueSyntax = l10nSyntax.Expression as MemberAccessExpressionSyntax;
-                    var valueValue = semanticModel.GetConstantValue(valueSyntax.Expression).Value;
+                    object valueValue = semanticModel.GetConstantValue(valueSyntax.Expression).Value;
                     if (valueValue is null)
                     {
                         Warn($"Failed to get the value of key {keyName} as a string.", context, l10nSyntax);
@@ -87,16 +98,14 @@ public class TranslationNotifier
     {
 ");
             foreach (var kv in translations)
-            {
                 _ = sb.AppendLine($"{kv.Value.ToLiteral()}.L10N({kv.Key.ToLiteral()});");
-            }
 
             _ = sb.AppendLine(@"
     }
 }
 ");
 
-            context.AddSource($"TranslationGenerator.Stub.Generated.cs", sb.ToString());
+            context.AddSource($"TranslationNotifier.Generated.cs", sb.ToString());
         }
 
         public void Initialize(GeneratorInitializationContext context)
