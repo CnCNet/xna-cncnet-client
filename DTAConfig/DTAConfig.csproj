@@ -23,4 +23,9 @@
   <ItemGroup>
     <ProjectReference Include="..\ClientGUI\ClientGUI.csproj" />
   </ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\LiteralTranslationGenerator\LiteralTranslationGenerator.csproj"
+		  OutputItemType="Analyzer"
+		  ReferenceOutputAssembly="false" />
+	</ItemGroup>
 </Project>

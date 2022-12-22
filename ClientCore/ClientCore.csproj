@@ -51,4 +51,7 @@
     <PackageReference Include="Rampastring.XNAUI.$(Engine).Debug" Version="2.3.0" Condition="'$(Configuration.Contains(Debug))'" />
     <PackageReference Include="System.Text.Encoding.CodePages" Version="7.0.0" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\LiteralTranslationGenerator\LiteralTranslationGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+  </ItemGroup>
 </Project>

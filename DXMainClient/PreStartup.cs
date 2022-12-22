@@ -145,6 +145,12 @@ namespace DTAClient
                     };
 
                     Logger.Log("Translation stub generation feature is now enabled. The stub file will be written when the client exits.");
+
+                    // Load all literal strings
+                    ClientCore.Generated.TranslationNotifier.Register();
+                    ClientGUI.Generated.TranslationNotifier.Register();
+                    DTAConfig.Generated.TranslationNotifier.Register();
+                    DTAClient.Generated.TranslationNotifier.Register();
                 }
             }
             catch (Exception ex)
