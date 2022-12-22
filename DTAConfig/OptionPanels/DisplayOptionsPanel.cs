@@ -410,9 +410,9 @@ namespace DTAConfig.OptionPanels
                 string defaultGame = ClientConfiguration.Instance.LocalGame;
 
                 var messageBox = XNAMessageBox.ShowYesNoDialog(WindowManager, "New Compatibility Fix".L10N("Client:DTAConfig:TSFixTitle"),
-                    string.Format("A performance-enhancing compatibility fix for modern Windows versions" + Environment.NewLine +
-                        "has been included in this version of {0}. Enabling it requires" + Environment.NewLine +
-                        "administrative priveleges. Would you like to install the compatibility fix?" + Environment.NewLine + Environment.NewLine +
+                    string.Format("A performance-enhancing compatibility fix for modern Windows versions\n" +
+                        "has been included in this version of {0}. Enabling it requires\n" +
+                        "administrative priveleges. Would you like to install the compatibility fix?\n\n" +
                         "You'll always be able to install or uninstall the compatibility fix later from the options menu.", defaultGame
                     ).L10N("Client:DTAConfig:TSFixText"));
                 messageBox.YesClickedAction = MessageBox_YesClicked;

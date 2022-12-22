@@ -446,11 +446,10 @@ namespace DTAClient.DXGUI.Generic
             if (presentFiles.Count > 0)
                 XNAMessageBox.Show(WindowManager, "Interfering Files Detected".L10N("Client:Main:InterferingFilesDetectedTitle"),
 #if TS
-                    ("You have installed the mod on top of a Tiberian Sun" + Environment.NewLine +
-                    "copy! This mod is standalone, therefore you have to" + Environment.NewLine +
-                    "install it in an empty folder. Otherwise the mod won't" + Environment.NewLine +
-                    "function correctly." +
-                    Environment.NewLine + Environment.NewLine +
+                    ("You have installed the mod on top of a Tiberian Sun\n" +
+                    "copy! This mod is standalone, therefore you have to\n" +
+                    "install it in an empty folder. Otherwise the mod won't\n" +
+                    "function correctly.\n\n" +
                     "Please reinstall the mod into an empty folder to play.").L10N("Client:Main:InterferingFilesDetectedTextTS")
 #else
                     "The following interfering files are present:".L10N("Client:Main:InterferingFilesDetectedTextNonTS1") +
