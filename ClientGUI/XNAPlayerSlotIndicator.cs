@@ -56,35 +56,35 @@ namespace ClientGUI
             switch (key)
             {
                 case PlayerSlotState.Empty:
-                    ToolTip.Text = "The slot is empty.".L10N("Client:ClientGClient:SlotEmpty");
+                    ToolTip.Text = "The slot is empty.".L10N("Client:ClientGUI:SlotEmpty");
                     break;
 
                 case PlayerSlotState.Unavailable:
-                    ToolTip.Text = "The slot is unavailable.".L10N("Client:ClientGClient:SlotUnavailable");
+                    ToolTip.Text = "The slot is unavailable.".L10N("Client:ClientGUI:SlotUnavailable");
                     break;
 
                 case PlayerSlotState.AI:
-                    ToolTip.Text = "The player is computer-controlled.".L10N("Client:ClientGClient:PlayerIsComputer");
+                    ToolTip.Text = "The player is computer-controlled.".L10N("Client:ClientGUI:PlayerIsComputer");
                     break;
 
                 case PlayerSlotState.NotReady:
-                    ToolTip.Text = "The player isn't ready.".L10N("Client:ClientGClient:PlayerIsNotReady");
+                    ToolTip.Text = "The player isn't ready.".L10N("Client:ClientGUI:PlayerIsNotReady");
                     break;
 
                 case PlayerSlotState.Ready:
-                    ToolTip.Text = "The player is ready.".L10N("Client:ClientGClient:PlayerIsReady");
+                    ToolTip.Text = "The player is ready.".L10N("Client:ClientGUI:PlayerIsReady");
                     break;
 
                 case PlayerSlotState.InGame:
-                    ToolTip.Text = "The player is in game.".L10N("Client:ClientGClient:PlayerIsInGame");
+                    ToolTip.Text = "The player is in game.".L10N("Client:ClientGUI:PlayerIsInGame");
                     break;
 
                 case PlayerSlotState.Warning:
-                    ToolTip.Text = "The player has some issue(s) that may impact gameplay.".L10N("Client:ClientGClient:PlayerHasIssue");
+                    ToolTip.Text = "The player has some issue(s) that may impact gameplay.".L10N("Client:ClientGUI:PlayerHasIssue");
                     break;
 
                 case PlayerSlotState.Error:
-                    ToolTip.Text = "There's a critical issue with the player.".L10N("Client:ClientGClient:PlayerHasCriticalIssue");
+                    ToolTip.Text = "There's a critical issue with the player.".L10N("Client:ClientGUI:PlayerHasCriticalIssue");
                     break;
             }
         }

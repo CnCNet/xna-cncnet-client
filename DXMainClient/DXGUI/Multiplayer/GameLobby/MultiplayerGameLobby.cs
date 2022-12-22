@@ -1004,7 +1004,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     IsPlayerSpectator(AIPlayers[aiId]) ? PlayerSlotState.Error : PlayerSlotState.AI);
 
                 if (IsPlayerSpectator(AIPlayers[aiId]))
-                    StatusIndicators[aiId + Players.Count].ToolTip.Text += Environment.NewLine + "AI players can't be spectators.".L10N("Client:ClientGClient:AICantSpec");
+                    StatusIndicators[aiId + Players.Count].ToolTip.Text += Environment.NewLine + "AI players can't be spectators.".L10N("Client:ClientGUI:AICantSpec");
             }
 
             // Empty slot statuses
