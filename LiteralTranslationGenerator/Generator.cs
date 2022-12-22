@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.Text;
 using Microsoft.CodeAnalysis;
@@ -14,6 +15,16 @@ namespace LiteralTranslationGenerator
         public const string DescriptorTitle = "L10N Failure";
         public const string DescriptorCategory = "CNCNET";
 
+        private readonly IReadOnlyDictionary<string, string> AssemblyToNamespace = new Dictionary<string, string>()
+        {
+            {"ClientCore","ClientCore"},
+            {"ClientGUI","ClientGUI"},
+            {"DTAConfig","DTAConfig"},
+            {"clientdx","DTAClient"},
+            {"clientogl","DTAClient"},
+            {"clientxna","DTAClient"},
+        };
+
         private void Warn(string text, GeneratorExecutionContext context, SyntaxNode node)
         {
             context.ReportDiagnostic(
@@ -25,9 +36,16 @@ namespace LiteralTranslationGenerator
 
         public void Execute(GeneratorExecutionContext context)
         {
-            Dictionary<string, string> translations = new();
-
             var compilation = context.Compilation;
+            string assemblyName = compilation.AssemblyName;
+            if (!AssemblyToNamespace.ContainsKey(assemblyName))
+                throw new Exception("Unrecognized assembly name.");
+
+            string namespaceName = AssemblyToNamespace[assemblyName];
+            if (!namespaceName.Split(new char[] { '.' }).All(name => SyntaxFacts.IsValidIdentifier(name)))
+                throw new Exception("The assembly name is considered as the namespace name. Can not contain invalid characters.");
+
+            Dictionary<string, string> translations = new();
             foreach (var tree in compilation.SyntaxTrees)
             {
                 // https://stackoverflow.com/questions/43679690/with-roslyn-find-calling-method-from-string-literal-parameter
@@ -91,10 +109,12 @@ namespace LiteralTranslationGenerator
             _ = sb.AppendLine(@"
 using System.Collections.Generic;
 using ClientCore.Extensions;
-namespace LiteralTranslationGenerator.Generated;
+");
+            _ = sb.AppendLine($"namespace {namespaceName}.Generated;");
+            _ = sb.AppendLine(@"
 public class TranslationNotifier
 {
-    public static void RegisterL10NCalls()
+    public static void Register()
     {
 ");
             foreach (var kv in translations)
