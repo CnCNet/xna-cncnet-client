@@ -48,7 +48,7 @@
   <Import Project="$(MSBuildThisFileDirectory)..\build\WinForms.props" />
   <Import Project="$(MSBuildThisFileDirectory)..\build\AfterPublish.targets" />
   <Import Project="$(MSBuildThisFileDirectory)..\build\CopyResources.targets" />
-	<ItemGroup>
-		<ProjectReference Include="..\LiteralTranslationGenerator\LiteralTranslationGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
-	</ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\LiteralTranslationGenerator\LiteralTranslationGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+  </ItemGroup>
 </Project>
