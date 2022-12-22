@@ -37,13 +37,13 @@ namespace DTAClient.DXGUI.Generic
         /// Creates a new instance of the main menu.
         /// </summary>
         public MainMenu(
-            WindowManager windowManager, 
+            WindowManager windowManager,
             SkirmishLobby skirmishLobby,
-            LANLobby lanLobby, 
-            TopBar topBar, 
+            LANLobby lanLobby,
+            TopBar topBar,
             OptionsWindow optionsWindow,
             CnCNetLobby cncnetLobby,
-            CnCNetManager connectionManager, 
+            CnCNetManager connectionManager,
             DiscordHandler discordHandler,
             CnCNetGameLoadingLobby cnCNetGameLoadingLobby,
             CnCNetGameLobby cnCNetGameLobby,
@@ -425,9 +425,9 @@ namespace DTAClient.DXGUI.Generic
             if (absentFiles.Count > 0)
                 XNAMessageBox.Show(WindowManager, "Missing Files".L10N("Client:Main:MissingFilesTitle"),
 #if ARES
-                    ("You are missing Yuri's Revenge files that are required" + Environment.NewLine +
-                    "to play this mod! Yuri's Revenge mods are not standalone," + Environment.NewLine +
-                    "so you need a copy of following Yuri's Revenge (v. 1.001)" + Environment.NewLine +
+                    ("You are missing Yuri's Revenge files that are required\n" +
+                    "to play this mod! Yuri's Revenge mods are not standalone,\n" +
+                    "so you need a copy of following Yuri's Revenge (v. 1.001)\n" +
                     "files placed in the mod folder to play the mod:").L10N("Client:Main:MissingFilesText1Ares") +
 #else
                     "The following required files are missing:".L10N("Client:Main:MissingFilesText1NonAres") +
