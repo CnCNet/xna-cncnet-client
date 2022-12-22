@@ -43,22 +43,22 @@ namespace TranslationNotifierGenerator
             //// uncomment to debug the generator
             //Debug.WriteLine($"Executing {nameof(TranslationNotifierGenerator)}...");
 
-            context.CancellationToken.ThrowIfCancellationRequested();
-
             var compilation = context.Compilation;
             string assemblyName = compilation.AssemblyName;
 
             _ = context.AnalyzerConfigOptions.GlobalOptions.TryGetValue($"build_property.RootNamespace", out string namespaceName);
             if (!namespaceName.Split(new char[] { '.' }).All(name => SyntaxFacts.IsValidIdentifier(name)))
-                throw new Exception("The assembly name is considered as the namespace name. Can not contain invalid characters.");
+                throw new Exception("The namespace can not contain invalid characters.");
 
             Dictionary<string, string> translations = new();
             foreach (var tree in compilation.SyntaxTrees)
             {
+                context.CancellationToken.ThrowIfCancellationRequested();
                 // https://stackoverflow.com/questions/43679690/with-roslyn-find-calling-method-from-string-literal-parameter
                 var memberAccessSyntaxes = tree.GetRoot().DescendantNodes().OfType<MemberAccessExpressionSyntax>();
                 foreach (var memberAccessSyntax in memberAccessSyntaxes)
                 {
+                    context.CancellationToken.ThrowIfCancellationRequested();
                     if (memberAccessSyntax == null
                         || !memberAccessSyntax.IsKind(SyntaxKind.SimpleMemberAccessExpression)
                         || memberAccessSyntax.Name.ToString() != LocalizeMethodName)
@@ -82,8 +82,8 @@ namespace TranslationNotifierGenerator
 
                     // https://stackoverflow.com/questions/35670115/how-to-use-roslyn-to-get-compile-time-constant-value
                     var semanticModel = compilation.GetSemanticModel(keyNameSyntax.SyntaxTree);
-                    object keyValue = semanticModel.GetConstantValue(keyNameSyntax.Expression).Value;
-                    string keyName = keyValue?.ToString();
+                    object keyExprValue = semanticModel.GetConstantValue(keyNameSyntax.Expression).Value;
+                    string keyName = keyExprValue?.ToString();
 
                     if (!l10nSyntax.Expression.IsKind(SyntaxKind.SimpleMemberAccessExpression))
                     {
@@ -92,14 +92,14 @@ namespace TranslationNotifierGenerator
                     }
 
                     var valueSyntax = l10nSyntax.Expression as MemberAccessExpressionSyntax;
-                    object valueValue = semanticModel.GetConstantValue(valueSyntax.Expression).Value;
-                    if (valueValue is null)
+                    object valueExprValue = semanticModel.GetConstantValue(valueSyntax.Expression).Value;
+                    if (valueExprValue is null)
                     {
                         Warn($"Failed to get the value of key {keyName} as a string.", context, l10nSyntax);
                         continue;
                     }
 
-                    string valueText = semanticModel.GetConstantValue(valueSyntax.Expression).Value?.ToString();
+                    string valueText = valueExprValue?.ToString();
 
                     if (translations.ContainsKey(keyName))
                     {
