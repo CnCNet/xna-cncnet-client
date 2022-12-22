@@ -28,13 +28,13 @@ namespace LiteralTranslationGenerator
             foreach (var tree in compilation.SyntaxTrees)
             {
                 // https://stackoverflow.com/questions/43679690/with-roslyn-find-calling-method-from-string-literal-parameter
-                var invocationSyntaxes = tree.GetRoot().DescendantNodes().OfType<MemberAccessExpressionSyntax>();
-                foreach (var s in invocationSyntaxes)
+                var memberAccessSyntaxes = tree.GetRoot().DescendantNodes().OfType<MemberAccessExpressionSyntax>();
+                foreach (var memberAccessSyntax in memberAccessSyntaxes)
                 {
-                    if (s == null || !s.IsKind(SyntaxKind.SimpleMemberAccessExpression)) { continue; }
-                    if (s.Name.ToString() != "L10N") { continue; }
+                    if (memberAccessSyntax == null || !memberAccessSyntax.IsKind(SyntaxKind.SimpleMemberAccessExpression)) { continue; }
+                    if (memberAccessSyntax.Name.ToString() != "L10N") { continue; }
 
-                    var l10nSyntax = s.Parent as InvocationExpressionSyntax;
+                    var l10nSyntax = memberAccessSyntax.Parent as InvocationExpressionSyntax;
                     if (l10nSyntax == null || l10nSyntax.ArgumentList.Arguments.Count == 0) { continue; }
 
                     var keyNameSyntax = l10nSyntax.ArgumentList.Arguments[0];
@@ -68,9 +68,7 @@ namespace LiteralTranslationGenerator
                     if (translations.ContainsKey(keyName))
                     {
                         if (valueText != translations[keyName])
-                        {
                             Warn($"The value of key {keyName} appears more than once and the values are not the same.", context, l10nSyntax);
-                        }
                         continue;
                     }
 
