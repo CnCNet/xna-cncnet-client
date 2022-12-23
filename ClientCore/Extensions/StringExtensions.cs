@@ -33,17 +33,17 @@ public static class StringExtensions
     /// <returns>INI-safe string.</returns>
     public static string ToIniString(this string raw)
     {
-        if (raw.Contains(ESCAPED_INI_NEWLINE_PATTERN))
+        if (raw.Contains(ESCAPED_INI_NEWLINE_PATTERN, StringComparison.InvariantCulture))
             throw new ArgumentException($"The string contains an illegal character sequence! ({ESCAPED_INI_NEWLINE_PATTERN})");
 
-        if (raw.Contains(ESCAPED_SEMICOLON))
+        if (raw.Contains(ESCAPED_SEMICOLON, StringComparison.InvariantCulture))
             throw new ArgumentException($"The string contains an illegal character sequence! ({ESCAPED_SEMICOLON})");
 
         return raw
-            .Replace(ProgramConstants.INI_NEWLINE_PATTERN, ESCAPED_INI_NEWLINE_PATTERN)
-            .Replace(";", ESCAPED_SEMICOLON)
-            .Replace(Environment.NewLine, "\n")
-            .Replace("\n", ProgramConstants.INI_NEWLINE_PATTERN);
+            .Replace(ProgramConstants.INI_NEWLINE_PATTERN, ESCAPED_INI_NEWLINE_PATTERN, StringComparison.InvariantCulture)
+            .Replace(";", ESCAPED_SEMICOLON, StringComparison.InvariantCulture)
+            .Replace(Environment.NewLine, "\n", StringComparison.InvariantCulture)
+            .Replace("\n", ProgramConstants.INI_NEWLINE_PATTERN, StringComparison.InvariantCulture);
     }
 
     /// <summary>
@@ -54,9 +54,9 @@ public static class StringExtensions
     public static string FromIniString(this string iniString)
     {
         return iniString
-            .Replace(ESCAPED_INI_NEWLINE_PATTERN, ProgramConstants.INI_NEWLINE_PATTERN)
-            .Replace(ESCAPED_SEMICOLON, ";")
-            .Replace(ProgramConstants.INI_NEWLINE_PATTERN, Environment.NewLine);
+            .Replace(ESCAPED_INI_NEWLINE_PATTERN, ProgramConstants.INI_NEWLINE_PATTERN, StringComparison.InvariantCulture)
+            .Replace(ESCAPED_SEMICOLON, ";", StringComparison.InvariantCulture)
+            .Replace(ProgramConstants.INI_NEWLINE_PATTERN, Environment.NewLine, StringComparison.InvariantCulture);
     }
 
     /// <summary>
