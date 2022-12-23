@@ -1521,6 +1521,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             mapIni.MoveSectionToFirst("MultiplayerDialogSettings"); // Required by YR
 
+            string mapIniFileName = Path.GetFileName(mapIni.FileName);
+            mapIni.SetStringValue("Basic", "OriginalFilename", mapIniFileName);
             CopySupplementalMapFiles(mapIni);
 
             ManipulateStartingLocations(mapIni, houseInfos);
