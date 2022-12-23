@@ -44,7 +44,6 @@ namespace TranslationNotifierGenerator
             //Debug.WriteLine($"Executing {nameof(TranslationNotifierGenerator)}...");
 
             var compilation = context.Compilation;
-            string assemblyName = compilation.AssemblyName;
 
             _ = context.AnalyzerConfigOptions.GlobalOptions.TryGetValue($"build_property.RootNamespace", out string namespaceName);
             if (!namespaceName.Split(new char[] { '.' }).All(name => SyntaxFacts.IsValidIdentifier(name)))
@@ -95,7 +94,7 @@ namespace TranslationNotifierGenerator
                     object valueExprValue = semanticModel.GetConstantValue(valueSyntax.Expression).Value;
                     if (valueExprValue is null)
                     {
-                        Warn($"Failed to get the value of key {keyName} as a string.", context, l10nSyntax);
+                        Warn($"Failed to get the value of key {keyName} as a compile-time string.", context, l10nSyntax);
                         continue;
                     }
 
@@ -104,7 +103,7 @@ namespace TranslationNotifierGenerator
                     if (translations.ContainsKey(keyName))
                     {
                         if (valueText != translations[keyName])
-                            Warn($"The value of key {keyName} appears more than once and the values are not the same.", context, l10nSyntax);
+                            Warn($"Key {keyName} defined more than once and the values are not the same.", context, l10nSyntax);
                         continue;
                     }
 
@@ -137,6 +136,8 @@ public class TranslationNotifier
 
         public void Initialize(GeneratorInitializationContext context)
         {
+            // No initialization required for this one
+
             //// uncomment to debug the generator
             //if (!Debugger.IsAttached)
             //    Debugger.Launch();
