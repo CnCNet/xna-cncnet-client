@@ -1493,6 +1493,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             FileInfo spawnMapIniFile = SafePath.GetFile(ProgramConstants.GamePath, ProgramConstants.SPAWNMAP_INI);
 
+            DeleteSupplementalMapFiles();
             spawnMapIniFile.Delete();
 
             Logger.Log("Writing map.");
@@ -1520,9 +1521,92 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             mapIni.MoveSectionToFirst("MultiplayerDialogSettings"); // Required by YR
 
+            CopySupplementalMapFiles(mapIni);
+
             ManipulateStartingLocations(mapIni, houseInfos);
 
             mapIni.WriteIniFile(spawnMapIniFile.FullName);
+        }
+
+        /// <summary>
+        /// Some mods require that .map files also have supplemental files copied over with the spawnmap.ini.
+        /// 
+        /// This function scans the directory containing the map file and looks for other files with the
+        /// same base filename as the map file that are allowed by the client configuration.
+        /// Those files are then copied to the game base path with the base filename of "spawnmap.EXT".
+        /// </summary>
+        /// <param name="mapIni"></param>
+        private void CopySupplementalMapFiles(IniFile mapIni)
+        {
+            var mapFileInfo = new FileInfo(mapIni.FileName);
+            string mapFileBaseName = Path.GetFileNameWithoutExtension(mapFileInfo.Name);
+
+            IEnumerable<string> supplementalMapFiles = GetSupplementalMapFiles(mapFileInfo.DirectoryName, mapFileBaseName).ToList();
+            if (!supplementalMapFiles.Any())
+                return;
+
+            List<string> supplementalFileNames = new();
+            foreach (string file in supplementalMapFiles)
+            {
+                try
+                {
+                    // Copy each supplemental file
+                    string supplementalFileName = $"spawnmap{Path.GetExtension(file)}";
+                    File.Copy(file, SafePath.CombineFilePath(ProgramConstants.GamePath, supplementalFileName), true);
+                    supplementalFileNames.Add(supplementalFileName);
+                }
+                catch (Exception e)
+                {
+                    string errorMessage = "Unable to copy supplemental map file".L10N("Client:Main:SupplementalFileCopyError") + $" {file}";
+                    Logger.Log(errorMessage);
+                    Logger.Log(e.Message);
+                    XNAMessageBox.Show(WindowManager, "Error".L10N("Client:Main:Error"), errorMessage);
+                    
+                }
+            }
+            
+            // Write the supplemental map files to the INI (eventual spawnmap.ini)
+            mapIni.SetStringValue("Basic", "SupplementalFiles", string.Join(',', supplementalFileNames));
+        }
+
+        /// <summary>
+        /// Delete all supplemental map files from last spawn
+        /// </summary>
+        private void DeleteSupplementalMapFiles()
+        {
+            IEnumerable<string> supplementalMapFilePaths = GetSupplementalMapFiles(ProgramConstants.GamePath, "spawnmap").ToList();
+            if (!supplementalMapFilePaths.Any())
+                return;
+
+            foreach (string supplementalMapFilename in supplementalMapFilePaths)
+            {
+                try
+                {
+                    File.Delete(supplementalMapFilename);
+                }
+                catch (Exception e)
+                {
+                    string errorMessage = "Unable to delete supplemental map file".L10N("Client:Main:SupplementalFileDeleteError") + $" {supplementalMapFilename}";
+                    Logger.Log(errorMessage);
+                    Logger.Log(e.Message);
+                    XNAMessageBox.Show(WindowManager, "Error".L10N("Client:Main:Error"), errorMessage);
+                }
+            }
+        }
+
+        private static IEnumerable<string> GetSupplementalMapFiles(string basePath, string baseFileName)
+        {
+            // Get the supplemental file names for allowable extensions
+            var supplementalMapFileNames = ClientConfiguration.Instance.SupplementalMapFileExtensions
+                .Select(ext => $"{baseFileName}.{ext}".ToUpperInvariant())
+                .ToList();
+
+            if (!supplementalMapFileNames.Any())
+                return new List<string>();
+
+            // Get full file paths for all possible supplemental files
+            return Directory.GetFiles(basePath, $"{baseFileName}.*")
+                .Where(f => supplementalMapFileNames.Contains(Path.GetFileName(f).ToUpperInvariant()));
         }
 
         private void ManipulateStartingLocations(IniFile mapIni, PlayerHouseInfo[] houseInfos)
