@@ -103,7 +103,7 @@ namespace TranslationNotifierGenerator
                     if (translations.ContainsKey(keyName))
                     {
                         if (valueText != translations[keyName])
-                            Warn($"Key {keyName} defined more than once and the values are not the same.", context, l10nSyntax);
+                            Warn($"Key {keyName} is defined more than once and the values are not the same.", context, l10nSyntax);
                         continue;
                     }
 
