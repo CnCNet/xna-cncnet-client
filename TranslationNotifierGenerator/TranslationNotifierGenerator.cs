@@ -112,6 +112,7 @@ namespace TranslationNotifierGenerator
                 }
             }
 
+            context.CancellationToken.ThrowIfCancellationRequested();
             var sb = new StringBuilder();
             _ = sb.AppendLine(@"
 using System.Collections.Generic;");
@@ -130,6 +131,7 @@ public class TranslationNotifier
 }
 ");
 
+            context.CancellationToken.ThrowIfCancellationRequested();
             context.AddSource($"TranslationNotifier.Generated.cs", sb.ToString());
         }
 
