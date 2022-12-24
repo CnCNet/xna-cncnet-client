@@ -269,7 +269,6 @@ namespace ClientCore
         /// <summary>
         /// Looks up the list of files to try and copy into the game folder with a translation.
         /// </summary>
-        /// <param name="checkedOnly">Whether to list only integrity-checked files.</param>
         /// <returns>Source/destination relative path pairs.</returns>
         /// <exception cref="IniParseException">Thrown when the syntax of the list is invalid.</exception>
         private List<TranslationGameFile> ParseTranslationGameFiles()
@@ -284,13 +283,13 @@ namespace ClientCore
 
                 // fail explicitly if the syntax is wrong
                 if (parts.Length is < 2 or > 3
-                    || (parts.Length == 3 && parts[2].ToLowerInvariant() is not "checked"))
+                    || (parts.Length == 3 && parts[2].ToUpperInvariant() != "CHECKED"))
                 {
                     throw new IniParseException($"Invalid syntax for value of GameFile{i}! " +
                         $"Expected path/to/source.file,path/to/destination.file[,checked], read {value}.");
                 }
 
-                bool isChecked = parts.Length == 3 && parts[2].ToLowerInvariant() == "checked";
+                bool isChecked = parts.Length == 3 && parts[2].ToUpperInvariant() == "CHECKED";
 
                 gameFiles.Add(new(Source: parts[0], Target: parts[1], isChecked));
             }
