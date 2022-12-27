@@ -9,6 +9,7 @@ using System.Runtime.Versioning;
 using System.Threading;
 using System.Threading.Tasks;
 using ClientCore;
+using Rampastring.Tools;
 
 namespace DTAClient.Domain.Multiplayer;
 
@@ -61,30 +62,37 @@ internal static class NetworkHelper
 
     public static async ValueTask<IPAddress> TracePublicIpV4Address(CancellationToken cancellationToken)
     {
-        IPAddress[] ipAddresses = await Dns.GetHostAddressesAsync(PingHost, cancellationToken).ConfigureAwait(false);
-        using var ping = new Ping();
-
-        foreach (IPAddress ipAddress in ipAddresses.Where(q => q.AddressFamily is AddressFamily.InterNetwork))
+        try
         {
-            PingReply pingReply = await ping.SendPingAsync(ipAddress, PingTimeout).ConfigureAwait(false);
+            IPAddress[] ipAddresses = await Dns.GetHostAddressesAsync(PingHost, cancellationToken).ConfigureAwait(false);
+            using var ping = new Ping();
 
-            if (pingReply.Status is not IPStatus.Success)
-                continue;
-
-            IPAddress pingIpAddress = null;
-            int ttl = 1;
-
-            while (!ipAddress.Equals(pingIpAddress))
+            foreach (IPAddress ipAddress in ipAddresses.Where(q => q.AddressFamily is AddressFamily.InterNetwork))
             {
-                pingReply = await ping.SendPingAsync(ipAddress, PingTimeout, Array.Empty<byte>(), new(ttl++, false)).ConfigureAwait(false);
-                pingIpAddress = pingReply.Address;
+                PingReply pingReply = await ping.SendPingAsync(ipAddress, PingTimeout).ConfigureAwait(false);
 
-                if (ipAddress.Equals(pingIpAddress))
-                    break;
+                if (pingReply.Status is not IPStatus.Success)
+                    continue;
 
-                if (!IsPrivateIpAddress(pingReply.Address))
-                    return pingReply.Address;
+                IPAddress pingIpAddress = null;
+                int ttl = 1;
+
+                while (!ipAddress.Equals(pingIpAddress))
+                {
+                    pingReply = await ping.SendPingAsync(ipAddress, PingTimeout, Array.Empty<byte>(), new(ttl++, false)).ConfigureAwait(false);
+                    pingIpAddress = pingReply.Address;
+
+                    if (ipAddress.Equals(pingIpAddress))
+                        break;
+
+                    if (!IsPrivateIpAddress(pingReply.Address))
+                        return pingReply.Address;
+                }
             }
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            ProgramConstants.LogException(ex, "IP trace detection failed.");
         }
 
         return null;
@@ -109,7 +117,7 @@ internal static class NetworkHelper
         }
         catch (PingException ex)
         {
-            ProgramConstants.LogException(ex);
+            ProgramConstants.LogException(ex, "Ping failed.");
         }
 
         return null;
@@ -164,7 +172,7 @@ internal static class NetworkHelper
 
                 return new IPEndPoint(publicIpAddress, publicPort);
             }
-            catch (Exception ex)
+            catch (Exception ex) when (ex is not OperationCanceledException || !cancellationToken.IsCancellationRequested)
             {
                 ProgramConstants.LogException(ex, $"STUN server {stunServerIpEndPoint} failed.");
             }
@@ -175,9 +183,9 @@ internal static class NetworkHelper
 
     public static async Task KeepStunAliveAsync(IPAddress stunServerIpAddress, List<ushort> localPorts, CancellationToken cancellationToken)
     {
-        while (!cancellationToken.IsCancellationRequested)
+        try
         {
-            try
+            while (!cancellationToken.IsCancellationRequested)
             {
                 foreach (ushort localPort in localPorts)
                 {
@@ -187,9 +195,14 @@ internal static class NetworkHelper
 
                 await Task.Delay(5000, cancellationToken).ConfigureAwait(false);
             }
-            catch (TaskCanceledException)
-            {
-            }
+        }
+        catch (OperationCanceledException)
+        {
+            Logger.Log($"{stunServerIpAddress.AddressFamily} STUN keep alive stopped.");
+        }
+        catch (Exception ex)
+        {
+            ProgramConstants.LogException(ex, "STUN keep alive failed.");
         }
     }
 

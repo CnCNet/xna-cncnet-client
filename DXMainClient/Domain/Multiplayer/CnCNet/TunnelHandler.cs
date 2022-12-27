@@ -147,14 +147,14 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
             {
                 data = await Constants.CnCNetHttpClient.GetStringAsync(new Uri(ProgramConstants.CNCNET_TUNNEL_LIST_URL)).ConfigureAwait(false);
             }
-            catch (HttpRequestException ex)
+            catch (Exception ex) when (ex is HttpRequestException or OperationCanceledException)
             {
                 ProgramConstants.LogException(ex, "Error when downloading tunnel server info. Retrying.");
                 try
                 {
                     data = await Constants.CnCNetHttpClient.GetStringAsync(new Uri(ProgramConstants.CNCNET_TUNNEL_LIST_URL)).ConfigureAwait(false);
                 }
-                catch (HttpRequestException ex1)
+                catch (Exception ex1) when (ex1 is HttpRequestException or OperationCanceledException)
                 {
                     ProgramConstants.LogException(ex1);
                     if (!tunnelCacheFile.Exists)

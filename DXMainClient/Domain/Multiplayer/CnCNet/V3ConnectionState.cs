@@ -78,15 +78,21 @@ internal sealed class V3ConnectionState : IAsyncDisposable
     {
         if (!ipV6P2PPorts.Any() && !ipV4P2PPorts.Any())
         {
-            var p2pPorts = NetworkHelper.GetFreeUdpPorts(Array.Empty<ushort>(), MAX_REMOTE_PLAYERS).ToList();
-
             StunCancellationTokenSource?.Cancel();
             StunCancellationTokenSource?.Dispose();
 
             StunCancellationTokenSource = new();
 
-            (internetGatewayDevice, ipV6P2PPorts, ipV4P2PPorts, p2pIpV6PortIds, publicIpV6Address, publicIpV4Address) = await UPnPHandler.SetupPortsAsync(
-                internetGatewayDevice, p2pPorts, tunnelHandler.CurrentTunnel?.IPAddresses ?? InitialTunnel.IPAddresses, StunCancellationTokenSource.Token).ConfigureAwait(false);
+            var p2pPorts = NetworkHelper.GetFreeUdpPorts(Array.Empty<ushort>(), MAX_REMOTE_PLAYERS).ToList();
+
+            try
+            {
+                (internetGatewayDevice, ipV6P2PPorts, ipV4P2PPorts, p2pIpV6PortIds, publicIpV6Address, publicIpV4Address) = await UPnPHandler.SetupPortsAsync(
+                    internetGatewayDevice, p2pPorts, tunnelHandler.CurrentTunnel?.IPAddresses ?? InitialTunnel.IPAddresses, StunCancellationTokenSource.Token).ConfigureAwait(false);
+            }
+            catch (OperationCanceledException)
+            {
+            }
         }
 
         return publicIpV4Address is not null || publicIpV6Address is not null;
@@ -164,13 +170,13 @@ internal sealed class V3ConnectionState : IAsyncDisposable
         if (parsedIpV4Address is not null)
         {
             remotePlayerP2PEnabled = true;
-            remotePlayerIpV4Ports = ipV4splitLines[1].Split('-').Select(q => ushort.Parse(q, CultureInfo.InvariantCulture)).ToArray();
+            remotePlayerIpV4Ports = ipV4splitLines[1].Split('-', StringSplitOptions.RemoveEmptyEntries).Select(q => ushort.Parse(q, CultureInfo.InvariantCulture)).ToArray();
         }
 
         if (parsedIpV6Address is not null)
         {
             remotePlayerP2PEnabled = true;
-            remotePlayerIpV6Ports = ipV6splitLines[1].Split('-').Select(q => ushort.Parse(q, CultureInfo.InvariantCulture)).ToArray();
+            remotePlayerIpV6Ports = ipV6splitLines[1].Split('-', StringSplitOptions.RemoveEmptyEntries).Select(q => ushort.Parse(q, CultureInfo.InvariantCulture)).ToArray();
         }
 
         if (P2PPlayers.Any(q => q.RemotePlayerName.Equals(playerName, StringComparison.OrdinalIgnoreCase)))
