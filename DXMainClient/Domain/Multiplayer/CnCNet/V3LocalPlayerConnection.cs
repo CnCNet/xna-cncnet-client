@@ -21,7 +21,7 @@ internal sealed class V3LocalPlayerConnection : IDisposable
     private const int GameStartReceiveTimeout = 60000;
     private const int ReceiveTimeout = 10000;
     private const int PlayerIdSize = sizeof(uint);
-    private const int MinimumPacketSize = PlayerIdSize * 2;
+    private const int PlayerIdsSize = PlayerIdSize * 2;
     private const int MaximumPacketSize = 1024;
 
     private Socket localGameSocket;
@@ -69,7 +69,6 @@ internal sealed class V3LocalPlayerConnection : IDisposable
         remotePlayerEndPoint = new IPEndPoint(IPAddress.Loopback, 0);
 
         using IMemoryOwner<byte> memoryOwner = MemoryPool<byte>.Shared.Rent(MaximumPacketSize);
-        Memory<byte> buffer = memoryOwner.Memory[..MaximumPacketSize];
         int receiveTimeout = GameStartReceiveTimeout;
 
 #if DEBUG
@@ -82,15 +81,15 @@ internal sealed class V3LocalPlayerConnection : IDisposable
         {
             using var timeoutCancellationTokenSource = new CancellationTokenSource(receiveTimeout);
             using var linkedCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(timeoutCancellationTokenSource.Token, cancellationToken);
-            Memory<byte> data;
+            Memory<byte> buffer = memoryOwner.Memory[..MaximumPacketSize];
 
             try
             {
                 SocketReceiveFromResult socketReceiveFromResult = await localGameSocket.ReceiveFromAsync(
-                    buffer, SocketFlags.None, remotePlayerEndPoint, linkedCancellationTokenSource.Token).ConfigureAwait(false);
+                    buffer[PlayerIdsSize..], SocketFlags.None, remotePlayerEndPoint, linkedCancellationTokenSource.Token).ConfigureAwait(false);
 
                 remotePlayerEndPoint = socketReceiveFromResult.RemoteEndPoint;
-                data = buffer[..socketReceiveFromResult.ReceivedBytes];
+                buffer = buffer[..(PlayerIdsSize + socketReceiveFromResult.ReceivedBytes)];
 
 #if DEBUG
                 Logger.Log($"Received data from local game {socketReceiveFromResult.RemoteEndPoint} on {localGameSocket.LocalEndPoint} for player {PlayerId}.");
@@ -129,7 +128,7 @@ internal sealed class V3LocalPlayerConnection : IDisposable
 
             receiveTimeout = ReceiveTimeout;
 
-            OnRaiseDataReceivedEvent(new(PlayerId, data));
+            OnRaiseDataReceivedEvent(new(PlayerId, buffer));
         }
     }
 
@@ -139,7 +138,7 @@ internal sealed class V3LocalPlayerConnection : IDisposable
     /// <param name="data">The data to send to the game.</param>
     public async ValueTask SendDataAsync(ReadOnlyMemory<byte> data)
     {
-        if (remotePlayerEndPoint is null || data.Length < MinimumPacketSize)
+        if (remotePlayerEndPoint is null || data.Length < PlayerIdsSize)
             return;
 
         using var timeoutCancellationTokenSource = new CancellationTokenSource(SendTimeout);

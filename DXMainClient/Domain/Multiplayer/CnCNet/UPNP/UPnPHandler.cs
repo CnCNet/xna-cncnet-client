@@ -252,11 +252,21 @@ internal static class UPnPHandler
         Logger.Log($"Using STUN to detect {addressFamily} address.");
 
         var stunPortMapping = new List<(ushort InternalPort, ushort ExternalPort)>();
-        IPAddress stunPublicAddress = null;
+        List<IPAddress> matchingStunServerIpAddresses = stunServerIpAddresses.Where(q => q.AddressFamily == addressFamily).ToList();
 
-        if (stunServerIpAddresses.Any(q => q.AddressFamily == addressFamily))
+        if (!matchingStunServerIpAddresses.Any())
         {
-            IPAddress stunServerIpAddress = stunServerIpAddresses.Single(q => q.AddressFamily == addressFamily);
+            Logger.Log($"No {addressFamily} STUN servers found.");
+
+            return (null, stunPortMapping);
+        }
+
+        IPAddress stunPublicAddress = null;
+        IPAddress stunServerIpAddress = null;
+
+        foreach (IPAddress matchingStunServerIpAddress in matchingStunServerIpAddresses.TakeWhile(_ => stunPublicAddress is null))
+        {
+            stunServerIpAddress = matchingStunServerIpAddress;
 
             foreach (ushort p2pReservedPort in p2pReservedPorts)
             {
@@ -271,25 +281,21 @@ internal static class UPnPHandler
                 if (p2pReservedPort != stunPublicIpEndPoint.Port)
                     stunPortMapping.Add(new(p2pReservedPort, (ushort)stunPublicIpEndPoint.Port));
             }
-
-            if (stunPublicAddress is not null)
-                Logger.Log($"{addressFamily} STUN detection succeeded.");
-            else
-                Logger.Log($"{addressFamily} STUN detection failed.");
-
-            if (stunPortMapping.Any())
-            {
-                Logger.Log($"{addressFamily} STUN detection detected mapped ports, running STUN keep alive.");
-#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
-                NetworkHelper.KeepStunAliveAsync(
-                    stunServerIpAddress,
-                    stunPortMapping.Select(q => q.InternalPort).ToList(), cancellationToken).HandleTask();
-#pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
-            }
         }
+
+        if (stunPublicAddress is not null)
+            Logger.Log($"{addressFamily} STUN detection succeeded.");
         else
+            Logger.Log($"{addressFamily} STUN detection failed.");
+
+        if (stunPortMapping.Any())
         {
-            Logger.Log($"STUN server {stunServerIpAddresses.First()} has no {addressFamily} address.");
+            Logger.Log($"{addressFamily} STUN detection detected mapped ports, running STUN keep alive.");
+#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
+            NetworkHelper.KeepStunAliveAsync(
+                stunServerIpAddress,
+                stunPortMapping.Select(q => q.InternalPort).ToList(), cancellationToken).HandleTask();
+#pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
         }
 
         return (stunPublicAddress, stunPortMapping);

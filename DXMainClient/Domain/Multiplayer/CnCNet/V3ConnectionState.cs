@@ -88,7 +88,7 @@ internal sealed class V3ConnectionState : IAsyncDisposable
             try
             {
                 (internetGatewayDevice, ipV6P2PPorts, ipV4P2PPorts, p2pIpV6PortIds, publicIpV6Address, publicIpV4Address) = await UPnPHandler.SetupPortsAsync(
-                    internetGatewayDevice, p2pPorts, tunnelHandler.CurrentTunnel?.IPAddresses ?? InitialTunnel.IPAddresses, StunCancellationTokenSource.Token).ConfigureAwait(false);
+                    internetGatewayDevice, p2pPorts, GetEligibleTunnels().SelectMany(q => q.IPAddresses).ToList(), StunCancellationTokenSource.Token).ConfigureAwait(false);
             }
             catch (OperationCanceledException)
             {

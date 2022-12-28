@@ -4,7 +4,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet;
 
 internal sealed class DataReceivedEventArgs : EventArgs
 {
-    public DataReceivedEventArgs(uint playerId, ReadOnlyMemory<byte> gameData)
+    public DataReceivedEventArgs(uint playerId, Memory<byte> gameData)
     {
         PlayerId = playerId;
         GameData = gameData;
@@ -14,5 +14,5 @@ internal sealed class DataReceivedEventArgs : EventArgs
 
     public uint PlayerId { get; }
 
-    public ReadOnlyMemory<byte> GameData { get; }
+    public Memory<byte> GameData { get; }
 }

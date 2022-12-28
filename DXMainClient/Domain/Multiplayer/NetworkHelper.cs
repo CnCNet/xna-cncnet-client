@@ -132,14 +132,15 @@ internal static class NetworkHelper
         int[] stunPorts = { stunPort1, stunPort2 };
         using var socket = new Socket(SocketType.Dgram, ProtocolType.Udp);
         short stunIdNetworkOrder = IPAddress.HostToNetworkOrder(stunId);
-        byte[] stunIdNetworkOrderBytes = BitConverter.GetBytes(stunIdNetworkOrder);
-        IPEndPoint stunServerIpEndPoint = null;
         using IMemoryOwner<byte> receiveMemoryOwner = MemoryPool<byte>.Shared.Rent(stunSize);
         Memory<byte> buffer = receiveMemoryOwner.Memory[..stunSize];
+
+        if (!BitConverter.TryWriteBytes(buffer.Span, stunIdNetworkOrder))
+            throw new();
+
+        IPEndPoint stunServerIpEndPoint = null;
         int addressBytes = stunServerIpAddress.GetAddressBytes().Length;
         const int portBytes = sizeof(ushort);
-
-        stunIdNetworkOrderBytes.CopyTo(buffer.Span);
 
         socket.Bind(new IPEndPoint(IPAddress.IPv6Any, localPort));
 

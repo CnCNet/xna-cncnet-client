@@ -18,7 +18,7 @@ internal sealed class V3RemotePlayerConnection : IDisposable
     private const int GameStartReceiveTimeout = 1200000;
     private const int ReceiveTimeout = 1200000;
     private const int PlayerIdSize = sizeof(uint);
-    private const int MinimumPacketSize = PlayerIdSize * 2;
+    private const int PlayerIdsSize = PlayerIdSize * 2;
     private const int MaximumPacketSize = 1024;
 
     private CancellationToken cancellationToken;
@@ -125,20 +125,13 @@ internal sealed class V3RemotePlayerConnection : IDisposable
     /// </summary>
     /// <param name="data">The data to send to the game.</param>
     /// <param name="receiverId">The id of the player that receives the data.</param>
-    public async ValueTask SendDataAsync(ReadOnlyMemory<byte> data, uint receiverId)
+    public async ValueTask SendDataAsync(Memory<byte> data, uint receiverId)
     {
-        const int idsSize = sizeof(uint) * 2;
-        int bufferSize = data.Length + idsSize;
-        using IMemoryOwner<byte> memoryOwner = MemoryPool<byte>.Shared.Rent(bufferSize);
-        Memory<byte> packet = memoryOwner.Memory[..bufferSize];
-
-        if (!BitConverter.TryWriteBytes(packet.Span[..PlayerIdSize], GameLocalPlayerId))
+        if (!BitConverter.TryWriteBytes(data.Span[..PlayerIdSize], GameLocalPlayerId))
             throw new GameDataException();
 
-        if (!BitConverter.TryWriteBytes(packet.Span[PlayerIdSize..(PlayerIdSize * 2)], receiverId))
+        if (!BitConverter.TryWriteBytes(data.Span[PlayerIdSize..(PlayerIdSize * 2)], receiverId))
             throw new GameDataException();
-
-        data.CopyTo(packet[8..]);
 
         using var timeoutCancellationTokenSource = new CancellationTokenSource(SendTimeout);
         using var linkedCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(timeoutCancellationTokenSource.Token, cancellationToken);
@@ -149,7 +142,7 @@ internal sealed class V3RemotePlayerConnection : IDisposable
             Logger.Log($"Sending data {GameLocalPlayerId} -> {receiverId} from {tunnelSocket.LocalEndPoint} to {remoteEndPoint}.");
 
 #endif
-            await tunnelSocket.SendToAsync(packet, SocketFlags.None, remoteEndPoint, linkedCancellationTokenSource.Token).ConfigureAwait(false);
+            await tunnelSocket.SendToAsync(data, SocketFlags.None, remoteEndPoint, linkedCancellationTokenSource.Token).ConfigureAwait(false);
         }
         catch (SocketException ex)
         {
@@ -243,7 +236,7 @@ internal sealed class V3RemotePlayerConnection : IDisposable
 
             receiveTimeout = ReceiveTimeout;
 
-            if (socketReceiveFromResult.ReceivedBytes < MinimumPacketSize)
+            if (socketReceiveFromResult.ReceivedBytes < PlayerIdsSize)
             {
 #if DEBUG
                 Logger.Log($"Invalid data packet from {socketReceiveFromResult.RemoteEndPoint}");
