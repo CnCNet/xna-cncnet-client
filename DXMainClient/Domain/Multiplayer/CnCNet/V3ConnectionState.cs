@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using ClientCore;
 using DTAClient.Domain.Multiplayer.CnCNet.Replays;
 using DTAClient.Domain.Multiplayer.CnCNet.UPNP;
+using Rampastring.Tools;
 
 namespace DTAClient.Domain.Multiplayer.CnCNet;
 
