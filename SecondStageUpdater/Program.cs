@@ -41,7 +41,7 @@ internal sealed class Program
             Write(string.Empty);
 
             // e.g. clientogl.dll "C:\Game\"
-            if (args.Length < 2 || string.IsNullOrEmpty(args[0]) || string.IsNullOrEmpty(args[1]) || !SafePath.GetDirectory(args[1].Replace("\"", null)).Exists)
+            if (args.Length < 2 || string.IsNullOrEmpty(args[0]) || string.IsNullOrEmpty(args[1]) || !SafePath.GetDirectory(args[1].Replace("\"", null, StringComparison.OrdinalIgnoreCase)).Exists)
             {
                 Write("Invalid arguments given!", ConsoleColor.Red);
                 Write("Usage: <client_executable_name> <base_directory>");
@@ -145,9 +145,9 @@ internal sealed class Program
                 {
                     Write("Checking ClientDefinitions.ini for launcher executable filename (LauncherExe).");
 
-                    string[] lines = await File.ReadAllLinesAsync(SafePath.CombineFilePath(resourceDirectory.FullName, "ClientDefinitions.ini"));
-                    string line = lines.Single(q => q.Trim().StartsWith("LauncherExe", StringComparison.OrdinalIgnoreCase) && q.Contains('='));
-                    int commentStart = line.IndexOf(';');
+                    string[] lines = await File.ReadAllLinesAsync(SafePath.CombineFilePath(resourceDirectory.FullName, "ClientDefinitions.ini")).ConfigureAwait(false);
+                    string line = lines.Single(q => q.Trim().StartsWith("LauncherExe", StringComparison.OrdinalIgnoreCase) && q.Contains('=', StringComparison.OrdinalIgnoreCase));
+                    int commentStart = line.IndexOf(';', StringComparison.OrdinalIgnoreCase);
 
                     if (commentStart >= 0)
                         line = line[..commentStart];

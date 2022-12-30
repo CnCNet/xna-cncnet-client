@@ -182,11 +182,23 @@ public class CustomComponent
             progressMessageHandler.HttpReceiveProgress += ProgressMessageHandlerOnHttpReceiveProgress;
 
             Logger.Log("CustomComponent: Downloading version info.");
-            await using (var fileStream = new FileStream(versionFileName, new FileStreamOptions { Access = FileAccess.Write, BufferSize = 0, Mode = FileMode.Create, Options = FileOptions.Asynchronous | FileOptions.SequentialScan | FileOptions.WriteThrough, Share = FileShare.None }))
+
+            var versionFileStream = new FileStream(versionFileName, new FileStreamOptions
             {
-                await using (Stream stream = await httpClient.GetStreamAsync(new Uri(uriString), cancellationToken))
+                Access = FileAccess.Write,
+                BufferSize = 0,
+                Mode = FileMode.Create,
+                Options = FileOptions.Asynchronous | FileOptions.SequentialScan | FileOptions.WriteThrough,
+                Share = FileShare.None
+            });
+
+            await using (versionFileStream.ConfigureAwait(false))
+            {
+                Stream stream = await httpClient.GetStreamAsync(new Uri(uriString), cancellationToken).ConfigureAwait(false);
+
+                await using (stream.ConfigureAwait(false))
                 {
-                    await stream.CopyToAsync(fileStream, cancellationToken);
+                    await stream.CopyToAsync(versionFileStream, cancellationToken).ConfigureAwait(false);
                 }
             }
 
@@ -209,11 +221,22 @@ public class CustomComponent
 
                 num++;
 
-                await using (var fileStream = new FileStream(downloadFileName, new FileStreamOptions { Access = FileAccess.Write, BufferSize = 0, Mode = FileMode.Create, Options = FileOptions.Asynchronous | FileOptions.SequentialScan | FileOptions.WriteThrough, Share = FileShare.None }))
+                var downloadFileStream = new FileStream(downloadFileName, new FileStreamOptions
                 {
-                    await using (Stream stream = await httpClient.GetStreamAsync(downloadUri, cancellationToken))
+                    Access = FileAccess.Write,
+                    BufferSize = 0,
+                    Mode = FileMode.Create,
+                    Options = FileOptions.Asynchronous | FileOptions.SequentialScan | FileOptions.WriteThrough,
+                    Share = FileShare.None
+                });
+
+                await using (downloadFileStream.ConfigureAwait(false))
+                {
+                    Stream stream = await httpClient.GetStreamAsync(downloadUri, cancellationToken).ConfigureAwait(false);
+
+                    await using (stream.ConfigureAwait(false))
                     {
-                        await stream.CopyToAsync(fileStream, cancellationToken);
+                        await stream.CopyToAsync(downloadFileStream, cancellationToken).ConfigureAwait(false);
                     }
                 }
 
@@ -242,7 +265,7 @@ public class CustomComponent
 
                     cancellationToken.ThrowIfCancellationRequested();
                     Logger.Log("CustomComponent: Archive " + archiveLocalPath + "_u is intact. Unpacking...");
-                    await CompressionHelper.DecompressFileAsync(archivePathFileInfo.FullName, finalFileNameTemp, downloadTaskCancelToken);
+                    await CompressionHelper.DecompressFileAsync(archivePathFileInfo.FullName, finalFileNameTemp, downloadTaskCancelToken).ConfigureAwait(false);
                     archivePathFileInfo.Delete();
                 }
 
@@ -322,9 +345,7 @@ public class CustomComponent
         {
             downloadTaskCancelTokenSource.Dispose();
             downloadTaskCancelTokenSource = null;
-
-            if (progressMessageHandler is not null)
-                progressMessageHandler.HttpReceiveProgress -= ProgressMessageHandlerOnHttpReceiveProgress;
+            progressMessageHandler.HttpReceiveProgress -= ProgressMessageHandlerOnHttpReceiveProgress;
         }
     }
 
