@@ -8,5 +8,4 @@ internal readonly record struct P2PPlayer(
     ushort[] RemoteIpV6Ports,
     ushort[] RemoteIpV4Ports,
     List<(IPAddress RemoteIpAddress, long Ping)> LocalPingResults,
-    List<(IPAddress RemoteIpAddress, long Ping)> RemotePingResults,
-    bool Enabled);
+    List<(IPAddress RemoteIpAddress, long Ping)> RemotePingResults);

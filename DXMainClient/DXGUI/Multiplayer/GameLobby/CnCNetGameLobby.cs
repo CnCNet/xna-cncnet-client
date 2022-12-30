@@ -2047,7 +2047,7 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
         if (!v3ConnectionState.P2PEnabled)
             return;
 
-        bool remotePlayerP2PEnabled = await v3ConnectionState.PingRemotePlayer(playerName, p2pRequestMessage).ConfigureAwait(false);
+        bool remotePlayerP2PEnabled = await v3ConnectionState.PingRemotePlayerAsync(playerName, p2pRequestMessage).ConfigureAwait(false);
 
         if (remotePlayerP2PEnabled)
         {
