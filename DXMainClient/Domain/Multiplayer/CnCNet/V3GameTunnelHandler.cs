@@ -130,7 +130,7 @@ internal sealed class V3GameTunnelHandler : IDisposable
         OnRaiseLocalGameDataReceivedEvent(sender, e);
 
         if (remoteHostConnection is not null)
-            await remoteHostConnection.SendDataAsync(e.GameData, e.PlayerId).ConfigureAwait(false);
+            await remoteHostConnection.SendDataToRemotePlayerAsync(e.GameData, e.PlayerId).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -143,7 +143,7 @@ internal sealed class V3GameTunnelHandler : IDisposable
         V3LocalPlayerConnection v3LocalPlayerConnection = GetLocalPlayerConnection(e.PlayerId);
 
         if (v3LocalPlayerConnection is not null)
-            await v3LocalPlayerConnection.SendDataAsync(e.GameData).ConfigureAwait(false);
+            await v3LocalPlayerConnection.SendDataToGameAsync(e.GameData).ConfigureAwait(false);
     }
 
     private V3LocalPlayerConnection GetLocalPlayerConnection(uint senderId)

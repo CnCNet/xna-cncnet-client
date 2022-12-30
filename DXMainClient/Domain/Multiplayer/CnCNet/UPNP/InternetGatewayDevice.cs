@@ -96,7 +96,7 @@ internal sealed record InternetGatewayDevice(
         Logger.Log($"Deleting IPV4 UDP port {port} on UPnP device {UPnPDescription.Device.FriendlyName}.");
 
         int uPnPVersion = GetDeviceUPnPVersion();
-        (ServiceListItem service, string serviceUri, string serviceType) = GetSoapActionParameters($"{UPnPWanIpConnection}:{uPnPVersion}");
+        (ServiceListItem service, string serviceUri, string serviceType) = GetSoapActionParameters($"{UPnPWanIpConnection}:{uPnPVersion}", AddressFamily.InterNetwork);
         string serviceAction = $"\"{service.ServiceType}#DeletePortMapping\"";
 
         switch (uPnPVersion)
@@ -129,7 +129,7 @@ internal sealed record InternetGatewayDevice(
         try
         {
             int uPnPVersion = GetDeviceUPnPVersion();
-            (ServiceListItem service, string serviceUri, string serviceType) = GetSoapActionParameters($"{UPnPWanIpConnection}:{uPnPVersion}");
+            (ServiceListItem service, string serviceUri, string serviceType) = GetSoapActionParameters($"{UPnPWanIpConnection}:{uPnPVersion}", AddressFamily.InterNetwork);
             string serviceAction = $"\"{service.ServiceType}#GetExternalIPAddress\"";
             IPAddress ipAddress;
 
@@ -172,7 +172,7 @@ internal sealed record InternetGatewayDevice(
         try
         {
             int uPnPVersion = GetDeviceUPnPVersion();
-            (ServiceListItem service, string serviceUri, string serviceType) = GetSoapActionParameters($"{UPnPWanIpConnection}:{uPnPVersion}");
+            (ServiceListItem service, string serviceUri, string serviceType) = GetSoapActionParameters($"{UPnPWanIpConnection}:{uPnPVersion}", AddressFamily.InterNetwork);
             string serviceAction = $"\"{service.ServiceType}#GetNatRsipStatus\"";
             bool natEnabled;
 
@@ -214,7 +214,7 @@ internal sealed record InternetGatewayDevice(
 
         try
         {
-            (ServiceListItem service, string serviceUri, string serviceType) = GetSoapActionParameters("WANIPv6FirewallControl:1");
+            (ServiceListItem service, string serviceUri, string serviceType) = GetSoapActionParameters("WANIPv6FirewallControl:1", AddressFamily.InterNetworkV6);
             string serviceAction = $"\"{service.ServiceType}#GetFirewallStatus\"";
             GetFirewallStatusResponse response = await ExecuteSoapAction<GetFirewallStatusRequest, GetFirewallStatusResponse>(
                 serviceUri, serviceAction, serviceType, default, cancellationToken).ConfigureAwait(false);
@@ -236,7 +236,7 @@ internal sealed record InternetGatewayDevice(
     {
         Logger.Log($"Opening IPV6 UDP port {port} on UPnP device {UPnPDescription.Device.FriendlyName}.");
 
-        (ServiceListItem service, string serviceUri, string serviceType) = GetSoapActionParameters("WANIPv6FirewallControl:1");
+        (ServiceListItem service, string serviceUri, string serviceType) = GetSoapActionParameters("WANIPv6FirewallControl:1", AddressFamily.InterNetworkV6);
         string serviceAction = $"\"{service.ServiceType}#AddPinhole\"";
         var request = new AddPinholeRequest(string.Empty, port, ipAddress.ToString(), port, IanaUdpProtocolNumber, IpLeaseTimeInSeconds);
         AddPinholeResponse response = await ExecuteSoapAction<AddPinholeRequest, AddPinholeResponse>(
@@ -249,15 +249,15 @@ internal sealed record InternetGatewayDevice(
 
     public async ValueTask CloseIpV6PortAsync(ushort uniqueId, CancellationToken cancellationToken = default)
     {
-        Logger.Log($"Opening IPV6 UDP port with ID {uniqueId} on UPnP device {UPnPDescription.Device.FriendlyName}.");
+        Logger.Log($"Deleting IPV6 UDP port with ID {uniqueId} on UPnP device {UPnPDescription.Device.FriendlyName}.");
 
-        (ServiceListItem service, string serviceUri, string serviceType) = GetSoapActionParameters("WANIPv6FirewallControl:1");
+        (ServiceListItem service, string serviceUri, string serviceType) = GetSoapActionParameters("WANIPv6FirewallControl:1", AddressFamily.InterNetworkV6);
         string serviceAction = $"\"{service.ServiceType}#DeletePinhole\"";
         var request = new DeletePinholeRequest(uniqueId);
         await ExecuteSoapAction<DeletePinholeRequest, DeletePinholeResponse>(
              serviceUri, serviceAction, serviceType, request, cancellationToken).ConfigureAwait(false);
 
-        Logger.Log($"Opened IPV6 UDP port with ID {uniqueId} on UPnP device {UPnPDescription.Device.FriendlyName}.");
+        Logger.Log($"Deleted IPV6 UDP port with ID {uniqueId} on UPnP device {UPnPDescription.Device.FriendlyName}.");
     }
 
     private static async ValueTask<TResponse> ExecuteSoapAction<TRequest, TResponse>(
@@ -331,13 +331,16 @@ internal sealed record InternetGatewayDevice(
         }
     }
 
-    private (ServiceListItem WanIpConnectionService, string ServiceUri, string ServiceType) GetSoapActionParameters(string wanConnectionDeviceService, AddressFamily? addressFamily = null)
+    private (ServiceListItem WanIpConnectionService, string ServiceUri, string ServiceType) GetSoapActionParameters(string wanConnectionDeviceService, AddressFamily addressFamily)
     {
-        Uri location = PreferredLocation;
-
-        if (addressFamily is AddressFamily.InterNetwork && Locations.Any(q => q.HostNameType is UriHostNameType.IPv4))
-            location = Locations.FirstOrDefault(q => q.HostNameType is UriHostNameType.IPv4);
-
+        Uri location = addressFamily switch
+        {
+            AddressFamily.InterNetwork when Locations.Any(q => q.HostNameType is UriHostNameType.IPv4) =>
+                Locations.FirstOrDefault(q => q.HostNameType is UriHostNameType.IPv4),
+            AddressFamily.InterNetworkV6 when Locations.Any(q => q.HostNameType is UriHostNameType.IPv6) =>
+                Locations.FirstOrDefault(q => q.HostNameType is UriHostNameType.IPv6),
+            _ => PreferredLocation
+        };
         int uPnPVersion = GetDeviceUPnPVersion();
         Device wanDevice = UPnPDescription.Device.DeviceList.Single(q => q.DeviceType.Equals($"{UPnPWanDevice}:{uPnPVersion}", StringComparison.OrdinalIgnoreCase));
         Device wanConnectionDevice = wanDevice.DeviceList.Single(q => q.DeviceType.Equals($"{UPnPWanConnectionDevice}:{uPnPVersion}", StringComparison.OrdinalIgnoreCase));

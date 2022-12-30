@@ -160,6 +160,7 @@ internal static class UPnPHandler
             }
             else
             {
+                publicIpV6Address = stunPublicIpV6Address ?? localPublicIpV6Address;
                 ipV6P2PPorts = p2pReservedPorts.Select(q => (q, q)).ToList();
             }
         }

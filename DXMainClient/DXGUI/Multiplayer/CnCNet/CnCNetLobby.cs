@@ -555,7 +555,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             gameCreationPanel.Hide();
 
             connectionManager.MainChannel.AddMessage(new ChatMessage(Color.White, Renderer.GetSafeString(
-                    string.Format("*** DTA CnCNet Client version {0} ***".L10N("Client:Main:CnCNetClientVersionMessage"), Assembly.GetAssembly(typeof(CnCNetLobby)).GetName().Version),
+                    string.Format("*** CnCNet Client version {0} ***".L10N("Client:Main:CnCNetClientVersionMessage"), Assembly.GetAssembly(typeof(CnCNetLobby)).GetName().Version),
                     lbChatMessages.FontIndex)));
 
             connectionManager.BannedFromChannel += (_, e) => ConnectionManager_BannedFromChannelAsync(e).HandleTask();
@@ -613,7 +613,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 if (gameOfLastJoinAttempt.IsLoadedGame)
                     await gameLoadingLobby.ClearAsync().ConfigureAwait(false);
                 else
-                    await gameLobby.ClearAsync().ConfigureAwait(false);
+                    await gameLobby.ClearAsync(false).ConfigureAwait(false);
             }
         }
 
@@ -958,7 +958,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         private async ValueTask ClearGameJoinAttemptAsync(Channel channel)
         {
             ClearGameChannelEvents(channel);
-            await gameLobby.ClearAsync().ConfigureAwait(false);
+            await gameLobby.ClearAsync(false).ConfigureAwait(false);
         }
 
         private void ClearGameChannelEvents(Channel channel)

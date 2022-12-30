@@ -266,7 +266,7 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
         if (!disposed)
         {
             if (disposing)
-                ClearAsync().HandleTask();
+                ClearAsync(true).HandleTask();
 
             disposed = true;
         }
@@ -474,9 +474,9 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
         tbChatInput.TextColor = chatColor.XnaColor;
     }
 
-    public override async ValueTask ClearAsync()
+    public override async ValueTask ClearAsync(bool exiting)
     {
-        await base.ClearAsync().ConfigureAwait(false);
+        await base.ClearAsync(exiting).ConfigureAwait(false);
 
         if (channel != null)
         {
@@ -508,9 +508,13 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
         gameStartCancellationTokenSource?.Cancel();
         v3ConnectionState.DisposeAsync().HandleTask();
         gamePlayerIds.Clear();
-        GameLeft?.Invoke(this, EventArgs.Empty);
-        TopBar.RemovePrimarySwitchable(this);
-        ResetDiscordPresence();
+
+        if (!exiting)
+        {
+            GameLeft?.Invoke(this, EventArgs.Empty);
+            TopBar.RemovePrimarySwitchable(this);
+            ResetDiscordPresence();
+        }
     }
 
     public async ValueTask LeaveGameLobbyAsync()
@@ -521,13 +525,13 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
             await BroadcastGameAsync().ConfigureAwait(false);
         }
 
-        await ClearAsync().ConfigureAwait(false);
+        await ClearAsync(false).ConfigureAwait(false);
         await channel.LeaveAsync().ConfigureAwait(false);
     }
 
     private async ValueTask HandleConnectionLossAsync()
     {
-        await ClearAsync().ConfigureAwait(false);
+        await ClearAsync(false).ConfigureAwait(false);
         Disable();
     }
 
@@ -604,7 +608,7 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
         {
             connectionManager.MainChannel.AddMessage(
                 new(ERROR_MESSAGE_COLOR, "You were kicked from the game!".L10N("Client:Main:YouWereKicked")));
-            await ClearAsync().ConfigureAwait(false);
+            await ClearAsync(false).ConfigureAwait(false);
 
             Visible = false;
             Enabled = false;
@@ -1199,7 +1203,7 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
 
     private async ValueTask BroadcastPlayerP2PRequestAsync()
     {
-        bool p2pSetupSucceeded;
+        bool p2pSetupSucceeded = false;
 
         try
         {
@@ -1207,17 +1211,20 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
         }
         catch (Exception ex)
         {
-            ProgramConstants.LogException(ex, "Could not open UPnP P2P ports.");
+            ProgramConstants.LogException(ex, "P2P setup failed.");
+        }
+
+        if (!p2pSetupSucceeded)
+        {
             AddNotice(string.Format(
                 CultureInfo.CurrentCulture,
-                "Could not open P2P ports. Check that UPnP port mapping is enabled for this device on your router/modem.".L10N("Client:Main:UPnPP2PFailed")),
+                "P2P setup failed. Check that UPnP port mapping is enabled for this device on your router/modem.".L10N("Client:Main:P2PSetupFailed")),
                 Color.Orange);
-            await SendPlayerP2PRequestAsync().ConfigureAwait(false);
+
             return;
         }
 
-        if (p2pSetupSucceeded)
-            await SendPlayerP2PRequestAsync().ConfigureAwait(false);
+        await SendPlayerP2PRequestAsync().ConfigureAwait(false);
     }
 
     private ValueTask SendPlayerP2PRequestAsync()

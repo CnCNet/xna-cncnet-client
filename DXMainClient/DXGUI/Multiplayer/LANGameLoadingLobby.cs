@@ -156,7 +156,7 @@ namespace DTAClient.DXGUI.Multiplayer
         private async ValueTask ListenForClientsAsync(CancellationToken cancellationToken)
         {
             listener = new Socket(SocketType.Stream, ProtocolType.Tcp);
-            listener.Bind(new IPEndPoint(IPAddress.Any, ProgramConstants.LAN_GAME_LOBBY_PORT));
+            listener.Bind(new IPEndPoint(IPAddress.IPv6Any, ProgramConstants.LAN_GAME_LOBBY_PORT));
             listener.Listen();
 
             while (!cancellationToken.IsCancellationRequested)

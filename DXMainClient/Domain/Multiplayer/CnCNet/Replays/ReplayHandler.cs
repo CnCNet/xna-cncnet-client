@@ -44,23 +44,27 @@ internal sealed class ReplayHandler : IAsyncDisposable
             v3GameTunnelHandler.RaiseLocalGameDataReceivedEvent -= LocalGameConnection_DataReceivedAsync;
         }
 
+        if (!(replayDirectory?.Exists ?? false))
+            return;
+
         FileInfo spawnFile = SafePath.GetFile(replayDirectory.FullName, ProgramConstants.SPAWNER_SETTINGS);
         string settings = await File.ReadAllTextAsync(spawnFile.FullName, CancellationToken.None).ConfigureAwait(false);
         var spawnIni = new IniFile(spawnFile.FullName);
-        string playerName = spawnIni.GetSection("Settings").GetStringValue("Name", null);
+        IniSection settingsSection = spawnIni.GetSection("Settings");
+        string playerName = settingsSection.GetStringValue("Name", null);
         uint playerId = gamePlayerIds[playerInfos.Single(q => q.Name.Equals(playerName, StringComparison.OrdinalIgnoreCase)).Index];
         var playerMappings = new Dictionary<uint, string>
         {
             { playerId, playerName }
         };
 
-        for (int i = 1; i < spawnIni.GetSection("Settings").GetIntValue("PlayerCount", 0); i++)
+        for (int i = 1; i < settingsSection.GetIntValue("PlayerCount", 0); i++)
         {
-            string section = $"Other{i}";
+            IniSection otherPlayerSection = spawnIni.GetSection($"Other{i}");
 
-            if (spawnIni.SectionExists(section))
+            if (otherPlayerSection is not null)
             {
-                playerName = spawnIni.GetSection(section).GetStringValue("Name", null);
+                playerName = otherPlayerSection.GetStringValue("Name", null);
                 playerId = gamePlayerIds[playerInfos.Single(q => q.Name.Equals(playerName, StringComparison.OrdinalIgnoreCase)).Index];
 
                 playerMappings.Add(playerId, playerName);
@@ -93,7 +97,7 @@ internal sealed class ReplayHandler : IAsyncDisposable
 
                 await using (compressionStream.ConfigureAwait(false))
                 {
-                    await tempReplayFileStream.CopyToAsync(compressionStream).ConfigureAwait(false);
+                    await tempReplayFileStream.CopyToAsync(compressionStream, CancellationToken.None).ConfigureAwait(false);
                 }
             }
         }
@@ -114,7 +118,7 @@ internal sealed class ReplayHandler : IAsyncDisposable
     }
 
     public void RemoteHostConnection_DataReceivedAsync(object sender, DataReceivedEventArgs e)
-        => SaveReplayDataAsync(((V3RemotePlayerConnection)sender).GameLocalPlayerId, e).HandleTask();
+        => SaveReplayDataAsync(((V3RemotePlayerConnection)sender).PlayerId, e).HandleTask();
 
     public void LocalGameConnection_DataReceivedAsync(object sender, DataReceivedEventArgs e)
     {

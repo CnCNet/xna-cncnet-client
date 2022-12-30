@@ -74,7 +74,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         private async ValueTask WindowManager_GameClosingAsync()
         {
             if (client is { Connected: true })
-                await ClearAsync().ConfigureAwait(false);
+                await ClearAsync(true).ConfigureAwait(false);
 
             cancellationTokenSource?.Cancel();
         }
@@ -199,16 +199,16 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             listener = new Socket(SocketType.Stream, ProtocolType.Tcp);
 
-            listener.Bind(new IPEndPoint(IPAddress.Any, ProgramConstants.LAN_GAME_LOBBY_PORT));
+            listener.Bind(new IPEndPoint(IPAddress.IPv6Any, ProgramConstants.LAN_GAME_LOBBY_PORT));
             listener.Listen();
 
             while (!cancellationToken.IsCancellationRequested)
             {
-                Socket client;
+                Socket newClient;
 
                 try
                 {
-                    client = await listener.AcceptAsync(cancellationToken).ConfigureAwait(false);
+                    newClient = await listener.AcceptAsync(cancellationToken).ConfigureAwait(false);
                 }
                 catch (OperationCanceledException)
                 {
@@ -220,26 +220,26 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     break;
                 }
 
-                Logger.Log("New client connected from " + ((IPEndPoint)client.RemoteEndPoint).Address);
+                Logger.Log("New client connected from " + ((IPEndPoint)newClient.RemoteEndPoint).Address);
 
                 if (Players.Count >= MAX_PLAYER_COUNT)
                 {
                     Logger.Log("Dropping client because of player limit.");
-                    client.Shutdown(SocketShutdown.Both);
-                    client.Close();
+                    newClient.Shutdown(SocketShutdown.Both);
+                    newClient.Close();
                     continue;
                 }
 
                 if (Locked)
                 {
                     Logger.Log("Dropping client because the game room is locked.");
-                    client.Shutdown(SocketShutdown.Both);
-                    client.Close();
+                    newClient.Shutdown(SocketShutdown.Both);
+                    newClient.Close();
                     continue;
                 }
 
                 LANPlayerInfo lpInfo = new LANPlayerInfo(encoding);
-                lpInfo.SetClient(client);
+                lpInfo.SetClient(newClient);
 
                 HandleClientConnectionAsync(lpInfo, cancellationToken).HandleTask();
             }
@@ -448,7 +448,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         protected override async ValueTask BtnLeaveGame_LeftClickAsync()
         {
-            await ClearAsync().ConfigureAwait(false);
+            await ClearAsync(false).ConfigureAwait(false);
             GameLeft?.Invoke(this, EventArgs.Empty);
             Disable();
         }
@@ -472,9 +472,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 "LAN Game", IsHost, false, Locked, resetTimer);
         }
 
-        public override async ValueTask ClearAsync()
+        public override async ValueTask ClearAsync(bool exiting)
         {
-            await base.ClearAsync().ConfigureAwait(false);
+            await base.ClearAsync(exiting).ConfigureAwait(false);
 
             if (IsHost)
             {

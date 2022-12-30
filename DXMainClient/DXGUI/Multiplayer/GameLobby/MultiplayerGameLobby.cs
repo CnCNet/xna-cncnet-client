@@ -944,7 +944,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             return ValueTask.CompletedTask;
         }
 
-        public virtual ValueTask ClearAsync()
+        public virtual ValueTask ClearAsync(bool exiting)
         {
             if (!IsHost)
                 AIPlayers.Clear();

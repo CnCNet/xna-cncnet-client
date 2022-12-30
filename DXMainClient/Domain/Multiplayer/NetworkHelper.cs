@@ -17,7 +17,6 @@ internal static class NetworkHelper
 {
     private const string PingHost = "cncnet.org";
     private const int PingTimeout = 1000;
-    private const int MinimumUdpPort = 1024;
 
     private static readonly IReadOnlyCollection<AddressFamily> SupportedAddressFamilies = new[]
     {
@@ -57,7 +56,7 @@ internal static class NetworkHelper
         uint ipMaskV4 = BitConverter.ToUInt32(unicastIpAddressInformation.IPv4Mask.GetAddressBytes(), 0);
         uint broadCastIpAddress = ipAddress | ~ipMaskV4;
 
-        return new IPAddress(BitConverter.GetBytes(broadCastIpAddress));
+        return new(BitConverter.GetBytes(broadCastIpAddress));
     }
 
     public static async ValueTask<IPAddress> TracePublicIpV4Address(CancellationToken cancellationToken)
@@ -151,7 +150,7 @@ internal static class NetworkHelper
                 using var timeoutCancellationTokenSource = new CancellationTokenSource(PingTimeout);
                 using var linkedCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(timeoutCancellationTokenSource.Token, cancellationToken);
 
-                stunServerIpEndPoint = new IPEndPoint(stunServerIpAddress, stunPort);
+                stunServerIpEndPoint = new(stunServerIpAddress, stunPort);
 
                 await socket.SendToAsync(buffer, stunServerIpEndPoint, linkedCancellationTokenSource.Token).ConfigureAwait(false);
 
@@ -171,7 +170,7 @@ internal static class NetworkHelper
                 short publicPortHostOrder = IPAddress.NetworkToHostOrder(publicPortNetworkOrder);
                 ushort publicPort = (ushort)publicPortHostOrder;
 
-                return new IPEndPoint(publicIpAddress, publicPort);
+                return new(publicIpAddress, publicPort);
             }
             catch (Exception ex) when (ex is not OperationCanceledException || !cancellationToken.IsCancellationRequested)
             {
@@ -208,7 +207,7 @@ internal static class NetworkHelper
     }
 
     /// <summary>
-    /// Returns a free UDP port number above 1023.
+    /// Returns the specified amount of free UDP port numbers.
     /// </summary>
     /// <param name="excludedPorts">List of UDP port numbers which are additionally excluded.</param>
     /// <param name="numberOfPorts">The number of free ports to return.</param>
@@ -216,16 +215,20 @@ internal static class NetworkHelper
     public static IEnumerable<ushort> GetFreeUdpPorts(IEnumerable<ushort> excludedPorts, ushort numberOfPorts)
     {
         IPEndPoint[] endPoints = IPGlobalProperties.GetIPGlobalProperties().GetActiveUdpListeners();
-        var activePorts = endPoints.Select(q => (ushort)q.Port).ToArray().Concat(excludedPorts).ToList();
+        var activeV4AndV6Ports = endPoints.Select(q => (ushort)q.Port).ToArray().Concat(excludedPorts).Distinct().ToList();
         ushort foundPortCount = 0;
 
         while (foundPortCount != numberOfPorts)
         {
-            ushort foundPort = (ushort)new Random().Next(MinimumUdpPort, IPEndPoint.MaxPort);
+            using var socket = new Socket(SocketType.Dgram, ProtocolType.Udp);
 
-            if (!activePorts.Contains(foundPort))
+            socket.Bind(new IPEndPoint(IPAddress.Loopback, 0));
+
+            ushort foundPort = (ushort)((IPEndPoint)socket.LocalEndPoint).Port;
+
+            if (!activeV4AndV6Ports.Contains(foundPort))
             {
-                activePorts.Add(foundPort);
+                activeV4AndV6Ports.Add(foundPort);
 
                 foundPortCount++;
 
