@@ -142,7 +142,7 @@ internal sealed class V3RemotePlayerConnection : PlayerConnection
 #if DEBUG
             Logger.Log($"{GetType().Name}: Invalid target (received: {receiverId}, expected: {PlayerId}) from {socketReceiveFromResult.RemoteEndPoint}.");
 #else
-            Logger.Log($"{GetType().Name}: Invalid target (received: {receiverId}, expected: {GameLocalPlayerId}) on port {localPort}.");
+            Logger.Log($"{GetType().Name}: Invalid target (received: {receiverId}, expected: {PlayerId}) on port {localPort}.");
 #endif
 
             return null;
