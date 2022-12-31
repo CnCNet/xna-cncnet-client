@@ -65,7 +65,7 @@ namespace ClientCore
         public const string INI_NEWLINE_PATTERN = "@";
 
         public const string REPLAYS_DIRECTORY = "Replays";
-        public const string CNCNET_TUNNEL_LIST_URL = "https://cncnet.org/master-list";
+        public const string CNCNET_TUNNEL_LIST_URL = "https://cncnet.org/api/v1/master-list";
         public const string CNCNET_DYNAMIC_TUNNELS = "DYNAMIC";
         public const int GAME_ID_MAX_LENGTH = 4;
 

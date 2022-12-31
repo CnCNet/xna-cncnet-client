@@ -30,7 +30,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
         /// <returns>A CnCNetTunnel instance parsed from the given string.</returns>
         public static CnCNetTunnel Parse(string str)
         {
-            // For the format, check https://cncnet.org/master-list
+            // For the format, check https://cncnet.org/api/v1/master-list
             try
             {
                 var tunnel = new CnCNetTunnel();
