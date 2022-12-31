@@ -63,12 +63,17 @@ internal static class UPnPHandler
 
         internetGatewayDevice ??= await GetInternetGatewayDeviceAsync(cancellationToken).ConfigureAwait(false);
 
-        Task<(IPAddress IpAddress, List<(ushort InternalPort, ushort ExternalPort)> Ports)> ipV4Task = SetupIpV4PortsAsync(internetGatewayDevice, p2pReservedPorts, stunServerIpAddresses, cancellationToken);
-        Task<(IPAddress IpAddress, List<(ushort InternalPort, ushort ExternalPort)> Ports, List<ushort> PortIds)> ipV6Task = SetupIpV6PortsAsync(internetGatewayDevice, p2pReservedPorts, stunServerIpAddresses, cancellationToken);
+        Task<(IPAddress IpAddress, List<(ushort InternalPort, ushort ExternalPort)> Ports)> ipV4Task =
+            SetupIpV4PortsAsync(internetGatewayDevice, p2pReservedPorts, stunServerIpAddresses, cancellationToken);
+        Task<(IPAddress IpAddress, List<(ushort InternalPort, ushort ExternalPort)> Ports, List<ushort> PortIds)> ipV6Task =
+            SetupIpV6PortsAsync(internetGatewayDevice, p2pReservedPorts, stunServerIpAddresses, cancellationToken);
 
         await ClientCore.Extensions.TaskExtensions.WhenAllSafe(new Task[] { ipV4Task, ipV6Task }).ConfigureAwait(false);
 
-        return (internetGatewayDevice, ipV6Task.Result.Ports, ipV4Task.Result.Ports, ipV6Task.Result.PortIds, ipV6Task.Result.IpAddress, ipV4Task.Result.IpAddress);
+        (IPAddress publicIpV4Address, List<(ushort InternalPort, ushort ExternalPort)> ipV4P2PPorts) = await ipV4Task.ConfigureAwait(false);
+        (IPAddress publicIpV6Address, List<(ushort InternalPort, ushort ExternalPort)> ipV6P2PPorts, List<ushort> ipV6P2PPortIds) = await ipV6Task.ConfigureAwait(false);
+
+        return (internetGatewayDevice, ipV6P2PPorts, ipV4P2PPorts, ipV6P2PPortIds, publicIpV6Address, publicIpV4Address);
     }
 
     private static async Task<InternetGatewayDevice> GetInternetGatewayDeviceAsync(CancellationToken cancellationToken)
@@ -151,8 +156,8 @@ internal static class UPnPHandler
 
             await ClientCore.Extensions.TaskExtensions.WhenAllSafe(new Task[] { natRsipStatusTask, externalIpv4AddressTask }).ConfigureAwait(false);
 
-            routerNatEnabled = natRsipStatusTask.Result;
-            routerPublicIpV4Address = externalIpv4AddressTask.Result;
+            routerNatEnabled = await natRsipStatusTask.ConfigureAwait(false);
+            routerPublicIpV4Address = await externalIpv4AddressTask.ConfigureAwait(false);
         }
 
         (IPAddress stunPublicIpV4Address, List<(ushort InternalPort, ushort ExternalPort)> ipV4StunPortMapping) = await NetworkHelper.PerformStunAsync(
@@ -376,7 +381,6 @@ internal static class UPnPHandler
                 try
                 {
                     location = locations.First(q => q.HostNameType is UriHostNameType.IPv4);
-
                     uPnPDescription = await GetUPnPDescription(location, cancellationToken).ConfigureAwait(false);
                 }
                 catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)

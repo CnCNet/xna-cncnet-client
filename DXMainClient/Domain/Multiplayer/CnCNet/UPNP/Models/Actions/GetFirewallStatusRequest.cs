@@ -2,5 +2,5 @@
 
 namespace DTAClient.Domain.Multiplayer.CnCNet.UPNP;
 
-[MessageContract(WrapperName = "GetFirewallStatus", WrapperNamespace = $"{UPnPConstants.UPnPServiceNamespace}:{UPnPConstants.WanIpv6FirewallControl}:1")]
+[MessageContract(WrapperName = UPnPConstants.GetFirewallStatus, WrapperNamespace = $"{UPnPConstants.UPnPServiceNamespace}:{UPnPConstants.WanIpv6FirewallControl}:1")]
 internal readonly record struct GetFirewallStatusRequest;

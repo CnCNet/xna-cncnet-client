@@ -12,5 +12,13 @@ internal static class UPnPConstants
     public const string WanIpConnection = "WANIPConnection";
     public const string WanIpv6FirewallControl = "WANIPv6FirewallControl";
     public const string UPnPRootDevice = "upnp:rootdevice";
+    public const string AddAnyPortMapping = "AddAnyPortMapping";
+    public const string AddPinhole = "AddPinhole";
+    public const string AddPortMapping = "AddPortMapping";
+    public const string DeletePinhole = "DeletePinhole";
+    public const string DeletePortMapping = "DeletePortMapping";
+    public const string GetExternalIPAddress = "GetExternalIPAddress";
+    public const string GetFirewallStatus = "GetFirewallStatus";
+    public const string GetNatRsipStatus = "GetNatRsipStatus";
     public const int UPnPMultiCastPort = 1900;
 }

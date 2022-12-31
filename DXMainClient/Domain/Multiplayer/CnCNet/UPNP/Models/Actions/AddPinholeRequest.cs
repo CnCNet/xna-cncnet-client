@@ -2,7 +2,7 @@
 
 namespace DTAClient.Domain.Multiplayer.CnCNet.UPNP;
 
-[MessageContract(WrapperName = "AddPinhole", WrapperNamespace = $"{UPnPConstants.UPnPServiceNamespace}:{UPnPConstants.WanIpv6FirewallControl}:1")]
+[MessageContract(WrapperName = UPnPConstants.AddPinhole, WrapperNamespace = $"{UPnPConstants.UPnPServiceNamespace}:{UPnPConstants.WanIpv6FirewallControl}:1")]
 internal readonly record struct AddPinholeRequest(
     [property: MessageBodyMember(Name = "RemoteHost")] string RemoteHost,
     [property: MessageBodyMember(Name = "RemotePort")] ushort RemotePort, // 0 = wildcard

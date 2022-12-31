@@ -147,14 +147,14 @@ internal static class NetworkHelper
     public static async ValueTask<(IPAddress IPAddress, List<(ushort InternalPort, ushort ExternalPort)> PortMapping)> PerformStunAsync(
         List<IPAddress> stunServerIpAddresses, List<ushort> p2pReservedPorts, AddressFamily addressFamily, CancellationToken cancellationToken)
     {
-        Logger.Log($"Using STUN to detect {addressFamily} address.");
+        Logger.Log($"P2P: Using STUN to detect {addressFamily} address.");
 
         var stunPortMapping = new List<(ushort InternalPort, ushort ExternalPort)>();
         List<IPAddress> matchingStunServerIpAddresses = stunServerIpAddresses.Where(q => q.AddressFamily == addressFamily).ToList();
 
         if (!matchingStunServerIpAddresses.Any())
         {
-            Logger.Log($"No {addressFamily} STUN servers found.");
+            Logger.Log($"P2P: No {addressFamily} STUN servers found.");
 
             return (null, stunPortMapping);
         }
@@ -182,13 +182,13 @@ internal static class NetworkHelper
         }
 
         if (stunPublicAddress is not null)
-            Logger.Log($"{addressFamily} STUN detection succeeded.");
+            Logger.Log($"P2P: {addressFamily} STUN detection succeeded.");
         else
-            Logger.Log($"{addressFamily} STUN detection failed.");
+            Logger.Log($"P2P: {addressFamily} STUN detection failed.");
 
         if (stunPortMapping.Any())
         {
-            Logger.Log($"{addressFamily} STUN detection detected mapped ports, running STUN keep alive.");
+            Logger.Log($"P2P: {addressFamily} STUN detection detected mapped ports, running STUN keep alive.");
 #pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
             KeepStunAliveAsync(
                 stunServerIpAddress,
@@ -307,11 +307,11 @@ internal static class NetworkHelper
             }
             catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
             {
-                Logger.Log($"STUN server {stunServerIpEndPoint} unreachable.");
+                Logger.Log($"P2P: STUN server {stunServerIpEndPoint} unreachable.");
             }
             catch (Exception ex)
             {
-                ProgramConstants.LogException(ex, $"STUN server {stunServerIpEndPoint} unreachable.");
+                ProgramConstants.LogException(ex, $"P2P: STUN server {stunServerIpEndPoint} unreachable.");
             }
         }
 
@@ -335,11 +335,11 @@ internal static class NetworkHelper
         }
         catch (OperationCanceledException)
         {
-            Logger.Log($"{stunServerIpAddress.AddressFamily} STUN keep alive stopped.");
+            Logger.Log($"P2P: {stunServerIpAddress.AddressFamily} STUN keep alive stopped.");
         }
         catch (Exception ex)
         {
-            ProgramConstants.LogException(ex, "STUN keep alive failed.");
+            ProgramConstants.LogException(ex, "P2P: STUN keep alive failed.");
         }
     }
 }

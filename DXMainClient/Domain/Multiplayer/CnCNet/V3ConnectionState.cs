@@ -6,7 +6,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
-using ClientCore;
+using ClientCore.Extensions;
 using DTAClient.Domain.Multiplayer.CnCNet.Replays;
 using DTAClient.Domain.Multiplayer.CnCNet.UPNP;
 using Rampastring.Tools;
@@ -146,15 +146,19 @@ internal sealed class V3ConnectionState : IAsyncDisposable
         string[] splitLines = p2pRequestMessage.Split(';');
         string[] ipV4splitLines = splitLines[0].Split('\t');
         string[] ipV6splitLines = splitLines[1].Split('\t');
-        (IPAddress remoteIpAddress, ushort[] remotePlayerIpV4Ports, long? ping) = await PingP2PAddressAsync(ipV4splitLines, playerName).ConfigureAwait(false);
+        Task<(IPAddress IpAddress, ushort[] Ports, long? Ping)> ipV4Task = PingP2PAddressAsync(ipV4splitLines, playerName);
+        Task<(IPAddress IpAddress, ushort[] Ports, long? Ping)> ipV6Task = PingP2PAddressAsync(ipV6splitLines, playerName);
 
-        if (ping is not null)
-            localPingResults.Add(new(remoteIpAddress, ping.Value));
+        await ClientCore.Extensions.TaskExtensions.WhenAllSafe(new Task[] { ipV4Task, ipV6Task }).ConfigureAwait(false);
 
-        (remoteIpAddress, ushort[] remotePlayerIpV6Ports, ping) = await PingP2PAddressAsync(ipV6splitLines, playerName).ConfigureAwait(false);
+        (IPAddress remoteIpV4Address, ushort[] remoteIpV4Ports, long? ipV4Ping) = await ipV4Task.ConfigureAwait(false);
+        (IPAddress remoteIpV6Address, ushort[] remoteIpV6Ports, long? ipV6Ping) = await ipV6Task.ConfigureAwait(false);
 
-        if (ping is not null)
-            localPingResults.Add(new(remoteIpAddress, ping.Value));
+        if (ipV4Ping is not null)
+            localPingResults.Add(new(remoteIpV4Address, ipV4Ping.Value));
+
+        if (ipV6Ping is not null)
+            localPingResults.Add(new(remoteIpV6Address, ipV6Ping.Value));
 
         P2PPlayer remoteP2PPlayer;
 
@@ -169,7 +173,7 @@ internal sealed class V3ConnectionState : IAsyncDisposable
             remoteP2PPlayer = new(playerName, Array.Empty<ushort>(), Array.Empty<ushort>(), new(), new());
         }
 
-        P2PPlayers.Add(remoteP2PPlayer with { LocalPingResults = localPingResults, RemoteIpV6Ports = remotePlayerIpV6Ports, RemoteIpV4Ports = remotePlayerIpV4Ports });
+        P2PPlayers.Add(remoteP2PPlayer with { LocalPingResults = localPingResults, RemoteIpV6Ports = remoteIpV6Ports, RemoteIpV4Ports = remoteIpV4Ports });
 
         return localPingResults.Any();
     }
@@ -393,7 +397,7 @@ internal sealed class V3ConnectionState : IAsyncDisposable
         return hash;
     }
 
-    private static async ValueTask<(IPAddress IpAddress, ushort[] Ports, long? Ping)> PingP2PAddressAsync(IReadOnlyList<string> ipAddressInfo, string playerName)
+    private static async Task<(IPAddress IpAddress, ushort[] Ports, long? Ping)> PingP2PAddressAsync(IReadOnlyList<string> ipAddressInfo, string playerName)
     {
         if (!IPAddress.TryParse(ipAddressInfo[0], out IPAddress parsedIpAddress))
             return new(null, Array.Empty<ushort>(), null);

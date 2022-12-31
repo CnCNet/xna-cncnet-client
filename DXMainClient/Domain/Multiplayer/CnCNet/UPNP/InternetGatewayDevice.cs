@@ -86,7 +86,7 @@ internal sealed record InternetGatewayDevice(
             case 2:
                 var addAnyPortMappingRequest = new AddAnyPortMappingRequest(string.Empty, port, "UDP", port, ipAddress.ToString(), 1, PortMappingDescription, IpLeaseTimeInSeconds);
                 AddAnyPortMappingResponse addAnyPortMappingResponse = await DoSoapActionAsync<AddAnyPortMappingRequest, AddAnyPortMappingResponse>(
-                    addAnyPortMappingRequest, $"{UPnPConstants.WanIpConnection}:{uPnPVersion}", "AddAnyPortMapping", AddressFamily.InterNetwork, cancellationToken).ConfigureAwait(false);
+                    addAnyPortMappingRequest, $"{UPnPConstants.WanIpConnection}:{uPnPVersion}", UPnPConstants.AddAnyPortMapping, AddressFamily.InterNetwork, cancellationToken).ConfigureAwait(false);
 
                 port = addAnyPortMappingResponse.ReservedPort;
 
@@ -121,14 +121,14 @@ internal sealed record InternetGatewayDevice(
                     var deletePortMappingRequestV2 = new DeletePortMappingRequestV2(string.Empty, port, "UDP");
 
                     await DoSoapActionAsync<DeletePortMappingRequestV2, DeletePortMappingResponseV2>(
-                        deletePortMappingRequestV2, $"{UPnPConstants.WanIpConnection}:{uPnPVersion}", "DeletePortMapping", AddressFamily.InterNetwork, cancellationToken).ConfigureAwait(false);
+                        deletePortMappingRequestV2, $"{UPnPConstants.WanIpConnection}:{uPnPVersion}", UPnPConstants.DeletePortMapping, AddressFamily.InterNetwork, cancellationToken).ConfigureAwait(false);
 
                     break;
                 case 1:
                     var deletePortMappingRequestV1 = new DeletePortMappingRequestV1(string.Empty, port, "UDP");
 
                     await DoSoapActionAsync<DeletePortMappingRequestV1, DeletePortMappingResponseV1>(
-                        deletePortMappingRequestV1, $"{UPnPConstants.WanIpConnection}:{uPnPVersion}", "DeletePortMapping", AddressFamily.InterNetwork, cancellationToken).ConfigureAwait(false);
+                        deletePortMappingRequestV1, $"{UPnPConstants.WanIpConnection}:{uPnPVersion}", UPnPConstants.DeletePortMapping, AddressFamily.InterNetwork, cancellationToken).ConfigureAwait(false);
 
                     break;
                 default:
@@ -156,14 +156,14 @@ internal sealed record InternetGatewayDevice(
             {
                 case 2:
                     GetExternalIPAddressResponseV2 getExternalIpAddressResponseV2 = await DoSoapActionAsync<GetExternalIPAddressRequestV2, GetExternalIPAddressResponseV2>(
-                        default, $"{UPnPConstants.WanIpConnection}:{uPnPVersion}", "GetExternalIPAddress", AddressFamily.InterNetwork, cancellationToken).ConfigureAwait(false);
+                        default, $"{UPnPConstants.WanIpConnection}:{uPnPVersion}", UPnPConstants.GetExternalIPAddress, AddressFamily.InterNetwork, cancellationToken).ConfigureAwait(false);
 
                     ipAddress = string.IsNullOrWhiteSpace(getExternalIpAddressResponseV2.ExternalIPAddress) ? null : IPAddress.Parse(getExternalIpAddressResponseV2.ExternalIPAddress);
 
                     break;
                 case 1:
                     GetExternalIPAddressResponseV1 getExternalIpAddressResponseV1 = await DoSoapActionAsync<GetExternalIPAddressRequestV1, GetExternalIPAddressResponseV1>(
-                        default, $"{UPnPConstants.WanIpConnection}:{uPnPVersion}", "GetExternalIPAddress", AddressFamily.InterNetwork, cancellationToken).ConfigureAwait(false);
+                        default, $"{UPnPConstants.WanIpConnection}:{uPnPVersion}", UPnPConstants.GetExternalIPAddress, AddressFamily.InterNetwork, cancellationToken).ConfigureAwait(false);
 
                     ipAddress = string.IsNullOrWhiteSpace(getExternalIpAddressResponseV1.ExternalIPAddress) ? null : IPAddress.Parse(getExternalIpAddressResponseV1.ExternalIPAddress);
                     break;
@@ -193,14 +193,14 @@ internal sealed record InternetGatewayDevice(
             {
                 case 2:
                     GetNatRsipStatusResponseV2 getNatRsipStatusResponseV2 = await DoSoapActionAsync<GetNatRsipStatusRequestV2, GetNatRsipStatusResponseV2>(
-                        default, $"{UPnPConstants.WanIpConnection}:{uPnPVersion}", "GetNatRsipStatus", AddressFamily.InterNetwork, cancellationToken).ConfigureAwait(false);
+                        default, $"{UPnPConstants.WanIpConnection}:{uPnPVersion}", UPnPConstants.GetNatRsipStatus, AddressFamily.InterNetwork, cancellationToken).ConfigureAwait(false);
 
                     natEnabled = getNatRsipStatusResponseV2.NatEnabled;
 
                     break;
                 case 1:
                     GetNatRsipStatusResponseV1 getNatRsipStatusResponseV1 = await DoSoapActionAsync<GetNatRsipStatusRequestV1, GetNatRsipStatusResponseV1>(
-                        default, $"{UPnPConstants.WanIpConnection}:{uPnPVersion}", "GetNatRsipStatus", AddressFamily.InterNetwork, cancellationToken).ConfigureAwait(false);
+                        default, $"{UPnPConstants.WanIpConnection}:{uPnPVersion}", UPnPConstants.GetNatRsipStatus, AddressFamily.InterNetwork, cancellationToken).ConfigureAwait(false);
 
                     natEnabled = getNatRsipStatusResponseV1.NatEnabled;
                     break;
@@ -224,7 +224,7 @@ internal sealed record InternetGatewayDevice(
             Logger.Log($"P2P: Checking IPV6 firewall status on UPnP device {UPnPDescription.Device.FriendlyName}.");
 
             GetFirewallStatusResponse response = await DoSoapActionAsync<GetFirewallStatusRequest, GetFirewallStatusResponse>(
-                default, $"{UPnPConstants.WanIpv6FirewallControl}:1", "GetFirewallStatus", AddressFamily.InterNetworkV6, cancellationToken).ConfigureAwait(false);
+                default, $"{UPnPConstants.WanIpv6FirewallControl}:1", UPnPConstants.GetFirewallStatus, AddressFamily.InterNetworkV6, cancellationToken).ConfigureAwait(false);
 
             Logger.Log($"P2P: Received IPV6 firewall status {response.FirewallEnabled} and port mapping allowed {response.InboundPinholeAllowed} on UPnP device {UPnPDescription.Device.FriendlyName}.");
 
@@ -242,7 +242,7 @@ internal sealed record InternetGatewayDevice(
 
         var request = new AddPinholeRequest(string.Empty, port, ipAddress.ToString(), port, IanaUdpProtocolNumber, IpLeaseTimeInSeconds);
         AddPinholeResponse response = await DoSoapActionAsync<AddPinholeRequest, AddPinholeResponse>(
-            request, $"{UPnPConstants.WanIpv6FirewallControl}:1", "AddPinhole", AddressFamily.InterNetworkV6, cancellationToken).ConfigureAwait(false);
+            request, $"{UPnPConstants.WanIpv6FirewallControl}:1", UPnPConstants.AddPinhole, AddressFamily.InterNetworkV6, cancellationToken).ConfigureAwait(false);
 
         Logger.Log($"P2P: Opened IPV6 UDP port {port} with ID {response.UniqueId} on UPnP device {UPnPDescription.Device.FriendlyName}.");
 
@@ -255,7 +255,7 @@ internal sealed record InternetGatewayDevice(
         {
             Logger.Log($"P2P: Deleting IPV6 UDP port with ID {uniqueId} on UPnP device {UPnPDescription.Device.FriendlyName}.");
             await DoSoapActionAsync<DeletePinholeRequest, DeletePinholeResponse>(
-                new(uniqueId), $"{UPnPConstants.WanIpv6FirewallControl}:1", "DeletePinhole", AddressFamily.InterNetworkV6, cancellationToken).ConfigureAwait(false);
+                new(uniqueId), $"{UPnPConstants.WanIpv6FirewallControl}:1", UPnPConstants.DeletePinhole, AddressFamily.InterNetworkV6, cancellationToken).ConfigureAwait(false);
             Logger.Log($"P2P: Deleted IPV6 UDP port with ID {uniqueId} on UPnP device {UPnPDescription.Device.FriendlyName}.");
         }
         catch (Exception ex)
