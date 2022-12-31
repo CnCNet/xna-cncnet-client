@@ -1,8 +1,8 @@
 ﻿using System.ServiceModel;
 
-namespace DTAClient.Domain.Multiplayer.CnCNet;
+namespace DTAClient.Domain.Multiplayer.CnCNet.UPNP;
 
-[MessageContract(WrapperName = "GetNatRsipStatusResponse", WrapperNamespace = "urn:schemas-upnp-org:service:WANIPConnection:1")]
+[MessageContract(WrapperName = "GetNatRsipStatusResponse", WrapperNamespace = $"{UPnPConstants.UPnPServiceNamespace}:{UPnPConstants.WanIpConnection}:1")]
 public readonly record struct GetNatRsipStatusResponseV1(
     [property: MessageBodyMember(Name = "NewRSIPAvailable")] bool RsipAvailable,
     [property: MessageBodyMember(Name = "NewNATEnabled")] bool NatEnabled);

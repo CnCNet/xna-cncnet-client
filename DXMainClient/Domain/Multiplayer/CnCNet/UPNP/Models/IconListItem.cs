@@ -1,8 +1,8 @@
 ﻿using System.Runtime.Serialization;
 
-namespace DTAClient.Domain.Multiplayer.CnCNet;
+namespace DTAClient.Domain.Multiplayer.CnCNet.UPNP;
 
-[DataContract(Name = "icon", Namespace = "urn:schemas-upnp-org:device-1-0")]
+[DataContract(Name = "icon", Namespace = UPnPConstants.UPnPDevice10Namespace)]
 internal readonly record struct IconListItem(
     [property: DataMember(Name = "mimetype", Order = 0)] string Mimetype,
     [property: DataMember(Name = "width", Order = 1)] int Width,

@@ -1,8 +1,8 @@
 ﻿using System.Runtime.Serialization;
 
-namespace DTAClient.Domain.Multiplayer.CnCNet;
+namespace DTAClient.Domain.Multiplayer.CnCNet.UPNP;
 
-[DataContract(Name = "systemVersion", Namespace = "urn:schemas-upnp-org:device-1-0")]
+[DataContract(Name = "systemVersion", Namespace = UPnPConstants.UPnPDevice10Namespace)]
 internal readonly record struct SystemVersion(
     [property: DataMember(Name = "HW", Order = 0)] int Hw,
     [property: DataMember(Name = "Major", Order = 1)] int Major,

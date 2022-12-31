@@ -1,8 +1,8 @@
 ﻿using System.Runtime.Serialization;
 
-namespace DTAClient.Domain.Multiplayer.CnCNet;
+namespace DTAClient.Domain.Multiplayer.CnCNet.UPNP;
 
-[DataContract(Name = "service", Namespace = "urn:schemas-upnp-org:device-1-0")]
+[DataContract(Name = "service", Namespace = UPnPConstants.UPnPDevice10Namespace)]
 internal readonly record struct ServiceListItem(
     [property: DataMember(Name = "serviceType", Order = 0)] string ServiceType,
     [property: DataMember(Name = "serviceId", Order = 1)] string ServiceId,

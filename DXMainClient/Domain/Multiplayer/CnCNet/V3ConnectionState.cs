@@ -433,39 +433,16 @@ internal sealed class V3ConnectionState : IAsyncDisposable
 
     private async ValueTask CloseP2PPortsAsync()
     {
-        try
-        {
-            if (internetGatewayDevice is not null)
-            {
-                foreach (ushort p2pPort in ipV4P2PPorts.Select(q => q.InternalPort))
-                    await internetGatewayDevice.CloseIpV4PortAsync(p2pPort).ConfigureAwait(false);
-            }
-        }
-        catch (Exception ex)
-        {
-            ProgramConstants.LogException(ex, "Could not close P2P IPV4 ports.");
-        }
-        finally
-        {
-            ipV4P2PPorts.Clear();
-        }
+        if (internetGatewayDevice is null)
+            return;
 
-        try
-        {
-            if (internetGatewayDevice is not null)
-            {
-                foreach (ushort p2pIpV6PortId in p2pIpV6PortIds)
-                    await internetGatewayDevice.CloseIpV6PortAsync(p2pIpV6PortId).ConfigureAwait(false);
-            }
-        }
-        catch (Exception ex)
-        {
-            ProgramConstants.LogException(ex, "Could not close P2P IPV6 ports.");
-        }
-        finally
-        {
-            ipV6P2PPorts.Clear();
-            p2pIpV6PortIds.Clear();
-        }
+        Task ipV4Task = ClientCore.Extensions.TaskExtensions.WhenAllSafe(ipV4P2PPorts.Select(q => internetGatewayDevice.CloseIpV4PortAsync(q.InternalPort, CancellationToken.None)));
+        Task ipV6Task = ClientCore.Extensions.TaskExtensions.WhenAllSafe(p2pIpV6PortIds.Select(q => internetGatewayDevice.CloseIpV6PortAsync(q, CancellationToken.None)));
+
+        ipV4P2PPorts.Clear();
+        ipV6P2PPorts.Clear();
+        p2pIpV6PortIds.Clear();
+
+        await ClientCore.Extensions.TaskExtensions.WhenAllSafe(new[] { ipV4Task, ipV6Task }).ConfigureAwait(false);
     }
 }

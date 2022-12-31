@@ -5,10 +5,12 @@ using System.Linq;
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
+using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
 using System.Threading;
 using System.Threading.Tasks;
 using ClientCore;
+using ClientCore.Extensions;
 using Rampastring.Tools;
 
 namespace DTAClient.Domain.Multiplayer;
@@ -57,6 +59,26 @@ internal static class NetworkHelper
         uint broadCastIpAddress = ipAddress | ~ipMaskV4;
 
         return new(BitConverter.GetBytes(broadCastIpAddress));
+    }
+
+    public static IPAddress GetLocalPublicIpV6Address()
+    {
+        if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            return GetPublicIpAddresses().FirstOrDefault(q => q.AddressFamily is AddressFamily.InterNetworkV6);
+
+        var localIpV6Addresses = GetWindowsPublicIpAddresses()
+            .Where(q => q.IpAddress.AddressFamily is AddressFamily.InterNetworkV6).ToList();
+
+        (IPAddress IpAddress, PrefixOrigin PrefixOrigin, SuffixOrigin SuffixOrigin) foundLocalPublicIpV6Address = localIpV6Addresses
+            .FirstOrDefault(q => q.PrefixOrigin is PrefixOrigin.RouterAdvertisement && q.SuffixOrigin is SuffixOrigin.LinkLayerAddress);
+
+        if (foundLocalPublicIpV6Address.IpAddress is null)
+        {
+            foundLocalPublicIpV6Address = localIpV6Addresses.FirstOrDefault(
+                q => q.PrefixOrigin is PrefixOrigin.Dhcp && q.SuffixOrigin is SuffixOrigin.OriginDhcp);
+        }
+
+        return foundLocalPublicIpV6Address.IpAddress;
     }
 
     public static async ValueTask<IPAddress> TracePublicIpV4Address(CancellationToken cancellationToken)
@@ -122,88 +144,59 @@ internal static class NetworkHelper
         return null;
     }
 
-    public static async ValueTask<IPEndPoint> PerformStunAsync(IPAddress stunServerIpAddress, ushort localPort, CancellationToken cancellationToken)
+    public static async ValueTask<(IPAddress IPAddress, List<(ushort InternalPort, ushort ExternalPort)> PortMapping)> PerformStunAsync(
+        List<IPAddress> stunServerIpAddresses, List<ushort> p2pReservedPorts, AddressFamily addressFamily, CancellationToken cancellationToken)
     {
-        const short stunId = 26262;
-        const int stunPort1 = 3478;
-        const int stunPort2 = 8054;
-        const int stunSize = 48;
-        int[] stunPorts = { stunPort1, stunPort2 };
-        using var socket = new Socket(SocketType.Dgram, ProtocolType.Udp);
-        short stunIdNetworkOrder = IPAddress.HostToNetworkOrder(stunId);
-        using IMemoryOwner<byte> receiveMemoryOwner = MemoryPool<byte>.Shared.Rent(stunSize);
-        Memory<byte> buffer = receiveMemoryOwner.Memory[..stunSize];
+        Logger.Log($"Using STUN to detect {addressFamily} address.");
 
-        if (!BitConverter.TryWriteBytes(buffer.Span, stunIdNetworkOrder))
-            throw new();
+        var stunPortMapping = new List<(ushort InternalPort, ushort ExternalPort)>();
+        List<IPAddress> matchingStunServerIpAddresses = stunServerIpAddresses.Where(q => q.AddressFamily == addressFamily).ToList();
 
-        IPEndPoint stunServerIpEndPoint = null;
-        int addressBytes = stunServerIpAddress.GetAddressBytes().Length;
-        const int portBytes = sizeof(ushort);
-
-        socket.Bind(new IPEndPoint(IPAddress.IPv6Any, localPort));
-
-        foreach (int stunPort in stunPorts)
+        if (!matchingStunServerIpAddresses.Any())
         {
-            try
+            Logger.Log($"No {addressFamily} STUN servers found.");
+
+            return (null, stunPortMapping);
+        }
+
+        IPAddress stunPublicAddress = null;
+        IPAddress stunServerIpAddress = null;
+
+        foreach (IPAddress matchingStunServerIpAddress in matchingStunServerIpAddresses.TakeWhile(_ => stunPublicAddress is null))
+        {
+            stunServerIpAddress = matchingStunServerIpAddress;
+
+            foreach (ushort p2pReservedPort in p2pReservedPorts)
             {
-                using var timeoutCancellationTokenSource = new CancellationTokenSource(PingTimeout);
-                using var linkedCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(timeoutCancellationTokenSource.Token, cancellationToken);
+                IPEndPoint stunPublicIpEndPoint = await PerformStunAsync(
+                    stunServerIpAddress, p2pReservedPort, addressFamily, cancellationToken).ConfigureAwait(false);
 
-                stunServerIpEndPoint = new(stunServerIpAddress, stunPort);
+                if (stunPublicIpEndPoint is null)
+                    break;
 
-                await socket.SendToAsync(buffer, stunServerIpEndPoint, linkedCancellationTokenSource.Token).ConfigureAwait(false);
+                stunPublicAddress = stunPublicIpEndPoint.Address;
 
-                SocketReceiveFromResult socketReceiveFromResult = await socket.ReceiveFromAsync(
-                    buffer, SocketFlags.None, stunServerIpEndPoint, linkedCancellationTokenSource.Token).ConfigureAwait(false);
-
-                buffer = buffer[..socketReceiveFromResult.ReceivedBytes];
-
-                // de-obfuscate
-                for (int i = 0; i < addressBytes + portBytes; i++)
-                    buffer.Span[i] ^= 0x20;
-
-                ReadOnlyMemory<byte> publicIpAddressBytes = buffer[..addressBytes];
-                var publicIpAddress = new IPAddress(publicIpAddressBytes.Span);
-                ReadOnlyMemory<byte> publicPortBytes = buffer[addressBytes..(addressBytes + portBytes)];
-                short publicPortNetworkOrder = BitConverter.ToInt16(publicPortBytes.Span);
-                short publicPortHostOrder = IPAddress.NetworkToHostOrder(publicPortNetworkOrder);
-                ushort publicPort = (ushort)publicPortHostOrder;
-
-                return new(publicIpAddress, publicPort);
-            }
-            catch (Exception ex) when (ex is not OperationCanceledException || !cancellationToken.IsCancellationRequested)
-            {
-                ProgramConstants.LogException(ex, $"STUN server {stunServerIpEndPoint} failed.");
+                if (p2pReservedPort != stunPublicIpEndPoint.Port)
+                    stunPortMapping.Add(new(p2pReservedPort, (ushort)stunPublicIpEndPoint.Port));
             }
         }
 
-        return null;
-    }
+        if (stunPublicAddress is not null)
+            Logger.Log($"{addressFamily} STUN detection succeeded.");
+        else
+            Logger.Log($"{addressFamily} STUN detection failed.");
 
-    public static async Task KeepStunAliveAsync(IPAddress stunServerIpAddress, List<ushort> localPorts, CancellationToken cancellationToken)
-    {
-        try
+        if (stunPortMapping.Any())
         {
-            while (!cancellationToken.IsCancellationRequested)
-            {
-                foreach (ushort localPort in localPorts)
-                {
-                    await PerformStunAsync(stunServerIpAddress, localPort, cancellationToken).ConfigureAwait(false);
-                    await Task.Delay(100, cancellationToken).ConfigureAwait(false);
-                }
+            Logger.Log($"{addressFamily} STUN detection detected mapped ports, running STUN keep alive.");
+#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
+            KeepStunAliveAsync(
+                stunServerIpAddress,
+                stunPortMapping.Select(q => q.InternalPort).ToList(), cancellationToken).HandleTask();
+#pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
+        }
 
-                await Task.Delay(5000, cancellationToken).ConfigureAwait(false);
-            }
-        }
-        catch (OperationCanceledException)
-        {
-            Logger.Log($"{stunServerIpAddress.AddressFamily} STUN keep alive stopped.");
-        }
-        catch (Exception ex)
-        {
-            ProgramConstants.LogException(ex, "STUN keep alive failed.");
-        }
+        return (stunPublicAddress, stunPortMapping);
     }
 
     /// <summary>
@@ -260,5 +253,93 @@ internal static class NetworkHelper
         uint ip = BitConverter.ToUInt32(address.GetAddressBytes().Reverse().ToArray(), 0);
 
         return ip >= ipStart && ip <= ipEnd;
+    }
+
+    private static async ValueTask<IPEndPoint> PerformStunAsync(IPAddress stunServerIpAddress, ushort localPort, AddressFamily addressFamily, CancellationToken cancellationToken)
+    {
+        const short stunId = 26262;
+        const int stunPort1 = 3478;
+        const int stunPort2 = 8054;
+        const int stunSize = 48;
+        int[] stunPorts = { stunPort1, stunPort2 };
+        using var socket = new Socket(addressFamily, SocketType.Dgram, ProtocolType.Udp);
+        short stunIdNetworkOrder = IPAddress.HostToNetworkOrder(stunId);
+        using IMemoryOwner<byte> receiveMemoryOwner = MemoryPool<byte>.Shared.Rent(stunSize);
+        Memory<byte> buffer = receiveMemoryOwner.Memory[..stunSize];
+
+        if (!BitConverter.TryWriteBytes(buffer.Span, stunIdNetworkOrder))
+            throw new();
+
+        IPEndPoint stunServerIpEndPoint = null;
+        int addressBytes = stunServerIpAddress.GetAddressBytes().Length;
+        const int portBytes = sizeof(ushort);
+
+        socket.Bind(new IPEndPoint(addressFamily is AddressFamily.InterNetworkV6 ? IPAddress.IPv6Any : IPAddress.Any, localPort));
+
+        foreach (int stunPort in stunPorts)
+        {
+            try
+            {
+                using var timeoutCancellationTokenSource = new CancellationTokenSource(PingTimeout);
+                using var linkedCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(timeoutCancellationTokenSource.Token, cancellationToken);
+
+                stunServerIpEndPoint = new(stunServerIpAddress, stunPort);
+
+                await socket.SendToAsync(buffer, stunServerIpEndPoint, linkedCancellationTokenSource.Token).ConfigureAwait(false);
+
+                SocketReceiveFromResult socketReceiveFromResult = await socket.ReceiveFromAsync(
+                    buffer, SocketFlags.None, stunServerIpEndPoint, linkedCancellationTokenSource.Token).ConfigureAwait(false);
+
+                buffer = buffer[..socketReceiveFromResult.ReceivedBytes];
+
+                // de-obfuscate
+                for (int i = 0; i < addressBytes + portBytes; i++)
+                    buffer.Span[i] ^= 0x20;
+
+                ReadOnlyMemory<byte> publicIpAddressBytes = buffer[..addressBytes];
+                var publicIpAddress = new IPAddress(publicIpAddressBytes.Span);
+                ReadOnlyMemory<byte> publicPortBytes = buffer[addressBytes..(addressBytes + portBytes)];
+                short publicPortNetworkOrder = BitConverter.ToInt16(publicPortBytes.Span);
+                short publicPortHostOrder = IPAddress.NetworkToHostOrder(publicPortNetworkOrder);
+                ushort publicPort = (ushort)publicPortHostOrder;
+
+                return new(publicIpAddress, publicPort);
+            }
+            catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+            {
+                Logger.Log($"STUN server {stunServerIpEndPoint} unreachable.");
+            }
+            catch (Exception ex)
+            {
+                ProgramConstants.LogException(ex, $"STUN server {stunServerIpEndPoint} unreachable.");
+            }
+        }
+
+        return null;
+    }
+
+    private static async Task KeepStunAliveAsync(IPAddress stunServerIpAddress, List<ushort> localPorts, CancellationToken cancellationToken)
+    {
+        try
+        {
+            while (!cancellationToken.IsCancellationRequested)
+            {
+                foreach (ushort localPort in localPorts)
+                {
+                    await PerformStunAsync(stunServerIpAddress, localPort, stunServerIpAddress.AddressFamily, cancellationToken).ConfigureAwait(false);
+                    await Task.Delay(100, cancellationToken).ConfigureAwait(false);
+                }
+
+                await Task.Delay(5000, cancellationToken).ConfigureAwait(false);
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            Logger.Log($"{stunServerIpAddress.AddressFamily} STUN keep alive stopped.");
+        }
+        catch (Exception ex)
+        {
+            ProgramConstants.LogException(ex, "STUN keep alive failed.");
+        }
     }
 }

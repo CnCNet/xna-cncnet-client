@@ -1,9 +1,9 @@
 ﻿using System.ServiceModel;
 
-namespace DTAClient.Domain.Multiplayer.CnCNet;
+namespace DTAClient.Domain.Multiplayer.CnCNet.UPNP;
 
-[MessageContract(WrapperName = "AddPortMapping", WrapperNamespace = "urn:schemas-upnp-org:service:WANIPConnection:1")]
-internal readonly record struct AddPortMappingRequest(
+[MessageContract(WrapperName = "AddAnyPortMapping", WrapperNamespace = $"{UPnPConstants.UPnPServiceNamespace}:{UPnPConstants.WanIpConnection}:2")]
+internal readonly record struct AddAnyPortMappingRequest(
     [property: MessageBodyMember(Name = "NewRemoteHost")] string RemoteHost, // “x.x.x.x” or empty string
     [property: MessageBodyMember(Name = "NewExternalPort")] ushort ExternalPort,
     [property: MessageBodyMember(Name = "NewProtocol")] string Protocol, // TCP or UDP

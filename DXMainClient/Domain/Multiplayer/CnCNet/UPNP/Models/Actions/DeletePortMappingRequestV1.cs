@@ -1,8 +1,8 @@
 ﻿using System.ServiceModel;
 
-namespace DTAClient.Domain.Multiplayer.CnCNet;
+namespace DTAClient.Domain.Multiplayer.CnCNet.UPNP;
 
-[MessageContract(WrapperName = "DeletePortMapping", WrapperNamespace = "urn:schemas-upnp-org:service:WANIPConnection:1")]
+[MessageContract(WrapperName = "DeletePortMapping", WrapperNamespace = $"{UPnPConstants.UPnPServiceNamespace}:{UPnPConstants.WanIpConnection}:1")]
 internal readonly record struct DeletePortMappingRequestV1(
     [property: MessageBodyMember(Name = "NewRemoteHost")] string RemoteHost, // “x.x.x.x” or empty string
     [property: MessageBodyMember(Name = "NewExternalPort")] ushort ExternalPort,

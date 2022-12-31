@@ -1,8 +1,8 @@
 ﻿using System.Runtime.Serialization;
 
-namespace DTAClient.Domain.Multiplayer.CnCNet;
+namespace DTAClient.Domain.Multiplayer.CnCNet.UPNP;
 
-[DataContract(Name = "device", Namespace = "urn:schemas-upnp-org:device-1-0")]
+[DataContract(Name = "device", Namespace = UPnPConstants.UPnPDevice10Namespace)]
 internal readonly record struct Device(
     [property: DataMember(Name = "deviceType", Order = 0)] string DeviceType,
     [property: DataMember(Name = "friendlyName", Order = 1)] string FriendlyName,

@@ -1,4 +1,4 @@
-﻿namespace DTAClient.Domain.Multiplayer.CnCNet;
+﻿namespace DTAClient.Domain.Multiplayer.CnCNet.UPNP;
 
 internal enum AddressType
 {
