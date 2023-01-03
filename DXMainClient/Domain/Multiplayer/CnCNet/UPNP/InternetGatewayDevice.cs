@@ -77,7 +77,7 @@ internal sealed record InternetGatewayDevice(
 
     public async Task<ushort> OpenIpV4PortAsync(IPAddress ipAddress, ushort port, CancellationToken cancellationToken)
     {
-        Logger.Log($"P2P: Opening IPV4 UDP port {port} on UPnP device {UPnPDescription.Device.FriendlyName}.");
+        Logger.Log($"P2P: Opening IPV4 UDP port {port}.");
 
         int uPnPVersion = GetDeviceUPnPVersion();
 
@@ -102,7 +102,7 @@ internal sealed record InternetGatewayDevice(
                 throw new ArgumentException($"P2P: UPnP version {uPnPVersion} is not supported.");
         }
 
-        Logger.Log($"P2P: Opened IPV4 UDP port {port} on UPnP device {UPnPDescription.Device.FriendlyName}.");
+        Logger.Log($"P2P: Opened IPV4 UDP port {port}.");
 
         return port;
     }
@@ -111,7 +111,7 @@ internal sealed record InternetGatewayDevice(
     {
         try
         {
-            Logger.Log($"P2P: Deleting IPV4 UDP port {port} on UPnP device {UPnPDescription.Device.FriendlyName}.");
+            Logger.Log($"P2P: Deleting IPV4 UDP port {port}.");
 
             int uPnPVersion = GetDeviceUPnPVersion();
 
@@ -135,7 +135,7 @@ internal sealed record InternetGatewayDevice(
                     throw new ArgumentException($"P2P: UPnP version {uPnPVersion} is not supported.");
             }
 
-            Logger.Log($"P2P: Deleted IPV4 UDP port {port} on UPnP device {UPnPDescription.Device.FriendlyName}.");
+            Logger.Log($"P2P: Deleted IPV4 UDP port {port}.");
         }
         catch (Exception ex)
         {
@@ -145,7 +145,7 @@ internal sealed record InternetGatewayDevice(
 
     public async Task<IPAddress> GetExternalIpV4AddressAsync(CancellationToken cancellationToken)
     {
-        Logger.Log($"P2P: Requesting external IP address from UPnP device {UPnPDescription.Device.FriendlyName}.");
+        Logger.Log("P2P: Requesting external IP address.");
 
         int uPnPVersion = GetDeviceUPnPVersion();
         IPAddress ipAddress = null;
@@ -171,7 +171,7 @@ internal sealed record InternetGatewayDevice(
                     throw new ArgumentException($"P2P: UPnP version {uPnPVersion} is not supported.");
             }
 
-            Logger.Log($"P2P: Received external IP address {ipAddress} from UPnP device {UPnPDescription.Device.FriendlyName}.");
+            Logger.Log($"P2P: Received external IP address {ipAddress}.");
         }
         catch
         {
@@ -182,7 +182,7 @@ internal sealed record InternetGatewayDevice(
 
     public async Task<bool?> GetNatRsipStatusAsync(CancellationToken cancellationToken)
     {
-        Logger.Log($"P2P: Checking NAT status on UPnP device {UPnPDescription.Device.FriendlyName}.");
+        Logger.Log("P2P: Checking NAT status.");
 
         int uPnPVersion = GetDeviceUPnPVersion();
         bool? natEnabled = null;
@@ -208,7 +208,7 @@ internal sealed record InternetGatewayDevice(
                     throw new ArgumentException($"P2P: UPnP version {uPnPVersion} is not supported.");
             }
 
-            Logger.Log($"P2P: Received NAT status {natEnabled} on UPnP device {UPnPDescription.Device.FriendlyName}.");
+            Logger.Log($"P2P: Received NAT status {natEnabled}.");
         }
         catch
         {
@@ -221,12 +221,12 @@ internal sealed record InternetGatewayDevice(
     {
         try
         {
-            Logger.Log($"P2P: Checking IPV6 firewall status on UPnP device {UPnPDescription.Device.FriendlyName}.");
+            Logger.Log("P2P: Checking IPV6 firewall status.");
 
             GetFirewallStatusResponse response = await DoSoapActionAsync<GetFirewallStatusRequest, GetFirewallStatusResponse>(
                 default, $"{UPnPConstants.WanIpv6FirewallControl}:1", UPnPConstants.GetFirewallStatus, AddressFamily.InterNetworkV6, cancellationToken).ConfigureAwait(false);
 
-            Logger.Log($"P2P: Received IPV6 firewall status {response.FirewallEnabled} and port mapping allowed {response.InboundPinholeAllowed} on UPnP device {UPnPDescription.Device.FriendlyName}.");
+            Logger.Log($"P2P: Received IPV6 firewall status '{response.FirewallEnabled}' and port mapping allowed '{response.InboundPinholeAllowed}'.");
 
             return (response.FirewallEnabled, response.InboundPinholeAllowed);
         }
@@ -238,13 +238,13 @@ internal sealed record InternetGatewayDevice(
 
     public async Task<ushort> OpenIpV6PortAsync(IPAddress ipAddress, ushort port, CancellationToken cancellationToken)
     {
-        Logger.Log($"P2P: Opening IPV6 UDP port {port} on UPnP device {UPnPDescription.Device.FriendlyName}.");
+        Logger.Log($"P2P: Opening IPV6 UDP port {port}.");
 
         var request = new AddPinholeRequest(string.Empty, port, ipAddress.ToString(), port, IanaUdpProtocolNumber, IpLeaseTimeInSeconds);
         AddPinholeResponse response = await DoSoapActionAsync<AddPinholeRequest, AddPinholeResponse>(
             request, $"{UPnPConstants.WanIpv6FirewallControl}:1", UPnPConstants.AddPinhole, AddressFamily.InterNetworkV6, cancellationToken).ConfigureAwait(false);
 
-        Logger.Log($"P2P: Opened IPV6 UDP port {port} with ID {response.UniqueId} on UPnP device {UPnPDescription.Device.FriendlyName}.");
+        Logger.Log($"P2P: Opened IPV6 UDP port {port} with ID {response.UniqueId}.");
 
         return response.UniqueId;
     }
@@ -253,10 +253,10 @@ internal sealed record InternetGatewayDevice(
     {
         try
         {
-            Logger.Log($"P2P: Deleting IPV6 UDP port with ID {uniqueId} on UPnP device {UPnPDescription.Device.FriendlyName}.");
+            Logger.Log($"P2P: Deleting IPV6 UDP port with ID {uniqueId}.");
             await DoSoapActionAsync<DeletePinholeRequest, DeletePinholeResponse>(
                 new(uniqueId), $"{UPnPConstants.WanIpv6FirewallControl}:1", UPnPConstants.DeletePinhole, AddressFamily.InterNetworkV6, cancellationToken).ConfigureAwait(false);
-            Logger.Log($"P2P: Deleted IPV6 UDP port with ID {uniqueId} on UPnP device {UPnPDescription.Device.FriendlyName}.");
+            Logger.Log($"P2P: Deleted IPV6 UDP port with ID {uniqueId}.");
         }
         catch (Exception ex)
         {
@@ -276,7 +276,7 @@ internal sealed record InternetGatewayDevice(
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
-            ProgramConstants.LogException(ex, $"P2P: {action} error/not supported on UPnP device {UPnPDescription.Device.FriendlyName} using {addressFamily}.");
+            ProgramConstants.LogException(ex, $"P2P: {action} error/not supported using {addressFamily}.");
 
             throw;
         }

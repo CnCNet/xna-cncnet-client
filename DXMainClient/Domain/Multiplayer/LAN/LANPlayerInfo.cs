@@ -2,7 +2,6 @@
 using Microsoft.Xna.Framework;
 using System;
 using System.Buffers;
-using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
@@ -24,6 +23,7 @@ namespace DTAClient.Domain.Multiplayer.LAN
 
         private const double SEND_PING_TIMEOUT = 10.0;
         private const double DROP_TIMEOUT = 20.0;
+        private const int SEND_TIMEOUT = 1000;
 
         public TimeSpan TimeSinceLastReceivedMessage { get; set; }
         public TimeSpan TimeSinceLastSentMessage { get; set; }
@@ -40,7 +40,6 @@ namespace DTAClient.Domain.Multiplayer.LAN
                 throw new InvalidOperationException("TcpClient has already been set for this LANPlayerInfo!");
 
             TcpClient = client;
-            TcpClient.SendTimeout = 1000;
         }
 
         /// <summary>
@@ -92,17 +91,16 @@ namespace DTAClient.Domain.Multiplayer.LAN
             using IMemoryOwner<byte> memoryOwner = MemoryPool<byte>.Shared.Rent(bufferSize);
             Memory<byte> buffer = memoryOwner.Memory[..bufferSize];
             int bytes = encoding.GetBytes(message.AsSpan(), buffer.Span);
+            using var timeoutCancellationTokenSource = new CancellationTokenSource(SEND_TIMEOUT);
+            using var linkedCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(timeoutCancellationTokenSource.Token, cancellationToken);
 
             buffer = buffer[..bytes];
 
             try
             {
-                await TcpClient.SendAsync(buffer, cancellationToken).ConfigureAwait(false);
+                await TcpClient.SendAsync(buffer, linkedCancellationTokenSource.Token).ConfigureAwait(false);
             }
-            catch (OperationCanceledException)
-            {
-            }
-            catch (SocketException)
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {
             }
             catch (Exception ex)
@@ -125,7 +123,7 @@ namespace DTAClient.Domain.Multiplayer.LAN
 
             while (!cancellationToken.IsCancellationRequested)
             {
-                int bytesRead;
+                int bytesRead = 0;
                 Memory<byte> message = memoryOwner.Memory[..4096];
 
                 try
@@ -134,19 +132,10 @@ namespace DTAClient.Domain.Multiplayer.LAN
                 }
                 catch (OperationCanceledException)
                 {
-                    ConnectionLost?.Invoke(this, EventArgs.Empty);
-                    break;
-                }
-                catch (SocketException)
-                {
-                    ConnectionLost?.Invoke(this, EventArgs.Empty);
-                    break;
                 }
                 catch (Exception ex)
                 {
-                    ProgramConstants.LogException(ex, "Socket error with client " + Name + "; removing.");
-                    ConnectionLost?.Invoke(this, EventArgs.Empty);
-                    break;
+                    ProgramConstants.LogException(ex, "Connection error with client " + Name + "; removing.");
                 }
 
                 if (bytesRead > 0)
@@ -157,7 +146,7 @@ namespace DTAClient.Domain.Multiplayer.LAN
 
                     while (true)
                     {
-                        int index = msg.IndexOf(ProgramConstants.LAN_MESSAGE_SEPARATOR);
+                        int index = msg.IndexOf(ProgramConstants.LAN_MESSAGE_SEPARATOR, StringComparison.OrdinalIgnoreCase);
 
                         if (index == -1)
                         {

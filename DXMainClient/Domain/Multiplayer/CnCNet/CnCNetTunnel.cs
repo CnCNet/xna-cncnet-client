@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Net;
 using System.Net.Sockets;
+using System.Threading;
 using System.Threading.Tasks;
 using ClientCore;
 using Rampastring.Tools;
@@ -30,7 +31,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
         /// <returns>A CnCNetTunnel instance parsed from the given string.</returns>
         public static CnCNetTunnel Parse(string str)
         {
-            // For the format, check https://cncnet.org/api/v1/master-list
+            // For the format, check https://cncnet.org/api/v1/master-list?nocache=1
             try
             {
                 var tunnel = new CnCNetTunnel();
@@ -60,8 +61,10 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                 }
                 else
                 {
-                    throw new($"No supported IP address found ({nameof(Socket.OSSupportsIPv6)}={Socket.OSSupportsIPv6}," +
-                              $" {nameof(Socket.OSSupportsIPv4)}={Socket.OSSupportsIPv4}) for {str}.");
+                    throw new($"""
+                                No supported IP address found ({nameof(Socket.OSSupportsIPv6)}={Socket.OSSupportsIPv6}, 
+                                {nameof(Socket.OSSupportsIPv4)}={Socket.OSSupportsIPv4}) for {str}.
+                                """);
                 }
 
                 tunnel.IPAddresses = new List<IPAddress> { primaryIpAddress };
@@ -189,32 +192,47 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
             return new List<int>();
         }
 
-        public async ValueTask UpdatePingAsync()
+        public async ValueTask UpdatePingAsync(CancellationToken cancellationToken)
         {
             using var socket = new Socket(SocketType.Dgram, ProtocolType.Udp);
-
-            socket.SendTimeout = PING_TIMEOUT;
-            socket.ReceiveTimeout = PING_TIMEOUT;
 
             try
             {
                 EndPoint ep = new IPEndPoint(IPAddress, Port);
                 using IMemoryOwner<byte> memoryOwner = MemoryPool<byte>.Shared.Rent(PING_PACKET_SEND_SIZE);
                 Memory<byte> buffer = memoryOwner.Memory[..PING_PACKET_SEND_SIZE];
-                long ticks = DateTime.Now.Ticks;
 
-                await socket.SendToAsync(buffer, SocketFlags.None, ep).ConfigureAwait(false);
-                await socket.ReceiveFromAsync(buffer, SocketFlags.None, ep).ConfigureAwait(false);
+                buffer.Span.Clear();
+
+                long ticks = DateTime.Now.Ticks;
+                using var sendTimeoutCancellationTokenSource = new CancellationTokenSource(PING_TIMEOUT);
+                using var sendLinkedCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(sendTimeoutCancellationTokenSource.Token, cancellationToken);
+
+                await socket.SendToAsync(buffer, SocketFlags.None, ep, sendLinkedCancellationTokenSource.Token).ConfigureAwait(false);
+
+                using var receiveTimeoutCancellationTokenSource = new CancellationTokenSource(PING_TIMEOUT);
+                using var receiveLinkedCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(receiveTimeoutCancellationTokenSource.Token, cancellationToken);
+
+                await socket.ReceiveFromAsync(buffer, SocketFlags.None, ep, receiveLinkedCancellationTokenSource.Token).ConfigureAwait(false);
 
                 ticks = DateTime.Now.Ticks - ticks;
                 PingInMs = new TimeSpan(ticks).Milliseconds;
+
+                return;
             }
             catch (SocketException ex)
             {
                 ProgramConstants.LogException(ex, $"Failed to ping tunnel {Name} ({Address}:{Port}).");
-
-                PingInMs = -1;
             }
+            catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+            {
+                Logger.Log($"Failed to ping tunnel (time-out) {Name} ({Address}:{Port}).");
+            }
+            catch (OperationCanceledException)
+            {
+            }
+
+            PingInMs = -1;
         }
     }
 }

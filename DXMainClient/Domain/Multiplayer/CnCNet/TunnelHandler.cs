@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Threading;
 using System.Threading.Tasks;
 using ClientCore;
 using ClientCore.Extensions;
@@ -70,13 +71,13 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
 
         private void ConnectionManager_Disconnected(object sender, EventArgs e) => Enabled = false;
 
-        private async ValueTask RefreshTunnelsAsync()
+        private async ValueTask RefreshTunnelsAsync(CancellationToken cancellationToken)
         {
-            List<CnCNetTunnel> tunnels = await DoRefreshTunnelsAsync().ConfigureAwait(false);
-            wm.AddCallback(() => HandleRefreshedTunnels(tunnels));
+            List<CnCNetTunnel> tunnels = await DoRefreshTunnelsAsync(cancellationToken).ConfigureAwait(false);
+            wm.AddCallback(() => HandleRefreshedTunnels(tunnels, cancellationToken));
         }
 
-        private void HandleRefreshedTunnels(List<CnCNetTunnel> tunnels)
+        private void HandleRefreshedTunnels(List<CnCNetTunnel> tunnels, CancellationToken cancellationToken)
         {
             if (tunnels.Count > 0)
                 Tunnels = tunnels;
@@ -86,7 +87,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
             for (int i = 0; i < Tunnels.Count; i++)
             {
                 if (UserINISettings.Instance.PingUnofficialCnCNetTunnels || Tunnels[i].Official || Tunnels[i].Recommended)
-                    PingListTunnelAsync(i).HandleTask();
+                    PingListTunnelAsync(i, cancellationToken).HandleTask();
             }
 
             if (CurrentTunnel != null)
@@ -103,28 +104,25 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                 else
                 {
                     // tunnel is not in the list anymore so it's not updated with a list instance and pinged
-                    PingCurrentTunnel();
+                    PingCurrentTunnelAsync(false, cancellationToken).HandleTask();
                 }
             }
         }
 
-        private async ValueTask PingListTunnelAsync(int index)
+        private async ValueTask PingListTunnelAsync(int index, CancellationToken cancellationToken)
         {
-            await Tunnels[index].UpdatePingAsync().ConfigureAwait(false);
+            await Tunnels[index].UpdatePingAsync(cancellationToken).ConfigureAwait(false);
             DoTunnelPinged(index);
         }
 
-        private void PingCurrentTunnel(bool checkTunnelList = false)
-            => PingCurrentTunnelAsync(checkTunnelList).HandleTask();
-
-        private async ValueTask PingCurrentTunnelAsync(bool checkTunnelList = false)
+        private async ValueTask PingCurrentTunnelAsync(bool checkTunnelList, CancellationToken cancellationToken)
         {
-            await CurrentTunnel.UpdatePingAsync().ConfigureAwait(false);
+            await CurrentTunnel.UpdatePingAsync(cancellationToken).ConfigureAwait(false);
             DoCurrentTunnelPinged();
 
             if (checkTunnelList)
             {
-                int tunnelIndex = Tunnels.FindIndex(t => t.Hash.Equals(CurrentTunnel.Hash));
+                int tunnelIndex = Tunnels.FindIndex(t => t.Hash.Equals(CurrentTunnel.Hash, StringComparison.OrdinalIgnoreCase));
 
                 if (tunnelIndex > -1)
                     DoTunnelPinged(tunnelIndex);
@@ -135,7 +133,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
         /// Downloads and parses the list of CnCNet tunnels.
         /// </summary>
         /// <returns>A list of tunnel servers.</returns>
-        private static async ValueTask<List<CnCNetTunnel>> DoRefreshTunnelsAsync()
+        private static async ValueTask<List<CnCNetTunnel>> DoRefreshTunnelsAsync(CancellationToken cancellationToken)
         {
             FileInfo tunnelCacheFile = SafePath.GetFile(ProgramConstants.ClientUserFilesPath, "tunnel_cache");
             var returnValue = new List<CnCNetTunnel>();
@@ -145,14 +143,14 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
 
             try
             {
-                data = await Constants.CnCNetHttpClient.GetStringAsync(new Uri(ProgramConstants.CNCNET_TUNNEL_LIST_URL)).ConfigureAwait(false);
+                data = await Constants.CnCNetHttpClient.GetStringAsync(new Uri(ProgramConstants.CNCNET_TUNNEL_LIST_URL), cancellationToken).ConfigureAwait(false);
             }
             catch (Exception ex) when (ex is HttpRequestException or OperationCanceledException)
             {
                 ProgramConstants.LogException(ex, "Error when downloading tunnel server info. Retrying.");
                 try
                 {
-                    data = await Constants.CnCNetHttpClient.GetStringAsync(new Uri(ProgramConstants.CNCNET_TUNNEL_LIST_URL)).ConfigureAwait(false);
+                    data = await Constants.CnCNetHttpClient.GetStringAsync(new Uri(ProgramConstants.CNCNET_TUNNEL_LIST_URL), cancellationToken).ConfigureAwait(false);
                 }
                 catch (Exception ex1) when (ex1 is HttpRequestException or OperationCanceledException)
                 {
@@ -164,7 +162,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                     }
 
                     Logger.Log("Fetching tunnel server list failed. Using cached tunnel data.");
-                    data = await File.ReadAllTextAsync(tunnelCacheFile.FullName).ConfigureAwait(false);
+                    data = await File.ReadAllTextAsync(tunnelCacheFile.FullName, cancellationToken).ConfigureAwait(false);
                 }
             }
 
@@ -213,7 +211,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                 if (!clientDirectoryInfo.Exists)
                     clientDirectoryInfo.Create();
 
-                await File.WriteAllTextAsync(tunnelCacheFile.FullName, data).ConfigureAwait(false);
+                await File.WriteAllTextAsync(tunnelCacheFile.FullName, data, CancellationToken.None).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -230,11 +228,11 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                 if (skipCount % CYCLES_PER_TUNNEL_LIST_REFRESH == 0)
                 {
                     skipCount = 0;
-                    RefreshTunnelsAsync().HandleTask();
+                    RefreshTunnelsAsync(CancellationToken.None).HandleTask();
                 }
                 else if (CurrentTunnel != null)
                 {
-                    PingCurrentTunnel(true);
+                    PingCurrentTunnelAsync(true, CancellationToken.None).HandleTask();
                 }
 
                 timeSinceTunnelRefresh = TimeSpan.Zero;

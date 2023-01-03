@@ -182,7 +182,7 @@ internal static class NetworkHelper
         }
 
         if (stunPublicAddress is not null)
-            Logger.Log($"P2P: {addressFamily} STUN detection succeeded.");
+            Logger.Log($"P2P: {addressFamily} STUN detection succeeded using server {stunServerIpAddress}.");
         else
             Logger.Log($"P2P: {addressFamily} STUN detection failed.");
 

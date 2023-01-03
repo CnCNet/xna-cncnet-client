@@ -69,6 +69,8 @@ internal sealed class V3RemotePlayerConnection : PlayerConnection
         using IMemoryOwner<byte> memoryOwner = MemoryPool<byte>.Shared.Rent(MaximumPacketSize);
         Memory<byte> buffer = memoryOwner.Memory[..MaximumPacketSize];
 
+        buffer.Span.Clear();
+
         if (!BitConverter.TryWriteBytes(buffer.Span[..PlayerIdSize], PlayerId))
             throw new GameDataException();
 
