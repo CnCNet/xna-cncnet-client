@@ -7,7 +7,7 @@ The translation system supports the following:
 - translating INI-defined text values without modifying the respective INI files themselves;
 - adjusting INI-defined size and position values for client controls per translation;
 - providing custom client asset overrides (including both generic and theme-specific) in translations (for instance, translated buttons with text on them);
-- auto-detecting the inital language of the client based on the system's language settings (if provided; happens on first start of the client);
+- auto-detecting the initial language of the client based on the system's language settings (if provided; happens on first start of the client);
 - configurable set of files to copy to the game directory (for ingame translations);
 - an ability to generate a translation template/stub file for easy translation.
 
