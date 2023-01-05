@@ -919,20 +919,18 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
         if (v3ConnectionState.DynamicTunnelsEnabled)
         {
             if (v3ConnectionState.V3GameTunnelHandlers.Any() && v3ConnectionState.V3GameTunnelHandlers.TrueForAll(q => q.Tunnel.ConnectSucceeded))
-                SetLocalPlayerConnected();
+                await SetLocalPlayerConnectedAsync().ConfigureAwait(false);
         }
         else
         {
-            SetLocalPlayerConnected();
+            await SetLocalPlayerConnectedAsync().ConfigureAwait(false);
         }
 
         await channel.SendCTCPMessageAsync(CnCNetCommands.TUNNEL_CONNECTION_OK, QueuedMessageType.SYSTEM_MESSAGE, PRIORITY_START_GAME).ConfigureAwait(false);
     }
 
-    private void SetLocalPlayerConnected()
-    {
-        isPlayerConnected[Players.FindIndex(p => p == FindLocalPlayer())] = true;
-    }
+    private ValueTask SetLocalPlayerConnectedAsync()
+        => HandlePlayerConnectedToTunnelAsync(FindLocalPlayer().Name);
 
     private async ValueTask GameTunnelHandler_ConnectionFailed_CallbackAsync()
     {
