@@ -26,54 +26,12 @@ internal sealed record InternetGatewayDevice(
     string SearchTarget,
     string UniqueServiceName,
     UPnPDescription UPnPDescription,
-    Uri PreferredLocation)
+    Uri PreferredLocation,
+    IReadOnlyCollection<IPAddress> LocalIpAddresses)
 {
-    private const int ReceiveTimeout = 2000;
     private const uint IpLeaseTimeInSeconds = 4 * 60 * 60;
     private const ushort IanaUdpProtocolNumber = 17;
     private const string PortMappingDescription = "CnCNet";
-
-    private static readonly HttpClient HttpClient = new(
-        new SocketsHttpHandler
-        {
-            AutomaticDecompression = DecompressionMethods.All,
-            ConnectCallback = async (context, token) =>
-            {
-                Socket socket = null;
-
-                try
-                {
-                    socket = new(SocketType.Stream, ProtocolType.Tcp)
-                    {
-                        NoDelay = true
-                    };
-
-                    if (IPAddress.Parse(context.DnsEndPoint.Host).AddressFamily is AddressFamily.InterNetworkV6)
-                        socket.Bind(new IPEndPoint(NetworkHelper.GetLocalPublicIpV6Address(), 0));
-
-                    await socket.ConnectAsync(context.DnsEndPoint, token).ConfigureAwait(false);
-
-                    return new NetworkStream(socket, true);
-                }
-                catch
-                {
-                    socket?.Dispose();
-
-                    throw;
-                }
-            },
-            SslOptions = new()
-            {
-                CertificateChainPolicy = new()
-                {
-                    DisableCertificateDownloads = true
-                }
-            }
-        }, true)
-    {
-        Timeout = TimeSpan.FromMilliseconds(ReceiveTimeout),
-        DefaultVersionPolicy = HttpVersionPolicy.RequestVersionOrHigher
-    };
 
     public async Task<ushort> OpenIpV4PortAsync(IPAddress ipAddress, ushort port, CancellationToken cancellationToken)
     {
@@ -285,8 +243,8 @@ internal sealed record InternetGatewayDevice(
     private static async ValueTask<TResponse> ExecuteSoapAction<TRequest, TResponse>(
         Uri serviceUri, string soapAction, string defaultNamespace, TRequest request, CancellationToken cancellationToken)
     {
-        HttpClient.DefaultRequestHeaders.Remove("SOAPAction");
-        HttpClient.DefaultRequestHeaders.Add("SOAPAction", soapAction);
+        UPnPHandler.HttpClient.DefaultRequestHeaders.Remove("SOAPAction");
+        UPnPHandler.HttpClient.DefaultRequestHeaders.Add("SOAPAction", soapAction);
 
         var xmlSerializerFormatAttribute = new XmlSerializerFormatAttribute
         {
@@ -321,7 +279,7 @@ internal sealed record InternetGatewayDevice(
 
             content.Headers.ContentType = MediaTypeHeaderValue.Parse("text/xml");
 
-            httpResponseMessage = await HttpClient.PostAsync(serviceUri, content, cancellationToken).ConfigureAwait(false);
+            httpResponseMessage = await UPnPHandler.HttpClient.PostAsync(serviceUri, content, cancellationToken).ConfigureAwait(false);
         }
 
         using (httpResponseMessage)
@@ -368,7 +326,7 @@ internal sealed record InternetGatewayDevice(
         Device wanConnectionDevice = wanDevice.DeviceList.Single(q => q.DeviceType.Equals($"{UPnPConstants.UPnPWanConnectionDevice}:{uPnPVersion}", StringComparison.OrdinalIgnoreCase));
         string serviceType = $"{UPnPConstants.UPnPServiceNamespace}:{wanConnectionDeviceService}";
         ServiceListItem wanIpConnectionService = wanConnectionDevice.ServiceList.Single(q => q.ServiceType.Equals(serviceType, StringComparison.OrdinalIgnoreCase));
-        var serviceUri = new Uri(FormattableString.Invariant($"{location.Scheme}://{location.Authority}{wanIpConnectionService.ControlUrl}"));
+        var serviceUri = new Uri(FormattableString.Invariant($"{location.Scheme}://{(location.HostNameType is UriHostNameType.IPv6 ? '[' : null)}{location.IdnHost}{(location.HostNameType is UriHostNameType.IPv6 ? ']' : null)}:{location.Port}{wanIpConnectionService.ControlUrl}"));
 
         return new(wanIpConnectionService, serviceUri, serviceType);
     }

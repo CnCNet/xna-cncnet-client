@@ -48,26 +48,30 @@ internal sealed class ReplayHandler : IAsyncDisposable
             return;
 
         FileInfo spawnFile = SafePath.GetFile(replayDirectory.FullName, ProgramConstants.SPAWNER_SETTINGS);
-        string settings = await File.ReadAllTextAsync(spawnFile.FullName, CancellationToken.None).ConfigureAwait(false);
-        var spawnIni = new IniFile(spawnFile.FullName);
-        IniSection settingsSection = spawnIni.GetSection("Settings");
-        string playerName = settingsSection.GetStringValue("Name", null);
-        uint playerId = gamePlayerIds[playerInfos.Single(q => q.Name.Equals(playerName, StringComparison.OrdinalIgnoreCase)).Index];
-        var playerMappings = new Dictionary<uint, string>
-        {
-            { playerId, playerName }
-        };
+        string settings = null;
+        Dictionary<uint, string> playerMappings = new();
 
-        for (int i = 1; i < settingsSection.GetIntValue("PlayerCount", 0); i++)
+        if (spawnFile.Exists)
         {
-            IniSection otherPlayerSection = spawnIni.GetSection($"Other{i}");
+            settings = await File.ReadAllTextAsync(spawnFile.FullName, CancellationToken.None).ConfigureAwait(false);
+            var spawnIni = new IniFile(spawnFile.FullName);
+            IniSection settingsSection = spawnIni.GetSection("Settings");
+            string playerName = settingsSection.GetStringValue("Name", null);
+            uint playerId = gamePlayerIds[playerInfos.Single(q => q.Name.Equals(playerName, StringComparison.OrdinalIgnoreCase)).Index];
 
-            if (otherPlayerSection is not null)
+            playerMappings.Add(playerId, playerName);
+
+            for (int i = 1; i < settingsSection.GetIntValue("PlayerCount", 0); i++)
             {
-                playerName = otherPlayerSection.GetStringValue("Name", null);
-                playerId = gamePlayerIds[playerInfos.Single(q => q.Name.Equals(playerName, StringComparison.OrdinalIgnoreCase)).Index];
+                IniSection otherPlayerSection = spawnIni.GetSection($"Other{i}");
 
-                playerMappings.Add(playerId, playerName);
+                if (otherPlayerSection is not null)
+                {
+                    playerName = otherPlayerSection.GetStringValue("Name", null);
+                    playerId = gamePlayerIds[playerInfos.Single(q => q.Name.Equals(playerName, StringComparison.OrdinalIgnoreCase)).Index];
+
+                    playerMappings.Add(playerId, playerName);
+                }
             }
         }
 

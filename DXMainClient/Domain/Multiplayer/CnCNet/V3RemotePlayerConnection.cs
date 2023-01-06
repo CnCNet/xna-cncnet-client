@@ -59,7 +59,7 @@ internal sealed class V3RemotePlayerConnection : PlayerConnection
 #if DEBUG
         Logger.Log($"{GetType().Name}: Attempting to establish a connection from port {localPort} to {RemoteEndPoint}).");
 #else
-        Logger.Log($"{GetType().Name}: Attempting to establish a connection using {localPort}).");
+        Logger.Log($"{GetType().Name}: Attempting to establish a connection on port {localPort}.");
 #endif
 
         Socket = new(SocketType.Dgram, ProtocolType.Udp);
@@ -86,7 +86,7 @@ internal sealed class V3RemotePlayerConnection : PlayerConnection
 #if DEBUG
             ProgramConstants.LogException(ex, $"Failed to establish connection from port {localPort} to {RemoteEndPoint}.");
 #else
-            ProgramConstants.LogException(ex, $"Failed to establish connection using {localPort}.");
+            ProgramConstants.LogException(ex, $"Failed to establish connection on port {localPort}.");
 #endif
             OnRaiseConnectionFailedEvent(EventArgs.Empty);
 
@@ -101,7 +101,7 @@ internal sealed class V3RemotePlayerConnection : PlayerConnection
 #if DEBUG
             Logger.Log($"{GetType().Name}: Failed to establish connection (time out) from port {localPort} to {RemoteEndPoint}.");
 #else
-            Logger.Log($"{GetType().Name}: Failed to establish connection (time out) using {localPort}.");
+            Logger.Log($"{GetType().Name}: Failed to establish connection (time out) on port {localPort}.");
 #endif
             OnRaiseConnectionFailedEvent(EventArgs.Empty);
 
@@ -111,7 +111,7 @@ internal sealed class V3RemotePlayerConnection : PlayerConnection
 #if DEBUG
         Logger.Log($"{GetType().Name}: Connection from {Socket.LocalEndPoint} to {RemoteEndPoint} established.");
 #else
-        Logger.Log($"{GetType().Name}: Connection using {localPort} established.");
+        Logger.Log($"{GetType().Name}: Connection on port {localPort} established.");
 #endif
         OnRaiseConnectedEvent(EventArgs.Empty);
     }
@@ -126,7 +126,7 @@ internal sealed class V3RemotePlayerConnection : PlayerConnection
 #if DEBUG
             Logger.Log($"{GetType().Name}: Invalid data packet from {socketReceiveFromResult.RemoteEndPoint}");
 #else
-            Logger.Log($"{GetType().Name}: Invalid data packet on {localPort}");
+            Logger.Log($"{GetType().Name}: Invalid data packet on port {localPort}");
 #endif
             return null;
         }

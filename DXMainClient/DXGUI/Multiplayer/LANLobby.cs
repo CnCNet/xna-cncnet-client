@@ -295,7 +295,7 @@ namespace DTAClient.DXGUI.Multiplayer
 
             Logger.Log("Creating LAN socket.");
 
-            IEnumerable<UnicastIPAddressInformation> lanIpAddresses = NetworkHelper.GetUniCastIpAddresses();
+            IEnumerable<UnicastIPAddressInformation> lanIpAddresses = NetworkHelper.GetUniCastIpAddresses().Select(q => q.UnicastIPAddressInformation);
             UnicastIPAddressInformation lanIpV4Address = lanIpAddresses.FirstOrDefault(q => q.Address.AddressFamily is AddressFamily.InterNetwork);
 
             lanIpV4BroadcastIpAddress = NetworkHelper.GetIpV4BroadcastAddress(lanIpV4Address);

@@ -26,15 +26,9 @@ internal static class NetworkHelper
         AddressFamily.InterNetworkV6
     }.AsReadOnly();
 
-    [SupportedOSPlatform("windows")]
-    public static IEnumerable<(IPAddress IpAddress, PrefixOrigin PrefixOrigin, SuffixOrigin SuffixOrigin)> GetWindowsPublicIpAddresses()
-        => GetUniCastIpAddresses()
-        .Where(q => !IsPrivateIpAddress(q.Address))
-        .Select(q => (q.Address, q.PrefixOrigin, q.SuffixOrigin));
-
     public static IEnumerable<IPAddress> GetLocalAddresses()
         => GetUniCastIpAddresses()
-        .Select(q => q.Address);
+        .Select(q => q.UnicastIPAddressInformation.Address);
 
     public static IEnumerable<IPAddress> GetPublicIpAddresses()
         => GetLocalAddresses()
@@ -44,13 +38,23 @@ internal static class NetworkHelper
         => GetLocalAddresses()
         .Where(IsPrivateIpAddress);
 
-    public static IEnumerable<UnicastIPAddressInformation> GetUniCastIpAddresses()
+    public static IEnumerable<(UnicastIPAddressInformation UnicastIPAddressInformation, GatewayIPAddressInformation GatewayIPAddressInformation)> GetUniCastIpAddresses()
+        => GetIpInterfaces()
+        .Where(q => q.GatewayAddresses.Any())
+        .SelectMany(q => q.UnicastAddresses.Select(
+            r => (UnicastIPAddressInformation: r, GatewayIPAddressInformation: q.GatewayAddresses.FirstOrDefault(s => s.Address.AddressFamily == r.Address.AddressFamily))))
+        .Where(q => SupportedAddressFamilies.Contains(q.UnicastIPAddressInformation.Address.AddressFamily));
+
+    private static IEnumerable<IPInterfaceProperties> GetIpInterfaces()
         => NetworkInterface.GetAllNetworkInterfaces()
         .Where(q => q.OperationalStatus is OperationalStatus.Up)
-        .Select(q => q.GetIPProperties())
-        .Where(q => q.GatewayAddresses.Any())
-        .SelectMany(q => q.UnicastAddresses)
-        .Where(q => SupportedAddressFamilies.Contains(q.Address.AddressFamily));
+        .Select(q => q.GetIPProperties());
+
+    [SupportedOSPlatform("windows")]
+    private static IEnumerable<(IPAddress IpAddress, PrefixOrigin PrefixOrigin, SuffixOrigin SuffixOrigin)> GetWindowsPublicIpAddresses()
+        => GetUniCastIpAddresses()
+        .Where(q => !IsPrivateIpAddress(q.UnicastIPAddressInformation.Address))
+        .Select(q => (q.UnicastIPAddressInformation.Address, q.UnicastIPAddressInformation.PrefixOrigin, q.UnicastIPAddressInformation.SuffixOrigin));
 
     public static IPAddress GetIpV4BroadcastAddress(UnicastIPAddressInformation unicastIpAddressInformation)
     {
@@ -150,7 +154,7 @@ internal static class NetworkHelper
         Logger.Log($"P2P: Using STUN to detect {addressFamily} address.");
 
         var stunPortMapping = new List<(ushort InternalPort, ushort ExternalPort)>();
-        List<IPAddress> matchingStunServerIpAddresses = stunServerIpAddresses.Where(q => q.AddressFamily == addressFamily).ToList();
+        var matchingStunServerIpAddresses = stunServerIpAddresses.Where(q => q.AddressFamily == addressFamily).ToList();
 
         if (!matchingStunServerIpAddresses.Any())
         {
@@ -230,7 +234,7 @@ internal static class NetworkHelper
         }
     }
 
-    private static bool IsPrivateIpAddress(IPAddress ipAddress)
+    public static bool IsPrivateIpAddress(IPAddress ipAddress)
         => ipAddress.AddressFamily switch
         {
             AddressFamily.InterNetworkV6 => ipAddress.IsIPv6SiteLocal
