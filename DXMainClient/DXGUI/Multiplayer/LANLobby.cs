@@ -252,7 +252,7 @@ namespace DTAClient.DXGUI.Multiplayer
                     await SendMessageAsync(LANCommands.PLAYER_QUIT_COMMAND, cancellationToken).ConfigureAwait(false);
             }
 
-            cancellationTokenSource.Cancel();
+            cancellationTokenSource?.Cancel();
 
             foreach ((Socket socket, _) in sockets)
                 socket.Close();
