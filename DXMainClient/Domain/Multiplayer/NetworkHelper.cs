@@ -38,7 +38,17 @@ internal static class NetworkHelper
         => GetLocalAddresses()
         .Where(IsPrivateIpAddress);
 
-    public static IEnumerable<(UnicastIPAddressInformation UnicastIPAddressInformation, GatewayIPAddressInformation GatewayIPAddressInformation)> GetUniCastIpAddresses()
+    [SupportedOSPlatform("windows")]
+    public static IEnumerable<UnicastIPAddressInformation> GetWindowsLanUniCastIpAddresses()
+        => GetLanUniCastIpAddresses()
+        .Where(q => q.SuffixOrigin is not SuffixOrigin.WellKnown);
+
+    public static IEnumerable<UnicastIPAddressInformation> GetLanUniCastIpAddresses()
+        => GetIpInterfaces()
+        .SelectMany(q => q.UnicastAddresses)
+        .Where(q => SupportedAddressFamilies.Contains(q.Address.AddressFamily));
+
+    private static IEnumerable<(UnicastIPAddressInformation UnicastIPAddressInformation, GatewayIPAddressInformation GatewayIPAddressInformation)> GetUniCastIpAddresses()
         => GetIpInterfaces()
         .Where(q => q.GatewayAddresses.Any())
         .SelectMany(q => q.UnicastAddresses.Select(
