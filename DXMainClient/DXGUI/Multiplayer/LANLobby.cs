@@ -298,19 +298,30 @@ namespace DTAClient.DXGUI.Multiplayer
             IEnumerable<UnicastIPAddressInformation> lanIpAddresses = NetworkHelper.GetUniCastIpAddresses().Select(q => q.UnicastIPAddressInformation);
             UnicastIPAddressInformation lanIpV4Address = lanIpAddresses.FirstOrDefault(q => q.Address.AddressFamily is AddressFamily.InterNetwork);
 
+            if (lanIpV4Address is null)
+            {
+                Logger.Log("No IPv4 address found for LAN.");
+                lbChatMessages.AddMessage(new ChatMessage(Color.Red, "No IPv4 address found for LAN".L10N("Client:Main:NoLANIPv4")));
+
+                initSuccess = false;
+                return;
+            }
+
             lanIpV4BroadcastIpAddress = NetworkHelper.GetIpV4BroadcastAddress(lanIpV4Address);
 
             try
             {
-                socket = new Socket(SocketType.Dgram, ProtocolType.Udp)
+                socket = new(SocketType.Dgram, ProtocolType.Udp)
                 {
                     EnableBroadcast = true
                 };
 
                 socket.Bind(new IPEndPoint(lanIpV4Address.Address, ProgramConstants.LAN_LOBBY_PORT));
 
-                endPoint = new IPEndPoint(lanIpV4BroadcastIpAddress, ProgramConstants.LAN_LOBBY_PORT);
+                endPoint = new(lanIpV4BroadcastIpAddress, ProgramConstants.LAN_LOBBY_PORT);
                 initSuccess = true;
+
+                Logger.Log($"Created LAN broadcast socket {socket.LocalEndPoint} / {endPoint}.");
             }
             catch (SocketException ex)
             {
@@ -320,8 +331,10 @@ namespace DTAClient.DXGUI.Multiplayer
                 lbChatMessages.AddMessage(new ChatMessage(Color.Red,
                     "Please check your firewall settings.".L10N("Client:Main:SocketFailure2")));
                 lbChatMessages.AddMessage(new ChatMessage(Color.Red,
-                    $"Also make sure that no other application is listening to traffic on UDP ports" +
-                    $" {ProgramConstants.LAN_LOBBY_PORT} - {ProgramConstants.LAN_INGAME_PORT}.".L10N("Client:Main:SocketFailure3")));
+                    $"""
+                     Also make sure that no other application is listening to traffic on UDP ports 
+                     {ProgramConstants.LAN_LOBBY_PORT} - {ProgramConstants.LAN_INGAME_PORT}.
+                     """.L10N("Client:Main:SocketFailure3")));
 
                 initSuccess = false;
                 return;
@@ -369,7 +382,7 @@ namespace DTAClient.DXGUI.Multiplayer
                     var iep = (IPEndPoint)socketReceiveFromResult.RemoteEndPoint;
                     string data = encoding.GetString(buffer.Span[..socketReceiveFromResult.ReceivedBytes]);
 
-                    if (data == string.Empty)
+                    if (string.IsNullOrEmpty(data))
                         continue;
 
                     AddCallback(() => HandleNetworkMessage(data, iep));
@@ -601,7 +614,7 @@ namespace DTAClient.DXGUI.Multiplayer
             Enabled = false;
             await SendMessageAsync(LANCommands.PLAYER_QUIT_COMMAND, CancellationToken.None).ConfigureAwait(false);
             cancellationTokenSource.Cancel();
-            socket.Close();
+            socket?.Close();
             Exited?.Invoke(this, EventArgs.Empty);
         }
 

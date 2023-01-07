@@ -19,6 +19,7 @@ internal abstract class PlayerConnection : IDisposable
     protected CancellationToken CancellationToken;
     protected Socket Socket;
     protected EndPoint RemoteEndPoint;
+    protected bool Connected;
 
     public uint PlayerId { get; protected set; }
 
@@ -71,8 +72,14 @@ internal abstract class PlayerConnection : IDisposable
         {
 #if DEBUG
             Logger.Log($"{GetType().Name}: Sending data from {Socket.LocalEndPoint} to {RemoteEndPoint} for player {PlayerId}: {BitConverter.ToString(data.Span.ToArray())}.");
+
 #endif
-            await Socket.SendToAsync(data, SocketFlags.None, RemoteEndPoint, linkedCancellationTokenSource.Token).ConfigureAwait(false);
+            if (Connected)
+                await Socket.SendToAsync(data, SocketFlags.None, RemoteEndPoint, linkedCancellationTokenSource.Token).ConfigureAwait(false);
+#if DEBUG
+            else
+                Logger.Log($"{GetType().Name}: Data not sent (not yet connected) from {Socket.LocalEndPoint} to {RemoteEndPoint} for player {PlayerId}.");
+#endif
         }
         catch (SocketException ex)
         {
@@ -176,6 +183,8 @@ internal abstract class PlayerConnection : IDisposable
 
     private void OnRaiseDataReceivedEvent(DataReceivedEventArgs e)
     {
+        Connected = true;
+
         EventHandler<DataReceivedEventArgs> raiseEvent = RaiseDataReceivedEvent;
 
         raiseEvent?.Invoke(this, e);

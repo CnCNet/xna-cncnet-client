@@ -16,7 +16,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet;
 internal sealed class V3ConnectionState : IAsyncDisposable
 {
     private const ushort MAX_REMOTE_PLAYERS = 7;
-    private const int PINNED_DYNAMIC_TUNNELS = 10;
+    private const int PINNED_DYNAMIC_TUNNELS = 15;
 
     private readonly TunnelHandler tunnelHandler;
     private readonly List<(string RemotePlayerName, CnCNetTunnel Tunnel, int CombinedPing)> playerTunnels = new();
@@ -260,8 +260,9 @@ internal sealed class V3ConnectionState : IAsyncDisposable
                             .Contains(q.RemoteIpAddress.AddressFamily))
                         .Select(q => (q.RemoteIpAddress, q.Ping + remotePingResults.Single(r => r.RemoteIpAddress.AddressFamily == q.RemoteIpAddress.AddressFamily).Ping))
                         .MaxBy(q => q.RemoteIpAddress.AddressFamily);
+                    bool commonDynamicTunnel = playerTunnels.Any(q => q.RemotePlayerName.Equals(remotePlayerName, StringComparison.OrdinalIgnoreCase));
 
-                    if (combinedPing < playerTunnels.Single(q => q.RemotePlayerName.Equals(remotePlayerName, StringComparison.OrdinalIgnoreCase)).CombinedPing)
+                    if (!commonDynamicTunnel || combinedPing < playerTunnels.Single(q => q.RemotePlayerName.Equals(remotePlayerName, StringComparison.OrdinalIgnoreCase)).CombinedPing)
                     {
                         ushort[] localPorts;
                         ushort[] remotePorts;

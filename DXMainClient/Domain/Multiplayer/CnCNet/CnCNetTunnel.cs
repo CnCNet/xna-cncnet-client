@@ -61,10 +61,12 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                 }
                 else
                 {
-                    throw new($"""
+                    Logger.Log($"""
                                 No supported IP address found ({nameof(Socket.OSSupportsIPv6)}={Socket.OSSupportsIPv6}, 
                                 {nameof(Socket.OSSupportsIPv4)}={Socket.OSSupportsIPv4}) for {str}.
                                 """);
+
+                    return null;
                 }
 
                 tunnel.IPAddresses = new List<IPAddress> { primaryIpAddress };

@@ -334,7 +334,10 @@ namespace DTAClient.Online
                 int[] serverPorts = serverInfoGroup.SelectMany(serverInfo => serverInfo.Ports).Distinct().ToArray();
 
                 return (ipAddress, serverNames, serverPorts);
-            }).ToArray();
+            }).
+            Where(q => (q.ipAddress.AddressFamily is AddressFamily.InterNetworkV6 && Socket.OSSupportsIPv6)
+                || (q.ipAddress.AddressFamily is AddressFamily.InterNetwork && Socket.OSSupportsIPv4))
+            .ToArray();
 
             // Do logging.
             foreach ((IPAddress ipAddress, string name, int[] ports) in serverInfos)
@@ -404,7 +407,7 @@ namespace DTAClient.Online
             {
                 PingReply pingReply = await ping.SendPingAsync(serverInfo.IpAddress, MAXIMUM_LATENCY).ConfigureAwait(false);
 
-                if (pingReply.Status == IPStatus.Success)
+                if (pingReply.Status is IPStatus.Success)
                 {
                     long pingInMs = pingReply.RoundtripTime;
                     Logger.Log($"The latency in milliseconds to the server {serverInfo.Name} ({serverInfo.IpAddress}): {pingInMs}.");

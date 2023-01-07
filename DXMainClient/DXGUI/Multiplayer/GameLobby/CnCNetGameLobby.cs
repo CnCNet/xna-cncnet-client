@@ -119,7 +119,7 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
             new StringCommandHandler(CnCNetCommands.PLAYER_EXTRA_OPTIONS, ApplyPlayerExtraOptions),
             new StringCommandHandler(CnCNetCommands.GAME_OPTIONS, (playerName, message) => ApplyGameOptionsAsync(playerName, message).HandleTask()),
             new StringCommandHandler(CnCNetCommands.GAME_START_V2, (playerName, message) => ClientLaunchGameV2Async(playerName, message).HandleTask()),
-            new StringCommandHandler(CnCNetCommands.GAME_START_V3, ClientLaunchGameV3Async),
+            new StringCommandHandler(CnCNetCommands.GAME_START_V3, ClientLaunchGameV3),
             new NoParamCommandHandler(CnCNetCommands.TUNNEL_CONNECTION_OK, playerName => HandlePlayerConnectedToTunnelAsync(playerName).HandleTask()),
             new NoParamCommandHandler(CnCNetCommands.TUNNEL_CONNECTION_FAIL, playerName => HandleTunnelFailAsync(playerName).HandleTask()),
             new NotificationHandler(CnCNetCommands.AI_SPECTATORS, HandleNotification, () => AISpectatorsNotificationAsync().HandleTask()),
@@ -721,7 +721,11 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
 
     private void Channel_CTCPReceived(object sender, ChannelCTCPEventArgs e)
     {
+#if DEBUG
+        Logger.Log($"CnCNetGameLobby_CTCPReceived from {e.UserName}: {e.Message}");
+#else
         Logger.Log("CnCNetGameLobby_CTCPReceived");
+#endif
 
         foreach (CommandHandlerBase cmdHandler in ctcpCommandHandlers)
         {
@@ -857,7 +861,7 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
         return sb.ToString();
     }
 
-    private void ClientLaunchGameV3Async(string sender, string message)
+    private void ClientLaunchGameV3(string sender, string message)
     {
         if (!sender.Equals(hostName, StringComparison.OrdinalIgnoreCase))
             return;
@@ -2030,13 +2034,13 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
 
         if (selectedTunnelHash is null)
         {
-            AddNotice(string.Format(CultureInfo.CurrentCulture, "No common tunnel found for: {0}".L10N("Client:Main:NoCommonTunnel"), playerName));
+            AddNotice(string.Format(CultureInfo.CurrentCulture, "No common dynamic tunnel found for: {0}".L10N("Client:Main:NoCommonDynamicTunnel"), playerName));
         }
         else
         {
             CnCNetTunnel tunnel = tunnelHandler.Tunnels.Single(q => q.Hash.Equals(selectedTunnelHash, StringComparison.OrdinalIgnoreCase));
 
-            AddNotice(string.Format(CultureInfo.CurrentCulture, "{0} dynamic tunnel: {1} ({2}ms)".L10N("Client:Main:TunnelNegotiated"), playerName, tunnel.Name, tunnel.PingInMs));
+            AddNotice(string.Format(CultureInfo.CurrentCulture, "{0} dynamic tunnel: {1} ({2}ms)".L10N("Client:Main:DynamicTunnelNegotiated"), playerName, tunnel.Name, tunnel.PingInMs));
         }
     }
 
