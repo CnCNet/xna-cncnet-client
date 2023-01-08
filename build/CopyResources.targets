@@ -7,7 +7,7 @@
       <ExampleClientIni Include="$(SolutionDir)\DXMainClient\Resources\INI\**\*.*" />
       <ExampleClientMix Include="$(SolutionDir)\DXMainClient\Resources\MIX\**\*.*" />
       <ExampleClientSettings Include="$(SolutionDir)\DXMainClient\Resources\Settings.ini" />
-      <ExampleClientLinuxRun Include="$(SolutionDir)\DXMainClient\Resources\run.sh" />
+      <ExampleClientLinuxRun Include="$(SolutionDir)\DXMainClient\Resources\wine-dta.sh" />
       <ExampleClientDefinitions Include="$(SolutionDir)\DXMainClient\Resources\ClientDefinitions.ini" />
     </ItemGroup>
     <Copy Condition="! Exists('$(OutputPath)\Resources\ClientDefinitions.ini') " SourceFiles="@(ExampleClientResources)" DestinationFolder="$(OutputPath)\Resources\%(RecursiveDir)" />
