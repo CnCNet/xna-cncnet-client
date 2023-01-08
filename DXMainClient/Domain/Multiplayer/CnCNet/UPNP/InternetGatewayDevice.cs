@@ -129,7 +129,11 @@ internal sealed record InternetGatewayDevice(
                     throw new ArgumentException($"P2P: UPnP version {uPnPVersion} is not supported.");
             }
 
-            Logger.Log($"P2P: Received external IP address {ipAddress}.");
+#if DEBUG
+            Logger.Log($"P2P: Received external IPv4 address {ipAddress}.");
+#else
+            Logger.Log($"P2P: Received external IPv4 address.");
+#endif
         }
         catch
         {

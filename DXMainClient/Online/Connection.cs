@@ -1,10 +1,6 @@
-﻿using ClientCore;
-using ClientCore.Extensions;
-using Rampastring.Tools;
-using System;
+﻿using System;
 using System.Buffers;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.NetworkInformation;
@@ -12,8 +8,12 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using ClientCore;
 using ClientCore.Extensions;
+using DTAClient.Domain.Multiplayer;
 using DTAClient.Domain.Multiplayer.CnCNet;
+using Localization;
+using Rampastring.Tools;
 
 namespace DTAClient.Online
 {
@@ -320,6 +320,8 @@ namespace DTAClient.Online
             IEnumerable<IGrouping<IPAddress, (string Name, int[] Ports)>> serverInfosGroupedByIPAddress = servers
                 .SelectMany(server => server)
                 .GroupBy(serverInfo => serverInfo.IpAddress, serverInfo => (serverInfo.Name, serverInfo.Ports));
+            bool hasIPv6Internet = NetworkHelper.HasIPv6Internet();
+            bool hasIPv4Internet = NetworkHelper.HasIPv4Internet();
 
             // Process each group:
             //   1. Get IPAddress.
@@ -335,8 +337,8 @@ namespace DTAClient.Online
 
                 return (ipAddress, serverNames, serverPorts);
             }).
-            Where(q => (q.ipAddress.AddressFamily is AddressFamily.InterNetworkV6 && Socket.OSSupportsIPv6)
-                || (q.ipAddress.AddressFamily is AddressFamily.InterNetwork && Socket.OSSupportsIPv4))
+            Where(q => (q.ipAddress.AddressFamily is AddressFamily.InterNetworkV6 && hasIPv6Internet)
+                || (q.ipAddress.AddressFamily is AddressFamily.InterNetwork && hasIPv4Internet))
             .ToArray();
 
             // Do logging.

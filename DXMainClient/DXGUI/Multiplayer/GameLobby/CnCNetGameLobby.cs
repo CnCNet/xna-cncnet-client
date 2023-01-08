@@ -143,8 +143,8 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
             new IntCommandHandler(CnCNetCommands.TUNNEL_PING, HandleTunnelPing),
             new StringCommandHandler(CnCNetCommands.CHANGE_TUNNEL_SERVER, (playerName, hash) => HandleTunnelServerChangeMessageAsync(playerName, hash).HandleTask()),
             new StringCommandHandler(CnCNetCommands.PLAYER_TUNNEL_PINGS, HandleTunnelPingsMessage),
-            new StringCommandHandler(CnCNetCommands.PLAYER_P2P_REQUEST, (playerName, p2pRequestMessage) => HandleP2PRequestMessageAsync(playerName, p2pRequestMessage).HandleTask()),
-            new StringCommandHandler(CnCNetCommands.PLAYER_P2P_PINGS, HandleP2PPingsMessage)
+            new StringCommandHandler(CnCNetCommands.PLAYER_P2P_REQUEST, (playerName, p2pRequestMessage) => HandleP2PRequestMessageAsync(playerName, p2pRequestMessage, true).HandleTask()),
+            new StringCommandHandler(CnCNetCommands.PLAYER_P2P_PINGS, (playerName, p2pPingsMessage) => HandleP2PPingsMessageAsync(playerName, p2pPingsMessage).HandleTask())
         };
 
         MapSharer.MapDownloadFailed += (_, e) => WindowManager.AddCallback(() => MapSharer_HandleMapDownloadFailedAsync(e).HandleTask());
@@ -1213,14 +1213,14 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
         }
         catch (Exception ex)
         {
-            ProgramConstants.LogException(ex, "P2P setup failed.");
+            ProgramConstants.LogException(ex, "P2P: setup failed.");
         }
 
         if (!p2pSetupSucceeded)
         {
             AddNotice(string.Format(
                 CultureInfo.CurrentCulture,
-                "P2P setup failed. Check that UPnP port mapping is enabled for this device on your router/modem.".L10N("Client:Main:P2PSetupFailed")),
+                "P2P: setup failed. Check that UPnP port mapping is enabled for this device on your router/modem.".L10N("Client:Main:P2PSetupFailed")),
                 Color.Orange);
 
             return;
@@ -2044,8 +2044,11 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
         }
     }
 
-    private async ValueTask HandleP2PRequestMessageAsync(string playerName, string p2pRequestMessage)
+    private async ValueTask HandleP2PRequestMessageAsync(string playerName, string p2pRequestMessage, bool isCachedP2PRequestMessage)
     {
+        if (!isCachedP2PRequestMessage)
+            v3ConnectionState.StoreP2PRequest(playerName, p2pRequestMessage);
+
         if (!v3ConnectionState.P2PEnabled)
             return;
 
@@ -2053,7 +2056,9 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
 
         if (remotePlayerP2PEnabled)
         {
-            ShowP2PPlayerStatus(playerName);
+            if (isCachedP2PRequestMessage)
+                ShowP2PPlayerStatus(playerName);
+
             await channel.SendCTCPMessageAsync(
                 CnCNetCommands.PLAYER_P2P_PINGS + v3ConnectionState.GetP2PPingCommand(playerName), QueuedMessageType.SYSTEM_MESSAGE, 10).ConfigureAwait(false);
         }
@@ -2063,12 +2068,14 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
         }
     }
 
-    private void HandleP2PPingsMessage(string playerName, string p2pPingsMessage)
+    private async ValueTask HandleP2PPingsMessageAsync(string playerName, string p2pPingsMessage)
     {
-        bool shouldUpdatePlayerStatus = v3ConnectionState.UpdateRemotePingResults(playerName, p2pPingsMessage, FindLocalPlayer().Name);
+        string cachedP2PRequestMessage = v3ConnectionState.UpdateRemotePingResults(playerName, p2pPingsMessage, FindLocalPlayer().Name);
 
-        if (shouldUpdatePlayerStatus)
-            ShowP2PPlayerStatus(playerName);
+        if (!string.IsNullOrWhiteSpace(cachedP2PRequestMessage))
+            await HandleP2PRequestMessageAsync(playerName, cachedP2PRequestMessage, false).ConfigureAwait(false);
+
+        ShowP2PPlayerStatus(playerName);
     }
 
     private void ShowP2PPlayerStatus(string playerName)
@@ -2076,7 +2083,7 @@ internal sealed class CnCNetGameLobby : MultiplayerGameLobby
         P2PPlayer p2pPlayer = v3ConnectionState.P2PPlayers.Single(q => q.RemotePlayerName.Equals(playerName, StringComparison.OrdinalIgnoreCase));
 
         if (p2pPlayer.RemotePingResults.Any() && p2pPlayer.LocalPingResults.Any())
-            AddNotice(string.Format(CultureInfo.CurrentCulture, "{0} supports P2P ({1}ms)".L10N("Client:Main:PlayerP2PSupported"), playerName, p2pPlayer.LocalPingResults.Min(q => q.Ping)));
+            AddNotice(string.Format(CultureInfo.CurrentCulture, "Player {0} P2P negotiated ({1}ms)".L10N("Client:Main:PlayerP2PNegotiated"), playerName, p2pPlayer.LocalPingResults.Min(q => q.Ping)));
     }
 
     /// <summary>

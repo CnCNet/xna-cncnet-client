@@ -389,7 +389,11 @@ namespace DTAClient.DXGUI.Multiplayer
                 {
                     await socket.SendToAsync(buffer, SocketFlags.None, broadcastEndpoint, cancellationToken).ConfigureAwait(false);
 #if DEBUG
+#if NETWORKTRACE
                     Logger.Log($"Sent LAN broadcast on {socket.LocalEndPoint} / {broadcastEndpoint}: {message}.");
+#else
+                    Logger.Log($"Sent LAN broadcast on {socket.LocalEndPoint} / {broadcastEndpoint}.");
+#endif
 #endif
                 }
                 catch (OperationCanceledException)
@@ -420,7 +424,11 @@ namespace DTAClient.DXGUI.Multiplayer
                         continue;
 
 #if DEBUG
+#if NETWORKTRACE
                     Logger.Log($"Received LAN broadcast on {socket.LocalEndPoint} / {broadcastEndpoint}: {data}.");
+#else
+                    Logger.Log($"Received LAN broadcast on {socket.LocalEndPoint} / {broadcastEndpoint}.");
+#endif
 #endif
                     AddCallback(() => HandleNetworkMessage(data, remoteIpEndPoint));
                 }

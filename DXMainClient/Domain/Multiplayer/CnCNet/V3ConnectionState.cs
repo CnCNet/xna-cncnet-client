@@ -20,6 +20,7 @@ internal sealed class V3ConnectionState : IAsyncDisposable
 
     private readonly TunnelHandler tunnelHandler;
     private readonly List<(string RemotePlayerName, CnCNetTunnel Tunnel, int CombinedPing)> playerTunnels = new();
+    private readonly Dictionary<string, string> playerP2PRequestMessages = new();
     private readonly ReplayHandler replayHandler = new();
 
     private IPAddress publicIpV4Address;
@@ -106,8 +107,8 @@ internal sealed class V3ConnectionState : IAsyncDisposable
     }
 
     public string GetP2PRequestCommand()
-        => $" {publicIpV4Address}\t{(!ipV4P2PPorts.Any() ? null : ipV4P2PPorts.Select(q => q.ExternalPort.ToString(CultureInfo.InvariantCulture)).Aggregate((q, r) => $"{q}-{r}"))}" +
-        $";{publicIpV6Address}\t{(!ipV6P2PPorts.Any() ? null : ipV6P2PPorts.Select(q => q.ExternalPort.ToString(CultureInfo.InvariantCulture)).Aggregate((q, r) => $"{q}-{r}"))}";
+        => $" {publicIpV4Address}\t{(!ipV4P2PPorts.Any() ? null : ipV4P2PPorts.Select(q => q.ExternalPort.ToString(CultureInfo.InvariantCulture)).DefaultIfEmpty().Aggregate((q, r) => $"{q}-{r}"))}" +
+        $";{publicIpV6Address}\t{(!ipV6P2PPorts.Any() ? null : ipV6P2PPorts.Select(q => q.ExternalPort.ToString(CultureInfo.InvariantCulture)).DefaultIfEmpty().Aggregate((q, r) => $"{q}-{r}"))}";
 
     public string GetP2PPingCommand(string playerName)
         => $" {playerName}-{P2PPlayers.Single(q => q.RemotePlayerName.Equals(playerName, StringComparison.OrdinalIgnoreCase)).LocalPingResults.Select(q => $"{q.RemoteIpAddress};{q.Ping}\t").DefaultIfEmpty().Aggregate((q, r) => $"{q}{r}")}";
@@ -139,6 +140,12 @@ internal sealed class V3ConnectionState : IAsyncDisposable
 
         return false;
     }
+
+    public void StoreP2PRequest(string playerName, string p2pRequestMessage)
+        => playerP2PRequestMessages[playerName] = p2pRequestMessage;
+
+    public string GetP2PRequest(string playerName)
+        => playerP2PRequestMessages.TryGetValue(playerName, out string p2pRequestMessage) ? p2pRequestMessage : null;
 
     public async ValueTask<bool> PingRemotePlayerAsync(string playerName, string p2pRequestMessage)
     {
@@ -178,16 +185,16 @@ internal sealed class V3ConnectionState : IAsyncDisposable
         return localPingResults.Any();
     }
 
-    public bool UpdateRemotePingResults(string senderName, string p2pPingsMessage, string localPlayerName)
+    public string UpdateRemotePingResults(string senderName, string p2pPingsMessage, string localPlayerName)
     {
         if (!P2PEnabled)
-            return false;
+            return null;
 
         string[] splitLines = p2pPingsMessage.Split('-');
         string pingPlayerName = splitLines[0];
 
         if (!localPlayerName.Equals(pingPlayerName, StringComparison.OrdinalIgnoreCase))
-            return false;
+            return null;
 
         string[] pingResults = splitLines[1].Split('\t', StringSplitOptions.RemoveEmptyEntries);
         List<(IPAddress IpAddress, long Ping)> playerPings = new();
@@ -213,9 +220,11 @@ internal sealed class V3ConnectionState : IAsyncDisposable
             p2pPlayer = new(senderName, Array.Empty<ushort>(), Array.Empty<ushort>(), new(), new());
         }
 
-        P2PPlayers.Add(p2pPlayer with { RemotePingResults = playerPings });
+        p2pPlayer = p2pPlayer with { RemotePingResults = playerPings };
 
-        return !p2pPlayer.RemotePingResults.Any();
+        P2PPlayers.Add(p2pPlayer);
+
+        return !p2pPlayer.LocalPingResults.Any() ? GetP2PRequest(senderName) : null;
     }
 
     public void StartV3ConnectionListeners(
@@ -364,6 +373,7 @@ internal sealed class V3ConnectionState : IAsyncDisposable
         playerTunnels.Clear();
         P2PPlayers.Clear();
         PinnedTunnels?.Clear();
+        playerP2PRequestMessages.Clear();
         await CloseP2PPortsAsync().ConfigureAwait(false);
     }
 
@@ -438,16 +448,18 @@ internal sealed class V3ConnectionState : IAsyncDisposable
 
     private async ValueTask CloseP2PPortsAsync()
     {
-        if (internetGatewayDevice is null)
-            return;
+        List<Task> tasks = new();
 
-        Task ipV4Task = ClientCore.Extensions.TaskExtensions.WhenAllSafe(ipV4P2PPorts.Select(q => internetGatewayDevice.CloseIpV4PortAsync(q.InternalPort, CancellationToken.None)));
-        Task ipV6Task = ClientCore.Extensions.TaskExtensions.WhenAllSafe(p2pIpV6PortIds.Select(q => internetGatewayDevice.CloseIpV6PortAsync(q, CancellationToken.None)));
+        if (internetGatewayDevice is not null)
+        {
+            tasks.Add(ClientCore.Extensions.TaskExtensions.WhenAllSafe(ipV4P2PPorts.Select(q => internetGatewayDevice.CloseIpV4PortAsync(q.InternalPort, CancellationToken.None))));
+            tasks.Add(ClientCore.Extensions.TaskExtensions.WhenAllSafe(p2pIpV6PortIds.Select(q => internetGatewayDevice.CloseIpV6PortAsync(q, CancellationToken.None))));
+        }
 
         ipV4P2PPorts.Clear();
         ipV6P2PPorts.Clear();
         p2pIpV6PortIds.Clear();
 
-        await ClientCore.Extensions.TaskExtensions.WhenAllSafe(new[] { ipV4Task, ipV6Task }).ConfigureAwait(false);
+        await ClientCore.Extensions.TaskExtensions.WhenAllSafe(tasks).ConfigureAwait(false);
     }
 }

@@ -26,6 +26,12 @@ internal static class NetworkHelper
         AddressFamily.InterNetworkV6
     }.AsReadOnly();
 
+    public static bool HasIPv6Internet()
+        => Socket.OSSupportsIPv6 && GetLocalPublicIpV6Address() is not null;
+
+    public static bool HasIPv4Internet()
+        => Socket.OSSupportsIPv4 && GetLocalAddresses().Any(q => q.AddressFamily is AddressFamily.InterNetwork);
+
     public static IEnumerable<IPAddress> GetLocalAddresses()
         => GetUniCastIpAddresses()
         .Select(q => q.UnicastIPAddressInformation.Address);
@@ -57,7 +63,7 @@ internal static class NetworkHelper
 
     private static IEnumerable<IPInterfaceProperties> GetIpInterfaces()
         => NetworkInterface.GetAllNetworkInterfaces()
-        .Where(q => q.OperationalStatus is OperationalStatus.Up)
+        .Where(q => q.OperationalStatus is OperationalStatus.Up && q.NetworkInterfaceType is not NetworkInterfaceType.Loopback)
         .Select(q => q.GetIPProperties());
 
     [SupportedOSPlatform("windows")]
@@ -135,8 +141,8 @@ internal static class NetworkHelper
 
     public static async ValueTask<long?> PingAsync(IPAddress ipAddress)
     {
-        if ((ipAddress.AddressFamily is AddressFamily.InterNetworkV6 && !Socket.OSSupportsIPv6)
-            || (ipAddress.AddressFamily is AddressFamily.InterNetwork && !Socket.OSSupportsIPv4))
+        if ((ipAddress.AddressFamily is AddressFamily.InterNetworkV6 && !HasIPv6Internet())
+            || (ipAddress.AddressFamily is AddressFamily.InterNetwork && !HasIPv4Internet()))
         {
             return null;
         }

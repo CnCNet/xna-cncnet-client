@@ -42,28 +42,30 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                 string primaryAddress = addressAndPort[..addressAndPort.LastIndexOf(':')];
                 var primaryIpAddress = IPAddress.Parse(primaryAddress);
                 IPAddress secondaryIpAddress = string.IsNullOrWhiteSpace(secondaryAddress) ? null : IPAddress.Parse(secondaryAddress);
+                bool hasIPv6Internet = NetworkHelper.HasIPv6Internet();
+                bool hasIPv4Internet = NetworkHelper.HasIPv4Internet();
 
-                if (Socket.OSSupportsIPv6 && primaryIpAddress.AddressFamily is AddressFamily.InterNetworkV6)
+                if (hasIPv6Internet && primaryIpAddress.AddressFamily is AddressFamily.InterNetworkV6)
                 {
                     tunnel.Address = primaryIpAddress.ToString();
                 }
-                else if (Socket.OSSupportsIPv6 && secondaryIpAddress?.AddressFamily is AddressFamily.InterNetworkV6)
+                else if (hasIPv6Internet && secondaryIpAddress?.AddressFamily is AddressFamily.InterNetworkV6)
                 {
                     tunnel.Address = secondaryIpAddress.ToString();
                 }
-                else if (Socket.OSSupportsIPv4 && primaryIpAddress.AddressFamily is AddressFamily.InterNetwork)
+                else if (hasIPv4Internet && primaryIpAddress.AddressFamily is AddressFamily.InterNetwork)
                 {
                     tunnel.Address = primaryIpAddress.ToString();
                 }
-                else if (Socket.OSSupportsIPv4 && secondaryIpAddress?.AddressFamily is AddressFamily.InterNetwork)
+                else if (hasIPv4Internet && secondaryIpAddress?.AddressFamily is AddressFamily.InterNetwork)
                 {
                     tunnel.Address = secondaryIpAddress.ToString();
                 }
                 else
                 {
                     Logger.Log($"""
-                                No supported IP address found ({nameof(Socket.OSSupportsIPv6)}={Socket.OSSupportsIPv6}, 
-                                {nameof(Socket.OSSupportsIPv4)}={Socket.OSSupportsIPv4}) for {str}.
+                                No supported IP address/connection found ({nameof(NetworkHelper.HasIPv6Internet)}={hasIPv6Internet}, 
+                                {nameof(NetworkHelper.HasIPv4Internet)}={hasIPv4Internet}) for {primaryIpAddress} - {secondaryIpAddress}.
                                 """);
 
                     return null;

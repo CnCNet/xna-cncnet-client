@@ -71,8 +71,12 @@ internal abstract class PlayerConnection : IDisposable
         try
         {
 #if DEBUG
+#if NETWORKTRACE
             Logger.Log($"{GetType().Name}: Sending data from {Socket.LocalEndPoint} to {RemoteEndPoint} for player {PlayerId}: {BitConverter.ToString(data.Span.ToArray())}.");
+#else
+            Logger.Log($"{GetType().Name}: Sending data from {Socket.LocalEndPoint} to {RemoteEndPoint} for player {PlayerId}.");
 
+#endif
 #endif
             if (Connected)
                 await Socket.SendToAsync(data, SocketFlags.None, RemoteEndPoint, linkedCancellationTokenSource.Token).ConfigureAwait(false);
@@ -164,7 +168,11 @@ internal abstract class PlayerConnection : IDisposable
             receiveTimeout = GameInProgressReceiveTimeout;
 
 #if DEBUG
+#if NETWORKTRACE
             Logger.Log($"{GetType().Name}: Received data from {RemoteEndPoint} on {Socket.LocalEndPoint} for player {PlayerId}: {BitConverter.ToString(buffer.Span.ToArray())}.");
+#else
+            Logger.Log($"{GetType().Name}: Received data from {RemoteEndPoint} on {Socket.LocalEndPoint} for player {PlayerId}.");
+#endif
 #endif
 
             DataReceivedEventArgs dataReceivedEventArgs = ProcessReceivedData(buffer, socketReceiveFromResult);
