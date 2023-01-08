@@ -32,6 +32,7 @@ namespace ClientCore.CnCNet5
             using Stream moIconStream = assembly.GetManifestResourceStream("ClientCore.Resources.moicon.png");
             using Stream yrIconStream = assembly.GetManifestResourceStream("ClientCore.Resources.yricon.png");
             using Stream rrIconStream = assembly.GetManifestResourceStream("ClientCore.Resources.rricon.png");
+            using Stream reIconStream = assembly.GetManifestResourceStream("ClientCore.Resources.reicon.png");
             using Stream cncrIconStream = assembly.GetManifestResourceStream("ClientCore.Resources.cncricon.png");
             using Stream cncnetIconStream = assembly.GetManifestResourceStream("ClientCore.Resources.cncneticon.png");
             using Stream tdIconStream = assembly.GetManifestResourceStream("ClientCore.Resources.tdicon.png");
@@ -45,6 +46,7 @@ namespace ClientCore.CnCNet5
             using var moIcon = Image.Load(moIconStream);
             using var yrIcon = Image.Load(yrIconStream);
             using var rrIcon = Image.Load(rrIconStream);
+            using var reIcon = Image.Load(reIconStream);
             using var cncrIcon = Image.Load(cncrIconStream);
             using var cncnetIcon = Image.Load(cncnetIconStream);
             using var tdIcon = Image.Load(tdIconStream);
@@ -98,6 +100,17 @@ namespace ClientCore.CnCNet5
                     RegistryInstallPath = "HKML\\Software\\RedResurrection",
                     UIName = "YR Red-Resurrection",
                     Texture = AssetLoader.TextureFromImage(rrIcon)
+                },
+
+                new()
+                {
+                    ChatChannel = "#riseoftheeast",
+                    ClientExecutableName = "RELauncher.exe",
+                    GameBroadcastChannel = "#rote-games",
+                    InternalName = "re",
+                    RegistryInstallPath = "HKML\\Software\\RiseoftheEast",
+                    UIName = "Rise of the East",
+                    Texture = AssetLoader.TextureFromImage(reIcon)
                 },
 
                 new()

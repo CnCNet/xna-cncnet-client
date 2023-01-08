@@ -21,6 +21,7 @@
     <None Remove="Resources\moicon.png" />
     <None Remove="Resources\raicon.png" />
     <None Remove="Resources\rricon.png" />
+    <None Remove="Resources\reicon.png" />
     <None Remove="Resources\ssicon.png" />
     <None Remove="Resources\tdicon.png" />
     <None Remove="Resources\tiicon.png" />
@@ -36,6 +37,7 @@
     <EmbeddedResource Include="Resources\moicon.png" />
     <EmbeddedResource Include="Resources\raicon.png" />
     <EmbeddedResource Include="Resources\rricon.png" />
+    <EmbeddedResource Include="Resources\reicon.png" />
     <EmbeddedResource Include="Resources\ssicon.png" />
     <EmbeddedResource Include="Resources\tdicon.png" />
     <EmbeddedResource Include="Resources\tiicon.png" />
