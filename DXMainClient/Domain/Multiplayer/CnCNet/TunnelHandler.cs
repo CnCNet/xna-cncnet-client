@@ -11,6 +11,7 @@ using DTAClient.Online;
 using Microsoft.Xna.Framework;
 using Rampastring.Tools;
 using Rampastring.XNAUI;
+using TaskExtensions = ClientCore.Extensions.TaskExtensions;
 
 namespace DTAClient.Domain.Multiplayer.CnCNet
 {
@@ -74,21 +75,17 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
         private async ValueTask RefreshTunnelsAsync(CancellationToken cancellationToken)
         {
             List<CnCNetTunnel> tunnels = await DoRefreshTunnelsAsync(cancellationToken).ConfigureAwait(false);
-            wm.AddCallback(() => HandleRefreshedTunnels(tunnels, cancellationToken));
+            wm.AddCallback(() => HandleRefreshedTunnelsAsync(tunnels, cancellationToken).HandleTask());
         }
 
-        private void HandleRefreshedTunnels(List<CnCNetTunnel> tunnels, CancellationToken cancellationToken)
+        private async ValueTask HandleRefreshedTunnelsAsync(List<CnCNetTunnel> tunnels, CancellationToken cancellationToken)
         {
             if (tunnels.Count > 0)
                 Tunnels = tunnels;
 
             TunnelsRefreshed?.Invoke(this, EventArgs.Empty);
 
-            for (int i = 0; i < Tunnels.Count; i++)
-            {
-                if (UserINISettings.Instance.PingUnofficialCnCNetTunnels || Tunnels[i].Official || Tunnels[i].Recommended)
-                    PingListTunnelAsync(i, cancellationToken).HandleTask();
-            }
+            await TaskExtensions.WhenAllSafe(Tunnels.Select(q => PingListTunnelAsync(q, cancellationToken))).ConfigureAwait(false);
 
             if (CurrentTunnel != null)
             {
@@ -109,10 +106,16 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
             }
         }
 
-        private async ValueTask PingListTunnelAsync(int index, CancellationToken cancellationToken)
+        private async Task PingListTunnelAsync(CnCNetTunnel tunnel, CancellationToken cancellationToken)
         {
-            await Tunnels[index].UpdatePingAsync(cancellationToken).ConfigureAwait(false);
-            DoTunnelPinged(index);
+            if (!UserINISettings.Instance.PingUnofficialCnCNetTunnels && !tunnel.Official && !tunnel.Recommended)
+                return;
+
+            await tunnel.UpdatePingAsync(cancellationToken).ConfigureAwait(false);
+
+            int tunnelIndex = Tunnels.FindIndex(t => t.Hash.Equals(tunnel.Hash, StringComparison.OrdinalIgnoreCase));
+
+            DoTunnelPinged(tunnelIndex);
         }
 
         private async ValueTask PingCurrentTunnelAsync(bool checkTunnelList, CancellationToken cancellationToken)
@@ -167,13 +170,15 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
             }
 
             string[] serverList = data.Split(new[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries);
+            bool hasIPv6Internet = NetworkHelper.HasIPv6Internet();
+            bool hasIPv4Internet = NetworkHelper.HasIPv4Internet();
 
             // skip the header
             foreach (string serverInfo in serverList.Skip(1))
             {
                 try
                 {
-                    var tunnel = CnCNetTunnel.Parse(serverInfo);
+                    var tunnel = CnCNetTunnel.Parse(serverInfo, hasIPv6Internet, hasIPv4Internet);
 
                     if (tunnel == null)
                         continue;

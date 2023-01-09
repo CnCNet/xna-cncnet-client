@@ -29,7 +29,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
         /// </summary>
         /// <param name="str">The string that contains the tunnel server's information.</param>
         /// <returns>A CnCNetTunnel instance parsed from the given string.</returns>
-        public static CnCNetTunnel Parse(string str)
+        public static CnCNetTunnel Parse(string str, bool hasIPv6Internet, bool hasIPv4Internet)
         {
             // For the format, check https://cncnet.org/api/v1/master-list?nocache=1
             try
@@ -42,8 +42,6 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                 string primaryAddress = addressAndPort[..addressAndPort.LastIndexOf(':')];
                 var primaryIpAddress = IPAddress.Parse(primaryAddress);
                 IPAddress secondaryIpAddress = string.IsNullOrWhiteSpace(secondaryAddress) ? null : IPAddress.Parse(secondaryAddress);
-                bool hasIPv6Internet = NetworkHelper.HasIPv6Internet();
-                bool hasIPv4Internet = NetworkHelper.HasIPv4Internet();
 
                 if (hasIPv6Internet && primaryIpAddress.AddressFamily is AddressFamily.InterNetworkV6)
                 {
