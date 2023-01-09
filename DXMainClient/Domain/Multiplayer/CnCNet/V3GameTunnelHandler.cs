@@ -120,6 +120,9 @@ internal sealed class V3GameTunnelHandler : IDisposable
         localGamePlayerConnection.RaiseConnectionCutEvent -= LocalGameConnection_ConnectionCut;
         localGamePlayerConnection.RaiseDataReceivedEvent -= localGameConnectionDataReceivedFunc;
         localGamePlayerConnection.Dispose();
+
+        if (!localGameConnections.Any())
+            Dispose();
     }
 
     /// <summary>

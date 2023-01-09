@@ -155,8 +155,6 @@ internal sealed class V3RemotePlayerConnection : PlayerConnection
 
     private void OnRaiseConnectedEvent(EventArgs e)
     {
-        Connected = true;
-
         EventHandler raiseEvent = RaiseConnectedEvent;
 
         raiseEvent?.Invoke(this, e);
