@@ -93,7 +93,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             AddChild(briefingBox);
             briefingBox.Disable();
 
-            ClientRectangleUpdated += (_, _) => UpdateMapAsync().HandleTask();
+            ClientRectangleUpdated += (_, _) => UpdateMap();
         }
 
         private GameModeMap _gameModeMap;
@@ -103,7 +103,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             set
             {
                 _gameModeMap = value;
-                UpdateMapAsync().HandleTask();
+                UpdateMap();
             }
         }
 
@@ -220,7 +220,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             base.Initialize();
 
-            ClientRectangleUpdated += (_, _) => UpdateMapAsync().HandleTask();
+            ClientRectangleUpdated += (_, _) => UpdateMap();
 
             RightClick += MapPreviewBox_RightClick;
 
@@ -379,7 +379,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         /// this control's display rectangle and the 
         /// starting location indicators' positions.
         /// </summary>
-        private async ValueTask UpdateMapAsync()
+        private void UpdateMap()
         {
             if (disposeTextures && previewTexture != null && !previewTexture.IsDisposed)
                 previewTexture.Dispose();
@@ -401,7 +401,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             if (GameModeMap.Map.PreviewTexture == null)
             {
-                previewTexture = await GameModeMap.Map.LoadPreviewTextureAsync().ConfigureAwait(true);
+                previewTexture = GameModeMap.Map.LoadPreviewTexture();
                 disposeTextures = true;
             }
             else

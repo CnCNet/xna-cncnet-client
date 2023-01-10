@@ -25,7 +25,7 @@ namespace DTAClient.Domain.Multiplayer
         /// </summary>
         /// <param name="mapIni">Map file.</param>
         /// <returns>Bitmap of map preview image, or null if preview could not be extracted.</returns>
-        public static async ValueTask<Image> ExtractMapPreviewAsync(IniFile mapIni)
+        public static async Task<Image> ExtractMapPreviewAsync(IniFile mapIni)
         {
             List<string> sectionKeys = mapIni.GetSectionKeys("PreviewPack");
 
@@ -81,7 +81,7 @@ namespace DTAClient.Domain.Multiplayer
                 return null;
             }
 
-            (Image bitmap, errorMessage) = await Task.Run(() => CreatePreviewBitmapFromImageData(previewWidth, previewHeight, dataDest)).ConfigureAwait(false);
+            (Image bitmap, errorMessage) = CreatePreviewBitmapFromImageData(previewWidth, previewHeight, dataDest);
 
             if (errorMessage != null)
             {

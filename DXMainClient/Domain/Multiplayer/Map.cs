@@ -12,10 +12,8 @@ using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using SixLabors.ImageSharp;
 using Color = Microsoft.Xna.Framework.Color;
-using Exception = System.Exception;
 using Point = Microsoft.Xna.Framework.Point;
-using Utilities = Rampastring.Tools.Utilities;
-using static System.Collections.Specialized.BitVector32;
+using ClientCore.Extensions;
 
 namespace DTAClient.Domain.Multiplayer
 {
@@ -405,7 +403,7 @@ namespace DTAClient.Domain.Multiplayer
 #if !GL
 
                 if (UserINISettings.Instance.PreloadMapPreviews)
-                    PreviewTexture = await LoadPreviewTextureAsync().ConfigureAwait(false);
+                    PreviewTexture = LoadPreviewTexture();
 #endif
 
                 // Parse forced options
@@ -684,7 +682,7 @@ namespace DTAClient.Domain.Multiplayer
         /// <summary>
         /// Loads and returns the map preview texture.
         /// </summary>
-        public async ValueTask<Texture2D> LoadPreviewTextureAsync()
+        public Texture2D LoadPreviewTexture()
         {
             if (SafePath.GetFile(ProgramConstants.GamePath, PreviewPath).Exists)
                 return AssetLoader.LoadTextureUncached(PreviewPath);
@@ -692,7 +690,7 @@ namespace DTAClient.Domain.Multiplayer
             if (!Official)
             {
                 // Extract preview from the map itself
-                using Image preview = await MapPreviewExtractor.ExtractMapPreviewAsync(GetCustomMapIniFile()).ConfigureAwait(true);
+                using Image preview = Task.Run(() => MapPreviewExtractor.ExtractMapPreviewAsync(GetCustomMapIniFile())).HandleTask().Result;
 
                 if (preview != null)
                 {
