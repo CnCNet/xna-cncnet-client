@@ -31,7 +31,7 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
         /// <returns>A CnCNetTunnel instance parsed from the given string.</returns>
         public static CnCNetTunnel Parse(string str, bool hasIPv6Internet, bool hasIPv4Internet)
         {
-            // For the format, check https://cncnet.org/api/v1/master-list?nocache=1
+            // For the format, check https://cncnet.org/api/v1/master-list
             try
             {
                 var tunnel = new CnCNetTunnel();
