@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Net;
 using System.Net.Http;
+using System.Net.Security;
 using System.Net.Sockets;
 using System.Runtime.Serialization;
 using System.Text;
@@ -56,6 +57,7 @@ internal static class UPnPHandler
             },
             SslOptions = new()
             {
+                RemoteCertificateValidationCallback = (_, _, _, sslPolicyErrors) => (sslPolicyErrors & SslPolicyErrors.RemoteCertificateNotAvailable) == 0,
                 CertificateChainPolicy = new()
                 {
                     DisableCertificateDownloads = true
