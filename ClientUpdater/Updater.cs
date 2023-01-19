@@ -1,19 +1,17 @@
-﻿/*
-Copyright 2022 CnCNet
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
+﻿// Copyright 2023 CnCNet
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY, without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 namespace ClientUpdater;
 
@@ -1244,32 +1242,37 @@ public static class Updater
 
                     if (updaterDirectoryInfo.Exists)
                     {
-                        IEnumerable<FileInfo> updaterFiles = SafePath.GetDirectory(updaterDirectoryInfo.FullName, "Resources").EnumerateFiles(Path.GetFileNameWithoutExtension(SECOND_STAGE_UPDATER) + ".*");
-
-                        foreach (FileInfo updaterFile in updaterFiles)
-                        {
-                            FileInfo updaterFileResource = SafePath.GetFile(ResourcePath, updaterFile.Name);
-
-                            Logger.Log("Updater: Moving second-stage updater file " + updaterFile.Name + ".");
-
-                            updaterFile.MoveTo(updaterFileResource.FullName, true);
-                        }
-
                         FileInfo secondStageUpdaterResource = SafePath.GetFile(ResourcePath, SECOND_STAGE_UPDATER);
-                        AssemblyName[] assemblies = Assembly.LoadFrom(secondStageUpdaterResource.FullName).GetReferencedAssemblies();
+                        DirectoryInfo updaterResourcesDirectory = SafePath.GetDirectory(updaterDirectoryInfo.FullName, "Resources");
 
-                        foreach (AssemblyName assembly in assemblies)
+                        if (updaterResourcesDirectory.Exists)
                         {
-                            FileInfo updaterFile = SafePath.GetFile(updaterDirectoryInfo.FullName, "Resources", FormattableString.Invariant($"{assembly.Name}.dll"));
+                            IEnumerable<FileInfo> updaterFiles = updaterResourcesDirectory.EnumerateFiles(Path.GetFileNameWithoutExtension(SECOND_STAGE_UPDATER) + ".*");
 
-                            if (!updaterFile.Exists)
-                                continue;
+                            foreach (FileInfo updaterFile in updaterFiles)
+                            {
+                                FileInfo updaterFileResource = SafePath.GetFile(ResourcePath, updaterFile.Name);
 
-                            FileInfo updaterFileResource = SafePath.GetFile(ResourcePath, updaterFile.Name);
+                                Logger.Log("Updater: Moving second-stage updater file " + updaterFile.Name + ".");
 
-                            Logger.Log("Updater: Moving second-stage updater file " + updaterFile.Name + ".");
+                                updaterFile.MoveTo(updaterFileResource.FullName, true);
+                            }
 
-                            updaterFile.MoveTo(updaterFileResource.FullName, true);
+                            AssemblyName[] assemblies = Assembly.LoadFrom(secondStageUpdaterResource.FullName).GetReferencedAssemblies();
+
+                            foreach (AssemblyName assembly in assemblies)
+                            {
+                                FileInfo updaterFile = SafePath.GetFile(updaterResourcesDirectory.FullName, FormattableString.Invariant($"{assembly.Name}.dll"));
+
+                                if (!updaterFile.Exists)
+                                    continue;
+
+                                FileInfo updaterFileResource = SafePath.GetFile(ResourcePath, updaterFile.Name);
+
+                                Logger.Log("Updater: Moving second-stage updater file " + updaterFile.Name + ".");
+
+                                updaterFile.MoveTo(updaterFileResource.FullName, true);
+                            }
                         }
 
                         Logger.Log("Updater: Launching second-stage updater executable " + SECOND_STAGE_UPDATER + ".");

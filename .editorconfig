@@ -287,7 +287,7 @@ dotnet_diagnostic.IDE0061.severity = warning
 dotnet_diagnostic.IDE0062.severity = warning
 dotnet_diagnostic.IDE0071.severity = warning
 dotnet_diagnostic.IDE0072.severity = warning
-dotnet_diagnostic.IDE0073.severity = none
+dotnet_diagnostic.IDE0073.severity = warning
 dotnet_diagnostic.IDE0074.severity = warning
 dotnet_diagnostic.IDE0075.severity = warning
 dotnet_diagnostic.IDE0078.severity = warning
@@ -459,5 +459,6 @@ dotnet_style_qualification_for_method = false:warning
 dotnet_style_qualification_for_event = false:warning
 dotnet_diagnostic.CA1036.severity = warning
 dotnet_diagnostic.CA1727.severity = warning
-[*.vb]
-dotnet_diagnostic.CA1047.severity = warning
+
+# License header
+file_header_template = Copyright 2023 CnCNet\n\nThis program is free software: you can redistribute it and/or modify\nit under the terms of the GNU General Public License as published by\nthe Free Software Foundation, either version 3 of the License, or\n(at your option) any later version.\n\nThis program is distributed in the hope that it will be useful,\nbut WITHOUT ANY WARRANTY, without even the implied warranty of\nMERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the\nGNU General Public License for more details.\n\nYou should have received a copy of the GNU General Public License\nalong with this program. If not, see <http://www.gnu.org/licenses/>.

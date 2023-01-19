@@ -5,7 +5,7 @@
     <Description>CnCNet Client Updater Library</Description>
     <Company>CnCNet</Company>
     <Product></Product>
-    <Copyright>Copyright © CnCNet 2022</Copyright>
+    <Copyright>Copyright © CnCNet 2023</Copyright>
     <Trademark></Trademark>
     <AssemblyName>ClientUpdater</AssemblyName>
     <RootNamespace>ClientUpdater</RootNamespace>
