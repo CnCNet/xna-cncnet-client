@@ -14,7 +14,7 @@ jobs:
         Game: [Ares,TS,YR]
 
     steps:
-    - uses: actions/checkout@v3.2.0
+    - uses: actions/checkout@v3.3.0
       with:
         fetch-depth: 0
 
@@ -27,7 +27,7 @@ jobs:
       run: ./BuildScripts/Build-${{matrix.Game}}.ps1
       shell: pwsh
 
-    - uses: actions/upload-artifact@v3.1.1
+    - uses: actions/upload-artifact@v3.1.2
       name: Upload Artifacts
       with:
         name: artifacts-${{matrix.Game}}

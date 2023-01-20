@@ -21,13 +21,8 @@ namespace DTAClient.Domain.Multiplayer.CnCNet.UPNP;
 internal sealed record InternetGatewayDevice(
     IEnumerable<Uri> Locations,
     string Server,
-    string CacheControl,
-    string Ext,
-    string SearchTarget,
-    string UniqueServiceName,
     UPnPDescription UPnPDescription,
-    Uri PreferredLocation,
-    IReadOnlyCollection<IPAddress> LocalIpAddresses)
+    Uri PreferredLocation)
 {
     private const uint IpLeaseTimeInSeconds = 4 * 60 * 60;
     private const ushort IanaUdpProtocolNumber = 17;
@@ -135,8 +130,9 @@ internal sealed record InternetGatewayDevice(
             Logger.Log($"P2P: Received external IPv4 address.");
 #endif
         }
-        catch
+        catch (Exception ex)
         {
+            ProgramConstants.LogException(ex);
         }
 
         return ipAddress;
@@ -172,8 +168,9 @@ internal sealed record InternetGatewayDevice(
 
             Logger.Log($"P2P: Received NAT status {natEnabled}.");
         }
-        catch
+        catch (Exception ex)
         {
+            ProgramConstants.LogException(ex);
         }
 
         return natEnabled;
@@ -194,6 +191,8 @@ internal sealed record InternetGatewayDevice(
         }
         catch (Exception ex) when (ex is not OperationCanceledException || !cancellationToken.IsCancellationRequested)
         {
+            ProgramConstants.LogException(ex);
+
             return (null, null);
         }
     }
@@ -238,9 +237,7 @@ internal sealed record InternetGatewayDevice(
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
-            ProgramConstants.LogException(ex, $"P2P: {action} error/not supported using {addressFamily}.");
-
-            throw;
+            throw new($"P2P: {action} error/not supported using {addressFamily}.", ex);
         }
     }
 
@@ -321,7 +318,9 @@ internal sealed record InternetGatewayDevice(
         {
             AddressFamily.InterNetwork when Locations.Any(q => q.HostNameType is UriHostNameType.IPv4) =>
                 Locations.FirstOrDefault(q => q.HostNameType is UriHostNameType.IPv4),
-            AddressFamily.InterNetworkV6 when Locations.Any(q => q.HostNameType is UriHostNameType.IPv6) =>
+            AddressFamily.InterNetworkV6 when Locations.Any(q => q.HostNameType is UriHostNameType.IPv6 && !NetworkHelper.IsPrivateIpAddress(IPAddress.Parse(q.IdnHost))) =>
+                Locations.FirstOrDefault(q => q.HostNameType is UriHostNameType.IPv6),
+            AddressFamily.InterNetworkV6 when Locations.Any(q => q.HostNameType is UriHostNameType.IPv6 && NetworkHelper.IsPrivateIpAddress(IPAddress.Parse(q.IdnHost))) =>
                 Locations.FirstOrDefault(q => q.HostNameType is UriHostNameType.IPv6),
             _ => PreferredLocation
         };
@@ -330,7 +329,7 @@ internal sealed record InternetGatewayDevice(
         Device wanConnectionDevice = wanDevice.DeviceList.Single(q => q.DeviceType.Equals($"{UPnPConstants.UPnPWanConnectionDevice}:{uPnPVersion}", StringComparison.OrdinalIgnoreCase));
         string serviceType = $"{UPnPConstants.UPnPServiceNamespace}:{wanConnectionDeviceService}";
         ServiceListItem wanIpConnectionService = wanConnectionDevice.ServiceList.Single(q => q.ServiceType.Equals(serviceType, StringComparison.OrdinalIgnoreCase));
-        var serviceUri = new Uri(FormattableString.Invariant($"{location.Scheme}://{(location.HostNameType is UriHostNameType.IPv6 ? '[' : null)}{location.IdnHost}{(location.HostNameType is UriHostNameType.IPv6 ? ']' : null)}:{location.Port}{wanIpConnectionService.ControlUrl}"));
+        Uri serviceUri = NetworkHelper.FormatUri(location.Scheme, location, (ushort)location.Port, wanIpConnectionService.ControlUrl);
 
         return new(wanIpConnectionService, serviceUri, serviceType);
     }

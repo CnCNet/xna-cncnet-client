@@ -61,10 +61,8 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                 }
                 else
                 {
-                    Logger.Log($"""
-                                No supported IP address/connection found ({nameof(NetworkHelper.HasIPv6Internet)}={hasIPv6Internet}, 
-                                {nameof(NetworkHelper.HasIPv4Internet)}={hasIPv4Internet}) for {primaryIpAddress} - {secondaryIpAddress}.
-                                """);
+                    Logger.Log($"No supported IP address/connection found ({nameof(NetworkHelper.HasIPv6Internet)}={hasIPv6Internet}, "
+                                + $"{nameof(NetworkHelper.HasIPv4Internet)}={hasIPv4Internet}) for {primaryIpAddress} - {secondaryIpAddress}.");
 
                     return null;
                 }

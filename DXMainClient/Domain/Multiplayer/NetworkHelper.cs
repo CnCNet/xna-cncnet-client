@@ -34,7 +34,7 @@ internal static class NetworkHelper
 
     public static IEnumerable<IPAddress> GetLocalAddresses()
         => GetUniCastIpAddresses()
-        .Select(q => q.UnicastIPAddressInformation.Address);
+        .Select(q => q.Address);
 
     public static IEnumerable<IPAddress> GetPublicIpAddresses()
         => GetLocalAddresses()
@@ -54,12 +54,38 @@ internal static class NetworkHelper
         .SelectMany(q => q.UnicastAddresses)
         .Where(q => SupportedAddressFamilies.Contains(q.Address.AddressFamily));
 
-    private static IEnumerable<(UnicastIPAddressInformation UnicastIPAddressInformation, GatewayIPAddressInformation GatewayIPAddressInformation)> GetUniCastIpAddresses()
+    public static IEnumerable<IPAddress> GetMulticastAddresses()
+        => GetIpInterfaces()
+        .SelectMany(q => q.MulticastAddresses.Select(r => r.Address))
+        .Where(q => SupportedAddressFamilies.Contains(q.AddressFamily));
+
+    public static Uri FormatUri(string scheme, Uri uri, ushort port, string path)
+    {
+        string[] pathAndQuery = path.Split('?');
+        var uriBuilder = new UriBuilder(uri)
+        {
+            Scheme = scheme,
+            Host = uri.IdnHost,
+            Port = port,
+            Path = pathAndQuery.First(),
+            Query = pathAndQuery.Skip(1).SingleOrDefault()
+        };
+
+        return uriBuilder.Uri;
+    }
+
+    public static Uri FormatUri(IPEndPoint ipEndPoint, string scheme = null, string path = null)
+    {
+        var uriBuilder = new UriBuilder(scheme ?? Uri.UriSchemeHttps, ipEndPoint.Address.ToString(), ipEndPoint.Port, path);
+
+        return uriBuilder.Uri;
+    }
+
+    private static IEnumerable<UnicastIPAddressInformation> GetUniCastIpAddresses()
         => GetIpInterfaces()
         .Where(q => q.GatewayAddresses.Any())
-        .SelectMany(q => q.UnicastAddresses.Select(
-            r => (UnicastIPAddressInformation: r, GatewayIPAddressInformation: q.GatewayAddresses.FirstOrDefault(s => s.Address.AddressFamily == r.Address.AddressFamily))))
-        .Where(q => SupportedAddressFamilies.Contains(q.UnicastIPAddressInformation.Address.AddressFamily));
+        .SelectMany(q => q.UnicastAddresses)
+        .Where(q => SupportedAddressFamilies.Contains(q.Address.AddressFamily));
 
     private static IEnumerable<IPInterfaceProperties> GetIpInterfaces()
         => NetworkInterface.GetAllNetworkInterfaces()
@@ -69,8 +95,8 @@ internal static class NetworkHelper
     [SupportedOSPlatform("windows")]
     private static IEnumerable<(IPAddress IpAddress, PrefixOrigin PrefixOrigin, SuffixOrigin SuffixOrigin)> GetWindowsPublicIpAddresses()
         => GetUniCastIpAddresses()
-        .Where(q => !IsPrivateIpAddress(q.UnicastIPAddressInformation.Address))
-        .Select(q => (q.UnicastIPAddressInformation.Address, q.UnicastIPAddressInformation.PrefixOrigin, q.UnicastIPAddressInformation.SuffixOrigin));
+        .Where(q => !IsPrivateIpAddress(q.Address))
+        .Select(q => (q.Address, q.PrefixOrigin, q.SuffixOrigin));
 
     public static IPAddress GetIpV4BroadcastAddress(UnicastIPAddressInformation unicastIpAddressInformation)
     {
@@ -257,7 +283,6 @@ internal static class NetworkHelper
                 || ipAddress.IsIPv6UniqueLocal
                 || ipAddress.IsIPv6LinkLocal,
             AddressFamily.InterNetwork => IsInRange("10.0.0.0", "10.255.255.255", ipAddress)
-                || IsInRange("172.16.0.0", "172.31.255.255", ipAddress)
                 || IsInRange("172.16.0.0", "172.31.255.255", ipAddress)
                 || IsInRange("192.168.0.0", "192.168.255.255", ipAddress)
                 || IsInRange("169.254.0.0", "169.254.255.255", ipAddress)

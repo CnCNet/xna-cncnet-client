@@ -70,14 +70,6 @@ internal static class UPnPHandler
         DefaultVersionPolicy = HttpVersionPolicy.RequestVersionOrHigher
     };
 
-    private static IReadOnlyDictionary<AddressType, IPAddress> SsdpMultiCastAddresses
-        => new Dictionary<AddressType, IPAddress>
-        {
-            [AddressType.IpV4SiteLocal] = IPAddress.Parse("239.255.255.250"),
-            [AddressType.IpV6LinkLocal] = IPAddress.Parse("[FF02::C]"),
-            [AddressType.IpV6SiteLocal] = IPAddress.Parse("[FF05::C]")
-        }.AsReadOnly();
-
     public static async ValueTask<(
         InternetGatewayDevice InternetGatewayDevice,
         List<(ushort InternalPort, ushort ExternalPort)> IpV6P2PPorts,
@@ -113,10 +105,8 @@ internal static class UPnPHandler
 
         foreach (InternetGatewayDevice internetGatewayDevice in internetGatewayDevices)
         {
-            Logger.Log($"""
-                        P2P: Found gateway device v{internetGatewayDevice.UPnPDescription.Device.DeviceType.Split(':').LastOrDefault()} 
-                        {internetGatewayDevice.UPnPDescription.Device.FriendlyName} ({internetGatewayDevice.Server}).
-                        """);
+            Logger.Log($"P2P: Found gateway device v{internetGatewayDevice.UPnPDescription.Device.DeviceType.Split(':').LastOrDefault()}"
+                + $"{internetGatewayDevice.UPnPDescription.Device.FriendlyName} ({internetGatewayDevice.Server}).");
         }
 
         InternetGatewayDevice selectedInternetGatewayDevice = GetInternetGatewayDeviceByVersion(internetGatewayDevices, 2);
@@ -125,10 +115,8 @@ internal static class UPnPHandler
 
         if (selectedInternetGatewayDevice is not null)
         {
-            Logger.Log($"""
-                        P2P: Selected gateway device v{selectedInternetGatewayDevice.UPnPDescription.Device.DeviceType.Split(':').LastOrDefault()} 
-                        {selectedInternetGatewayDevice.UPnPDescription.Device.FriendlyName} ({selectedInternetGatewayDevice.Server}).
-                        """);
+            Logger.Log($"P2P: Selected gateway device v{selectedInternetGatewayDevice.UPnPDescription.Device.DeviceType.Split(':').LastOrDefault()}"
+                + $"{selectedInternetGatewayDevice.UPnPDescription.Device.FriendlyName} ({selectedInternetGatewayDevice.Server}).");
         }
         else
         {
@@ -295,11 +283,15 @@ internal static class UPnPHandler
     private static IEnumerable<IGrouping<string, InternetGatewayDeviceResponse>> GetGroupedDeviceResponses(
         IEnumerable<(IPAddress LocalIpAddress, IEnumerable<Dictionary<string, string>> Responses)> formattedDeviceResponses)
         => formattedDeviceResponses
-            .SelectMany(q => q.Responses.Select(r => new InternetGatewayDeviceResponse(new(r["LOCATION"]), r["SERVER"], r["CACHE-CONTROL"], r["EXT"], r["ST"], r["USN"], q.LocalIpAddress)))
+            .SelectMany(q => q.Responses.Select(r => new InternetGatewayDeviceResponse(new(r["LOCATION"]), r["SERVER"], r["USN"], q.LocalIpAddress)))
             .GroupBy(q => q.Usn);
 
     private static Uri GetPreferredLocation(IReadOnlyCollection<Uri> locations)
-        => locations.FirstOrDefault(q => q.HostNameType is UriHostNameType.IPv6) ?? locations.First(q => q.HostNameType is UriHostNameType.IPv4);
+    {
+        return locations.FirstOrDefault(q => q.HostNameType is UriHostNameType.IPv6 && !NetworkHelper.IsPrivateIpAddress(IPAddress.Parse(q.IdnHost)))
+            ?? locations.FirstOrDefault(q => q.HostNameType is UriHostNameType.IPv6 && NetworkHelper.IsPrivateIpAddress(IPAddress.Parse(q.IdnHost)))
+            ?? locations.First(q => q.HostNameType is UriHostNameType.IPv4);
+    }
 
     private static IEnumerable<Dictionary<string, string>> GetFormattedDeviceResponses(IEnumerable<string> responses)
     {
@@ -317,23 +309,18 @@ internal static class UPnPHandler
             StringComparer.OrdinalIgnoreCase));
     }
 
-    private static async Task<(IPAddress LocalIpAddress, IEnumerable<string> Responses)> SearchDevicesAsync(IPAddress localAddress, CancellationToken cancellationToken)
+    private static async Task<(IPAddress LocalIpAddress, IEnumerable<string> Responses)> SearchDevicesAsync(IPAddress localAddress, IPAddress multicastAddress, CancellationToken cancellationToken)
     {
         var responses = new List<string>();
-        AddressType addressType = GetAddressType(localAddress);
-
-        if (addressType is AddressType.Unknown)
-            return new(localAddress, responses);
-
-        using var socket = new Socket(localAddress.AddressFamily, SocketType.Dgram, ProtocolType.Udp);
+        using var socket = new Socket(SocketType.Dgram, ProtocolType.Udp);
         var localEndPoint = new IPEndPoint(localAddress, 0);
-        var multiCastIpEndPoint = new IPEndPoint(SsdpMultiCastAddresses[addressType], UPnPConstants.UPnPMultiCastPort);
+        var multiCastIpEndPoint = new IPEndPoint(multicastAddress, UPnPConstants.UPnPMultiCastPort);
 
         try
         {
             socket.Bind(localEndPoint);
 
-            string request = FormattableString.Invariant($"M-SEARCH * HTTP/1.1\r\nHOST: {multiCastIpEndPoint}\r\nST: {UPnPConstants.UPnPRootDevice}\r\nMAN: \"ssdp:discover\"\r\nMX: {ReceiveTimeoutInSeconds}\r\n\r\n");
+            string request = FormattableString.Invariant($"M-SEARCH * HTTP/1.1\r\nHOST: {NetworkHelper.FormatUri(multiCastIpEndPoint).Authority}\r\nST: {UPnPConstants.UPnPRootDevice}\r\nMAN: \"ssdp:discover\"\r\nMX: {ReceiveTimeoutInSeconds}\r\n\r\n");
             const int charSize = sizeof(char);
             int bufferSize = request.Length * charSize;
             using IMemoryOwner<byte> memoryOwner = MemoryPool<byte>.Shared.Rent(bufferSize);
@@ -354,20 +341,6 @@ internal static class UPnPHandler
         }
 
         return new(localAddress, responses);
-    }
-
-    private static AddressType GetAddressType(IPAddress localAddress)
-    {
-        if (localAddress.AddressFamily is AddressFamily.InterNetwork)
-            return AddressType.IpV4SiteLocal;
-
-        if (localAddress.IsIPv6LinkLocal)
-            return AddressType.IpV6LinkLocal;
-
-        if (localAddress.IsIPv6SiteLocal)
-            return AddressType.IpV6SiteLocal;
-
-        return AddressType.Unknown;
     }
 
     private static async ValueTask ReceiveAsync(Socket socket, ICollection<string> responses, CancellationToken cancellationToken)
@@ -406,9 +379,10 @@ internal static class UPnPHandler
 
     private static async ValueTask<IEnumerable<(IPAddress LocalIpAddress, IEnumerable<string> Responses)>> DetectDevicesAsync(CancellationToken cancellationToken)
     {
-        IEnumerable<IPAddress> localAddresses = NetworkHelper.GetLocalAddresses();
+        IEnumerable<IPAddress> unicastAddresses = NetworkHelper.GetLocalAddresses();
+        IEnumerable<IPAddress> multicastAddresses = NetworkHelper.GetMulticastAddresses();
         (IPAddress LocalIpAddress, IEnumerable<string> Responses)[] localAddressesDeviceResponses = await ClientCore.Extensions.TaskExtensions.WhenAllSafe(
-            localAddresses.Select(q => SearchDevicesAsync(q, cancellationToken))).ConfigureAwait(false);
+            multicastAddresses.SelectMany(q => unicastAddresses.Where(r => r.AddressFamily == q.AddressFamily).Select(r => SearchDevicesAsync(r, q, cancellationToken)))).ConfigureAwait(false);
 
         return localAddressesDeviceResponses.Where(q => q.Responses.Any(r => r.Any())).Select(q => (q.LocalIpAddress, q.Responses)).Distinct();
     }
@@ -447,13 +421,8 @@ internal static class UPnPHandler
             return new(
                   locations,
                   internetGatewayDeviceResponses.Select(r => r.Server).Distinct().Single(),
-                  internetGatewayDeviceResponses.Select(r => r.CacheControl).Distinct().Single(),
-                  internetGatewayDeviceResponses.Select(r => r.Ext).Distinct().Single(),
-                  internetGatewayDeviceResponses.Select(r => r.SearchTarget).Distinct().Single(),
-                  internetGatewayDeviceResponses.Key,
                   uPnPDescription,
-                  preferredLocation,
-                  internetGatewayDeviceResponses.Select(r => r.LocalIpAddress).Distinct().ToList().AsReadOnly());
+                  preferredLocation);
         }
         catch (Exception ex)
         {
@@ -465,18 +434,9 @@ internal static class UPnPHandler
 
     private static Uri ParseLocation((IPAddress LocalIpAddress, Uri Location) location)
     {
-        if (location.Location.HostNameType is not UriHostNameType.IPv6 || !IPAddress.TryParse(location.Location.Host, out IPAddress ipAddress)
-            || !NetworkHelper.IsPrivateIpAddress(ipAddress))
-        {
+        if (location.Location.HostNameType is not UriHostNameType.IPv6 || !IPAddress.TryParse(location.Location.IdnHost, out IPAddress ipAddress) || !NetworkHelper.IsPrivateIpAddress(ipAddress))
             return location.Location;
-        }
 
-        var uriBuilder = new UriBuilder(location.Location);
-
-        uriBuilder.Host = FormattableString.Invariant($"[{uriBuilder.Host
-            .Replace("[", null, StringComparison.OrdinalIgnoreCase)
-            .Replace("]", null, StringComparison.OrdinalIgnoreCase)}%{location.LocalIpAddress.ScopeId}]");
-
-        return uriBuilder.Uri;
+        return NetworkHelper.FormatUri(new(IPAddress.Parse(FormattableString.Invariant($"{location.Location.IdnHost}%{location.LocalIpAddress.ScopeId}")), location.Location.Port), location.Location.Scheme, location.Location.PathAndQuery);
     }
 }
