@@ -1279,9 +1279,9 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             if (isInGameRoom && !ProgramConstants.IsInGame)
             {
                 gameLobby.AddWarning(
-                    string.Format("{0} could not receive your invitation. They might be in game " +
+                    string.Format(("{0} could not receive your invitation. They might be in game " +
                     "or only accepting invitations from friends. Ensure your game is " +
-                    "unlocked and visible in the lobby before trying again.".L10N("Client:Main:InviteNotDelivered"), sender));
+                    "unlocked and visible in the lobby before trying again.").L10N("Client:Main:InviteNotDelivered"), sender));
             }
         }
 
