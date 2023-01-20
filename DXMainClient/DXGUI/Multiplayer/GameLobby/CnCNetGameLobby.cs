@@ -1776,9 +1776,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private void HandleMapSharingBlockedMessage(string sender)
         {
-            AddNotice(string.Format("The selected map doesn't exist on {0}'s installation, and they " +
+            AddNotice(string.Format(("The selected map doesn't exist on {0}'s installation, and they " +
                 "have map sharing disabled in settings. The game host needs to change to a non-custom map or " +
-                "they will be unable to participate in this match.".L10N("Client:Main:PlayerMissingMaDisabledSharing"), sender));
+                "they will be unable to participate in this match.").L10N("Client:Main:PlayerMissingMapDisabledSharing"), sender));
         }
 
         /// <summary>
