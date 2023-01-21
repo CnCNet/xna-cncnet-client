@@ -16,6 +16,8 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
 using ClientCore.I18N;
+using System.Globalization;
+using System.Transactions;
 
 namespace DTAClient
 {
@@ -129,6 +131,8 @@ namespace DTAClient
                 Logger.Log("Failed to load the translation file. " + ex.Message);
                 Translation.Instance = new Translation(UserINISettings.Instance.Translation);
             }
+
+            CultureInfo.CurrentUICulture = Translation.Instance.Culture;
 
             try
             {

@@ -18,8 +18,10 @@ namespace DTAClient.Domain
             Side = iniFile.GetIntValue(sectionName, nameof(Side), 0);
             Scenario = iniFile.GetStringValue(sectionName, nameof(Scenario), string.Empty);
 #pragma warning disable CNCNET0001
-            GUIName = iniFile.GetStringValue(sectionName, "Description", "Undefined mission")
+            UntranslatedGUIName = iniFile.GetStringValue(sectionName, "Description", "Undefined mission");
+            GUIName = UntranslatedGUIName
                 .L10N($"INI:Missions:{sectionName}:Description");
+
             IconPath = iniFile.GetStringValue(sectionName, "SideName", string.Empty);
             GUIDescription = iniFile.GetStringValue(sectionName, "LongDescription", string.Empty)
                 .FromIniString()
@@ -37,6 +39,7 @@ namespace DTAClient.Domain
         public int Side { get; }
         public string Scenario { get; }
         public string GUIName { get; }
+        public string UntranslatedGUIName { get; }
         public string IconPath { get; }
         public string GUIDescription { get; }
         public string FinalMovie { get; }

@@ -64,6 +64,7 @@ public static class StringExtensions
     /// </summary>
     /// <param name="defaultValue">The default string value as a fallback.</param>
     /// <param name="key">The unique key name.</param>
+    /// <param name="notify">Whether to add this key and value to the list of missing key-values.</param>
     /// <returns>The translated string value.</returns>
     /// <remarks>
     /// This method is referenced by <c>TranslationNotifierGenerator</c> in order to check if the const
@@ -72,6 +73,8 @@ public static class StringExtensions
     /// of the namespace it's currently defined in. If you do - you have to also edit the generator
     /// source code to match.
     /// </remarks>
-    public static string L10N(this string defaultValue, string key)
-        => Translation.Instance.LookUp(key, defaultValue);
+    public static string L10N(this string defaultValue, string key, bool notify = true)
+        => string.IsNullOrEmpty(defaultValue)
+            ? defaultValue
+            : Translation.Instance.LookUp(key, defaultValue, notify);
 }

@@ -1,4 +1,4 @@
-﻿using ClientCore.Extensions;
+using ClientCore.Extensions;
 using ClientCore;
 using ClientGUI;
 using Microsoft.Xna.Framework;
@@ -40,31 +40,35 @@ namespace DTAConfig.OptionPanels
 
                 if (SafePath.GetFile(ProgramConstants.GamePath, c.LocalPath).Exists)
                 {
-                    buttonText = "Uninstall".L10N("Client:DTAConfig:ButtonUninstall");
+                    buttonText = "Uninstall".L10N("Client:DTAConfig:Uninstall");
 
                     if (c.LocalIdentifier != c.RemoteIdentifier)
-                        buttonText = "Update".L10N("Client:DTAConfig:ButtonUpdate");
+                        buttonText = "Update".L10N("Client:DTAConfig:Update");
                 }
                 else
                 {
                     if (!string.IsNullOrEmpty(c.RemoteIdentifier))
-                    {
-                        buttonText = "Install".L10N("Client:DTAConfig:ButtonInstall");
-                    }
+                        buttonText = "Install".L10N("Client:DTAConfig:Install");
                 }
 
-                XNAClientButton btn = new XNAClientButton(WindowManager);
-                btn.Name = "btn" + c.ININame;
-                btn.ClientRectangle = new Rectangle(Width - 145,
-                    12 + componentIndex * 35, UIDesignConstants.BUTTON_WIDTH_133, UIDesignConstants.BUTTON_HEIGHT);
-                btn.Text = buttonText;
-                btn.Tag = c;
+                XNAClientButton btn = new(WindowManager)
+                {
+                    Name = "btn" + c.ININame,
+                    ClientRectangle = new Rectangle(Width - 145,
+                        12 + componentIndex * 35, UIDesignConstants.BUTTON_WIDTH_133, UIDesignConstants.BUTTON_HEIGHT),
+                    Text = buttonText,
+                    Tag = c
+                };
                 btn.LeftClick += Btn_LeftClick;
 
-                XNALabel lbl = new XNALabel(WindowManager);
-                lbl.Name = "lbl" + c.ININame;
-                lbl.ClientRectangle = new Rectangle(12, btn.Y + 2, 0, 0);
-                lbl.Text = c.GUIName;
+#pragma warning disable CNCNET0001 // L10N Failure
+                XNALabel lbl = new(WindowManager)
+                {
+                    Name = "lbl" + c.ININame,
+                    ClientRectangle = new Rectangle(12, btn.Y + 2, 0, 0),
+                    Text = c.GUIName.L10N($"INI:CustomComponents:{c.ININame}:UIName")
+                };
+#pragma warning restore CNCNET0001 // L10N Failure
 
                 AddChild(btn);
                 AddChild(lbl);

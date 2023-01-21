@@ -241,7 +241,13 @@ namespace DTAConfig.OptionPanels
             int themeCount = ClientConfiguration.Instance.ThemeCount;
 
             for (int i = 0; i < themeCount; i++)
-                ddClientTheme.AddItem(ClientConfiguration.Instance.GetThemeInfoFromIndex(i)[0]);
+            {
+                string themeName = ClientConfiguration.Instance.GetThemeInfoFromIndex(i)[0];
+#pragma warning disable CNCNET0001 // L10N Failure
+                string displayName = themeName.L10N($"INI:Themes:{themeName}");
+#pragma warning restore CNCNET0001 // L10N Failure
+                ddClientTheme.AddItem(new XNADropDownItem { Text = displayName, Tag = themeName });
+            }
 
             var lblTranslation = new XNALabel(WindowManager);
             lblTranslation.Name = nameof(lblTranslation);
@@ -259,7 +265,7 @@ namespace DTAConfig.OptionPanels
                 ddClientTheme.Height);
 
             foreach (var (translation, name) in Translation.GetTranslations())
-                ddTranslation.AddItem(new XNADropDownItem() { Text = name, Tag = translation });
+                ddTranslation.AddItem(new XNADropDownItem { Text = name, Tag = translation });
 
 #if TS
             lblCompatibilityFixes = new XNALabel(WindowManager);
@@ -413,8 +419,8 @@ namespace DTAConfig.OptionPanels
                     string.Format("A performance-enhancing compatibility fix for modern Windows versions\n" +
                         "has been included in this version of {0}. Enabling it requires\n" +
                         "administrative priveleges. Would you like to install the compatibility fix?\n\n" +
-                        "You'll always be able to install or uninstall the compatibility fix later from the options menu.", defaultGame
-                    ).L10N("Client:DTAConfig:TSFixText"));
+                        "You'll always be able to install or uninstall the compatibility fix later from the options menu.".L10N("Client:DTAConfig:TSFixText"),
+                        defaultGame));
                 messageBox.YesClickedAction = MessageBox_YesClicked;
                 messageBox.NoClickedAction = MessageBox_NoClicked;
             }
@@ -685,7 +691,7 @@ namespace DTAConfig.OptionPanels
             chkBorderlessClient.Checked = UserINISettings.Instance.BorderlessWindowedClient;
 
             int selectedThemeIndex = ddClientTheme.Items.FindIndex(
-                ddi => ddi.Text == UserINISettings.Instance.ClientTheme);
+                ddi => (string)ddi.Tag == UserINISettings.Instance.ClientTheme);
             ddClientTheme.SelectedIndex = selectedThemeIndex > -1 ? selectedThemeIndex : 0;
 
             int selectedTranslationIndex = ddTranslation.Items.FindIndex(
@@ -791,9 +797,9 @@ namespace DTAConfig.OptionPanels
 
             IniSettings.BorderlessWindowedClient.Value = chkBorderlessClient.Checked;
 
-            restartRequired = restartRequired || IniSettings.ClientTheme != ddClientTheme.SelectedItem.Text;
+            restartRequired = restartRequired || IniSettings.ClientTheme != (string)ddClientTheme.SelectedItem.Tag;
 
-            IniSettings.ClientTheme.Value = ddClientTheme.SelectedItem.Text;
+            IniSettings.ClientTheme.Value = (string)ddClientTheme.SelectedItem.Tag;
 
             restartRequired = restartRequired || IniSettings.Translation != (string)ddTranslation.SelectedItem.Tag;
 

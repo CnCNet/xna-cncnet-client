@@ -31,6 +31,11 @@ namespace DTAClient.Domain.Multiplayer
         public string UIName { get; private set; }
 
         /// <summary>
+        /// The original user-interface name of the game mode before translation.
+        /// </summary>
+        public string UntranslatedUIName { get; private set; }
+
+        /// <summary>
         /// If set, this game mode cannot be played on Skirmish.
         /// </summary>
         public bool MultiplayerOnly { get; private set; }
@@ -79,7 +84,8 @@ namespace DTAClient.Domain.Multiplayer
 
             CoopDifficultyLevel = forcedOptionsIni.GetIntValue(Name, "CoopDifficultyLevel", 0);
 #pragma warning disable CNCNET0001
-            UIName = forcedOptionsIni.GetStringValue(Name, "UIName", Name).L10N($"INI:GameModes:{Name}:UIName");
+            UntranslatedUIName = forcedOptionsIni.GetStringValue(Name, "UIName", Name);
+            UIName = UntranslatedUIName.L10N($"INI:GameModes:{Name}:UIName");
 #pragma warning restore CNCNET0001
             MultiplayerOnly = forcedOptionsIni.GetBooleanValue(Name, "MultiplayerOnly", false);
             HumanPlayersOnly = forcedOptionsIni.GetBooleanValue(Name, "HumanPlayersOnly", false);

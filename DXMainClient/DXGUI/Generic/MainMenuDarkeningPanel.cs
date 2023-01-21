@@ -1,5 +1,6 @@
 ﻿using ClientGUI;
 using DTAClient.Domain;
+using DTAClient.Domain.Multiplayer;
 using Microsoft.Xna.Framework;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
@@ -13,14 +14,17 @@ namespace DTAClient.DXGUI.Generic
     /// </summary>
     public class MainMenuDarkeningPanel : XNAPanel
     {
-        public MainMenuDarkeningPanel(WindowManager windowManager, DiscordHandler discordHandler) : base(windowManager)
+        public MainMenuDarkeningPanel(WindowManager windowManager, DiscordHandler discordHandler, MapLoader mapLoader)
+            : base(windowManager)
         {
             this.discordHandler = discordHandler;
+            this.mapLoader = mapLoader;
             DrawBorders = false;
             DrawMode = ControlDrawMode.UNIQUE_RENDER_TARGET;
         }
 
         private DiscordHandler discordHandler;
+        private MapLoader mapLoader;
 
         public CampaignSelector CampaignSelector;
         public GameLoadingWindow GameLoadingWindow;
@@ -46,7 +50,7 @@ namespace DTAClient.DXGUI.Generic
             GameLoadingWindow = new GameLoadingWindow(WindowManager, discordHandler);
             AddChild(GameLoadingWindow);
 
-            StatisticsWindow = new StatisticsWindow(WindowManager);
+            StatisticsWindow = new StatisticsWindow(WindowManager, mapLoader);
             AddChild(StatisticsWindow);
 
             UpdateQueryWindow = new UpdateQueryWindow(WindowManager);

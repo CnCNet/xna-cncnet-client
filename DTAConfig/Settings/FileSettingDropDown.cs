@@ -111,7 +111,7 @@ namespace DTAConfig.Settings
             else // selected item is unavailable, don't do anything
             {
                 Logger.Log($"{nameof(FileSettingDropDown)}: " +
-                    $"The selected item ({Items[SelectedIndex].Text}) is unavailable in {Name}");
+                    $"The selected item \"{Items[SelectedIndex].Text}\" ({Items[SelectedIndex].Tag}) is unavailable in {Name}.");
                 return false;
             }
 

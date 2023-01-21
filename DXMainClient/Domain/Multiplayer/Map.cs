@@ -54,6 +54,11 @@ namespace DTAClient.Domain.Multiplayer
         public string Name { get; private set; }
 
         /// <summary>
+        /// The original untranslated name of the map.
+        /// </summary>
+        public string UntranslatedName { get; private set; }
+
+        /// <summary>
         /// The maximum amount of players supported by the map.
         /// </summary>
         [JsonInclude]
@@ -271,7 +276,12 @@ namespace DTAClient.Domain.Multiplayer
 
                 var section = iniFile.GetSection(BaseFilePath);
 
-                Name = section.GetStringValue("Description", "Unnamed map");
+#pragma warning disable CNCNET0001
+
+                UntranslatedName = section.GetStringValue("Description", "Unnamed map");
+                Name = UntranslatedName
+                    .L10N($"INI:Maps:{BaseFilePath}:Description");
+
                 Author = section.GetStringValue("Author", "Unknown author");
                 GameModes = section.GetStringValue("GameModes", "Default").Split(',');
 
@@ -279,10 +289,11 @@ namespace DTAClient.Domain.Multiplayer
                 MaxPlayers = section.GetIntValue("MaxPlayers", 0);
                 EnforceMaxPlayers = section.GetBooleanValue("EnforceMaxPlayers", false);
                 PreviewPath = SafePath.CombineFilePath(SafePath.GetFile(BaseFilePath).DirectoryName, FormattableString.Invariant($"{section.GetStringValue("PreviewImage", Path.GetFileNameWithoutExtension(BaseFilePath))}.png"));
-#pragma warning disable CNCNET0001
+
                 Briefing = section.GetStringValue("Briefing", string.Empty)
                     .FromIniString()
                     .L10N($"INI:Maps:{BaseFilePath}:Briefing");
+
 #pragma warning restore CNCNET0001
                 CalculateSHA();
                 IsCoop = section.GetBooleanValue("IsCoopMission", false);

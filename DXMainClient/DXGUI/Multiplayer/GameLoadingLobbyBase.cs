@@ -399,9 +399,13 @@ namespace DTAClient.DXGUI.Multiplayer
 
             IniFile spawnSGIni = new IniFile(SafePath.CombineFilePath(ProgramConstants.GamePath, "Saved Games", "spawnSG.ini"));
 
+#pragma warning disable CNCNET0001 // L10N Failure
             loadedGameID = spawnSGIni.GetStringValue("Settings", "GameID", "0");
-            lblMapNameValue.Text = spawnSGIni.GetStringValue("Settings", "UIMapName", string.Empty);
-            lblGameModeValue.Text = spawnSGIni.GetStringValue("Settings", "UIGameMode", string.Empty);
+            lblMapNameValue.Tag = spawnSGIni.GetStringValue("Settings", "UIMapName", string.Empty);
+            lblMapNameValue.Text = ((string)lblGameModeValue.Tag).L10N($"INI:Maps:{spawnSGIni.GetStringValue("Settings", "MapID", string.Empty)}:Description");
+            lblGameModeValue.Tag = spawnSGIni.GetStringValue("Settings", "UIGameMode", string.Empty);
+            lblGameModeValue.Text = ((string)lblGameModeValue.Tag).L10N($"INI:GameModes:{(string)lblGameModeValue.Tag}:UIName");
+#pragma warning restore CNCNET0001 // L10N Failure
 
             uniqueGameId = spawnSGIni.GetIntValue("Settings", "GameID", -1);
 

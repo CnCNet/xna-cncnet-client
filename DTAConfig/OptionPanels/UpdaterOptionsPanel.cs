@@ -135,9 +135,15 @@ namespace DTAConfig.OptionPanels
 
             foreach (var updaterMirror in Updater.UpdateMirrors)
             {
-                lbUpdateServerList.AddItem(updaterMirror.Name +
-                    (!string.IsNullOrEmpty(updaterMirror.Location) ?
-                    $" ({updaterMirror.Location})" : string.Empty));
+#pragma warning disable CNCNET0001 // L10N Failure
+                string name = updaterMirror.Name.L10N($"INI:UpdateMirrors:{updaterMirror.Name}:Name");
+                string location = updaterMirror.Location.L10N($"INI:UpdateMirrors:{updaterMirror.Name}:Location");
+#pragma warning restore CNCNET0001 // L10N Failure
+
+                lbUpdateServerList.AddItem(name +
+                    (!string.IsNullOrEmpty(location)
+                        ? $" ({location})"
+                        : string.Empty));
             }
 
             chkAutoCheck.Checked = IniSettings.CheckForUpdates;

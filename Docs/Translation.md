@@ -6,7 +6,7 @@ The translation system supports the following:
 - translating client's built-in text strings;
 - translating INI-defined text values without modifying the respective INI files themselves;
 - adjusting INI-defined size and position values for client controls per translation;
-- providing custom client asset overrides (including both generic and theme-specific) in translations (for instance, translated buttons with text on them);
+- providing custom client asset overrides (including both generic and theme-specific) in translations (for instance, translated buttons with text on them, or fonts for different CJK variatons);
 - auto-detecting the initial language of the client based on the system's language settings (if provided; happens on first start of the client);
 - configurable set of files to copy to the game directory (for ingame translations);
 - an ability to generate a translation template/stub file for easy translation.
@@ -75,18 +75,32 @@ Each key in the `[Values]` section is composed of a few elements, joined using `
 - `INI` - the INI-defined values.
   - `[parent control name]` - the name of the parent control of the control that the value is defined for. Specifying `Global` instead of the parent name allows to specify identical translated value for all instances of the control regardless of the parent (parent-specific definition overrides this still though)
     - `[control name]` - the name of the control that the value is defined for.
-	  - `[attribute name]` - the name of the attribute that is being translated. Currently supported: `Text`, `ToolTip`, `Size`, `Width`, `Height`, `Location`, `X`, `Y`, `DistanceFromRightBorder`, `DistanceFromBottomBorder` for every control and `$X`, `$Y`, `$Width`, `$Height` for INItializable window system.
+	    - `[attribute name]` - the name of the attribute that is being translated. Currently supported:
+        - `Text`, `Size`, `Width`, `Height`, `Location`, `X`, `Y`, `DistanceFromRightBorder`, `DistanceFromBottomBorder` for every control;
+        - `ToolTip` for controls with tooltip;
+        - `ItemX` (where X) for setting/game options dropdowns;
+        - `OptionName` for game option dropdowns;
+        - `$X`, `$Y`, `$Width`, `$Height` for INItializable window system.
   - `Sides` - subcategory for the game's/mod's side names.
   - `Colors` - subcategory for the game's/mod's color names.
+  - `Themes` - subcategory for the game's/mod's theme names.
   - `GameModes` - subcategory for the game's/mod's game modes.
     - `[name]` - uniquely identifies the game mode.
       - `[attribute name]` - the name of the attribute that is being translated. Only `UIName` is supported.
-  - `Maps` - subcategory for the game's/mod's maps.
+  - `Maps` - subcategory for the game's/mod's maps (custom maps are not supported).
     - `[map path]` - uniquely identifies the map.
-      - `[attribute name]` - the name of the attribute that is being translated. Only `Briefing` is supported.
+      - `[attribute name]` - the name of the attribute that is being translated. Only `Description` (map name) and `Briefing` are supported.
   - `Missions` - subcategory for the game's/mod's singleplayer missions.
     - `[mission section name]` - uniquely identifies the map (taken from `Battle*.ini`).
       - `[attribute name]` - the name of the attribute that is being translated. Only `Description` (mission name) and `LongDescription` (actual description) are supported.
+  - `CustomComponents` - subcategory for the game's/mod's custom components.
+    - `[custom component INI name]` - uniquely identifies the custom component.
+      - `[attribute name]` - the name of the attribute that is being translated. Only `UIName` is supported.
+  - `UpdateMirrors` - subcategory for the game's/mod's update download mirrors.
+    - `[mirror name]` - uniquely identifies the mirror.
+      - `[attribute name]` - the name of the attribute that is being translated. Only `Name` and `Location` are supported.
+  - `ClientDefinitions` - self explanatory
+    - `WindowTitle` - self explanatory, only works if set in `ClientDefinitions.ini`
 
 > **Warning**
 > You can only translate an INI value if it was used in the INI in the first place! That means that defining a translated value for a control's attribute (example: translating `X` and `Y` when `Location` is defined) that is not present in the INI **will not have any effect**.
@@ -125,3 +139,9 @@ This will make the `translation.mix` file copied to game root as `expandmo98.mix
    - If the game/mod has integrity-checked translation files - contact the game/mod author to include your translation with the game/mod package so the ingame translation won't make your or your users' installations trigger a modified files warning online.
 
 Happy translating!
+
+## Miscellanous
+
+- Discord presence, game broadcasting, stats etc. use untranslated names so that other players can see the more universal English names, and to not be locked onto a translation in case it changes.
+- When translated, original map names still display in a tooltip and can be copied via context menu.
+- Where applicable, both translated and untranslated names are used to search (map and lobby searches).

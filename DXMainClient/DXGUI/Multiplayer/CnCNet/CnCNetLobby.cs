@@ -38,7 +38,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             CnCNetGameLobby gameLobby, CnCNetGameLoadingLobby gameLoadingLobby,
             TopBar topBar, PrivateMessagingWindow pmWindow, TunnelHandler tunnelHandler,
             GameCollection gameCollection, CnCNetUserData cncnetUserData,
-            OptionsWindow optionsWindow)
+            OptionsWindow optionsWindow, MapLoader mapLoader)
             : base(windowManager)
         {
             this.connectionManager = connectionManager;
@@ -50,6 +50,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             this.gameCollection = gameCollection;
             this.cncnetUserData = cncnetUserData;
             this.optionsWindow = optionsWindow;
+            this.mapLoader = mapLoader;
 
             ctcpCommandHandlers = new CommandHandlerBase[]
             {
@@ -59,6 +60,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             topBar.LogoutEvent += LogoutEvent;
         }
+
+        private MapLoader mapLoader;
 
         private CnCNetManager connectionManager;
         private CnCNetUserData cncnetUserData;
@@ -187,10 +190,11 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             );
 
             panelGameFilters = new GameFiltersPanel(WindowManager);
+            panelGameFilters.Name = nameof(panelGameFilters);
             panelGameFilters.ClientRectangle = gameListRectangle;
             panelGameFilters.Disable();
 
-            lbGameList = new GameListBox(WindowManager, localGameID, HostedGameMatches);
+            lbGameList = new GameListBox(WindowManager, mapLoader, localGameID, HostedGameMatches);
             lbGameList.Name = nameof(lbGameList);
             lbGameList.ClientRectangle = gameListRectangle;
             lbGameList.PanelBackgroundDrawMode = PanelBackgroundImageDrawMode.STRETCHED;
@@ -307,15 +311,14 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             btnGameSortAlpha = new XNAClientStateButton<SortDirection>(WindowManager, new Dictionary<SortDirection, Texture2D>()
             {
-                { SortDirection.None , AssetLoader.LoadTexture("sortAlphaNone.png")},
-                { SortDirection.Asc , AssetLoader.LoadTexture("sortAlphaAsc.png")},
-                { SortDirection.Desc , AssetLoader.LoadTexture("sortAlphaDesc.png")},
+                { SortDirection.None, AssetLoader.LoadTexture("sortAlphaNone.png") },
+                { SortDirection.Asc, AssetLoader.LoadTexture("sortAlphaAsc.png") },
+                { SortDirection.Desc, AssetLoader.LoadTexture("sortAlphaDesc.png") },
             });
             btnGameSortAlpha.Name = nameof(btnGameSortAlpha);
             btnGameSortAlpha.ClientRectangle = new Rectangle(
                 tbGameSearch.X + tbGameSearch.Width + 10, tbGameSearch.Y,
-                21, 21
-            );
+                21, 21);
             btnGameSortAlpha.LeftClick += BtnGameSortAlpha_LeftClick;
             btnGameSortAlpha.SetToolTipText("Sort Games Alphabetically".L10N("Client:Main:SortAlphabet"));
             RefreshGameSortAlphaBtn();
@@ -324,8 +327,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             btnGameFilterOptions.Name = nameof(btnGameFilterOptions);
             btnGameFilterOptions.ClientRectangle = new Rectangle(
                 btnGameSortAlpha.X + btnGameSortAlpha.Width + 10, tbGameSearch.Y,
-                21, 21
-            );
+                21, 21);
             btnGameFilterOptions.CheckedTexture = AssetLoader.LoadTexture("filterActive.png");
             btnGameFilterOptions.UncheckedTexture = AssetLoader.LoadTexture("filterInactive.png");
             btnGameFilterOptions.LeftClick += BtnGameFilterOptions_LeftClick;
@@ -420,7 +422,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         {
             // friends list takes priority over other filters below
             if (UserINISettings.Instance.ShowFriendGamesOnly)
-                return hg.Players.Any(p => cncnetUserData.IsFriend(p));
+                return hg.Players.Any(cncnetUserData.IsFriend);
 
             if (UserINISettings.Instance.HideLockedGames.Value && hg.Locked)
                 return false;
@@ -434,13 +436,25 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             if (hg.MaxPlayers > UserINISettings.Instance.MaxPlayerCount.Value)
                 return false;
 
+#pragma warning disable CNCNET0001 // L10N Failure
+            string textUpper = tbGameSearch?.Text?.ToUpperInvariant();
+
+            string translatedGameMode = hg.GameMode.L10N($"INI:GameModes:{hg.GameMode}:UIName", notify: false);
+
+            string translatedMapName = mapLoader.TranslatedMapNames.ContainsKey(hg.Map)
+                ? mapLoader.TranslatedMapNames[hg.Map]
+                : null;
+
             return
                 string.IsNullOrWhiteSpace(tbGameSearch?.Text) ||
                 tbGameSearch.Text == tbGameSearch.Suggestion ||
-                hg.RoomName.ToUpper().Contains(tbGameSearch.Text.ToUpper()) ||
-                hg.GameMode.ToUpper().Equals(tbGameSearch.Text.ToUpper()) ||
-                hg.Map.ToUpper().Contains(tbGameSearch.Text.ToUpper()) ||
-                hg.Players.Any(pl => pl.ToUpper().Equals(tbGameSearch.Text.ToUpper()));
+                hg.RoomName.ToUpperInvariant().Contains(textUpper) ||
+                hg.GameMode.ToUpperInvariant().Equals(textUpper, StringComparison.Ordinal) ||
+                translatedGameMode.ToUpperInvariant().Equals(textUpper, StringComparison.Ordinal) ||
+                hg.Map.ToUpperInvariant().Contains(textUpper) ||
+                (translatedMapName is not null && translatedMapName.ToUpperInvariant().Contains(textUpper)) ||
+                hg.Players.Any(pl => pl.ToUpperInvariant().Equals(textUpper, StringComparison.Ordinal));
+#pragma warning restore CNCNET0001 // L10N Failure
         }
 
 

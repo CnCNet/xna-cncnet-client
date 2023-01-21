@@ -11,7 +11,7 @@ namespace DTAConfig.Settings
     /// </summary>
     public class SettingDropDown : SettingDropDownBase
     {
-        public SettingDropDown(WindowManager windowManager) : base(windowManager) {}
+        public SettingDropDown(WindowManager windowManager) : base(windowManager) { }
 
         public SettingDropDown(WindowManager windowManager, int defaultValue, string settingSection, string settingKey, bool writeItemValue = false, bool restartRequired = false)
             : base(windowManager, defaultValue, settingSection, settingKey, restartRequired)
@@ -58,7 +58,7 @@ namespace DTAConfig.Settings
         public override bool Save()
         {
             if (WriteItemValue)
-                UserINISettings.Instance.SetValue(SettingSection, SettingKey, SelectedItem.Text);
+                UserINISettings.Instance.SetValue(SettingSection, SettingKey, (string)SelectedItem.Tag);
             else
                 UserINISettings.Instance.SetValue(SettingSection, SettingKey, SelectedIndex);
 
@@ -70,7 +70,7 @@ namespace DTAConfig.Settings
             if (string.IsNullOrEmpty(value))
                 return DefaultValue;
 
-            int index = Items.FindIndex(x => x.Text == value);
+            int index = Items.FindIndex(x => (string)x.Tag == value);
 
             if (index < 0)
                 return DefaultValue;

@@ -693,9 +693,9 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             sb.Remove(sb.Length - 1, 1);
             sb.Append(";");
-            sb.Append(lblMapNameValue.Text);
+            sb.Append((string)lblMapNameValue.Tag);
             sb.Append(";");
-            sb.Append(lblGameModeValue.Text);
+            sb.Append((string)lblGameModeValue.Tag);
             sb.Append(";");
             sb.Append(tunnelHandler.CurrentTunnel.Address + ":" + tunnelHandler.CurrentTunnel.Port);
             sb.Append(";");
@@ -717,7 +717,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             string currentState = ProgramConstants.IsInGame ? "In Game" : "In Lobby"; // not UI strings
 
             discordHandler.UpdatePresence(
-                lblMapNameValue.Text, lblGameModeValue.Text, "Multiplayer",
+                (string)lblMapNameValue.Tag, (string)lblGameModeValue.Tag, "Multiplayer",
                 currentState, Players.Count, SGPlayers.Count,
                 channel.UIName, IsHost, resetTimer);
         }

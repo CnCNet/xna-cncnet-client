@@ -4,6 +4,7 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Collections.Generic;
 using ClientCore.I18N;
+using ClientCore.Extensions;
 
 namespace ClientCore
 {
@@ -189,7 +190,10 @@ namespace ClientCore
 
         public string[] RecommendedResolutions => clientDefinitionsIni.GetStringValue(SETTINGS, "RecommendedResolutions", "1280x720,2560x1440,3840x2160").Split(',');
 
-        public string WindowTitle => clientDefinitionsIni.GetStringValue(SETTINGS, "WindowTitle", string.Empty);
+#pragma warning disable CNCNET0001 // L10N Failure
+        public string WindowTitle => clientDefinitionsIni.GetStringValue(SETTINGS, "WindowTitle", string.Empty)
+            .L10N("INI:ClientDefinitions:WindowTitle");
+#pragma warning restore CNCNET0001 // L10N Failure
 
         public string InstallationPathRegKey => clientDefinitionsIni.GetStringValue(SETTINGS, "RegistryInstallPath", "TiberianSun");
 

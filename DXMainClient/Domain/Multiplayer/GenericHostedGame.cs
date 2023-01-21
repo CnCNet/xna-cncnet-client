@@ -21,22 +21,13 @@ namespace DTAClient.Domain.Multiplayer
         public string HostName { get; set; }
         public string[] Players { get; set; }
 
-        int _maxPlayers = 8;
+        public int MaxPlayers { get; set; } = 8;
 
-        public int MaxPlayers
-        {
-            get { return _maxPlayers; }
-            set { _maxPlayers = value; }
-        }
-
-        public abstract int Ping
-        {
-            get;
-        }
+        public abstract int Ping { get; }
 
         public DateTime LastRefreshTime { get; set; }
-        
-        public virtual bool Equals(GenericHostedGame other) => 
-            string.Equals(RoomName, other?.RoomName, StringComparison.InvariantCultureIgnoreCase);
+
+        public virtual bool Equals(GenericHostedGame other)
+            => string.Equals(RoomName, other?.RoomName, StringComparison.InvariantCultureIgnoreCase);
     }
 }

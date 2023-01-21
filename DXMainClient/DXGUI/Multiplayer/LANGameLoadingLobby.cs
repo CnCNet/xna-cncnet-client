@@ -659,8 +659,8 @@ namespace DTAClient.DXGUI.Multiplayer
             sb.Append(ProgramConstants.LAN_PROTOCOL_REVISION);
             sb.Append(ProgramConstants.GAME_VERSION);
             sb.Append(localGame);
-            sb.Append(lblMapNameValue.Text);
-            sb.Append(lblGameModeValue.Text);
+            sb.Append((string)lblMapNameValue.Tag);
+            sb.Append((string)lblGameModeValue.Tag);
             sb.Append(0); // LoadedGameID
             var sbPlayers = new StringBuilder();
             SGPlayers.ForEach(p => sbPlayers.Append(p.Name + ","));
@@ -690,7 +690,7 @@ namespace DTAClient.DXGUI.Multiplayer
             string currentState = ProgramConstants.IsInGame ? "In Game" : "In Lobby"; // not UI strings
 
             discordHandler.UpdatePresence(
-                lblMapNameValue.Text, lblGameModeValue.Text, currentState, "LAN",
+                (string)lblMapNameValue.Tag, (string)lblGameModeValue.Tag, currentState, "LAN",
                 Players.Count, SGPlayers.Count,
                 "LAN Game", IsHost, resetTimer);
         }

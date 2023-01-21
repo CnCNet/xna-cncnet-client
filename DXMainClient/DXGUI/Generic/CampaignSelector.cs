@@ -315,7 +315,7 @@ namespace DTAClient.DXGUI.Generic
 
             ((MainMenuDarkeningPanel)Parent).Hide();
 
-            discordHandler.UpdatePresence(mission.GUIName, difficultyName, mission.IconPath, true);
+            discordHandler.UpdatePresence(mission.UntranslatedGUIName, difficultyName, mission.IconPath, true);
             GameProcessLogic.GameProcessExited += GameProcessExited_Callback;
 
             GameProcessLogic.StartGameProcess(WindowManager);

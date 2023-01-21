@@ -16,7 +16,11 @@ namespace DTAClient.DXGUI.Generic
 {
     public class StatisticsWindow : XNAWindow
     {
-        public StatisticsWindow(WindowManager windowManager) : base(windowManager) { }
+        public StatisticsWindow(WindowManager windowManager, MapLoader mapLoader)
+            : base(windowManager)
+        {
+            this.mapLoader = mapLoader;
+        }
 
         private XNAPanel panelGameStatistics;
         private XNAPanel panelTotalStatistics;
@@ -68,9 +72,10 @@ namespace DTAClient.DXGUI.Generic
         // *****************************
 
         private StatisticsManager sm;
+        private MapLoader mapLoader;
         private List<int> listedGameIndexes = new List<int>();
 
-        private string[] sides;
+        private (string Name, string UIName)[] sides;
 
         private List<MultiplayerColor> mpColors;
 
@@ -397,11 +402,14 @@ namespace DTAClient.DXGUI.Generic
 
             CenterOnParent();
 
-            sides = ClientConfiguration.Instance.Sides.Split(',');
+#pragma warning disable CNCNET0001 // L10N Failure
+            sides = ClientConfiguration.Instance.Sides.Split(',')
+                .Select(s => (Name: s, UIName: s.L10N($"INI:Sides:{s}"))).ToArray();
+#pragma warning restore CNCNET0001 // L10N Failure
 
             sideTextures = new Texture2D[sides.Length + 1];
             for (int i = 0; i < sides.Length; i++)
-                sideTextures[i] = AssetLoader.LoadTexture(sides[i] + "icon.png");
+                sideTextures[i] = AssetLoader.LoadTexture(sides[i].Name + "icon.png");
 
             sideTextures[sides.Length] = AssetLoader.LoadTexture("spectatoricon.png");
 
@@ -540,7 +548,7 @@ namespace DTAClient.DXGUI.Generic
                     else
                     {
                         XNAListBoxItem sideItem = new XNAListBoxItem();
-                        sideItem.Text = sides[ps.Side - 1];
+                        sideItem.Text = sides[ps.Side - 1].UIName;
                         sideItem.TextColor = textColor;
                         sideItem.Texture = sideTextures[ps.Side - 1];
                         items.Add(sideItem);
@@ -588,7 +596,7 @@ namespace DTAClient.DXGUI.Generic
 
             cmbGameModeFilter.Items.Clear();
 
-            cmbGameModeFilter.AddItem("All".L10N("Client:Main:All"));
+            cmbGameModeFilter.AddItem("All".L10N("Client:Main:AllGameModes"));
 
             for (int i = 0; i < gameCount; i++)
             {
@@ -599,8 +607,10 @@ namespace DTAClient.DXGUI.Generic
 
             gameModes.Sort();
 
+#pragma warning disable CNCNET0001 // L10N Failure
             foreach (string gm in gameModes)
-                cmbGameModeFilter.AddItem(gm);
+                cmbGameModeFilter.AddItem(new XNADropDownItem { Text = gm.L10N($"INI:GameModes:{gm}:UIName"), Tag = gm });
+#pragma warning restore CNCNET0001 // L10N Failure
 
             cmbGameModeFilter.SelectedIndex = 0;
         }
@@ -643,8 +653,12 @@ namespace DTAClient.DXGUI.Generic
                 string dateTime = ms.DateAndTime.ToShortDateString() + " " + ms.DateAndTime.ToShortTimeString();
                 List<string> info = new List<string>();
                 info.Add(Renderer.GetSafeString(dateTime, lbGameList.FontIndex));
-                info.Add(ms.MapName);
-                info.Add(ms.GameMode);
+#pragma warning disable CNCNET0001 // L10N Failure
+                info.Add(mapLoader.TranslatedMapNames.ContainsKey(ms.MapName)
+                    ? mapLoader.TranslatedMapNames[ms.MapName]
+                    : ms.MapName);
+                info.Add(ms.GameMode.L10N($"INI:GameModes:{ms.GameMode}:UIName"));
+#pragma warning restore CNCNET0001 // L10N Failure
                 if (ms.AverageFPS == 0)
                     info.Add("-");
                 else
@@ -802,7 +816,8 @@ namespace DTAClient.DXGUI.Generic
 
             if (cmbGameModeFilter.SelectedIndex != 0)
             {
-                string gameMode = cmbGameModeFilter.Items[cmbGameModeFilter.SelectedIndex].Text;
+                // "All" doesn't have a tag but that doesn't matter since 0 is not checked
+                var gameMode = (string)cmbGameModeFilter.Items[cmbGameModeFilter.SelectedIndex].Tag;
 
                 if (ms.GameMode != gameMode)
                     return;
@@ -946,7 +961,7 @@ namespace DTAClient.DXGUI.Generic
             lblTotalKillsValue.Text = totalKills.ToString();
             lblTotalLossesValue.Text = totalLosses.ToString();
             lblTotalScoreValue.Text = totalScore.ToString();
-            lblFavouriteSideValue.Text = sides[GetHighestIndex(sideGameCounts)];
+            lblFavouriteSideValue.Text = sides[GetHighestIndex(sideGameCounts)].UIName;
 
             if (numEasyAIs >= numMediumAIs && numEasyAIs >= numHardAIs)
                 lblAverageAILevelValue.Text = "Easy".L10N("Client:Main:EasyAI");

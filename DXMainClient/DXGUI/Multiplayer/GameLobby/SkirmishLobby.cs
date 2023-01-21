@@ -42,7 +42,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             //MapPreviewBox.EnableContextMenu = true;
 
-            ddPlayerSides[0].AddItem("Spectator".L10N("Client:Main:SpectatorSide"), AssetLoader.LoadTexture("spectatoricon.png"));
+            const string spectatorName = "Spectator";
+            AddSideToDropDown(ddPlayerSides[0], spectatorName, spectatorName.L10N("Client:Sides:SpectatorSide"), AssetLoader.LoadTexture("spectatoricon.png"));
 
             MapPreviewBox.LocalStartingLocationSelected += MapPreviewBox_LocalStartingLocationSelected;
             MapPreviewBox.StartingLocationApplied += MapPreviewBox_StartingLocationApplied;
@@ -207,11 +208,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (sideDropDown.SelectedItem == null)
                 return;
 
-            string side = sideDropDown.SelectedItem.Text;
+            string side = (string)sideDropDown.SelectedItem.Tag;
             string currentState = ProgramConstants.IsInGame ? "In Game" : "Setting Up";
 
             discordHandler.UpdatePresence(
-                Map.Name, GameMode.Name, currentState, side, resetTimer);
+                Map.UntranslatedName, GameMode.UntranslatedUIName, currentState, side, resetTimer);
         }
 
         protected override bool AllowPlayerOptionsChange()

@@ -21,6 +21,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using ClientUpdater;
+using DTAClient.Domain.Multiplayer;
 
 namespace DTAClient.DXGUI.Generic
 {
@@ -49,7 +50,8 @@ namespace DTAClient.DXGUI.Generic
             CnCNetGameLobby cnCNetGameLobby,
             PrivateMessagingPanel privateMessagingPanel,
             PrivateMessagingWindow privateMessagingWindow,
-            GameInProgressWindow gameInProgressWindow
+            GameInProgressWindow gameInProgressWindow,
+            MapLoader mapLoader
         ) : base(windowManager)
         {
             this.lanLobby = lanLobby;
@@ -64,6 +66,7 @@ namespace DTAClient.DXGUI.Generic
             this.privateMessagingPanel = privateMessagingPanel;
             this.privateMessagingWindow = privateMessagingWindow;
             this.gameInProgressWindow = gameInProgressWindow;
+            this.mapLoader = mapLoader;
             this.cncnetLobby.UpdateCheck += CncnetLobby_UpdateCheck;
             isMediaPlayerAvailable = IsMediaPlayerAvailable();
         }
@@ -92,6 +95,7 @@ namespace DTAClient.DXGUI.Generic
         private readonly PrivateMessagingPanel privateMessagingPanel;
         private readonly PrivateMessagingWindow privateMessagingWindow;
         private readonly GameInProgressWindow gameInProgressWindow;
+        private readonly MapLoader mapLoader;
 
         private XNAMessageBox firstRunMessageBox;
 
@@ -267,10 +271,10 @@ namespace DTAClient.DXGUI.Generic
                 Updater.FileIdentifiersUpdated += Updater_FileIdentifiersUpdated;
                 Updater.OnCustomComponentsOutdated += Updater_OnCustomComponentsOutdated;
             }
-
+            
             base.Initialize(); // Read control attributes from INI
 
-            innerPanel = new MainMenuDarkeningPanel(WindowManager, discordHandler);
+            innerPanel = new MainMenuDarkeningPanel(WindowManager, discordHandler, mapLoader);
             innerPanel.ClientRectangle = new Rectangle(0, 0,
                 Width,
                 Height);

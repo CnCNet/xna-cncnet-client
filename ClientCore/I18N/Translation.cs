@@ -16,6 +16,10 @@ public class Translation : ICloneable
     /// <summary>The translation metadata section name.</summary>
     public const string METADATA_SECTION = "General";
 
+    /// <summary>The culture that was set before the translation instance was created.</summary>
+    public static readonly CultureInfo InitialUICulture = CultureInfo.CurrentUICulture;
+
+    /// <summary>AKA name of the folder, used to look up <see cref="Culture"/> and select a language</summary>
     public string LocaleCode { get; private set; } = string.Empty;
 
     /// <summary>The explicitly set UI name for the translation.</summary>
@@ -27,12 +31,20 @@ public class Translation : ICloneable
         private set => _name = value;
     }
 
+    /// <summary>The explicitly set UI culture for the translation.</summary>
+    /// <remarks>Not accounted when selecting the translation automatically.</remarks>
+    private CultureInfo _culture;
+    /// <summary>The UI culture for the translation.</summary>
+    public CultureInfo Culture
+    {
+        get => _culture is null ? new CultureInfo(LocaleCode) : _culture;
+        private set => _culture = value;
+    }
+
     /// <summary>Shows the information about the author.</summary>
     public string Author { get; private set; } = string.Empty;
 
-    /// <summary>
-    /// Stores the translation values (including default values for missing strings).
-    /// </summary>
+    /// <summary>Stores the translation values (including default values for missing strings).</summary>
     private Dictionary<string, string> Values { get; } = new();
 
     // public bool IsRightToLeft { get; set; } // TODO
@@ -67,13 +79,18 @@ public class Translation : ICloneable
     /// </summary>
     /// <param name="ini">An INI file to read from.</param>
     /// <param name="localeCode">A locale code for this translation.</param>
-    public Translation(IniFile ini, string localeCode) : this(localeCode)
+    public Translation(IniFile ini, string localeCode)
+        : this(localeCode)
     {
         ArgumentNullException.ThrowIfNull(ini);
 
         IniSection metadataSection = ini.GetSection(METADATA_SECTION);
         Name = metadataSection?.GetStringValue(nameof(Name), string.Empty);
         Author = metadataSection?.GetStringValue(nameof(Author), string.Empty);
+
+        string cultureName = metadataSection?.GetStringValue(nameof(Culture), null);
+        if (cultureName is not null)
+            Culture = new(cultureName);
 
         AppendValuesFromIniFile(ini);
     }
@@ -96,6 +113,7 @@ public class Translation : ICloneable
     {
         LocaleCode = other.LocaleCode;
         _name = other._name;
+        _culture = other._culture;
         Author = other.Author;
 
         foreach (var (key, value) in other.Values)
@@ -108,7 +126,7 @@ public class Translation : ICloneable
     /// <summary>
     /// Reads <see cref="Values"/> from an INI file, overriding possibly existing ones.
     /// </summary>
-    /// <param name="ini">A path to an INI file to read from.</param>
+    /// <param name="iniPath">A path to an INI file to read from.</param>
     public void AppendValuesFromIniFile(string iniPath)
         => AppendValuesFromIniFile(new CCIniFile(iniPath));
 
@@ -151,7 +169,7 @@ public class Translation : ICloneable
         }
 
         if (string.IsNullOrWhiteSpace(result))
-            result = new CultureInfo(localeCode).EnglishName;
+            result = new CultureInfo(localeCode).DisplayName;
 
         if (string.IsNullOrWhiteSpace(result))
             result = localeCode;
@@ -190,9 +208,10 @@ public class Translation : ICloneable
     /// <returns>Available translation locale code.</returns>
     public static string GetDefaultTranslationLocaleCode()
     {
+        // we don't need names here pretty much
         Dictionary<string, string> translations = GetTranslations();
 
-        for (var culture = CultureInfo.CurrentUICulture;
+        for (var culture = InitialUICulture;
             culture != CultureInfo.InvariantCulture;
             culture = culture.Parent)
         {
@@ -218,6 +237,9 @@ public class Translation : ICloneable
 
         if (!string.IsNullOrWhiteSpace(_name))
             general.AddKey(nameof(Name), _name);
+
+        if (_culture is not null)
+            general.AddKey(nameof(Culture), _culture.Name);
 
         general.AddKey(nameof(Author), Author);
 

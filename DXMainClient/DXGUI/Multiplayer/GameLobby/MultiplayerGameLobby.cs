@@ -149,7 +149,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 PlayerOptionsPanel.AddChild(indicatorPlayerReady);
 
                 StatusIndicators[i] = indicatorPlayerReady;
-                ddPlayerSides[i].AddItem("Spectator".L10N("Client:Main:SpectatorSide"), AssetLoader.LoadTexture("spectatoricon.png"));
+
+                const string spectatorName = "Spectator";
+                AddSideToDropDown(ddPlayerSides[i], spectatorName, spectatorName.L10N("Client:Sides:SpectatorSide"), AssetLoader.LoadTexture("spectatoricon.png"));
             }
 
             lbChatMessages = FindChild<ChatListBox>(nameof(lbChatMessages));

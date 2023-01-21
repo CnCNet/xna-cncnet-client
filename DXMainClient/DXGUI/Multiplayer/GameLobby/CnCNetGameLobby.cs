@@ -432,11 +432,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 return;
             string side = "";
             if (ddPlayerSides.Length > Players.IndexOf(player))
-                side = ddPlayerSides[Players.IndexOf(player)].SelectedItem.Text;
+                side = (string)ddPlayerSides[Players.IndexOf(player)].SelectedItem.Tag;
             string currentState = ProgramConstants.IsInGame ? "In Game" : "In Lobby"; // not UI strings
 
             discordHandler.UpdatePresence(
-                Map.Name, GameMode.Name, "Multiplayer",
+                Map.UntranslatedName, GameMode.UntranslatedUIName, "Multiplayer",
                 currentState, Players.Count, playerLimit, side,
                 channel.UIName, IsHost, isCustomPassword, Locked, resetTimer);
         }
