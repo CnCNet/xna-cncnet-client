@@ -97,7 +97,7 @@ namespace ClientCore.CnCNet5
                     ClientExecutableName = "RRLauncher.exe",
                     GameBroadcastChannel = "#redres-games",
                     InternalName = "rr",
-                    RegistryInstallPath = "HKML\\Software\\RedResurrection",
+                    RegistryInstallPath = "HKLM\\Software\\RedResurrection",
                     UIName = "YR Red-Resurrection",
                     Texture = AssetLoader.TextureFromImage(rrIcon)
                 },
@@ -108,7 +108,7 @@ namespace ClientCore.CnCNet5
                     ClientExecutableName = "RELauncher.exe",
                     GameBroadcastChannel = "#rote-games",
                     InternalName = "re",
-                    RegistryInstallPath = "HKML\\Software\\RiseoftheEast",
+                    RegistryInstallPath = "HKLM\\Software\\RiseoftheEast",
                     UIName = "Rise of the East",
                     Texture = AssetLoader.TextureFromImage(reIcon)
                 },
