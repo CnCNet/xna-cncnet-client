@@ -32,11 +32,13 @@ namespace ClientCore.CnCNet5
             using Stream moIconStream = assembly.GetManifestResourceStream("ClientCore.Resources.moicon.png");
             using Stream yrIconStream = assembly.GetManifestResourceStream("ClientCore.Resources.yricon.png");
             using Stream rrIconStream = assembly.GetManifestResourceStream("ClientCore.Resources.rricon.png");
+            using Stream reIconStream = assembly.GetManifestResourceStream("ClientCore.Resources.reicon.png");
             using Stream cncrIconStream = assembly.GetManifestResourceStream("ClientCore.Resources.cncricon.png");
             using Stream cncnetIconStream = assembly.GetManifestResourceStream("ClientCore.Resources.cncneticon.png");
             using Stream tdIconStream = assembly.GetManifestResourceStream("ClientCore.Resources.tdicon.png");
             using Stream raIconStream = assembly.GetManifestResourceStream("ClientCore.Resources.raicon.png");
             using Stream d2kIconStream = assembly.GetManifestResourceStream("ClientCore.Resources.d2kicon.png");
+            using Stream ssIconStream = assembly.GetManifestResourceStream("ClientCore.Resources.ssicon.png");
             using Stream unknownIconStream = assembly.GetManifestResourceStream("ClientCore.Resources.unknownicon.png");
             using var dtaIcon = Image.Load(dtaIconStream);
             using var tiIcon = Image.Load(tiIconStream);
@@ -44,11 +46,13 @@ namespace ClientCore.CnCNet5
             using var moIcon = Image.Load(moIconStream);
             using var yrIcon = Image.Load(yrIconStream);
             using var rrIcon = Image.Load(rrIconStream);
+            using var reIcon = Image.Load(reIconStream);
             using var cncrIcon = Image.Load(cncrIconStream);
             using var cncnetIcon = Image.Load(cncnetIconStream);
             using var tdIcon = Image.Load(tdIconStream);
             using var raIcon = Image.Load(raIconStream);
             using var d2kIcon = Image.Load(d2kIconStream);
+            using var ssIcon = Image.Load(ssIconStream);
             using var unknownIcon = Image.Load(unknownIconStream);
 
             // Default supported games.
@@ -96,6 +100,17 @@ namespace ClientCore.CnCNet5
                     RegistryInstallPath = "HKML\\Software\\RedResurrection",
                     UIName = "YR Red-Resurrection",
                     Texture = AssetLoader.TextureFromImage(rrIcon)
+                },
+
+                new()
+                {
+                    ChatChannel = "#riseoftheeast",
+                    ClientExecutableName = "RELauncher.exe",
+                    GameBroadcastChannel = "#rote-games",
+                    InternalName = "re",
+                    RegistryInstallPath = "HKML\\Software\\RiseoftheEast",
+                    UIName = "Rise of the East",
+                    Texture = AssetLoader.TextureFromImage(reIcon)
                 },
 
                 new()
@@ -163,6 +178,17 @@ namespace ClientCore.CnCNet5
                     UIName = "Yuri's Revenge",
                     Texture = AssetLoader.TextureFromImage(yrIcon)
                 },
+
+                new()
+                {
+                    ChatChannel = "#cncnet-ss",
+                    ClientExecutableName = "SoleSurvivor.exe",
+                    GameBroadcastChannel = "#cncnet-ss-games",
+                    InternalName = "ss",
+                    RegistryInstallPath = "HKLM\\Software\\Westwood\\Sole Survivor",
+                    UIName = "Sole Survivor",
+                    Texture = AssetLoader.TextureFromImage(ssIcon)
+                }
             };
 
             // CnCNet chat.

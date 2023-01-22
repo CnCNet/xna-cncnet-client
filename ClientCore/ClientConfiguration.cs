@@ -1,6 +1,8 @@
 using System;
+using System.Collections.Generic;
 using Rampastring.Tools;
 using System.IO;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Collections.Generic;
 using ClientCore.I18N;
@@ -360,6 +362,17 @@ namespace ClientCore
         /// List of files that can interfere with the mod functioning.
         /// </summary>
         public string[] ForbiddenFiles => clientDefinitionsIni.GetStringValue(SETTINGS, "ForbiddenFiles", String.Empty).Split(',');
+
+        /// <summary>
+        /// This tells the client which supplemental map files are ok to copy over during "spawnmap.ini" file creation.
+        /// IE, if "BIN" is listed, then the client will look for and copy the file "map_a.bin"
+        /// when writing the spawnmap.ini file for map file "map_a.ini".
+        /// 
+        /// This configuration should be in the form "SupplementalMapFileExtensions=bin,mix"
+        /// </summary>
+        public IEnumerable<string> SupplementalMapFileExtensions
+            => clientDefinitionsIni.GetStringValue(SETTINGS, "SupplementalMapFileExtensions", null)?
+                .Split(',', StringSplitOptions.RemoveEmptyEntries) ?? Array.Empty<string>();
 
         #endregion
 
