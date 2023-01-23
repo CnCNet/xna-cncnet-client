@@ -78,6 +78,7 @@ Each key in the `[Values]` section is composed of a few elements, joined using `
 	    - `[attribute name]` - the name of the attribute that is being translated. Currently supported:
         - `Text`, `Size`, `Width`, `Height`, `Location`, `X`, `Y`, `DistanceFromRightBorder`, `DistanceFromBottomBorder` for every control;
         - `ToolTip` for controls with tooltip;
+        - `Suggestion` for suggestion text boxes;
         - `ItemX` (where X) for setting/game options dropdowns;
         - `OptionName` for game option dropdowns;
         - `$X`, `$Y`, `$Width`, `$Height` for INItializable window system.

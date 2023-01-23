@@ -82,6 +82,9 @@ public class TranslationINIParser : IControlINIAttributeParser
             case "ToolTip" when control is IHasToolTip controlWithToolTip:
                 controlWithToolTip.ToolTipText = Localize(control, key, value.FromIniString());
                 return true;
+            case "Suggestion" when control is XNASuggestionTextBox suggestionTextBox:
+                suggestionTextBox.Suggestion = Localize(control, key, value.FromIniString());
+                return true;
         }
 
         return false;
