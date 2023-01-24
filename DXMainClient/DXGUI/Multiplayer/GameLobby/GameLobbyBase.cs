@@ -997,9 +997,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
                 if (randomSides.Count > 1)
                 {
-#pragma warning disable CNCNET0001
-                    selectorNames.Add(randomSelector.L10N($"INI:Sides:{randomSelector}"));
-#pragma warning restore CNCNET0001
+                    selectorNames.Add(randomSelector);
                     selectorSides.Add(randomSides.ToArray());
                 }
             }
