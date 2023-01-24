@@ -64,7 +64,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     string[] itemlabels = iniFile.GetStringValue(Name, "ItemLabels", "").Split(',');
                     for (int i = 0; i < items.Length; i++)
                     {
-                        bool hasLabel = itemlabels.Length > i && itemlabels[i] is not null;
+                        bool hasLabel = itemlabels.Length > i && !string.IsNullOrEmpty(itemlabels[i]);
                         XNADropDownItem item = new XNADropDownItem
                         {
                             Text = Localize(this, $"Item{i}",
