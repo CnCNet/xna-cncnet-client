@@ -708,8 +708,8 @@ namespace DTAClient.DXGUI.Generic
 
             Updater.CheckForUpdates();
             lblUpdateStatus.Enabled = false;
-            lblUpdateStatus.Text = "Checking for " +
-                "updates...".L10N("Client:Main:CheckingForUpdate");
+            lblUpdateStatus.Text = "Checking for updates..."
+                .L10N("Client:Main:CheckingForUpdates");
             lastUpdateCheckTime = DateTime.Now;
         }
 
