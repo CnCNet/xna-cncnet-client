@@ -181,7 +181,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private LoadOrSaveGameOptionPresetWindow loadOrSaveGameOptionPresetWindow;
 
-        private XNAMultiColumnListBox.SelectedIndexChangedEventHandler lbGameModeMapList_SelectedIndexChangedFunc;
+        private EventHandler lbGameModeMapList_SelectedIndexChangedFunc;
 
         public override void Initialize()
         {
