@@ -331,7 +331,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             btnGameFilterOptions.CheckedTexture = AssetLoader.LoadTexture("filterActive.png");
             btnGameFilterOptions.UncheckedTexture = AssetLoader.LoadTexture("filterInactive.png");
             btnGameFilterOptions.LeftClick += BtnGameFilterOptions_LeftClick;
-            btnGameFilterOptions.SetToolTipText("Game Filters");
+            btnGameFilterOptions.SetToolTipText("Game Filters".L10N("Client:Main:GameFilters"));
             RefreshGameFiltersBtn();
 
             InitializeGameList();
