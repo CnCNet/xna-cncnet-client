@@ -107,6 +107,11 @@ namespace TranslationNotifierGenerator
                         continue;
                     }
 
+                    if (valueText.Trim() != valueText)
+                    {
+                        Warn($"The value of key {keyName} should not have leading or trailing white spaces.", context, l10nSyntax);
+                    }
+
                     translations.Add(keyName, valueText);
                 }
             }
