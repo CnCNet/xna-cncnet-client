@@ -526,24 +526,15 @@ namespace DTAConfig
             public GameCommand(IniSection iniSection)
             {
                 ININame = iniSection.SectionName;
-                UIName = iniSection.GetStringValue("UIName", "Unnamed command");
-                Category = iniSection.GetStringValue("Category", "Unknown category");
-                Description = iniSection.GetStringValue("Description", "Unknown description");
+#pragma warning disable CNCNET0001 // L10N Failure
+                UIName = iniSection.GetStringValue("UIName", "Unnamed command")
+                    .L10N($"INI:Hotkeys:{ININame}:UIName");
+                string category = iniSection.GetStringValue("Category", "Unknown category");
+                Category = category.L10N($"INI:HotkeyCategories:{category}");
+                Description = iniSection.GetStringValue("Description", "Unknown description")
+                    .L10N($"INI:Hotkeys:{ININame}:Description");
+#pragma warning restore CNCNET0001 // L10N Failure
                 DefaultHotkey = new Hotkey(iniSection.GetIntValue("DefaultKey", 0));
-            }
-
-            /// <summary>
-            /// Writes the game command's information to an INI file.
-            /// </summary>
-            /// <param name="iniFile">The INI file.</param>
-            public void WriteToIni(IniFile iniFile)
-            {
-                var section = new IniSection(ININame);
-                section.SetStringValue("UIName", UIName);
-                section.SetStringValue("Category", Category);
-                section.SetStringValue("Description", Description);
-                section.SetIntValue("DefaultKey", DefaultHotkey.GetTSEncoded());
-                iniFile.AddSection(section);
             }
 
             public string UIName { get; private set; }

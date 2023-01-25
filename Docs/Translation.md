@@ -100,7 +100,11 @@ Each key in the `[Values]` section is composed of a few elements, joined using `
   - `UpdateMirrors` - subcategory for the game's/mod's update download mirrors.
     - `[mirror name]` - uniquely identifies the mirror.
       - `[attribute name]` - the name of the attribute that is being translated. Only `Name` and `Location` are supported.
-  - `ClientDefinitions` - self explanatory
+  - `Hotkeys` - subcategory for the game's/mod's hotkeys.
+    - `[INI name]` - uniquely identifies the hotkey.
+      - `[attribute name]` - the name of the attribute that is being translated. Only `UIName` and `Description` are supported.
+  - `HotkeyCategories` - subcategory for the game's/mod's hotkey categories.
+  - `ClientDefinitions` - self explanatory.
     - `WindowTitle` - self explanatory, only works if set in `ClientDefinitions.ini`
 
 > **Warning**
