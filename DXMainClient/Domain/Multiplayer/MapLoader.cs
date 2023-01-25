@@ -300,7 +300,7 @@ namespace DTAClient.Domain.Multiplayer
 
         public void DeleteCustomMap(GameModeMap gameModeMap)
         {
-            Logger.Log("Deleting map " + gameModeMap.Map.Name);
+            Logger.Log("Deleting map " + gameModeMap.Map.UntranslatedName);
             File.Delete(gameModeMap.Map.CompleteFilePath);
             foreach (GameMode gameMode in GameModeMaps.GameModes)
             {
@@ -336,7 +336,7 @@ namespace DTAClient.Domain.Multiplayer
 
                     gm.Maps.Add(map);
                     if (enableLogging)
-                        Logger.Log("AddMapToGameModes: Added map " + map.Name + " to game mode " + gm.Name);
+                        Logger.Log("AddMapToGameModes: Added map " + map.UntranslatedName + " to game mode " + gm.Name);
                 }
             }
         }

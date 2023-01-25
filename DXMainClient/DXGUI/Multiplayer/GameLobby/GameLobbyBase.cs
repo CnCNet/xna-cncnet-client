@@ -547,7 +547,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 XNAListBoxItem rankItem = new XNAListBoxItem();
                 if (gameModeMap.Map.IsCoop)
                 {
-                    if (StatisticsManager.Instance.HasBeatCoOpMap(gameModeMap.Map.Name, gameModeMap.GameMode.UIName))
+                    if (StatisticsManager.Instance.HasBeatCoOpMap(gameModeMap.Map.UntranslatedName, gameModeMap.GameMode.UntranslatedUIName))
                         rankItem.Texture = RankTextures[Math.Abs(2 - gameModeMap.GameMode.CoopDifficultyLevel) + 1];
                     else
                         rankItem.Texture = RankTextures[0];
@@ -624,7 +624,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         protected virtual void ToggleFavoriteMap()
         {
-            GameModeMap.IsFavorite = UserINISettings.Instance.ToggleFavoriteMap(Map.Name, GameMode.Name, GameModeMap.IsFavorite);
+            GameModeMap.IsFavorite = UserINISettings.Instance.ToggleFavoriteMap(Map.UntranslatedName, GameMode.Name, GameModeMap.IsFavorite);
             MapPreviewBox.RefreshFavoriteBtn();
         }
 

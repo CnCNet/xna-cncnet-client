@@ -521,7 +521,7 @@ namespace DTAClient.Domain.Multiplayer
 
                 IniSection basicSection = iniFile.GetSection("Basic");
 
-                Name = basicSection.GetStringValue("Name", "Unnamed map");
+                UntranslatedName = Name = basicSection.GetStringValue("Name", "Unnamed map");
                 Author = basicSection.GetStringValue("Author", "Unknown author");
 
                 string gameModesString = basicSection.GetStringValue("GameModes", string.Empty);

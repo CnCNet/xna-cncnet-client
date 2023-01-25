@@ -1129,9 +1129,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         protected override int GetDefaultMapRankIndex(GameModeMap gameModeMap)
         {
             if (gameModeMap.Map.MaxPlayers > 3)
-                return StatisticsManager.Instance.GetCoopRankForDefaultMap(gameModeMap.Map.Name, gameModeMap.Map.MaxPlayers);
+                return StatisticsManager.Instance.GetCoopRankForDefaultMap(gameModeMap.Map.UntranslatedName, gameModeMap.Map.MaxPlayers);
 
-            if (StatisticsManager.Instance.HasWonMapInPvP(gameModeMap.Map.Name, gameModeMap.GameMode.UIName, gameModeMap.Map.MaxPlayers))
+            if (StatisticsManager.Instance.HasWonMapInPvP(gameModeMap.Map.UntranslatedName, gameModeMap.GameMode.UntranslatedUIName, gameModeMap.Map.MaxPlayers))
                 return 2;
 
             return -1;

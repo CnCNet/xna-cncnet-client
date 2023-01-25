@@ -509,7 +509,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         public void RefreshFavoriteBtn()
         {
-            bool isFav = UserINISettings.Instance.IsFavoriteMap(GameModeMap?.Map.Name, GameModeMap?.GameMode.Name);
+            bool isFav = UserINISettings.Instance.IsFavoriteMap(GameModeMap?.Map.UntranslatedName, GameModeMap?.GameMode.Name);
             var textureName = isFav ? "favActive.png" : "favInactive.png";
             var hoverTextureName = isFav ? "favActive_c.png" : "favInactive_c.png";
             var hoverTexture = AssetLoader.AssetExists(hoverTextureName) ? AssetLoader.LoadTexture(hoverTextureName) : null;

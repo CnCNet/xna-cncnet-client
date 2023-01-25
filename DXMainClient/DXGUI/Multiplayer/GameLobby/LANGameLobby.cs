@@ -742,8 +742,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             sb.Append(ProgramConstants.LAN_PROTOCOL_REVISION);
             sb.Append(ProgramConstants.GAME_VERSION);
             sb.Append(localGame);
-            sb.Append(Map.Name);
-            sb.Append(GameMode.UIName);
+            sb.Append(Map.UntranslatedName);
+            sb.Append(GameMode.UntranslatedUIName);
             sb.Append(0); // LoadedGameID
             var sbPlayers = new StringBuilder();
             Players.ForEach(p => sbPlayers.Append(p.Name + ","));

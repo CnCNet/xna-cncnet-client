@@ -996,7 +996,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             sb.Append(ProtocolVersion);
             sb.Append(RandomSeed);
             sb.Append(Convert.ToInt32(RemoveStartingLocations));
-            sb.Append(Map.Name);
+            sb.Append(Map.UntranslatedName);
 
             channel.SendCTCPMessage(sb.ToString(), QueuedMessageType.GAME_SETTINGS_MESSAGE, 11);
         }
@@ -1905,9 +1905,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             sb.Remove(sb.Length - 1, 1);
             sb.Append(";");
-            sb.Append(Map.Name);
+            sb.Append(Map.UntranslatedName);
             sb.Append(";");
-            sb.Append(GameMode.UIName);
+            sb.Append(GameMode.UntranslatedUIName);
             sb.Append(";");
             sb.Append(tunnelHandler.CurrentTunnel.Address + ":" + tunnelHandler.CurrentTunnel.Port);
             sb.Append(";");
