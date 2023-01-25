@@ -84,7 +84,7 @@ namespace DTAConfig.OptionPanels
                     "made to this installation. Use at your own risk!\n\n" +
                     "If you proceed, the options window will close and the\n" +
                     "client will proceed to checking for updates.\n\n" +
-                    "Do you really want to force update?\n").L10N("Client:DTAConfig:ForceUpdateConfirmText"), XNAMessageBoxButtons.YesNo);
+                    "Do you really want to force update?").L10N("Client:DTAConfig:ForceUpdateConfirmText") + "\n", XNAMessageBoxButtons.YesNo);
             msgBox.Show();
             msgBox.YesClickedAction = ForceUpdateMsgBox_YesClicked;
         }

@@ -611,7 +611,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             {
                 ShowTunnelSelectionWindow(("An error occured while contacting the CnCNet tunnel server.\nTry picking a different tunnel server:").L10N("Client:Main:ConnectTunnelError1"));
                 AddNotice(("An error occured while contacting the specified CnCNet " +
-                    "tunnel server. Please try using a different tunnel server ").L10N("Client:Main:ConnectTunnelError2"), Color.Yellow);
+                    "tunnel server. Please try using a different tunnel server").L10N("Client:Main:ConnectTunnelError2") + " ", Color.Yellow);
                 return;
             }
 

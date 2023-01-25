@@ -251,9 +251,9 @@ namespace DTAClient.DXGUI.Multiplayer
                 ("Auto allying allows the host to assign starting locations to teams, not players.\n" +
                 "When players are assigned to spawn locations, they will be auto assigned to teams based on these mappings.\n" +
                 "This is best used with random teams and random starts. However, only random teams is required.\n" +
-                "Manually specified starts will take precedence.\n\n").L10N("Client:Main:AutoAllyingText1") +
+                "Manually specified starts will take precedence.").L10N("Client:Main:AutoAllyingText1") + "\n\n" +
                 $"{TeamStartMapping.NO_TEAM} : " + "Block this location from being assigned to a player.".L10N("Client:Main:AutoAllyingTextNoTeam") + "\n" +
-                $"{TeamStartMapping.RANDOM_TEAM} : "+"Allow a player here, but don't assign a team.".L10N("Client:Main:AutoAllyingTextRandomTeam")
+                $"{TeamStartMapping.RANDOM_TEAM} : " + "Allow a player here, but don't assign a team.".L10N("Client:Main:AutoAllyingTextRandomTeam")
             );
         }
 
