@@ -184,7 +184,29 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 fsw.EnableRaisingEvents = false;
             }
             else
+            {
                 Logger.Log("MultiplayerGameLobby: Saved games are not available!");
+            }
+
+            // this heresy is a hack so that translation system registers the correct strings
+
+            string temp = lbChatMessages.Name;
+            
+            lbChatMessages.Name = "lbChatMessages_Host";
+            ReadINIForControl(lbChatMessages);
+            lbChatMessages.Name = "lbChatMessages_Player";
+            ReadINIForControl(lbChatMessages);
+            lbChatMessages.Name = temp;
+            ReadINIForControl(lbChatMessages);
+
+            temp = tbChatInput.Name;
+
+            tbChatInput.Name = "tbChatInput_Host";
+            ReadINIForControl(tbChatInput);
+            tbChatInput.Name = "tbChatInput_Player";
+            ReadINIForControl(tbChatInput);
+            tbChatInput.Name = temp;
+            ReadINIForControl(tbChatInput);
         }
 
         /// <summary>
