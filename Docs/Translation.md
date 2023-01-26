@@ -128,8 +128,8 @@ GameFile0=translation.mix,expandmo98.mix
 
 This will make the `translation.mix` file from current translation folder (say, `Resources/Translations/ru`) copied to game root as `expandmo98.mix` on game start.
 
-> **Note**
-> This features is needed only for *game* files, not *client* files like INIs, theme assets etc.!
+> **Warning**
+> This feature is needed only for *game* files, not *client* files like INIs, theme assets etc.!
 
 ## Suggested translation workflow
 
