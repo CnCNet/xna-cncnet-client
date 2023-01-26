@@ -52,6 +52,8 @@ namespace DTAClient
         public static void Initialize(StartupParams parameters)
         {
             Translation.InitialUICulture = CultureInfo.CurrentUICulture;
+            CultureInfo.CurrentUICulture = new CultureInfo(ProgramConstants.HARDCODED_LOCALE_CODE);
+
 #if WINFORMS
             Application.SetUnhandledExceptionMode(UnhandledExceptionMode.ThrowException);
             Application.ThreadException += (sender, args) => HandleException(sender, args.Exception);
