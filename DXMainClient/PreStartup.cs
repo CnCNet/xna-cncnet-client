@@ -115,16 +115,16 @@ namespace DTAClient
                         Logger.Log($"Loading theme-specific translation file at {translationThemeFile.FullName}");
                         translation.AppendValuesFromIniFile(translationThemeFile.FullName);
                     }
+
+                    Translation.Instance = translation;
                 }
                 else
                 {
                     Logger.Log($"Failed to load a translation file. " +
                         $"Neither {translationThemeFile.FullName} nor {translationFile.FullName} exist.");
-                    translation = new Translation(UserINISettings.Instance.Translation);
                 }
 
-                Translation.Instance = translation;
-                Logger.Log("Loaded translation: " + translation.Name);
+                Logger.Log("Loaded translation: " + Translation.Instance.Name);
             }
             catch (Exception ex)
             {
