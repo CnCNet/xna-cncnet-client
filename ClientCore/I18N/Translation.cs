@@ -11,7 +11,7 @@ namespace ClientCore.I18N;
 
 public class Translation : ICloneable
 {
-    public static Translation Instance { get; set; }
+    public static Translation Instance { get; set; } = new Translation(ProgramConstants.HARDCODED_LOCALE_CODE);
 
     /// <summary>The translation metadata section name.</summary>
     public const string METADATA_SECTION = "General";
