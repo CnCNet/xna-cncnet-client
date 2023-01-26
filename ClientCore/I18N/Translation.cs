@@ -16,8 +16,13 @@ public class Translation : ICloneable
     /// <summary>The translation metadata section name.</summary>
     public const string METADATA_SECTION = "General";
 
-    /// <summary>The culture that was set before the translation instance was created.</summary>
-    public static readonly CultureInfo InitialUICulture = CultureInfo.CurrentUICulture;
+    /// <summary>The culture that was set before the translation instance was created. Initialized at DXMainClient.PreStartup.Initialize().</summary>
+    private static CultureInfo _initialUICulture;
+    public static CultureInfo InitialUICulture
+    {
+        get { return _initialUICulture; }
+        set { _initialUICulture = _initialUICulture is null ? value : throw new InvalidOperationException(); }
+    }
 
     /// <summary>AKA name of the folder, used to look up <see cref="Culture"/> and select a language</summary>
     public string LocaleCode { get; private set; } = string.Empty;
