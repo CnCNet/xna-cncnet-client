@@ -1321,7 +1321,7 @@ public static class Updater
     /// <returns>True if successful, otherwise false.</returns>
     private static async ValueTask<bool> DownloadFileAsync(UpdaterFileInfo fileInfo)
     {
-        Logger.Log("Updater: Initiliazing download of file " + fileInfo.Filename);
+        Logger.Log("Updater: Initializing download of file " + fileInfo.Filename);
 
         UpdateDownloadProgress(0);
 

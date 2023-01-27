@@ -71,7 +71,6 @@ public static class CompressionHelper
     public static async ValueTask DecompressFileAsync(string inputFilename, string outputFilename, CancellationToken cancellationToken = default)
     {
         var decoder = new Decoder(cancellationToken);
-
         var inputStream = new FileStream(inputFilename, new FileStreamOptions
         {
             Access = FileAccess.Read,
@@ -96,10 +95,12 @@ public static class CompressionHelper
             {
                 byte[] properties = new byte[5];
                 byte[] fileLengthArray = new byte[sizeof(long)];
-                long fileLength = BitConverter.ToInt64(fileLengthArray, 0);
 
                 await inputStream.ReadAsync(properties, cancellationToken).ConfigureAwait(false);
                 await inputStream.ReadAsync(fileLengthArray, cancellationToken).ConfigureAwait(false);
+
+                long fileLength = BitConverter.ToInt64(fileLengthArray, 0);
+
                 decoder.SetDecoderProperties(properties);
                 decoder.Code(inputStream, outputStream, inputStream.Length, fileLength, null);
             }
