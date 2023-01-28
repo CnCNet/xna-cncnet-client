@@ -603,9 +603,8 @@ public static class Updater
                         var fileStream = new FileStream(downloadFile.FullName, new FileStreamOptions
                         {
                             Access = FileAccess.Write,
-                            BufferSize = 0,
                             Mode = FileMode.Create,
-                            Options = FileOptions.Asynchronous | FileOptions.SequentialScan | FileOptions.WriteThrough,
+                            Options = FileOptions.Asynchronous,
                             Share = FileShare.None
                         });
 
@@ -767,9 +766,8 @@ public static class Updater
             var fileStream = new FileStream(SafePath.CombineFilePath(GamePath, "updateexec"), new FileStreamOptions
             {
                 Access = FileAccess.Write,
-                BufferSize = 0,
                 Mode = FileMode.Create,
-                Options = FileOptions.Asynchronous | FileOptions.SequentialScan | FileOptions.WriteThrough,
+                Options = FileOptions.Asynchronous,
                 Share = FileShare.None
             });
 
@@ -804,9 +802,8 @@ public static class Updater
             var fileStream = new FileStream(SafePath.CombineFilePath(GamePath, "preupdateexec"), new FileStreamOptions
             {
                 Access = FileAccess.Write,
-                BufferSize = 0,
                 Mode = FileMode.Create,
-                Options = FileOptions.Asynchronous | FileOptions.SequentialScan | FileOptions.WriteThrough,
+                Options = FileOptions.Asynchronous,
                 Share = FileShare.None
             });
 
@@ -1351,9 +1348,8 @@ public static class Updater
                 var fileStream = new FileStream(downloadFile.FullName, new FileStreamOptions
                 {
                     Access = FileAccess.Write,
-                    BufferSize = 0,
                     Mode = FileMode.Create,
-                    Options = FileOptions.Asynchronous | FileOptions.SequentialScan | FileOptions.WriteThrough,
+                    Options = FileOptions.Asynchronous,
                     Share = FileShare.None
                 });
 

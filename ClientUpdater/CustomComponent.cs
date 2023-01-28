@@ -184,9 +184,8 @@ public class CustomComponent
             var versionFileStream = new FileStream(versionFileName, new FileStreamOptions
             {
                 Access = FileAccess.Write,
-                BufferSize = 0,
                 Mode = FileMode.Create,
-                Options = FileOptions.Asynchronous | FileOptions.SequentialScan | FileOptions.WriteThrough,
+                Options = FileOptions.Asynchronous,
                 Share = FileShare.None
             });
 
@@ -222,9 +221,8 @@ public class CustomComponent
                 var downloadFileStream = new FileStream(downloadFileName, new FileStreamOptions
                 {
                     Access = FileAccess.Write,
-                    BufferSize = 0,
                     Mode = FileMode.Create,
-                    Options = FileOptions.Asynchronous | FileOptions.SequentialScan | FileOptions.WriteThrough,
+                    Options = FileOptions.Asynchronous,
                     Share = FileShare.None
                 });
 

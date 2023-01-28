@@ -37,9 +37,8 @@ public static class CompressionHelper
         var inputStream = new FileStream(inputFilename, new FileStreamOptions
         {
             Access = FileAccess.Read,
-            BufferSize = 0,
             Mode = FileMode.Open,
-            Options = FileOptions.Asynchronous | FileOptions.SequentialScan | FileOptions.WriteThrough,
+            Options = FileOptions.Asynchronous | FileOptions.SequentialScan,
             Share = FileShare.None
         });
 
@@ -48,9 +47,8 @@ public static class CompressionHelper
             var outputStream = new FileStream(outputFilename, new FileStreamOptions
             {
                 Access = FileAccess.Write,
-                BufferSize = 0,
                 Mode = FileMode.Create,
-                Options = FileOptions.Asynchronous | FileOptions.SequentialScan | FileOptions.WriteThrough,
+                Options = FileOptions.Asynchronous,
                 Share = FileShare.None
             });
 
@@ -74,9 +72,8 @@ public static class CompressionHelper
         var inputStream = new FileStream(inputFilename, new FileStreamOptions
         {
             Access = FileAccess.Read,
-            BufferSize = 0,
             Mode = FileMode.Open,
-            Options = FileOptions.Asynchronous | FileOptions.SequentialScan | FileOptions.WriteThrough,
+            Options = FileOptions.Asynchronous | FileOptions.SequentialScan,
             Share = FileShare.None
         });
 
@@ -85,9 +82,8 @@ public static class CompressionHelper
             var outputStream = new FileStream(outputFilename, new FileStreamOptions
             {
                 Access = FileAccess.Write,
-                BufferSize = 0,
                 Mode = FileMode.Create,
-                Options = FileOptions.Asynchronous | FileOptions.SequentialScan | FileOptions.WriteThrough,
+                Options = FileOptions.Asynchronous,
                 Share = FileShare.None
             });
 
