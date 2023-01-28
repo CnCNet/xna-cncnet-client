@@ -17,7 +17,7 @@
     <ProjectReference Include="..\ClientCore\ClientCore.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="GitVersion.MsBuild" Version="5.11.1">
+    <PackageReference Include="GitVersion.MsBuild" Version="5.11.1" Condition="Exists('../.git')">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>

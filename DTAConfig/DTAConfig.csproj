@@ -15,7 +15,7 @@
   <Import Project="$(MSBuildThisFileDirectory)..\build\WinForms.props" />
   <ItemGroup>
     <PackageReference Include="CnCNet.ClientUpdater" Version="1.0.7" />
-    <PackageReference Include="GitVersion.MsBuild" Version="5.11.1">
+    <PackageReference Include="GitVersion.MsBuild" Version="5.11.1" Condition="Exists('../.git')">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
