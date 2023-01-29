@@ -590,7 +590,7 @@ namespace DTAConfig
             public string ToStringWithNone()
             {
                 if (Key == Keys.None && Modifier == KeyModifiers.None)
-                    return "None";
+                    return "None".L10N("Client:DTAConfig:HotkeyNone");
 
                 return GetString();
             }
