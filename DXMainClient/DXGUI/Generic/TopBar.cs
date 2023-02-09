@@ -170,7 +170,7 @@ namespace DTAClient.DXGUI.Generic
             btnLogout.Name = "btnLogout";
             btnLogout.ClientRectangle = new Rectangle(lblDate.X - 87, 9, 75, 23);
             btnLogout.FontIndex = 1;
-            btnLogout.Text = "Log Out".L10N("Client:Main:LogOut");
+            btnLogout.Text = "Log Out".L10N("Client:Main:TopBarLogOut");
             btnLogout.AllowClick = false;
             btnLogout.LeftClick += BtnLogout_LeftClick;
 
