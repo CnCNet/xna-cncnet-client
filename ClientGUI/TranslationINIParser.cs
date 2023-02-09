@@ -12,6 +12,7 @@ using Rampastring.Tools;
 using Rampastring.XNAUI.XNAControls;
 
 namespace ClientGUI;
+
 public class TranslationINIParser : IControlINIAttributeParser
 {
     private static TranslationINIParser _instance;

@@ -188,10 +188,19 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 Logger.Log("MultiplayerGameLobby: Saved games are not available!");
             }
 
-            // this heresy is a hack so that translation system registers the correct strings
+            ParseHostPlayerControls();
+        }
 
+        /// <summary>
+        /// Reads INI for host/player variations of controls and restores it back.
+        /// </summary>
+        /// <remarks>
+        /// Needed for translation notification mechanism to work correctly.
+        /// </remarks>
+        private void ParseHostPlayerControls()
+        {
             string temp = lbChatMessages.Name;
-            
+
             lbChatMessages.Name = "lbChatMessages_Host";
             ReadINIForControl(lbChatMessages);
             lbChatMessages.Name = "lbChatMessages_Player";
@@ -210,7 +219,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         }
 
         /// <summary>
-        /// Performs initialization that is necessary after derived 
+        /// Performs initialization that is necessary after derived
         /// classes have performed their own initialization.
         /// </summary>
         protected void PostInitialize()

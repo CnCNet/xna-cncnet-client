@@ -7,7 +7,7 @@ using ClientCore.Extensions;
 
 namespace ClientGUI
 {
-    public class XNAClientButton : XNAButton, IHasToolTip
+    public class XNAClientButton : XNAButton, IToolTipContainer
     {
         public ToolTip ToolTip { get; private set; }
 
@@ -42,7 +42,7 @@ namespace ClientGUI
 
             if (HoverSoundEffect == null)
                 HoverSoundEffect = new EnhancedSoundEffect("button.wav");
-            
+
             base.Initialize();
 
             if (Width == 0)
@@ -67,6 +67,5 @@ namespace ClientGUI
 
             base.ParseControlINIAttribute(iniFile, key, value);
         }
-
     }
 }

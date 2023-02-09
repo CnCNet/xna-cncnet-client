@@ -142,7 +142,7 @@ namespace DTAClient.Online
         public void ConnectAsync()
         {
             if (_isConnected)
-                throw new InvalidOperationException("The client is already connected!".L10N("Client:Main:ClientAlreadyConnected"));
+                throw new InvalidOperationException("The client is already connected!");
 
             if (_attemptingConnection)
                 return; // Maybe we should throw in this case as well?

@@ -1,6 +1,6 @@
 ﻿namespace ClientGUI;
 
-public interface IHasToolTip
+public interface IToolTipContainer
 {
     public ToolTip ToolTip { get; }
     public string ToolTipText { get; set; }

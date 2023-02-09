@@ -439,7 +439,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (ddPlayerSides.Length > Players.IndexOf(player))
                 side = (string)ddPlayerSides[Players.IndexOf(player)].SelectedItem.Tag;
             string currentState = ProgramConstants.IsInGame ? "In Game" : "In Lobby"; // not UI strings
-            
+
             discordHandler.UpdatePresence(
                 Map.UntranslatedName, GameMode.UntranslatedUIName, "LAN",
                 currentState, Players.Count, 8, side,

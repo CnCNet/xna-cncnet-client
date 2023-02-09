@@ -1134,7 +1134,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 if (!success)
                 {
                     AddNotice(("Failed to parse drop down options sent by game host (2)! " +
-                        "The game host's game version might be different from yours.").L10N("Client:Main:HostGameOptionInvalidTheSecondTime"), Color.Red);
+                        "The game host's game version might be different from yours.").L10N("Client:Main:HostDropDownParseError"), Color.Red);
                     return;
                 }
 

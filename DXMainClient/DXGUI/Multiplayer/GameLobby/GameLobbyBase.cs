@@ -1318,7 +1318,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             settings.SetStringValue("UIGameMode", GameMode.UntranslatedUIName);
             settings.SetStringValue("UIMapName", Map.UntranslatedName);
 
-            // needed for translation in game loading lobbys
+            // needed for translation in game loading lobbies
             if (Map.Official)
                 settings.SetStringValue("MapID", Map.BaseFilePath);
 

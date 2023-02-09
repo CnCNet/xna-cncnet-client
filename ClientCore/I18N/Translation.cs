@@ -16,12 +16,13 @@ public class Translation : ICloneable
     /// <summary>The translation metadata section name.</summary>
     public const string METADATA_SECTION = "General";
 
-    /// <summary>The culture that was set before the translation instance was created. Initialized at DXMainClient.PreStartup.Initialize().</summary>
     private static CultureInfo _initialUICulture;
+    /// <summary>The UI culture that the application was started with. Must be initialized as early as possible.</summary>
     public static CultureInfo InitialUICulture
     {
-        get { return _initialUICulture; }
-        set { _initialUICulture = _initialUICulture is null ? value : throw new InvalidOperationException(); }
+        get => _initialUICulture;
+        set => _initialUICulture = _initialUICulture is null ? value
+            : throw new InvalidOperationException($"{nameof(InitialUICulture)} is already set!");
     }
 
     /// <summary>AKA name of the folder, used to look up <see cref="Culture"/> and select a language</summary>
@@ -46,7 +47,7 @@ public class Translation : ICloneable
         private set => _culture = value;
     }
 
-    /// <summary>Shows the information about the author.</summary>
+    /// <summary>The author(s) of the translation.</summary>
     public string Author { get; private set; } = string.Empty;
 
     /// <summary>Stores the translation values (including default values for missing strings).</summary>
@@ -64,7 +65,7 @@ public class Translation : ICloneable
     public const string CLIENT_PREFIX = "Client";
     /// <summary>Used for INI values.</summary>
     public const string INI_PREFIX = "INI";
-    /// <summary>Used for INI values.</summary>
+    /// <summary>Used for INI-defined control values.</summary>
     public const string CONTROLS_PREFIX = "Controls";
     /// <summary>Used for parent-agnostic INI values.</summary>
     public const string GLOBAL_PREFIX = "Global";
@@ -287,16 +288,12 @@ public class Translation : ICloneable
     public string LookUp(string key, string defaultValue, bool notify = true)
     {
         if (Values.ContainsKey(key))
-        {
             return Values[key];
-        }
-        else
-        {
-            if (notify)
-                _ = HandleMissing(key, defaultValue);
 
-            return defaultValue;
-        }
+        if (notify)
+            _ = HandleMissing(key, defaultValue);
+
+        return defaultValue;
     }
 
     /// <summary>

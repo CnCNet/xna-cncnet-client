@@ -7,7 +7,7 @@ using ClientCore.Extensions;
 
 namespace ClientGUI
 {
-    public class XNAClientDropDown : XNADropDown, IHasToolTip
+    public class XNAClientDropDown : XNADropDown, IToolTipContainer
     {
         public ToolTip ToolTip { get; private set; }
 

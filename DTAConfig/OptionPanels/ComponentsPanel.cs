@@ -163,12 +163,12 @@ namespace DTAConfig.OptionPanels
             else
             {
                 var msgBox = new XNAMessageBox(WindowManager, "Confirmation Required".L10N("Client:DTAConfig:UpdateConfirmRequiredTitle"),
-                    string.Format(("To enable {0} the Client will download the necessary files to your game directory.\n\n" +
-                    "This will take an additional {1} of disk space (size of the download is {2}), and the download may last\n" +
-                    "from a few minutes to multiple hours depending on your Internet connection speed.\n\n" +
-                    "You will not be able to play during the download. Do you want to continue?").L10N("Client:DTAConfig:UpdateConfirmRequiredText"),
-                    cc.GUIName, GetSizeString(cc.RemoteSize), GetSizeString(cc.Archived ? cc.RemoteArchiveSize : cc.RemoteSize)
-                    ), XNAMessageBoxButtons.YesNo);
+                    string.Format(("To enable {0} the Client will need to download the necessary files to your game directory.\n\n" +
+                        "This will take an additional {1} of disk space, and the download may take some time\n" +
+                        "depending on your Internet connection speed. The size of the download is {2}.\n\n" +
+                        "You will not be able to play during the download. Do you wish to continue?").L10N("Client:DTAConfig:UpdateConfirmRequiredText"),
+                        cc.GUIName, GetSizeString(cc.RemoteSize), GetSizeString(cc.Archived ? cc.RemoteArchiveSize : cc.RemoteSize)),
+                    XNAMessageBoxButtons.YesNo);
 
                 msgBox.Tag = btn;
                 msgBox.Show();

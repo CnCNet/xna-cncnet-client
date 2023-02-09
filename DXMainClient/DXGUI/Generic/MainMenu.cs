@@ -271,7 +271,7 @@ namespace DTAClient.DXGUI.Generic
                 Updater.FileIdentifiersUpdated += Updater_FileIdentifiersUpdated;
                 Updater.OnCustomComponentsOutdated += Updater_OnCustomComponentsOutdated;
             }
-            
+
             base.Initialize(); // Read control attributes from INI
 
             innerPanel = new MainMenuDarkeningPanel(WindowManager, discordHandler, mapLoader);
@@ -477,8 +477,12 @@ namespace DTAClient.DXGUI.Generic
                 UserINISettings.Instance.IsFirstRun.Value = false;
                 UserINISettings.Instance.SaveSettings();
 
-                firstRunMessageBox = XNAMessageBox.ShowYesNoDialog(WindowManager, "Initial Installation".L10N("Client:Main:InitialInstallationTitle"),
-                    string.Format(("You have just installed {0}.\nIt's highly recommended that you configure your settings before playing.\nDo you want to configure them now?").L10N("Client:Main:InitialInstallationText"), ClientConfiguration.Instance.LocalGame));
+                firstRunMessageBox = XNAMessageBox.ShowYesNoDialog(WindowManager,
+                    "Initial Installation".L10N("Client:Main:InitialInstallationTitle"),
+                    string.Format(("You have just installed {0}.\n" +
+                        "It's highly recommended that you configure your settings before playing.\n" +
+                        "Do you want to configure them now?").L10N("Client:Main:InitialInstallationText"),
+                    ClientConfiguration.Instance.LocalGame));
                 firstRunMessageBox.YesClickedAction = FirstRunMessageBox_YesClicked;
                 firstRunMessageBox.NoClickedAction = FirstRunMessageBox_NoClicked;
             }

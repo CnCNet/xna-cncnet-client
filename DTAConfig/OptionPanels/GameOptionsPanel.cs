@@ -136,7 +136,7 @@ namespace DTAConfig.OptionPanels
             chkAltToUndeploy.ClientRectangle = new Rectangle(
                 chkScrollCoasting.X,
                 chkBlackChatBackground.Bottom + 24, 0, 0);
-            chkAltToUndeploy.Text = "Undeploy units by holding Alt key instead of a regular move command".L10N("Client:DTAConfig:TsUndeployAltKey");
+            chkAltToUndeploy.Text = "Undeploy units by holding Alt key instead of a regular move command".L10N("Client:DTAConfig:TSUndeployAltKey");
 
             AddChild(chkAltToUndeploy);
 

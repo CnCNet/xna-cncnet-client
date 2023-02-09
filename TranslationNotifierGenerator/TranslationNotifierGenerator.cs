@@ -1,5 +1,5 @@
 ﻿using System;
-//// uncomment to debug the generator
+// uncomment to debug the generator
 //using System.Diagnostics;
 using System.Linq;
 using System.Collections.Generic;
@@ -34,13 +34,13 @@ namespace TranslationNotifierGenerator
             context.ReportDiagnostic(
                 Diagnostic.Create(
                     new DiagnosticDescriptor(DescriptorId, DescriptorTitle, text,
-                        DescriptorCategory, DiagnosticSeverity.Warning, true),
+                        DescriptorCategory, DiagnosticSeverity.Info, isEnabledByDefault: true),
                     node.GetLocation()));
         }
 
         public void Execute(GeneratorExecutionContext context)
         {
-            //// uncomment to debug the generator
+            // uncomment to debug the generator
             //Debug.WriteLine($"Executing {nameof(TranslationNotifierGenerator)}...");
 
             var compilation = context.Compilation;
@@ -141,9 +141,7 @@ public class TranslationNotifier
 
         public void Initialize(GeneratorInitializationContext context)
         {
-            // No initialization required for this one
-
-            //// uncomment to debug the generator
+            // uncomment to debug the generator
             //if (!Debugger.IsAttached)
             //    Debugger.Launch();
 

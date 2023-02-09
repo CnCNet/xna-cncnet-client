@@ -7,7 +7,7 @@ using ClientCore.Extensions;
 
 namespace ClientGUI
 {
-    public class XNAClientCheckBox : XNACheckBox, IHasToolTip
+    public class XNAClientCheckBox : XNACheckBox, IToolTipContainer
     {
         public ToolTip ToolTip { get; private set; }
 
