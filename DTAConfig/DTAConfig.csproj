@@ -6,9 +6,6 @@
     <Product>CnCNet Client</Product>
     <Copyright>Copyright © CnCNet, Rampastring 2011-2023</Copyright>
     <Trademark>CnCNet</Trademark>
-    <Version>2.2.0.0</Version>
-    <FileVersion>2.2.0.0</FileVersion>
-    <InformationalVersion>2.2.0.0</InformationalVersion>
     <AssemblyName>DTAConfig</AssemblyName>
     <RootNamespace>DTAConfig</RootNamespace>
   </PropertyGroup>

@@ -8,9 +8,6 @@
     <Product>CnCNet Client</Product>
     <Copyright>Copyright © CnCNet, Rampastring 2011-2023</Copyright>
     <Trademark>CnCNet</Trademark>
-    <Version>2.8.0.0</Version>
-    <FileVersion>2.8.0.0</FileVersion>
-    <InformationalVersion>2.8.0.0</InformationalVersion>
     <AssemblyName>DXMainClient</AssemblyName>
     <RootNamespace>DTAClient</RootNamespace>
     <ApplicationIcon>clienticon.ico</ApplicationIcon>
@@ -48,7 +45,7 @@
   </ItemGroup>
   <Import Project="$(MSBuildThisFileDirectory)..\build\WinForms.props" />
   <Import Project="$(MSBuildThisFileDirectory)..\build\AfterPublish.targets" />
-  <Import Project="$(MSBuildThisFileDirectory)..\build\CopyResources.targets" />
+  <!--<Import Project="$(MSBuildThisFileDirectory)..\build\CopyResources.targets" />-->
   <ItemGroup>
     <ProjectReference Include="..\TranslationNotifierGenerator\TranslationNotifierGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
   </ItemGroup>

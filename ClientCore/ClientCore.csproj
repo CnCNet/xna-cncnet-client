@@ -6,9 +6,6 @@
     <Product>CnCNet Client</Product>
     <Copyright>Copyright © CnCNet, Rampastring 2011-2023</Copyright>
     <Trademark>CnCNet</Trademark>
-    <Version>2.0.0.3</Version>
-    <FileVersion>2.0.0.3</FileVersion>
-    <InformationalVersion>2.0.0.3</InformationalVersion>
     <AssemblyName>ClientCore</AssemblyName>
     <RootNamespace>ClientCore</RootNamespace>
   </PropertyGroup>

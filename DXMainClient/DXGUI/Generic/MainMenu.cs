@@ -229,7 +229,7 @@ namespace DTAClient.DXGUI.Generic
             btnExit.IdleTexture = AssetLoader.LoadTexture("MainMenu/exitgame.png");
             btnExit.HoverTexture = AssetLoader.LoadTexture("MainMenu/exitgame_c.png");
             btnExit.HoverSoundEffect = new EnhancedSoundEffect("MainMenu/button.wav");
-            btnExit.LeftClick += (_, _) => BtnExit_LeftClickAsync().HandleTask();
+            btnExit.LeftClick += (_, _) => BtnExit_LeftClick();
 
             XNALabel lblCnCNetStatus = new XNALabel(WindowManager);
             lblCnCNetStatus.Name = nameof(lblCnCNetStatus);
@@ -317,7 +317,7 @@ namespace DTAClient.DXGUI.Generic
             GameProcessLogic.GameProcessStarted += SharedUILogic_GameProcessStarted;
             GameProcessLogic.GameProcessStarting += SharedUILogic_GameProcessStarting;
             UserINISettings.Instance.SettingsSaved += SettingsSaved;
-            Updater.Restart += (_, _) => WindowManager.AddCallback(() => ExitClientAsync().HandleTask());
+            Updater.Restart += (_, _) => WindowManager.AddCallback(ExitClient);
 
             SetButtonHotkeys(true);
         }
@@ -597,9 +597,8 @@ namespace DTAClient.DXGUI.Generic
             CheckIfFirstRun();
         }
 
-        private void SwitchMainMenuMusicFormat()
+        private static void SwitchMainMenuMusicFormat()
         {
-#if GL || DX
             FileInfo wmaMainMenuMusicFile = SafePath.GetFile(ProgramConstants.GamePath, ProgramConstants.BASE_RESOURCE_PATH,
                 FormattableString.Invariant($"{ClientConfiguration.Instance.MainMenuMusicName}.wma"));
 
@@ -612,16 +611,14 @@ namespace DTAClient.DXGUI.Generic
             if (!wmaBackupMainMenuMusicFile.Exists)
                 wmaMainMenuMusicFile.CopyTo(wmaBackupMainMenuMusicFile.FullName);
 
-#endif
-#if DX
-            if (!wmaMainMenuMusicFile.Exists)
-                wmaBackupMainMenuMusicFile.CopyTo(wmaMainMenuMusicFile.FullName);
-#elif GL
+#if !GL
+            wmaBackupMainMenuMusicFile.CopyTo(wmaMainMenuMusicFile.FullName, true);
+#else
             FileInfo oggMainMenuMusicFile = SafePath.GetFile(ProgramConstants.GamePath, ProgramConstants.BASE_RESOURCE_PATH,
                 FormattableString.Invariant($"{ClientConfiguration.Instance.MainMenuMusicName}.ogg"));
 
-            if (oggMainMenuMusicFile.Exists && !wmaMainMenuMusicFile.Exists)
-                oggMainMenuMusicFile.CopyTo(wmaMainMenuMusicFile.FullName);
+            if (oggMainMenuMusicFile.Exists)
+                oggMainMenuMusicFile.CopyTo(wmaMainMenuMusicFile.FullName, true);
 #endif
         }
 
@@ -863,12 +860,12 @@ namespace DTAClient.DXGUI.Generic
         private void BtnExtras_LeftClick(object sender, EventArgs e) =>
             innerPanel.Show(innerPanel.ExtrasWindow);
 
-        private ValueTask BtnExit_LeftClickAsync()
+        private void BtnExit_LeftClick()
         {
 #if WINFORMS
             WindowManager.HideWindow();
 #endif
-            return FadeMusicExitAsync();
+            FadeMusicExit();
         }
 
         private void SharedUILogic_GameProcessExited() =>
@@ -964,11 +961,11 @@ namespace DTAClient.DXGUI.Generic
         /// <summary>
         /// Exits the client. Quickly fades the music if it's playing.
         /// </summary>
-        private async ValueTask FadeMusicExitAsync()
+        private void FadeMusicExit()
         {
             if (!isMediaPlayerAvailable || themeSong == null)
             {
-                await ExitClientAsync().ConfigureAwait(false);
+                ExitClient();
                 return;
             }
 
@@ -977,24 +974,20 @@ namespace DTAClient.DXGUI.Generic
             if (MediaPlayer.Volume > step)
             {
                 MediaPlayer.Volume -= step;
-                AddCallback(() => FadeMusicExitAsync().HandleTask());
+                AddCallback(FadeMusicExit);
             }
             else
             {
                 MediaPlayer.Stop();
-                await ExitClientAsync().ConfigureAwait(false);
+                ExitClient();
             }
         }
 
-        private async ValueTask ExitClientAsync()
+        private void ExitClient()
         {
             Logger.Log("Exiting.");
             WindowManager.CloseGame();
             themeSong?.Dispose();
-#if !XNA
-            await Task.Delay(1000).ConfigureAwait(false);
-            Environment.Exit(0);
-#endif
         }
 
         public void SwitchOn()

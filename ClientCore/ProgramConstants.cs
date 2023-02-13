@@ -201,7 +201,7 @@ namespace ClientCore
             string error = string.Format("{0} has crashed. Error message:".L10N("Client:Main:FatalErrorText1") + Environment.NewLine + Environment.NewLine +
                 ex.Message + Environment.NewLine + Environment.NewLine + (crashLogCopied ?
                 "A crash log has been saved to the following file:".L10N("Client:Main:FatalErrorText2") + " " + Environment.NewLine + Environment.NewLine +
-                errorLogPath + Environment.NewLine + Environment.NewLine : "") +
+                errorLogPath + Environment.NewLine + Environment.NewLine : string.Empty) +
                 (crashLogCopied ? "If the issue is repeatable, contact the {1} staff at {2} and provide the crash log file.".L10N("Client:Main:FatalErrorText3") :
                 "If the issue is repeatable, contact the {1} staff at {2}.".L10N("Client:Main:FatalErrorText4")),
                 GAME_NAME_LONG,

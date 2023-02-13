@@ -83,14 +83,14 @@ internal static class NetworkHelper
 
     private static IEnumerable<UnicastIPAddressInformation> GetUniCastIpAddresses()
         => GetIpInterfaces()
-        .Where(q => q.GatewayAddresses.Any())
         .SelectMany(q => q.UnicastAddresses)
         .Where(q => SupportedAddressFamilies.Contains(q.Address.AddressFamily));
 
     private static IEnumerable<IPInterfaceProperties> GetIpInterfaces()
         => NetworkInterface.GetAllNetworkInterfaces()
         .Where(q => q.OperationalStatus is OperationalStatus.Up && q.NetworkInterfaceType is not NetworkInterfaceType.Loopback)
-        .Select(q => q.GetIPProperties());
+        .Select(q => q.GetIPProperties())
+        .Where(q => q.GatewayAddresses.Any());
 
     [SupportedOSPlatform("windows")]
     private static IEnumerable<(IPAddress IpAddress, PrefixOrigin PrefixOrigin, SuffixOrigin SuffixOrigin)> GetWindowsPublicIpAddresses()

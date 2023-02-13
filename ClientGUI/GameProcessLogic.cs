@@ -48,17 +48,20 @@ namespace ClientGUI
             }
 
             OSVersion osVersion = ClientConfiguration.Instance.GetOperatingSystemVersion();
-
             string gameExecutableName;
             string additionalExecutableName = string.Empty;
 
-            if (osVersion == OSVersion.UNIX)
+            if (osVersion is OSVersion.UNIX)
+            {
                 gameExecutableName = ClientConfiguration.Instance.UnixGameExecutableName;
+            }
             else
             {
                 string launcherExecutableName = ClientConfiguration.Instance.GameLauncherExecutableName;
                 if (string.IsNullOrEmpty(launcherExecutableName))
+                {
                     gameExecutableName = ClientConfiguration.Instance.GetGameExecutableName();
+                }
                 else
                 {
                     gameExecutableName = launcherExecutableName;
@@ -103,7 +106,7 @@ namespace ClientGUI
                 }
 
                 if (Environment.ProcessorCount > 1 && SingleCoreAffinity)
-                    QResProcess.ProcessorAffinity = (IntPtr)2;
+                    QResProcess.ProcessorAffinity = 2;
             }
             else
             {
@@ -149,16 +152,17 @@ namespace ClientGUI
             }
 
             GameProcessStarted?.Invoke();
-
             Logger.Log("Waiting for qres.dat or " + gameExecutableName + " to exit.");
         }
 
-        static void Process_Exited(object sender, EventArgs e)
+        private static void Process_Exited(object sender, EventArgs e)
         {
             Logger.Log("GameProcessLogic: Process exited.");
-            Process proc = (Process)sender;
+
+            using var proc = (Process)sender;
+
             proc.Exited -= Process_Exited;
-            proc.Dispose();
+
             GameProcessExited?.Invoke();
         }
     }

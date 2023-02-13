@@ -10,7 +10,7 @@ using System.Threading;
 
 namespace DTAClient
 {
-    static class Program
+    internal static class Program
     {
 #if !DEBUG
         static Program()
@@ -50,7 +50,7 @@ namespace DTAClient
 #if WINFORMS
         [STAThread]
 #endif
-        static void Main(string[] args)
+        private static void Main(string[] args)
         {
             bool noAudio = false;
             bool multipleInstanceMode = false;
@@ -74,18 +74,6 @@ namespace DTAClient
                 }
             }
 
-            var parameters = new StartupParams(noAudio, multipleInstanceMode, unknownStartupParams);
-
-            if (multipleInstanceMode)
-            {
-                // Proceed to client startup
-                PreStartup.Initialize(parameters);
-                return;
-            }
-
-            // We're a single instance application!
-            // http://stackoverflow.com/questions/229565/what-is-a-good-pattern-for-using-a-global-mutex-in-c/229567
-            // Global prefix means that the mutex is global to the machine
             string mutexId = FormattableString.Invariant($"Global{Guid.Parse("1CC9F8E7-9F69-4BBC-B045-E734204027A9")}");
             using var mutex = new Mutex(false, mutexId, out _);
             bool hasHandle = false;
@@ -95,19 +83,17 @@ namespace DTAClient
                 try
                 {
                     hasHandle = mutex.WaitOne(8000, false);
-                    if (hasHandle == false)
-                        throw new TimeoutException("Timeout waiting for exclusive access");
+
+                    if (hasHandle is false && !multipleInstanceMode)
+                        return;
                 }
                 catch (AbandonedMutexException)
                 {
                     hasHandle = true;
                 }
-                catch (TimeoutException)
-                {
-                    return;
-                }
 
-                // Proceed to client startup
+                var parameters = new StartupParams(noAudio, multipleInstanceMode, unknownStartupParams);
+
                 PreStartup.Initialize(parameters);
             }
             finally

@@ -90,9 +90,8 @@ internal sealed class ReplayHandler : IAsyncDisposable
                 new FileStreamOptions
                 {
                     Access = FileAccess.Write,
-                    BufferSize = 0,
                     Mode = FileMode.CreateNew,
-                    Options = FileOptions.Asynchronous | FileOptions.WriteThrough
+                    Options = FileOptions.Asynchronous
                 });
 
             await using (replayFileStream.ConfigureAwait(false))
@@ -190,8 +189,7 @@ internal sealed class ReplayHandler : IAsyncDisposable
             new FileStreamOptions
             {
                 Access = FileAccess.ReadWrite,
-                BufferSize = 0,
                 Mode = FileMode.CreateNew,
-                Options = FileOptions.Asynchronous | FileOptions.WriteThrough | FileOptions.SequentialScan | FileOptions.DeleteOnClose
+                Options = FileOptions.Asynchronous | FileOptions.DeleteOnClose
             });
 }

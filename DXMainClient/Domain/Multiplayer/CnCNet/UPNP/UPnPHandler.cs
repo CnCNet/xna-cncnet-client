@@ -105,7 +105,7 @@ internal static class UPnPHandler
 
         foreach (InternetGatewayDevice internetGatewayDevice in internetGatewayDevices)
         {
-            Logger.Log($"P2P: Found gateway device v{internetGatewayDevice.UPnPDescription.Device.DeviceType.Split(':').LastOrDefault()}"
+            Logger.Log($"P2P: Found gateway device v{internetGatewayDevice.UPnPDescription.Device.DeviceType.Split(':').LastOrDefault()} "
                 + $"{internetGatewayDevice.UPnPDescription.Device.FriendlyName} ({internetGatewayDevice.Server}).");
         }
 
@@ -115,7 +115,7 @@ internal static class UPnPHandler
 
         if (selectedInternetGatewayDevice is not null)
         {
-            Logger.Log($"P2P: Selected gateway device v{selectedInternetGatewayDevice.UPnPDescription.Device.DeviceType.Split(':').LastOrDefault()}"
+            Logger.Log($"P2P: Selected gateway device v{selectedInternetGatewayDevice.UPnPDescription.Device.DeviceType.Split(':').LastOrDefault()} "
                 + $"{selectedInternetGatewayDevice.UPnPDescription.Device.FriendlyName} ({selectedInternetGatewayDevice.Server}).");
         }
         else
