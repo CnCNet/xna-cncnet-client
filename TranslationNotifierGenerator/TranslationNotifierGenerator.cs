@@ -99,12 +99,6 @@ namespace TranslationNotifierGenerator
                         continue;
                     }
 
-                    if (keyName is null && valueText is not null)
-                    {
-                        Warn($"Key name {keyNameSyntax.Expression} is of kind {keyNameSyntax.Expression.Kind()}. StringLiteralExpression is expected.", context, l10nSyntax);
-                        continue;
-                    }
-
                     if (keyName is not null && valueText is null)
                     {
                         Warn($"Failed to get the value of key {keyName} as a compile-time string.", context, l10nSyntax);
