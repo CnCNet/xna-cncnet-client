@@ -402,10 +402,8 @@ namespace DTAClient.DXGUI.Generic
 
             CenterOnParent();
 
-#pragma warning disable CNCNET0001 // L10N Failure
             sides = ClientConfiguration.Instance.Sides.Split(',')
                 .Select(s => (Name: s, UIName: s.L10N($"INI:Sides:{s}"))).ToArray();
-#pragma warning restore CNCNET0001 // L10N Failure
 
             sideTextures = new Texture2D[sides.Length + 1];
             for (int i = 0; i < sides.Length; i++)
@@ -607,10 +605,8 @@ namespace DTAClient.DXGUI.Generic
 
             gameModes.Sort();
 
-#pragma warning disable CNCNET0001 // L10N Failure
             foreach (string gm in gameModes)
                 cmbGameModeFilter.AddItem(new XNADropDownItem { Text = gm.L10N($"INI:GameModes:{gm}:UIName"), Tag = gm });
-#pragma warning restore CNCNET0001 // L10N Failure
 
             cmbGameModeFilter.SelectedIndex = 0;
         }
@@ -653,12 +649,10 @@ namespace DTAClient.DXGUI.Generic
                 string dateTime = ms.DateAndTime.ToShortDateString() + " " + ms.DateAndTime.ToShortTimeString();
                 List<string> info = new List<string>();
                 info.Add(Renderer.GetSafeString(dateTime, lbGameList.FontIndex));
-#pragma warning disable CNCNET0001 // L10N Failure
                 info.Add(mapLoader.TranslatedMapNames.ContainsKey(ms.MapName)
                     ? mapLoader.TranslatedMapNames[ms.MapName]
                     : ms.MapName);
                 info.Add(ms.GameMode.L10N($"INI:GameModes:{ms.GameMode}:UIName"));
-#pragma warning restore CNCNET0001 // L10N Failure
                 if (ms.AverageFPS == 0)
                     info.Add("-");
                 else

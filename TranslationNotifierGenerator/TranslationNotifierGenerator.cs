@@ -1,12 +1,11 @@
 ﻿using System;
-// uncomment to debug the generator
-//using System.Diagnostics;
-using System.Linq;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace TranslationNotifierGenerator
 {
@@ -34,7 +33,7 @@ namespace TranslationNotifierGenerator
             context.ReportDiagnostic(
                 Diagnostic.Create(
                     new DiagnosticDescriptor(DescriptorId, DescriptorTitle, text,
-                        DescriptorCategory, DiagnosticSeverity.Info, isEnabledByDefault: true),
+                        DescriptorCategory, DiagnosticSeverity.Warning, isEnabledByDefault: true),
                     node.GetLocation()));
         }
 
@@ -72,34 +71,47 @@ namespace TranslationNotifierGenerator
                         continue;
                     }
 
-                    var keyNameSyntax = l10nSyntax.ArgumentList.Arguments[0];
-                    if (!keyNameSyntax.Expression.IsKind(SyntaxKind.StringLiteralExpression))
-                    {
-                        Warn($"{keyNameSyntax.Expression} is of kind {keyNameSyntax.Expression.Kind()}. StringLiteralExpression is expected.", context, l10nSyntax);
-                        continue;
-                    }
-
-                    // https://stackoverflow.com/questions/35670115/how-to-use-roslyn-to-get-compile-time-constant-value
-                    var semanticModel = compilation.GetSemanticModel(keyNameSyntax.SyntaxTree);
-                    object keyExprValue = semanticModel.GetConstantValue(keyNameSyntax.Expression).Value;
-                    string keyName = keyExprValue?.ToString();
-
                     if (!l10nSyntax.Expression.IsKind(SyntaxKind.SimpleMemberAccessExpression))
                     {
                         Warn($"{l10nSyntax.Expression} is of kind {l10nSyntax.Expression.Kind()}. SimpleMemberAccessExpression is expected.", context, l10nSyntax);
                         continue;
                     }
 
-                    var valueSyntax = l10nSyntax.Expression as MemberAccessExpressionSyntax;
-                    object valueExprValue = semanticModel.GetConstantValue(valueSyntax.Expression).Value;
-                    if (valueExprValue is null)
+                    // https://stackoverflow.com/questions/35670115/how-to-use-roslyn-to-get-compile-time-constant-value
+                    var semanticModel = compilation.GetSemanticModel(l10nSyntax.SyntaxTree);
+
+                    // Get the key and the value.
+                    var keyNameSyntax = l10nSyntax.ArgumentList.Arguments[0];
+                    string keyName = semanticModel.GetConstantValue(keyNameSyntax.Expression).Value?.ToString();
+                    Debug.Assert(keyName is null == !keyNameSyntax.Expression.IsKind(SyntaxKind.StringLiteralExpression));
+                    bool keyNameIsPotentiallyForIni = keyName is null || keyName.StartsWith("INI:");
+
+                    var valueTextSyntax = l10nSyntax.Expression as MemberAccessExpressionSyntax;
+                    string valueText = semanticModel.GetConstantValue(valueTextSyntax.Expression).Value?.ToString();
+
+                    if (keyNameIsPotentiallyForIni)
+                    {
+                        if (valueText is not null)
+                        {
+                            Warn("The value of an INI translation should not be a compile-time string.", context, l10nSyntax);
+                        }
+
+                        continue;
+                    }
+
+                    if (keyName is null && valueText is not null)
+                    {
+                        Warn($"Key name {keyNameSyntax.Expression} is of kind {keyNameSyntax.Expression.Kind()}. StringLiteralExpression is expected.", context, l10nSyntax);
+                        continue;
+                    }
+
+                    if (keyName is not null && valueText is null)
                     {
                         Warn($"Failed to get the value of key {keyName} as a compile-time string.", context, l10nSyntax);
                         continue;
                     }
 
-                    string valueText = valueExprValue?.ToString();
-
+                    // Check for duplicates.
                     if (translations.ContainsKey(keyName))
                     {
                         if (valueText != translations[keyName])
@@ -107,6 +119,7 @@ namespace TranslationNotifierGenerator
                         continue;
                     }
 
+                    // Avoid trimmable strings
                     if (valueText.Trim() != valueText)
                     {
                         Warn($"The value of key {keyName} should not have leading or trailing white spaces.", context, l10nSyntax);

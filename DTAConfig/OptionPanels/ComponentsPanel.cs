@@ -61,14 +61,12 @@ namespace DTAConfig.OptionPanels
                 };
                 btn.LeftClick += Btn_LeftClick;
 
-#pragma warning disable CNCNET0001 // L10N Failure
                 XNALabel lbl = new(WindowManager)
                 {
                     Name = "lbl" + c.ININame,
                     ClientRectangle = new Rectangle(12, btn.Y + 2, 0, 0),
                     Text = c.GUIName.L10N($"INI:CustomComponents:{c.ININame}:UIName")
                 };
-#pragma warning restore CNCNET0001 // L10N Failure
 
                 AddChild(btn);
                 AddChild(lbl);

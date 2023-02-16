@@ -436,7 +436,6 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             if (hg.MaxPlayers > UserINISettings.Instance.MaxPlayerCount.Value)
                 return false;
 
-#pragma warning disable CNCNET0001 // L10N Failure
             string textUpper = tbGameSearch?.Text?.ToUpperInvariant();
 
             string translatedGameMode = hg.GameMode.L10N($"INI:GameModes:{hg.GameMode}:UIName", notify: false);
@@ -454,7 +453,6 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 hg.Map.ToUpperInvariant().Contains(textUpper) ||
                 (translatedMapName is not null && translatedMapName.ToUpperInvariant().Contains(textUpper)) ||
                 hg.Players.Any(pl => pl.ToUpperInvariant().Equals(textUpper, StringComparison.Ordinal));
-#pragma warning restore CNCNET0001 // L10N Failure
         }
 
 

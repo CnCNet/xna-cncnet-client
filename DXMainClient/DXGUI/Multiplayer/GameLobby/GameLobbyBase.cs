@@ -751,14 +751,12 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         protected void AddSideToDropDown(XNADropDown dd, string name, string? uiName = null, Texture2D? texture = null)
         {
-#pragma warning disable CNCNET0001 // L10N Failure
             XNADropDownItem item = new()
             {
                 Text = uiName ?? name.L10N($"INI:Sides:{name}"),
                 Tag = name,
                 Texture = texture ?? LoadTextureOrNull(name + "icon.png"),
             };
-#pragma warning restore CNCNET0001 // L10N Failure
             dd.AddItem(item);
         }
 

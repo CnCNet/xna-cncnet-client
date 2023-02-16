@@ -94,7 +94,6 @@ namespace DTAClient.DXGUI.Multiplayer
 
         public void SetInfo(GenericHostedGame game)
         {
-#pragma warning disable CNCNET0001 // L10N Failure
             string gameModeName = game.GameMode.L10N($"INI:GameModes:{game.GameMode}:UIName", notify: false);
 
             lblGameMode.Text = Renderer.GetStringWithLimitedWidth("Game mode:".L10N("Client:Main:GameInfoGameMode") + " " + Renderer.GetSafeString(gameModeName, lblGameMode.FontIndex),
@@ -109,9 +108,8 @@ namespace DTAClient.DXGUI.Multiplayer
             lblMap.Text = Renderer.GetStringWithLimitedWidth("Map:".L10N("Client:Main:GameInfoMap") + " " + Renderer.GetSafeString(mapName, lblMap.FontIndex),
                 lblMap.FontIndex, Width - lblMap.X * 2);
             lblMap.Visible = true;
-#pragma warning restore CNCNET0001 // L10N Failure
 
-            lblGameVersion.Text = "Game version:".L10N("Client:Main:GameInfoGameVersion")+ " " + Renderer.GetSafeString(game.GameVersion, lblGameVersion.FontIndex);
+            lblGameVersion.Text = "Game version:".L10N("Client:Main:GameInfoGameVersion") + " " + Renderer.GetSafeString(game.GameVersion, lblGameVersion.FontIndex);
             lblGameVersion.Visible = true;
 
             lblHost.Text = "Host:".L10N("Client:Main:GameInfoHost") + " " + Renderer.GetSafeString(game.HostName, lblHost.FontIndex);

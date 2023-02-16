@@ -243,9 +243,8 @@ namespace DTAConfig.OptionPanels
             for (int i = 0; i < themeCount; i++)
             {
                 string themeName = ClientConfiguration.Instance.GetThemeInfoFromIndex(i)[0];
-#pragma warning disable CNCNET0001 // L10N Failure
+
                 string displayName = themeName.L10N($"INI:Themes:{themeName}");
-#pragma warning restore CNCNET0001 // L10N Failure
                 ddClientTheme.AddItem(new XNADropDownItem { Text = displayName, Tag = themeName });
             }
 

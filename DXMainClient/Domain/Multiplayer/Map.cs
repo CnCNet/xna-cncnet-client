@@ -276,8 +276,6 @@ namespace DTAClient.Domain.Multiplayer
 
                 var section = iniFile.GetSection(BaseFilePath);
 
-#pragma warning disable CNCNET0001
-
                 UntranslatedName = section.GetStringValue("Description", "Unnamed map");
                 Name = UntranslatedName
                     .L10N($"INI:Maps:{BaseFilePath}:Description");
@@ -294,7 +292,6 @@ namespace DTAClient.Domain.Multiplayer
                     .FromIniString()
                     .L10N($"INI:Maps:{BaseFilePath}:Briefing");
 
-#pragma warning restore CNCNET0001
                 CalculateSHA();
                 IsCoop = section.GetBooleanValue("IsCoopMission", false);
                 Credits = section.GetIntValue("Credits", -1);

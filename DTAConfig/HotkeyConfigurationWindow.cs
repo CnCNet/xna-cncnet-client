@@ -526,14 +526,12 @@ namespace DTAConfig
             public GameCommand(IniSection iniSection)
             {
                 ININame = iniSection.SectionName;
-#pragma warning disable CNCNET0001 // L10N Failure
                 UIName = iniSection.GetStringValue("UIName", "Unnamed command")
                     .L10N($"INI:Hotkeys:{ININame}:UIName");
                 string category = iniSection.GetStringValue("Category", "Unknown category");
                 Category = category.L10N($"INI:HotkeyCategories:{category}");
                 Description = iniSection.GetStringValue("Description", "Unknown description")
                     .L10N($"INI:Hotkeys:{ININame}:Description");
-#pragma warning restore CNCNET0001 // L10N Failure
                 DefaultHotkey = new Hotkey(iniSection.GetIntValue("DefaultKey", 0));
             }
 
