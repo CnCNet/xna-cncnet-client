@@ -25,6 +25,7 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Http.Handlers;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
@@ -1384,6 +1385,22 @@ public static class Updater
 
                         return false;
                     }
+                }
+
+                if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && downloadFile.Extension.Equals(".sh", StringComparison.OrdinalIgnoreCase))
+                {
+                    Logger.Log($"Updater: File {downloadFile.Name} is a script, adding execute permission.");
+
+                    string escapedArgs = $"chmod +x {downloadFile.FullName}".Replace("\"", "\\\"");
+                    using var chmodProcess = Process.Start(new ProcessStartInfo
+                    {
+                        FileName = "/bin/sh",
+                        Arguments = $"-c \"{escapedArgs}\"",
+                        CreateNoWindow = true
+                    });
+
+                    await chmodProcess.WaitForExitAsync().ConfigureAwait(false);
+                    Logger.Log($"Updater: File {downloadFile.Name} execute permission added.");
                 }
             }
 
