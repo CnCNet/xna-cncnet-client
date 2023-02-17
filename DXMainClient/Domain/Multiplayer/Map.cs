@@ -120,7 +120,7 @@ namespace DTAClient.Domain.Multiplayer
         /// Returns the complete path to the map file.
         /// Includes the game directory in the path.
         /// </summary>
-        [JsonInclude]
+        [JsonIgnore]
         public string CompleteFilePath => SafePath.CombineFilePath(ProgramConstants.GamePath, FormattableString.Invariant($"{BaseFilePath}{MapLoader.MAP_FILE_EXTENSION}"));
 
         /// <summary>
@@ -208,8 +208,8 @@ namespace DTAClient.Domain.Multiplayer
         [JsonIgnore]
         private IniFile customMapIni;
 
-        [JsonInclude]
-        public string customMapFilePath;
+        [JsonIgnore]
+        private readonly string customMapFilePath;
 
         [JsonInclude]
         public List<string> waypoints = new List<string>();
@@ -277,7 +277,7 @@ namespace DTAClient.Domain.Multiplayer
                 MinPlayers = section.GetIntValue("MinPlayers", 0);
                 MaxPlayers = section.GetIntValue("MaxPlayers", 0);
                 EnforceMaxPlayers = section.GetBooleanValue("EnforceMaxPlayers", false);
-                PreviewPath = SafePath.CombineFilePath(SafePath.GetFile(BaseFilePath).DirectoryName, FormattableString.Invariant($"{section.GetStringValue("PreviewImage", Path.GetFileNameWithoutExtension(BaseFilePath))}.png"));
+                PreviewPath = SafePath.CombineFilePath(SafePath.GetDirectory(BaseFilePath).Parent.ToString()[ProgramConstants.GamePath.Length..], FormattableString.Invariant($"{section.GetStringValue("PreviewImage", Path.GetFileNameWithoutExtension(BaseFilePath))}.png"));
                 Briefing = section.GetStringValue("Briefing", string.Empty).Replace("@", Environment.NewLine);
                 CalculateSHA();
                 IsCoop = section.GetBooleanValue("IsCoopMission", false);
@@ -476,7 +476,7 @@ namespace DTAClient.Domain.Multiplayer
             if (customMapIni != null)
                 return customMapIni;
 
-            customMapIni = new IniFile { FileName = customMapFilePath };
+            customMapIni = new IniFile { FileName = SafePath.CombineFilePath(customMapFilePath) };
             customMapIni.AddSection("Basic");
             customMapIni.AddSection("Map");
             customMapIni.AddSection("Waypoints");
@@ -546,7 +546,7 @@ namespace DTAClient.Domain.Multiplayer
                 HumanPlayersOnly = basicSection.GetBooleanValue("HumanPlayersOnly", false);
                 ForceRandomStartLocations = basicSection.GetBooleanValue("ForceRandomStartLocations", false);
                 ForceNoTeams = basicSection.GetBooleanValue("ForceNoTeams", false);
-                PreviewPath = Path.ChangeExtension(customMapFilePath.Substring(ProgramConstants.GamePath.Length), ".png");
+                PreviewPath = Path.ChangeExtension(customMapFilePath[ProgramConstants.GamePath.Length..], ".png");
                 MultiplayerOnly = basicSection.GetBooleanValue("ClientMultiplayerOnly", false);
 
                 string bases = basicSection.GetStringValue("Bases", string.Empty);
