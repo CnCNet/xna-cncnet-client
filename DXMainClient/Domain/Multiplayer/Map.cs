@@ -277,7 +277,8 @@ namespace DTAClient.Domain.Multiplayer
                 MinPlayers = section.GetIntValue("MinPlayers", 0);
                 MaxPlayers = section.GetIntValue("MaxPlayers", 0);
                 EnforceMaxPlayers = section.GetBooleanValue("EnforceMaxPlayers", false);
-                PreviewPath = SafePath.CombineFilePath(SafePath.GetDirectory(BaseFilePath).Parent.ToString()[ProgramConstants.GamePath.Length..], FormattableString.Invariant($"{section.GetStringValue("PreviewImage", Path.GetFileNameWithoutExtension(BaseFilePath))}.png"));
+                FileInfo mapFile = SafePath.GetFile(BaseFilePath);
+                PreviewPath = SafePath.CombineFilePath(SafePath.GetDirectory(mapFile.ToString()).Parent.ToString()[ProgramConstants.GamePath.Length..], FormattableString.Invariant($"{section.GetStringValue("PreviewImage", mapFile.Name)}.png"));
                 Briefing = section.GetStringValue("Briefing", string.Empty).Replace("@", Environment.NewLine);
                 CalculateSHA();
                 IsCoop = section.GetBooleanValue("IsCoopMission", false);
@@ -534,8 +535,6 @@ namespace DTAClient.Domain.Multiplayer
                 else
                     MaxPlayers = basicSection.GetIntValue("MaxPlayer", 0);
                 EnforceMaxPlayers = basicSection.GetBooleanValue("EnforceMaxPlayers", true);
-                // PreviewPath = Path.GetDirectoryName(BaseFilePath) + "/" +
-                //    iniFile.GetStringValue(BaseFilePath, "PreviewImage", Path.GetFileNameWithoutExtension(BaseFilePath) + ".png");
                 Briefing = basicSection.GetStringValue("Briefing", string.Empty).Replace("@", Environment.NewLine);
                 CalculateSHA();
                 IsCoop = basicSection.GetBooleanValue("IsCoopMission", false);
