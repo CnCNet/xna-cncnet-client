@@ -20,22 +20,9 @@ namespace TranslationNotifierGenerator
     [Generator]
     public class TranslationNotifierGenerator : ISourceGenerator
     {
-        public const string DescriptorId = "CNCNET0001"; // The DescriptorId is used to suppress warnings. Do not change it.
-        public const string DescriptorTitle = "L10N Failure";
-        public const string DescriptorCategory = "CNCNET";
-
         // Change those if you change the method names
         public const string LocalizeMethodContainingNamespace = "ClientCore.Extensions";
         public const string LocalizeMethodName = "L10N";
-
-        private void Warn(string text, GeneratorExecutionContext context, SyntaxNode node)
-        {
-            context.ReportDiagnostic(
-                Diagnostic.Create(
-                    new DiagnosticDescriptor(DescriptorId, DescriptorTitle, text,
-                        DescriptorCategory, DiagnosticSeverity.Warning, isEnabledByDefault: true),
-                    node.GetLocation()));
-        }
 
         public void Execute(GeneratorExecutionContext context)
         {
@@ -64,16 +51,10 @@ namespace TranslationNotifierGenerator
                         continue;
                     }
 
-                    var l10nSyntax = memberAccessSyntax.Parent as InvocationExpressionSyntax;
-                    if (l10nSyntax is null
-                        || l10nSyntax.ArgumentList.Arguments.Count == 0)
+                    if (memberAccessSyntax.Parent is not InvocationExpressionSyntax l10nSyntax
+                        || l10nSyntax.ArgumentList.Arguments.Count == 0
+                        || !l10nSyntax.Expression.IsKind(SyntaxKind.SimpleMemberAccessExpression))
                     {
-                        continue;
-                    }
-
-                    if (!l10nSyntax.Expression.IsKind(SyntaxKind.SimpleMemberAccessExpression))
-                    {
-                        Warn($"{l10nSyntax.Expression} is of kind {l10nSyntax.Expression.Kind()}. SimpleMemberAccessExpression is expected.", context, l10nSyntax);
                         continue;
                     }
 
@@ -93,7 +74,10 @@ namespace TranslationNotifierGenerator
                     {
                         if (valueText is not null)
                         {
-                            Warn("The value of an INI translation should not be a compile-time string.", context, l10nSyntax);
+                            context.ReportDiagnostic(Diagnostic.Create(new DiagnosticDescriptor(
+                                "CNCNET0001", "Literal INI translation value",
+                                "The value of an INI translation should not be a compile-time string.",
+                                "CNCNET", DiagnosticSeverity.Warning, isEnabledByDefault: true), l10nSyntax.GetLocation()));
                         }
 
                         continue;
@@ -101,7 +85,10 @@ namespace TranslationNotifierGenerator
 
                     if (keyName is not null && valueText is null)
                     {
-                        Warn($"Failed to get the value of key {keyName} as a compile-time string.", context, l10nSyntax);
+                        context.ReportDiagnostic(Diagnostic.Create(new DiagnosticDescriptor(
+                            "CNCNET0002", "Non-literal translation value",
+                            $"Failed to get the value of key {keyName} as a compile-time string.",
+                            "CNCNET", DiagnosticSeverity.Warning, isEnabledByDefault: true), l10nSyntax.GetLocation()));
                         continue;
                     }
 
@@ -109,14 +96,23 @@ namespace TranslationNotifierGenerator
                     if (translations.ContainsKey(keyName))
                     {
                         if (valueText != translations[keyName])
-                            Warn($"Key {keyName} is defined more than once and the values are not the same.", context, l10nSyntax);
+                        {
+                            context.ReportDiagnostic(Diagnostic.Create(new DiagnosticDescriptor(
+                                "CNCNET0003", "Conflict translation items",
+                                $"Key {keyName} is defined more than once and the values are not the same.",
+                                "CNCNET", DiagnosticSeverity.Warning, isEnabledByDefault: true), l10nSyntax.GetLocation()));
+                        }
+
                         continue;
                     }
 
                     // Avoid trimmable strings
                     if (valueText.Trim() != valueText)
                     {
-                        Warn($"The value of key {keyName} should not have leading or trailing white spaces.", context, l10nSyntax);
+                        context.ReportDiagnostic(Diagnostic.Create(new DiagnosticDescriptor(
+                            "CNCNET0004", "Trimmable translation value",
+                            $"The value of key {keyName} should not have leading or trailing white spaces.",
+                            "CNCNET", DiagnosticSeverity.Warning, isEnabledByDefault: true), l10nSyntax.GetLocation()));
                     }
 
                     translations.Add(keyName, valueText);
