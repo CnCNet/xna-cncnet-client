@@ -60,7 +60,7 @@ namespace ClientGUI
                 PreferredItemIndexes.ForEach(i =>
                 {
                     XNADropDownItem preferredItem = Items[i];
-                    preferredItem.Text = preferredItem.Text.Substring(0, preferredItem.Text.Length - PreferredItemLabel.Length - 1);
+                    preferredItem.Text = preferredItem.Text[..(preferredItem.Text.Length - PreferredItemLabel.Length - 1)];
                 });
             }
             else

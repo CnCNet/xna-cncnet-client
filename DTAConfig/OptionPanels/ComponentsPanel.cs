@@ -205,7 +205,7 @@ namespace DTAConfig.OptionPanels
         /// <param name="percentage">The current download progress percentage.</param>
         private void cc_DownloadProgressChanged(CustomComponent c, int percentage)
         {
-            WindowManager.AddCallback(new Action<CustomComponent, int>(HandleDownloadProgressChanged), c, percentage);
+            WindowManager.AddCallback(() => HandleDownloadProgressChanged(c, percentage));
         }
 
         private void HandleDownloadProgressChanged(CustomComponent cc, int percentage)
@@ -227,7 +227,7 @@ namespace DTAConfig.OptionPanels
         /// <param name="success">True if the download succeeded, otherwise false.</param>
         private void cc_DownloadFinished(CustomComponent c, bool success)
         {
-            WindowManager.AddCallback(new Action<CustomComponent, bool>(HandleDownloadFinished), c, success);
+            WindowManager.AddCallback(() => HandleDownloadFinished(c, success));
         }
 
         private void HandleDownloadFinished(CustomComponent cc, bool success)

@@ -1,8 +1,9 @@
-﻿using ClientCore;
-using System;
-using System.IO;
-using System.Net;
+﻿using System;
+using System.Globalization;
 using System.Threading;
+using System.Threading.Tasks;
+using ClientCore;
+using ClientCore.Extensions;
 
 namespace DTAClient.Domain.Multiplayer.CnCNet
 {
@@ -11,9 +12,8 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
     /// </summary>
     public static class CnCNetPlayerCountTask
     {
-        public static int PlayerCount { get; private set; }
-
-        private static int REFRESH_INTERVAL = 60000; // 1 minute
+        private const int REFRESH_INTERVAL = 60000;
+        private const int REFRESH_TIMEOUT = 10000;
 
         internal static event EventHandler<PlayerCountEventArgs> CnCNetGameCountUpdated;
 
@@ -22,49 +22,38 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
         public static void InitializeService(CancellationTokenSource cts)
         {
             cncnetLiveStatusIdentifier = ClientConfiguration.Instance.CnCNetLiveStatusIdentifier;
-            PlayerCount = GetCnCNetPlayerCount();
 
-            CnCNetGameCountUpdated?.Invoke(null, new PlayerCountEventArgs(PlayerCount));
-            ThreadPool.QueueUserWorkItem(new WaitCallback(RunService), cts);
+            RunServiceAsync(cts.Token).HandleTask();
         }
 
-        private static void RunService(object tokenObj)
+        private static async ValueTask RunServiceAsync(CancellationToken cancellationToken)
         {
-            var waitHandle = ((CancellationTokenSource)tokenObj).Token.WaitHandle;
-
-            while (true)
+            while (!cancellationToken.IsCancellationRequested)
             {
-                if (waitHandle.WaitOne(REFRESH_INTERVAL))
+                try
                 {
-                    // Cancellation signaled
-                    return;
+                    using var timeoutCancellationTokenSource = new CancellationTokenSource(REFRESH_TIMEOUT);
+                    using var linkedCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(timeoutCancellationTokenSource.Token, cancellationToken);
+
+                    CnCNetGameCountUpdated?.Invoke(null, new PlayerCountEventArgs(await GetCnCNetPlayerCountAsync(linkedCancellationTokenSource.Token).ConfigureAwait(false)));
+                    await Task.Delay(REFRESH_INTERVAL, cancellationToken).ConfigureAwait(false);
                 }
-                else
+                catch (OperationCanceledException)
                 {
-                    CnCNetGameCountUpdated?.Invoke(null, new PlayerCountEventArgs(GetCnCNetPlayerCount()));
                 }
             }
         }
 
-        private static int GetCnCNetPlayerCount()
+        private static async ValueTask<int> GetCnCNetPlayerCountAsync(CancellationToken cancellationToken)
         {
             try
             {
-                WebClient client = new WebClient();
+                string info = await Constants.CnCNetHttpClient.GetStringAsync($"{Uri.UriSchemeHttps}://api.cncnet.org/status", cancellationToken).ConfigureAwait(false);
 
-                Stream data = client.OpenRead("http://api.cncnet.org/status");
-                
-                string info = string.Empty;
-
-                using (StreamReader reader = new StreamReader(data))
-                {
-                    info = reader.ReadToEnd();
-                }
-
-                info = info.Replace("{", String.Empty);
-                info = info.Replace("}", String.Empty);
-                info = info.Replace("\"", String.Empty);
-                string[] values = info.Split(new char[] { ',' });
+                info = info.Replace("{", string.Empty);
+                info = info.Replace("}", string.Empty);
+                info = info.Replace("\"", string.Empty);
+                string[] values = info.Split(new[] { ',' });
 
                 int numGames = -1;
 
@@ -72,21 +61,22 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                 {
                     if (value.Contains(cncnetLiveStatusIdentifier))
                     {
-                        numGames = Convert.ToInt32(value.Substring(cncnetLiveStatusIdentifier.Length + 1));
+                        numGames = Convert.ToInt32(value[(cncnetLiveStatusIdentifier.Length + 1)..], CultureInfo.InvariantCulture);
                         return numGames;
                     }
                 }
 
                 return numGames;
             }
-            catch
+            catch (Exception ex)
             {
+                ProgramConstants.LogException(ex);
                 return -1;
             }
         }
     }
 
-    internal class PlayerCountEventArgs : EventArgs
+    internal sealed class PlayerCountEventArgs : EventArgs
     {
         public PlayerCountEventArgs(int playerCount)
         {

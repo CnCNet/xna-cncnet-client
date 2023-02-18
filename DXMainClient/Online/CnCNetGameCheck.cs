@@ -1,82 +1,74 @@
-﻿using ClientCore;
+﻿using System;
+using ClientCore;
 using System.Diagnostics;
+using System.IO;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace DTAClient.Online
 {
-    public class CnCNetGameCheck
+    internal static class CnCNetGameCheck
     {
-        private static int REFRESH_INTERVAL = 15000; // 15 seconds
+        private const int REFRESH_INTERVAL = 15000; // 15 seconds
 
-        public void InitializeService(CancellationTokenSource cts)
+        public static async ValueTask RunServiceAsync(CancellationToken cancellationToken)
         {
-            ThreadPool.QueueUserWorkItem(new WaitCallback(RunService), cts);
-        }
-
-        private void RunService(object tokenObj)
-        {
-            var waitHandle = ((CancellationTokenSource)tokenObj).Token.WaitHandle;
-
-            while (true)
+            while (!cancellationToken.IsCancellationRequested)
             {
-                if (waitHandle.WaitOne(REFRESH_INTERVAL))
+                try
                 {
-                    // Cancellation signaled
-                    return;
-                }
-                else
-                {
+                    await Task.Delay(REFRESH_INTERVAL, cancellationToken).ConfigureAwait(false);
+
                     CheatEngineWatchEvent();
+                }
+                catch (OperationCanceledException)
+                {
                 }
             }
         }
 
-        private void CheatEngineWatchEvent()
+        private static void CheatEngineWatchEvent()
         {
             Process[] processlist = Process.GetProcesses();
+
             foreach (Process process in processlist)
             {
-                try {
+                try
+                {
                     if (process.ProcessName.Contains("cheatengine") ||
                         process.MainWindowTitle.ToLower().Contains("cheat engine") ||
-                        process.MainWindowHandle.ToString().ToLower().Contains("cheat engine")
-                        )
+                        process.MainWindowHandle.ToString().ToLower().Contains("cheat engine"))
                     {
                         KillGameInstance();
                     }
                 }
-                catch { }
+                catch (Exception ex)
+                {
+                    ProgramConstants.LogException(ex);
+                }
 
                 process.Dispose();
             }
         }
 
-        private void KillGameInstance()
+        private static void KillGameInstance()
         {
-            try
+            string gameExecutableName = ClientConfiguration.Instance.GetOperatingSystemVersion() == OSVersion.UNIX ?
+                ClientConfiguration.Instance.UnixGameExecutableName :
+                ClientConfiguration.Instance.GetGameExecutableName();
+
+            foreach (Process process in Process.GetProcessesByName(Path.GetFileNameWithoutExtension(gameExecutableName)))
             {
-                string gameExecutableName = ClientConfiguration.Instance.GetOperatingSystemVersion() == OSVersion.UNIX ?
-                    ClientConfiguration.Instance.UnixGameExecutableName :
-                    ClientConfiguration.Instance.GetGameExecutableName();
-
-                gameExecutableName = gameExecutableName.Replace(".exe", "");
-
-                Process[] processlist = Process.GetProcesses();
-                foreach (Process process in processlist)
+                try
                 {
-                    try {
-                        if (process.ProcessName.Contains(gameExecutableName))
-                        {
-                            process.Kill();
-                        }
-                    }
-                    catch { }
-
-                    process.Dispose();
+                    process.Kill();
                 }
-            }
-            catch
-            {
+                catch (Exception ex)
+                {
+                    ProgramConstants.LogException(ex);
+                }
+
+                process.Dispose();
             }
         }
     }

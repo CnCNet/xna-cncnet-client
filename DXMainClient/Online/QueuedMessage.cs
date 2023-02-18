@@ -9,13 +9,13 @@ namespace DTAClient.Online
     {
         private const int DEFAULT_DELAY = -1;
         private const int REPLACE_DELAY = 1;
-        
-        public QueuedMessage(string command, QueuedMessageType type, int priority) : 
+
+        public QueuedMessage(string command, QueuedMessageType type, int priority) :
             this(command, type, priority, DEFAULT_DELAY, false)
         {
         }
 
-        public QueuedMessage(string command, QueuedMessageType type, int priority, bool replace) : 
+        public QueuedMessage(string command, QueuedMessageType type, int priority, bool replace) :
             this(command, type, priority, replace ? REPLACE_DELAY : DEFAULT_DELAY, replace)
         {
         }
@@ -31,7 +31,7 @@ namespace DTAClient.Online
             MessageType = type;
             Priority = priority;
             Delay = delay;
-            SendAt = Delay < 0  ? DateTime.Now : DateTime.Now.AddMilliseconds(Delay);
+            SendAt = Delay < 0 ? DateTime.Now : DateTime.Now.AddMilliseconds(Delay);
             Replace = replace;
         }
 

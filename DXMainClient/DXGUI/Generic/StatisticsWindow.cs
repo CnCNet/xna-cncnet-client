@@ -11,6 +11,8 @@ using Rampastring.XNAUI.XNAControls;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
+using ClientCore.Extensions;
 
 namespace DTAClient.DXGUI.Generic
 {
@@ -149,7 +151,7 @@ namespace DTAClient.DXGUI.Generic
             chkIncludeSpectatedGames.ClientRectangle = new Rectangle(
                 Width - chkIncludeSpectatedGames.Width - 12,
                 cmbGameModeFilter.Bottom + 3,
-                chkIncludeSpectatedGames.Width, 
+                chkIncludeSpectatedGames.Width,
                 chkIncludeSpectatedGames.Height);
             chkIncludeSpectatedGames.CheckedChanged += ChkIncludeSpectatedGames_CheckedChanged;
 
@@ -200,9 +202,9 @@ namespace DTAClient.DXGUI.Generic
             panelGameStatistics.AddChild(lbGameList);
             panelGameStatistics.AddChild(lbGameStatistics);
 
-#endregion
+            #endregion
 
-#region Total statistics
+            #region Total statistics
 
             panelTotalStatistics = new XNAPanel(WindowManager);
             panelTotalStatistics.Name = "panelTotalStatistics";
@@ -383,7 +385,7 @@ namespace DTAClient.DXGUI.Generic
             panelTotalStatistics.AddChild(lblFavouriteSideValue);
             panelTotalStatistics.AddChild(lblAverageAILevelValue);
 
-#endregion
+            #endregion
 
             AddChild(tabControl);
             AddChild(lblFilter);
@@ -407,7 +409,7 @@ namespace DTAClient.DXGUI.Generic
 
             mpColors = MultiplayerColor.LoadColors();
 
-            ReadStatistics();
+            ReadStatisticsAsync().HandleTask();
             ListGameModes();
             ListGames();
 
@@ -509,12 +511,12 @@ namespace DTAClient.DXGUI.Generic
                     XNAListBoxItem spectatorItem = new XNAListBoxItem();
                     spectatorItem.Text = "Spectator".L10N("UI:Main:Spectator");
                     spectatorItem.TextColor = textColor;
-                    spectatorItem.Texture = sideTextures[sideTextures.Length - 1];
+                    spectatorItem.Texture = sideTextures[^1];
                     items.Add(spectatorItem);
                     items.Add(new XNAListBoxItem("-", textColor));
                 }
                 else
-                { 
+                {
                     if (!ms.SawCompletion)
                     {
                         // The game wasn't completed - we don't know the stats
@@ -573,12 +575,8 @@ namespace DTAClient.DXGUI.Generic
 
         #region Statistics reading / game listing code
 
-        private void ReadStatistics()
-        {
-            StatisticsManager sm = StatisticsManager.Instance;
-
-            sm.ReadStatistics(ProgramConstants.GamePath);
-        }
+        private ValueTask ReadStatisticsAsync()
+            => StatisticsManager.Instance.ReadStatisticsAsync(ProgramConstants.GamePath);
 
         private void ListGameModes()
         {
@@ -913,7 +911,7 @@ namespace DTAClient.DXGUI.Generic
 
             if (gamesStarted > 0)
             {
-                lblAverageGameLengthValue.Text = TimeSpan.FromSeconds((int)timePlayed.TotalSeconds / gamesStarted).ToString();
+                lblAverageGameLengthValue.Text = TimeSpanToString(TimeSpan.FromSeconds((int)timePlayed.TotalSeconds / gamesStarted));
             }
             else
                 lblAverageGameLengthValue.Text = "-";
@@ -942,7 +940,7 @@ namespace DTAClient.DXGUI.Generic
             else
                 lblKillLossRatioValue.Text = "-";
 
-            lblTotalTimePlayedValue.Text = timePlayed.ToString();
+            lblTotalTimePlayedValue.Text = TimeSpanToString(timePlayed);
             lblTotalKillsValue.Text = totalKills.ToString();
             lblTotalLossesValue.Text = totalLosses.ToString();
             lblTotalScoreValue.Text = totalScore.ToString();
@@ -954,6 +952,13 @@ namespace DTAClient.DXGUI.Generic
                 lblAverageAILevelValue.Text = "Medium".L10N("UI:Main:MediumAI");
             else
                 lblAverageAILevelValue.Text = "Hard".L10N("UI:Main:HardAI");
+        }
+
+        private string TimeSpanToString(TimeSpan timeSpan)
+        {
+            return timeSpan.Days > 0 ?
+                    $"{timeSpan.Days} d {timeSpan.Hours} h {timeSpan.Minutes} m {timeSpan.Seconds} s" :
+                    $"{timeSpan.Hours} h {timeSpan.Minutes} m {timeSpan.Seconds} s";
         }
 
         private PlayerStatistics FindLocalPlayer(MatchStatistics ms)
@@ -988,10 +993,10 @@ namespace DTAClient.DXGUI.Generic
             return highestIndex;
         }
 
-        private void ClearAllStatistics()
+        private async ValueTask ClearAllStatisticsAsync()
         {
-            StatisticsManager.Instance.ClearDatabase();
-            ReadStatistics();
+            await StatisticsManager.Instance.SaveDatabaseAsync().ConfigureAwait(false);
+            await ReadStatisticsAsync().ConfigureAwait(false);
             ListGameModes();
             ListGames();
         }
@@ -1012,12 +1017,10 @@ namespace DTAClient.DXGUI.Generic
                 Environment.NewLine + Environment.NewLine +
                 "Are you sure you want to continue?").L10N("UI:Main:ClearStatisticsText"), XNAMessageBoxButtons.YesNo);
             msgBox.Show();
-            msgBox.YesClickedAction = ClearStatisticsConfirmation_YesClicked;
+            msgBox.YesClickedAction = _ => ClearStatisticsConfirmation_YesClickedAsync().HandleTask();
         }
 
-        private void ClearStatisticsConfirmation_YesClicked(XNAMessageBox messageBox)
-        {
-            ClearAllStatistics();
-        }
+        private ValueTask ClearStatisticsConfirmation_YesClickedAsync()
+            => ClearAllStatisticsAsync();
     }
 }

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading.Tasks;
 using Rampastring.Tools;
 
 namespace ClientCore
@@ -10,9 +11,7 @@ namespace ClientCore
     /// </summary>
     public static class SavedGameManager
     {
-        private const string SAVED_GAMES_DIRECTORY = "Saved Games";
-
-        private static bool saveRenameInProgress = false;
+        private static bool saveRenameInProgress;
 
         public static int GetSaveGameCount()
         {
@@ -62,7 +61,7 @@ namespace ClientCore
 
         private static string GetSaveGameDirectoryPath()
         {
-            return SafePath.CombineDirectoryPath(ProgramConstants.GamePath, SAVED_GAMES_DIRECTORY);
+            return SafePath.CombineDirectoryPath(ProgramConstants.GamePath, ProgramConstants.SAVED_GAMES_DIRECTORY);
         }
 
         /// <summary>
@@ -78,19 +77,19 @@ namespace ClientCore
             try
             {
                 Logger.Log("Writing spawn.ini for saved game.");
-                SafePath.DeleteFileIfExists(ProgramConstants.GamePath, SAVED_GAMES_DIRECTORY, "spawnSG.ini");
-                File.Copy(SafePath.CombineFilePath(ProgramConstants.GamePath, "spawn.ini"), SafePath.CombineFilePath(ProgramConstants.GamePath, SAVED_GAMES_DIRECTORY, "spawnSG.ini"));
+                SafePath.DeleteFileIfExists(ProgramConstants.GamePath, ProgramConstants.SAVED_GAME_SPAWN_INI);
+                File.Copy(SafePath.CombineFilePath(ProgramConstants.GamePath, ProgramConstants.SPAWNER_SETTINGS), SafePath.CombineFilePath(ProgramConstants.GamePath, ProgramConstants.SAVED_GAME_SPAWN_INI));
             }
             catch (Exception ex)
             {
-                Logger.Log("Writing spawn.ini for saved game failed! Exception message: " + ex.Message);
+                ProgramConstants.LogException(ex, "Writing spawn.ini for saved game failed!");
                 return false;
             }
 
             return true;
         }
 
-        public static void RenameSavedGame()
+        public static async ValueTask RenameSavedGameAsync()
         {
             Logger.Log("Renaming saved game.");
 
@@ -140,7 +139,7 @@ namespace ClientCore
                 }
                 catch (Exception ex)
                 {
-                    Logger.Log("Renaming saved game failed! Exception message: " + ex.Message);
+                    ProgramConstants.LogException(ex, "Renaming saved game failed!");
                 }
 
                 tryCount++;
@@ -151,7 +150,7 @@ namespace ClientCore
                     return;
                 }
 
-                System.Threading.Thread.Sleep(250);
+                await Task.Delay(250).ConfigureAwait(false);
             }
 
             saveRenameInProgress = false;
@@ -159,7 +158,7 @@ namespace ClientCore
             Logger.Log("Saved game SAVEGAME.NET succesfully renamed to " + Path.GetFileName(sgPath));
         }
 
-        public static bool EraseSavedGames()
+        private static bool EraseSavedGames()
         {
             Logger.Log("Erasing previous MP saved games.");
 
@@ -172,7 +171,7 @@ namespace ClientCore
             }
             catch (Exception ex)
             {
-                Logger.Log("Erasing previous MP saved games failed! Exception message: " + ex.Message);
+                ProgramConstants.LogException(ex, "Erasing previous MP saved games failed!");
                 return false;
             }
 

@@ -81,8 +81,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 if (!privateMessagingWindow.Enabled) return;
                 pmWindowWasEnabled = true;
                 privateMessagingWindow.Disable();
-            } 
-            else if(pmWindowWasEnabled)
+            }
+            else if (pmWindowWasEnabled)
             {
                 privateMessagingWindow.Enable();
             }
@@ -111,7 +111,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         }
     }
 
-    public class PasswordEventArgs : EventArgs
+    internal sealed class PasswordEventArgs : EventArgs
     {
         public PasswordEventArgs(string password, HostedCnCNetGame hostedGame)
         {

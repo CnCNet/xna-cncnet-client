@@ -80,7 +80,7 @@ namespace ClientCore
             regexPattern = regexPattern.Replace(@"\?", ".");
             if (regexPattern.StartsWith(".*?"))
             {
-                regexPattern = regexPattern.Substring(3);
+                regexPattern = regexPattern[3..];
                 regexPattern = @"(^\b)*?" + regexPattern;
             }
             regexPattern = @"\b" + regexPattern + @"\b";

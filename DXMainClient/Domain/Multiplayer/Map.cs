@@ -8,8 +8,10 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text.Json.Serialization;
+using System.Threading.Tasks;
 using SixLabors.ImageSharp;
 using Color = Microsoft.Xna.Framework.Color;
+using Exception = System.Exception;
 using Point = Microsoft.Xna.Framework.Point;
 using Utilities = Rampastring.Tools.Utilities;
 using static System.Collections.Specialized.BitVector32;
@@ -259,8 +261,10 @@ namespace DTAClient.Domain.Multiplayer
         /// </summary>
         /// <param name="iniFile">The configuration file for the multiplayer maps.</param>
         /// <returns>True if loading the map succeeded, otherwise false.</returns>
-        public bool SetInfoFromMpMapsINI(IniFile iniFile)
+        public async ValueTask<bool> SetInfoFromMpMapsINIAsync(IniFile iniFile)
         {
+            await ValueTask.CompletedTask.ConfigureAwait(false);
+
             try
             {
                 string baseSectionName = iniFile.GetStringValue(BaseFilePath, "BaseSection", string.Empty);
@@ -351,7 +355,7 @@ namespace DTAClient.Domain.Multiplayer
                     CoopInfo.SetHouseInfos(section);
                 }
 
-                if (MainClientConstants.USE_ISOMETRIC_CELLS)
+                if (ProgramConstants.USE_ISOMETRIC_CELLS)
                 {
                     localSize = section.GetStringValue("LocalSize", "0,0,0,0").Split(',');
                     actualSize = section.GetStringValue("Size", "0,0,0,0").Split(',');
@@ -378,7 +382,7 @@ namespace DTAClient.Domain.Multiplayer
 #if !GL
 
                 if (UserINISettings.Instance.PreloadMapPreviews)
-                    PreviewTexture = LoadPreviewTexture();
+                    PreviewTexture = await LoadPreviewTextureAsync().ConfigureAwait(false);
 #endif
 
                 // Parse forced options
@@ -405,8 +409,7 @@ namespace DTAClient.Domain.Multiplayer
             }
             catch (Exception ex)
             {
-                Logger.Log("Setting info for " + BaseFilePath + " failed! Reason: " + ex.Message);
-                PreStartup.LogException(ex);
+                ProgramConstants.LogException(ex, "Setting info for " + BaseFilePath + " failed!");
                 return false;
             }
         }
@@ -432,9 +435,9 @@ namespace DTAClient.Domain.Multiplayer
                         TeamStartMappings = TeamStartMapping.FromListString(teamStartMappingPreset)
                     });
                 }
-                catch (Exception e)
+                catch (Exception ex)
                 {
-                    Logger.Log($"Unable to parse team start mappings. Map: \"{Name}\", Error: {e.Message}");
+                    ProgramConstants.LogException(ex, $"Unable to parse team start mappings. Map: \"{Name}\".");
                     TeamStartMappingPresets = new List<TeamStartMappingPreset>();
                 }
             }
@@ -448,7 +451,7 @@ namespace DTAClient.Domain.Multiplayer
 
                 foreach (string waypoint in waypoints)
                 {
-                    if (MainClientConstants.USE_ISOMETRIC_CELLS)
+                    if (ProgramConstants.USE_ISOMETRIC_CELLS)
                         startingLocations.Add(GetIsometricWaypointCoords(waypoint, actualSize, localSize, previewSize));
                     else
                         startingLocations.Add(GetTDRAWaypointCoords(waypoint, x, y, width, height, previewSize));
@@ -460,7 +463,7 @@ namespace DTAClient.Domain.Multiplayer
 
         public Point MapPointToMapPreviewPoint(Point mapPoint, Point previewSize, int level)
         {
-            if (MainClientConstants.USE_ISOMETRIC_CELLS)
+            if (ProgramConstants.USE_ISOMETRIC_CELLS)
                 return GetIsoTilePixelCoord(mapPoint.X, mapPoint.Y, actualSize, localSize, previewSize, level);
 
             return GetTDRACellPixelCoord(mapPoint.X, mapPoint.Y, x, y, width, height, previewSize);
@@ -525,7 +528,7 @@ namespace DTAClient.Domain.Multiplayer
                 for (int i = 0; i < GameModes.Length; i++)
                 {
                     string gameMode = GameModes[i].Trim();
-                    GameModes[i] = gameMode.Substring(0, 1).ToUpperInvariant() + gameMode.Substring(1);
+                    GameModes[i] = gameMode[..1].ToUpperInvariant() + gameMode[1..];
                 }
 
                 MinPlayers = 0;
@@ -546,7 +549,7 @@ namespace DTAClient.Domain.Multiplayer
                 HumanPlayersOnly = basicSection.GetBooleanValue("HumanPlayersOnly", false);
                 ForceRandomStartLocations = basicSection.GetBooleanValue("ForceRandomStartLocations", false);
                 ForceNoTeams = basicSection.GetBooleanValue("ForceNoTeams", false);
-                PreviewPath = Path.ChangeExtension(customMapFilePath.Substring(ProgramConstants.GamePath.Length), ".png");
+                PreviewPath = Path.ChangeExtension(customMapFilePath[ProgramConstants.GamePath.Length..], ".png");
                 MultiplayerOnly = basicSection.GetBooleanValue("ClientMultiplayerOnly", false);
 
                 string bases = basicSection.GetStringValue("Bases", string.Empty);
@@ -576,7 +579,7 @@ namespace DTAClient.Domain.Multiplayer
                 localSize = iniFile.GetStringValue("Map", "LocalSize", "0,0,0,0").Split(',');
                 actualSize = iniFile.GetStringValue("Map", "Size", "0,0,0,0").Split(',');
 
-                if (MainClientConstants.USE_ISOMETRIC_CELLS)
+                if (ProgramConstants.USE_ISOMETRIC_CELLS)
                 {
                     localSize = iniFile.GetStringValue("Map", "LocalSize", "0,0,0,0").Split(',');
                     actualSize = iniFile.GetStringValue("Map", "Size", "0,0,0,0").Split(',');
@@ -606,9 +609,9 @@ namespace DTAClient.Domain.Multiplayer
 
                 return true;
             }
-            catch
+            catch (Exception ex)
             {
-                Logger.Log("Loading custom map " + customMapFilePath + " failed!");
+                ProgramConstants.LogException(ex, "Loading custom map " + customMapFilePath + " failed!");
                 return false;
             }
         }
@@ -652,7 +655,7 @@ namespace DTAClient.Domain.Multiplayer
         /// <summary>
         /// Loads and returns the map preview texture.
         /// </summary>
-        public Texture2D LoadPreviewTexture()
+        public async ValueTask<Texture2D> LoadPreviewTextureAsync()
         {
             if (SafePath.GetFile(ProgramConstants.GamePath, PreviewPath).Exists)
                 return AssetLoader.LoadTextureUncached(PreviewPath);
@@ -660,7 +663,7 @@ namespace DTAClient.Domain.Multiplayer
             if (!Official)
             {
                 // Extract preview from the map itself
-                using Image preview = MapPreviewExtractor.ExtractMapPreview(GetCustomMapIniFile());
+                using Image preview = await MapPreviewExtractor.ExtractMapPreviewAsync(GetCustomMapIniFile()).ConfigureAwait(true);
 
                 if (preview != null)
                 {
@@ -794,7 +797,7 @@ namespace DTAClient.Domain.Multiplayer
 
         public string GetSizeString()
         {
-            if (MainClientConstants.USE_ISOMETRIC_CELLS)
+            if (ProgramConstants.USE_ISOMETRIC_CELLS)
             {
                 if (actualSize == null || actualSize.Length < 4)
                     return "Not available";
@@ -815,8 +818,8 @@ namespace DTAClient.Domain.Multiplayer
                 return new Point(0, 0);
 
             // https://modenc.renegadeprojects.com/Waypoints
-            int waypointX = waypointCoordsInt % MainClientConstants.TDRA_WAYPOINT_COEFFICIENT;
-            int waypointY = waypointCoordsInt / MainClientConstants.TDRA_WAYPOINT_COEFFICIENT;
+            int waypointX = waypointCoordsInt % ProgramConstants.TDRA_WAYPOINT_COEFFICIENT;
+            int waypointY = waypointCoordsInt / ProgramConstants.TDRA_WAYPOINT_COEFFICIENT;
 
             return GetTDRACellPixelCoord(waypointX, waypointY, x, y, width, height, previewSizePoint);
         }
@@ -846,8 +849,8 @@ namespace DTAClient.Domain.Multiplayer
 
             int xCoordIndex = parts[0].Length - 3;
 
-            int isoTileY = Convert.ToInt32(parts[0].Substring(0, xCoordIndex), CultureInfo.InvariantCulture);
-            int isoTileX = Convert.ToInt32(parts[0].Substring(xCoordIndex), CultureInfo.InvariantCulture);
+            int isoTileY = Convert.ToInt32(parts[0][..xCoordIndex], CultureInfo.InvariantCulture);
+            int isoTileX = Convert.ToInt32(parts[0][xCoordIndex..], CultureInfo.InvariantCulture);
 
             int level = 0;
 
@@ -862,15 +865,15 @@ namespace DTAClient.Domain.Multiplayer
             int rx = isoTileX - isoTileY + Convert.ToInt32(actualSizeValues[2], CultureInfo.InvariantCulture) - 1;
             int ry = isoTileX + isoTileY - Convert.ToInt32(actualSizeValues[2], CultureInfo.InvariantCulture) - 1;
 
-            int pixelPosX = rx * MainClientConstants.MAP_CELL_SIZE_X / 2;
-            int pixelPosY = ry * MainClientConstants.MAP_CELL_SIZE_Y / 2 - level * MainClientConstants.MAP_CELL_SIZE_Y / 2;
+            int pixelPosX = rx * ProgramConstants.MAP_CELL_SIZE_X / 2;
+            int pixelPosY = ry * ProgramConstants.MAP_CELL_SIZE_Y / 2 - level * ProgramConstants.MAP_CELL_SIZE_Y / 2;
 
-            pixelPosX = pixelPosX - (Convert.ToInt32(localSizeValues[0], CultureInfo.InvariantCulture) * MainClientConstants.MAP_CELL_SIZE_X);
-            pixelPosY = pixelPosY - (Convert.ToInt32(localSizeValues[1], CultureInfo.InvariantCulture) * MainClientConstants.MAP_CELL_SIZE_Y);
+            pixelPosX = pixelPosX - (Convert.ToInt32(localSizeValues[0], CultureInfo.InvariantCulture) * ProgramConstants.MAP_CELL_SIZE_X);
+            pixelPosY = pixelPosY - (Convert.ToInt32(localSizeValues[1], CultureInfo.InvariantCulture) * ProgramConstants.MAP_CELL_SIZE_Y);
 
             // Calculate map size
-            int mapSizeX = Convert.ToInt32(localSizeValues[2], CultureInfo.InvariantCulture) * MainClientConstants.MAP_CELL_SIZE_X;
-            int mapSizeY = Convert.ToInt32(localSizeValues[3], CultureInfo.InvariantCulture) * MainClientConstants.MAP_CELL_SIZE_Y;
+            int mapSizeX = Convert.ToInt32(localSizeValues[2], CultureInfo.InvariantCulture) * ProgramConstants.MAP_CELL_SIZE_X;
+            int mapSizeY = Convert.ToInt32(localSizeValues[3], CultureInfo.InvariantCulture) * ProgramConstants.MAP_CELL_SIZE_Y;
 
             double ratioX = Convert.ToDouble(pixelPosX) / mapSizeX;
             double ratioY = Convert.ToDouble(pixelPosY) / mapSizeY;

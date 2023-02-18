@@ -8,7 +8,7 @@ namespace DTAClient.Online
     /// as to whether the message should be ignored, independent from any GUI. This will then forward valid private message
     /// events to other consumers.
     /// </summary>
-    public class PrivateMessageHandler
+    internal sealed class PrivateMessageHandler
     {
         private readonly CnCNetUserData _cncnetUserData;
         private readonly CnCNetManager _connectionManager;

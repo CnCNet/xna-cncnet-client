@@ -2,13 +2,11 @@
 {
     public abstract class GenericMatchParser
     {
-        public MatchStatistics Statistics {get; set;}
+        protected MatchStatistics Statistics {get; set;}
 
-        public GenericMatchParser(MatchStatistics ms)
+        protected GenericMatchParser(MatchStatistics ms)
         {
             Statistics = ms;
         }
-
-        protected abstract void ParseStatistics(string gamepath);
     }
 }

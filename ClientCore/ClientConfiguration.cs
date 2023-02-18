@@ -12,7 +12,6 @@ namespace ClientCore
         private const string GENERAL = "General";
         private const string AUDIO = "Audio";
         private const string SETTINGS = "Settings";
-        private const string LINKS = "Links";
 
         private const string CLIENT_SETTINGS = "DTACnCNetClient.ini";
         private const string GAME_OPTIONS = "GameOptions.ini";
@@ -49,14 +48,7 @@ namespace ClientCore
         /// <returns>The object of the ClientConfiguration class.</returns>
         public static ClientConfiguration Instance
         {
-            get
-            {
-                if (_instance == null)
-                {
-                    _instance = new ClientConfiguration();
-                }
-                return _instance;
-            }
+            get { return _instance ??= new ClientConfiguration(); }
         }
 
         public void RefreshSettings()
@@ -204,13 +196,13 @@ namespace ClientCore
 
         public string LongGameName => clientDefinitionsIni.GetStringValue(SETTINGS, "LongGameName", "Tiberian Sun");
 
-        public string LongSupportURL => clientDefinitionsIni.GetStringValue(SETTINGS, "LongSupportURL", "http://www.moddb.com/members/rampastring");
+        public string LongSupportURL => clientDefinitionsIni.GetStringValue(SETTINGS, "LongSupportURL", $"{Uri.UriSchemeHttps}://www.moddb.com/members/rampastring");
 
         public string ShortSupportURL => clientDefinitionsIni.GetStringValue(SETTINGS, "ShortSupportURL", "www.moddb.com/members/rampastring");
 
-        public string ChangelogURL => clientDefinitionsIni.GetStringValue(SETTINGS, "ChangelogURL", "http://www.moddb.com/mods/the-dawn-of-the-tiberium-age/tutorials/change-log");
+        public string ChangelogURL => clientDefinitionsIni.GetStringValue(SETTINGS, "ChangelogURL", $"{Uri.UriSchemeHttps}://www.moddb.com/mods/the-dawn-of-the-tiberium-age/tutorials/change-log");
 
-        public string CreditsURL => clientDefinitionsIni.GetStringValue(SETTINGS, "CreditsURL", "http://www.moddb.com/mods/the-dawn-of-the-tiberium-age/tutorials/credits#Rampastring");
+        public string CreditsURL => clientDefinitionsIni.GetStringValue(SETTINGS, "CreditsURL", $"{Uri.UriSchemeHttps}://www.moddb.com/mods/the-dawn-of-the-tiberium-age/tutorials/credits#Rampastring");
 
         public string ManualDownloadURL => clientDefinitionsIni.GetStringValue(SETTINGS, "ManualDownloadURL", string.Empty);
 
@@ -352,7 +344,8 @@ namespace ClientCore
     /// </summary>
     public class ClientConfigurationException : Exception
     {
-        public ClientConfigurationException(string message) : base(message)
+        public ClientConfigurationException(string message, Exception ex = null)
+            : base(message, ex)
         {
         }
     }

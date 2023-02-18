@@ -6,6 +6,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
+using System.Threading.Tasks;
+using ClientCore.Extensions;
 
 namespace DTAClient.Online
 {
@@ -22,71 +24,81 @@ namespace DTAClient.Online
         /// directly you have to also invoke UserFriendToggled event handler for every
         /// user name added or removed.
         /// </summary>
-        public List<string> FriendList { get; private set; } = new();
+        public List<string> FriendList { get; private set; }
 
         /// <summary>
         /// A list which contains idents of ignored users. If you manipulate this list
         /// directly you have to also invoke UserIgnoreToggled event handler for every
         /// user ident added or removed.
         /// </summary>
-        public List<string> IgnoreList { get; private set; } = new();
+        public List<string> IgnoreList { get; private set; }
 
         /// <summary>
         /// A list which contains names of players from recent games.
         /// </summary>
-        public List<RecentPlayer> RecentList { get; private set; } = new();
+        public List<RecentPlayer> RecentList { get; private set; }
 
         public event EventHandler<UserNameEventArgs> UserFriendToggled;
         public event EventHandler<IdentEventArgs> UserIgnoreToggled;
 
         public CnCNetUserData(WindowManager windowManager)
         {
-            LoadFriendList();
-            LoadIgnoreList();
-            LoadRecentPlayerList();
-
             windowManager.GameClosing += WindowManager_GameClosing;
         }
 
-        private static List<string> LoadTextList(string path)
+        public async ValueTask InitializeAsync()
+        {
+            FriendList = await LoadTextListAsync(FRIEND_LIST_PATH).ConfigureAwait(false);
+            IgnoreList = await LoadTextListAsync(IGNORE_LIST_PATH).ConfigureAwait(false);
+            RecentList = await LoadJsonListAsync<RecentPlayer>(RECENT_LIST_PATH).ConfigureAwait(false);
+        }
+
+        private static async ValueTask<List<string>> LoadTextListAsync(string path)
         {
             try
             {
                 FileInfo listFile = SafePath.GetFile(ProgramConstants.GamePath, path);
 
                 if (listFile.Exists)
-                    return File.ReadAllLines(listFile.FullName).ToList();
+                    return (await File.ReadAllLinesAsync(listFile.FullName).ConfigureAwait(false)).ToList();
 
                 Logger.Log($"Loading {path} failed! File does not exist.");
                 return new();
             }
-            catch
+            catch (Exception ex)
             {
-                Logger.Log($"Loading {path} list failed!");
+                ProgramConstants.LogException(ex, $"Loading {path} list failed!");
                 return new();
             }
         }
 
-        private static List<T> LoadJsonList<T>(string path)
+        private static async ValueTask<List<T>> LoadJsonListAsync<T>(string path)
         {
             try
             {
                 FileInfo listFile = SafePath.GetFile(ProgramConstants.GamePath, path);
 
                 if (listFile.Exists)
-                    return JsonSerializer.Deserialize<List<T>>(File.ReadAllText(listFile.FullName)) ?? new List<T>();
+                {
+                    FileStream fileStream = File.OpenRead(listFile.FullName);
+
+                    await using (fileStream.ConfigureAwait(false))
+                    {
+                        return (await JsonSerializer.DeserializeAsync<List<T>>(fileStream).ConfigureAwait(false)) ?? new List<T>();
+                    }
+                }
 
                 Logger.Log($"Loading {path} failed! File does not exist.");
                 return new();
             }
-            catch
+            catch (Exception ex)
             {
-                Logger.Log($"Loading {path} list failed!");
+                ProgramConstants.LogException(ex, $"Loading {path} list failed!");
                 return new();
             }
         }
 
-        private static void SaveTextList(string path, List<string> textList)
+        private static async ValueTask SaveTextListAsync(string path, List<string> textList)
         {
             Logger.Log($"Saving {path}.");
 
@@ -95,15 +107,15 @@ namespace DTAClient.Online
                 FileInfo listFileInfo = SafePath.GetFile(ProgramConstants.GamePath, path);
 
                 listFileInfo.Delete();
-                File.WriteAllLines(listFileInfo.FullName, textList.ToArray());
+                await File.WriteAllLinesAsync(listFileInfo.FullName, textList).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
-                Logger.Log($"Saving {path} failed! Error message: " + ex.Message);
+                ProgramConstants.LogException(ex, $"Saving {path} failed!");
             }
         }
 
-        private static void SaveJsonList<T>(string path, IReadOnlyCollection<T> jsonList)
+        private static async ValueTask SaveJsonListAsync<T>(string path, IReadOnlyCollection<T> jsonList)
         {
             Logger.Log($"Saving {path}.");
 
@@ -112,11 +124,17 @@ namespace DTAClient.Online
                 FileInfo listFileInfo = SafePath.GetFile(ProgramConstants.GamePath, path);
 
                 listFileInfo.Delete();
-                File.WriteAllText(listFileInfo.FullName, JsonSerializer.Serialize(jsonList));
+
+                FileStream fileStream = listFileInfo.OpenWrite();
+
+                await using (fileStream.ConfigureAwait(false))
+                {
+                    await JsonSerializer.SerializeAsync(fileStream, jsonList).ConfigureAwait(false);
+                }
             }
             catch (Exception ex)
             {
-                Logger.Log($"Saving {path} failed! Error message: " + ex.Message);
+                ProgramConstants.LogException(ex, $"Saving {path} failed!");
             }
         }
 
@@ -131,25 +149,13 @@ namespace DTAClient.Online
                 list.Add(value);
         }
 
-        private void LoadFriendList() => FriendList = LoadTextList(FRIEND_LIST_PATH);
+        private void WindowManager_GameClosing(object sender, EventArgs e) => SaveAsync().HandleTask();
 
-        private void LoadIgnoreList() => IgnoreList = LoadTextList(IGNORE_LIST_PATH);
-
-        private void LoadRecentPlayerList() => RecentList = LoadJsonList<RecentPlayer>(RECENT_LIST_PATH);
-
-        private void WindowManager_GameClosing(object sender, EventArgs e) => Save();
-
-        private void SaveFriends() => SaveTextList(FRIEND_LIST_PATH, FriendList);
-
-        private void SaveIgnoreList() => SaveTextList(IGNORE_LIST_PATH, IgnoreList);
-
-        private void SaveRecentList() => SaveJsonList(RECENT_LIST_PATH, RecentList);
-
-        private void Save()
+        private async ValueTask SaveAsync()
         {
-            SaveFriends();
-            SaveIgnoreList();
-            SaveRecentList();
+            await SaveTextListAsync(FRIEND_LIST_PATH, FriendList).ConfigureAwait(false);
+            await SaveTextListAsync(IGNORE_LIST_PATH, IgnoreList).ConfigureAwait(false);
+            await SaveJsonListAsync(RECENT_LIST_PATH, RecentList).ConfigureAwait(false);
         }
 
         /// <summary>

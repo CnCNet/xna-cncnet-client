@@ -16,7 +16,7 @@ namespace DTAClient.Domain.Multiplayer.LAN
             if (!message.StartsWith(CommandName))
                 return false;
 
-            action(message.Substring(CommandName.Length + 1));
+            action(message[(CommandName.Length + 1)..]);
             return true;
         }
     }

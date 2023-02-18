@@ -2,15 +2,15 @@
 
 namespace DTAClient.Domain.Multiplayer.LAN
 {
-    public class ServerNoParamCommandHandler : LANServerCommandHandler
+    internal sealed class ServerNoParamCommandHandler : LANServerCommandHandler
     {
-        public ServerNoParamCommandHandler(string commandName,
-            Action<LANPlayerInfo> handler) : base(commandName)
+        public ServerNoParamCommandHandler(string commandName, Action<LANPlayerInfo> handler)
+            : base(commandName)
         {
             this.handler = handler;
         }
 
-        Action<LANPlayerInfo> handler;
+        private Action<LANPlayerInfo> handler;
 
         public override bool Handle(LANPlayerInfo pInfo, string message)
         {

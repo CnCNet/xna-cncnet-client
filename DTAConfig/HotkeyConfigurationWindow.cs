@@ -288,7 +288,7 @@ namespace DTAConfig
         /// </summary>
         private void GameProcessLogic_GameProcessExited()
         {
-            WindowManager.AddCallback(new Action(LoadKeyboardINI), null);
+            WindowManager.AddCallback(LoadKeyboardINI);
         }
 
         private void LoadKeyboardINI()

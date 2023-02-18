@@ -14,10 +14,10 @@ $EngineMap = @{
 function Build-Project($Configuration, $Game, $Engine, $Framework) {
   $Output = Join-Path $CompiledRoot $Game $Output Resources Binaries ($EngineMap[$Engine])
   if ($Engine -EQ 'WindowsXNA') {
-    dotnet publish $ProjectPath --configuration=$Configuration -property:GAME=$Game -property:ENGINE=$Engine --framework=$Framework --output=$Output --arch=x86
+    dotnet publish $ProjectPath -c $Configuration -p:GAME=$Game -p:ENGINE=$Engine -f $Framework -o $Output -p:SatelliteResourceLanguages=en -a x86
   }
   else {
-    dotnet publish $ProjectPath --configuration=$Configuration -property:GAME=$Game -property:ENGINE=$Engine --framework=$Framework --output=$Output
+    dotnet publish $ProjectPath -c $Configuration -p:GAME=$Game -p:ENGINE=$Engine -f $Framework -o $Output -p:SatelliteResourceLanguages=en
   }
   if ($LASTEXITCODE) {
     throw "Build failed for $Game $Engine $Framework $Configuration"

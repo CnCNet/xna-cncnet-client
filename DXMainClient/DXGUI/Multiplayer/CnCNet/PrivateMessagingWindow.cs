@@ -12,7 +12,10 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Threading.Tasks;
 using ClientCore.Enums;
+using ClientCore.Extensions;
+using DTAClient.Domain.Multiplayer.CnCNet;
 using Localization;
 using SixLabors.ImageSharp;
 using Color = Microsoft.Xna.Framework.Color;
@@ -20,7 +23,7 @@ using Rectangle = Microsoft.Xna.Framework.Rectangle;
 
 namespace DTAClient.DXGUI.Multiplayer.CnCNet
 {
-    public class PrivateMessagingWindow : XNAWindow, ISwitchable
+    internal sealed class PrivateMessagingWindow : XNAWindow, ISwitchable
     {
         private const int MESSAGES_INDEX = 0;
         private const int FRIEND_LIST_VIEW_INDEX = 1;
@@ -180,7 +183,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             tbMessageInput.Name = nameof(tbMessageInput);
             tbMessageInput.ClientRectangle = new Rectangle(lbMessages.X,
                 lbMessages.Bottom + 6, lbMessages.Width, 19);
-            tbMessageInput.EnterPressed += TbMessageInput_EnterPressed;
+            tbMessageInput.EnterPressed += (_, _) => TbMessageInput_EnterPressedAsync().HandleTask();
             tbMessageInput.MaximumTextLength = 200;
             tbMessageInput.Enabled = false;
 
@@ -414,7 +417,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
         }
 
         private void SharedUILogic_GameProcessExited() =>
-            WindowManager.AddCallback(new Action(HandleGameProcessExited), null);
+            WindowManager.AddCallback(HandleGameProcessExited);
 
         private void HandleGameProcessExited()
         {
@@ -515,7 +518,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
         private int FindItemIndexForName(string userName) => lbUserList.Items.FindIndex(MatchItemForName(userName));
 
-        private void TbMessageInput_EnterPressed(object sender, EventArgs e)
+        private async ValueTask TbMessageInput_EnterPressedAsync()
         {
             if (string.IsNullOrEmpty(tbMessageInput.Text))
                 return;
@@ -525,8 +528,8 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             string userName = lbUserList.SelectedItem.Text;
 
-            connectionManager.SendCustomMessage(new QueuedMessage("PRIVMSG " + userName + " :" + tbMessageInput.Text,
-                QueuedMessageType.CHAT_MESSAGE, 0));
+            await connectionManager.SendCustomMessageAsync(new QueuedMessage(IRCCommands.PRIVMSG + " " + userName + " :" + tbMessageInput.Text,
+                QueuedMessageType.CHAT_MESSAGE, 0)).ConfigureAwait(false);
 
             PrivateMessageUser pmUser = privateMessageUsers.Find(u => u.IrcUser.Name == userName);
             if (pmUser == null)

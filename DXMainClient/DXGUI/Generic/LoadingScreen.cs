@@ -2,12 +2,10 @@
 using System.Threading.Tasks;
 using ClientCore;
 using ClientCore.CnCNet5;
+using ClientCore.Extensions;
 using ClientGUI;
 using ClientUpdater;
 using DTAClient.Domain.Multiplayer;
-using DTAClient.DXGUI.Multiplayer;
-using DTAClient.DXGUI.Multiplayer.CnCNet;
-using DTAClient.DXGUI.Multiplayer.GameLobby;
 using DTAClient.Online;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Xna.Framework;
@@ -16,7 +14,7 @@ using Rampastring.XNAUI;
 
 namespace DTAClient.DXGUI.Generic
 {
-    public class LoadingScreen : XNAWindow
+    internal class LoadingScreen : XNAWindow
     {
         public LoadingScreen(
             CnCNetManager cncnetManager,
@@ -30,14 +28,8 @@ namespace DTAClient.DXGUI.Generic
             this.mapLoader = mapLoader;
         }
 
-        private static readonly object locker = new object();
-
         private MapLoader mapLoader;
-
-        private PrivateMessagingPanel privateMessagingPanel;
-
         private bool visibleSpriteCursor;
-
         private Task updaterInitTask;
         private Task mapLoadTask;
         private readonly CnCNetManager cncnetManager;
@@ -57,12 +49,9 @@ namespace DTAClient.DXGUI.Generic
             bool initUpdater = !ClientConfiguration.Instance.ModMode;
 
             if (initUpdater)
-            {
-                updaterInitTask = new Task(InitUpdater);
-                updaterInitTask.Start();
-            }
+                updaterInitTask = Task.Run(InitUpdater).HandleTask();
 
-            mapLoadTask = mapLoader.LoadMapsAsync();
+            mapLoadTask = mapLoader.LoadMapsAsync().HandleTask();
 
             if (Cursor.Visible)
             {
@@ -85,7 +74,7 @@ namespace DTAClient.DXGUI.Generic
 
         private void Finish()
         {
-            ProgramConstants.GAME_VERSION = ClientConfiguration.Instance.ModMode ? 
+            ProgramConstants.GAME_VERSION = ClientConfiguration.Instance.ModMode ?
                 "N/A" : Updater.GameVersion;
 
             MainMenu mainMenu = serviceProvider.GetService<MainMenu>();

@@ -1,19 +1,19 @@
-﻿using ClientCore;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Net.Http;
+using System.Threading.Tasks;
+using ClientCore;
+using ClientCore.Extensions;
 using DTAClient.Online;
 using Microsoft.Xna.Framework;
 using Rampastring.Tools;
 using Rampastring.XNAUI;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Net;
-using System.Text;
-using System.Threading.Tasks;
-using System.Linq;
 
 namespace DTAClient.Domain.Multiplayer.CnCNet
 {
-    public class TunnelHandler : GameComponent
+    internal sealed class TunnelHandler : GameComponent
     {
         /// <summary>
         /// Determines the time between pinging the current tunnel (if it's set).
@@ -22,19 +22,28 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
 
         /// <summary>
         /// A reciprocal to the value which determines how frequent the full tunnel
-        /// refresh would be done instead of just pinging the current tunnel (1/N of 
+        /// refresh would be done instead of just pinging the current tunnel (1/N of
         /// current tunnel ping refreshes would be substituted by a full list refresh).
-        /// Multiply by <see cref="CURRENT_TUNNEL_PING_INTERVAL"/> to get the interval 
+        /// Multiply by <see cref="CURRENT_TUNNEL_PING_INTERVAL"/> to get the interval
         /// between full list refreshes.
         /// </summary>
         private const uint CYCLES_PER_TUNNEL_LIST_REFRESH = 6;
 
-        private const int SUPPORTED_TUNNEL_VERSION = 2;
+        private readonly WindowManager wm;
 
-        public TunnelHandler(WindowManager wm, CnCNetManager connectionManager) : base(wm.Game)
+        private TimeSpan timeSinceTunnelRefresh = TimeSpan.MaxValue;
+        private uint skipCount;
+
+        public event EventHandler TunnelsRefreshed;
+
+        public event EventHandler CurrentTunnelPinged;
+
+        public event Action<int> TunnelPinged;
+
+        public TunnelHandler(WindowManager wm, CnCNetManager connectionManager)
+            : base(wm.Game)
         {
             this.wm = wm;
-            this.connectionManager = connectionManager;
 
             wm.Game.Components.Add(this);
 
@@ -45,30 +54,15 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
             connectionManager.ConnectionLost += ConnectionManager_ConnectionLost;
         }
 
-        public List<CnCNetTunnel> Tunnels { get; private set; } = new List<CnCNetTunnel>();
-        public CnCNetTunnel CurrentTunnel { get; set; } = null;
+        public List<CnCNetTunnel> Tunnels { get; private set; } = new();
 
-        public event EventHandler TunnelsRefreshed;
-        public event EventHandler CurrentTunnelPinged;
-        public event Action<int> TunnelPinged;
-
-        private WindowManager wm;
-        private CnCNetManager connectionManager;
-
-        private TimeSpan timeSinceTunnelRefresh = TimeSpan.MaxValue;
-        private uint skipCount = 0;
+        public CnCNetTunnel CurrentTunnel { get; set; }
 
         private void DoTunnelPinged(int index)
-        {
-            if (TunnelPinged != null)
-                wm.AddCallback(TunnelPinged, index);
-        }
+            => wm.AddCallback(() => TunnelPinged?.Invoke(index));
 
         private void DoCurrentTunnelPinged()
-        {
-            if (CurrentTunnelPinged != null)
-                wm.AddCallback(CurrentTunnelPinged, this, EventArgs.Empty);
-        }
+            => wm.AddCallback(() => CurrentTunnelPinged?.Invoke(this, EventArgs.Empty));
 
         private void ConnectionManager_Connected(object sender, EventArgs e) => Enabled = true;
 
@@ -76,13 +70,10 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
 
         private void ConnectionManager_Disconnected(object sender, EventArgs e) => Enabled = false;
 
-        private void RefreshTunnelsAsync()
+        private async ValueTask RefreshTunnelsAsync()
         {
-            Task.Factory.StartNew(() =>
-            {
-                List<CnCNetTunnel> tunnels = RefreshTunnels();
-                wm.AddCallback(new Action<List<CnCNetTunnel>>(HandleRefreshedTunnels), tunnels);
-            });
+            List<CnCNetTunnel> tunnels = await DoRefreshTunnelsAsync().ConfigureAwait(false);
+            wm.AddCallback(() => HandleRefreshedTunnels(tunnels));
         }
 
         private void HandleRefreshedTunnels(List<CnCNetTunnel> tunnels)
@@ -92,17 +83,16 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
 
             TunnelsRefreshed?.Invoke(this, EventArgs.Empty);
 
-            Task[] pingTasks = new Task[Tunnels.Count];
-
             for (int i = 0; i < Tunnels.Count; i++)
             {
                 if (UserINISettings.Instance.PingUnofficialCnCNetTunnels || Tunnels[i].Official || Tunnels[i].Recommended)
-                    pingTasks[i] = PingListTunnelAsync(i);
+                    PingListTunnelAsync(i).HandleTask();
             }
 
             if (CurrentTunnel != null)
             {
-                var updatedTunnel = Tunnels.Find(t => t.Address == CurrentTunnel.Address && t.Port == CurrentTunnel.Port);
+                CnCNetTunnel updatedTunnel = Tunnels.Find(t => t.Hash.Equals(CurrentTunnel.Hash, StringComparison.OrdinalIgnoreCase));
+
                 if (updatedTunnel != null)
                 {
                     // don't re-ping if the tunnel still exists in list, just update the tunnel instance and
@@ -113,89 +103,79 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                 else
                 {
                     // tunnel is not in the list anymore so it's not updated with a list instance and pinged
-                    PingCurrentTunnelAsync();
+                    PingCurrentTunnel();
                 }
             }
         }
 
-        private Task PingListTunnelAsync(int index)
+        private async ValueTask PingListTunnelAsync(int index)
         {
-            return Task.Factory.StartNew(() =>
-            {
-                Tunnels[index].UpdatePing();
-                DoTunnelPinged(index);
-            });
+            await Tunnels[index].UpdatePingAsync().ConfigureAwait(false);
+            DoTunnelPinged(index);
         }
 
-        private Task PingCurrentTunnelAsync(bool checkTunnelList = false)
-        {
-            return Task.Factory.StartNew(() =>
-            {
-                CurrentTunnel.UpdatePing();
-                DoCurrentTunnelPinged();
+        private void PingCurrentTunnel(bool checkTunnelList = false)
+            => PingCurrentTunnelAsync(checkTunnelList).HandleTask();
 
-                if (checkTunnelList)
-                {
-                    int tunnelIndex = Tunnels.FindIndex(t => t.Address == CurrentTunnel.Address && t.Port == CurrentTunnel.Port);
-                    if (tunnelIndex > -1)
-                        DoTunnelPinged(tunnelIndex);
-                }
-            });
+        private async ValueTask PingCurrentTunnelAsync(bool checkTunnelList = false)
+        {
+            await CurrentTunnel.UpdatePingAsync().ConfigureAwait(false);
+            DoCurrentTunnelPinged();
+
+            if (checkTunnelList)
+            {
+                int tunnelIndex = Tunnels.FindIndex(t => t.Hash.Equals(CurrentTunnel.Hash));
+
+                if (tunnelIndex > -1)
+                    DoTunnelPinged(tunnelIndex);
+            }
         }
 
         /// <summary>
         /// Downloads and parses the list of CnCNet tunnels.
         /// </summary>
         /// <returns>A list of tunnel servers.</returns>
-        private List<CnCNetTunnel> RefreshTunnels()
+        private static async ValueTask<List<CnCNetTunnel>> DoRefreshTunnelsAsync()
         {
             FileInfo tunnelCacheFile = SafePath.GetFile(ProgramConstants.ClientUserFilesPath, "tunnel_cache");
-
-            List<CnCNetTunnel> returnValue = new List<CnCNetTunnel>();
-
-            WebClient client = new WebClient();
-
-            byte[] data;
+            var returnValue = new List<CnCNetTunnel>();
+            string data;
 
             Logger.Log("Fetching tunnel server info.");
 
             try
             {
-                data = client.DownloadData(MainClientConstants.CNCNET_TUNNEL_LIST_URL);
+                data = await Constants.CnCNetHttpClient.GetStringAsync(new Uri(ProgramConstants.CNCNET_TUNNEL_LIST_URL)).ConfigureAwait(false);
             }
-            catch (Exception ex)
+            catch (Exception ex) when (ex is HttpRequestException or OperationCanceledException)
             {
-                Logger.Log("Error when downloading tunnel server info: " + ex.Message);
-                Logger.Log("Retrying.");
+                ProgramConstants.LogException(ex, "Error when downloading tunnel server info. Retrying.");
                 try
                 {
-                    data = client.DownloadData(MainClientConstants.CNCNET_TUNNEL_LIST_URL);
+                    data = await Constants.CnCNetHttpClient.GetStringAsync(new Uri(ProgramConstants.CNCNET_TUNNEL_LIST_URL)).ConfigureAwait(false);
                 }
-                catch
+                catch (Exception ex1) when (ex1 is HttpRequestException or OperationCanceledException)
                 {
+                    ProgramConstants.LogException(ex1);
                     if (!tunnelCacheFile.Exists)
                     {
                         Logger.Log("Tunnel cache file doesn't exist!");
                         return returnValue;
                     }
-                    else
-                    {
-                        Logger.Log("Fetching tunnel server list failed. Using cached tunnel data.");
-                        data = File.ReadAllBytes(tunnelCacheFile.FullName);
-                    }
+
+                    Logger.Log("Fetching tunnel server list failed. Using cached tunnel data.");
+                    data = await File.ReadAllTextAsync(tunnelCacheFile.FullName).ConfigureAwait(false);
                 }
             }
 
-            string convertedData = Encoding.Default.GetString(data);
+            string[] serverList = data.Split(new[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries);
 
-            string[] serverList = convertedData.Split(new string[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries);
-
-            // skip first header item ("address;country;countrycode;name;password;clients;maxclients;official;latitude;longitude;version;distance")
+            // skip the header
             foreach (string serverInfo in serverList.Skip(1))
             {
                 try
                 {
-                    CnCNetTunnel tunnel = CnCNetTunnel.Parse(serverInfo);
+                    var tunnel = CnCNetTunnel.Parse(serverInfo);
 
                     if (tunnel == null)
                         continue;
@@ -203,35 +183,41 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                     if (tunnel.RequiresPassword)
                         continue;
 
-                    if (tunnel.Version != SUPPORTED_TUNNEL_VERSION)
+                    if (tunnel.Version is not Constants.TUNNEL_VERSION_2 and not Constants.TUNNEL_VERSION_3)
+                        continue;
+
+                    if (tunnel.Version is Constants.TUNNEL_VERSION_2 && !UserINISettings.Instance.UseLegacyTunnels)
+                        continue;
+
+                    if (tunnel.Version is Constants.TUNNEL_VERSION_3 && UserINISettings.Instance.UseLegacyTunnels)
                         continue;
 
                     returnValue.Add(tunnel);
                 }
                 catch (Exception ex)
                 {
-                    Logger.Log("Caught an exception when parsing a tunnel server: " + ex.Message);
+                    ProgramConstants.LogException(ex, "Caught an exception when parsing a tunnel server.");
                 }
             }
 
-            if (returnValue.Count > 0)
+            if (!returnValue.Any())
+                return returnValue;
+
+            try
             {
-                try
-                {
-                    if (tunnelCacheFile.Exists)
-                        tunnelCacheFile.Delete();
+                if (tunnelCacheFile.Exists)
+                    tunnelCacheFile.Delete();
 
-                    DirectoryInfo clientDirectoryInfo = SafePath.GetDirectory(ProgramConstants.ClientUserFilesPath);
+                DirectoryInfo clientDirectoryInfo = SafePath.GetDirectory(ProgramConstants.ClientUserFilesPath);
 
-                    if (!clientDirectoryInfo.Exists)
-                        clientDirectoryInfo.Create();
+                if (!clientDirectoryInfo.Exists)
+                    clientDirectoryInfo.Create();
 
-                    File.WriteAllBytes(tunnelCacheFile.FullName, data);
-                }
-                catch (Exception ex)
-                {
-                    Logger.Log("Refreshing tunnel cache file failed! Returned error: " + ex.Message);
-                }
+                await File.WriteAllTextAsync(tunnelCacheFile.FullName, data).ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                ProgramConstants.LogException(ex, "Refreshing tunnel cache file failed!");
             }
 
             return returnValue;
@@ -244,18 +230,20 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                 if (skipCount % CYCLES_PER_TUNNEL_LIST_REFRESH == 0)
                 {
                     skipCount = 0;
-                    RefreshTunnelsAsync();
+                    RefreshTunnelsAsync().HandleTask();
                 }
                 else if (CurrentTunnel != null)
                 {
-                    PingCurrentTunnelAsync(true);
+                    PingCurrentTunnel(true);
                 }
 
                 timeSinceTunnelRefresh = TimeSpan.Zero;
                 skipCount++;
             }
             else
+            {
                 timeSinceTunnelRefresh += gameTime.ElapsedGameTime;
+            }
 
             base.Update(gameTime);
         }

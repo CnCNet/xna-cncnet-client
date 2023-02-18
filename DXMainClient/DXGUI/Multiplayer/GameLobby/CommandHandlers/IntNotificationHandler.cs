@@ -18,7 +18,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby.CommandHandlers
         {
             if (message.StartsWith(CommandName))
             {
-                string intPart = message.Substring(CommandName.Length + 1);
+                string intPart = message[(CommandName.Length + 1)..];
                 int value;
                 bool success = int.TryParse(intPart, out value);
 

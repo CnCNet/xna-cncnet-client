@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using Rampastring.Tools;
 
 namespace ClientCore.Statistics
@@ -16,7 +17,6 @@ namespace ClientCore.Statistics
 
         public event EventHandler GameAdded;
 
-
         public static StatisticsManager Instance
         {
             get
@@ -27,7 +27,7 @@ namespace ClientCore.Statistics
             }
         }
 
-        public override void ReadStatistics(string gamePath)
+        public async ValueTask ReadStatisticsAsync(string gamePath)
         {
             FileInfo scoreFileInfo = SafePath.GetFile(gamePath, SCORE_FILE_PATH);
 
@@ -42,10 +42,10 @@ namespace ClientCore.Statistics
             Statistics.Clear();
 
             FileInfo oldScoreFileInfo = SafePath.GetFile(gamePath, OLD_SCORE_FILE_PATH);
-            bool resave = ReadFile(oldScoreFileInfo.FullName);
-            bool resaveNew = ReadFile(scoreFileInfo.FullName);
+            bool resave = await ReadFileAsync(oldScoreFileInfo.FullName).ConfigureAwait(false);
+            bool resaveNew = await ReadFileAsync(scoreFileInfo.FullName).ConfigureAwait(false);
 
-            PurgeStats();
+            await PurgeStatsAsync().ConfigureAwait(false);
 
             if (resave || resaveNew)
             {
@@ -55,7 +55,7 @@ namespace ClientCore.Statistics
                     SafePath.DeleteFileIfExists(oldScoreFileInfo.FullName);
                 }
 
-                SaveDatabase();
+                await SaveDatabaseAsync().ConfigureAwait(false);
             }
         }
 
@@ -64,13 +64,13 @@ namespace ClientCore.Statistics
         /// </summary>
         /// <param name="filePath">The path to the statistics file.</param>
         /// <returns>A bool that determines whether the database should be re-saved.</returns>
-        private bool ReadFile(string filePath)
+        private async ValueTask<bool> ReadFileAsync(string filePath)
         {
             bool returnValue = false;
 
             try
             {
-                string databaseVersion = GetStatDatabaseVersion(filePath);
+                string databaseVersion = await GetStatDatabaseVersionAsync(filePath).ConfigureAwait(false);
 
                 if (databaseVersion == null)
                     return false; // No score database exists
@@ -79,27 +79,27 @@ namespace ClientCore.Statistics
                 {
                     case "1.00":
                     case "1.01":
-                        ReadDatabase(filePath, 0);
+                        await ReadDatabaseAsync(filePath, 0).ConfigureAwait(false);
                         returnValue = true;
                         break;
                     case "1.02":
-                        ReadDatabase(filePath, 2);
+                        await ReadDatabaseAsync(filePath, 2).ConfigureAwait(false);
                         returnValue = true;
                         break;
                     case "1.03":
-                        ReadDatabase(filePath, 3);
+                        await ReadDatabaseAsync(filePath, 3).ConfigureAwait(false);
                         returnValue = true;
                         break;
                     case "1.04":
-                        ReadDatabase(filePath, 4);
+                        await ReadDatabaseAsync(filePath, 4).ConfigureAwait(false);
                         returnValue = true;
                         break;
                     case "1.05":
-                        ReadDatabase(filePath, 5);
+                        await ReadDatabaseAsync(filePath, 5).ConfigureAwait(false);
                         returnValue = true;
                         break;
                     case "1.06":
-                        ReadDatabase(filePath, 6);
+                        await ReadDatabaseAsync(filePath, 6).ConfigureAwait(false);
                         break;
                     default:
                         throw new InvalidDataException("Invalid version for " + filePath + ": " + databaseVersion);
@@ -107,23 +107,25 @@ namespace ClientCore.Statistics
             }
             catch (Exception ex)
             {
-                Logger.Log("Error reading statistics: " + ex.Message);
+                ProgramConstants.LogException(ex, "Error reading statistics.");
             }
 
             return returnValue;
         }
 
-        private void ReadDatabase(string filePath, int version)
+        private async ValueTask ReadDatabaseAsync(string filePath, int version)
         {
             // TODO split this function with the MatchStatistics and PlayerStatistics classes
 
             try
             {
-                using (FileStream fs = File.OpenRead(filePath))
+                FileStream fs = File.OpenRead(filePath);
+
+                await using (fs.ConfigureAwait(false))
                 {
                     fs.Position = 4; // Skip version
                     byte[] readBuffer = new byte[128];
-                    fs.Read(readBuffer, 0, 4); // First 4 bytes following the version mean the amount of games
+                    await fs.ReadAsync(readBuffer, 0, 4).ConfigureAwait(false); // First 4 bytes following the version mean the amount of games
                     int gameCount = BitConverter.ToInt32(readBuffer, 0);
 
                     for (int i = 0; i < gameCount; i++)
@@ -131,26 +133,26 @@ namespace ClientCore.Statistics
                         MatchStatistics ms = new MatchStatistics();
 
                         // First 4 bytes of game info is the length in seconds
-                        fs.Read(readBuffer, 0, 4);
+                        await fs.ReadAsync(readBuffer, 0, 4).ConfigureAwait(false);
                         int lengthInSeconds = BitConverter.ToInt32(readBuffer, 0);
                         ms.LengthInSeconds = lengthInSeconds;
                         // Next 8 are the game version
-                        fs.Read(readBuffer, 0, 8);
+                        await fs.ReadAsync(readBuffer, 0, 8).ConfigureAwait(false);
                         ms.GameVersion = System.Text.Encoding.ASCII.GetString(readBuffer, 0, 8);
                         // Then comes the date and time, also 8 bytes
-                        fs.Read(readBuffer, 0, 8);
+                        await fs.ReadAsync(readBuffer, 0, 8).ConfigureAwait(false);
                         long dateData = BitConverter.ToInt64(readBuffer, 0);
                         ms.DateAndTime = DateTime.FromBinary(dateData);
                         // Then one byte for SawCompletion
-                        fs.Read(readBuffer, 0, 1);
+                        await fs.ReadAsync(readBuffer, 0, 1).ConfigureAwait(false);
                         ms.SawCompletion = Convert.ToBoolean(readBuffer[0]);
                         // Then 1 byte for the amount of players
-                        fs.Read(readBuffer, 0, 1);
+                        await fs.ReadAsync(readBuffer, 0, 1).ConfigureAwait(false);
                         int playerCount = readBuffer[0];
                         if (version > 0)
                         {
                             // 4 bytes for average FPS
-                            fs.Read(readBuffer, 0, 4);
+                            await fs.ReadAsync(readBuffer, 0, 4).ConfigureAwait(false);
                             ms.AverageFPS = BitConverter.ToInt32(readBuffer, 0);
                         }
 
@@ -162,23 +164,23 @@ namespace ClientCore.Statistics
                         }
 
                         // Map name, 64 or 128 bytes of Unicode depending on version
-                        fs.Read(readBuffer, 0, mapNameLength);
+                        await fs.ReadAsync(readBuffer, 0, mapNameLength).ConfigureAwait(false);
                         ms.MapName = Encoding.Unicode.GetString(readBuffer).Replace("\0", "");
 
                         // Game mode, 64 bytes
-                        fs.Read(readBuffer, 0, 64);
+                        await fs.ReadAsync(readBuffer, 0, 64).ConfigureAwait(false);
                         ms.GameMode = Encoding.Unicode.GetString(readBuffer, 0, 64).Replace("\0", "");
 
                         if (version > 2)
                         {
                             // Unique game ID, 32 bytes (int32)
-                            fs.Read(readBuffer, 0, 4);
+                            await fs.ReadAsync(readBuffer, 0, 4).ConfigureAwait(false);
                             ms.GameID = BitConverter.ToInt32(readBuffer, 0);
                         }
 
                         if (version > 5)
                         {
-                            fs.Read(readBuffer, 0, 1);
+                            await fs.ReadAsync(readBuffer, 0, 1).ConfigureAwait(false);
                             ms.IsValidForStar = Convert.ToBoolean(readBuffer[0]);
                         }
 
@@ -190,58 +192,58 @@ namespace ClientCore.Statistics
                             if (version > 4)
                             {
                                 // Economy is shared for the Built stat in YR
-                                fs.Read(readBuffer, 0, 4);
+                                await fs.ReadAsync(readBuffer, 0, 4).ConfigureAwait(false);
                                 ps.Economy = BitConverter.ToInt32(readBuffer, 0);
                             }
                             else
                             {
                                 // Economy is between 0 and 100 in old versions, so it takes only one byte
-                                fs.Read(readBuffer, 0, 1);
+                                await fs.ReadAsync(readBuffer, 0, 1).ConfigureAwait(false);
                                 ps.Economy = readBuffer[0];
                             }
 
                             // IsAI is a bool, so obviously one byte
-                            fs.Read(readBuffer, 0, 1);
+                            await fs.ReadAsync(readBuffer, 0, 1).ConfigureAwait(false);
                             ps.IsAI = Convert.ToBoolean(readBuffer[0]);
                             // IsLocalPlayer is also a bool
-                            fs.Read(readBuffer, 0, 1);
+                            await fs.ReadAsync(readBuffer, 0, 1).ConfigureAwait(false);
                             ps.IsLocalPlayer = Convert.ToBoolean(readBuffer[0]);
                             // Kills take 4 bytes
-                            fs.Read(readBuffer, 0, 4);
+                            await fs.ReadAsync(readBuffer, 0, 4).ConfigureAwait(false);
                             ps.Kills = BitConverter.ToInt32(readBuffer, 0);
                             // Losses also take 4 bytes
-                            fs.Read(readBuffer, 0, 4);
+                            await fs.ReadAsync(readBuffer, 0, 4).ConfigureAwait(false);
                             ps.Losses = BitConverter.ToInt32(readBuffer, 0);
                             // 32 bytes for the name
-                            fs.Read(readBuffer, 0, 32);
+                            await fs.ReadAsync(readBuffer, 0, 32).ConfigureAwait(false);
                             ps.Name = System.Text.Encoding.Unicode.GetString(readBuffer, 0, 32);
                             ps.Name = ps.Name.Replace("\0", String.Empty);
                             // 1 byte for SawEnd
-                            fs.Read(readBuffer, 0, 1);
+                            await fs.ReadAsync(readBuffer, 0, 1).ConfigureAwait(false);
                             ps.SawEnd = Convert.ToBoolean(readBuffer[0]);
                             // 4 bytes for Score
-                            fs.Read(readBuffer, 0, 4);
+                            await fs.ReadAsync(readBuffer, 0, 4).ConfigureAwait(false);
                             ps.Score = BitConverter.ToInt32(readBuffer, 0);
                             // 1 byte for Side
-                            fs.Read(readBuffer, 0, 1);
+                            await fs.ReadAsync(readBuffer, 0, 1).ConfigureAwait(false);
                             ps.Side = readBuffer[0];
                             // 1 byte for Team
-                            fs.Read(readBuffer, 0, 1);
+                            await fs.ReadAsync(readBuffer, 0, 1).ConfigureAwait(false);
                             ps.Team = readBuffer[0];
                             if (version > 2)
                             {
                                 // 1 byte for Color
-                                fs.Read(readBuffer, 0, 1);
+                                await fs.ReadAsync(readBuffer, 0, 1).ConfigureAwait(false);
                                 ps.Color = readBuffer[0];
                             }
                             // 1 byte for WasSpectator
-                            fs.Read(readBuffer, 0, 1);
+                            await fs.ReadAsync(readBuffer, 0, 1).ConfigureAwait(false);
                             ps.WasSpectator = Convert.ToBoolean(readBuffer[0]);
                             // 1 byte for Won
-                            fs.Read(readBuffer, 0, 1);
+                            await fs.ReadAsync(readBuffer, 0, 1).ConfigureAwait(false);
                             ps.Won = Convert.ToBoolean(readBuffer[0]);
                             // 1 byte for AI level
-                            fs.Read(readBuffer, 0, 1);
+                            await fs.ReadAsync(readBuffer, 0, 1).ConfigureAwait(false);
                             ps.AILevel = readBuffer[0];
 
                             ms.AddPlayer(ps);
@@ -259,11 +261,11 @@ namespace ClientCore.Statistics
             }
             catch (Exception ex)
             {
-                Logger.Log("Reading the statistics file failed! Message: " + ex.Message);
+                ProgramConstants.LogException(ex, "Reading the statistics file failed!");
             }
         }
 
-        public void PurgeStats()
+        private async ValueTask PurgeStatsAsync()
         {
             int removedCount = 0;
 
@@ -279,16 +281,10 @@ namespace ClientCore.Statistics
             }
 
             if (removedCount > 0)
-                SaveDatabase();
+                await SaveDatabaseAsync().ConfigureAwait(false);
         }
 
-        public void ClearDatabase()
-        {
-            Statistics.Clear();
-            CreateDummyFile();
-        }
-
-        public void AddMatchAndSaveDatabase(bool addMatch, MatchStatistics ms)
+        public async ValueTask AddMatchAndSaveDatabaseAsync(bool addMatch, MatchStatistics ms)
         {
             // Skip adding stats if the game only had one player, make exception for co-op since it doesn't recognize pre-placed houses as players.
             if (ms.GetPlayerCount() <= 1 && !ms.MapIsCoop)
@@ -313,56 +309,62 @@ namespace ClientCore.Statistics
 
             if (!scoreFileInfo.Exists)
             {
-                CreateDummyFile();
+                await CreateDummyFileAsync().ConfigureAwait(false);
             }
 
             Logger.Log("Writing game info to statistics file.");
 
-            using (FileStream fs = scoreFileInfo.Open(FileMode.Open, FileAccess.ReadWrite))
+            FileStream fs = scoreFileInfo.Open(FileMode.Open, FileAccess.ReadWrite);
+
+            await using (fs.ConfigureAwait(false))
             {
                 fs.Position = 4; // First 4 bytes after the version mean the amount of games
-                fs.WriteInt(Statistics.Count);
+                await fs.WriteIntAsync(Statistics.Count).ConfigureAwait(false);
 
                 fs.Position = fs.Length;
-                ms.Write(fs);
+                await ms.WriteAsync(fs).ConfigureAwait(false);
             }
 
             Logger.Log("Finished writing statistics.");
         }
 
-        private void CreateDummyFile()
+        private static async ValueTask CreateDummyFileAsync()
         {
             Logger.Log("Creating empty statistics file.");
 
-            using StreamWriter sw = new StreamWriter(SafePath.GetFile(ProgramConstants.GamePath, SCORE_FILE_PATH).Create());
-            sw.Write(VERSION);
+            var sw = new StreamWriter(SafePath.GetFile(ProgramConstants.GamePath, SCORE_FILE_PATH).Create());
+
+            await using (sw.ConfigureAwait(false))
+            {
+                await sw.WriteAsync(VERSION).ConfigureAwait(false);
+            }
         }
 
         /// <summary>
         /// Deletes the statistics file on the file system and rewrites it.
         /// </summary>
-        public void SaveDatabase()
+        public async ValueTask SaveDatabaseAsync()
         {
             FileInfo scoreFileInfo = SafePath.GetFile(ProgramConstants.GamePath, SCORE_FILE_PATH);
             SafePath.DeleteFileIfExists(scoreFileInfo.FullName);
-            CreateDummyFile();
+            await CreateDummyFileAsync().ConfigureAwait(false);
 
-            using (FileStream fs = scoreFileInfo.Open(FileMode.Open, FileAccess.ReadWrite))
+            FileStream fs = scoreFileInfo.Open(FileMode.Open, FileAccess.ReadWrite);
+
+            await using (fs.ConfigureAwait(false))
             {
                 fs.Position = 4; // First 4 bytes after the version mean the amount of games
-                fs.WriteInt(Statistics.Count);
+                await fs.WriteIntAsync(Statistics.Count).ConfigureAwait(false);
 
                 foreach (MatchStatistics ms in Statistics)
                 {
-                    ms.Write(fs);
+                    await ms.WriteAsync(fs).ConfigureAwait(false);
                 }
             }
         }
 
         public bool HasBeatCoOpMap(string mapName, string gameMode)
         {
-            List<MatchStatistics> matches = new List<MatchStatistics>();
-
             // Filter out unfitting games
             foreach (MatchStatistics ms in Statistics)
             {
@@ -412,7 +414,7 @@ namespace ClientCore.Statistics
             return rank;
         }
 
-        int GetRankForCoopMatch(MatchStatistics ms)
+        private static int GetRankForCoopMatch(MatchStatistics ms)
         {
             PlayerStatistics localPlayer = ms.Players.Find(p => p.IsLocalPlayer);
 
@@ -485,8 +487,6 @@ namespace ClientCore.Statistics
 
         public bool HasWonMapInPvP(string mapName, string gameMode, int requiredPlayerCount)
         {
-            List<MatchStatistics> matches = new List<MatchStatistics>();
-
             foreach (MatchStatistics ms in Statistics)
             {
                 if (!ms.SawCompletion)
@@ -663,15 +663,9 @@ namespace ClientCore.Statistics
             return rank;
         }
 
-        public bool IsGameIdUnique(int gameId)
-        {
-            return Statistics.Find(m => m.GameID == gameId) == null;
-        }
-
         public MatchStatistics GetMatchWithGameID(int gameId)
         {
             return Statistics.Find(m => m.GameID == gameId);
         }
-
     }
 }

@@ -4,7 +4,7 @@ using System.Runtime.InteropServices;
 using ClientCore;
 using Rampastring.Tools;
 using ClientCore.INIProcessing;
-using System.Threading;
+using System.Threading.Tasks;
 using Rampastring.XNAUI;
 
 namespace ClientGUI
@@ -26,7 +26,7 @@ namespace ClientGUI
         /// <summary>
         /// Starts the main game process.
         /// </summary>
-        public static void StartGameProcess(WindowManager windowManager)
+        public static async ValueTask StartGameProcessAsync(WindowManager windowManager)
         {
             Logger.Log("About to launch main game executable.");
 
@@ -35,7 +35,7 @@ namespace ClientGUI
             int waitTimes = 0;
             while (PreprocessorBackgroundTask.Instance.IsRunning)
             {
-                Thread.Sleep(1000);
+                await Task.Delay(1000).ConfigureAwait(false);
                 waitTimes++;
                 if (waitTimes > 10)
                 {
@@ -93,7 +93,7 @@ namespace ClientGUI
                 }
                 catch (Exception ex)
                 {
-                    Logger.Log("Error launching QRes: " + ex.Message);
+                    ProgramConstants.LogException(ex, "Error launching QRes");
                     XNAMessageBox.Show(windowManager, "Error launching game", "Error launching " + ProgramConstants.QRES_EXECUTABLE + ". Please check that your anti-virus isn't blocking the CnCNet Client. " +
                         "You can also try running the client as an administrator." + Environment.NewLine + Environment.NewLine + "You are unable to participate in this match." +
                         Environment.NewLine + Environment.NewLine + "Returned error: " + ex.Message);
@@ -124,7 +124,7 @@ namespace ClientGUI
                 }
                 catch (Exception ex)
                 {
-                    Logger.Log("Error launching " + gameExecutableName + ": " + ex.Message);
+                    ProgramConstants.LogException(ex, "Error launching " + gameExecutableName);
                     XNAMessageBox.Show(windowManager, "Error launching game", "Error launching " + gameExecutableName + ". Please check that your anti-virus isn't blocking the CnCNet Client. " +
                         "You can also try running the client as an administrator." + Environment.NewLine + Environment.NewLine + "You are unable to participate in this match." +
                         Environment.NewLine + Environment.NewLine + "Returned error: " + ex.Message);
@@ -134,8 +134,8 @@ namespace ClientGUI
 
                 if ((RuntimeInformation.IsOSPlatform(OSPlatform.Windows) || RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
                     && Environment.ProcessorCount > 1 && SingleCoreAffinity)
-                { 
-                    DtaProcess.ProcessorAffinity = (IntPtr)2;
+                {
+                    DtaProcess.ProcessorAffinity = 2;
                 }
             }
 

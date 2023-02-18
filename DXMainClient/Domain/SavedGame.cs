@@ -29,7 +29,7 @@ namespace DTAClient.Domain
         /// <returns></returns>
         private static string GetArchiveName(Stream file)
         {
-            var cf = new CompoundFile(file);
+            using var cf = new CompoundFile(file);
             var archiveNameBytes = cf.RootStorage.GetStream("Scenario Description").GetData();
             var archiveName = System.Text.Encoding.Unicode.GetString(archiveNameBytes);
             archiveName = archiveName.TrimEnd(new char[] { '\0' });
@@ -56,8 +56,7 @@ namespace DTAClient.Domain
             }
             catch (Exception ex)
             {
-                Logger.Log("An error occured while parsing saved game " + FileName + ":" +
-                    ex.Message);
+                ProgramConstants.LogException(ex, "An error occurred while parsing saved game " + FileName);
                 return false;
             }
         }

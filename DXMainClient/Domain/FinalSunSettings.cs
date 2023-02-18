@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using Rampastring.Tools;
 using ClientCore;
 using ClientCore.PlatformShim;
@@ -58,9 +59,9 @@ namespace DTAClient.Domain
                 sw.WriteLine("DisableAutoLat=0");
                 sw.WriteLine("ShowBuildingCells=0");
             }
-            catch
+            catch (Exception ex)
             {
-                Logger.Log("An exception occurred while checking the existence of FinalSun settings");
+                ProgramConstants.LogException(ex, "An exception occurred while checking the existence of FinalSun settings.");
             }
         }
     }

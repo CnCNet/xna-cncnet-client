@@ -98,6 +98,10 @@ namespace ClientCore
             EnableMapSharing = new BoolSetting(iniFile, MULTIPLAYER, "EnableMapSharing", true);
             AlwaysDisplayTunnelList = new BoolSetting(iniFile, MULTIPLAYER, "AlwaysDisplayTunnelList", false);
             MapSortState = new IntSetting(iniFile, MULTIPLAYER, "MapSortState", (int)SortDirection.None);
+            UseLegacyTunnels = new BoolSetting(iniFile, MULTIPLAYER, "UseLegacyTunnels", false);
+            UseP2P = new BoolSetting(iniFile, MULTIPLAYER, "UseP2P", false);
+            UseDynamicTunnels = new BoolSetting(iniFile, MULTIPLAYER, "UseDynamicTunnels", true);
+            EnableReplays = new BoolSetting(iniFile, MULTIPLAYER, "EnableReplays", false);
 
             CheckForUpdates = new BoolSetting(iniFile, OPTIONS, "CheckforUpdates", true);
 
@@ -131,17 +135,29 @@ namespace ClientCore
         /*********/
 
         public IntSetting IngameScreenWidth { get; private set; }
+
         public IntSetting IngameScreenHeight { get; private set; }
+
         public StringSetting ClientTheme { get; private set; }
+
         public IntSetting DetailLevel { get; private set; }
+
         public StringSetting Renderer { get; private set; }
+
         public BoolSetting WindowedMode { get; private set; }
+
         public BoolSetting BorderlessWindowedMode { get; private set; }
+
         public BoolSetting BackBufferInVRAM { get; private set; }
+
         public IntSetting ClientResolutionX { get; set; }
+
         public IntSetting ClientResolutionY { get; set; }
+
         public BoolSetting BorderlessWindowedClient { get; private set; }
+
         public IntSetting ClientFPS { get; private set; }
+
         public BoolSetting DisplayToggleableExtraTextures { get; private set; }
 
         /*********/
@@ -149,12 +165,19 @@ namespace ClientCore
         /*********/
 
         public DoubleSetting ScoreVolume { get; private set; }
+
         public DoubleSetting SoundVolume { get; private set; }
+
         public DoubleSetting VoiceVolume { get; private set; }
+
         public BoolSetting IsScoreShuffle { get; private set; }
+
         public DoubleSetting ClientVolume { get; private set; }
+
         public BoolSetting PlayMainMenuMusic { get; private set; }
+
         public BoolSetting StopMusicOnMenu { get; private set; }
+
         public BoolSetting MessageSound { get; private set; }
 
         /********/
@@ -162,8 +185,11 @@ namespace ClientCore
         /********/
 
         public IntSetting ScrollRate { get; private set; }
+
         public IntSetting DragDistance { get; private set; }
+
         public IntSetting DoubleTapInterval { get; private set; }
+
         public StringSetting Win8CompatMode { get; private set; }
 
         /************************/
@@ -173,15 +199,23 @@ namespace ClientCore
         public StringSetting PlayerName { get; private set; }
 
         public IntSetting ChatColor { get; private set; }
+
         public IntSetting LANChatColor { get; private set; }
+
         public BoolSetting PingUnofficialCnCNetTunnels { get; private set; }
+
         public BoolSetting WritePathToRegistry { get; private set; }
+
         public BoolSetting PlaySoundOnGameHosted { get; private set; }
 
         public BoolSetting SkipConnectDialog { get; private set; }
+
         public BoolSetting PersistentMode { get; private set; }
+
         public BoolSetting AutomaticCnCNetLogin { get; private set; }
+
         public BoolSetting DiscordIntegration { get; private set; }
+
         public BoolSetting AllowGameInvitesFromFriendsOnly { get; private set; }
 
         public BoolSetting NotifyOnUserListChange { get; private set; }
@@ -195,6 +229,12 @@ namespace ClientCore
         public BoolSetting AlwaysDisplayTunnelList { get; private set; }
 
         public IntSetting MapSortState { get; private set; }
+
+        public BoolSetting UseLegacyTunnels { get; private set; }
+
+        public BoolSetting UseP2P { get; private set; }
+
+        public BoolSetting UseDynamicTunnels { get; private set; }
 
         /*********************/
         /* GAME LIST FILTERS */
@@ -219,7 +259,9 @@ namespace ClientCore
         public BoolSetting CheckForUpdates { get; private set; }
 
         public BoolSetting PrivacyPolicyAccepted { get; private set; }
+
         public BoolSetting IsFirstRun { get; private set; }
+
         public BoolSetting CustomComponentsDenied { get; private set; }
 
         public IntSetting Difficulty { get; private set; }
@@ -235,6 +277,8 @@ namespace ClientCore
         public BoolSetting MinimizeWindowsOnGameStart { get; private set; }
 
         public BoolSetting AutoRemoveUnderscoresFromName { get; private set; }
+
+        public BoolSetting EnableReplays { get; private set; }
 
         public StringListSetting FavoriteMaps { get; private set; }
 

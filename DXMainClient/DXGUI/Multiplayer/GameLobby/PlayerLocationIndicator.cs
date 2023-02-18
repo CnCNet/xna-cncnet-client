@@ -14,7 +14,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
     /// <summary>
     /// A player location indicator for the map preview.
     /// </summary>
-    public class PlayerLocationIndicator : XNAControl
+    internal sealed class PlayerLocationIndicator : XNAControl
     {
         const float TEXTURE_SCALE = 0.25f;
 

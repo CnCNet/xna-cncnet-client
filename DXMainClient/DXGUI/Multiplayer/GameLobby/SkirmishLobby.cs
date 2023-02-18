@@ -9,13 +9,14 @@ using DTAClient.Domain.Multiplayer;
 using ClientGUI;
 using Rampastring.Tools;
 using System.IO;
+using System.Threading.Tasks;
 using DTAClient.Domain;
 using Microsoft.Xna.Framework;
 using Localization;
 
 namespace DTAClient.DXGUI.Multiplayer.GameLobby
 {
-    public class SkirmishLobby : GameLobbyBase, ISwitchable
+    internal sealed class SkirmishLobby : GameLobbyBase, ISwitchable
     {
         private const string SETTINGS_PATH = "Client/SkirmishSettings.ini";
 
@@ -138,7 +139,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                         Map.MaxPlayers);
                 }
 
-                IEnumerable<PlayerInfo> concatList = Players.Concat(AIPlayers);
+                List<PlayerInfo> concatList = Players.Concat(AIPlayers).ToList();
 
                 foreach (PlayerInfo pInfo in concatList)
                 {
@@ -164,29 +165,31 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             return null;
         }
 
-        protected override void BtnLaunchGame_LeftClick(object sender, EventArgs e)
+        protected override async ValueTask BtnLaunchGame_LeftClickAsync()
         {
             string error = CheckGameValidity();
 
             if (error == null)
             {
                 SaveSettings();
-                StartGame();
+                await StartGameAsync().ConfigureAwait(false);
                 return;
             }
 
             XNAMessageBox.Show(WindowManager, "Cannot launch game".L10N("UI:Main:LaunchGameErrorTitle"), error);
         }
 
-        protected override void BtnLeaveGame_LeftClick(object sender, EventArgs e)
+        protected override ValueTask BtnLeaveGame_LeftClickAsync()
         {
-            this.Enabled = false;
-            this.Visible = false;
+            Enabled = false;
+            Visible = false;
 
             Exited?.Invoke(this, EventArgs.Empty);
 
             topBar.RemovePrimarySwitchable(this);
             ResetDiscordPresence();
+
+            return ValueTask.CompletedTask;
         }
 
         private void PlayerSideChanged(object sender, EventArgs e)
@@ -224,11 +227,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             return StatisticsManager.Instance.GetSkirmishRankForDefaultMap(gameModeMap.Map.Name, gameModeMap.Map.MaxPlayers);
         }
 
-        protected override void GameProcessExited()
+        protected override async ValueTask GameProcessExitedAsync()
         {
-            base.GameProcessExited();
-
-            DdGameModeMapFilter_SelectedIndexChanged(null, EventArgs.Empty); // Refresh ranks
+            await base.GameProcessExitedAsync().ConfigureAwait(false);
+            await DdGameModeMapFilter_SelectedIndexChangedAsync().ConfigureAwait(false); // Refresh ranks
 
             RandomSeed = new Random().Next();
         }
@@ -295,7 +297,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             }
             catch (Exception ex)
             {
-                Logger.Log("Saving skirmish settings failed! Reason: " + ex.Message);
+                ProgramConstants.LogException(ex, "Saving skirmish settings failed!");
             }
         }
 

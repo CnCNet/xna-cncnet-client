@@ -9,6 +9,8 @@ using DTAClient.Online;
 using ClientGUI;
 using ClientCore;
 using System.Threading;
+using System.Threading.Tasks;
+using ClientCore.Extensions;
 using DTAClient.Domain.Multiplayer.CnCNet;
 using DTAClient.Online.EventArguments;
 using DTAConfig;
@@ -19,7 +21,7 @@ namespace DTAClient.DXGUI.Generic
     /// <summary>
     /// A top bar that allows switching between various client windows.
     /// </summary>
-    public class TopBar : XNAPanel
+    internal sealed class TopBar : XNAPanel
     {
         /// <summary>
         /// The number of seconds that the top bar will stay down after it has
@@ -92,7 +94,7 @@ namespace DTAClient.DXGUI.Generic
         public void RemovePrimarySwitchable(ISwitchable switchable)
         {
             primarySwitches.Remove(switchable);
-            btnMainButton.Text = primarySwitches[primarySwitches.Count - 1].GetSwitchName() + " (F2)";
+            btnMainButton.Text = primarySwitches[^1].GetSwitchName() + " (F2)";
         }
 
         public void SetSecondarySwitch(ISwitchable switchable)
@@ -172,7 +174,7 @@ namespace DTAClient.DXGUI.Generic
             btnLogout.FontIndex = 1;
             btnLogout.Text = "Log Out".L10N("UI:Main:LogOut");
             btnLogout.AllowClick = false;
-            btnLogout.LeftClick += BtnLogout_LeftClick;
+            btnLogout.LeftClick += (_, _) => BtnLogout_LeftClickAsync().HandleTask();
 
             btnOptions = new XNAClientButton(WindowManager);
             btnOptions.Name = "btnOptions";
@@ -288,9 +290,9 @@ namespace DTAClient.DXGUI.Generic
             downTime = TimeSpan.FromSeconds(DOWN_TIME_WAIT_SECONDS - EVENT_DOWN_TIME_WAIT_SECONDS);
         }
 
-        private void BtnLogout_LeftClick(object sender, EventArgs e)
+        private async ValueTask BtnLogout_LeftClickAsync()
         {
-            connectionManager.Disconnect();
+            await connectionManager.DisconnectAsync().ConfigureAwait(false);
             LogoutEvent?.Invoke(this, null);
             SwitchToPrimary();
         }
@@ -302,7 +304,7 @@ namespace DTAClient.DXGUI.Generic
             => BtnMainButton_LeftClick(this, EventArgs.Empty);
 
         public ISwitchable GetTopMostPrimarySwitchable()
-            => primarySwitches[primarySwitches.Count - 1];
+            => primarySwitches[^1];
 
         public void SwitchToSecondary()
             => BtnCnCNetLobby_LeftClick(this, EventArgs.Empty);
@@ -310,7 +312,7 @@ namespace DTAClient.DXGUI.Generic
         private void BtnCnCNetLobby_LeftClick(object sender, EventArgs e)
         {
             LastSwitchType = SwitchType.SECONDARY;
-            primarySwitches[primarySwitches.Count - 1].SwitchOff();
+            primarySwitches[^1].SwitchOff();
             cncnetLobbySwitch.SwitchOn();
             privateMessageSwitch.SwitchOff();
 
@@ -324,11 +326,11 @@ namespace DTAClient.DXGUI.Generic
             LastSwitchType = SwitchType.PRIMARY;
             cncnetLobbySwitch.SwitchOff();
             privateMessageSwitch.SwitchOff();
-            primarySwitches[primarySwitches.Count - 1].SwitchOn();
+            primarySwitches[^1].SwitchOn();
 
             // HACK warning
             // TODO: add a way for DarkeningPanel to skip transitions
-            if (((XNAControl)primarySwitches[primarySwitches.Count - 1]).Parent is DarkeningPanel darkeningPanel)
+            if (((XNAControl)primarySwitches[^1]).Parent is DarkeningPanel darkeningPanel)
                 darkeningPanel.Alpha = 1.0f;
         }
 

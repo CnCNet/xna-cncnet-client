@@ -5,6 +5,7 @@ using Microsoft.Xna.Framework;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
 using System;
+using ClientCore;
 #if WINFORMS
 using System.Runtime.InteropServices;
 #endif
@@ -26,15 +27,12 @@ namespace DTAClient.DXGUI.Generic
         public delegate void UpdateFailureEventHandler(object sender, UpdateFailureEventArgs e);
         public event UpdateFailureEventHandler UpdateFailed;
 
-        delegate void UpdateProgressChangedDelegate(string fileName, int filePercentage, int totalPercentage);
-        delegate void FileDownloadCompletedDelegate(string archiveName);
-
         private const double DOT_TIME = 0.66;
         private const int MAX_DOTS = 5;
 
-        public UpdateWindow(WindowManager windowManager) : base(windowManager)
+        public UpdateWindow(WindowManager windowManager)
+            : base(windowManager)
         {
-
         }
 
         private XNALabel lblDescription;
@@ -155,13 +153,13 @@ namespace DTAClient.DXGUI.Generic
             if (Updater.VersionState == VersionState.UNKNOWN)
             {
                 XNAMessageBox.Show(WindowManager, "Force Update Failure".L10N("UI:Main:ForceUpdateFailureTitle"), "Checking for updates failed.".L10N("UI:Main:ForceUpdateFailureText"));
-                AddCallback(new Action(CloseWindow), null);
+                AddCallback(CloseWindow);
                 return;
             }
             else if (Updater.VersionState == VersionState.OUTDATED && Updater.ManualUpdateRequired)
             {
                 UpdateCancelled?.Invoke(this, EventArgs.Empty);
-                AddCallback(new Action(CloseWindow), null);
+                AddCallback(CloseWindow);
                 return;
             }
 
@@ -172,8 +170,7 @@ namespace DTAClient.DXGUI.Generic
 
         private void Updater_LocalFileCheckProgressChanged(int checkedFileCount, int totalFileCount)
         {
-            AddCallback(new Action<int>(UpdateFileProgress),
-                (checkedFileCount * 100 / totalFileCount));
+            AddCallback(() => UpdateFileProgress(checkedFileCount * 100 / totalFileCount));
         }
 
         private void UpdateFileProgress(int value)
@@ -231,15 +228,16 @@ namespace DTAClient.DXGUI.Generic
                 tbp.SetState(WindowManager.GetWindowHandle(), TaskbarProgress.TaskbarStates.Normal);
                 tbp.SetValue(WindowManager.GetWindowHandle(), prgTotal.Value, prgTotal.Maximum);
             }
-            catch
+            catch (Exception ex)
             {
+                ProgramConstants.LogException(ex);
             }
 #endif
         }
 
         private void Updater_OnFileDownloadCompleted(string archiveName)
         {
-            AddCallback(new FileDownloadCompletedDelegate(HandleFileDownloadCompleted), archiveName);
+            AddCallback(() => HandleFileDownloadCompleted(archiveName));
         }
 
         private void HandleFileDownloadCompleted(string archiveName)
@@ -249,7 +247,7 @@ namespace DTAClient.DXGUI.Generic
 
         private void Updater_OnUpdateCompleted()
         {
-            AddCallback(new Action(HandleUpdateCompleted), null);
+            AddCallback(HandleUpdateCompleted);
         }
 
         private void HandleUpdateCompleted()
@@ -262,7 +260,7 @@ namespace DTAClient.DXGUI.Generic
 
         private void Updater_OnUpdateFailed(Exception ex)
         {
-            AddCallback(new Action<string>(HandleUpdateFailed), ex.Message);
+            AddCallback(() => HandleUpdateFailed(ex.Message));
         }
 
         private void HandleUpdateFailed(string updateFailureErrorMessage)
@@ -295,14 +293,14 @@ namespace DTAClient.DXGUI.Generic
         {
             lblDescription.Text = string.Format(("Please wait while {0} is updated to version {1}." + Environment.NewLine +
                 "This window will automatically close once the update is complete." + Environment.NewLine + Environment.NewLine +
-                "The client may also restart after the update has been downloaded.").L10N("UI:Main:UpdateVersionPleaseWait"), MainClientConstants.GAME_NAME_SHORT, newGameVersion);
+                "The client may also restart after the update has been downloaded.").L10N("UI:Main:UpdateVersionPleaseWait"), ProgramConstants.GAME_NAME_SHORT, newGameVersion);
             lblUpdaterStatus.Text = "Preparing".L10N("UI:Main:StatusPreparing");
         }
 
         public void ForceUpdate()
         {
             isStartingForceUpdate = true;
-            lblDescription.Text = string.Format("Force updating {0} to latest version...".L10N("UI:Main:ForceUpdateToLatest"), MainClientConstants.GAME_NAME_SHORT);
+            lblDescription.Text = string.Format("Force updating {0} to latest version...".L10N("UI:Main:ForceUpdateToLatest"), ProgramConstants.GAME_NAME_SHORT);
             lblUpdaterStatus.Text = "Connecting".L10N("UI:Main:UpdateStatusConnecting");
             Updater.CheckForUpdates();
         }

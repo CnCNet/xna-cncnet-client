@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using System.Threading.Tasks;
 using ClientCore.Statistics.GameParsers;
 using Rampastring.Tools;
 
@@ -49,7 +50,7 @@ namespace ClientCore.Statistics
         public void AddPlayer(string name, bool isLocal, bool isAI, bool isSpectator,
             int side, int team, int color, int aiLevel)
         {
-            PlayerStatistics ps = new PlayerStatistics(name, isLocal, isAI, isSpectator, 
+            PlayerStatistics ps = new PlayerStatistics(name, isLocal, isAI, isSpectator,
                 side, team, color, aiLevel);
             Players.Add(ps);
         }
@@ -59,14 +60,14 @@ namespace ClientCore.Statistics
             Players.Add(ps);
         }
 
-        public void ParseStatistics(string gamePath, string gameName, bool isLoadedGame)
+        public ValueTask ParseStatisticsAsync(string gamePath, bool isLoadedGame)
         {
             Logger.Log("Parsing game statistics.");
 
             LengthInSeconds = (int)(DateTime.Now - DateAndTime).TotalSeconds;
 
             var parser = new LogFileStatisticsParser(this, isLoadedGame);
-            parser.ParseStats(gamePath, ClientConfiguration.Instance.StatisticsLogFileName);
+            return parser.ParseStatisticsAsync(gamePath, ClientConfiguration.Instance.StatisticsLogFileName);
         }
 
         public PlayerStatistics GetEmptyPlayerByName(string playerName)
@@ -101,36 +102,36 @@ namespace ClientCore.Statistics
             return Players[index];
         }
 
-        public void Write(Stream stream)
+        public async ValueTask WriteAsync(Stream stream)
         {
             // Game length
-            stream.WriteInt(LengthInSeconds);
+            await stream.WriteIntAsync(LengthInSeconds).ConfigureAwait(false);
 
             // Game version, 8 bytes, ASCII
-            stream.WriteString(GameVersion, 8, Encoding.ASCII);
+            await stream.WriteStringAsync(GameVersion, 8, Encoding.ASCII).ConfigureAwait(false);
 
             // Date and time, 8 bytes
-            stream.WriteLong(DateAndTime.ToBinary());
+            await stream.WriteLongAsync(DateAndTime.ToBinary()).ConfigureAwait(false);
             // SawCompletion, 1 byte
-            stream.WriteBool(SawCompletion);
+            await stream.WriteBoolAsync(SawCompletion).ConfigureAwait(false);
             // Number of players, 1 byte
-            stream.WriteByte(Convert.ToByte(GetPlayerCount()));
+            await stream.WriteAsync(new[] { Convert.ToByte(GetPlayerCount()) }, 0, 1).ConfigureAwait(false);
             // Average FPS, 4 bytes
-            stream.WriteInt(AverageFPS);
+            await stream.WriteIntAsync(AverageFPS).ConfigureAwait(false);
             // Map name, 128 bytes (64 chars), Unicode
-            stream.WriteString(MapName, 128);
+            await stream.WriteStringAsync(MapName, 128).ConfigureAwait(false);
             // Game mode, 64 bytes (32 chars), Unicode
-            stream.WriteString(GameMode, 64);
+            await stream.WriteStringAsync(GameMode, 64).ConfigureAwait(false);
             // Unique game ID, 4 bytes
-            stream.WriteInt(GameID);
+            await stream.WriteIntAsync(GameID).ConfigureAwait(false);
             // Whether game options were valid for earning a star, 1 byte
-            stream.WriteBool(IsValidForStar);
+            await stream.WriteBoolAsync(IsValidForStar).ConfigureAwait(false);
 
             // Write player info
             for (int i = 0; i < GetPlayerCount(); i++)
             {
                 PlayerStatistics ps = GetPlayer(i);
-                ps.Write(stream);
+                await ps.WriteAsync(stream).ConfigureAwait(false);
             }
         }
     }
