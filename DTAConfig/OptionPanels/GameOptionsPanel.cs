@@ -59,7 +59,7 @@ namespace DTAConfig.OptionPanels
             lblScrollRateValue = new XNALabel(WindowManager);
             lblScrollRateValue.Name = "lblScrollRateValue";
             lblScrollRateValue.FontIndex = 1;
-            lblScrollRateValue.Text = "3";
+            lblScrollRateValue.Text = "0";
             lblScrollRateValue.ClientRectangle = new Rectangle(
                 Width - lblScrollRateValue.Width - 12,
                 lblScrollRate.Y, 0, 0);
