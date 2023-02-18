@@ -1,2 +1,2 @@
-﻿#!/bin/sh
+#!/bin/sh
 wine gamemd-spawn.exe $*
