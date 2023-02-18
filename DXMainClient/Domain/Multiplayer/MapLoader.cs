@@ -240,7 +240,7 @@ namespace DTAClient.Domain.Multiplayer
         /// </summary>
         /// <param name="mapPath">The path to the map file relative to the game directory.</param>
         /// <param name="resultMessage">When method returns, contains a message reporting whether or not loading the map failed and how.</param>
-        /// <returns>The map if loading it was succesful, otherwise false.</returns>
+        /// <returns>The map if loading it was successful, otherwise false.</returns>
         public Map LoadCustomMap(string mapPath, out string resultMessage)
         {
             string customMapFilePath = SafePath.CombineFilePath(ProgramConstants.GamePath, FormattableString.Invariant($"{mapPath}{MAP_FILE_EXTENSION}"));
@@ -265,25 +265,25 @@ namespace DTAClient.Domain.Multiplayer
                     if (gm.Maps.Find(m => m.SHA1 == map.SHA1) != null)
                     {
                         Logger.Log("LoadCustomMap: Custom map " + customMapFile.FullName + " is already loaded!");
-                        resultMessage = $"Map {customMapFile.FullName} is already loaded.";
+                        resultMessage = $"Map {map.Name} is already loaded.";
 
                         return null;
                     }
                 }
 
-                Logger.Log("LoadCustomMap: Map " + customMapFile.FullName + " added succesfully.");
+                Logger.Log("LoadCustomMap: Map " + customMapFile.FullName + " added successfully.");
 
                 AddMapToGameModes(map, true);
                 var gameModes = GameModes.Where(gm => gm.Maps.Contains(map));
                 GameModeMaps.AddRange(gameModes.Select(gm => new GameModeMap(gm, map, false)));
 
-                resultMessage = $"Map {customMapFile.FullName} loaded succesfully.";
+                resultMessage = $"Map {map.Name} loaded successfully.";
 
                 return map;
             }
 
             Logger.Log("LoadCustomMap: Loading map " + customMapFile.FullName + " failed!");
-            resultMessage = $"Loading map {customMapFile.FullName} failed!";
+            resultMessage = $"Loading map {Path.GetFileNameWithoutExtension(customMapFile.Name)} failed!";
 
             return null;
         }
