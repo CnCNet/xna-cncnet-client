@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.IO;
 using System.Runtime.InteropServices;
 using ClientCore;
 using Rampastring.Tools;
@@ -106,36 +107,41 @@ namespace ClientGUI
             }
             else
             {
-                Process DtaProcess = new Process();
-                DtaProcess.StartInfo.FileName = gameExecutableName;
+                string arguments;
 
-                if (!string.IsNullOrEmpty(extraCommandLine))
-                    DtaProcess.StartInfo.Arguments = " " + additionalExecutableName + "-SPAWN " + extraCommandLine;
+                if (!string.IsNullOrWhiteSpace(extraCommandLine))
+                    arguments = " " + additionalExecutableName + "-SPAWN " + extraCommandLine;
                 else
-                    DtaProcess.StartInfo.Arguments = additionalExecutableName + "-SPAWN";
-                DtaProcess.EnableRaisingEvents = true;
-                DtaProcess.Exited += new EventHandler(Process_Exited);
-                Logger.Log("Launch executable: " + DtaProcess.StartInfo.FileName);
-                Logger.Log("Launch arguments: " + DtaProcess.StartInfo.Arguments);
+                    arguments = additionalExecutableName + "-SPAWN";
+
+                FileInfo gameFileInfo = SafePath.GetFile(ProgramConstants.GamePath, gameExecutableName);
+                var gameProcess = Process.Start(new ProcessStartInfo(gameFileInfo.FullName, arguments));
+
+                gameProcess.EnableRaisingEvents = true;
+                gameProcess.Exited += Process_Exited;
+
+                Logger.Log("Launch executable: " + gameProcess.StartInfo.FileName);
+                Logger.Log("Launch arguments: " + gameProcess.StartInfo.Arguments);
+
                 try
                 {
-                    DtaProcess.Start();
+                    gameProcess.Start();
                     Logger.Log("GameProcessLogic: Process started.");
                 }
                 catch (Exception ex)
                 {
-                    Logger.Log("Error launching " + gameExecutableName + ": " + ex.Message);
-                    XNAMessageBox.Show(windowManager, "Error launching game", "Error launching " + gameExecutableName + ". Please check that your anti-virus isn't blocking the CnCNet Client. " +
+                    Logger.Log("Error launching " + gameFileInfo.Name + ": " + ex.Message);
+                    XNAMessageBox.Show(windowManager, "Error launching game", "Error launching " + gameFileInfo.Name + ". Please check that your anti-virus isn't blocking the CnCNet Client. " +
                         "You can also try running the client as an administrator." + Environment.NewLine + Environment.NewLine + "You are unable to participate in this match." +
                         Environment.NewLine + Environment.NewLine + "Returned error: " + ex.Message);
-                    Process_Exited(DtaProcess, EventArgs.Empty);
+                    Process_Exited(gameProcess, EventArgs.Empty);
                     return;
                 }
 
                 if ((RuntimeInformation.IsOSPlatform(OSPlatform.Windows) || RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
                     && Environment.ProcessorCount > 1 && SingleCoreAffinity)
-                { 
-                    DtaProcess.ProcessorAffinity = (IntPtr)2;
+                {
+                    gameProcess.ProcessorAffinity = 2;
                 }
             }
 
