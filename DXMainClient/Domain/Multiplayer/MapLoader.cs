@@ -97,7 +97,7 @@ namespace DTAClient.Domain.Multiplayer
                     continue;
                 }
 
-                Map map = new Map(mapFilePathValue);
+                var map = new Map(mapFilePathValue, false);
 
                 if (!map.SetInfoFromMpMapsINI(mpMapsIni))
                     continue;
@@ -166,9 +166,9 @@ namespace DTAClient.Domain.Multiplayer
                     string baseFilePath = mapFile.FullName.Substring(ProgramConstants.GamePath.Length);
                     baseFilePath = baseFilePath.Substring(0, baseFilePath.Length - 4);
 
-                    Map map = new Map(baseFilePath
+                    var map = new Map(baseFilePath
                         .Replace(Path.DirectorySeparatorChar, '/')
-                        .Replace(Path.AltDirectorySeparatorChar, '/'), mapFile.FullName);
+                        .Replace(Path.AltDirectorySeparatorChar, '/'), true);
                     map.CalculateSHA();
                     localMapSHAs.Add(map.SHA1);
                     if (!customMapCache.ContainsKey(map.SHA1) && map.SetInfoFromCustomMap())
@@ -256,7 +256,7 @@ namespace DTAClient.Domain.Multiplayer
 
             Logger.Log("LoadCustomMap: Loading custom map " + customMapFile.FullName);
 
-            Map map = new Map(mapPath, customMapFilePath);
+            var map = new Map(mapPath, true);
 
             if (map.SetInfoFromCustomMap())
             {

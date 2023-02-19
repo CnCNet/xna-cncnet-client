@@ -39,11 +39,19 @@ namespace DTAClient.Domain.Multiplayer
     {
         private const int MAX_PLAYERS = 8;
 
-        public Map(string baseFilePath, string customMapFilePath = null)
+        [JsonConstructor]
+        public Map(string baseFilePath)
+            : this(baseFilePath, true)
+        {
+        }
+
+        public Map(string baseFilePath, bool isCustomMap)
         {
             BaseFilePath = baseFilePath;
-            this.customMapFilePath = customMapFilePath;
-            Official = string.IsNullOrEmpty(this.customMapFilePath);
+            customMapFilePath = isCustomMap
+                ? SafePath.CombineFilePath(ProgramConstants.GamePath, FormattableString.Invariant($"{baseFilePath}{MapLoader.MAP_FILE_EXTENSION}"))
+                : null;
+            Official = string.IsNullOrWhiteSpace(customMapFilePath);
         }
 
         /// <summary>
