@@ -334,7 +334,7 @@ namespace ClientCore
         /// This prevents users from joining games that are incompatible/on a different game version than the current user.
         /// Default: false
         /// </summary>
-        public bool DisallowJoiningIncompatibleGames => clientDefinitionsIni.GetBooleanValue(SETTINGS, "DisallowJoiningIncompatibleGames", false);
+        public bool DisallowJoiningIncompatibleGames => clientDefinitionsIni.GetBooleanValue(SETTINGS, nameof(DisallowJoiningIncompatibleGames), false);
 
         #endregion
 
