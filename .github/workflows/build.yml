@@ -5,6 +5,7 @@ on:
     branches: [ master, develop ]
   pull_request:
     branches: [ master, develop ]
+  workflow_dispatch:
 
 jobs:
   build-clients:
@@ -12,19 +13,19 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-        
+
     - name: Create Artifacts Directories
       run: mkdir .\Artifacts\YR & mkdir .\Artifacts\Ares & mkdir .\Artifacts\TS
       shell: cmd
-      
+
     - name: Build YR
       run: BuildYR.bat
       shell: cmd
       working-directory: ./BuildScripts
-      
+
     - name: Archive YR
       run: Get-ChildItem -Path "./Compiled/*" -Recurse | Move-Item -Destination "./Artifacts/YR"
-      
+
     - name: Build Ares
       run: BuildAres.bat
       shell: cmd
