@@ -25,7 +25,7 @@ namespace DTAClient.Domain.Multiplayer
         /// </summary>
         /// <param name="mapIni">Map file.</param>
         /// <returns>Bitmap of map preview image, or null if preview could not be extracted.</returns>
-        public static async Task<Image> ExtractMapPreviewAsync(IniFile mapIni)
+        public static async Task<Image<Bgr24>> ExtractMapPreviewAsync(IniFile mapIni)
         {
             List<string> sectionKeys = mapIni.GetSectionKeys("PreviewPack");
 
@@ -81,7 +81,7 @@ namespace DTAClient.Domain.Multiplayer
                 return null;
             }
 
-            (Image bitmap, errorMessage) = CreatePreviewBitmapFromImageData(previewWidth, previewHeight, dataDest);
+            (Image<Bgr24> bitmap, errorMessage) = CreatePreviewBitmapFromImageData(previewWidth, previewHeight, dataDest);
 
             if (errorMessage != null)
             {
@@ -153,7 +153,7 @@ namespace DTAClient.Domain.Multiplayer
         /// <param name="height">Height of the bitmap.</param>
         /// <param name="imageData">Raw image pixel data in 24-bit RGB format.</param>
         /// <returns>Bitmap based on the provided dimensions and raw image data, or null if length of image data does not match the provided dimensions or if something went wrong.</returns>
-        private static (Image Image, string ErrorMessage) CreatePreviewBitmapFromImageData(int width, int height, byte[] imageData)
+        private static (Image<Bgr24> Image, string ErrorMessage) CreatePreviewBitmapFromImageData(int width, int height, byte[] imageData)
         {
             const int pixelFormatBitCount = 24;
             const int pixelFormatByteCount = pixelFormatBitCount / 8;
