@@ -1240,7 +1240,12 @@ public static class Updater
 
                     if (updaterDirectoryInfo.Exists)
                     {
-                        FileInfo secondStageUpdaterResource = SafePath.GetFile(ResourcePath, SECOND_STAGE_UPDATER);
+                        DirectoryInfo secondStageUpdaterDirectory = SafePath.GetDirectory(ResourcePath, "Updater");
+
+                        if (!secondStageUpdaterDirectory.Exists)
+                            secondStageUpdaterDirectory.Create();
+
+                        FileInfo secondStageUpdaterResource = SafePath.GetFile(secondStageUpdaterDirectory.FullName, SECOND_STAGE_UPDATER);
                         DirectoryInfo updaterResourcesDirectory = SafePath.GetDirectory(updaterDirectoryInfo.FullName, "Resources");
 
                         if (updaterResourcesDirectory.Exists)
@@ -1249,7 +1254,7 @@ public static class Updater
 
                             foreach (FileInfo updaterFile in updaterFiles)
                             {
-                                FileInfo updaterFileResource = SafePath.GetFile(ResourcePath, updaterFile.Name);
+                                FileInfo updaterFileResource = SafePath.GetFile(secondStageUpdaterDirectory.FullName, updaterFile.Name);
 
                                 Logger.Log("Updater: Moving second-stage updater file " + updaterFile.Name + ".");
 
@@ -1265,7 +1270,7 @@ public static class Updater
                                 if (!updaterFile.Exists)
                                     continue;
 
-                                FileInfo updaterFileResource = SafePath.GetFile(ResourcePath, updaterFile.Name);
+                                FileInfo updaterFileResource = SafePath.GetFile(secondStageUpdaterDirectory.FullName, updaterFile.Name);
 
                                 Logger.Log("Updater: Moving second-stage updater file " + updaterFile.Name + ".");
 
