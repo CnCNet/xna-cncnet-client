@@ -23,20 +23,19 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading;
+using System.Threading.Tasks;
 using Rampastring.Tools;
 
 internal sealed class Program
 {
     private const int MutexTimeoutInSeconds = 30;
+    private const int MaxCopyAttempts = 5;
+    private const int CopyRetryWaitMilliseconds = 500;
 
-    private static ConsoleColor defaultColor;
-    private static bool hasHandle;
-    private static Mutex clientMutex;
+    private static readonly object consoleMessageLock = new();
 
-    private static void Main(string[] args)
+    private static async Task Main(string[] args)
     {
-        defaultColor = Console.ForegroundColor;
-
         try
         {
             Write("CnCNet Client Second-Stage Updater", ConsoleColor.Green);
@@ -61,7 +60,8 @@ internal sealed class Program
 
                 string clientMutexId = FormattableString.Invariant($"Global{Guid.Parse("1CC9F8E7-9F69-4BBC-B045-E734204027A9")}");
 
-                clientMutex = new(false, clientMutexId, out _);
+                Mutex clientMutex = new(false, clientMutexId, out _);
+                bool hasHandle;
 
                 try
                 {
@@ -77,6 +77,12 @@ internal sealed class Program
                     Write($"Timeout while waiting for the client ({clientExecutable.Name}) to exit!", ConsoleColor.Red);
                     Exit(false);
                 }
+
+                clientMutex.ReleaseMutex();
+                clientMutex.Dispose();
+
+                // This is occasionally necessary to prevent DLLs from being locked at the time that this update is attempting to overwrite them
+                await Task.Delay(1000).ConfigureAwait(false);
 
                 DirectoryInfo updaterDirectory = SafePath.GetDirectory(baseDirectory.FullName, "Updater");
 
@@ -94,6 +100,9 @@ internal sealed class Program
                 const string versionFileName = "version";
 
                 Write($"{nameof(SecondStageUpdater)}: {relativeExecutableFile}");
+
+                var copyTasks = new List<Task>();
+                var failedFiles = new List<FileInfo>();
 
                 foreach (FileInfo fileInfo in files)
                 {
@@ -116,20 +125,17 @@ internal sealed class Program
                     }
                     else
                     {
-                        try
-                        {
-                            FileInfo copiedFile = SafePath.GetFile(baseDirectory.FullName, relativeFileInfo.ToString());
-
-                            Write($"Updating {relativeFileInfo}");
-                            fileInfo.CopyTo(copiedFile.FullName, true);
-                        }
-                        catch (Exception ex)
-                        {
-                            Write($"Updating file failed! Returned error message: {ex}", ConsoleColor.Yellow);
-                            Write("If the problem persists, try to move the content of the \"Updater\" directory to the main directory manually or contact the staff for support.");
-                            Exit(false);
-                        }
+                        copyTasks.Add(CopyFileTaskAsync(baseDirectory, fileInfo, relativeFileInfo, failedFiles));
                     }
+                }
+
+                await Task.WhenAll(copyTasks.ToArray()).ConfigureAwait(false);
+
+                if (failedFiles.Any())
+                {
+                    Write("Updating file(s) failed!", ConsoleColor.Yellow);
+                    Write("If the problem persists, try to move the content of the \"Updater\" directory to the main directory manually or contact the staff for support.");
+                    Exit(false);
                 }
 
                 FileInfo versionFile = SafePath.GetFile(updaterDirectory.FullName, versionFileName);
@@ -150,7 +156,7 @@ internal sealed class Program
                 {
                     Write("Checking ClientDefinitions.ini for launcher executable filename.");
 
-                    string[] lines = File.ReadAllLines(SafePath.CombineFilePath(resourceDirectory.FullName, "ClientDefinitions.ini"));
+                    string[] lines = await File.ReadAllLinesAsync(SafePath.CombineFilePath(resourceDirectory.FullName, "ClientDefinitions.ini")).ConfigureAwait(false);
                     string launcherPropertyName = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "LauncherExe" : "UnixLauncherExe";
                     string line = lines.Single(q => q.Trim().StartsWith(launcherPropertyName, StringComparison.OrdinalIgnoreCase) && q.Contains('=', StringComparison.OrdinalIgnoreCase));
                     int commentStart = line.IndexOf(';', StringComparison.OrdinalIgnoreCase);
@@ -197,32 +203,89 @@ internal sealed class Program
         }
     }
 
+    /// <summary>
+    /// This attempts to copy a file for the update with the ability to retry up to <see cref="MaxCopyAttempts"/> times.
+    /// There are instances where DLLs or other files may be locked and are unable to be overwritten by the update.
+    ///
+    /// TODO:
+    /// Make a backup of all files that are attempted. When we check for any failed files outside this function, restore all backups
+    /// if any failures occurred. This will prevent the user from being in a partially updated state.
+    ///
+    /// </summary>
+    /// <param name="baseDirectory">The absolute path of the game installation.</param>
+    /// <param name="sourceFileInfo">The file to be copied.</param>
+    /// <param name="relativeFileInfo">The relative file info for the destination of the file to be copied.</param>
+    /// <param name="failedFiles">If the copy fails too many times, the file should be added to this list.</param>
+    /// <returns>A Task.</returns>
+    private static async Task CopyFileTaskAsync(DirectoryInfo baseDirectory, FileInfo sourceFileInfo, FileInfo relativeFileInfo, List<FileInfo> failedFiles)
+    {
+        for (int attempt = 1; ; attempt++)
+        {
+            try
+            {
+                FileInfo destinationFile = SafePath.GetFile(baseDirectory.FullName, relativeFileInfo.ToString());
+                FileStream sourceFileStream = sourceFileInfo.Open(new FileStreamOptions
+                {
+                    Access = FileAccess.Read,
+                    Mode = FileMode.Open,
+                    Options = FileOptions.Asynchronous,
+                    Share = FileShare.None
+                });
+                await using (sourceFileStream.ConfigureAwait(false))
+                {
+                    FileStream destinationFileStream = destinationFile.Open(new FileStreamOptions
+                    {
+                        Access = FileAccess.Write,
+                        Mode = FileMode.Create,
+                        Options = FileOptions.Asynchronous,
+                        Share = FileShare.None
+                    });
+                    await using (destinationFileStream.ConfigureAwait(false))
+                    {
+                        await sourceFileStream.CopyToAsync(destinationFileStream).ConfigureAwait(false);
+                    }
+                }
+
+                Write($"Updated {relativeFileInfo}");
+
+                // File was succesfully copied. Return from the function.
+                return;
+            }
+            catch (IOException ex)
+            {
+                if (attempt >= MaxCopyAttempts)
+                {
+                    // We tried too many times and need to bail.
+                    failedFiles.Add(sourceFileInfo);
+                    Write($"Updating file failed too many times! Returned error message: {ex}", ConsoleColor.Yellow);
+                    return;
+                }
+
+                // We failed to copy the file, but can try again.
+                Write($"Updating file attempt {attempt} failed! Returned error message: {ex.Message}", ConsoleColor.Yellow);
+                await Task.Delay(CopyRetryWaitMilliseconds).ConfigureAwait(false);
+            }
+        }
+    }
+
     private static void Exit(bool success)
     {
-        if (hasHandle)
-        {
-            clientMutex.ReleaseMutex();
-            clientMutex.Dispose();
-        }
+        if (success)
+            return;
 
-        if (!success)
-        {
-            Write("Press any key to exit.");
-            Console.ReadKey();
-            Environment.Exit(1);
-        }
+        Write("Press any key to exit.");
+        Console.ReadKey();
+        Environment.Exit(1);
     }
 
-    private static void Write(string text)
+    private static void Write(string text, ConsoleColor? color = null)
     {
-        Console.ForegroundColor = defaultColor;
-        Console.WriteLine(text);
-    }
-
-    private static void Write(string text, ConsoleColor color)
-    {
-        Console.ForegroundColor = color;
-        Console.WriteLine(text);
-        Console.ForegroundColor = defaultColor;
+        // This is necessary, because console is written to from the copy file task
+        lock (consoleMessageLock)
+        {
+            Console.ForegroundColor = color ?? Console.ForegroundColor;
+            Console.WriteLine(text);
+            Console.ResetColor();
+        }
     }
 }
