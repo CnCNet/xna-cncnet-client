@@ -1284,7 +1284,8 @@ public static class Updater
                         using var _ = Process.Start(new ProcessStartInfo
                         {
                             FileName = "dotnet",
-                            Arguments = "\"" + secondStageUpdaterResource.FullName + "\" " + CallingExecutableFileName + " \"" + GamePath + "\""
+                            Arguments = "\"" + secondStageUpdaterResource.FullName + "\" " + CallingExecutableFileName + " \"" + GamePath + "\"",
+                            UseShellExecute = true
                         });
 
                         Restart?.Invoke(null, EventArgs.Empty);
