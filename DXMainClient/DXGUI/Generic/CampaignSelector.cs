@@ -1,15 +1,16 @@
-﻿using ClientCore;
-using Microsoft.Xna.Framework;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using DTAClient.Domain;
 using System.IO;
+using System.Linq;
+using ClientCore;
 using ClientGUI;
-using Rampastring.XNAUI.XNAControls;
-using Rampastring.XNAUI;
-using Rampastring.Tools;
 using ClientUpdater;
+using DTAClient.Domain;
 using Localization;
+using Microsoft.Xna.Framework;
+using Rampastring.Tools;
+using Rampastring.XNAUI;
+using Rampastring.XNAUI.XNAControls;
 
 namespace DTAClient.DXGUI.Generic
 {
@@ -34,7 +35,8 @@ namespace DTAClient.DXGUI.Generic
 
         private DiscordHandler discordHandler;
 
-        private List<Mission> Missions = new List<Mission>();
+        private List<Mission> allMissions = new List<Mission>();
+        private List<Mission> lbCampaignListMissions = new List<Mission>();
         private XNAListBox lbCampaignList;
         private XNAClientButton btnLaunch;
         private XNATextBlock tbMissionDescription;
@@ -199,7 +201,7 @@ namespace DTAClient.DXGUI.Generic
                 return;
             }
 
-            Mission mission = Missions[lbCampaignList.SelectedIndex];
+            Mission mission = lbCampaignListMissions[lbCampaignList.SelectedIndex];
 
             if (string.IsNullOrEmpty(mission.Scenario))
             {
@@ -221,14 +223,14 @@ namespace DTAClient.DXGUI.Generic
 
         private void BtnCancel_LeftClick(object sender, EventArgs e)
         {
-            Enabled = false;
+            Disable();
         }
 
         private void BtnLaunch_LeftClick(object sender, EventArgs e)
         {
             int selectedMissionId = lbCampaignList.SelectedIndex;
 
-            Mission mission = Missions[selectedMissionId];
+            Mission mission = lbCampaignListMissions[selectedMissionId];
 
             if (!ClientConfiguration.Instance.ModMode &&
                 (!Updater.IsFileNonexistantOrOriginal(mission.Scenario) || AreFilesModified()))
@@ -313,7 +315,7 @@ namespace DTAClient.DXGUI.Generic
             UserINISettings.Instance.Difficulty.Value = trbDifficultySelector.Value;
             UserINISettings.Instance.SaveSettings();
 
-            ((MainMenuDarkeningPanel)Parent).Hide();
+            Disable();
 
             discordHandler.UpdatePresence(mission.GUIName, difficultyName, mission.IconPath, true);
             GameProcessLogic.GameProcessExited += GameProcessExited_Callback;
@@ -340,7 +342,7 @@ namespace DTAClient.DXGUI.Generic
         {
             ParseBattleIni("INI/Battle.ini");
 
-            if (Missions.Count == 0)
+            if (allMissions.Count == 0)
                 ParseBattleIni("INI/" + ClientConfiguration.Instance.BattleFSFileName);
         }
 
@@ -360,7 +362,7 @@ namespace DTAClient.DXGUI.Generic
                 return false;
             }
 
-            if (Missions.Count > 0)
+            if (lbCampaignListMissions.Count > 0)
             {
                 throw new InvalidOperationException("Loading multiple Battle*.ini files is not supported anymore.");
             }
@@ -381,9 +383,41 @@ namespace DTAClient.DXGUI.Generic
                     continue;
 
                 var mission = new Mission(battleIni, battleSection, i);
+                allMissions.Add(mission);
+            }
 
-                Missions.Add(mission);
+            LoadMissionsWithFilter(null);
 
+            Logger.Log("Finished parsing " + path + ".");
+            return true;
+        }
+
+        /// <summary>
+        /// Load or re-load missons with selected tags.
+        /// </summary>
+        /// <param name="selectedTags">Missions with at lease one of which tags to be shown. As an exception, null means show all missions.</param>
+        public void LoadMissionsWithFilter(ISet<string> selectedTags)
+        {
+            lbCampaignListMissions.Clear();
+
+            lbCampaignList.IsChangingSize = true;
+
+            lbCampaignList.Clear();
+            lbCampaignList.SelectedIndex = -1;
+
+            // The following two lines are handled by LbCampaignList_SelectedIndexChanged
+            // tbMissionDescription.Text = string.Empty;
+            // btnLaunch.AllowClick = false;
+
+            // Select missions with the filter
+            if (selectedTags != null)
+                lbCampaignListMissions = allMissions.Where(mission => mission.Tags.Intersect(selectedTags).Any()).ToList();
+            else
+                lbCampaignListMissions = allMissions.ToList();
+
+            // Update lbCampaignList with selected missions
+            foreach (Mission mission in lbCampaignListMissions)
+            {
                 var item = new XNAListBoxItem();
                 item.Text = mission.GUIName;
                 if (!mission.Enabled)
@@ -408,10 +442,10 @@ namespace DTAClient.DXGUI.Generic
                 lbCampaignList.AddItem(item);
             }
 
-            Logger.Log("Finished parsing " + path + ".");
-            return true;
-        }
+            lbCampaignList.IsChangingSize = false;
 
+            lbCampaignList.TopIndex = 0;
+        }
         public override void Draw(GameTime gameTime)
         {
             base.Draw(gameTime);

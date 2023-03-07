@@ -277,6 +277,8 @@ namespace ClientCore
 
         public string AllowedCustomGameModes => clientDefinitionsIni.GetStringValue(SETTINGS, "AllowedCustomGameModes", "Standard,Custom Map");
 
+        public bool CampaignTagSelectorEnabled => clientDefinitionsIni.GetBooleanValue(SETTINGS, "CampaignTagSelectorEnabled", false);
+
         public string GetGameExecutableName()
         {
             string[] exeNames = clientDefinitionsIni.GetStringValue(SETTINGS, "GameExecutableNames", "Game.exe").Split(',');

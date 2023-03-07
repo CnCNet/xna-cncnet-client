@@ -43,7 +43,8 @@ namespace DTAClient.DXGUI.Generic
             TopBar topBar, 
             OptionsWindow optionsWindow,
             CnCNetLobby cncnetLobby,
-            CnCNetManager connectionManager, 
+            CampaignTagSelector campaignTagSelector,
+            CnCNetManager connectionManager,
             DiscordHandler discordHandler,
             CnCNetGameLoadingLobby cnCNetGameLoadingLobby,
             CnCNetGameLobby cnCNetGameLobby,
@@ -57,6 +58,7 @@ namespace DTAClient.DXGUI.Generic
             this.connectionManager = connectionManager;
             this.optionsWindow = optionsWindow;
             this.cncnetLobby = cncnetLobby;
+            this.campaignTagSelector = campaignTagSelector;
             this.discordHandler = discordHandler;
             this.skirmishLobby = skirmishLobby;
             this.cnCNetGameLoadingLobby = cnCNetGameLoadingLobby;
@@ -77,6 +79,8 @@ namespace DTAClient.DXGUI.Generic
         private CnCNetLobby cncnetLobby;
 
         private SkirmishLobby skirmishLobby;
+
+        private CampaignTagSelector campaignTagSelector;
 
         private LANLobby lanLobby;
 
@@ -548,6 +552,7 @@ namespace DTAClient.DXGUI.Generic
         /// </summary>
         public void PostInit()
         {
+            DarkeningPanel.AddAndInitializeWithControl(WindowManager, campaignTagSelector);
             DarkeningPanel.AddAndInitializeWithControl(WindowManager, skirmishLobby);
             DarkeningPanel.AddAndInitializeWithControl(WindowManager, cnCNetGameLoadingLobby);
             DarkeningPanel.AddAndInitializeWithControl(WindowManager, cnCNetGameLobby);
@@ -561,6 +566,7 @@ namespace DTAClient.DXGUI.Generic
             topBar.SetOptionsWindow(optionsWindow);
             WindowManager.AddAndInitializeControl(gameInProgressWindow);
 
+            campaignTagSelector.Disable();
             skirmishLobby.Disable();
             cncnetLobby.Disable();
             cnCNetGameLobby.Disable();
@@ -829,7 +835,7 @@ namespace DTAClient.DXGUI.Generic
             => optionsWindow.Open();
 
         private void BtnNewCampaign_LeftClick(object sender, EventArgs e)
-            => innerPanel.Show(innerPanel.CampaignSelector);
+            => campaignTagSelector.Open();
 
         private void BtnLoadGame_LeftClick(object sender, EventArgs e)
             => innerPanel.Show(innerPanel.GameLoadingWindow);
