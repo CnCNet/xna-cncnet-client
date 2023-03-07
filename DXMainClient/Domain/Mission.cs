@@ -1,5 +1,6 @@
 ﻿using Rampastring.Tools;
 using System;
+using System.Collections.Generic;
 
 namespace DTAClient.Domain
 {
@@ -22,7 +23,7 @@ namespace DTAClient.Domain
             Enabled = iniFile.GetBooleanValue(sectionName, nameof(Enabled), true);
             BuildOffAlly = iniFile.GetBooleanValue(sectionName, nameof(BuildOffAlly), false);
             PlayerAlwaysOnNormalDifficulty = iniFile.GetBooleanValue(sectionName, nameof(PlayerAlwaysOnNormalDifficulty), false);
-
+            Tags = iniFile.GetStringValue(sectionName, nameof(Tags), string.Empty).Split(',');
             GUIDescription = GUIDescription.Replace("@", Environment.NewLine);
         }
 
@@ -38,5 +39,6 @@ namespace DTAClient.Domain
         public bool Enabled { get; }
         public bool BuildOffAlly { get; }
         public bool PlayerAlwaysOnNormalDifficulty { get; }
+        public string[] Tags { get; }
     }
 }
