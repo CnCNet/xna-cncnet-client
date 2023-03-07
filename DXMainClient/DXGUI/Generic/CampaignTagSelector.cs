@@ -1,12 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using ClientCore;
 using ClientGUI;
 using DTAClient.Domain;
-using Localization;
 using Microsoft.Xna.Framework;
-using Rampastring.Tools;
 using Rampastring.XNAUI;
 
 namespace DTAClient.DXGUI.Generic
@@ -80,6 +77,6 @@ namespace DTAClient.DXGUI.Generic
                 CampaignSelector.Enable();
         }
 
-        CampaignSelector CampaignSelector;
+        private CampaignSelector CampaignSelector;
     }
 }
