@@ -242,7 +242,7 @@ namespace DTAConfig.OptionPanels
 
             for (int i = 0; i < themeCount; i++)
             {
-                string themeName = ClientConfiguration.Instance.GetThemeInfoFromIndex(i)[0];
+                string themeName = ClientConfiguration.Instance.GetThemeInfoFromIndex(i).Name;
 
                 string displayName = themeName.L10N($"INI:Themes:{themeName}");
                 ddClientTheme.AddItem(new XNADropDownItem { Text = displayName, Tag = themeName });

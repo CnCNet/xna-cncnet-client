@@ -237,7 +237,7 @@ namespace ClientCore
 
         public string StatisticsLogFileName => clientDefinitionsIni.GetStringValue(SETTINGS, "StatisticsLogFileName", "DTA.LOG");
 
-        public string[] GetThemeInfoFromIndex(int themeIndex) => clientDefinitionsIni.GetStringValue("Themes", themeIndex.ToString(), ",").Split(',');
+        public (string Name, string Path) GetThemeInfoFromIndex(int themeIndex) => clientDefinitionsIni.GetStringValue("Themes", themeIndex.ToString(), ",").Split(',').AsTuple2();
 
         /// <summary>
         /// Returns the directory path for a theme, or null if the specified
@@ -250,9 +250,9 @@ namespace ClientCore
             var themeSection = clientDefinitionsIni.GetSection("Themes");
             foreach (var key in themeSection.Keys)
             {
-                string[] parts = key.Value.Split(',');
-                if (parts[0] == themeName)
-                    return parts[1];
+                var (name, path) = key.Value.Split(',');
+                if (name == themeName)
+                    return path;
             }
 
             return null;

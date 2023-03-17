@@ -57,7 +57,7 @@ namespace ClientCore
 
             IngameScreenWidth = new IntSetting(iniFile, VIDEO, "ScreenWidth", 1024);
             IngameScreenHeight = new IntSetting(iniFile, VIDEO, "ScreenHeight", 768);
-            ClientTheme = new StringSetting(iniFile, MULTIPLAYER, "Theme", string.Empty);
+            ClientTheme = new StringSetting(iniFile, MULTIPLAYER, "Theme", ClientConfiguration.Instance.GetThemeInfoFromIndex(0).Name);
             Translation = new StringSetting(iniFile, OPTIONS, "Translation", I18N.Translation.GetDefaultTranslationLocaleCode());
             DetailLevel = new IntSetting(iniFile, OPTIONS, "DetailLevel", 2);
             Renderer = new StringSetting(iniFile, COMPATIBILITY, "Renderer", string.Empty);
