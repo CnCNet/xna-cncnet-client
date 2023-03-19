@@ -1,4 +1,5 @@
 ﻿using ClientCore;
+using ClientCore.Extensions;
 using Microsoft.Xna.Framework.Graphics;
 using Rampastring.Tools;
 using Rampastring.XNAUI;
@@ -59,6 +60,11 @@ namespace DTAClient.Domain.Multiplayer
         /// </summary>
         [JsonInclude]
         public string Name { get; private set; }
+
+        /// <summary>
+        /// The original untranslated name of the map.
+        /// </summary>
+        public string UntranslatedName { get; private set; }
 
         /// <summary>
         /// The maximum amount of players supported by the map.
@@ -278,16 +284,24 @@ namespace DTAClient.Domain.Multiplayer
 
                 var section = iniFile.GetSection(BaseFilePath);
 
-                Name = section.GetStringValue("Description", "Unnamed map");
+                UntranslatedName = section.GetStringValue("Description", "Unnamed map");
+                Name = UntranslatedName
+                    .L10N($"INI:Maps:{BaseFilePath}:Description");
+
                 Author = section.GetStringValue("Author", "Unknown author");
                 GameModes = section.GetStringValue("GameModes", "Default").Split(',');
 
                 MinPlayers = section.GetIntValue("MinPlayers", 0);
                 MaxPlayers = section.GetIntValue("MaxPlayers", 0);
                 EnforceMaxPlayers = section.GetBooleanValue("EnforceMaxPlayers", false);
+
                 FileInfo mapFile = SafePath.GetFile(BaseFilePath);
                 PreviewPath = SafePath.CombineFilePath(SafePath.GetDirectory(mapFile.ToString()).Parent.ToString()[ProgramConstants.GamePath.Length..], FormattableString.Invariant($"{section.GetStringValue("PreviewImage", mapFile.Name)}.png"));
-                Briefing = section.GetStringValue("Briefing", string.Empty).Replace("@", Environment.NewLine);
+
+                Briefing = section.GetStringValue("Briefing", string.Empty)
+                    .FromIniString()
+                    .L10N($"INI:Maps:{BaseFilePath}:Briefing");
+
                 CalculateSHA();
                 IsCoop = section.GetBooleanValue("IsCoopMission", false);
                 Credits = section.GetIntValue("Credits", -1);
@@ -514,7 +528,7 @@ namespace DTAClient.Domain.Multiplayer
 
                 IniSection basicSection = iniFile.GetSection("Basic");
 
-                Name = basicSection.GetStringValue("Name", "Unnamed map");
+                UntranslatedName = Name = basicSection.GetStringValue("Name", "Unnamed map");
                 Author = basicSection.GetStringValue("Author", "Unknown author");
 
                 string gameModesString = basicSection.GetStringValue("GameModes", string.Empty);
@@ -543,7 +557,8 @@ namespace DTAClient.Domain.Multiplayer
                 else
                     MaxPlayers = basicSection.GetIntValue("MaxPlayer", 0);
                 EnforceMaxPlayers = basicSection.GetBooleanValue("EnforceMaxPlayers", true);
-                Briefing = basicSection.GetStringValue("Briefing", string.Empty).Replace("@", Environment.NewLine);
+                Briefing = basicSection.GetStringValue("Briefing", string.Empty)
+                    .FromIniString();
                 CalculateSHA();
                 IsCoop = basicSection.GetBooleanValue("IsCoopMission", false);
                 Credits = basicSection.GetIntValue("Credits", -1);

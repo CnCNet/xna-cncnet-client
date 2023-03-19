@@ -2,42 +2,48 @@
 using Rampastring.XNAUI;
 using Rampastring.Tools;
 using System;
+using ClientCore;
+using ClientCore.Extensions;
 
 namespace ClientGUI
 {
-    public class XNAClientDropDown : XNADropDown
+    public class XNAClientDropDown : XNADropDown, IToolTipContainer
     {
-        public ToolTip ToolTip { get; set; }
+        public ToolTip ToolTip { get; private set; }
 
-        public XNAClientDropDown(WindowManager windowManager) : base(windowManager)
+        private string _initialToolTipText;
+        public string ToolTipText
         {
+            get => Initialized ? ToolTip?.Text : _initialToolTipText;
+            set
+            {
+                if (Initialized)
+                    ToolTip.Text = value;
+                else
+                    _initialToolTipText = value;
+            }
         }
 
-        private void CreateToolTip()
-        {
-            if (ToolTip == null)
-                ToolTip = new ToolTip(WindowManager, this);
-        }
+        public XNAClientDropDown(WindowManager windowManager) : base(windowManager) { }
 
         public override void Initialize()
         {
             ClickSoundEffect = new EnhancedSoundEffect("dropdown.wav");
 
-            CreateToolTip();
-
             base.Initialize();
+
+            ToolTip = new ToolTip(WindowManager, this) { Text = _initialToolTipText };
         }
 
-        public override void ParseAttributeFromINI(IniFile iniFile, string key, string value)
+        protected override void ParseControlINIAttribute(IniFile iniFile, string key, string value)
         {
             if (key == "ToolTip")
             {
-                CreateToolTip();
-                ToolTip.Text = value.Replace("@", Environment.NewLine);
+                ToolTipText = value.FromIniString();
                 return;
             }
 
-            base.ParseAttributeFromINI(iniFile, key, value);
+            base.ParseControlINIAttribute(iniFile, key, value);
         }
 
         public override void OnMouseLeftDown()

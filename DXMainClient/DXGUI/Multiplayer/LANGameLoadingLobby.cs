@@ -5,7 +5,7 @@ using DTAClient.Domain.Multiplayer;
 using DTAClient.Domain.Multiplayer.LAN;
 using DTAClient.DXGUI.Multiplayer.GameLobby;
 using DTAClient.Online;
-using Localization;
+using ClientCore.Extensions;
 using Microsoft.Xna.Framework;
 using Rampastring.Tools;
 using Rampastring.XNAUI;
@@ -255,7 +255,7 @@ namespace DTAClient.DXGUI.Multiplayer
 
             sndJoinSound.Play();
 
-            AddNotice(string.Format("{0} connected from {1}".L10N("UI:Main:PlayerFromIP"), lpInfo.Name, lpInfo.IPAddress));
+            AddNotice(string.Format("{0} connected from {1}".L10N("Client:Main:PlayerFromIP"), lpInfo.Name, lpInfo.IPAddress));
             lpInfo.StartReceiveLoop();
 
             CopyPlayerDataToUI();
@@ -269,7 +269,7 @@ namespace DTAClient.DXGUI.Multiplayer
             CleanUpPlayer(lpInfo);
             Players.Remove(lpInfo);
 
-            AddNotice(string.Format("{0} has left the game.".L10N("UI:Main:PlayerLeftGame"), lpInfo.Name));
+            AddNotice(string.Format("{0} has left the game.".L10N("Client:Main:PlayerLeftGame"), lpInfo.Name));
 
             sndLeaveSound.Play();
 
@@ -474,7 +474,7 @@ namespace DTAClient.DXGUI.Multiplayer
         private void Server_HandleFileHashMessage(LANPlayerInfo sender, string hash)
         {
             if (hash != localFileHash)
-                AddNotice(string.Format("{0} - modified files detected! They could be cheating!".L10N("UI:Main:PlayerCheating"), sender.Name), Color.Red);
+                AddNotice(string.Format("{0} - modified files detected! They could be cheating!".L10N("Client:Main:PlayerCheating"), sender.Name), Color.Red);
             sender.Verified = true;
         }
 
@@ -607,7 +607,7 @@ namespace DTAClient.DXGUI.Multiplayer
 
         public override string GetSwitchName()
         {
-            return "Load Game".L10N("UI:Main:LoadGameSwitchName");
+            return "Load Game".L10N("Client:Main:LoadGameSwitchName");
         }
 
         public override void Update(GameTime gameTime)
@@ -621,7 +621,7 @@ namespace DTAClient.DXGUI.Multiplayer
                     {
                         CleanUpPlayer(lpInfo);
                         Players.RemoveAt(i);
-                        AddNotice(string.Format("{0} - connection timed out".L10N("UI:Main:PlayerTimeout"), lpInfo.Name));
+                        AddNotice(string.Format("{0} - connection timed out".L10N("Client:Main:PlayerTimeout"), lpInfo.Name));
                         CopyPlayerDataToUI();
                         BroadcastOptions();
                         UpdateDiscordPresence();
@@ -644,7 +644,7 @@ namespace DTAClient.DXGUI.Multiplayer
                 if (timeSinceLastReceivedCommand > TimeSpan.FromSeconds(DROPOUT_TIMEOUT))
                 {
                     LobbyNotification?.Invoke(this,
-                        new LobbyNotificationEventArgs("Connection to the game host timed out.".L10N("UI:Main:HostConnectTimeOut")));
+                        new LobbyNotificationEventArgs("Connection to the game host timed out.".L10N("Client:Main:HostConnectTimeOut")));
                     LeaveGame();
                 }
             }
@@ -659,8 +659,8 @@ namespace DTAClient.DXGUI.Multiplayer
             sb.Append(ProgramConstants.LAN_PROTOCOL_REVISION);
             sb.Append(ProgramConstants.GAME_VERSION);
             sb.Append(localGame);
-            sb.Append(lblMapNameValue.Text);
-            sb.Append(lblGameModeValue.Text);
+            sb.Append((string)lblMapNameValue.Tag);
+            sb.Append((string)lblGameModeValue.Tag);
             sb.Append(0); // LoadedGameID
             var sbPlayers = new StringBuilder();
             SGPlayers.ForEach(p => sbPlayers.Append(p.Name + ","));
@@ -690,7 +690,7 @@ namespace DTAClient.DXGUI.Multiplayer
             string currentState = ProgramConstants.IsInGame ? "In Game" : "In Lobby"; // not UI strings
 
             discordHandler.UpdatePresence(
-                lblMapNameValue.Text, lblGameModeValue.Text, currentState, "LAN",
+                (string)lblMapNameValue.Tag, (string)lblGameModeValue.Tag, currentState, "LAN",
                 Players.Count, SGPlayers.Count,
                 "LAN Game", IsHost, resetTimer);
         }

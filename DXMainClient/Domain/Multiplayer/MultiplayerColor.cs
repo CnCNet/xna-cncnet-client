@@ -1,4 +1,5 @@
 ﻿using ClientCore;
+using ClientCore.Extensions;
 using Microsoft.Xna.Framework;
 using Rampastring.Tools;
 using System;
@@ -58,8 +59,7 @@ namespace DTAClient.Domain.Multiplayer
 
                 try
                 {
-                    MultiplayerColor mpColor = MultiplayerColor.CreateFromStringArray(key, values);
-
+                    MultiplayerColor mpColor = MultiplayerColor.CreateFromStringArray(key.L10N($"INI:Colors:{key}"), values);
                     mpColors.Add(mpColor);
                 }
                 catch

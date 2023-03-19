@@ -57,7 +57,7 @@ namespace ClientGUI
             if (keys != null)
             {
                 foreach (string key in keys)
-                    ParseAttributeFromINI(iniFile, key, iniFile.GetStringValue(Name, key, String.Empty));
+                    ParseINIAttribute(iniFile, key, iniFile.GetStringValue(Name, key, String.Empty));
             }
             else
             {
@@ -66,7 +66,7 @@ namespace ClientGUI
                 if (keys != null)
                 {
                     foreach (string key in keys)
-                        ParseAttributeFromINI(iniFile, key, iniFile.GetStringValue(GENERIC_WINDOW_SECTION, key, String.Empty));
+                        ParseINIAttribute(iniFile, key, iniFile.GetStringValue(GENERIC_WINDOW_SECTION, key, String.Empty));
                 }
             }
 

@@ -5,7 +5,7 @@ using ClientCore.Extensions;
 using ClientGUI;
 using DTAClient.Online;
 using DTAClient.Online.EventArguments;
-using Localization;
+using ClientCore.Extensions;
 using Microsoft.Xna.Framework;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
@@ -15,15 +15,15 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 {
     public class GlobalContextMenu : XNAContextMenu
     {
-        private readonly string PRIVATE_MESSAGE = "Private Message".L10N("UI:Main:PrivateMessage");
-        private readonly string ADD_FRIEND = "Add Friend".L10N("UI:Main:AddFriend");
-        private readonly string REMOVE_FRIEND = "Remove Friend".L10N("UI:Main:RemoveFriend");
-        private readonly string BLOCK = "Block".L10N("UI:Main:Block");
-        private readonly string UNBLOCK = "Unblock".L10N("UI:Main:Unblock");
-        private readonly string INVITE = "Invite".L10N("UI:Main:Invite");
-        private readonly string JOIN = "Join".L10N("UI:Main:Join");
-        private readonly string COPY_LINK = "Copy Link".L10N("UI:Main:CopyLink");
-        private readonly string OPEN_LINK = "Open Link".L10N("UI:Main:OpenLink");
+        private readonly string PRIVATE_MESSAGE = "Private Message".L10N("Client:Main:PrivateMessage");
+        private readonly string ADD_FRIEND = "Add Friend".L10N("Client:Main:AddFriend");
+        private readonly string REMOVE_FRIEND = "Remove Friend".L10N("Client:Main:RemoveFriend");
+        private readonly string BLOCK = "Block".L10N("Client:Main:Block");
+        private readonly string UNBLOCK = "Unblock".L10N("Client:Main:Unblock");
+        private readonly string INVITE = "Invite".L10N("Client:Main:Invite");
+        private readonly string JOIN = "Join".L10N("Client:Main:Join");
+        private readonly string COPY_LINK = "Copy Link".L10N("Client:Main:CopyLink");
+        private readonly string OPEN_LINK = "Open Link".L10N("Client:Main:OpenLink");
 
         private readonly CnCNetUserData cncnetUserData;
         private readonly PrivateMessagingWindow pmWindow;
@@ -181,7 +181,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             }
             catch (Exception)
             {
-                XNAMessageBox.Show(WindowManager, "Error".L10N("UI:Main:Error"), "Unable to copy link".L10N("UI:Main:ClipboardCopyLinkFailed"));
+                XNAMessageBox.Show(WindowManager, "Error".L10N("Client:Main:Error"), "Unable to copy link".L10N("Client:Main:ClipboardCopyLinkFailed"));
             }
         }
 

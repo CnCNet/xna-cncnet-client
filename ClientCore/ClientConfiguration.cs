@@ -4,6 +4,9 @@ using Rampastring.Tools;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Collections.Generic;
+using ClientCore.I18N;
+using ClientCore.Extensions;
 
 namespace ClientCore
 {
@@ -13,6 +16,7 @@ namespace ClientCore
         private const string AUDIO = "Audio";
         private const string SETTINGS = "Settings";
         private const string LINKS = "Links";
+        private const string TRANSLATIONS = "Translations";
 
         private const string CLIENT_SETTINGS = "DTACnCNetClient.ini";
         private const string GAME_OPTIONS = "GameOptions.ini";
@@ -188,7 +192,8 @@ namespace ClientCore
 
         public string[] RecommendedResolutions => clientDefinitionsIni.GetStringValue(SETTINGS, "RecommendedResolutions", "1280x720,2560x1440,3840x2160").Split(',');
 
-        public string WindowTitle => clientDefinitionsIni.GetStringValue(SETTINGS, "WindowTitle", string.Empty);
+        public string WindowTitle => clientDefinitionsIni.GetStringValue(SETTINGS, "WindowTitle", string.Empty)
+            .L10N("INI:ClientDefinitions:WindowTitle");
 
         public string InstallationPathRegKey => clientDefinitionsIni.GetStringValue(SETTINGS, "RegistryInstallPath", "TiberianSun");
 
@@ -232,7 +237,7 @@ namespace ClientCore
 
         public string StatisticsLogFileName => clientDefinitionsIni.GetStringValue(SETTINGS, "StatisticsLogFileName", "DTA.LOG");
 
-        public string[] GetThemeInfoFromIndex(int themeIndex) => clientDefinitionsIni.GetStringValue("Themes", themeIndex.ToString(), ",").Split(',');
+        public (string Name, string Path) GetThemeInfoFromIndex(int themeIndex) => clientDefinitionsIni.GetStringValue("Themes", themeIndex.ToString(), ",").Split(',').AsTuple2();
 
         /// <summary>
         /// Returns the directory path for a theme, or null if the specified
@@ -245,9 +250,9 @@ namespace ClientCore
             var themeSection = clientDefinitionsIni.GetSection("Themes");
             foreach (var key in themeSection.Keys)
             {
-                string[] parts = key.Value.Split(',');
-                if (parts[0] == themeName)
-                    return parts[1];
+                var (name, path) = key.Value.Split(',');
+                if (name == themeName)
+                    return path;
             }
 
             return null;
@@ -255,9 +260,46 @@ namespace ClientCore
 
         public string SettingsIniName => clientDefinitionsIni.GetStringValue(SETTINGS, "SettingsFile", "Settings.ini");
 
-        public string TranslationIniName => SafePath.CombineFilePath(clientDefinitionsIni.GetStringValue(SETTINGS, "TranslationFile", SafePath.CombineFilePath("Resources", "Translation.ini")));
+        public string TranslationIniName => clientDefinitionsIni.GetStringValue(TRANSLATIONS, nameof(TranslationIniName), "Translation.ini");
 
-        public bool GenerateTranslationStub => clientDefinitionsIni.GetBooleanValue(SETTINGS, "GenerateTranslationStub", false);
+        public string TranslationsFolderPath => SafePath.CombineDirectoryPath(
+            clientDefinitionsIni.GetStringValue(TRANSLATIONS, "TranslationsFolder",
+                SafePath.CombineDirectoryPath("Resources", "Translations")));
+
+        private List<TranslationGameFile> _translationGameFiles;
+
+        public List<TranslationGameFile> TranslationGameFiles => _translationGameFiles ??= ParseTranslationGameFiles();
+
+        /// <summary>
+        /// Looks up the list of files to try and copy into the game folder with a translation.
+        /// </summary>
+        /// <returns>Source/destination relative path pairs.</returns>
+        /// <exception cref="IniParseException">Thrown when the syntax of the list is invalid.</exception>
+        private List<TranslationGameFile> ParseTranslationGameFiles()
+        {
+            List<TranslationGameFile> gameFiles = new();
+
+            for (int i = 0; clientDefinitionsIni.KeyExists(TRANSLATIONS, $"GameFile{i}"); i++)
+            {
+                // the syntax is GameFileX=path/to/source.file,path/to/destination.file[,checked]
+                string value = clientDefinitionsIni.GetStringValue(TRANSLATIONS, $"GameFile{i}", string.Empty);
+                string[] parts = value.Split(',', StringSplitOptions.TrimEntries);
+
+                // fail explicitly if the syntax is wrong
+                if (parts.Length is < 2 or > 3
+                    || (parts.Length == 3 && parts[2].ToUpperInvariant() != "CHECKED"))
+                {
+                    throw new IniParseException($"Invalid syntax for value of GameFile{i}! " +
+                        $"Expected path/to/source.file,path/to/destination.file[,checked], read {value}.");
+                }
+
+                bool isChecked = parts.Length == 3 && parts[2].ToUpperInvariant() == "CHECKED";
+
+                gameFiles.Add(new(Source: parts[0], Target: parts[1], isChecked));
+            }
+
+            return gameFiles;
+        }
 
         public string ExtraExeCommandLineParameters => clientDefinitionsIni.GetStringValue(SETTINGS, "ExtraCommandLineParams", string.Empty);
 

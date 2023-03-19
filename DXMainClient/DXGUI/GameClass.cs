@@ -3,7 +3,7 @@ using ClientCore.CnCNet5;
 using ClientGUI;
 using DTAClient.Domain;
 using DTAClient.DXGUI.Generic;
-using Localization;
+using ClientCore.Extensions;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
@@ -64,7 +64,9 @@ namespace DTAClient.DXGUI
             base.Initialize();
 
             AssetLoader.Initialize(GraphicsDevice, content);
+            AssetLoader.AssetSearchPaths.Add(UserINISettings.Instance.TranslationThemeFolderPath);
             AssetLoader.AssetSearchPaths.Add(ProgramConstants.GetResourcePath());
+            AssetLoader.AssetSearchPaths.Add(UserINISettings.Instance.TranslationFolderPath);
             AssetLoader.AssetSearchPaths.Add(ProgramConstants.GetBaseResourcePath());
             AssetLoader.AssetSearchPaths.Add(ProgramConstants.GamePath);
 
@@ -126,6 +128,8 @@ namespace DTAClient.DXGUI
 
             WindowManager wm = new WindowManager(this, graphics);
             wm.Initialize(content, ProgramConstants.GetBaseResourcePath());
+
+            wm.ControlINIAttributeParsers.Add(new TranslationINIParser());
 
             ProgramConstants.DisplayErrorAction = (title, error, exit) =>
             {
@@ -311,12 +315,12 @@ namespace DTAClient.DXGUI
             if (currentWidth >= windowWidth && currentHeight >= windowHeight)
             {
                 if (!wm.InitGraphicsMode(windowWidth, windowHeight, false))
-                    throw new GraphicsModeInitializationException("Setting graphics mode failed!".L10N("UI:Main:SettingGraphicModeFailed") + " " + windowWidth + "x" + windowHeight);
+                    throw new GraphicsModeInitializationException("Setting graphics mode failed!".L10N("Client:Main:SettingGraphicModeFailed") + " " + windowWidth + "x" + windowHeight);
             }
             else
             {
                 if (!wm.InitGraphicsMode(1024, 600, false))
-                    throw new GraphicsModeInitializationException("Setting default graphics mode failed!".L10N("UI:Main:SettingDefaultGraphicModeFailed"));
+                    throw new GraphicsModeInitializationException("Setting default graphics mode failed!".L10N("Client:Main:SettingDefaultGraphicModeFailed"));
             }
 
             int renderResolutionX = 0;

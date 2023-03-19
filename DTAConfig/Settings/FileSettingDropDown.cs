@@ -38,7 +38,7 @@ namespace DTAConfig.Settings
                 itemFilesList.Add(FileSourceDestinationInfo.ParseFSDInfoList(section, $"Item{i}File"));
         }
 
-        public override void ParseAttributeFromINI(IniFile iniFile, string key, string value)
+        protected override void ParseControlINIAttribute(IniFile iniFile, string key, string value)
         {
             switch (key)
             {
@@ -50,7 +50,7 @@ namespace DTAConfig.Settings
                     return;
             }
 
-            base.ParseAttributeFromINI(iniFile, key, value);
+            base.ParseControlINIAttribute(iniFile, key, value);
         }
 
         public bool RefreshSetting()
@@ -111,7 +111,7 @@ namespace DTAConfig.Settings
             else // selected item is unavailable, don't do anything
             {
                 Logger.Log($"{nameof(FileSettingDropDown)}: " +
-                    $"The selected item ({Items[SelectedIndex].Text}) is unavailable in {Name}");
+                    $"The selected item \"{Items[SelectedIndex].Text}\" ({Items[SelectedIndex].Tag}) is unavailable in {Name}.");
                 return false;
             }
 

@@ -5,7 +5,7 @@ using ClientCore;
 using Rampastring.XNAUI;
 using ClientGUI;
 using System.IO;
-using Localization;
+using ClientCore.Extensions;
 using Color = Microsoft.Xna.Framework.Color;
 using Rectangle = Microsoft.Xna.Framework.Rectangle;
 #if ARES
@@ -59,7 +59,7 @@ namespace DTAClient.DXGUI
             window.ClientRectangle = new Rectangle(0, 0, 200, 100);
 
             XNALabel explanation = new XNALabel(WindowManager);
-            explanation.Text = "A game is in progress.".L10N("UI:Main:GameInProgress");
+            explanation.Text = "A game is in progress.".L10N("Client:Main:GameInProgress");
 
             AddChild(window);
 

@@ -1,4 +1,6 @@
-﻿using ClientGUI;
+﻿using ClientCore.Extensions;
+using ClientCore.I18N;
+using ClientGUI;
 using Rampastring.Tools;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
@@ -40,8 +42,12 @@ namespace DTAConfig.Settings
         protected string defaultKeySuffix = "_SelectedIndex";
         protected int originalState;
 
-        public override void ParseAttributeFromINI(IniFile iniFile, string key, string value)
+        protected override void ParseControlINIAttribute(IniFile iniFile, string key, string value)
         {
+            // shorthand for localization function
+            static string Localize(XNAControl control, string attributeName, string defaultValue, bool notify = true)
+                => Translation.Instance.LookUp(control, attributeName, defaultValue, notify);
+
             switch (key)
             {
                 case "Items":
@@ -50,7 +56,8 @@ namespace DTAConfig.Settings
                     {
                         XNADropDownItem item = new XNADropDownItem
                         {
-                            Text = items[i]
+                            Text = Localize(this, $"Item{i}", items[i]),
+                            Tag = items[i]
                         };
                         AddItem(item);
                     }
@@ -69,7 +76,7 @@ namespace DTAConfig.Settings
                     return;
             }
 
-            base.ParseAttributeFromINI(iniFile, key, value);
+            base.ParseControlINIAttribute(iniFile, key, value);
         }
 
         public abstract void Load();

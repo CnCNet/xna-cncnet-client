@@ -1,5 +1,5 @@
 ﻿using ClientGUI;
-using Localization;
+using ClientCore.Extensions;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Rampastring.XNAUI;
@@ -61,7 +61,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             lblHeader.FontIndex = 1;
             lblHeader.AnchorPoint = new Vector2(ClientRectangle.Width / 2, 12);
             lblHeader.TextAnchor = LabelTextAnchorInfo.CENTER;
-            lblHeader.Text = "MAKE A CHOICE".L10N("UI:Main:MakeAChoice");
+            lblHeader.Text = "MAKE A CHOICE".L10N("Client:Main:MakeAChoice");
             AddChild(lblHeader);
 
             using Stream dtaIconStream = Assembly.GetAssembly(typeof(GameCollection)).GetManifestResourceStream("ClientCore.Resources.dtaicon.png");
@@ -85,20 +85,20 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
             lblChoiceText.Name = nameof(lblChoiceText);
             lblChoiceText.FontIndex = 1;
             lblChoiceText.ClientRectangle = new Rectangle(12, lblSender.Bottom + 6, 0, 0);
-            lblChoiceText.Text = "What do you want to do?".L10N("UI:Main:ChoiceWhatDoYouWant");
+            lblChoiceText.Text = "What do you want to do?".L10N("Client:Main:ChoiceWhatDoYouWant");
             AddChild(lblChoiceText);
 
             affirmativeButton = new XNAClientButton(WindowManager);
             affirmativeButton.ClientRectangle = new Rectangle(ClientRectangle.Left + 8, lblChoiceText.Bottom + 6, 75, 23);
             affirmativeButton.Name = nameof(affirmativeButton);
-            affirmativeButton.Text = "Yes".L10N("UI:Main:ButtonYes");
+            affirmativeButton.Text = "Yes".L10N("Client:Main:ButtonYes");
             affirmativeButton.LeftClick += AffirmativeButton_LeftClick;
             AddChild(affirmativeButton);
 
             negativeButton = new XNAClientButton(WindowManager);
             negativeButton.ClientRectangle = new Rectangle(ClientRectangle.Width - (75 + 8), lblChoiceText.Bottom + 6, 75, 23);
             negativeButton.Name = nameof(negativeButton);
-            negativeButton.Text = "No".L10N("UI:Main:ButtonNo");
+            negativeButton.Text = "No".L10N("Client:Main:ButtonNo");
             negativeButton.LeftClick += NegativeButton_LeftClick;
             AddChild(negativeButton);
 
