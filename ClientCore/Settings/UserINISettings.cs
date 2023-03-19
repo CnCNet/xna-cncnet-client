@@ -129,9 +129,9 @@ namespace ClientCore
 
         public event EventHandler SettingsSaved;
 
-        /***********/
-        /* DISPLAY */
-        /***********/
+        /*********/
+        /* VIDEO */
+        /*********/
 
         public IntSetting IngameScreenWidth { get; private set; }
         public IntSetting IngameScreenHeight { get; private set; }
