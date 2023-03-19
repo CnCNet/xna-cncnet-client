@@ -111,7 +111,7 @@ namespace TranslationNotifierGenerator
                     {
                         context.ReportDiagnostic(Diagnostic.Create(new DiagnosticDescriptor(
                             "CNCNET0004", "Trimmable translation value",
-                            $"The value of key {keyName} should not have leading or trailing white spaces.",
+                            $"The value of key {keyName} should not have leading or trailing whitespace.",
                             "CNCNET", DiagnosticSeverity.Warning, isEnabledByDefault: true), l10nSyntax.GetLocation()));
                     }
 
