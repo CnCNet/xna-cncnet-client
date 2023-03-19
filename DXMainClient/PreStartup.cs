@@ -10,11 +10,14 @@ using ClientCore;
 using System.Security.AccessControl;
 using System.Security.Principal;
 using System.Collections.Generic;
-using Localization;
+using ClientCore.Extensions;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
+using ClientCore.I18N;
+using System.Globalization;
+using System.Transactions;
 
 namespace DTAClient
 {
@@ -48,6 +51,9 @@ namespace DTAClient
         /// <param name="parameters">The client's startup parameters.</param>
         public static void Initialize(StartupParams parameters)
         {
+            Translation.InitialUICulture = CultureInfo.CurrentUICulture;
+            CultureInfo.CurrentUICulture = new CultureInfo(ProgramConstants.HARDCODED_LOCALE_CODE);
+
 #if WINFORMS
             Application.SetUnhandledExceptionMode(UnhandledExceptionMode.ThrowException);
             Application.ThreadException += (sender, args) => HandleException(sender, args.Exception);
@@ -84,7 +90,7 @@ namespace DTAClient
                 Logger.Log("Startup parameter: No audio");
 
                 // TODO fix
-                throw new NotImplementedException("-NOAUDIO is currently not implemented, please run the client without it.".L10N("UI:Main:NoAudio"));
+                throw new NotImplementedException("-NOAUDIO is currently not implemented, please run the client without it.".L10N("Client:Main:NoAudio"));
             }
 
             if (parameters.MultipleInstanceMode)
@@ -96,56 +102,67 @@ namespace DTAClient
 
             UserINISettings.Initialize(ClientConfiguration.Instance.SettingsIniName);
 
-            // Try to load translations
+            // Try to load translation
             try
             {
-                TranslationTable translation;
-                var iniFileInfo = SafePath.GetFile(ProgramConstants.GamePath, ClientConfiguration.Instance.TranslationIniName);
+                Translation translation;
+                FileInfo translationThemeFile = SafePath.GetFile(UserINISettings.Instance.TranslationThemeFolderPath, ClientConfiguration.Instance.TranslationIniName);
+                FileInfo translationFile = SafePath.GetFile(UserINISettings.Instance.TranslationFolderPath, ClientConfiguration.Instance.TranslationIniName);
 
-                if (iniFileInfo.Exists)
+                if (translationFile.Exists)
                 {
-                    translation = TranslationTable.LoadFromIniFile(iniFileInfo.FullName);
+                    Logger.Log($"Loading generic translation file at {translationFile.FullName}");
+                    translation = new Translation(translationFile.FullName, UserINISettings.Instance.Translation);
+                    if (translationThemeFile.Exists)
+                    {
+                        Logger.Log($"Loading theme-specific translation file at {translationThemeFile.FullName}");
+                        translation.AppendValuesFromIniFile(translationThemeFile.FullName);
+                    }
+
+                    Translation.Instance = translation;
                 }
                 else
                 {
-                    Logger.Log("Failed to load the translation file. File does not exist.");
-
-                    translation = new TranslationTable();
+                    Logger.Log($"Failed to load a translation file. " +
+                        $"Neither {translationThemeFile.FullName} nor {translationFile.FullName} exist.");
                 }
 
-                TranslationTable.Instance = translation;
-                Logger.Log("Load translation: " + translation.LanguageName);
+                Logger.Log("Loaded translation: " + Translation.Instance.Name);
             }
             catch (Exception ex)
             {
                 Logger.Log("Failed to load the translation file. " + ex.Message);
-                TranslationTable.Instance = new TranslationTable();
+                Translation.Instance = new Translation(UserINISettings.Instance.Translation);
             }
+
+            CultureInfo.CurrentUICulture = Translation.Instance.Culture;
 
             try
             {
-                if (ClientConfiguration.Instance.GenerateTranslationStub)
+                if (UserINISettings.Instance.GenerateTranslationStub)
                 {
-                    string stubPath = SafePath.CombineFilePath(ProgramConstants.ClientUserFilesPath, "Translation.stub.ini");
-                    var stubTable = TranslationTable.Instance.Clone();
-                    TranslationTable.Instance.MissingTranslationEvent += (sender, e) =>
-                    {
-                        stubTable.Table.Add(e.Label, e.DefaultValue);
-                    };
+                    string stubPath = SafePath.CombineFilePath(
+                        ProgramConstants.ClientUserFilesPath, ClientConfiguration.Instance.TranslationIniName);
 
                     AppDomain.CurrentDomain.ProcessExit += (sender, e) =>
                     {
                         Logger.Log("Writing the translation stub file.");
-                        var ini = stubTable.SaveIni();
+                        var ini = Translation.Instance.DumpIni(UserINISettings.Instance.GenerateOnlyNewValuesInTranslationStub);
                         ini.WriteIniFile(stubPath);
                     };
 
-                    Logger.Log("Generating translation stub feature is now enabled. The stub file will be written when the client exits.");
+                    Logger.Log("Translation stub generation feature is now enabled. The stub file will be written when the client exits.");
+
+                    // Lookup all compile-time available strings
+                    ClientCore.Generated.TranslationNotifier.Register();
+                    ClientGUI.Generated.TranslationNotifier.Register();
+                    DTAConfig.Generated.TranslationNotifier.Register();
+                    DTAClient.Generated.TranslationNotifier.Register();
                 }
             }
             catch (Exception ex)
             {
-                Logger.Log("Failed to generate the translation stub. " + ex.Message);
+                Logger.Log("Failed to generate the translation stub: " + ex.Message);
             }
 
             // Delete obsolete files from old target project versions
@@ -212,17 +229,17 @@ namespace DTAClient
             }
             catch { }
 
-            string error = string.Format("{0} has crashed. Error message:".L10N("UI:Main:FatalErrorText1") + Environment.NewLine + Environment.NewLine +
+            string error = string.Format("{0} has crashed. Error message:".L10N("Client:Main:FatalErrorText1") + Environment.NewLine + Environment.NewLine +
                 ex.Message + Environment.NewLine + Environment.NewLine + (crashLogCopied ?
-                "A crash log has been saved to the following file:".L10N("UI:Main:FatalErrorText2") + " " + Environment.NewLine + Environment.NewLine +
+                "A crash log has been saved to the following file:".L10N("Client:Main:FatalErrorText2") + " " + Environment.NewLine + Environment.NewLine +
                 errorLogPath + Environment.NewLine + Environment.NewLine : "") +
-                (crashLogCopied ? "If the issue is repeatable, contact the {1} staff at {2} and provide the crash log file.".L10N("UI:Main:FatalErrorText3") :
-                "If the issue is repeatable, contact the {1} staff at {2}.".L10N("UI:Main:FatalErrorText4")),
+                (crashLogCopied ? "If the issue is repeatable, contact the {1} staff at {2} and provide the crash log file.".L10N("Client:Main:FatalErrorText3") :
+                "If the issue is repeatable, contact the {1} staff at {2}.".L10N("Client:Main:FatalErrorText4")),
                 MainClientConstants.GAME_NAME_LONG,
                 MainClientConstants.GAME_NAME_SHORT,
                 MainClientConstants.SUPPORT_URL_SHORT);
 
-            ProgramConstants.DisplayErrorAction("KABOOOOOOOM".L10N("UI:Main:FatalErrorTitle"), error, true);
+            ProgramConstants.DisplayErrorAction("KABOOOOOOOM".L10N("Client:Main:FatalErrorTitle"), error, true);
         }
 
         [SupportedOSPlatform("windows")]
@@ -231,12 +248,12 @@ namespace DTAClient
             if (UserHasDirectoryAccessRights(ProgramConstants.GamePath, FileSystemRights.Modify))
                 return;
 
-            string error = string.Format(("You seem to be running {0} from a write-protected directory." + Environment.NewLine + Environment.NewLine +
-                "For {1} to function properly when run from a write-protected directory, it needs administrative priveleges." + Environment.NewLine + Environment.NewLine +
-                "Would you like to restart the client with administrative rights?" + Environment.NewLine + Environment.NewLine +
-                "Please also make sure that your security software isn't blocking {1}.").L10N("UI:Main:AdminRequiredText"), MainClientConstants.GAME_NAME_LONG, MainClientConstants.GAME_NAME_SHORT);
+            string error = string.Format(("You seem to be running {0} from a write-protected directory.\n\n" +
+                "For {1} to function properly when run from a write-protected directory, it needs administrative priveleges.\n\n" +
+                "Would you like to restart the client with administrative rights?\n\n" +
+                "Please also make sure that your security software isn't blocking {1}.").L10N("Client:Main:AdminRequiredText"), MainClientConstants.GAME_NAME_LONG, MainClientConstants.GAME_NAME_SHORT);
 
-            ProgramConstants.DisplayErrorAction("Administrative privileges required".L10N("UI:Main:AdminRequiredTitle"), error, false);
+            ProgramConstants.DisplayErrorAction("Administrative privileges required".L10N("Client:Main:AdminRequiredTitle"), error, false);
 
             using var _ = Process.Start(new ProcessStartInfo
             {

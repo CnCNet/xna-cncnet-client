@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
@@ -35,11 +36,19 @@ namespace DTAClient.Domain.Multiplayer
 
         /// <summary>
         /// A list of game mode aliases.
-        /// Every game mode entry that exists in this dictionary will get 
+        /// Every game mode entry that exists in this dictionary will get
         /// replaced by the game mode entries of the value string array
         /// when map is added to game mode map lists.
         /// </summary>
         private Dictionary<string, string[]> GameModeAliases = new Dictionary<string, string[]>();
+
+        private Dictionary<string, string> _translatedMapNames = new();
+
+        /// <summary>
+        /// A dictionary of translated map names. Used to look up the 
+        /// translated name of a map without knowing the ID of the map.
+        /// </summary>
+        public IReadOnlyDictionary<string, string> TranslatedMapNames => _translatedMapNames;
 
         /// <summary>
         /// List of gamemodes allowed to be used on custom maps in order for them to display in map list.
@@ -108,6 +117,7 @@ namespace DTAClient.Domain.Multiplayer
             foreach (Map map in maps)
             {
                 AddMapToGameModes(map, false);
+                _translatedMapNames[map.UntranslatedName] = map.Name;
             }
         }
 
@@ -290,7 +300,7 @@ namespace DTAClient.Domain.Multiplayer
 
         public void DeleteCustomMap(GameModeMap gameModeMap)
         {
-            Logger.Log("Deleting map " + gameModeMap.Map.Name);
+            Logger.Log("Deleting map " + gameModeMap.Map.UntranslatedName);
             File.Delete(gameModeMap.Map.CompleteFilePath);
             foreach (GameMode gameMode in GameModeMaps.GameModes)
             {
@@ -326,7 +336,7 @@ namespace DTAClient.Domain.Multiplayer
 
                     gm.Maps.Add(map);
                     if (enableLogging)
-                        Logger.Log("AddMapToGameModes: Added map " + map.Name + " to game mode " + gm.Name);
+                        Logger.Log("AddMapToGameModes: Added map " + map.UntranslatedName + " to game mode " + gm.Name);
                 }
             }
         }

@@ -1,6 +1,6 @@
 ﻿using ClientCore;
 using ClientGUI;
-using Localization;
+using ClientCore.Extensions;
 using Microsoft.Xna.Framework;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
@@ -27,7 +27,7 @@ namespace DTAClient.DXGUI.Generic
             lblDescription.X = UIDesignConstants.EMPTY_SPACE_SIDES;
             lblDescription.Y = UIDesignConstants.EMPTY_SPACE_TOP;
             lblDescription.Text = Renderer.FixText(
-                "By using the client you agree to the CnCNet Terms & Conditions as well as the CnCNet Privacy Policy. Privacy-related options can be configured in the client options.".L10N("UI:Main:TOSText"),
+                "By using the client you agree to the CnCNet Terms & Conditions as well as the CnCNet Privacy Policy. Privacy-related options can be configured in the client options.".L10N("Client:Main:TOSText"),
                 lblDescription.FontIndex, WindowManager.RenderResolutionX - (UIDesignConstants.EMPTY_SPACE_SIDES * 2)).Text;
             AddChild(lblDescription);
 
@@ -35,7 +35,7 @@ namespace DTAClient.DXGUI.Generic
             lblMoreInformation.Name = nameof(lblMoreInformation);
             lblMoreInformation.X = lblDescription.X;
             lblMoreInformation.Y = lblDescription.Bottom + UIDesignConstants.CONTROL_VERTICAL_MARGIN;
-            lblMoreInformation.Text = "More information:".L10N("UI:Main:TOSMoreInfo")+ " ";
+            lblMoreInformation.Text = "More information:".L10N("Client:Main:TOSMoreInfo")+ " ";
             AddChild(lblMoreInformation);
 
             var lblTermsAndConditions = new XNALinkLabel(WindowManager);
@@ -58,7 +58,7 @@ namespace DTAClient.DXGUI.Generic
             lblExplanation.Name = nameof(lblExplanation);
             lblExplanation.X = UIDesignConstants.EMPTY_SPACE_SIDES;
             lblExplanation.Y = lblMoreInformation.Bottom + UIDesignConstants.CONTROL_VERTICAL_MARGIN * 2;
-            lblExplanation.Text = "No worries, we're not actually using your data for anything evil, but we have to display this message due to regulations.".L10N("UI:Main:TOSExplanation");
+            lblExplanation.Text = "No worries, we're not actually using your data for anything evil, but we have to display this message due to regulations.".L10N("Client:Main:TOSExplanation");
             lblExplanation.TextColor = UISettings.ActiveSettings.SubtleTextColor;
             AddChild(lblExplanation);
 
@@ -67,7 +67,7 @@ namespace DTAClient.DXGUI.Generic
             btnOK.Width = 75;
             btnOK.Y = lblExplanation.Y;
             btnOK.X = WindowManager.RenderResolutionX - btnOK.Width - UIDesignConstants.CONTROL_HORIZONTAL_MARGIN;
-            btnOK.Text = "Got it".L10N("UI:Main:TOSButtonOK");
+            btnOK.Text = "Got it".L10N("Client:Main:TOSButtonOK");
             AddChild(btnOK);
             btnOK.LeftClick += (s, e) => 
             {

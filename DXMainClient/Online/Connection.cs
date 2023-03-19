@@ -1,5 +1,5 @@
 ﻿using ClientCore;
-using Localization;
+using ClientCore.Extensions;
 using Rampastring.Tools;
 using System;
 using System.Collections.Generic;
@@ -142,7 +142,7 @@ namespace DTAClient.Online
         public void ConnectAsync()
         {
             if (_isConnected)
-                throw new InvalidOperationException("The client is already connected!".L10N("UI:Main:ClientAlreadyConnected"));
+                throw new InvalidOperationException("The client is already connected!");
 
             if (_attemptingConnection)
                 return; // Maybe we should throw in this case as well?
@@ -260,7 +260,7 @@ namespace DTAClient.Online
                         const string errorMessage = "Disconnected from CnCNet after reaching the maximum number of connection retries.";
                         Logger.Log(errorMessage);
                         failedServerIPs.Add(currentConnectedServerIP);
-                        connectionManager.OnConnectionLost(errorMessage.L10N("UI:Main:ClientDisconnectedAfterRetries"));
+                        connectionManager.OnConnectionLost(errorMessage.L10N("Client:Main:ClientDisconnectedAfterRetries"));
                         break;
                     }
 

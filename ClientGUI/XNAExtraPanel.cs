@@ -17,7 +17,7 @@ namespace ClientGUI
             DrawBorders = false;
         }
 
-        public override void ParseAttributeFromINI(IniFile iniFile, string key, string value)
+        protected override void ParseControlINIAttribute(IniFile iniFile, string key, string value)
         {
             if (key == "BackgroundTexture")
             {
@@ -32,7 +32,7 @@ namespace ClientGUI
                 return;
             }
 
-            base.ParseAttributeFromINI(iniFile, key, value);
+            base.ParseControlINIAttribute(iniFile, key, value);
         }
     }
 }

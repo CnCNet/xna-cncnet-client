@@ -22,12 +22,14 @@ $X=MY_EXAMPLE_CONSTANT
 ```
 _NOTE: Constants can only be used in [dynamic control properties](#dynamic-control-properties)_
 
-## Control properties: 
+## Control properties
 Below lists basic and dynamic control properties. Ordering of properties is important. If there is a property that relies on the size of a control, the properties must set the size of that control first.
 
+> **Note**
+> Multi-line strings use `@` as a line break. To write the real `@` character, use `\@`. Also as INI syntax uses `;` to denote comments, use `\semicolon` to write the real `;` character.
 
 ### Basic Control Properties
-Basic control properties cannot use constants
+Basic control properties cannot use constants.
 
 #### XNAControl
 
@@ -37,7 +39,7 @@ Basic control properties cannot use constants
 `Width` = `{integer}` the Width of the control  
 `Height` = `{integer}` the Height of the control  
 `Size` = `{comma separated integers}` the Width and Height of the control.  
-`Text` = `{string}` the text to display for the control (ex: buttons, labels, etc...)  
+`Text` = `{multi-line string}` the text to display for the control (ex: buttons, labels, etc...)  
 `Visible` = `{true/false or yes/no}` whether or not the control should be visible by default  
 `Enabled` = `{true/false or yes/no}` whether or not the control should be enabled by default  
 `DistanceFromRightBorder` = `{integer}` the distance of the right edge of this control from the right edge of its parent. This control MUST have a parent.  
@@ -97,7 +99,7 @@ _(inherits XNAButton)_
 _(inherits XNAClientButton)_
 
 `URL`  
-`ToolTip` = {string} tooltip for checkbox. '@' can be used for newlines  
+`ToolTip` = `{multi-line string}` tooltip for checkbox
 
 #### XNACheckbox
 _(inherits XNAControl)_
@@ -112,7 +114,7 @@ _(inherits XNAControl)_
 #### XNAClientCheckbox
 _(inherits XNACheckBox)_
 
-`ToolTip` = {string} tooltip for checkbox. '@' can be used for newlines
+`ToolTip` = `{multi-line string}` tooltip for checkbox
 
 #### XNADropDown
 _(inherits XNAControl)_
@@ -132,7 +134,7 @@ _(inherits XNAControl)_
 #### XNAClientDropDown
 _(inherits XNADropDown)_
 
-`ToolTip` = {string} tooltip for checkbox. '@' can be used for newlines  
+`ToolTip` = `{multi-line string}` tooltip for checkbox 
 
 #### XNATabControl
 _(inherits XNAControl)_

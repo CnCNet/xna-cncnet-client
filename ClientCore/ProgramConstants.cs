@@ -1,10 +1,10 @@
-﻿using Localization;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Reflection;
 using Rampastring.Tools;
+using ClientCore.Extensions;
 
 namespace ClientCore
 {
@@ -41,6 +41,19 @@ namespace ClientCore
         public const string SPAWNMAP_INI = "spawnmap.ini";
         public const string SPAWNER_SETTINGS = "spawn.ini";
         public const string SAVED_GAME_SPAWN_INI = "Saved Games/spawnSG.ini";
+
+        /// <summary>
+        /// The locale code that corresponds to the language the hardcoded client strings are in.
+        /// </summary>
+        public const string HARDCODED_LOCALE_CODE = "en";
+
+        /// <summary>
+        /// Used to denote <see cref="Environment.NewLine"/> in the INI files.
+        /// </summary>
+        /// <remarks>
+        /// Historically Westwood used '@' for this purpose, so we keep it for compatibility.
+        /// </remarks>
+        public const string INI_NEWLINE_PATTERN = "@";
 
         public const int GAME_ID_MAX_LENGTH = 4;
 
@@ -92,7 +105,7 @@ namespace ClientCore
         public static readonly List<string> TEAMS = new List<string> { "A", "B", "C", "D" };
 
         // Static fields might be initialized before the translation file is loaded. Change to readonly properties here.
-        public static List<string> AI_PLAYER_NAMES => new List<string> { "Easy AI".L10N("UI:Main:EasyAIName"), "Medium AI".L10N("UI:Main:MediumAIName"), "Hard AI".L10N("UI:Main:HardAIName") };
+        public static List<string> AI_PLAYER_NAMES => new List<string> { "Easy AI".L10N("Client:Main:EasyAIName"), "Medium AI".L10N("Client:Main:MediumAIName"), "Hard AI".L10N("Client:Main:HardAIName") };
 
         public static string LogFileName { get; set; }
 
