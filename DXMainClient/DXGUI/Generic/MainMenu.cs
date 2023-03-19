@@ -997,6 +997,7 @@ namespace DTAClient.DXGUI.Generic
         {
             Logger.Log("Exiting.");
             WindowManager.CloseGame();
+            themeSong?.Dispose();
 #if !XNA
             Thread.Sleep(1000);
             Environment.Exit(0);

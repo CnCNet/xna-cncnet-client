@@ -45,7 +45,7 @@ namespace DTAConfig.OptionPanels
             lblScoreVolumeValue = new XNALabel(WindowManager);
             lblScoreVolumeValue.Name = "lblScoreVolumeValue";
             lblScoreVolumeValue.FontIndex = 1;
-            lblScoreVolumeValue.Text = "10";
+            lblScoreVolumeValue.Text = "0";
             lblScoreVolumeValue.ClientRectangle = new Rectangle(
                 Width - lblScoreVolumeValue.Width - 12,
                 lblScoreVolume.Y, 0, 0);
@@ -71,7 +71,7 @@ namespace DTAConfig.OptionPanels
             lblSoundVolumeValue = new XNALabel(WindowManager);
             lblSoundVolumeValue.Name = "lblSoundVolumeValue";
             lblSoundVolumeValue.FontIndex = 1;
-            lblSoundVolumeValue.Text = "10";
+            lblSoundVolumeValue.Text = "0";
             lblSoundVolumeValue.ClientRectangle = new Rectangle(
                 lblScoreVolumeValue.X,
                 lblSoundVolume.Y, 0, 0);
@@ -97,7 +97,7 @@ namespace DTAConfig.OptionPanels
             lblVoiceVolumeValue = new XNALabel(WindowManager);
             lblVoiceVolumeValue.Name = "lblVoiceVolumeValue";
             lblVoiceVolumeValue.FontIndex = 1;
-            lblVoiceVolumeValue.Text = "10";
+            lblVoiceVolumeValue.Text = "0";
             lblVoiceVolumeValue.ClientRectangle = new Rectangle(
                 lblScoreVolumeValue.X,
                 lblVoiceVolume.Y, 0, 0);
@@ -130,7 +130,7 @@ namespace DTAConfig.OptionPanels
             lblClientVolumeValue = new XNALabel(WindowManager);
             lblClientVolumeValue.Name = "lblClientVolumeValue";
             lblClientVolumeValue.FontIndex = 1;
-            lblClientVolumeValue.Text = "10";
+            lblClientVolumeValue.Text = "0";
             lblClientVolumeValue.ClientRectangle = new Rectangle(
                 lblScoreVolumeValue.X,
                 lblClientVolume.Y, 0, 0);
