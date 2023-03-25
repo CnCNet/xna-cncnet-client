@@ -61,15 +61,14 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             {
                 case "Items":
                     string[] items = value.Split(',');
-                    string[] itemlabels = iniFile.GetStringValue(Name, "ItemLabels", "").Split(',');
+                    string[] itemLabels = iniFile.GetStringValue(Name, "ItemLabels", "").Split(',');
                     for (int i = 0; i < items.Length; i++)
                     {
-                        bool hasLabel = itemlabels.Length > i && !string.IsNullOrEmpty(itemlabels[i]);
-                        XNADropDownItem item = new XNADropDownItem
+                        bool hasLabel = itemLabels.Length > i && !string.IsNullOrEmpty(itemLabels[i]);
+                        XNADropDownItem item = new()
                         {
                             Text = Localize(this, $"Item{i}",
-                                hasLabel ? itemlabels[i] : items[i],
-                                notify: hasLabel),
+                                hasLabel ? itemLabels[i] : items[i]),
                             Tag = items[i],
                         };
                         AddItem(item);
