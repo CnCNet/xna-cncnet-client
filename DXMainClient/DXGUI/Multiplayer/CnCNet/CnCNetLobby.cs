@@ -801,7 +801,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 return string.Format("The selected game is for {0}!".L10N("Client:Main:GameIsOfPurpose"), gameCollection.GetGameNameFromInternalName(hg.Game.InternalName));
 
             if (hg.Incompatible && ClientConfiguration.Instance.DisallowJoiningIncompatibleGames)
-                return "Cannot join game. The host is on a different game version than you.".L10N("UI:Main:DisallowJoiningIncompatibleGames");
+                return "Cannot join game. The host is on a different game version than you.".L10N("Client:Main:DisallowJoiningIncompatibleGames");
 
             if (hg.Locked)
                 return "The selected game is locked!".L10N("Client:Main:GameLocked");
