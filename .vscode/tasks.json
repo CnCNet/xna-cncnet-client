@@ -1,0 +1,56 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Build",
+      "command": "dotnet",
+      "type": "process",
+      "args": [
+        "build",
+        "${workspaceFolder}",
+        "--configuration=${input:Game}${input:Engine}${input:Configuration}",
+        "--property:BuildingInsideVisualStudio=true"
+      ],
+      "problemMatcher": "$msCompile",
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      }
+    }
+  ],
+  "inputs": [
+    {
+      "id": "Configuration",
+      "description": "The configuration to build for.",
+      "type": "pickString",
+      "default": "Debug",
+      "options": [
+        "Debug",
+        "Release"
+      ]
+    },
+    {
+      "id": "Game",
+      "description": "The Game to build for.",
+      "type": "pickString",
+      "default": "Ares",
+      "options": [
+        "Ares",
+        "TS",
+        "YR"
+      ]
+    },
+    {
+      "id": "Engine",
+      "description": "The Engine to build for.",
+      "type": "pickString",
+      "default": "WindowsDX",
+      "options": [
+        "UniversalGL",
+        "WindowsDX",
+        "WindowsGL",
+        "WindowsXNA"
+      ]
+    }
+  ]
+}

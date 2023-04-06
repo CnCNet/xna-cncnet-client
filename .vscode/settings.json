@@ -1,0 +1,4 @@
+{
+  "omnisharp.useModernNet": true,
+  "omnisharp.defaultLaunchSolution": "DXClient.sln"
+}

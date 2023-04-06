@@ -1,0 +1,137 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Launch Ares UniversalGL Debug",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "Build",
+      "program": "${workspaceFolder}/DXMainClient/bin/Debug/Ares/UniversalGL/net7.0/clientdx.dll",
+      "args": [],
+      "cwd": "${workspaceFolder}/DXMainClient",
+      "console": "internalConsole",
+      "stopAtEntry": false
+    },
+    {
+      "name": "Launch Ares WindowsDX Debug",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "Build",
+      "program": "${workspaceFolder}/DXMainClient/bin/Debug/Ares/WindowsDX/net7.0-windows/clientdx.dll",
+      "args": [],
+      "cwd": "${workspaceFolder}/DXMainClient",
+      "console": "internalConsole",
+      "stopAtEntry": false
+    },
+    {
+      "name": "Launch Ares WindowsGL Debug",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "Build",
+      "program": "${workspaceFolder}/DXMainClient/bin/Debug/Ares/WindowsGL/net7.0-windows/clientdx.dll",
+      "args": [],
+      "cwd": "${workspaceFolder}/DXMainClient",
+      "console": "internalConsole",
+      "stopAtEntry": false
+    },
+    {
+      "name": "Launch Ares WindowsXNA Debug",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "Build",
+      "program": "${workspaceFolder}/DXMainClient/bin/Debug/Ares/WindowsXNA/net7.0-windows/clientdx.dll",
+      "args": [],
+      "cwd": "${workspaceFolder}/DXMainClient",
+      "console": "internalConsole",
+      "stopAtEntry": false
+    },
+    {
+      "name": "Launch TS UniversalGL Debug",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "Build",
+      "program": "${workspaceFolder}/DXMainClient/bin/Debug/TS/UniversalGL/net7.0/clientdx.dll",
+      "args": [],
+      "cwd": "${workspaceFolder}/DXMainClient",
+      "console": "internalConsole",
+      "stopAtEntry": false
+    },
+    {
+      "name": "Launch TS WindowsDX Debug",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "Build",
+      "program": "${workspaceFolder}/DXMainClient/bin/Debug/TS/WindowsDX/net7.0-windows/clientdx.dll",
+      "args": [],
+      "cwd": "${workspaceFolder}/DXMainClient",
+      "console": "internalConsole",
+      "stopAtEntry": false
+    },
+    {
+      "name": "Launch TS WindowsGL Debug",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "Build",
+      "program": "${workspaceFolder}/DXMainClient/bin/Debug/TS/WindowsGL/net7.0-windows/clientdx.dll",
+      "args": [],
+      "cwd": "${workspaceFolder}/DXMainClient",
+      "console": "internalConsole",
+      "stopAtEntry": false
+    },
+    {
+      "name": "Launch TS WindowsXNA Debug",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "Build",
+      "program": "${workspaceFolder}/DXMainClient/bin/Debug/TS/WindowsXNA/net7.0-windows/clientdx.dll",
+      "args": [],
+      "cwd": "${workspaceFolder}/DXMainClient",
+      "console": "internalConsole",
+      "stopAtEntry": false
+    },
+    {
+      "name": "Launch YR UniversalGL Debug",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "Build",
+      "program": "${workspaceFolder}/DXMainClient/bin/Debug/YR/UniversalGL/net7.0/clientdx.dll",
+      "args": [],
+      "cwd": "${workspaceFolder}/DXMainClient",
+      "console": "internalConsole",
+      "stopAtEntry": false
+    },
+    {
+      "name": "Launch YR WindowsDX Debug",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "Build",
+      "program": "${workspaceFolder}/DXMainClient/bin/Debug/YR/WindowsDX/net7.0-windows/clientdx.dll",
+      "args": [],
+      "cwd": "${workspaceFolder}/DXMainClient",
+      "console": "internalConsole",
+      "stopAtEntry": false
+    },
+    {
+      "name": "Launch YR WindowsGL Debug",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "Build",
+      "program": "${workspaceFolder}/DXMainClient/bin/Debug/YR/WindowsGL/net7.0-windows/clientdx.dll",
+      "args": [],
+      "cwd": "${workspaceFolder}/DXMainClient",
+      "console": "internalConsole",
+      "stopAtEntry": false
+    },
+    {
+      "name": "Launch YR WindowsXNA Debug",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "Build",
+      "program": "${workspaceFolder}/DXMainClient/bin/Debug/YR/WindowsXNA/net7.0-windows/clientdx.dll",
+      "args": [],
+      "cwd": "${workspaceFolder}/DXMainClient",
+      "console": "internalConsole",
+      "stopAtEntry": false
+    },
+  ]
+}

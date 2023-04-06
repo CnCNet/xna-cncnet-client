@@ -1,0 +1,6 @@
+{
+  "msbuild": {
+    "Configuration": "AresUniversalGLDebug",
+    "Platform": "AnyCPU"
+  }
+}
