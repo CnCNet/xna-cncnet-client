@@ -136,20 +136,25 @@ namespace DTAClient.Online
             }
 
             // Add the hashes for each checked file from the available translations
-            DirectoryInfo translationsFolderPath = SafePath.GetDirectory(ClientConfiguration.Instance.TranslationsFolderPath);
-            List<TranslationGameFile> translationGameFiles = ClientConfiguration.Instance.TranslationGameFiles
-                .Where(tgf => tgf.Checked).ToList();
 
-            foreach (DirectoryInfo translationFolder in translationsFolderPath.EnumerateDirectories())
+            if (Directory.Exists(ClientConfiguration.Instance.TranslationsFolderPath))
             {
-                foreach (TranslationGameFile tgf in translationGameFiles)
+                DirectoryInfo translationsFolderPath = SafePath.GetDirectory(ClientConfiguration.Instance.TranslationsFolderPath);
+
+                List<TranslationGameFile> translationGameFiles = ClientConfiguration.Instance.TranslationGameFiles
+                    .Where(tgf => tgf.Checked).ToList();
+
+                foreach (DirectoryInfo translationFolder in translationsFolderPath.EnumerateDirectories())
                 {
-                    string filePath = SafePath.CombineFilePath(translationFolder.FullName, tgf.Source);
-                    if (File.Exists(filePath))
+                    foreach (TranslationGameFile tgf in translationGameFiles)
                     {
-                        string sha1 = Utilities.CalculateSHA1ForFile(filePath);
-                        fh.INIHashes += sha1;
-                        Logger.Log("Hash for " + Path.GetRelativePath(ProgramConstants.GamePath, filePath) + ": " + sha1);
+                        string filePath = SafePath.CombineFilePath(translationFolder.FullName, tgf.Source);
+                        if (File.Exists(filePath))
+                        {
+                            string sha1 = Utilities.CalculateSHA1ForFile(filePath);
+                            fh.INIHashes += sha1;
+                            Logger.Log("Hash for " + Path.GetRelativePath(ProgramConstants.GamePath, filePath) + ": " + sha1);
+                        }
                     }
                 }
             }
