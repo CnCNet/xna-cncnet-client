@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Reflection;
+#if WINFORMS
+using System.Windows.Forms;
+#endif
 using Rampastring.Tools;
 using ClientCore.Extensions;
 
