@@ -27,7 +27,7 @@ namespace DTAClient.DXGUI.Generic
             lblDescription.X = UIDesignConstants.EMPTY_SPACE_SIDES;
             lblDescription.Y = UIDesignConstants.EMPTY_SPACE_TOP;
             lblDescription.Text = Renderer.FixText(
-                "By using the client you agree to the CnCNet Terms & Conditions as well as the CnCNet Privacy Policy. Privacy-related options can be configured in the client options.".L10N("Client:Main:TOSText"),
+                "This application makes use of CnCNet web & tunnel server services and is subject to collection of technical & other necessary information through them.".L10N("Client:Main:TOSText"),
                 lblDescription.FontIndex, WindowManager.RenderResolutionX - (UIDesignConstants.EMPTY_SPACE_SIDES * 2)).Text;
             AddChild(lblDescription);
 
@@ -58,7 +58,7 @@ namespace DTAClient.DXGUI.Generic
             lblExplanation.Name = nameof(lblExplanation);
             lblExplanation.X = UIDesignConstants.EMPTY_SPACE_SIDES;
             lblExplanation.Y = lblMoreInformation.Bottom + UIDesignConstants.CONTROL_VERTICAL_MARGIN * 2;
-            lblExplanation.Text = "No worries, we're not actually using your data for anything evil, but we have to display this message due to regulations.".L10N("Client:Main:TOSExplanation");
+            lblExplanation.Text = "By using this application you agree to the CnCNet Terms & Conditions as well as the CnCNet Privacy Policy. Privacy-related options can be configured in the client settings.".L10N("Client:Main:TOSExplanation");
             lblExplanation.TextColor = UISettings.ActiveSettings.SubtleTextColor;
             AddChild(lblExplanation);
 
