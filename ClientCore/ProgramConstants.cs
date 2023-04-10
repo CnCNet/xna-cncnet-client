@@ -115,7 +115,11 @@ namespace ClientCore
         public static Action<string, string, bool> DisplayErrorAction { get; set; } = (title, error, exit) =>
         {
             Logger.Log(FormattableString.Invariant($"{(title is null ? null : title + Environment.NewLine + Environment.NewLine)}{error}"));
+#if WINFORMS
+            MessageBox.Show(error, title, MessageBoxButtons.OK);
+#else
             ProcessLauncher.StartShellProcess(LogFileName);
+#endif
 
             if (exit)
                 Environment.Exit(1);
