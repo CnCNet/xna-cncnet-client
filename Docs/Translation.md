@@ -73,7 +73,7 @@ Each key in the `[Values]` section is composed of a few elements, joined using `
 - `Client` - the client's built-in text strings.
   - The 2nd and 3rd parts usually denote the string's "namespace" or category and the string's name, respectively, and are chosen arbitrarily by the developers.
 - `INI` - the INI-defined values.
-  -`Controls` the control
+  - `Controls` - denotes all INI-defined control values.
     - `[parent control name]` - the name of the parent control of the control that the value is defined for. Specifying `Global` instead of the parent name allows to specify identical translated value for all instances of the control regardless of the parent (parent-specific definition overrides this still though)
       - `[control name]` - the name of the control that the value is defined for.
 	      - `[attribute name]` - the name of the attribute that is being translated. Currently supported:
