@@ -65,7 +65,7 @@ Some:Key=Some Value  ; string, see below for explanation
 Examples:
 ```ini
 INI:Missions:GDIFS:Description=Act 1: GDI Campaign - Desperate Measures
-INI:GameOptionsPanel:chkBlackChatBackground:Text=Dark Chat Background
+INI:Controls:GameOptionsPanel:chkBlackChatBackground:Text=Dark Chat Background
 Client:DTAConfig:FriendsOnly=Only receive game invitations from friends
 ```
 
@@ -73,15 +73,16 @@ Each key in the `[Values]` section is composed of a few elements, joined using `
 - `Client` - the client's built-in text strings.
   - The 2nd and 3rd parts usually denote the string's "namespace" or category and the string's name, respectively, and are chosen arbitrarily by the developers.
 - `INI` - the INI-defined values.
-  - `[parent control name]` - the name of the parent control of the control that the value is defined for. Specifying `Global` instead of the parent name allows to specify identical translated value for all instances of the control regardless of the parent (parent-specific definition overrides this still though)
-    - `[control name]` - the name of the control that the value is defined for.
-	    - `[attribute name]` - the name of the attribute that is being translated. Currently supported:
-        - `Text`, `Size`, `Width`, `Height`, `Location`, `X`, `Y`, `DistanceFromRightBorder`, `DistanceFromBottomBorder` for every control;
-        - `ToolTip` for controls with tooltip;
-        - `Suggestion` for suggestion text boxes;
-        - `ItemX` (where X) for setting/game options dropdowns;
-        - `OptionName` for game option dropdowns;
-        - `$X`, `$Y`, `$Width`, `$Height` for INItializable window system.
+  - `Controls` - denotes all INI-defined control values.
+    - `[parent control name]` - the name of the parent control of the control that the value is defined for. Specifying `Global` instead of the parent name allows to specify identical translated value for all instances of the control regardless of the parent (parent-specific definition overrides this still though)
+      - `[control name]` - the name of the control that the value is defined for.
+	      - `[attribute name]` - the name of the attribute that is being translated. Currently supported:
+          - `Text`, `Size`, `Width`, `Height`, `Location`, `X`, `Y`, `DistanceFromRightBorder`, `DistanceFromBottomBorder` for every control;
+          - `ToolTip` for controls with tooltip;
+          - `Suggestion` for suggestion text boxes;
+          - `ItemX` (where X) for setting/game options dropdowns;
+          - `OptionName` for game option dropdowns;
+          - `$X`, `$Y`, `$Width`, `$Height` for INItializable window system.
   - `Sides` - subcategory for the game's/mod's side names.
   - `Colors` - subcategory for the game's/mod's color names.
   - `Themes` - subcategory for the game's/mod's theme names.
