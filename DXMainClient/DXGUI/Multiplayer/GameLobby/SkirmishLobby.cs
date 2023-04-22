@@ -499,5 +499,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             MapPreviewBox.EnableContextMenu = !((Map != null && Map.ForceRandomStartLocations) || (GameMode != null && GameMode.ForceRandomStartLocations) || GetPlayerExtraOptions().IsForceRandomStarts);
             MapPreviewBox.EnableStartLocationSelection = MapPreviewBox.EnableContextMenu;
         }
+
+        protected override bool UpdateLaunchGameButtonStatus()
+        {
+            btnLaunchGame.Enabled = base.UpdateLaunchGameButtonStatus() && GameMode != null && Map != null;
+            return btnLaunchGame.Enabled;
+        }
     }
 }
