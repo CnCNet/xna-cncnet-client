@@ -18,7 +18,7 @@ namespace DTAConfig.Settings
         /// A path where the files edited by user are saved if
         /// <see cref="FileOperationOptions"/> is set to <see cref="FileOperationOptions.KeepChanges"/>.
         /// </summary>
-        public string CachedPath => SafePath.CombineDirectoryPath(ProgramConstants.ClientUserFilesPath, "SettingsCache", sourcePath);
+        public string CachedPath => SafePath.CombineFilePath(ProgramConstants.ClientUserFilesPath, "SettingsCache", sourcePath);
 
         public FileOperationOptions FileOperationOptions { get; }
 
