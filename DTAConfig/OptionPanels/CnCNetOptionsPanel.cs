@@ -9,7 +9,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using ClientCore.Enums;
-using ClientCore.Extensions;
 
 namespace DTAConfig.OptionPanels
 {
@@ -238,21 +237,23 @@ namespace DTAConfig.OptionPanels
                 .Select(game =>
                 {
                     var gameIconPanel = new XNAPanel(WindowManager);
-                    gameIconPanel.Name = "panel" + game.InternalName;
+                    gameIconPanel.Name = "gameIcon" + game.InternalName.ToUpperInvariant();
                     gameIconPanel.ClientRectangle = new Rectangle(0, 0, gameIconWidth, gameIconWidth);
                     gameIconPanel.DrawBorders = false;
                     gameIconPanel.BackgroundTexture = game.Texture;
 
                     var gameChkBox = new XNAClientCheckBox(WindowManager);
-                    gameChkBox.Name = game.InternalName.ToUpper();
+                    gameChkBox.Name = game.InternalName.ToUpperInvariant();
                     gameChkBox.ClientRectangle = new Rectangle(gameIconPanel.Right + gameIconBuffer, 0, 0, 0);
                     gameChkBox.Text = game.UIName;
 
                     var gamePanel = new XNAPanel(WindowManager);
-                    gamePanel.DrawBorders = false;
-                    gamePanel.ClientRectangle = new Rectangle(lblFollowedGames.X, 0, gameIconPanel.Width + gameChkBox.Width + gameIconBuffer, gameIconPanel.Height);
                     gamePanel.AddChild(gameIconPanel);
                     gamePanel.AddChild(gameChkBox);
+                    gamePanel.Name = "gamePanel" + game.InternalName.ToUpperInvariant();
+                    gamePanel.DrawBorders = false;
+                    gamePanel.ClientRectangle = new Rectangle(lblFollowedGames.X, 0, gameIconPanel.Width + gameChkBox.Width + gameIconBuffer, gameIconPanel.Height);
+
                     followedGameChks.Add(gameChkBox);
                     return gamePanel;
                 })
@@ -271,7 +272,6 @@ namespace DTAConfig.OptionPanels
                 List<XNAPanel> gamePanelColumn = gamePanelMatrix[col];
                 for (int row = 0; row < gamePanelColumn.Count; row++)
                 {
-
                     int columnOffset = columnWidths.Take(col).Sum();
                     int rowOffset = startY + row * rowBuffer;
                     XNAPanel gamePanel = gamePanelColumn[row];
@@ -322,7 +322,7 @@ namespace DTAConfig.OptionPanels
 
             chkAllowGameInvitesFromFriendsOnly.Checked = IniSettings.AllowGameInvitesFromFriendsOnly;
 
-            string localGame = ClientConfiguration.Instance.LocalGame;
+            string localGame = ClientConfiguration.Instance.LocalGame.ToUpperInvariant();
 
             foreach (var chkBox in followedGameChks)
             {
