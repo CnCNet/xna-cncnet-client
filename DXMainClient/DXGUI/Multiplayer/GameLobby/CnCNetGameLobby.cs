@@ -158,6 +158,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         /// </summary>
         private string lastGameMode;
 
+        /// <summary>
+        /// Set to true if host has selected invalid tunnel server.
+        /// </summary>
+        private bool tunnelErrorMode;
+
         public override void Initialize()
         {
             IniNameOverride = nameof(CnCNetGameLobby);
@@ -941,6 +946,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
                     pInfo.Ready = readyStatus > 0;
                     pInfo.AutoReady = readyStatus > 1;
+
                     if (pInfo.Name == ProgramConstants.PLAYERNAME)
                         btnLaunchGame.Text = pInfo.Ready ? BTN_LAUNCH_NOT_READY : BTN_LAUNCH_READY;
 
@@ -1557,16 +1563,18 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             CnCNetTunnel tunnel = tunnelHandler.Tunnels.Find(t => t.Address == tunnelAddress && t.Port == tunnelPort);
             if (tunnel == null)
             {
+                tunnelErrorMode = true;
                 AddNotice(("The game host has selected an invalid tunnel server! " +
                     "The game host needs to change the server or you will be unable " +
                     "to participate in the match.").L10N("Client:Main:HostInvalidTunnel"),
                     Color.Yellow);
-                btnLaunchGame.AllowClick = false;
+                UpdateLaunchGameButtonStatus();
                 return;
             }
 
+            tunnelErrorMode = false;
             HandleTunnelServerChange(tunnel);
-            btnLaunchGame.AllowClick = true;
+            UpdateLaunchGameButtonStatus();
         }
 
         /// <summary>
@@ -1578,6 +1586,12 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             tunnelHandler.CurrentTunnel = tunnel;
             AddNotice(string.Format("The game host has changed the tunnel server to: {0}".L10N("Client:Main:HostChangeTunnel"), tunnel.Name));
             UpdatePing();
+        }
+
+        protected override bool UpdateLaunchGameButtonStatus()
+        {
+            btnLaunchGame.Enabled = base.UpdateLaunchGameButtonStatus() && !tunnelErrorMode;
+            return btnLaunchGame.Enabled;
         }
 
         #region CnCNet map sharing

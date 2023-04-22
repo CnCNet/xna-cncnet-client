@@ -2057,6 +2057,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             GameModeMap = gameModeMap;
 
+            _ = UpdateLaunchGameButtonStatus();
+
             if (GameMode == null || Map == null)
             {
                 lblMapName.Text = "Map: Unknown".L10N("Client:Main:MapUnknown");
@@ -2453,6 +2455,15 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             disableGameOptionUpdateBroadcast = false;
             OnGameOptionChanged();
+            return true;
+        }
+
+        /// <summary>
+        /// Checks if launch game button can stay enabled or not and updates the state accordingly.
+        /// </summary>
+        /// <returns>True if launch game button is enabled, false if not.</returns>
+        protected virtual bool UpdateLaunchGameButtonStatus()
+        {
             return true;
         }
 

@@ -382,7 +382,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private void ChkAutoReady_CheckedChanged(object sender, EventArgs e)
         {
-            btnLaunchGame.Enabled = !chkAutoReady.Checked;
+            UpdateLaunchGameButtonStatus();
             RequestReadyStatus();
         }
 
@@ -391,7 +391,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             chkAutoReady.CheckedChanged -= ChkAutoReady_CheckedChanged;
             chkAutoReady.Checked = false;
             chkAutoReady.CheckedChanged += ChkAutoReady_CheckedChanged;
-            btnLaunchGame.Enabled = true;
+            UpdateLaunchGameButtonStatus();
         }
 
         private void SetFrameSendRate(string value)
@@ -1165,6 +1165,16 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 MapPreviewBox.EnableContextMenu = IsHost;
                 MapPreviewBox.EnableStartLocationSelection = true;
             }
+        }
+
+        protected override bool UpdateLaunchGameButtonStatus()
+        {
+            if (IsHost)
+                btnLaunchGame.Enabled = base.UpdateLaunchGameButtonStatus() && GameMode != null && Map != null;
+            else
+                btnLaunchGame.Enabled = base.UpdateLaunchGameButtonStatus() && !chkAutoReady.Checked;
+
+            return btnLaunchGame.Enabled;
         }
     }
 }
