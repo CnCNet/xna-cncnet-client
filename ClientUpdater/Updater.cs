@@ -1225,7 +1225,7 @@ public static class Updater
                     if (updaterDirectoryInfo.Exists)
                         versionFileTemp.MoveTo(SafePath.CombineFilePath(updaterDirectoryInfo.FullName, VERSION_FILE));
                     else
-                        versionFileTemp.MoveTo(SafePath.CombineFilePath(GamePath, VERSION_FILE));
+                        versionFileTemp.MoveTo(SafePath.CombineFilePath(GamePath, VERSION_FILE), true);
 
                     FileInfo themeFileInfo = SafePath.GetFile(GamePath, "Theme_c.ini");
 
