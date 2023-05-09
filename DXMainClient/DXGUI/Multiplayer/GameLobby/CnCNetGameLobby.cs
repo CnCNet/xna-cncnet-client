@@ -671,7 +671,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
                 return;
             }
-            
+
             PlayerInfo pInfo = Players.Find(p => p.Name == ProgramConstants.PLAYERNAME);
             int readyState = 0;
 
@@ -679,7 +679,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 readyState = 2;
             else if (!pInfo.Ready)
                 readyState = 1;
-            
+
             channel.SendCTCPMessage($"R {readyState}", QueuedMessageType.GAME_PLAYERS_READY_STATUS_MESSAGE, 5);
         }
 
@@ -714,7 +714,13 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (color < 0 || color > MPColors.Count)
                 return;
 
-            var disallowedSides = GetDisallowedSides();
+            var disallowedSides = GetDisallowedSides().ToList();
+
+            // Disallowed sides from client, maps, or game modes do not take random selectors into account
+            // So, we need to insert "false" for each random at the beginning of this list AFTER getting them
+            // from client, maps, or game modes.
+            for(int i = 0; i < RandomSelectorCount; i++)
+                disallowedSides.Insert(0, false);
 
             if (side > 0 && side <= SideCount && disallowedSides[side - 1])
                 return;
@@ -859,7 +865,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
                     // If we can't find the player from the channel user list,
                     // ignore the player
-                    // They've either left the channel or got kicked before the 
+                    // They've either left the channel or got kicked before the
                     // player options message reached us
                     if (channel.Users.Find(pName) == null)
                     {
@@ -1211,7 +1217,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         }
 
         /// <summary>
-        /// Handles the "START" (game start) command sent by the game host.  
+        /// Handles the "START" (game start) command sent by the game host.
         /// </summary>
         private void NonHostLaunchGame(string sender, string message)
         {
