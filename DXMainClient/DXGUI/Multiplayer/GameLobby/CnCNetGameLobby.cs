@@ -743,7 +743,13 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (color < 0 || color > MPColors.Count)
                 return;
 
-            var disallowedSides = GetDisallowedSides();
+            var disallowedSides = GetDisallowedSides().ToList();
+            
+            // Disallowed sides from client, maps, or game modes do not take random selectors into account
+            // So, we need to insert "false" for each random at the beginning of this list AFTER getting them
+            // from client, maps, or game modes.
+            for(int i = 0; i < RandomSelectorCount; i++)
+                disallowedSides.Insert(0, false);
 
             if (side > 0 && side <= SideCount && disallowedSides[side - 1])
                 return;
