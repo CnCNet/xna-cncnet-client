@@ -1246,7 +1246,7 @@ public static class Updater
                             secondStageUpdaterDirectory.Create();
 
                         FileInfo secondStageUpdaterResource = SafePath.GetFile(secondStageUpdaterDirectory.FullName, SECOND_STAGE_UPDATER);
-                        DirectoryInfo updaterResourcesDirectory = SafePath.GetDirectory(updaterDirectoryInfo.FullName, "Resources");
+                        DirectoryInfo updaterResourcesDirectory = SafePath.GetDirectory(updaterDirectoryInfo.FullName, "Resources", "Updater");
 
                         if (updaterResourcesDirectory.Exists)
                         {
