@@ -54,8 +54,12 @@ internal sealed class Program
                 FileInfo clientExecutable = SafePath.GetFile(args[0]);
                 DirectoryInfo baseDirectory = SafePath.GetDirectory(args[1].Replace("\"", null, StringComparison.OrdinalIgnoreCase));
                 DirectoryInfo resourceDirectory = SafePath.GetDirectory(baseDirectory.FullName, "Resources");
+                FileInfo logFile = SafePath.GetFile(SafePath.CombineFilePath(baseDirectory.FullName, "Client", "SecondStageUpdater.log"));
 
-                Logger.Initialize(SafePath.CombineDirectoryPath(baseDirectory.FullName, "Client"), "SecondStageUpdater.log");
+                if (logFile.Exists)
+                    logFile.Delete();
+
+                Logger.Initialize(logFile.DirectoryName, logFile.Name);
                 Logger.WriteLogFile = true;
                 Logger.WriteToConsole = false;
                 Logger.Log("CnCNet Client Second-Stage Updater");
