@@ -32,19 +32,19 @@ internal sealed class Program
     private const int MaxCopyAttempts = 5;
     private const int CopyRetryWaitMilliseconds = 500;
 
-    private static readonly object consoleMessageLock = new();
+    private static readonly object ConsoleMessageLock = new();
 
     private static async Task Main(string[] args)
     {
         try
         {
-            Write("CnCNet Client Second-Stage Updater", ConsoleColor.Green);
+            Write("CnCNet Client Second-Stage Updater", true, ConsoleColor.Green);
             Write(string.Empty);
 
             // e.g. clientogl.dll "C:\Game\"
             if (args.Length < 2 || string.IsNullOrEmpty(args[0]) || string.IsNullOrEmpty(args[1]) || !SafePath.GetDirectory(args[1].Replace("\"", null, StringComparison.OrdinalIgnoreCase)).Exists)
             {
-                Write("Invalid arguments given!", ConsoleColor.Red);
+                Write("Invalid arguments given!", true, ConsoleColor.Red);
                 Write("Usage: <client_executable_name> <base_directory>");
                 Write(string.Empty);
                 Exit(false);
@@ -54,6 +54,12 @@ internal sealed class Program
                 FileInfo clientExecutable = SafePath.GetFile(args[0]);
                 DirectoryInfo baseDirectory = SafePath.GetDirectory(args[1].Replace("\"", null, StringComparison.OrdinalIgnoreCase));
                 DirectoryInfo resourceDirectory = SafePath.GetDirectory(baseDirectory.FullName, "Resources");
+
+                Logger.Initialize(SafePath.CombineDirectoryPath(baseDirectory.FullName, "Client"), "SecondStageUpdater.log");
+                Logger.WriteLogFile = true;
+                Logger.WriteToConsole = false;
+                Logger.Log("CnCNet Client Second-Stage Updater");
+                Logger.Log("Version: " + Assembly.GetAssembly(typeof(Program)).GetName().Version);
 
                 Write("Base directory: " + baseDirectory.FullName);
                 Write($"Waiting for the client ({clientExecutable.Name}) to exit..");
@@ -74,7 +80,7 @@ internal sealed class Program
 
                 if (!hasHandle)
                 {
-                    Write($"Timeout while waiting for the client ({clientExecutable.Name}) to exit!", ConsoleColor.Red);
+                    Write($"Timeout while waiting for the client ({clientExecutable.Name}) to exit!", true, ConsoleColor.Red);
                     Exit(false);
                 }
 
@@ -88,11 +94,11 @@ internal sealed class Program
 
                 if (!updaterDirectory.Exists)
                 {
-                    Write($"{updaterDirectory.Name} directory does not exist!", ConsoleColor.Red);
+                    Write($"{updaterDirectory.Name} directory does not exist!", true, ConsoleColor.Red);
                     Exit(false);
                 }
 
-                Write("Updating files.", ConsoleColor.Green);
+                Write("Updating files.", true, ConsoleColor.Green);
 
                 IEnumerable<FileInfo> files = updaterDirectory.EnumerateFiles("*", SearchOption.AllDirectories);
                 FileInfo executableFile = SafePath.GetFile(Assembly.GetExecutingAssembly().Location);
@@ -133,7 +139,7 @@ internal sealed class Program
 
                 if (failedFiles.Any())
                 {
-                    Write("Updating file(s) failed!", ConsoleColor.Yellow);
+                    Write("Updating file(s) failed!", true, ConsoleColor.Yellow);
                     Write("If the problem persists, try to move the content of the \"Updater\" directory to the main directory manually or contact the staff for support.");
                     Exit(false);
                 }
@@ -149,7 +155,7 @@ internal sealed class Program
                     versionFile.CopyTo(destinationFile.FullName, true);
                 }
 
-                Write("Files successfully updated. Starting launcher..", ConsoleColor.Green);
+                Write("Files successfully updated. Starting launcher..", true, ConsoleColor.Green);
                 string launcherExe = string.Empty;
 
                 try
@@ -168,14 +174,14 @@ internal sealed class Program
                 }
                 catch (Exception ex)
                 {
-                    Write($"Failed to read ClientDefinitions.ini: {ex}", ConsoleColor.Yellow);
+                    Write($"Failed to read ClientDefinitions.ini: {ex}", true, ConsoleColor.Yellow);
                 }
 
                 FileInfo launcherExeFile = SafePath.GetFile(baseDirectory.FullName, launcherExe);
 
                 if (launcherExeFile.Exists)
                 {
-                    Write("Launcher executable found: " + launcherExe, ConsoleColor.Green);
+                    Write("Launcher executable found: " + launcherExe, true, ConsoleColor.Green);
 
 #pragma warning disable SA1312 // Variable names should begin with lower-case letter
                     using var _ = Process.Start(new ProcessStartInfo
@@ -186,7 +192,7 @@ internal sealed class Program
                 }
                 else
                 {
-                    Write("No suitable launcher executable found! Client will not automatically start after updater closes.", ConsoleColor.Yellow);
+                    Write("No suitable launcher executable found! Client will not automatically start after updater closes.", true, ConsoleColor.Yellow);
                     Exit(false);
                 }
             }
@@ -195,7 +201,7 @@ internal sealed class Program
         }
         catch (Exception ex)
         {
-            Write("An error occurred during the Launcher Updater's operation.", ConsoleColor.Red);
+            Write("An error occurred during the Launcher Updater's operation.", true, ConsoleColor.Red);
             Write($"Returned error was: {ex}");
             Write(string.Empty);
             Write("If you were updating a game, please try again. If the problem continues, contact the staff for support.");
@@ -257,12 +263,12 @@ internal sealed class Program
                 {
                     // We tried too many times and need to bail.
                     failedFiles.Add(sourceFileInfo);
-                    Write($"Updating file failed too many times! Returned error message: {ex}", ConsoleColor.Yellow);
+                    Write($"Updating file failed too many times! Returned error message: {ex}", true, ConsoleColor.Yellow);
                     return;
                 }
 
                 // We failed to copy the file, but can try again.
-                Write($"Updating file attempt {attempt} failed! Returned error message: {ex.Message}", ConsoleColor.Yellow);
+                Write($"Updating file attempt {attempt} failed! Returned error message: {ex.Message}", true, ConsoleColor.Yellow);
                 await Task.Delay(CopyRetryWaitMilliseconds).ConfigureAwait(false);
             }
         }
@@ -273,19 +279,22 @@ internal sealed class Program
         if (success)
             return;
 
-        Write("Press any key to exit.");
+        Write("Press any key to exit.", false);
         Console.ReadKey();
         Environment.Exit(1);
     }
 
-    private static void Write(string text, ConsoleColor? color = null)
+    private static void Write(string text, bool logToFile = true, ConsoleColor? color = null)
     {
         // This is necessary, because console is written to from the copy file task
-        lock (consoleMessageLock)
+        lock (ConsoleMessageLock)
         {
             Console.ForegroundColor = color ?? Console.ForegroundColor;
             Console.WriteLine(text);
             Console.ResetColor();
         }
+
+        if (logToFile)
+            Logger.Log(text);
     }
 }

@@ -18,6 +18,9 @@
     <ComVisible>false</ComVisible>
     <CLSCompliant>false</CLSCompliant>
     <UseAppHost>false</UseAppHost>
+    <Version>1.0.1.0</Version>
+    <AssemblyVersion>$(PackageVersion)</AssemblyVersion>
+    <FileVersion>$(PackageVersion)</FileVersion>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Rampastring.Tools" Version="2.0.4" />
