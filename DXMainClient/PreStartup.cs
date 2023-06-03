@@ -71,13 +71,14 @@ namespace DTAClient
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 CheckPermissions();
 
+            if (clientLogFile.Exists)
+                File.Move(clientLogFile.FullName, SafePath.GetFile(clientUserFilesDirectory.FullName, "client_previous.log").FullName, true);
+
             Logger.Initialize(clientUserFilesDirectory.FullName, clientLogFile.Name);
             Logger.WriteLogFile = true;
 
             if (!clientUserFilesDirectory.Exists)
                 clientUserFilesDirectory.Create();
-
-            clientLogFile.Delete();
 
             MainClientConstants.Initialize();
 
