@@ -1250,6 +1250,8 @@ public static class Updater
 
                         if (updaterResourcesDirectory.Exists)
                         {
+                            Logger.Log("Updater: Checking & moving second-stage updater files.");
+
                             IEnumerable<FileInfo> updaterFiles = updaterResourcesDirectory.EnumerateFiles(Path.GetFileNameWithoutExtension(SECOND_STAGE_UPDATER) + ".*");
 
                             foreach (FileInfo updaterFile in updaterFiles)
@@ -1278,7 +1280,7 @@ public static class Updater
                             }
                         }
 
-                        Logger.Log("Updater: Launching second-stage updater executable " + SECOND_STAGE_UPDATER + ".");
+                        Logger.Log("Updater: Launching second-stage updater executable " + secondStageUpdaterResource.FullName + ".");
 
                         // e.g. dotnet "C:\Game\Resources\SecondStageUpdater.dll" clientogl.dll "C:\Game\"
                         using var _ = Process.Start(new ProcessStartInfo
