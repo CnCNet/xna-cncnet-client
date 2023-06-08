@@ -9,7 +9,9 @@ Migrating from older versions
 
 - Second-stage updater no longer has hardcoded list of launcher executables to check for when restarting the client. It will now only check `ClientDefinitions.ini` for `LauncherExe` key, and it it fails to read and launch this the client will not automatically restart after updating.
 
-- Updater DLL filename has been changed from `DTAUpdater.dll` to `ClientUpdater.dll` and second-stage updater from `clientupdt.dat` to `SecondStageUpdater.dll` and has been moved from base folder to `Resources`.
+- Updater DLL filename has been changed from `DTAUpdater.dll` to `ClientUpdater.dll` and second-stage updater from `clientupdt.dat` to `SecondStageUpdater.dll` and has been moved from base folder to `Resources\Updater`.
+
+- Second-stage updater is now maintained as a separate project. Download the latest release [here](https://github.com/CnCNet/cncnet-client-updater/releases) (select `SecondStageUpdater-<version_number>.zip`), and extract its contents to the client's `Resources\Updater` folder.
 
 - To support launching the game on Linux the file defined as `UnixGameExecutableName` (defaults to `wine-dta.sh`) in `ClientDefinitions.ini` must be set up correctly. E.g. for launching a game with wine the file could contain `wine gamemd-spawn.exe $*` where `gamemd-spawn.exe` is replaced with the game executable. Note that users might need to execute `chmod u+x wine-dta.sh` once to allow it to be launched.
 
