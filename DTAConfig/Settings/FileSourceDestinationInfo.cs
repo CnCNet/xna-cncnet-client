@@ -134,7 +134,7 @@ namespace DTAConfig.Settings
                 case FileOperationOptions.KeepChanges:
                     if (File.Exists(DestinationPath))
                     {
-                        SafePath.GetDirectory(CachedPath).Create();
+                        SafePath.GetDirectory(Path.GetDirectoryName(CachedPath)).Create();
                         File.Copy(DestinationPath, CachedPath, true);
                         File.Delete(DestinationPath);
                     }
