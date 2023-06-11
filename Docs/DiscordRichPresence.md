@@ -19,7 +19,7 @@ How to set up DRP for your mod/game
 1. Go to [Discord developers portal](https://discord.com/developers/applications).
 2. Click `New Application` button. Type name of your mod, agree with the Discord's policy by clicking on "policy" checkbox and click `Create` button.
 3. In `General Information` tab of your application you can find your `Application ID`. You should insert it as a value of `Resource/ClientDefinitions.ini`->`[Settings]`->`DiscordAppId` key.
-![opera_yNmIcjiUfo](https://user-images.githubusercontent.com/61310813/230958472-efb8bcb1-332b-428b-b9d1-e029296cdb27.png)
+![ID](Images/drp-id.png)
 4. In `Rich Presence` → `Art Assets` tab you need to upload client/mod logo and faction logos via the `Add Image(s)` button. You should upload the images named as follows:
    - the **game/mod logo** named as `logo` in application assets (adding the app image in Discord *application info* is **not the same** and won't be displayed in user's flyout);
    - the **icons for factions, random selectors and spectator** should have names consisting of only alphanumerics lowercased (they must pass by [RegExp](https://regexr.com) `[a-z]|[0-9]`). You have to take the *unlocalized* name, lowercase it and remove all non-alphanumerics. For example:
@@ -29,7 +29,7 @@ How to set up DRP for your mod/game
      - `Spectator` -> `spectator` etc.
 
    After you upload the images, click the `Save Changes` button.
-![opera_XjJubOfW5c](https://user-images.githubusercontent.com/61310813/230959370-7bf16984-cf4d-4776-b036-2f9e21239a2a.png)
+![ASSETS](Images/drp-assets.png)
 
 > **Note**
 > It may take some time before Discord updates your application info or assets. If you change the assets and app info while running the client - try restarting the Discord and/or client if they don't apply right away.
