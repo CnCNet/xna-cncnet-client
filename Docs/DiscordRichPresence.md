@@ -17,7 +17,7 @@ How to set up DRP for your mod/game
 > You are required to be logged in a Discord account.
 
 1. Go to [Discord developers portal](https://discord.com/developers/applications).
-2. Click `New Application` button. Type name of your mod, agree with the Discord's policy by clicking on "policy" checkbox and click `Create` button.
+2. Click the `New Application` button. Type the name of your mod, agree with Discord's policy by clicking on "policy" checkbox and click `Create` button.
 3. In `General Information` tab of your application you can find your `Application ID`. You should insert it as a value of `Resource/ClientDefinitions.ini`->`[Settings]`->`DiscordAppId` key.
 ![ID](Images/drp-id.png)
 4. In `Rich Presence` → `Art Assets` tab you need to upload client/mod logo and faction logos via the `Add Image(s)` button. You should upload the images named as follows:
