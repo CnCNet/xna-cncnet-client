@@ -2,7 +2,7 @@
 
 About Discord Rich Presence
 -----------------------------------
-Discord Rich Presence (DRP) is a useful feature that allows Discord users to show the details about the currently active game or application to other users. With DRP existing players can show their activity to their friends and spread awareness of your mod/game, thus incresing popularity.
+Discord Rich Presence (DRP) is a useful feature that allows Discord users to show the details about the currently active game or application to other users. With DRP existing players can show their activity to their friends and spread awareness of your mod/game, thus increasing popularity.
 
 https://user-images.githubusercontent.com/61310813/230956028-815a5539-8fb8-43dd-9134-4033a9dcc049.mp4
 
