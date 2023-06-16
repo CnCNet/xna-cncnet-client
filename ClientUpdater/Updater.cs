@@ -1176,7 +1176,7 @@ public static class Updater
                     {
                         currentFilename = info.Archived ? info.Filename + ARCHIVE_FILE_EXTENSION : info.Filename;
                         currentFileSize = info.Archived ? info.ArchiveSize : info.Size;
-                        bool flag = await DownloadFileAsync(info).ConfigureAwait(false);
+                        string errorMessage = await DownloadFileAsync(info).ConfigureAwait(false);
 
                         if (terminateUpdate)
                         {
@@ -1187,7 +1187,7 @@ public static class Updater
                             return;
                         }
 
-                        if (flag)
+                        if (errorMessage == null)
                         {
                             totalDownloadedKbs += info.Archived ? info.ArchiveSize : info.Size;
                             break;
@@ -1200,8 +1200,13 @@ public static class Updater
                             Logger.Log("Updater: Too many retries for downloading file " +
                                 (info.Archived ? info.Filename + ARCHIVE_FILE_EXTENSION : info.Filename) + ". Update halted.");
 
+                            string extraMsg = string.Empty;
+
+                            if (errorMessage != null)
+                                extraMsg = Environment.NewLine + Environment.NewLine + "Download error message: " + errorMessage;
+
                             throw new("Too many retries for downloading file " +
-                                      (info.Archived ? info.Filename + ARCHIVE_FILE_EXTENSION : info.Filename));
+                                      (info.Archived ? info.Filename + ARCHIVE_FILE_EXTENSION : info.Filename) + extraMsg);
                         }
                     }
                 }
@@ -1324,8 +1329,8 @@ public static class Updater
     /// Downloads and handles individual file.
     /// </summary>
     /// <param name="fileInfo">File info for the file.</param>
-    /// <returns>True if successful, otherwise false.</returns>
-    private static async ValueTask<bool> DownloadFileAsync(UpdaterFileInfo fileInfo)
+    /// <returns>Error message if something went wrong, otherwise null.</returns>
+    private static async ValueTask<string> DownloadFileAsync(UpdaterFileInfo fileInfo)
     {
         Logger.Log("Updater: Initializing download of file " + fileInfo.Filename);
 
@@ -1388,20 +1393,21 @@ public static class Updater
                     }
                     else
                     {
-                        Logger.Log("Updater: Downloaded archive " + filename + extraExtension + " has a non-matching identifier: " + archiveIdentifier + " against " + fileInfo.ArchiveIdentifier);
+                        string errorMsg = "Downloaded archive " + filename + extraExtension + " has a non-matching identifier: " + archiveIdentifier + " against " + fileInfo.ArchiveIdentifier;
+                        Logger.Log("Updater: " + errorMsg);
                         DeleteFileAndWait(downloadFile.FullName);
 
-                        return false;
+                        return errorMsg;
                     }
                 }
 
                 if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && downloadFile.Extension.Equals(".sh", StringComparison.OrdinalIgnoreCase))
                 {
-                    Logger.Log($"Updater: File {downloadFile.Name} is a script, adding execute permission.");
+                    Logger.Log($"Updater: File {downloadFile.Name} is a script, adding execute permission. Current permission flags: " + downloadFile.UnixFileMode);
 
                     downloadFile.UnixFileMode |= UnixFileMode.UserExecute;
 
-                    Logger.Log($"Updater: File {downloadFile.Name} execute permission added.");
+                    Logger.Log($"Updater: File {downloadFile.Name} execute permission added. Current permission flags: " + downloadFile.UnixFileMode);
                 }
             }
 
@@ -1410,20 +1416,21 @@ public static class Updater
             {
                 Logger.Log("Updater: File " + filename + " is intact.");
 
-                return true;
+                return null;
             }
 
-            Logger.Log("Updater: Downloaded file " + filename + " has a non-matching identifier: " + fileIdentifier + " against " + fileInfo.Identifier);
+            string msg = "Downloaded file " + filename + " has a non-matching identifier: " + fileIdentifier + " against " + fileInfo.Identifier;
+            Logger.Log("Updater: " + msg);
             DeleteFileAndWait(decompressedFile.FullName);
 
-            return false;
+            return msg;
         }
         catch (Exception exception)
         {
             Logger.Log("Updater: An error occurred while downloading file " + filename + ": " + exception.Message);
             DeleteFileAndWait(decompressedFile.FullName);
 
-            return false;
+            return exception.Message;
         }
     }
 
