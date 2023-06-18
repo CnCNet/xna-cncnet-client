@@ -279,17 +279,21 @@ namespace ClientCore
         {
             List<TranslationGameFile> gameFiles = new();
 
-            for (int i = 0; clientDefinitionsIni.KeyExists(TRANSLATIONS, $"GameFile{i}"); i++)
+            foreach (string key in clientDefinitionsIni.GetSectionKeys(TRANSLATIONS))
             {
                 // the syntax is GameFileX=path/to/source.file,path/to/destination.file[,checked]
-                string value = clientDefinitionsIni.GetStringValue(TRANSLATIONS, $"GameFile{i}", string.Empty);
-                string[] parts = value.Split(',', StringSplitOptions.TrimEntries);
+
+                if (!key.StartsWith("GameFile", System.StringComparison.Ordinal))
+                    continue;
+
+                string value = clientDefinitionsIni.GetStringValue(TRANSLATIONS, key, string.Empty);
+                string[] parts = key.Split(',', StringSplitOptions.TrimEntries);
 
                 // fail explicitly if the syntax is wrong
                 if (parts.Length is < 2 or > 3
                     || (parts.Length == 3 && parts[2].ToUpperInvariant() != "CHECKED"))
                 {
-                    throw new IniParseException($"Invalid syntax for value of GameFile{i}! " +
+                    throw new IniParseException($"Invalid syntax for value of {key}! " +
                         $"Expected path/to/source.file,path/to/destination.file[,checked], read {value}.");
                 }
 
