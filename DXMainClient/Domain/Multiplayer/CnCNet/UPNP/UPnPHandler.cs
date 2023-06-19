@@ -283,7 +283,7 @@ internal static class UPnPHandler
     private static IEnumerable<IGrouping<string, InternetGatewayDeviceResponse>> GetGroupedDeviceResponses(
         IEnumerable<(IPAddress LocalIpAddress, IEnumerable<Dictionary<string, string>> Responses)> formattedDeviceResponses)
         => formattedDeviceResponses
-            .SelectMany(q => q.Responses.Select(r => new InternetGatewayDeviceResponse(new(r["LOCATION"]), r["SERVER"], r["USN"], q.LocalIpAddress)))
+            .SelectMany(q => q.Responses.Where(r => Guid.TryParse(r["LOCATION"], out _)).Select(r => new InternetGatewayDeviceResponse(new(r["LOCATION"]), r["SERVER"], r["USN"], q.LocalIpAddress)))
             .GroupBy(q => q.Usn);
 
     private static Uri GetPreferredLocation(IReadOnlyCollection<Uri> locations)
