@@ -12,7 +12,6 @@ using ClientCore;
 using ClientCore.Extensions;
 using DTAClient.Domain.Multiplayer;
 using DTAClient.Domain.Multiplayer.CnCNet;
-using Localization;
 using Rampastring.Tools;
 
 namespace DTAClient.Online
