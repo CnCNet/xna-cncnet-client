@@ -235,6 +235,7 @@ namespace DTAClient.Domain.Multiplayer
             catch (Exception ex)
             {
                 ProgramConstants.LogException(ex);
+                SafePath.DeleteFileIfExists(CUSTOM_MAPS_CACHE);
                 return new ConcurrentDictionary<string, Map>();
             }
         }
