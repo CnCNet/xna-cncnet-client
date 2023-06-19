@@ -52,8 +52,6 @@ namespace DTAClient.Domain
             InitializeClient();
             UpdatePresence();
             Connect();
-
-            AppDomain.CurrentDomain.ProcessExit += (_, _) => Dispose();
         }
 
         #region overrides

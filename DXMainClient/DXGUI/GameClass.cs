@@ -262,6 +262,8 @@ namespace DTAClient.DXGUI
                 )
                 .Build();
 
+            windowManager.GameClosing += (_, _) => { host.Dispose(); };
+
             return host.Services.GetService<IServiceProvider>();
         }
 
