@@ -287,7 +287,7 @@ namespace ClientCore
                     continue;
 
                 string value = clientDefinitionsIni.GetStringValue(TRANSLATIONS, key, string.Empty);
-                string[] parts = key.Split(',', StringSplitOptions.TrimEntries);
+                string[] parts = value.Split(',', StringSplitOptions.TrimEntries);
 
                 // fail explicitly if the syntax is wrong
                 if (parts.Length is < 2 or > 3
