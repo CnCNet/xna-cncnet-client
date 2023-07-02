@@ -184,7 +184,7 @@ namespace DTAClient
             // Delete obsolete files from old target project versions
 
             gameDirectory.EnumerateFiles("mainclient.log").SingleOrDefault()?.Delete();
-            gameDirectory.EnumerateFiles("aunchupdt.dat").SingleOrDefault()?.Delete();
+            gameDirectory.EnumerateFiles("launchupdt.dat").SingleOrDefault()?.Delete();
 
             try
             {

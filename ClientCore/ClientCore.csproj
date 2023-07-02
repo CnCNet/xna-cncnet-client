@@ -48,8 +48,8 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Rampastring.Tools" Version="2.0.4" />
-    <PackageReference Include="Rampastring.XNAUI.$(Engine)" Version="2.3.9" Condition="'!$(Configuration.Contains(Debug))'" />
-    <PackageReference Include="Rampastring.XNAUI.$(Engine).Debug" Version="2.3.9" Condition="'$(Configuration.Contains(Debug))'" />
+    <PackageReference Include="Rampastring.XNAUI.$(Engine)" Version="2.3.10" Condition="'!$(Configuration.Contains(Debug))'" />
+    <PackageReference Include="Rampastring.XNAUI.$(Engine).Debug" Version="2.3.10" Condition="'$(Configuration.Contains(Debug))'" />
     <PackageReference Include="System.Text.Encoding.CodePages" Version="7.0.0" />
   </ItemGroup>
   <ItemGroup>
