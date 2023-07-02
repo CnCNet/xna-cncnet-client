@@ -751,7 +751,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             ddGameModeMapFilter.SelectedIndex = gameModeMapFilterIndex;
         }
 
-        protected void AddSideToDropDown(XNADropDown dd, string name, string? uiName = null, Texture2D? texture = null)
+        protected void AddSideToDropDown(XNADropDown dd, string name, string uiName = null, Texture2D texture = null)
         {
             XNADropDownItem item = new()
             {
