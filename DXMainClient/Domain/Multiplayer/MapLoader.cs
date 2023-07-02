@@ -200,8 +200,13 @@ namespace DTAClient.Domain.Multiplayer
                 Maps = customMaps,
                 Version = CurrentCustomMapCacheVersion
             };
-
-            FileStream fileStream = File.OpenWrite(CUSTOM_MAPS_CACHE);
+            var fileStream = new FileStream(CUSTOM_MAPS_CACHE, new FileStreamOptions
+            {
+                Access = FileAccess.Write,
+                Mode = FileMode.Create,
+                Options = FileOptions.Asynchronous,
+                Share = FileShare.None
+            });
 
             await using (fileStream.ConfigureAwait(false))
             {
@@ -217,7 +222,13 @@ namespace DTAClient.Domain.Multiplayer
         {
             try
             {
-                FileStream jsonData = File.OpenRead(CUSTOM_MAPS_CACHE);
+                var jsonData = new FileStream(CUSTOM_MAPS_CACHE, new FileStreamOptions
+                {
+                    Access = FileAccess.Read,
+                    Mode = FileMode.Open,
+                    Options = FileOptions.Asynchronous | FileOptions.SequentialScan,
+                    Share = FileShare.None
+                });
                 CustomMapCache customMapCache;
 
                 await using (jsonData.ConfigureAwait(false))
