@@ -235,7 +235,7 @@ namespace DTAClient.Domain.Multiplayer
                     ? customMapCache.Maps : new ConcurrentDictionary<string, Map>();
 
                 foreach (var customMap in customMaps.Values)
-                    customMap.CalculateSHA();
+                    customMap.AfterDeserialize();
 
                 return customMaps;
             }
