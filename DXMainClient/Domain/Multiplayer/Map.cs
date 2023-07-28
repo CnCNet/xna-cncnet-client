@@ -635,6 +635,13 @@ namespace DTAClient.Domain.Multiplayer
             }
         }
 
+        // Ran after the map has been loaded from cache if it is a custom map.
+        public void AfterDeserialize()
+        {
+            CalculateSHA();
+            UntranslatedName = Name;
+        }
+
         private void ParseForcedOptions(IniFile iniFile, string forcedOptionsSection)
         {
             List<string> keys = iniFile.GetSectionKeys(forcedOptionsSection);
