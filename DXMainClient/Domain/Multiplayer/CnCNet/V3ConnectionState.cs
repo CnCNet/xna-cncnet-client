@@ -6,7 +6,6 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
-using ClientCore.Extensions;
 using DTAClient.Domain.Multiplayer.CnCNet.Replays;
 using DTAClient.Domain.Multiplayer.CnCNet.UPNP;
 using Rampastring.Tools;

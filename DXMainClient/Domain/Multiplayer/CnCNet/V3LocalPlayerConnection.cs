@@ -52,8 +52,8 @@ internal sealed class V3LocalPlayerConnection : PlayerConnection
         {
 #if DEBUG
             Logger.Log($"{GetType().Name}: Discarded remote data from {Socket.LocalEndPoint} to {RemoteEndPoint} for player {PlayerId}.");
-#endif
 
+#endif
             return;
         }
 
