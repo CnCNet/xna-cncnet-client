@@ -32,16 +32,11 @@ namespace ClientGUI
         public override void OnLeftClick()
         {
             OSVersion osVersion = ClientConfiguration.Instance.GetOperatingSystemVersion();
-            string url = URL;
 
             if (UnixURL.Length != 0 && osVersion == OSVersion.UNIX)
-            {
                 ProcessLauncher.StartShellProcess(UnixURL);
-            }
             else if (URL.Length != 0)
-            {
                 ProcessLauncher.StartShellProcess(URL);
-            }
 
             base.OnLeftClick();
         }
