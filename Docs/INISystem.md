@@ -99,6 +99,7 @@ _(inherits XNAButton)_
 _(inherits XNAClientButton)_
 
 `URL`  
+`UnixURL`
 `ToolTip` = `{multi-line string}` tooltip for checkbox
 
 #### XNACheckbox
