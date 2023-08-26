@@ -1,11 +1,7 @@
-# Migrating to client 7
+# Migrating from older versions - INI configuration
 This guide uses [YR mod base](https://github.com/Starkku/cncnet-client-mod-base) configuration as an example. The majority of changes also applies to to non-YR client configurations.
 
 It is **highly recommended** to make a complete backup of your mod before starting.
-
-## Replace binary files
-1. Replace contents of `Resources/Binaries` and `Resources/Compatibility` with new files.
-2. Replace your launcher executable in root directory (whetever it's called, `YRLauncher.exe`, `MentalOmegaLauncher.exe`, etc.).
 
 ## Edit `ClientDefinitions.ini`
 1. Add `[Settings]->UnixLauncherExe=Launcher.sh` (script file name can be anything)
@@ -823,7 +819,33 @@ Location=65,154
 Location=12,189
 ```
 
-## Add new assets
+## Appendix
+
+For completion's sake, below are additional steps required for a complete migration (beyond INIs).
+
+### Replace binary files
+
+1. Replace contents of `Resources/Binaries` and `Resources/Compatibility` with new files.
+2. Replace your launcher executable in root directory (whetever it's called, `YRLauncher.exe`, `MentalOmegaLauncher.exe`, etc.).
+3. Remove `Resources/clientdx.exe`, `Resources/clientxna.exe` and `Resources/clientogl.exe`. In their place create these scripts (replace `YRLanucher.exe` inside with your main client executable name):
+`Resources/clientdx.bat`:
+```
+cd ..
+YRLauncher.exe -DX
+```
+`Resources/clientogl.bat`:
+```
+cd ..
+YRLauncher.exe -OGL
+```
+`Resources/clientxna.bat`:
+```
+cd ..
+YRLauncher.exe -XNA
+```
+
+### Add new assets
+
 Every file here can be either in `Resources` or in theme directories:
 - `favActive.png` and `favInactive.png`, 21x21 pixels
 - `optionsButton.png`, `optionsButton_c.png`, `optionsButtonActive.png`, `optionsButtonActive_c.png`, `optionsButtonClose.png` and `optionsButtonClose_c.png`, 18x18 pixels
