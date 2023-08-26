@@ -1,20 +1,22 @@
 # Migrating to client 7
+This guide uses [YR mod base](https://github.com/Starkku/cncnet-client-mod-base) configuration as an example. The majority of changes also applies to to non-YR client configurations.
+
 It is **highly recommended** to make a complete backup of your mod before starting.
 
 ## Replace binary files
 1. Replace contents of `Resources/Binaries` and `Resources/Compatibility` with new files.
-2. Replace your launcher executable in root directory (whetever it's called, YRLauncher, MentalOmegaLauncher, etc.).
+2. Replace your launcher executable in root directory (whetever it's called, `YRLauncher.exe`, `MentalOmegaLauncher.exe`, etc.).
 
 ## Edit `ClientDefinitions.ini`
-1. Add `[Settings]UnixLauncherExe=YRLauncher.sh`
-2. Create `YRLauncher.sh` in root directory:
+1. Add `[Settings]->UnixLauncherExe=Launcher.sh` (script file name can be anything)
+2. Create `Launcher.sh` in root directory:
 ```sh
 #!/bin/sh
 
 cd "$(dirname "$0")"
 dotnet Resources/Binaries/UniversalGL/clientogl.dll "$@"
 ```
-3. Add these entries in `[Settings]` (fill with whatever you want):
+3. Add these entries in `[Settings]` (fill with your required/forbidden mod files):
 ```ini
 ; Comma-separated list of files required to run the game / mod that are not included in the installation.
 RequiredFiles=
@@ -23,7 +25,7 @@ ForbiddenFiles=
 ```
 
 ## Edit `SkirmishLobby.ini`
-1. Change `[INISystem]BasedOn` from `MultiplayerGameLobby.ini` to `GameLobbyBase.ini`.
+1. Change `[INISystem]->BasedOn` from `MultiplayerGameLobby.ini` to `GameLobbyBase.ini`.
 2. Add `$BaseSection=GameLobbyBase` to `[SkirmishLobby]`
 3. Remove `[lbMapList]` section
 4. Add these two sections:
@@ -35,7 +37,13 @@ $CC-GODD03=cmbGameSpeedCapSkirmish:GameLobbyDropDown
 $BaseSection=cmbGameSpeedCap
 Items=Fastest (MAX),Faster (60 FPS),Fast (30 FPS),Medium (20 FPS),Slow (15 FPS),Slower (12 FPS),Slowest (10 FPS)
 ```
+
 ## Add `GameLobbyBase.ini`
+
+This file is the base layout of all game lobbies (skirmish, LAN, CnCNet). **Game options have been moved from `GameOptions.ini` to this file**.
+To add controls in the game options panel, add `$CC-GO` prefixed list entries in `[GameOptionsPanel]`, then create their own sections.
+See example configuration below.
+
 ```ini
 [INISystem]
 BasedOn=GenericWindow.ini
@@ -528,10 +536,10 @@ DistanceFromRightBorder=-8
 DistanceFromBottomBorder=-8
 ```
 
-# Edit `GameOptions.ini`
-Move all game lobby options to `GameLobbyBase.ini`.
+## Edit `GameOptions.ini`
+After adding all game lobby options to `GameLobbyBase.ini`, remove them here.
 
-# Rename old `MultiplayerGameLobby.ini` to something else and create new `MultiplayerGameLobby.ini`
+## Rename/Remove old `MultiplayerGameLobby.ini` and create new `MultiplayerGameLobby.ini`
 ```ini
 [INISystem]
 BasedOn=GameLobbyBase.ini
@@ -614,7 +622,7 @@ $BaseSection=cmbGameSpeedCap
 Items=Fastest (60 FPS),Faster (45 FPS),Fast (30 FPS),Medium (20 FPS),Slow (15 FPS),Slower (12 FPS),Slowest (10 FPS)
 ```
 
-# Create `CnCNetGameLobby.ini`
+## Create `CnCNetGameLobby.ini`
 ```ini
 [INISystem]
 BasedOn=MultiplayerGameLobby.ini
@@ -630,13 +638,13 @@ $X=getX(btnLeaveGame) - getWidth($Self) - LOBBY_PANEL_SPACING
 $Y=getY(btnLeaveGame)
 ```
 
-# Create `LANGameLobby.ini`
+## Create `LANGameLobby.ini`
 ```ini
 [INISystem]
 BasedOn=MultiplayerGameLobby.ini
 ```
 
-# Edit `CnCNetLobby.ini`
+## Edit `CnCNetLobby.ini`
 Add these sections:
 ```ini
 [btnGameSortAlpha]
@@ -646,7 +654,7 @@ Location=12,12
 Location=43,12
 ```
 
-# Edit `GenericWindow.ini`
+## Edit `GenericWindow.ini`
 Replace `[SkirmishLobby]` and `[MultiplayerGameLobby]` sections with this:
 ```ini
 [GameLobbyBase]
@@ -655,8 +663,8 @@ DrawBorders=true
 Size=1230,750
 ```
 
-# Edit `GlobalThemeSettings.ini`
-Add this section:
+## Edit `GlobalThemeSettings.ini`
+Add this section (**Without this section, the client will crash with new `GameLobbyBase.ini`**):
 ```ini
 [ParserConstants]
 DEFAULT_LBL_HEIGHT=12
@@ -684,7 +692,7 @@ GAME_OPTION_DD_WIDTH=132
 GAME_OPTION_DD_HEIGHT=22
 ```
 
-# Create `ManualUpdateQueryWindow.ini`
+## Create `ManualUpdateQueryWindow.ini`
 ```ini
 [INISystem]
 BasedOn=GenericWindow.ini
@@ -693,8 +701,8 @@ BasedOn=GenericWindow.ini
 Location=176,110
 ```
 
-# Edit `OptionsWindow.ini`
-1. **OPTIONAL?** Add sections:
+## Edit `OptionsWindow.ini`
+1. **OPTIONAL** Add sections:
 ```ini
 [DisplayOptionsPanelExtraControls]
 0=chkMEDDraw:FileSettingCheckBox
@@ -710,7 +718,7 @@ SettingSection=Video
 SettingKey=UseDDWrapperForMapEditor
 ```
 
-2. **OPTIONAL** Add sections:
+2. **OPTIONAL (YR)** Add sections:
 ```ini
 [GameOptionsPanelExtraControls]
 ; Enable if using Phobos
@@ -745,7 +753,7 @@ SettingSection=Phobos
 SettingKey=ShowBuildingPlacementPreview
 ```
 
-3. **OPTIONAL?** Add sections:
+3. Add sections:
 ```ini
 [lblPlayerName]
 Location=12,195
@@ -758,10 +766,7 @@ Location=12,220
 
 [btnConfigureHotkeys]
 Location=12,290
-```
 
-4. Add sections:
-```ini
 [chkDisablePrivateMessagePopup]
 Location=12,138
 Text=Disable private message pop-ups
@@ -780,7 +785,7 @@ Location=470,137
 Location=0,200
 ```
 
-# Create new `PlayerExtraOptionsPanel.ini`
+## Create new `PlayerExtraOptionsPanel.ini`
 ```ini
 [btnClose]
 Location=220,0
@@ -818,10 +823,10 @@ Location=65,154
 Location=12,189
 ```
 
-# Add new assets
-Everything goes into theme directory:
-- `favActive.png` and `favInactive.png`, 21x21
-- `optionsButton.png`, `optionsButton_c.png`, `optionsButtonActive.png`, `optionsButtonActive_c.png`, `optionsButtonClose.png` and `optionsButtonClose_c.png`, 18x18
-- `questionMark.png` and `questionMark_c.png`, 18x18
-- `sortAlphaAsc.png`, `sortAlphaDesc.png` and `sortAlphaNone.png`, 21x21
-- `statusAI.png`, `statusClear.png`, `statusEmpty.png`, `statusError.png`, `statusInProgress.png`, `statusOk.png`, `statusUnavailable.png`, `statusWarning.png`, 21x21
+## Add new assets
+Every file here can be either in `Resources` or in theme directories:
+- `favActive.png` and `favInactive.png`, 21x21 pixels
+- `optionsButton.png`, `optionsButton_c.png`, `optionsButtonActive.png`, `optionsButtonActive_c.png`, `optionsButtonClose.png` and `optionsButtonClose_c.png`, 18x18 pixels
+- `questionMark.png` and `questionMark_c.png`, 18x18 pixels
+- `sortAlphaAsc.png`, `sortAlphaDesc.png` and `sortAlphaNone.png`, 21x21 pixels
+- `statusAI.png`, `statusClear.png`, `statusEmpty.png`, `statusError.png`, `statusInProgress.png`, `statusOk.png`, `statusUnavailable.png`, `statusWarning.png`, 21x21 pixels
