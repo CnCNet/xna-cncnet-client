@@ -10,7 +10,7 @@ using Rampastring.XNAUI.XNAControls;
 
 namespace DTAClient.DXGUI.Multiplayer
 {
-    public class PlayerExtraOptionsPanel : XNAWindow
+    public class PlayerExtraOptionsPanel : XNAPanel
     {
         private const int maxStartCount = 8;
         private const int defaultX = 24;
@@ -160,9 +160,10 @@ namespace DTAClient.DXGUI.Multiplayer
             Name = nameof(PlayerExtraOptionsPanel);
             BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 255), 1, 1);
             Visible = false;
+            string prefix = "PlayerExtraOptionsPanel_";
 
             var btnClose = new XNAClientButton(WindowManager);
-            btnClose.Name = nameof(btnClose);
+            btnClose.Name = prefix + "btnClose";
             btnClose.ClientRectangle = new Rectangle(0, 0, 0, 0);
             btnClose.IdleTexture = AssetLoader.LoadTexture("optionsButtonClose.png");
             btnClose.HoverTexture = AssetLoader.LoadTexture("optionsButtonClose_c.png");
@@ -170,34 +171,34 @@ namespace DTAClient.DXGUI.Multiplayer
             AddChild(btnClose);
 
             var lblHeader = new XNALabel(WindowManager);
-            lblHeader.Name = nameof(lblHeader);
+            lblHeader.Name = prefix + "lblHeader";
             lblHeader.Text = "Extra Player Options".L10N("Client:Main:ExtraPlayerOptions");
             lblHeader.ClientRectangle = new Rectangle(defaultX, 4, 0, 18);
             AddChild(lblHeader);
 
             chkBoxForceRandomSides = new XNAClientCheckBox(WindowManager);
-            chkBoxForceRandomSides.Name = nameof(chkBoxForceRandomSides);
+            chkBoxForceRandomSides.Name = prefix + "chkBoxForceRandomSides";
             chkBoxForceRandomSides.Text = "Force Random Sides".L10N("Client:Main:ForceRandomSides");
             chkBoxForceRandomSides.ClientRectangle = new Rectangle(defaultX, lblHeader.Bottom + 4, 0, 0);
             chkBoxForceRandomSides.CheckedChanged += Options_Changed;
             AddChild(chkBoxForceRandomSides);
 
             chkBoxForceRandomColors = new XNAClientCheckBox(WindowManager);
-            chkBoxForceRandomColors.Name = nameof(chkBoxForceRandomColors);
+            chkBoxForceRandomColors.Name = prefix + "chkBoxForceRandomColors";
             chkBoxForceRandomColors.Text = "Force Random Colors".L10N("Client:Main:ForceRandomColors");
             chkBoxForceRandomColors.ClientRectangle = new Rectangle(defaultX, chkBoxForceRandomSides.Bottom + 4, 0, 0);
             chkBoxForceRandomColors.CheckedChanged += Options_Changed;
             AddChild(chkBoxForceRandomColors);
 
             chkBoxForceRandomTeams = new XNAClientCheckBox(WindowManager);
-            chkBoxForceRandomTeams.Name = nameof(chkBoxForceRandomTeams);
+            chkBoxForceRandomTeams.Name = prefix + "chkBoxForceRandomTeams";
             chkBoxForceRandomTeams.Text = "Force Random Teams".L10N("Client:Main:ForceRandomTeams");
             chkBoxForceRandomTeams.ClientRectangle = new Rectangle(defaultX, chkBoxForceRandomColors.Bottom + 4, 0, 0);
             chkBoxForceRandomTeams.CheckedChanged += Options_Changed;
             AddChild(chkBoxForceRandomTeams);
 
             chkBoxForceRandomStarts = new XNAClientCheckBox(WindowManager);
-            chkBoxForceRandomStarts.Name = nameof(chkBoxForceRandomStarts);
+            chkBoxForceRandomStarts.Name = prefix + "chkBoxForceRandomStarts";
             chkBoxForceRandomStarts.Text = "Force Random Starts".L10N("Client:Main:ForceRandomStarts");
             chkBoxForceRandomStarts.ClientRectangle = new Rectangle(defaultX, chkBoxForceRandomTeams.Bottom + 4, 0, 0);
             chkBoxForceRandomStarts.CheckedChanged += Options_Changed;
@@ -206,14 +207,14 @@ namespace DTAClient.DXGUI.Multiplayer
             /////////////////////////////
 
             chkBoxUseTeamStartMappings = new XNAClientCheckBox(WindowManager);
-            chkBoxUseTeamStartMappings.Name = nameof(chkBoxUseTeamStartMappings);
+            chkBoxUseTeamStartMappings.Name = prefix + "chkBoxUseTeamStartMappings";
             chkBoxUseTeamStartMappings.Text = "Enable Auto Allying:".L10N("Client:Main:EnableAutoAllying");
             chkBoxUseTeamStartMappings.ClientRectangle = new Rectangle(chkBoxForceRandomSides.X, chkBoxForceRandomStarts.Bottom + 20, 0, 0);
             chkBoxUseTeamStartMappings.CheckedChanged += ChkBoxUseTeamStartMappings_Changed;
             AddChild(chkBoxUseTeamStartMappings);
 
             var btnHelp = new XNAClientButton(WindowManager);
-            btnHelp.Name = nameof(btnHelp);
+            btnHelp.Name = prefix + "btnHelp";
             btnHelp.IdleTexture = AssetLoader.LoadTexture("questionMark.png");
             btnHelp.HoverTexture = AssetLoader.LoadTexture("questionMark_c.png");
             btnHelp.LeftClick += BtnHelp_LeftClick;
@@ -221,20 +222,20 @@ namespace DTAClient.DXGUI.Multiplayer
             AddChild(btnHelp);
 
             var lblPreset = new XNALabel(WindowManager);
-            lblPreset.Name = nameof(lblPreset);
+            lblPreset.Name = prefix + "lblPreset";
             lblPreset.Text = "Presets:".L10N("Client:Main:Presets");
             lblPreset.ClientRectangle = new Rectangle(chkBoxUseTeamStartMappings.X, chkBoxUseTeamStartMappings.Bottom + 8, 0, 0);
             AddChild(lblPreset);
 
             ddTeamStartMappingPreset = new XNAClientDropDown(WindowManager);
-            ddTeamStartMappingPreset.Name = nameof(ddTeamStartMappingPreset);
+            ddTeamStartMappingPreset.Name = prefix + "ddTeamStartMappingPreset";
             ddTeamStartMappingPreset.ClientRectangle = new Rectangle(lblPreset.X + 50, lblPreset.Y - 2, 160, 0);
             ddTeamStartMappingPreset.SelectedIndexChanged += DdTeamMappingPreset_SelectedIndexChanged;
             ddTeamStartMappingPreset.AllowDropDown = true;
             AddChild(ddTeamStartMappingPreset);
 
             teamStartMappingsPanel = new TeamStartMappingsPanel(WindowManager);
-            teamStartMappingsPanel.Name = nameof(teamStartMappingsPanel);
+            teamStartMappingsPanel.Name = prefix + "teamStartMappingsPanel";
             teamStartMappingsPanel.ClientRectangle = new Rectangle(lblPreset.X, ddTeamStartMappingPreset.Bottom + 8, Width, Height - ddTeamStartMappingPreset.Bottom + 4);
             AddChild(teamStartMappingsPanel);
 
