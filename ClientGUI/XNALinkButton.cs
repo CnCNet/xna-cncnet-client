@@ -33,9 +33,9 @@ namespace ClientGUI
         {
             OSVersion osVersion = ClientConfiguration.Instance.GetOperatingSystemVersion();
 
-            if (UnixURL.Length != 0 && osVersion == OSVersion.UNIX)
+            if (osVersion == OSVersion.UNIX && !string.IsNullOrEmpty(UnixURL))
                 ProcessLauncher.StartShellProcess(UnixURL);
-            else if (URL.Length != 0)
+            else if (!string.IsNullOrEmpty(URL))
                 ProcessLauncher.StartShellProcess(URL);
 
             base.OnLeftClick();
