@@ -255,6 +255,7 @@
     <Compile Include="Enums\AllowPrivateMessagesFromEnum.cs" />
     <Compile Include="Enums\SortDirection.cs" />
     <Compile Include="Extensions\EnumExtensions.cs" />
+    <Compile Include="Extensions\IniFileExtensions.cs" />
     <Compile Include="Extensions\StringExtensions.cs" />
     <Compile Include="INIProcessing\IniPreprocessInfoStore.cs" />
     <Compile Include="INIProcessing\IniPreprocessor.cs" />
