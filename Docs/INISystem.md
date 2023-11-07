@@ -22,12 +22,14 @@ $X=MY_EXAMPLE_CONSTANT
 ```
 _NOTE: Constants can only be used in [dynamic control properties](#dynamic-control-properties)_
 
-## Control properties: 
+## Control properties
 Below lists basic and dynamic control properties. Ordering of properties is important. If there is a property that relies on the size of a control, the properties must set the size of that control first.
 
+> **Note**
+> Multi-line strings use `@` as a line break. To write the real `@` character, use `\@`. Also as INI syntax uses `;` to denote comments, use `\semicolon` to write the real `;` character.
 
 ### Basic Control Properties
-Basic control properties cannot use constants
+Basic control properties cannot use constants.
 
 #### XNAControl
 
@@ -37,7 +39,7 @@ Basic control properties cannot use constants
 `Width` = `{integer}` the Width of the control  
 `Height` = `{integer}` the Height of the control  
 `Size` = `{comma separated integers}` the Width and Height of the control.  
-`Text` = `{string}` the text to display for the control (ex: buttons, labels, etc...)  
+`Text` = `{multi-line string}` the text to display for the control (ex: buttons, labels, etc...)  
 `Visible` = `{true/false or yes/no}` whether or not the control should be visible by default  
 `Enabled` = `{true/false or yes/no}` whether or not the control should be enabled by default  
 `DistanceFromRightBorder` = `{integer}` the distance of the right edge of this control from the right edge of its parent. This control MUST have a parent.  
@@ -97,7 +99,8 @@ _(inherits XNAButton)_
 _(inherits XNAClientButton)_
 
 `URL`  
-`ToolTip` = {string} tooltip for checkbox. '@' can be used for newlines  
+`UnixURL`
+`ToolTip` = `{multi-line string}` tooltip for checkbox
 
 #### XNACheckbox
 _(inherits XNAControl)_
@@ -110,9 +113,9 @@ _(inherits XNAControl)_
 `Checked`  
 
 #### XNAClientCheckbox
-_(inherits XNACheckbox)_
+_(inherits XNACheckBox)_
 
-`ToolTip` = {string} tooltip for checkbox. '@' can be used for newlines
+`ToolTip` = `{multi-line string}` tooltip for checkbox
 
 #### XNADropDown
 _(inherits XNAControl)_
@@ -132,7 +135,7 @@ _(inherits XNAControl)_
 #### XNAClientDropDown
 _(inherits XNADropDown)_
 
-`ToolTip` = {string} tooltip for checkbox. '@' can be used for newlines  
+`ToolTip` = `{multi-line string}` tooltip for checkbox 
 
 #### XNATabControl
 _(inherits XNAControl)_
@@ -164,6 +167,70 @@ DistanceFromLeftBorder=10
 FillWidth=10
 FillHeight=10
 ```
+
+### Special Controls & Their Properties
+
+Some controls are only available under specific circumstances
+
+#### XNAOptionsPanel Controls
+
+Following controls are only available as children of `XNAOptionsPanel` and derived controls. These currently use basic control properties only.
+
+##### SettingCheckBox
+_(inherits XNAClientCheckBox)_
+
+`DefaultValue` = `{true/false or yes/no}` default state of the checkbox. Value of `Checked` will be used if it is set and this isn't. Otherwise defaults to `false`.  
+`SettingSection` = `{string}` name of the section in settings INI the setting is saved to. Defaults to `CustomSettings`.  
+`SettingKey` = `{string}` name of the key in settings INI the setting is saved to. Defaults to `CONTROLNAME_Value` if `WriteSettingValue` is set, otherwise `CONTROLNAME_Checked`.  
+`WriteSettingValue` = `{true/false or yes/no}` enable to write a specific string value to setting INI key instead of the checked state of the checkbox. Defaults to `false`.  
+`EnabledSettingValue` = `{string}` value to write to setting INI key if `WriteSettingValue` is set and checkbox is checked.  
+`DisabledSettingValue` = `{string}` value to write to setting INI key if `WriteSettingValue` is set and checkbox is not checked.  
+`RestartRequired` = `{true/false or yes/no}` whether or not this setting requires restarting the client to apply. Defaults to `false`.  
+`ParentCheckBoxName` = `{string}` name of a `XNAClientCheckBox` control to use as a parent checkbox that is required to either be checked or unchecked, depending on value of `ParentCheckBoxRequiredValue` for this checkbox to be enabled. Only works if name can be resolved to an existing control belonging to same parent as current checkbox.  
+`ParentCheckBoxRequiredValue` = `{true/false or yes/no}` state required from the parent checkbox for this one to be enabled. Defaults to `true`.  
+
+##### FileSettingCheckBox
+_(inherits XNAClientCheckBox)_
+
+`DefaultValue` = `{true/false or yes/no}` default state of the checkbox. Value of `Checked` will be used if it is set and this isn't. Otherwise defaults to `false`.  
+`SettingSection` = `{string}` name of the section in settings INI the setting is saved to. Defaults to `CustomSettings`.  
+`SettingKey` = `{string}` name of the key in settings INI the setting is saved to. Defaults to `CONTROLNAME_Value` if `WriteSettingValue` is set, otherwise `CONTROLNAME_Checked`.  
+`RestartRequired` = `{true/false or yes/no}` whether or not this setting requires restarting the client to apply. Defaults to `false`.  
+`ParentCheckBoxName` = `{string}` name of a `XNAClientCheckBox` control to use as a parent checkbox that is required to either be checked or unchecked, depending on value of `ParentCheckBoxRequiredValue` for this checkbox to be enabled. Only works if name can be resolved to an existing control belonging to same parent as current checkbox.  
+`ParentCheckBoxRequiredValue` = `{true/false or yes/no}` state required from the parent checkbox for this one to be enabled. Defaults to `true`.  
+`CheckAvailability` = `{true/false or yes/no}` if set, whether or not the checkbox can be (un)checked depends on if the files to copy are actually present. Defaults to `false`.  
+`ResetUnavailableValue` = `{true/false or yes/no}` if set together with `CheckAvailability`, checkbox set to a value that is unavailable will be reset back to `DefaultValue`. Defaults to `false`.  
+`EnabledFileN` = `{comma-separated strings}` files to copy if checkbox is checked. N starts from 0 and is incremented by 1 until no value is found. Expects 2-3 comma-separated strings in following format: source path relative to game root folder, destination path relative to game root folder and a [file operation option](#appendix-file-operation-options).  
+`DisabledFileN` = `{comma-separated strings}` files to copy if checkbox is not checked. N starts from 0 and is incremented by 1 until no value is found. Expects 2-3 comma-separated strings in following format: source path relative to game root folder, destination path relative to game root folder and a [file operation option](#appendix-file-operation-options).  
+
+##### SettingDropDown
+_(inherits XNAClientDropDown)_
+
+`Items` = `{comma-separated strings}` comma-separated list of strings to include as items to display on the dropdown control.  
+`DefaultValue` = `{integer}` default item index of the dropdown. Defaults to 0 (first item).  
+`SettingSection` = `{string}` name of the section in settings INI the setting is saved to. Defaults to `CustomSettings`.  
+`SettingKey` = `{string}` name of the key in settings INI the setting is saved to. Defaults to `CONTROLNAME_Value` if `WriteSettingValue` is set, otherwise `CONTROLNAME_SelectedIndex`.  
+`WriteSettingValue` = `{true/false or yes/no}` enable to write selected item value to the setting INI key instead of the checked state of the checkbox. Defaults to `false`.  
+`RestartRequired` = `{true/false or yes/no}` whether or not this setting requires restarting the client to apply. Defaults to `false`.  
+
+##### FileSettingDropDown
+_(inherits XNAClientDropDown)_
+
+`Items` = `{comma-separated strings}` comma-separated list of strings to include as items to display on the dropdown control.  
+`DefaultValue` = `{integer}` default item index of the dropdown. Defaults to 0 (first item).  
+`SettingSection` = `{string}` name of the section in settings INI the setting is saved to. Defaults to `CustomSettings`.  
+`SettingKey` = `{string}` name of the key in settings INI the setting is saved to. Defaults to `CONTROLNAME_SelectedIndex`.  
+`RestartRequired` = `{true/false or yes/no}` whether or not this setting requires restarting the client to apply. Defaults to `false`.  
+`ItemXFileN` = `{comma-separated strings}` files to copy when dropdown item X is selected. N starts from 0 and is incremented by 1 until no value is found. Expects 2-3 comma-separated strings in following format: source path relative to game root folder, destination path relative to game root folder and a [file operation option](#appendix-file-operation-options).  
+
+##### Appendix: File Operation Options
+
+Valid file operation options available for files defined for `FileSettingCheckBox` and `FileSettingDropDown` are as follows:
+
+- `AlwaysOverwrite`: Always overwrites the destination file with source file.
+- `OverwriteOnMismatch`: Overwrites the destination file with source file only if they are different.
+- `DontOverwrite`: Never overwrites the destination file with source file if destination file is already present.
+- `KeepChanges`: Carries over the destination file with any changes manually made to by caching the file if deleted by disabling the option and then re-enabling it.
 
 ### Dynamic Control Properties
 Dynamic Control Properties CAN use constants

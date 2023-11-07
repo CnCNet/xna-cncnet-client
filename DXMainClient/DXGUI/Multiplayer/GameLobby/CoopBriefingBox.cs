@@ -1,8 +1,6 @@
 ﻿using Rampastring.XNAUI.XNAControls;
 using Rampastring.XNAUI;
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
-using System;
 
 namespace DTAClient.DXGUI.Multiplayer.GameLobby
 {

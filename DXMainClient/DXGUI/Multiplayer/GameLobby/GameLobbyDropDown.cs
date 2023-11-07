@@ -3,8 +3,9 @@ using Rampastring.Tools;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
 using ClientGUI;
-using ClientCore;
 using DTAClient.Domain.Multiplayer;
+using ClientCore.Extensions;
+using ClientCore.I18N;
 
 namespace DTAClient.DXGUI.Multiplayer.GameLobby
 {
@@ -50,22 +51,26 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             base.Initialize();
         }
 
-        public override void ParseAttributeFromINI(IniFile iniFile, string key, string value)
+        protected override void ParseControlINIAttribute(IniFile iniFile, string key, string value)
         {
+            // shorthand for localization function
+            static string Localize(XNAControl control, string attributeName, string defaultValue, bool notify = true)
+                => Translation.Instance.LookUp(control, attributeName, defaultValue, notify);
+
             switch (key)
             {
                 case "Items":
                     string[] items = value.Split(',');
-                    string[] itemlabels = iniFile.GetStringValue(Name, "ItemLabels", "").Split(',');
+                    string[] itemLabels = iniFile.GetStringValue(Name, "ItemLabels", "").Split(',');
                     for (int i = 0; i < items.Length; i++)
                     {
-                        XNADropDownItem item = new XNADropDownItem();
-                        if (itemlabels.Length > i && !String.IsNullOrEmpty(itemlabels[i]))
+                        bool hasLabel = itemLabels.Length > i && !string.IsNullOrEmpty(itemLabels[i]);
+                        XNADropDownItem item = new()
                         {
-                            item.Text = itemlabels[i];
-                            item.Tag = items[i];
-                        }
-                        else item.Text = items[i];
+                            Text = Localize(this, $"Item{i}",
+                                hasLabel ? itemLabels[i] : items[i]),
+                            Tag = items[i],
+                        };
                         AddItem(item);
                     }
                     return;
@@ -89,11 +94,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     UserSelectedIndex = SelectedIndex;
                     return;
                 case "OptionName":
-                    OptionName = value;
+                    OptionName = Localize(this, "OptionName", value);
                     return;
             }
 
-            base.ParseAttributeFromINI(iniFile, key, value);
+            base.ParseControlINIAttribute(iniFile, key, value);
         }
 
         /// <summary>
@@ -121,14 +126,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     break;
                 default:
                 case DropDownDataWriteMode.STRING:
-                    if (Items[SelectedIndex].Tag != null)
-                    {
-                        spawnIni.SetStringValue("Settings", spawnIniOption, Items[SelectedIndex].Tag.ToString());
-                    }
-                    else
-                    {
-                        spawnIni.SetStringValue("Settings", spawnIniOption, Items[SelectedIndex].Text);
-                    }
+                    spawnIni.SetStringValue("Settings", spawnIniOption, Items[SelectedIndex].Tag.ToString());
                     break;
             }
 
@@ -144,8 +142,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (dataWriteMode != DropDownDataWriteMode.MAPCODE || SelectedIndex < 0 || SelectedIndex >= Items.Count) return;
 
             string customIniPath;
-            if (Items[SelectedIndex].Tag != null) customIniPath = Items[SelectedIndex].Tag.ToString();
-            else customIniPath = Items[SelectedIndex].Text;
+            customIniPath = Items[SelectedIndex].Tag.ToString();
 
             MapCodeHelper.ApplyMapCode(mapIni, customIniPath, gameMode);
         }

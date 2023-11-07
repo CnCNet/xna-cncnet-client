@@ -10,9 +10,8 @@ using ClientGUI;
 using Rampastring.Tools;
 using System.IO;
 using DTAClient.Domain;
-using DTAClient.Online;
 using Microsoft.Xna.Framework;
-using Localization;
+using ClientCore.Extensions;
 
 namespace DTAClient.DXGUI.Multiplayer.GameLobby
 {
@@ -39,11 +38,12 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             //InitPlayerOptionDropdowns(128, 98, 90, 48, 55, new Point(6, 24));
             InitPlayerOptionDropdowns();
 
-            btnLeaveGame.Text = "Main Menu".L10N("UI:Main:MainMenu");
+            btnLeaveGame.Text = "Main Menu".L10N("Client:Main:MainMenu");
 
             //MapPreviewBox.EnableContextMenu = true;
 
-            ddPlayerSides[0].AddItem("Spectator".L10N("UI:Main:SpectatorSide"), AssetLoader.LoadTexture("spectatoricon.png"));
+            const string spectatorName = "Spectator";
+            AddSideToDropDown(ddPlayerSides[0], spectatorName, spectatorName.L10N("Client:Sides:SpectatorSide"), AssetLoader.LoadTexture("spectatoricon.png"));
 
             MapPreviewBox.LocalStartingLocationSelected += MapPreviewBox_LocalStartingLocationSelected;
             MapPreviewBox.StartingLocationApplied += MapPreviewBox_StartingLocationApplied;
@@ -74,7 +74,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         protected override void AddNotice(string message, Color color)
         {
-            XNAMessageBox.Show(WindowManager, "Message".L10N("UI:Main:MessageTitle"), message);
+            XNAMessageBox.Show(WindowManager, "Message".L10N("Client:Main:MessageTitle"), message);
         }
 
         protected override void OnEnabledChanged(object sender, EventArgs args)
@@ -110,24 +110,24 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             if (GameMode.MultiplayerOnly)
             {
-                return String.Format("{0} can only be played on CnCNet and LAN.".L10N("UI:Main:GameModeMultiplayerOnly"),
+                return String.Format("{0} can only be played on CnCNet and LAN.".L10N("Client:Main:GameModeMultiplayerOnly"),
                     GameMode.UIName);
             }
 
             if (GameMode.MinPlayersOverride > -1 && totalPlayerCount < GameMode.MinPlayersOverride)
             {
-                return String.Format("{0} cannot be played with less than {1} players.".L10N("UI:Main:GameModeInsufficientPlayers"),
+                return String.Format("{0} cannot be played with less than {1} players.".L10N("Client:Main:GameModeInsufficientPlayers"),
                          GameMode.UIName, GameMode.MinPlayersOverride);
             }
 
             if (Map.MultiplayerOnly)
             {
-                return "The selected map can only be played on CnCNet and LAN.".L10N("UI:Main:MapMultiplayerOnly");
+                return "The selected map can only be played on CnCNet and LAN.".L10N("Client:Main:MapMultiplayerOnly");
             }
 
             if (totalPlayerCount < Map.MinPlayers)
             {
-                return String.Format("The selected map cannot be played with less than {0} players.".L10N("UI:Main:MapInsufficientPlayers"),
+                return String.Format("The selected map cannot be played with less than {0} players.".L10N("Client:Main:MapInsufficientPlayers"),
                     Map.MinPlayers);
             }
 
@@ -135,7 +135,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             {
                 if (totalPlayerCount > Map.MaxPlayers)
                 {
-                    return String.Format("The selected map cannot be played with more than {0} players.".L10N("UI:Main:MapTooManyPlayers"),
+                    return String.Format("The selected map cannot be played with more than {0} players.".L10N("Client:Main:MapTooManyPlayers"),
                         Map.MaxPlayers);
                 }
 
@@ -148,14 +148,14 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
                     if (concatList.Count(p => p.StartingLocation == pInfo.StartingLocation) > 1)
                     {
-                        return "Multiple players cannot share the same starting location on the selected map.".L10N("UI:Main:StartLocationOccupied");
+                        return "Multiple players cannot share the same starting location on the selected map.".L10N("Client:Main:StartLocationOccupied");
                     }
                 }
             }
 
             if (Map.IsCoop && Players[0].SideId == ddPlayerSides[0].Items.Count - 1)
             {
-                return "Co-op missions cannot be spectated. You'll have to show a bit more effort to cheat here.".L10N("UI:Main:CoOpMissionSpectatorPrompt");
+                return "Co-op missions cannot be spectated. You'll have to show a bit more effort to cheat here.".L10N("Client:Main:CoOpMissionSpectatorPrompt");
             }
 
             var teamMappingsError = GetTeamMappingsError();
@@ -176,7 +176,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 return;
             }
 
-            XNAMessageBox.Show(WindowManager, "Cannot launch game".L10N("UI:Main:LaunchGameErrorTitle"), error);
+            XNAMessageBox.Show(WindowManager, "Cannot launch game".L10N("Client:Main:LaunchGameErrorTitle"), error);
         }
 
         protected override void BtnLeaveGame_LeftClick(object sender, EventArgs e)
@@ -208,11 +208,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             if (sideDropDown.SelectedItem == null)
                 return;
 
-            string side = sideDropDown.SelectedItem.Text;
+            string side = (string)sideDropDown.SelectedItem.Tag;
             string currentState = ProgramConstants.IsInGame ? "In Game" : "Setting Up";
 
             discordHandler.UpdatePresence(
-                Map.Name, GameMode.Name, currentState, side, resetTimer);
+                Map.UntranslatedName, GameMode.UntranslatedUIName, currentState, side, resetTimer);
         }
 
         protected override bool AllowPlayerOptionsChange()
@@ -222,7 +222,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         protected override int GetDefaultMapRankIndex(GameModeMap gameModeMap)
         {
-            return StatisticsManager.Instance.GetSkirmishRankForDefaultMap(gameModeMap.Map.Name, gameModeMap.Map.MaxPlayers);
+            return StatisticsManager.Instance.GetSkirmishRankForDefaultMap(gameModeMap.Map.UntranslatedName, gameModeMap.Map.MaxPlayers);
         }
 
         protected override void GameProcessExited()
@@ -252,7 +252,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         public string GetSwitchName()
         {
-            return "Skirmish Lobby".L10N("UI:Main:SkirmishLobby");
+            return "Skirmish Lobby".L10N("Client:Main:SkirmishLobby");
         }
 
         /// <summary>
@@ -262,10 +262,12 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             try
             {
-                // Delete the file so we don't keep potential extra AI players that already exist in the file
-                File.Delete(ProgramConstants.GamePath + SETTINGS_PATH);
+                FileInfo settingsFileInfo = SafePath.GetFile(ProgramConstants.GamePath, SETTINGS_PATH);
 
-                var skirmishSettingsIni = new IniFile(ProgramConstants.GamePath + SETTINGS_PATH);
+                // Delete the file so we don't keep potential extra AI players that already exist in the file
+                settingsFileInfo.Delete();
+
+                var skirmishSettingsIni = new IniFile(settingsFileInfo.FullName);
 
                 skirmishSettingsIni.SetStringValue("Player", "Info", Players[0].ToString());
 
@@ -303,13 +305,13 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         /// </summary>
         private void LoadSettings()
         {
-            if (!File.Exists(ProgramConstants.GamePath + SETTINGS_PATH))
+            if (!SafePath.GetFile(ProgramConstants.GamePath, SETTINGS_PATH).Exists)
             {
                 InitDefaultSettings();
                 return;
             }
 
-            var skirmishSettingsIni = new IniFile(ProgramConstants.GamePath + SETTINGS_PATH);
+            var skirmishSettingsIni = new IniFile(SafePath.CombineFilePath(ProgramConstants.GamePath, SETTINGS_PATH));
 
             string gameModeMapFilterName = skirmishSettingsIni.GetStringValue("Settings", "GameModeMapFilter", string.Empty);
             if (string.IsNullOrEmpty(gameModeMapFilterName))
@@ -486,7 +488,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             Players.Add(new PlayerInfo(ProgramConstants.PLAYERNAME, 0, 0, 0, 0));
             PlayerInfo aiPlayer = new PlayerInfo(ProgramConstants.AI_PLAYER_NAMES[0], 0, 0, 0, 0);
             aiPlayer.IsAI = true;
-            aiPlayer.AILevel = 2;
+            aiPlayer.AILevel = 0;
             AIPlayers.Add(aiPlayer);
 
             LoadDefaultGameModeMap();
@@ -496,6 +498,12 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             MapPreviewBox.EnableContextMenu = !((Map != null && Map.ForceRandomStartLocations) || (GameMode != null && GameMode.ForceRandomStartLocations) || GetPlayerExtraOptions().IsForceRandomStarts);
             MapPreviewBox.EnableStartLocationSelection = MapPreviewBox.EnableContextMenu;
+        }
+
+        protected override bool UpdateLaunchGameButtonStatus()
+        {
+            btnLaunchGame.Enabled = base.UpdateLaunchGameButtonStatus() && GameMode != null && Map != null;
+            return btnLaunchGame.Enabled;
         }
     }
 }

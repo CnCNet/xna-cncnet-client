@@ -1,4 +1,5 @@
-﻿using ClientCore;
+﻿using System;
+using ClientCore;
 using DiscordRPC;
 using DiscordRPC.Message;
 using Microsoft.Xna.Framework;
@@ -11,7 +12,7 @@ namespace DTAClient.Domain
     /// <summary>
     /// A class for handling Discord integration.
     /// </summary>
-    public class DiscordHandler : GameComponent
+    public class DiscordHandler: IDisposable
     {
         private DiscordRpcClient client;
 
@@ -32,7 +33,7 @@ namespace DTAClient.Domain
                 {
                     PreviousPresence = _currentPresence;
                     _currentPresence = value;
-                    client.SetPresence(_currentPresence);
+                    client?.SetPresence(_currentPresence);
                 }
             }
         }
@@ -45,33 +46,19 @@ namespace DTAClient.Domain
         /// <summary>
         /// Creates a new instance of Discord handler.
         /// </summary>
-        /// <param name="windowManager">The window manager.</param>
-        public DiscordHandler(WindowManager windowManager) : base(windowManager.Game)
+        public DiscordHandler()
         {
-            windowManager.Game.Components.Add(this);
+            if (!UserINISettings.Instance.DiscordIntegration || string.IsNullOrEmpty(ClientConfiguration.Instance.DiscordAppId))
+                return;
+
+            InitializeClient();
+            UpdatePresence();
+            Connect();
+
+            AppDomain.CurrentDomain.ProcessExit += (_, _) => Dispose();
         }
 
         #region overrides
-
-        public override void Initialize()
-        {
-            InitializeClient();
-            UpdatePresence();
-
-            if (UserINISettings.Instance.DiscordIntegration)
-                Connect();
-
-            base.Initialize();
-        }
-
-        protected override void Dispose(bool disposing)
-        {
-            if (client.IsInitialized)
-                client.ClearPresence();
-
-            client.Dispose();
-            base.Dispose(disposing);
-        }
 
         #endregion
 
@@ -86,6 +73,7 @@ namespace DTAClient.Domain
             {
                 client.ClearPresence();
                 client.Dispose();
+                client = null;
             }
 
             client = new DiscordRpcClient(ClientConfiguration.Instance.DiscordAppId);
@@ -108,7 +96,7 @@ namespace DTAClient.Domain
         /// </summary>
         public void Connect()
         {
-            if (client == null || client != null && client.IsInitialized)
+            if (client == null || client.IsInitialized)
                 return;
 
             bool success = client.Initialize();
@@ -153,22 +141,6 @@ namespace DTAClient.Domain
         }
 
         /// <summary>
-        /// Updates Discord Rich Presence with simple state and details info.
-        /// </summary>
-        public void UpdatePresence(string state, string details)
-        {
-            CurrentPresence = new RichPresence()
-            {
-                State = state,
-                Details = details,
-                Assets = new Assets()
-                {
-                    LargeImageKey = "logo"
-                }
-            };
-        }
-
-        /// <summary>
         /// Updates Discord Rich Presence with info from game lobbies.
         /// </summary>
         public void UpdatePresence(string map, string mode, string type, string state,
@@ -194,7 +166,7 @@ namespace DTAClient.Domain
                     SmallImageKey = sideKey,
                     SmallImageText = side
                 },
-                Timestamps = (client.CurrentPresence.HasTimestamps() && !resetTimer) ?
+                Timestamps = (client?.CurrentPresence.HasTimestamps() ?? false) && !resetTimer ?
                     client.CurrentPresence.Timestamps : Timestamps.Now
             };
         }
@@ -218,7 +190,7 @@ namespace DTAClient.Domain
                 {
                     LargeImageKey = "logo"
                 },
-                Timestamps = (client.CurrentPresence.HasTimestamps() && !resetTimer) ?
+                Timestamps = (client?.CurrentPresence.HasTimestamps() ?? false) && !resetTimer ?
                     client.CurrentPresence.Timestamps : Timestamps.Now
             };
         }
@@ -239,7 +211,7 @@ namespace DTAClient.Domain
                     SmallImageKey = sideKey,
                     SmallImageText = side
                 },
-                Timestamps = (client.CurrentPresence.HasTimestamps() && !resetTimer) ?
+                Timestamps = (client?.CurrentPresence.HasTimestamps() ?? false) && !resetTimer ?
                     client.CurrentPresence.Timestamps : Timestamps.Now
             };
         }
@@ -260,7 +232,7 @@ namespace DTAClient.Domain
                     SmallImageKey = sideKey,
                     SmallImageText = side
                 },
-                Timestamps = (client.CurrentPresence.HasTimestamps() && !resetTimer) ?
+                Timestamps = (client?.CurrentPresence.HasTimestamps() ?? false) && !resetTimer ?
                     client.CurrentPresence.Timestamps : Timestamps.Now
             };
         }
@@ -278,7 +250,7 @@ namespace DTAClient.Domain
                 {
                     LargeImageKey = "logo"
                 },
-                Timestamps = (client.CurrentPresence.HasTimestamps() && !resetTimer) ?
+                Timestamps = (client?.CurrentPresence.HasTimestamps() ?? false) && !resetTimer ?
                     client.CurrentPresence.Timestamps : Timestamps.Now
             };
         }
@@ -290,7 +262,7 @@ namespace DTAClient.Domain
         private void OnReady(object sender, ReadyMessage args)
         {
             Logger.Log($"Discord: Received Ready from user {args.User.Username}");
-            client.SetPresence(CurrentPresence);
+            client?.SetPresence(CurrentPresence);
         }
 
         private void OnClose(object sender, CloseMessage args)
@@ -329,5 +301,16 @@ namespace DTAClient.Domain
         }
 
         #endregion
+
+        public void Dispose()
+        {
+            if (client == null)
+                return;
+
+            if (client.IsInitialized)
+                client.ClearPresence();
+
+            client.Dispose();
+        }
     }
 }

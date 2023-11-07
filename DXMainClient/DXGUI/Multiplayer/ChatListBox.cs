@@ -1,9 +1,9 @@
 ﻿using Rampastring.XNAUI.XNAControls;
 using Rampastring.XNAUI;
-using System.Diagnostics;
 using DTAClient.Online;
 using Microsoft.Xna.Framework;
 using System;
+using ClientCore;
 using ClientCore.Extensions;
 
 namespace DTAClient.DXGUI.Multiplayer
@@ -28,7 +28,7 @@ namespace DTAClient.DXGUI.Multiplayer
             if (link == null)
                 return;
 
-            Process.Start(link);
+            ProcessLauncher.StartShellProcess(link);
         }
 
         public void AddMessage(string message)

@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace DTAClient.Domain.Multiplayer
+﻿namespace DTAClient.Domain.Multiplayer
 {
     /// <summary>
     /// An instance of a Map in a given GameMode

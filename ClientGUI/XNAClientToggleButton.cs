@@ -15,7 +15,7 @@ namespace ClientGUI
         public Texture2D UncheckedTexture { get; set; }
 
         private string _toolTipText { get; set; }
-        private ToolTip _toolTip { get; set; }
+        private ToolTip ToolTip { get; set; }
 
         private bool _checked { get; set; }
 
@@ -34,7 +34,7 @@ namespace ClientGUI
 
             base.Initialize();
 
-            _toolTip = new ToolTip(WindowManager, this);
+            ToolTip = new ToolTip(WindowManager, this);
             SetToolTipText(_toolTipText);
 
             if (Width == 0)
@@ -59,8 +59,8 @@ namespace ClientGUI
         public void SetToolTipText(string text)
         {
             _toolTipText = text ?? string.Empty;
-            if (_toolTip != null)
-                _toolTip.Text = _toolTipText;
+            if (ToolTip != null)
+                ToolTip.Text = _toolTipText;
         }
 
         public XNAClientToggleButton(WindowManager windowManager) : base(windowManager)

@@ -1,5 +1,8 @@
 ﻿using ClientCore;
+using ClientCore.I18N;
+using ClientCore.Extensions;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Input;
 using Rampastring.Tools;
 using Rampastring.XNAUI;
 using Rampastring.XNAUI.XNAControls;
@@ -61,28 +64,28 @@ namespace ClientGUI
             string iniFileName = string.IsNullOrWhiteSpace(IniNameOverride) ? Name : IniNameOverride;
 
             // get theme specific path
-            string configIniPath = Path.Combine(ProgramConstants.GetResourcePath(), $"{iniFileName}.ini");
-            if (File.Exists(configIniPath))
-                return configIniPath;
+            FileInfo configIniPath = SafePath.GetFile(ProgramConstants.GetResourcePath(), FormattableString.Invariant($"{iniFileName}.ini"));
+            if (configIniPath.Exists)
+                return configIniPath.FullName;
 
             // get base path
-            configIniPath = Path.Combine(ProgramConstants.GetBaseResourcePath(), $"{iniFileName}.ini");
-            if (File.Exists(configIniPath))
-                return configIniPath;
+            configIniPath = SafePath.GetFile(ProgramConstants.GetBaseResourcePath(), FormattableString.Invariant($"{iniFileName}.ini"));
+            if (configIniPath.Exists)
+                return configIniPath.FullName;
 
             if (iniFileName == Name)
                 return null; // IniNameOverride must be null, no need to continue
 
             iniFileName = Name;
-            
+
             // get theme specific path
-            configIniPath = Path.Combine(ProgramConstants.GetResourcePath(), $"{iniFileName}.ini");
-            if (File.Exists(configIniPath))
-                return configIniPath;
+            configIniPath = SafePath.GetFile(ProgramConstants.GetResourcePath(), FormattableString.Invariant($"{iniFileName}.ini"));
+            if (configIniPath.Exists)
+                return configIniPath.FullName;
 
             // get base path
-            configIniPath = Path.Combine(ProgramConstants.GetBaseResourcePath(), $"{iniFileName}.ini");
-            return File.Exists(configIniPath) ? configIniPath : null;
+            configIniPath = SafePath.GetFile(ProgramConstants.GetBaseResourcePath(), FormattableString.Invariant($"{iniFileName}.ini"));
+            return configIniPath.Exists ? configIniPath.FullName : null;
         }
 
         public override void Initialize()
@@ -148,12 +151,12 @@ namespace ClientGUI
                 ReadINIRecursive(child);
         }
 
-        public override void ParseAttributeFromINI(IniFile iniFile, string key, string value)
+        protected override void ParseControlINIAttribute(IniFile iniFile, string key, string value)
         {
             if (key == "HasCloseButton")
                 hasCloseButton = iniFile.GetBooleanValue(Name, key, hasCloseButton);
 
-            base.ParseAttributeFromINI(iniFile, key, value);
+            base.ParseControlINIAttribute(iniFile, key, value);
         }
 
         protected void ReadINIForControl(XNAControl control)
@@ -163,6 +166,10 @@ namespace ClientGUI
                 return;
 
             Parser.Instance.SetPrimaryControl(this);
+
+            // shorthand for localization function
+            static string Localize(XNAControl control, string attributeName, string defaultValue, bool notify = true)
+                => Translation.Instance.LookUp(control, attributeName, defaultValue, notify);
 
             foreach (var kvp in section.Keys)
             {
@@ -174,19 +181,23 @@ namespace ClientGUI
                 }
                 else if (kvp.Key == "$X")
                 {
-                    control.X = Parser.Instance.GetExprValue(kvp.Value, control);
+                    control.X = Parser.Instance.GetExprValue(
+                        Localize(control, kvp.Key, kvp.Value, notify: false), control);
                 }
                 else if (kvp.Key == "$Y")
                 {
-                    control.Y = Parser.Instance.GetExprValue(kvp.Value, control);
+                    control.Y = Parser.Instance.GetExprValue(
+                        Localize(control, kvp.Key, kvp.Value, notify: false), control);
                 }
                 else if (kvp.Key == "$Width")
                 {
-                    control.Width = Parser.Instance.GetExprValue(kvp.Value, control);
+                    control.Width = Parser.Instance.GetExprValue(
+                        Localize(control, kvp.Key, kvp.Value, notify: false), control);
                 }
                 else if (kvp.Key == "$Height")
                 {
-                    control.Height = Parser.Instance.GetExprValue(kvp.Value, control);
+                    control.Height = Parser.Instance.GetExprValue(
+                        Localize(control, kvp.Key, kvp.Value, notify: false), control);
                 }
                 else if (kvp.Key == "$TextAnchor" && control is XNALabel)
                 {
@@ -207,7 +218,7 @@ namespace ClientGUI
                 }
                 else
                 {
-                    control.ParseAttributeFromINI(ConfigIni, kvp.Key, kvp.Value);
+                    control.ParseINIAttribute(ConfigIni, kvp.Key, kvp.Value);
                 }
             }
         }
@@ -263,7 +274,7 @@ namespace ClientGUI
             if (string.IsNullOrEmpty(childName))
                 throw new INIConfigException("Empty name in child control definition for " + parent.Name);
 
-            var childControl = ClientGUICreator.Instance.CreateControl(WindowManager, parts[1]);
+            XNAControl childControl = ClientGUICreator.GetXnaControl(parts[1]);
 
             if (Array.Exists(childName.ToCharArray(), c => !char.IsLetterOrDigit(c) && c != '_'))
                 throw new INIConfigException("Names of INItializableWindow child controls must consist of letters, digits and underscores only. Offending name: " + parts[0]);

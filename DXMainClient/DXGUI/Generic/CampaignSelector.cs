@@ -8,8 +8,8 @@ using ClientGUI;
 using Rampastring.XNAUI.XNAControls;
 using Rampastring.XNAUI;
 using Rampastring.Tools;
-using Updater;
-using Localization;
+using ClientUpdater;
+using ClientCore.Extensions;
 
 namespace DTAClient.DXGUI.Generic
 {
@@ -69,13 +69,13 @@ namespace DTAClient.DXGUI.Generic
             lblSelectCampaign.Name = "lblSelectCampaign";
             lblSelectCampaign.FontIndex = 1;
             lblSelectCampaign.ClientRectangle = new Rectangle(12, 12, 0, 0);
-            lblSelectCampaign.Text = "MISSIONS:".L10N("UI:Main:Missions");
+            lblSelectCampaign.Text = "MISSIONS:".L10N("Client:Main:Missions");
 
             lbCampaignList = new XNAListBox(WindowManager);
             lbCampaignList.Name = "lbCampaignList";
             lbCampaignList.BackgroundTexture = AssetLoader.CreateTexture(new Color(0, 0, 0, 128), 2, 2);
             lbCampaignList.PanelBackgroundDrawMode = PanelBackgroundImageDrawMode.STRETCHED;
-            lbCampaignList.ClientRectangle = new Rectangle(12, 
+            lbCampaignList.ClientRectangle = new Rectangle(12,
                 lblSelectCampaign.Bottom + 6, 300, 516);
             lbCampaignList.SelectedIndexChanged += LbCampaignList_SelectedIndexChanged;
 
@@ -83,14 +83,14 @@ namespace DTAClient.DXGUI.Generic
             lblMissionDescriptionHeader.Name = "lblMissionDescriptionHeader";
             lblMissionDescriptionHeader.FontIndex = 1;
             lblMissionDescriptionHeader.ClientRectangle = new Rectangle(
-                lbCampaignList.Right + 12, 
+                lbCampaignList.Right + 12,
                 lblSelectCampaign.Y, 0, 0);
-            lblMissionDescriptionHeader.Text = "MISSION DESCRIPTION:".L10N("UI:Main:MissionDescription");
+            lblMissionDescriptionHeader.Text = "MISSION DESCRIPTION:".L10N("Client:Main:MissionDescription");
 
             tbMissionDescription = new XNATextBlock(WindowManager);
             tbMissionDescription.Name = "tbMissionDescription";
             tbMissionDescription.ClientRectangle = new Rectangle(
-                lblMissionDescriptionHeader.X, 
+                lblMissionDescriptionHeader.X,
                 lblMissionDescriptionHeader.Bottom + 6,
                 Width - 24 - lbCampaignList.Right, 430);
             tbMissionDescription.PanelBackgroundDrawMode = PanelBackgroundImageDrawMode.STRETCHED;
@@ -101,7 +101,7 @@ namespace DTAClient.DXGUI.Generic
 
             var lblDifficultyLevel = new XNALabel(WindowManager);
             lblDifficultyLevel.Name = "lblDifficultyLevel";
-            lblDifficultyLevel.Text = "DIFFICULTY LEVEL".L10N("UI:Main:DifficultyLevel");
+            lblDifficultyLevel.Text = "DIFFICULTY LEVEL".L10N("Client:Main:DifficultyLevel");
             lblDifficultyLevel.FontIndex = 1;
             Vector2 textSize = Renderer.GetTextDimensions(lblDifficultyLevel.Text, lblDifficultyLevel.FontIndex);
             lblDifficultyLevel.ClientRectangle = new Rectangle(
@@ -123,14 +123,14 @@ namespace DTAClient.DXGUI.Generic
             var lblEasy = new XNALabel(WindowManager);
             lblEasy.Name = "lblEasy";
             lblEasy.FontIndex = 1;
-            lblEasy.Text = "EASY".L10N("UI:Main:DifficultyEasy");
+            lblEasy.Text = "EASY".L10N("Client:Main:DifficultyEasy");
             lblEasy.ClientRectangle = new Rectangle(trbDifficultySelector.X,
                 trbDifficultySelector.Bottom + 6, 1, 1);
 
             var lblNormal = new XNALabel(WindowManager);
             lblNormal.Name = "lblNormal";
             lblNormal.FontIndex = 1;
-            lblNormal.Text = "NORMAL".L10N("UI:Main:DifficultyNormal");
+            lblNormal.Text = "NORMAL".L10N("Client:Main:DifficultyNormal");
             textSize = Renderer.GetTextDimensions(lblNormal.Text, lblNormal.FontIndex);
             lblNormal.ClientRectangle = new Rectangle(
                 tbMissionDescription.X + (tbMissionDescription.Width - (int)textSize.X) / 2,
@@ -139,7 +139,7 @@ namespace DTAClient.DXGUI.Generic
             var lblHard = new XNALabel(WindowManager);
             lblHard.Name = "lblHard";
             lblHard.FontIndex = 1;
-            lblHard.Text = "HARD".L10N("UI:Main:DifficultyHard");
+            lblHard.Text = "HARD".L10N("Client:Main:DifficultyHard");
             lblHard.ClientRectangle = new Rectangle(
                 tbMissionDescription.Right - lblHard.Width,
                 lblEasy.Y, 1, 1);
@@ -147,7 +147,7 @@ namespace DTAClient.DXGUI.Generic
             btnLaunch = new XNAClientButton(WindowManager);
             btnLaunch.Name = "btnLaunch";
             btnLaunch.ClientRectangle = new Rectangle(12, Height - 35, UIDesignConstants.BUTTON_WIDTH_133, UIDesignConstants.BUTTON_HEIGHT);
-            btnLaunch.Text = "Launch".L10N("UI:Main:ButtonLaunch");
+            btnLaunch.Text = "Launch".L10N("Client:Main:ButtonLaunch");
             btnLaunch.AllowClick = false;
             btnLaunch.LeftClick += BtnLaunch_LeftClick;
 
@@ -155,7 +155,7 @@ namespace DTAClient.DXGUI.Generic
             btnCancel.Name = "btnCancel";
             btnCancel.ClientRectangle = new Rectangle(Width - 145,
                 btnLaunch.Y, UIDesignConstants.BUTTON_WIDTH_133, UIDesignConstants.BUTTON_HEIGHT);
-            btnCancel.Text = "Cancel".L10N("UI:Main:ButtonCancel");
+            btnCancel.Text = "Cancel".L10N("Client:Main:ButtonCancel");
             btnCancel.LeftClick += BtnCancel_LeftClick;
 
             AddChild(lblSelectCampaign);
@@ -178,11 +178,10 @@ namespace DTAClient.DXGUI.Generic
 
             trbDifficultySelector.Value = UserINISettings.Instance.Difficulty;
 
-            ParseBattleIni("INI/Battle.ini");
-            ParseBattleIni("INI/" + ClientConfiguration.Instance.BattleFSFileName);
+            ReadMissionList();
 
             cheaterWindow = new CheaterWindow(WindowManager);
-            DarkeningPanel dp = new DarkeningPanel(WindowManager);
+            var dp = new DarkeningPanel(WindowManager);
             dp.AddChild(cheaterWindow);
             AddChild(dp);
             dp.CenterOnParent();
@@ -231,8 +230,8 @@ namespace DTAClient.DXGUI.Generic
 
             Mission mission = Missions[selectedMissionId];
 
-            if (!ClientConfiguration.Instance.ModMode && 
-                (!CUpdater.IsFileNonexistantOrOriginal(mission.Scenario) || AreFilesModified()))
+            if (!ClientConfiguration.Instance.ModMode &&
+                (!Updater.IsFileNonexistantOrOriginal(mission.Scenario) || AreFilesModified()))
             {
                 // Confront the user by showing the cheater screen
                 missionToLaunch = mission;
@@ -247,7 +246,7 @@ namespace DTAClient.DXGUI.Generic
         {
             foreach (string filePath in filesToCheck)
             {
-                if (!CUpdater.IsFileNonexistantOrOriginal(filePath))
+                if (!Updater.IsFileNonexistantOrOriginal(filePath))
                     return true;
             }
 
@@ -266,51 +265,53 @@ namespace DTAClient.DXGUI.Generic
         /// <summary>
         /// Starts a singleplayer mission.
         /// </summary>
-        /// <param name="scenario">The internal name of the scenario.</param>
-        /// <param name="requiresAddon">True if the mission is for Firestorm / Enhanced Mode.</param>
         private void LaunchMission(Mission mission)
         {
             bool copyMapsToSpawnmapINI = ClientConfiguration.Instance.CopyMissionsToSpawnmapINI;
 
             Logger.Log("About to write spawn.ini.");
-            StreamWriter swriter = new StreamWriter(ProgramConstants.GamePath + "spawn.ini");
-            swriter.WriteLine("; Generated by DTA Client");
-            swriter.WriteLine("[Settings]");
+            using var spawnStreamWriter = new StreamWriter(SafePath.CombineFilePath(ProgramConstants.GamePath, "spawn.ini"));
+            spawnStreamWriter.WriteLine("; Generated by DTA Client");
+            spawnStreamWriter.WriteLine("[Settings]");
             if (copyMapsToSpawnmapINI)
-                swriter.WriteLine("Scenario=spawnmap.ini");
+                spawnStreamWriter.WriteLine("Scenario=spawnmap.ini");
             else
-                swriter.WriteLine("Scenario=" + mission.Scenario);
+                spawnStreamWriter.WriteLine("Scenario=" + mission.Scenario);
 
             // No one wants to play missions on Fastest, so we'll change it to Faster
             if (UserINISettings.Instance.GameSpeed == 0)
                 UserINISettings.Instance.GameSpeed.Value = 1;
 
-            swriter.WriteLine("GameSpeed=" + UserINISettings.Instance.GameSpeed);
-            swriter.WriteLine("Firestorm=" + mission.RequiredAddon);
-            swriter.WriteLine("CustomLoadScreen=" + LoadingScreenController.GetLoadScreenName(mission.Side.ToString()));
-            swriter.WriteLine("IsSinglePlayer=Yes");
-            swriter.WriteLine("SidebarHack=" + ClientConfiguration.Instance.SidebarHack);
-            swriter.WriteLine("Side=" + mission.Side);
-            swriter.WriteLine("BuildOffAlly=" + mission.BuildOffAlly);
+            spawnStreamWriter.WriteLine("CampaignID=" + mission.Index);
+            spawnStreamWriter.WriteLine("GameSpeed=" + UserINISettings.Instance.GameSpeed);
+#if YR || ARES
+            spawnStreamWriter.WriteLine("Ra2Mode=" + !mission.RequiredAddon);
+#else
+            spawnStreamWriter.WriteLine("Firestorm=" + mission.RequiredAddon);
+#endif
+            spawnStreamWriter.WriteLine("CustomLoadScreen=" + LoadingScreenController.GetLoadScreenName(mission.Side.ToString()));
+            spawnStreamWriter.WriteLine("IsSinglePlayer=Yes");
+            spawnStreamWriter.WriteLine("SidebarHack=" + ClientConfiguration.Instance.SidebarHack);
+            spawnStreamWriter.WriteLine("Side=" + mission.Side);
+            spawnStreamWriter.WriteLine("BuildOffAlly=" + mission.BuildOffAlly);
 
             UserINISettings.Instance.Difficulty.Value = trbDifficultySelector.Value;
 
-            swriter.WriteLine("DifficultyModeHuman=" + (mission.PlayerAlwaysOnNormalDifficulty ? "1" : trbDifficultySelector.Value.ToString()));
-            swriter.WriteLine("DifficultyModeComputer=" + GetComputerDifficulty());
+            spawnStreamWriter.WriteLine("DifficultyModeHuman=" + (mission.PlayerAlwaysOnNormalDifficulty ? "1" : trbDifficultySelector.Value.ToString()));
+            spawnStreamWriter.WriteLine("DifficultyModeComputer=" + GetComputerDifficulty());
 
-            IniFile difficultyIni = new IniFile(ProgramConstants.GamePath + DifficultyIniPaths[trbDifficultySelector.Value]);
+            var difficultyIni = new IniFile(SafePath.CombineFilePath(ProgramConstants.GamePath, DifficultyIniPaths[trbDifficultySelector.Value]));
             string difficultyName = DifficultyNames[trbDifficultySelector.Value];
 
-            swriter.WriteLine();
-            swriter.WriteLine();
-            swriter.WriteLine();
-            swriter.Close();
+            spawnStreamWriter.WriteLine();
+            spawnStreamWriter.WriteLine();
+            spawnStreamWriter.WriteLine();
 
             if (copyMapsToSpawnmapINI)
             {
-                IniFile mapIni = new IniFile(ProgramConstants.GamePath + mission.Scenario);
+                var mapIni = new IniFile(SafePath.CombineFilePath(ProgramConstants.GamePath, mission.Scenario));
                 IniFile.ConsolidateIniFiles(mapIni, difficultyIni);
-                mapIni.WriteIniFile(ProgramConstants.GamePath + "spawnmap.ini");
+                mapIni.WriteIniFile(SafePath.CombineFilePath(ProgramConstants.GamePath, "spawnmap.ini"));
             }
 
             UserINISettings.Instance.Difficulty.Value = trbDifficultySelector.Value;
@@ -318,10 +319,10 @@ namespace DTAClient.DXGUI.Generic
 
             ((MainMenuDarkeningPanel)Parent).Hide();
 
-            discordHandler?.UpdatePresence(mission.GUIName, difficultyName, mission.IconPath, true);
+            discordHandler.UpdatePresence(mission.UntranslatedGUIName, difficultyName, mission.IconPath, true);
             GameProcessLogic.GameProcessExited += GameProcessExited_Callback;
 
-            GameProcessLogic.StartGameProcess();
+            GameProcessLogic.StartGameProcess(WindowManager);
         }
 
         private int GetComputerDifficulty() =>
@@ -336,7 +337,15 @@ namespace DTAClient.DXGUI.Generic
         {
             GameProcessLogic.GameProcessExited -= GameProcessExited_Callback;
             // Logger.Log("GameProcessExited: Updating Discord Presence.");
-            discordHandler?.UpdatePresence();
+            discordHandler.UpdatePresence();
+        }
+
+        private void ReadMissionList()
+        {
+            ParseBattleIni("INI/Battle.ini");
+
+            if (Missions.Count == 0)
+                ParseBattleIni("INI/" + ClientConfiguration.Instance.BattleFSFileName);
         }
 
         /// <summary>
@@ -348,32 +357,38 @@ namespace DTAClient.DXGUI.Generic
         {
             Logger.Log("Attempting to parse " + path + " to populate mission list.");
 
-            string battleIniPath = ProgramConstants.GamePath + path;
-            if (!File.Exists(battleIniPath))
+            FileInfo battleIniFileInfo = SafePath.GetFile(ProgramConstants.GamePath, path);
+            if (!battleIniFileInfo.Exists)
             {
                 Logger.Log("File " + path + " not found. Ignoring.");
                 return false;
             }
 
-            IniFile battleIni = new IniFile(battleIniPath);
+            if (Missions.Count > 0)
+            {
+                throw new InvalidOperationException("Loading multiple Battle*.ini files is not supported anymore.");
+            }
+
+            var battleIni = new IniFile(battleIniFileInfo.FullName);
 
             List<string> battleKeys = battleIni.GetSectionKeys("Battles");
 
             if (battleKeys == null)
                 return false; // File exists but [Battles] doesn't
 
-            foreach (string battleEntry in battleKeys)
+            for (int i = 0; i < battleKeys.Count; i++)
             {
+                string battleEntry = battleKeys[i];
                 string battleSection = battleIni.GetStringValue("Battles", battleEntry, "NOT FOUND");
 
                 if (!battleIni.SectionExists(battleSection))
                     continue;
 
-                var mission = new Mission(battleIni, battleSection);
+                var mission = new Mission(battleIni, battleSection, i);
 
                 Missions.Add(mission);
-               
-                XNAListBoxItem item = new XNAListBoxItem();
+
+                var item = new XNAListBoxItem();
                 item.Text = mission.GUIName;
                 if (!mission.Enabled)
                 {
