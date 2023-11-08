@@ -20,6 +20,7 @@ using System.Runtime.Versioning;
 using ClientCore.Settings;
 using Microsoft.Xna.Framework.Graphics;
 
+
 namespace DTAClient
 {
     /// <summary>
@@ -55,13 +56,10 @@ namespace DTAClient
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                // The query in CheckSystemSpecifications takes lots of time,
-                // so we'll do it in a separate thread to make startup faster
-                Thread thread = new Thread(CheckSystemSpecifications);
-                thread.Start();
+                Task.Run(CheckSystemSpecificationsAsync);
             }
 
-            GenerateOnlineIdAsync();
+            Task.Run(GenerateOnlineIdAsync);
 
 #if ARES
             Task.Factory.StartNew(() => PruneFiles(SafePath.GetDirectory(ProgramConstants.GamePath, "debug"), DateTime.Now.AddDays(-7)));
@@ -218,8 +216,10 @@ namespace DTAClient
 
                     if (ts.Length >= 6)
                     {
+#pragma warning disable CA1305 // IFormatProvider belirtin
                         timestamp = string.Format("_{0}_{1}_{2}_{3}_{4}",
                             ts[3], ts[2].PadLeft(2, '0'), ts[1].PadLeft(2, '0'), ts[4].PadLeft(2, '0'), ts[5].PadLeft(2, '0'));
+#pragma warning restore CA1305 // IFormatProvider belirtin
                     }
 
                     string newFilename = SafePath.CombineFilePath(newDirectory.FullName, baseFilename, timestamp, file.Extension);
@@ -238,26 +238,22 @@ namespace DTAClient
         }
 
         /// <summary>
-        /// Writes processor, graphics card and memory info to the log file.
+        /// Writes processor, graphics card, and memory info to the log file.
         /// </summary>
         [SupportedOSPlatform("windows")]
-        private static void CheckSystemSpecifications()
+        private static async Task CheckSystemSpecificationsAsync()
         {
             string cpu = string.Empty;
             string videoController = string.Empty;
             string memory = string.Empty;
 
-            ManagementObjectSearcher searcher;
-
             try
             {
-                searcher = new ManagementObjectSearcher("SELECT * FROM Win32_Processor");
-
+                using var searcher = new ManagementObjectSearcher("SELECT * FROM Win32_Processor");
                 foreach (var proc in searcher.Get())
                 {
                     cpu = cpu + proc["Name"].ToString().Trim() + " (" + proc["NumberOfCores"] + " cores) ";
                 }
-
             }
             catch
             {
@@ -266,9 +262,8 @@ namespace DTAClient
 
             try
             {
-                searcher = new ManagementObjectSearcher("SELECT * FROM Win32_VideoController");
-
-                foreach (ManagementObject mo in searcher.Get())
+                using var searcher = new ManagementObjectSearcher("SELECT * FROM Win32_VideoController");
+                foreach (ManagementObject mo in searcher.Get().Cast<ManagementObject>())
                 {
                     var currentBitsPerPixel = mo.Properties["CurrentBitsPerPixel"];
                     var description = mo.Properties["Description"];
@@ -281,28 +276,32 @@ namespace DTAClient
             }
             catch
             {
-                cpu = "Video controller info not found";
+                videoController = "Video controller info not found";
             }
 
             try
             {
-                searcher = new ManagementObjectSearcher("Select * From Win32_PhysicalMemory");
+                using var searcher = new ManagementObjectSearcher("Select * From Win32_PhysicalMemory");
                 ulong total = 0;
 
-                foreach (ManagementObject ram in searcher.Get())
+                foreach (ManagementObject ram in searcher.Get().Cast<ManagementObject>())
                 {
-                    total += Convert.ToUInt64(ram.GetPropertyValue("Capacity"));
+                    object capacityObj = ram["Capacity"];
+                    if (capacityObj != null && ulong.TryParse(capacityObj.ToString(), out ulong capacity))
+                    {
+                        total += capacity;
+                    }
                 }
 
                 if (total != 0)
-                    memory = "Total physical memory: " + (total >= 1073741824 ? total / 1073741824 + "GB" : total / 1048576 + "MB");
+                    memory = "Total physical memory: " + (total >= 1073741824 ? (total / 1073741824) + "GB" : (total / 1048576) + "MB");
             }
             catch
             {
-                cpu = "Memory info not found";
+                memory = "Memory info not found";
             }
 
-            Logger.Log(string.Format("Hardware info: {0} | {1} | {2}", cpu.Trim(), videoController.Trim(), memory));
+            Logger.Log($"Hardware info: {cpu.Trim()} | {videoController.Trim()} | {memory}");
         }
 
         /// <summary>
