@@ -20,7 +20,6 @@
     <AssemblyName Condition="'$(Engine)' == 'WindowsXNA'">clientxna</AssemblyName>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <UseAppHost>false</UseAppHost>
   </PropertyGroup>
   <ItemGroup>
     <Compile Remove="Resources\**" />

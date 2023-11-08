@@ -88,7 +88,8 @@ public class Translation : ICloneable
     public Translation(IniFile ini, string localeCode)
         : this(localeCode)
     {
-        ArgumentNullException.ThrowIfNull(ini);
+        if (ini is null)
+            throw new ArgumentNullException(nameof(ini));
 
         IniSection metadataSection = ini.GetSection(METADATA_SECTION);
         Name = metadataSection?.GetStringValue(nameof(Name), string.Empty);

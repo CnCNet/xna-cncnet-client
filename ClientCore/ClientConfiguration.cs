@@ -283,7 +283,7 @@ namespace ClientCore
             {
                 // the syntax is GameFileX=path/to/source.file,path/to/destination.file[,checked]
                 string value = clientDefinitionsIni.GetStringValue(TRANSLATIONS, $"GameFile{i}", string.Empty);
-                string[] parts = value.Split(',', StringSplitOptions.TrimEntries);
+                string[] parts = value.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(s => s.Trim()).ToArray();
 
                 // fail explicitly if the syntax is wrong
                 if (parts.Length is < 2 or > 3
@@ -382,15 +382,43 @@ namespace ClientCore
 
         public OSVersion GetOperatingSystemVersion()
         {
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            if (Environment.OSVersion.Platform == PlatformID.Win32NT)
             {
+#if NETFRAMEWORK
+                // OperatingSystem.IsWindowsVersionAtLeast() is the preferred API but is not supported on earlier .NET versions
+                Version osVersion = Environment.OSVersion.Version;
+
+                if (osVersion.Major < 5)
+                    return OSVersion.UNKNOWN;
+
+                if (osVersion.Major < 6)
+                    return OSVersion.WINXP;
+
+                if (osVersion.Major == 6 && osVersion.Minor < 1)
+                    return OSVersion.WINVISTA;
+
+                if (osVersion.Major == 6 && osVersion.Minor < 2)
+                    return OSVersion.WIN7;
+
+                return OSVersion.WIN810;
+#else
                 if (OperatingSystem.IsWindowsVersionAtLeast(6, 3))
                     return OSVersion.WIN810;
 
-                return OSVersion.WIN7;
+                if (OperatingSystem.IsWindowsVersionAtLeast(6, 1))
+                    return OSVersion.WIN7;
+
+                return OSVersion.UNKNOWN;
+#endif
             }
 
-            return OSVersion.UNIX;
+            int p = (int)Environment.OSVersion.Platform;
+
+            // http://mono.wikia.com/wiki/Detecting_the_execution_platform
+            if (p == 4 || p == 6 || p == 128)
+                return OSVersion.UNIX;
+
+            return OSVersion.UNKNOWN;
         }
     }
 

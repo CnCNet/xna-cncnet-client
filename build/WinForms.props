@@ -1,7 +1,32 @@
 <Project>
   <PropertyGroup>
-    <TargetFramework Condition="'$(Engine)' != 'UniversalGL'">net7.0-windows</TargetFramework>
+    <TargetFramework Condition="'$(Engine)' != 'UniversalGL'">net48</TargetFramework>
     <TargetFramework Condition="'$(Engine)' == 'UniversalGL'">net7.0</TargetFramework>
-    <UseWindowsForms Condition="'$(Engine)' != 'UniversalGL'">true</UseWindowsForms>
+    <LangVersion>11.0</LangVersion>
   </PropertyGroup>
+
+  <ItemGroup Condition="'$(Engine)' != 'UniversalGL'">
+    <Reference Include="System.Windows.Forms" />
+  </ItemGroup>
+  
+  <ItemGroup Condition="'$(Engine)' != 'UniversalGL'">
+    <PackageReference Include="Polyfill" Version="1.29.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="System.ValueTuple"
+                      Version="4.5.0"
+                      Condition="$(TargetFramework.StartsWith('net46'))" />
+    <PackageReference Include="System.Memory"
+                      Version="4.5.5"
+                      Condition="$(TargetFrameworkIdentifier) == '.NETStandard' or
+                             $(TargetFrameworkIdentifier) == '.NETFramework' or
+                             $(TargetFramework.StartsWith('netcoreapp2'))" />
+    <PackageReference Include="System.Threading.Tasks.Extensions"
+                      Version="4.5.4"
+                      Condition="$(TargetFramework) == 'netstandard2.0' or
+                             $(TargetFramework) == 'netcoreapp2.0' or
+                             $(TargetFrameworkIdentifier) == '.NETFramework'" />
+    
+  </ItemGroup>
 </Project>

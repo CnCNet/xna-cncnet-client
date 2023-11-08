@@ -144,7 +144,7 @@ namespace ClientGUI
                 if ((RuntimeInformation.IsOSPlatform(OSPlatform.Windows) || RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
                     && Environment.ProcessorCount > 1 && SingleCoreAffinity)
                 {
-                    gameProcess.ProcessorAffinity = 2;
+                    gameProcess.ProcessorAffinity = (IntPtr)2;
                 }
             }
 
