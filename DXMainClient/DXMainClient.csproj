@@ -34,6 +34,7 @@
     <PackageReference Include="lzo.net" Version="0.0.6" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="7.0.0" />
     <PackageReference Include="OpenMcdf" Version="2.2.1.12" />
+    <PackageReference Include="System.IO.Compression" Version="4.3.0" />
     <PackageReference Include="System.Management" Version="7.0.0" />
     <PackageReference Include="System.DirectoryServices" Version="7.0.0" />
     <PackageReference Include="GitVersion.MsBuild" Version="5.11.1">
