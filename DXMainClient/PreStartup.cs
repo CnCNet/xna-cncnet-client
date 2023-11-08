@@ -72,7 +72,13 @@ namespace DTAClient
                 CheckPermissions();
 
             if (clientLogFile.Exists)
-                File.Move(clientLogFile.FullName, SafePath.GetFile(clientUserFilesDirectory.FullName, "client_previous.log").FullName, true);
+            {
+                // Copy client.log file as client_previous.log. Override client_previous.log if it exists.
+                FileInfo clientPrevLogFile = SafePath.GetFile(clientUserFilesDirectory.FullName, "client_previous.log");
+                if (clientPrevLogFile.Exists)
+                    File.Delete(clientPrevLogFile.FullName);
+                File.Move(clientLogFile.FullName, clientPrevLogFile.FullName);
+            }
 
             Logger.Initialize(clientUserFilesDirectory.FullName, clientLogFile.Name);
             Logger.WriteLogFile = true;
