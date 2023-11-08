@@ -1,9 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>    
-	<!-- TODO: duplicating TargetFramework here is a workaround! -->
-    <TargetFramework Condition="'$(Engine)' != 'UniversalGL'">net48</TargetFramework>
-    <TargetFramework Condition="'$(Engine)' == 'UniversalGL'">net7.0</TargetFramework>
-    <LangVersion>11.0</LangVersion>
+	<!-- TODO: writing net48 here is a workaround! -->
+    <TargetFramework>net48</TargetFramework>
     <OutputType Condition="'$(Engine)' != 'UniversalGL'">WinExe</OutputType>
     <OutputType Condition="'$(Engine)' == 'UniversalGL'">Exe</OutputType>
     <Title>CnCNet Client</Title>
