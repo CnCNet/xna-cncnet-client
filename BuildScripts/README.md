@@ -33,7 +33,7 @@ UniversalGL:
 * net7.0
 
 WindowsDX, WindowsGL & WindowsXNA:
-* net7.0-windows
+* net48
 
 Overview of the Engine configurations differences:
 
