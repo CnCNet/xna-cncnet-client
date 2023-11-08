@@ -10,7 +10,7 @@
   </ItemGroup>
   
   <ItemGroup Condition="'$(Engine)' != 'UniversalGL'">
-    <PackageReference Include="Polyfill" Version="1.29.0">
+    <PackageReference Include="Polyfill" Version="1.32.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
