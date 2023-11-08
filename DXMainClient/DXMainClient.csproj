@@ -1,7 +1,5 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup>    
-	<!-- TODO: writing net48 here is a workaround! -->
-    <TargetFramework>net48</TargetFramework>
+  <PropertyGroup>
     <OutputType Condition="'$(Engine)' != 'UniversalGL'">WinExe</OutputType>
     <OutputType Condition="'$(Engine)' == 'UniversalGL'">Exe</OutputType>
     <Title>CnCNet Client</Title>
