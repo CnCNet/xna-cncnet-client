@@ -2,8 +2,11 @@
 using System.Collections.Generic;
 #if !DEBUG
 using System.IO;
+using System.Linq;
 using System.Reflection;
+#if !NETFRAMEWORK
 using System.Runtime.Loader;
+#endif
 #endif
 using System.Threading;
 /* !! We cannot use references to other projects or non-framework assemblies in this class, assembly loading events not hooked up yet !! */
@@ -36,8 +39,13 @@ namespace DTAClient
             Yuri has won
 #endif
 
+#if !NETFRAMEWORK
             // Set up DLL load paths as early as possible
             AssemblyLoadContext.Default.Resolving += DefaultAssemblyLoadContextOnResolving;
+#else
+            // Set up DLL load paths as early as possible
+            AppDomain.CurrentDomain.AssemblyResolve += CurrentDomain_AssemblyResolve;
+#endif
         }
 
         private static string COMMON_LIBRARY_PATH;
@@ -117,7 +125,7 @@ namespace DTAClient
             }
         }
 #if !DEBUG
-
+#if !NETFRAMEWORK
         private static Assembly DefaultAssemblyLoadContextOnResolving(AssemblyLoadContext assemblyLoadContext, AssemblyName assemblyName)
         {
             if (assemblyName.Name.EndsWith(".resources", StringComparison.OrdinalIgnoreCase))
@@ -135,6 +143,27 @@ namespace DTAClient
 
             return null;
         }
+#else
+        private static Assembly CurrentDomain_AssemblyResolve(object sender, ResolveEventArgs args)
+        {
+            string unresolvedAssemblyName = args.Name.Split(',').First();
+
+            if (unresolvedAssemblyName.EndsWith(".resources", StringComparison.OrdinalIgnoreCase))
+                return null;
+
+            var commonFileInfo = new FileInfo(FormattableString.Invariant($"{Path.Combine(COMMON_LIBRARY_PATH, unresolvedAssemblyName)}.dll"));
+
+            if (commonFileInfo.Exists)
+                return Assembly.Load(AssemblyName.GetAssemblyName(commonFileInfo.FullName));
+
+            var specificFileInfo = new FileInfo(FormattableString.Invariant($"{Path.Combine(SPECIFIC_LIBRARY_PATH, unresolvedAssemblyName)}.dll"));
+
+            if (specificFileInfo.Exists)
+                return Assembly.Load(AssemblyName.GetAssemblyName(specificFileInfo.FullName));
+
+            return null;
+        }
+#endif
 #endif
     }
 }
