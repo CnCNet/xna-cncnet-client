@@ -10,7 +10,9 @@
   </ItemGroup>
   
   <ItemGroup Condition="'$(Engine)' != 'UniversalGL'">
-    <PackageReference Include="Polyfill" Version="1.32.0">
+    <!--<PackageReference Include="Polyfill" Version="1.32.0">-->
+    <!-- workaround: use a modified Polyfill v1.32.0 to temporarily bypass the missing Index Range issue-->
+	<PackageReference Include="Polyfill" Version="0.0.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
