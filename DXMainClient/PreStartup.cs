@@ -194,7 +194,15 @@ namespace DTAClient
             }
 
 #if WINFORMS
+#if NET6_0_OR_GREATER
+            // .NET 6.0 brings a source generator ApplicationConfiguration which is not available in previous .NET versions
+            // https://medium.com/c-sharp-progarmming/whats-new-in-windows-forms-in-net-6-0-840c71856751
             ApplicationConfiguration.Initialize();
+#else
+            global::System.Windows.Forms.Application.EnableVisualStyles();
+            global::System.Windows.Forms.Application.SetCompatibleTextRenderingDefault(false);
+            global::System.Windows.Forms.Application.SetHighDpiMode(HighDpiMode.PerMonitorV2);
+#endif
 #endif
 
             new Startup().Execute();
