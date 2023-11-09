@@ -201,7 +201,6 @@ namespace DTAClient
 #else
             global::System.Windows.Forms.Application.EnableVisualStyles();
             global::System.Windows.Forms.Application.SetCompatibleTextRenderingDefault(false);
-            global::System.Windows.Forms.Application.SetHighDpiMode(HighDpiMode.PerMonitorV2);
 #endif
 #endif
 
