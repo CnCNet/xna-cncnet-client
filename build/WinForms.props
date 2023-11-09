@@ -3,6 +3,9 @@
     <TargetFramework Condition="'$(Engine)' != 'UniversalGL'">net48</TargetFramework>
     <TargetFramework Condition="'$(Engine)' == 'UniversalGL'">net7.0</TargetFramework>
     <LangVersion>11.0</LangVersion>
+    
+    <!-- workaround: temporarily bypass Polyfill's missing Index Range issue -->
+    <DefineConstants Condition="'$(Engine)' != 'UniversalGL'">$(DefineConstants);NET48X</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup Condition="'$(Engine)' != 'UniversalGL'">
@@ -10,9 +13,7 @@
   </ItemGroup>
   
   <ItemGroup Condition="'$(Engine)' != 'UniversalGL'">
-    <!--<PackageReference Include="Polyfill" Version="1.32.0">-->
-    <!-- workaround: use a modified Polyfill v1.32.0 to temporarily bypass the missing Index Range issue-->
-	<PackageReference Include="Polyfill" Version="0.0.0">
+	<PackageReference Include="Polyfill" Version="1.32.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
