@@ -1,17 +1,18 @@
 <Project>
   <PropertyGroup>
-    <TargetFramework Condition="'$(Engine)' != 'UniversalGL'">net48</TargetFramework>
-    <TargetFramework Condition="'$(Engine)' == 'UniversalGL'">net7.0</TargetFramework>
     <LangVersion>11.0</LangVersion>
-    
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Engine)' != 'UniversalGL'">
+    <TargetFramework>net48</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
     <!-- workaround: temporarily bypass Polyfill's missing Index Range issue -->
-    <DefineConstants Condition="'$(Engine)' != 'UniversalGL'">$(DefineConstants);NET48X</DefineConstants>
+    <DefineConstants>$(DefineConstants);NET48X</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Engine)' == 'UniversalGL'">
+    <TargetFramework>net7.0</TargetFramework>
+    <UseWindowsForms>false</UseWindowsForms>
   </PropertyGroup>
 
-  <ItemGroup Condition="'$(Engine)' != 'UniversalGL'">
-    <Reference Include="System.Windows.Forms" />
-  </ItemGroup>
-  
   <ItemGroup Condition="'$(Engine)' != 'UniversalGL'">
 	<PackageReference Include="Polyfill" Version="1.32.0">
       <PrivateAssets>all</PrivateAssets>
