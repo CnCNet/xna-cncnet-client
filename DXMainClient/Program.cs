@@ -131,15 +131,17 @@ namespace DTAClient
             if (assemblyName.Name.EndsWith(".resources", StringComparison.OrdinalIgnoreCase))
                 return null;
 
-            var commonFileInfo = new FileInfo(Path.Combine(COMMON_LIBRARY_PATH, FormattableString.Invariant($"{assemblyName.Name}.dll")));
-
-            if (commonFileInfo.Exists)
-                return assemblyLoadContext.LoadFromAssemblyPath(commonFileInfo.FullName);
+            // the specific dll should be in priority than the common one
 
             var specificFileInfo = new FileInfo(Path.Combine(SPECIFIC_LIBRARY_PATH, FormattableString.Invariant($"{assemblyName.Name}.dll")));
 
             if (specificFileInfo.Exists)
                 return assemblyLoadContext.LoadFromAssemblyPath(specificFileInfo.FullName);
+
+            var commonFileInfo = new FileInfo(Path.Combine(COMMON_LIBRARY_PATH, FormattableString.Invariant($"{assemblyName.Name}.dll")));
+
+            if (commonFileInfo.Exists)
+                return assemblyLoadContext.LoadFromAssemblyPath(commonFileInfo.FullName);
 
             return null;
         }
@@ -151,15 +153,17 @@ namespace DTAClient
             if (unresolvedAssemblyName.EndsWith(".resources", StringComparison.OrdinalIgnoreCase))
                 return null;
 
-            var commonFileInfo = new FileInfo(FormattableString.Invariant($"{Path.Combine(COMMON_LIBRARY_PATH, unresolvedAssemblyName)}.dll"));
-
-            if (commonFileInfo.Exists)
-                return Assembly.Load(AssemblyName.GetAssemblyName(commonFileInfo.FullName));
+            // the specific dll should be in priority than the common one
 
             var specificFileInfo = new FileInfo(FormattableString.Invariant($"{Path.Combine(SPECIFIC_LIBRARY_PATH, unresolvedAssemblyName)}.dll"));
 
             if (specificFileInfo.Exists)
                 return Assembly.Load(AssemblyName.GetAssemblyName(specificFileInfo.FullName));
+
+            var commonFileInfo = new FileInfo(FormattableString.Invariant($"{Path.Combine(COMMON_LIBRARY_PATH, unresolvedAssemblyName)}.dll"));
+
+            if (commonFileInfo.Exists)
+                return Assembly.Load(AssemblyName.GetAssemblyName(commonFileInfo.FullName));
 
             return null;
         }
