@@ -204,7 +204,23 @@ namespace DTAClient
 #endif
 #endif
 
-            new Startup().Execute();
+            Startup startup = new();
+#if DEBUG
+            startup.Execute();
+#else
+            try
+            {
+                startup.Execute();
+            }
+            catch (Exception ex)
+            {
+                // ProgramConstants.DisplayErrorAction might have been overriden by XNA messagebox, which might be unable to display an error message.
+                // Fallback to MessageBox.
+                ProgramConstants.DisplayErrorAction = ProgramConstants.DefaultDisplayErrorAction;
+                HandleException(startup, ex);
+            }
+#endif
+
         }
 
         public static void LogException(Exception ex, bool innerException = false)
