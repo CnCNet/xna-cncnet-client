@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Reflection;
 #if WINFORMS
@@ -20,11 +21,7 @@ namespace ClientCore
 
         public static readonly string StartupPath = SafePath.CombineDirectoryPath(new FileInfo(StartupExecutable).Directory.FullName);
 
-#if DEBUG
-        public static readonly string GamePath = SafePath.CombineDirectoryPath(SafePath.GetDirectory(StartupPath).Parent.Parent.FullName);
-#else
-        public static readonly string GamePath = SafePath.CombineDirectoryPath(SafePath.GetDirectory(StartupPath).Parent.Parent.Parent.FullName);
-#endif
+        public static readonly string GamePath = SafePath.CombineDirectoryPath(GetGamePath(StartupPath));
 
         public static string ClientUserFilesPath => SafePath.CombineDirectoryPath(GamePath, "Client");
 
@@ -129,5 +126,31 @@ namespace ClientCore
             if (exit)
                 Environment.Exit(1);
         };
+
+        private static string SearchResourcesDir(string startupPath)
+        {
+            DirectoryInfo currentDir = new(startupPath);
+            for (int i = 0; i < 3; i++)
+            {
+                // Determine if currentDir is the "Resources" folder
+                if (currentDir.Name.ToLowerInvariant() == "Resources".ToLowerInvariant())
+                    return currentDir.FullName;
+
+                // Additional check. This makes developers to debug the client inside Visual Studio a little bit easier.
+                DirectoryInfo resourcesDir = currentDir.GetDirectories("Resources", SearchOption.TopDirectoryOnly).FirstOrDefault();
+                if (resourcesDir is not null)
+                    return resourcesDir.FullName;
+
+                currentDir = currentDir.Parent;
+            }
+
+            throw new Exception("Could not find Resources directory.");
+        }
+
+        private static string GetGamePath(string startupPath)
+        {
+            string resourceDir = SearchResourcesDir(startupPath);
+            return new DirectoryInfo(resourceDir).Parent.FullName;
+        }
     }
 }
