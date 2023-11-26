@@ -57,7 +57,7 @@
     <Move SourceFiles="$(PublishDir)Microsoft.Extensions.Options.ConfigurationExtensions.dll" DestinationFolder="$(PublishDir)../" />
     <Move SourceFiles="$(PublishDir)Microsoft.Extensions.Options.dll" DestinationFolder="$(PublishDir)../" />
     <Move SourceFiles="$(PublishDir)Microsoft.Extensions.Primitives.dll" DestinationFolder="$(PublishDir)../" />
-    <Move SourceFiles="$(PublishDir)Newtonsoft.Json.Bson.dll" DestinationFolder="$(PublishDir)../" />
+    <Move SourceFiles="$(PublishDir)Newtonsoft.Json.Bson.dll" DestinationFolder="$(PublishDir)../" Condition="Exists('$(PublishDir)Newtonsoft.Json.Bson.dll')"/>
     <Move SourceFiles="$(PublishDir)Newtonsoft.Json.dll" DestinationFolder="$(PublishDir)../" />
     <Move SourceFiles="$(PublishDir)OpenMcdf.dll" DestinationFolder="$(PublishDir)../" />
     <Move SourceFiles="$(PublishDir)Rampastring.Tools.dll" DestinationFolder="$(PublishDir)../" />
