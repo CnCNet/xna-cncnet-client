@@ -27,6 +27,7 @@
     <RemoveDir Directories="$(PublishDir)runtimes/osx" />
   </Target>
 
+  <!-- Note: the folder structure should be consistent with BuildScripts\Common.ps1 file -->
   <Target Name="MoveCommonBinaries" AfterTargets="Publish">
     <Message Importance="high" Text="Moving common binaries"/>
     <Move SourceFiles="$(PublishDir)ClientUpdater.dll" DestinationFolder="$(PublishDir)../" />
@@ -64,5 +65,16 @@
     <Move SourceFiles="$(PublishDir)SixLabors.ImageSharp.dll" DestinationFolder="$(PublishDir)../" />
     <Move SourceFiles="$(PublishDir)System.Net.Http.Formatting.dll" DestinationFolder="$(PublishDir)../" />
     <Move SourceFiles="$(PublishDir)TextCopy.dll" DestinationFolder="$(PublishDir)../" />
+  </Target>
+  
+  <!-- Note: the folder structure should be consistent with BuildScripts\Common.ps1 file -->
+  <Target Name="MoveClientExes" AfterTargets="Publish">
+    <Message Importance="high" Text="Moving client executables"/>
+    <Move SourceFiles="$(PublishDir)clientdx.exe" DestinationFolder="$(PublishDir)../../" Condition="Exists('$(PublishDir)clientdx.exe')"/>
+    <Move SourceFiles="$(PublishDir)clientdx.exe.config" DestinationFolder="$(PublishDir)../../" Condition="Exists('$(PublishDir)clientdx.exe.config')"/>
+    <Move SourceFiles="$(PublishDir)clientogl.exe" DestinationFolder="$(PublishDir)../../" Condition="Exists('$(PublishDir)clientogl.exe')"/>
+    <Move SourceFiles="$(PublishDir)clientogl.exe.config" DestinationFolder="$(PublishDir)../../" Condition="Exists('$(PublishDir)clientogl.exe.config')"/>
+    <Move SourceFiles="$(PublishDir)clientxna.exe" DestinationFolder="$(PublishDir)../../" Condition="Exists('$(PublishDir)clientxna.exe')"/>
+    <Move SourceFiles="$(PublishDir)clientxna.exe.config" DestinationFolder="$(PublishDir)../../" Condition="Exists('$(PublishDir)clientxna.exe.config')"/>
   </Target>
 </Project>
