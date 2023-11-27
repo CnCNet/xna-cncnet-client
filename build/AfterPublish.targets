@@ -5,6 +5,14 @@
     <Copy SourceFiles="$(OutputPath)soft_oal.dll" DestinationFolder="$(PublishDir)" />
   </Target>
 
+  <Target Name="WindowsGLCopySDL" AfterTargets="Publish" Condition="'$(Engine)' == 'WindowsGL'">
+    <Message Importance="high" Text="Copying SDL libraries"/>
+    <Copy SourceFiles="$(OutputPath)/x86/SDL2.dll" DestinationFolder="$(PublishDir)/x86" />
+    <Copy SourceFiles="$(OutputPath)/x86/soft_oal.dll" DestinationFolder="$(PublishDir)/x86" />
+    <Copy SourceFiles="$(OutputPath)/x64/SDL2.dll" DestinationFolder="$(PublishDir)/x64" />
+    <Copy SourceFiles="$(OutputPath)/x64/soft_oal.dll" DestinationFolder="$(PublishDir)/x64" />
+  </Target>
+
   <Target Name="RemoveCodeAnalysis" AfterTargets="Publish" Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows' And '$(Engine)' == 'WindowsDX'">
     <Message Importance="high" Text="Removing unnecessary CodeAnalysis files"/>
     <Delete Files="$(PublishDir)Microsoft.CodeAnalysis.CSharp.dll" />
