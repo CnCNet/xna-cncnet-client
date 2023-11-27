@@ -81,12 +81,12 @@
     <Message Importance="high" Text="Moving client executables"/>
     <Move SourceFiles="$(PublishDir)clientdx.exe" DestinationFolder="$(PublishDir)../../" Condition="Exists('$(PublishDir)clientdx.exe')"/>
     <Move SourceFiles="$(PublishDir)clientdx.exe.config" DestinationFolder="$(PublishDir)../../" Condition="Exists('$(PublishDir)clientdx.exe.config')"/>
-    <Move SourceFiles="$(PublishDir)clientdx.exe.pdb" DestinationFolder="$(PublishDir)../../" Condition="Exists('$(PublishDir)clientdx.exe.pdb')"/>
+    <Move SourceFiles="$(PublishDir)clientdx.pdb" DestinationFolder="$(PublishDir)../../" Condition="Exists('$(PublishDir)clientdx.pdb')"/>
     <Move SourceFiles="$(PublishDir)clientogl.exe" DestinationFolder="$(PublishDir)../../" Condition="Exists('$(PublishDir)clientogl.exe')"/>
     <Move SourceFiles="$(PublishDir)clientogl.exe.config" DestinationFolder="$(PublishDir)../../" Condition="Exists('$(PublishDir)clientogl.exe.config')"/>
-    <Move SourceFiles="$(PublishDir)clientdx.exe.pdb" DestinationFolder="$(PublishDir)../../" Condition="Exists('$(PublishDir)clientdx.exe.pdb')"/>
+    <Move SourceFiles="$(PublishDir)clientdx.pdb" DestinationFolder="$(PublishDir)../../" Condition="Exists('$(PublishDir)clientdx.pdb')"/>
     <Move SourceFiles="$(PublishDir)clientxna.exe" DestinationFolder="$(PublishDir)../../" Condition="Exists('$(PublishDir)clientxna.exe')"/>
     <Move SourceFiles="$(PublishDir)clientxna.exe.config" DestinationFolder="$(PublishDir)../../" Condition="Exists('$(PublishDir)clientxna.exe.config')"/>
-    <Move SourceFiles="$(PublishDir)clientdx.exe.pdb" DestinationFolder="$(PublishDir)../../" Condition="Exists('$(PublishDir)clientdx.exe.pdb')"/>
+    <Move SourceFiles="$(PublishDir)clientdx.pdb" DestinationFolder="$(PublishDir)../../" Condition="Exists('$(PublishDir)clientdx.pdb')"/>
   </Target>
 </Project>
