@@ -59,13 +59,14 @@
     <Move SourceFiles="$(PublishDir)Microsoft.Extensions.Options.ConfigurationExtensions.dll" DestinationFolder="$(PublishDir)../" />
     <Move SourceFiles="$(PublishDir)Microsoft.Extensions.Options.dll" DestinationFolder="$(PublishDir)../" />
     <Move SourceFiles="$(PublishDir)Microsoft.Extensions.Primitives.dll" DestinationFolder="$(PublishDir)../" /> -->
+    <!-- These are also different in .NET 4.8 and .NET 7
+    <Move SourceFiles="$(PublishDir)TextCopy.dll" DestinationFolder="$(PublishDir)../" />
+    <Move SourceFiles="$(PublishDir)SixLabors.ImageSharp.dll" DestinationFolder="$(PublishDir)../" />
     <Move SourceFiles="$(PublishDir)Newtonsoft.Json.Bson.dll" DestinationFolder="$(PublishDir)../" Condition="Exists('$(PublishDir)Newtonsoft.Json.Bson.dll')"/>
-    <Move SourceFiles="$(PublishDir)Newtonsoft.Json.dll" DestinationFolder="$(PublishDir)../" />
+    <Move SourceFiles="$(PublishDir)Newtonsoft.Json.dll" DestinationFolder="$(PublishDir)../" /> -->
     <Move SourceFiles="$(PublishDir)OpenMcdf.dll" DestinationFolder="$(PublishDir)../" />
     <Move SourceFiles="$(PublishDir)Rampastring.Tools.dll" DestinationFolder="$(PublishDir)../" />
-    <Move SourceFiles="$(PublishDir)SixLabors.ImageSharp.dll" DestinationFolder="$(PublishDir)../" />
     <Move SourceFiles="$(PublishDir)System.Net.Http.Formatting.dll" DestinationFolder="$(PublishDir)../" />
-    <Move SourceFiles="$(PublishDir)TextCopy.dll" DestinationFolder="$(PublishDir)../" />
   </Target>
   
   <!-- Note: the folder structure should be consistent with BuildScripts\Common.ps1 file -->
