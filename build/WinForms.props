@@ -1,12 +1,10 @@
 <Project>
   <PropertyGroup>
-    <LangVersion>11.0</LangVersion>
+    <LangVersion>12.0</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Engine)' != 'UniversalGL'">
     <TargetFramework>net48</TargetFramework>
     <UseWindowsForms>true</UseWindowsForms>
-    <!-- workaround: temporarily bypass Polyfill's missing Index Range issue -->
-    <DefineConstants>$(DefineConstants);NET48X</DefineConstants>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Engine)' == 'UniversalGL'">
     <TargetFramework>net7.0</TargetFramework>
@@ -14,7 +12,7 @@
   </PropertyGroup>
 
   <ItemGroup Condition="'$(Engine)' != 'UniversalGL'">
-	<PackageReference Include="Polyfill" Version="1.32.0">
+	<PackageReference Include="Polyfill" Version="1.33.2">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
