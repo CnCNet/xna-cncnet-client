@@ -103,7 +103,11 @@ namespace ClientGUI
                 }
 
                 if (Environment.ProcessorCount > 1 && SingleCoreAffinity)
+#if NETFRAMEWORK
                     QResProcess.ProcessorAffinity = (IntPtr)2;
+#else
+                    QResProcess.ProcessorAffinity = 2;
+#endif
             }
             else
             {
@@ -144,7 +148,11 @@ namespace ClientGUI
                 if ((RuntimeInformation.IsOSPlatform(OSPlatform.Windows) || RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
                     && Environment.ProcessorCount > 1 && SingleCoreAffinity)
                 {
+#if NETFRAMEWORK
+                    gameProcess.ProcessorAffinity = (IntPtr)2;
+#else
                     gameProcess.ProcessorAffinity = 2;
+#endif
                 }
             }
 

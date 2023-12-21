@@ -49,7 +49,9 @@ namespace DTAClient
             Logger.Log("OSArchitecture: " + RuntimeInformation.OSArchitecture);
             Logger.Log("ProcessArchitecture: " + RuntimeInformation.ProcessArchitecture);
             Logger.Log("FrameworkDescription: " + RuntimeInformation.FrameworkDescription);
+#if !NETFRAMEWORK
             Logger.Log("RuntimeIdentifier: " + RuntimeInformation.RuntimeIdentifier);
+#endif
             Logger.Log("Selected OS profile: " + MainClientConstants.OSId);
             Logger.Log("Current culture: " + CultureInfo.CurrentCulture);
 

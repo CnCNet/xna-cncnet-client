@@ -30,10 +30,11 @@ TargetFramework configurations
 For each Engine configuration one or more TargetFrameworks will be build:
 
 UniversalGL:
-* net7.0
+* net8.0
 
 WindowsDX, WindowsGL & WindowsXNA:
-* net7.0-windows
+* net8.0-windows
+* net48
 
 Overview of the Engine configurations differences:
 

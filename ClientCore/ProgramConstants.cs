@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
@@ -23,7 +23,11 @@ namespace ClientCore
 #if DEBUG
         public static readonly string GamePath = SafePath.CombineDirectoryPath(SafePath.GetDirectory(StartupPath).Parent.Parent.FullName);
 #else
+#if NETFRAMEWORK
+        public static readonly string GamePath = SafePath.CombineDirectoryPath(SafePath.GetDirectory(StartupPath).Parent.FullName);
+#else
         public static readonly string GamePath = SafePath.CombineDirectoryPath(SafePath.GetDirectory(StartupPath).Parent.Parent.Parent.FullName);
+#endif
 #endif
 
         public static string ClientUserFilesPath => SafePath.CombineDirectoryPath(GamePath, "Client");
@@ -61,7 +65,14 @@ namespace ClientCore
         public const int GAME_ID_MAX_LENGTH = 4;
 
         public static readonly Encoding LAN_ENCODING = Encoding.UTF8;
+#if NETFRAMEWORK
+        private static bool? isMono;
 
+        /// <summary>
+        /// Gets a value whether or not the application is running under Mono. Uses lazy loading and caching.
+        /// </summary>
+        public static bool ISMONO => isMono ??= Type.GetType("Mono.Runtime") != null;
+#endif
         public static string GAME_VERSION = "Undefined";
         private static string PlayerName = "No name";
 
@@ -119,7 +130,11 @@ namespace ClientCore
         {
             Logger.Log(FormattableString.Invariant($"{(title is null ? null : title + Environment.NewLine + Environment.NewLine)}{error}"));
 #if WINFORMS
+#if NETFRAMEWORK
             MessageBox.Show(error, title, MessageBoxButtons.OK);
+#else
+            TaskDialog.ShowDialog(new() { Caption = title, Heading = error });
+#endif
 #else
             ProcessLauncher.StartShellProcess(LogFileName);
 #endif

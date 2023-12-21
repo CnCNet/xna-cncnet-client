@@ -1,8 +1,18 @@
 <Project>
-  <Target Name="PublishWinDesktopGLNative" AfterTargets="Publish" Condition="'$(Engine)' == 'UniversalGL' And $([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">
-    <Message Importance="high" Text="Copying DesktopGLNative files"/>
-    <Copy SourceFiles="$(OutputPath)SDL2.dll" DestinationFolder="$(PublishDir)" />
-    <Copy SourceFiles="$(OutputPath)soft_oal.dll" DestinationFolder="$(PublishDir)" />
+  <Target Name="PublishNetFrameworkDesktopGLNative" AfterTargets="Publish" Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework' And '$(Engine)' == 'WindowsGL'">
+    <Message Importance="high" Text="Copying NetFramework DesktopGLNative files"/>
+    <ItemGroup>
+      <_lib_x64 Include="$(OutputPath)\x64\*.*" />
+      <_lib_x86 Include="$(OutputPath)\x86\*.*" />
+    </ItemGroup>
+    <Copy SourceFiles="@(_lib_x64)" DestinationFolder="$(PublishDir)\x64" />
+    <Copy SourceFiles="@(_lib_x86)" DestinationFolder="$(PublishDir)\x86" />
+  </Target>
+
+  <Target Name="RemoveNetFrameworkDesktopGLNative" AfterTargets="PublishNetFrameworkDesktopGLNative">
+    <Message Importance="high" Text="Removing not needed NetFramework DesktopGLNative files"/>
+    <Delete Files="$(PublishDir)SDL2.dll" />
+    <Delete Files="$(PublishDir)soft_oal.dll" />
   </Target>
 
   <Target Name="RemoveCodeAnalysis" AfterTargets="Publish" Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows' And '$(Engine)' == 'WindowsDX'">
@@ -42,6 +52,8 @@
     <Move SourceFiles="$(PublishDir)Microsoft.Extensions.Configuration.UserSecrets.dll" DestinationFolder="$(PublishDir)../" />
     <Move SourceFiles="$(PublishDir)Microsoft.Extensions.DependencyInjection.Abstractions.dll" DestinationFolder="$(PublishDir)../" />
     <Move SourceFiles="$(PublishDir)Microsoft.Extensions.DependencyInjection.dll" DestinationFolder="$(PublishDir)../" />
+    <Move SourceFiles="$(PublishDir)Microsoft.Extensions.Diagnostics.Abstractions.dll" DestinationFolder="$(PublishDir)../" />
+    <Move SourceFiles="$(PublishDir)Microsoft.Extensions.Diagnostics.dll" DestinationFolder="$(PublishDir)../" />
     <Move SourceFiles="$(PublishDir)Microsoft.Extensions.FileProviders.Abstractions.dll" DestinationFolder="$(PublishDir)../" />
     <Move SourceFiles="$(PublishDir)Microsoft.Extensions.FileProviders.Physical.dll" DestinationFolder="$(PublishDir)../" />
     <Move SourceFiles="$(PublishDir)Microsoft.Extensions.FileSystemGlobbing.dll" DestinationFolder="$(PublishDir)../" />
@@ -64,5 +76,33 @@
     <Move SourceFiles="$(PublishDir)SixLabors.ImageSharp.dll" DestinationFolder="$(PublishDir)../" />
     <Move SourceFiles="$(PublishDir)System.Net.Http.Formatting.dll" DestinationFolder="$(PublishDir)../" />
     <Move SourceFiles="$(PublishDir)TextCopy.dll" DestinationFolder="$(PublishDir)../" />
+  </Target>
+
+  <Target Name="MoveCommonNetFrameworkBinaries" AfterTargets="Publish" Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework'">
+    <Message Importance="high" Text="Moving NetFramework common binaries"/>
+    <Move SourceFiles="$(PublishDir)Microsoft.Bcl.AsyncInterfaces.dll" DestinationFolder="$(PublishDir)../" />
+    <Move SourceFiles="$(PublishDir)System.Buffers.dll" DestinationFolder="$(PublishDir)../" />
+    <Move SourceFiles="$(PublishDir)System.Diagnostics.DiagnosticSource.dll" DestinationFolder="$(PublishDir)../" />
+    <Move SourceFiles="$(PublishDir)System.Memory.dll" DestinationFolder="$(PublishDir)../" />
+    <Move SourceFiles="$(PublishDir)System.Numerics.Vectors.dll" DestinationFolder="$(PublishDir)../" />
+    <Move SourceFiles="$(PublishDir)System.Runtime.CompilerServices.Unsafe.dll" DestinationFolder="$(PublishDir)../" />
+    <Move SourceFiles="$(PublishDir)System.Text.Encoding.CodePages.dll" DestinationFolder="$(PublishDir)../" />
+    <Move SourceFiles="$(PublishDir)System.Text.Encodings.Web.dll" DestinationFolder="$(PublishDir)../" />
+    <Move SourceFiles="$(PublishDir)System.Text.Json.dll" DestinationFolder="$(PublishDir)../" />
+    <Move SourceFiles="$(PublishDir)System.Threading.Tasks.Extensions.dll" DestinationFolder="$(PublishDir)../" />
+    <Move SourceFiles="$(PublishDir)System.ValueTuple.dll" DestinationFolder="$(PublishDir)../" />
+  </Target>
+
+  <Target Name="MoveNetFrameworkExecutables" AfterTargets="Publish" Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework'">
+    <Message Importance="high" Text="Moving NetFramework executables"/>
+    <Move Condition="'$(Engine)' == 'WindowsDX'" SourceFiles="$(PublishDir)clientdx.exe" DestinationFolder="$(PublishDir)../../" />
+    <Move Condition="'$(Engine)' == 'WindowsDX'" SourceFiles="$(PublishDir)clientdx.exe.config" DestinationFolder="$(PublishDir)../../" />
+    <Move Condition="'$(Engine)' == 'WindowsDX'" SourceFiles="$(PublishDir)clientdx.pdb" DestinationFolder="$(PublishDir)../../" />
+    <Move Condition="'$(Engine)' == 'WindowsGL'" SourceFiles="$(PublishDir)clientogl.exe" DestinationFolder="$(PublishDir)../../" />
+    <Move Condition="'$(Engine)' == 'WindowsGL'" SourceFiles="$(PublishDir)clientogl.exe.config" DestinationFolder="$(PublishDir)../../" />
+    <Move Condition="'$(Engine)' == 'WindowsGL'" SourceFiles="$(PublishDir)clientogl.pdb" DestinationFolder="$(PublishDir)../../" />
+    <Move Condition="'$(Engine)' == 'WindowsXNA'" SourceFiles="$(PublishDir)clientxna.exe" DestinationFolder="$(PublishDir)../../" />
+    <Move Condition="'$(Engine)' == 'WindowsXNA'" SourceFiles="$(PublishDir)clientxna.exe.config" DestinationFolder="$(PublishDir)../../" />
+    <Move Condition="'$(Engine)' == 'WindowsXNA'" SourceFiles="$(PublishDir)clientxna.pdb" DestinationFolder="$(PublishDir)../../" />
   </Target>
 </Project>

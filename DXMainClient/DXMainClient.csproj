@@ -2,15 +2,7 @@
   <PropertyGroup>
     <OutputType Condition="'$(Engine)' != 'UniversalGL'">WinExe</OutputType>
     <OutputType Condition="'$(Engine)' == 'UniversalGL'">Exe</OutputType>
-    <Title>CnCNet Client</Title>
     <Description>CnCNet Main Client Library</Description>
-    <Company>CnCNet</Company>
-    <Product>CnCNet Client</Product>
-    <Copyright>Copyright © CnCNet, Rampastring 2011-2022</Copyright>
-    <Trademark>CnCNet</Trademark>
-    <Version>2.8.0.0</Version>
-    <FileVersion>2.8.0.0</FileVersion>
-    <InformationalVersion>2.8.0.0</InformationalVersion>
     <AssemblyName>DXMainClient</AssemblyName>
     <RootNamespace>DTAClient</RootNamespace>
     <ApplicationIcon>clienticon.ico</ApplicationIcon>
@@ -20,35 +12,43 @@
     <AssemblyName Condition="'$(Engine)' == 'WindowsXNA'">clientxna</AssemblyName>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Prefer32Bit Condition="'$(Engine)' == 'WindowsXNA' And '$(TargetFrameworkIdentifier)' == '.NETFramework'">true</Prefer32Bit>
     <UseAppHost>false</UseAppHost>
+    <SelfContained>false</SelfContained>
   </PropertyGroup>
   <ItemGroup>
     <Compile Remove="Resources\**" />
     <EmbeddedResource Remove="Resources\**" />
     <None Remove="Resources\**" />
   </ItemGroup>
+  <ItemGroup Condition="'$(TargetFrameworkIdentifier)' != '.NETFramework'">
+    <None Remove="App.config" />
+  </ItemGroup>
   <ItemGroup>
     <Content Include="clienticon.ico" />
   </ItemGroup>
+  <ItemGroup Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework'">
+    <Reference Include="System.DirectoryServices" />
+    <Reference Include="System.IO.Compression" />
+    <Reference Include="System.Management" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(TargetFrameworkIdentifier)' != '.NETFramework'">
+    <PackageReference Include="System.DirectoryServices" Version="8.0.0" />
+    <PackageReference Include="System.Management" Version="8.0.0" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework'">
+    <PackageReference Include="System.Memory" Version="4.5.5" />
+  </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="DiscordRichPresence" Version="1.1.3.18" />
+    <PackageReference Include="DiscordRichPresence" Version="1.2.1.24" />
     <PackageReference Include="lzo.net" Version="0.0.6" />
-    <PackageReference Include="Microsoft.Extensions.Hosting" Version="7.0.0" />
-    <PackageReference Include="OpenMcdf" Version="2.2.1.12" />
-    <PackageReference Include="System.Management" Version="7.0.0" />
-    <PackageReference Include="System.DirectoryServices" Version="7.0.0" />
-    <PackageReference Include="GitVersion.MsBuild" Version="5.11.1">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.0" />
+    <PackageReference Include="OpenMcdf" Version="2.3.0" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\DTAConfig\DTAConfig.csproj" />
-  </ItemGroup>
-  <Import Project="$(MSBuildThisFileDirectory)..\build\WinForms.props" />
-  <Import Project="$(MSBuildThisFileDirectory)..\build\AfterPublish.targets" />
-  <Import Project="$(MSBuildThisFileDirectory)..\build\CopyResources.targets" />
-  <ItemGroup>
     <ProjectReference Include="..\TranslationNotifierGenerator\TranslationNotifierGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
   </ItemGroup>
+  <Import Project="$(MSBuildThisFileDirectory)..\build\AfterPublish.targets" />
+  <Import Project="$(MSBuildThisFileDirectory)..\build\WinForms.props" />
 </Project>

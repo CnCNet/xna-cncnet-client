@@ -1,14 +1,24 @@
 <Project>
   <PropertyGroup>
+    <Title>CnCNet Client</Title>
+    <Company>CnCNet</Company>
+    <Product>CnCNet Client</Product>
+    <Copyright>Copyright © CnCNet, Rampastring 2011-2023</Copyright>
+    <Trademark>CnCNet</Trademark>
     <ComVisible>false</ComVisible>
     <CLSCompliant>false</CLSCompliant>
     <Platforms>AnyCPU;x64;ARM64;x86</Platforms>
-    <AnalysisMode Condition="$(Configuration.Contains(Debug))">All</AnalysisMode>
     <EnforceCodeStyleInBuild Condition="$(Configuration.Contains(Debug))">true</EnforceCodeStyleInBuild>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <AnalysisMode Condition="$(Configuration.Contains(Debug))">All</AnalysisMode>
     <AnalysisMode Condition="!$(Configuration.Contains(Debug))">Recommended</AnalysisMode>
     <AnalysisModeDocumentation Condition="!$(Configuration.Contains(Debug))">None</AnalysisModeDocumentation>
     <AnalysisModeNaming Condition="!$(Configuration.Contains(Debug))">None</AnalysisModeNaming>
     <AnalysisModeStyle Condition="!$(Configuration.Contains(Debug))">None</AnalysisModeStyle>
+    <AnalysisLevel>preview</AnalysisLevel>
+    <LangVersion>preview</LangVersion>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
   </PropertyGroup>
 
   <Import Project="$(MSBuildThisFileDirectory)build\VSCompatibleLayer.props" Condition="'$(BuildingInsideVisualStudio)' == 'True'" />
@@ -28,9 +38,12 @@
   </Target>
 
   <ItemGroup>
-    <PackageReference Condition="$(Configuration.Contains(Debug))" Include="StyleCop.Analyzers" Version="1.2.0-beta.435">
+    <PackageReference Condition="$(Configuration.Contains(Debug))" Include="StyleCop.Analyzers" Version="1.2.0-beta.556">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework'" Include="Meziantou.Polyfill" Version="1.0.31">
+      <PrivateAssets>all</PrivateAssets>
     </PackageReference>
   </ItemGroup>
 

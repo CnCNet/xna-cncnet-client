@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using Rampastring.Tools;
 using System.IO;
@@ -283,7 +283,11 @@ namespace ClientCore
             {
                 // the syntax is GameFileX=path/to/source.file,path/to/destination.file[,checked]
                 string value = clientDefinitionsIni.GetStringValue(TRANSLATIONS, $"GameFile{i}", string.Empty);
+#if NETFRAMEWORK
+                string[] parts = value.Split(',').Select(q => q.Trim()).ToArray();
+#else
                 string[] parts = value.Split(',', StringSplitOptions.TrimEntries);
+#endif
 
                 // fail explicitly if the syntax is wrong
                 if (parts.Length is < 2 or > 3
@@ -382,15 +386,32 @@ namespace ClientCore
 
         public OSVersion GetOperatingSystemVersion()
         {
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+#if NETFRAMEWORK
+            if (Environment.OSVersion.Platform == PlatformID.Win32NT)
             {
-                if (OperatingSystem.IsWindowsVersionAtLeast(6, 3))
-                    return OSVersion.WIN810;
+                Version osVersion = Environment.OSVersion.Version;
 
-                return OSVersion.WIN7;
+                if (osVersion.Major < 5)
+                    return OSVersion.UNKNOWN;
+
+                if (osVersion.Major < 6)
+                    return OSVersion.WINXP;
+
+                if (osVersion.Major == 6 && osVersion.Minor < 1)
+                    return OSVersion.WINVISTA;
+
+                if (osVersion.Major == 6 && osVersion.Minor < 2)
+                    return OSVersion.WIN7;
+
+                return OSVersion.WIN810;
             }
 
-            return OSVersion.UNIX;
+            return ProgramConstants.ISMONO ? OSVersion.UNIX : OSVersion.UNKNOWN;
+#else
+            return RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+                ? OperatingSystem.IsWindowsVersionAtLeast(6, 3) ? OSVersion.WIN810 : OSVersion.WIN7
+                : OSVersion.UNIX;
+#endif
         }
     }
 

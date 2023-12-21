@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <assembly manifestVersion="1.0" xmlns="urn:schemas-microsoft-com:asm.v1">
-  <assemblyIdentity processorArchitecture="*" name="DXMainClient" type="win32"/>
+  <assemblyIdentity version="1.0.0.0" processorArchitecture="*" name="DXMainClient" type="win32"/>
   <trustInfo xmlns="urn:schemas-microsoft-com:asm.v2">
     <security>
       <requestedPrivileges xmlns="urn:schemas-microsoft-com:asm.v3">
@@ -28,7 +28,7 @@
            and Windows will automatically select the most compatible environment. -->
 
       <!-- Windows Vista -->
-      <!-- <supportedOS Id="{e2011457-1546-43c5-a5fe-008deee3d3f0}" /> -->
+      <!--<supportedOS Id="{e2011457-1546-43c5-a5fe-008deee3d3f0}" />-->
 
       <!-- Windows 7 -->
       <supportedOS Id="{35138b9a-5d96-4fbd-8e2d-a2440225f93a}" />
@@ -44,5 +44,18 @@
 
     </application>
   </compatibility>
-</assembly>
 
+  <!-- Enable themes for Windows common controls and dialogs (Windows XP and later) -->
+  <dependency>
+    <dependentAssembly>
+      <assemblyIdentity
+          type="win32"
+          name="Microsoft.Windows.Common-Controls"
+          version="6.0.0.0"
+          processorArchitecture="*"
+          publicKeyToken="6595b64144ccf1df"
+          language="*"
+        />
+    </dependentAssembly>
+  </dependency>
+</assembly>

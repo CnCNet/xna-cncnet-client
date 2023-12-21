@@ -13,7 +13,11 @@ Migrating from older versions
 
 - Second-stage updater is now maintained as a separate project. Download the latest release [here](https://github.com/CnCNet/cncnet-client-updater/releases) (select `SecondStageUpdater-<version_number>.zip`), and extract its contents to the client's `Resources\Updater` folder.
 
-- To support launching the game on Linux the file defined as `UnixGameExecutableName` (defaults to `wine-dta.sh`) in `ClientDefinitions.ini` must be set up correctly. E.g. for launching a game with wine the file could contain `wine gamemd-spawn.exe $*` where `gamemd-spawn.exe` is replaced with the game executable. Note that users might need to execute `chmod u+x wine-dta.sh` once to allow it to be launched.
+- To support launching the game on Linux the file defined as `UnixGameExecutableName` (defaults to `wine-dta.sh`) in `ClientDefinitions.ini` must be set up correctly. E.g. for launching a game with wine the file could contain the below, where `gamemd-spawn.exe` is replaced with the game executable. Note that users might need to execute `chmod u+x wine-dta.sh` once to allow it to be launched.
+```
+#!/bin/sh
+wine gamemd-spawn.exe $*
+```
 
 - The use of `*.cur` mouse cursor files is not supported on the cross-platform `UniversalGL` build. To ensure the intended cursor is shown instead of a missing texture (pink square) all themes need to contain a `cursor.png` file. Existing `*.cur` files will still be used by the Windows-only builds.
 

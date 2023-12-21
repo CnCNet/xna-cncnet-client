@@ -3,7 +3,11 @@ using System.Collections.Generic;
 #if !DEBUG
 using System.IO;
 using System.Reflection;
+#if NETFRAMEWORK
+using System.Linq;
+#else
 using System.Runtime.Loader;
+#endif
 #endif
 using System.Threading;
 /* !! We cannot use references to other projects or non-framework assemblies in this class, assembly loading events not hooked up yet !! */
@@ -20,7 +24,11 @@ namespace DTAClient
              * To avoid DLL hell, we load the binaries from different directories
              * depending on the build platform. */
 
+#if NETFRAMEWORK
+            string startupPath = new FileInfo(Assembly.GetEntryAssembly().Location).DirectoryName + Path.DirectorySeparatorChar;
+#else
             string startupPath = new FileInfo(Assembly.GetEntryAssembly().Location).Directory.Parent.Parent.FullName + Path.DirectorySeparatorChar;
+#endif
 
             COMMON_LIBRARY_PATH = Path.Combine(startupPath, "Binaries") + Path.DirectorySeparatorChar;
 
@@ -37,7 +45,11 @@ namespace DTAClient
 #endif
 
             // Set up DLL load paths as early as possible
+#if NETFRAMEWORK
+            AppDomain.CurrentDomain.AssemblyResolve += CurrentDomain_AssemblyResolve;
+#else
             AssemblyLoadContext.Default.Resolving += DefaultAssemblyLoadContextOnResolving;
+#endif
         }
 
         private static string COMMON_LIBRARY_PATH;
@@ -118,6 +130,27 @@ namespace DTAClient
         }
 #if !DEBUG
 
+#if NETFRAMEWORK
+        private static Assembly CurrentDomain_AssemblyResolve(object sender, ResolveEventArgs args)
+        {
+            string unresolvedAssemblyName = args.Name.Split(',').First();
+
+            if (unresolvedAssemblyName.EndsWith(".resources", StringComparison.OrdinalIgnoreCase))
+                return null;
+
+            var commonFileInfo = new FileInfo(Path.Combine(COMMON_LIBRARY_PATH, FormattableString.Invariant($"{unresolvedAssemblyName}.dll")));
+
+            if (commonFileInfo.Exists)
+                return Assembly.Load(AssemblyName.GetAssemblyName(commonFileInfo.FullName));
+
+            var specificFileInfo = new FileInfo(Path.Combine(SPECIFIC_LIBRARY_PATH, FormattableString.Invariant($"{unresolvedAssemblyName}.dll")));
+
+            if (specificFileInfo.Exists)
+                return Assembly.Load(AssemblyName.GetAssemblyName(specificFileInfo.FullName));
+
+            return null;
+        }
+#else
         private static Assembly DefaultAssemblyLoadContextOnResolving(AssemblyLoadContext assemblyLoadContext, AssemblyName assemblyName)
         {
             if (assemblyName.Name.EndsWith(".resources", StringComparison.OrdinalIgnoreCase))
@@ -135,6 +168,7 @@ namespace DTAClient
 
             return null;
         }
+#endif
 #endif
     }
 }

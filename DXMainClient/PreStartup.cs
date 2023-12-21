@@ -51,6 +51,14 @@ namespace DTAClient
         /// <param name="parameters">The client's startup parameters.</param>
         public static void Initialize(StartupParams parameters)
         {
+#if WINFORMS
+#if NETFRAMEWORK
+            Application.EnableVisualStyles();
+#else
+            ApplicationConfiguration.Initialize();
+#endif
+
+#endif
             Translation.InitialUICulture = CultureInfo.CurrentUICulture;
             CultureInfo.CurrentUICulture = new CultureInfo(ProgramConstants.HARDCODED_LOCALE_CODE);
 
@@ -72,7 +80,16 @@ namespace DTAClient
                 CheckPermissions();
 
             if (clientLogFile.Exists)
-                File.Move(clientLogFile.FullName, SafePath.GetFile(clientUserFilesDirectory.FullName, "client_previous.log").FullName, true);
+            {
+                FileInfo previousLogFile = SafePath.GetFile(clientUserFilesDirectory.FullName, "client_previous.log");
+
+#if NETFRAMEWORK
+                SafePath.DeleteFileIfExists(previousLogFile.FullName);
+                File.Move(clientLogFile.FullName, previousLogFile.FullName);
+#else
+                File.Move(clientLogFile.FullName, previousLogFile.FullName, true);
+#endif
+            }
 
             Logger.Initialize(clientUserFilesDirectory.FullName, clientLogFile.Name);
             Logger.WriteLogFile = true;
@@ -186,10 +203,6 @@ namespace DTAClient
 
                 ProgramConstants.DisplayErrorAction(null, error, true);
             }
-
-#if WINFORMS
-            ApplicationConfiguration.Initialize();
-#endif
 
             new Startup().Execute();
         }

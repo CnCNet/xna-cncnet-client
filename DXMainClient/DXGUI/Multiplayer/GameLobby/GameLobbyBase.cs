@@ -1616,12 +1616,15 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     Logger.Log(errorMessage);
                     Logger.Log(e.Message);
                     XNAMessageBox.Show(WindowManager, "Error".L10N("Client:Main:Error"), errorMessage);
-                    
                 }
             }
-            
+
             // Write the supplemental map files to the INI (eventual spawnmap.ini)
+#if NETFRAMEWORK
+            mapIni.SetStringValue("Basic", "SupplementalFiles", string.Join(",", supplementalFileNames));
+#else
             mapIni.SetStringValue("Basic", "SupplementalFiles", string.Join(',', supplementalFileNames));
+#endif
         }
 
         /// <summary>
