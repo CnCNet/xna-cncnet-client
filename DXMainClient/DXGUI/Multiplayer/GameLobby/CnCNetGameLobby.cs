@@ -722,7 +722,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             for(int i = 0; i < RandomSelectorCount; i++)
                 disallowedSides.Insert(0, false);
 
-            if (side > 0 && side <= SideCount && disallowedSides[side - 1])
+            if (side > 0 && side <= SideCount && disallowedSides[side])
                 return;
 
             if (Map.CoopInfo != null)
