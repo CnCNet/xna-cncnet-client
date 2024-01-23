@@ -283,23 +283,27 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CustomSettings\CustomSettingFileCheckBox.cs" />
-    <Compile Include="CustomSettings\CustomSettingFileDropDown.cs" />
-    <Compile Include="CustomSettings\FileSourceDestinationInfo.cs" />
-    <Compile Include="CustomSettings\ICustomSetting.cs" />
+    <Compile Include="Settings\FileSettingCheckBox.cs" />
+    <Compile Include="Settings\FileSettingDropDown.cs" />
+    <Compile Include="Settings\FileSourceDestinationInfo.cs" />
+    <Compile Include="Settings\IFileSetting.cs" />
+    <Compile Include="Settings\IUserSetting.cs" />
+    <Compile Include="Settings\SettingCheckBox.cs" />
+    <Compile Include="Settings\SettingCheckBoxBase.cs" />
+    <Compile Include="Settings\SettingDropDownBase.cs" />
     <Compile Include="OptionPanels\AudioOptionsPanel.cs" />
     <Compile Include="OptionPanels\CnCNetOptionsPanel.cs" />
     <Compile Include="OptionPanels\ComponentsPanel.cs" />
     <Compile Include="OptionPanels\DisplayOptionsPanel.cs" />
     <Compile Include="OptionPanels\GameOptionsPanel.cs" />
     <Compile Include="HotkeyConfigurationWindow.cs" />
-    <Compile Include="CustomSettings\FileSettingCheckBox.cs" />
     <Compile Include="OptionsGUICreator.cs" />
     <Compile Include="OptionsWindow.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="DirectDrawWrapper.cs" />
     <Compile Include="OptionPanels\UpdaterOptionsPanel.cs" />
     <Compile Include="OptionPanels\XNAOptionsPanel.cs" />
+    <Compile Include="Settings\SettingDropDown.cs" />
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
