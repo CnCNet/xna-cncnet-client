@@ -133,6 +133,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         protected XNAClientStateButton<SortDirection> btnMapSortAlphabetically;
 
         protected XNASuggestionTextBox tbMapSearch;
+        protected XNAClientCheckBox chkSearchAllMaps;
 
         protected List<PlayerInfo> Players = new List<PlayerInfo>();
         protected List<PlayerInfo> AIPlayers = new List<PlayerInfo>();
@@ -272,6 +273,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             tbMapSearch = FindChild<XNASuggestionTextBox>(nameof(tbMapSearch));
             tbMapSearch.InputReceived += TbMapSearch_InputReceived;
+
+            chkSearchAllMaps = FindChild<XNAClientCheckBox>(nameof(chkSearchAllMaps));
+            chkSearchAllMaps.CheckedChanged += chkSearchAllMaps_CheckedChanged;
 
             btnPickRandomMap = FindChild<XNAClientButton>(nameof(btnPickRandomMap));
             btnPickRandomMap.LeftClick += BtnPickRandomMap_LeftClick;
@@ -433,6 +437,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             checkBox.HostChecked = checkBox.Checked;
             OnGameOptionChanged();
         }
+        private void chkSearchAllMaps_CheckedChanged(object sender, EventArgs e)
+        {
+            ListMaps();
+        }
 
         protected virtual void OnGameOptionChanged()
         {
@@ -494,7 +502,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private List<GameModeMap> GetSortedGameModeMaps()
         {
-            var gameModeMaps = gameModeMapFilter.GetGameModeMaps();
+            var gameModeMaps = chkSearchAllMaps.Checked ? GameModeMaps : gameModeMapFilter.GetGameModeMaps();
 
             // Only apply sort if the map list sort button is available.
             if (btnMapSortAlphabetically.Enabled && btnMapSortAlphabetically.Visible)
@@ -524,13 +532,12 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             int mapIndex = -1;
             int skippedMapsCount = 0;
+            bool showGameModeName = chkSearchAllMaps.Checked || IsFavoriteMapsSelected();
+            var gameModeMaps = GetSortedGameModeMaps();
 
-            var isFavoriteMapsSelected = IsFavoriteMapsSelected();
-            var maps = GetSortedGameModeMaps();
-
-            for (int i = 0; i < maps.Count; i++)
+            for (int i = 0; i < gameModeMaps.Count; i++)
             {
-                var gameModeMap = maps[i];
+                var gameModeMap = gameModeMaps[i];
                 if (tbMapSearch.Text != tbMapSearch.Suggestion)
                 {
                     string promptUpper = tbMapSearch.Text.ToUpperInvariant();
@@ -556,8 +563,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                     rankItem.Texture = RankTextures[GetDefaultMapRankIndex(gameModeMap) + 1];
 
                 XNAListBoxItem mapNameItem = new XNAListBoxItem();
-                var mapNameText = gameModeMap.Map.Name;
-                if (isFavoriteMapsSelected)
+                string mapNameText = gameModeMap.Map.Name;
+                if (showGameModeName)
                     mapNameText += $" - {gameModeMap.GameMode.UIName}";
 
                 mapNameItem.Text = Renderer.GetSafeString(mapNameText, lbGameModeMapList.FontIndex);

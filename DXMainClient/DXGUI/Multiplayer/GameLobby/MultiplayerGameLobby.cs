@@ -692,6 +692,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             lblGameModeSelect.Disable();
             lbGameModeMapList.Disable();
             tbMapSearch.Disable();
+            chkSearchAllMaps.Disable();
             btnPickRandomMap.Disable();
             btnMapSortAlphabetically.Disable();
         }
@@ -710,6 +711,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             lblGameModeSelect.Enable();
             lbGameModeMapList.Enable();
             tbMapSearch.Enable();
+            chkSearchAllMaps.Enable();
             btnPickRandomMap.Enable();
             btnMapSortAlphabetically.Enable();
 
