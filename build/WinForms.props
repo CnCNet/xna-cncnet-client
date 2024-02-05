@@ -7,7 +7,7 @@
     <UseWindowsForms>true</UseWindowsForms>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Engine)' == 'UniversalGL'">
-    <TargetFramework>net7.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <UseWindowsForms>false</UseWindowsForms>
   </PropertyGroup>
 
