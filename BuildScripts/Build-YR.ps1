@@ -5,9 +5,14 @@ param($Configuration = "Release")
 
 . $PSScriptRoot\Common.ps1
 
-Build-Project $Configuration YR UniversalGL net8.0
+$Game = "YR"
+
+Build-Project $Configuration $Game UniversalGL net8.0
 if ($IsWindows) {
   @('WindowsDX', 'WindowsGL', 'WindowsXNA') | ForEach-Object {
-    Build-Project $Configuration YR $_ net48
+    $Engine = $_
+    @('net48', 'net8.0-windows') | ForEach-Object {
+      Build-Project $Configuration $Game $Engine $_
+    }
   }
 }

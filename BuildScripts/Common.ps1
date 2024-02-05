@@ -10,15 +10,14 @@ $EngineSubFolderMap = @{
   'WindowsGL'   = 'OpenGL'
   'WindowsXNA'  = 'XNA'
 }
-$EngineBinariesFolderMap = @{
-  'UniversalGL' = 'BinariesUGL'
-  'WindowsDX'   = 'Binaries'
-  'WindowsGL'   = 'Binaries'
-  'WindowsXNA'  = 'Binaries'
+$FrameworkBinariesFolderMap = @{
+  'net48'          = 'Binaries'
+  'net8.0'         = 'BinariesNET8'
+  'net8.0-windows' = 'BinariesNET8'
 }
 
 function Build-Project($Configuration, $Game, $Engine, $Framework) {
-  $Output = Join-Path $CompiledRoot $Game $Output Resources ($EngineBinariesFolderMap[$Engine]) ($EngineSubFolderMap[$Engine])
+  $Output = Join-Path $CompiledRoot $Game $Output Resources ($FrameworkBinariesFolderMap[$Framework]) ($EngineSubFolderMap[$Engine])
   if ($Engine -EQ 'WindowsXNA') {
     dotnet publish $ProjectPath --configuration=$Configuration -property:GAME=$Game -property:ENGINE=$Engine --framework=$Framework --output=$Output --arch=x86
   }
