@@ -77,7 +77,7 @@
   </Target>
   
   <!-- Note: the folder structure should be consistent with BuildScripts\Common.ps1 file -->
-  <Target Name="MoveClientExes" AfterTargets="Publish">
+  <Target Name="MoveClientExes" AfterTargets="Publish" Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework'">
     <Message Importance="high" Text="Moving client executables"/>
     <Move SourceFiles="$(PublishDir)clientdx.exe" DestinationFolder="$(PublishDir)../../" Condition="Exists('$(PublishDir)clientdx.exe')"/>
     <Move SourceFiles="$(PublishDir)clientdx.exe.config" DestinationFolder="$(PublishDir)../../" Condition="Exists('$(PublishDir)clientdx.exe.config')"/>
