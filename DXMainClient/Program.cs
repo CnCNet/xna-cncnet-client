@@ -24,21 +24,21 @@ namespace DTAClient
             DirectoryInfo currentDir = new FileInfo(Assembly.GetEntryAssembly().Location).Directory;
             string startupPath = SearchResourcesDir(currentDir.FullName);
 
-            string BinariesFolderName = "Binaries";
-#if GL && !ISWINDOWS
-            BinariesFolderName = "BinariesUGL";
+            string binariesFolderName = "Binaries";
+#if !NETFRAMEWORK
+            binariesFolderName = "BinariesNET8";
 #endif
 
-            COMMON_LIBRARY_PATH = Path.Combine(startupPath, BinariesFolderName) + Path.DirectorySeparatorChar;
+            COMMON_LIBRARY_PATH = Path.Combine(startupPath, binariesFolderName) + Path.DirectorySeparatorChar;
 
 #if XNA
-            SPECIFIC_LIBRARY_PATH = Path.Combine(startupPath, BinariesFolderName, "XNA") + Path.DirectorySeparatorChar;
+            SPECIFIC_LIBRARY_PATH = Path.Combine(startupPath, binariesFolderName, "XNA") + Path.DirectorySeparatorChar;
 #elif GL && ISWINDOWS
-            SPECIFIC_LIBRARY_PATH = Path.Combine(startupPath, BinariesFolderName, "OpenGL") + Path.DirectorySeparatorChar;
+            SPECIFIC_LIBRARY_PATH = Path.Combine(startupPath, binariesFolderName, "OpenGL") + Path.DirectorySeparatorChar;
 #elif GL && !ISWINDOWS
-            SPECIFIC_LIBRARY_PATH = Path.Combine(startupPath, BinariesFolderName, "UniversalGL") + Path.DirectorySeparatorChar;
+            SPECIFIC_LIBRARY_PATH = Path.Combine(startupPath, binariesFolderName, "UniversalGL") + Path.DirectorySeparatorChar;
 #elif DX
-            SPECIFIC_LIBRARY_PATH = Path.Combine(startupPath, BinariesFolderName, "Windows") + Path.DirectorySeparatorChar;
+            SPECIFIC_LIBRARY_PATH = Path.Combine(startupPath, binariesFolderName, "Windows") + Path.DirectorySeparatorChar;
 #else
             Yuri has won
 #endif
