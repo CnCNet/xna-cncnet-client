@@ -2,6 +2,8 @@
   <PropertyGroup>
     <OutputType Condition="'$(Engine)' != 'UniversalGL'">WinExe</OutputType>
     <OutputType Condition="'$(Engine)' == 'UniversalGL'">Exe</OutputType>
+    <UseAppHost>false</UseAppHost>
+    <SelfContained>false</SelfContained>
     <Title>CnCNet Client</Title>
     <Description>CnCNet Main Client Library</Description>
     <Company>CnCNet</Company>
