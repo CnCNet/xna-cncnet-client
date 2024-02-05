@@ -1,6 +1,6 @@
 <Project>
   <PropertyGroup Condition="'$(Engine)' != 'UniversalGL'">
-    <TargetFramework>net48</TargetFramework>
+    <TargetFrameworks>net48;net8.0-windows</TargetFrameworks>
     <UseWindowsForms>true</UseWindowsForms>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Engine)' == 'UniversalGL'">

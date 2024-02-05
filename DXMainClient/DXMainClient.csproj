@@ -44,6 +44,14 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
+    <!-- These two packages are explicitly imported to get rid of Error NU1605 Detected package downgrade. -->
+    <!-- This error is only raised when both .NET 4 and .NET 8 exists in TargetFrameworks: -->
+    <!-- <TargetFrameworks>net48;net8.0-windows</TargetFrameworks> -->
+    <!-- and -p:Engine=WindowsDX -f net48 -->
+    <PackageReference Include="NETStandard.Library" Version="2.0.3" />
+    <PackageReference Include="System.IO.FileSystem" Version="4.3.0" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\DTAConfig\DTAConfig.csproj" />
   </ItemGroup>
   <Import Project="$(MSBuildThisFileDirectory)..\build\WinForms.props" />
