@@ -38,12 +38,14 @@
   </Target>
 
   <!-- Note: the folder structure should be consistent with BuildScripts\Common.ps1 file -->
-  <Target Name="MoveCommonBinaries" AfterTargets="Publish">
+  <Target Name="MoveCommonBinariesAllNET" AfterTargets="Publish">
+	  <!-- Note: in order to update this file list, first removing all files in this secion. -->
+	  <!-- Then, compile the whole project, and determining whether each dll file is consistent by comparing file hashes.  -->
+	  <!-- Write all dll files that are consistent among Windows/OpenGL/XNA builds. -->
     <Message Importance="high" Text="Moving common binaries"/>
     <Move SourceFiles="$(PublishDir)ClientUpdater.dll" DestinationFolder="$(PublishDir)../" />
     <Move SourceFiles="$(PublishDir)DiscordRPC.dll" DestinationFolder="$(PublishDir)../" />
     <Move SourceFiles="$(PublishDir)lzo.net.dll" DestinationFolder="$(PublishDir)../" />
-    <Move SourceFiles="$(PublishDir)Microsoft.Bcl.AsyncInterfaces.dll" DestinationFolder="$(PublishDir)../" />
     <Move SourceFiles="$(PublishDir)Microsoft.Extensions.Configuration.Abstractions.dll" DestinationFolder="$(PublishDir)../" />
     <Move SourceFiles="$(PublishDir)Microsoft.Extensions.Configuration.Binder.dll" DestinationFolder="$(PublishDir)../" />
     <Move SourceFiles="$(PublishDir)Microsoft.Extensions.Configuration.CommandLine.dll" DestinationFolder="$(PublishDir)../" />
@@ -76,12 +78,17 @@
     <Move SourceFiles="$(PublishDir)OpenMcdf.dll" DestinationFolder="$(PublishDir)../" />
     <Move SourceFiles="$(PublishDir)Rampastring.Tools.dll" DestinationFolder="$(PublishDir)../" />
     <Move SourceFiles="$(PublishDir)SixLabors.ImageSharp.dll" DestinationFolder="$(PublishDir)../" />
-    <Move SourceFiles="$(PublishDir)System.Buffers.dll" DestinationFolder="$(PublishDir)../" />
     <Move SourceFiles="$(PublishDir)System.CodeDom.dll" DestinationFolder="$(PublishDir)../" />
+    <Move SourceFiles="$(PublishDir)System.Net.Http.Formatting.dll" DestinationFolder="$(PublishDir)../" />
+    <Move SourceFiles="$(PublishDir)TextCopy.dll" DestinationFolder="$(PublishDir)../" />
+  </Target>
+
+  <Target Name="MoveCommonBinariesNET4" AfterTargets="Publish" Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework'">
+    <Message Importance="high" Text="Moving common binaries for .NET Framework"/>
+    <Move SourceFiles="$(PublishDir)System.Buffers.dll" DestinationFolder="$(PublishDir)../" />
     <Move SourceFiles="$(PublishDir)System.Diagnostics.DiagnosticSource.dll" DestinationFolder="$(PublishDir)../" />
     <Move SourceFiles="$(PublishDir)System.IO.FileSystem.AccessControl.dll" DestinationFolder="$(PublishDir)../" />
     <Move SourceFiles="$(PublishDir)System.Memory.dll" DestinationFolder="$(PublishDir)../" />
-    <Move SourceFiles="$(PublishDir)System.Net.Http.Formatting.dll" DestinationFolder="$(PublishDir)../" />
     <Move SourceFiles="$(PublishDir)System.Numerics.Vectors.dll" DestinationFolder="$(PublishDir)../" />
     <Move SourceFiles="$(PublishDir)System.Runtime.CompilerServices.Unsafe.dll" DestinationFolder="$(PublishDir)../" />
     <Move SourceFiles="$(PublishDir)System.Security.AccessControl.dll" DestinationFolder="$(PublishDir)../" />
@@ -91,9 +98,8 @@
     <Move SourceFiles="$(PublishDir)System.Text.Json.dll" DestinationFolder="$(PublishDir)../" />
     <Move SourceFiles="$(PublishDir)System.Threading.Tasks.Extensions.dll" DestinationFolder="$(PublishDir)../" />
     <Move SourceFiles="$(PublishDir)System.ValueTuple.dll" DestinationFolder="$(PublishDir)../" />
-    <Move SourceFiles="$(PublishDir)TextCopy.dll" DestinationFolder="$(PublishDir)../" />
   </Target>
-  
+
   <!-- Note: the folder structure should be consistent with BuildScripts\Common.ps1 file -->
   <Target Name="MoveClientExes" AfterTargets="Publish" Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework'">
     <Message Importance="high" Text="Moving client executables"/>
