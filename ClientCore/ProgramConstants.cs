@@ -59,6 +59,15 @@ namespace ClientCore
 
         public static readonly Encoding LAN_ENCODING = Encoding.UTF8;
 
+#if NETFRAMEWORK
+        private static bool? isMono;
+
+        /// <summary>
+        /// Gets a value whether or not the application is running under Mono. Uses lazy loading and caching.
+        /// </summary>
+        public static bool ISMONO => isMono ??= Type.GetType("Mono.Runtime") != null;
+#endif
+
         public static string GAME_VERSION = "Undefined";
         private static string PlayerName = "No name";
 
@@ -118,7 +127,11 @@ namespace ClientCore
         {
             Logger.Log(FormattableString.Invariant($"{(title is null ? null : title + Environment.NewLine + Environment.NewLine)}{error}"));
 #if WINFORMS
+#if NETFRAMEWORK
             MessageBox.Show(error, title, MessageBoxButtons.OK);
+#else
+            TaskDialog.ShowDialog(new() { Caption = title, Heading = error });
+#endif
 #else
             ProcessLauncher.StartShellProcess(LogFileName);
 #endif

@@ -381,43 +381,53 @@ namespace ClientCore
 
         public OSVersion GetOperatingSystemVersion()
         {
+#if NETFRAMEWORK
+            // OperatingSystem.IsWindowsVersionAtLeast() is the preferred API but is not supported on earlier .NET versions
             if (Environment.OSVersion.Platform == PlatformID.Win32NT)
             {
-#if NETFRAMEWORK
-                // OperatingSystem.IsWindowsVersionAtLeast() is the preferred API but is not supported on earlier .NET versions
                 Version osVersion = Environment.OSVersion.Version;
 
-                if (osVersion.Major < 5)
+                if (osVersion.Major <= 4)
                     return OSVersion.UNKNOWN;
 
-                if (osVersion.Major < 6)
+                if (osVersion.Major == 5)
                     return OSVersion.WINXP;
 
-                if (osVersion.Major == 6 && osVersion.Minor < 1)
+                if (osVersion.Major == 6 && osVersion.Minor == 0)
                     return OSVersion.WINVISTA;
 
-                if (osVersion.Major == 6 && osVersion.Minor < 2)
+                if (osVersion.Major == 6 && osVersion.Minor <= 1)
                     return OSVersion.WIN7;
 
                 return OSVersion.WIN810;
-#else
-                if (OperatingSystem.IsWindowsVersionAtLeast(6, 3))
-                    return OSVersion.WIN810;
-
-                if (OperatingSystem.IsWindowsVersionAtLeast(6, 1))
-                    return OSVersion.WIN7;
-
-                return OSVersion.UNKNOWN;
-#endif
             }
 
-            int p = (int)Environment.OSVersion.Platform;
+            if (ProgramConstants.ISMONO)
+                return OSVersion.UNIX;
 
             // http://mono.wikia.com/wiki/Detecting_the_execution_platform
+            int p = (int)Environment.OSVersion.Platform;
             if (p == 4 || p == 6 || p == 128)
                 return OSVersion.UNIX;
 
             return OSVersion.UNKNOWN;
+#else
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                if (OperatingSystem.IsWindowsVersionAtLeast(6, 2))
+                    return OSVersion.WIN810;
+                else if (OperatingSystem.IsWindowsVersionAtLeast(6, 1))
+                    return OSVersion.WIN7;
+                else if (OperatingSystem.IsWindowsVersionAtLeast(6, 0))
+                    return OSVersion.WINVISTA;
+                else if (OperatingSystem.IsWindowsVersionAtLeast(5, 0))
+                    return OSVersion.WINXP;
+                else
+                    return OSVersion.UNKNOWN;
+            }
+
+            return OSVersion.UNIX;
+#endif
         }
     }
 
