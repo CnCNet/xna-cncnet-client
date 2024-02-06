@@ -21,7 +21,7 @@ The client has 2 variants: .NET 8.0 and .NET 4.8.
 * The DirectX11 and OpenGL builds rely on MonoGame.
 * The XNA build relies on Microsoft's XNA Framework 4.0 Refresh.
 
-Building the solution for any platform requires Visual Studio 2022 17.8 or newer and/or the .NET SDK 8.0. A modern version of Visual Studio Code, MonoDevelop or Visual Studio for Mac could also work, but are not officially supported.
+Building the solution for **any** platform requires Visual Studio 2022 17.8 or newer and/or the .NET SDK 8.0. A modern version of Visual Studio Code, MonoDevelop or Visual Studio for Mac could also work, but are not officially supported.
 To debug WindowsXNA builds the .NET SDK 8.0 x86 is additionally required.
 When using the included build scripts PowerShell 7.2 or newer is required.
 
@@ -32,6 +32,13 @@ When using the included build scripts PowerShell 7.2 or newer is required.
 * When built in release mode, the client executable expects to reside in the "Resources" sub-directory itself. In target projects, the client libraries are named `clientdx.dll`, `clientogl.dll` and `clientxna.dll` respectively for each platform. For .NET 4.8 these will be `.exe` instead of `.dll` files.
 * When built on an OS other than Windows, only the Universal OpenGL build is available.
 * The `BuildScripts` directory has automated build scripts that build the client for all platforms and copy the output files to a folder named `Compiled` in the project root. You can then copy the contents of this `Compiled` directory into the `Resources` sub-directory of any target project.
+
+<details>
+  <summary>Development workarounds</summary>
+
+* If you switch among different solution configurations in Visual Studio (e.g. `AresWindowsDXDebug` -> `TSUniversalGLRelease`), especially switching between .NET 4.8 and .NET 8.0 variants, it is recommended to restart Visual Studio after switching configurations to prevent unexpected error messages. If restarting Visual Studio do not work as intended, try deleting all `obj` folders in each project.
+* Some dependencies are stored in `References` folder instead of the official NuGet source. This folder is also useful if you are working on modifying a dependency and debugging in your local machine without publishing the modification to NuGet. However, if you have replaced the `.(s)nupkg` files of a package, without altering the package version, be sure to remove the corresponding package from `%USERPROFILE%\.nuget\packages` folder to purge the old version. 
+</details>
 
 ## End-user usage
 
@@ -73,8 +80,7 @@ Windows 7 SP1 additionally requires:
 ## Client launcher
 
 This repository does not contain the client launcher (for example, `DTA.exe` in Dawn of the Tiberium Age) that selects which platform's client executable is most suitable for each user's system.
-For the .NET 4.8 launcher see [dta-mg-client-launcher](https://github.com/CnCNet/dta-mg-client-launcher).
-For the .NET 8.0 launcher see [dta-mg-client-launcher](https://github.com/Rans4ckeR/dta-mg-client-launcher).
+See [dta-mg-client-launcher](https://github.com/CnCNet/dta-mg-client-launcher).
 
 ## Branches
 
