@@ -2,6 +2,7 @@
   <PropertyGroup>
     <OutputType Condition="'$(Engine)' != 'UniversalGL'">WinExe</OutputType>
     <OutputType Condition="'$(Engine)' == 'UniversalGL'">Exe</OutputType>
+    <Prefer32Bit Condition="'$(Engine)' == 'WindowsXNA' And '$(TargetFrameworkIdentifier)' == '.NETFramework'">true</Prefer32Bit>
     <UseAppHost>false</UseAppHost>
     <SelfContained>false</SelfContained>
     <Title>CnCNet Client</Title>

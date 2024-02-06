@@ -1,16 +1,18 @@
 <Project>
-  <Target Name="PublishWinDesktopGLNative" AfterTargets="Publish" Condition="'$(Engine)' == 'UniversalGL' And $([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">
-    <Message Importance="high" Text="Copying DesktopGLNative files"/>
-    <Copy SourceFiles="$(OutputPath)SDL2.dll" DestinationFolder="$(PublishDir)" />
-    <Copy SourceFiles="$(OutputPath)soft_oal.dll" DestinationFolder="$(PublishDir)" />
+  <Target Name="PublishNetFrameworkDesktopGLNative" AfterTargets="Publish" Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework' And '$(Engine)' == 'WindowsGL'">
+    <Message Importance="high" Text="Copying NetFramework DesktopGLNative files"/>
+    <ItemGroup>
+      <_lib_x64 Include="$(OutputPath)\x64\*.*" />
+      <_lib_x86 Include="$(OutputPath)\x86\*.*" />
+    </ItemGroup>
+    <Copy SourceFiles="@(_lib_x64)" DestinationFolder="$(PublishDir)\x64" />
+    <Copy SourceFiles="@(_lib_x86)" DestinationFolder="$(PublishDir)\x86" />
   </Target>
 
-  <Target Name="WindowsGLCopySDL" AfterTargets="Publish" Condition="'$(Engine)' == 'WindowsGL'">
-    <Message Importance="high" Text="Copying SDL libraries"/>
-    <Copy SourceFiles="$(OutputPath)/x86/SDL2.dll" DestinationFolder="$(PublishDir)/x86" />
-    <Copy SourceFiles="$(OutputPath)/x86/soft_oal.dll" DestinationFolder="$(PublishDir)/x86" />
-    <Copy SourceFiles="$(OutputPath)/x64/SDL2.dll" DestinationFolder="$(PublishDir)/x64" />
-    <Copy SourceFiles="$(OutputPath)/x64/soft_oal.dll" DestinationFolder="$(PublishDir)/x64" />
+  <Target Name="RemoveNetFrameworkDesktopGLNative" AfterTargets="PublishNetFrameworkDesktopGLNative">
+    <Message Importance="high" Text="Removing not needed NetFramework DesktopGLNative files"/>
+    <Delete Files="$(PublishDir)SDL2.dll" />
+    <Delete Files="$(PublishDir)soft_oal.dll" />
   </Target>
 
   <Target Name="RemoveCodeAnalysis" AfterTargets="Publish" Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows' And '$(Engine)' == 'WindowsDX'">
