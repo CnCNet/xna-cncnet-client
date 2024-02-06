@@ -2,6 +2,7 @@
   <PropertyGroup>
     <OutputType Condition="'$(Engine)' != 'UniversalGL'">WinExe</OutputType>
     <OutputType Condition="'$(Engine)' == 'UniversalGL'">Exe</OutputType>
+    <!-- Note: specify Prefer32Bit only for .NET 4.8 XNA build. For .NET 8 builds, this option is specified by parameter "arch" -->
     <Prefer32Bit Condition="'$(Engine)' == 'WindowsXNA' And '$(TargetFrameworkIdentifier)' == '.NETFramework'">true</Prefer32Bit>
     <UseAppHost>false</UseAppHost>
     <SelfContained>false</SelfContained>
