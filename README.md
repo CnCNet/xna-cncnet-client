@@ -35,7 +35,7 @@ When using the included build scripts PowerShell 7.2 or newer is required.
 
 ## End-user usage
 
-* Windows: Windows 7 SP1 or higher is required. The DirectX11 build is preferred. The OpenGL or XNA build is intended for those whose GPU does not properly support DX11. On Windows 10/11 the .NET 8.0 variant is recommended, on legacy Windows versions the .NET 4.8 variant is recommended.
+* Windows: Windows 7 SP1 or higher is required. The DirectX11 build is preferred. The OpenGL or XNA build is intended for those whose GPU does not properly support DX11. On Windows ~~10/11 the .NET 8.0 variant is recommended, on legacy Windows versions~~ the .NET 4.8 variant is recommended.
 * Other OS: Use the Universal OpenGL build.
 
 ## End-user requirements
