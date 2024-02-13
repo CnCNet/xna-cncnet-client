@@ -261,9 +261,11 @@ namespace ClientCore
 
         public string InactiveHostWarningMessage => clientDefinitionsIni.GetStringValue(SETTINGS, "InactiveHostWarningMessage", "Your game may be closed due to inactivity.");
 
-        public int InactiveHostWarningMessageSeconds => clientDefinitionsIni.GetIntValue(SETTINGS, "InactiveHostWarningMessageSeconds", 15);
+        public int InactiveHostWarningMessageSeconds => clientDefinitionsIni.GetIntValue(SETTINGS, "InactiveHostWarningMessageSeconds", 0);
 
-        public int InactiveHostKickSeconds => clientDefinitionsIni.GetIntValue(SETTINGS, "InactiveHostKickSeconds", 15);
+        public int InactiveHostKickSeconds => clientDefinitionsIni.GetIntValue(SETTINGS, "InactiveHostKickSeconds", 0);
+
+        public bool InactiveHostKickEnabled => InactiveHostWarningMessageSeconds > 0 && InactiveHostKickSeconds > 0;
 
         public string GetGameExecutableName()
         {
