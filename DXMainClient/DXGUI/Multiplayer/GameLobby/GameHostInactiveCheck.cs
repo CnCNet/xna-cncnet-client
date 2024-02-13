@@ -43,13 +43,13 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private void SendCloseGameEvent()
         {
-            CloseInactiveGame(this, null);
+            CloseInactiveGame?.Invoke(this, null);
             closeInactiveGameEventSent = true;
         }
 
         private void SendHostInactiveEvent()
         {
-            SendInactiveGameWarningMessage(this, null);
+            SendInactiveGameWarningMessage?.Invoke(this, null);
             inactiveGameWarningMessageSent = true;
             secondsElapsed = 0;
         }
