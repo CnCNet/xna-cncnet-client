@@ -236,8 +236,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 RandomSeed = new Random().Next();
                 RefreshMapSelectionUI();
                 btnChangeTunnel.Enable();
-                gameHostActivityTimer.Enabled = true;
-                gameHostActivityTimer.Start();
+                if (ClientConfiguration.Instance.InactiveHostKickEnabled)
+                {
+                    gameHostActivityTimer.Enabled = true;
+                    gameHostActivityTimer.Start();
+                }
             }
             else
             {
