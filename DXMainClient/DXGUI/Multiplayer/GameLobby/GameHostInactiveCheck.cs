@@ -13,28 +13,25 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         public event EventHandler SendInactiveGameWarningMessage;
         public event EventHandler CloseInactiveGame;
 
-        public void CheckHostIsActive()
+        public void Start()
         {
             secondsElapsed++;
 
-            if (secondsElapsed > ClientConfiguration.Instance.InactiveHostWarningMessageSeconds && !inactiveGameWarningMessageSent)
+            if (secondsElapsed > ClientConfiguration.Instance.InactiveHostWarningMessageSeconds &&
+                !inactiveGameWarningMessageSent)
             {
                 SendHostInactiveEvent();
             }
 
-            if (secondsElapsed > ClientConfiguration.Instance.InactiveHostKickSeconds && inactiveGameWarningMessageSent
-                && !closeInactiveGameEventSent)
+            if (secondsElapsed > ClientConfiguration.Instance.InactiveHostKickSeconds &&
+                inactiveGameWarningMessageSent &&
+                !closeInactiveGameEventSent)
             {
                 SendCloseGameEvent();
             }
         }
 
-        public void HostIsAlive()
-        {
-            ResetTimer();
-        }
-
-        private void ResetTimer()
+        public void Reset()
         {
             secondsElapsed = 0;
             closeInactiveGameEventSent = false;

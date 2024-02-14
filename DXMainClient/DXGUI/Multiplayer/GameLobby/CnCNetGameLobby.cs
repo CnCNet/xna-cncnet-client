@@ -158,6 +158,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             IniNameOverride = nameof(CnCNetGameLobby);
             base.Initialize();
 
+            MouseMove += (sender, args) => RefreshInactiveCheck();
+
             btnChangeTunnel = FindChild<XNAClientButton>(nameof(btnChangeTunnel));
             btnChangeTunnel.LeftClick += BtnChangeTunnel_LeftClick;
 
@@ -260,7 +262,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private void TunnelHandler_CurrentTunnelPinged(object sender, EventArgs e) => UpdatePing();
 
-        private void GameHostActivityTimer_TimeElapsed(object sender, EventArgs e) => gameHostInactiveCheck.CheckHostIsActive();
+        private void GameHostActivityTimer_TimeElapsed(object sender, EventArgs e) => gameHostInactiveCheck.Start();
 
         private void GameHostInactiveCheck_SendInactiveGameWarningMessage(object sender, EventArgs e)
         {
@@ -276,16 +278,12 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private void GameHostInactiveCheck_CloseInactiveGame(object sender, EventArgs e) => LeaveGameLobby();
 
-        private void InactiveMessageBox_OKClicked(XNAMessageBox messageBox) => gameHostInactiveCheck.HostIsAlive();
+        private void InactiveMessageBox_OKClicked(XNAMessageBox messageBox) => gameHostInactiveCheck.Reset();
 
-        public override void OnMouseMove()
+        public void RefreshInactiveCheck()
         {
-            base.OnMouseMove();
-
-            if (gameHostActivityTimer.IsActive)
-            {
-                gameHostInactiveCheck.HostIsAlive();
-            }
+            if (gameHostActivityTimer.Enabled)
+                gameHostInactiveCheck.Reset();
         }
 
         public void OnJoined()
@@ -417,6 +415,8 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             if (IsHost)
             {
+                gameHostActivityTimer.Enabled = false;
+                gameHostActivityTimer.Pause();
                 closed = true;
                 BroadcastGame();
             }
