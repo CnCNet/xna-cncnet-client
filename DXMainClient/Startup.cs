@@ -44,7 +44,7 @@ namespace DTAClient
 
             File.Delete(ProgramConstants.GamePath + "version_u");
 
-            CUpdater.Initialize(ClientConfiguration.Instance.LocalGame);
+            InitUpdater();
 
             Logger.Log("Operating system: " + Environment.OSVersion.VersionString);
             Logger.Log("Selected OS profile: " + MainClientConstants.OSId.ToString());
@@ -219,6 +219,31 @@ namespace DTAClient
                     currentDirectory.Replace(ProgramConstants.GamePath, "") + " to " +
                     newDirectory.Replace(ProgramConstants.GamePath, "") + ". Message: " + ex.Message);
             }
+        }
+
+        private void InitUpdater()
+        {
+            CheckUpdateConfigFile();
+            CUpdater.Initialize(ClientConfiguration.Instance.LocalGame);
+        }
+
+        /**
+         * Check to see if there is already a "base" version of the updateconfig.ini file.
+         * If there is not, check to see if there is a "default" version of the file.
+         * If the "default" version of the file exists and the "base" does not,
+         * copy the "default" to the "base".
+         */
+        private void CheckUpdateConfigFile()
+        {
+            string updateConfigIniPath = ProgramConstants.GamePath + "updateconfig.ini";
+            if (File.Exists(updateConfigIniPath))
+                return;
+
+            string updateConfigDefaultIniPath = ProgramConstants.GamePath + "updateconfig.default.ini";
+            if (!File.Exists(updateConfigDefaultIniPath))
+                return;
+
+            File.Copy(updateConfigDefaultIniPath, updateConfigIniPath);
         }
 
         /// <summary>
