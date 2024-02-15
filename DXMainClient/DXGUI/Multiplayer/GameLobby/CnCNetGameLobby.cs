@@ -54,6 +54,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             this.gameCollection = gameCollection;
             this.cncnetUserData = cncnetUserData;
             this.pmWindow = pmWindow;
+            gameHostInactiveCheck = new GameHostInactiveCheck(WindowManager);
 
             ctcpCommandHandlers = new CommandHandlerBase[]
             {
@@ -132,8 +133,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private MapSharingConfirmationPanel mapSharingConfirmationPanel;
 
-        private XNATimerControl gameHostActivityTimer;
-        private GameHostInactiveCheck gameHostInactiveCheck;
+        private readonly GameHostInactiveCheck gameHostInactiveCheck;
 
         /// <summary>
         /// The SHA1 of the latest selected map.
@@ -158,7 +158,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             IniNameOverride = nameof(CnCNetGameLobby);
             base.Initialize();
 
-            MouseMove += (sender, args) => RefreshInactiveCheck();
+            MouseMove += (sender, args) => gameHostInactiveCheck.Reset();
 
             btnChangeTunnel = FindChild<XNAClientButton>(nameof(btnChangeTunnel));
             btnChangeTunnel.LeftClick += BtnChangeTunnel_LeftClick;
@@ -169,15 +169,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             gameBroadcastTimer.Enabled = false;
             gameBroadcastTimer.TimeElapsed += GameBroadcastTimer_TimeElapsed;
 
-            gameHostInactiveCheck = new GameHostInactiveCheck();
-            gameHostInactiveCheck.CloseInactiveGame += GameHostInactiveCheck_CloseInactiveGame;
-            gameHostInactiveCheck.SendInactiveGameWarningMessage += GameHostInactiveCheck_SendInactiveGameWarningMessage;
-
-            gameHostActivityTimer = new XNATimerControl(WindowManager);
-            gameHostActivityTimer.AutoReset = true;
-            gameHostActivityTimer.Interval = TimeSpan.FromSeconds(1.0);
-            gameHostActivityTimer.Enabled = false;
-            gameHostActivityTimer.TimeElapsed += GameHostActivityTimer_TimeElapsed;
+            gameHostInactiveCheck.CloseEvent += GameHostInactiveCheckCloseEvent;
 
             tunnelSelectionWindow = new TunnelSelectionWindow(WindowManager, tunnelHandler);
             tunnelSelectionWindow.Initialize();
@@ -193,7 +185,6 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             mapSharingConfirmationPanel.MapDownloadConfirmed += MapSharingConfirmationPanel_MapDownloadConfirmed;
 
             WindowManager.AddAndInitializeControl(gameBroadcastTimer);
-            WindowManager.AddAndInitializeControl(gameHostActivityTimer);
 
             globalContextMenu = new GlobalContextMenu(WindowManager, connectionManager, cncnetUserData, pmWindow);
             AddChild(globalContextMenu);
@@ -238,11 +229,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 RandomSeed = new Random().Next();
                 RefreshMapSelectionUI();
                 btnChangeTunnel.Enable();
-                if (ClientConfiguration.Instance.InactiveHostKickEnabled)
-                {
-                    gameHostActivityTimer.Enabled = true;
-                    gameHostActivityTimer.Start();
-                }
+                StartInactiveCheck();
             }
             else
             {
@@ -262,29 +249,16 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private void TunnelHandler_CurrentTunnelPinged(object sender, EventArgs e) => UpdatePing();
 
-        private void GameHostActivityTimer_TimeElapsed(object sender, EventArgs e) => gameHostInactiveCheck.Start();
+        private void GameHostInactiveCheckCloseEvent(object sender, EventArgs e) => LeaveGameLobby();
 
-        private void GameHostInactiveCheck_SendInactiveGameWarningMessage(object sender, EventArgs e)
+        public void StartInactiveCheck()
         {
-            XNAMessageBox hostInactiveWarningMessageBox = new XNAMessageBox(
-                WindowManager,
-                ClientConfiguration.Instance.InactiveHostWarningTitle,
-                ClientConfiguration.Instance.InactiveHostWarningMessage,
-                XNAMessageBoxButtons.OK
-            );
-            hostInactiveWarningMessageBox.OKClickedAction = InactiveMessageBox_OKClicked;
-            hostInactiveWarningMessageBox.Show();
+            if (!ClientConfiguration.Instance.InactiveHostKickEnabled)
+                return;
+            gameHostInactiveCheck.Start();
         }
 
-        private void GameHostInactiveCheck_CloseInactiveGame(object sender, EventArgs e) => LeaveGameLobby();
-
-        private void InactiveMessageBox_OKClicked(XNAMessageBox messageBox) => gameHostInactiveCheck.Reset();
-
-        public void RefreshInactiveCheck()
-        {
-            if (gameHostActivityTimer.Enabled)
-                gameHostInactiveCheck.Reset();
-        }
+        public void StopInactiveCheck() => gameHostInactiveCheck.Stop();
 
         public void OnJoined()
         {
@@ -415,8 +389,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         {
             if (IsHost)
             {
-                gameHostActivityTimer.Enabled = false;
-                gameHostActivityTimer.Pause();
+                StopInactiveCheck();
                 closed = true;
                 BroadcastGame();
             }
@@ -1258,7 +1231,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 BroadcastPlayerOptions();
                 BroadcastPlayerExtraOptions();
 
-                gameHostActivityTimer.Resume();
+                StartInactiveCheck();
 
                 if (Players.Count < playerLimit)
                     UnlockGame(true);
@@ -1328,7 +1301,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 HandleCheatDetectedMessage(ProgramConstants.PLAYERNAME);
             }
 
-            gameHostActivityTimer.Pause();
+            StopInactiveCheck();
 
             base.StartGame();
         }
