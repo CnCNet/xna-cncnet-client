@@ -2,9 +2,9 @@ name: build client
 
 on:
   push:
-    branches: [ master, develop ]
+    branches: [ master, develop, yr/** ]
   pull_request:
-    branches: [ master, develop ]
+    branches: [ master, develop, yr/** ]
   workflow_dispatch:
 
 jobs:
