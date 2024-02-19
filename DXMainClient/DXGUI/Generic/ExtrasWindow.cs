@@ -73,6 +73,8 @@ namespace DTAClient.DXGUI.Generic
             else
                 mapEditorProcess.StartInfo.FileName = SafePath.CombineFilePath(ProgramConstants.GamePath, ClientConfiguration.Instance.UnixMapEditorExePath);
 
+            mapEditorProcess.StartInfo.UseShellExecute = false;
+
             mapEditorProcess.Start();
 
             Enabled = false;
