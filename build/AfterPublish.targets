@@ -43,7 +43,7 @@
 	  <!-- Then, compile the whole project, and determining whether each dll file is consistent by comparing file hashes.  -->
 	  <!-- Write all dll files that are consistent among Windows/OpenGL/XNA builds. -->
     <Message Importance="high" Text="Moving common binaries"/>
-    <Move SourceFiles="$(PublishDir)DTAUpdater.dll" DestinationFolder="$(PublishDir)../" />
+    <Move SourceFiles="$(PublishDir)ClientUpdater.dll" DestinationFolder="$(PublishDir)../" />
     <Move SourceFiles="$(PublishDir)DiscordRPC.dll" DestinationFolder="$(PublishDir)../" />
     <Move SourceFiles="$(PublishDir)lzo.net.dll" DestinationFolder="$(PublishDir)../" />
     <Move SourceFiles="$(PublishDir)Microsoft.Extensions.Configuration.Abstractions.dll" DestinationFolder="$(PublishDir)../" />
