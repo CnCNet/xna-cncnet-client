@@ -15,7 +15,7 @@
   <Import Project="$(MSBuildThisFileDirectory)..\build\WinForms.props" />
   <ItemGroup>
     <!-- Note: currently, CnCNet.ClientUpdater 1.10.16 which reverts to net48 hasn't get released. Replease files in "References" folder and remove this comment. -->
-    <PackageReference Include="CnCNet.ClientUpdater" Version="1.0.16-local-ff5fdc9" />
+    <PackageReference Include="CnCNet.ClientUpdater" Version="1.0.16-local-a148935" />
     <PackageReference Include="GitVersion.MsBuild" Version="5.11.1">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
