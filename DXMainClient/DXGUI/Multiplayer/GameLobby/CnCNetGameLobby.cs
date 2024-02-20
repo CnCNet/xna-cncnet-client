@@ -253,7 +253,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         public void StartInactiveCheck()
         {
-            if (!ClientConfiguration.Instance.InactiveHostKickEnabled)
+            if (!ClientConfiguration.Instance.InactiveHostKickEnabled || isCustomPassword)
                 return;
             gameHostInactiveCheck.Start();
         }
