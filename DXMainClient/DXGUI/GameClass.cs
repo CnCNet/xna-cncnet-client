@@ -279,7 +279,14 @@ namespace DTAClient.DXGUI
                             .AddSingletonXnaControl<MainMenu>()
                             .AddSingletonXnaControl<MapPreviewBox>()
                             .AddSingletonXnaControl<GameLaunchButton>()
-                            .AddSingletonXnaControl<PlayerExtraOptionsPanel>();
+                            .AddSingletonXnaControl<PlayerExtraOptionsPanel>()
+                            .AddSingletonXnaControl<CampaignSelector>()
+                            .AddSingletonXnaControl<GameLoadingWindow>()
+                            .AddSingletonXnaControl<StatisticsWindow>()
+                            .AddSingletonXnaControl<UpdateQueryWindow>()
+                            .AddSingletonXnaControl<ManualUpdateQueryWindow>()
+                            .AddSingletonXnaControl<UpdateWindow>()
+                            .AddSingletonXnaControl<ExtrasWindow>();
 
                         // transient xna controls - new instance on each request
                         services
