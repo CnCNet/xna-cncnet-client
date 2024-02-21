@@ -8,7 +8,7 @@ jobs:
     if: github.event.workflow_run.event == 'pull_request' && github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/github-script@v6.3.1
+      - uses: actions/github-script@v6
         with:
           # This snippet is public-domain, taken from
           # https://github.com/oprypin/nightly.link/blob/master/.github/workflows/pr-comment.yml
