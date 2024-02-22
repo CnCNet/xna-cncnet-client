@@ -1,4 +1,3 @@
-
 # CnCNet Client
 
 The MonoGame / XNA CnCNet client, a platform for playing classic Command & Conquer games and their mods both online and offline. Supports setting up and launching both singleplayer and multiplayer games with [a CnCNet game spawner](https://github.com/CnCNet/ts-patches). Includes an IRC-based chat client with advanced features like private messaging, a friend list, a configurable game lobby, flexible and moddable UI graphics, and extras like game setting configuration and keeping track of match statistics. And much more!
@@ -15,7 +14,7 @@ However, there is no limitation in the client that would prevent incorporating i
 
 ## Development requirements
 
-The client has 2 variants: .NET 8.0 and .NET 4.8.
+The client has 2 variants: .NET 4.8 and .NET 8.0.
 * Both variants have 3 builds: Windows DirectX11, Windows OpenGL and Windows XNA.
 * .NET 8.0 in addition has a cross-platform Universal OpenGL build.
 * The DirectX11 and OpenGL builds rely on MonoGame.
@@ -29,45 +28,30 @@ When using the included build scripts PowerShell 7.2 or newer is required.
 
 * Compiling itself is simple: assuming you have the .NET 8.0 SDK installed, you can just open the solution with Visual Studio and compile it right away.
 * When built as a debug build, the client executable expects to reside in the same directory with the target project's main game executable. Resources should exist in a "Resources" sub-directory in the same directory. The repository contains sample resources and post-build commands for copying them so that you can immediately run the client in debug mode by just hitting the Debug button in Visual Studio.
-* When built in release mode, the client executable expects to reside in the "Resources" sub-directory itself. In target projects, the client libraries are named `clientdx.dll`, `clientogl.dll` and `clientxna.dll` respectively for each platform. For .NET 4.8 these will be `.exe` instead of `.dll` files.
+* When built in release mode, the client executables expect to reside in the `Resources` sub-directory itself for .NET 4.8, named `clientdx.exe`, `clientogl.exe` and `clientxna.exe`. For .NET 8.0, those executables will reside in `Resources\BinariesNET8\{Windows, OpenGL, UniversalGL, XNA}` folders, named `client{dx, ogl, ogl, xna}.dll`, respectively. Note that `client{dx, ogl, ogl, xna}.runtimeconfig.json` files are required for the corresponding dlls.
 * When built on an OS other than Windows, only the Universal OpenGL build is available.
 * The `BuildScripts` directory has automated build scripts that build the client for all platforms and copy the output files to a folder named `Compiled` in the project root. You can then copy the contents of this `Compiled` directory into the `Resources` sub-directory of any target project.
 
 <details>
   <summary>Development workarounds</summary>
 
-* If you switch among different solution configurations in Visual Studio (e.g. `AresWindowsDXDebug` -> `TSUniversalGLRelease`), especially switching between .NET 4.8 and .NET 8.0 variants, it is recommended to restart Visual Studio after switching configurations to prevent unexpected error messages. If restarting Visual Studio do not work as intended, try deleting all `obj` folders in each project.
+* If you switch among different solution configurations in Visual Studio (e.g. switch to `TSUniversalGLRelease` from `AresWindowsDXDebug`), especially switching between .NET 4.8 and .NET 8.0 variants, it is recommended to restart Visual Studio after switching configurations to prevent unexpected error messages. If restarting Visual Studio do not work as intended, try deleting all `obj` folders in each project. Due to the same reason, it is advised to close Visual Studio when building the client using the scripts in `BuildScripts` folder.
 * Some dependencies are stored in `References` folder instead of the official NuGet source. This folder is also useful if you are working on modifying a dependency and debugging in your local machine without publishing the modification to NuGet. However, if you have replaced the `.(s)nupkg` files of a package, without altering the package version, be sure to remove the corresponding package from `%USERPROFILE%\.nuget\packages` folder to purge the old version. 
 </details>
 
 ## End-user usage
 
-* Windows: Windows 7 SP1 or higher is required. The DirectX11 build is preferred. The OpenGL or XNA build is intended for those whose GPU does not properly support DX11. On Windows ~~10/11 the .NET 8.0 variant is recommended, on legacy Windows versions~~ the .NET 4.8 variant is recommended.
+* Windows: Windows 7 SP1 or higher is required. The preferred build is DirectX11 (.NET 4.8), i.e., `clientdx.exe`. If your GPU does not support DX11, consider using the OpenGL or XNA build instead. Advanced users may experiment with the .NET 8 builds at their discretion.
 * Other OS: Use the Universal OpenGL build.
 
 ## End-user requirements
 
-### Windows requirements:
+### Windows .NET 4.8 requirements:
+
+* The [.NET Framework 4.8 Runtime](https://dotnet.microsoft.com/en-us/download/dotnet-framework/thank-you/net48-web-installer)
 
 (Optional) The XNA build requires:
 * [Microsoft XNA Framework Redistributable 4.0 Refresh](https://www.microsoft.com/en-us/download/details.aspx?id=27598).
-
-#### Windows .NET 8.0 requirements:
-
-* The [.NET 8.0 Desktop Runtime](https://dotnet.microsoft.com/en-us/download/dotnet/8.0/runtime?initial-os=windows) for your specific platform.
-
-(Optional) The XNA build additionally requires:
-* [.NET 8.0 Desktop Runtime x86](https://dotnet.microsoft.com/en-us/download/dotnet/thank-you/runtime-desktop-8.0.0-windows-x86-installer).
-
-Windows 7 SP1 and Windows 8.x additionally require:
-* Microsoft Visual C++ 2015-2019 Redistributable [64-bit](https://aka.ms/vs/16/release/vc_redist.x64.exe) / [32-bit](https://aka.ms/vs/16/release/vc_redist.x86.exe).
-
-Windows 7 SP1 additionally requires:
-* KB3063858 [64-bit](https://www.microsoft.com/download/details.aspx?id=47442) / [32-bit](https://www.microsoft.com/download/details.aspx?id=47409).
-
-#### Windows .NET 4.8 requirements:
-
-* The [.NET Framework 4.8 Runtime](https://dotnet.microsoft.com/en-us/download/dotnet-framework/thank-you/net48-web-installer)
 
 ### Linux requirements:
 
@@ -76,6 +60,24 @@ Windows 7 SP1 additionally requires:
 ### macOS requirements:
 
 * The [.NET 8.0 Runtime](https://dotnet.microsoft.com/en-us/download/dotnet/8.0/runtime?initial-os=macos) for your specific platform.
+
+### Windows .NET 8.0 requirements:
+
+<details>
+  <summary>Windows .NET 8.0 requirements</summary>
+
+* The [.NET 8.0 Desktop Runtime](https://dotnet.microsoft.com/en-us/download/dotnet/8.0/runtime?initial-os=windows) for your specific platform.
+
+(Optional) The XNA build requires:
+* [Microsoft XNA Framework Redistributable 4.0 Refresh](https://www.microsoft.com/en-us/download/details.aspx?id=27598).
+* [.NET 8.0 Desktop Runtime x86](https://dotnet.microsoft.com/en-us/download/dotnet/thank-you/runtime-desktop-8.0.0-windows-x86-installer).
+
+Windows 7 SP1 and Windows 8.x additionally require:
+* Microsoft Visual C++ 2015-2019 Redistributable [64-bit](https://aka.ms/vs/16/release/vc_redist.x64.exe) / [32-bit](https://aka.ms/vs/16/release/vc_redist.x86.exe).
+
+Windows 7 SP1 additionally requires:
+* KB3063858 [64-bit](https://www.microsoft.com/download/details.aspx?id=47442) / [32-bit](https://www.microsoft.com/download/details.aspx?id=47409).
+</details>
 
 ## Client launcher
 
