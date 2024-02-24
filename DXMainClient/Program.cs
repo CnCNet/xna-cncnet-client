@@ -174,7 +174,7 @@ namespace DTAClient
         }
 #endif
 
-        // SearchResourcesDir is copied from ClientCore
+        /// <inheritdoc cref="ClientCore.ProgramConstants.SearchResourcesDir"/>
         private static string SearchResourcesDir(string startupPath)
         {
             DirectoryInfo currentDir = new(startupPath);

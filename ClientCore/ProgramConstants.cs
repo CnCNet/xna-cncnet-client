@@ -140,6 +140,14 @@ namespace ClientCore
                 Environment.Exit(1);
         };
 
+        /// <summary>
+        /// This method finds the "Resources" directory by traversing the directory tree upwards from the startup path.
+        /// </summary>
+        /// <remarks>
+        /// This method is needed by both ClientCore and DXMainClient. However, since it is usually called at the very beginning,
+        /// where DXMainClient could not refer to ClientCore, this method is copied to both projects.
+        /// Remember to keep <see cref="ClientCore.ProgramConstants.SearchResourcesDir"/> and <see cref="DTAClient.Program.SearchResourcesDir"/> consistent if you have modified its source codes.
+        /// </remarks>
         private static string SearchResourcesDir(string startupPath)
         {
             DirectoryInfo currentDir = new(startupPath);
