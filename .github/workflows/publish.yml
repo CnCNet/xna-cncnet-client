@@ -3,6 +3,7 @@ on:
   workflow_dispatch:
 permissions:
   contents: write
+  packages: write
 jobs:
   calculate-version:
     name: Calculate Version
@@ -108,9 +109,9 @@ jobs:
       with:
         path: artifacts
         merge-multiple: true
-    - name: Push
-      run: dotnet nuget push artifacts\*\*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json
     - name: Release
       run: gh release create v${{ env.SemVer }} @((Get-Item artifacts\*.zip) + (Get-Item artifacts\*\*.*nupkg)) --generate-notes --target ${{ env.Sha }} ${{ env.PreReleaseTag != '' && '--prerelease' || '' }}
       env:
         GH_TOKEN: ${{ github.token }}
+    - name: Push
+      run: dotnet nuget push @(Get-Item artifacts\*\*.nupkg) --api-key ${{ secrets.GITHUB_TOKEN }} --source ${{ format('https://nuget.pkg.github.com/{0}/index.json', github.repository_owner) }}
